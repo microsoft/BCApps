@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -42,19 +42,16 @@ page 5073 "Contact Int. Entries Subform"
                 field("Document Type"; Rec."Document Type")
                 {
                     ApplicationArea = RelationshipMgmt;
-                    ToolTip = 'Specifies the type of document if there is one that the interaction log entry records. You cannot change the contents of this field.';
                     Visible = false;
                 }
                 field("Document No."; Rec."Document No.")
                 {
                     ApplicationArea = RelationshipMgmt;
-                    ToolTip = 'Specifies the number of the document (if any) that the interaction log entry records.';
                     Visible = false;
                 }
                 field(Description; Rec.Description)
                 {
                     ApplicationArea = RelationshipMgmt;
-                    ToolTip = 'Specifies the description of the interaction.';
                 }
                 field(Attachment; Rec."Attachment No." <> 0)
                 {
@@ -72,45 +69,37 @@ page 5073 "Contact Int. Entries Subform"
                 field(Comment; Rec.Comment)
                 {
                     ApplicationArea = Comments;
-                    ToolTip = 'Specifies that a comment exists for this interaction log entry.';
                 }
                 field("Opportunity No."; Rec."Opportunity No.")
                 {
                     ApplicationArea = RelationshipMgmt;
-                    ToolTip = 'Specifies the number of the opportunity to which the interaction is linked.';
                 }
                 field("Campaign No."; Rec."Campaign No.")
                 {
                     ApplicationArea = RelationshipMgmt;
-                    ToolTip = 'Specifies the number of the campaign (if any) to which the interaction is linked. This field is not editable.';
                 }
                 field(Date; Rec.Date)
                 {
                     ApplicationArea = RelationshipMgmt;
-                    ToolTip = 'Specifies the date that you have entered in the Date field in the Create Interaction wizard or the Segment window when you created the interaction. The field is not editable.';
                 }
                 field(Evaluation; Rec.Evaluation)
                 {
                     ApplicationArea = RelationshipMgmt;
-                    ToolTip = 'Specifies the evaluation of the interaction. There are five options: Very Positive, Positive, Neutral, Negative, and Very Negative.';
                     Visible = false;
                 }
                 field("Time of Interaction"; Rec."Time of Interaction")
                 {
                     ApplicationArea = RelationshipMgmt;
-                    ToolTip = 'Specifies the time when the interaction was created. This field is not editable.';
                     Visible = false;
                 }
                 field(Canceled; Rec.Canceled)
                 {
                     ApplicationArea = RelationshipMgmt;
-                    ToolTip = 'Specifies whether the interaction has been canceled. The field is not editable.';
                     Visible = false;
                 }
                 field("Attempt Failed"; Rec."Attempt Failed")
                 {
                     ApplicationArea = RelationshipMgmt;
-                    ToolTip = 'Specifies whether the interaction records an failed attempt to reach the contact. This field is not editable.';
                     Visible = false;
                 }
                 field("Duration (Min.)"; Rec."Duration (Min.)")

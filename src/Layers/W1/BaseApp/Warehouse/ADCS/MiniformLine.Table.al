@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -26,12 +26,14 @@ table 7701 "Miniform Line"
         field(11; "Area"; Option)
         {
             Caption = 'Area';
+            ToolTip = 'Specifies the area of the customer or vendor, for the purpose of reporting to INTRASTAT.';
             OptionCaption = 'Header,Body,Footer', Locked = true;
             OptionMembers = Header,Body,Footer;
         }
         field(12; "Field Type"; Option)
         {
             Caption = 'Field Type';
+            ToolTip = 'Specifies the type of data that is defined in the miniform line.';
             OptionCaption = 'Text,Input,Output,Asterisk', Locked = true;
             OptionMembers = Text,Input,Output,Asterisk;
 
@@ -51,6 +53,7 @@ table 7701 "Miniform Line"
         field(13; "Table No."; Integer)
         {
             Caption = 'Table No.';
+            ToolTip = 'Specifies the number of the table in the program from which the data comes or in which it is entered.';
 
             trigger OnLookup()
             var
@@ -79,6 +82,7 @@ table 7701 "Miniform Line"
         field(14; "Field No."; Integer)
         {
             Caption = 'Field No.';
+            ToolTip = 'Specifies the number of the field from which the data comes or in which the data is entered.';
 
             trigger OnLookup()
             var
@@ -108,14 +112,17 @@ table 7701 "Miniform Line"
         field(15; Text; Text[30])
         {
             Caption = 'Text';
+            ToolTip = 'Specifies text if the field type is Text.';
         }
         field(16; "Field Length"; Integer)
         {
             Caption = 'Field Length';
+            ToolTip = 'Specifies the maximum length of the field value.';
         }
         field(21; "Call Miniform"; Code[20])
         {
             Caption = 'Call Miniform';
+            ToolTip = 'Specifies which miniform will be called when the user on the handheld selects the choice on the line.';
             TableRelation = "Miniform Header";
 
             trigger OnValidate()

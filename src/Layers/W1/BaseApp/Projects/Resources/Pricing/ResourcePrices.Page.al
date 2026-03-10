@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -27,27 +27,22 @@ page 204 "Resource Prices"
                 field(Type; Rec.Type)
                 {
                     ApplicationArea = Jobs;
-                    ToolTip = 'Specifies the type.';
                 }
                 field("Code"; Rec.Code)
                 {
                     ApplicationArea = Jobs;
-                    ToolTip = 'Specifies the code.';
                 }
                 field("Work Type Code"; Rec."Work Type Code")
                 {
                     ApplicationArea = Jobs;
-                    ToolTip = 'Specifies which work type the resource applies to. Prices are updated based on this entry.';
                 }
                 field("Currency Code"; Rec."Currency Code")
                 {
                     ApplicationArea = Jobs;
-                    ToolTip = 'Specifies the currency code of the alternate sales price on this line.';
                 }
                 field("Unit Price"; Rec."Unit Price")
                 {
                     ApplicationArea = Jobs;
-                    ToolTip = 'Specifies the price of one unit of the item or resource. You can enter a price manually or have it entered according to the Price/Profit Calculation field on the related card.';
                 }
             }
         }

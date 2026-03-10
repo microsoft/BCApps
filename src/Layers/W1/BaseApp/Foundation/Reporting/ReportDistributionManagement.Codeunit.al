@@ -5,6 +5,7 @@
 namespace Microsoft.Foundation.Reporting;
 
 using Microsoft.EServices.EDocument;
+using Microsoft.Foundation.Company;
 using Microsoft.Projects.Project.Job;
 using Microsoft.Purchases.Document;
 using Microsoft.Purchases.History;
@@ -190,6 +191,7 @@ codeunit 452 "Report Distribution Management"
         PurchaseHeader: Record "Purchase Header";
         Job: Record Job;
         JobTask: Record "Job Task";
+        CompanyInformationMgt: Codeunit "Company Information Mgt.";
         DocumentRecordRef: RecordRef;
     begin
         if DocumentVariant.IsRecord then
@@ -202,36 +204,37 @@ codeunit 452 "Report Distribution Management"
             DATABASE::"Sales Invoice Header":
                 begin
                     DocumentRecordRef.SetTable(SalesInvoiceHeader);
-                    exit(SalesInvoiceHeader."Language Code");
+                    LanguageCode := SalesInvoiceHeader."Language Code";
                 end;
             DATABASE::"Sales Cr.Memo Header":
                 begin
                     DocumentRecordRef.SetTable(SalesCrMemoHeader);
-                    exit(SalesCrMemoHeader."Language Code");
+                    LanguageCode := SalesCrMemoHeader."Language Code";
                 end;
             DATABASE::"Sales Header":
                 begin
                     DocumentRecordRef.SetTable(SalesHeader);
-                    exit(SalesHeader."Language Code");
+                    LanguageCode := SalesHeader."Language Code";
                 end;
             DATABASE::"Purchase Header":
                 begin
                     DocumentRecordRef.SetTable(PurchaseHeader);
-                    exit(PurchaseHeader."Language Code");
+                    LanguageCode := PurchaseHeader."Language Code";
                 end;
             DATABASE::Job:
                 begin
                     DocumentRecordRef.SetTable(Job);
-                    exit(Job."Language Code");
+                    LanguageCode := Job."Language Code";
                 end;
             DATABASE::"Job Task":
                 begin
                     DocumentRecordRef.SetTable(JobTask);
-                    exit(JobTask."Language Code");
+                    LanguageCode := JobTask."Language Code";
                 end;
             else
                 OnGetDocumentLanguageCodeCaseElse(DocumentRecordRef, LanguageCode);
         end;
+        CompanyInformationMgt.GetLanguageDefault(LanguageCode);
     end;
 
     procedure GetReportCaption(ReportID: Integer; LanguageCode: Code[10]) ReportCaption: Text[250]

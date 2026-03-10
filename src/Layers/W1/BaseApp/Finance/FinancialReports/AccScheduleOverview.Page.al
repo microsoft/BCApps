@@ -14,6 +14,7 @@ using Microsoft.Foundation.Period;
 using System.Reflection;
 using System.Telemetry;
 using System.Text;
+using System.Utilities;
 
 /// <summary>
 /// Provides comprehensive account schedule overview interface with matrix-style financial data presentation.
@@ -67,12 +68,30 @@ page 490 "Acc. Schedule Overview"
                 field(FinancialReportName; TempFinancialReport.Name)
                 {
                     ApplicationArea = Basic, Suite;
-                    Editable = false;
                     Caption = 'Name';
                     Tooltip = 'Specifies the name (code) of the financial report.';
-                    trigger OnAssistEdit()
+
+                    trigger OnValidate()
+                    var
+                        FinancialReport: Record "Financial Report";
+                        ConfirmMgt: Codeunit "Confirm Management";
+                        NewName: Code[10];
+                        RenameQst: Label 'Your change might update related records, which can take a while. Do you want to continue?';
                     begin
-                        Page.RunModal(Page::"Financial Reports");
+                        if not FinancialReport.Get(FinancialReportCode) then
+                            Error('');
+                        if FinancialReport.Name = TempFinancialReport.Name then
+                            Error('');
+                        if not ConfirmMgt.GetResponse(RenameQst) then
+                            Error('');
+                        NewName := TempFinancialReport.Name;
+                        TempFinancialReport.Name := FinancialReport.Name;
+                        SaveStateToFinancialReport();
+                        SaveStateToUserFilters();
+                        FinancialReport.Find();
+                        FinancialReport.Rename(NewName);
+                        FinancialReportCode := NewName;
+                        ReloadPage();
                     end;
                 }
 
@@ -83,7 +102,15 @@ page 490 "Acc. Schedule Overview"
                     Editable = not ViewOnlyMode;
                     ToolTip = 'Specifies a title of the financial report. The text is shown as a title on the final report when you run it to get a PDF or to print it.';
                 }
-
+                field(CategoryCode; TempFinancialReport.CategoryCode)
+                {
+                    ApplicationArea = Basic, Suite;
+                    Caption = 'Category';
+                    Editable = not ViewOnlyMode;
+                    Importance = Additional;
+                    TableRelation = "Financial Report Category";
+                    ToolTip = 'Specifies the category code for the financial report.';
+                }
                 field(CurrentSchedName; TempFinancialReport."Financial Report Row Group")
                 {
                     ApplicationArea = Basic, Suite;
@@ -92,9 +119,12 @@ page 490 "Acc. Schedule Overview"
                     Importance = Additional;
                     Lookup = true;
                     LookupPageID = "Account Schedule Names";
+                    Style = Attention;
+                    StyleExpr = RowDefinitionBlocked;
                     ToolTip = 'Specifies the name (code) of the row definition to be used for the report.';
                     AboutTitle = 'About row definition';
                     AboutText = 'Change the row definition of the report. You can use the built-in row definitions, or create your own';
+
                     trigger OnLookup(var Text: Text): Boolean
                     var
                         FinancialReportRowGroup: Text[10];
@@ -114,6 +144,12 @@ page 490 "Acc. Schedule Overview"
                         CurrentSchedNameOnAfterValidate();
                     end;
                 }
+                group(RowBlocked)
+                {
+                    ShowCaption = false;
+                    InstructionalText = 'The current row definition has a blocked status.';
+                    Visible = RowDefinitionBlocked;
+                }
                 field(CurrentColumnName; TempFinancialReport."Financial Report Column Group")
                 {
                     ApplicationArea = Basic, Suite;
@@ -122,6 +158,8 @@ page 490 "Acc. Schedule Overview"
                     Importance = Additional;
                     Lookup = true;
                     LookupPageId = "Column Layout Names";
+                    Style = Attention;
+                    StyleExpr = ColDefinitionBlocked;
                     ToolTip = 'Specifies the name (code) of the column definition to be used for the report.';
                     AboutTitle = 'About column definition';
                     AboutText = 'Change the column definition of the report. You can use the built-in column definitions, or create your own.';
@@ -147,6 +185,12 @@ page 490 "Acc. Schedule Overview"
                         CurrentColumnName := TempFinancialReport."Financial Report Column Group";
                         CurrentColumnNameOnAfterValidate();
                     end;
+                }
+                group(ColBlocked)
+                {
+                    ShowCaption = false;
+                    InstructionalText = 'The current column definition has a blocked status.';
+                    Visible = ColDefinitionBlocked;
                 }
                 field(DimPerspectiveName; TempFinancialReport.DimPerspective)
                 {
@@ -371,6 +415,14 @@ page 490 "Acc. Schedule Overview"
                         CurrPage.Update();
                     end;
                 }
+                field(FinancialReportStatus; TempFinancialReport.Status)
+                {
+                    ApplicationArea = Basic, Suite;
+                    Caption = 'Status';
+                    Editable = not ViewOnlyMode;
+                    TableRelation = "Financial Report Status";
+                    ToolTip = 'Specifies the status code for the financial report. The status code helps you organize the lifecycle of your financial reports.';
+                }
                 field(InternalDescription; TempFinancialReport."Internal Description")
                 {
                     ApplicationArea = Basic, Suite;
@@ -378,6 +430,22 @@ page 490 "Acc. Schedule Overview"
                     ToolTip = 'Specifies the internal description of this financial report.';
                     MultiLine = true;
                     Editable = not ViewOnlyMode;
+                }
+                field("Last Run by User"; TempFinancialReport."Last Run by User")
+                {
+                    ApplicationArea = Basic, Suite;
+                    Caption = 'Your Last Run';
+                    ToolTip = 'Specifies the last date-time this report was run by you.';
+                    Editable = false;
+
+                    trigger OnDrillDown()
+                    var
+                        FinReportAuditLog: Record "Financial Report Audit Log";
+                    begin
+                        FinReportAuditLog.SetRange("Report Name", TempFinancialReport.Name);
+                        FinReportAuditLog.SetRange(User, UserId());
+                        Page.Run(0, FinReportAuditLog);
+                    end;
                 }
             }
             group(IntroductoryParagraphGroup)
@@ -953,6 +1021,7 @@ page 490 "Acc. Schedule Overview"
                     AccSchedManagement.FindPeriod(Rec, '>=', TempFinancialReport.GetEffectivePeriodType());
                     DateFilter := Rec.GetFilter("Date Filter");
                     UpdateColumnCaptions();
+                    CurrPage.Update();
                 end;
             }
             action(PreviousPeriod)
@@ -967,6 +1036,7 @@ page 490 "Acc. Schedule Overview"
                     AccSchedManagement.FindPeriod(Rec, '<=', TempFinancialReport.GetEffectivePeriodType());
                     DateFilter := Rec.GetFilter("Date Filter");
                     UpdateColumnCaptions();
+                    CurrPage.Update();
                 end;
             }
             action(NextColumn)
@@ -1086,6 +1156,20 @@ page 490 "Acc. Schedule Overview"
                         EditFinancialReportText.GetText(IntroductoryParagraph, ClosingParagraph);
                         SaveStateToFinancialReport();
                     end;
+                end;
+            }
+            action(EditCategory)
+            {
+                ApplicationArea = Basic, Suite;
+                Caption = 'Edit Category';
+                Image = Edit;
+                ToolTip = 'Edit the category of the current financial report.';
+                trigger OnAction()
+                var
+                    FinancialReportCategory: Record "Financial Report Category";
+                begin
+                    if FinancialReportCategory.Get(TempFinancialReport.CategoryCode) then
+                        Page.Run(Page::"Financial Report Category", FinancialReportCategory);
                 end;
             }
 
@@ -1241,6 +1325,22 @@ page 490 "Acc. Schedule Overview"
 #endif
                 }
             }
+
+            action("Audit Logs")
+            {
+                ApplicationArea = Basic, Suite;
+                Caption = 'Audit Logs';
+                Image = Log;
+                ToolTip = 'Opens the Financial Report Audit Logs for the selected report.';
+
+                trigger OnAction()
+                var
+                    FinReportAuditLog: Record "Financial Report Audit Log";
+                begin
+                    FinReportAuditLog.SetRange("Report Name", TempFinancialReport.Name);
+                    Page.Run(0, FinReportAuditLog);
+                end;
+            }
         }
         area(Promoted)
         {
@@ -1248,49 +1348,31 @@ page 490 "Acc. Schedule Overview"
             {
                 Caption = 'Process', Comment = 'Generated from the PromotedActionCategories property index 1.';
 
-                actionref(Recalculate_Promoted; Recalculate)
-                {
-                }
-                actionref(RestoreFinRepFilters_Promoted; RestoreFinRepFilters)
-                {
-                }
+                actionref(Recalculate_Promoted; Recalculate) { }
+                actionref(RestoreFinRepFilters_Promoted; RestoreFinRepFilters) { }
             }
             group(DisplayPromoted)
             {
                 Caption = 'Show';
                 ShowAs = SplitButton;
-                actionref(ShowNone_Promoted; DisplayNone)
-                {
-                }
-                actionref(ShowFiltersOnly_Promoted; DisplayFiltersOnly)
-                {
-                }
-                actionref(ShowAll_Promoted; DisplayAll)
-                {
-                }
+                actionref(ShowNone_Promoted; DisplayNone) { }
+                actionref(ShowFiltersOnly_Promoted; DisplayFiltersOnly) { }
+                actionref(ShowAll_Promoted; DisplayAll) { }
             }
 
             group(Category_Category4)
             {
                 Caption = 'Column', Comment = 'Generated from the PromotedActionCategories property index 3.';
 
-                actionref(PreviousColumn_Promoted; PreviousColumn)
-                {
-                }
-                actionref(NextColumn_Promoted; NextColumn)
-                {
-                }
+                actionref(PreviousColumn_Promoted; PreviousColumn) { }
+                actionref(NextColumn_Promoted; NextColumn) { }
             }
             group(Category_Category5)
             {
                 Caption = 'Period', Comment = 'Generated from the PromotedActionCategories property index 4.';
 
-                actionref(PreviousPeriod_Promoted; PreviousPeriod)
-                {
-                }
-                actionref(NextPeriod_Promoted; NextPeriod)
-                {
-                }
+                actionref(PreviousPeriod_Promoted; PreviousPeriod) { }
+                actionref(NextPeriod_Promoted; NextPeriod) { }
             }
             group("Category_Export to Excel")
             {
@@ -1322,32 +1404,20 @@ page 490 "Acc. Schedule Overview"
             group(Category_Definitions)
             {
                 Caption = 'Definitions';
-                actionref(EditDefinition_Promoted; EditDefinition)
-                {
-                }
-                actionref(EditRowDefinition_Promoted; EditRowDefinition)
-                {
-                }
-                actionref(EditColumnDefinition_Promoted; EditColumnDefinition)
-                {
-                }
-                actionref(EditDimPerspective_Promoted; EditDimPerspective)
-                {
-                }
-                actionref(EditIntroductoryClosingParagraph_Promoted; EditIntroductoryClosingParagraph)
-                {
-                }
-                actionref(ExcelTemplates_Promoted; ExcelTemplates)
-                {
-                }
-                actionref(Schedules_Promoted; Schedules)
-                {
-                }
+                actionref(EditDefinition_Promoted; EditDefinition) { }
+                actionref(EditRowDefinition_Promoted; EditRowDefinition) { }
+                actionref(EditColumnDefinition_Promoted; EditColumnDefinition) { }
+                actionref(EditDimPerspective_Promoted; EditDimPerspective) { }
+                actionref(EditCategory_Promoted; EditCategory) { }
+                actionref(EditIntroductoryClosingParagraph_Promoted; EditIntroductoryClosingParagraph) { }
+                actionref(ExcelTemplates_Promoted; ExcelTemplates) { }
+                actionref(Schedules_Promoted; Schedules) { }
             }
             group(Category_Report)
             {
                 Caption = 'Report', Comment = 'Generated from the PromotedActionCategories property index 2.';
             }
+            actionref("Audit Logs_Promoted"; "Audit Logs") { }
         }
     }
 
@@ -1388,12 +1458,15 @@ page 490 "Acc. Schedule Overview"
     end;
 
     trigger OnOpenPage()
+    var
+        FinancialReportAuditing: Codeunit "Financial Report Auditing";
     begin
         Clear(Rec);
         Clear(TempFinancialReport);
         ViewLayout := ViewLayout::"Show All";
         ReloadPage();
         LogUsageTelemetry();
+        FinancialReportAuditing.LogReportUsage(TempFinancialReport.Name, Enum::"Financial Report Format"::View);
 #if not CLEAN28
         FinancialReportDefaultsEnabled := FeatureFinancialReportDef.IsDefaultsFeatureEnabled();
 #endif
@@ -1460,6 +1533,8 @@ page 490 "Acc. Schedule Overview"
 #if not CLEAN28
         FinancialReportDefaultsEnabled: Boolean;
 #endif
+        RowDefinitionBlocked: Boolean;
+        ColDefinitionBlocked: Boolean;
 
     protected var
         AnalysisView: Record "Analysis View";
@@ -1590,6 +1665,7 @@ page 490 "Acc. Schedule Overview"
 
     protected procedure LoadPageState()
     var
+        ColumnLayoutName: Record "Column Layout Name";
         IsHandled: Boolean;
     begin
         GLSetup.Get();
@@ -1616,7 +1692,8 @@ page 490 "Acc. Schedule Overview"
         SetLoadedDimFilters();
         SetLoadedOtherFilters();
 
-        if AccSchedName.Get(TempFinancialReport."Financial Report Row Group") then
+        AccSchedName.SetAutoCalcFields("Status Blocked");
+        if AccSchedName.Get(TempFinancialReport."Financial Report Row Group") then begin
             if AccSchedName."Analysis View Name" <> '' then
                 AnalysisView.Get(AccSchedName."Analysis View Name")
             else begin
@@ -1624,12 +1701,21 @@ page 490 "Acc. Schedule Overview"
                 AnalysisView."Dimension 1 Code" := GLSetup."Global Dimension 1 Code";
                 AnalysisView."Dimension 2 Code" := GLSetup."Global Dimension 2 Code";
             end;
+            RowDefinitionBlocked := AccSchedName."Status Blocked";
+        end;
+
+        ColumnLayoutName.SetAutoCalcFields("Status Blocked");
+        if ColumnLayoutName.Get(TempFinancialReport."Financial Report Column Group") then
+            ColDefinitionBlocked := ColumnLayoutName."Status Blocked";
 
         FinReportMgt.CalcAccScheduleLineDateFilter(TempFinancialReport, Rec);
         ApplyShowFilter();
         UpdateDimFilterControls();
         DateFilter := Rec.GetFilter("Date Filter");
         UpdateColumnCaptions();
+
+        FinReportMgt.CheckStatus(TempFinancialReport.TableCaption(), TempFinancialReport.Status);
+
         OnBeforeCurrentColumnNameOnAfterValidate(TempFinancialReport."Financial Report Column Group");
         OnAfterOnOpenPage(Rec, TempFinancialReport."Financial Report Column Group");
     end;
@@ -1708,6 +1794,7 @@ page 490 "Acc. Schedule Overview"
         // Transfer filters from FinancialReport
         FinancialReportToLoadTemp.Init();
         FinancialReportToLoadTemp.TransferFields(FinancialReport);
+        FinancialReportToLoadTemp.CalcFields("Last Run by User");
         IntroductoryParagraph := FinancialReport.GetIntroductoryParagraph();
         ClosingParagraph := FinancialReport.GetClosingParagraph();
         if not ViewOnlyMode then

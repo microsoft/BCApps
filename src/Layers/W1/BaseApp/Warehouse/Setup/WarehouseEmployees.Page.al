@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -35,18 +35,15 @@ page 7328 "Warehouse Employees"
                 {
                     ApplicationArea = Location;
                     ShowMandatory = true;
-                    ToolTip = 'Specifies the code of the location in which the employee works.';
                 }
                 field(Default; Rec.Default)
                 {
                     ApplicationArea = Warehouse;
-                    ToolTip = 'Specifies that the location code that is defined as the default location for this employee''s activities.';
                 }
                 field("ADCS User"; Rec."ADCS User")
                 {
                     ApplicationArea = Warehouse;
                     Caption = 'ADCS User';
-                    ToolTip = 'Specifies the ADCS user name of a warehouse employee.';
                     Visible = false;
                 }
             }

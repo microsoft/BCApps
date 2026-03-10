@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -24,7 +24,6 @@ page 2368 "Remit Address"
                 field("Code"; Rec.Code)
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies an remit-to address code.';
                 }
                 field(Name; Rec.Name)
                 {
@@ -39,12 +38,10 @@ page 2368 "Remit Address"
                 field("Address 2"; Rec."Address 2")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies additional address information.';
                 }
                 field("Post Code"; Rec."Post Code")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the postal code.';
                 }
                 field(City; Rec.City)
                 {
@@ -58,13 +55,11 @@ page 2368 "Remit Address"
                     field(County; Rec.County)
                     {
                         ApplicationArea = Basic, Suite;
-                        ToolTip = 'Specifies the county of the address.';
                     }
                 }
                 field("Country/Region Code"; Rec."Country/Region Code")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the country/region of the address.';
 
                     trigger OnValidate()
                     begin
@@ -74,13 +69,11 @@ page 2368 "Remit Address"
                 field(Contact; Rec.Contact)
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the name of the person you regularly contact when you do business with this vendor at this address.';
                 }
                 field(Default; Rec.Default)
                 {
                     ApplicationArea = Basic, Suite;
                     Caption = 'Use as default';
-                    ToolTip = 'Specifies if this address is used by default for this vendor. Only one address can be set as the default.';
 
                     trigger OnValidate()
                     begin
@@ -98,7 +91,6 @@ page 2368 "Remit Address"
                 field("Phone No."; Rec."Phone No.")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the telephone number that is associated with the remit address.';
                 }
                 field("Fax No."; Rec."Fax No.")
                 {
@@ -110,12 +102,10 @@ page 2368 "Remit Address"
                 {
                     ApplicationArea = Basic, Suite;
                     ExtendedDatatype = EMail;
-                    ToolTip = 'Specifies the email address associated with the remit address.';
                 }
                 field("Home Page"; Rec."Home Page")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the recipient''s web site.';
                 }
             }
         }

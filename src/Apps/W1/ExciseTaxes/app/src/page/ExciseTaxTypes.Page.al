@@ -22,17 +22,14 @@ page 7414 "Excise Tax Types"
             {
                 field("Code"; Rec.Code)
                 {
-                    ApplicationArea = All;
                     ToolTip = 'Specifies the unique tax identifier.';
                 }
                 field(Description; Rec.Description)
                 {
-                    ApplicationArea = All;
                     ToolTip = 'Specifies the tax name for UI display.';
                 }
                 field(Enabled; Rec.Enabled)
                 {
-                    ApplicationArea = All;
                     ToolTip = 'Specifies whether this tax type is active and available for use.';
                 }
             }
@@ -43,42 +40,30 @@ page 7414 "Excise Tax Types"
     {
         area(Processing)
         {
-            action(EntryPermissions)
+            action("Entry Permissions")
             {
-                ApplicationArea = All;
                 Caption = 'Configure Entry Permissions';
                 ToolTip = 'Configure entry type permissions for this tax type.';
                 Image = Setup;
                 RunObject = Page "Excise Tax Entry Permissions";
                 RunPageLink = "Excise Tax Type Code" = field(Code);
-                Promoted = true;
-                PromotedCategory = Process;
-                PromotedOnly = true;
             }
-            action(ItemFARates)
+            action("Item/FA Rates")
             {
-                ApplicationArea = All;
                 Caption = 'Item/FA Rates';
                 ToolTip = 'Configure tax rates for specific items and fixed assets.';
-                Image = ItemAvailability;
+                Image = Setup;
                 RunObject = Page "Excise Tax Item/FA Rates";
                 RunPageLink = "Excise Tax Type Code" = field(Code);
-                Promoted = true;
-                PromotedCategory = Process;
-                PromotedOnly = true;
             }
         }
-        area(Navigation)
+        area(Promoted)
         {
-            action(Card)
+            actionref("Entry Permissions_Promoted"; "Entry Permissions")
             {
-                ApplicationArea = All;
-                Caption = 'Card';
-                ToolTip = 'Open the card for the selected tax type.';
-                Image = EditLines;
-                RunObject = Page "Excise Tax Type Card";
-                RunPageLink = Code = field(Code);
-                ShortCutKey = 'Shift+F7';
+            }
+            actionref("Item/FA Rates_Promoted"; "Item/FA Rates")
+            {
             }
         }
     }

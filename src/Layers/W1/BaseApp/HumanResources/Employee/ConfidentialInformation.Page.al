@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -22,17 +22,14 @@ page 5221 "Confidential Information"
                 field("Confidential Code"; Rec."Confidential Code")
                 {
                     ApplicationArea = BasicHR;
-                    ToolTip = 'Specifies a code to define the type of confidential information.';
                 }
                 field(Description; Rec.Description)
                 {
                     ApplicationArea = BasicHR;
-                    ToolTip = 'Specifies a description of the confidential information.';
                 }
                 field(Comment; Rec.Comment)
                 {
                     ApplicationArea = Comments;
-                    ToolTip = 'Specifies if a comment is associated with the entry.';
                 }
             }
         }

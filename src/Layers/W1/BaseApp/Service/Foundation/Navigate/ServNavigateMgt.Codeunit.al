@@ -31,7 +31,7 @@ codeunit 6494 "Serv. Navigate Mgt."
         ServiceInvoiceTxt: Label 'Service Invoice';
         ServiceCreditMemoTxt: Label 'Service Credit Memo';
 
-    [EventSubscriber(ObjectType::Page, Page::Navigate, 'OnAfterFindPostedDocuments', '', false, false)]
+    [EventSubscriber(ObjectType::Page, Page::Navigate, 'OnAfterFindPostedDocuments', '', true, false)]
     local procedure OnAfterFindPostedDocuments(var DocumentEntry: Record "Document Entry"; DocNoFilter: Text; PostingDateFilter: Text)
     begin
         FindServShipmentHeader(DocumentEntry, DocNoFilter, PostingDateFilter);
@@ -69,7 +69,7 @@ codeunit 6494 "Serv. Navigate Mgt."
         end;
     end;
 
-    [EventSubscriber(ObjectType::Page, Page::Navigate, 'OnAfterFindLedgerEntries', '', false, false)]
+    [EventSubscriber(ObjectType::Page, Page::Navigate, 'OnAfterFindLedgerEntries', '', true, false)]
     local procedure OnAfterFindLedgerEntries(var DocumentEntry: Record "Document Entry" temporary; DocNoFilter: Text; PostingDateFilter: Text)
     begin
         FindServEntries(DocumentEntry, DocNoFilter, PostingDateFilter);
@@ -90,7 +90,7 @@ codeunit 6494 "Serv. Navigate Mgt."
     end;
 
 
-    [EventSubscriber(ObjectType::Page, Page::Navigate, 'OnFindRecordsOnAfterSetSource', '', false, false)]
+    [EventSubscriber(ObjectType::Page, Page::Navigate, 'OnFindRecordsOnAfterSetSource', '', true, false)]
     local procedure OnFindRecordsOnAfterSetSource(
         var DocumentEntry: Record "Document Entry"; var PostingDate: Date;
         var DocType2: Text[100]; var DocNo: Code[20];
@@ -177,7 +177,7 @@ codeunit 6494 "Serv. Navigate Mgt."
         exit(DocEntryNoOfRecords);
     end;
 
-    [EventSubscriber(ObjectType::Page, Page::Navigate, 'OnFindExtRecordsForCustomer', '', false, false)]
+    [EventSubscriber(ObjectType::Page, Page::Navigate, 'OnFindExtRecordsForCustomer', '', true, false)]
     local procedure OnFindExtRecordsForCustomer(var DocumentEntry: Record "Document Entry"; ContactNo: Code[20]; ExtDocNo: Text[35])
     begin
         if ExtDocNo = '' then begin
@@ -220,7 +220,7 @@ codeunit 6494 "Serv. Navigate Mgt."
         DocumentEntry.InsertIntoDocEntry(Database::"Service Header", DocType, DocTableName, ServiceHeader.Count());
     end;
 
-    [EventSubscriber(ObjectType::Page, Page::Navigate, 'OnBeforeShowRecords', '', false, false)]
+    [EventSubscriber(ObjectType::Page, Page::Navigate, 'OnBeforeShowRecords', '', true, false)]
     local procedure OnBeforeShowRecords(var TempDocumentEntry: Record "Document Entry"; DocNoFilter: Text; PostingDateFilter: Text; var IsHandled: Boolean; ContactNo: Code[250])
     begin
         case TempDocumentEntry."Table ID" of

@@ -108,13 +108,17 @@ page 347 "Report Selection - Purchase"
                     ApplicationArea = Basic, Suite;
                     Visible = false;
 
+#if not CLEAN28
                     trigger OnDrillDown()
                     var
                         CustomReportLayout: Record "Custom Report Layout";
                     begin
+#pragma warning disable AL0432
                         if CustomReportLayout.LookupLayoutOK(Rec."Report ID") then
+#pragma warning restore AL0432
                             Rec.Validate("Email Body Layout Code", CustomReportLayout.Code);
                     end;
+#endif
                 }
             }
         }
@@ -165,6 +169,8 @@ page 347 "Report Selection - Purchase"
                 Rec.SetRange(Usage, Rec.Usage::"P.Order");
             ReportUsage2::Invoice:
                 Rec.SetRange(Usage, Rec.Usage::"P.Invoice");
+            ReportUsage2::"Self Billing Invoice":
+                Rec.SetRange(Usage, Rec.Usage::"P.Self Billing Invoice");
             ReportUsage2::"Return Order":
                 Rec.SetRange(Usage, Rec.Usage::"P.Return");
             ReportUsage2::"Credit Memo":

@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -29,7 +29,6 @@ page 7382 "Inventory Movement"
                 field("No."; Rec."No.")
                 {
                     ApplicationArea = Warehouse;
-                    ToolTip = 'Specifies the number of the involved entry or record, according to the specified number series.';
 
                     trigger OnAssistEdit()
                     begin
@@ -40,19 +39,16 @@ page 7382 "Inventory Movement"
                 field("Location Code"; Rec."Location Code")
                 {
                     ApplicationArea = Location;
-                    ToolTip = 'Specifies the code for the location where the warehouse activity takes place.';
                 }
                 field(SourceDocument; Rec."Source Document")
                 {
                     ApplicationArea = Warehouse;
                     DrillDown = false;
                     Lookup = false;
-                    ToolTip = 'Specifies the type of document that the line relates to.';
                 }
                 field("Source No."; Rec."Source No.")
                 {
                     ApplicationArea = Warehouse;
-                    ToolTip = 'Specifies the number of the source document that the entry originates from.';
 
                     trigger OnLookup(var Text: Text): Boolean
                     var
@@ -77,7 +73,6 @@ page 7382 "Inventory Movement"
                     ApplicationArea = Warehouse;
                     CaptionClass = Format(WMSMgt.GetCaptionClass(Rec."Destination Type", Rec."Source Document", 0));
                     Editable = false;
-                    ToolTip = 'Specifies the number or the code of the customer or vendor that the line is linked to.';
                 }
 #pragma warning disable AA0100
                 field("WMSMgt.GetDestinationName(""Destination Type"",""Destination No."")"; WMSMgt.GetDestinationEntityName(Rec."Destination Type", Rec."Destination No."))
@@ -92,24 +87,20 @@ page 7382 "Inventory Movement"
                 field("Posting Date"; Rec."Posting Date")
                 {
                     ApplicationArea = Warehouse;
-                    ToolTip = 'Specifies the date when the warehouse activity should be recorded as being posted.';
                 }
                 field("External Document No."; Rec."External Document No.")
                 {
                     ApplicationArea = Warehouse;
                     CaptionClass = Format(WMSMgt.GetCaptionClass(Rec."Destination Type", Rec."Source Document", 2));
-                    ToolTip = 'Specifies a document number that refers to the customer''s or vendor''s numbering system.';
                 }
                 field("External Document No.2"; Rec."External Document No.2")
                 {
                     ApplicationArea = Warehouse;
                     CaptionClass = Format(WMSMgt.GetCaptionClass(Rec."Destination Type", Rec."Source Document", 3));
-                    ToolTip = 'Specifies an additional part of the document number that refers to the customer''s or vendor''s numbering system.';
                 }
                 field("Sorting Method"; Rec."Sorting Method")
                 {
                     ApplicationArea = Warehouse;
-                    ToolTip = 'Specifies the method by which the lines are sorted on the warehouse header, such as Item or Document.';
 
                     trigger OnValidate()
                     begin
@@ -119,7 +110,6 @@ page 7382 "Inventory Movement"
                 field("Assigned User ID"; Rec."Assigned User ID")
                 {
                     ApplicationArea = Warehouse;
-                    ToolTip = 'Specifies the ID of the user who is responsible for the document.';
                     Visible = false;
                 }
             }

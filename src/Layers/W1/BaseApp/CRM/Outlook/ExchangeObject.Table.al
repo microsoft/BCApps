@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -28,6 +28,7 @@ table 1602 "Exchange Object"
         field(3; Name; Text[250])
         {
             Caption = 'Name';
+            ToolTip = 'Name';
             Description = 'Name of the object in Exchange.';
         }
         field(4; Body; BLOB)
@@ -59,6 +60,7 @@ table 1602 "Exchange Object"
         field(11; Selected; Boolean)
         {
             Caption = 'Selected';
+            ToolTip = 'Select';
             Description = 'A selection flag';
         }
         field(12; "Content Type"; Text[250])

@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -17,15 +17,18 @@ table 7499 "Item From Picture Buffer"
         }
         field(10; ItemMediaSet; MediaSet)
         {
+            ToolTip = 'Specifies the media set for the new item.';
         }
         field(11; ItemMediaFileName; Text[260])
         {
         }
         field(20; ItemTemplateCode; Code[20])
         {
+            ToolTip = 'Specifies the template to apply to the new item.';
         }
         field(25; ItemCategoryCode; Code[20])
         {
+            ToolTip = 'Specifies the item category for the new item.';
         }
         field(30; ItemDescription; Text[100])
         {

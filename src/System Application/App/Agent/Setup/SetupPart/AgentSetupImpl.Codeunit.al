@@ -92,6 +92,27 @@ codeunit 4325 "Agent Setup Impl."
     end;
 
     [Scope('OnPrem')]
+    procedure FindAgentByUserName(AgentUserName: Text; var AgentUserSecurityId: Guid): Boolean
+    var
+        AgentRec: Record Agent;
+    begin
+        AgentRec.SetRange("User Name", AgentUserName);
+        if AgentRec.FindFirst() then begin
+            AgentUserSecurityId := AgentRec."User Security ID";
+            exit(true);
+        end;
+
+        AgentRec.SetFilter("User Name", '@' + AgentUserName + '*');
+        if AgentRec.FindFirst() then begin
+            AgentUserSecurityId := AgentRec."User Security ID";
+            AgentUserName := AgentRec."User Name";
+            exit(true);
+        end;
+
+        exit(false);
+    end;
+
+    [Scope('OnPrem')]
     procedure OpenAgentLookup(var AgentUserSecurityId: Guid): Boolean
     var
         Agent: Record Agent;
@@ -204,7 +225,7 @@ codeunit 4325 "Agent Setup Impl."
         exit(NewSummaryText);
     end;
 
-    internal procedure CopyAgentSetupBuffer(var Target: Record "Agent Setup Buffer"; var Source: Record "Agent Setup Buffer")
+    internal procedure CopySetupRecord(var Target: Record "Agent Setup Buffer"; var Source: Record "Agent Setup Buffer")
     var
         TempUserSettings: Record "User Settings" temporary;
         TempAccessControl: Record "Agent Access Control" temporary;

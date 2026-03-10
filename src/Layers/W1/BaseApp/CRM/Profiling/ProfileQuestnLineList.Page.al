@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -24,7 +24,6 @@ page 5149 "Profile Questn. Line List"
                 field("Line No."; Rec."Line No.")
                 {
                     ApplicationArea = All;
-                    ToolTip = 'Specifies the number of the profile questionnaire line. This field is used internally by the program.';
                 }
                 field(Question; Rec.Question())
                 {
@@ -36,24 +35,20 @@ page 5149 "Profile Questn. Line List"
                 {
                     ApplicationArea = RelationshipMgmt;
                     Caption = 'Answer';
-                    ToolTip = 'Specifies the profile question or answer.';
                 }
                 field("From Value"; Rec."From Value")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the value from which the automatic classification of your contacts starts.';
                     Visible = false;
                 }
                 field("To Value"; Rec."To Value")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the value that the automatic classification of your contacts stops at.';
                     Visible = false;
                 }
                 field("No. of Contacts"; Rec."No. of Contacts")
                 {
                     ApplicationArea = RelationshipMgmt;
-                    ToolTip = 'Specifies the number of contacts that have given this answer.';
                 }
             }
         }

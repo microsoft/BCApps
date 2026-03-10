@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -30,6 +30,7 @@ table 1021 "Job WIP Total"
         field(3; "Job Task No."; Code[20])
         {
             Caption = 'Project Task No.';
+            ToolTip = 'Specifies the number of the project task that is associated with the project WIP total. The project task number is generally the final task in a group of tasks that is set to Total or the last project task line.';
             NotBlank = true;
             TableRelation = "Job Task"."Job Task No." where("Job No." = field("Job No."));
             ValidateTableRelation = false;
@@ -37,12 +38,14 @@ table 1021 "Job WIP Total"
         field(4; "WIP Method"; Code[20])
         {
             Caption = 'WIP Method';
+            ToolTip = 'Specifies the name of the work in process (WIP) calculation method that is associated with a project. The value in the field comes from the WIP method specified on the project card.';
             Editable = false;
             TableRelation = "Job WIP Method".Code;
         }
         field(5; "WIP Posting Date"; Date)
         {
             Caption = 'WIP Posting Date';
+            ToolTip = 'Specifies the date when work in process (WIP) was last calculated and entered in the Project WIP Entries window.';
             Editable = false;
         }
         field(6; "WIP Posting Date Filter"; Text[250])
@@ -59,6 +62,7 @@ table 1021 "Job WIP Total"
         {
             CalcFormula = exist("Job WIP Warning" where("Job WIP Total Entry No." = field("Entry No.")));
             Caption = 'WIP Warnings';
+            ToolTip = 'Specifies if there are WIP warnings associated with a project for which you have calculated WIP.';
             FieldClass = FlowField;
         }
         field(9; "Posted to G/L"; Boolean)
@@ -126,6 +130,7 @@ table 1021 "Job WIP Total"
             AutoFormatType = 1;
             AutoFormatExpression = '';
             Caption = 'Calc. Recog. Sales Amount';
+            ToolTip = 'Specifies the calculated sum of recognized sales amounts in the current WIP calculation.';
             Editable = false;
         }
         field(21; "Calc. Recog. Costs Amount"; Decimal)
@@ -133,6 +138,7 @@ table 1021 "Job WIP Total"
             AutoFormatType = 1;
             AutoFormatExpression = '';
             Caption = 'Calc. Recog. Costs Amount';
+            ToolTip = 'Specifies the calculated sum of recognized costs amounts in the current WIP calculation.';
             Editable = false;
         }
         field(30; "Cost Completion %"; Decimal)
@@ -140,6 +146,7 @@ table 1021 "Job WIP Total"
             AutoFormatType = 0;
             BlankZero = true;
             Caption = 'Cost Completion %';
+            ToolTip = 'Specifies the cost completion percentage for project tasks that have been budgeted in the current WIP calculation.';
             Editable = false;
         }
         field(31; "Invoiced %"; Decimal)
@@ -147,6 +154,7 @@ table 1021 "Job WIP Total"
             AutoFormatType = 0;
             BlankZero = true;
             Caption = 'Invoiced %';
+            ToolTip = 'Specifies the percentage of contracted project tasks that have been invoiced in the current WIP calculation.';
             Editable = false;
         }
     }

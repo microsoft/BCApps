@@ -167,7 +167,7 @@ codeunit 6489 "Serv. Check Credit Limit"
         exit(MyNotifications.IsEnabledForRecord(GetOverdueBalanceNotificationId(), Customer));
     end;
 
-    [EventSubscriber(ObjectType::Page, Page::"My Notifications", 'OnInitializingNotificationWithDefaultState', '', false, false)]
+    [EventSubscriber(ObjectType::Page, Page::"My Notifications", 'OnInitializingNotificationWithDefaultState', '', true, false)]
     local procedure OnInitializingNotificationWithDefaultState()
     var
         MyNotifications: Record "My Notifications";
@@ -232,7 +232,7 @@ codeunit 6489 "Serv. Check Credit Limit"
     begin
     end;
 
-    [EventSubscriber(ObjectType::Page, Page::"Check Credit Limit", 'OnAfterCalcTotalOutstandingAmt', '', false, false)]
+    [EventSubscriber(ObjectType::Page, Page::"Check Credit Limit", 'OnAfterCalcTotalOutstandingAmt', '', true, false)]
     local procedure OnAfterCalcTotalOutstandingAmt(var Customer: Record Customer; var Result: Decimal)
     var
         ServiceLine: Record "Service Line";
@@ -241,7 +241,7 @@ codeunit 6489 "Serv. Check Credit Limit"
         Result += Customer."Outstanding Serv.Invoices(LCY)" + Customer."Outstanding Serv. Orders (LCY)" - ServiceLine.OutstandingInvoiceAmountFromShipment(Customer."No.");
     end;
 
-    [EventSubscriber(ObjectType::Page, Page::"Check Credit Limit", 'OnCalcCreditLimitLCYOnAfterCalcAmounts', '', false, false)]
+    [EventSubscriber(ObjectType::Page, Page::"Check Credit Limit", 'OnCalcCreditLimitLCYOnAfterCalcAmounts', '', true, false)]
     local procedure OnCalcCreditLimitLCYOnAfterCalcAmounts(var Customer: Record Customer; var ShippedRetRcdNotIndLCY: Decimal; var CustCreditAmountLCY: Decimal)
     begin
         Customer.CalcFields("Serv Shipped Not Invoiced(LCY)");

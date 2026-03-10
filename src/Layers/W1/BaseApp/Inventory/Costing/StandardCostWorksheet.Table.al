@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -23,6 +23,7 @@ table 5841 "Standard Cost Worksheet"
         field(3; Type; Enum "Standard Cost Source Type")
         {
             Caption = 'Type';
+            ToolTip = 'Specifies the type of worksheet line.';
 
             trigger OnValidate()
             begin
@@ -33,6 +34,7 @@ table 5841 "Standard Cost Worksheet"
         field(4; "No."; Code[20])
         {
             Caption = 'No.';
+            ToolTip = 'Specifies the number of the involved entry or record, according to the specified number series.';
             NotBlank = true;
             TableRelation = if (Type = const(Item)) Item
             else
@@ -71,15 +73,18 @@ table 5841 "Standard Cost Worksheet"
         field(5; Description; Text[100])
         {
             Caption = 'Description';
+            ToolTip = 'Specifies the description of the worksheet line.';
         }
         field(6; Implemented; Boolean)
         {
             Caption = 'Implemented';
+            ToolTip = 'Specifies that you have run the Implement Standard Cost Changes batch job.';
             Editable = false;
         }
         field(7; "Replenishment System"; Enum "Replenishment System")
         {
             Caption = 'Replenishment System';
+            ToolTip = 'Specifies the replenishment method for the items, for example, purchase or prod. order.';
             Editable = false;
         }
         field(11; "Standard Cost"; Decimal)
@@ -87,6 +92,7 @@ table 5841 "Standard Cost Worksheet"
             AutoFormatType = 2;
             AutoFormatExpression = '';
             Caption = 'Standard Cost';
+            ToolTip = 'Specifies the unit cost that is used as an estimation to be adjusted with variances later. It is typically used in assembly and production where costs can vary.';
             Editable = false;
             MinValue = 0;
         }
@@ -95,6 +101,7 @@ table 5841 "Standard Cost Worksheet"
             AutoFormatType = 2;
             AutoFormatExpression = '';
             Caption = 'New Standard Cost';
+            ToolTip = 'Specifies the updated value based on either the batch job or what you have entered manually.';
             MinValue = 0;
 
             trigger OnValidate()
@@ -107,6 +114,7 @@ table 5841 "Standard Cost Worksheet"
         {
             AutoFormatType = 0;
             Caption = 'Indirect Cost %';
+            ToolTip = 'Specifies the percentage of the item''s last purchase cost that includes indirect costs, such as freight that is associated with the purchase of the item.';
             DecimalPlaces = 0 : 5;
             Editable = false;
             MinValue = 0;
@@ -115,6 +123,7 @@ table 5841 "Standard Cost Worksheet"
         {
             AutoFormatType = 0;
             Caption = 'New Indirect Cost %';
+            ToolTip = 'Specifies the updated value based on either the batch job or what you have entered manually.';
             DecimalPlaces = 0 : 5;
             MinValue = 0;
         }
@@ -122,6 +131,7 @@ table 5841 "Standard Cost Worksheet"
         {
             AutoFormatType = 0;
             Caption = 'Overhead Rate';
+            ToolTip = 'Specifies the overhead rate.';
             DecimalPlaces = 2 : 5;
             Editable = false;
         }
@@ -129,6 +139,7 @@ table 5841 "Standard Cost Worksheet"
         {
             AutoFormatType = 0;
             Caption = 'New Overhead Rate';
+            ToolTip = 'Specifies the updated value based on either the batch job or what you have entered manually.';
             DecimalPlaces = 2 : 5;
 
             trigger OnValidate()
@@ -142,6 +153,7 @@ table 5841 "Standard Cost Worksheet"
             AutoFormatType = 2;
             AutoFormatExpression = '';
             Caption = 'Single-Lvl Material Cost';
+            ToolTip = 'Specifies the single-level material cost of the item.';
             Editable = false;
         }
         field(22; "New Single-Lvl Material Cost"; Decimal)
@@ -149,6 +161,7 @@ table 5841 "Standard Cost Worksheet"
             AutoFormatType = 2;
             AutoFormatExpression = '';
             Caption = 'New Single-Lvl Material Cost';
+            ToolTip = 'Specifies the updated value based on either the batch job or what you have entered manually.';
             DataClassification = CustomerContent;
             Editable = false;
         }
@@ -157,6 +170,7 @@ table 5841 "Standard Cost Worksheet"
             AutoFormatType = 2;
             AutoFormatExpression = '';
             Caption = 'Single-Lvl Cap. Cost';
+            ToolTip = 'Specifies the single-level capacity cost of the item.';
             DataClassification = CustomerContent;
             Editable = false;
         }
@@ -165,6 +179,7 @@ table 5841 "Standard Cost Worksheet"
             AutoFormatType = 2;
             AutoFormatExpression = '';
             Caption = 'New Single-Lvl Cap. Cost';
+            ToolTip = 'Specifies the updated value based on either the batch job or what you have entered manually.';
             DataClassification = CustomerContent;
             Editable = false;
         }
@@ -173,6 +188,7 @@ table 5841 "Standard Cost Worksheet"
             AutoFormatType = 2;
             AutoFormatExpression = '';
             Caption = 'Single-Lvl Subcontrd Cost';
+            ToolTip = 'Specifies the single-level subcontracted cost of the item.';
             DataClassification = CustomerContent;
             Editable = false;
         }
@@ -181,6 +197,7 @@ table 5841 "Standard Cost Worksheet"
             AutoFormatType = 2;
             AutoFormatExpression = '';
             Caption = 'New Single-Lvl Subcontrd Cost';
+            ToolTip = 'Specifies the updated value based on either the batch job or what you have entered manually.';
             DataClassification = CustomerContent;
             Editable = false;
         }
@@ -189,6 +206,7 @@ table 5841 "Standard Cost Worksheet"
             AutoFormatType = 2;
             AutoFormatExpression = '';
             Caption = 'Single-Lvl Cap. Ovhd Cost';
+            ToolTip = 'Specifies the single-level capacity overhead cost of the item.';
             DataClassification = CustomerContent;
             Editable = false;
         }
@@ -197,6 +215,7 @@ table 5841 "Standard Cost Worksheet"
             AutoFormatType = 2;
             AutoFormatExpression = '';
             Caption = 'New Single-Lvl Cap. Ovhd Cost';
+            ToolTip = 'Specifies the updated value based on either the batch job or what you have entered manually.';
             DataClassification = CustomerContent;
             Editable = false;
         }
@@ -205,6 +224,7 @@ table 5841 "Standard Cost Worksheet"
             AutoFormatType = 2;
             AutoFormatExpression = '';
             Caption = 'Single-Lvl Mfg. Ovhd Cost';
+            ToolTip = 'Specifies the single-level manufacturing overhead cost of the item.';
             DataClassification = CustomerContent;
             Editable = false;
         }
@@ -213,6 +233,7 @@ table 5841 "Standard Cost Worksheet"
             AutoFormatType = 2;
             AutoFormatExpression = '';
             Caption = 'New Single-Lvl Mfg. Ovhd Cost';
+            ToolTip = 'Specifies the updated value based on either the batch job or what you have entered manually.';
             DataClassification = CustomerContent;
             Editable = false;
         }
@@ -221,6 +242,7 @@ table 5841 "Standard Cost Worksheet"
             AutoFormatType = 2;
             AutoFormatExpression = '';
             Caption = 'Rolled-up Material Cost';
+            ToolTip = 'Specifies the rolled-up material cost of the item.';
             DataClassification = CustomerContent;
             Editable = false;
         }
@@ -229,6 +251,7 @@ table 5841 "Standard Cost Worksheet"
             AutoFormatType = 2;
             AutoFormatExpression = '';
             Caption = 'New Rolled-up Material Cost';
+            ToolTip = 'Specifies the updated rolled-up material cost based on either the batch job or what you have entered manually.';
             DataClassification = CustomerContent;
             Editable = false;
         }
@@ -237,6 +260,7 @@ table 5841 "Standard Cost Worksheet"
             AutoFormatType = 2;
             AutoFormatExpression = '';
             Caption = 'Rolled-up Cap. Cost';
+            ToolTip = 'Specifies the rolled-up capacity cost of the item.';
             DataClassification = CustomerContent;
             Editable = false;
         }
@@ -245,6 +269,7 @@ table 5841 "Standard Cost Worksheet"
             AutoFormatType = 2;
             AutoFormatExpression = '';
             Caption = 'New Rolled-up Cap. Cost';
+            ToolTip = 'Specifies the updated value based on either the batch job or what you have entered manually.';
             DataClassification = CustomerContent;
             Editable = false;
         }
@@ -253,6 +278,7 @@ table 5841 "Standard Cost Worksheet"
             AutoFormatType = 2;
             AutoFormatExpression = '';
             Caption = 'Rolled-up Subcontrd Cost';
+            ToolTip = 'Specifies the rolled-up subcontracted cost of the item.';
             DataClassification = CustomerContent;
             Editable = false;
         }
@@ -261,6 +287,7 @@ table 5841 "Standard Cost Worksheet"
             AutoFormatType = 2;
             AutoFormatExpression = '';
             Caption = 'New Rolled-up Subcontrd Cost';
+            ToolTip = 'Specifies the updated value based on either the batch job or what you have entered manually.';
             DataClassification = CustomerContent;
             Editable = false;
         }
@@ -269,6 +296,7 @@ table 5841 "Standard Cost Worksheet"
             AutoFormatType = 2;
             AutoFormatExpression = '';
             Caption = 'Rolled-up Cap. Ovhd Cost';
+            ToolTip = 'Specifies the rolled-up capacity overhead cost of the item.';
             DataClassification = CustomerContent;
             Editable = false;
         }
@@ -277,6 +305,7 @@ table 5841 "Standard Cost Worksheet"
             AutoFormatType = 2;
             AutoFormatExpression = '';
             Caption = 'New Rolled-up Cap. Ovhd Cost';
+            ToolTip = 'Specifies the updated value based on either the batch job or what you have entered manually.';
             DataClassification = CustomerContent;
             Editable = false;
         }
@@ -285,6 +314,7 @@ table 5841 "Standard Cost Worksheet"
             AutoFormatType = 2;
             AutoFormatExpression = '';
             Caption = 'Rolled-up Mfg. Ovhd Cost';
+            ToolTip = 'Specifies the rolled-up manufacturing overhead cost of the item.';
             DataClassification = CustomerContent;
             Editable = false;
         }
@@ -293,6 +323,7 @@ table 5841 "Standard Cost Worksheet"
             AutoFormatType = 2;
             AutoFormatExpression = '';
             Caption = 'New Rolled-up Mfg. Ovhd Cost';
+            ToolTip = 'Specifies the updated value based on either the batch job or what you have entered manually.';
             DataClassification = CustomerContent;
             Editable = false;
         }

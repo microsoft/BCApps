@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -21,6 +21,7 @@ table 5719 "Nonstock Item Setup"
         field(2; "No. Format"; Enum "Nonstock Item No. Format")
         {
             Caption = 'No. Format';
+            ToolTip = 'Specifies the format of the catalog item number that appears on the item card.';
             trigger OnValidate()
             begin
                 if "No. Format" = "No. Format"::"Item No. Series" then
@@ -30,6 +31,7 @@ table 5719 "Nonstock Item Setup"
         field(3; "No. Format Separator"; Code[1])
         {
             Caption = 'No. Format Separator';
+            ToolTip = 'Specifies the character that separates the elements of your catalog item number format, if the format uses both a code and a number.';
             trigger OnValidate()
             begin
                 if "No. Format" = "No. Format"::"Item No. Series" then

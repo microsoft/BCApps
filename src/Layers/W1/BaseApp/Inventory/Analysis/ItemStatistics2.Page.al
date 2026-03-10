@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -27,7 +27,6 @@ page 5833 "Item Statistics 2"
                     ApplicationArea = Basic, Suite;
                     AutoFormatType = 0;
                     Caption = 'Current Inventory Value (LCY)';
-                    ToolTip = 'Specifies the current inventory value (in local currency), calculated as the sum of Cost Amount (Actual) + Cost Amount (Expected) on posted Value Entries for this item. Run the Adjust Cost - Item Entries batch job to ensure the amount is up to date.';
 
                     trigger OnDrillDown()
                     begin
@@ -39,7 +38,6 @@ page 5833 "Item Statistics 2"
                     ApplicationArea = Basic, Suite;
                     AutoFormatType = 0;
                     Caption = 'Expired Inventory Value (LCY)';
-                    ToolTip = 'Specifies the inventory value (in local currency) of quantities whose expiration date is earlier than the work date. Calculated as the sum of Cost Amount (Actual) + Cost Amount (Expected) from Value Entries applied to open Item Ledger Entries (Remaining Qty. > 0) with Expiration Date < Work Date. Run the Adjust Cost - Item Entries batch job to ensure the value is up to date. Only meaningful for items where expiration/lot dates are tracked.';
 
                     trigger OnDrillDown()
                     begin
@@ -80,7 +78,6 @@ page 5833 "Item Statistics 2"
                             AutoFormatType = 1;
                             AutoFormatExpression = '';
                             Caption = 'Net Sales (LCY)';
-                            ToolTip = 'Specifies the total revenue (in local currency) from sales for the current period in fiscal year after deducting given discounts and returns. This value represents the actual income generated from sales transactions during the fiscal year. Calculated as: Net Sales = Total sales in the period  - Total returns - Total given discounts.';
 
                             trigger OnDrillDown()
                             begin
@@ -142,7 +139,6 @@ page 5833 "Item Statistics 2"
                             AutoFormatType = 1;
                             AutoFormatExpression = '';
                             Caption = 'Net Sales (LCY)';
-                            ToolTip = 'Specifies the total revenue (in local currency) from sales for the current fiscal year after deducting given discounts and returns. This value represents the actual income generated from sales transactions during the fiscal year. Calculated as: Net Sales = Total sales in the fiscal year - Total returns in the fiscal year - Total given discounts in the fiscal year.';
                             trigger OnDrillDown()
                             begin
                                 ItemStatistics.DrilldownSalesAmount(Item, ItemDateFilters[2]);
@@ -203,7 +199,6 @@ page 5833 "Item Statistics 2"
                             AutoFormatType = 1;
                             AutoFormatExpression = '';
                             Caption = 'Net Sales (LCY)';
-                            ToolTip = 'Specifies the total revenue (in local currency) from sales for the last fiscal year after deducting given discounts and returns. This value represents the actual income generated from sales transactions during the last fiscal year. Calculated as: Net Sales = Total sales in the last fiscal year - Total returns in the last fiscal year - Total given discounts in the last fiscal year.';
                             trigger OnDrillDown()
                             begin
                                 ItemStatistics.DrilldownSalesAmount(Item, ItemDateFilters[3]);
@@ -257,7 +252,6 @@ page 5833 "Item Statistics 2"
                             AutoFormatType = 1;
                             AutoFormatExpression = '';
                             Caption = 'Net Sales (LCY)';
-                            ToolTip = 'Specifies the total revenue (in local currency) from sales after deducting given discounts and returns. This value represents the actual income generated from sales transactions during the lifetime. Calculated as: Net Sales = Total sales so far - Total returns so far - Total given discounts so far.';
 
                             trigger OnDrillDown()
                             begin

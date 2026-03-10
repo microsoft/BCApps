@@ -57,7 +57,7 @@ table 95 "G/L Budget Name"
             trigger OnValidate()
             begin
                 if "Budget Dimension 1 Code" <> xRec."Budget Dimension 1 Code" then
-                    if Dim.CheckIfDimUsed("Budget Dimension 1 Code", 9, Name, '', 0) then
+                    if Dim.CheckIfDimUsed("Budget Dimension 1 Code", Enum::"Dim Type Checked".FromInteger(9), Name, '', 0) then
                         Error(Text000, Dim.GetCheckDimErr());
             end;
         }
@@ -72,7 +72,7 @@ table 95 "G/L Budget Name"
             trigger OnValidate()
             begin
                 if "Budget Dimension 2 Code" <> xRec."Budget Dimension 2 Code" then
-                    if Dim.CheckIfDimUsed("Budget Dimension 2 Code", 10, Name, '', 0) then
+                    if Dim.CheckIfDimUsed("Budget Dimension 2 Code", Enum::"Dim Type Checked".FromInteger(10), Name, '', 0) then
                         Error(Text000, Dim.GetCheckDimErr());
             end;
         }
@@ -87,7 +87,7 @@ table 95 "G/L Budget Name"
             trigger OnValidate()
             begin
                 if "Budget Dimension 3 Code" <> xRec."Budget Dimension 3 Code" then
-                    if Dim.CheckIfDimUsed("Budget Dimension 3 Code", 11, Name, '', 0) then
+                    if Dim.CheckIfDimUsed("Budget Dimension 3 Code", Enum::"Dim Type Checked".FromInteger(11), Name, '', 0) then
                         Error(Text000, Dim.GetCheckDimErr());
             end;
         }
@@ -102,7 +102,7 @@ table 95 "G/L Budget Name"
             trigger OnValidate()
             begin
                 if "Budget Dimension 4 Code" <> xRec."Budget Dimension 4 Code" then
-                    if Dim.CheckIfDimUsed("Budget Dimension 4 Code", 12, Name, '', 0) then
+                    if Dim.CheckIfDimUsed("Budget Dimension 4 Code", Enum::"Dim Type Checked".FromInteger(12), Name, '', 0) then
                         Error(Text000, Dim.GetCheckDimErr());
             end;
         }

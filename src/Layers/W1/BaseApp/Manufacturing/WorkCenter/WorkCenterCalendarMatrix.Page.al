@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -27,12 +27,10 @@ page 9291 "Work Center Calendar Matrix"
                 field("No."; Rec."No.")
                 {
                     ApplicationArea = Manufacturing;
-                    ToolTip = 'Specifies the number of the involved entry or record, according to the specified number series.';
                 }
                 field(Name; Rec.Name)
                 {
                     ApplicationArea = Manufacturing;
-                    ToolTip = 'Specifies the name of the work center.';
                 }
                 field(Field1; MATRIX_CellData[1])
                 {

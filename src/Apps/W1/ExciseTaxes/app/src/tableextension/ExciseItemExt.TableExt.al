@@ -25,35 +25,42 @@ tableextension 7417 "Excise Item Ext" extends Item
                     ExciseTaxType.Get("Excise Tax Type");
                     if not ExciseTaxType.Enabled then
                         Error(ExciseTaxTypeNotEnabledErr, "Excise Tax Type");
+
+                    if Rec."Excise Tax Type" <> xRec."Excise Tax Type" then begin
+                        Rec.TestField("Quantity for Excise Tax", 0);
+                        Rec.TestField("Excise Unit of Measure Code", '');
+                    end;
+
                 end else begin
-                    "Qty for Excise Tax" := 0;
-                    "Excise Tax UOM" := '';
+                    "Quantity for Excise Tax" := 0;
+                    "Excise Unit of Measure Code" := '';
                 end;
             end;
         }
-        field(7413; "Qty for Excise Tax"; Decimal)
+        field(7413; "Quantity for Excise Tax"; Decimal)
         {
-            Caption = 'Qty for Excise Tax';
+            AutoFormatType = 0;
+            Caption = 'Quantity for Excise Tax';
             DecimalPlaces = 0 : 5;
             MinValue = 0;
             DataClassification = CustomerContent;
 
             trigger OnValidate()
             begin
-                if ("Qty for Excise Tax" <> 0) and ("Excise Tax Type" = '') then
-                    Error(MustSpecifyExciseTaxTypeErr, Rec.FieldCaption("Excise Tax Type"), Rec.FieldCaption("Qty for Excise Tax"));
+                if ("Quantity for Excise Tax" <> 0) and ("Excise Tax Type" = '') then
+                    Error(MustSpecifyExciseTaxTypeErr, Rec.FieldCaption("Excise Tax Type"), Rec.FieldCaption("Quantity for Excise Tax"));
             end;
         }
-        field(7414; "Excise Tax UOM"; Code[10])
+        field(7414; "Excise Unit of Measure Code"; Code[10])
         {
-            Caption = 'Excise Tax UOM';
+            Caption = 'Excise Tax Unit of Measure Code';
             TableRelation = "Unit of Measure".Code;
             DataClassification = CustomerContent;
 
             trigger OnValidate()
             begin
-                if ("Excise Tax UOM" <> '') and ("Excise Tax Type" = '') then
-                    Error(MustSpecifyExciseTaxTypeErr, Rec.FieldCaption("Excise Tax Type"), Rec.FieldCaption("Excise Tax UOM"));
+                if ("Excise Unit of Measure Code" <> '') and ("Excise Tax Type" = '') then
+                    Error(MustSpecifyExciseTaxTypeErr, Rec.FieldCaption("Excise Tax Type"), Rec.FieldCaption("Excise Unit of Measure Code"));
             end;
         }
     }

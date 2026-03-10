@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -20,24 +20,29 @@ table 5801 "Cost Adj. Item Bucket"
         field(1; "Line No."; Integer)
         {
             Caption = 'Line No.';
+            ToolTip = 'Specifies the line number of the item batch.';
         }
         field(2; "Item Filter"; Text[2048])
         {
             Caption = 'Item Filter';
+            ToolTip = 'Specifies the item filter that is used to select the items to be adjusted.';
             TableRelation = Item where("Cost is Adjusted" = const(false));
             ValidateTableRelation = false;
         }
         field(3; Status; Enum "Cost Adjustment Run Status")
         {
             Caption = 'Status';
+            ToolTip = 'Specifies the status of the cost adjustment process.';
         }
         field(4; "Starting Date-Time"; DateTime)
         {
             Caption = 'Starting Date-Time';
+            ToolTip = 'Specifies the date and time when the cost adjustment process started.';
         }
         field(5; "Ending Date-Time"; DateTime)
         {
             Caption = 'Ending Date-Time';
+            ToolTip = 'Specifies the date and time when the cost adjustment process ended or was canceled.';
         }
         field(6; "Timeout (Minutes)"; Integer)
         {
@@ -56,18 +61,22 @@ table 5801 "Cost Adj. Item Bucket"
         field(8; "Post to G/L"; Boolean)
         {
             Caption = 'Post to G/L';
+            ToolTip = 'Specifies whether the cost adjustment process should post the cost adjustment entries to the general ledger.';
         }
         field(9; Trace; Boolean)
         {
             Caption = 'Trace';
+            ToolTip = 'Specifies whether you want to trace the next cost adjustment run. It can be used to pinpoint issues in the cost adjustment process.';
         }
         field(11; "Last Error"; Text[2048])
         {
             Caption = 'Last Error';
+            ToolTip = 'Specifies the last error that occurred during the cost adjustment process.';
         }
         field(12; "Last Error Call Stack"; Text[2048])
         {
             Caption = 'Last Error Call Stack';
+            ToolTip = 'Specifies the call stack of the last error that occurred during the cost adjustment process.';
         }
         field(13; "Failed Item No."; Code[20])
         {
@@ -77,6 +86,7 @@ table 5801 "Cost Adj. Item Bucket"
         field(20; "Reschedule Count"; Integer)
         {
             Caption = 'Reschedule Count';
+            ToolTip = 'Specifies the number of times that the cost adjustment process is allowed to be retried if it fails.';
             MinValue = 0;
             MaxValue = 100;
             InitValue = 10;

@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -117,97 +117,79 @@ page 521 "Application Worksheet"
                 field("Item No."; Rec."Item No.")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the number of the item in the entry.';
                 }
                 field("Document No."; Rec."Document No.")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the document number on the entry. The document is the voucher that the entry was based on, for example, a receipt.';
                 }
                 field("Location Code"; Rec."Location Code")
                 {
                     ApplicationArea = Location;
-                    ToolTip = 'Specifies the code for the location that the entry is linked to.';
                 }
                 field("Posting Date"; Rec."Posting Date")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the entry''s posting date.';
                 }
                 field("Entry Type"; Rec."Entry Type")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies which type of transaction that the entry is created from.';
                 }
                 field("Source Type"; Rec."Source Type")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the source type that applies to the source number, shown in the Source No. field.';
                 }
                 field("Document Type"; Rec."Document Type")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies what type of document was posted to create the item ledger entry.';
                 }
                 field("Document Line No."; Rec."Document Line No.")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the number of the line on the posted document that corresponds to the item ledger entry.';
                     Visible = false;
                 }
                 field("Variant Code"; Rec."Variant Code")
                 {
                     ApplicationArea = Planning;
-                    ToolTip = 'Specifies the variant of the item on the line.';
                     Visible = false;
                 }
                 field("Serial No."; Rec."Serial No.")
                 {
                     ApplicationArea = ItemTracking;
-                    ToolTip = 'Specifies a serial number if the posted item carries such a number.';
                     Visible = false;
                 }
                 field("Lot No."; Rec."Lot No.")
                 {
                     ApplicationArea = ItemTracking;
-                    ToolTip = 'Specifies a lot number if the posted item carries such a number.';
                     Visible = false;
                 }
                 field("Source No."; Rec."Source No.")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies where the entry originated.';
                 }
                 field(Description; Rec.Description)
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies a description of the entry.';
                     Visible = false;
                 }
                 field(Quantity; Rec.Quantity)
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the number of units of the item in the item entry.';
                 }
                 field("Remaining Quantity"; Rec."Remaining Quantity")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the quantity in the Quantity field that remains to be processed.';
                 }
                 field("Invoiced Quantity"; Rec."Invoiced Quantity")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies how many units of the item on the line have been invoiced.';
                 }
                 field("Reserved Quantity"; Rec."Reserved Quantity")
                 {
                     ApplicationArea = Reservation;
-                    ToolTip = 'Specifies how many units of the item on the line have been reserved.';
                 }
                 field("Shipped Qty. Not Returned"; Rec."Shipped Qty. Not Returned")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the quantity for this item ledger entry that was shipped and has not yet been returned.';
                 }
                 field("Cost Amount (Actual)"; Rec."Cost Amount (Actual)")
                 {
@@ -226,29 +208,24 @@ page 521 "Application Worksheet"
                 field(Open; Rec.Open)
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies whether the entry has been fully applied to.';
                 }
                 field(Positive; Rec.Positive)
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies whether the item in the item ledge entry is positive.';
                 }
                 field("Applies-to Entry"; Rec."Applies-to Entry")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies if the quantity on the journal line must be applied to an already-posted entry. In that case, enter the entry number that the quantity will be applied to.';
                     Visible = false;
                 }
                 field("Applied Entry to Adjust"; Rec."Applied Entry to Adjust")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies whether there is one or more applied entries, which need to be adjusted.';
                     Visible = false;
                 }
                 field("Entry No."; Rec."Entry No.")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the number of the entry, as assigned from the specified number series when the entry was created.';
                 }
             }
         }

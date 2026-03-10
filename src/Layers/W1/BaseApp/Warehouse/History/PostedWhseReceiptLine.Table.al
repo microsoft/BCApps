@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -26,11 +26,13 @@ table 7319 "Posted Whse. Receipt Line"
         field(1; "No."; Code[20])
         {
             Caption = 'No.';
+            ToolTip = 'Specifies the number of the involved entry or record, according to the specified number series.';
             Editable = false;
         }
         field(2; "Line No."; Integer)
         {
             Caption = 'Line No.';
+            ToolTip = 'Specifies the number of the line in the posted receipt.';
             Editable = false;
         }
         field(3; "Source Type"; Integer)
@@ -48,31 +50,37 @@ table 7319 "Posted Whse. Receipt Line"
         field(6; "Source No."; Code[20])
         {
             Caption = 'Source No.';
+            ToolTip = 'Specifies the number of the source document that the entry originates from.';
             Editable = false;
         }
         field(7; "Source Line No."; Integer)
         {
             Caption = 'Source Line No.';
+            ToolTip = 'Specifies the line number of the source document that the entry originates from.';
             Editable = false;
         }
         field(9; "Source Document"; Enum "Warehouse Activity Source Document")
         {
             Caption = 'Source Document';
+            ToolTip = 'Specifies the type of document that the line relates to.';
             Editable = false;
         }
         field(10; "Location Code"; Code[10])
         {
             Caption = 'Location Code';
+            ToolTip = 'Specifies the code of the location where the items were received.';
             Editable = false;
             TableRelation = Location;
         }
         field(11; "Shelf No."; Code[10])
         {
             Caption = 'Shelf No.';
+            ToolTip = 'Specifies the shelf number of the item for informational use.';
         }
         field(12; "Bin Code"; Code[20])
         {
             Caption = 'Bin Code';
+            ToolTip = 'Specifies the bin where the items are picked or put away.';
             TableRelation = if ("Zone Code" = filter('')) Bin.Code where("Location Code" = field("Location Code"))
             else
             if ("Zone Code" = filter(<> '')) Bin.Code where("Location Code" = field("Location Code"),
@@ -81,11 +89,13 @@ table 7319 "Posted Whse. Receipt Line"
         field(13; "Zone Code"; Code[10])
         {
             Caption = 'Zone Code';
+            ToolTip = 'Specifies the code of the zone on this posted receipt line.';
             TableRelation = Zone.Code where("Location Code" = field("Location Code"));
         }
         field(14; "Item No."; Code[20])
         {
             Caption = 'Item No.';
+            ToolTip = 'Specifies the number of the item that was received and posted.';
             Editable = false;
             TableRelation = Item;
         }
@@ -93,6 +103,7 @@ table 7319 "Posted Whse. Receipt Line"
         {
             AutoFormatType = 0;
             Caption = 'Quantity';
+            ToolTip = 'Specifies the quantity that was received.';
             DecimalPlaces = 0 : 5;
             Editable = false;
         }
@@ -107,6 +118,7 @@ table 7319 "Posted Whse. Receipt Line"
         {
             AutoFormatType = 0;
             Caption = 'Qty. Put Away';
+            ToolTip = 'Specifies the quantity that is put away.';
             DecimalPlaces = 0 : 5;
             Editable = false;
         }
@@ -128,6 +140,7 @@ table 7319 "Posted Whse. Receipt Line"
                                                                                   "Action Type" = filter(" " | Take),
                                                                                   "Original Breakbulk" = const(false)));
             Caption = 'Put-away Qty.';
+            ToolTip = 'Specifies the quantity on put-away instructions in the process of being put away.';
             DecimalPlaces = 0 : 5;
             Editable = false;
             FieldClass = FlowField;
@@ -149,6 +162,7 @@ table 7319 "Posted Whse. Receipt Line"
         field(29; "Unit of Measure Code"; Code[10])
         {
             Caption = 'Unit of Measure Code';
+            ToolTip = 'Specifies how each unit of the item or resource is measured, such as in pieces or hours. By default, the value in the Base Unit of Measure field on the item or resource card is inserted.';
             Editable = false;
             TableRelation = "Item Unit of Measure".Code where("Item No." = field("Item No."));
         }
@@ -156,6 +170,7 @@ table 7319 "Posted Whse. Receipt Line"
         {
             AutoFormatType = 0;
             Caption = 'Qty. per Unit of Measure';
+            ToolTip = 'Specifies the number of base units of measure, in the unit of measure, specified for the item on the line.';
             DecimalPlaces = 0 : 5;
             Editable = false;
             InitValue = 1;
@@ -163,22 +178,26 @@ table 7319 "Posted Whse. Receipt Line"
         field(31; "Variant Code"; Code[10])
         {
             Caption = 'Variant Code';
+            ToolTip = 'Specifies the variant of the item on the line.';
             Editable = false;
             TableRelation = "Item Variant".Code where("Item No." = field("Item No."));
         }
         field(32; Description; Text[100])
         {
             Caption = 'Description';
+            ToolTip = 'Specifies the description of the item in the line.';
             Editable = false;
         }
         field(33; "Description 2"; Text[50])
         {
             Caption = 'Description 2';
+            ToolTip = 'Specifies a second description of the item in the line, if any.';
             Editable = false;
         }
         field(36; "Due Date"; Date)
         {
             Caption = 'Due Date';
+            ToolTip = 'Specifies the date that the receipt line was due.';
         }
         field(37; "Starting Date"; Date)
         {
@@ -188,6 +207,7 @@ table 7319 "Posted Whse. Receipt Line"
         {
             AutoFormatType = 0;
             Caption = 'Qty. Cross-Docked';
+            ToolTip = 'Specifies the quantity of items that was in the Qty. To Cross-Dock field on the warehouse receipt line when it was posted.';
             DecimalPlaces = 0 : 5;
             MinValue = 0;
         }
@@ -200,11 +220,13 @@ table 7319 "Posted Whse. Receipt Line"
         field(52; "Cross-Dock Zone Code"; Code[10])
         {
             Caption = 'Cross-Dock Zone Code';
+            ToolTip = 'Specifies the zone code used to create the cross-dock put-away for this line when the receipt was posted.';
             TableRelation = Zone.Code where("Location Code" = field("Location Code"));
         }
         field(53; "Cross-Dock Bin Code"; Code[20])
         {
             Caption = 'Cross-Dock Bin Code';
+            ToolTip = 'Specifies the bin code used to create the cross-dock put-away for this line when the receipt was posted.';
             TableRelation = Bin.Code where("Location Code" = field("Location Code"));
         }
         field(55; "Qty. Rounding Precision"; Decimal)
@@ -230,10 +252,12 @@ table 7319 "Posted Whse. Receipt Line"
         field(60; "Posted Source Document"; Enum "Warehouse Shipment Posted Source Document")
         {
             Caption = 'Posted Source Document';
+            ToolTip = 'Specifies the type of posted source document referred to by the receipt line.';
         }
         field(61; "Posted Source No."; Code[20])
         {
             Caption = 'Posted Source No.';
+            ToolTip = 'Specifies the document number of the posted source document.';
         }
         field(62; "Posting Date"; Date)
         {

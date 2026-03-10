@@ -22,12 +22,10 @@ page 309 "Transport Methods"
                 field("Code"; Rec.Code)
                 {
                     ApplicationArea = BasicEU, BasicNO;
-                    ToolTip = 'Specifies a code for the transport method.';
                 }
                 field(Description; Rec.Description)
                 {
                     ApplicationArea = BasicEU, BasicNO;
-                    ToolTip = 'Specifies a description of the transport method.';
                 }
                 field("Port/Airport"; Rec."Port/Airport")
                 {

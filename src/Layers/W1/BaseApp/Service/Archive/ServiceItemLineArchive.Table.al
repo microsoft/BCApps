@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -35,43 +35,52 @@ table 6011 "Service Item Line Archive"
         field(2; "Line No."; Integer)
         {
             Caption = 'Line No.';
+            ToolTip = 'Specifies the line number.';
         }
         field(3; "Service Item No."; Code[20])
         {
             Caption = 'Service Item No.';
+            ToolTip = 'Specifies the service item number registered in the Service Item table.';
             TableRelation = "Service Item"."No.";
         }
         field(4; "Service Item Group Code"; Code[10])
         {
             Caption = 'Service Item Group Code';
+            ToolTip = 'Specifies the code of the service item group for this item.';
             TableRelation = "Service Item Group".Code;
         }
         field(5; "Item No."; Code[20])
         {
             Caption = 'Item No.';
+            ToolTip = 'Specifies the item number linked to this service item.';
             TableRelation = Item."No.";
         }
         field(6; "Serial No."; Code[50])
         {
             Caption = 'Serial No.';
+            ToolTip = 'Specifies the serial number of this item.';
         }
         field(7; Description; Text[100])
         {
             Caption = 'Description';
+            ToolTip = 'Specifies a description of this service item.';
 
         }
         field(8; "Description 2"; Text[50])
         {
             Caption = 'Description 2';
+            ToolTip = 'Specifies an additional description of this item.';
         }
         field(9; "Repair Status Code"; Code[10])
         {
             Caption = 'Repair Status Code';
+            ToolTip = 'Specifies the repair status of this service item.';
             TableRelation = "Repair Status";
         }
         field(10; Priority; Option)
         {
             Caption = 'Priority';
+            ToolTip = 'Specifies the service priority for this item.';
             OptionCaption = 'Low,Medium,High';
             OptionMembers = Low,Medium,High;
         }
@@ -84,30 +93,37 @@ table 6011 "Service Item Line Archive"
         field(12; "Response Date"; Date)
         {
             Caption = 'Response Date';
+            ToolTip = 'Specifies the estimated date when service should start on this service item line.';
         }
         field(13; "Response Time"; Time)
         {
             Caption = 'Response Time';
+            ToolTip = 'Specifies the estimated time when service should start on this service item.';
         }
         field(14; "Starting Date"; Date)
         {
             Caption = 'Starting Date';
+            ToolTip = 'Specifies the date when service on this item began and when the repair status changed to In process.';
         }
         field(15; "Starting Time"; Time)
         {
             Caption = 'Starting Time';
+            ToolTip = 'Specifies the time when service on this item began and when the repair status changed to In process.';
         }
         field(16; "Finishing Date"; Date)
         {
             Caption = 'Finishing Date';
+            ToolTip = 'Specifies the finishing date of the service and when the repair status of this item changes to Finished.';
         }
         field(17; "Finishing Time"; Time)
         {
             Caption = 'Finishing Time';
+            ToolTip = 'Specifies the finishing time of the service and when the repair status of this item changes to Finished.';
         }
         field(18; "Service Shelf No."; Code[10])
         {
             Caption = 'Service Shelf No.';
+            ToolTip = 'Specifies the number of the service shelf this item is stored on.';
             TableRelation = "Service Shelf";
         }
         field(19; "Warranty Starting Date (Parts)"; Date)
@@ -121,6 +137,7 @@ table 6011 "Service Item Line Archive"
         field(21; Warranty; Boolean)
         {
             Caption = 'Warranty';
+            ToolTip = 'Specifies that warranty on either parts or labor exists for this item.';
         }
         field(22; "Warranty % (Parts)"; Decimal)
         {
@@ -149,56 +166,67 @@ table 6011 "Service Item Line Archive"
         field(26; "Contract No."; Code[20])
         {
             Caption = 'Contract No.';
+            ToolTip = 'Specifies the number of the service contract associated with the item or service on the line.';
             TableRelation = "Service Contract Header"."Contract No." where("Contract Type" = const(Contract));
         }
         field(28; "Loaner No."; Code[20])
         {
             Caption = 'Loaner No.';
+            ToolTip = 'Specifies the number of the loaner that has been lent to the customer in the service order to replace this item.';
             TableRelation = Loaner."No.";
         }
         field(29; "Vendor No."; Code[20])
         {
             Caption = 'Vendor No.';
+            ToolTip = 'Specifies the number of the vendor of this item.';
             TableRelation = Vendor;
         }
         field(30; "Vendor Item No."; Text[50])
         {
             Caption = 'Vendor Item No.';
+            ToolTip = 'Specifies the number that the vendor uses for this item.';
         }
         field(31; "Fault Reason Code"; Code[10])
         {
             Caption = 'Fault Reason Code';
+            ToolTip = 'Specifies the fault reason code for the item.';
             TableRelation = "Fault Reason Code";
         }
         field(32; "Service Price Group Code"; Code[10])
         {
             Caption = 'Service Price Group Code';
+            ToolTip = 'Specifies the code of the service price group associated with the item.';
             TableRelation = "Service Price Group";
         }
         field(33; "Fault Area Code"; Code[10])
         {
             Caption = 'Fault Area Code';
+            ToolTip = 'Specifies the fault area code for this item.';
             TableRelation = "Fault Area";
         }
         field(34; "Symptom Code"; Code[10])
         {
             Caption = 'Symptom Code';
+            ToolTip = 'Specifies the symptom code for this item.';
             TableRelation = "Symptom Code";
         }
         field(35; "Fault Code"; Code[10])
         {
             Caption = 'Fault Code';
+            ToolTip = 'Specifies the fault code for this item.';
             TableRelation = "Fault Code".Code where("Fault Area Code" = field("Fault Area Code"),
                                                     "Symptom Code" = field("Symptom Code"));
         }
         field(36; "Resolution Code"; Code[10])
         {
             Caption = 'Resolution Code';
+            ToolTip = 'Specifies the resolution code for this item.';
             TableRelation = "Resolution Code";
         }
         field(40; "Variant Code"; Code[10])
         {
             Caption = 'Variant Code';
+            ToolTip = 'Specifies the variant of the item on the line.';
             TableRelation = "Item Variant".Code where("Item No." = field("Item No."));
         }
         field(42; "Actual Response Time (Hours)"; Decimal)
@@ -221,6 +249,7 @@ table 6011 "Service Item Line Archive"
         field(45; "Adjustment Type"; Option)
         {
             Caption = 'Adjustment Type';
+            ToolTip = 'Specifies the adjustment type for the line.';
             Editable = false;
             OptionCaption = 'Fixed,Maximum,Minimum';
             OptionMembers = "Fixed",Maximum,Minimum;
@@ -229,6 +258,7 @@ table 6011 "Service Item Line Archive"
         {
             AutoFormatType = 0;
             Caption = 'Base Amount to Adjust';
+            ToolTip = 'Specifies the amount that the service line, linked to this service item line, will be adjusted to.';
             Editable = false;
         }
         field(63; "Contract Line No."; Integer)
@@ -240,6 +270,7 @@ table 6011 "Service Item Line Archive"
         field(64; "Ship-to Code"; Code[10])
         {
             Caption = 'Ship-to Code';
+            ToolTip = 'Specifies a code for an alternate shipment address if you want to ship to another address than the one that has been entered automatically. This field is also used in case of drop shipment.';
             Editable = false;
             TableRelation = "Ship-to Address".Code where("Customer No." = field("Customer No."));
         }

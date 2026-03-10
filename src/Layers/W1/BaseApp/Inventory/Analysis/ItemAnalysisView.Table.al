@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -27,35 +27,42 @@ table 7152 "Item Analysis View"
         field(2; "Code"; Code[10])
         {
             Caption = 'Code';
+            ToolTip = 'Specifies a code for the analysis view.';
             NotBlank = true;
         }
         field(3; Name; Text[50])
         {
             Caption = 'Name';
+            ToolTip = 'Specifies the name of the analysis view.';
         }
         field(4; "Last Entry No."; Integer)
         {
             Caption = 'Last Entry No.';
+            ToolTip = 'Specifies the number of the last item ledger entry you posted, prior to updating the analysis view.';
             Editable = false;
         }
         field(5; "Last Budget Entry No."; Integer)
         {
             Caption = 'Last Budget Entry No.';
+            ToolTip = 'Specifies the number of the last item budget entry you entered prior to updating the analysis view.';
             Editable = false;
         }
         field(6; "Last Date Updated"; Date)
         {
             Caption = 'Last Date Updated';
+            ToolTip = 'Specifies the date on which the analysis view was last updated.';
             Editable = false;
         }
         field(7; "Update on Posting"; Boolean)
         {
             Caption = 'Update on Posting';
+            ToolTip = 'Specifies if the analysis view is updated every time that you post an item ledger entry, for example from a sales invoice.';
             Editable = false;
         }
         field(8; Blocked; Boolean)
         {
             Caption = 'Blocked';
+            ToolTip = 'Specifies that the related record is blocked from being posted in transactions, for example a customer that is declared insolvent or an item that is placed in quarantine.';
 
             trigger OnValidate()
             begin
@@ -69,6 +76,7 @@ table 7152 "Item Analysis View"
         field(9; "Item Filter"; Code[250])
         {
             Caption = 'Item Filter';
+            ToolTip = 'Specifies a filter to specify the items that will be included in an analysis view.';
             TableRelation = Item;
             ValidateTableRelation = false;
 
@@ -110,6 +118,7 @@ table 7152 "Item Analysis View"
         field(10; "Location Filter"; Code[250])
         {
             Caption = 'Location Filter';
+            ToolTip = 'Specifies a location filter to specify that only entries posted to a particular location are to be included in an analysis view.';
             TableRelation = Location;
             ValidateTableRelation = false;
 
@@ -157,6 +166,7 @@ table 7152 "Item Analysis View"
         field(11; "Starting Date"; Date)
         {
             Caption = 'Starting Date';
+            ToolTip = 'Specifies the date from which item ledger entries will be included in an analysis view.';
 
             trigger OnValidate()
             begin
@@ -170,6 +180,7 @@ table 7152 "Item Analysis View"
         field(12; "Date Compression"; Option)
         {
             Caption = 'Date Compression';
+            ToolTip = 'Specifies the period that the program will combine entries for, in order to create a single entry for that time period.';
             InitValue = Day;
             OptionCaption = 'None,Day,Week,Month,Quarter,Year,Period';
             OptionMembers = "None",Day,Week,Month,Quarter,Year,Period;
@@ -186,12 +197,13 @@ table 7152 "Item Analysis View"
         field(13; "Dimension 1 Code"; Code[20])
         {
             Caption = 'Dimension 1 Code';
+            ToolTip = 'Specifies one of the four dimensions that you can include in an analysis view.';
             TableRelation = Dimension;
 
             trigger OnValidate()
             begin
                 TestField(Blocked, false);
-                if Dim.CheckIfDimUsed("Dimension 1 Code", 20, '', Code, "Analysis Area".AsInteger()) then
+                if Dim.CheckIfDimUsed("Dimension 1 Code", Enum::"Dim Type Checked".FromInteger(20), '', Code, "Analysis Area".AsInteger()) then
                     Error(Text000, Dim.GetCheckDimErr());
                 ModifyDim(FieldCaption("Dimension 1 Code"), "Dimension 1 Code", xRec."Dimension 1 Code");
                 Modify();
@@ -200,12 +212,13 @@ table 7152 "Item Analysis View"
         field(14; "Dimension 2 Code"; Code[20])
         {
             Caption = 'Dimension 2 Code';
+            ToolTip = 'Specifies one of the four dimensions that you can include in an analysis view.';
             TableRelation = Dimension;
 
             trigger OnValidate()
             begin
                 TestField(Blocked, false);
-                if Dim.CheckIfDimUsed("Dimension 2 Code", 21, '', Code, "Analysis Area".AsInteger()) then
+                if Dim.CheckIfDimUsed("Dimension 2 Code", Enum::"Dim Type Checked".FromInteger(21), '', Code, "Analysis Area".AsInteger()) then
                     Error(Text000, Dim.GetCheckDimErr());
                 ModifyDim(FieldCaption("Dimension 2 Code"), "Dimension 2 Code", xRec."Dimension 2 Code");
                 Modify();
@@ -214,12 +227,13 @@ table 7152 "Item Analysis View"
         field(15; "Dimension 3 Code"; Code[20])
         {
             Caption = 'Dimension 3 Code';
+            ToolTip = 'Specifies one of the four dimensions that you can include in an analysis view.';
             TableRelation = Dimension;
 
             trigger OnValidate()
             begin
                 TestField(Blocked, false);
-                if Dim.CheckIfDimUsed("Dimension 3 Code", 22, '', Code, "Analysis Area".AsInteger()) then
+                if Dim.CheckIfDimUsed("Dimension 3 Code", Enum::"Dim Type Checked".FromInteger(22), '', Code, "Analysis Area".AsInteger()) then
                     Error(Text000, Dim.GetCheckDimErr());
                 ModifyDim(FieldCaption("Dimension 3 Code"), "Dimension 3 Code", xRec."Dimension 3 Code");
                 Modify();
@@ -229,6 +243,7 @@ table 7152 "Item Analysis View"
         {
             AccessByPermission = TableData "Item Budget Name" = R;
             Caption = 'Include Budgets';
+            ToolTip = 'Specifies whether to include an update of analysis view budget entries, when updating an analysis view.';
 
             trigger OnValidate()
             begin

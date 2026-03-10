@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -65,6 +65,7 @@ table 6660 "Return Receipt Header"
         field(3; "No."; Code[20])
         {
             Caption = 'No.';
+            ToolTip = 'Specifies the number of the involved entry or record, according to the specified number series.';
         }
         /// <summary>
         /// Specifies the customer number who receives the credit memo for billing.
@@ -82,6 +83,7 @@ table 6660 "Return Receipt Header"
         field(5; "Bill-to Name"; Text[100])
         {
             Caption = 'Bill-to Name';
+            ToolTip = 'Specifies the name of the customer that you send or sent the invoice or credit memo to.';
         }
         /// <summary>
         /// Specifies an additional part of the bill-to customer name.
@@ -97,6 +99,7 @@ table 6660 "Return Receipt Header"
         field(7; "Bill-to Address"; Text[100])
         {
             Caption = 'Bill-to Address';
+            ToolTip = 'Specifies the address of the customer to whom you sent the invoice.';
         }
         /// <summary>
         /// Specifies additional address information for the bill-to customer.
@@ -104,6 +107,7 @@ table 6660 "Return Receipt Header"
         field(8; "Bill-to Address 2"; Text[50])
         {
             Caption = 'Bill-to Address 2';
+            ToolTip = 'Specifies an additional line of the address.';
         }
         /// <summary>
         /// Specifies the city of the customer who receives the credit memo.
@@ -111,6 +115,7 @@ table 6660 "Return Receipt Header"
         field(9; "Bill-to City"; Text[30])
         {
             Caption = 'Bill-to City';
+            ToolTip = 'Specifies the city of the address.';
             TableRelation = if ("Bill-to Country/Region Code" = const('')) "Post Code".City
             else
             if ("Bill-to Country/Region Code" = filter(<> '')) "Post Code".City where("Country/Region Code" = field("Bill-to Country/Region Code"));
@@ -122,6 +127,7 @@ table 6660 "Return Receipt Header"
         field(10; "Bill-to Contact"; Text[100])
         {
             Caption = 'Bill-to Contact';
+            ToolTip = 'Specifies the name of the contact person at the customer''s billing address.';
         }
         /// <summary>
         /// Specifies the customer's own reference number for this transaction.
@@ -136,6 +142,7 @@ table 6660 "Return Receipt Header"
         field(12; "Ship-to Code"; Code[10])
         {
             Caption = 'Ship-to Code';
+            ToolTip = 'Specifies a code for an alternate shipment address if you want to ship to another address than the one that has been entered automatically. This field is also used in case of drop shipment.';
             TableRelation = "Ship-to Address".Code where("Customer No." = field("Sell-to Customer No."));
         }
         /// <summary>
@@ -144,6 +151,7 @@ table 6660 "Return Receipt Header"
         field(13; "Ship-to Name"; Text[100])
         {
             Caption = 'Ship-to Name';
+            ToolTip = 'Specifies the name of the customer at the address that the items are shipped to.';
         }
         /// <summary>
         /// Specifies an additional part of the ship-to name.
@@ -151,6 +159,7 @@ table 6660 "Return Receipt Header"
         field(14; "Ship-to Name 2"; Text[50])
         {
             Caption = 'Ship-to Name 2';
+            ToolTip = 'Specifies an additional part of the name of the customer at the address that the items are shipped to.';
         }
         /// <summary>
         /// Specifies the street address of the ship-to location.
@@ -158,6 +167,7 @@ table 6660 "Return Receipt Header"
         field(15; "Ship-to Address"; Text[100])
         {
             Caption = 'Ship-to Address';
+            ToolTip = 'Specifies the address that the items are shipped to.';
         }
         /// <summary>
         /// Specifies additional address information for the ship-to location.
@@ -165,6 +175,7 @@ table 6660 "Return Receipt Header"
         field(16; "Ship-to Address 2"; Text[50])
         {
             Caption = 'Ship-to Address 2';
+            ToolTip = 'Specifies an additional part of the ship-to address, in case it is a long address.';
         }
         /// <summary>
         /// Specifies the city of the ship-to location.
@@ -172,6 +183,7 @@ table 6660 "Return Receipt Header"
         field(17; "Ship-to City"; Text[30])
         {
             Caption = 'Ship-to City';
+            ToolTip = 'Specifies the city of the address that the items are shipped to.';
             TableRelation = if ("Ship-to Country/Region Code" = const('')) "Post Code".City
             else
             if ("Ship-to Country/Region Code" = filter(<> '')) "Post Code".City where("Country/Region Code" = field("Ship-to Country/Region Code"));
@@ -183,6 +195,7 @@ table 6660 "Return Receipt Header"
         field(18; "Ship-to Contact"; Text[100])
         {
             Caption = 'Ship-to Contact';
+            ToolTip = 'Specifies the name of the contact person at the address that the items are shipped to.';
         }
         /// <summary>
         /// Specifies the date when the return order was created.
@@ -197,6 +210,7 @@ table 6660 "Return Receipt Header"
         field(20; "Posting Date"; Date)
         {
             Caption = 'Posting Date';
+            ToolTip = 'Specifies the entry''s posting date.';
         }
         /// <summary>
         /// Specifies the date when items were shipped or received.
@@ -204,6 +218,7 @@ table 6660 "Return Receipt Header"
         field(21; "Shipment Date"; Date)
         {
             Caption = 'Shipment Date';
+            ToolTip = 'Specifies when items on the document are shipped or were shipped. A shipment date is usually calculated from a requested delivery date plus lead time.';
         }
         /// <summary>
         /// Specifies the text that describes this posted return receipt.
@@ -251,6 +266,7 @@ table 6660 "Return Receipt Header"
         field(27; "Shipment Method Code"; Code[10])
         {
             Caption = 'Shipment Method Code';
+            ToolTip = 'Specifies the delivery conditions of the related shipment, such as free on board (FOB).';
             TableRelation = "Shipment Method";
         }
         /// <summary>
@@ -259,6 +275,7 @@ table 6660 "Return Receipt Header"
         field(28; "Location Code"; Code[10])
         {
             Caption = 'Location Code';
+            ToolTip = 'Specifies a code for the location where you want the items to be placed when they are received.';
             TableRelation = Location where("Use As In-Transit" = const(false));
         }
         /// <summary>
@@ -268,6 +285,7 @@ table 6660 "Return Receipt Header"
         {
             CaptionClass = '1,2,1';
             Caption = 'Shortcut Dimension 1 Code';
+            ToolTip = 'Specifies the code for Shortcut Dimension 1, which is one of two global dimension codes that you set up in the General Ledger Setup window.';
             TableRelation = "Dimension Value".Code where("Global Dimension No." = const(1));
         }
         /// <summary>
@@ -277,6 +295,7 @@ table 6660 "Return Receipt Header"
         {
             CaptionClass = '1,2,2';
             Caption = 'Shortcut Dimension 2 Code';
+            ToolTip = 'Specifies the code for Shortcut Dimension 2, which is one of two global dimension codes that you set up in the General Ledger Setup window.';
             TableRelation = "Dimension Value".Code where("Global Dimension No." = const(2));
         }
         /// <summary>
@@ -294,6 +313,7 @@ table 6660 "Return Receipt Header"
         field(32; "Currency Code"; Code[10])
         {
             Caption = 'Currency Code';
+            ToolTip = 'Specifies the currency that is used on the entry.';
             Editable = false;
             TableRelation = Currency;
         }
@@ -359,6 +379,7 @@ table 6660 "Return Receipt Header"
         field(43; "Salesperson Code"; Code[20])
         {
             Caption = 'Salesperson Code';
+            ToolTip = 'Specifies which salesperson is associated with the posted return receipt.';
             TableRelation = "Salesperson/Purchaser";
         }
         /// <summary>
@@ -379,6 +400,7 @@ table 6660 "Return Receipt Header"
         field(47; "No. Printed"; Integer)
         {
             Caption = 'No. Printed';
+            ToolTip = 'Specifies how many times the document has been printed.';
             Editable = false;
         }
         /// <summary>
@@ -429,6 +451,7 @@ table 6660 "Return Receipt Header"
         field(70; "VAT Registration No."; Text[20])
         {
             Caption = 'VAT Registration No.';
+            ToolTip = 'Specifies the customer''s VAT registration number for customers.';
         }
         /// <summary>
         /// Specifies the reason code for the return receipt posting.
@@ -483,6 +506,7 @@ table 6660 "Return Receipt Header"
         field(79; "Sell-to Customer Name"; Text[100])
         {
             Caption = 'Sell-to Customer Name';
+            ToolTip = 'Specifies the name of the customer.';
         }
         /// <summary>
         /// Specifies an additional part of the sell-to customer name.
@@ -498,6 +522,7 @@ table 6660 "Return Receipt Header"
         field(81; "Sell-to Address"; Text[100])
         {
             Caption = 'Sell-to Address';
+            ToolTip = 'Specifies the main address of the customer.';
         }
         /// <summary>
         /// Specifies additional address information for the sell-to customer.
@@ -505,6 +530,7 @@ table 6660 "Return Receipt Header"
         field(82; "Sell-to Address 2"; Text[50])
         {
             Caption = 'Sell-to Address 2';
+            ToolTip = 'Specifies an additional part of the address.';
         }
         /// <summary>
         /// Specifies the city of the sell-to customer.
@@ -512,6 +538,7 @@ table 6660 "Return Receipt Header"
         field(83; "Sell-to City"; Text[30])
         {
             Caption = 'Sell-to City';
+            ToolTip = 'Specifies the city of the customer''s main address.';
             TableRelation = if ("Sell-to Country/Region Code" = const('')) "Post Code".City
             else
             if ("Sell-to Country/Region Code" = filter(<> '')) "Post Code".City where("Country/Region Code" = field("Sell-to Country/Region Code"));
@@ -523,6 +550,7 @@ table 6660 "Return Receipt Header"
         field(84; "Sell-to Contact"; Text[100])
         {
             Caption = 'Sell-to Contact';
+            ToolTip = 'Specifies the name of the contact person at the customer''s main address.';
         }
         /// <summary>
         /// Specifies the postal code of the bill-to customer address.
@@ -530,6 +558,7 @@ table 6660 "Return Receipt Header"
         field(85; "Bill-to Post Code"; Code[20])
         {
             Caption = 'Bill-to Post Code';
+            ToolTip = 'Specifies the postal code of the customer''s billing address.';
             TableRelation = if ("Bill-to Country/Region Code" = const('')) "Post Code"
             else
             if ("Bill-to Country/Region Code" = filter(<> '')) "Post Code" where("Country/Region Code" = field("Bill-to Country/Region Code"));
@@ -549,6 +578,7 @@ table 6660 "Return Receipt Header"
         field(87; "Bill-to Country/Region Code"; Code[10])
         {
             Caption = 'Bill-to Country/Region Code';
+            ToolTip = 'Specifies the country/region code of the customer''s billing address.';
             TableRelation = "Country/Region";
         }
         /// <summary>
@@ -557,6 +587,7 @@ table 6660 "Return Receipt Header"
         field(88; "Sell-to Post Code"; Code[20])
         {
             Caption = 'Sell-to Post Code';
+            ToolTip = 'Specifies the postal code of the customer''s main address.';
             TableRelation = if ("Sell-to Country/Region Code" = const('')) "Post Code"
             else
             if ("Sell-to Country/Region Code" = filter(<> '')) "Post Code" where("Country/Region Code" = field("Sell-to Country/Region Code"));
@@ -576,6 +607,7 @@ table 6660 "Return Receipt Header"
         field(90; "Sell-to Country/Region Code"; Code[10])
         {
             Caption = 'Sell-to Country/Region Code';
+            ToolTip = 'Specifies the country/region code of the customer''s main address.';
             TableRelation = "Country/Region";
         }
         /// <summary>
@@ -584,6 +616,7 @@ table 6660 "Return Receipt Header"
         field(91; "Ship-to Post Code"; Code[20])
         {
             Caption = 'Ship-to Post Code';
+            ToolTip = 'Specifies the postal code of the address that the items are shipped to.';
             TableRelation = if ("Ship-to Country/Region Code" = const('')) "Post Code"
             else
             if ("Ship-to Country/Region Code" = filter(<> '')) "Post Code" where("Country/Region Code" = field("Ship-to Country/Region Code"));
@@ -603,6 +636,7 @@ table 6660 "Return Receipt Header"
         field(93; "Ship-to Country/Region Code"; Code[10])
         {
             Caption = 'Ship-to Country/Region Code';
+            ToolTip = 'Specifies the country/region code of the address that the items are shipped to.';
             TableRelation = "Country/Region";
         }
         /// <summary>
@@ -633,6 +667,7 @@ table 6660 "Return Receipt Header"
         field(99; "Document Date"; Date)
         {
             Caption = 'Document Date';
+            ToolTip = 'Specifies the date when the related document was created.';
         }
         /// <summary>
         /// Specifies the external document number provided by the customer.
@@ -640,6 +675,7 @@ table 6660 "Return Receipt Header"
         field(100; "External Document No."; Code[35])
         {
             Caption = 'External Document No.';
+            ToolTip = 'Specifies a document number that refers to the customer''s or vendor''s numbering system.';
         }
         /// <summary>
         /// Specifies the area code for Intrastat reporting.
@@ -671,6 +707,7 @@ table 6660 "Return Receipt Header"
         field(105; "Shipping Agent Code"; Code[10])
         {
             Caption = 'Shipping Agent Code';
+            ToolTip = 'Specifies which shipping agent is used to transport the items on the sales document to the customer.';
             TableRelation = "Shipping Agent";
         }
         /// <summary>
@@ -685,6 +722,7 @@ table 6660 "Return Receipt Header"
 #endif
         {
             Caption = 'Package Tracking No.';
+            ToolTip = 'Specifies the shipping agent''s package number.';
         }
         /// <summary>
         /// Specifies the number series used for the posted return receipt.
@@ -760,6 +798,7 @@ table 6660 "Return Receipt Header"
         field(210; "Ship-to Phone No."; Text[30])
         {
             Caption = 'Ship-to Phone No.';
+            ToolTip = 'Specifies the telephone number of the company''s shipping address.';
             ExtendedDatatype = PhoneNo;
         }
         /// <summary>
@@ -790,6 +829,7 @@ table 6660 "Return Receipt Header"
         field(5052; "Sell-to Contact No."; Code[20])
         {
             Caption = 'Sell-to Contact No.';
+            ToolTip = 'Specifies the number of the contact person at the customer''s main address.';
             TableRelation = Contact;
         }
         /// <summary>
@@ -798,6 +838,7 @@ table 6660 "Return Receipt Header"
         field(5053; "Bill-to Contact No."; Code[20])
         {
             Caption = 'Bill-to Contact No.';
+            ToolTip = 'Specifies the number of the contact person at the customer''s billing address.';
             TableRelation = Contact;
         }
         /// <summary>
@@ -814,6 +855,7 @@ table 6660 "Return Receipt Header"
         field(5700; "Responsibility Center"; Code[10])
         {
             Caption = 'Responsibility Center';
+            ToolTip = 'Specifies the code of the responsibility center, such as a distribution hub, that is associated with the involved user, company, customer, or vendor.';
             TableRelation = "Responsibility Center";
         }
         /// <summary>
@@ -862,6 +904,7 @@ table 6660 "Return Receipt Header"
         field(6601; "Return Order No."; Code[20])
         {
             Caption = 'Return Order No.';
+            ToolTip = 'Specifies the number of the return order that will post a return receipt.';
         }
         /// <summary>
         /// Specifies the number series used for the return order.

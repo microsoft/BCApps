@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -24,6 +24,7 @@ table 7346 "Internal Movement Header"
         field(1; "No."; Code[20])
         {
             Caption = 'No.';
+            ToolTip = 'Specifies the number of the involved entry or record, according to the specified number series.';
 
             trigger OnValidate()
             begin
@@ -37,6 +38,7 @@ table 7346 "Internal Movement Header"
         field(2; "Location Code"; Code[10])
         {
             Caption = 'Location Code';
+            ToolTip = 'Specifies the code of the location where the internal movement is being performed.';
             TableRelation = Location where("Use As In-Transit" = const(false));
 
             trigger OnValidate()
@@ -59,6 +61,7 @@ table 7346 "Internal Movement Header"
         field(3; "Assigned User ID"; Code[50])
         {
             Caption = 'Assigned User ID';
+            ToolTip = 'Specifies the ID of the user who is responsible for the document.';
             DataClassification = EndUserIdentifiableInformation;
             TableRelation = "Warehouse Employee" where("Location Code" = field("Location Code"));
 
@@ -76,11 +79,13 @@ table 7346 "Internal Movement Header"
         field(4; "Assignment Date"; Date)
         {
             Caption = 'Assignment Date';
+            ToolTip = 'Specifies the date when the user was assigned the activity.';
             Editable = false;
         }
         field(5; "Assignment Time"; Time)
         {
             Caption = 'Assignment Time';
+            ToolTip = 'Specifies the time when the user was assigned the activity.';
             Editable = false;
         }
         field(6; "No. Series"; Code[20])
@@ -100,6 +105,7 @@ table 7346 "Internal Movement Header"
         field(8; "To Bin Code"; Code[20])
         {
             Caption = 'To Bin Code';
+            ToolTip = 'Specifies the bin where you want items on this internal movement to be placed when they are picked.';
             TableRelation = Bin.Code where("Location Code" = field("Location Code"));
 
             trigger OnLookup()
@@ -138,10 +144,12 @@ table 7346 "Internal Movement Header"
         field(10; "Due Date"; Date)
         {
             Caption = 'Due Date';
+            ToolTip = 'Specifies the date when the warehouse activity must be completed.';
         }
         field(12; "Sorting Method"; Enum "Warehouse Internal Sorting Method")
         {
             Caption = 'Sorting Method';
+            ToolTip = 'Specifies the method by which the internal movements are sorted.';
 
             trigger OnValidate()
             begin

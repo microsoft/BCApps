@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -30,6 +30,7 @@ table 275 "Bank Account Statement"
         field(1; "Bank Account No."; Code[20])
         {
             Caption = 'Bank Account No.';
+            ToolTip = 'Specifies the number of the bank account that has been reconciled with this Bank Account Statement.';
             NotBlank = true;
             TableRelation = "Bank Account";
         }
@@ -39,6 +40,7 @@ table 275 "Bank Account Statement"
         field(2; "Statement No."; Code[20])
         {
             Caption = 'Statement No.';
+            ToolTip = 'Specifies the number of the bank''s statement that has been reconciled with the bank account.';
             NotBlank = true;
         }
         /// <summary>
@@ -49,6 +51,7 @@ table 275 "Bank Account Statement"
             AutoFormatExpression = GetCurrencyCode();
             AutoFormatType = 1;
             Caption = 'Statement Ending Balance';
+            ToolTip = 'Specifies the ending balance on the bank''s statement that has been reconciled with the bank account.';
         }
         /// <summary>
         /// Specifies the date of the bank statement.
@@ -56,6 +59,7 @@ table 275 "Bank Account Statement"
         field(4; "Statement Date"; Date)
         {
             Caption = 'Statement Date';
+            ToolTip = 'Specifies the date on the bank''s statement that has been reconciled with the bank account.';
         }
         /// <summary>
         /// Specifies the ending balance from the previous bank statement. This field is automatically filled when you create a new bank statement.
@@ -65,6 +69,7 @@ table 275 "Bank Account Statement"
             AutoFormatExpression = GetCurrencyCode();
             AutoFormatType = 1;
             Caption = 'Balance Last Statement';
+            ToolTip = 'Specifies the ending balance on the bank account statement from the last posted bank account reconciliation.';
             Editable = false;
         }
         /// <summary>
@@ -72,6 +77,7 @@ table 275 "Bank Account Statement"
         /// </summary>
         field(50; "Bank Account Name"; Text[100])
         {
+            ToolTip = 'Specifies the name of the bank account that has been reconciled.';
             FieldClass = FlowField;
             CalcFormula = lookup("Bank Account".Name where("No." = field("Bank Account No.")));
         }

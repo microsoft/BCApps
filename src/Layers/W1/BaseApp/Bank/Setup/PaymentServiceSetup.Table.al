@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -42,6 +42,7 @@ table 1060 "Payment Service Setup"
         field(2; Name; Text[250])
         {
             Caption = 'Name';
+            ToolTip = 'Specifies the name of the payment service.';
             NotBlank = true;
         }
         /// <summary>
@@ -51,6 +52,7 @@ table 1060 "Payment Service Setup"
         field(3; Description; Text[250])
         {
             Caption = 'Description';
+            ToolTip = 'Specifies the description of the payment service.';
             NotBlank = true;
         }
         /// <summary>
@@ -60,6 +62,7 @@ table 1060 "Payment Service Setup"
         field(4; Enabled; Boolean)
         {
             Caption = 'Enabled';
+            ToolTip = 'Specifies that the payment service is enabled.';
         }
         /// <summary>
         /// Determines if this payment service should be included on all sales documents by default.
@@ -68,6 +71,7 @@ table 1060 "Payment Service Setup"
         field(5; "Always Include on Documents"; Boolean)
         {
             Caption = 'Always Include on Documents';
+            ToolTip = 'Specifies that the payment service is always available in the Payment Service field on outgoing sales documents.';
 
             trigger OnValidate()
             var
@@ -107,6 +111,7 @@ table 1060 "Payment Service Setup"
         field(8; "Terms of Service"; Text[250])
         {
             Caption = 'Terms of Service';
+            ToolTip = 'Specifies a link to the Terms of Service page for the payment service.';
             Editable = false;
             ExtendedDatatype = URL;
         }
@@ -117,6 +122,7 @@ table 1060 "Payment Service Setup"
         field(100; Available; Boolean)
         {
             Caption = 'Available';
+            ToolTip = 'Specifies that the icon and link to the payment service will be inserted on the outgoing sales document.';
         }
         /// <summary>
         /// Codeunit ID that handles the business logic for this payment service.

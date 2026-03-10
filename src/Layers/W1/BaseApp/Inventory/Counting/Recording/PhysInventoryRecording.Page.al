@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -28,37 +28,30 @@ page 5879 "Phys. Inventory Recording"
                 field("Recording No."; Rec."Recording No.")
                 {
                     ApplicationArea = Warehouse;
-                    ToolTip = 'Specifies a number that is assigned to the physical inventory recording, when you link a physical inventory recording to a physical inventory order.';
                 }
                 field(Description; Rec.Description)
                 {
                     ApplicationArea = Warehouse;
-                    ToolTip = 'Specifies the description of the inventory recording.';
                 }
                 field("Location Code"; Rec."Location Code")
                 {
                     ApplicationArea = Warehouse;
-                    ToolTip = 'Specifies the location where the items must be counted.';
                 }
                 field("Person Responsible"; Rec."Person Responsible")
                 {
                     ApplicationArea = Warehouse;
-                    ToolTip = 'Specifies the code of the person responsible for performing this physical inventory recording.';
                 }
                 field(Status; Rec.Status)
                 {
                     ApplicationArea = Warehouse;
-                    ToolTip = 'Specifies if the physical inventory recording is open or finished.';
                 }
                 field("Person Recorded"; Rec."Person Recorded")
                 {
                     ApplicationArea = Warehouse;
-                    ToolTip = 'Specifies the user ID of the person who performed the physical inventory.';
                 }
                 field("Date Recorded"; Rec."Date Recorded")
                 {
                     ApplicationArea = Warehouse;
-                    ToolTip = 'Specifies the date when the physical inventory was taken.';
                 }
                 field("Time Recorded"; Rec."Time Recorded")
                 {
@@ -68,7 +61,6 @@ page 5879 "Phys. Inventory Recording"
                 field("Allow Recording Without Order"; Rec."Allow Recording Without Order")
                 {
                     ApplicationArea = Warehouse;
-                    ToolTip = 'Specifies that recording lines are automatically created for items that do not exist on the physical inventory order. This can only happen if none of the values in these four fields exist for an item on the order: Item No., Variant Code, Location Code, and Bin Code.';
                 }
             }
             part(Lines; "Phys. Invt. Recording Subform")

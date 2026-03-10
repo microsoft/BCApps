@@ -1,4 +1,4 @@
-namespace Microsoft.CRM.Outlook;
+﻿namespace Microsoft.CRM.Outlook;
 
 page 7030 "Folder Lookup"
 {
@@ -25,7 +25,6 @@ page 7030 "Folder Lookup"
                     ApplicationArea = All;
                     Caption = '';
                     ShowCaption = false;
-                    ToolTip = 'Select this folder';
                 }
             }
         }

@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -46,7 +46,6 @@ page 147 "Posted Purchase Credit Memos"
                 field("Order Address Code"; Rec."Order Address Code")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the order address of the related vendor.';
                     Visible = false;
                 }
                 field("Buy-from Vendor Name"; Rec."Buy-from Vendor Name")
@@ -57,17 +56,14 @@ page 147 "Posted Purchase Credit Memos"
                 field("Currency Code"; Rec."Currency Code")
                 {
                     ApplicationArea = Suite;
-                    ToolTip = 'Specifies the currency code used to calculate the amounts on the credit memo.';
                 }
                 field("Due Date"; Rec."Due Date")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies when the credit memo is due. The program calculates the date using the Payment Terms Code and Posting Date fields on the purchase header.';
                 }
                 field(Amount; Rec.Amount)
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the total, in the currency of the credit memo, of the amounts on all the credit memo lines.';
 
                     trigger OnDrillDown()
                     begin
@@ -77,7 +73,6 @@ page 147 "Posted Purchase Credit Memos"
                 field("Amount Including VAT"; Rec."Amount Including VAT")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the total of the amounts, including VAT, on all the lines on the document.';
 
                     trigger OnDrillDown()
                     begin
@@ -87,12 +82,10 @@ page 147 "Posted Purchase Credit Memos"
                 field("Remaining Amount"; Rec."Remaining Amount")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the amount that remains to be paid for the posted purchase invoice that relates to this purchase credit memo.';
                 }
                 field(Paid; Rec.Paid)
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies if the posted purchase invoice that relates to this purchase credit memo is paid. The check box will also be selected if a credit memo for the remaining amount has been applied.';
                 }
                 field(Cancelled; Rec.Cancelled)
                 {
@@ -103,7 +96,6 @@ page 147 "Posted Purchase Credit Memos"
                     LookupPageID = "Posted Purchase Invoices";
                     Style = Unfavorable;
                     StyleExpr = Rec.Cancelled;
-                    ToolTip = 'Specifies if the posted purchase invoice that relates to this purchase credit memo has been either corrected or canceled.';
 
                     trigger OnDrillDown()
                     begin
@@ -119,7 +111,6 @@ page 147 "Posted Purchase Credit Memos"
                     LookupPageID = "Posted Purchase Invoices";
                     Style = Unfavorable;
                     StyleExpr = Rec.Corrective;
-                    ToolTip = 'Specifies if the posted purchase invoice has been either corrected or canceled by this purchase credit memo .';
 
                     trigger OnDrillDown()
                     begin
@@ -129,7 +120,6 @@ page 147 "Posted Purchase Credit Memos"
                 field("Buy-from Post Code"; Rec."Buy-from Post Code")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the post code of the vendor who delivered the items.';
                     Visible = false;
                 }
                 field("Buy-from Country/Region Code"; Rec."Buy-from Country/Region Code")
@@ -141,7 +131,6 @@ page 147 "Posted Purchase Credit Memos"
                 field("Buy-from Contact"; Rec."Buy-from Contact")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the name of the contact person at the vendor who delivered the items.';
                     Visible = false;
                 }
                 field("Pay-to Vendor No."; Rec."Pay-to Vendor No.")
@@ -158,7 +147,6 @@ page 147 "Posted Purchase Credit Memos"
                 field("Pay-to Post Code"; Rec."Pay-to Post Code")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the post code of the vendor that you received the invoice from.';
                     Visible = false;
                 }
                 field("Pay-to Country/Region Code"; Rec."Pay-to Country/Region Code")
@@ -170,25 +158,21 @@ page 147 "Posted Purchase Credit Memos"
                 field("Pay-to Contact"; Rec."Pay-to Contact")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the name of the person you should contact at the vendor who you received the credit memo from.';
                     Visible = false;
                 }
                 field("Ship-to Code"; Rec."Ship-to Code")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies a code for an alternate shipment address if you want to ship to another address than the one that has been entered automatically. This field is also used in case of drop shipment.';
                     Visible = false;
                 }
                 field("Ship-to Name"; Rec."Ship-to Name")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the name of the customer at the address that the items are shipped to.';
                     Visible = false;
                 }
                 field("Ship-to Post Code"; Rec."Ship-to Post Code")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the postal code of the address that the items are shipped to.';
                     Visible = false;
                 }
                 field("Ship-to Country/Region Code"; Rec."Ship-to Country/Region Code")
@@ -206,36 +190,30 @@ page 147 "Posted Purchase Credit Memos"
                 field("Posting Date"; Rec."Posting Date")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the date the credit memo was posted.';
                     Visible = false;
                 }
                 field("Purchaser Code"; Rec."Purchaser Code")
                 {
                     ApplicationArea = Suite;
-                    ToolTip = 'Specifies which purchaser is assigned to the vendor.';
                     Visible = false;
                 }
                 field("Shortcut Dimension 1 Code"; Rec."Shortcut Dimension 1 Code")
                 {
                     ApplicationArea = Dimensions;
-                    ToolTip = 'Specifies the code for Shortcut Dimension 1, which is one of two global dimension codes that you set up in the General Ledger Setup window.';
                     Visible = false;
                 }
                 field("Shortcut Dimension 2 Code"; Rec."Shortcut Dimension 2 Code")
                 {
                     ApplicationArea = Dimensions;
-                    ToolTip = 'Specifies the code for Shortcut Dimension 2, which is one of two global dimension codes that you set up in the General Ledger Setup window.';
                     Visible = false;
                 }
                 field("Location Code"; Rec."Location Code")
                 {
                     ApplicationArea = Location;
-                    ToolTip = 'Specifies the code for the location used when you posted the credit memo.';
                 }
                 field("No. Printed"; Rec."No. Printed")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies how many times the document has been printed.';
                 }
                 field("Document Date"; Rec."Document Date")
                 {
@@ -246,7 +224,6 @@ page 147 "Posted Purchase Credit Memos"
                 field("Applies-to Doc. Type"; Rec."Applies-to Doc. Type")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the type of the posted document that this document or journal line will be applied to when you post, for example to register payment.';
                     Visible = false;
                 }
             }

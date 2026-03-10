@@ -4,6 +4,8 @@ using System.Security.User;
 
 page 659 "Posted Approval Entries"
 {
+    AboutTitle = 'About Posted Approval Entries';
+    AboutText = 'View history of approval entries for posted documents, including details about the approved documents, approvers, and related comments.';
     ApplicationArea = Suite;
     Caption = 'Posted Approval Entries';
     DataCaptionFields = "Document No.";

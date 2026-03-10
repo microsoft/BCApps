@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -35,7 +35,6 @@ page 6700 "Exchange Sync. Setup"
                     ApplicationArea = Basic, Suite;
                     Editable = false;
                     Lookup = false;
-                    ToolTip = 'Specifies the ID of the user who posted the entry, to be used, for example, in the change log.';
                 }
                 field(ExchangeAccountUserName; ExchangeAccountUserName)
                 {

@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -37,7 +37,6 @@ page 5330 "CRM Connection Setup"
                 {
                     ApplicationArea = Suite;
                     Editable = IsEditable;
-                    ToolTip = 'Specifies the URL of the Dynamics 365 Sales server that hosts the Dynamics 365 Sales solution that you want to connect to.';
 
                     trigger OnValidate()
                     begin
@@ -49,7 +48,6 @@ page 5330 "CRM Connection Setup"
                     ApplicationArea = Suite;
                     Editable = IsEditable;
                     Visible = IsUserNamePasswordVisible;
-                    ToolTip = 'Specifies the user name of a Dynamics 365 Sales account.';
 
                     trigger OnValidate()
                     begin
@@ -76,7 +74,6 @@ page 5330 "CRM Connection Setup"
                 {
                     ApplicationArea = Suite;
                     Caption = 'Enabled', Comment = 'Name of tickbox which shows whether the connection is enabled or disabled';
-                    ToolTip = 'Specifies if the connection to Dynamics 365 Sales is enabled. When you check this checkbox, you will be prompted to sign-in to Dataverse with an administrator user account. The account will be used one time to give consent to, install and configure applications and components that the integration requires.';
 
                     trigger OnValidate()
                     var
@@ -126,7 +123,6 @@ page 5330 "CRM Connection Setup"
                     Caption = 'Dynamics 365 SDK Version';
                     Editable = false;
                     Enabled = IsProxyVersionEnabled;
-                    ToolTip = 'Specifies the Microsoft Dynamics 365 (CRM) software development kit version that is used to connect to Dynamics 365 Sales.';
 
                     trigger OnAssistEdit()
                     var
@@ -149,7 +145,6 @@ page 5330 "CRM Connection Setup"
                     ApplicationArea = Suite;
                     Caption = 'Dynamics 365 Business Central Web Client URL';
                     Enabled = Rec."Is CRM Solution Installed";
-                    ToolTip = 'Specifies the URL to the Business Central web client. From records in Dynamics 365 Sales, such as an account or product, users can open a corresponding (coupled) record in Business Central. Set this field to the URL of the Business Central web client instance to use.';
                 }
             }
             group(CRMSettings)
@@ -178,7 +173,6 @@ page 5330 "CRM Connection Setup"
                     Caption = 'Dynamics 365 Business Central Integration Solution Imported';
                     Editable = false;
                     StyleExpr = CRMSolutionInstalledStyleExpr;
-                    ToolTip = 'Specifies if the Integration Solution is installed and configured in Dynamics 365 Sales. You cannot change this setting.';
 
                     trigger OnDrillDown()
                     begin
@@ -193,7 +187,6 @@ page 5330 "CRM Connection Setup"
                     ApplicationArea = Suite;
                     Caption = 'Legacy Sales Order Integration Enabled';
                     Enabled = not IsBidirectionalSalesOrderIntegrationEnabled;
-                    ToolTip = 'Specifies that it is possible for Dynamics 365 Sales users to submit sales orders that can then be viewed and imported in Dynamics 365.';
 
                     trigger OnValidate()
                     begin
@@ -205,20 +198,17 @@ page 5330 "CRM Connection Setup"
                     ApplicationArea = Suite;
                     Caption = 'Automatically Create Sales Orders';
                     Editable = IsAutoCreateSalesOrdersEditable;
-                    ToolTip = 'Specifies that sales orders will be created automatically from sales orders that are submitted in Dynamics 365 Sales.';
                 }
                 field("Auto Process Sales Quotes"; Rec."Auto Process Sales Quotes")
                 {
                     ApplicationArea = Suite;
                     Caption = 'Automatically Process Sales Quotes';
-                    ToolTip = 'Specifies that sales quotes will be automatically processed on sales quotes creation/revision/winning submitted in Dynamics 365 Sales quotes entities.';
                 }
                 field("Bidirectional Sales Order Int."; Rec."Bidirectional Sales Order Int.")
                 {
                     ApplicationArea = Suite;
                     Caption = 'Bidirectional Sales Order Int.';
                     Editable = not IsAutoCreateSalesOrdersEditable;
-                    ToolTip = 'Specifies that it is possible to synchronize Sales Order bidirectionally. This feature will also enable Archiving Orders.';
 
                     trigger OnValidate()
                     var
@@ -243,20 +233,17 @@ page 5330 "CRM Connection Setup"
                     ApplicationArea = Suite;
                     Editable = Rec."Is Enabled";
                     Caption = 'Open Coupled Entities in Dynamics 365 Sales Hub';
-                    ToolTip = 'Specifies that coupled Dynamics 365 Sales entities should open in Sales Hub.';
                 }
                 field("Item Availability Enabled"; Rec."Item Availability Enabled")
                 {
                     ApplicationArea = Suite;
                     Editable = Rec."Is Enabled";
                     Caption = 'Automatically Synchronize Item Availability';
-                    ToolTip = 'Specifies that item availability job queue entry will be scheduled.';
                 }
                 field("Unit Group Mapping Enabled"; Rec."Unit Group Mapping Enabled")
                 {
                     ApplicationArea = Suite;
                     Caption = 'Unit Group Mapping';
-                    ToolTip = 'Specifies that unit group mapping is enabled.';
                     Editable = not Rec."Is Enabled";
                 }
                 label(Control30)
@@ -274,7 +261,6 @@ page 5330 "CRM Connection Setup"
                 {
                     ApplicationArea = Advanced;
                     Editable = IsEditable;
-                    ToolTip = 'Specifies the authentication type that will be used to authenticate with Dynamics 365 Sales';
 
                     trigger OnValidate()
                     begin
@@ -284,7 +270,6 @@ page 5330 "CRM Connection Setup"
                 field(Domain; Rec.Domain)
                 {
                     ApplicationArea = Advanced;
-                    ToolTip = 'Specifies the domain name of your Dynamics 365 Sales deployment.';
                 }
                 field("Connection String"; ConnectionString)
                 {

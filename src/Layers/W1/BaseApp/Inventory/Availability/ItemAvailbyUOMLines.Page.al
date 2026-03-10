@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -32,7 +32,6 @@ page 5417 "Item Avail. by UOM Lines"
                 field("Code"; Rec.Code)
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies a code to identify the unit of measure.';
                 }
                 field("Qty. per Unit of Measure"; Rec."Qty. per Unit of Measure")
                 {

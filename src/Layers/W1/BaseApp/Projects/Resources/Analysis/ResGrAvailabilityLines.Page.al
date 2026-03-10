@@ -38,14 +38,12 @@ page 362 "Res. Gr. Availability Lines"
                 {
                     ApplicationArea = Basic, Suite;
                     Caption = 'Period Name';
-                    ToolTip = 'Specifies the name of the period shown in the line.';
                 }
                 field(Capacity; Rec.Capacity)
                 {
                     ApplicationArea = Basic, Suite;
                     Caption = 'Capacity';
                     DecimalPlaces = 0 : 5;
-                    ToolTip = 'Specifies the total capacity for the corresponding time period.';
                 }
 #pragma warning disable AA0100
                 field("ResGr.""Qty. on Order (Job)"""; Rec."Qty. on Order (Job)")
@@ -61,7 +59,6 @@ page 362 "Res. Gr. Availability Lines"
                     ApplicationArea = Basic, Suite;
                     Caption = 'Availability After Orders';
                     DecimalPlaces = 0 : 5;
-                    ToolTip = 'Specifies the capacity minus the quantity on order.';
                 }
 #pragma warning disable AA0100
                 field("ResGr.""Qty. Quoted (Job)"""; Rec."Qty. Quoted (Job)")
@@ -77,7 +74,6 @@ page 362 "Res. Gr. Availability Lines"
                     ApplicationArea = Basic, Suite;
                     Caption = 'Net Availability';
                     DecimalPlaces = 0 : 5;
-                    ToolTip = 'Specifies capacity, minus the quantity on order (Project), minus quantity on Service Order, minus Project Quotes Allocation.';
                 }
             }
         }

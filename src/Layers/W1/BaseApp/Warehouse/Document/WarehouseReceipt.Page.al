@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -30,7 +30,6 @@ page 5768 "Warehouse Receipt"
                 field("No."; Rec."No.")
                 {
                     ApplicationArea = Warehouse;
-                    ToolTip = 'Specifies the number of the involved entry or record, according to the specified number series.';
 
                     trigger OnAssistEdit()
                     begin
@@ -42,7 +41,6 @@ page 5768 "Warehouse Receipt"
                 {
                     ApplicationArea = Location;
                     ShowMandatory = true;
-                    ToolTip = 'Specifies the code of the location in which the items are being received.';
 
                     trigger OnLookup(var Text: Text): Boolean
                     begin
@@ -65,50 +63,41 @@ page 5768 "Warehouse Receipt"
                     field("Zone Code"; Rec."Zone Code")
                     {
                         ApplicationArea = Warehouse;
-                        ToolTip = 'Specifies the zone in which the items are being received if you are using directed put-away and pick.';
                     }
                     field("Bin Code"; Rec."Bin Code")
                     {
                         ApplicationArea = Warehouse;
-                        ToolTip = 'Specifies the bin where the items are picked or put away.';
                     }
                 }
                 field("Document Status"; Rec."Document Status")
                 {
                     ApplicationArea = Warehouse;
-                    ToolTip = 'Specifies the status of the warehouse receipt.';
                 }
                 field("Posting Date"; Rec."Posting Date")
                 {
                     ApplicationArea = Warehouse;
-                    ToolTip = 'Specifies the posting date of the warehouse receipt.';
                 }
                 field("Vendor Shipment No."; Rec."Vendor Shipment No.")
                 {
                     ApplicationArea = Warehouse;
-                    ToolTip = 'Specifies the vendor''s shipment number. It is inserted in the corresponding field on the source document during posting.';
                 }
                 field("Assigned User ID"; Rec."Assigned User ID")
                 {
                     ApplicationArea = Warehouse;
-                    ToolTip = 'Specifies the ID of the user who is responsible for the document.';
                 }
                 field("Assignment Date"; Rec."Assignment Date")
                 {
                     ApplicationArea = Warehouse;
                     Editable = false;
-                    ToolTip = 'Specifies the date when the user was assigned the activity.';
                 }
                 field("Assignment Time"; Rec."Assignment Time")
                 {
                     ApplicationArea = Warehouse;
                     Editable = false;
-                    ToolTip = 'Specifies the time when the user was assigned the activity.';
                 }
                 field("Sorting Method"; Rec."Sorting Method")
                 {
                     ApplicationArea = Warehouse;
-                    ToolTip = 'Specifies the method by which the receipts are sorted.';
 
                     trigger OnValidate()
                     begin

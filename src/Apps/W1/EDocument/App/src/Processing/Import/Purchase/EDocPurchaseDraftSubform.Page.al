@@ -451,6 +451,7 @@ page 6183 "E-Doc. Purchase Draft Subform"
     local procedure OpenMatchedPurchaseOrder(SelectedEDocumentPurchaseLine: Record "E-Document Purchase Line")
     var
         TempPurchaseOrders: Record "Purchase Header" temporary;
+        PurchaseOrder: Record "Purchase Header";
         CountPOs: Integer;
     begin
         EDocPOMatching.LoadPOsMatchedToEDocumentLine(SelectedEDocumentPurchaseLine, TempPurchaseOrders);
@@ -459,7 +460,8 @@ page 6183 "E-Doc. Purchase Draft Subform"
             exit;
         if CountPOs = 1 then begin
             TempPurchaseOrders.FindFirst();
-            Page.Run(Page::"Purchase Order", TempPurchaseOrders);
+            PurchaseOrder.Get(TempPurchaseOrders."Document Type", TempPurchaseOrders."No.");
+            Page.Run(Page::"Purchase Order", PurchaseOrder);
             exit;
         end;
         Page.Run(Page::"Purchase Orders", TempPurchaseOrders);

@@ -114,7 +114,6 @@ page 52 "Purchase Credit Memo"
                 field("Posting Description"; Rec."Posting Description")
                 {
                     ApplicationArea = Suite;
-                    ToolTip = 'Specifies additional posting information for the document. After you post the document, the description can add detail to vendor and customer ledger entries.';
                     Visible = false;
                 }
                 group("Buy-from")
@@ -126,7 +125,6 @@ page 52 "Purchase Credit Memo"
                         Caption = 'Address';
                         Importance = Additional;
                         QuickEntry = false;
-                        ToolTip = 'Specifies the address of the vendor who ships the items.';
                     }
                     field("Buy-from Address 2"; Rec."Buy-from Address 2")
                     {
@@ -134,7 +132,6 @@ page 52 "Purchase Credit Memo"
                         Caption = 'Address 2';
                         Importance = Additional;
                         QuickEntry = false;
-                        ToolTip = 'Specifies additional address information.';
                     }
                     field("Buy-from City"; Rec."Buy-from City")
                     {
@@ -142,7 +139,6 @@ page 52 "Purchase Credit Memo"
                         Caption = 'City';
                         Importance = Additional;
                         QuickEntry = false;
-                        ToolTip = 'Specifies the city of the vendor on the purchase document.';
                     }
                     group(Control88)
                     {
@@ -184,7 +180,6 @@ page 52 "Purchase Credit Memo"
                         Caption = 'Contact No.';
                         Importance = Additional;
                         QuickEntry = false;
-                        ToolTip = 'Specifies the number of your contact at the vendor.';
 
                         trigger OnLookup(var Text: Text): Boolean
                         begin
@@ -247,7 +242,6 @@ page 52 "Purchase Credit Memo"
                     ApplicationArea = Basic, Suite;
                     Importance = Additional;
                     QuickEntry = false;
-                    ToolTip = 'Specifies the date when the posting of the purchase document will be recorded.';
 
                     trigger OnValidate()
                     begin
@@ -260,7 +254,6 @@ page 52 "Purchase Credit Memo"
                     Importance = Additional;
                     Editable = VATDateEnabled;
                     QuickEntry = false;
-                    ToolTip = 'Specifies the date used to include entries on VAT reports in a VAT period. This is either the date that the document was created or posted, depending on your setting on the General Ledger Setup page.';
                     Visible = false;
                 }
                 field("Document Date"; Rec."Document Date")
@@ -268,7 +261,6 @@ page 52 "Purchase Credit Memo"
                     ApplicationArea = Basic, Suite;
                     Importance = Additional;
                     QuickEntry = false;
-                    ToolTip = 'Specifies the date when the related document was created.';
                 }
                 field("Operation Occurred Date"; Rec."Operation Occurred Date")
                 {
@@ -319,20 +311,17 @@ page 52 "Purchase Credit Memo"
                 field("Incoming Document Entry No."; Rec."Incoming Document Entry No.")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the number of the incoming document that this purchase document is created for.';
                     Visible = false;
                 }
                 field("Vendor Cr. Memo No."; Rec."Vendor Cr. Memo No.")
                 {
                     ApplicationArea = Basic, Suite;
                     ShowMandatory = VendorCreditMemoNoMandatory;
-                    ToolTip = 'Specifies the document number of the original document you received from the vendor. You can require the document number for posting, or let it be optional. By default, it''s required, so that this document references the original. Making document numbers optional removes a step from the posting process. For example, if you attach the original invoice as a PDF, you might not need to enter the document number. To specify whether document numbers are required, in the Purchases & Payables Setup window, select or clear the Ext. Doc. No. Mandatory field.';
                 }
                 field("Purchaser Code"; Rec."Purchaser Code")
                 {
                     ApplicationArea = Suite;
                     Importance = Additional;
-                    ToolTip = 'Specifies which purchaser is assigned to the vendor.';
 
                     trigger OnValidate()
                     begin
@@ -343,20 +332,17 @@ page 52 "Purchase Credit Memo"
                 {
                     ApplicationArea = RelationshipMgmt;
                     Importance = Additional;
-                    ToolTip = 'Specifies the campaign number the document is linked to.';
                 }
                 field("Responsibility Center"; Rec."Responsibility Center")
                 {
                     ApplicationArea = Suite;
                     Importance = Additional;
-                    ToolTip = 'Specifies the code of the responsibility center, such as a distribution hub, that is associated with the involved user, company, customer, or vendor.';
                 }
                 field("Assigned User ID"; Rec."Assigned User ID")
                 {
                     ApplicationArea = Basic, Suite;
                     Importance = Additional;
                     QuickEntry = false;
-                    ToolTip = 'Specifies the ID of the user who is responsible for the document.';
                 }
                 field("Operation Type"; Rec."Operation Type")
                 {
@@ -405,13 +391,11 @@ page 52 "Purchase Credit Memo"
                 field("Language Code"; Rec."Language Code")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the language to be used on printouts for this document.';
                     Visible = false;
                 }
                 field("Format Region"; Rec."Format Region")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the format to be used on printouts for this document.';
                     Visible = false;
                 }
                 field(DocAmount; Rec."Doc. Amount Incl. VAT")
@@ -475,7 +459,6 @@ page 52 "Purchase Credit Memo"
                 field("Prices Including VAT"; Rec."Prices Including VAT")
                 {
                     ApplicationArea = VAT;
-                    ToolTip = 'Specifies if the Unit Price and Line Amount fields on document lines should be shown with or without VAT.';
 
                     trigger OnValidate()
                     begin
@@ -485,7 +468,6 @@ page 52 "Purchase Credit Memo"
                 field("VAT Bus. Posting Group"; Rec."VAT Bus. Posting Group")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the VAT specification of the involved customer or vendor to link transactions made for this record with the appropriate general ledger account according to the VAT posting setup.';
 
                     trigger OnValidate()
                     var
@@ -502,32 +484,27 @@ page 52 "Purchase Credit Memo"
                     ApplicationArea = Basic, Suite;
                     Editable = IsPostingGroupEditable;
                     Importance = Additional;
-                    ToolTip = 'Specifies the vendor''s market type to link business transactions to.';
                 }
                 field("Payment Terms Code"; Rec."Payment Terms Code")
                 {
                     ApplicationArea = Basic, Suite;
                     Importance = Promoted;
-                    ToolTip = 'Specifies a formula that calculates the payment due date, payment discount date, and payment discount amount.';
                 }
                 field("Payment Method Code"; Rec."Payment Method Code")
                 {
                     ApplicationArea = Basic, Suite;
                     Importance = Additional;
-                    ToolTip = 'Specifies how to make payment, such as with bank transfer, cash, or check.';
                     Visible = IsPaymentMethodCodeVisible;
                 }
                 field("Reason Code"; Rec."Reason Code")
                 {
                     ApplicationArea = Basic, Suite;
                     Importance = Additional;
-                    ToolTip = 'Specifies the reason code, a supplementary source code that enables you to trace the document.';
                     Visible = false;
                 }
                 field("Shortcut Dimension 1 Code"; Rec."Shortcut Dimension 1 Code")
                 {
                     ApplicationArea = Dimensions;
-                    ToolTip = 'Specifies the code for Shortcut Dimension 1, which is one of two global dimension codes that you set up in the General Ledger Setup window.';
 
                     trigger OnValidate()
                     begin
@@ -537,7 +514,6 @@ page 52 "Purchase Credit Memo"
                 field("Shortcut Dimension 2 Code"; Rec."Shortcut Dimension 2 Code")
                 {
                     ApplicationArea = Dimensions;
-                    ToolTip = 'Specifies the code for Shortcut Dimension 2, which is one of two global dimension codes that you set up in the General Ledger Setup window.';
 
                     trigger OnValidate()
                     begin
@@ -547,18 +523,15 @@ page 52 "Purchase Credit Memo"
                 field("Payment Discount %"; Rec."Payment Discount %")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the payment discount percent granted if payment is made on or before the date in the Pmt. Discount Date field.';
                 }
                 field("Pmt. Discount Date"; Rec."Pmt. Discount Date")
                 {
                     ApplicationArea = Basic, Suite;
                     Importance = Additional;
-                    ToolTip = 'Specifies the date on which the amount in the entry must be paid for a payment discount to be granted.';
                 }
                 field("Journal Templ. Name"; Rec."Journal Templ. Name")
                 {
                     ApplicationArea = BasicBE;
-                    ToolTip = 'Specifies the name of the journal template in which the purchase header is to be posted.';
                     Visible = IsJournalTemplNameVisible;
                 }
                 field("Tax Liable"; Rec."Tax Liable")
@@ -585,7 +558,6 @@ page 52 "Purchase Credit Memo"
                 field(Correction; Rec.Correction)
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the entry as a corrective entry. You can use the field if you need to post a corrective entry to a vendor account. If you place a check mark in this field when posting a corrective entry, the system will post a negative debit instead of a credit or a negative credit instead of a debit. Correction flag does not affect how inventory reconciled with general ledger.';
                 }
             }
             group("Shipping and Payment")
@@ -614,7 +586,6 @@ page 52 "Purchase Credit Memo"
                     field("Order Address Code"; Rec."Order Address Code")
                     {
                         ApplicationArea = Basic, Suite;
-                        ToolTip = 'Specifies the order address of the related vendor.';
                     }
                 }
                 group("Ship-to")
@@ -645,7 +616,6 @@ page 52 "Purchase Credit Memo"
                         Editable = ShipToOptions = ShipToOptions::"Custom Address";
                         Importance = Additional;
                         QuickEntry = false;
-                        ToolTip = 'Specifies the address that you want the items in the purchase order to be shipped to.';
                     }
                     field("Ship-to Address 2"; Rec."Ship-to Address 2")
                     {
@@ -654,7 +624,6 @@ page 52 "Purchase Credit Memo"
                         Editable = ShipToOptions = ShipToOptions::"Custom Address";
                         Importance = Additional;
                         QuickEntry = false;
-                        ToolTip = 'Specifies additional address information.';
                     }
                     field("Ship-to City"; Rec."Ship-to City")
                     {
@@ -663,7 +632,6 @@ page 52 "Purchase Credit Memo"
                         Editable = ShipToOptions = ShipToOptions::"Custom Address";
                         Importance = Additional;
                         QuickEntry = false;
-                        ToolTip = 'Specifies the city of the vendor on the purchase document.';
                     }
                     group(Control86)
                     {
@@ -707,7 +675,6 @@ page 52 "Purchase Credit Memo"
                         Caption = 'Phone No.';
                         Editable = ShipToOptions = ShipToOptions::"Custom Address";
                         Importance = Additional;
-                        ToolTip = 'Specifies the telephone number of the company''s shipping address.';
                     }
                     field("Ship-to Contact"; Rec."Ship-to Contact")
                     {
@@ -777,7 +744,6 @@ page 52 "Purchase Credit Memo"
                         Caption = 'Address';
                         Importance = Additional;
                         QuickEntry = false;
-                        ToolTip = 'Specifies the address of the vendor sending the invoice.';
                     }
                     field("Pay-to Address 2"; Rec."Pay-to Address 2")
                     {
@@ -785,7 +751,6 @@ page 52 "Purchase Credit Memo"
                         Caption = 'Address 2';
                         Importance = Additional;
                         QuickEntry = false;
-                        ToolTip = 'Specifies additional address information.';
                     }
                     field("Pay-to City"; Rec."Pay-to City")
                     {
@@ -793,7 +758,6 @@ page 52 "Purchase Credit Memo"
                         Caption = 'City';
                         Importance = Additional;
                         QuickEntry = false;
-                        ToolTip = 'Specifies the city of the vendor on the purchase document.';
                     }
                     group(Control84)
                     {
@@ -834,7 +798,6 @@ page 52 "Purchase Credit Memo"
                         ApplicationArea = Basic, Suite;
                         Caption = 'Contact No.';
                         Importance = Additional;
-                        ToolTip = 'Specifies the number of the contact who sends the invoice.';
                     }
                     field(PayToContactPhoneNo; PayToContact."Phone No.")
                     {
@@ -867,7 +830,6 @@ page 52 "Purchase Credit Memo"
                     {
                         ApplicationArea = Basic, Suite;
                         Caption = 'Contact';
-                        ToolTip = 'Specifies the name of the person to contact about an invoice from this vendor.';
                     }
                 }
             }
@@ -877,27 +839,22 @@ page 52 "Purchase Credit Memo"
                 field("Transaction Specification"; Rec."Transaction Specification")
                 {
                     ApplicationArea = BasicEU, BasicNO;
-                    ToolTip = 'Specifies a specification of the document''s transaction, for the purpose of reporting to INTRASTAT.';
                 }
                 field("Transaction Type"; Rec."Transaction Type")
                 {
                     ApplicationArea = BasicEU, BasicNO;
-                    ToolTip = 'Specifies the type of transaction that the document represents, for the purpose of reporting to INTRASTAT.';
                 }
                 field("Transport Method"; Rec."Transport Method")
                 {
                     ApplicationArea = BasicEU, BasicNO;
-                    ToolTip = 'Specifies the transport method, for the purpose of reporting to INTRASTAT.';
                 }
                 field("Entry Point"; Rec."Entry Point")
                 {
                     ApplicationArea = BasicEU, BasicNO;
-                    ToolTip = 'Specifies the code of the port of entry where the items pass into your country/region, for reporting to Intrastat.';
                 }
                 field("Area"; Rec.Area)
                 {
                     ApplicationArea = BasicEU, BasicNO;
-                    ToolTip = 'Specifies the destination country or region for the purpose of Intrastat reporting.';
                 }
                 field("Service Tariff No."; Rec."Service Tariff No.")
                 {
@@ -916,12 +873,10 @@ page 52 "Purchase Credit Memo"
                 field("Applies-to Doc. Type"; Rec."Applies-to Doc. Type")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the type of the posted document that this document or journal line will be applied to when you post, for example to register payment.';
                 }
                 field("Applies-to Doc. No."; Rec."Applies-to Doc. No.")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the number of the posted document that this document or journal line will be applied to when you post, for example to register payment.';
                 }
                 field("Applies-to Occurrence No."; Rec."Applies-to Occurrence No.")
                 {
@@ -931,7 +886,6 @@ page 52 "Purchase Credit Memo"
                 field("Applies-to ID"; Rec."Applies-to ID")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the ID of entries that will be applied to when you choose the Apply Entries action.';
                 }
                 field("Refers to Period"; Rec."Refers to Period")
                 {

@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -48,7 +48,6 @@ page 14 "Salespersons/Purchasers"
                 field("Commission %"; Rec."Commission %")
                 {
                     ApplicationArea = Suite, RelationshipMgmt;
-                    ToolTip = 'Specifies the percentage to use to calculate the salesperson''s commission.';
                 }
                 field("Phone No."; Rec."Phone No.")
                 {
@@ -59,13 +58,11 @@ page 14 "Salespersons/Purchasers"
                 {
                     ApplicationArea = Suite, RelationshipMgmt;
                     Importance = Additional;
-                    ToolTip = 'Specifies whether to limit access to data for the data subject during daily operations. This is useful, for example, when protecting data from changes while it is under privacy review.';
                     Visible = false;
                 }
                 field("Coupled to Dataverse"; Rec."Coupled to Dataverse")
                 {
                     ApplicationArea = All;
-                    ToolTip = 'Specifies that the salesperson/purchaser is coupled to a user in Dataverse.';
                     Visible = CRMIntegrationEnabled or CDSIntegrationEnabled;
                 }
             }

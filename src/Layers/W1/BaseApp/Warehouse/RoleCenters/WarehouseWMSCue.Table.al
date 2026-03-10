@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -36,6 +36,7 @@ table 9051 "Warehouse WMS Cue"
                                                       "Shipment Date" = field("Date Filter"),
                                                       "Location Code" = field("Location Filter")));
             Caption = 'Released Sales Orders - Today';
+            ToolTip = 'Specifies the number of released sales orders that are displayed in the Warehouse WMS Cue on the Role Center. The documents are filtered by today''s date.';
             Editable = false;
             FieldClass = FlowField;
         }
@@ -44,6 +45,7 @@ table 9051 "Warehouse WMS Cue"
             CalcFormula = count("Warehouse Shipment Header" where("Shipment Date" = field("Date Filter"),
                                                                    "Location Code" = field("Location Filter")));
             Caption = 'Shipments - Today';
+            ToolTip = 'Specifies the number of shipments that are displayed in the Warehouse WMS Cue on the Role Center. The documents are filtered by today''s date.';
             Editable = false;
             FieldClass = FlowField;
         }
@@ -52,6 +54,7 @@ table 9051 "Warehouse WMS Cue"
             CalcFormula = count("Posted Whse. Shipment Header" where("Posting Date" = field("Date Filter2"),
                                                                       "Location Code" = field("Location Filter")));
             Caption = 'Posted Shipments - Today';
+            ToolTip = 'Specifies the number of posted shipments that are displayed in the Warehouse WMS Cue on the Role Center. The documents are filtered by today''s date.';
             Editable = false;
             FieldClass = FlowField;
         }
@@ -63,6 +66,7 @@ table 9051 "Warehouse WMS Cue"
                                                          "Expected Receipt Date" = field("Date Filter"),
                                                          "Location Code" = field("Location Filter")));
             Caption = 'Expected Purchase Orders';
+            ToolTip = 'Specifies the number of expected purchase orders that are displayed in the Warehouse WMS Cue on the Role Center. The documents are filtered by today''s date.';
             Editable = false;
             FieldClass = FlowField;
         }
@@ -70,6 +74,7 @@ table 9051 "Warehouse WMS Cue"
         {
             CalcFormula = count("Warehouse Receipt Header" where("Location Code" = field("Location Filter")));
             Caption = 'Arrivals';
+            ToolTip = 'Specifies the number of arrivals that are displayed in the Warehouse WMS Cue on the Role Center. The documents are filtered by today''s date.';
             Editable = false;
             FieldClass = FlowField;
         }
@@ -78,6 +83,7 @@ table 9051 "Warehouse WMS Cue"
             CalcFormula = count("Posted Whse. Receipt Header" where("Posting Date" = field("Date Filter2"),
                                                                      "Location Code" = field("Location Filter")));
             Caption = 'Posted Receipts - Today';
+            ToolTip = 'Specifies the number of posted receipts that are displayed in the Warehouse WMS Cue on the Role Center. The documents are filtered by today''s date.';
             Editable = false;
             FieldClass = FlowField;
         }
@@ -87,6 +93,7 @@ table 9051 "Warehouse WMS Cue"
                                                                    "Location Code" = field("Location Filter"),
                                                                    "Document Status" = filter("Partially Picked" | "Completely Picked")));
             Caption = 'Picked Shipments - Today';
+            ToolTip = 'Specifies the number of picked shipments that are displayed in the Warehouse WMS Cue on the Role Center. The documents are filtered by today''s date.';
             Editable = false;
             FieldClass = FlowField;
         }
@@ -95,6 +102,7 @@ table 9051 "Warehouse WMS Cue"
             CalcFormula = count("Warehouse Activity Header" where(Type = filter(Pick),
                                                                    "Location Code" = field("Location Filter")));
             Caption = 'Picks - All';
+            ToolTip = 'Specifies the number of picks that are displayed in the Warehouse WMS Cue on the Role Center. The documents are filtered by today''s date.';
             Editable = false;
             FieldClass = FlowField;
         }
@@ -103,6 +111,7 @@ table 9051 "Warehouse WMS Cue"
             CalcFormula = count("Warehouse Activity Header" where(Type = filter("Put-away"),
                                                                    "Location Code" = field("Location Filter")));
             Caption = 'Put-aways - All';
+            ToolTip = 'Specifies the number of put-always that are displayed in the Warehouse WMS Cue on the Role Center. The documents are filtered by today''s date.';
             Editable = false;
             FieldClass = FlowField;
         }
@@ -111,6 +120,7 @@ table 9051 "Warehouse WMS Cue"
             CalcFormula = count("Warehouse Activity Header" where(Type = filter(Movement),
                                                                    "Location Code" = field("Location Filter")));
             Caption = 'Movements - All';
+            ToolTip = 'Specifies the number of movements that are displayed in the Warehouse WMS Cue on the Role Center. The documents are filtered by today''s date.';
             Editable = false;
             FieldClass = FlowField;
         }
@@ -120,6 +130,7 @@ table 9051 "Warehouse WMS Cue"
                                                                         "Registering Date" = field("Date Filter2"),
                                                                         "Location Code" = field("Location Filter")));
             Caption = 'Registered Picks - Today';
+            ToolTip = 'Specifies the number of registered picks that are displayed in the Warehouse WMS Cue on the Role Center. The documents are filtered by today''s date.';
             Editable = false;
             FieldClass = FlowField;
         }
@@ -151,6 +162,7 @@ table 9051 "Warehouse WMS Cue"
                                                                    "Assigned User ID" = filter(''),
                                                                    "Location Code" = field("Location Filter")));
             Caption = 'Unassigned Put-aways';
+            ToolTip = 'Specifies the number of unassigned put-always that are displayed in the Warehouse Worker WMS Cue on the Role Center. The documents are filtered by today''s date.';
             Editable = false;
             FieldClass = FlowField;
         }
@@ -161,6 +173,7 @@ table 9051 "Warehouse WMS Cue"
                                                                    "Assigned User ID" = filter(''),
                                                                    "Location Code" = field("Location Filter")));
             Caption = 'Unassigned Movements';
+            ToolTip = 'Specifies the number of unassigned movements that are displayed in the Warehouse Worker WMS Cue on the Role Center. The documents are filtered by today''s date.';
             Editable = false;
             FieldClass = FlowField;
         }
@@ -171,6 +184,7 @@ table 9051 "Warehouse WMS Cue"
                                                                    "Assigned User ID" = filter(''),
                                                                    "Location Code" = field("Location Filter")));
             Caption = 'Unassigned Picks';
+            ToolTip = 'Specifies the number of unassigned picks that are displayed in the Warehouse Worker WMS Cue on the Role Center. The documents are filtered by today''s date.';
             Editable = false;
             FieldClass = FlowField;
         }

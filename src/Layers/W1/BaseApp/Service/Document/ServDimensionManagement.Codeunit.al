@@ -19,7 +19,7 @@ codeunit 5955 "Serv. Dimension Management"
 
     // Codeunit DimensionManagement
 
-    [EventSubscriber(ObjectType::Codeunit, Codeunit::DimensionManagement, 'OnAfterSetSourceCode', '', false, false)]
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::DimensionManagement, 'OnAfterSetSourceCode', '', true, false)]
     local procedure DimensionManagementOnAfterSetSourceCodeWithVar(var SourceCodeSetup: Record "Source Code Setup"; var SourceCode: Code[10]; TableID: Integer)
     begin
         if TableID in [Database::"Service Header",
@@ -54,7 +54,7 @@ codeunit 5955 "Serv. Dimension Management"
     begin
     end;
 
-    [EventSubscriber(ObjectType::Codeunit, Codeunit::DimensionManagement, 'OnAfterDefaultDimObjectNoWithoutGlobalDimsList', '', false, false)]
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::DimensionManagement, 'OnAfterDefaultDimObjectNoWithoutGlobalDimsList', '', true, false)]
     local procedure DimensionManagementOnAfterDefaultDimObjectNoWithoutGlobalDimsList(var TempAllObjWithCaption: Record System.Reflection.AllObjWithCaption temporary; sender: Codeunit DimensionManagement)
     begin
         sender.DefaultDimInsertTempObject(TempAllObjWithCaption, Database::"Service Order Type");
@@ -63,7 +63,7 @@ codeunit 5955 "Serv. Dimension Management"
         sender.DefaultDimInsertTempObject(TempAllObjWithCaption, Database::"Service Contract Template");
     end;
 
-    [EventSubscriber(ObjectType::Table, Database::"Default Dimension Priority", 'OnAfterGetDefaultDimTableList', '', false, false)]
+    [EventSubscriber(ObjectType::Table, Database::"Default Dimension Priority", 'OnAfterGetDefaultDimTableList', '', true, false)]
     local procedure OnAfterGetDefaultDimTableList(var TempAllObjWithCaption: Record System.Reflection.AllObjWithCaption temporary)
     var
         DimensionManagement: Codeunit DimensionManagement;

@@ -25,7 +25,6 @@ page 761 "Trailing Sales Orders Setup"
                 field("Use Work Date as Base"; Rec."Use Work Date as Base")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies if you want data in the Trailing Sales Orders chart to be based on a work date other than today''s date. This is generally relevant when you view the chart data in a demonstration database that has fictitious sales orders.';
                 }
             }
         }

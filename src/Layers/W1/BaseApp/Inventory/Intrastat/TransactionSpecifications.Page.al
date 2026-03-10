@@ -22,12 +22,10 @@ page 406 "Transaction Specifications"
                 field("Code"; Rec.Code)
                 {
                     ApplicationArea = BasicEU, BasicNO;
-                    ToolTip = 'Specifies a code for the transaction specification.';
                 }
                 field(Text; Rec.Text)
                 {
                     ApplicationArea = BasicEU, BasicNO;
-                    ToolTip = 'Specifies a description of the transaction specification.';
                 }
             }
         }

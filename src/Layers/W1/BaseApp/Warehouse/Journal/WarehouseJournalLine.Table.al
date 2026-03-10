@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -33,29 +33,35 @@ table 7311 "Warehouse Journal Line"
         field(1; "Journal Template Name"; Code[10])
         {
             Caption = 'Journal Template Name';
+            ToolTip = 'Specifies the name of the journal template, the basis of the journal batch, that the entries were posted from.';
             TableRelation = "Warehouse Journal Template";
         }
         field(2; "Journal Batch Name"; Code[10])
         {
             Caption = 'Journal Batch Name';
+            ToolTip = 'Specifies the name of the journal batch, a personalized journal layout, that the entries were posted from.';
             TableRelation = "Warehouse Journal Batch".Name where("Journal Template Name" = field("Journal Template Name"));
         }
         field(3; "Line No."; Integer)
         {
             Caption = 'Line No.';
+            ToolTip = 'Specifies the number of the warehouse journal line.';
         }
         field(4; "Registering Date"; Date)
         {
             Caption = 'Registering Date';
+            ToolTip = 'Specifies the date the line is registered.';
         }
         field(5; "Location Code"; Code[10])
         {
             Caption = 'Location Code';
+            ToolTip = 'Specifies the code of the location to which the journal line applies.';
             TableRelation = Location;
         }
         field(6; "From Zone Code"; Code[10])
         {
             Caption = 'From Zone Code';
+            ToolTip = 'Specifies the code of the zone from which the item on the journal line is taken.';
             TableRelation = Zone.Code where("Location Code" = field("Location Code"));
 
             trigger OnValidate()
@@ -72,6 +78,7 @@ table 7311 "Warehouse Journal Line"
         field(7; "From Bin Code"; Code[20])
         {
             Caption = 'From Bin Code';
+            ToolTip = 'Specifies the code of the bin from which the item on the journal line is taken.';
             TableRelation = if ("Phys. Inventory" = const(false),
                                 "Item No." = filter(''),
                                 "From Zone Code" = filter('')) "Bin Content"."Bin Code" where("Location Code" = field("Location Code"))
@@ -130,10 +137,12 @@ table 7311 "Warehouse Journal Line"
         field(8; Description; Text[100])
         {
             Caption = 'Description';
+            ToolTip = 'Specifies the description of the item.';
         }
         field(9; "Item No."; Code[20])
         {
             Caption = 'Item No.';
+            ToolTip = 'Specifies the number of the item on the journal line.';
             TableRelation = Item where(Type = const(Inventory));
 
             trigger OnValidate()
@@ -151,6 +160,7 @@ table 7311 "Warehouse Journal Line"
         {
             AutoFormatType = 0;
             Caption = 'Quantity';
+            ToolTip = 'Specifies the number of units of the item in the adjustment (positive or negative) or the reclassification.';
             DecimalPlaces = 0 : 5;
 
             trigger OnValidate()
@@ -265,6 +275,7 @@ table 7311 "Warehouse Journal Line"
         field(14; "Zone Code"; Code[10])
         {
             Caption = 'Zone Code';
+            ToolTip = 'Specifies the zone code where the bin on this line is located.';
             TableRelation = Zone.Code where("Location Code" = field("Location Code"));
 
             trigger OnValidate()
@@ -284,6 +295,7 @@ table 7311 "Warehouse Journal Line"
         field(15; "Bin Code"; Code[20])
         {
             Caption = 'Bin Code';
+            ToolTip = 'Specifies the bin where the items are picked or put away.';
             TableRelation = if ("Zone Code" = filter('')) Bin.Code where("Location Code" = field("Location Code"))
             else
             if ("Zone Code" = filter(<> '')) Bin.Code where("Location Code" = field("Location Code"),
@@ -359,6 +371,7 @@ table 7311 "Warehouse Journal Line"
         field(27; "To Zone Code"; Code[10])
         {
             Caption = 'To Zone Code';
+            ToolTip = 'Specifies the code of the zone to which the item on the journal line will be moved.';
             TableRelation = Zone.Code where("Location Code" = field("Location Code"));
 
             trigger OnValidate()
@@ -373,6 +386,7 @@ table 7311 "Warehouse Journal Line"
         field(28; "To Bin Code"; Code[20])
         {
             Caption = 'To Bin Code';
+            ToolTip = 'Specifies the code of the bin to which the item on the journal line will be moved.';
             TableRelation = if ("To Zone Code" = filter('')) Bin.Code where("Location Code" = field("Location Code"))
             else
             if ("To Zone Code" = filter(<> '')) Bin.Code where("Location Code" = field("Location Code"),
@@ -405,6 +419,7 @@ table 7311 "Warehouse Journal Line"
         field(29; "Reason Code"; Code[10])
         {
             Caption = 'Reason Code';
+            ToolTip = 'Specifies the reason code for the warehouse journal line.';
             TableRelation = "Reason Code";
         }
         field(33; "Registering No. Series"; Code[20])
@@ -421,6 +436,7 @@ table 7311 "Warehouse Journal Line"
         {
             AutoFormatType = 0;
             Caption = 'Cubage';
+            ToolTip = 'Specifies the total cubage of the items on the warehouse journal line.';
             DecimalPlaces = 0 : 5;
             Editable = false;
         }
@@ -428,12 +444,14 @@ table 7311 "Warehouse Journal Line"
         {
             AutoFormatType = 0;
             Caption = 'Weight';
+            ToolTip = 'Specifies the weight of one item unit when measured in the specified unit of measure.';
             DecimalPlaces = 0 : 5;
             Editable = false;
         }
         field(50; "Whse. Document No."; Code[20])
         {
             Caption = 'Whse. Document No.';
+            ToolTip = 'Specifies the warehouse document number of the journal line.';
         }
         field(51; "Whse. Document Type"; Enum "Warehouse Journal Document Type")
         {
@@ -481,6 +499,7 @@ table 7311 "Warehouse Journal Line"
         field(55; "Entry Type"; Option)
         {
             Caption = 'Entry Type';
+            ToolTip = 'Specifies the type of transaction that will be registered from the line.';
             OptionCaption = 'Negative Adjmt.,Positive Adjmt.,Movement';
             OptionMembers = "Negative Adjmt.","Positive Adjmt.",Movement;
         }
@@ -500,6 +519,7 @@ table 7311 "Warehouse Journal Line"
         field(67; "User ID"; Code[50])
         {
             Caption = 'User ID';
+            ToolTip = 'Specifies the ID of the user who posted the entry, to be used, for example, in the change log.';
             DataClassification = EndUserIdentifiableInformation;
             TableRelation = User."User Name";
         }
@@ -526,6 +546,7 @@ table 7311 "Warehouse Journal Line"
         field(5402; "Variant Code"; Code[10])
         {
             Caption = 'Variant Code';
+            ToolTip = 'Specifies the variant of the item on the line.';
             TableRelation = "Item Variant".Code where("Item No." = field("Item No."));
 
             trigger OnValidate()
@@ -552,6 +573,7 @@ table 7311 "Warehouse Journal Line"
         {
             AutoFormatType = 0;
             Caption = 'Qty. per Unit of Measure';
+            ToolTip = 'Specifies the number of base units of measure in the unit of measure specified for the item on the journal line.';
             DecimalPlaces = 0 : 5;
             Editable = false;
             InitValue = 1;
@@ -559,6 +581,7 @@ table 7311 "Warehouse Journal Line"
         field(5407; "Unit of Measure Code"; Code[10])
         {
             Caption = 'Unit of Measure Code';
+            ToolTip = 'Specifies how each unit of the item or resource is measured, such as in pieces or hours. By default, the value in the Base Unit of Measure field on the item or resource card is inserted.';
             TableRelation = "Item Unit of Measure".Code where("Item No." = field("Item No."));
 
             trigger OnValidate()
@@ -611,6 +634,7 @@ table 7311 "Warehouse Journal Line"
         field(6500; "Serial No."; Code[50])
         {
             Caption = 'Serial No.';
+            ToolTip = 'Specifies the same as for the field in the Item Journal window.';
 
             trigger OnLookup()
             begin
@@ -630,6 +654,7 @@ table 7311 "Warehouse Journal Line"
         field(6501; "Lot No."; Code[50])
         {
             Caption = 'Lot No.';
+            ToolTip = 'Specifies the same as for the field in the Item Journal window.';
 
             trigger OnLookup()
             begin
@@ -647,10 +672,12 @@ table 7311 "Warehouse Journal Line"
         field(6502; "Warranty Date"; Date)
         {
             Caption = 'Warranty Date';
+            ToolTip = 'Specifies the last day of warranty for the item on the line.';
         }
         field(6503; "Expiration Date"; Date)
         {
             Caption = 'Expiration Date';
+            ToolTip = 'Specifies the last date that the item on the line can be used.';
 
             trigger OnValidate()
             begin
@@ -672,6 +699,7 @@ table 7311 "Warehouse Journal Line"
         field(6515; "Package No."; Code[50])
         {
             Caption = 'Package No.';
+            ToolTip = 'Specifies the same as for the field in the Item Journal window.';
             CaptionClass = '6,1';
 
             trigger OnLookup()
@@ -695,6 +723,7 @@ table 7311 "Warehouse Journal Line"
         field(7380; "Phys Invt Counting Period Code"; Code[10])
         {
             Caption = 'Phys Invt Counting Period Code';
+            ToolTip = 'Specifies a code for the physical inventory counting period, if the counting period functionality was used when the line was created.';
             Editable = false;
             TableRelation = "Phys. Invt. Counting Period";
         }
@@ -702,6 +731,7 @@ table 7311 "Warehouse Journal Line"
         {
             AccessByPermission = TableData "Phys. Invt. Item Selection" = R;
             Caption = 'Phys Invt Counting Period Type';
+            ToolTip = 'Specifies whether the physical inventory counting period was assigned to a stockkeeping unit or an item.';
             Editable = false;
             OptionCaption = ' ,Item,SKU';
             OptionMembers = " ",Item,SKU;

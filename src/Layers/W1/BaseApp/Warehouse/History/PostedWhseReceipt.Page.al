@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -29,67 +29,56 @@ page 7330 "Posted Whse. Receipt"
                 {
                     ApplicationArea = Warehouse;
                     Editable = false;
-                    ToolTip = 'Specifies the number of the involved entry or record, according to the specified number series.';
                 }
                 field("Location Code"; Rec."Location Code")
                 {
                     ApplicationArea = Location;
                     Editable = false;
-                    ToolTip = 'Specifies the code of the location where the items were received.';
                 }
                 field("Zone Code"; Rec."Zone Code")
                 {
                     ApplicationArea = Warehouse;
                     Editable = false;
-                    ToolTip = 'Specifies the code of the zone on this posted receipt header.';
                 }
                 field("Bin Code"; Rec."Bin Code")
                 {
                     ApplicationArea = Warehouse;
                     Editable = false;
-                    ToolTip = 'Specifies the bin where the items are picked or put away.';
                 }
                 field("Document Status"; Rec."Document Status")
                 {
                     ApplicationArea = Warehouse;
                     Editable = false;
-                    ToolTip = 'Specifies the status of the posted warehouse receipt.';
                 }
                 field("Posting Date"; Rec."Posting Date")
                 {
                     ApplicationArea = Warehouse;
                     Editable = false;
-                    ToolTip = 'Specifies the posting date of the receipt.';
                 }
                 field("Vendor Shipment No."; Rec."Vendor Shipment No.")
                 {
                     ApplicationArea = Warehouse;
                     Editable = false;
-                    ToolTip = 'Specifies the vendor''s shipment number. It is inserted in the corresponding field on the source document during posting.';
                 }
                 field("Whse. Receipt No."; Rec."Whse. Receipt No.")
                 {
                     ApplicationArea = Warehouse;
                     Editable = false;
-                    ToolTip = 'Specifies the number of the warehouse receipt that the posted warehouse receipt concerns.';
                 }
                 field("Assigned User ID"; Rec."Assigned User ID")
                 {
                     ApplicationArea = Warehouse;
                     Editable = false;
-                    ToolTip = 'Specifies the ID of the user who is responsible for the document.';
                 }
                 field("Assignment Date"; Rec."Assignment Date")
                 {
                     ApplicationArea = Warehouse;
                     Editable = false;
-                    ToolTip = 'Specifies the date when the user was assigned the activity.';
                 }
                 field("Assignment Time"; Rec."Assignment Time")
                 {
                     ApplicationArea = Warehouse;
                     Editable = false;
-                    ToolTip = 'Specifies the time when the user was assigned the activity.';
                 }
             }
             part(PostedWhseRcptLines; "Posted Whse. Receipt Subform")

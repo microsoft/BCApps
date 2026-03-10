@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -21,24 +21,20 @@ page 9126 "Lot Numbers by Bin FactBox"
                 field("Item No."; Rec."Item No.")
                 {
                     ApplicationArea = Warehouse;
-                    ToolTip = 'Specifies the item that exists as lot numbers in the bin.';
                     Visible = false;
                 }
                 field("Zone Code"; Rec."Zone Code")
                 {
                     ApplicationArea = Warehouse;
-                    ToolTip = 'Specifies the zone that is assigned to the bin where the lot number exists.';
                     Visible = false;
                 }
                 field("Bin Code"; Rec."Bin Code")
                 {
                     ApplicationArea = Warehouse;
-                    ToolTip = 'Specifies the bin where the lot number exists.';
                 }
                 field("Lot No."; Rec."Lot No.")
                 {
                     ApplicationArea = Warehouse;
-                    ToolTip = 'Specifies the lot number that exists in the bin.';
                 }
                 field("Qty. (Base)"; Rec."Qty. (Base)")
                 {

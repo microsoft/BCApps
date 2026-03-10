@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -22,22 +22,18 @@ page 5892 "Phys. Inventory Comment List"
                 field("Order No."; Rec."Order No.")
                 {
                     ApplicationArea = Warehouse;
-                    ToolTip = 'Specifies the document number of the physical inventory order to which the comment applies.';
                 }
                 field("Recording No."; Rec."Recording No.")
                 {
                     ApplicationArea = Warehouse;
-                    ToolTip = 'Specifies the document number of the physical inventory recording to which the comment applies.';
                 }
                 field(Date; Rec.Date)
                 {
                     ApplicationArea = Warehouse;
-                    ToolTip = 'Specifies the date when the comment was created.';
                 }
                 field(Comment; Rec.Comment)
                 {
                     ApplicationArea = Warehouse;
-                    ToolTip = 'Specifies the comment itself.';
                 }
             }
         }

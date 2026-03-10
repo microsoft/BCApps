@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -31,33 +31,40 @@ table 380 "Detailed Vendor Ledg. Entry"
         field(1; "Entry No."; Integer)
         {
             Caption = 'Entry No.';
+            ToolTip = 'Specifies the number of the entry, as assigned from the specified number series when the entry was created.';
         }
         field(2; "Vendor Ledger Entry No."; Integer)
         {
             Caption = 'Vendor Ledger Entry No.';
+            ToolTip = 'Specifies the entry number of the vendor ledger entry that the detailed vendor ledger entry line was created for.';
             TableRelation = "Vendor Ledger Entry";
         }
         field(3; "Entry Type"; Enum "Detailed CV Ledger Entry Type")
         {
             Caption = 'Entry Type';
+            ToolTip = 'Specifies the entry type of the detailed vendor ledger entry.';
         }
         field(4; "Posting Date"; Date)
         {
             Caption = 'Posting Date';
+            ToolTip = 'Specifies the posting date of the detailed vendor ledger entry.';
         }
         field(5; "Document Type"; Enum "Gen. Journal Document Type")
         {
             Caption = 'Document Type';
+            ToolTip = 'Specifies the document type of the detailed vendor ledger entry.';
         }
         field(6; "Document No."; Code[20])
         {
             Caption = 'Document No.';
+            ToolTip = 'Specifies the document number of the transaction that created the entry.';
         }
         field(7; Amount; Decimal)
         {
             AutoFormatExpression = Rec."Currency Code";
             AutoFormatType = 1;
             Caption = 'Amount';
+            ToolTip = 'Specifies the amount of the detailed vendor ledger entry.';
         }
         field(8; "Amount (LCY)"; Decimal)
         {
@@ -68,16 +75,19 @@ table 380 "Detailed Vendor Ledg. Entry"
         field(9; "Vendor No."; Code[20])
         {
             Caption = 'Vendor No.';
+            ToolTip = 'Specifies the number of the vendor account to which the entry is posted.';
             TableRelation = Vendor;
         }
         field(10; "Currency Code"; Code[10])
         {
             Caption = 'Currency Code';
+            ToolTip = 'Specifies the code for the currency if the amount is in a foreign currency.';
             TableRelation = Currency;
         }
         field(11; "User ID"; Code[50])
         {
             Caption = 'User ID';
+            ToolTip = 'Specifies the ID of the user who posted the entry, to be used, for example, in the change log.';
             DataClassification = EndUserIdentifiableInformation;
             TableRelation = User."User Name";
             ValidateTableRelation = false;
@@ -92,6 +102,7 @@ table 380 "Detailed Vendor Ledg. Entry"
         field(12; "Source Code"; Code[10])
         {
             Caption = 'Source Code';
+            ToolTip = 'Specifies the source code that specifies where the entry was created.';
             TableRelation = "Source Code";
         }
         field(13; "Transaction No."; Integer)
@@ -105,6 +116,7 @@ table 380 "Detailed Vendor Ledg. Entry"
         field(15; "Reason Code"; Code[10])
         {
             Caption = 'Reason Code';
+            ToolTip = 'Specifies the reason code, a supplementary source code that enables you to trace the entry.';
             TableRelation = "Reason Code";
         }
         field(16; "Debit Amount"; Decimal)
@@ -113,6 +125,7 @@ table 380 "Detailed Vendor Ledg. Entry"
             AutoFormatType = 1;
             BlankZero = true;
             Caption = 'Debit Amount';
+            ToolTip = 'Specifies the total of the ledger entries that represent debits.';
         }
         field(17; "Credit Amount"; Decimal)
         {
@@ -120,6 +133,7 @@ table 380 "Detailed Vendor Ledg. Entry"
             AutoFormatType = 1;
             BlankZero = true;
             Caption = 'Credit Amount';
+            ToolTip = 'Specifies the total of the ledger entries that represent credits.';
         }
         field(18; "Debit Amount (LCY)"; Decimal)
         {
@@ -138,15 +152,18 @@ table 380 "Detailed Vendor Ledg. Entry"
         field(20; "Initial Entry Due Date"; Date)
         {
             Caption = 'Initial Entry Due Date';
+            ToolTip = 'Specifies the date on which the initial entry is due for payment.';
         }
         field(21; "Initial Entry Global Dim. 1"; Code[20])
         {
             Caption = 'Initial Entry Global Dim. 1';
+            ToolTip = 'Specifies the Global Dimension 1 code of the initial vendor ledger entry.';
             TableRelation = "Dimension Value".Code where("Global Dimension No." = const(1));
         }
         field(22; "Initial Entry Global Dim. 2"; Code[20])
         {
             Caption = 'Initial Entry Global Dim. 2';
+            ToolTip = 'Specifies the Global Dimension 2 code of the initial vendor ledger entry.';
             TableRelation = "Dimension Value".Code where("Global Dimension No." = const(2));
         }
         field(24; "Gen. Bus. Posting Group"; Code[20])
@@ -176,6 +193,7 @@ table 380 "Detailed Vendor Ledg. Entry"
         field(35; "Initial Document Type"; Enum "Gen. Journal Document Type")
         {
             Caption = 'Initial Document Type';
+            ToolTip = 'Specifies the document type that the initial vendor ledger entry was created with.';
         }
         field(36; "Applied Vend. Ledger Entry No."; Integer)
         {
@@ -184,10 +202,12 @@ table 380 "Detailed Vendor Ledg. Entry"
         field(37; Unapplied; Boolean)
         {
             Caption = 'Unapplied';
+            ToolTip = 'Specifies whether the entry has been unapplied (undone) from the Unapply Vendor Entries window by the entry no. shown in the Unapplied by Entry No. field.';
         }
         field(38; "Unapplied by Entry No."; Integer)
         {
             Caption = 'Unapplied by Entry No.';
+            ToolTip = 'Specifies the number of the correcting entry, if the original entry has been unapplied (undone) from the Unapply Vendor Entries window.';
             TableRelation = "Detailed Vendor Ledg. Entry";
         }
         field(39; "Remaining Pmt. Disc. Possible"; Decimal)
@@ -221,6 +241,7 @@ table 380 "Detailed Vendor Ledg. Entry"
         field(44; "Posting Group"; Code[20])
         {
             Caption = 'Vendor Posting Group';
+            ToolTip = 'Specifies the vendor''s market type to link business transactions to.';
             Editable = false;
             TableRelation = "Vendor Posting Group";
         }
@@ -246,25 +267,25 @@ table 380 "Detailed Vendor Ledg. Entry"
         {
             Clustered = true;
         }
-        key(Key2; "Vendor Ledger Entry No.", "Posting Date")
+        key(Key2; "Vendor No.", "Currency Code")
         {
-            IncludedFields = Amount, "Amount (LCY)";
+            SumIndexFields = Amount, "Amount (LCY)";
         }
         key(Key3; "Vendor Ledger Entry No.", "Entry Type", "Posting Date")
         {
             IncludedFields = Amount, "Amount (LCY)";
         }
-        key(Key4; "Ledger Entry Amount", "Vendor Ledger Entry No.", "Posting Date")
+        key(Key4; "Vendor Ledger Entry No.", "Ledger Entry Amount", "Posting Date")
         {
-            IncludedFields = Amount, "Amount (LCY)", "Debit Amount", "Credit Amount", "Debit Amount (LCY)", "Credit Amount (LCY)";
+            IncludedFields = "Currency Code", Amount, "Amount (LCY)", "Debit Amount", "Credit Amount", "Debit Amount (LCY)", "Credit Amount (LCY)";
         }
         key(Key5; "Initial Document Type", "Entry Type", "Vendor No.", "Currency Code", "Initial Entry Global Dim. 1", "Initial Entry Global Dim. 2", "Posting Date")
         {
-            SumIndexFields = Amount, "Amount (LCY)";
+            IncludedFields = Amount, "Amount (LCY)";
         }
         key(Key6; "Vendor No.", "Currency Code", "Initial Entry Global Dim. 1", "Initial Entry Global Dim. 2", "Initial Entry Due Date", "Posting Date")
         {
-            SumIndexFields = Amount, "Amount (LCY)";
+            IncludedFields = Amount, "Amount (LCY)";
         }
         key(Key7; "Document No.", "Document Type", "Posting Date")
         {
@@ -282,9 +303,9 @@ table 380 "Detailed Vendor Ledg. Entry"
         {
             SumIndexFields = "Amount (LCY)";
         }
-        key(Key12; "Entry Type", "Vendor No.", "Posting Date")
+        key(Key12; "Vendor No.", "Entry Type", "Posting Date")
         {
-            SumIndexFields = "Debit Amount", "Credit Amount", "Debit Amount (LCY)", "Credit Amount (LCY)";
+            IncludedFields = Amount, "Amount (LCY)", "Debit Amount", "Credit Amount", "Debit Amount (LCY)", "Credit Amount (LCY)";
         }
     }
 

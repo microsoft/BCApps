@@ -49,6 +49,7 @@ table 99000829 "Planning Component"
         field(11; "Item No."; Code[20])
         {
             Caption = 'Item No.';
+            ToolTip = 'Specifies the item number of the component.';
             TableRelation = Item where(Type = filter(Inventory | "Non-Inventory"));
 
             trigger OnValidate()
@@ -79,10 +80,12 @@ table 99000829 "Planning Component"
         field(12; Description; Text[100])
         {
             Caption = 'Description';
+            ToolTip = 'Specifies the description of the component.';
         }
         field(13; "Unit of Measure Code"; Code[10])
         {
             Caption = 'Unit of Measure Code';
+            ToolTip = 'Specifies how each unit of the item or resource is measured, such as in pieces or hours. By default, the value in the Base Unit of Measure field on the item or resource card is inserted.';
             TableRelation = "Item Unit of Measure".Code where("Item No." = field("Item No."));
 
             trigger OnValidate()
@@ -128,22 +131,27 @@ table 99000829 "Planning Component"
         field(15; Position; Code[10])
         {
             Caption = 'Position';
+            ToolTip = 'Specifies the position of the component on the bill of material.';
         }
         field(16; "Position 2"; Code[10])
         {
             Caption = 'Position 2';
+            ToolTip = 'Specifies the second reference number for the component position, such as the alternate position number of a component on a circuit board.';
         }
         field(17; "Position 3"; Code[10])
         {
             Caption = 'Position 3';
+            ToolTip = 'Specifies the third reference number for the component position on a bill of material, such as the alternate position number of a component on a print card.';
         }
         field(18; "Lead-Time Offset"; DateFormula)
         {
             Caption = 'Lead-Time Offset';
+            ToolTip = 'Specifies the lead-time offset for the planning component.';
         }
         field(21; "Variant Code"; Code[10])
         {
             Caption = 'Variant Code';
+            ToolTip = 'Specifies the variant of the item on the line.';
             TableRelation = "Item Variant".Code where("Item No." = field("Item No."));
 
             trigger OnValidate()
@@ -183,6 +191,7 @@ table 99000829 "Planning Component"
         {
             AutoFormatType = 0;
             Caption = 'Expected Quantity';
+            ToolTip = 'Specifies the expected quantity of this planning component line.';
             DecimalPlaces = 0 : 5;
             Editable = false;
 
@@ -236,6 +245,7 @@ table 99000829 "Planning Component"
         field(30; "Location Code"; Code[10])
         {
             Caption = 'Location Code';
+            ToolTip = 'Specifies the code for the inventory location, where the item on the planning component line will be registered.';
             TableRelation = Location where("Use As In-Transit" = const(false));
 
             trigger OnValidate()
@@ -250,6 +260,7 @@ table 99000829 "Planning Component"
         {
             CaptionClass = '1,2,1';
             Caption = 'Shortcut Dimension 1 Code';
+            ToolTip = 'Specifies the code for Shortcut Dimension 1, which is one of two global dimension codes that you set up in the General Ledger Setup window.';
             TableRelation = "Dimension Value".Code where("Global Dimension No." = const(1),
                                                           Blocked = const(false));
 
@@ -263,6 +274,7 @@ table 99000829 "Planning Component"
         {
             CaptionClass = '1,2,2';
             Caption = 'Shortcut Dimension 2 Code';
+            ToolTip = 'Specifies the code for Shortcut Dimension 2, which is one of two global dimension codes that you set up in the General Ledger Setup window.';
             TableRelation = "Dimension Value".Code where("Global Dimension No." = const(2),
                                                           Blocked = const(false));
 
@@ -310,6 +322,7 @@ table 99000829 "Planning Component"
         {
             AutoFormatType = 0;
             Caption = 'Length';
+            ToolTip = 'Specifies the length of one item unit when measured in the specified unit of measure.';
             DecimalPlaces = 0 : 5;
 
             trigger OnValidate()
@@ -321,6 +334,7 @@ table 99000829 "Planning Component"
         {
             AutoFormatType = 0;
             Caption = 'Width';
+            ToolTip = 'Specifies the width of one item unit when measured in the specified unit of measure.';
             DecimalPlaces = 0 : 5;
 
             trigger OnValidate()
@@ -332,6 +346,7 @@ table 99000829 "Planning Component"
         {
             AutoFormatType = 0;
             Caption = 'Weight';
+            ToolTip = 'Specifies the weight of one item unit when measured in the specified unit of measure.';
             DecimalPlaces = 0 : 5;
 
             trigger OnValidate()
@@ -343,6 +358,7 @@ table 99000829 "Planning Component"
         {
             AutoFormatType = 0;
             Caption = 'Depth';
+            ToolTip = 'Specifies the depth of one item unit when measured in the specified unit of measure.';
             DecimalPlaces = 0 : 5;
 
             trigger OnValidate()
@@ -353,6 +369,7 @@ table 99000829 "Planning Component"
         field(44; "Calculation Formula"; Enum "Quantity Calculation Formula")
         {
             Caption = 'Calculation Formula';
+            ToolTip = 'Specifies how to calculate the Quantity field.';
 
             trigger OnValidate()
             var
@@ -392,6 +409,7 @@ table 99000829 "Planning Component"
         {
             AutoFormatType = 0;
             Caption = 'Quantity per';
+            ToolTip = 'Specifies how many units of the component are required to produce the parent item.';
             DecimalPlaces = 0 : 5;
 
             trigger OnValidate()
@@ -409,6 +427,7 @@ table 99000829 "Planning Component"
             AutoFormatType = 1;
             AutoFormatExpression = '';
             Caption = 'Unit Cost';
+            ToolTip = 'Specifies the cost of one unit of the item or resource on the line.';
 
             trigger OnValidate()
             begin
@@ -441,10 +460,12 @@ table 99000829 "Planning Component"
             AutoFormatType = 2;
             AutoFormatExpression = '';
             Caption = 'Cost Amount';
+            ToolTip = 'Specifies the total cost for this planning component line.';
         }
         field(52; "Due Date"; Date)
         {
             Caption = 'Due Date';
+            ToolTip = 'Specifies the date when this planning component must be finished.';
 
             trigger OnValidate()
             var
@@ -548,6 +569,7 @@ table 99000829 "Planning Component"
                                                                    "Source Prod. Order Line" = field("Worksheet Line No."),
                                                                    "Reservation Status" = const(Reservation)));
             Caption = 'Reserved Quantity';
+            ToolTip = 'Specifies the quantity of units that are reserved.';
             DecimalPlaces = 0 : 5;
             Editable = false;
             FieldClass = FlowField;
@@ -577,6 +599,7 @@ table 99000829 "Planning Component"
         field(76; "Due Date-Time"; DateTime)
         {
             Caption = 'Due Date-Time';
+            ToolTip = 'Specifies the due date and the due time, which are combined in a format called "due date-time".';
 
             trigger OnValidate()
             begin

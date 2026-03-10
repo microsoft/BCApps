@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -24,7 +24,6 @@ page 7348 "Warehouse Employee List"
                 field("User ID"; Rec."User ID")
                 {
                     ApplicationArea = Warehouse;
-                    ToolTip = 'Specifies the ID of the user who posted the entry, to be used, for example, in the change log.';
 
                     trigger OnDrillDown()
                     var
@@ -36,17 +35,14 @@ page 7348 "Warehouse Employee List"
                 field("Location Code"; Rec."Location Code")
                 {
                     ApplicationArea = Location;
-                    ToolTip = 'Specifies the code of the location in which the employee works.';
                 }
                 field(Default; Rec.Default)
                 {
                     ApplicationArea = Warehouse;
-                    ToolTip = 'Specifies that the location code that is defined as the default location for this employee''s activities.';
                 }
                 field("ADCS User"; Rec."ADCS User")
                 {
                     ApplicationArea = Warehouse;
-                    ToolTip = 'Specifies the ADCS user name of a warehouse employee.';
                 }
             }
         }

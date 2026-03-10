@@ -3918,48 +3918,6 @@ codeunit 134902 "ERM Account Schedule"
     end;
 
     [Test]
-    [HandlerFunctions('AccountScheduleRequestPageVerifyValuesHandler')]
-    [Scope('OnPrem')]
-    procedure RunAccScheduleReqPageWhenChangeToEmptyScheduleName()
-    var
-        FinancialReport2: Record "Financial Report";
-        AccScheduleName: Record "Acc. Schedule Name";
-        AccScheduleName2: Record "Acc. Schedule Name";
-        ColumnLayoutName: Record "Column Layout Name";
-        AccScheduleOverview: TestPage "Acc. Schedule Overview";
-        FinancialReports: TestPage "Financial Reports";
-        AccountScheduleCurrentColumnName: Code[10];
-    begin
-        // [FEATURE] [UI]
-        // [SCENARIO 201171] Request page of Account Schedule report should have not changed column layout value when Account Schedule Name without setup is changed
-        Initialize();
-        LibraryLowerPermissions.SetFinancialReporting();
-
-        // [GIVEN] Account Schedule "Acc1" has "Col1" as default column layout name, Account Schedule "Acc2" has not defined column layout name
-        CreateAccountScheduleNameAndColumn(AccScheduleName, ColumnLayoutName);
-        LibraryERM.CreateAccScheduleName(AccScheduleName2);
-
-        // [GIVEN] Save the value of Account Schedule "Col2" column layout name ("Default" in W1)
-        AccScheduleOverview.Trap();
-        OpenAccountScheduleOverviewPage(AccScheduleName2.Name);
-        AccountScheduleCurrentColumnName := AccScheduleOverview.CurrentColumnName.Value();
-
-        // [GIVEN] Set Column Layout as "Col2" on Account Schedule "Acc1" Overview page
-        AccScheduleOverview.Trap();
-        FinancialReports.OpenEdit();
-        FinancialReports.Filter.SetFilter(Name, AccScheduleName.Name);
-        FinancialReports.Overview.Invoke();
-        AccScheduleOverview.FinancialReportName.SetValue(AccScheduleName2.Name);
-        AccScheduleOverview.CurrentSchedName.SetValue(AccScheduleName2.Name);
-        FinancialReport2.Get(AccScheduleName2.Name);
-        // [WHEN] Invoke Account Schedule report
-        RunAccountScheduleReportFromOverviewPage(AccScheduleOverview, AccScheduleName2.Name, FinancialReport2."Financial Report Column Group");
-
-        // [THEN] Request page of Account Schedule report has changed to "Col1" value and is equal to "Default" and "Acc2" schedule name
-        // Verification is done in AccountScheduleRequestPageVerifyValuesHandler
-    end;
-
-    [Test]
     [HandlerFunctions('AccountScheduleSimpleRequestPageHandler')]
     [Scope('OnPrem')]
     procedure RunAccSchedIncomeStmtAfterAccSchedBalanceSheet()

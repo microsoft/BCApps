@@ -23,14 +23,12 @@ page 5555 "Permission Conflicts Overview"
                     ApplicationArea = All;
                     Editable = false;
                     Caption = 'Permission Set ID';
-                    Tooltip = 'Specifies the identifier for the permission set.';
                 }
                 field(Type; Rec.Type)
                 {
                     ApplicationArea = All;
                     Editable = false;
                     Caption = 'Type';
-                    Tooltip = 'Specifies whether the permission set is part of standard Business Central, or a user created it.';
                 }
                 field(Basic; BasicTxt)
                 {

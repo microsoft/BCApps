@@ -27,7 +27,6 @@ page 9247 "Abs. Overview by Period Matrix"
                 field("No."; Rec."No.")
                 {
                     ApplicationArea = BasicHR;
-                    ToolTip = 'Specifies the number of the involved entry or record, according to the specified number series.';
                 }
                 field("Full Name"; Rec.FullName())
                 {

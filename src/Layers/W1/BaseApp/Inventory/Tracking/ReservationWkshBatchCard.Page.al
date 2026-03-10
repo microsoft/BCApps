@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -25,12 +25,10 @@ page 324 "Reservation Wksh. Batch Card"
                 field(Name; Rec.Name)
                 {
                     Caption = 'Name';
-                    ToolTip = 'Specifies the name of the reservation worksheet you are creating.';
                 }
                 field(Description; Rec.Description)
                 {
                     Caption = 'Description';
-                    ToolTip = 'Specifies a brief description of the reservation worksheet name you are creating.';
                 }
             }
             group(Filters)
@@ -40,17 +38,14 @@ page 324 "Reservation Wksh. Batch Card"
                 field("Demand Type"; Rec."Demand Type")
                 {
                     Caption = 'Demand Type';
-                    ToolTip = 'Specifies the type of demand that the reservation worksheet will be used for.';
                 }
                 field("Start Date Formula"; Rec."Start Date Formula")
                 {
                     Caption = 'Start Date Formula';
-                    ToolTip = 'Specifies the formula that is used to calculate the start date for the reservation worksheet.';
                 }
                 field("End Date Formula"; Rec."End Date Formula")
                 {
                     Caption = 'End Date Formula';
-                    ToolTip = 'Specifies the formula that is used to calculate the end date for the reservation worksheet.';
                 }
                 field("Item Filter"; ItemFilter)
                 {

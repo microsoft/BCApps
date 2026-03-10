@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -24,13 +24,11 @@ page 5809 "Cost Adjustment Detailed Logs"
                 field("Cost Adjustment Run Guid"; Rec."Cost Adjustment Run Guid")
                 {
                     Caption = 'Cost Adjustment Run Guid';
-                    ToolTip = 'Specifies the unique identifier of the cost adjustment run.';
                     Visible = false;
                 }
                 field("Item No."; Rec."Item No.")
                 {
                     Caption = 'Item No.';
-                    ToolTip = 'Specifies the item number.';
                 }
                 field("Run Status"; Status)
                 {
@@ -41,17 +39,14 @@ page 5809 "Cost Adjustment Detailed Logs"
                 field("Starting Date-Time"; Rec."Starting Date-Time")
                 {
                     Caption = 'Starting Date-Time';
-                    ToolTip = 'Specifies the starting date and time of the cost adjustment run for the item.';
                 }
                 field("Ending Date-Time"; Rec."Ending Date-Time")
                 {
                     Caption = 'Ending Date-Time';
-                    ToolTip = 'Specifies the ending date and time of the cost adjustment run for the item.';
                 }
                 field(Duration; Rec.Duration)
                 {
                     Caption = 'Duration';
-                    ToolTip = 'Specifies the duration of the cost adjustment run for the item.';
                 }
                 field("Item Register No."; ItemRegisterNo)
                 {

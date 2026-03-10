@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -25,13 +25,11 @@ page 9066 "Serv Outbound Technician Act."
                 {
                     ApplicationArea = Service;
                     DrillDownPageID = "Service Orders";
-                    ToolTip = 'Specifies the number of in-service orders that are displayed in the Service Cue on the Role Center. The documents are filtered by today''s date.';
                 }
                 field("Service Orders - to Follow-up"; Rec."Service Orders - to Follow-up")
                 {
                     ApplicationArea = Service;
                     DrillDownPageID = "Service Orders";
-                    ToolTip = 'Specifies the number of service orders that have been marked for follow up that are displayed in the Service Cue on the Role Center. The documents are filtered by today''s date.';
                 }
 
                 actions

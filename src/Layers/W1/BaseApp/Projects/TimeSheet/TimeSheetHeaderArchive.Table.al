@@ -17,18 +17,22 @@ table 954 "Time Sheet Header Archive"
         field(1; "No."; Code[20])
         {
             Caption = 'No.';
+            ToolTip = 'Specifies the number of the involved entry or record, according to the specified number series.';
         }
         field(3; "Starting Date"; Date)
         {
             Caption = 'Starting Date';
+            ToolTip = 'Specifies the start date for the archived time sheet.';
         }
         field(4; "Ending Date"; Date)
         {
             Caption = 'Ending Date';
+            ToolTip = 'Specifies the end date for an archived time sheet.';
         }
         field(5; "Resource No."; Code[20])
         {
             Caption = 'Resource No.';
+            ToolTip = 'Specifies the list of resource numbers associated with an archived time sheet.';
             TableRelation = Resource;
         }
         field(7; "Owner User ID"; Code[50])
@@ -40,12 +44,14 @@ table 954 "Time Sheet Header Archive"
         field(8; "Approver User ID"; Code[50])
         {
             Caption = 'Approver User ID';
+            ToolTip = 'Specifies the ID of the time sheet approver.';
             DataClassification = EndUserIdentifiableInformation;
             TableRelation = "User Setup";
         }
         field(10; Description; Text[100])
         {
             Caption = 'Description';
+            ToolTip = 'Specifies the description for a time sheet.';
             DataClassification = CustomerContent;
         }
         field(11; "Unit of Measure"; Code[10])

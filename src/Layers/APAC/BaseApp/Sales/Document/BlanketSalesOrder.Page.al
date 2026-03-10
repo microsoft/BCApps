@@ -208,12 +208,10 @@ page 507 "Blanket Sales Order"
                 field("No. of Archived Versions"; Rec."No. of Archived Versions")
                 {
                     ApplicationArea = Suite;
-                    ToolTip = 'Specifies the number of archived versions for this document.';
                 }
                 field("Document Date"; Rec."Document Date")
                 {
                     ApplicationArea = Suite;
-                    ToolTip = 'Specifies the date when the related document was created.';
                 }
                 field("Due Date"; Rec."Due Date")
                 {
@@ -223,23 +221,19 @@ page 507 "Blanket Sales Order"
                 field("Order Date"; Rec."Order Date")
                 {
                     ApplicationArea = Suite;
-                    ToolTip = 'Specifies the date when the order was created.';
                 }
                 field("External Document No."; Rec."External Document No.")
                 {
                     ApplicationArea = Suite;
-                    ToolTip = 'Specifies a document number that refers to the customer''s or vendor''s numbering system.';
                 }
                 field("Your Reference"; Rec."Your Reference")
                 {
                     ApplicationArea = Suite;
                     Importance = Additional;
-                    ToolTip = 'Specifies the customer''s reference. The content will be printed on sales documents.';
                 }
                 field("Salesperson Code"; Rec."Salesperson Code")
                 {
                     ApplicationArea = Suite;
-                    ToolTip = 'Specifies the name of the salesperson who is assigned to the customer.';
 
                     trigger OnValidate()
                     begin
@@ -259,30 +253,25 @@ page 507 "Blanket Sales Order"
                 field("Responsibility Center"; Rec."Responsibility Center")
                 {
                     ApplicationArea = Suite;
-                    ToolTip = 'Specifies the code of the responsibility center, such as a distribution hub, that is associated with the involved user, company, customer, or vendor.';
                 }
                 field("Assigned User ID"; Rec."Assigned User ID")
                 {
                     ApplicationArea = Suite;
-                    ToolTip = 'Specifies the ID of the user who is responsible for the document.';
                 }
                 field(Status; Rec.Status)
                 {
                     ApplicationArea = Suite;
                     Importance = Promoted;
                     StyleExpr = StatusStyleTxt;
-                    ToolTip = 'Specifies whether the document is open, waiting to be approved, has been invoiced for prepayment, or has been released to the next stage of processing.';
                 }
                 field("Language Code"; Rec."Language Code")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the language to be used on printouts for this document.';
                     Visible = false;
                 }
                 field("Format Region"; Rec."Format Region")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the format to be used on printouts for this document.';
                     Visible = false;
                 }
             }
@@ -321,17 +310,14 @@ page 507 "Blanket Sales Order"
                 field("Company Bank Account Code"; Rec."Company Bank Account Code")
                 {
                     ApplicationArea = Suite;
-                    ToolTip = 'Specifies the bank account to use for bank information when the document is printed.';
                 }
                 field("Shipment Date"; Rec."Shipment Date")
                 {
                     ApplicationArea = Suite;
-                    ToolTip = 'Specifies when items on the document are shipped or were shipped. A shipment date is usually calculated from a requested delivery date plus lead time.';
                 }
                 field("Prices Including VAT"; Rec."Prices Including VAT")
                 {
                     ApplicationArea = VAT;
-                    ToolTip = 'Specifies if the Unit Price and Line Amount fields on document lines should be shown with or without VAT.';
 
                     trigger OnValidate()
                     begin
@@ -341,28 +327,23 @@ page 507 "Blanket Sales Order"
                 field("VAT Bus. Posting Group"; Rec."VAT Bus. Posting Group")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the VAT specification of the involved customer or vendor to link transactions made for this record with the appropriate general ledger account according to the VAT posting setup.';
                 }
                 field("Payment Terms Code"; Rec."Payment Terms Code")
                 {
                     ApplicationArea = Suite;
-                    ToolTip = 'Specifies a formula that calculates the payment due date, payment discount date, and payment discount amount.';
                 }
                 field("Payment Method Code"; Rec."Payment Method Code")
                 {
                     ApplicationArea = Suite;
-                    ToolTip = 'Specifies how to make payment, such as with bank transfer, cash, or check.';
                     Visible = IsPaymentMethodCodeVisible;
                 }
                 field("Transaction Type"; Rec."Transaction Type")
                 {
                     ApplicationArea = Suite;
-                    ToolTip = 'Specifies the type of transaction that the document represents, for the purpose of reporting to INTRASTAT.';
                 }
                 field("Shortcut Dimension 1 Code"; Rec."Shortcut Dimension 1 Code")
                 {
                     ApplicationArea = Dimensions;
-                    ToolTip = 'Specifies the code for Shortcut Dimension 1, which is one of two global dimension codes that you set up in the General Ledger Setup window.';
 
                     trigger OnValidate()
                     begin
@@ -372,7 +353,6 @@ page 507 "Blanket Sales Order"
                 field("Shortcut Dimension 2 Code"; Rec."Shortcut Dimension 2 Code")
                 {
                     ApplicationArea = Dimensions;
-                    ToolTip = 'Specifies the code for Shortcut Dimension 2, which is one of two global dimension codes that you set up in the General Ledger Setup window.';
 
                     trigger OnValidate()
                     begin
@@ -382,17 +362,14 @@ page 507 "Blanket Sales Order"
                 field("Pmt. Discount Date"; Rec."Pmt. Discount Date")
                 {
                     ApplicationArea = Suite;
-                    ToolTip = 'Specifies the date on which the amount in the entry must be paid for a payment discount to be granted.';
                 }
                 field("Payment Discount %"; Rec."Payment Discount %")
                 {
                     ApplicationArea = Suite;
-                    ToolTip = 'Specifies the payment discount percentage that is granted if the customer pays on or before the date entered in the Pmt. Discount Date field. The discount percentage is specified in the Payment Terms Code field.';
                 }
                 field("Journal Templ. Name"; Rec."Journal Templ. Name")
                 {
                     ApplicationArea = BasicBE;
-                    ToolTip = 'Specifies the name of the journal template in which the sales header is to be posted.';
                     Visible = IsJournalTemplNameVisible;
                 }
                 field("Tax Liable"; Rec."Tax Liable")
@@ -403,7 +380,6 @@ page 507 "Blanket Sales Order"
                 field("Tax Area Code"; Rec."Tax Area Code")
                 {
                     ApplicationArea = SalesTax;
-                    ToolTip = 'Specifies the tax area that is used to calculate and post sales tax.';
 
                     trigger OnValidate()
                     begin
@@ -413,7 +389,6 @@ page 507 "Blanket Sales Order"
                 field("Location Code"; Rec."Location Code")
                 {
                     ApplicationArea = Location;
-                    ToolTip = 'Specifies the location from where items are to be shipped. This field acts as the default location for new lines. You can update the location code for individual lines as needed.';
                 }
             }
             group("Shipping and Billing")
@@ -495,7 +470,6 @@ page 507 "Blanket Sales Order"
                                 Caption = 'Name 2';
                                 Editable = ShipToOptions = ShipToOptions::"Custom Address";
                                 Importance = Additional;
-                                ToolTip = 'Specifies an additional part of the name that products on the sales document will be shipped to.';
                                 QuickEntry = false;
                                 Visible = false;
                             }
@@ -552,7 +526,6 @@ page 507 "Blanket Sales Order"
                         {
                             ApplicationArea = Suite;
                             Caption = 'Phone No.';
-                            ToolTip = 'Specifies the telephone number of the company''s shipping address.';
                         }
                         field("Ship-to Contact"; Rec."Ship-to Contact")
                         {
@@ -589,7 +562,6 @@ page 507 "Blanket Sales Order"
                         {
                             ApplicationArea = Suite;
                             Importance = Additional;
-                            ToolTip = 'Specifies the shipping agent''s package number.';
                         }
                     }
                 }
@@ -669,7 +641,6 @@ page 507 "Blanket Sales Order"
                             Enabled = (BillToOptions = BillToOptions::"Custom Address") or (Rec."Bill-to Customer No." <> Rec."Sell-to Customer No.");
                             Importance = Additional;
                             QuickEntry = false;
-                            ToolTip = 'Specifies the address of the customer that you will send the invoice to.';
                         }
                         field("Bill-to Address 2"; Rec."Bill-to Address 2")
                         {
@@ -766,27 +737,22 @@ page 507 "Blanket Sales Order"
                 field("EU 3-Party Trade"; Rec."EU 3-Party Trade")
                 {
                     ApplicationArea = BasicEU;
-                    ToolTip = 'Specifies if the transaction is related to trade with a third party within the EU.';
                 }
                 field("Transaction Specification"; Rec."Transaction Specification")
                 {
                     ApplicationArea = BasicEU;
-                    ToolTip = 'Specifies a specification of the document''s transaction, for the purpose of reporting to INTRASTAT.';
                 }
                 field("Transport Method"; Rec."Transport Method")
                 {
                     ApplicationArea = BasicEU;
-                    ToolTip = 'Specifies the transport method, for the purpose of reporting to INTRASTAT.';
                 }
                 field("Exit Point"; Rec."Exit Point")
                 {
                     ApplicationArea = BasicEU;
-                    ToolTip = 'Specifies the point of exit through which you ship the items out of your country/region, for reporting to Intrastat.';
                 }
                 field("Area"; Rec.Area)
                 {
                     ApplicationArea = BasicEU;
-                    ToolTip = 'Specifies the country or region of origin for the purpose of Intrastat reporting.';
                 }
             }
         }

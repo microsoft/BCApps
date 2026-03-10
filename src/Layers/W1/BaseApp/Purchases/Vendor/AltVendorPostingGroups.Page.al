@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -21,7 +21,6 @@ page 936 "Alt. Vendor Posting Groups"
                 field("Alt. Vendor Posting Group"; Rec."Alt. Vendor Posting Group")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the vendor group for posting business transactions to general general ledger accounts.';
                 }
             }
         }

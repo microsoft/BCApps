@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -26,10 +26,12 @@ table 346 "Reservation Wksh. Line"
         field(2; "Line No."; Integer)
         {
             Caption = 'Line No.';
+            ToolTip = 'Specifies the line number of the source document.';
         }
         field(10; "Source Type"; Integer)
         {
             Caption = 'Source Type';
+            ToolTip = 'Specifies the type of source document on the demand line.';
             TableRelation = AllObjWithCaption."Object ID" where("Object Type" = const(Table));
         }
         field(11; "Source Subtype"; Integer)
@@ -41,6 +43,7 @@ table 346 "Reservation Wksh. Line"
         field(12; "Source ID"; Code[20])
         {
             Caption = 'Source ID';
+            ToolTip = 'Specifies the number the source document on the demand line.';
         }
         field(13; "Source Batch Name"; Code[10])
         {
@@ -61,47 +64,57 @@ table 346 "Reservation Wksh. Line"
         field(21; "Item No."; Code[20])
         {
             Caption = 'Item No.';
+            ToolTip = 'Specifies the number of the item on the demand line.';
             TableRelation = Item;
         }
         field(22; "Variant Code"; Code[10])
         {
             Caption = 'Variant Code';
+            ToolTip = 'Specifies the variant of the item on the demand line.';
             TableRelation = "Item Variant".Code where("Item No." = field("Item No."));
         }
         field(23; "Location Code"; Code[10])
         {
             Caption = 'Location Code';
+            ToolTip = 'Specifies the location code on the demand line.';
             TableRelation = Location;
         }
         field(24; "Sell-to Customer No."; Code[20])
         {
             Caption = 'Sell-to Customer No.';
+            ToolTip = 'Specifies the number of the customer, if any, on the demand line.';
             TableRelation = Customer."No.";
         }
         field(25; "Sell-to Customer Name"; Text[100])
         {
             Caption = 'Sell-to Customer Name';
+            ToolTip = 'Specifies the name of the customer, if any, on the demand line.';
             TableRelation = Customer.Name;
         }
         field(26; Priority; Integer)
         {
             Caption = 'Priority';
+            ToolTip = 'Specifies the priority of the customer.';
         }
         field(29; Description; Text[100])
         {
             Caption = 'Description';
+            ToolTip = 'Specifies text that describes the entry.';
         }
         field(30; "Description 2"; Text[100])
         {
             Caption = 'Description 2';
+            ToolTip = 'Specifies information in addition to the description.';
         }
         field(31; "Demand Date"; Date)
         {
             Caption = 'Demand Date';
+            ToolTip = 'Specifies the demand date, which is the shipment date for sales orders and the due date for production components.';
         }
         field(32; "Unit of Measure Code"; Code[10])
         {
             Caption = 'Unit of Measure Code';
+            ToolTip = 'Specifies how each unit of the item is measured.';
             NotBlank = true;
             TableRelation = "Item Unit of Measure".Code where("Item No." = field("Item No."));
 
@@ -122,6 +135,7 @@ table 346 "Reservation Wksh. Line"
         {
             AutoFormatType = 0;
             Caption = 'Remaining Qty. to Reserve';
+            ToolTip = 'Specifies how many units of the item on the demand line are not reserved from inventory.';
             DecimalPlaces = 0 : 5;
 
             trigger OnValidate()
@@ -146,6 +160,7 @@ table 346 "Reservation Wksh. Line"
         {
             AutoFormatType = 0;
             Caption = 'Qty. to Reserve';
+            ToolTip = 'Specifies how many units of the item on the demand line you want to reserve.';
             DecimalPlaces = 0 : 5;
             MinValue = 0;
 
@@ -198,6 +213,7 @@ table 346 "Reservation Wksh. Line"
         {
             AutoFormatType = 0;
             Caption = 'Available Qty. to Reserve';
+            ToolTip = 'Specifies how many units of the item on the demand line can be reserved from inventory. This takes into account the Qty. to Reserve field on other demand lines with the same item number, location code, and variant code.';
             DecimalPlaces = 0 : 5;
 
             trigger OnValidate()
@@ -222,6 +238,7 @@ table 346 "Reservation Wksh. Line"
         {
             AutoFormatType = 0;
             Caption = 'Qty. in Stock';
+            ToolTip = 'Specifies the current stock quantity for the item.';
             DecimalPlaces = 0 : 5;
 
             trigger OnValidate()
@@ -246,6 +263,7 @@ table 346 "Reservation Wksh. Line"
         {
             AutoFormatType = 0;
             Caption = 'Qty. Reserved from Stock';
+            ToolTip = 'Specifies the quantity that has been reserved from stock for this item.';
             DecimalPlaces = 0 : 5;
 
             trigger OnValidate()
@@ -270,6 +288,7 @@ table 346 "Reservation Wksh. Line"
         {
             AutoFormatType = 0;
             Caption = 'Qty. in Warehouse Handling';
+            ToolTip = 'Specifies the quantity that is currently in warehouse handling for this item.';
             DecimalPlaces = 0 : 5;
 
             trigger OnValidate()
@@ -293,6 +312,7 @@ table 346 "Reservation Wksh. Line"
         field(100; Accept; Boolean)
         {
             Caption = 'Accept';
+            ToolTip = 'Specifies if you want to reserve this demand line.';
         }
         field(6501; "Serial No."; Code[50])
         {

@@ -1732,12 +1732,18 @@ codeunit 137082 "SCM Manufacturing - Routings"
         ProdOrderRoutingLine: Record "Prod. Order Routing Line";
         ProdOrderLine: Record "Prod. Order Line";
         RoutingLineCopyLines: Codeunit "Routing Line-Copy Lines";
+        LeadTimeMgt: Codeunit "Lead-Time Management";
+        CurrWorkDate: Date;
         StartingDateTime, EndingDateTime : DateTime;
         ItemNo: Code[20];
         ShopCalendarCode: Code[10];
     begin
         // [SCENARIO 475108] Verify Queue Time on Production Order Routing correspond to work center queue time when routing type is parallel with routing version and without multiple next operations
         Initialize();
+
+        // [GIVEN] Set Working Date
+        CurrWorkDate := WorkDate();
+        WorkDate(DMY2Date(27, 2, Date2DMY(Today(), 3)));
 
         // [GIVEN] Capacity Unit of Measure in Days
         LibraryManufacturing.CreateCapacityUnitOfMeasure(CapacityUnitOfMeasure, CapacityUnitOfMeasure.Type::Days);
@@ -1779,6 +1785,14 @@ codeunit 137082 "SCM Manufacturing - Routings"
 
         // [GIVEN] Create and refresh Released Production Order with due date current_year-05-11
         LibraryManufacturing.CreateProductionOrder(ProductionOrder, "Production Order Status"::Released, ProductionOrder."Source Type"::Item, ItemNo, 1);
+        ProductionOrder.Validate("Due Date", DMY2Date(11, 5, Date2DMY(WorkDate(), 3)));
+        ProductionOrder."Ending Date" :=
+            LeadTimeMgt.GetPlannedEndingDate(
+                ProductionOrder."Source No.", ProductionOrder."Location Code", '', ProductionOrder."Due Date", '', "Requisition Ref. Order Type"::"Prod. Order");
+        ProductionOrder."Starting Date" := ProductionOrder."Ending Date";
+        ProductionOrder."Starting Date-Time" := CreateDateTime(ProductionOrder."Starting Date", ProductionOrder."Starting Time");
+        ProductionOrder."Ending Date-Time" := CreateDateTime(ProductionOrder."Ending Date", ProductionOrder."Ending Time");
+        ProductionOrder.Modify();
 
         // [WHEN] Refersh Production Order backward
         LibraryManufacturing.RefreshProdOrder(ProductionOrder, false, true, true, true, false);
@@ -1804,6 +1818,9 @@ codeunit 137082 "SCM Manufacturing - Routings"
         StartingDateTime := ProdOrderRoutingLine."Starting Date-Time";
         ProdOrderRoutingLine.Get(ProductionOrder.Status, ProductionOrder."No.", ProdOrderLine."Routing Reference No.", RoutingHeader."No.", '55');
         Assert.AreEqual(StartingDateTime, ProdOrderRoutingLine."Starting Date-Time", 'Oprerations doesn''t start at the same date-time');
+
+        // [GIVEN] Restore Working Date
+        WorkDate(CurrWorkDate);
     end;
 
     [Test]

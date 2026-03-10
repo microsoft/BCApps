@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -61,65 +61,54 @@ page 7372 "Bin Creation Worksheet"
                 field("Zone Code"; Rec."Zone Code")
                 {
                     ApplicationArea = Warehouse;
-                    ToolTip = 'Specifies the code of the zone where the bin on the worksheet will be located.';
                     Visible = false;
                 }
                 field("Bin Code"; Rec."Bin Code")
                 {
                     ApplicationArea = Warehouse;
-                    ToolTip = 'Specifies the bin where the items are picked or put away.';
                 }
                 field(Description; Rec.Description)
                 {
                     ApplicationArea = Warehouse;
-                    ToolTip = 'Specifies the description for the bin that should be created.';
                 }
                 field("Bin Type Code"; Rec."Bin Type Code")
                 {
                     ApplicationArea = Warehouse;
-                    ToolTip = 'Specifies the bin type or bin content that should be created.';
                     Visible = false;
                 }
                 field("Warehouse Class Code"; Rec."Warehouse Class Code")
                 {
                     ApplicationArea = Warehouse;
-                    ToolTip = 'Specifies the warehouse class of the bin or bin content that should be created.';
                     Visible = false;
                 }
                 field("Block Movement"; Rec."Block Movement")
                 {
                     ApplicationArea = Warehouse;
-                    ToolTip = 'Specifies how the movement of a particular item, or bin content, into or out of this bin, is blocked.';
                     Visible = false;
                 }
                 field("Special Equipment Code"; Rec."Special Equipment Code")
                 {
                     ApplicationArea = Warehouse;
-                    ToolTip = 'Specifies the special equipment code of the bin or bin content that should be created.';
                     Visible = false;
                 }
                 field("Bin Ranking"; Rec."Bin Ranking")
                 {
                     ApplicationArea = Warehouse;
-                    ToolTip = 'Specifies the ranking of the bin or bin content that should be created.';
                     Visible = false;
                 }
                 field("Maximum Cubage"; Rec."Maximum Cubage")
                 {
                     ApplicationArea = Warehouse;
-                    ToolTip = 'Specifies the maximum cubage of the bin that should be created.';
                     Visible = false;
                 }
                 field("Maximum Weight"; Rec."Maximum Weight")
                 {
                     ApplicationArea = Warehouse;
-                    ToolTip = 'Specifies the maximum weight of the bin that should be created.';
                     Visible = false;
                 }
                 field("Cross-Dock Bin"; Rec."Cross-Dock Bin")
                 {
                     ApplicationArea = Warehouse;
-                    ToolTip = 'Specifies new cross-dock bins.';
                     Visible = false;
                 }
             }

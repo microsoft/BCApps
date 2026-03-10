@@ -970,6 +970,162 @@ codeunit 137415 "SCM Item Variant Attributes"
         Assert.RecordIsEmpty(ItemAttributeValue);
     end;
 
+    [Test]
+    procedure NoErrorOnRenameofItemVariantIfItemAttributesAreInheritedFromItem()
+    var
+        Item: Record Item;
+        ItemAttribute: Record "Item Attribute";
+        ItemVariant: Record "Item Variant";
+        ItemAttributeValue: Record "Item Attribute Value";
+        ItemVariantAttributeValueMapping: Record "Item Var. Attr. Value Mapping";
+    begin
+        // [SCENARIO 619522] Cannot rename variant with item attributes: The Item Variant Attribute Value Mapping does not exist.
+        Initialize();
+
+        // [GIVEN] Create an Item with a text attribute.
+        CreateItemWithTextAttribute(Item, ItemAttribute, ItemAttributeValue, LibraryUtility.GenerateGUID());
+
+        // [GIVEN] Create an Item Variant.
+        LibraryInventory.CreateItemVariant(ItemVariant, Item."No.");
+
+        // [GIVEN] Verify that the Item Variant Attribute Value Mapping inherited from the Item.
+        FindItemVariantAttributeValueMapping(ItemVariantAttributeValueMapping, Item."No.", ItemVariant.Code, ItemAttribute.ID);
+
+        // [WHEN] Rename the Item Variant
+        ItemVariant.Rename(Item."No.", LibraryUtility.GenerateRandomCode(ItemVariant.FieldNo(Code), DATABASE::"Item Variant"));
+
+        // [THEN] Verify that the Item Variant Attribute Value Mapping inherited from the Item.
+        FindItemVariantAttributeValueMapping(ItemVariantAttributeValueMapping, Item."No.", ItemVariant.Code, ItemAttribute.ID);
+        Assert.RecordCount(ItemVariantAttributeValueMapping, 1);
+        Assert.AreEqual(
+            Database::Item,
+            ItemVariantAttributeValueMapping."Inherited-From Table ID",
+            StrSubstNo(ValueMustBeEqualErr, ItemVariantAttributeValueMapping.FieldCaption("Inherited-From Table ID"), Database::Item, ItemVariantAttributeValueMapping.TableCaption()));
+        Assert.AreEqual(
+            Item."No.",
+            ItemVariantAttributeValueMapping."Inherited-From Key Value",
+            StrSubstNo(ValueMustBeEqualErr, ItemVariantAttributeValueMapping.FieldCaption("Inherited-From Key Value"), Item."No.", ItemVariantAttributeValueMapping.TableCaption()));
+    end;
+
+    [Test]
+    [HandlerFunctions('CopyItemPageHandler')]
+    procedure CopyItemVariantAttributesValuesIfCopyItem()
+    var
+        Item: Record Item;
+        TargetItem: Record Item;
+        ItemAttribute: Record "Item Attribute";
+        ItemVariant: Record "Item Variant";
+        ItemAttributeValue: Record "Item Attribute Value";
+        ItemVariantAttributeValueMapping: Record "Item Var. Attr. Value Mapping";
+        CopyItemBuffer: Record "Copy Item Buffer";
+        NotificationLifecycleMgt: Codeunit "Notification Lifecycle Mgt.";
+    begin
+        // [SCENARIO 619488] Copy item actions doesn't copy Item Variant Attributes
+        Initialize();
+
+        // [GIVEN] Create an Item with a text attribute.
+        CreateItemWithTextAttribute(Item, ItemAttribute, ItemAttributeValue, LibraryUtility.GenerateGUID());
+
+        // [GIVEN] Create an Item Variant.
+        LibraryInventory.CreateItemVariant(ItemVariant, Item."No.");
+
+        // [GIVEN] Verify that the Item Variant Attribute Value Mapping inherited from the Item.
+        FindItemVariantAttributeValueMapping(ItemVariantAttributeValueMapping, Item."No.", ItemVariant.Code, ItemAttribute.ID);
+
+        // [GIVEN] Copy the Item with Item Variants and Attributes option selected.
+        CopyItemBuffer."Target Item No." := LibraryUtility.GenerateGUID();
+        EnqueueValuesForCopyItemPageHandler(CopyItemBuffer);
+        CopyItem(Item."No.");
+
+        // [WHEN] Rename the Item Variant
+        TargetItem.Get(CopyItemBuffer."Target Item No.");
+
+        // [THEN] Verify that the Item Variant Attribute Value Mapping copie to New Item
+        FindItemVariantAttributeValueMapping(ItemVariantAttributeValueMapping, TargetItem."No.", ItemVariant.Code, ItemAttribute.ID);
+        Assert.RecordCount(ItemVariantAttributeValueMapping, 1);
+        Assert.AreEqual(
+            Database::Item,
+            ItemVariantAttributeValueMapping."Inherited-From Table ID",
+            StrSubstNo(ValueMustBeEqualErr, ItemVariantAttributeValueMapping.FieldCaption("Inherited-From Table ID"), Database::Item, ItemVariantAttributeValueMapping.TableCaption()));
+        Assert.AreEqual(
+            TargetItem."No.",
+            ItemVariantAttributeValueMapping."Inherited-From Key Value",
+            StrSubstNo(ValueMustBeEqualErr, ItemVariantAttributeValueMapping.FieldCaption("Inherited-From Key Value"), Item."No.", ItemVariantAttributeValueMapping.TableCaption()));
+        NotificationLifecycleMgt.RecallAllNotifications();
+    end;
+
+    [Test]
+    procedure VerifyFactboxEmptyOnFirstLineOfVariantsPage()
+    var
+        Item: Record Item;
+        ItemAttribute: Record "Item Attribute";
+        ItemAttributeValue: Record "Item Attribute Value";
+        ItemVariant: Record "Item Variant";
+        ItemVariants: TestPage "Item Variants";
+    begin
+        // [SCENARIO 614482] Verify factbox is empty when opening variants page and clicking on first line.
+        Initialize();
+
+        // [GIVEN] Create an Item with attributes.
+        CreateItemWithTextAttribute(Item, ItemAttribute, ItemAttributeValue, LibraryUtility.GenerateGUID());
+
+        // [WHEN] Open Item Variants page.
+        ItemVariants.OpenNew();
+
+        // [THEN] Click on first new empty line.
+        ItemVariants.First();
+
+        // [THEN] Verify factbox is empty on first line.
+        ItemVariants.ItemAttributesFactbox.Attribute.AssertEquals('');
+        ItemVariants.ItemAttributesFactbox.Value.AssertEquals('');
+
+        // [WHEN] Create a new variant using library function.
+        LibraryInventory.CreateItemVariant(ItemVariant, Item."No.");
+
+        // [THEN] Close and reopen Item Variants page to navigate to the new variant.
+        ItemVariants.Close();
+        ItemVariants.OpenEdit();
+        ItemVariants.GoToRecord(ItemVariant);
+
+        // [THEN] Verify factbox should now show the inherited attributes.
+        ItemVariants.ItemAttributesFactbox.Attribute.AssertEquals(ItemAttribute.Name);
+        ItemVariants.ItemAttributesFactbox.Value.AssertEquals(ItemAttributeValue.Value);
+        ItemVariants.Close();
+    end;
+
+    [Test]
+    [HandlerFunctions('ModifyItemAttributeValueListHandler')]
+    procedure VerifyEditActionOnItemVariantAttributeFactbox()
+    var
+        Item: Record Item;
+        ItemAttribute: Record "Item Attribute";
+        ItemAttributeValue: Record "Item Attribute Value";
+        ItemVariant: Record "Item Variant";
+        ItemVariants: TestPage "Item Variants";
+        ChangedValue: Text;
+    begin
+        // [SCENARIO 619461] Verify Missing "Edit" action in the Item Attribute factbox in the Item Variant list
+        Initialize();
+
+        // [GIVEN] Create an Item with attributes.
+        CreateItemWithTextAttribute(Item, ItemAttribute, ItemAttributeValue, LibraryUtility.GenerateGUID());
+
+        // [GIVEN] Create a new variant using library function.
+        LibraryInventory.CreateItemVariant(ItemVariant, Item."No.");
+
+        // [WHEN] Open the Item Variant page and Edit the Item Attribut Factbox value.
+        ChangedValue := LibraryRandom.RandText(50);
+        ItemVariants.OpenEdit();
+        ItemVariants.GoToRecord(ItemVariant);
+        LibraryVariableStorage.Enqueue(ChangedValue);
+        ItemVariants.ItemAttributesFactbox.EditVariant.Invoke();
+
+        // [THEN] Verify factbox should now show the changed attributes value.
+        ItemVariants.ItemAttributesFactbox.Attribute.AssertEquals(ItemAttribute.Name);
+        ItemVariants.ItemAttributesFactbox.Value.AssertEquals(ChangedValue);
+        ItemVariants.Close();
+    end;
+
     local procedure Initialize()
     var
         ItemAttribute: Record "Item Attribute";
@@ -1059,6 +1215,21 @@ codeunit 137415 "SCM Item Variant Attributes"
         ItemVariantCard.Close();
     end;
 
+    local procedure EnqueueValuesForCopyItemPageHandler(CopyItemBuffer: Record "Copy Item Buffer")
+    begin
+        LibraryVariableStorage.Enqueue(CopyItemBuffer."Target Item No.");
+    end;
+
+    local procedure CopyItem(ItemNo: Code[20])
+    var
+        ItemCard: TestPage "Item Card";
+    begin
+        ItemCard.OpenEdit();
+        ItemCard.FILTER.SetFilter("No.", ItemNo);
+        Commit();  // COMMIT is required to handle Item Copy  page.
+        ItemCard.CopyItem.Invoke();
+    end;
+
     [ModalPageHandler]
     procedure ModifyItemAttributeValueListHandler(var ItemVariantAttributeValueEditor: TestPage "Item Variant Attribute Editor")
     var
@@ -1085,5 +1256,13 @@ codeunit 137415 "SCM Item Variant Attributes"
     procedure ConfirmHandlerYes(Question: Text; var Reply: Boolean)
     begin
         Reply := true;
+    end;
+
+    [ModalPageHandler]
+    procedure CopyItemPageHandler(var CopyItem: TestPage "Copy Item")
+    begin
+        CopyItem.TargetItemNo.SetValue(LibraryVariableStorage.DequeueText());
+        CopyItem.GeneralItemInformation.SetValue(true);
+        CopyItem.OK().Invoke();
     end;
 }

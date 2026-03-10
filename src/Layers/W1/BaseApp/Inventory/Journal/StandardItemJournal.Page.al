@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -20,12 +20,10 @@ page 754 "Standard Item Journal"
                 field("Code"; Rec.Code)
                 {
                     ApplicationArea = Suite;
-                    ToolTip = 'Specifies the code of the record.';
                 }
                 field(Description; Rec.Description)
                 {
                     ApplicationArea = Suite;
-                    ToolTip = 'Specifies the record in the line of the journal.';
                 }
             }
             part(StdItemJnlLines; "Standard Item Journal Subform")

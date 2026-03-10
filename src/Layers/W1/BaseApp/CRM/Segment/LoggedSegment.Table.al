@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -20,20 +20,24 @@ table 5075 "Logged Segment"
         field(1; "Entry No."; Integer)
         {
             Caption = 'Entry No.';
+            ToolTip = 'Specifies the number of the entry, as assigned from the specified number series when the entry was created.';
         }
         field(2; "Segment No."; Code[20])
         {
             Caption = 'Segment No.';
+            ToolTip = 'Specifies the number of the segment to which the logged segment is linked. The program fills in this field by copying the contents of the No. field in the Segment window.';
         }
         field(3; Description; Text[100])
         {
             Caption = 'Description';
+            ToolTip = 'Specifies the description of the interaction.';
         }
         field(4; "No. of Interactions"; Integer)
         {
             CalcFormula = count("Interaction Log Entry" where("Logged Segment Entry No." = field("Entry No."),
                                                                Canceled = field(Canceled)));
             Caption = 'No. of Interactions';
+            ToolTip = 'Specifies the number of interactions recorded for the logged segment. To see a list of the created interactions, click the field.';
             Editable = false;
             FieldClass = FlowField;
         }
@@ -42,22 +46,26 @@ table 5075 "Logged Segment"
             CalcFormula = count("Campaign Entry" where("Register No." = field("Entry No."),
                                                         Canceled = field(Canceled)));
             Caption = 'No. of Campaign Entries';
+            ToolTip = 'Specifies the number of campaign entries that were recorded when you logged the segment. To see a list of the recorded campaign entries, click the field.';
             Editable = false;
             FieldClass = FlowField;
         }
         field(6; "Creation Date"; Date)
         {
             Caption = 'Creation Date';
+            ToolTip = 'Specifies the date on which the segment was logged.';
         }
         field(7; "User ID"; Code[50])
         {
             Caption = 'User ID';
+            ToolTip = 'Specifies the ID of the user who created or logged the interaction and segment. The program automatically fills in this field when the segment is logged.';
             DataClassification = EndUserIdentifiableInformation;
             TableRelation = User."User Name";
         }
         field(8; Canceled; Boolean)
         {
             Caption = 'Canceled';
+            ToolTip = 'Specifies that the interaction has been canceled.';
         }
     }
 

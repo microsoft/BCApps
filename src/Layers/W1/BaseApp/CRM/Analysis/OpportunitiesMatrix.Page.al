@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -35,7 +35,6 @@ page 9257 "Opportunities Matrix"
                     ApplicationArea = RelationshipMgmt;
                     Style = Strong;
                     StyleExpr = StyleIsStrong;
-                    ToolTip = 'Specifies the number of the involved entry or record, according to the specified number series.';
 
                     trigger OnLookup(var Text: Text): Boolean
                     var
@@ -67,7 +66,6 @@ page 9257 "Opportunities Matrix"
                     ApplicationArea = RelationshipMgmt;
                     Style = Strong;
                     StyleExpr = StyleIsStrong;
-                    ToolTip = 'Specifies the name of the opportunity.';
                 }
                 field(Field1; MATRIX_CellData[1])
                 {

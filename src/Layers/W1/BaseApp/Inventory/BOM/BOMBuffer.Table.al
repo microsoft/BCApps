@@ -28,10 +28,12 @@ table 5870 "BOM Buffer"
         field(2; Type; Enum "BOM Type")
         {
             Caption = 'Type';
+            ToolTip = 'Specifies the item''s position in the BOM structure. Lower-level items are indented under their parents.';
         }
         field(3; "No."; Code[20])
         {
             Caption = 'No.';
+            ToolTip = 'Specifies the number of the involved entry or record, according to the specified number series.';
             TableRelation = if (Type = const(Item)) Item
             else
             if (Type = const(Resource)) Resource;
@@ -39,10 +41,12 @@ table 5870 "BOM Buffer"
         field(5; Description; Text[100])
         {
             Caption = 'Description';
+            ToolTip = 'Specifies the item''s description.';
         }
         field(6; "Unit of Measure Code"; Code[10])
         {
             Caption = 'Unit of Measure Code';
+            ToolTip = 'Specifies how each unit of the item or resource is measured, such as in pieces or hours. By default, the value in the Base Unit of Measure field on the item or resource card is inserted.';
             TableRelation = if (Type = const(Item)) "Item Unit of Measure".Code where("Item No." = field("No."))
             else
             if (Type = const(Resource)) "Resource Unit of Measure".Code where("Resource No." = field("No."));
@@ -50,6 +54,7 @@ table 5870 "BOM Buffer"
         field(7; "Variant Code"; Code[10])
         {
             Caption = 'Variant Code';
+            ToolTip = 'Specifies the variant code that you entered in the Variant Filter field in the Item Availability by BOM Level window.';
             TableRelation = if (Type = const(Item)) "Item Variant".Code where("Item No." = field("No."));
         }
         field(8; "Location Code"; Code[10])
@@ -60,6 +65,7 @@ table 5870 "BOM Buffer"
         field(9; "Replenishment System"; Enum "Replenishment System")
         {
             Caption = 'Replenishment System';
+            ToolTip = 'Specifies the item''s replenishment system.';
         }
         field(10; Indentation; Integer)
         {
@@ -72,17 +78,20 @@ table 5870 "BOM Buffer"
         field(13; Bottleneck; Boolean)
         {
             Caption = 'Bottleneck';
+            ToolTip = 'Specifies which item in the BOM structure restricts you from making a larger quantity than what is shown in the Able to Make Top Item field.';
         }
         field(20; "Lot Size"; Decimal)
         {
             AutoFormatType = 0;
             Caption = 'Lot Size';
+            ToolTip = 'Specifies the item''s lot size. The value is copied from the Lot Size field on the item card.';
             DecimalPlaces = 0 : 5;
             MinValue = 0;
         }
         field(21; "Low-Level Code"; Integer)
         {
             Caption = 'Low-Level Code';
+            ToolTip = 'Specifies the item''s level in the BOM structure.';
             Editable = false;
         }
         field(22; "Rounding Precision"; Decimal)
@@ -96,108 +105,128 @@ table 5870 "BOM Buffer"
         {
             AutoFormatType = 0;
             Caption = 'Qty. per Parent';
+            ToolTip = 'Specifies how many units of the component are required to assemble or produce one unit of the parent.';
             DecimalPlaces = 0 : 5;
         }
         field(31; "Qty. per Top Item"; Decimal)
         {
             AutoFormatType = 0;
             Caption = 'Qty. per Top Item';
+            ToolTip = 'Specifies how many units of the component are required to assemble or produce one unit of the top item.';
             DecimalPlaces = 0 : 5;
         }
         field(32; "Able to Make Top Item"; Decimal)
         {
             AutoFormatType = 0;
             Caption = 'Able to Make Top Item';
+            ToolTip = 'Specifies how many units of the BOM item on the top line can be assembled or produced.';
             DecimalPlaces = 0 : 5;
         }
         field(33; "Able to Make Parent"; Decimal)
         {
             AutoFormatType = 0;
             Caption = 'Able to Make Parent';
+            ToolTip = 'Specifies how many units of the BOM item on the collapsible line above it can be assembled or produced.';
             DecimalPlaces = 0 : 5;
         }
         field(35; "Available Quantity"; Decimal)
         {
             AutoFormatType = 0;
             Caption = 'Available Quantity';
+            ToolTip = 'Specifies how many units of the item on the line are available, regardless of how many parents you can make with the item.';
             DecimalPlaces = 0 : 5;
         }
         field(36; "Gross Requirement"; Decimal)
         {
             AutoFormatType = 0;
             Caption = 'Gross Requirement';
+            ToolTip = 'Specifies the total demand for the item.';
             DecimalPlaces = 0 : 5;
         }
         field(37; "Scheduled Receipts"; Decimal)
         {
             AutoFormatType = 0;
             Caption = 'Scheduled Receipts';
+            ToolTip = 'Specifies how many units of the item are inbound on orders.';
             DecimalPlaces = 0 : 5;
         }
         field(38; "Unused Quantity"; Decimal)
         {
             AutoFormatType = 0;
             Caption = 'Unused Quantity';
+            ToolTip = 'Specifies the part of the item''s total availability that is not required to make the quantities that are shown in the fields.';
             DecimalPlaces = 0 : 5;
         }
         field(40; "Lead Time Calculation"; DateFormula)
         {
             Caption = 'Lead Time Calculation';
+            ToolTip = 'Specifies how long it takes to replenish the item, by purchase, assembly, or production.';
         }
         field(41; "Lead-Time Offset"; DateFormula)
         {
             Caption = 'Lead-Time Offset';
+            ToolTip = 'Specifies the total number of days that are required to assemble or produce the item.';
         }
         field(42; "Rolled-up Lead-Time Offset"; Integer)
         {
             Caption = 'Rolled-up Lead-Time Offset';
+            ToolTip = 'Specifies the cumulative lead time of components under a parent item.';
         }
         field(43; "Needed by Date"; Date)
         {
             Caption = 'Needed by Date';
+            ToolTip = 'Specifies when the item must be available to make the parent or top item.';
         }
         field(45; "Safety Lead Time"; DateFormula)
         {
             Caption = 'Safety Lead Time';
+            ToolTip = 'Specifies any safety lead time that is defined for the item.';
         }
         field(50; "Unit Cost"; Decimal)
         {
             AutoFormatType = 2;
             AutoFormatExpression = '';
             Caption = 'Unit Cost';
+            ToolTip = 'Specifies the cost of one unit of the item or resource on the line.';
         }
         field(52; "Indirect Cost %"; Decimal)
         {
             AutoFormatType = 0;
             Caption = 'Indirect Cost %';
+            ToolTip = 'Specifies the percentage of the item''s last purchase cost that includes indirect costs, such as freight that is associated with the purchase of the item.';
             DecimalPlaces = 0 : 5;
         }
         field(54; "Overhead Rate"; Decimal)
         {
             AutoFormatType = 0;
             Caption = 'Overhead Rate';
+            ToolTip = 'Specifies the item''s overhead rate.';
         }
         field(55; "Scrap %"; Decimal)
         {
             AutoFormatType = 0;
             BlankZero = true;
             Caption = 'Scrap %';
+            ToolTip = 'Specifies the percentage of the item that you expect to be scrapped in the production process.';
         }
         field(56; "Scrap Qty. per Parent"; Decimal)
         {
             AutoFormatType = 0;
             Caption = 'Scrap Qty. per Parent';
+            ToolTip = 'Specifies how many units of the item are scrapped to output the top item quantity.';
             DecimalPlaces = 0 : 5;
         }
         field(57; "Scrap Qty. per Top Item"; Decimal)
         {
             AutoFormatType = 0;
             Caption = 'Scrap Qty. per Top Item';
+            ToolTip = 'Specifies how many units of the item are scrapped to output the parent item quantity.';
             DecimalPlaces = 0 : 5;
         }
         field(59; "Resource Usage Type"; Option)
         {
             Caption = 'Resource Usage Type';
+            ToolTip = 'Specifies how the cost of the resource on the assembly BOM is allocated during assembly.';
             OptionCaption = 'Direct,Fixed';
             OptionMembers = Direct,"Fixed";
         }
@@ -207,6 +236,7 @@ table 5870 "BOM Buffer"
             AutoFormatExpression = '';
             BlankZero = true;
             Caption = 'Single-Level Material Cost';
+            ToolTip = 'Specifies the total material cost of all components on the parent item''s BOM.';
             DecimalPlaces = 2 : 5;
         }
         field(62; "Single-Level Capacity Cost"; Decimal)
@@ -215,6 +245,7 @@ table 5870 "BOM Buffer"
             AutoFormatExpression = '';
             BlankZero = true;
             Caption = 'Single-Level Capacity Cost';
+            ToolTip = 'Specifies the capacity costs related to the item''s parent item only.';
             DecimalPlaces = 2 : 5;
         }
         field(64; "Single-Level Cap. Ovhd Cost"; Decimal)
@@ -223,6 +254,7 @@ table 5870 "BOM Buffer"
             AutoFormatExpression = '';
             BlankZero = true;
             Caption = 'Single-Level Cap. Ovhd Cost';
+            ToolTip = 'Specifies the single-level capacity overhead cost.';
             DecimalPlaces = 2 : 5;
         }
         field(63; "Single-Level Subcontrd. Cost"; Decimal)
@@ -231,6 +263,7 @@ table 5870 "BOM Buffer"
             AutoFormatExpression = '';
             BlankZero = true;
             Caption = 'Single-Level Subcontrd. Cost';
+            ToolTip = 'Specifies the single-level cost of outsourcing operations to a subcontractor.';
             DecimalPlaces = 2 : 5;
         }
         field(65; "Single-Level Mfg. Ovhd Cost"; Decimal)
@@ -239,6 +272,7 @@ table 5870 "BOM Buffer"
             AutoFormatExpression = '';
             BlankZero = true;
             Caption = 'Single-Level Mfg. Ovhd Cost';
+            ToolTip = 'Specifies the single-level manufacturing overhead cost.';
             DecimalPlaces = 2 : 5;
         }
         field(66; "Single-Level Scrap Cost"; Decimal)
@@ -247,6 +281,7 @@ table 5870 "BOM Buffer"
             AutoFormatExpression = '';
             BlankZero = true;
             Caption = 'Single-Level Scrap Cost';
+            ToolTip = 'Specifies the cost of material at this BOM level that will eventually be scrapped in order to produce the parent item.';
             DecimalPlaces = 2 : 5;
         }
         field(71; "Rolled-up Material Cost"; Decimal)
@@ -255,6 +290,7 @@ table 5870 "BOM Buffer"
             AutoFormatExpression = '';
             BlankZero = true;
             Caption = 'Rolled-up Material Cost';
+            ToolTip = 'Specifies the material cost of all items at all levels of the parent item''s BOM, added to the material cost of the item itself.';
             DecimalPlaces = 2 : 5;
             Editable = false;
         }
@@ -264,6 +300,7 @@ table 5870 "BOM Buffer"
             AutoFormatExpression = '';
             BlankZero = true;
             Caption = 'Rolled-up Capacity Cost';
+            ToolTip = 'Specifies the capacity costs related to the item''s parent item and other items in the parent item''s BOM.';
             DecimalPlaces = 2 : 5;
             Editable = false;
         }
@@ -273,6 +310,7 @@ table 5870 "BOM Buffer"
             AutoFormatExpression = '';
             BlankZero = true;
             Caption = 'Rolled-up Capacity Ovhd. Cost';
+            ToolTip = 'Specifies the rolled-up manufacturing overhead cost of the item.';
             Editable = false;
         }
         field(73; "Rolled-up Subcontracted Cost"; Decimal)
@@ -281,6 +319,7 @@ table 5870 "BOM Buffer"
             AutoFormatExpression = '';
             BlankZero = true;
             Caption = 'Rolled-up Subcontracted Cost';
+            ToolTip = 'Specifies the single-level cost of outsourcing operations to a subcontractor.';
             Editable = false;
         }
         field(75; "Rolled-up Mfg. Ovhd Cost"; Decimal)
@@ -289,6 +328,7 @@ table 5870 "BOM Buffer"
             AutoFormatExpression = '';
             BlankZero = true;
             Caption = 'Rolled-up Mfg. Ovhd Cost';
+            ToolTip = 'Specifies the item''s overhead capacity cost rolled up from underlying item levels.';
             Editable = false;
         }
         field(76; "Rolled-up Scrap Cost"; Decimal)
@@ -297,6 +337,7 @@ table 5870 "BOM Buffer"
             AutoFormatExpression = '';
             BlankZero = true;
             Caption = 'Rolled-up Scrap Cost';
+            ToolTip = 'Specifies the cost of all component material that will eventually be scrapped to produce the parent item.';
             DecimalPlaces = 2 : 5;
         }
         field(77; "Single-Lvl Mat. Non-Invt. Cost"; Decimal)
@@ -305,6 +346,7 @@ table 5870 "BOM Buffer"
             AutoFormatExpression = '';
             BlankZero = true;
             Caption = 'Single-Level Material Non-Inventory Cost';
+            ToolTip = 'Specifies the total non inventory material cost of all components on the parent item''s BOM.';
             DecimalPlaces = 2 : 5;
         }
         field(78; "Rolled-up Mat. Non-Invt. Cost"; Decimal)
@@ -313,6 +355,7 @@ table 5870 "BOM Buffer"
             AutoFormatExpression = '';
             BlankZero = true;
             Caption = 'Rolled-up Material Non-Inventory Cost';
+            ToolTip = 'Specifies the non inventory material cost of all items at all levels of the parent item''s BOM, added to the non inventory material cost of the item itself.';
             DecimalPlaces = 2 : 5;
             Editable = false;
         }
@@ -322,11 +365,13 @@ table 5870 "BOM Buffer"
             AutoFormatExpression = '';
             BlankZero = true;
             Caption = 'Total Cost';
+            ToolTip = 'Specifies the sum of all cost at this BOM level.';
             DecimalPlaces = 2 : 5;
         }
         field(82; "BOM Unit of Measure Code"; Code[10])
         {
             Caption = 'BOM Unit of Measure Code';
+            ToolTip = 'Specifies the unit of measure of the BOM item.';
             TableRelation = if (Type = const(Item)) "Item Unit of Measure".Code where("Item No." = field("No."))
             else
             if (Type = const(Resource)) "Resource Unit of Measure".Code where("Resource No." = field("No."));
@@ -335,6 +380,7 @@ table 5870 "BOM Buffer"
         {
             AutoFormatType = 0;
             Caption = 'Qty. per BOM Line';
+            ToolTip = 'Specifies how many units of the component are required to assemble or produce one unit of the item on the BOM line.';
             DecimalPlaces = 0 : 5;
         }
         field(84; "Inventoriable"; Boolean)

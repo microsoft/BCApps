@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -24,16 +24,19 @@ table 7327 "Whse. Worksheet Name"
         field(2; Name; Code[10])
         {
             Caption = 'Name';
+            ToolTip = 'Specifies the name you enter for the worksheet.';
             NotBlank = true;
         }
         field(3; "Location Code"; Code[10])
         {
             Caption = 'Location Code';
+            ToolTip = 'Specifies the location code of the warehouse the worksheet should be used for.';
             TableRelation = Location;
         }
         field(4; Description; Text[100])
         {
             Caption = 'Description';
+            ToolTip = 'Specifies the description for the worksheet.';
         }
         field(21; "Template Type"; Enum "Warehouse Worksheet Template Type")
         {

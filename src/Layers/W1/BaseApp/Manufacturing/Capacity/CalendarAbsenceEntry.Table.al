@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -59,6 +59,7 @@ table 99000760 "Calendar Absence Entry"
         field(4; Date; Date)
         {
             Caption = 'Date';
+            ToolTip = 'Specifies the date associated with this absence entry.';
             NotBlank = true;
 
             trigger OnValidate()
@@ -69,6 +70,7 @@ table 99000760 "Calendar Absence Entry"
         field(6; "Starting Time"; Time)
         {
             Caption = 'Starting Time';
+            ToolTip = 'Specifies the starting time of the absence entry.';
 
             trigger OnValidate()
             begin
@@ -81,6 +83,7 @@ table 99000760 "Calendar Absence Entry"
         field(7; "Ending Time"; Time)
         {
             Caption = 'Ending Time';
+            ToolTip = 'Specifies the ending time of the absence entry.';
 
             trigger OnValidate()
             begin
@@ -106,6 +109,7 @@ table 99000760 "Calendar Absence Entry"
         {
             AutoFormatType = 0;
             Caption = 'Capacity';
+            ToolTip = 'Specifies the capacity of the absence entry, which was planned for this work center or machine center.';
             DecimalPlaces = 0 : 5;
             MinValue = 0;
 
@@ -120,6 +124,7 @@ table 99000760 "Calendar Absence Entry"
         field(24; "Starting Date-Time"; DateTime)
         {
             Caption = 'Starting Date-Time';
+            ToolTip = 'Specifies the date and the starting time, which are combined in a format called "starting date-time".';
 
             trigger OnValidate()
             begin
@@ -131,6 +136,7 @@ table 99000760 "Calendar Absence Entry"
         field(25; "Ending Date-Time"; DateTime)
         {
             Caption = 'Ending Date-Time';
+            ToolTip = 'Specifies the date and the ending time, which are combined in a format called "ending date-time".';
 
             trigger OnValidate()
             begin
@@ -142,10 +148,12 @@ table 99000760 "Calendar Absence Entry"
         field(31; Description; Text[100])
         {
             Caption = 'Description';
+            ToolTip = 'Specifies the description for the absence entry, for example, holiday or vacation"';
         }
         field(32; Updated; Boolean)
         {
             Caption = 'Updated';
+            ToolTip = 'Specifies the calendar has been updated with this absence entry.';
             Editable = false;
         }
     }

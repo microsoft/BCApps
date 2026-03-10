@@ -398,6 +398,19 @@ codeunit 99000795 "Mfg. Item Integration"
         end;
     end;
 
+    [EventSubscriber(ObjectType::Table, Database::Location, 'OnValidateBinMandatoryOnAfterCheckBins', '', true, false)]
+    local procedure OnValidateBinMandatoryOnAfterCheckBins(var Location: Record Location)
+    begin
+        Location."To-Production Bin Code" := '';
+        Location."From-Production Bin Code" := '';
+    end;
+
+    [EventSubscriber(ObjectType::Table, Database::Location, 'OnIsProdConsumpWhseHandlingTypeWarehousePick', '', true, false)]
+    local procedure OnIsProdConsumpWhseHandlingTypeWarehousePick(var Location: Record Location; var Result: Boolean)
+    begin
+        Result := Location."Prod. Consump. Whse. Handling" = Location."Prod. Consump. Whse. Handling"::"Warehouse Pick (mandatory)";
+    end;
+
     // Stockkeeping Unit
 
     [EventSubscriber(ObjectType::Table, Database::"Stockkeeping Unit", 'OnAfterValidateEvent', 'Variant Code', true, false)]

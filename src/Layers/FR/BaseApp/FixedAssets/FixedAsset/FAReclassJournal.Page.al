@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -49,18 +49,15 @@ page 5636 "FA Reclass. Journal"
                 field("Posting Date"; Rec."Posting Date")
                 {
                     ApplicationArea = FixedAssets;
-                    ToolTip = 'Specifies the same date as the FA Posting Date field when the line is posted.';
                     Visible = false;
                 }
                 field("FA Posting Date"; Rec."FA Posting Date")
                 {
                     ApplicationArea = FixedAssets;
-                    ToolTip = 'Specifies the posting date of the related fixed asset transaction, such as a depreciation.';
                 }
                 field("Document No."; Rec."Document No.")
                 {
                     ApplicationArea = FixedAssets;
-                    ToolTip = 'Specifies a value depending on how you have set up the number series that is assigned to the current journal batch.';
                     ShowMandatory = true;
                 }
                 field("FA No."; Rec."FA No.")
@@ -78,7 +75,6 @@ page 5636 "FA Reclass. Journal"
                     ApplicationArea = FixedAssets;
                     AboutTitle = 'Update FA Numbers';
                     AboutText = 'Specify the FA and New FA number of the fixed asset you want to reclassify to.';
-                    ToolTip = 'Specifies the number of the fixed asset you want to reclassify to.';
 
                     trigger OnValidate()
                     begin
@@ -88,17 +84,14 @@ page 5636 "FA Reclass. Journal"
                 field("Depreciation Book Code"; Rec."Depreciation Book Code")
                 {
                     ApplicationArea = FixedAssets;
-                    ToolTip = 'Specifies the code for the depreciation book to which the line will be posted if you have selected Fixed Asset in the Type field for this line.';
                 }
                 field(Description; Rec.Description)
                 {
                     ApplicationArea = FixedAssets;
-                    ToolTip = 'Specifies the description of the asset entered in the FA No field. field.';
                 }
                 field("Reclassify Acq. Cost Amount"; Rec."Reclassify Acq. Cost Amount")
                 {
                     ApplicationArea = FixedAssets;
-                    ToolTip = 'Specifies the acquisition amount you want to reclassify.';
                     Visible = false;
                 }
                 field("Reclassify Acq. Cost %"; Rec."Reclassify Acq. Cost %")
@@ -106,48 +99,40 @@ page 5636 "FA Reclass. Journal"
                     ApplicationArea = FixedAssets;
                     AboutTitle = 'Reclassify Acq. Cost %';
                     AboutText = 'Specifies the percentage of the acquisition cost you want to reclassify.';
-                    ToolTip = 'Specifies the percentage of the acquisition cost you want to reclassify.';
                 }
                 field("Reclassify Acquisition Cost"; Rec."Reclassify Acquisition Cost")
                 {
                     ApplicationArea = FixedAssets;
                     AboutTitle = 'Reclassify Acquisition Cost';
                     AboutText = 'Specifies the reclassification of the acquisition cost for the fixed asset entered in the FA No. field, to the fixed asset entered in the New FA No. field.';
-                    ToolTip = 'Specifies the reclassification of the acquisition cost for the fixed asset entered in the FA No. field, to the fixed asset entered in the New FA No. field.';
                 }
                 field("Reclassify Depreciation"; Rec."Reclassify Depreciation")
                 {
                     ApplicationArea = FixedAssets;
-                    ToolTip = 'Specifies the reclassification of the accumulated depreciation for the fixed asset entered in the FA No. field, to the fixed asset entered in the New FA No. field.';
                 }
                 field("Reclassify Write-Down"; Rec."Reclassify Write-Down")
                 {
                     ApplicationArea = FixedAssets;
-                    ToolTip = 'Specifies the reclassification of all write-down entries for the fixed asset entered in the FA No. field to the fixed asset you have entered in the New FA No. field.';
                     Visible = false;
                 }
                 field("Reclassify Appreciation"; Rec."Reclassify Appreciation")
                 {
                     ApplicationArea = FixedAssets;
-                    ToolTip = 'Specifies the reclassification of all appreciation entries for the fixed asset entered in the FA No. field to the fixed asset entered in the New FA No. field.';
                     Visible = false;
                 }
                 field("Reclassify Custom 1"; Rec."Reclassify Custom 1")
                 {
                     ApplicationArea = FixedAssets;
-                    ToolTip = 'Specifies the reclassification of all custom 1 entries for the fixed asset entered in the FA No. field to the fixed asset entered in the New FA No. field.';
                     Visible = false;
                 }
                 field("Reclassify Custom 2"; Rec."Reclassify Custom 2")
                 {
                     ApplicationArea = FixedAssets;
-                    ToolTip = 'Specifies the reclassification of all custom 2 entries for the fixed asset entered in the FA No. field to the fixed asset entered in the New FA No. field.';
                     Visible = false;
                 }
                 field("Reclassify Salvage Value"; Rec."Reclassify Salvage Value")
                 {
                     ApplicationArea = FixedAssets;
-                    ToolTip = 'Specifies the salvage value for the fixed asset to be reclassified to the fixed asset entered in the New FA No. field.';
                     Visible = false;
                 }
                 field("Reclassify Derogatory"; Rec."Reclassify Derogatory")
@@ -159,12 +144,10 @@ page 5636 "FA Reclass. Journal"
                 field("Insert Bal. Account"; Rec."Insert Bal. Account")
                 {
                     ApplicationArea = FixedAssets;
-                    ToolTip = 'Specifies whether to create one or more balancing entry lines in the FA general ledger journal or FA Journal.';
                 }
                 field("Calc. DB1 Depr. Amount"; Rec."Calc. DB1 Depr. Amount")
                 {
                     ApplicationArea = FixedAssets;
-                    ToolTip = 'Specifies that the Reclassify function fills in the Temp. Ending Date and Temp. Fixed Depr. Amount fields on the FA depreciation book.';
                     Visible = false;
                 }
             }

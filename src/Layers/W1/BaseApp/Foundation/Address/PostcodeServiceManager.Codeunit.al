@@ -143,11 +143,19 @@ codeunit 9090 "Postcode Service Manager"
     procedure GetActiveService(): Text
     var
         PostcodeServiceConfig: Record "Postcode Service Config";
+        Configured: Boolean;
+        ServiceKeyTxt: Text;
     begin
-        if not PostcodeServiceConfig.FindFirst() then
+        if not PostcodeServiceConfig.FindSet() then
             Error(ServiceNotConfiguredErr);
 
-        exit(PostcodeServiceConfig.GetServiceKey());
+        repeat
+            ServiceKeyTxt := PostcodeServiceConfig.GetServiceKey();
+            IsServiceConfigured(ServiceKeyTxt, Configured);
+            if Configured then
+                exit(ServiceKeyTxt);
+        until PostcodeServiceConfig.Next() = 0;
+        exit('');
     end;
 
     [IntegrationEvent(false, false)]

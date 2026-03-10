@@ -55,6 +55,18 @@ page 118 "General Ledger Setup"
                     ApplicationArea = Basic, Suite;
                     ToolTip = 'Specifies the last date on which posting to the company books is allowed.';
                 }
+                field("Allow Posting From DateFormula"; Rec."Allow Posting From DateFormula")
+                {
+                    ApplicationArea = Basic, Suite;
+                    Importance = Additional;
+                    ToolTip = 'Specifies a date formula to calculate the earliest date, relative to the workdate, on which posting to the company books is allowed.';
+                }
+                field("Allow Posting To DateFormula"; Rec."Allow Posting To DateFormula")
+                {
+                    ApplicationArea = Basic, Suite;
+                    Importance = Additional;
+                    ToolTip = 'Specifies a date formula to calculate the latest date on which posting to the company books is allowed.';
+                }
                 field("Allow Deferral Posting From"; Rec."Allow Deferral Posting From")
                 {
                     ApplicationArea = Basic, Suite;
@@ -501,6 +513,7 @@ page 118 "General Ledger Setup"
                     }
                     field("Fin. Rep. Period Type"; Rec."Fin. Rep. Period Type")
                     {
+                        ApplicationArea = Basic, Suite;
                         Caption = 'Default View by';
 #if not CLEAN27
                         Visible = FinancialReportDefaultsEnabled;
@@ -508,6 +521,7 @@ page 118 "General Ledger Setup"
                     }
                     field("Fin. Rep. Neg. Amount Format"; Rec."Fin. Rep. Neg. Amount Format")
                     {
+                        ApplicationArea = Basic, Suite;
                         Caption = 'Default Negative Amount Format';
 #if not CLEAN27
                         Visible = FinancialReportDefaultsEnabled;
@@ -515,7 +529,13 @@ page 118 "General Ledger Setup"
                     }
                     field("Fin. Rep. Company Logo Pos."; Rec."Fin. Rep. Company Logo Pos.")
                     {
+                        ApplicationArea = Basic, Suite;
                         Caption = 'Default Company Logo Position';
+                    }
+                    field(DefaultFinancialReportStatus; Rec.DefaultFinancialReportStatus)
+                    {
+                        ApplicationArea = Basic, Suite;
+                        Caption = 'Default Status';
                     }
                 }
             }

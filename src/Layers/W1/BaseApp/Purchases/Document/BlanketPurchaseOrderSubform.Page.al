@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -40,7 +40,6 @@ page 510 "Blanket Purchase Order Subform"
                 field(Type; Rec.Type)
                 {
                     ApplicationArea = Suite;
-                    ToolTip = 'Specifies the line type.';
 
                     trigger OnValidate()
                     begin
@@ -51,7 +50,6 @@ page 510 "Blanket Purchase Order Subform"
                 field("No."; Rec."No.")
                 {
                     ApplicationArea = Suite;
-                    ToolTip = 'Specifies the number of the involved entry or record, according to the specified number series.';
 
                     trigger OnValidate()
                     var
@@ -69,7 +67,6 @@ page 510 "Blanket Purchase Order Subform"
                     AccessByPermission = tabledata "Item Reference" = R;
                     ApplicationArea = Suite, ItemReferences;
                     QuickEntry = false;
-                    ToolTip = 'Specifies the referenced item number.';
                     Visible = ItemReferenceVisible;
 
                     trigger OnLookup(var Text: Text): Boolean
@@ -93,7 +90,6 @@ page 510 "Blanket Purchase Order Subform"
                 field("Variant Code"; Rec."Variant Code")
                 {
                     ApplicationArea = Suite;
-                    ToolTip = 'Specifies the variant of the item on the line.';
                     Visible = false;
                     ShowMandatory = VariantCodeMandatory;
 
@@ -109,7 +105,6 @@ page 510 "Blanket Purchase Order Subform"
                 field("Gen. Bus. Posting Group"; Rec."Gen. Bus. Posting Group")
                 {
                     ApplicationArea = Suite;
-                    ToolTip = 'Specifies the vendor''s or customer''s trade type to link transactions made for this business partner with the appropriate general ledger account according to the general posting setup.';
                     Visible = false;
                     trigger OnValidate()
                     begin
@@ -119,7 +114,6 @@ page 510 "Blanket Purchase Order Subform"
                 field("Gen. Prod. Posting Group"; Rec."Gen. Prod. Posting Group")
                 {
                     ApplicationArea = Suite;
-                    ToolTip = 'Specifies the item''s product type to link transactions made for this item with the appropriate general ledger account according to the general posting setup.';
                     Visible = false;
                     trigger OnValidate()
                     begin
@@ -129,21 +123,21 @@ page 510 "Blanket Purchase Order Subform"
                 field("VAT Bus. Posting Group"; Rec."VAT Bus. Posting Group")
                 {
                     ApplicationArea = Suite;
-                    ToolTip = 'Specifies the vendor''s VAT specification to link transactions made for this vendor with the appropriate general ledger account according to the VAT posting setup.';
                     Visible = false;
                     trigger OnValidate()
                     begin
+                        ForceTotalsCalculation();
                         DeltaUpdateTotals();
                     end;
                 }
                 field("VAT Prod. Posting Group"; Rec."VAT Prod. Posting Group")
                 {
                     ApplicationArea = Suite;
-                    ToolTip = 'Specifies the VAT product posting group. Links business transactions made for the item, resource, or G/L account with the general ledger, to account for VAT amounts resulting from trade with that record.';
                     Visible = false;
 
                     trigger OnValidate()
                     begin
+                        ForceTotalsCalculation();
                         DeltaUpdateTotals();
                     end;
                 }
@@ -168,7 +162,6 @@ page 510 "Blanket Purchase Order Subform"
                 {
                     ApplicationArea = Suite;
                     Importance = Additional;
-                    ToolTip = 'Specifies information in addition to the description.';
                     Visible = false;
                 }
                 field("Location Code"; Rec."Location Code")
@@ -193,7 +186,6 @@ page 510 "Blanket Purchase Order Subform"
                 field("Unit of Measure Code"; Rec."Unit of Measure Code")
                 {
                     ApplicationArea = Suite;
-                    ToolTip = 'Specifies how each unit of the item or resource is measured, such as in pieces or hours. By default, the value in the Base Unit of Measure field on the item or resource card is inserted.';
 
                     trigger OnValidate()
                     begin
@@ -210,7 +202,6 @@ page 510 "Blanket Purchase Order Subform"
                 {
                     ApplicationArea = Suite;
                     BlankZero = true;
-                    ToolTip = 'Specifies the cost of one unit of the selected item or resource.';
 
                     trigger OnValidate()
                     begin
@@ -220,7 +211,6 @@ page 510 "Blanket Purchase Order Subform"
                 field("Indirect Cost %"; Rec."Indirect Cost %")
                 {
                     ApplicationArea = Suite;
-                    ToolTip = 'Specifies the percentage of the item''s last purchase cost that includes indirect costs, such as freight that is associated with the purchase of the item.';
                     Visible = false;
                 }
                 field("Unit Cost (LCY)"; Rec."Unit Cost (LCY)")
@@ -239,13 +229,11 @@ page 510 "Blanket Purchase Order Subform"
                 {
                     ApplicationArea = SalesTax;
                     Editable = false;
-                    ToolTip = 'Specifies if this vendor charges you sales tax for purchases.';
                     Visible = false;
                 }
                 field("Tax Area Code"; Rec."Tax Area Code")
                 {
                     ApplicationArea = SalesTax;
-                    ToolTip = 'Specifies the tax area that is used to calculate and post sales tax.';
 
                     trigger OnValidate()
                     begin
@@ -265,14 +253,12 @@ page 510 "Blanket Purchase Order Subform"
                 field("Use Tax"; Rec."Use Tax")
                 {
                     ApplicationArea = SalesTax;
-                    ToolTip = 'Specifies a U.S. sales tax that is paid on items purchased by a company that are used by the company, instead of being sold to a customer.';
                     Visible = false;
                 }
                 field("Line Discount %"; Rec."Line Discount %")
                 {
                     ApplicationArea = Suite;
                     BlankZero = true;
-                    ToolTip = 'Specifies the discount percentage that is granted for the item on the line.';
 
                     trigger OnValidate()
                     begin
@@ -283,7 +269,6 @@ page 510 "Blanket Purchase Order Subform"
                 {
                     ApplicationArea = Suite;
                     BlankZero = true;
-                    ToolTip = 'Specifies the net amount, excluding any invoice discount amount, that must be paid for products on the line.';
 
                     trigger OnValidate()
                     begin
@@ -293,7 +278,6 @@ page 510 "Blanket Purchase Order Subform"
                 field("Line Discount Amount"; Rec."Line Discount Amount")
                 {
                     ApplicationArea = Suite;
-                    ToolTip = 'Specifies the discount amount that is granted for the item on the line.';
                     Visible = false;
 
                     trigger OnValidate()
@@ -304,7 +288,6 @@ page 510 "Blanket Purchase Order Subform"
                 field("Allow Invoice Disc."; Rec."Allow Invoice Disc.")
                 {
                     ApplicationArea = Suite;
-                    ToolTip = 'Specifies if the invoice line is included when the invoice discount is calculated.';
                     Visible = false;
 
                     trigger OnValidate()
@@ -316,19 +299,16 @@ page 510 "Blanket Purchase Order Subform"
                 {
                     ApplicationArea = Suite;
                     BlankZero = true;
-                    ToolTip = 'Specifies the quantity of items that remains to be received.';
                 }
                 field("Quantity Received"; Rec."Quantity Received")
                 {
                     ApplicationArea = Suite;
                     BlankZero = true;
-                    ToolTip = 'Specifies how many units of the item on the line have been posted as received.';
                 }
                 field("Quantity Invoiced"; Rec."Quantity Invoiced")
                 {
                     ApplicationArea = Suite;
                     BlankZero = true;
-                    ToolTip = 'Specifies how many units of the item on the line have been posted as invoiced.';
                 }
                 field("Expected Receipt Date"; Rec."Expected Receipt Date")
                 {
@@ -339,13 +319,11 @@ page 510 "Blanket Purchase Order Subform"
                 field("Shortcut Dimension 1 Code"; Rec."Shortcut Dimension 1 Code")
                 {
                     ApplicationArea = Dimensions;
-                    ToolTip = 'Specifies the code for Shortcut Dimension 1, which is one of two global dimension codes that you set up in the General Ledger Setup window.';
                     Visible = DimVisible1;
                 }
                 field("Shortcut Dimension 2 Code"; Rec."Shortcut Dimension 2 Code")
                 {
                     ApplicationArea = Dimensions;
-                    ToolTip = 'Specifies the code for Shortcut Dimension 2, which is one of two global dimension codes that you set up in the General Ledger Setup window.';
                     Visible = DimVisible2;
                 }
                 field("ShortcutDimCode[3]"; ShortcutDimCode[3])
@@ -448,26 +426,22 @@ page 510 "Blanket Purchase Order Subform"
                 {
                     Caption = 'Unit Gross Weight';
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the gross weight of one unit of the item. In the purchase statistics window, the gross weight on the line is included in the total gross weight of all the lines for the particular purchase document.';
                     Visible = false;
                 }
                 field("Net Weight"; Rec."Net Weight")
                 {
                     Caption = 'Unit Net Weight';
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the net weight of one unit of the item. In the purchase statistics window, the net weight on the line is included in the total net weight of all the lines for the particular purchase document.';
                     Visible = false;
                 }
                 field("Unit Volume"; Rec."Unit Volume")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the volume of one unit of the item. In the purchase statistics window, the volume of one unit of the item on the line is included in the total volume of all the lines for the particular purchase document.';
                     Visible = false;
                 }
                 field("Units per Parcel"; Rec."Units per Parcel")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the number of units per parcel of the item. In the purchase statistics window, the number of units per parcel on the line helps to determine the total number of units for all the lines for the particular purchase document.';
                     Visible = false;
                 }
             }

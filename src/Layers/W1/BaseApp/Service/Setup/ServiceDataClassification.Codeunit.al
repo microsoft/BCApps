@@ -26,7 +26,7 @@ codeunit 1767 "Service-Data Classification"
     var
         DataClassificationMgt: Codeunit "Data Classification Mgt.";
 
-    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Data Classification Eval. Data", 'OnCreateEvaluationDataOnAfterClassifyTablesToNormal', '', false, false)]
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Data Classification Eval. Data", 'OnCreateEvaluationDataOnAfterClassifyTablesToNormal', '', true, false)]
     local procedure OnClassifyTables()
     begin
         ClassifyTables();

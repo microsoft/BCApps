@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -21,10 +21,12 @@ table 5099 "Saved Segment Criteria Line"
         field(2; "Line No."; Integer)
         {
             Caption = 'Line No.';
+            ToolTip = 'Specifies the number of the segment criteria line.';
         }
         field(3; Type; Option)
         {
             Caption = 'Type';
+            ToolTip = 'Specifies the type of information the line shows. There are two options: Action or Filter.';
             OptionCaption = 'Action,Filter';
             OptionMembers = "Action","Filter";
         }

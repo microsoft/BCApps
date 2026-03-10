@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -30,46 +30,38 @@ page 528 "Posted Purchase Receipt Lines"
                 field("Buy-from Vendor No."; Rec."Buy-from Vendor No.")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the name of the vendor who delivered the items.';
                 }
                 field(Type; Rec.Type)
                 {
                     ApplicationArea = Advanced;
-                    ToolTip = 'Specifies the line type.';
                 }
                 field("No."; Rec."No.")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the number of the involved entry or record, according to the specified number series.';
                 }
                 field("Variant Code"; Rec."Variant Code")
                 {
                     ApplicationArea = Planning;
-                    ToolTip = 'Specifies the variant of the item on the line.';
                     Visible = false;
                 }
                 field(Description; Rec.Description)
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies either the name of or a description of the item or general ledger account.';
                 }
                 field("Description 2"; Rec."Description 2")
                 {
                     ApplicationArea = Basic, Suite;
                     Importance = Additional;
-                    ToolTip = 'Specifies information in addition to the description.';
                     Visible = false;
                 }
                 field("Shortcut Dimension 1 Code"; Rec."Shortcut Dimension 1 Code")
                 {
                     ApplicationArea = Dimensions;
-                    ToolTip = 'Specifies the code for Shortcut Dimension 1, which is one of two global dimension codes that you set up in the General Ledger Setup window.';
                     Visible = false;
                 }
                 field("Shortcut Dimension 2 Code"; Rec."Shortcut Dimension 2 Code")
                 {
                     ApplicationArea = Dimensions;
-                    ToolTip = 'Specifies the code for Shortcut Dimension 2, which is one of two global dimension codes that you set up in the General Ledger Setup window.';
                     Visible = false;
                 }
                 field("Location Code"; Rec."Location Code")
@@ -81,23 +73,19 @@ page 528 "Posted Purchase Receipt Lines"
                 field(Quantity; Rec.Quantity)
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the number of units of the item specified on the line.';
                 }
                 field("Unit of Measure Code"; Rec."Unit of Measure Code")
                 {
                     ApplicationArea = Suite;
-                    ToolTip = 'Specifies how each unit of the item or resource is measured, such as in pieces or hours. By default, the value in the Base Unit of Measure field on the item or resource card is inserted.';
                 }
                 field("Unit of Measure"; Rec."Unit of Measure")
                 {
                     ApplicationArea = Suite;
-                    ToolTip = 'Specifies the name of the item or resource''s unit of measure, such as piece or hour.';
                     Visible = false;
                 }
                 field("Appl.-to Item Entry"; Rec."Appl.-to Item Entry")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the number of the item ledger entry that the document or journal line is applied to.';
                     Visible = false;
                 }
                 field("Order No."; Rec."Order No.")
@@ -109,7 +97,6 @@ page 528 "Posted Purchase Receipt Lines"
                 field("Job No."; Rec."Job No.")
                 {
                     ApplicationArea = Jobs;
-                    ToolTip = 'Specifies the number of the related project.';
                     Visible = false;
                 }
                 field("Expected Receipt Date"; Rec."Expected Receipt Date")
@@ -121,7 +108,6 @@ page 528 "Posted Purchase Receipt Lines"
                 field("Quantity Invoiced"; Rec."Quantity Invoiced")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies how many units of the item on the line have been posted as invoiced.';
                 }
             }
         }

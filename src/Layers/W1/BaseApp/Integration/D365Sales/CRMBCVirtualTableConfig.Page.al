@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -23,13 +23,11 @@ page 7213 "CRM BC Virtual Table Config."
             {
                 ApplicationArea = Suite;
                 Caption = 'Target Host';
-                ToolTip = 'Specifies data from a corresponding field in a Dataverse entity. For more information about Dataverse, see Dataverse Help Center.';
             }
             field("Environment Name"; Rec.msdyn_environment)
             {
                 ApplicationArea = Suite;
                 Caption = 'Environment Name';
-                ToolTip = 'Specifies data from a corresponding field in a Dataverse entity. For more information about Dataverse, see Dataverse Help Center.';
             }
             field("Default Company"; DefaultCompany)
             {
@@ -43,14 +41,12 @@ page 7213 "CRM BC Virtual Table Config."
             {
                 ApplicationArea = Suite;
                 Caption = 'Tenant ID';
-                ToolTip = 'Specifies data from a corresponding field in a Dataverse entity. For more information about Dataverse, see Dataverse Help Center.';
                 Visible = IsPPE;
             }
             field("AAD User ID"; Rec.msdyn_aadUserId)
             {
                 ApplicationArea = Suite;
                 Caption = 'Microsoft Entra user ID';
-                ToolTip = 'Specifies data from a corresponding field in a Dataverse entity. For more information about Dataverse, see Dataverse Help Center.';
                 Visible = IsPPE;
             }
         }

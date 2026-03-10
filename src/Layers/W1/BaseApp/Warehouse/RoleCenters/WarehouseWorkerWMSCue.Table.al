@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -24,6 +24,7 @@ table 9058 "Warehouse Worker WMS Cue"
                                                                    "Assigned User ID" = filter(''),
                                                                    "Location Code" = field("Location Filter")));
             Caption = 'Unassigned Picks';
+            ToolTip = 'Specifies the number of unassigned picks that are displayed in the Warehouse Worker WMS Cue on the Role Center. The documents are filtered by today''s date.';
             Editable = false;
             FieldClass = FlowField;
         }
@@ -33,6 +34,7 @@ table 9058 "Warehouse Worker WMS Cue"
                                                                    "Assigned User ID" = field("User ID Filter"),
                                                                    "Location Code" = field("Location Filter")));
             Caption = 'My Picks';
+            ToolTip = 'Specifies the number of picks that are displayed in the Warehouse Worker WMS Cue on the Role Center. The documents are filtered by today''s date.';
             Editable = false;
             FieldClass = FlowField;
         }
@@ -42,6 +44,7 @@ table 9058 "Warehouse Worker WMS Cue"
                                                                    "Assigned User ID" = filter(''),
                                                                    "Location Code" = field("Location Filter")));
             Caption = 'Unassigned Put-aways';
+            ToolTip = 'Specifies the number of unassigned put-always that are displayed in the Warehouse Worker WMS Cue on the Role Center. The documents are filtered by today''s date.';
             Editable = false;
             FieldClass = FlowField;
         }
@@ -51,6 +54,7 @@ table 9058 "Warehouse Worker WMS Cue"
                                                                    "Assigned User ID" = field("User ID Filter"),
                                                                    "Location Code" = field("Location Filter")));
             Caption = 'My Put-aways';
+            ToolTip = 'Specifies the number of put-always that are displayed in the Warehouse Worker WMS Cue on the Role Center. The documents are filtered by today''s date.';
             Editable = false;
             FieldClass = FlowField;
         }
@@ -60,6 +64,7 @@ table 9058 "Warehouse Worker WMS Cue"
                                                                    "Assigned User ID" = filter(''),
                                                                    "Location Code" = field("Location Filter")));
             Caption = 'Unassigned Movements';
+            ToolTip = 'Specifies the number of unassigned movements that are displayed in the Warehouse Worker WMS Cue on the Role Center. The documents are filtered by today''s date.';
             Editable = false;
             FieldClass = FlowField;
         }
@@ -69,6 +74,7 @@ table 9058 "Warehouse Worker WMS Cue"
                                                                    "Assigned User ID" = field("User ID Filter"),
                                                                    "Location Code" = field("Location Filter")));
             Caption = 'My Movements';
+            ToolTip = 'Specifies the number of movements that are displayed in the Warehouse Worker WMS Cue on the Role Center. The documents are filtered by today''s date.';
             Editable = false;
             FieldClass = FlowField;
         }

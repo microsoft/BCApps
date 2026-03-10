@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -22,12 +22,10 @@ page 5215 "Grounds for Termination"
                 field("Code"; Rec.Code)
                 {
                     ApplicationArea = BasicHR;
-                    ToolTip = 'Specifies a grounds for termination code.';
                 }
                 field(Description; Rec.Description)
                 {
                     ApplicationArea = BasicHR;
-                    ToolTip = 'Specifies a description for the grounds for termination.';
                 }
             }
         }

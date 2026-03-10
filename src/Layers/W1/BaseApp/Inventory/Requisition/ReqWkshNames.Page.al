@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -21,12 +21,16 @@ page 295 "Req. Wksh. Names"
                 field(Name; Rec.Name)
                 {
                     ApplicationArea = Planning;
-                    ToolTip = 'Specifies the name of the requisition worksheet you are creating.';
                 }
                 field(Description; Rec.Description)
                 {
                     ApplicationArea = Planning;
-                    ToolTip = 'Specifies a brief description of the requisition worksheet name you are creating.';
+                }
+                field("No. of Lines"; Rec."No. of Lines")
+                {
+                    ApplicationArea = Planning;
+                    ToolTip = 'Specifies the number of lines in this worksheet.';
+                    Visible = false;
                 }
             }
         }

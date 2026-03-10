@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -23,6 +23,7 @@ table 5944 "Troubleshooting Line"
         field(3; Comment; Text[80])
         {
             Caption = 'Comment';
+            ToolTip = 'Specifies the troubleshooting comment or guidelines.';
         }
     }
 

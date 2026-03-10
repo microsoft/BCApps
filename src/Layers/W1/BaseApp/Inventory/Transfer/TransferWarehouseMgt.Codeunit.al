@@ -196,6 +196,7 @@ codeunit 5993 "Transfer Warehouse Mgt."
         UnitOfMeasureManagement: Codeunit "Unit of Measure Management";
         WhseInbndOtsdgQty: Decimal;
         IsHandled: Boolean;
+        QtyOnRcptLineSet: Boolean;
     begin
         IsHandled := false;
         OnBeforeTransLine2ReceiptLine(WarehouseReceiptHeader, TransferLine, Result, IsHandled);
@@ -209,17 +210,22 @@ codeunit 5993 "Transfer Warehouse Mgt."
           TransferLine."Item No.", TransferLine.Description, TransferLine."Description 2", TransferLine."Transfer-to Code",
           TransferLine."Variant Code", TransferLine."Unit of Measure Code", TransferLine."Qty. per Unit of Measure",
           TransferLine."Qty. Rounding Precision", TransferLine."Qty. Rounding Precision (Base)");
-        OnTransLine2ReceiptLineOnAfterInitNewLine(WarehouseReceiptLine, WarehouseReceiptHeader, TransferLine);
-        WarehouseReceiptLine.Validate(WarehouseReceiptLine."Qty. Received", TransferLine."Quantity Received");
-        TransferLine.CalcFields("Whse. Inbnd. Otsdg. Qty (Base)");
-        WhseInbndOtsdgQty :=
-          UnitOfMeasureManagement.CalcQtyFromBase(
-            TransferLine."Item No.", TransferLine."Variant Code", TransferLine."Unit of Measure Code",
-            TransferLine."Whse. Inbnd. Otsdg. Qty (Base)", TransferLine."Qty. per Unit of Measure");
-        WhseCreateSourceDocument.SetQtysOnRcptLine(
-           WarehouseReceiptLine,
-           TransferLine."Quantity Received" + TransferLine."Qty. in Transit" - WhseInbndOtsdgQty,
-           TransferLine."Qty. Received (Base)" + TransferLine."Qty. in Transit (Base)" - TransferLine."Whse. Inbnd. Otsdg. Qty (Base)");
+        QtyOnRcptLineSet := false;
+        OnTransLine2ReceiptLineOnAfterInitNewLine(WarehouseReceiptLine, WarehouseReceiptHeader, TransferLine, QtyOnRcptLineSet);
+
+        // Base quantity fields will not be filled for subcontracting WIP transfer order lines. In Subcontracting App this part will be replaced by similar functionality which is only based on quantity and not on base quantity fields. 
+        if not QtyOnRcptLineSet then begin
+            WarehouseReceiptLine.Validate(WarehouseReceiptLine."Qty. Received", TransferLine."Quantity Received");
+            TransferLine.CalcFields("Whse. Inbnd. Otsdg. Qty (Base)");
+            WhseInbndOtsdgQty :=
+              UnitOfMeasureManagement.CalcQtyFromBase(
+                TransferLine."Item No.", TransferLine."Variant Code", TransferLine."Unit of Measure Code",
+                TransferLine."Whse. Inbnd. Otsdg. Qty (Base)", TransferLine."Qty. per Unit of Measure");
+            WhseCreateSourceDocument.SetQtysOnRcptLine(
+               WarehouseReceiptLine,
+               TransferLine."Quantity Received" + TransferLine."Qty. in Transit" - WhseInbndOtsdgQty,
+               TransferLine."Qty. Received (Base)" + TransferLine."Qty. in Transit (Base)" - TransferLine."Whse. Inbnd. Otsdg. Qty (Base)");
+        end;
         WarehouseReceiptLine."Due Date" := TransferLine."Receipt Date";
         WarehouseReceiptLine."Starting Date" := WorkDate();
         if WarehouseReceiptLine."Location Code" = WarehouseReceiptHeader."Location Code" then
@@ -304,7 +310,7 @@ codeunit 5993 "Transfer Warehouse Mgt."
     end;
 
     [IntegrationEvent(false, false)]
-    local procedure OnTransLine2ReceiptLineOnAfterInitNewLine(var WarehouseReceiptLine: Record "Warehouse Receipt Line"; WarehouseReceiptHeader: Record "Warehouse Receipt Header"; TransferLine: Record "Transfer Line")
+    local procedure OnTransLine2ReceiptLineOnAfterInitNewLine(var WarehouseReceiptLine: Record "Warehouse Receipt Line"; WarehouseReceiptHeader: Record "Warehouse Receipt Header"; TransferLine: Record "Transfer Line"; var QtyOnRcptLineSet: Boolean)
     begin
     end;
 

@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -35,19 +35,16 @@ page 1294 "Pmt. Reconciliation Journals"
                 {
                     ApplicationArea = Basic, Suite;
                     Editable = false;
-                    ToolTip = 'Specifies the number of the bank account that you want to reconcile with the bank''s statement.';
                 }
                 field("Statement No."; Rec."Statement No.")
                 {
                     ApplicationArea = Basic, Suite;
                     Editable = false;
-                    ToolTip = 'Specifies the number of the bank account statement.';
                 }
                 field("Total Transaction Amount"; Rec."Total Transaction Amount")
                 {
                     ApplicationArea = Basic, Suite;
                     Editable = false;
-                    ToolTip = 'Specifies the sum of values in the Statement Amount field on all the lines in the Bank Acc. Reconciliation and Payment Reconciliation Journal windows.';
                 }
                 field("Total Difference"; Rec."Total Difference")
                 {
@@ -57,12 +54,10 @@ page 1294 "Pmt. Reconciliation Journals"
                     Editable = false;
                     Style = Unfavorable;
                     StyleExpr = true;
-                    ToolTip = 'Specifies the total amount that exists on the bank account per the last time it was reconciled.';
                 }
                 field("Copy VAT Setup to Jnl. Line"; Rec."Copy VAT Setup to Jnl. Line")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies whether the program to calculate VAT for accounts and balancing accounts on the journal line of the selected bank account reconciliation.';
                 }
             }
         }

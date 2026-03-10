@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -26,55 +26,46 @@ page 7349 "Registered Movement"
                 {
                     ApplicationArea = Warehouse;
                     Editable = false;
-                    ToolTip = 'Specifies the number of the involved entry or record, according to the specified number series.';
                 }
                 field("Whse. Activity No."; Rec."Whse. Activity No.")
                 {
                     ApplicationArea = Warehouse;
                     Editable = false;
-                    ToolTip = 'Specifies the warehouse activity number from which the activity was registered.';
                 }
                 field("Location Code"; Rec."Location Code")
                 {
                     ApplicationArea = Location;
                     Editable = false;
-                    ToolTip = 'Specifies the code of the location in which the registered warehouse activity occurred.';
                 }
                 field("Registering Date"; Rec."Registering Date")
                 {
                     ApplicationArea = Warehouse;
                     Editable = false;
-                    ToolTip = 'Specifies the date the line is registered.';
                 }
                 field("Assigned User ID"; Rec."Assigned User ID")
                 {
                     ApplicationArea = Warehouse;
                     Editable = false;
-                    ToolTip = 'Specifies the ID of the user who is responsible for the document.';
                 }
                 field("Assignment Date"; Rec."Assignment Date")
                 {
                     ApplicationArea = Warehouse;
                     Editable = false;
-                    ToolTip = 'Specifies the date when the user was assigned the activity.';
                 }
                 field("Assignment Time"; Rec."Assignment Time")
                 {
                     ApplicationArea = Warehouse;
                     Editable = false;
-                    ToolTip = 'Specifies the time when the user was assigned the activity.';
                 }
                 field("Sorting Method"; Rec."Sorting Method")
                 {
                     ApplicationArea = Warehouse;
                     Editable = false;
-                    ToolTip = 'Specifies the method by which the lines were sorted on the warehouse header, such as by item, or bin code.';
                 }
                 field("No. Printed"; Rec."No. Printed")
                 {
                     ApplicationArea = Warehouse;
                     Editable = false;
-                    ToolTip = 'Specifies how many times the document has been printed.';
                 }
             }
             part(WhseActivityLines; "Registered Movement Subform")

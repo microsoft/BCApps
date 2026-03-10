@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -25,7 +25,6 @@ page 9281 "Misc. Articles Overview Matrix"
                 field("No."; Rec."No.")
                 {
                     ApplicationArea = BasicHR;
-                    ToolTip = 'Specifies the number of the involved entry or record, according to the specified number series.';
                 }
                 field(FullName; Rec.FullName())
                 {

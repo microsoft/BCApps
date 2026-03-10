@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -25,50 +25,41 @@ page 5804 "Applied Item Entries"
                 field("Posting Date"; Rec."Posting Date")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the entry''s posting date.';
                 }
                 field("Entry Type"; Rec."Entry Type")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies which type of transaction that the entry is created from.';
                 }
                 field("Document No."; Rec."Document No.")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the document number on the entry. The document is the voucher that the entry was based on, for example, a receipt.';
                 }
                 field("Item No."; Rec."Item No.")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the number of the item in the entry.';
                 }
                 field("Variant Code"; Rec."Variant Code")
                 {
                     ApplicationArea = Planning;
-                    ToolTip = 'Specifies the variant of the item on the line.';
                     Visible = false;
                 }
                 field(Description; Rec.Description)
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies a description of the entry.';
                 }
                 field("Global Dimension 1 Code"; Rec."Global Dimension 1 Code")
                 {
                     ApplicationArea = Dimensions;
-                    ToolTip = 'Specifies the code for the global dimension that is linked to the record or entry for analysis purposes. Two global dimensions, typically for the company''s most important activities, are available on all cards, documents, reports, and lists.';
                     Visible = false;
                 }
                 field("Global Dimension 2 Code"; Rec."Global Dimension 2 Code")
                 {
                     ApplicationArea = Dimensions;
-                    ToolTip = 'Specifies the code for the global dimension that is linked to the record or entry for analysis purposes. Two global dimensions, typically for the company''s most important activities, are available on all cards, documents, reports, and lists.';
                     Visible = false;
                 }
                 field("Location Code"; Rec."Location Code")
                 {
                     ApplicationArea = Location;
-                    ToolTip = 'Specifies the code for the location that the entry is linked to.';
                 }
                 field(ApplQty; ApplQty)
                 {
@@ -88,19 +79,16 @@ page 5804 "Applied Item Entries"
                 field("Invoiced Quantity"; Rec."Invoiced Quantity")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies how many units of the item on the line have been invoiced.';
                     Visible = true;
                 }
                 field("Remaining Quantity"; Rec."Remaining Quantity")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the quantity in the Quantity field that remains to be processed.';
                     Visible = true;
                 }
                 field("Reserved Quantity"; Rec."Reserved Quantity")
                 {
                     ApplicationArea = Reservation;
-                    ToolTip = 'Specifies how many units of the item on the line have been reserved.';
                     Visible = false;
 
                     trigger OnDrillDown()
@@ -111,40 +99,33 @@ page 5804 "Applied Item Entries"
                 field(Open; Rec.Open)
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies whether the entry has been fully applied to.';
                 }
                 field("Qty. per Unit of Measure"; Rec."Qty. per Unit of Measure")
                 {
                     ApplicationArea = Suite;
-                    ToolTip = 'Specifies the quantity per item unit of measure.';
                     Visible = false;
                 }
                 field("Drop Shipment"; Rec."Drop Shipment")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies if your vendor ships the items directly to your customer.';
                     Visible = false;
                 }
                 field("Applied Entry to Adjust"; Rec."Applied Entry to Adjust")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies whether there is one or more applied entries, which need to be adjusted.';
                 }
                 field("Order Type"; Rec."Order Type")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies which type of order that the entry was created in.';
                 }
                 field("Order No."; Rec."Order No.")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the number of the order that created the entry.';
                     Visible = false;
                 }
                 field("Entry No."; Rec."Entry No.")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the number of the entry, as assigned from the specified number series when the entry was created.';
                 }
             }
         }

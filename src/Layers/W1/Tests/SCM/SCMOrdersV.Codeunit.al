@@ -63,6 +63,8 @@ codeunit 137158 "SCM Orders V"
         QtyToInvoiceDoesNotMatchItemTrackingErr: Label 'The quantity to invoice does not match the quantity defined in item tracking.';
         WrongLotQtyOnPurchaseLineErr: Label 'Wrong lot quantity in Item Tracking on Purchase Line.';
         ValueMustBeEqualErr: Label '%1 must be equal to %2 in the %3.', Comment = '%1 = Field Caption , %2 = Expected Value, %3 = Table Caption';
+        ContactNoErr: Label 'Changing the contact number must not create a duplicate task';
+        UpdateTaskErr: Label 'Original task must have a new contact number';
 
     [Test]
     [Scope('OnPrem')]
@@ -3933,6 +3935,43 @@ codeunit 137158 "SCM Orders V"
         VerifyDueDateTimeInProdOrderComponent(ProdOrderRoutingLine);
     end;
 
+    [Test]
+    procedure ChangeContactNoOnTaskDoesNotCreateDuplicate()
+    var
+        Contact: array[2] of Record Contact;
+        Task: Record "To-do";
+        TaskList: Record "To-do";
+        TaskCount: Integer;
+    begin
+        // [SCENARIO 609108] Verify when changing Contact No on an existing organizer Task, no duplicate Task should be created.
+        Initialize();
+
+        // [GIVEN] Create two contacts.
+        LibraryMarketing.CreatePersonContact(Contact[1]);
+        LibraryMarketing.CreatePersonContact(Contact[2]);
+
+        // [GIVEN] Create a Task with the first contact and type as "Phone Call".
+        CreateAndUpdateTask(Task, Contact[1]);
+        Task.Type := Task.Type::"Phone Call";
+        Task.Modify(true);
+
+        // [WHEN] Change Contact No to second contact
+        Task.Validate("Contact No.", Contact[2]."No.");
+        Task.Modify(true);
+
+        // [WHEN] Count tasks after change.
+        TaskList.Reset();
+        TaskList.SetRange("Organizer To-do No.", Task."No.");
+        TaskCount := TaskList.Count();
+
+        // [THEN] Verify no additional task should have been created.
+        Assert.AreEqual(1, TaskCount, ContactNoErr);
+
+        // [THEN] The original task should have the new contact number.
+        Task.Get(Task."No.");
+        Assert.AreEqual(Contact[2]."No.", Task."Contact No.", UpdateTaskErr);
+    end;
+
     local procedure Initialize()
     var
         SalesHeader: Record "Sales Header";
@@ -4185,12 +4224,9 @@ codeunit 137158 "SCM Orders V"
     local procedure CreateContactWithTasks(var Contact: Record Contact)
     var
         Task: Record "To-do";
-        Task2: Record "To-do";
     begin
         LibraryMarketing.CreateCompanyContact(Contact);
         CreateAndUpdateTask(Task, Contact);
-        CreateAndUpdateTask(Task2, Contact);
-        UpdateOrganizerTaskNoOnTask(Task2, Task."Organizer To-do No.");
     end;
 
     local procedure CreateCurrencyWithExchangeRate(var CurrencyExchangeRate: Record "Currency Exchange Rate")
@@ -5270,12 +5306,6 @@ codeunit 137158 "SCM Orders V"
         ItemJournalLine.Validate("Location Code", LocationCode);
         ItemJournalLine.Validate("Bin Code", BinCode);
         ItemJournalLine.Modify(true);
-    end;
-
-    local procedure UpdateOrganizerTaskNoOnTask(Task: Record "To-do"; OrganizerTaskNo: Code[20])
-    begin
-        Task.Validate("Organizer To-do No.", OrganizerTaskNo);
-        Task.Modify(true);
     end;
 
     local procedure UpdateQtysToPostOnPurchaseLine(var PurchaseLine: Record "Purchase Line"; QtyToReceive: Decimal; QtyToInvoice: Decimal)

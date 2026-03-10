@@ -64,6 +64,14 @@ table 1102 "Cost Journal Batch"
             Caption = 'Delete after Posting';
             InitValue = true;
         }
+        field(40; "No. of Lines"; Integer)
+        {
+            CalcFormula = count("Cost Journal Line" where("Journal Template Name" = field("Journal Template Name"), "Journal Batch Name" = field(Name)));
+            Caption = 'No. of Lines';
+            Editable = false;
+            FieldClass = FlowField;
+            ToolTip = 'Specifies the number of lines in this journal batch.';
+        }
     }
 
     keys

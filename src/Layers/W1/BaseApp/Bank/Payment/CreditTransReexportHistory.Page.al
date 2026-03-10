@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -28,12 +28,10 @@ page 1209 "Credit Trans Re-export History"
                 field("Re-export Date"; Rec."Re-export Date")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the date when the payment file was re-exported.';
                 }
                 field("Re-exported By"; Rec."Re-exported By")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the user who re-exported the payment file.';
                 }
             }
         }

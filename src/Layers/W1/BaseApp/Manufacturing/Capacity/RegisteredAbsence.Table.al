@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -17,10 +17,12 @@ table 99000848 "Registered Absence"
         field(1; "Capacity Type"; Enum "Capacity Type")
         {
             Caption = 'Capacity Type';
+            ToolTip = 'Specifies if the absence entry is related to a machine center or a work center.';
         }
         field(2; "No."; Code[20])
         {
             Caption = 'No.';
+            ToolTip = 'Specifies the number of the involved entry or record, according to the specified number series.';
             TableRelation = if ("Capacity Type" = const("Work Center")) "Work Center"
             else
             if ("Capacity Type" = const("Machine Center")) "Machine Center";
@@ -28,10 +30,12 @@ table 99000848 "Registered Absence"
         field(3; Date; Date)
         {
             Caption = 'Date';
+            ToolTip = 'Specifies the date of the absence. If the absence covers several days, there will be an entry line for each day.';
         }
         field(4; "Starting Time"; Time)
         {
             Caption = 'Starting Time';
+            ToolTip = 'Specifies the starting time of the absence, such as the time the employee normally starts to work or the time the machine starts to operate.';
 
             trigger OnValidate()
             begin
@@ -46,6 +50,7 @@ table 99000848 "Registered Absence"
         field(5; "Ending Time"; Time)
         {
             Caption = 'Ending Time';
+            ToolTip = 'Specifies the ending time of day of the absence, such as the time the employee normally leaves, or the time the machine stops operating.';
 
             trigger OnValidate()
             begin
@@ -58,16 +63,19 @@ table 99000848 "Registered Absence"
         field(6; Description; Text[100])
         {
             Caption = 'Description';
+            ToolTip = 'Specifies a short description of the reason for the absence.';
         }
         field(7; Capacity; Decimal)
         {
             AutoFormatType = 0;
             Caption = 'Capacity';
+            ToolTip = 'Specifies the amount of capacity, which cannot be used during the absence period.';
             MinValue = 0;
         }
         field(8; "Starting Date-Time"; DateTime)
         {
             Caption = 'Starting Date-Time';
+            ToolTip = 'Specifies the date and the starting time, which are combined in a format called "starting date-time".';
 
             trigger OnValidate()
             begin
@@ -79,6 +87,7 @@ table 99000848 "Registered Absence"
         field(9; "Ending Date-Time"; DateTime)
         {
             Caption = 'Ending Date-Time';
+            ToolTip = 'Specifies the date and the ending time, which are combined in a format called "ending date-time".';
 
             trigger OnValidate()
             begin

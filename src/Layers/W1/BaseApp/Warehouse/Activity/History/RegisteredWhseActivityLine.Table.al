@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -35,52 +35,63 @@ table 5773 "Registered Whse. Activity Line"
         field(1; "Activity Type"; Enum "Warehouse Activity Type")
         {
             Caption = 'Activity Type';
+            ToolTip = 'Specifies the type of activity that the warehouse performed on the line, such as put-away, pick, or movement.';
         }
         field(2; "No."; Code[20])
         {
             Caption = 'No.';
+            ToolTip = 'Specifies the number of the involved entry or record, according to the specified number series.';
         }
         field(3; "Line No."; Integer)
         {
             Caption = 'Line No.';
+            ToolTip = 'Specifies the number of the registered warehouse activity line.';
         }
         field(4; "Source Type"; Integer)
         {
             Caption = 'Source Type';
+            ToolTip = 'Specifies the type of transaction the source document is associated with, such as sales, purchase, and production.';
         }
         field(5; "Source Subtype"; Option)
         {
             Caption = 'Source Subtype';
+            ToolTip = 'Specifies the source subtype of the document related to the registered activity line.';
             OptionCaption = '0,1,2,3,4,5,6,7,8,9,10';
             OptionMembers = "0","1","2","3","4","5","6","7","8","9","10";
         }
         field(6; "Source No."; Code[20])
         {
             Caption = 'Source No.';
+            ToolTip = 'Specifies the number of the source document that the entry originates from.';
         }
         field(7; "Source Line No."; Integer)
         {
             BlankZero = true;
             Caption = 'Source Line No.';
+            ToolTip = 'Specifies the line number of the source document that the entry originates from.';
         }
         field(8; "Source Subline No."; Integer)
         {
             BlankZero = true;
             Caption = 'Source Subline No.';
+            ToolTip = 'Specifies the number of the source document subline related to this activity line.';
         }
         field(9; "Source Document"; Enum "Warehouse Activity Source Document")
         {
             BlankZero = true;
             Caption = 'Source Document';
+            ToolTip = 'Specifies the type of document that the line relates to.';
         }
         field(11; "Location Code"; Code[10])
         {
             Caption = 'Location Code';
+            ToolTip = 'Specifies the code for the location at which the activity occurs.';
             TableRelation = Location;
         }
         field(12; "Shelf No."; Code[10])
         {
             Caption = 'Shelf No.';
+            ToolTip = 'Specifies the shelf number of the item on the line for information use.';
         }
         field(13; "Sorting Sequence No."; Integer)
         {
@@ -89,37 +100,44 @@ table 5773 "Registered Whse. Activity Line"
         field(14; "Item No."; Code[20])
         {
             Caption = 'Item No.';
+            ToolTip = 'Specifies the item number of the item to be handled, such as picked or put away.';
             TableRelation = Item;
         }
         field(15; "Variant Code"; Code[10])
         {
             Caption = 'Variant Code';
+            ToolTip = 'Specifies the variant of the item on the line.';
             TableRelation = "Item Variant".Code where("Item No." = field("Item No."));
         }
         field(16; "Unit of Measure Code"; Code[10])
         {
             Caption = 'Unit of Measure Code';
+            ToolTip = 'Specifies how each unit of the item or resource is measured, such as in pieces or hours. By default, the value in the Base Unit of Measure field on the item or resource card is inserted.';
             TableRelation = "Item Unit of Measure".Code where("Item No." = field("Item No."));
         }
         field(17; "Qty. per Unit of Measure"; Decimal)
         {
             AutoFormatType = 0;
             Caption = 'Qty. per Unit of Measure';
+            ToolTip = 'Specifies the quantity per unit of measure of the item on the line.';
             DecimalPlaces = 0 : 5;
             InitValue = 1;
         }
         field(18; Description; Text[100])
         {
             Caption = 'Description';
+            ToolTip = 'Specifies a description of the item on the line.';
         }
         field(19; "Description 2"; Text[50])
         {
             Caption = 'Description 2';
+            ToolTip = 'Specifies a description of the item on the line.';
         }
         field(20; Quantity; Decimal)
         {
             AutoFormatType = 0;
             Caption = 'Quantity';
+            ToolTip = 'Specifies the quantity of the item that was put-away, picked or moved.';
             DecimalPlaces = 0 : 5;
         }
         field(21; "Qty. (Base)"; Decimal)
@@ -131,10 +149,12 @@ table 5773 "Registered Whse. Activity Line"
         field(31; "Shipping Advice"; Enum "Sales Header Shipping Advice")
         {
             Caption = 'Shipping Advice';
+            ToolTip = 'Specifies the shipping advice about whether a partial delivery was acceptable to the order recipient.';
         }
         field(34; "Due Date"; Date)
         {
             Caption = 'Due Date';
+            ToolTip = 'Specifies the date when the warehouse activity must be completed.';
         }
         field(39; "Destination Type"; enum "Warehouse Destination Type")
         {
@@ -179,6 +199,7 @@ table 5773 "Registered Whse. Activity Line"
         field(6500; "Serial No."; Code[50])
         {
             Caption = 'Serial No.';
+            ToolTip = 'Specifies the serial number that was handled.';
 
             trigger OnLookup()
             begin
@@ -188,6 +209,7 @@ table 5773 "Registered Whse. Activity Line"
         field(6501; "Lot No."; Code[50])
         {
             Caption = 'Lot No.';
+            ToolTip = 'Specifies the lot number that was handled.';
 
             trigger OnLookup()
             begin
@@ -201,6 +223,7 @@ table 5773 "Registered Whse. Activity Line"
         field(6503; "Expiration Date"; Date)
         {
             Caption = 'Expiration Date';
+            ToolTip = 'Specifies the expiration date of the serial number that was handled.';
         }
         field(6515; "Package No."; Code[50])
         {
@@ -215,6 +238,7 @@ table 5773 "Registered Whse. Activity Line"
         field(7300; "Bin Code"; Code[20])
         {
             Caption = 'Bin Code';
+            ToolTip = 'Specifies the bin where the items are picked or put away.';
             TableRelation = if ("Action Type" = filter(<> Take)) Bin.Code where("Location Code" = field("Location Code"),
                                                                               "Zone Code" = field("Zone Code"))
             else
@@ -230,21 +254,25 @@ table 5773 "Registered Whse. Activity Line"
         field(7301; "Zone Code"; Code[10])
         {
             Caption = 'Zone Code';
+            ToolTip = 'Specifies the code of the zone in which the bin on this line is located.';
             TableRelation = Zone.Code where("Location Code" = field("Location Code"));
         }
         field(7305; "Action Type"; Enum "Warehouse Action Type")
         {
             Caption = 'Action Type';
+            ToolTip = 'Specifies the action you must perform for the items on the line.';
             Editable = false;
         }
         field(7306; "Whse. Document Type"; Enum "Warehouse Activity Document Type")
         {
             Caption = 'Whse. Document Type';
+            ToolTip = 'Specifies the type of document that the line originated from.';
             Editable = false;
         }
         field(7307; "Whse. Document No."; Code[20])
         {
             Caption = 'Whse. Document No.';
+            ToolTip = 'Specifies the number of the warehouse document that is the basis for the action on the line.';
             Editable = false;
             TableRelation = if ("Whse. Document Type" = const(Receipt)) "Posted Whse. Receipt Header"."No." where("No." = field("Whse. Document No."))
             else
@@ -261,6 +289,7 @@ table 5773 "Registered Whse. Activity Line"
         {
             BlankZero = true;
             Caption = 'Whse. Document Line No.';
+            ToolTip = 'Specifies the number of the line in the warehouse document that is the basis for the action on the line.';
             Editable = false;
             TableRelation = if ("Whse. Document Type" = const(Receipt)) "Posted Whse. Receipt Line"."Line No." where("No." = field("Whse. Document No."),
                                                                                                                     "Line No." = field("Whse. Document Line No."))
@@ -282,17 +311,20 @@ table 5773 "Registered Whse. Activity Line"
         {
             AutoFormatType = 0;
             Caption = 'Cubage';
+            ToolTip = 'Specifies the total cubage of items on the line, calculated based on the Quantity field.';
             DecimalPlaces = 0 : 5;
         }
         field(7311; Weight; Decimal)
         {
             AutoFormatType = 0;
             Caption = 'Weight';
+            ToolTip = 'Specifies the weight of one item unit when measured in the specified unit of measure.';
             DecimalPlaces = 0 : 5;
         }
         field(7312; "Special Equipment Code"; Code[10])
         {
             Caption = 'Special Equipment Code';
+            ToolTip = 'Specifies the code of the equipment required when you perform the action on the line.';
             TableRelation = "Special Equipment";
         }
     }

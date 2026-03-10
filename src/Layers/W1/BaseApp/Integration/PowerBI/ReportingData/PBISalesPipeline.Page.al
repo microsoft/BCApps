@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -22,25 +22,21 @@ page 6314 "PBI Sales Pipeline"
                 {
                     ApplicationArea = All;
                     Caption = 'ID';
-                    ToolTip = 'Specifies the ID.';
                 }
                 field("Row No."; Rec."Row No.")
                 {
                     ApplicationArea = All;
                     Caption = 'Stage';
-                    ToolTip = 'Specifies the stage of the sales pipeline that this entry is at.';
                 }
                 field(Value; Rec.Value)
                 {
                     ApplicationArea = All;
                     Caption = 'Value';
-                    ToolTip = 'Specifies the value.';
                 }
                 field("Measure Name"; Rec."Measure Name")
                 {
                     ApplicationArea = All;
                     Caption = 'Measure Name';
-                    ToolTip = 'Specifies the name.';
                 }
                 field("Measure No."; Rec."Measure No.")
                 {

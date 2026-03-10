@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -34,7 +34,6 @@ page 130 "Posted Sales Shipment"
                     ApplicationArea = Basic, Suite;
                     Editable = false;
                     Importance = Promoted;
-                    ToolTip = 'Specifies the number of the record.';
                 }
                 field("Sell-to Customer No."; Rec."Sell-to Customer No.")
                 {
@@ -48,7 +47,6 @@ page 130 "Posted Sales Shipment"
                     ApplicationArea = Basic, Suite;
                     Caption = 'Customer';
                     Editable = false;
-                    ToolTip = 'Specifies the name of customer at the sell-to address.';
                 }
                 field("Sell-to Customer Name 2"; Rec."Sell-to Customer Name 2")
                 {
@@ -66,7 +64,6 @@ page 130 "Posted Sales Shipment"
                         Caption = 'Address';
                         Editable = false;
                         Importance = Additional;
-                        ToolTip = 'Specifies the customer''s sell-to address.';
                     }
                     field("Sell-to Address 2"; Rec."Sell-to Address 2")
                     {
@@ -74,7 +71,6 @@ page 130 "Posted Sales Shipment"
                         Caption = 'Address 2';
                         Editable = false;
                         Importance = Additional;
-                        ToolTip = 'Specifies the customer''s extended sell-to address.';
                     }
                     field("Sell-to City"; Rec."Sell-to City")
                     {
@@ -82,7 +78,6 @@ page 130 "Posted Sales Shipment"
                         Caption = 'City';
                         Editable = false;
                         Importance = Additional;
-                        ToolTip = 'Specifies the city of the customer on the sales document.';
                     }
                     group(Control15)
                     {
@@ -94,7 +89,6 @@ page 130 "Posted Sales Shipment"
                             CaptionClass = '5,1,' + Rec."Sell-to Country/Region Code";
                             Editable = false;
                             Importance = Additional;
-                            ToolTip = 'Specifies the state, province or county as a part of the address.';
                         }
                     }
                     field("Sell-to Post Code"; Rec."Sell-to Post Code")
@@ -103,7 +97,6 @@ page 130 "Posted Sales Shipment"
                         Caption = 'Post Code';
                         Editable = false;
                         Importance = Additional;
-                        ToolTip = 'Specifies the post code of the customer''s sell-to address.';
                     }
                     field("Sell-to Country/Region Code"; Rec."Sell-to Country/Region Code")
                     {
@@ -119,7 +112,6 @@ page 130 "Posted Sales Shipment"
                         Caption = 'Contact No.';
                         Editable = false;
                         Importance = Additional;
-                        ToolTip = 'Specifies the contact number.';
                     }
                     field(SellToPhoneNo; SellToContact."Phone No.")
                     {
@@ -161,14 +153,12 @@ page 130 "Posted Sales Shipment"
                     ApplicationArea = Basic, Suite;
                     Editable = false;
                     Importance = Additional;
-                    ToolTip = 'Specifies how many times the document has been printed.';
                 }
                 field("Posting Date"; Rec."Posting Date")
                 {
                     ApplicationArea = Basic, Suite;
                     Editable = false;
                     Importance = Promoted;
-                    ToolTip = 'Specifies the posting date for the entry.';
                 }
                 field("Document Date"; Rec."Document Date")
                 {
@@ -181,47 +171,40 @@ page 130 "Posted Sales Shipment"
                 {
                     ApplicationArea = Basic, Suite;
                     Editable = false;
-                    ToolTip = 'Specifies the date that the customer has asked for the order to be delivered.';
                 }
                 field("Promised Delivery Date"; Rec."Promised Delivery Date")
                 {
                     ApplicationArea = OrderPromising;
                     Editable = false;
-                    ToolTip = 'Specifies the date that you have promised to deliver the order, as a result of the Order Promising function.';
                 }
                 field("Quote No."; Rec."Quote No.")
                 {
                     ApplicationArea = Basic, Suite;
                     Editable = false;
-                    ToolTip = 'Specifies the number of the sales quote document if a quote was used to start the sales process.';
                 }
                 field("Order No."; Rec."Order No.")
                 {
                     ApplicationArea = Basic, Suite;
                     Editable = false;
                     Importance = Promoted;
-                    ToolTip = 'Specifies the number of the sales order that this invoice was posted from.';
                 }
                 field("External Document No."; Rec."External Document No.")
                 {
                     ApplicationArea = Basic, Suite;
                     Editable = false;
                     Importance = Additional;
-                    ToolTip = 'Specifies the number that the customer uses in their own system to refer to this sales document.';
                 }
                 field("Salesperson Code"; Rec."Salesperson Code")
                 {
                     ApplicationArea = Suite;
                     Editable = false;
                     Importance = Additional;
-                    ToolTip = 'Specifies a code for the salesperson who normally handles this customer''s account.';
                 }
                 field("Responsibility Center"; Rec."Responsibility Center")
                 {
                     ApplicationArea = Suite;
                     Editable = false;
                     Importance = Additional;
-                    ToolTip = 'Specifies the code for the responsibility center that serves the customer on this sales document.';
                 }
                 group("Work Description")
                 {
@@ -251,7 +234,6 @@ page 130 "Posted Sales Shipment"
                     Caption = 'Address Code';
                     Editable = false;
                     Importance = Promoted;
-                    ToolTip = 'Specifies the code for the customer''s additional shipment address.';
                 }
                 field("Ship-to Name"; Rec."Ship-to Name")
                 {
@@ -266,7 +248,6 @@ page 130 "Posted Sales Shipment"
                     Caption = 'Name 2';
                     Editable = false;
                     Importance = Additional;
-                    ToolTip = 'Specifies an additional part of the the name of the customer that you delivered the items to.';
                     Visible = false;
                 }
                 field("Ship-to Address"; Rec."Ship-to Address")
@@ -274,21 +255,18 @@ page 130 "Posted Sales Shipment"
                     ApplicationArea = Basic, Suite;
                     Caption = 'Address';
                     Editable = false;
-                    ToolTip = 'Specifies the address that you delivered the items to.';
                 }
                 field("Ship-to Address 2"; Rec."Ship-to Address 2")
                 {
                     ApplicationArea = Basic, Suite;
                     Caption = 'Address 2';
                     Editable = false;
-                    ToolTip = 'Specifies the extended address that you delivered the items to.';
                 }
                 field("Ship-to City"; Rec."Ship-to City")
                 {
                     ApplicationArea = Basic, Suite;
                     Caption = 'City';
                     Editable = false;
-                    ToolTip = 'Specifies the city of the customer on the sales document.';
                 }
                 group(Control21)
                 {
@@ -299,7 +277,6 @@ page 130 "Posted Sales Shipment"
                         ApplicationArea = Basic, Suite;
                         CaptionClass = '5,1,' + Rec."Ship-to Country/Region Code";
                         Editable = false;
-                        ToolTip = 'Specifies the state, province or county as a part of the address.';
                     }
                 }
                 field("Ship-to Post Code"; Rec."Ship-to Post Code")
@@ -315,21 +292,18 @@ page 130 "Posted Sales Shipment"
                     ApplicationArea = Basic, Suite;
                     Caption = 'Country/Region';
                     Editable = false;
-                    ToolTip = 'Specifies the customer''s country/region.';
                 }
                 field("Ship-to Phone No."; Rec."Ship-to Phone No.")
                 {
                     ApplicationArea = Basic, Suite;
                     Caption = 'Phone No.';
                     Editable = false;
-                    ToolTip = 'Specifies the telephone number of the company''s shipping address.';
                 }
                 field("Ship-to Contact"; Rec."Ship-to Contact")
                 {
                     ApplicationArea = Basic, Suite;
                     Caption = 'Contact';
                     Editable = false;
-                    ToolTip = 'Specifies the name of the person you regularly contact at the address that the items were shipped to.';
                 }
                 field("Additional Information"; Rec."Additional Information")
                 {
@@ -366,13 +340,11 @@ page 130 "Posted Sales Shipment"
                 {
                     ApplicationArea = Warehouse;
                     Editable = false;
-                    ToolTip = 'Specifies a date formula for the time it takes to get items ready to ship from this location. The time element is used in the calculation of the delivery date as follows: Shipment Date + Outbound Warehouse Handling Time = Planned Shipment Date + Shipping Time = Planned Delivery Date.';
                 }
                 field("Shipping Time"; Rec."Shipping Time")
                 {
                     ApplicationArea = Basic, Suite;
                     Editable = false;
-                    ToolTip = 'Specifies how long it takes from when the items are shipped from the warehouse to when they are delivered.';
                 }
                 group("Shipment Method")
                 {
@@ -390,7 +362,6 @@ page 130 "Posted Sales Shipment"
                         Caption = 'Agent';
                         Editable = false;
                         Importance = Additional;
-                        ToolTip = 'Specifies which shipping agent is used to transport the items on the sales document to the customer.';
                     }
                     field("Shipping Agent Service Code"; Rec."Shipping Agent Service Code")
                     {
@@ -398,14 +369,12 @@ page 130 "Posted Sales Shipment"
                         Caption = 'Agent Service';
                         Editable = false;
                         Importance = Additional;
-                        ToolTip = 'Specifies which shipping agent service is used to transport the items on the sales document to the customer.';
                     }
                     field("Package Tracking No."; Rec."Package Tracking No.")
                     {
                         ApplicationArea = Suite;
                         Editable = false;
                         Importance = Additional;
-                        ToolTip = 'Specifies the shipping agent''s package number.';
                     }
                 }
                 field("Shipment Date"; Rec."Shipment Date")
@@ -413,7 +382,6 @@ page 130 "Posted Sales Shipment"
                     ApplicationArea = Basic, Suite;
                     Editable = false;
                     Importance = Promoted;
-                    ToolTip = 'Specifies when items on the document are shipped or were shipped. A shipment date is usually calculated from a requested delivery date plus lead time.';
                 }
                 field("3rd Party Loader Type"; Rec."3rd Party Loader Type")
                 {
@@ -459,7 +427,6 @@ page 130 "Posted Sales Shipment"
                     Caption = 'Address';
                     Editable = false;
                     Importance = Additional;
-                    ToolTip = 'Specifies the address that you sent the invoice to.';
                 }
                 field("Bill-to Address 2"; Rec."Bill-to Address 2")
                 {
@@ -467,7 +434,6 @@ page 130 "Posted Sales Shipment"
                     Caption = 'Address 2';
                     Editable = false;
                     Importance = Additional;
-                    ToolTip = 'Specifies the extended address that you sent the invoice to.';
                 }
                 field("Bill-to City"; Rec."Bill-to City")
                 {
@@ -475,7 +441,6 @@ page 130 "Posted Sales Shipment"
                     Caption = 'City';
                     Editable = false;
                     Importance = Additional;
-                    ToolTip = 'Specifies the city of the customer on the sales document.';
                 }
                 group(Control29)
                 {
@@ -487,7 +452,6 @@ page 130 "Posted Sales Shipment"
                         CaptionClass = '5,1,' + Rec."Bill-to Country/Region Code";
                         Editable = false;
                         Importance = Additional;
-                        ToolTip = 'Specifies the state, province or county as a part of the address.';
                     }
                 }
                 field("Bill-to Post Code"; Rec."Bill-to Post Code")
@@ -504,7 +468,6 @@ page 130 "Posted Sales Shipment"
                     Caption = 'Country/Region Code';
                     Editable = false;
                     Importance = Additional;
-                    ToolTip = 'Specifies the country or region of the address.';
                 }
                 field("Bill-to Contact No."; Rec."Bill-to Contact No.")
                 {
@@ -512,7 +475,6 @@ page 130 "Posted Sales Shipment"
                     Caption = 'Contact No.';
                     Editable = false;
                     Importance = Additional;
-                    ToolTip = 'Specifies the number of the contact person at the customer''s bill-to address.';
                 }
                 field(BillToContactPhoneNo; BillToContact."Phone No.")
                 {
@@ -552,13 +514,11 @@ page 130 "Posted Sales Shipment"
                 {
                     ApplicationArea = Dimensions;
                     Editable = false;
-                    ToolTip = 'Specifies the code for Shortcut Dimension 1, which is one of two global dimension codes that you set up in the General Ledger Setup window.';
                 }
                 field("Shortcut Dimension 2 Code"; Rec."Shortcut Dimension 2 Code")
                 {
                     ApplicationArea = Dimensions;
                     Editable = false;
-                    ToolTip = 'Specifies the code for Shortcut Dimension 2, which is one of two global dimension codes that you set up in the General Ledger Setup window.';
                 }
             }
         }

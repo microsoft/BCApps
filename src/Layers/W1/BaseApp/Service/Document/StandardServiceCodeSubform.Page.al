@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -27,7 +27,6 @@ page 5956 "Standard Service Code Subform"
                 field(Type; Rec.Type)
                 {
                     ApplicationArea = Service;
-                    ToolTip = 'Specifies the type, item, resource, cost, or g/l account associated with the standard service line.';
 
                     trigger OnValidate()
                     begin
@@ -37,7 +36,6 @@ page 5956 "Standard Service Code Subform"
                 field("No."; Rec."No.")
                 {
                     ApplicationArea = Service;
-                    ToolTip = 'Specifies the number of the involved entry or record, according to the specified number series.';
 
                     trigger OnValidate()
                     var
@@ -50,7 +48,6 @@ page 5956 "Standard Service Code Subform"
                 field("Variant Code"; Rec."Variant Code")
                 {
                     ApplicationArea = Planning;
-                    ToolTip = 'Specifies the variant of the item on the line.';
                     Visible = false;
                     ShowMandatory = VariantCodeMandatory;
 
@@ -65,35 +62,29 @@ page 5956 "Standard Service Code Subform"
                 field(Description; Rec.Description)
                 {
                     ApplicationArea = Service;
-                    ToolTip = 'Specifies a description of this entry.';
                 }
                 field(Quantity; Rec.Quantity)
                 {
                     ApplicationArea = Service;
-                    ToolTip = 'Specifies the number of item units, resource hours, or costs on the line.';
                 }
                 field("Unit of Measure Code"; Rec."Unit of Measure Code")
                 {
                     ApplicationArea = Service;
-                    ToolTip = 'Specifies how each unit of the item or resource is measured, such as in pieces or hours. By default, the value in the Base Unit of Measure field on the item or resource card is inserted.';
                     Visible = false;
                 }
                 field("Amount Excl. VAT"; Rec."Amount Excl. VAT")
                 {
                     ApplicationArea = Service;
-                    ToolTip = 'Specifies the net amount for this standard service line.';
                     Visible = false;
                 }
                 field("Shortcut Dimension 1 Code"; Rec."Shortcut Dimension 1 Code")
                 {
                     ApplicationArea = Dimensions;
-                    ToolTip = 'Specifies the code for Shortcut Dimension 1, which is one of two global dimension codes that you set up in the General Ledger Setup window.';
                     Visible = DimVisible1;
                 }
                 field("Shortcut Dimension 2 Code"; Rec."Shortcut Dimension 2 Code")
                 {
                     ApplicationArea = Dimensions;
-                    ToolTip = 'Specifies the code for Shortcut Dimension 2, which is one of two global dimension codes that you set up in the General Ledger Setup window.';
                     Visible = DimVisible2;
                 }
                 field("ShortcutDimCode[3]"; ShortcutDimCode[3])

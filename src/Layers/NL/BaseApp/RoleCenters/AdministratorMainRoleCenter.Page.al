@@ -279,12 +279,19 @@ page 8900 "Administrator Main Role Center"
                         Caption = 'Report Inbox';
                         RunObject = page "Report Inbox";
                     }
+#if not CLEAN28
                     action("Custom Report Layouts")
                     {
                         ApplicationArea = Basic, Suite;
                         Caption = 'Custom Report Layouts';
+                        ObsoleteState = Pending;
+                        ObsoleteReason = 'Replaced by system page "Report Layouts". This action will be removed in a future version.';
+                        ObsoleteTag = '28.0';
+#pragma warning disable AL0432
                         RunObject = page "Custom Report Layouts";
+#pragma warning restore AL0432
                     }
+#endif
                     action("Report Selection Purchase")
                     {
                         ApplicationArea = Basic, Suite;

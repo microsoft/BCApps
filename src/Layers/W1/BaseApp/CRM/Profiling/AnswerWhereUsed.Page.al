@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -23,18 +23,15 @@ page 5170 "Answer Where-Used"
                 field("Profile Questionnaire Code"; Rec."Profile Questionnaire Code")
                 {
                     ApplicationArea = All;
-                    ToolTip = 'Specifies the code for the profile questionnaire that contains the question you use to create your rating.';
                 }
                 field("Profile Question Description"; Rec."Profile Question Description")
                 {
                     ApplicationArea = RelationshipMgmt;
                     DrillDown = false;
-                    ToolTip = 'Specifies the description you have entered for this rating question in the Description field in the Profile Questionnaire Setup window.';
                 }
                 field(Points; Rec.Points)
                 {
                     ApplicationArea = RelationshipMgmt;
-                    ToolTip = 'Specifies the number of points you have assigned to this answer.';
                 }
             }
         }

@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -30,104 +30,85 @@ page 202 "Resource Ledger Entries"
                 field("Posting Date"; Rec."Posting Date")
                 {
                     ApplicationArea = Jobs;
-                    ToolTip = 'Specifies the date when the entry was posted.';
                 }
                 field("Entry Type"; Rec."Entry Type")
                 {
                     ApplicationArea = Jobs;
-                    ToolTip = 'Specifies the type of entry.';
                 }
                 field("Document No."; Rec."Document No.")
                 {
                     ApplicationArea = Jobs;
-                    ToolTip = 'Specifies the document number on the resource ledger entry.';
                 }
                 field("Resource No."; Rec."Resource No.")
                 {
                     ApplicationArea = Jobs;
-                    ToolTip = 'Specifies the number of the resource.';
                 }
                 field("Resource Group No."; Rec."Resource Group No.")
                 {
                     ApplicationArea = Jobs;
-                    ToolTip = 'Specifies the number of the resource group.';
                     Visible = false;
                 }
                 field(Description; Rec.Description)
                 {
                     ApplicationArea = Jobs;
-                    ToolTip = 'Specifies the description of the posted entry.';
                 }
                 field("Job No."; Rec."Job No.")
                 {
                     ApplicationArea = Jobs;
-                    ToolTip = 'Specifies the number of the related project.';
                     Visible = false;
                 }
                 field("Global Dimension 1 Code"; Rec."Global Dimension 1 Code")
                 {
                     ApplicationArea = Dimensions;
-                    ToolTip = 'Specifies the code for the global dimension that is linked to the record or entry for analysis purposes. Two global dimensions, typically for the company''s most important activities, are available on all cards, documents, reports, and lists.';
                     Visible = Dim1Visible;
                 }
                 field("Global Dimension 2 Code"; Rec."Global Dimension 2 Code")
                 {
                     ApplicationArea = Dimensions;
-                    ToolTip = 'Specifies the code for the global dimension that is linked to the record or entry for analysis purposes. Two global dimensions, typically for the company''s most important activities, are available on all cards, documents, reports, and lists.';
                     Visible = Dim2Visible;
                 }
                 field("Work Type Code"; Rec."Work Type Code")
                 {
                     ApplicationArea = Jobs;
-                    ToolTip = 'Specifies which work type the resource applies to. Prices are updated based on this entry.';
                 }
                 field(Quantity; Rec.Quantity)
                 {
                     ApplicationArea = Jobs;
-                    ToolTip = 'Specifies the number of units of the item or resource specified on the line.';
                 }
                 field("Unit of Measure Code"; Rec."Unit of Measure Code")
                 {
                     ApplicationArea = Jobs;
-                    ToolTip = 'Specifies how each unit of the item or resource is measured, such as in pieces or hours. By default, the value in the Base Unit of Measure field on the item or resource card is inserted.';
                 }
                 field("Direct Unit Cost"; Rec."Direct Unit Cost")
                 {
                     ApplicationArea = Jobs;
-                    ToolTip = 'Specifies the cost of one unit of the selected item or resource.';
                     Visible = false;
                 }
                 field("Unit Cost"; Rec."Unit Cost")
                 {
                     ApplicationArea = Jobs;
-                    ToolTip = 'Specifies the cost of one unit of the item or resource on the line.';
                     Visible = false;
                 }
                 field("Total Cost"; Rec."Total Cost")
                 {
                     ApplicationArea = Jobs;
-                    ToolTip = 'Specifies the total cost of the posted entry.';
                 }
                 field("Unit Price"; Rec."Unit Price")
                 {
                     ApplicationArea = Jobs;
-                    ToolTip = 'Specifies the price of one unit of the item or resource. You can enter a price manually or have it entered according to the Price/Profit Calculation field on the related card.';
                     Visible = false;
                 }
                 field("Total Price"; Rec."Total Price")
                 {
                     ApplicationArea = Jobs;
-                    ToolTip = 'Specifies the total price of the posted entry.';
                 }
                 field(Chargeable; Rec.Chargeable)
                 {
                     ApplicationArea = Jobs;
-                    ToolTip = 'Specifies if a resource transaction is chargeable.';
                 }
                 field("User ID"; Rec."User ID")
                 {
                     ApplicationArea = Jobs;
-                    ToolTip = 'Specifies the ID of the user who posted the entry, to be used, for example, in the change log.';
                     Visible = false;
 
                     trigger OnDrillDown()
@@ -140,66 +121,56 @@ page 202 "Resource Ledger Entries"
                 field("Source Code"; Rec."Source Code")
                 {
                     ApplicationArea = Jobs;
-                    ToolTip = 'Specifies the source code that specifies where the entry was created.';
                     Visible = false;
                 }
                 field("Reason Code"; Rec."Reason Code")
                 {
                     ApplicationArea = Jobs;
-                    ToolTip = 'Specifies the reason code, a supplementary source code that enables you to trace the entry.';
                     Visible = false;
                 }
                 field("Entry No."; Rec."Entry No.")
                 {
                     ApplicationArea = Jobs;
-                    ToolTip = 'Specifies the number of the entry, as assigned from the specified number series when the entry was created.';
                 }
                 field("Dimension Set ID"; Rec."Dimension Set ID")
                 {
                     ApplicationArea = Dimensions;
-                    ToolTip = 'Specifies a reference to a combination of dimension values. The actual values are stored in the Dimension Set Entry table.';
                     Visible = false;
                 }
                 field("Shortcut Dimension 3 Code"; Rec."Shortcut Dimension 3 Code")
                 {
                     ApplicationArea = Dimensions;
                     Editable = false;
-                    ToolTip = 'Specifies the code for Shortcut Dimension 3, which is one of dimension codes that you set up in the General Ledger Setup window.';
                     Visible = Dim3Visible;
                 }
                 field("Shortcut Dimension 4 Code"; Rec."Shortcut Dimension 4 Code")
                 {
                     ApplicationArea = Dimensions;
                     Editable = false;
-                    ToolTip = 'Specifies the code for Shortcut Dimension 4, which is one of dimension codes that you set up in the General Ledger Setup window.';
                     Visible = Dim4Visible;
                 }
                 field("Shortcut Dimension 5 Code"; Rec."Shortcut Dimension 5 Code")
                 {
                     ApplicationArea = Dimensions;
                     Editable = false;
-                    ToolTip = 'Specifies the code for Shortcut Dimension 5, which is one of dimension codes that you set up in the General Ledger Setup window.';
                     Visible = Dim5Visible;
                 }
                 field("Shortcut Dimension 6 Code"; Rec."Shortcut Dimension 6 Code")
                 {
                     ApplicationArea = Dimensions;
                     Editable = false;
-                    ToolTip = 'Specifies the code for Shortcut Dimension 6, which is one of dimension codes that you set up in the General Ledger Setup window.';
                     Visible = Dim6Visible;
                 }
                 field("Shortcut Dimension 7 Code"; Rec."Shortcut Dimension 7 Code")
                 {
                     ApplicationArea = Dimensions;
                     Editable = false;
-                    ToolTip = 'Specifies the code for Shortcut Dimension 7, which is one of dimension codes that you set up in the General Ledger Setup window.';
                     Visible = Dim7Visible;
                 }
                 field("Shortcut Dimension 8 Code"; Rec."Shortcut Dimension 8 Code")
                 {
                     ApplicationArea = Dimensions;
                     Editable = false;
-                    ToolTip = 'Specifies the code for Shortcut Dimension 8, which is one of dimension codes that you set up in the General Ledger Setup window.';
                     Visible = Dim8Visible;
                 }
             }

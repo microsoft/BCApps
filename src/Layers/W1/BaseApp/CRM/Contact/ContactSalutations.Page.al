@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -23,12 +23,10 @@ page 5151 "Contact Salutations"
                 field("Language Code"; Rec."Language Code")
                 {
                     ApplicationArea = All;
-                    ToolTip = 'Specifies the language that is used when translating specified text on documents to foreign business partner, such as an item description on an order confirmation.';
                 }
                 field("Salutation Type"; Rec."Salutation Type")
                 {
                     ApplicationArea = All;
-                    ToolTip = 'Specifies whether the salutation is formal or informal. Make your selection by clicking the field.';
                 }
                 field(GetContactSalutation; Rec.GetContactSalutation())
                 {

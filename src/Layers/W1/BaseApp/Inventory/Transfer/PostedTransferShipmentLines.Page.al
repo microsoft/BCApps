@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -25,12 +25,10 @@ page 5758 "Posted Transfer Shipment Lines"
                     ApplicationArea = Location;
                     HideValue = DocumentNoHideValue;
                     StyleExpr = 'Strong';
-                    ToolTip = 'Specifies the document number associated with this transfer line.';
                 }
                 field("Item No."; Rec."Item No.")
                 {
                     ApplicationArea = Location;
-                    ToolTip = 'Specifies the number of the item that will be transferred.';
                 }
                 field(Description; Rec.Description)
                 {
@@ -40,7 +38,6 @@ page 5758 "Posted Transfer Shipment Lines"
                 field("Description 2"; Rec."Description 2")
                 {
                     ApplicationArea = All;
-                    ToolTip = 'Specifies information in addition to the description of the item being transferred.';
                     Visible = false;
                 }
                 field(Quantity; Rec.Quantity)
@@ -51,12 +48,10 @@ page 5758 "Posted Transfer Shipment Lines"
                 field("Unit of Measure"; Rec."Unit of Measure")
                 {
                     ApplicationArea = Location;
-                    ToolTip = 'Specifies the name of the item or resource''s unit of measure, such as piece or hour.';
                 }
                 field("Shipment Date"; Rec."Shipment Date")
                 {
                     ApplicationArea = Location;
-                    ToolTip = 'Specifies when items on the document are shipped or were shipped. A shipment date is usually calculated from a requested delivery date plus lead time.';
                 }
             }
         }

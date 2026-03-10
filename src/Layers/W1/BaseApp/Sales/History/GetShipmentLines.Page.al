@@ -35,28 +35,23 @@ page 5708 "Get Shipment Lines"
                 field("Bill-to Customer No."; Rec."Bill-to Customer No.")
                 {
                     ApplicationArea = Suite;
-                    ToolTip = 'Specifies the number of the customer that you send or sent the invoice or credit memo to.';
                 }
                 field("Sell-to Customer No."; Rec."Sell-to Customer No.")
                 {
                     ApplicationArea = Suite;
-                    ToolTip = 'Specifies the number of the customer.';
                     Visible = false;
                 }
                 field(Type; Rec.Type)
                 {
                     ApplicationArea = Suite;
-                    ToolTip = 'Specifies the line type.';
                 }
                 field("No."; Rec."No.")
                 {
                     ApplicationArea = Suite;
-                    ToolTip = 'Specifies the number of the involved entry or record, according to the specified number series.';
                 }
                 field("Variant Code"; Rec."Variant Code")
                 {
                     ApplicationArea = Planning;
-                    ToolTip = 'Specifies the variant of the item on the line.';
                     Visible = false;
                 }
                 field(Description; Rec.Description)
@@ -68,7 +63,6 @@ page 5708 "Get Shipment Lines"
                 {
                     ApplicationArea = Suite;
                     Importance = Additional;
-                    ToolTip = 'Specifies information in addition to the description.';
                     Visible = false;
                 }
                 field("Currency Code"; Rec."Currency Code")
@@ -76,19 +70,16 @@ page 5708 "Get Shipment Lines"
                     ApplicationArea = Suite;
                     DrillDown = false;
                     Lookup = false;
-                    ToolTip = 'Specifies the currency that is used on the entry.';
                     Visible = false;
                 }
                 field("Shortcut Dimension 1 Code"; Rec."Shortcut Dimension 1 Code")
                 {
                     ApplicationArea = Dimensions;
-                    ToolTip = 'Specifies the code for Shortcut Dimension 1, which is one of two global dimension codes that you set up in the General Ledger Setup window.';
                     Visible = false;
                 }
                 field("Shortcut Dimension 2 Code"; Rec."Shortcut Dimension 2 Code")
                 {
                     ApplicationArea = Dimensions;
-                    ToolTip = 'Specifies the code for Shortcut Dimension 2, which is one of two global dimension codes that you set up in the General Ledger Setup window.';
                     Visible = false;
                 }
                 field("Location Code"; Rec."Location Code")
@@ -100,7 +91,6 @@ page 5708 "Get Shipment Lines"
                 field("Unit of Measure Code"; Rec."Unit of Measure Code")
                 {
                     ApplicationArea = Suite;
-                    ToolTip = 'Specifies how each unit of the item or resource is measured, such as in pieces or hours. By default, the value in the Base Unit of Measure field on the item or resource card is inserted.';
                 }
                 field(Quantity; Rec.Quantity)
                 {
@@ -110,52 +100,46 @@ page 5708 "Get Shipment Lines"
                 field("Unit of Measure"; Rec."Unit of Measure")
                 {
                     ApplicationArea = Suite;
-                    ToolTip = 'Specifies the name of the item or resource''s unit of measure, such as piece or hour.';
                     Visible = false;
                 }
                 field("Appl.-to Item Entry"; Rec."Appl.-to Item Entry")
                 {
                     ApplicationArea = Suite;
-                    ToolTip = 'Specifies the number of the item ledger entry that the document or journal line is applied to.';
                     Visible = false;
                 }
                 field("Job No."; Rec."Job No.")
                 {
                     ApplicationArea = Jobs;
-                    ToolTip = 'Specifies the number of the related project.';
                     Visible = false;
                 }
                 field("Shipment Date"; Rec."Shipment Date")
                 {
                     ApplicationArea = Suite;
-                    ToolTip = 'Specifies when items on the document are shipped or were shipped. A shipment date is usually calculated from a requested delivery date plus lead time.';
                     Visible = false;
                 }
                 field("Quantity Invoiced"; Rec."Quantity Invoiced")
                 {
                     ApplicationArea = Suite;
-                    ToolTip = 'Specifies how many units of the item on the line have been posted as invoiced.';
                 }
                 field("Qty. Shipped Not Invoiced"; Rec."Qty. Shipped Not Invoiced")
                 {
                     ApplicationArea = Suite;
-                    ToolTip = 'Specifies the quantity of the shipped item that has been posted as shipped but that has not yet been posted as invoiced.';
                 }
-                field(OrderNo; OrderNo)
+                field(OrderNo; Rec."Order No.")
                 {
                     Caption = 'Order No.';
                     ApplicationArea = Suite;
                     ToolTip = 'Specifies the number of the sales order that this shipment was posted from.';
                     Visible = false;
                 }
-                field(ExternalDocumentNo; ExternalDocumentNo)
+                field(ExternalDocumentNo; Rec."External Document No.")
                 {
                     Caption = 'External Document No.';
                     ApplicationArea = Suite;
                     ToolTip = 'Specifies the number that the customer uses in their own system to refer to this sales document.';
                     Visible = false;
                 }
-                field(YourReference; YourReference)
+                field(YourReference; Rec."Your Reference")
                 {
                     Caption = 'Your Reference';
                     ApplicationArea = Suite;
@@ -255,12 +239,6 @@ page 5708 "Get Shipment Lines"
     begin
         DocumentNoHideValue := false;
         DocumentNoOnFormat();
-        GetDataFromShipmentHeader();
-    end;
-
-    trigger OnAfterGetCurrRecord()
-    begin
-        GetDataFromShipmentHeader();
     end;
 
     trigger OnQueryClosePage(CloseAction: Action) Result: Boolean
@@ -282,9 +260,6 @@ page 5708 "Get Shipment Lines"
         TempSalesShptLine: Record "Sales Shipment Line" temporary;
         SalesGetShpt: Codeunit "Sales-Get Shipment";
         DocumentNoHideValue: Boolean;
-        OrderNo: Code[20];
-        YourReference: Text[35];
-        ExternalDocumentNo: Text[35];
 
     /// <summary>
     /// Sets the sales header for filtering shipment lines.
@@ -344,17 +319,6 @@ page 5708 "Get Shipment Lines"
     begin
         if not IsFirstDocLine() then
             DocumentNoHideValue := true;
-    end;
-
-    local procedure GetDataFromShipmentHeader()
-    var
-        SalesShipmentHeader: Record "Sales Shipment Header";
-    begin
-        SalesShipmentHeader.Get(Rec."Document No.");
-
-        OrderNo := SalesShipmentHeader."Order No.";
-        YourReference := SalesShipmentHeader."Your Reference";
-        ExternalDocumentNo := SalesShipmentHeader."External Document No.";
     end;
 
     [IntegrationEvent(true, false)]

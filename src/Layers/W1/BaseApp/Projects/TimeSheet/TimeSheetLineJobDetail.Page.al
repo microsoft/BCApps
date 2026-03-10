@@ -34,19 +34,16 @@ page 966 "Time Sheet Line Job Detail"
                 {
                     ApplicationArea = Jobs;
                     Editable = AllowEdit;
-                    ToolTip = 'Specifies a description of the time sheet line.';
                 }
                 field("Work Type Code"; Rec."Work Type Code")
                 {
                     ApplicationArea = Jobs;
                     Editable = WorkTypeCodeAllowEdit;
-                    ToolTip = 'Specifies which work type the resource applies to. Prices are updated based on this entry.';
                 }
                 field(Chargeable; Rec.Chargeable)
                 {
                     ApplicationArea = Jobs;
                     Editable = ChargeableAllowEdit;
-                    ToolTip = 'Specifies if the usage that you are posting is chargeable.';
                 }
             }
         }

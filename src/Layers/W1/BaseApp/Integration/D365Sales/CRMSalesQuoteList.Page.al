@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -30,7 +30,6 @@ page 5351 "CRM Sales Quote List"
                     ApplicationArea = Suite;
                     Caption = 'Name';
                     StyleExpr = FirstColumnStyle;
-                    ToolTip = 'Specifies the name of the record.';
                 }
                 field(StateCode; Rec.StateCode)
                 {
@@ -49,19 +48,16 @@ page 5351 "CRM Sales Quote List"
                 {
                     ApplicationArea = Suite;
                     Caption = 'Effective From';
-                    ToolTip = 'Specifies which date the sales quote is valid from.';
                 }
                 field(EffectiveTo; Rec.EffectiveTo)
                 {
                     ApplicationArea = Suite;
                     Caption = 'Effective To';
-                    ToolTip = 'Specifies which date the sales quote is valid to.';
                 }
                 field(ClosedOn; Rec.ClosedOn)
                 {
                     ApplicationArea = Suite;
                     Caption = 'Closed On';
-                    ToolTip = 'Specifies the date when quote was closed.';
                 }
                 field(Coupled; Coupled)
                 {

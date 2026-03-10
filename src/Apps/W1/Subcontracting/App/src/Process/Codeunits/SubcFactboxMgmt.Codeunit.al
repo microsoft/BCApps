@@ -601,7 +601,7 @@ codeunit 99001507 "Subc. Factbox Mgmt."
         end;
     end;
 
-    procedure ShowTransferOrdersAndReturnOrder(RecRelatedVariant: Variant; LookUpPage: Boolean; IsReturn: Boolean): Integer
+    procedure ShowTransferOrdersAndReturnOrder(RecRelatedVariant: Variant; LookUpPage: Boolean; IsReturn: Boolean)
     var
         ProdOrderComponent: Record "Prod. Order Component";
         ProdOrderLine: Record "Prod. Order Line";
@@ -615,7 +615,7 @@ codeunit 99001507 "Subc. Factbox Mgmt."
         NoTransferExistsTxt: Label 'No transfer order exists for this purchase order.';
     begin
         if not RecRelatedVariant.IsRecord() then
-            exit(0);
+            exit;
 
         DataTypeManagement.GetRecordRef(RecRelatedVariant, RecRef);
 
@@ -642,7 +642,7 @@ codeunit 99001507 "Subc. Factbox Mgmt."
                         exit;
                 end;
             else
-                exit(0)
+                exit;
         end;
 
         TransferLine.SetCurrentKey("Prod. Order No.", "Prod. Order Line No.", "Routing Reference No.", "Routing No.", "Operation No.");
@@ -671,7 +671,7 @@ codeunit 99001507 "Subc. Factbox Mgmt."
                 until TransferLine.Next() = 0;
             end;
 
-        if LookUpPage then begin
+        if LookUpPage then
             if TempTransferHeader.Count() > 1 then
                 Page.Run(Page::"Transfer Orders", TempTransferHeader)
             else
@@ -679,8 +679,6 @@ codeunit 99001507 "Subc. Factbox Mgmt."
                     Page.Run(Page::"Transfer Order", TempTransferHeader)
                 else
                     Message(NoTransferExistsTxt);
-        end else
-            exit(TempTransferHeader.Count());
     end;
 
     procedure GetSubcontractorNo(ProdOrderRoutingLine: Record "Prod. Order Routing Line"): Code[20]
@@ -834,7 +832,7 @@ codeunit 99001507 "Subc. Factbox Mgmt."
         exit(ProdOrderComponent.Count());
     end;
 
-    procedure ShowProdOrderComponents(ProdOrderRoutingLine: Record "Prod. Order Routing Line"): Decimal
+    procedure ShowProdOrderComponents(ProdOrderRoutingLine: Record "Prod. Order Routing Line")
     var
         ProdOrderComponent: Record "Prod. Order Component";
     begin

@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -28,50 +28,41 @@ page 99000761 "Machine Center List"
                 field("No."; Rec."No.")
                 {
                     ApplicationArea = Manufacturing;
-                    ToolTip = 'Specifies the number of the involved entry or record, according to the specified number series.';
                 }
                 field(Name; Rec.Name)
                 {
                     ApplicationArea = Manufacturing;
-                    ToolTip = 'Specifies a name for the machine center.';
                 }
                 field("Work Center No."; Rec."Work Center No.")
                 {
                     ApplicationArea = Manufacturing;
-                    ToolTip = 'Specifies the number of the work center to assign this machine center to.';
                 }
                 field(Capacity; Rec.Capacity)
                 {
                     ApplicationArea = Manufacturing;
-                    ToolTip = 'Specifies the capacity of the machine center.';
                 }
                 field(Efficiency; Rec.Efficiency)
                 {
                     ApplicationArea = Manufacturing;
-                    ToolTip = 'Specifies the efficiency factor as a percentage of the machine center.';
                 }
                 field("Minimum Efficiency"; Rec."Minimum Efficiency")
                 {
                     ApplicationArea = Manufacturing;
-                    ToolTip = 'Specifies the minimum efficiency of this machine center.';
                     Visible = false;
                 }
                 field("Maximum Efficiency"; Rec."Maximum Efficiency")
                 {
                     ApplicationArea = Manufacturing;
-                    ToolTip = 'Specifies the maximum efficiency of this machine center.';
                     Visible = false;
                 }
                 field("Concurrent Capacities"; Rec."Concurrent Capacities")
                 {
                     ApplicationArea = Manufacturing;
-                    ToolTip = 'Specifies how much available capacity must be concurrently planned for one operation at this machine center.';
                     Visible = false;
                 }
                 field("Search Name"; Rec."Search Name")
                 {
                     ApplicationArea = Manufacturing;
-                    ToolTip = 'Specifies an alternate name that you can use to search for the record in question when you cannot remember the value in the Name field.';
                 }
                 field("Direct Unit Cost"; Rec."Direct Unit Cost")
                 {
@@ -82,25 +73,21 @@ page 99000761 "Machine Center List"
                 field("Indirect Cost %"; Rec."Indirect Cost %")
                 {
                     ApplicationArea = Manufacturing;
-                    ToolTip = 'Specifies the percentage of the center''s cost that includes indirect costs, such as machine maintenance.';
                     Visible = false;
                 }
                 field("Unit Cost"; Rec."Unit Cost")
                 {
                     ApplicationArea = Manufacturing;
-                    ToolTip = 'Specifies the cost of one unit of the item or resource on the line.';
                     Visible = false;
                 }
                 field("Overhead Rate"; Rec."Overhead Rate")
                 {
                     ApplicationArea = Manufacturing;
-                    ToolTip = 'Specifies the overhead rate of this machine center.';
                     Visible = false;
                 }
                 field("Last Date Modified"; Rec."Last Date Modified")
                 {
                     ApplicationArea = Manufacturing;
-                    ToolTip = 'Specifies when the machine center card was last modified.';
                     Visible = false;
                 }
                 field("Flushing Method"; Rec."Flushing Method")

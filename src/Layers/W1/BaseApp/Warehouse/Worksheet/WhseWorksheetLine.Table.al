@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -65,12 +65,14 @@ table 7326 "Whse. Worksheet Line"
         field(6; "Source No."; Code[20])
         {
             Caption = 'Source No.';
+            ToolTip = 'Specifies the number of the source document that the entry originates from.';
             Editable = false;
         }
         field(7; "Source Line No."; Integer)
         {
             BlankZero = true;
             Caption = 'Source Line No.';
+            ToolTip = 'Specifies the line number of the source document that the entry originates from.';
             Editable = false;
         }
         field(8; "Source Subline No."; Integer)
@@ -83,6 +85,7 @@ table 7326 "Whse. Worksheet Line"
         {
             BlankZero = true;
             Caption = 'Source Document';
+            ToolTip = 'Specifies the type of document that the line relates to.';
             Editable = false;
         }
         field(10; "Location Code"; Code[10])
@@ -94,10 +97,12 @@ table 7326 "Whse. Worksheet Line"
         field(11; "Shelf No."; Code[10])
         {
             Caption = 'Shelf No.';
+            ToolTip = 'Specifies the shelf number of the item for information use.';
         }
         field(12; "From Zone Code"; Code[10])
         {
             Caption = 'From Zone Code';
+            ToolTip = 'Specifies the zone from which the items should be taken.';
             TableRelation = Zone.Code where("Location Code" = field("Location Code"));
 
             trigger OnValidate()
@@ -109,6 +114,7 @@ table 7326 "Whse. Worksheet Line"
         field(13; "From Bin Code"; Code[20])
         {
             Caption = 'From Bin Code';
+            ToolTip = 'Specifies the code of the bin from which the items should be taken.';
 
             trigger OnLookup()
             begin
@@ -134,6 +140,7 @@ table 7326 "Whse. Worksheet Line"
         field(14; "To Bin Code"; Code[20])
         {
             Caption = 'To Bin Code';
+            ToolTip = 'Specifies the code of the bin into which the items should be placed.';
             TableRelation = if ("To Zone Code" = filter('')) Bin.Code where("Location Code" = field("Location Code"),
                                                                             Code = field("To Bin Code"))
             else
@@ -155,6 +162,7 @@ table 7326 "Whse. Worksheet Line"
         field(15; "To Zone Code"; Code[10])
         {
             Caption = 'To Zone Code';
+            ToolTip = 'Specifies the code of the zone in which the items should be placed.';
             TableRelation = Zone.Code where("Location Code" = field("Location Code"));
 
             trigger OnValidate()
@@ -166,6 +174,7 @@ table 7326 "Whse. Worksheet Line"
         field(16; "Item No."; Code[20])
         {
             Caption = 'Item No.';
+            ToolTip = 'Specifies the number of the item that the line concerns.';
             TableRelation = Item where(Type = const(Inventory));
 
             trigger OnValidate()
@@ -185,6 +194,7 @@ table 7326 "Whse. Worksheet Line"
         {
             AutoFormatType = 0;
             Caption = 'Quantity';
+            ToolTip = 'Specifies how many units of the item you want to move.';
             DecimalPlaces = 0 : 5;
             MinValue = 0;
 
@@ -212,6 +222,7 @@ table 7326 "Whse. Worksheet Line"
         {
             AutoFormatType = 0;
             Caption = 'Qty. Outstanding';
+            ToolTip = 'Specifies the quantity that still needs to be handled.';
             DecimalPlaces = 0 : 5;
             Editable = false;
 
@@ -232,6 +243,7 @@ table 7326 "Whse. Worksheet Line"
         {
             AutoFormatType = 0;
             Caption = 'Qty. to Handle';
+            ToolTip = 'Specifies how many units of the item you want to move.';
             DecimalPlaces = 0 : 5;
             MinValue = 0;
 
@@ -307,6 +319,7 @@ table 7326 "Whse. Worksheet Line"
         {
             AutoFormatType = 0;
             Caption = 'Qty. Handled';
+            ToolTip = 'Specifies the quantity that has been handled and registered.';
             DecimalPlaces = 0 : 5;
             Editable = false;
 
@@ -367,6 +380,7 @@ table 7326 "Whse. Worksheet Line"
         field(29; "Unit of Measure Code"; Code[10])
         {
             Caption = 'Unit of Measure Code';
+            ToolTip = 'Specifies how each unit of the item or resource is measured, such as in pieces or hours. By default, the value in the Base Unit of Measure field on the item or resource card is inserted.';
             NotBlank = true;
             TableRelation = "Item Unit of Measure".Code where("Item No." = field("Item No."));
 
@@ -396,6 +410,7 @@ table 7326 "Whse. Worksheet Line"
         field(31; "Variant Code"; Code[10])
         {
             Caption = 'Variant Code';
+            ToolTip = 'Specifies the variant of the item on the line.';
             TableRelation = "Item Variant".Code where("Item No." = field("Item No."));
 
             trigger OnValidate()
@@ -413,10 +428,12 @@ table 7326 "Whse. Worksheet Line"
         field(32; Description; Text[100])
         {
             Caption = 'Description';
+            ToolTip = 'Specifies the description of the item on the line.';
         }
         field(33; "Description 2"; Text[50])
         {
             Caption = 'Description 2';
+            ToolTip = 'Specifies information in addition to the description.';
         }
         field(35; "Sorting Sequence No."; Integer)
         {
@@ -426,15 +443,18 @@ table 7326 "Whse. Worksheet Line"
         field(36; "Due Date"; Date)
         {
             Caption = 'Due Date';
+            ToolTip = 'Specifies the due date of the line.';
         }
         field(39; "Destination Type"; Enum "Warehouse Destination Type")
         {
             Caption = 'Destination Type';
+            ToolTip = 'Specifies the type of destination associated with the warehouse worksheet line.';
             Editable = false;
         }
         field(40; "Destination No."; Code[20])
         {
             Caption = 'Destination No.';
+            ToolTip = 'Specifies the number of the customer, vendor, or location for which the items should be processed.';
             Editable = false;
             TableRelation = if ("Destination Type" = const(Customer)) Customer."No."
             else
@@ -461,6 +481,7 @@ table 7326 "Whse. Worksheet Line"
         field(44; "Shipping Advice"; Enum "Sales Header Shipping Advice")
         {
             Caption = 'Shipping Advice';
+            ToolTip = 'Specifies the shipping advice on the warehouse shipment line associated with this worksheet line.';
             Editable = false;
         }
         field(45; "Shipment Date"; Date)
@@ -470,11 +491,13 @@ table 7326 "Whse. Worksheet Line"
         field(46; "Whse. Document Type"; Enum "Warehouse Worksheet Document Type")
         {
             Caption = 'Whse. Document Type';
+            ToolTip = 'Specifies the type of warehouse document this line is associated with.';
             Editable = false;
         }
         field(47; "Whse. Document No."; Code[20])
         {
             Caption = 'Whse. Document No.';
+            ToolTip = 'Specifies the number of the warehouse document.';
             Editable = false;
             TableRelation = if ("Whse. Document Type" = const(Receipt)) "Posted Whse. Receipt Header"."No." where("No." = field("Whse. Document No."))
             else
@@ -490,6 +513,7 @@ table 7326 "Whse. Worksheet Line"
         {
             BlankZero = true;
             Caption = 'Whse. Document Line No.';
+            ToolTip = 'Specifies the number of the line in the warehouse document that is the basis for the worksheet line.';
             Editable = false;
             TableRelation = if ("Whse. Document Type" = const(Receipt)) "Posted Whse. Receipt Line"."Line No." where("No." = field("Whse. Document No."),
                                                                                                                      "Line No." = field("Whse. Document Line No."))

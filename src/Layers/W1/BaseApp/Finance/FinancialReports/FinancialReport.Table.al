@@ -309,6 +309,38 @@ table 88 "Financial Report"
                     AccSchedManagement.CheckPerspectiveAnalysisView(Rec."Financial Report Row Group", Rec.DimPerspective);
             end;
         }
+        field(62; "Last Run by User"; DateTime)
+        {
+            Caption = 'Your Last Run';
+            ToolTip = 'Specifies the last date-time this report was run by you.';
+            Fieldclass = FlowField;
+            Calcformula = max("Financial Report Audit Log".SystemCreatedAt where(
+                "Report Name" = field(Name),
+                User = filter('%user')));
+            Editable = false;
+        }
+        field(63; CategoryCode; Code[20])
+        {
+            Caption = 'Category';
+            TableRelation = "Financial Report Category";
+            ToolTip = 'Specifies the category code for the financial report.';
+            DataClassification = CustomerContent;
+        }
+        field(64; Status; Code[10])
+        {
+            Caption = 'Status';
+            DataClassification = CustomerContent;
+            TableRelation = "Financial Report Status";
+            ToolTip = 'Specifies the status code for the financial report. The status code helps you organize the lifecycle of your financial reports.';
+        }
+        field(65; "Status Blocked"; Boolean)
+        {
+            CalcFormula = exist("Financial Report Status" where("Code" = field(Status), "Blocked" = const(true)));
+            Caption = 'Status Blocked';
+            Editable = false;
+            FieldClass = FlowField;
+            ToolTip = 'Specifies the status code is a blocked status.';
+        }
     }
     keys
     {
@@ -316,6 +348,10 @@ table 88 "Financial Report"
         {
             Clustered = true;
         }
+    }
+    fieldgroups
+    {
+        fieldgroup(Brick; CategoryCode, Description, Status, Name, "Last Run by User", "Internal Description") { }
     }
 
     var
@@ -331,6 +367,33 @@ table 88 "Financial Report"
     trigger OnInsert()
     begin
         AccSchedManagement.CheckAnalysisView(Rec."Financial Report Row Group", Rec."Financial Report Column Group", true);
+    end;
+
+    trigger OnRename()
+    var
+        GLSetup: Record "General Ledger Setup";
+        GLSetupModified: Boolean;
+    begin
+        if GLSetup.Get() then begin
+            if GLSetup."Fin. Rep. for Balance Sheet" = xRec.Name then begin
+                GLSetup."Fin. Rep. for Balance Sheet" := Rec.Name;
+                GLSetupModified := true;
+            end;
+            if GLSetup."Fin. Rep. for Income Stmt." = xRec.Name then begin
+                GLSetup."Fin. Rep. for Income Stmt." := Rec.Name;
+                GLSetupModified := true;
+            end;
+            if GLSetup."Fin. Rep. for Cash Flow Stmt" = xRec.Name then begin
+                GLSetup."Fin. Rep. for Cash Flow Stmt" := Rec.Name;
+                GLSetupModified := true;
+            end;
+            if GLSetup."Fin. Rep. for Retained Earn." = xRec.Name then begin
+                GLSetup."Fin. Rep. for Retained Earn." := Rec.Name;
+                GLSetupModified := true;
+            end;
+            if GLSetupModified then
+                GLSetup.Modify();
+        end;
     end;
 
     trigger OnDelete()
@@ -437,5 +500,16 @@ table 88 "Financial Report"
             exit(Enum::"Fin. Report Logo Position".FromInteger(LogoPositionDefault.AsInteger()));
         ReadGLSetup();
         exit(Enum::"Fin. Report Logo Position".FromInteger(GLSetup."Fin. Rep. Company Logo Pos.".AsInteger()));
+    end;
+
+    procedure SetDefaultStatusFromGLSetup()
+    var
+        GLSetup: Record "General Ledger Setup";
+    begin
+        if Rec.Status <> '' then
+            exit;
+        GLSetup.Get();
+        if GLSetup.DefaultFinancialReportStatus <> '' then
+            Rec.Status := GLSetup.DefaultFinancialReportStatus;
     end;
 }

@@ -122,6 +122,7 @@ codeunit 135160 "Cloud Migration Property Test"
         ListOfTablesToMigrate.Add(Database::"Manufacturing Setup");
         ListOfTablesToMigrate.Add(Database::"Manufacturing User Template");
         ListOfTablesToMigrate.Add(Database::"Marketing Setup");
+        ListOfTablesToMigrate.Add(Database::"Matched Order Line");
         ListOfTablesToMigrate.Add(Database::"Memoized Result");
         ListOfTablesToMigrate.Add(Database::"Miniform Function Group");
         ListOfTablesToMigrate.Add(Database::"Miniform Function");
@@ -222,6 +223,7 @@ codeunit 135160 "Cloud Migration Property Test"
         ListOfTablesToMigrate.Add(Database::"Posted Invt. Pick Line");
         ListOfTablesToMigrate.Add(Database::"Posted Invt. Put-away Header");
         ListOfTablesToMigrate.Add(Database::"Posted Invt. Put-away Line");
+        ListOfTablesToMigrate.Add(Database::"Posted Matched Order Line");
         ListOfTablesToMigrate.Add(Database::"Posted Payment Recon. Hdr");
         ListOfTablesToMigrate.Add(Database::"Posted Payment Recon. Line");
         ListOfTablesToMigrate.Add(Database::"Posted Whse. Receipt Header");
@@ -800,7 +802,9 @@ codeunit 135160 "Cloud Migration Property Test"
         ListOfTablesToMigrate.Add(9987); // Database::"Word Templates Table"
 
         // E-Document
-        ListOfTablesToMigrate.Add(7013);
+        ListOfTablesToMigrate.Add(7013); // Database::"Contact Sync Queue"
+        ListOfTablesToMigrate.Add(7121); // Database::"Contact Sync User"
+        ListOfTablesToMigrate.Add(7122); // Database::"Outlook Contacts"
         ListOfTablesToMigrate.Add(6121); // Database::"E-Document"
         ListOfTablesToMigrate.Add(6103); // Database::"E-Document Service"
 
@@ -1143,11 +1147,14 @@ codeunit 135160 "Cloud Migration Property Test"
         ListOfTablesToMigrate.Add(Database::"Finance Charge Text");
         ListOfTablesToMigrate.Add(Database::"Finance Cue");
         ListOfTablesToMigrate.Add(Database::"Financial Report");
+        ListOfTablesToMigrate.Add(Database::"Financial Report Category");
         ListOfTablesToMigrate.Add(Database::"Financial Report Export Log");
         ListOfTablesToMigrate.Add(Database::"Financial Report Recipient");
         ListOfTablesToMigrate.Add(Database::"Financial Report Schedule");
         ListOfTablesToMigrate.Add(Database::"Financial Report User Filters");
+        ListOfTablesToMigrate.Add(Database::"Financial Report Audit Log");
         ListOfTablesToMigrate.Add(Database::"Fin. Report Excel Template");
+        ListOfTablesToMigrate.Add(Database::"Financial Report Status");
         ListOfTablesToMigrate.Add(Database::"Fixed Asset");
         ListOfTablesToMigrate.Add(Database::"G/L - Item Ledger Relation");
         ListOfTablesToMigrate.Add(Database::"G/L Acc. Balance Buffer");

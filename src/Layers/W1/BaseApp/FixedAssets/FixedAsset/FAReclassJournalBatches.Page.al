@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -26,12 +26,16 @@ page 5640 "FA Reclass. Journal Batches"
                 field(Name; Rec.Name)
                 {
                     ApplicationArea = FixedAssets;
-                    ToolTip = 'Specifies the name of the journal batch you are creating.';
                 }
                 field(Description; Rec.Description)
                 {
                     ApplicationArea = FixedAssets;
-                    ToolTip = 'Specifies the journal batch that you are creating.';
+                }
+                field("No. of Lines"; Rec."No. of Lines")
+                {
+                    ApplicationArea = FixedAssets;
+                    ToolTip = 'Specifies the number of lines in this journal batch.';
+                    Visible = false;
                 }
             }
         }

@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -21,17 +21,14 @@ page 5155 "Segment Interaction Languages"
                 field("Language Code"; Rec."Language Code")
                 {
                     ApplicationArea = All;
-                    ToolTip = 'Specifies the language that is used when translating specified text on documents to foreign business partner, such as an item description on an order confirmation.';
                 }
                 field(Description; Rec.Description)
                 {
                     ApplicationArea = All;
-                    ToolTip = 'Specifies the description of the Segment Interaction Language. This field will not be displayed in the Word attachment.';
                 }
                 field(Subject; Rec.Subject)
                 {
                     ApplicationArea = RelationshipMgmt;
-                    ToolTip = 'Specifies the subject text. The text in the field is used as the subject in e-mails and Word documents.';
                 }
                 field(AttachmentText; Rec.AttachmentText())
                 {

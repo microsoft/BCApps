@@ -27,4 +27,5 @@ enum 347 "Report Selection Usage Purchase"
     value(13; "Archived Blanket Order") { Caption = 'Archived Blanket Order'; }
     value(14; "Vendor Remittance") { Caption = 'Vendor Remittance'; }
     value(15; "Vendor Remittance - Posted Entries") { Caption = 'Vendor Remittance - Posted Entries'; }
+    value(20; "Self Billing Invoice") { Caption = 'Self Billing Invoice'; }
 }

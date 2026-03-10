@@ -22,22 +22,18 @@ page 425 "Vendor Bank Account Card"
                 field("Code"; Rec.Code)
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies a code to identify this vendor bank account.';
                 }
                 field(Name; Rec.Name)
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the name of the bank where the vendor has this bank account.';
                 }
                 field(Address; Rec.Address)
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the address of the bank where the vendor has the bank account.';
                 }
                 field("Address 2"; Rec."Address 2")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies additional address information.';
                 }
                 field(City; Rec.City)
                 {
@@ -63,7 +59,6 @@ page 425 "Vendor Bank Account Card"
                 field("Country/Region Code"; Rec."Country/Region Code")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the country/region of the address.';
 
                     trigger OnValidate()
                     begin
@@ -73,17 +68,14 @@ page 425 "Vendor Bank Account Card"
                 field("Phone No."; Rec."Phone No.")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the telephone number of the bank where the vendor has the bank account.';
                 }
                 field(Contact; Rec.Contact)
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the name of the bank employee regularly contacted in connection with this bank account.';
                 }
                 field("Currency Code"; Rec."Currency Code")
                 {
                     ApplicationArea = Suite;
-                    ToolTip = 'Specifies the relevant currency code for the bank account.';
                 }
                 field("Bank Code"; Rec."Bank Code")
                 {
@@ -93,19 +85,16 @@ page 425 "Vendor Bank Account Card"
                 field("Bank Branch No."; Rec."Bank Branch No.")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the number of the bank branch.';
                     MaskType = Concealed;
                 }
                 field("Bank Account No."; Rec."Bank Account No.")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the number used by the bank for the bank account.';
                     MaskType = Concealed;
                 }
                 field("Transit No."; Rec."Transit No.")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies a bank identification number of your own choice.';
                     MaskType = Concealed;
                 }
             }
@@ -122,12 +111,10 @@ page 425 "Vendor Bank Account Card"
                 {
                     ApplicationArea = Basic, Suite;
                     ExtendedDatatype = EMail;
-                    ToolTip = 'Specifies the email address associated with the bank account.';
                 }
                 field("Home Page"; Rec."Home Page")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the bank web site.';
                 }
             }
             group(Transfer)
@@ -137,25 +124,21 @@ page 425 "Vendor Bank Account Card"
                 {
                     ApplicationArea = Basic, Suite;
                     Importance = Additional;
-                    ToolTip = 'Specifies the SWIFT code (international bank identifier code) of the bank where the vendor has the account.';
                     MaskType = Concealed;
                 }
                 field(IBAN; Rec.IBAN)
                 {
                     ApplicationArea = Basic, Suite;
                     Importance = Additional;
-                    ToolTip = 'Specifies the bank account''s international bank account number.';
                     MaskType = Concealed;
                 }
                 field("Bank Clearing Standard"; Rec."Bank Clearing Standard")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the format standard to be used in bank transfers if you use the Bank Clearing Code field to identify you as the sender.';
                 }
                 field("Bank Clearing Code"; Rec."Bank Clearing Code")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the code for bank clearing that is required according to the format standard you selected in the Bank Clearing Standard field.';
                 }
                 field("Use for Electronic Payments"; Rec."Use for Electronic Payments")
                 {

@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -66,57 +66,46 @@ page 99000914 "Change Production Order Status"
                 field("No."; Rec."No.")
                 {
                     ApplicationArea = Manufacturing;
-                    ToolTip = 'Specifies the number of the involved entry or record, according to the specified number series.';
                 }
                 field(Description; Rec.Description)
                 {
                     ApplicationArea = Manufacturing;
-                    ToolTip = 'Specifies the description of the production order.';
                 }
                 field("Creation Date"; Rec."Creation Date")
                 {
                     ApplicationArea = Manufacturing;
-                    ToolTip = 'Specifies the date on which you created the production order.';
                 }
                 field("Source Type"; Rec."Source Type")
                 {
                     ApplicationArea = Manufacturing;
-                    ToolTip = 'Specifies the source type of the production order.';
                 }
                 field("Source No."; Rec."Source No.")
                 {
                     ApplicationArea = Manufacturing;
-                    ToolTip = 'Specifies the number of the source document that the entry originates from.';
                 }
                 field("Starting Time"; Rec."Starting Time")
                 {
                     ApplicationArea = Manufacturing;
-                    ToolTip = 'Specifies the starting time of the production order.';
                 }
                 field("Starting Date"; Rec."Starting Date")
                 {
                     ApplicationArea = Manufacturing;
-                    ToolTip = 'Specifies the starting date of the production order.';
                 }
                 field("Ending Time"; Rec."Ending Time")
                 {
                     ApplicationArea = Manufacturing;
-                    ToolTip = 'Specifies the ending time of the production order.';
                 }
                 field("Ending Date"; Rec."Ending Date")
                 {
                     ApplicationArea = Manufacturing;
-                    ToolTip = 'Specifies the ending date of the production order.';
                 }
                 field("Due Date"; Rec."Due Date")
                 {
                     ApplicationArea = Manufacturing;
-                    ToolTip = 'Specifies the due date of the production order.';
                 }
                 field("Finished Date"; Rec."Finished Date")
                 {
                     ApplicationArea = Manufacturing;
-                    ToolTip = 'Specifies the actual finishing date of a finished production order.';
                 }
             }
         }

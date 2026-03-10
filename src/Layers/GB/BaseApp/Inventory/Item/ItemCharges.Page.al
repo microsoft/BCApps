@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -26,32 +26,26 @@ page 5800 "Item Charges"
                 field("No."; Rec."No.")
                 {
                     ApplicationArea = ItemCharges;
-                    ToolTip = 'Specifies the number of the involved entry or record, according to the specified number series.';
                 }
                 field(Description; Rec.Description)
                 {
                     ApplicationArea = ItemCharges;
-                    ToolTip = 'Specifies a description of the item charge number that you are setting up.';
                 }
                 field("Gen. Prod. Posting Group"; Rec."Gen. Prod. Posting Group")
                 {
                     ApplicationArea = ItemCharges;
-                    ToolTip = 'Specifies the item charge''s product type to link transactions made for this item charge with the appropriate general ledger account according to the general posting setup.';
                 }
                 field("Tax Group Code"; Rec."Tax Group Code")
                 {
                     ApplicationArea = SalesTax;
-                    ToolTip = 'Specifies the sales tax group code that this item charge belongs to.';
                 }
                 field("VAT Prod. Posting Group"; Rec."VAT Prod. Posting Group")
                 {
                     ApplicationArea = ItemCharges;
-                    ToolTip = 'Specifies the VAT specification of the involved item or resource to link transactions made for this record with the appropriate general ledger account according to the VAT posting setup.';
                 }
                 field("Search Description"; Rec."Search Description")
                 {
                     ApplicationArea = ItemCharges;
-                    ToolTip = 'Specifies text to search for when you do not know the number of the item charge.';
                 }
                 field("Freight/Insurance"; Rec."Freight/Insurance")
                 {

@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -56,7 +56,6 @@ page 9309 "Purchase Credit Memos"
                 field("Order Address Code"; Rec."Order Address Code")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the order address of the related vendor.';
                     Visible = false;
                 }
                 field("Buy-from Vendor Name"; Rec."Buy-from Vendor Name")
@@ -67,107 +66,89 @@ page 9309 "Purchase Credit Memos"
                 field("Vendor Authorization No."; Rec."Vendor Authorization No.")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the compensation agreement identification number, sometimes referred to as the RMA No. (Returns Materials Authorization).';
                 }
                 field("Vendor Cr. Memo No."; Rec."Vendor Cr. Memo No.")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the document number of the original document you received from the vendor. You can require the document number for posting, or let it be optional. By default, it''s required, so that this document references the original. Making document numbers optional removes a step from the posting process. For example, if you attach the original invoice as a PDF, you might not need to enter the document number. To specify whether document numbers are required, in the Purchases & Payables Setup window, select or clear the Ext. Doc. No. Mandatory field.';
                 }
                 field("Buy-from Post Code"; Rec."Buy-from Post Code")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the post code of the vendor who delivered the items.';
                     Visible = false;
                 }
                 field("Buy-from Country/Region Code"; Rec."Buy-from Country/Region Code")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the city of the vendor who delivered the items.';
                     Visible = false;
                 }
                 field("Buy-from Contact"; Rec."Buy-from Contact")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the name of the contact person at the vendor who delivered the items.';
                     Visible = false;
                 }
                 field("Pay-to Vendor No."; Rec."Pay-to Vendor No.")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the number of the vendor that you received the invoice from.';
                     Visible = false;
                 }
                 field("Pay-to Name"; Rec."Pay-to Name")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the name of the vendor who you received the invoice from.';
                     Visible = false;
                 }
                 field("Pay-to Post Code"; Rec."Pay-to Post Code")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the post code of the vendor that you received the invoice from.';
                     Visible = false;
                 }
                 field("Pay-to Country/Region Code"; Rec."Pay-to Country/Region Code")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the country/region code of the address.';
                     Visible = false;
                 }
                 field("Pay-to Contact"; Rec."Pay-to Contact")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the name of the person to contact about an invoice from this vendor.';
                     Visible = false;
                 }
                 field("Ship-to Code"; Rec."Ship-to Code")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies a code for an alternate shipment address if you want to ship to another address than the one that has been entered automatically. This field is also used in case of drop shipment.';
                     Visible = false;
                 }
                 field("Ship-to Name"; Rec."Ship-to Name")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the name of the customer at the address that the items are shipped to.';
                     Visible = false;
                 }
                 field("Ship-to Post Code"; Rec."Ship-to Post Code")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the postal code of the address that the items are shipped to.';
                     Visible = false;
                 }
                 field("Ship-to Country/Region Code"; Rec."Ship-to Country/Region Code")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the country/region code of the address that the items are shipped to.';
                     Visible = false;
                 }
                 field("Ship-to Contact"; Rec."Ship-to Contact")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the name of the contact person at the address that the items are shipped to.';
                     Visible = false;
                 }
                 field("Posting Date"; Rec."Posting Date")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the date when the posting of the purchase document will be recorded.';
                     Visible = false;
                 }
                 field("Shortcut Dimension 1 Code"; Rec."Shortcut Dimension 1 Code")
                 {
                     ApplicationArea = Dimensions;
-                    ToolTip = 'Specifies the code for Shortcut Dimension 1, which is one of two global dimension codes that you set up in the General Ledger Setup window.';
                     Visible = false;
                 }
                 field("Shortcut Dimension 2 Code"; Rec."Shortcut Dimension 2 Code")
                 {
                     ApplicationArea = Dimensions;
-                    ToolTip = 'Specifies the code for Shortcut Dimension 2, which is one of two global dimension codes that you set up in the General Ledger Setup window.';
                     Visible = false;
                 }
                 field("Location Code"; Rec."Location Code")
@@ -178,37 +159,31 @@ page 9309 "Purchase Credit Memos"
                 field("Purchaser Code"; Rec."Purchaser Code")
                 {
                     ApplicationArea = Suite;
-                    ToolTip = 'Specifies which purchaser is assigned to the vendor.';
                     Visible = false;
                 }
                 field("Assigned User ID"; Rec."Assigned User ID")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the ID of the user who is responsible for the document.';
                 }
                 field("Currency Code"; Rec."Currency Code")
                 {
                     ApplicationArea = Suite;
-                    ToolTip = 'Specifies the code of the currency of the amounts on the purchase lines.';
                     Visible = false;
                 }
                 field("Document Date"; Rec."Document Date")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the date when the related document was created.';
                     Visible = false;
                 }
                 field(Status; Rec.Status)
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies whether the record is open, waiting to be approved, invoiced for prepayment, or released to the next stage of processing.';
                     Visible = false;
                     StyleExpr = StatusStyleTxt;
                 }
                 field("Payment Terms Code"; Rec."Payment Terms Code")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies a formula that calculates the payment due date, payment discount date, and payment discount amount.';
                     Visible = false;
                 }
                 field("Due Date"; Rec."Due Date")
@@ -219,7 +194,6 @@ page 9309 "Purchase Credit Memos"
                 field(Amount; Rec.Amount)
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the sum of amounts on all the lines in the document. This will include invoice discounts.';
                 }
                 field("Amount Including VAT"; Rec."Amount Including VAT")
                 {
@@ -229,13 +203,11 @@ page 9309 "Purchase Credit Memos"
                 field("Payment Discount %"; Rec."Payment Discount %")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the payment discount percent granted if payment is made on or before the date in the Pmt. Discount Date field.';
                     Visible = false;
                 }
                 field("Applies-to Doc. Type"; Rec."Applies-to Doc. Type")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the type of the posted document that this document or journal line will be applied to when you post, for example to register payment.';
                     Visible = false;
                 }
                 field("Job Queue Status"; Rec."Job Queue Status")

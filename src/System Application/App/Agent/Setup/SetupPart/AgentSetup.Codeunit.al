@@ -32,6 +32,17 @@ codeunit 4324 "Agent Setup"
     end;
 
     /// <summary>
+    /// Copies the setup record from the source buffer to the target buffer.
+    /// </summary>
+    /// <param name="Target"><see cref="AgentSetupBuffer"/> that will receive the setup data.</param>
+    /// <param name="Source"><see cref="AgentSetupBuffer"/> that contains the setup data to be copied.</param>
+    procedure CopySetupRecord(var Target: Record "Agent Setup Buffer"; var Source: Record "Agent Setup Buffer")
+    begin
+        FeatureAccessManagement.AgentTaskManagementPreviewEnabled(true);
+        AgentSetupImpl.CopySetupRecord(Target, Source);
+    end;
+
+    /// <summary>
     /// Saves changes done. If the agent does not exist we will create a new agent otherwise we will update the agent.
     /// </summary>
     /// <param name="AgentSetupBuffer"><see cref="AgentSetupBuffer"/> that contains the setup data.</param>
@@ -105,6 +116,18 @@ codeunit 4324 "Agent Setup"
     begin
         FeatureAccessManagement.AgentTaskManagementPreviewEnabled(true);
         exit(AgentSetupImpl.OpenAgentLookup(AgentUserSecurityId));
+    end;
+
+    /// <summary>
+    /// Finds the agent user security ID based on the provided user name.
+    /// </summary> 
+    /// <param name="AgentUserName">The user name to search for. You can provide a partial or full user name.</param>
+    /// <param name="AgentUserSecurityId">The security ID of the agent user if found, otherwise a null guid.</param>
+    /// <returns>True if an agent with the provided user name is found, false otherwise.</returns>
+    procedure FindAgentByUserName(AgentUserName: Text; var AgentUserSecurityId: Guid): Boolean
+    begin
+        FeatureAccessManagement.AgentTaskManagementPreviewEnabled(true);
+        exit(AgentSetupImpl.FindAgentByUserName(AgentUserName, AgentUserSecurityId));
     end;
 
     /// <summary>

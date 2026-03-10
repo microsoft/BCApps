@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -29,14 +29,12 @@ page 6761 "Issue Reminders Setup"
                 {
                     ApplicationArea = All;
                     Caption = 'Code';
-                    ToolTip = 'Specifies the unique code of the issue reminder setup.';
                     Editable = false;
                 }
                 field(Description; Rec.Description)
                 {
                     ApplicationArea = All;
                     Caption = 'Description';
-                    ToolTip = 'Specifies the description of the issue reminder setup.';
                 }
                 group(RequestParameters)
                 {
@@ -45,27 +43,23 @@ page 6761 "Issue Reminders Setup"
                     {
                         ApplicationArea = All;
                         Caption = 'Replace posting date';
-                        ToolTip = 'Specifies whether to replace the posting date of the reminder with the posting date of the original document.';
                     }
                     field("Replace Posting Date formula"; Rec."Replace Posting Date formula")
                     {
                         ApplicationArea = All;
                         Caption = 'Replace posting date formula';
-                        ToolTip = 'Specifies the formula that is used to calculate the posting date of the reminder. Base date is the date when the job is started.';
                     }
                     field("Replace VAT Date"; Rec."Replace VAT Date")
                     {
                         Visible = VATDateEnabled;
                         ApplicationArea = All;
                         Caption = 'Replace VAT date';
-                        ToolTip = 'Specifies whether to replace the VAT date of the reminder with the VAT date of the original document.';
                     }
                     field("Replace VAT Date formula"; Rec."Replace VAT Date formula")
                     {
                         Visible = VATDateEnabled;
                         ApplicationArea = All;
                         Caption = 'Replace VAT date formula';
-                        ToolTip = 'Specifies the formula that is used to calculate the VAT date of the reminder. Base date is the date when the job is started.';
                     }
                 }
                 group(JournalGroup)
@@ -78,7 +72,6 @@ page 6761 "Issue Reminders Setup"
                         ApplicationArea = Basic, Suite;
                         Caption = 'Journal Template Name';
                         TableRelation = "Gen. Journal Template";
-                        ToolTip = 'Specifies the name of the journal template that is used for the posting.';
 
                         trigger OnValidate()
                         begin
@@ -90,7 +83,6 @@ page 6761 "Issue Reminders Setup"
                         ApplicationArea = Basic, Suite;
                         Caption = 'Journal Batch Name';
                         Lookup = true;
-                        ToolTip = 'Specifies the name of the journal batch that is used for the posting.';
 
                         trigger OnLookup(var Text: Text): Boolean
                         var

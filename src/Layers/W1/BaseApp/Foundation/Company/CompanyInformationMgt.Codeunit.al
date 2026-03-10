@@ -139,6 +139,25 @@ codeunit 1306 "Company Information Mgt."
             end;
     end;
 
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::System.Globalization.Language, 'OnGetLanguageIdOrDefault', '', false, false)]
+    local procedure OnGetLanguageIdOrDefault(var DefaultLanguageCode: Code[10])
+    begin
+        if DefaultLanguageCode = '' then
+            GetLanguageDefault(DefaultLanguageCode);
+    end;
+
+    procedure GetLanguageDefault(var DefaultLanguageCode: Code[10])
+    var
+        CompanyInformation: Record "Company Information";
+    begin
+        if DefaultLanguageCode <> '' then
+            exit;
+        Companyinformation.SetLoadFields("Default Language Code");
+        if CompanyInformation.Get() then;
+        DefaultLanguageCode := CompanyInformation."Default Language Code";
+    end;
+
+
     [Scope('OnPrem')]
     procedure IsEUCompany(CompanyInformation: Record "Company Information"): Boolean
     var

@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -18,6 +18,7 @@ table 1006 "Job WIP Method"
         field(1; "Code"; Code[20])
         {
             Caption = 'Code';
+            ToolTip = 'Specifies the code for the Project WIP Method. There are system-defined codes. In addition, you can create a Project WIP Method, and the code for it is in the list of Project WIP Methods.';
             NotBlank = true;
 
             trigger OnValidate()
@@ -28,6 +29,7 @@ table 1006 "Job WIP Method"
         field(2; Description; Text[100])
         {
             Caption = 'Description';
+            ToolTip = 'Specifies the description of the project WIP method. If the WIP method is system-defined, you cannot edit the description.';
 
             trigger OnValidate()
             begin
@@ -37,6 +39,7 @@ table 1006 "Job WIP Method"
         field(3; "WIP Cost"; Boolean)
         {
             Caption = 'WIP Cost';
+            ToolTip = 'Specifies if the Project Costs Applied and Recognized Costs are posted to the general ledger. For system defined WIP methods, the WIP Cost field is always enabled. For WIP methods that you create, you can only clear the check box if you set Recognized Costs to Usage (Total Cost).';
             InitValue = true;
 
             trigger OnValidate()
@@ -49,6 +52,7 @@ table 1006 "Job WIP Method"
         field(4; "WIP Sales"; Boolean)
         {
             Caption = 'WIP Sales';
+            ToolTip = 'Specifies if the contract (invoiced price) is posted to the general ledger. For system-defined WIP methods, the WIP Sales field is the default and is checked. For WIP methods that you create, you can only clear the check box if you set Recognized Sales to Contract (Invoiced Price).';
             InitValue = true;
 
             trigger OnValidate()
@@ -61,6 +65,7 @@ table 1006 "Job WIP Method"
         field(5; "Recognized Costs"; Enum "Job WIP Recognized Costs Type")
         {
             Caption = 'Recognized Costs';
+            ToolTip = 'Specifies a Recognized Cost option to apply when creating a calculation method for WIP. You must select one of the five options:';
 
             trigger OnValidate()
             begin
@@ -72,6 +77,7 @@ table 1006 "Job WIP Method"
         field(6; "Recognized Sales"; Enum "Job WIP Recognized Sales Type")
         {
             Caption = 'Recognized Sales';
+            ToolTip = 'Specifies a Recognized Sales option to apply when creating a calculation method for WIP. You must select one of the six options:';
 
             trigger OnValidate()
             begin
@@ -83,6 +89,7 @@ table 1006 "Job WIP Method"
         field(7; Valid; Boolean)
         {
             Caption = 'Valid';
+            ToolTip = 'Specifies whether a WIP method can be associated with a project when you are creating or modifying a project. If you select this check box in the Project WIP Methods window, you can then set the method as a default WIP method in the Projects Setup window.';
             InitValue = true;
 
             trigger OnValidate()
@@ -97,6 +104,7 @@ table 1006 "Job WIP Method"
         field(8; "System Defined"; Boolean)
         {
             Caption = 'System Defined';
+            ToolTip = 'Specifies whether a Project WIP Method is system-defined.';
             Editable = false;
             InitValue = false;
         }

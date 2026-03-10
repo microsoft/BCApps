@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -46,58 +46,49 @@ page 372 "Bank Account Ledger Entries"
                 {
                     ApplicationArea = Basic, Suite;
                     Editable = false;
-                    ToolTip = 'Specifies the posting date for the entry.';
                 }
                 field("Document Type"; Rec."Document Type")
                 {
                     ApplicationArea = Basic, Suite;
                     Editable = false;
-                    ToolTip = 'Specifies the document type on the bank account entry. The document type will be Payment, Refund, or the field will be blank.';
                 }
                 field("Document No."; Rec."Document No.")
                 {
                     ApplicationArea = Basic, Suite;
                     Editable = false;
-                    ToolTip = 'Specifies the document number on the bank account entry.';
                 }
                 field("Bank Account No."; Rec."Bank Account No.")
                 {
                     ApplicationArea = Basic, Suite;
                     Editable = false;
-                    ToolTip = 'Specifies the number of the bank account used for the entry.';
                 }
                 field(Description; Rec.Description)
                 {
                     ApplicationArea = Basic, Suite;
                     Editable = false;
-                    ToolTip = 'Specifies the description of the bank account entry.';
                 }
                 field("Global Dimension 1 Code"; Rec."Global Dimension 1 Code")
                 {
                     ApplicationArea = Dimensions;
                     Editable = false;
-                    ToolTip = 'Specifies the code for the global dimension that is linked to the record or entry for analysis purposes. Two global dimensions, typically for the company''s most important activities, are available on all cards, documents, reports, and lists.';
                     Visible = Dim1Visible;
                 }
                 field("Global Dimension 2 Code"; Rec."Global Dimension 2 Code")
                 {
                     ApplicationArea = Dimensions;
                     Editable = false;
-                    ToolTip = 'Specifies the code for the global dimension that is linked to the record or entry for analysis purposes. Two global dimensions, typically for the company''s most important activities, are available on all cards, documents, reports, and lists.';
                     Visible = Dim2Visible;
                 }
                 field("Our Contact Code"; Rec."Our Contact Code")
                 {
                     ApplicationArea = Basic, Suite;
                     Editable = false;
-                    ToolTip = 'Specifies the code for the employee who is responsible for the bank account.';
                     Visible = false;
                 }
                 field("Currency Code"; Rec."Currency Code")
                 {
                     ApplicationArea = Suite;
                     Editable = false;
-                    ToolTip = 'Specifies the currency that is used on the entry.';
                     Visible = false;
                 }
                 field(Amount; Rec.Amount)
@@ -105,18 +96,15 @@ page 372 "Bank Account Ledger Entries"
                     ApplicationArea = Basic, Suite;
                     Visible = AmountVisible;
                     Editable = false;
-                    ToolTip = 'Specifies the amount of the entry denominated in the applicable foreign currency.';
                 }
                 field("Debit Amount"; Rec."Debit Amount")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the total of the ledger entries that represent debits.';
                     Visible = DebCredAmountVisible;
                 }
                 field("Credit Amount"; Rec."Credit Amount")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the total of the ledger entries that represent credits.';
                     Visible = DebCredAmountVisible;
                 }
                 field(RunningBalance; CalcRunningAccBalance.GetBankAccBalance(Rec))
@@ -166,14 +154,12 @@ page 372 "Bank Account Ledger Entries"
                 {
                     ApplicationArea = Basic, Suite;
                     Editable = false;
-                    ToolTip = 'Specifies the type of account that a balancing entry is posted to, such as BANK for a cash account.';
                     Visible = false;
                 }
                 field("Bal. Account No."; Rec."Bal. Account No.")
                 {
                     ApplicationArea = Basic, Suite;
                     Editable = false;
-                    ToolTip = 'Specifies the number of the general ledger, customer, vendor, or bank account that the balancing entry is posted to, such as a cash account for cash purchases.';
                     Visible = false;
                 }
                 field(Open; Rec.Open)
@@ -186,7 +172,6 @@ page 372 "Bank Account Ledger Entries"
                 {
                     ApplicationArea = Basic, Suite;
                     Editable = false;
-                    ToolTip = 'Specifies the ID of the user who posted the entry, to be used, for example, in the change log.';
                     Visible = false;
 
                     trigger OnDrillDown()
@@ -200,86 +185,73 @@ page 372 "Bank Account Ledger Entries"
                 {
                     ApplicationArea = Suite;
                     Editable = false;
-                    ToolTip = 'Specifies the source code that specifies where the entry was created.';
                     Visible = false;
                 }
                 field("Reason Code"; Rec."Reason Code")
                 {
                     ApplicationArea = Suite;
                     Editable = false;
-                    ToolTip = 'Specifies the reason code, a supplementary source code that enables you to trace the entry.';
                     Visible = false;
                 }
                 field(Reversed; Rec.Reversed)
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies if the entry has been part of a reverse transaction.';
                     Visible = false;
                 }
                 field("Reversed by Entry No."; Rec."Reversed by Entry No.")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the number of the correcting entry that replaced the original entry in the reverse transaction.';
                     Visible = false;
                 }
                 field("Reversed Entry No."; Rec."Reversed Entry No.")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the number of the original entry that was undone by the reverse transaction.';
                     Visible = false;
                 }
                 field("Entry No."; Rec."Entry No.")
                 {
                     ApplicationArea = Basic, Suite;
                     Editable = false;
-                    ToolTip = 'Specifies the number of the entry, as assigned from the specified number series when the entry was created.';
                 }
                 field("Dimension Set ID"; Rec."Dimension Set ID")
                 {
                     ApplicationArea = Dimensions;
-                    ToolTip = 'Specifies a reference to a combination of dimension values. The actual values are stored in the Dimension Set Entry table.';
                     Visible = false;
                 }
                 field("Shortcut Dimension 3 Code"; Rec."Shortcut Dimension 3 Code")
                 {
                     ApplicationArea = Dimensions;
                     Editable = false;
-                    ToolTip = 'Specifies the code for Shortcut Dimension 3, which is one of dimension codes that you set up in the General Ledger Setup window.';
                     Visible = Dim3Visible;
                 }
                 field("Shortcut Dimension 4 Code"; Rec."Shortcut Dimension 4 Code")
                 {
                     ApplicationArea = Dimensions;
                     Editable = false;
-                    ToolTip = 'Specifies the code for Shortcut Dimension 4, which is one of dimension codes that you set up in the General Ledger Setup window.';
                     Visible = Dim4Visible;
                 }
                 field("Shortcut Dimension 5 Code"; Rec."Shortcut Dimension 5 Code")
                 {
                     ApplicationArea = Dimensions;
                     Editable = false;
-                    ToolTip = 'Specifies the code for Shortcut Dimension 5, which is one of dimension codes that you set up in the General Ledger Setup window.';
                     Visible = Dim5Visible;
                 }
                 field("Shortcut Dimension 6 Code"; Rec."Shortcut Dimension 6 Code")
                 {
                     ApplicationArea = Dimensions;
                     Editable = false;
-                    ToolTip = 'Specifies the code for Shortcut Dimension 6, which is one of dimension codes that you set up in the General Ledger Setup window.';
                     Visible = Dim6Visible;
                 }
                 field("Shortcut Dimension 7 Code"; Rec."Shortcut Dimension 7 Code")
                 {
                     ApplicationArea = Dimensions;
                     Editable = false;
-                    ToolTip = 'Specifies the code for Shortcut Dimension 7, which is one of dimension codes that you set up in the General Ledger Setup window.';
                     Visible = Dim7Visible;
                 }
                 field("Shortcut Dimension 8 Code"; Rec."Shortcut Dimension 8 Code")
                 {
                     ApplicationArea = Dimensions;
                     Editable = false;
-                    ToolTip = 'Specifies the code for Shortcut Dimension 8, which is one of dimension codes that you set up in the General Ledger Setup window.';
                     Visible = Dim8Visible;
                 }
             }

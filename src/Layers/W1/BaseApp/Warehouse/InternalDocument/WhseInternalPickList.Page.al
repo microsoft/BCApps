@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -29,56 +29,46 @@ page 7359 "Whse. Internal Pick List"
                 field("No."; Rec."No.")
                 {
                     ApplicationArea = Warehouse;
-                    ToolTip = 'Specifies the number of the involved entry or record, according to the specified number series.';
                 }
                 field("Location Code"; Rec."Location Code")
                 {
                     ApplicationArea = Location;
-                    ToolTip = 'Specifies the code of the location where the internal pick is being performed.';
                 }
                 field("Assigned User ID"; Rec."Assigned User ID")
                 {
                     ApplicationArea = Warehouse;
-                    ToolTip = 'Specifies the ID of the user who is responsible for the document.';
                 }
                 field("Sorting Method"; Rec."Sorting Method")
                 {
                     ApplicationArea = Warehouse;
-                    ToolTip = 'Specifies the method by which the warehouse internal pick lines are sorted.';
                 }
                 field(Status; Rec.Status)
                 {
                     ApplicationArea = Warehouse;
-                    ToolTip = 'Specifies whether the internal pick is open or released.';
                 }
                 field("To Zone Code"; Rec."To Zone Code")
                 {
                     ApplicationArea = Warehouse;
-                    ToolTip = 'Specifies the zone in which you want the items to be placed when they are picked.';
                     Visible = false;
                 }
                 field("To Bin Code"; Rec."To Bin Code")
                 {
                     ApplicationArea = Warehouse;
-                    ToolTip = 'Specifies the bin in which you want the items to be placed when they are picked.';
                     Visible = false;
                 }
                 field("Document Status"; Rec."Document Status")
                 {
                     ApplicationArea = Warehouse;
-                    ToolTip = 'Specifies the document status of the internal pick.';
                     Visible = false;
                 }
                 field("Due Date"; Rec."Due Date")
                 {
                     ApplicationArea = Warehouse;
-                    ToolTip = 'Specifies the date when the warehouse activity must be completed.';
                     Visible = false;
                 }
                 field("Assignment Date"; Rec."Assignment Date")
                 {
                     ApplicationArea = Warehouse;
-                    ToolTip = 'Specifies the date when the user was assigned the activity.';
                     Visible = false;
                 }
             }

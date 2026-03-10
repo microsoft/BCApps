@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -24,32 +24,26 @@ page 493 "Resource Price Changes"
                 field(Type; Rec.Type)
                 {
                     ApplicationArea = Jobs;
-                    ToolTip = 'Specifies the type of resource for which the alternate unit price is valid.';
                 }
                 field("Code"; Rec.Code)
                 {
                     ApplicationArea = Jobs;
-                    ToolTip = 'Specifies the resource code for which the alternate unit price is valid.';
                 }
                 field("Work Type Code"; Rec."Work Type Code")
                 {
                     ApplicationArea = Jobs;
-                    ToolTip = 'Specifies which work type the resource applies to. Prices are updated based on this entry.';
                 }
                 field("Currency Code"; Rec."Currency Code")
                 {
                     ApplicationArea = Jobs;
-                    ToolTip = 'Specifies the currency code that the alternate unit price is in.';
                 }
                 field("Current Unit Price"; Rec."Current Unit Price")
                 {
                     ApplicationArea = Jobs;
-                    ToolTip = 'Specifies the alternate unit price of the resource.';
                 }
                 field("New Unit Price"; Rec."New Unit Price")
                 {
                     ApplicationArea = Jobs;
-                    ToolTip = 'Specifies the new unit price that is valid for the selected combination of resource type, resource code, project number, or work type.';
                 }
             }
         }

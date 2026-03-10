@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -26,15 +26,18 @@ table 233 "Item Journal Batch"
         field(2; Name; Code[10])
         {
             Caption = 'Name';
+            ToolTip = 'Specifies the name of the item journal you are creating.';
             NotBlank = true;
         }
         field(3; Description; Text[100])
         {
             Caption = 'Description';
+            ToolTip = 'Specifies a brief description of the item journal batch you are creating.';
         }
         field(4; "Reason Code"; Code[10])
         {
             Caption = 'Reason Code';
+            ToolTip = 'Specifies the reason code, a supplementary source code that enables you to trace the entry.';
             TableRelation = "Reason Code";
 
             trigger OnValidate()
@@ -50,6 +53,7 @@ table 233 "Item Journal Batch"
         field(5; "No. Series"; Code[20])
         {
             Caption = 'No. Series';
+            ToolTip = 'Specifies the number series from which entry or record numbers are assigned to new entries or records.';
             TableRelation = "No. Series";
 
             trigger OnValidate()
@@ -68,6 +72,7 @@ table 233 "Item Journal Batch"
         field(6; "Posting No. Series"; Code[20])
         {
             Caption = 'Posting No. Series';
+            ToolTip = 'Specifies the number series code used to assign document numbers to ledger entries that are posted from this journal batch.';
             TableRelation = "No. Series";
 
             trigger OnValidate()
@@ -94,9 +99,18 @@ table 233 "Item Journal Batch"
             Editable = false;
             FieldClass = FlowField;
         }
+        field(40; "No. of Lines"; Integer)
+        {
+            CalcFormula = count("Item Journal Line" where("Journal Template Name" = field("Journal Template Name"), "Journal Batch Name" = field(Name)));
+            Caption = 'No. of Lines';
+            Editable = false;
+            FieldClass = FlowField;
+            ToolTip = 'Specifies the number of lines in this journal batch.';
+        }
         field(6500; "Item Tracking on Lines"; Boolean)
         {
             Caption = 'Item Tracking on Lines';
+            ToolTip = 'Specifies if item tracking can be selected directly on the item journal lines.';
 
             trigger OnValidate()
             var

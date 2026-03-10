@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -22,33 +22,27 @@ page 5916 "Service Hours"
                 field("Service Contract No."; Rec."Service Contract No.")
                 {
                     ApplicationArea = Service;
-                    ToolTip = 'Specifies the number of the service contract to which the service hours apply.';
                     Visible = false;
                 }
                 field("Starting Date"; Rec."Starting Date")
                 {
                     ApplicationArea = Service;
-                    ToolTip = 'Specifies the date when the service hours become valid.';
                 }
                 field(Day; Rec.Day)
                 {
                     ApplicationArea = Service;
-                    ToolTip = 'Specifies the day when the service hours are valid.';
                 }
                 field("Starting Time"; Rec."Starting Time")
                 {
                     ApplicationArea = Service;
-                    ToolTip = 'Specifies the starting time of the service hours.';
                 }
                 field("Ending Time"; Rec."Ending Time")
                 {
                     ApplicationArea = Service;
-                    ToolTip = 'Specifies the ending time of the service hours.';
                 }
                 field("Valid on Holidays"; Rec."Valid on Holidays")
                 {
                     ApplicationArea = Service;
-                    ToolTip = 'Specifies that service hours are valid on holidays.';
                 }
             }
         }

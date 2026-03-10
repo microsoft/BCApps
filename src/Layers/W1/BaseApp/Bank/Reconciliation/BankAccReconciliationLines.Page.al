@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -31,31 +31,26 @@ page 380 "Bank Acc. Reconciliation Lines"
                 {
                     ApplicationArea = Basic, Suite;
                     StyleExpr = StyleTxt;
-                    ToolTip = 'Specifies the posting date of the bank account or check ledger entry on the reconciliation line when the Suggest Lines function is used.';
                 }
                 field("Value Date"; Rec."Value Date")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the value date of the transaction on the bank reconciliation line.';
                     Visible = false;
                 }
                 field("Document No."; Rec."Document No.")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies a number of your choice that will appear on the reconciliation line.';
                     Visible = false;
                 }
                 field("Check No."; Rec."Check No.")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the check number for the transaction on the reconciliation line.';
                     Visible = false;
                 }
                 field(Description; Rec.Description)
                 {
                     ApplicationArea = Basic, Suite;
                     StyleExpr = StyleTxt;
-                    ToolTip = 'Specifies a description for the transaction on the reconciliation line.';
                 }
                 field("Statement Amount"; Rec."Statement Amount")
                 {
@@ -70,7 +65,6 @@ page 380 "Bank Acc. Reconciliation Lines"
                 field("Applied Amount"; Rec."Applied Amount")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the amount of the transaction on the reconciliation line that has been applied to a bank account or check ledger entry.';
 
                     trigger OnDrillDown()
                     begin
@@ -80,24 +74,20 @@ page 380 "Bank Acc. Reconciliation Lines"
                 field(Difference; Rec.Difference)
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the difference between the amount in the Statement Amount field and the amount in the Applied Amount field.';
                 }
                 field("Applied Entries"; Rec."Applied Entries")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies whether the transaction on the bank''s statement has been applied to one or more bank account or check ledger entries.';
                     Visible = false;
                 }
                 field("Related-Party Name"; Rec."Related-Party Name")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the name of the customer or vendor who made the payment that is represented by the journal line.';
                     Visible = false;
                 }
                 field("Additional Transaction Info"; Rec."Additional Transaction Info")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies additional information on the bank statement line for the payment.';
                     Visible = false;
                 }
             }

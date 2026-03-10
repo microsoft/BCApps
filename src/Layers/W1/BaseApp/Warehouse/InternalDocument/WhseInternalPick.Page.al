@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -26,7 +26,6 @@ page 7357 "Whse. Internal Pick"
                 field("No."; Rec."No.")
                 {
                     ApplicationArea = Warehouse;
-                    ToolTip = 'Specifies the number of the involved entry or record, according to the specified number series.';
 
                     trigger OnAssistEdit()
                     begin
@@ -37,7 +36,6 @@ page 7357 "Whse. Internal Pick"
                 field("Location Code"; Rec."Location Code")
                 {
                     ApplicationArea = Location;
-                    ToolTip = 'Specifies the code of the location where the internal pick is being performed.';
 
                     trigger OnLookup(var Text: Text): Boolean
                     begin
@@ -49,49 +47,40 @@ page 7357 "Whse. Internal Pick"
                 field("To Zone Code"; Rec."To Zone Code")
                 {
                     ApplicationArea = Warehouse;
-                    ToolTip = 'Specifies the zone in which you want the items to be placed when they are picked.';
                 }
                 field("To Bin Code"; Rec."To Bin Code")
                 {
                     ApplicationArea = Warehouse;
-                    ToolTip = 'Specifies the bin in which you want the items to be placed when they are picked.';
                 }
                 field("Document Status"; Rec."Document Status")
                 {
                     ApplicationArea = Warehouse;
-                    ToolTip = 'Specifies the document status of the internal pick.';
                 }
                 field(Status; Rec.Status)
                 {
                     ApplicationArea = Warehouse;
-                    ToolTip = 'Specifies whether the internal pick is open or released.';
                 }
                 field("Due Date"; Rec."Due Date")
                 {
                     ApplicationArea = Warehouse;
-                    ToolTip = 'Specifies the date when the warehouse activity must be completed.';
                 }
                 field("Assigned User ID"; Rec."Assigned User ID")
                 {
                     ApplicationArea = Warehouse;
-                    ToolTip = 'Specifies the ID of the user who is responsible for the document.';
                 }
                 field("Assignment Date"; Rec."Assignment Date")
                 {
                     ApplicationArea = Warehouse;
                     Editable = false;
-                    ToolTip = 'Specifies the date when the user was assigned the activity.';
                 }
                 field("Assignment Time"; Rec."Assignment Time")
                 {
                     ApplicationArea = Warehouse;
                     Editable = false;
-                    ToolTip = 'Specifies the time when the user was assigned the activity.';
                 }
                 field("Sorting Method"; Rec."Sorting Method")
                 {
                     ApplicationArea = Warehouse;
-                    ToolTip = 'Specifies the method by which the warehouse internal pick lines are sorted.';
 
                     trigger OnValidate()
                     begin

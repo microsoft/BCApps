@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -55,6 +55,7 @@ table 6661 "Return Receipt Line"
         field(2; "Sell-to Customer No."; Code[20])
         {
             Caption = 'Sell-to Customer No.';
+            ToolTip = 'Specifies the number of the customer.';
             Editable = false;
             TableRelation = Customer;
         }
@@ -64,6 +65,7 @@ table 6661 "Return Receipt Line"
         field(3; "Document No."; Code[20])
         {
             Caption = 'Document No.';
+            ToolTip = 'Specifies the number of the related document.';
             TableRelation = "Return Receipt Header";
         }
         /// <summary>
@@ -79,6 +81,7 @@ table 6661 "Return Receipt Line"
         field(5; Type; Enum "Sales Line Type")
         {
             Caption = 'Type';
+            ToolTip = 'Specifies the line type.';
         }
         /// <summary>
         /// Specifies the number of the item, G/L account, resource, or other entity on the line.
@@ -86,6 +89,7 @@ table 6661 "Return Receipt Line"
         field(6; "No."; Code[20])
         {
             Caption = 'No.';
+            ToolTip = 'Specifies the number of the involved entry or record, according to the specified number series.';
             TableRelation = if (Type = const("G/L Account")) "G/L Account"
             else
             if (Type = const(Item)) Item
@@ -102,6 +106,7 @@ table 6661 "Return Receipt Line"
         field(7; "Location Code"; Code[10])
         {
             Caption = 'Location Code';
+            ToolTip = 'Specifies a code for the location where you want the items to be placed when they are received.';
             TableRelation = Location where("Use As In-Transit" = const(false));
         }
         /// <summary>
@@ -121,6 +126,7 @@ table 6661 "Return Receipt Line"
         field(10; "Shipment Date"; Date)
         {
             Caption = 'Shipment Date';
+            ToolTip = 'Specifies when items on the document are shipped or were shipped. A shipment date is usually calculated from a requested delivery date plus lead time.';
         }
         /// <summary>
         /// Specifies the description of the item, account, or resource on the line.
@@ -128,6 +134,7 @@ table 6661 "Return Receipt Line"
         field(11; Description; Text[100])
         {
             Caption = 'Description';
+            ToolTip = 'Specifies either the name of or the description of the item, general ledger account or item charge.';
         }
         /// <summary>
         /// Specifies additional description text for the line.
@@ -135,6 +142,7 @@ table 6661 "Return Receipt Line"
         field(12; "Description 2"; Text[50])
         {
             Caption = 'Description 2';
+            ToolTip = 'Specifies information in addition to the description.';
         }
         /// <summary>
         /// Specifies the unit of measure description for the line item.
@@ -142,6 +150,7 @@ table 6661 "Return Receipt Line"
         field(13; "Unit of Measure"; Text[50])
         {
             Caption = 'Unit of Measure';
+            ToolTip = 'Specifies the name of the item or resource''s unit of measure, such as piece or hour.';
         }
         /// <summary>
         /// Specifies the quantity received for the return.
@@ -150,6 +159,7 @@ table 6661 "Return Receipt Line"
         {
             AutoFormatType = 0;
             Caption = 'Quantity';
+            ToolTip = 'Specifies the number of units of the item, general ledger account, or item charge on the line.';
             DecimalPlaces = 0 : 5;
         }
         /// <summary>
@@ -206,6 +216,7 @@ table 6661 "Return Receipt Line"
         {
             AutoFormatType = 0;
             Caption = 'Gross Weight';
+            ToolTip = 'Specifies the gross weight of one unit of the item. In the sales statistics window, the gross weight on the line is included in the total gross weight of all the lines for the particular sales document.';
             DecimalPlaces = 0 : 5;
         }
         /// <summary>
@@ -215,6 +226,7 @@ table 6661 "Return Receipt Line"
         {
             AutoFormatType = 0;
             Caption = 'Net Weight';
+            ToolTip = 'Specifies the net weight of one unit of the item. In the sales statistics window, the net weight on the line is included in the total net weight of all the lines for the particular sales document.';
             DecimalPlaces = 0 : 5;
         }
         /// <summary>
@@ -224,6 +236,7 @@ table 6661 "Return Receipt Line"
         {
             AutoFormatType = 0;
             Caption = 'Units per Parcel';
+            ToolTip = 'Specifies the number of units per parcel of the item. In the sales statistics window, the number of units per parcel on the line helps to determine the total number of units for all the lines for the particular sales document.';
             DecimalPlaces = 0 : 5;
         }
         /// <summary>
@@ -233,6 +246,7 @@ table 6661 "Return Receipt Line"
         {
             AutoFormatType = 0;
             Caption = 'Unit Volume';
+            ToolTip = 'Specifies the volume of one unit of the item. In the sales statistics window, the volume of one unit of the item on the line is included in the total volume of all the lines for the particular sales document.';
             DecimalPlaces = 0 : 5;
         }
         /// <summary>
@@ -242,6 +256,7 @@ table 6661 "Return Receipt Line"
         {
             AccessByPermission = TableData Item = R;
             Caption = 'Appl.-to Item Entry';
+            ToolTip = 'Specifies the number of the item ledger entry that the document or journal line is applied to.';
         }
         /// <summary>
         /// Specifies the item receipt entry number created by posting.
@@ -257,6 +272,7 @@ table 6661 "Return Receipt Line"
         {
             CaptionClass = '1,2,1';
             Caption = 'Shortcut Dimension 1 Code';
+            ToolTip = 'Specifies the code for Shortcut Dimension 1, which is one of two global dimension codes that you set up in the General Ledger Setup window.';
             TableRelation = "Dimension Value".Code where("Global Dimension No." = const(1));
         }
         /// <summary>
@@ -266,6 +282,7 @@ table 6661 "Return Receipt Line"
         {
             CaptionClass = '1,2,2';
             Caption = 'Shortcut Dimension 2 Code';
+            ToolTip = 'Specifies the code for Shortcut Dimension 2, which is one of two global dimension codes that you set up in the General Ledger Setup window.';
             TableRelation = "Dimension Value".Code where("Global Dimension No." = const(2));
         }
         /// <summary>
@@ -282,6 +299,7 @@ table 6661 "Return Receipt Line"
         field(45; "Job No."; Code[20])
         {
             Caption = 'Project No.';
+            ToolTip = 'Specifies the number of the related project.';
             TableRelation = Job;
         }
         /// <summary>
@@ -299,6 +317,7 @@ table 6661 "Return Receipt Line"
         {
             AutoFormatType = 0;
             Caption = 'Quantity Invoiced';
+            ToolTip = 'Specifies how many units of the item on the line have been posted as invoiced.';
             DecimalPlaces = 0 : 5;
             Editable = false;
         }
@@ -308,6 +327,7 @@ table 6661 "Return Receipt Line"
         field(68; "Bill-to Customer No."; Code[20])
         {
             Caption = 'Bill-to Customer No.';
+            ToolTip = 'Specifies the number of the customer that you send or sent the invoice or credit memo to.';
             Editable = false;
             TableRelation = Customer;
         }
@@ -428,6 +448,7 @@ table 6661 "Return Receipt Line"
         {
             CalcFormula = lookup("Return Receipt Header"."Currency Code" where("No." = field("Document No.")));
             Caption = 'Currency Code';
+            ToolTip = 'Specifies the currency that is used on the entry.';
             Editable = false;
             FieldClass = FlowField;
         }
@@ -438,6 +459,7 @@ table 6661 "Return Receipt Line"
         {
             AccessByPermission = TableData "Return Receipt Header" = R;
             Caption = 'Blanket Order No.';
+            ToolTip = 'Specifies the number of the blanket order that the record originates from.';
             TableRelation = "Sales Header"."No." where("Document Type" = const("Blanket Order"));
         }
         /// <summary>
@@ -447,6 +469,7 @@ table 6661 "Return Receipt Line"
         {
             AccessByPermission = TableData "Return Receipt Header" = R;
             Caption = 'Blanket Order Line No.';
+            ToolTip = 'Specifies the number of the blanket order line that the record originates from.';
             TableRelation = "Sales Line"."Line No." where("Document Type" = const("Blanket Order"),
                                                            "Document No." = field("Blanket Order No."));
         }
@@ -521,6 +544,7 @@ table 6661 "Return Receipt Line"
         field(5402; "Variant Code"; Code[10])
         {
             Caption = 'Variant Code';
+            ToolTip = 'Specifies the variant of the item on the line.';
             TableRelation = if (Type = const(Item)) "Item Variant".Code where("Item No." = field("No."));
         }
         /// <summary>
@@ -529,6 +553,7 @@ table 6661 "Return Receipt Line"
         field(5403; "Bin Code"; Code[20])
         {
             Caption = 'Bin Code';
+            ToolTip = 'Specifies the bin where the items are picked or put away.';
             TableRelation = Bin.Code where("Location Code" = field("Location Code"),
                                             "Item Filter" = field("No."),
                                             "Variant Filter" = field("Variant Code"));
@@ -549,6 +574,7 @@ table 6661 "Return Receipt Line"
         field(5407; "Unit of Measure Code"; Code[10])
         {
             Caption = 'Unit of Measure Code';
+            ToolTip = 'Specifies how each unit of the item or resource is measured, such as in pieces or hours. By default, the value in the Base Unit of Measure field on the item or resource card is inserted.';
             TableRelation = if (Type = const(Item)) "Item Unit of Measure".Code where("Item No." = field("No."))
             else
             "Unit of Measure";
@@ -632,6 +658,7 @@ table 6661 "Return Receipt Line"
         field(5710; Nonstock; Boolean)
         {
             Caption = 'Catalog';
+            ToolTip = 'Specifies that this item is a catalog item.';
         }
         /// <summary>
         /// Specifies the purchasing code for special order handling.
@@ -648,6 +675,7 @@ table 6661 "Return Receipt Line"
         {
             AccessByPermission = TableData "Item Reference" = R;
             Caption = 'Item Reference No.';
+            ToolTip = 'Specifies the referenced item number.';
         }
         /// <summary>
         /// Specifies the unit of measure from the item reference.
@@ -678,6 +706,7 @@ table 6661 "Return Receipt Line"
         {
             AutoFormatType = 0;
             Caption = 'Return Qty. Rcd. Not Invd.';
+            ToolTip = 'Specifies the quantity from the line that has been posted as received but that has not yet been posted as invoiced.';
             DecimalPlaces = 0 : 5;
             Editable = false;
         }
@@ -688,6 +717,7 @@ table 6661 "Return Receipt Line"
         {
             AccessByPermission = TableData Item = R;
             Caption = 'Appl.-from Item Entry';
+            ToolTip = 'Specifies the number of the item ledger entry that the document or journal line is applied from.';
             MinValue = 0;
         }
         /// <summary>
@@ -713,6 +743,7 @@ table 6661 "Return Receipt Line"
         field(6602; "Return Order No."; Code[20])
         {
             Caption = 'Return Order No.';
+            ToolTip = 'Specifies the return order number this line is associated with.';
             Editable = false;
         }
         /// <summary>
@@ -729,6 +760,7 @@ table 6661 "Return Receipt Line"
         field(6608; "Return Reason Code"; Code[10])
         {
             Caption = 'Return Reason Code';
+            ToolTip = 'Specifies the code explaining why the item was returned.';
             TableRelation = "Return Reason";
         }
         /// <summary>
@@ -761,6 +793,7 @@ table 6661 "Return Receipt Line"
         {
             CalcFormula = lookup(Customer.Name where("No." = field("Sell-to Customer No.")));
             Caption = 'Sell-to Customer Name';
+            ToolTip = 'Specifies the name of the customer.';
             Editable = false;
             FieldClass = FlowField;
         }

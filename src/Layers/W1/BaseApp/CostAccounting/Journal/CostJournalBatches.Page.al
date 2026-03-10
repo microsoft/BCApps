@@ -53,6 +53,12 @@ page 1135 "Cost Journal Batches"
                     ApplicationArea = CostAccounting;
                     ToolTip = 'Specifies if the posted journal lines are deleted. If the check box is not selected, you can use the posted journal lines again. After the posting, only the posting date is deleted. You can use the option for monthly recurring cost entries.';
                 }
+                field("No. of Lines"; Rec."No. of Lines")
+                {
+                    ApplicationArea = CostAccounting;
+                    ToolTip = 'Specifies the number of lines in this journal batch.';
+                    Visible = false;
+                }
             }
         }
     }

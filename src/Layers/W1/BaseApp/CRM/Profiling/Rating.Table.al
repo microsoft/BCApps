@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -14,6 +14,7 @@ table 5111 Rating
         field(1; "Profile Questionnaire Code"; Code[20])
         {
             Caption = 'Profile Questionnaire Code';
+            ToolTip = 'Specifies the code for the profile questionnaire that contains the question you use to create your rating.';
             NotBlank = true;
             TableRelation = "Profile Questionnaire Header";
         }
@@ -28,6 +29,7 @@ table 5111 Rating
         field(3; "Rating Profile Quest. Code"; Code[20])
         {
             Caption = 'Rating Profile Quest. Code';
+            ToolTip = 'Specifies the code for the profile questionnaire that contains the answer you use to create your rating.';
             NotBlank = true;
             TableRelation = "Profile Questionnaire Header";
         }
@@ -43,6 +45,7 @@ table 5111 Rating
             AutoFormatType = 0;
             BlankZero = true;
             Caption = 'Points';
+            ToolTip = 'Specifies the number of points you have assigned to this answer.';
             DecimalPlaces = 0 : 0;
         }
         field(6; "Profile Question Description"; Text[250])
@@ -50,6 +53,7 @@ table 5111 Rating
             CalcFormula = lookup("Profile Questionnaire Line".Description where("Profile Questionnaire Code" = field("Profile Questionnaire Code"),
                                                                                  "Line No." = field("Profile Questionnaire Line No.")));
             Caption = 'Profile Question Description';
+            ToolTip = 'Specifies the description you have entered for this rating question in the Description field in the Profile Questionnaire Setup window.';
             Editable = false;
             FieldClass = FlowField;
         }

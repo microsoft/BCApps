@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -39,6 +39,7 @@ table 1253 "Bank Pmt. Appl. Settings"
         /// </summary>
         field(3; "Vendor Ledger Entries Matching"; Boolean)
         {
+            ToolTip = 'Specifies if automatic matching should be enabled for Vendor Ledger Entries.';
         }
 
         /// <summary>
@@ -47,6 +48,7 @@ table 1253 "Bank Pmt. Appl. Settings"
         /// </summary>
         field(4; "Cust. Ledger Entries Matching"; Boolean)
         {
+            ToolTip = 'Specifies if automatic matching should be enabled for Customer Ledger Entries.';
         }
 
         /// <summary>
@@ -55,6 +57,7 @@ table 1253 "Bank Pmt. Appl. Settings"
         /// </summary>
         field(5; "Bank Ledger Entries Matching"; Boolean)
         {
+            ToolTip = 'Specifies if automatic matching should be enabled for Bank Ledger Entries.';
         }
 
         /// <summary>
@@ -63,6 +66,7 @@ table 1253 "Bank Pmt. Appl. Settings"
         /// </summary>
         field(6; "RelatedParty Name Matching"; Enum "Pmt. Appl. Related Party Name Matching")
         {
+            ToolTip = 'Specifies which algorithm to use to determaine related party. Set this value to disabled if your bank statements do not include the name of the related party name.';
         }
 
         /// <summary>
@@ -71,6 +75,7 @@ table 1253 "Bank Pmt. Appl. Settings"
         /// </summary>
         field(7; "Bank Ledg Closing Doc No Match"; boolean)
         {
+            ToolTip = 'Specifies if the algorithm should search Vendor and Customer Ledger Entries when matching Bank Ledger Entries. This functionality should be used only if your process requires it, otherwise it has a high performance impact.';
         }
 
         /// <summary>
@@ -79,6 +84,7 @@ table 1253 "Bank Pmt. Appl. Settings"
         /// </summary>
         field(8; "Apply Man. Disable Suggestions"; boolean)
         {
+            ToolTip = 'Specifies if the suggestions should be disabled for Apply Manually page. Use this setting if the opening of Apply Manually page takes too long.';
         }
 
         /// <summary>
@@ -87,6 +93,7 @@ table 1253 "Bank Pmt. Appl. Settings"
         /// </summary>
         field(9; "Enable Apply Immediatelly"; boolean)
         {
+            ToolTip = 'Specifies if certain rules should be applied immediatelly. If this value is set to true, if the rule is matched, then the system will not look for alternatives for the specific line. If this value is set to false, the system will search for alternatives, resulting in a higher confidence match.';
         }
         /// <summary>
         /// Enables automatic matching against employee ledger entries during payment application.
@@ -94,6 +101,7 @@ table 1253 "Bank Pmt. Appl. Settings"
         /// </summary>
         field(10; "Empl. Ledger Entries Matching"; Boolean)
         {
+            ToolTip = 'Specifies if automatic matching should be enabled for Employee Ledger Entries.';
         }
         /// <summary>
         /// Hides vendor ledger entries from manual application interface.

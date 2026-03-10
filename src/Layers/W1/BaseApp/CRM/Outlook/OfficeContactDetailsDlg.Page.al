@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -23,18 +23,15 @@ page 1630 "Office Contact Details Dlg"
                 field(Name; Rec.Name)
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the name of the contact. If the contact is a person, you can click the field to see the Name Details window.';
                 }
                 field("E-Mail"; Rec."E-Mail")
                 {
                     ApplicationArea = Basic, Suite;
                     Enabled = false;
-                    ToolTip = 'Specifies the email address of the contact.';
                 }
                 field(Type; Rec.Type)
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the type of contact, either company or person.';
 
                     trigger OnValidate()
                     begin

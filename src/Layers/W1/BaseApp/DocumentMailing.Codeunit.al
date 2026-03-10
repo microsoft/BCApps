@@ -517,6 +517,7 @@ codeunit 260 "Document-Mailing"
             ReportSelectionUsage::"P.Blanket".AsInteger(),
             ReportSelectionUsage::"P.Order".AsInteger(),
             ReportSelectionUsage::"P.Invoice".AsInteger(),
+            ReportSelectionUsage::"P.Self Billing Invoice".AsInteger(),
             ReportSelectionUsage::"P.Return".AsInteger(),
             ReportSelectionUsage::"P.Cr.Memo".AsInteger(),
             ReportSelectionUsage::"P.Receipt".AsInteger(),

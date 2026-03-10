@@ -206,6 +206,7 @@ permissionset 732 "D365 BASIC ISV"
                   tabledata "Tenant Web Service" = R,
                   tabledata "Upgrade Blob Storage" = Rimd,
                   tabledata User = RMD,
+                  tabledata "ABC Analysis Setup" = RIMD,
                   tabledata "Acc. Sched. Cell Value" = RIMD,
                   tabledata "Acc. Sched. Chart Setup Line" = RIMD,
                   tabledata "Acc. Sched. KPI Buffer" = RIMD,
@@ -220,6 +221,9 @@ permissionset 732 "D365 BASIC ISV"
                   tabledata "Financial Report Schedule" = RIMD,
                   tabledata "Financial Report User Filters" = RIMD,
                   tabledata "Fin. Report Excel Template" = RIMD,
+                  tabledata "Financial Report Category" = RIMD,
+                  tabledata "Financial Report Audit Log" = Rimd,
+                  tabledata "Financial Report Status" = RIMD,
                   tabledata "Account Schedules Chart Setup" = RIMD,
                   tabledata "Account Use Buffer" = RIMD,
                   tabledata "Accounting Period" = RIMD,
@@ -495,6 +499,8 @@ permissionset 732 "D365 BASIC ISV"
                   tabledata "Excel Template Storage" = RIMD,
                   tabledata "Exch. Rate Adjmt. Reg." = Rimd,
                   tabledata "Exch. Rate Adjmt. Ledg. Entry" = Rimd,
+                  tabledata "Contact Sync User" = RIMD,
+                  tabledata "Outlook Contacts" = RIMD,
 #if not CLEAN28
                   tabledata "Exchange Contact" = RIMD,
 #endif

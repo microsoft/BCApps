@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -20,7 +20,6 @@ page 9152 "My Items"
                 field("Item No."; Rec."Item No.")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the item numbers that are displayed in the My Item Cue on the Role Center.';
 
                     trigger OnValidate()
                     begin
@@ -33,7 +32,6 @@ page 9152 "My Items"
                     Caption = 'Description';
                     DrillDown = false;
                     Lookup = false;
-                    ToolTip = 'Specifies a description of the item.';
                 }
                 field("Unit Price"; Rec."Unit Price")
                 {
@@ -41,13 +39,11 @@ page 9152 "My Items"
                     Caption = 'Unit Price';
                     DrillDown = false;
                     Lookup = false;
-                    ToolTip = 'Specifies the item''s unit price.';
                 }
                 field(Inventory; Rec.Inventory)
                 {
                     ApplicationArea = Basic, Suite;
                     Caption = 'Inventory';
-                    ToolTip = 'Specifies the inventory quantities of my items.';
                     Visible = false;
                 }
             }

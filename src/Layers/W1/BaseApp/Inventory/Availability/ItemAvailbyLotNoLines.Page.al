@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -35,26 +35,22 @@ page 514 "Item Avail. by Lot No. Lines"
                 {
                     ApplicationArea = ItemTracking;
                     Caption = 'Code';
-                    ToolTip = 'Specifies a location code for the warehouse or distribution center where your items are handled and stored before being sold.';
                 }
                 field(ExpirationDate; Rec."Expiration Date")
                 {
                     ApplicationArea = ItemTracking;
                     Caption = 'Expiration Date';
-                    ToolTip = 'Specifies expiration date for the specified lot.';
                 }
                 field(Quality; Rec.Quality)
                 {
                     ApplicationArea = ItemTracking;
                     Caption = 'Quality';
-                    ToolTip = 'Specifies the test quality of the specified lot.';
                     Visible = false;
                 }
                 field(CertificateNumber; Rec."Certificate Number")
                 {
                     ApplicationArea = ItemTracking;
                     Caption = 'Certificate Number';
-                    ToolTip = 'Specifies the certificate number of the specified lot.';
                     Visible = false;
                 }
 
@@ -63,7 +59,6 @@ page 514 "Item Avail. by Lot No. Lines"
                     ApplicationArea = Basic, Suite;
                     Caption = 'Inventory';
                     DecimalPlaces = 0 : 5;
-                    ToolTip = 'Specifies the inventory level of an item.';
 
                     trigger OnDrillDown()
                     var
@@ -84,7 +79,6 @@ page 514 "Item Avail. by Lot No. Lines"
                     ApplicationArea = Basic, Suite;
                     Caption = 'Gross Requirement';
                     DecimalPlaces = 0 : 5;
-                    ToolTip = 'Specifies the sum of the total demand for the item. The gross requirement consists of independent demand (which include sales orders, service orders, transfer orders, and demand forecasts) and dependent demand (which include production order components for planned, firm planned, and released production orders and requisition and planning worksheets lines).';
 
                     trigger OnDrillDown()
                     var
@@ -105,7 +99,6 @@ page 514 "Item Avail. by Lot No. Lines"
                     ApplicationArea = Basic, Suite;
                     Caption = 'Scheduled Receipt';
                     DecimalPlaces = 0 : 5;
-                    ToolTip = 'Specifies the sum of items from replenishment orders.';
 
                     trigger OnDrillDown()
                     var
@@ -126,7 +119,6 @@ page 514 "Item Avail. by Lot No. Lines"
                     ApplicationArea = Basic, Suite;
                     Caption = 'Planned Order Receipt';
                     DecimalPlaces = 0 : 5;
-                    ToolTip = 'Specifies the item''s availability figures for the planned order receipt.';
 
                     trigger OnDrillDown()
                     var
@@ -147,7 +139,6 @@ page 514 "Item Avail. by Lot No. Lines"
                     ApplicationArea = Basic, Suite;
                     Caption = 'Available Inventory';
                     DecimalPlaces = 0 : 5;
-                    ToolTip = 'Specifies the quantity of the item that is currently in inventory and not reserved for other demand.';
                 }
             }
         }

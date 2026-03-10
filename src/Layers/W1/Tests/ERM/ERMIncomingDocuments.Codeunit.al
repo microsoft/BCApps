@@ -1878,30 +1878,6 @@ codeunit 134400 "ERM Incoming Documents"
 
     [Test]
     [Scope('OnPrem')]
-    procedure TestIncomingDocsShouldFilterProcessedDocs()
-    var
-        ProcessedIncomingDocument: Record "Incoming Document";
-        UnprocessedIncomingDocument: Record "Incoming Document";
-        IncomingDocumentsPage: TestPage "Incoming Documents";
-    begin
-        ProcessedIncomingDocument.DeleteAll();
-        CreateIncomingDocument(ProcessedIncomingDocument, 'Processed Document', true);
-        CreateIncomingDocument(UnprocessedIncomingDocument, 'Unprocessed Document', false);
-
-        IncomingDocumentsPage.OpenEdit();
-        IncomingDocumentsPage.ShowUnprocessed.Invoke();
-
-        IncomingDocumentsPage.First();
-        Assert.IsFalse(IncomingDocumentsPage.ShowUnprocessed.Enabled(), 'Expected that ShowUnprocessed action is disabled');
-        Assert.IsTrue(IncomingDocumentsPage.ShowAll.Enabled(), 'Expected that ShowUnprocessed action is disabled');
-        Assert.AreEqual(
-          UnprocessedIncomingDocument.Description, IncomingDocumentsPage.Description.Value,
-          'Expected that Description match the Processed Document');
-        Assert.IsFalse(IncomingDocumentsPage.Next(), 'Expected that list contains only one record');
-    end;
-
-    [Test]
-    [Scope('OnPrem')]
     procedure TestIncomingDocsShouldShowAllDocsOnShowAllAction()
     var
         ProcessedIncomingDocument: Record "Incoming Document";

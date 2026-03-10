@@ -55,6 +55,7 @@ codeunit 134982 "ERM Financial Reports"
         G_L_Entry_System_Created_EntryLbl: Label 'G_L_Entry_System_Created_Entry';
         G_L_Entry_Posting_DateLbl: Label 'G_L_Entry_Posting_Date';
         G_L_Entry_Document_DateLbl: Label 'G_L_Entry_Document_Date';
+        PostingGroupDetailsLedEntryErr: Label 'Posting group should be populated from customer ledger entry';
 
     [Test]
     [HandlerFunctions('RHDetailTrialBalance')]
@@ -1420,6 +1421,97 @@ codeunit 134982 "ERM Financial Reports"
 
         // [THEN] Verify Audit Trail report dataset contains  G/L Entry.
         VerifyAuditTrailReport(GenJournalLine, GLRegister);
+    end;
+    
+    [Test]
+    [HandlerFunctions('ConfirmHandler,RHReconcileCustandVendAccs')]
+    procedure ReconcileCustVendAccounts_AfterExchRateAdjustment()
+    var
+        Currency: Record Currency;
+        CurrencyExchangeRate: Record "Currency Exchange Rate";
+        Customer: Record Customer;
+        SalesHeader: Record "Sales Header";
+        SalesLine: Record "Sales Line";
+        DtldCustLedgEntry: Record "Detailed Cust. Ledg. Entry";
+        GLAccount: Record "G/L Account";
+        ReconcileCustAndVendAccs: Report "Reconcile Cust. and Vend. Accs";
+        InvoiceAmount: Decimal;
+        AdjustmentDate: Date;
+    begin
+        // [SCENARIO 617192] Detailed Customer Ledger Entries created during Exchange Rate Adjustment should have posting group populated and Report Reconcile Customer and Vendor Accounts shows correct amounts after running Adjust Exchange Rates
+
+        Initialize();
+
+        // [GIVEN] Create a currency with exchange rate
+        LibraryERM.CreateCurrency(Currency);
+        LibraryERM.SetCurrencyGainLossAccounts(Currency);
+
+        // [GIVEN] Create exchange rate for the currency
+        AdjustmentDate := CalcDate('<+5D>', WorkDate());
+        LibraryERM.CreateExchRate(CurrencyExchangeRate, Currency.Code, WorkDate());
+        CurrencyExchangeRate.Validate("Exchange Rate Amount", 100);
+        CurrencyExchangeRate.Validate("Adjustment Exch. Rate Amount", 100);
+        CurrencyExchangeRate.Validate("Relational Exch. Rate Amount", 10);
+        CurrencyExchangeRate.Validate("Relational Adjmt Exch Rate Amt", 10);
+        CurrencyExchangeRate.Modify(true);
+
+        // [GIVEN] Create a second exchange rate for adjustment date
+        LibraryERM.CreateExchRate(CurrencyExchangeRate, Currency.Code, AdjustmentDate);
+        CurrencyExchangeRate.Validate("Exchange Rate Amount", 100);
+        CurrencyExchangeRate.Validate("Adjustment Exch. Rate Amount", 100);
+        CurrencyExchangeRate.Validate("Relational Exch. Rate Amount", 11);
+        CurrencyExchangeRate.Validate("Relational Adjmt Exch Rate Amt", 11);
+        CurrencyExchangeRate.Modify(true);
+
+        // [GIVEN] Create customer and post two sales invoices with the currency
+        LibrarySales.CreateCustomer(Customer);
+        Customer.Validate("Currency Code", Currency.Code);
+        Customer.Modify(true);
+
+        InvoiceAmount := LibraryRandom.RandDecInRange(1000, 2000, 2);
+        LibrarySales.CreateSalesHeader(SalesHeader, SalesHeader."Document Type"::Invoice, Customer."No.");
+        SalesHeader.Validate("Posting Date", WorkDate());
+        SalesHeader.Modify(true);
+        LibrarySales.CreateSalesLine(SalesLine, SalesHeader, SalesLine.Type::Item, LibraryInventory.CreateItemNo(), 1);
+        SalesLine.Validate("Unit Price", InvoiceAmount);
+        SalesLine.Modify(true);
+        LibrarySales.PostSalesDocument(SalesHeader, true, true);
+
+        LibrarySales.CreateSalesHeader(SalesHeader, SalesHeader."Document Type"::Invoice, Customer."No.");
+        SalesHeader.Validate("Posting Date", AdjustmentDate);
+        SalesHeader.Modify(true);
+        LibrarySales.CreateSalesLine(SalesLine, SalesHeader, SalesLine.Type::Item, LibraryInventory.CreateItemNo(), 1);
+        SalesLine.Validate("Unit Price", InvoiceAmount);
+        SalesLine.Modify(true);
+        LibrarySales.PostSalesDocument(SalesHeader, true, true);
+
+        // [WHEN] Run Adjust Exchange Rates report to post the adjustment Entries
+        LibraryERM.RunExchRateAdjustmentSimple(Currency.Code, AdjustmentDate, AdjustmentDate);
+        Commit();
+
+        // [THEN] Verify adjustment entries have posting group 
+        DtldCustLedgEntry.SetRange("Customer No.", Customer."No.");
+        DtldCustLedgEntry.SetFilter("Entry Type", '%1|%2',
+            DtldCustLedgEntry."Entry Type"::"Unrealized Gain",
+            DtldCustLedgEntry."Entry Type"::"Unrealized Loss");
+        if DtldCustLedgEntry.FindFirst() then
+            Assert.AreEqual(Customer."Customer Posting Group", DtldCustLedgEntry."Posting Group", PostingGroupDetailsLedEntryErr);
+
+        // [WHEN] Run the Reconcile Cust. And Vend. Accounts report
+        Clear(ReconcileCustAndVendAccs);
+        GLAccount.SetFilter("No.", '%1|%2', Currency."Unrealized Gains Acc.", Currency."Unrealized Losses Acc.");
+        GLAccount.FindFirst();
+        ReconcileCustAndVendAccs.SetTableView(GLAccount);
+        Commit();
+        ReconcileCustAndVendAccs.Run();
+
+        // [THEN] Verify: Indirectly Posted Amount matches G/L Account Net Change
+        LibraryReportDataset.LoadDataSetFile();
+        LibraryReportDataset.SetRange('No_GLAccount', GLAccount."No.");
+        if LibraryReportDataset.GetNextRow() then begin
+            GLAccount.CalcFields("Net Change");
+            LibraryReportDataset.AssertCurrentRowValueEquals('NetChange_GLAccount', GLAccount."Net Change");
+        end;
     end;
 
     local procedure Initialize()

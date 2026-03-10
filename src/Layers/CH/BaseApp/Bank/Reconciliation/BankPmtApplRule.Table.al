@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -34,6 +34,7 @@ table 1252 "Bank Pmt. Appl. Rule"
         field(1; "Match Confidence"; Option)
         {
             Caption = 'Match Confidence';
+            ToolTip = 'Specifies your confidence in the application rule that you defined by the values in the Related Party Matched, Doc. No./Ext. Doc. No. Matched, and Amount Incl. Tolerance Matched fields on the line in the Payment Application Rules window.';
             OptionCaption = 'None,Low,Medium,High';
             OptionMembers = "None",Low,Medium,High;
         }
@@ -44,6 +45,7 @@ table 1252 "Bank Pmt. Appl. Rule"
         field(2; Priority; Integer)
         {
             Caption = 'Priority';
+            ToolTip = 'Specifies the priority of the application rule in relation to other application rules that are defined as lines in the Payment Application Rules window. 1 represents the highest priority.';
 
             trigger OnValidate()
             var
@@ -65,6 +67,7 @@ table 1252 "Bank Pmt. Appl. Rule"
         field(3; "Related Party Matched"; Option)
         {
             Caption = 'Related Party Matched';
+            ToolTip = 'Specifies how much information on the payment reconciliation journal line must match the open entry before the application rule will apply the payment to the open entry.';
             OptionCaption = 'Not Considered,Fully,Partially,No';
             OptionMembers = "Not Considered",Fully,Partially,No;
         }
@@ -75,6 +78,7 @@ table 1252 "Bank Pmt. Appl. Rule"
         field(4; "Doc. No./Ext. Doc. No. Matched"; Option)
         {
             Caption = 'Doc. No./Ext. Doc. No. Matched';
+            ToolTip = 'Specifies if text on the payment reconciliation journal line must match with the value in the Document No. field or the External Document No. field on the open entry before the application rule will be used to automatically apply the payment to the open entry.';
             OptionCaption = 'Not Considered,Yes,No,Yes - Multiple';
             OptionMembers = "Not Considered",Yes,No,"Yes - Multiple";
         }
@@ -85,6 +89,7 @@ table 1252 "Bank Pmt. Appl. Rule"
         field(5; "Amount Incl. Tolerance Matched"; Option)
         {
             Caption = 'Amount Incl. Tolerance Matched';
+            ToolTip = 'Specifies how many entries must match the amount including payment tolerance, before the application rule will be used to apply a payment to the open entry.';
             OptionCaption = 'Not Considered,One Match,Multiple Matches,No Matches';
             OptionMembers = "Not Considered","One Match","Multiple Matches","No Matches";
         }
@@ -95,6 +100,7 @@ table 1252 "Bank Pmt. Appl. Rule"
         field(6; "Direct Debit Collect. Matched"; Option)
         {
             Caption = 'Direct Debit Collect. Matched';
+            ToolTip = 'Specifies if the Transaction ID value on the payment reconciliation journal line must match with the value in the related Transaction ID field in the Direct Debit Collect. Entries window.';
             OptionCaption = 'Not Considered,Yes,No';
             OptionMembers = "Not Considered",Yes,No;
         }
@@ -115,6 +121,7 @@ table 1252 "Bank Pmt. Appl. Rule"
         field(40; "Review Required"; Boolean)
         {
             Caption = 'Review Required';
+            ToolTip = 'Specifies if bank statement lines matched with this rule will be shown as recommended for review.';
         }
 
         /// <summary>
@@ -124,6 +131,7 @@ table 1252 "Bank Pmt. Appl. Rule"
         field(41; "Apply Immediatelly"; Boolean)
         {
             Caption = 'Apply Immediatelly';
+            ToolTip = 'Specifies whether to search for alternative ledger entries that this line can be applied to. If turned on, the value is applied to the first match and alternative ledger entries are not considered.';
         }
     }
 

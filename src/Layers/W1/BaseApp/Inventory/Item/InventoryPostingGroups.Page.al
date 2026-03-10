@@ -24,12 +24,10 @@ page 112 "Inventory Posting Groups"
                 field("Code"; Rec.Code)
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the identifier for the inventory posting group.';
                 }
                 field(Description; Rec.Description)
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies a description of the inventory posting group.';
                 }
             }
         }

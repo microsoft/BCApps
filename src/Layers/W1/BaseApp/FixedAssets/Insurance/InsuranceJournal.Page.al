@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -49,23 +49,19 @@ page 5651 "Insurance Journal"
                 field("Posting Date"; Rec."Posting Date")
                 {
                     ApplicationArea = FixedAssets;
-                    ToolTip = 'Specifies the date to use as the posting date on the insurance coverage ledger entry.';
                 }
                 field("Document Type"; Rec."Document Type")
                 {
                     ApplicationArea = FixedAssets;
-                    ToolTip = 'Specifies the appropriate document type for the amount you want to post.';
                 }
                 field("Document No."; Rec."Document No.")
                 {
                     ApplicationArea = FixedAssets;
-                    ToolTip = 'Specifies a document number for the journal line.';
                     ShowMandatory = true;
                 }
                 field("Insurance No."; Rec."Insurance No.")
                 {
                     ApplicationArea = FixedAssets;
-                    ToolTip = 'Specifies the insurance number to post an insurance coverage entry to.';
 
                     trigger OnValidate()
                     begin
@@ -87,41 +83,34 @@ page 5651 "Insurance Journal"
                 field("FA Description"; Rec."FA Description")
                 {
                     ApplicationArea = FixedAssets;
-                    ToolTip = 'Specifies a description of the fixed asset.';
                     Visible = false;
                 }
                 field(Description; Rec.Description)
                 {
                     ApplicationArea = FixedAssets;
-                    ToolTip = 'Specifies the description that is entered in the Insurance No. field.';
                 }
                 field(Amount; Rec.Amount)
                 {
                     ApplicationArea = FixedAssets;
-                    ToolTip = 'Specifies the total amount the journal line consists of. Credit amounts must be entered with a minus sign.';
                 }
                 field("Reason Code"; Rec."Reason Code")
                 {
                     ApplicationArea = FixedAssets;
-                    ToolTip = 'Specifies the reason code, a supplementary source code that enables you to trace the entry.';
                     Visible = false;
                 }
                 field("Index Entry"; Rec."Index Entry")
                 {
                     ApplicationArea = FixedAssets;
-                    ToolTip = 'Specifies whether to post an indexation (that is, to index the total value insured).';
                     Visible = false;
                 }
                 field("Shortcut Dimension 1 Code"; Rec."Shortcut Dimension 1 Code")
                 {
                     ApplicationArea = Dimensions;
-                    ToolTip = 'Specifies the code for Shortcut Dimension 1, which is one of two global dimension codes that you set up in the General Ledger Setup window.';
                     Visible = DimVisible1;
                 }
                 field("Shortcut Dimension 2 Code"; Rec."Shortcut Dimension 2 Code")
                 {
                     ApplicationArea = Dimensions;
-                    ToolTip = 'Specifies the code for Shortcut Dimension 2, which is one of two global dimension codes that you set up in the General Ledger Setup window.';
                     Visible = DimVisible2;
                 }
                 field(ShortcutDimCode3; ShortcutDimCode[3])

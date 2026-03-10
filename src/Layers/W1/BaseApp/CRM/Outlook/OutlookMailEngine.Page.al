@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -28,22 +28,18 @@ page 1600 "Outlook Mail Engine"
                 {
                     ApplicationArea = Basic, Suite;
                     ExtendedDatatype = EMail;
-                    ToolTip = 'Specifies the email address of the Outlook contact.';
                 }
                 field(Name; Rec.Name)
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the display name of the Outlook contact.';
                 }
                 field("Document Type"; Rec."Document Type")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the type that the involved document belongs to.';
                 }
                 field("Document No."; Rec."Document No.")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the number of the involved document.';
                 }
                 field(Company; Rec.Company)
                 {

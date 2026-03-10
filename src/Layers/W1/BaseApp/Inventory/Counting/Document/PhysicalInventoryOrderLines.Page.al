@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -21,12 +21,10 @@ page 5878 "Physical Inventory Order Lines"
                 field("Document No."; Rec."Document No.")
                 {
                     ApplicationArea = Warehouse;
-                    ToolTip = 'Specifies the document number.';
                 }
                 field("Line No."; Rec."Line No.")
                 {
                     ApplicationArea = Warehouse;
-                    ToolTip = 'Specifies the number of the line.';
                     Visible = false;
                 }
                 field("Item No."; Rec."Item No.")
@@ -37,35 +35,29 @@ page 5878 "Physical Inventory Order Lines"
                 field("Variant Code"; Rec."Variant Code")
                 {
                     ApplicationArea = Warehouse;
-                    ToolTip = 'Specifies the variant of the item on the line.';
                     Visible = false;
                 }
                 field(Description; Rec.Description)
                 {
                     ApplicationArea = Warehouse;
-                    ToolTip = 'Specifies the description of the item.';
                 }
                 field("Description 2"; Rec."Description 2")
                 {
                     ApplicationArea = Warehouse;
-                    ToolTip = 'Specifies an additional description of the item.';
                     Visible = false;
                 }
                 field("Location Code"; Rec."Location Code")
                 {
                     ApplicationArea = Warehouse;
-                    ToolTip = 'Specifies the location where the item must be counted.';
                 }
                 field("Unit of Measure"; Rec."Unit of Measure")
                 {
                     ApplicationArea = Warehouse;
-                    ToolTip = 'Specifies the unit of measure, such as bottle or piece, that is currently used for the item.';
                     Visible = false;
                 }
                 field("Base Unit of Measure Code"; Rec."Base Unit of Measure Code")
                 {
                     ApplicationArea = Warehouse;
-                    ToolTip = 'Specifies the unit of measure, such as bottle or piece, that is currently used for the item.';
                 }
                 field("Qty. Expected (Base)"; Rec."Qty. Expected (Base)")
                 {
@@ -75,7 +67,6 @@ page 5878 "Physical Inventory Order Lines"
                 field("Qty. Exp. Calculated"; Rec."Qty. Exp. Calculated")
                 {
                     ApplicationArea = Warehouse;
-                    ToolTip = 'Specifies if the Qty. Expected (Base) field has been updated with the Calculate Expected Qty. function.';
                 }
                 field("Qty. Recorded (Base)"; Rec."Qty. Recorded (Base)")
                 {
@@ -85,23 +76,19 @@ page 5878 "Physical Inventory Order Lines"
                 field("On Recording Lines"; Rec."On Recording Lines")
                 {
                     ApplicationArea = Warehouse;
-                    ToolTip = 'Specifies if the item exists on one or more physical inventory recording lines.';
                 }
                 field("No. Finished Rec.-Lines"; Rec."No. Finished Rec.-Lines")
                 {
                     ApplicationArea = Warehouse;
-                    ToolTip = 'Specifies how many of the related physical inventory recordings are closed.';
                 }
                 field("Recorded Without Order"; Rec."Recorded Without Order")
                 {
                     ApplicationArea = Warehouse;
-                    ToolTip = 'Specifies whether the Inventory Order Line was automatically created by finishing a Phys. Inventory.';
                     Visible = false;
                 }
                 field("Entry Type"; Rec."Entry Type")
                 {
                     ApplicationArea = Warehouse;
-                    ToolTip = 'Specifies if the difference in the Quantity (Base) field on the related closed recording is positive or negative.';
                 }
                 field("Quantity (Base)"; Rec."Quantity (Base)")
                 {
@@ -116,13 +103,11 @@ page 5878 "Physical Inventory Order Lines"
                 field("Unit Cost"; Rec."Unit Cost")
                 {
                     ApplicationArea = Warehouse;
-                    ToolTip = 'Specifies the unit costs of the item, which will be used when posting the physical inventory.';
                     Visible = false;
                 }
                 field("Shelf No."; Rec."Shelf No.")
                 {
                     ApplicationArea = Warehouse;
-                    ToolTip = 'Specifies the shelf number where the item can be found normally.';
                     Visible = false;
                 }
             }

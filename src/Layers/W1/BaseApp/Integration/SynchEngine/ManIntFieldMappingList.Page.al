@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -38,23 +38,18 @@ page 5385 "Man. Int. Field Mapping List"
                 }
                 field(Direction; Rec."Direction")
                 {
-                    ToolTip = 'Specifies the synchronization direction.';
                 }
                 field(ConstValue; Rec."Const Value")
                 {
-                    ToolTip = 'Specifies the constant value that the mapped field will be set to.';
                 }
                 field("Transformation Rule"; Rec."Transformation Rule")
                 {
-                    ToolTip = 'Specifies a rule for transforming imported text to a supported value before it can be mapped to a specified field in Microsoft Dynamics 365.';
                 }
                 field(ValidateField; Rec."Validate Field")
                 {
-                    ToolTip = 'Specifies if the field should be validated during assignment.';
                 }
                 field(ValidateIntegrTableField; Rec."Validate Integr. Table Field")
                 {
-                    ToolTip = 'Specifies if the field should be validated during assignment in the integration table.';
                 }
             }
         }

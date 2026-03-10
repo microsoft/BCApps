@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -30,7 +30,6 @@ page 437 "Reminder Statistics"
                 {
                     ApplicationArea = Basic, Suite;
                     DrillDown = false;
-                    ToolTip = 'Specifies the total of the remaining amounts on the reminder lines.';
                 }
                 field(Interest; Interest)
                 {
@@ -45,7 +44,6 @@ page 437 "Reminder Statistics"
                 {
                     ApplicationArea = Basic, Suite;
                     DrillDown = false;
-                    ToolTip = 'Specifies the total of the additional fee amounts on the reminder lines.';
                 }
                 field(VatAmount; VatAmount)
                 {
@@ -62,7 +60,6 @@ page 437 "Reminder Statistics"
                     AutoFormatExpression = Rec."Currency Code";
                     ApplicationArea = Basic, Suite;
                     DrillDown = false;
-                    ToolTip = 'Specifies that the fee is distributed on individual reminder lines.';
                 }
                 field(ReminderTotal; ReminderTotal)
                 {

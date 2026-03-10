@@ -32,12 +32,10 @@ page 9237 "Resource Capacity Matrix"
                 field("No."; Rec."No.")
                 {
                     ApplicationArea = Jobs;
-                    ToolTip = 'Specifies the number of the involved entry or record, according to the specified number series.';
                 }
                 field(Name; Rec.Name)
                 {
                     ApplicationArea = Jobs;
-                    ToolTip = 'Specifies a description of the resource.';
                 }
                 field(Field1; MATRIX_CellData[1])
                 {

@@ -595,7 +595,7 @@ report 1303 "Standard Sales - Draft Invoice"
                         MoreLines := Next(-1) <> 0;
                     if not MoreLines then
                         CurrReport.Break();
-                    SetRange("Line No.", 0, "Line No.");
+                    SetFilter("Line No.", '<=%1', "Line No.");
                     TransHeaderAmount := 0;
                     PrevLineAmount := 0;
                     FirstLineHasBeenOutput := false;

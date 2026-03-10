@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -26,22 +26,18 @@ page 920 "Posted Assembly Order"
                 field("No."; Rec."No.")
                 {
                     ApplicationArea = Assembly;
-                    ToolTip = 'Specifies the number of the involved entry or record, according to the specified number series.';
                 }
                 field("Order No."; Rec."Order No.")
                 {
                     ApplicationArea = Assembly;
-                    ToolTip = 'Specifies the number of the assembly order that the posted assembly order line originates from.';
                 }
                 field("Item No."; Rec."Item No.")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the number of the posted assembly item.';
                 }
                 field(Description; Rec.Description)
                 {
                     ApplicationArea = Assembly;
-                    ToolTip = 'Specifies the description of the posted assembly item.';
                 }
                 group(Control8)
                 {
@@ -49,38 +45,31 @@ page 920 "Posted Assembly Order"
                     field(Quantity; Rec.Quantity)
                     {
                         ApplicationArea = Assembly;
-                        ToolTip = 'Specifies how many units of the assembly item were posted with this posted assembly order.';
                     }
                     field("Unit of Measure Code"; Rec."Unit of Measure Code")
                     {
                         ApplicationArea = Assembly;
-                        ToolTip = 'Specifies how each unit of the item or resource is measured, such as in pieces or hours. By default, the value in the Base Unit of Measure field on the item or resource card is inserted.';
                     }
                 }
                 field("Posting Date"; Rec."Posting Date")
                 {
                     ApplicationArea = Assembly;
-                    ToolTip = 'Specifies the date when the assembly order was posted.';
                 }
                 field("Due Date"; Rec."Due Date")
                 {
                     ApplicationArea = Assembly;
-                    ToolTip = 'Specifies the date when the assembled item is due to be available for use.';
                 }
                 field("Starting Date"; Rec."Starting Date")
                 {
                     ApplicationArea = Assembly;
-                    ToolTip = 'Specifies the date on which the posted assembly order started.';
                 }
                 field("Ending Date"; Rec."Ending Date")
                 {
                     ApplicationArea = Assembly;
-                    ToolTip = 'Specifies the date when the posted assembly order finished, which means the date on which all assembly items were output.';
                 }
                 field("Assemble to Order"; Rec."Assemble to Order")
                 {
                     ApplicationArea = Assembly;
-                    ToolTip = 'Specifies if the posted assembly order was linked to a sales order, which indicates that the item was assembled to order.';
 
                     trigger OnDrillDown()
                     begin
@@ -90,7 +79,6 @@ page 920 "Posted Assembly Order"
                 field(Reversed; Rec.Reversed)
                 {
                     ApplicationArea = Assembly;
-                    ToolTip = 'Specifies if the posted assembly order has been undone.';
                 }
             }
             part(Lines; "Posted Assembly Order Subform")
@@ -104,38 +92,31 @@ page 920 "Posted Assembly Order"
                 field("Variant Code"; Rec."Variant Code")
                 {
                     ApplicationArea = Planning;
-                    ToolTip = 'Specifies the variant of the item on the line.';
                 }
                 field("Location Code"; Rec."Location Code")
                 {
                     ApplicationArea = Location;
-                    ToolTip = 'Specifies to which location the assembly item was output from this posted assembly order header.';
                 }
                 field("Bin Code"; Rec."Bin Code")
                 {
                     ApplicationArea = Warehouse;
-                    ToolTip = 'Specifies to which bin the assembly item was posted as output on the posted assembly order header.';
                 }
                 field("Unit Cost"; Rec."Unit Cost")
                 {
                     ApplicationArea = Assembly;
-                    ToolTip = 'Specifies the cost of one unit of the item or resource on the line.';
                 }
                 field("Cost Amount"; Rec."Cost Amount")
                 {
                     ApplicationArea = Assembly;
-                    ToolTip = 'Specifies the total unit cost of the posted assembly order.';
                 }
                 field("User ID"; Rec."User ID")
                 {
                     ApplicationArea = Assembly;
-                    ToolTip = 'Specifies the ID of the user who posted the entry, to be used, for example, in the change log.';
                     Visible = false;
                 }
                 field("Gen. Bus. Posting Group"; Rec."Gen. Bus. Posting Group")
                 {
                     ApplicationArea = Assembly;
-                    ToolTip = 'Specifies the code for the General Business Posting Group that applies to the entry.';
                 }
             }
         }

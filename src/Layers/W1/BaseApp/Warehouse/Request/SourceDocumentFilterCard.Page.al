@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -23,60 +23,49 @@ page 5786 "Source Document Filter Card"
                 field("Code"; Rec.Code)
                 {
                     ApplicationArea = Warehouse;
-                    ToolTip = 'Specifies the code that identifies the filter record.';
                 }
                 field(Description; Rec.Description)
                 {
                     ApplicationArea = Warehouse;
-                    ToolTip = 'Specifies the description of filter combinations in the Source Document Filter Card window to retrieve lines from source documents.';
                 }
                 field("Source No. Filter"; Rec."Source No. Filter")
                 {
                     ApplicationArea = Warehouse;
-                    ToolTip = 'Specifies the number, or number range, that is used to filter the source documents to get.';
                 }
                 field("Item No. Filter"; Rec."Item No. Filter")
                 {
                     ApplicationArea = Warehouse;
-                    ToolTip = 'Specifies the item number used to filter the source documents to get.';
                 }
                 field("Variant Code Filter"; Rec."Variant Code Filter")
                 {
                     ApplicationArea = Planning;
-                    ToolTip = 'Specifies the item variant used to filter the source documents to get.';
                 }
                 field("Unit of Measure Filter"; Rec."Unit of Measure Filter")
                 {
                     ApplicationArea = Warehouse;
-                    ToolTip = 'Specifies the unit of measure used to filter the source documents to get.';
                 }
                 field("Shipment Method Code Filter"; Rec."Shipment Method Code Filter")
                 {
                     ApplicationArea = Warehouse;
-                    ToolTip = 'Specifies the shipment method code used to filter the source documents to get.';
                 }
                 field("Show Filter Request"; Rec."Show Filter Request")
                 {
                     ApplicationArea = Warehouse;
-                    ToolTip = 'Specifies if the Filters to Get Source Docs. window appears when you choose Use Filters to Get Source Docs on a warehouse shipment or receipt.';
                 }
                 field("Sales Return Orders"; Rec."Sales Return Orders")
                 {
                     ApplicationArea = Warehouse;
                     Enabled = SalesReturnOrdersEnable;
-                    ToolTip = 'Specifies that sales return orders are retrieved when you choose Use Filters to Get Src. Docs in the Warehouse Shipment window.';
                 }
                 field("Purchase Orders"; Rec."Purchase Orders")
                 {
                     ApplicationArea = Warehouse;
                     Enabled = PurchaseOrdersEnable;
-                    ToolTip = 'Specifies that purchase orders are retrieved when you choose Use Filters to Get Src. Docs in the Warehouse Receipt window.';
                 }
                 field("Inbound Transfers"; Rec."Inbound Transfers")
                 {
                     ApplicationArea = Warehouse;
                     Enabled = InboundTransfersEnable;
-                    ToolTip = 'Specifies that inbound transfer orders are retrieved when you choose Use Filters to Get Src. Docs in the Warehouse Receipt.';
 
                     trigger OnValidate()
                     begin
@@ -87,18 +76,15 @@ page 5786 "Source Document Filter Card"
                 {
                     ApplicationArea = Warehouse;
                     Enabled = ShippingAgentCodeFilterEnable;
-                    ToolTip = 'Specifies the shipping agent code used to filter the source documents.';
                 }
                 field("Shipping Agent Service Filter"; Rec."Shipping Agent Service Filter")
                 {
                     ApplicationArea = Warehouse;
                     Enabled = ShippingAgentServiceFilterEnable;
-                    ToolTip = 'Specifies the shipping agent service used to filter the source documents.';
                 }
                 field("Do Not Fill Qty. to Handle"; Rec."Do Not Fill Qty. to Handle")
                 {
                     ApplicationArea = Warehouse;
-                    ToolTip = 'Specifies that inventory quantities are assigned when you get outbound source document lines for shipment.';
                 }
                 group("Source Document:")
                 {
@@ -107,7 +93,6 @@ page 5786 "Source Document Filter Card"
                     {
                         ApplicationArea = Warehouse;
                         Enabled = SalesOrdersEnable;
-                        ToolTip = 'Specifies that sales orders are retrieved when you choose Use Filters to Get Src. Docs in the Warehouse Shipment window.';
 
                         trigger OnValidate()
                         begin
@@ -118,13 +103,11 @@ page 5786 "Source Document Filter Card"
                     {
                         ApplicationArea = Warehouse;
                         Enabled = PurchaseReturnOrdersEnable;
-                        ToolTip = 'Specifies that purchase return orders are retrieved when you choose Use Filters to Get Src. Docs in the Warehouse Shipment window.';
                     }
                     field("Outbound Transfers"; Rec."Outbound Transfers")
                     {
                         ApplicationArea = Warehouse;
                         Enabled = OutboundTransfersEnable;
-                        ToolTip = 'Specifies that outbound transfer orders are retrieved when you choose Use Filters to Get Src. Docs in the Warehouse Shipment window.';
 
                         trigger OnValidate()
                         begin
@@ -138,12 +121,10 @@ page 5786 "Source Document Filter Card"
                     field(Partial; Rec.Partial)
                     {
                         ApplicationArea = Warehouse;
-                        ToolTip = 'Specifies the Shipping Advice field on sales orders must contain Partial when you choose Use Filters to Get Src. Docs.';
                     }
                     field(Complete; Rec.Complete)
                     {
                         ApplicationArea = Warehouse;
-                        ToolTip = 'Specifies the Shipping Advice field on sales orders must contain Complete when you choose Use Filters to Get Src. Docs.';
                     }
                 }
             }
@@ -153,7 +134,6 @@ page 5786 "Source Document Filter Card"
                 field("Sell-to Customer No. Filter"; Rec."Sell-to Customer No. Filter")
                 {
                     ApplicationArea = Warehouse;
-                    ToolTip = 'Specifies the sell-to customer number used to filter the source documents to get.';
                 }
             }
             group(Purchase)
@@ -162,7 +142,6 @@ page 5786 "Source Document Filter Card"
                 field("Buy-from Vendor No. Filter"; Rec."Buy-from Vendor No. Filter")
                 {
                     ApplicationArea = Warehouse;
-                    ToolTip = 'Specifies the buy-from vendor number used to filter the source documents to get.';
                 }
             }
             group(Transfer)
@@ -171,17 +150,14 @@ page 5786 "Source Document Filter Card"
                 field("In-Transit Code Filter"; Rec."In-Transit Code Filter")
                 {
                     ApplicationArea = Location;
-                    ToolTip = 'Specifies the in-transit code used to filter the source documents.';
                 }
                 field("Transfer-from Code Filter"; Rec."Transfer-from Code Filter")
                 {
                     ApplicationArea = Location;
-                    ToolTip = 'Specifies the transfer-from code used to filter the source documents.';
                 }
                 field("Transfer-to Code Filter"; Rec."Transfer-to Code Filter")
                 {
                     ApplicationArea = Location;
-                    ToolTip = 'Specifies the transfer-to code used to filter the source documents to get.';
                 }
             }
             group(Service)
@@ -190,7 +166,6 @@ page 5786 "Source Document Filter Card"
                 field("Customer No. Filter"; Rec."Customer No. Filter")
                 {
                     ApplicationArea = Warehouse;
-                    ToolTip = 'Specifies which customers are included when you use the Filters to Get Source Docs. window to retrieve source document lines.';
                 }
             }
         }

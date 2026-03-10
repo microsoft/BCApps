@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -30,7 +30,6 @@ page 5172 "Answer Points"
                     Editable = false;
                     Style = Strong;
                     StyleExpr = StyleIsStrong;
-                    ToolTip = 'Specifies whether the entry is a question or an answer.';
                 }
                 field(Description; Rec.Description)
                 {
@@ -38,12 +37,10 @@ page 5172 "Answer Points"
                     Editable = false;
                     Style = Strong;
                     StyleExpr = StyleIsStrong;
-                    ToolTip = 'Specifies the profile question or answer.';
                 }
                 field("No. of Contacts"; Rec."No. of Contacts")
                 {
                     ApplicationArea = RelationshipMgmt;
-                    ToolTip = 'Specifies the number of contacts that have given this answer.';
                 }
                 field(Points; Points)
                 {

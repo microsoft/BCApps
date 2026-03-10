@@ -20,7 +20,6 @@ page 9853 "Effective Permissions By Set"
                 {
                     ApplicationArea = All;
                     Editable = false;
-                    ToolTip = 'Specifies the permission set that gives the user permissions to the object chosen in the Permissions section.';
 
                     trigger OnDrillDown()
                     var
@@ -47,20 +46,17 @@ page 9853 "Effective Permissions By Set"
                     Enabled = false;
                     Style = Strong;
                     StyleExpr = Rec.Source = Rec.Source::Entitlement;
-                    ToolTip = 'Specifies the origin of the permission set that gives the user permissions for the object chosen in the Permissions section. Note that rows with the type Entitlement originate from the subscription plan. The permission values of the entitlement overrule values that give increased permissions in other permission sets. In those cases, the permission level is Conflict.';
                 }
                 field(Type; Rec.Type)
                 {
                     ApplicationArea = All;
                     Enabled = false;
-                    ToolTip = 'Specifies the type of the permission set that gives the user permissions for the object chosen in the Permissions section. Note that you can only edit permission sets of type User-Defined.';
                 }
                 field(ReadTxt; ReadPermissionsTxt)
                 {
                     ApplicationArea = All;
                     Caption = 'Read Permission';
                     Editable = false;
-                    ToolTip = 'Specifies whether the permission set gives the user the Read permission.';
 
                     trigger OnDrillDown()
                     begin
@@ -72,7 +68,6 @@ page 9853 "Effective Permissions By Set"
                     ApplicationArea = All;
                     Caption = 'Insert Permission';
                     Editable = false;
-                    ToolTip = 'Specifies whether the permission set gives the user the Insert permission.';
 
                     trigger OnDrillDown()
                     begin
@@ -84,7 +79,6 @@ page 9853 "Effective Permissions By Set"
                     ApplicationArea = All;
                     Caption = 'Modify Permission';
                     Editable = false;
-                    ToolTip = 'Specifies whether the permission set gives the user the Modify permission.';
 
                     trigger OnDrillDown()
                     begin
@@ -96,7 +90,6 @@ page 9853 "Effective Permissions By Set"
                     ApplicationArea = All;
                     Caption = 'Delete Permission';
                     Editable = false;
-                    ToolTip = 'Specifies whether the permission set gives the user the Delete permission.';
 
                     trigger OnDrillDown()
                     begin
@@ -108,7 +101,6 @@ page 9853 "Effective Permissions By Set"
                     ApplicationArea = All;
                     Caption = 'Execute Permission';
                     Editable = false;
-                    ToolTip = 'Specifies whether the permission set gives the user the Execute permission.';
 
                     trigger OnDrillDown()
                     var
@@ -121,7 +113,6 @@ page 9853 "Effective Permissions By Set"
                     ApplicationArea = All;
                     Caption = 'Security Filter';
                     Editable = false;
-                    ToolTip = 'Specifies a security filter that applies to this permission set to limit the access that this permission set has to the data contained in this table.';
                 }
             }
         }

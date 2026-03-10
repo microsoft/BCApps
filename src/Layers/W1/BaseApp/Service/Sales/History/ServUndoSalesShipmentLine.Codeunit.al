@@ -11,7 +11,7 @@ codeunit 6488 "Serv. Undo Sales Shipment Line"
         ServiceItem: Record "Service Item";
         DeleteServiceItemsQst: Label 'Some shipment lines may have unused service items. Do you want to delete them?';
 
-    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Undo Sales Shipment Line", 'OnAfterCheckSalesShipmentLines', '', false, false)]
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Undo Sales Shipment Line", 'OnAfterCheckSalesShipmentLines', '', true, false)]
     local procedure OnAfterCheckSalesShipmentLines(var SalesShipmentLine: Record "Sales Shipment Line"; var UndoSalesShptLineParams: Record "Undo Sales Shpt. Line Params")
     begin
         ServiceItem.SetCurrentKey("Sales/Serv. Shpt. Document No.");
@@ -35,7 +35,7 @@ codeunit 6488 "Serv. Undo Sales Shipment Line"
             Result := true;
     end;
 
-    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Undo Sales Shipment Line", 'OnBeforeDeleteRelatedItems', '', false, false)]
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Undo Sales Shipment Line", 'OnBeforeDeleteRelatedItems', '', true, false)]
     local procedure OnBeforeDeleteRelatedItems(var SalesShipmentLine: Record "Sales Shipment Line"; UndoSalesShptLineParams: Record "Undo Sales Shpt. Line Params" temporary)
     begin
         if UndoSalesShptLineParams."Delete Service Items" then

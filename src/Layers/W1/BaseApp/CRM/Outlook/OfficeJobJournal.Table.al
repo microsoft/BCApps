@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -17,10 +17,12 @@ table 1615 "Office Job Journal"
         field(1; "Job No."; Code[20])
         {
             Caption = 'Project No.';
+            ToolTip = 'Specifies the number of the related project.';
         }
         field(2; "Job Task No."; Code[20])
         {
             Caption = 'Project Task No.';
+            ToolTip = 'Specifies the number of the related project task.';
         }
         field(3; "Job Planning Line No."; Integer)
         {
@@ -29,12 +31,14 @@ table 1615 "Office Job Journal"
         field(4; "Job Journal Template Name"; Code[10])
         {
             Caption = 'Project Journal Template Name';
+            ToolTip = 'Specifies the journal template that is used for the project journal.';
             TableRelation = "Job Journal Template".Name where("Page ID" = const(201),
                                                                Recurring = const(false));
         }
         field(5; "Job Journal Batch Name"; Code[10])
         {
             Caption = 'Project Journal Batch Name';
+            ToolTip = 'Specifies the journal batch that is used for the project journal.';
             TableRelation = "Job Journal Batch".Name where("Journal Template Name" = field("Job Journal Template Name"));
         }
     }

@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -21,6 +21,7 @@ table 5647 "FA Matrix Posting Type"
         field(2; "FA Posting Type Name"; Text[50])
         {
             Caption = 'FA Posting Type Name';
+            ToolTip = 'Specifies the name of the fixed asset posting type.';
         }
     }
 

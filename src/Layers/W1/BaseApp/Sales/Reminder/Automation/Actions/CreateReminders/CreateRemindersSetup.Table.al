@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -22,6 +22,7 @@ table 6757 "Create Reminders Setup"
         /// </summary>
         field(1; Code; Code[50])
         {
+            ToolTip = 'Specifies a unique code for the Create Reminders Setup';
         }
         /// <summary>
         /// Specifies the reminder action group to which this setup belongs.
@@ -34,24 +35,28 @@ table 6757 "Create Reminders Setup"
         /// </summary>
         field(3; Description; Text[50])
         {
+            ToolTip = 'Specifies a description for the Create Reminders Setup';
         }
         /// <summary>
         /// Indicates whether only overdue entries with outstanding amounts should be included.
         /// </summary>
         field(10; "Only Overdue Amount Entries"; Boolean)
         {
+            ToolTip = 'Specifies if reminder should list all open entries or only entries with overdue amount';
         }
         /// <summary>
         /// Indicates whether entries that are on hold should be included in the reminder.
         /// </summary>
         field(11; "Include Entries On Hold"; Boolean)
         {
+            ToolTip = 'Specifies if entries on hold should be included in the reminder';
         }
         /// <summary>
         /// Indicates whether the header level should be applied to all lines on the reminder.
         /// </summary>
         field(12; "Set Header Level to all Lines"; Boolean)
         {
+            ToolTip = 'Specifies if the highest level should be set on all reminder lines. If this value is set, then all lines will get the highest line level. Otherwise each entry will get incremented individually.';
         }
         /// <summary>
         /// Stores the filter criteria for selecting customers when creating reminders.

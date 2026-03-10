@@ -404,15 +404,21 @@ table 379 "Detailed Cust. Ledg. Entry"
         {
             Clustered = true;
         }
-        key(Key2; "Cust. Ledger Entry No.", "Posting Date")
+        key(Key2; "Customer No.", "Currency Code")
         {
+            SumIndexFields = Amount, "Amount (LCY)";
         }
         key(Key3; "Cust. Ledger Entry No.", "Entry Type", "Posting Date")
         {
+            IncludedFields = "Ledger Entry Amount", Amount, "Amount (LCY)", "Debit Amount", "Debit Amount (LCY)", "Credit Amount", "Credit Amount (LCY)";
         }
         key(Key5; "Initial Document Type", "Entry Type", "Customer No.", "Currency Code", "Initial Entry Global Dim. 1", "Initial Entry Global Dim. 2", "Posting Date")
         {
-            SumIndexFields = Amount, "Amount (LCY)";
+            IncludedFields = Amount, "Amount (LCY)";
+        }
+        key(Key6; "Customer No.", "Currency Code", "Initial Entry Global Dim. 1", "Initial Entry Global Dim. 2", "Initial Entry Due Date", "Posting Date")
+        {
+            IncludedFields = Amount, "Amount (LCY)";
         }
         key(Key7; "Document No.", "Document Type", "Posting Date")
         {
@@ -428,7 +434,7 @@ table 379 "Detailed Cust. Ledg. Entry"
         }
         key(Key11; "Customer No.", "Entry Type", "Posting Date", "Initial Document Type")
         {
-            SumIndexFields = Amount, "Amount (LCY)", "Debit Amount", "Debit Amount (LCY)", "Credit Amount", "Credit Amount (LCY)";
+            IncludedFields = Amount, "Amount (LCY)", "Debit Amount", "Debit Amount (LCY)", "Credit Amount", "Credit Amount (LCY)";
         }
         key(Key12; "Document Type")
         {
@@ -440,15 +446,7 @@ table 379 "Detailed Cust. Ledg. Entry"
         }
         key(Key14; "Customer No.", "Initial Entry Due Date")
         {
-            SumIndexFields = Amount, "Amount (LCY)";
-        }
-        key(Key15; "Customer No.", "Currency Code", "Initial Entry Global Dim. 1", "Initial Entry Global Dim. 2", "Initial Entry Due Date", "Posting Date", "Excluded from calculation")
-        {
-            SumIndexFields = Amount, "Amount (LCY)";
-        }
-        key(Key17; "Cust. Ledger Entry No.", "Posting Date", "Ledger Entry Amount", "Excluded from calculation")
-        {
-            IncludedFields = Amount, "Amount (LCY)", "Debit Amount", "Debit Amount (LCY)", "Credit Amount", "Credit Amount (LCY)";
+            IncludedFields = Amount, "Amount (LCY)", "Excluded from calculation";
         }
     }
 

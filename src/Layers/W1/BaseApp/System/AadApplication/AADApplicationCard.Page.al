@@ -110,6 +110,18 @@ page 9861 "AAD Application Card"
                         DrilldownCode();
                     end;
                 }
+                field(ShowInitializeUserWarningField; ShowInitializeUserWarning)
+                {
+                    ApplicationArea = Basic, Suite;
+                    ShowCaption = false;
+                    Editable = false;
+                    Enabled = InitializeUserEnabled;
+                    Style = AttentionAccent;
+                    trigger OnDrillDown()
+                    begin
+                        InitializeApplicationUser();
+                    end;
+                }
             }
             part(Permissions; "User Subform")
             {
@@ -173,12 +185,16 @@ page 9861 "AAD Application Card"
         ConsentSuccessTxt: Label 'Consent was given successfully.';
         EnabledWarningTok: Label 'You must set the State field to Disabled before you can make changes to this app.';
         DisableEnableQst: Label 'Do you want to disable this app?';
+        InitializeUserSuccessTxt: Label 'User has been created. You can now add permission sets.';
+        InitializeUserWarningTok: Label 'You must initialize the user before you can add permission sets. Click here to create the application user.';
         UserName: Text;
         TelemetryUserId: Guid;
         ShowEnableWarning: Text;
         IsVEApp: Boolean;
         SetUserPermissionEnabled: Boolean;
         EditableByNotEnabled: Boolean;
+        InitializeUserEnabled: Boolean;
+        ShowInitializeUserWarning: Text;
 
     [Scope('OnPrem')]
     local procedure GrantConsent();
@@ -203,13 +219,15 @@ page 9861 "AAD Application Card"
         User: Record User;
         UserProperty: Record "User Property";
     begin
-        SetUserPermissionEnabled := true;
-        if IsNullGuid(Rec."User ID") then
-            SetUserPermissionEnabled := false;
         EditableByNotEnabled := Rec.State = Rec.State::Disabled;
+        SetUserPermissionEnabled := EditableByNotEnabled and not IsNullGuid(Rec."User ID");
+        InitializeUserEnabled := EditableByNotEnabled and IsNullGuid(Rec."User ID") and (Rec.Description <> '');
         ShowEnableWarning := '';
+        ShowInitializeUserWarning := '';
         if CurrPage.Editable and (Rec.State = Rec.State::Enabled) then
             ShowEnableWarning := EnabledWarningTok;
+        if EditableByNotEnabled and IsNullGuid(Rec."User ID") then
+            ShowInitializeUserWarning := InitializeUserWarningTok;
         Clear(UserName);
         Clear(TelemetryUserId);
         if User.Get(Rec."User Id") then begin
@@ -226,5 +244,19 @@ page 9861 "AAD Application Card"
             UpdateControl();
             CurrPage.Update();
         end;
+    end;
+
+    local procedure InitializeApplicationUser()
+    begin
+        Rec.TestField(Description);
+        if not IsNullGuid(Rec."User ID") then
+            exit;
+
+        Rec.Validate(State, Rec.State::Enabled);
+        Rec.Validate(State, Rec.State::Disabled);
+        Rec.Modify();
+        UpdateControl();
+        CurrPage.Update();
+        Message(InitializeUserSuccessTxt);
     end;
 }

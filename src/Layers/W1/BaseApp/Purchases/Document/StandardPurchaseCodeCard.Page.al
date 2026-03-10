@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -20,12 +20,10 @@ page 175 "Standard Purchase Code Card"
                 field("Code"; Rec.Code)
                 {
                     ApplicationArea = Suite;
-                    ToolTip = 'Specifies a code which identifies this standard purchase code.';
                 }
                 field(Description; Rec.Description)
                 {
                     ApplicationArea = Suite;
-                    ToolTip = 'Specifies a description of the standard purchase code.';
                 }
                 field("Currency Code"; Rec."Currency Code")
                 {

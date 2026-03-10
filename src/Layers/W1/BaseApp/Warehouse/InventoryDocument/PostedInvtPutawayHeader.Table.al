@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -31,10 +31,12 @@ table 7340 "Posted Invt. Put-away Header"
         field(2; "No."; Code[20])
         {
             Caption = 'No.';
+            ToolTip = 'Specifies the number of the involved entry or record, according to the specified number series.';
         }
         field(3; "Location Code"; Code[10])
         {
             Caption = 'Location Code';
+            ToolTip = 'Specifies the code of the location in which the posted inventory put-away occurred.';
             NotBlank = true;
             TableRelation = Location;
         }
@@ -59,6 +61,7 @@ table 7340 "Posted Invt. Put-away Header"
         field(9; "No. Series"; Code[20])
         {
             Caption = 'No. Series';
+            ToolTip = 'Specifies the number series from which entry or record numbers are assigned to new entries or records.';
             Editable = false;
             TableRelation = "No. Series";
         }
@@ -74,6 +77,7 @@ table 7340 "Posted Invt. Put-away Header"
         field(11; "Invt. Put-away No."; Code[20])
         {
             Caption = 'Invt. Put-away No.';
+            ToolTip = 'Specifies the inventory put-away number from which the put-away was posted.';
         }
         field(12; "No. Printed"; Integer)
         {
@@ -83,10 +87,12 @@ table 7340 "Posted Invt. Put-away Header"
         field(20; "Posting Date"; Date)
         {
             Caption = 'Posting Date';
+            ToolTip = 'Specifies the posting date from the inventory put-away.';
         }
         field(7306; "Source No."; Code[20])
         {
             Caption = 'Source No.';
+            ToolTip = 'Specifies the number of the source document that the entry originates from.';
             TableRelation = if ("Source Type" = const(120)) "Purch. Rcpt. Header" where("No." = field("Source No."))
             else
             if ("Source Type" = const(110)) "Sales Shipment Header" where("No." = field("Source No."))
@@ -122,6 +128,7 @@ table 7340 "Posted Invt. Put-away Header"
         field(7311; "Destination No."; Code[20])
         {
             Caption = 'Destination No.';
+            ToolTip = 'Specifies the number or the code of the customer, vendor, location, item, family, or sales order linked to the posted inventory put-away.';
             TableRelation = if ("Destination Type" = const(Vendor)) Vendor
             else
             if ("Destination Type" = const(Customer)) Customer
@@ -135,14 +142,17 @@ table 7340 "Posted Invt. Put-away Header"
         field(7312; "External Document No."; Code[35])
         {
             Caption = 'External Document No.';
+            ToolTip = 'Specifies a document number that refers to the customer''s or vendor''s numbering system.';
         }
         field(7313; "Expected Receipt Date"; Date)
         {
             Caption = 'Expected Receipt Date';
+            ToolTip = 'Specifies the date on which the receipt of the items on the posted inventory put-away was expected.';
         }
         field(7315; "External Document No.2"; Code[35])
         {
             Caption = 'External Document No.2';
+            ToolTip = 'Specifies an additional part of the document number that refers to the customer''s or vendor''s numbering system.';
         }
     }
 

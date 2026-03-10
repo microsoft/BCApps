@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -44,6 +44,7 @@ table 5348 "CRM Product"
         field(4; Name; Text[100])
         {
             Caption = 'Name';
+            ToolTip = 'Specifies the name of the record.';
             Description = 'Name of the product.';
             ExternalName = 'name';
             ExternalType = 'String';
@@ -96,6 +97,7 @@ table 5348 "CRM Product"
         {
             AutoFormatType = 0;
             Caption = 'List Price';
+            ToolTip = 'Specifies information related to the Dynamics 365 Sales connection.';
             Description = 'List price of the product.';
             ExternalName = 'price';
             ExternalType = 'Money';
@@ -110,6 +112,7 @@ table 5348 "CRM Product"
         field(12; ProductNumber; Text[100])
         {
             Caption = 'Product ID';
+            ToolTip = 'Specifies information related to the Dynamics 365 Sales connection.';
             Description = 'User-defined product ID.';
             ExternalName = 'productnumber';
             ExternalType = 'String';
@@ -125,6 +128,7 @@ table 5348 "CRM Product"
         {
             AutoFormatType = 0;
             Caption = 'Current Cost';
+            ToolTip = 'Specifies the item''s unit cost.';
             Description = 'Current cost for the product item. Used in price calculations.';
             ExternalName = 'currentcost';
             ExternalType = 'Money';
@@ -141,6 +145,7 @@ table 5348 "CRM Product"
         {
             AutoFormatType = 0;
             Caption = 'Standard Cost';
+            ToolTip = 'Specifies information related to the Dynamics 365 Sales connection.';
             Description = 'Standard cost of the product.';
             ExternalName = 'standardcost';
             ExternalType = 'Money';

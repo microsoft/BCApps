@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -43,6 +43,7 @@ table 900 "Assembly Header"
         field(1; "Document Type"; Enum "Assembly Document Type")
         {
             Caption = 'Document Type';
+            ToolTip = 'Specifies the type of assembly document the record represents in assemble-to-order scenarios.';
 
             trigger OnValidate()
             begin
@@ -52,6 +53,7 @@ table 900 "Assembly Header"
         field(2; "No."; Code[20])
         {
             Caption = 'No.';
+            ToolTip = 'Specifies the number of the involved entry or record, according to the specified number series.';
             //The property 'ValidateTableRelation' can only be set if the property 'TableRelation' is set
             //ValidateTableRelation = false;
 
@@ -70,6 +72,7 @@ table 900 "Assembly Header"
         field(3; Description; Text[100])
         {
             Caption = 'Description';
+            ToolTip = 'Specifies the description of the assembly item.';
 
             trigger OnValidate()
             begin
@@ -83,6 +86,7 @@ table 900 "Assembly Header"
         field(5; "Description 2"; Text[50])
         {
             Caption = 'Description 2';
+            ToolTip = 'Specifies information in addition to the description.';
         }
         field(6; "Creation Date"; Date)
         {
@@ -97,6 +101,7 @@ table 900 "Assembly Header"
         field(10; "Item No."; Code[20])
         {
             Caption = 'Item No.';
+            ToolTip = 'Specifies the number of the item that is being assembled with the assembly order.';
             TableRelation = Item where(Type = const(Inventory));
 
             trigger OnValidate()
@@ -135,6 +140,7 @@ table 900 "Assembly Header"
         field(12; "Variant Code"; Code[10])
         {
             Caption = 'Variant Code';
+            ToolTip = 'Specifies the variant of the item on the line.';
             TableRelation = "Item Variant".Code where("Item No." = field("Item No."),
                                                        Code = field("Variant Code"));
 
@@ -189,6 +195,7 @@ table 900 "Assembly Header"
         field(17; "Gen. Bus. Posting Group"; Code[20])
         {
             Caption = 'Gen. Bus. Posting Group';
+            ToolTip = 'Specifies the code for the General Business Posting Group that applies to the entry.';
             TableRelation = "Gen. Business Posting Group";
 
             trigger OnValidate()
@@ -209,6 +216,7 @@ table 900 "Assembly Header"
         field(20; "Location Code"; Code[10])
         {
             Caption = 'Location Code';
+            ToolTip = 'Specifies the location to which you want to post output of the assembly item.';
             TableRelation = Location where("Use As In-Transit" = const(false));
 
             trigger OnValidate()
@@ -234,6 +242,7 @@ table 900 "Assembly Header"
         {
             CaptionClass = '1,2,1';
             Caption = 'Shortcut Dimension 1 Code';
+            ToolTip = 'Specifies the code for Shortcut Dimension 1, which is one of two global dimension codes that you set up in the General Ledger Setup window.';
             TableRelation = "Dimension Value".Code where("Global Dimension No." = const(1),
                                                           Blocked = const(false));
 
@@ -246,6 +255,7 @@ table 900 "Assembly Header"
         {
             CaptionClass = '1,2,2';
             Caption = 'Shortcut Dimension 2 Code';
+            ToolTip = 'Specifies the code for Shortcut Dimension 2, which is one of two global dimension codes that you set up in the General Ledger Setup window.';
             TableRelation = "Dimension Value".Code where("Global Dimension No." = const(2),
                                                           Blocked = const(false));
 
@@ -257,6 +267,7 @@ table 900 "Assembly Header"
         field(23; "Posting Date"; Date)
         {
             Caption = 'Posting Date';
+            ToolTip = 'Specifies the date on which the assembly order is posted.';
 
             trigger OnValidate()
             var
@@ -271,6 +282,7 @@ table 900 "Assembly Header"
         field(24; "Due Date"; Date)
         {
             Caption = 'Due Date';
+            ToolTip = 'Specifies the date when the assembled item is due to be available for use.';
 
             trigger OnValidate()
             begin
@@ -280,6 +292,7 @@ table 900 "Assembly Header"
         field(25; "Starting Date"; Date)
         {
             Caption = 'Starting Date';
+            ToolTip = 'Specifies the date when the assembly order is expected to start.';
 
             trigger OnValidate()
             begin
@@ -289,6 +302,7 @@ table 900 "Assembly Header"
         field(27; "Ending Date"; Date)
         {
             Caption = 'Ending Date';
+            ToolTip = 'Specifies the date when the assembly order is expected to finish.';
 
             trigger OnValidate()
             begin
@@ -298,6 +312,7 @@ table 900 "Assembly Header"
         field(33; "Bin Code"; Code[20])
         {
             Caption = 'Bin Code';
+            ToolTip = 'Specifies the bin the assembly item is posted to as output and from where it is taken to storage or shipped if it is assembled to a sales order.';
             TableRelation = if (Quantity = filter(< 0)) "Bin Content"."Bin Code" where("Location Code" = field("Location Code"),
                                                                                      "Item No." = field("Item No."),
                                                                                      "Variant Code" = field("Variant Code"))
@@ -327,6 +342,7 @@ table 900 "Assembly Header"
         field(40; Quantity; Decimal)
         {
             Caption = 'Quantity';
+            ToolTip = 'Specifies how many units of the assembly item that you expect to assemble with the assembly order.';
             DecimalPlaces = 0 : 5;
             MinValue = 0;
             AutoFormatType = 0;
@@ -386,6 +402,7 @@ table 900 "Assembly Header"
         field(42; "Remaining Quantity"; Decimal)
         {
             Caption = 'Remaining Quantity';
+            ToolTip = 'Specifies how many units of the assembly item remain to be posted as assembled output.';
             DecimalPlaces = 0 : 5;
             Editable = false;
             AutoFormatType = 0;
@@ -401,6 +418,7 @@ table 900 "Assembly Header"
         {
             AccessByPermission = TableData "BOM Component" = R;
             Caption = 'Assembled Quantity';
+            ToolTip = 'Specifies how many units of the assembly item are posted as assembled output.';
             DecimalPlaces = 0 : 5;
             Editable = false;
             AutoFormatType = 0;
@@ -415,6 +433,7 @@ table 900 "Assembly Header"
         field(46; "Quantity to Assemble"; Decimal)
         {
             Caption = 'Quantity to Assemble';
+            ToolTip = 'Specifies how many of the assembly item units you want to partially post. To post the full quantity on the assembly order, leave the field unchanged.';
             DecimalPlaces = 0 : 5;
             MinValue = 0;
             AutoFormatType = 0;
@@ -458,6 +477,7 @@ table 900 "Assembly Header"
 #pragma warning restore
                                                                   "Reservation Status" = const(Reservation)));
             Caption = 'Reserved Quantity';
+            ToolTip = 'Specifies how many units of the assembly item are reserved for this assembly order header.';
             DecimalPlaces = 0 : 5;
             Editable = false;
             FieldClass = FlowField;
@@ -480,6 +500,7 @@ table 900 "Assembly Header"
         field(50; "Planning Flexibility"; Enum "Reservation Planning Flexibility")
         {
             Caption = 'Planning Flexibility';
+            ToolTip = 'Specifies whether the supply represented by the assembly order is considered by the planning system when calculating action messages.';
 
             trigger OnValidate()
             begin
@@ -503,6 +524,7 @@ table 900 "Assembly Header"
             CalcFormula = exist("Assemble-to-Order Link" where("Assembly Document Type" = field("Document Type"),
                                                                 "Assembly Document No." = field("No.")));
             Caption = 'Assemble to Order';
+            ToolTip = 'Specifies if the assembly order is linked to a sales order, which indicates that the item is assembled to order.';
             Editable = false;
             FieldClass = FlowField;
         }
@@ -516,6 +538,7 @@ table 900 "Assembly Header"
             AutoFormatType = 2;
             AutoFormatExpression = '';
             Caption = 'Unit Cost';
+            ToolTip = 'Specifies the cost of one unit of the item or resource on the line.';
             MinValue = 0;
 
             trigger OnValidate()
@@ -544,6 +567,7 @@ table 900 "Assembly Header"
             AutoFormatType = 1;
             AutoFormatExpression = '';
             Caption = 'Cost Amount';
+            ToolTip = 'Specifies the total unit cost of the assembly order.';
             Editable = false;
         }
         field(68; "Rolled-up Assembly Cost"; Decimal)
@@ -559,18 +583,21 @@ table 900 "Assembly Header"
         field(75; "Indirect Cost %"; Decimal)
         {
             Caption = 'Indirect Cost %';
+            ToolTip = 'Specifies the percentage of the item''s last purchase cost that includes indirect costs, such as freight that is associated with the purchase of the item.';
             DecimalPlaces = 0 : 5;
             AutoFormatType = 0;
         }
         field(76; "Overhead Rate"; Decimal)
         {
             Caption = 'Overhead Rate';
+            ToolTip = 'Specifies the indirect cost of the assembly item as an absolute amount.';
             DecimalPlaces = 0 : 5;
             AutoFormatType = 0;
         }
         field(80; "Unit of Measure Code"; Code[10])
         {
             Caption = 'Unit of Measure Code';
+            ToolTip = 'Specifies how each unit of the item or resource is measured, such as in pieces or hours. By default, the value in the Base Unit of Measure field on the item or resource card is inserted.';
             TableRelation = "Item Unit of Measure".Code where("Item No." = field("Item No."));
 
             trigger OnValidate()
@@ -673,6 +700,7 @@ table 900 "Assembly Header"
         field(120; Status; Option)
         {
             Caption = 'Status';
+            ToolTip = 'Specifies if the document is open, waiting to be approved, invoiced for prepayment, or released to the next stage of processing.';
             Editable = false;
             OptionCaption = 'Open,Released';
             OptionMembers = Open,Released;
@@ -704,6 +732,7 @@ table 900 "Assembly Header"
         field(9000; "Assigned User ID"; Code[50])
         {
             Caption = 'Assigned User ID';
+            ToolTip = 'Specifies the ID of the user who is responsible for the document.';
             DataClassification = EndUserIdentifiableInformation;
             TableRelation = "User Setup";
         }
@@ -1123,8 +1152,8 @@ table 900 "Assembly Header"
         CalcFields("Reserved Quantity", "Reserved Qty. (Base)");
         QtyReserved := "Reserved Quantity";
         QtyReservedBase := "Reserved Qty. (Base)";
-        QtyToReserve := "Remaining Quantity";
-        QtyToReserveBase := "Remaining Quantity (Base)";
+        QtyToReserve := "Remaining Quantity" - "Reserved Quantity";
+        QtyToReserveBase := "Remaining Quantity (Base)" - "Reserved Qty. (Base)";
         exit("Qty. per Unit of Measure");
     end;
 

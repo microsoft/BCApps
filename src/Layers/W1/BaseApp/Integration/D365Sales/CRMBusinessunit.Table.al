@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -19,6 +19,7 @@ table 5364 "CRM Businessunit"
         field(1; BusinessUnitId; Guid)
         {
             Caption = 'Business Unit';
+            ToolTip = 'Specifies the ID of the business unit.';
             Description = 'Unique identifier of the business unit.';
             ExternalAccess = Insert;
             ExternalName = 'businessunitid';
@@ -36,6 +37,7 @@ table 5364 "CRM Businessunit"
         field(3; Name; Text[160])
         {
             Caption = 'Name';
+            ToolTip = 'Specifies the Name of the business unit.';
             Description = 'Name of the business unit.';
             ExternalName = 'name';
             ExternalType = 'String';

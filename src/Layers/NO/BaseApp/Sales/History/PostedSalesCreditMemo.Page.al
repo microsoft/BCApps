@@ -55,7 +55,6 @@ page 134 "Posted Sales Credit Memo"
                     Editable = false;
                     ShowMandatory = true;
                     TableRelation = Customer.Name;
-                    ToolTip = 'Specifies the name of the customer that you shipped the items on the credit memo to.';
                 }
                 field("Sell-to Customer Name 2"; Rec."Sell-to Customer Name 2")
                 {
@@ -69,7 +68,6 @@ page 134 "Posted Sales Credit Memo"
                     ApplicationArea = VAT;
                     Editable = false;
                     Importance = Additional;
-                    ToolTip = 'Specifies the customer''s VAT registration number for customers.';
                     Visible = false;
                 }
                 group("Sell-to")
@@ -81,7 +79,6 @@ page 134 "Posted Sales Credit Memo"
                         Caption = 'Address';
                         Editable = false;
                         Importance = Additional;
-                        ToolTip = 'Specifies the address of the customer that the items on the credit memo were sent to.';
                     }
                     field("Sell-to Address 2"; Rec."Sell-to Address 2")
                     {
@@ -89,7 +86,6 @@ page 134 "Posted Sales Credit Memo"
                         Caption = 'Address 2';
                         Editable = false;
                         Importance = Additional;
-                        ToolTip = 'Specifies additional address information.';
                     }
                     field("Sell-to City"; Rec."Sell-to City")
                     {
@@ -97,7 +93,6 @@ page 134 "Posted Sales Credit Memo"
                         Caption = 'City';
                         Editable = false;
                         Importance = Additional;
-                        ToolTip = 'Specifies the city of the customer on the sales document.';
                     }
                     group(Control45)
                     {
@@ -109,7 +104,6 @@ page 134 "Posted Sales Credit Memo"
                             CaptionClass = '5,1,' + Rec."Sell-to Country/Region Code";
                             Editable = false;
                             Importance = Additional;
-                            ToolTip = 'Specifies the state, province or county as a part of the address.';
                         }
                     }
                     field("Sell-to Post Code"; Rec."Sell-to Post Code")
@@ -126,7 +120,6 @@ page 134 "Posted Sales Credit Memo"
                         Caption = 'Country/Region Code';
                         Editable = false;
                         Importance = Additional;
-                        ToolTip = 'Specifies the country or region of the address.';
                     }
                     field("Sell-to Contact No."; Rec."Sell-to Contact No.")
                     {
@@ -134,7 +127,6 @@ page 134 "Posted Sales Credit Memo"
                         Caption = 'Contact No.';
                         Editable = false;
                         Importance = Additional;
-                        ToolTip = 'Specifies the number of the contact at the customer who handles the credit memo.';
                     }
                     field(SellToPhoneNo; SellToContact."Phone No.")
                     {
@@ -180,7 +172,6 @@ page 134 "Posted Sales Credit Memo"
                 field("VAT Reporting Date"; Rec."VAT Reporting Date")
                 {
                     ApplicationArea = VAT;
-                    ToolTip = 'Specifies the VAT date on the invoice.';
                     Editable = false;
                     Visible = VATDateEnabled;
                     Importance = Promoted;
@@ -196,7 +187,6 @@ page 134 "Posted Sales Credit Memo"
                 {
                     ApplicationArea = Basic, Suite;
                     Editable = false;
-                    ToolTip = 'Specifies the date on which you created the sales document.';
                 }
                 group(Control20)
                 {
@@ -207,7 +197,6 @@ page 134 "Posted Sales Credit Memo"
                         ApplicationArea = Basic, Suite;
                         Editable = false;
                         StyleExpr = DocExchStatusStyle;
-                        ToolTip = 'Specifies the status of the document if you are using a document exchange service to send it as an electronic document. The status values are reported by the document exchange service.';
 
                         trigger OnDrillDown()
                         var
@@ -222,28 +211,24 @@ page 134 "Posted Sales Credit Memo"
                     ApplicationArea = Basic, Suite;
                     Editable = false;
                     Importance = Additional;
-                    ToolTip = 'Specifies the number of the credit memo that the posted credit memo was created from.';
                 }
                 field("External Document No."; Rec."External Document No.")
                 {
                     ApplicationArea = Basic, Suite;
                     Editable = false;
                     Importance = Promoted;
-                    ToolTip = 'Specifies the external document number that is entered on the sales header that this line was posted from.';
                 }
                 field("Salesperson Code"; Rec."Salesperson Code")
                 {
                     ApplicationArea = Suite;
                     Editable = false;
                     Importance = Additional;
-                    ToolTip = 'Specifies which salesperson is associated with the credit memo.';
                 }
                 field("Responsibility Center"; Rec."Responsibility Center")
                 {
                     ApplicationArea = Suite;
                     Editable = false;
                     Importance = Additional;
-                    ToolTip = 'Specifies the code for the responsibility center that serves the customer on this sales document.';
                 }
                 field(Cancelled; Rec.Cancelled)
                 {
@@ -251,7 +236,6 @@ page 134 "Posted Sales Credit Memo"
                     Importance = Additional;
                     Style = Unfavorable;
                     StyleExpr = Rec.Cancelled;
-                    ToolTip = 'Specifies if the posted sales invoice that relates to this sales credit memo has been either corrected or canceled.';
 
                     trigger OnDrillDown()
                     begin
@@ -264,7 +248,6 @@ page 134 "Posted Sales Credit Memo"
                     Importance = Additional;
                     Style = Unfavorable;
                     StyleExpr = Rec.Corrective;
-                    ToolTip = 'Specifies if the posted sales invoice has been either corrected or canceled by this sales credit memo.';
 
                     trigger OnDrillDown()
                     begin
@@ -276,7 +259,6 @@ page 134 "Posted Sales Credit Memo"
                     ApplicationArea = Basic, Suite;
                     Editable = false;
                     Importance = Additional;
-                    ToolTip = 'Specifies how many times the document has been printed.';
                 }
                 group("Work Description")
                 {
@@ -304,7 +286,6 @@ page 134 "Posted Sales Credit Memo"
                 {
                     ApplicationArea = Suite;
                     Importance = Promoted;
-                    ToolTip = 'Specifies the currency code of the credit memo.';
 
                     trigger OnAssistEdit()
                     var
@@ -324,32 +305,27 @@ page 134 "Posted Sales Credit Memo"
                     ApplicationArea = Suite;
                     Editable = false;
                     Importance = Promoted;
-                    ToolTip = 'Specifies the bank account to use for bank information when the document is printed.';
                 }
                 field("Shortcut Dimension 1 Code"; Rec."Shortcut Dimension 1 Code")
                 {
                     ApplicationArea = Dimensions;
                     Editable = false;
-                    ToolTip = 'Specifies the code for Shortcut Dimension 1, which is one of two global dimension codes that you set up in the General Ledger Setup window.';
                 }
                 field("Shortcut Dimension 2 Code"; Rec."Shortcut Dimension 2 Code")
                 {
                     ApplicationArea = Dimensions;
                     Editable = false;
-                    ToolTip = 'Specifies the code for Shortcut Dimension 2, which is one of two global dimension codes that you set up in the General Ledger Setup window.';
                 }
                 field("Location Code"; Rec."Location Code")
                 {
                     ApplicationArea = Location;
                     Editable = false;
                     Importance = Promoted;
-                    ToolTip = 'Specifies the location where the credit memo was registered.';
                 }
                 field("Customer Posting Group"; Rec."Customer Posting Group")
                 {
                     ApplicationArea = Basic, Suite;
                     Editable = false;
-                    ToolTip = 'Specifies the customer''s market type to link business transactions to.';
                     Visible = false;
                 }
                 field("Applies-to Doc. Type"; Rec."Applies-to Doc. Type")
@@ -357,44 +333,37 @@ page 134 "Posted Sales Credit Memo"
                     ApplicationArea = Basic, Suite;
                     Editable = false;
                     Importance = Promoted;
-                    ToolTip = 'Specifies the type of the posted document that this document or journal line will be applied to when you post, for example to register payment.';
                 }
                 field("Applies-to Doc. No."; Rec."Applies-to Doc. No.")
                 {
                     ApplicationArea = Basic, Suite;
                     Editable = false;
                     Importance = Promoted;
-                    ToolTip = 'Specifies the number of the posted document that this document or journal line will be applied to when you post, for example to register payment.';
                 }
                 field("Payment Method Code"; Rec."Payment Method Code")
                 {
                     ApplicationArea = Basic, Suite;
                     Editable = false;
-                    ToolTip = 'Specifies the customer''s method of payment. The program has copied the code from the Payment Method Code field on the sales header.';
                 }
                 field("EU 3-Party Trade"; Rec."EU 3-Party Trade")
                 {
                     ApplicationArea = BasicEU;
                     Editable = false;
-                    ToolTip = 'Specifies whether the invoice was part of an EU 3-party trade transaction.';
                 }
                 field("Tax Liable"; Rec."Tax Liable")
                 {
                     ApplicationArea = SalesTax;
                     Editable = false;
-                    ToolTip = 'Specifies if the customer or vendor is liable for sales tax.';
                 }
                 field("Tax Area Code"; Rec."Tax Area Code")
                 {
                     ApplicationArea = SalesTax;
                     Editable = false;
-                    ToolTip = 'Specifies the tax area that is used to calculate and post sales tax.';
                 }
                 field(Correction; Rec.Correction)
                 {
                     ApplicationArea = Basic, Suite;
                     Editable = false;
-                    ToolTip = 'Specifies the entry was posted as a corrective entry.';
                 }
             }
             group("Shipping and Billing")
@@ -416,7 +385,6 @@ page 134 "Posted Sales Credit Memo"
                         Caption = 'Name 2';
                         Editable = false;
                         Importance = Additional;
-                        ToolTip = 'Specifies an additional part of the name of the customer that the items were shipped to.';
                         Visible = false;
                     }
                     field("Ship-to Address"; Rec."Ship-to Address")
@@ -424,21 +392,18 @@ page 134 "Posted Sales Credit Memo"
                         ApplicationArea = Basic, Suite;
                         Caption = 'Address';
                         Editable = false;
-                        ToolTip = 'Specifies the address that the items were shipped to.';
                     }
                     field("Ship-to Address 2"; Rec."Ship-to Address 2")
                     {
                         ApplicationArea = Basic, Suite;
                         Caption = 'Address 2';
                         Editable = false;
-                        ToolTip = 'Specifies additional address information.';
                     }
                     field("Ship-to City"; Rec."Ship-to City")
                     {
                         ApplicationArea = Basic, Suite;
                         Caption = 'City';
                         Editable = false;
-                        ToolTip = 'Specifies the city of the customer on the sales document.';
                     }
                     group(Control48)
                     {
@@ -449,7 +414,6 @@ page 134 "Posted Sales Credit Memo"
                             ApplicationArea = Basic, Suite;
                             CaptionClass = '5,1,' + Rec."Ship-to Country/Region Code";
                             Editable = false;
-                            ToolTip = 'Specifies the state, province or county as a part of the address.';
                         }
                     }
                     field("Ship-to Post Code"; Rec."Ship-to Post Code")
@@ -464,21 +428,18 @@ page 134 "Posted Sales Credit Memo"
                         ApplicationArea = Basic, Suite;
                         Caption = 'Country/Region';
                         Editable = false;
-                        ToolTip = 'Specifies the country or region of the address.';
                     }
                     field("Ship-to Phone No."; Rec."Ship-to Phone No.")
                     {
                         ApplicationArea = Basic, Suite;
                         Caption = 'Phone No.';
                         Editable = false;
-                        ToolTip = 'Specifies the telephone number of the company''s shipping address.';
                     }
                     field("Ship-to Contact"; Rec."Ship-to Contact")
                     {
                         ApplicationArea = Basic, Suite;
                         Caption = 'Contact';
                         Editable = false;
-                        ToolTip = 'Specifies the name of the person you regularly contact at the customer to whom the items were shipped.';
                     }
                 }
                 group("Bill-to")
@@ -506,7 +467,6 @@ page 134 "Posted Sales Credit Memo"
                         Caption = 'Address';
                         Editable = false;
                         Importance = Additional;
-                        ToolTip = 'Specifies the address of the customer that the credit memo was sent to.';
                     }
                     field("Bill-to Address 2"; Rec."Bill-to Address 2")
                     {
@@ -514,7 +474,6 @@ page 134 "Posted Sales Credit Memo"
                         Caption = 'Address 2';
                         Editable = false;
                         Importance = Additional;
-                        ToolTip = 'Specifies additional address information.';
                     }
                     field("Bill-to City"; Rec."Bill-to City")
                     {
@@ -522,7 +481,6 @@ page 134 "Posted Sales Credit Memo"
                         Caption = 'City';
                         Editable = false;
                         Importance = Additional;
-                        ToolTip = 'Specifies the city of the customer on the sales document.';
                     }
                     group(Control60)
                     {
@@ -534,7 +492,6 @@ page 134 "Posted Sales Credit Memo"
                             CaptionClass = '5,1,' + Rec."Bill-to Country/Region Code";
                             Editable = false;
                             Importance = Additional;
-                            ToolTip = 'Specifies the state, province or county as a part of the address.';
                         }
                     }
                     field("Bill-to Post Code"; Rec."Bill-to Post Code")
@@ -551,7 +508,6 @@ page 134 "Posted Sales Credit Memo"
                         Caption = 'Country/Region';
                         Editable = false;
                         Importance = Additional;
-                        ToolTip = 'Specifies the country or region of the address.';
                     }
                     field("Bill-to Contact No."; Rec."Bill-to Contact No.")
                     {
@@ -559,7 +515,6 @@ page 134 "Posted Sales Credit Memo"
                         Caption = 'Contact No.';
                         Editable = false;
                         Importance = Additional;
-                        ToolTip = 'Specifies the number of the contact at the customer who handles the credit memo.';
                     }
                     field(BillToContactPhoneNo; BillToContact."Phone No.")
                     {
@@ -593,7 +548,6 @@ page 134 "Posted Sales Credit Memo"
                         ApplicationArea = Basic, Suite;
                         Caption = 'Contact';
                         Editable = false;
-                        ToolTip = 'Specifies the name of the person you regularly contact when you communicate with the customer to whom the credit memo was sent.';
                     }
                     field(GLN; Rec.GLN)
                     {
@@ -628,7 +582,6 @@ page 134 "Posted Sales Credit Memo"
                         ApplicationArea = Basic, Suite;
                         Caption = 'Code';
                         Editable = false;
-                        ToolTip = 'Specifies the shipment method for the shipment.';
                     }
                     field("Shipping Agent Code"; Rec."Shipping Agent Code")
                     {
@@ -636,7 +589,6 @@ page 134 "Posted Sales Credit Memo"
                         Caption = 'Agent';
                         Editable = false;
                         Importance = Additional;
-                        ToolTip = 'Specifies which shipping agent is used to transport the items on the sales document to the customer.';
                     }
                     field("Shipping Agent Service Code"; Rec."Shipping Agent Service Code")
                     {
@@ -644,14 +596,12 @@ page 134 "Posted Sales Credit Memo"
                         Caption = 'Agent Service';
                         Editable = false;
                         Importance = Additional;
-                        ToolTip = 'Specifies which shipping agent service is used to transport the items on the sales document to the customer.';
                     }
                     field("Package Tracking No."; Rec."Package Tracking No.")
                     {
                         ApplicationArea = Suite;
                         Editable = false;
                         Importance = Additional;
-                        ToolTip = 'Specifies the shipping agent''s package number.';
                     }
                 }
             }

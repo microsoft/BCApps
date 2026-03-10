@@ -31,33 +31,27 @@ page 7 "Customer Price Groups"
                 field("Code"; Rec.Code)
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies a code to identify the price group.';
                 }
                 field(Description; Rec.Description)
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the description of the customer price group.';
                 }
                 field("Price Calculation Method"; Rec."Price Calculation Method")
                 {
                     Visible = ExtendedPriceEnabled;
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the price calculation method that will override the method set in the sales setup for customers in this group.';
                 }
                 field("Allow Line Disc."; Rec."Allow Line Disc.")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies if a line discount will be calculated when the sales price is offered.';
                 }
                 field("Allow Invoice Disc."; Rec."Allow Invoice Disc.")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies whether the ordinary invoice discount calculation will apply to customers in this price group.';
                 }
                 field("Price Includes VAT"; Rec."Price Includes VAT")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies whether the prices given for this price group will include VAT.';
                 }
                 field("VAT Bus. Posting Gr. (Price)"; Rec."VAT Bus. Posting Gr. (Price)")
                 {
@@ -67,7 +61,6 @@ page 7 "Customer Price Groups"
                 field("Coupled to Dataverse"; Rec."Coupled to Dataverse")
                 {
                     ApplicationArea = All;
-                    ToolTip = 'Specifies that the customer price group is coupled to a price list in Dynamics 365 Sales.';
                     Visible = CRMIntegrationEnabled;
                 }
             }

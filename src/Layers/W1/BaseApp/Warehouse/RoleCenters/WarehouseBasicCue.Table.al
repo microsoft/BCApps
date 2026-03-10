@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -31,6 +31,7 @@ table 9050 "Warehouse Basic Cue"
                                                       "Shipment Date" = field("Date Filter"),
                                                       "Location Code" = field("Location Filter")));
             Caption = 'Rlsd. Sales Orders Until Today';
+            ToolTip = 'Specifies the number of released sales orders that are displayed in the Warehouse Basic Cue on the Role Center. The documents are filtered by today''s date.';
             Editable = false;
             FieldClass = FlowField;
         }
@@ -39,6 +40,7 @@ table 9050 "Warehouse Basic Cue"
             CalcFormula = count("Sales Shipment Header" where("Posting Date" = field("Date Filter2"),
                                                                "Location Code" = field("Location Filter")));
             Caption = 'Posted Sales Shipments - Today';
+            ToolTip = 'Specifies the number of posted sales shipments that are displayed in the Basic Warehouse Cue on the Role Center. The documents are filtered by today''s date.';
             Editable = false;
             FieldClass = FlowField;
         }
@@ -50,6 +52,7 @@ table 9050 "Warehouse Basic Cue"
                                                          "Expected Receipt Date" = field("Date Filter"),
                                                          "Location Code" = field("Location Filter")));
             Caption = 'Exp. Purch. Orders Until Today';
+            ToolTip = 'Specifies the number of expected purchase orders that are displayed in the Basic Warehouse Cue on the Role Center. The documents are filtered by today''s date.';
             Editable = false;
             FieldClass = FlowField;
         }
@@ -58,6 +61,7 @@ table 9050 "Warehouse Basic Cue"
             CalcFormula = count("Purch. Rcpt. Header" where("Posting Date" = field("Date Filter2"),
                                                              "Location Code" = field("Location Filter")));
             Caption = 'Posted Purch. Receipts - Today';
+            ToolTip = 'Specifies the number of posted purchase receipts that are displayed in the Warehouse Basic Cue on the Role Center. The documents are filtered by today''s date.';
             Editable = false;
             FieldClass = FlowField;
         }
@@ -67,6 +71,7 @@ table 9050 "Warehouse Basic Cue"
                                                                    "Shipment Date" = field("Date Filter"),
                                                                    "Location Code" = field("Location Filter")));
             Caption = 'Invt. Picks Until Today';
+            ToolTip = 'Specifies the number of inventory picks that are displayed in the Warehouse Basic Cue on the Role Center. The documents are filtered by today''s date.';
             Editable = false;
             FieldClass = FlowField;
         }
@@ -76,6 +81,7 @@ table 9050 "Warehouse Basic Cue"
                                                                    "Shipment Date" = field("Date Filter"),
                                                                    "Location Code" = field("Location Filter")));
             Caption = 'Invt. Put-aways Until Today';
+            ToolTip = 'Specifies the number of inventory put-always that are displayed in the Warehouse Basic Cue on the Role Center. The documents are filtered by today''s date.';
             Editable = false;
             FieldClass = FlowField;
         }
@@ -83,6 +89,7 @@ table 9050 "Warehouse Basic Cue"
         {
             CalcFormula = count("Phys. Invt. Order Header" where(Status = const(Open)));
             Caption = 'Open Phys. Invt. Orders';
+            ToolTip = 'Specifies the number of open physical inventory orders.';
             Editable = false;
             FieldClass = FlowField;
         }

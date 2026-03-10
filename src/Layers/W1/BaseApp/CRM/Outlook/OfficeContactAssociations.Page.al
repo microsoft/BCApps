@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -26,7 +26,6 @@ page 1625 "Office Contact Associations"
                 field("Associated Table"; Rec."Associated Table")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the table that is associated with the contact, such as Customer, Vendor, Bank Account, or Company.';
                 }
                 field(Name; Name)
                 {
@@ -39,28 +38,23 @@ page 1625 "Office Contact Associations"
                 {
                     ApplicationArea = Basic, Suite;
                     Caption = 'Company';
-                    ToolTip = 'Specifies the company of the contact.';
                 }
                 field("No."; Rec."No.")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the number of the involved entry or record, according to the specified number series.';
                 }
                 field("Contact No."; Rec."Contact No.")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the number of the associated Office contact.';
                     Visible = false;
                 }
                 field(Type; Rec.Type)
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the type of the contact, such as company or contact person.';
                 }
                 field("Contact Name"; Rec."Contact Name")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the name of the Office contact.';
                 }
             }
         }

@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -22,12 +22,10 @@ page 5430 "Planning Error Log"
                 field("Item No."; Rec."Item No.")
                 {
                     ApplicationArea = Planning;
-                    ToolTip = 'Specifies the item number associated with this entry.';
                 }
                 field("Error Description"; Rec."Error Description")
                 {
                     ApplicationArea = Planning;
-                    ToolTip = 'Specifies the description to the error in this entry.';
                 }
             }
         }

@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -23,6 +23,7 @@ table 1280 "Bank Clearing Standard"
         field(1; "Code"; Text[50])
         {
             Caption = 'Code';
+            ToolTip = 'Specifies the code of the bank clearing standard that you choose in the Bank Clearing Standard field on a company, customer, or vendor bank account card.';
         }
         /// <summary>
         /// Descriptive text explaining the bank clearing standard.
@@ -31,6 +32,7 @@ table 1280 "Bank Clearing Standard"
         field(2; Description; Text[80])
         {
             Caption = 'Description';
+            ToolTip = 'Specifies the description of the bank clearing standard that you choose in the Bank Clearing Standard field on a company, customer, or vendor bank account card.';
         }
     }
 

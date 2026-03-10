@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -26,31 +26,38 @@ table 5856 "Direct Trans. Header"
         field(1; "No."; Code[20])
         {
             Caption = 'No.';
+            ToolTip = 'Specifies the number of the involved entry or record, according to the specified number series.';
         }
         field(2; "Transfer-from Code"; Code[10])
         {
             Caption = 'Transfer-from Code';
+            ToolTip = 'Specifies the code of the location that items are transferred from.';
             TableRelation = Location where("Use As In-Transit" = const(false));
         }
         field(3; "Transfer-from Name"; Text[100])
         {
             Caption = 'Transfer-from Name';
+            ToolTip = 'Specifies the name of the sender at the location that the items are transferred from.';
         }
         field(4; "Transfer-from Name 2"; Text[50])
         {
             Caption = 'Transfer-from Name 2';
+            ToolTip = 'Specifies an additional part of the name of the sender at the location that the items are transferred from.';
         }
         field(5; "Transfer-from Address"; Text[100])
         {
             Caption = 'Transfer-from Address';
+            ToolTip = 'Specifies the address of the location that the items are transferred from.';
         }
         field(6; "Transfer-from Address 2"; Text[50])
         {
             Caption = 'Transfer-from Address 2';
+            ToolTip = 'Specifies an additional part of the address of the location that items are transferred from.';
         }
         field(7; "Transfer-from Post Code"; Code[20])
         {
             Caption = 'Transfer-from Post Code';
+            ToolTip = 'Specifies the post code of the location that the items are transferred from.';
             TableRelation = "Post Code";
 
             trigger OnValidate()
@@ -63,6 +70,7 @@ table 5856 "Direct Trans. Header"
         field(8; "Transfer-from City"; Text[30])
         {
             Caption = 'Transfer-from City';
+            ToolTip = 'Specifies the city of the location that the items are transferred from.';
 
             trigger OnValidate()
             begin
@@ -83,27 +91,33 @@ table 5856 "Direct Trans. Header"
         field(11; "Transfer-to Code"; Code[10])
         {
             Caption = 'Transfer-to Code';
+            ToolTip = 'Specifies the code of the location that the items are transferred to.';
             TableRelation = Location where("Use As In-Transit" = const(false));
         }
         field(12; "Transfer-to Name"; Text[100])
         {
             Caption = 'Transfer-to Name';
+            ToolTip = 'Specifies the name of the recipient at the location that the items are transferred to.';
         }
         field(13; "Transfer-to Name 2"; Text[50])
         {
             Caption = 'Transfer-to Name 2';
+            ToolTip = 'Specifies an additional part of the name of the recipient at the location that the items are transferred to.';
         }
         field(14; "Transfer-to Address"; Text[100])
         {
             Caption = 'Transfer-to Address';
+            ToolTip = 'Specifies the address of the location that the items are transferred to.';
         }
         field(15; "Transfer-to Address 2"; Text[50])
         {
             Caption = 'Transfer-to Address 2';
+            ToolTip = 'Specifies an additional part of the address of the location that the items are transferred to.';
         }
         field(16; "Transfer-to Post Code"; Code[20])
         {
             Caption = 'Transfer-to Post Code';
+            ToolTip = 'Specifies the postal code of the location that the items are transferred to.';
             TableRelation = "Post Code";
 
             trigger OnValidate()
@@ -116,6 +130,7 @@ table 5856 "Direct Trans. Header"
         field(17; "Transfer-to City"; Text[30])
         {
             Caption = 'Transfer-to City';
+            ToolTip = 'Specifies the city of the location that items are transferred to.';
 
             trigger OnValidate()
             begin
@@ -136,10 +151,12 @@ table 5856 "Direct Trans. Header"
         field(20; "Transfer Order Date"; Date)
         {
             Caption = 'Transfer Order Date';
+            ToolTip = 'Specifies the date when the transfer order was created.';
         }
         field(21; "Posting Date"; Date)
         {
             Caption = 'Posting Date';
+            ToolTip = 'Specifies the entry''s posting date.';
         }
         field(22; Comment; Boolean)
         {
@@ -153,17 +170,20 @@ table 5856 "Direct Trans. Header"
         {
             CaptionClass = '1,2,1';
             Caption = 'Shortcut Dimension 1 Code';
+            ToolTip = 'Specifies the code for Shortcut Dimension 1, which is one of two global dimension codes that you set up in the General Ledger Setup window.';
             TableRelation = "Dimension Value".Code where("Global Dimension No." = const(1));
         }
         field(24; "Shortcut Dimension 2 Code"; Code[20])
         {
             CaptionClass = '1,2,2';
             Caption = 'Shortcut Dimension 2 Code';
+            ToolTip = 'Specifies the code for Shortcut Dimension 2, which is one of two global dimension codes that you set up in the General Ledger Setup window.';
             TableRelation = "Dimension Value".Code where("Global Dimension No." = const(2));
         }
         field(25; "Transfer Order No."; Code[20])
         {
             Caption = 'Transfer Order No.';
+            ToolTip = 'Specifies the number of the related transfer order.';
             TableRelation = "Transfer Header";
             ValidateTableRelation = false;
         }
@@ -175,10 +195,12 @@ table 5856 "Direct Trans. Header"
         field(30; "Transfer-from Contact"; Text[100])
         {
             Caption = 'Transfer-from Contact';
+            ToolTip = 'Specifies the name of the contact person at the location that the items are transferred from.';
         }
         field(31; "Transfer-to Contact"; Text[100])
         {
             Caption = 'Transfer-to Contact';
+            ToolTip = 'Specifies the name of the contact person at the location that items are transferred to.';
         }
         field(32; "External Document No."; Code[35])
         {

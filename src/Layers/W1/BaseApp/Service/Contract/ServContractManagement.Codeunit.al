@@ -2583,7 +2583,7 @@ codeunit 5940 ServContractManagement
     end;
 
     #region Service Item Blocked checks
-    internal procedure CheckServiceItemBlockedForServiceContract(var ServiceContractLine: Record "Service Contract Line")
+    procedure CheckServiceItemBlockedForServiceContract(var ServiceContractLine: Record "Service Contract Line")
     var
         ServiceItem: Record "Service Item";
     begin
@@ -2595,7 +2595,7 @@ codeunit 5940 ServContractManagement
         ServiceItem.ErrorIfBlockedForServiceContract();
     end;
 
-    internal procedure CheckServiceItemBlockedForAll(var ServiceContractLine: Record "Service Contract Line")
+    procedure CheckServiceItemBlockedForAll(var ServiceContractLine: Record "Service Contract Line")
     var
         ServiceItem: Record "Service Item";
     begin
@@ -2609,7 +2609,7 @@ codeunit 5940 ServContractManagement
     # endregion Service Item Blocked checks
 
     # region Item Service Blocked checks
-    internal procedure CheckItemServiceBlocked(var ServiceContractLine: Record "Service Contract Line")
+    procedure CheckItemServiceBlocked(var ServiceContractLine: Record "Service Contract Line")
     var
         Item: Record Item;
         ItemVariant: Record "Item Variant";

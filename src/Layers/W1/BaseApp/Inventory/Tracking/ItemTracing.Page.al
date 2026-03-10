@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -183,12 +183,10 @@ page 6520 "Item Tracing"
                 field(Description; Rec.Description)
                 {
                     ApplicationArea = ItemTracking;
-                    ToolTip = 'Specifies a description of the traced item.';
                 }
                 field("Entry Type"; Rec."Entry Type")
                 {
                     ApplicationArea = ItemTracking;
-                    ToolTip = 'Specifies the type of the traced entry.';
                     Visible = false;
                 }
                 field("Serial No."; Rec."Serial No.")
@@ -196,83 +194,70 @@ page 6520 "Item Tracing"
                     ApplicationArea = ItemTracking;
                     Editable = false;
                     Style = Strong;
-                    ToolTip = 'Specifies the serial number to be traced.';
                 }
                 field("Lot No."; Rec."Lot No.")
                 {
                     ApplicationArea = ItemTracking;
                     Editable = false;
                     Style = Strong;
-                    ToolTip = 'Specifies the traced lot number.';
                 }
                 field("Package No."; Rec."Package No.")
                 {
                     ApplicationArea = ItemTracking;
                     Editable = false;
                     Style = Strong;
-                    ToolTip = 'Specifies the traced package number.';
                 }
                 field("Item No."; Rec."Item No.")
                 {
                     ApplicationArea = ItemTracking;
                     Editable = false;
                     Style = Strong;
-                    ToolTip = 'Specifies the number of the traced item.';
                 }
                 field("Item Description"; Rec."Item Description")
                 {
                     ApplicationArea = ItemTracking;
                     Editable = false;
-                    ToolTip = 'Specifies a description of the item.';
                 }
                 field("Variant Code"; Rec."Variant Code")
                 {
                     ApplicationArea = Planning;
-                    ToolTip = 'Specifies the variant of the item on the line.';
                     Visible = false;
                 }
                 field("Document No."; Rec."Document No.")
                 {
                     ApplicationArea = ItemTracking;
-                    ToolTip = 'Specifies the number of the traced document.';
                     Visible = false;
                 }
                 field("Posting Date"; Rec."Posting Date")
                 {
                     ApplicationArea = ItemTracking;
-                    ToolTip = 'Specifies the date when the traced item was posted.';
                     Visible = false;
                 }
                 field("Source Type"; Rec."Source Type")
                 {
                     ApplicationArea = ItemTracking;
-                    ToolTip = 'Specifies the type of record, such as Sales Header, that the item is traced from.';
                     Visible = false;
                 }
                 field("Source No."; Rec."Source No.")
                 {
                     ApplicationArea = ItemTracking;
                     Editable = false;
-                    ToolTip = 'Specifies the number of the source document that the entry originates from.';
                     Visible = false;
                 }
                 field("Source Name"; Rec."Source Name")
                 {
                     ApplicationArea = ItemTracking;
                     Editable = false;
-                    ToolTip = 'Specifies the name of the record that the item is traced from.';
                     Visible = false;
                 }
                 field("Location Code"; Rec."Location Code")
                 {
                     ApplicationArea = ItemTracking;
                     Editable = false;
-                    ToolTip = 'Specifies the location of the traced item.';
                 }
                 field(Quantity; Rec.Quantity)
                 {
                     ApplicationArea = ItemTracking;
-                    ToolTip = 'Specifies the quantity of the traced item in the line.';
 
                     trigger OnDrillDown()
                     var
@@ -286,13 +271,11 @@ page 6520 "Item Tracing"
                 field("Remaining Quantity"; Rec."Remaining Quantity")
                 {
                     ApplicationArea = ItemTracking;
-                    ToolTip = 'Specifies the quantity in the Quantity field that remains to be processed.';
                 }
                 field("Created by"; Rec."Created by")
                 {
                     ApplicationArea = ItemTracking;
                     Lookup = true;
-                    ToolTip = 'Specifies the user who created the traced record.';
                     Visible = false;
 
                     trigger OnDrillDown()
@@ -305,24 +288,20 @@ page 6520 "Item Tracing"
                 field("Created on"; Rec."Created on")
                 {
                     ApplicationArea = ItemTracking;
-                    ToolTip = 'Specifies the date when the traced record was created.';
                     Visible = false;
                 }
                 field("Already Traced"; Rec."Already Traced")
                 {
                     ApplicationArea = ItemTracking;
-                    ToolTip = 'Specifies if additional transaction history under this line has already been traced by other lines above it.';
                 }
                 field("Item Ledger Entry No."; Rec."Item Ledger Entry No.")
                 {
                     ApplicationArea = ItemTracking;
-                    ToolTip = 'Specifies the number of the traced item ledger entry.';
                     Visible = false;
                 }
                 field("Parent Item Ledger Entry No."; Rec."Parent Item Ledger Entry No.")
                 {
                     ApplicationArea = ItemTracking;
-                    ToolTip = 'Specifies the parent of the traced item ledger entry.';
                     Visible = false;
                 }
             }
@@ -375,6 +354,62 @@ page 6520 "Item Tracing"
                     RunPageView = sorting("Item No.");
                     ShortCutKey = 'Ctrl+F7';
                     ToolTip = 'View the history of transactions that have been posted for the selected record.';
+                }
+            }
+            group("Item Tracking")
+            {
+                Caption = 'Item Tracking';
+                Image = ItemTrackingLines;
+                action("Serial No. Information Card")
+                {
+                    ApplicationArea = ItemTracking;
+                    Caption = 'Serial No. Information Card';
+                    Image = SNInfo;
+                    ToolTip = 'View or edit detailed information about the serial number.';
+
+                    trigger OnAction()
+                    var
+                        SerialNoInformation: Record "Serial No. Information";
+                        TrackingSpecification: Record "Tracking Specification";
+                    begin
+                        Rec.TestField("Serial No.");
+                        GetTrackingSpecification(TrackingSpecification);
+                        SerialNoInformation.ShowCard(Rec."Serial No.", TrackingSpecification);
+                    end;
+                }
+                action("Lot No. Information Card")
+                {
+                    ApplicationArea = ItemTracking;
+                    Caption = 'Lot No. Information Card';
+                    Image = LotInfo;
+                    ToolTip = 'View or edit detailed information about the lot number.';
+
+                    trigger OnAction()
+                    var
+                        LotNoInformation: Record "Lot No. Information";
+                        TrackingSpecification: Record "Tracking Specification";
+                    begin
+                        Rec.TestField("Lot No.");
+                        GetTrackingSpecification(TrackingSpecification);
+                        LotNoInformation.ShowCard(Rec."Lot No.", TrackingSpecification);
+                    end;
+                }
+                action("Package No. Information Card")
+                {
+                    ApplicationArea = ItemTracking;
+                    Caption = 'Package No. Information Card';
+                    Image = LotInfo;
+                    ToolTip = 'View or edit detailed information about the package number.';
+
+                    trigger OnAction()
+                    var
+                        PackageNoInformation: Record "Package No. Information";
+                        TrackingSpecification: Record "Tracking Specification";
+                    begin
+                        Rec.TestField("Package No.");
+                        GetTrackingSpecification(TrackingSpecification);
+                        PackageNoInformation.ShowCard(Rec."Package No.", TrackingSpecification);
+                    end;
                 }
             }
         }
@@ -725,6 +760,15 @@ page 6520 "Item Tracing"
             TempTrackEntry.FindFirst();
             CurrPage.SetRecord(TempTrackEntry);
         end;
+    end;
+
+    local procedure GetTrackingSpecification(var TrackingSpecification: Record "Tracking Specification")
+    var
+        ItemTrackingSetup: Record "Item Tracking Setup";
+    begin
+        ItemTrackingSetup.CopyTrackingFromItemTracingBuffer(Rec);
+        TrackingSpecification.SetItemData(Rec."Item No.", '', Rec."Location Code", Rec."Variant Code", '', 0);
+        TrackingSpecification.CopyTrackingFromItemTrackingSetup(ItemTrackingSetup);
     end;
 
     [IntegrationEvent(false, false)]

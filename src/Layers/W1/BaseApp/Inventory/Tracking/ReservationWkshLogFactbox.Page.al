@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -28,7 +28,6 @@ page 331 "Reservation Wksh. Log Factbox"
                 field(Quantity; Rec.Quantity)
                 {
                     Caption = 'Reserved Quantity';
-                    ToolTip = 'Specifies how many units were reserved for the demand line.';
                 }
             }
         }

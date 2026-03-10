@@ -1,6 +1,5 @@
 table 'Translated Localized Labels'
-	isHidden
-	lineageTag: 14f25e6b-0acb-4b2b-9179-b50ddecd8046
+	lineageTag: 55ed3098-6db1-43ef-93ae-d122b44f3d0d
 
 	measure 'My Report Title Label' =
 			SWITCH(USERCULTURE(),
@@ -29,8 +28,7 @@ table 'Translated Localized Labels'
 			   "sv-SE", "Min rapportrubrik",
 			   "My Report Title"
 			)
-		isHidden
-		lineageTag: 8798547e-5533-41b9-8c4e-e46718d55a0f
+		lineageTag: 15976cc2-6a96-4756-ba66-954f38bbd08e
 
 	measure 'My Button Caption Label' =
 			SWITCH(USERCULTURE(),
@@ -59,8 +57,7 @@ table 'Translated Localized Labels'
 			   "sv-SE", "Min knapprubrik",
 			   "My Button Caption"
 			)
-		isHidden
-		lineageTag: 88a815e1-2db9-4134-ab80-c116d7332057
+		lineageTag: 3b8f818e-714b-4366-ab65-44cd7a2be226
 
 	measure 'My Visual Title Label' =
 			SWITCH(USERCULTURE(),
@@ -89,8 +86,7 @@ table 'Translated Localized Labels'
 			   "sv-SE", "Min visuella rubrik",
 			   "My Visual Title"
 			)
-		isHidden
-		lineageTag: 548609ff-f53c-48b6-8825-4e5938b975f8
+		lineageTag: eb100899-310e-4096-8bd0-b25b15a36141
 
 	measure 'Inventory Overview Label' =
 			SWITCH(USERCULTURE(),
@@ -119,8 +115,7 @@ table 'Translated Localized Labels'
 			   "sv-SE", "Lageröversikt",
 			   "Inventory Overview"
 			)
-		isHidden
-		lineageTag: 693d8683-0f17-478c-bc08-95072a36a651
+		lineageTag: 306be75e-ede1-443b-a0e3-83c99fb109d9
 
 	measure 'Inventory and Projected Available Balance Label' =
 			SWITCH(USERCULTURE(),
@@ -149,8 +144,7 @@ table 'Translated Localized Labels'
 			   "sv-SE", "Lager och lagerutveckling över tiden",
 			   "Inventory and Projected Available Balance"
 			)
-		isHidden
-		lineageTag: 76091a6d-ce44-4d62-977a-e516914e63a3
+		lineageTag: 47e63c43-f867-4661-81b4-56a0d6a5b4e9
 
 	measure 'Availability Outlook Label' =
 			SWITCH(USERCULTURE(),
@@ -179,8 +173,7 @@ table 'Translated Localized Labels'
 			   "sv-SE", "Tillgänglighet Outlook",
 			   "Availability Outlook"
 			)
-		isHidden
-		lineageTag: 4d059158-fb84-4eb4-8ea9-110fe6a49643
+		lineageTag: b0d7a47d-1068-4214-b9a8-cbbffa1a7524
 
 	measure 'Inventory by Item Label' =
 			SWITCH(USERCULTURE(),
@@ -209,8 +202,7 @@ table 'Translated Localized Labels'
 			   "sv-SE", "Lager per artikel",
 			   "Inventory by Item"
 			)
-		isHidden
-		lineageTag: 03c5f253-417e-4bac-a25a-7ebe97d5666e
+		lineageTag: c859fe48-e701-4434-905b-9cd3291b849b
 
 	measure 'Inventory by Location Label' =
 			SWITCH(USERCULTURE(),
@@ -239,8 +231,7 @@ table 'Translated Localized Labels'
 			   "sv-SE", "Lager utifrån lagerställe",
 			   "Inventory by Location"
 			)
-		isHidden
-		lineageTag: cbea23c7-fd8a-47e9-9efd-8b4caf02ead2
+		lineageTag: 3efc703f-8e1c-4760-aa70-b0a5380656d9
 
 	measure 'Inventory on Hand by Location Label' =
 			SWITCH(USERCULTURE(),
@@ -269,8 +260,7 @@ table 'Translated Localized Labels'
 			   "sv-SE", "Lagersaldo per lagerställe",
 			   "Inventory on Hand by Location"
 			)
-		isHidden
-		lineageTag: df7874f1-a7a4-4234-92d0-2068be5d4bd1
+		lineageTag: 419a58ed-f74c-4186-84bc-43ab79987426
 
 	measure 'Purchase and Sales Quantity Label' =
 			SWITCH(USERCULTURE(),
@@ -299,8 +289,7 @@ table 'Translated Localized Labels'
 			   "sv-SE", "Inköps- och försäljningsantal",
 			   "Purchase and Sales Quantity"
 			)
-		isHidden
-		lineageTag: ae52d7da-5685-4fed-b71a-5e055e0517f1
+		lineageTag: 3ed5bdb5-6d81-4317-b207-09f3b46aac59
 
 	measure 'Item Availability Label' =
 			SWITCH(USERCULTURE(),
@@ -329,8 +318,7 @@ table 'Translated Localized Labels'
 			   "sv-SE", "Artikeldisposition",
 			   "Item Availability"
 			)
-		isHidden
-		lineageTag: 62761c0d-410b-4374-af6f-f7c99b7e9c1d
+		lineageTag: 8662d6a9-76fe-47ba-a1b4-e77afded7e03
 
 	measure 'Projected Available Balance vs. Quantity on Hand Label' =
 			SWITCH(USERCULTURE(),
@@ -359,8 +347,7 @@ table 'Translated Localized Labels'
 			   "sv-SE", "Lagerutveckling över tiden jämfört med Lagersaldo",
 			   "Projected Available Balance vs. Quantity on Hand"
 			)
-		isHidden
-		lineageTag: ae6a456c-1022-430e-8007-11e5378d5297
+		lineageTag: ebe3a33c-f380-4214-9988-0272ad4b718a
 
 	measure 'Gross Requirements vs. Projected Available Balance Label' =
 			SWITCH(USERCULTURE(),
@@ -389,8 +376,7 @@ table 'Translated Localized Labels'
 			   "sv-SE", "Bruttobehov jämfört med Lagerutveckling över tiden",
 			   "Gross Requirements vs. Projected Available Balance"
 			)
-		isHidden
-		lineageTag: 18ac4167-95d2-4471-83a6-67b995d182d7
+		lineageTag: c1c121e0-182b-40f4-ba51-ab61f5b3fea6
 
 	measure 'Gross Requirements Earliest Dates Label' =
 			SWITCH(USERCULTURE(),
@@ -419,8 +405,7 @@ table 'Translated Localized Labels'
 			   "sv-SE", "Tidigaste datum för bruttobehov",
 			   "Gross Requirements Earliest Dates"
 			)
-		isHidden
-		lineageTag: 22effab8-6c30-4369-ac61-2097ec657c37
+		lineageTag: 993cc7c9-5717-40a6-9a6c-f9e67f31955a
 
 	measure 'Scheduled Receipt Earliest Dates Label' =
 			SWITCH(USERCULTURE(),
@@ -449,8 +434,7 @@ table 'Translated Localized Labels'
 			   "sv-SE", "Tidigaste datum för planenlig inleverans",
 			   "Scheduled Receipt Earliest Dates"
 			)
-		isHidden
-		lineageTag: d252637f-70b6-40ce-9c2b-b94d3f60858c
+		lineageTag: 5dad24d2-ddc3-4a01-8fe2-4cf2b71365e2
 
 	measure 'Purchase Order Drill Through Label' =
 			SWITCH(USERCULTURE(),
@@ -479,8 +463,7 @@ table 'Translated Localized Labels'
 			   "sv-SE", "Detaljerad analys av inköpsorder",
 			   "Purchase Order Drill Through"
 			)
-		isHidden
-		lineageTag: fce4d887-9a8f-48a7-a532-19df6eb274b3
+		lineageTag: 2dccbdf1-e257-4daf-8a9b-8db777e6cdb7
 
 	measure 'Purchase Return Order Drill Through Label' =
 			SWITCH(USERCULTURE(),
@@ -509,8 +492,7 @@ table 'Translated Localized Labels'
 			   "sv-SE", "Detaljerad analys av inköpsreturorder",
 			   "Purchase Return Order Drill Through"
 			)
-		isHidden
-		lineageTag: 8b23e88b-98a4-4108-b072-38e7558eb08d
+		lineageTag: d5003269-6f1c-4a63-a780-879eb6fa6369
 
 	measure 'Item Ledger Entry Drill through Label' =
 			SWITCH(USERCULTURE(),
@@ -539,8 +521,7 @@ table 'Translated Localized Labels'
 			   "sv-SE", "Detaljerad analys av artikeltransaktioner",
 			   "Item Ledger Entry Drill through"
 			)
-		isHidden
-		lineageTag: edbe5547-97f3-47cb-bdf6-62bb7a1af7c4
+		lineageTag: 167329b6-a5f1-41f5-8d0d-1c85bc85227c
 
 	measure 'Production Order Drill Through Label' =
 			SWITCH(USERCULTURE(),
@@ -569,8 +550,7 @@ table 'Translated Localized Labels'
 			   "sv-SE", "Detaljerad analys av produktionsorder",
 			   "Production Order Drill Through"
 			)
-		isHidden
-		lineageTag: c5384acb-a322-46e8-b631-db203435e7c2
+		lineageTag: 8d36aa82-ab9c-4ebc-aaf7-e7b63104ec74
 
 	measure 'Prod. Order Components Drill Through Label' =
 			SWITCH(USERCULTURE(),
@@ -599,8 +579,7 @@ table 'Translated Localized Labels'
 			   "sv-SE", "Detaljerad analys av prod.orderkomponenter",
 			   "Prod. Order Components Drill Through"
 			)
-		isHidden
-		lineageTag: c8f0cd42-6690-45fe-ab59-5e3ef0f98586
+		lineageTag: e661b9c0-f41d-4029-af34-d7a648f6bc2c
 
 	measure 'Sales Order Drill Through Label' =
 			SWITCH(USERCULTURE(),
@@ -629,8 +608,7 @@ table 'Translated Localized Labels'
 			   "sv-SE", "Detaljerad analys av försäljningsorder",
 			   "Sales Order Drill Through"
 			)
-		isHidden
-		lineageTag: f8e4e943-61c5-4018-b193-758a54962ef4
+		lineageTag: 12ed8e8a-f7a0-4642-a7bf-9483ad747f23
 
 	measure 'Sales Return Order Drill Through Label' =
 			SWITCH(USERCULTURE(),
@@ -659,8 +637,7 @@ table 'Translated Localized Labels'
 			   "sv-SE", "Detaljerad analys av försäljningsreturorder",
 			   "Sales Return Order Drill Through"
 			)
-		isHidden
-		lineageTag: 7c4aea9e-0afa-47dd-a522-2db1db3555a0
+		lineageTag: c6e2c5bf-4419-4611-848c-c8281340291a
 
 	measure 'Transfer Order Drill Through Label' =
 			SWITCH(USERCULTURE(),
@@ -689,8 +666,7 @@ table 'Translated Localized Labels'
 			   "sv-SE", "Detaljerad analys av överföringsorder",
 			   "Transfer Order Drill Through"
 			)
-		isHidden
-		lineageTag: 69c1e673-5027-4eb3-afbb-4dfcdbed1e0f
+		lineageTag: 3deaebbf-eeb5-4c8c-82e2-46164b797605
 
 	measure 'Assembly Order Drill Through Label' =
 			SWITCH(USERCULTURE(),
@@ -719,8 +695,7 @@ table 'Translated Localized Labels'
 			   "sv-SE", "Detaljerad analys av monteringsorder",
 			   "Assembly Order Drill Through"
 			)
-		isHidden
-		lineageTag: c6428af2-0c27-4b4b-b093-16d01bc4621c
+		lineageTag: 63cb1634-2ac0-4e3c-9426-101ce41bed3d
 
 	measure 'Assembly Lines Drill Through Label' =
 			SWITCH(USERCULTURE(),
@@ -749,8 +724,7 @@ table 'Translated Localized Labels'
 			   "sv-SE", "Detaljerad analys av monteringsrader",
 			   "Assembly Lines Drill Through"
 			)
-		isHidden
-		lineageTag: 68df908a-195f-4d5c-9872-25fdbe863434
+		lineageTag: 3b986988-51cf-4fbd-99ce-891c5d3413b4
 
 	measure 'Service Lines Drill Through Label' =
 			SWITCH(USERCULTURE(),
@@ -779,8 +753,7 @@ table 'Translated Localized Labels'
 			   "sv-SE", "Detaljerad analys av servicerader",
 			   "Service Lines Drill Through"
 			)
-		isHidden
-		lineageTag: f2ef28b1-a739-4693-bf8d-1635d11a7340
+		lineageTag: 9621afa3-0e1c-4103-9a52-8097f0d99888
 
 	measure 'Gross Requirement  Label' =
 			SWITCH(USERCULTURE(),
@@ -809,8 +782,7 @@ table 'Translated Localized Labels'
 			   "sv-SE", "Bruttobehov ",
 			   "Gross Requirement "
 			)
-		isHidden
-		lineageTag: 775cce9a-0a65-4950-aee9-77cb337cdb23
+		lineageTag: 39c17bd8-3cb8-44cf-bfe5-f2d7faf8f119
 
 	measure 'Scheduled Receipt  Label' =
 			SWITCH(USERCULTURE(),
@@ -839,8 +811,7 @@ table 'Translated Localized Labels'
 			   "sv-SE", "Planenlig inleverans ",
 			   "Scheduled Receipt "
 			)
-		isHidden
-		lineageTag: 3fd7b094-f8e6-40df-ba83-b8cf07553880
+		lineageTag: 6a8971ad-b0bf-48ff-92a0-cd95a8e312ef
 
 	measure 'Inventory by Lot  Label' =
 			SWITCH(USERCULTURE(),
@@ -869,8 +840,7 @@ table 'Translated Localized Labels'
 			   "sv-SE", "Lager utifrån parti ",
 			   "Inventory by Lot "
 			)
-		isHidden
-		lineageTag: e2125dde-3e29-4f56-9ebb-f6bc3345802e
+		lineageTag: 50f74e95-d9fa-4f66-b888-8ce814b4e466
 
 	measure 'Inventory by Serial No. Label' =
 			SWITCH(USERCULTURE(),
@@ -899,8 +869,7 @@ table 'Translated Localized Labels'
 			   "sv-SE", "Lager per serienummer",
 			   "Inventory by Serial No."
 			)
-		isHidden
-		lineageTag: 6a640dbe-747a-4bb5-8173-3ace8c15b7b9
+		lineageTag: 6f1f04b3-b6c7-4978-957c-d4991c144b53
 
 	measure 'Bin Contents Label' =
 			SWITCH(USERCULTURE(),
@@ -929,8 +898,7 @@ table 'Translated Localized Labels'
 			   "sv-SE", "Lagerplatsinnehåll",
 			   "Bin Contents"
 			)
-		isHidden
-		lineageTag: 99d9ff5b-dcb3-4107-a1e3-2e66dec29ae6
+		lineageTag: ae3cb72e-601f-4474-ac13-45caa956795f
 
 	measure 'Bin Contents by Item Tracking Label' =
 			SWITCH(USERCULTURE(),
@@ -959,8 +927,7 @@ table 'Translated Localized Labels'
 			   "sv-SE", "Lagerplatsinnehåll per artikelspårning",
 			   "Bin Contents by Item Tracking"
 			)
-		isHidden
-		lineageTag: 260054d3-fb2a-4082-ae54-ca736230ca0d
+		lineageTag: f6ab076c-9607-4f96-a0d4-2899d3630606
 
 	measure 'Expired Inventory  Label' =
 			SWITCH(USERCULTURE(),
@@ -989,8 +956,7 @@ table 'Translated Localized Labels'
 			   "sv-SE", "Utgånget lager ",
 			   "Expired Inventory "
 			)
-		isHidden
-		lineageTag: 8b89c331-fca1-4185-8a20-b5bcaa5bdecb
+		lineageTag: fbc36953-3cde-4232-9fa6-5a866e1d067e
 
 	measure 'Gross Requirements Label' =
 			SWITCH(USERCULTURE(),
@@ -1019,8 +985,7 @@ table 'Translated Localized Labels'
 			   "sv-SE", "Bruttobehov",
 			   "Gross Requirements"
 			)
-		isHidden
-		lineageTag: ba0a95f5-8aec-4cfe-9700-df9d5564092a
+		lineageTag: 3a4d93ee-3e09-481f-86e8-a3d12087e03b
 
 	measure 'Scheduled Receipts Label' =
 			SWITCH(USERCULTURE(),
@@ -1049,8 +1014,7 @@ table 'Translated Localized Labels'
 			   "sv-SE", "Planenliga inleveranser",
 			   "Scheduled Receipts"
 			)
-		isHidden
-		lineageTag: a201ae7d-0424-4de0-877b-e1e9c2c0f31a
+		lineageTag: 10a57863-d0bd-4424-a96b-3f97fc829935
 
 	measure 'for Business Central Label' =
 			SWITCH(USERCULTURE(),
@@ -1079,8 +1043,7 @@ table 'Translated Localized Labels'
 			   "sv-SE", "för Business Central",
 			   "for Business Central"
 			)
-		isHidden
-		lineageTag: d46922ec-31cb-41fa-aadf-cf30ee9f7ad3
+		lineageTag: 9ea3ac06-9ab1-48da-a090-2d1aa3114578
 
 	measure 'CONNECT YOUR DATA Label' =
 			SWITCH(USERCULTURE(),
@@ -1109,8 +1072,7 @@ table 'Translated Localized Labels'
 			   "sv-SE", "ANSLUT DINA DATA",
 			   "CONNECT YOUR DATA"
 			)
-		isHidden
-		lineageTag: 1460d79b-8e17-4ea7-9175-4cf5273f65fc
+		lineageTag: ea0ffa01-e405-4ceb-9719-3cab308958d5
 
 	measure '1. Download the Inventory Connector for Power BI Label' =
 			SWITCH(USERCULTURE(),
@@ -1139,8 +1101,7 @@ table 'Translated Localized Labels'
 			   "sv-SE", "1. Ladda ned lageranslutningsprogrammet för Power BI",
 			   "1. Download the Inventory Connector for Power BI"
 			)
-		isHidden
-		lineageTag: bceec181-2100-4d40-8b23-82cd5efa52e2
+		lineageTag: 49dcd0b7-1bf0-4c99-9ee0-b09730503e72
 
 	measure '2. Configure Dynamics 365 Business Central Label' =
 			SWITCH(USERCULTURE(),
@@ -1169,8 +1130,7 @@ table 'Translated Localized Labels'
 			   "sv-SE", "2. Konfigurera Dynamics 365 Business Central",
 			   "2. Configure Dynamics 365 Business Central"
 			)
-		isHidden
-		lineageTag: 3feb31d2-cc03-48f9-b1e7-2ec53f9ef418
+		lineageTag: b4546e94-ce98-4aa0-ae56-1c48cf68fa32
 
 	measure 'USE, EDIT AND BUILD YOUR OWN REPORTS Label' =
 			SWITCH(USERCULTURE(),
@@ -1199,8 +1159,7 @@ table 'Translated Localized Labels'
 			   "sv-SE", "ANVÄND, REDIGERA OCH SKAPA EGNA RAPPORTER",
 			   "USE, EDIT AND BUILD YOUR OWN REPORTS"
 			)
-		isHidden
-		lineageTag: e16bd4cc-1c13-457a-9b44-0512a4b3325a
+		lineageTag: f1e7da62-e801-4c7e-8ca1-2f3f38456df0
 
 	measure 'Inventory includes a variety of pre-built reports to help you see your data immediately. Label' =
 			SWITCH(USERCULTURE(),
@@ -1229,8 +1188,7 @@ table 'Translated Localized Labels'
 			   "sv-SE", "Lager innehåller en mängd fördefinierade rapporter som gör att du kan visa data omedelbart.",
 			   "Inventory includes a variety of pre-built reports to help you see your data immediately."
 			)
-		isHidden
-		lineageTag: f959b531-83a6-4c75-9fa3-0ea4d798e030
+		lineageTag: 56398193-030f-49da-bf93-59fcdb5aaeab
 
 	measure 'You are able to edit these reports or build your own report from scratch. Label' =
 			SWITCH(USERCULTURE(),
@@ -1259,8 +1217,7 @@ table 'Translated Localized Labels'
 			   "sv-SE", "Du kan redigera dessa rapporter eller skapa en egen rapport från grunden.",
 			   "You are able to edit these reports or build your own report from scratch."
 			)
-		isHidden
-		lineageTag: fa69b0bb-5262-4caf-8217-b8d604da2a33
+		lineageTag: 246809bb-82c1-45d4-9a97-e6746f074dd7
 
 	measure 'HELP AND SUPPORT Label' =
 			SWITCH(USERCULTURE(),
@@ -1289,8 +1246,7 @@ table 'Translated Localized Labels'
 			   "sv-SE", "HJÄLP OCH SUPPORT",
 			   "HELP AND SUPPORT"
 			)
-		isHidden
-		lineageTag: 7c22a55d-1df0-42cc-90db-8bdf72071185
+		lineageTag: 0f7af54b-2938-49fa-8340-69532ffae196
 
 	measure 'For help and support with your new report please visit the Analytics overview documentation. Label' =
 			SWITCH(USERCULTURE(),
@@ -1319,8 +1275,7 @@ table 'Translated Localized Labels'
 			   "sv-SE", "Hjälp och support med den nya rapporten finns i översiktsdokumentationen för Analys.",
 			   "For help and support with your new report please visit the Analytics overview documentation."
 			)
-		isHidden
-		lineageTag: 30a1f1fd-7106-4719-b725-f841ee12304e
+		lineageTag: dcd676b0-6813-469e-a6ae-d2e2a862a181
 
 	measure 'OTHER POWER BI REPORTS Label' =
 			SWITCH(USERCULTURE(),
@@ -1349,8 +1304,7 @@ table 'Translated Localized Labels'
 			   "sv-SE", "ÖVRIGA POWER BI-RAPPORTER",
 			   "OTHER POWER BI REPORTS"
 			)
-		isHidden
-		lineageTag: be3cfc5a-b63b-46a4-a133-cf8cb20e9503
+		lineageTag: 65f03418-38d7-4d22-a403-69269fea7c69
 
 	measure 'PURCHASE Label' =
 			SWITCH(USERCULTURE(),
@@ -1379,8 +1333,7 @@ table 'Translated Localized Labels'
 			   "sv-SE", "INKÖP",
 			   "PURCHASE"
 			)
-		isHidden
-		lineageTag: 78add9c1-20ad-45e5-9f8d-7f95688668fa
+		lineageTag: 87fe73f6-55a6-43eb-8633-25377694878f
 
 	measure 'FINANCE Label' =
 			SWITCH(USERCULTURE(),
@@ -1409,8 +1362,7 @@ table 'Translated Localized Labels'
 			   "sv-SE", "EKONOMI",
 			   "FINANCE"
 			)
-		isHidden
-		lineageTag: a7596a2b-e8a5-494f-a14b-3f8cc90e472f
+		lineageTag: fea3f7a1-39d9-4628-94d5-e1793b0bd20b
 
 	measure 'REBATES Label' =
 			SWITCH(USERCULTURE(),
@@ -1439,8 +1391,7 @@ table 'Translated Localized Labels'
 			   "sv-SE", "RABATTER",
 			   "REBATES"
 			)
-		isHidden
-		lineageTag: bdec7532-6bd4-4e1e-8f8d-64ea141fac78
+		lineageTag: 0f986bdf-1969-42a6-b476-741bff8a7817
 
 	measure 'SALES Label' =
 			SWITCH(USERCULTURE(),
@@ -1469,8 +1420,7 @@ table 'Translated Localized Labels'
 			   "sv-SE", "FÖRSÄLJNING",
 			   "SALES"
 			)
-		isHidden
-		lineageTag: 38ce3e7a-9b61-42f2-9ef7-a8ae59e2ddd4
+		lineageTag: e719f8f6-832c-47ba-ac77-7279cec40095
 
 	measure 'INVENTORY  Label' =
 			SWITCH(USERCULTURE(),
@@ -1499,8 +1449,7 @@ table 'Translated Localized Labels'
 			   "sv-SE", "LAGER ",
 			   "INVENTORY "
 			)
-		isHidden
-		lineageTag: 981f8f0b-de51-4a28-8c68-5f80257d202d
+		lineageTag: 596fc627-09b1-4a0e-bc98-5edb3397f906
 
 	measure 'Inventory   Label' =
 			SWITCH(USERCULTURE(),
@@ -1529,8 +1478,7 @@ table 'Translated Localized Labels'
 			   "sv-SE", "Lager  ",
 			   "Inventory  "
 			)
-		isHidden
-		lineageTag: bb8b58bb-9bfc-4d21-9c54-3a59de60cbb7
+		lineageTag: 50209f9d-28ea-44ac-a9db-434b85630883
 
 	measure 'The inventory by item shows item category code, inventory, and the quantity on various documents. Label' =
 			SWITCH(USERCULTURE(),
@@ -1559,8 +1507,7 @@ table 'Translated Localized Labels'
 			   "sv-SE", "Lager per artikel visar artikelkategorikod, lager och kvantitet i olika dokument.",
 			   "The inventory by item shows item category code, inventory, and the quantity on various documents."
 			)
-		isHidden
-		lineageTag: eb373b9a-0e8f-4006-aa48-17ab5cff6f5d
+		lineageTag: 3e25cdc6-589a-4c55-9e7e-822d4e4d3789
 
 	measure 'The inventory by location shows item number and description, and quantity on hand per location. Label' =
 			SWITCH(USERCULTURE(),
@@ -1589,8 +1536,7 @@ table 'Translated Localized Labels'
 			   "sv-SE", "Lagret per lagerställe visar artikelnummer och beskrivning samt lagersaldo per lagerställe.",
 			   "The inventory by location shows item number and description, and quantity on hand per location."
 			)
-		isHidden
-		lineageTag: 330780ce-d4e9-4c62-9916-89a24c2629ba
+		lineageTag: c7c3819d-1caa-439d-9f24-5adbc8327bf2
 
 	measure 'The purchases and sales quantity shows item category code, purchase and sales quantities, and the quantity net change by deducting purchases to sales. Label' =
 			SWITCH(USERCULTURE(),
@@ -1619,8 +1565,7 @@ table 'Translated Localized Labels'
 			   "sv-SE", "Inköps- och försäljningskvantiteten visar artikelkategorikod, inköps- och försäljningskvantiteter samt kvantitetens nettoförändring genom att dra av inköp från försäljning.",
 			   "The purchases and sales quantity shows item category code, purchase and sales quantities, and the quantity net change by deducting purchases to sales."
 			)
-		isHidden
-		lineageTag: edaeb48f-7463-4baa-9fb7-b3b57bae6ed9
+		lineageTag: 65246e0a-5b91-487b-b380-4b863de4436f
 
 	measure 'The item availiblity shows item number, inventory, projected available balance, gross requirement, scheduled receipt, planned order receipt, and planned order releases. Label' =
 			SWITCH(USERCULTURE(),
@@ -1649,8 +1594,7 @@ table 'Translated Localized Labels'
 			   "sv-SE", "Artikeldisposition visar artikelnummer, lager, lagerutveckling över tiden, bruttobehov, schemalagd inleverans, planerad orderinleverans och planerade frisläppningar av order.",
 			   "The item availiblity shows item number, inventory, projected available balance, gross requirement, scheduled receipt, planned order receipt, and planned order releases."
 			)
-		isHidden
-		lineageTag: 12e92aa5-5f95-4861-a1b9-e9ec9d3e3cf9
+		lineageTag: d8985734-66c6-44fd-93fa-ca3ff431631d
 
 	measure 'The gross requirement and projected available balance shows item number and description, and the quantity on various documents. Label' =
 			SWITCH(USERCULTURE(),
@@ -1679,8 +1623,7 @@ table 'Translated Localized Labels'
 			   "sv-SE", "Bruttobehovet och lagerutveckling över tid visar artikelnummer och beskrivning samt kvantiteten i olika dokument.",
 			   "The gross requirement and projected available balance shows item number and description, and the quantity on various documents."
 			)
-		isHidden
-		lineageTag: 98f638db-9eb8-49c7-9923-c397618352ff
+		lineageTag: 17a3bd5d-8c23-4283-953a-351de08c9b57
 
 	measure 'The bin contents shows available quantity to take for each location and bin. Label' =
 			SWITCH(USERCULTURE(),
@@ -1709,8 +1652,7 @@ table 'Translated Localized Labels'
 			   "sv-SE", "Lagerplatsinnehållet visar tillgängligt antal att ta för varje lagerställe och lagerplats.",
 			   "The bin contents shows available quantity to take for each location and bin."
 			)
-		isHidden
-		lineageTag: cd26c38a-5483-470b-a4f1-7c0c7d742afe
+		lineageTag: 068d9674-a278-4304-9ec3-df122b862d01
 
 	measure 'The bin contents by item tracking shows item tracking details for each location and bin. Label' =
 			SWITCH(USERCULTURE(),
@@ -1739,8 +1681,7 @@ table 'Translated Localized Labels'
 			   "sv-SE", "Lagerplatsinnehållet per artikelspårning visar artikelspårningsinformation för varje lagerställe och lagerplats.",
 			   "The bin contents by item tracking shows item tracking details for each location and bin."
 			)
-		isHidden
-		lineageTag: fccd30ef-032b-49f1-8a68-fd593a744eac
+		lineageTag: d0bc7606-2a01-4438-a653-d8118e8aacdc
 
 	measure 'The scheduled receipt and projected available balance shows item number and description, and the quantity on various documents. Label' =
 			SWITCH(USERCULTURE(),
@@ -1769,8 +1710,7 @@ table 'Translated Localized Labels'
 			   "sv-SE", "Schemalagd inleverans och lagerutveckling över tid visar artikelnummer och beskrivning samt kvantiteten i olika dokument.",
 			   "The scheduled receipt and projected available balance shows item number and description, and the quantity on various documents."
 			)
-		isHidden
-		lineageTag: 1a7fe0d3-a80c-42f3-9ef7-d5059da3152d
+		lineageTag: 68b973c8-eb91-4e7a-b9bf-3f5fddda6c11
 
 	measure 'Last Refreshed Label' =
 			SWITCH(USERCULTURE(),
@@ -1799,8 +1739,7 @@ table 'Translated Localized Labels'
 			   "sv-SE", "Uppdaterades senast",
 			   "Last Refreshed"
 			)
-		isHidden
-		lineageTag: 36ef6532-ddc8-4c5f-bd4b-4749264efe17
+		lineageTag: 0326ea48-51eb-4cf0-bd0e-ade878ed4965
 
 	measure 'Company Name Label' =
 			SWITCH(USERCULTURE(),
@@ -1829,8 +1768,7 @@ table 'Translated Localized Labels'
 			   "sv-SE", "Företagsnamn",
 			   "Company Name"
 			)
-		isHidden
-		lineageTag: 1bd73a3d-0389-476d-bae4-301f0cd42e06
+		lineageTag: 1b028787-337b-4809-b0dc-48390e87ce66
 
 	measure 'Inventory (Quantity) by Location Code Label' =
 			SWITCH(USERCULTURE(),
@@ -1859,8 +1797,7 @@ table 'Translated Localized Labels'
 			   "sv-SE", "Lager (antal) per lagerställekod",
 			   "Inventory (Quantity) by Location Code"
 			)
-		isHidden
-		lineageTag: ca09c95b-cf8c-4176-86ba-d2a6e455534d
+		lineageTag: fbb86df9-6ff3-4458-a7f5-ac0ae7b3d805
 
 	measure 'Scheduled Receipt and Projected Available Balance by Fiscal Year and Month Label' =
 			SWITCH(USERCULTURE(),
@@ -1889,8 +1826,7 @@ table 'Translated Localized Labels'
 			   "sv-SE", "Planerad inleverans och lagerutveckling över tiden per räkenskapsår och -månad",
 			   "Scheduled Receipt and Projected Available Balance by Fiscal Year and Month"
 			)
-		isHidden
-		lineageTag: c225bcfa-f188-416a-9849-c3ee62ed5852
+		lineageTag: acf8ab7c-d448-4bd3-91bc-5ba2a9e83f1a
 
 	measure 'Inventory (Quantity) by Lot No. Label' =
 			SWITCH(USERCULTURE(),
@@ -1919,8 +1855,7 @@ table 'Translated Localized Labels'
 			   "sv-SE", "Lager (antal) per partinummer",
 			   "Inventory (Quantity) by Lot No."
 			)
-		isHidden
-		lineageTag: 28be3dc3-ca02-40ad-a233-e389ffa182d3
+		lineageTag: dfc7c7b2-9c25-4ca9-9314-5138936272b8
 
 	measure 'Inventory (Quantity) by Serial No. Label' =
 			SWITCH(USERCULTURE(),
@@ -1949,8 +1884,7 @@ table 'Translated Localized Labels'
 			   "sv-SE", "Lager (antal) per serienummer",
 			   "Inventory (Quantity) by Serial No."
 			)
-		isHidden
-		lineageTag: 85d04690-3992-452b-9e7c-a459adcf13a7
+		lineageTag: 58ef5baa-eb5b-4762-96dc-7160885fe4fd
 
 	measure 'MANUFACTURING Label' =
 			SWITCH(USERCULTURE(),
@@ -1979,8 +1913,7 @@ table 'Translated Localized Labels'
 			   "sv-SE", "PRODUKTION",
 			   "MANUFACTURING"
 			)
-		isHidden
-		lineageTag: 37d7c0b9-fd15-4a4b-8ea4-855d770e9ac5
+		lineageTag: 9fe3b82a-efff-4b85-936b-9ede6e0fa328
 
 	measure 'INVENTORY VALUATION Label' =
 			SWITCH(USERCULTURE(),
@@ -2009,8 +1942,7 @@ table 'Translated Localized Labels'
 			   "sv-SE", "LAGERVÄRDERING",
 			   "INVENTORY VALUATION"
 			)
-		isHidden
-		lineageTag: d2746d64-cf0b-46c2-a513-c48409f8260e
+		lineageTag: 504bfd2c-d301-4f37-a8fd-428328a52eee
 
 	measure 'Available Quantity to Take by Bin Code Label' =
 			SWITCH(USERCULTURE(),
@@ -2039,8 +1971,7 @@ table 'Translated Localized Labels'
 			   "sv-SE", "Disponibelt antal att hämta per lagerplatskod",
 			   "Available Quantity to Take by Bin Code"
 			)
-		isHidden
-		lineageTag: ca45fa0b-42f6-462a-978a-cd5ddf0b65bf
+		lineageTag: b8f4d3ed-94c6-4c25-bff1-5c0a08031b00
 
 	measure 'Projected Available Balance vs. Current Inventory Label' =
 			SWITCH(USERCULTURE(),
@@ -2069,8 +2000,7 @@ table 'Translated Localized Labels'
 			   "sv-SE", "Lagerutveckling över tiden jämfört med aktuellt lager",
 			   "Projected Available Balance vs. Current Inventory"
 			)
-		isHidden
-		lineageTag: 999c2644-ff76-4f7d-a072-69e064654494
+		lineageTag: af60464b-a493-4797-9a61-f48b69cfe294
 
 	measure 'Purchase vs. Sales Quantity Across Time Label' =
 			SWITCH(USERCULTURE(),
@@ -2099,8 +2029,7 @@ table 'Translated Localized Labels'
 			   "sv-SE", "Inköp jämfört med försäljningskvantitet över tid",
 			   "Purchase vs. Sales Quantity Across Time"
 			)
-		isHidden
-		lineageTag: 6960b8c3-10c6-410a-9ae7-70154431919d
+		lineageTag: 1602ac6a-2d2d-4b80-9762-cbe782614adb
 
 	measure 'Inventory by Item Details Label' =
 			SWITCH(USERCULTURE(),
@@ -2129,8 +2058,7 @@ table 'Translated Localized Labels'
 			   "sv-SE", "Information om Lager per artikel",
 			   "Inventory by Item Details"
 			)
-		isHidden
-		lineageTag: c846d127-a2a5-4962-9249-aa2614d03475
+		lineageTag: 3a278d1a-3813-4576-a651-27b853af5d13
 
 	measure 'Inventory by Location Details Label' =
 			SWITCH(USERCULTURE(),
@@ -2159,8 +2087,7 @@ table 'Translated Localized Labels'
 			   "sv-SE", "Information om Lager per lagerställe",
 			   "Inventory by Location Details"
 			)
-		isHidden
-		lineageTag: b9921b72-80f7-42a8-9dea-b531a0fac0c1
+		lineageTag: 40645014-970d-4813-a7b9-c950ef5ddec8
 
 	measure 'Purchase and Sales Quantity Details Label' =
 			SWITCH(USERCULTURE(),
@@ -2189,8 +2116,7 @@ table 'Translated Localized Labels'
 			   "sv-SE", "Information om Inköps- och försäljningsantal",
 			   "Purchase and Sales Quantity Details"
 			)
-		isHidden
-		lineageTag: 6e568db1-6956-4a2b-b125-e3d69c524618
+		lineageTag: 30901f01-fa01-4c1b-ace1-fd30316f3b8c
 
 	measure 'Item Availability Details Label' =
 			SWITCH(USERCULTURE(),
@@ -2219,8 +2145,7 @@ table 'Translated Localized Labels'
 			   "sv-SE", "Information om Artikeldisposition",
 			   "Item Availability Details"
 			)
-		isHidden
-		lineageTag: 2ade882a-7e35-4a14-b806-59a7410627e5
+		lineageTag: d0ad3922-e1f9-4d35-99df-c61e85945acf
 
 	measure 'Gross Requirement Details Label' =
 			SWITCH(USERCULTURE(),
@@ -2249,8 +2174,7 @@ table 'Translated Localized Labels'
 			   "sv-SE", "Information om Bruttobehov",
 			   "Gross Requirement Details"
 			)
-		isHidden
-		lineageTag: f1b4decf-48aa-49c7-92a1-789c6f399f5d
+		lineageTag: f2add8ab-8f2c-4438-bb16-a751693cf507
 
 	measure 'Scheduled Receipt Details Label' =
 			SWITCH(USERCULTURE(),
@@ -2279,8 +2203,7 @@ table 'Translated Localized Labels'
 			   "sv-SE", "Information om Planenlig inleverans",
 			   "Scheduled Receipt Details"
 			)
-		isHidden
-		lineageTag: 098c1f0a-3498-408b-8960-92d601e44f74
+		lineageTag: 6c013b6d-308e-41c9-80d1-6d069508a7d2
 
 	measure 'Inventory by Lot Details Label' =
 			SWITCH(USERCULTURE(),
@@ -2309,8 +2232,7 @@ table 'Translated Localized Labels'
 			   "sv-SE", "Information om Lager utifrån parti",
 			   "Inventory by Lot Details"
 			)
-		isHidden
-		lineageTag: 5e84f111-0606-44f0-8e16-7259d5da38e8
+		lineageTag: 9bc7d59e-f378-4c67-8c8e-2795f51d1a04
 
 	measure 'Inventory by Serial No Details Label' =
 			SWITCH(USERCULTURE(),
@@ -2339,8 +2261,7 @@ table 'Translated Localized Labels'
 			   "sv-SE", "Information om Lager per serienummer",
 			   "Inventory by Serial No Details"
 			)
-		isHidden
-		lineageTag: 5307aedf-0985-4d88-a298-c8e21a93cb2a
+		lineageTag: f09aca82-15c3-4619-bec8-7090c508739a
 
 	measure 'Bin Contents Details Label' =
 			SWITCH(USERCULTURE(),
@@ -2369,8 +2290,7 @@ table 'Translated Localized Labels'
 			   "sv-SE", "Information om Lagerplatsinnehåll",
 			   "Bin Contents Details"
 			)
-		isHidden
-		lineageTag: 157da3ba-b813-4982-91f0-66e3f12dc86b
+		lineageTag: 5da9553d-c910-4078-8d62-f8825c1b8b1f
 
 	measure 'Bin Contents by Item Tracking Details Label' =
 			SWITCH(USERCULTURE(),
@@ -2399,81 +2319,81 @@ table 'Translated Localized Labels'
 			   "sv-SE", "Information om Lagerplatsinnehåll per artikelspårning",
 			   "Bin Contents by Item Tracking Details"
 			)
-		isHidden
-		lineageTag: a7b414d3-e6b2-4d16-afbf-73d4f784e24b
+		lineageTag: 840f351b-a83d-427d-9f32-e68a327a6b83
 
 	measure 'Inventory Sales Forecasting Label' = "Inventory Sales Forecasting"
-		isHidden
-		lineageTag: 4cb880e6-4cf3-4c41-b3e8-4c941aa26933
+		lineageTag: 2ce0faff-c70c-4045-9e59-7ee0c79224a2
 
 	measure 'Sales Quantity Forecast Label' = "Sales Quantity Forecast"
-		isHidden
-		lineageTag: d230a4d3-2373-4ec7-a27b-06f7e6665304
+		lineageTag: 71f523bb-f9df-4618-bb77-a4b145566d01
 
 	measure 'Sales Quantity by Location Label' = "Sales Quantity by Location"
-		isHidden
-		lineageTag: 967386d7-dd94-4b3a-8f5f-f426e79a31a3
+		lineageTag: 6287b192-b3ff-4544-8118-8157b62fa2bc
 
 	measure 'Sales Quantity by Document Type Label' = "Sales Quantity by Document Type"
-		isHidden
-		lineageTag: 0fbc1574-0aac-4b07-b764-70f5f3ff7877
+		lineageTag: e141a00f-c4a4-4824-839a-03b4616d9682
 
 	measure 'Sales Quantity by Item Category Label' = "Sales Quantity by Item Category"
-		isHidden
-		lineageTag: d458f17a-fec9-4e01-9c87-4c26ce993e65
+		lineageTag: cba8ed49-e9fb-4123-9249-587240419066
 
 	measure 'Sales Quantity by Customer Label' = "Sales Quantity by Customer"
-		isHidden
-		lineageTag: 39700d24-1199-49bf-ab05-9dc9a92c07e1
+		lineageTag: 34c8b25c-b16e-4e29-af8c-39310a891ecd
 
 	measure 'Inventory Purchase Forecasting Label' = "Inventory Purchase Forecasting"
-		isHidden
-		lineageTag: 83ad07c4-1b8d-42c6-aee8-588f87e78cfb
+		lineageTag: 3ccaec9b-a156-46af-af2e-02c51743adb2
 
 	measure 'Purchase Quantity Forecast Label' = "Purchase Quantity Forecast"
-		isHidden
-		lineageTag: e2fcf127-2f29-4717-882e-90ad77e7f9a6
+		lineageTag: d1ef701e-036f-4d6f-83d8-819ec01400ff
 
 	measure 'Purchase Quantity by Location Label' = "Purchase Quantity by Location"
-		isHidden
-		lineageTag: c01c3494-1aa9-4968-8636-566d361eb97c
+		lineageTag: e1b6225d-94bf-4fdd-9203-7ba448078ecf
 
 	measure 'Purchase Quantity by Document Type Label' = "Purchase Quantity by Document Type"
-		isHidden
-		lineageTag: 8fd97f49-5c0e-4414-aa57-a4f9ce1074b0
+		lineageTag: 837080a7-a3a4-4112-84b2-b1231208ac61
 
 	measure 'Purchase Quantity by Item Category Label' = "Purchase Quantity by Item Category"
-		isHidden
-		lineageTag: dcbda5a9-c5b8-4497-a0eb-bd2ae53231f9
+		lineageTag: c94cc95d-6b72-4a03-b0c5-72d20ae344a6
 
 	measure 'Purchase Quantity by Vendor Label' = "Purchase Quantity by Vendor"
-		isHidden
-		lineageTag: 9923b54f-9ea8-4bbc-b47b-f7cfa52492b1
+		lineageTag: f253217f-55f9-4065-a1d3-f21cc64efc2c
 
 	measure 'Inventory Forecasting Label' = "Inventory Forecasting"
-		isHidden
-		lineageTag: efd2768b-86ad-4dba-ba3b-611f994d6209
+		lineageTag: 123deedb-80be-43f0-ae90-b3a3e0e5357a
 
 	measure 'Quantity Forecast Label' = "Quantity Forecast"
-		isHidden
-		lineageTag: 84e1d563-3422-4f0c-8e3b-8992b65017a1
+		lineageTag: 768a3dfa-32bc-4c3e-b0af-0ce0a18bb8de
 
 	measure 'Quantity by Location Label' = "Quantity by Location"
-		isHidden
-		lineageTag: be2024cf-bc3f-4121-938b-2afcf4443503
+		lineageTag: 520b9c42-5de7-4041-b335-4fc062bcacaf
 
 	measure 'Quantity by Item Label' = "Quantity by Item"
-		isHidden
-		lineageTag: bc94a73a-95fc-4215-bdb5-a49386c9709e
+		lineageTag: 2d5042cc-d6e8-4c03-b84c-a405041050ab
 
 	measure 'Quantity by Item Ledger Entry Type Label' = "Quantity by Item Ledger Entry Type"
-		isHidden
-		lineageTag: 613fec43-3414-47c8-ba24-ee2e66a4d3bb
+		lineageTag: df3a8685-4d09-46a4-9534-c05abfe47651
+
+	measure 'ABC Analysis Label' = "ABC Analysis"
+		lineageTag: a813d47b-0dd4-4c38-95df-86a972761c84
+
+	measure 'Sales Amount by Class Label' = "Sales Amount by Class"
+		lineageTag: f6b588bf-cf8f-4c70-9acb-cc3418baa33c
+
+	measure 'Sales Amount by Item Category Label' = "Sales Amount by Item Category"
+		lineageTag: 07762b4b-176f-4120-938f-ad4e28696e92
+
+	measure 'ABC Class Details Label' = "ABC Class Details"
+		lineageTag: 2045dbef-e3d7-4ccb-a2d1-3215afff781d
+
+	measure 'Sales Amount by Item Label' = "Sales Amount by Item"
+		lineageTag: 564f244a-49e0-4177-a146-c9234e124dc5
+
+	measure 'Sales Amount by Item Details Label' = "Sales Amount by Item Details"
+		lineageTag: a7ecc33c-7247-4092-a78b-32519b839036
 
 	column unused
 		isHidden
 		displayFolder: unused
-		lineageTag: dd984035-84c7-46a3-858d-6d2bec1ad14b
+		lineageTag: 84e0f66d-7817-4e61-8fb0-55f76fccf28e
 		isNameInferred
 		sourceColumn: [unused]
 

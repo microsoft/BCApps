@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -17,6 +17,7 @@ table 5910 "Service Hour"
         field(1; "Service Contract No."; Code[20])
         {
             Caption = 'Service Contract No.';
+            ToolTip = 'Specifies the number of the service contract to which the service hours apply.';
             TableRelation = if ("Service Contract Type" = const(Contract)) "Service Contract Header"."Contract No." where("Contract Type" = const(Contract))
             else
             if ("Service Contract Type" = const(Quote)) "Service Contract Header"."Contract No." where("Contract Type" = const(Quote));
@@ -24,16 +25,19 @@ table 5910 "Service Hour"
         field(2; "Starting Date"; Date)
         {
             Caption = 'Starting Date';
+            ToolTip = 'Specifies the date when the service hours become valid.';
         }
         field(3; Day; Option)
         {
             Caption = 'Day';
+            ToolTip = 'Specifies the day when the service hours are valid.';
             OptionCaption = 'Monday,Tuesday,Wednesday,Thursday,Friday,Saturday,Sunday';
             OptionMembers = Monday,Tuesday,Wednesday,Thursday,Friday,Saturday,Sunday;
         }
         field(4; "Starting Time"; Time)
         {
             Caption = 'Starting Time';
+            ToolTip = 'Specifies the starting time of the service hours.';
 
             trigger OnValidate()
             begin
@@ -45,6 +49,7 @@ table 5910 "Service Hour"
         field(5; "Ending Time"; Time)
         {
             Caption = 'Ending Time';
+            ToolTip = 'Specifies the ending time of the service hours.';
 
             trigger OnValidate()
             begin
@@ -56,6 +61,7 @@ table 5910 "Service Hour"
         field(6; "Valid on Holidays"; Boolean)
         {
             Caption = 'Valid on Holidays';
+            ToolTip = 'Specifies that service hours are valid on holidays.';
         }
         field(7; "Service Contract Type"; Enum "Service Hour Contract Type")
         {

@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -40,6 +40,7 @@ table 99000800 "Sales Planning Line"
         field(3; "Item No."; Code[20])
         {
             Caption = 'Item No.';
+            ToolTip = 'Specifies the item number of the sales order line.';
             TableRelation = Item;
 
             trigger OnValidate()
@@ -56,6 +57,7 @@ table 99000800 "Sales Planning Line"
         field(4; Description; Text[100])
         {
             Caption = 'Description';
+            ToolTip = 'Specifies the description of the item in the sales order line.';
         }
         /// <summary>
         /// Specifies the planned shipment date for the sales order line.
@@ -63,6 +65,7 @@ table 99000800 "Sales Planning Line"
         field(5; "Shipment Date"; Date)
         {
             Caption = 'Shipment Date';
+            ToolTip = 'Specifies when items on the document are shipped or were shipped. A shipment date is usually calculated from a requested delivery date plus lead time.';
         }
         /// <summary>
         /// Specifies the quantity available for the item on the planning line.
@@ -71,6 +74,7 @@ table 99000800 "Sales Planning Line"
         {
             AutoFormatType = 0;
             Caption = 'Available';
+            ToolTip = 'Specifies how many of the actual items are available.';
             DecimalPlaces = 0 : 5;
         }
         /// <summary>
@@ -79,6 +83,7 @@ table 99000800 "Sales Planning Line"
         field(7; "Next Planning Date"; Date)
         {
             Caption = 'Next Planning Date';
+            ToolTip = 'Specifies the next planning date.';
         }
         /// <summary>
         /// Specifies the expected delivery date based on the planning calculations.
@@ -86,6 +91,7 @@ table 99000800 "Sales Planning Line"
         field(8; "Expected Delivery Date"; Date)
         {
             Caption = 'Expected Delivery Date';
+            ToolTip = 'Specifies the expected delivery date.';
         }
         /// <summary>
         /// Indicates the current planning status of the sales order line.
@@ -93,6 +99,7 @@ table 99000800 "Sales Planning Line"
         field(9; "Planning Status"; Option)
         {
             Caption = 'Planning Status';
+            ToolTip = 'Specifies the planning status of the production order, depending on the actual sales order.';
             OptionCaption = 'None,Simulated,Planned,Firm Planned,Released,Inventory';
             OptionMembers = "None",Simulated,Planned,"Firm Planned",Released,Inventory;
         }
@@ -102,6 +109,7 @@ table 99000800 "Sales Planning Line"
         field(10; "Needs Replanning"; Boolean)
         {
             Caption = 'Needs Replanning';
+            ToolTip = 'Specifies if it is necessary or not to reschedule this line.';
         }
         /// <summary>
         /// Specifies the item variant code for the planned item.
@@ -109,6 +117,7 @@ table 99000800 "Sales Planning Line"
         field(11; "Variant Code"; Code[10])
         {
             Caption = 'Variant Code';
+            ToolTip = 'Specifies the variant of the item on the line.';
             TableRelation = "Item Variant".Code where("Item No." = field("Item No."),
                                                        Code = field("Variant Code"));
         }
@@ -119,6 +128,7 @@ table 99000800 "Sales Planning Line"
         {
             AutoFormatType = 0;
             Caption = 'Planned Quantity';
+            ToolTip = 'Specifies the quantity planned in this line.';
             DecimalPlaces = 0 : 5;
         }
         /// <summary>

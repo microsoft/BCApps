@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -34,7 +34,6 @@ page 5200 "Employee Card"
                 {
                     ApplicationArea = All;
                     Importance = Standard;
-                    ToolTip = 'Specifies the number of the involved entry or record, according to the specified number series.';
                     Visible = NoFieldVisible;
 
                     trigger OnAssistEdit()
@@ -47,29 +46,24 @@ page 5200 "Employee Card"
                     ApplicationArea = BasicHR;
                     Importance = Promoted;
                     ShowMandatory = true;
-                    ToolTip = 'Specifies the employee''s first name.';
                 }
                 field("Middle Name"; Rec."Middle Name")
                 {
                     ApplicationArea = BasicHR;
-                    ToolTip = 'Specifies the employee''s middle name.';
                 }
                 field("Last Name"; Rec."Last Name")
                 {
                     ApplicationArea = BasicHR;
                     ShowMandatory = true;
-                    ToolTip = 'Specifies the employee''s last name.';
                 }
                 field("Job Title"; Rec."Job Title")
                 {
                     ApplicationArea = BasicHR;
                     Importance = Promoted;
-                    ToolTip = 'Specifies the employee''s job title.';
                 }
                 field(Initials; Rec.Initials)
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the employee''s initials.';
                 }
                 field("Balance (LCY)"; Rec."Balance (LCY)")
                 {
@@ -80,51 +74,42 @@ page 5200 "Employee Card"
                 field("Search Name"; Rec."Search Name")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies an alternate name that you can use to search for the record in question when you cannot remember the value in the Name field.';
                 }
                 field(Gender; Rec.Gender)
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the gender with which the employee identifies.';
                 }
                 field("Phone No.2"; Rec."Phone No.")
                 {
                     ApplicationArea = BasicHR;
                     Caption = 'Company Phone No.';
-                    ToolTip = 'Specifies the employee''s telephone number.';
                 }
                 field("Company E-Mail"; Rec."Company E-Mail")
                 {
                     ApplicationArea = BasicHR;
                     ExtendedDatatype = EMail;
-                    ToolTip = 'Specifies the employee''s email address at the company.';
                 }
                 field("Board Member"; Rec."Board Member")
                 {
                     ApplicationArea = BasicHR;
-                    ToolTip = 'Specifies the value of the Board Member field.';
                 }
                 field("Manager Role"; Rec."Manager Role")
                 {
                     ApplicationArea = BasicHR;
-                    ToolTip = 'Specifies the value of the Manager Role field.';
                 }
                 field(Nationality; Rec.Nationality)
                 {
                     ApplicationArea = BasicHR;
-                    ToolTip = 'Specifies the value of the Nationality field.';
                 }
                 field("Last Date Modified"; Rec."Last Date Modified")
                 {
                     ApplicationArea = BasicHR;
                     Importance = Additional;
-                    ToolTip = 'Specifies when this record was last modified.';
                 }
                 field("Privacy Blocked"; Rec."Privacy Blocked")
                 {
                     ApplicationArea = BasicHR;
                     Importance = Additional;
-                    ToolTip = 'Specifies whether to limit access to data for the data subject during daily operations. This is useful, for example, when protecting data from changes while it is under privacy review.';
                 }
             }
             group("Address & Contact")
@@ -136,17 +121,14 @@ page 5200 "Employee Card"
                     field(Address; Rec.Address)
                     {
                         ApplicationArea = BasicHR;
-                        ToolTip = 'Specifies the employee''s address.';
                     }
                     field("Address 2"; Rec."Address 2")
                     {
                         ApplicationArea = BasicHR;
-                        ToolTip = 'Specifies additional address information.';
                     }
                     field(City; Rec.City)
                     {
                         ApplicationArea = BasicHR;
-                        ToolTip = 'Specifies the city of the address.';
                     }
                     group(Control31)
                     {
@@ -155,18 +137,15 @@ page 5200 "Employee Card"
                         field(County; Rec.County)
                         {
                             ApplicationArea = BasicHR;
-                            ToolTip = 'Specifies the county of the employee.';
                         }
                     }
                     field("Post Code"; Rec."Post Code")
                     {
                         ApplicationArea = BasicHR;
-                        ToolTip = 'Specifies the postal code.';
                     }
                     field("Country/Region Code"; Rec."Country/Region Code")
                     {
                         ApplicationArea = BasicHR;
-                        ToolTip = 'Specifies the country/region of the address.';
 
                         trigger OnValidate()
                         begin
@@ -197,18 +176,15 @@ page 5200 "Employee Card"
                         ApplicationArea = BasicHR;
                         Caption = 'Private Phone No.';
                         Importance = Promoted;
-                        ToolTip = 'Specifies the employee''s private telephone number.';
                     }
                     field(Pager; Rec.Pager)
                     {
                         ApplicationArea = Basic, Suite;
-                        ToolTip = 'Specifies the employee''s pager number.';
                     }
                     field(Extension; Rec.Extension)
                     {
                         ApplicationArea = BasicHR;
                         Importance = Promoted;
-                        ToolTip = 'Specifies the employee''s telephone extension.';
                     }
                     field("Phone No."; Rec."Phone No.")
                     {
@@ -222,22 +198,18 @@ page 5200 "Employee Card"
                         ApplicationArea = BasicHR;
                         Caption = 'Private Email';
                         Importance = Promoted;
-                        ToolTip = 'Specifies the employee''s private email address.';
                     }
                     field("Alt. Address Code"; Rec."Alt. Address Code")
                     {
                         ApplicationArea = Basic, Suite;
-                        ToolTip = 'Specifies a code for an alternate address.';
                     }
                     field("Alt. Address Start Date"; Rec."Alt. Address Start Date")
                     {
                         ApplicationArea = Basic, Suite;
-                        ToolTip = 'Specifies the starting date when the alternate address is valid.';
                     }
                     field("Alt. Address End Date"; Rec."Alt. Address End Date")
                     {
                         ApplicationArea = Basic, Suite;
-                        ToolTip = 'Specifies the last day when the alternate address is valid.';
                     }
                 }
             }
@@ -248,63 +220,51 @@ page 5200 "Employee Card"
                 {
                     ApplicationArea = BasicHR;
                     Importance = Promoted;
-                    ToolTip = 'Specifies the date when the employee began to work for the company.';
                 }
                 field(Status; Rec.Status)
                 {
                     ApplicationArea = BasicHR;
                     Importance = Promoted;
-                    ToolTip = 'Specifies the employment status of the employee.';
                 }
                 field("Inactive Date"; Rec."Inactive Date")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the date when the employee became inactive, due to disability or maternity leave, for example.';
                 }
                 field("Cause of Inactivity Code"; Rec."Cause of Inactivity Code")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies a code for the cause of inactivity by the employee.';
                 }
                 field("Termination Date"; Rec."Termination Date")
                 {
                     ApplicationArea = BasicHR;
-                    ToolTip = 'Specifies the date when the employee was terminated, due to retirement or dismissal, for example.';
                 }
                 field("Grounds for Term. Code"; Rec."Grounds for Term. Code")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies a termination code for the employee who has been terminated.';
                 }
                 field("Emplymt. Contract Code"; Rec."Emplymt. Contract Code")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the employment contract code for the employee.';
                 }
                 field("Statistics Group Code"; Rec."Statistics Group Code")
                 {
                     ApplicationArea = Suite;
-                    ToolTip = 'Specifies a statistics group code to assign to the employee for statistical purposes.';
                 }
                 field("Resource No."; Rec."Resource No.")
                 {
                     ApplicationArea = BasicHR;
-                    ToolTip = 'Specifies a resource number for the employee.';
                 }
                 field("Salespers./Purch. Code"; Rec."Salespers./Purch. Code")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies a salesperson or purchaser code for the employee.';
                 }
                 field("Engagement Type"; Rec."Engagement Type")
                 {
                     ApplicationArea = BasicHR;
-                    ToolTip = 'Specifies the value of the Engagement Type field.';
                 }
                 field("Collective Bargain. Agmt. Info"; Rec."Collective Bargain. Agmt. Info")
                 {
                     ApplicationArea = BasicHR;
-                    ToolTip = 'Specifies the value of the Collective Bargaining Agreement Info field.';
                 }
             }
             group(Personal)
@@ -314,24 +274,20 @@ page 5200 "Employee Card"
                 {
                     ApplicationArea = BasicHR;
                     Importance = Promoted;
-                    ToolTip = 'Specifies the employee''s date of birth.';
                 }
                 field("Social Security No."; Rec."Social Security No.")
                 {
                     ApplicationArea = BasicHR;
                     Importance = Promoted;
-                    ToolTip = 'Specifies the social security number of the employee.';
                     MaskType = Concealed;
                 }
                 field("Union Code"; Rec."Union Code")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the employee''s labor union membership code.';
                 }
                 field("Union Membership No."; Rec."Union Membership No.")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the employee''s labor union membership number.';
                 }
             }
             group(Payments)
@@ -341,7 +297,6 @@ page 5200 "Employee Card"
                 {
                     ApplicationArea = BasicHR;
                     LookupPageID = "Employee Posting Groups";
-                    ToolTip = 'Specifies the employee''s type to link business transactions made for the employee with the appropriate account in the general ledger.';
                 }
                 field("Allow Multiple Posting Groups"; Rec."Allow Multiple Posting Groups")
                 {
@@ -353,35 +308,29 @@ page 5200 "Employee Card"
                 {
                     ApplicationArea = BasicHR;
                     Importance = Additional;
-                    ToolTip = 'Specifies the currency code that is inserted by default when you create entries for the employee.';
                 }
                 field("Application Method"; Rec."Application Method")
                 {
                     ApplicationArea = BasicHR;
-                    ToolTip = 'Specifies how to apply payments to entries for this employee.';
                 }
                 field("Bank Branch No."; Rec."Bank Branch No.")
                 {
                     ApplicationArea = BasicHR;
-                    ToolTip = 'Specifies a number of the bank branch.';
                     MaskType = Concealed;
                 }
                 field("Bank Account No."; Rec."Bank Account No.")
                 {
                     ApplicationArea = BasicHR;
-                    ToolTip = 'Specifies the number used by the bank for the bank account.';
                     MaskType = Concealed;
                 }
                 field(IBAN; Rec.IBAN)
                 {
                     ApplicationArea = BasicHR;
-                    ToolTip = 'Specifies the bank account''s international bank account number.';
                     MaskType = Concealed;
                 }
                 field("SWIFT Code"; Rec."SWIFT Code")
                 {
                     ApplicationArea = BasicHR;
-                    ToolTip = 'Specifies the SWIFT code (international bank identifier code) of the bank where the employee has the account.';
                     MaskType = Concealed;
                 }
             }
@@ -391,12 +340,10 @@ page 5200 "Employee Card"
                 field("Emp. Payroll"; Rec.Payroll)
                 {
                     ApplicationArea = BasicHR;
-                    ToolTip = 'Specifies the value of the Payroll field.';
                 }
                 field("Payroll Currency Code"; Rec."Payroll Currency Code")
                 {
                     ApplicationArea = BasicHR;
-                    ToolTip = 'Specifies the value of the Payroll Currency Code field.';
                 }
                 field("Payroll (LCY)"; Rec."Payroll (LCY)")
                 {
@@ -408,7 +355,6 @@ page 5200 "Employee Card"
                 field("Working Type"; Rec."Working Type")
                 {
                     ApplicationArea = BasicHR;
-                    ToolTip = 'Specifies the value of the Working Type field.';
                 }
                 field("Working Hours"; Rec."Working Hours")
                 {

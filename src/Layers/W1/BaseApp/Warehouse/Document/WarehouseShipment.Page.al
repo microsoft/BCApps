@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -31,7 +31,6 @@ page 7335 "Warehouse Shipment"
                 {
                     ApplicationArea = Warehouse;
                     Importance = Promoted;
-                    ToolTip = 'Specifies the number of the involved entry or record, according to the specified number series.';
 
                     trigger OnAssistEdit()
                     begin
@@ -43,7 +42,6 @@ page 7335 "Warehouse Shipment"
                 {
                     ApplicationArea = Location;
                     ShowMandatory = true;
-                    ToolTip = 'Specifies the code of the location from which the items are being shipped.';
 
                     trigger OnLookup(var Text: Text): Boolean
                     begin
@@ -66,52 +64,43 @@ page 7335 "Warehouse Shipment"
                     field("Zone Code"; Rec."Zone Code")
                     {
                         ApplicationArea = Warehouse;
-                        ToolTip = 'Specifies the code of the zone on this shipment header.';
                     }
                     field("Bin Code"; Rec."Bin Code")
                     {
                         ApplicationArea = Warehouse;
-                        ToolTip = 'Specifies the bin where the items are picked or put away.';
                     }
                 }
                 field("Document Status"; Rec."Document Status")
                 {
                     ApplicationArea = Warehouse;
                     Importance = Promoted;
-                    ToolTip = 'Specifies the progress level of warehouse handling on lines in the warehouse shipment.';
                 }
                 field(Status; Rec.Status)
                 {
                     ApplicationArea = Warehouse;
-                    ToolTip = 'Specifies the status of the shipment and is filled in by the program.';
                 }
                 field("Posting Date"; Rec."Posting Date")
                 {
                     ApplicationArea = Warehouse;
-                    ToolTip = 'Specifies a posting date. If you enter a date, the posting date of the source documents is updated during posting.';
                 }
                 field("Assigned User ID"; Rec."Assigned User ID")
                 {
                     ApplicationArea = Warehouse;
                     Importance = Promoted;
-                    ToolTip = 'Specifies the ID of the user who is responsible for the document.';
                 }
                 field("Assignment Date"; Rec."Assignment Date")
                 {
                     ApplicationArea = Warehouse;
                     Editable = false;
-                    ToolTip = 'Specifies the date when the user was assigned the activity.';
                 }
                 field("Assignment Time"; Rec."Assignment Time")
                 {
                     ApplicationArea = Warehouse;
                     Editable = false;
-                    ToolTip = 'Specifies the time when the user was assigned the activity.';
                 }
                 field("Sorting Method"; Rec."Sorting Method")
                 {
                     ApplicationArea = Warehouse;
-                    ToolTip = 'Specifies the method by which the shipments are sorted.';
 
                     trigger OnValidate()
                     begin
@@ -134,7 +123,6 @@ page 7335 "Warehouse Shipment"
                 {
                     ApplicationArea = Warehouse;
                     Importance = Promoted;
-                    ToolTip = 'Specifies a document number that refers to the customer''s or vendor''s numbering system. If you enter a value, the source document will be updated during posting. If this field is blank, the original document number is used.';
                 }
                 field("Shipment Date"; Rec."Shipment Date")
                 {
@@ -145,13 +133,11 @@ page 7335 "Warehouse Shipment"
                 field("Shipping Agent Code"; Rec."Shipping Agent Code")
                 {
                     ApplicationArea = Warehouse;
-                    ToolTip = 'Specifies the code for the shipping agent who is transporting the items. This value is not carried over from the source documents because one warehouse shipment can contain lines from many source documents. If you enter a value, the source document will be updated during posting. If this field is blank, the original shipping agent of the source document is used.';
                 }
                 field("Shipping Agent Service Code"; Rec."Shipping Agent Service Code")
                 {
                     ApplicationArea = Warehouse;
                     Importance = Promoted;
-                    ToolTip = 'Specifies the code for the service, such as a one-day delivery, that is offered by the shipping agent. This value is not carried over from the source documents because one warehouse shipment can contain lines from many source documents. If you enter a value, the source document will be updated during posting. If this field is blank, the original shipping agent service of the source document is used.';
                 }
                 field("Shipment Method Code"; Rec."Shipment Method Code")
                 {

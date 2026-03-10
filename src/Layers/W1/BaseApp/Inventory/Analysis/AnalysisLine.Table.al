@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -39,6 +39,7 @@ table 7114 "Analysis Line"
         field(4; "Row Ref. No."; Code[20])
         {
             Caption = 'Row Ref. No.';
+            ToolTip = 'Specifies a row reference number for the analysis line.';
 
             trigger OnValidate()
             begin
@@ -49,10 +50,12 @@ table 7114 "Analysis Line"
         field(5; Description; Text[100])
         {
             Caption = 'Description';
+            ToolTip = 'Specifies a description for the analysis line.';
         }
         field(6; Type; Enum "Analysis Line Type")
         {
             Caption = 'Type';
+            ToolTip = 'Specifies the type of totaling for the analysis line. The type determines which items within the totaling range that you specify in the Range field will be totaled.';
 
             trigger OnValidate()
             var
@@ -90,6 +93,7 @@ table 7114 "Analysis Line"
         field(7; Range; Text[250])
         {
             Caption = 'Range';
+            ToolTip = 'Specifies the number or formula of the type to use to calculate the total for this line.';
             TableRelation = if (Type = const(Item)) Item
             else
             if (Type = const(Customer)) Customer
@@ -130,28 +134,34 @@ table 7114 "Analysis Line"
         field(8; "New Page"; Boolean)
         {
             Caption = 'New Page';
+            ToolTip = 'Specifies if you want a page break after the current line when you print the analysis report.';
         }
         field(9; Show; Option)
         {
             Caption = 'Show';
+            ToolTip = 'Specifies whether you want the analysis line to be included when you print the report.';
             OptionCaption = 'Yes,No,If Any Column Not Zero';
             OptionMembers = Yes,No,"If Any Column Not Zero";
         }
         field(10; Bold; Boolean)
         {
             Caption = 'Bold';
+            ToolTip = 'Specifies if you want the amounts on this line to be printed in bold.';
         }
         field(11; Italic; Boolean)
         {
             Caption = 'Italic';
+            ToolTip = 'Specifies if you want the amounts in this line to be printed in italics.';
         }
         field(12; Underline; Boolean)
         {
             Caption = 'Underline';
+            ToolTip = 'Specifies if you want the amounts in this line to be underlined when printed.';
         }
         field(13; "Show Opposite Sign"; Boolean)
         {
             Caption = 'Show Opposite Sign';
+            ToolTip = 'Specifies if you want sales and negative adjustments to be shown as positive amounts and purchases and positive adjustments to be shown as negative amounts.';
         }
         field(14; "Source Type Filter"; Enum "Analysis Source Type")
         {
@@ -198,6 +208,7 @@ table 7114 "Analysis Line"
             AccessByPermission = TableData Dimension = R;
             CaptionClass = GetCaptionClass(4);
             Caption = 'Dimension 1 Totaling';
+            ToolTip = 'Specifies which dimension value amounts will be totaled on this line.';
             //The property 'ValidateTableRelation' can only be set if the property 'TableRelation' is set
             //ValidateTableRelation = false;
         }
@@ -206,6 +217,7 @@ table 7114 "Analysis Line"
             AccessByPermission = TableData Dimension = R;
             CaptionClass = GetCaptionClass(5);
             Caption = 'Dimension 2 Totaling';
+            ToolTip = 'Specifies which dimension value amounts will be totaled on this line. If the type on the line is Formula, this field must be blank. Also, if you do not want the amounts on the line to be filtered by dimensions, this field must be blank.';
             //The property 'ValidateTableRelation' can only be set if the property 'TableRelation' is set
             //ValidateTableRelation = false;
         }
@@ -214,6 +226,7 @@ table 7114 "Analysis Line"
             AccessByPermission = TableData "Dimension Combination" = R;
             CaptionClass = GetCaptionClass(6);
             Caption = 'Dimension 3 Totaling';
+            ToolTip = 'Specifies which dimension value amounts will be totaled on this line. If the type on the line is Formula, this field must be blank. Also, if you do not want the amounts on the line to be filtered by dimensions, this field must be blank.';
             //The property 'ValidateTableRelation' can only be set if the property 'TableRelation' is set
             //ValidateTableRelation = false;
         }
@@ -235,6 +248,7 @@ table 7114 "Analysis Line"
         field(26; Indentation; Integer)
         {
             Caption = 'Indentation';
+            ToolTip = 'Specifies the indentation of the line.';
             MinValue = 0;
 
             trigger OnValidate()

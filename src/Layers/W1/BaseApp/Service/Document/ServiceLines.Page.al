@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -59,31 +59,26 @@ page 5905 "Service Lines"
                 field("Service Item Line No."; Rec."Service Item Line No.")
                 {
                     ApplicationArea = Service;
-                    ToolTip = 'Specifies the service item line number linked to this service line.';
                     Visible = false;
                 }
                 field("Service Item No."; Rec."Service Item No.")
                 {
                     ApplicationArea = Service;
-                    ToolTip = 'Specifies the service item number linked to this service line.';
                 }
                 field("Service Item Serial No."; Rec."Service Item Serial No.")
                 {
                     ApplicationArea = ItemTracking;
-                    ToolTip = 'Specifies the service item serial number linked to this line.';
                     Visible = false;
                 }
                 field("Service Item Line Description"; Rec."Service Item Line Description")
                 {
                     ApplicationArea = Service;
                     DrillDown = false;
-                    ToolTip = 'Specifies the description of the service item line in the service order.';
                     Visible = false;
                 }
                 field(Type; Rec.Type)
                 {
                     ApplicationArea = Service;
-                    ToolTip = 'Specifies the type of the service line.';
 
                     trigger OnValidate()
                     begin
@@ -93,7 +88,6 @@ page 5905 "Service Lines"
                 field("No."; Rec."No.")
                 {
                     ApplicationArea = Service;
-                    ToolTip = 'Specifies the number of the involved entry or record, according to the specified number series.';
 
                     trigger OnValidate()
                     var
@@ -109,7 +103,6 @@ page 5905 "Service Lines"
                     AccessByPermission = tabledata "Item Reference" = R;
                     ApplicationArea = Service, ItemReferences;
                     QuickEntry = false;
-                    ToolTip = 'Specifies the referenced item number. If you enter a cross reference between yours and your vendor''s or customer''s item number, then this number will override the standard item number when you enter the reference number on a service document.';
                     Visible = ItemReferenceVisible;
 
                     trigger OnLookup(var Text: Text): Boolean
@@ -124,7 +117,6 @@ page 5905 "Service Lines"
                 field("Variant Code"; Rec."Variant Code")
                 {
                     ApplicationArea = Planning;
-                    ToolTip = 'Specifies the variant of the item on the line.';
                     Visible = false;
                     ShowMandatory = VariantCodeMandatory;
 
@@ -139,19 +131,16 @@ page 5905 "Service Lines"
                 field(Nonstock; Rec.Nonstock)
                 {
                     ApplicationArea = Service;
-                    ToolTip = 'Specifies that the item is a catalog item.';
                     Visible = false;
                 }
                 field("Substitution Available"; Rec."Substitution Available")
                 {
                     ApplicationArea = Service;
-                    ToolTip = 'Specifies whether a substitute is available for the item.';
                     Visible = false;
                 }
                 field(Description; Rec.Description)
                 {
                     ApplicationArea = Service;
-                    ToolTip = 'Specifies the description of an item, resource, cost, or a standard text on the line.';
                 }
                 field("Description 2"; Rec."Description 2")
                 {
@@ -162,7 +151,6 @@ page 5905 "Service Lines"
                 field("Location Code"; Rec."Location Code")
                 {
                     ApplicationArea = Location;
-                    ToolTip = 'Specifies the inventory location from where the items on the line should be taken and where they should be registered.';
 
                     trigger OnValidate()
                     begin
@@ -172,13 +160,11 @@ page 5905 "Service Lines"
                 field("Bin Code"; Rec."Bin Code")
                 {
                     ApplicationArea = Warehouse;
-                    ToolTip = 'Specifies the bin where the items are picked or put away.';
                     Visible = false;
                 }
                 field(Control134; Rec.Reserve)
                 {
                     ApplicationArea = Reservation;
-                    ToolTip = 'Specifies whether a reservation can be made for items on this line.';
                     Visible = false;
                 }
                 field(Quantity; Rec.Quantity)
@@ -186,7 +172,6 @@ page 5905 "Service Lines"
                     ApplicationArea = Service;
                     BlankZero = true;
                     DecimalPlaces = 0 : 5;
-                    ToolTip = 'Specifies the number of item units, resource hours, cost on the service line.';
 
                     trigger OnValidate()
                     begin
@@ -197,13 +182,11 @@ page 5905 "Service Lines"
                 {
                     ApplicationArea = Reservation;
                     BlankZero = true;
-                    ToolTip = 'Specifies how many item units on this line have been reserved.';
                     Visible = false;
                 }
                 field("Unit of Measure Code"; Rec."Unit of Measure Code")
                 {
                     ApplicationArea = Service;
-                    ToolTip = 'Specifies how each unit of the item or resource is measured, such as in pieces or hours. By default, the value in the Base Unit of Measure field on the item or resource card is inserted.';
                 }
                 field("Unit Cost (LCY)"; Rec."Unit Cost (LCY)")
                 {
@@ -216,13 +199,11 @@ page 5905 "Service Lines"
                 {
                     ApplicationArea = Service;
                     BlankZero = true;
-                    ToolTip = 'Specifies the price of one unit of the item or resource. You can enter a price manually or have it entered according to the Price/Profit Calculation field on the related card.';
                 }
                 field("Line Amount"; Rec."Line Amount")
                 {
                     ApplicationArea = Service;
                     BlankZero = true;
-                    ToolTip = 'Specifies the net amount, excluding any invoice discount amount, that must be paid for products on the line.';
                 }
                 field("Tax Liable"; Rec."Tax Liable")
                 {
@@ -234,42 +215,35 @@ page 5905 "Service Lines"
                 field("Tax Area Code"; Rec."Tax Area Code")
                 {
                     ApplicationArea = SalesTax;
-                    ToolTip = 'Specifies the tax area that is used to calculate and post sales tax.';
                     Visible = true;
                 }
                 field("Tax Group Code"; Rec."Tax Group Code")
                 {
                     ApplicationArea = SalesTax;
-                    ToolTip = 'Specifies the tax group that is used to calculate and post sales tax.';
                 }
                 field("Line Discount %"; Rec."Line Discount %")
                 {
                     ApplicationArea = Service;
                     BlankZero = true;
-                    ToolTip = 'Specifies the discount percentage that is granted for the item on the line.';
                 }
                 field("Line Discount Amount"; Rec."Line Discount Amount")
                 {
                     ApplicationArea = Service;
                     BlankZero = true;
-                    ToolTip = 'Specifies the discount amount that is granted for the item on the line.';
                 }
                 field("Line Discount Type"; Rec."Line Discount Type")
                 {
                     ApplicationArea = Service;
-                    ToolTip = 'Specifies the type of the line discount assigned to this line.';
                 }
                 field("Qty. to Ship"; Rec."Qty. to Ship")
                 {
                     ApplicationArea = Service;
                     BlankZero = true;
-                    ToolTip = 'Specifies the quantity of items that remain to be shipped.';
                 }
                 field("Quantity Shipped"; Rec."Quantity Shipped")
                 {
                     ApplicationArea = Service;
                     BlankZero = true;
-                    ToolTip = 'Specifies how many units of the item on the line have been posted as shipped.';
 
                     trigger OnDrillDown()
                     var
@@ -286,13 +260,11 @@ page 5905 "Service Lines"
                 {
                     ApplicationArea = Service;
                     BlankZero = true;
-                    ToolTip = 'Specifies the quantity of the items, resources, costs, or general ledger account payments, which should be invoiced.';
                 }
                 field("Quantity Invoiced"; Rec."Quantity Invoiced")
                 {
                     ApplicationArea = Service;
                     BlankZero = true;
-                    ToolTip = 'Specifies how many units of the item on the line have been posted as invoiced.';
 
                     trigger OnDrillDown()
                     var
@@ -309,26 +281,22 @@ page 5905 "Service Lines"
                 {
                     ApplicationArea = Service;
                     BlankZero = true;
-                    ToolTip = 'Specifies the quantity of items, resource hours, costs, or G/L account payments that should be consumed.';
                 }
                 field("Quantity Consumed"; Rec."Quantity Consumed")
                 {
                     ApplicationArea = Service;
                     BlankZero = true;
-                    ToolTip = 'Specifies the quantity of items, resource hours, costs, or general ledger account payments on this line, which have been posted as consumed.';
                 }
                 field("Job Remaining Qty."; Rec."Job Remaining Qty.")
                 {
                     ApplicationArea = Jobs;
                     BlankZero = true;
-                    ToolTip = 'Specifies the quantity that remains to complete a project.';
                     Visible = false;
                 }
                 field("Job Remaining Total Cost"; Rec."Job Remaining Total Cost")
                 {
                     ApplicationArea = Jobs;
                     BlankZero = true;
-                    ToolTip = 'Specifies the remaining total cost, as the sum of costs from project planning lines associated with the order.';
                     Visible = false;
                 }
                 field("Job Remaining Total Cost (LCY)"; Rec."Job Remaining Total Cost (LCY)")
@@ -342,151 +310,126 @@ page 5905 "Service Lines"
                 {
                     ApplicationArea = Jobs;
                     BlankZero = true;
-                    ToolTip = 'Specifies the net amount of the project planning line.';
                     Visible = false;
                 }
                 field("Work Type Code"; Rec."Work Type Code")
                 {
                     ApplicationArea = Service;
-                    ToolTip = 'Specifies a code for the type of work performed by the resource registered on this line.';
                     Visible = false;
                 }
                 field("Fault Reason Code"; Rec."Fault Reason Code")
                 {
                     ApplicationArea = Service;
-                    ToolTip = 'Specifies the code of the fault reason for this service line.';
                     Visible = false;
                 }
                 field("Fault Area Code"; Rec."Fault Area Code")
                 {
                     ApplicationArea = Service;
-                    ToolTip = 'Specifies the code of the fault area associated with this line.';
                     Visible = FaultAreaCodeVisible;
                 }
                 field("Symptom Code"; Rec."Symptom Code")
                 {
                     ApplicationArea = Service;
-                    ToolTip = 'Specifies the code of the symptom associated with this line.';
                     Visible = SymptomCodeVisible;
                 }
                 field("Fault Code"; Rec."Fault Code")
                 {
                     ApplicationArea = Service;
-                    ToolTip = 'Specifies the code of the fault associated with this line.';
                     Visible = FaultCodeVisible;
                 }
                 field("Resolution Code"; Rec."Resolution Code")
                 {
                     ApplicationArea = Service;
-                    ToolTip = 'Specifies the code of the resolution associated with this line.';
                     Visible = ResolutionCodeVisible;
                 }
                 field("Serv. Price Adjmt. Gr. Code"; Rec."Serv. Price Adjmt. Gr. Code")
                 {
                     ApplicationArea = Service;
-                    ToolTip = 'Specifies the service price adjustment group code that applies to this line.';
                     Visible = false;
                 }
                 field("Allow Invoice Disc."; Rec."Allow Invoice Disc.")
                 {
                     ApplicationArea = Service;
-                    ToolTip = 'Specifies if the invoice line is included when the invoice discount is calculated.';
                     Visible = false;
                 }
                 field("Inv. Discount Amount"; Rec."Inv. Discount Amount")
                 {
                     ApplicationArea = Service;
-                    ToolTip = 'Specifies the total calculated invoice discount amount for the line.';
                     Visible = false;
                 }
                 field("Exclude Warranty"; Rec."Exclude Warranty")
                 {
                     ApplicationArea = Service;
-                    ToolTip = 'Specifies that the warranty discount is excluded on this line.';
                 }
                 field("Exclude Contract Discount"; Rec."Exclude Contract Discount")
                 {
                     ApplicationArea = Service;
-                    ToolTip = 'Specifies that the contract discount is excluded for the item, resource, or cost on this line.';
                 }
                 field(Warranty; Rec.Warranty)
                 {
                     ApplicationArea = Service;
-                    ToolTip = 'Specifies that a warranty discount is available on this line of type Item or Resource.';
                 }
                 field("Warranty Disc. %"; Rec."Warranty Disc. %")
                 {
                     ApplicationArea = Service;
                     BlankZero = true;
-                    ToolTip = 'Specifies the percentage of the warranty discount that is valid for the items or resources on this line.';
                     Visible = false;
                 }
                 field("Contract No."; Rec."Contract No.")
                 {
                     ApplicationArea = Service;
                     Editable = false;
-                    ToolTip = 'Specifies the number of the contract, if the service order originated from a service contract.';
                 }
                 field("Contract Disc. %"; Rec."Contract Disc. %")
                 {
                     ApplicationArea = Service;
                     BlankZero = true;
-                    ToolTip = 'Specifies the contract discount percentage that is valid for the items, resources, and costs on this line.';
                     Visible = false;
                 }
                 field("VAT %"; Rec."VAT %")
                 {
                     ApplicationArea = Service;
                     BlankZero = true;
-                    ToolTip = 'Specifies the VAT percentage used to calculate Amount Including VAT on this line.';
                     Visible = false;
                 }
                 field("VAT Base Amount"; Rec."VAT Base Amount")
                 {
                     ApplicationArea = Service;
                     BlankZero = true;
-                    ToolTip = 'Specifies the amount that serves as a base for calculating the Amount Including VAT field.';
                     Visible = false;
                 }
                 field("Amount Including VAT"; Rec."Amount Including VAT")
                 {
                     ApplicationArea = Service;
                     BlankZero = true;
-                    ToolTip = 'Specifies the net amount, including VAT, for this line.';
                     Visible = false;
                 }
                 field("Gen. Bus. Posting Group"; Rec."Gen. Bus. Posting Group")
                 {
                     ApplicationArea = Service;
-                    ToolTip = 'Specifies the vendor''s or customer''s trade type to link transactions made for this business partner with the appropriate general ledger account according to the general posting setup.';
                     Visible = false;
                 }
                 field("Gen. Prod. Posting Group"; Rec."Gen. Prod. Posting Group")
                 {
                     ApplicationArea = Service;
-                    ToolTip = 'Specifies the item''s product type to link transactions made for this item with the appropriate general ledger account according to the general posting setup.';
                     Visible = false;
                 }
                 field("Posting Group"; Rec."Posting Group")
                 {
                     ApplicationArea = Service;
-                    ToolTip = 'Specifies the inventory posting group assigned to the item.';
                     Visible = false;
                 }
                 field("Planned Delivery Date"; Rec."Planned Delivery Date")
                 {
                     ApplicationArea = Service;
-                    ToolTip = 'Specifies the planned date that the shipment will be delivered at the customer''s address. If the customer requests a delivery date, the program calculates whether the items will be available for delivery on this date. If the items are available, the planned delivery date will be the same as the requested delivery date. If not, the program calculates the date that the items are available for delivery and enters this date in the Planned Delivery Date field.';
                 }
                 field("Needed by Date"; Rec."Needed by Date")
                 {
                     ApplicationArea = Service;
-                    ToolTip = 'Specifies the date when you require the item to be available for a service order.';
                 }
                 field("Posting Date"; Rec."Posting Date")
                 {
                     ApplicationArea = Service;
-                    ToolTip = 'Specifies the date when the service line should be posted.';
 
                     trigger OnValidate()
                     begin
@@ -496,37 +439,31 @@ page 5905 "Service Lines"
                 field("Job No."; Rec."Job No.")
                 {
                     ApplicationArea = Jobs;
-                    ToolTip = 'Specifies the number of the related project.';
                     Visible = false;
                 }
                 field("Job Task No."; Rec."Job Task No.")
                 {
                     ApplicationArea = Jobs;
-                    ToolTip = 'Specifies the number of the related project task.';
                     Visible = false;
                 }
                 field("Job Planning Line No."; Rec."Job Planning Line No.")
                 {
                     ApplicationArea = Jobs;
-                    ToolTip = 'Specifies the project planning line number associated with this line. This establishes a link that can be used to calculate actual usage.';
                     Visible = false;
                 }
                 field("Job Line Type"; Rec."Job Line Type")
                 {
                     ApplicationArea = Jobs;
-                    ToolTip = 'Specifies the type of journal line that is created in the Project Planning Line table from this line.';
                     Visible = false;
                 }
                 field("Shortcut Dimension 1 Code"; Rec."Shortcut Dimension 1 Code")
                 {
                     ApplicationArea = Dimensions;
-                    ToolTip = 'Specifies the code for Shortcut Dimension 1, which is one of two global dimension codes that you set up in the General Ledger Setup window.';
                     Visible = false;
                 }
                 field("Shortcut Dimension 2 Code"; Rec."Shortcut Dimension 2 Code")
                 {
                     ApplicationArea = Dimensions;
-                    ToolTip = 'Specifies the code for Shortcut Dimension 2, which is one of two global dimension codes that you set up in the General Ledger Setup window.';
                     Visible = false;
                 }
                 field("ShortcutDimCode[3]"; ShortcutDimCode[3])

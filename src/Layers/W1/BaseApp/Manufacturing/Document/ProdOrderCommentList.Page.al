@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -23,17 +23,14 @@ page 99000839 "Prod. Order Comment List"
                 field("Prod. Order No."; Rec."Prod. Order No.")
                 {
                     ApplicationArea = Manufacturing;
-                    ToolTip = 'Specifies the number of the related production order.';
                 }
                 field(Date; Rec.Date)
                 {
                     ApplicationArea = Manufacturing;
-                    ToolTip = 'Specifies a date.';
                 }
                 field(Comment; Rec.Comment)
                 {
                     ApplicationArea = Manufacturing;
-                    ToolTip = 'Specifies the comment.';
                 }
             }
         }

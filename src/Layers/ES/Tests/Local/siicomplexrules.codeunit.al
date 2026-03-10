@@ -931,6 +931,76 @@ codeunit 147559 "SII Complex Rules"
         LibrarySII.ValidateNoElementsByName(XMLDoc, 'sii:ImporteTotal');
     end;
 
+    [Test]
+    [Scope('OnPrem')]
+    procedure ImporteTotalExistsForSalesInvF2WithZeroBaseWhenIncludeImporteTotalDisabled()
+    var
+        CustLedgerEntry: Record "Cust. Ledger Entry";
+        SIISetup: Record "SII Setup";
+        SIIDocUploadState: Record "SII Doc. Upload State";
+        SIIXMLCreator: Codeunit "SII XML Creator";
+        XMLDoc: DotNet XmlDocument;
+    begin
+        // [FEATURE] [Sales]
+        // [SCENARIO] The "ImporteTotal" xml node exists for F2 invoice with zero base amount even when "Include ImporteTotal" is disabled.
+
+        Initialize();
+
+        // [GIVEN] "Include ImporteTotal" is disabled in the SII Setup
+        SIISetup.Get();
+        SIISetup.Validate("Include ImporteTotal", false);
+        SIISetup.Modify();
+
+        // [GIVEN] Sales invoice with "Invoice Type" = "F2" and base amount equals 0
+        PostSalesDocWithZeroBaseAndInvoiceType(
+          CustLedgerEntry, CustLedgerEntry."Document Type"::Invoice, 0, CustLedgerEntry."Invoice Type"::"F2 Simplified Invoice");
+
+        // [GIVEN] SII version is 1.1bis
+        SIIXMLCreator.SetSIIVersionNo(SIIDocUploadState."Version No."::"2.1");
+
+        // [WHEN] Create xml for posted document
+        Assert.IsTrue(SIIXMLCreator.GenerateXml(CustLedgerEntry, XMLDoc, UploadType::Regular, false), IncorrectXMLDocErr);
+
+        // [THEN] Node "sii:ImporteTotal" contains value 0
+        CustLedgerEntry.CalcFields("Amount (LCY)");
+        LibrarySII.ValidateElementByName(XMLDoc, 'sii:ImporteTotal', SIIXMLCreator.FormatNumber(CustLedgerEntry."Amount (LCY)"));
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure ImporteTotalExistsForPurchInvF2WithZeroBaseWhenIncludeImporteTotalDisabled()
+    var
+        VendorLedgerEntry: Record "Vendor Ledger Entry";
+        SIISetup: Record "SII Setup";
+        SIIDocUploadState: Record "SII Doc. Upload State";
+        SIIXMLCreator: Codeunit "SII XML Creator";
+        XMLDoc: DotNet XmlDocument;
+    begin
+        // [FEATURE] [Purchase]
+        // [SCENARIO] The "ImporteTotal" xml node exists for F2 invoice with zero base amount even when "Include ImporteTotal" is disabled.
+
+        Initialize();
+
+        // [GIVEN] "Include ImporteTotal" is disabled in the SII Setup
+        SIISetup.Get();
+        SIISetup.Validate("Include ImporteTotal", false);
+        SIISetup.Modify();
+
+        // [GIVEN] Purchase invoice with "Invoice Type" = "F2" and base amount equals 0
+        PostPurchDocWithZeroBaseAndInvoiceType(
+          VendorLedgerEntry, VendorLedgerEntry."Document Type"::Invoice, 0, VendorLedgerEntry."Invoice Type"::"F2 Simplified Invoice");
+
+        // [GIVEN] SII version is 1.1bis
+        SIIXMLCreator.SetSIIVersionNo(SIIDocUploadState."Version No."::"2.1");
+
+        // [WHEN] Create xml for posted document
+        Assert.IsTrue(SIIXMLCreator.GenerateXml(VendorLedgerEntry, XMLDoc, UploadType::Regular, false), IncorrectXMLDocErr);
+
+        // [THEN] Node "sii:ImporteTotal" contains value 0
+        VendorLedgerEntry.CalcFields("Amount (LCY)");
+        LibrarySII.ValidateElementByName(XMLDoc, 'sii:ImporteTotal', SIIXMLCreator.FormatNumber(-VendorLedgerEntry."Amount (LCY)"));
+    end;
+
     local procedure Initialize()
     begin
         LibrarySetupStorage.Restore();
@@ -950,6 +1020,23 @@ codeunit 147559 "SII Complex Rules"
         NegativeSalesLine: Record "Sales Line";
     begin
         CreateSalesDoc(SalesHeader, DocType, CorrType, "SII Sales Invoice Type"::"F1 Invoice", SpecialSchemeCode);
+        SalesLine.SetRange("Document Type", SalesHeader."Document Type");
+        SalesLine.SetRange("Document No.", SalesHeader."No.");
+        SalesLine.FindFirst();
+        LibrarySales.CreateSalesLine(
+          NegativeSalesLine, SalesHeader, SalesLine.Type::"G/L Account", SalesLine."No.", -SalesLine.Quantity);
+        NegativeSalesLine.Validate("Unit Price", SalesLine."Unit Price");
+        NegativeSalesLine.Modify(true);
+        LibraryERM.FindCustomerLedgerEntry(CustLedgerEntry, DocType, LibrarySales.PostSalesDocument(SalesHeader, true, true));
+    end;
+
+    local procedure PostSalesDocWithZeroBaseAndInvoiceType(var CustLedgerEntry: Record "Cust. Ledger Entry"; DocType: Enum "Sales Document Type"; CorrType: Option; InvoiceType: Enum "SII Sales Invoice Type")
+    var
+        SalesHeader: Record "Sales Header";
+        SalesLine: Record "Sales Line";
+        NegativeSalesLine: Record "Sales Line";
+    begin
+        CreateSalesDoc(SalesHeader, DocType, CorrType, InvoiceType, "SII Sales Special Scheme Code"::"01 General");
         SalesLine.SetRange("Document Type", SalesHeader."Document Type");
         SalesLine.SetRange("Document No.", SalesHeader."No.");
         SalesLine.FindFirst();
@@ -985,6 +1072,32 @@ codeunit 147559 "SII Complex Rules"
           LibraryERM.CreateGLAccountWithSalesSetup(), LibraryRandom.RandInt(100));
         PurchaseLine.Validate("Direct Unit Cost", LibraryRandom.RandDec(100, 2));
         PurchaseLine.Modify(true);
+        LibraryERM.FindVendorLedgerEntry(VendorLedgerEntry, DocType, LibraryPurchase.PostPurchaseDocument(PurchaseHeader, true, true));
+    end;
+
+    local procedure PostPurchDocWithZeroBaseAndInvoiceType(var VendorLedgerEntry: Record "Vendor Ledger Entry"; DocType: Enum "Purchase Document Type"; CorrType: Option; InvoiceType: Enum "SII Purch. Invoice Type")
+    var
+        PurchaseHeader: Record "Purchase Header";
+        PurchaseLine: Record "Purchase Line";
+        NegativePurchaseLine: Record "Purchase Line";
+    begin
+        LibraryPurchase.CreatePurchHeader(PurchaseHeader, DocType, LibraryPurchase.CreateVendorNo());
+        PurchaseHeader.Validate("Correction Type", CorrType);
+        PurchaseHeader.Validate("Invoice Type", InvoiceType);
+        PurchaseHeader.Validate("Special Scheme Code", "SII Purch. Special Scheme Code"::"01 General");
+        PurchaseHeader.Modify(true);
+
+        LibraryPurchase.CreatePurchaseLine(
+          PurchaseLine, PurchaseHeader, PurchaseLine.Type::"G/L Account",
+          LibraryERM.CreateGLAccountWithSalesSetup(), LibraryRandom.RandInt(100));
+        PurchaseLine.Validate("Direct Unit Cost", LibraryRandom.RandDec(100, 2));
+        PurchaseLine.Modify(true);
+
+        LibraryPurchase.CreatePurchaseLine(
+          NegativePurchaseLine, PurchaseHeader, PurchaseLine.Type::"G/L Account", PurchaseLine."No.", -PurchaseLine.Quantity);
+        NegativePurchaseLine.Validate("Direct Unit Cost", PurchaseLine."Direct Unit Cost");
+        NegativePurchaseLine.Modify(true);
+
         LibraryERM.FindVendorLedgerEntry(VendorLedgerEntry, DocType, LibraryPurchase.PostPurchaseDocument(PurchaseHeader, true, true));
     end;
 

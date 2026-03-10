@@ -20,7 +20,7 @@ page 99001507 "Subc. Temp Routing Lines"
     {
         area(Content)
         {
-            repeater(Control1)
+            repeater(RoutingLines)
             {
                 ShowCaption = false;
                 field("Operation No."; Rec."Operation No.")

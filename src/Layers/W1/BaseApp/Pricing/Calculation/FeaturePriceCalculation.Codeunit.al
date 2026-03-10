@@ -109,46 +109,6 @@ codeunit 7049 "Feature - Price Calculation" implements "Feature Data Update"
         UpdateAmountTypeOnHeaders();
     end;
 
-    procedure CopyBasicPricingData(PricingImplementation: Enum "Pricing Implementation"; ShowMessage: Boolean)
-    var
-        FeatureDataUpdateStatus: Record "Feature Data Update Status";
-        ConfirmManagement: Codeunit System.Utilities."Confirm Management";
-        PriceCalculationMgt: Codeunit "Price Calculation Mgt.";
-    begin
-        case PricingImplementation of
-            PricingImplementation::"Extended Pricing":
-                begin
-                    if not IsDataUpdateRequired() then begin
-                        if ShowMessage then
-                            Message(BasicPricesNotFoundMsg);
-                        exit;
-                    end;
-
-                    if not PriceListLine.IsEmpty() then
-                        if ShowMessage then begin
-                            if not ConfirmManagement.GetResponseOrDefault(StrSubstNo(PriceListContainsDataQst), false) then
-                                exit;
-                        end else
-                            exit;
-
-                    if not FeatureDataUpdateStatus.Get(PriceCalculationMgt.GetFeatureKey(), CompanyName()) then begin
-                        FeatureDataUpdateStatus.Init();
-                        FeatureDataUpdateStatus."Feature Key" := PriceCalculationMgt.GetFeatureKey();
-                        FeatureDataUpdateStatus."Company Name" := CopyStr(CompanyName(), 1, MaxStrLen(FeatureDataUpdateStatus."Company Name"));
-                        FeatureDataUpdateStatus."Data Update Required" := true;
-                        FeatureDataUpdateStatus."Use Default Price Lists" := true;
-                        FeatureDataUpdateStatus.Insert(true);
-                    end;
-
-                    UpdateData(FeatureDataUpdateStatus);
-                end;
-            "Pricing Implementation"::"Basic Pricing":
-                if ShowMessage then
-                    Message(PricingUpdateNotSupportedErr, PricingImplementation::"Extended Pricing", PricingImplementation::"Basic Pricing");
-        end;
-    end;
-
-
     procedure GetTaskDescription() TaskDescription: Text;
     begin
         TaskDescription := StrSubstNo(DescrTok, GetListOfTables(), Description2Txt);
@@ -177,10 +137,6 @@ codeunit 7049 "Feature - Price Calculation" implements "Feature Data Update"
         XS99999Tok: Label 'S99999';
         FeatureIsOffErr: Label 'This page is used by a feature that is not enabled.\For more information, see Feature Management.';
         FeatureIsOnErr: Label 'This page is no longer available. It was used by a feature that has been replaced or removed.\For more information, see Feature Management.';
-
-        PricingUpdateNotSupportedErr: Label 'Pricing update from %1 to %2 is not supported.', Comment = '%1 = Pricing Implementation from, %2 = Pricing Implementation to';
-        PriceListContainsDataQst: Label 'Extended Price Lists already contains pricing data. Do you want to update it now?';
-        BasicPricesNotFoundMsg: Label 'Basic prices for copying not found.';
 
     local procedure AdjustCRMConnectionSetup()
     var

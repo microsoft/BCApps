@@ -26,14 +26,17 @@ table 953 "Time Sheet Comment Line"
         field(4; Date; Date)
         {
             Caption = 'Date';
+            ToolTip = 'Specifies the date when you created a comment.';
         }
         field(5; "Code"; Code[10])
         {
             Caption = 'Code';
+            ToolTip = 'Specifies a code for a comment.';
         }
         field(6; Comment; Text[80])
         {
             Caption = 'Comment';
+            ToolTip = 'Specifies the comment that relates to a time sheet or time sheet line.';
         }
     }
 

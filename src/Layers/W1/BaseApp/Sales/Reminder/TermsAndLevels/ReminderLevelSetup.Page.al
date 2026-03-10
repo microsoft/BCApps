@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -25,7 +25,6 @@ page 1896 "Reminder Level Setup"
                 {
                     Caption = 'No.';
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the number of the involved entry or record, according to the specified number series.';
                     trigger OnAfterLookup(Selected: RecordRef)
                     var
                         ReminderLevel: Record "Reminder Level";
@@ -39,25 +38,21 @@ page 1896 "Reminder Level Setup"
                 {
                     Caption = 'Grace Period';
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the length of the grace period for this reminder level.';
                 }
                 field("Due Date Calculation"; Rec."Due Date Calculation")
                 {
                     Caption = 'Due Date Calculation';
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies a formula that determines how to calculate the due date on the reminder.';
                 }
                 field("Calculate Interest"; Rec."Calculate Interest")
                 {
                     Caption = 'Calculate Interest';
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies whether interest should be calculated on the reminder lines.';
                 }
                 field("Add. Fee Calculation Type"; Rec."Add. Fee Calculation Type")
                 {
                     Caption = 'Add. Fee Calculation Type';
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies how the additional fee is calculated. Fixed: The Additional Fee values on the line on the Reminder Levels page are used. Dynamics Single: The per-line values on the Additional Fee Setup page are used. Accumulated Dynamic: The values on the Additional Fee Setup page are used.';
                     Editable = false;
                 }
                 field("Customer Communications"; HasCustomerCommunications)

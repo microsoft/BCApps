@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -20,6 +20,7 @@ table 5912 "Service Document Log"
         field(1; "Document No."; Code[20])
         {
             Caption = 'Document No.';
+            ToolTip = 'Specifies the number of the service document that has undergone changes.';
             TableRelation = if ("Document Type" = const(Quote)) "Service Header"."No." where("Document Type" = const(Quote))
             else
             if ("Document Type" = const(Order)) "Service Header"."No." where("Document Type" = const(Order))
@@ -38,6 +39,7 @@ table 5912 "Service Document Log"
         field(2; "Entry No."; Integer)
         {
             Caption = 'Entry No.';
+            ToolTip = 'Specifies the number of the entry, as assigned from the specified number series when the entry was created.';
         }
         field(3; "Event No."; Integer)
         {
@@ -46,32 +48,39 @@ table 5912 "Service Document Log"
         field(4; "Service Item Line No."; Integer)
         {
             Caption = 'Service Item Line No.';
+            ToolTip = 'Specifies the number of the service item line, if the event is linked to a service item line.';
         }
         field(5; After; Text[50])
         {
             Caption = 'After';
+            ToolTip = 'Specifies the contents of the modified field after the event takes place.';
         }
         field(6; Before; Text[50])
         {
             Caption = 'Before';
+            ToolTip = 'Specifies the contents of the modified field before the event takes place.';
         }
         field(7; "Change Date"; Date)
         {
             Caption = 'Change Date';
+            ToolTip = 'Specifies the date of the event.';
         }
         field(8; "Change Time"; Time)
         {
             Caption = 'Change Time';
+            ToolTip = 'Specifies the time of the event.';
         }
         field(9; "User ID"; Code[50])
         {
             Caption = 'User ID';
+            ToolTip = 'Specifies the ID of the user who posted the entry, to be used, for example, in the change log.';
             DataClassification = EndUserIdentifiableInformation;
             TableRelation = User."User Name";
         }
         field(10; "Document Type"; Enum "Service Log Document Type")
         {
             Caption = 'Document Type';
+            ToolTip = 'Specifies the type of the service document that underwent changes.';
             Editable = false;
         }
     }

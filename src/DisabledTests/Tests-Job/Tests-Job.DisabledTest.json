@@ -98,5 +98,10 @@
     "codeunitId": 136353,
     "codeunitName": "UT T Job Planning Line",
     "method": "CreateOrderPromisingFromJobPlanningLineWithoutLocationMandatoryWhileNeeded"
+  },
+  {
+    "codeunitId": 136134,
+    "codeunitName": "Jobs Stockout",
+    "method": "JobChangeDate"
   }
 ]

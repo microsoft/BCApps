@@ -577,6 +577,7 @@ codeunit 816 "Purch. Post Invoice" implements "Invoice Posting"
 
     local procedure PrepareGenJnlLine(var PurchHeader: Record "Purchase Header"; InvoicePostingBuffer: Record "Invoice Posting Buffer"; var GenJnlLine: Record "Gen. Journal Line")
     begin
+        SplitByFA := false;
         InitGenJnlLine(GenJnlLine, PurchHeader, InvoicePostingBuffer);
         GenJnlLine.Validate("Document Date");
         GenJnlLine."Operation Occurred Date" := PurchHeader."Operation Occurred Date";

@@ -25,16 +25,19 @@ table 9009 "Permission Set Buffer"
         {
             Caption = 'Role ID';
             DataClassification = SystemMetadata;
+            ToolTip = 'Specifies the name of the permission set.';
         }
         field(4; Name; Text[30])
         {
             Caption = 'Name';
             DataClassification = SystemMetadata;
+            ToolTip = 'Specifies the description of the record.';
         }
         field(5; "App Name"; Text[250])
         {
             Caption = 'App Name';
             DataClassification = SystemMetadata;
+            ToolTip = 'Specifies the name of the extension.';
         }
         field(6; Type; Option)
         {
@@ -42,6 +45,7 @@ table 9009 "Permission Set Buffer"
             DataClassification = SystemMetadata;
             OptionCaption = 'User-Defined,Extension,System';
             OptionMembers = "User-Defined",Extension,System;
+            ToolTip = 'Specifies if the permission set is defined by your organization, the base application, or an extension. You can only edit or delete permission sets that you have created.';
         }
     }
 

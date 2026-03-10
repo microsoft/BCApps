@@ -5,7 +5,6 @@
 namespace Microsoft.Purchases.RoleCenters;
 
 using Microsoft.Manufacturing.Document;
-using Microsoft.Manufacturing.Forecast;
 using Microsoft.Manufacturing.Journal;
 using Microsoft.Manufacturing.Reports;
 
@@ -20,15 +19,6 @@ pageextension 99000761 "Mfg. Purchasing Manager RC" extends "Purchasing Manager 
                 ApplicationArea = Manufacturing;
                 Caption = 'Subcontracting Worksheets';
                 RunObject = page "Subcontracting Worksheet";
-            }
-        }
-        addafter("Vendors1")
-        {
-            action("Production Forecasts")
-            {
-                ApplicationArea = Manufacturing;
-                Caption = 'Production Forecasts';
-                RunObject = page "Demand Forecast Names";
             }
         }
         addafter("Jobs")

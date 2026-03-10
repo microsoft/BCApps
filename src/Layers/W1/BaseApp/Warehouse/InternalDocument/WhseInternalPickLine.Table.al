@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -26,26 +26,31 @@ table 7334 "Whse. Internal Pick Line"
         field(1; "No."; Code[20])
         {
             Caption = 'No.';
+            ToolTip = 'Specifies the number of the involved entry or record, according to the specified number series.';
             Editable = false;
         }
         field(2; "Line No."; Integer)
         {
             Caption = 'Line No.';
+            ToolTip = 'Specifies the number of the line.';
             Editable = false;
         }
         field(10; "Location Code"; Code[10])
         {
             Caption = 'Location Code';
+            ToolTip = 'Specifies the code of the location of the internal pick line.';
             Editable = false;
             TableRelation = Location;
         }
         field(11; "Shelf No."; Code[10])
         {
             Caption = 'Shelf No.';
+            ToolTip = 'Specifies the shelf number of the item for informational use.';
         }
         field(12; "To Bin Code"; Code[20])
         {
             Caption = 'To Bin Code';
+            ToolTip = 'Specifies the code of the bin into which the items should be placed when they are picked.';
             TableRelation = if ("To Zone Code" = filter('')) Bin.Code where("Location Code" = field("Location Code"))
             else
             if ("To Zone Code" = filter(<> '')) Bin.Code where("Location Code" = field("Location Code"),
@@ -74,6 +79,7 @@ table 7334 "Whse. Internal Pick Line"
         field(13; "To Zone Code"; Code[10])
         {
             Caption = 'To Zone Code';
+            ToolTip = 'Specifies the To Zone Code of the zone where items should be placed once they are picked.';
             TableRelation = Zone.Code where("Location Code" = field("Location Code"));
 
             trigger OnValidate()
@@ -91,6 +97,7 @@ table 7334 "Whse. Internal Pick Line"
         field(14; "Item No."; Code[20])
         {
             Caption = 'Item No.';
+            ToolTip = 'Specifies the number of the item that should be picked.';
             TableRelation = Item;
 
             trigger OnValidate()
@@ -112,6 +119,7 @@ table 7334 "Whse. Internal Pick Line"
         {
             AutoFormatType = 0;
             Caption = 'Quantity';
+            ToolTip = 'Specifies the quantity that should be picked.';
             DecimalPlaces = 0 : 5;
             MinValue = 0;
 
@@ -152,6 +160,7 @@ table 7334 "Whse. Internal Pick Line"
         {
             AutoFormatType = 0;
             Caption = 'Qty. Outstanding';
+            ToolTip = 'Specifies the quantity that still needs to be handled.';
             DecimalPlaces = 0 : 5;
             Editable = false;
 
@@ -177,6 +186,7 @@ table 7334 "Whse. Internal Pick Line"
         {
             AutoFormatType = 0;
             Caption = 'Qty. Picked';
+            ToolTip = 'Specifies the quantity of the line that is registered as picked.';
             DecimalPlaces = 0 : 5;
             Editable = false;
             FieldClass = Normal;
@@ -206,6 +216,7 @@ table 7334 "Whse. Internal Pick Line"
                                                                                   "Original Breakbulk" = const(false),
                                                                                   "Breakbulk No." = const(0)));
             Caption = 'Pick Qty.';
+            ToolTip = 'Specifies the quantity of the item in pick instructions that are assigned to be picked for the line.';
             DecimalPlaces = 0 : 5;
             Editable = false;
             FieldClass = FlowField;
@@ -228,6 +239,7 @@ table 7334 "Whse. Internal Pick Line"
         field(29; "Unit of Measure Code"; Code[10])
         {
             Caption = 'Unit of Measure Code';
+            ToolTip = 'Specifies how each unit of the item or resource is measured, such as in pieces or hours. By default, the value in the Base Unit of Measure field on the item or resource card is inserted.';
             NotBlank = true;
             TableRelation = "Item Unit of Measure".Code where("Item No." = field("Item No."));
 
@@ -247,6 +259,7 @@ table 7334 "Whse. Internal Pick Line"
         {
             AutoFormatType = 0;
             Caption = 'Qty. per Unit of Measure';
+            ToolTip = 'Specifies the number of base units of measure, that are in the unit of measure, specified for the item on the line.';
             DecimalPlaces = 0 : 5;
             Editable = false;
             InitValue = 1;
@@ -254,6 +267,7 @@ table 7334 "Whse. Internal Pick Line"
         field(31; "Variant Code"; Code[10])
         {
             Caption = 'Variant Code';
+            ToolTip = 'Specifies the variant of the item on the line.';
             TableRelation = "Item Variant".Code where("Item No." = field("Item No."));
 
             trigger OnValidate()
@@ -271,14 +285,17 @@ table 7334 "Whse. Internal Pick Line"
         field(32; Description; Text[100])
         {
             Caption = 'Description';
+            ToolTip = 'Specifies the description of the item in the line.';
         }
         field(33; "Description 2"; Text[50])
         {
             Caption = 'Description 2';
+            ToolTip = 'Specifies a second description of the item on the line.';
         }
         field(34; Status; Option)
         {
             Caption = 'Status';
+            ToolTip = 'Specifies if the status is Blank, Partially Picked, or Completely Picked.';
             Editable = false;
             OptionCaption = ' ,Partially Picked,Completely Picked';
             OptionMembers = " ","Partially Picked","Completely Picked";
@@ -291,6 +308,7 @@ table 7334 "Whse. Internal Pick Line"
         field(36; "Due Date"; Date)
         {
             Caption = 'Due Date';
+            ToolTip = 'Specifies the date when the warehouse activity must be completed.';
         }
         field(37; Cubage; Decimal)
         {

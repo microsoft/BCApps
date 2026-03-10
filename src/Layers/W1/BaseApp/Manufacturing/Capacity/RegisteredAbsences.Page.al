@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -26,49 +26,40 @@ page 99000920 "Registered Absences"
                 field("Capacity Type"; Rec."Capacity Type")
                 {
                     ApplicationArea = Manufacturing;
-                    ToolTip = 'Specifies if the absence entry is related to a machine center or a work center.';
                 }
                 field("No."; Rec."No.")
                 {
                     ApplicationArea = Manufacturing;
-                    ToolTip = 'Specifies the number of the involved entry or record, according to the specified number series.';
                 }
                 field(Date; Rec.Date)
                 {
                     ApplicationArea = Manufacturing;
-                    ToolTip = 'Specifies the date of the absence. If the absence covers several days, there will be an entry line for each day.';
                 }
                 field(Description; Rec.Description)
                 {
                     ApplicationArea = Manufacturing;
-                    ToolTip = 'Specifies a short description of the reason for the absence.';
                 }
                 field("Starting Date-Time"; Rec."Starting Date-Time")
                 {
                     ApplicationArea = Manufacturing;
-                    ToolTip = 'Specifies the date and the starting time, which are combined in a format called "starting date-time".';
                 }
                 field("Starting Time"; Rec."Starting Time")
                 {
                     ApplicationArea = Manufacturing;
-                    ToolTip = 'Specifies the starting time of the absence, such as the time the employee normally starts to work or the time the machine starts to operate.';
                     Visible = false;
                 }
                 field("Ending Date-Time"; Rec."Ending Date-Time")
                 {
                     ApplicationArea = Manufacturing;
-                    ToolTip = 'Specifies the date and the ending time, which are combined in a format called "ending date-time".';
                     Visible = false;
                 }
                 field("Ending Time"; Rec."Ending Time")
                 {
                     ApplicationArea = Manufacturing;
-                    ToolTip = 'Specifies the ending time of day of the absence, such as the time the employee normally leaves, or the time the machine stops operating.';
                 }
                 field(Capacity; Rec.Capacity)
                 {
                     ApplicationArea = Manufacturing;
-                    ToolTip = 'Specifies the amount of capacity, which cannot be used during the absence period.';
                 }
             }
         }

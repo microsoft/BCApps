@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -33,6 +33,7 @@ table 5076 "Segment Header"
         field(1; "No."; Code[20])
         {
             Caption = 'No.';
+            ToolTip = 'Specifies the number of the involved entry or record, according to the specified number series.';
 
             trigger OnValidate()
             begin
@@ -46,6 +47,7 @@ table 5076 "Segment Header"
         field(2; Description; Text[100])
         {
             Caption = 'Description';
+            ToolTip = 'Specifies the description of the segment.';
 
             trigger OnValidate()
             begin
@@ -55,6 +57,7 @@ table 5076 "Segment Header"
         field(3; "Campaign No."; Code[20])
         {
             Caption = 'Campaign No.';
+            ToolTip = 'Specifies the number of the campaign for which the segment has been created.';
             TableRelation = Campaign;
 
             trigger OnValidate()
@@ -65,6 +68,7 @@ table 5076 "Segment Header"
         field(4; "Salesperson Code"; Code[20])
         {
             Caption = 'Salesperson Code';
+            ToolTip = 'Specifies the code of the salesperson responsible for this segment and/or interaction.';
             TableRelation = "Salesperson/Purchaser" where(Blocked = const(false));
 
             trigger OnValidate()
@@ -97,6 +101,7 @@ table 5076 "Segment Header"
         field(6; "Interaction Template Code"; Code[10])
         {
             Caption = 'Interaction Template Code';
+            ToolTip = 'Specifies the interaction template code of the interaction involving the segment.';
             TableRelation = "Interaction Template".Code;
 
             trigger OnValidate()
@@ -150,6 +155,7 @@ table 5076 "Segment Header"
         field(10; Date; Date)
         {
             Caption = 'Date';
+            ToolTip = 'Specifies the date that the segment was created.';
 
             trigger OnValidate()
             begin
@@ -159,6 +165,7 @@ table 5076 "Segment Header"
         field(11; "Campaign Target"; Boolean)
         {
             Caption = 'Campaign Target';
+            ToolTip = 'Specifies that the segment is part of the target of the campaign to which it is linked.';
 
             trigger OnValidate()
             begin
@@ -169,6 +176,7 @@ table 5076 "Segment Header"
         {
             BlankZero = true;
             Caption = 'Information Flow';
+            ToolTip = 'Specifies the direction of the information that is part of the interaction created for the segment. There are two options: Inbound and Outbound.';
             OptionCaption = ' ,Outbound,Inbound';
             OptionMembers = " ",Outbound,Inbound;
 
@@ -181,6 +189,7 @@ table 5076 "Segment Header"
         {
             BlankZero = true;
             Caption = 'Initiated By';
+            ToolTip = 'Specifies whether the interaction recorded for this segment was initiated by your company or by one of your contacts. The Us option indicates that your company was the initiator; the Them option indicates that a contact was the initiator.';
             OptionCaption = ' ,Us,Them';
             OptionMembers = " ",Us,Them;
 
@@ -198,6 +207,7 @@ table 5076 "Segment Header"
         field(15; "Campaign Response"; Boolean)
         {
             Caption = 'Campaign Response';
+            ToolTip = 'Specifies that the interaction created for the segment is the response to a campaign.';
 
             trigger OnValidate()
             begin
@@ -208,6 +218,7 @@ table 5076 "Segment Header"
         {
             CalcFormula = count("Segment Line" where("Segment No." = field("No.")));
             Caption = 'No. of Lines';
+            ToolTip = 'Specifies the number of lines within the segment.';
             Editable = false;
             FieldClass = FlowField;
         }
@@ -287,12 +298,14 @@ table 5076 "Segment Header"
             CalcFormula = count("Segment Criteria Line" where("Segment No." = field("No."),
                                                                Type = const(Action)));
             Caption = 'No. of Criteria Actions';
+            ToolTip = 'Specifies the number of actions you have taken when modifying the segmentation criteria, that is, when adding contacts to the segment, refining, or reducing it.';
             Editable = false;
             FieldClass = FlowField;
         }
         field(22; "Send Word Docs. as Attmt."; Boolean)
         {
             Caption = 'Send Word Docs. as Attmt.';
+            ToolTip = 'Specifies that the Microsoft Word document should be sent as an attachment in the e-mail message.';
 
             trigger OnValidate()
             begin
@@ -302,6 +315,7 @@ table 5076 "Segment Header"
         field(23; "Ignore Contact Corres. Type"; Boolean)
         {
             Caption = 'Ignore Contact Corres. Type';
+            ToolTip = 'Specifies that the correspondence type that you select in the Correspondence Type (Default) field should be used. If there is no check mark, the program uses the correspondence type selected on the Contact Card.';
         }
         field(24; "Subject (Default)"; Text[100])
         {
@@ -341,11 +355,13 @@ table 5076 "Segment Header"
         {
             CalcFormula = lookup(Campaign.Description where("No." = field("Campaign No.")));
             Caption = 'Campaign Description';
+            ToolTip = 'Specifies a description of the campaign to which the segment is related. The description is copied from the campaign card.';
             Editable = false;
             FieldClass = FlowField;
         }
         field(26; "Word Template Code"; Code[30])
         {
+            ToolTip = 'Specifies the Word Template code to use for merging.';
             DataClassification = CustomerContent;
             TableRelation = "Word Template".Code where("Table ID" = const(5106)); // Only Interaction Merge Data word templates are allowed
 

@@ -12,7 +12,7 @@ codeunit 6472 "Serv. Copy Item"
     var
         CopyItem: Codeunit "Copy Item";
 
-    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Copy Item", 'OnAfterCopyItem', '', false, false)]
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Copy Item", 'OnAfterCopyItem', '', true, false)]
     local procedure OnAfterCopyItem(var CopyItemBuffer: Record "Copy Item Buffer"; SourceItem: Record Item; var TargetItem: Record Item)
     begin
         CopyTroubleshootingSetup(SourceItem."No.", TargetItem."No.", CopyItemBuffer);

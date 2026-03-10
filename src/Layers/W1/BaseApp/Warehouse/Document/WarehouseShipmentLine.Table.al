@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -36,21 +36,25 @@ table 7321 "Warehouse Shipment Line"
         field(1; "No."; Code[20])
         {
             Caption = 'No.';
+            ToolTip = 'Specifies the number of the involved entry or record, according to the specified number series.';
             Editable = false;
         }
         field(2; "Line No."; Integer)
         {
             Caption = 'Line No.';
+            ToolTip = 'Specifies the number of the warehouse shipment line.';
             Editable = false;
         }
         field(3; "Source Type"; Integer)
         {
             Caption = 'Source Type';
+            ToolTip = 'Specifies the number of the table that is the source of the receipt line.';
             Editable = false;
         }
         field(4; "Source Subtype"; Option)
         {
             Caption = 'Source Subtype';
+            ToolTip = 'Specifies the source subtype of the document to which the line relates.';
             Editable = false;
             OptionCaption = '0,1,2,3,4,5,6,7,8,9,10';
             OptionMembers = "0","1","2","3","4","5","6","7","8","9","10";
@@ -58,31 +62,37 @@ table 7321 "Warehouse Shipment Line"
         field(6; "Source No."; Code[20])
         {
             Caption = 'Source No.';
+            ToolTip = 'Specifies the number of the source document that the entry originates from.';
             Editable = false;
         }
         field(7; "Source Line No."; Integer)
         {
             Caption = 'Source Line No.';
+            ToolTip = 'Specifies the line number of the source document that the entry originates from.';
             Editable = false;
         }
         field(9; "Source Document"; Enum "Warehouse Activity Source Document")
         {
             Caption = 'Source Document';
+            ToolTip = 'Specifies the type of document that the line relates to.';
             Editable = false;
         }
         field(10; "Location Code"; Code[10])
         {
             Caption = 'Location Code';
+            ToolTip = 'Specifies the code of the location from which the items on the line are being shipped.';
             Editable = false;
             TableRelation = Location;
         }
         field(11; "Shelf No."; Code[10])
         {
             Caption = 'Shelf No.';
+            ToolTip = 'Specifies the shelf number of the item for informational use.';
         }
         field(12; "Bin Code"; Code[20])
         {
             Caption = 'Bin Code';
+            ToolTip = 'Specifies the bin where the items are picked or put away.';
             TableRelation = if ("Zone Code" = filter('')) Bin.Code where("Location Code" = field("Location Code"))
             else
             if ("Zone Code" = filter(<> '')) Bin.Code where("Location Code" = field("Location Code"),
@@ -108,6 +118,7 @@ table 7321 "Warehouse Shipment Line"
         field(13; "Zone Code"; Code[10])
         {
             Caption = 'Zone Code';
+            ToolTip = 'Specifies the code of the zone where the bin on this shipment line is located.';
             TableRelation = Zone.Code where("Location Code" = field("Location Code"));
 
             trigger OnValidate()
@@ -120,6 +131,7 @@ table 7321 "Warehouse Shipment Line"
         field(14; "Item No."; Code[20])
         {
             Caption = 'Item No.';
+            ToolTip = 'Specifies the number of the item that should be shipped.';
             Editable = false;
             TableRelation = Item;
         }
@@ -127,6 +139,7 @@ table 7321 "Warehouse Shipment Line"
         {
             AutoFormatType = 0;
             Caption = 'Quantity';
+            ToolTip = 'Specifies the quantity that should be shipped.';
             DecimalPlaces = 0 : 5;
             Editable = false;
             MinValue = 0;
@@ -180,6 +193,7 @@ table 7321 "Warehouse Shipment Line"
         {
             AutoFormatType = 0;
             Caption = 'Qty. Outstanding';
+            ToolTip = 'Specifies the quantity that still needs to be handled.';
             DecimalPlaces = 0 : 5;
             Editable = false;
 
@@ -208,6 +222,7 @@ table 7321 "Warehouse Shipment Line"
         {
             AutoFormatType = 0;
             Caption = 'Qty. to Ship';
+            ToolTip = 'Specifies the quantity of items that remain to be shipped.';
             DecimalPlaces = 0 : 5;
             MinValue = 0;
 
@@ -286,6 +301,7 @@ table 7321 "Warehouse Shipment Line"
         {
             AutoFormatType = 0;
             Caption = 'Qty. Picked';
+            ToolTip = 'Specifies how many of the total shipment quantity have been registered as picked.';
             DecimalPlaces = 0 : 5;
             Editable = false;
             FieldClass = Normal;
@@ -307,6 +323,7 @@ table 7321 "Warehouse Shipment Line"
         {
             AutoFormatType = 0;
             Caption = 'Qty. Shipped';
+            ToolTip = 'Specifies the quantity of the item on the line that is posted as shipped.';
             DecimalPlaces = 0 : 5;
             Editable = false;
 
@@ -336,6 +353,7 @@ table 7321 "Warehouse Shipment Line"
                                                                                   "Breakbulk No." = const(0),
                                                                                   "Assemble to Order" = const(false)));
             Caption = 'Pick Qty.';
+            ToolTip = 'Specifies the quantity in pick instructions assigned to be picked for the warehouse shipment line.';
             DecimalPlaces = 0 : 5;
             Editable = false;
             FieldClass = FlowField;
@@ -359,6 +377,7 @@ table 7321 "Warehouse Shipment Line"
         field(29; "Unit of Measure Code"; Code[10])
         {
             Caption = 'Unit of Measure Code';
+            ToolTip = 'Specifies how each unit of the item or resource is measured, such as in pieces or hours. By default, the value in the Base Unit of Measure field on the item or resource card is inserted.';
             Editable = false;
             TableRelation = "Item Unit of Measure".Code where("Item No." = field("Item No."));
         }
@@ -366,6 +385,7 @@ table 7321 "Warehouse Shipment Line"
         {
             AutoFormatType = 0;
             Caption = 'Qty. per Unit of Measure';
+            ToolTip = 'Specifies the number of base units of measure that are in the unit of measure specified for the item on the line.';
             DecimalPlaces = 0 : 5;
             Editable = false;
             InitValue = 1;
@@ -373,22 +393,26 @@ table 7321 "Warehouse Shipment Line"
         field(31; "Variant Code"; Code[10])
         {
             Caption = 'Variant Code';
+            ToolTip = 'Specifies the variant of the item on the line.';
             Editable = false;
             TableRelation = "Item Variant".Code where("Item No." = field("Item No."));
         }
         field(32; Description; Text[100])
         {
             Caption = 'Description';
+            ToolTip = 'Specifies the description of the item in the line.';
             Editable = false;
         }
         field(33; "Description 2"; Text[50])
         {
             Caption = 'Description 2';
+            ToolTip = 'Specifies information in addition to the description of the item in the line.';
             Editable = false;
         }
         field(34; Status; Enum "Warehouse Shipment Status")
         {
             Caption = 'Status';
+            ToolTip = 'Specifies the status of the shipment line.';
             Editable = false;
         }
         field(35; "Sorting Sequence No."; Integer)
@@ -399,15 +423,18 @@ table 7321 "Warehouse Shipment Line"
         field(36; "Due Date"; Date)
         {
             Caption = 'Due Date';
+            ToolTip = 'Specifies the date when the related warehouse activity, such as a pick, must be completed to ensure items can be shipped by the shipment date.';
         }
         field(39; "Destination Type"; Enum "Warehouse Destination Type")
         {
             Caption = 'Destination Type';
+            ToolTip = 'Specifies the type of destination associated with the warehouse shipment line.';
             Editable = false;
         }
         field(40; "Destination No."; Code[20])
         {
             Caption = 'Destination No.';
+            ToolTip = 'Specifies the number of the customer, vendor, or location to which the items should be shipped.';
             Editable = false;
             TableRelation = if ("Destination Type" = const(Customer)) Customer."No."
             else
@@ -435,6 +462,7 @@ table 7321 "Warehouse Shipment Line"
         field(45; "Shipment Date"; Date)
         {
             Caption = 'Shipment Date';
+            ToolTip = 'Specifies when items on the document are shipped or were shipped. A shipment date is usually calculated from a requested delivery date plus lead time.';
         }
         field(46; "Completely Picked"; Boolean)
         {
@@ -475,6 +503,7 @@ table 7321 "Warehouse Shipment Line"
         {
             AccessByPermission = TableData "BOM Component" = R;
             Caption = 'Assemble to Order';
+            ToolTip = 'Specifies if the warehouse shipment line is for items that are assembled to a sales order before it is shipped.';
             Editable = false;
         }
     }
@@ -628,10 +657,13 @@ table 7321 "Warehouse Shipment Line"
     end;
 
     procedure CalcBaseQty(Qty: Decimal; FromFieldName: Text; ToFieldName: Text): Decimal
+    var
+        SuppressQtyPerUoMTestfield: Boolean;
     begin
-        OnBeforeCalcBaseQty(Rec, Qty, FromFieldName, ToFieldName);
+        OnBeforeCalcBaseQty(Rec, Qty, FromFieldName, ToFieldName, SuppressQtyPerUoMTestfield);
 
-        TestField("Qty. per Unit of Measure");
+        if not SuppressQtyPerUoMTestfield then
+            TestField("Qty. per Unit of Measure");  // For whse. shipment subcontracting WIP item transfer, 'Qty. per Unit of Measure' can be zero.
         exit(UOMMgt.CalcBaseQty(
             "Item No.", "Variant Code", "Unit of Measure Code", Qty, "Qty. per Unit of Measure", "Qty. Rounding Precision (Base)", FieldCaption("Qty. Rounding Precision"), FromFieldName, ToFieldName));
     end;
@@ -1389,7 +1421,7 @@ table 7321 "Warehouse Shipment Line"
     end;
 
     [IntegrationEvent(false, false)]
-    local procedure OnBeforeCalcBaseQty(var WarehouseShipmentLine: Record "Warehouse Shipment Line"; var Qty: Decimal; FromFieldName: Text; ToFieldName: Text)
+    local procedure OnBeforeCalcBaseQty(var WarehouseShipmentLine: Record "Warehouse Shipment Line"; var Qty: Decimal; FromFieldName: Text; ToFieldName: Text; var SuppressQtyPerUoMTestfield: Boolean)
     begin
     end;
 

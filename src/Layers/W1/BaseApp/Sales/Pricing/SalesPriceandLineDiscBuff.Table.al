@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -29,6 +29,7 @@ table 1304 "Sales Price and Line Disc Buff"
         field(1; "Code"; Code[20])
         {
             Caption = 'Code';
+            ToolTip = 'Specifies a code for the sales line price or discount.';
             DataClassification = SystemMetadata;
             NotBlank = true;
             TableRelation = if (Type = const(Item)) Item
@@ -81,6 +82,7 @@ table 1304 "Sales Price and Line Disc Buff"
         field(2; "Sales Code"; Code[20])
         {
             Caption = 'Sales Code';
+            ToolTip = 'Specifies the sales code of the price or discount. The sales code depends on the value in the Sales Type field. The code can represent an individual customer, a customer discount group, or for all customers.';
             DataClassification = SystemMetadata;
             TableRelation = if ("Sales Type" = const("Customer Price/Disc. Group"),
                                 "Line Type" = const("Sales Line Discount")) "Customer Discount Group"
@@ -126,6 +128,7 @@ table 1304 "Sales Price and Line Disc Buff"
         field(3; "Currency Code"; Code[10])
         {
             Caption = 'Currency Code';
+            ToolTip = 'Specifies the currency that must be used on the sales document line to warrant the sales price or discount.';
             DataClassification = SystemMetadata;
             TableRelation = Currency;
         }
@@ -135,6 +138,7 @@ table 1304 "Sales Price and Line Disc Buff"
         field(4; "Starting Date"; Date)
         {
             Caption = 'Starting Date';
+            ToolTip = 'Specifies the date from which the sales line discount is valid.';
             DataClassification = SystemMetadata;
 
             trigger OnValidate()
@@ -150,6 +154,7 @@ table 1304 "Sales Price and Line Disc Buff"
         {
             AutoFormatType = 0;
             Caption = 'Line Discount %';
+            ToolTip = 'Specifies the discount percentage that is granted for the item on the line.';
             DataClassification = SystemMetadata;
             MaxValue = 100;
             MinValue = 0;
@@ -162,6 +167,7 @@ table 1304 "Sales Price and Line Disc Buff"
             AutoFormatExpression = Rec."Currency Code";
             AutoFormatType = 2;
             Caption = 'Unit Price';
+            ToolTip = 'Specifies the price of one unit of the item or resource. You can enter a price manually or have it entered according to the Price/Profit Calculation field on the related card.';
             DataClassification = SystemMetadata;
             MinValue = 0;
         }
@@ -171,6 +177,7 @@ table 1304 "Sales Price and Line Disc Buff"
         field(7; "Price Includes VAT"; Boolean)
         {
             Caption = 'Price Includes VAT';
+            ToolTip = 'Specifies if the price that is granted includes VAT.';
             DataClassification = SystemMetadata;
         }
         /// <summary>
@@ -179,6 +186,7 @@ table 1304 "Sales Price and Line Disc Buff"
         field(10; "Allow Invoice Disc."; Boolean)
         {
             Caption = 'Allow Invoice Disc.';
+            ToolTip = 'Specifies if an invoice discount will be calculated when the sales price is offered.';
             DataClassification = SystemMetadata;
             InitValue = true;
         }
@@ -197,6 +205,7 @@ table 1304 "Sales Price and Line Disc Buff"
         field(13; "Sales Type"; Option)
         {
             Caption = 'Sales Type';
+            ToolTip = 'Specifies the sales type of the price or discount. The sales type defines whether the sales price or discount is for an individual customer, a customer discount group, or for all customers.';
             DataClassification = SystemMetadata;
             OptionCaption = 'Customer,Customer Price/Disc. Group,All Customers,Campaign';
             OptionMembers = Customer,"Customer Price/Disc. Group","All Customers",Campaign;
@@ -236,6 +245,7 @@ table 1304 "Sales Price and Line Disc Buff"
         {
             AutoFormatType = 0;
             Caption = 'Minimum Quantity';
+            ToolTip = 'Specifies the quantity that must be entered on the sales document to warrant the sales price or discount.';
             DataClassification = SystemMetadata;
             MinValue = 0;
         }
@@ -245,6 +255,7 @@ table 1304 "Sales Price and Line Disc Buff"
         field(15; "Ending Date"; Date)
         {
             Caption = 'Ending Date';
+            ToolTip = 'Specifies the date to which the sales line discount is valid.';
             DataClassification = SystemMetadata;
 
             trigger OnValidate()
@@ -258,6 +269,7 @@ table 1304 "Sales Price and Line Disc Buff"
         field(21; Type; Enum "Sales Line Discount Type")
         {
             Caption = 'Type';
+            ToolTip = 'Specifies if the discount is valid for an item or for an item discount group.';
             DataClassification = SystemMetadata;
 
             trigger OnValidate()
@@ -287,6 +299,7 @@ table 1304 "Sales Price and Line Disc Buff"
         field(1300; "Line Type"; Option)
         {
             Caption = 'Line Type';
+            ToolTip = 'Specifies if the line is for a sales price or a sales line discount.';
             DataClassification = SystemMetadata;
             OptionCaption = ' ,Sales Line Discount,Sales Price';
             OptionMembers = " ","Sales Line Discount","Sales Price";
@@ -349,6 +362,7 @@ table 1304 "Sales Price and Line Disc Buff"
         field(5400; "Unit of Measure Code"; Code[10])
         {
             Caption = 'Unit of Measure Code';
+            ToolTip = 'Specifies how each unit of the item or resource is measured, such as in pieces or hours. By default, the value in the Base Unit of Measure field on the item or resource card is inserted.';
             DataClassification = SystemMetadata;
             TableRelation = if (Type = const(Item)) "Item Unit of Measure".Code where("Item No." = field(Code));
 
@@ -363,6 +377,7 @@ table 1304 "Sales Price and Line Disc Buff"
         field(5700; "Variant Code"; Code[10])
         {
             Caption = 'Variant Code';
+            ToolTip = 'Specifies the variant that must be used on the sales document line to warrant the sales price or discount.';
             DataClassification = SystemMetadata;
             TableRelation = if (Type = const(Item)) "Item Variant".Code where("Item No." = field(Code));
 
@@ -377,6 +392,7 @@ table 1304 "Sales Price and Line Disc Buff"
         field(7001; "Allow Line Disc."; Boolean)
         {
             Caption = 'Allow Line Disc.';
+            ToolTip = 'Specifies if line discounts are allowed.';
             DataClassification = SystemMetadata;
             InitValue = true;
         }

@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -36,7 +36,6 @@ page 1270 "OCR Service Setup"
                         ApplicationArea = Basic, Suite;
                         Editable = EditableByNotEnabled;
                         ShowMandatory = true;
-                        ToolTip = 'Specifies the user name that represents your company''s login to the OCR service.';
 
                         trigger OnValidate()
                         begin
@@ -79,7 +78,6 @@ page 1270 "OCR Service Setup"
                     {
                         ApplicationArea = Basic, Suite;
                         Editable = EditableByNotEnabled;
-                        ToolTip = 'Specifies the OCR template that must be used by default for electronic documents that are received from the OCR service. You can change the OCR template on the individual incoming document card before sending the related file to the OCR service.';
 
                         trigger OnValidate()
                         begin
@@ -94,7 +92,6 @@ page 1270 "OCR Service Setup"
                     {
                         ApplicationArea = Basic, Suite;
                         Editable = EditableByNotEnabled;
-                        ToolTip = 'Specifies whether or not the master data sync has been enabled.';
 
                         trigger OnValidate()
                         begin
@@ -105,12 +102,10 @@ page 1270 "OCR Service Setup"
                     {
                         ApplicationArea = Basic, Suite;
                         Editable = false;
-                        ToolTip = 'Specifies the last time when the master data was synched.';
                     }
                     field(Enabled; Rec.Enabled)
                     {
                         ApplicationArea = Basic, Suite;
-                        ToolTip = 'Specifies if the service is enabled.';
 
                         trigger OnValidate()
                         begin
@@ -140,20 +135,17 @@ page 1270 "OCR Service Setup"
                 {
                     ApplicationArea = Basic, Suite;
                     Editable = EditableByNotEnabled;
-                    ToolTip = 'Specifies the web page where you sign up for the OCR service.';
                 }
                 field("Service URL"; Rec."Service URL")
                 {
                     ApplicationArea = Basic, Suite;
                     Editable = EditableByNotEnabled;
                     ShowMandatory = true;
-                    ToolTip = 'Specifies the address of the OCR service. The service specified in the Service URL field is called when you send and receive files for OCR.';
                 }
                 field("Sign-in URL"; Rec."Sign-in URL")
                 {
                     ApplicationArea = Basic, Suite;
                     Editable = EditableByNotEnabled;
-                    ToolTip = 'Specifies the sign-in page for the OCR service. This is the web page where you enter your company''s user name, password, and authorization key to sign in to the service.';
                 }
             }
             group(CustomerStatus)
@@ -164,20 +156,17 @@ page 1270 "OCR Service Setup"
                     ApplicationArea = Basic, Suite;
                     Editable = false;
                     Importance = Promoted;
-                    ToolTip = 'Specifies your company''s name at the provider of the OCR service.';
                 }
                 field("Customer ID"; Rec."Customer ID")
                 {
                     ApplicationArea = Basic, Suite;
                     Editable = false;
-                    ToolTip = 'Specifies your company''s customer ID at the provider of the OCR service.';
                 }
                 field("Customer Status"; Rec."Customer Status")
                 {
                     ApplicationArea = Basic, Suite;
                     Editable = false;
                     Importance = Promoted;
-                    ToolTip = 'Specifies your company''s status at the provider of the OCR service.';
                 }
             }
         }

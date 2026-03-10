@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -36,57 +36,46 @@ page 5096 "Task List"
                 field(Closed; Rec.Closed)
                 {
                     ApplicationArea = RelationshipMgmt;
-                    ToolTip = 'Specifies that the task is closed.';
                 }
                 field(Date; Rec.Date)
                 {
                     ApplicationArea = RelationshipMgmt;
-                    ToolTip = 'Specifies the date when the task should be started. There are certain rules for how dates should be entered found in How to: Enter Dates and Times.';
                 }
                 field(Type; Rec.Type)
                 {
                     ApplicationArea = RelationshipMgmt;
-                    ToolTip = 'Specifies the type of the task.';
                 }
                 field(Description; Rec.Description)
                 {
                     ApplicationArea = RelationshipMgmt;
-                    ToolTip = 'Specifies the description of the task.';
                 }
                 field(Priority; Rec.Priority)
                 {
                     ApplicationArea = RelationshipMgmt;
-                    ToolTip = 'Specifies the priority of the task.';
                 }
                 field(Status; Rec.Status)
                 {
                     ApplicationArea = RelationshipMgmt;
-                    ToolTip = 'Specifies the status of the task. There are five options: Not Started, In Progress, Completed, Waiting and Postponed.';
                 }
                 field("Organizer To-do No."; Rec."Organizer To-do No.")
                 {
                     ApplicationArea = RelationshipMgmt;
-                    ToolTip = 'Specifies the number of the organizer''s task. The field is not editable.';
                 }
                 field("Date Closed"; Rec."Date Closed")
                 {
                     ApplicationArea = RelationshipMgmt;
-                    ToolTip = 'Specifies the date the task was closed.';
                 }
                 field(Canceled; Rec.Canceled)
                 {
                     ApplicationArea = RelationshipMgmt;
-                    ToolTip = 'Specifies that the task has been canceled.';
                 }
                 field(Comment; Rec.Comment)
                 {
                     ApplicationArea = Comments;
-                    ToolTip = 'Specifies that a comment has been assigned to the task.';
                 }
                 field("Contact No."; Rec."Contact No.")
                 {
                     ApplicationArea = RelationshipMgmt;
-                    ToolTip = 'Specifies the number of the contact linked to the task.';
 
                     trigger OnLookup(var Text: Text): Boolean
                     var
@@ -105,33 +94,27 @@ page 5096 "Task List"
                 field("Contact Company No."; Rec."Contact Company No.")
                 {
                     ApplicationArea = RelationshipMgmt;
-                    ToolTip = 'Specifies the contact number of the company for which the contact involved in the task works.';
                     Visible = false;
                 }
                 field("Salesperson Code"; Rec."Salesperson Code")
                 {
                     ApplicationArea = RelationshipMgmt;
-                    ToolTip = 'Specifies the code of the salesperson assigned to the task.';
                 }
                 field("Team Code"; Rec."Team Code")
                 {
                     ApplicationArea = RelationshipMgmt;
-                    ToolTip = 'Specifies the code of the team to which the task is assigned.';
                 }
                 field("Campaign No."; Rec."Campaign No.")
                 {
                     ApplicationArea = RelationshipMgmt;
-                    ToolTip = 'Specifies the number of the campaign to which the task is linked.';
                 }
                 field("Opportunity No."; Rec."Opportunity No.")
                 {
                     ApplicationArea = RelationshipMgmt;
-                    ToolTip = 'Specifies the number of the opportunity to which the task is linked.';
                 }
                 field("No."; Rec."No.")
                 {
                     ApplicationArea = RelationshipMgmt;
-                    ToolTip = 'Specifies the number of the involved entry or record, according to the specified number series.';
                 }
             }
             group(Control55)
@@ -142,13 +125,11 @@ page 5096 "Task List"
                     ApplicationArea = RelationshipMgmt;
                     Caption = 'Contact Name';
                     DrillDown = false;
-                    ToolTip = 'Specifies the name of the contact to which this task has been assigned.';
                 }
                 field("Contact Company Name"; Rec."Contact Company Name")
                 {
                     ApplicationArea = RelationshipMgmt;
                     DrillDown = false;
-                    ToolTip = 'Specifies the name of the company for which the contact involved in the task works.';
                 }
             }
         }

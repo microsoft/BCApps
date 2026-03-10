@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -260,7 +260,6 @@ page 6510 "Item Tracking Lines"
                 {
                     ApplicationArea = ItemTracking;
                     Editable = SerialNoEditable;
-                    ToolTip = 'Specifies the serial number associated with the entry.';
                     ExtendedDatatype = Barcode;
 
                     trigger OnAssistEdit()
@@ -306,7 +305,6 @@ page 6510 "Item Tracking Lines"
                 {
                     ApplicationArea = ItemTracking;
                     Editable = NewSerialNoEditable;
-                    ToolTip = 'Specifies a new serial number that will take the place of the serial number in the Serial No. field.';
                     Visible = NewSerialNoVisible;
                     ExtendedDatatype = Barcode;
                 }
@@ -326,7 +324,6 @@ page 6510 "Item Tracking Lines"
                 {
                     ApplicationArea = ItemTracking;
                     Editable = LotNoEditable;
-                    ToolTip = 'Specifies the lot number of the item being handled for the associated document line.';
                     ExtendedDatatype = Barcode;
 
                     trigger OnAssistEdit()
@@ -362,7 +359,6 @@ page 6510 "Item Tracking Lines"
                 {
                     ApplicationArea = ItemTracking;
                     Editable = NewLotNoEditable;
-                    ToolTip = 'Specifies a new lot number that will take the place of the lot number in the Lot No. field.';
                     Visible = NewLotNoVisible;
                     ExtendedDatatype = Barcode;
                 }
@@ -382,7 +378,6 @@ page 6510 "Item Tracking Lines"
                 {
                     ApplicationArea = ItemTracking;
                     Editable = PackageNoEditable;
-                    ToolTip = 'Specifies the package number of the item being handled for the associated document line.';
                     ExtendedDatatype = Barcode;
 
                     trigger OnAssistEdit()
@@ -412,7 +407,6 @@ page 6510 "Item Tracking Lines"
                 {
                     ApplicationArea = ItemTracking;
                     Editable = NewPackageNoEditable;
-                    ToolTip = 'Specifies a new package number that will take the place of the package number in the Package No. field.';
                     Visible = NewPackageNoVisible;
                     ExtendedDatatype = Barcode;
                 }
@@ -420,7 +414,6 @@ page 6510 "Item Tracking Lines"
                 {
                     ApplicationArea = ItemTracking;
                     Editable = ExpirationDateEditable;
-                    ToolTip = 'Specifies the expiration date, if any, of the item carrying the item tracking number.';
                     Visible = ExpirationDateVisible;
 
                     trigger OnValidate()
@@ -433,42 +426,36 @@ page 6510 "Item Tracking Lines"
                 {
                     ApplicationArea = ItemTracking;
                     Editable = NewExpirationDateEditable;
-                    ToolTip = 'Specifies a new expiration date.';
                     Visible = NewExpirationDateVisible;
                 }
                 field("Warranty Date"; Rec."Warranty Date")
                 {
                     ApplicationArea = ItemTracking;
                     Editable = WarrantyDateEditable;
-                    ToolTip = 'Specifies that a warranty date must be entered manually.';
                     Visible = false;
                 }
                 field("Item No."; Rec."Item No.")
                 {
                     ApplicationArea = ItemTracking;
                     Editable = ItemNoEditable;
-                    ToolTip = 'Specifies the number of the item associated with the entry.';
                     Visible = false;
                 }
                 field("Variant Code"; Rec."Variant Code")
                 {
                     ApplicationArea = Planning;
                     Editable = VariantCodeEditable;
-                    ToolTip = 'Specifies the variant of the item on the line.';
                     Visible = false;
                 }
                 field(Description; Rec.Description)
                 {
                     ApplicationArea = ItemTracking;
                     Editable = DescriptionEditable;
-                    ToolTip = 'Specifies the description of the entry.';
                     Visible = false;
                 }
                 field("Location Code"; Rec."Location Code")
                 {
                     ApplicationArea = ItemTracking;
                     Editable = LocationCodeEditable;
-                    ToolTip = 'Specifies the location code for the entry.';
                     Visible = false;
                 }
                 field("Quantity (Base)"; Rec."Quantity (Base)")
@@ -524,13 +511,11 @@ page 6510 "Item Tracking Lines"
                 field("Appl.-to Item Entry"; Rec."Appl.-to Item Entry")
                 {
                     ApplicationArea = ItemTracking;
-                    ToolTip = 'Specifies the number of the item ledger entry that the document or journal line is applied to.';
                     Visible = ApplToItemEntryVisible;
                 }
                 field("Appl.-from Item Entry"; Rec."Appl.-from Item Entry")
                 {
                     ApplicationArea = ItemTracking;
-                    ToolTip = 'Specifies the number of the item ledger entry that the document or journal line is applied from.';
                     Visible = ApplFromItemEntryVisible;
                 }
                 field("Receipt/Shipment No."; Rec."Receipt/Shipment No.")
@@ -3379,6 +3364,7 @@ page 6510 "Item Tracking Lines"
         SetBinCode();
         OnSelectEntriesOnBeforeSelectMultipleTrackingNo(ItemTrackingDataCollection, CurrentSignFactor);
         ItemTrackingDataCollection.SelectMultipleTrackingNo(Rec, MaxQuantity, CurrentSignFactor);
+        OnSelectEntriesOnAfterSelectMultipleTrackingNo(ItemTrackingDataCollection);
         Rec."Bin Code" := '';
         if Rec.FindSet() then
             repeat
@@ -4269,6 +4255,11 @@ page 6510 "Item Tracking Lines"
 
     [IntegrationEvent(false, false)]
     local procedure OnSelectEntriesOnBeforeSelectMultipleTrackingNo(var ItemTrackingDataCollection: Codeunit "Item Tracking Data Collection"; CurrentSignFactor: Integer)
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnSelectEntriesOnAfterSelectMultipleTrackingNo(var ItemTrackingDataCollection: Codeunit "Item Tracking Data Collection")
     begin
     end;
 

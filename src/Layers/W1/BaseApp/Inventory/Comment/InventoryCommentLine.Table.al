@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -19,6 +19,7 @@ table 5748 "Inventory Comment Line"
         field(2; "No."; Code[20])
         {
             Caption = 'No.';
+            ToolTip = 'Specifies the number of the involved entry or record, according to the specified number series.';
         }
         field(3; "Line No."; Integer)
         {
@@ -27,14 +28,17 @@ table 5748 "Inventory Comment Line"
         field(4; Date; Date)
         {
             Caption = 'Date';
+            ToolTip = 'Specifies when the comment was created.';
         }
         field(5; "Code"; Code[10])
         {
             Caption = 'Code';
+            ToolTip = 'Specifies the code of the record.';
         }
         field(6; Comment; Text[80])
         {
             Caption = 'Comment';
+            ToolTip = 'Specifies the actual comment text.';
         }
     }
 

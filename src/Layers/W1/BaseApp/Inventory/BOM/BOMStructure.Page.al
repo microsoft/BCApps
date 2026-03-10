@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -60,7 +60,6 @@ page 5870 "BOM Structure"
                 field(Type; Rec.Type)
                 {
                     ApplicationArea = Assembly;
-                    ToolTip = 'Specifies the item''s position in the BOM structure. Lower-level items are indented under their parents.';
                 }
                 field("No."; Rec."No.")
                 {
@@ -68,7 +67,6 @@ page 5870 "BOM Structure"
                     Editable = false;
                     Style = Strong;
                     StyleExpr = IsParentExpr;
-                    ToolTip = 'Specifies the number of the involved entry or record, according to the specified number series.';
                 }
                 field(Description; Rec.Description)
                 {
@@ -76,7 +74,6 @@ page 5870 "BOM Structure"
                     Editable = false;
                     Style = Strong;
                     StyleExpr = IsParentExpr;
-                    ToolTip = 'Specifies the item''s description.';
                 }
                 field(HasWarning; HasWarning)
                 {
@@ -97,13 +94,11 @@ page 5870 "BOM Structure"
                 field("Low-Level Code"; Rec."Low-Level Code")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the item''s level in the BOM structure.';
                     Visible = false;
                 }
                 field("Variant Code"; Rec."Variant Code")
                 {
                     ApplicationArea = Planning;
-                    ToolTip = 'Specifies the variant code that you entered in the Variant Filter field in the Item Availability by BOM Level window.';
                     Visible = false;
                 }
                 field("Qty. per Parent"; Rec."Qty. per Parent")
@@ -111,44 +106,37 @@ page 5870 "BOM Structure"
                     ApplicationArea = Assembly;
                     DecimalPlaces = 0 : 5;
                     Editable = false;
-                    ToolTip = 'Specifies how many units of the component are required to assemble or produce one unit of the parent.';
                 }
                 field("Qty. per Top Item"; Rec."Qty. per Top Item")
                 {
                     ApplicationArea = Assembly;
                     DecimalPlaces = 0 : 5;
                     Editable = false;
-                    ToolTip = 'Specifies how many units of the component are required to assemble or produce one unit of the top item.';
                     Visible = false;
                 }
                 field("Unit of Measure Code"; Rec."Unit of Measure Code")
                 {
                     ApplicationArea = Assembly;
                     Editable = false;
-                    ToolTip = 'Specifies how each unit of the item or resource is measured, such as in pieces or hours. By default, the value in the Base Unit of Measure field on the item or resource card is inserted.';
                 }
                 field("Replenishment System"; Rec."Replenishment System")
                 {
                     ApplicationArea = Assembly;
                     Editable = false;
-                    ToolTip = 'Specifies the item''s replenishment system.';
                 }
                 field("Lead-Time Offset"; Rec."Lead-Time Offset")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the total number of days that are required to assemble or produce the item.';
                     Visible = false;
                 }
                 field("Safety Lead Time"; Rec."Safety Lead Time")
                 {
                     ApplicationArea = Planning;
-                    ToolTip = 'Specifies any safety lead time that is defined for the item.';
                     Visible = false;
                 }
                 field("Lead Time Calculation"; Rec."Lead Time Calculation")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies how long it takes to replenish the item, by purchase, assembly, or production.';
                     Visible = false;
                 }
             }

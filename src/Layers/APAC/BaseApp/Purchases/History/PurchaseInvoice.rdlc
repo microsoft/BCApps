@@ -8601,9 +8601,6 @@ End Function
         <Field Name="DocumentCaption">
           <DataField>DocumentCaption</DataField>
         </Field>
-        <Field Name="SelfBillingCaption">
-          <DataField>SelfBillingCaption</DataField>
-        </Field>
         <Field Name="VendAddr1">
           <DataField>VendAddr1</DataField>
         </Field>
@@ -8651,15 +8648,6 @@ End Function
         </Field>
         <Field Name="CompanyInfoBankAccountNo">
           <DataField>CompanyInfoBankAccountNo</DataField>
-        </Field>
-        <Field Name="CompanyInfoSwiftCode">
-          <DataField>CompanyInfoSwiftCode</DataField>
-        </Field>
-        <Field Name="CompanyInfoIBAN">
-          <DataField>CompanyInfoIBAN</DataField>
-        </Field>
-        <Field Name="CompanyInfoBankBranchNo">
-          <DataField>CompanyInfoBankBranchNo</DataField>
         </Field>
         <Field Name="VendAddr7">
           <DataField>VendAddr7</DataField>
@@ -8828,12 +8816,6 @@ End Function
         </Field>
         <Field Name="TotalCaption">
           <DataField>TotalCaption</DataField>
-        </Field>
-        <Field Name="SwiftCodeCaption">
-          <DataField>SwiftCodeCaption</DataField>
-        </Field>
-        <Field Name="CompanyIBAN_Lbl">
-          <DataField>CompanyIBAN_Lbl</DataField>
         </Field>
         <Field Name="DimText">
           <DataField>DimText</DataField>

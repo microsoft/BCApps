@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -32,20 +32,17 @@ page 361 "Res. Availability Lines"
                 {
                     ApplicationArea = Basic, Suite;
                     Caption = 'Period Start';
-                    ToolTip = 'Specifies a series of dates according to the selected time interval.';
                 }
                 field("Period Name"; Rec."Period Name")
                 {
                     ApplicationArea = Basic, Suite;
                     Caption = 'Period Name';
-                    ToolTip = 'Specifies the name of the period shown in the line.';
                 }
                 field(Capacity; Rec.Capacity)
                 {
                     ApplicationArea = Basic, Suite;
                     Caption = 'Capacity';
                     DecimalPlaces = 0 : 5;
-                    ToolTip = 'Specifies the total capacity for the corresponding time period.';
                 }
 #pragma warning disable AA0100
                 field("Resource.""Qty. on Order (Job)"""; Rec."Qty. on Order (Job)")
@@ -61,7 +58,6 @@ page 361 "Res. Availability Lines"
                     ApplicationArea = Basic, Suite;
                     Caption = 'Availability After Orders';
                     DecimalPlaces = 0 : 5;
-                    ToolTip = 'Specifies capacity minus the quantity on order.';
                 }
 #pragma warning disable AA0100
                 field("Resource.""Qty. Quoted (Job)"""; Rec."Job Quotes Allocation")
@@ -84,7 +80,6 @@ page 361 "Res. Availability Lines"
                     ApplicationArea = Assembly;
                     Caption = 'Qty. on Assembly Order';
                     DecimalPlaces = 0 : 5;
-                    ToolTip = 'Specifies how many units of the item are allocated to assembly orders, which is how many are listed on outstanding assembly order headers.';
                 }
                 field(NetAvailability; Rec."Net Availability")
                 {
@@ -92,7 +87,6 @@ page 361 "Res. Availability Lines"
                     AutoFormatType = 1;
                     DecimalPlaces = 0 : 5;
                     Caption = 'Net Availability';
-                    ToolTip = 'Specifies capacity, minus the quantity on order, minus the projects quotes allocation.';
                 }
             }
         }

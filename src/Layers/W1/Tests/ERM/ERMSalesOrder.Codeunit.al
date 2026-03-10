@@ -73,6 +73,8 @@
         SalesLineQtyErr: Label 'Sales Line %1 must be equal to %2', Comment = '%1= Field ,%2= Value';
         OptionString: Option PostedReturnReceipt,PostedInvoices,PostedShipments,PostedCrMemo;
         ConfirmMsg: Label 'The quantity to undo might differ from the original shipment because the invoice was cancelled. Do you want to proceed with the undo?';
+        ReservedQtyShouldMatchLineQtyErr: Label 'Reserved quantity should match line quantity.';
+        ReservedQtyExpectedErr: Label 'Reserved quantity should be %1', Comment = '%1 = Expected Quantity.';
 
     [Test]
     [Scope('OnPrem')]
@@ -6051,6 +6053,78 @@
         VerifySalesOrderAfterPartialPostCorrectiveCreditMemo(SalesHeader."No.", Quantity);
     end;
 
+    [Test]
+    procedure TestReserveFromInventoryOnSalesLine()
+    var
+        Item: Record Item;
+        Customer: Record Customer;
+        SalesHeader: Record "Sales Header";
+        SalesLine: Record "Sales Line";
+    begin
+        // [SCENARIO 617913] Verify the Reserve from inventory creates reservation matching sales line quantity.
+        Initialize();
+
+        // [GIVEN] Create an item and add to inventory.
+        LibraryInventory.CreateItem(Item);
+        AddItemToInventory(Item."No.", LibraryRandom.RandIntInRange(5, 50));
+
+        // [GIVEN] Create sales order with the item.
+        LibrarySales.CreateCustomer(Customer);
+        LibrarySales.CreateSalesHeader(SalesHeader, SalesHeader."Document Type"::Order, Customer."No.");
+        LibrarySales.CreateSalesLine(SalesLine, SalesHeader, SalesLine.Type::Item, Item."No.", 1);
+
+        // [GIVEN] Set shipment date to ensure reservation can work.
+        SalesLine.Validate("Shipment Date", WorkDate());
+        SalesLine.Modify(true);
+
+        // [WHEN] Reserve from inventory on the sales line.
+        SalesLine.SetRange("Document Type", SalesLine."Document Type");
+        SalesLine.SetRange("Document No.", SalesLine."Document No.");
+        SalesLine.SetRange("Line No.", SalesLine."Line No.");
+        SalesLine.ReserveFromInventory(SalesLine);
+
+        // [THEN] Verify the reservation is created.
+        SalesLine.CalcFields("Reserved Quantity");
+        Assert.AreEqual(SalesLine.Quantity, SalesLine."Reserved Quantity", ReservedQtyShouldMatchLineQtyErr);
+    end;
+
+    [Test]
+    procedure TestReserveFromInventoryPartialQuantitySalesLine()
+    var
+        Item: Record Item;
+        Customer: Record Customer;
+        SalesHeader: Record "Sales Header";
+        SalesLine: Record "Sales Line";
+        ExpectedQty: Decimal;
+    begin
+        // [SCENARIO 617913] Verify the Reserve partial quantity from inventory on sales line.
+        Initialize();
+        ExpectedQty := LibraryRandom.RandIntInRange(3, 10);
+
+        // [GIVEN] Create an item and add to inventory.
+        LibraryInventory.CreateItem(Item);
+        AddItemToInventory(Item."No.", LibraryRandom.RandIntInRange(ExpectedQty + 1, 50));
+
+        // [GIVEN] Create sales order with the item.
+        LibrarySales.CreateCustomer(Customer);
+        LibrarySales.CreateSalesHeader(SalesHeader, SalesHeader."Document Type"::Order, Customer."No.");
+        LibrarySales.CreateSalesLine(SalesLine, SalesHeader, SalesLine.Type::Item, Item."No.", ExpectedQty);
+
+        // [GIVEN] Set shipment date to ensure reservation can work.
+        SalesLine.Validate("Shipment Date", WorkDate());
+        SalesLine.Modify(true);
+
+        // [WHEN] Reserve from inventory on the sales line.
+        SalesLine.SetRange("Document Type", SalesLine."Document Type");
+        SalesLine.SetRange("Document No.", SalesLine."Document No.");
+        SalesLine.SetRange("Line No.", SalesLine."Line No.");
+        SalesLine.ReserveFromInventory(SalesLine);
+
+        // [THEN] Verify the reservation is created for the full quantity.
+        SalesLine.CalcFields("Reserved Quantity");
+        Assert.AreEqual(ExpectedQty, SalesLine."Reserved Quantity", StrSubstNo(ReservedQtyExpectedErr, ExpectedQty));
+    end;
+
     local procedure Initialize()
     var
         SalesHeader: Record "Sales Header";
@@ -8274,6 +8348,14 @@
             Assert.AreEqual(ExpectedQuantity, SalesLine."Qty. to Invoice", StrSubstNo(
                 SalesLineQtyErr, SalesLine.FieldName("Qty. to Invoice"), ExpectedQuantity));
         until SalesLine.Next() = 0;
+    end;
+
+    local procedure AddItemToInventory(ItemNo: Code[20]; Qty: Decimal)
+    var
+        ItemJournalLine: Record "Item Journal Line";
+    begin
+        LibraryInventory.CreateItemJournalLineInItemTemplate(ItemJournalLine, ItemNo, '', '', Qty);
+        LibraryInventory.PostItemJournalLine(ItemJournalLine."Journal Template Name", ItemJournalLine."Journal Batch Name");
     end;
 
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Sales-Post", 'OnBeforePostUpdateOrderLineModifyTempLine', '', false, false)]

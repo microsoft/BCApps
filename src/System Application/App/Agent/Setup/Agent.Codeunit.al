@@ -25,9 +25,7 @@ codeunit 4321 Agent
     /// <param name="Instructions">Instructions for the agent that will be used to complete the tasks.</param>
     /// <param name="TempAgentAccessControl">The list of users that can configure or interact with the agent.</param>
     /// <returns>The ID of the agent.</returns>
-#pragma warning disable AS0026
     procedure Create(AgentMetadataProvider: Enum "Agent Metadata Provider"; var UserName: Code[50]; UserDisplayName: Text[80]; var TempAgentAccessControl: Record "Agent Access Control" temporary): Guid
-#pragma warning restore AS0026
     var
         AgentImpl: Codeunit "Agent Impl.";
     begin

@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -28,22 +28,18 @@ page 5647 "Ins. Coverage Ledger Entries"
                 field("Posting Date"; Rec."Posting Date")
                 {
                     ApplicationArea = FixedAssets;
-                    ToolTip = 'Specifies the entry''s posting date.';
                 }
                 field("Document Type"; Rec."Document Type")
                 {
                     ApplicationArea = FixedAssets;
-                    ToolTip = 'Specifies the document type that the entry belongs to.';
                 }
                 field("Document No."; Rec."Document No.")
                 {
                     ApplicationArea = FixedAssets;
-                    ToolTip = 'Specifies the document number on the entry.';
                 }
                 field("Insurance No."; Rec."Insurance No.")
                 {
                     ApplicationArea = FixedAssets;
-                    ToolTip = 'Specifies the number of the insurance policy the entry is linked to.';
                 }
                 field("FA No."; Rec."FA No.")
                 {
@@ -53,46 +49,38 @@ page 5647 "Ins. Coverage Ledger Entries"
                 field("FA Description"; Rec."FA Description")
                 {
                     ApplicationArea = FixedAssets;
-                    ToolTip = 'Specifies a description of the fixed asset that the insurance entry is linked to.';
                     Visible = false;
                 }
                 field(Description; Rec.Description)
                 {
                     ApplicationArea = FixedAssets;
-                    ToolTip = 'Specifies a description of the entry.';
                 }
                 field("Global Dimension 1 Code"; Rec."Global Dimension 1 Code")
                 {
                     ApplicationArea = Dimensions;
-                    ToolTip = 'Specifies the code for the global dimension that is linked to the record or entry for analysis purposes. Two global dimensions, typically for the company''s most important activities, are available on all cards, documents, reports, and lists.';
                     Visible = false;
                 }
                 field("Global Dimension 2 Code"; Rec."Global Dimension 2 Code")
                 {
                     ApplicationArea = Dimensions;
-                    ToolTip = 'Specifies the code for the global dimension that is linked to the record or entry for analysis purposes. Two global dimensions, typically for the company''s most important activities, are available on all cards, documents, reports, and lists.';
                     Visible = false;
                 }
                 field(Amount; Rec.Amount)
                 {
                     ApplicationArea = FixedAssets;
-                    ToolTip = 'Specifies the amount of the entry.';
                 }
                 field("Index Entry"; Rec."Index Entry")
                 {
                     ApplicationArea = FixedAssets;
-                    ToolTip = 'Specifies that this entry is an index entry.';
                     Visible = false;
                 }
                 field("Disposed FA"; Rec."Disposed FA")
                 {
                     ApplicationArea = FixedAssets;
-                    ToolTip = 'Specifies that the fixed asset linked to this entry has been disposed of.';
                 }
                 field("User ID"; Rec."User ID")
                 {
                     ApplicationArea = FixedAssets;
-                    ToolTip = 'Specifies the ID of the user who posted the entry, to be used, for example, in the change log.';
                     Visible = false;
 
                     trigger OnDrillDown()
@@ -105,19 +93,16 @@ page 5647 "Ins. Coverage Ledger Entries"
                 field("Source Code"; Rec."Source Code")
                 {
                     ApplicationArea = FixedAssets;
-                    ToolTip = 'Specifies the source code that specifies where the entry was created.';
                     Visible = false;
                 }
                 field("Reason Code"; Rec."Reason Code")
                 {
                     ApplicationArea = FixedAssets;
-                    ToolTip = 'Specifies the reason code, a supplementary source code that enables you to trace the entry.';
                     Visible = false;
                 }
                 field("Entry No."; Rec."Entry No.")
                 {
                     ApplicationArea = FixedAssets;
-                    ToolTip = 'Specifies the number of the entry, as assigned from the specified number series when the entry was created.';
                 }
             }
         }

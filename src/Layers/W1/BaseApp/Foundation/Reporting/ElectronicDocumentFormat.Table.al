@@ -159,6 +159,8 @@ table 61 "Electronic Document Format"
                 TempErrorMessage.CopyFromContext(RecordExportBuffer);
                 ErrorMessage.ClearLog(); // Clean up
 
+                OnSendElectronicallyOnAfterRecordExportBufferFileGenerated(RecordExportBuffer, RecRef);
+
                 if not RecordExportBuffer."File Content".HasValue() then
                     IsMissingFileContent := true;
             until RecordExportBuffer.Next() = 0;
@@ -468,6 +470,11 @@ table 61 "Electronic Document Format"
 
     [IntegrationEvent(false, false)]
     local procedure OnAfterShouldLogUptake(var ElectronicDocumentFormat: Record "Electronic Document Format"; var Result: Boolean)
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnSendElectronicallyOnAfterRecordExportBufferFileGenerated(var RecordExportBuffer: Record "Record Export Buffer"; RecRef: RecordRef)
     begin
     end;
 }

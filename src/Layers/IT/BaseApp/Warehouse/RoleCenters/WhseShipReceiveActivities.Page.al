@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -33,13 +33,11 @@ page 9050 "Whse Ship & Receive Activities"
                     Caption = 'Released Sales Orders Until Today';
                     DrillDown = true;
                     DrillDownPageID = "Sales Order List";
-                    ToolTip = 'Specifies the number of released sales orders that are displayed in the Warehouse Basic Cue on the Role Center. The documents are filtered by today''s date.';
                 }
                 field("Posted Sales Shipments - Today"; Rec."Posted Sales Shipments - Today")
                 {
                     ApplicationArea = Warehouse;
                     DrillDownPageID = "Posted Sales Shipments";
-                    ToolTip = 'Specifies the number of posted sales shipments that are displayed in the Basic Warehouse Cue on the Role Center. The documents are filtered by today''s date.';
                 }
 
                 actions
@@ -71,13 +69,11 @@ page 9050 "Whse Ship & Receive Activities"
                     ApplicationArea = Warehouse;
                     Caption = 'Expected Purch. Orders Until Today';
                     DrillDownPageID = "Purchase Order List";
-                    ToolTip = 'Specifies the number of expected purchase orders that are displayed in the Basic Warehouse Cue on the Role Center. The documents are filtered by today''s date.';
                 }
                 field("Posted Purch. Receipts - Today"; Rec."Posted Purch. Receipts - Today")
                 {
                     ApplicationArea = Warehouse;
                     DrillDownPageID = "Posted Purchase Receipts";
-                    ToolTip = 'Specifies the number of posted purchase receipts that are displayed in the Warehouse Basic Cue on the Role Center. The documents are filtered by today''s date.';
                 }
 
                 actions
@@ -100,21 +96,18 @@ page 9050 "Whse Ship & Receive Activities"
                     ApplicationArea = Warehouse;
                     Caption = 'Inventory Picks Until Today';
                     DrillDownPageID = "Inventory Picks";
-                    ToolTip = 'Specifies the number of inventory picks that are displayed in the Warehouse Basic Cue on the Role Center. The documents are filtered by today''s date.';
                 }
                 field("Invt. Put-aways Until Today"; Rec."Invt. Put-aways Until Today")
                 {
                     ApplicationArea = Warehouse;
                     Caption = 'Inventory Put-aways Until Today';
                     DrillDownPageID = "Inventory Put-aways";
-                    ToolTip = 'Specifies the number of inventory put-always that are displayed in the Warehouse Basic Cue on the Role Center. The documents are filtered by today''s date.';
                 }
                 field("Open Phys. Invt. Orders"; Rec."Open Phys. Invt. Orders")
                 {
                     ApplicationArea = Warehouse;
                     Caption = 'Open Phys. Invt. Orders';
                     DrillDownPageID = "Physical Inventory Orders";
-                    ToolTip = 'Specifies the number of open physical inventory orders.';
                 }
 
                 actions

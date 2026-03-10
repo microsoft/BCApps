@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -24,23 +24,19 @@ page 99000791 "Family List"
                 field("No."; Rec."No.")
                 {
                     ApplicationArea = Manufacturing;
-                    ToolTip = 'Specifies the number of the involved entry or record, according to the specified number series.';
                 }
                 field(Description; Rec.Description)
                 {
                     ApplicationArea = Manufacturing;
-                    ToolTip = 'Specifies a description for a product family.';
                 }
                 field("Description 2"; Rec."Description 2")
                 {
                     ApplicationArea = Manufacturing;
-                    ToolTip = 'Specifies an additional description of the product family if there is not enough space in the Description field.';
                     Visible = false;
                 }
                 field("Routing No."; Rec."Routing No.")
                 {
                     ApplicationArea = Manufacturing;
-                    ToolTip = 'Specifies the number of the routing which is used for the production of the family.';
                 }
                 field(Blocked; Rec.Blocked)
                 {
@@ -50,7 +46,6 @@ page 99000791 "Family List"
                 field("Last Date Modified"; Rec."Last Date Modified")
                 {
                     ApplicationArea = Manufacturing;
-                    ToolTip = 'Specifies when the standard data of this production family was last modified.';
                     Visible = false;
                 }
             }

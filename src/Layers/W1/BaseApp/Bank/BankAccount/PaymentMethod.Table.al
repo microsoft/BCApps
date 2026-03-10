@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -34,6 +34,7 @@ table 289 "Payment Method"
         field(1; "Code"; Code[10])
         {
             Caption = 'Code';
+            ToolTip = 'Specifies a code to identify this payment method.';
             NotBlank = true;
         }
         /// <summary>
@@ -42,6 +43,7 @@ table 289 "Payment Method"
         field(2; Description; Text[100])
         {
             Caption = 'Description';
+            ToolTip = 'Specifies a text that describes the payment method.';
         }
         /// <summary>
         /// Type of balancing account for automatic posting (G/L Account or Bank Account).
@@ -49,6 +51,7 @@ table 289 "Payment Method"
         field(3; "Bal. Account Type"; enum "Payment Balance Account Type")
         {
             Caption = 'Bal. Account Type';
+            ToolTip = 'Specifies the type of account that a balancing entry is posted to, such as BANK for a cash account.';
 
             trigger OnValidate()
             begin
@@ -61,6 +64,7 @@ table 289 "Payment Method"
         field(4; "Bal. Account No."; Code[20])
         {
             Caption = 'Bal. Account No.';
+            ToolTip = 'Specifies the number of the general ledger, customer, vendor, or bank account that the balancing entry of a posted sales or purchase document is posted to, such as a cash account for cash purchases. Please note Payment Method is not considered when creating document entries through journals.';
             TableRelation = if ("Bal. Account Type" = const("G/L Account")) "G/L Account"
             else
             if ("Bal. Account Type" = const("Bank Account")) "Bank Account";
@@ -79,6 +83,7 @@ table 289 "Payment Method"
         field(6; "Direct Debit"; Boolean)
         {
             Caption = 'Direct Debit';
+            ToolTip = 'Specifies if the payment method is used for direct debit collection.';
 
             trigger OnValidate()
             begin
@@ -94,6 +99,7 @@ table 289 "Payment Method"
         field(7; "Direct Debit Pmt. Terms Code"; Code[10])
         {
             Caption = 'Direct Debit Pmt. Terms Code';
+            ToolTip = 'Specifies the payment terms that will be used when the payment method is used for direct debit collection.';
             TableRelation = "Payment Terms";
 
             trigger OnValidate()
@@ -108,6 +114,7 @@ table 289 "Payment Method"
         field(8; "Pmt. Export Line Definition"; Code[20])
         {
             Caption = 'Pmt. Export Line Definition';
+            ToolTip = 'Specifies the data exchange definition in the Data Exchange Framework that is used to export payments.';
 
             trigger OnLookup()
             var

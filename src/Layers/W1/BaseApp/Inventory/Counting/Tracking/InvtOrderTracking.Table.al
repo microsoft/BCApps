@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -14,21 +14,25 @@ table 6025 "Invt. Order Tracking"
         field(1; "Serial No."; Code[50])
         {
             Caption = 'Serial No.';
+            ToolTip = 'Specifies the serial number.';
             DataClassification = SystemMetadata;
         }
         field(2; "Lot No."; Code[50])
         {
             Caption = 'Lot No.';
+            ToolTip = 'Specifies the lot number.';
             DataClassification = SystemMetadata;
         }
         field(3; "Package No."; Code[50])
         {
             Caption = 'Package No.';
+            ToolTip = 'Specifies the lot number.';
             DataClassification = SystemMetadata;
         }
         field(4; "Expiration Date"; Date)
         {
             Caption = 'Expiration Date';
+            ToolTip = 'Specifies the expiration date.';
             DataClassification = SystemMetadata;
         }
         field(10; "Qty. Recorded (Base)"; Decimal)

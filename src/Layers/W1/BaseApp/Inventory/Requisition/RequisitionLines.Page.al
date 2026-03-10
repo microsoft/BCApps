@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -26,39 +26,32 @@ page 517 "Requisition Lines"
                 field("Worksheet Template Name"; Rec."Worksheet Template Name")
                 {
                     ApplicationArea = Planning;
-                    ToolTip = 'Specifies the name of the requisition worksheet template.';
                 }
                 field("Journal Batch Name"; Rec."Journal Batch Name")
                 {
                     ApplicationArea = Planning;
-                    ToolTip = 'Specifies the name of the journal batch, a personalized journal layout, that the entries were posted from.';
                 }
                 field("Line No."; Rec."Line No.")
                 {
                     ApplicationArea = Planning;
-                    ToolTip = 'Specifies the number of the requisition worksheet line.';
                     Visible = false;
                 }
                 field(Type; Rec.Type)
                 {
                     ApplicationArea = Planning;
-                    ToolTip = 'Specifies the type of requisition worksheet line you are creating.';
                 }
                 field("No."; Rec."No.")
                 {
                     ApplicationArea = Planning;
-                    ToolTip = 'Specifies the number of the involved entry or record, according to the specified number series.';
                 }
                 field("Variant Code"; Rec."Variant Code")
                 {
                     ApplicationArea = Planning;
-                    ToolTip = 'Specifies the variant of the item on the line.';
                     Visible = false;
                 }
                 field(Description; Rec.Description)
                 {
                     ApplicationArea = Planning;
-                    ToolTip = 'Specifies text that describes the entry.';
                 }
                 field("Description 2"; Rec."Description 2")
                 {
@@ -69,28 +62,23 @@ page 517 "Requisition Lines"
                 field("Location Code"; Rec."Location Code")
                 {
                     ApplicationArea = Planning;
-                    ToolTip = 'Specifies a code for an inventory location where the items that are being ordered will be registered.';
                     Visible = true;
                 }
                 field(Quantity; Rec.Quantity)
                 {
                     ApplicationArea = Planning;
-                    ToolTip = 'Specifies the number of units of the item.';
                 }
                 field("Reserved Quantity"; Rec."Reserved Quantity")
                 {
                     ApplicationArea = Reservation;
-                    ToolTip = 'Specifies how many units of this item have been reserved.';
                 }
                 field("Unit of Measure Code"; Rec."Unit of Measure Code")
                 {
                     ApplicationArea = Suite;
-                    ToolTip = 'Specifies how each unit of the item or resource is measured, such as in pieces or hours. By default, the value in the Base Unit of Measure field on the item or resource card is inserted.';
                 }
                 field("Vendor No."; Rec."Vendor No.")
                 {
                     ApplicationArea = Planning;
-                    ToolTip = 'Specifies the number of the vendor who will ship the items in the purchase order.';
                 }
                 field("Price Calculation Method"; Rec."Price Calculation Method")
                 {
@@ -101,19 +89,16 @@ page 517 "Requisition Lines"
                 field("Sell-to Customer No."; Rec."Sell-to Customer No.")
                 {
                     ApplicationArea = Planning;
-                    ToolTip = 'Specifies the number of the customer.';
                     Visible = false;
                 }
                 field("Shortcut Dimension 1 Code"; Rec."Shortcut Dimension 1 Code")
                 {
                     ApplicationArea = Dimensions;
-                    ToolTip = 'Specifies the code for Shortcut Dimension 1, which is one of two global dimension codes that you set up in the General Ledger Setup window.';
                     Visible = false;
                 }
                 field("Shortcut Dimension 2 Code"; Rec."Shortcut Dimension 2 Code")
                 {
                     ApplicationArea = Dimensions;
-                    ToolTip = 'Specifies the code for Shortcut Dimension 2, which is one of two global dimension codes that you set up in the General Ledger Setup window.';
                     Visible = false;
                 }
                 field("ShortcutDimCode[3]"; ShortcutDimCode[3])
@@ -173,13 +158,11 @@ page 517 "Requisition Lines"
                 field("Order Date"; Rec."Order Date")
                 {
                     ApplicationArea = Planning;
-                    ToolTip = 'Specifies the date when the related order was created.';
                     Visible = false;
                 }
                 field("Due Date"; Rec."Due Date")
                 {
                     ApplicationArea = Planning;
-                    ToolTip = 'Specifies the date when you can expect to receive the items.';
                 }
             }
         }

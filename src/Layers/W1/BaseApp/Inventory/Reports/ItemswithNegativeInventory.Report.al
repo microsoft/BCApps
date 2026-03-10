@@ -1,3 +1,4 @@
+#if not CLEAN28
 // ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
@@ -16,9 +17,11 @@ report 5757 "Items with Negative Inventory"
 {
     DefaultLayout = RDLC;
     RDLCLayout = './Inventory/Reports/ItemswithNegativeInventory.rdlc';
-    Caption = 'Items with Negative Inventory';
+    Caption = 'Items with Negative Inventory (Obsolete)';
     DataAccessIntent = ReadOnly;
-
+    ObsoleteReason = 'This report is deprecated and will be removed in a future release.';
+    ObsoleteState = Pending;
+    ObsoleteTag = '28.0';
     dataset
     {
         dataitem(Output; "Integer")
@@ -159,7 +162,8 @@ report 5757 "Items with Negative Inventory"
 
     requestpage
     {
-
+        AboutTitle = 'About Items with Negative Inventory (Obsolete)';
+        AboutText = '** This report is obsolete and will be removed in a future release.** Please refer to the report documentation for alternative ways to retrieve this information.';
         layout
         {
             area(content)
@@ -333,4 +337,4 @@ report 5757 "Items with Negative Inventory"
         LocationToCheckCode := NewLocCode;
     end;
 }
-
+#endif

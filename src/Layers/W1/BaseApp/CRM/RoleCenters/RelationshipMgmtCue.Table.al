@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -48,12 +48,14 @@ table 9063 "Relationship Mgmt. Cue"
         {
             CalcFormula = count(Opportunity where(Closed = filter(false)));
             Caption = 'Open Opportunities';
+            ToolTip = 'Specifies open opportunities.';
             FieldClass = FlowField;
         }
         field(6; "Closed Opportunities"; Integer)
         {
             CalcFormula = count(Opportunity where(Closed = filter(true)));
             Caption = 'Closed Opportunities';
+            ToolTip = 'Specifies opportunities that have been closed.';
             FieldClass = FlowField;
         }
         field(7; "Opportunities Due in 7 Days"; Integer)
@@ -62,6 +64,7 @@ table 9063 "Relationship Mgmt. Cue"
                                                            "Date Closed" = filter(0D),
                                                            "Estimated Close Date" = field("Due Date Filter")));
             Caption = 'Opportunities Due in 7 Days';
+            ToolTip = 'Specifies opportunities with a due date in seven days or more.';
             FieldClass = FlowField;
         }
         field(8; "Overdue Opportunities"; Integer)
@@ -70,6 +73,7 @@ table 9063 "Relationship Mgmt. Cue"
                                                            "Date Closed" = filter(0D),
                                                            "Estimated Close Date" = field("Overdue Date Filter")));
             Caption = 'Overdue Opportunities';
+            ToolTip = 'Specifies opportunities that have exceeded the due date.';
             FieldClass = FlowField;
         }
         field(9; "Sales Cycles"; Integer)
@@ -94,18 +98,21 @@ table 9063 "Relationship Mgmt. Cue"
         {
             CalcFormula = count(Contact where(Type = const(Company)));
             Caption = 'Contacts - Companies';
+            ToolTip = 'Specifies contacts assigned to a company.';
             FieldClass = FlowField;
         }
         field(13; "Contacts - Persons"; Integer)
         {
             CalcFormula = count(Contact where(Type = const(Person)));
             Caption = 'Contacts - Persons';
+            ToolTip = 'Specifies contact persons.';
             FieldClass = FlowField;
         }
         field(14; "Contacts - Duplicates"; Integer)
         {
             CalcFormula = count("Contact Duplicate");
             Caption = 'Contacts - Duplicates';
+            ToolTip = 'Specifies contacts that have duplicates.';
             FieldClass = FlowField;
         }
         field(18; "Due Date Filter"; Date)
@@ -123,6 +130,7 @@ table 9063 "Relationship Mgmt. Cue"
             CalcFormula = count("Sales Header" where("Document Type" = filter(Quote),
                                                       Status = filter(Open)));
             Caption = 'Open Sales Quotes';
+            ToolTip = 'Specifies the number of sales quotes that are not yet converted to invoices or orders.';
             FieldClass = FlowField;
         }
         field(21; "Open Sales Orders"; Integer)
@@ -130,12 +138,14 @@ table 9063 "Relationship Mgmt. Cue"
             CalcFormula = count("Sales Header" where("Document Type" = filter(Order),
                                                       Status = filter(Open)));
             Caption = 'Open Sales Orders';
+            ToolTip = 'Specifies the number of sales orders that are not fully posted.';
             FieldClass = FlowField;
         }
         field(22; "Active Campaigns"; Integer)
         {
             CalcFormula = count(Campaign where(Activated = filter(true)));
             Caption = 'Active Campaigns';
+            ToolTip = 'Specifies marketing campaigns that are active.';
             FieldClass = FlowField;
         }
         field(23; "Uninvoiced Bookings"; Integer)
@@ -147,12 +157,14 @@ table 9063 "Relationship Mgmt. Cue"
         {
             CalcFormula = count("CRM Integration Record" where(Skipped = const(true)));
             Caption = 'Coupled Data Synch Errors';
+            ToolTip = 'Specifies the number of errors that occurred in the latest synchronization of coupled data between Business Central and Dynamics 365 Sales.';
             FieldClass = FlowField;
         }
         field(25; "CDS Integration Errors"; Integer)
         {
             CalcFormula = count("Integration Synch. Job Errors");
             Caption = 'Dataverse Integration Errors';
+            ToolTip = 'Specifies the number of errors related to data integration.';
             FieldClass = FlowField;
         }
     }

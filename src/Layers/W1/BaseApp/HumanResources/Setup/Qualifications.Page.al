@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -24,17 +24,14 @@ page 5205 Qualifications
                 field("Code"; Rec.Code)
                 {
                     ApplicationArea = BasicHR;
-                    ToolTip = 'Specifies a qualification code.';
                 }
                 field(Description; Rec.Description)
                 {
                     ApplicationArea = BasicHR;
-                    ToolTip = 'Specifies a description for the qualification.';
                 }
                 field("Qualified Employees"; Rec."Qualified Employees")
                 {
                     ApplicationArea = BasicHR;
-                    ToolTip = 'Specifies if the company has employees with this qualification.';
                 }
             }
         }

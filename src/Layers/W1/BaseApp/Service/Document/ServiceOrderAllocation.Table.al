@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -24,10 +24,12 @@ table 5950 "Service Order Allocation"
         field(1; "Entry No."; Integer)
         {
             Caption = 'Entry No.';
+            ToolTip = 'Specifies the number of the entry, as assigned from the specified number series when the entry was created.';
         }
         field(2; Status; Option)
         {
             Caption = 'Status';
+            ToolTip = 'Specifies the status of the entry, such as active, non-active, or cancelled.';
             Editable = false;
             OptionCaption = 'Nonactive,Active,Finished,Canceled,Reallocation Needed';
             OptionMembers = Nonactive,Active,Finished,Canceled,"Reallocation Needed";
@@ -56,6 +58,7 @@ table 5950 "Service Order Allocation"
         field(3; "Document No."; Code[20])
         {
             Caption = 'Document No.';
+            ToolTip = 'Specifies the number of the service order associated with this entry.';
             Editable = false;
 
             trigger OnLookup()
@@ -70,6 +73,7 @@ table 5950 "Service Order Allocation"
         field(4; "Allocation Date"; Date)
         {
             Caption = 'Allocation Date';
+            ToolTip = 'Specifies the date when the resource allocation should start.';
 
             trigger OnValidate()
             begin
@@ -84,6 +88,7 @@ table 5950 "Service Order Allocation"
         field(5; "Resource No."; Code[20])
         {
             Caption = 'Resource No.';
+            ToolTip = 'Specifies the number of the resource allocated to the service task in this entry.';
             TableRelation = Resource;
 
             trigger OnValidate()
@@ -130,6 +135,7 @@ table 5950 "Service Order Allocation"
         field(6; "Resource Group No."; Code[20])
         {
             Caption = 'Resource Group No.';
+            ToolTip = 'Specifies the number of the resource group allocated to the service task in this entry.';
             TableRelation = "Resource Group";
 
             trigger OnValidate()
@@ -148,6 +154,7 @@ table 5950 "Service Order Allocation"
         field(7; "Service Item Line No."; Integer)
         {
             Caption = 'Service Item Line No.';
+            ToolTip = 'Specifies the number of the service item line linked to this entry.';
             TableRelation = "Service Item Line"."Line No." where("Document Type" = field("Document Type"),
                                                                   "Document No." = field("Document No."));
 
@@ -173,6 +180,7 @@ table 5950 "Service Order Allocation"
         {
             AutoFormatType = 0;
             Caption = 'Allocated Hours';
+            ToolTip = 'Specifies the hours allocated to the resource or resource group for the service task in this entry.';
             DecimalPlaces = 0 : 5;
 
             trigger OnValidate()
@@ -187,6 +195,7 @@ table 5950 "Service Order Allocation"
         field(9; "Starting Time"; Time)
         {
             Caption = 'Starting Time';
+            ToolTip = 'Specifies the time when you want the allocation to start.';
 
             trigger OnValidate()
             begin
@@ -196,6 +205,7 @@ table 5950 "Service Order Allocation"
         field(10; "Finishing Time"; Time)
         {
             Caption = 'Finishing Time';
+            ToolTip = 'Specifies the time when you want the allocation to finish.';
 
             trigger OnValidate()
             begin
@@ -205,15 +215,18 @@ table 5950 "Service Order Allocation"
         field(11; Description; Text[100])
         {
             Caption = 'Description';
+            ToolTip = 'Specifies a description for the service order allocation.';
         }
         field(12; "Reason Code"; Code[10])
         {
             Caption = 'Reason Code';
+            ToolTip = 'Specifies the reason code, a supplementary source code that enables you to trace the entry.';
             TableRelation = "Reason Code";
         }
         field(13; "Service Item No."; Code[20])
         {
             Caption = 'Service Item No.';
+            ToolTip = 'Specifies the number of the service item.';
             TableRelation = if ("Document Type" = filter(<> "Credit Memo")) "Service Item"."No." where(Blocked = filter(<> All))
             else
             if ("Document Type" = filter("Credit Memo")) "Service Item"."No.";
@@ -250,12 +263,14 @@ table 5950 "Service Order Allocation"
                                                                         "Document No." = field("Document No."),
                                                                         "Line No." = field("Service Item Line No.")));
             Caption = 'Service Item Description';
+            ToolTip = 'Specifies a description of the service item in this entry.';
             Editable = false;
             FieldClass = FlowField;
         }
         field(16; "Service Item Serial No."; Code[50])
         {
             Caption = 'Service Item Serial No.';
+            ToolTip = 'Specifies the serial number of the service item in this entry.';
 
             trigger OnLookup()
             begin
@@ -295,6 +310,7 @@ table 5950 "Service Order Allocation"
         field(19; "Document Type"; Enum "Service Document Type")
         {
             Caption = 'Document Type';
+            ToolTip = 'Specifies the type of the document (Order or Quote) from which the allocation entry was created.';
             Editable = false;
         }
     }

@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -30,6 +30,7 @@ table 1207 "Direct Debit Collection"
         field(1; "No."; Integer)
         {
             Caption = 'No.';
+            ToolTip = 'Specifies the number of the involved entry or record, according to the specified number series.';
         }
         /// <summary>
         /// Business identifier for the collection, used in external file formats and customer communication.
@@ -37,6 +38,7 @@ table 1207 "Direct Debit Collection"
         field(2; Identifier; Code[20])
         {
             Caption = 'Identifier';
+            ToolTip = 'Specifies, together with the number series, which direct debit collection a direct-debit collection entry is related to.';
         }
         /// <summary>
         /// Timestamp when the direct debit collection was initially created.
@@ -51,6 +53,7 @@ table 1207 "Direct Debit Collection"
         field(4; "Created by User"; Code[50])
         {
             Caption = 'Created by User';
+            ToolTip = 'Specifies which user created the direct debit collection.';
             DataClassification = EndUserIdentifiableInformation;
             TableRelation = User."User Name";
         }
@@ -60,6 +63,7 @@ table 1207 "Direct Debit Collection"
         field(5; Status; Option)
         {
             Caption = 'Status';
+            ToolTip = 'Specifies the status of the direct debit collection. The following options exist.';
             OptionCaption = 'New,Canceled,File Created,Posted,Closed';
             OptionMembers = New,Canceled,"File Created",Posted,Closed;
         }
@@ -70,6 +74,7 @@ table 1207 "Direct Debit Collection"
         {
             CalcFormula = count("Direct Debit Collection Entry" where("Direct Debit Collection No." = field("No.")));
             Caption = 'No. of Transfers';
+            ToolTip = 'Specifies how many direct debit transactions have been performed for the direct debit collection.';
             FieldClass = FlowField;
         }
         /// <summary>
@@ -78,6 +83,7 @@ table 1207 "Direct Debit Collection"
         field(7; "To Bank Account No."; Code[20])
         {
             Caption = 'To Bank Account No.';
+            ToolTip = 'Specifies the number of the bank account that the direct debit collection will be transferred to.';
             TableRelation = "Bank Account";
         }
         /// <summary>
@@ -87,6 +93,7 @@ table 1207 "Direct Debit Collection"
         {
             CalcFormula = lookup("Bank Account".Name where("No." = field("To Bank Account No.")));
             Caption = 'To Bank Account Name';
+            ToolTip = 'Specifies the name of the bank account that the direct debit collection will be transferred to.';
             FieldClass = FlowField;
         }
         /// <summary>

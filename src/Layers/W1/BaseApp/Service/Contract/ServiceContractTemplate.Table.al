@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -25,6 +25,7 @@ table 5968 "Service Contract Template"
         field(1; "No."; Code[20])
         {
             Caption = 'No.';
+            ToolTip = 'Specifies the number of the involved entry or record, according to the specified number series.';
 
             trigger OnValidate()
             begin
@@ -38,10 +39,12 @@ table 5968 "Service Contract Template"
         field(2; Description; Text[100])
         {
             Caption = 'Description';
+            ToolTip = 'Specifies a description of the service contract.';
         }
         field(3; "Invoice Period"; Option)
         {
             Caption = 'Invoice Period';
+            ToolTip = 'Specifies the invoice period for the service contract.';
             OptionCaption = 'Month,Two Months,Quarter,Half Year,Year,None';
             OptionMembers = Month,"Two Months",Quarter,"Half Year",Year,"None";
         }
@@ -51,14 +54,17 @@ table 5968 "Service Contract Template"
             AutoFormatType = 2;
             BlankZero = true;
             Caption = 'Max. Labor Unit Price';
+            ToolTip = 'Specifies the maximum unit price that can be set for a resource on lines for service orders associated with the service contract.';
         }
         field(5; "Combine Invoices"; Boolean)
         {
             Caption = 'Combine Invoices';
+            ToolTip = 'Specifies you want to combine invoices for this service contract with invoices for other service contracts with the same bill-to customer.';
         }
         field(6; Prepaid; Boolean)
         {
             Caption = 'Prepaid';
+            ToolTip = 'Specifies that this service contract is prepaid.';
 
             trigger OnValidate()
             begin
@@ -89,14 +95,17 @@ table 5968 "Service Contract Template"
         field(10; "Contract Lines on Invoice"; Boolean)
         {
             Caption = 'Contract Lines on Invoice';
+            ToolTip = 'Specifies you want contract lines to appear as text on the invoice.';
         }
         field(11; "Default Service Period"; DateFormula)
         {
             Caption = 'Default Service Period';
+            ToolTip = 'Specifies the default service period for the items in the contract.';
         }
         field(14; "Invoice after Service"; Boolean)
         {
             Caption = 'Invoice after Service';
+            ToolTip = 'Specifies you can only invoice the contract if you have posted a service order linked to the contract since you last invoiced the contract.';
 
             trigger OnValidate()
             begin
@@ -114,20 +123,24 @@ table 5968 "Service Contract Template"
         field(15; "Allow Unbalanced Amounts"; Boolean)
         {
             Caption = 'Allow Unbalanced Amounts';
+            ToolTip = 'Specifies if the contents of the Calcd. Annual Amount field are copied into the Annual Amount field in the service contract or contract quote.';
         }
         field(16; "Contract Group Code"; Code[10])
         {
             Caption = 'Contract Group Code';
+            ToolTip = 'Specifies the contract group code of the service contract.';
             TableRelation = "Contract Group";
         }
         field(17; "Service Order Type"; Code[10])
         {
             Caption = 'Service Order Type';
+            ToolTip = 'Specifies the service order type assigned to service orders linked to this service contract.';
             TableRelation = "Service Order Type";
         }
         field(18; "Automatic Credit Memos"; Boolean)
         {
             Caption = 'Automatic Credit Memos';
+            ToolTip = 'Specifies that a credit memo is created when you remove a contract line from the service contract under certain conditions.';
         }
         field(20; "No. Series"; Code[20])
         {
@@ -138,15 +151,18 @@ table 5968 "Service Contract Template"
         field(21; "Price Update Period"; DateFormula)
         {
             Caption = 'Price Update Period';
+            ToolTip = 'Specifies the price update period for this service contract.';
         }
         field(22; "Price Inv. Increase Code"; Code[20])
         {
             Caption = 'Price Inv. Increase Code';
+            ToolTip = 'Specifies all billable prices for the project task, expressed in the local currency.';
             TableRelation = "Standard Text";
         }
         field(23; "Serv. Contract Acc. Gr. Code"; Code[10])
         {
             Caption = 'Serv. Contract Acc. Gr. Code';
+            ToolTip = 'Specifies the code associated with the service contract account group.';
             TableRelation = "Service Contract Account Group".Code;
         }
     }

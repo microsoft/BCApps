@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -28,18 +28,22 @@ table 99000779 "Production BOM Version"
         field(2; "Version Code"; Code[20])
         {
             Caption = 'Version Code';
+            ToolTip = 'Specifies the version code of the production BOM.';
         }
         field(3; Description; Text[100])
         {
             Caption = 'Description';
+            ToolTip = 'Specifies a description for the production BOM version.';
         }
         field(10; "Starting Date"; Date)
         {
             Caption = 'Starting Date';
+            ToolTip = 'Specifies the starting date for this production BOM version.';
         }
         field(21; "Unit of Measure Code"; Code[10])
         {
             Caption = 'Unit of Measure Code';
+            ToolTip = 'Specifies the manufacturing batch unit of measure.';
             TableRelation = "Unit of Measure";
 
             trigger OnValidate()
@@ -59,11 +63,13 @@ table 99000779 "Production BOM Version"
         field(22; "Last Date Modified"; Date)
         {
             Caption = 'Last Date Modified';
+            ToolTip = 'Specifies when the production BOM version card was last modified.';
             Editable = false;
         }
         field(45; Status; Enum "BOM Status")
         {
             Caption = 'Status';
+            ToolTip = 'Specifies the status of this production BOM version.';
 
             trigger OnValidate()
             var

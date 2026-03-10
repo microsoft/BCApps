@@ -10,12 +10,11 @@ using Microsoft.Inventory.Location;
 
 report 705 "Inventory Availability"
 {
-    DefaultLayout = RDLC;
-    RDLCLayout = './Inventory/Reports/InventoryAvailability.rdlc';
     ApplicationArea = Basic, Suite;
     Caption = 'Inventory Availability';
-    UsageCategory = ReportsAndAnalysis;
     DataAccessIntent = ReadOnly;
+    DefaultRenderingLayout = Excel;
+    UsageCategory = ReportsAndAnalysis;
 
     dataset
     {
@@ -23,23 +22,12 @@ report 705 "Inventory Availability"
         {
             DataItemTableView = where(Type = const(Inventory));
             RequestFilterFields = "No.", "Location Filter", "Variant Filter", "Search Description", "Assembly BOM", "Inventory Posting Group", "Statistics Group", "Vendor No.";
-            column(CompanyName; COMPANYPROPERTY.DisplayName())
-            {
-            }
-            column(TableItemFilter; TableCaption + ': ' + GlobalItemFilter)
-            {
-            }
-            column(ItemFilter; GlobalItemFilter)
-            {
-            }
-            column(GetCurrentKey; GlobalGetCurrentKey)
-            {
-            }
             column(UseStockkeepingUnit; GlobalUseStockkeepingUnit)
             {
             }
             column(InventPostGroup_Item; "Inventory Posting Group")
             {
+                IncludeCaption = true;
             }
             column(InvtReorder; Format(GlobalInvtReorder))
             {
@@ -83,33 +71,86 @@ report 705 "Inventory Availability"
             {
                 IncludeCaption = true;
             }
+#if not CLEAN28
+            column(CompanyName; COMPANYPROPERTY.DisplayName())
+            {
+                ObsoleteState = Pending;
+                ObsoleteReason = 'RDLC Only layout column. To be removed along with the RDLC layout.';
+                ObsoleteTag = '28.0';
+            }
+            column(TableItemFilter; TableCaption + ': ' + GlobalItemFilter)
+            {
+                ObsoleteState = Pending;
+                ObsoleteReason = 'RDLC Only layout column. To be removed along with the RDLC layout.';
+                ObsoleteTag = '28.0';
+            }
+            column(ItemFilter; GlobalItemFilter)
+            {
+                ObsoleteState = Pending;
+                ObsoleteReason = 'RDLC Only layout column. To be removed along with the RDLC layout.';
+                ObsoleteTag = '28.0';
+            }
+            column(GetCurrentKey; GlobalGetCurrentKey)
+            {
+                ObsoleteState = Pending;
+                ObsoleteReason = 'RDLC Only layout column. To be removed along with the RDLC layout.';
+                ObsoleteTag = '28.0';
+            }
             column(InventoryAvailabilityCaption; InventoryAvailabilityCaptionLbl)
             {
+                ObsoleteState = Pending;
+                ObsoleteReason = 'RDLC Only layout column. To be removed along with the RDLC layout.';
+                ObsoleteTag = '28.0';
             }
             column(PageCaption; PageCaptionLbl)
             {
+                ObsoleteState = Pending;
+                ObsoleteReason = 'RDLC Only layout column. To be removed along with the RDLC layout.';
+                ObsoleteTag = '28.0';
             }
             column(BOMCaption; BOMCaptionLbl)
             {
+                ObsoleteState = Pending;
+                ObsoleteReason = 'RDLC Only layout column. To be removed along with the RDLC layout.';
+                ObsoleteTag = '28.0';
             }
             column(GrossRequirementCaption; GrossRequirementCaptionLbl)
             {
+                ObsoleteState = Pending;
+                ObsoleteReason = 'RDLC Only layout column. To be removed along with the RDLC layout.';
+                ObsoleteTag = '28.0';
             }
             column(ScheduledReceiptCaption; ScheduledReceiptCaptionLbl)
             {
+                ObsoleteState = Pending;
+                ObsoleteReason = 'RDLC Only layout column. To be removed along with the RDLC layout.';
+                ObsoleteTag = '28.0';
             }
             column(PlannedOrderReceiptCaption; PlannedOrderReceiptCaptionLbl)
             {
+                ObsoleteState = Pending;
+                ObsoleteReason = 'RDLC Only layout column. To be removed along with the RDLC layout.';
+                ObsoleteTag = '28.0';
             }
             column(QuantityOnBackOrderCaption; QuantityOnBackOrderCaptionLbl)
             {
+                ObsoleteState = Pending;
+                ObsoleteReason = 'RDLC Only layout column. To be removed along with the RDLC layout.';
+                ObsoleteTag = '28.0';
             }
             column(ProjectedAvailableBalCaption; ProjectedAvailableBalCaptionLbl)
             {
+                ObsoleteState = Pending;
+                ObsoleteReason = 'RDLC Only layout column. To be removed along with the RDLC layout.';
+                ObsoleteTag = '28.0';
             }
             column(ReorderCaption; ReorderCaptionLbl)
             {
+                ObsoleteState = Pending;
+                ObsoleteReason = 'RDLC Only layout column. To be removed along with the RDLC layout.';
+                ObsoleteTag = '28.0';
             }
+#endif
             dataitem("Stockkeeping Unit"; "Stockkeeping Unit")
             {
                 DataItemLink = "Item No." = field("No."), "Location Code" = field("Location Filter"), "Variant Code" = field("Variant Filter");
@@ -193,6 +234,8 @@ report 705 "Inventory Availability"
 
     requestpage
     {
+        AboutTitle = 'About Inventory Availability';
+        AboutText = 'Use this report to review the current and future availability of items or SKUs. It helps you identify potential shortages or surpluses by considering inventory, supply, and demand';
         SaveValues = true;
 
         layout
@@ -208,6 +251,14 @@ report 705 "Inventory Availability"
                         Caption = 'Use Stockkeeping Unit';
                         ToolTip = 'Specifies if you want the report to list the availability of items by stockkeeping unit.';
                     }
+                    // Used to set a report header across multiple languages
+                    field(RequestItemFilterHeading; ItemFilterHeading)
+                    {
+                        ApplicationArea = All;
+                        Caption = 'Item Filter';
+                        ToolTip = 'Specifies the Item Filters applied to this report.';
+                        Visible = false;
+                    }
                 }
             }
         }
@@ -215,20 +266,69 @@ report 705 "Inventory Availability"
         actions
         {
         }
+
+        trigger OnClosePage()
+        begin
+            UpdateRequestPageFilterValues();
+        end;
+    }
+
+    rendering
+    {
+        layout(Excel)
+        {
+            Caption = 'Inventory Availability Excel';
+            Type = Excel;
+            LayoutFile = './Inventory/Reports/InventoryAvailability.xlsx';
+            Summary = 'Built in layout for the Inventory Availability Excel report.';
+        }
+#if not CLEAN28
+        layout(RDLC)
+        {
+            Caption = 'Inventory Availability RDLC (Obsolete)';
+            Type = RDLC;
+            LayoutFile = './Inventory/Reports/InventoryAvailability.rdlc';
+            ObsoleteState = Pending;
+            ObsoleteReason = 'The RDLC layout has been replaced by an Excel layout and will be removed in a future release.';
+            ObsoleteTag = '28.0';
+            Summary = 'Built in layout for the Inventory Availability RDLC (Obsolete) report.';
+        }
+#endif
     }
 
     labels
     {
+        InventoryAvailabilityLbl = 'Inventory Availability';
+        InvAvailabilityPrintLbl = 'Inv. Availability (Print)', MaxLength = 31, Comment = 'Excel worksheet name.';
+        InvAvailabilityAnalysisLbl = 'Inv. Availability (Analysis)', MaxLength = 31, Comment = 'Excel worksheet name.';
+        DataRetrievedLbl = 'Data retrieved:';
+        BOMLbl = 'BOM';
+        BaseUOMLbl = 'Base UOM';
+        GrossRequirementLbl = 'Gross Requirement';
+        ScheduledReceiptLbl = 'Scheduled Receipt';
+        PlannedOrderReceiptLbl = 'Planned Order Receipt';
+        QuantityOnBackOrderLbl = 'Qty. on Back Order';
+        ProjectedAvailableBalLbl = 'Projected Available Balance';
+        ReorderLbl = 'Reorder';
+        // About the report labels
+        AboutTheReportLbl = 'About the report';
+        EnvironmentLbl = 'Environment';
+        CompanyLbl = 'Company';
+        UserLbl = 'User';
+        RunOnLbl = 'Run on';
+        ReportNameLbl = 'Report name';
+        DocumentationLbl = 'Documentation';
     }
 
     trigger OnPreReport()
     begin
-        GlobalItemFilter := Item.GetFilters();
+        UpdateRequestPageFilterValues();
     end;
 
     var
         AvailToPromise: Codeunit "Available to Promise";
         GlobalItemFilter: Text;
+        ItemFilterHeading: Text;
         GlobalBackOrderQty: Decimal;
         GlobalInvtReorder: Boolean;
         GlobalGrossRequirement: Decimal;
@@ -238,6 +338,7 @@ report 705 "Inventory Availability"
         GlobalUseStockkeepingUnit: Boolean;
         GlobalSKUPrintLoop: Integer;
         GlobalGetCurrentKey: Text;
+#if not CLEAN28
         InventoryAvailabilityCaptionLbl: Label 'Inventory Availability';
         PageCaptionLbl: Label 'Page';
         BOMCaptionLbl: Label 'BOM';
@@ -247,6 +348,7 @@ report 705 "Inventory Availability"
         QuantityOnBackOrderCaptionLbl: Label 'Quantity on Back Order';
         ProjectedAvailableBalCaptionLbl: Label 'Projected Available Balance';
         ReorderCaptionLbl: Label 'Reorder';
+#endif
 
     procedure CalcNeed(Item: Record Item; LocationFilter: Text; VariantFilter: Text; ReorderPoint: Decimal)
     begin
@@ -299,6 +401,16 @@ report 705 "Inventory Availability"
     procedure InitializeRequest(NewUseStockkeepingUnit: Boolean)
     begin
         GlobalUseStockkeepingUnit := NewUseStockkeepingUnit;
+    end;
+
+    // Ensures Layout Filter Headings are up to date
+    local procedure UpdateRequestPageFilterValues()
+    begin
+        GlobalItemFilter := Item.GetFilters();
+
+        ItemFilterHeading := '';
+        if GlobalItemFilter <> '' then
+            ItemFilterHeading := Item.TableCaption + ': ' + GlobalItemFilter;
     end;
 
     [IntegrationEvent(true, false)]

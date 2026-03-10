@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -18,15 +18,18 @@ table 5059 "Web Source"
         field(1; "Code"; Code[10])
         {
             Caption = 'Code';
+            ToolTip = 'Specifies the code for the Web source.';
             NotBlank = true;
         }
         field(2; Description; Text[100])
         {
             Caption = 'Description';
+            ToolTip = 'Specifies the description of the Web source.';
         }
         field(3; URL; Text[250])
         {
             Caption = 'URL';
+            ToolTip = 'Specifies the URL to use to search for information about the contact on the Internet.';
         }
         field(4; Comment; Boolean)
         {
@@ -34,6 +37,7 @@ table 5059 "Web Source"
                                                                   "No." = field(Code),
                                                                   "Sub No." = const(0)));
             Caption = 'Comment';
+            ToolTip = 'Specifies whether a comment has been assigned to this Web source.';
             Editable = false;
             FieldClass = FlowField;
         }

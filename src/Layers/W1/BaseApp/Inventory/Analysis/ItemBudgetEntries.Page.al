@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -31,99 +31,82 @@ page 7133 "Item Budget Entries"
                 {
                     ApplicationArea = ItemBudget;
                     Editable = false;
-                    ToolTip = 'Specifies the name of the item budget that the entry belongs to.';
                 }
                 field(Date; Rec.Date)
                 {
                     ApplicationArea = ItemBudget;
-                    ToolTip = 'Specifies the date of this item budget entry.';
                 }
                 field("Item No."; Rec."Item No.")
                 {
                     ApplicationArea = ItemBudget;
-                    ToolTip = 'Specifies the number of the item that this budget entry applies to.';
                 }
                 field(Description; Rec.Description)
                 {
                     ApplicationArea = ItemBudget;
-                    ToolTip = 'Specifies a description of the budget figure.';
                 }
                 field("Source Type"; Rec."Source Type")
                 {
                     ApplicationArea = ItemBudget;
-                    ToolTip = 'Specifies the source type of this budget entry.';
                 }
                 field("Source No."; Rec."Source No.")
                 {
                     ApplicationArea = ItemBudget;
-                    ToolTip = 'Specifies the number of the source document that the entry originates from.';
                 }
                 field("Global Dimension 1 Code"; Rec."Global Dimension 1 Code")
                 {
                     ApplicationArea = Dimensions;
                     Enabled = GlobalDimension1CodeEnable;
-                    ToolTip = 'Specifies the code for the global dimension that is linked to the record or entry for analysis purposes. Two global dimensions, typically for the company''s most important activities, are available on all cards, documents, reports, and lists.';
                     Visible = GlobalDimension1CodeVisible;
                 }
                 field("Global Dimension 2 Code"; Rec."Global Dimension 2 Code")
                 {
                     ApplicationArea = Dimensions;
                     Enabled = GlobalDimension2CodeEnable;
-                    ToolTip = 'Specifies the code for the global dimension that is linked to the record or entry for analysis purposes. Two global dimensions, typically for the company''s most important activities, are available on all cards, documents, reports, and lists.';
                     Visible = GlobalDimension2CodeVisible;
                 }
                 field("Budget Dimension 1 Code"; Rec."Budget Dimension 1 Code")
                 {
                     ApplicationArea = Dimensions;
                     Enabled = BudgetDimension1CodeEnable;
-                    ToolTip = 'Specifies the dimension value code for the Budget Dimension 1 code that this item budget entry is linked to.';
                     Visible = BudgetDimension1CodeVisible;
                 }
                 field("Budget Dimension 2 Code"; Rec."Budget Dimension 2 Code")
                 {
                     ApplicationArea = Dimensions;
                     Enabled = BudgetDimension2CodeEnable;
-                    ToolTip = 'Specifies the dimension value code for the Budget Dimension 2 code that this item budget entry is linked to.';
                     Visible = BudgetDimension2CodeVisible;
                 }
                 field("Budget Dimension 3 Code"; Rec."Budget Dimension 3 Code")
                 {
                     ApplicationArea = Dimensions;
                     Enabled = BudgetDimension3CodeEnable;
-                    ToolTip = 'Specifies the dimension value code for the Budget Dimension 3 Code that this item budget entry is linked to.';
                     Visible = BudgetDimension3CodeVisible;
                 }
                 field("Location Code"; Rec."Location Code")
                 {
                     ApplicationArea = Location;
-                    ToolTip = 'Specifies the code for the location that this item budget entry is linked to.';
                     Visible = false;
                 }
                 field(Quantity; Rec.Quantity)
                 {
                     ApplicationArea = ItemBudget;
-                    ToolTip = 'Specifies the quantity of this item budget entry.';
                 }
                 field("Cost Amount"; Rec."Cost Amount")
                 {
                     ApplicationArea = ItemBudget;
-                    ToolTip = 'Specifies the cost amount of this item budget entry.';
                 }
                 field("Sales Amount"; Rec."Sales Amount")
                 {
                     ApplicationArea = ItemBudget;
-                    ToolTip = 'Specifies the sales amount of this item budget line entry.';
                 }
                 field("Entry No."; Rec."Entry No.")
                 {
                     ApplicationArea = ItemBudget;
                     Editable = false;
-                    ToolTip = 'Specifies the number of the entry, as assigned from the specified number series when the entry was created.';
                 }
                 field("Dimension Set ID"; Rec."Dimension Set ID")
                 {
                     ApplicationArea = Dimensions;
-                    ToolTip = 'Specifies a reference to a combination of dimension values. The actual values are stored in the Dimension Set Entry table.';
                     Visible = false;
                 }
             }

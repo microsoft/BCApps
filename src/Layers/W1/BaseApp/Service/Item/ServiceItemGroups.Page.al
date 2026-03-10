@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -26,22 +26,18 @@ page 5909 "Service Item Groups"
                 field("Code"; Rec.Code)
                 {
                     ApplicationArea = Service;
-                    ToolTip = 'Specifies a code for the service item group.';
                 }
                 field(Description; Rec.Description)
                 {
                     ApplicationArea = Service;
-                    ToolTip = 'Specifies a description of the service item group.';
                 }
                 field("Default Contract Discount %"; Rec."Default Contract Discount %")
                 {
                     ApplicationArea = Service;
-                    ToolTip = 'Specifies the discount percentage used as the default quote discount in a service contract quote.';
                 }
                 field("Default Serv. Price Group Code"; Rec."Default Serv. Price Group Code")
                 {
                     ApplicationArea = Service;
-                    ToolTip = 'Specifies the service price group code used as the default service price group in the Service Price Group table.';
                 }
                 field("Default Response Time (Hours)"; Rec."Default Response Time (Hours)")
                 {
@@ -51,7 +47,6 @@ page 5909 "Service Item Groups"
                 field("Create Service Item"; Rec."Create Service Item")
                 {
                     ApplicationArea = Service;
-                    ToolTip = 'Specifies that when you ship an item associated with this group, the item is registered as a service item in the Service Item table.';
                 }
             }
         }

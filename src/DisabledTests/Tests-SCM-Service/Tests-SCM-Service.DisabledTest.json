@@ -143,5 +143,15 @@
     "method": "TestPrtCrdtMmCrtnFrmCrteCrdtMm",
     "codeunitName": "Service Posting - Credit Memo",
     "codeunitId": 136104
+  },
+  {
+    "codeunitId": 136133,
+    "codeunitName": "Service Stockout",
+    "method": "ServiceChangeDate"
+  },
+  {
+    "codeunitId": 136137,
+    "codeunitName": "Service Item Availability",
+    "method": "AvailByPeriodChangeNeededDate"
   }
 ]

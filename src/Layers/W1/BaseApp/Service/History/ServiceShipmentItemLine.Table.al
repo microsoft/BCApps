@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -31,43 +31,52 @@ table 5989 "Service Shipment Item Line"
         field(1; "No."; Code[20])
         {
             Caption = 'No.';
+            ToolTip = 'Specifies the number of the involved entry or record, according to the specified number series.';
             Editable = false;
             TableRelation = "Service Shipment Header";
         }
         field(2; "Line No."; Integer)
         {
             Caption = 'Line No.';
+            ToolTip = 'Specifies the number of this line.';
         }
         field(3; "Service Item No."; Code[20])
         {
             Caption = 'Service Item No.';
+            ToolTip = 'Specifies the number of the service item registered in the Service Item table and associated with the customer.';
             TableRelation = "Service Item";
         }
         field(4; "Service Item Group Code"; Code[10])
         {
             Caption = 'Service Item Group Code';
+            ToolTip = 'Specifies the code for the group associated with this service item.';
             TableRelation = "Service Item Group";
         }
         field(5; "Item No."; Code[20])
         {
             Caption = 'Item No.';
+            ToolTip = 'Specifies the number of the item to which this posted service item is related.';
             TableRelation = Item;
         }
         field(6; "Serial No."; Code[50])
         {
             Caption = 'Serial No.';
+            ToolTip = 'Specifies the serial number of this service item.';
         }
         field(7; Description; Text[100])
         {
             Caption = 'Description';
+            ToolTip = 'Specifies a description of the service item specified in the Service Item No. field on this line.';
         }
         field(8; "Description 2"; Text[50])
         {
             Caption = 'Description 2';
+            ToolTip = 'Specifies an additional description of this service item.';
         }
         field(10; Priority; Option)
         {
             Caption = 'Priority';
+            ToolTip = 'Specifies the service priority for this posted service item.';
             OptionCaption = 'Low,Medium,High';
             OptionMembers = Low,Medium,High;
         }
@@ -80,34 +89,41 @@ table 5989 "Service Shipment Item Line"
         field(12; "Response Date"; Date)
         {
             Caption = 'Response Date';
+            ToolTip = 'Specifies the estimated date when service starts on this service item.';
         }
         field(13; "Response Time"; Time)
         {
             Caption = 'Response Time';
+            ToolTip = 'Specifies the time when service is expected to start on this service item.';
         }
         field(14; "Starting Date"; Date)
         {
             Caption = 'Starting Date';
+            ToolTip = 'Specifies the date when service on this service item started.';
             Editable = false;
         }
         field(15; "Starting Time"; Time)
         {
             Caption = 'Starting Time';
+            ToolTip = 'Specifies the time when service on this service item started.';
             Editable = false;
         }
         field(16; "Finishing Date"; Date)
         {
             Caption = 'Finishing Date';
+            ToolTip = 'Specifies the time when service on this service item is finished.';
             Editable = false;
         }
         field(17; "Finishing Time"; Time)
         {
             Caption = 'Finishing Time';
+            ToolTip = 'Specifies the time when the service on the order is finished.';
             Editable = false;
         }
         field(18; "Service Shelf No."; Code[10])
         {
             Caption = 'Service Shelf No.';
+            ToolTip = 'Specifies the number of the service shelf where the service item is stored while it is in the repair shop.';
             TableRelation = "Service Shelf";
         }
         field(19; "Warranty Starting Date (Parts)"; Date)
@@ -121,6 +137,7 @@ table 5989 "Service Shipment Item Line"
         field(21; Warranty; Boolean)
         {
             Caption = 'Warranty';
+            ToolTip = 'Specifies that there is a warranty on either parts or labor for this service item.';
         }
         field(22; "Warranty % (Parts)"; Decimal)
         {
@@ -145,6 +162,7 @@ table 5989 "Service Shipment Item Line"
         field(26; "Contract No."; Code[20])
         {
             Caption = 'Contract No.';
+            ToolTip = 'Specifies the number of the contract associated with the posted service item.';
             Editable = false;
             TableRelation = "Service Contract Header"."Contract No." where("Contract Type" = const(Contract));
         }
@@ -158,46 +176,55 @@ table 5989 "Service Shipment Item Line"
         field(28; "Loaner No."; Code[20])
         {
             Caption = 'Loaner No.';
+            ToolTip = 'Specifies the number of the loaner that has been lent to the customer to replace this service item.';
             TableRelation = Loaner;
         }
         field(29; "Vendor No."; Code[20])
         {
             Caption = 'Vendor No.';
+            ToolTip = 'Specifies the number of the vendor who sold this service item.';
             TableRelation = Vendor;
         }
         field(30; "Vendor Item No."; Text[50])
         {
             Caption = 'Vendor Item No.';
+            ToolTip = 'Specifies the number that the vendor uses for this item.';
         }
         field(31; "Fault Reason Code"; Code[10])
         {
             Caption = 'Fault Reason Code';
+            ToolTip = 'Specifies the fault reason code assigned to the posted service item.';
             TableRelation = "Fault Reason Code";
         }
         field(32; "Service Price Group Code"; Code[10])
         {
             Caption = 'Service Price Group Code';
+            ToolTip = 'Specifies the code of the service price group associated with this service item.';
             TableRelation = "Service Price Group";
         }
         field(33; "Fault Area Code"; Code[10])
         {
             Caption = 'Fault Area Code';
+            ToolTip = 'Specifies the code that identifies the area of the fault encountered with this service item.';
             TableRelation = "Fault Area";
         }
         field(34; "Symptom Code"; Code[10])
         {
             Caption = 'Symptom Code';
+            ToolTip = 'Specifies the code to identify the symptom of the service item fault.';
             TableRelation = "Symptom Code";
         }
         field(35; "Fault Code"; Code[10])
         {
             Caption = 'Fault Code';
+            ToolTip = 'Specifies the code to identify the fault of the posted service item or the actions taken on the item.';
             TableRelation = "Fault Code".Code where("Fault Area Code" = field("Fault Area Code"),
                                                      "Symptom Code" = field("Symptom Code"));
         }
         field(36; "Resolution Code"; Code[10])
         {
             Caption = 'Resolution Code';
+            ToolTip = 'Specifies the resolution code assigned to this item.';
             TableRelation = "Resolution Code";
         }
         field(37; "Fault Comment"; Boolean)
@@ -208,6 +235,7 @@ table 5989 "Service Shipment Item Line"
                                                               Type = const(Fault),
                                                               "Table Line No." = field("Line No.")));
             Caption = 'Fault Comment';
+            ToolTip = 'Specifies that there is a fault comment for this service item.';
             Editable = false;
             FieldClass = FlowField;
         }
@@ -219,6 +247,7 @@ table 5989 "Service Shipment Item Line"
                                                               Type = const(Resolution),
                                                               "Table Line No." = field("Line No.")));
             Caption = 'Resolution Comment';
+            ToolTip = 'Specifies that there is a resolution comment for this service item.';
             Editable = false;
             FieldClass = FlowField;
         }
@@ -236,6 +265,7 @@ table 5989 "Service Shipment Item Line"
         field(40; "Variant Code"; Code[10])
         {
             Caption = 'Variant Code';
+            ToolTip = 'Specifies the variant of the item on the line.';
             TableRelation = "Item Variant".Code where("Item No." = field("Item No."));
         }
         field(42; "Actual Response Time (Hours)"; Decimal)
@@ -278,6 +308,7 @@ table 5989 "Service Shipment Item Line"
         field(64; "Ship-to Code"; Code[10])
         {
             Caption = 'Ship-to Code';
+            ToolTip = 'Specifies a code for an alternate shipment address if you want to ship to another address than the one that has been entered automatically. This field is also used in case of drop shipment.';
             Editable = false;
             TableRelation = "Ship-to Address".Code;
         }

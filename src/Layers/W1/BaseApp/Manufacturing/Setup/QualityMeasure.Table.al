@@ -19,11 +19,13 @@ table 99000785 "Quality Measure"
         field(1; "Code"; Code[10])
         {
             Caption = 'Code';
+            ToolTip = 'Specifies the quality measure code.';
             NotBlank = true;
         }
         field(2; Description; Text[100])
         {
             Caption = 'Description';
+            ToolTip = 'Specifies a description for the quality measure.';
         }
     }
 

@@ -80,6 +80,26 @@ page 9452 "File Scenario Setup"
 
             group(Scenario)
             {
+                action(ScenarioSetup)
+                {
+                    Visible = (TypeOfEntry = TypeOfEntry::Scenario) and CanUserManageFileSetup;
+                    Caption = 'Additional Scenario Setup';
+                    ToolTip = 'Additional scenario setup for the selected scenario.';
+                    Image = Setup;
+                    Scope = Repeater;
+
+                    trigger OnAction()
+                    var
+                        FileScenarioInterface: Interface "File Scenario";
+                        FileScenarioEnum: Enum "File Scenario";
+                        NoSetupAvailableMsg: Label 'No additional setup is available for this scenario.';
+                    begin
+                        FileScenarioEnum := Enum::"File Scenario".FromInteger(Rec.Scenario);
+                        FileScenarioInterface := FileScenarioEnum;
+                        if not FileScenarioInterface.GetAdditionalScenarioSetup(FileScenarioEnum, Rec.Connector) then
+                            Message(NoSetupAvailableMsg);
+                    end;
+                }
                 action(ChangeAccount)
                 {
                     Visible = (TypeOfEntry = TypeOfEntry::Scenario) and CanUserManageFileSetup;
@@ -123,6 +143,7 @@ page 9452 "File Scenario Setup"
             group(Category_Process)
             {
                 actionref(AddScenario_Promoted; AddScenario) { }
+                actionref(ScenarioSetup_Promoted; ScenarioSetup) { }
                 actionref(ChangeAccount_Promoted; ChangeAccount) { }
                 actionref(Unassign_Promoted; Unassign) { }
             }

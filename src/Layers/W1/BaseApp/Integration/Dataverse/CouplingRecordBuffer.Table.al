@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -19,11 +19,13 @@ table 5332 "Coupling Record Buffer"
         field(1; "NAV Name"; Text[250])
         {
             Caption = 'NAV Name';
+            ToolTip = 'Specifies the name of the record in Business Central to couple to an existing Dataverse record.';
             DataClassification = SystemMetadata;
         }
         field(2; "CRM Name"; Text[250])
         {
             Caption = 'CRM Name';
+            ToolTip = 'Specifies the name of the record in Dataverse that is coupled to the record in Business Central.';
             DataClassification = SystemMetadata;
 
             trigger OnLookup()
@@ -77,6 +79,7 @@ table 5332 "Coupling Record Buffer"
         field(5; "Sync Action"; Option)
         {
             Caption = 'Sync Action';
+            ToolTip = 'Specifies whether to synchronize the data in the record in Business Central and the record in Dataverse.';
             DataClassification = SystemMetadata;
             OptionCaption = 'Do Not Synchronize,To Integration Table,From Integration Table';
             OptionMembers = "Do Not Synchronize","To Integration Table","From Integration Table";
@@ -99,6 +102,7 @@ table 5332 "Coupling Record Buffer"
         field(10; "Create New"; Boolean)
         {
             Caption = 'Create New';
+            ToolTip = 'Specifies if a new record in Dataverse is automatically created and coupled to the related record in Business Central.';
             DataClassification = SystemMetadata;
 
             trigger OnValidate()

@@ -31,12 +31,10 @@ page 512 "Customer Disc. Groups"
                 field("Code"; Rec.Code)
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies a code for the customer discount group.';
                 }
                 field(Description; Rec.Description)
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies a description for the customer discount group.';
                 }
             }
         }

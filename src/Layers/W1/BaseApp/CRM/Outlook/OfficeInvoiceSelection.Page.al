@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -51,7 +51,6 @@ page 1632 "Office Invoice Selection"
                 field("No."; Rec."Document No.")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the number of the related document.';
 
                     trigger OnDrillDown()
                     begin
@@ -68,7 +67,6 @@ page 1632 "Office Invoice Selection"
                 {
                     ApplicationArea = Basic, Suite;
                     Caption = 'Posted';
-                    ToolTip = 'Specifies whether the document has been posted.';
                 }
                 field("Posting Date"; PostingDate)
                 {

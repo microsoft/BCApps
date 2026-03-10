@@ -11,7 +11,7 @@ using Microsoft.Service.Document;
 codeunit 6467 "Serv. Interaction Log Mgt."
 {
 
-    [EventSubscriber(ObjectType::Table, Database::"Interaction Log Entry", 'OnBeforeShowDocument', '', false, false)]
+    [EventSubscriber(ObjectType::Table, Database::"Interaction Log Entry", 'OnBeforeShowDocument', '', true, false)]
     local procedure OnBeforeShowDocument(var InteractionLogEntry: Record "Interaction Log Entry"; var IsHandled: Boolean)
     var
         ServiceHeader: Record "Service Header";

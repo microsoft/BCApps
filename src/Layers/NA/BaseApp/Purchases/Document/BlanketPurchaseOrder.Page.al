@@ -103,7 +103,6 @@ page 509 "Blanket Purchase Order"
                         Caption = 'Address';
                         Importance = Additional;
                         QuickEntry = false;
-                        ToolTip = 'Specifies the address of the vendor who ships the items.';
                     }
                     field("Buy-from Address 2"; Rec."Buy-from Address 2")
                     {
@@ -111,7 +110,6 @@ page 509 "Blanket Purchase Order"
                         Caption = 'Address 2';
                         Importance = Additional;
                         QuickEntry = false;
-                        ToolTip = 'Specifies additional address information.';
                     }
                     field("Buy-from City"; Rec."Buy-from City")
                     {
@@ -151,7 +149,6 @@ page 509 "Blanket Purchase Order"
                         Caption = 'Contact No.';
                         Importance = Additional;
                         QuickEntry = false;
-                        ToolTip = 'Specifies the number of your contact at the vendor.';
 
                         trigger OnLookup(var Text: Text): Boolean
                         begin
@@ -212,12 +209,10 @@ page 509 "Blanket Purchase Order"
                 field("No. of Archived Versions"; Rec."No. of Archived Versions")
                 {
                     ApplicationArea = Suite;
-                    ToolTip = 'Specifies the number of archived versions for this document.';
                 }
                 field("Document Date"; Rec."Document Date")
                 {
                     ApplicationArea = Suite;
-                    ToolTip = 'Specifies the date when the related document was created.';
                 }
                 field("Due Date"; Rec."Due Date")
                 {
@@ -227,7 +222,6 @@ page 509 "Blanket Purchase Order"
                 field("Order Date"; Rec."Order Date")
                 {
                     ApplicationArea = Suite;
-                    ToolTip = 'Specifies the date when the order was created.';
                 }
                 field("Vendor Shipment No."; Rec."Vendor Shipment No.")
                 {
@@ -243,12 +237,10 @@ page 509 "Blanket Purchase Order"
                 field("Vendor Order No."; Rec."Vendor Order No.")
                 {
                     ApplicationArea = Suite;
-                    ToolTip = 'Specifies the vendor''s order number.';
                 }
                 field("Purchaser Code"; Rec."Purchaser Code")
                 {
                     ApplicationArea = Suite;
-                    ToolTip = 'Specifies which purchaser is assigned to the vendor.';
 
                     trigger OnValidate()
                     begin
@@ -258,35 +250,29 @@ page 509 "Blanket Purchase Order"
                 field("Campaign No."; Rec."Campaign No.")
                 {
                     ApplicationArea = Suite;
-                    ToolTip = 'Specifies the campaign number the document is linked to.';
                 }
                 field("Responsibility Center"; Rec."Responsibility Center")
                 {
                     ApplicationArea = Suite;
-                    ToolTip = 'Specifies the code of the responsibility center, such as a distribution hub, that is associated with the involved user, company, customer, or vendor.';
                 }
                 field("Assigned User ID"; Rec."Assigned User ID")
                 {
                     ApplicationArea = Suite;
-                    ToolTip = 'Specifies the ID of the user who is responsible for the document.';
                 }
                 field(Status; Rec.Status)
                 {
                     ApplicationArea = Suite;
                     Importance = Promoted;
                     StyleExpr = StatusStyleTxt;
-                    ToolTip = 'Specifies whether the record is open, waiting to be approved, invoiced for prepayment, or released to the next stage of processing.';
                 }
                 field("Language Code"; Rec."Language Code")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the language to be used on printouts for this document.';
                     Visible = false;
                 }
                 field("Format Region"; Rec."Format Region")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the format to be used on printouts for this document.';
                     Visible = false;
                 }
             }
@@ -326,12 +312,10 @@ page 509 "Blanket Purchase Order"
                 field("Expected Receipt Date"; Rec."Expected Receipt Date")
                 {
                     ApplicationArea = Suite;
-                    ToolTip = 'Specifies the date you expect the items to be available in your warehouse. If you leave the field blank, it will be calculated as follows: Planned Receipt Date + Safety Lead Time + Inbound Warehouse Handling Time = Expected Receipt Date.';
                 }
                 field("Prices Including VAT"; Rec."Prices Including VAT")
                 {
                     ApplicationArea = VAT;
-                    ToolTip = 'Specifies if the Unit Price and Line Amount fields on document lines should be shown with or without VAT.';
 
                     trigger OnValidate()
                     begin
@@ -341,23 +325,19 @@ page 509 "Blanket Purchase Order"
                 field("VAT Bus. Posting Group"; Rec."VAT Bus. Posting Group")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the VAT specification of the involved customer or vendor to link transactions made for this record with the appropriate general ledger account according to the VAT posting setup.';
                 }
                 field("Payment Terms Code"; Rec."Payment Terms Code")
                 {
                     ApplicationArea = Suite;
-                    ToolTip = 'Specifies a formula that calculates the payment due date, payment discount date, and payment discount amount.';
                 }
                 field("Payment Method Code"; Rec."Payment Method Code")
                 {
                     ApplicationArea = Suite;
-                    ToolTip = 'Specifies how to make payment, such as with bank transfer, cash, or check.';
                     Visible = IsPaymentMethodCodeVisible;
                 }
                 field("Tax Liable"; Rec."Tax Liable")
                 {
                     ApplicationArea = SalesTax;
-                    ToolTip = 'Specifies if this vendor charges you sales tax for purchases.';
 
                     trigger OnValidate()
                     begin
@@ -367,7 +347,6 @@ page 509 "Blanket Purchase Order"
                 field("Tax Area Code"; Rec."Tax Area Code")
                 {
                     ApplicationArea = SalesTax;
-                    ToolTip = 'Specifies the tax area code used for this purchase to calculate and post sales tax.';
 
                     trigger OnValidate()
                     begin
@@ -382,12 +361,10 @@ page 509 "Blanket Purchase Order"
                 field("Transaction Type"; Rec."Transaction Type")
                 {
                     ApplicationArea = Suite;
-                    ToolTip = 'Specifies the type of transaction that the document represents, for the purpose of reporting to INTRASTAT.';
                 }
                 field("Shortcut Dimension 1 Code"; Rec."Shortcut Dimension 1 Code")
                 {
                     ApplicationArea = Dimensions;
-                    ToolTip = 'Specifies the code for Shortcut Dimension 1, which is one of two global dimension codes that you set up in the General Ledger Setup window.';
 
                     trigger OnValidate()
                     begin
@@ -397,7 +374,6 @@ page 509 "Blanket Purchase Order"
                 field("Shortcut Dimension 2 Code"; Rec."Shortcut Dimension 2 Code")
                 {
                     ApplicationArea = Dimensions;
-                    ToolTip = 'Specifies the code for Shortcut Dimension 2, which is one of two global dimension codes that you set up in the General Ledger Setup window.';
 
                     trigger OnValidate()
                     begin
@@ -412,23 +388,19 @@ page 509 "Blanket Purchase Order"
                 field("Pmt. Discount Date"; Rec."Pmt. Discount Date")
                 {
                     ApplicationArea = Suite;
-                    ToolTip = 'Specifies the date on which the amount in the entry must be paid for a payment discount to be granted.';
                 }
                 field("Journal Templ. Name"; Rec."Journal Templ. Name")
                 {
                     ApplicationArea = BasicBE;
-                    ToolTip = 'Specifies the name of the journal template in which the purchase header is to be posted.';
                     Visible = IsJournalTemplNameVisible;
                 }
                 field("Location Code"; Rec."Location Code")
                 {
                     ApplicationArea = Suite;
-                    ToolTip = 'Specifies the location where the items are to be placed when they are received. This field acts as the default location for new lines. You can update the location code for individual lines as needed.';
                 }
                 field("Shipment Method Code"; Rec."Shipment Method Code")
                 {
                     ApplicationArea = Suite;
-                    ToolTip = 'Specifies the delivery conditions of the related shipment, such as free on board (FOB).';
                 }
                 field("Ship-to UPS Zone"; Rec."Ship-to UPS Zone")
                 {
@@ -437,7 +409,6 @@ page 509 "Blanket Purchase Order"
                 field("On Hold"; Rec."On Hold")
                 {
                     ApplicationArea = Suite;
-                    ToolTip = 'Specifies that the related entry represents an unpaid invoice for which either a payment suggestion, a reminder, or a finance charge memo exists.';
                 }
             }
             group("Shipping and Payment")
@@ -467,7 +438,6 @@ page 509 "Blanket Purchase Order"
                         Caption = 'Address';
                         Importance = Additional;
                         QuickEntry = false;
-                        ToolTip = 'Specifies the address that you want the items in the purchase order to be shipped to.';
                     }
                     field("Ship-to Address 2"; Rec."Ship-to Address 2")
                     {
@@ -475,7 +445,6 @@ page 509 "Blanket Purchase Order"
                         Caption = 'Address 2';
                         Importance = Additional;
                         QuickEntry = false;
-                        ToolTip = 'Specifies additional address information.';
                     }
                     field("Ship-to City"; Rec."Ship-to City")
                     {
@@ -515,7 +484,6 @@ page 509 "Blanket Purchase Order"
                         Caption = 'Phone No.';
                         Importance = Additional;
                         QuickEntry = false;
-                        ToolTip = 'Specifies the telephone number of the company''s shipping address.';
                     }
                     field("Ship-to Contact"; Rec."Ship-to Contact")
                     {
@@ -560,7 +528,6 @@ page 509 "Blanket Purchase Order"
                         Enabled = Rec."Buy-from Vendor No." <> Rec."Pay-to Vendor No.";
                         Importance = Additional;
                         QuickEntry = false;
-                        ToolTip = 'Specifies the address of the vendor sending the invoice.';
                     }
                     field("Pay-to Address 2"; Rec."Pay-to Address 2")
                     {
@@ -570,7 +537,6 @@ page 509 "Blanket Purchase Order"
                         Enabled = Rec."Buy-from Vendor No." <> Rec."Pay-to Vendor No.";
                         Importance = Additional;
                         QuickEntry = false;
-                        ToolTip = 'Specifies additional address information.';
                     }
                     field("Pay-to City"; Rec."Pay-to City")
                     {
@@ -619,7 +585,6 @@ page 509 "Blanket Purchase Order"
                         Editable = Rec."Buy-from Vendor No." <> Rec."Pay-to Vendor No.";
                         Enabled = Rec."Buy-from Vendor No." <> Rec."Pay-to Vendor No.";
                         Importance = Additional;
-                        ToolTip = 'Specifies the number of the contact who sends the invoice.';
                     }
                     field("Pay-to Contact"; Rec."Pay-to Contact")
                     {
@@ -628,7 +593,6 @@ page 509 "Blanket Purchase Order"
                         Editable = Rec."Buy-from Vendor No." <> Rec."Pay-to Vendor No.";
                         Enabled = Rec."Buy-from Vendor No." <> Rec."Pay-to Vendor No.";
                         Importance = Additional;
-                        ToolTip = 'Specifies the name of the person to contact about an invoice from this vendor.';
                     }
                     field(PayToContactPhoneNo; PayToContact."Phone No.")
                     {
@@ -665,22 +629,18 @@ page 509 "Blanket Purchase Order"
                 field("Transaction Specification"; Rec."Transaction Specification")
                 {
                     ApplicationArea = BasicEU, BasicNO;
-                    ToolTip = 'Specifies a specification of the document''s transaction, for the purpose of reporting to INTRASTAT.';
                 }
                 field("Transport Method"; Rec."Transport Method")
                 {
                     ApplicationArea = BasicEU, BasicNO;
-                    ToolTip = 'Specifies the transport method, for the purpose of reporting to INTRASTAT.';
                 }
                 field("Entry Point"; Rec."Entry Point")
                 {
                     ApplicationArea = BasicEU, BasicNO;
-                    ToolTip = 'Specifies the code of the port of entry where the items pass into your country/region, for reporting to Intrastat.';
                 }
                 field("Area"; Rec.Area)
                 {
                     ApplicationArea = BasicEU, BasicNO;
-                    ToolTip = 'Specifies the destination country or region for the purpose of Intrastat reporting.';
                 }
             }
         }

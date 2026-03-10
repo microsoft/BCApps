@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -41,6 +41,7 @@ table 1001 "Job Task"
         field(1; "Job No."; Code[20])
         {
             Caption = 'Project No.';
+            ToolTip = 'Specifies the number of the related project.';
             Editable = false;
             NotBlank = true;
             TableRelation = Job;
@@ -48,6 +49,7 @@ table 1001 "Job Task"
         field(2; "Job Task No."; Code[20])
         {
             Caption = 'Project Task No.';
+            ToolTip = 'Specifies the number of the related project task.';
             NotBlank = true;
 
             trigger OnValidate()
@@ -72,10 +74,12 @@ table 1001 "Job Task"
         field(3; Description; Text[100])
         {
             Caption = 'Description';
+            ToolTip = 'Specifies a description of the project task. You can enter anything that is meaningful in describing the task. The description is copied and used in descriptions on the project planning line.';
         }
         field(4; "Job Task Type"; Enum "Job Task Type")
         {
             Caption = 'Project Task Type';
+            ToolTip = 'Specifies the purpose of the account. Newly created accounts are automatically assigned the Posting account type, but you can change this. Choose the field to select one of the following five options:';
 
             trigger OnValidate()
             begin
@@ -104,6 +108,7 @@ table 1001 "Job Task"
         field(6; "WIP-Total"; Option)
         {
             Caption = 'WIP-Total';
+            ToolTip = 'Specifies the project tasks you want to group together when calculating Work In Process (WIP) and Recognition.';
             OptionCaption = ' ,Total,Excluded';
             OptionMembers = " ",Total,Excluded;
 
@@ -130,6 +135,7 @@ table 1001 "Job Task"
         field(7; "Job Posting Group"; Code[20])
         {
             Caption = 'Project Posting Group';
+            ToolTip = 'Specifies the project posting group of the task.';
             TableRelation = "Job Posting Group";
 
             trigger OnValidate()
@@ -148,6 +154,7 @@ table 1001 "Job Task"
         field(9; "WIP Method"; Code[20])
         {
             Caption = 'WIP Method';
+            ToolTip = 'Specifies the name of the Work in Process calculation method that is associated with a project. The value in this field comes from the WIP method specified on the project card.';
             TableRelation = "Job WIP Method".Code where(Valid = const(true));
 
             trigger OnValidate()
@@ -281,6 +288,7 @@ table 1001 "Job Task"
         field(21; Totaling; Text[250])
         {
             Caption = 'Totaling';
+            ToolTip = 'Specifies an interval or a list of project task numbers.';
             TableRelation = "Job Task"."Job Task No." where("Job No." = field("Job No."));
             ValidateTableRelation = false;
 
@@ -304,11 +312,13 @@ table 1001 "Job Task"
         field(22; "New Page"; Boolean)
         {
             Caption = 'New Page';
+            ToolTip = 'Specifies whether you want a new page to start immediately after this project task when you print the project tasks. To start a new page after this project task, select the New Page check box.';
         }
         field(23; "No. of Blank Lines"; Integer)
         {
             BlankZero = true;
             Caption = 'No. of Blank Lines';
+            ToolTip = 'Specifies the number of blank lines that you want inserted before this project task in reports that shows project tasks.';
             MinValue = 0;
         }
         field(24; Indentation; Integer)
@@ -319,6 +329,7 @@ table 1001 "Job Task"
         field(30; "Location Code"; Code[10])
         {
             Caption = 'Location Code';
+            ToolTip = 'Specifies the location code of the task.';
             TableRelation = Location where("Use As In-Transit" = const(false));
             DataClassification = CustomerContent;
 
@@ -333,6 +344,7 @@ table 1001 "Job Task"
         field(31; "Bin Code"; Code[20])
         {
             Caption = 'Bin Code';
+            ToolTip = 'Specifies a bin code for specific location of the task.';
             TableRelation = Bin.Code where("Location Code" = field("Location Code"));
             DataClassification = CustomerContent;
 
@@ -361,6 +373,7 @@ table 1001 "Job Task"
         field(41; "Language Code"; Code[10])
         {
             Caption = 'Language Code';
+            ToolTip = 'Specifies the language to be used on printouts for this project.';
             TableRelation = Language;
             DataClassification = CustomerContent;
         }
@@ -384,6 +397,7 @@ table 1001 "Job Task"
         {
             CaptionClass = '1,1,1';
             Caption = 'Global Dimension 1 Code';
+            ToolTip = 'Specifies the code for the global dimension that is linked to the record or entry for analysis purposes. Two global dimensions, typically for the company''s most important activities, are available on all cards, documents, reports, and lists.';
             TableRelation = "Dimension Value".Code where("Global Dimension No." = const(1),
                                                           Blocked = const(false));
 
@@ -396,6 +410,7 @@ table 1001 "Job Task"
         {
             CaptionClass = '1,1,2';
             Caption = 'Global Dimension 2 Code';
+            ToolTip = 'Specifies the code for the global dimension that is linked to the record or entry for analysis purposes. Two global dimensions, typically for the company''s most important activities, are available on all cards, documents, reports, and lists.';
             TableRelation = "Dimension Value".Code where("Global Dimension No." = const(2),
                                                           Blocked = const(false));
 
@@ -414,6 +429,7 @@ table 1001 "Job Task"
                                                                                       "Job Task No." = field("Job Task No."),
                                                                                       "Job Task No." = field(filter(Totaling))));
             Caption = 'Outstanding Orders';
+            ToolTip = 'Specifies the sum of outstanding orders, in local currency, for this project task. The value of the Outstanding Amount (LCY) field is used for entries in the Purchase Line table of document type Order to calculate and update the contents of this field.';
             FieldClass = FlowField;
         }
         field(63; "Amt. Rcd. Not Invoiced"; Decimal)
@@ -426,6 +442,7 @@ table 1001 "Job Task"
                                                                                       "Job Task No." = field("Job Task No."),
                                                                                       "Job Task No." = field(filter(Totaling))));
             Caption = 'Amt. Rcd. Not Invoiced';
+            ToolTip = 'Specifies the sum for items that have been received but have not yet been invoiced. The value in the Amt. Rcd. Not Invoiced (LCY) field is used for entries in the Purchase Line table of document type Order to calculate and update the contents of this field.';
             FieldClass = FlowField;
         }
         field(64; "Remaining (Total Cost)"; Decimal)
@@ -461,6 +478,7 @@ table 1001 "Job Task"
             CalcFormula = min("Job Planning Line"."Planning Date" where("Job No." = field("Job No."),
                                                                          "Job Task No." = field("Job Task No.")));
             Caption = 'Start Date';
+            ToolTip = 'Specifies the start date for the project task. The date is based on the date on the related project planning line.';
             Editable = false;
             FieldClass = FlowField;
         }
@@ -469,12 +487,14 @@ table 1001 "Job Task"
             CalcFormula = max("Job Planning Line"."Planning Date" where("Job No." = field("Job No."),
                                                                          "Job Task No." = field("Job Task No.")));
             Caption = 'End Date';
+            ToolTip = 'Specifies the end date for the project task. The date is based on the date on the related project planning line.';
             Editable = false;
             FieldClass = FlowField;
         }
         field(70; "Bill-to Customer No."; Code[20])
         {
             Caption = 'Bill-to Customer No.';
+            ToolTip = 'Specifies the number of the customer who pays for the project.';
             TableRelation = Customer;
             DataClassification = CustomerContent;
 
@@ -489,6 +509,7 @@ table 1001 "Job Task"
         field(71; "Bill-to Name"; Text[100])
         {
             Caption = 'Bill-to Name';
+            ToolTip = 'Specifies the name of the customer who pays for the project.';
             TableRelation = Customer.Name;
             ValidateTableRelation = false;
             DataClassification = CustomerContent;
@@ -518,16 +539,19 @@ table 1001 "Job Task"
         field(72; "Bill-to Address"; Text[100])
         {
             Caption = 'Bill-to Address';
+            ToolTip = 'Specifies the address of the customer to whom you will send the invoice.';
             DataClassification = CustomerContent;
         }
         field(73; "Bill-to Address 2"; Text[50])
         {
             Caption = 'Bill-to Address 2';
+            ToolTip = 'Specifies an additional line of the address.';
             DataClassification = CustomerContent;
         }
         field(74; "Bill-to City"; Text[30])
         {
             Caption = 'Bill-to City';
+            ToolTip = 'Specifies the city of the address.';
             DataClassification = CustomerContent;
             TableRelation = if ("Bill-to Country/Region Code" = const('')) "Post Code".City
             else
@@ -553,11 +577,13 @@ table 1001 "Job Task"
         {
             CaptionClass = '5,3,' + "Bill-to Country/Region Code";
             Caption = 'Bill-to County';
+            ToolTip = 'Specifies the county code of the customer''s billing address.';
             DataClassification = CustomerContent;
         }
         field(76; "Bill-to Post Code"; Code[20])
         {
             Caption = 'Bill-to Post Code';
+            ToolTip = 'Specifies the postal code of the customer who pays for the project.';
             TableRelation = if ("Bill-to Country/Region Code" = const('')) "Post Code"
             else
             if ("Bill-to Country/Region Code" = filter(<> '')) "Post Code" where("Country/Region Code" = field("Bill-to Country/Region Code"));
@@ -581,6 +607,7 @@ table 1001 "Job Task"
         field(77; "Bill-to Country/Region Code"; Code[10])
         {
             Caption = 'Bill-to Country/Region Code';
+            ToolTip = 'Specifies the country/region code of the customer''s billing address.';
             Editable = true;
             TableRelation = "Country/Region";
             DataClassification = CustomerContent;
@@ -603,6 +630,7 @@ table 1001 "Job Task"
         {
             AccessByPermission = TableData Contact = R;
             Caption = 'Bill-to Contact No.';
+            ToolTip = 'Specifies the number of the contact person at the customer''s billing address.';
             DataClassification = CustomerContent;
             TableRelation = Contact."No.";
 
@@ -633,11 +661,13 @@ table 1001 "Job Task"
         field(80; "Bill-to Contact"; Text[100])
         {
             Caption = 'Bill-to Contact';
+            ToolTip = 'Specifies the name of the contact person at the customer who pays for the project.';
             DataClassification = CustomerContent;
         }
         field(90; "Sell-to Customer No."; Code[20])
         {
             Caption = 'Sell-to Customer No.';
+            ToolTip = 'Specifies the number of the customer who will receive the products and be billed by default for the project task.';
             TableRelation = Customer;
             DataClassification = CustomerContent;
 
@@ -652,6 +682,7 @@ table 1001 "Job Task"
         field(91; "Sell-to Customer Name"; Text[100])
         {
             Caption = 'Sell-to Customer Name';
+            ToolTip = 'Specifies the name of the customer who will receive the products and be billed by default.';
             TableRelation = Customer.Name;
             ValidateTableRelation = false;
             DataClassification = CustomerContent;
@@ -696,16 +727,19 @@ table 1001 "Job Task"
         field(93; "Sell-to Address"; Text[100])
         {
             Caption = 'Sell-to Address';
+            ToolTip = 'Specifies the address where the customer is located.';
             DataClassification = CustomerContent;
         }
         field(94; "Sell-to Address 2"; Text[50])
         {
             Caption = 'Sell-to Address 2';
+            ToolTip = 'Specifies additional address information.';
             DataClassification = CustomerContent;
         }
         field(95; "Sell-to City"; Text[30])
         {
             Caption = 'Sell-to City';
+            ToolTip = 'Specifies the city of the customer on the sales document.';
             TableRelation = if ("Sell-to Country/Region Code" = const('')) "Post Code".City
             else
             if ("Sell-to Country/Region Code" = filter(<> '')) "Post Code".City where("Country/Region Code" = field("Sell-to Country/Region Code"));
@@ -729,11 +763,13 @@ table 1001 "Job Task"
         field(96; "Sell-to Contact"; Text[100])
         {
             Caption = 'Sell-to Contact';
+            ToolTip = 'Specifies the name of the person to contact at the customer.';
             DataClassification = CustomerContent;
         }
         field(97; "Sell-to Post Code"; Code[20])
         {
             Caption = 'Sell-to Post Code';
+            ToolTip = 'Specifies the postal code.';
             TableRelation = if ("Sell-to Country/Region Code" = const('')) "Post Code"
             else
             if ("Sell-to Country/Region Code" = filter(<> '')) "Post Code" where("Country/Region Code" = field("Sell-to Country/Region Code"));
@@ -744,17 +780,20 @@ table 1001 "Job Task"
         {
             CaptionClass = '5,2,' + "Sell-to Country/Region Code";
             Caption = 'Sell-to County';
+            ToolTip = 'Specifies the state, province or county of the address.';
             DataClassification = CustomerContent;
         }
         field(99; "Sell-to Country/Region Code"; Code[10])
         {
             Caption = 'Sell-to Country/Region Code';
+            ToolTip = 'Specifies the country or region of the address.';
             TableRelation = "Country/Region";
             DataClassification = CustomerContent;
         }
         field(100; "Sell-to Contact No."; Code[20])
         {
             Caption = 'Sell-to Contact No.';
+            ToolTip = 'Specifies the number of the contact person that the sales document will be sent to.';
             TableRelation = Contact;
             DataClassification = CustomerContent;
 
@@ -792,6 +831,7 @@ table 1001 "Job Task"
         field(110; "Ship-to Code"; Code[10])
         {
             Caption = 'Ship-to Code';
+            ToolTip = 'Specifies the code for another shipment address than the customer''s own address, which is entered by default.';
             TableRelation = "Ship-to Address".Code where("Customer No." = field("Sell-to Customer No."));
             DataClassification = CustomerContent;
 
@@ -803,26 +843,31 @@ table 1001 "Job Task"
         field(111; "Ship-to Name"; Text[100])
         {
             Caption = 'Ship-to Name';
+            ToolTip = 'Specifies the name that products on the sales document will be shipped to.';
             DataClassification = CustomerContent;
         }
         field(112; "Ship-to Name 2"; Text[50])
         {
             Caption = 'Ship-to Name 2';
+            ToolTip = 'Specifies an additional part of the name that products on the sales document will be shipped to.';
             DataClassification = CustomerContent;
         }
         field(113; "Ship-to Address"; Text[100])
         {
             Caption = 'Ship-to Address';
+            ToolTip = 'Specifies the address that products on the sales document will be shipped to.';
             DataClassification = CustomerContent;
         }
         field(114; "Ship-to Address 2"; Text[50])
         {
             Caption = 'Ship-to Address 2';
+            ToolTip = 'Specifies additional address information.';
             DataClassification = CustomerContent;
         }
         field(115; "Ship-to City"; Text[30])
         {
             Caption = 'Ship-to City';
+            ToolTip = 'Specifies the city of the customer on the sales document.';
             TableRelation = if ("Ship-to Country/Region Code" = const('')) "Post Code".City
             else
             if ("Ship-to Country/Region Code" = filter(<> '')) "Post Code".City where("Country/Region Code" = field("Ship-to Country/Region Code"));
@@ -846,11 +891,13 @@ table 1001 "Job Task"
         field(116; "Ship-to Contact"; Text[100])
         {
             Caption = 'Ship-to Contact';
+            ToolTip = 'Specifies the name of the contact person at the address that products on the sales document will be shipped to.';
             DataClassification = CustomerContent;
         }
         field(117; "Ship-to Post Code"; Code[20])
         {
             Caption = 'Ship-to Post Code';
+            ToolTip = 'Specifies the postal code.';
             TableRelation = if ("Ship-to Country/Region Code" = const('')) "Post Code"
             else
             if ("Ship-to Country/Region Code" = filter(<> '')) "Post Code" where("Country/Region Code" = field("Ship-to Country/Region Code"));
@@ -868,11 +915,13 @@ table 1001 "Job Task"
         {
             CaptionClass = '5,4,' + "Ship-to Country/Region Code";
             Caption = 'Ship-to County';
+            ToolTip = 'Specifies the state, province or county of the address.';
             DataClassification = CustomerContent;
         }
         field(119; "Ship-to Country/Region Code"; Code[10])
         {
             Caption = 'Ship-to Country/Region Code';
+            ToolTip = 'Specifies the customer''s country/region.';
             TableRelation = "Country/Region";
             DataClassification = CustomerContent;
         }
@@ -913,6 +962,7 @@ table 1001 "Job Task"
         field(134; "Price Calculation Method"; Enum "Price Calculation Method")
         {
             Caption = 'Price Calculation Method';
+            ToolTip = 'Specifies the default method of the unit price calculation.';
             DataClassification = CustomerContent;
 
             trigger OnValidate()
@@ -927,6 +977,7 @@ table 1001 "Job Task"
         field(140; "Invoice Currency Code"; Code[10])
         {
             Caption = 'Invoice Currency Code';
+            ToolTip = 'Specifies the currency code you want to apply when creating invoices for a project. By default, the invoice currency code for a project is based on what currency code is defined on the customer card.';
             TableRelation = Currency;
             DataClassification = CustomerContent;
         }

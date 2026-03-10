@@ -53,7 +53,7 @@ codeunit 136121 "Service Reservation"
         QuantityOnServiceLine: Decimal;
         OriginalQuantity: Decimal;
         QuantityReserved: Decimal;
-        ItemTrackingAction: Option SelectEntries,AssignSerialNo,Verification;
+        ItemTrackingAction: Option SelectEntries,AssignSerialNo,AssignLotNo,Verification;
         ServiceLineAction: Option ItemTracking,Reserve;
         ReserveFromCurrentLine: Boolean;
         ItemNotOnInventoryError: Label 'Reserved item %1 is not on inventory.';
@@ -1153,6 +1153,54 @@ codeunit 136121 "Service Reservation"
     end;
 
     [Test]
+    [HandlerFunctions('ServiceLineTrackingPageHandler,ItemTrackingActionsPageHandler,TrackingSummaryPageHandler,GetServiceShipmentLinesHandler')]
+    [Scope('OnPrem')]
+    procedure PostInvoiceLotTrackingFromGetShipmentLine()
+    var
+        Item: Record Item;
+        ItemJournalLine: Record "Item Journal Line";
+        ServiceHeader: Record "Service Header";
+        ServiceLine: Record "Service Line";
+        InvoiceServLine: Record "Service Line";
+        Quantity: Decimal;
+        ServiceLineQuantity: Decimal;
+        InvoiceNo: Code[20];
+    begin
+        // [SCENARIO 622249] Available Quantity is wrong in the item tracking information when creating a Service invoice with get shipment lines
+
+        // [GIVEN] Create Item with Lot No, Create and post Item Journal Line, Create and Ship Service Order with Item Tracking.
+        Initialize();
+        ServiceLineQuantity := LibraryRandom.RandInt(5);  // Assigning random integer value.
+        Quantity := ServiceLineQuantity + LibraryRandom.RandInt(10);  // Taking Value greater than ServiceLineQuantity.
+
+        // [GIVEN] Create item with lot tracking 
+        ItemNo := CreateItemWithItemTracking(Item.Reserve::Optional);
+        ItemTrackingAction := ItemTrackingAction::AssignLotNo;
+
+        CreateJournalLine(ItemJournalLine, ItemNo, Quantity);
+        OpenItemTrackingPageForJournal(ItemJournalLine."Journal Batch Name");
+        LibraryInventory.PostItemJournalLine(ItemJournalLine."Journal Template Name", ItemJournalLine."Journal Batch Name");
+        CreateDocumentWithServiceItem(ServiceLine, '', ItemNo, ServiceLineQuantity, ServiceLine."Document Type"::Order);
+        ServiceHeader.Get(ServiceLine."Document Type", ServiceLine."Document No.");
+        ItemTrackingAction := ItemTrackingAction::SelectEntries;
+        OpenServiceLinesPage(ServiceHeader."No.");
+        LibraryService.PostServiceOrder(ServiceHeader, true, false, false);
+        Clear(ServiceHeader);
+
+        // [WHEN] Create Serive Invoice From Get Shipment Lines in GetServiceShipmentLinesHandler and Post.
+        LibraryService.CreateServiceHeader(ServiceHeader, ServiceHeader."Document Type"::Invoice, ServiceLine."Customer No.");
+        invoiceno := ServiceHeader."No.";
+        OpenServiceInvoicePage(ServiceHeader."No.");
+
+        // [THEN] Find the created Service Invoice line and open Item Tracking Lines -> click Lot (handled by ItemTrackingPageHandler)
+        InvoiceServLine.SetRange("Document Type", InvoiceServLine."Document Type"::Invoice);
+        InvoiceServLine.SetRange("Document No.", InvoiceNo);
+        InvoiceServLine.SetRange(Type, InvoiceServLine.Type::Item);
+        InvoiceServLine.FindFirst();
+        InvoiceServLine.OpenItemTrackingLines();
+    end;
+
+    [Test]
     [HandlerFunctions('QuantityToCreatePageHandler,ItemTrackingActionsPageHandler')]
     [Scope('OnPrem')]
     procedure PostCreditMemoWithTracking()
@@ -2040,7 +2088,6 @@ codeunit 136121 "Service Reservation"
         ServiceInvoice.OpenEdit();
         ServiceInvoice.FILTER.SetFilter("No.", No);
         ServiceInvoice.ServLines.GetShipmentLines.Invoke();
-        ServiceInvoice.OK().Invoke();
     end;
 
     local procedure OpenServiceCreditMemoPage(No: Code[20])
@@ -2668,6 +2715,8 @@ codeunit 136121 "Service Reservation"
                 ItemTrackingLines."Select Entries".Invoke();
             ItemTrackingAction::AssignSerialNo:
                 ItemTrackingLines."Assign Serial No.".Invoke();
+            ItemTrackingAction::AssignLotNo:
+                ItemTrackingLines."Assign Lot No.".Invoke();
             ItemTrackingAction::Verification:
                 ItemTrackingLines.Quantity_ItemTracking.AssertEquals(QuantityOnServiceLine);
         end;

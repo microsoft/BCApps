@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -40,6 +40,7 @@ table 1206 "Credit Transfer Entry"
         field(1; "Credit Transfer Register No."; Integer)
         {
             Caption = 'Credit Transfer Register No.';
+            ToolTip = 'Specifies the number of the credit-transfer register entry in the Credit Transfer Registers window that the credit transfer entry relates to.';
             TableRelation = "Credit Transfer Register";
         }
         /// <summary>
@@ -48,6 +49,7 @@ table 1206 "Credit Transfer Entry"
         field(2; "Entry No."; Integer)
         {
             Caption = 'Entry No.';
+            ToolTip = 'Specifies the number of the entry, as assigned from the specified number series when the entry was created.';
         }
         /// <summary>
         /// Type of account for the credit transfer (Customer, Vendor, or Employee).
@@ -55,6 +57,7 @@ table 1206 "Credit Transfer Entry"
         field(3; "Account Type"; Enum "Credit Transfer Account Type")
         {
             Caption = 'Account Type';
+            ToolTip = 'Specifies the type of account that received payment with the credit transfer. If the type is Debitor, then the credit transfer was a refund.';
         }
         /// <summary>
         /// Account number for the credit transfer recipient.
@@ -62,6 +65,7 @@ table 1206 "Credit Transfer Entry"
         field(4; "Account No."; Code[20])
         {
             Caption = 'Account No.';
+            ToolTip = 'Specifies the number of the vendor, or debitor, who received payment with the credit transfer. If the Account Type field contains Debitor, then the credit transfer was a refund.';
             TableRelation = if ("Account Type" = const(Customer)) Customer
             else
             if ("Account Type" = const(Vendor)) Vendor;
@@ -72,6 +76,7 @@ table 1206 "Credit Transfer Entry"
         field(5; "Applies-to Entry No."; Integer)
         {
             Caption = 'Applies-to Entry No.';
+            ToolTip = 'Specifies the entry number of the purchase invoice that the vendor ledger entry behind this credit transfer was applied to.';
             TableRelation = if ("Account Type" = const(Customer)) "Cust. Ledger Entry"
             else
             if ("Account Type" = const(Vendor)) "Vendor Ledger Entry";
@@ -82,6 +87,7 @@ table 1206 "Credit Transfer Entry"
         field(6; "Transfer Date"; Date)
         {
             Caption = 'Transfer Date';
+            ToolTip = 'Specifies when the SEPA credit transfer is made. The value is copied from the Posting Date field on the payment line for the purchase invoice.';
         }
         /// <summary>
         /// Currency code for the credit transfer amount.
@@ -89,6 +95,7 @@ table 1206 "Credit Transfer Entry"
         field(7; "Currency Code"; Code[10])
         {
             Caption = 'Currency Code';
+            ToolTip = 'Specifies the currency that the SEPA credit transfer was made in. To process payments using SEPA Credit Transfer, the currency on the purchase invoice must be EURO.';
             TableRelation = Currency;
         }
         /// <summary>
@@ -99,6 +106,7 @@ table 1206 "Credit Transfer Entry"
             AutoFormatExpression = Rec."Currency Code";
             AutoFormatType = 1;
             Caption = 'Transfer Amount';
+            ToolTip = 'Specifies the amount that is paid with the SEPA credit transfer.';
         }
         /// <summary>
         /// Unique transaction identifier for the credit transfer.
@@ -106,6 +114,7 @@ table 1206 "Credit Transfer Entry"
         field(9; "Transaction ID"; Text[35])
         {
             Caption = 'Transaction ID';
+            ToolTip = 'Specifies the ID of the credit transfer. The ID is defined from the value in the Identifier field in the Credit Transfer Register field plus the value in the Entry No. field, divided by a slash. For example, DABA00113/3.';
         }
         /// <summary>
         /// Indicates whether the credit transfer has been canceled.
@@ -115,6 +124,7 @@ table 1206 "Credit Transfer Entry"
             CalcFormula = exist("Credit Transfer Register" where("No." = field("Credit Transfer Register No."),
                                                                   Status = const(Canceled)));
             Caption = 'Canceled';
+            ToolTip = 'Specifies if the exported payment file for this credit transfer register entry has been canceled.';
             FieldClass = FlowField;
         }
         /// <summary>
@@ -130,6 +140,7 @@ table 1206 "Credit Transfer Entry"
         field(12; "Message to Recipient"; Text[140])
         {
             Caption = 'Message to Recipient';
+            ToolTip = 'Specifies the text that was entered in the Message to Recipient field on the payment journal line that this credit transfer file was exported from.';
         }
         /// <summary>
         /// International Bank Account Number (IBAN) of the recipient.
@@ -137,6 +148,7 @@ table 1206 "Credit Transfer Entry"
         field(13; "Recipient IBAN"; Code[50])
         {
             Caption = 'Recipient IBAN';
+            ToolTip = 'Specifies the IBAN of the creditor bank account that was used on the payment journal line that this credit transfer file was exported from.';
         }
         /// <summary>
         /// Bank account number of the recipient.
@@ -144,6 +156,7 @@ table 1206 "Credit Transfer Entry"
         field(14; "Recipient Bank Account No."; Code[30])
         {
             Caption = 'Recipient Bank Account No.';
+            ToolTip = 'Specifies the number of the creditor bank account that was used on the payment journal line that this credit transfer file was exported from.';
         }
         /// <summary>
         /// Name of the credit transfer recipient.
@@ -151,6 +164,7 @@ table 1206 "Credit Transfer Entry"
         field(15; "Recipient Name"; Text[100])
         {
             Caption = 'Recipient Name';
+            ToolTip = 'Specifies the recipient of the exported credit transfer, typically a vendor.';
             DataClassification = EndUserIdentifiableInformation;
         }
     }

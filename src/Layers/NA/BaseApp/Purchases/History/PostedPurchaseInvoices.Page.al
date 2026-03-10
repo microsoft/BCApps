@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -60,24 +60,20 @@ page 146 "Posted Purchase Invoices"
                 field("Order Address Code"; Rec."Order Address Code")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the order address of the related vendor.';
                     Visible = false;
                 }
                 field("Buy-from Vendor Name"; Rec."Buy-from Vendor Name")
                 {
                     ApplicationArea = Basic, Suite;
                     Caption = 'Vendor';
-                    ToolTip = 'Specifies the name of the vendor who shipped the items.';
                 }
                 field("Currency Code"; Rec."Currency Code")
                 {
                     ApplicationArea = Suite;
-                    ToolTip = 'Specifies the currency code used to calculate the amounts on the invoice.';
                 }
                 field(Amount; Rec.Amount)
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the total, in the currency of the invoice, of the amounts on all the invoice lines.';
 
                     trigger OnDrillDown()
                     begin
@@ -87,7 +83,6 @@ page 146 "Posted Purchase Invoices"
                 field("Amount Including VAT"; Rec."Amount Including VAT")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the total of the amounts, including VAT, on all the lines on the document.';
 
                     trigger OnDrillDown()
                     begin
@@ -97,7 +92,6 @@ page 146 "Posted Purchase Invoices"
                 field("Buy-from Post Code"; Rec."Buy-from Post Code")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the post code of the vendor who delivered the items.';
                     Visible = false;
                 }
                 field("Buy-from Country/Region Code"; Rec."Buy-from Country/Region Code")
@@ -109,7 +103,6 @@ page 146 "Posted Purchase Invoices"
                 field("Buy-from Contact"; Rec."Buy-from Contact")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the name of the contact person at the vendor who delivered the items.';
                     Visible = false;
                 }
                 field("Pay-to Vendor No."; Rec."Pay-to Vendor No.")
@@ -120,13 +113,11 @@ page 146 "Posted Purchase Invoices"
                 field("Pay-to Name"; Rec."Pay-to Name")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the name of the vendor who you received the invoice from.';
                     Visible = false;
                 }
                 field("Pay-to Post Code"; Rec."Pay-to Post Code")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the post code of the vendor that you received the invoice from.';
                     Visible = false;
                 }
                 field("Pay-to Country/Region Code"; Rec."Pay-to Country/Region Code")
@@ -138,7 +129,6 @@ page 146 "Posted Purchase Invoices"
                 field("Pay-to Contact"; Rec."Pay-to Contact")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the name of the person you should contact at the vendor who you received the invoice from.';
                     Visible = false;
                 }
                 field("Ship-to Code"; Rec."Ship-to Code")
@@ -150,13 +140,11 @@ page 146 "Posted Purchase Invoices"
                 field("Ship-to Name"; Rec."Ship-to Name")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the name of the customer at the address that the items are shipped to.';
                     Visible = false;
                 }
                 field("Ship-to Post Code"; Rec."Ship-to Post Code")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the postal code of the address that the items are shipped to.';
                     Visible = false;
                 }
                 field("Ship-to Country/Region Code"; Rec."Ship-to Country/Region Code")
@@ -174,36 +162,30 @@ page 146 "Posted Purchase Invoices"
                 field("Posting Date"; Rec."Posting Date")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the date the purchase header was posted.';
                     Visible = false;
                 }
                 field("Purchaser Code"; Rec."Purchaser Code")
                 {
                     ApplicationArea = Suite;
-                    ToolTip = 'Specifies which purchaser is assigned to the vendor.';
                     Visible = false;
                 }
                 field("Shortcut Dimension 1 Code"; Rec."Shortcut Dimension 1 Code")
                 {
                     ApplicationArea = Dimensions;
-                    ToolTip = 'Specifies the code for Shortcut Dimension 1, which is one of two global dimension codes that you set up in the General Ledger Setup window.';
                     Visible = false;
                 }
                 field("Shortcut Dimension 2 Code"; Rec."Shortcut Dimension 2 Code")
                 {
                     ApplicationArea = Dimensions;
-                    ToolTip = 'Specifies the code for Shortcut Dimension 2, which is one of two global dimension codes that you set up in the General Ledger Setup window.';
                     Visible = false;
                 }
                 field("Location Code"; Rec."Location Code")
                 {
                     ApplicationArea = Location;
-                    ToolTip = 'Specifies the code for the location where the items are registered.';
                 }
                 field("No. Printed"; Rec."No. Printed")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies how many times the document has been printed.';
                 }
                 field("Document Date"; Rec."Document Date")
                 {
@@ -220,24 +202,20 @@ page 146 "Posted Purchase Invoices"
                 field("Due Date"; Rec."Due Date")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies when the invoice is due. The program calculates the date using the Payment Terms Code and Document Date fields on the purchase header.';
                 }
                 field("Payment Discount %"; Rec."Payment Discount %")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the payment discount percent granted if payment is made on or before the date in the Pmt. Discount Date field.';
                     Visible = false;
                 }
                 field("Payment Method Code"; Rec."Payment Method Code")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies how to make payment, such as with bank transfer, cash, or check.';
                     Visible = false;
                 }
                 field("Shipment Method Code"; Rec."Shipment Method Code")
                 {
                     ApplicationArea = Suite;
-                    ToolTip = 'Specifies the delivery conditions of the related shipment, such as free on board (FOB).';
                     Visible = false;
                 }
                 field("Remaining Amount"; Rec."Remaining Amount")
@@ -248,7 +226,6 @@ page 146 "Posted Purchase Invoices"
                 field(Closed; Rec.Closed)
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies if the posted purchase invoice is paid. The check box will also be selected if a credit memo for the remaining amount has been applied.';
                 }
                 field(Cancelled; Rec.Cancelled)
                 {
@@ -256,7 +233,6 @@ page 146 "Posted Purchase Invoices"
                     HideValue = not Rec.Cancelled;
                     Style = Unfavorable;
                     StyleExpr = Rec.Cancelled;
-                    ToolTip = 'Specifies if the posted purchase invoice has been either corrected or canceled.';
 
                     trigger OnDrillDown()
                     begin
@@ -269,7 +245,6 @@ page 146 "Posted Purchase Invoices"
                     HideValue = not Rec.Corrective;
                     Style = Unfavorable;
                     StyleExpr = Rec.Corrective;
-                    ToolTip = 'Specifies if the posted purchase invoice is a corrective document.';
 
                     trigger OnDrillDown()
                     begin

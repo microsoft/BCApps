@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -20,12 +20,14 @@ table 201 "Resource Price"
         field(2; Type; Option)
         {
             Caption = 'Type';
+            ToolTip = 'Specifies the type.';
             OptionCaption = 'Resource,Group(Resource),All';
             OptionMembers = Resource,"Group(Resource)",All;
         }
         field(3; "Code"; Code[20])
         {
             Caption = 'Code';
+            ToolTip = 'Specifies the code.';
             TableRelation = if (Type = const(Resource)) Resource
             else
             if (Type = const("Group(Resource)")) "Resource Group";
@@ -39,6 +41,7 @@ table 201 "Resource Price"
         field(4; "Work Type Code"; Code[10])
         {
             Caption = 'Work Type Code';
+            ToolTip = 'Specifies which work type the resource applies to. Prices are updated based on this entry.';
             TableRelation = "Work Type";
         }
         field(5; "Unit Price"; Decimal)
@@ -46,10 +49,12 @@ table 201 "Resource Price"
             AutoFormatExpression = Rec."Currency Code";
             AutoFormatType = 2;
             Caption = 'Unit Price';
+            ToolTip = 'Specifies the price of one unit of the item or resource. You can enter a price manually or have it entered according to the Price/Profit Calculation field on the related card.';
         }
         field(6; "Currency Code"; Code[10])
         {
             Caption = 'Currency Code';
+            ToolTip = 'Specifies the currency code of the alternate sales price on this line.';
             TableRelation = Currency;
         }
     }

@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -20,18 +20,21 @@ table 6083 "Serv. Price Adjustment Detail"
         field(1; "Serv. Price Adjmt. Gr. Code"; Code[10])
         {
             Caption = 'Serv. Price Adjmt. Gr. Code';
+            ToolTip = 'Specifies the code of the service price adjustment group that applies to the posted service line.';
             NotBlank = true;
             TableRelation = "Service Price Adjustment Group";
         }
         field(2; Type; Option)
         {
             Caption = 'Type';
+            ToolTip = 'Specifies the type for the service item line to be adjusted.';
             OptionCaption = 'Item,Resource,Resource Group,Service Cost,G/L Account';
             OptionMembers = Item,Resource,"Resource Group","Service Cost","G/L Account";
         }
         field(3; "No."; Code[20])
         {
             Caption = 'No.';
+            ToolTip = 'Specifies the number of the involved entry or record, according to the specified number series.';
             TableRelation = if (Type = const(Item)) Item
             else
             if (Type = const(Resource)) Resource
@@ -77,6 +80,7 @@ table 6083 "Serv. Price Adjustment Detail"
         field(4; "Work Type"; Code[10])
         {
             Caption = 'Work Type';
+            ToolTip = 'Specifies the work type of the resource.';
             TableRelation = "Work Type";
 
             trigger OnValidate()
@@ -98,11 +102,13 @@ table 6083 "Serv. Price Adjustment Detail"
         field(5; "Gen. Prod. Posting Group"; Code[20])
         {
             Caption = 'Gen. Prod. Posting Group';
+            ToolTip = 'Specifies the item''s product type to link transactions made for this item with the appropriate general ledger account according to the general posting setup.';
             TableRelation = "Gen. Product Posting Group";
         }
         field(6; Description; Text[100])
         {
             Caption = 'Description';
+            ToolTip = 'Specifies the service item, resource, resource group, or service cost, of which the price will be adjusted, based on the value selected in the Type field.';
         }
     }
 

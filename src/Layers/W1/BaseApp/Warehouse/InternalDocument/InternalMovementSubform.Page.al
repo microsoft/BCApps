@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -26,7 +26,6 @@ page 7398 "Internal Movement Subform"
                 field("Item No."; Rec."Item No.")
                 {
                     ApplicationArea = Warehouse;
-                    ToolTip = 'Specifies the number of the item that is available to move from the bin.';
 
                     trigger OnValidate()
                     begin
@@ -36,35 +35,29 @@ page 7398 "Internal Movement Subform"
                 field("Variant Code"; Rec."Variant Code")
                 {
                     ApplicationArea = Planning;
-                    ToolTip = 'Specifies the variant of the item on the line.';
                     Visible = false;
                 }
                 field(Description; Rec.Description)
                 {
                     ApplicationArea = Warehouse;
-                    ToolTip = 'Specifies the same as the field with the same name in the Whse. Internal Put-away Line table.';
                 }
                 field("Description 2"; Rec."Description 2")
                 {
                     ApplicationArea = Warehouse;
-                    ToolTip = 'Specifies the second description of the item.';
                     Visible = false;
                 }
                 field("Location Code"; Rec."Location Code")
                 {
                     ApplicationArea = Location;
-                    ToolTip = 'Specifies the code of the location where the internal movement is being performed.';
                 }
                 field("Shelf No."; Rec."Shelf No.")
                 {
                     ApplicationArea = Warehouse;
-                    ToolTip = 'Specifies the shelf number that is recorded on the item card or on the stockkeeping unit card of the item that is being moved.';
                     Visible = false;
                 }
                 field("From Bin Code"; Rec."From Bin Code")
                 {
                     ApplicationArea = Warehouse;
-                    ToolTip = 'Specifies the code of the bin that the items on the internal movement are picked from.';
 
                     trigger OnValidate()
                     begin
@@ -74,12 +67,10 @@ page 7398 "Internal Movement Subform"
                 field("To Bin Code"; Rec."To Bin Code")
                 {
                     ApplicationArea = Warehouse;
-                    ToolTip = 'Specifies the bin where you want items on this internal movement to be placed when they are picked.';
                 }
                 field(Quantity; Rec.Quantity)
                 {
                     ApplicationArea = Warehouse;
-                    ToolTip = 'Specifies the quantity of items to be moved. The quantity must be lower than or equal to the bin content.';
                 }
                 field("Qty. (Base)"; Rec."Qty. (Base)")
                 {
@@ -90,7 +81,6 @@ page 7398 "Internal Movement Subform"
                 field("Due Date"; Rec."Due Date")
                 {
                     ApplicationArea = Warehouse;
-                    ToolTip = 'Specifies the date when the warehouse activity must be completed.';
 
                     trigger OnValidate()
                     begin
@@ -100,12 +90,10 @@ page 7398 "Internal Movement Subform"
                 field("Unit of Measure Code"; Rec."Unit of Measure Code")
                 {
                     ApplicationArea = Warehouse;
-                    ToolTip = 'Specifies how each unit of the item or resource is measured, such as in pieces or hours. By default, the value in the Base Unit of Measure field on the item or resource card is inserted.';
                 }
                 field("Qty. per Unit of Measure"; Rec."Qty. per Unit of Measure")
                 {
                     ApplicationArea = Warehouse;
-                    ToolTip = 'Specifies the same as the field with the same name in the Whse. Internal Put-away Line table.';
                     Visible = false;
                 }
             }

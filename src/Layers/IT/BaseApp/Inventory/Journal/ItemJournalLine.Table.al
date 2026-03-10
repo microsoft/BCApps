@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -56,15 +56,18 @@ table 83 "Item Journal Line"
         field(1; "Journal Template Name"; Code[10])
         {
             Caption = 'Journal Template Name';
+            ToolTip = 'Specifies the name of the journal template, the basis of the journal batch, that the entries were posted from.';
             TableRelation = "Item Journal Template";
         }
         field(2; "Line No."; Integer)
         {
             Caption = 'Line No.';
+            ToolTip = 'Specifies the number of the journal line.';
         }
         field(3; "Item No."; Code[20])
         {
             Caption = 'Item No.';
+            ToolTip = 'Specifies the number of the item on the journal line.';
             TableRelation = Item;
 
             trigger OnValidate()
@@ -198,6 +201,7 @@ table 83 "Item Journal Line"
         field(4; "Posting Date"; Date)
         {
             Caption = 'Posting Date';
+            ToolTip = 'Specifies the posting date for the entry.';
 
             trigger OnValidate()
             var
@@ -211,6 +215,7 @@ table 83 "Item Journal Line"
         field(5; "Entry Type"; Enum "Item Ledger Entry Type")
         {
             Caption = 'Entry Type';
+            ToolTip = 'Specifies the type of transaction that will be posted from the item journal line.';
 
             trigger OnValidate()
             begin
@@ -274,14 +279,17 @@ table 83 "Item Journal Line"
         field(7; "Document No."; Code[20])
         {
             Caption = 'Document No.';
+            ToolTip = 'Specifies a document number for the journal line.';
         }
         field(8; Description; Text[100])
         {
             Caption = 'Description';
+            ToolTip = 'Specifies a description of the item on the journal line.';
         }
         field(9; "Location Code"; Code[10])
         {
             Caption = 'Location Code';
+            ToolTip = 'Specifies the code for the inventory location where the item on the journal line will be registered.';
             TableRelation = Location;
 
             trigger OnValidate()
@@ -350,6 +358,7 @@ table 83 "Item Journal Line"
         {
             AutoFormatType = 0;
             Caption = 'Quantity';
+            ToolTip = 'Specifies the number of units of the item to be included on the journal line.';
             DecimalPlaces = 0 : 5;
 
             trigger OnValidate()
@@ -416,6 +425,7 @@ table 83 "Item Journal Line"
             AutoFormatType = 2;
             AutoFormatExpression = '';
             Caption = 'Unit Amount';
+            ToolTip = 'Specifies the price of one unit of the item on the journal line.';
 
             trigger OnValidate()
             begin
@@ -476,6 +486,7 @@ table 83 "Item Journal Line"
             AutoFormatType = 2;
             AutoFormatExpression = '';
             Caption = 'Unit Cost';
+            ToolTip = 'Specifies the cost of one unit of the item or resource on the line.';
 
             trigger OnValidate()
             begin
@@ -525,6 +536,7 @@ table 83 "Item Journal Line"
             AutoFormatType = 1;
             AutoFormatExpression = '';
             Caption = 'Amount';
+            ToolTip = 'Specifies the line''s net amount.';
 
             trigger OnValidate()
             var
@@ -547,11 +559,13 @@ table 83 "Item Journal Line"
             AutoFormatType = 1;
             AutoFormatExpression = '';
             Caption = 'Discount Amount';
+            ToolTip = 'Specifies the discount amount of this entry on the line.';
             Editable = false;
         }
         field(23; "Salespers./Purch. Code"; Code[20])
         {
             Caption = 'Salespers./Purch. Code';
+            ToolTip = 'Specifies the code for the salesperson or purchaser who is linked to the sale or purchase on the journal line.';
             TableRelation = "Salesperson/Purchaser" where(Blocked = const(false));
 
             trigger OnValidate()
@@ -569,6 +583,7 @@ table 83 "Item Journal Line"
         field(29; "Applies-to Entry"; Integer)
         {
             Caption = 'Applies-to Entry';
+            ToolTip = 'Specifies if the quantity on the journal line must be applied to an already-posted entry. In that case, enter the entry number that the quantity will be applied to.';
 
             trigger OnLookup()
             begin
@@ -650,6 +665,7 @@ table 83 "Item Journal Line"
         {
             CaptionClass = '1,2,1';
             Caption = 'Shortcut Dimension 1 Code';
+            ToolTip = 'Specifies the code for Shortcut Dimension 1, which is one of two global dimension codes that you set up in the General Ledger Setup window.';
             TableRelation = "Dimension Value".Code where("Global Dimension No." = const(1),
                                                           Blocked = const(false));
 
@@ -662,6 +678,7 @@ table 83 "Item Journal Line"
         {
             CaptionClass = '1,2,2';
             Caption = 'Shortcut Dimension 2 Code';
+            ToolTip = 'Specifies the code for Shortcut Dimension 2, which is one of two global dimension codes that you set up in the General Ledger Setup window.';
             TableRelation = "Dimension Value".Code where("Global Dimension No." = const(2),
                                                           Blocked = const(false));
             trigger OnValidate()
@@ -673,6 +690,7 @@ table 83 "Item Journal Line"
         {
             AutoFormatType = 0;
             Caption = 'Indirect Cost %';
+            ToolTip = 'Specifies the percentage of the item''s last purchase cost that includes indirect costs, such as freight that is associated with the purchase of the item.';
             DecimalPlaces = 0 : 5;
             MinValue = 0;
 
@@ -712,23 +730,27 @@ table 83 "Item Journal Line"
         field(41; "Journal Batch Name"; Code[10])
         {
             Caption = 'Journal Batch Name';
+            ToolTip = 'Specifies the name of the journal batch, a personalized journal layout, that the entries were posted from.';
             TableRelation = "Item Journal Batch".Name where("Journal Template Name" = field("Journal Template Name"));
         }
         field(42; "Reason Code"; Code[10])
         {
             Caption = 'Reason Code';
+            ToolTip = 'Specifies the reason code, a supplementary source code that enables you to trace the entry.';
             TableRelation = "Reason Code";
         }
         field(43; "Recurring Method"; Option)
         {
             BlankZero = true;
             Caption = 'Recurring Method';
+            ToolTip = 'Specifies a recurring method, if you have indicated that the journal is recurring.';
             OptionCaption = ',Fixed,Variable';
             OptionMembers = ,"Fixed",Variable;
         }
         field(44; "Expiration Date"; Date)
         {
             Caption = 'Expiration Date';
+            ToolTip = 'Specifies the last date on which the recurring journal will be posted, if you have indicated that the journal is recurring.';
 
             trigger OnValidate()
             begin
@@ -738,6 +760,7 @@ table 83 "Item Journal Line"
         field(45; "Recurring Frequency"; DateFormula)
         {
             Caption = 'Recurring Frequency';
+            ToolTip = 'Specifies a recurring frequency if it is indicated that the journal is recurring.';
         }
         field(46; "Drop Shipment"; Boolean)
         {
@@ -748,21 +771,25 @@ table 83 "Item Journal Line"
         field(47; "Transaction Type"; Code[10])
         {
             Caption = 'Transaction Type';
+            ToolTip = 'Specifies the type of transaction that the document represents, for the purpose of reporting to INTRASTAT.';
             TableRelation = "Transaction Type";
         }
         field(48; "Transport Method"; Code[10])
         {
             Caption = 'Transport Method';
+            ToolTip = 'Specifies the transport method, for the purpose of reporting to INTRASTAT.';
             TableRelation = "Transport Method";
         }
         field(49; "Country/Region Code"; Code[10])
         {
             Caption = 'Country/Region Code';
+            ToolTip = 'Specifies the country/region of the address.';
             TableRelation = "Country/Region";
         }
         field(50; "New Location Code"; Code[10])
         {
             Caption = 'New Location Code';
+            ToolTip = 'Specifies the new location to link to the items on this journal line.';
             TableRelation = Location;
 
             trigger OnValidate()
@@ -793,6 +820,7 @@ table 83 "Item Journal Line"
         {
             CaptionClass = '1,2,1,' + Text007;
             Caption = 'New Shortcut Dimension 1 Code';
+            ToolTip = 'Specifies the new dimension value code that the item journal line will be linked to.';
             TableRelation = "Dimension Value".Code where("Global Dimension No." = const(1),
                                                           Blocked = const(false));
 
@@ -806,6 +834,7 @@ table 83 "Item Journal Line"
         {
             CaptionClass = '1,2,2,' + Text007;
             Caption = 'New Shortcut Dimension 2 Code';
+            ToolTip = 'Specifies the new dimension value code that the item journal line will be linked to.';
             TableRelation = "Dimension Value".Code where("Global Dimension No." = const(2),
                                                           Blocked = const(false));
 
@@ -876,11 +905,13 @@ table 83 "Item Journal Line"
         field(57; "Gen. Bus. Posting Group"; Code[20])
         {
             Caption = 'Gen. Bus. Posting Group';
+            ToolTip = 'Specifies the vendor''s or customer''s trade type to link transactions made for this business partner with the appropriate general ledger account according to the general posting setup.';
             TableRelation = "Gen. Business Posting Group";
         }
         field(58; "Gen. Prod. Posting Group"; Code[20])
         {
             Caption = 'Gen. Prod. Posting Group';
+            ToolTip = 'Specifies the item''s product type to link transactions made for this item with the appropriate general ledger account according to the general posting setup.';
             TableRelation = "Gen. Product Posting Group";
         }
         field(59; "Entry/Exit Point"; Code[10])
@@ -891,10 +922,12 @@ table 83 "Item Journal Line"
         field(60; "Document Date"; Date)
         {
             Caption = 'Document Date';
+            ToolTip = 'Specifies the date when the related document was created.';
         }
         field(62; "External Document No."; Code[35])
         {
             Caption = 'External Document No.';
+            ToolTip = 'Specifies a document number that refers to the customer''s or vendor''s numbering system.';
         }
         field(63; "Area"; Code[10])
         {
@@ -971,6 +1004,7 @@ table 83 "Item Journal Line"
         field(91; "Order No."; Code[20])
         {
             Caption = 'Order No.';
+            ToolTip = 'Specifies the number of the order that created the entry.';
 
             trigger OnValidate()
             begin
@@ -985,6 +1019,7 @@ table 83 "Item Journal Line"
         field(92; "Order Line No."; Integer)
         {
             Caption = 'Order Line No.';
+            ToolTip = 'Specifies the line number of the order that created the entry.';
 
             trigger OnValidate()
             begin
@@ -1052,6 +1087,7 @@ table 83 "Item Journal Line"
         field(5402; "Variant Code"; Code[10])
         {
             Caption = 'Variant Code';
+            ToolTip = 'Specifies the variant of the item on the line.';
             TableRelation = "Item Variant".Code where("Item No." = field("Item No."));
 
             trigger OnValidate()
@@ -1094,6 +1130,7 @@ table 83 "Item Journal Line"
         field(5403; "Bin Code"; Code[20])
         {
             Caption = 'Bin Code';
+            ToolTip = 'Specifies the bin where the items are picked or put away.';
             TableRelation = if ("Entry Type" = filter(Purchase | "Positive Adjmt." | Output),
                                 Quantity = filter(>= 0)) Bin.Code where("Location Code" = field("Location Code"),
                                                                       "Item Filter" = field("Item No."),
@@ -1158,6 +1195,7 @@ table 83 "Item Journal Line"
         field(5406; "New Bin Code"; Code[20])
         {
             Caption = 'New Bin Code';
+            ToolTip = 'Specifies the new bin code to link to the items on this journal line.';
             TableRelation = Bin.Code where("Location Code" = field("New Location Code"),
                                             "Item Filter" = field("Item No."),
                                             "Variant Filter" = field("Variant Code"));
@@ -1189,6 +1227,7 @@ table 83 "Item Journal Line"
         field(5407; "Unit of Measure Code"; Code[10])
         {
             Caption = 'Unit of Measure Code';
+            ToolTip = 'Specifies how each unit of the item or resource is measured, such as in pieces or hours. By default, the value in the Base Unit of Measure field on the item or resource card is inserted.';
             TableRelation = "Item Unit of Measure".Code where("Item No." = field("Item No."));
 
             trigger OnValidate()
@@ -1318,6 +1357,7 @@ table 83 "Item Journal Line"
         field(5561; "Flushing Method"; Enum Microsoft.Manufacturing.Setup."Flushing Method")
         {
             Caption = 'Flushing Method';
+            ToolTip = 'Specifies how consumption of the item (component) is calculated and handled in production processes. Manual: Enter and post consumption in the consumption journal manually. Forward: Automatically posts consumption according to the production order component lines when the first operation starts. Backward: Automatically calculates and posts consumption according to the production order component lines when the production order is finished. Pick + Forward / Pick + Backward: Variations with warehousing.';
             Editable = false;
         }
         field(5562; "Changed by User"; Boolean)
@@ -1360,6 +1400,7 @@ table 83 "Item Journal Line"
         {
             AccessByPermission = TableData "Item Reference" = R;
             Caption = 'Item Reference No.';
+            ToolTip = 'Specifies a reference to the item number as defined by the item''s barcode.';
             ExtendedDatatype = Barcode;
 
             trigger OnLookup()
@@ -1462,6 +1503,7 @@ table 83 "Item Journal Line"
         field(5807; "Applies-from Entry"; Integer)
         {
             Caption = 'Applies-from Entry';
+            ToolTip = 'Specifies the number of the outbound item ledger entry, whose cost is forwarded to the inbound item ledger entry.';
             MinValue = 0;
 
             trigger OnLookup()
@@ -1574,6 +1616,7 @@ table 83 "Item Journal Line"
         field(5830; Type; Enum Microsoft.Manufacturing.Capacity."Capacity Type Journal")
         {
             Caption = 'Type';
+            ToolTip = 'Specifies the journal type, which is either Work Center or Machine Center.';
             InitValue = " ";
 
             trigger OnValidate()
@@ -1585,6 +1628,7 @@ table 83 "Item Journal Line"
         field(5831; "No."; Code[20])
         {
             Caption = 'No.';
+            ToolTip = 'Specifies the number of the involved entry or record, according to the specified number series.';
             TableRelation = if (Type = const(Resource)) Resource;
 
             trigger OnValidate()
@@ -1614,6 +1658,7 @@ table 83 "Item Journal Line"
         field(5858; "Cap. Unit of Measure Code"; Code[10])
         {
             Caption = 'Cap. Unit of Measure Code';
+            ToolTip = 'Specifies the unit of measure code for the capacity usage.';
             TableRelation = if (Type = const(Resource)) "Resource Unit of Measure".Code where("Resource No." = field("No."))
             else
             Microsoft.Manufacturing.Capacity."Capacity Unit of Measure";
@@ -1652,6 +1697,7 @@ table 83 "Item Journal Line"
         field(6500; "Serial No."; Code[50])
         {
             Caption = 'Serial No.';
+            ToolTip = 'Specifies the serial number of the item.';
 
             trigger OnValidate()
             begin
@@ -1661,6 +1707,7 @@ table 83 "Item Journal Line"
         field(6501; "Lot No."; Code[50])
         {
             Caption = 'Lot No.';
+            ToolTip = 'Specifies the lot number of the item.';
 
             trigger OnValidate()
             begin
@@ -1670,6 +1717,7 @@ table 83 "Item Journal Line"
         field(6502; "Warranty Date"; Date)
         {
             Caption = 'Warranty Date';
+            ToolTip = 'Specifies the warranty expiration date of the item.';
 
             trigger OnValidate()
             begin
@@ -1698,6 +1746,7 @@ table 83 "Item Journal Line"
         field(6515; "Package No."; Code[50])
         {
             Caption = 'Package No.';
+            ToolTip = 'Specifies the package number of the item.';
             CaptionClass = '6,1';
 
             trigger OnValidate()
@@ -1719,6 +1768,7 @@ table 83 "Item Journal Line"
         field(7000; "Price Calculation Method"; Enum "Price Calculation Method")
         {
             Caption = 'Price Calculation Method';
+            ToolTip = 'Specifies the method that will be used for price calculation in the journal line.';
         }
         field(7315; "Warehouse Adjustment"; Boolean)
         {
@@ -3308,6 +3358,8 @@ table 83 "Item Journal Line"
         DimMgt.EditReclasDimensionSet(
           "Dimension Set ID", "New Dimension Set ID", StrSubstNo('%1 %2 %3', "Journal Template Name", "Journal Batch Name", "Line No."),
           "Shortcut Dimension 1 Code", "Shortcut Dimension 2 Code", "New Shortcut Dimension 1 Code", "New Shortcut Dimension 2 Code");
+
+        OnAfterShowReclasDimensions(Rec, xRec);
     end;
 
     /// <summary>
@@ -3756,7 +3808,7 @@ table 83 "Item Journal Line"
             Item.TestField(Type, Item.Type::Inventory);
     end;
 
-    local procedure IsEntryTypeConsumption() Result: Boolean
+    procedure IsEntryTypeConsumption() Result: Boolean
     begin
         OnAfterIsEntryTypeConsumption(Rec, Result);
     end;
@@ -3766,12 +3818,12 @@ table 83 "Item Journal Line"
         OnAfterIsEntryTypeOutput(Rec, Result);
     end;
 
-    local procedure IsEntryTypeProduction() Result: Boolean
+    procedure IsEntryTypeProduction() Result: Boolean
     begin
         OnAfterIsEntryTypeProduction(Rec, Result);
     end;
 
-    local procedure IsOrderTypeAsmOrProd() Result: Boolean
+    procedure IsOrderTypeAsmOrProd() Result: Boolean
     begin
         OnAfterIsOrderTypeAsmOrProd(Rec, Result);
     end;
@@ -5032,6 +5084,11 @@ table 83 "Item Journal Line"
 
     [IntegrationEvent(false, false)]
     local procedure OnAfterShowDimensions(var ItemJournalLine: Record "Item Journal Line"; var xItemJournalLine: Record "Item Journal Line")
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnAfterShowReclasDimensions(var ItemJournalLine: Record "Item Journal Line"; var xItemJournalLine: Record "Item Journal Line")
     begin
     end;
 

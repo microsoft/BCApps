@@ -27,13 +27,11 @@ page 1358 "Posted Service Ship. - Update"
                 {
                     ApplicationArea = Service;
                     Editable = false;
-                    ToolTip = 'Specifies the number of the involved entry or record, according to the specified number series.';
                 }
                 field(Name; Rec.Name)
                 {
                     ApplicationArea = Service;
                     Editable = false;
-                    ToolTip = 'Specifies the name of the customer.';
                 }
             }
             group(Shipping)
@@ -43,13 +41,11 @@ page 1358 "Posted Service Ship. - Update"
                 {
                     ApplicationArea = Service;
                     Editable = true;
-                    ToolTip = 'Specifies the code for the shipment method that is associated with the posted service shipment.';
                 }
                 field("Shipping Agent Code"; Rec."Shipping Agent Code")
                 {
                     ApplicationArea = Service;
                     Editable = true;
-                    ToolTip = 'Specifies the code of the shipping agent for the posted service shipment.';
                 }
             }
         }

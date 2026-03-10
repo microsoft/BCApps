@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -30,7 +30,6 @@ page 7211 "CRM Freight Terms List"
                     ApplicationArea = Suite;
                     Caption = 'Code';
                     StyleExpr = FirstColumnStyle;
-                    ToolTip = 'Specifies data from a corresponding field in a Dataverse entity. For more information about Dataverse, see Dataverse Help Center.';
                 }
                 field(Coupled; Coupled)
                 {

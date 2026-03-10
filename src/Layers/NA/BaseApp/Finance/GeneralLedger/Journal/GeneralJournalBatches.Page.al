@@ -102,6 +102,12 @@ page 251 "General Journal Batches"
                     ApplicationArea = Suite;
                     ToolTip = 'Specifies whether the journal lines to be copied to posted journal lines of the selected journal batch.';
                 }
+                field("No. of Lines"; Rec."No. of Lines")
+                {
+                    ApplicationArea = Basic, Suite;
+                    ToolTip = 'Specifies the number of lines in this journal batch.';
+                    Visible = false;
+                }
             }
         }
         area(factboxes)

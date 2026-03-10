@@ -1868,8 +1868,11 @@ codeunit 365 "Format Address"
     end;
 
     procedure SetLanguageCode(NewLanguageCode: Code[10])
+    var
+        CompanyInformationMgt: Codeunit "Company Information Mgt.";
     begin
         LanguageCode := NewLanguageCode;
+        CompanyInformationMgt.GetLanguageDefault(LanguageCode);
     end;
 
     [EventSubscriber(ObjectType::Table, Database::"General Ledger Setup", 'OnAfterModifyEvent', '', false, false)]

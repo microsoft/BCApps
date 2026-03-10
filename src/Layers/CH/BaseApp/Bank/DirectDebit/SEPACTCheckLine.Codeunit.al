@@ -42,6 +42,7 @@ codeunit 1223 "SEPA CT-Check Line"
         EuroCurrErr: Label 'Only transactions in euro (EUR) are allowed, because the %1 bank account is set up to use the %2 export format.', Comment = '%1= bank account No, %2 export format; Example: Only transactions in euro (EUR) are allowed, because the GIRO bank account is set up to use the SEPACT export format.';
         FieldBlankErr: Label 'The %1 field must be filled.', Comment = '%1= field name. Example: The Name field must be filled.';
         FieldKeyBlankErr: Label '%1 %2 must have a value in %3.', Comment = '%1=table name, %2=key field value, %3=field name. Example: Customer 10000 must have a value in Name.';
+        FieldKeyBlank2Err: Label '%1 %2 must have a value in %3 or in %4', Comment = '%1=table name, %2=key field value, %3=field name,%4=field name 2. Example: Customer 10000 must have a value in Name.';
         SwissExport: Boolean;
         UnknownSwissPaymentTypeErr: Label 'Unknown Swiss SEPA CT export payment type.';
         IBANTypeErr: Label 'The IBAN type on the recipient bank account must match the payment reference type.';
@@ -185,6 +186,14 @@ codeunit 1223 "SEPA CT-Check Line"
         GenJnlLine.InsertPaymentFileError(ErrorText);
     end;
 
+    local procedure AddFieldEmptyError(var GenJnlLine: Record "Gen. Journal Line"; TableCaption2: Text; FieldCaption: Text; FieldCaption2: Text; KeyValue: Text)
+    var
+        ErrorText: Text;
+    begin
+        ErrorText := StrSubstNo(FieldKeyBlank2Err, TableCaption2, KeyValue, FieldCaption, FieldCaption2);
+        GenJnlLine.InsertPaymentFileError(ErrorText);
+    end;
+
     local procedure CheckSwissExportVendorBankPaymentType(GenJnlLine: Record "Gen. Journal Line"; VendorBankAccount: Record "Vendor Bank Account"; var SwissIgnoreIBAN: Boolean)
     var
         DummyPaymentExportData: Record "Payment Export Data";
@@ -247,7 +256,7 @@ codeunit 1223 "SEPA CT-Check Line"
                     AddFieldEmptyError(GenJnlLine, VendorBankAccount.TableCaption(), VendorBankAccount.FieldCaption(VendorBankAccount.IBAN), VendorBankAccount.Code);
             VendorBankAccount."Payment Form"::"Bank Payment Domestic":
                 if (VendorBankAccount."Clearing No." = '') and (VendorBankAccount."SWIFT Code" = '') then
-                    AddFieldEmptyError(GenJnlLine, VendorBankAccount.TableCaption(), VendorBankAccount.FieldCaption(VendorBankAccount."SWIFT Code"), VendorBankAccount.Code);
+                    AddFieldEmptyError(GenJnlLine, VendorBankAccount.TableCaption(), VendorBankAccount.FieldCaption(VendorBankAccount."SWIFT Code"), VendorBankAccount.FieldCaption(VendorBankAccount."Clearing No."), VendorBankAccount.Code);
             VendorBankAccount."Payment Form"::"Bank Payment Abroad", VendorBankAccount."Payment Form"::"Post Payment Abroad":
                 if VendorBankAccount."SWIFT Code" = '' then
                     AddFieldEmptyError(GenJnlLine, VendorBankAccount.TableCaption(), VendorBankAccount.FieldCaption(VendorBankAccount."SWIFT Code"), VendorBankAccount.Code);

@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -24,7 +24,6 @@ page 5620 "Fixed Asset Picture"
             {
                 ApplicationArea = FixedAssets;
                 ShowCaption = false;
-                ToolTip = 'Specifies the picture that has been inserted for the fixed asset.';
             }
         }
     }

@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -24,17 +24,14 @@ page 5072 "Rlshp. Mgt. Comment Sheet"
                 field(Date; Rec.Date)
                 {
                     ApplicationArea = RelationshipMgmt;
-                    ToolTip = 'Specifies the date the comment was created.';
                 }
                 field(Comment; Rec.Comment)
                 {
                     ApplicationArea = RelationshipMgmt;
-                    ToolTip = 'Specifies the comment itself.';
                 }
                 field("Code"; Rec.Code)
                 {
                     ApplicationArea = RelationshipMgmt;
-                    ToolTip = 'Specifies the code for the comment.';
                     Visible = false;
                 }
             }

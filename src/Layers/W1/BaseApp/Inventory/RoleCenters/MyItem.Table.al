@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -24,6 +24,7 @@ table 9152 "My Item"
         field(2; "Item No."; Code[20])
         {
             Caption = 'Item No.';
+            ToolTip = 'Specifies the item numbers that are displayed in the My Item Cue on the Role Center.';
             NotBlank = true;
             TableRelation = Item;
 
@@ -35,6 +36,7 @@ table 9152 "My Item"
         field(3; Description; Text[100])
         {
             Caption = 'Description';
+            ToolTip = 'Specifies a description of the item.';
             Editable = false;
         }
         field(4; "Unit Price"; Decimal)
@@ -42,6 +44,7 @@ table 9152 "My Item"
             AutoFormatType = 1;
             AutoFormatExpression = '';
             Caption = 'Unit Price';
+            ToolTip = 'Specifies the item''s unit price.';
             Editable = false;
         }
         field(5; Inventory; Decimal)
@@ -49,6 +52,7 @@ table 9152 "My Item"
             AutoFormatType = 0;
             CalcFormula = sum("Item Ledger Entry".Quantity where("Item No." = field("Item No.")));
             Caption = 'Inventory';
+            ToolTip = 'Specifies the inventory quantities of my items.';
             Editable = false;
             FieldClass = FlowField;
         }

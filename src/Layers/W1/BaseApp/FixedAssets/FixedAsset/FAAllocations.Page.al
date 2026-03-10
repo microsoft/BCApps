@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -28,20 +28,17 @@ page 5623 "FA Allocations"
                     ApplicationArea = FixedAssets;
                     AboutTitle = 'Manage Account No.';
                     AboutText = 'Choose the G/L Account No. on which the allocation value will be posted.';
-                    ToolTip = 'Specifies the account number to allocate to for the fixed asset allocation type on this line.';
                 }
                 field("Account Name"; Rec."Account Name")
                 {
                     ApplicationArea = FixedAssets;
                     DrillDown = false;
-                    ToolTip = 'Specifies the name of the account on this allocation line.';
                 }
                 field("Allocation %"; Rec."Allocation %")
                 {
                     ApplicationArea = FixedAssets;
                     AboutTitle = 'Manage Allocation Percentage';
                     AboutText = 'Specify the allocation percentage to calculate the amount during the transactions.';
-                    ToolTip = 'Specifies the percentage to use when allocating the amount for the allocation type.';
                 }
             }
             group(Control18)

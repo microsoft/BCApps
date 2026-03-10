@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -115,6 +115,7 @@ table 5345 "CRM Transactioncurrency"
         field(12; CurrencyName; Text[100])
         {
             Caption = 'Currency Name';
+            ToolTip = 'Specifies the name of the currency.';
             Description = 'Name of the transaction currency.';
             ExternalName = 'currencyname';
             ExternalType = 'String';
@@ -131,6 +132,7 @@ table 5345 "CRM Transactioncurrency"
         field(14; ISOCurrencyCode; Text[5])
         {
             Caption = 'Currency Code';
+            ToolTip = 'Specifies the ISO currency code, which is required in Dataverse.';
             Description = 'ISO currency code for the transaction currency.';
             ExternalAccess = Insert;
             ExternalName = 'isocurrencycode';

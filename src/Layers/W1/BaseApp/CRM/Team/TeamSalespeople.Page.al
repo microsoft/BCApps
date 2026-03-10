@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -21,13 +21,11 @@ page 5106 "Team Salespeople"
                 field("Salesperson Code"; Rec."Salesperson Code")
                 {
                     ApplicationArea = Suite;
-                    ToolTip = 'Specifies the code of the salesperson you want to register as part of the team.';
                 }
                 field("Salesperson Name"; Rec."Salesperson Name")
                 {
                     ApplicationArea = Suite;
                     DrillDown = false;
-                    ToolTip = 'Specifies the name of the salesperson you want to register as part of the team.';
                 }
             }
         }

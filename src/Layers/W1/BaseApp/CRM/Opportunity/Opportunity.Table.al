@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -34,6 +34,7 @@ table 5092 Opportunity
         field(1; "No."; Code[20])
         {
             Caption = 'No.';
+            ToolTip = 'Specifies the number of the involved entry or record, according to the specified number series.';
 
             trigger OnValidate()
             begin
@@ -47,10 +48,12 @@ table 5092 Opportunity
         field(2; Description; Text[100])
         {
             Caption = 'Description';
+            ToolTip = 'Specifies the description of the opportunity.';
         }
         field(3; "Salesperson Code"; Code[20])
         {
             Caption = 'Salesperson Code';
+            ToolTip = 'Specifies the code of the salesperson that is responsible for the opportunity.';
             TableRelation = "Salesperson/Purchaser" where(Blocked = const(false));
 
             trigger OnValidate()
@@ -123,6 +126,7 @@ table 5092 Opportunity
         field(4; "Campaign No."; Code[20])
         {
             Caption = 'Campaign No.';
+            ToolTip = 'Specifies the number of the campaign to which this opportunity is linked.';
             TableRelation = Campaign;
 
             trigger OnLookup()
@@ -169,6 +173,7 @@ table 5092 Opportunity
         field(5; "Contact No."; Code[20])
         {
             Caption = 'Contact No.';
+            ToolTip = 'Specifies the number of the contact that this opportunity is linked to.';
             TableRelation = Contact;
 
             trigger OnLookup()
@@ -277,11 +282,13 @@ table 5092 Opportunity
         field(6; "Contact Company No."; Code[20])
         {
             Caption = 'Contact Company No.';
+            ToolTip = 'Specifies the number of the company that is linked to this opportunity.';
             TableRelation = Contact where(Type = const(Company));
         }
         field(7; "Sales Cycle Code"; Code[10])
         {
             Caption = 'Sales Cycle Code';
+            ToolTip = 'Specifies the code of the sales cycle that the opportunity is linked to.';
             TableRelation = "Sales Cycle";
 
             trigger OnValidate()
@@ -295,6 +302,7 @@ table 5092 Opportunity
         field(8; "Sales Document No."; Code[20])
         {
             Caption = 'Sales Document No.';
+            ToolTip = 'Specifies the number of the sales document that has been created for this opportunity.';
             TableRelation = if ("Sales Document Type" = const(Quote)) "Sales Header"."No." where("Document Type" = const(Quote),
                                                                                                 "Sell-to Contact No." = field("Contact No."))
             else
@@ -341,25 +349,30 @@ table 5092 Opportunity
         field(9; "Creation Date"; Date)
         {
             Caption = 'Creation Date';
+            ToolTip = 'Specifies the date that the opportunity was created.';
         }
         field(10; Status; Enum "Opportunity Status")
         {
             Caption = 'Status';
+            ToolTip = 'Specifies the status of the opportunity. There are four options:';
             Editable = false;
         }
         field(11; Priority; Enum "Opportunity Priority")
         {
             Caption = 'Priority';
+            ToolTip = 'Specifies the priority of the opportunity. There are three options:';
             InitValue = Normal;
         }
         field(12; Closed; Boolean)
         {
             Caption = 'Closed';
+            ToolTip = 'Specifies that the opportunity is closed.';
             Editable = false;
         }
         field(13; "Date Closed"; Date)
         {
             Caption = 'Date Closed';
+            ToolTip = 'Specifies the date the opportunity was closed.';
             Editable = false;
         }
         field(15; "No. Series"; Code[20])
@@ -382,6 +395,7 @@ table 5092 Opportunity
             CalcFormula = lookup("Opportunity Entry"."Sales Cycle Stage" where("Opportunity No." = field("No."),
                                                                                 Active = const(true)));
             Caption = 'Current Sales Cycle Stage';
+            ToolTip = 'Specifies the current sales cycle stage of the opportunity.';
             Editable = false;
             FieldClass = FlowField;
         }
@@ -401,6 +415,7 @@ table 5092 Opportunity
             CalcFormula = lookup("Opportunity Entry"."Probability %" where("Opportunity No." = field("No."),
                                                                             Active = const(true)));
             Caption = 'Probability %';
+            ToolTip = 'Specifies the probability of the opportunity resulting in a sale.';
             DecimalPlaces = 1 : 1;
             Editable = false;
             FieldClass = FlowField;
@@ -421,6 +436,7 @@ table 5092 Opportunity
             CalcFormula = lookup("Opportunity Entry"."Chances of Success %" where("Opportunity No." = field("No."),
                                                                                    Active = const(true)));
             Caption = 'Chances of Success %';
+            ToolTip = 'Specifies the chances of success of the opportunity.';
             DecimalPlaces = 0 : 0;
             Editable = false;
             FieldClass = FlowField;
@@ -431,6 +447,7 @@ table 5092 Opportunity
             CalcFormula = lookup("Opportunity Entry"."Completed %" where("Opportunity No." = field("No."),
                                                                           Active = const(true)));
             Caption = 'Completed %';
+            ToolTip = 'Specifies the percentage of the sales cycle that has been completed for this opportunity.';
             DecimalPlaces = 0 : 0;
             Editable = false;
             FieldClass = FlowField;
@@ -439,6 +456,7 @@ table 5092 Opportunity
         {
             CalcFormula = lookup(Contact.Name where("No." = field("Contact No.")));
             Caption = 'Contact Name';
+            ToolTip = 'Specifies the name of the contact to which this opportunity is linked. The program automatically fills in this field when you have entered a number in the No. field.';
             Editable = false;
             FieldClass = FlowField;
         }
@@ -446,6 +464,7 @@ table 5092 Opportunity
         {
             CalcFormula = lookup(Contact.Name where("No." = field("Contact Company No.")));
             Caption = 'Contact Company Name';
+            ToolTip = 'Specifies the name of the company of the contact person to which this opportunity is linked. The program automatically fills in this field when you have entered a number in the Contact Company No. field.';
             Editable = false;
             FieldClass = FlowField;
         }
@@ -460,12 +479,14 @@ table 5092 Opportunity
         {
             CalcFormula = lookup(Campaign.Description where("No." = field("Campaign No.")));
             Caption = 'Campaign Description';
+            ToolTip = 'Specifies the description of the campaign to which the opportunity is linked. The program automatically fills in this field when you have entered a number in the Campaign No. field.';
             Editable = false;
             FieldClass = FlowField;
         }
         field(27; "Segment No."; Code[20])
         {
             Caption = 'Segment No.';
+            ToolTip = 'Specifies the number of the segment (if any) that is linked to the opportunity.';
             TableRelation = "Segment Header";
 
             trigger OnLookup()
@@ -489,12 +510,14 @@ table 5092 Opportunity
             CalcFormula = lookup("Opportunity Entry"."Estimated Close Date" where("Opportunity No." = field("No."),
                                                                                    Active = const(true)));
             Caption = 'Estimated Closing Date';
+            ToolTip = 'Specifies the estimated closing date of the opportunity.';
             Editable = false;
             FieldClass = FlowField;
         }
         field(29; "Sales Document Type"; Enum "Opportunity Document Type")
         {
             Caption = 'Sales Document Type';
+            ToolTip = 'Specifies the type of the sales document (Quote, Order, Posted Invoice). The combination of Sales Document No. and Sales Document Type specifies which sales document is assigned to the opportunity.';
 
             trigger OnValidate()
             begin
@@ -510,6 +533,7 @@ table 5092 Opportunity
                                                                Canceled = const(false),
                                                                Postponed = const(false)));
             Caption = 'No. of Interactions';
+            ToolTip = 'Specifies the number of interactions linked to this opportunity.';
             Editable = false;
             FieldClass = FlowField;
         }
@@ -527,6 +551,7 @@ table 5092 Opportunity
         {
             FieldClass = FlowField;
             Caption = 'Coupled to Dynamics 365 Sales';
+            ToolTip = 'Specifies that the opportunity is coupled to an opportunity in Dynamics 365 Sales.';
             Editable = false;
             CalcFormula = exist("CRM Integration Record" where("Integration ID" = field(SystemId), "Table ID" = const(Database::Opportunity)));
         }
@@ -540,10 +565,12 @@ table 5092 Opportunity
         field(9502; "Activate First Stage"; Boolean)
         {
             Caption = 'Activate First Stage';
+            ToolTip = 'Specifies if the opportunity is to be activated. If you select the check box, then you can fill out the remainder of the fields on this page. In the Opportunity Card window, the status is set to In Progress.';
         }
         field(9503; "Segment Description"; Text[100])
         {
             Caption = 'Segment Description';
+            ToolTip = 'Specifies a description of the segment that is related to the opportunity. The description is copied from the segment card.';
         }
         field(9504; "Wizard Estimated Value (LCY)"; Decimal)
         {
@@ -555,19 +582,23 @@ table 5092 Opportunity
         {
             AutoFormatType = 0;
             Caption = 'Wizard Chances of Success %';
+            ToolTip = 'Specifies the value in the wizard for the opportunity. You can specify a percentage completion estimate in this field.';
             DecimalPlaces = 0 : 0;
         }
         field(9506; "Wizard Estimated Closing Date"; Date)
         {
             Caption = 'Wizard Estimated Closing Date';
+            ToolTip = 'Specifies a closing date for the opportunity from the wizard.';
         }
         field(9507; "Wizard Contact Name"; Text[100])
         {
             Caption = 'Wizard Contact Name';
+            ToolTip = 'Specifies the contact who is involved in this opportunity.';
         }
         field(9508; "Wizard Campaign Description"; Text[100])
         {
             Caption = 'Wizard Campaign Description';
+            ToolTip = 'Specifies the campaign that the opportunity is related to. The description is copied from the campaign card.';
         }
     }
 

@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -22,45 +22,37 @@ page 5986 "Service Item Component List"
                 field("Parent Service Item No."; Rec."Parent Service Item No.")
                 {
                     ApplicationArea = Service;
-                    ToolTip = 'Specifies the number of the service item in which the component is included.';
                     Visible = false;
                 }
                 field("Line No."; Rec."Line No.")
                 {
                     ApplicationArea = Service;
-                    ToolTip = 'Specifies the number of the line.';
                     Visible = false;
                 }
                 field(Active; Rec.Active)
                 {
                     ApplicationArea = Service;
-                    ToolTip = 'Specifies that the component is in use.';
                     Visible = false;
                 }
                 field(Type; Rec.Type)
                 {
                     ApplicationArea = Service;
-                    ToolTip = 'Specifies the component type.';
                 }
                 field("No."; Rec."No.")
                 {
                     ApplicationArea = Service;
-                    ToolTip = 'Specifies the number of the involved entry or record, according to the specified number series.';
                 }
                 field("Variant Code"; Rec."Variant Code")
                 {
                     ApplicationArea = Planning;
-                    ToolTip = 'Specifies the variant of the item on the line.';
                 }
                 field(Description; Rec.Description)
                 {
                     ApplicationArea = Service;
-                    ToolTip = 'Specifies a description of the component.';
                 }
                 field("Serial No."; Rec."Serial No.")
                 {
                     ApplicationArea = ItemTracking;
-                    ToolTip = 'Specifies the serial number of the component.';
 
                     trigger OnAssistEdit()
                     begin
@@ -70,18 +62,15 @@ page 5986 "Service Item Component List"
                 field("Date Installed"; Rec."Date Installed")
                 {
                     ApplicationArea = Service;
-                    ToolTip = 'Specifies the date when the component was installed.';
                 }
                 field("From Line No."; Rec."From Line No.")
                 {
                     ApplicationArea = Service;
-                    ToolTip = 'Specifies the line number assigned to the component when it was an active component of the service item.';
                     Visible = false;
                 }
                 field("Last Date Modified"; Rec."Last Date Modified")
                 {
                     ApplicationArea = Service;
-                    ToolTip = 'Specifies the date when the component was last modified.';
                     Visible = false;
                 }
             }

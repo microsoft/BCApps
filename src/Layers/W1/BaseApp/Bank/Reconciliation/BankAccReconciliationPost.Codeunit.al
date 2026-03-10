@@ -809,22 +809,27 @@ codeunit 370 "Bank Acc. Reconciliation Post"
     var
         VendLedgEntry: Record "Vendor Ledger Entry";
         CurrExchRate: Record "Currency Exchange Rate";
+        ApplyVendLedgEntryHandled: Boolean;
     begin
         VendLedgEntry.Get(AppliedPmtEntry."Applies-to Entry No.");
         VendLedgEntry.TestField(Open);
         BankAcc.Get(AppliedPmtEntry."Bank Account No.");
-        if AppliesToID = '' then begin
-            VendLedgEntry."Pmt. Discount Date" := PmtDiscDueDate;
-            VendLedgEntry."Pmt. Disc. Tolerance Date" := PmtDiscToleranceDate;
 
-            VendLedgEntry."Remaining Pmt. Disc. Possible" := RemPmtDiscPossible;
-            if BankAcc.IsInLocalCurrency() then
-                VendLedgEntry."Remaining Pmt. Disc. Possible" :=
-                  CurrExchRate.ExchangeAmount(VendLedgEntry."Remaining Pmt. Disc. Possible", '', VendLedgEntry."Currency Code", PostingDate);
-        end else begin
-            VendLedgEntry."Applies-to ID" := AppliesToID;
-            VendLedgEntry."Amount to Apply" := AppliedPmtEntry.CalcAmountToApply(PostingDate);
-        end;
+        ApplyVendLedgEntryHandled := false;
+        OnBeforeApplyVendLedgEntry(VendLedgEntry, AppliedPmtEntry, BankAcc, AppliesToID, PostingDate, PmtDiscDueDate, PmtDiscToleranceDate, RemPmtDiscPossible, ApplyVendLedgEntryHandled);
+        if not ApplyVendLedgEntryHandled then
+            if AppliesToID = '' then begin
+                VendLedgEntry."Pmt. Discount Date" := PmtDiscDueDate;
+                VendLedgEntry."Pmt. Disc. Tolerance Date" := PmtDiscToleranceDate;
+
+                VendLedgEntry."Remaining Pmt. Disc. Possible" := RemPmtDiscPossible;
+                if BankAcc.IsInLocalCurrency() then
+                    VendLedgEntry."Remaining Pmt. Disc. Possible" :=
+                      CurrExchRate.ExchangeAmount(VendLedgEntry."Remaining Pmt. Disc. Possible", '', VendLedgEntry."Currency Code", PostingDate);
+            end else begin
+                VendLedgEntry."Applies-to ID" := AppliesToID;
+                VendLedgEntry."Amount to Apply" := AppliedPmtEntry.CalcAmountToApply(PostingDate);
+            end;
 
         if PreviewMode then
             VendEntryEditNoCommit(VendLedgEntry)
@@ -1245,6 +1250,23 @@ codeunit 370 "Bank Acc. Reconciliation Post"
     /// <param name="IsHandled">Indicates whether the event has been handled.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeApplyCustLedgEntry(var CustLedgerEntry: Record "Cust. Ledger Entry"; AppliedPaymentEntry: Record "Applied Payment Entry"; var BankAccount: Record "Bank Account"; AppliesToID: Code[50]; PostingDate: Date; PmtDiscDueDate: Date; PmtDiscToleranceDate: Date; RemPmtDiscPossible: Decimal; var IsHandled: Boolean)
+    begin
+    end;
+
+    /// <summary>
+    /// Event raised before applying a vendor ledger entry during bank reconciliation posting.
+    /// </summary>
+    /// <param name="VendLedgerEntry">The vendor ledger entry record being applied.</param>
+    /// <param name="AppliedPaymentEntry">The applied payment entry record.</param>
+    /// <param name="BankAccount">The bank account record.</param>
+    /// <param name="AppliesToID">The applies-to identifier for the application.</param>
+    /// <param name="PostingDate">The posting date for the application.</param>
+    /// <param name="PmtDiscDueDate">The payment discount due date.</param>
+    /// <param name="PmtDiscToleranceDate">The payment discount tolerance date.</param>
+    /// <param name="RemPmtDiscPossible">The remaining payment discount possible amount.</param>
+    /// <param name="ApplyVendLedgEntryHandled">Indicates whether the event has been handled.</param>
+    [IntegrationEvent(false, false)]
+    local procedure OnBeforeApplyVendLedgEntry(var VendLedgerEntry: Record "Vendor Ledger Entry"; AppliedPaymentEntry: Record "Applied Payment Entry"; var BankAccount: Record "Bank Account"; AppliesToID: Code[50]; PostingDate: Date; PmtDiscDueDate: Date; PmtDiscToleranceDate: Date; RemPmtDiscPossible: Decimal; var ApplyVendLedgEntryHandled: Boolean)
     begin
     end;
 }

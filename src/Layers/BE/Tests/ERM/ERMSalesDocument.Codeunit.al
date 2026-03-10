@@ -58,6 +58,7 @@
         AmountMustSameErr: Label 'Amount must be same';
         QtyHandleMustSameErr: Label 'Qty to handle must equal';
         CannotRenameItemErr: Label 'You cannot rename %1 in a %2 because it is used in Sales Document lines.';
+        CurrencyFactorErr: Label 'Currency Factor should be set when Currency Code is not empty';
 
     [Test]
     [Scope('OnPrem')]
@@ -4735,7 +4736,7 @@
 
         GLEntry.SetRange("Dimension Set ID", DimSetID[2]);
         GLEntry.FindFirst();
-        Assert.AreEqual(-Amount[2], GLEntry.Amount, AmountNotMatchedErr);
+        Assert.AreNearlyEqual(-Amount[2], GLEntry.Amount, LibraryERM.GetAmountRoundingPrecision(), AmountNotMatchedErr);
     end;
 
     [Test]
@@ -5039,6 +5040,42 @@
         CustomerCardPage."Reminder Terms Code".SetValue(ReminderTerms.Code);
 
         //[THEN] Check Reminder terms List page open when click on Reminder Term Code on Customer Card
+    end;
+
+    [Test]
+    [HandlerFunctions('ConfirmHandler')]
+    [Scope('OnPrem')]
+    procedure ChangeBillToCustomerWithCurrencyAfterLines()
+    var
+        CustomerLCY: Record Customer;
+        CustomerFCY: Record Customer;
+        SalesHeader: Record "Sales Header";
+        SalesLine: Record "Sales Line";
+        CurrencyCode: Code[10];
+    begin
+        // [SCENARIO 619786] Changing Bill-to Customer from LCY to foreign currency after adding lines should not error
+        Initialize();
+
+        // [GIVEN] Customer with LCY currency
+        LibrarySales.CreateCustomer(CustomerLCY);
+
+        // [GIVEN] Customer with foreign currency (USD)
+        CurrencyCode := CreateCurrency();
+        LibrarySales.CreateCustomer(CustomerFCY);
+        CustomerFCY.Validate("Currency Code", CurrencyCode);
+        CustomerFCY.Modify(true);
+
+        // [GIVEN] Create Sales invoice
+        LibrarySales.CreateSalesHeader(SalesHeader, SalesHeader."Document Type"::Invoice, CustomerLCY."No.");
+        LibrarySales.CreateSalesLine(SalesLine, SalesHeader, SalesLine.Type::Item, LibraryInventory.CreateItemNo(), LibraryRandom.RandInt(10));
+
+        // [WHEN] Change Bill-to Customer to foreign currency customer
+        SalesHeader.Validate("Bill-to Customer No.", CustomerFCY."No.");
+        SalesHeader.Modify(true);
+
+        // [THEN] Check the currency factor
+        SalesHeader.TestField("Currency Code", CurrencyCode);
+        Assert.AreNotEqual(0, SalesHeader."Currency Factor", CurrencyFactorErr);
     end;
 
     local procedure Initialize()

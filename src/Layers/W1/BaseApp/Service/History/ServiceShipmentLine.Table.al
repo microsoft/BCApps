@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -52,25 +52,30 @@ table 5991 "Service Shipment Line"
         field(2; "Customer No."; Code[20])
         {
             Caption = 'Customer No.';
+            ToolTip = 'Specifies the number of the customer who owns the items on the service order.';
             Editable = false;
             TableRelation = Customer;
         }
         field(3; "Document No."; Code[20])
         {
             Caption = 'Document No.';
+            ToolTip = 'Specifies the number of this shipment.';
             TableRelation = "Service Shipment Header"."No.";
         }
         field(4; "Line No."; Integer)
         {
             Caption = 'Line No.';
+            ToolTip = 'Specifies the number of the shipment line.';
         }
         field(5; Type; Enum "Service Line Type")
         {
             Caption = 'Type';
+            ToolTip = 'Specifies the type of this shipment line.';
         }
         field(6; "No."; Code[20])
         {
             Caption = 'No.';
+            ToolTip = 'Specifies the number of the involved entry or record, according to the specified number series.';
             TableRelation = if (Type = const(" ")) "Standard Text"
             else
             if (Type = const(Item)) Item
@@ -84,29 +89,35 @@ table 5991 "Service Shipment Line"
         field(7; "Location Code"; Code[10])
         {
             Caption = 'Location Code';
+            ToolTip = 'Specifies the location, such as warehouse or distribution center, from which the items should be taken and where they should be registered.';
             TableRelation = Location;
         }
         field(8; "Posting Group"; Code[20])
         {
             Caption = 'Posting Group';
+            ToolTip = 'Specifies the code for the posting group used when the service line was posted.';
             TableRelation = if (Type = const(Item)) "Inventory Posting Group";
         }
         field(11; Description; Text[100])
         {
             Caption = 'Description';
+            ToolTip = 'Specifies the description of an item, resource, cost, or a standard text on the service line.';
         }
         field(12; "Description 2"; Text[50])
         {
             Caption = 'Description 2';
+            ToolTip = 'Specifies information in addition to the description.';
         }
         field(13; "Unit of Measure"; Text[50])
         {
             Caption = 'Unit of Measure';
+            ToolTip = 'Specifies the name of the item or resource''s unit of measure, such as piece or hour.';
         }
         field(15; Quantity; Decimal)
         {
             AutoFormatType = 0;
             Caption = 'Quantity';
+            ToolTip = 'Specifies the number of item units, resource hours, general ledger account payments, or cost that have been shipped to the customer.';
             DecimalPlaces = 0 : 5;
         }
         field(22; "Unit Price"; Decimal)
@@ -115,6 +126,7 @@ table 5991 "Service Shipment Line"
             AutoFormatType = 2;
             CaptionClass = GetCaptionClass(FieldNo("Unit Price"));
             Caption = 'Unit Price';
+            ToolTip = 'Specifies the price of one unit of the item or resource. You can enter a price manually or have it entered according to the Price/Profit Calculation field on the related card.';
         }
         field(23; "Unit Cost (LCY)"; Decimal)
         {
@@ -133,6 +145,7 @@ table 5991 "Service Shipment Line"
         {
             AutoFormatType = 0;
             Caption = 'Line Discount %';
+            ToolTip = 'Specifies the discount percentage that is granted for the item on the line.';
             DecimalPlaces = 0 : 5;
             MaxValue = 100;
             MinValue = 0;
@@ -140,6 +153,7 @@ table 5991 "Service Shipment Line"
         field(32; "Allow Invoice Disc."; Boolean)
         {
             Caption = 'Allow Invoice Disc.';
+            ToolTip = 'Specifies if the invoice line is included when the invoice discount is calculated.';
             InitValue = true;
         }
         field(34; "Gross Weight"; Decimal)
@@ -170,6 +184,7 @@ table 5991 "Service Shipment Line"
         {
             AccessByPermission = TableData Item = R;
             Caption = 'Appl.-to Item Entry';
+            ToolTip = 'Specifies the number of the item ledger entry that the document or journal line is applied to.';
         }
         field(39; "Item Shpt. Entry No."; Integer)
         {
@@ -179,12 +194,14 @@ table 5991 "Service Shipment Line"
         {
             CaptionClass = '1,2,1';
             Caption = 'Shortcut Dimension 1 Code';
+            ToolTip = 'Specifies the code for Shortcut Dimension 1, which is one of two global dimension codes that you set up in the General Ledger Setup window.';
             TableRelation = "Dimension Value".Code where("Global Dimension No." = const(1));
         }
         field(41; "Shortcut Dimension 2 Code"; Code[20])
         {
             CaptionClass = '1,2,2';
             Caption = 'Shortcut Dimension 2 Code';
+            ToolTip = 'Specifies the code for Shortcut Dimension 2, which is one of two global dimension codes that you set up in the General Ledger Setup window.';
             TableRelation = "Dimension Value".Code where("Global Dimension No." = const(2));
         }
         field(42; "Customer Price Group"; Code[10])
@@ -206,12 +223,14 @@ table 5991 "Service Shipment Line"
         field(52; "Work Type Code"; Code[10])
         {
             Caption = 'Work Type Code';
+            ToolTip = 'Specifies a code for the type of work performed under the posted service order.';
             TableRelation = "Work Type";
         }
         field(58; "Qty. Shipped Not Invoiced"; Decimal)
         {
             AutoFormatType = 0;
             Caption = 'Qty. Shipped Not Invoiced';
+            ToolTip = 'Specifies the quantity of the shipped item that has been posted as shipped but that has not yet been posted as invoiced.';
             DecimalPlaces = 0 : 5;
             Editable = false;
         }
@@ -219,6 +238,7 @@ table 5991 "Service Shipment Line"
         {
             AutoFormatType = 0;
             Caption = 'Quantity Invoiced';
+            ToolTip = 'Specifies how many units of the item on the line have been posted as invoiced.';
             DecimalPlaces = 0 : 5;
             Editable = false;
         }
@@ -233,6 +253,7 @@ table 5991 "Service Shipment Line"
         field(68; "Bill-to Customer No."; Code[20])
         {
             Caption = 'Bill-to Customer No.';
+            ToolTip = 'Specifies the number of the customer that you send or sent the invoice or credit memo to.';
             Editable = false;
             TableRelation = Customer;
         }
@@ -308,6 +329,7 @@ table 5991 "Service Shipment Line"
         field(91; "Currency Code"; Code[10])
         {
             Caption = 'Currency Code';
+            ToolTip = 'Specifies the currency code for various amounts on the shipment.';
             Editable = false;
             TableRelation = Currency;
         }
@@ -359,11 +381,13 @@ table 5991 "Service Shipment Line"
         field(5402; "Variant Code"; Code[10])
         {
             Caption = 'Variant Code';
+            ToolTip = 'Specifies the variant of the item on the line.';
             TableRelation = if (Type = const(Item)) "Item Variant".Code where("Item No." = field("No."));
         }
         field(5403; "Bin Code"; Code[20])
         {
             Caption = 'Bin Code';
+            ToolTip = 'Specifies the bin where the items are picked or put away.';
             TableRelation = Bin.Code where("Location Code" = field("Location Code"));
         }
         field(5404; "Qty. per Unit of Measure"; Decimal)
@@ -377,6 +401,7 @@ table 5991 "Service Shipment Line"
         field(5407; "Unit of Measure Code"; Code[10])
         {
             Caption = 'Unit of Measure Code';
+            ToolTip = 'Specifies how each unit of the item or resource is measured, such as in pieces or hours. By default, the value in the Base Unit of Measure field on the item or resource card is inserted.';
             TableRelation = if (Type = const(Item)) "Item Unit of Measure".Code where("Item No." = field("No."))
             else
             "Unit of Measure";
@@ -413,6 +438,15 @@ table 5991 "Service Shipment Line"
         field(5710; Nonstock; Boolean)
         {
             Caption = 'Catalog';
+            ToolTip = 'Specifies that the item on the shipment line is a catalog item.';
+        }
+        field(5798; "External Document No."; Code[35])
+        {
+            Caption = 'External Document No.';
+        }
+        field(5799; "Your Reference"; Text[35])
+        {
+            Caption = 'Your Reference';
         }
         field(5817; Correction; Boolean)
         {
@@ -425,6 +459,7 @@ table 5991 "Service Shipment Line"
         field(5902; "Service Item No."; Code[20])
         {
             Caption = 'Service Item No.';
+            ToolTip = 'Specifies the number of the service item to which this service line is linked.';
             TableRelation = "Service Item"."No.";
         }
         field(5903; "Appl.-to Service Entry"; Integer)
@@ -434,10 +469,12 @@ table 5991 "Service Shipment Line"
         field(5904; "Service Item Line No."; Integer)
         {
             Caption = 'Service Item Line No.';
+            ToolTip = 'Specifies the number of the service item line to which this service line is linked.';
         }
         field(5905; "Service Item Serial No."; Code[50])
         {
             Caption = 'Service Item Serial No.';
+            ToolTip = 'Specifies the serial number of the service item to which this shipment line is linked.';
         }
         field(5906; "Service Item Line Description"; Text[100])
         {
@@ -446,10 +483,12 @@ table 5991 "Service Shipment Line"
         field(5908; "Posting Date"; Date)
         {
             Caption = 'Posting Date';
+            ToolTip = 'Specifies the date when the service line was posted.';
         }
         field(5909; "Order Date"; Date)
         {
             Caption = 'Order Date';
+            ToolTip = 'Specifies the date when the related order was created.';
         }
         field(5910; "Needed by Date"; Date)
         {
@@ -458,12 +497,14 @@ table 5991 "Service Shipment Line"
         field(5916; "Ship-to Code"; Code[10])
         {
             Caption = 'Ship-to Code';
+            ToolTip = 'Specifies a code for an alternate shipment address if you want to ship to another address than the one that has been entered automatically. This field is also used in case of drop shipment.';
             TableRelation = "Ship-to Address".Code where("Customer No." = field("Customer No."));
         }
         field(5918; "Quantity Consumed"; Decimal)
         {
             AutoFormatType = 0;
             Caption = 'Quantity Consumed';
+            ToolTip = 'Specifies the number of units of items, resource hours, general ledger account payments, or costs that have been posted as consumed.';
             DecimalPlaces = 0 : 5;
         }
         field(5920; "Qty. Consumed (Base)"; Decimal)
@@ -480,41 +521,49 @@ table 5991 "Service Shipment Line"
         field(5929; "Fault Area Code"; Code[10])
         {
             Caption = 'Fault Area Code';
+            ToolTip = 'Specifies the code of the fault area associated with this service line.';
             TableRelation = "Fault Area";
         }
         field(5930; "Symptom Code"; Code[10])
         {
             Caption = 'Symptom Code';
+            ToolTip = 'Specifies the code of the symptom associated with this service shipment line.';
             TableRelation = "Symptom Code";
         }
         field(5931; "Fault Code"; Code[10])
         {
             Caption = 'Fault Code';
+            ToolTip = 'Specifies the fault code associated with this service shipment line.';
             TableRelation = "Fault Code".Code where("Fault Area Code" = field("Fault Area Code"),
                                                      "Symptom Code" = field("Symptom Code"));
         }
         field(5932; "Resolution Code"; Code[10])
         {
             Caption = 'Resolution Code';
+            ToolTip = 'Specifies the code of the resolution associated with this service shipment line.';
             TableRelation = "Resolution Code";
         }
         field(5933; "Exclude Warranty"; Boolean)
         {
             Caption = 'Exclude Warranty';
+            ToolTip = 'Specifies that the warranty discount is excluded on this service shipment line.';
         }
         field(5934; Warranty; Boolean)
         {
             Caption = 'Warranty';
+            ToolTip = 'Specifies that a warranty discount is available on this service shipment line of type Item or Resource.';
         }
         field(5936; "Contract No."; Code[20])
         {
             Caption = 'Contract No.';
+            ToolTip = 'Specifies the number of the contract associated with the posted service order.';
             TableRelation = "Service Contract Header"."Contract No." where("Contract Type" = const(Contract));
         }
         field(5938; "Contract Disc. %"; Decimal)
         {
             AutoFormatType = 0;
             Caption = 'Contract Disc. %';
+            ToolTip = 'Specifies the contract discount percentage valid for the items, resources, and costs on the service shipment line.';
             DecimalPlaces = 0 : 5;
             MaxValue = 100;
             MinValue = 0;
@@ -523,6 +572,7 @@ table 5991 "Service Shipment Line"
         {
             AutoFormatType = 0;
             Caption = 'Warranty Disc. %';
+            ToolTip = 'Specifies the percentage of the warranty discount valid for the items or resources on the service shipment line.';
             DecimalPlaces = 0 : 5;
             MaxValue = 100;
             MinValue = 0;
@@ -530,21 +580,25 @@ table 5991 "Service Shipment Line"
         field(5965; "Component Line No."; Integer)
         {
             Caption = 'Component Line No.';
+            ToolTip = 'Specifies the number of the line in the Service Item Component List window.';
         }
         field(5966; "Spare Part Action"; Option)
         {
             Caption = 'Spare Part Action';
+            ToolTip = 'Specifies whether the item has been used to replace the whole service item, one of the service item components, installed as a new component, or as a supplementary tool in the service process.';
             OptionCaption = ' ,Permanent,Temporary,Component Replaced,Component Installed';
             OptionMembers = " ",Permanent,"Temporary","Component Replaced","Component Installed";
         }
         field(5967; "Fault Reason Code"; Code[10])
         {
             Caption = 'Fault Reason Code';
+            ToolTip = 'Specifies the code of the fault reason for the service shipment line.';
             TableRelation = "Fault Reason Code";
         }
         field(5968; "Replaced Item No."; Code[20])
         {
             Caption = 'Replaced Item No.';
+            ToolTip = 'Specifies the number of the service item component replaced by the item on the service line.';
             TableRelation = if ("Replaced Item Type" = const(Item)) Item
             else
             if ("Replaced Item Type" = const("Service Item")) "Service Item";
@@ -556,6 +610,7 @@ table 5991 "Service Shipment Line"
         field(5970; "Replaced Item Type"; Option)
         {
             Caption = 'Replaced Item Type';
+            ToolTip = 'Specifies the type of the service item component replaced by the item on the service line.';
             OptionCaption = ' ,Service Item,Item';
             OptionMembers = " ","Service Item",Item;
         }
@@ -580,6 +635,7 @@ table 5991 "Service Shipment Line"
         field(6608; "Return Reason Code"; Code[10])
         {
             Caption = 'Return Reason Code';
+            ToolTip = 'Specifies the code explaining why the item was returned.';
             TableRelation = "Return Reason";
         }
         field(7000; "Price Calculation Method"; Enum "Price Calculation Method")

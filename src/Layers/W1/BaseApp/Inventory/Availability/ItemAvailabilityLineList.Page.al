@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -25,12 +25,10 @@ page 99000902 "Item Availability Line List"
                 field(Name; Rec.Name)
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the name for this entry.';
                 }
                 field(Quantity; Rec.Quantity)
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the quantity for this entry.';
 
                     trigger OnDrillDown()
                     begin

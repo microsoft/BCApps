@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -54,6 +54,7 @@ table 276 "Bank Account Statement Line"
         field(4; "Document No."; Code[20])
         {
             Caption = 'Document No.';
+            ToolTip = 'Specifies the document number of this line.';
         }
         /// <summary>
         /// Specifies the date when the transaction occurred.
@@ -61,6 +62,7 @@ table 276 "Bank Account Statement Line"
         field(5; "Transaction Date"; Date)
         {
             Caption = 'Transaction Date';
+            ToolTip = 'Specifies the posting date of the bank account or check ledger entry that the transaction on this line has been applied to.';
         }
         /// <summary>
         /// Specifies the description of the transaction as it appears on the bank statement.
@@ -68,6 +70,7 @@ table 276 "Bank Account Statement Line"
         field(6; Description; Text[100])
         {
             Caption = 'Description';
+            ToolTip = 'Specifies a description for the transaction on this line.';
         }
         /// <summary>
         /// Specifies the amount of the transaction as it appears on the bank statement.
@@ -77,6 +80,7 @@ table 276 "Bank Account Statement Line"
             AutoFormatExpression = GetCurrencyCode();
             AutoFormatType = 1;
             Caption = 'Statement Amount';
+            ToolTip = 'Specifies the amount of the transaction on the bank''s statement on this line.';
         }
         /// <summary>
         /// Specifies the difference between the statement amount and the applied amount.
@@ -86,6 +90,7 @@ table 276 "Bank Account Statement Line"
             AutoFormatExpression = GetCurrencyCode();
             AutoFormatType = 1;
             Caption = 'Difference';
+            ToolTip = 'Specifies the difference between the amount in the Statement Amount field and Applied Amount field on this line.';
         }
         /// <summary>
         /// Specifies the total amount applied to this statement line from bank account ledger entries.
@@ -95,6 +100,7 @@ table 276 "Bank Account Statement Line"
             AutoFormatExpression = GetCurrencyCode();
             AutoFormatType = 1;
             Caption = 'Applied Amount';
+            ToolTip = 'Specifies the amount on the bank account or check ledger entry that the transaction on this line has been applied to.';
             Editable = false;
         }
         /// <summary>
@@ -103,6 +109,7 @@ table 276 "Bank Account Statement Line"
         field(10; Type; Enum "Bank Acc. Statement Line Type")
         {
             Caption = 'Type';
+            ToolTip = 'Specifies the type of ledger entry, or a difference that has been reconciled with the transaction on the bank''s statement on this line.';
         }
         /// <summary>
         /// Specifies the number of entries that have been applied to this statement line.
@@ -110,6 +117,7 @@ table 276 "Bank Account Statement Line"
         field(11; "Applied Entries"; Integer)
         {
             Caption = 'Applied Entries';
+            ToolTip = 'Specifies whether the transaction on this line has been applied to one or more ledger entries.';
             Editable = false;
         }
         /// <summary>
@@ -118,6 +126,7 @@ table 276 "Bank Account Statement Line"
         field(12; "Value Date"; Date)
         {
             Caption = 'Value Date';
+            ToolTip = 'Specifies the value date of the transaction on this line.';
         }
         /// <summary>
         /// Specifies the check number if the transaction is a check payment.
@@ -126,6 +135,7 @@ table 276 "Bank Account Statement Line"
         {
             AccessByPermission = TableData "Check Ledger Entry" = R;
             Caption = 'Check No.';
+            ToolTip = 'Specifies the check number for the transaction on this line.';
         }
         /// <summary>
         /// Specifies the unique transaction identifier from the bank statement.

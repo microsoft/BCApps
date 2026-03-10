@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -31,6 +31,7 @@ table 572 "Finance Charge Interest Rate"
         field(2; "Start Date"; Date)
         {
             Caption = 'Start Date';
+            ToolTip = 'Specifies the start date for the interest rate.';
             NotBlank = true;
         }
         /// <summary>
@@ -40,6 +41,7 @@ table 572 "Finance Charge Interest Rate"
         {
             AutoFormatType = 0;
             Caption = 'Interest Rate';
+            ToolTip = 'Specifies the interest rate percentage.';
             MaxValue = 100;
             DecimalPlaces = 0 : 5;
             MinValue = 0;

@@ -253,6 +253,7 @@ table 480 "Dimension Set Entry"
     procedure GetGlobalDimNo(): Integer
     var
         GeneralLedgerSetup: Record "General Ledger Setup";
+        GlobalDimensionNo: Integer;
     begin
         GeneralLedgerSetup.Get();
         if "Dimension Code" = GeneralLedgerSetup."Shortcut Dimension 3 Code" then
@@ -267,6 +268,10 @@ table 480 "Dimension Set Entry"
             exit(7);
         if "Dimension Code" = GeneralLedgerSetup."Shortcut Dimension 8 Code" then
             exit(8);
+
+        GlobalDimensionNo := 0;
+        OnAfterGetGlobalDimNo("Dimension Code", GlobalDimensionNo);
+        exit(GlobalDimensionNo);
     end;
 
     /// <summary>
@@ -287,6 +292,17 @@ table 480 "Dimension Set Entry"
     /// <param name="Found">Whether matching tree node was found</param>
     [IntegrationEvent(false, false)]
     local procedure OnGetDimensionSetIDOnBeforeInsertTreeNode(var DimensionSetEntry: Record "Dimension Set Entry"; var Found: Boolean)
+    begin
+    end;
+
+    /// <summary>
+    /// Integration event raised after determining global dimension number for a dimension code.
+    /// Enables custom logic to assign global dimension numbers for dimensions not configured as shortcuts.
+    /// </summary>
+    /// <param name="DimensionCode">Dimension code being evaluated</param>
+    /// <param name="GlobalDimensionNo">Determined global dimension number</param>
+    [IntegrationEvent(false, false)]
+    local procedure OnAfterGetGlobalDimNo(DimensionCode: Code[20]; var GlobalDimensionNo: Integer)
     begin
     end;
 }

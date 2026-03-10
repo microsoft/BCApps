@@ -18,6 +18,7 @@ table 51 "User Time Register"
         field(1; "User ID"; Code[50])
         {
             Caption = 'User ID';
+            ToolTip = 'Specifies the ID of the user who posted the entry, to be used, for example, in the change log.';
             DataClassification = EndUserIdentifiableInformation;
             NotBlank = true;
             TableRelation = User."User Name";
@@ -33,11 +34,13 @@ table 51 "User Time Register"
         field(2; Date; Date)
         {
             Caption = 'Date';
+            ToolTip = 'Specifies the date.';
         }
         field(3; Minutes; Decimal)
         {
             AutoFormatType = 0;
             Caption = 'Minutes';
+            ToolTip = 'Specifies how many minutes an individual user works on the accounts.';
             DecimalPlaces = 0 : 0;
             MinValue = 0;
         }

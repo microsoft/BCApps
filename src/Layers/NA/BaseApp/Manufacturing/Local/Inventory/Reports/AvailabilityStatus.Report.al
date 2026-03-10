@@ -1,4 +1,5 @@
-﻿// ------------------------------------------------------------------------------------------------
+﻿#if not CLEAN28
+// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -14,6 +15,9 @@ report 10131 "Availability Status"
     Caption = 'Availability Status';
     UsageCategory = ReportsAndAnalysis;
     DataAccessIntent = ReadOnly;
+    ObsoleteReason = 'Prepare for extraction of Manufacturing app';
+    ObsoleteState = Pending;
+    ObsoleteTag = '28.0';
 
     dataset
     {
@@ -188,4 +192,4 @@ report 10131 "Availability Status"
         Qty__on_Prod__Ord_CaptionLbl: Label 'Qty. on Prod. Ord.';
         Qty__on_Service_Order_CaptionLbl: Label 'Qty. on Service Order';
 }
-
+#endif

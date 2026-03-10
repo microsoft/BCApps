@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -24,46 +24,38 @@ page 5961 "Service Email Queue"
                 {
                     ApplicationArea = Service;
                     Editable = false;
-                    ToolTip = 'Specifies the type of document linked to this entry.';
                 }
                 field("Document No."; Rec."Document No.")
                 {
                     ApplicationArea = Service;
                     Editable = false;
-                    ToolTip = 'Specifies the number of the document linked to this entry.';
                 }
                 field(Status; Rec.Status)
                 {
                     ApplicationArea = Service;
-                    ToolTip = 'Specifies the message status.';
                 }
                 field("Sending Date"; Rec."Sending Date")
                 {
                     ApplicationArea = Service;
                     Editable = false;
-                    ToolTip = 'Specifies the date the message was sent.';
                 }
                 field("Sending Time"; Rec."Sending Time")
                 {
                     ApplicationArea = Service;
                     Editable = false;
-                    ToolTip = 'Specifies the time the message was sent.';
                 }
                 field("To Address"; Rec."To Address")
                 {
                     ApplicationArea = Service;
                     ExtendedDatatype = EMail;
-                    ToolTip = 'Specifies the email address of the recipient when an email is sent to notify customers that their service items are ready.';
                 }
                 field("Subject Line"; Rec."Subject Line")
                 {
                     ApplicationArea = Service;
-                    ToolTip = 'Specifies the email subject line.';
                 }
                 field("Body Line"; Rec."Body Line")
                 {
                     ApplicationArea = Service;
-                    ToolTip = 'Specifies the text of the body of the email.';
                     Visible = false;
                 }
             }

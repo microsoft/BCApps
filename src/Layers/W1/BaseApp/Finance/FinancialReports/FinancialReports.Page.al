@@ -49,6 +49,10 @@ page 108 "Financial Reports"
                 {
                     ApplicationArea = Basic, Suite;
                 }
+                field(CategoryCode; Rec.CategoryCode)
+                {
+                    ApplicationArea = Basic, Suite;
+                }
                 field("Financial Report Row Group"; Rec."Financial Report Row Group")
                 {
                     Caption = 'Row Definition';
@@ -134,7 +138,12 @@ page 108 "Financial Reports"
                         DimPerspectiveName.Modify();
                     end;
                 }
+                field(Status; Rec.Status) { }
                 field("Internal Description"; Rec."Internal Description")
+                {
+                    ApplicationArea = Basic, Suite;
+                }
+                field("Last Run by User"; Rec."Last Run by User")
                 {
                     ApplicationArea = Basic, Suite;
                 }
@@ -168,6 +177,8 @@ page 108 "Financial Reports"
                 ToolTip = 'View the selected financial report with data.';
                 AboutTitle = 'View Financial Report';
                 AboutText = 'This action will open the financial report in a sandbox like environment, where all changes are saved to the user and not the report';
+                ShortCutKey = 'Return';
+
                 trigger OnAction()
                 var
                     AccScheduleOverview: Page "Acc. Schedule Overview";
@@ -182,7 +193,6 @@ page 108 "Financial Reports"
                 ApplicationArea = Basic, Suite;
                 Caption = 'Edit Row Definition';
                 Image = Edit;
-                ShortCutKey = 'Return';
                 ToolTip = 'Edit the row definition of the selected financial report.';
 
                 trigger OnAction()
@@ -287,6 +297,28 @@ page 108 "Financial Reports"
                     FinancialReportMgt.XMLExchangeExport(Rec);
                 end;
             }
+            action(ShowAllCategories)
+            {
+                ApplicationArea = Basic, Suite;
+                Caption = 'Show All Categories';
+                Image = List;
+                RunObject = page "Financial Report Categories";
+                ToolTip = 'View or edit financial report categories.';
+            }
+            action(EditCategory)
+            {
+                ApplicationArea = Basic, Suite;
+                Caption = 'Edit Category';
+                Image = Edit;
+                ToolTip = 'Edit the category of the selected financial report.';
+                trigger OnAction()
+                var
+                    FinancialReportCategory: Record "Financial Report Category";
+                begin
+                    if FinancialReportCategory.Get(Rec.CategoryCode) then
+                        Page.Run(Page::"Financial Report Category", FinancialReportCategory);
+                end;
+            }
         }
         area(navigation)
         {
@@ -323,6 +355,23 @@ page 108 "Financial Reports"
                     Page.Run(0, FinancialReportSchedule);
                 end;
             }
+            action("Audit Logs")
+            {
+                ApplicationArea = Basic, Suite;
+                Caption = 'Audit Logs';
+                Image = Log;
+                ToolTip = 'Opens the Financial Report Audit Logs for the selected report.';
+                RunObject = Page "Financial Report Audit Logs";
+                RunPageLink = "Report Name" = field(Name);
+            }
+            action("All Audit Logs")
+            {
+                ApplicationArea = Basic, Suite;
+                Caption = 'All Audit Logs';
+                Image = Log;
+                ToolTip = 'Opens the Financial Report Audit Logs showing all entries.';
+                RunObject = Page "Financial Report Audit Logs";
+            }
         }
         area(reporting)
         {
@@ -355,8 +404,10 @@ page 108 "Financial Reports"
                 actionref(EditRowGroup_Promoted; EditRowGroup) { }
                 actionref(EditColumnGroup_Promoted; EditColumnGroup) { }
                 actionref(EditDimPerspective_Promoted; EditDimPerspective) { }
+                actionref(EditCategory_Promoted; EditCategory) { }
                 actionref(ShowAllRowDefinitions_Promoted; ShowAllRowDefinitions) { }
                 actionref(ShowAllColumnDefinitions_Promoted; ShowAllColumnDefinitions) { }
+                actionref(ShowAllCategories_Promoted; ShowAllCategories) { }
                 actionref(Schedules_Promoted; Schedules) { }
             }
             group(CopyExportImport)
@@ -365,6 +416,13 @@ page 108 "Financial Reports"
                 actionref(CopyFinancialReport_Promoted; CopyFinancialReport) { }
                 actionref(ExportFinancialReport_Promoted; ExportFinancialReport) { }
                 actionref(ImportFinancialReport_Promoted; ImportFinancialReport) { }
+            }
+            group(Audit)
+            {
+                Caption = 'Audit';
+                ShowAs = SplitButton;
+                actionref("Audit Logs_Promoted"; "Audit Logs") { }
+                actionref("All Audit Logs_Promoted"; "All Audit Logs") { }
             }
         }
     }
@@ -376,9 +434,25 @@ page 108 "Financial Reports"
         FinancialReportMgt.Initialize();
     end;
 
+    trigger OnOpenPage()
+    var
+        FinancialReportStatus: Record "Financial Report Status";
+        LastFilterGroup: Integer;
+    begin
+        if not FinancialReportStatus.WritePermission() then begin
+            LastFilterGroup := Rec.FilterGroup();
+            Rec.FilterGroup(4);
+            Rec.SetRange("Status Blocked", false);
+            Rec.FilterGroup(LastFilterGroup);
+        end;
+    end;
+
     trigger OnNewRecord(BelowxRec: Boolean)
+    var
+        FinancialReportMgt: Codeunit "Financial Report Mgt.";
     begin
         Clear(PerspectiveAnalysisView);
+        Rec.Status := FinancialReportMgt.GetDefaultStatus();
     end;
 
     trigger OnAfterGetCurrRecord()

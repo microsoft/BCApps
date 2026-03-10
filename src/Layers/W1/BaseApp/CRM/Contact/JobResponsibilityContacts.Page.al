@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -21,19 +21,16 @@ page 5083 "Job Responsibility Contacts"
                 field("Contact No."; Rec."Contact No.")
                 {
                     ApplicationArea = All;
-                    ToolTip = 'Specifies the number of the contact you assign the job responsibility.';
                 }
                 field("Contact Name"; Rec."Contact Name")
                 {
                     ApplicationArea = RelationshipMgmt;
                     DrillDown = false;
-                    ToolTip = 'Specifies the name of the contact person to whom you are assigning job responsibilities.';
                 }
                 field("Contact Company Name"; Rec."Contact Company Name")
                 {
                     ApplicationArea = RelationshipMgmt;
                     DrillDown = false;
-                    ToolTip = 'Specifies the name of the company for which the contact person works.';
                 }
             }
         }

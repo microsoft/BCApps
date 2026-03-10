@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -32,17 +32,14 @@ page 5999 "Available - Service Lines"
                 field("Document No."; Rec."Document No.")
                 {
                     ApplicationArea = Service;
-                    ToolTip = 'Specifies the service order number associated with this line.';
                 }
                 field("Location Code"; Rec."Location Code")
                 {
                     ApplicationArea = Location;
-                    ToolTip = 'Specifies the inventory location from where the items on the line should be taken and where they should be registered.';
                 }
                 field("Needed by Date"; Rec."Needed by Date")
                 {
                     ApplicationArea = Service;
-                    ToolTip = 'Specifies the date when you require the item to be available for a service order.';
                 }
                 field("Outstanding Qty. (Base)"; Rec."Outstanding Qty. (Base)")
                 {

@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -35,23 +35,28 @@ table 5907 "Service Ledger Entry"
         field(1; "Entry No."; Integer)
         {
             Caption = 'Entry No.';
+            ToolTip = 'Specifies the number of the entry, as assigned from the specified number series when the entry was created.';
         }
         field(2; "Service Contract No."; Code[20])
         {
             Caption = 'Service Contract No.';
+            ToolTip = 'Specifies the number of the service contract, if this entry is linked to a service contract.';
             TableRelation = "Service Contract Header"."Contract No." where("Contract Type" = const(Contract));
         }
         field(3; "Document Type"; Enum "Service Ledger Entry Document Type")
         {
             Caption = 'Document Type';
+            ToolTip = 'Specifies the document type of the service ledger entry.';
         }
         field(4; "Document No."; Code[20])
         {
             Caption = 'Document No.';
+            ToolTip = 'Specifies the number of the document from which this entry was created.';
         }
         field(5; "Serv. Contract Acc. Gr. Code"; Code[10])
         {
             Caption = 'Serv. Contract Acc. Gr. Code';
+            ToolTip = 'Specifies the service contract account group code the service contract is associated with, if this entry is included in a service contract.';
             TableRelation = "Service Contract Account Group".Code;
         }
         field(6; "Document Line No."; Integer)
@@ -61,10 +66,12 @@ table 5907 "Service Ledger Entry"
         field(8; "Moved from Prepaid Acc."; Boolean)
         {
             Caption = 'Moved from Prepaid Acc.';
+            ToolTip = 'Specifies that this entry is not a prepaid entry from a service contract.';
         }
         field(9; "Posting Date"; Date)
         {
             Caption = 'Posting Date';
+            ToolTip = 'Specifies the date when this entry was posted.';
         }
         field(11; "Amount (LCY)"; Decimal)
         {
@@ -75,11 +82,13 @@ table 5907 "Service Ledger Entry"
         field(12; "Customer No."; Code[20])
         {
             Caption = 'Customer No.';
+            ToolTip = 'Specifies the number of the customer related to this entry.';
             TableRelation = Customer;
         }
         field(13; "Ship-to Code"; Code[10])
         {
             Caption = 'Ship-to Code';
+            ToolTip = 'Specifies a code for an alternate shipment address if you want to ship to another address than the one that has been entered automatically. This field is also used in case of drop shipment.';
             TableRelation = "Ship-to Address".Code where("Customer No." = field("Customer No."));
         }
         field(14; "Item No. (Serviced)"; Code[20])
@@ -94,23 +103,27 @@ table 5907 "Service Ledger Entry"
         field(16; "User ID"; Code[50])
         {
             Caption = 'User ID';
+            ToolTip = 'Specifies the ID of the user who posted the entry, to be used, for example, in the change log.';
             DataClassification = EndUserIdentifiableInformation;
             TableRelation = User."User Name";
         }
         field(17; "Contract Invoice Period"; Text[30])
         {
             Caption = 'Contract Invoice Period';
+            ToolTip = 'Specifies the invoice period of that contract, if this entry originates from a service contract.';
         }
         field(18; "Global Dimension 1 Code"; Code[20])
         {
             CaptionClass = '1,2,1';
             Caption = 'Global Dimension 1 Code';
+            ToolTip = 'Specifies the code for the global dimension that is linked to the record or entry for analysis purposes. Two global dimensions, typically for the company''s most important activities, are available on all cards, documents, reports, and lists.';
             TableRelation = "Dimension Value".Code where("Global Dimension No." = const(1));
         }
         field(19; "Global Dimension 2 Code"; Code[20])
         {
             CaptionClass = '1,2,2';
             Caption = 'Global Dimension 2 Code';
+            ToolTip = 'Specifies the code for the global dimension that is linked to the record or entry for analysis purposes. Two global dimensions, typically for the company''s most important activities, are available on all cards, documents, reports, and lists.';
             TableRelation = "Dimension Value".Code where("Global Dimension No." = const(2));
         }
         field(20; "Service Item No. (Serviced)"; Code[20])
@@ -126,15 +139,18 @@ table 5907 "Service Ledger Entry"
         field(22; "Contract Group Code"; Code[10])
         {
             Caption = 'Contract Group Code';
+            ToolTip = 'Specifies the contract group code of the service contract to which this entry is associated.';
             TableRelation = "Contract Group".Code;
         }
         field(23; Type; Enum "Service Ledger Entry Type")
         {
             Caption = 'Type';
+            ToolTip = 'Specifies the type of origin of this entry.';
         }
         field(24; "No."; Code[20])
         {
             Caption = 'No.';
+            ToolTip = 'Specifies the number of the involved entry or record, according to the specified number series.';
             TableRelation = if (Type = const("Service Contract")) "Service Contract Header"."Contract No." where("Contract Type" = const(Contract))
             else
             if (Type = const(" ")) "Standard Text"
@@ -152,29 +168,34 @@ table 5907 "Service Ledger Entry"
             AutoFormatExpression = '';
             AutoFormatType = 1;
             Caption = 'Cost Amount';
+            ToolTip = 'Specifies the total cost on the line by multiplying the unit cost by the quantity.';
         }
         field(26; "Discount Amount"; Decimal)
         {
             AutoFormatExpression = '';
             AutoFormatType = 1;
             Caption = 'Discount Amount';
+            ToolTip = 'Specifies the total discount amount on this entry.';
         }
         field(27; "Unit Cost"; Decimal)
         {
             AutoFormatExpression = '';
             AutoFormatType = 2;
             Caption = 'Unit Cost';
+            ToolTip = 'Specifies the cost of one unit of the item or resource on the line.';
         }
         field(28; Quantity; Decimal)
         {
             AutoFormatType = 0;
             Caption = 'Quantity';
+            ToolTip = 'Specifies the number of units in this entry.';
             DecimalPlaces = 0 : 5;
         }
         field(29; "Charged Qty."; Decimal)
         {
             AutoFormatType = 0;
             Caption = 'Charged Qty.';
+            ToolTip = 'Specifies the number of units in this entry that should be invoiced.';
             DecimalPlaces = 0 : 5;
         }
         field(30; "Unit Price"; Decimal)
@@ -182,11 +203,13 @@ table 5907 "Service Ledger Entry"
             AutoFormatExpression = '';
             AutoFormatType = 2;
             Caption = 'Unit Price';
+            ToolTip = 'Specifies the price of one unit of the item or resource. You can enter a price manually or have it entered according to the Price/Profit Calculation field on the related card.';
         }
         field(31; "Discount %"; Decimal)
         {
             AutoFormatType = 0;
             Caption = 'Discount %';
+            ToolTip = 'Specifies the discount percentage of this entry.';
             DecimalPlaces = 0 : 5;
         }
         field(32; "Contract Disc. Amount"; Decimal)
@@ -194,29 +217,35 @@ table 5907 "Service Ledger Entry"
             AutoFormatExpression = '';
             AutoFormatType = 1;
             Caption = 'Contract Disc. Amount';
+            ToolTip = 'Specifies the total contract discount amount of this entry.';
         }
         field(33; "Bill-to Customer No."; Code[20])
         {
             Caption = 'Bill-to Customer No.';
+            ToolTip = 'Specifies the number of the customer that you send or sent the invoice or credit memo to.';
             TableRelation = Customer;
         }
         field(34; "Fault Reason Code"; Code[10])
         {
             Caption = 'Fault Reason Code';
+            ToolTip = 'Specifies the fault reason code for this entry.';
             TableRelation = "Fault Reason Code";
         }
         field(35; Description; Text[100])
         {
             Caption = 'Description';
+            ToolTip = 'Specifies a description of the resource, item, cost, standard text, general ledger account, or service contract associated with this entry.';
         }
         field(37; "Service Order Type"; Code[10])
         {
             Caption = 'Service Order Type';
+            ToolTip = 'Specifies the type of the service order if this entry was created for a service order.';
             TableRelation = "Service Order Type";
         }
         field(39; "Service Order No."; Code[20])
         {
             Caption = 'Service Order No.';
+            ToolTip = 'Specifies the number of the service order, if this entry was created for a service order.';
 
             trigger OnLookup()
             begin
@@ -227,21 +256,25 @@ table 5907 "Service Ledger Entry"
         field(40; "Job No."; Code[20])
         {
             Caption = 'Project No.';
+            ToolTip = 'Specifies the number of the related project.';
             TableRelation = Job."No." where("Bill-to Customer No." = field("Bill-to Customer No."));
         }
         field(41; "Gen. Bus. Posting Group"; Code[20])
         {
             Caption = 'Gen. Bus. Posting Group';
+            ToolTip = 'Specifies the vendor''s or customer''s trade type to link transactions made for this business partner with the appropriate general ledger account according to the general posting setup.';
             TableRelation = "Gen. Business Posting Group";
         }
         field(42; "Gen. Prod. Posting Group"; Code[20])
         {
             Caption = 'Gen. Prod. Posting Group';
+            ToolTip = 'Specifies the item''s product type to link transactions made for this item with the appropriate general ledger account according to the general posting setup.';
             TableRelation = "Gen. Product Posting Group";
         }
         field(43; "Location Code"; Code[10])
         {
             Caption = 'Location Code';
+            ToolTip = 'Specifies the code for the location associated with this entry.';
             TableRelation = Location;
         }
         field(44; "Unit of Measure Code"; Code[10])
@@ -257,6 +290,7 @@ table 5907 "Service Ledger Entry"
         field(46; "Bin Code"; Code[20])
         {
             Caption = 'Bin Code';
+            ToolTip = 'Specifies the bin where the items are picked or put away.';
             TableRelation = Bin.Code where("Location Code" = field("Location Code"));
         }
         field(47; "Responsibility Center"; Code[10])
@@ -272,10 +306,12 @@ table 5907 "Service Ledger Entry"
         field(50; "Entry Type"; Enum "Service Ledger Entry Entry Type")
         {
             Caption = 'Entry Type';
+            ToolTip = 'Specifies the type for this entry.';
         }
         field(51; Open; Boolean)
         {
             Caption = 'Open';
+            ToolTip = 'Specifies contract-related service ledger entries.';
         }
         field(52; "Serv. Price Adjmt. Gr. Code"; Code[10])
         {
@@ -290,6 +326,7 @@ table 5907 "Service Ledger Entry"
         field(54; Prepaid; Boolean)
         {
             Caption = 'Prepaid';
+            ToolTip = 'Specifies whether the service contract or contract-related service order was prepaid.';
         }
         field(55; "Apply Until Entry No."; Integer)
         {
@@ -299,21 +336,25 @@ table 5907 "Service Ledger Entry"
         {
             AccessByPermission = TableData Item = R;
             Caption = 'Applies-to Entry No.';
+            ToolTip = 'Specifies the number of the entry to which this entry is applied, if an entry is created for a service credit memo.';
         }
         field(57; Amount; Decimal)
         {
             AutoFormatExpression = '';
             AutoFormatType = 1;
             Caption = 'Amount';
+            ToolTip = 'Specifies the amount on this entry.';
         }
         field(58; "Job Task No."; Code[20])
         {
             Caption = 'Project Task No.';
+            ToolTip = 'Specifies the number of the related project task.';
             TableRelation = "Job Task"."Job Task No." where("Job No." = field("Job No."));
         }
         field(59; "Job Line Type"; Enum "Job Line Type")
         {
             Caption = 'Project Line Type';
+            ToolTip = 'Specifies the journal line type that is created in the Project Planning Line table and linked to this project ledger entry.';
             InitValue = Budget;
         }
         field(60; "Job Posted"; Boolean)
@@ -323,10 +364,12 @@ table 5907 "Service Ledger Entry"
         field(61; "External Document No."; Code[35])
         {
             Caption = 'External Document No.';
+            ToolTip = 'Specifies a document number that refers to the customer''s numbering system.';
         }
         field(480; "Dimension Set ID"; Integer)
         {
             Caption = 'Dimension Set ID';
+            ToolTip = 'Specifies a reference to a combination of dimension values. The actual values are stored in the Dimension Set Entry table.';
             Editable = false;
             TableRelation = "Dimension Set Entry";
 
@@ -339,6 +382,7 @@ table 5907 "Service Ledger Entry"
         {
             CaptionClass = '1,2,3';
             Caption = 'Shortcut Dimension 3 Code';
+            ToolTip = 'Specifies the code for Shortcut Dimension 3, which is one of dimension codes that you set up in the General Ledger Setup window.';
             Editable = false;
             FieldClass = FlowField;
             CalcFormula = lookup("Dimension Set Entry"."Dimension Value Code" where("Dimension Set ID" = field("Dimension Set ID"),
@@ -348,6 +392,7 @@ table 5907 "Service Ledger Entry"
         {
             CaptionClass = '1,2,4';
             Caption = 'Shortcut Dimension 4 Code';
+            ToolTip = 'Specifies the code for Shortcut Dimension 4, which is one of dimension codes that you set up in the General Ledger Setup window.';
             Editable = false;
             FieldClass = FlowField;
             CalcFormula = lookup("Dimension Set Entry"."Dimension Value Code" where("Dimension Set ID" = field("Dimension Set ID"),
@@ -357,6 +402,7 @@ table 5907 "Service Ledger Entry"
         {
             CaptionClass = '1,2,5';
             Caption = 'Shortcut Dimension 5 Code';
+            ToolTip = 'Specifies the code for Shortcut Dimension 5, which is one of dimension codes that you set up in the General Ledger Setup window.';
             Editable = false;
             FieldClass = FlowField;
             CalcFormula = lookup("Dimension Set Entry"."Dimension Value Code" where("Dimension Set ID" = field("Dimension Set ID"),
@@ -366,6 +412,7 @@ table 5907 "Service Ledger Entry"
         {
             CaptionClass = '1,2,6';
             Caption = 'Shortcut Dimension 6 Code';
+            ToolTip = 'Specifies the code for Shortcut Dimension 6, which is one of dimension codes that you set up in the General Ledger Setup window.';
             Editable = false;
             FieldClass = FlowField;
             CalcFormula = lookup("Dimension Set Entry"."Dimension Value Code" where("Dimension Set ID" = field("Dimension Set ID"),
@@ -375,6 +422,7 @@ table 5907 "Service Ledger Entry"
         {
             CaptionClass = '1,2,7';
             Caption = 'Shortcut Dimension 7 Code';
+            ToolTip = 'Specifies the code for Shortcut Dimension 7, which is one of dimension codes that you set up in the General Ledger Setup window.';
             Editable = false;
             FieldClass = FlowField;
             CalcFormula = lookup("Dimension Set Entry"."Dimension Value Code" where("Dimension Set ID" = field("Dimension Set ID"),
@@ -384,6 +432,7 @@ table 5907 "Service Ledger Entry"
         {
             CaptionClass = '1,2,8';
             Caption = 'Shortcut Dimension 8 Code';
+            ToolTip = 'Specifies the code for Shortcut Dimension 8, which is one of dimension codes that you set up in the General Ledger Setup window.';
             Editable = false;
             FieldClass = FlowField;
             CalcFormula = lookup("Dimension Set Entry"."Dimension Value Code" where("Dimension Set ID" = field("Dimension Set ID"),

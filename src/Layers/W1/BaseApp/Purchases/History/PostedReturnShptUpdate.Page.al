@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -29,20 +29,17 @@ page 1352 "Posted Return Shpt. - Update"
                 {
                     ApplicationArea = PurchReturnOrder;
                     Editable = false;
-                    ToolTip = 'Specifies the number of the involved entry or record, according to the specified number series.';
                 }
                 field("Buy-from Vendor Name"; Rec."Buy-from Vendor Name")
                 {
                     ApplicationArea = PurchReturnOrder;
                     Caption = 'Vendor';
                     Editable = false;
-                    ToolTip = 'Specifies the name of the vendor who delivered the items.';
                 }
                 field("Posting Date"; Rec."Posting Date")
                 {
                     ApplicationArea = PurchReturnOrder;
                     Editable = false;
-                    ToolTip = 'Specifies the entry''s posting date.';
                 }
             }
             group(Shipping)

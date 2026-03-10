@@ -365,8 +365,6 @@ report 10747 "Customer - Overdue Payments"
     var
         AppldCustLedgEntryTmp: Record "Detailed Cust. Ledg. Entry" temporary;
         DtldEntryNoToLegalDueDateMap: Dictionary of [Integer, Date];
-        StartDate: Date;
-        EndDate: Date;
         CustFilter: Text[250];
         Text001: Label 'Max. Allowed Due Date';
         Text1100001: Label 'You must specify the start date for the period.';
@@ -406,6 +404,10 @@ report 10747 "Customer - Overdue Payments"
         TotalDaysOverdue: Decimal;
         TotalWeightedExceededAmount: Decimal;
         ShowPayments: Option Overdue,"Legally Overdue",All;
+
+    protected var
+        StartDate: Date;
+        EndDate: Date;
 
     local procedure FindAppliedPayments(CustLedgEntryNo: Integer)
     var

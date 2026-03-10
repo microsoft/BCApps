@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -30,17 +30,14 @@ page 99000958 "Order Promising Setup"
                 field("Order Promising Nos."; Rec."Order Promising Nos.")
                 {
                     ApplicationArea = OrderPromising;
-                    ToolTip = 'Specifies the code that identifies the number series that you select for order promising.';
                 }
                 field("Order Promising Template"; Rec."Order Promising Template")
                 {
                     ApplicationArea = OrderPromising;
-                    ToolTip = 'Specifies the name of the requisition worksheet template that you select for order promising.';
                 }
                 field("Order Promising Worksheet"; Rec."Order Promising Worksheet")
                 {
                     ApplicationArea = OrderPromising;
-                    ToolTip = 'Specifies the name of the requisition worksheet that you select for order promising.';
                 }
             }
         }

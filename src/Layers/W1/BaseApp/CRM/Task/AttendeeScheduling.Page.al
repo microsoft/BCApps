@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -25,43 +25,36 @@ page 5199 "Attendee Scheduling"
                 {
                     ApplicationArea = All;
                     Editable = false;
-                    ToolTip = 'Specifies the number of the involved entry or record, according to the specified number series.';
                 }
                 field(Description; Rec.Description)
                 {
                     ApplicationArea = All;
                     Editable = false;
-                    ToolTip = 'Specifies the description of the task.';
                 }
                 field(Location; Rec.Location)
                 {
                     ApplicationArea = Location;
                     Editable = false;
-                    ToolTip = 'Specifies the location where the meeting will take place.';
                 }
                 field("Salesperson Code"; Rec."Salesperson Code")
                 {
                     ApplicationArea = Suite, RelationshipMgmt;
                     Editable = false;
-                    ToolTip = 'Specifies the code of the salesperson assigned to the task.';
                 }
                 field(Type; Rec.Type)
                 {
                     ApplicationArea = RelationshipMgmt;
                     Editable = false;
-                    ToolTip = 'Specifies the type of the task.';
                 }
                 field(Status; Rec.Status)
                 {
                     ApplicationArea = RelationshipMgmt;
                     Editable = false;
-                    ToolTip = 'Specifies the status of the task. There are five options: Not Started, In Progress, Completed, Waiting and Postponed.';
                 }
                 field(Priority; Rec.Priority)
                 {
                     ApplicationArea = RelationshipMgmt;
                     Editable = false;
-                    ToolTip = 'Specifies the priority of the task.';
                 }
             }
             part(AttendeeSubform; "Attendee Subform")
@@ -76,7 +69,6 @@ page 5199 "Attendee Scheduling"
                 field("Interaction Template Code"; Rec."Interaction Template Code")
                 {
                     ApplicationArea = RelationshipMgmt;
-                    ToolTip = 'Specifies the code for the interaction template that you have selected.';
 
                     trigger OnValidate()
                     begin
@@ -87,13 +79,11 @@ page 5199 "Attendee Scheduling"
                 {
                     ApplicationArea = RelationshipMgmt;
                     Enabled = LanguageCodeEnable;
-                    ToolTip = 'Specifies the language that is used when translating specified text on documents to foreign business partner, such as an item description on an order confirmation.';
                 }
                 field(Subject; Rec.Subject)
                 {
                     ApplicationArea = RelationshipMgmt;
                     Enabled = SubjectEnable;
-                    ToolTip = 'Specifies the subject of the task. The subject is used for e-mail messages or Outlook meetings that you create.';
                 }
                 field(Attachment; Rec."Attachment No." > 0)
                 {

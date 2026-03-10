@@ -384,13 +384,13 @@ codeunit 1751 "Data Classification Eval. Data"
         ClassifyAllocationAccounts();
         ClassifyAgents();
         ClassifyOrderTakerAgent();
-        ClassifyExpenseAgent();
         ClasifyScheduledPerformanceProfiling();
     end;
 
     local procedure ClassifyFinancialReports()
     var
         FinancialReportUserFilters: Record "Financial Report User Filters";
+        FinancialReportAuditLog: Record "Financial Report Audit Log";
     begin
         SetTableFieldsToNormal(Database::"Financial Report");
         SetTableFieldsToNormal(Database::"Financial Report Schedule");
@@ -400,7 +400,11 @@ codeunit 1751 "Data Classification Eval. Data"
         SetTableFieldsToNormal(Database::"Fin. Report Excel Template");
         SetTableFieldsToNormal(Database::"Dimension Perspective Name");
         SetTableFieldsToNormal(Database::"Dimension Perspective Line");
+        SetTableFieldsToNormal(Database::"Financial Report Category");
+        SetTableFieldsToNormal(Database::"Financial Report Audit Log");
+        SetTableFieldsToNormal(Database::"Financial Report Status");
         SetFieldToPersonal(Database::"Financial Report User Filters", FinancialReportUserFilters.FieldNo("User ID"));
+        SetFieldToPersonal(Database::"Financial Report Audit Log", FinancialReportAuditLog.FieldNo("User"));
     end;
 
     local procedure ClassifyTablesToNormalPart1()
@@ -3791,41 +3795,6 @@ codeunit 1751 "Data Classification Eval. Data"
         SetTableFieldsToNormal(4587); // SOA Billing Task Setup
         SetFieldToPersonal(4592, 9); // Sender Email
         SetFieldToPersonal(4592, 10); // Sender Name
-    end;
-
-    local procedure ClassifyExpenseAgent()
-    begin
-        SetTableFieldsToNormal(6900); // Expense
-        SetTableFieldsToNormal(6901); // ExpenseCommentLine
-        SetTableFieldsToNormal(6902); // ExpenseItemization
-        SetTableFieldsToNormal(6903); // ExpenseItemizationLine
-        SetTableFieldsToNormal(6904); // ExpenseParticipant
-        SetTableFieldsToNormal(6905); // ExpensePerDiem
-        SetTableFieldsToNormal(6906); // ExpenseReportHeader
-        SetTableFieldsToNormal(6907); // ExpenseReportLine
-        SetTableFieldsToNormal(6908); // ExpenseReportLineParticip
-        SetTableFieldsToNormal(6909); // ExpenseReportLinePerDiem
-        SetTableFieldsToNormal(6910); // ExpReportItemizationLine
-        SetTableFieldsToNormal(6911); // ExpReportLineItemization
-        SetTableFieldsToNormal(6912); // ExpenseLedgerEntry
-        SetTableFieldsToNormal(6915); // PostedExpenseReportHeader
-        SetTableFieldsToNormal(6916); // PostedExpenseReportLine
-        SetTableFieldsToNormal(6917); // PostedExpReportLinePcpt
-        SetTableFieldsToNormal(6918); // PstdExpRepItemLine
-        SetTableFieldsToNormal(6919); // PstdExpRepLineItem
-        SetTableFieldsToNormal(6920); // PstdExpRepLinePerDiem
-        SetTableFieldsToNormal(6921); // ExpenseCategory
-        SetTableFieldsToNormal(6922); // ExpenseCreditCardFeed
-        SetTableFieldsToNormal(6923); // ExpenseEmployee
-        SetTableFieldsToNormal(6924); // ExpenseGroup
-        SetTableFieldsToNormal(6925); // ExpenseLocation
-        SetTableFieldsToNormal(6926); // ExpensePolicyCondition
-        SetTableFieldsToNormal(6927); // ExpensePolicyHeader
-        SetTableFieldsToNormal(6928); // ExpensePostingGroup
-        SetTableFieldsToNormal(6929); // ExpenseSubcategory
-        SetTableFieldsToNormal(6930); // ExpenseAgentSetup
-        SetTableFieldsToNormal(6931); // ExpenseTeam
-        SetTableFieldsToNormal(6932); // ExpenseApprovalSetup
     end;
 
     local procedure ClassifyAgents()

@@ -18,8 +18,6 @@ page 5557 "Permission Conflicts"
             {
                 ApplicationArea = All;
                 Caption = 'License';
-                ToolTip = 'Specifies the name of the license.';
-
                 trigger OnValidate()
                 begin
                     EffectivePermissionsMgt.PopulatePermissionConflictsTable(EntitlementId, PermissionSetId, Rec);
@@ -31,7 +29,6 @@ page 5557 "Permission Conflicts"
                 ApplicationArea = All;
                 TableRelation = "Aggregate Permission Set"."Role ID";
                 Caption = 'Permission Set ID';
-                ToolTip = 'Specifies the identifier for the permission set.';
 
                 trigger OnValidate()
                 begin
@@ -47,20 +44,17 @@ page 5557 "Permission Conflicts"
                 {
                     ApplicationArea = All;
                     Caption = 'Table ID';
-                    ToolTip = 'Table ID';
                 }
                 field("Table Name"; Rec."Object Name")
                 {
                     ApplicationArea = All;
                     Caption = 'Table Name';
-                    ToolTip = 'Table Name';
                 }
                 field("Read Permission"; ReadPermissionsTxt)
                 {
                     ApplicationArea = All;
                     Editable = false;
                     Caption = 'Read Permission';
-                    ToolTip = 'Specifies the permission assigned to the access type, or whether it is in conflict with the product license. For details about a conflict, click the word Conflict.';
 
                     trigger OnDrillDown()
                     begin
@@ -72,7 +66,6 @@ page 5557 "Permission Conflicts"
                     ApplicationArea = All;
                     Editable = false;
                     Caption = 'Insert Permission';
-                    ToolTip = 'Specifies the permission assigned to the access type, or whether it is in conflict with the product license. For details about a conflict, click the word Conflict.';
 
                     trigger OnDrillDown()
                     begin
@@ -84,7 +77,6 @@ page 5557 "Permission Conflicts"
                     ApplicationArea = All;
                     Editable = false;
                     Caption = 'Modify Permission';
-                    ToolTip = 'Specifies the permission assigned to the access type, or whether it is in conflict with the product license. For details about a conflict, click the word Conflict.';
 
                     trigger OnDrillDown()
                     begin
@@ -96,7 +88,6 @@ page 5557 "Permission Conflicts"
                     ApplicationArea = All;
                     Editable = false;
                     Caption = 'Delete Permission';
-                    ToolTip = 'Specifies the permission assigned to the access type, or whether it is in conflict with the product license. For details about a conflict, click the word Conflict.';
 
                     trigger OnDrillDown()
                     begin
@@ -108,7 +99,6 @@ page 5557 "Permission Conflicts"
                     ApplicationArea = All;
                     Editable = false;
                     Caption = 'Execute Permission';
-                    ToolTip = 'Specifies the permission assigned to the access type, or whether it is in conflict with the product license. For details about a conflict, click the word Conflict.';
 
                     trigger OnDrillDown()
                     begin

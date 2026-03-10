@@ -27,6 +27,7 @@ table 7320 "Warehouse Shipment Header"
         field(1; "No."; Code[20])
         {
             Caption = 'No.';
+            ToolTip = 'Specifies the number of the involved entry or record, according to the specified number series.';
 
             trigger OnValidate()
             begin
@@ -41,6 +42,7 @@ table 7320 "Warehouse Shipment Header"
         field(2; "Location Code"; Code[10])
         {
             Caption = 'Location Code';
+            ToolTip = 'Specifies the code of the location from which the items are being shipped.';
             TableRelation = Location where("Use As In-Transit" = const(false));
 
             trigger OnValidate()
@@ -76,6 +78,7 @@ table 7320 "Warehouse Shipment Header"
         field(3; "Assigned User ID"; Code[50])
         {
             Caption = 'Assigned User ID';
+            ToolTip = 'Specifies the ID of the user who is responsible for the document.';
             DataClassification = EndUserIdentifiableInformation;
             TableRelation = "Warehouse Employee" where("Location Code" = field("Location Code"));
 
@@ -93,16 +96,19 @@ table 7320 "Warehouse Shipment Header"
         field(4; "Assignment Date"; Date)
         {
             Caption = 'Assignment Date';
+            ToolTip = 'Specifies the date when the user was assigned the activity.';
             Editable = false;
         }
         field(5; "Assignment Time"; Time)
         {
             Caption = 'Assignment Time';
+            ToolTip = 'Specifies the time when the user was assigned the activity.';
             Editable = false;
         }
         field(6; "Sorting Method"; Enum "Warehouse Shipment Sorting Method")
         {
             Caption = 'Sorting Method';
+            ToolTip = 'Specifies the method by which the shipments are sorted.';
 
             trigger OnValidate()
             begin
@@ -127,6 +133,7 @@ table 7320 "Warehouse Shipment Header"
         field(12; "Bin Code"; Code[20])
         {
             Caption = 'Bin Code';
+            ToolTip = 'Specifies the bin where the items are picked or put away.';
             TableRelation = if ("Zone Code" = filter('')) Bin.Code where("Location Code" = field("Location Code"))
             else
             if ("Zone Code" = filter(<> '')) Bin.Code where("Location Code" = field("Location Code"),
@@ -153,6 +160,7 @@ table 7320 "Warehouse Shipment Header"
         field(13; "Zone Code"; Code[10])
         {
             Caption = 'Zone Code';
+            ToolTip = 'Specifies the code of the zone on this shipment header.';
             TableRelation = Zone.Code where("Location Code" = field("Location Code"));
 
             trigger OnValidate()
@@ -171,6 +179,7 @@ table 7320 "Warehouse Shipment Header"
         field(34; "Document Status"; Enum "Warehouse Shipment Status")
         {
             Caption = 'Document Status';
+            ToolTip = 'Specifies the progress level of warehouse handling on lines in the warehouse shipment.';
             Editable = false;
 
             trigger OnValidate()
@@ -189,11 +198,13 @@ table 7320 "Warehouse Shipment Header"
         field(39; "Posting Date"; Date)
         {
             Caption = 'Posting Date';
+            ToolTip = 'Specifies a posting date. If you enter a date, the posting date of the source documents is updated during posting.';
         }
         field(41; "Shipping Agent Code"; Code[10])
         {
             AccessByPermission = TableData "Shipping Agent Services" = R;
             Caption = 'Shipping Agent Code';
+            ToolTip = 'Specifies the code for the shipping agent who is transporting the items. This value is not carried over from the source documents because one warehouse shipment can contain lines from many source documents. If you enter a value, the source document will be updated during posting. If this field is blank, the original shipping agent of the source document is used.';
             TableRelation = "Shipping Agent";
 
             trigger OnValidate()
@@ -207,16 +218,19 @@ table 7320 "Warehouse Shipment Header"
         field(42; "Shipping Agent Service Code"; Code[10])
         {
             Caption = 'Shipping Agent Service Code';
+            ToolTip = 'Specifies the code for the service, such as a one-day delivery, that is offered by the shipping agent. This value is not carried over from the source documents because one warehouse shipment can contain lines from many source documents. If you enter a value, the source document will be updated during posting. If this field is blank, the original shipping agent service of the source document is used.';
             TableRelation = "Shipping Agent Services".Code where("Shipping Agent Code" = field("Shipping Agent Code"));
         }
         field(43; "Shipment Method Code"; Code[10])
         {
             Caption = 'Shipment Method Code';
+            ToolTip = 'Specifies the delivery conditions of the related shipment, such as free on board (FOB).';
             TableRelation = "Shipment Method";
         }
         field(45; "Shipment Date"; Date)
         {
             Caption = 'Shipment Date';
+            ToolTip = 'Specifies when items on the document are shipped or were shipped. A shipment date is usually calculated from a requested delivery date plus lead time.';
 
             trigger OnValidate()
             var
@@ -240,12 +254,14 @@ table 7320 "Warehouse Shipment Header"
         {
             CalcFormula = min("Warehouse Shipment Line"."Completely Picked" where("No." = field("No.")));
             Caption = 'Completely Picked';
+            ToolTip = 'Specifies whether all items on the warehouse shipment have been completely picked.';
             Editable = false;
             FieldClass = FlowField;
         }
         field(47; Status; Option)
         {
             Caption = 'Status';
+            ToolTip = 'Specifies the status of the shipment and is filled in by the program.';
             Editable = false;
             OptionCaption = 'Open,Released';
             OptionMembers = Open,Released;
@@ -253,6 +269,7 @@ table 7320 "Warehouse Shipment Header"
         field(48; "External Document No."; Code[35])
         {
             Caption = 'External Document No.';
+            ToolTip = 'Specifies a document number that refers to the customer''s or vendor''s numbering system. If you enter a value, the source document will be updated during posting. If this field is blank, the original document number is used.';
         }
         field(50; "Create Posted Header"; Boolean)
         {

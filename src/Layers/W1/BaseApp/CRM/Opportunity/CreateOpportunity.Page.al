@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -30,17 +30,14 @@ page 5126 "Create Opportunity"
                 field(Description; Rec.Description)
                 {
                     ApplicationArea = RelationshipMgmt;
-                    ToolTip = 'Specifies the description of the opportunity.';
                 }
                 field("Creation Date"; Rec."Creation Date")
                 {
                     ApplicationArea = RelationshipMgmt;
-                    ToolTip = 'Specifies the date that the opportunity was created.';
                 }
                 field(Priority; Rec.Priority)
                 {
                     ApplicationArea = RelationshipMgmt;
-                    ToolTip = 'Specifies the priority of the opportunity. There are three options:';
                 }
                 field("Wizard Contact Name"; Rec."Wizard Contact Name")
                 {
@@ -49,7 +46,6 @@ page 5126 "Create Opportunity"
                     Editable = WizardContactNameEditable;
                     Lookup = false;
                     TableRelation = Contact;
-                    ToolTip = 'Specifies the contact who is involved in this opportunity.';
 
                     trigger OnAssistEdit()
                     var
@@ -86,7 +82,6 @@ page 5126 "Create Opportunity"
                     Importance = Additional;
                     Lookup = false;
                     TableRelation = Campaign;
-                    ToolTip = 'Specifies the campaign that the opportunity is related to. The description is copied from the campaign card.';
 
                     trigger OnAssistEdit()
                     var
@@ -107,7 +102,6 @@ page 5126 "Create Opportunity"
                     Importance = Additional;
                     Lookup = false;
                     TableRelation = "Segment Header";
-                    ToolTip = 'Specifies a description of the segment that is related to the opportunity. The description is copied from the segment card.';
 
                     trigger OnAssistEdit()
                     var
@@ -128,7 +122,6 @@ page 5126 "Create Opportunity"
                 {
                     ApplicationArea = RelationshipMgmt;
                     Caption = 'Activate the First Stage.';
-                    ToolTip = 'Specifies if the opportunity is to be activated. If you select the check box, then you can fill out the remainder of the fields on this page. In the Opportunity Card window, the status is set to In Progress.';
 
                     trigger OnValidate()
                     begin
@@ -153,14 +146,12 @@ page 5126 "Create Opportunity"
                     DecimalPlaces = 0 : 0;
                     Enabled = Rec."Activate First Stage";
                     MaxValue = 100;
-                    ToolTip = 'Specifies the value in the wizard for the opportunity. You can specify a percentage completion estimate in this field.';
                 }
                 field("Wizard Estimated Closing Date"; Rec."Wizard Estimated Closing Date")
                 {
                     ApplicationArea = RelationshipMgmt;
                     Caption = 'Estimated Closing Date';
                     Enabled = Rec."Activate First Stage";
-                    ToolTip = 'Specifies a closing date for the opportunity from the wizard.';
                 }
             }
         }

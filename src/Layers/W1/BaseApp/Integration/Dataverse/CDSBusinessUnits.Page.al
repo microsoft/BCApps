@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -28,14 +28,12 @@ page 7203 "CDS Business Units"
                 {
                     ApplicationArea = Suite;
                     Caption = 'Id';
-                    ToolTip = 'Specifies the ID of the business unit.';
                     Visible = false;
                 }
                 field(Name; Rec.Name)
                 {
                     ApplicationArea = Suite;
                     Caption = 'Name';
-                    ToolTip = 'Specifies the Name of the business unit.';
                 }
             }
         }

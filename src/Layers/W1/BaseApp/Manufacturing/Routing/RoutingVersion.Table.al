@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -24,18 +24,22 @@ table 99000786 "Routing Version"
         field(2; "Version Code"; Code[20])
         {
             Caption = 'Version Code';
+            ToolTip = 'Specifies the version code of the routing.';
         }
         field(3; Description; Text[100])
         {
             Caption = 'Description';
+            ToolTip = 'Specifies a description for the routing version.';
         }
         field(10; "Starting Date"; Date)
         {
             Caption = 'Starting Date';
+            ToolTip = 'Specifies the starting date for this routing version.';
         }
         field(20; Status; Enum "Routing Status")
         {
             Caption = 'Status';
+            ToolTip = 'Specifies the status of this routing version.';
 
             trigger OnValidate()
             var
@@ -57,6 +61,7 @@ table 99000786 "Routing Version"
         field(21; Type; Option)
         {
             Caption = 'Type';
+            ToolTip = 'Specifies in which order operations in the routing are performed.';
             OptionCaption = 'Serial,Parallel';
             OptionMembers = Serial,Parallel;
 

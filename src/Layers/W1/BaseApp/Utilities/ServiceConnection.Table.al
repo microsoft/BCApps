@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -25,14 +25,17 @@ table 1400 "Service Connection"
         field(3; Name; Text[250])
         {
             Caption = 'Name';
+            ToolTip = 'Specifies the service. The description is based on the name of the setup page that opens when you choose the Setup.';
         }
         field(4; "Host Name"; Text[250])
         {
             Caption = 'Host Name';
+            ToolTip = 'Specifies the name of the web service. This is typically a URL.';
         }
         field(8; Status; Option)
         {
             Caption = 'Status';
+            ToolTip = 'Specifies if the service is enabled or disabled.';
             OptionCaption = ' ,Enabled,Disabled,Connected,Error';
             OptionMembers = " ",Enabled,Disabled,Connected,Error;
         }

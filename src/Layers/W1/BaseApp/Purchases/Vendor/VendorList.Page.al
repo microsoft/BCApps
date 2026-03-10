@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -65,146 +65,121 @@ page 27 "Vendor List"
                 field("Name 2"; Rec."Name 2")
                 {
                     ApplicationArea = All;
-                    ToolTip = 'Specifies an additional part of the name.';
                     Visible = false;
                 }
                 field(Address; Rec.Address)
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the vendor street address.';
                     Visible = false;
                 }
                 field(City; Rec.City)
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the vendor''s city.';
                     Visible = false;
                 }
                 field("Responsibility Center"; Rec."Responsibility Center")
                 {
                     ApplicationArea = Suite;
-                    ToolTip = 'Specifies the code of the responsibility center, such as a distribution hub, that is associated with the involved user, company, customer, or vendor.';
                 }
                 field("Location Code"; Rec."Location Code")
                 {
                     ApplicationArea = Location;
-                    ToolTip = 'Specifies the warehouse location where items from the vendor must be received by default.';
                 }
                 field("Post Code"; Rec."Post Code")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the postal code.';
                     Visible = false;
                 }
                 field("Country/Region Code"; Rec."Country/Region Code")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the country/region of the address.';
                     Visible = false;
                 }
                 field("Phone No."; Rec."Phone No.")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the vendor''s telephone number.';
                 }
                 field("Fax No."; Rec."Fax No.")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the vendor''s fax number.';
                     Visible = false;
                 }
                 field("IC Partner Code"; Rec."IC Partner Code")
                 {
                     ApplicationArea = Intercompany;
-                    ToolTip = 'Specifies the vendor''s intercompany partner code.';
                     Visible = false;
                 }
                 field(Contact; Rec.Contact)
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the name of the person you regularly contact when you do business with this vendor.';
                 }
                 field("Purchaser Code"; Rec."Purchaser Code")
                 {
                     ApplicationArea = Suite;
-                    ToolTip = 'Specifies which purchaser is assigned to the vendor.';
                     Visible = false;
                 }
                 field("Vendor Posting Group"; Rec."Vendor Posting Group")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the vendor''s market type to link business transactions made for the vendor with the appropriate account in the general ledger.';
                     Visible = false;
                 }
                 field("Allow Multiple Posting Groups"; Rec."Allow Multiple Posting Groups")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies if multiple posting groups can be used for posting business transactions for this vendor.';
                     Visible = IsAllowMultiplePostingGroupsVisible;
                 }
                 field("Gen. Bus. Posting Group"; Rec."Gen. Bus. Posting Group")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the vendor''s trade type to link transactions made for this vendor with the appropriate general ledger account according to the general posting setup.';
                     Visible = false;
                 }
                 field("VAT Bus. Posting Group"; Rec."VAT Bus. Posting Group")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the VAT specification of the involved customer or vendor to link transactions made for this record with the appropriate general ledger account according to the VAT posting setup.';
                     Visible = false;
                 }
                 field("Payment Terms Code"; Rec."Payment Terms Code")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies a formula that calculates the payment due date, payment discount date, and payment discount amount.';
                     Visible = false;
                 }
                 field("Fin. Charge Terms Code"; Rec."Fin. Charge Terms Code")
                 {
                     ApplicationArea = Suite;
-                    ToolTip = 'Specifies the code for the involved finance charges in case of late payment.';
                     Visible = false;
                 }
                 field("Currency Code"; Rec."Currency Code")
                 {
                     ApplicationArea = Suite;
-                    ToolTip = 'Specifies the currency code that is inserted by default when you create purchase documents or journal lines for the vendor.';
                     Visible = false;
                 }
                 field("Language Code"; Rec."Language Code")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the language that is used when translating specified text on documents to foreign business partner, such as an item description on an order confirmation.';
                     Visible = false;
                 }
                 field("Search Name"; Rec."Search Name")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies an alternate name that you can use to search for the record in question when you cannot remember the value in the Name field.';
                 }
                 field(Blocked; Rec.Blocked)
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies whether transactions with this vendor are restricted. Use this field to control vendor activity, such as temporarily halting payments or fully blocking a vendor due to compliance or business decisions. The field can have one of the following values: (blank) - No restrictions, all transactions are allowed. All - All transactions with this vendor are blocked. You cannot create or post any documents or journals with the vendor. Payment - Only payment transactions are blocked. You can still create and post purchase documents, but you cannot make payments to the vendor.';
                     Visible = false;
                 }
                 field("Privacy Blocked"; Rec."Privacy Blocked")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies whether to limit access to data for the data subject during daily operations. This is useful, for example, when protecting data from changes while it is under privacy review.';
                     Visible = false;
                 }
                 field("Last Date Modified"; Rec."Last Date Modified")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies when the vendor card was last modified.';
                     Visible = false;
                 }
                 field("Application Method"; Rec."Application Method")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies how to apply payments to entries for this vendor.';
                     Visible = false;
                 }
                 field("Location Code2"; Rec."Location Code")
@@ -216,19 +191,16 @@ page 27 "Vendor List"
                 field("Shipment Method Code"; Rec."Shipment Method Code")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the delivery conditions of the related shipment, such as free on board (FOB).';
                     Visible = false;
                 }
                 field("Lead Time Calculation"; Rec."Lead Time Calculation")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies a date formula for the amount of time it takes to replenish the item.';
                     Visible = false;
                 }
                 field("Base Calendar Code"; Rec."Base Calendar Code")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies a customizable calendar for delivery planning that holds the vendor''s working days and holidays.';
                     Visible = false;
                 }
                 field("Balance (LCY)"; Rec."Balance (LCY)")
@@ -259,7 +231,6 @@ page 27 "Vendor List"
                 field("Coupled to Dataverse"; Rec."Coupled to Dataverse")
                 {
                     ApplicationArea = All;
-                    ToolTip = 'Specifies that the vendor is coupled to an account in Dataverse.';
                     Visible = CRMIntegrationEnabled or CDSIntegrationEnabled;
                 }
             }

@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -36,32 +36,26 @@ page 5087 "Campaign List"
                 field("No."; Rec."No.")
                 {
                     ApplicationArea = All;
-                    ToolTip = 'Specifies the number of the involved entry or record, according to the specified number series.';
                 }
                 field(Description; Rec.Description)
                 {
                     ApplicationArea = All;
-                    ToolTip = 'Specifies the description of the campaign.';
                 }
                 field("Salesperson Code"; Rec."Salesperson Code")
                 {
                     ApplicationArea = RelationshipMgmt;
-                    ToolTip = 'Specifies the code of the salesperson responsible for the campaign.';
                 }
                 field("Status Code"; Rec."Status Code")
                 {
                     ApplicationArea = RelationshipMgmt;
-                    ToolTip = 'Specifies the status code for the campaign.';
                 }
                 field("Starting Date"; Rec."Starting Date")
                 {
                     ApplicationArea = RelationshipMgmt;
-                    ToolTip = 'Specifies the date on which the campaign is valid. There are certain rules for how dates should be entered.';
                 }
                 field("Ending Date"; Rec."Ending Date")
                 {
                     ApplicationArea = RelationshipMgmt;
-                    ToolTip = 'Specifies the last day on which this campaign is valid.';
                 }
             }
         }

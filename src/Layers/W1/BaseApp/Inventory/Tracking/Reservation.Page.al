@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -84,7 +84,6 @@ page 498 Reservation
                 {
                     ApplicationArea = Reservation;
                     Editable = false;
-                    ToolTip = 'Specifies which type of line or entry is summarized in the entry summary.';
                 }
                 field("Total Quantity"; ReservMgt.FormatQty(Rec."Total Quantity"))
                 {
@@ -153,7 +152,6 @@ page 498 Reservation
                 {
                     ApplicationArea = Reservation;
                     DecimalPlaces = 0 : 5;
-                    ToolTip = 'Specifies the quantity of the item that is reserved but does not have specific item tracking numbers in the reservation.';
                     Visible = false;
                 }
                 field("Current Reserved Quantity"; ReservMgt.FormatQty(ReservedThisLine(Rec)))

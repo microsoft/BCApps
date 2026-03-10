@@ -73,5 +73,10 @@
     "codeunitId": 134279,
     "codeunitName": "Bank Rec. Test Report UT",
     "method": "TestGetTotalOutstandingTransactions"
+  },
+  {
+    "codeunitId": 134263,
+    "codeunitName": "Test Bank Payment Application",
+    "method": "PostPmtWithDateLessThanInvoicePostingDateByUpdateStatementDate"
   }
 ]

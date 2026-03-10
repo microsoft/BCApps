@@ -36,7 +36,7 @@ codeunit 6492 "Serv. Move Entries"
         CannotDeleteOpenPrepaidContractEntriesErr: Label 'You cannot delete %1, because open prepaid contract entries exist in %2.', Comment = '%1 - table caption, %2 - customer number';
         CannotDeleteBecauseServiceContractErr: Label 'You cannot delete customer %1 because there is at least one not cancelled Service Contract for this customer.', Comment = '%1 - Customer No.';
 
-    [EventSubscriber(ObjectType::Codeunit, Codeunit::MoveEntries, 'OnMoveCustEntriesOnAfterModifyCustLedgEntries', '', false, false)]
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::MoveEntries, 'OnMoveCustEntriesOnAfterModifyCustLedgEntries', '', true, false)]
     local procedure OnMoveCustEntriesOnAfterModifyCustLedgEntries(var Customer: Record Customer; NewCustNo: Code[20])
     begin
         ServiceLedgerEntry.Reset();
@@ -97,7 +97,7 @@ codeunit 6492 "Serv. Move Entries"
         ServContract.ModifyAll("Bill-to Customer No.", NewCustNo);
     end;
 
-    [EventSubscriber(ObjectType::Codeunit, Codeunit::MoveEntries, 'OnMoveVendEntriesOnAfterModifyVendLedgEntries', '', false, false)]
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::MoveEntries, 'OnMoveVendEntriesOnAfterModifyVendLedgEntries', '', true, false)]
     local procedure OnMoveVendEntriesOnAfterModifyVendLedgEntries(var Vendor: Record Vendor; NewVendNo: Code[20])
     begin
         WarrantyLedgerEntry.LockTable();
@@ -109,7 +109,7 @@ codeunit 6492 "Serv. Move Entries"
             ServiceItem.ModifyAll("Vendor No.", NewVendNo);
     end;
 
-    [EventSubscriber(ObjectType::Codeunit, Codeunit::MoveEntries, 'OnMoveItemEntriesOnAfterModifyItemLedgerEntries', '', false, false)]
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::MoveEntries, 'OnMoveItemEntriesOnAfterModifyItemLedgerEntries', '', true, false)]
     local procedure OnMoveItemEntriesOnAfterModifyItemLedgerEntries(var Item: Record Item; NewItemNo: Code[20])
     begin
         ServiceLedgerEntry.Reset();
@@ -180,7 +180,7 @@ codeunit 6492 "Serv. Move Entries"
     begin
     end;
 
-    [EventSubscriber(ObjectType::Codeunit, Codeunit::MoveEntries, 'OnMoveResEntriesOnAfterModifyResLedgerEntries', '', false, false)]
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::MoveEntries, 'OnMoveResEntriesOnAfterModifyResLedgerEntries', '', true, false)]
     local procedure OnMoveResEntriesOnAfterModifyResLedgerEntries(var Resource: Record Resource; NewResNo: Code[20])
     begin
         ServiceLedgerEntry.Reset();
@@ -206,7 +206,7 @@ codeunit 6492 "Serv. Move Entries"
         WarrantyLedgerEntry.ModifyAll("No.", NewResNo);
     end;
 
-    [EventSubscriber(ObjectType::Codeunit, Codeunit::MoveEntries, 'OnMoveJobEntriesOnAfterModifyJobLedgerEntries', '', false, false)]
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::MoveEntries, 'OnMoveJobEntriesOnAfterModifyJobLedgerEntries', '', true, false)]
     local procedure OnMoveJobEntriesOnAfterModifyJobLedgerEntries(var Job: Record Job; NewJobNo: Code[20])
     begin
         ServiceLedgerEntry.Reset();
@@ -407,7 +407,7 @@ codeunit 6492 "Serv. Move Entries"
     begin
     end;
 
-    [EventSubscriber(ObjectType::Codeunit, Codeunit::MoveEntries, 'OnAfterMoveCashFlowEntries', '', false, false)]
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::MoveEntries, 'OnAfterMoveCashFlowEntries', '', true, false)]
     local procedure OnAfterMoveCashFlowEntries(CashFlowAccount: Record "Cash Flow Account"; CashFlowSetup: Record "Cash Flow Setup")
     begin
         if CashFlowSetup."Service CF Account No." = CashFlowAccount."No." then

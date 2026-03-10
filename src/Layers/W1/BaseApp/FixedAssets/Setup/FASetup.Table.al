@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -26,10 +26,12 @@ table 5603 "FA Setup"
         field(3; "Allow Posting to Main Assets"; Boolean)
         {
             Caption = 'Allow Posting to Main Assets';
+            ToolTip = 'Specifies whether you have split your fixed assets into main assets and components, and you want to be able to post directly to main assets.';
         }
         field(4; "Default Depr. Book"; Code[10])
         {
             Caption = 'Default Depr. Book';
+            ToolTip = 'Specifies the default depreciation book on journal lines and purchase lines and when you run batch jobs and reports.';
             TableRelation = "Depreciation Book";
 
             trigger OnValidate()
@@ -41,14 +43,17 @@ table 5603 "FA Setup"
         field(5; "Allow FA Posting From"; Date)
         {
             Caption = 'Allow FA Posting From';
+            ToolTip = 'Specifies the earliest date when posting to the fixed assets is allowed.';
         }
         field(6; "Allow FA Posting To"; Date)
         {
             Caption = 'Allow FA Posting To';
+            ToolTip = 'Specifies the latest date when posting to the fixed assets is allowed.';
         }
         field(7; "Insurance Depr. Book"; Code[10])
         {
             Caption = 'Insurance Depr. Book';
+            ToolTip = 'Specifies a depreciation book code. If you use the insurance facilities, you must enter a code to post insurance coverage ledger entries.';
             TableRelation = "Depreciation Book";
 
             trigger OnValidate()
@@ -66,17 +71,20 @@ table 5603 "FA Setup"
         field(8; "Automatic Insurance Posting"; Boolean)
         {
             Caption = 'Automatic Insurance Posting';
+            ToolTip = 'Specifies you want to post insurance coverage ledger entries when you post acquisition cost entries with the Insurance No. field filled in.';
             InitValue = true;
         }
         field(9; "Fixed Asset Nos."; Code[20])
         {
             Caption = 'Fixed Asset Nos.';
+            ToolTip = 'Specifies the code for the number series that will be used to assign numbers to fixed assets.';
             TableRelation = "No. Series";
         }
         field(10; "Insurance Nos."; Code[20])
         {
             AccessByPermission = TableData Insurance = R;
             Caption = 'Insurance Nos.';
+            ToolTip = 'Specifies the number series code that will be used to assign numbers to insurance policies.';
             TableRelation = "No. Series";
         }
     }

@@ -2575,6 +2575,58 @@ codeunit 137049 "SCM Reservation"
           'Reservation entry should be deleted from temporary table');
     end;
 
+    [Test]
+    [HandlerFunctions('AvailableToReservePageHandler,AvailableProdLinesPageHandler')]
+    [Scope('OnPrem')]
+    procedure AvailableQtyDisplayAfterPartialReservation()
+    var
+        ProdItem1: Record Item;
+        ProductionOrder: Record "Production Order";
+        SalesHeader: Record "Sales Header";
+        SalesLine: Record "Sales Line";
+        PartialReserveQty: Decimal;
+        TotalQty: Decimal;
+
+    begin
+        // [SCENARIO] 612795 - Incorrect Inventory Availability Display and Reservation Overwrite When Reserving Against Production Orders out of the avaiable to reserve page
+        // [GIVEN] Production Order with 100 units
+        // [GIVEN] Sales Order Line 1 with 10 units reserved from Production Order
+        // [WHEN] Opening "Available to Reserve" from Sales Order Line 2
+        // [THEN] Available Quantity shows 90 units (100 - 10 already reserved)
+
+        // Setup: Create Item and Production Order with 100 units
+        Initialize();
+        LibraryInventory.CreateItem(ProdItem1);
+        ProdItem1.Validate("Replenishment System", ProdItem1."Replenishment System"::"Prod. Order");
+        ProdItem1.Modify(true);
+
+        TotalQty := LibraryRandom.RandInt(100);
+        PartialReserveQty := LibraryRandom.RandInt(10);
+        LibraryManufacturing.CreateProductionOrder(
+                    ProductionOrder, ProductionOrder.Status::Released,
+                    ProductionOrder."Source Type"::Item, ProdItem1."No.", TotalQty);
+        LibraryManufacturing.RefreshProdOrder(ProductionOrder, false, true, true, true, false);
+
+        // Create Sales Order with two lines
+        LibrarySales.CreateSalesHeader(SalesHeader, SalesHeader."Document Type"::Order, '');
+        LibrarySales.CreateSalesLine(SalesLine, SalesHeader, SalesLine.Type::Item, ProdItem1."No.", PartialReserveQty);
+
+        // Reserve 10 units from Production Order to Sales Line 1
+        ExpCurrentReservedQty := PartialReserveQty;
+        LibrarySales.AutoReserveSalesLine(SalesLine);
+
+        // Create Sales Line 2 with 100 units
+        LibrarySales.CreateSalesLine(SalesLine, SalesHeader, SalesLine.Type::Item, ProdItem1."No.", TotalQty);
+
+        // Store expected available quantity for verification in page handler
+        LibraryVariableStorage.Enqueue(TotalQty - PartialReserveQty); // Expected: 90
+
+        // Exercise: Open "Available to Reserve" from Sales Line 2
+        SalesLine.ShowReservation();
+
+        // Verify: Done in AvailableProdLinesPageHandler
+    end;
+
     local procedure Initialize()
     var
         LibraryERMCountryData: Codeunit "Library - ERM Country Data";
@@ -3634,6 +3686,23 @@ codeunit 137049 "SCM Reservation"
         ItemAvailabilityCheck.AvailabilityCheckDetails."No.".AssertEquals(Item."No.");
         ItemAvailabilityCheck.AvailabilityCheckDetails.Description.AssertEquals(Item.Description);
         ItemAvailabilityCheck.InventoryQty.AssertEquals(AvailableToPromise.CalcAvailableInventory(Item));
+    end;
+
+    [ModalPageHandler]
+    [Scope('OnPrem')]
+    procedure AvailableToReservePageHandler(var Reservation: TestPage Reservation)
+    begin
+        Reservation.AvailableToReserve.Invoke();
+    end;
+
+    [ModalPageHandler]
+    [Scope('OnPrem')]
+    procedure AvailableProdLinesPageHandler(var AvailableProdLines: TestPage "Available - Prod. Order Lines")
+    var
+        ExpectedAvailableQty: Decimal;
+    begin
+        ExpectedAvailableQty := LibraryVariableStorage.DequeueDecimal();
+        AvailableProdLines.QtyToReserveBase.AssertEquals(ExpectedAvailableQty);
     end;
 }
 

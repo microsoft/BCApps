@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -21,19 +21,23 @@ table 5941 "Service Item Component"
         field(1; "Parent Service Item No."; Code[20])
         {
             Caption = 'Parent Service Item No.';
+            ToolTip = 'Specifies the number of the service item in which the component is included.';
             TableRelation = "Service Item";
         }
         field(3; "Line No."; Integer)
         {
             Caption = 'Line No.';
+            ToolTip = 'Specifies the number of the line.';
         }
         field(4; Active; Boolean)
         {
             Caption = 'Active';
+            ToolTip = 'Specifies that the component is in use.';
         }
         field(5; Type; Enum "Service Item Component Type")
         {
             Caption = 'Type';
+            ToolTip = 'Specifies the component type.';
 
             trigger OnValidate()
             begin
@@ -44,6 +48,7 @@ table 5941 "Service Item Component"
         field(6; "No."; Code[20])
         {
             Caption = 'No.';
+            ToolTip = 'Specifies the number of the involved entry or record, according to the specified number series.';
             TableRelation = if (Type = const("Service Item")) "Service Item"
             else
             if (Type = const(Item)) Item;
@@ -114,10 +119,12 @@ table 5941 "Service Item Component"
         field(7; "Date Installed"; Date)
         {
             Caption = 'Date Installed';
+            ToolTip = 'Specifies the date when the component was installed.';
         }
         field(8; "Variant Code"; Code[10])
         {
             Caption = 'Variant Code';
+            ToolTip = 'Specifies the variant of the item on the line.';
             TableRelation = if (Type = const(Item)) "Item Variant".Code where("Item No." = field("No."));
 
             trigger OnLookup()
@@ -162,6 +169,7 @@ table 5941 "Service Item Component"
         field(11; "Serial No."; Code[50])
         {
             Caption = 'Serial No.';
+            ToolTip = 'Specifies the serial number of the component.';
 
             trigger OnValidate()
             begin
@@ -177,6 +185,7 @@ table 5941 "Service Item Component"
         field(12; Description; Text[100])
         {
             Caption = 'Description';
+            ToolTip = 'Specifies a description of the component.';
         }
         field(13; "Description 2"; Text[50])
         {
@@ -185,6 +194,7 @@ table 5941 "Service Item Component"
         field(15; "Service Order No."; Code[20])
         {
             Caption = 'Service Order No.';
+            ToolTip = 'Specifies the number of the service order under which this component was replaced.';
             //The property 'ValidateTableRelation' can only be set if the property 'TableRelation' is set
             //ValidateTableRelation = false;
 
@@ -196,10 +206,12 @@ table 5941 "Service Item Component"
         field(16; "From Line No."; Integer)
         {
             Caption = 'From Line No.';
+            ToolTip = 'Specifies the line number assigned to the component when it was an active component of the service item.';
         }
         field(17; "Last Date Modified"; Date)
         {
             Caption = 'Last Date Modified';
+            ToolTip = 'Specifies the date when the component was last modified.';
         }
     }
 

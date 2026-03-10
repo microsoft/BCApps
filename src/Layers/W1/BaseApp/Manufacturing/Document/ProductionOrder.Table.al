@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -44,10 +44,12 @@ table 5405 "Production Order"
         field(1; Status; Enum "Production Order Status")
         {
             Caption = 'Status';
+            ToolTip = 'Specifies the status of the production order.';
         }
         field(2; "No."; Code[20])
         {
             Caption = 'No.';
+            ToolTip = 'Specifies the number of the involved entry or record, according to the specified number series.';
             TableRelation = "Production Order"."No." where(Status = field(Status));
             ValidateTableRelation = false;
 
@@ -65,6 +67,7 @@ table 5405 "Production Order"
         field(3; Description; Text[100])
         {
             Caption = 'Description';
+            ToolTip = 'Specifies the description of the production order.';
 
             trigger OnValidate()
             begin
@@ -74,24 +77,29 @@ table 5405 "Production Order"
         field(4; "Search Description"; Code[100])
         {
             Caption = 'Search Description';
+            ToolTip = 'Specifies the search description.';
         }
         field(5; "Description 2"; Text[50])
         {
             Caption = 'Description 2';
+            ToolTip = 'Specifies information in addition to the description.';
         }
         field(6; "Creation Date"; Date)
         {
             Caption = 'Creation Date';
+            ToolTip = 'Specifies the date on which you created the production order.';
             Editable = false;
         }
         field(7; "Last Date Modified"; Date)
         {
             Caption = 'Last Date Modified';
+            ToolTip = 'Specifies when the production order card was last modified.';
             Editable = false;
         }
         field(9; "Source Type"; Enum "Prod. Order Source Type")
         {
             Caption = 'Source Type';
+            ToolTip = 'Specifies the source type of the production order.';
 
             trigger OnValidate()
             begin
@@ -102,6 +110,7 @@ table 5405 "Production Order"
         field(10; "Source No."; Code[20])
         {
             Caption = 'Source No.';
+            ToolTip = 'Specifies the number of the source document that the entry originates from.';
             TableRelation = if ("Source Type" = const(Item)) Item where(Type = const(Inventory), "Production Blocked" = filter(<> Output))
             else
             if ("Source Type" = const(Family)) Family
@@ -169,11 +178,13 @@ table 5405 "Production Order"
         field(11; "Routing No."; Code[20])
         {
             Caption = 'Routing No.';
+            ToolTip = 'Specifies the routing number used for this production order.';
             TableRelation = "Routing Header";
         }
         field(12; "Variant Code"; Code[10])
         {
             Caption = 'Variant Code';
+            ToolTip = 'Specifies the variant code for production order item.';
             TableRelation = if ("Source Type" = const(Item)) "Item Variant".Code where("Item No." = field("Source No."),
                                                                                         Code = field("Variant Code"),
                                                                                         "Production Blocked" = filter(<> Output));
@@ -221,16 +232,19 @@ table 5405 "Production Order"
         field(15; "Inventory Posting Group"; Code[20])
         {
             Caption = 'Inventory Posting Group';
+            ToolTip = 'Specifies links between business transactions made for the item and an inventory account in the general ledger, to group amounts for that item type.';
             TableRelation = "Inventory Posting Group";
         }
         field(16; "Gen. Prod. Posting Group"; Code[20])
         {
             Caption = 'Gen. Prod. Posting Group';
+            ToolTip = 'Specifies the item''s product type to link transactions made for this item with the appropriate general ledger account according to the general posting setup.';
             TableRelation = "Gen. Product Posting Group";
         }
         field(17; "Gen. Bus. Posting Group"; Code[20])
         {
             Caption = 'Gen. Bus. Posting Group';
+            ToolTip = 'Specifies the vendor''s or customer''s trade type to link transactions made for this business partner with the appropriate general ledger account according to the general posting setup.';
             TableRelation = "Gen. Business Posting Group";
         }
         field(19; Comment; Boolean)
@@ -244,6 +258,7 @@ table 5405 "Production Order"
         field(20; "Starting Time"; Time)
         {
             Caption = 'Starting Time';
+            ToolTip = 'Specifies the starting time of the production order.';
 
             trigger OnValidate()
             begin
@@ -253,6 +268,7 @@ table 5405 "Production Order"
         field(21; "Starting Date"; Date)
         {
             Caption = 'Starting Date';
+            ToolTip = 'Specifies the starting date of the production order.';
 
             trigger OnValidate()
             begin
@@ -262,6 +278,7 @@ table 5405 "Production Order"
         field(22; "Ending Time"; Time)
         {
             Caption = 'Ending Time';
+            ToolTip = 'Specifies the ending time of the production order.';
 
             trigger OnValidate()
             begin
@@ -271,6 +288,7 @@ table 5405 "Production Order"
         field(23; "Ending Date"; Date)
         {
             Caption = 'Ending Date';
+            ToolTip = 'Specifies the ending date of the production order.';
 
             trigger OnValidate()
             begin
@@ -280,6 +298,7 @@ table 5405 "Production Order"
         field(24; "Due Date"; Date)
         {
             Caption = 'Due Date';
+            ToolTip = 'Specifies the due date of the production order.';
 
             trigger OnValidate()
             begin
@@ -338,16 +357,19 @@ table 5405 "Production Order"
         field(25; "Finished Date"; Date)
         {
             Caption = 'Finished Date';
+            ToolTip = 'Specifies the actual finishing date of a finished production order.';
             Editable = false;
         }
         field(28; Blocked; Boolean)
         {
             Caption = 'Blocked';
+            ToolTip = 'Specifies that the posting of consumption and output transactions for the released production order is blocked.';
         }
         field(30; "Shortcut Dimension 1 Code"; Code[20])
         {
             CaptionClass = '1,2,1';
             Caption = 'Shortcut Dimension 1 Code';
+            ToolTip = 'Specifies the code for Shortcut Dimension 1, which is one of two global dimension codes that you set up in the General Ledger Setup window.';
             TableRelation = "Dimension Value".Code where("Global Dimension No." = const(1),
                                                           Blocked = const(false));
 
@@ -360,6 +382,7 @@ table 5405 "Production Order"
         {
             CaptionClass = '1,2,2';
             Caption = 'Shortcut Dimension 2 Code';
+            ToolTip = 'Specifies the code for Shortcut Dimension 2, which is one of two global dimension codes that you set up in the General Ledger Setup window.';
             TableRelation = "Dimension Value".Code where("Global Dimension No." = const(2),
                                                           Blocked = const(false));
 
@@ -371,6 +394,7 @@ table 5405 "Production Order"
         field(32; "Location Code"; Code[10])
         {
             Caption = 'Location Code';
+            ToolTip = 'Specifies the location code to which you want to post the finished product from this production order.';
             TableRelation = Location where("Use As In-Transit" = const(false));
 
             trigger OnValidate()
@@ -386,6 +410,7 @@ table 5405 "Production Order"
         field(33; "Bin Code"; Code[20])
         {
             Caption = 'Bin Code';
+            ToolTip = 'Specifies a bin to which you want to post the finished items.';
             TableRelation = if ("Source Type" = const(Item)) Bin.Code where("Location Code" = field("Location Code"),
                                                                            "Item Filter" = field("Source No."))
             else
@@ -419,6 +444,7 @@ table 5405 "Production Order"
         {
             AutoFormatType = 0;
             Caption = 'Quantity';
+            ToolTip = 'Specifies how many units of the item or the family to produce (production quantity).';
             DecimalPlaces = 0 : 5;
             MinValue = 0;
 
@@ -571,9 +597,19 @@ table 5405 "Production Order"
             Editable = false;
             FieldClass = FlowField;
         }
+        field(95; "Inventory Adjmt. Entry Exists"; Boolean)
+        {
+            CalcFormula = exist("Inventory Adjmt. Entry (Order)" where("Order Type" = const(Production),
+                                                                  "Order No." = field("No."),
+                                                                  "Completely Invoiced" = const(false)));
+            Caption = 'Inventory Adjmt. Entry (Order) Exists';
+            Editable = false;
+            FieldClass = FlowField;
+        }
         field(98; "Starting Date-Time"; DateTime)
         {
             Caption = 'Starting Date-Time';
+            ToolTip = 'Specifies the starting date and starting time of the production order.';
 
             trigger OnValidate()
             begin
@@ -585,6 +621,7 @@ table 5405 "Production Order"
         field(99; "Ending Date-Time"; DateTime)
         {
             Caption = 'Ending Date-Time';
+            ToolTip = 'Specifies the ending date and ending time of the production order.';
 
             trigger OnValidate()
             begin
@@ -599,6 +636,7 @@ table 5405 "Production Order"
         field(110; "Document Put-away Status"; Option)
         {
             Caption = 'Document Put-away Status';
+            ToolTip = 'Specifies the status of the warehouse put-away.';
             Editable = false;
             OptionCaption = ' ,Partially Put Away,Completely Put Away';
             OptionMembers = " ","Partially Put Away","Completely Put Away";
@@ -606,6 +644,7 @@ table 5405 "Production Order"
         field(200; "Reopened"; Boolean)
         {
             Caption = 'Reopened';
+            ToolTip = 'Specifies if the production order is reopened.';
             Editable = false;
         }
         field(290; "Manual Scheduling"; Boolean)
@@ -636,11 +675,13 @@ table 5405 "Production Order"
                                                                                  "Prod. Order No." = field("No."),
                                                                                  "Supplied-by Line No." = filter(0)));
             Caption = 'Completely Picked';
+            ToolTip = 'Specifies whether all production components have been completely picked.';
             FieldClass = FlowField;
         }
         field(9000; "Assigned User ID"; Code[50])
         {
             Caption = 'Assigned User ID';
+            ToolTip = 'Specifies the ID of the user who is responsible for the document.';
             DataClassification = EndUserIdentifiableInformation;
             TableRelation = "User Setup";
         }

@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -34,13 +34,11 @@ page 99000892 "Work Center Group Load Lines"
                 {
                     ApplicationArea = Manufacturing;
                     Caption = 'Period Start';
-                    ToolTip = 'Specifies the starting date of the period that you want to view, for an overview of availability at the current work center group.';
                 }
                 field("Period Name"; Rec."Period Name")
                 {
                     ApplicationArea = Manufacturing;
                     Caption = 'Period Name';
-                    ToolTip = 'Specifies the name of the period shown in the line.';
                 }
                 field(Capacity; Rec.Capacity)
                 {

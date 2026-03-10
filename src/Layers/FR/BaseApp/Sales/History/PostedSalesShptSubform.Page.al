@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -34,7 +34,6 @@ page 131 "Posted Sales Shpt. Subform"
                 field(Type; Rec.Type)
                 {
                     ApplicationArea = Advanced;
-                    ToolTip = 'Specifies the line type.';
                 }
                 field(FilteredTypeField; Rec.FormatType())
                 {
@@ -46,18 +45,15 @@ page 131 "Posted Sales Shpt. Subform"
                 field("No."; Rec."No.")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the number of the involved entry or record, according to the specified number series.';
                 }
                 field("Item Reference No."; Rec."Item Reference No.")
                 {
                     AccessByPermission = tabledata "Item Reference" = R;
                     ApplicationArea = Suite, ItemReferences;
-                    ToolTip = 'Specifies the referenced item number.';
                 }
                 field("Variant Code"; Rec."Variant Code")
                 {
                     ApplicationArea = Planning;
-                    ToolTip = 'Specifies the variant of the item on the line.';
                     Visible = false;
                 }
                 field(Description; Rec.Description)
@@ -69,13 +65,11 @@ page 131 "Posted Sales Shpt. Subform"
                 {
                     ApplicationArea = Basic, Suite;
                     Importance = Additional;
-                    ToolTip = 'Specifies information in addition to the description.';
                     Visible = false;
                 }
                 field("Return Reason Code"; Rec."Return Reason Code")
                 {
                     ApplicationArea = Suite;
-                    ToolTip = 'Specifies the code explaining why the item was returned.';
                     Visible = false;
                 }
                 field("Location Code"; Rec."Location Code")
@@ -86,114 +80,95 @@ page 131 "Posted Sales Shpt. Subform"
                 field("Bin Code"; Rec."Bin Code")
                 {
                     ApplicationArea = Warehouse;
-                    ToolTip = 'Specifies the bin where the items are picked or put away.';
                     Visible = false;
                 }
                 field(Quantity; Rec.Quantity)
                 {
                     ApplicationArea = Basic, Suite;
                     BlankZero = true;
-                    ToolTip = 'Specifies the number of units of the item specified on the line.';
                 }
                 field("Unit of Measure Code"; Rec."Unit of Measure Code")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies how each unit of the item or resource is measured, such as in pieces or hours. By default, the value in the Base Unit of Measure field on the item or resource card is inserted.';
                 }
                 field("Unit of Measure"; Rec."Unit of Measure")
                 {
                     ApplicationArea = Suite;
-                    ToolTip = 'Specifies the name of the item or resource''s unit of measure, such as piece or hour.';
                     Visible = false;
                 }
                 field("Quantity Invoiced"; Rec."Quantity Invoiced")
                 {
                     ApplicationArea = Basic, Suite;
                     BlankZero = true;
-                    ToolTip = 'Specifies how many units of the item on the line have been posted as invoiced.';
                 }
                 field("Qty. Shipped Not Invoiced"; Rec."Qty. Shipped Not Invoiced")
                 {
                     ApplicationArea = Basic, Suite;
                     Editable = false;
-                    ToolTip = 'Specifies the quantity of the shipped item that has been posted as shipped but that has not yet been posted as invoiced.';
                     Visible = false;
                 }
                 field("Requested Delivery Date"; Rec."Requested Delivery Date")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the date that the customer has asked for the order to be delivered.';
                     Visible = false;
                 }
                 field("Promised Delivery Date"; Rec."Promised Delivery Date")
                 {
                     ApplicationArea = OrderPromising;
-                    ToolTip = 'Specifies the date that you have promised to deliver the order, as a result of the Order Promising function.';
                     Visible = false;
                 }
                 field("Planned Delivery Date"; Rec."Planned Delivery Date")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the planned date that the shipment will be delivered at the customer''s address. If the customer requests a delivery date, the program calculates whether the items will be available for delivery on this date. If the items are available, the planned delivery date will be the same as the requested delivery date. If not, the program calculates the date that the items are available for delivery and enters this date in the Planned Delivery Date field.';
                 }
                 field("Planned Shipment Date"; Rec."Planned Shipment Date")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the date that the shipment should ship from the warehouse. If the customer requests a delivery date, the program calculates the planned shipment date by subtracting the shipping time from the requested delivery date. If the customer does not request a delivery date or the requested delivery date cannot be met, the program calculates the content of this field by adding the shipment time to the shipping date.';
                 }
                 field("Shipment Date"; Rec."Shipment Date")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies when items on the document are shipped or were shipped. A shipment date is usually calculated from a requested delivery date plus lead time.';
                     Visible = true;
                 }
                 field("Shipping Time"; Rec."Shipping Time")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies how long it takes from when the items are shipped from the warehouse to when they are delivered.';
                     Visible = false;
                 }
                 field("Job No."; Rec."Job No.")
                 {
                     ApplicationArea = Jobs;
-                    ToolTip = 'Specifies the number of the related project.';
                     Visible = false;
                 }
                 field("Job Task No."; Rec."Job Task No.")
                 {
                     ApplicationArea = Jobs;
-                    ToolTip = 'Specifies the number of the related project task.';
                     Visible = false;
                 }
                 field("Outbound Whse. Handling Time"; Rec."Outbound Whse. Handling Time")
                 {
                     ApplicationArea = Warehouse;
-                    ToolTip = 'Specifies a date formula for the time it takes to get items ready to ship from this location. The time element is used in the calculation of the delivery date as follows: Shipment Date + Outbound Warehouse Handling Time = Planned Shipment Date + Shipping Time = Planned Delivery Date.';
                     Visible = false;
                 }
                 field("Appl.-to Item Entry"; Rec."Appl.-to Item Entry")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the number of the item ledger entry that the document or journal line is applied to.';
                     Visible = false;
                 }
                 field(Correction; Rec.Correction)
                 {
                     ApplicationArea = Basic, Suite;
                     Editable = false;
-                    ToolTip = 'Specifies that this sales shipment line has been posted as a corrective entry.';
                     Visible = false;
                 }
                 field("Shortcut Dimension 1 Code"; Rec."Shortcut Dimension 1 Code")
                 {
                     ApplicationArea = Dimensions;
-                    ToolTip = 'Specifies the code for Shortcut Dimension 1, which is one of two global dimension codes that you set up in the General Ledger Setup window.';
                     Visible = DimVisible1;
                 }
                 field("Shortcut Dimension 2 Code"; Rec."Shortcut Dimension 2 Code")
                 {
                     ApplicationArea = Dimensions;
-                    ToolTip = 'Specifies the code for Shortcut Dimension 2, which is one of two global dimension codes that you set up in the General Ledger Setup window.';
                     Visible = DimVisible2;
                 }
                 field("ShortcutDimCode[3]"; ShortcutDimCode[3])
@@ -254,26 +229,22 @@ page 131 "Posted Sales Shpt. Subform"
                 {
                     Caption = 'Unit Gross Weight';
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the gross weight of one unit of the item. In the sales statistics window, the gross weight on the line is included in the total gross weight of all the lines for the particular sales document.';
                     Visible = false;
                 }
                 field("Net Weight"; Rec."Net Weight")
                 {
                     Caption = 'Unit Net Weight';
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the net weight of one unit of the item. In the sales statistics window, the net weight on the line is included in the total net weight of all the lines for the particular sales document.';
                     Visible = false;
                 }
                 field("Unit Volume"; Rec."Unit Volume")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the volume of one unit of the item. In the sales statistics window, the volume of one unit of the item on the line is included in the total volume of all the lines for the particular sales document.';
                     Visible = false;
                 }
                 field("Units per Parcel"; Rec."Units per Parcel")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the number of units per parcel of the item. In the sales statistics window, the number of units per parcel on the line helps to determine the total number of units for all the lines for the particular sales document.';
                     Visible = false;
                 }
             }

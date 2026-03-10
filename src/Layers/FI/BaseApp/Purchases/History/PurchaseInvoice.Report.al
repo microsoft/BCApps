@@ -98,9 +98,6 @@ report 406 "Purchase - Invoice"
                     column(DocCaptionCopyText; StrSubstNo(DocumentCaption(), CopyText))
                     {
                     }
-                    column(SelfBillingCaption; StrSubstNo(SelfBillingCaptionLbl, CopyText))
-                    {
-                    }
                     column(VendAddr1; VendAddr[1])
                     {
                     }
@@ -153,15 +150,6 @@ report 406 "Purchase - Invoice"
                     {
                     }
                     column(CompanyInfoBankAccountNo; CompanyInfo."Bank Account No.")
-                    {
-                    }
-                    column(CompanyInfoSwiftCode; CompanyInfo."SWIFT Code")
-                    {
-                    }
-                    column(CompanyInfoIBAN; CompanyInfo.IBAN)
-                    {
-                    }
-                    column(CompanyInfoBankBranchNo; CompanyInfo."Bank Branch No.")
                     {
                     }
                     column(PayToVendNo_PurchInvHeader; "Purch. Inv. Header"."Pay-to Vendor No.")
@@ -321,12 +309,6 @@ report 406 "Purchase - Invoice"
                     {
                     }
                     column(CompanyInfoRegisteredHomeCityCaption; CompanyInfoRegisteredHomeCityLbl)
-                    {
-                    }
-                    column(SwiftCodeCaption; SwiftCodeCaptionLbl)
-                    {
-                    }
-                    column(CompanyIBAN_Lbl; CompanyInfo.FieldCaption(IBAN))
                     {
                     }
                     dataitem(DimensionLoop1; "Integer")
@@ -611,7 +593,7 @@ report 406 "Purchase - Invoice"
                                 MoreLines := Next(-1) <> 0;
                             if not MoreLines then
                                 CurrReport.Break();
-                            SetRange("Line No.", 0, "Line No.");
+                            SetFilter("Line No.", '<=%1', "Line No.");
 
                             PurchInvLine.SetRange("Document No.", "Purch. Inv. Header"."No.");
                             PurchInvLine.SetFilter(Type, '<>%1', 0);
@@ -933,13 +915,6 @@ report 406 "Purchase - Invoice"
             Caption = 'Purchase Invoice (RDLC)';
             Summary = 'The Purchase Invoice (RDLC) is the most detailed layout and provides most flexible layout options.';
         }
-        layout("SelfBillingInvoice.rdlc")
-        {
-            Type = RDLC;
-            LayoutFile = './Purchases/History/SelfBillingInvoice.rdlc';
-            Caption = 'Self-Billing Invoice (RDLC)';
-            Summary = 'The Self-Billing Invoice (RDLC) is the most detailed layout and provides most flexible layout options.';
-        }
     }
 
     labels
@@ -1073,8 +1048,6 @@ report 406 "Purchase - Invoice"
         PayToContactEmailLbl: Label 'Pay-to Contact E-Mail';
         CompanyInfoBusinessIdentityCodeLbl: Label 'Business Identity Code';
         CompanyInfoRegisteredHomeCityLbl: Label 'Registered Home City';
-        SelfBillingCaptionLbl: Label 'Self Billing Invoice %1', Comment = '%1 = Document No.';
-        SwiftCodeCaptionLbl: Label 'SWIFT Code';
 
     protected var
         CompanyInfo: Record "Company Information";

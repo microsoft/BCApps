@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -31,10 +31,12 @@ table 7342 "Posted Invt. Pick Header"
         field(2; "No."; Code[20])
         {
             Caption = 'No.';
+            ToolTip = 'Specifies the number of the involved entry or record, according to the specified number series.';
         }
         field(3; "Location Code"; Code[10])
         {
             Caption = 'Location Code';
+            ToolTip = 'Specifies the location code for where the posted inventory pick occurred.';
             NotBlank = true;
             TableRelation = Location;
         }
@@ -59,6 +61,7 @@ table 7342 "Posted Invt. Pick Header"
         field(9; "No. Series"; Code[20])
         {
             Caption = 'No. Series';
+            ToolTip = 'Specifies the number series from which entry or record numbers are assigned to new entries or records.';
             Editable = false;
             TableRelation = "No. Series";
         }
@@ -74,6 +77,7 @@ table 7342 "Posted Invt. Pick Header"
         field(11; "Invt Pick No."; Code[20])
         {
             Caption = 'Invt Pick No.';
+            ToolTip = 'Specifies the inventory pick number from which the pick was posted.';
         }
         field(12; "No. Printed"; Integer)
         {
@@ -83,10 +87,12 @@ table 7342 "Posted Invt. Pick Header"
         field(20; "Posting Date"; Date)
         {
             Caption = 'Posting Date';
+            ToolTip = 'Specifies the posting date from the inventory pick.';
         }
         field(7306; "Source No."; Code[20])
         {
             Caption = 'Source No.';
+            ToolTip = 'Specifies the number of the source document that the entry originates from.';
             TableRelation = if ("Source Type" = const(120)) "Purch. Rcpt. Header" where("No." = field("Source No."))
             else
             if ("Source Type" = const(110)) "Sales Shipment Header" where("No." = field("Source No."))
@@ -122,6 +128,7 @@ table 7342 "Posted Invt. Pick Header"
         field(7311; "Destination No."; Code[20])
         {
             Caption = 'Destination No.';
+            ToolTip = 'Specifies the number or the code of the customer, vendor, location, item, family, or sales order linked to the posted inventory pick.';
             TableRelation = if ("Destination Type" = const(Vendor)) Vendor
             else
             if ("Destination Type" = const(Customer)) Customer
@@ -135,14 +142,17 @@ table 7342 "Posted Invt. Pick Header"
         field(7312; "External Document No."; Code[35])
         {
             Caption = 'External Document No.';
+            ToolTip = 'Specifies a document number that refers to the customer''s or vendor''s numbering system.';
         }
         field(7314; "Shipment Date"; Date)
         {
             Caption = 'Shipment Date';
+            ToolTip = 'Specifies when items on the document are shipped or were shipped. A shipment date is usually calculated from a requested delivery date plus lead time.';
         }
         field(7315; "External Document No.2"; Code[35])
         {
             Caption = 'External Document No.2';
+            ToolTip = 'Specifies an additional part of the document number that refers to the customer''s or vendor''s numbering system.';
         }
     }
 

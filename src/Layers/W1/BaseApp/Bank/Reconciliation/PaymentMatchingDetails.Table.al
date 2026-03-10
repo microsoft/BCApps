@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -74,6 +74,7 @@ table 1299 "Payment Matching Details"
         field(6; Message; Text[250])
         {
             Caption = 'Message';
+            ToolTip = 'Specifies if a message with additional match details exists.';
         }
     }
 

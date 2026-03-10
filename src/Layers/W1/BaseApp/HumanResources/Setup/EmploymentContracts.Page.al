@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -22,17 +22,14 @@ page 5217 "Employment Contracts"
                 field("Code"; Rec.Code)
                 {
                     ApplicationArea = BasicHR;
-                    ToolTip = 'Specifies a code for the employment contract.';
                 }
                 field(Description; Rec.Description)
                 {
                     ApplicationArea = BasicHR;
-                    ToolTip = 'Specifies a description for the employment contract.';
                 }
                 field("No. of Contracts"; Rec."No. of Contracts")
                 {
                     ApplicationArea = BasicHR;
-                    ToolTip = 'Specifies the number of contracts associated with the entry.';
                 }
             }
         }

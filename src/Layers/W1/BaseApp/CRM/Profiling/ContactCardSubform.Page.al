@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -27,13 +27,11 @@ page 5051 "Contact Card Subform"
                 field("Answer Priority"; Rec."Answer Priority")
                 {
                     ApplicationArea = RelationshipMgmt;
-                    ToolTip = 'Specifies the priority of the profile answer. There are five options:';
                     Visible = false;
                 }
                 field("Profile Questionnaire Priority"; Rec."Profile Questionnaire Priority")
                 {
                     ApplicationArea = RelationshipMgmt;
-                    ToolTip = 'Specifies the priority of the questionnaire that the profile answer is linked to. There are five options: Very Low, Low, Normal, High, and Very High.';
                     Visible = false;
                 }
                 field(Question; Rec.Question())
@@ -46,7 +44,6 @@ page 5051 "Contact Card Subform"
                 {
                     ApplicationArea = RelationshipMgmt;
                     DrillDown = false;
-                    ToolTip = 'Specifies your contact''s answer to the question.';
 
                     trigger OnAssistEdit()
                     var
@@ -94,7 +91,6 @@ page 5051 "Contact Card Subform"
                 field("Last Date Updated"; Rec."Last Date Updated")
                 {
                     ApplicationArea = RelationshipMgmt;
-                    ToolTip = 'Specifies the date when the contact profile answer was last updated. This field shows the first date when the questions used to rate this contact has been given points.';
                 }
             }
         }

@@ -2673,6 +2673,7 @@ codeunit 6500 "Item Tracking Management"
         IsATOPosting: Boolean;
         IsBindingOrderToOrder: Boolean;
     begin
+        WhseActivityLineValidateLotTracking(WhseActivLine);
         // Used for carrying the item tracking from the invt. pick/put-away to the parent line.
         WhseActivLine.Reset();
         WhseActivLine.SetSourceFilter(WhseActivLine."Source Type", WhseActivLine."Source Subtype", WhseActivLine."Source No.", WhseActivLine."Source Line No.", WhseActivLine."Source Subline No.", true);
@@ -2799,6 +2800,42 @@ codeunit 6500 "Item Tracking Management"
             until TempTrackingSpec.Next() = 0;
 
         RegisterNewItemTrackingLines(TempTrackingSpec, BlockCommit);
+    end;
+
+    local procedure WhseActivityLineValidateLotTracking(var WhseActivLine1: Record "Warehouse Activity Line")
+    begin
+        if WhseActivLine1."Source Document" <> WhseActivLine1."Source Document"::"Sales Order" then
+            exit;
+        WhseActivLine1.Reset();
+        WhseActivLine1.SetSourceFilter(WhseActivLine1."Source Type", WhseActivLine1."Source Subtype", WhseActivLine1."Source No.", WhseActivLine1."Source Line No.", WhseActivLine1."Source Subline No.", true);
+        if WhseActivLine1.FindSet() then
+            repeat
+                if WhseActivLine1.TrackingExists() then
+                    ValidateTrackingLotNos(WhseActivLine1);
+            until WhseActivLine1.Next() = 0;
+    end;
+
+    local procedure ValidateTrackingLotNos(var WhseActivLine1: Record "Warehouse Activity Line")
+    var
+        ReservEntry1: Record "Reservation Entry";
+        ReservEntry2: Record "Reservation Entry";
+    begin
+        ReservEntry1.SetLoadFields("Lot No.");
+        ReservEntry1.SetSourceFilter(WhseActivLine1."Source Type", WhseActivLine1."Source Subtype", WhseActivLine1."Source No.", WhseActivLine1."Source Line No.", true);
+        ReservEntry1.SetFilter("Lot No.", '<>%1', '');
+        if ReservEntry1.IsEmpty() then
+            exit;
+        if ReservEntry1.FindSet() then
+            repeat
+                ReservEntry2.CopyFilters(ReservEntry1);
+                ReservEntry2.SetRange("Lot No.", WhseActivLine1."Lot No.");
+                if not ReservEntry2.FindFirst() then
+                    Error(CannotMatchItemTrackingErr,
+                        WhseActivLine1."Source No.",
+                        WhseActivLine1."Source Line No.",
+                        WhseActivLine1."Item No.",
+                        WhseActivLine1.Description);
+            until ReservEntry1.Next() = 0;
     end;
 
     local procedure CheckItemTrackingBeforeRegisterNewLines(var TempTrackingSpecificationToCheck: Record "Tracking Specification" temporary)

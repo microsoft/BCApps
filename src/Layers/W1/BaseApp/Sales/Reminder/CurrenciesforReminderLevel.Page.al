@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -23,17 +23,14 @@ page 478 "Currencies for Reminder Level"
                 field("Currency Code"; Rec."Currency Code")
                 {
                     ApplicationArea = Suite;
-                    ToolTip = 'Specifies the code for the currency in which you want to set up additional fees for reminders.';
                 }
                 field("Additional Fee"; Rec."Additional Fee")
                 {
                     ApplicationArea = Suite;
-                    ToolTip = 'Specifies the amount of the additional fee in foreign currency that will be added on the reminder.';
                 }
                 field("Add. Fee per Line"; Rec."Add. Fee per Line")
                 {
                     ApplicationArea = Suite;
-                    ToolTip = 'Specifies that the fee is distributed on individual reminder lines.';
                 }
             }
         }

@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -19,11 +19,13 @@ table 5606 "FA Posting Group"
         field(1; "Code"; Code[20])
         {
             Caption = 'Code';
+            ToolTip = 'Specifies the code for the G/L account that fixed asset expenses and costs are posted to when the fixed asset card contains this code.';
             NotBlank = true;
         }
         field(2; "Acquisition Cost Account"; Code[20])
         {
             Caption = 'Acquisition Cost Account';
+            ToolTip = 'Specifies the general ledger account number to post acquisition cost for fixed assets to in this posting group.';
             TableRelation = "G/L Account";
 
             trigger OnValidate()
@@ -34,6 +36,7 @@ table 5606 "FA Posting Group"
         field(3; "Accum. Depreciation Account"; Code[20])
         {
             Caption = 'Accum. Depreciation Account';
+            ToolTip = 'Specifies the general ledger account number to post accumulated depreciation to when you post depreciation for fixed assets.';
             TableRelation = "G/L Account";
 
             trigger OnValidate()
@@ -44,6 +47,7 @@ table 5606 "FA Posting Group"
         field(4; "Write-Down Account"; Code[20])
         {
             Caption = 'Write-Down Account';
+            ToolTip = 'Specifies the general ledger account number to post any write-downs for fixed assets to in this posting group.';
             TableRelation = "G/L Account";
 
             trigger OnValidate()
@@ -54,6 +58,7 @@ table 5606 "FA Posting Group"
         field(5; "Appreciation Account"; Code[20])
         {
             Caption = 'Appreciation Account';
+            ToolTip = 'Specifies the general ledger account number to post appreciation transactions for fixed assets to in this posting group.';
             TableRelation = "G/L Account";
 
             trigger OnValidate()
@@ -64,6 +69,7 @@ table 5606 "FA Posting Group"
         field(6; "Custom 1 Account"; Code[20])
         {
             Caption = 'Custom 1 Account';
+            ToolTip = 'Specifies the general ledger account number to post Custom-1 transactions for fixed assets to in this posting group.';
             TableRelation = "G/L Account";
 
             trigger OnValidate()
@@ -74,6 +80,7 @@ table 5606 "FA Posting Group"
         field(7; "Custom 2 Account"; Code[20])
         {
             Caption = 'Custom 2 Account';
+            ToolTip = 'Specifies the general ledger account number to post Custom-2 transactions for fixed assets to in this posting group.';
             TableRelation = "G/L Account";
 
             trigger OnValidate()
@@ -84,6 +91,7 @@ table 5606 "FA Posting Group"
         field(8; "Acq. Cost Acc. on Disposal"; Code[20])
         {
             Caption = 'Acq. Cost Acc. on Disposal';
+            ToolTip = 'Specifies the general ledger account number to post acquisition cost to when you dispose of fixed assets in this posting group.';
             TableRelation = "G/L Account";
 
             trigger OnValidate()
@@ -94,6 +102,7 @@ table 5606 "FA Posting Group"
         field(9; "Accum. Depr. Acc. on Disposal"; Code[20])
         {
             Caption = 'Accum. Depr. Acc. on Disposal';
+            ToolTip = 'Specifies the general ledger account number to post accumulated depreciation to when you dispose of fixed assets in this posting group.';
             TableRelation = "G/L Account";
 
             trigger OnValidate()
@@ -104,6 +113,7 @@ table 5606 "FA Posting Group"
         field(10; "Write-Down Acc. on Disposal"; Code[20])
         {
             Caption = 'Write-Down Acc. on Disposal';
+            ToolTip = 'Specifies the general ledger account number to post write-downs of fixed assets to when you dispose of fixed assets in this posting group.';
             TableRelation = "G/L Account";
 
             trigger OnValidate()
@@ -114,6 +124,7 @@ table 5606 "FA Posting Group"
         field(11; "Appreciation Acc. on Disposal"; Code[20])
         {
             Caption = 'Appreciation Acc. on Disposal';
+            ToolTip = 'Specifies the general ledger account number to post appreciation to when you dispose of fixed assets in this posting group.';
             TableRelation = "G/L Account";
 
             trigger OnValidate()
@@ -124,6 +135,7 @@ table 5606 "FA Posting Group"
         field(12; "Custom 1 Account on Disposal"; Code[20])
         {
             Caption = 'Custom 1 Account on Disposal';
+            ToolTip = 'Specifies the general ledger account number to post Custom-1 transactions to when you dispose of fixed assets in this posting group.';
             TableRelation = "G/L Account";
 
             trigger OnValidate()
@@ -134,6 +146,7 @@ table 5606 "FA Posting Group"
         field(13; "Custom 2 Account on Disposal"; Code[20])
         {
             Caption = 'Custom 2 Account on Disposal';
+            ToolTip = 'Specifies the general ledger account number to post Custom-2 transactions to when you dispose of fixed assets in this posting group.';
             TableRelation = "G/L Account";
 
             trigger OnValidate()
@@ -144,6 +157,7 @@ table 5606 "FA Posting Group"
         field(14; "Gains Acc. on Disposal"; Code[20])
         {
             Caption = 'Gains Acc. on Disposal';
+            ToolTip = 'Specifies the general ledger account number to post any gains to when you dispose of fixed assets in this posting group.';
             TableRelation = "G/L Account";
 
             trigger OnValidate()
@@ -154,6 +168,7 @@ table 5606 "FA Posting Group"
         field(15; "Losses Acc. on Disposal"; Code[20])
         {
             Caption = 'Losses Acc. on Disposal';
+            ToolTip = 'Specifies the general ledger account number to post any losses to when you dispose of fixed assets in this posting group.';
             TableRelation = "G/L Account";
 
             trigger OnValidate()
@@ -184,6 +199,7 @@ table 5606 "FA Posting Group"
         field(18; "Write-Down Bal. Acc. on Disp."; Code[20])
         {
             Caption = 'Write-Down Bal. Acc. on Disp.';
+            ToolTip = 'Specifies the general ledger balancing account number to post write-downs of fixed assets to when you dispose of fixed assets.';
             TableRelation = "G/L Account";
 
             trigger OnValidate()
@@ -194,6 +210,7 @@ table 5606 "FA Posting Group"
         field(19; "Apprec. Bal. Acc. on Disp."; Code[20])
         {
             Caption = 'Apprec. Bal. Acc. on Disp.';
+            ToolTip = 'Specifies the general ledger balancing account number to post appreciation transactions of fixed assets to when you dispose of fixed assets.';
             TableRelation = "G/L Account";
 
             trigger OnValidate()
@@ -204,6 +221,7 @@ table 5606 "FA Posting Group"
         field(20; "Custom 1 Bal. Acc. on Disposal"; Code[20])
         {
             Caption = 'Custom 1 Bal. Acc. on Disposal';
+            ToolTip = 'Specifies the general ledger balancing account number to post custom-1 transactions of fixed assets to when you dispose of fixed assets.';
             TableRelation = "G/L Account";
 
             trigger OnValidate()
@@ -214,6 +232,7 @@ table 5606 "FA Posting Group"
         field(21; "Custom 2 Bal. Acc. on Disposal"; Code[20])
         {
             Caption = 'Custom 2 Bal. Acc. on Disposal';
+            ToolTip = 'Specifies the general ledger balancing account number to post custom-2 transactions of fixed assets to when you dispose of fixed assets.';
             TableRelation = "G/L Account";
 
             trigger OnValidate()
@@ -224,6 +243,7 @@ table 5606 "FA Posting Group"
         field(22; "Maintenance Expense Account"; Code[20])
         {
             Caption = 'Maintenance Expense Account';
+            ToolTip = 'Specifies the general ledger account number to post maintenance expenses for fixed assets to in this posting group.';
             TableRelation = "G/L Account";
 
             trigger OnValidate()
@@ -234,6 +254,7 @@ table 5606 "FA Posting Group"
         field(23; "Maintenance Bal. Acc."; Code[20])
         {
             Caption = 'Maintenance Bal. Acc.';
+            ToolTip = 'Specifies the general ledger balancing account number to post maintenance expenses for fixed assets to in this posting group.';
             TableRelation = "G/L Account";
 
             trigger OnValidate()
@@ -244,6 +265,7 @@ table 5606 "FA Posting Group"
         field(24; "Acquisition Cost Bal. Acc."; Code[20])
         {
             Caption = 'Acquisition Cost Bal. Acc.';
+            ToolTip = 'Specifies the general ledger balancing account number to post acquisition cost for fixed assets to in this posting group.';
             TableRelation = "G/L Account";
 
             trigger OnValidate()
@@ -254,6 +276,7 @@ table 5606 "FA Posting Group"
         field(25; "Depreciation Expense Acc."; Code[20])
         {
             Caption = 'Depreciation Expense Acc.';
+            ToolTip = 'Specifies the general ledger account number to post depreciation expense for fixed assets to in this posting group.';
             TableRelation = "G/L Account";
 
             trigger OnValidate()
@@ -264,6 +287,7 @@ table 5606 "FA Posting Group"
         field(26; "Write-Down Expense Acc."; Code[20])
         {
             Caption = 'Write-Down Expense Acc.';
+            ToolTip = 'Specifies the general ledger balancing account number to post write-downs for fixed assets to in this posting group.';
             TableRelation = "G/L Account";
 
             trigger OnValidate()
@@ -274,6 +298,7 @@ table 5606 "FA Posting Group"
         field(27; "Appreciation Bal. Account"; Code[20])
         {
             Caption = 'Appreciation Bal. Account';
+            ToolTip = 'Specifies the general ledger balancing account number to post appreciation for fixed assets to in this posting group.';
             TableRelation = "G/L Account";
 
             trigger OnValidate()
@@ -284,6 +309,7 @@ table 5606 "FA Posting Group"
         field(28; "Custom 1 Expense Acc."; Code[20])
         {
             Caption = 'Custom 1 Expense Acc.';
+            ToolTip = 'Specifies the general ledger balancing account number to post custom-1 transactions for fixed assets to in this posting group.';
             TableRelation = "G/L Account";
 
             trigger OnValidate()
@@ -294,6 +320,7 @@ table 5606 "FA Posting Group"
         field(29; "Custom 2 Expense Acc."; Code[20])
         {
             Caption = 'Custom 2 Expense Acc.';
+            ToolTip = 'Specifies the general ledger balancing account number to post custom-2 transactions for fixed assets to in this posting group.';
             TableRelation = "G/L Account";
 
             trigger OnValidate()
@@ -304,6 +331,7 @@ table 5606 "FA Posting Group"
         field(30; "Sales Bal. Acc."; Code[20])
         {
             Caption = 'Sales Bal. Acc.';
+            ToolTip = 'Specifies the general ledger balancing account to post sales when you dispose of fixed assets to in this posting group.';
             TableRelation = "G/L Account";
 
             trigger OnValidate()
@@ -317,6 +345,7 @@ table 5606 "FA Posting Group"
             CalcFormula = sum("FA Allocation"."Allocation %" where(Code = field(Code),
                                                                     "Allocation Type" = const(Acquisition)));
             Caption = 'Allocated Acquisition Cost %';
+            ToolTip = 'Specifies the total percentage of acquisition cost that can be allocated when acquisition cost is posted.';
             DecimalPlaces = 1 : 1;
             Editable = false;
             FieldClass = FlowField;
@@ -327,6 +356,7 @@ table 5606 "FA Posting Group"
             CalcFormula = sum("FA Allocation"."Allocation %" where(Code = field(Code),
                                                                     "Allocation Type" = const(Depreciation)));
             Caption = 'Allocated Depreciation %';
+            ToolTip = 'Specifies the total percentage of depreciation that can be allocated when depreciation is posted.';
             DecimalPlaces = 1 : 1;
             Editable = false;
             FieldClass = FlowField;
@@ -337,6 +367,7 @@ table 5606 "FA Posting Group"
             CalcFormula = sum("FA Allocation"."Allocation %" where(Code = field(Code),
                                                                     "Allocation Type" = const("Write-Down")));
             Caption = 'Allocated Write-Down %';
+            ToolTip = 'Specifies the total percentage for write-down transactions that can be allocated when write-down transactions are posted.';
             DecimalPlaces = 1 : 1;
             Editable = false;
             FieldClass = FlowField;
@@ -347,6 +378,7 @@ table 5606 "FA Posting Group"
             CalcFormula = sum("FA Allocation"."Allocation %" where(Code = field(Code),
                                                                     "Allocation Type" = const(Appreciation)));
             Caption = 'Allocated Appreciation %';
+            ToolTip = 'Specifies the total percentage for appreciation transactions that can be allocated when appreciation transactions are posted.';
             DecimalPlaces = 1 : 1;
             Editable = false;
             FieldClass = FlowField;
@@ -357,6 +389,7 @@ table 5606 "FA Posting Group"
             CalcFormula = sum("FA Allocation"."Allocation %" where(Code = field(Code),
                                                                     "Allocation Type" = const("Custom 1")));
             Caption = 'Allocated Custom 1 %';
+            ToolTip = 'Specifies the total percentage for custom-1 transactions that can be allocated when custom-1 transactions are posted.';
             DecimalPlaces = 1 : 1;
             Editable = false;
             FieldClass = FlowField;
@@ -367,6 +400,7 @@ table 5606 "FA Posting Group"
             CalcFormula = sum("FA Allocation"."Allocation %" where(Code = field(Code),
                                                                     "Allocation Type" = const("Custom 2")));
             Caption = 'Allocated Custom 2 %';
+            ToolTip = 'Specifies the total percentage for custom-2 transactions that can be allocated when custom-2 transactions are posted.';
             DecimalPlaces = 1 : 1;
             Editable = false;
             FieldClass = FlowField;
@@ -377,6 +411,7 @@ table 5606 "FA Posting Group"
             CalcFormula = sum("FA Allocation"."Allocation %" where(Code = field(Code),
                                                                     "Allocation Type" = const(Disposal)));
             Caption = 'Allocated Sales Price %';
+            ToolTip = 'Specifies the total percentage of sales price that can be allocated when sales are posted.';
             DecimalPlaces = 1 : 1;
             Editable = false;
             FieldClass = FlowField;
@@ -387,6 +422,7 @@ table 5606 "FA Posting Group"
             CalcFormula = sum("FA Allocation"."Allocation %" where(Code = field(Code),
                                                                     "Allocation Type" = const(Maintenance)));
             Caption = 'Allocated Maintenance %';
+            ToolTip = 'Specifies the total percentage for maintenance transactions that can be allocated when maintenance transactions are posted.';
             DecimalPlaces = 1 : 1;
             Editable = false;
             FieldClass = FlowField;
@@ -397,6 +433,7 @@ table 5606 "FA Posting Group"
             CalcFormula = sum("FA Allocation"."Allocation %" where(Code = field(Code),
                                                                     "Allocation Type" = const(Gain)));
             Caption = 'Allocated Gain %';
+            ToolTip = 'Specifies the total percentage of gains on fixed assets that can be allocated, when gains are involved in the disposal of fixed assets.';
             DecimalPlaces = 1 : 1;
             Editable = false;
             FieldClass = FlowField;
@@ -407,6 +444,7 @@ table 5606 "FA Posting Group"
             CalcFormula = sum("FA Allocation"."Allocation %" where(Code = field(Code),
                                                                     "Allocation Type" = const(Loss)));
             Caption = 'Allocated Loss %';
+            ToolTip = 'Specifies the total percentage for losses on fixed assets that can be allocated when losses are involved in the disposal of fixed assets.';
             DecimalPlaces = 1 : 1;
             Editable = false;
             FieldClass = FlowField;

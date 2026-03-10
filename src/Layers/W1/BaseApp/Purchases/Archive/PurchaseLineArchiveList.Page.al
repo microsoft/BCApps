@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -21,22 +21,18 @@ page 6626 "Purchase Line Archive List"
                 field("Document Type"; Rec."Document Type")
                 {
                     ApplicationArea = All;
-                    ToolTip = 'Specifies the type of purchase document.';
                 }
                 field("Document No."; Rec."Document No.")
                 {
                     ApplicationArea = All;
-                    ToolTip = 'Specifies the document number.';
                 }
                 field("Buy-from Vendor No."; Rec."Buy-from Vendor No.")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the name of the vendor who delivered the items.';
                 }
                 field("Line No."; Rec."Line No.")
                 {
                     ApplicationArea = Suite;
-                    ToolTip = 'Specifies the number of the line.';
                     Visible = false;
                 }
                 field(Type; Rec.Type)
@@ -52,25 +48,21 @@ page 6626 "Purchase Line Archive List"
                 field("Variant Code"; Rec."Variant Code")
                 {
                     ApplicationArea = Suite;
-                    ToolTip = 'Specifies the variant of the item on the line.';
                     Visible = false;
                 }
                 field(Description; Rec.Description)
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies a description of the record.';
                 }
                 field("Description 2"; Rec."Description 2")
                 {
                     ApplicationArea = Basic, Suite;
                     Importance = Additional;
-                    ToolTip = 'Specifies information in addition to the description.';
                     Visible = false;
                 }
                 field("Location Code"; Rec."Location Code")
                 {
                     ApplicationArea = Location;
-                    ToolTip = 'Specifies a code for the location where you want the items to be placed when they are received.';
                     Visible = false;
                 }
                 field("Unit of Measure"; Rec."Unit of Measure")
@@ -81,17 +73,14 @@ page 6626 "Purchase Line Archive List"
                 field(Quantity; Rec.Quantity)
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the quantity of the record.';
                 }
                 field(Amount; Rec.Amount)
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the sum of amounts in the Line Amount field on the purchase lines.';
                 }
                 field("Amount Including VAT"; Rec."Amount Including VAT")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the net amount, including VAT, for this line.';
                 }
             }
         }

@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -40,48 +40,39 @@ page 5123 "Opportunity List"
                 field("No."; Rec."No.")
                 {
                     ApplicationArea = All;
-                    ToolTip = 'Specifies the number of the involved entry or record, according to the specified number series.';
                 }
                 field(Closed; Rec.Closed)
                 {
                     ApplicationArea = All;
-                    ToolTip = 'Specifies that the opportunity is closed.';
                 }
                 field("Creation Date"; Rec."Creation Date")
                 {
                     ApplicationArea = All;
-                    ToolTip = 'Specifies the date that the opportunity was created.';
                 }
                 field(Description; Rec.Description)
                 {
                     ApplicationArea = All;
-                    ToolTip = 'Specifies the description of the opportunity.';
                 }
                 field("Contact No."; Rec."Contact No.")
                 {
                     ApplicationArea = RelationshipMgmt;
-                    ToolTip = 'Specifies the number of the contact that this opportunity is linked to.';
                 }
                 field("Contact Company No."; Rec."Contact Company No.")
                 {
                     ApplicationArea = RelationshipMgmt;
-                    ToolTip = 'Specifies the number of the company that is linked to this opportunity.';
                     Visible = false;
                 }
                 field("Salesperson Code"; Rec."Salesperson Code")
                 {
                     ApplicationArea = Suite;
-                    ToolTip = 'Specifies the code of the salesperson that is responsible for the opportunity.';
                 }
                 field(Status; Rec.Status)
                 {
                     ApplicationArea = RelationshipMgmt;
-                    ToolTip = 'Specifies the status of the opportunity. There are four options:';
                 }
                 field("Sales Cycle Code"; Rec."Sales Cycle Code")
                 {
                     ApplicationArea = RelationshipMgmt;
-                    ToolTip = 'Specifies the code of the sales cycle that the opportunity is linked to.';
                     Visible = false;
                 }
                 field(CurrSalesCycleStage; CurrSalesCycleStage)
@@ -93,28 +84,23 @@ page 5123 "Opportunity List"
                 field("Campaign No."; Rec."Campaign No.")
                 {
                     ApplicationArea = RelationshipMgmt;
-                    ToolTip = 'Specifies the number of the campaign to which this opportunity is linked.';
                 }
                 field("Campaign Description"; Rec."Campaign Description")
                 {
                     ApplicationArea = RelationshipMgmt;
                     DrillDown = false;
-                    ToolTip = 'Specifies the description of the campaign to which the opportunity is linked. The program automatically fills in this field when you have entered a number in the Campaign No. field.';
                 }
                 field("Sales Document Type"; Rec."Sales Document Type")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the type of the sales document (Quote, Order, Posted Invoice). The combination of Sales Document No. and Sales Document Type specifies which sales document is assigned to the opportunity.';
                 }
                 field("Sales Document No."; Rec."Sales Document No.")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the number of the sales document that has been created for this opportunity.';
                 }
                 field("Estimated Closing Date"; Rec."Estimated Closing Date")
                 {
                     ApplicationArea = RelationshipMgmt;
-                    ToolTip = 'Specifies the estimated closing date of the opportunity.';
                 }
                 field("Estimated Value (LCY)"; Rec."Estimated Value (LCY)")
                 {
@@ -129,7 +115,6 @@ page 5123 "Opportunity List"
                 field("Coupled to Dataverse"; Rec."Coupled to Dataverse")
                 {
                     ApplicationArea = All;
-                    ToolTip = 'Specifies that the opportunity is coupled to an opportunity in Dynamics 365 Sales.';
                     Visible = CRMIntegrationEnabled;
                 }
             }
@@ -141,13 +126,11 @@ page 5123 "Opportunity List"
                     ApplicationArea = RelationshipMgmt;
                     Caption = 'Contact Name';
                     DrillDown = false;
-                    ToolTip = 'Specifies the name of the contact to which this opportunity is linked. The program automatically fills in this field when you have entered a number in the No. field.';
                 }
                 field("Contact Company Name"; Rec."Contact Company Name")
                 {
                     ApplicationArea = RelationshipMgmt;
                     DrillDown = false;
-                    ToolTip = 'Specifies the name of the company of the contact person to which this opportunity is linked. The program automatically fills in this field when you have entered a number in the Contact Company No. field.';
                 }
             }
         }

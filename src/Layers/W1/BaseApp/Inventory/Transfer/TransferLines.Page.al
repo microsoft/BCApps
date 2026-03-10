@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -21,7 +21,6 @@ page 5749 "Transfer Lines"
                 field("Document No."; Rec."Document No.")
                 {
                     ApplicationArea = Location;
-                    ToolTip = 'Specifies the document number that is associated with the line or entry.';
                 }
                 field("Item No."; Rec."Item No.")
                 {
@@ -31,33 +30,27 @@ page 5749 "Transfer Lines"
                 field(Description; Rec.Description)
                 {
                     ApplicationArea = Location;
-                    ToolTip = 'Specifies a description of the item.';
                 }
                 field("Description 2"; Rec."Description 2")
                 {
                     ApplicationArea = All;
-                    ToolTip = 'Specifies information in addition to the description of the item being transferred.';
                     Visible = false;
                 }
                 field("Shipment Date"; Rec."Shipment Date")
                 {
                     ApplicationArea = Location;
-                    ToolTip = 'Specifies when items on the document are shipped or were shipped. A shipment date is usually calculated from a requested delivery date plus lead time.';
                 }
                 field("Qty. in Transit"; Rec."Qty. in Transit")
                 {
                     ApplicationArea = Location;
-                    ToolTip = 'Specifies the quantity of the item that is in transit.';
                 }
                 field("Outstanding Quantity"; Rec."Outstanding Quantity")
                 {
                     ApplicationArea = Location;
-                    ToolTip = 'Specifies the quantity of the items that remains to be shipped.';
                 }
                 field("Unit of Measure"; Rec."Unit of Measure")
                 {
                     ApplicationArea = Location;
-                    ToolTip = 'Specifies the name of the item or resource''s unit of measure, such as piece or hour.';
                 }
             }
         }

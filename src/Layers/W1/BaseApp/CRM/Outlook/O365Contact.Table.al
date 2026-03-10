@@ -1,8 +1,14 @@
+#if not CLEAN29
 namespace Microsoft.CRM.Outlook;
 
 table 7107 "O365 Contact"
 {
+    Caption = 'O365 Contacts';
     TableType = Temporary;
+    ObsoleteReason = 'Removed due to Contact Sync redesign, will be deleted in future release.';
+    ObsoleteState = Pending;
+    ObsoleteTag = '29.0';
+    DataClassification = CustomerContent;
 
     fields
     {
@@ -108,3 +114,4 @@ table 7107 "O365 Contact"
         }
     }
 }
+#endif

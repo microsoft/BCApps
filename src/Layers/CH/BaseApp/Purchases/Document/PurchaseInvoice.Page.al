@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -114,7 +114,6 @@ page 51 "Purchase Invoice"
                 field("Posting Description"; Rec."Posting Description")
                 {
                     ApplicationArea = Suite;
-                    ToolTip = 'Specifies additional posting information for the document. After you post the document, the description can add detail to vendor and customer ledger entries.';
                     Visible = false;
                 }
                 group("Buy-from")
@@ -126,7 +125,6 @@ page 51 "Purchase Invoice"
                         Caption = 'Address';
                         Importance = Additional;
                         QuickEntry = false;
-                        ToolTip = 'Specifies the address of the vendor who ships the items.';
                     }
                     field("Buy-from Address 2"; Rec."Buy-from Address 2")
                     {
@@ -134,7 +132,6 @@ page 51 "Purchase Invoice"
                         Caption = 'Address 2';
                         Importance = Additional;
                         QuickEntry = false;
-                        ToolTip = 'Specifies additional address information.';
                     }
                     field("Buy-from City"; Rec."Buy-from City")
                     {
@@ -142,7 +139,6 @@ page 51 "Purchase Invoice"
                         Caption = 'City';
                         Importance = Additional;
                         QuickEntry = false;
-                        ToolTip = 'Specifies the city of the vendor on the purchase document.';
                     }
                     group(Control93)
                     {
@@ -154,7 +150,6 @@ page 51 "Purchase Invoice"
                             CaptionClass = '5,1,' + Rec."Buy-from Country/Region Code";
                             Importance = Additional;
                             QuickEntry = false;
-                            ToolTip = 'Specifies the state, province or county of the address.';
                         }
                     }
                     field("Buy-from Post Code"; Rec."Buy-from Post Code")
@@ -183,7 +178,6 @@ page 51 "Purchase Invoice"
                         ApplicationArea = Basic, Suite;
                         Caption = 'Contact No.';
                         Importance = Additional;
-                        ToolTip = 'Specifies the number of your contact at the vendor.';
 
                         trigger OnLookup(var Text: Text): Boolean
                         begin
@@ -245,19 +239,16 @@ page 51 "Purchase Invoice"
                 {
                     ApplicationArea = Basic, Suite;
                     Importance = Promoted;
-                    ToolTip = 'Specifies the date when the related document was created.';
                 }
                 field("Invoice Received Date"; Rec."Invoice Received Date")
                 {
                     ApplicationArea = Basic, Suite;
                     Importance = Additional;
-                    ToolTip = 'Specifies the date when the related document was received.';
                 }
                 field("Posting Date"; Rec."Posting Date")
                 {
                     ApplicationArea = Basic, Suite;
                     Importance = Promoted;
-                    ToolTip = 'Specifies the date when the posting of the purchase document will be recorded.';
 
                     trigger OnValidate()
                     begin
@@ -269,7 +260,6 @@ page 51 "Purchase Invoice"
                     ApplicationArea = VAT;
                     Editable = VATDateEnabled;
                     Visible = VATDateEnabled;
-                    ToolTip = 'Specifies the date used to include entries on VAT reports in a VAT period. This is either the date that the document was created or posted, depending on your setting on the General Ledger Setup page.';
                 }
                 field("Due Date"; Rec."Due Date")
                 {
@@ -281,20 +271,18 @@ page 51 "Purchase Invoice"
                 {
                     ApplicationArea = Basic, Suite;
                     Importance = Additional;
-                    ToolTip = 'Specifies the number of the incoming document that this purchase document is created for.';
                     Visible = false;
                 }
                 field("Vendor Invoice No."; Rec."Vendor Invoice No.")
                 {
                     ApplicationArea = Basic, Suite;
                     ShowMandatory = VendorInvoiceNoMandatory;
-                    ToolTip = 'Specifies the document number of the original document you received from the vendor. You can require the document number for posting, or let it be optional. By default, it''s required, so that this document references the original. Making document numbers optional removes a step from the posting process. For example, if you attach the original invoice as a PDF, you might not need to enter the document number. To specify whether document numbers are required, in the Purchases & Payables Setup window, select or clear the Ext. Doc. No. Mandatory field.';
+                    Editable = IsVendorInvoiceEditable;
                 }
                 field("Purchaser Code"; Rec."Purchaser Code")
                 {
                     ApplicationArea = Suite;
                     Importance = Additional;
-                    ToolTip = 'Specifies which purchaser is assigned to the vendor.';
 
                     trigger OnValidate()
                     begin
@@ -305,41 +293,35 @@ page 51 "Purchase Invoice"
                 {
                     ApplicationArea = Suite;
                     Importance = Additional;
-                    ToolTip = 'Specifies the vendor''s order number.';
                     Visible = false;
                 }
                 field("Campaign No."; Rec."Campaign No.")
                 {
                     ApplicationArea = RelationshipMgmt;
                     Importance = Additional;
-                    ToolTip = 'Specifies the campaign number the document is linked to.';
                 }
                 field("Order Address Code"; Rec."Order Address Code")
                 {
                     ApplicationArea = Basic, Suite;
                     Caption = 'Alternate Vendor Address Code';
                     Importance = Additional;
-                    ToolTip = 'Specifies the order address of the related vendor.';
                     Enabled = Rec."Buy-from Vendor No." <> '';
                 }
                 field("Responsibility Center"; Rec."Responsibility Center")
                 {
                     ApplicationArea = Suite;
                     Importance = Additional;
-                    ToolTip = 'Specifies the code of the responsibility center, such as a distribution hub, that is associated with the involved user, company, customer, or vendor.';
                 }
                 field("Assigned User ID"; Rec."Assigned User ID")
                 {
                     ApplicationArea = Basic, Suite;
                     Importance = Additional;
-                    ToolTip = 'Specifies the ID of the user who is responsible for the document.';
                 }
                 field(Status; Rec.Status)
                 {
                     ApplicationArea = Suite;
                     Importance = Promoted;
                     StyleExpr = StatusStyleTxt;
-                    ToolTip = 'Specifies whether the record is open, waiting to be approved, invoiced for prepayment, or released to the next stage of processing.';
                 }
                 field(DocAmount; Rec."Doc. Amount Incl. VAT")
                 {
@@ -376,13 +358,11 @@ page 51 "Purchase Invoice"
                 field("Language Code"; Rec."Language Code")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the language to be used on printouts for this document.';
                     Visible = false;
                 }
                 field("Format Region"; Rec."Format Region")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the format to be used on printouts for this document.';
                     Visible = false;
                 }
             }
@@ -439,7 +419,6 @@ page 51 "Purchase Invoice"
                 field("Prices Including VAT"; Rec."Prices Including VAT")
                 {
                     ApplicationArea = VAT;
-                    ToolTip = 'Specifies if the Unit Price and Line Amount fields on document lines should be shown with or without VAT.';
 
                     trigger OnValidate()
                     begin
@@ -449,7 +428,6 @@ page 51 "Purchase Invoice"
                 field("VAT Bus. Posting Group"; Rec."VAT Bus. Posting Group")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the VAT specification of the involved customer or vendor to link transactions made for this record with the appropriate general ledger account according to the VAT posting setup.';
 
                     trigger OnValidate()
                     var
@@ -466,32 +444,27 @@ page 51 "Purchase Invoice"
                     ApplicationArea = Basic, Suite;
                     Editable = IsPostingGroupEditable;
                     Importance = Additional;
-                    ToolTip = 'Specifies the vendor''s market type to link business transactions to.';
                 }
                 field("Payment Terms Code"; Rec."Payment Terms Code")
                 {
                     ApplicationArea = Basic, Suite;
                     Importance = Promoted;
-                    ToolTip = 'Specifies a formula that calculates the payment due date, payment discount date, and payment discount amount.';
                 }
                 field("Payment Method Code"; Rec."Payment Method Code")
                 {
                     ApplicationArea = Basic, Suite;
                     Importance = Additional;
-                    ToolTip = 'Specifies how to make payment, such as with bank transfer, cash, or check.';
                     Visible = IsPaymentMethodCodeVisible;
                 }
                 field("Reason Code"; Rec."Reason Code")
                 {
                     ApplicationArea = Basic, Suite;
                     Importance = Additional;
-                    ToolTip = 'Specifies the reason code, a supplementary source code that enables you to trace the document.';
                     Visible = false;
                 }
                 field("Shortcut Dimension 1 Code"; Rec."Shortcut Dimension 1 Code")
                 {
                     ApplicationArea = Dimensions;
-                    ToolTip = 'Specifies the code for Shortcut Dimension 1, which is one of two global dimension codes that you set up in the General Ledger Setup window.';
 
                     trigger OnValidate()
                     begin
@@ -501,7 +474,6 @@ page 51 "Purchase Invoice"
                 field("Shortcut Dimension 2 Code"; Rec."Shortcut Dimension 2 Code")
                 {
                     ApplicationArea = Dimensions;
-                    ToolTip = 'Specifies the code for Shortcut Dimension 2, which is one of two global dimension codes that you set up in the General Ledger Setup window.';
 
                     trigger OnValidate()
                     begin
@@ -511,18 +483,15 @@ page 51 "Purchase Invoice"
                 field("Payment Discount %"; Rec."Payment Discount %")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the payment discount percent granted if payment is made on or before the date in the Pmt. Discount Date field.';
                 }
                 field("Pmt. Discount Date"; Rec."Pmt. Discount Date")
                 {
                     ApplicationArea = Basic, Suite;
                     Importance = Additional;
-                    ToolTip = 'Specifies the date on which the amount in the entry must be paid for a payment discount to be granted.';
                 }
                 field("Journal Templ. Name"; Rec."Journal Templ. Name")
                 {
                     ApplicationArea = BasicBE;
-                    ToolTip = 'Specifies the name of the journal template in which the purchase header is to be posted.';
                     Visible = IsJournalTemplNameVisible;
                 }
                 field("Tax Liable"; Rec."Tax Liable")
@@ -544,13 +513,11 @@ page 51 "Purchase Invoice"
                 {
                     ApplicationArea = Suite;
                     Importance = Additional;
-                    ToolTip = 'Specifies the delivery conditions of the related shipment, such as free on board (FOB).';
                 }
                 field("Payment Reference"; Rec."Payment Reference")
                 {
                     ApplicationArea = Basic, Suite;
                     Importance = Additional;
-                    ToolTip = 'Specifies the payment of the purchase invoice.';
                 }
                 field("Creditor No."; Rec."Creditor No.")
                 {
@@ -562,7 +529,6 @@ page 51 "Purchase Invoice"
                 {
                     ApplicationArea = Basic, Suite;
                     Importance = Additional;
-                    ToolTip = 'Specifies that the related entry represents an unpaid invoice for which either a payment suggestion, a reminder, or a finance charge memo exists.';
                 }
             }
             group("Shipping and Payment")
@@ -597,7 +563,6 @@ page 51 "Purchase Invoice"
                                 field("Location Code"; Rec."Location Code")
                                 {
                                     ApplicationArea = Location;
-                                    ToolTip = 'Specifies the location where the items are to be placed when they are received. This field acts as the default location for new lines. You can update the location code for individual lines as needed.';
                                 }
                             }
                             field("Ship-to Name"; Rec."Ship-to Name")
@@ -634,7 +599,6 @@ page 51 "Purchase Invoice"
                                 Editable = ShipToOptions = ShipToOptions::"Custom Address";
                                 Importance = Additional;
                                 QuickEntry = false;
-                                ToolTip = 'Specifies additional address information.';
                             }
                             field("Ship-to City"; Rec."Ship-to City")
                             {
@@ -656,7 +620,6 @@ page 51 "Purchase Invoice"
                                     Editable = ShipToOptions = ShipToOptions::"Custom Address";
                                     Importance = Additional;
                                     QuickEntry = false;
-                                    ToolTip = 'Specifies the state, province or county of the address.';
                                 }
                             }
                             field("Ship-to Post Code"; Rec."Ship-to Post Code")
@@ -684,7 +647,6 @@ page 51 "Purchase Invoice"
                                 Editable = ShipToOptions = ShipToOptions::"Custom Address";
                                 Importance = Additional;
                                 QuickEntry = false;
-                                ToolTip = 'Specifies the telephone number of the company''s shipping address.';
                             }
                             field("Ship-to Contact"; Rec."Ship-to Contact")
                             {
@@ -778,7 +740,6 @@ page 51 "Purchase Invoice"
                             Enabled = (PayToOptions = PayToOptions::"Custom Address") or (Rec."Buy-from Vendor No." <> Rec."Pay-to Vendor No.");
                             Importance = Additional;
                             QuickEntry = false;
-                            ToolTip = 'Specifies the address of the vendor sending the invoice.';
                         }
                         field("Pay-to Address 2"; Rec."Pay-to Address 2")
                         {
@@ -788,7 +749,6 @@ page 51 "Purchase Invoice"
                             Enabled = (PayToOptions = PayToOptions::"Custom Address") or (Rec."Buy-from Vendor No." <> Rec."Pay-to Vendor No.");
                             Importance = Additional;
                             QuickEntry = false;
-                            ToolTip = 'Specifies additional address information.';
                         }
                         field("Pay-to City"; Rec."Pay-to City")
                         {
@@ -798,7 +758,6 @@ page 51 "Purchase Invoice"
                             Enabled = (PayToOptions = PayToOptions::"Custom Address") or (Rec."Buy-from Vendor No." <> Rec."Pay-to Vendor No.");
                             Importance = Additional;
                             QuickEntry = false;
-                            ToolTip = 'Specifies the city of the vendor on the purchase document.';
                         }
                         group(Control103)
                         {
@@ -812,7 +771,6 @@ page 51 "Purchase Invoice"
                                 Enabled = (PayToOptions = PayToOptions::"Custom Address") or (Rec."Buy-from Vendor No." <> Rec."Pay-to Vendor No.");
                                 Importance = Additional;
                                 QuickEntry = false;
-                                ToolTip = 'Specifies the state, province or county of the address.';
                             }
                         }
                         field("Pay-to Post Code"; Rec."Pay-to Post Code")
@@ -847,7 +805,6 @@ page 51 "Purchase Invoice"
                             Editable = (PayToOptions = PayToOptions::"Custom Address") or (Rec."Buy-from Vendor No." <> Rec."Pay-to Vendor No.");
                             Enabled = (PayToOptions = PayToOptions::"Custom Address") or (Rec."Buy-from Vendor No." <> Rec."Pay-to Vendor No.");
                             Importance = Additional;
-                            ToolTip = 'Specifies the number of the contact who sends the invoice.';
                         }
                         field(PayToContactPhoneNo; PayToContact."Phone No.")
                         {
@@ -882,7 +839,6 @@ page 51 "Purchase Invoice"
                             Caption = 'Contact';
                             Editable = (PayToOptions = PayToOptions::"Custom Address") or (Rec."Buy-from Vendor No." <> Rec."Pay-to Vendor No.");
                             Enabled = (PayToOptions = PayToOptions::"Custom Address") or (Rec."Buy-from Vendor No." <> Rec."Pay-to Vendor No.");
-                            ToolTip = 'Specifies the name of the person to contact about an invoice from this vendor.';
                         }
                     }
                 }
@@ -899,7 +855,6 @@ page 51 "Purchase Invoice"
                         Editable = Rec."Buy-from Vendor No." <> '';
                         ApplicationArea = Basic, Suite;
                         Importance = Promoted;
-                        ToolTip = 'Specifies the code for the vendor''s remit address for this invoice.';
 
                         trigger OnValidate()
                         begin
@@ -996,27 +951,22 @@ page 51 "Purchase Invoice"
                 field("Transaction Specification"; Rec."Transaction Specification")
                 {
                     ApplicationArea = BasicEU;
-                    ToolTip = 'Specifies a specification of the document''s transaction, for the purpose of reporting to INTRASTAT.';
                 }
                 field("Transaction Type"; Rec."Transaction Type")
                 {
                     ApplicationArea = BasicEU;
-                    ToolTip = 'Specifies the type of transaction that the document represents, for the purpose of reporting to INTRASTAT.';
                 }
                 field("Transport Method"; Rec."Transport Method")
                 {
                     ApplicationArea = BasicEU;
-                    ToolTip = 'Specifies the transport method, for the purpose of reporting to INTRASTAT.';
                 }
                 field("Entry Point"; Rec."Entry Point")
                 {
                     ApplicationArea = BasicEU;
-                    ToolTip = 'Specifies the code of the port of entry where the items pass into your country/region, for reporting to Intrastat.';
                 }
                 field("Area"; Rec.Area)
                 {
                     ApplicationArea = BasicEU;
-                    ToolTip = 'Specifies the destination country or region for the purpose of Intrastat reporting.';
                 }
             }
             group("ESR/ISR")
@@ -1916,6 +1866,7 @@ page 51 "Purchase Invoice"
         BuyFromContact.GetOrClear(Rec."Buy-from Contact No.");
         PayToContact.GetOrClear(Rec."Pay-to Contact No.");
         CurrPage.IncomingDocAttachFactBox.Page.SetCurrentRecordID(Rec.RecordId);
+        IsVendorInvoiceEditable := not Rec."Self-Billing Invoice";
 
         OnAfterOnAfterGetRecord(Rec);
     end;
@@ -1993,6 +1944,7 @@ page 51 "Purchase Invoice"
                     ICInboxOutboxMgt.ShowDuplicateICDocumentWarning(PurchaseHeader, ICIncomingInvoiceFromOriginalOrderMsg);
         end;
         VATDateEnabled := VATReportingDateMgt.IsVATDateEnabled();
+        IsVendorInvoiceEditable := not Rec."Self-Billing Invoice";
     end;
 
     trigger OnQueryClosePage(CloseAction: Action): Boolean
@@ -2055,6 +2007,7 @@ page 51 "Purchase Invoice"
         RejectICPurchaseInvoiceEnabled: Boolean;
         VATDateEnabled: Boolean;
         DocAmountEnable, DocAmountsEditable : Boolean;
+        IsVendorInvoiceEditable: Boolean;
 
     protected var
         ShipToOptions: Option "Default (Company Address)",Location,"Custom Address";

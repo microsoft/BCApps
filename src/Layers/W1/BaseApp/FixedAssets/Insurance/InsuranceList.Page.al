@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -27,45 +27,37 @@ page 5645 "Insurance List"
                 field("No."; Rec."No.")
                 {
                     ApplicationArea = FixedAssets;
-                    ToolTip = 'Specifies the number of the involved entry or record, according to the specified number series.';
                 }
                 field(Description; Rec.Description)
                 {
                     ApplicationArea = FixedAssets;
-                    ToolTip = 'Specifies a description of the insurance policy.';
                 }
                 field("Insurance Type"; Rec."Insurance Type")
                 {
                     ApplicationArea = FixedAssets;
-                    ToolTip = 'Specifies the type of insurance (for example, theft or fire) that is covered by this insurance policy.';
                 }
                 field("Insurance Vendor No."; Rec."Insurance Vendor No.")
                 {
                     ApplicationArea = FixedAssets;
-                    ToolTip = 'Specifies the number of the vendor from whom you purchased this insurance policy.';
                 }
                 field("FA Class Code"; Rec."FA Class Code")
                 {
                     ApplicationArea = FixedAssets;
-                    ToolTip = 'Specifies a fixed asset class code to assign to the insurance policy.';
                     Visible = false;
                 }
                 field("FA Subclass Code"; Rec."FA Subclass Code")
                 {
                     ApplicationArea = FixedAssets;
-                    ToolTip = 'Specifies a fixed asset subclass code to assign to the insurance policy.';
                     Visible = false;
                 }
                 field("FA Location Code"; Rec."FA Location Code")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the code of the location of the fixed asset(s) linked to the insurance policy.';
                     Visible = false;
                 }
                 field("Search Description"; Rec."Search Description")
                 {
                     ApplicationArea = Comments;
-                    ToolTip = 'Specifies a search description for the insurance policy.';
                 }
             }
         }

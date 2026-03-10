@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -31,6 +31,7 @@ table 1232 "Positive Pay Entry Detail"
         field(1; "Bank Account No."; Code[20])
         {
             Caption = 'Bank Account No.';
+            ToolTip = 'Specifies the bank account number. If you select Balance at Date, the balance as of the last day in the relevant time interval is displayed.';
             TableRelation = "Bank Account"."No.";
         }
         /// <summary>
@@ -47,6 +48,7 @@ table 1232 "Positive Pay Entry Detail"
         field(3; "No."; Integer)
         {
             Caption = 'No.';
+            ToolTip = 'Specifies the number of the involved entry or record, according to the specified number series.';
         }
         /// <summary>
         /// Check number as it appears on the physical check document.
@@ -54,6 +56,7 @@ table 1232 "Positive Pay Entry Detail"
         field(5; "Check No."; Code[20])
         {
             Caption = 'Check No.';
+            ToolTip = 'Specifies the number on the check.';
         }
         /// <summary>
         /// Currency code for the check amount, typically matching the bank account's currency.
@@ -61,6 +64,7 @@ table 1232 "Positive Pay Entry Detail"
         field(6; "Currency Code"; Code[10])
         {
             Caption = 'Currency Code';
+            ToolTip = 'Specifies the currency code for the amount on the line.';
             TableRelation = Currency.Code;
         }
         /// <summary>
@@ -69,6 +73,7 @@ table 1232 "Positive Pay Entry Detail"
         field(7; "Document Type"; Option)
         {
             Caption = 'Document Type';
+            ToolTip = 'Specifies the type of the document on the line.';
             OptionCaption = 'CHECK,VOID';
             OptionMembers = CHECK,VOID;
         }
@@ -78,6 +83,7 @@ table 1232 "Positive Pay Entry Detail"
         field(8; "Document Date"; Date)
         {
             Caption = 'Document Date';
+            ToolTip = 'Specifies the date when the related document was created.';
         }
         /// <summary>
         /// Monetary amount of the check in the specified currency.
@@ -87,6 +93,7 @@ table 1232 "Positive Pay Entry Detail"
             AutoFormatExpression = Rec."Currency Code";
             AutoFormatType = 1;
             Caption = 'Amount';
+            ToolTip = 'Specifies the payment amount.';
         }
         /// <summary>
         /// Name of the individual or organization to whom the check is payable.
@@ -94,6 +101,7 @@ table 1232 "Positive Pay Entry Detail"
         field(10; Payee; Text[100])
         {
             Caption = 'Payee';
+            ToolTip = 'Specifies the recipient of the payment.';
             DataClassification = EndUserIdentifiableInformation;
         }
         /// <summary>
@@ -102,6 +110,7 @@ table 1232 "Positive Pay Entry Detail"
         field(11; "User ID"; Code[50])
         {
             Caption = 'User ID';
+            ToolTip = 'Specifies the ID of the user who posted the entry, to be used, for example, in the change log.';
             DataClassification = EndUserIdentifiableInformation;
             TableRelation = User."User Name";
         }
@@ -111,6 +120,7 @@ table 1232 "Positive Pay Entry Detail"
         field(12; "Update Date"; Date)
         {
             Caption = 'Update Date';
+            ToolTip = 'Specifies when the Positive Pay export was updated.';
         }
     }
 

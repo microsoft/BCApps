@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -29,11 +29,13 @@ table 7317 "Warehouse Receipt Line"
         field(1; "No."; Code[20])
         {
             Caption = 'No.';
+            ToolTip = 'Specifies the number of the involved entry or record, according to the specified number series.';
             Editable = false;
         }
         field(2; "Line No."; Integer)
         {
             Caption = 'Line No.';
+            ToolTip = 'Specifies the line number.';
             Editable = false;
         }
         field(3; "Source Type"; Integer)
@@ -51,31 +53,37 @@ table 7317 "Warehouse Receipt Line"
         field(6; "Source No."; Code[20])
         {
             Caption = 'Source No.';
+            ToolTip = 'Specifies the number of the source document that the entry originates from.';
             Editable = false;
         }
         field(7; "Source Line No."; Integer)
         {
             Caption = 'Source Line No.';
+            ToolTip = 'Specifies the line number of the source document that the entry originates from.';
             Editable = false;
         }
         field(9; "Source Document"; Enum "Warehouse Activity Source Document")
         {
             Caption = 'Source Document';
+            ToolTip = 'Specifies the type of document that the line relates to.';
             Editable = false;
         }
         field(10; "Location Code"; Code[10])
         {
             Caption = 'Location Code';
+            ToolTip = 'Specifies the code of the location where the items should be received.';
             Editable = false;
             TableRelation = Location;
         }
         field(11; "Shelf No."; Code[10])
         {
             Caption = 'Shelf No.';
+            ToolTip = 'Specifies the shelf number of the item for information use.';
         }
         field(12; "Bin Code"; Code[20])
         {
             Caption = 'Bin Code';
+            ToolTip = 'Specifies the bin where the items are picked or put away.';
             TableRelation = if ("Zone Code" = filter('')) Bin.Code where("Location Code" = field("Location Code"))
             else
             if ("Zone Code" = filter(<> '')) Bin.Code where("Location Code" = field("Location Code"),
@@ -101,6 +109,7 @@ table 7317 "Warehouse Receipt Line"
         field(13; "Zone Code"; Code[10])
         {
             Caption = 'Zone Code';
+            ToolTip = 'Specifies the zone in which the items are being received.';
             TableRelation = Zone.Code where("Location Code" = field("Location Code"));
 
             trigger OnValidate()
@@ -112,6 +121,7 @@ table 7317 "Warehouse Receipt Line"
         field(14; "Item No."; Code[20])
         {
             Caption = 'Item No.';
+            ToolTip = 'Specifies the number of the item that is expected to be received.';
             Editable = false;
             TableRelation = Item;
         }
@@ -119,6 +129,7 @@ table 7317 "Warehouse Receipt Line"
         {
             AutoFormatType = 0;
             Caption = 'Quantity';
+            ToolTip = 'Specifies the quantity that should be received.';
             DecimalPlaces = 0 : 5;
             Editable = false;
 
@@ -140,6 +151,7 @@ table 7317 "Warehouse Receipt Line"
         {
             AutoFormatType = 0;
             Caption = 'Qty. Outstanding';
+            ToolTip = 'Specifies the quantity that still needs to be handled.';
             DecimalPlaces = 0 : 5;
             Editable = false;
 
@@ -161,6 +173,7 @@ table 7317 "Warehouse Receipt Line"
         {
             AutoFormatType = 0;
             Caption = 'Qty. to Receive';
+            ToolTip = 'Specifies the quantity of items that remains to be received.';
             DecimalPlaces = 0 : 5;
             MinValue = 0;
 
@@ -228,6 +241,7 @@ table 7317 "Warehouse Receipt Line"
         {
             AutoFormatType = 0;
             Caption = 'Qty. Received';
+            ToolTip = 'Specifies the quantity for this line that has been posted as received.';
             DecimalPlaces = 0 : 5;
             Editable = false;
 
@@ -247,6 +261,7 @@ table 7317 "Warehouse Receipt Line"
         field(29; "Unit of Measure Code"; Code[10])
         {
             Caption = 'Unit of Measure Code';
+            ToolTip = 'Specifies how each unit of the item or resource is measured, such as in pieces or hours. By default, the value in the Base Unit of Measure field on the item or resource card is inserted.';
             Editable = false;
             TableRelation = "Item Unit of Measure".Code where("Item No." = field("Item No."));
         }
@@ -254,6 +269,7 @@ table 7317 "Warehouse Receipt Line"
         {
             AutoFormatType = 0;
             Caption = 'Qty. per Unit of Measure';
+            ToolTip = 'Specifies the number of base units of measure, that are in the unit of measure specified for the item on the line.';
             DecimalPlaces = 0 : 5;
             Editable = false;
             InitValue = 1;
@@ -261,22 +277,26 @@ table 7317 "Warehouse Receipt Line"
         field(31; "Variant Code"; Code[10])
         {
             Caption = 'Variant Code';
+            ToolTip = 'Specifies the variant of the item on the line.';
             Editable = false;
             TableRelation = "Item Variant".Code where("Item No." = field("Item No."));
         }
         field(32; Description; Text[100])
         {
             Caption = 'Description';
+            ToolTip = 'Specifies the description of the item in the line.';
             Editable = false;
         }
         field(33; "Description 2"; Text[50])
         {
             Caption = 'Description 2';
+            ToolTip = 'Specifies information in addition to the description of the item in the line.';
             Editable = false;
         }
         field(34; Status; Option)
         {
             Caption = 'Status';
+            ToolTip = 'Specifies the status of the warehouse receipt.';
             Editable = false;
             OptionCaption = ' ,Partially Received,Completely Received';
             OptionMembers = " ","Partially Received","Completely Received";
@@ -289,6 +309,7 @@ table 7317 "Warehouse Receipt Line"
         field(36; "Due Date"; Date)
         {
             Caption = 'Due Date';
+            ToolTip = 'Specifies the date on which you expect to receive the items on the line.';
         }
         field(37; "Starting Date"; Date)
         {
@@ -320,6 +341,7 @@ table 7317 "Warehouse Receipt Line"
         {
             AutoFormatType = 0;
             Caption = 'Qty. to Cross-Dock';
+            ToolTip = 'Specifies the suggested quantity to put into the cross-dock bin on the put-away document when the receipt is posted.';
             DecimalPlaces = 0 : 5;
             MinValue = 0;
 
@@ -358,12 +380,14 @@ table 7317 "Warehouse Receipt Line"
         field(52; "Cross-Dock Zone Code"; Code[10])
         {
             Caption = 'Cross-Dock Zone Code';
+            ToolTip = 'Specifies the zone code that will be used for the quantity of items to be cross-docked.';
             TableRelation = Zone.Code where("Location Code" = field("Location Code"),
                                              "Cross-Dock Bin Zone" = const(true));
         }
         field(53; "Cross-Dock Bin Code"; Code[20])
         {
             Caption = 'Cross-Dock Bin Code';
+            ToolTip = 'Specifies the bin code that will be used for the quantity of items to be cross-docked.';
             TableRelation = if ("Cross-Dock Zone Code" = filter('')) Bin.Code where("Location Code" = field("Location Code"),
                                                                                    "Cross-Dock Bin" = const(true))
             else
@@ -395,6 +419,7 @@ table 7317 "Warehouse Receipt Line"
         {
             AutoFormatType = 0;
             Caption = 'Over-Receipt Quantity';
+            ToolTip = 'Specifies over-receipt quantity.';
             DecimalPlaces = 0 : 5;
             BlankZero = false;
             MinValue = 0;
@@ -430,6 +455,7 @@ table 7317 "Warehouse Receipt Line"
         field(8510; "Over-Receipt Code"; Code[20])
         {
             Caption = 'Over-Receipt Code';
+            ToolTip = 'Specifies over-receip code.';
             TableRelation = "Over-Receipt Code";
 
             trigger OnValidate()

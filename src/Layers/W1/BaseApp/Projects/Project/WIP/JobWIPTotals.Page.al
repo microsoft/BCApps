@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -23,22 +23,18 @@ page 1028 "Job WIP Totals"
                 field("Job Task No."; Rec."Job Task No.")
                 {
                     ApplicationArea = Jobs;
-                    ToolTip = 'Specifies the number of the project task that is associated with the project WIP total. The project task number is generally the final task in a group of tasks that is set to Total or the last project task line.';
                 }
                 field("WIP Method"; Rec."WIP Method")
                 {
                     ApplicationArea = Jobs;
-                    ToolTip = 'Specifies the name of the work in process (WIP) calculation method that is associated with a project. The value in the field comes from the WIP method specified on the project card.';
                 }
                 field("WIP Posting Date"; Rec."WIP Posting Date")
                 {
                     ApplicationArea = Jobs;
-                    ToolTip = 'Specifies the date when work in process (WIP) was last calculated and entered in the Project WIP Entries window.';
                 }
                 field("WIP Warnings"; Rec."WIP Warnings")
                 {
                     ApplicationArea = Jobs;
-                    ToolTip = 'Specifies if there are WIP warnings associated with a project for which you have calculated WIP.';
                 }
                 field("Schedule (Total Cost)"; Rec."Schedule (Total Cost)")
                 {
@@ -83,22 +79,18 @@ page 1028 "Job WIP Totals"
                 field("Calc. Recog. Sales Amount"; Rec."Calc. Recog. Sales Amount")
                 {
                     ApplicationArea = Jobs;
-                    ToolTip = 'Specifies the calculated sum of recognized sales amounts in the current WIP calculation.';
                 }
                 field("Calc. Recog. Costs Amount"; Rec."Calc. Recog. Costs Amount")
                 {
                     ApplicationArea = Jobs;
-                    ToolTip = 'Specifies the calculated sum of recognized costs amounts in the current WIP calculation.';
                 }
                 field("Cost Completion %"; Rec."Cost Completion %")
                 {
                     ApplicationArea = Jobs;
-                    ToolTip = 'Specifies the cost completion percentage for project tasks that have been budgeted in the current WIP calculation.';
                 }
                 field("Invoiced %"; Rec."Invoiced %")
                 {
                     ApplicationArea = Jobs;
-                    ToolTip = 'Specifies the percentage of contracted project tasks that have been invoiced in the current WIP calculation.';
                 }
             }
         }

@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -32,7 +32,6 @@ page 7208 "CDS Full Synch. Review"
                 field(Name; Rec.Name)
                 {
                     ApplicationArea = Suite;
-                    ToolTip = 'Specifies the name.';
                     Editable = false;
                 }
                 field("BC Page Id"; BCPageName)
@@ -129,7 +128,6 @@ page 7208 "CDS Full Synch. Review"
                 {
                     ApplicationArea = Suite;
                     Visible = true;
-                    ToolTip = 'Specifies if the multi-company synchronization should be enabled for the corresponding integration table mapping.';
 
                     trigger OnValidate()
                     begin

@@ -6,6 +6,7 @@ using Microsoft.Foundation.AuditCodes;
 using Microsoft.Foundation.Calendar;
 using Microsoft.Foundation.Shipping;
 using Microsoft.Foundation.UOM;
+using Microsoft.Inventory.Analysis;
 using Microsoft.Inventory.Availability;
 using Microsoft.Inventory.Intrastat;
 using Microsoft.Inventory.Item;
@@ -32,7 +33,8 @@ permissionset 2928 "Inventory - Admin"
     Assignable = false;
     Caption = 'Inventory setup';
 
-    Permissions = tabledata "Base Calendar" = RIMD,
+    Permissions = tabledata "ABC Analysis Setup" = RIMD,
+                  tabledata "Base Calendar" = RIMD,
                   tabledata "Base Calendar Change" = RIMD,
                   tabledata Bin = RIMD,
                   tabledata "Customer Price Group" = RIMD,

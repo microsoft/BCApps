@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -21,47 +21,58 @@ table 5338 "Integration Synch. Job"
         field(2; "Start Date/Time"; DateTime)
         {
             Caption = 'Start Date/Time';
+            ToolTip = 'Specifies the data and time that the integration synchronization job started.';
         }
         field(3; "Finish Date/Time"; DateTime)
         {
             Caption = 'Finish Date/Time';
+            ToolTip = 'Specifies the date and time that the integration synchronization job completed.';
         }
         field(4; Message; Text[250])
         {
             Caption = 'Message';
+            ToolTip = 'Specifies a message that occurred as a result of the integration synchronization job.';
         }
         field(5; "Integration Table Mapping Name"; Code[20])
         {
             Caption = 'Integration Table Mapping Name';
+            ToolTip = 'Specifies the name of the table mapping that was used for the integration synchronization job.';
             TableRelation = "Integration Table Mapping".Name;
         }
         field(6; Inserted; Integer)
         {
             Caption = 'Inserted';
+            ToolTip = 'Specifies the number of new records that were created in the destination database table (such as the Dynamics 365 Sales Account entity or Business Central Customer table) by the integration synchronization job.';
         }
         field(7; Modified; Integer)
         {
             Caption = 'Modified';
+            ToolTip = 'Specifies the number of records that were modified in the destination database table (such as the Dynamics 365 Sales Account entity or Dynamics 365 Customer table) by the integration synchronization job.';
         }
         field(8; Deleted; Integer)
         {
             Caption = 'Deleted';
+            ToolTip = 'Specifies entries that were deleted when synchronizing Dynamics 365 Sales data and Dynamics 365 data.';
         }
         field(9; Unchanged; Integer)
         {
             Caption = 'Unchanged';
+            ToolTip = 'Specifies the number of records that were not changed in the destination database table (such as the Dynamics 365 Sales Account entity or Dynamics 365 Customer table) by the integration synchronization job.';
         }
         field(10; Skipped; Integer)
         {
             Caption = 'Skipped';
+            ToolTip = 'Specifies the number of records that were skipped during the integration synchronization job.';
         }
         field(11; Failed; Integer)
         {
             Caption = 'Failed';
+            ToolTip = 'Specifies the number of errors that occurred during the integration synchronization job.';
         }
         field(12; "Synch. Direction"; Option)
         {
             Caption = 'Synch. Direction';
+            ToolTip = 'Specifies in which direction data is synchronized.';
             OptionCaption = 'Bidirectional,ToIntegrationTable,FromIntegrationTable';
             OptionMembers = Bidirectional,ToIntegrationTable,FromIntegrationTable;
         }
@@ -72,16 +83,19 @@ table 5338 "Integration Synch. Job"
         field(14; Type; Option)
         {
             Caption = 'Type';
+            ToolTip = 'Specifies the type of the integration synchronization job.';
             OptionCaption = 'Synchronization,Uncoupling,Coupling';
             OptionMembers = Synchronization,Uncoupling,Coupling;
         }
         field(15; Uncoupled; Integer)
         {
             Caption = 'Uncoupled';
+            ToolTip = 'Specifies the number of records that were uncoupled during the integration synchronization job.';
         }
         field(16; Coupled; Integer)
         {
             Caption = 'Coupled';
+            ToolTip = 'Specifies the number of records that were coupled by matching an existing entity during the integration synchronization job.';
         }
     }
     keys

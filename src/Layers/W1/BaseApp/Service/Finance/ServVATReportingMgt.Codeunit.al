@@ -12,7 +12,7 @@ codeunit 6470 "Serv. VAT Reporting Mgt."
     Permissions = TableData "Service Invoice Header" = rm,
                   TableData "Service Cr.Memo Header" = rm;
 
-    [EventSubscriber(ObjectType::Codeunit, Codeunit::"VAT Reporting Date Mgt", 'OnUpdatePostedDocumentsOnAfterUpdateSalesInvoice', '', false, false)]
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"VAT Reporting Date Mgt", 'OnUpdatePostedDocumentsOnAfterUpdateSalesInvoice', '', true, false)]
     local procedure OnUpdatePostedDocumentsOnAfterUpdateSalesInvoice(VATEntry: Record "VAT Entry"; var Updated: Boolean)
     var
         ServiceInvHeader: Record "Service Invoice Header";
@@ -32,7 +32,7 @@ codeunit 6470 "Serv. VAT Reporting Mgt."
         ServiceInvHeader.SetRange("Posting Date", VATEntry."Posting Date");
     end;
 
-    [EventSubscriber(ObjectType::Codeunit, Codeunit::"VAT Reporting Date Mgt", 'OnUpdatePostedDocumentsOnAfterUpdateSalesCreditMemo', '', false, false)]
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"VAT Reporting Date Mgt", 'OnUpdatePostedDocumentsOnAfterUpdateSalesCreditMemo', '', true, false)]
     local procedure OnUpdatePostedDocumentsOnAfterUpdateSalesCreditMemo(VATEntry: Record "VAT Entry"; var Updated: Boolean)
     var
         ServiceCrMemoHeader: Record "Service Cr.Memo Header";

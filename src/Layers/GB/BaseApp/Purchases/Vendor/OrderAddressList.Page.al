@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -23,7 +23,6 @@ page 369 "Order Address List"
                 field("Code"; Rec.Code)
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies an order-from address code.';
                 }
                 field(Name; Rec.Name)
                 {
@@ -33,31 +32,26 @@ page 369 "Order Address List"
                 field("Name 2"; Rec."Name 2")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies an additional part of the name.';
                     Visible = false;
                 }
                 field(Address; Rec.Address)
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the order address.';
                     Visible = false;
                 }
                 field("Address 2"; Rec."Address 2")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies additional address information.';
                     Visible = false;
                 }
                 field("Post Code"; Rec."Post Code")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the postal code.';
                     Visible = false;
                 }
                 field(City; Rec.City)
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the city of the order address.';
                 }
 #if not CLEAN28
                 field(County; Rec.County)
@@ -72,25 +66,21 @@ page 369 "Order Address List"
                 field("Country/Region Code"; Rec."Country/Region Code")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the country/region of the address.';
                     Visible = false;
                 }
                 field("Phone No."; Rec."Phone No.")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the telephone number that is associated with the order address.';
                     Visible = false;
                 }
                 field("Fax No."; Rec."Fax No.")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the fax number associated with the address.';
                     Visible = false;
                 }
                 field(Contact; Rec.Contact)
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the name of the person you regularly contact when you do business with this vendor at this address.';
                     Visible = false;
                 }
             }

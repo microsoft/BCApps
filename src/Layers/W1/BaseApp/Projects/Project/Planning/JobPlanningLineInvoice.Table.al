@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -39,31 +39,37 @@ table 1022 "Job Planning Line Invoice"
         field(4; "Document Type"; Enum "Job Planning Line Invoice Document Type")
         {
             Caption = 'Document Type';
+            ToolTip = 'Specifies the information about the type of document. There are four options:';
             Editable = false;
         }
         field(5; "Document No."; Code[20])
         {
             Caption = 'Document No.';
+            ToolTip = 'Specifies the number associated with the document. For example, if you have created an invoice, the field Specifies the invoice number.';
             Editable = false;
         }
         field(6; "Line No."; Integer)
         {
             Caption = 'Line No.';
+            ToolTip = 'Specifies the line number that is linked to the document. Numbers are created sequentially.';
         }
         field(7; "Quantity Transferred"; Decimal)
         {
             AutoFormatType = 0;
             Caption = 'Quantity Transferred';
+            ToolTip = 'Specifies the quantity transferred from the project planning line to the invoice or credit memo.';
             Editable = false;
         }
         field(8; "Transferred Date"; Date)
         {
             Caption = 'Transferred Date';
+            ToolTip = 'Specifies the date on which the invoice or credit document was created. The date is set to the posting date you specified when you created the invoice or credit memo.';
             Editable = false;
         }
         field(9; "Invoiced Date"; Date)
         {
             Caption = 'Invoiced Date';
+            ToolTip = 'Specifies the date on which the invoice or credit memo was posted.';
             Editable = false;
         }
         field(10; "Invoiced Amount (LCY)"; Decimal)
@@ -84,6 +90,7 @@ table 1022 "Job Planning Line Invoice"
         {
             BlankZero = true;
             Caption = 'Project Ledger Entry No.';
+            ToolTip = 'Specifies a link to the project ledger entry that was created when the document was posted.';
             Editable = false;
             TableRelation = "Job Ledger Entry";
         }

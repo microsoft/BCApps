@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -85,7 +85,6 @@ page 7022 "Price Worksheet"
                     ApplicationArea = Basic, Suite;
                     Visible = UpdateMultiplePriceLists;
                     Editable = false;
-                    ToolTip = 'Specifies the unique identifier of the price list.';
 
                     trigger OnDrillDown()
                     var
@@ -99,7 +98,6 @@ page 7022 "Price Worksheet"
                     ApplicationArea = Basic, Suite;
                     Visible = UpdateMultiplePriceLists;
                     Editable = false;
-                    ToolTip = 'Specifies if the current line is a copy of the existing price list line.';
                 }
                 field(Status; Rec.Status)
                 {
@@ -107,7 +105,6 @@ page 7022 "Price Worksheet"
                     Editable = false;
                     Style = Attention;
                     StyleExpr = ModifiedLine;
-                    ToolTip = 'Specifies whether the price list line is in Draft status and can be edited, Inactive and cannot be edited or used, or Active and used for price calculations.';
                 }
                 field(CustomerSourceType; CustomerSourceType)
                 {
@@ -154,14 +151,12 @@ page 7022 "Price Worksheet"
                     Visible = ParentSourceNoVisible;
                     Editable = ParentSourceNoEditable;
                     ShowMandatory = ParentSourceEditable;
-                    ToolTip = 'Specifies the project to which the prices are assigned. If you choose an entity, the price list will be used only for that entity.';
                 }
                 field("Source No."; Rec."Source No.")
                 {
                     ApplicationArea = Basic, Suite;
                     Editable = SourceEditable;
                     ShowMandatory = SourceEditable;
-                    ToolTip = 'Specifies the entity to which the prices are assigned. The options depend on the selection in the Assign-to Type field. If you choose an entity, the price list will be used only for that entity.';
                     Visible = UseCustomLookup;
                 }
                 field("Assign-to Parent No."; Rec."Assign-to Parent No.")
@@ -170,28 +165,24 @@ page 7022 "Price Worksheet"
                     Visible = AssignToParentNoVisible;
                     Editable = ParentSourceEditable;
                     ShowMandatory = ParentSourceEditable;
-                    ToolTip = 'Specifies the project to which the prices are assigned. If you choose an entity, the price list will be used only for that entity.';
                 }
                 field("Assign-to No."; Rec."Assign-to No.")
                 {
                     ApplicationArea = Basic, Suite;
                     Editable = SourceEditable;
                     ShowMandatory = SourceEditable;
-                    ToolTip = 'Specifies the entity to which the prices are assigned. The options depend on the selection in the Assign-to Type field. If you choose an entity, the price list will be used only for that entity.';
                     Visible = not UseCustomLookup;
                 }
                 field("Asset Type"; Rec."Asset Type")
                 {
                     ApplicationArea = Basic, Suite;
                     Editable = ProductTypeEditable;
-                    ToolTip = 'Specifies the type of the product.';
                 }
                 field("Asset No."; Rec."Asset No.")
                 {
                     ApplicationArea = Basic, Suite;
                     Editable = PriceLineEditable;
                     ShowMandatory = true;
-                    ToolTip = 'Specifies the identifier of the product. If no product is selected, the price and discount values will apply to all products of the selected product type for which those values are not specified. For example, if you choose Item as the product type but do not specify a specific item, the price will apply to all items for which a price is not specified.';
                     Visible = UseCustomLookup;
                 }
                 field("Product No."; Rec."Product No.")
@@ -199,7 +190,6 @@ page 7022 "Price Worksheet"
                     ApplicationArea = Basic, Suite;
                     Editable = PriceLineEditable;
                     ShowMandatory = true;
-                    ToolTip = 'Specifies the identifier of the product. If no product is selected, the price and discount values will apply to all products of the selected product type for which those values are not specified. For example, if you choose Item as the product type but do not specify a specific item, the price will apply to all items for which a price is not specified.';
                     Visible = not UseCustomLookup;
                 }
                 field("Variant Code"; Rec."Variant Code")
@@ -207,54 +197,46 @@ page 7022 "Price Worksheet"
                     ApplicationArea = Basic, Suite;
                     Visible = VariantCodeVisible;
                     Editable = VariantCodeEditable;
-                    ToolTip = 'Specifies the variant of the item on the line.';
                 }
                 field("Variant Code Lookup"; Rec."Variant Code Lookup")
                 {
                     ApplicationArea = Basic, Suite;
                     Visible = VariantCodeLookupVisible;
                     Editable = VariantCodeEditable;
-                    ToolTip = 'Specifies the variant of the item on the line.';
                 }
                 field("Work Type Code"; Rec."Work Type Code")
                 {
                     ApplicationArea = Jobs;
                     Visible = ResourceAssetVisible;
                     Editable = WorkTypeCodeEditable;
-                    ToolTip = 'Specifies the work type code for the resource.';
                 }
                 field("Currency Code"; Rec."Currency Code")
                 {
                     ApplicationArea = Suite;
                     Editable = DateEditable;
-                    ToolTip = 'Specifies the currency code of the price list line.';
                 }
                 field("Unit of Measure Code"; Rec."Unit of Measure Code")
                 {
                     ApplicationArea = Basic, Suite;
                     Visible = UoMVisible;
                     Editable = PriceLineEditable;
-                    ToolTip = 'Specifies the unit price of the product.';
                 }
                 field("Unit of Measure Code Lookup"; Rec."Unit of Measure Code Lookup")
                 {
                     ApplicationArea = Basic, Suite;
                     Visible = UoMLookupVisible;
                     Editable = PriceLineEditable;
-                    ToolTip = 'Specifies the unit price of the product.';
                 }
                 field("Minimum Quantity"; Rec."Minimum Quantity")
                 {
                     ApplicationArea = Basic, Suite;
                     Editable = PriceLineEditable;
-                    ToolTip = 'Specifies the minimum quantity of the product.';
                 }
                 field("Amount Type"; Rec."Amount Type")
                 {
                     ApplicationArea = Basic, Suite;
                     Visible = AmountTypeIsVisible;
                     Editable = AmountTypeIsEditable;
-                    ToolTip = 'Specifies whether the price list line defines prices, discounts, or both.';
                 }
                 field("Published Price"; Rec."Published Price")
                 {
@@ -288,7 +270,6 @@ page 7022 "Price Worksheet"
                 {
                     ApplicationArea = Basic, Suite;
                     Visible = SalesPriceVisible;
-                    ToolTip = 'Specifies the current unit price of the product.';
                 }
                 field("Unit Price"; Rec."Unit Price")
                 {
@@ -298,20 +279,17 @@ page 7022 "Price Worksheet"
                     Editable = UnitPriceEditable;
                     Style = Attention;
                     StyleExpr = ModifiedUnitPrice and SalesPriceLine and PriceEditable;
-                    ToolTip = 'Specifies the new unit price of the product.';
                 }
                 field("Cost Factor"; Rec."Cost Factor")
                 {
                     ApplicationArea = Basic, Suite;
                     Visible = SalesPriceVisible;
                     Editable = UnitPriceEditable;
-                    ToolTip = 'Specifies the unit cost factor for project-related prices, if you have agreed with your customer that he should pay certain item usage by cost value plus a certain percent value to cover your overhead expenses.';
                 }
                 field("Existing Direct Unit Cost"; Rec."Existing Direct Unit Cost")
                 {
                     ApplicationArea = Basic, Suite;
                     Visible = PurchPriceVisible;
-                    ToolTip = 'Specifies the current direct unit cost of the product.';
                 }
                 field("Direct Unit Cost"; Rec."Direct Unit Cost")
                 {
@@ -321,13 +299,11 @@ page 7022 "Price Worksheet"
                     Editable = UnitPriceEditable;
                     Style = Attention;
                     StyleExpr = ModifiedDirectUnitCost and PurchPriceLine and PriceEditable;
-                    ToolTip = 'Specifies the new direct unit cost of the product.';
                 }
                 field("Existing Unit Cost"; Rec."Existing Unit Cost")
                 {
                     ApplicationArea = Basic, Suite;
                     Visible = PurchPriceVisible;
-                    ToolTip = 'Specifies the current unit cost of the product.';
                 }
                 field("Unit Cost"; Rec."Unit Cost")
                 {
@@ -336,40 +312,34 @@ page 7022 "Price Worksheet"
                     Editable = UnitPriceEditable;
                     Style = Attention;
                     StyleExpr = ModifiedUnitCost and PurchPriceLine and PriceEditable;
-                    ToolTip = 'Specifies the unit cost of the resource.';
                 }
                 field("Line Discount %"; Rec."Line Discount %")
                 {
                     ApplicationArea = Basic, Suite;
                     Visible = DiscountVisible;
                     Editable = LineDiscountEditable;
-                    ToolTip = 'Specifies the line discount percentage for the product.';
                 }
                 field("Starting Date"; Rec."Starting Date")
                 {
                     ApplicationArea = Basic, Suite;
                     Editable = DateEditable;
-                    ToolTip = 'Specifies the date from which the price is valid.';
                 }
                 field("Ending Date"; Rec."Ending Date")
                 {
                     ApplicationArea = Basic, Suite;
                     Editable = DateEditable;
-                    ToolTip = 'Specifies the last date that the price is valid.';
                 }
                 field("Allow Line Disc."; Rec."Allow Line Disc.")
                 {
                     ApplicationArea = Basic, Suite;
                     Visible = PriceVisible;
                     Editable = PriceLineEditable;
-                    ToolTip = 'Specifies if a line discount will be calculated when the price is offered.';
                 }
                 field("Allow Invoice Disc."; Rec."Allow Invoice Disc.")
                 {
                     ApplicationArea = Basic, Suite;
                     Visible = PriceVisible;
                     Editable = PriceLineEditable;
-                    ToolTip = 'Specifies if an invoice discount will be calculated when the price is offered.';
                 }
                 field("VAT Bus. Posting Gr. (Price)"; Rec."VAT Bus. Posting Gr. (Price)")
                 {
@@ -383,7 +353,6 @@ page 7022 "Price Worksheet"
                     ApplicationArea = Basic, Suite;
                     Visible = false;
                     Editable = PriceLineEditable;
-                    ToolTip = 'Specifies if the price includes VAT.';
                 }
             }
         }

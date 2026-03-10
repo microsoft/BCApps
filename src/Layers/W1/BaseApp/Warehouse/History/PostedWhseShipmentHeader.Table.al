@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -24,31 +24,37 @@ table 7322 "Posted Whse. Shipment Header"
         field(1; "No."; Code[20])
         {
             Caption = 'No.';
+            ToolTip = 'Specifies the number of the involved entry or record, according to the specified number series.';
         }
         field(2; "Location Code"; Code[10])
         {
             Caption = 'Location Code';
+            ToolTip = 'Specifies the code of the location from which the items were shipped.';
             TableRelation = Location where("Use As In-Transit" = const(false));
         }
         field(3; "Assigned User ID"; Code[50])
         {
             Caption = 'Assigned User ID';
+            ToolTip = 'Specifies the ID of the user who is responsible for the document.';
             DataClassification = EndUserIdentifiableInformation;
             TableRelation = "Warehouse Employee" where("Location Code" = field("Location Code"));
         }
         field(4; "Assignment Date"; Date)
         {
             Caption = 'Assignment Date';
+            ToolTip = 'Specifies the date when the user was assigned the activity.';
             Editable = false;
         }
         field(5; "Assignment Time"; Time)
         {
             Caption = 'Assignment Time';
+            ToolTip = 'Specifies the time when the user was assigned the activity.';
             Editable = false;
         }
         field(7; "No. Series"; Code[20])
         {
             Caption = 'No. Series';
+            ToolTip = 'Specifies the number series from which entry or record numbers are assigned to new entries or records.';
             TableRelation = "No. Series";
         }
         field(11; Comment; Boolean)
@@ -63,6 +69,7 @@ table 7322 "Posted Whse. Shipment Header"
         field(12; "Bin Code"; Code[20])
         {
             Caption = 'Bin Code';
+            ToolTip = 'Specifies the bin where the items are picked or put away.';
             TableRelation = if ("Zone Code" = filter('')) Bin.Code where("Location Code" = field("Location Code"))
             else
             if ("Zone Code" = filter(<> '')) Bin.Code where("Location Code" = field("Location Code"),
@@ -71,39 +78,47 @@ table 7322 "Posted Whse. Shipment Header"
         field(13; "Zone Code"; Code[10])
         {
             Caption = 'Zone Code';
+            ToolTip = 'Specifies the code of the zone on this posted shipment header.';
             TableRelation = Zone.Code where("Location Code" = field("Location Code"));
         }
         field(39; "Posting Date"; Date)
         {
             Caption = 'Posting Date';
+            ToolTip = 'Specifies the posting date of the posted warehouse shipment.';
         }
         field(40; "Shipment Date"; Date)
         {
             Caption = 'Shipment Date';
+            ToolTip = 'Specifies when items on the document are shipped or were shipped. A shipment date is usually calculated from a requested delivery date plus lead time.';
         }
         field(41; "Shipping Agent Code"; Code[10])
         {
             AccessByPermission = TableData "Shipping Agent Services" = R;
             Caption = 'Shipping Agent Code';
+            ToolTip = 'Specifies the code for the shipping agent who is transporting the items.';
             TableRelation = "Shipping Agent";
         }
         field(42; "Shipping Agent Service Code"; Code[10])
         {
             Caption = 'Shipping Agent Service Code';
+            ToolTip = 'Specifies the code for the service, such as a one-day delivery, that is offered by the shipping agent.';
             TableRelation = "Shipping Agent Services".Code where("Shipping Agent Code" = field("Shipping Agent Code"));
         }
         field(43; "Shipment Method Code"; Code[10])
         {
             Caption = 'Shipment Method Code';
+            ToolTip = 'Specifies the delivery conditions of the related shipment, such as free on board (FOB).';
             TableRelation = "Shipment Method";
         }
         field(45; "Whse. Shipment No."; Code[20])
         {
             Caption = 'Whse. Shipment No.';
+            ToolTip = 'Specifies the number of the warehouse shipment that the posted warehouse shipment originates from.';
         }
         field(48; "External Document No."; Code[35])
         {
             Caption = 'External Document No.';
+            ToolTip = 'Specifies a document number that refers to the customer''s or vendor''s numbering system.';
         }
     }
 

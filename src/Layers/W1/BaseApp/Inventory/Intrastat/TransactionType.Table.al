@@ -15,11 +15,13 @@ table 258 "Transaction Type"
         field(1; "Code"; Code[10])
         {
             Caption = 'Code';
+            ToolTip = 'Specifies a code for the transaction.';
             NotBlank = true;
         }
         field(2; Description; Text[80])
         {
             Caption = 'Description';
+            ToolTip = 'Specifies a description of the transaction type.';
         }
     }
 

@@ -14,15 +14,18 @@ table 8510 "Over-Receipt Code"
         field(1; Code; Code[20])
         {
             Caption = 'Code';
+            ToolTip = 'Specifies a code for the over-receive policy.';
             NotBlank = true;
         }
         field(2; Description; Text[100])
         {
             Caption = 'Description';
+            ToolTip = 'Specifies a description of the over-receive policy.';
         }
         field(3; Default; Boolean)
         {
             Caption = 'Default';
+            ToolTip = 'Specifies if the over-receipt code will be used by default.';
 
             trigger OnValidate()
             var
@@ -38,6 +41,7 @@ table 8510 "Over-Receipt Code"
         {
             AutoFormatType = 0;
             Caption = 'Over-Receipt Tolerance %';
+            ToolTip = 'Specifies the percentage by which the ordered quantity is allowed to be exceeded.';
             DecimalPlaces = 0 : 2;
 
             trigger OnValidate()
@@ -48,6 +52,7 @@ table 8510 "Over-Receipt Code"
         field(5; "Required Approval"; Boolean)
         {
             Caption = 'Approval Required';
+            ToolTip = 'Specifies if over-receiving items with this over-receipt-code code must first be approved.';
         }
     }
 

@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -33,51 +33,42 @@ page 5769 "Whse. Receipt Subform"
                 field("Source Document"; Rec."Source Document")
                 {
                     ApplicationArea = Warehouse;
-                    ToolTip = 'Specifies the type of document that the line relates to.';
                 }
                 field("Source No."; Rec."Source No.")
                 {
                     ApplicationArea = Warehouse;
-                    ToolTip = 'Specifies the number of the source document that the entry originates from.';
                 }
                 field("Item No."; Rec."Item No.")
                 {
                     ApplicationArea = Warehouse;
-                    ToolTip = 'Specifies the number of the item that is expected to be received.';
                 }
                 field("Variant Code"; Rec."Variant Code")
                 {
                     ApplicationArea = Planning;
-                    ToolTip = 'Specifies the variant of the item on the line.';
                     Visible = false;
                 }
                 field(Description; Rec.Description)
                 {
                     ApplicationArea = Warehouse;
-                    ToolTip = 'Specifies the description of the item in the line.';
                 }
                 field("Description 2"; Rec."Description 2")
                 {
                     ApplicationArea = All;
-                    ToolTip = 'Specifies information in addition to the description of the item in the line.';
                     Visible = false;
                 }
                 field("Location Code"; Rec."Location Code")
                 {
                     ApplicationArea = Location;
-                    ToolTip = 'Specifies the code of the location where the items should be received.';
                     Visible = false;
                 }
                 field("Zone Code"; Rec."Zone Code")
                 {
                     ApplicationArea = Warehouse;
-                    ToolTip = 'Specifies the zone in which the items are being received.';
                     Visible = false;
                 }
                 field("Bin Code"; Rec."Bin Code")
                 {
                     ApplicationArea = Warehouse;
-                    ToolTip = 'Specifies the bin where the items are picked or put away.';
                     Visible = not HideBinFields;
 
                     trigger OnValidate()
@@ -88,25 +79,21 @@ page 5769 "Whse. Receipt Subform"
                 field("Cross-Dock Zone Code"; Rec."Cross-Dock Zone Code")
                 {
                     ApplicationArea = Warehouse;
-                    ToolTip = 'Specifies the zone code that will be used for the quantity of items to be cross-docked.';
                     Visible = false;
                 }
                 field("Cross-Dock Bin Code"; Rec."Cross-Dock Bin Code")
                 {
                     ApplicationArea = Warehouse;
-                    ToolTip = 'Specifies the bin code that will be used for the quantity of items to be cross-docked.';
                     Visible = false;
                 }
                 field("Shelf No."; Rec."Shelf No.")
                 {
                     ApplicationArea = Warehouse;
-                    ToolTip = 'Specifies the shelf number of the item for information use.';
                     Visible = false;
                 }
                 field(Quantity; Rec.Quantity)
                 {
                     ApplicationArea = Warehouse;
-                    ToolTip = 'Specifies the quantity that should be received.';
                 }
                 field("Qty. (Base)"; Rec."Qty. (Base)")
                 {
@@ -117,7 +104,6 @@ page 5769 "Whse. Receipt Subform"
                 field("Qty. to Receive"; Rec."Qty. to Receive")
                 {
                     ApplicationArea = Warehouse;
-                    ToolTip = 'Specifies the quantity of items that remains to be received.';
 
                     trigger OnValidate()
                     begin
@@ -127,7 +113,6 @@ page 5769 "Whse. Receipt Subform"
                 field("Qty. to Cross-Dock"; Rec."Qty. to Cross-Dock")
                 {
                     ApplicationArea = Warehouse;
-                    ToolTip = 'Specifies the suggested quantity to put into the cross-dock bin on the put-away document when the receipt is posted.';
                     Visible = true;
 
                     trigger OnLookup(var Text: Text): Boolean
@@ -139,7 +124,6 @@ page 5769 "Whse. Receipt Subform"
                 field("Qty. Received"; Rec."Qty. Received")
                 {
                     ApplicationArea = Warehouse;
-                    ToolTip = 'Specifies the quantity for this line that has been posted as received.';
                     Visible = true;
                 }
                 field("Qty. to Receive (Base)"; Rec."Qty. to Receive (Base)")
@@ -169,7 +153,6 @@ page 5769 "Whse. Receipt Subform"
                 field("Qty. Outstanding"; Rec."Qty. Outstanding")
                 {
                     ApplicationArea = Warehouse;
-                    ToolTip = 'Specifies the quantity that still needs to be handled.';
                     Visible = true;
                 }
                 field("Qty. Outstanding (Base)"; Rec."Qty. Outstanding (Base)")
@@ -181,23 +164,19 @@ page 5769 "Whse. Receipt Subform"
                 field("Due Date"; Rec."Due Date")
                 {
                     ApplicationArea = Warehouse;
-                    ToolTip = 'Specifies the date on which you expect to receive the items on the line.';
                 }
                 field("Unit of Measure Code"; Rec."Unit of Measure Code")
                 {
                     ApplicationArea = Warehouse;
-                    ToolTip = 'Specifies how each unit of the item or resource is measured, such as in pieces or hours. By default, the value in the Base Unit of Measure field on the item or resource card is inserted.';
                 }
                 field("Qty. per Unit of Measure"; Rec."Qty. per Unit of Measure")
                 {
                     ApplicationArea = Warehouse;
-                    ToolTip = 'Specifies the number of base units of measure, that are in the unit of measure specified for the item on the line.';
                 }
                 field("Over-Receipt Quantity"; Rec."Over-Receipt Quantity")
                 {
                     ApplicationArea = Warehouse;
                     Visible = OverReceiptAllowed;
-                    ToolTip = 'Specifies over-receipt quantity.';
 
                     trigger OnValidate()
                     begin
@@ -208,7 +187,6 @@ page 5769 "Whse. Receipt Subform"
                 {
                     ApplicationArea = Warehouse;
                     Visible = OverReceiptAllowed;
-                    ToolTip = 'Specifies over-receip code.';
                 }
             }
         }

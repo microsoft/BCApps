@@ -198,9 +198,7 @@ codeunit 300 "Reservation Worksheet Mgt."
                 QtyReservedFromItemLedger.SetRange(Item_No_, ItemNo);
                 QtyReservedFromItemLedger.SetRange(Variant_Code, VariantCode);
                 QtyReservedFromItemLedger.SetRange(Location_Code, LocationCode);
-                QtyReservedFromItemLedger.SetRange(Serial_No_, ItemTrackingSetup."Serial No.");
-                QtyReservedFromItemLedger.SetRange(Lot_No_, ItemTrackingSetup."Lot No.");
-                QtyReservedFromItemLedger.SetRange(Package_No_, ItemTrackingSetup."Package No.");
+                QtyReservedFromItemLedger.SetSupplySideTrackingFilters(ItemTrackingSetup);
                 QtyReservedFromItemLedger.Open();
                 if QtyReservedFromItemLedger.Read() then begin
                     NonReservedQtyLotSN -= QtyReservedFromItemLedger.Quantity__Base_;

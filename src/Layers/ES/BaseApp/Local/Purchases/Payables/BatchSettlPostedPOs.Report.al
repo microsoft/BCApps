@@ -69,6 +69,7 @@ report 7000087 "Batch Settl. Posted POs"
                                 GenJnlLine.Init();
                                 GenJnlLine."Line No." := GenJnlLineNextNo;
                                 GenJnlLine."Posting Date" := PostingDate;
+                                GenJnlLine."Reason Code" := PostedPmtOrd."Reason Code";
                                 GenJnlLine."Document Date" := GenJnlLine."Document Date";
                                 GenJnlLine.Validate("Account Type", GenJnlLine."Account Type"::Vendor);
                                 VendLedgEntry.Get(PostedDoc."Entry No.");
@@ -109,6 +110,7 @@ report 7000087 "Batch Settl. Posted POs"
                                 GenJnlLine."Posting Date" := PostingDate;
                                 GenJnlLine."Document Type" := GenJnlLine."Document Type"::Payment;
                                 GenJnlLine."Document No." := PostedPmtOrd."No.";
+                                GenJnlLine."Reason Code" := PostedPmtOrd."Reason Code";
                                 GenJnlLine.Validate("Account Type", GenJnlLine."Account Type"::Vendor);
                                 VendLedgEntry.Get(PostedDoc."Entry No.");
 
@@ -204,6 +206,7 @@ report 7000087 "Batch Settl. Posted POs"
                     GenJnlLine."Posting Date" := PostingDate;
                     GenJnlLine."Document Type" := GenJnlLine."Document Type"::Payment;
                     GenJnlLine."Document No." := PostedPmtOrd."No.";
+                    GenJnlLine."Reason Code" := PostedPmtOrd."Reason Code";
                     GenJnlLine.Validate("Account Type", GenJnlLine."Account Type"::"Bank Account");
                     GenJnlLine.Validate("Account No.", BankAcc."No.");
                     GenJnlLine.Description := CopyStr(StrSubstNo(Text1100009, PostedPmtOrd."No."), 1, MaxStrLen(GenJnlLine.Description));
@@ -238,6 +241,7 @@ report 7000087 "Batch Settl. Posted POs"
                             GenJnlLine."Posting Date" := PostingDate;
                             GenJnlLine."Document Type" := GenJnlLine."Document Type"::Payment;
                             GenJnlLine."Document No." := PostedPmtOrd."No.";
+                            GenJnlLine."Reason Code" := PostedPmtOrd."Reason Code";
                             GenJnlLine.Validate("Account Type", GenJnlLine."Account Type"::"G/L Account");
                             GenJnlLine.Validate("Account No.", Acct);
                             GenJnlLine.Description := Text1100010;

@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -32,62 +32,51 @@ page 5408 "Prod. Order Routing Lines"
                 field("Prod. Order No."; Rec."Prod. Order No.")
                 {
                     ApplicationArea = Manufacturing;
-                    ToolTip = 'Specifies the number of the related production order.';
                 }
                 field("Routing No."; Rec."Routing No.")
                 {
                     ApplicationArea = Manufacturing;
-                    ToolTip = 'Specifies the routing number.';
                     Visible = false;
                 }
                 field("Routing Reference No."; Rec."Routing Reference No.")
                 {
                     ApplicationArea = Manufacturing;
-                    ToolTip = 'Specifies that the routing reference number.';
                     Visible = false;
                 }
                 field("Schedule Manually"; Rec."Schedule Manually")
                 {
                     ApplicationArea = Manufacturing;
-                    ToolTip = 'Specifies that the underlying capacity need is recalculated each time a change is made in the schedule of the routing.';
                     Visible = false;
                 }
                 field("Operation No."; Rec."Operation No.")
                 {
                     ApplicationArea = Manufacturing;
-                    ToolTip = 'Specifies the operation number.';
                 }
                 field("Previous Operation No."; Rec."Previous Operation No.")
                 {
                     ApplicationArea = Manufacturing;
-                    ToolTip = 'Specifies the previous operation number.';
                     Visible = false;
                 }
                 field("Next Operation No."; Rec."Next Operation No.")
                 {
                     ApplicationArea = Manufacturing;
-                    ToolTip = 'Specifies the next operation number.';
                     Visible = false;
                 }
                 field(Type; Rec.Type)
                 {
                     ApplicationArea = Manufacturing;
-                    ToolTip = 'Specifies the type of operation.';
                 }
                 field("No."; Rec."No.")
                 {
                     ApplicationArea = Manufacturing;
-                    ToolTip = 'Specifies the number of the involved entry or record, according to the specified number series.';
                 }
                 field(Description; Rec.Description)
                 {
                     ApplicationArea = Manufacturing;
-                    ToolTip = 'Specifies the description of the operation.';
                 }
                 field("Description 2"; Rec."Description 2")
                 {
                     ApplicationArea = Manufacturing;
-                    ToolTip = 'Specifies additional description text.';
                     Visible = false;
                 }
                 field("Flushing Method"; Rec."Flushing Method")
@@ -98,41 +87,34 @@ page 5408 "Prod. Order Routing Lines"
                 field("Starting Date-Time"; Rec."Starting Date-Time")
                 {
                     ApplicationArea = Manufacturing;
-                    ToolTip = 'Specifies the starting date and the starting time, which are combined in a format called "starting date-time".';
                 }
                 field("Starting Time"; Rec."Starting Time")
                 {
                     ApplicationArea = Manufacturing;
-                    ToolTip = 'Specifies the starting time of the routing line (operation).';
                     Visible = false;
                 }
                 field("Starting Date"; Rec."Starting Date")
                 {
                     ApplicationArea = Manufacturing;
-                    ToolTip = 'Specifies the starting date of the routing line (operation).';
                     Visible = false;
                 }
                 field("Ending Date-Time"; Rec."Ending Date-Time")
                 {
                     ApplicationArea = Manufacturing;
-                    ToolTip = 'Specifies the ending date and the ending time, which are combined in a format called "ending date-time".';
                 }
                 field("Ending Time"; Rec."Ending Time")
                 {
                     ApplicationArea = Manufacturing;
-                    ToolTip = 'Specifies the ending time of the routing line (operation).';
                     Visible = false;
                 }
                 field("Ending Date"; Rec."Ending Date")
                 {
                     ApplicationArea = Manufacturing;
-                    ToolTip = 'Specifies the ending date of the routing line (operation).';
                     Visible = false;
                 }
                 field("Setup Time"; Rec."Setup Time")
                 {
                     ApplicationArea = Manufacturing;
-                    ToolTip = 'Specifies the setup time of the operation.';
                 }
                 field("Setup Time Unit of Meas. Code"; Rec."Setup Time Unit of Meas. Code")
                 {
@@ -143,7 +125,6 @@ page 5408 "Prod. Order Routing Lines"
                 field("Run Time"; Rec."Run Time")
                 {
                     ApplicationArea = Manufacturing;
-                    ToolTip = 'Specifies the run time of the operation.';
                 }
                 field("Run Time Unit of Meas. Code"; Rec."Run Time Unit of Meas. Code")
                 {
@@ -154,58 +135,48 @@ page 5408 "Prod. Order Routing Lines"
                 field("Wait Time"; Rec."Wait Time")
                 {
                     ApplicationArea = Manufacturing;
-                    ToolTip = 'Specifies the wait time after processing.';
                 }
                 field("Wait Time Unit of Meas. Code"; Rec."Wait Time Unit of Meas. Code")
                 {
                     ApplicationArea = Manufacturing;
-                    ToolTip = 'Specifies the unit of measure code that applies to the wait time.';
                     Visible = false;
                 }
                 field("Move Time"; Rec."Move Time")
                 {
                     ApplicationArea = Manufacturing;
-                    ToolTip = 'Specifies the move time.';
                 }
                 field("Move Time Unit of Meas. Code"; Rec."Move Time Unit of Meas. Code")
                 {
                     ApplicationArea = Manufacturing;
-                    ToolTip = 'Specifies the unit of measure code that applies to the move time.';
                     Visible = false;
                 }
                 field("Fixed Scrap Quantity"; Rec."Fixed Scrap Quantity")
                 {
                     ApplicationArea = Manufacturing;
-                    ToolTip = 'Specifies the fixed scrap quantity.';
                     Visible = false;
                 }
                 field("Routing Link Code"; Rec."Routing Link Code")
                 {
                     ApplicationArea = Manufacturing;
-                    ToolTip = 'Specifies a routing link code.';
                 }
                 field("Scrap Factor %"; Rec."Scrap Factor %")
                 {
                     ApplicationArea = Manufacturing;
-                    ToolTip = 'Specifies the scrap factor in percent.';
                     Visible = false;
                 }
                 field("Send-Ahead Quantity"; Rec."Send-Ahead Quantity")
                 {
                     ApplicationArea = Manufacturing;
-                    ToolTip = 'Specifies the send-ahead quantity of the operation.';
                     Visible = false;
                 }
                 field("Concurrent Capacities"; Rec."Concurrent Capacities")
                 {
                     ApplicationArea = Manufacturing;
-                    ToolTip = 'Specifies the concurrent capacity of the operation.';
                     Visible = false;
                 }
                 field("Unit Cost per"; Rec."Unit Cost per")
                 {
                     ApplicationArea = Manufacturing;
-                    ToolTip = 'Specifies the unit cost for this operation if it is different than the unit cost on the work center card.';
                     Visible = false;
                 }
                 field("Lot Size"; Rec."Lot Size")
@@ -217,13 +188,11 @@ page 5408 "Prod. Order Routing Lines"
                 field("Expected Operation Cost Amt."; Rec."Expected Operation Cost Amt.")
                 {
                     ApplicationArea = Manufacturing;
-                    ToolTip = 'Specifies the total cost of operations. It is automatically calculated from the capacity need, when a production order is refreshed or replanned.';
                     Visible = false;
                 }
                 field("Expected Capacity Ovhd. Cost"; Rec."Expected Capacity Ovhd. Cost")
                 {
                     ApplicationArea = Manufacturing;
-                    ToolTip = 'Specifies the capacity overhead. It is automatically calculated from the capacity need, when a production order is refreshed or replanned.';
                     Visible = false;
                 }
                 field("Expected Capacity Need"; Rec."Expected Capacity Need" / ExpCapacityNeed())
@@ -238,31 +207,26 @@ page 5408 "Prod. Order Routing Lines"
                 field("Routing Status"; Rec."Routing Status")
                 {
                     ApplicationArea = Manufacturing;
-                    ToolTip = 'Specifies the status of the routing line, such as Planned, In Progress, or Finished.';
                     Visible = false;
                 }
                 field("Location Code"; Rec."Location Code")
                 {
                     ApplicationArea = Location;
-                    ToolTip = 'Specifies the location where the machine or work center on the production order routing line operates.';
                     Visible = false;
                 }
                 field("Open Shop Floor Bin Code"; Rec."Open Shop Floor Bin Code")
                 {
                     ApplicationArea = Manufacturing;
-                    ToolTip = 'Specifies the corresponding bin at the machine or work center, if the location code matches the setup of that machine or work center.';
                     Visible = false;
                 }
                 field("To-Production Bin Code"; Rec."To-Production Bin Code")
                 {
                     ApplicationArea = Manufacturing;
-                    ToolTip = 'Specifies the bin that holds components with a flushing method, that involves a warehouse activity to bring the items to the bin.';
                     Visible = false;
                 }
                 field("From-Production Bin Code"; Rec."From-Production Bin Code")
                 {
                     ApplicationArea = Manufacturing;
-                    ToolTip = 'Specifies the corresponding bin at the machine or work center if the location code matches the setup of that machine or work center.';
                     Visible = false;
                 }
                 field("Posted Output Quantity"; Rec."Posted Output Quantity")

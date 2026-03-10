@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -24,27 +24,22 @@ page 5950 "Posted Shpt. Item Line List"
                 field("No."; Rec."No.")
                 {
                     ApplicationArea = Service;
-                    ToolTip = 'Specifies the number of the involved entry or record, according to the specified number series.';
                 }
                 field("Line No."; Rec."Line No.")
                 {
                     ApplicationArea = Service;
-                    ToolTip = 'Specifies the number of this line.';
                 }
                 field("Service Item No."; Rec."Service Item No.")
                 {
                     ApplicationArea = Service;
-                    ToolTip = 'Specifies the number of the service item registered in the Service Item table and associated with the customer.';
                 }
                 field("Item No."; Rec."Item No.")
                 {
                     ApplicationArea = Service;
-                    ToolTip = 'Specifies the number of the item to which this posted service item is related.';
                 }
                 field("Serial No."; Rec."Serial No.")
                 {
                     ApplicationArea = ItemTracking;
-                    ToolTip = 'Specifies the serial number of this service item.';
                 }
                 field("Warranty Ending Date (Parts)"; Rec."Warranty Ending Date (Parts)")
                 {
@@ -54,12 +49,10 @@ page 5950 "Posted Shpt. Item Line List"
                 field("Loaner No."; Rec."Loaner No.")
                 {
                     ApplicationArea = Service;
-                    ToolTip = 'Specifies the number of the loaner that has been lent to the customer to replace this service item.';
                 }
                 field(Warranty; Rec.Warranty)
                 {
                     ApplicationArea = Service;
-                    ToolTip = 'Specifies that there is a warranty on either parts or labor for this service item.';
                 }
                 field("Warranty Ending Date (Labor)"; Rec."Warranty Ending Date (Labor)")
                 {
@@ -79,7 +72,6 @@ page 5950 "Posted Shpt. Item Line List"
                 field("Contract No."; Rec."Contract No.")
                 {
                     ApplicationArea = Service;
-                    ToolTip = 'Specifies the number of the contract associated with the posted service item.';
                 }
             }
         }

@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -57,6 +57,7 @@ table 1228 "Payment Jnl. Export Error Text"
         field(5; "Error Text"; Text[250])
         {
             Caption = 'Error Text';
+            ToolTip = 'Specifies the error that is shown in the Payment Journal window in case payment lines cannot be exported.';
         }
         /// <summary>
         /// Specifies the document number associated with the journal line that caused the error.
@@ -73,6 +74,7 @@ table 1228 "Payment Jnl. Export Error Text"
         field(7; "Additional Information"; Text[250])
         {
             Caption = 'Additional Information';
+            ToolTip = 'Specifies more information that may help you resolve the error.';
         }
         /// <summary>
         /// Contains a URL to external support resources related to the payment export error.
@@ -81,6 +83,7 @@ table 1228 "Payment Jnl. Export Error Text"
         field(8; "Support URL"; Text[250])
         {
             Caption = 'Support URL';
+            ToolTip = 'Specifies a web page containing information that may help you resolve the error.';
         }
     }
 

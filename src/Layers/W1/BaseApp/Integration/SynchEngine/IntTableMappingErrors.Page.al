@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -29,13 +29,11 @@ page 5327 "Int. Table Mapping Errors"
                 {
                     ApplicationArea = All;
                     Caption = 'Errors';
-                    ToolTip = 'Specifies the number of errors for this mapping.';
                 }
                 field("No. of Skipped"; Rec."No. of Skipped")
                 {
                     ApplicationArea = Suite;
                     Caption = 'Skipped Records';
-                    ToolTip = 'Specifies the number of records that are excluded from the synchronization because of repetitive errors.';
                 }
             }
             cuegroup(Control2)

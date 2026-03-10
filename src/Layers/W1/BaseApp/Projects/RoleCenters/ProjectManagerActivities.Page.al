@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -32,13 +32,11 @@ page 9068 "Project Manager Activities"
                 {
                     ApplicationArea = Jobs;
                     DrillDownPageID = "Job List";
-                    ToolTip = 'Specifies the number of upcoming invoices that are displayed in the Project Cue on the Role Center. The documents are filtered by today''s date.';
                 }
                 field("Invoices Due - Not Created"; Rec."Invoices Due - Not Created")
                 {
                     ApplicationArea = Jobs;
                     DrillDownPageID = "Job List";
-                    ToolTip = 'Specifies the number of invoices that are due but not yet created that are displayed in the Project Cue on the Role Center. The documents are filtered by today''s date.';
                 }
 
                 actions
@@ -60,13 +58,11 @@ page 9068 "Project Manager Activities"
                 {
                     ApplicationArea = Suite;
                     DrillDownPageID = "Job List";
-                    ToolTip = 'Specifies the amount of work in process that has not been posted that is displayed in the Service Cue on the Role Center. The documents are filtered by today''s date.';
                 }
                 field("Completed - WIP Not Calculated"; Rec."Completed - WIP Not Calculated")
                 {
                     ApplicationArea = Suite;
                     DrillDownPageID = "Job List";
-                    ToolTip = 'Specifies the total of work in process that is complete but not calculated that is displayed in the Project Cue on the Role Center. The documents are filtered by today''s date.';
                 }
 
                 actions
@@ -97,7 +93,6 @@ page 9068 "Project Manager Activities"
                     Caption = 'Over Budget';
                     DrillDownPageID = "Job List";
                     Editable = false;
-                    ToolTip = 'Specifies the number of projects where the usage cost exceeds the budgeted cost.';
                 }
             }
             cuegroup("Get started")

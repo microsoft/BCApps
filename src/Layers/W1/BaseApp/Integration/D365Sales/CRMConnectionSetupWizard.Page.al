@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -69,7 +69,6 @@ page 1817 "CRM Connection Setup Wizard"
                     {
                         ApplicationArea = Suite;
                         Editable = ConnectionStringFieldsEditable;
-                        ToolTip = 'Specifies the URL of the Dynamics 365 Sales server that hosts the Dynamics 365 Sales solution that you want to connect to.';
 
                         trigger OnValidate()
                         var
@@ -100,7 +99,6 @@ page 1817 "CRM Connection Setup Wizard"
                         Caption = 'Email';
                         ExtendedDatatype = EMail;
                         Editable = ConnectionStringFieldsEditable;
-                        ToolTip = 'Specifies the user name of a Dynamics 365 Sales account.';
                     }
                     field(Password; Password)
                     {
@@ -188,7 +186,6 @@ page 1817 "CRM Connection Setup Wizard"
                         AssistEdit = true;
                         Caption = 'Dynamics 365 SDK Version';
                         Editable = false;
-                        ToolTip = 'Specifies the Microsoft Dynamics 365 (CRM) software development kit version that is used to connect to Dynamics 365 Sales.';
 
                         trigger OnAssistEdit()
                         var

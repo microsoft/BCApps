@@ -17,7 +17,7 @@ codeunit 6468 "Serv. Doc. Exchange Mgt."
         NotSupportedSalesErr: Label 'Sales documents of type %1 are not supported.', Comment = '%1 will be Sales/Purchase Header. %2 will be invoice, Credit Memo.';
         SalesTxt: Label 'Sales';
 
-    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Doc. Exch. Links", 'OnBeforeUpdateDocumentRecord', '', false, false)]
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Doc. Exch. Links", 'OnBeforeUpdateDocumentRecord', '', true, false)]
     local procedure OnBeforeUpdateDocumentRecord(DocRecRef: RecordRef; DocIdentifier: Text; DocOrigIdentifier: Text; var IsHandled: Boolean)
     begin
         case DocRecRef.Number of
@@ -116,7 +116,7 @@ codeunit 6468 "Serv. Doc. Exchange Mgt."
         end;
     end;
 
-    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Doc. Exch. Serv.- Doc. Status", 'OnAfterCheckPostedDocs', '', false, false)]
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Doc. Exch. Serv.- Doc. Status", 'OnAfterCheckPostedDocs', '', true, false)]
     local procedure OnAfterCheckPostedDocs()
     begin
         CheckPostedServiceInvoices();
@@ -155,7 +155,7 @@ codeunit 6468 "Serv. Doc. Exchange Mgt."
             until ServiceCrMemoHeader.Next() = 0;
     end;
 
-    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Doc. Exch. Serv.- Doc. Status", 'OnBeforeCheckAndUpdateDocExchStatus', '', false, false)]
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Doc. Exch. Serv.- Doc. Status", 'OnBeforeCheckAndUpdateDocExchStatus', '', true, false)]
     local procedure OnBeforeCheckAndUpdateDocExchStatus(DocRecRef: RecordRef; var IsHandled: Boolean)
     var
         ServiceInvoiceHeader: Record "Service Invoice Header";
@@ -177,14 +177,14 @@ codeunit 6468 "Serv. Doc. Exchange Mgt."
         end;
     end;
 
-    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Doc. Exch. Serv.- Doc. Status", 'OnAfterIsSupportedByDefaultDocExchStatusDrillDown', '', false, false)]
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Doc. Exch. Serv.- Doc. Status", 'OnAfterIsSupportedByDefaultDocExchStatusDrillDown', '', true, false)]
     local procedure OnAfterIsSupportedByDefaultDocExchStatusDrillDown(DocRecRef: RecordRef; var IsSupported: Boolean)
     begin
         IsSupported := IsSupported or
             (DocRecRef.Number in [DATABASE::"Service Invoice Header", DATABASE::"Service Cr.Memo Header"]);
     end;
 
-    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Doc. Exch. Service Mgt.", 'OnBeforeCheckDocumentStatus', '', false, false)]
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Doc. Exch. Service Mgt.", 'OnBeforeCheckDocumentStatus', '', true, false)]
     local procedure OnBeforeCheckDocumentStatus(DocRecRef: RecordRef; var IsHandled: Boolean)
     var
         ServiceInvoiceHeader: Record "Service Invoice Header";
@@ -216,7 +216,7 @@ codeunit 6468 "Serv. Doc. Exchange Mgt."
         end;
     end;
 
-    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Doc. Exch. Service Mgt.", 'OnBeforeGetPostSalesURL', '', false, false)]
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Doc. Exch. Service Mgt.", 'OnBeforeGetPostSalesURL', '', true, false)]
     local procedure OnBeforeGetPostSalesURL(DocRecRef: RecordRef; var URL: Text; sender: Codeunit "Doc. Exch. Service Mgt.")
     begin
         case DocRecRef.Number of
@@ -227,7 +227,7 @@ codeunit 6468 "Serv. Doc. Exchange Mgt."
         end;
     end;
 
-    [EventSubscriber(ObjectType::Table, Database::"Incoming Document Attachment", 'OnBeforeSetFiltersFromMainRecord', '', false, false)]
+    [EventSubscriber(ObjectType::Table, Database::"Incoming Document Attachment", 'OnBeforeSetFiltersFromMainRecord', '', true, false)]
     local procedure OnBeforeSetFiltersFromMainRecord(var MainRecordRef: RecordRef; var IncomingDocumentAttachment: Record "Incoming Document Attachment"; var IsHandled: Boolean)
     var
         ServiceHeader: Record "Service Header";
@@ -244,7 +244,7 @@ codeunit 6468 "Serv. Doc. Exchange Mgt."
         end;
     end;
 
-    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Import Attachment - Inc. Doc.", 'OnBeforeCreateNewSalesPurchIncomingDoc', '', false, false)]
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Import Attachment - Inc. Doc.", 'OnBeforeCreateNewSalesPurchIncomingDoc', '', true, false)]
     local procedure OnBeforeCreateNewSalesPurchIncomingDoc(var IncomingDocumentAttachment: Record "Incoming Document Attachment"; var IncomingDocEntryNo: Integer; var IsHandled: Boolean)
     var
         IncomingDocument: Record "Incoming Document";
@@ -272,7 +272,7 @@ codeunit 6468 "Serv. Doc. Exchange Mgt."
         end;
     end;
 
-    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Import Attachment - Inc. Doc.", 'OnBeforeGetUnpostedSalesPurchaseDocType', '', false, false)]
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Import Attachment - Inc. Doc.", 'OnBeforeGetUnpostedSalesPurchaseDocType', '', true, false)]
     local procedure OnBeforeGetUnpostedSalesPurchaseDocType(var IncomingDocumentAttachment: Record "Incoming Document Attachment"; var IncomingDocument: Record "Incoming Document"; var RelatedDocumentType: Enum "Incoming Related Document Type");
     var
         ServiceHeader: Record "Service Header";
@@ -287,7 +287,7 @@ codeunit 6468 "Serv. Doc. Exchange Mgt."
         end;
     end;
 
-    [EventSubscriber(ObjectType::Table, Database::"Incoming Document", 'OnTestIfAlreadyExists', '', false, false)]
+    [EventSubscriber(ObjectType::Table, Database::"Incoming Document", 'OnTestIfAlreadyExists', '', true, false)]
     local procedure OnTestIfAlreadyExists(IncomingRelatedDocumentType: Enum "Incoming Related Document Type"; EntryNo: Integer)
     var
         ServiceHeader: Record "Service Header";
@@ -303,7 +303,7 @@ codeunit 6468 "Serv. Doc. Exchange Mgt."
         end;
     end;
 
-    [EventSubscriber(ObjectType::Table, Database::"Incoming Document", 'OnAfterClearRelatedRecords', '', false, false)]
+    [EventSubscriber(ObjectType::Table, Database::"Incoming Document", 'OnAfterClearRelatedRecords', '', true, false)]
     local procedure OnAfterClearRelatedRecords(IncomingRelatedDocumentType: Enum "Incoming Related Document Type"; EntryNo: Integer)
     var
         ServiceHeader: Record "Service Header";
@@ -336,7 +336,7 @@ codeunit 6468 "Serv. Doc. Exchange Mgt."
             ServiceHeader.AddLink(IncomingDocument.GetURL(), IncomingDocument.Description);
     end;
 
-    [EventSubscriber(ObjectType::Table, Database::"Incoming Document", 'OnUpdateDocumentFieldsOnAfterUpdateDocuments', '', false, false)]
+    [EventSubscriber(ObjectType::Table, Database::"Incoming Document", 'OnUpdateDocumentFieldsOnAfterUpdateDocuments', '', true, false)]
     local procedure OnUpdateDocumentFieldsOnAfterUpdateDocuments(var IncomingDocument: Record "Incoming Document"; var DocExists: Boolean)
     var
         ServiceHeader: Record "Service Header";
@@ -357,7 +357,7 @@ codeunit 6468 "Serv. Doc. Exchange Mgt."
         end;
     end;
 
-    [EventSubscriber(ObjectType::Table, Database::"Incoming Document", 'OnAfterFindUnpostedRecord', '', false, false)]
+    [EventSubscriber(ObjectType::Table, Database::"Incoming Document", 'OnAfterFindUnpostedRecord', '', true, false)]
     local procedure OnAfterFindUnpostedRecord(var RelatedRecord: Variant; var RecordFound: Boolean; var IncomingDocument: Record "Incoming Document")
     var
         ServiceHeader: Record "Service Header";
@@ -375,7 +375,7 @@ codeunit 6468 "Serv. Doc. Exchange Mgt."
         end;
     end;
 
-    [EventSubscriber(ObjectType::Table, Database::"Incoming Document", 'OnAfterGetRelatedRecordCaption', '', false, false)]
+    [EventSubscriber(ObjectType::Table, Database::"Incoming Document", 'OnAfterGetRelatedRecordCaption', '', true, false)]
     local procedure OnAfterGetRelatedRecordCaption(var RelatedRecordRef: RecordRef; var RecCaption: Text)
     var
         IncomingDocument: Record "Incoming Document";
@@ -386,7 +386,7 @@ codeunit 6468 "Serv. Doc. Exchange Mgt."
         end;
     end;
 
-    [EventSubscriber(ObjectType::Table, Database::"Incoming Document", 'OnFindByDocumentNoAndPostingDateOnSetFilters', '', false, false)]
+    [EventSubscriber(ObjectType::Table, Database::"Incoming Document", 'OnFindByDocumentNoAndPostingDateOnSetFilters', '', true, false)]
     local procedure OnFindByDocumentNoAndPostingDateOnSetFilters(var IncomingDocument: Record "Incoming Document"; MainRecordRef: RecordRef)
     var
         ServiceHeader: Record "Service Header";

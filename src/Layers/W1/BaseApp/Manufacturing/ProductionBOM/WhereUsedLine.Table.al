@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -20,20 +20,24 @@ table 99000790 "Where-Used Line"
         field(3; "Item No."; Code[20])
         {
             Caption = 'Item No.';
+            ToolTip = 'Specifies the number of the item that the base item or production BOM is assigned to.';
             TableRelation = Item;
         }
         field(4; "Version Code"; Code[20])
         {
             Caption = 'Version Code';
+            ToolTip = 'Specifies the version code of the production BOM that the item or production BOM component is assigned to.';
         }
         field(5; Description; Text[100])
         {
             Caption = 'Description';
+            ToolTip = 'Specifies the description of the item to which the item or production BOM component is assigned.';
         }
         field(6; "Quantity Needed"; Decimal)
         {
             AutoFormatType = 0;
             Caption = 'Quantity Needed';
+            ToolTip = 'Specifies the quantity of the item or the production BOM component that is needed for the assigned item.';
             DecimalPlaces = 0 : 5;
         }
         field(7; "Level Code"; Integer)

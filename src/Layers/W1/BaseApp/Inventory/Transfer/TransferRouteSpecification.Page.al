@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -20,17 +20,14 @@ page 5748 "Transfer Route Specification"
                 field("In-Transit Code"; Rec."In-Transit Code")
                 {
                     ApplicationArea = Location;
-                    ToolTip = 'Specifies the in-transit code for the transfer order, such as a shipping agent.';
                 }
                 field("Shipping Agent Code"; Rec."Shipping Agent Code")
                 {
                     ApplicationArea = Location;
-                    ToolTip = 'Specifies the code for the shipping agent who is transporting the items.';
                 }
                 field("Shipping Agent Service Code"; Rec."Shipping Agent Service Code")
                 {
                     ApplicationArea = Location;
-                    ToolTip = 'Specifies the code for the service, such as a one-day delivery, that is offered by the shipping agent.';
                 }
             }
         }

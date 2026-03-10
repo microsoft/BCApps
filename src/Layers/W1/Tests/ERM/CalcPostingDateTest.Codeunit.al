@@ -15,12 +15,15 @@ codeunit 134254 "Calc. Posting Date Test"
         LibraryERM: Codeunit "Library - ERM";
         LibraryERMCountryData: Codeunit "Library - ERM Country Data";
         LibraryPurchase: Codeunit "Library - Purchase";
+        LibrarySales: Codeunit "Library - Sales";
         LibraryRandom: Codeunit "Library - Random";
         LibraryVariableStorage: Codeunit "Library - Variable Storage";
         IsInitialized: Boolean;
         PaymentWarningMsg: Label 'This posting date will cause an overdue payment.';
         ReplacePostDateMsg: Label 'For one or more entries, the requested posting date is before the work date.';
         PmtDiscUnavailableErr: Label 'You cannot use Summarize per Vendor together with Calculate Posting Date from Applies-to-Doc. Due Date, because the resulting posting date might not match the due date.';
+        InvalidAllowedDateRangeErr: Label 'The allowed date range is invalid. The "Allow From" date %1 must not be after the "Allow To" date %2 on %3.', Comment = '%1 - Allow From caption, %2 - Allow To caption, %3 - Setup name';
+        PostingDateNotAllowedErr: Label 'Posting Date is not within your range of allowed posting dates';
 
     local procedure Initialize()
     var
@@ -440,6 +443,158 @@ codeunit 134254 "Calc. Posting Date Test"
 
         // Verify.
         VerifyMultipleGenJnlLines(GenJnlBatch, Vendor."No.", 0, 3);
+    end;
+
+    [Test]
+    procedure AllowPostingToDateFormulaEarlierThanAllowPostingFromDateFormulaGenJournalTemplate()
+    var
+        GenJournalTemplate: Record "Gen. Journal Template";
+        AllowPostingFromDateFormula, AllowPostingToDateFormula : DateFormula;
+    begin
+        // [SCENARIO 540948] When Allow Posting To is set with date that is earlier than Allow Posting From in GL Setup an error must occur
+        Initialize();
+
+        // [GIVEN] Create General Journal Template.
+        LibraryERM.CreateGenJournalTemplate(GenJournalTemplate);
+
+        // [GIVEN]  Setting up Allow Posting From Date Formula
+        Evaluate(AllowPostingFromDateFormula, '<-1M>');
+        GenJournalTemplate.Validate("Allow Posting From DateFormula", AllowPostingFromDateFormula);
+
+        // [WHEN]  Setting up Allow Posting To Date Formula
+        Evaluate(AllowPostingToDateFormula, '<-2M>');
+        asserterror GenJournalTemplate.Validate("Allow Posting To DateFormula", AllowPostingToDateFormula);
+
+        // [THEN] Expected error occurs
+        Assert.ExpectedError(StrSubstNo(InvalidAllowedDateRangeErr, CalcDate('<-1M>', WorkDate()), CalcDate('<-2M>', WorkDate()), Format(GenJournalTemplate.RecordID(), 0, 1)));
+    end;
+
+    [Test]
+    procedure GeneralJournalNotAllowedPostingDateThroughDateFormula()
+    var
+        GenJournalTemplate: Record "Gen. Journal Template";
+        GenJournalBatch: Record "Gen. Journal Batch";
+        GenJournalLine: Record "Gen. Journal Line";
+    begin
+        // [FEATURE] [Journals]
+        // [SCENARIO 540948] General Journal Line cannot be posted due to "Posting Date" is out of allowed posting date range.
+        Initialize();
+
+        // [GIVEN] GLSetup."Allow Posting From DateFormula" = -1M
+        // [GIVEN] GLSetup."Allow Posting To DateFormula" = -1D
+        UpdateAllowedPostingDateFormulaInGLSetup('<-1M>', '<-1D>');
+
+        // [GIVEN] Create Gen Journal Line
+        LibraryERM.CreateGenJournalTemplate(GenJournalTemplate);
+        LibraryERM.CreateGenJournalBatch(GenJournalBatch, GenJournalTemplate.Name);
+        LibraryERM.CreateGeneralJnlLineWithBalAcc(GenJournalLine, GenJournalTemplate.Name, GenJournalBatch.Name, GenJournalLine."Document Type"::Invoice, GenJournalLine."Account Type"::Vendor, LibraryPurchase.CreateVendorNo(), GenJournalLine."Bal. Account Type"::"G/L Account", LibraryERM.CreateGLAccountNo(), -100);
+
+        // [WHEN] Post General Journal Line
+        asserterror LibraryERM.PostGeneralJnlLine(GenJournalLine);
+
+        // [THEN] "Posting Date is not within your range of allowed posting dates." error thrown
+        Assert.ExpectedError(PostingDateNotAllowedErr);
+
+        // Teardown
+        UpdateAllowedPostingDateFormulaInGLSetup('', '');
+    end;
+
+    [Test]
+    procedure GeneralJournalAllowedPostingDateThroughDateFormula()
+    var
+        GenJournalTemplate: Record "Gen. Journal Template";
+        GenJournalBatch: Record "Gen. Journal Batch";
+        GenJournalLine: Record "Gen. Journal Line";
+    begin
+        // [FEATURE] [Journals]
+        // [SCENARIO 540948] General Journal Line cannot be posted due to "Posting Date" is out of allowed posting date range.
+        Initialize();
+
+        // [GIVEN] GLSetup."Allow Posting From DateFormula" = -1M
+        // [GIVEN] GLSetup."Allow Posting To DateFormula" = -1D
+        UpdateAllowedPostingDateFormulaInGLSetup('<-1M>', '<1D>');
+
+        // [GIVEN] Create Gen Journal Line
+        LibraryERM.CreateGenJournalTemplate(GenJournalTemplate);
+        LibraryERM.CreateGenJournalBatch(GenJournalBatch, GenJournalTemplate.Name);
+        LibraryERM.CreateGeneralJnlLineWithBalAcc(GenJournalLine, GenJournalTemplate.Name, GenJournalBatch.Name, GenJournalLine."Document Type"::Invoice, GenJournalLine."Account Type"::Vendor, LibraryPurchase.CreateVendorNo(), GenJournalLine."Bal. Account Type"::"G/L Account", LibraryERM.CreateGLAccountNo(), -100);
+
+        // [WHEN] Post General Journal Line
+        LibraryERM.PostGeneralJnlLine(GenJournalLine);
+
+        // [THEN] No error should be given, successful posting
+
+        // Teardown
+        UpdateAllowedPostingDateFormulaInGLSetup('', '');
+    end;
+
+    [Test]
+    procedure ReceivePurchaseOrderNotAllowedPostingDateThroughDateFormula()
+    var
+        PurchaseHeader: Record "Purchase Header";
+        PurchaseLine: Record "Purchase Line";
+    begin
+        // [FEATURE] [Purchase]
+        // [SCENARIO 540948] "Receive" and "Invoice" fields remain unchanged when purchase order cannot be received due to "Posting Date" is out of allowed posting date range.
+
+        // [GIVEN] GLSetup."Allow Posting From DateFormula" = -1M
+        // [GIVEN] GLSetup."Allow Posting To DateFormula" = -1D
+        Initialize();
+        UpdateAllowedPostingDateFormulaInGLSetup('<-1M>', '<-1D>');
+
+        // [GIVEN] Purchase order "PO" with "Posting Date" = 21/02/2016, "Receive" = FALSE, "Invoice" = FALSE
+        LibraryPurchase.CreatePurchHeader(PurchaseHeader, PurchaseHeader."Document Type"::Order, LibraryPurchase.CreateVendorNo());
+        LibraryPurchase.CreatePurchaseLine(
+          PurchaseLine, PurchaseHeader, PurchaseLine.Type::"G/L Account", LibraryERM.CreateGLAccountWithPurchSetup(), LibraryRandom.RandInt(10));
+
+        // [WHEN] Post "PO" as receipt
+        asserterror LibraryPurchase.PostPurchaseDocument(PurchaseHeader, true, false);
+
+        // [THEN] "Posting Date is not within your range of allowed posting dates." error thrown
+        Assert.ExpectedError(PostingDateNotAllowedErr);
+
+        // Teardown
+        UpdateAllowedPostingDateFormulaInGLSetup('', '');
+    end;
+
+    [Test]
+    procedure ShipSalesOrderNotAllowedPostingDateThroughDateFormula()
+    var
+        SalesHeader: Record "Sales Header";
+        SalesLine: Record "Sales Line";
+    begin
+        // [FEATURE] [Sales]
+        // [SCENARIO 540948] "Ship" and "Invoice" fields remain unchanged when sales order cannot be shipped due to "Posting Date" is out of allowed posting date range.
+
+        // [GIVEN] GLSetup."Allow Posting From DateFormula" = -1M
+        // [GIVEN] GLSetup."Allow Posting To DateFormula" = -1D
+        Initialize();
+        UpdateAllowedPostingDateFormulaInGLSetup('<-1M>', '<-1D>');
+
+        // [GIVEN] Sales order "SO" with "Posting Date" = 21/02/2016, "Ship" = FALSE, "Invoice" = FALSE
+        LibrarySales.CreateSalesHeader(SalesHeader, SalesHeader."Document Type"::Order, LibrarySales.CreateCustomerNo());
+        LibrarySales.CreateSalesLine(SalesLine, SalesHeader, SalesLine.Type::"G/L Account", LibraryERM.CreateGLAccountWithSalesSetup(), LibraryRandom.RandInt(10));
+
+        // [WHEN] Post "SO" as shipment
+        asserterror LibrarySales.PostSalesDocument(SalesHeader, true, false);
+
+        // [THEN] "Posting Date is not within your range of allowed posting dates." error thrown
+        Assert.ExpectedError(PostingDateNotAllowedErr);
+
+        // Teardown
+        UpdateAllowedPostingDateFormulaInGLSetup('', '');
+    end;
+
+    local procedure UpdateAllowedPostingDateFormulaInGLSetup(FromDateFormula: Code[10]; ToDateFormula: Code[10])
+    var
+        GeneralLedgerSetup: Record "General Ledger Setup";
+    begin
+        GeneralLedgerSetup.Get();
+        Evaluate(GeneralLedgerSetup."Allow Posting From DateFormula", FromDateFormula);
+        GeneralLedgerSetup.Validate("Allow Posting From DateFormula");
+        Evaluate(GeneralLedgerSetup."Allow Posting To DateFormula", ToDateFormula);
+        GeneralLedgerSetup.Validate("Allow Posting To DateFormula");
+        GeneralLedgerSetup.Modify();
     end;
 
     local procedure SuggestVendorPayments(var GenJnlLine: Record "Gen. Journal Line"; GenJnlBatch: Record "Gen. Journal Batch"; LastPaymentDate: Date; FindDiscounts: Boolean; SummarizePerVendor: Boolean; UseDueDateAsPostingDate: Boolean; DueDateOffset: Text; VendorNo: Code[20])

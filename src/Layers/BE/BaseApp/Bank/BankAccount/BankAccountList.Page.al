@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -48,12 +48,10 @@ page 371 "Bank Account List"
                 field("No."; Rec."No.")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the number of the involved entry or record, according to the specified number series.';
                 }
                 field(Name; Rec.Name)
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the name of the bank where you have the bank account.';
                 }
                 field(OnlineFeedStatementStatus; OnlineFeedStatementStatus)
                 {
@@ -66,30 +64,25 @@ page 371 "Bank Account List"
                 field("Post Code"; Rec."Post Code")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the postal code.';
                     Visible = false;
                 }
                 field("Country/Region Code"; Rec."Country/Region Code")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the country/region of the address.';
                     Visible = false;
                 }
                 field("Phone No."; Rec."Phone No.")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the telephone number of the bank where you have the bank account.';
                 }
                 field("Fax No."; Rec."Fax No.")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the fax number associated with the address.';
                     Visible = false;
                 }
                 field(Contact; Rec.Contact)
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the name of the bank employee regularly contacted in connection with this bank account.';
                 }
                 field(BalanceAmt; Rec.Balance)
                 {
@@ -104,7 +97,6 @@ page 371 "Bank Account List"
                 field(BalanceAtDate; Rec."Balance at Date")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the bank account''s balance on the last date included in the Date Filter field.';
                     Visible = false;
                 }
                 field(BalanceAtDateLCY; Rec."Balance at Date (LCY)")
@@ -116,55 +108,46 @@ page 371 "Bank Account List"
                 field("Bank Account No."; Rec."Bank Account No.")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the number used by the bank for the bank account.';
                     Visible = false;
                 }
                 field("SWIFT Code"; Rec."SWIFT Code")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the international bank identifier code (SWIFT) of the bank where you have the account.';
                     Visible = false;
                 }
                 field(IBAN; Rec.IBAN)
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the bank account''s international bank account number.';
                     Visible = false;
                 }
                 field("Our Contact Code"; Rec."Our Contact Code")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies a code to specify the employee who is responsible for this bank account.';
                     Visible = false;
                 }
                 field("Bank Acc. Posting Group"; Rec."Bank Acc. Posting Group")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies a code for the bank account posting group for the bank account.';
                     Visible = false;
                 }
                 field("Currency Code"; Rec."Currency Code")
                 {
                     ApplicationArea = Suite;
-                    ToolTip = 'Specifies the relevant currency code for the bank account.';
                     Visible = false;
                 }
                 field("Language Code"; Rec."Language Code")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the language that is used when translating specified text on documents to foreign business partner, such as an item description on an order confirmation.';
                     Visible = false;
                 }
                 field("Format Region"; Rec."Format Region")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the region format that is used when formatting specified dates and numbers on documents to foreign business partner, such as an item amount on an order confirmation.';
                     Visible = false;
                 }
                 field("Search Name"; Rec."Search Name")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies an alternate name that you can use to search for the record in question when you cannot remember the value in the Name field.';
                     Visible = false;
                 }
             }

@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -22,6 +22,7 @@ table 294 "Reminder Text"
         field(1; "Reminder Terms Code"; Code[10])
         {
             Caption = 'Reminder Terms Code';
+            ToolTip = 'Specifies the reminder terms code this text applies to.';
             NotBlank = true;
             TableRelation = "Reminder Terms";
         }
@@ -31,6 +32,7 @@ table 294 "Reminder Text"
         field(2; "Reminder Level"; Integer)
         {
             Caption = 'Reminder Level';
+            ToolTip = 'Specifies the reminder level this text applies to.';
             MinValue = 1;
             NotBlank = true;
             TableRelation = "Reminder Level"."No." where("Reminder Terms Code" = field("Reminder Terms Code"));
@@ -41,6 +43,7 @@ table 294 "Reminder Text"
         field(3; Position; Enum "Reminder Text Position")
         {
             Caption = 'Position';
+            ToolTip = 'Specifies whether the text will appear at the beginning or the end of the reminder.';
         }
         /// <summary>
         /// Specifies the sequential line number for ordering text lines within a position.
@@ -55,6 +58,7 @@ table 294 "Reminder Text"
         field(5; Text; Text[100])
         {
             Caption = 'Text';
+            ToolTip = 'Specifies the text that you want to insert in the reminder.';
         }
         /// <summary>
         /// Contains the text content that appears in reminder email communications.

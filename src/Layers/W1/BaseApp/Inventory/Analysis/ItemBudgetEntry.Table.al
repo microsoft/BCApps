@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -28,6 +28,7 @@ table 7134 "Item Budget Entry"
         field(1; "Entry No."; Integer)
         {
             Caption = 'Entry No.';
+            ToolTip = 'Specifies the number of the entry, as assigned from the specified number series when the entry was created.';
         }
         field(2; "Analysis Area"; Enum "Analysis Area Type")
         {
@@ -37,21 +38,25 @@ table 7134 "Item Budget Entry"
         field(3; "Budget Name"; Code[10])
         {
             Caption = 'Budget Name';
+            ToolTip = 'Specifies the name of the item budget that the entry belongs to.';
             TableRelation = "Item Budget Name".Name where("Analysis Area" = field("Analysis Area"));
         }
         field(4; Date; Date)
         {
             Caption = 'Date';
+            ToolTip = 'Specifies the date of this item budget entry.';
             ClosingDates = true;
         }
         field(5; "Item No."; Code[20])
         {
             Caption = 'Item No.';
+            ToolTip = 'Specifies the number of the item that this budget entry applies to.';
             TableRelation = Item;
         }
         field(6; "Source Type"; Enum "Analysis Source Type")
         {
             Caption = 'Source Type';
+            ToolTip = 'Specifies the source type of this budget entry.';
 
             trigger OnValidate()
             begin
@@ -62,6 +67,7 @@ table 7134 "Item Budget Entry"
         field(7; "Source No."; Code[20])
         {
             Caption = 'Source No.';
+            ToolTip = 'Specifies the number of the source document that the entry originates from.';
             TableRelation = if ("Source Type" = const(Customer)) Customer
             else
             if ("Source Type" = const(Vendor)) Vendor
@@ -71,11 +77,13 @@ table 7134 "Item Budget Entry"
         field(8; Description; Text[100])
         {
             Caption = 'Description';
+            ToolTip = 'Specifies a description of the budget figure.';
         }
         field(9; Quantity; Decimal)
         {
             AutoFormatType = 0;
             Caption = 'Quantity';
+            ToolTip = 'Specifies the quantity of this item budget entry.';
             DecimalPlaces = 0 : 5;
         }
         field(10; "Cost Amount"; Decimal)
@@ -83,12 +91,14 @@ table 7134 "Item Budget Entry"
             AutoFormatType = 1;
             AutoFormatExpression = '';
             Caption = 'Cost Amount';
+            ToolTip = 'Specifies the cost amount of this item budget entry.';
         }
         field(11; "Sales Amount"; Decimal)
         {
             AutoFormatType = 1;
             AutoFormatExpression = '';
             Caption = 'Sales Amount';
+            ToolTip = 'Specifies the sales amount of this item budget line entry.';
         }
         field(13; "User ID"; Code[50])
         {
@@ -100,12 +110,14 @@ table 7134 "Item Budget Entry"
         field(14; "Location Code"; Code[10])
         {
             Caption = 'Location Code';
+            ToolTip = 'Specifies the code for the location that this item budget entry is linked to.';
             TableRelation = Location;
         }
         field(15; "Global Dimension 1 Code"; Code[20])
         {
             CaptionClass = '1,1,1';
             Caption = 'Global Dimension 1 Code';
+            ToolTip = 'Specifies the code for the global dimension that is linked to the record or entry for analysis purposes. Two global dimensions, typically for the company''s most important activities, are available on all cards, documents, reports, and lists.';
             TableRelation = "Dimension Value".Code where("Global Dimension No." = const(1));
 
             trigger OnValidate()
@@ -120,6 +132,7 @@ table 7134 "Item Budget Entry"
         {
             CaptionClass = '1,1,2';
             Caption = 'Global Dimension 2 Code';
+            ToolTip = 'Specifies the code for the global dimension that is linked to the record or entry for analysis purposes. Two global dimensions, typically for the company''s most important activities, are available on all cards, documents, reports, and lists.';
             TableRelation = "Dimension Value".Code where("Global Dimension No." = const(2));
 
             trigger OnValidate()
@@ -135,6 +148,7 @@ table 7134 "Item Budget Entry"
             AccessByPermission = TableData Dimension = R;
             CaptionClass = GetCaptionClass(1);
             Caption = 'Budget Dimension 1 Code';
+            ToolTip = 'Specifies the dimension value code for the Budget Dimension 1 code that this item budget entry is linked to.';
 
             trigger OnLookup()
             begin
@@ -155,6 +169,7 @@ table 7134 "Item Budget Entry"
             AccessByPermission = TableData Dimension = R;
             CaptionClass = GetCaptionClass(2);
             Caption = 'Budget Dimension 2 Code';
+            ToolTip = 'Specifies the dimension value code for the Budget Dimension 2 code that this item budget entry is linked to.';
 
             trigger OnLookup()
             begin
@@ -175,6 +190,7 @@ table 7134 "Item Budget Entry"
             AccessByPermission = TableData "Dimension Combination" = R;
             CaptionClass = GetCaptionClass(3);
             Caption = 'Budget Dimension 3 Code';
+            ToolTip = 'Specifies the dimension value code for the Budget Dimension 3 Code that this item budget entry is linked to.';
 
             trigger OnLookup()
             begin
@@ -193,6 +209,7 @@ table 7134 "Item Budget Entry"
         field(480; "Dimension Set ID"; Integer)
         {
             Caption = 'Dimension Set ID';
+            ToolTip = 'Specifies a reference to a combination of dimension values. The actual values are stored in the Dimension Set Entry table.';
             Editable = false;
             TableRelation = "Dimension Set Entry";
 

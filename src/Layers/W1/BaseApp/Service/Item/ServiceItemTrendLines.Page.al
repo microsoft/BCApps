@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -30,13 +30,11 @@ page 5984 "Service Item Trend Lines"
                 {
                     ApplicationArea = Service;
                     Caption = 'Period Start';
-                    ToolTip = 'Specifies the start date of the period defined on the line for the service trend.';
                 }
                 field("Period Name"; Rec."Period Name")
                 {
                     ApplicationArea = Service;
                     Caption = 'Period Name';
-                    ToolTip = 'Specifies the name of the period shown in the line.';
                 }
 #pragma warning disable AA0100
                 field("ServItem.""Prepaid Amount"""; Rec."Prepaid Income")
@@ -111,13 +109,11 @@ page 5984 "Service Item Trend Lines"
                     ApplicationArea = Service;
                     AutoFormatType = 1;
                     Caption = 'Profit';
-                    ToolTip = 'Specifies the profit (posted income minus posted cost in LCY) for the service item in the period specified in the Period Start field.';
                 }
                 field(ProfitPct; Rec."Profit %")
                 {
                     ApplicationArea = Service;
                     Caption = 'Profit %';
-                    ToolTip = 'Specifies the profit percentage for the service item in the specified period.';
                 }
             }
         }

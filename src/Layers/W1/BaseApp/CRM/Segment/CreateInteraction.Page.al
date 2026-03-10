@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -89,7 +89,6 @@ page 5077 "Create Interaction"
                         Importance = Promoted;
                         NotBlank = true;
                         ShowMandatory = true;
-                        ToolTip = 'Specifies the type of the interaction.';
 
                         trigger OnValidate()
                         var
@@ -144,7 +143,6 @@ page 5077 "Create Interaction"
                         {
                             ApplicationArea = RelationshipMgmt;
                             Enabled = IsMainInfoSet;
-                            ToolTip = 'Specifies the language that is used when translating specified text on documents to foreign business partner, such as an item description on an order confirmation.';
 
                             trigger OnLookup(var Text: Text): Boolean
                             begin
@@ -172,14 +170,12 @@ page 5077 "Create Interaction"
                             ApplicationArea = RelationshipMgmt;
                             Enabled = IsMainInfoSet;
                             Importance = Additional;
-                            ToolTip = 'Specifies the time when the interaction took place';
                         }
                         field("Correspondence Type"; Rec."Correspondence Type")
                         {
                             ApplicationArea = RelationshipMgmt;
                             Enabled = IsMainInfoSet;
                             Importance = Additional;
-                            ToolTip = 'Specifies the type of correspondence for the interaction. NOTE: If you use the Web client, you must not select the Hard Copy option because printing is not possible from the web client.';
 
                             trigger OnValidate()
                             begin
@@ -305,7 +301,6 @@ page 5077 "Create Interaction"
                         Caption = 'This contact is being targeted as part of campaign';
                         Enabled = IsMainInfoSet;
                         Importance = Additional;
-                        ToolTip = 'Specifies that the segment involved in this interaction is the target of a campaign. This is used to measure the response rate of a campaign.';
                     }
                     field("Campaign Response"; Rec."Campaign Response")
                     {
@@ -313,7 +308,6 @@ page 5077 "Create Interaction"
                         Caption = 'This interaction is a response to a campaign';
                         Enabled = IsMainInfoSet;
                         Importance = Additional;
-                        ToolTip = 'Specifies that the interaction created for the segment is the response to a campaign. For example, coupons that are sent as a response to a campaign.';
                     }
                     field("Opportunity Description"; Rec."Opportunity Description")
                     {
@@ -324,7 +318,6 @@ page 5077 "Create Interaction"
                         Importance = Promoted;
                         Lookup = false;
                         TableRelation = Opportunity;
-                        ToolTip = 'Specifies a description of the opportunity that is related to the segment. The description is copied from the opportunity card.';
 
                         trigger OnAssistEdit()
                         var
@@ -364,7 +357,6 @@ page 5077 "Create Interaction"
                         ApplicationArea = RelationshipMgmt;
                         Enabled = IsMainInfoSet;
                         Importance = Additional;
-                        ToolTip = 'Specifies the evaluation of the interaction involving the contact in the segment.';
 
                         trigger OnValidate()
                         begin
@@ -394,7 +386,6 @@ page 5077 "Create Interaction"
                             Caption = 'Was Successful';
                             Enabled = IsMainInfoSet;
                             Importance = Additional;
-                            ToolTip = 'Specifies if the interaction was successful. Clear this check box to indicate that the interaction was not a success.';
 
                             trigger OnValidate()
                             begin

@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -108,37 +108,30 @@ page 5930 "Fault/Resol. Cod. Relationship"
                 field("Fault Area Code"; Rec."Fault Area Code")
                 {
                     ApplicationArea = Service;
-                    ToolTip = 'Specifies the fault area code.';
                 }
                 field("Symptom Code"; Rec."Symptom Code")
                 {
                     ApplicationArea = Service;
-                    ToolTip = 'Specifies the symptom code.';
                 }
                 field("Fault Code"; Rec."Fault Code")
                 {
                     ApplicationArea = Service;
-                    ToolTip = 'Specifies the fault code.';
                 }
                 field("Resolution Code"; Rec."Resolution Code")
                 {
                     ApplicationArea = Service;
-                    ToolTip = 'Specifies the resolution code.';
                 }
                 field("Service Item Group Code"; Rec."Service Item Group Code")
                 {
                     ApplicationArea = Service;
-                    ToolTip = 'Specifies the code of the service item group linked to the relationship.';
                 }
                 field(Description; Rec.Description)
                 {
                     ApplicationArea = Service;
-                    ToolTip = 'Specifies a description of the relationship between the fault code and the resolution code.';
                 }
                 field(Occurrences; Rec.Occurrences)
                 {
                     ApplicationArea = Service;
-                    ToolTip = 'Specifies the number of times the combination of fault code, symptom code, fault area, and resolution code occurs in the posted service lines.';
                 }
             }
         }

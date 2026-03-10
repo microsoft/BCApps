@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -23,12 +23,10 @@ page 6506 "Item Tracking Comments"
                 field(Date; Rec.Date)
                 {
                     ApplicationArea = ItemTracking;
-                    ToolTip = 'Specifies a date to reference the comment.';
                 }
                 field(Comment; Rec.Comment)
                 {
                     ApplicationArea = ItemTracking;
-                    ToolTip = 'Specifies the item tracking comment.';
                 }
             }
         }

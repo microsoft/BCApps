@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -24,7 +24,6 @@ page 5526 "Make Supply Orders"
                 {
                     ApplicationArea = Planning;
                     Caption = 'Make Orders for';
-                    ToolTip = 'Specifies the filters users select in the Make Supply Orders window that opens from the Order Planning window.';
                     ValuesAllowed = "The Active Line", "The Active Order", "All Lines";
                 }
                 group(Control4)
@@ -39,7 +38,6 @@ page 5526 "Make Supply Orders"
                 field("Create Purchase Order"; Rec."Create Purchase Order")
                 {
                     ApplicationArea = Planning;
-                    ToolTip = 'Specifies the filters users select in the Make Supply Orders window that opens from the Order Planning window.';
 
                     trigger OnValidate()
                     begin
@@ -54,7 +52,6 @@ page 5526 "Make Supply Orders"
                 {
                     ApplicationArea = Planning;
                     Enabled = PurchaseReqWkshTemplateEnable;
-                    ToolTip = 'Specifies the template for the purchase requisition worksheet associated with this entry.';
 
                     trigger OnValidate()
                     begin
@@ -65,7 +62,6 @@ page 5526 "Make Supply Orders"
                 {
                     ApplicationArea = Planning;
                     Enabled = PurchaseWkshNameEnable;
-                    ToolTip = 'Specifies the purchase worksheet name associated with this entry.';
 
                     trigger OnValidate()
                     begin
@@ -75,7 +71,6 @@ page 5526 "Make Supply Orders"
                 field("Create Production Order"; Rec."Create Production Order")
                 {
                     ApplicationArea = Planning;
-                    ToolTip = 'Specifies the filters users select in the Make Supply Orders window that opens from the Order Planning window.';
 
                     trigger OnValidate()
                     begin
@@ -90,7 +85,6 @@ page 5526 "Make Supply Orders"
                 {
                     ApplicationArea = Manufacturing;
                     Enabled = ProdReqWkshTemplateEnable;
-                    ToolTip = 'Specifies the production requisition worksheet template associated with this entry.';
 
                     trigger OnValidate()
                     begin
@@ -101,7 +95,6 @@ page 5526 "Make Supply Orders"
                 {
                     ApplicationArea = Manufacturing;
                     Enabled = ProdWkshNameEnable;
-                    ToolTip = 'Specifies the production worksheet name associated with this entry.';
 
                     trigger OnValidate()
                     begin
@@ -111,7 +104,6 @@ page 5526 "Make Supply Orders"
                 field("Create Transfer Order"; Rec."Create Transfer Order")
                 {
                     ApplicationArea = Location;
-                    ToolTip = 'Specifies the filters users select in the Make Supply Orders window that opens from the Order Planning window.';
 
                     trigger OnValidate()
                     begin
@@ -126,7 +118,6 @@ page 5526 "Make Supply Orders"
                 {
                     ApplicationArea = Planning;
                     Enabled = TransferReqWkshTemplateEnable;
-                    ToolTip = 'Specifies the transfer requisition worksheet template associated with this entry.';
 
                     trigger OnValidate()
                     begin
@@ -137,7 +128,6 @@ page 5526 "Make Supply Orders"
                 {
                     ApplicationArea = Planning;
                     Enabled = TransferWkshNameEnable;
-                    ToolTip = 'Specifies the transfer worksheet name associated with this entry.';
 
                     trigger OnValidate()
                     begin
@@ -147,7 +137,6 @@ page 5526 "Make Supply Orders"
                 field("Create Assembly Order"; Rec."Create Assembly Order")
                 {
                     ApplicationArea = Assembly;
-                    ToolTip = 'Specifies the filters users select in the Make Supply Orders window that opens from the Order Planning window.';
                 }
             }
         }

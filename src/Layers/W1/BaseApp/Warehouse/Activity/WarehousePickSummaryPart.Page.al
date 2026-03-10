@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -45,14 +45,12 @@ page 5773 "Warehouse Pick Summary Part"
                     field("Pickable Qty."; Rec."Potential Pickable Qty.")
                     {
                         Caption = 'Pickable Qty.';
-                        ToolTip = 'Specifies the maximum quantity that can be considered for picking. This quantity consists of items in pickable bins excluding bins that are blocked, dedicated, blocked by item tracking or items that are being picked. This quantity cannot be more than the total quantity in the warehouse including adjustment bins.';
                     }
                 }
 
                 field(QtyAvailableToPick; Rec."Qty. Available to Pick")
                 {
                     Caption = 'Pickable Qty. (Actual)';
-                    ToolTip = 'Specifies the quantity that is actually available to pick.';
                     Visible = false;
                 }
 
@@ -68,7 +66,6 @@ page 5773 "Warehouse Pick Summary Part"
                         field("Qty. in Takeable Bins"; Rec."Qty. in Pickable Bins")
                         {
                             Caption = 'Qty. in Takeable Bins';
-                            ToolTip = 'Specifies the quantity in takeable bins. The quantity is not reduced by item tracking.';
 
                             trigger OnDrillDown()
                             begin
@@ -93,7 +90,6 @@ page 5773 "Warehouse Pick Summary Part"
                     }
                     field("Qty. in Warehouse"; Rec."Qty. in Warehouse")
                     {
-                        ToolTip = 'Specifies the quantity in warehouse.';
 
                         trigger OnDrillDown()
                         var
@@ -114,7 +110,6 @@ page 5773 "Warehouse Pick Summary Part"
 
                         field("Qty. in Blocked Item Tracking"; Rec."Qty. in Blocked Item Tracking")
                         {
-                            ToolTip = 'Specifies the quantity in blocked item tracking for the pickable/takeable bins.';
                         }
                     }
                     group(QtyAssigned)
@@ -125,18 +120,15 @@ page 5773 "Warehouse Pick Summary Part"
                         field("Qty. Assigned"; Rec."Qty. Assigned")
                         {
                             Caption = 'Qty. Handled Across Source Lines';
-                            ToolTip = 'Specifies the quantity that has been handled for other source lines. If tracking is enabled, then the same source line is also included. The quantity consists of the current execution of create warehouse pick action.';
                         }
                     }
 
                     field("Qty. in Active Pick Lines"; Rec."Qty. in Active Pick Lines")
                     {
-                        ToolTip = 'Specifies the quantity assigned in active warehouse pick documents.';
                         Visible = false;
                     }
                     field(QtyAvailableInInventory; Rec."Qty. in Inventory")
                     {
-                        ToolTip = 'Specifies the quantity in the inventory.';
                         Visible = false;
                     }
                 }
@@ -166,7 +158,6 @@ page 5773 "Warehouse Pick Summary Part"
                 field("Available Qty. Not in Ship Bin"; Rec."Available Qty. Not in Ship Bin")
                 {
                     Caption = 'Avail. Qty. Excluding Shipment Bin';
-                    ToolTip = 'Specifies the quantity available to pick in the warehouse excluding the shipment bins, bins that are blocked, dedicated, blocked by item tracking or items that are being picked.';
 
                     trigger OnDrillDown()
                     begin
@@ -176,17 +167,14 @@ page 5773 "Warehouse Pick Summary Part"
                 field("Qty. Reserved in Warehouse"; Rec."Qty. Reserved in Warehouse")
                 {
                     Caption = 'Reserved Qty. in Warehouse';
-                    ToolTip = 'Specifies the quantity reserved in warehouse. This quantity consists of inventory from reservation including inventory that is picked or being picked but not yet shipped or consumed. It excludes the quantity blocked by bins, item tracking or reserved against dedicated bins.';
                 }
                 field("Qty. Res. in Pick/Ship Bins"; Rec."Qty. Res. in Pick/Ship Bins")
                 {
                     Caption = 'Reserved Qty. in Pick/Ship Bins';
-                    ToolTip = 'Specifies the quantity reserved in pick/ship bins.';
                 }
                 field("Qty. Reserved for this Line"; Rec."Qty. Reserved for this Line")
                 {
                     Caption = 'Reserved Qty. for Current Line';
-                    ToolTip = 'Specifies the quantity reserved for the selected line.';
                 }
 
                 group(TrackingEnabled2)
@@ -197,14 +185,12 @@ page 5773 "Warehouse Pick Summary Part"
                     field("Qty. Block. Item Tracking Res."; Rec."Qty. Block. Item Tracking Res.")
                     {
                         Caption = 'Qty. in Blocked Item Tracking';
-                        ToolTip = 'Specifies the quantity in blocked item tracking for the quantity reserved in warehouse.';
                     }
                 }
 
                 field("Qty. in Active Pick Lines Res."; Rec."Qty. in Active Pick Lines Res.")
                 {
                     Caption = 'Qty. in Active Pick Lines';
-                    ToolTip = 'Specifies the quantity assigned in active warehouse pick documents.';
                     Visible = false;
                 }
 

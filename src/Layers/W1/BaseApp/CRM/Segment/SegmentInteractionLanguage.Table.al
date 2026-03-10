@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -31,11 +31,13 @@ table 5104 "Segment Interaction Language"
         field(3; "Language Code"; Code[10])
         {
             Caption = 'Language Code';
+            ToolTip = 'Specifies the language that is used when translating specified text on documents to foreign business partner, such as an item description on an order confirmation.';
             TableRelation = Language;
         }
         field(4; Description; Text[100])
         {
             Caption = 'Description';
+            ToolTip = 'Specifies the description of the Segment Interaction Language. This field will not be displayed in the Word attachment.';
         }
         field(5; "Attachment No."; Integer)
         {
@@ -44,6 +46,7 @@ table 5104 "Segment Interaction Language"
         field(6; Subject; Text[100])
         {
             Caption = 'Subject';
+            ToolTip = 'Specifies the subject text. The text in the field is used as the subject in e-mails and Word documents.';
 
             trigger OnValidate()
             var

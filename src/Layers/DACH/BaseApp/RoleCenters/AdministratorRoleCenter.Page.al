@@ -39,7 +39,9 @@ using Microsoft.Inventory.Analysis;
 using Microsoft.Inventory.Availability;
 using Microsoft.Inventory.Intrastat;
 using Microsoft.Inventory.Item.Catalog;
+#if not CLEAN28
 using Microsoft.Inventory.Reports;
+#endif
 using Microsoft.Inventory.Setup;
 using Microsoft.Projects.Resources.Ledger;
 using Microsoft.Projects.Resources.Setup;
@@ -119,14 +121,19 @@ page 9018 "Administrator Role Center"
     {
         area(reporting)
         {
+#if not CLEAN28
             action("Check on Ne&gative Inventory")
             {
                 ApplicationArea = Basic, Suite;
-                Caption = 'Check on Ne&gative Inventory';
+                Caption = 'Check on Ne&gative Inventory (Obsolete)';
                 Image = "Report";
                 RunObject = Report "Items with Negative Inventory";
+                ObsoleteState = Pending;
+                ObsoleteReason = 'This report has been replaced by a filtered view on the Item List page. This report will be removed in a future release.';
+                ObsoleteTag = '28.0';
                 ToolTip = 'View a list of items with negative inventory and open warehouse documents for a location.';
             }
+#endif
         }
         area(embedding)
         {

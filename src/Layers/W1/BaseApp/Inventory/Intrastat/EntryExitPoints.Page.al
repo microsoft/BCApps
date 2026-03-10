@@ -22,12 +22,10 @@ page 394 "Entry/Exit Points"
                 field("Code"; Rec.Code)
                 {
                     ApplicationArea = BasicEU, BasicNO;
-                    ToolTip = 'Specifies the code for the shipping location (Entry/Exit Point).';
                 }
                 field(Description; Rec.Description)
                 {
                     ApplicationArea = BasicEU, BasicNO;
-                    ToolTip = 'Specifies a description of the shipping location (Entry/Exit Point).';
                 }
             }
         }

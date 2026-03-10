@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -33,6 +33,7 @@ table 7001 "Price List Line"
         field(1; "Price List Code"; Code[20])
         {
             Caption = 'Price List Code';
+            ToolTip = 'Specifies the unique identifier of the price list.';
             DataClassification = CustomerContent;
             TableRelation = "Price List Header";
         }
@@ -45,6 +46,7 @@ table 7001 "Price List Line"
         field(3; "Source Type"; Enum "Price Source Type")
         {
             Caption = 'Assign-to Type';
+            ToolTip = 'Specifies the type of the entity that offers the price or the line discount on the product.';
             DataClassification = CustomerContent;
 
             trigger OnValidate()
@@ -64,6 +66,7 @@ table 7001 "Price List Line"
         field(4; "Source No."; Code[20])
         {
             Caption = 'Assign-to No. (custom)';
+            ToolTip = 'Specifies the entity to which the prices are assigned. The options depend on the selection in the Assign-to Type field. If you choose an entity, the price list will be used only for that entity.';
             DataClassification = CustomerContent;
 
             trigger OnValidate()
@@ -90,6 +93,7 @@ table 7001 "Price List Line"
         field(5; "Parent Source No."; Code[20])
         {
             Caption = 'Assign-to Parent No. (custom)';
+            ToolTip = 'Specifies the project to which the prices are assigned. If you choose an entity, the price list will be used only for that entity.';
             DataClassification = CustomerContent;
 
             trigger OnValidate()
@@ -131,6 +135,7 @@ table 7001 "Price List Line"
         field(7; "Asset Type"; Enum "Price Asset Type")
         {
             Caption = 'Product Type';
+            ToolTip = 'Specifies the type of the product.';
             DataClassification = CustomerContent;
             InitValue = Item;
 
@@ -150,6 +155,7 @@ table 7001 "Price List Line"
         field(8; "Asset No."; Code[20])
         {
             Caption = 'Product No. (custom)';
+            ToolTip = 'Specifies the identifier of the product. If no product is selected, the price and discount values will apply to all products of the selected product type for which those values are not specified. For example, if you choose Item as the product type but do not specify a specific item, the price will apply to all items for which a price is not specified.';
             DataClassification = CustomerContent;
 
             trigger OnValidate()
@@ -179,6 +185,7 @@ table 7001 "Price List Line"
         field(9; "Variant Code"; Code[10])
         {
             Caption = 'Variant Code (custom)';
+            ToolTip = 'Specifies the item variant.';
             DataClassification = CustomerContent;
 
             trigger OnValidate()
@@ -205,6 +212,7 @@ table 7001 "Price List Line"
         field(10; "Currency Code"; Code[10])
         {
             Caption = 'Currency Code';
+            ToolTip = 'Specifies the currency that is used for the prices on the price list. The currency can be the same for all prices on the price list, or you can specify a currency for individual lines.';
             DataClassification = CustomerContent;
             TableRelation = Currency;
 
@@ -218,6 +226,7 @@ table 7001 "Price List Line"
         field(11; "Work Type Code"; Code[10])
         {
             Caption = 'Work Type Code';
+            ToolTip = 'Specifies the work type code for the resource.';
             DataClassification = CustomerContent;
             TableRelation = "Work Type";
             trigger OnValidate()
@@ -231,6 +240,7 @@ table 7001 "Price List Line"
         field(12; "Starting Date"; Date)
         {
             Caption = 'Starting Date';
+            ToolTip = 'Specifies the date from which the price is valid.';
             DataClassification = CustomerContent;
             trigger OnValidate()
             begin
@@ -243,6 +253,7 @@ table 7001 "Price List Line"
         field(13; "Ending Date"; Date)
         {
             Caption = 'Ending Date';
+            ToolTip = 'Specifies the last date that the price is valid.';
             DataClassification = CustomerContent;
             trigger OnValidate()
             begin
@@ -256,6 +267,7 @@ table 7001 "Price List Line"
         {
             AutoFormatType = 0;
             Caption = 'Minimum Quantity';
+            ToolTip = 'Specifies the minimum quantity of the product.';
             DataClassification = CustomerContent;
             DecimalPlaces = 0 : 5;
             MinValue = 0;
@@ -268,6 +280,7 @@ table 7001 "Price List Line"
         field(15; "Unit of Measure Code"; Code[10])
         {
             Caption = 'Unit of Measure Code (custom)';
+            ToolTip = 'Specifies the unit of measure for the product.';
             DataClassification = CustomerContent;
 
             trigger OnValidate()
@@ -295,6 +308,7 @@ table 7001 "Price List Line"
         field(16; "Amount Type"; Enum "Price Amount Type")
         {
             Caption = 'Defines';
+            ToolTip = 'Specifies whether the price list line defines prices, discounts, or both.';
             DataClassification = CustomerContent;
 
             trigger OnValidate()
@@ -331,6 +345,7 @@ table 7001 "Price List Line"
             AutoFormatExpression = Rec."Currency Code";
             AutoFormatType = 2;
             Caption = 'Unit Price';
+            ToolTip = 'Specifies the unit price of the product.';
             MinValue = 0;
 
             trigger OnValidate()
@@ -350,6 +365,7 @@ table 7001 "Price List Line"
             AccessByPermission = tabledata "Sales Price Access" = R;
             DataClassification = CustomerContent;
             Caption = 'Cost Factor';
+            ToolTip = 'Specifies the unit cost factor for project-related prices, if you have agreed with your customer that he should pay certain item usage by cost value plus a certain percent value to cover your overhead expenses.';
 
             trigger OnValidate()
             begin
@@ -368,6 +384,7 @@ table 7001 "Price List Line"
             AutoFormatExpression = Rec."Currency Code";
             AutoFormatType = 2;
             Caption = 'Unit Cost';
+            ToolTip = 'Specifies the unit cost of the resource.';
             MinValue = 0;
 
             trigger OnValidate()
@@ -382,6 +399,7 @@ table 7001 "Price List Line"
             DataClassification = CustomerContent;
             AutoFormatType = 0;
             Caption = 'Line Discount %';
+            ToolTip = 'Specifies the line discount percentage for the product.';
             MaxValue = 100;
             MinValue = 0;
 
@@ -395,6 +413,7 @@ table 7001 "Price List Line"
         field(21; "Allow Line Disc."; Boolean)
         {
             Caption = 'Allow Line Disc.';
+            ToolTip = 'Specifies if a line discount will be calculated when the price is offered.';
             DataClassification = CustomerContent;
 
             trigger OnValidate()
@@ -406,6 +425,7 @@ table 7001 "Price List Line"
         field(22; "Allow Invoice Disc."; Boolean)
         {
             Caption = 'Allow Invoice Disc.';
+            ToolTip = 'Specifies if an invoice discount will be calculated when the price is offered.';
             DataClassification = CustomerContent;
 
             trigger OnValidate()
@@ -417,6 +437,7 @@ table 7001 "Price List Line"
         field(23; "Price Includes VAT"; Boolean)
         {
             Caption = 'Price Includes VAT';
+            ToolTip = 'Specifies if prices include VAT.';
             DataClassification = CustomerContent;
 
             trigger OnValidate()
@@ -470,6 +491,7 @@ table 7001 "Price List Line"
         field(28; "Price Type"; Enum "Price Type")
         {
             Caption = 'Price Type';
+            ToolTip = 'Specifies the price type: sale or purchase price.';
             DataClassification = CustomerContent;
 
             trigger OnValidate()
@@ -480,6 +502,7 @@ table 7001 "Price List Line"
         field(29; Description; Text[100])
         {
             Caption = 'Description';
+            ToolTip = 'Specifies the description of the product.';
             DataClassification = CustomerContent;
 
             trigger OnValidate()
@@ -490,6 +513,7 @@ table 7001 "Price List Line"
         field(30; Status; Enum "Price Status")
         {
             Caption = 'Price Status';
+            ToolTip = 'Specifies whether the price list line is in Draft status and can be edited, Inactive and cannot be edited or used, or Active and used for price calculations.';
             DataClassification = CustomerContent;
 
             trigger OnValidate()
@@ -504,6 +528,7 @@ table 7001 "Price List Line"
             AutoFormatExpression = Rec."Currency Code";
             AutoFormatType = 2;
             Caption = 'Direct Unit Cost';
+            ToolTip = 'Specifies the direct unit cost of the product.';
             MinValue = 0;
 
             trigger OnValidate()
@@ -521,6 +546,7 @@ table 7001 "Price List Line"
         field(33; "Product No."; Code[20])
         {
             Caption = 'Product No.';
+            ToolTip = 'Specifies the identifier of the product. If no product is selected, the price and discount values will apply to all products of the selected product type for which those values are not specified. For example, if you choose Item as the product type but do not specify a specific item, the price will apply to all items for which a price is not specified.';
             DataClassification = CustomerContent;
             TableRelation = if ("Asset Type" = const(Item)) Item where("No." = field("Product No."))
             else
@@ -541,6 +567,7 @@ table 7001 "Price List Line"
         field(34; "Assign-to No."; Code[20])
         {
             Caption = 'Assign-to No.';
+            ToolTip = 'Specifies the entity to which the prices are assigned. The options depend on the selection in the Assign-to Type field. If you choose an entity, the price list will be used only for that entity.';
             DataClassification = CustomerContent;
             TableRelation = if ("Source Type" = const(Campaign)) Campaign
             else
@@ -567,6 +594,7 @@ table 7001 "Price List Line"
         field(35; "Assign-to Parent No."; Code[20])
         {
             Caption = 'Assign-to Parent No.';
+            ToolTip = 'Specifies the project to which the prices are assigned. If you choose an entity, the price list will be used only for that entity.';
             DataClassification = CustomerContent;
             TableRelation = if ("Source Type" = const("Job Task")) Job;
             ValidateTableRelation = false;
@@ -579,6 +607,7 @@ table 7001 "Price List Line"
         field(36; "Variant Code Lookup"; Code[10])
         {
             Caption = 'Variant Code';
+            ToolTip = 'Specifies the item variant.';
             TableRelation = if ("Asset Type" = const(Item)) "Item Variant".Code where("Item No." = field("Asset No."));
             ValidateTableRelation = false;
 
@@ -590,6 +619,7 @@ table 7001 "Price List Line"
         field(37; "Unit of Measure Code Lookup"; Code[10])
         {
             Caption = 'Unit of Measure Code';
+            ToolTip = 'Specifies the unit of measure for the product.';
             TableRelation = if ("Asset Type" = const(Item)) "Item Unit of Measure".Code where("Item No." = field("Asset No."))
             else
             if ("Asset Type" = const(Resource)) "Resource Unit of Measure".Code where("Resource No." = field("Asset No."))

@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -25,32 +25,26 @@ page 5702 "Stockkeeping Unit Comment List"
                 field("Item No."; Rec."Item No.")
                 {
                     ApplicationArea = Planning;
-                    ToolTip = 'Specifies the item number to which the SKU refers to.';
                 }
                 field("Variant Code"; Rec."Variant Code")
                 {
                     ApplicationArea = Planning;
-                    ToolTip = 'Specifies the variant of the item on the line.';
                 }
                 field("Location Code"; Rec."Location Code")
                 {
                     ApplicationArea = Planning;
-                    ToolTip = 'Specifies the location code (for example, warehouse of distribution center) to which the SKU applies.';
                 }
                 field(Date; Rec.Date)
                 {
                     ApplicationArea = Planning;
-                    ToolTip = 'Specifies the date the comment was created.';
                 }
                 field(Comment; Rec.Comment)
                 {
                     ApplicationArea = Comments;
-                    ToolTip = 'Specifies the comment itself.';
                 }
                 field("Code"; Rec.Code)
                 {
                     ApplicationArea = Planning;
-                    ToolTip = 'Specifies a code for the comment.';
                     Visible = false;
                 }
             }

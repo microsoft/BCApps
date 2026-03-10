@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -19,6 +19,7 @@ table 5952 "Resource Location"
         field(1; "Location Code"; Code[10])
         {
             Caption = 'Location Code';
+            ToolTip = 'Specifies the location code of the resource.';
             TableRelation = Location;
 
             trigger OnValidate()
@@ -36,6 +37,7 @@ table 5952 "Resource Location"
         field(3; "Resource No."; Code[20])
         {
             Caption = 'Resource No.';
+            ToolTip = 'Specifies the number of the resource in the location.';
             TableRelation = Resource;
 
             trigger OnValidate()
@@ -47,12 +49,14 @@ table 5952 "Resource Location"
         {
             CalcFormula = lookup(Resource.Name where("No." = field("Resource No.")));
             Caption = 'Resource Name';
+            ToolTip = 'Specifies the name of the resource.';
             Editable = false;
             FieldClass = FlowField;
         }
         field(5; "Starting Date"; Date)
         {
             Caption = 'Starting Date';
+            ToolTip = 'Specifies the date when the resource becomes available in this location.';
         }
     }
 

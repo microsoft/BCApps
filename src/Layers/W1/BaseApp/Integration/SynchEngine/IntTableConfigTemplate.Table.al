@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -36,6 +36,7 @@ table 5326 "Int. Table Config Template"
         field(4; "Int. Tbl. Config Template Code"; Code[10])
         {
             Caption = 'Integration Table Config Template Code';
+            ToolTip = 'Specifies a configuration template to use when creating new records in the Dataverse table during synchronization.';
             TableRelation = "Config. Template Header".Code where("Table ID" = field("Integration Table ID"));
             DataClassification = SystemMetadata;
         }
@@ -47,6 +48,7 @@ table 5326 "Int. Table Config Template"
         field(6; Priority; Integer)
         {
             Caption = 'Priority';
+            ToolTip = 'Specifies the priority of the configuration template.';
             DataClassification = SystemMetadata;
             MinValue = 0;
             BlankZero = true;

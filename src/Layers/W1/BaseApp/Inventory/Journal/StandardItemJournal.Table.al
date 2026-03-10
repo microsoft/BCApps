@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -24,11 +24,13 @@ table 752 "Standard Item Journal"
         field(2; "Code"; Code[10])
         {
             Caption = 'Code';
+            ToolTip = 'Specifies the code of the record.';
             NotBlank = true;
         }
         field(3; Description; Text[100])
         {
             Caption = 'Description';
+            ToolTip = 'Specifies the record in the line of the journal.';
         }
     }
 

@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -43,6 +43,7 @@ table 329 "Currency for Reminder Level"
         field(3; "Currency Code"; Code[10])
         {
             Caption = 'Currency Code';
+            ToolTip = 'Specifies the code for the currency in which you want to set up additional fees for reminders.';
             NotBlank = true;
             TableRelation = Currency;
         }
@@ -54,6 +55,7 @@ table 329 "Currency for Reminder Level"
             AutoFormatExpression = Rec."Currency Code";
             AutoFormatType = 1;
             Caption = 'Additional Fee';
+            ToolTip = 'Specifies the amount of the additional fee in foreign currency that will be added on the reminder.';
             MinValue = 0;
         }
         /// <summary>
@@ -64,6 +66,7 @@ table 329 "Currency for Reminder Level"
             AutoFormatType = 1;
             AutoFormatExpression = '';
             Caption = 'Add. Fee per Line';
+            ToolTip = 'Specifies that the fee is distributed on individual reminder lines.';
             MinValue = 0;
         }
     }

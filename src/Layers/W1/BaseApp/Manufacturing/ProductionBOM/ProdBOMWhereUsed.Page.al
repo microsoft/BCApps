@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -54,22 +54,18 @@ page 99000811 "Prod. BOM Where-Used"
                 field("Item No."; Rec."Item No.")
                 {
                     ApplicationArea = Manufacturing;
-                    ToolTip = 'Specifies the number of the item that the base item or production BOM is assigned to.';
                 }
                 field("Version Code"; Rec."Version Code")
                 {
                     ApplicationArea = Manufacturing;
-                    ToolTip = 'Specifies the version code of the production BOM that the item or production BOM component is assigned to.';
                 }
                 field(Description; Rec.Description)
                 {
                     ApplicationArea = Manufacturing;
-                    ToolTip = 'Specifies the description of the item to which the item or production BOM component is assigned.';
                 }
                 field("Quantity Needed"; Rec."Quantity Needed")
                 {
                     ApplicationArea = Manufacturing;
-                    ToolTip = 'Specifies the quantity of the item or the production BOM component that is needed for the assigned item.';
                 }
             }
         }

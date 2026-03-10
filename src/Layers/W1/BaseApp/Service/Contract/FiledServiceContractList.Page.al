@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -30,17 +30,14 @@ page 6073 "Filed Service Contract List"
                 field("File Date"; Rec."File Date")
                 {
                     ApplicationArea = Service;
-                    ToolTip = 'Specifies the date when service contract or contract quote is filed.';
                 }
                 field("File Time"; Rec."File Time")
                 {
                     ApplicationArea = Service;
-                    ToolTip = 'Specifies the time when the service contract or contract quote is filed.';
                 }
                 field("Filed By"; Rec."Filed By")
                 {
                     ApplicationArea = Service;
-                    ToolTip = 'Specifies the name of the user who filed the service contract.';
 
                     trigger OnDrillDown()
                     var
@@ -52,28 +49,23 @@ page 6073 "Filed Service Contract List"
                 field("Contract Type"; Rec."Contract Type")
                 {
                     ApplicationArea = Service;
-                    ToolTip = 'Specifies the type of the filed contract or contract quote.';
                 }
                 field("Contract No."; Rec."Contract No.")
                 {
                     ApplicationArea = Service;
-                    ToolTip = 'Specifies the number of the filed service contract or service contract quote.';
                 }
                 field(Description; Rec.Description)
                 {
                     ApplicationArea = Service;
-                    ToolTip = 'Specifies a description of the filed service contract or contract quote.';
                 }
                 field("Customer No."; Rec."Customer No.")
                 {
                     ApplicationArea = Service;
-                    ToolTip = 'Specifies the number of the customer who owns the items in the filed service contract or contract quote.';
                 }
                 field(Name; Rec.Name)
                 {
                     ApplicationArea = Service;
                     DrillDown = false;
-                    ToolTip = 'Specifies the name of the customer in the filed service contract or contract quote.';
                 }
             }
         }

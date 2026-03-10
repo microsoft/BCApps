@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -31,7 +31,6 @@ page 6644 "Purchase Return Order Archive"
                 field("No."; Rec."No.")
                 {
                     ApplicationArea = All;
-                    ToolTip = 'Specifies the number of the involved entry or record, according to the specified number series.';
                 }
                 field("Buy-from Vendor No."; Rec."Buy-from Vendor No.")
                 {
@@ -144,17 +143,14 @@ page 6644 "Purchase Return Order Archive"
                 field("Document Date"; Rec."Document Date")
                 {
                     ApplicationArea = Suite;
-                    ToolTip = 'Specifies the date when the related document was created.';
                 }
                 field("Posting Date"; Rec."Posting Date")
                 {
                     ApplicationArea = Suite;
-                    ToolTip = 'Specifies the entry''s posting date.';
                 }
                 field("Order Date"; Rec."Order Date")
                 {
                     ApplicationArea = Suite;
-                    ToolTip = 'Specifies the date when the order was created.';
                 }
                 field("Vendor Authorization No."; Rec."Vendor Authorization No.")
                 {
@@ -164,27 +160,22 @@ page 6644 "Purchase Return Order Archive"
                 field("Vendor Cr. Memo No."; Rec."Vendor Cr. Memo No.")
                 {
                     ApplicationArea = Suite;
-                    ToolTip = 'Specifies the number that the vendor uses for the credit memo you are creating in this purchase return order.';
                 }
                 field("Order Address Code"; Rec."Order Address Code")
                 {
                     ApplicationArea = Suite;
-                    ToolTip = 'Specifies the order address of the related vendor.';
                 }
                 field("Purchaser Code"; Rec."Purchaser Code")
                 {
                     ApplicationArea = Suite;
-                    ToolTip = 'Specifies which purchaser is assigned to the vendor.';
                 }
                 field("Responsibility Center"; Rec."Responsibility Center")
                 {
                     ApplicationArea = Suite;
-                    ToolTip = 'Specifies the code of the responsibility center, such as a distribution hub, that is associated with the involved user, company, customer, or vendor.';
                 }
                 field("Assigned User ID"; Rec."Assigned User ID")
                 {
                     ApplicationArea = Suite;
-                    ToolTip = 'Specifies the ID of the user who is responsible for the document.';
                 }
                 field(Status; Rec.Status)
                 {
@@ -205,12 +196,10 @@ page 6644 "Purchase Return Order Archive"
                 field("Currency Code"; Rec."Currency Code")
                 {
                     ApplicationArea = Suite;
-                    ToolTip = 'Specifies the currency that is used on the entry.';
                 }
                 field("Prices Including VAT"; Rec."Prices Including VAT")
                 {
                     ApplicationArea = VAT;
-                    ToolTip = 'Specifies if the Unit Price and Line Amount fields on document lines should be shown with or without VAT.';
 
                     trigger OnValidate()
                     begin
@@ -220,37 +209,30 @@ page 6644 "Purchase Return Order Archive"
                 field("VAT Bus. Posting Group"; Rec."VAT Bus. Posting Group")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the VAT specification of the involved customer or vendor to link transactions made for this record with the appropriate general ledger account according to the VAT posting setup.';
                 }
                 field("Transaction Type"; Rec."Transaction Type")
                 {
                     ApplicationArea = Suite;
-                    ToolTip = 'Specifies the type of transaction that the document represents, for the purpose of reporting to INTRASTAT.';
                 }
                 field("Shortcut Dimension 1 Code"; Rec."Shortcut Dimension 1 Code")
                 {
                     ApplicationArea = Dimensions;
-                    ToolTip = 'Specifies the code for Shortcut Dimension 1, which is one of two global dimension codes that you set up in the General Ledger Setup window.';
                 }
                 field("Shortcut Dimension 2 Code"; Rec."Shortcut Dimension 2 Code")
                 {
                     ApplicationArea = Dimensions;
-                    ToolTip = 'Specifies the code for Shortcut Dimension 2, which is one of two global dimension codes that you set up in the General Ledger Setup window.';
                 }
                 field("Applies-to Doc. Type"; Rec."Applies-to Doc. Type")
                 {
                     ApplicationArea = Suite;
-                    ToolTip = 'Specifies the type of the posted document that this document or journal line will be applied to when you post, for example to register payment.';
                 }
                 field("Applies-to Doc. No."; Rec."Applies-to Doc. No.")
                 {
                     ApplicationArea = Suite;
-                    ToolTip = 'Specifies the number of the posted document that this document or journal line will be applied to when you post, for example to register payment.';
                 }
                 field("Applies-to ID"; Rec."Applies-to ID")
                 {
                     ApplicationArea = Suite;
-                    ToolTip = 'Specifies the ID of entries that will be applied to when you choose the Apply Entries action.';
                 }
                 field("Location Code"; Rec."Location Code")
                 {
@@ -334,7 +316,6 @@ page 6644 "Purchase Return Order Archive"
                         ApplicationArea = Suite;
                         Caption = 'Phone No.';
                         Importance = Additional;
-                        ToolTip = 'Specifies the telephone number of the company''s shipping address.';
                     }
                     field("Ship-to Contact"; Rec."Ship-to Contact")
                     {
@@ -455,22 +436,18 @@ page 6644 "Purchase Return Order Archive"
                 field("Transaction Specification"; Rec."Transaction Specification")
                 {
                     ApplicationArea = BasicEU, BasicNO;
-                    ToolTip = 'Specifies a specification of the document''s transaction, for the purpose of reporting to INTRASTAT.';
                 }
                 field("Transport Method"; Rec."Transport Method")
                 {
                     ApplicationArea = BasicEU, BasicNO;
-                    ToolTip = 'Specifies the transport method, for the purpose of reporting to INTRASTAT.';
                 }
                 field("Entry Point"; Rec."Entry Point")
                 {
                     ApplicationArea = BasicEU, BasicNO;
-                    ToolTip = 'Specifies the code of the port of entry where the items pass into your country/region, for reporting to Intrastat.';
                 }
                 field("Area"; Rec.Area)
                 {
                     ApplicationArea = BasicEU, BasicNO;
-                    ToolTip = 'Specifies the destination country or region for the purpose of Intrastat reporting.';
                 }
             }
             group(Version)
@@ -479,12 +456,10 @@ page 6644 "Purchase Return Order Archive"
                 field("Version No."; Rec."Version No.")
                 {
                     ApplicationArea = Suite;
-                    ToolTip = 'Specifies the version number of the archived document.';
                 }
                 field("Archived By"; Rec."Archived By")
                 {
                     ApplicationArea = Suite;
-                    ToolTip = 'Specifies the user ID of the person who archived this document.';
 
                     trigger OnDrillDown()
                     var
@@ -496,17 +471,14 @@ page 6644 "Purchase Return Order Archive"
                 field("Date Archived"; Rec."Date Archived")
                 {
                     ApplicationArea = Suite;
-                    ToolTip = 'Specifies the date when the document was archived.';
                 }
                 field("Time Archived"; Rec."Time Archived")
                 {
                     ApplicationArea = Suite;
-                    ToolTip = 'Specifies what time the document was archived.';
                 }
                 field("Interaction Exist"; Rec."Interaction Exist")
                 {
                     ApplicationArea = RelationshipMgmt;
-                    ToolTip = 'Specifies that the archived document is linked to an interaction log entry.';
                 }
             }
         }

@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -58,7 +58,6 @@ page 5983 "Service Item Trendscape"
                     ApplicationArea = Service;
                     Caption = 'Description';
                     Editable = false;
-                    ToolTip = 'Specifies a description of this item.';
                 }
             }
             group(Options)

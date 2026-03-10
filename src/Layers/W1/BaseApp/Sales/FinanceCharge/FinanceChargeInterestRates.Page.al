@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -23,12 +23,10 @@ page 572 "Finance Charge Interest Rates"
                 field("Start Date"; Rec."Start Date")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the start date for the interest rate.';
                 }
                 field("Interest Rate"; Rec."Interest Rate")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the interest rate percentage.';
                 }
                 field("Interest Period (Days)"; Rec."Interest Period (Days)")
                 {

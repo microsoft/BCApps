@@ -22,7 +22,6 @@ page 975 "Time Sheet Archive Card"
                 field("No."; Rec."No.")
                 {
                     ApplicationArea = Jobs;
-                    ToolTip = 'Specifies the number of the involved entry or record, according to the specified number series.';
                 }
                 field("Starting Date"; Rec."Starting Date")
                 {
@@ -42,7 +41,6 @@ page 975 "Time Sheet Archive Card"
                 field(ApproverUserID; Rec."Approver User ID")
                 {
                     ApplicationArea = Jobs;
-                    ToolTip = 'Specifies the ID of the time sheet approver.';
                 }
                 field(Description; Rec.Description)
                 {

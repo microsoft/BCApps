@@ -25,6 +25,7 @@ table 7316 "Warehouse Receipt Header"
         field(1; "No."; Code[20])
         {
             Caption = 'No.';
+            ToolTip = 'Specifies the number of the involved entry or record, according to the specified number series.';
 
             trigger OnValidate()
             begin
@@ -38,6 +39,7 @@ table 7316 "Warehouse Receipt Header"
         field(2; "Location Code"; Code[10])
         {
             Caption = 'Location Code';
+            ToolTip = 'Specifies the code of the location in which the items are being received.';
             TableRelation = Location where("Use As In-Transit" = const(false));
 
             trigger OnValidate()
@@ -78,6 +80,7 @@ table 7316 "Warehouse Receipt Header"
         field(3; "Assigned User ID"; Code[50])
         {
             Caption = 'Assigned User ID';
+            ToolTip = 'Specifies the ID of the user who is responsible for the document.';
             DataClassification = EndUserIdentifiableInformation;
             TableRelation = "Warehouse Employee" where("Location Code" = field("Location Code"));
 
@@ -95,16 +98,19 @@ table 7316 "Warehouse Receipt Header"
         field(4; "Assignment Date"; Date)
         {
             Caption = 'Assignment Date';
+            ToolTip = 'Specifies the date when the user was assigned the activity.';
             Editable = false;
         }
         field(5; "Assignment Time"; Time)
         {
             Caption = 'Assignment Time';
+            ToolTip = 'Specifies the time when the user was assigned the activity.';
             Editable = false;
         }
         field(6; "Sorting Method"; Enum "Warehouse Receipt Sorting Method")
         {
             Caption = 'Sorting Method';
+            ToolTip = 'Specifies the method by which the receipts are sorted.';
 
             trigger OnValidate()
             begin
@@ -120,6 +126,7 @@ table 7316 "Warehouse Receipt Header"
         field(8; "Zone Code"; Code[10])
         {
             Caption = 'Zone Code';
+            ToolTip = 'Specifies the zone in which the items are being received if you are using directed put-away and pick.';
             TableRelation = Zone.Code where("Location Code" = field("Location Code"));
 
             trigger OnValidate()
@@ -137,6 +144,7 @@ table 7316 "Warehouse Receipt Header"
         field(9; "Bin Code"; Code[20])
         {
             Caption = 'Bin Code';
+            ToolTip = 'Specifies the bin where the items are picked or put away.';
             TableRelation = if ("Zone Code" = filter('')) Bin.Code where("Location Code" = field("Location Code"))
             else
             if ("Zone Code" = filter(<> '')) Bin.Code where("Location Code" = field("Location Code"),
@@ -162,6 +170,7 @@ table 7316 "Warehouse Receipt Header"
         field(10; "Document Status"; Option)
         {
             Caption = 'Document Status';
+            ToolTip = 'Specifies the status of the warehouse receipt.';
             Editable = false;
             OptionCaption = ' ,Partially Received,Completely Received';
             OptionMembers = " ","Partially Received","Completely Received";
@@ -178,10 +187,12 @@ table 7316 "Warehouse Receipt Header"
         field(12; "Posting Date"; Date)
         {
             Caption = 'Posting Date';
+            ToolTip = 'Specifies the posting date of the warehouse receipt.';
         }
         field(13; "Vendor Shipment No."; Code[35])
         {
             Caption = 'Vendor Shipment No.';
+            ToolTip = 'Specifies the vendor''s shipment number. It is inserted in the corresponding field on the source document during posting.';
         }
         field(16; "Cross-Dock Zone Code"; Code[10])
         {

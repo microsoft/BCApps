@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -26,16 +26,19 @@ table 7332 "Whse. Internal Put-away Line"
         field(1; "No."; Code[20])
         {
             Caption = 'No.';
+            ToolTip = 'Specifies the number of the involved entry or record, according to the specified number series.';
             Editable = false;
         }
         field(2; "Line No."; Integer)
         {
             Caption = 'Line No.';
+            ToolTip = 'Specifies the number of the line.';
             Editable = false;
         }
         field(10; "Location Code"; Code[10])
         {
             Caption = 'Location Code';
+            ToolTip = 'Specifies the code for the location of the internal put-away line.';
             Editable = false;
             TableRelation = Location;
 
@@ -47,10 +50,12 @@ table 7332 "Whse. Internal Put-away Line"
         field(11; "Shelf No."; Code[10])
         {
             Caption = 'Shelf No.';
+            ToolTip = 'Specifies the shelf number that is recorded on the item card or the stockkeeping unit card of the item being moved.';
         }
         field(12; "From Bin Code"; Code[20])
         {
             Caption = 'From Bin Code';
+            ToolTip = 'Specifies the bin from which the items to be put away should be taken.';
 
             trigger OnLookup()
             begin
@@ -80,6 +85,7 @@ table 7332 "Whse. Internal Put-away Line"
         field(13; "From Zone Code"; Code[10])
         {
             Caption = 'From Zone Code';
+            ToolTip = 'Specifies the zone from which the items to be put away should be taken.';
 
             trigger OnLookup()
             begin
@@ -100,6 +106,7 @@ table 7332 "Whse. Internal Put-away Line"
         field(14; "Item No."; Code[20])
         {
             Caption = 'Item No.';
+            ToolTip = 'Specifies the number of the item that you want to put away and have entered on the line.';
 
             trigger OnLookup()
             begin
@@ -129,6 +136,7 @@ table 7332 "Whse. Internal Put-away Line"
         {
             AutoFormatType = 0;
             Caption = 'Quantity';
+            ToolTip = 'Specifies the quantity that should be put away.';
             DecimalPlaces = 0 : 5;
             MinValue = 0;
 
@@ -170,6 +178,7 @@ table 7332 "Whse. Internal Put-away Line"
         {
             AutoFormatType = 0;
             Caption = 'Qty. Outstanding';
+            ToolTip = 'Specifies the quantity that still needs to be handled.';
             DecimalPlaces = 0 : 5;
             Editable = false;
 
@@ -190,6 +199,7 @@ table 7332 "Whse. Internal Put-away Line"
         {
             AutoFormatType = 0;
             Caption = 'Qty. Put Away';
+            ToolTip = 'Specifies the quantity of the line that is registered as put away.';
             DecimalPlaces = 0 : 5;
             Editable = false;
 
@@ -217,6 +227,7 @@ table 7332 "Whse. Internal Put-away Line"
                                                                                   "Action Type" = filter(" " | Take),
                                                                                   "Original Breakbulk" = const(false)));
             Caption = 'Put-away Qty.';
+            ToolTip = 'Specifies the quantity in the put-away instructions that is assigned to be put away.';
             DecimalPlaces = 0 : 5;
             Editable = false;
             FieldClass = FlowField;
@@ -245,6 +256,7 @@ table 7332 "Whse. Internal Put-away Line"
         field(29; "Unit of Measure Code"; Code[10])
         {
             Caption = 'Unit of Measure Code';
+            ToolTip = 'Specifies how each unit of the item or resource is measured, such as in pieces or hours. By default, the value in the Base Unit of Measure field on the item or resource card is inserted.';
             Editable = false;
 
             trigger OnLookup()
@@ -268,6 +280,7 @@ table 7332 "Whse. Internal Put-away Line"
         {
             AutoFormatType = 0;
             Caption = 'Qty. per Unit of Measure';
+            ToolTip = 'Specifies the number of base units of measure, that are in the unit of measure, specified for the item on the line.';
             DecimalPlaces = 0 : 5;
             Editable = false;
             InitValue = 1;
@@ -275,6 +288,7 @@ table 7332 "Whse. Internal Put-away Line"
         field(31; "Variant Code"; Code[10])
         {
             Caption = 'Variant Code';
+            ToolTip = 'Specifies the variant of the item on the line.';
             Editable = true;
             TableRelation = "Item Variant".Code where("Item No." = field("Item No."));
 
@@ -298,10 +312,12 @@ table 7332 "Whse. Internal Put-away Line"
         field(32; Description; Text[100])
         {
             Caption = 'Description';
+            ToolTip = 'Specifies the description of the item on the line.';
         }
         field(33; "Description 2"; Text[50])
         {
             Caption = 'Description 2';
+            ToolTip = 'Specifies information in addition to the description.';
         }
         field(35; "Sorting Sequence No."; Integer)
         {
@@ -311,6 +327,7 @@ table 7332 "Whse. Internal Put-away Line"
         field(36; "Due Date"; Date)
         {
             Caption = 'Due Date';
+            ToolTip = 'Specifies the date when the warehouse activity must be completed.';
         }
         field(37; Cubage; Decimal)
         {

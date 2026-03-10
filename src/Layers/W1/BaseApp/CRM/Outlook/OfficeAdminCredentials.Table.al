@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -23,12 +23,14 @@ table 1612 "Office Admin. Credentials"
         field(2; Email; Text[80])
         {
             Caption = 'Email';
+            ToolTip = 'Specifies the user name that is associated with the account.';
             ExtendedDatatype = EMail;
             NotBlank = true;
         }
         field(3; Password; Text[250])
         {
             Caption = 'Password';
+            ToolTip = 'Specifies the password that is associated with the account.';
             ExtendedDatatype = Masked;
             NotBlank = true;
         }

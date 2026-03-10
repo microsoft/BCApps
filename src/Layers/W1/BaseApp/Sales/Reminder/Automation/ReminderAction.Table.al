@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -18,6 +18,7 @@ table 6750 "Reminder Action"
         /// </summary>
         field(1; "Type"; Enum "Reminder Action")
         {
+            ToolTip = 'Specifies the type of the action.';
         }
         /// <summary>
         /// Specifies the reminder action group to which this action belongs.
@@ -31,18 +32,21 @@ table 6750 "Reminder Action"
         /// </summary>
         field(3; Code; Code[50])
         {
+            ToolTip = 'Specifies the code of the action.';
         }
         /// <summary>
         /// Specifies the execution sequence number for this action within the group.
         /// </summary>
         field(8; Order; Integer)
         {
+            ToolTip = 'Specifies the order in which the actions will be performed.';
         }
         /// <summary>
         /// Indicates whether automation processing should stop if this action encounters an error.
         /// </summary>
         field(9; "Stop on Error"; Boolean)
         {
+            ToolTip = 'Specifies if the job should stop if an error occurs during this action. If not selected, the job will attempt to process all records and actions.';
         }
     }
 

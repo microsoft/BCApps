@@ -15,7 +15,7 @@ codeunit 6499 "Serv. Posting Preview Handler"
         TempServiceLedgerEntry: Record "Service Ledger Entry" temporary;
         TempWarrantyLedgerEntry: Record "Warranty Ledger Entry" temporary;
 
-    [EventSubscriber(ObjectType::Table, Database::"Service Ledger Entry", 'OnAfterInsertEvent', '', false, false)]
+    [EventSubscriber(ObjectType::Table, Database::"Service Ledger Entry", 'OnAfterInsertEvent', '', true, false)]
     local procedure OnInsertServiceLedgerEntry(var Rec: Record "Service Ledger Entry"; RunTrigger: Boolean)
     begin
         if Rec.IsTemporary() then
@@ -29,7 +29,7 @@ codeunit 6499 "Serv. Posting Preview Handler"
         TempServiceLedgerEntry.Insert();
     end;
 
-    [EventSubscriber(ObjectType::Table, Database::"Service Ledger Entry", 'OnAfterModifyEvent', '', false, false)]
+    [EventSubscriber(ObjectType::Table, Database::"Service Ledger Entry", 'OnAfterModifyEvent', '', true, false)]
     local procedure OnModifyServiceLedgerEntry(var Rec: Record "Service Ledger Entry"; var xRec: Record "Service Ledger Entry"; RunTrigger: Boolean)
     begin
         if Rec.IsTemporary() then
@@ -41,7 +41,7 @@ codeunit 6499 "Serv. Posting Preview Handler"
             TempServiceLedgerEntry.Modify();
     end;
 
-    [EventSubscriber(ObjectType::Table, Database::"Warranty Ledger Entry", 'OnAfterInsertEvent', '', false, false)]
+    [EventSubscriber(ObjectType::Table, Database::"Warranty Ledger Entry", 'OnAfterInsertEvent', '', true, false)]
     local procedure OnInsertWarrantyLedgerEntry(var Rec: Record "Warranty Ledger Entry"; RunTrigger: Boolean)
     begin
         if Rec.IsTemporary() then

@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -21,10 +21,12 @@ table 5088 "Profile Questionnaire Line"
         field(2; "Line No."; Integer)
         {
             Caption = 'Line No.';
+            ToolTip = 'Specifies the number of the profile questionnaire line. This field is used internally by the program.';
         }
         field(3; Type; Enum "Profile Questionnaire Line Type")
         {
             Caption = 'Type';
+            ToolTip = 'Specifies whether the entry is a question or an answer.';
 
             trigger OnValidate()
             begin
@@ -55,11 +57,13 @@ table 5088 "Profile Questionnaire Line"
         field(4; Description; Text[250])
         {
             Caption = 'Description';
+            ToolTip = 'Specifies the profile question or answer.';
             NotBlank = true;
         }
         field(5; "Multiple Answers"; Boolean)
         {
             Caption = 'Multiple Answers';
+            ToolTip = 'Specifies that the question has more than one possible answer.';
 
             trigger OnValidate()
             begin
@@ -70,6 +74,7 @@ table 5088 "Profile Questionnaire Line"
         field(6; "Auto Contact Classification"; Boolean)
         {
             Caption = 'Auto Contact Classification';
+            ToolTip = 'Specifies that the question is automatically answered when you run the Update Contact Classification batch job.';
 
             trigger OnValidate()
             begin
@@ -89,6 +94,7 @@ table 5088 "Profile Questionnaire Line"
         field(7; "Customer Class. Field"; Enum "Profile Quest. Cust. Class. Field")
         {
             Caption = 'Customer Class. Field';
+            ToolTip = 'Specifies the customer information that the automatic classification is based on. There are seven options: Blank, Sales (LCY), Profit (LCY), Sales Frequency (Invoices/Year), Avg. Invoice Amount (LCY), Discount (%), and Avg. Overdue (Day).';
 
             trigger OnValidate()
             begin
@@ -105,6 +111,7 @@ table 5088 "Profile Questionnaire Line"
         field(8; "Vendor Class. Field"; Enum "Profile Quest. Vend. Class. Field")
         {
             Caption = 'Vendor Class. Field';
+            ToolTip = 'Specifies the vendor information that the automatic classification is based on. There are six options:';
 
             trigger OnValidate()
             begin
@@ -121,6 +128,7 @@ table 5088 "Profile Questionnaire Line"
         field(9; "Contact Class. Field"; Enum "Profile Quest. Cont. Class. Field")
         {
             Caption = 'Contact Class. Field';
+            ToolTip = 'Specifies the contact information on which the automatic classification is based. There are seven options:';
 
             trigger OnValidate()
             var
@@ -157,6 +165,7 @@ table 5088 "Profile Questionnaire Line"
         field(10; "Starting Date Formula"; DateFormula)
         {
             Caption = 'Starting Date Formula';
+            ToolTip = 'Specifies the date to start the automatic classification of your contacts.';
 
             trigger OnValidate()
             begin
@@ -167,6 +176,7 @@ table 5088 "Profile Questionnaire Line"
         field(11; "Ending Date Formula"; DateFormula)
         {
             Caption = 'Ending Date Formula';
+            ToolTip = 'Specifies the date to stop the automatic classification of your contacts.';
 
             trigger OnValidate()
             begin
@@ -177,6 +187,7 @@ table 5088 "Profile Questionnaire Line"
         field(12; "Classification Method"; Option)
         {
             Caption = 'Classification Method';
+            ToolTip = 'Specifies the method you can use to classify contacts. There are four options: Blank, Defined Value, Percentage of Value and Percentage of Contacts.';
             OptionCaption = ' ,Defined Value,Percentage of Value,Percentage of Contacts';
             OptionMembers = " ","Defined Value","Percentage of Value","Percentage of Contacts";
 
@@ -195,6 +206,7 @@ table 5088 "Profile Questionnaire Line"
         field(13; "Sorting Method"; Option)
         {
             Caption = 'Sorting Method';
+            ToolTip = 'Specifies the sorting method for the automatic classification on which the question is based. This field is only valid when you select Percentage of Value or Percentage of Contacts in the Classification Method field. It indicates the direction of the percentage. There are two options:';
             OptionCaption = ' ,Descending,Ascending';
             OptionMembers = " ","Descending","Ascending";
 
@@ -209,6 +221,7 @@ table 5088 "Profile Questionnaire Line"
             AutoFormatType = 0;
             BlankZero = true;
             Caption = 'From Value';
+            ToolTip = 'Specifies the value from which the automatic classification of your contacts starts.';
             DecimalPlaces = 0 : 25;
 
             trigger OnValidate()
@@ -222,6 +235,7 @@ table 5088 "Profile Questionnaire Line"
             AutoFormatType = 0;
             BlankZero = true;
             Caption = 'To Value';
+            ToolTip = 'Specifies the value that the automatic classification of your contacts stops at.';
             DecimalPlaces = 0 : 25;
 
             trigger OnValidate()
@@ -236,12 +250,14 @@ table 5088 "Profile Questionnaire Line"
             CalcFormula = count("Contact Profile Answer" where("Profile Questionnaire Code" = field("Profile Questionnaire Code"),
                                                                 "Line No." = field("Line No.")));
             Caption = 'No. of Contacts';
+            ToolTip = 'Specifies the number of contacts that have given this answer.';
             Editable = false;
             FieldClass = FlowField;
         }
         field(17; Priority; Enum "Profile Answer Priority")
         {
             Caption = 'Priority';
+            ToolTip = 'Specifies the priority you give to the answer and where it should be displayed on the lines of the Contact Card. There are five options:';
             InitValue = Normal;
 
             trigger OnValidate()
@@ -259,6 +275,7 @@ table 5088 "Profile Questionnaire Line"
         field(18; "No. of Decimals"; Integer)
         {
             Caption = 'No. of Decimals';
+            ToolTip = 'Specifies the number of decimal places to use when entering values in the From Value and To Value fields.';
             MaxValue = 25;
             MinValue = -25;
 
@@ -272,6 +289,7 @@ table 5088 "Profile Questionnaire Line"
         {
             AutoFormatType = 0;
             Caption = 'Min. % Questions Answered';
+            ToolTip = 'Specifies the number of questions in percentage that must be answered for this rating to be calculated.';
             DecimalPlaces = 0 : 0;
             MaxValue = 100;
             MinValue = 0;

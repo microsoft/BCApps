@@ -50,7 +50,6 @@ page 54 "Purchase Order Subform"
                 field(Type; Rec.Type)
                 {
                     ApplicationArea = Advanced;
-                    ToolTip = 'Specifies the line type.';
 
                     trigger OnValidate()
                     begin
@@ -109,7 +108,6 @@ page 54 "Purchase Order Subform"
                     AccessByPermission = tabledata "Item Reference" = R;
                     ApplicationArea = Suite, ItemReferences;
                     QuickEntry = false;
-                    ToolTip = 'Specifies the referenced item number.';
                     Visible = ItemReferenceVisible;
 
                     trigger OnLookup(var Text: Text): Boolean
@@ -146,25 +144,21 @@ page 54 "Purchase Order Subform"
                 field("IC Partner Code"; Rec."IC Partner Code")
                 {
                     ApplicationArea = Intercompany;
-                    ToolTip = 'Specifies the code of the intercompany partner that the transaction is related to if the entry was created from an intercompany transaction.';
                     Visible = false;
                 }
                 field("IC Partner Ref. Type"; Rec."IC Partner Ref. Type")
                 {
                     ApplicationArea = Intercompany;
-                    ToolTip = 'Specifies the item or account in your IC partner''s company that corresponds to the item or account on the line.';
                     Visible = false;
                 }
                 field("IC Partner Reference"; Rec."IC Partner Reference")
                 {
                     ApplicationArea = Intercompany;
-                    ToolTip = 'Specifies the IC partner. If the line is being sent to one of your intercompany partners, this field is used together with the IC Partner Ref. Type field to indicate the item or account in your partner''s company that corresponds to the line.';
                     Visible = false;
                 }
                 field("Variant Code"; Rec."Variant Code")
                 {
                     ApplicationArea = Planning;
-                    ToolTip = 'Specifies the variant of the item on the line.';
                     ShowMandatory = VariantCodeMandatory;
                     Visible = false;
 
@@ -180,7 +174,6 @@ page 54 "Purchase Order Subform"
                 field(Nonstock; Rec.Nonstock)
                 {
                     ApplicationArea = Suite;
-                    ToolTip = 'Specifies that this item is a catalog item.';
                     Visible = false;
                 }
                 field("Related Entry No."; Rec."Related Entry No.")
@@ -192,7 +185,6 @@ page 54 "Purchase Order Subform"
                 field("Gen. Bus. Posting Group"; Rec."Gen. Bus. Posting Group")
                 {
                     ApplicationArea = Suite;
-                    ToolTip = 'Specifies the vendor''s or customer''s trade type to link transactions made for this business partner with the appropriate general ledger account according to the general posting setup.';
                     Visible = false;
 
                     trigger OnValidate()
@@ -203,7 +195,6 @@ page 54 "Purchase Order Subform"
                 field("Gen. Prod. Posting Group"; Rec."Gen. Prod. Posting Group")
                 {
                     ApplicationArea = Suite;
-                    ToolTip = 'Specifies the item''s product type to link transactions made for this item with the appropriate general ledger account according to the general posting setup.';
                     Visible = false;
 
                     trigger OnValidate()
@@ -214,26 +205,22 @@ page 54 "Purchase Order Subform"
                 field("VAT Bus. Posting Group"; Rec."VAT Bus. Posting Group")
                 {
                     ApplicationArea = Suite;
-                    ToolTip = 'Specifies the vendor''s VAT specification to link transactions made for this vendor with the appropriate general ledger account according to the VAT posting setup.';
                     Visible = false;
 
                     trigger OnValidate()
                     begin
+                        ForceTotalsCalculation();
                         DeltaUpdateTotals();
                     end;
                 }
                 field("VAT Prod. Posting Group"; Rec."VAT Prod. Posting Group")
                 {
                     ApplicationArea = Suite;
-                    ToolTip = 'Specifies the VAT product posting group. Links business transactions made for the item, resource, or G/L account with the general ledger, to account for VAT amounts resulting from trade with that record.';
                     Visible = false;
 
                     trigger OnValidate()
                     begin
-                        if (xRec."VAT Prod. Posting Group" <> '') and (Rec."VAT Prod. Posting Group" <> xRec."VAT Prod. Posting Group") then begin
-                            CurrPage.SaveRecord();
-                            Rec.RecalculateAmounts(Rec."Document Type", Rec."Document No.", Rec."Line No.");
-                        end;
+                        ForceTotalsCalculation();
                         DeltaUpdateTotals();
                     end;
                 }
@@ -263,19 +250,16 @@ page 54 "Purchase Order Subform"
                 {
                     ApplicationArea = Suite;
                     Importance = Additional;
-                    ToolTip = 'Specifies information in addition to the description.';
                     Visible = false;
                 }
                 field("Drop Shipment"; Rec."Drop Shipment")
                 {
                     ApplicationArea = Suite;
-                    ToolTip = 'Specifies if your vendor ships the items directly to your customer.';
                     Visible = false;
                 }
                 field("Return Reason Code"; Rec."Return Reason Code")
                 {
                     ApplicationArea = Suite;
-                    ToolTip = 'Specifies the code explaining why the item was returned.';
                     Visible = false;
                 }
                 field("Location Code"; Rec."Location Code")
@@ -294,7 +278,6 @@ page 54 "Purchase Order Subform"
                 field("Bin Code"; Rec."Bin Code")
                 {
                     ApplicationArea = Warehouse;
-                    ToolTip = 'Specifies the bin where the items are picked or put away.';
                     Visible = true;
                 }
                 field(Quantity; Rec.Quantity)
@@ -319,19 +302,16 @@ page 54 "Purchase Order Subform"
                 {
                     ApplicationArea = Reservation;
                     BlankZero = true;
-                    ToolTip = 'Specifies how many item units on this line have been reserved.';
                 }
                 field("Job Remaining Qty."; Rec."Job Remaining Qty.")
                 {
                     ApplicationArea = Jobs;
                     BlankZero = true;
-                    ToolTip = 'Specifies the quantity that remains to complete a project.';
                     Visible = false;
                 }
                 field("Unit of Measure Code"; Rec."Unit of Measure Code")
                 {
                     ApplicationArea = Suite;
-                    ToolTip = 'Specifies how each unit of the item or resource is measured, such as in pieces or hours. By default, the value in the Base Unit of Measure field on the item or resource card is inserted.';
 
                     trigger OnValidate()
                     begin
@@ -341,7 +321,6 @@ page 54 "Purchase Order Subform"
                 field("Unit of Measure"; Rec."Unit of Measure")
                 {
                     ApplicationArea = Suite;
-                    ToolTip = 'Specifies the unit of measure.';
                     Visible = false;
                 }
                 field("Direct Unit Cost"; Rec."Direct Unit Cost")
@@ -361,7 +340,6 @@ page 54 "Purchase Order Subform"
                 field("Indirect Cost %"; Rec."Indirect Cost %")
                 {
                     ApplicationArea = Suite;
-                    ToolTip = 'Specifies the percentage of the item''s last purchase cost that includes indirect costs, such as freight that is associated with the purchase of the item.';
                     Visible = false;
                 }
                 field("Unit Cost (LCY)"; Rec."Unit Cost (LCY)")
@@ -381,13 +359,11 @@ page 54 "Purchase Order Subform"
                 {
                     ApplicationArea = SalesTax;
                     Editable = false;
-                    ToolTip = 'Specifies if this vendor charges you sales tax for purchases.';
                     Visible = false;
                 }
                 field("Tax Area Code"; Rec."Tax Area Code")
                 {
                     ApplicationArea = SalesTax;
-                    ToolTip = 'Specifies the tax area that is used to calculate and post sales tax.';
 
                     trigger OnValidate()
                     begin
@@ -398,7 +374,6 @@ page 54 "Purchase Order Subform"
                 {
                     ApplicationArea = SalesTax;
                     ShowMandatory = Rec."Tax Area Code" <> '';
-                    ToolTip = 'Specifies the tax group that is used to calculate and post sales tax.';
 
                     trigger OnValidate()
                     begin
@@ -408,7 +383,6 @@ page 54 "Purchase Order Subform"
                 field("Use Tax"; Rec."Use Tax")
                 {
                     ApplicationArea = SalesTax;
-                    ToolTip = 'Specifies a U.S. sales tax that is paid on items purchased by a company that are used by the company, instead of being sold to a customer.';
                     Visible = false;
                 }
                 field("Line Discount %"; Rec."Line Discount %")
@@ -417,7 +391,6 @@ page 54 "Purchase Order Subform"
                     BlankZero = true;
                     Editable = not IsBlankNumber;
                     Enabled = not IsBlankNumber;
-                    ToolTip = 'Specifies the discount percentage that is granted for the item on the line.';
                     Visible = false;
 
                     trigger OnValidate()
@@ -431,7 +404,6 @@ page 54 "Purchase Order Subform"
                     BlankZero = true;
                     Editable = not IsBlankNumber;
                     Enabled = not IsBlankNumber;
-                    ToolTip = 'Specifies the net amount, excluding any invoice discount amount, that must be paid for products on the line.';
 
                     trigger OnValidate()
                     begin
@@ -451,37 +423,31 @@ page 54 "Purchase Order Subform"
                 field(NonDeductibleVATBase; Rec."Non-Deductible VAT Base")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the amount of VAT that is not deducted due to the type of goods or services purchased.';
                     Visible = ShowNonDedVATInLines;
                 }
                 field(NonDeductibleVATAmount; Rec."Non-Deductible VAT Amount")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the amount of the transaction for which VAT is not applied, due to the type of goods or services purchased.';
                     Visible = ShowNonDedVATInLines;
                 }
                 field("Prepayment %"; Rec."Prepayment %")
                 {
                     ApplicationArea = Prepayments;
-                    ToolTip = 'Specifies the prepayment percentage to use to calculate the prepayment for purchases.';
                     Visible = false;
                 }
                 field("Prepmt. Line Amount"; Rec."Prepmt. Line Amount")
                 {
                     ApplicationArea = Prepayments;
-                    ToolTip = 'Specifies the prepayment amount of the line in the currency of the purchase document if a prepayment percentage is specified for the purchase line.';
                     Visible = false;
                 }
                 field("Prepmt. Amt. Inv."; Rec."Prepmt. Amt. Inv.")
                 {
                     ApplicationArea = Prepayments;
-                    ToolTip = 'Specifies the prepayment amount that has already been invoiced to the customer for this purchase line.';
                     Visible = false;
                 }
                 field("Allow Invoice Disc."; Rec."Allow Invoice Disc.")
                 {
                     ApplicationArea = Suite;
-                    ToolTip = 'Specifies if the invoice line is included when the invoice discount is calculated.';
                     Visible = false;
 
                     trigger OnValidate()
@@ -502,14 +468,12 @@ page 54 "Purchase Order Subform"
                 field("Inv. Disc. Amount to Invoice"; Rec."Inv. Disc. Amount to Invoice")
                 {
                     ApplicationArea = Suite;
-                    ToolTip = 'Specifies the actual invoice discount amount that will be posted for the line on the invoice.';
                     Visible = false;
                 }
                 field("Qty. to Receive"; Rec."Qty. to Receive")
                 {
                     ApplicationArea = Suite;
                     BlankZero = true;
-                    ToolTip = 'Specifies the quantity of items that remains to be received.';
 
                     trigger OnValidate()
                     begin
@@ -548,7 +512,6 @@ page 54 "Purchase Order Subform"
                 {
                     ApplicationArea = Suite;
                     BlankZero = true;
-                    ToolTip = 'Specifies how many units of the item on the line have been posted as invoiced.';
 
                     trigger OnDrillDown()
                     var
@@ -598,26 +561,22 @@ page 54 "Purchase Order Subform"
                 field("Prepmt Amt to Deduct"; Rec."Prepmt Amt to Deduct")
                 {
                     ApplicationArea = Prepayments;
-                    ToolTip = 'Specifies the prepayment amount that has already been deducted from ordinary invoices posted for this purchase order line.';
                     Visible = false;
                 }
                 field("Prepmt Amt Deducted"; Rec."Prepmt Amt Deducted")
                 {
                     ApplicationArea = Prepayments;
-                    ToolTip = 'Specifies the prepayment amount that has already been deducted from ordinary invoices posted for this purchase order line.';
                     Visible = false;
                 }
                 field("Allow Item Charge Assignment"; Rec."Allow Item Charge Assignment")
                 {
                     ApplicationArea = ItemCharges;
-                    ToolTip = 'Specifies that you can assign item charges to this line.';
                     Visible = false;
                 }
                 field("Qty. to Assign"; Rec."Qty. to Assign")
                 {
                     ApplicationArea = ItemCharges;
                     StyleExpr = ItemChargeStyleExpression;
-                    ToolTip = 'Specifies how many units of the item charge will be assigned to the line.';
 
                     trigger OnDrillDown()
                     begin
@@ -631,7 +590,6 @@ page 54 "Purchase Order Subform"
                     ApplicationArea = ItemCharges;
                     QuickEntry = false;
                     StyleExpr = ItemChargeToHandleStyleExpression;
-                    ToolTip = 'Specifies how many items the item charge will be assigned to on the line. It can be either equal to Qty. to Assign or to zero. If it is zero, the item charge will not be assigned to the line.';
 
                     trigger OnDrillDown()
                     begin
@@ -644,7 +602,6 @@ page 54 "Purchase Order Subform"
                 {
                     ApplicationArea = ItemCharges;
                     BlankZero = true;
-                    ToolTip = 'Specifies how much of the item charge that has been assigned.';
 
                     trigger OnDrillDown()
                     begin
@@ -657,7 +614,6 @@ page 54 "Purchase Order Subform"
                 {
                     ApplicationArea = All;
                     Caption = 'Allocation Account No.';
-                    ToolTip = 'Specifies the allocation account number that will be used to distribute the amounts during the posting process.';
                     Visible = UseAllocationAccountNumber;
                     trigger OnValidate()
                     var
@@ -669,7 +625,6 @@ page 54 "Purchase Order Subform"
                 field("Job No."; Rec."Job No.")
                 {
                     ApplicationArea = Jobs;
-                    ToolTip = 'Specifies the number of the related project. If you fill in this field and the Project Task No. field, then a project ledger entry will be posted together with the purchase line.';
                     Visible = false;
 
                     trigger OnValidate()
@@ -680,7 +635,6 @@ page 54 "Purchase Order Subform"
                 field("Job Task No."; Rec."Job Task No.")
                 {
                     ApplicationArea = Jobs;
-                    ToolTip = 'Specifies the number of the related project task.';
                     Visible = false;
 
                     trigger OnValidate()
@@ -691,7 +645,6 @@ page 54 "Purchase Order Subform"
                 field("Job Planning Line No."; Rec."Job Planning Line No.")
                 {
                     ApplicationArea = Jobs;
-                    ToolTip = 'Specifies the project planning line number that the usage should be linked to when the project journal is posted. You can only link to project planning lines that have the Apply Usage Link option enabled.';
                     Visible = false;
                 }
                 field("Job Line Type"; Rec."Job Line Type")
@@ -703,31 +656,26 @@ page 54 "Purchase Order Subform"
                 field("Job Unit Price"; Rec."Job Unit Price")
                 {
                     ApplicationArea = Jobs;
-                    ToolTip = 'Specifies the sales price per unit that applies to the item or general ledger expense that will be posted.';
                     Visible = false;
                 }
                 field("Job Line Amount"; Rec."Job Line Amount")
                 {
                     ApplicationArea = Jobs;
-                    ToolTip = 'Specifies the line amount of the project ledger entry that is related to the purchase line.';
                     Visible = false;
                 }
                 field("Job Line Discount Amount"; Rec."Job Line Discount Amount")
                 {
                     ApplicationArea = Jobs;
-                    ToolTip = 'Specifies the line discount amount of the project ledger entry that is related to the purchase line.';
                     Visible = false;
                 }
                 field("Job Line Discount %"; Rec."Job Line Discount %")
                 {
                     ApplicationArea = Jobs;
-                    ToolTip = 'Specifies the line discount percentage of the project ledger entry that is related to the purchase line.';
                     Visible = false;
                 }
                 field("Job Total Price"; Rec."Job Total Price")
                 {
                     ApplicationArea = Jobs;
-                    ToolTip = 'Specifies the gross amount of the line that the purchase line applies to.';
                     Visible = false;
                 }
                 field("Job Unit Price (LCY)"; Rec."Job Unit Price (LCY)")
@@ -767,7 +715,6 @@ page 54 "Purchase Order Subform"
                 field("Planned Receipt Date"; Rec."Planned Receipt Date")
                 {
                     ApplicationArea = Suite;
-                    ToolTip = 'Specifies the date when the item is planned to arrive in inventory. Forward calculation: planned receipt date = order date + vendor lead time (per the vendor calendar and rounded to the next working day in first the vendor calendar and then the location calendar). If no vendor calendar exists, then: planned receipt date = order date + vendor lead time (per the location calendar). Backward calculation: order date = planned receipt date - vendor lead time (per the vendor calendar and rounded to the previous working day in first the vendor calendar and then the location calendar). If no vendor calendar exists, then: order date = planned receipt date - vendor lead time (per the location calendar).';
                 }
                 field("Expected Receipt Date"; Rec."Expected Receipt Date")
                 {
@@ -777,19 +724,16 @@ page 54 "Purchase Order Subform"
                 field("Order Date"; Rec."Order Date")
                 {
                     ApplicationArea = Suite;
-                    ToolTip = 'Specifies the date when the order was created.';
                     Visible = false;
                 }
                 field("Lead Time Calculation"; Rec."Lead Time Calculation")
                 {
                     ApplicationArea = Suite;
-                    ToolTip = 'Specifies a date formula for the amount of time it takes to replenish the item.';
                     Visible = false;
                 }
                 field("Planning Flexibility"; Rec."Planning Flexibility")
                 {
                     ApplicationArea = Planning;
-                    ToolTip = 'Specifies whether the supply represented by this line is considered by the planning system when calculating action messages.';
                     Visible = false;
                 }
                 field("Whse. Outstanding Qty. (Base)"; Rec."Whse. Outstanding Qty. (Base)")
@@ -801,25 +745,21 @@ page 54 "Purchase Order Subform"
                 field("Inbound Whse. Handling Time"; Rec."Inbound Whse. Handling Time")
                 {
                     ApplicationArea = Warehouse;
-                    ToolTip = 'Specifies the time it takes to make items part of available inventory, after the items have been posted as received.';
                     Visible = false;
                 }
                 field("Blanket Order No."; Rec."Blanket Order No.")
                 {
                     ApplicationArea = Suite;
-                    ToolTip = 'Specifies the number of the blanket order that the record originates from.';
                     Visible = false;
                 }
                 field("Blanket Order Line No."; Rec."Blanket Order Line No.")
                 {
                     ApplicationArea = Suite;
-                    ToolTip = 'Specifies the number of the blanket order line that the record originates from.';
                     Visible = false;
                 }
                 field("Appl.-to Item Entry"; Rec."Appl.-to Item Entry")
                 {
                     ApplicationArea = Suite;
-                    ToolTip = 'Specifies the number of the item ledger entry that the document or journal line is applied -to.';
                     Visible = false;
                 }
                 field("Deferral Code"; Rec."Deferral Code")
@@ -827,7 +767,6 @@ page 54 "Purchase Order Subform"
                     ApplicationArea = Suite;
                     Enabled = (Rec.Type <> Rec.Type::"Fixed Asset") and (Rec.Type <> Rec.Type::" ");
                     TableRelation = "Deferral Template"."Deferral Code";
-                    ToolTip = 'Specifies the deferral template that governs how expenses paid with this purchase document are deferred to the different accounting periods when the expenses were incurred.';
                     Visible = false;
 
                     trigger OnAssistEdit()
@@ -840,13 +779,11 @@ page 54 "Purchase Order Subform"
                 field("Shortcut Dimension 1 Code"; Rec."Shortcut Dimension 1 Code")
                 {
                     ApplicationArea = Dimensions;
-                    ToolTip = 'Specifies the code for Shortcut Dimension 1, which is one of two global dimension codes that you set up in the General Ledger Setup window.';
                     Visible = DimVisible1;
                 }
                 field("Shortcut Dimension 2 Code"; Rec."Shortcut Dimension 2 Code")
                 {
                     ApplicationArea = Dimensions;
-                    ToolTip = 'Specifies the code for Shortcut Dimension 2, which is one of two global dimension codes that you set up in the General Ledger Setup window.';
                     Visible = DimVisible2;
                 }
                 field(ShortcutDimCode3; ShortcutDimCode[3])
@@ -949,7 +886,6 @@ page 54 "Purchase Order Subform"
                 {
                     ApplicationArea = Suite;
                     Editable = false;
-                    ToolTip = 'Specifies the document number.';
                     Visible = false;
                 }
                 field("Line No."; Rec."Line No.")
@@ -963,7 +899,6 @@ page 54 "Purchase Order Subform"
                 {
                     ApplicationArea = All;
                     Visible = OverReceiptAllowed;
-                    ToolTip = 'Specifies over-receipt quantity.';
 
                     trigger OnValidate()
                     begin
@@ -974,38 +909,32 @@ page 54 "Purchase Order Subform"
                 {
                     ApplicationArea = All;
                     Visible = OverReceiptAllowed;
-                    ToolTip = 'Specifies over-receipt code.';
                 }
                 field("Gross Weight"; Rec."Gross Weight")
                 {
                     Caption = 'Unit Gross Weight';
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the gross weight of one unit of the item. In the purchase statistics window, the gross weight on the line is included in the total gross weight of all the lines for the particular purchase document.';
                     Visible = false;
                 }
                 field("Net Weight"; Rec."Net Weight")
                 {
                     Caption = 'Unit Net Weight';
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the net weight of one unit of the item. In the purchase statistics window, the net weight on the line is included in the total net weight of all the lines for the particular purchase document.';
                     Visible = false;
                 }
                 field("Unit Volume"; Rec."Unit Volume")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the volume of one unit of the item. In the purchase statistics window, the volume of one unit of the item on the line is included in the total volume of all the lines for the particular purchase document.';
                     Visible = false;
                 }
                 field("Units per Parcel"; Rec."Units per Parcel")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the number of units per parcel of the item. In the purchase statistics window, the number of units per parcel on the line helps to determine the total number of units for all the lines for the particular purchase document.';
                     Visible = false;
                 }
                 field("FA Posting Date"; Rec."FA Posting Date")
                 {
                     ApplicationArea = FixedAssets;
-                    ToolTip = 'Specifies the FA posting date if you have selected Fixed Asset in the Type field for this line.';
                     Visible = false;
                 }
                 field("No. of Fixed Asset Cards"; Rec."No. of Fixed Asset Cards")
@@ -1016,13 +945,11 @@ page 54 "Purchase Order Subform"
                 field("Attached to Line No."; Rec."Attached to Line No.")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the line number to which this purchase line is attached.';
                     Visible = false;
                 }
                 field("Attached Lines Count"; Rec."Attached Lines Count")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the number of non-inventory product lines attached to the purchase line.';
                     Visible = AttachingLinesEnabled;
                 }
             }

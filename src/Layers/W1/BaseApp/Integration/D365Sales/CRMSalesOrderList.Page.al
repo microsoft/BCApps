@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -33,7 +33,6 @@ page 5353 "CRM Sales Order List"
                 {
                     ApplicationArea = Suite;
                     Caption = 'Name';
-                    ToolTip = 'Specifies the name of the record.';
                 }
                 field(TransactionCurrencyIdName; Rec.TransactionCurrencyIdName)
                 {
@@ -45,7 +44,6 @@ page 5353 "CRM Sales Order List"
                 {
                     ApplicationArea = Suite;
                     Caption = 'Price List';
-                    ToolTip = 'Specifies a list of your items and their prices, for example, to send to customers. You can create the list for specific customers, campaigns, currencies, or other criteria.';
                 }
                 field(IsPriceLocked; Rec.IsPriceLocked)
                 {
@@ -81,7 +79,6 @@ page 5353 "CRM Sales Order List"
                 {
                     ApplicationArea = Suite;
                     Caption = 'Date Fulfilled';
-                    ToolTip = 'Specifies when the sales order was delivered.';
                 }
                 field(ShippingMethodCode; Rec.ShippingMethodCodeEnum)
                 {
@@ -93,19 +90,16 @@ page 5353 "CRM Sales Order List"
                 {
                     ApplicationArea = Suite;
                     Caption = 'Payment Terms';
-                    ToolTip = 'Specifies the payment terms that you select from on customer cards to define when the customer must pay, such as within 14 days.';
                 }
                 field(FreightTermsCode; Rec.FreightTermsCodeEnum)
                 {
                     ApplicationArea = Suite;
                     Caption = 'Freight Terms';
-                    ToolTip = 'Specifies the shipment method.';
                 }
                 field(BillTo_Composite; Rec.BillTo_Composite)
                 {
                     ApplicationArea = Suite;
                     Caption = 'Bill To Address';
-                    ToolTip = 'Specifies the address that the invoice will be sent to.';
                 }
                 field(WillCall; Rec.WillCall)
                 {
@@ -123,7 +117,6 @@ page 5353 "CRM Sales Order List"
                 {
                     ApplicationArea = Suite;
                     Caption = 'Opportunity';
-                    ToolTip = 'Specifies the sales opportunity that is coupled to this Dynamics 365 Sales opportunity.';
                 }
                 field(QuoteIdName; Rec.QuoteIdName)
                 {
@@ -135,7 +128,6 @@ page 5353 "CRM Sales Order List"
                 {
                     ApplicationArea = Suite;
                     Caption = 'Contact';
-                    ToolTip = 'Specifies the contact person at the customer.';
                 }
             }
         }

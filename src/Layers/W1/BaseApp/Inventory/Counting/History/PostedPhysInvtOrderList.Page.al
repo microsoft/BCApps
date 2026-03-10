@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -28,32 +28,26 @@ page 5884 "Posted Phys. Invt. Order List"
                 field("No."; Rec."No.")
                 {
                     ApplicationArea = Warehouse;
-                    ToolTip = 'Specifies the No. of the table physical inventory order header.';
                 }
                 field(Description; Rec.Description)
                 {
                     ApplicationArea = Warehouse;
-                    ToolTip = 'Specifies the Description of the table physical inventory order header.';
                 }
                 field("Order Date"; Rec."Order Date")
                 {
                     ApplicationArea = Warehouse;
-                    ToolTip = 'Specifies the Order Date of the table physical inventory order header.';
                 }
                 field("Posting Date"; Rec."Posting Date")
                 {
                     ApplicationArea = Warehouse;
-                    ToolTip = 'Specifies the Posting Date of the table physical inventory order header.';
                 }
                 field("Person Responsible"; Rec."Person Responsible")
                 {
                     ApplicationArea = Warehouse;
-                    ToolTip = 'Specifies the Person Responsible of the table physical inventory order header.';
                 }
                 field("No. Finished Recordings"; Rec."No. Finished Recordings")
                 {
                     ApplicationArea = Warehouse;
-                    ToolTip = 'Specifies the No. Finished Recordings.';
                 }
             }
         }

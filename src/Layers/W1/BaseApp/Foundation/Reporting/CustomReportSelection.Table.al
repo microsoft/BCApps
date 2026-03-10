@@ -256,12 +256,18 @@ table 9657 "Custom Report Selection"
     end;
 
     local procedure LookupCustomReportLayout(CurrentLayoutCode: Code[20]): Code[20]
+#if not CLEAN28
     var
         CustomReportLayout: Record "Custom Report Layout";
+#endif
     begin
+#if not CLEAN28
+#pragma warning disable AL0432
         if CustomReportLayout.LookupLayoutOK("Report ID") then
+#pragma warning restore AL0432
             exit(CustomReportLayout.Code);
 
+#endif
         exit(CurrentLayoutCode);
     end;
 

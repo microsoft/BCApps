@@ -472,6 +472,7 @@ codeunit 139694 "Usage Based Rebilling Test"
             ServiceCommitmentGlobal."Usage Based Billing" := true;
             ServiceCommitmentGlobal."Usage Based Pricing" := "Usage Based Pricing"::"Usage Quantity";
             ServiceCommitmentGlobal.Validate("Subscription Line Start Date", ServiceAndCalculationStartDate);
+            ServiceCommitmentGlobal.Validate("Subscription Line End Date", 0D);
 
             UsageDataSupplierReference.FilterUsageDataSupplierReference(UsageDataSupplier."No.", GetSubscriptionId(), Enum::"Usage Data Reference Type"::Subscription);
             if UsageDataSupplierReference.FindFirst() then

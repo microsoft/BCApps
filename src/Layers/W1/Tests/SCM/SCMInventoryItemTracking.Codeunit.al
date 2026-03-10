@@ -48,6 +48,7 @@ codeunit 137260 "SCM Inventory Item Tracking"
         CouldNotRegisterWhseActivityErr: Label 'Could not register Warehouse Activity.';
         OrderToOrderBindingOnSalesLineQst: Label 'Registering the pick will remove the existing order-to-order reservation for the sales order.\Do you want to continue?';
         ILELotNotMatchedErr: Label 'Item Ledger Entry Lot No. %1 should be equal to the first lot with FEFO.', Comment = '%1 - Lot No.';
+        PickActivitiesCreated: Label 'Number of Invt. Pick activities created';
 
     [Test]
     [HandlerFunctions('WhseItemTrackingLinesPageHandler,RegisterWhseMessageHandler,ConfirmHandler')]
@@ -2150,6 +2151,111 @@ codeunit 137260 "SCM Inventory Item Tracking"
         ItemLedgerEntry.SetRange("Item No.", Item."No.");
         ItemLedgerEntry.FindFirst();
         Assert.AreEqual(LotNo[1], ItemLedgerEntry."Lot No.", StrSubstNo(ILELotNotMatchedErr, LotNo[1]));
+    end;
+
+    [Test]
+    [HandlerFunctions('ItemTrackingLinesPageHandler,InvokeItemTrackingSummaryPageHandler,PickCreatedMessageHandler')]
+    [Scope('OnPrem')]
+    procedure WhseItemTrackingTryUpdateAfterPickCreatedSplit()
+    var
+        Item: Record Item;
+        Location: Record Location;
+        Bin: Record Bin;
+        SalesHeader: Record "Sales Header";
+        SalesLine: Record "Sales Line";
+        WarehouseActivityHeader: Record "Warehouse Activity Header";
+        WarehouseActivityLine: Record "Warehouse Activity Line";
+        LotNo: array[2] of Code[20];
+        Quantity: array[2] of Decimal;
+    begin
+        // [SCENARIO 616927] Item Tracking Lines Quantity Not Updated After Posting pick
+        Initialize();
+
+        LotNo[1] := LibraryUtility.GenerateGUID();
+        LotNo[2] := LibraryUtility.GenerateGUID();
+        Quantity[1] := LibraryRandom.RandInt(10);
+        Quantity[2] := LibraryRandom.RandInt(10);
+
+        // [GIVEN] Location "L" with "Require Pick" = TRUE.
+        CreateLocationWithRequirePickAndBin(Location, Bin);
+        CreateTrackedItemWithInventoryStock(Item, LotNo, Quantity, Bin);
+
+        // [GIVEN] Create sales order for item "I" on location "L", select lot no. "LOT1"
+        CreateSalesDocumentWithTracking(SalesHeader, SalesLine, Item."No.", Location.Code, Quantity[1]);
+
+        // [GIVEN] Create Pick from sales order
+        LibraryWarehouse.CreateInvtPutPickMovement(
+             WarehouseActivityHeader."Source Document"::"Sales Order", SalesHeader."No.", false, true, false);
+
+        // [GIVEN] Find the inventory pick line
+        FindWhseActivityLine(
+          WarehouseActivityLine, WarehouseActivityLine."Activity Type"::"Invt. Pick", Location.Code, SalesHeader."No.",
+          WarehouseActivityLine."Action Type"::Take);
+
+        // [GIVEN] Split the pick line: Set Qty. to Handle = 5 on the first line
+        WarehouseActivityLine.Validate("Qty. to Handle", Quantity[1] / 2);
+        WarehouseActivityLine.Modify(true);
+
+        // [GIVEN] Split the line to create a second line
+        WarehouseActivityLine.SplitLine(WarehouseActivityLine);
+
+        // [GIVEN] Assign a different lot number to the second line
+        FindWhseActivityLine(
+          WarehouseActivityLine, WarehouseActivityLine."Activity Type"::"Invt. Pick", Location.Code, SalesHeader."No.",
+          WarehouseActivityLine."Action Type"::Take);
+        WarehouseActivityLine.FindLast();
+        WarehouseActivityLine.Validate("Lot No.", LotNo[2]);
+        WarehouseActivityLine.Validate("Qty. to Handle", Quantity[1] / 2);
+        WarehouseActivityLine.Modify(true);
+
+        // [WHEN] Post the inventory pick (ship only)
+        WarehouseActivityHeader.Get(WarehouseActivityHeader.Type::"Invt. Pick", WarehouseActivityLine."No.");
+        asserterror LibraryWarehouse.PostInventoryActivity(WarehouseActivityHeader, false); // Ship only, not invoice
+
+        // [THEN] Error message "Cannot match item tracking" is thrown
+        Assert.ExpectedError(
+          StrSubstNo('Cannot match item tracking.\Document No.: %1, Line No.: %2, Item: %3',
+            SalesHeader."No.", SalesLine."Line No.", Item."No."));
+    end;
+
+    local procedure FindWhseActivityLine(var WarehouseActivityLine: Record "Warehouse Activity Line"; ActivityType: Enum "Warehouse Activity Type"; LocationCode: Code[10]; SourceNo: Code[20]; ActionType: Enum "Warehouse Action Type")
+    begin
+        FindWarehouseActivityNo(WarehouseActivityLine, SourceNo, ActivityType);
+        WarehouseActivityLine.SetRange("Activity Type", ActivityType);
+        WarehouseActivityLine.SetRange("Location Code", LocationCode);
+        WarehouseActivityLine.SetRange("No.", WarehouseActivityLine."No.");
+        WarehouseActivityLine.SetRange("Action Type", ActionType);
+        WarehouseActivityLine.FindSet();
+    end;
+
+    local procedure FindWarehouseActivityNo(var WarehouseActivityLine: Record "Warehouse Activity Line"; SourceNo: Code[20]; ActivityType: Enum "Warehouse Activity Type")
+    begin
+        WarehouseActivityLine.SetRange("Source No.", SourceNo);
+        WarehouseActivityLine.SetRange("Activity Type", ActivityType);
+        WarehouseActivityLine.FindFirst();
+    end;
+
+    [MessageHandler]
+    [Scope('OnPrem')]
+    procedure PickCreatedMessageHandler(Message: Text[1024])
+    begin
+        Assert.IsTrue(StrPos(Message, PickActivitiesCreated) > 0, Message);
+    end;
+
+    local procedure CreateLocationWithRequirePickAndBin(var Location: Record Location; var Bin: Record Bin)
+    var
+        WarehouseEmployee: Record "Warehouse Employee";
+    begin
+        LibraryWarehouse.CreateLocationWithInventoryPostingSetup(Location);
+
+        LibraryWarehouse.CreateBin(Bin, Location.Code, LibraryUtility.GenerateGUID(), '', '');
+
+        Location.Validate("Require Pick", true);
+        Location.Validate("Bin Mandatory", true);
+        Location.Validate("Shipment Bin Code", Bin.Code);
+        Location.Modify(true);
+
+        LibraryWarehouse.CreateWarehouseEmployee(WarehouseEmployee, Location.Code, true);
     end;
 
     local procedure Initialize()

@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -25,12 +25,10 @@ page 5103 "Activity List"
                 field("Code"; Rec.Code)
                 {
                     ApplicationArea = All;
-                    ToolTip = 'Specifies the code for the activity.';
                 }
                 field(Description; Rec.Description)
                 {
                     ApplicationArea = All;
-                    ToolTip = 'Specifies the description of the activity.';
                 }
             }
         }

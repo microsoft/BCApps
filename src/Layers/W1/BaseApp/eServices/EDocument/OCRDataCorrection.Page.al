@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -29,22 +29,18 @@ page 1272 "OCR Data Correction"
                         {
                             ApplicationArea = Basic, Suite;
                             ShowMandatory = true;
-                            ToolTip = 'Specifies the name of the vendor on the incoming document. The field may be filled automatically.';
                         }
                         field("Vendor VAT Registration No."; Rec."Vendor VAT Registration No.")
                         {
                             ApplicationArea = Basic, Suite;
-                            ToolTip = 'Specifies the VAT registration number of the vendor, if the document contains that number. The field may be filled automatically.';
                         }
                         field("Vendor IBAN"; Rec."Vendor IBAN")
                         {
                             ApplicationArea = Basic, Suite;
-                            ToolTip = 'Specifies the new value that you want the OCR service to produce for this field going forward.';
                         }
                         field("Vendor Bank Branch No."; Rec."Vendor Bank Branch No.")
                         {
                             ApplicationArea = Basic, Suite;
-                            ToolTip = 'Specifies the new value that you want the OCR service to produce for this field going forward.';
                         }
                         field("Vendor Bank Account No."; Rec."Vendor Bank Account No.")
                         {
@@ -59,43 +55,35 @@ page 1272 "OCR Data Correction"
                         field("Vendor Invoice No."; Rec."Vendor Invoice No.")
                         {
                             ApplicationArea = Basic, Suite;
-                            ToolTip = 'Specifies the document number of the original document you received from the vendor. You can require the document number for posting, or let it be optional. By default, it''s required, so that this document references the original. Making document numbers optional removes a step from the posting process. For example, if you attach the original invoice as a PDF, you might not need to enter the document number. To specify whether document numbers are required, in the Purchases & Payables Setup window, select or clear the Ext. Doc. No. Mandatory field.';
                         }
                         field("Order No."; Rec."Order No.")
                         {
                             ApplicationArea = Basic, Suite;
                             Caption = 'Vendor Order No.';
-                            ToolTip = 'Specifies the order number, if the document contains that number. The field may be filled automatically.';
                         }
                         field("Document Date"; Rec."Document Date")
                         {
                             ApplicationArea = Basic, Suite;
-                            ToolTip = 'Specifies the date that is printed on the incoming document. This is the date when the vendor created the invoice, for example. The field may be filled automatically.';
                         }
                         field("Due Date"; Rec."Due Date")
                         {
                             ApplicationArea = Basic, Suite;
-                            ToolTip = 'Specifies the date when the vendor document must be paid. The field may be filled automatically.';
                         }
                         field("Currency Code"; Rec."Currency Code")
                         {
                             ApplicationArea = Suite;
-                            ToolTip = 'Specifies the currency code, if the document contains that code. The field may be filled automatically.';
                         }
                         field("Amount Incl. VAT"; Rec."Amount Incl. VAT")
                         {
                             ApplicationArea = Basic, Suite;
-                            ToolTip = 'Specifies the amount including VAT for the whole document. The field may be filled automatically.';
                         }
                         field("Amount Excl. VAT"; Rec."Amount Excl. VAT")
                         {
                             ApplicationArea = Basic, Suite;
-                            ToolTip = 'Specifies the amount excluding VAT for the whole document. The field may be filled automatically.';
                         }
                         field("VAT Amount"; Rec."VAT Amount")
                         {
                             ApplicationArea = Basic, Suite;
-                            ToolTip = 'Specifies the amount of VAT that is included in the total amount.';
                         }
                     }
                     group(Control18)

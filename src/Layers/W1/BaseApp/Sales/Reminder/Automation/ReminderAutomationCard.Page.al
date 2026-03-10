@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -41,14 +41,12 @@ page 6752 "Reminder Automation Card"
                 {
                     ApplicationArea = All;
                     Caption = 'Description';
-                    ToolTip = 'Specifies a description for the reminder action group.';
                     MultiLine = true;
                 }
                 field(Blocked; Rec.Blocked)
                 {
                     ApplicationArea = All;
                     Caption = 'Blocked';
-                    ToolTip = 'Specifies whether the reminder action group is blocked. Blocked reminder action groups cannot be used in the system.';
                 }
                 field(ReminderTerms; ReminderTermsText)
                 {
@@ -159,7 +157,6 @@ page 6752 "Reminder Automation Card"
                 {
                     ApplicationArea = All;
                     Caption = 'Cadence';
-                    ToolTip = 'Specifies the cadence of the automation job. The cadence determines how often the automation job is run.';
 
                     trigger OnValidate()
                     begin
@@ -179,7 +176,6 @@ page 6752 "Reminder Automation Card"
                         {
                             ApplicationArea = All;
                             Caption = 'Start Date';
-                            ToolTip = 'Specifies the date and time when the automation job is started for the first time.';
                         }
                         group(NextSchedule)
                         {
@@ -189,7 +185,6 @@ page 6752 "Reminder Automation Card"
                             {
                                 ApplicationArea = All;
                                 Caption = 'Next Run Date formula';
-                                ToolTip = 'Specifies the formula that is used to calculate the date and time when the automation job is run next time.';
                             }
                         }
                     }

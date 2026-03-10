@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -24,17 +24,20 @@ table 5103 "Interaction Tmpl. Language"
         field(1; "Interaction Template Code"; Code[10])
         {
             Caption = 'Interaction Template Code';
+            ToolTip = 'Specifies the code for the interaction template that you have selected.';
             Editable = false;
             TableRelation = "Interaction Template";
         }
         field(2; "Language Code"; Code[10])
         {
             Caption = 'Language Code';
+            ToolTip = 'Specifies the language that is used when translating specified text on documents to foreign business partner, such as an item description on an order confirmation.';
             TableRelation = Language;
         }
         field(3; Description; Text[100])
         {
             Caption = 'Description';
+            ToolTip = 'Specifies the description of the interaction template language. This field will not be displayed in the Word attachment.';
         }
         field(4; "Attachment No."; Integer)
         {
@@ -43,6 +46,7 @@ table 5103 "Interaction Tmpl. Language"
         field(5; "Custom Layout Code"; Code[20])
         {
             Caption = 'Custom Layout Code';
+            ToolTip = 'Specifies the number of the report layout.';
             TableRelation = "Custom Report Layout" where("Report ID" = const(Report::"Email Merge"));
 
             trigger OnValidate()
@@ -61,12 +65,14 @@ table 5103 "Interaction Tmpl. Language"
         }
         field(7; "Word Template Code"; Code[30])
         {
+            ToolTip = 'Specifies the Word template to use when you create communications for an interaction. The Word template will create either a document or be used as the body text in an email.';
             DataClassification = CustomerContent;
             TableRelation = "Word Template".Code where("Language Code" = field("Language Code"), "Table ID" = const(Database::"Interaction Merge Data")); // Only Interaction Merge Data word templates with same language code are allowed
         }
         field(8; "Report Layout Name"; Text[250])
         {
             Caption = 'Report Layout Name';
+            ToolTip = 'Specifies the report layout that will be used.';
             TableRelation = "Report Layout List".Name where("Report ID" = const(Report::"Email Merge"));
 
             trigger OnLookup()
@@ -105,6 +111,7 @@ table 5103 "Interaction Tmpl. Language"
         field(9; "Report Layout AppID"; Guid)
         {
             Caption = 'Email Body Layout AppID';
+            ToolTip = 'Specifies which app the report layout belongs to.';
             TableRelation = "Report Layout List"."Application ID" where("Report ID" = const(Report::"Email Merge"));
         }
     }

@@ -325,7 +325,6 @@ codeunit 699 "Exch. Rate Adjmt. Process"
         VATEntryNoTotal := VATEntry.Count();
         if VATEntryNoTotal = 0 then
             exit;
-        SetVATEntryFilters(VATEntry, ExchRateAdjmtParameters."Start Date", ExchRateAdjmtParameters."End Date");
         if VATPostingSetup.FindSet() then
             repeat
                 VATEntryNo := VATEntryNo + 1;
@@ -508,6 +507,7 @@ codeunit 699 "Exch. Rate Adjmt. Process"
         TaxJurisdiction: Record "Tax Jurisdiction";
         VATEntry: Record "VAT Entry";
     begin
+        SetVATEntryFilters(VATEntry, ExchRateAdjmtParameters."Start Date", ExchRateAdjmtParameters."End Date");
         VATEntry.SetRange("VAT Bus. Posting Group", VATPostingSetup."VAT Bus. Posting Group");
         VATEntry.SetRange("VAT Prod. Posting Group", VATPostingSetup."VAT Prod. Posting Group");
 
@@ -2596,6 +2596,7 @@ codeunit 699 "Exch. Rate Adjmt. Process"
         DtldCustLedgEntry.Amount := 0;
         DtldCustLedgEntry."Customer No." := CustLedgEntry."Customer No.";
         DtldCustLedgEntry."Currency Code" := CustLedgEntry."Currency Code";
+        DtldCustLedgEntry."Posting Group" := CustLedgEntry."Customer Posting Group";
         DtldCustLedgEntry."User ID" := CopyStr(UserId, 1, MaxStrLen(DtldCustLedgEntry."User ID"));
         DtldCustLedgEntry."Source Code" := SourceCodeSetup."Exchange Rate Adjmt.";
         DtldCustLedgEntry."Journal Batch Name" := CustLedgEntry."Journal Batch Name";

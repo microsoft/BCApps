@@ -864,23 +864,6 @@ codeunit 134389 "ERM Customer Statistics"
 
     [Test]
     [Scope('OnPrem')]
-    procedure MaintainSIFTIndexForCustomerPaymentLCYEnagled()
-    var
-        "Key": Record "Key";
-    begin
-        // [FEATURE] [UT]
-        // [SCENARIO 292660] MaintainSIFTIndex should be enabled for Detailed Cust. Ledg. Entry key responsible for calculation Customer.Payments (LCY)
-        Key.SetRange(TableNo, DATABASE::"Detailed Cust. Ledg. Entry");
-        Key.SetFilter(
-          Key,
-          'Customer No.,Currency Code,Initial Entry Global Dim. 1,Initial Entry Global Dim. 2,Initial Entry Due Date,*');
-        Key.SetFilter(ObsoleteState, 'No');
-        Key.FindFirst();
-        Key.TestField(MaintainSIFTIndex, true);
-    end;
-
-    [Test]
-    [Scope('OnPrem')]
     procedure CustomerStatisticsServiceItem()
     var
         Item: Record Item;

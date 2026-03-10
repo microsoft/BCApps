@@ -202,6 +202,8 @@ codeunit 99000765 "Mfg. Whse. Activity Register"
            (ProdOrderLine."Put-away Status" <> xProdOrderLine."Put-away Status")
         then
             ProdOrderLine.Modify();
+
+        OnAfterUpdateProdOrderLine(ProdOrderLine, xProdOrderLine, WarehouseActivityLine);
     end;
 
     local procedure UpdateCompletelyPickedProdOrderComponent(WarehouseActivityLine: Record "Warehouse Activity Line")
@@ -285,6 +287,11 @@ codeunit 99000765 "Mfg. Whse. Activity Register"
 
     [IntegrationEvent(false, false)]
     local procedure OnAfterProdCompLineModify(var ProdOrderComponent: Record Microsoft.Manufacturing.Document."Prod. Order Component")
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnAfterUpdateProdOrderLine(var ProdOrderLine: Record "Prod. Order Line"; xProdOrderLine: Record "Prod. Order Line"; WarehouseActivityLine: Record "Warehouse Activity Line")
     begin
     end;
 }

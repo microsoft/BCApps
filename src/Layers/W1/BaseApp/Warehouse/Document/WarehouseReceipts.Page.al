@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -31,51 +31,42 @@ page 7332 "Warehouse Receipts"
                 field("No."; Rec."No.")
                 {
                     ApplicationArea = Warehouse;
-                    ToolTip = 'Specifies the number of the involved entry or record, according to the specified number series.';
                 }
                 field("Location Code"; Rec."Location Code")
                 {
                     ApplicationArea = Location;
-                    ToolTip = 'Specifies the code of the location in which the items are being received.';
                 }
                 field("Assigned User ID"; Rec."Assigned User ID")
                 {
                     ApplicationArea = Warehouse;
-                    ToolTip = 'Specifies the ID of the user who is responsible for the document.';
                 }
                 field("Sorting Method"; Rec."Sorting Method")
                 {
                     ApplicationArea = Warehouse;
-                    ToolTip = 'Specifies the method by which the receipts are sorted.';
                 }
                 field("Zone Code"; Rec."Zone Code")
                 {
                     ApplicationArea = Warehouse;
-                    ToolTip = 'Specifies the zone in which the items are being received if you are using directed put-away and pick.';
                     Visible = false;
                 }
                 field("Bin Code"; Rec."Bin Code")
                 {
                     ApplicationArea = Warehouse;
-                    ToolTip = 'Specifies the bin where the items are picked or put away.';
                     Visible = false;
                 }
                 field("Document Status"; Rec."Document Status")
                 {
                     ApplicationArea = Warehouse;
-                    ToolTip = 'Specifies the status of the warehouse receipt.';
                     Visible = false;
                 }
                 field("Posting Date"; Rec."Posting Date")
                 {
                     ApplicationArea = Warehouse;
-                    ToolTip = 'Specifies the posting date of the warehouse receipt.';
                     Visible = false;
                 }
                 field("Assignment Date"; Rec."Assignment Date")
                 {
                     ApplicationArea = Warehouse;
-                    ToolTip = 'Specifies the date when the user was assigned the activity.';
                     Visible = false;
                 }
             }

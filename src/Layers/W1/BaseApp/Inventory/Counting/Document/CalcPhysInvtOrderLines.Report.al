@@ -32,7 +32,7 @@ report 5880 "Calc. Phys. Invt. Order Lines"
 
                 Clear(LastItemLedgEntry);
 
-                ShouldCalcItemPhysInvtOrderLines := not Blocked;
+                ShouldCalcItemPhysInvtOrderLines := (not Blocked) and (Item.IsInventoriableType());
                 OnAfterGetRecordItemOnAfterCalcShouldCalcItemPhysInvtOrderLines(Item, PhysInvtOrderHeader, ShouldCalcItemPhysInvtOrderLines);
                 if ShouldCalcItemPhysInvtOrderLines then
                     CalcItemPhysInvtOrderLines()
@@ -143,7 +143,7 @@ report 5880 "Calc. Phys. Invt. Order Lines"
         CalculatingLinesMsg: Label 'Calculating the order lines...\\';
         ItemNoMsg: Label 'Item No.  #1##################', Comment = '%1 = Item No.';
         LinesCreatedMsg: Label '%1 new lines have been created.', Comment = '%1 = counter';
-        BlockedItemMsg: Label 'There is at least one blocked item that was skipped.';
+        BlockedItemMsg: Label 'One or more items were skipped because they are either blocked, non-inventoriable, or service items.';
 
     protected var
         PhysInvtOrderHeader: Record "Phys. Invt. Order Header";

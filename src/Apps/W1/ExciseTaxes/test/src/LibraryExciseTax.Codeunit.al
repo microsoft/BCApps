@@ -18,7 +18,7 @@ codeunit 148350 "Library - Excise Tax"
         LibraryInventory: Codeunit "Library - Inventory";
         LibraryERM: Codeunit "Library - ERM";
         LibraryFixedAsset: Codeunit "Library - Fixed Asset";
-        SourceSpecificRateMismatchLbl: Label 'Expected source-specific rate %1, but got %2';
+        SourceSpecificRateMismatchLbl: Label 'Expected source-specific rate %1, but got %2', Comment = '%1 = Expected Rate, %2 = Actual Rate';
 
     procedure CreateExciseTaxType(TaxCode: Code[20]; TaxBasis: Enum "Excise Tax Basis"; IsEnabled: Boolean): Record "Excise Tax Type"
     var
@@ -29,10 +29,10 @@ codeunit 148350 "Library - Excise Tax"
 
         ExciseTaxType.Init();
         ExciseTaxType.Code := TaxCode;
-        ExciseTaxType.Description := LibraryUtility.GenerateRandomText(100);
+        ExciseTaxType.Description := CopyStr(LibraryUtility.GenerateRandomText(100), 1, 100);
         ExciseTaxType."Tax Basis" := TaxBasis;
         ExciseTaxType.Enabled := IsEnabled;
-        ExciseTaxType."Report Caption" := LibraryUtility.GenerateRandomText(50);
+        ExciseTaxType."Report Caption" := CopyStr(LibraryUtility.GenerateRandomText(50), 1, 50);
         ExciseTaxType.Insert(true);
         exit(ExciseTaxType);
     end;
@@ -42,7 +42,7 @@ codeunit 148350 "Library - Excise Tax"
         ExciseTaxEntryPermission: Record "Excise Tax Entry Permission";
     begin
         if TaxTypeCode = '' then
-            TaxTypeCode := LibraryRandom.RandText(20);
+            TaxTypeCode := CopyStr(LibraryRandom.RandText(20), 1, 20);
         ExciseTaxEntryPermission.Init();
         ExciseTaxEntryPermission."Excise Tax Type Code" := TaxTypeCode;
         ExciseTaxEntryPermission."Excise Entry Type" := EntryType;
@@ -50,7 +50,7 @@ codeunit 148350 "Library - Excise Tax"
         ExciseTaxEntryPermission.Insert(true);
     end;
 
-    procedure CreateExciseTaxItemRate(TaxTypeCode: Code[20]; ItemNo: Code[20]; TaxRatePercent: Decimal; EffectiveFromDate: Date; RateDescription: Text[100]): Record "Excise Tax Item/FA Rate"
+    procedure CreateExciseTaxItemRate(TaxTypeCode: Code[20]; ItemNo: Code[20]; ExciseDuty: Decimal; EffectiveFromDate: Date; RateDescription: Text[100]): Record "Excise Tax Item/FA Rate"
     var
         ExciseTaxItemFARate: Record "Excise Tax Item/FA Rate";
     begin
@@ -58,14 +58,14 @@ codeunit 148350 "Library - Excise Tax"
         ExciseTaxItemFARate."Excise Tax Type Code" := TaxTypeCode;
         ExciseTaxItemFARate."Source Type" := "Excise Source Type"::Item;
         ExciseTaxItemFARate."Source No." := ItemNo;
-        ExciseTaxItemFARate."Tax Rate %" := TaxRatePercent;
+        ExciseTaxItemFARate."Excise Duty" := ExciseDuty;
         ExciseTaxItemFARate."Effective From Date" := EffectiveFromDate;
         ExciseTaxItemFARate.Description := RateDescription;
         ExciseTaxItemFARate.Insert(true);
         exit(ExciseTaxItemFARate);
     end;
 
-    procedure CreateExciseTaxFARate(TaxTypeCode: Code[20]; FANo: Code[20]; TaxRatePercent: Decimal; EffectiveFromDate: Date; RateDescription: Text[100]): Record "Excise Tax Item/FA Rate"
+    procedure CreateExciseTaxFARate(TaxTypeCode: Code[20]; FANo: Code[20]; ExciseDuty: Decimal; EffectiveFromDate: Date; RateDescription: Text[100]): Record "Excise Tax Item/FA Rate"
     var
         ExciseTaxItemFARate: Record "Excise Tax Item/FA Rate";
     begin
@@ -73,14 +73,14 @@ codeunit 148350 "Library - Excise Tax"
         ExciseTaxItemFARate."Excise Tax Type Code" := TaxTypeCode;
         ExciseTaxItemFARate."Source Type" := "Excise Source Type"::"Fixed Asset";
         ExciseTaxItemFARate."Source No." := FANo;
-        ExciseTaxItemFARate."Tax Rate %" := TaxRatePercent;
+        ExciseTaxItemFARate."Excise Duty" := ExciseDuty;
         ExciseTaxItemFARate."Effective From Date" := EffectiveFromDate;
         ExciseTaxItemFARate.Description := RateDescription;
         ExciseTaxItemFARate.Insert(true);
         exit(ExciseTaxItemFARate);
     end;
 
-    procedure CreateExciseTaxItemFARate(TaxTypeCode: Code[20]; SourceType: Enum "Excise Source Type"; SourceNo: Code[20]; TaxRatePercent: Decimal; EffectiveFromDate: Date; RateDescription: Text[100]): Record "Excise Tax Item/FA Rate"
+    procedure CreateExciseTaxItemFARate(TaxTypeCode: Code[20]; SourceType: Enum "Excise Source Type"; SourceNo: Code[20]; ExciseDuty: Decimal; EffectiveFromDate: Date; RateDescription: Text[100]): Record "Excise Tax Item/FA Rate"
     var
         ExciseTaxItemFARate: Record "Excise Tax Item/FA Rate";
     begin
@@ -88,7 +88,7 @@ codeunit 148350 "Library - Excise Tax"
         ExciseTaxItemFARate."Excise Tax Type Code" := TaxTypeCode;
         ExciseTaxItemFARate."Source Type" := SourceType;
         ExciseTaxItemFARate."Source No." := SourceNo;
-        ExciseTaxItemFARate."Tax Rate %" := TaxRatePercent;
+        ExciseTaxItemFARate."Excise Duty" := ExciseDuty;
         ExciseTaxItemFARate."Effective From Date" := EffectiveFromDate;
         ExciseTaxItemFARate.Description := RateDescription;
         ExciseTaxItemFARate.Insert(true);
@@ -102,8 +102,8 @@ codeunit 148350 "Library - Excise Tax"
         LibraryInventory.CreateItem(Item);
         LibraryInventory.CreateUnitOfMeasureCode(UnitOfMeasure);
         Item.Validate("Excise Tax Type", TaxTypeCode);
-        Item.Validate("Qty for Excise Tax", LibraryRandom.RandDec(1, 3));
-        Item.Validate("Excise Tax UOM", UnitOfMeasure.Code);
+        Item.Validate("Quantity for Excise Tax", LibraryRandom.RandDec(1, 3));
+        Item.Validate("Excise Unit of Measure Code", UnitOfMeasure.Code);
         Item.Modify(true);
     end;
 
@@ -114,8 +114,8 @@ codeunit 148350 "Library - Excise Tax"
         LibraryFixedAsset.CreateFAWithPostingGroup(FixedAsset);
         LibraryInventory.CreateUnitOfMeasureCode(UnitOfMeasure);
         FixedAsset.Validate("Excise Tax Type", TaxTypeCode);
-        FixedAsset.Validate("Qty for Excise Tax", LibraryRandom.RandDec(1, 3));
-        FixedAsset.Validate("Excise Tax UOM", UnitOfMeasure.Code);
+        FixedAsset.Validate("Quantity for Excise Tax", LibraryRandom.RandDec(1, 3));
+        FixedAsset.Validate("Excise Unit of Measure Code", UnitOfMeasure.Code);
         FixedAsset.Modify(true);
     end;
 
@@ -149,9 +149,9 @@ codeunit 148350 "Library - Excise Tax"
         exit(LibraryUtility.GenerateRandomCode(ExciseTaxType.FieldNo(Code), DATABASE::"Excise Tax Type"));
     end;
 
-    procedure CalculateExpectedTaxAmount(TaxRatePercent: Decimal; Quantity: Decimal; QtyForExciseTax: Decimal): Decimal
+    procedure CalculateExpectedTaxAmount(ExciseDuty: Decimal; Quantity: Decimal; QtyForExciseTax: Decimal): Decimal
     begin
-        exit((TaxRatePercent / 100) * Quantity * QtyForExciseTax);
+        exit((ExciseDuty / 100) * Quantity * QtyForExciseTax);
     end;
 
     procedure GetSourceSpecificRate(TaxTypeCode: Code[20]; SourceType: Enum "Excise Source Type"; SourceNo: Code[20]; EffectiveDate: Date): Decimal
@@ -163,7 +163,7 @@ codeunit 148350 "Library - Excise Tax"
         ExciseTaxItemFARate.SetRange("Source No.", SourceNo);
         ExciseTaxItemFARate.SetFilter("Effective From Date", '<=%1', EffectiveDate);
         if ExciseTaxItemFARate.FindLast() then
-            exit(ExciseTaxItemFARate."Tax Rate %");
+            exit(ExciseTaxItemFARate."Excise Duty");
         exit(0);
     end;
 
@@ -175,7 +175,7 @@ codeunit 148350 "Library - Excise Tax"
         ExciseTaxItemFARate.SetRange("Source Type", "Excise Source Type"::" ");
         ExciseTaxItemFARate.SetRange("Source No.", '');
         if ExciseTaxItemFARate.FindFirst() then
-            exit(ExciseTaxItemFARate."Tax Rate %");
+            exit(ExciseTaxItemFARate."Excise Duty");
         exit(0);
     end;
 

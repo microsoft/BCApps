@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -27,6 +27,7 @@ table 5413 "Prod. Order Rtng Qlty Meas."
         field(9; "Qlty Measure Code"; Code[10])
         {
             Caption = 'Qlty Measure Code';
+            ToolTip = 'Specifies the quality measure code.';
             TableRelation = "Quality Measure";
 
             trigger OnValidate()
@@ -41,23 +42,27 @@ table 5413 "Prod. Order Rtng Qlty Meas."
         field(10; Description; Text[100])
         {
             Caption = 'Description';
+            ToolTip = 'Specifies a description of the quality measure.';
         }
         field(11; "Min. Value"; Decimal)
         {
             AutoFormatType = 0;
             Caption = 'Min. Value';
+            ToolTip = 'Specifies a minimum value, which is to be reached in the quality control.';
             DecimalPlaces = 0 : 5;
         }
         field(12; "Max. Value"; Decimal)
         {
             AutoFormatType = 0;
             Caption = 'Max. Value';
+            ToolTip = 'Specifies the maximum value, which may be reached in the quality control.';
             DecimalPlaces = 0 : 5;
         }
         field(13; "Mean Tolerance"; Decimal)
         {
             AutoFormatType = 0;
             Caption = 'Mean Tolerance';
+            ToolTip = 'Specifies the mean tolerance.';
             DecimalPlaces = 0 : 5;
         }
         field(21; "Operation No."; Code[10])

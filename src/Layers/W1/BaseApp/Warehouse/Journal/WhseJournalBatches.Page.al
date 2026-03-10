@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -22,37 +22,36 @@ page 7323 "Whse. Journal Batches"
                 field(Name; Rec.Name)
                 {
                     ApplicationArea = Warehouse;
-                    ToolTip = 'Specifies the name of the warehouse journal batch.';
                 }
                 field(Description; Rec.Description)
                 {
                     ApplicationArea = Warehouse;
-                    ToolTip = 'Specifies a description of the warehouse journal batch.';
                 }
                 field("Location Code"; Rec."Location Code")
                 {
                     ApplicationArea = Location;
-                    ToolTip = 'Specifies the code of the location where the journal batch applies.';
                 }
                 field("Reason Code"; Rec."Reason Code")
                 {
                     ApplicationArea = Warehouse;
-                    ToolTip = 'Specifies the reason code, a supplementary source code that enables you to trace the entry.';
                 }
                 field("No. Series"; Rec."No. Series")
                 {
                     ApplicationArea = Warehouse;
-                    ToolTip = 'Specifies the number series from which entry or record numbers are assigned to new entries or records.';
                 }
                 field("Registering No. Series"; Rec."Registering No. Series")
                 {
                     ApplicationArea = Warehouse;
-                    ToolTip = 'Specifies the number series code used to assign document numbers to the warehouse entries that are registered from this journal batch.';
                 }
                 field("Assigned User ID"; Rec."Assigned User ID")
                 {
                     ApplicationArea = Warehouse;
-                    ToolTip = 'Specifies the ID of the user who is responsible for the document.';
+                    Visible = false;
+                }
+                field("No. of Lines"; Rec."No. of Lines")
+                {
+                    ApplicationArea = Warehouse;
+                    ToolTip = 'Specifies the number of lines in this journal batch.';
                     Visible = false;
                 }
             }

@@ -16,6 +16,8 @@ page 100 "Accounting Periods"
     RefreshOnActivate = true;
     SourceTable = "Accounting Period";
     UsageCategory = Administration;
+    AboutTitle = 'About Accounting Periods';
+    AboutText = 'Accounting periods, also known as reporting periods, are periods of time for which your organisation reports financial performance by generating, for example, an income statement or balance sheet. Typically, accounting periods refer to the company''s fiscal year, which can contain several accounting periods, such as months or quarters.';
 
     layout
     {

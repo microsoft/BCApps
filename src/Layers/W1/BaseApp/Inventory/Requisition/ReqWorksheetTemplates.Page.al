@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -25,12 +25,10 @@ page 293 "Req. Worksheet Templates"
                 field(Name; Rec.Name)
                 {
                     ApplicationArea = Planning;
-                    ToolTip = 'Specifies the name of the requisition worksheet template you are creating.';
                 }
                 field(Description; Rec.Description)
                 {
                     ApplicationArea = Planning;
-                    ToolTip = 'Specifies a description of the requisition worksheet template you are creating.';
                 }
                 field(Type; Rec.Type)
                 {
@@ -39,26 +37,22 @@ page 293 "Req. Worksheet Templates"
                 field(Recurring; Rec.Recurring)
                 {
                     ApplicationArea = Planning;
-                    ToolTip = 'Specifies whether the requisition worksheet template will be a recurring requisition worksheet.';
                 }
                 field("Page ID"; Rec."Page ID")
                 {
                     ApplicationArea = Planning;
                     LookupPageID = Objects;
-                    ToolTip = 'Specifies the number of the page that is used to show the journal or worksheet that uses the template.';
                     Visible = false;
                 }
                 field("Page Caption"; Rec."Page Caption")
                 {
                     ApplicationArea = Planning;
                     DrillDown = false;
-                    ToolTip = 'Specifies the displayed name of the journal or worksheet that uses the template.';
                     Visible = false;
                 }
                 field("Increment Batch Name"; Rec."Increment Batch Name")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies if batch names using this template are automatically incremented. Example: The posting following BATCH001 is automatically named BATCH002.';
                 }
             }
         }

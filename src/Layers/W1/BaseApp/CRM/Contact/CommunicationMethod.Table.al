@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -20,10 +20,12 @@ table 5100 "Communication Method"
         field(2; Description; Text[100])
         {
             Caption = 'Description';
+            ToolTip = 'Specifies the description of the phone number or e-mail address.';
         }
         field(3; Number; Text[30])
         {
             Caption = 'Number';
+            ToolTip = 'Specifies the telephone number.';
         }
         field(4; "Contact No."; Code[20])
         {
@@ -37,10 +39,12 @@ table 5100 "Communication Method"
         field(6; Type; Enum "Contact Type")
         {
             Caption = 'Type';
+            ToolTip = 'Specifies the type of the contact to which the phone number is related. There are two options:';
         }
         field(7; "E-Mail"; Text[80])
         {
             Caption = 'Email';
+            ToolTip = 'Specifies the contact''s email address.';
             ExtendedDatatype = EMail;
 
             trigger OnValidate()

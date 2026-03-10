@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -75,7 +75,6 @@ page 7013 "Price List Filters"
                         Enabled = SourceNoEnabled;
                         ShowMandatory = SourceNoEnabled;
                         Visible = UseCustomLookup;
-                        ToolTip = 'Specifies the entity to which the prices are assigned. The options depend on the selection in the Assign-to Type field. If you choose an entity, the price list will be used only for that entity.';
                     }
                     group(AssignToParentNoGroup)
                     {
@@ -86,7 +85,6 @@ page 7013 "Price List Filters"
                             ApplicationArea = All;
                             ShowMandatory = true;
                             Importance = Promoted;
-                            ToolTip = 'Specifies the entity to which the prices are assigned. The options depend on the selection in the Assign-to Type field. If you choose an entity, the price list will be used only for that entity.';
                         }
                     }
                     field(AssignToNo; Rec."Assign-to No.")
@@ -96,14 +94,12 @@ page 7013 "Price List Filters"
                         Enabled = SourceNoEnabled;
                         ShowMandatory = SourceNoEnabled;
                         Visible = not UseCustomLookup;
-                        ToolTip = 'Specifies the entity to which the prices are assigned. The options depend on the selection in the Assign-to Type field. If you choose an entity, the price list will be used only for that entity.';
                     }
                 }
                 field(CurrencyCode; Rec."Currency Code")
                 {
                     ApplicationArea = All;
                     Importance = Promoted;
-                    ToolTip = 'Specifies the currency code of the price list.';
                 }
                 group(Dates)
                 {
@@ -112,13 +108,11 @@ page 7013 "Price List Filters"
                     {
                         ApplicationArea = All;
                         Importance = Promoted;
-                        ToolTip = 'Specifies the date from which the price is valid.';
                     }
                     field(EndingDate; Rec."Ending Date")
                     {
                         ApplicationArea = All;
                         Importance = Promoted;
-                        ToolTip = 'Specifies the last date that the price is valid.';
                     }
                 }
                 field(AmountType; Rec."Amount Type")
@@ -140,7 +134,6 @@ page 7013 "Price List Filters"
                     {
                         ApplicationArea = All;
                         Importance = Additional;
-                        ToolTip = 'Specifies the if prices include VAT.';
                     }
                 }
                 group(LineDefaults)
@@ -150,13 +143,11 @@ page 7013 "Price List Filters"
                     {
                         ApplicationArea = All;
                         Importance = Additional;
-                        ToolTip = 'Specifies whether invoice discount is allowed. You can change this value on the lines.';
                     }
                     field(AllowLineDisc; Rec."Allow Line Disc.")
                     {
                         ApplicationArea = All;
                         Importance = Additional;
-                        ToolTip = 'Specifies whether line discounts are allowed. You can change this value on the lines.';
                     }
                 }
             }

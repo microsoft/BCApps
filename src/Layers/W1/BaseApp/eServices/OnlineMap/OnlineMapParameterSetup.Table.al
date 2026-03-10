@@ -17,19 +17,23 @@ table 801 "Online Map Parameter Setup"
         field(1; "Code"; Code[10])
         {
             Caption = 'Code';
+            ToolTip = 'Specifies a descriptive code for the map that you set up, for example, BING.';
             NotBlank = true;
         }
         field(2; Name; Text[30])
         {
             Caption = 'Name';
+            ToolTip = 'Specifies the name of the country/region. If you have selected the country/region code, the name is automatically inserted into this field.';
         }
         field(3; "Map Service"; Text[250])
         {
             Caption = 'Map Service';
+            ToolTip = 'Specifies the URL for the online map.';
         }
         field(4; "Directions Service"; Text[250])
         {
             Caption = 'Directions Service';
+            ToolTip = 'Specifies the URL for directions an on online map.';
 
             trigger OnValidate()
             var
@@ -54,22 +58,27 @@ table 801 "Online Map Parameter Setup"
         field(5; Comment; Text[250])
         {
             Caption = 'Comment';
+            ToolTip = 'Specifies a comment. The field is optional, and you can enter a maximum of 30 characters, both numbers and letters.';
         }
         field(6; "URL Encode Non-ASCII Chars"; Boolean)
         {
             Caption = 'URL Encode Non-ASCII Chars';
+            ToolTip = 'Specifies whether the URL is Non-ASCII encoded.';
         }
         field(7; "Miles/Kilometers Option List"; Text[250])
         {
             Caption = 'Miles/Kilometers Option List';
+            ToolTip = 'Specifies the options that measure the route distance.';
         }
         field(8; "Quickest/Shortest Option List"; Text[250])
         {
             Caption = 'Quickest/Shortest Option List';
+            ToolTip = 'Specifies the option for calculating the quickest or the shortest route.';
         }
         field(9; "Directions from Location Serv."; Text[250])
         {
             Caption = 'Directions from Location Serv.';
+            ToolTip = 'Specifies the URL for directions from your location an on online map.';
         }
     }
 

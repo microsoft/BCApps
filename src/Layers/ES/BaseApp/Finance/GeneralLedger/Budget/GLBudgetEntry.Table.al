@@ -304,7 +304,7 @@ table 96 "G/L Budget Entry"
         }
         key(Key3; "Budget Name", "G/L Account No.", "Business Unit Code", "Global Dimension 1 Code", "Global Dimension 2 Code", "Budget Dimension 1 Code", "Budget Dimension 2 Code", "Budget Dimension 3 Code", "Budget Dimension 4 Code", Date)
         {
-            SumIndexFields = Amount;
+            IncludedFields = Amount;
         }
         key(Key4; "Budget Name", "G/L Account No.", Description, Date)
         {
@@ -319,7 +319,7 @@ table 96 "G/L Budget Entry"
         }
         key(Key7; "G/L Account No.", Date, "Budget Name", "Dimension Set ID")
         {
-            SumIndexFields = Amount;
+            IncludedFields = Amount;
         }
         key(Key8; "Last Date Modified", "Budget Name")
         {

@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -28,32 +28,26 @@ page 5903 "Service Item Lines"
                 field("Document Type"; Rec."Document Type")
                 {
                     ApplicationArea = Service;
-                    ToolTip = 'Specifies whether the service document is a service order or service quote.';
                 }
                 field("Document No."; Rec."Document No.")
                 {
                     ApplicationArea = Service;
-                    ToolTip = 'Specifies the number of the service order linked to this service item line.';
                 }
                 field("Line No."; Rec."Line No.")
                 {
                     ApplicationArea = Service;
-                    ToolTip = 'Specifies the number of the line.';
                 }
                 field("Service Item Group Code"; Rec."Service Item Group Code")
                 {
                     ApplicationArea = Service;
-                    ToolTip = 'Specifies the code of the service item group for this item.';
                 }
                 field("Service Item No."; Rec."Service Item No.")
                 {
                     ApplicationArea = Service;
-                    ToolTip = 'Specifies the service item number registered in the Service Item table.';
                 }
                 field(Description; Rec.Description)
                 {
                     ApplicationArea = Service;
-                    ToolTip = 'Specifies a description of this service item.';
                 }
                 field("Description 2"; Rec."Description 2")
                 {
@@ -64,47 +58,38 @@ page 5903 "Service Item Lines"
                 field("Item No."; Rec."Item No.")
                 {
                     ApplicationArea = Service;
-                    ToolTip = 'Specifies the item number linked to this service item.';
                 }
                 field("Serial No."; Rec."Serial No.")
                 {
                     ApplicationArea = ItemTracking;
-                    ToolTip = 'Specifies the serial number of this item.';
                 }
                 field(Warranty; Rec.Warranty)
                 {
                     ApplicationArea = Service;
-                    ToolTip = 'Specifies that warranty on either parts or labor exists for this item.';
                 }
                 field("Contract No."; Rec."Contract No.")
                 {
                     ApplicationArea = Service;
-                    ToolTip = 'Specifies the number of the service contract associated with the item or service on the line.';
                 }
                 field("Fault Reason Code"; Rec."Fault Reason Code")
                 {
                     ApplicationArea = Service;
-                    ToolTip = 'Specifies the fault reason code for the item.';
                 }
                 field("Fault Area Code"; Rec."Fault Area Code")
                 {
                     ApplicationArea = Service;
-                    ToolTip = 'Specifies the fault area code for this item.';
                 }
                 field("Symptom Code"; Rec."Symptom Code")
                 {
                     ApplicationArea = Service;
-                    ToolTip = 'Specifies the symptom code for this item.';
                 }
                 field("Resolution Code"; Rec."Resolution Code")
                 {
                     ApplicationArea = Service;
-                    ToolTip = 'Specifies the resolution code for this item.';
                 }
                 field("Fault Code"; Rec."Fault Code")
                 {
                     ApplicationArea = Service;
-                    ToolTip = 'Specifies the fault code for this item.';
                 }
             }
         }

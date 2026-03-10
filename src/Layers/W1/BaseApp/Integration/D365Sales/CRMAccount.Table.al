@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -70,6 +70,7 @@ table 5341 "CRM Account"
         field(6; CustomerTypeCode; Option)
         {
             Caption = 'Relationship Type';
+            ToolTip = 'Specifies data from a corresponding field in a Dataverse entity. For more information about Dataverse, see Dataverse Help Center.';
             Description = 'Select the category that best describes the relationship between the account and your organization.';
             ExternalName = 'customertypecode';
             ExternalType = 'Picklist';
@@ -187,6 +188,7 @@ table 5341 "CRM Account"
         field(19; Name; Text[160])
         {
             Caption = 'Account Name';
+            ToolTip = 'Specifies data from a corresponding field in a Dataverse entity. For more information about Dataverse, see Dataverse Help Center.';
             Description = 'Type the company or business name.';
             ExternalName = 'name';
             ExternalType = 'String';
@@ -552,6 +554,7 @@ table 5341 "CRM Account"
         field(64; Address1_PrimaryContactName; Text[100])
         {
             Caption = 'Address 1: Primary Contact Name';
+            ToolTip = 'Specifies data from a corresponding field in a Dataverse entity. For more information about Dataverse, see Dataverse Help Center.';
             Description = 'Type the name of the main contact at the account''s primary address.';
             ExternalName = 'address1_primarycontactname';
             ExternalType = 'String';
@@ -559,6 +562,7 @@ table 5341 "CRM Account"
         field(65; Address1_Line1; Text[250])
         {
             Caption = 'Address 1: Street 1';
+            ToolTip = 'Specifies data from a corresponding field in a Dataverse entity. For more information about Dataverse, see Dataverse Help Center.';
             Description = 'Type the first line of the primary address.';
             ExternalName = 'address1_line1';
             ExternalType = 'String';
@@ -566,6 +570,7 @@ table 5341 "CRM Account"
         field(66; Address1_Line2; Text[250])
         {
             Caption = 'Address 1: Street 2';
+            ToolTip = 'Specifies data from a corresponding field in a Dataverse entity. For more information about Dataverse, see Dataverse Help Center.';
             Description = 'Type the second line of the primary address.';
             ExternalName = 'address1_line2';
             ExternalType = 'String';
@@ -580,6 +585,7 @@ table 5341 "CRM Account"
         field(68; Address1_City; Text[80])
         {
             Caption = 'Address 1: City';
+            ToolTip = 'Specifies data from a corresponding field in a Dataverse entity. For more information about Dataverse, see Dataverse Help Center.';
             Description = 'Type the city for the primary address.';
             ExternalName = 'address1_city';
             ExternalType = 'String';
@@ -601,6 +607,7 @@ table 5341 "CRM Account"
         field(71; Address1_Country; Text[80])
         {
             Caption = 'Address 1: Country/Region';
+            ToolTip = 'Specifies data from a corresponding field in a Dataverse entity. For more information about Dataverse, see Dataverse Help Center.';
             Description = 'Type the country or region for the primary address.';
             ExternalName = 'address1_country';
             ExternalType = 'String';
@@ -615,6 +622,7 @@ table 5341 "CRM Account"
         field(73; Address1_PostalCode; Text[20])
         {
             Caption = 'Address 1: ZIP/Postal Code';
+            ToolTip = 'Specifies data from a corresponding field in a Dataverse entity. For more information about Dataverse, see Dataverse Help Center.';
             Description = 'Type the ZIP Code or postal code for the primary address.';
             ExternalName = 'address1_postalcode';
             ExternalType = 'String';

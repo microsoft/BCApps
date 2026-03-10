@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -27,32 +27,26 @@ page 5923 "Loaner List"
                 field("No."; Rec."No.")
                 {
                     ApplicationArea = Service;
-                    ToolTip = 'Specifies the number of the involved entry or record, according to the specified number series.';
                 }
                 field(Description; Rec.Description)
                 {
                     ApplicationArea = Service;
-                    ToolTip = 'Specifies a description of the loaner.';
                 }
                 field("Description 2"; Rec."Description 2")
                 {
                     ApplicationArea = Service;
-                    ToolTip = 'Specifies an additional description of the loaner.';
                 }
                 field(Lent; Rec.Lent)
                 {
                     ApplicationArea = Service;
-                    ToolTip = 'Specifies that the loaner has been lent to a customer.';
                 }
                 field("Document Type"; Rec."Document Type")
                 {
                     ApplicationArea = Service;
-                    ToolTip = 'Specifies the document type of the loaner entry.';
                 }
                 field("Document No."; Rec."Document No.")
                 {
                     ApplicationArea = Service;
-                    ToolTip = 'Specifies the number of the service document for the service item that was lent.';
                 }
             }
         }

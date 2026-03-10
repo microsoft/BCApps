@@ -27,6 +27,7 @@ codeunit 144354 "Swiss SEPA CT 09 Export"
         ExportHasErrorsErr: Label 'The file export has one or more errors.\\For each line to be exported, resolve the errors displayed to the right and then try to export again.';
         FieldBlankErr: Label 'The %1 field must be filled.', Comment = '%1= field name. Example: The Name field must be filled.';
         FieldKeyBlankErr: Label '%1 %2 must have a value in %3.', Comment = '%1=table name, %2=key field value, %3=field name. Example: Customer 10000 must have a value in Name.';
+        FieldKeyBlank2Err: Label '%1 %2 must have a value in %3 or in %4', Comment = '%1=table name, %2=key field value, %3=field name,%4=field name 2. Example: Customer 10000 must have a value in Name.';
         UnknownSwissPaymentTypeErr: Label 'Unknown Swiss SEPA CT export payment type.';
         ReferenceNumberIsDefinedErr: Label 'For vendor %1 and document %2, a reference number is defined. \The document type must be "Invoice".';
         MessageToRecipientMsg: Label 'Payment of %1 %2 to vendor %3', Comment = '%1 document type, %2 Document No., %3 Vendor No.';
@@ -878,7 +879,6 @@ codeunit 144354 "Swiss SEPA CT 09 Export"
     procedure XMLExport_PaymentType3_Negative_BlankedSWIFT()
     var
         GenJournalLine: Record "Gen. Journal Line";
-        VendorBankAccount: Record "Vendor Bank Account";
         VendorNo: Code[20];
     begin
         // [FEATURE] [XML] [Export]
@@ -895,7 +895,7 @@ codeunit 144354 "Swiss SEPA CT 09 Export"
         asserterror GenJournalLine_XMLExport(GenJournalLine);
 
         // [THEN] The file export has one or more errors (Vendor Bank Account "X" must have a value in SWIFT Code.)
-        VerifyPaymentJnlExportErrorForBlankedVendorBankField(GenJournalLine, VendorBankAccount.FieldCaption("SWIFT Code"));
+        VerifyPaymentJnlExportErrorForBlankedVendorBankField(GenJournalLine);
     end;
 
     [Test]
@@ -988,7 +988,6 @@ codeunit 144354 "Swiss SEPA CT 09 Export"
     procedure XMLExport_PaymentType4_Negative_BlankedSWIFT()
     var
         GenJournalLine: Record "Gen. Journal Line";
-        VendorBankAccount: Record "Vendor Bank Account";
         VendorNo: Code[20];
     begin
         // [FEATURE] [XML] [Export]
@@ -1005,7 +1004,7 @@ codeunit 144354 "Swiss SEPA CT 09 Export"
         asserterror GenJournalLine_XMLExport(GenJournalLine);
 
         // [THEN] The file export has one or more errors (Vendor Bank Account "X" must have a value in SWIFT Code.)
-        VerifyPaymentJnlExportErrorForBlankedVendorBankField(GenJournalLine, VendorBankAccount.FieldCaption("SWIFT Code"));
+        VerifyPaymentJnlExportErrorForBlankedVendorBankField(GenJournalLine);
     end;
 
     [Test]
@@ -3609,6 +3608,20 @@ codeunit 144354 "Swiss SEPA CT 09 Export"
           StrSubstNo(
             FieldKeyBlankErr,
             VendorBankAccount.TableCaption(), GenJournalLine."Recipient Bank Account", VendorBankAccountFieldCaption));
+    end;
+
+    local procedure VerifyPaymentJnlExportErrorForBlankedVendorBankField(GenJournalLine: Record "Gen. Journal Line")
+    var
+        VendorBankAccount: Record "Vendor Bank Account";
+    begin
+        Assert.ExpectedErrorCode('Dialog');
+        Assert.ExpectedError(ExportHasErrorsErr);
+
+        VerifyPaymentJnlExportErrorText(
+          GenJournalLine,
+          StrSubstNo(
+            FieldKeyBlank2Err,
+            VendorBankAccount.TableCaption(), GenJournalLine."Recipient Bank Account", VendorBankAccount.FieldCaption(VendorBankAccount."SWIFT Code"), VendorBankAccount.FieldCaption(VendorBankAccount."Clearing No.")));
     end;
 
     local procedure VerifyRecipienBankAccountOnPaymentLine(VendorNo: Code[20]; VendorBankAccCode: Code[20])

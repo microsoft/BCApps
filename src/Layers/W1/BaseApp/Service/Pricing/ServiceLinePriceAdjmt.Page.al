@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -26,7 +26,6 @@ page 6084 "Service Line Price Adjmt."
                 {
                     ApplicationArea = Service;
                     Editable = false;
-                    ToolTip = 'Specifies the number of the service item that is registered in the Service Item table.';
                 }
                 field("ServItemLine.Description"; ServItemLine.Description)
                 {
@@ -40,20 +39,17 @@ page 6084 "Service Line Price Adjmt."
                     ApplicationArea = Service;
                     Caption = 'Service Price Group Code';
                     Editable = false;
-                    ToolTip = 'Specifies the code of the service price adjustment group associated with the service item on this line.';
                 }
                 field("Serv. Price Adjmt. Gr. Code"; Rec."Serv. Price Adjmt. Gr. Code")
                 {
                     ApplicationArea = Service;
                     Editable = false;
-                    ToolTip = 'Specifies the code of the service price adjustment group that applies to the posted service line.';
                 }
                 field("Adjustment Type"; Rec."Adjustment Type")
                 {
                     ApplicationArea = Service;
                     Caption = 'Adjustment Type';
                     Editable = false;
-                    ToolTip = 'Specifies the adjustment type for this line.';
                 }
             }
             repeater(Control1)
@@ -62,32 +58,26 @@ page 6084 "Service Line Price Adjmt."
                 field(Type; Rec.Type)
                 {
                     ApplicationArea = Service;
-                    ToolTip = 'Specifies the type of this line, which can be item, resource, cost, or general ledger Account.';
                 }
                 field("No."; Rec."No.")
                 {
                     ApplicationArea = Service;
-                    ToolTip = 'Specifies the number of the involved entry or record, according to the specified number series.';
                 }
                 field(Description; Rec.Description)
                 {
                     ApplicationArea = Service;
-                    ToolTip = 'Specifies the service item, resource, or service cost, of which the price is going to be adjusted.';
                 }
                 field(Quantity; Rec.Quantity)
                 {
                     ApplicationArea = Service;
-                    ToolTip = 'Specifies the value of the service line that will be adjusted.';
                 }
                 field("Unit Price"; Rec."Unit Price")
                 {
                     ApplicationArea = Service;
-                    ToolTip = 'Specifies the price of one unit of the item or resource. You can enter a price manually or have it entered according to the Price/Profit Calculation field on the related card.';
                 }
                 field("New Unit Price"; Rec."New Unit Price")
                 {
                     ApplicationArea = Service;
-                    ToolTip = 'Specifies the unit price of the item, resource, or cost specified on the service line.';
 
                     trigger OnValidate()
                     begin
@@ -97,22 +87,18 @@ page 6084 "Service Line Price Adjmt."
                 field("Discount %"; Rec."Discount %")
                 {
                     ApplicationArea = Service;
-                    ToolTip = 'Specifies the discount percentage you want to provide on the amount on the corresponding service line.';
                 }
                 field("Discount Amount"; Rec."Discount Amount")
                 {
                     ApplicationArea = Service;
-                    ToolTip = 'Specifies the discount you want to provide on the amount on this service line.';
                 }
                 field(Amount; Rec.Amount)
                 {
                     ApplicationArea = Service;
-                    ToolTip = 'Specifies the total net amount on the service line.';
                 }
                 field("New Amount"; Rec."New Amount")
                 {
                     ApplicationArea = Service;
-                    ToolTip = 'Specifies the amount to invoice.';
 
                     trigger OnValidate()
                     begin
@@ -122,12 +108,10 @@ page 6084 "Service Line Price Adjmt."
                 field("Amount incl. VAT"; Rec."Amount incl. VAT")
                 {
                     ApplicationArea = Service;
-                    ToolTip = 'Specifies the total amount that the service line is going to be adjusted, including VAT.';
                 }
                 field("New Amount incl. VAT"; Rec."New Amount incl. VAT")
                 {
                     ApplicationArea = Service;
-                    ToolTip = 'Specifies a new amount, including VAT.';
 
                     trigger OnValidate()
                     begin

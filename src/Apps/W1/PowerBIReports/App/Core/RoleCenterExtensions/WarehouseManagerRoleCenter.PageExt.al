@@ -121,6 +121,14 @@ pageextension 36962 "Warehouse Manager Role Center" extends "Warehouse Manager R
                     RunObject = page "Inventory Forecasting";
                     Tooltip = 'Open the Power BI Report that predicts your inventory trends, including forecasting of quantity across item, location and inventory posting groups.';
                 }
+                action("ABC Analysis (Power BI)")
+                {
+                    ApplicationArea = Basic, Suite;
+                    Caption = 'ABC Analysis (Power BI)';
+                    Image = "PowerBI";
+                    RunObject = page "PowerBI ABC Analysis";
+                    Tooltip = 'Open the Power BI Report that performs an ABC analysis of your sales data, categorizing customers based on their contribution to total sales.';
+                }
             }
         }
     }

@@ -30,6 +30,7 @@ codeunit 134008 "ERM VAT Settlement with Apply"
         UnrealizedVATType: Option " ",Percentage,First,Last,"First (Fully Paid)","Last (Fully Paid)";
         PostingGroupsErr: Label 'Posting Groups are missing for unapplied G/L Entry with Payment Discount Account.';
         IncorrectVATEntryCountErr: Label 'Incorrect count of VAT Entries.';
+        ExchangeRateAdjmtTxt: Label 'Exchange Rate Adjmt. of %1 %2';
 
     [Test]
     [Scope('OnPrem')]
@@ -437,6 +438,55 @@ codeunit 134008 "ERM VAT Settlement with Apply"
         LibraryReportDataset.AssertElementTagWithValueExists('VATEntryGetFiltTaxJurisCd', TaxJurisdictionCode[2]);
     end;
 
+    [Test]
+    procedure ExchangeRateAdjustmentRespectsClosedEntriesInVATEntry()
+    var
+        CurrencyExchangeRate: Record "Currency Exchange Rate";
+        VATPostingSetup: Record "VAT Posting Setup";
+        VATEntry: Record "VAT Entry";
+        GenJournalLine: Record "Gen. Journal Line";
+        DocumentNo: Code[20];
+        OriginalAmtClosedIn: Decimal;
+    begin
+        // [SCENARIO 620480] Exchange Rate Adjustment should respect both Closed in Vat Entry.
+        Initialize();
+
+        // [GIVEN] Currency with exchange rate.
+        CreateCurrencyWithExchangeRate(CurrencyExchangeRate);
+        LibraryERM.SetAddReportingCurrency(CurrencyExchangeRate."Currency Code");
+
+        // [GIVEN] VAT Posting Setup for Normal VAT.
+        LibraryERM.FindVATPostingSetup(VATPostingSetup, "Tax Calculation Type"::"Normal VAT");
+
+        // [GIVEN] Create and Post General Journal with VAT.
+        CreateAndPostGenJnlLineWithVAT(GenJournalLine, VATPostingSetup, WorkDate(), LibraryRandom.RandDecInRange(1000, 2000, 2));
+
+        // [GIVEN] Find the VAT Entry and get Additional-Currency Amount for the entry which will be closed in next step.
+        FindVATEntry(VATEntry, VATPostingSetup, WorkDate(), false);
+        VATEntry.SetRange("Document No.", GenJournalLine."Document No.");
+        VATEntry.FindFirst();
+        OriginalAmtClosedIn := VATEntry."Additional-Currency Amount";
+
+        // [GIVEN] Close the VAT Entry with Settlement Date as WorkDate.
+        RunCalcAndPostVATSettlement(GenJournalLine);
+
+        // [GIVEN] Update Exchange Rate with some increase and run the exchange rate adjustment for the date.
+        UpdateCurrencyExchangeRate(
+            CurrencyExchangeRate,
+            WorkDate(),
+            CurrencyExchangeRate."Exchange Rate Amount",
+            CurrencyExchangeRate."Relational Exch. Rate Amount" * LibraryRandom.RandDecInRange(2, 3, 2));
+
+        // [WHEN] Run the Exchange Rate Adjustment for the date.
+        DocumentNo := Format(LibraryRandom.RandInt(100));
+        LibraryERM.RunExchRateAdjustment(
+            CurrencyExchangeRate."Currency Code", WorkDate(), WorkDate(), ExchangeRateAdjmtTxt, WorkDate(), DocumentNo, true);
+
+        // [THEN] Verify that VAT Entry with Closed = true and having same Additional-Currency Amount is not adjusted.
+        VATEntry.SetRange(Closed, true);
+        VATEntry.SetRange("Additional-Currency Amount", OriginalAmtClosedIn);
+        Assert.RecordIsNotEmpty(VATEntry);
+    end;
 
     local procedure Initialize()
     var
@@ -929,6 +979,92 @@ codeunit 134008 "ERM VAT Settlement with Apply"
         Assert.AreEqual(VATAmount, VATEntry.Amount, VATEntry.FieldCaption(Amount));
         VATEntry.SetRange("Transaction No.", VATEntry."Transaction No.");
         Assert.AreEqual(1, VATEntry.Count, IncorrectVATEntryCountErr);
+    end;
+
+    local procedure CreateAndPostGenJnlLineWithVAT(var GenJournalLine: Record "Gen. Journal Line"; VATPostingSetup: Record "VAT Posting Setup"; PostingDate: Date; Amount: Decimal)
+    var
+        GenJournalBatch: Record "Gen. Journal Batch";
+        GLAccount: Record "G/L Account";
+    begin
+        LibraryERM.SelectGenJnlBatch(GenJournalBatch);
+        LibraryERM.ClearGenJournalLines(GenJournalBatch);
+
+        LibraryERM.CreateGLAccount(GLAccount);
+        GLAccount.Validate("Gen. Posting Type", GLAccount."Gen. Posting Type"::Sale);
+        GLAccount.Validate("VAT Bus. Posting Group", VATPostingSetup."VAT Bus. Posting Group");
+        GLAccount.Validate("VAT Prod. Posting Group", VATPostingSetup."VAT Prod. Posting Group");
+        GLAccount.Modify(true);
+
+        LibraryERM.CreateGeneralJnlLine(
+            GenJournalLine,
+            GenJournalBatch."Journal Template Name",
+            GenJournalBatch.Name,
+            GenJournalLine."Document Type"::" ",
+            GenJournalLine."Account Type"::"G/L Account",
+            GLAccount."No.",
+            Amount);
+
+        GenJournalLine.Validate("Posting Date", PostingDate);
+        GenJournalLine.Modify(true);
+
+        LibraryERM.PostGeneralJnlLine(GenJournalLine);
+    end;
+
+    local procedure FindVATEntry(var VATEntry: Record "VAT Entry"; VATPostingSetup: Record "VAT Posting Setup"; PostingDate: Date; IsClosed: Boolean)
+    begin
+        VATEntry.SetRange("VAT Bus. Posting Group", VATPostingSetup."VAT Bus. Posting Group");
+        VATEntry.SetRange("VAT Prod. Posting Group", VATPostingSetup."VAT Prod. Posting Group");
+        VATEntry.SetRange("Posting Date", PostingDate);
+        VATEntry.SetRange(Closed, IsClosed);
+    end;
+
+    local procedure UpdateCurrencyExchangeRate(var CurrencyExchangeRate: Record "Currency Exchange Rate"; StartingDate: Date; ExchangeRateAmount: Decimal; RelationalExchRateAmount: Decimal)
+    var
+        CurrencyExchangeRate2: Record "Currency Exchange Rate";
+    begin
+        CurrencyExchangeRate2.SetRange("Currency Code", CurrencyExchangeRate."Currency Code");
+        CurrencyExchangeRate2.SetRange("Starting Date", StartingDate);
+        if CurrencyExchangeRate2.FindFirst() then begin
+            CurrencyExchangeRate2.Validate("Exchange Rate Amount", ExchangeRateAmount);
+            CurrencyExchangeRate2.Validate("Adjustment Exch. Rate Amount", ExchangeRateAmount);
+            CurrencyExchangeRate2.Validate("Relational Exch. Rate Amount", RelationalExchRateAmount);
+            CurrencyExchangeRate2.Validate("Relational Adjmt Exch Rate Amt", RelationalExchRateAmount);
+            CurrencyExchangeRate2.Modify(true);
+            CurrencyExchangeRate := CurrencyExchangeRate2;
+        end;
+    end;
+
+    local procedure CreateCurrencyWithExchangeRate(var CurrencyExchangeRate: Record "Currency Exchange Rate")
+    var
+        Currency: Record Currency;
+    begin
+        LibraryERM.CreateCurrency(Currency);
+        SetupAccountOnCurrency(Currency);
+        Currency.Modify(true);
+
+        LibraryERM.CreateExchRate(CurrencyExchangeRate, Currency.Code, 0D);
+        UpdateExchangeRate(CurrencyExchangeRate, 100 * LibraryRandom.RandInt(4), 200 * LibraryRandom.RandInt(4));
+    end;
+
+    local procedure SetupAccountOnCurrency(var Currency: Record Currency)
+    begin
+        LibraryERM.SetCurrencyGainLossAccounts(Currency);
+        Currency.Validate("Residual Gains Account", Currency."Realized Gains Acc.");
+        Currency.Validate("Realized G/L Gains Account", Currency."Realized Gains Acc.");
+        Currency.Validate("Residual Losses Account", Currency."Realized Losses Acc.");
+        Currency.Validate("Realized G/L Losses Account", Currency."Realized Losses Acc.");
+        Currency.Modify(true);
+    end;
+
+    local procedure UpdateExchangeRate(var CurrencyExchangeRate: Record "Currency Exchange Rate"; ExchangeRateAmount: Decimal; RelationalExchRateAmount: Decimal)
+    begin
+        CurrencyExchangeRate.Validate("Exchange Rate Amount", ExchangeRateAmount);
+        CurrencyExchangeRate.Validate("Adjustment Exch. Rate Amount", CurrencyExchangeRate."Exchange Rate Amount");
+
+        // Relational Exch. Rate Amount and Relational Adjmt Exch Rate Amt always greater than Exchange Rate Amount.
+        CurrencyExchangeRate.Validate("Relational Exch. Rate Amount", RelationalExchRateAmount);
+        CurrencyExchangeRate.Validate("Relational Adjmt Exch Rate Amt", CurrencyExchangeRate."Relational Exch. Rate Amount");
+        CurrencyExchangeRate.Modify(true);
     end;
 
     [RequestPageHandler]

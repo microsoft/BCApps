@@ -6,6 +6,7 @@ namespace Microsoft.Finance.VAT.Clause;
 
 using Microsoft.EServices.EDocument;
 using Microsoft.Finance.VAT.Setup;
+using Microsoft.Foundation.Company;
 using Microsoft.Foundation.ExtendedText;
 using Microsoft.Sales.Document;
 using Microsoft.Sales.FinanceCharge;
@@ -267,6 +268,7 @@ table 560 "VAT Clause"
         IssuedFinChargeMemoHeader: Record "Issued Fin. Charge Memo Header";
         IssuedReminderHeader: Record "Issued Reminder Header";
         DataTypeManagement: Codeunit "Data Type Management";
+        CompanyInformationMgt: Codeunit "Company Information Mgt.";
         RecRef: RecordRef;
         IsHandled: Boolean;
     begin
@@ -318,6 +320,7 @@ table 560 "VAT Clause"
                 Result := IsHandled;
             end;
         end;
+        CompanyInformationMgt.GetLanguageDefault(LanguageCode);
         OnAfterGetDocumentTypeAndLanguageCode(Rec, RecRelatedVariant, RecRef, DocumentType, LanguageCode, Result);
     end;
 

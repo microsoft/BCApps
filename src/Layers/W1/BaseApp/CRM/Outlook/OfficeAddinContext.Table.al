@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -16,21 +16,25 @@ table 1600 "Office Add-in Context"
         field(1; Email; Text[80])
         {
             Caption = 'Email';
+            ToolTip = 'Specifies the email address of the Outlook contact.';
             Description = 'Email address of the Outlook contact.';
         }
         field(2; Name; Text[250])
         {
             Caption = 'Name';
+            ToolTip = 'Specifies the display name of the Outlook contact.';
             Description = 'Display name of the Outlook contact.';
         }
         field(3; "Document Type"; Text[20])
         {
             Caption = 'Document Type';
+            ToolTip = 'Specifies the type that the involved document belongs to.';
             Description = 'Type of the referenced document.';
         }
         field(4; "Document No."; Code[250])
         {
             Caption = 'Document No.';
+            ToolTip = 'Specifies the number of the involved document.';
             Description = 'No. of the referenced document.';
         }
         field(5; "Regular Expression Match"; Text[250])

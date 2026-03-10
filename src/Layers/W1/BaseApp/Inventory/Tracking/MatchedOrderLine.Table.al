@@ -7,7 +7,6 @@ namespace Microsoft.Inventory.Tracking;
 table 5817 "Matched Order Line"
 {
     Caption = 'Matched Order Line';
-    ReplicateData = false;
 
     fields
     {

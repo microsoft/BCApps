@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -28,6 +28,7 @@ table 172 "Standard Customer Sales Code"
         field(1; "Customer No."; Code[20])
         {
             Caption = 'Customer No.';
+            ToolTip = 'Specifies the customer number of the customer to which the standard sales code is assigned.';
             NotBlank = true;
             TableRelation = Customer;
         }
@@ -37,6 +38,7 @@ table 172 "Standard Customer Sales Code"
         field(2; "Code"; Code[10])
         {
             Caption = 'Code';
+            ToolTip = 'Specifies a standard sales code from the Standard Sales Code table.';
             NotBlank = true;
             TableRelation = "Standard Sales Code";
 
@@ -57,6 +59,7 @@ table 172 "Standard Customer Sales Code"
         field(3; Description; Text[100])
         {
             Caption = 'Description';
+            ToolTip = 'Specifies a description of the standard sales code.';
         }
         /// <summary>
         /// Specifies the date from which the standard sales code is valid for this customer.
@@ -64,6 +67,7 @@ table 172 "Standard Customer Sales Code"
         field(4; "Valid From Date"; Date)
         {
             Caption = 'Valid From Date';
+            ToolTip = 'Specifies the first day when the Create Recurring Sales Inv. batch job can be used to create sales invoices.';
         }
         /// <summary>
         /// Specifies the date until which the standard sales code is valid for this customer.
@@ -71,6 +75,7 @@ table 172 "Standard Customer Sales Code"
         field(5; "Valid To date"; Date)
         {
             Caption = 'Valid To date';
+            ToolTip = 'Specifies the last day when the Create Recurring Sales Inv. batch job can be used to create sales invoices.';
         }
         /// <summary>
         /// Specifies the payment method code to use when creating documents with this standard sales code.
@@ -78,6 +83,7 @@ table 172 "Standard Customer Sales Code"
         field(6; "Payment Method Code"; Code[10])
         {
             Caption = 'Payment Method Code';
+            ToolTip = 'Specifies how to make payment, such as with bank transfer, cash, or check.';
             TableRelation = "Payment Method";
         }
         /// <summary>
@@ -86,6 +92,7 @@ table 172 "Standard Customer Sales Code"
         field(7; "Payment Terms Code"; Code[10])
         {
             Caption = 'Payment Terms Code';
+            ToolTip = 'Specifies a formula that calculates the payment due date, payment discount date, and payment discount amount.';
             TableRelation = "Payment Terms";
         }
         /// <summary>
@@ -94,6 +101,7 @@ table 172 "Standard Customer Sales Code"
         field(8; "Direct Debit Mandate ID"; Code[35])
         {
             Caption = 'Direct Debit Mandate ID';
+            ToolTip = 'Specifies the ID of the direct-debit mandate that this standard customer sales code uses to create sales invoices for direct debit collection.';
             TableRelation = "SEPA Direct Debit Mandate" where("Customer No." = field("Customer No."),
                                                                Blocked = const(false),
                                                                Closed = const(false));
@@ -104,6 +112,7 @@ table 172 "Standard Customer Sales Code"
         field(9; Blocked; Boolean)
         {
             Caption = 'Blocked';
+            ToolTip = 'Specifies that the related record is blocked from being posted in transactions, for example a customer that is declared insolvent or an item that is placed in quarantine.';
         }
         /// <summary>
         /// Specifies the currency code for the standard sales code.
@@ -120,6 +129,7 @@ table 172 "Standard Customer Sales Code"
         field(15; "Insert Rec. Lines On Quotes"; Option)
         {
             Caption = 'Insert Rec. Lines On Quotes';
+            ToolTip = 'Specifies how you want to use standard sales codes on sales quotes.';
             DataClassification = SystemMetadata;
             OptionCaption = 'Manual,Automatic,Always Ask';
             OptionMembers = Manual,Automatic,"Always Ask";
@@ -130,6 +140,7 @@ table 172 "Standard Customer Sales Code"
         field(16; "Insert Rec. Lines On Orders"; Option)
         {
             Caption = 'Insert Rec. Lines On Orders';
+            ToolTip = 'Specifies how you want to use standard sales codes on sales orders.';
             DataClassification = SystemMetadata;
             OptionCaption = 'Manual,Automatic,Always Ask';
             OptionMembers = Manual,Automatic,"Always Ask";
@@ -140,6 +151,7 @@ table 172 "Standard Customer Sales Code"
         field(17; "Insert Rec. Lines On Invoices"; Option)
         {
             Caption = 'Insert Rec. Lines On Invoices';
+            ToolTip = 'Specifies how you want to use standard sales codes on sales invoices.';
             DataClassification = SystemMetadata;
             OptionCaption = 'Manual,Automatic,Always Ask';
             OptionMembers = Manual,Automatic,"Always Ask";
@@ -150,6 +162,7 @@ table 172 "Standard Customer Sales Code"
         field(18; "Insert Rec. Lines On Cr. Memos"; Option)
         {
             Caption = 'Insert Rec. Lines On Cr. Memos';
+            ToolTip = 'Specifies how you want to use standard sales codes on sales credit memos.';
             DataClassification = SystemMetadata;
             OptionCaption = 'Manual,Automatic,Always Ask';
             OptionMembers = Manual,Automatic,"Always Ask";

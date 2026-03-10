@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -29,16 +29,19 @@ table 99000875 "Order Promising Setup"
         field(8; "Order Promising Nos."; Code[20])
         {
             Caption = 'Order Promising Nos.';
+            ToolTip = 'Specifies the code that identifies the number series that you select for order promising.';
             TableRelation = "No. Series";
         }
         field(9; "Order Promising Template"; Code[10])
         {
             Caption = 'Order Promising Template';
+            ToolTip = 'Specifies the name of the requisition worksheet template that you select for order promising.';
             TableRelation = "Req. Wksh. Template";
         }
         field(10; "Order Promising Worksheet"; Code[10])
         {
             Caption = 'Order Promising Worksheet';
+            ToolTip = 'Specifies the name of the requisition worksheet that you select for order promising.';
             TableRelation = "Requisition Wksh. Name".Name where("Worksheet Template Name" = field("Order Promising Template"));
         }
     }

@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -27,27 +27,22 @@ page 5093 "Segment List"
                 field("No."; Rec."No.")
                 {
                     ApplicationArea = All;
-                    ToolTip = 'Specifies the number of the involved entry or record, according to the specified number series.';
                 }
                 field(Description; Rec.Description)
                 {
                     ApplicationArea = All;
-                    ToolTip = 'Specifies the description of the segment.';
                 }
                 field("Campaign No."; Rec."Campaign No.")
                 {
                     ApplicationArea = RelationshipMgmt;
-                    ToolTip = 'Specifies the number of the campaign for which the segment has been created.';
                 }
                 field("Salesperson Code"; Rec."Salesperson Code")
                 {
                     ApplicationArea = Suite;
-                    ToolTip = 'Specifies the code of the salesperson responsible for this segment and/or interaction.';
                 }
                 field(Date; Rec.Date)
                 {
                     ApplicationArea = RelationshipMgmt;
-                    ToolTip = 'Specifies the date that the segment was created.';
                 }
             }
         }

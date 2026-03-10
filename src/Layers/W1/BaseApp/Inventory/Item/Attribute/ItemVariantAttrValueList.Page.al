@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -86,7 +86,6 @@ page 7514 "Item Variant Attr. Value List"
                 field("Unit of Measure"; Rec."Unit of Measure")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the name of the item or resource''s unit of measure, such as piece or hour.';
                 }
             }
         }

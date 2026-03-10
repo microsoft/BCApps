@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -27,17 +27,14 @@ page 5233 "Human Resources Setup"
                 field("Employee Nos."; Rec."Employee Nos.")
                 {
                     ApplicationArea = BasicHR;
-                    ToolTip = 'Specifies the number series code to use when assigning numbers to employees.';
                 }
                 field("Base Unit of Measure"; Rec."Base Unit of Measure")
                 {
                     ApplicationArea = Suite;
-                    ToolTip = 'Specifies the base unit of measure, such as hour or day.';
                 }
                 field("Automatically Create Resource"; Rec."Automatically Create Resource")
                 {
                     ApplicationArea = Suite;
-                    ToolTip = 'Specifies if a resource card is automatically created for an employee that is added to a project, service, or assembly activity.';
                 }
                 field("Allow Multiple Posting Groups"; Rec."Allow Multiple Posting Groups")
                 {

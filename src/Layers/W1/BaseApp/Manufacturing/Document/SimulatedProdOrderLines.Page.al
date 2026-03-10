@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -32,70 +32,58 @@ page 99000913 "Simulated Prod. Order Lines"
                 field("Item No."; Rec."Item No.")
                 {
                     ApplicationArea = Manufacturing;
-                    ToolTip = 'Specifies the number of the item that is to be produced.';
                 }
                 field("Variant Code"; Rec."Variant Code")
                 {
                     ApplicationArea = Planning;
-                    ToolTip = 'Specifies the variant of the item on the line.';
                     Visible = false;
                 }
                 field("Due Date"; Rec."Due Date")
                 {
                     ApplicationArea = Manufacturing;
-                    ToolTip = 'Specifies the date when the produced item must be available. The date is copied from the header of the production order.';
                 }
                 field(Description; Rec.Description)
                 {
                     ApplicationArea = Manufacturing;
-                    ToolTip = 'Specifies the value of the Description field on the item card. If you enter a variant code, the variant description is copied to this field instead.';
                 }
                 field("Description 2"; Rec."Description 2")
                 {
                     ApplicationArea = Manufacturing;
-                    ToolTip = 'Specifies an additional description.';
                     Visible = false;
                 }
                 field("Production BOM No."; Rec."Production BOM No.")
                 {
                     ApplicationArea = Manufacturing;
-                    ToolTip = 'Specifies the number of the production BOM that is the basis for creating the Prod. Order Component list for this line.';
                     Visible = false;
                 }
                 field("Routing No."; Rec."Routing No.")
                 {
                     ApplicationArea = Manufacturing;
-                    ToolTip = 'Specifies the number of the routing used as the basis for creating the production order routing for this line.';
                     Visible = false;
                 }
                 field("Production BOM Version Code"; Rec."Production BOM Version Code")
                 {
                     ApplicationArea = Manufacturing;
-                    ToolTip = 'Specifies the version code of the production BOM.';
                     Visible = false;
                 }
                 field("Routing Version Code"; Rec."Routing Version Code")
                 {
                     ApplicationArea = Manufacturing;
-                    ToolTip = 'Specifies the version number of the routing.';
                     Visible = false;
                 }
                 field("Location Code"; Rec."Location Code")
                 {
                     ApplicationArea = Location;
-                    ToolTip = 'Specifies the location code, if the produced items should be stored in a specific location.';
                     Visible = false;
                 }
                 field("Bin Code"; Rec."Bin Code")
                 {
                     ApplicationArea = Warehouse;
-                    ToolTip = 'Specifies the bin that the produced item is posted to as output, and from where it can be taken to storage or cross-docked.';
                     Visible = false;
                 }
                 field("Starting Date-Time"; Rec."Starting Date-Time")
                 {
                     ApplicationArea = Manufacturing;
-                    ToolTip = 'Specifies the starting date and the starting time, which are combined in a format called "starting date-time".';
 
                     trigger OnValidate()
                     begin
@@ -131,7 +119,6 @@ page 99000913 "Simulated Prod. Order Lines"
                 field("Ending Date-Time"; Rec."Ending Date-Time")
                 {
                     ApplicationArea = Manufacturing;
-                    ToolTip = 'Specifies the ending date and the ending time, which are combined in a format called "ending date-time".';
 
                     trigger OnValidate()
                     begin
@@ -167,13 +154,11 @@ page 99000913 "Simulated Prod. Order Lines"
                 field("Scrap %"; Rec."Scrap %")
                 {
                     ApplicationArea = Manufacturing;
-                    ToolTip = 'Specifies the percentage of the item that you expect to be scrapped in the production process.';
                     Visible = false;
                 }
                 field(Quantity; Rec.Quantity)
                 {
                     ApplicationArea = Manufacturing;
-                    ToolTip = 'Specifies the quantity to be produced if you manually fill in this line.';
 
                     trigger OnValidate()
                     begin
@@ -183,7 +168,6 @@ page 99000913 "Simulated Prod. Order Lines"
                 field("Reserved Quantity"; Rec."Reserved Quantity")
                 {
                     ApplicationArea = Reservation;
-                    ToolTip = 'Specifies how many units of this item have been reserved.';
                     Visible = false;
 
                     trigger OnDrillDown()
@@ -194,7 +178,6 @@ page 99000913 "Simulated Prod. Order Lines"
                 field("Unit of Measure Code"; Rec."Unit of Measure Code")
                 {
                     ApplicationArea = Manufacturing;
-                    ToolTip = 'Specifies how each unit of the item is measured, such as in pieces or tons. By default, the value in the Base Unit of Measure field on the item card is inserted. It will be changed if you switch Product BOM or Production BOM Version.';
 
                     trigger OnValidate()
                     begin
@@ -204,23 +187,19 @@ page 99000913 "Simulated Prod. Order Lines"
                 field("Unit Cost"; Rec."Unit Cost")
                 {
                     ApplicationArea = Manufacturing;
-                    ToolTip = 'Specifies the cost of one unit of the item or resource on the line.';
                 }
                 field("Cost Amount"; Rec."Cost Amount")
                 {
                     ApplicationArea = Manufacturing;
-                    ToolTip = 'Specifies the total cost on the line by multiplying the unit cost by the quantity.';
                 }
                 field("Shortcut Dimension 1 Code"; Rec."Shortcut Dimension 1 Code")
                 {
                     ApplicationArea = Dimensions;
-                    ToolTip = 'Specifies the code for Shortcut Dimension 1, which is one of two global dimension codes that you set up in the General Ledger Setup window.';
                     Visible = false;
                 }
                 field("Shortcut Dimension 2 Code"; Rec."Shortcut Dimension 2 Code")
                 {
                     ApplicationArea = Dimensions;
-                    ToolTip = 'Specifies the code for Shortcut Dimension 2, which is one of two global dimension codes that you set up in the General Ledger Setup window.';
                     Visible = false;
                 }
                 field("ShortcutDimCode[3]"; ShortcutDimCode[3])
@@ -311,7 +290,6 @@ page 99000913 "Simulated Prod. Order Lines"
                 field("Standard Task Code"; Rec."Standard Task Code")
                 {
                     ApplicationArea = Manufacturing;
-                    ToolTip = 'Specifies a standard task.';
                     Visible = false;
                     ObsoleteReason = 'Discontinued functionality';
                     ObsoleteState = Pending;

@@ -13,9 +13,13 @@ report 8051 "Contract Deferrals Release"
     Caption = 'Subscription Contract Deferrals Release';
     UsageCategory = Tasks;
     ProcessingOnly = true;
+    AdditionalSearchTerms = 'Release Deferrals, Contract Deferrals, Release Revenue, Release Cost, Deferral Posting, Contract Release';
 
     requestpage
     {
+        AboutTitle = 'About Subscription Contract Deferrals Release';
+        AboutText = 'Release deferred cost and revenue from contracts based on a chosen time period.';
+
         layout
         {
             area(Content)

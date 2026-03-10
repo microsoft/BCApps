@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -27,7 +27,6 @@ page 5136 "Vendor Link"
                 {
                     ApplicationArea = RelationshipMgmt;
                     Caption = 'Vendor No.';
-                    ToolTip = 'Specifies the number assigned to the contact in the Customer, Vendor, or Bank Account table. This field is only valid for contacts recorded as customer, vendor or bank accounts.';
                 }
                 field(CurrMasterFields; CurrMasterFields)
                 {

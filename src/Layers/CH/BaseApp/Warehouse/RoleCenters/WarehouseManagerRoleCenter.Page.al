@@ -9,6 +9,7 @@ using Microsoft.Assembly.History;
 using Microsoft.Assembly.Reports;
 using Microsoft.Assembly.Setup;
 using Microsoft.Foundation.Navigate;
+using Microsoft.Inventory.Analysis;
 using Microsoft.Inventory.Counting.Document;
 using Microsoft.Inventory.Counting.History;
 using Microsoft.Inventory.Counting.Journal;
@@ -732,6 +733,12 @@ page 8909 "Warehouse Manager Role Center"
                         ApplicationArea = Assembly;
                         Caption = 'Assembly Setup';
                         RunObject = page "Assembly Setup";
+                    }
+                    action("ABC Analysis Setup")
+                    {
+                        ApplicationArea = Suite;
+                        Caption = 'ABC Analysis Setup';
+                        RunObject = page "ABC Analysis Setup";
                     }
                     action("Locations")
                     {

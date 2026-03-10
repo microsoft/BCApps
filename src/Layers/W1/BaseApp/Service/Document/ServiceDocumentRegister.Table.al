@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -22,14 +22,17 @@ table 5936 "Service Document Register"
         field(2; "Source Document No."; Code[20])
         {
             Caption = 'Source Document No.';
+            ToolTip = 'Specifies the number of the service order or service contract.';
         }
         field(3; "Destination Document Type"; Enum "Service Destination Document Type")
         {
             Caption = 'Destination Document Type';
+            ToolTip = 'Specifies the type of document created from the service order or contract specified in the Source Document No.';
         }
         field(4; "Destination Document No."; Code[20])
         {
             Caption = 'Destination Document No.';
+            ToolTip = 'Specifies the number of the invoice or credit memo, based on the contents of the Destination Document Type field.';
         }
         field(32; "Invoice Period"; Enum "Service Contract Header Invoice Period")
         {

@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -15,15 +15,18 @@ table 7303 "Bin Type"
         field(1; "Code"; Code[10])
         {
             Caption = 'Code';
+            ToolTip = 'Specifies a unique code for the bin type.';
             NotBlank = true;
         }
         field(5; Description; Text[100])
         {
             Caption = 'Description';
+            ToolTip = 'Specifies a description of the bin type.';
         }
         field(10; Receive; Boolean)
         {
             Caption = 'Receive';
+            ToolTip = 'Specifies to use the bin for items that have just arrived at the warehouse.';
 
             trigger OnValidate()
             begin
@@ -33,6 +36,7 @@ table 7303 "Bin Type"
         field(11; Ship; Boolean)
         {
             Caption = 'Ship';
+            ToolTip = 'Specifies to use the bin for items that are about to be shipped out of the warehouse.';
 
             trigger OnValidate()
             begin
@@ -42,6 +46,7 @@ table 7303 "Bin Type"
         field(12; "Put Away"; Boolean)
         {
             Caption = 'Put Away';
+            ToolTip = 'Specifies to use the bin for items that are being put away, such as receipts and internal put-always.';
 
             trigger OnValidate()
             begin
@@ -51,6 +56,7 @@ table 7303 "Bin Type"
         field(13; Pick; Boolean)
         {
             Caption = 'Pick';
+            ToolTip = 'Specifies to use the bin for items that can be picked for shipment, internal picks, and production.';
 
             trigger OnValidate()
             begin

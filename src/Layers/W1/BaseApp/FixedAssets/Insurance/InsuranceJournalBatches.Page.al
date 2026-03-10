@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -15,7 +15,7 @@ page 5655 "Insurance Journal Batches"
     RefreshOnActivate = true;
     SourceTable = "Insurance Journal Batch";
     AnalysisModeEnabled = false;
-    
+
     layout
     {
         area(content)
@@ -26,28 +26,29 @@ page 5655 "Insurance Journal Batches"
                 field(Name; Rec.Name)
                 {
                     ApplicationArea = FixedAssets;
-                    ToolTip = 'Specifies the name of the journal batch you are creating. The name could be, for example, the name or initials of the user.';
                 }
                 field(Description; Rec.Description)
                 {
                     ApplicationArea = FixedAssets;
-                    ToolTip = 'Specifies the journal batch that you are creating.';
                 }
                 field("No. Series"; Rec."No. Series")
                 {
                     ApplicationArea = FixedAssets;
-                    ToolTip = 'Specifies the number series from which entry or record numbers are assigned to new entries or records.';
                 }
                 field("Posting No. Series"; Rec."Posting No. Series")
                 {
                     ApplicationArea = FixedAssets;
-                    ToolTip = 'Specifies the number series code used to assign document numbers to ledger entries posted from this journal batch.';
                 }
                 field("Reason Code"; Rec."Reason Code")
                 {
                     ApplicationArea = FixedAssets;
-                    ToolTip = 'Specifies the reason code, a supplementary source code that enables you to trace the entry.';
                     Visible = true;
+                }
+                field("No. of Lines"; Rec."No. of Lines")
+                {
+                    ApplicationArea = FixedAssets;
+                    ToolTip = 'Specifies the number of lines in this journal batch.';
+                    Visible = false;
                 }
             }
         }

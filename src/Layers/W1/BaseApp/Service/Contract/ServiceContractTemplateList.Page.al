@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -26,27 +26,22 @@ page 6056 "Service Contract Template List"
                 field("No."; Rec."No.")
                 {
                     ApplicationArea = Service;
-                    ToolTip = 'Specifies the number of the involved entry or record, according to the specified number series.';
                 }
                 field(Description; Rec.Description)
                 {
                     ApplicationArea = Service;
-                    ToolTip = 'Specifies a description of the service contract.';
                 }
                 field(Prepaid; Rec.Prepaid)
                 {
                     ApplicationArea = Service;
-                    ToolTip = 'Specifies that this service contract is prepaid.';
                 }
                 field("Serv. Contract Acc. Gr. Code"; Rec."Serv. Contract Acc. Gr. Code")
                 {
                     ApplicationArea = Service;
-                    ToolTip = 'Specifies the code associated with the service contract account group.';
                 }
                 field("Invoice Period"; Rec."Invoice Period")
                 {
                     ApplicationArea = Service;
-                    ToolTip = 'Specifies the invoice period for the service contract.';
                 }
             }
         }

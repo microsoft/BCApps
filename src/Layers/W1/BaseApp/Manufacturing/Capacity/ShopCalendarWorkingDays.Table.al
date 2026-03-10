@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -23,18 +23,21 @@ table 99000752 "Shop Calendar Working Days"
         field(2; Day; Option)
         {
             Caption = 'Day';
+            ToolTip = 'Specifies your working days of the week.';
             OptionCaption = 'Monday,Tuesday,Wednesday,Thursday,Friday,Saturday,Sunday';
             OptionMembers = Monday,Tuesday,Wednesday,Thursday,Friday,Saturday,Sunday;
         }
         field(3; "Work Shift Code"; Code[10])
         {
             Caption = 'Work Shift Code';
+            ToolTip = 'Specifies the work shift that this working day refers to.';
             NotBlank = true;
             TableRelation = "Work Shift";
         }
         field(4; "Starting Time"; Time)
         {
             Caption = 'Starting Time';
+            ToolTip = 'Specifies the starting time of the shift for this working day.';
 
             trigger OnValidate()
             begin
@@ -55,6 +58,7 @@ table 99000752 "Shop Calendar Working Days"
         field(5; "Ending Time"; Time)
         {
             Caption = 'Ending Time';
+            ToolTip = 'Specifies the ending time of the shift for this working day.';
 
             trigger OnValidate()
             begin

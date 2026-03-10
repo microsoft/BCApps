@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -27,7 +27,6 @@ page 835 "Reminder Level Communication"
                 {
                     ApplicationArea = All;
                     Caption = 'Reminder Term Code';
-                    ToolTip = 'Specifies the reminder terms code for the reminder.';
                     Enabled = false;
                     Editable = false;
                 }
@@ -35,7 +34,6 @@ page 835 "Reminder Level Communication"
                 {
                     ApplicationArea = All;
                     Caption = 'Reminder Level';
-                    ToolTip = 'Specifies the number of the involved entry or record, according to the specified number series.';
                     Enabled = false;
                     Editable = false;
                 }

@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -22,7 +22,6 @@ page 5992 "Troubleshooting Subform"
                 field(Comment; Rec.Comment)
                 {
                     ApplicationArea = Comments;
-                    ToolTip = 'Specifies the troubleshooting comment or guidelines.';
                 }
             }
         }

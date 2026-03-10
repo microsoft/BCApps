@@ -1062,7 +1062,7 @@ table 21 "Cust. Ledger Entry"
         {
             Clustered = true;
         }
-        key(Key2; "Customer No.", "Posting Date", "Currency Code")
+        key(Key2; "Customer No.", "Currency Code")
         {
             SumIndexFields = "Sales (LCY)", "Profit (LCY)", "Inv. Discount (LCY)";
         }
@@ -1078,9 +1078,9 @@ table 21 "Cust. Ledger Entry"
         key(Key7; Open, "Due Date")
         {
         }
-        key(Key8; "Document Type", "Customer No.", "Posting Date", "Currency Code")
+        key(Key8; "Customer No.", "Document Type", "Posting Date", "Currency Code")
         {
-            SumIndexFields = "Sales (LCY)", "Profit (LCY)", "Inv. Discount (LCY)";
+            IncludedFields = "Sales (LCY)", "Profit (LCY)", "Inv. Discount (LCY)";
         }
         key(Key9; "Salesperson Code", "Posting Date")
         {

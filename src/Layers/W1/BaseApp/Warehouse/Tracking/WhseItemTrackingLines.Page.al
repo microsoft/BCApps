@@ -161,7 +161,6 @@ page 6550 "Whse. Item Tracking Lines"
                 field("Serial No."; Rec."Serial No.")
                 {
                     ApplicationArea = ItemTracking;
-                    ToolTip = 'Specifies the same as the field in the Item Tracking Lines window.';
                     ExtendedDatatype = Barcode;
 
                     trigger OnAssistEdit()
@@ -185,14 +184,12 @@ page 6550 "Whse. Item Tracking Lines"
                 {
                     ApplicationArea = ItemTracking;
                     Editable = NewSerialNoEditable;
-                    ToolTip = 'Specifies a new serial number that replaces the number in the Serial No. field, when you post the warehouse item reclassification journal.';
                     Visible = NewSerialNoVisible;
                     ExtendedDatatype = Barcode;
                 }
                 field("Lot No."; Rec."Lot No.")
                 {
                     ApplicationArea = ItemTracking;
-                    ToolTip = 'Specifies the same as the field in the Item Tracking Lines window.';
                     ExtendedDatatype = Barcode;
 
                     trigger OnAssistEdit()
@@ -216,14 +213,12 @@ page 6550 "Whse. Item Tracking Lines"
                 {
                     ApplicationArea = ItemTracking;
                     Editable = NewLotNoEditable;
-                    ToolTip = 'Specifies a new lot number that replaces the number in the Lot No. field, when you post the warehouse item reclassification journal.';
                     Visible = NewLotNoVisible;
                     ExtendedDatatype = Barcode;
                 }
                 field("Package No."; Rec."Package No.")
                 {
                     ApplicationArea = ItemTracking;
-                    ToolTip = 'Specifies a new package number that replaces the package number, when you post the warehouse item reclassification journal.';
                     ExtendedDatatype = Barcode;
 
                     trigger OnAssistEdit()
@@ -247,7 +242,6 @@ page 6550 "Whse. Item Tracking Lines"
                 {
                     ApplicationArea = ItemTracking;
                     Editable = NewPackageNoEditable;
-                    ToolTip = 'Specifies a new package number that replaces the number in the Package No. field, when you post the warehouse item reclassification journal.';
                     Visible = NewPackageNoVisible;
                     ExtendedDatatype = Barcode;
                 }
@@ -255,48 +249,41 @@ page 6550 "Whse. Item Tracking Lines"
                 {
                     ApplicationArea = ItemTracking;
                     Editable = ExpirationDateEditable;
-                    ToolTip = 'Specifies the same as the field in the Item Tracking Lines window.';
                     Visible = ExpirationDateVisible;
                 }
                 field("New Expiration Date"; Rec."New Expiration Date")
                 {
                     ApplicationArea = ItemTracking;
                     Editable = NewExpirationDateEditable;
-                    ToolTip = 'Specifies the same as the field in the Item Tracking Lines window.';
                     Visible = NewExpirationDateVisible;
                 }
                 field("Warranty Date"; Rec."Warranty Date")
                 {
                     ApplicationArea = ItemTracking;
-                    ToolTip = 'Specifies the same as the field in the Item Tracking Lines window.';
                     Visible = false;
                 }
                 field("Item No."; Rec."Item No.")
                 {
                     ApplicationArea = ItemTracking;
                     Editable = false;
-                    ToolTip = 'Specifies the same as the field in the Item Tracking Lines window.';
                     Visible = false;
                 }
                 field("Variant Code"; Rec."Variant Code")
                 {
                     ApplicationArea = Planning;
                     Editable = false;
-                    ToolTip = 'Specifies the variant of the item on the line.';
                     Visible = false;
                 }
                 field(Description; Rec.Description)
                 {
                     ApplicationArea = ItemTracking;
                     Editable = false;
-                    ToolTip = 'Specifies the same as the field with the same name in the Item Tracking Lines window.';
                     Visible = false;
                 }
                 field("Location Code"; Rec."Location Code")
                 {
                     ApplicationArea = ItemTracking;
                     Editable = false;
-                    ToolTip = 'Specifies the same as the field in the Item Tracking Lines window.';
                     Visible = false;
                 }
                 field(Quantity; Rec."Quantity (Base)")

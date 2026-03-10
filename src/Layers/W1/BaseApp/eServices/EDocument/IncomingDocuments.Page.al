@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -37,38 +37,31 @@ page 190 "Incoming Documents"
                 field("Entry No."; Rec."Entry No.")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the number of the entry, as assigned from the specified number series when the entry was created.';
                     Visible = false;
                 }
                 field(Description; Rec.Description)
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the description of the incoming document. You must enter the description manually.';
                 }
                 field("Vendor Name"; Rec."Vendor Name")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the name of the vendor on the incoming document. The field may be filled automatically.';
                 }
                 field("Document Date"; Rec."Document Date")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the date that is printed on the incoming document. This is the date when the vendor created the invoice, for example. The field may be filled automatically.';
                 }
                 field("Vendor Invoice No."; Rec."Vendor Invoice No.")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the document number of the original document you received from the vendor. You can require the document number for posting, or let it be optional. By default, it''s required, so that this document references the original. Making document numbers optional removes a step from the posting process. For example, if you attach the original invoice as a PDF, you might not need to enter the document number. To specify whether document numbers are required, in the Purchases & Payables Setup window, select or clear the Ext. Doc. No. Mandatory field.';
                 }
                 field("Currency Code"; Rec."Currency Code")
                 {
                     ApplicationArea = Suite;
-                    ToolTip = 'Specifies the currency code, if the document contains that code. The field may be filled automatically.';
                 }
                 field("Amount Incl. VAT"; Rec."Amount Incl. VAT")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the amount including VAT for the whole document. The field may be filled automatically.';
                 }
                 field(URL; Rec.URL)
                 {
@@ -76,7 +69,6 @@ page 190 "Incoming Documents"
                     Caption = 'Link to Document';
                     ExtendedDatatype = URL;
                     Importance = Additional;
-                    ToolTip = 'Specifies the location of the file that represents the incoming document.';
                     Visible = false;
 
                     trigger OnValidate()
@@ -88,7 +80,6 @@ page 190 "Incoming Documents"
                 {
                     ApplicationArea = Basic, Suite;
                     Editable = IsDataExchTypeEditable;
-                    ToolTip = 'Specifies the data exchange type that is used to process the incoming document when it is an electronic document.';
                     Visible = false;
                 }
                 field(StatusField; Rec.Status)
@@ -96,7 +87,6 @@ page 190 "Incoming Documents"
                     ApplicationArea = Basic, Suite;
                     DrillDown = true;
                     StyleExpr = StatusStyleText;
-                    ToolTip = 'Specifies the status of the incoming document record.';
 
                     trigger OnDrillDown()
                     var
@@ -109,7 +99,6 @@ page 190 "Incoming Documents"
                 field("OCR Status"; Rec."OCR Status")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the status of the incoming document record when it takes part in the OCR process.';
 
                     trigger OnDrillDown()
                     var
@@ -124,64 +113,53 @@ page 190 "Incoming Documents"
                 {
                     ApplicationArea = Basic, Suite;
                     Editable = false;
-                    ToolTip = 'Specifies the process stage of the track ID in relation to the OCR service.';
                 }
                 field("Created Date-Time"; Rec."Created Date-Time")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies when the incoming document line was created.';
                     Visible = false;
                 }
                 field("Created By User Name"; Rec."Created By User Name")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the name of the user who created the incoming document line.';
                     Visible = false;
                 }
                 field("Released Date-Time"; Rec."Released Date-Time")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies when the incoming document was approved.';
                     Visible = false;
                 }
                 field("Released By User Name"; Rec."Released By User Name")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the name of the user who approved the incoming document.';
                     Visible = false;
                 }
                 field("Last Date-Time Modified"; Rec."Last Date-Time Modified")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies when the incoming document line was last modified.';
                     Visible = false;
                 }
                 field("Last Modified By User Name"; Rec."Last Modified By User Name")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the name of the user who last modified the incoming document line.';
                     Visible = false;
                 }
                 field("Posted Date-Time"; Rec."Posted Date-Time")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies when the related document or journal line was posted.';
                     Visible = false;
                 }
                 field("Document Type"; Rec."Document Type")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the type of document or journal that the incoming document can be connected to.';
                 }
                 field("Document No."; Rec."Document No.")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the number of the related document or journal line that is created for the incoming document.';
                 }
                 field("Posting Date"; Rec."Posting Date")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies when the document or journal line that relates to the incoming document was posted.';
                     Visible = false;
                 }
                 field(Processed; Rec.Processed)
@@ -189,7 +167,6 @@ page 190 "Incoming Documents"
                     ApplicationArea = Basic, Suite;
                     DrillDown = true;
                     StyleExpr = StatusStyleText;
-                    ToolTip = 'Specifies if the incoming document has been processed.';
 
                     trigger OnDrillDown()
                     var
@@ -823,7 +800,8 @@ page 190 "Incoming Documents"
         UpdateOCRSetupVisibility();
 
         Rec.FilterGroup(0);
-        SetProcessedDocumentsVisibility(Rec.GetFilter(Processed) = Format(true));
+        if Rec.GetFilter(Processed) <> '' then
+            SetProcessedDocumentsVisibility(Rec.GetFilter(Processed) = Format(true));
     end;
 
     var

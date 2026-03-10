@@ -15,11 +15,13 @@ table 285 "Transaction Specification"
         field(1; "Code"; Code[10])
         {
             Caption = 'Code';
+            ToolTip = 'Specifies a code for the transaction specification.';
             NotBlank = true;
         }
         field(2; Text; Text[200])
         {
             Caption = 'Text';
+            ToolTip = 'Specifies a description of the transaction specification.';
         }
     }
 

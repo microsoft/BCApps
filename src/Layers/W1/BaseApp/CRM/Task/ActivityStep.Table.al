@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -24,20 +24,24 @@ table 5082 "Activity Step"
         field(3; Type; Enum "Task Type")
         {
             Caption = 'Type';
+            ToolTip = 'Specifies the type of the step. There are three options:';
         }
         field(4; Description; Text[100])
         {
             Caption = 'Description';
+            ToolTip = 'Specifies the description of the step.';
         }
         field(5; Priority; Option)
         {
             Caption = 'Priority';
+            ToolTip = 'Specifies the priority of the step.';
             OptionCaption = 'Low,Normal,High';
             OptionMembers = Low,Normal,High;
         }
         field(6; "Date Formula"; DateFormula)
         {
             Caption = 'Date Formula';
+            ToolTip = 'Specifies the date formula that determines how to calculate when the step should be completed.';
         }
     }
 

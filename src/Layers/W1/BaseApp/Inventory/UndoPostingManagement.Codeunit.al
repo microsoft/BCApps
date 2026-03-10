@@ -673,6 +673,7 @@ codeunit 5817 "Undo Posting Management"
             TempItemEntryRelation.Insert();
             TempItemLedgEntry := TempApplyToItemLedgEntry;
             TempItemLedgEntry.Insert();
+            OnPostItemJnlLineAppliedToListOnAfterInsertTempItemLedgEntry(ItemJnlLine, TempApplyToItemLedgEntry);
         until TempApplyToItemLedgEntry.Next() = 0;
     end;
 
@@ -1548,6 +1549,11 @@ codeunit 5817 "Undo Posting Management"
 
     [IntegrationEvent(false, false)]
     local procedure OnCollectOutputItemLedgEntriesForSubcontructingPurcReceiptLine(var TempItemLedgerEntry: Record "Item Ledger Entry" temporary; PurchRcptLine: Record "Purch. Rcpt. Line"; var Result: Boolean)
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnPostItemJnlLineAppliedToListOnAfterInsertTempItemLedgEntry(var ItemJournalLine: Record "Item Journal Line"; TempApplyToItemLedgerEntry: Record "Item Ledger Entry" temporary)
     begin
     end;
 }

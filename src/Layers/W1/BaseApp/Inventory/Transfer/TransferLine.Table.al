@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -35,6 +35,7 @@ table 5741 "Transfer Line"
         field(1; "Document No."; Code[20])
         {
             Caption = 'Document No.';
+            ToolTip = 'Specifies the document number that is associated with the line or entry.';
         }
         field(2; "Line No."; Integer)
         {
@@ -43,6 +44,7 @@ table 5741 "Transfer Line"
         field(3; "Item No."; Code[20])
         {
             Caption = 'Item No.';
+            ToolTip = 'Specifies the number of the item that will be transferred.';
             TableRelation = Item where(Type = const(Inventory),
                                         Blocked = const(false));
             ValidateTableRelation = false;
@@ -103,6 +105,7 @@ table 5741 "Transfer Line"
         {
             AutoFormatType = 0;
             Caption = 'Quantity';
+            ToolTip = 'Specifies the quantity of the item that will be processed as the document stipulates.';
             DecimalPlaces = 0 : 5;
             MinValue = 0;
 
@@ -146,6 +149,7 @@ table 5741 "Transfer Line"
         field(5; "Unit of Measure"; Text[50])
         {
             Caption = 'Unit of Measure';
+            ToolTip = 'Specifies the name of the item or resource''s unit of measure, such as piece or hour.';
 
             trigger OnValidate()
             begin
@@ -157,6 +161,7 @@ table 5741 "Transfer Line"
         {
             AutoFormatType = 0;
             Caption = 'Qty. to Ship';
+            ToolTip = 'Specifies the quantity of items that remain to be shipped.';
             DecimalPlaces = 0 : 5;
             MinValue = 0;
 
@@ -193,6 +198,7 @@ table 5741 "Transfer Line"
         {
             AutoFormatType = 0;
             Caption = 'Qty. to Receive';
+            ToolTip = 'Specifies the quantity of items that remains to be received.';
             DecimalPlaces = 0 : 5;
             MinValue = 0;
 
@@ -233,6 +239,7 @@ table 5741 "Transfer Line"
         {
             AutoFormatType = 0;
             Caption = 'Quantity Shipped';
+            ToolTip = 'Specifies how many units of the item on the line have been posted as shipped.';
             DecimalPlaces = 0 : 5;
             Editable = false;
 
@@ -249,6 +256,7 @@ table 5741 "Transfer Line"
         {
             AutoFormatType = 0;
             Caption = 'Quantity Received';
+            ToolTip = 'Specifies how many units of the item on the line have been posted as received.';
             DecimalPlaces = 0 : 5;
             Editable = false;
 
@@ -271,6 +279,7 @@ table 5741 "Transfer Line"
         {
             CaptionClass = '1,2,1';
             Caption = 'Shortcut Dimension 1 Code';
+            ToolTip = 'Specifies the code for Shortcut Dimension 1, which is one of two global dimension codes that you set up in the General Ledger Setup window.';
             TableRelation = "Dimension Value".Code where("Global Dimension No." = const(1),
                                                           Blocked = const(false));
 
@@ -283,6 +292,7 @@ table 5741 "Transfer Line"
         {
             CaptionClass = '1,2,2';
             Caption = 'Shortcut Dimension 2 Code';
+            ToolTip = 'Specifies the code for Shortcut Dimension 2, which is one of two global dimension codes that you set up in the General Ledger Setup window.';
             TableRelation = "Dimension Value".Code where("Global Dimension No." = const(2),
                                                           Blocked = const(false));
 
@@ -294,6 +304,7 @@ table 5741 "Transfer Line"
         field(13; Description; Text[100])
         {
             Caption = 'Description';
+            ToolTip = 'Specifies a description of the item.';
             TableRelation = Item where(Type = const(Inventory),
                                         Blocked = const(false));
             ValidateTableRelation = false;
@@ -458,6 +469,7 @@ table 5741 "Transfer Line"
         field(23; "Unit of Measure Code"; Code[10])
         {
             Caption = 'Unit of Measure Code';
+            ToolTip = 'Specifies how each unit of the item or resource is measured, such as in pieces or hours. By default, the value in the Base Unit of Measure field on the item or resource card is inserted.';
             TableRelation = "Item Unit of Measure".Code where("Item No." = field("Item No."));
 
             trigger OnValidate()
@@ -495,6 +507,7 @@ table 5741 "Transfer Line"
         {
             AutoFormatType = 0;
             Caption = 'Outstanding Quantity';
+            ToolTip = 'Specifies the quantity of the items that remains to be shipped.';
             DecimalPlaces = 0 : 5;
             Editable = false;
         }
@@ -539,6 +552,7 @@ table 5741 "Transfer Line"
         field(30; "Variant Code"; Code[10])
         {
             Caption = 'Variant Code';
+            ToolTip = 'Specifies the variant of the item on the line.';
             TableRelation = "Item Variant".Code where("Item No." = field("Item No."), Blocked = const(false));
 
             trigger OnValidate()
@@ -573,6 +587,7 @@ table 5741 "Transfer Line"
         field(32; "Description 2"; Text[50])
         {
             Caption = 'Description 2';
+            ToolTip = 'Specifies information in addition to the description of the item being transferred.';
         }
         field(33; "In-Transit Code"; Code[10])
         {
@@ -589,6 +604,7 @@ table 5741 "Transfer Line"
         {
             AutoFormatType = 0;
             Caption = 'Qty. in Transit';
+            ToolTip = 'Specifies the quantity of the item that is in transit.';
             DecimalPlaces = 0 : 5;
             Editable = false;
         }
@@ -602,6 +618,7 @@ table 5741 "Transfer Line"
         field(36; "Transfer-from Code"; Code[10])
         {
             Caption = 'Transfer-from Code';
+            ToolTip = 'Specifies the code of the location that items are transferred from.';
             Editable = false;
             TableRelation = Location;
 
@@ -625,6 +642,7 @@ table 5741 "Transfer Line"
         field(37; "Transfer-to Code"; Code[10])
         {
             Caption = 'Transfer-to Code';
+            ToolTip = 'Specifies the code of the location that the items are transferred to.';
             Editable = false;
             TableRelation = Location;
 
@@ -654,6 +672,7 @@ table 5741 "Transfer Line"
         field(38; "Shipment Date"; Date)
         {
             Caption = 'Shipment Date';
+            ToolTip = 'Specifies when items on the document are shipped or were shipped. A shipment date is usually calculated from a requested delivery date plus lead time.';
 
             trigger OnValidate()
             var
@@ -674,6 +693,7 @@ table 5741 "Transfer Line"
         field(39; "Receipt Date"; Date)
         {
             Caption = 'Receipt Date';
+            ToolTip = 'Specifies the date that you expect the transfer-to location to receive the shipment.';
 
             trigger OnValidate()
             var
@@ -704,6 +724,7 @@ table 5741 "Transfer Line"
         {
             AccessByPermission = TableData "Shipping Agent Services" = R;
             Caption = 'Shipping Agent Code';
+            ToolTip = 'Specifies the code for the shipping agent who is transporting the items.';
             TableRelation = "Shipping Agent";
 
             trigger OnValidate()
@@ -717,6 +738,7 @@ table 5741 "Transfer Line"
         field(42; "Shipping Agent Service Code"; Code[10])
         {
             Caption = 'Shipping Agent Service Code';
+            ToolTip = 'Specifies the code for the service, such as a one-day delivery, that is offered by the shipping agent.';
             TableRelation = "Shipping Agent Services".Code where("Shipping Agent Code" = field("Shipping Agent Code"));
 
             trigger OnValidate()
@@ -736,6 +758,7 @@ table 5741 "Transfer Line"
         {
             AccessByPermission = TableData Item = R;
             Caption = 'Appl.-to Item Entry';
+            ToolTip = 'Specifies the number of the item ledger entry that the document or journal line is applied to.';
 
             trigger OnLookup()
             begin
@@ -772,6 +795,7 @@ table 5741 "Transfer Line"
                                                                   "Source Prod. Order Line" = field("Derived From Line No."),
                                                                   "Reservation Status" = const(Reservation)));
             Caption = 'Reserved Quantity Inbnd.';
+            ToolTip = 'Specifies the quantity of the item reserved at the transfer-to location.';
             DecimalPlaces = 0 : 5;
             Editable = false;
             FieldClass = FlowField;
@@ -786,6 +810,7 @@ table 5741 "Transfer Line"
                                                                    "Source Prod. Order Line" = field("Derived From Line No."),
                                                                    "Reservation Status" = const(Reservation)));
             Caption = 'Reserved Quantity Outbnd.';
+            ToolTip = 'Specifies the quantity of the item reserved at the transfer-from location.';
             DecimalPlaces = 0 : 5;
             Editable = false;
             FieldClass = FlowField;
@@ -822,6 +847,7 @@ table 5741 "Transfer Line"
         {
             AccessByPermission = TableData "Shipping Agent Services" = R;
             Caption = 'Shipping Time';
+            ToolTip = 'Specifies how long it takes from when the items are shipped from the warehouse to when they are delivered.';
 
             trigger OnValidate()
             begin
@@ -841,6 +867,7 @@ table 5741 "Transfer Line"
                                                                   "Source Prod. Order Line" = field("Line No."),
                                                                   "Reservation Status" = const(Reservation)));
             Caption = 'Reserved Quantity Shipped';
+            ToolTip = 'Specifies how many units on the shipped transfer order are reserved.';
             DecimalPlaces = 0 : 5;
             Editable = false;
             FieldClass = FlowField;
@@ -923,6 +950,7 @@ table 5741 "Transfer Line"
         field(5793; "Outbound Whse. Handling Time"; DateFormula)
         {
             Caption = 'Outbound Whse. Handling Time';
+            ToolTip = 'Specifies a date formula for the time it takes to get items ready to ship from this location. The time element is used in the calculation of the delivery date as follows: Shipment Date + Outbound Warehouse Handling Time = Planned Shipment Date + Shipping Time = Planned Delivery Date.';
 
             trigger OnValidate()
             begin
@@ -935,6 +963,7 @@ table 5741 "Transfer Line"
         field(5794; "Inbound Whse. Handling Time"; DateFormula)
         {
             Caption = 'Inbound Whse. Handling Time';
+            ToolTip = 'Specifies the time it takes to make items part of available inventory, after the items have been posted as received.';
 
             trigger OnValidate()
             begin
@@ -947,6 +976,7 @@ table 5741 "Transfer Line"
         field(7300; "Transfer-from Bin Code"; Code[20])
         {
             Caption = 'Transfer-from Bin Code';
+            ToolTip = 'Specifies the code for the bin that the items are transferred from.';
             TableRelation = "Bin Content"."Bin Code" where("Location Code" = field("Transfer-from Code"),
                                                             "Item No." = field("Item No."),
                                                             "Variant Code" = field("Variant Code"));
@@ -969,6 +999,7 @@ table 5741 "Transfer Line"
         field(7301; "Transfer-To Bin Code"; Code[20])
         {
             Caption = 'Transfer-To Bin Code';
+            ToolTip = 'Specifies the code for the bin that the items are transferred to.';
             TableRelation = Bin.Code where("Location Code" = field("Transfer-to Code"));
 
             trigger OnValidate()
@@ -988,6 +1019,7 @@ table 5741 "Transfer Line"
         field(99000755; "Planning Flexibility"; Enum "Reservation Planning Flexibility")
         {
             Caption = 'Planning Flexibility';
+            ToolTip = 'Specifies whether the supply represented by this line is considered by the planning system when calculating action messages.';
 
             trigger OnValidate()
             begin

@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -20,7 +20,6 @@ page 9090 "Item Replenishment FactBox"
             {
                 ApplicationArea = Planning;
                 Caption = 'Item No.';
-                ToolTip = 'Specifies the number of the item.';
 
                 trigger OnDrillDown()
                 begin
@@ -55,7 +54,6 @@ page 9090 "Item Replenishment FactBox"
                 {
                     ApplicationArea = Planning;
                     Lookup = false;
-                    ToolTip = 'Specifies the number that the vendor uses for this item.';
                 }
             }
         }

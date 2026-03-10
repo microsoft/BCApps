@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -48,7 +48,6 @@ page 5169 "Profile Questn. Line Subform"
                     Editable = false;
                     Style = Strong;
                     StyleExpr = StyleIsStrong;
-                    ToolTip = 'Specifies the profile question or answer.';
                 }
             }
         }

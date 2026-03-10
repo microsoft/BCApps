@@ -29,14 +29,17 @@ table 5336 "Integration Field Mapping"
         field(3; "Field No."; Integer)
         {
             Caption = 'Field No.';
+            ToolTip = 'Specifies the number of the field in Business Central.';
         }
         field(4; "Integration Table Field No."; Integer)
         {
             Caption = 'Integration Table Field No.';
+            ToolTip = 'Specifies the number of the field in Dynamics 365 Sales.';
         }
         field(6; Direction; Option)
         {
             Caption = 'Direction';
+            ToolTip = 'Specifies the direction of the synchronization.';
             OptionCaption = 'Bidirectional,ToIntegrationTable,FromIntegrationTable';
             OptionMembers = Bidirectional,ToIntegrationTable,FromIntegrationTable;
 
@@ -77,18 +80,22 @@ table 5336 "Integration Field Mapping"
         field(7; "Constant Value"; Text[100])
         {
             Caption = 'Constant Value';
+            ToolTip = 'Specifies the constant value that the mapped field will be set to.';
         }
         field(8; "Validate Field"; Boolean)
         {
             Caption = 'Validate Field';
+            ToolTip = 'Specifies if the field should be validated during assignment in Business Central.';
         }
         field(9; "Validate Integration Table Fld"; Boolean)
         {
             Caption = 'Validate Integration Table Fld';
+            ToolTip = 'Specifies if the integration field should be validated during assignment in Dynamics 365 Sales.';
         }
         field(10; "Clear Value on Failed Sync"; Boolean)
         {
             Caption = 'Clear Value on Failed Sync';
+            ToolTip = 'Specifies if the field value should be cleared in case of integration error during assignment in Dynamics 365 Sales.';
 
             trigger OnValidate()
             begin
@@ -98,12 +105,14 @@ table 5336 "Integration Field Mapping"
         field(11; Status; Option)
         {
             Caption = 'Status';
+            ToolTip = 'Specifies if field synchronization is enabled or disabled.';
             OptionCaption = 'Enabled,Disabled';
             OptionMembers = Enabled,Disabled;
         }
         field(12; "Not Null"; Boolean)
         {
             Caption = 'Not Null';
+            ToolTip = 'Specifies if the data transfer should be skipped for destination fields whose new value is going to be null. This is only applicable for GUID fields, such as OwnerId, that must not be changed to null during synchronization.';
 
             trigger OnValidate()
             begin
@@ -115,12 +124,14 @@ table 5336 "Integration Field Mapping"
         field(13; "Transformation Rule"; Code[20])
         {
             Caption = 'Transformation Rule';
+            ToolTip = 'Specifies a rule for transforming imported text to a supported value before it can be mapped to a specified field in Microsoft Dynamics 365.';
             DataClassification = SystemMetadata;
             TableRelation = "Transformation Rule";
         }
         field(14; "Transformation Direction"; Enum "CDS Transformation Direction")
         {
             Caption = 'Transformation Direction';
+            ToolTip = 'Specifies the direction of the transformation.';
 
             trigger OnValidate()
             begin
@@ -130,16 +141,19 @@ table 5336 "Integration Field Mapping"
         field(15; "Use For Match-Based Coupling"; Boolean)
         {
             Caption = 'Use For Match-Based Coupling';
+            ToolTip = 'Specifies whether to match on this field when looking for the entity to couple to.';
         }
         field(16; "Case-Sensitive Matching"; Boolean)
         {
             Caption = 'Case-Sensitive Matching';
+            ToolTip = 'Specifies whether the matching on this field should be case-sensitive.';
         }
         field(17; "Match Priority"; Integer)
         {
             MinValue = 0;
             BlankZero = true;
             Caption = 'Match Priority';
+            ToolTip = 'Specifies in which priority order will the groups of matching fields be used to find a match.';
         }
         field(18; "Field Caption"; Text[250])
         {
@@ -152,6 +166,7 @@ table 5336 "Integration Field Mapping"
         field(20; "User Defined"; Boolean)
         {
             Caption = 'User Defined';
+            ToolTip = 'Specifies if the field is generated manually through the integration table mapping wizard.';
             Description = 'Indicates whether the field mapping was defined manually by the user or by the system.';
         }
     }

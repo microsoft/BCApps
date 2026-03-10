@@ -22,7 +22,6 @@ page 405 Areas
                 field("Code"; Rec.Code)
                 {
                     ApplicationArea = BasicEU, BasicNO;
-                    ToolTip = 'Specifies a code for the area.';
                 }
                 field("Post Code Prefix"; Rec."Post Code Prefix")
                 {
@@ -32,7 +31,6 @@ page 405 Areas
                 field(Text; Rec.Text)
                 {
                     ApplicationArea = BasicEU, BasicNO;
-                    ToolTip = 'Specifies a description of the area.';
                 }
             }
         }

@@ -120,7 +120,7 @@ codeunit 6458 "Serv. PEPPOL Management"
 #pragma warning disable AL0432
     // XML Port "Sales Credit Memo - PEPPOL 2.0"
 
-    [EventSubscriber(ObjectType::XmlPort, XmlPort::"Sales Credit Memo - PEPPOL 2.0", 'OnInitialize', '', false, false)]
+    [EventSubscriber(ObjectType::XmlPort, XmlPort::"Sales Credit Memo - PEPPOL 2.0", 'OnInitialize', '', true, false)]
     local procedure CreditMemoPEPPOL20_OnInitializeOnSetSourceDocument(SourceRecRef: RecordRef; var ProcessedDocType: Enum "PEPPOL Processing Type"; var IsHandled: Boolean)
     begin
         if SourceRecRef.Number = DATABASE::"Service Cr.Memo Header" then begin
@@ -134,19 +134,19 @@ codeunit 6458 "Serv. PEPPOL Management"
         end;
     end;
 
-    [EventSubscriber(ObjectType::XmlPort, XmlPort::"Sales Credit Memo - PEPPOL 2.0", 'OnFindNextCreditMemoRec', '', false, false)]
+    [EventSubscriber(ObjectType::XmlPort, XmlPort::"Sales Credit Memo - PEPPOL 2.0", 'OnFindNextCreditMemoRec', '', true, false)]
     local procedure CreditMemoPEPPOL20_OnFindNextCreditMemoRec(Position: Integer; var SalesHeader: Record "Sales Header"; var Found: Boolean)
     begin
         Found := FindNextServiceCreditMemoRec(ServiceCrMemoHeader, SalesHeader, Position);
     end;
 
-    [EventSubscriber(ObjectType::XmlPort, XmlPort::"Sales Credit Memo - PEPPOL 2.0", 'OnFindNextCreditMemoLineRec', '', false, false)]
+    [EventSubscriber(ObjectType::XmlPort, XmlPort::"Sales Credit Memo - PEPPOL 2.0", 'OnFindNextCreditMemoLineRec', '', true, false)]
     local procedure CreditMemoPEPPOL20_OnFindNextCreditMemoLineRec(Position: Integer; var SalesLine: Record "Sales Line"; var Found: Boolean)
     begin
         Found := FindNextServiceCreditMemoLineRec(ServiceCrMemoLine, SalesLine, Position);
     end;
 
-    [EventSubscriber(ObjectType::XmlPort, XmlPort::"Sales Credit Memo - PEPPOL 2.0", 'OnGetTotals', '', false, false)]
+    [EventSubscriber(ObjectType::XmlPort, XmlPort::"Sales Credit Memo - PEPPOL 2.0", 'OnGetTotals', '', true, false)]
     local procedure CreditMemoPEPPOL20_OnGetTotals(var SalesLine: Record "Sales Line"; var TempVATAmtLine: Record "VAT Amount Line" temporary; ProcessedDocType: Enum "PEPPOL Processing Type")
     begin
         if ProcessedDocType = ProcessedDocType::Service then begin
@@ -166,7 +166,7 @@ codeunit 6458 "Serv. PEPPOL Management"
 #pragma warning disable AL0432
     // XML Port "Sales Credit Memo - PEPPOL 2.1"
 
-    [EventSubscriber(ObjectType::XmlPort, XmlPort::"Sales Credit Memo - PEPPOL 2.0", 'OnInitialize', '', false, false)]
+    [EventSubscriber(ObjectType::XmlPort, XmlPort::"Sales Credit Memo - PEPPOL 2.0", 'OnInitialize', '', true, false)]
     local procedure CreditMemoPEPPOL21_OnInitializeOnSetSourceDocument(SourceRecRef: RecordRef; var ProcessedDocType: Enum "PEPPOL Processing Type"; var IsHandled: Boolean)
     begin
         if SourceRecRef.Number = DATABASE::"Service Cr.Memo Header" then begin
@@ -180,19 +180,19 @@ codeunit 6458 "Serv. PEPPOL Management"
         end;
     end;
 
-    [EventSubscriber(ObjectType::XmlPort, XmlPort::"Sales Credit Memo - PEPPOL 2.0", 'OnFindNextCreditMemoRec', '', false, false)]
+    [EventSubscriber(ObjectType::XmlPort, XmlPort::"Sales Credit Memo - PEPPOL 2.0", 'OnFindNextCreditMemoRec', '', true, false)]
     local procedure CreditMemoPEPPOL21_OnFindNextCreditMemoRec(Position: Integer; var SalesHeader: Record "Sales Header"; var Found: Boolean)
     begin
         Found := FindNextServiceCreditMemoRec(ServiceCrMemoHeader, SalesHeader, Position);
     end;
 
-    [EventSubscriber(ObjectType::XmlPort, XmlPort::"Sales Credit Memo - PEPPOL 2.0", 'OnFindNextCreditMemoLineRec', '', false, false)]
+    [EventSubscriber(ObjectType::XmlPort, XmlPort::"Sales Credit Memo - PEPPOL 2.0", 'OnFindNextCreditMemoLineRec', '', true, false)]
     local procedure CreditMemoPEPPOL21_OnFindNextCreditMemoLineRec(Position: Integer; var SalesLine: Record "Sales Line"; var Found: Boolean)
     begin
         Found := FindNextServiceCreditMemoLineRec(ServiceCrMemoLine, SalesLine, Position);
     end;
 
-    [EventSubscriber(ObjectType::XmlPort, XmlPort::"Sales Credit Memo - PEPPOL 2.0", 'OnGetTotals', '', false, false)]
+    [EventSubscriber(ObjectType::XmlPort, XmlPort::"Sales Credit Memo - PEPPOL 2.0", 'OnGetTotals', '', true, false)]
     local procedure CreditMemoPEPPOL21_OnGetTotals(var SalesLine: Record "Sales Line"; var TempVATAmtLine: Record "VAT Amount Line" temporary; ProcessedDocType: Enum "PEPPOL Processing Type")
     begin
         if ProcessedDocType = ProcessedDocType::Service then begin
@@ -210,7 +210,7 @@ codeunit 6458 "Serv. PEPPOL Management"
 
     // XML Port "Sales Cr.Memo - PEPPOL BIS 3.0"
 
-    [EventSubscriber(ObjectType::XmlPort, XmlPort::"Sales Cr.Memo - PEPPOL BIS 3.0", 'OnInitialize', '', false, false)]
+    [EventSubscriber(ObjectType::XmlPort, XmlPort::"Sales Cr.Memo - PEPPOL BIS 3.0", 'OnInitialize', '', true, false)]
     local procedure CreditMemoPEPPOLBIS30_OnInitialize(SourceRecRef: RecordRef; var TempSalesLineRounding: Record "Sales Line" temporary; var DocumentAttachments: Record "Document Attachment"; var ProcessedDocType: Enum "PEPPOL Processing Type"; var IsHandled: Boolean)
     var
         SalesLine: Record "Sales Line";
@@ -240,19 +240,19 @@ codeunit 6458 "Serv. PEPPOL Management"
         end;
     end;
 
-    [EventSubscriber(ObjectType::XmlPort, XmlPort::"Sales Cr.Memo - PEPPOL BIS 3.0", 'OnFindNextCreditMemoRec', '', false, false)]
+    [EventSubscriber(ObjectType::XmlPort, XmlPort::"Sales Cr.Memo - PEPPOL BIS 3.0", 'OnFindNextCreditMemoRec', '', true, false)]
     local procedure CreditMemoPEPPOLBIS30_OnFindNextCreditMemoRec(Position: Integer; var SalesHeader: Record "Sales Header"; var Found: Boolean)
     begin
         Found := FindNextServiceCreditMemoRec(ServiceCrMemoHeader, SalesHeader, Position);
     end;
 
-    [EventSubscriber(ObjectType::XmlPort, XmlPort::"Sales Cr.Memo - PEPPOL BIS 3.0", 'OnFindNextCreditMemoLineRec', '', false, false)]
+    [EventSubscriber(ObjectType::XmlPort, XmlPort::"Sales Cr.Memo - PEPPOL BIS 3.0", 'OnFindNextCreditMemoLineRec', '', true, false)]
     local procedure CreditMemoPEPPOLBIS30_OnFindNextCreditMemoLineRec(Position: Integer; var SalesLine: Record "Sales Line"; var Found: Boolean)
     begin
         Found := FindNextServiceCreditMemoLineRec(ServiceCrMemoLine, SalesLine, Position);
     end;
 
-    [EventSubscriber(ObjectType::XmlPort, XmlPort::"Sales Cr.Memo - PEPPOL BIS 3.0", 'OnGetTotals', '', false, false)]
+    [EventSubscriber(ObjectType::XmlPort, XmlPort::"Sales Cr.Memo - PEPPOL BIS 3.0", 'OnGetTotals', '', true, false)]
     local procedure CreditMemoPEPPOLBIS30_OnGetTotals(var SalesLine: Record "Sales Line"; var TempVATAmtLine: Record "VAT Amount Line" temporary; var TempVATProductPostingGroup: Record "VAT Product Posting Group" temporary; ProcessedDocType: Enum "PEPPOL Processing Type")
     begin
         if ProcessedDocType = ProcessedDocType::Service then begin
@@ -271,7 +271,7 @@ codeunit 6458 "Serv. PEPPOL Management"
 #pragma warning disable AL0432
     // XML Port "Sales Invoice Memo - PEPPOL 2.0"
 
-    [EventSubscriber(ObjectType::XmlPort, XmlPort::"Sales Invoice - PEPPOL 2.0", 'OnInitialize', '', false, false)]
+    [EventSubscriber(ObjectType::XmlPort, XmlPort::"Sales Invoice - PEPPOL 2.0", 'OnInitialize', '', true, false)]
     local procedure InvoicePEPPOL20_OnInitializeOnSetSourceDocument(SourceRecRef: RecordRef; var ProcessedDocType: Enum "PEPPOL Processing Type"; var IsHandled: Boolean)
     begin
         if SourceRecRef.Number = DATABASE::"Service Invoice Header" then begin
@@ -285,19 +285,19 @@ codeunit 6458 "Serv. PEPPOL Management"
         end;
     end;
 
-    [EventSubscriber(ObjectType::XmlPort, XmlPort::"Sales Invoice - PEPPOL 2.0", 'OnFindNextInvoiceRec', '', false, false)]
+    [EventSubscriber(ObjectType::XmlPort, XmlPort::"Sales Invoice - PEPPOL 2.0", 'OnFindNextInvoiceRec', '', true, false)]
     local procedure InvoicePEPPOL20_OnFindNextInvoiceRec(Position: Integer; var SalesHeader: Record "Sales Header"; var Found: Boolean)
     begin
         Found := FindNextServiceInvoiceRec(ServiceInvoiceHeader, SalesHeader, Position);
     end;
 
-    [EventSubscriber(ObjectType::XmlPort, XmlPort::"Sales Invoice - PEPPOL 2.0", 'OnFindNextInvoiceLineRec', '', false, false)]
+    [EventSubscriber(ObjectType::XmlPort, XmlPort::"Sales Invoice - PEPPOL 2.0", 'OnFindNextInvoiceLineRec', '', true, false)]
     local procedure InvoicePEPPOL20_OnFindNextInvoiceLineRec(Position: Integer; var SalesLine: Record "Sales Line"; var Found: Boolean)
     begin
         Found := FindNextServiceInvoiceLineRec(ServiceInvoiceLine, SalesLine, Position);
     end;
 
-    [EventSubscriber(ObjectType::XmlPort, XmlPort::"Sales Invoice - PEPPOL 2.0", 'OnGetTotals', '', false, false)]
+    [EventSubscriber(ObjectType::XmlPort, XmlPort::"Sales Invoice - PEPPOL 2.0", 'OnGetTotals', '', true, false)]
     local procedure InvoicePEPPOL20_OnGetTotals(var SalesLine: Record "Sales Line"; var TempVATAmtLine: Record "VAT Amount Line" temporary; ProcessedDocType: Enum "PEPPOL Processing Type")
     begin
         if ProcessedDocType = ProcessedDocType::Service then begin
@@ -317,7 +317,7 @@ codeunit 6458 "Serv. PEPPOL Management"
 #pragma warning disable AL0432
     // XML Port "Sales Invoice Memo - PEPPOL 2.1"
 
-    [EventSubscriber(ObjectType::XmlPort, XmlPort::"Sales Invoice - PEPPOL 2.1", 'OnInitialize', '', false, false)]
+    [EventSubscriber(ObjectType::XmlPort, XmlPort::"Sales Invoice - PEPPOL 2.1", 'OnInitialize', '', true, false)]
     local procedure InvoicePEPPOL21_OnInitializeOnSetSourceDocument(SourceRecRef: RecordRef; var ProcessedDocType: Enum "PEPPOL Processing Type"; var IsHandled: Boolean)
     begin
         if SourceRecRef.Number = DATABASE::"Service Invoice Header" then begin
@@ -331,19 +331,19 @@ codeunit 6458 "Serv. PEPPOL Management"
         end;
     end;
 
-    [EventSubscriber(ObjectType::XmlPort, XmlPort::"Sales Invoice - PEPPOL 2.1", 'OnFindNextInvoiceRec', '', false, false)]
+    [EventSubscriber(ObjectType::XmlPort, XmlPort::"Sales Invoice - PEPPOL 2.1", 'OnFindNextInvoiceRec', '', true, false)]
     local procedure InvoicePEPPOL21_OnFindNextInvoiceRec(Position: Integer; var SalesHeader: Record "Sales Header"; var Found: Boolean)
     begin
         Found := FindNextServiceInvoiceRec(ServiceInvoiceHeader, SalesHeader, Position);
     end;
 
-    [EventSubscriber(ObjectType::XmlPort, XmlPort::"Sales Invoice - PEPPOL 2.1", 'OnFindNextInvoiceLineRec', '', false, false)]
+    [EventSubscriber(ObjectType::XmlPort, XmlPort::"Sales Invoice - PEPPOL 2.1", 'OnFindNextInvoiceLineRec', '', true, false)]
     local procedure InvoicePEPPOL21_OnFindNextInvoiceLineRec(Position: Integer; var SalesLine: Record "Sales Line"; var Found: Boolean)
     begin
         Found := FindNextServiceInvoiceLineRec(ServiceInvoiceLine, SalesLine, Position);
     end;
 
-    [EventSubscriber(ObjectType::XmlPort, XmlPort::"Sales Invoice - PEPPOL 2.1", 'OnGetTotals', '', false, false)]
+    [EventSubscriber(ObjectType::XmlPort, XmlPort::"Sales Invoice - PEPPOL 2.1", 'OnGetTotals', '', true, false)]
     local procedure InvoicePEPPOL21_OnGetTotals(var SalesLine: Record "Sales Line"; var TempVATAmtLine: Record "VAT Amount Line" temporary; ProcessedDocType: Enum "PEPPOL Processing Type")
     begin
         if ProcessedDocType = ProcessedDocType::Service then begin
@@ -361,7 +361,7 @@ codeunit 6458 "Serv. PEPPOL Management"
 
     // XML Port "Sales Invoice - PEPPOL BIS 3.0"
 
-    [EventSubscriber(ObjectType::XmlPort, XmlPort::"Sales Invoice - PEPPOL BIS 3.0", 'OnInitialize', '', false, false)]
+    [EventSubscriber(ObjectType::XmlPort, XmlPort::"Sales Invoice - PEPPOL BIS 3.0", 'OnInitialize', '', true, false)]
     local procedure InvoicePEPPOLBIS30_OnInitialize(SourceRecRef: RecordRef; var TempSalesLineRounding: Record "Sales Line" temporary; var DocumentAttachments: Record "Document Attachment"; var ProcessedDocType: Enum "PEPPOL Processing Type"; var IsHandled: Boolean)
     var
         SalesLine: Record "Sales Line";
@@ -391,19 +391,19 @@ codeunit 6458 "Serv. PEPPOL Management"
         end;
     end;
 
-    [EventSubscriber(ObjectType::XmlPort, XmlPort::"Sales Invoice - PEPPOL BIS 3.0", 'OnFindNextInvoiceRec', '', false, false)]
+    [EventSubscriber(ObjectType::XmlPort, XmlPort::"Sales Invoice - PEPPOL BIS 3.0", 'OnFindNextInvoiceRec', '', true, false)]
     local procedure InvoicePEPPOLBIS30_OnFindNextInvoiceRec(Position: Integer; var SalesHeader: Record "Sales Header"; var Found: Boolean)
     begin
         Found := FindNextServiceInvoiceRec(ServiceInvoiceHeader, SalesHeader, Position);
     end;
 
-    [EventSubscriber(ObjectType::XmlPort, XmlPort::"Sales Invoice - PEPPOL BIS 3.0", 'OnFindNextInvoiceLineRec', '', false, false)]
+    [EventSubscriber(ObjectType::XmlPort, XmlPort::"Sales Invoice - PEPPOL BIS 3.0", 'OnFindNextInvoiceLineRec', '', true, false)]
     local procedure InvoicePEPPOLBIS30_OnFindNextInvoiceLineRec(Position: Integer; var SalesLine: Record "Sales Line"; var Found: Boolean)
     begin
         Found := FindNextServiceInvoiceLineRec(ServiceInvoiceLine, SalesLine, Position);
     end;
 
-    [EventSubscriber(ObjectType::XmlPort, XmlPort::"Sales Invoice - PEPPOL BIS 3.0", 'OnGetTotals', '', false, false)]
+    [EventSubscriber(ObjectType::XmlPort, XmlPort::"Sales Invoice - PEPPOL BIS 3.0", 'OnGetTotals', '', true, false)]
     local procedure InvoicePEPPOLBIS30_OnGetTotals(var SalesLine: Record "Sales Line"; var TempVATAmtLine: Record "VAT Amount Line" temporary; var TempVATProductPostingGroup: Record "VAT Product Posting Group" temporary; ProcessedDocType: Enum "PEPPOL Processing Type")
     begin
         if ProcessedDocType = ProcessedDocType::Service then begin

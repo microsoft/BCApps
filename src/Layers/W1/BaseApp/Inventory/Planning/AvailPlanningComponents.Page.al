@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -29,12 +29,10 @@ page 99000900 "Avail. - Planning Components"
                 field("Location Code"; Rec."Location Code")
                 {
                     ApplicationArea = Location;
-                    ToolTip = 'Specifies the code for the inventory location, where the item on the planning component line will be registered.';
                 }
                 field("Due Date"; Rec."Due Date")
                 {
                     ApplicationArea = Planning;
-                    ToolTip = 'Specifies the date when this planning component must be finished.';
                 }
                 field("Quantity (Base)"; Rec."Quantity (Base)")
                 {

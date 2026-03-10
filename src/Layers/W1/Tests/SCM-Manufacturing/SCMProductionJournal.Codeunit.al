@@ -73,6 +73,9 @@ codeunit 137034 "SCM Production Journal"
         ProductionItemNotFoundErr: Label 'The field %1 of table %2 contains a value (%3) that cannot be found in the related table (%4).', Comment = '%1 - Field Caption, %2 - Table Caption, %3 - Value, %4 - Related Table Caption';
         ProductionBlockedOutputItemErr: Label 'You cannot produce %1 %2 because the %3 is %4 on the %1 card.', Comment = '%1 - Table Caption (Item), %2 - Item No., %3 - Field Caption, %4 - Field Value';
         ProductionBlockedOutputItemVariantErr: Label 'You cannot produce variant %1 for %2 %3 because it is blocked for production output.', Comment = '%1 - Item Variant Code, %2 - Table Caption (Item), %3 - Item No.';
+        ReservedQtyProdCompErr: Label 'Reserved quantity should match production order component expected quantity';
+        ReservationEntryDueDateMissingErr: Label 'Reservation entry should not be created when due date is missing';
+        ReservationEntryInsufficientStockErr: Label 'Reservation entry should not be created when stock is insufficient';
 
     [Test]
     [HandlerFunctions('JournalReservePageHandler')]
@@ -2034,6 +2037,149 @@ codeunit 137034 "SCM Production Journal"
         // Clean up
         ManufacturingSetup."Default Consum. Calc. Based on" := OldCalcBasedOn;
         ManufacturingSetup.Modify();
+    end;
+
+    [Test]
+    procedure TestReserveFromInventoryActionProdOrderComponent()
+    var
+        Item: Record Item;
+        ComponentItem: Record Item;
+        ProductionOrder: Record "Production Order";
+        ProdOrderComponent: Record "Prod. Order Component";
+        ItemJournalLine: Record "Item Journal Line";
+        ComponentQuantity: Decimal;
+    begin
+       // [SCENARIO 617913] Verify the Reserve from inventory creates reservation matching Production Order line quantity.
+        Initialize();
+
+        // [GIVEN] Generate Random component quantity.
+        ComponentQuantity := LibraryRandom.RandDecInRange(10, 20, 2);
+
+        // [GIVEN] Create production item with component.
+        LibraryInventory.CreateItem(ComponentItem);
+        CreateProductionItem(Item, ComponentItem);
+
+        // [GIVEN] Add component item to inventory.
+        LibraryInventory.CreateItemJournalLineInItemTemplate(ItemJournalLine, ComponentItem."No.", '', '', ComponentQuantity);
+        LibraryInventory.PostItemJournalLine(ItemJournalLine."Journal Template Name", ItemJournalLine."Journal Batch Name");
+
+        // [GIVEN] Create and refresh production order.
+        CreateAndRefreshRelProdOrder(ProductionOrder, ProductionOrder."Source Type"::Item, Item."No.");
+
+        // [GIVEN] Find production order component.
+        ProdOrderComponent.SetRange(Status, ProductionOrder.Status);
+        ProdOrderComponent.SetRange("Prod. Order No.", ProductionOrder."No.");
+        ProdOrderComponent.SetRange("Item No.", ComponentItem."No.");
+        ProdOrderComponent.FindFirst();
+
+        // [WHEN] Use ReserveFromInventory action on Production Order Component.
+        ProdOrderComponent.ReserveFromInventory(ProdOrderComponent);
+
+        // [THEN] Verify reserved quantity matches Production component expected quantity.
+        ProdOrderComponent.CalcFields("Reserved Quantity");
+        Assert.AreEqual(ProdOrderComponent."Expected Quantity", ProdOrderComponent."Reserved Quantity",ReservedQtyProdCompErr);
+    end;
+
+    [Test]
+    procedure TestReserveFromInventoryActionInsufficientStockProdOrderComponent()
+    var
+        Item: Record Item;
+        ComponentItem: Record Item;
+        ProductionOrder: Record "Production Order";
+        ProdOrderComponent: Record "Prod. Order Component";
+    begin
+        // [SCENARIO 617913] Verify the Reserve From Inventory errors when insufficient stock exists for full reservation.
+        Initialize();
+
+        // [GIVEN] Create production item.
+        LibraryInventory.CreateItem(ComponentItem);
+        CreateProductionItem(Item, ComponentItem);
+
+        // [GIVEN] Create and refresh production order.
+        CreateAndRefreshRelProdOrder(ProductionOrder, ProductionOrder."Source Type"::Item, Item."No.");
+
+        // [GIVEN] Find production order component for the component item.
+        ProdOrderComponent.SetRange(Status, ProductionOrder.Status);
+        ProdOrderComponent.SetRange("Prod. Order No.", ProductionOrder."No.");
+        ProdOrderComponent.SetRange("Item No.", ComponentItem."No.");
+        ProdOrderComponent.FindFirst();
+
+        // [WHEN] Use ReserveFromInventory on Production Order Component.
+        asserterror ProdOrderComponent.ReserveFromInventory(ProdOrderComponent);
+
+        // [THEN] Verify no reservation exists.
+        ProdOrderComponent.CalcFields("Reserved Quantity");
+        Assert.AreEqual(0, ProdOrderComponent."Reserved Quantity", ReservationEntryInsufficientStockErr);
+    end;
+
+    [Test]
+    procedure TestReserveFromInventoryActionMissingDueDateProdOrderComponent()
+    var
+        Item: Record Item;
+        ComponentItem: Record Item;
+        ProductionOrder: Record "Production Order";
+        ProdOrderComponent: Record "Prod. Order Component";
+    begin
+        // [SCENARIO 617913] Verify the Reserve From Inventory errors when Due Date is missing on component.
+        Initialize();
+
+        // [GIVEN] Create production item.
+        LibraryInventory.CreateItem(ComponentItem);
+        CreateProductionItem(Item, ComponentItem);
+
+        // [GIVEN] Create and refresh production order.
+        CreateAndRefreshRelProdOrder(ProductionOrder, ProductionOrder."Source Type"::Item, Item."No.");
+
+        // [GIVEN] Find production order component.
+        ProdOrderComponent.SetRange(Status, ProductionOrder.Status);
+        ProdOrderComponent.SetRange("Prod. Order No.", ProductionOrder."No.");
+        ProdOrderComponent.SetRange("Item No.", ComponentItem."No.");
+        ProdOrderComponent.FindFirst();
+        ProdOrderComponent.Validate("Due Date", 0D);
+        ProdOrderComponent.Modify(true);
+
+        // [WHEN] Use ReserveFromInventory on Production Order Component.
+        asserterror ProdOrderComponent.ReserveFromInventory(ProdOrderComponent);
+
+        // [THEN] Verify no reservation exists.
+        ProdOrderComponent.CalcFields("Reserved Quantity");
+        Assert.AreEqual(0, ProdOrderComponent."Reserved Quantity", ReservationEntryDueDateMissingErr);
+    end;
+
+    [Test]
+    procedure TestReserveFromInventoryActionExactStockProdOrderComponent()
+    var
+        Item: Record Item;
+        ComponentItem: Record Item;
+        ProductionOrder: Record "Production Order";
+        ProdOrderComponent: Record "Prod. Order Component";
+        ItemJournalLine: Record "Item Journal Line";
+    begin
+        // [SCENARIO 617913] Verify the Reserve From Inventory succeeds when exact stock equals expected quantity.
+        Initialize();
+
+        // [GIVEN] Create production item with BOM component; no initial inventory.
+        LibraryInventory.CreateItem(ComponentItem);
+        CreateProductionItem(Item, ComponentItem);
+
+        // [GIVEN] Create and refresh production order.
+        CreateAndRefreshRelProdOrder(ProductionOrder, ProductionOrder."Source Type"::Item, Item."No.");
+
+        // [GIVEN] Find production order component.
+        ProdOrderComponent.SetRange(Status, ProductionOrder.Status);
+        ProdOrderComponent.SetRange("Prod. Order No.", ProductionOrder."No.");
+        ProdOrderComponent.SetRange("Item No.", ComponentItem."No.");
+        ProdOrderComponent.FindFirst();
+
+        // [GIVEN] Add exact inventory equal to expected quantity.
+        CreateAndPostItemJournal(ItemJournalLine."Entry Type"::"Positive Adjmt.", ComponentItem."No.", ProdOrderComponent."Expected Quantity");
+
+        // [WHEN] Use ReserveFromInventory action.
+        ProdOrderComponent.ReserveFromInventory(ProdOrderComponent);
+
+        // [THEN] Verify reserved quantity matches component expected quantity.
+        ProdOrderComponent.CalcFields("Reserved Quantity");
+        Assert.AreEqual(ProdOrderComponent."Expected Quantity", ProdOrderComponent."Reserved Quantity", ReservedQtyProdCompErr);
     end;
 
     local procedure Initialize()

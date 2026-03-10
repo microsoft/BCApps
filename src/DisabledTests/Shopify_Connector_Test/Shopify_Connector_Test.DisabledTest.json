@@ -3,5 +3,23 @@
     "method": "UnitTestExportFulfillmentServiceShipment",
     "codeunitName": "Shpfy Shipping Test",
     "codeunitId": 139606
+  },
+  {
+    "bug": "621557",
+    "codeunitId": 139646,
+    "codeunitName": "Shpfy Catalog Prices Test",
+    "method": "UnitTestCalcCatalogPrice"
+  },
+  {
+    "bug": "621557",
+    "codeunitId": 139646,
+    "codeunitName": "Shpfy Catalog Prices Test",
+    "method": "UnitTestCalcMarketCatalogPrice"
+  },
+  {
+    "bug": "621557",
+    "codeunitId": 139605,
+    "codeunitName": "Shpfy Product Price Calc. Test",
+    "method": "UnitTestCalcPriceTest"
   }
 ]

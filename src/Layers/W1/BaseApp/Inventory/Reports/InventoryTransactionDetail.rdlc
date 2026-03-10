@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+﻿﻿<?xml version="1.0" encoding="utf-8"?>
 <Report xmlns="http://schemas.microsoft.com/sqlserver/reporting/2016/01/reportdefinition" xmlns:rd="http://schemas.microsoft.com/SQLServer/reporting/reportdesigner">
   <AutoRefresh>0</AutoRefresh>
   <DataSources>
@@ -1284,6 +1284,213 @@
     </ReportSection>
   </ReportSections>
   <ReportParameters>
+    <ReportParameter Name="InventoryTransactionDetailLbl">
+      <DataType>String</DataType>
+      <DefaultValue>
+        <Values>
+          <Value>InventoryTransactionDetailLbl</Value>
+        </Values>
+      </DefaultValue>
+      <Prompt>InventoryTransactionDetailLbl</Prompt>
+    </ReportParameter>
+    <ReportParameter Name="InventoryTransDetailPrintLbl">
+      <DataType>String</DataType>
+      <DefaultValue>
+        <Values>
+          <Value>InventoryTransDetailPrintLbl</Value>
+        </Values>
+      </DefaultValue>
+      <Prompt>InventoryTransDetailPrintLbl</Prompt>
+    </ReportParameter>
+    <ReportParameter Name="InvTransDetailAnalysisLbl">
+      <DataType>String</DataType>
+      <DefaultValue>
+        <Values>
+          <Value>InvTransDetailAnalysisLbl</Value>
+        </Values>
+      </DefaultValue>
+      <Prompt>InvTransDetailAnalysisLbl</Prompt>
+    </ReportParameter>
+    <ReportParameter Name="DataRetrievedLbl">
+      <DataType>String</DataType>
+      <DefaultValue>
+        <Values>
+          <Value>DataRetrievedLbl</Value>
+        </Values>
+      </DefaultValue>
+      <Prompt>DataRetrievedLbl</Prompt>
+    </ReportParameter>
+    <ReportParameter Name="ItemNoLbl">
+      <DataType>String</DataType>
+      <DefaultValue>
+        <Values>
+          <Value>ItemNoLbl</Value>
+        </Values>
+      </DefaultValue>
+      <Prompt>ItemNoLbl</Prompt>
+    </ReportParameter>
+    <ReportParameter Name="ItemDescLbl">
+      <DataType>String</DataType>
+      <DefaultValue>
+        <Values>
+          <Value>ItemDescLbl</Value>
+        </Values>
+      </DefaultValue>
+      <Prompt>ItemDescLbl</Prompt>
+    </ReportParameter>
+    <ReportParameter Name="PostingDateLbl">
+      <DataType>String</DataType>
+      <DefaultValue>
+        <Values>
+          <Value>PostingDateLbl</Value>
+        </Values>
+      </DefaultValue>
+      <Prompt>PostingDateLbl</Prompt>
+    </ReportParameter>
+    <ReportParameter Name="EntryTypeLbl">
+      <DataType>String</DataType>
+      <DefaultValue>
+        <Values>
+          <Value>EntryTypeLbl</Value>
+        </Values>
+      </DefaultValue>
+      <Prompt>EntryTypeLbl</Prompt>
+    </ReportParameter>
+    <ReportParameter Name="DocumentNoLbl">
+      <DataType>String</DataType>
+      <DefaultValue>
+        <Values>
+          <Value>DocumentNoLbl</Value>
+        </Values>
+      </DefaultValue>
+      <Prompt>DocumentNoLbl</Prompt>
+    </ReportParameter>
+    <ReportParameter Name="DescriptionLbl">
+      <DataType>String</DataType>
+      <DefaultValue>
+        <Values>
+          <Value>DescriptionLbl</Value>
+        </Values>
+      </DefaultValue>
+      <Prompt>DescriptionLbl</Prompt>
+    </ReportParameter>
+    <ReportParameter Name="IncreasesLbl">
+      <DataType>String</DataType>
+      <DefaultValue>
+        <Values>
+          <Value>IncreasesLbl</Value>
+        </Values>
+      </DefaultValue>
+      <Prompt>IncreasesLbl</Prompt>
+    </ReportParameter>
+    <ReportParameter Name="DecreasesLbl">
+      <DataType>String</DataType>
+      <DefaultValue>
+        <Values>
+          <Value>DecreasesLbl</Value>
+        </Values>
+      </DefaultValue>
+      <Prompt>DecreasesLbl</Prompt>
+    </ReportParameter>
+    <ReportParameter Name="InventoryLbl">
+      <DataType>String</DataType>
+      <DefaultValue>
+        <Values>
+          <Value>InventoryLbl</Value>
+        </Values>
+      </DefaultValue>
+      <Prompt>InventoryLbl</Prompt>
+    </ReportParameter>
+    <ReportParameter Name="EntryNoLbl">
+      <DataType>String</DataType>
+      <DefaultValue>
+        <Values>
+          <Value>EntryNoLbl</Value>
+        </Values>
+      </DefaultValue>
+      <Prompt>EntryNoLbl</Prompt>
+    </ReportParameter>
+    <ReportParameter Name="TotalIncreasesLbl">
+      <DataType>String</DataType>
+      <DefaultValue>
+        <Values>
+          <Value>TotalIncreasesLbl</Value>
+        </Values>
+      </DefaultValue>
+      <Prompt>TotalIncreasesLbl</Prompt>
+    </ReportParameter>
+    <ReportParameter Name="TotalDecreasesLbl">
+      <DataType>String</DataType>
+      <DefaultValue>
+        <Values>
+          <Value>TotalDecreasesLbl</Value>
+        </Values>
+      </DefaultValue>
+      <Prompt>TotalDecreasesLbl</Prompt>
+    </ReportParameter>
+    <ReportParameter Name="AboutTheReportLbl">
+      <DataType>String</DataType>
+      <DefaultValue>
+        <Values>
+          <Value>AboutTheReportLbl</Value>
+        </Values>
+      </DefaultValue>
+      <Prompt>AboutTheReportLbl</Prompt>
+    </ReportParameter>
+    <ReportParameter Name="EnvironmentLbl">
+      <DataType>String</DataType>
+      <DefaultValue>
+        <Values>
+          <Value>EnvironmentLbl</Value>
+        </Values>
+      </DefaultValue>
+      <Prompt>EnvironmentLbl</Prompt>
+    </ReportParameter>
+    <ReportParameter Name="CompanyLbl">
+      <DataType>String</DataType>
+      <DefaultValue>
+        <Values>
+          <Value>CompanyLbl</Value>
+        </Values>
+      </DefaultValue>
+      <Prompt>CompanyLbl</Prompt>
+    </ReportParameter>
+    <ReportParameter Name="UserLbl">
+      <DataType>String</DataType>
+      <DefaultValue>
+        <Values>
+          <Value>UserLbl</Value>
+        </Values>
+      </DefaultValue>
+      <Prompt>UserLbl</Prompt>
+    </ReportParameter>
+    <ReportParameter Name="RunOnLbl">
+      <DataType>String</DataType>
+      <DefaultValue>
+        <Values>
+          <Value>RunOnLbl</Value>
+        </Values>
+      </DefaultValue>
+      <Prompt>RunOnLbl</Prompt>
+    </ReportParameter>
+    <ReportParameter Name="ReportNameLbl">
+      <DataType>String</DataType>
+      <DefaultValue>
+        <Values>
+          <Value>ReportNameLbl</Value>
+        </Values>
+      </DefaultValue>
+      <Prompt>ReportNameLbl</Prompt>
+    </ReportParameter>
+    <ReportParameter Name="DocumentationLbl">
+      <DataType>String</DataType>
+      <DefaultValue>
+        <Values>
+          <Value>DocumentationLbl</Value>
+        </Values>
+      </DefaultValue>
+      <Prompt>DocumentationLbl</Prompt>
+    </ReportParameter>
     <ReportParameter Name="DocumentNo_PItemLedgEntryCaption">
       <DataType>String</DataType>
       <DefaultValue>
@@ -1315,21 +1522,136 @@
   <ReportParametersLayout>
     <GridLayoutDefinition>
       <NumberOfColumns>1</NumberOfColumns>
-      <NumberOfRows>3</NumberOfRows>
+      <NumberOfRows>26</NumberOfRows>
       <CellDefinitions>
         <CellDefinition>
           <ColumnIndex>0</ColumnIndex>
           <RowIndex>0</RowIndex>
-          <ParameterName>DocumentNo_PItemLedgEntryCaption</ParameterName>
+          <ParameterName>InventoryTransactionDetailLbl</ParameterName>
         </CellDefinition>
         <CellDefinition>
           <ColumnIndex>0</ColumnIndex>
           <RowIndex>1</RowIndex>
-          <ParameterName>Description_ItemLedgEntryCaption</ParameterName>
+          <ParameterName>InventoryTransDetailPrintLbl</ParameterName>
         </CellDefinition>
         <CellDefinition>
           <ColumnIndex>0</ColumnIndex>
           <RowIndex>2</RowIndex>
+          <ParameterName>InvTransDetailAnalysisLbl</ParameterName>
+        </CellDefinition>
+        <CellDefinition>
+          <ColumnIndex>0</ColumnIndex>
+          <RowIndex>3</RowIndex>
+          <ParameterName>DataRetrievedLbl</ParameterName>
+        </CellDefinition>
+        <CellDefinition>
+          <ColumnIndex>0</ColumnIndex>
+          <RowIndex>4</RowIndex>
+          <ParameterName>ItemNoLbl</ParameterName>
+        </CellDefinition>
+        <CellDefinition>
+          <ColumnIndex>0</ColumnIndex>
+          <RowIndex>5</RowIndex>
+          <ParameterName>ItemDescLbl</ParameterName>
+        </CellDefinition>
+        <CellDefinition>
+          <ColumnIndex>0</ColumnIndex>
+          <RowIndex>6</RowIndex>
+          <ParameterName>PostingDateLbl</ParameterName>
+        </CellDefinition>
+        <CellDefinition>
+          <ColumnIndex>0</ColumnIndex>
+          <RowIndex>7</RowIndex>
+          <ParameterName>EntryTypeLbl</ParameterName>
+        </CellDefinition>
+        <CellDefinition>
+          <ColumnIndex>0</ColumnIndex>
+          <RowIndex>8</RowIndex>
+          <ParameterName>DocumentNoLbl</ParameterName>
+        </CellDefinition>
+        <CellDefinition>
+          <ColumnIndex>0</ColumnIndex>
+          <RowIndex>9</RowIndex>
+          <ParameterName>DescriptionLbl</ParameterName>
+        </CellDefinition>
+        <CellDefinition>
+          <ColumnIndex>0</ColumnIndex>
+          <RowIndex>10</RowIndex>
+          <ParameterName>IncreasesLbl</ParameterName>
+        </CellDefinition>
+        <CellDefinition>
+          <ColumnIndex>0</ColumnIndex>
+          <RowIndex>11</RowIndex>
+          <ParameterName>DecreasesLbl</ParameterName>
+        </CellDefinition>
+        <CellDefinition>
+          <ColumnIndex>0</ColumnIndex>
+          <RowIndex>12</RowIndex>
+          <ParameterName>InventoryLbl</ParameterName>
+        </CellDefinition>
+        <CellDefinition>
+          <ColumnIndex>0</ColumnIndex>
+          <RowIndex>13</RowIndex>
+          <ParameterName>EntryNoLbl</ParameterName>
+        </CellDefinition>
+        <CellDefinition>
+          <ColumnIndex>0</ColumnIndex>
+          <RowIndex>14</RowIndex>
+          <ParameterName>TotalIncreasesLbl</ParameterName>
+        </CellDefinition>
+        <CellDefinition>
+          <ColumnIndex>0</ColumnIndex>
+          <RowIndex>15</RowIndex>
+          <ParameterName>TotalDecreasesLbl</ParameterName>
+        </CellDefinition>
+        <CellDefinition>
+          <ColumnIndex>0</ColumnIndex>
+          <RowIndex>16</RowIndex>
+          <ParameterName>AboutTheReportLbl</ParameterName>
+        </CellDefinition>
+        <CellDefinition>
+          <ColumnIndex>0</ColumnIndex>
+          <RowIndex>17</RowIndex>
+          <ParameterName>EnvironmentLbl</ParameterName>
+        </CellDefinition>
+        <CellDefinition>
+          <ColumnIndex>0</ColumnIndex>
+          <RowIndex>18</RowIndex>
+          <ParameterName>CompanyLbl</ParameterName>
+        </CellDefinition>
+        <CellDefinition>
+          <ColumnIndex>0</ColumnIndex>
+          <RowIndex>19</RowIndex>
+          <ParameterName>UserLbl</ParameterName>
+        </CellDefinition>
+        <CellDefinition>
+          <ColumnIndex>0</ColumnIndex>
+          <RowIndex>20</RowIndex>
+          <ParameterName>RunOnLbl</ParameterName>
+        </CellDefinition>
+        <CellDefinition>
+          <ColumnIndex>0</ColumnIndex>
+          <RowIndex>21</RowIndex>
+          <ParameterName>ReportNameLbl</ParameterName>
+        </CellDefinition>
+        <CellDefinition>
+          <ColumnIndex>0</ColumnIndex>
+          <RowIndex>22</RowIndex>
+          <ParameterName>DocumentationLbl</ParameterName>
+        </CellDefinition>
+        <CellDefinition>
+          <ColumnIndex>0</ColumnIndex>
+          <RowIndex>23</RowIndex>
+          <ParameterName>DocumentNo_PItemLedgEntryCaption</ParameterName>
+        </CellDefinition>
+        <CellDefinition>
+          <ColumnIndex>0</ColumnIndex>
+          <RowIndex>24</RowIndex>
+          <ParameterName>Description_ItemLedgEntryCaption</ParameterName>
+        </CellDefinition>
+        <CellDefinition>
+          <ColumnIndex>0</ColumnIndex>
+          <RowIndex>25</RowIndex>
           <ParameterName>EntryNo_ItemLedgerEntryCaption</ParameterName>
         </CellDefinition>
       </CellDefinitions>
@@ -1377,6 +1699,9 @@ End Function
   <DataSets>
     <DataSet Name="DataSet_Result">
       <Fields>
+        <Field Name="No_Item">
+          <DataField>No_Item</DataField>
+        </Field>
         <Field Name="PeriodItemDateFilter">
           <DataField>PeriodItemDateFilter</DataField>
         </Field>
@@ -1388,9 +1713,6 @@ End Function
         </Field>
         <Field Name="ItemFilter">
           <DataField>ItemFilter</DataField>
-        </Field>
-        <Field Name="No_Item">
-          <DataField>No_Item</DataField>
         </Field>
         <Field Name="InventoryTransDetailCaption">
           <DataField>InventoryTransDetailCaption</DataField>
@@ -1425,12 +1747,6 @@ End Function
         <Field Name="RecordNo">
           <DataField>RecordNo</DataField>
         </Field>
-        <Field Name="StartOnHandQuantity">
-          <DataField>StartOnHandQuantity</DataField>
-        </Field>
-        <Field Name="StartOnHandQuantityFormat">
-          <DataField>StartOnHandQuantityFormat</DataField>
-        </Field>
         <Field Name="PostingDate_ItemLedgEntry">
           <DataField>PostingDate_ItemLedgEntry</DataField>
         </Field>
@@ -1463,6 +1779,24 @@ End Function
         </Field>
         <Field Name="EntryNo_ItemLedgerEntry">
           <DataField>EntryNo_ItemLedgerEntry</DataField>
+        </Field>
+        <Field Name="TotalIncreasesQty">
+          <DataField>TotalIncreasesQty</DataField>
+        </Field>
+        <Field Name="TotalIncreasesQtyFormat">
+          <DataField>TotalIncreasesQtyFormat</DataField>
+        </Field>
+        <Field Name="TotalDecreasesQty">
+          <DataField>TotalDecreasesQty</DataField>
+        </Field>
+        <Field Name="TotalDecreasesQtyFormat">
+          <DataField>TotalDecreasesQtyFormat</DataField>
+        </Field>
+        <Field Name="StartOnHandQuantity">
+          <DataField>StartOnHandQuantity</DataField>
+        </Field>
+        <Field Name="StartOnHandQuantityFormat">
+          <DataField>StartOnHandQuantityFormat</DataField>
         </Field>
         <Field Name="Quantity_ItemLedgerEntry">
           <DataField>Quantity_ItemLedgerEntry</DataField>

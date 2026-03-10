@@ -12,10 +12,12 @@ codeunit 136314 "Job Quote Report Tests"
     var
         Job: Record Job;
         ReportLayoutSelection: Record "Report Layout Selection";
-        Assert: Codeunit Assert;
-        LibraryTestInitialize: Codeunit "Library - Test Initialize";
-        LibraryReportValidation: Codeunit "Library - Report Validation";
         ActiveDirectoryMockEvents: Codeunit "Active Directory Mock Events";
+        Assert: Codeunit Assert;
+        LibraryJob: Codeunit "Library - Job";
+        LibraryRandom: Codeunit "Library - Random";
+        LibraryReportValidation: Codeunit "Library - Report Validation";
+        LibraryTestInitialize: Codeunit "Library - Test Initialize";
         IsInitialized: Boolean;
         AmountErr: Label 'Total amount must be equal.';
         RollingBackChangesErr: Label 'Rolling back changes...';
@@ -26,6 +28,9 @@ codeunit 136314 "Job Quote Report Tests"
         UnitCostTxt: Label 'Unit Cost';
         TotalCostTxt: Label 'Total Cost';
         JobTaskNoTxt: Label 'Project Task No.';
+        DiscountPctTxt: Label 'Discount %';
+        DiscuntAmtTxt: Label 'Discount Amount';
+        TotalPriceTxt: Label 'Total Price';
 
     [HandlerFunctions('PostandSendPageHandlerYes,EmailEditorHandler,CloseEmailEditorHandler')]
     [Test]
@@ -244,6 +249,41 @@ codeunit 136314 "Job Quote Report Tests"
         Assert.AreEqual(LibraryReportValidation.CheckIfDecimalValueExists(JobPlanningLine."Total Price"), true, ValueNotFoundErr);
     end;
 
+    [Test]
+    [HandlerFunctions('ConfirmHandlerTrue,MessageHandler')]
+    procedure VerifyTotalPriceOnJobQuoteReport()
+    var
+        JobPlanningLine: Record "Job Planning Line";
+        JobTaskLine: Record "Job Task";
+        DiscountPct: Decimal;
+    begin
+        // [SCENARIO 618738] The discount and Total Price of a planning project line is not shown/not correct in Job Quote report.
+        Initialize();
+
+        // [GIVEN] Create a new Job.
+        LibraryJob.CreateJob(Job);
+
+        // [GIVEN] Create Job Task Line.
+        LibraryJob.CreateJobTask(Job, JobTaskLine);
+
+        // [GIVEN] Create Job Planning Line with Discount %.
+        LibraryJob.CreateJobPlanningLine(JobPlanningLine."Line Type"::Billable, JobPlanningLine.Type::Resource, JobTaskLine, JobPlanningLine);
+        DiscountPct := LibraryRandom.RandIntInRange(5, 10);
+        JobPlanningLine.Validate("Line Discount %", DiscountPct);
+        JobPlanningLine.Modify(true);
+
+        // [WHEN] Run Job Quote report.
+        SetReportLayoutForRDLC();
+        SetupForJobQuote(JobPlanningLine);
+
+        // [THEN] Verify Discount and Total Price on Job Quote report.
+        VerifyJobQuoteTotalPrice(JobPlanningLine, DiscountPctTxt, DiscuntAmtTxt, TotalPriceTxt);
+
+        // Cleanup
+        RemoveReportLayout();
+        TearDown();
+    end;
+
     procedure SendJobQuoteFromJobCardInternal()
     var
         JobPlanningLine: Record "Job Planning Line";
@@ -317,6 +357,18 @@ codeunit 136314 "Job Quote Report Tests"
         Assert.AreEqual(LibraryReportValidation.CheckIfValueExists(JobPlanningLine."Job Task No."), true, ValueNotFoundErr);
 
         Assert.AreEqual(JobPlanningLine.Quantity * JobPlanningLine."Unit Price", JobPlanningLine."Total Price", AmountErr);
+    end;
+
+    local procedure VerifyJobQuoteTotalPrice(JobPlanningLine: Record "Job Planning Line"; Column: Text[250]; Column2: Text[250]; Column3: Text[250])
+    begin
+        LibraryReportValidation.OpenFile();
+        LibraryReportValidation.SetRange(JobPlanningLine.FieldCaption("Job Task No."), Format(JobPlanningLine."Job Task No."));
+        LibraryReportValidation.SetColumn(Column);
+        Assert.AreEqual(LibraryReportValidation.CheckIfDecimalValueExists(JobPlanningLine."Line Discount %"), true, ValueNotFoundErr);
+        LibraryReportValidation.SetColumn(Column2);
+        Assert.AreEqual(LibraryReportValidation.CheckIfDecimalValueExists(JobPlanningLine."Line Discount Amount"), true, ValueNotFoundErr);
+        LibraryReportValidation.SetColumn(Column3);
+        Assert.AreEqual(LibraryReportValidation.CheckIfDecimalValueExists(JobPlanningLine."Total Price" - JobPlanningLine."Line Discount Amount"), true, ValueNotFoundErr);
     end;
 
     [StrMenuHandler]

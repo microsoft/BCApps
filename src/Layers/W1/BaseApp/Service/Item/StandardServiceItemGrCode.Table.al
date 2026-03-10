@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -25,6 +25,7 @@ table 5998 "Standard Service Item Gr. Code"
         field(2; "Code"; Code[10])
         {
             Caption = 'Code';
+            ToolTip = 'Specifies a standard service code assigned to the specified service item group.';
             NotBlank = true;
             TableRelation = "Standard Service Code";
         }
@@ -32,6 +33,7 @@ table 5998 "Standard Service Item Gr. Code"
         {
             CalcFormula = lookup("Standard Service Code".Description where(Code = field(Code)));
             Caption = 'Description';
+            ToolTip = 'Specifies a description of service denoted by the standard service code.';
             Editable = false;
             FieldClass = FlowField;
         }

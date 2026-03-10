@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -30,10 +30,12 @@ table 910 "Posted Assembly Header"
         field(2; "No."; Code[20])
         {
             Caption = 'No.';
+            ToolTip = 'Specifies the number of the involved entry or record, according to the specified number series.';
         }
         field(3; Description; Text[100])
         {
             Caption = 'Description';
+            ToolTip = 'Specifies the description of the posted assembly item.';
         }
         field(4; "Search Description"; Code[100])
         {
@@ -46,15 +48,18 @@ table 910 "Posted Assembly Header"
         field(9; "Order No."; Code[20])
         {
             Caption = 'Order No.';
+            ToolTip = 'Specifies the number of the assembly order that the posted assembly order line originates from.';
         }
         field(10; "Item No."; Code[20])
         {
             Caption = 'Item No.';
+            ToolTip = 'Specifies the number of the posted assembly item.';
             TableRelation = Item;
         }
         field(12; "Variant Code"; Code[10])
         {
             Caption = 'Variant Code';
+            ToolTip = 'Specifies the variant of the item on the line.';
             TableRelation = "Item Variant".Code where("Item No." = field("Item No."),
                                                        Code = field("Variant Code"));
         }
@@ -71,6 +76,7 @@ table 910 "Posted Assembly Header"
         field(17; "Gen. Bus. Posting Group"; Code[20])
         {
             Caption = 'Gen. Bus. Posting Group';
+            ToolTip = 'Specifies the code for the General Business Posting Group that applies to the entry.';
             TableRelation = "Gen. Business Posting Group";
         }
         field(19; Comment; Boolean)
@@ -84,6 +90,7 @@ table 910 "Posted Assembly Header"
         field(20; "Location Code"; Code[10])
         {
             Caption = 'Location Code';
+            ToolTip = 'Specifies to which location the assembly item was output from this posted assembly order header.';
             TableRelation = Location where("Use As In-Transit" = const(false));
         }
         field(21; "Shortcut Dimension 1 Code"; Code[20])
@@ -101,23 +108,28 @@ table 910 "Posted Assembly Header"
         field(23; "Posting Date"; Date)
         {
             Caption = 'Posting Date';
+            ToolTip = 'Specifies the date when the assembly order was posted.';
         }
         field(24; "Due Date"; Date)
         {
             Caption = 'Due Date';
+            ToolTip = 'Specifies the date when the assembled item is due to be available for use.';
         }
         field(25; "Starting Date"; Date)
         {
             Caption = 'Starting Date';
+            ToolTip = 'Specifies the date on which the posted assembly order started.';
         }
         field(27; "Ending Date"; Date)
         {
             Caption = 'Ending Date';
+            ToolTip = 'Specifies the date when the posted assembly order finished, which means the date on which all assembly items were output.';
         }
         field(33; "Bin Code"; Code[20])
         {
             AccessByPermission = TableData "Warehouse Source Filter" = R;
             Caption = 'Bin Code';
+            ToolTip = 'Specifies to which bin the assembly item was posted as output on the posted assembly order header.';
         }
         field(39; "Item Rcpt. Entry No."; Integer)
         {
@@ -126,6 +138,7 @@ table 910 "Posted Assembly Header"
         field(40; Quantity; Decimal)
         {
             Caption = 'Quantity';
+            ToolTip = 'Specifies how many units of the assembly item were posted with this posted assembly order.';
             DecimalPlaces = 0 : 5;
             MinValue = 0;
             AutoFormatType = 0;
@@ -141,6 +154,7 @@ table 910 "Posted Assembly Header"
             CalcFormula = exist("Posted Assemble-to-Order Link" where("Assembly Document Type" = const(Assembly),
                                                                        "Assembly Document No." = field("No.")));
             Caption = 'Assemble to Order';
+            ToolTip = 'Specifies if the posted assembly order was linked to a sales order, which indicates that the item was assembled to order.';
             Editable = false;
             FieldClass = FlowField;
         }
@@ -149,12 +163,14 @@ table 910 "Posted Assembly Header"
             AutoFormatType = 2;
             AutoFormatExpression = '';
             Caption = 'Unit Cost';
+            ToolTip = 'Specifies the cost of one unit of the item or resource on the line.';
         }
         field(67; "Cost Amount"; Decimal)
         {
             AutoFormatType = 1;
             AutoFormatExpression = '';
             Caption = 'Cost Amount';
+            ToolTip = 'Specifies the total unit cost of the posted assembly order.';
             Editable = false;
         }
         field(75; "Indirect Cost %"; Decimal)
@@ -172,6 +188,7 @@ table 910 "Posted Assembly Header"
         field(80; "Unit of Measure Code"; Code[10])
         {
             Caption = 'Unit of Measure Code';
+            ToolTip = 'Specifies how each unit of the item or resource is measured, such as in pieces or hours. By default, the value in the Base Unit of Measure field on the item or resource card is inserted.';
             TableRelation = "Item Unit of Measure".Code where("Item No." = field("Item No."));
         }
         field(81; "Qty. per Unit of Measure"; Decimal)
@@ -184,6 +201,7 @@ table 910 "Posted Assembly Header"
         field(100; Reversed; Boolean)
         {
             Caption = 'Reversed';
+            ToolTip = 'Specifies if the posted assembly order has been undone.';
         }
         field(107; "No. Series"; Code[20])
         {
@@ -214,6 +232,7 @@ table 910 "Posted Assembly Header"
         field(9010; "User ID"; Code[50])
         {
             Caption = 'User ID';
+            ToolTip = 'Specifies the ID of the user who posted the entry, to be used, for example, in the change log.';
             DataClassification = EndUserIdentifiableInformation;
             TableRelation = User."User Name";
         }

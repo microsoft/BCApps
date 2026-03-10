@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -24,14 +24,17 @@ table 65 "Merge Duplicates Line Buffer"
         field(2; ID; Integer)
         {
             Caption = 'ID';
+            ToolTip = 'Specifies the ID of the field.';
         }
         field(3; Name; Text[30])
         {
             Caption = 'Name';
+            ToolTip = 'Specifies the name of the field.';
         }
         field(4; "Duplicate Value"; Text[2048])
         {
             Caption = 'Duplicate Value';
+            ToolTip = 'Specifies the value of the field in the duplicate record.';
 
             trigger OnValidate()
             begin
@@ -43,10 +46,12 @@ table 65 "Merge Duplicates Line Buffer"
         field(5; "Current Value"; Text[2048])
         {
             Caption = 'Current Value';
+            ToolTip = 'Specifies the value of the field in the current record.';
         }
         field(6; Override; Boolean)
         {
             Caption = 'Override';
+            ToolTip = 'Specifies if the field value of the current record should be overridden by the value of the duplicate record.';
 
             trigger OnValidate()
             begin
@@ -57,22 +62,27 @@ table 65 "Merge Duplicates Line Buffer"
         field(7; "Duplicate Count"; Integer)
         {
             Caption = 'Duplicate Count';
+            ToolTip = 'Specifies the number of records related to the duplicate record.';
         }
         field(8; "Current Count"; Integer)
         {
             Caption = 'Current Count';
+            ToolTip = 'Specifies the number of records related to the current record.';
         }
         field(9; "Table ID"; Integer)
         {
             Caption = 'Table ID';
+            ToolTip = 'Specifies the ID of the table.';
         }
         field(10; "Table Name"; Text[30])
         {
             Caption = 'Table Name';
+            ToolTip = 'Specifies the name of the table.';
         }
         field(11; "In Primary Key"; Option)
         {
             Caption = 'In Primary Key';
+            ToolTip = 'Specifies if the field is part of the primary key.';
             InitValue = No;
             OptionCaption = 'Yes,No';
             OptionMembers = Yes,No;
@@ -80,6 +90,7 @@ table 65 "Merge Duplicates Line Buffer"
         field(12; Conflicts; Integer)
         {
             Caption = 'Conflicts';
+            ToolTip = 'Specifies if conflicting records exist.';
         }
         field(13; Modified; Boolean)
         {
@@ -88,6 +99,7 @@ table 65 "Merge Duplicates Line Buffer"
         field(14; "Data Type"; Text[30])
         {
             Caption = 'Data Type';
+            ToolTip = 'Specifies the data type of the field.';
             Editable = false;
         }
         field(15; "Can Be Renamed"; Boolean)

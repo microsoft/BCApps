@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -25,7 +25,6 @@ page 6564 "Invt. Shipment"
                 field("No."; Rec."No.")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the number of the involved entry or record, according to the specified number series.';
 
                     trigger OnAssistEdit()
                     begin
@@ -36,22 +35,18 @@ page 6564 "Invt. Shipment"
                 field("Posting Description"; Rec."Posting Description")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies any text that is entered to accompany the posting, for example for information to auditors.';
                 }
                 field("Location Code"; Rec."Location Code")
                 {
                     ApplicationArea = Location;
-                    ToolTip = 'Specifies the warehouse or other place where the involved items are handled or stored.';
                 }
                 field("Gen. Bus. Posting Group"; Rec."Gen. Bus. Posting Group")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the vendor''s or customer''s trade type to link transactions made for this business partner with the appropriate general ledger account according to the general posting setup.';
                 }
                 field("Posting Date"; Rec."Posting Date")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the entry''s posting date.';
 
                     trigger OnValidate()
                     begin
@@ -61,7 +56,6 @@ page 6564 "Invt. Shipment"
                 field("Document Date"; Rec."Document Date")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the date when the related document was created.';
 
                     trigger OnValidate()
                     begin
@@ -71,23 +65,19 @@ page 6564 "Invt. Shipment"
                 field("External Document No."; Rec."External Document No.")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies a document number that refers to the customer''s or vendor''s numbering system.';
                 }
                 field("Salesperson/Purchaser Code"; Rec."Salesperson/Purchaser Code")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the employee purchaser code or salesperson code associated with this document.';
                 }
                 field(Correction; Rec.Correction)
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the entry as a corrective entry. You can use the field if you need to post a corrective entry to an account.';
                 }
                 field(Status; Rec.Status)
                 {
                     ApplicationArea = Basic, Suite;
                     Editable = false;
-                    ToolTip = 'Specifies the status of the item document.';
                 }
             }
             part(ShipmentLines; "Invt. Shipment Subform")
@@ -102,7 +92,6 @@ page 6564 "Invt. Shipment"
                 field("Shortcut Dimension 1 Code"; Rec."Shortcut Dimension 1 Code")
                 {
                     ApplicationArea = Dimensions;
-                    ToolTip = 'Specifies the code for Shortcut Dimension 1, which is one of two global dimension codes that you set up in the General Ledger Setup window.';
 
                     trigger OnValidate()
                     begin
@@ -112,7 +101,6 @@ page 6564 "Invt. Shipment"
                 field("Shortcut Dimension 2 Code"; Rec."Shortcut Dimension 2 Code")
                 {
                     ApplicationArea = Dimensions;
-                    ToolTip = 'Specifies the code for Shortcut Dimension 2, which is one of two global dimension codes that you set up in the General Ledger Setup window.';
 
                     trigger OnValidate()
                     begin

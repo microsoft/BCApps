@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -24,6 +24,7 @@ table 5 "Finance Charge Terms"
         field(1; "Code"; Code[10])
         {
             Caption = 'Code';
+            ToolTip = 'Specifies a code for the finance charge terms.';
             NotBlank = true;
         }
         /// <summary>
@@ -33,6 +34,7 @@ table 5 "Finance Charge Terms"
         {
             AutoFormatType = 0;
             Caption = 'Interest Rate';
+            ToolTip = 'Specifies the percentage to use to calculate interest for this finance charge code.';
             DecimalPlaces = 0 : 5;
             MaxValue = 100;
             MinValue = 0;
@@ -71,6 +73,7 @@ table 5 "Finance Charge Terms"
         field(7; Description; Text[100])
         {
             Caption = 'Description';
+            ToolTip = 'Specifies a description of the finance charge terms.';
         }
         /// <summary>
         /// Specifies the method used to calculate interest, such as average daily balance or balance due.
@@ -78,6 +81,7 @@ table 5 "Finance Charge Terms"
         field(8; "Interest Calculation Method"; Enum "Interest Calculation Method")
         {
             Caption = 'Interest Calculation Method';
+            ToolTip = 'Specifies the interest calculation method for this set of finance charge terms.';
         }
         /// <summary>
         /// Specifies the number of days that define one interest calculation period for the average daily balance method.
@@ -92,6 +96,7 @@ table 5 "Finance Charge Terms"
         field(10; "Grace Period"; DateFormula)
         {
             Caption = 'Grace Period';
+            ToolTip = 'Specifies the grace period length for this set of finance charge terms.';
         }
         /// <summary>
         /// Specifies the formula used to calculate the due date of the finance charge memo from the document date.
@@ -99,6 +104,7 @@ table 5 "Finance Charge Terms"
         field(11; "Due Date Calculation"; DateFormula)
         {
             Caption = 'Due Date Calculation';
+            ToolTip = 'Specifies a formula that determines how to calculate the due date of the finance charge memo.';
         }
         /// <summary>
         /// Specifies whether interest is calculated on open entries, closed entries, or all entries.
@@ -106,6 +112,7 @@ table 5 "Finance Charge Terms"
         field(12; "Interest Calculation"; Option)
         {
             Caption = 'Interest Calculation';
+            ToolTip = 'Specifies which entries should be used in interest calculation on finance charge memos.';
             OptionCaption = 'Open Entries,Closed Entries,All Entries';
             OptionMembers = "Open Entries","Closed Entries","All Entries";
         }
@@ -115,6 +122,7 @@ table 5 "Finance Charge Terms"
         field(13; "Post Interest"; Boolean)
         {
             Caption = 'Post Interest';
+            ToolTip = 'Specifies whether or not interest listed on the finance charge memo should be posted to the general ledger and customer accounts when the finance charge memo is issued.';
             InitValue = true;
         }
         /// <summary>
@@ -123,6 +131,7 @@ table 5 "Finance Charge Terms"
         field(14; "Post Additional Fee"; Boolean)
         {
             Caption = 'Post Additional Fee';
+            ToolTip = 'Specifies whether or not any additional fee listed on the finance charge memo should be posted to the general ledger and customer accounts when the memo is issued.';
             InitValue = true;
         }
         /// <summary>
@@ -131,6 +140,7 @@ table 5 "Finance Charge Terms"
         field(15; "Line Description"; Text[100])
         {
             Caption = 'Line Description';
+            ToolTip = 'Specifies a description to be used in the Description field on the finance charge memo lines.';
         }
         /// <summary>
         /// Indicates whether line fees from reminders should be included in the interest calculation base.
@@ -138,6 +148,7 @@ table 5 "Finance Charge Terms"
         field(16; "Add. Line Fee in Interest"; Boolean)
         {
             Caption = 'Add. Line Fee in Interest';
+            ToolTip = 'Specifies that any additional fees are included in the interest calculation for the finance charge.';
         }
         /// <summary>
         /// Specifies the template text used to describe detailed interest rate entries when multiple rates apply.
@@ -145,6 +156,7 @@ table 5 "Finance Charge Terms"
         field(30; "Detailed Lines Description"; Text[100])
         {
             Caption = 'Detailed Lines Description';
+            ToolTip = 'Specifies a description to be used in the Description field on the finance charge memo lines if multiple interest rates are set up for different payment delay periods and the description must show the sum of these.';
         }
     }
 

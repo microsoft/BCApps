@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -26,6 +26,7 @@ table 5628 Insurance
         field(1; "No."; Code[20])
         {
             Caption = 'No.';
+            ToolTip = 'Specifies the number of the involved entry or record, according to the specified number series.';
 
             trigger OnValidate()
             begin
@@ -39,14 +40,17 @@ table 5628 Insurance
         field(2; "Effective Date"; Date)
         {
             Caption = 'Effective Date';
+            ToolTip = 'Specifies the date from which the insurance policy is valid.';
         }
         field(3; "Expiration Date"; Date)
         {
             Caption = 'Expiration Date';
+            ToolTip = 'Specifies the date to which the insurance policy is valid.';
         }
         field(4; "Policy No."; Text[30])
         {
             Caption = 'Policy No.';
+            ToolTip = 'Specifies the insurance policy number as stated on the actual insurance policy.';
         }
         field(6; "Annual Premium"; Decimal)
         {
@@ -54,6 +58,7 @@ table 5628 Insurance
             AutoFormatExpression = '';
             BlankZero = true;
             Caption = 'Annual Premium';
+            ToolTip = 'Specifies the amount of the annual insurance premium.';
             MinValue = 0;
         }
         field(7; "Policy Coverage"; Decimal)
@@ -62,6 +67,7 @@ table 5628 Insurance
             AutoFormatExpression = '';
             BlankZero = true;
             Caption = 'Policy Coverage';
+            ToolTip = 'Specifies the amount of coverage provided by this insurance policy.';
             MinValue = 0;
         }
         field(10; "Total Value Insured"; Decimal)
@@ -73,6 +79,7 @@ table 5628 Insurance
                                                                          "Disposed FA" = const(false),
                                                                          "Posting Date" = field("Date Filter")));
             Caption = 'Total Value Insured';
+            ToolTip = 'Specifies the total value of fixed assets linked to this insurance policy. This is the value of fixed assets for which insurance is required.';
             Editable = false;
             FieldClass = FlowField;
         }
@@ -87,31 +94,37 @@ table 5628 Insurance
         field(12; "Insurance Type"; Code[10])
         {
             Caption = 'Insurance Type';
+            ToolTip = 'Specifies the type of insurance (for example, theft or fire) that is covered by this insurance policy.';
             TableRelation = "Insurance Type";
         }
         field(13; "Last Date Modified"; Date)
         {
             Caption = 'Last Date Modified';
+            ToolTip = 'Specifies when the insurance card was last modified.';
             Editable = false;
         }
         field(14; "Insurance Vendor No."; Code[20])
         {
             Caption = 'Insurance Vendor No.';
+            ToolTip = 'Specifies the number of the vendor from whom you purchased this insurance policy.';
             TableRelation = Vendor;
         }
         field(15; "FA Class Code"; Code[10])
         {
             Caption = 'FA Class Code';
+            ToolTip = 'Specifies a fixed asset class code to assign to the insurance policy.';
             TableRelation = "FA Class";
         }
         field(16; "FA Subclass Code"; Code[10])
         {
             Caption = 'FA Subclass Code';
+            ToolTip = 'Specifies a fixed asset subclass code to assign to the insurance policy.';
             TableRelation = "FA Subclass";
         }
         field(17; "FA Location Code"; Code[10])
         {
             Caption = 'FA Location Code';
+            ToolTip = 'Specifies the code of the location of the fixed asset(s) linked to the insurance policy.';
             TableRelation = "FA Location";
         }
         field(18; "Global Dimension 1 Code"; Code[20])
@@ -146,10 +159,12 @@ table 5628 Insurance
         field(32; Blocked; Boolean)
         {
             Caption = 'Blocked';
+            ToolTip = 'Specifies that the related record is blocked from being posted in transactions, for example a customer that is declared insolvent or an item that is placed in quarantine.';
         }
         field(33; Description; Text[100])
         {
             Caption = 'Description';
+            ToolTip = 'Specifies a description of the insurance policy.';
 
             trigger OnValidate()
             begin
@@ -160,6 +175,7 @@ table 5628 Insurance
         field(34; "Search Description"; Code[100])
         {
             Caption = 'Search Description';
+            ToolTip = 'Specifies a search description for the insurance policy.';
         }
         field(35; "Date Filter"; Date)
         {

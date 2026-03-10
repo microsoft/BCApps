@@ -517,11 +517,23 @@ page 8905 "Purchasing Manager Role Center"
                             Caption = 'Inventory - Vendor Purchases';
                             RunObject = report "Inventory - Vendor Purchases";
                         }
+#if not CLEAN28
                         action("Inventory - Availability Plan")
                         {
                             ApplicationArea = Basic, Suite;
-                            Caption = 'Inventory - Availability Plan';
+                            Caption = 'Inventory - Availability Plan (Obsolete)';
                             RunObject = report "Inventory - Availability Plan";
+                            ObsoleteState = Pending;
+                            ObsoleteReason = 'This report has been replaced by the report Inventory - Availability Plan (Excel). This report will be removed in a future release.';
+                            ObsoleteTag = '28.0';
+                        }
+#endif
+                        action("Inventory - Availability Plan Excel")
+                        {
+                            ApplicationArea = Basic, Suite;
+                            Caption = 'Inventory - Availability Plan (Excel)';
+                            RunObject = report "Inv. Availability Plan";
+                            ToolTip = 'View a list of the quantity of each item in customer, purchase, and transfer orders and the quantity available in inventory. The list is divided into columns that cover six periods with starting and ending dates as well as the periods before and after those periods. The list is useful when you are planning your inventory purchases.';
                         }
                         action("Inventory Purchase Orders1")
                         {
@@ -620,12 +632,17 @@ page 8905 "Purchasing Manager Role Center"
                         Caption = 'Inventory - List';
                         RunObject = report "Inventory - List";
                     }
+#if not CLEAN28
                     action("Item Age Composition - Qty.")
                     {
                         ApplicationArea = Basic, Suite;
-                        Caption = 'Item Age Composition - Qty.';
+                        Caption = 'Item Age Composition - Qty. (Obsolete)';
                         RunObject = report "Item Age Composition - Qty.";
+                        ObsoleteState = Pending;
+                        ObsoleteReason = 'This report has been deprecated and will be removed in a future release.';
+                        ObsoleteTag = '28.0';
                     }
+#endif
                     action("Inventory - Cost Variance1")
                     {
                         ApplicationArea = Basic, Suite;

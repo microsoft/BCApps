@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -40,6 +40,7 @@ table 297 "Issued Reminder Header"
         field(1; "No."; Code[20])
         {
             Caption = 'No.';
+            ToolTip = 'Specifies the number of the involved entry or record, according to the specified number series.';
             NotBlank = true;
         }
         /// <summary>
@@ -48,6 +49,7 @@ table 297 "Issued Reminder Header"
         field(2; "Customer No."; Code[20])
         {
             Caption = 'Customer No.';
+            ToolTip = 'Specifies the customer number the reminder is for.';
             TableRelation = Customer;
         }
         /// <summary>
@@ -56,6 +58,7 @@ table 297 "Issued Reminder Header"
         field(3; Name; Text[100])
         {
             Caption = 'Name';
+            ToolTip = 'Specifies the name of the customer the reminder is for.';
         }
         /// <summary>
         /// Specifies additional name information for the customer.
@@ -70,6 +73,7 @@ table 297 "Issued Reminder Header"
         field(5; Address; Text[100])
         {
             Caption = 'Address';
+            ToolTip = 'Specifies the address of the customer the reminder is for.';
         }
         /// <summary>
         /// Specifies additional address information for the customer.
@@ -77,6 +81,7 @@ table 297 "Issued Reminder Header"
         field(6; "Address 2"; Text[50])
         {
             Caption = 'Address 2';
+            ToolTip = 'Specifies additional address information.';
         }
         /// <summary>
         /// Specifies the postal code of the customer's address.
@@ -84,6 +89,7 @@ table 297 "Issued Reminder Header"
         field(7; "Post Code"; Code[20])
         {
             Caption = 'Post Code';
+            ToolTip = 'Specifies the postal code.';
             TableRelation = "Post Code";
             ValidateTableRelation = false;
         }
@@ -93,6 +99,7 @@ table 297 "Issued Reminder Header"
         field(8; City; Text[30])
         {
             Caption = 'City';
+            ToolTip = 'Specifies the city name of the customer the reminder is for.';
             TableRelation = "Post Code".City;
             ValidateTableRelation = false;
         }
@@ -126,6 +133,7 @@ table 297 "Issued Reminder Header"
         field(12; "Currency Code"; Code[10])
         {
             Caption = 'Currency Code';
+            ToolTip = 'Specifies the currency code of the issued reminder.';
             TableRelation = Currency;
         }
         /// <summary>
@@ -134,6 +142,7 @@ table 297 "Issued Reminder Header"
         field(13; Contact; Text[100])
         {
             Caption = 'Contact';
+            ToolTip = 'Specifies the name of the person you regularly contact when you communicate with the customer the reminder is for.';
         }
         /// <summary>
         /// Specifies the customer's reference number or code for this document.
@@ -141,6 +150,7 @@ table 297 "Issued Reminder Header"
         field(14; "Your Reference"; Text[35])
         {
             Caption = 'Your Reference';
+            ToolTip = 'Specifies the customer''s reference. The content will be printed on the related document.';
         }
         /// <summary>
         /// Specifies the first shortcut dimension code used when the reminder was posted.
@@ -149,6 +159,7 @@ table 297 "Issued Reminder Header"
         {
             CaptionClass = '1,2,1';
             Caption = 'Shortcut Dimension 1 Code';
+            ToolTip = 'Specifies the code for Shortcut Dimension 1, which is one of two global dimension codes that you set up in the General Ledger Setup window.';
             TableRelation = "Dimension Value".Code where("Global Dimension No." = const(1));
         }
         /// <summary>
@@ -158,6 +169,7 @@ table 297 "Issued Reminder Header"
         {
             CaptionClass = '1,2,2';
             Caption = 'Shortcut Dimension 2 Code';
+            ToolTip = 'Specifies the code for Shortcut Dimension 2, which is one of two global dimension codes that you set up in the General Ledger Setup window.';
             TableRelation = "Dimension Value".Code where("Global Dimension No." = const(2));
         }
         /// <summary>
@@ -197,6 +209,7 @@ table 297 "Issued Reminder Header"
         field(21; "Posting Date"; Date)
         {
             Caption = 'Posting Date';
+            ToolTip = 'Specifies the posting date that the reminder was issued on.';
         }
         /// <summary>
         /// Specifies the date of the reminder document.
@@ -204,6 +217,7 @@ table 297 "Issued Reminder Header"
         field(22; "Document Date"; Date)
         {
             Caption = 'Document Date';
+            ToolTip = 'Specifies the date when the related document was created.';
         }
         /// <summary>
         /// Specifies the date by which the customer was required to pay.
@@ -211,6 +225,7 @@ table 297 "Issued Reminder Header"
         field(23; "Due Date"; Date)
         {
             Caption = 'Due Date';
+            ToolTip = 'Specifies the date when payment of the amount on the reminder is due.';
         }
         /// <summary>
         /// Specifies the reminder terms code that was used for this reminder.
@@ -218,6 +233,7 @@ table 297 "Issued Reminder Header"
         field(24; "Reminder Terms Code"; Code[10])
         {
             Caption = 'Reminder Terms Code';
+            ToolTip = 'Specifies the reminder terms code for the reminder.';
             TableRelation = "Reminder Terms";
         }
         /// <summary>
@@ -226,6 +242,7 @@ table 297 "Issued Reminder Header"
         field(25; "Fin. Charge Terms Code"; Code[10])
         {
             Caption = 'Fin. Charge Terms Code';
+            ToolTip = 'Specifies the code for the involved finance charges in case of late payment.';
             TableRelation = "Finance Charge Terms";
         }
         /// <summary>
@@ -248,6 +265,7 @@ table 297 "Issued Reminder Header"
         field(28; "Reminder Level"; Integer)
         {
             Caption = 'Reminder Level';
+            ToolTip = 'Specifies the reminder''s level.';
             TableRelation = "Reminder Level"."No." where("Reminder Terms Code" = field("Reminder Terms Code"));
         }
         /// <summary>
@@ -279,6 +297,7 @@ table 297 "Issued Reminder Header"
                                                                                "Line Type" = const("Reminder Line"),
                                                                                "Detailed Interest Rates Entry" = const(false)));
             Caption = 'Remaining Amount';
+            ToolTip = 'Specifies the total of the remaining amounts on the reminder lines.';
             Editable = false;
             FieldClass = FlowField;
         }
@@ -308,6 +327,7 @@ table 297 "Issued Reminder Header"
                                                                   Type = const("G/L Account"),
                                                                   "Line Type" = filter(<> "Not Due")));
             Caption = 'Additional Fee';
+            ToolTip = 'Specifies the total of the additional fee amounts on the reminder lines.';
             Editable = false;
             FieldClass = FlowField;
         }
@@ -331,6 +351,7 @@ table 297 "Issued Reminder Header"
         field(35; "No. Printed"; Integer)
         {
             Caption = 'No. Printed';
+            ToolTip = 'Specifies how many times the document has been printed.';
         }
         /// <summary>
         /// Specifies the user who issued the reminder.
@@ -364,6 +385,7 @@ table 297 "Issued Reminder Header"
         field(39; "Pre-Assigned No."; Code[20])
         {
             Caption = 'Pre-Assigned No.';
+            ToolTip = 'Specifies the number of the reminder from which the issued reminder was created.';
         }
         /// <summary>
         /// Specifies the source code for audit trail purposes.
@@ -406,6 +428,7 @@ table 297 "Issued Reminder Header"
             CalcFormula = sum("Issued Reminder Line".Amount where("Reminder No." = field("No."),
                                                                    Type = const("Line Fee")));
             Caption = 'Add. Fee per Line';
+            ToolTip = 'Specifies that the fee is distributed on individual reminder lines.';
             FieldClass = FlowField;
         }
         /// <summary>
@@ -414,6 +437,7 @@ table 297 "Issued Reminder Header"
         field(47; "VAT Reporting Date"; Date)
         {
             Caption = 'VAT Date';
+            ToolTip = 'Specifies the VAT date for the reminder.';
             Editable = false;
         }
         /// <summary>
@@ -422,6 +446,7 @@ table 297 "Issued Reminder Header"
         field(50; Canceled; Boolean)
         {
             Caption = 'Canceled';
+            ToolTip = 'Specifies if the issued reminder has been canceled.';
             DataClassification = SystemMetadata;
         }
         /// <summary>
@@ -513,6 +538,7 @@ table 297 "Issued Reminder Header"
         field(163; "Company Bank Account Code"; Code[20])
         {
             Caption = 'Company Bank Account Code';
+            ToolTip = 'Specifies the bank account to use for bank information when the document is printed.';
             TableRelation = "Bank Account" where("Currency Code" = field("Currency Code"));
         }
         /// <summary>
@@ -546,6 +572,9 @@ table 297 "Issued Reminder Header"
             Clustered = true;
         }
         key(Key2; "Customer No.", "Posting Date")
+        {
+        }
+        key(Key3; "Posting Date")
         {
         }
     }
@@ -778,4 +807,3 @@ table 297 "Issued Reminder Header"
     begin
     end;
 }
-

@@ -1,0 +1,8 @@
+[
+    {
+        "bug": "621557",
+        "codeunitId": 139605,
+        "CodeunitName": "Shpfy Product Price Calc. Test",
+        "Method": "UnitTestCalcPriceTest"
+    }
+]

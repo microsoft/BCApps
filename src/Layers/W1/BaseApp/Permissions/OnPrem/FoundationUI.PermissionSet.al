@@ -88,6 +88,7 @@ permissionset 6946 "Foundation UI"
                   tabledata Media = rimd,
                   tabledata "Media Set" = rimd,
                   tabledata User = R,
+                  tabledata "ABC Analysis Setup" = Rim,
                   tabledata "Acc. Sched. KPI Web Srv. Setup" = Rim,
                   tabledata "Account Schedules Chart Setup" = Rim,
                   tabledata "Accounting Period" = R,

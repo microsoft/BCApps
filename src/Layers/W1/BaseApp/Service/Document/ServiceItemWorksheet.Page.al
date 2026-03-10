@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -34,85 +34,70 @@ page 5906 "Service Item Worksheet"
                 {
                     ApplicationArea = Service;
                     Editable = false;
-                    ToolTip = 'Specifies the number of the service order linked to this service item line.';
                 }
                 field("Service Item No."; Rec."Service Item No.")
                 {
                     ApplicationArea = Service;
                     Editable = false;
-                    ToolTip = 'Specifies the service item number registered in the Service Item table.';
                 }
                 field("Item No."; Rec."Item No.")
                 {
                     ApplicationArea = Service;
                     Editable = false;
-                    ToolTip = 'Specifies the item number linked to this service item.';
                 }
                 field("Service Item Group Code"; Rec."Service Item Group Code")
                 {
                     ApplicationArea = Service;
                     Editable = false;
-                    ToolTip = 'Specifies the code of the service item group for this item.';
                 }
                 field("Serial No."; Rec."Serial No.")
                 {
                     ApplicationArea = ItemTracking;
                     Editable = false;
-                    ToolTip = 'Specifies the serial number of this item.';
                 }
                 field("Fault Reason Code"; Rec."Fault Reason Code")
                 {
                     ApplicationArea = Service;
                     Editable = false;
-                    ToolTip = 'Specifies the fault reason code for the item.';
                 }
                 field("Document Type"; Rec."Document Type")
                 {
                     ApplicationArea = Service;
                     Caption = 'Document Type';
                     Editable = false;
-                    ToolTip = 'Specifies whether the service document is a service order or service quote.';
                 }
                 field("Loaner No."; Rec."Loaner No.")
                 {
                     ApplicationArea = Service;
                     Editable = false;
-                    ToolTip = 'Specifies the number of the loaner that has been lent to the customer in the service order to replace this item.';
                 }
                 field("Service Shelf No."; Rec."Service Shelf No.")
                 {
                     ApplicationArea = Service;
-                    ToolTip = 'Specifies the number of the service shelf this item is stored on.';
                 }
                 field("Service Price Group Code"; Rec."Service Price Group Code")
                 {
                     ApplicationArea = Service;
-                    ToolTip = 'Specifies the code of the service price group associated with the item.';
                 }
                 field("Fault Area Code"; Rec."Fault Area Code")
                 {
                     ApplicationArea = Service;
-                    ToolTip = 'Specifies the fault area code for this item.';
                 }
                 field("Symptom Code"; Rec."Symptom Code")
                 {
                     ApplicationArea = Service;
-                    ToolTip = 'Specifies the symptom code for this item.';
                 }
                 field("Fault Code"; Rec."Fault Code")
                 {
                     ApplicationArea = Service;
-                    ToolTip = 'Specifies the fault code for this item.';
                 }
                 field("Resolution Code"; Rec."Resolution Code")
                 {
                     ApplicationArea = Service;
-                    ToolTip = 'Specifies the resolution code for this item.';
                 }
                 field("Repair Status Code"; Rec."Repair Status Code")
                 {
                     ApplicationArea = Service;
-                    ToolTip = 'Specifies the repair status of this service item.';
                 }
             }
             part(ServInvLines; "Service Item Worksheet Subform")
@@ -132,7 +117,6 @@ page 5906 "Service Item Worksheet"
                     ApplicationArea = Service;
                     Caption = 'Customer No.';
                     Editable = false;
-                    ToolTip = 'Specifies the customer number associated with the service contract.';
                 }
                 group(Control3)
                 {
@@ -219,7 +203,6 @@ page 5906 "Service Item Worksheet"
                 {
                     ApplicationArea = Location;
                     Editable = false;
-                    ToolTip = 'Specifies the code of the location of this item.';
                 }
             }
             group(Shipping)
@@ -317,60 +300,50 @@ page 5906 "Service Item Worksheet"
                 {
                     ApplicationArea = Service;
                     Editable = false;
-                    ToolTip = 'Specifies the number of the service contract associated with the item or service on the line.';
                 }
                 field(Warranty; Rec.Warranty)
                 {
                     ApplicationArea = Service;
                     Editable = false;
-                    ToolTip = 'Specifies that warranty on either parts or labor exists for this item.';
                 }
                 field("Response Date"; Rec."Response Date")
                 {
                     ApplicationArea = Service;
                     Editable = false;
-                    ToolTip = 'Specifies the estimated date when service should start on this service item line.';
                 }
                 field("Response Time"; Rec."Response Time")
                 {
                     ApplicationArea = Service;
                     Editable = false;
-                    ToolTip = 'Specifies the estimated time when service should start on this service item.';
                 }
                 field(Priority; Rec.Priority)
                 {
                     ApplicationArea = Service;
                     Editable = false;
-                    ToolTip = 'Specifies the service priority for this item.';
                 }
                 field("Starting Date"; Rec."Starting Date")
                 {
                     ApplicationArea = Service;
                     Editable = false;
-                    ToolTip = 'Specifies the date when service on this item began and when the repair status changed to In process.';
                 }
                 field("Starting Time"; Rec."Starting Time")
                 {
                     ApplicationArea = Service;
                     Editable = false;
-                    ToolTip = 'Specifies the time when service on this item began and when the repair status changed to In process.';
                 }
                 field("Finishing Date"; Rec."Finishing Date")
                 {
                     ApplicationArea = Service;
                     Editable = false;
-                    ToolTip = 'Specifies the finishing date of the service and when the repair status of this item changes to Finished.';
                 }
                 field("Finishing Time"; Rec."Finishing Time")
                 {
                     ApplicationArea = Service;
                     Editable = false;
-                    ToolTip = 'Specifies the finishing time of the service and when the repair status of this item changes to Finished.';
                 }
                 field("No. of Previous Services"; Rec."No. of Previous Services")
                 {
                     ApplicationArea = Service;
-                    ToolTip = 'Specifies the number of services performed on service items with the same item and serial number as this service item.';
                 }
             }
         }

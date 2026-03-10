@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -30,59 +30,49 @@ page 448 "Finance Charge Memo List"
                 field("No."; Rec."No.")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the number of the involved entry or record, according to the specified number series.';
                 }
                 field("Customer No."; Rec."Customer No.")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the number of the customer you want to create a finance charge memo for.';
                 }
                 field(Name; Rec.Name)
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the name of the customer the finance charge memo is for.';
                 }
                 field("Currency Code"; Rec."Currency Code")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the currency code of the finance charge memo.';
                 }
                 field("Interest Amount"; Rec."Interest Amount")
                 {
                     ApplicationArea = Basic, Suite;
                     DrillDown = false;
-                    ToolTip = 'Specifies the total of the interest amounts on the finance charge memo lines.';
                 }
                 field("Post Code"; Rec."Post Code")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the postal code.';
                     Visible = false;
                 }
                 field(City; Rec.City)
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the city name of the customer the finance charge memo is for.';
                     Visible = false;
                 }
                 field("Shortcut Dimension 1 Code"; Rec."Shortcut Dimension 1 Code")
                 {
                     ApplicationArea = Dimensions;
                     Editable = false;
-                    ToolTip = 'Specifies the code for Shortcut Dimension 1, which is one of two global dimension codes that you set up in the General Ledger Setup window.';
                     Visible = false;
                 }
                 field("Shortcut Dimension 2 Code"; Rec."Shortcut Dimension 2 Code")
                 {
                     ApplicationArea = Dimensions;
                     Editable = false;
-                    ToolTip = 'Specifies the code for Shortcut Dimension 2, which is one of two global dimension codes that you set up in the General Ledger Setup window.';
                     Visible = false;
                 }
                 field("Assigned User ID"; Rec."Assigned User ID")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the ID of the user who is responsible for the document.';
                 }
             }
         }

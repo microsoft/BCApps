@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -19,6 +19,7 @@ table 5339 "Integration Synch. Job Errors"
         {
             AutoIncrement = true;
             Caption = 'No.';
+            ToolTip = 'Specifies the number of the involved entry or record, according to the specified number series.';
         }
         field(2; "Integration Synch. Job ID"; Guid)
         {
@@ -42,10 +43,12 @@ table 5339 "Integration Synch. Job Errors"
         field(6; "Date/Time"; DateTime)
         {
             Caption = 'Date/Time';
+            ToolTip = 'Specifies the date and time that the error in the integration synchronization job occurred.';
         }
         field(7; "Exception Detail"; BLOB)
         {
             Caption = 'Exception Detail';
+            ToolTip = 'Specifies the exception that occurred in the integration synchronization job.';
         }
         field(8; "Error Message"; Text[2048])
         {

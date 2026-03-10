@@ -40,7 +40,7 @@ codeunit 6450 "Serv. Integration Mgt."
 
     // Table Customer
 
-    [EventSubscriber(ObjectType::Table, Database::Customer, 'OnAfterDeleteRelatedData', '', false, false)]
+    [EventSubscriber(ObjectType::Table, Database::Customer, 'OnAfterDeleteRelatedData', '', true, false)]
     local procedure CustomerOnAfterDelete(Customer: Record Customer)
     var
         ServiceItem: Record "Service Item";
@@ -67,19 +67,19 @@ codeunit 6450 "Serv. Integration Mgt."
             Error(ServiceDocumentExistErr, Customer."No.", ServiceHeader."Document Type");
     end;
 
-    [EventSubscriber(ObjectType::Table, Database::Customer, 'OnGetTotalAmountLCYOnAfterCalcFields', '', false, false)]
+    [EventSubscriber(ObjectType::Table, Database::Customer, 'OnGetTotalAmountLCYOnAfterCalcFields', '', true, false)]
     local procedure OnGetTotalAmountLCYOnAfterCalcFields(var Customer: Record Customer)
     begin
         Customer.CalcFields("Outstanding Serv. Orders (LCY)", "Serv Shipped Not Invoiced(LCY)", "Outstanding Serv.Invoices(LCY)");
     end;
 
-    [EventSubscriber(ObjectType::Table, Database::Customer, 'OnGetTotalAmountLCYUIOnAfterSetAutoCalcFields', '', false, false)]
+    [EventSubscriber(ObjectType::Table, Database::Customer, 'OnGetTotalAmountLCYUIOnAfterSetAutoCalcFields', '', true, false)]
     local procedure OnGetTotalAmountLCYUIOnAfterSetAutoCalcFields(var Customer: Record Customer)
     begin
         Customer.SetAutoCalcFields("Outstanding Serv. Orders (LCY)", "Serv Shipped Not Invoiced(LCY)", "Outstanding Serv.Invoices(LCY)");
     end;
 
-    [EventSubscriber(ObjectType::Table, Database::Customer, 'OnAfterGetTotalAmountLCYCommon', '', false, false)]
+    [EventSubscriber(ObjectType::Table, Database::Customer, 'OnAfterGetTotalAmountLCYCommon', '', true, false)]
     local procedure OnAfterGetTotalAmountLCYCommon(var Customer: Record Customer; var TotalAmountLCY: Decimal)
     var
         [SecurityFiltering(SecurityFilter::Filtered)]
@@ -99,7 +99,7 @@ codeunit 6450 "Serv. Integration Mgt."
 
     // Table Cust. Ledger Entry
 
-    [EventSubscriber(ObjectType::Table, Database::"Cust. Ledger Entry", 'OnBeforeShowDoc', '', false, false)]
+    [EventSubscriber(ObjectType::Table, Database::"Cust. Ledger Entry", 'OnBeforeShowDoc', '', true, false)]
     local procedure CustLedgerEntryOnBeforeShowDoc(CustLedgerEntry: Record "Cust. Ledger Entry"; var IsPageOpened: Boolean; var IsHandled: Boolean)
     var
         ServiceInvoiceHeader: Record "Service Invoice Header";
@@ -121,7 +121,7 @@ codeunit 6450 "Serv. Integration Mgt."
         end;
     end;
 
-    [EventSubscriber(ObjectType::Table, Database::"Cust. Ledger Entry", 'OnAfterShowPostedDocAttachment', '', false, false)]
+    [EventSubscriber(ObjectType::Table, Database::"Cust. Ledger Entry", 'OnAfterShowPostedDocAttachment', '', true, false)]
     local procedure CustLedgerEntryOnAfterShowPostedDocAttachment(CustLedgerEntry: Record "Cust. Ledger Entry"; DocumentFound: Boolean)
     var
         ServiceInvoiceHeader: Record "Service Invoice Header";
@@ -150,7 +150,7 @@ codeunit 6450 "Serv. Integration Mgt."
         DocumentAttachmentDetails.RunModal();
     end;
 
-    [EventSubscriber(ObjectType::Table, Database::"Cust. Ledger Entry", 'OnAfterHasPostedDocAttachment', '', false, false)]
+    [EventSubscriber(ObjectType::Table, Database::"Cust. Ledger Entry", 'OnAfterHasPostedDocAttachment', '', true, false)]
     local procedure CustLedgerEntryOnAfterHasPostedDocAttachment(CustLedgerEntry: Record "Cust. Ledger Entry"; var HasPostedDocumentAttachment: Boolean)
     var
         [SecurityFiltering(SecurityFilter::Filtered)]
@@ -173,7 +173,7 @@ codeunit 6450 "Serv. Integration Mgt."
 
     // Table Sales Line
 
-    [EventSubscriber(ObjectType::Table, Database::"Sales Line", 'OnCheckServItemCreation', '', false, false)]
+    [EventSubscriber(ObjectType::Table, Database::"Sales Line", 'OnCheckServItemCreation', '', true, false)]
     local procedure SalesLineOnCheckServItemCreation(SalesLine: Record "Sales Line")
     begin
         CheckServItemCreation(SalesLine);
@@ -198,7 +198,7 @@ codeunit 6450 "Serv. Integration Mgt."
 
     // Table Sales Shipment Line
 
-    [EventSubscriber(ObjectType::Table, Database::"Sales Shipment Line", 'OnAfterDeleteEvent', '', false, false)]
+    [EventSubscriber(ObjectType::Table, Database::"Sales Shipment Line", 'OnAfterDeleteEvent', '', true, false)]
     local procedure SalesShipmentLineOnAfterDelete(Rec: Record "Sales Shipment Line"; RunTrigger: Boolean)
     var
         ServiceItem: Record "Service Item";
@@ -221,7 +221,7 @@ codeunit 6450 "Serv. Integration Mgt."
 
     // Table Item
 
-    [EventSubscriber(ObjectType::Table, Database::Item, 'OnAfterDeleteRelatedData', '', false, false)]
+    [EventSubscriber(ObjectType::Table, Database::Item, 'OnAfterDeleteRelatedData', '', true, false)]
     local procedure ItemOnAfterDeleteRelatedData(Item: Record Item)
     var
         TroubleshootingSetup: Record "Troubleshooting Setup";
@@ -235,7 +235,7 @@ codeunit 6450 "Serv. Integration Mgt."
         ResourceSkillMgt.DeleteItemResSkills(Item."No.");
     end;
 
-    [EventSubscriber(ObjectType::Table, Database::"Item Journal Line", 'OnGetOrderTypeService', '', false, false)]
+    [EventSubscriber(ObjectType::Table, Database::"Item Journal Line", 'OnGetOrderTypeService', '', true, false)]
     local procedure OnGetOrderTypeService(var OrderType: Enum "Inventory Order Type")
     begin
         OrderType := Microsoft.Foundation.Enums."Inventory Order Type"::Service;
@@ -243,7 +243,7 @@ codeunit 6450 "Serv. Integration Mgt."
 
     // Table Resource
 
-    [EventSubscriber(ObjectType::Table, Database::Resource, 'OnAfterDeleteEvent', '', false, false)]
+    [EventSubscriber(ObjectType::Table, Database::Resource, 'OnAfterDeleteEvent', '', true, false)]
     local procedure ResourceOnAfterDelete(var Rec: Record Resource; RunTrigger: Boolean)
     var
         ResourceSkill: Record "Resource Skill";
@@ -270,7 +270,7 @@ codeunit 6450 "Serv. Integration Mgt."
 
     // Codeunit "Data Privacy Mgmt"
 
-    [EventSubscriber(ObjectType::Codeunit, Codeunit::System.Privacy."Data Privacy Mgmt", 'OnAfterIsContactPersonTable', '', false, false)]
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::System.Privacy."Data Privacy Mgmt", 'OnAfterIsContactPersonTable', '', true, false)]
     local procedure OnAfterIsContactPersonTable(TableNo: Integer; var Result: Boolean)
     begin
         Result := Result or
@@ -286,7 +286,7 @@ codeunit 6450 "Serv. Integration Mgt."
 
     // Codeunit "Calendar Management"
 
-    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Calendar Management", 'OnFillSourceRec', '', false, false)]
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Calendar Management", 'OnFillSourceRec', '', true, false)]
     local procedure CalendarManagementOnFillSourceRec(var CustomCalendarChange: Record "Customized Calendar Change"; RecRef: RecordRef)
     begin
         if RecRef.Number = Database::"Service Mgt. Setup" then
@@ -301,7 +301,7 @@ codeunit 6450 "Serv. Integration Mgt."
         CustomCalendarChange.SetSource(CustomCalendarChange."Source Type"::Service, '', '', ServMgtSetup."Base Calendar Code");
     end;
 
-    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Calendar Management", 'OnCreateWhereUsedEntries', '', false, false)]
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Calendar Management", 'OnCreateWhereUsedEntries', '', true, false)]
     local procedure OnCreateWhereUsedEntries(BaseCalendarCode: Code[10]; sender: Codeunit "Calendar Management")
     var
         ServMgtSetup: Record "Service Mgt. Setup";
@@ -320,7 +320,7 @@ codeunit 6450 "Serv. Integration Mgt."
 
     // Table "Customized Calendar Change"
 
-    [EventSubscriber(ObjectType::Table, Database::"Customized Calendar Change", 'OnAfterCalcCalendarCode', '', false, false)]
+    [EventSubscriber(ObjectType::Table, Database::"Customized Calendar Change", 'OnAfterCalcCalendarCode', '', true, false)]
     local procedure OnAfterCalcCalendarCode(var CustomizedCalendarChange: Record "Customized Calendar Change")
     var
         ServiceMgtSetup: Record "Service Mgt. Setup";
@@ -332,7 +332,7 @@ codeunit 6450 "Serv. Integration Mgt."
 
     // Table "Customized Calendar Entry"
 
-    [EventSubscriber(ObjectType::Table, Database::"Customized Calendar Entry", 'OnGetCaptionOnCaseElse', '', false, false)]
+    [EventSubscriber(ObjectType::Table, Database::"Customized Calendar Entry", 'OnGetCaptionOnCaseElse', '', true, false)]
     local procedure OnGetCaptionOnCaseElse(var CustomizedCalendarEntry: Record "Customized Calendar Entry"; var TableCaption: Text[250])
     var
         ServMgtSetup: Record "Service Mgt. Setup";
@@ -344,7 +344,7 @@ codeunit 6450 "Serv. Integration Mgt."
 
     // Codeunit "CRM Statistics Job"
 
-    [EventSubscriber(ObjectType::Codeunit, Codeunit::"CRM Statistics Job", 'OnAfterAddCustomersWithLinesActivity', '', false, false)]
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"CRM Statistics Job", 'OnAfterAddCustomersWithLinesActivity', '', true, false)]
     local procedure OnAfterAddCustomersWithLinesActivity(StartDateTime: DateTime; var CustomerNumbers: List of [Code[20]])
     var
         ServiceLine: Record "Service Line";
@@ -357,7 +357,7 @@ codeunit 6450 "Serv. Integration Mgt."
             until ServiceLine.Next() = 0;
     end;
 
-    [EventSubscriber(ObjectType::Codeunit, Codeunit::"CRM Statistics Job", 'OnCreateOrUpdateCRMAccountStatisticsOnBeforeModify', '', false, false)]
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"CRM Statistics Job", 'OnCreateOrUpdateCRMAccountStatisticsOnBeforeModify', '', true, false)]
     local procedure OnCreateOrUpdateCRMAccountStatisticsOnBeforeModify(var CRMAccountStatistics: Record "CRM Account Statistics"; var Customer: Record Customer)
     begin
         Customer.CalcFields(
@@ -369,7 +369,7 @@ codeunit 6450 "Serv. Integration Mgt."
 
     // Codeunit "Email Scenario Mapping"
 
-    [EventSubscriber(ObjectType::Codeunit, Codeunit::System.EMail."Email Scenario Mapping", 'OnAfterFromReportSelectionUsage', '', false, false)]
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::System.EMail."Email Scenario Mapping", 'OnAfterFromReportSelectionUsage', '', true, false)]
     local procedure OnAfterFromReportSelectionUsage(ReportSelectionUsage: Enum "Report Selection Usage"; var EmailScenario: Enum "Email Scenario")
     begin
         case ReportSelectionUsage of
@@ -386,7 +386,7 @@ codeunit 6450 "Serv. Integration Mgt."
 
     // Codeunit "Calc. Item Plan - Plan Wksh."
 
-    [EventSubscriber(ObjectType::Codeunit, Codeunit::Microsoft.Manufacturing.Planning."Calc. Item Plan - Plan Wksh.", 'OnPlanThisItemOnBeforeExitMPS', '', false, false)]
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::Microsoft.Manufacturing.Planning."Calc. Item Plan - Plan Wksh.", 'OnPlanThisItemOnBeforeExitMPS', '', true, false)]
     local procedure OnPlanThisItemOnBeforeExitMPS(var Item: Record Item; var LinesExist: Boolean)
     var
         ServiceLine: Record "Service Line";
@@ -396,7 +396,7 @@ codeunit 6450 "Serv. Integration Mgt."
 
     // Codeunit "Instruction Mgt."
 
-    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Instruction Mgt.", 'OnShowPostedDocumentOnBeforePageRun', '', false, false)]
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Instruction Mgt.", 'OnShowPostedDocumentOnBeforePageRun', '', true, false)]
     local procedure OnShowPostedDocumentOnBeforePageRun(RecVariant: Variant; var PageId: Integer)
     var
         RecRef: RecordRef;
@@ -412,7 +412,7 @@ codeunit 6450 "Serv. Integration Mgt."
 
     // Table "Error Handling Parameters"
 
-    [EventSubscriber(ObjectType::Table, Database::"Error Handling Parameters", 'OnAfterFromArgs', '', false, false)]
+    [EventSubscriber(ObjectType::Table, Database::"Error Handling Parameters", 'OnAfterFromArgs', '', true, false)]
     local procedure OnAfterFromArgs(var ErrorHandlingParameters: Record "Error Handling Parameters" temporary; var Args: Dictionary of [Text, Text])
     begin
         ErrorHandlingParameters."Service Document Type" := GetServiceDocTypeParameterValue(Args, ErrorHandlingParameters.FieldName("Service Document Type"));
@@ -426,7 +426,7 @@ codeunit 6450 "Serv. Integration Mgt."
         Evaluate(ServiceDocType, ParamValueAsText);
     end;
 
-    [EventSubscriber(ObjectType::Table, Database::"Error Handling Parameters", 'OnAfterToArgs', '', false, false)]
+    [EventSubscriber(ObjectType::Table, Database::"Error Handling Parameters", 'OnAfterToArgs', '', true, false)]
     local procedure OnAfterToArgs(var ErrorHandlingParameters: Record "Error Handling Parameters" temporary; var Args: Dictionary of [Text, Text])
     begin
         Args.Add(ErrorHandlingParameters.FieldName("Service Document Type"), Format(ErrorHandlingParameters."Service Document Type"));
@@ -434,7 +434,7 @@ codeunit 6450 "Serv. Integration Mgt."
 
     // Table "Certificate of Supply"
 
-    [EventSubscriber(ObjectType::Table, Database::"Certificate of Supply", 'OnBeforeInitRecord', '', false, false)]
+    [EventSubscriber(ObjectType::Table, Database::"Certificate of Supply", 'OnBeforeInitRecord', '', true, false)]
     local procedure CertificateofSupplyOnBeforeInitRecord(var CertificateOfSupply: Record "Certificate of Supply"; DocumentType: Option; DocumentNo: Code[20]; var IsHandled: Boolean)
     var
         ServiceShipmentHeader: Record "Service Shipment Header";
@@ -449,15 +449,22 @@ codeunit 6450 "Serv. Integration Mgt."
         end;
     end;
 
-    [EventSubscriber(ObjectType::Table, Database::"Certificate of Supply", 'OnPrint', '', false, false)]
+    [EventSubscriber(ObjectType::Table, Database::"Certificate of Supply", 'OnPrint', '', true, false)]
     local procedure CertificateofSupplyOnPrint(var CertificateOfSupply: Record "Certificate of Supply")
+    var
+        DocumentType: Enum "Supply Document Type";
     begin
-        if CertificateOfSupply."Document Type" = CertificateOfSupply."Document Type"::"Service Shipment" then
+        DocumentType := CertificateOfSupply."Document Type";
+
+        if CertificateOfSupply.GetFilter("Document Type") <> '' then
+            DocumentType := CertificateOfSupply.GetRangeMin("Document Type");
+
+        if DocumentType = DocumentType::"Service Shipment" then
             Report.RunModal(Report::"Service Certificate of Supply", true, false, CertificateOfSupply);
     end;
 
     // Codeunit "Report Selection Mgt."
-    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Report Selection Mgt.", 'OnBeforeInitReportSelectionServ', '', false, false)]
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Report Selection Mgt.", 'OnBeforeInitReportSelectionServ', '', true, false)]
     local procedure OnBeforeInitReportSelectionServ()
     var
         ReportSelectionMgt: Codeunit "Report Selection Mgt.";
@@ -475,7 +482,7 @@ codeunit 6450 "Serv. Integration Mgt."
 
     // Codeunit AvailabilityManagement
 
-    [EventSubscriber(ObjectType::Codeunit, Codeunit::AvailabilityManagement, 'OnAfterShouldCalculateAvailableToPromise', '', false, false)]
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::AvailabilityManagement, 'OnAfterShouldCalculateAvailableToPromise', '', true, false)]
     local procedure OnAfterShouldCalculateAvailableToPromise(var OrderPromisingLine: Record "Order Promising Line"; var ShouldCalculate: Boolean)
     begin
         ShouldCalculate := ShouldCalculate or (OrderPromisingLine."Source Type" = OrderPromisingLine."Source Type"::"Service Order");
@@ -483,7 +490,7 @@ codeunit 6450 "Serv. Integration Mgt."
 
     // Codeunit "Available Management"
 
-    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Available Management", 'OnCalcAvailableQtyOnAfterCalculation', '', false, false)]
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Available Management", 'OnCalcAvailableQtyOnAfterCalculation', '', true, false)]
     local procedure OnCalcAvailableQtyOnAfterCalculation(var CopyOfItem: Record Item; var AvailableQty: Decimal)
     begin
         CopyOfItem.CalcFields("Qty. on Service Order");
@@ -492,21 +499,21 @@ codeunit 6450 "Serv. Integration Mgt."
 
     // Codeunit "Available To Promise"
 
-    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Available to Promise", 'OnAfterCalcGrossRequirement', '', false, false)]
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Available to Promise", 'OnAfterCalcGrossRequirement', '', true, false)]
     local procedure OnAfterCalcGrossRequirement(var Item: Record Item; var GrossRequirement: Decimal)
     begin
         Item.CalcFields("Qty. on Service Order");
         GrossRequirement += Item."Qty. on Service Order";
     end;
 
-    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Available to Promise", 'OnAfterCalcReservedRequirement', '', false, false)]
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Available to Promise", 'OnAfterCalcReservedRequirement', '', true, false)]
     local procedure OnAfterCalcReservedRequirement(var Item: Record Item; var ReservedRequirement: Decimal)
     begin
         Item.CalcFields("Res. Qty. on Service Orders");
         ReservedRequirement += Item."Res. Qty. on Service Orders";
     end;
 
-    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Available to Promise", 'OnAfterCalcReservedRequirement', '', false, false)]
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Available to Promise", 'OnAfterCalcReservedRequirement', '', true, false)]
     local procedure OnCalcAllItemFieldsOnAfterItemCalcFields(var Item: Record Item)
     begin
         Item.CalcFields("Qty. on Service Order", "Res. Qty. on Service Orders");
@@ -514,7 +521,7 @@ codeunit 6450 "Serv. Integration Mgt."
 
     // Codeunit "Calc. Availability Overview"
 
-    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Calc. Availability Overview", 'OnAfterCalcDemandRunningTotal', '', false, false)]
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Calc. Availability Overview", 'OnAfterCalcDemandRunningTotal', '', true, false)]
     local procedure OnAfterCalcDemandRunningTotal(var Item: Record Item; var DemandRunningTotal: Decimal)
     begin
         Item.CalcFields("Qty. on Service Order", "Res. Qty. on Service Orders");
@@ -523,7 +530,7 @@ codeunit 6450 "Serv. Integration Mgt."
 
     // Codeunit "Item Availability Forms Mgt"
 
-    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Item Availability Forms Mgt", 'OnCalculateNeedOnAfterCalcGrossRequirement', '', false, false)]
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Item Availability Forms Mgt", 'OnCalculateNeedOnAfterCalcGrossRequirement', '', true, false)]
     local procedure OnCalculateNeedOnAfterCalcGrossRequirement(var Item: Record Item; var GrossRequirement: Decimal)
     begin
         GrossRequirement += Item."Qty. on Service Order";
@@ -531,7 +538,7 @@ codeunit 6450 "Serv. Integration Mgt."
 
     // Page "Item Availability Line List"
 
-    [EventSubscriber(ObjectType::Page, Page::"Item Availability Line List", 'OnItemCalcFields', '', false, false)]
+    [EventSubscriber(ObjectType::Page, Page::"Item Availability Line List", 'OnItemCalcFields', '', true, false)]
     local procedure OnItemCalcFields(var Item: Record Item)
     begin
         Item.CalcFields("Qty. on Service Order");
@@ -539,7 +546,7 @@ codeunit 6450 "Serv. Integration Mgt."
 
     // Page "Item Availability Lines"
 
-    [EventSubscriber(ObjectType::Page, Page::"Item Availability Lines", 'OnAfterCalcAvailQuantities', '', false, false)]
+    [EventSubscriber(ObjectType::Page, Page::"Item Availability Lines", 'OnAfterCalcAvailQuantities', '', true, false)]
     local procedure OnAfterCalcAvailQuantities(var Item: Record Item; var ItemAvailabilityBuffer: Record "Item Availability Buffer")
     begin
         ItemAvailabilityBuffer."Qty. on Service Order" := Item."Qty. on Service Order";
@@ -547,7 +554,7 @@ codeunit 6450 "Serv. Integration Mgt."
 
     // Page "Res. Availability Lines"
 
-    [EventSubscriber(ObjectType::Page, Page::"Res. Availability Lines", 'OnAfterCalcLine', '', false, false)]
+    [EventSubscriber(ObjectType::Page, Page::"Res. Availability Lines", 'OnAfterCalcLine', '', true, false)]
     local procedure ResAvailabilityLinesOnAfterCalcLine(var Resource: Record Resource; var ResAvailabilityBuffer: Record "Res. Availability Buffer"; var NetAvailability: Decimal)
     begin
         Resource.CalcFields("Qty. on Service Order");
@@ -558,7 +565,7 @@ codeunit 6450 "Serv. Integration Mgt."
 
     // Page "Res. Availability Lines"
 
-    [EventSubscriber(ObjectType::Page, Page::"Res. Gr. Availability Lines", 'OnAfterCalcLine', '', false, false)]
+    [EventSubscriber(ObjectType::Page, Page::"Res. Gr. Availability Lines", 'OnAfterCalcLine', '', true, false)]
     local procedure ResGrAvailabilityLinesOnAfterCalcLine(var ResourceGroup: Record "Resource Group"; var ResGrAvailabilityBuffer: Record "Res. Gr. Availability Buffer")
     begin
         ResourceGroup.CalcFields("Qty. on Service Order");
@@ -568,7 +575,7 @@ codeunit 6450 "Serv. Integration Mgt."
 
     // Codeunit "Config. Management"
 
-    [EventSubscriber(ObjectType::Codeunit, Codeunit::System.IO."Config. Management", 'OnFindPage', '', false, false)]
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::System.IO."Config. Management", 'OnFindPage', '', true, false)]
     local procedure OnFindPage(TableID: Integer; var PageID: Integer)
     begin
         case TableID of
@@ -633,7 +640,7 @@ codeunit 6450 "Serv. Integration Mgt."
 
     // Codeunit "Sales Availability Mgt."
 
-    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Sales Availability Mgt.", 'OnOpenPageOnSetSourceOnAfterSetShouldExit', '', false, false)]
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Sales Availability Mgt.", 'OnOpenPageOnSetSourceOnAfterSetShouldExit', '', true, false)]
     local procedure OnOpenPageOnSetSourceOnAfterSetShouldExit(CrntSourceType: Enum "Order Promising Line Source Type"; var ShouldExit: Boolean)
     begin
         ShouldExit := ShouldExit or (CrntSourceType = "Order Promising Line Source Type"::"Service Order");

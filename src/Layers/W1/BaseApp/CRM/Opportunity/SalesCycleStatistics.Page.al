@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -23,7 +23,6 @@ page 5120 "Sales Cycle Statistics"
                 field("No. of Opportunities"; Rec."No. of Opportunities")
                 {
                     ApplicationArea = RelationshipMgmt;
-                    ToolTip = 'Specifies the number of opportunities that you have created using the sales cycle. This field is not editable.';
                 }
                 field("Estimated Value (LCY)"; Rec."Estimated Value (LCY)")
                 {

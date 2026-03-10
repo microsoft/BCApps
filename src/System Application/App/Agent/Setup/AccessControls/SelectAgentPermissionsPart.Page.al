@@ -35,7 +35,6 @@ page 4340 "Select Agent Permissions Part"
                     ToolTip = 'Specifies the ID of a security role that has been assigned to this Windows login in the current database.';
                     Style = Unfavorable;
                     StyleExpr = PermissionSetNotFound;
-                    NotBlank = true;
 
                     trigger OnLookup(var Text: Text): Boolean
                     var
@@ -52,6 +51,9 @@ page 4340 "Select Agent Permissions Part"
 
                     trigger OnValidate()
                     begin
+                        if Rec."Role ID" = '' then
+                            Error(RoleIdMustBeFilledInErr);
+
                         PermissionSetLookupRecord.SetRange("Role ID", Rec."Role ID");
                         if PermissionSetLookupRecord.FindFirst() then begin
                             if PermissionSetLookupRecord.Count() > 1 then
@@ -221,4 +223,5 @@ page 4340 "Select Agent Permissions Part"
         GlobalSingleCompanyName: Text[30];
         MultipleRoleIDErr: Label 'The permission set %1 is defined multiple times in this context. Use the lookup button to select the relevant permission set.', Comment = '%1 will be replaced with a Role ID code value from the Permission Set table';
         ShowSingleCompanyQst: Label 'This agent currently has permissions in only one company. By showing the Company field, you will be able to assign permissions in other companies, making the agent available there. The agent may not have been designed to work cross companies.\\Do you want to continue?';
+        RoleIdMustBeFilledInErr: Label 'Role ID must be filled in.';
 }

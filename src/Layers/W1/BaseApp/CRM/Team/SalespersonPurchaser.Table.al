@@ -12,6 +12,7 @@ using Microsoft.CRM.Segment;
 using Microsoft.CRM.Task;
 using Microsoft.Finance.Dimension;
 using Microsoft.Integration.Dataverse;
+using Microsoft.Purchases.Payables;
 using System.Email;
 
 table 13 "Salesperson/Purchaser"
@@ -26,6 +27,7 @@ table 13 "Salesperson/Purchaser"
         field(1; "Code"; Code[20])
         {
             Caption = 'Code';
+            ToolTip = 'Specifies a code for the salesperson or purchaser.';
             NotBlank = true;
 
             trigger OnValidate()
@@ -36,11 +38,13 @@ table 13 "Salesperson/Purchaser"
         field(2; Name; Text[50])
         {
             Caption = 'Name';
+            ToolTip = 'Specifies the name of the salesperson or purchaser.';
         }
         field(3; "Commission %"; Decimal)
         {
             AutoFormatType = 0;
             Caption = 'Commission %';
+            ToolTip = 'Specifies the percentage to use to calculate the salesperson''s commission.';
             DecimalPlaces = 2 : 2;
             MaxValue = 100;
             MinValue = 0;
@@ -48,11 +52,13 @@ table 13 "Salesperson/Purchaser"
         field(140; Image; Media)
         {
             Caption = 'Image';
+            ToolTip = 'Specifies the picture that has been inserted for the salesperson or purchaser.';
             ExtendedDatatype = Person;
         }
         field(150; "Privacy Blocked"; Boolean)
         {
             Caption = 'Privacy Blocked';
+            ToolTip = 'Specifies whether to limit access to data for the data subject during daily operations. This is useful, for example, when protecting data from changes while it is under privacy review.';
         }
 #if not CLEANSCHEMA26
         field(720; "Coupled to CRM"; Boolean)
@@ -68,6 +74,7 @@ table 13 "Salesperson/Purchaser"
         {
             FieldClass = FlowField;
             Caption = 'Coupled to Dataverse';
+            ToolTip = 'Specifies that the salesperson/purchaser is coupled to a user in Dataverse.';
             Editable = false;
             CalcFormula = exist("CRM Integration Record" where("Integration ID" = field(SystemId), "Table ID" = const(Database::"Salesperson/Purchaser")));
         }
@@ -75,6 +82,7 @@ table 13 "Salesperson/Purchaser"
         {
             CaptionClass = '1,1,1';
             Caption = 'Global Dimension 1 Code';
+            ToolTip = 'Specifies the code for the global dimension that is linked to the record or entry for analysis purposes. Two global dimensions, typically for the company''s most important activities, are available on all cards, documents, reports, and lists.';
             TableRelation = "Dimension Value".Code where("Global Dimension No." = const(1),
                                                           Blocked = const(false));
 
@@ -87,6 +95,7 @@ table 13 "Salesperson/Purchaser"
         {
             CaptionClass = '1,1,2';
             Caption = 'Global Dimension 2 Code';
+            ToolTip = 'Specifies the code for the global dimension that is linked to the record or entry for analysis purposes. Two global dimensions, typically for the company''s most important activities, are available on all cards, documents, reports, and lists.';
             TableRelation = "Dimension Value".Code where("Global Dimension No." = const(2),
                                                           Blocked = const(false));
 
@@ -98,6 +107,7 @@ table 13 "Salesperson/Purchaser"
         field(5052; "E-Mail"; Text[80])
         {
             Caption = 'Email';
+            ToolTip = 'Specifies the salesperson''s email address.';
             ExtendedDatatype = EMail;
 
             trigger OnValidate()
@@ -111,6 +121,7 @@ table 13 "Salesperson/Purchaser"
         field(5053; "Phone No."; Text[30])
         {
             Caption = 'Phone No.';
+            ToolTip = 'Specifies the salesperson''s telephone number.';
             ExtendedDatatype = PhoneNo;
         }
         field(5054; "Next Task Date"; Date)
@@ -119,6 +130,7 @@ table 13 "Salesperson/Purchaser"
                                                   Closed = const(false),
                                                   "System To-do Type" = filter(Organizer | "Salesperson Attendee")));
             Caption = 'Next Task Date';
+            ToolTip = 'Specifies the date of the next task assigned to the salesperson.';
             Editable = false;
             FieldClass = FlowField;
         }
@@ -133,6 +145,7 @@ table 13 "Salesperson/Purchaser"
                                                            "Probability %" = field("Probability % Filter"),
                                                            "Completed %" = field("Completed % Filter")));
             Caption = 'No. of Opportunities';
+            ToolTip = 'Specifies the number of open opportunities handled by the salesperson.';
             Editable = false;
             FieldClass = FlowField;
         }
@@ -180,6 +193,7 @@ table 13 "Salesperson/Purchaser"
                                                                Date = field("Date Filter"),
                                                                Postponed = const(false)));
             Caption = 'No. of Interactions';
+            ToolTip = 'Specifies the number of interactions handled by this salesperson.';
             Editable = false;
             FieldClass = FlowField;
         }
@@ -210,6 +224,7 @@ table 13 "Salesperson/Purchaser"
         field(5062; "Job Title"; Text[30])
         {
             Caption = 'Job Title';
+            ToolTip = 'Specifies the salesperson''s job title.';
         }
         field(5063; "Action Taken Filter"; Enum "Opportunity Action Taken")
         {
@@ -403,6 +418,7 @@ table 13 "Salesperson/Purchaser"
         field(5087; Blocked; Boolean)
         {
             Caption = 'Blocked';
+            ToolTip = 'Specifies whether this Salesperson can be assigned for new documents';
         }
     }
 
@@ -435,7 +451,13 @@ table 13 "Salesperson/Purchaser"
         TeamSalesperson: Record "Team Salesperson";
         TodoTask: Record "To-do";
         Opportunity: Record Opportunity;
+        VendLedgEntry: Record "Vendor Ledger Entry";
     begin
+        VendLedgEntry.Reset();
+        VendLedgEntry.SetRange("Purchaser Code", Code);
+        if not VendLedgEntry.IsEmpty() then
+            Error(CannotDeleteBecauseVendLedgerEntriesErr, Code);
+
         TodoTask.Reset();
         TodoTask.SetCurrentKey("Salesperson Code", Closed);
         TodoTask.SetRange("Salesperson Code", Code);
@@ -484,6 +506,7 @@ table 13 "Salesperson/Purchaser"
         BlockedSalesPersonPurchErr: Label 'You cannot %1 this document because %2 %3 is blocked due to privacy.', Comment = '%1 = post or create, %2 = Salesperson / Purchaser, %3 = salesperson / purchaser code.';
         PrivacyBlockedGenericTxt: Label 'Privacy Blocked must not be true for %1 %2.', Comment = '%1 = Salesperson / Purchaser, %2 = salesperson / purchaser code.';
         CannotDeleteBecauseActiveOpportunitiesErr: Label 'You cannot delete the salesperson/purchaser with code %1 because it has open opportunities.', Comment = '%1 = Salesperson/Purchaser code.';
+        CannotDeleteBecauseVendLedgerEntriesErr: Label 'The salesperson/purchaser %1 cannot be deleted because vendor ledger entries exist.', Comment = '%1 = Salesperson/Purchaser code.';
 
     procedure CreateInteraction()
     var

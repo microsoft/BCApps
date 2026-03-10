@@ -30,13 +30,11 @@ page 354 "Item Turnover Lines"
                 {
                     ApplicationArea = Basic, Suite;
                     Caption = 'Period Start';
-                    ToolTip = 'Specifies the start date of the period defined on the line, related to year-to-date inventory turnover.';
                 }
                 field("Period Name"; Rec."Period Name")
                 {
                     ApplicationArea = Basic, Suite;
                     Caption = 'Period Name';
-                    ToolTip = 'Specifies the name of the period defined on the line, related to year-to-date inventory turnover.';
                 }
                 field(PurchasesQty; Rec."Purchases (Qty.)")
                 {

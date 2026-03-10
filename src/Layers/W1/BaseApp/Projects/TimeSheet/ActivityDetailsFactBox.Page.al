@@ -23,14 +23,12 @@ page 971 "Activity Details FactBox"
                 ApplicationArea = Comments;
                 Caption = 'Line Comment';
                 DrillDown = false;
-                ToolTip = 'Specifies that a comment about this document has been entered.';
             }
             field("Total Quantity"; Rec."Total Quantity")
             {
                 ApplicationArea = Jobs;
                 Caption = 'Line Total';
                 DrillDown = false;
-                ToolTip = 'Specifies the total number of hours that have been entered on a time sheet.';
             }
             field(ActivitiID; ActivitiID)
             {

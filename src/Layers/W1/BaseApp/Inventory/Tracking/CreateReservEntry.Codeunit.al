@@ -909,7 +909,6 @@ codeunit 99000830 "Create Reserv. Entry"
         ReservEntry.Validate("Quantity (Base)", TempTrkgSpec1."Quantity (Base)");
         if Abs(ReservEntry.Quantity - OldReservEntryQty) <= UOMMgt.QtyRndPrecision() then
             ReservEntry.Quantity := OldReservEntryQty;
-        ReservEntry.Positive := (ReservEntry."Quantity (Base)" > 0);
         TempTrkgSpec1.Delete();
 
         if (ReservEntry."Reservation Status" = ReservEntry."Reservation Status"::Reservation) or
@@ -923,7 +922,6 @@ codeunit 99000830 "Create Reserv. Entry"
             ReservEntry2.Validate("Quantity (Base)", TempTrkgSpec2."Quantity (Base)");
             if Abs(ReservEntry2.Quantity - OldReservEntryQty) <= UOMMgt.QtyRndPrecision() then
                 ReservEntry2.Quantity := OldReservEntryQty;
-            ReservEntry2.Positive := (ReservEntry2."Quantity (Base)" > 0);
             if ReservEntry2.Positive then
                 ReservEntry2."Appl.-from Item Entry" := TempTrkgSpec2."Appl.-from Item Entry";
             TempTrkgSpec2.Delete();

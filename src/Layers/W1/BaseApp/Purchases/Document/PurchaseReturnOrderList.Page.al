@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -59,7 +59,6 @@ page 9311 "Purchase Return Order List"
                 field("Order Address Code"; Rec."Order Address Code")
                 {
                     ApplicationArea = PurchReturnOrder;
-                    ToolTip = 'Specifies the order address of the related vendor.';
                     Visible = false;
                 }
                 field("Buy-from Vendor Name"; Rec."Buy-from Vendor Name")
@@ -70,84 +69,70 @@ page 9311 "Purchase Return Order List"
                 field("Vendor Authorization No."; Rec."Vendor Authorization No.")
                 {
                     ApplicationArea = PurchReturnOrder;
-                    ToolTip = 'Specifies the compensation agreement identification number, sometimes referred to as the RMA No. (Returns Materials Authorization).';
                 }
                 field("Buy-from Post Code"; Rec."Buy-from Post Code")
                 {
                     ApplicationArea = PurchReturnOrder;
-                    ToolTip = 'Specifies the post code of the vendor who delivered the items.';
                     Visible = false;
                 }
                 field("Buy-from Country/Region Code"; Rec."Buy-from Country/Region Code")
                 {
                     ApplicationArea = PurchReturnOrder;
-                    ToolTip = 'Specifies the city of the vendor who delivered the items.';
                     Visible = false;
                 }
                 field("Buy-from Contact"; Rec."Buy-from Contact")
                 {
                     ApplicationArea = PurchReturnOrder;
-                    ToolTip = 'Specifies the name of the contact person at the vendor who delivered the items.';
                     Visible = false;
                 }
                 field("Pay-to Vendor No."; Rec."Pay-to Vendor No.")
                 {
                     ApplicationArea = PurchReturnOrder;
-                    ToolTip = 'Specifies the number of the vendor that you received the invoice from.';
                     Visible = false;
                 }
                 field("Pay-to Name"; Rec."Pay-to Name")
                 {
                     ApplicationArea = PurchReturnOrder;
-                    ToolTip = 'Specifies the name of the vendor who you received the invoice from.';
                     Visible = false;
                 }
                 field("Pay-to Post Code"; Rec."Pay-to Post Code")
                 {
                     ApplicationArea = PurchReturnOrder;
-                    ToolTip = 'Specifies the post code of the vendor that you received the invoice from.';
                     Visible = false;
                 }
                 field("Pay-to Country/Region Code"; Rec."Pay-to Country/Region Code")
                 {
                     ApplicationArea = PurchReturnOrder;
-                    ToolTip = 'Specifies the country/region code of the address.';
                     Visible = false;
                 }
                 field("Pay-to Contact"; Rec."Pay-to Contact")
                 {
                     ApplicationArea = PurchReturnOrder;
-                    ToolTip = 'Specifies the name of the person to contact about an invoice from this vendor.';
                     Visible = false;
                 }
                 field("Ship-to Code"; Rec."Ship-to Code")
                 {
                     ApplicationArea = PurchReturnOrder;
-                    ToolTip = 'Specifies a code for an alternate shipment address if you want to ship to another address than the one that has been entered automatically. This field is also used in case of drop shipment.';
                     Visible = false;
                 }
                 field("Ship-to Name"; Rec."Ship-to Name")
                 {
                     ApplicationArea = PurchReturnOrder;
-                    ToolTip = 'Specifies the name of the customer at the address that the items are shipped to.';
                     Visible = false;
                 }
                 field("Ship-to Post Code"; Rec."Ship-to Post Code")
                 {
                     ApplicationArea = PurchReturnOrder;
-                    ToolTip = 'Specifies the postal code of the address that the items are shipped to.';
                     Visible = false;
                 }
                 field("Ship-to Country/Region Code"; Rec."Ship-to Country/Region Code")
                 {
                     ApplicationArea = PurchReturnOrder;
-                    ToolTip = 'Specifies the country/region code of the address that the items are shipped to.';
                     Visible = false;
                 }
                 field("Ship-to Contact"; Rec."Ship-to Contact")
                 {
                     ApplicationArea = PurchReturnOrder;
-                    ToolTip = 'Specifies the name of the contact person at the address that the items are shipped to.';
                     Visible = false;
                 }
                 field("Posting Date"; Rec."Posting Date")
@@ -159,13 +144,11 @@ page 9311 "Purchase Return Order List"
                 field("Shortcut Dimension 1 Code"; Rec."Shortcut Dimension 1 Code")
                 {
                     ApplicationArea = Dimensions;
-                    ToolTip = 'Specifies the code for Shortcut Dimension 1, which is one of two global dimension codes that you set up in the General Ledger Setup window.';
                     Visible = false;
                 }
                 field("Shortcut Dimension 2 Code"; Rec."Shortcut Dimension 2 Code")
                 {
                     ApplicationArea = Dimensions;
-                    ToolTip = 'Specifies the code for Shortcut Dimension 2, which is one of two global dimension codes that you set up in the General Ledger Setup window.';
                     Visible = false;
                 }
                 field("Location Code"; Rec."Location Code")
@@ -176,13 +159,11 @@ page 9311 "Purchase Return Order List"
                 field("Purchaser Code"; Rec."Purchaser Code")
                 {
                     ApplicationArea = PurchReturnOrder;
-                    ToolTip = 'Specifies which purchaser is assigned to the vendor.';
                     Visible = false;
                 }
                 field("Assigned User ID"; Rec."Assigned User ID")
                 {
                     ApplicationArea = PurchReturnOrder;
-                    ToolTip = 'Specifies the ID of the user who is responsible for the document.';
                 }
                 field("Currency Code"; Rec."Currency Code")
                 {
@@ -193,7 +174,6 @@ page 9311 "Purchase Return Order List"
                 field("Document Date"; Rec."Document Date")
                 {
                     ApplicationArea = PurchReturnOrder;
-                    ToolTip = 'Specifies the date when the related document was created.';
                     Visible = false;
                 }
                 field(Status; Rec.Status)
@@ -205,49 +185,41 @@ page 9311 "Purchase Return Order List"
                 field("Payment Terms Code"; Rec."Payment Terms Code")
                 {
                     ApplicationArea = PurchReturnOrder;
-                    ToolTip = 'Specifies a formula that calculates the payment due date, payment discount date, and payment discount amount.';
                     Visible = false;
                 }
                 field("Due Date"; Rec."Due Date")
                 {
                     ApplicationArea = PurchReturnOrder;
-                    ToolTip = 'Specifies when the purchase invoice is due for payment.';
                     Visible = false;
                 }
                 field("Payment Discount %"; Rec."Payment Discount %")
                 {
                     ApplicationArea = PurchReturnOrder;
-                    ToolTip = 'Specifies the payment discount percent granted if payment is made on or before the date in the Pmt. Discount Date field.';
                     Visible = false;
                 }
                 field("Shipment Method Code"; Rec."Shipment Method Code")
                 {
                     ApplicationArea = PurchReturnOrder;
-                    ToolTip = 'Specifies the delivery conditions of the related shipment, such as free on board (FOB).';
                     Visible = false;
                 }
                 field("Completely Received"; Rec."Completely Received")
                 {
                     ApplicationArea = PurchReturnOrder;
-                    ToolTip = 'Specifies if all the items on the order have been shipped or, in the case of inbound items, completely received.';
                     Visible = false;
                 }
                 field("Campaign No."; Rec."Campaign No.")
                 {
                     ApplicationArea = PurchReturnOrder;
-                    ToolTip = 'Specifies the campaign number the document is linked to.';
                     Visible = false;
                 }
                 field("Applies-to Doc. Type"; Rec."Applies-to Doc. Type")
                 {
                     ApplicationArea = PurchReturnOrder;
-                    ToolTip = 'Specifies the type of the posted document that this document or journal line will be applied to when you post, for example to register payment.';
                     Visible = false;
                 }
                 field("Expected Receipt Date"; Rec."Expected Receipt Date")
                 {
                     ApplicationArea = PurchReturnOrder;
-                    ToolTip = 'Specifies the date you expect the items to be available in your warehouse. If you leave the field blank, it will be calculated as follows: Planned Receipt Date + Safety Lead Time + Inbound Warehouse Handling Time = Expected Receipt Date.';
                     Visible = false;
                 }
                 field("Job Queue Status"; Rec."Job Queue Status")
@@ -270,19 +242,16 @@ page 9311 "Purchase Return Order List"
                 field(Amount; Rec.Amount)
                 {
                     ApplicationArea = PurchReturnOrder;
-                    ToolTip = 'Specifies the sum of amounts on all the lines in the document. This will include invoice discounts.';
                     Visible = false;
                 }
                 field("Amount Including VAT"; Rec."Amount Including VAT")
                 {
                     ApplicationArea = PurchReturnOrder;
-                    ToolTip = 'Specifies the sum of amounts, including VAT, on all the lines in the document. This will include invoice discounts.';
                     Visible = false;
                 }
                 field("Posting Description"; Rec."Posting Description")
                 {
                     ApplicationArea = Suite;
-                    ToolTip = 'Specifies additional posting information for the document. After you post the document, the description can add detail to vendor and customer ledger entries.';
                     Visible = false;
                 }
             }

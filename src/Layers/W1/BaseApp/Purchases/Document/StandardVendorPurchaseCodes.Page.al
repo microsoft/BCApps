@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -21,38 +21,31 @@ page 178 "Standard Vendor Purchase Codes"
                 field("Vendor No."; Rec."Vendor No.")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the number of the vendor to which the standard purchase code is assigned.';
                     Visible = false;
                 }
                 field("Code"; Rec.Code)
                 {
                     ApplicationArea = Suite;
-                    ToolTip = 'Specifies a standard purchase code from the Standard Purchase Code table.';
                 }
                 field(Description; Rec.Description)
                 {
                     ApplicationArea = Suite;
-                    ToolTip = 'Specifies a description of the standard purchase code.';
                 }
                 field("Insert Rec. Lines On Quotes"; Rec."Insert Rec. Lines On Quotes")
                 {
                     ApplicationArea = Suite;
-                    ToolTip = 'Specifies how you want to use standard purchase codes on purchase quotes.';
                 }
                 field("Insert Rec. Lines On Orders"; Rec."Insert Rec. Lines On Orders")
                 {
                     ApplicationArea = Suite;
-                    ToolTip = 'Specifies how you want to use standard purchase codes on purchase orders.';
                 }
                 field("Insert Rec. Lines On Invoices"; Rec."Insert Rec. Lines On Invoices")
                 {
                     ApplicationArea = Suite;
-                    ToolTip = 'Specifies how you want to use standard purchase codes on purchase invoices.';
                 }
                 field("Insert Rec. Lines On Cr. Memos"; Rec."Insert Rec. Lines On Cr. Memos")
                 {
                     ApplicationArea = Suite;
-                    ToolTip = 'Specifies how you want to use standard purchase codes on purchase credit memos.';
                 }
             }
         }

@@ -1482,6 +1482,8 @@ codeunit 8800 "Custom Layout Reporting"
                     OutputTxt := OutputTxt + '&gt;';
                 '<':
                     OutputTxt := OutputTxt + '&lt;';
+                '''':
+                    OutputTxt := OutputTxt + '''''';
                 else
                     OutputTxt := OutputTxt + CustomerNo[I];
             end;

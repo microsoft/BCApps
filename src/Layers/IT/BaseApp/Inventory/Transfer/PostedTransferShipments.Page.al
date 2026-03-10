@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -31,17 +31,14 @@ page 5752 "Posted Transfer Shipments"
                 field("No."; Rec."No.")
                 {
                     ApplicationArea = Location;
-                    ToolTip = 'Specifies the number of the involved entry or record, according to the specified number series.';
                 }
                 field("Transfer-from Code"; Rec."Transfer-from Code")
                 {
                     ApplicationArea = Location;
-                    ToolTip = 'Specifies the code of the location that items are transferred from.';
                 }
                 field("Transfer-to Code"; Rec."Transfer-to Code")
                 {
                     ApplicationArea = Location;
-                    ToolTip = 'Specifies the code of the location that the items are transferred to.';
                 }
                 field("Posting Date"; Rec."Posting Date")
                 {
@@ -51,37 +48,31 @@ page 5752 "Posted Transfer Shipments"
                 field("Shortcut Dimension 1 Code"; Rec."Shortcut Dimension 1 Code")
                 {
                     ApplicationArea = Dimensions;
-                    ToolTip = 'Specifies the code for Shortcut Dimension 1, which is one of two global dimension codes that you set up in the General Ledger Setup window.';
                     Visible = false;
                 }
                 field("Shortcut Dimension 2 Code"; Rec."Shortcut Dimension 2 Code")
                 {
                     ApplicationArea = Dimensions;
-                    ToolTip = 'Specifies the code for Shortcut Dimension 2, which is one of two global dimension codes that you set up in the General Ledger Setup window.';
                     Visible = false;
                 }
                 field("Shipment Date"; Rec."Shipment Date")
                 {
                     ApplicationArea = Location;
-                    ToolTip = 'Specifies when items on the document are shipped or were shipped. A shipment date is usually calculated from a requested delivery date plus lead time.';
                     Visible = false;
                 }
                 field("Shipment Method Code"; Rec."Shipment Method Code")
                 {
                     ApplicationArea = Location;
-                    ToolTip = 'Specifies the delivery conditions of the related shipment, such as free on board (FOB).';
                     Visible = false;
                 }
                 field("Shipping Agent Code"; Rec."Shipping Agent Code")
                 {
                     ApplicationArea = Location;
-                    ToolTip = 'Specifies the code for the shipping agent who is transporting the items.';
                     Visible = false;
                 }
                 field("Receipt Date"; Rec."Receipt Date")
                 {
                     ApplicationArea = Location;
-                    ToolTip = 'Specifies the receipt date of the transfer order.';
                     Visible = false;
                 }
             }

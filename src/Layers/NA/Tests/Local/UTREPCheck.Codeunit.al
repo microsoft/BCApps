@@ -2359,6 +2359,90 @@ codeunit 141002 "UT REP Check"
         Assert.IsTrue((StrPos(NoText[1], 'AND 76/100') = 0) and (StrPos(NoText[2], 'AND 76/100 ' + Currency.Description) > 0), StrSubstNo(AndCentsInNoText2Msg, 'AND 76/100'));
     end;
 
+    [Test]
+    [HandlerFunctions('CheckStubRequestPageHandler')]
+    [Scope('OnPrem')]
+    procedure CheckStubShowsCorrectAmountsForMultipleInvoicesWithDifferentDueDates()
+    var
+        GenJournalLine: Record "Gen. Journal Line";
+        VendorLedgerEntry: array[2] of Record "Vendor Ledger Entry";
+        BankAccount: Record "Bank Account";
+        Vendor: Record Vendor;
+        AppliesToID: Code[50];
+        Invoice1Amount: Decimal;
+        Invoice2Amount: Decimal;
+        Invoice1AppliedAmount: Decimal;
+        Invoice2Discount: Decimal;
+    begin
+        // [FEATURE] [Check printing] [Applies-to ID] [Due Date]
+        // [SCENARIO 621123] Check stub shows correct amounts when paying multiple invoices with different due dates using Applies-to ID
+
+        // [GIVEN] Vendor and Bank Account
+        Initialize();
+        CreateVendor(Vendor, LibraryRandom.RandIntInRange(1, 3), LibraryRandom.RandIntInRange(0, 1));
+        CreateBankAccount(BankAccount, LibraryRandom.RandIntInRange(1, 3), LibraryRandom.RandIntInRange(0, 1));
+
+        // [GIVEN] Invoice 1: Due 12/31/2025, Amount 15,236.45, partial payment 15,000
+        Invoice1Amount := 15236.45;
+        Invoice1AppliedAmount := 15000;
+
+        // [GIVEN] Invoice 2: Due 1/18/2026, Amount 547,812, full payment with 2% discount (10,956.24)
+        Invoice2Amount := 547812;
+        Invoice2Discount := 10956.24;
+
+        // [GIVEN] Payment journal line with Applies-to ID
+        AppliesToID := LibraryUTUtility.GetNewCode();
+        CreateGenJournalLine(GenJournalLine, GenJournalLine."Account Type"::Vendor, Vendor."No.", BankAccount."No.");
+        GenJournalLine.Amount := Invoice1AppliedAmount + Invoice2Amount - Invoice2Discount;
+        GenJournalLine."Posting Date" := CalcDate('<-CM+18D>', WorkDate()); // 12/19
+        GenJournalLine.Modify();
+        UpdateGeneralJournalLine(GenJournalLine, AppliesToID, false, '');
+
+        // [GIVEN] Vendor Ledger Entry 1: Due 12/31/2025, no discount
+        CreateVendorLedgerEntryWithDueDateAndDiscount(
+            VendorLedgerEntry[1], Vendor."No.", AppliesToID, Invoice1AppliedAmount,
+            CalcDate('<-CM+30D>', WorkDate()), 0D, 0);
+
+        // [GIVEN] Vendor Ledger Entry 2: Due 1/18/2026, with discount date 1/8/2026
+        CreateVendorLedgerEntryWithDueDateAndDiscount(
+            VendorLedgerEntry[2], Vendor."No.", AppliesToID, Invoice2Amount,
+            CalcDate('<+CM+18D>', WorkDate()), CalcDate('<+CM+8D>', WorkDate()), Invoice2Discount);
+
+        // [WHEN] Run Check report 10411 (Stub/Check/Stub)
+        Commit();
+        REPORT.Run(REPORT::"Check (Stub/Check/Stub)");
+
+        // [THEN] Check stub shows Invoice 1 with applied amount 15,000
+        LibraryReportDataset.LoadDataSetFile();
+        LibraryReportDataset.SetRange('PostingDesc', VendorLedgerEntry[1].Description);
+        LibraryReportDataset.GetNextRow();
+        LibraryReportDataset.AssertCurrentRowValueEquals('LineAmount', -Invoice1AppliedAmount);
+        LibraryReportDataset.AssertCurrentRowValueEquals('LineDiscount', 0);
+
+        // [THEN] Check stub shows Invoice 2 with full amount 547,812 and discount 10,956.24
+        LibraryReportDataset.SetRange('PostingDesc', VendorLedgerEntry[2].Description);
+        LibraryReportDataset.GetNextRow();
+        LibraryReportDataset.AssertCurrentRowValueEquals('LineAmount', -(Invoice2Amount - Invoice2Discount));
+        LibraryReportDataset.AssertCurrentRowValueEquals('LineDiscount', -Invoice2Discount);
+    end;
+
+    local procedure CreateVendorLedgerEntryWithDueDateAndDiscount(var VendorLedgerEntry: Record "Vendor Ledger Entry"; VendorNo: Code[20]; AppliesToID: Code[50]; AmountToApply: Decimal; DueDate: Date; PmtDiscountDate: Date; DiscountAmount: Decimal)
+    begin
+        VendorLedgerEntry."Entry No." := SelectVendorLedgerEntryNo();
+        VendorLedgerEntry."Vendor No." := VendorNo;
+        VendorLedgerEntry."Document Type" := VendorLedgerEntry."Document Type"::Invoice;
+        VendorLedgerEntry."Document No." := LibraryUTUtility.GetNewCode();
+        VendorLedgerEntry."Applies-to ID" := AppliesToID;
+        VendorLedgerEntry.Description := 'Test Invoice ' + Format(VendorLedgerEntry."Entry No.");
+        VendorLedgerEntry."Amount to Apply" := AmountToApply;
+        VendorLedgerEntry."Due Date" := DueDate;
+        VendorLedgerEntry."Pmt. Discount Date" := PmtDiscountDate;
+        VendorLedgerEntry."Remaining Pmt. Disc. Possible" := DiscountAmount;
+        VendorLedgerEntry.Open := true;
+        VendorLedgerEntry.Positive := true;
+        VendorLedgerEntry.Insert();
+    end;
+
     local procedure Initialize()
     var
         Workflow: Record Workflow;

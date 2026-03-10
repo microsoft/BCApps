@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -28,13 +28,11 @@ page 6757 "Reminder Act. History Log"
                 {
                     ApplicationArea = All;
                     Caption = 'Action';
-                    ToolTip = 'Specifies the reminder action that was performed.';
                 }
                 field(Status; Rec.Status)
                 {
                     ApplicationArea = All;
                     Caption = 'Status';
-                    ToolTip = 'Specifies the status of the action.';
                     StyleExpr = Rec.Status = Rec.Status::Failed;
                     Style = Unfavorable;
                 }
@@ -42,7 +40,6 @@ page 6757 "Reminder Act. History Log"
                 {
                     ApplicationArea = All;
                     Caption = 'Details';
-                    ToolTip = 'Specifies the details of the last action job.';
                 }
                 field("Last Record Processed"; LastRecordProcessed)
                 {
@@ -50,17 +47,16 @@ page 6757 "Reminder Act. History Log"
                     Caption = 'Last record processed';
                     ToolTip = 'Specifies the last record processed by the action job. In case of an error this was the last record processed before the error occurred. If the job was successful, this was the last record processed by the job.';
                 }
-#if not CLEAN26
+#if not CLEAN27
                 field(TotalErrors; Rec."Total Errors")
                 {
                     ApplicationArea = All;
                     Caption = 'Total errors';
-                    ToolTip = 'Specifies the total number of errors that occurred during the action job.';
                     Visible = false;
                     ObsoleteState = Pending;
                     ObsoleteReason = 'This field is obsolete and should not be used.';
 #pragma warning disable AS0074
-                    ObsoleteTag = '26.0';
+                    ObsoleteTag = '27.0';
 #pragma warning restore AS0074
                 }
 #endif

@@ -15,7 +15,7 @@ codeunit 6485 "Serv. Get Demand To Reserve"
 
     // Reservation Worksheet
 
-    [EventSubscriber(ObjectType::Table, Database::"Reservation Wksh. Line", 'OnIsOutdated', '', false, false)]
+    [EventSubscriber(ObjectType::Table, Database::"Reservation Wksh. Line", 'OnIsOutdated', '', true, false)]
     local procedure OnIsOutdated(ReservationWkshLine: Record "Reservation Wksh. Line"; var Outdated: Boolean)
     var
         ServiceLine: Record "Service Line";
@@ -36,7 +36,7 @@ codeunit 6485 "Serv. Get Demand To Reserve"
         end;
     end;
 
-    [EventSubscriber(ObjectType::Page, Page::"Reservation Wksh. Log Factbox", 'OnShowDocument', '', false, false)]
+    [EventSubscriber(ObjectType::Page, Page::"Reservation Wksh. Log Factbox", 'OnShowDocument', '', true, false)]
     local procedure OnShowDocument(var ReservationWorksheetLog: Record "Reservation Worksheet Log"; var IsHandled: Boolean)
     var
         ServiceLine: Record "Service Line";
@@ -48,7 +48,7 @@ codeunit 6485 "Serv. Get Demand To Reserve"
         end;
     end;
 
-    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Reservation Worksheet Mgt.", 'OnBeforeCreateSourceDocumentText', '', false, false)]
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Reservation Worksheet Mgt.", 'OnBeforeCreateSourceDocumentText', '', true, false)]
     local procedure OnBeforeCreateSourceDocumentText(var ReservationWkshLine: Record "Reservation Wksh. Line"; var LineText: Text[100])
     begin
         case ReservationWkshLine."Source Type" of
@@ -60,7 +60,7 @@ codeunit 6485 "Serv. Get Demand To Reserve"
         end;
     end;
 
-    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Reservation Worksheet Mgt.", 'OnGetSourceDocumentLine', '', false, false)]
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Reservation Worksheet Mgt.", 'OnGetSourceDocumentLine', '', true, false)]
     local procedure OnGetSourceDocumentLine(var ReservationWkshLine: Record "Reservation Wksh. Line"; var RecordVariant: Variant; var MaxQtyToReserve: Decimal; var MaxQtyToReserveBase: Decimal; var AvailabilityDate: Date)
     var
         ServiceLine: Record "Service Line";
@@ -76,7 +76,7 @@ codeunit 6485 "Serv. Get Demand To Reserve"
         end;
     end;
 
-    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Reservation Worksheet Mgt.", 'OnGetSourceDocumentLineQuantities', '', false, false)]
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Reservation Worksheet Mgt.", 'OnGetSourceDocumentLineQuantities', '', true, false)]
     local procedure OnGetSourceDocumentLineQuantities(var ReservationWkshLine: Record "Reservation Wksh. Line"; var OutstandingQty: Decimal; var ReservedQty: Decimal; var ReservedFromStockQty: Decimal)
     var
         ServiceLine: Record "Service Line";
@@ -95,7 +95,7 @@ codeunit 6485 "Serv. Get Demand To Reserve"
         end;
     end;
 
-    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Reservation Worksheet Mgt.", 'OnShowSourceDocument', '', false, false)]
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Reservation Worksheet Mgt.", 'OnShowSourceDocument', '', true, false)]
     local procedure OnShowSourceDocument(var ReservationWkshLine: Record "Reservation Wksh. Line")
     var
         ServiceLine: Record "Service Line";
@@ -109,7 +109,7 @@ codeunit 6485 "Serv. Get Demand To Reserve"
         end;
     end;
 
-    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Reservation Worksheet Mgt.", 'OnShowReservationEntries', '', false, false)]
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Reservation Worksheet Mgt.", 'OnShowReservationEntries', '', true, false)]
     local procedure OnShowReservationEntries(var ReservationWkshLine: Record "Reservation Wksh. Line")
     var
         ServiceLine: Record "Service Line";
@@ -123,7 +123,7 @@ codeunit 6485 "Serv. Get Demand To Reserve"
         end;
     end;
 
-    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Reservation Worksheet Mgt.", 'OnShowStatistics', '', false, false)]
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Reservation Worksheet Mgt.", 'OnShowStatistics', '', true, false)]
     local procedure OnShowStatistics(var ReservationWkshLine: Record "Reservation Wksh. Line")
     var
         ServiceHeader: Record "Service Header";
@@ -138,7 +138,7 @@ codeunit 6485 "Serv. Get Demand To Reserve"
         end;
     end;
 
-    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Reservation Worksheet Mgt.", 'OnCalculateDemandOnAfterSync', '', false, false)]
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Reservation Worksheet Mgt.", 'OnCalculateDemandOnAfterSync', '', true, false)]
     local procedure SyncServiceOrderLines(BatchName: Code[10]; var GetDemandToReserve: Report "Get Demand To Reserve")
     var
         ReservationWkshLine: Record "Reservation Wksh. Line";

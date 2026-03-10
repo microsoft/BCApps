@@ -19,11 +19,13 @@ table 921 "Item Turnover Buffer"
         field(6; "Period Name"; Text[50])
         {
             Caption = 'Period Name';
+            ToolTip = 'Specifies the name of the period defined on the line, related to year-to-date inventory turnover.';
             DataClassification = SystemMetadata;
         }
         field(7; "Period Start"; Date)
         {
             Caption = 'Period Start';
+            ToolTip = 'Specifies the start date of the period defined on the line, related to year-to-date inventory turnover.';
             DataClassification = SystemMetadata;
         }
         field(8; "Period End"; Date)

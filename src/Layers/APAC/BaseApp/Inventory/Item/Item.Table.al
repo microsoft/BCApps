@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -74,6 +74,7 @@ table 27 Item
         field(1; "No."; Code[20])
         {
             Caption = 'No.';
+            ToolTip = 'Specifies the number of the item.';
             OptimizeForTextSearch = true;
 
             trigger OnValidate()
@@ -102,6 +103,7 @@ table 27 Item
         field(3; Description; Text[100])
         {
             Caption = 'Description';
+            ToolTip = 'Specifies a description of the item.';
             OptimizeForTextSearch = true;
 
             trigger OnValidate()
@@ -125,23 +127,27 @@ table 27 Item
         field(4; "Search Description"; Code[100])
         {
             Caption = 'Search Description';
+            ToolTip = 'Specifies a search description that you use to find the item in lists.';
             OptimizeForTextSearch = true;
         }
         field(5; "Description 2"; Text[50])
         {
             Caption = 'Description 2';
+            ToolTip = 'Specifies information in addition to the description.';
             OptimizeForTextSearch = true;
         }
         field(6; "Assembly BOM"; Boolean)
         {
             CalcFormula = exist("BOM Component" where("Parent Item No." = field("No.")));
             Caption = 'Assembly BOM';
+            ToolTip = 'Specifies if the item is an assembly BOM.';
             Editable = false;
             FieldClass = FlowField;
         }
         field(8; "Base Unit of Measure"; Code[10])
         {
             Caption = 'Base Unit of Measure';
+            ToolTip = 'Specifies the base unit used to measure the item, such as piece, box, or pallet. The base unit of measure also serves as the conversion basis for alternate units of measure.';
             TableRelation = "Unit of Measure";
             ValidateTableRelation = false;
 
@@ -200,6 +206,7 @@ table 27 Item
         field(10; Type; Enum "Item Type")
         {
             Caption = 'Type';
+            ToolTip = 'Specifies if the item card represents a physical inventory unit (Inventory), a labor time unit (Service), or a physical unit that is not tracked in inventory (Non-Inventory).';
 
             trigger OnValidate()
             var
@@ -220,6 +227,7 @@ table 27 Item
         field(11; "Inventory Posting Group"; Code[20])
         {
             Caption = 'Inventory Posting Group';
+            ToolTip = 'Specifies links between business transactions made for the item and an inventory account in the general ledger, to group amounts for that item type.';
             TableRelation = "Inventory Posting Group";
 
             trigger OnValidate()
@@ -240,16 +248,19 @@ table 27 Item
         field(12; "Shelf No."; Code[10])
         {
             Caption = 'Shelf No.';
+            ToolTip = 'Specifies where to find the item in the warehouse. This is informational only.';
             OptimizeForTextSearch = true;
         }
         field(14; "Item Disc. Group"; Code[20])
         {
             Caption = 'Item Disc. Group';
+            ToolTip = 'Specifies an item group code that can be used as a criterion to grant a discount when the item is sold to a certain customer.';
             TableRelation = "Item Discount Group";
         }
         field(15; "Allow Invoice Disc."; Boolean)
         {
             Caption = 'Allow Invoice Disc.';
+            ToolTip = 'Specifies if the item should be included in the calculation of an invoice discount on documents where the item is traded.';
             InitValue = true;
         }
         field(16; "Statistics Group"; Integer)
@@ -266,6 +277,7 @@ table 27 Item
             AutoFormatType = 2;
             AutoFormatExpression = '';
             Caption = 'Unit Price';
+            ToolTip = 'Specifies the price of one unit of the item or resource. You can enter a price manually or have it entered according to the Price/Profit Calculation field on the related card.';
             MinValue = 0;
 
             trigger OnValidate()
@@ -278,6 +290,7 @@ table 27 Item
         field(19; "Price/Profit Calculation"; Enum "Item Price Profit Calculation")
         {
             Caption = 'Price/Profit Calculation';
+            ToolTip = 'Specifies the relationship between the Unit Cost, Unit Price, and Profit Percentage fields associated with this item.';
 
             trigger OnValidate()
             begin
@@ -309,6 +322,7 @@ table 27 Item
         field(20; "Profit %"; Decimal)
         {
             Caption = 'Profit %';
+            ToolTip = 'Specifies the profit margin that you want to sell the item at. You can enter a profit percentage manually or have it entered according to the Price/Profit Calculation field';
             DecimalPlaces = 0 : 5;
             AutoFormatType = 0;
 
@@ -320,6 +334,7 @@ table 27 Item
         field(21; "Costing Method"; Enum "Costing Method")
         {
             Caption = 'Costing Method';
+            ToolTip = 'Specifies how the item''s cost flow is recorded and whether an actual or budgeted value is capitalized and used in the cost calculation.';
 
             trigger OnValidate()
             begin
@@ -353,6 +368,7 @@ table 27 Item
             AutoFormatType = 2;
             AutoFormatExpression = '';
             Caption = 'Unit Cost';
+            ToolTip = 'Specifies the cost of one unit of the item or resource on the line.';
             MinValue = 0;
 
             trigger OnValidate()
@@ -379,6 +395,7 @@ table 27 Item
             AutoFormatType = 2;
             AutoFormatExpression = '';
             Caption = 'Standard Cost';
+            ToolTip = 'Specifies the unit cost that is used as an estimation to be adjusted with variances later. It is typically used in assembly and production where costs can vary.';
             MinValue = 0;
 
             trigger OnValidate()
@@ -414,11 +431,13 @@ table 27 Item
             AutoFormatType = 2;
             AutoFormatExpression = '';
             Caption = 'Last Direct Cost';
+            ToolTip = 'Specifies the most recent direct unit cost of the item.';
             MinValue = 0;
         }
         field(28; "Indirect Cost %"; Decimal)
         {
             Caption = 'Indirect Cost %';
+            ToolTip = 'Specifies the percentage of the item''s last purchase cost that includes indirect costs, such as freight that is associated with the purchase of the item.';
             DecimalPlaces = 0 : 5;
             MinValue = 0;
             AutoFormatType = 0;
@@ -438,6 +457,7 @@ table 27 Item
         field(29; "Cost is Adjusted"; Boolean)
         {
             Caption = 'Cost is Adjusted';
+            ToolTip = 'Specifies whether the item''s unit cost has been adjusted, either automatically or manually.';
             Editable = false;
             InitValue = true;
         }
@@ -450,6 +470,7 @@ table 27 Item
         field(31; "Vendor No."; Code[20])
         {
             Caption = 'Vendor No.';
+            ToolTip = 'Specifies the vendor code of who supplies this item by default.';
             TableRelation = Vendor;
             OptimizeForTextSearch = true;
             ValidateTableRelation = true;
@@ -473,6 +494,7 @@ table 27 Item
         {
             AccessByPermission = TableData "Purch. Rcpt. Header" = R;
             Caption = 'Lead Time Calculation';
+            ToolTip = 'Specifies a date formula for the amount of time it takes to replenish the item.';
 
             trigger OnValidate()
             begin
@@ -483,6 +505,7 @@ table 27 Item
         {
             AccessByPermission = TableData "Req. Wksh. Template" = R;
             Caption = 'Reorder Point';
+            ToolTip = 'Specifies a stock quantity that sets the inventory below the level that you must replenish the item.';
             DecimalPlaces = 0 : 5;
             AutoFormatType = 0;
         }
@@ -490,6 +513,7 @@ table 27 Item
         {
             AccessByPermission = TableData "Req. Wksh. Template" = R;
             Caption = 'Maximum Inventory';
+            ToolTip = 'Specifies a quantity that you want to use as a maximum inventory level.';
             DecimalPlaces = 0 : 5;
             AutoFormatType = 0;
         }
@@ -497,6 +521,7 @@ table 27 Item
         {
             AccessByPermission = TableData "Req. Wksh. Template" = R;
             Caption = 'Reorder Quantity';
+            ToolTip = 'Specifies a standard lot size quantity to be used for all order proposals.';
             DecimalPlaces = 0 : 5;
             AutoFormatType = 0;
         }
@@ -530,6 +555,7 @@ table 27 Item
         field(41; "Gross Weight"; Decimal)
         {
             Caption = 'Gross Weight';
+            ToolTip = 'Specifies the gross weight of the item.';
             DecimalPlaces = 0 : 5;
             MinValue = 0;
             AutoFormatType = 0;
@@ -537,6 +563,7 @@ table 27 Item
         field(42; "Net Weight"; Decimal)
         {
             Caption = 'Net Weight';
+            ToolTip = 'Specifies the net weight of the item.';
             DecimalPlaces = 0 : 5;
             MinValue = 0;
             AutoFormatType = 0;
@@ -556,6 +583,7 @@ table 27 Item
         field(44; "Unit Volume"; Decimal)
         {
             Caption = 'Unit Volume';
+            ToolTip = 'Specifies the volume of one unit of the item.';
             DecimalPlaces = 0 : 5;
             MinValue = 0;
             AutoFormatType = 0;
@@ -571,6 +599,7 @@ table 27 Item
         field(47; "Tariff No."; Code[20])
         {
             Caption = 'Tariff No.';
+            ToolTip = 'Specifies a code for the item''s tariff number.';
             TableRelation = "Tariff Number";
             OptimizeForTextSearch = true;
             ValidateTableRelation = false;
@@ -635,6 +664,7 @@ table 27 Item
         field(54; Blocked; Boolean)
         {
             Caption = 'Blocked';
+            ToolTip = 'Specifies that transactions with the item cannot be posted, for example, because the item is in quarantine.';
 
             trigger OnValidate()
             begin
@@ -646,6 +676,7 @@ table 27 Item
         {
             CalcFormula = - exist("Post Value Entry to G/L" where("Item No." = field("No.")));
             Caption = 'Cost is Posted to G/L';
+            ToolTip = 'Specifies that all the inventory costs for this item have been posted to the general ledger.';
             Editable = false;
             FieldClass = FlowField;
         }
@@ -668,6 +699,7 @@ table 27 Item
         field(62; "Last Date Modified"; Date)
         {
             Caption = 'Last Date Modified';
+            ToolTip = 'Specifies when the item card was last modified.';
             Editable = false;
         }
         field(63; "Last Time Modified"; Time)
@@ -713,6 +745,7 @@ table 27 Item
                                                                   "Unit of Measure Code" = field("Unit of Measure Filter"),
                                                                   "Package No." = field("Package No. Filter")));
             Caption = 'Inventory';
+            ToolTip = 'Specifies how many units, such as pieces, boxes, or cans, of the item are in inventory.';
             DecimalPlaces = 0 : 5;
             Editable = false;
             FieldClass = FlowField;
@@ -730,6 +763,7 @@ table 27 Item
                                                                              "Serial No." = field("Serial No. Filter"),
                                                                              "Package No." = field("Package No. Filter")));
             Caption = 'Net Invoiced Qty.';
+            ToolTip = 'Specifies how many units of the item in inventory have been invoiced.';
             DecimalPlaces = 0 : 5;
             Editable = false;
             FieldClass = FlowField;
@@ -921,6 +955,7 @@ table 27 Item
                                                                                "Expected Receipt Date" = field("Date Filter"),
                                                                                "Unit of Measure Code" = field("Unit of Measure Filter")));
             Caption = 'Qty. on Purch. Order';
+            ToolTip = 'Specifies how many units of the item are inbound on purchase orders, meaning listed on outstanding purchase order lines.';
             DecimalPlaces = 0 : 5;
             Editable = false;
             FieldClass = FlowField;
@@ -940,6 +975,7 @@ table 27 Item
                                                                             "Shipment Date" = field("Date Filter"),
                                                                             "Unit of Measure Code" = field("Unit of Measure Filter")));
             Caption = 'Qty. on Sales Order';
+            ToolTip = 'Specifies how many units of the item are allocated to sales orders, meaning listed on outstanding sales orders lines.';
             DecimalPlaces = 0 : 5;
             Editable = false;
             FieldClass = FlowField;
@@ -948,6 +984,7 @@ table 27 Item
         field(87; "Price Includes VAT"; Boolean)
         {
             Caption = 'Price Includes VAT';
+            ToolTip = 'Specifies if the Unit Price and Line Amount fields on sales document lines for this item should be shown with or without VAT.';
 
             trigger OnValidate()
             var
@@ -982,6 +1019,7 @@ table 27 Item
         field(91; "Gen. Prod. Posting Group"; Code[20])
         {
             Caption = 'Gen. Prod. Posting Group';
+            ToolTip = 'Specifies the item''s product type to link transactions made for this item with the appropriate general ledger account according to the general posting setup.';
             TableRelation = "Gen. Product Posting Group";
 
             trigger OnValidate()
@@ -1015,6 +1053,7 @@ table 27 Item
         field(92; Picture; MediaSet)
         {
             Caption = 'Picture';
+            ToolTip = 'Specifies the picture that has been inserted for the item.';
         }
         field(93; "Transferred (Qty.)"; Decimal)
         {
@@ -1054,11 +1093,13 @@ table 27 Item
         field(95; "Country/Region of Origin Code"; Code[10])
         {
             Caption = 'Country/Region of Origin Code';
+            ToolTip = 'Specifies a code for the country/region where the item was produced or processed.';
             TableRelation = "Country/Region";
         }
         field(96; "Automatic Ext. Texts"; Boolean)
         {
             Caption = 'Automatic Ext. Texts';
+            ToolTip = 'Specifies that an extended text that you have set up will be added automatically on sales or purchase documents for this item.';
         }
         field(97; "No. Series"; Code[20])
         {
@@ -1069,6 +1110,7 @@ table 27 Item
         field(98; "Tax Group Code"; Code[20])
         {
             Caption = 'Tax Group Code';
+            ToolTip = 'Specifies the tax group that is used to calculate and post sales tax.';
             TableRelation = "Tax Group";
 
             trigger OnValidate()
@@ -1079,6 +1121,7 @@ table 27 Item
         field(99; "VAT Prod. Posting Group"; Code[20])
         {
             Caption = 'VAT Prod. Posting Group';
+            ToolTip = 'Specifies the VAT product posting group. Links business transactions made for the item, resource, or G/L account with the general ledger, to account for VAT amounts resulting from trade with that record.';
             TableRelation = "VAT Product Posting Group";
 
             trigger OnValidate()
@@ -1090,6 +1133,7 @@ table 27 Item
         {
             AccessByPermission = TableData "Purch. Rcpt. Header" = R;
             Caption = 'Reserve';
+            ToolTip = 'Specifies if and how the item will be reserved. Never: It is not possible to reserve the item. Optional: You can reserve the item manually. Always: The item is automatically reserved from demand, such as sales orders, against inventory, purchase orders, assembly orders, and production orders.';
             InitValue = Optional;
 
             trigger OnValidate()
@@ -1239,24 +1283,28 @@ table 27 Item
         field(120; "Stockout Warning"; Option)
         {
             Caption = 'Stockout Warning';
+            ToolTip = 'Specifies if a warning is displayed when you enter a quantity on a sales document that brings the item''s inventory below zero.';
             OptionCaption = 'Default,No,Yes';
             OptionMembers = Default,No,Yes;
         }
         field(121; "Prevent Negative Inventory"; Option)
         {
             Caption = 'Prevent Negative Inventory';
+            ToolTip = 'Specifies whether you can post a transaction that will bring the item''s inventory below zero. Negative inventory is always prevented for Consumption and Transfer type transactions.';
             OptionCaption = 'Default,No,Yes';
             OptionMembers = Default,No,Yes;
         }
         field(122; "Variant Mandatory if Exists"; Option)
         {
             Caption = 'Variant Mandatory if Exists';
+            ToolTip = 'Specifies whether a variant must be selected if variants exist for the item.';
             OptionCaption = 'Default,No,Yes';
             OptionMembers = Default,No,Yes;
         }
         field(521; "Application Wksh. User ID"; Code[128])
         {
             Caption = 'Application Wksh. User ID';
+            ToolTip = 'Specifies the ID of a user who is working in the Application Worksheet window.';
             DataClassification = EndUserIdentifiableInformation;
         }
 #if not CLEANSCHEMA26
@@ -1273,6 +1321,7 @@ table 27 Item
         {
             FieldClass = FlowField;
             Caption = 'Coupled to Dynamics 365 Sales';
+            ToolTip = 'Specifies that the item is coupled to a product in Dynamics 365 Sales.';
             Editable = false;
             CalcFormula = exist("CRM Integration Record" where("Integration ID" = field(SystemId), "Table ID" = const(Database::Item)));
         }
@@ -1280,6 +1329,7 @@ table 27 Item
         {
             AccessByPermission = TableData "BOM Component" = R;
             Caption = 'Assembly Policy';
+            ToolTip = 'Specifies which default order flow is used to supply this assembly item.';
 
             trigger OnValidate()
             begin
@@ -1299,6 +1349,7 @@ table 27 Item
                                                                                  "Planning Date" = field("Date Filter"),
                                                                                  "Unit of Measure Code" = field("Unit of Measure Filter")));
             Caption = 'Qty. on Project Order';
+            ToolTip = 'Specifies how many units of the item are allocated to projects, meaning listed on outstanding project planning lines.';
             DecimalPlaces = 0 : 5;
             Editable = false;
             FieldClass = FlowField;
@@ -1323,6 +1374,7 @@ table 27 Item
         field(1217; GTIN; Code[14])
         {
             Caption = 'GTIN';
+            ToolTip = 'Specifies the number that is used for barcodes etc.';
             OptimizeForTextSearch = true;
             Numeric = true;
             ExtendedDatatype = Barcode;
@@ -1330,11 +1382,13 @@ table 27 Item
         field(1700; "Default Deferral Template Code"; Code[10])
         {
             Caption = 'Default Deferral Template Code';
+            ToolTip = 'Specifies the default template that governs how to defer revenues and expenses to the periods when they occurred.';
             TableRelation = "Deferral Template"."Deferral Code";
         }
         field(5400; "Low-Level Code"; Integer)
         {
             Caption = 'Low-Level Code';
+            ToolTip = 'Specifies the item''s level in a bill of material if the item is a component in a production BOM or an assembly BOM.';
             Editable = false;
         }
         field(5401; "Lot Size"; Decimal)
@@ -1347,6 +1401,7 @@ table 27 Item
         field(5402; "Serial Nos."; Code[20])
         {
             Caption = 'Serial Nos.';
+            ToolTip = 'Specifies a number series code to assign consecutive serial numbers to items produced.';
             TableRelation = "No. Series";
 
             trigger OnValidate()
@@ -1396,6 +1451,7 @@ table 27 Item
         field(5409; "Inventory Value Zero"; Boolean)
         {
             Caption = 'Inventory Value Zero';
+            ToolTip = 'Specifies whether the item on inventory must be excluded from inventory valuation. This is relevant if the item is kept on inventory on someone else''s behalf.';
 
             trigger OnValidate()
             begin
@@ -1411,6 +1467,7 @@ table 27 Item
         {
             AccessByPermission = TableData "Req. Wksh. Template" = R;
             Caption = 'Minimum Order Quantity';
+            ToolTip = 'Specifies a minimum allowable quantity for an item order proposal.';
             DecimalPlaces = 0 : 5;
             MinValue = 0;
             AutoFormatType = 0;
@@ -1419,6 +1476,7 @@ table 27 Item
         {
             AccessByPermission = TableData "Req. Wksh. Template" = R;
             Caption = 'Maximum Order Quantity';
+            ToolTip = 'Specifies a maximum allowable quantity for an item order proposal.';
             DecimalPlaces = 0 : 5;
             MinValue = 0;
             AutoFormatType = 0;
@@ -1427,6 +1485,7 @@ table 27 Item
         {
             AccessByPermission = TableData "Req. Wksh. Template" = R;
             Caption = 'Safety Stock Quantity';
+            ToolTip = 'Specifies a quantity of stock to have in inventory to protect against supply-and-demand fluctuations during replenishment lead time.';
             DecimalPlaces = 0 : 5;
             MinValue = 0;
             AutoFormatType = 0;
@@ -1435,6 +1494,7 @@ table 27 Item
         {
             AccessByPermission = TableData "Req. Wksh. Template" = R;
             Caption = 'Order Multiple';
+            ToolTip = 'Specifies a parameter used by the planning system to round the quantity of planned supply orders to a multiple of this value.';
             DecimalPlaces = 0 : 5;
             MinValue = 0;
             AutoFormatType = 0;
@@ -1443,15 +1503,18 @@ table 27 Item
         {
             AccessByPermission = TableData "Req. Wksh. Template" = R;
             Caption = 'Safety Lead Time';
+            ToolTip = 'Specifies a date formula to indicate a safety lead time that can be used as a buffer period for production and other delays.';
         }
         field(5417; "Flushing Method"; Enum Microsoft.Manufacturing.Setup."Flushing Method")
         {
             Caption = 'Flushing Method';
+            ToolTip = 'Specifies how consumption of the item (component) is calculated and handled in production processes. Manual: Enter and post consumption in the consumption journal manually. Forward: Automatically posts consumption according to the production order component lines when the first operation starts. Backward: Automatically calculates and posts consumption according to the production order component lines when the production order is finished. Pick + Forward / Pick + Backward: Variations with warehousing.';
         }
         field(5419; "Replenishment System"; Enum "Replenishment System")
         {
             AccessByPermission = TableData "Req. Wksh. Template" = R;
             Caption = 'Replenishment System';
+            ToolTip = 'Specifies the type of supply order created by the planning system when the item needs to be replenished.';
 
             trigger OnValidate()
             var
@@ -1507,11 +1570,13 @@ table 27 Item
         field(5425; "Sales Unit of Measure"; Code[10])
         {
             Caption = 'Sales Unit of Measure';
+            ToolTip = 'Specifies the unit of measure code used when you sell the item.';
             TableRelation = "Item Unit of Measure".Code where("Item No." = field("No."));
         }
         field(5426; "Purch. Unit of Measure"; Code[10])
         {
             Caption = 'Purch. Unit of Measure';
+            ToolTip = 'Specifies the unit of measure code used when you purchase the item.';
             TableRelation = "Item Unit of Measure".Code where("Item No." = field("No."));
         }
         field(5427; "Unit of Measure Filter"; Code[10])
@@ -1524,6 +1589,7 @@ table 27 Item
         {
             AccessByPermission = TableData "Req. Wksh. Template" = R;
             Caption = 'Time Bucket';
+            ToolTip = 'Specifies a time period that defines the recurring planning horizon used with Fixed Reorder Qty. or Maximum Qty. reordering policies.';
 
             trigger OnValidate()
             begin
@@ -1550,6 +1616,7 @@ table 27 Item
         {
             AccessByPermission = TableData "Req. Wksh. Template" = R;
             Caption = 'Reordering Policy';
+            ToolTip = 'Specifies the reordering policy that is used to calculate the lot size per planning period (time bucket).';
 
             trigger OnValidate()
             begin
@@ -1566,16 +1633,19 @@ table 27 Item
         {
             AccessByPermission = TableData "Req. Wksh. Template" = R;
             Caption = 'Include Inventory';
+            ToolTip = 'Specifies that the inventory quantity is included in the projected available balance when replenishment orders are calculated.';
         }
         field(5442; "Manufacturing Policy"; Enum Microsoft.Manufacturing.Setup."Manufacturing Policy")
         {
             AccessByPermission = TableData "Req. Wksh. Template" = R;
             Caption = 'Manufacturing Policy';
+            ToolTip = 'Specifies if additional orders for any related components are calculated.';
         }
         field(5443; "Rescheduling Period"; DateFormula)
         {
             AccessByPermission = TableData "Req. Wksh. Template" = R;
             Caption = 'Rescheduling Period';
+            ToolTip = 'Specifies a period within which any suggestion to change a supply date always consists of a Reschedule action and never a Cancel + New action.';
 
             trigger OnValidate()
             begin
@@ -1586,6 +1656,7 @@ table 27 Item
         {
             AccessByPermission = TableData "Req. Wksh. Template" = R;
             Caption = 'Lot Accumulation Period';
+            ToolTip = 'Specifies a period in which multiple demands are accumulated into one supply order when you use the Lot-for-Lot reordering policy.';
 
             trigger OnValidate()
             begin
@@ -1596,6 +1667,7 @@ table 27 Item
         {
             AccessByPermission = TableData "Req. Wksh. Template" = R;
             Caption = 'Dampener Period';
+            ToolTip = 'Specifies a period of time during which you do not want the planning system to propose to reschedule existing supply orders.';
 
             trigger OnValidate()
             begin
@@ -1606,6 +1678,7 @@ table 27 Item
         {
             AccessByPermission = TableData "Req. Wksh. Template" = R;
             Caption = 'Dampener Quantity';
+            ToolTip = 'Specifies a dampener quantity to block insignificant change suggestions for an existing supply, if the change quantity is lower than the dampener quantity.';
             DecimalPlaces = 0 : 5;
             MinValue = 0;
             AutoFormatType = 0;
@@ -1614,6 +1687,7 @@ table 27 Item
         {
             AccessByPermission = TableData "Req. Wksh. Template" = R;
             Caption = 'Overflow Level';
+            ToolTip = 'Specifies a quantity you allow projected inventory to exceed the reorder point, before the system suggests to decrease supply orders.';
             DecimalPlaces = 0 : 5;
             MinValue = 0;
             AutoFormatType = 0;
@@ -1652,18 +1726,21 @@ table 27 Item
         {
             CalcFormula = exist("Stockkeeping Unit" where("Item No." = field("No.")));
             Caption = 'Stockkeeping Unit Exists';
+            ToolTip = 'Specifies that a stockkeeping unit exists for this item.';
             Editable = false;
             FieldClass = FlowField;
         }
         field(5701; "Manufacturer Code"; Code[10])
         {
             Caption = 'Manufacturer Code';
+            ToolTip = 'Specifies a code for the manufacturer of the catalog item.';
             TableRelation = Manufacturer;
             OptimizeForTextSearch = true;
         }
         field(5702; "Item Category Code"; Code[20])
         {
             Caption = 'Item Category Code';
+            ToolTip = 'Specifies the category that the item belongs to. Item categories also contain any assigned item attributes.';
             TableRelation = "Item Category";
             OptimizeForTextSearch = true;
 
@@ -1682,6 +1759,7 @@ table 27 Item
         {
             AccessByPermission = TableData "Nonstock Item" = R;
             Caption = 'Created From Catalog Item';
+            ToolTip = 'Specifies that the item was created from a catalog item.';
             Editable = false;
         }
         field(5706; "Substitutes Exist"; Boolean)
@@ -1689,6 +1767,7 @@ table 27 Item
             CalcFormula = exist("Item Substitution" where(Type = const(Item),
                                                            "No." = field("No.")));
             Caption = 'Substitutes Exist';
+            ToolTip = 'Specifies that a substitute exists for this item.';
             Editable = false;
             FieldClass = FlowField;
         }
@@ -1703,6 +1782,7 @@ table 27 Item
                                                                               "Receipt Date" = field("Date Filter"),
                                                                               "Unit of Measure Code" = field("Unit of Measure Filter")));
             Caption = 'Qty. in Transit';
+            ToolTip = 'Specifies the quantity of the items that are currently in transit.';
             DecimalPlaces = 0 : 5;
             Editable = false;
             FieldClass = FlowField;
@@ -1743,6 +1823,7 @@ table 27 Item
         field(5711; "Purchasing Code"; Code[10])
         {
             Caption = 'Purchasing Code';
+            ToolTip = 'Specifies the code for a special procurement method, such as drop shipment.';
             TableRelation = Purchasing;
             OptimizeForTextSearch = true;
         }
@@ -1773,11 +1854,13 @@ table 27 Item
         field(5801; "Excluded from Cost Adjustment"; Boolean)
         {
             Caption = 'Excluded from Cost Adjustment';
+            ToolTip = 'Specifies whether the item is excluded from the cost adjustment process.';
             DataClassification = CustomerContent;
         }
         field(6500; "Item Tracking Code"; Code[10])
         {
             Caption = 'Item Tracking Code';
+            ToolTip = 'Specifies how serial, lot or package numbers assigned to the item are tracked in the supply chain.';
             TableRelation = "Item Tracking Code";
             OptimizeForTextSearch = true;
 
@@ -1830,6 +1913,7 @@ table 27 Item
         field(6501; "Lot Nos."; Code[20])
         {
             Caption = 'Lot Nos.';
+            ToolTip = 'Specifies the number series code that will be used when assigning lot numbers.';
             TableRelation = "No. Series";
 
             trigger OnValidate()
@@ -1841,6 +1925,7 @@ table 27 Item
         field(6502; "Expiration Calculation"; DateFormula)
         {
             Caption = 'Expiration Calculation';
+            ToolTip = 'Specifies the date formula for calculating the expiration date on the item tracking line. Note: This field will be ignored if the involved item has Require Expiration Date Entry set to Yes on the Item Tracking Code page.';
 
             trigger OnValidate()
             begin
@@ -1908,28 +1993,33 @@ table 27 Item
             CalcFormula = count("Item Substitution" where(Type = const(Item),
                                                            "No." = field("No.")));
             Caption = 'No. of Substitutes';
+            ToolTip = 'Specifies the number of substitutions that have been registered for the item.';
             Editable = false;
             FieldClass = FlowField;
         }
         field(7300; "Warehouse Class Code"; Code[10])
         {
             Caption = 'Warehouse Class Code';
+            ToolTip = 'Specifies the warehouse class code for the item.';
             TableRelation = "Warehouse Class";
         }
         field(7301; "Special Equipment Code"; Code[10])
         {
             Caption = 'Special Equipment Code';
+            ToolTip = 'Specifies the code of the equipment that warehouse employees must use when handling the item.';
             TableRelation = "Special Equipment";
         }
         field(7302; "Put-away Template Code"; Code[10])
         {
             Caption = 'Put-away Template Code';
+            ToolTip = 'Specifies the code of the put-away template by which the program determines the most appropriate zone and bin for storage of the item after receipt.';
             TableRelation = "Put-away Template Header";
         }
         field(7307; "Put-away Unit of Measure Code"; Code[10])
         {
             AccessByPermission = TableData "Posted Invt. Put-away Header" = R;
             Caption = 'Put-away Unit of Measure Code';
+            ToolTip = 'Specifies the code of the item unit of measure in which the program will put the item away.';
             TableRelation = if ("No." = filter(<> '')) "Item Unit of Measure".Code where("Item No." = field("No."))
             else
             "Unit of Measure";
@@ -1937,6 +2027,7 @@ table 27 Item
         field(7380; "Phys Invt Counting Period Code"; Code[10])
         {
             Caption = 'Phys Invt Counting Period Code';
+            ToolTip = 'Specifies the code of the counting period that indicates how often you want to count the item in a physical inventory.';
             TableRelation = "Phys. Invt. Counting Period";
 
             trigger OnValidate()
@@ -1984,6 +2075,7 @@ table 27 Item
         {
             AccessByPermission = TableData "Phys. Invt. Item Selection" = R;
             Caption = 'Last Counting Period Update';
+            ToolTip = 'Specifies the last date on which you calculated the counting period. It is updated when you use the function Calculate Counting Period.';
             Editable = false;
         }
         field(7383; "Last Phys. Invt. Date"; Date)
@@ -1991,6 +2083,7 @@ table 27 Item
             CalcFormula = max("Phys. Inventory Ledger Entry"."Posting Date" where("Item No." = field("No."),
                                                                                    "Phys Invt Counting Period Type" = filter(" " | Item)));
             Caption = 'Last Phys. Invt. Date';
+            ToolTip = 'Specifies the date on which you last posted the results of a physical inventory for the item to the item ledger.';
             Editable = false;
             FieldClass = FlowField;
         }
@@ -1998,16 +2091,19 @@ table 27 Item
         {
             AccessByPermission = TableData "Bin Content" = R;
             Caption = 'Use Cross-Docking';
+            ToolTip = 'Specifies if this item can be cross-docked.';
             InitValue = true;
         }
         field(7385; "Next Counting Start Date"; Date)
         {
             Caption = 'Next Counting Start Date';
+            ToolTip = 'Specifies the starting date of the next counting period.';
             Editable = false;
         }
         field(7386; "Next Counting End Date"; Date)
         {
             Caption = 'Next Counting End Date';
+            ToolTip = 'Specifies the ending date of the next counting period.';
             Editable = false;
         }
         field(7387; "Unit Group Exists"; Boolean)
@@ -2022,6 +2118,7 @@ table 27 Item
         {
             CalcFormula = lookup("Item Identifier".Code where("Item No." = field("No.")));
             Caption = 'Identifier Code';
+            ToolTip = 'Specifies a unique code for the item in terms that are useful for automatic data capture.';
             Editable = false;
             FieldClass = FlowField;
         }
@@ -2048,11 +2145,13 @@ table 27 Item
         field(8003; "Sales Blocked"; Boolean)
         {
             Caption = 'Sales Blocked';
+            ToolTip = 'Specifies that transactions with the item cannot be sold, for example, because the item is in quarantine.';
             DataClassification = CustomerContent;
         }
         field(8004; "Purchasing Blocked"; Boolean)
         {
             Caption = 'Purchasing Blocked';
+            ToolTip = 'Specifies that the item cannot be entered on purchase documents, except return orders and credit memos, and journals.';
             DataClassification = CustomerContent;
         }
         field(8005; "Item Category Id"; Guid)
@@ -2108,11 +2207,13 @@ table 27 Item
         field(8010; "Service Blocked"; Boolean)
         {
             Caption = 'Service Blocked';
+            ToolTip = 'Specifies that the item cannot be entered on service items, service contracts and service documents, except credit memos.';
             DataClassification = CustomerContent;
         }
         field(8510; "Over-Receipt Code"; Code[20])
         {
             Caption = 'Over-Receipt Code';
+            ToolTip = 'Specifies the policy that will be used for the item if more items than ordered are received.';
             TableRelation = "Over-Receipt Code";
         }
         field(9110; "Qty. on Blanket Sales Order"; Decimal)
@@ -2198,6 +2299,7 @@ table 27 Item
             AutoFormatType = 2;
             AutoFormatExpression = '';
             Caption = 'Overhead Rate';
+            ToolTip = 'Specifies the item''s indirect cost as an absolute amount.';
 
             trigger OnValidate()
             begin
@@ -2314,6 +2416,7 @@ table 27 Item
         field(99000773; "Order Tracking Policy"; Enum "Order Tracking Policy")
         {
             Caption = 'Order Tracking Policy';
+            ToolTip = 'Specifies if and how order tracking entries are created and maintained between supply and its corresponding demand.';
 
             trigger OnValidate()
             var
@@ -2384,6 +2487,7 @@ table 27 Item
         field(99000875; Critical; Boolean)
         {
             Caption = 'Critical';
+            ToolTip = 'Specifies if the item is included in availability calculations to promise a shipment date for its parent item.';
         }
         field(99000779; "Single-Lvl Mat. Non-Invt. Cost"; Decimal)
         {

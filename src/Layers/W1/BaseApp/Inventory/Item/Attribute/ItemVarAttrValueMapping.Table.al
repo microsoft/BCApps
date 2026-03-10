@@ -105,6 +105,6 @@ table 7507 "Item Var. Attr. Value Mapping"
             repeat
                 ItemVariantAttributeValueMapping := Rec;
                 ItemVariantAttributeValueMapping.Rename(NewItemNo, NewVariantCode, "Item Attribute ID");
-            until ItemVariantAttributeValueMapping.Next() = 0;
+            until Next() = 0;
     end;
 }

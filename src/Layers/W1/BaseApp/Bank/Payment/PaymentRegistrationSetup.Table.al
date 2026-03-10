@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -35,6 +35,7 @@ table 980 "Payment Registration Setup"
         field(2; "Journal Template Name"; Code[10])
         {
             Caption = 'Journal Template Name';
+            ToolTip = 'Specifies the name of the journal template that the Payment Registration window is based on.';
             TableRelation = "Gen. Journal Template";
 
             trigger OnValidate()
@@ -49,6 +50,7 @@ table 980 "Payment Registration Setup"
         field(3; "Journal Batch Name"; Code[10])
         {
             Caption = 'Journal Batch Name';
+            ToolTip = 'Specifies the name of the journal batch that the Payment Registration window is based on.';
             TableRelation = "Gen. Journal Batch".Name where("Journal Template Name" = field("Journal Template Name"));
 
             trigger OnValidate()
@@ -78,6 +80,7 @@ table 980 "Payment Registration Setup"
         field(4; "Bal. Account Type"; Option)
         {
             Caption = 'Bal. Account Type';
+            ToolTip = 'Specifies the type of account that is used as the balancing account for payments. The field is filled according to the selection in the Journal Batch Name field.';
             OptionCaption = ' ,G/L Account,Bank Account';
             OptionMembers = " ","G/L Account","Bank Account";
 
@@ -93,6 +96,7 @@ table 980 "Payment Registration Setup"
         field(5; "Bal. Account No."; Code[20])
         {
             Caption = 'Bal. Account No.';
+            ToolTip = 'Specifies the account number that is used as the balancing account for payments.';
             TableRelation = if ("Bal. Account Type" = const("G/L Account")) "G/L Account"
             else
             if ("Bal. Account Type" = const("Bank Account")) "Bank Account";
@@ -104,6 +108,7 @@ table 980 "Payment Registration Setup"
         field(6; "Use this Account as Def."; Boolean)
         {
             Caption = 'Use this Account as Def.';
+            ToolTip = 'Specifies if the Date Received and the Amount Received fields are automatically filled when you select the Payment Made check box.';
             InitValue = true;
         }
         /// <summary>
@@ -113,6 +118,7 @@ table 980 "Payment Registration Setup"
         field(7; "Auto Fill Date Received"; Boolean)
         {
             Caption = 'Auto Fill Date Received';
+            ToolTip = 'Specifies if the Date Received and the Amount Received fields are automatically filled when you select the Payment Made check box.';
             InitValue = true;
         }
     }

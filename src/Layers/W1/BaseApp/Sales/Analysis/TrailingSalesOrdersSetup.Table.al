@@ -50,6 +50,7 @@ table 760 "Trailing Sales Orders Setup"
         field(4; "Use Work Date as Base"; Boolean)
         {
             Caption = 'Use Work Date as Base';
+            ToolTip = 'Specifies if you want data in the Trailing Sales Orders chart to be based on a work date other than today''s date. This is generally relevant when you view the chart data in a demonstration database that has fictitious sales orders.';
         }
         /// <summary>
         /// Specifies the metric to display in the chart: total amount excluding VAT or the number of orders.

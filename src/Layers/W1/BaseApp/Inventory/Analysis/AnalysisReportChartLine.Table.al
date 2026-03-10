@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -31,6 +31,7 @@ table 771 "Analysis Report Chart Line"
         field(3; "Analysis Line Line No."; Integer)
         {
             Caption = 'Analysis Line Line No.';
+            ToolTip = 'Specifies the number of the analysis report line that the specific chart is based on.';
             Editable = false;
             TableRelation = "Analysis Line"."Line No." where("Analysis Area" = field("Analysis Area"),
                                                               "Analysis Line Template Name" = field("Analysis Line Template Name"));
@@ -38,6 +39,7 @@ table 771 "Analysis Report Chart Line"
         field(4; "Analysis Column Line No."; Integer)
         {
             Caption = 'Analysis Column Line No.';
+            ToolTip = 'Specifies the number of the analysis report column that the advanced chart is based on.';
             Editable = false;
             TableRelation = "Analysis Column"."Line No." where("Analysis Area" = field("Analysis Area"),
                                                                 "Analysis Column Template" = field("Analysis Column Template Name"));
@@ -52,6 +54,7 @@ table 771 "Analysis Report Chart Line"
         field(7; "Analysis Line Template Name"; Code[10])
         {
             Caption = 'Analysis Line Template Name';
+            ToolTip = 'Specifies the name. This field is intended only for internal use.';
             Editable = false;
             TableRelation = "Analysis Report Chart Setup"."Analysis Line Template Name" where("User ID" = field("User ID"),
                                                                                                "Analysis Area" = field("Analysis Area"),
@@ -60,6 +63,7 @@ table 771 "Analysis Report Chart Line"
         field(8; "Analysis Column Template Name"; Code[10])
         {
             Caption = 'Analysis Column Template Name';
+            ToolTip = 'Specifies the name. This field is intended only for internal use.';
             Editable = false;
             TableRelation = "Analysis Report Chart Setup"."Analysis Column Template Name" where("User ID" = field("User ID"),
                                                                                                  "Analysis Area" = field("Analysis Area"),
@@ -68,11 +72,13 @@ table 771 "Analysis Report Chart Line"
         field(10; "Original Measure Name"; Text[111])
         {
             Caption = 'Original Measure Name';
+            ToolTip = 'Specifies the analysis report columns or lines that you select to insert in the Analysis Report Chart Setup window.';
             Editable = false;
         }
         field(15; "Measure Name"; Text[111])
         {
             Caption = 'Measure Name';
+            ToolTip = 'Specifies the analysis report columns or lines that the measures on the y-axis in the specific chart are based on.';
 
             trigger OnValidate()
             begin
@@ -87,6 +93,7 @@ table 771 "Analysis Report Chart Line"
         field(40; "Chart Type"; Option)
         {
             Caption = 'Chart Type';
+            ToolTip = 'Specifies how the analysis report values are represented graphically in the specific chart.';
             OptionCaption = ' ,Line,StepLine,Column,StackedColumn';
             OptionMembers = " ",Line,StepLine,Column,StackedColumn;
 

@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -19,11 +19,13 @@ table 924 "Vendor Purchase Buffer"
         field(6; "Period Name"; Text[50])
         {
             Caption = 'Period Name';
+            ToolTip = 'Specifies the name of the period that you want to view.';
             DataClassification = SystemMetadata;
         }
         field(7; "Period Start"; Date)
         {
             Caption = 'Period Start';
+            ToolTip = 'Specifies purchase statistics for each vendor for a period of time, starting on the date that you specify.';
             DataClassification = SystemMetadata;
         }
         field(8; "Period End"; Date)

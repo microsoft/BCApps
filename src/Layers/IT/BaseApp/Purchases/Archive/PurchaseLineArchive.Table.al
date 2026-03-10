@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -47,29 +47,35 @@ table 5110 "Purchase Line Archive"
         field(1; "Document Type"; Enum "Purchase Document Type")
         {
             Caption = 'Document Type';
+            ToolTip = 'Specifies the type of purchase document.';
         }
         field(2; "Buy-from Vendor No."; Code[20])
         {
             Caption = 'Buy-from Vendor No.';
+            ToolTip = 'Specifies the name of the vendor who delivered the items.';
             TableRelation = Vendor;
         }
         field(3; "Document No."; Code[20])
         {
             Caption = 'Document No.';
+            ToolTip = 'Specifies the document number.';
             TableRelation = "Purchase Header Archive"."No." where("Document Type" = field("Document Type"),
                                                                    "Version No." = field("Version No."));
         }
         field(4; "Line No."; Integer)
         {
             Caption = 'Line No.';
+            ToolTip = 'Specifies the number of the line.';
         }
         field(5; Type; Enum "Purchase Line Type")
         {
             Caption = 'Type';
+            ToolTip = 'Specifies the line type.';
         }
         field(6; "No."; Code[20])
         {
             Caption = 'No.';
+            ToolTip = 'Specifies the number of the involved entry or record, according to the specified number series.';
             TableRelation = if (Type = const(" ")) "Standard Text"
             else
             if (Type = const("G/L Account")) "G/L Account"
@@ -83,6 +89,7 @@ table 5110 "Purchase Line Archive"
         field(7; "Location Code"; Code[10])
         {
             Caption = 'Location Code';
+            ToolTip = 'Specifies a code for the location where you want the items to be placed when they are received.';
             TableRelation = Location where("Use As In-Transit" = const(false));
         }
         field(8; "Posting Group"; Code[20])
@@ -95,23 +102,28 @@ table 5110 "Purchase Line Archive"
         field(10; "Expected Receipt Date"; Date)
         {
             Caption = 'Expected Receipt Date';
+            ToolTip = 'Specifies the date you expect the items to be available in your warehouse. If you leave the field blank, it will be calculated as follows: Planned Receipt Date + Safety Lead Time + Inbound Warehouse Handling Time = Expected Receipt Date.';
         }
         field(11; Description; Text[100])
         {
             Caption = 'Description';
+            ToolTip = 'Specifies a description of the record.';
         }
         field(12; "Description 2"; Text[50])
         {
             Caption = 'Description 2';
+            ToolTip = 'Specifies information in addition to the description.';
         }
         field(13; "Unit of Measure"; Text[50])
         {
             Caption = 'Unit of Measure';
+            ToolTip = 'Specifies the name of the item or resource''s unit of measure, such as piece or hour.';
         }
         field(15; Quantity; Decimal)
         {
             AutoFormatType = 0;
             Caption = 'Quantity';
+            ToolTip = 'Specifies the quantity of the record.';
             DecimalPlaces = 0 : 5;
         }
         field(16; "Outstanding Quantity"; Decimal)
@@ -124,6 +136,7 @@ table 5110 "Purchase Line Archive"
         {
             AutoFormatType = 0;
             Caption = 'Qty. to Invoice';
+            ToolTip = 'Specifies the quantity that remains to be invoiced. It is calculated as Quantity - Qty. Invoiced.';
             DecimalPlaces = 0 : 5;
         }
         field(18; "Qty. to Receive"; Decimal)
@@ -131,6 +144,7 @@ table 5110 "Purchase Line Archive"
             AutoFormatType = 0;
             AccessByPermission = TableData "Purch. Rcpt. Header" = R;
             Caption = 'Qty. to Receive';
+            ToolTip = 'Specifies the quantity of items that remains to be received.';
             DecimalPlaces = 0 : 5;
         }
         field(22; "Direct Unit Cost"; Decimal)
@@ -139,6 +153,7 @@ table 5110 "Purchase Line Archive"
             AutoFormatType = 2;
             CaptionClass = GetCaptionClass(FieldNo("Direct Unit Cost"));
             Caption = 'Direct Unit Cost';
+            ToolTip = 'Specifies the cost of one unit of the selected item or resource.';
         }
         field(23; "Unit Cost (LCY)"; Decimal)
         {
@@ -164,6 +179,7 @@ table 5110 "Purchase Line Archive"
         {
             AutoFormatType = 0;
             Caption = 'Line Discount %';
+            ToolTip = 'Specifies the discount percentage that is granted for the item on the line.';
             DecimalPlaces = 0 : 5;
             MaxValue = 100;
             MinValue = 0;
@@ -173,18 +189,21 @@ table 5110 "Purchase Line Archive"
             AutoFormatExpression = Rec."Currency Code";
             AutoFormatType = 1;
             Caption = 'Line Discount Amount';
+            ToolTip = 'Specifies the discount amount that is granted for the item on the line.';
         }
         field(29; Amount; Decimal)
         {
             AutoFormatExpression = Rec."Currency Code";
             AutoFormatType = 1;
             Caption = 'Amount';
+            ToolTip = 'Specifies the sum of amounts in the Line Amount field on the purchase lines.';
         }
         field(30; "Amount Including VAT"; Decimal)
         {
             AutoFormatExpression = Rec."Currency Code";
             AutoFormatType = 1;
             Caption = 'Amount Including VAT';
+            ToolTip = 'Specifies the net amount, including VAT, for this line.';
         }
         field(31; "Unit Price (LCY)"; Decimal)
         {
@@ -195,58 +214,68 @@ table 5110 "Purchase Line Archive"
         field(32; "Allow Invoice Disc."; Boolean)
         {
             Caption = 'Allow Invoice Disc.';
+            ToolTip = 'Specifies if the invoice line is included when the invoice discount is calculated.';
             InitValue = true;
         }
         field(34; "Gross Weight"; Decimal)
         {
             AutoFormatType = 0;
             Caption = 'Gross Weight';
+            ToolTip = 'Specifies the gross weight of one unit of the item. In the purchase statistics window, the gross weight on the line is included in the total gross weight of all the lines for the particular purchase document.';
             DecimalPlaces = 0 : 5;
         }
         field(35; "Net Weight"; Decimal)
         {
             AutoFormatType = 0;
             Caption = 'Net Weight';
+            ToolTip = 'Specifies the net weight of one unit of the item. In the purchase statistics window, the net weight on the line is included in the total net weight of all the lines for the particular purchase document.';
             DecimalPlaces = 0 : 5;
         }
         field(36; "Units per Parcel"; Decimal)
         {
             AutoFormatType = 0;
             Caption = 'Units per Parcel';
+            ToolTip = 'Specifies the number of units per parcel of the item. In the purchase statistics window, the number of units per parcel on the line helps to determine the total number of units for all the lines for the particular purchase document.';
             DecimalPlaces = 0 : 5;
         }
         field(37; "Unit Volume"; Decimal)
         {
             AutoFormatType = 0;
             Caption = 'Unit Volume';
+            ToolTip = 'Specifies the volume of one unit of the item. In the purchase statistics window, the volume of one unit of the item on the line is included in the total volume of all the lines for the particular purchase document.';
             DecimalPlaces = 0 : 5;
         }
         field(38; "Appl.-to Item Entry"; Integer)
         {
             AccessByPermission = TableData Item = R;
             Caption = 'Appl.-to Item Entry';
+            ToolTip = 'Specifies the number of the item ledger entry that the document or journal line is applied to.';
         }
         field(40; "Shortcut Dimension 1 Code"; Code[20])
         {
             CaptionClass = '1,2,1';
             Caption = 'Shortcut Dimension 1 Code';
+            ToolTip = 'Specifies the code for Shortcut Dimension 1, which is one of two global dimension codes that you set up in the General Ledger Setup window.';
             TableRelation = "Dimension Value".Code where("Global Dimension No." = const(1));
         }
         field(41; "Shortcut Dimension 2 Code"; Code[20])
         {
             CaptionClass = '1,2,2';
             Caption = 'Shortcut Dimension 2 Code';
+            ToolTip = 'Specifies the code for Shortcut Dimension 2, which is one of two global dimension codes that you set up in the General Ledger Setup window.';
             TableRelation = "Dimension Value".Code where("Global Dimension No." = const(2));
         }
         field(45; "Job No."; Code[20])
         {
             Caption = 'Project No.';
+            ToolTip = 'Specifies the project number that the archived document was linked to.';
             TableRelation = Job;
         }
         field(54; "Indirect Cost %"; Decimal)
         {
             AutoFormatType = 0;
             Caption = 'Indirect Cost %';
+            ToolTip = 'Specifies the percentage of the item''s last purchase cost that includes indirect costs, such as freight that is associated with the purchase of the item.';
             DecimalPlaces = 0 : 5;
             MinValue = 0;
         }
@@ -273,12 +302,14 @@ table 5110 "Purchase Line Archive"
             AutoFormatType = 0;
             AccessByPermission = TableData "Purch. Rcpt. Header" = R;
             Caption = 'Quantity Received';
+            ToolTip = 'Specifies how many units of the item on the line have been posted as received.';
             DecimalPlaces = 0 : 5;
         }
         field(61; "Quantity Invoiced"; Decimal)
         {
             AutoFormatType = 0;
             Caption = 'Quantity Invoiced';
+            ToolTip = 'Specifies how many units of the item on the line have been posted as invoiced.';
             DecimalPlaces = 0 : 5;
         }
         field(63; "Receipt No."; Code[20])
@@ -305,6 +336,7 @@ table 5110 "Purchase Line Archive"
             AutoFormatExpression = Rec."Currency Code";
             AutoFormatType = 1;
             Caption = 'Inv. Discount Amount';
+            ToolTip = 'Specifies the total calculated invoice discount amount for the line.';
         }
         field(70; "Vendor Item No."; Text[50])
         {
@@ -325,15 +357,18 @@ table 5110 "Purchase Line Archive"
         {
             AccessByPermission = TableData "Drop Shpt. Post. Buffer" = R;
             Caption = 'Drop Shipment';
+            ToolTip = 'Specifies if your vendor ships the items directly to your customer.';
         }
         field(74; "Gen. Bus. Posting Group"; Code[20])
         {
             Caption = 'Gen. Bus. Posting Group';
+            ToolTip = 'Specifies the vendor''s or customer''s trade type to link transactions made for this business partner with the appropriate general ledger account according to the general posting setup.';
             TableRelation = "Gen. Business Posting Group";
         }
         field(75; "Gen. Prod. Posting Group"; Code[20])
         {
             Caption = 'Gen. Prod. Posting Group';
+            ToolTip = 'Specifies the item''s product type to link transactions made for this item with the appropriate general ledger account according to the general posting setup.';
             TableRelation = "Gen. Product Posting Group";
         }
         field(77; "VAT Calculation Type"; Enum "Tax Calculation Type")
@@ -377,29 +412,35 @@ table 5110 "Purchase Line Archive"
         field(85; "Tax Area Code"; Code[20])
         {
             Caption = 'Tax Area Code';
+            ToolTip = 'Specifies the tax area that is used to calculate and post sales tax.';
             TableRelation = "Tax Area";
         }
         field(86; "Tax Liable"; Boolean)
         {
             Caption = 'Tax Liable';
+            ToolTip = 'Specifies if this vendor charges you sales tax for purchases.';
         }
         field(87; "Tax Group Code"; Code[20])
         {
             Caption = 'Tax Group Code';
+            ToolTip = 'Specifies the tax group that is used to calculate and post sales tax.';
             TableRelation = "Tax Group";
         }
         field(88; "Use Tax"; Boolean)
         {
             Caption = 'Use Tax';
+            ToolTip = 'Specifies a U.S. sales tax that is paid on items purchased by a company that are used by the company, instead of being sold to a customer.';
         }
         field(89; "VAT Bus. Posting Group"; Code[20])
         {
             Caption = 'VAT Bus. Posting Group';
+            ToolTip = 'Specifies the VAT specification of the involved customer or vendor to link transactions made for this record with the appropriate general ledger account according to the VAT posting setup.';
             TableRelation = "VAT Business Posting Group";
         }
         field(90; "VAT Prod. Posting Group"; Code[20])
         {
             Caption = 'VAT Prod. Posting Group';
+            ToolTip = 'Specifies the VAT specification of the involved item or resource to link transactions made for this record with the appropriate general ledger account according to the VAT posting setup.';
             TableRelation = "VAT Product Posting Group";
         }
         field(91; "Currency Code"; Code[10])
@@ -422,11 +463,13 @@ table 5110 "Purchase Line Archive"
         field(97; "Blanket Order No."; Code[20])
         {
             Caption = 'Blanket Order No.';
+            ToolTip = 'Specifies the number of the blanket order that the record originates from.';
             TableRelation = "Purchase Header"."No." where("Document Type" = const("Blanket Order"));
         }
         field(98; "Blanket Order Line No."; Integer)
         {
             Caption = 'Blanket Order Line No.';
+            ToolTip = 'Specifies the number of the blanket order line that the record originates from.';
             TableRelation = "Purchase Line"."Line No." where("Document Type" = const("Blanket Order"),
                                                               "Document No." = field("Blanket Order No."));
         }
@@ -452,6 +495,7 @@ table 5110 "Purchase Line Archive"
             AutoFormatType = 1;
             CaptionClass = GetCaptionClass(FieldNo("Line Amount"));
             Caption = 'Line Amount';
+            ToolTip = 'Specifies the net amount, excluding any invoice discount amount, that must be paid for products on the line.';
         }
         field(104; "VAT Difference"; Decimal)
         {
@@ -612,6 +656,7 @@ table 5110 "Purchase Line Archive"
         field(1001; "Job Task No."; Code[20])
         {
             Caption = 'Project Task No.';
+            ToolTip = 'Specifies the number of the related project task.';
             Editable = false;
             TableRelation = "Job Task"."Job Task No." where("Job No." = field("Job No."));
         }
@@ -619,6 +664,7 @@ table 5110 "Purchase Line Archive"
         {
             AccessByPermission = TableData Job = R;
             Caption = 'Project Line Type';
+            ToolTip = 'Specifies the type of planning line that was created when the project ledger entry is posted from the purchase line. If the field is empty, no planning lines were created for this entry.';
         }
         field(1003; "Job Unit Price"; Decimal)
         {
@@ -626,6 +672,7 @@ table 5110 "Purchase Line Archive"
             AutoFormatExpression = "Job Currency Code";
             AccessByPermission = TableData Job = R;
             Caption = 'Project Unit Price';
+            ToolTip = 'Specifies the sales price per unit that applies to the item or general ledger expense that will be posted.';
         }
         field(1004; "Job Total Price"; Decimal)
         {
@@ -633,6 +680,7 @@ table 5110 "Purchase Line Archive"
             AutoFormatExpression = "Job Currency Code";
             AccessByPermission = TableData Job = R;
             Caption = 'Project Total Price';
+            ToolTip = 'Specifies the gross amount of the line that the purchase line applies to.';
         }
         field(1005; "Job Line Amount"; Decimal)
         {
@@ -640,6 +688,7 @@ table 5110 "Purchase Line Archive"
             AutoFormatType = 1;
             AutoFormatExpression = "Job Currency Code";
             Caption = 'Project Line Amount';
+            ToolTip = 'Specifies the line amount of the project ledger entry that is related to the purchase line.';
         }
         field(1006; "Job Line Discount Amount"; Decimal)
         {
@@ -647,12 +696,14 @@ table 5110 "Purchase Line Archive"
             AutoFormatType = 1;
             AutoFormatExpression = "Job Currency Code";
             Caption = 'Project Line Discount Amount';
+            ToolTip = 'Specifies the line discount amount of the project ledger entry that is related to the purchase line.';
         }
         field(1007; "Job Line Discount %"; Decimal)
         {
             AutoFormatType = 0;
             AccessByPermission = TableData Job = R;
             Caption = 'Project Line Discount %';
+            ToolTip = 'Specifies the line discount percentage of the project ledger entry that is related to the purchase line.';
             DecimalPlaces = 0 : 5;
         }
         field(1008; "Job Unit Price (LCY)"; Decimal)
@@ -697,6 +748,7 @@ table 5110 "Purchase Line Archive"
             AccessByPermission = TableData Job = R;
             BlankZero = true;
             Caption = 'Project Planning Line No.';
+            ToolTip = 'Specifies the project planning line number to which the usage should be linked when the Project Journal is posted. You can only link to Project Planning Lines that have the Apply Usage Link option enabled.';
         }
         field(1030; "Job Remaining Qty."; Decimal)
         {
@@ -713,11 +765,13 @@ table 5110 "Purchase Line Archive"
         field(1700; "Deferral Code"; Code[10])
         {
             Caption = 'Deferral Code';
+            ToolTip = 'Specifies the deferral template that governs how expenses paid with this purchase document are deferred to the different accounting periods when the expenses were incurred.';
             TableRelation = "Deferral Template"."Deferral Code";
         }
         field(1702; "Returns Deferral Start Date"; Date)
         {
             Caption = 'Returns Deferral Start Date';
+            ToolTip = 'Specifies the starting date of the returns deferral period.';
         }
         field(5047; "Version No."; Integer)
         {
@@ -730,6 +784,7 @@ table 5110 "Purchase Line Archive"
         field(5402; "Variant Code"; Code[10])
         {
             Caption = 'Variant Code';
+            ToolTip = 'Specifies the variant of the item on the line.';
             TableRelation = if (Type = const(Item)) "Item Variant".Code where("Item No." = field("No."));
         }
         field(5403; "Bin Code"; Code[20])
@@ -747,6 +802,7 @@ table 5110 "Purchase Line Archive"
         field(5407; "Unit of Measure Code"; Code[10])
         {
             Caption = 'Unit of Measure Code';
+            ToolTip = 'Specifies how each unit of the item or resource is measured, such as in pieces or hours. By default, the value in the Base Unit of Measure field on the item or resource card is inserted.';
             TableRelation = if (Type = const(Item)) "Item Unit of Measure".Code where("Item No." = field("No."))
             else
             "Unit of Measure";
@@ -857,6 +913,7 @@ table 5110 "Purchase Line Archive"
         field(5710; Nonstock; Boolean)
         {
             Caption = 'Catalog';
+            ToolTip = 'Specifies that this item is a catalog item.';
         }
         field(5711; "Purchasing Code"; Code[10])
         {
@@ -881,6 +938,7 @@ table 5110 "Purchase Line Archive"
         field(5725; "Item Reference No."; Code[50])
         {
             Caption = 'Item Reference No.';
+            ToolTip = 'Specifies the referenced item number.';
         }
         field(5726; "Item Reference Unit of Measure"; Code[10])
         {
@@ -902,40 +960,48 @@ table 5110 "Purchase Line Archive"
         field(5790; "Requested Receipt Date"; Date)
         {
             Caption = 'Requested Receipt Date';
+            ToolTip = 'Specifies the requested date of receipt for the purchase return order.';
         }
         field(5791; "Promised Receipt Date"; Date)
         {
             Caption = 'Promised Receipt Date';
+            ToolTip = 'Specifies the date that the vendor has promised to deliver the order.';
         }
         field(5792; "Lead Time Calculation"; DateFormula)
         {
             AccessByPermission = TableData "Purch. Rcpt. Header" = R;
             Caption = 'Lead Time Calculation';
+            ToolTip = 'Specifies a date formula for the amount of time it takes to replenish the item.';
         }
         field(5793; "Inbound Whse. Handling Time"; DateFormula)
         {
             AccessByPermission = TableData Location = R;
             Caption = 'Inbound Whse. Handling Time';
+            ToolTip = 'Specifies the time it takes to make items part of available inventory, after the items have been posted as received.';
         }
         field(5794; "Planned Receipt Date"; Date)
         {
             Caption = 'Planned Receipt Date';
+            ToolTip = 'Specifies the date when the item is planned to arrive in inventory. Forward calculation: planned receipt date = order date + vendor lead time (per the vendor calendar and rounded to the next working day in first the vendor calendar and then the location calendar). If no vendor calendar exists, then: planned receipt date = order date + vendor lead time (per the location calendar). Backward calculation: order date = planned receipt date - vendor lead time (per the vendor calendar and rounded to the previous working day in first the vendor calendar and then the location calendar). If no vendor calendar exists, then: order date = planned receipt date - vendor lead time (per the location calendar).';
         }
         field(5795; "Order Date"; Date)
         {
             AccessByPermission = TableData "Purch. Rcpt. Header" = R;
             Caption = 'Order Date';
+            ToolTip = 'Specifies the date when the order was created.';
         }
         field(5800; "Allow Item Charge Assignment"; Boolean)
         {
             AccessByPermission = TableData "Item Charge" = R;
             Caption = 'Allow Item Charge Assignment';
+            ToolTip = 'Specifies that you can assign item charges to this line.';
             InitValue = true;
         }
         field(5803; "Return Qty. to Ship"; Decimal)
         {
             AutoFormatType = 0;
             Caption = 'Return Qty. to Ship';
+            ToolTip = 'Specifies the quantity of items that remains to be shipped.';
             DecimalPlaces = 0 : 5;
         }
         field(5804; "Return Qty. to Ship (Base)"; Decimal)
@@ -972,6 +1038,7 @@ table 5110 "Purchase Line Archive"
         {
             AutoFormatType = 0;
             Caption = 'Return Qty. Shipped';
+            ToolTip = 'Specifies how many units of the item on the line have been posted as shipped.';
             DecimalPlaces = 0 : 5;
         }
         field(5810; "Return Qty. Shipped (Base)"; Decimal)
@@ -1016,6 +1083,7 @@ table 5110 "Purchase Line Archive"
         field(6608; "Return Reason Code"; Code[10])
         {
             Caption = 'Return Reason Code';
+            ToolTip = 'Specifies the code explaining why the item was returned.';
             TableRelation = "Return Reason";
         }
         field(7000; "Price Calculation Method"; Enum "Price Calculation Method")
@@ -1190,6 +1258,7 @@ table 5110 "Purchase Line Archive"
         field(99000757; "Planning Flexibility"; Enum "Reservation Planning Flexibility")
         {
             Caption = 'Planning Flexibility';
+            ToolTip = 'Specifies whether the supply represented by this line is considered by the planning system when calculating action messages.';
         }
         field(99000758; "Safety Lead Time"; DateFormula)
         {
@@ -1214,8 +1283,7 @@ table 5110 "Purchase Line Archive"
         }
         key(Key5; "Document No.", "Document Type", "Doc. No. Occurrence", "Version No.")
         {
-            MaintainSqlIndex = false;
-            SumIndexFields = Amount, "Amount Including VAT";
+            IncludedFields = Amount, "Amount Including VAT";
         }
     }
 

@@ -12,7 +12,7 @@ codeunit 6457 "Serv. Price Helper V16"
     var
         PriceHelperV16: Codeunit "Price Helper - V16";
 
-    [EventSubscriber(ObjectType::Table, Database::"Service Cost", 'OnAfterDeleteEvent', '', false, false)]
+    [EventSubscriber(ObjectType::Table, Database::"Service Cost", 'OnAfterDeleteEvent', '', true, false)]
     local procedure AfterDeleteServiceCost(var Rec: Record "Service Cost"; RunTrigger: Boolean);
     var
         AssetType: Enum "Price Asset Type";
@@ -24,7 +24,7 @@ codeunit 6457 "Serv. Price Helper V16"
             PriceHelperV16.DeletePriceLines(AssetType::"Service Cost", Rec.Code, '');
     end;
 
-    [EventSubscriber(ObjectType::Table, Database::"Service Cost", 'OnAfterRenameEvent', '', false, false)]
+    [EventSubscriber(ObjectType::Table, Database::"Service Cost", 'OnAfterRenameEvent', '', true, false)]
     local procedure AfterRenameServiceCost(var Rec: Record "Service Cost"; var xRec: Record "Service Cost"; RunTrigger: Boolean);
     var
         AssetType: Enum "Price Asset Type";

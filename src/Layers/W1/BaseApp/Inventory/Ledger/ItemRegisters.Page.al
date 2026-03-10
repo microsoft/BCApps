@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -27,22 +27,18 @@ page 117 "Item Registers"
                 field("No."; Rec."No.")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the number of the involved entry or record, according to the specified number series.';
                 }
                 field("Creation Date"; Rec."Creation Date")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the date when the entries in the register were posted.';
                 }
                 field("Creation Time"; Rec."Creation Time")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the time when the entries in the register were posted.';
                 }
                 field("User ID"; Rec."User ID")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the ID of the user who posted the entry, to be used, for example, in the change log.';
 
                     trigger OnDrillDown()
                     var
@@ -54,52 +50,42 @@ page 117 "Item Registers"
                 field("Source Code"; Rec."Source Code")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the source code that specifies where the entry was created.';
                 }
                 field("Journal Batch Name"; Rec."Journal Batch Name")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the name of the journal batch, a personalized journal layout, that the entries were posted from.';
                 }
                 field("From Entry No."; Rec."From Entry No.")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the first item entry number in the register.';
                 }
                 field("To Entry No."; Rec."To Entry No.")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the last item entry number in the register.';
                 }
                 field("From Phys. Inventory Entry No."; Rec."From Phys. Inventory Entry No.")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the first physical inventory ledger entry number in the register.';
                 }
                 field("To Phys. Inventory Entry No."; Rec."To Phys. Inventory Entry No.")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the last physical inventory ledger entry number in the register.';
                 }
                 field("From Value Entry No."; Rec."From Value Entry No.")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the first value entry number in the register.';
                 }
                 field("To Value Entry No."; Rec."To Value Entry No.")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the last value entry number in this register.';
                 }
                 field("From Capacity Entry No."; Rec."From Capacity Entry No.")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the first capacity entry number in the register.';
                 }
                 field("To Capacity Entry No."; Rec."To Capacity Entry No.")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the last capacity ledger entry number in this register.';
                 }
             }
         }

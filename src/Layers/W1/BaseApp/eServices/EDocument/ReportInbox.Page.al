@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -28,7 +28,6 @@ page 680 "Report Inbox"
                 field("Report Name"; Rec."Report Name")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the name of the report.';
 
                     trigger OnDrillDown()
                     begin
@@ -39,22 +38,18 @@ page 680 "Report Inbox"
                 field("Report ID"; Rec."Report ID")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the object ID of the report.';
                 }
                 field(Description; Rec.Description)
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the description of the report.';
                 }
                 field("Created Date-Time"; Rec."Created Date-Time")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the date and time that the scheduled report was processed from the job queue.';
                 }
                 field("User ID"; Rec."User ID")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the ID of the user who posted the entry, to be used, for example, in the change log.';
                 }
             }
         }

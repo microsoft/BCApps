@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -53,7 +53,6 @@ page 5885 "Posted Phys. Invt. Order Subf."
                 field("Bin Code"; Rec."Bin Code")
                 {
                     ApplicationArea = Warehouse;
-                    ToolTip = 'Specifies the Bin Code of the table physical inventory order line.';
                     Visible = false;
                 }
                 field("Unit of Measure"; Rec."Unit of Measure")
@@ -70,7 +69,6 @@ page 5885 "Posted Phys. Invt. Order Subf."
                 field("Shelf No."; Rec."Shelf No.")
                 {
                     ApplicationArea = Warehouse;
-                    ToolTip = 'Specifies the shelf number where the item is placed.';
                     Visible = false;
                 }
                 field("Qty. Expected (Base)"; Rec."Qty. Expected (Base)")
@@ -86,7 +84,6 @@ page 5885 "Posted Phys. Invt. Order Subf."
                 field("Use Item Tracking"; Rec."Use Item Tracking")
                 {
                     ApplicationArea = Warehouse;
-                    ToolTip = 'Specifies that the counting of the item is done by counting its serial, lot and package numbers.';
                 }
                 field("Qty. Recorded (Base)"; Rec."Qty. Recorded (Base)")
                 {
@@ -97,12 +94,10 @@ page 5885 "Posted Phys. Invt. Order Subf."
                 {
                     ApplicationArea = Warehouse;
                     BlankZero = true;
-                    ToolTip = 'Specifies how many of the related physical inventory recordings are closed.';
                 }
                 field("Recorded Without Order"; Rec."Recorded Without Order")
                 {
                     ApplicationArea = Warehouse;
-                    ToolTip = 'Specifies that no physical inventory order lines existed for the recorded item, and that the line was generated based on the related recording.';
                     Visible = false;
                 }
                 field("Entry Type"; Rec."Entry Type")
@@ -144,13 +139,11 @@ page 5885 "Posted Phys. Invt. Order Subf."
                 field("Shortcut Dimension 1 Code"; Rec."Shortcut Dimension 1 Code")
                 {
                     ApplicationArea = Dimensions;
-                    ToolTip = 'Specifies the code for Shortcut Dimension 1, which is one of two global dimension codes that you set up in the General Ledger Setup window.';
                     Visible = DimVisible1;
                 }
                 field("Shortcut Dimension 2 Code"; Rec."Shortcut Dimension 2 Code")
                 {
                     ApplicationArea = Dimensions;
-                    ToolTip = 'Specifies the code for Shortcut Dimension 2, which is one of two global dimension codes that you set up in the General Ledger Setup window.';
                     Visible = DimVisible2;
                 }
                 field("ShortcutDimCode[3]"; ShortcutDimCode[3])

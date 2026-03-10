@@ -16,11 +16,13 @@ table 7307 "Put-away Template Header"
         field(1; "Code"; Code[10])
         {
             Caption = 'Code';
+            ToolTip = 'Specifies the code of the put-away template header.';
             NotBlank = true;
         }
         field(2; Description; Text[100])
         {
             Caption = 'Description';
+            ToolTip = 'Specifies the description of the put-away template header.';
         }
     }
 

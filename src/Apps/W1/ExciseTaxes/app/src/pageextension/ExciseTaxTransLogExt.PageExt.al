@@ -12,32 +12,12 @@ pageextension 7416 "Excise Tax Trans Log Ext" extends "Sust. Excise Taxes Trans.
 {
     layout
     {
-        addafter("Document No.")
+        addafter("Log Type")
         {
             field("Excise Tax Type"; Rec."Excise Tax Type")
             {
                 ApplicationArea = All;
                 ToolTip = 'Specifies the excise tax type.';
-            }
-            field("Tax Rate %"; Rec."Tax Rate %")
-            {
-                ApplicationArea = All;
-                ToolTip = 'Specifies the tax rate percentage.';
-            }
-            field(Quantity; Rec.Quantity)
-            {
-                ApplicationArea = All;
-                ToolTip = 'Specifies the quantity for tax calculation.';
-            }
-            field("Excise Tax UOM"; Rec."Excise Tax UOM")
-            {
-                ApplicationArea = All;
-                ToolTip = 'Specifies the unit of measure for excise tax calculation.';
-            }
-            field("Tax Amount"; Rec."Tax Amount")
-            {
-                ApplicationArea = All;
-                ToolTip = 'Specifies the calculated tax amount.';
             }
             field("Excise Entry Type"; Rec."Excise Entry Type")
             {
@@ -45,8 +25,33 @@ pageextension 7416 "Excise Tax Trans Log Ext" extends "Sust. Excise Taxes Trans.
                 ToolTip = 'Specifies the excise entry type.';
             }
         }
-
-        addafter("Source No.")
+        addafter("Source Unit of Measure Code")
+        {
+            field("Excise Unit of Measure Code"; Rec."Excise Unit of Measure Code")
+            {
+                ApplicationArea = All;
+                ToolTip = 'Specifies the unit of measure for excise tax calculation.';
+            }
+        }
+        addafter("Source Qty.")
+        {
+            field("Quantity for Excise Tax"; Rec."Quantity for Excise Tax")
+            {
+                ApplicationArea = All;
+                ToolTip = 'Specifies the quantity for tax calculation.';
+            }
+            field("Excise Duty"; Rec."Excise Duty")
+            {
+                ApplicationArea = All;
+                ToolTip = 'Specifies the excise duty.';
+            }
+            field("Tax Amount"; Rec."Tax Amount")
+            {
+                ApplicationArea = All;
+                ToolTip = 'Specifies the calculated tax amount.';
+            }
+        }
+        addafter("Certificate Amount")
         {
             field("Item Ledger Entry No."; Rec."Item Ledger Entry No.")
             {
@@ -93,7 +98,6 @@ pageextension 7416 "Excise Tax Trans Log Ext" extends "Sust. Excise Taxes Trans.
                 }
             }
         }
-
         addlast(Promoted)
         {
             group("Excise Tax_Promoted")

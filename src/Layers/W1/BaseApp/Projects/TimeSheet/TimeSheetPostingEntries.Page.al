@@ -24,42 +24,34 @@ page 958 "Time Sheet Posting Entries"
                 field("Time Sheet No."; Rec."Time Sheet No.")
                 {
                     ApplicationArea = Jobs;
-                    ToolTip = 'Specifies the number of a time sheet.';
                 }
                 field("Time Sheet Line No."; Rec."Time Sheet Line No.")
                 {
                     ApplicationArea = Jobs;
-                    ToolTip = 'Specifies the number of a time sheet line.';
                 }
                 field("Time Sheet Date"; Rec."Time Sheet Date")
                 {
                     ApplicationArea = Jobs;
-                    ToolTip = 'Specifies the date for which time usage information was entered in a time sheet.';
                 }
                 field(Description; Rec.Description)
                 {
                     ApplicationArea = Jobs;
-                    ToolTip = 'Specifies the description that is contained in the details about the time sheet line.';
                 }
                 field(Quantity; Rec.Quantity)
                 {
                     ApplicationArea = Jobs;
-                    ToolTip = 'Specifies the number of hours that have been posted for that date in the time sheet.';
                 }
                 field("Document No."; Rec."Document No.")
                 {
                     ApplicationArea = Jobs;
-                    ToolTip = 'Specifies the document number that was generated or created for the time sheet during posting.';
                 }
                 field("Posting Date"; Rec."Posting Date")
                 {
                     ApplicationArea = Jobs;
-                    ToolTip = 'Specifies the posting date of the posted document.';
                 }
                 field("Entry No."; Rec."Entry No.")
                 {
                     ApplicationArea = Jobs;
-                    ToolTip = 'Specifies the number of the entry, as assigned from the specified number series when the entry was created.';
                 }
             }
         }

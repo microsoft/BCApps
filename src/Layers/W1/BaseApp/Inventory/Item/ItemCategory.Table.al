@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -17,11 +17,13 @@ table 5722 "Item Category"
         field(1; "Code"; Code[20])
         {
             Caption = 'Code';
+            ToolTip = 'Specifies the item category.';
             NotBlank = true;
         }
         field(2; "Parent Category"; Code[20])
         {
             Caption = 'Parent Category';
+            ToolTip = 'Specifies the item category that this item category belongs to. Item attributes that are assigned to a parent item category also apply to the child item category.';
             TableRelation = "Item Category";
 
             trigger OnValidate()
@@ -43,6 +45,7 @@ table 5722 "Item Category"
         field(3; Description; Text[100])
         {
             Caption = 'Description';
+            ToolTip = 'Specifies a description of the item category.';
         }
         field(9; Indentation; Integer)
         {

@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -31,70 +31,57 @@ page 5832 "Capacity Ledger Entries"
                 field("Posting Date"; Rec."Posting Date")
                 {
                     ApplicationArea = Suite;
-                    ToolTip = 'Specifies the posting date of the entry.';
                 }
                 field("Order Type"; Rec."Order Type")
                 {
                     ApplicationArea = Assembly, Manufacturing;
-                    ToolTip = 'Specifies which type of order the entry was created in.';
                 }
                 field("Order No."; Rec."Order No.")
                 {
                     ApplicationArea = Assembly, Manufacturing;
-                    ToolTip = 'Specifies the number of the order that created the entry.';
                 }
                 field("Order Line No."; Rec."Order Line No.")
                 {
                     ApplicationArea = Manufacturing;
-                    ToolTip = 'Specifies the line number of the order that created the entry.';
                     Visible = false;
                 }
                 field(Type; Rec.Type)
                 {
                     ApplicationArea = Suite;
-                    ToolTip = 'Specifies the type of capacity entry.';
                 }
                 field("No."; Rec."No.")
                 {
                     ApplicationArea = Suite;
-                    ToolTip = 'Specifies the number of the involved entry or record, according to the specified number series.';
                 }
                 field("Document No."; Rec."Document No.")
                 {
                     ApplicationArea = Suite;
-                    ToolTip = 'Specifies the document number of the entry.';
                     Visible = false;
                 }
                 field("Item No."; Rec."Item No.")
                 {
                     ApplicationArea = Suite;
-                    ToolTip = 'Specifies the item number.';
                 }
                 field("Variant Code"; Rec."Variant Code")
                 {
                     ApplicationArea = Planning;
-                    ToolTip = 'Specifies the variant of the item on the line.';
                     Visible = false;
                 }
                 field(Description; Rec.Description)
                 {
                     ApplicationArea = Suite;
-                    ToolTip = 'Specifies a description of the entry.';
                 }
                 field(Quantity; Rec.Quantity)
                 {
                     ApplicationArea = Suite;
-                    ToolTip = 'Specifies the quantity of this entry, in base units of measure.';
                 }
                 field("Direct Cost"; Rec."Direct Cost")
                 {
                     ApplicationArea = Suite;
-                    ToolTip = 'Specifies the direct cost in LCY of the quantity posting.';
                 }
                 field("Overhead Cost"; Rec."Overhead Cost")
                 {
                     ApplicationArea = Suite;
-                    ToolTip = 'Specifies the overhead cost in LCY of the quantity posting.';
                 }
                 field("Direct Cost (ACY)"; Rec."Direct Cost (ACY)")
                 {
@@ -112,98 +99,83 @@ page 5832 "Capacity Ledger Entries"
                 {
                     ApplicationArea = Basic, Suite;
                     Editable = false;
-                    ToolTip = 'Specifies if the entry has been part of a reverse transaction.';
                     Visible = false;
                 }
                 field("Reversed by Entry No."; Rec."Reversed by Entry No.")
                 {
                     ApplicationArea = Basic, Suite;
                     Editable = false;
-                    ToolTip = 'Specifies the number of the correcting entry that replaced the original entry in the reverse transaction.';
                     Visible = false;
                 }
                 field("Reversed Entry No."; Rec."Reversed Entry No.")
                 {
                     ApplicationArea = Basic, Suite;
                     Editable = false;
-                    ToolTip = 'Specifies the number of the original entry that was undone by the reverse transaction.';
                     Visible = false;
                 }
                 field("Global Dimension 1 Code"; Rec."Global Dimension 1 Code")
                 {
                     ApplicationArea = Dimensions;
-                    ToolTip = 'Specifies the code for the global dimension that is linked to the record or entry for analysis purposes. Two global dimensions, typically for the company''s most important activities, are available on all cards, documents, reports, and lists.';
                     Visible = Dim1Visible;
                 }
                 field("Global Dimension 2 Code"; Rec."Global Dimension 2 Code")
                 {
                     ApplicationArea = Dimensions;
-                    ToolTip = 'Specifies the code for the global dimension that is linked to the record or entry for analysis purposes. Two global dimensions, typically for the company''s most important activities, are available on all cards, documents, reports, and lists.';
                     Visible = Dim2Visible;
                 }
                 field("Completely Invoiced"; Rec."Completely Invoiced")
                 {
                     ApplicationArea = Assembly, Manufacturing;
-                    ToolTip = 'Specifies if the entry has been fully invoiced or if more posted invoices are expected.';
                     Visible = false;
                 }
                 field("Entry No."; Rec."Entry No.")
                 {
                     ApplicationArea = Assembly, Manufacturing;
-                    ToolTip = 'Specifies the number of the entry, as assigned from the specified number series when the entry was created.';
                 }
                 field("Dimension Set ID"; Rec."Dimension Set ID")
                 {
                     ApplicationArea = Dimensions;
-                    ToolTip = 'Specifies a reference to a combination of dimension values. The actual values are stored in the Dimension Set Entry table.';
                     Visible = false;
                 }
                 field("Shortcut Dimension 3 Code"; Rec."Shortcut Dimension 3 Code")
                 {
                     ApplicationArea = Dimensions;
                     Editable = false;
-                    ToolTip = 'Specifies the code for Shortcut Dimension 3, which is one of dimension codes that you set up in the General Ledger Setup window.';
                     Visible = Dim3Visible;
                 }
                 field("Shortcut Dimension 4 Code"; Rec."Shortcut Dimension 4 Code")
                 {
                     ApplicationArea = Dimensions;
                     Editable = false;
-                    ToolTip = 'Specifies the code for Shortcut Dimension 4, which is one of dimension codes that you set up in the General Ledger Setup window.';
                     Visible = Dim4Visible;
                 }
                 field("Shortcut Dimension 5 Code"; Rec."Shortcut Dimension 5 Code")
                 {
                     ApplicationArea = Dimensions;
                     Editable = false;
-                    ToolTip = 'Specifies the code for Shortcut Dimension 5, which is one of dimension codes that you set up in the General Ledger Setup window.';
                     Visible = Dim5Visible;
                 }
                 field("Shortcut Dimension 6 Code"; Rec."Shortcut Dimension 6 Code")
                 {
                     ApplicationArea = Dimensions;
                     Editable = false;
-                    ToolTip = 'Specifies the code for Shortcut Dimension 6, which is one of dimension codes that you set up in the General Ledger Setup window.';
                     Visible = Dim6Visible;
                 }
                 field("Shortcut Dimension 7 Code"; Rec."Shortcut Dimension 7 Code")
                 {
                     ApplicationArea = Dimensions;
                     Editable = false;
-                    ToolTip = 'Specifies the code for Shortcut Dimension 7, which is one of dimension codes that you set up in the General Ledger Setup window.';
                     Visible = Dim7Visible;
                 }
                 field("Shortcut Dimension 8 Code"; Rec."Shortcut Dimension 8 Code")
                 {
                     ApplicationArea = Dimensions;
                     Editable = false;
-                    ToolTip = 'Specifies the code for Shortcut Dimension 8, which is one of dimension codes that you set up in the General Ledger Setup window.';
                     Visible = Dim8Visible;
                 }
                 field("Cap. Unit of Measure Code"; Rec."Cap. Unit of Measure Code")
                 {
                     ApplicationArea = Suite;
-                    ToolTip = 'Specifies the unit of measure code for the capacity usage.';
                     Visible = false;
                 }
             }

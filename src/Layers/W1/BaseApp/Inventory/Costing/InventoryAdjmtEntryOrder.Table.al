@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -24,18 +24,22 @@ table 5896 "Inventory Adjmt. Entry (Order)"
         field(1; "Order Type"; Enum "Inventory Order Type")
         {
             Caption = 'Order Type';
+            ToolTip = 'Specifies which type of order that the entry was created in.';
         }
         field(2; "Order No."; Code[20])
         {
             Caption = 'Order No.';
+            ToolTip = 'Specifies the number of the order that the entry was created in.';
         }
         field(3; "Order Line No."; Integer)
         {
             Caption = 'Order Line No.';
+            ToolTip = 'Specifies the line number of the order that the entry was created in.';
         }
         field(4; "Item No."; Code[20])
         {
             Caption = 'Item No.';
+            ToolTip = 'Specifies the item number.';
             TableRelation = Item;
         }
         field(21; "Indirect Cost %"; Decimal)
@@ -52,6 +56,7 @@ table 5896 "Inventory Adjmt. Entry (Order)"
         field(29; "Cost is Adjusted"; Boolean)
         {
             Caption = 'Cost is Adjusted';
+            ToolTip = 'Specifies whether the cost of the order has been adjusted.';
             InitValue = true;
         }
         field(30; "Allow Online Adjustment"; Boolean)
@@ -152,10 +157,12 @@ table 5896 "Inventory Adjmt. Entry (Order)"
         field(61; "Completely Invoiced"; Boolean)
         {
             Caption = 'Completely Invoiced';
+            ToolTip = 'Specifies whether the entry has been fully invoiced.';
         }
         field(62; "Is Finished"; Boolean)
         {
             Caption = 'Is Finished';
+            ToolTip = 'Specifies that the order is finished and that its cost will be adjusted.';
         }
         field(70; "Direct Cost Non-Inventory"; Decimal)
         {

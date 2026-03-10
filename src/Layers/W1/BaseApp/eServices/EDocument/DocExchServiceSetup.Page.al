@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -34,7 +34,6 @@ page 1275 "Doc. Exch. Service Setup"
                     ApplicationArea = Basic, Suite;
                     Editable = EditableByNotEnabled;
                     ShowMandatory = true;
-                    ToolTip = 'Specifies any text that you have entered to identify your company in document exchange processes.';
                 }
                 field(Sandbox; Sandbox)
                 {
@@ -55,7 +54,6 @@ page 1275 "Doc. Exch. Service Setup"
                 field(Enabled; Rec.Enabled)
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies if the service is enabled. When you enable the service, at least two job queue entries are created to process the traffic of electronic documents in and out of Microsoft Dynamics 365.';
 
                     trigger OnValidate()
                     begin
@@ -75,7 +73,6 @@ page 1275 "Doc. Exch. Service Setup"
                     Caption = 'Issued At';
                     ApplicationArea = Basic, Suite;
                     Editable = false;
-                    ToolTip = 'Specifies the time at which the token was issued.';
                 }
                 field("Token Expired"; Rec."Token Expired")
                 {
@@ -83,7 +80,6 @@ page 1275 "Doc. Exch. Service Setup"
                     ApplicationArea = Basic, Suite;
                     Editable = false;
                     StyleExpr = TokenStyleExpr;
-                    ToolTip = 'Specifies whether the token has expired.';
 
                     trigger OnDrillDown()
                     begin
@@ -106,14 +102,12 @@ page 1275 "Doc. Exch. Service Setup"
                 {
                     ApplicationArea = Basic, Suite;
                     Editable = EditableByNotEnabled;
-                    ToolTip = 'Specifies the web page where you sign up for the document exchange service.';
 
                 }
                 field("Sign-in URL"; Rec."Sign-in URL")
                 {
                     ApplicationArea = Basic, Suite;
                     Editable = EditableByNotEnabled;
-                    ToolTip = 'Specifies the web page where you sign in to the document exchange service.';
 
                     trigger OnValidate()
                     begin
@@ -133,7 +127,6 @@ page 1275 "Doc. Exch. Service Setup"
                     ApplicationArea = Basic, Suite;
                     Editable = EditableByNotEnabled;
                     ShowMandatory = true;
-                    ToolTip = 'Specifies the URL address of the document exchange service. The service specified in the Service URL field is called when you send and receive electronic documents.';
 
                     trigger OnValidate()
                     begin
@@ -146,7 +139,6 @@ page 1275 "Doc. Exch. Service Setup"
                     Visible = OAuth2Visible;
                     Editable = EditableByNotEnabled;
                     ShowMandatory = true;
-                    ToolTip = 'Specifies the authentication URL address of the document exchange service.';
                 }
                 field("Token URL"; Rec."Token URL")
                 {
@@ -154,13 +146,11 @@ page 1275 "Doc. Exch. Service Setup"
                     Visible = OAuth2Visible;
                     Editable = EditableByNotEnabled;
                     ShowMandatory = true;
-                    ToolTip = 'Specifies the token URL address of the document exchange service.';
                 }
                 field("Log Web Requests"; Rec."Log Web Requests")
                 {
                     ApplicationArea = Basic, Suite;
                     Editable = EditableByNotEnabled;
-                    ToolTip = 'Specifies if web requests occurring in connection with the service are logged. The log is located in the server Temp folder.';
                 }
             }
             group(Authorization)
@@ -172,7 +162,6 @@ page 1275 "Doc. Exch. Service Setup"
                     Caption = 'Client ID';
                     ApplicationArea = Basic, Suite;
                     Editable = EditableByNotEnabled;
-                    ToolTip = 'Specifies the client ID of the application that will be used to connect to the document exchange service.';
 
                     trigger OnValidate()
                     var
@@ -223,7 +212,6 @@ page 1275 "Doc. Exch. Service Setup"
                 {
                     ApplicationArea = Basic, Suite;
                     Editable = EditableByNotEnabled and not SoftwareAsAService;
-                    ToolTip = 'Specifies the redirect URL of the application that will be used to to the document exchange service.';
                 }
             }
         }

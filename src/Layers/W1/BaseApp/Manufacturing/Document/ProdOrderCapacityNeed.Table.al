@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -22,16 +22,19 @@ table 5410 "Prod. Order Capacity Need"
         field(1; Status; Enum "Production Order Status")
         {
             Caption = 'Status';
+            ToolTip = 'Specifies the status of the production order.';
         }
         field(2; "Prod. Order No."; Code[20])
         {
             Caption = 'Prod. Order No.';
+            ToolTip = 'Specifies the number of the related production order.';
             TableRelation = "Production Order"."No." where(Status = field(Status));
             ValidateTableRelation = false;
         }
         field(3; "Routing No."; Code[20])
         {
             Caption = 'Routing No.';
+            ToolTip = 'Specifies the routing number.';
             TableRelation = "Routing Header";
         }
         field(4; "Line No."; Integer)
@@ -41,14 +44,17 @@ table 5410 "Prod. Order Capacity Need"
         field(5; "Operation No."; Code[10])
         {
             Caption = 'Operation No.';
+            ToolTip = 'Specifies the operation number.';
         }
         field(6; Type; Enum "Capacity Type")
         {
             Caption = 'Type';
+            ToolTip = 'Specifies the type of capacity need. Here you can see whether this capacity need is for a machine center or a work center.';
         }
         field(7; "No."; Code[20])
         {
             Caption = 'No.';
+            ToolTip = 'Specifies the Number of the machine center or work center depending on the entry in the Type field.';
             TableRelation = if (Type = const("Work Center")) "Work Center"
             else
             if (Type = const("Machine Center")) "Machine Center";
@@ -56,6 +62,7 @@ table 5410 "Prod. Order Capacity Need"
         field(8; "Work Center No."; Code[20])
         {
             Caption = 'Work Center No.';
+            ToolTip = 'Specifies the work center number of the capacity need. If this capacity need occurs at a machine center that is assigned to a work center, that work center number will be shown here. If the capacity need is for a work center, the No. field and this field will show the same number.';
             Editable = false;
             TableRelation = "Work Center";
         }
@@ -85,12 +92,14 @@ table 5410 "Prod. Order Capacity Need"
         {
             AutoFormatType = 0;
             Caption = 'Allocated Time';
+            ToolTip = 'Specifies the capacity need of planned operations.';
             DecimalPlaces = 0 : 5;
             MinValue = 0;
         }
         field(16; "Send-Ahead Type"; Option)
         {
             Caption = 'Send-Ahead Type';
+            ToolTip = 'Specifies if the send-ahead quantity is of type Input, Output, or Both.';
             OptionCaption = ' ,Input,Output,Both';
             OptionMembers = " ",Input,Output,Both;
         }
@@ -98,12 +107,14 @@ table 5410 "Prod. Order Capacity Need"
         field(17; "Time Type"; Enum "Routing Time Type")
         {
             Caption = 'Time Type';
+            ToolTip = 'Specifies the time type of the capacity need. Two options are available: Setup Time and Run Time.';
         }
 #pragma warning restore AS0070
         field(18; "Needed Time"; Decimal)
         {
             AutoFormatType = 0;
             Caption = 'Needed Time';
+            ToolTip = 'Specifies how much time is required to meet the needs resulting from the specified capacity.';
             DecimalPlaces = 0 : 5;
         }
         field(19; "Needed Time (ms)"; Decimal)
@@ -122,22 +133,26 @@ table 5410 "Prod. Order Capacity Need"
         {
             AutoFormatType = 0;
             Caption = 'Concurrent Capacities';
+            ToolTip = 'Specifies the concurrent capacity of the operation.';
             DecimalPlaces = 0 : 5;
         }
         field(23; Efficiency; Decimal)
         {
             AutoFormatType = 0;
             Caption = 'Efficiency';
+            ToolTip = 'Specifies the efficiency of the production order capacity need.';
             DecimalPlaces = 0 : 5;
         }
         field(26; "Starting Date-Time"; DateTime)
         {
             Caption = 'Starting Date-Time';
+            ToolTip = 'Specifies the date and the starting time, which are combined in a format called "starting date-time".';
             Editable = false;
         }
         field(27; "Ending Date-Time"; DateTime)
         {
             Caption = 'Ending Date-Time';
+            ToolTip = 'Specifies the date and the ending time, which are combined in a format called "ending date-time".';
             Editable = false;
         }
         field(31; "Worksheet Template Name"; Code[10])

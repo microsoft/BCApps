@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -20,6 +20,7 @@ table 5935 "Service Email Queue"
         field(2; "To Address"; Text[80])
         {
             Caption = 'To Address';
+            ToolTip = 'Specifies the email address of the recipient when an email is sent to notify customers that their service items are ready.';
         }
         field(3; "Copy-to Address"; Text[80])
         {
@@ -28,10 +29,12 @@ table 5935 "Service Email Queue"
         field(4; "Subject Line"; Text[250])
         {
             Caption = 'Subject Line';
+            ToolTip = 'Specifies the email subject line.';
         }
         field(5; "Body Line"; Text[250])
         {
             Caption = 'Body Line';
+            ToolTip = 'Specifies the text of the body of the email.';
         }
         field(6; "Attachment Filename"; Text[80])
         {
@@ -40,14 +43,17 @@ table 5935 "Service Email Queue"
         field(7; "Sending Date"; Date)
         {
             Caption = 'Sending Date';
+            ToolTip = 'Specifies the date the message was sent.';
         }
         field(8; "Sending Time"; Time)
         {
             Caption = 'Sending Time';
+            ToolTip = 'Specifies the time the message was sent.';
         }
         field(9; Status; Option)
         {
             Caption = 'Status';
+            ToolTip = 'Specifies the message status.';
             Editable = false;
             OptionCaption = ' ,Processed,Error';
             OptionMembers = " ",Processed,Error;
@@ -55,12 +61,14 @@ table 5935 "Service Email Queue"
         field(10; "Document Type"; Option)
         {
             Caption = 'Document Type';
+            ToolTip = 'Specifies the type of document linked to this entry.';
             OptionCaption = ' ,Service Order';
             OptionMembers = " ","Service Order";
         }
         field(11; "Document No."; Code[20])
         {
             Caption = 'Document No.';
+            ToolTip = 'Specifies the number of the document linked to this entry.';
         }
     }
 

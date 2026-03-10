@@ -35,7 +35,6 @@ page 434 Reminder
                 {
                     ApplicationArea = Basic, Suite;
                     Importance = Promoted;
-                    ToolTip = 'Specifies the number of the involved entry or record, according to the specified number series.';
                     Visible = DocNoVisible;
 
                     trigger OnAssistEdit()
@@ -49,7 +48,6 @@ page 434 Reminder
                     ApplicationArea = Basic, Suite;
                     Importance = Promoted;
                     ShowMandatory = true;
-                    ToolTip = 'Specifies the number of the customer you want to post a reminder for.';
 
                     trigger OnValidate()
                     begin
@@ -60,19 +58,16 @@ page 434 Reminder
                 {
                     ApplicationArea = Basic, Suite;
                     Importance = Promoted;
-                    ToolTip = 'Specifies the name of the customer the reminder is for.';
                 }
                 field(Address; Rec.Address)
                 {
                     ApplicationArea = Basic, Suite;
                     QuickEntry = false;
-                    ToolTip = 'Specifies the address of the customer the reminder is for.';
                 }
                 field("Address 2"; Rec."Address 2")
                 {
                     ApplicationArea = Basic, Suite;
                     QuickEntry = false;
-                    ToolTip = 'Specifies additional address information.';
                 }
                 field(City; Rec.City)
                 {
@@ -94,7 +89,6 @@ page 434 Reminder
                 field(Contact; Rec.Contact)
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the name of the person you regularly contact when you communicate with the customer the reminder is for.';
                 }
                 field(ContactPhoneNo; PrimaryContact."Phone No.")
                 {
@@ -127,41 +121,34 @@ page 434 Reminder
                 {
                     ApplicationArea = Basic, Suite;
                     Importance = Additional;
-                    ToolTip = 'Specifies the customer''s reference. The content will be printed on the related document.';
                 }
                 field("Posting Date"; Rec."Posting Date")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the date when the reminder should be issued.';
                 }
                 field("VAT Reporting Date"; Rec."VAT Reporting Date")
                 {
                     ApplicationArea = VAT;
                     Editable = VATDateEnabled;
                     Visible = VATDateEnabled;
-                    ToolTip = 'Specifies the date used to include entries on VAT reports in a VAT period. This is either the date that the document was created or posted, depending on your setting on the General Ledger Setup page.';
                 }
                 field("Document Date"; Rec."Document Date")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the date when the related document was created.';
                 }
                 field("Reminder Level"; Rec."Reminder Level")
                 {
                     ApplicationArea = Basic, Suite;
                     Editable = false;
                     Importance = Promoted;
-                    ToolTip = 'Specifies the reminder''s level.';
                 }
                 field("Use Header Level"; Rec."Use Header Level")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies that the condition of the level for the Reminder Level field is applied to all suggested reminder lines.';
                 }
                 field("Assigned User ID"; Rec."Assigned User ID")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the ID of the user who is responsible for the document.';
                 }
             }
             part(ReminderLines; "Reminder Lines")
@@ -177,25 +164,21 @@ page 434 Reminder
                     ApplicationArea = Basic, Suite;
                     Importance = Promoted;
                     ShowMandatory = true;
-                    ToolTip = 'Specifies how reminders about late payments are handled for this customer.';
                 }
                 field("Fin. Charge Terms Code"; Rec."Fin. Charge Terms Code")
                 {
                     ApplicationArea = Basic, Suite;
                     Importance = Promoted;
-                    ToolTip = 'Specifies the code for the involved finance charges in case of late payment.';
                 }
                 field("Due Date"; Rec."Due Date")
                 {
                     ApplicationArea = Basic, Suite;
                     Importance = Promoted;
-                    ToolTip = 'Specifies when payment of the amount on the reminder is due.';
                 }
                 field("Currency Code"; Rec."Currency Code")
                 {
                     ApplicationArea = Basic, Suite;
                     Importance = Promoted;
-                    ToolTip = 'Specifies the currency code of the reminder.';
 
                     trigger OnAssistEdit()
                     begin
@@ -213,17 +196,14 @@ page 434 Reminder
                 {
                     ApplicationArea = Basic, Suite;
                     Importance = Promoted;
-                    ToolTip = 'Specifies the bank account to use for bank information when the document is printed.';
                 }
                 field("Shortcut Dimension 1 Code"; Rec."Shortcut Dimension 1 Code")
                 {
                     ApplicationArea = Dimensions;
-                    ToolTip = 'Specifies the code for Shortcut Dimension 1, which is one of two global dimension codes that you set up in the General Ledger Setup window.';
                 }
                 field("Shortcut Dimension 2 Code"; Rec."Shortcut Dimension 2 Code")
                 {
                     ApplicationArea = Dimensions;
-                    ToolTip = 'Specifies the code for Shortcut Dimension 2, which is one of two global dimension codes that you set up in the General Ledger Setup window.';
                 }
             }
         }

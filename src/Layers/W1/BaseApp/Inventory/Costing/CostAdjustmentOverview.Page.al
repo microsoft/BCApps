@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -92,19 +92,16 @@ page 5801 "Cost Adjustment Overview"
                 field("Description 2"; Rec."Description 2")
                 {
                     Caption = 'Description 2';
-                    ToolTip = 'Specifies information in addition to the description.';
                     Editable = false;
                     Visible = false;
                 }
                 field("Replenishment System"; Rec."Replenishment System")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the type of supply order created by the planning system when the item needs to be replenished.';
                 }
                 field("Low-Level Code"; Rec."Low-Level Code")
                 {
                     Caption = 'Low-Level Code';
-                    ToolTip = 'Specifies the item''s level in a bill of material if the item is a component in a production BOM or an assembly BOM.';
                     Editable = false;
                     Visible = false;
                 }
@@ -128,7 +125,6 @@ page 5801 "Cost Adjustment Overview"
                 field("Last Direct Cost"; Rec."Last Direct Cost")
                 {
                     Caption = 'Last Direct Cost';
-                    ToolTip = 'Specifies the most recent direct unit cost of the item.';
                 }
                 field("Costing Method"; Rec."Costing Method")
                 {
@@ -143,7 +139,6 @@ page 5801 "Cost Adjustment Overview"
                 field("Excluded from Cost Adjustment"; Rec."Excluded from Cost Adjustment")
                 {
                     Caption = 'Excluded from Cost Adjustment';
-                    ToolTip = 'Specifies whether the item is excluded from the cost adjustment process.';
                 }
                 field("Cost is Posted to G/L"; Rec."Cost is Posted to G/L")
                 {

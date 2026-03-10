@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -26,7 +26,6 @@ page 7027 "Price Calculation Setup Lines"
                 ShowCaption = false;
                 field("Asset Type"; Rec."Asset Type")
                 {
-                    ToolTip = 'Specifies the type of the product for price calculation.';
                     Editable = false;
                     ApplicationArea = Basic, Suite;
                 }

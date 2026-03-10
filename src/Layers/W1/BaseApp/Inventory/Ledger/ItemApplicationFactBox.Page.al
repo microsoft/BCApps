@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -20,12 +20,10 @@ page 9125 "Item Application FactBox"
             field("Entry No."; Rec."Entry No.")
             {
                 ApplicationArea = Basic, Suite;
-                ToolTip = 'Specifies the number of the entry, as assigned from the specified number series when the entry was created.';
             }
             field("Item No."; Rec."Item No.")
             {
                 ApplicationArea = Basic, Suite;
-                ToolTip = 'Specifies the number of the item in the entry.';
             }
 #pragma warning disable AA0100
             field("Item.""Costing Method"""; Item."Costing Method")
@@ -38,27 +36,22 @@ page 9125 "Item Application FactBox"
             field("Posting Date"; Rec."Posting Date")
             {
                 ApplicationArea = Basic, Suite;
-                ToolTip = 'Specifies the entry''s posting date.';
             }
             field("Entry Type"; Rec."Entry Type")
             {
                 ApplicationArea = Basic, Suite;
-                ToolTip = 'Specifies which type of transaction that the entry is created from.';
             }
             field(Quantity; Rec.Quantity)
             {
                 ApplicationArea = Basic, Suite;
-                ToolTip = 'Specifies the number of units of the item in the item entry.';
             }
             field("Reserved Quantity"; Rec."Reserved Quantity")
             {
                 ApplicationArea = Reservation;
-                ToolTip = 'Specifies how many units of the item on the line have been reserved.';
             }
             field("Remaining Quantity"; Rec."Remaining Quantity")
             {
                 ApplicationArea = Basic, Suite;
-                ToolTip = 'Specifies the quantity in the Quantity field that remains to be processed.';
             }
             field(Available; Available)
             {

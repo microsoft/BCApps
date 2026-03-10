@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -25,12 +25,10 @@ page 7503 "Item Attribute"
                     field(Name; Rec.Name)
                     {
                         ApplicationArea = Basic, Suite;
-                        ToolTip = 'Specifies the name of the item attribute.';
                     }
                     field(Type; Rec.Type)
                     {
                         ApplicationArea = Basic, Suite;
-                        ToolTip = 'Specifies the type of the item attribute.';
 
                         trigger OnValidate()
                         begin
@@ -40,7 +38,6 @@ page 7503 "Item Attribute"
                     field(Blocked; Rec.Blocked)
                     {
                         ApplicationArea = Basic, Suite;
-                        ToolTip = 'Specifies that the attribute cannot be assigned to an item. Items to which the attribute is already assigned are not affected.';
                     }
                 }
                 group(Control11)
@@ -68,7 +65,6 @@ page 7503 "Item Attribute"
                     {
                         ApplicationArea = Basic, Suite;
                         DrillDown = false;
-                        ToolTip = 'Specifies the name of the item or resource''s unit of measure, such as piece or hour.';
 
                         trigger OnDrillDown()
                         begin

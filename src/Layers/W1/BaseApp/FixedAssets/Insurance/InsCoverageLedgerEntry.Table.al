@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -26,32 +26,39 @@ table 5629 "Ins. Coverage Ledger Entry"
         field(1; "Entry No."; Integer)
         {
             Caption = 'Entry No.';
+            ToolTip = 'Specifies the number of the entry, as assigned from the specified number series when the entry was created.';
         }
         field(2; "Insurance No."; Code[20])
         {
             Caption = 'Insurance No.';
+            ToolTip = 'Specifies the number of the insurance policy the entry is linked to.';
             TableRelation = Insurance;
         }
         field(3; "Disposed FA"; Boolean)
         {
             Caption = 'Disposed FA';
+            ToolTip = 'Specifies that the fixed asset linked to this entry has been disposed of.';
         }
         field(4; "FA No."; Code[20])
         {
             Caption = 'FA No.';
+            ToolTip = 'Specifies the number of the related fixed asset.';
             TableRelation = "Fixed Asset";
         }
         field(5; "FA Description"; Text[100])
         {
             Caption = 'FA Description';
+            ToolTip = 'Specifies a description of the fixed asset that the insurance entry is linked to.';
         }
         field(6; "Posting Date"; Date)
         {
             Caption = 'Posting Date';
+            ToolTip = 'Specifies the entry''s posting date.';
         }
         field(7; "Document Type"; Enum "Gen. Journal Document Type")
         {
             Caption = 'Document Type';
+            ToolTip = 'Specifies the document type that the entry belongs to.';
         }
         field(8; "Document Date"; Date)
         {
@@ -60,6 +67,7 @@ table 5629 "Ins. Coverage Ledger Entry"
         field(9; "Document No."; Code[20])
         {
             Caption = 'Document No.';
+            ToolTip = 'Specifies the document number on the entry.';
         }
         field(10; "External Document No."; Code[35])
         {
@@ -70,10 +78,12 @@ table 5629 "Ins. Coverage Ledger Entry"
             AutoFormatType = 1;
             AutoFormatExpression = '';
             Caption = 'Amount';
+            ToolTip = 'Specifies the amount of the entry.';
         }
         field(16; Description; Text[100])
         {
             Caption = 'Description';
+            ToolTip = 'Specifies a description of the entry.';
         }
         field(17; "FA Class Code"; Code[10])
         {
@@ -94,12 +104,14 @@ table 5629 "Ins. Coverage Ledger Entry"
         {
             CaptionClass = '1,1,1';
             Caption = 'Global Dimension 1 Code';
+            ToolTip = 'Specifies the code for the global dimension that is linked to the record or entry for analysis purposes. Two global dimensions, typically for the company''s most important activities, are available on all cards, documents, reports, and lists.';
             TableRelation = "Dimension Value".Code where("Global Dimension No." = const(1));
         }
         field(21; "Global Dimension 2 Code"; Code[20])
         {
             CaptionClass = '1,1,2';
             Caption = 'Global Dimension 2 Code';
+            ToolTip = 'Specifies the code for the global dimension that is linked to the record or entry for analysis purposes. Two global dimensions, typically for the company''s most important activities, are available on all cards, documents, reports, and lists.';
             TableRelation = "Dimension Value".Code where("Global Dimension No." = const(2));
         }
         field(22; "Location Code"; Code[10])
@@ -110,12 +122,14 @@ table 5629 "Ins. Coverage Ledger Entry"
         field(23; "User ID"; Code[50])
         {
             Caption = 'User ID';
+            ToolTip = 'Specifies the ID of the user who posted the entry, to be used, for example, in the change log.';
             DataClassification = EndUserIdentifiableInformation;
             TableRelation = User."User Name";
         }
         field(24; "Source Code"; Code[10])
         {
             Caption = 'Source Code';
+            ToolTip = 'Specifies the source code that specifies where the entry was created.';
             TableRelation = "Source Code";
         }
         field(25; "Journal Batch Name"; Code[10])
@@ -125,11 +139,13 @@ table 5629 "Ins. Coverage Ledger Entry"
         field(26; "Reason Code"; Code[10])
         {
             Caption = 'Reason Code';
+            ToolTip = 'Specifies the reason code, a supplementary source code that enables you to trace the entry.';
             TableRelation = "Reason Code";
         }
         field(27; "Index Entry"; Boolean)
         {
             Caption = 'Index Entry';
+            ToolTip = 'Specifies that this entry is an index entry.';
         }
         field(28; "No. Series"; Code[20])
         {

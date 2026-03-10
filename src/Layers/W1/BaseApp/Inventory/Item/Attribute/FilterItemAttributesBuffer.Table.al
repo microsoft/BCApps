@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -16,6 +16,7 @@ table 7506 "Filter Item Attributes Buffer"
         field(1; Attribute; Text[250])
         {
             Caption = 'Attribute';
+            ToolTip = 'Specifies the name of the attribute to filter on.';
             DataClassification = SystemMetadata;
 
             trigger OnValidate()
@@ -31,6 +32,7 @@ table 7506 "Filter Item Attributes Buffer"
         field(2; Value; Text[250])
         {
             Caption = 'Value';
+            ToolTip = 'Specifies the value of the filter. You can use single values or filter expressions, such as >,<,>=,<=,|,&, and 1..100.';
             DataClassification = SystemMetadata;
 
             trigger OnValidate()

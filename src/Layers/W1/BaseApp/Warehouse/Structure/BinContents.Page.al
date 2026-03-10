@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -100,19 +100,16 @@ page 7374 "Bin Contents"
                 field("Location Code"; Rec."Location Code")
                 {
                     ApplicationArea = Warehouse;
-                    ToolTip = 'Specifies the location code of the bin.';
                     Visible = false;
                 }
                 field("Zone Code"; Rec."Zone Code")
                 {
                     ApplicationArea = Warehouse;
-                    ToolTip = 'Specifies the zone code of the bin.';
                     Visible = false;
                 }
                 field("Bin Code"; Rec."Bin Code")
                 {
                     ApplicationArea = Warehouse;
-                    ToolTip = 'Specifies the bin where the items are picked or put away.';
 
                     trigger OnValidate()
                     begin
@@ -122,7 +119,6 @@ page 7374 "Bin Contents"
                 field("Item No."; Rec."Item No.")
                 {
                     ApplicationArea = Warehouse;
-                    ToolTip = 'Specifies the number of the item that will be stored in the bin.';
 
                     trigger OnValidate()
                     begin
@@ -132,7 +128,6 @@ page 7374 "Bin Contents"
                 field("Variant Code"; Rec."Variant Code")
                 {
                     ApplicationArea = Planning;
-                    ToolTip = 'Specifies the variant of the item on the line.';
                     Visible = false;
 
                     trigger OnValidate()
@@ -143,12 +138,10 @@ page 7374 "Bin Contents"
                 field("Unit of Measure Code"; Rec."Unit of Measure Code")
                 {
                     ApplicationArea = Warehouse;
-                    ToolTip = 'Specifies how each unit of the item or resource is measured, such as in pieces or hours. By default, the value in the Base Unit of Measure field on the item or resource card is inserted.';
                 }
                 field("Qty. per Unit of Measure"; Rec."Qty. per Unit of Measure")
                 {
                     ApplicationArea = Warehouse;
-                    ToolTip = 'Specifies the number of base units of measure that are in the unit of measure specified for the item in the bin.';
                     Visible = false;
 
                     trigger OnValidate()
@@ -159,42 +152,34 @@ page 7374 "Bin Contents"
                 field(Default; Rec.Default)
                 {
                     ApplicationArea = Warehouse;
-                    ToolTip = 'Specifies if the bin is the default bin for the associated item.';
                 }
                 field(Dedicated; Rec.Dedicated)
                 {
                     ApplicationArea = Warehouse;
-                    ToolTip = 'Specifies if the bin is used as a dedicated bin, which means that its bin content is available only to certain resources.';
                 }
                 field("Warehouse Class Code"; Rec."Warehouse Class Code")
                 {
                     ApplicationArea = Warehouse;
-                    ToolTip = 'Specifies the warehouse class code. Only items with the same warehouse class can be stored in this bin.';
                 }
                 field("Bin Type Code"; Rec."Bin Type Code")
                 {
                     ApplicationArea = Warehouse;
-                    ToolTip = 'Specifies the code of the bin type that was selected for this bin.';
                 }
                 field("Bin Ranking"; Rec."Bin Ranking")
                 {
                     ApplicationArea = Warehouse;
-                    ToolTip = 'Specifies the bin ranking.';
                 }
                 field("Block Movement"; Rec."Block Movement")
                 {
                     ApplicationArea = Warehouse;
-                    ToolTip = 'Specifies how the movement of a particular item, or bin content, into or out of this bin, is blocked.';
                 }
                 field("Min. Qty."; Rec."Min. Qty.")
                 {
                     ApplicationArea = Warehouse;
-                    ToolTip = 'Specifies the minimum number of units of the item that you want to have in the bin at all times.';
                 }
                 field("Max. Qty."; Rec."Max. Qty.")
                 {
                     ApplicationArea = Warehouse;
-                    ToolTip = 'Specifies the maximum number of units of the item that you want to have in the bin.';
                 }
                 field(CalcQtyUOM; Rec.CalcQtyUOM())
                 {
@@ -246,12 +231,10 @@ page 7374 "Bin Contents"
                 field("Fixed"; Rec.Fixed)
                 {
                     ApplicationArea = Warehouse;
-                    ToolTip = 'Specifies that the item (bin content) has been associated with this bin, and that the bin should normally contain the item.';
                 }
                 field("Cross-Dock Bin"; Rec."Cross-Dock Bin")
                 {
                     ApplicationArea = Warehouse;
-                    ToolTip = 'Specifies if the bin content is in a cross-dock bin.';
                 }
             }
             group(Control49)

@@ -21,7 +21,7 @@ codeunit 6455 "Serv. Sales-Post"
         TempServiceItemComp2: Record "Service Item Component" temporary;
         ServItemManagement: Codeunit ServItemManagement;
 
-    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Sales-Post", 'OnRunOnBeforeCheckAndUpdate', '', false, false)]
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Sales-Post", 'OnRunOnBeforeCheckAndUpdate', '', true, false)]
     local procedure OnRunOnBeforeCheckAndUpdate()
     begin
         TempServiceItem2.DeleteAll();
@@ -29,7 +29,7 @@ codeunit 6455 "Serv. Sales-Post"
         Clear(ServItemManagement);
     end;
 
-    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Sales-Post", 'OnAfterInsertShipmentLine', '', false, false)]
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Sales-Post", 'OnAfterInsertShipmentLine', '', true, false)]
     local procedure OnAfterInsertShipmentLine(var SalesHeader: Record "Sales Header"; var SalesLine: Record "Sales Line"; var SalesShptLine: Record "Sales Shipment Line"; xSalesLine: Record "Sales Line")
     var
         TempServiceItem1: Record "Service Item" temporary;
@@ -51,13 +51,13 @@ codeunit 6455 "Serv. Sales-Post"
         end;
     end;
 
-    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Sales-Post", 'OnInsertPostedHeadersDeleteServItemOnSaleCreditMemo', '', false, false)]
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Sales-Post", 'OnInsertPostedHeadersDeleteServItemOnSaleCreditMemo', '', true, false)]
     local procedure OnInsertPostedHeadersDeleteServItemOnSaleCreditMemo(var SalesHeader: Record "Sales Header")
     begin
         ServItemManagement.DeleteServItemOnSaleCreditMemo(SalesHeader);
     end;
 
-    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Sales-Post", 'OnInsertPostedHeadersOnAfterInsertShipmentHeader', '', false, false)]
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Sales-Post", 'OnInsertPostedHeadersOnAfterInsertShipmentHeader', '', true, false)]
     local procedure OnInsertPostedHeadersOnAfterInsertShipmentHeader(var SalesHeader: Record "Sales Header");
     begin
         CreateServItemOnSalesInvoice(SalesHeader);
@@ -85,7 +85,7 @@ codeunit 6455 "Serv. Sales-Post"
     begin
     end;
 
-    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Sales-Post", 'OnAfterFinalizePostingOnBeforeCommit', '', false, false)]
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Sales-Post", 'OnAfterFinalizePostingOnBeforeCommit', '', true, false)]
     local procedure OnAfterFinalizePostingOnBeforeCommit()
     begin
         SynchBOMSerialNo(TempServiceItem2, TempServiceItemComp2);

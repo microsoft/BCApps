@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -21,13 +21,11 @@ page 5081 "Contact Job Responsibilities"
                 field("Job Responsibility Code"; Rec."Job Responsibility Code")
                 {
                     ApplicationArea = All;
-                    ToolTip = 'Specifies the job responsibility code.';
                 }
                 field("Job Responsibility Description"; Rec."Job Responsibility Description")
                 {
                     ApplicationArea = All;
                     DrillDown = false;
-                    ToolTip = 'Specifies the description for the job responsibility you have assigned to the contact.';
                 }
             }
         }

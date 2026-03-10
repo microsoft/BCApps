@@ -21,6 +21,7 @@ codeunit 134190 "WF Demo Cust Cred Lmt Approval"
         LibraryVariableStorage: Codeunit "Library - Variable Storage";
         LibraryJobQueue: Codeunit "Library - Job Queue";
         IsInitialized: Boolean;
+        ApprovalEntryNotFoundErr: Label 'Approval Entry should exist when Credit Limit is changed.';
 
     local procedure Initialize()
     var
@@ -807,6 +808,57 @@ codeunit 134190 "WF Demo Cust Cred Lmt Approval"
         VerifyCreditLimitForCustomer(Customer, NewCreditLimit);
     end;
 
+    [Test]
+    [HandlerFunctions('MessageHandler,ApprovalEntriesPageHandler')]
+    procedure TestCreditLimitChangeApprovalEntriesVisibleInCustomerApprovalsPage()
+    var
+        Workflow: Record Workflow;
+        ApprovalEntry: Record "Approval Entry";
+        Customer: Record Customer;
+        CurrentUserSetup: Record "User Setup";
+        IntermediateApproverUserSetup: Record "User Setup";
+        FinalApproverUserSetup: Record "User Setup";
+        WorkflowUserGroup: Record "Workflow User Group";
+        WorkflowSetup: Codeunit "Workflow Setup";
+        ApprovalsMgmt: Codeunit "Approvals Mgmt.";
+        NewCreditLimit: Decimal;
+    begin
+        // [SCENARIO 612993] Credit Limit Change Approval entries should be visible in Customer Approvals page
+        // [WHEN] A user changes the customer credit limit and sends it for approval
+        // [THEN] The approval entries are visible when opening Approvals from the Customer Card
+        // [THEN] HasOpenApprovalEntries returns true for the customer record
+        // [THEN] HasOpenApprovalEntriesForCurrentUser returns true when user is the approver
+
+        Initialize();
+
+        // [GIVEN] The Customer Credit Limit Change Approval Workflow is enabled.
+        LibraryWorkflow.CopyWorkflowTemplate(Workflow, WorkflowSetup.CustomerCreditLimitChangeApprovalWorkflowCode());
+
+        // [GIVEN] Create multiple User Setups, Create workflow user group and set the group for the workflow
+        CreateUserSetupsAndGroupOfApproversForWorkflow(
+            WorkflowUserGroup,
+            CurrentUserSetup,
+            IntermediateApproverUserSetup,
+            FinalApproverUserSetup);
+
+        // [GIVEN] Set the workflow approver to the created group and enable the workflow.
+        LibraryWorkflow.SetWorkflowGroupApprover(Workflow.Code, WorkflowUserGroup.Code);
+        LibraryWorkflow.EnableWorkflow(Workflow);
+
+        // [WHEN] Create Customer and change credit limit to trigger approval
+        NewCreditLimit := LibraryRandom.RandDec(1000, 2);
+        CreateCustomerAndChangeCreditLimitAndSendForApproval(Customer, NewCreditLimit);
+
+        // [THEN] Approval entry exists
+        LibraryDocumentApprovals.GetApprovalEntries(ApprovalEntry, Customer.RecordId);
+
+        // [THEN] Update approval entry to set current user as approver
+        UpdateApprovalEntryWithTempUser(CurrentUserSetup, Customer);
+
+        // [THEN] - OpenApprovalEntriesPage shows the entry (this was the main bug reported)
+        ApprovalsMgmt.OpenApprovalEntriesPage(Customer.RecordId);
+    end;
+
     [MessageHandler]
     [Scope('OnPrem')]
     procedure MessageHandlerValidateMessage(Message: Text[1024])
@@ -1059,6 +1111,12 @@ codeunit 134190 "WF Demo Cust Cred Lmt Approval"
         CustomerList.GotoRecord(Customer);
         Assert.AreEqual(CancelActionExpectedEnabled, CustomerList.CancelApprovalRequest.Enabled(), 'Wrong state for the Cancel action');
         CustomerList.Close();
+    end;
+
+    [ModalPageHandler]
+    procedure ApprovalEntriesPageHandler(var ApprovalEntries: TestPage "Approval Entries")
+    begin
+        Assert.IsTrue(ApprovalEntries.First(), ApprovalEntryNotFoundErr);
     end;
 }
 

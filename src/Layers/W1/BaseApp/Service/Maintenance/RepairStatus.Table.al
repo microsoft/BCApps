@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -18,15 +18,18 @@ table 5927 "Repair Status"
         field(1; "Code"; Code[10])
         {
             Caption = 'Code';
+            ToolTip = 'Specifies the code for the repair status.';
             NotBlank = true;
         }
         field(2; Description; Text[100])
         {
             Caption = 'Description';
+            ToolTip = 'Specifies a description of the repair status.';
         }
         field(3; "Service Order Status"; Enum "Service Document Status")
         {
             Caption = 'Service Order Status';
+            ToolTip = 'Specifies the service order status that is linked to this repair status.';
 
             trigger OnValidate()
             begin
@@ -41,6 +44,7 @@ table 5927 "Repair Status"
         field(4; Priority; Option)
         {
             Caption = 'Priority';
+            ToolTip = 'Specifies the priority of the service order status.';
             Editable = false;
             OptionCaption = 'High,Medium High,Medium Low,Low';
             OptionMembers = High,"Medium High","Medium Low",Low;
@@ -48,6 +52,7 @@ table 5927 "Repair Status"
         field(5; Initial; Boolean)
         {
             Caption = 'Initial';
+            ToolTip = 'Specifies that no service has been performed.';
 
             trigger OnValidate()
             var
@@ -64,6 +69,7 @@ table 5927 "Repair Status"
         field(6; "Partly Serviced"; Boolean)
         {
             Caption = 'Partly Serviced';
+            ToolTip = 'Specifies that the service item has been partly serviced. Further work is needed.';
 
             trigger OnValidate()
             var
@@ -80,6 +86,7 @@ table 5927 "Repair Status"
         field(7; "In Process"; Boolean)
         {
             Caption = 'In Process';
+            ToolTip = 'Specifies that the service of the item is in process.';
 
             trigger OnValidate()
             var
@@ -96,6 +103,7 @@ table 5927 "Repair Status"
         field(8; Finished; Boolean)
         {
             Caption = 'Finished';
+            ToolTip = 'Specifies that the service of the item has been finished.';
 
             trigger OnValidate()
             var
@@ -112,6 +120,7 @@ table 5927 "Repair Status"
         field(9; Referred; Boolean)
         {
             Caption = 'Referred';
+            ToolTip = 'Specifies that the service of the item has been referred to another resource. No service has been performed on the service item.';
 
             trigger OnValidate()
             var
@@ -128,6 +137,7 @@ table 5927 "Repair Status"
         field(10; "Spare Part Ordered"; Boolean)
         {
             Caption = 'Spare Part Ordered';
+            ToolTip = 'Specifies that a spare part has been ordered for the service item.';
 
             trigger OnValidate()
             var
@@ -144,6 +154,7 @@ table 5927 "Repair Status"
         field(11; "Spare Part Received"; Boolean)
         {
             Caption = 'Spare Part Received';
+            ToolTip = 'Specifies that a spare part has been received for the service item.';
 
             trigger OnValidate()
             var
@@ -160,6 +171,7 @@ table 5927 "Repair Status"
         field(12; "Waiting for Customer"; Boolean)
         {
             Caption = 'Waiting for Customer';
+            ToolTip = 'Specifies that you are waiting for a customer response.';
 
             trigger OnValidate()
             var
@@ -176,6 +188,7 @@ table 5927 "Repair Status"
         field(13; "Quote Finished"; Boolean)
         {
             Caption = 'Quote Finished';
+            ToolTip = 'Specifies that quoting work on the service item is finished.';
 
             trigger OnValidate()
             var
@@ -192,22 +205,27 @@ table 5927 "Repair Status"
         field(20; "Posting Allowed"; Boolean)
         {
             Caption = 'Posting Allowed';
+            ToolTip = 'Specifies that you can post a service order, if it includes a service item with this repair status.';
         }
         field(21; "Pending Status Allowed"; Boolean)
         {
             Caption = 'Pending Status Allowed';
+            ToolTip = 'Specifies that you can manually change the Status of a service order to Pending, if it includes a service item with this repair status.';
         }
         field(22; "In Process Status Allowed"; Boolean)
         {
             Caption = 'In Process Status Allowed';
+            ToolTip = 'Specifies that you can manually change the Status of a service order to In Process, if it includes a service item with this repair status.';
         }
         field(23; "Finished Status Allowed"; Boolean)
         {
             Caption = 'Finished Status Allowed';
+            ToolTip = 'Specifies that you can manually change the Status of a service order to Finished, if it includes a service item with this repair status.';
         }
         field(24; "On Hold Status Allowed"; Boolean)
         {
             Caption = 'On Hold Status Allowed';
+            ToolTip = 'Specifies that you can manually change the Status of a service order to On Hold, if it includes a service item with this repair status.';
         }
     }
 

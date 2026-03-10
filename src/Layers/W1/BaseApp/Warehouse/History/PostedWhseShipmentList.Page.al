@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -32,74 +32,61 @@ page 7340 "Posted Whse. Shipment List"
                 field("No."; Rec."No.")
                 {
                     ApplicationArea = Warehouse;
-                    ToolTip = 'Specifies the number of the involved entry or record, according to the specified number series.';
                 }
                 field("Location Code"; Rec."Location Code")
                 {
                     ApplicationArea = Location;
-                    ToolTip = 'Specifies the code of the location from which the items were shipped.';
                 }
                 field("Assigned User ID"; Rec."Assigned User ID")
                 {
                     ApplicationArea = Warehouse;
-                    ToolTip = 'Specifies the ID of the user who is responsible for the document.';
                 }
                 field("No. Series"; Rec."No. Series")
                 {
                     ApplicationArea = Warehouse;
-                    ToolTip = 'Specifies the number series from which entry or record numbers are assigned to new entries or records.';
                 }
                 field("Whse. Shipment No."; Rec."Whse. Shipment No.")
                 {
                     ApplicationArea = Warehouse;
-                    ToolTip = 'Specifies the number of the warehouse shipment that the posted warehouse shipment originates from.';
                 }
                 field("Zone Code"; Rec."Zone Code")
                 {
                     ApplicationArea = Warehouse;
-                    ToolTip = 'Specifies the code of the zone on this posted shipment header.';
                     Visible = false;
                 }
                 field("Bin Code"; Rec."Bin Code")
                 {
                     ApplicationArea = Warehouse;
-                    ToolTip = 'Specifies the bin where the items are picked or put away.';
                     Visible = false;
                 }
                 field("Posting Date"; Rec."Posting Date")
                 {
                     ApplicationArea = Warehouse;
-                    ToolTip = 'Specifies the posting date of the posted warehouse shipment.';
                     Visible = false;
                 }
                 field("Assignment Date"; Rec."Assignment Date")
                 {
                     ApplicationArea = Warehouse;
-                    ToolTip = 'Specifies the date when the user was assigned the activity.';
                     Visible = false;
                 }
                 field("Shipment Date"; Rec."Shipment Date")
                 {
                     ApplicationArea = Warehouse;
-                    ToolTip = 'Specifies when items on the document are shipped or were shipped. A shipment date is usually calculated from a requested delivery date plus lead time.';
                     Visible = false;
                 }
                 field("Shipping Agent Code"; Rec."Shipping Agent Code")
                 {
                     ApplicationArea = Warehouse;
-                    ToolTip = 'Specifies the code for the shipping agent who is transporting the items.';
                     Visible = false;
                 }
                 field("Shipping Agent Service Code"; Rec."Shipping Agent Service Code")
                 {
                     ApplicationArea = Warehouse;
-                    ToolTip = 'Specifies the code for the service, such as a one-day delivery, that is offered by the shipping agent.';
                     Visible = false;
                 }
                 field("Shipment Method Code"; Rec."Shipment Method Code")
                 {
                     ApplicationArea = Warehouse;
-                    ToolTip = 'Specifies the delivery conditions of the related shipment, such as free on board (FOB).';
                     Visible = false;
                 }
             }

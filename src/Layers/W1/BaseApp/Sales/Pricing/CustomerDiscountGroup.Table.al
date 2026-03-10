@@ -25,6 +25,7 @@ table 340 "Customer Discount Group"
         field(1; "Code"; Code[20])
         {
             Caption = 'Code';
+            ToolTip = 'Specifies a code for the customer discount group.';
             NotBlank = true;
         }
         /// <summary>
@@ -33,6 +34,7 @@ table 340 "Customer Discount Group"
         field(2; Description; Text[100])
         {
             Caption = 'Description';
+            ToolTip = 'Specifies a description for the customer discount group.';
         }
     }
 

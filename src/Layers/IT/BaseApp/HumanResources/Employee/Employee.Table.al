@@ -578,7 +578,13 @@ table 5200 Employee
             AutoFormatType = 0;
             Caption = 'Payroll Currency Factor';
         }
-        field(108; "Nationality"; Code[10])
+#if not CLEAN29
+#pragma warning disable AS0086
+#endif
+        field(108; "Nationality"; Code[20])
+#if not CLEAN29
+#pragma warning restore AS0086
+#endif
         {
             Caption = 'Nationality';
             ToolTip = 'Specifies the value of the Nationality field.';

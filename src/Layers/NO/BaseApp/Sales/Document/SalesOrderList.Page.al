@@ -1220,6 +1220,16 @@ page 9305 "Sales Order List"
         }
     }
 
+    analysisviews
+    {
+        analysisview("Expected sales volume")
+        {
+            Caption = 'Expected sales volume';
+            DefinitionFile = './Sales/Document/Expected sales volume.analysis.json';
+            ToolTip = 'Analyse your expected sales volume.';
+        }
+    }
+
     trigger OnAfterGetCurrRecord()
     var
         FilteredSalesHeader: Record "Sales Header";

@@ -74,6 +74,7 @@ codeunit 90 "Purch.-Post"
 {
     Permissions = TableData "Sales Header" = rm,
                   TableData "Sales Line" = rm,
+                  TableData "Purchase Header" = rimd,
                   TableData "Purchase Line" = rimd,
                   TableData "G/L Register" = rimd,
                   TableData "Vendor Posting Group" = rimd,
@@ -174,7 +175,7 @@ codeunit 90 "Purch.-Post"
         // Lines
         GetZeroPurchLineRecID(PurchHeader, ZeroPurchLineRecID);
         ErrorMessageMgt.PushContext(ErrorContextElementProcessLines, ZeroPurchLineRecID, 0, PostDocumentLinesMsg);
-        OnBeforePostLines(TempPurchLineGlobal, PurchHeader, PreviewMode, SuppressCommit, TempPurchLineGlobal);
+        OnBeforePostLines(TempPurchLineGlobal, PurchHeader, PreviewMode, SuppressCommit, TempPurchLineGlobal, TempWhseShptHeader, TempWhseRcptHeader);
 
         MatchedOrderLineMgmt.ProcessMatchedReceiptOnInvoice(TempPurchLineGlobal);
 
@@ -698,6 +699,7 @@ codeunit 90 "Purch.-Post"
     begin
         OnBeforeCheckAndUpdate(PurchHeader, ModifyHeader);
         DocumentIsReadyToBeChecked := true;
+
         CheckPurchDocument(PurchHeader);
 
         if GuiAllowed() and not HideProgressWindow then
@@ -864,8 +866,13 @@ codeunit 90 "Purch.-Post"
 
         CheckAssociatedOrderLines(PurchHeader);
 
-        if PurchHeader.Invoice and PurchSetup."Ext. Doc. No. Mandatory" then
-            CheckExtDocNo(PurchHeader);
+        if PurchHeader.Invoice then
+            if not SelfBillingInvoiceDocument(PurchHeader) then begin
+                if PurchSetup."Ext. Doc. No. Mandatory" then
+                    CheckExtDocNo(PurchHeader);
+            end else
+                UpdateVendorInvoiceNoForSelfBilling(PurchHeader);
+
         ErrorMessageMgt.PopContext(ErrorContextElement);
 
         CheckPurchLines(PurchHeader);
@@ -3172,6 +3179,10 @@ codeunit 90 "Purch.-Post"
                         PostUpdateOrderNo(PurchCrMemoHeader);
                     end;
                 else begin
+                    UpdateAssociatedSalesOrder(TempDropShptPostBuffer, PurchHeader);
+                    if DropShipOrder then
+                        InsertTrackingSpecification(PurchHeader);
+
                     ResetTempLines(TempPurchLine);
                     TempPurchLine.SetFilter("Prepayment %", '<>0');
                     if TempPurchLine.FindSet() then
@@ -9268,6 +9279,30 @@ codeunit 90 "Purch.-Post"
             until TempPrepmtPurchaseLine.Next() = 0;
     end;
 
+    local procedure UpdateVendorInvoiceNoForSelfBilling(var PurchHeader: Record "Purchase Header")
+    var
+        NoSeries: Codeunit "No. Series";
+    begin
+        if not (PurchHeader."Document Type" in [PurchHeader."Document Type"::Invoice, PurchHeader."Document Type"::Order]) then
+            exit;
+
+        PurchSetup.GetRecordOnce();
+        PurchSetup.TestField("Posted Self-Billing Inv. Nos.");
+
+        if PreviewMode then
+            PurchHeader."Vendor Invoice No." := PostingPreviewNoTok
+        else
+            PurchHeader."Vendor Invoice No." := NoSeries.GetNextNo(PurchSetup."Posted Self-Billing Inv. Nos.", PurchHeader."Posting Date");
+    end;
+
+    local procedure SelfBillingInvoiceDocument(PurchHeader: Record "Purchase Header"): Boolean
+    begin
+        if not PurchHeader."Self-Billing Invoice" then
+            exit(false);
+
+        exit(PurchHeader."Document Type" in [PurchHeader."Document Type"::Order, PurchHeader."Document Type"::Invoice]);
+    end;
+
     local procedure CheckApplicationExistForCreditMemo(PurchaseHeader: Record "Purchase Header"): Boolean
     begin
         if not (PurchaseHeader."Document Type" = PurchaseHeader."Document Type"::"Credit Memo") then
@@ -9986,7 +10021,7 @@ codeunit 90 "Purch.-Post"
     end;
 
     [IntegrationEvent(false, false)]
-    local procedure OnBeforePostLines(var PurchLine: Record "Purchase Line"; PurchHeader: Record "Purchase Header"; PreviewMode: Boolean; CommitIsSupressed: Boolean; var TempPurchLineGlobal: Record "Purchase Line" temporary)
+    local procedure OnBeforePostLines(var PurchLine: Record "Purchase Line"; PurchHeader: Record "Purchase Header"; PreviewMode: Boolean; CommitIsSupressed: Boolean; var TempPurchLineGlobal: Record "Purchase Line" temporary; var TempWarehouseShipmentHeader: Record "Warehouse Shipment Header" temporary; var TempWarehouseReceiptHeader: Record "Warehouse Receipt Header" temporary)
     begin
     end;
 

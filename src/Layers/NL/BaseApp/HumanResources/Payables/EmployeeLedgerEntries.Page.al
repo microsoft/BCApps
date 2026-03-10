@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -33,52 +33,43 @@ page 5237 "Employee Ledger Entries"
                 {
                     ApplicationArea = BasicHR;
                     Editable = false;
-                    ToolTip = 'Specifies the employee entry''s posting date.';
                 }
                 field("Document Type"; Rec."Document Type")
                 {
                     ApplicationArea = BasicHR;
                     Editable = false;
-                    ToolTip = 'Specifies the document type that the employee entry belongs to.';
                 }
                 field("Document No."; Rec."Document No.")
                 {
                     ApplicationArea = BasicHR;
                     Editable = false;
-                    ToolTip = 'Specifies the employee entry''s document number.';
                 }
                 field("Employee No."; Rec."Employee No.")
                 {
                     ApplicationArea = BasicHR;
                     Editable = false;
-                    ToolTip = 'Specifies the number of the employee that the entry is linked to.';
                 }
                 field("Message to Recipient"; Rec."Message to Recipient")
                 {
                     ApplicationArea = BasicHR;
-                    ToolTip = 'Specifies the message exported to the payment file when you use the Export Payments to File function in the Payment Journal window.';
                 }
                 field(Description; Rec.Description)
                 {
                     ApplicationArea = BasicHR;
                     Editable = false;
-                    ToolTip = 'Specifies a description of the employee entry.';
                 }
                 field("Currency Code"; Rec."Currency Code")
                 {
                     ApplicationArea = BasicHR;
                     Editable = false;
-                    ToolTip = 'Specifies the currency code for the amount on the line.';
                 }
                 field("Payment Method Code"; Rec."Payment Method Code")
                 {
                     ApplicationArea = BasicHR;
-                    ToolTip = 'Specifies the payment method that was used to make the payment that resulted in the entry.';
                 }
                 field("Original Amount"; Rec."Original Amount")
                 {
                     ApplicationArea = BasicHR;
-                    ToolTip = 'Specifies the amount of the original entry.';
                 }
                 field("Original Amt. (LCY)"; Rec."Original Amt. (LCY)")
                 {
@@ -89,7 +80,6 @@ page 5237 "Employee Ledger Entries"
                 field(Amount; Rec.Amount)
                 {
                     ApplicationArea = BasicHR;
-                    ToolTip = 'Specifies the amount of the entry.';
                 }
                 field("Amount (LCY)"; Rec."Amount (LCY)")
                 {
@@ -100,56 +90,47 @@ page 5237 "Employee Ledger Entries"
                 field("Remaining Amount"; Rec."Remaining Amount")
                 {
                     ApplicationArea = BasicHR;
-                    ToolTip = 'Specifies the amount that remains to be applied to before the entry is totally applied to.';
                 }
                 field("Remaining Amt. (LCY)"; Rec."Remaining Amt. (LCY)")
                 {
                     ApplicationArea = BasicHR;
-                    ToolTip = 'Specifies the amount that remains to be applied to before the entry is totally applied to.';
                 }
                 field("Bal. Account Type"; Rec."Bal. Account Type")
                 {
                     ApplicationArea = BasicHR;
                     Editable = false;
-                    ToolTip = 'Specifies the type of balancing account that is used for the entry.';
                     Visible = false;
                 }
                 field("Bal. Account No."; Rec."Bal. Account No.")
                 {
                     ApplicationArea = BasicHR;
                     Editable = false;
-                    ToolTip = 'Specifies the number of the balancing account that is used for the entry.';
                     Visible = false;
                 }
                 field(Open; Rec.Open)
                 {
                     ApplicationArea = BasicHR;
                     Editable = false;
-                    ToolTip = 'Specifies whether the amount on the entry has been fully paid or there is still a remaining amount that must be applied to.';
                 }
                 field("Amount to Apply"; Rec."Amount to Apply")
                 {
                     ApplicationArea = BasicHR;
-                    ToolTip = 'Specifies the amount to apply.';
                     Visible = false;
                 }
                 field("Applies-to ID"; Rec."Applies-to ID")
                 {
                     ApplicationArea = BasicHR;
-                    ToolTip = 'Specifies the ID of entries that will be applied to when you choose the Apply Entries action.';
                     Visible = false;
                 }
                 field("Applying Entry"; Rec."Applying Entry")
                 {
                     ApplicationArea = BasicHR;
-                    ToolTip = 'Specifies whether the entry will be applied to when you choose the Apply Entries action.';
                     Visible = false;
                 }
                 field("Exported to Payment File"; Rec."Exported to Payment File")
                 {
                     ApplicationArea = BasicHR;
                     Editable = true;
-                    ToolTip = 'Specifies that the entry was created as a result of exporting a payment journal line.';
                     Visible = false;
                 }
                 field("Payment Reference"; Rec."Payment Reference")
@@ -166,62 +147,53 @@ page 5237 "Employee Ledger Entries"
                 {
                     ApplicationArea = BasicHR;
                     Editable = false;
-                    ToolTip = 'Specifies the entry number that is assigned to the entry.';
                 }
                 field("Global Dimension 1 Code"; Rec."Global Dimension 1 Code")
                 {
                     ApplicationArea = Dimensions;
                     Editable = false;
-                    ToolTip = 'Specifies the code for the global dimension that is linked to the record or entry for analysis purposes. Two global dimensions, typically for the company''s most important activities, are available on all cards, documents, reports, and lists.';
                     Visible = Dim1Visible;
                 }
                 field("Global Dimension 2 Code"; Rec."Global Dimension 2 Code")
                 {
                     ApplicationArea = Dimensions;
                     Editable = false;
-                    ToolTip = 'Specifies the code for the global dimension that is linked to the record or entry for analysis purposes. Two global dimensions, typically for the company''s most important activities, are available on all cards, documents, reports, and lists.';
                     Visible = Dim2Visible;
                 }
                 field("Shortcut Dimension 3 Code"; Rec."Shortcut Dimension 3 Code")
                 {
                     ApplicationArea = Dimensions;
                     Editable = false;
-                    ToolTip = 'Specifies the code for Shortcut Dimension 3, which is one of dimension codes that you set up in the General Ledger Setup window.';
                     Visible = Dim3Visible;
                 }
                 field("Shortcut Dimension 4 Code"; Rec."Shortcut Dimension 4 Code")
                 {
                     ApplicationArea = Dimensions;
                     Editable = false;
-                    ToolTip = 'Specifies the code for Shortcut Dimension 4, which is one of dimension codes that you set up in the General Ledger Setup window.';
                     Visible = Dim4Visible;
                 }
                 field("Shortcut Dimension 5 Code"; Rec."Shortcut Dimension 5 Code")
                 {
                     ApplicationArea = Dimensions;
                     Editable = false;
-                    ToolTip = 'Specifies the code for Shortcut Dimension 5, which is one of dimension codes that you set up in the General Ledger Setup window.';
                     Visible = Dim5Visible;
                 }
                 field("Shortcut Dimension 6 Code"; Rec."Shortcut Dimension 6 Code")
                 {
                     ApplicationArea = Dimensions;
                     Editable = false;
-                    ToolTip = 'Specifies the code for Shortcut Dimension 6, which is one of dimension codes that you set up in the General Ledger Setup window.';
                     Visible = Dim6Visible;
                 }
                 field("Shortcut Dimension 7 Code"; Rec."Shortcut Dimension 7 Code")
                 {
                     ApplicationArea = Dimensions;
                     Editable = false;
-                    ToolTip = 'Specifies the code for Shortcut Dimension 7, which is one of dimension codes that you set up in the General Ledger Setup window.';
                     Visible = Dim7Visible;
                 }
                 field("Shortcut Dimension 8 Code"; Rec."Shortcut Dimension 8 Code")
                 {
                     ApplicationArea = Dimensions;
                     Editable = false;
-                    ToolTip = 'Specifies the code for Shortcut Dimension 8, which is one of dimension codes that you set up in the General Ledger Setup window.';
                     Visible = Dim8Visible;
                 }
             }

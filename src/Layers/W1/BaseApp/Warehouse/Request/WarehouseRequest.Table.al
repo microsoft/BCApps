@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -38,6 +38,7 @@ table 5765 "Warehouse Request"
         field(3; "Source No."; Code[20])
         {
             Caption = 'Source No.';
+            ToolTip = 'Specifies the number of the source document that the entry originates from.';
             Editable = false;
             TableRelation = if ("Source Document" = const("Sales Order")) "Sales Header"."No." where("Document Type" = const(Order),
                                                                                                      "No." = field("Source No."))
@@ -58,6 +59,7 @@ table 5765 "Warehouse Request"
         field(4; "Source Document"; Enum "Warehouse Request Source Document")
         {
             Caption = 'Source Document';
+            ToolTip = 'Specifies the type of document that the line relates to.';
             Editable = false;
         }
         field(5; "Document Status"; Option)
@@ -70,12 +72,14 @@ table 5765 "Warehouse Request"
         field(6; "Location Code"; Code[10])
         {
             Caption = 'Location Code';
+            ToolTip = 'Specifies the location code to which the request line is linked.';
             Editable = false;
             TableRelation = Location;
         }
         field(7; "Shipment Method Code"; Code[10])
         {
             Caption = 'Shipment Method Code';
+            ToolTip = 'Specifies the delivery conditions of the related shipment, such as free on board (FOB).';
             Editable = false;
             TableRelation = "Shipment Method";
         }
@@ -83,6 +87,7 @@ table 5765 "Warehouse Request"
         {
             AccessByPermission = TableData "Shipping Agent Services" = R;
             Caption = 'Shipping Agent Code';
+            ToolTip = 'Specifies the code for the shipping agent who is transporting the items.';
             Editable = false;
             TableRelation = "Shipping Agent";
         }
@@ -96,15 +101,18 @@ table 5765 "Warehouse Request"
         field(10; "Shipping Advice"; Enum "Sales Header Shipping Advice")
         {
             Caption = 'Shipping Advice';
+            ToolTip = 'Specifies the shipping advice, which informs whether partial deliveries are acceptable.';
             Editable = false;
         }
         field(11; "Destination Type"; enum "Warehouse Destination Type")
         {
             Caption = 'Destination Type';
+            ToolTip = 'Specifies whether the type of destination associated with the warehouse request is a customer or a vendor.';
         }
         field(12; "Destination No."; Code[20])
         {
             Caption = 'Destination No.';
+            ToolTip = 'Specifies the number or code of the customer or vendor related to the warehouse request.';
             TableRelation = if ("Destination Type" = const(Vendor)) Vendor
             else
             if ("Destination Type" = const(Customer)) Customer
@@ -118,14 +126,17 @@ table 5765 "Warehouse Request"
         field(13; "External Document No."; Code[35])
         {
             Caption = 'External Document No.';
+            ToolTip = 'Specifies a document number that refers to the customer''s or vendor''s numbering system.';
         }
         field(14; "Expected Receipt Date"; Date)
         {
             Caption = 'Expected Receipt Date';
+            ToolTip = 'Specifies the date when receipt of the items is expected.';
         }
         field(15; "Shipment Date"; Date)
         {
             Caption = 'Shipment Date';
+            ToolTip = 'Specifies when items on the document are shipped or were shipped. A shipment date is usually calculated from a requested delivery date plus lead time.';
         }
         field(19; Type; Enum "Warehouse Request Type")
         {
@@ -139,6 +150,7 @@ table 5765 "Warehouse Request"
                                                                         "Source No." = field("Source No."),
                                                                         "Location Code" = field("Location Code")));
             Caption = 'Put-away / Pick No.';
+            ToolTip = 'Specifies the number of the inventory put-away or pick that was created from this warehouse request.';
             Editable = false;
             FieldClass = FlowField;
         }

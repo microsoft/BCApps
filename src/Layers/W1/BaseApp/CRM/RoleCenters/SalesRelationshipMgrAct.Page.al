@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -30,19 +30,16 @@ page 9076 "Sales & Relationship Mgr. Act."
                 {
                     ApplicationArea = RelationshipMgmt;
                     DrillDownPageID = "Contact List";
-                    ToolTip = 'Specifies contacts assigned to a company.';
                 }
                 field("Contacts - Persons"; Rec."Contacts - Persons")
                 {
                     ApplicationArea = RelationshipMgmt;
                     DrillDownPageID = "Contact List";
-                    ToolTip = 'Specifies contact persons.';
                 }
                 field("Contacts - Duplicates"; Rec."Contacts - Duplicates")
                 {
                     ApplicationArea = RelationshipMgmt;
                     DrillDownPageID = "Contact Duplicates";
-                    ToolTip = 'Specifies contacts that have duplicates.';
                 }
             }
             cuegroup(Opportunities)
@@ -52,7 +49,6 @@ page 9076 "Sales & Relationship Mgr. Act."
                 {
                     ApplicationArea = RelationshipMgmt;
                     DrillDownPageID = "Opportunity List";
-                    ToolTip = 'Specifies open opportunities.';
                 }
                 field("Opportunities Due in 7 Days"; Rec."Opportunities Due in 7 Days")
                 {
@@ -60,7 +56,6 @@ page 9076 "Sales & Relationship Mgr. Act."
                     DrillDownPageID = "Opportunity Entries";
                     Style = Favorable;
                     StyleExpr = true;
-                    ToolTip = 'Specifies opportunities with a due date in seven days or more.';
                 }
                 field("Overdue Opportunities"; Rec."Overdue Opportunities")
                 {
@@ -68,13 +63,11 @@ page 9076 "Sales & Relationship Mgr. Act."
                     DrillDownPageID = "Opportunity Entries";
                     Style = Unfavorable;
                     StyleExpr = true;
-                    ToolTip = 'Specifies opportunities that have exceeded the due date.';
                 }
                 field("Closed Opportunities"; Rec."Closed Opportunities")
                 {
                     ApplicationArea = RelationshipMgmt;
                     DrillDownPageID = "Opportunity List";
-                    ToolTip = 'Specifies opportunities that have been closed.';
                 }
             }
             cuegroup(Sales)
@@ -84,19 +77,16 @@ page 9076 "Sales & Relationship Mgr. Act."
                 {
                     ApplicationArea = RelationshipMgmt;
                     DrillDownPageID = "Sales Quotes";
-                    ToolTip = 'Specifies the number of sales quotes that are not yet converted to invoices or orders.';
                 }
                 field("Open Sales Orders"; Rec."Open Sales Orders")
                 {
                     ApplicationArea = RelationshipMgmt;
                     DrillDownPageID = "Sales Order List";
-                    ToolTip = 'Specifies the number of sales orders that are not fully posted.';
                 }
                 field("Active Campaigns"; Rec."Active Campaigns")
                 {
                     ApplicationArea = RelationshipMgmt;
                     DrillDownPageID = "Campaign List";
-                    ToolTip = 'Specifies marketing campaigns that are active.';
                 }
             }
             cuegroup("Data Integration")
@@ -108,7 +98,6 @@ page 9076 "Sales & Relationship Mgr. Act."
                     ApplicationArea = RelationshipMgmt;
                     Caption = 'Integration Errors';
                     DrillDownPageID = "Integration Synch. Error List";
-                    ToolTip = 'Specifies the number of errors related to data integration.';
                     Visible = ShowIntegrationErrorsCue;
                     StyleExpr = IntegrationErrorsCue;
                 }
@@ -117,7 +106,6 @@ page 9076 "Sales & Relationship Mgr. Act."
                     ApplicationArea = RelationshipMgmt;
                     Caption = 'Coupled Data Synchronization Errors';
                     DrillDownPageID = "CRM Skipped Records";
-                    ToolTip = 'Specifies the number of errors that occurred in the latest synchronization of coupled data between Business Central and Dynamics 365 Sales.';
                     Visible = ShowD365SIntegrationCues;
                     StyleExpr = CoupledErrorsCue;
                 }

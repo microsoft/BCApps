@@ -113,6 +113,7 @@ codeunit 5407 "Prod. Order Status Management"
 
     procedure ChangeProdOrderStatus(ProdOrder: Record "Production Order"; NewStatus: Enum "Production Order Status"; NewPostingDate: Date; NewUpdateUnitCost: Boolean)
     var
+        xProductionOrder: Record "Production Order";
         SuppressCommit: Boolean;
         IsHandled: Boolean;
     begin
@@ -121,6 +122,8 @@ codeunit 5407 "Prod. Order Status Management"
         OnBeforeChangeStatusOnProdOrder(ProdOrder, NewStatus.AsInteger(), IsHandled, NewPostingDate, NewUpdateUnitCost);
         if IsHandled then
             exit;
+
+        xProductionOrder := ProdOrder;
         if (NewStatus = Enum::"Production Order Status"::Released) and (ProdOrder."Source Type" = ProdOrder."Source Type"::Item) then
             Item.CheckItemAndVariantForProdBlocked(ProdOrder."Source No.", '', Enum::"Item Production Blocked"::Output);
         if NewStatus = NewStatus::Finished then begin
@@ -147,7 +150,7 @@ codeunit 5407 "Prod. Order Status Management"
             WhseProdRelease.Release(ProdOrder);
         end;
         SuppressCommit := false;
-        OnAfterChangeStatusOnProdOrder(ProdOrder, ToProdOrder, NewStatus, NewPostingDate, NewUpdateUnitCost, SuppressCommit);
+        OnAfterChangeStatusOnProdOrder(ProdOrder, ToProdOrder, NewStatus, NewPostingDate, NewUpdateUnitCost, SuppressCommit, xProductionOrder);
 
         if not SuppressCommit then
             Commit();
@@ -207,7 +210,13 @@ codeunit 5407 "Prod. Order Status Management"
     local procedure ShowReleasedProdOrderDocument(var ProdOrder: Record "Production Order")
     var
         NewProductionOrder: Record "Production Order";
+        IsHandled: Boolean;
     begin
+        IsHandled := false;
+        OnBeforeShowReleasedProdOrderDocument(ProdOrder, IsHandled);
+        if IsHandled then
+            exit;
+
         if not Confirm(StrSubstNo(OpenReleasedProdOrderQst, ProdOrder."No.")) then
             exit;
 
@@ -289,6 +298,7 @@ codeunit 5407 "Prod. Order Status Management"
                 NewProdOrderComponent := FromProdOrderComponent;
                 NewProdOrderComponent.Status := NewProdOrderComponent.Status::Released;
                 NewProdOrderComponent.Insert();
+                OnTransReopenProdOrderCompOnAfterInsert(FromProdOrderComponent, NewProdOrderComponent);
             until FromProdOrderComponent.Next() = 0;
             FromProdOrderComponent.DeleteAll();
         end;
@@ -308,6 +318,7 @@ codeunit 5407 "Prod. Order Status Management"
                 ToProdOrderRtngLine.Status := ToProdOrderRtngLine.Status::Released;
                 ToProdOrderRtngLine."Routing Status" := ToProdOrderRtngLine."Routing Status"::"In Progress";
                 ToProdOrderRtngLine.Insert();
+                OnTransferReopenProdOrderRtngLineOnAfterInsert(FromProdOrderRtngLine, ToProdOrderRtngLine, FromProdOrder);
             until FromProdOrderRtngLine.Next() = 0;
             FromProdOrderRtngLine.DeleteAll();
         end;
@@ -1689,7 +1700,7 @@ codeunit 5407 "Prod. Order Status Management"
     end;
 
     [IntegrationEvent(false, false)]
-    local procedure OnAfterChangeStatusOnProdOrder(var ProdOrder: Record "Production Order"; var ToProdOrder: Record "Production Order"; NewStatus: Enum "Production Order Status"; NewPostingDate: Date; NewUpdateUnitCost: Boolean; var SuppressCommit: Boolean)
+    local procedure OnAfterChangeStatusOnProdOrder(var ProdOrder: Record "Production Order"; var ToProdOrder: Record "Production Order"; NewStatus: Enum "Production Order Status"; NewPostingDate: Date; NewUpdateUnitCost: Boolean; var SuppressCommit: Boolean; xProductionOrder: Record "Production Order")
     begin
     end;
 
@@ -1990,6 +2001,21 @@ codeunit 5407 "Prod. Order Status Management"
 
     [IntegrationEvent(false, false)]
     local procedure OnAfterTransferReopenProdOrder(ProductionOrder: Record "Production Order"; FromProductionOrder: Record "Production Order")
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnTransReopenProdOrderCompOnAfterInsert(FromProdOrderComponent: Record "Prod. Order Component"; NewProdOrderComponent: Record "Prod. Order Component")
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnTransferReopenProdOrderRtngLineOnAfterInsert(FromProdOrderRoutingLine: Record "Prod. Order Routing Line"; ToProdOrderRoutingLine: Record "Prod. Order Routing Line"; FromProductionOrder: Record "Production Order")
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnBeforeShowReleasedProdOrderDocument(var ProductionOrder: Record "Production Order"; var IsHandled: Boolean)
     begin
     end;
 }

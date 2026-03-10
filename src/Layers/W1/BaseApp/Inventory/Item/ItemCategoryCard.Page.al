@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -25,7 +25,6 @@ page 5733 "Item Category Card"
                 {
                     ApplicationArea = Basic, Suite;
                     NotBlank = true;
-                    ToolTip = 'Specifies the item category.';
 
                     trigger OnValidate()
                     begin
@@ -36,12 +35,10 @@ page 5733 "Item Category Card"
                 field(Description; Rec.Description)
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies a description of the item category.';
                 }
                 field("Parent Category"; Rec."Parent Category")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the item category that this item category belongs to. Item attributes that are assigned to a parent item category also apply to the child item category.';
 
                     trigger OnValidate()
                     begin

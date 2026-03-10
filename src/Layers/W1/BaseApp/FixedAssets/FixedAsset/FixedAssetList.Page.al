@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -39,7 +39,6 @@ page 5601 "Fixed Asset List"
                 field("No."; Rec."No.")
                 {
                     ApplicationArea = FixedAssets;
-                    ToolTip = 'Specifies the number of the involved entry or record, according to the specified number series.';
                 }
                 field(Description; Rec.Description)
                 {
@@ -48,45 +47,37 @@ page 5601 "Fixed Asset List"
                 field("Vendor No."; Rec."Vendor No.")
                 {
                     ApplicationArea = FixedAssets;
-                    ToolTip = 'Specifies the number of the vendor from which you purchased this fixed asset.';
                     Visible = false;
                 }
                 field("Maintenance Vendor No."; Rec."Maintenance Vendor No.")
                 {
                     ApplicationArea = FixedAssets;
-                    ToolTip = 'Specifies the number of the vendor who performs repairs and maintenance on the fixed asset.';
                     Visible = false;
                 }
                 field("Responsible Employee"; Rec."Responsible Employee")
                 {
                     ApplicationArea = FixedAssets;
-                    ToolTip = 'Specifies which employee is responsible for the fixed asset.';
                 }
                 field("FA Class Code"; Rec."FA Class Code")
                 {
                     ApplicationArea = FixedAssets;
-                    ToolTip = 'Specifies the class that the fixed asset belongs to.';
                 }
                 field("FA Subclass Code"; Rec."FA Subclass Code")
                 {
                     ApplicationArea = FixedAssets;
-                    ToolTip = 'Specifies the subclass of the class that the fixed asset belongs to.';
                 }
                 field("FA Location Code"; Rec."FA Location Code")
                 {
                     ApplicationArea = FixedAssets;
-                    ToolTip = 'Specifies the location, such as a building, where the fixed asset is located.';
                 }
                 field("Budgeted Asset"; Rec."Budgeted Asset")
                 {
                     ApplicationArea = Suite;
-                    ToolTip = 'Specifies if the asset is for budgeting purposes.';
                     Visible = false;
                 }
                 field("Search Description"; Rec."Search Description")
                 {
                     ApplicationArea = Advanced;
-                    ToolTip = 'Specifies a search description for the fixed asset.';
                 }
                 field(Acquired; Rec.Acquired)
                 {

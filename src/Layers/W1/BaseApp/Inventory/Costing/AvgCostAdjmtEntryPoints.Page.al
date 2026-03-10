@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -21,27 +21,22 @@ page 5815 "Avg. Cost Adjmt. Entry Points"
                 field("Item No."; Rec."Item No.")
                 {
                     Caption = 'Item No.';
-                    ToolTip = 'Specifies the item number.';
                 }
                 field("Variant Code"; Rec."Variant Code")
                 {
                     Caption = 'Variant Code';
-                    ToolTip = 'Specifies the variant code.';
                 }
                 field("Location Code"; Rec."Location Code")
                 {
                     Caption = 'Location Code';
-                    ToolTip = 'Specifies the location code.';
                 }
                 field("Valuation Date"; Rec."Valuation Date")
                 {
                     Caption = 'Valuation Date';
-                    ToolTip = 'Specifies the valuation date from which the entry is included in the average cost calculation.';
                 }
                 field("Cost Is Adjusted"; Rec."Cost Is Adjusted")
                 {
                     Caption = 'Cost Is Adjusted';
-                    ToolTip = 'Specifies whether the cost is adjusted on the valuation date';
                 }
             }
         }

@@ -17,7 +17,7 @@ codeunit 6463 "Serv. Report Distribution Mgt."
         ServiceQuoteDocTypeTxt: Label 'Service Quote';
         ServiceOrderDocTypeTxt: Label 'Service Order';
 
-    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Report Distribution Management", 'OnGetFullDocumentTypeTextElseCase', '', false, false)]
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Report Distribution Management", 'OnGetFullDocumentTypeTextElseCase', '', true, false)]
     local procedure OnGetFullDocumentTypeTextElseCase(DocumentRecordRef: RecordRef; var DocumentTypeText: Text[50])
     var
         ServiceHeader: Record "Service Header";
@@ -44,7 +44,7 @@ codeunit 6463 "Serv. Report Distribution Mgt."
         end;
     end;
 
-    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Report Distribution Management", 'OnGetDocumentLanguageCodeCaseElse', '', false, false)]
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Report Distribution Management", 'OnGetDocumentLanguageCodeCaseElse', '', true, false)]
     local procedure OnGetDocumentLanguageCodeCaseElse(DocumentRecordRef: RecordRef; var LanguageCode: Code[10])
     var
         ServiceHeader: Record "Service Header";
@@ -70,7 +70,7 @@ codeunit 6463 "Serv. Report Distribution Mgt."
         end;
     end;
 
-    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Report Distribution Management", 'OnAfterGetBillToCustomer', '', false, false)]
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Report Distribution Management", 'OnAfterGetBillToCustomer', '', true, false)]
     local procedure OnAfterGetBillToCustomer(var Customer: Record Customer; DocumentVariant: Variant; DocumentRecordRef: RecordRef)
     var
         ServiceInvoiceHeader: Record "Service Invoice Header";
@@ -97,7 +97,7 @@ codeunit 6463 "Serv. Report Distribution Mgt."
         end;
     end;
 
-    [EventSubscriber(ObjectType::Page, Page::"Customer Report Selections", OnValidateUsage2OnCaseElse, '', false, false)]
+    [EventSubscriber(ObjectType::Page, Page::"Customer Report Selections", OnValidateUsage2OnCaseElse, '', true, false)]
     local procedure CustomerReportSelections_OnValidateUsage2OnCaseElse(ReportUsage: Option; var CustomReportSelection: Record "Custom Report Selection")
     var
         CustomReportSelectionSales: Enum "Custom Report Selection Sales";
@@ -115,7 +115,7 @@ codeunit 6463 "Serv. Report Distribution Mgt."
         end;
     end;
 
-    [EventSubscriber(ObjectType::Page, Page::"Customer Report Selections", OnAfterOnMapTableUsageValueToPageValue, '', false, false)]
+    [EventSubscriber(ObjectType::Page, Page::"Customer Report Selections", OnAfterOnMapTableUsageValueToPageValue, '', true, false)]
     local procedure CustomerReportSelections_OnAfterOnMapTableUsageValueToPageValue(CustomReportSelection: Record "Custom Report Selection"; var Usage2: Enum "Custom Report Selection Sales")
     begin
         case CustomReportSelection.Usage of

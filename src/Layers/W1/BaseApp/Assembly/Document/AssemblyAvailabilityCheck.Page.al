@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -57,12 +57,10 @@ page 913 "Assembly Availability Check"
                     field("Item No."; Rec."Item No.")
                     {
                         ApplicationArea = Basic, Suite;
-                        ToolTip = 'Specifies the number of the item that is being assembled with the assembly order.';
                     }
                     field(Description; Rec.Description)
                     {
                         ApplicationArea = Assembly;
-                        ToolTip = 'Specifies the description of the assembly item.';
                     }
                     field("Unit of Measure Code"; Rec."Unit of Measure Code")
                     {
@@ -77,18 +75,15 @@ page 913 "Assembly Availability Check"
                     field("Location Code"; Rec."Location Code")
                     {
                         ApplicationArea = Location;
-                        ToolTip = 'Specifies the location to which you want to post output of the assembly item.';
                     }
                     field("Current Quantity"; Rec."Remaining Quantity")
                     {
                         ApplicationArea = Assembly;
                         Caption = 'Current Quantity';
-                        ToolTip = 'Specifies how many units of the assembly item remain to be posted as assembled output.';
                     }
                     field("Reserved Quantity"; Rec."Reserved Quantity")
                     {
                         ApplicationArea = Reservation;
-                        ToolTip = 'Specifies how many units of the assembly item are reserved for this assembly order header.';
                     }
                 }
                 group(DetailsQty)

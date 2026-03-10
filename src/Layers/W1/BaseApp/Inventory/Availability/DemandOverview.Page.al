@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -111,13 +111,11 @@ page 5830 "Demand Overview"
                     HideValue = ItemNoHideValue;
                     Style = Strong;
                     StyleExpr = ItemNoEmphasize;
-                    ToolTip = 'Specifies the identifier number for the item.';
                 }
                 field("Matches Criteria"; Rec."Matches Criteria")
                 {
                     ApplicationArea = Planning;
                     Editable = false;
-                    ToolTip = 'Specifies whether the line in the Demand Overview window is related to the lines where the demand overview was calculated.';
                     Visible = false;
                 }
                 field(Type; Rec.Type)
@@ -126,7 +124,6 @@ page 5830 "Demand Overview"
                     Editable = false;
                     Style = Strong;
                     StyleExpr = TypeEmphasize;
-                    ToolTip = 'Specifies the type of availability being calculated.';
                 }
                 field(Date; Rec.Date)
                 {
@@ -134,7 +131,6 @@ page 5830 "Demand Overview"
                     Editable = false;
                     Style = Unfavorable;
                     StyleExpr = DateEmphasize;
-                    ToolTip = 'Specifies the date of the availability calculation.';
                 }
                 field(SourceTypeText; SourceTypeText)
                 {
@@ -149,14 +145,12 @@ page 5830 "Demand Overview"
                     ApplicationArea = Planning;
                     Editable = false;
                     HideValue = SourceOrderStatusHideValue;
-                    ToolTip = 'Specifies the order status of the item for which availability is being calculated.';
                     Visible = false;
                 }
                 field("Source ID"; Rec."Source ID")
                 {
                     ApplicationArea = Planning;
                     Editable = false;
-                    ToolTip = 'Specifies the identifier code of the source.';
                     Visible = false;
                 }
                 field(Description; Rec.Description)
@@ -165,19 +159,16 @@ page 5830 "Demand Overview"
                     Editable = false;
                     Style = Strong;
                     StyleExpr = DescriptionEmphasize;
-                    ToolTip = 'Specifies the description of the item for which availability is being calculated.';
                 }
                 field("Location Code"; Rec."Location Code")
                 {
                     ApplicationArea = Location;
                     Editable = false;
-                    ToolTip = 'Specifies the location code of the item for which availability is being calculated.';
                 }
                 field("Variant Code"; Rec."Variant Code")
                 {
                     ApplicationArea = Planning;
                     Editable = false;
-                    ToolTip = 'Specifies the variant of the item on the line.';
                 }
                 field(QuantityText; QuantityText)
                 {
@@ -203,7 +194,6 @@ page 5830 "Demand Overview"
                     HideValue = RunningTotalHideValue;
                     Style = Strong;
                     StyleExpr = RunningTotalEmphasize;
-                    ToolTip = 'Specifies the total count of items from inventory, supply, and demand.';
                 }
                 field("Inventory Running Total"; Rec."Inventory Running Total")
                 {
@@ -213,7 +203,6 @@ page 5830 "Demand Overview"
                     HideValue = InventoryRunningTotalHideValue;
                     Style = Strong;
                     StyleExpr = InventoryRunningTotalEmphasize;
-                    ToolTip = 'Specifies the count of items in inventory.';
                     Visible = false;
                 }
                 field("Supply Running Total"; Rec."Supply Running Total")
@@ -224,7 +213,6 @@ page 5830 "Demand Overview"
                     HideValue = SupplyRunningTotalHideValue;
                     Style = Strong;
                     StyleExpr = SupplyRunningTotalEmphasize;
-                    ToolTip = 'Specifies the count of items in supply.';
                     Visible = false;
                 }
                 field("Demand Running Total"; Rec."Demand Running Total")
@@ -235,7 +223,6 @@ page 5830 "Demand Overview"
                     HideValue = DemandRunningTotalHideValue;
                     Style = Strong;
                     StyleExpr = DemandRunningTotalEmphasize;
-                    ToolTip = 'Specifies the count of items in demand.';
                     Visible = false;
                 }
             }

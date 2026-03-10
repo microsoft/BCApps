@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -55,7 +55,6 @@ page 1290 "Payment Reconciliation Journal"
                 {
                     ApplicationArea = Basic, Suite;
                     Editable = false;
-                    ToolTip = 'Specifies the quality of the automatic payment application on the journal line.';
                     StyleExpr = ReviewStatusStyleTxt;
 
                     trigger OnDrillDown()
@@ -80,20 +79,17 @@ page 1290 "Payment Reconciliation Journal"
                 field("Transaction Text"; Rec."Transaction Text")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the text that the customer or vendor entered on that payment transaction that is represented by the journal line.';
                     Width = 40;
                 }
                 field("Transaction ID"; Rec."Transaction ID")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the ID of the imported bank transaction.';
                     Visible = false;
                 }
                 field("Statement Amount"; Rec."Statement Amount")
                 {
                     ApplicationArea = Basic, Suite;
                     Caption = 'Transaction Amount';
-                    ToolTip = 'Specifies the amount that was paid into the bank account and then imported as a bank statement line represented by the journal line.';
 
                     trigger OnValidate()
                     begin
@@ -115,7 +111,6 @@ page 1290 "Payment Reconciliation Journal"
                     ApplicationArea = Basic, Suite;
                     Editable = false;
                     Style = Unfavorable;
-                    ToolTip = 'Specifies the difference between the amount in the Statement Amount field and the amount in the Applied Amount field.';
                 }
                 field(StatementToRemAmtDifference; StatementToRemAmtDifference)
                 {
@@ -249,7 +244,6 @@ page 1290 "Payment Reconciliation Journal"
                 {
                     ApplicationArea = Basic, Suite;
                     Editable = false;
-                    ToolTip = 'Specifies additional information on the bank statement line for the payment.';
                     Visible = false;
                     Width = 40;
                 }
@@ -257,7 +251,6 @@ page 1290 "Payment Reconciliation Journal"
                 {
                     ApplicationArea = Basic, Suite;
                     Editable = false;
-                    ToolTip = 'Specifies the address of the customer or vendor who made the payment that is represented by the journal line.';
                     Visible = false;
                     Width = 30;
                 }
@@ -265,7 +258,6 @@ page 1290 "Payment Reconciliation Journal"
                 {
                     ApplicationArea = Basic, Suite;
                     Editable = false;
-                    ToolTip = 'Specifies the bank account number of the customer or vendor who made the payment.';
                     Visible = false;
                     Width = 20;
                 }
@@ -273,7 +265,6 @@ page 1290 "Payment Reconciliation Journal"
                 {
                     ApplicationArea = Basic, Suite;
                     Editable = false;
-                    ToolTip = 'Specifies the city name of the customer or vendor.';
                     Visible = false;
                     Width = 10;
                 }
@@ -281,7 +272,6 @@ page 1290 "Payment Reconciliation Journal"
                 {
                     ApplicationArea = Basic, Suite;
                     Editable = false;
-                    ToolTip = 'Specifies the name of the customer or vendor who made the payment that is represented by the journal line.';
                     Visible = false;
                     Width = 30;
                 }
@@ -295,13 +285,11 @@ page 1290 "Payment Reconciliation Journal"
                 field("Shortcut Dimension 1 Code"; Rec."Shortcut Dimension 1 Code")
                 {
                     ApplicationArea = Dimensions;
-                    ToolTip = 'Specifies the code for Shortcut Dimension 1, which is one of two global dimension codes that you set up on the General Ledger Setup page.';
                     Visible = DimVisible1;
                 }
                 field("Shortcut Dimension 2 Code"; Rec."Shortcut Dimension 2 Code")
                 {
                     ApplicationArea = Dimensions;
-                    ToolTip = 'Specifies the code for Shortcut Dimension 2, which is one of two global dimension codes that you set up om the General Ledger Setup page.';
                     Visible = DimVisible2;
                 }
                 field(ShortcutDimCode3; ShortcutDimCode[3])

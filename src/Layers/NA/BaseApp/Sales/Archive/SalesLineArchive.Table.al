@@ -1556,8 +1556,7 @@ table 5108 "Sales Line Archive"
         }
         key(Key6; "Document No.", "Document Type", "Doc. No. Occurrence", "Version No.")
         {
-            MaintainSqlIndex = false;
-            SumIndexFields = Amount, "Amount Including VAT", "Outstanding Amount", "Shipped Not Invoiced", "Outstanding Amount (LCY)", "Shipped Not Invoiced (LCY)";
+            IncludedFields = Amount, "Amount Including VAT", "Outstanding Amount", "Shipped Not Invoiced", "Outstanding Amount (LCY)", "Shipped Not Invoiced (LCY)";
         }
     }
 

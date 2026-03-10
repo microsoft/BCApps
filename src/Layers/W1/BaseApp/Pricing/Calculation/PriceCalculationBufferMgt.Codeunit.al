@@ -260,7 +260,6 @@ codeunit 7008 "Price Calculation Buffer Mgt."
         PriceListLine.SetRange(Status, PriceListLine.Status::Active);
         PriceListLine.SetRange("Price Type", PriceCalculationBuffer."Price Type");
         PriceListLine.SetFilter("Amount Type", '%1|%2', AmountType, PriceListLine."Amount Type"::Any);
-
         PriceListLine.SetFilter("Ending Date", '%1|>=%2', 0D, PriceCalculationBuffer."Document Date");
         if not ShowAll then begin
             PriceListLine.SetFilter("Currency Code", '%1|%2', PriceCalculationBuffer."Currency Code", '');

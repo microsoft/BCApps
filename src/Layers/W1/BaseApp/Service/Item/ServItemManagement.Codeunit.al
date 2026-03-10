@@ -864,7 +864,7 @@ codeunit 5920 ServItemManagement
     begin
     end;
 
-    [EventSubscriber(ObjectType::Table, Database::"Item Variant", 'OnAfterOnDelete', '', false, false)]
+    [EventSubscriber(ObjectType::Table, Database::"Item Variant", 'OnAfterOnDelete', '', true, false)]
     local procedure ItemVariantOnAfterOnDelete(ItemVariant: Record "Item Variant")
     var
         ServiceLine: Record "Service Line";

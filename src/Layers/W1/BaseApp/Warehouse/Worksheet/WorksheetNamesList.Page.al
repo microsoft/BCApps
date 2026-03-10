@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -23,17 +23,14 @@ page 7346 "Worksheet Names List"
                 field(Name; Rec.Name)
                 {
                     ApplicationArea = Warehouse;
-                    ToolTip = 'Specifies the name you enter for the worksheet.';
                 }
                 field("Location Code"; Rec."Location Code")
                 {
                     ApplicationArea = Location;
-                    ToolTip = 'Specifies the location code of the warehouse the worksheet should be used for.';
                 }
                 field(Description; Rec.Description)
                 {
                     ApplicationArea = Warehouse;
-                    ToolTip = 'Specifies the description for the worksheet.';
                 }
             }
         }

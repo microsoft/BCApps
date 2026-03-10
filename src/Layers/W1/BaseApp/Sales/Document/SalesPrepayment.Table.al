@@ -24,6 +24,7 @@ table 459 "Sales Prepayment %"
         field(1; "Item No."; Code[20])
         {
             Caption = 'Item No.';
+            ToolTip = 'Specifies the number of the item for which the prepayment percentage is valid.';
             NotBlank = true;
             TableRelation = Item;
         }
@@ -33,6 +34,7 @@ table 459 "Sales Prepayment %"
         field(2; "Sales Type"; Option)
         {
             Caption = 'Sales Type';
+            ToolTip = 'Specifies the sales type of the prepayment percentage.';
             OptionCaption = 'Customer,Customer Price Group,All Customers';
             OptionMembers = Customer,"Customer Price Group","All Customers";
 
@@ -48,6 +50,7 @@ table 459 "Sales Prepayment %"
         field(3; "Sales Code"; Code[20])
         {
             Caption = 'Sales Code';
+            ToolTip = 'Specifies the code that belongs to the sales type.';
             TableRelation = if ("Sales Type" = const(Customer)) Customer
             else
             if ("Sales Type" = const("Customer Price Group")) "Customer Price Group";
@@ -67,6 +70,7 @@ table 459 "Sales Prepayment %"
         field(4; "Starting Date"; Date)
         {
             Caption = 'Starting Date';
+            ToolTip = 'Specifies the date from which the prepayment percentage is valid.';
 
             trigger OnValidate()
             begin
@@ -79,6 +83,7 @@ table 459 "Sales Prepayment %"
         field(5; "Ending Date"; Date)
         {
             Caption = 'Ending Date';
+            ToolTip = 'Specifies the date to which the prepayment percentage is valid.';
 
             trigger OnValidate()
             begin
@@ -92,6 +97,7 @@ table 459 "Sales Prepayment %"
         {
             AutoFormatType = 0;
             Caption = 'Prepayment %';
+            ToolTip = 'Specifies the prepayment percentage to use to calculate the prepayment for sales.';
             DecimalPlaces = 0 : 5;
             MaxValue = 100;
             MinValue = 0;

@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -32,12 +32,14 @@ table 5401 "Item Variant"
         field(1; "Code"; Code[10])
         {
             Caption = 'Code';
+            ToolTip = 'Specifies a code to identify the variant.';
             OptimizeForTextSearch = true;
             NotBlank = true;
         }
         field(2; "Item No."; Code[20])
         {
             Caption = 'Item No.';
+            ToolTip = 'Specifies the number of the item card from which you opened the Item Variant Translations window.';
             TableRelation = Item;
 
             trigger OnValidate()
@@ -54,11 +56,13 @@ table 5401 "Item Variant"
         field(3; Description; Text[100])
         {
             Caption = 'Description';
+            ToolTip = 'Specifies text that describes the item variant.';
             OptimizeForTextSearch = true;
         }
         field(4; "Description 2"; Text[50])
         {
             Caption = 'Description 2';
+            ToolTip = 'Specifies the item variant in more detail than the Description field.';
             OptimizeForTextSearch = true;
         }
         field(5; "Item Id"; Guid)
@@ -81,26 +85,31 @@ table 5401 "Item Variant"
         field(54; Blocked; Boolean)
         {
             Caption = 'Blocked';
+            ToolTip = 'Specifies that the related record is blocked from being posted in transactions, for example an item variant that is placed in quarantine.';
             DataClassification = CustomerContent;
         }
         field(92; Picture; MediaSet)
         {
             Caption = 'Picture';
+            ToolTip = 'Specifies the picture that has been inserted for the item variant.';
             DataClassification = CustomerContent;
         }
         field(8003; "Sales Blocked"; Boolean)
         {
             Caption = 'Sales Blocked';
+            ToolTip = 'Specifies that the item variant cannot be entered on sales documents, except return orders and credit memos, and journals.';
             DataClassification = CustomerContent;
         }
         field(8004; "Purchasing Blocked"; Boolean)
         {
             Caption = 'Purchasing Blocked';
+            ToolTip = 'Specifies that the item variant cannot be entered on purchase documents, except return orders and credit memos, and journals.';
             DataClassification = CustomerContent;
         }
         field(8010; "Service Blocked"; Boolean)
         {
             Caption = 'Service Blocked';
+            ToolTip = 'Specifies that the item variant cannot be entered on service items, service contracts and service documents, except credit memos.';
             DataClassification = CustomerContent;
         }
     }

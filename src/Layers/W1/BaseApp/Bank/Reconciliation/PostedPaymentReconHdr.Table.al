@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -25,6 +25,7 @@ table 1295 "Posted Payment Recon. Hdr"
         field(1; "Bank Account No."; Code[20])
         {
             Caption = 'Bank Account No.';
+            ToolTip = 'Specifies the number of the bank account that the posted payment was processed for.';
             NotBlank = true;
             TableRelation = "Bank Account";
         }
@@ -34,6 +35,7 @@ table 1295 "Posted Payment Recon. Hdr"
         field(2; "Statement No."; Code[20])
         {
             Caption = 'Statement No.';
+            ToolTip = 'Specifies the number of the bank statement that contained the line that represented the posted payment.';
             NotBlank = true;
         }
         /// <summary>

@@ -2291,6 +2291,197 @@
       </Page>
     </ReportSection>
   </ReportSections>
+  <ReportParameters>
+    <ReportParameter Name="ItemVendorCatalogLbl">
+      <DataType>String</DataType>
+      <DefaultValue>
+        <Values>
+          <Value>ItemVendorCatalogLbl</Value>
+        </Values>
+      </DefaultValue>
+      <Prompt>ItemVendorCatalogLbl</Prompt>
+    </ReportParameter>
+    <ReportParameter Name="ItemVendorCatalogPrintLbl">
+      <DataType>String</DataType>
+      <DefaultValue>
+        <Values>
+          <Value>ItemVendorCatalogPrintLbl</Value>
+        </Values>
+      </DefaultValue>
+      <Prompt>ItemVendorCatalogPrintLbl</Prompt>
+    </ReportParameter>
+    <ReportParameter Name="ItemVendorCatalogAnalysisLbl">
+      <DataType>String</DataType>
+      <DefaultValue>
+        <Values>
+          <Value>ItemVendorCatalogAnalysisLbl</Value>
+        </Values>
+      </DefaultValue>
+      <Prompt>ItemVendorCatalogAnalysisLbl</Prompt>
+    </ReportParameter>
+    <ReportParameter Name="DataRetrievedLbl">
+      <DataType>String</DataType>
+      <DefaultValue>
+        <Values>
+          <Value>DataRetrievedLbl</Value>
+        </Values>
+      </DefaultValue>
+      <Prompt>DataRetrievedLbl</Prompt>
+    </ReportParameter>
+    <ReportParameter Name="ItemNoLbl">
+      <DataType>String</DataType>
+      <DefaultValue>
+        <Values>
+          <Value>ItemNoLbl</Value>
+        </Values>
+      </DefaultValue>
+      <Prompt>ItemNoLbl</Prompt>
+    </ReportParameter>
+    <ReportParameter Name="DateLbl">
+      <DataType>String</DataType>
+      <DefaultValue>
+        <Values>
+          <Value>DateLbl</Value>
+        </Values>
+      </DefaultValue>
+      <Prompt>DateLbl</Prompt>
+    </ReportParameter>
+    <ReportParameter Name="ItemVendorNoLbl">
+      <DataType>String</DataType>
+      <DefaultValue>
+        <Values>
+          <Value>ItemVendorNoLbl</Value>
+        </Values>
+      </DefaultValue>
+      <Prompt>ItemVendorNoLbl</Prompt>
+    </ReportParameter>
+    <ReportParameter Name="LeadTimeCalculationLbl">
+      <DataType>String</DataType>
+      <DefaultValue>
+        <Values>
+          <Value>LeadTimeCalculationLbl</Value>
+        </Values>
+      </DefaultValue>
+      <Prompt>LeadTimeCalculationLbl</Prompt>
+    </ReportParameter>
+    <ReportParameter Name="AboutTheReportLbl">
+      <DataType>String</DataType>
+      <DefaultValue>
+        <Values>
+          <Value>AboutTheReportLbl</Value>
+        </Values>
+      </DefaultValue>
+      <Prompt>AboutTheReportLbl</Prompt>
+    </ReportParameter>
+    <ReportParameter Name="EnvironmentLbl">
+      <DataType>String</DataType>
+      <DefaultValue>
+        <Values>
+          <Value>EnvironmentLbl</Value>
+        </Values>
+      </DefaultValue>
+      <Prompt>EnvironmentLbl</Prompt>
+    </ReportParameter>
+    <ReportParameter Name="CompanyLbl">
+      <DataType>String</DataType>
+      <DefaultValue>
+        <Values>
+          <Value>CompanyLbl</Value>
+        </Values>
+      </DefaultValue>
+      <Prompt>CompanyLbl</Prompt>
+    </ReportParameter>
+    <ReportParameter Name="UserLbl">
+      <DataType>String</DataType>
+      <DefaultValue>
+        <Values>
+          <Value>UserLbl</Value>
+        </Values>
+      </DefaultValue>
+      <Prompt>UserLbl</Prompt>
+    </ReportParameter>
+    <ReportParameter Name="RunOnLbl">
+      <DataType>String</DataType>
+      <DefaultValue>
+        <Values>
+          <Value>RunOnLbl</Value>
+        </Values>
+      </DefaultValue>
+      <Prompt>RunOnLbl</Prompt>
+    </ReportParameter>
+    <ReportParameter Name="ReportNameLbl">
+      <DataType>String</DataType>
+      <DefaultValue>
+        <Values>
+          <Value>ReportNameLbl</Value>
+        </Values>
+      </DefaultValue>
+      <Prompt>ReportNameLbl</Prompt>
+    </ReportParameter>
+    <ReportParameter Name="DocumentationLbl">
+      <DataType>String</DataType>
+      <DefaultValue>
+        <Values>
+          <Value>DocumentationLbl</Value>
+        </Values>
+      </DefaultValue>
+      <Prompt>DocumentationLbl</Prompt>
+    </ReportParameter>
+    <ReportParameter Name="Item_DescriptionCaption">
+      <DataType>String</DataType>
+      <DefaultValue>
+        <Values>
+          <Value>Item_DescriptionCaption</Value>
+        </Values>
+      </DefaultValue>
+      <Prompt>Item_DescriptionCaption</Prompt>
+    </ReportParameter>
+    <ReportParameter Name="Item__Base_Unit_of_Measure_Caption">
+      <DataType>String</DataType>
+      <DefaultValue>
+        <Values>
+          <Value>Item__Base_Unit_of_Measure_Caption</Value>
+        </Values>
+      </DefaultValue>
+      <Prompt>Item__Base_Unit_of_Measure_Caption</Prompt>
+    </ReportParameter>
+    <ReportParameter Name="Purchase_Price__Vendor_No__Caption">
+      <DataType>String</DataType>
+      <DefaultValue>
+        <Values>
+          <Value>Purchase_Price__Vendor_No__Caption</Value>
+        </Values>
+      </DefaultValue>
+      <Prompt>Purchase_Price__Vendor_No__Caption</Prompt>
+    </ReportParameter>
+    <ReportParameter Name="Vend_NameCaption">
+      <DataType>String</DataType>
+      <DefaultValue>
+        <Values>
+          <Value>Vend_NameCaption</Value>
+        </Values>
+      </DefaultValue>
+      <Prompt>Vend_NameCaption</Prompt>
+    </ReportParameter>
+    <ReportParameter Name="Purchase_Price__Direct_Unit_Cost_Caption">
+      <DataType>String</DataType>
+      <DefaultValue>
+        <Values>
+          <Value>Purchase_Price__Direct_Unit_Cost_Caption</Value>
+        </Values>
+      </DefaultValue>
+      <Prompt>Purchase_Price__Direct_Unit_Cost_Caption</Prompt>
+    </ReportParameter>
+    <ReportParameter Name="Purchase_Price__Currency_Code_Caption">
+      <DataType>String</DataType>
+      <DefaultValue>
+        <Values>
+          <Value>Purchase_Price__Currency_Code_Caption</Value>
+        </Values>
+      </DefaultValue>
+      <Prompt>Purchase_Price__Currency_Code_Caption</Prompt>
+    </ReportParameter>
+  </ReportParameters>
   <Code>Public Function BlankZero(ByVal Value As Decimal)
     if Value = 0 then
         Return ""
@@ -2343,9 +2534,6 @@ End Function</Code>
   <DataSets>
     <DataSet Name="DataSet_Result">
       <Fields>
-        <Field Name="COMPANYNAME">
-          <DataField>COMPANYNAME</DataField>
-        </Field>
         <Field Name="Item_TABLECAPTION__________ItemFilter">
           <DataField>Item_TABLECAPTION__________ItemFilter</DataField>
         </Field>
@@ -2360,6 +2548,9 @@ End Function</Code>
         </Field>
         <Field Name="Item__Base_Unit_of_Measure_">
           <DataField>Item__Base_Unit_of_Measure_</DataField>
+        </Field>
+        <Field Name="COMPANYNAME">
+          <DataField>COMPANYNAME</DataField>
         </Field>
         <Field Name="Item_Vendor_CatalogCaption">
           <DataField>Item_Vendor_CatalogCaption</DataField>

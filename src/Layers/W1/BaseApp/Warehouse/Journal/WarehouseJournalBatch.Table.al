@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -27,15 +27,18 @@ table 7310 "Warehouse Journal Batch"
         field(2; Name; Code[10])
         {
             Caption = 'Name';
+            ToolTip = 'Specifies the name of the warehouse journal batch.';
             NotBlank = true;
         }
         field(3; Description; Text[100])
         {
             Caption = 'Description';
+            ToolTip = 'Specifies a description of the warehouse journal batch.';
         }
         field(4; "Reason Code"; Code[10])
         {
             Caption = 'Reason Code';
+            ToolTip = 'Specifies the reason code, a supplementary source code that enables you to trace the entry.';
             TableRelation = "Reason Code";
 
             trigger OnValidate()
@@ -52,6 +55,7 @@ table 7310 "Warehouse Journal Batch"
         field(5; "No. Series"; Code[20])
         {
             Caption = 'No. Series';
+            ToolTip = 'Specifies the number series from which entry or record numbers are assigned to new entries or records.';
             TableRelation = "No. Series";
 
             trigger OnValidate()
@@ -64,6 +68,7 @@ table 7310 "Warehouse Journal Batch"
         field(6; "Registering No. Series"; Code[20])
         {
             Caption = 'Registering No. Series';
+            ToolTip = 'Specifies the number series code used to assign document numbers to the warehouse entries that are registered from this journal batch.';
             TableRelation = "No. Series";
 
             trigger OnValidate()
@@ -80,6 +85,7 @@ table 7310 "Warehouse Journal Batch"
         field(7; "Location Code"; Code[10])
         {
             Caption = 'Location Code';
+            ToolTip = 'Specifies the code of the location where the journal batch applies.';
             NotBlank = true;
             TableRelation = Location;
 
@@ -107,8 +113,17 @@ table 7310 "Warehouse Journal Batch"
         field(7700; "Assigned User ID"; Code[50])
         {
             Caption = 'Assigned User ID';
+            ToolTip = 'Specifies the ID of the user who is responsible for the document.';
             DataClassification = EndUserIdentifiableInformation;
             TableRelation = "Warehouse Employee" where("Location Code" = field("Location Code"));
+        }
+        field(40; "No. of Lines"; Integer)
+        {
+            CalcFormula = count("Warehouse Journal Line" where("Journal Template Name" = field("Journal Template Name"), "Journal Batch Name" = field(Name), "Location Code" = field("Location Code")));
+            Caption = 'No. of Lines';
+            Editable = false;
+            FieldClass = FlowField;
+            ToolTip = 'Specifies the number of lines in this journal batch.';
         }
     }
 

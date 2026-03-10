@@ -31,6 +31,7 @@ table 5136 "Job Task Archive"
         field(1; "Job No."; Code[20])
         {
             Caption = 'Project No.';
+            ToolTip = 'Specifies the number of the related project.';
             Editable = false;
             NotBlank = true;
             TableRelation = "Job Archive";
@@ -38,30 +39,36 @@ table 5136 "Job Task Archive"
         field(2; "Job Task No."; Code[20])
         {
             Caption = 'Project Task No.';
+            ToolTip = 'Specifies the number of the related project task.';
             NotBlank = true;
         }
         field(3; Description; Text[100])
         {
             Caption = 'Description';
+            ToolTip = 'Specifies a description of the project task. You can enter anything that is meaningful in describing the task. The description is copied and used in descriptions on the project planning line.';
         }
         field(4; "Job Task Type"; Enum "Job Task Type")
         {
             Caption = 'Project Task Type';
+            ToolTip = 'Specifies the purpose of the account. Newly created accounts are automatically assigned the Posting account type, but you can change this. Choose the field to select one of the following five options:';
         }
         field(6; "WIP-Total"; Option)
         {
             Caption = 'WIP-Total';
+            ToolTip = 'Specifies the project tasks you want to group together when calculating Work In Process (WIP) and Recognition.';
             OptionCaption = ' ,Total,Excluded';
             OptionMembers = " ",Total,Excluded;
         }
         field(7; "Job Posting Group"; Code[20])
         {
             Caption = 'Project Posting Group';
+            ToolTip = 'Specifies the project posting group of the task.';
             TableRelation = "Job Posting Group";
         }
         field(9; "WIP Method"; Code[20])
         {
             Caption = 'WIP Method';
+            ToolTip = 'Specifies the name of the Work in Process calculation method that is associated with a project. The value in this field comes from the WIP method specified on the project card.';
             TableRelation = "Job WIP Method".Code where(Valid = const(true));
         }
         field(10; "Schedule (Total Cost)"; Decimal)
@@ -165,6 +172,7 @@ table 5136 "Job Task Archive"
         field(21; Totaling; Text[250])
         {
             Caption = 'Totaling';
+            ToolTip = 'Specifies an interval or a list of project task numbers.';
             TableRelation = "Job Task"."Job Task No." where("Job No." = field("Job No."));
             ValidateTableRelation = false;
         }
@@ -186,12 +194,14 @@ table 5136 "Job Task Archive"
         field(30; "Location Code"; Code[10])
         {
             Caption = 'Location Code';
+            ToolTip = 'Specifies the location code of the task.';
             TableRelation = Location where("Use As In-Transit" = const(false));
             DataClassification = CustomerContent;
         }
         field(31; "Bin Code"; Code[20])
         {
             Caption = 'Bin Code';
+            ToolTip = 'Specifies a bin code for specific location of the task.';
             TableRelation = Bin.Code where("Location Code" = field("Location Code"));
             DataClassification = CustomerContent;
         }
@@ -237,6 +247,7 @@ table 5136 "Job Task Archive"
         {
             CaptionClass = '1,1,1';
             Caption = 'Global Dimension 1 Code';
+            ToolTip = 'Specifies the code for the global dimension that is linked to the record or entry for analysis purposes. Two global dimensions, typically for the company''s most important activities, are available on all cards, documents, reports, and lists.';
             TableRelation = "Dimension Value".Code where("Global Dimension No." = const(1),
                                                           Blocked = const(false));
         }
@@ -244,6 +255,7 @@ table 5136 "Job Task Archive"
         {
             CaptionClass = '1,1,2';
             Caption = 'Global Dimension 2 Code';
+            ToolTip = 'Specifies the code for the global dimension that is linked to the record or entry for analysis purposes. Two global dimensions, typically for the company''s most important activities, are available on all cards, documents, reports, and lists.';
             TableRelation = "Dimension Value".Code where("Global Dimension No." = const(2),
                                                           Blocked = const(false));
         }
@@ -296,6 +308,7 @@ table 5136 "Job Task Archive"
                                                                          "Job Task No." = field("Job Task No."),
                                                                          "Version No." = field("Version No.")));
             Caption = 'Start Date';
+            ToolTip = 'Specifies the start date for the project task. The date is based on the date on the related project planning line.';
             Editable = false;
             FieldClass = FlowField;
         }
@@ -305,12 +318,14 @@ table 5136 "Job Task Archive"
                                                                          "Job Task No." = field("Job Task No."),
                                                                          "Version No." = field("Version No.")));
             Caption = 'End Date';
+            ToolTip = 'Specifies the end date for the project task. The date is based on the date on the related project planning line.';
             Editable = false;
             FieldClass = FlowField;
         }
         field(70; "Bill-to Customer No."; Code[20])
         {
             Caption = 'Bill-to Customer No.';
+            ToolTip = 'Specifies the number of the customer who pays for the project task.';
             TableRelation = Customer;
             DataClassification = CustomerContent;
         }
@@ -382,6 +397,7 @@ table 5136 "Job Task Archive"
         field(90; "Sell-to Customer No."; Code[20])
         {
             Caption = 'Sell-to Customer No.';
+            ToolTip = 'Specifies the number of the customer who will receive the products and be billed by default for the project task.';
             TableRelation = Customer;
             DataClassification = CustomerContent;
         }

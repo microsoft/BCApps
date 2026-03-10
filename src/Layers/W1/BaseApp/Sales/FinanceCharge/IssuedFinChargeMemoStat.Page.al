@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -39,7 +39,6 @@ page 453 "Issued Fin. Charge Memo Stat."
                 {
                     ApplicationArea = Basic, Suite;
                     DrillDown = false;
-                    ToolTip = 'Specifies the total of the additional fee amounts on the finance charge memo lines.';
                 }
                 field(VatAmount; VatAmount)
                 {

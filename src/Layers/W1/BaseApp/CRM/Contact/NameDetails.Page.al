@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -22,7 +22,6 @@ page 5055 "Name Details"
                 field("Salutation Code"; Rec."Salutation Code")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the salutation code that will be used when you interact with the contact. The salutation code is only used in Word documents. To see a list of the salutation codes already defined, click the field.';
                 }
                 field("Job Title"; Rec."Job Title")
                 {
@@ -32,27 +31,22 @@ page 5055 "Name Details"
                 field(Initials; Rec.Initials)
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the contact''s initials, when the contact is a person.';
                 }
                 field("First Name"; Rec."First Name")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the contact''s first name and is valid for contact persons only.';
                 }
                 field("Middle Name"; Rec."Middle Name")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the contact''s middle name and is valid for contact persons only.';
                 }
                 field(Surname; Rec.Surname)
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the contact''s surname and is valid for contact persons only.';
                 }
                 field("Language Code"; Rec."Language Code")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the language that is used when translating specified text on documents to foreign business partner, such as an item description on an order confirmation.';
                 }
             }
         }

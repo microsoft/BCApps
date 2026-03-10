@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -28,7 +28,6 @@ page 7504 "Item Attribute Value List"
                     AssistEdit = false;
                     Caption = 'Attribute';
                     TableRelation = "Item Attribute".Name where(Blocked = const(false));
-                    ToolTip = 'Specifies the item attribute.';
 
                     trigger OnValidate()
                     var
@@ -53,7 +52,6 @@ page 7504 "Item Attribute Value List"
                     Caption = 'Value';
                     TableRelation = if ("Attribute Type" = const(Option)) "Item Attribute Value".Value where("Attribute ID" = field("Attribute ID"),
                                                                                                             Blocked = const(false));
-                    ToolTip = 'Specifies the value of the item attribute.';
 
                     trigger OnValidate()
                     var
@@ -85,7 +83,6 @@ page 7504 "Item Attribute Value List"
                 field("Unit of Measure"; Rec."Unit of Measure")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the name of the item or resource''s unit of measure, such as piece or hour.';
                 }
             }
         }

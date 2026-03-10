@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -25,6 +25,7 @@ table 7333 "Whse. Internal Pick Header"
         field(1; "No."; Code[20])
         {
             Caption = 'No.';
+            ToolTip = 'Specifies the number of the involved entry or record, according to the specified number series.';
 
             trigger OnValidate()
             begin
@@ -39,6 +40,7 @@ table 7333 "Whse. Internal Pick Header"
         field(2; "Location Code"; Code[10])
         {
             Caption = 'Location Code';
+            ToolTip = 'Specifies the code of the location where the internal pick is being performed.';
             TableRelation = Location where("Use As In-Transit" = const(false));
 
             trigger OnValidate()
@@ -72,6 +74,7 @@ table 7333 "Whse. Internal Pick Header"
         field(3; "Assigned User ID"; Code[50])
         {
             Caption = 'Assigned User ID';
+            ToolTip = 'Specifies the ID of the user who is responsible for the document.';
             DataClassification = EndUserIdentifiableInformation;
             TableRelation = "Warehouse Employee" where("Location Code" = field("Location Code"));
 
@@ -89,16 +92,19 @@ table 7333 "Whse. Internal Pick Header"
         field(4; "Assignment Date"; Date)
         {
             Caption = 'Assignment Date';
+            ToolTip = 'Specifies the date when the user was assigned the activity.';
             Editable = false;
         }
         field(5; "Assignment Time"; Time)
         {
             Caption = 'Assignment Time';
+            ToolTip = 'Specifies the time when the user was assigned the activity.';
             Editable = false;
         }
         field(6; "Sorting Method"; Enum "Warehouse Internal Sorting Method")
         {
             Caption = 'Sorting Method';
+            ToolTip = 'Specifies the method by which the warehouse internal pick lines are sorted.';
 
             trigger OnValidate()
             begin
@@ -123,6 +129,7 @@ table 7333 "Whse. Internal Pick Header"
         field(12; "To Bin Code"; Code[20])
         {
             Caption = 'To Bin Code';
+            ToolTip = 'Specifies the bin in which you want the items to be placed when they are picked.';
             TableRelation = if ("To Zone Code" = filter('')) Bin.Code where("Location Code" = field("Location Code"))
             else
             if ("To Zone Code" = filter(<> '')) Bin.Code where("Location Code" = field("Location Code"),
@@ -153,6 +160,7 @@ table 7333 "Whse. Internal Pick Header"
         field(13; "To Zone Code"; Code[10])
         {
             Caption = 'To Zone Code';
+            ToolTip = 'Specifies the zone in which you want the items to be placed when they are picked.';
             TableRelation = Zone.Code where("Location Code" = field("Location Code"));
 
             trigger OnValidate()
@@ -169,6 +177,7 @@ table 7333 "Whse. Internal Pick Header"
         field(34; "Document Status"; Option)
         {
             Caption = 'Document Status';
+            ToolTip = 'Specifies the document status of the internal pick.';
             Editable = false;
             OptionCaption = ' ,Partially Picked,Completely Picked';
             OptionMembers = " ","Partially Picked","Completely Picked";
@@ -189,6 +198,7 @@ table 7333 "Whse. Internal Pick Header"
         field(36; "Due Date"; Date)
         {
             Caption = 'Due Date';
+            ToolTip = 'Specifies the date when the warehouse activity must be completed.';
 
             trigger OnValidate()
             begin
@@ -198,6 +208,7 @@ table 7333 "Whse. Internal Pick Header"
         field(47; Status; Option)
         {
             Caption = 'Status';
+            ToolTip = 'Specifies whether the internal pick is open or released.';
             Editable = false;
             OptionCaption = 'Open,Released';
             OptionMembers = Open,Released;

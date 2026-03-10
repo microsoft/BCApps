@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -26,7 +26,6 @@ page 7021 "Suggest Price Lines"
                     {
                         ApplicationArea = Basic, Suite;
                         Caption = 'From Price List';
-                        ToolTip = 'Specifies the price list code to copy lines from.';
 
                         trigger OnLookup(var Text: Text): Boolean
                         var
@@ -67,7 +66,6 @@ page 7021 "Suggest Price Lines"
                         ApplicationArea = Basic, Suite;
                         Visible = CopyToWorksheet;
                         Editable = CreateNewLinesEditable;
-                        ToolTip = 'Specifies if the suggested lines will become new lines in the target price list.';
                         trigger OnValidate()
                         begin
                             ShowDefaults := Rec."Copy As New Lines" or not Rec."Copy Lines";
@@ -83,7 +81,6 @@ page 7021 "Suggest Price Lines"
                     {
                         ApplicationArea = Basic, Suite;
                         Caption = 'Product Type';
-                        ToolTip = 'Specifies the product type that defines the table being a source for the suggested price list lines.';
                     }
                     field("Product Filter"; GetReadableAssetFilter())
                     {
@@ -122,7 +119,6 @@ page 7021 "Suggest Price Lines"
                     field("Force Defaults"; Rec."Force Defaults")
                     {
                         ApplicationArea = Basic, Suite;
-                        ToolTip = 'Specifies whether to apply the values of the target price list header to the new lines instead of the values of the price list you are copying.';
                     }
                 }
                 group(Options)
@@ -133,7 +129,6 @@ page 7021 "Suggest Price Lines"
                         ApplicationArea = Basic, Suite;
                         Visible = not CopyLines;
                         Caption = 'Minimum Quantity';
-                        ToolTip = 'Specifies the default minimum quantity for the suggested lines. If you do not specify minimum qunatity, pricing will apply same price irrespective of quantity.';
                     }
                     group(Adjustment)
                     {
@@ -142,20 +137,17 @@ page 7021 "Suggest Price Lines"
                         {
                             ApplicationArea = Basic, Suite;
                             Caption = 'Exchange Rate Date';
-                            ToolTip = 'Specifies a date for the currency exchange rate calculations.';
                         }
                     }
                     field("Adjustment Factor"; Rec."Adjustment Factor")
                     {
                         ApplicationArea = Basic, Suite;
                         Caption = 'Adjustment Factor';
-                        ToolTip = 'Specifies an adjustment factor to multiply the amounts that you want to copy. By entering an adjustment factor, you can increase or decrease the amounts.';
                     }
                     field("Rounding Method Code"; Rec."Rounding Method Code")
                     {
                         ApplicationArea = Basic, Suite;
                         Caption = 'Rounding Method';
-                        ToolTip = 'Specifies a rounding method code that you want applied to prices.';
                     }
                 }
             }

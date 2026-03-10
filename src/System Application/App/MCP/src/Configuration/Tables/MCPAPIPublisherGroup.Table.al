@@ -15,12 +15,10 @@ table 8350 "MCP API Publisher Group"
     {
         field(1; "API Publisher"; Text[40])
         {
-            DataClassification = ToBeClassified;
             Caption = 'API Publisher';
         }
         field(2; "API Group"; Text[40])
         {
-            DataClassification = ToBeClassified;
             Caption = 'API Group';
         }
     }

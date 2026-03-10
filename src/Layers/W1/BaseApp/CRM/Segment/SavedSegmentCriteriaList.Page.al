@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -24,17 +24,14 @@ page 5141 "Saved Segment Criteria List"
                 field("Code"; Rec.Code)
                 {
                     ApplicationArea = All;
-                    ToolTip = 'Specifies the code of the saved segment criteria.';
                 }
                 field(Description; Rec.Description)
                 {
                     ApplicationArea = All;
-                    ToolTip = 'Specifies the description of the saved segment criteria.';
                 }
                 field("User ID"; Rec."User ID")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the ID of the user who posted the entry, to be used, for example, in the change log.';
                     Visible = false;
 
                     trigger OnDrillDown()
@@ -48,7 +45,6 @@ page 5141 "Saved Segment Criteria List"
                 {
                     ApplicationArea = Basic, Suite;
                     DrillDown = false;
-                    ToolTip = 'Specifies the number of actions that make up the segment criteria.';
                     Visible = false;
                 }
             }

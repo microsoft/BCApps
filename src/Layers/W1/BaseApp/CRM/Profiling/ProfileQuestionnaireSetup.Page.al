@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -55,46 +55,38 @@ page 5110 "Profile Questionnaire Setup"
                     ApplicationArea = All;
                     Style = Strong;
                     StyleExpr = StyleIsStrong;
-                    ToolTip = 'Specifies whether the entry is a question or an answer.';
                 }
                 field(Description; Rec.Description)
                 {
                     ApplicationArea = All;
                     Style = Strong;
                     StyleExpr = StyleIsStrong;
-                    ToolTip = 'Specifies the profile question or answer.';
                 }
                 field("Multiple Answers"; Rec."Multiple Answers")
                 {
                     ApplicationArea = RelationshipMgmt;
-                    ToolTip = 'Specifies that the question has more than one possible answer.';
                 }
                 field(Priority; Rec.Priority)
                 {
                     ApplicationArea = RelationshipMgmt;
                     HideValue = PriorityHideValue;
-                    ToolTip = 'Specifies the priority you give to the answer and where it should be displayed on the lines of the Contact Card. There are five options:';
                 }
                 field("Auto Contact Classification"; Rec."Auto Contact Classification")
                 {
                     ApplicationArea = RelationshipMgmt;
                     Editable = false;
-                    ToolTip = 'Specifies that the question is automatically answered when you run the Update Contact Classification batch job.';
                 }
                 field("From Value"; Rec."From Value")
                 {
                     ApplicationArea = RelationshipMgmt;
-                    ToolTip = 'Specifies the value from which the automatic classification of your contacts starts.';
                 }
                 field("To Value"; Rec."To Value")
                 {
                     ApplicationArea = RelationshipMgmt;
-                    ToolTip = 'Specifies the value that the automatic classification of your contacts stops at.';
                 }
                 field("No. of Contacts"; Rec."No. of Contacts")
                 {
                     ApplicationArea = RelationshipMgmt;
-                    ToolTip = 'Specifies the number of contacts that have given this answer.';
                 }
             }
         }

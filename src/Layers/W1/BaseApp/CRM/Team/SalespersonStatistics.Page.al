@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -22,7 +22,6 @@ page 5117 "Salesperson Statistics"
                 field("No. of Interactions"; Rec."No. of Interactions")
                 {
                     ApplicationArea = RelationshipMgmt;
-                    ToolTip = 'Specifies the number of interactions handled by this salesperson.';
                 }
                 field("Cost (LCY)"; Rec."Cost (LCY)")
                 {
@@ -56,7 +55,6 @@ page 5117 "Salesperson Statistics"
                 field("No. of Opportunities"; Rec."No. of Opportunities")
                 {
                     ApplicationArea = RelationshipMgmt;
-                    ToolTip = 'Specifies the number of open opportunities handled by the salesperson.';
                 }
                 field("Estimated Value (LCY)"; Rec."Estimated Value (LCY)")
                 {

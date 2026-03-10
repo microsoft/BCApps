@@ -713,6 +713,7 @@ table 349 "Dimension Value"
     local procedure GetGlobalDimensionNo(): Integer
     var
         GeneralLedgerSetup: Record "General Ledger Setup";
+        GlobalDimensionNo: Integer;
     begin
         GeneralLedgerSetup.Get();
         case "Dimension Code" of
@@ -732,8 +733,11 @@ table 349 "Dimension Value"
                 exit(7);
             GeneralLedgerSetup."Shortcut Dimension 8 Code":
                 exit(8);
-            else
-                exit(0);
+            else begin
+                GlobalDimensionNo := 0;
+                OnGetGlobalDimensionNoOnElseCase("Dimension Code", GlobalDimensionNo);
+                exit(GlobalDimensionNo);
+            end;
         end;
     end;
 
@@ -805,6 +809,18 @@ table 349 "Dimension Value"
     /// <param name="xDimensionValue">The original dimension value record before rename.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeOnRename(var DimensionValue: Record "Dimension Value"; var xDimensionValue: Record "Dimension Value")
+    begin
+    end;
+
+    /// <summary>
+    /// Integration event raised in the else case of GetGlobalDimensionNo function.
+    /// Allows extensions to provide global dimension numbers for custom dimension codes.
+    /// </summary>
+    /// <param name="DimensionCode">The dimension code for which the global dimension number is being requested.</param>
+    /// <param name="GlobalDimensionNo">Returns the global dimension number for the given dimension
+    /// code; set by subscribers if the dimension code is custom.</param>
+    [IntegrationEvent(false, false)]
+    local procedure OnGetGlobalDimensionNoOnElseCase(DimensionCode: Code[20]; var GlobalDimensionNo: Integer)
     begin
     end;
 }

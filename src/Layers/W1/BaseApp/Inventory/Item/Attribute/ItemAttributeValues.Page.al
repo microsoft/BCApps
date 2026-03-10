@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -21,12 +21,10 @@ page 7501 "Item Attribute Values"
                 field(Value; Rec.Value)
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the value of the item attribute.';
                 }
                 field(Blocked; Rec.Blocked)
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies that the attribute value cannot be assigned to an item. Items to which the attribute value is already assigned are not affected.';
                 }
             }
         }

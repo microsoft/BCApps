@@ -118,13 +118,18 @@ page 9007 "Purchasing Agent Role Center"
             separator(Action28)
             {
             }
+#if not CLEAN28
             action("Availability Projection")
             {
                 ApplicationArea = Basic, Suite;
                 Caption = 'Availability Projection';
                 RunObject = Report "Availability Projection";
                 ToolTip = 'View a list of the quantity of each item in customer, purchase, and transfer orders and the quantity available in inventory. The list is divided into columns that cover six periods with starting and ending dates as well as the periods before and after those periods. The list is useful when you are planning your inventory purchases.';
+                ObsoleteReason = 'Prepare for extraction of Manufacturing app';
+                ObsoleteState = Pending;
+                ObsoleteTag = '28.0';
             }
+#endif
             action("Purchase Order Status")
             {
                 ApplicationArea = Basic, Suite;

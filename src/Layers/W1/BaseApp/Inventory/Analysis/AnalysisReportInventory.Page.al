@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -23,22 +23,18 @@ page 9377 "Analysis Report Inventory"
                 field(Name; Rec.Name)
                 {
                     ApplicationArea = InventoryAnalysis;
-                    ToolTip = 'Specifies the analysis report name.';
                 }
                 field(Description; Rec.Description)
                 {
                     ApplicationArea = InventoryAnalysis;
-                    ToolTip = 'Specifies the analysis report description.';
                 }
                 field("Analysis Line Template Name"; Rec."Analysis Line Template Name")
                 {
                     ApplicationArea = InventoryAnalysis;
-                    ToolTip = 'Specifies the analysis line template name for this analysis report.';
                 }
                 field("Analysis Column Template Name"; Rec."Analysis Column Template Name")
                 {
                     ApplicationArea = InventoryAnalysis;
-                    ToolTip = 'Specifies the column template name for this analysis report.';
                 }
             }
         }

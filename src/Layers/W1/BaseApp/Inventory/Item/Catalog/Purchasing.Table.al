@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -18,16 +18,19 @@ table 5721 Purchasing
         field(1; "Code"; Code[10])
         {
             Caption = 'Code';
+            ToolTip = 'Specifies a code for a purchasing activity.';
             NotBlank = true;
         }
         field(2; Description; Text[100])
         {
             Caption = 'Description';
+            ToolTip = 'Specifies a description of the purchasing activity specified by the code.';
         }
         field(3; "Drop Shipment"; Boolean)
         {
             AccessByPermission = TableData "Drop Shpt. Post. Buffer" = R;
             Caption = 'Drop Shipment';
+            ToolTip = 'Specifies if your vendor ships the items directly to your customer.';
 
             trigger OnValidate()
             begin
@@ -38,6 +41,7 @@ table 5721 Purchasing
         field(4; "Special Order"; Boolean)
         {
             Caption = 'Special Order';
+            ToolTip = 'Specifies that this purchase activity includes arranging for a special order.';
 
             trigger OnValidate()
             begin

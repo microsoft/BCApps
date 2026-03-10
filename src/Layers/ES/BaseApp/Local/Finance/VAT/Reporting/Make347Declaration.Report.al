@@ -134,7 +134,8 @@ report 10707 "Make 347 Declaration"
                                   UpperCase(Name347) + LetterDTxt +
                                   CountyCode + CVCountryCode + PadStr('', 1, ' ') + LetterBTxt + AmountText + PadStr('', 2, ' ') +
                                   CashAmtText + FormatAmount(0) + YearText + GetSalesQuarterAmountsText() + PadStr('', 17, ' ') +
-                                  GetVATCashRegimeText(AnnualAmountVATCashRegime, OperationsCashAccountingCriteria, ReverseChargeOperation);
+                                  GetVATCashRegimeText(AnnualAmountVATCashRegime, OperationsCashAccountingCriteria, ReverseChargeOperation) +
+                                  GetBDNSCallNumberText();
                                 OutText := PadStr(OutText, 500, ' ');
 
                                 AppendLine(OutText);
@@ -158,7 +159,8 @@ report 10707 "Make 347 Declaration"
                                           '2347' + FiscalYear + UpperCase(VATRegNo) + UpperCase(VATRegNo347) + PadStr('', 9, ' ') + UpperCase(Name347) +
                                           LetterDTxt + CountyCode + CVCountryCode + PadStr('', 1, ' ') + LetterBTxt + AmountText + PadStr('', 2, ' ') +
                                           CashAmtText + FormatAmount(0) + YearText + GetQuarterZeroAmountsText() + PadStr('', 17, ' ') +
-                                          GetVATCashRegimeText(AnnualAmountVATCashRegime, OperationsCashAccountingCriteria, ReverseChargeOperation);
+                                          GetVATCashRegimeText(AnnualAmountVATCashRegime, OperationsCashAccountingCriteria, ReverseChargeOperation) +
+                                          GetBDNSCallNumberText();
                                         OutText := PadStr(OutText, 500, ' ');
                                         AppendLine(OutText);
                                         // Increase RecordCount
@@ -326,7 +328,8 @@ report 10707 "Make 347 Declaration"
                                       UpperCase(Name347) + LetterDTxt + CountyCode + CVCountryCode + PadStr('', 1, ' ') + LetterATxt +
                                       AmountText + PadStr('', 2, ' ') + PadStr('', 15, '0') + ' ' + PadStr('', 15, '0') + PadStr('', 4, '0') +
                                       GetPurchQuarterAmountsText(1) + PadStr('', 17, ' ') +
-                                      GetVATCashRegimeText(AnnualAmountVATCashRegime, OperationsCashAccountingCriteria, '');
+                                      GetVATCashRegimeText(AnnualAmountVATCashRegime, OperationsCashAccountingCriteria, '') +
+                                      GetBDNSCallNumberText();
                                     OutText := PadStr(OutText, 500, ' ');
 
                                     AppendLine(OutText);
@@ -341,7 +344,8 @@ report 10707 "Make 347 Declaration"
                                       UpperCase(Name347) + LetterDTxt + CountyCode + CVCountryCode + PadStr('', 1, ' ') + LetterATxt +
                                       AmountText + PadStr('', 2, ' ') + PadStr('', 15, '0') + ' ' + PadStr('', 15, '0') + PadStr('', 4, '0') +
                                       GetPurchQuarterAmountsText(2) + PadStr('', 17, ' ') +
-                                      GetVATCashRegimeText(0, '', ReverseChargeOperation);
+                                      GetVATCashRegimeText(0, '', ReverseChargeOperation) +
+                                      GetBDNSCallNumberText();
                                     OutText := PadStr(OutText, 500, ' ');
 
                                     AppendLine(OutText);
@@ -1380,6 +1384,13 @@ report 10707 "Make 347 Declaration"
         SIICollectionsInCash := NewCollectionInCashMode;
         IsSilentMode := SIICollectionsInCash;
         RequestOptionsPage.Caption(GenerateCollectionsInCashLbl);
+    end;
+
+    local procedure GetBDNSCallNumberText(): Text[6]
+    begin
+        // this number is used to declare subsidies/public aid
+        // we don't support those features, so we just set a default value that makes the exported file valid
+        exit('000000')
     end;
 
     local procedure GetVATCashRegimeText(AnnualVATCashAmount: Decimal; OperationsCashAccountingCriteriaFlag: Code[1]; ReverseChargeOperationFlag: Code[1]) Text: Text[19]

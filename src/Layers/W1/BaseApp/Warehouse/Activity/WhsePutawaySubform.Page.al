@@ -32,41 +32,34 @@ page 5771 "Whse. Put-away Subform"
                 field("Action Type"; Rec."Action Type")
                 {
                     ApplicationArea = Warehouse;
-                    ToolTip = 'Specifies the action type for the warehouse activity line.';
                     Visible = not HideBinFields;
                 }
                 field("Source Document"; Rec."Source Document")
                 {
                     ApplicationArea = Warehouse;
-                    ToolTip = 'Specifies the type of document that the line relates to.';
                 }
                 field("Source No."; Rec."Source No.")
                 {
                     ApplicationArea = Warehouse;
-                    ToolTip = 'Specifies the number of the source document that the entry originates from.';
                 }
                 field("Item No."; Rec."Item No.")
                 {
                     ApplicationArea = Warehouse;
-                    ToolTip = 'Specifies the item number of the item to be handled, such as picked or put away.';
                 }
                 field("Variant Code"; Rec."Variant Code")
                 {
                     ApplicationArea = Planning;
-                    ToolTip = 'Specifies the variant of the item on the line.';
                     Visible = false;
                 }
                 field(Description; Rec.Description)
                 {
                     ApplicationArea = Warehouse;
-                    ToolTip = 'Specifies a description of the item on the line.';
                 }
                 field("Serial No."; Rec."Serial No.")
                 {
                     ApplicationArea = ItemTracking;
                     Editable = false;
                     Lookup = false;
-                    ToolTip = 'Specifies the serial number to handle in the document.';
                     Visible = false;
                 }
                 field("Lot No."; Rec."Lot No.")
@@ -74,7 +67,6 @@ page 5771 "Whse. Put-away Subform"
                     ApplicationArea = ItemTracking;
                     Editable = false;
                     Lookup = false;
-                    ToolTip = 'Specifies the lot number to handle in the document.';
                     Visible = false;
                 }
                 field("Package No."; Rec."Package No.")
@@ -82,34 +74,29 @@ page 5771 "Whse. Put-away Subform"
                     ApplicationArea = ItemTracking;
                     Editable = false;
                     Lookup = false;
-                    ToolTip = 'Specifies the package number to handle in the document.';
                     Visible = false;
                 }
                 field("Expiration Date"; Rec."Expiration Date")
                 {
                     ApplicationArea = ItemTracking;
                     Editable = false;
-                    ToolTip = 'Specifies the expiration date of the serial/lot numbers if you are putting items away.';
                     Visible = false;
                 }
                 field("Location Code"; Rec."Location Code")
                 {
                     ApplicationArea = Location;
-                    ToolTip = 'Specifies the code for the location where the activity occurs.';
                     Visible = false;
                 }
                 field("Zone Code"; Rec."Zone Code")
                 {
                     ApplicationArea = Warehouse;
                     Editable = ZoneCodeEditable;
-                    ToolTip = 'Specifies the zone code where the bin on this line is located.';
                     Visible = false;
                 }
                 field("Bin Code"; Rec."Bin Code")
                 {
                     ApplicationArea = Warehouse;
                     Editable = BinCodeEditable;
-                    ToolTip = 'Specifies the bin where the items are picked or put away.';
                     Visible = not HideBinFields;
 
                     trigger OnValidate()
@@ -120,13 +107,11 @@ page 5771 "Whse. Put-away Subform"
                 field("Shelf No."; Rec."Shelf No.")
                 {
                     ApplicationArea = Warehouse;
-                    ToolTip = 'Specifies the shelf number of the item for informational use.';
                     Visible = false;
                 }
                 field(Quantity; Rec.Quantity)
                 {
                     ApplicationArea = Warehouse;
-                    ToolTip = 'Specifies the quantity of the item to be handled, such as received, put-away, or assigned.';
                     Editable = false;
                 }
                 field("Qty. (Base)"; Rec."Qty. (Base)")
@@ -139,7 +124,6 @@ page 5771 "Whse. Put-away Subform"
                 {
                     ApplicationArea = Warehouse;
                     Editable = QtyToHandleEditable;
-                    ToolTip = 'Specifies how many units to handle in this warehouse activity.';
 
                     trigger OnValidate()
                     begin
@@ -149,7 +133,6 @@ page 5771 "Whse. Put-away Subform"
                 field("Qty. Handled"; Rec."Qty. Handled")
                 {
                     ApplicationArea = Warehouse;
-                    ToolTip = 'Specifies the number of items on the line that have been handled in this warehouse activity.';
                 }
                 field("Qty. to Handle (Base)"; Rec."Qty. to Handle (Base)")
                 {
@@ -166,7 +149,6 @@ page 5771 "Whse. Put-away Subform"
                 field("Qty. Outstanding"; Rec."Qty. Outstanding")
                 {
                     ApplicationArea = Warehouse;
-                    ToolTip = 'Specifies the number of items that have not yet been handled for this warehouse activity line.';
                 }
                 field("Qty. Outstanding (Base)"; Rec."Qty. Outstanding (Base)")
                 {
@@ -177,58 +159,48 @@ page 5771 "Whse. Put-away Subform"
                 field("Due Date"; Rec."Due Date")
                 {
                     ApplicationArea = Warehouse;
-                    ToolTip = 'Specifies the date when the warehouse activity must be completed.';
                 }
                 field("Unit of Measure Code"; Rec."Unit of Measure Code")
                 {
                     ApplicationArea = Warehouse;
-                    ToolTip = 'Specifies how each unit of the item or resource is measured, such as in pieces or hours. By default, the value in the Base Unit of Measure field on the item or resource card is inserted.';
                 }
                 field("Qty. per Unit of Measure"; Rec."Qty. per Unit of Measure")
                 {
                     ApplicationArea = Warehouse;
-                    ToolTip = 'Specifies the quantity per unit of measure of the item on the line.';
                 }
                 field("Destination Type"; Rec."Destination Type")
                 {
                     ApplicationArea = Warehouse;
-                    ToolTip = 'Specifies information about the type of destination, such as customer or vendor, associated with the warehouse activity line.';
                     Visible = false;
                 }
                 field("Destination No."; Rec."Destination No.")
                 {
                     ApplicationArea = Warehouse;
-                    ToolTip = 'Specifies the number or code of the customer, vendor or location related to the activity line.';
                     Visible = false;
                 }
                 field("Whse. Document Type"; Rec."Whse. Document Type")
                 {
                     ApplicationArea = Warehouse;
-                    ToolTip = 'Specifies the type of warehouse document from which the line originated.';
                     Visible = false;
                 }
                 field("Whse. Document No."; Rec."Whse. Document No.")
                 {
                     ApplicationArea = Warehouse;
-                    ToolTip = 'Specifies the number of the warehouse document that is the basis for the action on the line.';
                     Visible = false;
                 }
                 field("Whse. Document Line No."; Rec."Whse. Document Line No.")
                 {
                     ApplicationArea = Warehouse;
-                    ToolTip = 'Specifies the number of the line in the warehouse document that is the basis for the action on the line.';
                     Visible = false;
                 }
                 field("Special Equipment Code"; Rec."Special Equipment Code")
                 {
                     ApplicationArea = Warehouse;
-                    ToolTip = 'Specifies the code of the equipment required when you perform the action on the line.';
                     Visible = false;
                 }
                 field("Cross-Dock Information"; Rec."Cross-Dock Information")
                 {
                     ApplicationArea = Warehouse;
-                    ToolTip = 'Specifies an option for specific information regarding the cross-dock activity.';
                 }
             }
         }

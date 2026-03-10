@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -79,6 +79,7 @@ table 133 "Incoming Document Attachment"
         field(8; Content; BLOB)
         {
             Caption = 'Content';
+            ToolTip = 'Specifies the content of the attachment.';
             SubType = Bitmap;
         }
         field(9; "Document No."; Code[20])

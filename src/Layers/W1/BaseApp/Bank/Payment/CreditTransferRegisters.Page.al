@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -34,13 +34,11 @@ page 1205 "Credit Transfer Registers"
                 {
                     ApplicationArea = Basic, Suite;
                     Editable = false;
-                    ToolTip = 'Specifies the number of the involved entry or record, according to the specified number series.';
                 }
                 field(Identifier; Rec.Identifier)
                 {
                     ApplicationArea = Basic, Suite;
                     Editable = false;
-                    ToolTip = 'Specifies a serial number for a successful credit transfer. Failed file exports are excluded from the sequence of serial numbers. For more information, see the Status field.';
                 }
 #pragma warning disable AA0100
                 field("FORMAT(""Created Date-Time"")"; Format(Rec."Created Date-Time"))
@@ -55,30 +53,25 @@ page 1205 "Credit Transfer Registers"
                 {
                     ApplicationArea = Basic, Suite;
                     Editable = false;
-                    ToolTip = 'Specifies which user made the credit transfer.';
                 }
                 field(Status; Rec.Status)
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the status of the payment file export for this credit transfer. The field is read-only.';
                 }
                 field("No. of Transfers"; Rec."No. of Transfers")
                 {
                     ApplicationArea = Basic, Suite;
                     Editable = false;
-                    ToolTip = 'Specifies how many credit transfers the exported file covers.';
                 }
                 field("From Bank Account No."; Rec."From Bank Account No.")
                 {
                     ApplicationArea = Basic, Suite;
                     Editable = false;
-                    ToolTip = 'Specifies the number of your bank account from which the credit transfer was made.';
                 }
                 field("From Bank Account Name"; Rec."From Bank Account Name")
                 {
                     ApplicationArea = Basic, Suite;
                     Editable = false;
-                    ToolTip = 'Specifies the name of your bank account from which the credit transfer was made.';
                 }
             }
         }

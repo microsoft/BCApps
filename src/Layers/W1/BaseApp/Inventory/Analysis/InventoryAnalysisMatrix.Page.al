@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -27,14 +27,12 @@ page 9201 "Inventory Analysis Matrix"
                     ApplicationArea = InventoryAnalysis;
                     Style = Strong;
                     StyleExpr = Emphasize;
-                    ToolTip = 'Specifies a row reference number for the analysis line.';
                 }
                 field(Description; Rec.Description)
                 {
                     ApplicationArea = InventoryAnalysis;
                     Style = Strong;
                     StyleExpr = Emphasize;
-                    ToolTip = 'Specifies a description for the analysis line.';
                 }
                 field(Field1; MatrixData[1])
                 {

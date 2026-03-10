@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -19,6 +19,7 @@ table 90 "BOM Component"
         field(1; "Parent Item No."; Code[20])
         {
             Caption = 'Parent Item No.';
+            ToolTip = 'Specifies the number of the assembly item that the assembly BOM component belongs to.';
             NotBlank = true;
             TableRelation = Item where(Type = const(Inventory));
         }
@@ -29,6 +30,7 @@ table 90 "BOM Component"
         field(3; Type; Enum "BOM Component Type")
         {
             Caption = 'Type';
+            ToolTip = 'Specifies if the assembly BOM component is an item or a resource.';
 
             trigger OnValidate()
             begin
@@ -39,6 +41,7 @@ table 90 "BOM Component"
         field(4; "No."; Code[20])
         {
             Caption = 'No.';
+            ToolTip = 'Specifies the number of the involved entry or record, according to the specified number series.';
             TableRelation = if (Type = const(Item)) Item where(Type = filter(Inventory | "Non-Inventory"))
             else
             if (Type = const(Resource)) Resource;
@@ -62,16 +65,19 @@ table 90 "BOM Component"
         {
             CalcFormula = exist("BOM Component" where("Parent Item No." = field("No.")));
             Caption = 'Assembly BOM';
+            ToolTip = 'Specifies if the assembly BOM component is an assembly BOM.';
             Editable = false;
             FieldClass = FlowField;
         }
         field(6; Description; Text[100])
         {
             Caption = 'Description';
+            ToolTip = 'Specifies a description of the assembly BOM component.';
         }
         field(7; "Unit of Measure Code"; Code[10])
         {
             Caption = 'Unit of Measure Code';
+            ToolTip = 'Specifies how each unit of the item or resource is measured, such as in pieces or hours. By default, the value in the Base Unit of Measure field on the item or resource card is inserted.';
             TableRelation = if (Type = const(Item)) "Item Unit of Measure".Code where("Item No." = field("No."))
             else
             if (Type = const(Resource)) "Resource Unit of Measure".Code where("Resource No." = field("No."));
@@ -80,6 +86,7 @@ table 90 "BOM Component"
         {
             AutoFormatType = 0;
             Caption = 'Quantity per';
+            ToolTip = 'Specifies how many units of the component are required to assemble or produce the parent item.';
             DecimalPlaces = 0 : 5;
             MinValue = 0;
 
@@ -92,33 +99,40 @@ table 90 "BOM Component"
         field(9; Position; Code[10])
         {
             Caption = 'Position';
+            ToolTip = 'Specifies the position of the component on the bill of material.';
         }
         field(10; "Position 2"; Code[10])
         {
             Caption = 'Position 2';
+            ToolTip = 'Specifies the component''s position in the assembly BOM structure.';
         }
         field(11; "Position 3"; Code[10])
         {
             Caption = 'Position 3';
+            ToolTip = 'Specifies the third reference number for the component position on a bill of material, such as the alternate position number of a component on a print card.';
         }
         field(12; "Machine No."; Code[10])
         {
             Caption = 'Machine No.';
+            ToolTip = 'Specifies a machine that should be used when processing the component on this line of the assembly BOM.';
         }
         field(13; "Lead-Time Offset"; DateFormula)
         {
             Caption = 'Lead-Time Offset';
+            ToolTip = 'Specifies the total number of days required to assemble the item on the assembly BOM line.';
         }
         field(14; "BOM Description"; Text[100])
         {
             CalcFormula = lookup(Item.Description where("No." = field("Parent Item No.")));
             Caption = 'BOM Description';
+            ToolTip = 'Specifies a description of the assembly BOM if the item on the line is an assembly BOM.';
             Editable = false;
             FieldClass = FlowField;
         }
         field(20; "Resource Usage Type"; Option)
         {
             Caption = 'Resource Usage Type';
+            ToolTip = 'Specifies how the cost of the resource on the assembly BOM is allocated during assembly.';
             OptionCaption = 'Direct,Fixed';
             OptionMembers = Direct,"Fixed";
 
@@ -133,6 +147,7 @@ table 90 "BOM Component"
         field(5402; "Variant Code"; Code[10])
         {
             Caption = 'Variant Code';
+            ToolTip = 'Specifies the variant of the item on the line.';
             TableRelation = if (Type = const(Item)) "Item Variant".Code where("Item No." = field("No."));
 
             trigger OnValidate()
@@ -184,6 +199,7 @@ table 90 "BOM Component"
         field(5901; "Installed in Item No."; Code[20])
         {
             Caption = 'Installed in Item No.';
+            ToolTip = 'Specifies which service item the component on the line is used in.';
             TableRelation = if (Type = const(Item)) Item;
 
             trigger OnLookup()

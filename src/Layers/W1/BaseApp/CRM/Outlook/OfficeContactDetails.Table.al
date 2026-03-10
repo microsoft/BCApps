@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -19,6 +19,7 @@ table 1626 "Office Contact Details"
         field(1; "Contact No."; Code[20])
         {
             Caption = 'Contact No.';
+            ToolTip = 'Specifies the number of the associated Office contact.';
         }
         field(2; "Business Relation Code"; Code[10])
         {
@@ -28,12 +29,14 @@ table 1626 "Office Contact Details"
         field(3; "Associated Table"; Option)
         {
             Caption = 'Associated Table';
+            ToolTip = 'Specifies the table that is associated with the contact, such as Customer, Vendor, Bank Account, or Company.';
             OptionCaption = ' ,Customer,Vendor,Bank Account,Company';
             OptionMembers = " ",Customer,Vendor,"Bank Account",Company;
         }
         field(4; "No."; Code[20])
         {
             Caption = 'No.';
+            ToolTip = 'Specifies the number of the involved entry or record, according to the specified number series.';
             TableRelation = if ("Associated Table" = const(Customer)) Customer
             else
             if ("Associated Table" = const(Vendor)) Vendor
@@ -48,14 +51,17 @@ table 1626 "Office Contact Details"
         field(6; "Contact Name"; Text[100])
         {
             Caption = 'Contact Name';
+            ToolTip = 'Specifies the name of the Office contact.';
         }
         field(7; Type; Enum "Office Contact Type")
         {
             Caption = 'Type';
+            ToolTip = 'Specifies the type of the contact, such as company or contact person.';
         }
         field(8; Company; Text[50])
         {
             Caption = 'Company';
+            ToolTip = 'Specifies the company of the contact.';
             DataClassification = OrganizationIdentifiableInformation;
         }
     }

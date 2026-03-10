@@ -25,42 +25,35 @@ page 99000817 "Prod. Order Routing"
                 field("Prod. Order No."; Rec."Prod. Order No.")
                 {
                     ApplicationArea = Manufacturing;
-                    ToolTip = 'Specifies the number of the related production order.';
                     Visible = ProdOrderNoVisible;
                 }
                 field("Schedule Manually"; Rec."Schedule Manually")
                 {
                     ApplicationArea = Manufacturing;
-                    ToolTip = 'Specifies that the underlying capacity need is recalculated each time a change is made in the schedule of the routing.';
                     Visible = false;
                 }
                 field("Operation No."; Rec."Operation No.")
                 {
                     ApplicationArea = Manufacturing;
-                    ToolTip = 'Specifies the operation number.';
                 }
                 field("Previous Operation No."; Rec."Previous Operation No.")
                 {
                     ApplicationArea = Manufacturing;
-                    ToolTip = 'Specifies the previous operation number.';
                     Visible = false;
                 }
                 field("Next Operation No."; Rec."Next Operation No.")
                 {
                     ApplicationArea = Manufacturing;
                     Editable = NextOperationNoEditable;
-                    ToolTip = 'Specifies the next operation number.';
                     Visible = false;
                 }
                 field(Type; Rec.Type)
                 {
                     ApplicationArea = Manufacturing;
-                    ToolTip = 'Specifies the type of operation.';
                 }
                 field("No."; Rec."No.")
                 {
                     ApplicationArea = Manufacturing;
-                    ToolTip = 'Specifies the number of the involved entry or record, according to the specified number series.';
                 }
 #if not CLEAN27
                 field("WIP Item"; Rec."WIP Item")
@@ -75,7 +68,6 @@ page 99000817 "Prod. Order Routing"
                 field(Description; Rec.Description)
                 {
                     ApplicationArea = Manufacturing;
-                    ToolTip = 'Specifies the description of the operation.';
                 }
                 field("Routing Link Code"; Rec."Routing Link Code")
                 {
@@ -85,7 +77,6 @@ page 99000817 "Prod. Order Routing"
                 field("Description 2"; Rec."Description 2")
                 {
                     ApplicationArea = Manufacturing;
-                    ToolTip = 'Specifies additional description text.';
                     Visible = false;
                 }
                 field("Flushing Method"; Rec."Flushing Method")
@@ -96,7 +87,6 @@ page 99000817 "Prod. Order Routing"
                 field("Starting Date-Time"; Rec."Starting Date-Time")
                 {
                     ApplicationArea = Manufacturing;
-                    ToolTip = 'Specifies the starting date and the starting time, which are combined in a format called "starting date-time".';
 
                     trigger OnValidate()
                     begin
@@ -132,7 +122,6 @@ page 99000817 "Prod. Order Routing"
                 field("Ending Date-Time"; Rec."Ending Date-Time")
                 {
                     ApplicationArea = Manufacturing;
-                    ToolTip = 'Specifies the ending date and the ending time, which are combined in a format called "ending date-time".';
 
                     trigger OnValidate()
                     begin
@@ -168,7 +157,6 @@ page 99000817 "Prod. Order Routing"
                 field("Setup Time"; Rec."Setup Time")
                 {
                     ApplicationArea = Manufacturing;
-                    ToolTip = 'Specifies the setup time of the operation.';
 
                     trigger OnValidate()
                     begin
@@ -184,7 +172,6 @@ page 99000817 "Prod. Order Routing"
                 field("Run Time"; Rec."Run Time")
                 {
                     ApplicationArea = Manufacturing;
-                    ToolTip = 'Specifies the run time of the operation.';
 
                     trigger OnValidate()
                     begin
@@ -200,7 +187,6 @@ page 99000817 "Prod. Order Routing"
                 field("Wait Time"; Rec."Wait Time")
                 {
                     ApplicationArea = Manufacturing;
-                    ToolTip = 'Specifies the wait time after processing.';
 
                     trigger OnValidate()
                     begin
@@ -210,13 +196,11 @@ page 99000817 "Prod. Order Routing"
                 field("Wait Time Unit of Meas. Code"; Rec."Wait Time Unit of Meas. Code")
                 {
                     ApplicationArea = Manufacturing;
-                    ToolTip = 'Specifies the unit of measure code that applies to the wait time.';
                     Visible = false;
                 }
                 field("Move Time"; Rec."Move Time")
                 {
                     ApplicationArea = Manufacturing;
-                    ToolTip = 'Specifies the move time.';
 
                     trigger OnValidate()
                     begin
@@ -226,13 +210,11 @@ page 99000817 "Prod. Order Routing"
                 field("Move Time Unit of Meas. Code"; Rec."Move Time Unit of Meas. Code")
                 {
                     ApplicationArea = Manufacturing;
-                    ToolTip = 'Specifies the unit of measure code that applies to the move time.';
                     Visible = false;
                 }
                 field("Fixed Scrap Quantity"; Rec."Fixed Scrap Quantity")
                 {
                     ApplicationArea = Manufacturing;
-                    ToolTip = 'Specifies the fixed scrap quantity.';
                     Visible = false;
                 }
                 field("Routing Link Code2"; Rec."Routing Link Code")
@@ -243,19 +225,16 @@ page 99000817 "Prod. Order Routing"
                 field("Scrap Factor %"; Rec."Scrap Factor %")
                 {
                     ApplicationArea = Manufacturing;
-                    ToolTip = 'Specifies the scrap factor in percent.';
                     Visible = false;
                 }
                 field("Send-Ahead Quantity"; Rec."Send-Ahead Quantity")
                 {
                     ApplicationArea = Manufacturing;
-                    ToolTip = 'Specifies the send-ahead quantity of the operation.';
                     Visible = false;
                 }
                 field("Concurrent Capacities"; Rec."Concurrent Capacities")
                 {
                     ApplicationArea = Manufacturing;
-                    ToolTip = 'Specifies the concurrent capacity of the operation.';
                     Visible = false;
                 }
                 field("Unit Cost per"; Rec."Unit Cost per")
@@ -279,12 +258,10 @@ page 99000817 "Prod. Order Routing"
                 field("Expected Operation Cost Amt."; Rec."Expected Operation Cost Amt.")
                 {
                     ApplicationArea = Manufacturing;
-                    ToolTip = 'Specifies the total cost of operations. It is automatically calculated from the capacity need, when a production order is refreshed or replanned.';
                 }
                 field("Expected Capacity Ovhd. Cost"; Rec."Expected Capacity Ovhd. Cost")
                 {
                     ApplicationArea = Manufacturing;
-                    ToolTip = 'Specifies the capacity overhead. It is automatically calculated from the capacity need, when a production order is refreshed or replanned.';
                     Visible = false;
                 }
                 field("Expected Capacity Need"; Rec."Expected Capacity Need" / ExpCapacityNeed())
@@ -299,31 +276,26 @@ page 99000817 "Prod. Order Routing"
                 field("Routing Status"; Rec."Routing Status")
                 {
                     ApplicationArea = Manufacturing;
-                    ToolTip = 'Specifies the status of the routing line, such as Planned, In Progress, or Finished.';
                     Visible = false;
                 }
                 field("Location Code"; Rec."Location Code")
                 {
                     ApplicationArea = Location;
-                    ToolTip = 'Specifies the location where the machine or work center on the production order routing line operates.';
                     Visible = false;
                 }
                 field("Open Shop Floor Bin Code"; Rec."Open Shop Floor Bin Code")
                 {
                     ApplicationArea = Manufacturing;
-                    ToolTip = 'Specifies the corresponding bin at the machine or work center, if the location code matches the setup of that machine or work center.';
                     Visible = false;
                 }
                 field("To-Production Bin Code"; Rec."To-Production Bin Code")
                 {
                     ApplicationArea = Manufacturing;
-                    ToolTip = 'Specifies the bin that holds components with a flushing method, that involves a warehouse activity to bring the items to the bin.';
                     Visible = false;
                 }
                 field("From-Production Bin Code"; Rec."From-Production Bin Code")
                 {
                     ApplicationArea = Manufacturing;
-                    ToolTip = 'Specifies the corresponding bin at the machine or work center if the location code matches the setup of that machine or work center.';
                     Visible = false;
                 }
 #if not CLEAN27
@@ -379,7 +351,6 @@ page 99000817 "Prod. Order Routing"
                 field("Standard Task Code"; Rec."Standard Task Code")
                 {
                     ApplicationArea = Manufacturing;
-                    ToolTip = 'Specifies the standard task code that applies to the operation.';
                     Visible = false;
                 }
             }

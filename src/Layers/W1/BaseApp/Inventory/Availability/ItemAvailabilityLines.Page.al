@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -33,20 +33,17 @@ page 353 "Item Availability Lines"
                 {
                     ApplicationArea = Basic, Suite;
                     Caption = 'Period Start';
-                    ToolTip = 'Specifies the first period that item availability is shown for.';
                 }
                 field("Period Name"; Rec."Period Name")
                 {
                     ApplicationArea = Basic, Suite;
                     Caption = 'Period Name';
-                    ToolTip = 'Specifies the type of period that item availability is shown for.';
                 }
                 field(GrossRequirement; Rec."Gross Requirement")
                 {
                     ApplicationArea = Basic, Suite;
                     Caption = 'Gross Requirement';
                     DecimalPlaces = 0 : 5;
-                    ToolTip = 'Specifies the sum of the total demand for the item. The gross requirement consists of independent demand (which include sales orders, service orders, transfer orders, and, if specified on the page, demand forecasts) and dependent demand (which include production order components for planned, firm planned, and released production orders and requisition and planning worksheets lines).';
 
                     trigger OnDrillDown()
                     begin
@@ -58,7 +55,6 @@ page 353 "Item Availability Lines"
                     ApplicationArea = Basic, Suite;
                     Caption = 'Scheduled Receipt';
                     DecimalPlaces = 0 : 5;
-                    ToolTip = 'Specifies the sum of items from replenishment orders.';
 
                     trigger OnDrillDown()
                     begin
@@ -70,7 +66,6 @@ page 353 "Item Availability Lines"
                     ApplicationArea = Basic, Suite;
                     Caption = 'Planned Order Receipt';
                     DecimalPlaces = 0 : 5;
-                    ToolTip = 'Specifies the item''s availability figures for the planned order receipt.';
 
                     trigger OnDrillDown()
                     begin
@@ -82,7 +77,6 @@ page 353 "Item Availability Lines"
                     ApplicationArea = Basic, Suite;
                     Caption = 'Projected Available Balance';
                     DecimalPlaces = 0 : 5;
-                    ToolTip = 'Specifies the item''s availability. This quantity includes all known supply and demand but does not include anticipated demand from demand forecasts or blanket sales orders or suggested supplies from planning or requisition worksheets.';
 
                     trigger OnDrillDown()
                     begin
@@ -94,7 +88,6 @@ page 353 "Item Availability Lines"
                     ApplicationArea = Basic, Suite;
                     Caption = 'Inventory';
                     DecimalPlaces = 0 : 5;
-                    ToolTip = 'Specifies the inventory level of an item.';
                     Visible = false;
 
                     trigger OnDrillDown()
@@ -243,7 +236,6 @@ page 353 "Item Availability Lines"
                     ApplicationArea = Assembly;
                     Caption = 'Expected Inventory';
                     DecimalPlaces = 0 : 5;
-                    ToolTip = 'Specifies how many units of the assembly component are expected to be available for the current assembly order on the due date.';
                     Visible = false;
                 }
                 field(QtyAvailable; Rec."Available Inventory")
@@ -251,7 +243,6 @@ page 353 "Item Availability Lines"
                     ApplicationArea = Basic, Suite;
                     Caption = 'Available Inventory';
                     DecimalPlaces = 0 : 5;
-                    ToolTip = 'Specifies the quantity of the item that is currently in inventory and not reserved for other demand.';
                     Visible = false;
                 }
                 field(PlannedOrderReleases; Rec."Planned Order Releases")
@@ -259,7 +250,6 @@ page 353 "Item Availability Lines"
                     ApplicationArea = Basic, Suite;
                     Caption = 'Planned Order Releases';
                     DecimalPlaces = 0 : 5;
-                    ToolTip = 'Specifies the sum of items from replenishment order proposals, which include planned production orders and planning or requisition worksheets lines, that are calculated according to the starting date in the planning worksheet and production order or the order date in the requisition worksheet. This sum is not included in the projected available inventory. However, it indicates which quantities should be converted from planned to scheduled receipts.';
                     Visible = true;
 
                     trigger OnDrillDown()

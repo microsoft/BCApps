@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -26,26 +26,31 @@ table 339 "Item Application Entry"
         field(1; "Entry No."; Integer)
         {
             Caption = 'Entry No.';
+            ToolTip = 'Specifies the number of the entry, as assigned from the specified number series when the entry was created.';
         }
         field(2; "Item Ledger Entry No."; Integer)
         {
             Caption = 'Item Ledger Entry No.';
+            ToolTip = 'Specifies one or more item application entries for each inventory transaction that is posted.';
             TableRelation = "Item Ledger Entry";
         }
         field(3; "Inbound Item Entry No."; Integer)
         {
             Caption = 'Inbound Item Entry No.';
+            ToolTip = 'Specifies the number of the item ledger entry corresponding to the inventory increase or positive quantity in inventory.';
             TableRelation = "Item Ledger Entry";
         }
         field(4; "Outbound Item Entry No."; Integer)
         {
             Caption = 'Outbound Item Entry No.';
+            ToolTip = 'Specifies the number of the item ledger entry corresponding to the inventory decrease for this entry.';
             TableRelation = "Item Ledger Entry";
         }
         field(11; Quantity; Decimal)
         {
             AutoFormatType = 0;
             Caption = 'Quantity';
+            ToolTip = 'Specifies the quantity of the item that is being applied from the inventory decrease in the Outbound Item Entry No. field, to the inventory increase in the Inbound Item Entry No. field.';
             DecimalPlaces = 0 : 5;
         }
         field(20; "Item Register No."; Integer)
@@ -57,10 +62,12 @@ table 339 "Item Application Entry"
         field(21; "Posting Date"; Date)
         {
             Caption = 'Posting Date';
+            ToolTip = 'Specifies the posting date that corresponds to the posting date of the item ledger entry, for which this item application entry was created.';
         }
         field(23; "Transferred-from Entry No."; Integer)
         {
             Caption = 'Transferred-from Entry No.';
+            ToolTip = 'Specifies the item ledger entry number of the original inventory increase of the item if the item application entry originates from a transfer.';
             TableRelation = "Item Ledger Entry";
         }
         field(25; "Creation Date"; DateTime)
@@ -87,6 +94,7 @@ table 339 "Item Application Entry"
         {
             CalcFormula = lookup("Item Ledger Entry"."Item No." where("Entry No." = field("Item Ledger Entry No.")));
             Caption = 'Item No.';
+            ToolTip = 'Specifies the item number';
             Editable = false;
             FieldClass = FlowField;
         }
@@ -94,6 +102,7 @@ table 339 "Item Application Entry"
         {
             CalcFormula = lookup("Item Ledger Entry"."Location Code" where("Entry No." = field("Item Ledger Entry No.")));
             Caption = 'Location Code';
+            ToolTip = 'Specifies the location code';
             Editable = false;
             FieldClass = FlowField;
         }
@@ -101,6 +110,7 @@ table 339 "Item Application Entry"
         {
             CalcFormula = lookup("Item Ledger Entry"."Variant Code" where("Entry No." = field("Item Ledger Entry No.")));
             Caption = 'Variant Code';
+            ToolTip = 'Specifies the variant code of the item.';
             Editable = false;
             FieldClass = FlowField;
         }
@@ -108,12 +118,14 @@ table 339 "Item Application Entry"
         {
             CalcFormula = max("Value Entry"."Valuation Date" where("Item Ledger Entry No." = field("Item Ledger Entry No.")));
             Caption = 'Latest Valuation Date';
+            ToolTip = 'Specifies the latest valuation date of the item ledger entry.';
             Editable = false;
             FieldClass = FlowField;
         }
         field(5800; "Cost Application"; Boolean)
         {
             Caption = 'Cost Application';
+            ToolTip = 'Specifies that the application entry should have the cost forwarded or simply included in an average cost calculation.';
         }
         field(5804; "Output Completely Invd. Date"; Date)
         {
@@ -122,6 +134,7 @@ table 339 "Item Application Entry"
         field(5805; "Outbound Entry is Updated"; Boolean)
         {
             Caption = 'Outbound Entry is Updated';
+            ToolTip = 'Specifies that the cost of the related outbound item entry is already updated. If the field is selected, then the cost adjustment routine will not try to update any previous related outbound entries.';
             InitValue = false;
         }
     }

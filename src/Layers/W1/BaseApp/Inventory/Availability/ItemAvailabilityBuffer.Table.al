@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -25,11 +25,13 @@ table 925 "Item Availability Buffer"
         field(6; "Period Name"; Text[50])
         {
             Caption = 'Period Name';
+            ToolTip = 'Specifies the type of period that item availability is shown for.';
             DataClassification = SystemMetadata;
         }
         field(7; "Period Start"; Date)
         {
             Caption = 'Period Start';
+            ToolTip = 'Specifies the first period that item availability is shown for.';
             DataClassification = SystemMetadata;
         }
         field(8; "Period End"; Date)
@@ -41,30 +43,35 @@ table 925 "Item Availability Buffer"
         {
             AutoFormatType = 0;
             Caption = 'Gross Requirement';
+            ToolTip = 'Specifies the sum of the total demand for the item. The gross requirement consists of independent demand (which include sales orders, service orders, transfer orders, and, if specified on the page, demand forecasts) and dependent demand (which include production order components for planned, firm planned, and released production orders and requisition and planning worksheets lines).';
             DataClassification = SystemMetadata;
         }
         field(11; "Scheduled Receipt"; Decimal)
         {
             AutoFormatType = 0;
             Caption = 'Scheduled Receipt';
+            ToolTip = 'Specifies the sum of items from replenishment orders.';
             DataClassification = SystemMetadata;
         }
         field(12; "Planned Order Receipt"; Decimal)
         {
             AutoFormatType = 0;
             Caption = 'Planned Order Receipt';
+            ToolTip = 'Specifies the item''s availability figures for the planned order receipt.';
             DataClassification = SystemMetadata;
         }
         field(13; "Projected Available Balance"; Decimal)
         {
             AutoFormatType = 0;
             Caption = 'Projected Available Balance';
+            ToolTip = 'Specifies the item''s availability. This quantity includes all known supply and demand but does not include anticipated demand from demand forecasts or blanket sales orders or suggested supplies from planning or requisition worksheets.';
             DataClassification = SystemMetadata;
         }
         field(14; Inventory; Decimal)
         {
             AutoFormatType = 0;
             Caption = 'Inventory';
+            ToolTip = 'Specifies the inventory level of an item.';
             DataClassification = SystemMetadata;
         }
         field(15; "Qty. on Purch. Order"; Decimal)
@@ -125,12 +132,14 @@ table 925 "Item Availability Buffer"
         {
             AutoFormatType = 0;
             Caption = 'Expected Inventory';
+            ToolTip = 'Specifies how many units of the assembly component are expected to be available for the current assembly order on the due date.';
             DataClassification = SystemMetadata;
         }
         field(25; "Available Inventory"; Decimal)
         {
             AutoFormatType = 0;
             Caption = 'Available Inventory';
+            ToolTip = 'Specifies the quantity of the item that is currently in inventory and not reserved for other demand.';
             DataClassification = SystemMetadata;
         }
         field(26; "Scheduled Receipt (Qty.)"; Decimal)
@@ -149,6 +158,7 @@ table 925 "Item Availability Buffer"
         {
             AutoFormatType = 0;
             Caption = 'Planned Order Releases';
+            ToolTip = 'Specifies the sum of items from replenishment order proposals, which include planned production orders and planning or requisition worksheets lines, that are calculated according to the starting date in the planning worksheet and production order or the order date in the requisition worksheet. This sum is not included in the projected available inventory. However, it indicates which quantities should be converted from planned to scheduled receipts.';
             DataClassification = SystemMetadata;
         }
         field(29; "Net Change"; Decimal)

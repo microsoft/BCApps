@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -27,19 +27,16 @@ page 376 "Job Journal Reconcile"
                     ApplicationArea = Jobs;
                     Style = Strong;
                     StyleExpr = Emphasize;
-                    ToolTip = 'Specifies how each unit of the item or resource is measured, such as in pieces or hours. By default, the value in the Base Unit of Measure field on the item or resource card is inserted.';
                 }
                 field("Work Type Code"; Rec."Work Type Code")
                 {
                     ApplicationArea = Jobs;
-                    ToolTip = 'Specifies which work type the resource applies to. Prices are updated based on this entry.';
                 }
                 field(Quantity; Rec.Quantity)
                 {
                     ApplicationArea = Jobs;
                     Style = Strong;
                     StyleExpr = Emphasize;
-                    ToolTip = 'Specifies the project quantity to be reconciled.';
                 }
             }
         }

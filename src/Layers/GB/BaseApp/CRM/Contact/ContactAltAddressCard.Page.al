@@ -49,12 +49,10 @@ page 5056 "Contact Alt. Address Card"
                 field("Code"; Rec.Code)
                 {
                     ApplicationArea = All;
-                    ToolTip = 'Specifies the code for the alternate address.';
                 }
                 field("Company Name"; Rec."Company Name")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the name of the company for the alternate address.';
                 }
                 field(Address; Rec.Address)
                 {
@@ -72,7 +70,6 @@ page 5056 "Contact Alt. Address Card"
                 field("Address 2"; Rec."Address 2")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies additional address information.';
                 }
                 field(City; Rec.City)
                 {
@@ -113,7 +110,6 @@ page 5056 "Contact Alt. Address Card"
                 field("Phone No."; Rec."Phone No.")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the telephone number for the alternate address.';
                 }
             }
             group(Communication)
@@ -127,39 +123,32 @@ page 5056 "Contact Alt. Address Card"
                 field("Mobile Phone No."; Rec."Mobile Phone No.")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the mobile phone number for the alternate address.';
                 }
                 field("Fax No."; Rec."Fax No.")
                 {
                     ApplicationArea = Basic, Suite;
                     Importance = Additional;
-                    ToolTip = 'Specifies the fax number for the alternate address.';
                 }
                 field("Telex No."; Rec."Telex No.")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the telex number for the alternate address.';
                 }
                 field(Pager; Rec.Pager)
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the pager number for the contact at the alternate address.';
                 }
                 field("Telex Answer Back"; Rec."Telex Answer Back")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the telex answer back number for the alternate address.';
                 }
                 field("E-Mail"; Rec."E-Mail")
                 {
                     ApplicationArea = Basic, Suite;
                     ExtendedDatatype = EMail;
-                    ToolTip = 'Specifies the e-mail address for the contact at the alternate address.';
                 }
                 field("Home Page"; Rec."Home Page")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the contact''s web site.';
                 }
             }
         }

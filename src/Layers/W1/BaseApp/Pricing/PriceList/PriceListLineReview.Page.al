@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -31,7 +31,6 @@ page 7005 "Price List Line Review"
                 {
                     ApplicationArea = All;
                     Editable = false;
-                    ToolTip = 'Specifies the unique identifier of the price list.';
 
                     trigger OnDrillDown()
                     begin
@@ -49,7 +48,6 @@ page 7005 "Price List Line Review"
                 {
                     ApplicationArea = All;
                     Editable = false;
-                    ToolTip = 'Specifies whether the price list line is in Draft status and can be edited, Inactive and cannot be edited or used, or Active and used for price calculations.';
                     Style = Attention;
                     StyleExpr = LineToVerify;
                 }
@@ -69,7 +67,6 @@ page 7005 "Price List Line Review"
                     ApplicationArea = All;
                     Editable = false;
                     Visible = not HideSourceControls;
-                    ToolTip = 'Specifies the entity to which the prices are assigned. The options depend on the selection in the Assign-to Type field. If you choose an entity, the price list will be used only for that entity.';
                     Style = Attention;
                     StyleExpr = LineToVerify;
                 }
@@ -79,7 +76,6 @@ page 7005 "Price List Line Review"
                     ApplicationArea = All;
                     Editable = false;
                     Visible = not HideProductControls;
-                    ToolTip = 'Specifies the type of the product.';
                     Style = Attention;
                     StyleExpr = LineToVerify;
                 }
@@ -103,7 +99,6 @@ page 7005 "Price List Line Review"
                     ApplicationArea = All;
                     Editable = PriceEditable;
                     Visible = not HideProductControls;
-                    ToolTip = 'Specifies the description of the product.';
                     trigger OnValidate()
                     begin
                         CurrPage.Update(true);
@@ -114,7 +109,6 @@ page 7005 "Price List Line Review"
                     ApplicationArea = All;
                     Visible = ItemAsset;
                     Editable = VariantCodeEditable;
-                    ToolTip = 'Specifies the item variant.';
                     trigger OnValidate()
                     begin
                         CurrPage.Update(true);
@@ -125,7 +119,6 @@ page 7005 "Price List Line Review"
                     ApplicationArea = All;
                     Visible = ResourceAsset;
                     Editable = WorkTypeCodeEditable;
-                    ToolTip = 'Specifies the work type code for the resource.';
                     trigger OnValidate()
                     begin
                         CurrPage.Update(true);
@@ -136,7 +129,6 @@ page 7005 "Price List Line Review"
                     ApplicationArea = All;
                     Enabled = UOMEditable;
                     Editable = UOMEditable;
-                    ToolTip = 'Specifies the unit of measure for the product.';
                     trigger OnValidate()
                     begin
                         CurrPage.Update(true);
@@ -146,7 +138,6 @@ page 7005 "Price List Line Review"
                 {
                     ApplicationArea = All;
                     Editable = PriceEditable;
-                    ToolTip = 'Specifies the minimum quantity of the product.';
                     trigger OnValidate()
                     begin
                         CurrPage.Update(true);
@@ -158,7 +149,6 @@ page 7005 "Price List Line Review"
                     Importance = Standard;
                     Visible = AmountTypeIsVisible;
                     Editable = AmountTypeIsEditable;
-                    ToolTip = 'Specifies whether the price list line defines prices, discounts, or both.';
                     trigger OnValidate()
                     begin
                         SetMandatoryAmount();
@@ -178,7 +168,6 @@ page 7005 "Price List Line Review"
                     Enabled = PriceMandatory;
                     Visible = SalesPriceVisible;
                     StyleExpr = PriceStyle;
-                    ToolTip = 'Specifies the unit price of the product.';
                     trigger OnValidate()
                     begin
                         CurrPage.Update(true);
@@ -191,7 +180,6 @@ page 7005 "Price List Line Review"
                     Enabled = PriceMandatory;
                     Visible = SalesPriceVisible;
                     StyleExpr = PriceStyle;
-                    ToolTip = 'Specifies the unit cost factor for project-related prices, if you have agreed with your customer that he should pay certain item usage by cost value plus a certain percent value to cover your overhead expenses.';
                     trigger OnValidate()
                     begin
                         CurrPage.Update(true);
@@ -205,7 +193,6 @@ page 7005 "Price List Line Review"
                     Enabled = PriceMandatory;
                     Visible = DirectUnitCostVisible;
                     StyleExpr = PriceStyle;
-                    ToolTip = 'Specifies the direct unit cost of the product.';
                     trigger OnValidate()
                     begin
                         CurrPage.Update(true);
@@ -218,7 +205,6 @@ page 7005 "Price List Line Review"
                     Enabled = PriceMandatory;
                     Visible = UnitCostVisible;
                     StyleExpr = PriceStyle;
-                    ToolTip = 'Specifies the unit cost of the resource.';
                     trigger OnValidate()
                     begin
                         CurrPage.Update(true);
@@ -228,13 +214,11 @@ page 7005 "Price List Line Review"
                 {
                     ApplicationArea = All;
                     Editable = false;
-                    ToolTip = 'Specifies the date from which the price is valid.';
                 }
                 field("Ending Date"; Rec."Ending Date")
                 {
                     ApplicationArea = All;
                     Editable = false;
-                    ToolTip = 'Specifies the last date that the price is valid.';
                 }
                 field("Allow Line Disc."; Rec."Allow Line Disc.")
                 {
@@ -242,7 +226,6 @@ page 7005 "Price List Line Review"
                     Visible = PriceVisible;
                     Enabled = PriceMandatory;
                     Editable = AllowDiscEditable;
-                    ToolTip = 'Specifies if a line discount will be calculated when the price is offered.';
                     trigger OnValidate()
                     begin
                         CurrPage.Update(true);
@@ -256,7 +239,6 @@ page 7005 "Price List Line Review"
                     Enabled = DiscountMandatory;
                     Editable = DiscountEditable;
                     StyleExpr = DiscountStyle;
-                    ToolTip = 'Specifies the line discount percentage for the product.';
                     trigger OnValidate()
                     begin
                         CurrPage.Update(true);
@@ -282,7 +264,6 @@ page 7005 "Price List Line Review"
                     Visible = SalesPriceVisible;
                     Enabled = PriceMandatory;
                     Editable = AllowDiscEditable;
-                    ToolTip = 'Specifies if an invoice discount will be calculated when the price is offered.';
                     trigger OnValidate()
                     begin
                         CurrPage.Update(true);

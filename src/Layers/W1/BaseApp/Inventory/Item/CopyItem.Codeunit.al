@@ -146,6 +146,7 @@ codeunit 730 "Copy Item"
         CopyPurchaseLineDiscounts(SourceItem."No.", TargetItem."No.");
         CopyItemAttributes(SourceItem."No.", TargetItem."No.");
         CopyItemReferences(SourceItem."No.", TargetItem."No.");
+        CopyItemVariantAttributes(SourceItem."No.", TargetItem."No.");
 
         OnAfterCopyItem(TempCopyItemBuffer, SourceItem, TargetItem);
     end;
@@ -459,6 +460,19 @@ codeunit 730 "Copy Item"
             exit;
 
         CopyItemRelatedTable(Database::"Item Reference", ItemReference.FieldNo("Item No."), FromItemNo, ToItemNo);
+    end;
+
+    local procedure CopyItemVariantAttributes(FromItemNo: Code[20]; ToItemNo: Code[20])
+    var
+        ItemVarAttrValueMapping: Record "Item Var. Attr. Value Mapping";
+    begin
+        if not TempCopyItemBuffer.Attributes then
+            exit;
+
+        CopyItemRelatedTable(Database::"Item Var. Attr. Value Mapping", ItemVarAttrValueMapping.FieldNo("Item No."), FromItemNo, ToItemNo);
+        ItemVarAttrValueMapping.SetRange("Item No.", ToItemNo);
+        if not ItemVarAttrValueMapping.IsEmpty() then
+            ItemVarAttrValueMapping.ModifyAll("Inherited-From Key Value", ToItemNo);
     end;
 
     local procedure ShowNotification(Item: Record Item)

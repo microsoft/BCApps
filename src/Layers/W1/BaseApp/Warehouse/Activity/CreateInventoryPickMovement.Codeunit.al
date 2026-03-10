@@ -1539,6 +1539,7 @@ codeunit 7322 "Create Inventory Pick/Movement"
         InternalMovementLine: Record "Internal Movement Line";
         NewWarehouseActivityLine: Record "Warehouse Activity Line";
         RemQtyToPickBase: Decimal;
+        IsHandled: Boolean;
     begin
         if not HideDialog then
             if not Confirm(CreateInvtMvmtQst, false) then
@@ -1595,8 +1596,12 @@ codeunit 7322 "Create Inventory Pick/Movement"
             CreatePickOrMoveLine(NewWarehouseActivityLine, RemQtyToPickBase, RemQtyToPickBase, false);
         until InternalMovementLine.Next() = 0;
 
-        if NextLineNo = 10000 then
-            Error(NothingToHandleMsg);
+        if NextLineNo = 10000 then begin
+            IsHandled := false;
+            OnCreateInvtMvntWithoutSourceOnBeforeNothingToHandleError(CurrWarehouseActivityHeader, IsHandled);
+            if not IsHandled then
+                Error(NothingToHandleMsg);
+        end;
 
         MoveWhseComments(InternalMovementHeader."No.", CurrWarehouseActivityHeader."No.");
 
@@ -2878,6 +2883,11 @@ codeunit 7322 "Create Inventory Pick/Movement"
 
     [IntegrationEvent(false, false)]
     local procedure OnBeforeNewWhseActivLineInsertFromJobPlanning(var WarehouseActivityLine: Record "Warehouse Activity Line"; var JobPlanningLine: Record "Job Planning Line"; var WarehouseActivityHeader: Record "Warehouse Activity Header"; var RemQtyToPickBase: Decimal)
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnCreateInvtMvntWithoutSourceOnBeforeNothingToHandleError(var WarehouseActivityHeader: Record "Warehouse Activity Header"; var IsHandled: Boolean)
     begin
     end;
 }

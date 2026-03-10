@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -23,22 +23,18 @@ page 5154 "Interact. Tmpl. Languages"
                 field("Interaction Template Code"; Rec."Interaction Template Code")
                 {
                     ApplicationArea = All;
-                    ToolTip = 'Specifies the code for the interaction template that you have selected.';
                 }
                 field("Language Code"; Rec."Language Code")
                 {
                     ApplicationArea = All;
-                    ToolTip = 'Specifies the language that is used when translating specified text on documents to foreign business partner, such as an item description on an order confirmation.';
                 }
                 field(Description; Rec.Description)
                 {
                     ApplicationArea = RelationshipMgmt;
-                    ToolTip = 'Specifies the description of the interaction template language. This field will not be displayed in the Word attachment.';
                 }
                 field(WordTemplateCode; Rec."Word Template Code")
                 {
                     ApplicationArea = All;
-                    ToolTip = 'Specifies the Word template to use when you create communications for an interaction. The Word template will create either a document or be used as the body text in an email.';
                 }
                 field(Attachment; Rec."Attachment No." <> 0)
                 {
@@ -59,7 +55,6 @@ page 5154 "Interact. Tmpl. Languages"
                 field("Custom Layout Code"; Rec."Custom Layout Code")
                 {
                     ApplicationArea = RelationshipMgmt;
-                    ToolTip = 'Specifies the number of the report layout.';
                     Visible = false;
 
                     trigger OnValidate()
@@ -74,11 +69,14 @@ page 5154 "Interact. Tmpl. Languages"
                     ToolTip = 'Specifies the report layout that will be used.';
                     Visible = CustLayoutVisible;
 
+#if not CLEAN28
                     trigger OnLookup(var Text: Text): Boolean
                     var
                         CustomReportLayout: Record "Custom Report Layout";
                     begin
+#pragma warning disable AL0432
                         if CustomReportLayout.LookupLayoutOK(REPORT::"Email Merge") then begin
+#pragma warning restore AL0432
                             Rec.Validate("Custom Layout Code", CustomReportLayout.Code);
                             Rec.Modify(true);
 
@@ -86,6 +84,7 @@ page 5154 "Interact. Tmpl. Languages"
                             UpdateAttachments(Rec."Custom Layout Code");
                         end;
                     end;
+#endif
 
                     trigger OnValidate()
                     var
@@ -110,7 +109,6 @@ page 5154 "Interact. Tmpl. Languages"
                 field(ReportLayoutName; Rec."Report Layout Name")
                 {
                     ApplicationArea = All;
-                    ToolTip = 'Specifies the report layout that will be used.';
 
                     trigger OnValidate()
                     begin
@@ -122,7 +120,6 @@ page 5154 "Interact. Tmpl. Languages"
                 field(ReportLayoutAppID; Rec."Report Layout AppID")
                 {
                     ApplicationArea = All;
-                    ToolTip = 'Specifies which app the report layout belongs to.';
                     Visible = false;
                 }
             }

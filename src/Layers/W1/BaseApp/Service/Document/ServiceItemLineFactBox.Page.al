@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -20,7 +20,6 @@ page 9088 "Service Item Line FactBox"
             {
                 ApplicationArea = Service;
                 Lookup = false;
-                ToolTip = 'Specifies the service item number registered in the Service Item table.';
 
                 trigger OnDrillDown()
                 begin

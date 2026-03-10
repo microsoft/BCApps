@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -30,12 +30,10 @@ page 373 "Bank Account Posting Groups"
                 field("Code"; Rec.Code)
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the code for the G/L account that bank transactions, such as bank payment reconciliations, are posted to when the bank account card contains this code.';
                 }
                 field("G/L Account No."; Rec."G/L Account No.")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the general ledger account to which bank account entries in this posting group are posted.';
                 }
                 field("Acc.No. Pmt./Rcpt. in Process"; Rec."Acc.No. Pmt./Rcpt. in Process")
                 {

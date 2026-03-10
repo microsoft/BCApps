@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -17,21 +17,25 @@ table 5918 "Fault Code"
         field(1; "Fault Area Code"; Code[10])
         {
             Caption = 'Fault Area Code';
+            ToolTip = 'Specifies the code of the fault area associated with the fault code.';
             TableRelation = "Fault Area".Code;
         }
         field(2; "Symptom Code"; Code[10])
         {
             Caption = 'Symptom Code';
+            ToolTip = 'Specifies the code of the symptom linked to the fault code.';
             TableRelation = "Symptom Code".Code;
         }
         field(3; "Code"; Code[10])
         {
             Caption = 'Code';
+            ToolTip = 'Specifies a code for the fault.';
             NotBlank = true;
         }
         field(4; Description; Text[80])
         {
             Caption = 'Description';
+            ToolTip = 'Specifies a description of the fault code.';
         }
     }
 

@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -27,6 +27,7 @@ table 7002 "Sales Price"
         field(1; "Item No."; Code[20])
         {
             Caption = 'Item No.';
+            ToolTip = 'Specifies the number of the item for which the sales price is valid.';
             NotBlank = true;
             TableRelation = Item;
 
@@ -60,6 +61,7 @@ table 7002 "Sales Price"
         field(2; "Sales Code"; Code[20])
         {
             Caption = 'Sales Code';
+            ToolTip = 'Specifies the code that belongs to the Sales Type.';
             TableRelation = if ("Sales Type" = const("Customer Price Group")) "Customer Price Group"
             else
             if ("Sales Type" = const(Customer)) Customer
@@ -104,6 +106,7 @@ table 7002 "Sales Price"
         field(3; "Currency Code"; Code[10])
         {
             Caption = 'Currency Code';
+            ToolTip = 'Specifies the code for the currency of the sales price.';
             TableRelation = Currency;
         }
         /// <summary>
@@ -112,6 +115,7 @@ table 7002 "Sales Price"
         field(4; "Starting Date"; Date)
         {
             Caption = 'Starting Date';
+            ToolTip = 'Specifies the date from which the sales price is valid.';
 
             trigger OnValidate()
             begin
@@ -134,6 +138,7 @@ table 7002 "Sales Price"
             AutoFormatExpression = Rec."Currency Code";
             AutoFormatType = 2;
             Caption = 'Unit Price';
+            ToolTip = 'Specifies the price of one unit of the item or resource. You can enter a price manually or have it entered according to the Price/Profit Calculation field on the related card.';
             MinValue = 0;
 
             trigger OnValidate()
@@ -148,6 +153,7 @@ table 7002 "Sales Price"
         field(7; "Price Includes VAT"; Boolean)
         {
             Caption = 'Price Includes VAT';
+            ToolTip = 'Specifies if the sales price includes VAT.';
         }
         /// <summary>
         /// Indicates whether invoice discounts can be applied when this sales price is used.
@@ -155,6 +161,7 @@ table 7002 "Sales Price"
         field(10; "Allow Invoice Disc."; Boolean)
         {
             Caption = 'Allow Invoice Disc.';
+            ToolTip = 'Specifies if an invoice discount will be calculated when the sales price is offered.';
             InitValue = true;
         }
         /// <summary>
@@ -171,6 +178,7 @@ table 7002 "Sales Price"
         field(13; "Sales Type"; Enum "Sales Price Type")
         {
             Caption = 'Sales Type';
+            ToolTip = 'Specifies the sales price type, which defines whether the price is for an individual, group, all customers, or a campaign.';
 
             trigger OnValidate()
             begin
@@ -187,6 +195,7 @@ table 7002 "Sales Price"
         {
             AutoFormatType = 0;
             Caption = 'Minimum Quantity';
+            ToolTip = 'Specifies the minimum sales quantity required to warrant the sales price.';
             DecimalPlaces = 0 : 5;
             MinValue = 0;
         }
@@ -196,6 +205,7 @@ table 7002 "Sales Price"
         field(15; "Ending Date"; Date)
         {
             Caption = 'Ending Date';
+            ToolTip = 'Specifies the calendar date when the sales price agreement ends.';
 
             trigger OnValidate()
             begin
@@ -235,6 +245,7 @@ table 7002 "Sales Price"
         field(5400; "Unit of Measure Code"; Code[10])
         {
             Caption = 'Unit of Measure Code';
+            ToolTip = 'Specifies how each unit of the item or resource is measured, such as in pieces or hours. By default, the value in the Base Unit of Measure field on the item or resource card is inserted.';
             TableRelation = "Item Unit of Measure".Code where("Item No." = field("Item No."));
 
             trigger OnValidate()
@@ -248,6 +259,7 @@ table 7002 "Sales Price"
         field(5700; "Variant Code"; Code[10])
         {
             Caption = 'Variant Code';
+            ToolTip = 'Specifies the variant of the item on the line.';
             TableRelation = "Item Variant".Code where("Item No." = field("Item No."));
         }
         /// <summary>
@@ -256,6 +268,7 @@ table 7002 "Sales Price"
         field(7001; "Allow Line Disc."; Boolean)
         {
             Caption = 'Allow Line Disc.';
+            ToolTip = 'Specifies if a line discount will be calculated when the sales price is offered.';
             InitValue = true;
         }
         field(28060; "Published Price"; Decimal)

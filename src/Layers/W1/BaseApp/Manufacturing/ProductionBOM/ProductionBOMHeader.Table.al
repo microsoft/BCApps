@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -24,10 +24,12 @@ table 99000771 "Production BOM Header"
         field(1; "No."; Code[20])
         {
             Caption = 'No.';
+            ToolTip = 'Specifies the number of the involved entry or record, according to the specified number series.';
         }
         field(10; Description; Text[100])
         {
             Caption = 'Description';
+            ToolTip = 'Specifies a description for the production BOM.';
 
             trigger OnValidate()
             begin
@@ -37,14 +39,17 @@ table 99000771 "Production BOM Header"
         field(11; "Description 2"; Text[50])
         {
             Caption = 'Description 2';
+            ToolTip = 'Specifies an extended description for the BOM if there is not enough space in the Description field.';
         }
         field(12; "Search Name"; Code[100])
         {
             Caption = 'Search Name';
+            ToolTip = 'Specifies an alternate name that you can use to search for the record in question when you cannot remember the value in the Name field.';
         }
         field(21; "Unit of Measure Code"; Code[10])
         {
             Caption = 'Unit of Measure Code';
+            ToolTip = 'Specifies the manufacturing batch unit of measure.';
             TableRelation = "Unit of Measure";
 
             trigger OnValidate()
@@ -83,11 +88,13 @@ table 99000771 "Production BOM Header"
         field(43; "Last Date Modified"; Date)
         {
             Caption = 'Last Date Modified';
+            ToolTip = 'Specifies the last date that was modified.';
             Editable = false;
         }
         field(45; Status; Enum "BOM Status")
         {
             Caption = 'Status';
+            ToolTip = 'Specifies the status of the production BOM.';
 
             trigger OnValidate()
             var
@@ -133,6 +140,7 @@ table 99000771 "Production BOM Header"
         field(50; "Version Nos."; Code[20])
         {
             Caption = 'Version Nos.';
+            ToolTip = 'Specifies the version number series that the production BOM versions refer to.';
             TableRelation = "No. Series";
         }
         field(51; "No. Series"; Code[20])

@@ -16,6 +16,7 @@ codeunit 134605 "Test Report Layout Selection"
         LibraryPurchase: Codeunit "Library - Purchase";
         LibrarySmtpMailHandler: Codeunit "Library - SMTP Mail Handler";
 
+#if not CLEAN28
     [Test]
     [Scope('OnPrem')]
     procedure TestNotificationBankInfoWhenPageOpens()
@@ -25,6 +26,7 @@ codeunit 134605 "Test Report Layout Selection"
         CustomReportLayouts.OpenView();
         CustomReportLayouts.Close();
     end;
+#endif
 
     [Test]
     [HandlerFunctions('JobQueueEntriesHandler,ReportIsEmptyMsgHandler')]
@@ -89,6 +91,7 @@ codeunit 134605 "Test Report Layout Selection"
         ReportInboxTestPage.Close();
     end;
 
+#if not CLEAN28
     [Test]
     [HandlerFunctions('Report134600ReportHandler,CustomLayoutHandler')]
     [Scope('OnPrem')]
@@ -143,6 +146,7 @@ codeunit 134605 "Test Report Layout Selection"
         ReportLayoutSelectionPage.CustomLayoutDescription.SetValue('built'); // finds closest match
         Assert.AreEqual('Copy of built-in', ReportLayoutSelectionPage.CustomLayoutDescription.Value, '');
     end;
+#endif
 
     [Test]
     [HandlerFunctions('ReportayoutsHandlerModal')]
@@ -195,6 +199,7 @@ codeunit 134605 "Test Report Layout Selection"
         Assert.RecordIsEmpty(TenantReportLayoutSelection);
     end;
 
+#if not CLEAN28
     [Test]
     [HandlerFunctions('CustomLayoutHandlerModal,NewLayoutHandlerModal')]
     [Scope('OnPrem')]
@@ -217,6 +222,7 @@ codeunit 134605 "Test Report Layout Selection"
         // [Expected] The test layout actually runs
         Assert.AreEqual('Test', ReportLayoutSelectionPage.CustomLayoutDescription.Value, '');
     end;
+#endif
 
     [Test]
     [Scope('OnPrem')]
@@ -507,6 +513,7 @@ codeunit 134605 "Test Report Layout Selection"
         Assert.IsTrue(StrPos(Msg, 'empty') > 1, '');
     end;
 
+#if not CLEAN28
     [PageHandler]
     [Scope('OnPrem')]
     procedure CustomLayoutHandler(var CustomReportLayouts: TestPage "Custom Report Layouts")
@@ -524,6 +531,7 @@ codeunit 134605 "Test Report Layout Selection"
         CustomReportLayouts.Description.SetValue('Test');
         CustomReportLayouts.OK().Invoke();
     end;
+#endif
 
     [ModalPageHandler]
     [Scope('OnPrem')]

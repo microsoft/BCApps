@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -61,6 +61,7 @@ table 270 "Bank Account"
         field(1; "No."; Code[20])
         {
             Caption = 'No.';
+            ToolTip = 'Specifies the number of the involved entry or record, according to the specified number series.';
 
             trigger OnValidate()
             begin
@@ -78,6 +79,7 @@ table 270 "Bank Account"
         field(2; Name; Text[100])
         {
             Caption = 'Name';
+            ToolTip = 'Specifies the name of the bank where you have the bank account.';
 
             trigger OnValidate()
             begin
@@ -91,6 +93,7 @@ table 270 "Bank Account"
         field(3; "Search Name"; Code[100])
         {
             Caption = 'Search Name';
+            ToolTip = 'Specifies an alternate name that you can use to search for the record in question when you cannot remember the value in the Name field.';
         }
         /// <summary>
         /// Secondary name line for extended bank account identification.
@@ -105,6 +108,7 @@ table 270 "Bank Account"
         field(5; Address; Text[100])
         {
             Caption = 'Address';
+            ToolTip = 'Specifies the address of the bank where you have the bank account.';
         }
         /// <summary>
         /// Secondary address line for extended address information.
@@ -112,6 +116,7 @@ table 270 "Bank Account"
         field(6; "Address 2"; Text[50])
         {
             Caption = 'Address 2';
+            ToolTip = 'Specifies additional address information.';
         }
         /// <summary>
         /// City name with postal code integration and country-specific validation.
@@ -119,6 +124,7 @@ table 270 "Bank Account"
         field(7; City; Text[30])
         {
             Caption = 'City';
+            ToolTip = 'Specifies the city of the bank where you have the bank account.';
             TableRelation = if ("Country/Region Code" = const('')) "Post Code".City
             else
             if ("Country/Region Code" = filter(<> '')) "Post Code".City where("Country/Region Code" = field("Country/Region Code"));
@@ -145,6 +151,7 @@ table 270 "Bank Account"
         field(8; Contact; Text[100])
         {
             Caption = 'Contact';
+            ToolTip = 'Specifies the name of the bank employee regularly contacted in connection with this bank account.';
             DataClassification = EndUserIdentifiableInformation;
         }
         /// <summary>
@@ -153,6 +160,7 @@ table 270 "Bank Account"
         field(9; "Phone No."; Text[30])
         {
             Caption = 'Phone No.';
+            ToolTip = 'Specifies the telephone number of the bank where you have the bank account.';
             ExtendedDatatype = PhoneNo;
         }
         /// <summary>
@@ -168,6 +176,7 @@ table 270 "Bank Account"
         field(13; "Bank Account No."; Text[30])
         {
             Caption = 'Bank Account No.';
+            ToolTip = 'Specifies the number used by the bank for the bank account.';
 
             trigger OnValidate()
             begin
@@ -181,6 +190,7 @@ table 270 "Bank Account"
         field(14; "Transit No."; Text[20])
         {
             Caption = 'Transit No.';
+            ToolTip = 'Specifies a bank identification number of your own choice.';
         }
         /// <summary>
         /// Sales territory code for reporting and analysis purposes.
@@ -235,6 +245,7 @@ table 270 "Bank Account"
             AutoFormatExpression = Rec."Currency Code";
             AutoFormatType = 1;
             Caption = 'Min. Balance';
+            ToolTip = 'Specifies a minimum balance for the bank account.';
         }
         /// <summary>
         /// Posting group that determines G/L account assignments for bank transactions.
@@ -242,6 +253,7 @@ table 270 "Bank Account"
         field(21; "Bank Acc. Posting Group"; Code[20])
         {
             Caption = 'Bank Acc. Posting Group';
+            ToolTip = 'Specifies a code for the bank account posting group for the bank account.';
             TableRelation = "Bank Account Posting Group";
         }
         /// <summary>
@@ -250,6 +262,7 @@ table 270 "Bank Account"
         field(22; "Currency Code"; Code[10])
         {
             Caption = 'Currency Code';
+            ToolTip = 'Specifies the relevant currency code for the bank account.';
             TableRelation = Currency;
 
             trigger OnValidate()
@@ -296,6 +309,7 @@ table 270 "Bank Account"
         field(24; "Language Code"; Code[10])
         {
             Caption = 'Language Code';
+            ToolTip = 'Specifies the language that is used when translating specified text on documents to foreign business partner, such as an item description on an order confirmation.';
             TableRelation = Language;
         }
         /// <summary>
@@ -304,6 +318,7 @@ table 270 "Bank Account"
         field(25; "Format Region"; Text[80])
         {
             Caption = 'Format Region';
+            ToolTip = 'Specifies the region format that is used when formatting specified dates and numbers on documents to foreign business partner, such as an item amount on an order confirmation.';
             TableRelation = "Language Selection"."Language Tag";
         }
         /// <summary>
@@ -319,12 +334,14 @@ table 270 "Bank Account"
         field(29; "Our Contact Code"; Code[20])
         {
             Caption = 'Our Contact Code';
+            ToolTip = 'Specifies a code to specify the employee who is responsible for this bank account.';
             TableRelation = "Salesperson/Purchaser" where(Blocked = const(false));
             DataClassification = EndUserIdentifiableInformation;
         }
         field(35; "Country/Region Code"; Code[10])
         {
             Caption = 'Country/Region Code';
+            ToolTip = 'Specifies the country/region of the address.';
             TableRelation = "Country/Region";
 
             trigger OnValidate()
@@ -358,6 +375,7 @@ table 270 "Bank Account"
         field(39; Blocked; Boolean)
         {
             Caption = 'Blocked';
+            ToolTip = 'Specifies that the related record is blocked from being posted in transactions, for example a customer that is declared insolvent or an item that is placed in quarantine.';
         }
         /// <summary>
         /// Statement number of the last processed bank statement for reconciliation.
@@ -365,6 +383,7 @@ table 270 "Bank Account"
         field(41; "Last Statement No."; Code[20])
         {
             Caption = 'Last Statement No.';
+            ToolTip = 'Specifies the number of the last bank account statement that was reconciled with this bank account.';
         }
         /// <summary>
         /// Statement number of the last processed payment reconciliation statement.
@@ -372,6 +391,7 @@ table 270 "Bank Account"
         field(42; "Last Payment Statement No."; Code[20])
         {
             Caption = 'Last Payment Statement No.';
+            ToolTip = 'Specifies the last bank statement that was imported.';
 
             trigger OnValidate()
             begin
@@ -385,6 +405,7 @@ table 270 "Bank Account"
         field(43; "Pmt. Rec. No. Series"; Code[20])
         {
             Caption = 'Payment Reconciliation No. Series';
+            ToolTip = 'Specifies the number series for payment reconciliation journals.';
             TableRelation = "No. Series";
 
             trigger OnValidate()
@@ -405,6 +426,7 @@ table 270 "Bank Account"
         field(54; "Last Date Modified"; Date)
         {
             Caption = 'Last Date Modified';
+            ToolTip = 'Specifies the date when the Bank Account card was last modified.';
             Editable = false;
         }
         /// <summary>
@@ -447,6 +469,7 @@ table 270 "Bank Account"
                                                                         "Global Dimension 1 Code" = field("Global Dimension 1 Filter"),
                                                                         "Global Dimension 2 Code" = field("Global Dimension 2 Filter")));
             Caption = 'Balance';
+            ToolTip = 'Specifies the bank account''s current balance denominated in the applicable foreign currency.';
             Editable = false;
             FieldClass = FlowField;
         }
@@ -512,6 +535,7 @@ table 270 "Bank Account"
         field(70; "Use as Default for Currency"; Boolean)
         {
             Caption = 'Use as Default for Currency';
+            ToolTip = 'Specifies whether this is the default company account for payments in sales and service documents in the currency specified for this account. Each currency can have only one default bank account.';
             trigger OnValidate()
             begin
                 if "Use as Default for Currency" = true then
@@ -524,6 +548,7 @@ table 270 "Bank Account"
         field(84; "Fax No."; Text[30])
         {
             Caption = 'Fax No.';
+            ToolTip = 'Specifies the fax number associated with the address.';
         }
         /// <summary>
         /// Telex answer back code for legacy communication systems.
@@ -538,6 +563,7 @@ table 270 "Bank Account"
         field(91; "Post Code"; Code[20])
         {
             Caption = 'Post Code';
+            ToolTip = 'Specifies the postal code.';
             TableRelation = if ("Country/Region Code" = const('')) "Post Code"
             else
             if ("Country/Region Code" = filter(<> '')) "Post Code" where("Country/Region Code" = field("Country/Region Code"));
@@ -565,6 +591,7 @@ table 270 "Bank Account"
         {
             CaptionClass = '5,1,' + "Country/Region Code";
             Caption = 'County';
+            ToolTip = 'Specifies the state, province or county as a part of the address.';
         }
         /// <summary>
         /// Number of the last check issued from this bank account.
@@ -573,6 +600,7 @@ table 270 "Bank Account"
         {
             AccessByPermission = TableData "Check Ledger Entry" = R;
             Caption = 'Last Check No.';
+            ToolTip = 'Specifies the check number of the last check issued from the bank account.';
         }
         /// <summary>
         /// Ending balance from the last bank statement used for reconciliation.
@@ -582,6 +610,7 @@ table 270 "Bank Account"
             AutoFormatExpression = Rec."Currency Code";
             AutoFormatType = 1;
             Caption = 'Balance Last Statement';
+            ToolTip = 'Specifies the balance amount of the last statement reconciliation on the bank account.';
         }
         /// <summary>
         /// Balance as of the date specified in the Date Filter field.
@@ -595,6 +624,7 @@ table 270 "Bank Account"
                                                                         "Global Dimension 2 Code" = field("Global Dimension 2 Filter"),
                                                                         "Posting Date" = field(upperlimit("Date Filter"))));
             Caption = 'Balance at Date';
+            ToolTip = 'Specifies the bank account''s balance on the last date included in the Date Filter field.';
             Editable = false;
             FieldClass = FlowField;
         }
@@ -683,6 +713,7 @@ table 270 "Bank Account"
         field(101; "Bank Branch No."; Text[20])
         {
             Caption = 'Bank Branch No.';
+            ToolTip = 'Specifies a number of the bank branch.';
 
             trigger OnValidate()
             begin
@@ -695,6 +726,7 @@ table 270 "Bank Account"
         field(102; "E-Mail"; Text[80])
         {
             Caption = 'Email';
+            ToolTip = 'Specifies the email address associated with the bank account.';
             ExtendedDatatype = EMail;
 
             trigger OnValidate()
@@ -716,6 +748,7 @@ table 270 "Bank Account"
 #endif
         {
             Caption = 'Home Page';
+            ToolTip = 'Specifies the bank web site.';
             ExtendedDatatype = URL;
         }
         /// <summary>
@@ -752,6 +785,7 @@ table 270 "Bank Account"
         field(110; IBAN; Code[50])
         {
             Caption = 'IBAN';
+            ToolTip = 'Specifies the bank account''s international bank account number.';
 
             trigger OnValidate()
             var
@@ -772,6 +806,7 @@ table 270 "Bank Account"
         field(111; "SWIFT Code"; Code[20])
         {
             Caption = 'SWIFT Code';
+            ToolTip = 'Specifies the international bank identifier code (SWIFT) of the bank where you have the account.';
             TableRelation = "SWIFT Code";
             ValidateTableRelation = false;
         }
@@ -781,6 +816,7 @@ table 270 "Bank Account"
         field(113; "Bank Statement Import Format"; Code[20])
         {
             Caption = 'Bank Statement Import Format';
+            ToolTip = 'Specifies the format of the bank statement file that can be imported into this bank account.';
             TableRelation = "Bank Export/Import Setup".Code where(Direction = const(Import));
         }
         /// <summary>
@@ -789,6 +825,7 @@ table 270 "Bank Account"
         field(115; "Credit Transfer Msg. Nos."; Code[20])
         {
             Caption = 'Credit Transfer Msg. Nos.';
+            ToolTip = 'Specifies the number series for bank instruction messages that are created with the export file that you create from the Direct Debit Collect. Entries window.';
             TableRelation = "No. Series";
         }
         /// <summary>
@@ -797,6 +834,7 @@ table 270 "Bank Account"
         field(116; "Direct Debit Msg. Nos."; Code[20])
         {
             Caption = 'Direct Debit Msg. Nos.';
+            ToolTip = 'Specifies the number series that will be used on the direct debit file that you export for a direct-debit collection entry in the Direct Debit Collect. Entries window.';
             TableRelation = "No. Series";
         }
         /// <summary>
@@ -805,6 +843,7 @@ table 270 "Bank Account"
         field(117; "SEPA Direct Debit Exp. Format"; Code[20])
         {
             Caption = 'SEPA Direct Debit Exp. Format';
+            ToolTip = 'Specifies the SEPA format of the bank file that will be exported when you choose the Create Direct Debit File button in the Direct Debit Collect. Entries window.';
             TableRelation = "Bank Export/Import Setup".Code where(Direction = const(Export));
         }
         /// <summary>
@@ -829,6 +868,7 @@ table 270 "Bank Account"
         field(123; "Transaction Import Timespan"; Integer)
         {
             Caption = 'Transaction Import Timespan';
+            ToolTip = 'Specifies how far back in time to get new bank transactions for.';
         }
         /// <summary>
         /// Enables automatic import of bank statements from connected online banking services.
@@ -836,6 +876,7 @@ table 270 "Bank Account"
         field(124; "Automatic Stmt. Import Enabled"; Boolean)
         {
             Caption = 'Automatic Stmt. Import Enabled';
+            ToolTip = 'Specifies that the service is enabled.';
 
             trigger OnValidate()
             begin
@@ -856,6 +897,7 @@ table 270 "Bank Account"
         field(130; IntercompanyEnable; Boolean)
         {
             Caption = 'Enable for Intercompany transactions';
+            ToolTip = 'Specifies whether this bank account is enabled to be copied by IC Partners to make intercompany transactions.';
         }
         /// <summary>
         /// Image or logo associated with the bank account for visual identification.
@@ -870,6 +912,7 @@ table 270 "Bank Account"
         field(170; "Creditor No."; Code[35])
         {
             Caption = 'Creditor No.';
+            ToolTip = 'Specifies your company as the creditor in connection with payment collection from customers using SEPA Direct Debit.';
         }
         /// <summary>
         /// Export format configuration for electronic payment file generation.
@@ -877,6 +920,7 @@ table 270 "Bank Account"
         field(1210; "Payment Export Format"; Code[20])
         {
             Caption = 'Payment Export Format';
+            ToolTip = 'Specifies the format of the bank file that will be exported when you choose the Export Payments to File button in the Payment Journal window.';
             TableRelation = "Bank Export/Import Setup".Code where(Direction = const(Export));
         }
         /// <summary>
@@ -885,6 +929,7 @@ table 270 "Bank Account"
         field(1211; "Bank Clearing Code"; Text[50])
         {
             Caption = 'Bank Clearing Code';
+            ToolTip = 'Specifies the code for bank clearing that is required according to the format standard you selected in the Bank Clearing Standard field.';
         }
         /// <summary>
         /// Standard format specification for bank clearing code interpretation.
@@ -892,6 +937,7 @@ table 270 "Bank Account"
         field(1212; "Bank Clearing Standard"; Text[50])
         {
             Caption = 'Bank Clearing Standard';
+            ToolTip = 'Specifies the format standard to be used in bank transfers if you use the Bank Clearing Code field to identify you as the sender.';
             TableRelation = "Bank Clearing Standard";
         }
         /// <summary>
@@ -900,6 +946,7 @@ table 270 "Bank Account"
         field(1250; "Match Tolerance Type"; Option)
         {
             Caption = 'Match Tolerance Type';
+            ToolTip = 'Specifies by which tolerance the automatic payment application function will apply the Amount Incl. Tolerance Matched rule for this bank account.';
             OptionCaption = 'Percentage,Amount';
             OptionMembers = Percentage,Amount;
 
@@ -916,6 +963,7 @@ table 270 "Bank Account"
         {
             AutoFormatType = 0;
             Caption = 'Match Tolerance Value';
+            ToolTip = 'Specifies if the automatic payment application function will apply the Amount Incl. Tolerance Matched rule by Percentage or Amount.';
             DecimalPlaces = 0 : 5;
 
             trigger OnValidate()
@@ -935,6 +983,7 @@ table 270 "Bank Account"
         field(1252; "Disable Automatic Pmt Matching"; Boolean)
         {
             Caption = 'Disable Automatic Payment Matching';
+            ToolTip = 'Specifies whether to disable automatic payment matching after importing bank transactions for this bank account.';
         }
         /// <summary>
         /// Disables performance optimization for bank reconciliation to improve matching precision.
@@ -942,6 +991,7 @@ table 270 "Bank Account"
         field(1253; "Disable Bank Rec. Optimization"; Boolean)
         {
             Caption = 'Disable Bank Reconciliation Optimization';
+            ToolTip = 'Specifies whether to disable bank reconciliation optimization for this bank account. It will result in more precise matches, but it will be slower. Disabling the optimization is useful when there are several bank ledger entries with the same amount and date that need to be automatched.';
             DataClassification = SystemMetadata;
 
             trigger OnValidate()
@@ -960,6 +1010,7 @@ table 270 "Bank Account"
         field(1260; "Positive Pay Export Code"; Code[20])
         {
             Caption = 'Positive Pay Export Code';
+            ToolTip = 'Specifies a code for the data exchange definition that manages the export of positive-pay files.';
             TableRelation = "Bank Export/Import Setup".Code where(Direction = const("Export-Positive Pay"));
         }
         /// <summary>
@@ -976,6 +1027,7 @@ table 270 "Bank Account"
         field(5061; "Mobile Phone No."; Text[30])
         {
             Caption = 'Mobile Phone No.';
+            ToolTip = 'Specifies the mobile telephone number of the bank where you have the bank account.';
             ExtendedDatatype = PhoneNo;
 
             trigger OnValidate()

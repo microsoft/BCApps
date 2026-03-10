@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -47,7 +47,6 @@ page 5900 "Service Order"
                 {
                     ApplicationArea = Service;
                     Importance = Promoted;
-                    ToolTip = 'Specifies the number of the involved entry or record, according to the specified number series.';
                     Visible = DocNoVisible;
 
                     trigger OnAssistEdit()
@@ -59,13 +58,11 @@ page 5900 "Service Order"
                 field(Description; Rec.Description)
                 {
                     ApplicationArea = Service;
-                    ToolTip = 'Specifies a short description of the service document, such as Order 2001.';
                 }
                 field("Customer No."; Rec."Customer No.")
                 {
                     ApplicationArea = Service;
                     Importance = Promoted;
-                    ToolTip = 'Specifies the number of the customer who owns the items in the service document.';
 
                     trigger OnValidate()
                     begin
@@ -75,7 +72,6 @@ page 5900 "Service Order"
                 field("Contact No."; Rec."Contact No.")
                 {
                     ApplicationArea = Service;
-                    ToolTip = 'Specifies the number of the contact to whom you will deliver the service.';
 
                     trigger OnValidate()
                     begin
@@ -91,7 +87,6 @@ page 5900 "Service Order"
                     field("Quote No."; Rec."Quote No.")
                     {
                         ApplicationArea = Service;
-                        ToolTip = 'Specifies the number of the service quote that the service order was created from. You can track the number to service quote documents that you have printed, saved, or emailed.';
                     }
                 }
                 group("Sell-To")
@@ -100,7 +95,6 @@ page 5900 "Service Order"
                     field(Name; Rec.Name)
                     {
                         ApplicationArea = Service;
-                        ToolTip = 'Specifies the name of the customer to whom the items on the document will be shipped.';
                     }
                     field("Name 2"; Rec."Name 2")
                     {
@@ -112,20 +106,17 @@ page 5900 "Service Order"
                     {
                         ApplicationArea = Service;
                         QuickEntry = false;
-                        ToolTip = 'Specifies the address of the customer to whom the service will be shipped.';
                     }
                     field("Address 2"; Rec."Address 2")
                     {
                         ApplicationArea = Service;
                         Importance = Additional;
                         QuickEntry = false;
-                        ToolTip = 'Specifies additional address information.';
                     }
                     field(City; Rec.City)
                     {
                         ApplicationArea = Service;
                         QuickEntry = false;
-                        ToolTip = 'Specifies the city of the address.';
                     }
                     group(Control45)
                     {
@@ -142,13 +133,11 @@ page 5900 "Service Order"
                     {
                         ApplicationArea = Service;
                         QuickEntry = false;
-                        ToolTip = 'Specifies the postal code.';
                     }
                     field("Country/Region Code"; Rec."Country/Region Code")
                     {
                         ApplicationArea = Service;
                         QuickEntry = false;
-                        ToolTip = 'Specifies the country/region of the address.';
 
                         trigger OnValidate()
                         var
@@ -160,13 +149,11 @@ page 5900 "Service Order"
                     field("Contact Name"; Rec."Contact Name")
                     {
                         ApplicationArea = Service;
-                        ToolTip = 'Specifies the name of the contact who will receive the service.';
                     }
                 }
                 field("Phone No."; Rec."Phone No.")
                 {
                     ApplicationArea = Service;
-                    ToolTip = 'Specifies the phone number of the customer in this service order.';
                 }
                 field(ContactMobilePhoneNo; SellToContact."Mobile Phone No.")
                 {
@@ -181,35 +168,29 @@ page 5900 "Service Order"
                 {
                     ApplicationArea = Service;
                     Importance = Additional;
-                    ToolTip = 'Specifies your customer''s alternate phone number.';
                 }
                 field("E-Mail"; Rec."E-Mail")
                 {
                     ApplicationArea = Service;
                     ExtendedDatatype = EMail;
-                    ToolTip = 'Specifies the email address of the customer in this service order.';
                 }
                 field("Notify Customer"; Rec."Notify Customer")
                 {
                     ApplicationArea = Service;
                     Importance = Additional;
-                    ToolTip = 'Specifies how the customer wants to receive notifications about service completion.';
                 }
                 field("Service Order Type"; Rec."Service Order Type")
                 {
                     ApplicationArea = Service;
-                    ToolTip = 'Specifies the type of this service order.';
                 }
                 field("Contract No."; Rec."Contract No.")
                 {
                     ApplicationArea = Service;
-                    ToolTip = 'Specifies the number of the contract associated with the order.';
                 }
                 field("No. of Archived Versions"; Rec."No. of Archived Versions")
                 {
                     ApplicationArea = Service;
                     Importance = Additional;
-                    ToolTip = 'Specifies the number of archived versions for this document.';
 
                     trigger OnDrillDown()
                     var
@@ -228,23 +209,19 @@ page 5900 "Service Order"
                 {
                     ApplicationArea = Service;
                     Importance = Promoted;
-                    ToolTip = 'Specifies the estimated date when work on the order should start, that is, when the service order status changes from Pending, to In Process.';
                 }
                 field("Response Time"; Rec."Response Time")
                 {
                     ApplicationArea = Service;
-                    ToolTip = 'Specifies the estimated time when work on the order starts, that is, when the service order status changes from Pending, to In Process.';
                 }
                 field(Priority; Rec.Priority)
                 {
                     ApplicationArea = Service;
                     Importance = Promoted;
-                    ToolTip = 'Specifies the priority of the service order.';
                 }
                 field(Status; Rec.Status)
                 {
                     ApplicationArea = Service;
-                    ToolTip = 'Specifies the service order status, which reflects the repair or maintenance status of all service items on the service order.';
                 }
                 group("Work Description")
                 {
@@ -268,19 +245,16 @@ page 5900 "Service Order"
                 {
                     ApplicationArea = Suite;
                     Importance = Additional;
-                    ToolTip = 'Specifies the code of the responsibility center, such as a distribution hub, that is associated with the involved user, company, customer, or vendor.';
                 }
                 field("Assigned User ID"; Rec."Assigned User ID")
                 {
                     ApplicationArea = Service;
                     Importance = Additional;
-                    ToolTip = 'Specifies the ID of the user who is responsible for the document.';
                 }
                 field("Release Status"; Rec."Release Status")
                 {
                     ApplicationArea = Service;
                     Importance = Promoted;
-                    ToolTip = 'Specifies if items in the Service Lines window are ready to be handled in warehouse activities.';
                 }
             }
             part(ServItemLines; "Service Order Subform")
@@ -297,7 +271,6 @@ page 5900 "Service Order"
                 {
                     ApplicationArea = Service;
                     Importance = Promoted;
-                    ToolTip = 'Specifies the number of the customer that you send or sent the invoice or credit memo to.';
 
                     trigger OnValidate()
                     begin
@@ -307,7 +280,6 @@ page 5900 "Service Order"
                 field("Bill-to Contact No."; Rec."Bill-to Contact No.")
                 {
                     ApplicationArea = Service;
-                    ToolTip = 'Specifies the number of the contact person at the customer''s billing address.';
                 }
                 group("Bill-To")
                 {
@@ -316,7 +288,6 @@ page 5900 "Service Order"
                     {
                         ApplicationArea = Service;
                         Caption = 'Name';
-                        ToolTip = 'Specifies the name of the customer that you send or sent the invoice or credit memo to.';
                     }
                     field("Bill-to Name 2"; Rec."Bill-to Name 2")
                     {
@@ -331,7 +302,6 @@ page 5900 "Service Order"
                         ApplicationArea = Service;
                         Caption = 'Address';
                         QuickEntry = false;
-                        ToolTip = 'Specifies the address of the customer to whom you will send the invoice.';
                     }
                     field("Bill-to Address 2"; Rec."Bill-to Address 2")
                     {
@@ -339,14 +309,12 @@ page 5900 "Service Order"
                         Caption = 'Address 2';
                         Importance = Additional;
                         QuickEntry = false;
-                        ToolTip = 'Specifies an additional line of the address.';
                     }
                     field("Bill-to City"; Rec."Bill-to City")
                     {
                         ApplicationArea = Service;
                         Caption = 'City';
                         QuickEntry = false;
-                        ToolTip = 'Specifies the city of the address.';
                     }
                     group(Control48)
                     {
@@ -385,7 +353,6 @@ page 5900 "Service Order"
                     {
                         ApplicationArea = Service;
                         Caption = 'Contact';
-                        ToolTip = 'Specifies the name of the contact person at the customer''s billing address.';
                     }
                     field(BillToContactPhoneNo; BillToContact."Phone No.")
                     {
@@ -419,18 +386,15 @@ page 5900 "Service Order"
                 {
                     ApplicationArea = Service;
                     Importance = Additional;
-                    ToolTip = 'Specifies a customer reference, which will be used when printing service documents.';
                 }
                 field("Salesperson Code"; Rec."Salesperson Code")
                 {
                     ApplicationArea = Service;
-                    ToolTip = 'Specifies the code of the salesperson assigned to this service document.';
                 }
                 field("Max. Labor Unit Price"; Rec."Max. Labor Unit Price")
                 {
                     ApplicationArea = Service;
                     Importance = Additional;
-                    ToolTip = 'Specifies the maximum unit price that can be set for a resource (for example, a technician) on all service lines linked to this order.';
 
                     trigger OnValidate()
                     begin
@@ -440,47 +404,39 @@ page 5900 "Service Order"
                 field("Posting Date"; Rec."Posting Date")
                 {
                     ApplicationArea = Service;
-                    ToolTip = 'Specifies the date when the service document should be posted.';
                 }
                 field("VAT Reporting Date"; Rec."VAT Reporting Date")
                 {
                     ApplicationArea = VAT;
                     Editable = VATDateEnabled;
                     Visible = VATDateEnabled;
-                    ToolTip = 'Specifies the date used to include entries on VAT reports in a VAT period. This is either the date that the document was created or posted, depending on your setting on the General Ledger Setup page.';
                 }
                 field("Document Date"; Rec."Document Date")
                 {
                     ApplicationArea = Service;
-                    ToolTip = 'Specifies the date when the related document was created.';
                 }
                 field("External Document No."; Rec."External Document No.")
                 {
                     ApplicationArea = Service;
                     Importance = Promoted;
                     ShowMandatory = ExternalDocNoMandatory;
-                    ToolTip = 'Specifies a document number that refers to the customer''s or vendor''s numbering system.';
                 }
                 field("Shortcut Dimension 1 Code"; Rec."Shortcut Dimension 1 Code")
                 {
                     ApplicationArea = Dimensions;
-                    ToolTip = 'Specifies the code for Shortcut Dimension 1, which is one of two global dimension codes that you set up in the General Ledger Setup window.';
                 }
                 field("Shortcut Dimension 2 Code"; Rec."Shortcut Dimension 2 Code")
                 {
                     ApplicationArea = Dimensions;
-                    ToolTip = 'Specifies the code for Shortcut Dimension 2, which is one of two global dimension codes that you set up in the General Ledger Setup window.';
                 }
                 field("Payment Terms Code"; Rec."Payment Terms Code")
                 {
                     ApplicationArea = Service;
                     Importance = Promoted;
-                    ToolTip = 'Specifies a formula that calculates the payment due date, payment discount date, and payment discount amount.';
                 }
                 field("EU 3-Party Trade"; Rec."EU 3-Party Trade")
                 {
                     ApplicationArea = Service;
-                    ToolTip = 'Specifies if the transaction is related to trade with a third party within the EU.';
                 }
                 field("Due Date"; Rec."Due Date")
                 {
@@ -491,38 +447,31 @@ page 5900 "Service Order"
                 field("Payment Discount %"; Rec."Payment Discount %")
                 {
                     ApplicationArea = Service;
-                    ToolTip = 'Specifies the percentage of payment discount given, if the customer pays by the date entered in the Pmt. Discount Date field.';
                 }
                 field("Pmt. Discount Date"; Rec."Pmt. Discount Date")
                 {
                     ApplicationArea = Service;
-                    ToolTip = 'Specifies the date on which the amount in the entry must be paid for a payment discount to be granted.';
                 }
                 field("Payment Method Code"; Rec."Payment Method Code")
                 {
                     ApplicationArea = Service;
-                    ToolTip = 'Specifies how to make payment, such as with bank transfer, cash, or check.';
                 }
                 field("Direct Debit Mandate ID"; Rec."Direct Debit Mandate ID")
                 {
                     ApplicationArea = Service;
-                    ToolTip = 'Specifies the direct-debit mandate that the customer has signed to allow direct debit collection of payments.';
                 }
                 field("Tax Liable"; Rec."Tax Liable")
                 {
                     ApplicationArea = SalesTax;
-                    ToolTip = 'Specifies if the customer or vendor is liable for sales tax.';
                 }
                 field("Tax Area Code"; Rec."Tax Area Code")
                 {
                     ApplicationArea = SalesTax;
-                    ToolTip = 'Specifies the tax area that is used to calculate and post sales tax.';
                 }
                 field("Currency Code"; Rec."Currency Code")
                 {
                     ApplicationArea = Service;
                     Importance = Promoted;
-                    ToolTip = 'Specifies the currency code for various amounts on the service lines.';
 
                     trigger OnAssistEdit()
                     begin
@@ -539,12 +488,10 @@ page 5900 "Service Order"
                 {
                     ApplicationArea = Service;
                     Importance = Promoted;
-                    ToolTip = 'Specifies the bank account to use for bank information when the document is printed.';
                 }
                 field("Prices Including VAT"; Rec."Prices Including VAT")
                 {
                     ApplicationArea = VAT;
-                    ToolTip = 'Specifies if the Unit Price and Line Amount fields on document lines should be shown with or without VAT.';
 
                     trigger OnValidate()
                     begin
@@ -554,7 +501,6 @@ page 5900 "Service Order"
                 field("VAT Bus. Posting Group"; Rec."VAT Bus. Posting Group")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the VAT specification of the involved customer or vendor to link transactions made for this record with the appropriate general ledger account according to the VAT posting setup.';
                 }
             }
             group(Shipping)
@@ -564,7 +510,6 @@ page 5900 "Service Order"
                 {
                     ApplicationArea = Service;
                     Importance = Promoted;
-                    ToolTip = 'Specifies a code for an alternate shipment address if you want to ship to another address than the one that has been entered automatically. This field is also used in case of drop shipment.';
 
                     trigger OnValidate()
                     begin
@@ -578,14 +523,12 @@ page 5900 "Service Order"
                     {
                         ApplicationArea = Service;
                         Caption = 'Name';
-                        ToolTip = 'Specifies the name of the customer at the address that the items are shipped to.';
                     }
                     field("Ship-to Name 2"; Rec."Ship-to Name 2")
                     {
                         ApplicationArea = Service;
                         Caption = 'Name 2';
                         Importance = Additional;
-                        ToolTip = 'Specifies an additional part of thethe name of the customer at the address that the items are shipped to.';
                         Visible = false;
                     }
                     field("Ship-to Address"; Rec."Ship-to Address")
@@ -593,7 +536,6 @@ page 5900 "Service Order"
                         ApplicationArea = Service;
                         Caption = 'Address';
                         QuickEntry = false;
-                        ToolTip = 'Specifies the address that the items are shipped to.';
                     }
                     field("Ship-to Address 2"; Rec."Ship-to Address 2")
                     {
@@ -601,14 +543,12 @@ page 5900 "Service Order"
                         Caption = 'Address 2';
                         Importance = Additional;
                         QuickEntry = false;
-                        ToolTip = 'Specifies an additional part of the ship-to address, in case it is a long address.';
                     }
                     field("Ship-to City"; Rec."Ship-to City")
                     {
                         ApplicationArea = Service;
                         Caption = 'City';
                         QuickEntry = false;
-                        ToolTip = 'Specifies the city of the address that the items are shipped to.';
                     }
                     group(Control49)
                     {
@@ -628,7 +568,6 @@ page 5900 "Service Order"
                         Caption = 'Post Code';
                         Importance = Promoted;
                         QuickEntry = false;
-                        ToolTip = 'Specifies the postal code of the address that the items are shipped to.';
                     }
                     field("Ship-to Country/Region Code"; Rec."Ship-to Country/Region Code")
                     {
@@ -649,7 +588,6 @@ page 5900 "Service Order"
                         ApplicationArea = Service;
                         Caption = 'Contact';
                         Importance = Promoted;
-                        ToolTip = 'Specifies the name of the contact person at the address that the items are shipped to.';
                     }
                 }
                 field("Ship-to Phone"; Rec."Ship-to Phone")
@@ -662,48 +600,39 @@ page 5900 "Service Order"
                 {
                     ApplicationArea = Service;
                     Importance = Additional;
-                    ToolTip = 'Specifies an additional phone number at address that the items are shipped to.';
                 }
                 field("Ship-to E-Mail"; Rec."Ship-to E-Mail")
                 {
                     ApplicationArea = Service;
-                    ToolTip = 'Specifies the email address at the address that the items are shipped to.';
                 }
                 field("Location Code"; Rec."Location Code")
                 {
                     ApplicationArea = Location;
-                    ToolTip = 'Specifies the code of the location (for example, warehouse or distribution center) of the items specified on the service item lines.';
                 }
                 field("Shipping Advice"; Rec."Shipping Advice")
                 {
                     ApplicationArea = Service;
-                    ToolTip = 'Specifies information about whether the customer will accept a partial shipment of the order.';
                 }
                 field("Shipment Method Code"; Rec."Shipment Method Code")
                 {
                     ApplicationArea = Service;
-                    ToolTip = 'Specifies the delivery conditions of the related shipment, such as free on board (FOB).';
                 }
                 field("Shipping Agent Code"; Rec."Shipping Agent Code")
                 {
                     ApplicationArea = Service;
-                    ToolTip = 'Specifies the code for the shipping agent who is transporting the items.';
                 }
                 field("Shipping Agent Service Code"; Rec."Shipping Agent Service Code")
                 {
                     ApplicationArea = Service;
-                    ToolTip = 'Specifies the code for the service, such as a one-day delivery, that is offered by the shipping agent.';
                 }
                 field("Shipping Time"; Rec."Shipping Time")
                 {
                     ApplicationArea = Service;
-                    ToolTip = 'Specifies how long it takes from when the items are shipped from the warehouse to when they are delivered.';
                 }
                 field("Combine Shipments"; Rec."Combine Shipments")
                 {
                     ApplicationArea = Service;
                     Importance = Additional;
-                    ToolTip = 'Specifies whether the order will be included when you use the Combine Shipments function.';
                 }
             }
             group(Details)
@@ -713,37 +642,30 @@ page 5900 "Service Order"
                 {
                     ApplicationArea = Service;
                     Importance = Promoted;
-                    ToolTip = 'Specifies the response time warning status for the order.';
                 }
                 field("Link Service to Service Item"; Rec."Link Service to Service Item")
                 {
                     ApplicationArea = Service;
-                    ToolTip = 'Specifies that service lines for items and resources must be linked to a service item line.';
                 }
                 field("Allocated Hours"; Rec."Allocated Hours")
                 {
                     ApplicationArea = Service;
-                    ToolTip = 'Specifies the number of hours allocated to the items in this service order.';
                 }
                 field("No. of Allocations"; Rec."No. of Allocations")
                 {
                     ApplicationArea = Service;
-                    ToolTip = 'Specifies the number of resource allocations to service items in this order.';
                 }
                 field("No. of Unallocated Items"; Rec."No. of Unallocated Items")
                 {
                     ApplicationArea = Service;
-                    ToolTip = 'Specifies the number of service items in this order that are not allocated to resources.';
                 }
                 field("Service Zone Code"; Rec."Service Zone Code")
                 {
                     ApplicationArea = Service;
-                    ToolTip = 'Specifies the service zone code of the customer''s ship-to address in the service order.';
                 }
                 field("Order Date"; Rec."Order Date")
                 {
                     ApplicationArea = Service;
-                    ToolTip = 'Specifies the date when the order was created.';
 
                     trigger OnValidate()
                     begin
@@ -753,7 +675,6 @@ page 5900 "Service Order"
                 field("Order Time"; Rec."Order Time")
                 {
                     ApplicationArea = Service;
-                    ToolTip = 'Specifies the time when the service order was created.';
 
                     trigger OnValidate()
                     begin
@@ -763,18 +684,15 @@ page 5900 "Service Order"
                 field("Expected Finishing Date"; Rec."Expected Finishing Date")
                 {
                     ApplicationArea = Service;
-                    ToolTip = 'Specifies the date when service on the order is expected to be finished.';
                 }
                 field("Starting Date"; Rec."Starting Date")
                 {
                     ApplicationArea = Service;
                     Importance = Promoted;
-                    ToolTip = 'Specifies the starting date of the service, that is, the date when the order status changes from Pending, to In Process for the first time.';
                 }
                 field("Starting Time"; Rec."Starting Time")
                 {
                     ApplicationArea = Service;
-                    ToolTip = 'Specifies the starting time of the service, that is, the time when the order status changes from Pending, to In Process for the first time.';
                 }
                 field("Actual Response Time (Hours)"; Rec."Actual Response Time (Hours)")
                 {
@@ -784,12 +702,10 @@ page 5900 "Service Order"
                 field("Finishing Date"; Rec."Finishing Date")
                 {
                     ApplicationArea = Service;
-                    ToolTip = 'Specifies the finishing date of the service, that is, the date when the Status field changes to Finished.';
                 }
                 field("Finishing Time"; Rec."Finishing Time")
                 {
                     ApplicationArea = Service;
-                    ToolTip = 'Specifies the finishing time of the service, that is, the time when the Status field changes to Finished.';
 
                     trigger OnValidate()
                     begin
@@ -808,27 +724,22 @@ page 5900 "Service Order"
                 field("Transaction Type"; Rec."Transaction Type")
                 {
                     ApplicationArea = BasicEU;
-                    ToolTip = 'Specifies the type of transaction that the document represents, for the purpose of reporting to INTRASTAT.';
                 }
                 field("Transaction Specification"; Rec."Transaction Specification")
                 {
                     ApplicationArea = BasicEU;
-                    ToolTip = 'Specifies a specification of the document''s transaction, for the purpose of reporting to INTRASTAT.';
                 }
                 field("Transport Method"; Rec."Transport Method")
                 {
                     ApplicationArea = BasicEU;
-                    ToolTip = 'Specifies the transport method, for the purpose of reporting to INTRASTAT.';
                 }
                 field("Exit Point"; Rec."Exit Point")
                 {
                     ApplicationArea = BasicEU;
-                    ToolTip = 'Specifies the point of exit through which you ship the items out of your country/region, for reporting to Intrastat.';
                 }
                 field("Area"; Rec.Area)
                 {
                     ApplicationArea = BasicEU;
-                    ToolTip = 'Specifies the area of the customer or vendor, for the purpose of reporting to INTRASTAT.';
                 }
             }
         }

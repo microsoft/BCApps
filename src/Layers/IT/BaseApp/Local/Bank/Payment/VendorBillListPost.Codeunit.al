@@ -178,6 +178,7 @@ codeunit 12173 "Vendor Bill List - Post"
     procedure PostVendorBillLine(var GenJnlLine: Record "Gen. Journal Line"; VendorBillHeader: Record "Vendor Bill Header"; VendorBillLine: Record "Vendor Bill Line"; VendLedgEntry: Record "Vendor Ledger Entry"; Bill: Record Bill; var AmountLCY: Decimal)
     var
         Tax: Option " ",Withhold,"Free Lance",Company;
+        CurrencyCodeHandled: Boolean;
     begin
         GenJnlLine.Init();
         GenJnlLine.Validate("Posting Date", VendorBillHeader."Posting Date");
@@ -189,7 +190,12 @@ codeunit 12173 "Vendor Bill List - Post"
         GenJnlLine."Due Date" := VendorBillLine."Due Date";
         GenJnlLine."External Document No." := VendorBillLine."Vendor Bill List No.";
         GenJnlLine.Validate(Amount, VendorBillLine."Amount to Pay");
-        GenJnlLine.Validate("Currency Code", VendorBillHeader."Currency Code");
+
+        CurrencyCodeHandled := false;
+        OnPostVendorBillLineOnBeforeValidateCurrencyCode(GenJnlLine,VendorBillHeader,VendorBillLine,VendLedgEntry,Bill,AmountLCY,CurrencyCodeHandled);
+        if not CurrencyCodeHandled then
+            GenJnlLine.Validate("Currency Code", VendorBillHeader."Currency Code");
+        
         if not VendorBillLine."Manual Line" then begin
             GenJnlLine.Validate("Salespers./Purch. Code", VendLedgEntry."Purchaser Code");
             ApplyInvAndUpdateLedgEntry(GenJnlLine, VendorBillLine, Tax::" ");
@@ -431,6 +437,11 @@ codeunit 12173 "Vendor Bill List - Post"
 
     [IntegrationEvent(false, false)]
     local procedure OnBeforeInsertPostedBillLine(VendorBillHeader: Record "Vendor Bill Header"; VendorBillLine: Record "Vendor Bill Line"; VendBillWithhTax: Record "Vendor Bill Withholding Tax"; VendLedgEntry: Record "Vendor Ledger Entry"; BillCode: Record Bill; TaxType: Option " ",Withhold,"Free Lance",Company; PostedVendorBillHeader: Record "Posted Vendor Bill Header"; BalanceAmountLCY: Decimal; var IsHandled: Boolean)
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnPostVendorBillLineOnBeforeValidateCurrencyCode(var GenJnlLine: Record "Gen. Journal Line"; VendorBillHeader: Record "Vendor Bill Header"; VendorBillLine: Record "Vendor Bill Line"; VendLedgEntry: Record "Vendor Ledger Entry"; Bill: Record Bill; var AmountLCY: Decimal;var IsHandled:Boolean)
     begin
     end;
 }

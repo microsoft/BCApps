@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -39,32 +39,26 @@ page 388 "Bank Acc. Reconciliation List"
                 field(BankAccountNo; Rec."Bank Account No.")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the number of the bank account that you want to reconcile with the bank''s statement.';
                 }
                 field("Bank Account Name"; Rec."Bank Account Name")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the name of the bank account that you want to reconcile.';
                 }
                 field(StatementNo; Rec."Statement No.")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the number of the bank account statement.';
                 }
                 field(StatementDate; Rec."Statement Date")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the date on the bank account statement.';
                 }
                 field(BalanceLastStatement; Rec."Balance Last Statement")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the ending balance shown on the last bank statement, which was used in the last posted bank reconciliation for this bank account.';
                 }
                 field(StatementEndingBalance; Rec."Statement Ending Balance")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the ending balance shown on the bank''s statement that you want to reconcile with the bank account.';
                 }
                 field(AllowDuplicatedTransactions; Rec."Allow Duplicated Transactions")
                 {

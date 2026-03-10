@@ -144,6 +144,12 @@ report 1016 "Job Quote"
                 column(TotalJob; TotalJob)
                 {
                 }
+                column(LineDiscountPctCaption; LineDiscountPctLbl)
+                {
+                }
+                column(LineDiscountAmountCaption; LineDiscountAmountLbl)
+                {
+                }
                 dataitem("Job Planning Line"; "Job Planning Line")
                 {
                     DataItemLink = "Job No." = field("Job No."), "Job Task No." = field("Job Task No.");
@@ -161,12 +167,18 @@ report 1016 "Job Quote"
                     column(UnitPrice; "Unit Price")
                     {
                     }
-                    column(TotalPriceLCY; "Total Price (LCY)")
+                    column(TotalPriceLCY; "Total Price (LCY)" - "Line Discount Amount (LCY)")
                     {
                         AutoFormatExpression = CurrencyFormat;
                         AutoFormatType = 10;
                     }
-                    column(TotalPrice; "Total Price")
+                    column(TotalPrice; "Total Price" - "Line Discount Amount")
+                    {
+                    }
+                    column(LineDiscountPct; "Line Discount %")
+                    {
+                    }
+                    column(LineDiscountAmount; "Line Discount Amount")
                     {
                     }
                     column(Type; Type)
@@ -204,7 +216,7 @@ report 1016 "Job Quote"
                             PrintSection := false;
                             CurrReport.Skip();
                         end;
-                        JobTotalValue += ("Unit Price" * Quantity);
+                        JobTotalValue += (("Unit Price" * Quantity) - "Line Discount Amount");
 
                         if FirstLineHasBeenOutput then
                             Clear(CompanyInfo.Picture);
@@ -344,6 +356,8 @@ report 1016 "Job Quote"
         UnitPriceLbl: Label 'Unit Price';
         TotalPriceLbl: Label 'Total Price';
         JobTaskTypeLbl: Label 'Project Task Type';
+        LineDiscountPctLbl: Label 'Discount %';
+        LineDiscountAmountLbl: Label 'Discount Amt';
         NoLbl: Label 'No.';
         NewTaskGroup: Integer;
         CurrentIndentation: Integer;

@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -21,22 +21,18 @@ page 6507 "Item Tracking List"
                 field("Serial No."; Rec."Serial No.")
                 {
                     ApplicationArea = ItemTracking;
-                    ToolTip = 'Specifies the serial number of the item that is being handled on the document line.';
                 }
                 field("Lot No."; Rec."Lot No.")
                 {
                     ApplicationArea = ItemTracking;
-                    ToolTip = 'Specifies the lot number of the item that is being handled with the associated document line.';
                 }
                 field("Package No."; Rec."Package No.")
                 {
                     ApplicationArea = ItemTracking;
-                    ToolTip = 'Specifies the package number of the item that is being handled with the associated document line.';
                 }
                 field("Warranty Date"; Rec."Warranty Date")
                 {
                     ApplicationArea = ItemTracking;
-                    ToolTip = 'Specifies the last day of the serial/lot number''s warranty.';
                     Visible = false;
                 }
                 field("Expiration Date"; Rec."Expiration Date")

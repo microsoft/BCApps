@@ -246,6 +246,7 @@ codeunit 2678 "Sales Alloc. Acc. Mgt."
 
         AllocationSalesLine.ReadIsolation := IsolationLevel::UpdLock;
         AllocationSalesLine.FindSet();
+        AmountRounding := 0;
         repeat
             CreateLinesFromAllocationAccountLine(AllocationSalesLine);
         until AllocationSalesLine.Next() = 0;
@@ -537,7 +538,8 @@ codeunit 2678 "Sales Alloc. Acc. Mgt."
 
         if AllocationAccount."Document Lines Split" = AllocationAccount."Document Lines Split"::"Split Amount" then begin
             SalesLine.Validate("Unit Price", GetUnitPrice(SalesLine, AllocationLine.Amount));
-            SalesLine."Line Amount" := AllocationLine.Amount;
+            SalesLine."Line Amount" := GetAmount(SalesLine, AllocationLine.Amount);
+            SalesLine.Amount := SalesLine."Line Amount";
         end else begin
             SalesLine.Validate("Unit Price", AllocationSalesLine."Unit Price");
             SalesLine."Line Amount" := AllocationSalesLine."Line Amount";
@@ -547,13 +549,29 @@ codeunit 2678 "Sales Alloc. Acc. Mgt."
     local procedure GetUnitPrice(var SalesLine: Record "Sales Line"; AllocationLineAmount: Decimal): Decimal
     var
         AllocationAccountMgt: Codeunit "Allocation Account Mgt.";
+        UnitAmountRoundingPrecision: Decimal;
+    begin
+        if SalesLine.GetSalesHeader()."Prices Including VAT" then
+            AllocationLineAmount += AllocationLineAmount * SalesLine."VAT %" / 100;
+
+        UnitAmountRoundingPrecision := AllocationAccountMgt.GetCurrencyUnitAmountPrecision(SalesLine."Currency Code");
+        exit(Round(AllocationLineAmount / SalesLine.Quantity, UnitAmountRoundingPrecision));
+    end;
+
+    local procedure GetAmount(var SalesLine: Record "Sales Line"; AllocationLineAmount: Decimal): Decimal
+    var
+        AllocationAccountMgt: Codeunit "Allocation Account Mgt.";
         AmountRoundingPrecision: Decimal;
+        Amount: Decimal;
     begin
         if SalesLine.GetSalesHeader()."Prices Including VAT" then
             AllocationLineAmount += AllocationLineAmount * SalesLine."VAT %" / 100;
 
         AmountRoundingPrecision := AllocationAccountMgt.GetCurrencyRoundingPrecision(SalesLine."Currency Code");
-        exit(Round(AllocationLineAmount / SalesLine.Quantity, AmountRoundingPrecision));
+        Amount := Round((AllocationLineAmount + AmountRounding), AmountRoundingPrecision);
+        AmountRounding += (AllocationLineAmount - Amount);
+
+        exit(Amount);
     end;
 
     local procedure GetNextLine(var AllocationSalesLine: Record "Sales Line"): Integer
@@ -759,6 +777,7 @@ codeunit 2678 "Sales Alloc. Acc. Mgt."
     end;
 
     var
+        AmountRounding: Decimal;
         AllocationAccountMustOnlyDistributeToGLAccountsErr: Label 'The allocation account must contain G/L accounts as distribution accounts.';
         CannotGetAllocationAccountFromLineErr: Label 'Cannot get allocation account from sales line %1.', Comment = '%1 - Line No., it is an integer that identifies the line e.g. 10000, 200000.';
         NoLinesGeneratedLbl: Label 'No allocation account lines were generated for sales line %1.', Comment = '%1 - Unique identification of the line.';

@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -32,7 +32,6 @@ page 5086 "Campaign Card"
                 field("No."; Rec."No.")
                 {
                     ApplicationArea = All;
-                    ToolTip = 'Specifies the number of the involved entry or record, according to the specified number series.';
 
                     trigger OnAssistEdit()
                     begin
@@ -43,37 +42,30 @@ page 5086 "Campaign Card"
                 field(Description; Rec.Description)
                 {
                     ApplicationArea = All;
-                    ToolTip = 'Specifies the description of the campaign.';
                 }
                 field("Status Code"; Rec."Status Code")
                 {
                     ApplicationArea = RelationshipMgmt;
-                    ToolTip = 'Specifies the status code for the campaign.';
                 }
                 field("Starting Date"; Rec."Starting Date")
                 {
                     ApplicationArea = RelationshipMgmt;
-                    ToolTip = 'Specifies the date on which the campaign is valid. There are certain rules for how dates should be entered.';
                 }
                 field("Ending Date"; Rec."Ending Date")
                 {
                     ApplicationArea = RelationshipMgmt;
-                    ToolTip = 'Specifies the last day on which this campaign is valid.';
                 }
                 field("Salesperson Code"; Rec."Salesperson Code")
                 {
                     ApplicationArea = RelationshipMgmt;
-                    ToolTip = 'Specifies the code of the salesperson responsible for the campaign.';
                 }
                 field("Last Date Modified"; Rec."Last Date Modified")
                 {
                     ApplicationArea = RelationshipMgmt;
-                    ToolTip = 'Specifies the date when the campaign card was last modified. This field is not editable.';
                 }
                 field(Activated; Rec.Activated)
                 {
                     ApplicationArea = RelationshipMgmt;
-                    ToolTip = 'Specifies if a sales lines price discount has been activated. After you set up a campaign and create segments for it, you can create discounts for targeted audiences.';
                 }
             }
             group(Invoicing)
@@ -82,12 +74,10 @@ page 5086 "Campaign Card"
                 field("Global Dimension 1 Code"; Rec."Global Dimension 1 Code")
                 {
                     ApplicationArea = Dimensions;
-                    ToolTip = 'Specifies the code for the global dimension that is linked to the record or entry for analysis purposes. Two global dimensions, typically for the company''s most important activities, are available on all cards, documents, reports, and lists.';
                 }
                 field("Global Dimension 2 Code"; Rec."Global Dimension 2 Code")
                 {
                     ApplicationArea = Dimensions;
-                    ToolTip = 'Specifies the code for the global dimension that is linked to the record or entry for analysis purposes. Two global dimensions, typically for the company''s most important activities, are available on all cards, documents, reports, and lists.';
                 }
             }
         }

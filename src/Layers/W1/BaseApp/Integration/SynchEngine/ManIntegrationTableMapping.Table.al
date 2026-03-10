@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -16,6 +16,7 @@ table 5380 "Man. Integration Table Mapping"
         field(1; Name; Code[20])
         {
             Caption = 'Name';
+            ToolTip = 'Specifies the name of the integration table.';
             DataClassification = SystemMetadata;
             NotBlank = true;
         }

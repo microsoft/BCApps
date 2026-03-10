@@ -140,15 +140,7 @@ codeunit 205 "Alt. Cust. VAT Reg. Doc. Impl." implements "Alt. Cust. VAT Reg. Do
             SalesHeader.Validate("VAT Country/Region Code", AltCustVATReg."VAT Country/Region Code");
             exit;
         end;
-        if (SalesHeader."VAT Bus. Posting Group" <> '') and (SalesHeader."VAT Bus. Posting Group" <> BillToCustomer."VAT Bus. Posting Group") then
-            SalesHeader.Validate("VAT Bus. Posting Group", BillToCustomer."VAT Bus. Posting Group")
-        else
-            SalesHeader."VAT Bus. Posting Group" := BillToCustomer."VAT Bus. Posting Group";
-        SalesHeader."VAT Country/Region Code" := BillToCustomer."Country/Region Code";
-        SalesHeader."VAT Registration No." := BillToCustomer."VAT Registration No.";
-        SalesHeader."Registration Number" := BillToCustomer."Registration Number";
-        SalesHeader."Gen. Bus. Posting Group" := BillToCustomer."Gen. Bus. Posting Group";
-        OnAfterUpdateSetupOnBillToCustomerChangeInSalesHeader(SalesHeader, BillToCustomer);
+        AltCustVATRegFacade.CopyBillToCustomerToSalesHeader(SalesHeader, BillToCustomer);
     end;
 
     local procedure IsAltVATRegUsed(SalesHeader: Record "Sales Header"): Boolean
@@ -217,19 +209,7 @@ codeunit 205 "Alt. Cust. VAT Reg. Doc. Impl." implements "Alt. Cust. VAT Reg. Do
     begin
         GetAlternativeCustVATReg(AltCustVATReg, SalesHeader);
         BindSubscription(this);
-        if AltCustVATReg."VAT Registration No." <> '' then begin
-            SalesHeader.Validate("Alt. VAT Registration No.", true);
-            SalesHeader.Validate("VAT Registration No.", AltCustVATReg."VAT Registration No.");
-        end;
-        if AltCustVATReg."Gen. Bus. Posting Group" <> '' then begin
-            SalesHeader.Validate("Alt. Gen. Bus Posting Group", true);
-            SalesHeader.Validate("Gen. Bus. Posting Group", AltCustVATReg."Gen. Bus. Posting Group");
-        end;
-        if AltCustVATReg."VAT Bus. Posting Group" <> '' then begin
-            SalesHeader.Validate("Alt. VAT Bus Posting Group", true);
-            SalesHeader.Validate("VAT Bus. Posting Group", AltCustVATReg."VAT Bus. Posting Group");
-        end;
-        OnAfterUpdateAltCustVATRegInSalesHeader(SalesHeader, AltCustVATReg);
+        AltCustVATRegFacade.CopyAltCustVATRegToSalesHeader(SalesHeader, AltCustVATReg);
         UnbindSubscription(this);
         FeatureTelemetry.LogUptake('0000NHG', FeatureNameTxt, Enum::"Feature Uptake Status"::Used);
     end;
@@ -239,24 +219,8 @@ codeunit 205 "Alt. Cust. VAT Reg. Doc. Impl." implements "Alt. Cust. VAT Reg. Do
         AltCustVATReg: Record "Alt. Cust. VAT Reg.";
     begin
         GetAlternativeCustVATReg(AltCustVATReg, SalesHeader);
-        if (AltCustVATReg."VAT Registration No." <> '') and (SalesHeader."VAT Registration No." <> AltCustVATReg."VAT Registration No.") then
-            AddFieldChangeBuffer(TempChangeLogEntry, SalesHeader.FieldNo("VAT Registration No."), SalesHeader."VAT Registration No.", AltCustVATReg."VAT Registration No.");
-        if (AltCustVATReg."Gen. Bus. Posting Group" <> '') and (SalesHeader."Gen. Bus. Posting Group" <> AltCustVATReg."Gen. Bus. Posting Group") then
-            AddFieldChangeBuffer(TempChangeLogEntry, SalesHeader.FieldNo("Gen. Bus. Posting Group"), SalesHeader."Gen. Bus. Posting Group", AltCustVATReg."Gen. Bus. Posting Group");
-        if (AltCustVATReg."VAT Bus. Posting Group" <> '') and (SalesHeader."VAT Bus. Posting Group" <> AltCustVATReg."VAT Bus. Posting Group") then
-            AddFieldChangeBuffer(TempChangeLogEntry, SalesHeader.FieldNo("VAT Bus. Posting Group"), SalesHeader."VAT Bus. Posting Group", AltCustVATReg."VAT Bus. Posting Group");
-        OnAfterBuildFieldChangeBuffer(TempChangeLogEntry, SalesHeader);
+        AltCustVATRegFacade.AddTempChangeLogEntryForAltCustVATRegChanges(TempChangeLogEntry, SalesHeader, AltCustVATReg);
         exit(not TempChangeLogEntry.IsEmpty());
-    end;
-
-    local procedure AddFieldChangeBuffer(var TempChangeLogEntry: Record "Change Log Entry" temporary; DocFieldNo: Integer; OldValue: Text[2048]; NewValue: Text[2048])
-    begin
-        TempChangeLogEntry."Entry No." += 1;
-        TempChangeLogEntry."Table No." := Database::"Sales Header";
-        TempChangeLogEntry."Field No." := DocFieldNo;
-        TempChangeLogEntry."Old Value" := OldValue;
-        TempChangeLogEntry."New Value" := NewValue;
-        TempChangeLogEntry.Insert();
     end;
 
     local procedure RunChecks(SalesHeader: Record "Sales Header")
@@ -379,20 +343,5 @@ codeunit 205 "Alt. Cust. VAT Reg. Doc. Impl." implements "Alt. Cust. VAT Reg. Do
     local procedure SetSalesLineRecreatedOnAfterRecreateSalesLines()
     begin
         SalesLinesRecreated := true;
-    end;
-
-    [IntegrationEvent(false, false)]
-    local procedure OnAfterUpdateSetupOnBillToCustomerChangeInSalesHeader(var SalesHeader: Record "Sales Header"; Customer: Record Customer)
-    begin
-    end;
-
-    [IntegrationEvent(false, false)]
-    local procedure OnAfterBuildFieldChangeBuffer(var TempChangeLogEntry: Record "Change Log Entry" temporary; SalesHeader: Record "Sales Header");
-    begin
-    end;
-
-    [IntegrationEvent(false, false)]
-    local procedure OnAfterUpdateAltCustVATRegInSalesHeader(var SalesHeader: Record "Sales Header"; var AltCustVATReg: Record "Alt. Cust. VAT Reg.")
-    begin
     end;
 }

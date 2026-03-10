@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -24,27 +24,22 @@ page 6504 "Serial No. Information Card"
                 field("Item No."; Rec."Item No.")
                 {
                     ApplicationArea = ItemTracking;
-                    ToolTip = 'Specifies the number that is copied from the Tracking Specification table, when a serial number information record is created.';
                 }
                 field("Variant Code"; Rec."Variant Code")
                 {
                     ApplicationArea = Planning;
-                    ToolTip = 'Specifies the variant of the item on the line.';
                 }
                 field("Serial No."; Rec."Serial No.")
                 {
                     ApplicationArea = ItemTracking;
-                    ToolTip = 'Specifies this number from the Tracking Specification table when a serial number information record is created.';
                 }
                 field(Description; Rec.Description)
                 {
                     ApplicationArea = ItemTracking;
-                    ToolTip = 'Specifies a description of the serial no. information record.';
                 }
                 field(Blocked; Rec.Blocked)
                 {
                     ApplicationArea = ItemTracking;
-                    ToolTip = 'Specifies that the related record is blocked from being posted in transactions, for example a customer that is declared insolvent or an item that is placed in quarantine.';
                 }
             }
             group(Inventory)
@@ -53,12 +48,10 @@ page 6504 "Serial No. Information Card"
                 field(Control19; Rec.Inventory)
                 {
                     ApplicationArea = ItemTracking;
-                    ToolTip = 'Specifies the inventory quantity of the specified serial number.';
                 }
                 field("Expired Inventory"; Rec."Expired Inventory")
                 {
                     ApplicationArea = ItemTracking;
-                    ToolTip = 'Specifies the inventory of the serial number with an expiration date before the posting date on the associated document.';
                 }
             }
         }

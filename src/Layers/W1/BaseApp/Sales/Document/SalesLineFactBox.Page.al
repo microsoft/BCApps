@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -47,7 +47,6 @@ page 9087 "Sales Line FactBox"
                 {
                     ApplicationArea = All;
                     Caption = 'Documents';
-                    ToolTip = 'Specifies the number of attachments.';
 
                     trigger OnDrillDown()
                     var
@@ -144,7 +143,6 @@ page 9087 "Sales Line FactBox"
                 {
                     ApplicationArea = Basic, Suite;
                     Caption = 'Qty. per Unit of Measure';
-                    ToolTip = 'Specifies an auto-filled number if you have included Sales Unit of Measure on the item card and a quantity in the Qty. per Unit of Measure field.';
                 }
                 field(Substitutions; SalesInfoPaneMgt.CalcNoOfSubstitutions(Rec))
                 {

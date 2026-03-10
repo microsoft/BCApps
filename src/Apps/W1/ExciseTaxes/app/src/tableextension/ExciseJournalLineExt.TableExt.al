@@ -23,7 +23,10 @@ tableextension 7413 "Excise Journal Line Ext" extends "Sust. Excise Jnl. Line"
                 ExciseJournalBatch: Record "Sust. Excise Journal Batch";
             begin
                 if "Excise Tax Type" <> xRec."Excise Tax Type" then begin
-                    "Tax Rate %" := 0;
+                    "Excise Entry Type" := "Excise Entry Type"::" ";
+                    "Excise Unit of Measure Code" := '';
+                    "Quantity for Excise Tax" := 0;
+                    "Excise Duty" := 0;
                     "Tax Amount" := 0;
                 end;
 
@@ -31,31 +34,10 @@ tableextension 7413 "Excise Journal Line Ext" extends "Sust. Excise Jnl. Line"
                     ExciseJournalBatch.ValidateTaxTypeForBatch("Excise Tax Type");
             end;
         }
-        field(7413; "Tax Rate %"; Decimal)
-        {
-            Caption = 'Tax Rate %';
-            DecimalPlaces = 2 : 5;
-            MinValue = 0;
-            MaxValue = 100;
-            DataClassification = CustomerContent;
-            Editable = false;
-        }
-        field(7414; "Tax Amount"; Decimal)
-        {
-            Caption = 'Tax Amount';
-            DataClassification = CustomerContent;
-            Editable = false;
-        }
-        field(7415; Quantity; Decimal)
-        {
-            Caption = 'Quantity';
-            DecimalPlaces = 0 : 5;
-            DataClassification = CustomerContent;
-            Editable = false;
-        }
-        field(7416; "Excise Entry Type"; Enum "Excise Entry Type")
+        field(7413; "Excise Entry Type"; Enum "Excise Entry Type")
         {
             Caption = 'Excise Entry Type';
+            Editable = false;
             DataClassification = CustomerContent;
 
             trigger OnValidate()
@@ -64,19 +46,63 @@ tableextension 7413 "Excise Journal Line Ext" extends "Sust. Excise Jnl. Line"
                     ValidateEntryTypeAllowed();
             end;
         }
-        field(7417; "FA Ledger Entry No."; Integer)
+        field(7414; "Excise Unit of Measure Code"; Code[10])
+        {
+            Caption = 'Excise Tax Unit of Measure';
+            TableRelation = "Unit of Measure".Code;
+            DataClassification = CustomerContent;
+        }
+        field(7415; "Quantity for Excise Tax"; Decimal)
+        {
+            AutoFormatType = 0;
+            Caption = 'Quantity for Excise Tax';
+            DecimalPlaces = 0 : 5;
+            MinValue = 0;
+            DataClassification = CustomerContent;
+
+            trigger OnValidate()
+            begin
+                Rec."Tax Amount" := CalculateTaxAmount(Rec."Excise Duty", Rec."Source Qty.", Rec."Quantity for Excise Tax");
+            end;
+        }
+        field(7416; "Excise Duty"; Decimal)
+        {
+            AutoFormatType = 0;
+            Caption = 'Excise Duty';
+            DecimalPlaces = 2 : 5;
+            MinValue = 0;
+            DataClassification = CustomerContent;
+            Editable = false;
+
+            trigger OnValidate()
+            begin
+                if Rec."Excise Duty" <> 0 then
+                    Rec.TestField("Excise Tax Type");
+
+                Rec."Tax Amount" := CalculateTaxAmount(Rec."Excise Duty", Rec."Source Qty.", Rec."Quantity for Excise Tax");
+            end;
+        }
+        field(7417; "Tax Amount"; Decimal)
+        {
+            AutoFormatType = 1;
+            AutoFormatExpression = '';
+            Caption = 'Tax Amount';
+            DataClassification = CustomerContent;
+            Editable = false;
+        }
+        field(7420; "FA Ledger Entry No."; Integer)
         {
             Caption = 'FA Ledger Entry No.';
             TableRelation = "FA Ledger Entry"."Entry No.";
             DataClassification = CustomerContent;
             Editable = false;
         }
-        field(7418; "Excise Tax UOM"; Code[10])
+        modify("Source Qty.")
         {
-            Caption = 'Excise Tax UOM';
-            TableRelation = "Unit of Measure".Code;
-            DataClassification = CustomerContent;
-            Editable = false;
+            trigger OnAfterValidate()
+            begin
+                Rec."Tax Amount" := CalculateTaxAmount(Rec."Excise Duty", Rec."Source Qty.", Rec."Quantity for Excise Tax");
+            end;
         }
     }
 
@@ -84,7 +110,7 @@ tableextension 7413 "Excise Journal Line Ext" extends "Sust. Excise Jnl. Line"
     var
         ExciseJournalBatch: Record "Sust. Excise Journal Batch";
     begin
-        if ("Excise Tax Type" = '') and ExciseJournalBatch.Get("Journal Template Name", "Journal Batch Name") then
+        if ("Excise Tax Type" = '') and ExciseJournalBatch.Get(Rec."Journal Template Name", Rec."Journal Batch Name") then
             if ExciseJournalBatch."Excise Tax Type Filter" <> '' then
                 "Excise Tax Type" := ExciseJournalBatch."Excise Tax Type Filter";
     end;
@@ -101,5 +127,13 @@ tableextension 7413 "Excise Journal Line Ext" extends "Sust. Excise Jnl. Line"
 
         if not ExciseTaxEntryPermission.IsEntryTypeAllowed("Excise Tax Type", "Excise Entry Type") then
             Error(EntryTypeNotAllowedForTaxTypeErr, "Excise Entry Type", "Excise Tax Type");
+    end;
+
+    local procedure CalculateTaxAmount(ExciseDuty: Decimal; Quantity: Decimal; QtyForTax: Decimal): Decimal
+    begin
+        if (ExciseDuty = 0) or (Quantity = 0) or (QtyForTax = 0) then
+            exit(0);
+
+        exit(ExciseDuty * Quantity * QtyForTax);
     end;
 }

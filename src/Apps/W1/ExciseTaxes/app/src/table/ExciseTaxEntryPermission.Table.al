@@ -27,7 +27,6 @@ table 7414 "Excise Tax Entry Permission"
         field(3; Allowed; Boolean)
         {
             Caption = 'Allowed';
-            InitValue = false;
         }
     }
 
@@ -62,6 +61,7 @@ table 7414 "Excise Tax Entry Permission"
         TempExciseEntryType.Reset();
         TempExciseEntryType.DeleteAll();
 
+        ExciseTaxEntryPermission.SetFilter("Excise Entry Type", '<>%1', "Excise Entry Type"::" ");
         ExciseTaxEntryPermission.SetRange("Excise Tax Type Code", TaxTypeCode);
         ExciseTaxEntryPermission.SetRange(Allowed, true);
         if ExciseTaxEntryPermission.FindSet() then

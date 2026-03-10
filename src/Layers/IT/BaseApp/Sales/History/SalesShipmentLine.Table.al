@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -61,6 +61,7 @@ table 111 "Sales Shipment Line"
         field(2; "Sell-to Customer No."; Code[20])
         {
             Caption = 'Sell-to Customer No.';
+            ToolTip = 'Specifies the number of the customer.';
             Editable = false;
             TableRelation = Customer;
         }
@@ -70,6 +71,7 @@ table 111 "Sales Shipment Line"
         field(3; "Document No."; Code[20])
         {
             Caption = 'Document No.';
+            ToolTip = 'Specifies the shipment number.';
             TableRelation = "Sales Shipment Header";
 
             trigger OnValidate()
@@ -90,6 +92,7 @@ table 111 "Sales Shipment Line"
         field(5; Type; Enum "Sales Line Type")
         {
             Caption = 'Type';
+            ToolTip = 'Specifies the line type.';
         }
         /// <summary>
         /// Specifies the number of the item, G/L account, resource, or other entity on the line.
@@ -98,6 +101,7 @@ table 111 "Sales Shipment Line"
         {
             CaptionClass = GetCaptionClass(FieldNo("No."));
             Caption = 'No.';
+            ToolTip = 'Specifies the number of the involved entry or record, according to the specified number series.';
             TableRelation = if (Type = const("G/L Account")) "G/L Account"
             else
             if (Type = const(Item)) Item
@@ -114,6 +118,7 @@ table 111 "Sales Shipment Line"
         field(7; "Location Code"; Code[10])
         {
             Caption = 'Location Code';
+            ToolTip = 'Specifies the code for the location of the item on the shipment line which was posted.';
             TableRelation = Location where("Use As In-Transit" = const(false));
         }
         /// <summary>
@@ -133,6 +138,7 @@ table 111 "Sales Shipment Line"
         field(10; "Shipment Date"; Date)
         {
             Caption = 'Shipment Date';
+            ToolTip = 'Specifies when items on the document are shipped or were shipped. A shipment date is usually calculated from a requested delivery date plus lead time.';
         }
         /// <summary>
         /// Specifies a description of the item or service on the line.
@@ -140,6 +146,7 @@ table 111 "Sales Shipment Line"
         field(11; Description; Text[100])
         {
             Caption = 'Description';
+            ToolTip = 'Specifies the name of the item or general ledger account, or some descriptive text.';
         }
         /// <summary>
         /// Specifies additional description text for the line.
@@ -147,6 +154,7 @@ table 111 "Sales Shipment Line"
         field(12; "Description 2"; Text[50])
         {
             Caption = 'Description 2';
+            ToolTip = 'Specifies information in addition to the description.';
         }
         /// <summary>
         /// Specifies the name of the unit of measure for the line.
@@ -154,6 +162,7 @@ table 111 "Sales Shipment Line"
         field(13; "Unit of Measure"; Text[50])
         {
             Caption = 'Unit of Measure';
+            ToolTip = 'Specifies the name of the item or resource''s unit of measure, such as piece or hour.';
         }
         /// <summary>
         /// Specifies the quantity of items shipped on the line.
@@ -162,6 +171,7 @@ table 111 "Sales Shipment Line"
         {
             AutoFormatType = 0;
             Caption = 'Quantity';
+            ToolTip = 'Specifies the number of units of the item specified on the line.';
             DecimalPlaces = 0 : 5;
         }
         /// <summary>
@@ -218,6 +228,7 @@ table 111 "Sales Shipment Line"
         {
             AutoFormatType = 0;
             Caption = 'Gross Weight';
+            ToolTip = 'Specifies the gross weight of one unit of the item. In the sales statistics window, the gross weight on the line is included in the total gross weight of all the lines for the particular sales document.';
             DecimalPlaces = 0 : 5;
         }
         /// <summary>
@@ -227,6 +238,7 @@ table 111 "Sales Shipment Line"
         {
             AutoFormatType = 0;
             Caption = 'Net Weight';
+            ToolTip = 'Specifies the net weight of one unit of the item. In the sales statistics window, the net weight on the line is included in the total net weight of all the lines for the particular sales document.';
             DecimalPlaces = 0 : 5;
         }
         /// <summary>
@@ -236,6 +248,7 @@ table 111 "Sales Shipment Line"
         {
             AutoFormatType = 0;
             Caption = 'Units per Parcel';
+            ToolTip = 'Specifies the number of units per parcel of the item. In the sales statistics window, the number of units per parcel on the line helps to determine the total number of units for all the lines for the particular sales document.';
             DecimalPlaces = 0 : 5;
         }
         /// <summary>
@@ -245,6 +258,7 @@ table 111 "Sales Shipment Line"
         {
             AutoFormatType = 0;
             Caption = 'Unit Volume';
+            ToolTip = 'Specifies the volume of one unit of the item. In the sales statistics window, the volume of one unit of the item on the line is included in the total volume of all the lines for the particular sales document.';
             DecimalPlaces = 0 : 5;
         }
         /// <summary>
@@ -254,6 +268,7 @@ table 111 "Sales Shipment Line"
         {
             AccessByPermission = TableData Item = R;
             Caption = 'Appl.-to Item Entry';
+            ToolTip = 'Specifies the number of the item ledger entry that the document or journal line is applied to.';
         }
         /// <summary>
         /// Specifies the item ledger entry number created by this shipment.
@@ -269,6 +284,7 @@ table 111 "Sales Shipment Line"
         {
             CaptionClass = '1,2,1';
             Caption = 'Shortcut Dimension 1 Code';
+            ToolTip = 'Specifies the code for Shortcut Dimension 1, which is one of two global dimension codes that you set up in the General Ledger Setup window.';
             TableRelation = "Dimension Value".Code where("Global Dimension No." = const(1));
         }
         /// <summary>
@@ -278,6 +294,7 @@ table 111 "Sales Shipment Line"
         {
             CaptionClass = '1,2,2';
             Caption = 'Shortcut Dimension 2 Code';
+            ToolTip = 'Specifies the code for Shortcut Dimension 2, which is one of two global dimension codes that you set up in the General Ledger Setup window.';
             TableRelation = "Dimension Value".Code where("Global Dimension No." = const(2));
         }
         /// <summary>
@@ -294,6 +311,7 @@ table 111 "Sales Shipment Line"
         field(45; "Job No."; Code[20])
         {
             Caption = 'Project No.';
+            ToolTip = 'Specifies the number of the related project.';
             TableRelation = Job;
         }
         /// <summary>
@@ -312,6 +330,7 @@ table 111 "Sales Shipment Line"
             AutoFormatType = 0;
             AccessByPermission = TableData "Sales Shipment Header" = R;
             Caption = 'Qty. Shipped Not Invoiced';
+            ToolTip = 'Specifies the quantity of the shipped item that has been posted as shipped but that has not yet been posted as invoiced.';
             DecimalPlaces = 0 : 5;
             Editable = false;
         }
@@ -322,6 +341,7 @@ table 111 "Sales Shipment Line"
         {
             AutoFormatType = 0;
             Caption = 'Quantity Invoiced';
+            ToolTip = 'Specifies how many units of the item on the line have been posted as invoiced.';
             DecimalPlaces = 0 : 5;
             Editable = false;
         }
@@ -345,6 +365,7 @@ table 111 "Sales Shipment Line"
         field(68; "Bill-to Customer No."; Code[20])
         {
             Caption = 'Bill-to Customer No.';
+            ToolTip = 'Specifies the number of the customer that you send or sent the invoice or credit memo to.';
             Editable = false;
             TableRelation = Customer;
         }
@@ -487,6 +508,7 @@ table 111 "Sales Shipment Line"
         {
             CalcFormula = lookup("Sales Shipment Header"."Currency Code" where("No." = field("Document No.")));
             Caption = 'Currency Code';
+            ToolTip = 'Specifies the currency that is used on the entry.';
             Editable = false;
             FieldClass = FlowField;
         }
@@ -496,6 +518,7 @@ table 111 "Sales Shipment Line"
         field(97; "Blanket Order No."; Code[20])
         {
             Caption = 'Blanket Order No.';
+            ToolTip = 'Specifies the number of the blanket order that the record originates from.';
             TableRelation = "Sales Header"."No." where("Document Type" = const("Blanket Order"));
         }
         /// <summary>
@@ -504,6 +527,7 @@ table 111 "Sales Shipment Line"
         field(98; "Blanket Order Line No."; Integer)
         {
             Caption = 'Blanket Order Line No.';
+            ToolTip = 'Specifies the number of the blanket order line that the record originates from.';
             TableRelation = "Sales Line"."Line No." where("Document Type" = const("Blanket Order"),
                                                            "Document No." = field("Blanket Order No."));
         }
@@ -585,6 +609,7 @@ table 111 "Sales Shipment Line"
         field(1001; "Job Task No."; Code[20])
         {
             Caption = 'Project Task No.';
+            ToolTip = 'Specifies the number of the related project task.';
             Editable = false;
             TableRelation = "Job Task"."Job Task No." where("Job No." = field("Job No."));
         }
@@ -602,6 +627,7 @@ table 111 "Sales Shipment Line"
         field(5402; "Variant Code"; Code[10])
         {
             Caption = 'Variant Code';
+            ToolTip = 'Specifies the variant of the item on the line.';
             TableRelation = if (Type = const(Item)) "Item Variant".Code where("Item No." = field("No."));
         }
         /// <summary>
@@ -610,6 +636,7 @@ table 111 "Sales Shipment Line"
         field(5403; "Bin Code"; Code[20])
         {
             Caption = 'Bin Code';
+            ToolTip = 'Specifies the bin where the items are picked or put away.';
             TableRelation = Bin.Code where("Location Code" = field("Location Code"),
                                             "Item Filter" = field("No."),
                                             "Variant Filter" = field("Variant Code"));
@@ -630,6 +657,7 @@ table 111 "Sales Shipment Line"
         field(5407; "Unit of Measure Code"; Code[10])
         {
             Caption = 'Unit of Measure Code';
+            ToolTip = 'Specifies how each unit of the item or resource is measured, such as in pieces or hours. By default, the value in the Base Unit of Measure field on the item or resource card is inserted.';
             TableRelation = if (Type = const(Item)) "Item Unit of Measure".Code where("Item No." = field("No."))
             else
             "Unit of Measure";
@@ -712,6 +740,7 @@ table 111 "Sales Shipment Line"
         field(5710; Nonstock; Boolean)
         {
             Caption = 'Catalog';
+            ToolTip = 'Specifies that the item on the sales line is a catalog item, which means it is not normally kept in inventory.';
         }
         /// <summary>
         /// Specifies the purchasing code for special order handling.
@@ -728,6 +757,7 @@ table 111 "Sales Shipment Line"
         {
             AccessByPermission = TableData "Item Reference" = R;
             Caption = 'Item Reference No.';
+            ToolTip = 'Specifies the referenced item number.';
         }
         /// <summary>
         /// Specifies the unit of measure associated with the item reference.
@@ -757,6 +787,7 @@ table 111 "Sales Shipment Line"
         field(5790; "Requested Delivery Date"; Date)
         {
             Caption = 'Requested Delivery Date';
+            ToolTip = 'Specifies the date that the customer has asked for the order to be delivered.';
             Editable = false;
         }
         /// <summary>
@@ -765,6 +796,7 @@ table 111 "Sales Shipment Line"
         field(5791; "Promised Delivery Date"; Date)
         {
             Caption = 'Promised Delivery Date';
+            ToolTip = 'Specifies the date that you have promised to deliver the order, as a result of the Order Promising function.';
             Editable = false;
         }
         /// <summary>
@@ -774,6 +806,7 @@ table 111 "Sales Shipment Line"
         {
             AccessByPermission = TableData "Shipping Agent Services" = R;
             Caption = 'Shipping Time';
+            ToolTip = 'Specifies how long it takes from when the items are shipped from the warehouse to when they are delivered.';
         }
         /// <summary>
         /// Specifies the time required for outbound warehouse handling.
@@ -782,6 +815,7 @@ table 111 "Sales Shipment Line"
         {
             AccessByPermission = TableData Location = R;
             Caption = 'Outbound Whse. Handling Time';
+            ToolTip = 'Specifies a date formula for the time it takes to get items ready to ship from this location. The time element is used in the calculation of the delivery date as follows: Shipment Date + Outbound Warehouse Handling Time = Planned Shipment Date + Shipping Time = Planned Delivery Date.';
         }
         /// <summary>
         /// Specifies the planned delivery date calculated by the system.
@@ -789,6 +823,7 @@ table 111 "Sales Shipment Line"
         field(5794; "Planned Delivery Date"; Date)
         {
             Caption = 'Planned Delivery Date';
+            ToolTip = 'Specifies the planned date that the shipment will be delivered at the customer''s address. If the customer requests a delivery date, the program calculates whether the items will be available for delivery on this date. If the items are available, the planned delivery date will be the same as the requested delivery date. If not, the program calculates the date that the items are available for delivery and enters this date in the Planned Delivery Date field.';
             Editable = false;
         }
         /// <summary>
@@ -797,7 +832,22 @@ table 111 "Sales Shipment Line"
         field(5795; "Planned Shipment Date"; Date)
         {
             Caption = 'Planned Shipment Date';
+            ToolTip = 'Specifies the date that the shipment should ship from the warehouse. If the customer requests a delivery date, the program calculates the planned shipment date by subtracting the shipping time from the requested delivery date. If the customer does not request a delivery date or the requested delivery date cannot be met, the program calculates the content of this field by adding the shipment time to the shipping date.';
             Editable = false;
+        }
+        /// <summary>
+        /// Specifies the external document number from the customer's system for reference.
+        /// </summary>
+        field(5798; "External Document No."; Code[35])
+        {
+            Caption = 'External Document No.';
+        }
+        /// <summary>
+        /// Specifies the reference number provided by the customer for this shipment line.
+        /// </summary>
+        field(5799; "Your Reference"; Text[35])
+        {
+            Caption = 'Your Reference';
         }
         /// <summary>
         /// Specifies the item ledger entry to apply from for cost tracking.
@@ -806,6 +856,7 @@ table 111 "Sales Shipment Line"
         {
             AccessByPermission = TableData Item = R;
             Caption = 'Appl.-from Item Entry';
+            ToolTip = 'Specifies the number of the item ledger entry that the document or journal line is applied from.';
             MinValue = 0;
         }
         /// <summary>
@@ -823,6 +874,7 @@ table 111 "Sales Shipment Line"
         field(5817; Correction; Boolean)
         {
             Caption = 'Correction';
+            ToolTip = 'Specifies that this sales shipment line has been posted as a corrective entry.';
             Editable = false;
         }
         /// <summary>
@@ -831,6 +883,7 @@ table 111 "Sales Shipment Line"
         field(6608; "Return Reason Code"; Code[10])
         {
             Caption = 'Return Reason Code';
+            ToolTip = 'Specifies the code explaining why the item was returned.';
             TableRelation = "Return Reason";
         }
         /// <summary>
@@ -1388,6 +1441,8 @@ table 111 "Sales Shipment Line"
         if SalesLine."Document Type" = SalesLine."Document Type"::Order then begin
             "Order No." := SalesLine."Document No.";
             "Order Line No." := SalesLine."Line No.";
+            "External Document No." := SalesShptHeader."External Document No.";
+            "Your Reference" := SalesShptHeader."Your Reference";
         end;
 
         OnAfterInitFromSalesLine(SalesShptHeader, SalesLine, Rec);

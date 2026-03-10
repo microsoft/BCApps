@@ -56,6 +56,7 @@ table 777 "Online Bank Acc. Link"
         field(5; Name; Text[50])
         {
             Caption = 'Name';
+            ToolTip = 'Specifies the bank account name.';
         }
         /// <summary>
         /// Currency code for the online bank account.
@@ -78,6 +79,7 @@ table 777 "Online Bank Acc. Link"
         field(8; "Bank Account No."; Text[30])
         {
             Caption = 'Bank Account No.';
+            ToolTip = 'Specifies the number of the online bank account.';
         }
         /// <summary>
         /// Temporary field for holding bank account number during linking process.

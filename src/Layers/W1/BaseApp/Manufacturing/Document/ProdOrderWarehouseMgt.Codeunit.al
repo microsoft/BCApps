@@ -338,7 +338,8 @@ codeunit 5996 "Prod. Order Warehouse Mgt."
         if IsHandled then
             exit;
 
-        if ProdOrderComponent."Qty. Picked (Base)" < ItemJournalLine."Quantity (Base)" then
+        ProdOrderComponent.CalcFields("Act. Consumption (Qty)");
+        if ProdOrderComponent."Qty. Picked (Base)" < (ItemJournalLine."Quantity (Base)" + ProdOrderComponent."Act. Consumption (Qty)") then
             ProdOrderComponent.FieldError("Qty. Picked (Base)");
     end;
 

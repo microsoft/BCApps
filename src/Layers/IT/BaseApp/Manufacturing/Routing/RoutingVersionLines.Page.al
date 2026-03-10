@@ -22,34 +22,28 @@ page 99000767 "Routing Version Lines"
                 field("Operation No."; Rec."Operation No.")
                 {
                     ApplicationArea = Manufacturing;
-                    ToolTip = 'Specifies the operation number for this routing line.';
                 }
                 field("Previous Operation No."; Rec."Previous Operation No.")
                 {
                     ApplicationArea = Manufacturing;
-                    ToolTip = 'Specifies the previous operation number, which is automatically assigned.';
                     Visible = false;
                 }
                 field("Next Operation No."; Rec."Next Operation No.")
                 {
                     ApplicationArea = Manufacturing;
-                    ToolTip = 'Specifies the next operation number. You use this field if you use parallel routings.';
                     Visible = false;
                 }
                 field(Type; Rec.Type)
                 {
                     ApplicationArea = Manufacturing;
-                    ToolTip = 'Specifies the kind of capacity type to use for the actual operation.';
                 }
                 field("No."; Rec."No.")
                 {
                     ApplicationArea = Manufacturing;
-                    ToolTip = 'Specifies the number of the involved entry or record, according to the specified number series.';
                 }
                 field("Standard Task Code"; Rec."Standard Task Code")
                 {
                     ApplicationArea = Manufacturing;
-                    ToolTip = 'Specifies a standard task.';
                 }
 #if not CLEAN27
                 field("WIP Item"; Rec."WIP Item")
@@ -64,94 +58,77 @@ page 99000767 "Routing Version Lines"
                 field("Routing Link Code"; Rec."Routing Link Code")
                 {
                     ApplicationArea = Manufacturing;
-                    ToolTip = 'Specifies the routing link code.';
                 }
                 field(Description; Rec.Description)
                 {
                     ApplicationArea = Manufacturing;
-                    ToolTip = 'Specifies a description of the entry.';
                 }
                 field("Description 2"; Rec."Description 2")
                 {
                     ApplicationArea = Manufacturing;
-                    ToolTip = 'Specifies additional description text.';
                     Visible = false;
                 }
                 field("Setup Time"; Rec."Setup Time")
                 {
                     ApplicationArea = Manufacturing;
-                    ToolTip = 'Specifies the setup time of the operation.';
                 }
                 field("Setup Time Unit of Meas. Code"; Rec."Setup Time Unit of Meas. Code")
                 {
                     ApplicationArea = Manufacturing;
-                    ToolTip = 'Specifies the unit of measure code that applies to the setup time of the operation.';
                     Visible = false;
                 }
                 field("Run Time"; Rec."Run Time")
                 {
                     ApplicationArea = Manufacturing;
-                    ToolTip = 'Specifies the run time of the operation.';
                 }
                 field("Run Time Unit of Meas. Code"; Rec."Run Time Unit of Meas. Code")
                 {
                     ApplicationArea = Manufacturing;
-                    ToolTip = 'Specifies the unit of measure code that applies to the run time of the operation.';
                     Visible = false;
                 }
                 field("Wait Time"; Rec."Wait Time")
                 {
                     ApplicationArea = Manufacturing;
-                    ToolTip = 'Specifies the wait time according to the value in the Wait Time Unit of Measure field.';
                 }
                 field("Wait Time Unit of Meas. Code"; Rec."Wait Time Unit of Meas. Code")
                 {
                     ApplicationArea = Manufacturing;
-                    ToolTip = 'Specifies the unit of measure code that applies to the wait time.';
                     Visible = false;
                 }
                 field("Move Time"; Rec."Move Time")
                 {
                     ApplicationArea = Manufacturing;
-                    ToolTip = 'Specifies the move time according to the value in the Move Time Unit of Measure field.';
                 }
                 field("Move Time Unit of Meas. Code"; Rec."Move Time Unit of Meas. Code")
                 {
                     ApplicationArea = Manufacturing;
-                    ToolTip = 'Specifies the unit of measure code that applies to the move time.';
                     Visible = false;
                 }
                 field("Fixed Scrap Quantity"; Rec."Fixed Scrap Quantity")
                 {
                     ApplicationArea = Manufacturing;
-                    ToolTip = 'Specifies the fixed scrap quantity.';
                 }
                 field("Scrap Factor %"; Rec."Scrap Factor %")
                 {
                     ApplicationArea = Manufacturing;
-                    ToolTip = 'Specifies the scrap factor in percent.';
                 }
                 field("Minimum Process Time"; Rec."Minimum Process Time")
                 {
                     ApplicationArea = Manufacturing;
-                    ToolTip = 'Specifies a minimum process time.';
                     Visible = false;
                 }
                 field("Maximum Process Time"; Rec."Maximum Process Time")
                 {
                     ApplicationArea = Manufacturing;
-                    ToolTip = 'Specifies a maximum process time.';
                     Visible = false;
                 }
                 field("Concurrent Capacities"; Rec."Concurrent Capacities")
                 {
                     ApplicationArea = Manufacturing;
-                    ToolTip = 'Specifies the number of machines or persons that are working concurrently.';
                 }
                 field("Send-Ahead Quantity"; Rec."Send-Ahead Quantity")
                 {
                     ApplicationArea = Manufacturing;
-                    ToolTip = 'Specifies the send-ahead quantity.';
                 }
                 field("Unit Cost per"; Rec."Unit Cost per")
                 {
@@ -161,7 +138,6 @@ page 99000767 "Routing Version Lines"
                 field("Lot Size"; Rec."Lot Size")
                 {
                     ApplicationArea = Manufacturing;
-                    ToolTip = 'Specifies the number of items that are included in the same operation at the same time. The run time on routing lines is reduced proportionally to the lot size. For example, if the lot size is two pieces, the run time will be reduced by half.';
                     Visible = false;
                 }
             }

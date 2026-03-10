@@ -10,7 +10,7 @@ using System.Utilities;
 codeunit 5958 "Serv. Calc. G/L Acc.Where-Used"
 {
 
-    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Calc. G/L Acc. Where-Used", 'OnShowExtensionPage', '', false, false)]
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Calc. G/L Acc. Where-Used", 'OnShowExtensionPage', '', true, false)]
     local procedure OnShowExtensionPage(GLAccountWhereUsed: Record "G/L Account Where-Used")
     var
         ServiceContractAccGr: Record "Service Contract Account Group";
@@ -21,7 +21,7 @@ codeunit 5958 "Serv. Calc. G/L Acc.Where-Used"
         end;
     end;
 
-    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Calc. G/L Acc. Where-Used", 'OnAfterFillTableBuffer', '', false, false)]
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Calc. G/L Acc. Where-Used", 'OnAfterFillTableBuffer', '', true, false)]
     local procedure OnAfterFillTableBuffer(var TableBuffer: Record "Integer")
     var
         ServiceContractAccountGroup: Record "Service Contract Account Group";

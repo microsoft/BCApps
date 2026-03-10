@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -17,6 +17,7 @@ table 5814 "Inventory Period"
         field(1; "Ending Date"; Date)
         {
             Caption = 'Ending Date';
+            ToolTip = 'Specifies the ending date of an inventory period is the last day of the inventory period.';
             NotBlank = true;
 
             trigger OnValidate()
@@ -27,10 +28,12 @@ table 5814 "Inventory Period"
         field(2; Name; Text[50])
         {
             Caption = 'Name';
+            ToolTip = 'Specifies a descriptive name that helps users identify the inventory period.';
         }
         field(3; Closed; Boolean)
         {
             Caption = 'Closed';
+            ToolTip = 'Specifies that an inventory period can be open or closed.';
             Editable = false;
         }
     }

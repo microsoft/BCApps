@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -31,6 +31,7 @@ table 929 "Bank Account Balance Buffer"
         field(6; "Period Name"; Text[50])
         {
             Caption = 'Period Name';
+            ToolTip = 'Specifies the name of the period shown in the line.';
         }
         /// <summary>
         /// Starting date of the balance calculation period.
@@ -38,6 +39,7 @@ table 929 "Bank Account Balance Buffer"
         field(7; "Period Start"; Date)
         {
             Caption = 'Period Start';
+            ToolTip = 'Specifies the start date of the period defined on the line for the summary of the bank account balance.';
         }
         /// <summary>
         /// Ending date of the balance calculation period.
@@ -53,6 +55,7 @@ table 929 "Bank Account Balance Buffer"
         {
             AutoFormatType = 0;
             Caption = 'Net Change';
+            ToolTip = 'Specifies the net value of entries for the period shown in the left column.';
         }
         /// <summary>
         /// Net change amount in local currency for the period.

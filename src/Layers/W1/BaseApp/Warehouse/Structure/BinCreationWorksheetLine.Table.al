@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -64,6 +64,7 @@ table 7338 "Bin Creation Worksheet Line"
         field(6; "Zone Code"; Code[10])
         {
             Caption = 'Zone Code';
+            ToolTip = 'Specifies the code of the zone where the bin on the worksheet will be located.';
             TableRelation = Zone.Code where("Location Code" = field("Location Code"));
 
             trigger OnValidate()
@@ -80,6 +81,7 @@ table 7338 "Bin Creation Worksheet Line"
         field(7; "Bin Code"; Code[20])
         {
             Caption = 'Bin Code';
+            ToolTip = 'Specifies the bin where the items are picked or put away.';
             NotBlank = true;
             TableRelation = Bin.Code where("Location Code" = field("Location Code"));
             ValidateTableRelation = false;
@@ -102,6 +104,7 @@ table 7338 "Bin Creation Worksheet Line"
         field(8; "Item No."; Code[20])
         {
             Caption = 'Item No.';
+            ToolTip = 'Specifies the item number for which bin content should be created.';
             NotBlank = true;
             TableRelation = Item;
 
@@ -125,15 +128,18 @@ table 7338 "Bin Creation Worksheet Line"
         field(9; Description; Text[100])
         {
             Caption = 'Description';
+            ToolTip = 'Specifies the description for the bin that should be created.';
         }
         field(10; "Bin Type Code"; Code[10])
         {
             Caption = 'Bin Type Code';
+            ToolTip = 'Specifies the bin type or bin content that should be created.';
             TableRelation = "Bin Type";
         }
         field(11; "Warehouse Class Code"; Code[10])
         {
             Caption = 'Warehouse Class Code';
+            ToolTip = 'Specifies the warehouse class of the bin or bin content that should be created.';
             TableRelation = "Warehouse Class";
 
             trigger OnValidate()
@@ -145,6 +151,7 @@ table 7338 "Bin Creation Worksheet Line"
         field(12; "Block Movement"; Option)
         {
             Caption = 'Block Movement';
+            ToolTip = 'Specifies how the movement of a particular item, or bin content, into or out of this bin, is blocked.';
             OptionCaption = ' ,Inbound,Outbound,All';
             OptionMembers = " ",Inbound,Outbound,All;
         }
@@ -152,6 +159,7 @@ table 7338 "Bin Creation Worksheet Line"
         {
             AutoFormatType = 0;
             Caption = 'Min. Qty.';
+            ToolTip = 'Specifies the minimum quantity for the bin content that should be created.';
             DecimalPlaces = 0 : 5;
             MinValue = 0;
 
@@ -168,6 +176,7 @@ table 7338 "Bin Creation Worksheet Line"
         {
             AutoFormatType = 0;
             Caption = 'Max. Qty.';
+            ToolTip = 'Specifies the maximum quantity for the bin content that should be created.';
             DecimalPlaces = 0 : 5;
             MinValue = 1;
 
@@ -186,17 +195,20 @@ table 7338 "Bin Creation Worksheet Line"
         field(20; "Special Equipment Code"; Code[10])
         {
             Caption = 'Special Equipment Code';
+            ToolTip = 'Specifies the special equipment code of the bin or bin content that should be created.';
             TableRelation = "Special Equipment";
         }
         field(21; "Bin Ranking"; Integer)
         {
             Caption = 'Bin Ranking';
+            ToolTip = 'Specifies the ranking of the bin or bin content that should be created.';
         }
         field(22; "Maximum Cubage"; Decimal)
         {
             AutoFormatType = 0;
             BlankZero = true;
             Caption = 'Maximum Cubage';
+            ToolTip = 'Specifies the maximum cubage of the bin that should be created.';
             DecimalPlaces = 0 : 5;
             MinValue = 0;
 
@@ -210,6 +222,7 @@ table 7338 "Bin Creation Worksheet Line"
             AutoFormatType = 0;
             BlankZero = true;
             Caption = 'Maximum Weight';
+            ToolTip = 'Specifies the maximum weight of the bin that should be created.';
             DecimalPlaces = 0 : 5;
             MinValue = 0;
 
@@ -221,11 +234,13 @@ table 7338 "Bin Creation Worksheet Line"
         field(37; "Fixed"; Boolean)
         {
             Caption = 'Fixed';
+            ToolTip = 'Specifies whether the bin content that is to be created will be fixed for the item.';
             InitValue = true;
         }
         field(38; Default; Boolean)
         {
             Caption = 'Default';
+            ToolTip = 'Specifies if the bin is to be the default bin for the item on the bin worksheet line.';
 
             trigger OnValidate()
             begin
@@ -237,6 +252,7 @@ table 7338 "Bin Creation Worksheet Line"
         field(40; "Cross-Dock Bin"; Boolean)
         {
             Caption = 'Cross-Dock Bin';
+            ToolTip = 'Specifies new cross-dock bins.';
         }
         field(67; "User ID"; Code[50])
         {
@@ -250,6 +266,7 @@ table 7338 "Bin Creation Worksheet Line"
         field(5402; "Variant Code"; Code[10])
         {
             Caption = 'Variant Code';
+            ToolTip = 'Specifies the variant of the item on the line.';
             TableRelation = "Item Variant".Code where("Item No." = field("Item No."));
 
             trigger OnValidate()
@@ -273,6 +290,7 @@ table 7338 "Bin Creation Worksheet Line"
         field(5407; "Unit of Measure Code"; Code[10])
         {
             Caption = 'Unit of Measure Code';
+            ToolTip = 'Specifies how each unit of the item or resource is measured, such as in pieces or hours. By default, the value in the Base Unit of Measure field on the item or resource card is inserted.';
             NotBlank = true;
             TableRelation = "Item Unit of Measure".Code where("Item No." = field("Item No."));
 

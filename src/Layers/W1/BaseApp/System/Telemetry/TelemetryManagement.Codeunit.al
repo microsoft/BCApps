@@ -52,6 +52,14 @@ codeunit 1350 "Telemetry Management"
         Session.LogMessage('0000ADZ', TelemetryJobCreatedTxt, Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', DailyTelemetryCategoryTxt);
     end;
 
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::LogInManagement, 'OnAfterCompanyClose', '', true, true)]
+    local procedure SendMetricsTelemetry()
+    var
+        TelemetryLogMetrics: Codeunit "Telemetry Log Metrics";
+    begin
+        if TelemetryLogMetrics.FlushMetricsToTelemetry() then; // ignore errors
+    end;
+
 #pragma warning disable AS0101
     [IntegrationEvent(false, false, true)]
     local procedure OnSendDailyTelemetry()

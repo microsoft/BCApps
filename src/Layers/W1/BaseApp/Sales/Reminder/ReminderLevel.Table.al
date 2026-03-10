@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -25,6 +25,7 @@ table 293 "Reminder Level"
         field(1; "Reminder Terms Code"; Code[10])
         {
             Caption = 'Reminder Terms Code';
+            ToolTip = 'Specifies the reminder terms code for the reminder.';
             NotBlank = true;
             TableRelation = "Reminder Terms";
         }
@@ -34,6 +35,7 @@ table 293 "Reminder Level"
         field(2; "No."; Integer)
         {
             Caption = 'No.';
+            ToolTip = 'Specifies the number of the involved entry or record, according to the specified number series.';
             MinValue = 1;
             NotBlank = true;
         }
@@ -43,6 +45,7 @@ table 293 "Reminder Level"
         field(3; "Grace Period"; DateFormula)
         {
             Caption = 'Grace Period';
+            ToolTip = 'Specifies the length of the grace period for this reminder level.';
         }
         /// <summary>
         /// Specifies the fixed additional fee amount in local currency charged at this reminder level.
@@ -60,6 +63,7 @@ table 293 "Reminder Level"
         field(5; "Calculate Interest"; Boolean)
         {
             Caption = 'Calculate Interest';
+            ToolTip = 'Specifies whether interest should be calculated on the reminder lines.';
         }
         /// <summary>
         /// Specifies the formula for calculating the payment due date from the reminder date.
@@ -67,6 +71,7 @@ table 293 "Reminder Level"
         field(6; "Due Date Calculation"; DateFormula)
         {
             Caption = 'Due Date Calculation';
+            ToolTip = 'Specifies a formula that determines how to calculate the due date on the reminder.';
         }
         /// <summary>
         /// Specifies the additional fee amount per document line in local currency at this level.
@@ -84,6 +89,7 @@ table 293 "Reminder Level"
         field(8; "Add. Fee per Line Description"; Text[100])
         {
             Caption = 'Add. Fee per Line Description';
+            ToolTip = 'Specifies a description of the additional fee.';
         }
         /// <summary>
         /// Specifies how additional fees are calculated: fixed amount, single dynamic, or accumulated dynamic.
@@ -91,6 +97,7 @@ table 293 "Reminder Level"
         field(9; "Add. Fee Calculation Type"; Option)
         {
             Caption = 'Add. Fee Calculation Type';
+            ToolTip = 'Specifies how the additional fee is calculated. Fixed: The Additional Fee values on the line on the Reminder Levels page are used. Dynamics Single: The per-line values on the Additional Fee Setup page are used. Accumulated Dynamic: The values on the Additional Fee Setup page are used.';
             OptionCaption = 'Fixed,Single Dynamic,Accumulated Dynamic';
             OptionMembers = "Fixed","Single Dynamic","Accumulated Dynamic";
         }

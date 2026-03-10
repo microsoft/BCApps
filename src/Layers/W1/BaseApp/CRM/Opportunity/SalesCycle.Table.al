@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -18,21 +18,25 @@ table 5090 "Sales Cycle"
         field(1; "Code"; Code[10])
         {
             Caption = 'Code';
+            ToolTip = 'Specifies the code of the sales cycle.';
             NotBlank = true;
         }
         field(2; Description; Text[100])
         {
             Caption = 'Description';
+            ToolTip = 'Specifies the description of the sales cycle.';
         }
         field(3; "Probability Calculation"; Option)
         {
             Caption = 'Probability Calculation';
+            ToolTip = 'Specifies the method to use to calculate the probability of opportunities completing the sales cycle. There are four options:';
             OptionCaption = 'Multiply,Add,Chances of Success %,Completed %';
             OptionMembers = Multiply,Add,"Chances of Success %","Completed %";
         }
         field(4; Blocked; Boolean)
         {
             Caption = 'Blocked';
+            ToolTip = 'Specifies that the related record is blocked from being posted in transactions, for example a customer that is declared insolvent or an item that is placed in quarantine.';
         }
         field(5; "No. of Opportunities"; Integer)
         {
@@ -41,6 +45,7 @@ table 5090 "Sales Cycle"
                                                            "Action Taken" = filter(<> Won & <> Lost),
                                                            "Estimated Close Date" = field("Date Filter")));
             Caption = 'No. of Opportunities';
+            ToolTip = 'Specifies the number of opportunities that you have created using the sales cycle. This field is not editable.';
             Editable = false;
             FieldClass = FlowField;
         }
@@ -74,6 +79,7 @@ table 5090 "Sales Cycle"
                                                                   "No." = field(Code),
                                                                   "Sub No." = const(0)));
             Caption = 'Comment';
+            ToolTip = 'Specifies that you have assigned comments to the sales cycle.';
             Editable = false;
             FieldClass = FlowField;
         }

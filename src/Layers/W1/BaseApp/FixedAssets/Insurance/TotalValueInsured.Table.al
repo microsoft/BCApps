@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -16,21 +16,25 @@ table 5650 "Total Value Insured"
         field(1; "FA No."; Code[20])
         {
             Caption = 'FA No.';
+            ToolTip = 'Specifies the number of the related fixed asset.';
             TableRelation = "Fixed Asset";
         }
         field(2; "Insurance No."; Code[20])
         {
             Caption = 'Insurance No.';
+            ToolTip = 'Specifies the number of the insurance policy that the entry is linked to.';
             TableRelation = Insurance;
         }
         field(3; Description; Text[100])
         {
             Caption = 'Description';
+            ToolTip = 'Specifies the description of the insurance policy.';
         }
         field(4; "Total Value Insured"; Decimal)
         {
             AutoFormatType = 0;
             Caption = 'Total Value Insured';
+            ToolTip = 'Specifies the amounts you posted to each insurance policy for the fixed asset.';
         }
     }
 

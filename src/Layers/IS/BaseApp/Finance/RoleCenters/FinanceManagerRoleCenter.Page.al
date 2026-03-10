@@ -223,18 +223,26 @@ page 8901 "Finance Manager Role Center"
                             RunObject = report "Day Book Vendor Ledger Entry";
                             Tooltip = 'Run the Day Book Vendor Ledger Entry report.';
                         }
+#if not CLEAN28                        
                         action("VAT Reconciliation A")
                         {
                             ApplicationArea = Basic, Suite;
                             Caption = 'VAT Reconciliation A';
                             RunObject = report "VAT Reconciliation A";
+                            ObsoleteReason = 'Will be added by the IS Core App  instead.';
+                            ObsoleteState = Pending;
+                            ObsoleteTag = '28.0';
                         }
                         action("VAT Reconciliation Report")
                         {
                             ApplicationArea = Basic, Suite;
                             Caption = 'VAT Balancing Report';
                             RunObject = report "VAT Balancing Report";
+                            ObsoleteReason = 'Will be added by the IS Core App  instead.';
+                            ObsoleteState = Pending;
+                            ObsoleteTag = '28.0';
                         }
+#endif
                     }
                 }
                 group("Group3")

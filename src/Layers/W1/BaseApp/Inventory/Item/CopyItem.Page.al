@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -30,13 +30,11 @@ page 729 "Copy Item"
                     Editable = false;
                     Lookup = true;
                     TableRelation = Item;
-                    ToolTip = 'Specifies the number of the item that you want to copy the data from.';
                 }
                 field(TargetItemNo; Rec."Target Item No.")
                 {
                     ApplicationArea = Basic, Suite;
                     Caption = 'Target Item No.';
-                    ToolTip = 'Specifies the number of the new item that you want to copy the data to. \\To generate the new item number from a number series, fill in the Target No. Series field instead.';
 
                     trigger OnValidate()
                     begin
@@ -50,7 +48,6 @@ page 729 "Copy Item"
                     AssistEdit = true;
                     Caption = 'Target No. Series';
                     Editable = false;
-                    ToolTip = 'Specifies the number series that is used to assign a number to the new item.';
 
                     trigger OnAssistEdit()
                     var
@@ -67,7 +64,6 @@ page 729 "Copy Item"
                     ApplicationArea = Basic, Suite;
                     Caption = 'Number of Copies';
                     MinValue = 1;
-                    ToolTip = 'Specifies the number of new items that you want to create.';
                 }
                 field(CopyAllInformation; ShouldCopyAllInformation)
                 {
@@ -84,7 +80,6 @@ page 729 "Copy Item"
                 {
                     ApplicationArea = Basic, Suite;
                     Caption = 'Show Created Items';
-                    ToolTip = 'Specifies if the copied items are showed after they are created.';
                 }
             }
             group(General)
@@ -96,31 +91,26 @@ page 729 "Copy Item"
                     ApplicationArea = Basic, Suite;
                     Editable = false;
                     Caption = 'General Item Information';
-                    ToolTip = 'Specifies if the selected data type is also copied to the new item.';
                 }
                 field(UnitsOfMeasure; Rec."Units of Measure")
                 {
                     ApplicationArea = Basic, Suite;
                     Caption = 'Units of measure';
-                    ToolTip = 'Specifies if the selected data type is also copied to the new item.';
                 }
                 field(Dimensions; Rec.Dimensions)
                 {
                     ApplicationArea = Basic, Suite;
                     Caption = 'Dimensions';
-                    ToolTip = 'Specifies if the selected data type is also copied to the new item.';
                 }
                 field(Picture; Rec.Picture)
                 {
                     ApplicationArea = Basic, Suite;
                     Caption = 'Picture';
-                    ToolTip = 'Specifies if the selected data type is also copied to the new item.';
                 }
                 field(Comments; Rec.Comments)
                 {
                     ApplicationArea = Basic, Suite;
                     Caption = 'Comments';
-                    ToolTip = 'Specifies if the selected data type is also copied to the new item.';
                 }
             }
             group(Sale)
@@ -131,13 +121,11 @@ page 729 "Copy Item"
                 {
                     ApplicationArea = Basic, Suite;
                     Caption = 'Sales Prices';
-                    ToolTip = 'Specifies if the selected data type is also copied to the new item.';
                 }
                 field(SalesLineDisc; Rec."Sales Line Discounts")
                 {
                     ApplicationArea = Basic, Suite;
                     Caption = 'Sales Line Disc.';
-                    ToolTip = 'Specifies if the selected data type is also copied to the new item.';
                 }
             }
             group(Purchase)
@@ -148,13 +136,11 @@ page 729 "Copy Item"
                 {
                     ApplicationArea = Basic, Suite;
                     Caption = 'Purchase Prices';
-                    ToolTip = 'Specifies if the selected data type is also copied to the new item.';
                 }
                 field(PurchaseLineDisc; Rec."Purchase Line Discounts")
                 {
                     ApplicationArea = Basic, Suite;
                     Caption = 'Purchase Line Disc.';
-                    ToolTip = 'Specifies if the selected data type is also copied to the new item.';
                 }
             }
             group(Service)
@@ -165,13 +151,11 @@ page 729 "Copy Item"
                 {
                     ApplicationArea = Service;
                     Caption = 'Troubleshooting';
-                    ToolTip = 'Specifies if the selected data type is also copied to the new item.';
                 }
                 field(ResourceSkills; Rec."Resource Skills")
                 {
                     ApplicationArea = Service;
                     Caption = 'Resource Skills';
-                    ToolTip = 'Specifies if the selected data type is also copied to the new item.';
                 }
             }
             group(Extended)
@@ -182,43 +166,36 @@ page 729 "Copy Item"
                 {
                     ApplicationArea = Planning;
                     Caption = 'Item Variants';
-                    ToolTip = 'Specifies if the selected data type is also copied to the new item.';
                 }
                 field(Translations; Rec.Translations)
                 {
                     ApplicationArea = Basic, Suite;
                     Caption = 'Translations';
-                    ToolTip = 'Specifies if the selected data type is also copied to the new item.';
                 }
                 field(ExtendedTexts; Rec."Extended Texts")
                 {
                     ApplicationArea = Basic, Suite;
                     Caption = 'Extended Texts';
-                    ToolTip = 'Specifies if the selected data type is also copied to the new item.';
                 }
                 field(BOMComponents; Rec."BOM Components")
                 {
                     ApplicationArea = Assembly, Manufacturing;
                     Caption = 'Assembly BOM Components';
-                    ToolTip = 'Specifies if the selected data type is also copied to the new item.';
                 }
                 field(ItemVendors; Rec."Item Vendors")
                 {
                     ApplicationArea = Basic, Suite;
                     Caption = 'Item Vendors';
-                    ToolTip = 'Specifies if the selected data type is also copied to the new item.';
                 }
                 field(Attributes; Rec.Attributes)
                 {
                     ApplicationArea = Basic, Suite;
                     Caption = 'Attributes';
-                    ToolTip = 'Specifies if the selected data type is also copied to the new item.';
                 }
                 field(ItemReferences; Rec."Item References")
                 {
                     ApplicationArea = Basic, Suite;
                     Caption = 'Item References';
-                    ToolTip = 'Specifies if the selected data type is also copied to the new item.';
                 }
             }
         }
@@ -325,8 +302,10 @@ page 729 "Copy Item"
                 if InfoFieldRef.Type() = FieldType::Boolean then
                     InfoFieldRef.Value := ShouldCopyAllInformation;
             end;
-        RecRef.Modify();
+
         RecRef.SetTable(Rec);
+        OnValidateShouldCopyAllInformationOnBeforeModifyRec(Rec, ShouldCopyAllInformation);
+        Rec.Modify();
 
         OnAfterValidateShouldCopyAllInformation(Rec, ShouldCopyAllInformation);
     end;
@@ -348,6 +327,11 @@ page 729 "Copy Item"
 
     [IntegrationEvent(false, false)]
     local procedure OnBeforeValidateShouldCopyAllInformation(var CopyAllInformation: Boolean);
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnValidateShouldCopyAllInformationOnBeforeModifyRec(var CopyItemBuffer: Record "Copy Item Buffer"; ShouldCopyAllInformation: Boolean)
     begin
     end;
 }

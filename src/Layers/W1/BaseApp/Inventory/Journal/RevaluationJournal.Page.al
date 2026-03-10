@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -62,29 +62,24 @@ page 5803 "Revaluation Journal"
                 {
                     ApplicationArea = Basic, Suite;
                     Editable = false;
-                    ToolTip = 'Specifies the posting date for the entry.';
                 }
                 field("Document Date"; Rec."Document Date")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the date when the related document was created.';
                     Visible = false;
                 }
                 field("Document No."; Rec."Document No.")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies a document number for the journal line.';
                 }
                 field("External Document No."; Rec."External Document No.")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies a document number that refers to the customer''s or vendor''s numbering system.';
                     Visible = false;
                 }
                 field("Item No."; Rec."Item No.")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the number of the item on the journal line.';
 
                     trigger OnValidate()
                     begin
@@ -96,7 +91,6 @@ page 5803 "Revaluation Journal"
                     AccessByPermission = tabledata "Item Reference" = R;
                     ApplicationArea = Suite, ItemReferences;
                     QuickEntry = false;
-                    ToolTip = 'Specifies a reference to the item number as defined by the item''s barcode.';
                     Visible = false;
 
                     trigger OnLookup(var Text: Text): Boolean
@@ -117,30 +111,25 @@ page 5803 "Revaluation Journal"
                 {
                     ApplicationArea = Planning;
                     Editable = false;
-                    ToolTip = 'Specifies the variant of the item on the line.';
                     Visible = false;
                 }
                 field(Description; Rec.Description)
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies a description of the item on the journal line.';
                 }
                 field("Location Code"; Rec."Location Code")
                 {
                     ApplicationArea = Location;
                     Editable = false;
-                    ToolTip = 'Specifies the code for the inventory location where the item on the journal line will be registered.';
                 }
                 field("Salespers./Purch. Code"; Rec."Salespers./Purch. Code")
                 {
                     ApplicationArea = Suite;
-                    ToolTip = 'Specifies the code for the salesperson or purchaser who is linked to the sale or purchase on the journal line.';
                     Visible = false;
                 }
                 field("Gen. Bus. Posting Group"; Rec."Gen. Bus. Posting Group")
                 {
                     ApplicationArea = Suite;
-                    ToolTip = 'Specifies the vendor''s or customer''s trade type to link transactions made for this business partner with the appropriate general ledger account according to the general posting setup.';
                     Visible = false;
                 }
                 field(Quantity; Rec.Quantity)
@@ -153,14 +142,12 @@ page 5803 "Revaluation Journal"
                 {
                     ApplicationArea = Suite;
                     Editable = false;
-                    ToolTip = 'Specifies how each unit of the item or resource is measured, such as in pieces or hours. By default, the value in the Base Unit of Measure field on the item or resource card is inserted.';
                     Visible = false;
                 }
                 field(Amount; Rec.Amount)
                 {
                     ApplicationArea = Basic, Suite;
                     Editable = false;
-                    ToolTip = 'Specifies the line''s net amount.';
                 }
                 field("Unit Cost (Calculated)"; Rec."Unit Cost (Calculated)")
                 {
@@ -185,30 +172,25 @@ page 5803 "Revaluation Journal"
                 field("Applies-to Entry"; Rec."Applies-to Entry")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies if the quantity on the journal line must be applied to an already-posted entry. In that case, enter the entry number that the quantity will be applied to.';
                 }
                 field("Country/Region Code"; Rec."Country/Region Code")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the country/region of the address.';
                     Visible = false;
                 }
                 field("Reason Code"; Rec."Reason Code")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the reason code, a supplementary source code that enables you to trace the entry.';
                     Visible = false;
                 }
                 field("Shortcut Dimension 1 Code"; Rec."Shortcut Dimension 1 Code")
                 {
                     ApplicationArea = Dimensions;
-                    ToolTip = 'Specifies the code for Shortcut Dimension 1, which is one of two global dimension codes that you set up in the General Ledger Setup window.';
                     Visible = DimVisible1;
                 }
                 field("Shortcut Dimension 2 Code"; Rec."Shortcut Dimension 2 Code")
                 {
                     ApplicationArea = Dimensions;
-                    ToolTip = 'Specifies the code for Shortcut Dimension 2, which is one of two global dimension codes that you set up in the General Ledger Setup window.';
                     Visible = DimVisible2;
                 }
                 field(ShortcutDimCode3; ShortcutDimCode[3])

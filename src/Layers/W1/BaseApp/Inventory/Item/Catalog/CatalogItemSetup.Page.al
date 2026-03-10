@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -25,7 +25,6 @@ page 5732 "Catalog Item Setup"
                 field("No. Format"; Rec."No. Format")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the format of the catalog item number that appears on the item card.';
                     trigger OnValidate()
                     begin
                         NoFormatSeparatorEditable := Rec."No. Format" <> Rec."No. Format"::"Item No. Series";
@@ -35,7 +34,6 @@ page 5732 "Catalog Item Setup"
                 {
                     ApplicationArea = Basic, Suite;
                     Editable = NoFormatSeparatorEditable;
-                    ToolTip = 'Specifies the character that separates the elements of your catalog item number format, if the format uses both a code and a number.';
                 }
             }
         }

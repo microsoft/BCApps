@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -35,32 +35,26 @@ page 389 "Bank Account Statement List"
                 field("Bank Account No."; Rec."Bank Account No.")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the number of the bank account that has been reconciled with this Bank Account Statement.';
                 }
                 field("Bank Account Name"; Rec."Bank Account Name")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the name of the bank account that has been reconciled.';
                 }
                 field("Statement No."; Rec."Statement No.")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the number of the bank''s statement that has been reconciled with the bank account.';
                 }
                 field("Statement Date"; Rec."Statement Date")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the date on the bank''s statement that has been reconciled with the bank account.';
                 }
                 field("Balance Last Statement"; Rec."Balance Last Statement")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the ending balance on the bank account statement from the last posted bank account reconciliation.';
                 }
                 field("Statement Ending Balance"; Rec."Statement Ending Balance")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the ending balance on the bank''s statement that has been reconciled with the bank account.';
                 }
             }
         }

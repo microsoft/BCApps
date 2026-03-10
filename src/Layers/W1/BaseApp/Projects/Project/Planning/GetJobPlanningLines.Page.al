@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -24,54 +24,44 @@ page 1043 "Get Job Planning Lines"
                 field("Job No."; Rec."Job No.")
                 {
                     ApplicationArea = Jobs;
-                    ToolTip = 'Specifies the number of the related project.';
                 }
                 field("Job Task No."; Rec."Job Task No.")
                 {
                     ApplicationArea = Jobs;
-                    ToolTip = 'Specifies the number of the related project task.';
                 }
                 field("Line Type"; Rec."Line Type")
                 {
                     ApplicationArea = Jobs;
-                    ToolTip = 'Specifies the type of planning line.';
                 }
                 field("Planning Date"; Rec."Planning Date")
                 {
                     ApplicationArea = Jobs;
-                    ToolTip = 'Specifies the date of the planning line. You can use the planning date for filtering the totals of the project, for example, if you want to see the scheduled usage for a specific month of the year.';
                 }
                 field("Planned Delivery Date"; Rec."Planned Delivery Date")
                 {
                     ApplicationArea = Jobs;
-                    ToolTip = 'Specifies the date that is planned to deliver the item connected to the project planning line. For a resource, the planned delivery date is the date that the resource performs services with respect to the project.';
                     Visible = false;
                 }
                 field("Document No."; Rec."Document No.")
                 {
                     ApplicationArea = Jobs;
-                    ToolTip = 'Specifies a document number for the planning line.';
                 }
                 field("Line No."; Rec."Line No.")
                 {
                     ApplicationArea = Jobs;
-                    ToolTip = 'Specifies the planning line''s entry number.';
                     Visible = false;
                 }
                 field(Type; Rec.Type)
                 {
                     ApplicationArea = Jobs;
-                    ToolTip = 'Specifies the type of account to which the planning line relates.';
                 }
                 field("No."; Rec."No.")
                 {
                     ApplicationArea = Jobs;
-                    ToolTip = 'Specifies the number of the account to which the resource, item or general ledger account is posted, depending on your selection in the Type field.';
                 }
                 field("Variant Code"; Rec."Variant Code")
                 {
                     ApplicationArea = Planning;
-                    ToolTip = 'Specifies the variant of the item on the line.';
                     Visible = false;
                 }
                 field(Description; Rec.Description)
@@ -82,13 +72,11 @@ page 1043 "Get Job Planning Lines"
                 field("Description 2"; Rec."Description 2")
                 {
                     ApplicationArea = Jobs;
-                    ToolTip = 'Specifies information in addition to the description.';
                     Visible = false;
                 }
                 field("Currency Code"; Rec."Currency Code")
                 {
                     ApplicationArea = Jobs;
-                    ToolTip = 'Specifies the currency that is used on the entry.';
                     Visible = false;
                 }
                 field("Location Code"; Rec."Location Code")
@@ -100,13 +88,11 @@ page 1043 "Get Job Planning Lines"
                 field("Bin Code"; Rec."Bin Code")
                 {
                     ApplicationArea = Warehouse;
-                    ToolTip = 'Specifies the bin where the selected item will be put away or picked in warehouse and inventory processes. If you specify a bin code in the To-Project Bin Code field on the Location page, that bin will be suggested when you choose the location.';
                     Visible = false;
                 }
                 field("Unit of Measure Code"; Rec."Unit of Measure Code")
                 {
                     ApplicationArea = Suite;
-                    ToolTip = 'Specifies how each unit of the item or resource is measured, such as in pieces or hours. By default, the value in the Base Unit of Measure field on the item or resource card is inserted.';
                 }
                 field(Quantity; Rec.Quantity)
                 {
@@ -117,13 +103,11 @@ page 1043 "Get Job Planning Lines"
                 {
                     ApplicationArea = Assembly;
                     BlankZero = true;
-                    ToolTip = 'Specifies how many units of the project planning line quantity that you want to supply by assembly.';
                     Visible = false;
                 }
                 field("Reserved Quantity"; Rec."Reserved Quantity")
                 {
                     ApplicationArea = Reservation;
-                    ToolTip = 'Specifies the quantity of the item that is reserved for the project planning line.';
                     Visible = false;
                 }
                 field("Quantity (Base)"; Rec."Quantity (Base)")
@@ -135,7 +119,6 @@ page 1043 "Get Job Planning Lines"
                 field("Remaining Qty."; Rec."Remaining Qty.")
                 {
                     ApplicationArea = Jobs;
-                    ToolTip = 'Specifies the remaining quantity of the resource, item, or G/L Account that remains to complete a project. The quantity is calculated as the difference between Quantity and Qty. Posted.';
                     Visible = false;
                 }
                 field("Direct Unit Cost (LCY)"; Rec."Direct Unit Cost (LCY)")
@@ -147,7 +130,6 @@ page 1043 "Get Job Planning Lines"
                 field("Unit Cost"; Rec."Unit Cost")
                 {
                     ApplicationArea = Jobs;
-                    ToolTip = 'Specifies the cost of one unit of the item or resource on the line.';
                 }
                 field("Unit Cost (LCY)"; Rec."Unit Cost (LCY)")
                 {
@@ -158,12 +140,10 @@ page 1043 "Get Job Planning Lines"
                 field("Total Cost"; Rec."Total Cost")
                 {
                     ApplicationArea = Jobs;
-                    ToolTip = 'Specifies the total cost for the planning line. The total cost is in the project currency, which comes from the Currency Code field in the Project Card.';
                 }
                 field("Remaining Total Cost"; Rec."Remaining Total Cost")
                 {
                     ApplicationArea = Jobs;
-                    ToolTip = 'Specifies the remaining total cost for the planning line. The total cost is in the project currency, which comes from the Currency Code field in the Project Card.';
                     Visible = false;
                 }
                 field("Total Cost (LCY)"; Rec."Total Cost (LCY)")
@@ -181,7 +161,6 @@ page 1043 "Get Job Planning Lines"
                 field("Unit Price"; Rec."Unit Price")
                 {
                     ApplicationArea = Jobs;
-                    ToolTip = 'Specifies the price of one unit of the item or resource. You can enter a price manually or have it entered according to the Price/Profit Calculation field on the related card.';
                 }
                 field("Unit Price (LCY)"; Rec."Unit Price (LCY)")
                 {
@@ -192,12 +171,10 @@ page 1043 "Get Job Planning Lines"
                 field("Line Amount"; Rec."Line Amount")
                 {
                     ApplicationArea = Jobs;
-                    ToolTip = 'Specifies the amount that will be posted to the project ledger.';
                 }
                 field("Remaining Line Amount"; Rec."Remaining Line Amount")
                 {
                     ApplicationArea = Jobs;
-                    ToolTip = 'Specifies the amount that will be posted to the project ledger.';
                     Visible = false;
                 }
                 field("Line Amount (LCY)"; Rec."Line Amount (LCY)")
@@ -215,19 +192,16 @@ page 1043 "Get Job Planning Lines"
                 field("Line Discount Amount"; Rec."Line Discount Amount")
                 {
                     ApplicationArea = Jobs;
-                    ToolTip = 'Specifies the discount amount that is granted for the item on the line.';
                     Visible = false;
                 }
                 field("Line Discount %"; Rec."Line Discount %")
                 {
                     ApplicationArea = Jobs;
-                    ToolTip = 'Specifies the discount percentage that is granted for the item on the line.';
                     Visible = false;
                 }
                 field("Total Price"; Rec."Total Price")
                 {
                     ApplicationArea = Jobs;
-                    ToolTip = 'Specifies the total price in the project currency on the planning line.';
                     Visible = false;
                 }
                 field("Total Price (LCY)"; Rec."Total Price (LCY)")
@@ -239,13 +213,11 @@ page 1043 "Get Job Planning Lines"
                 field("Qty. Posted"; Rec."Qty. Posted")
                 {
                     ApplicationArea = Jobs;
-                    ToolTip = 'Specifies the quantity that has been posted to the project ledger, if the Usage Link check box has been selected.';
                     Visible = false;
                 }
                 field("Posted Total Cost"; Rec."Posted Total Cost")
                 {
                     ApplicationArea = Jobs;
-                    ToolTip = 'Specifies the total cost that has been posted to the project ledger, if the Usage Link check box has been selected.';
                     Visible = false;
                 }
                 field("Posted Total Cost (LCY)"; Rec."Posted Total Cost (LCY)")
@@ -257,7 +229,6 @@ page 1043 "Get Job Planning Lines"
                 field("Posted Line Amount"; Rec."Posted Line Amount")
                 {
                     ApplicationArea = Jobs;
-                    ToolTip = 'Specifies the amount that has been posted to the project ledger. This field is only filled in if the Apply Usage Link check box selected on the project card.';
                     Visible = false;
                 }
                 field("Posted Line Amount (LCY)"; Rec."Posted Line Amount (LCY)")
@@ -269,25 +240,21 @@ page 1043 "Get Job Planning Lines"
                 field("Qty. Transferred to Invoice"; Rec."Qty. Transferred to Invoice")
                 {
                     ApplicationArea = Jobs;
-                    ToolTip = 'Specifies the quantity that has been transferred to a sales invoice or credit memo.';
                     Visible = false;
                 }
                 field("Qty. to Transfer to Invoice"; Rec."Qty. to Transfer to Invoice")
                 {
                     ApplicationArea = Jobs;
-                    ToolTip = 'Specifies the quantity you want to transfer to the sales invoice or credit memo. The value in this field is calculated as Quantity - Qty. Transferred to Invoice.';
                     Visible = false;
                 }
                 field("Qty. Invoiced"; Rec."Qty. Invoiced")
                 {
                     ApplicationArea = Jobs;
-                    ToolTip = 'Specifies the quantity that been posted through a sales invoice.';
                     Visible = false;
                 }
                 field("Qty. to Invoice"; Rec."Qty. to Invoice")
                 {
                     ApplicationArea = Jobs;
-                    ToolTip = 'Specifies the quantity that remains to be invoiced. It is calculated as Quantity - Qty. Invoiced.';
                     Visible = false;
                 }
                 field("Invoiced Amount (LCY)"; Rec."Invoiced Amount (LCY)")
@@ -309,19 +276,16 @@ page 1043 "Get Job Planning Lines"
                 field("Serial No."; Rec."Serial No.")
                 {
                     ApplicationArea = ItemTracking;
-                    ToolTip = 'Specifies the serial number that is applied to the posted item if the planning line was created from the posting of a project journal line.';
                     Visible = false;
                 }
                 field("Lot No."; Rec."Lot No.")
                 {
                     ApplicationArea = ItemTracking;
-                    ToolTip = 'Specifies the lot number that is applied to the posted item if the planning line was created from the posting of a project journal line.';
                     Visible = false;
                 }
                 field("Job Contract Entry No."; Rec."Job Contract Entry No.")
                 {
                     ApplicationArea = Jobs;
-                    ToolTip = 'Specifies the entry number of the project planning line that the sales line is linked to.';
                     Visible = false;
                 }
             }

@@ -177,12 +177,18 @@ report 5706 "Create Stockkeeping Unit"
 
     procedure CreateSKUIfRequired(var Item2: Record Item; LocationCode: Code[10]; VariantCode: Code[10])
     var
+        Location: Record Location;
         IsHandled: Boolean;
     begin
         IsHandled := false;
         OnBeforeCreateSKU(Item2, LocationCode, VariantCode, ItemInInventoryOnly, IsHandled, SKUCreationMethod);
         if IsHandled then
             exit;
+
+        Location.SetLoadFields(Code, "SKU Creation Policy");
+        if Location.Get(LocationCode) then
+            if Location."SKU Creation Policy" = Location."SKU Creation Policy"::Blocked then
+                exit;
 
         Item2.CalcFields(Inventory);
         if (ItemInInventoryOnly and (Item2.Inventory > 0)) or

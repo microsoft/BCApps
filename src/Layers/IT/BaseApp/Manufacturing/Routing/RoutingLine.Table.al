@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -12,6 +12,8 @@ using Microsoft.Manufacturing.WorkCenter;
 table 99000764 "Routing Line"
 {
     Caption = 'Routing Line';
+    DrillDownPageId = "Routing Line List";
+    LookupPageId = "Routing Line List";
     DataClassification = CustomerContent;
 
     fields
@@ -30,6 +32,7 @@ table 99000764 "Routing Line"
         field(4; "Operation No."; Code[10])
         {
             Caption = 'Operation No.';
+            ToolTip = 'Specifies the operation number for this routing line.';
             NotBlank = true;
 
             trigger OnValidate()
@@ -42,6 +45,7 @@ table 99000764 "Routing Line"
         field(5; "Next Operation No."; Code[30])
         {
             Caption = 'Next Operation No.';
+            ToolTip = 'Specifies the next operation number. You use this field if you use parallel routings.';
 
             trigger OnValidate()
             begin
@@ -51,6 +55,7 @@ table 99000764 "Routing Line"
         field(6; "Previous Operation No."; Code[30])
         {
             Caption = 'Previous Operation No.';
+            ToolTip = 'Specifies the previous operation number, which is automatically assigned.';
 
             trigger OnValidate()
             begin
@@ -60,6 +65,7 @@ table 99000764 "Routing Line"
         field(7; Type; Enum "Capacity Type Routing")
         {
             Caption = 'Type';
+            ToolTip = 'Specifies the kind of capacity type to use for the actual operation.';
 
             trigger OnValidate()
             begin
@@ -73,6 +79,7 @@ table 99000764 "Routing Line"
         field(8; "No."; Code[20])
         {
             Caption = 'No.';
+            ToolTip = 'Specifies the number of the involved entry or record, according to the specified number series.';
             TableRelation = if (Type = const("Work Center")) "Work Center"
             else
             if (Type = const("Machine Center")) "Machine Center";
@@ -117,11 +124,13 @@ table 99000764 "Routing Line"
         field(11; Description; Text[100])
         {
             Caption = 'Description';
+            ToolTip = 'Specifies a description of the entry.';
         }
         field(12; "Setup Time"; Decimal)
         {
             AutoFormatType = 0;
             Caption = 'Setup Time';
+            ToolTip = 'Specifies the setup time of the operation.';
             DecimalPlaces = 0 : 5;
             MinValue = 0;
         }
@@ -129,6 +138,7 @@ table 99000764 "Routing Line"
         {
             AutoFormatType = 0;
             Caption = 'Run Time';
+            ToolTip = 'Specifies the run time of the operation.';
             DecimalPlaces = 0 : 5;
             MinValue = 0;
         }
@@ -136,6 +146,7 @@ table 99000764 "Routing Line"
         {
             AutoFormatType = 0;
             Caption = 'Wait Time';
+            ToolTip = 'Specifies the wait time according to the value in the Wait Time Unit of Measure field.';
             DecimalPlaces = 0 : 5;
             MinValue = 0;
         }
@@ -143,6 +154,7 @@ table 99000764 "Routing Line"
         {
             AutoFormatType = 0;
             Caption = 'Move Time';
+            ToolTip = 'Specifies the move time according to the value in the Move Time Unit of Measure field.';
             DecimalPlaces = 0 : 5;
             MinValue = 0;
         }
@@ -150,6 +162,7 @@ table 99000764 "Routing Line"
         {
             AutoFormatType = 0;
             Caption = 'Fixed Scrap Quantity';
+            ToolTip = 'Specifies the fixed scrap quantity.';
             DecimalPlaces = 0 : 5;
             MinValue = 0;
 
@@ -162,12 +175,14 @@ table 99000764 "Routing Line"
         {
             AutoFormatType = 0;
             Caption = 'Lot Size';
+            ToolTip = 'Specifies the number of items that are included in the same operation at the same time. The run time on routing lines is reduced proportionally to the lot size. For example, if the lot size is two pieces, the run time will be reduced by half.';
             DecimalPlaces = 0 : 5;
         }
         field(18; "Scrap Factor %"; Decimal)
         {
             AutoFormatType = 0;
             Caption = 'Scrap Factor %';
+            ToolTip = 'Specifies the scrap factor in percent.';
             DecimalPlaces = 0 : 5;
             MinValue = 0;
 
@@ -179,21 +194,25 @@ table 99000764 "Routing Line"
         field(19; "Setup Time Unit of Meas. Code"; Code[10])
         {
             Caption = 'Setup Time Unit of Meas. Code';
+            ToolTip = 'Specifies the unit of measure code that applies to the setup time of the operation.';
             TableRelation = "Capacity Unit of Measure";
         }
         field(20; "Run Time Unit of Meas. Code"; Code[10])
         {
             Caption = 'Run Time Unit of Meas. Code';
+            ToolTip = 'Specifies the unit of measure code that applies to the run time of the operation.';
             TableRelation = "Capacity Unit of Measure";
         }
         field(21; "Wait Time Unit of Meas. Code"; Code[10])
         {
             Caption = 'Wait Time Unit of Meas. Code';
+            ToolTip = 'Specifies the unit of measure code that applies to the wait time.';
             TableRelation = "Capacity Unit of Measure";
         }
         field(22; "Move Time Unit of Meas. Code"; Code[10])
         {
             Caption = 'Move Time Unit of Meas. Code';
+            ToolTip = 'Specifies the unit of measure code that applies to the move time.';
             TableRelation = "Capacity Unit of Measure";
         }
         field(23; "Description 2"; Text[50])
@@ -206,6 +225,7 @@ table 99000764 "Routing Line"
         {
             AutoFormatType = 0;
             Caption = 'Minimum Process Time';
+            ToolTip = 'Specifies a minimum process time.';
             DecimalPlaces = 0 : 5;
             MinValue = 0;
         }
@@ -213,6 +233,7 @@ table 99000764 "Routing Line"
         {
             AutoFormatType = 0;
             Caption = 'Maximum Process Time';
+            ToolTip = 'Specifies a maximum process time.';
             DecimalPlaces = 0 : 5;
             MinValue = 0;
         }
@@ -220,6 +241,7 @@ table 99000764 "Routing Line"
         {
             AutoFormatType = 0;
             Caption = 'Concurrent Capacities';
+            ToolTip = 'Specifies the number of machines or persons that are working concurrently.';
             DecimalPlaces = 0 : 5;
             InitValue = 1;
             MinValue = 0;
@@ -228,17 +250,20 @@ table 99000764 "Routing Line"
         {
             AutoFormatType = 0;
             Caption = 'Send-Ahead Quantity';
+            ToolTip = 'Specifies the send-ahead quantity.';
             DecimalPlaces = 0 : 5;
             MinValue = 0;
         }
         field(34; "Routing Link Code"; Code[10])
         {
             Caption = 'Routing Link Code';
+            ToolTip = 'Specifies the routing link code.';
             TableRelation = "Routing Link";
         }
         field(35; "Standard Task Code"; Code[10])
         {
             Caption = 'Standard Task Code';
+            ToolTip = 'Specifies a standard task.';
             TableRelation = "Standard Task";
 
             trigger OnValidate()
@@ -326,6 +351,7 @@ table 99000764 "Routing Line"
             AutoFormatType = 2;
             AutoFormatExpression = '';
             Caption = 'Unit Cost per';
+            ToolTip = 'Specifies the unit cost for this operation if it is different than the unit cost on the work center card.';
             MinValue = 0;
         }
         field(41; Recalculate; Boolean)

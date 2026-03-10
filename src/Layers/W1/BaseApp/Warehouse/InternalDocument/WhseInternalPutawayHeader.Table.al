@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -24,6 +24,7 @@ table 7331 "Whse. Internal Put-away Header"
         field(1; "No."; Code[20])
         {
             Caption = 'No.';
+            ToolTip = 'Specifies the number of the involved entry or record, according to the specified number series.';
 
             trigger OnValidate()
             begin
@@ -37,6 +38,7 @@ table 7331 "Whse. Internal Put-away Header"
         field(2; "Location Code"; Code[10])
         {
             Caption = 'Location Code';
+            ToolTip = 'Specifies the code of the location where the internal put-away is being performed.';
             TableRelation = Location where("Use As In-Transit" = const(false));
 
             trigger OnValidate()
@@ -68,6 +70,7 @@ table 7331 "Whse. Internal Put-away Header"
         field(3; "Assigned User ID"; Code[50])
         {
             Caption = 'Assigned User ID';
+            ToolTip = 'Specifies the ID of the user who is responsible for the document.';
             DataClassification = EndUserIdentifiableInformation;
             TableRelation = "Warehouse Employee" where("Location Code" = field("Location Code"));
 
@@ -85,11 +88,13 @@ table 7331 "Whse. Internal Put-away Header"
         field(4; "Assignment Date"; Date)
         {
             Caption = 'Assignment Date';
+            ToolTip = 'Specifies the date when the user was assigned the activity.';
             Editable = false;
         }
         field(5; "Assignment Time"; Time)
         {
             Caption = 'Assignment Time';
+            ToolTip = 'Specifies the time when the user was assigned the activity.';
             Editable = false;
         }
         field(6; "No. Series"; Code[20])
@@ -109,6 +114,7 @@ table 7331 "Whse. Internal Put-away Header"
         field(8; "From Bin Code"; Code[20])
         {
             Caption = 'From Bin Code';
+            ToolTip = 'Specifies the bin from which the items to be put away should be taken.';
             TableRelation = if ("From Zone Code" = filter('')) Bin.Code where("Location Code" = field("Location Code"))
             else
             if ("From Zone Code" = filter(<> '')) Bin.Code where("Location Code" = field("Location Code"),
@@ -143,6 +149,7 @@ table 7331 "Whse. Internal Put-away Header"
         field(9; "From Zone Code"; Code[10])
         {
             Caption = 'From Zone Code';
+            ToolTip = 'Specifies the zone from which the items to be put away should be taken.';
             TableRelation = Zone.Code where("Location Code" = field("Location Code"));
 
             trigger OnValidate()
@@ -159,6 +166,7 @@ table 7331 "Whse. Internal Put-away Header"
         field(10; "Due Date"; Date)
         {
             Caption = 'Due Date';
+            ToolTip = 'Specifies the date when the warehouse activity must be completed.';
 
             trigger OnValidate()
             begin
@@ -168,6 +176,7 @@ table 7331 "Whse. Internal Put-away Header"
         field(11; "Document Status"; Option)
         {
             Caption = 'Document Status';
+            ToolTip = 'Specifies the status of the internal put-away.';
             Editable = false;
             OptionCaption = ' ,Partially Put Away,Completely Put Away';
             OptionMembers = " ","Partially Put Away","Completely Put Away";
@@ -187,6 +196,7 @@ table 7331 "Whse. Internal Put-away Header"
         field(12; "Sorting Method"; Enum "Warehouse Internal Sorting Method")
         {
             Caption = 'Sorting Method';
+            ToolTip = 'Specifies the method by which the warehouse internal put-always are sorted.';
 
             trigger OnValidate()
             begin
@@ -197,6 +207,7 @@ table 7331 "Whse. Internal Put-away Header"
         field(13; Status; Option)
         {
             Caption = 'Status';
+            ToolTip = 'Specifies the status of the internal put-away.';
             Editable = false;
             OptionCaption = 'Open,Released';
             OptionMembers = Open,Released;

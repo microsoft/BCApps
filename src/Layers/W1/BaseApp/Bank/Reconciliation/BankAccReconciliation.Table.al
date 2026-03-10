@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -42,6 +42,7 @@ table 273 "Bank Acc. Reconciliation"
         field(1; "Bank Account No."; Code[20])
         {
             Caption = 'Bank Account No.';
+            ToolTip = 'Specifies the number of the bank account that you want to reconcile with the bank''s statement.';
             NotBlank = true;
             TableRelation = "Bank Account";
 
@@ -79,6 +80,7 @@ table 273 "Bank Acc. Reconciliation"
         field(2; "Statement No."; Code[20])
         {
             Caption = 'Statement No.';
+            ToolTip = 'Specifies the number of the bank account statement.';
             Editable = false;
             NotBlank = true;
 
@@ -96,6 +98,7 @@ table 273 "Bank Acc. Reconciliation"
             AutoFormatExpression = GetCurrencyCode();
             AutoFormatType = 2;
             Caption = 'Statement Ending Balance';
+            ToolTip = 'Specifies the ending balance shown on the bank''s statement that you want to reconcile with the bank account.';
         }
         /// <summary>
         /// Date of the bank statement being reconciled.
@@ -104,6 +107,7 @@ table 273 "Bank Acc. Reconciliation"
         field(4; "Statement Date"; Date)
         {
             Caption = 'Statement Date';
+            ToolTip = 'Specifies the date on the bank account statement.';
         }
         /// <summary>
         /// Beginning balance from the previous statement or last reconciliation.
@@ -114,6 +118,7 @@ table 273 "Bank Acc. Reconciliation"
             AutoFormatExpression = GetCurrencyCode();
             AutoFormatType = 1;
             Caption = 'Balance Last Statement';
+            ToolTip = 'Specifies the ending balance shown on the last bank statement, which was used in the last posted bank reconciliation for this bank account.';
 
             trigger OnValidate()
             begin
@@ -176,6 +181,7 @@ table 273 "Bank Acc. Reconciliation"
                                                                                         "Bank Account No." = field("Bank Account No."),
                                                                                         "Statement No." = field("Statement No.")));
             Caption = 'Total Transaction Amount';
+            ToolTip = 'Specifies the sum of values in the Statement Amount field on all the lines in the Bank Acc. Reconciliation and Payment Reconciliation Journal windows.';
             Editable = false;
             FieldClass = FlowField;
         }
@@ -207,6 +213,7 @@ table 273 "Bank Acc. Reconciliation"
                                                                                 "Bank Account No." = field("Bank Account No."),
                                                                                 "Statement No." = field("Statement No.")));
             Caption = 'Total Difference';
+            ToolTip = 'Specifies the total amount that exists on the bank account per the last time it was reconciled.';
             Editable = false;
             FieldClass = FlowField;
         }
@@ -384,6 +391,7 @@ table 273 "Bank Acc. Reconciliation"
         field(33; "Copy VAT Setup to Jnl. Line"; Boolean)
         {
             Caption = 'Copy VAT Setup to Jnl. Line';
+            ToolTip = 'Specifies whether the program to calculate VAT for accounts and balancing accounts on the journal line of the selected bank account reconciliation.';
             InitValue = true;
         }
         /// <summary>
@@ -392,6 +400,7 @@ table 273 "Bank Acc. Reconciliation"
         /// </summary>
         field(50; "Bank Account Name"; Text[100])
         {
+            ToolTip = 'Specifies the name of the bank account that you want to reconcile.';
             FieldClass = FlowField;
             CalcFormula = lookup("Bank Account".Name where("No." = field("Bank Account No.")));
         }
@@ -402,6 +411,7 @@ table 273 "Bank Acc. Reconciliation"
         field(51; "Allow Duplicated Transactions"; Boolean)
         {
             Caption = 'Allow Duplicated Transactions';
+            ToolTip = 'Specifies whether to allow bank account reconciliation lines to have the same transaction ID. Although itâ€™s rare, this is useful when your bank statement file contains transactions with duplicate IDs. Most businesses leave this toggle turned off.';
         }
         /// <summary>
         /// Dimension set identifier linking this reconciliation to its dimension values.

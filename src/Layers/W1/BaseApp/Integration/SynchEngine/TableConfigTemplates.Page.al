@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -21,7 +21,6 @@ page 5325 "Table Config Templates"
                 field("Table Config Template Code"; Rec."Table Config Template Code")
                 {
                     ApplicationArea = Suite;
-                    ToolTip = 'Specifies a configuration template to use when creating new records in the Business Central table during synchronization.';
                 }
                 field("Integration Table Filter"; IntegrationTableFilter)
                 {
@@ -45,7 +44,6 @@ page 5325 "Table Config Templates"
                 field(Priority; Rec.Priority)
                 {
                     ApplicationArea = Suite;
-                    ToolTip = 'Specifies the priority of the configuration template.';
                 }
             }
         }

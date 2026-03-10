@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -30,12 +30,10 @@ page 9099 "Job WIP/Recognition FactBox"
             field("WIP Posting Date"; Rec."WIP Posting Date")
             {
                 ApplicationArea = Jobs;
-                ToolTip = 'Specifies the posting date that was entered when the Project Calculate WIP batch job was last run.';
             }
             field("Total WIP Cost Amount"; Rec."Total WIP Cost Amount")
             {
                 ApplicationArea = Jobs;
-                ToolTip = 'Specifies the total WIP cost amount that was last calculated for the project. The WIP Cost Amount for the project is the value WIP Cost Project WIP Entries less the value of the Recognized Cost Project WIP Entries. For projects with WIP Methods of Sales Value or Percentage of Completion, the WIP Cost Amount is normally 0.';
             }
             field("Applied Costs G/L Amount"; Rec."Applied Costs G/L Amount")
             {
@@ -57,12 +55,10 @@ page 9099 "Job WIP/Recognition FactBox"
             field("Recog. Costs Amount"; Rec."Recog. Costs Amount")
             {
                 ApplicationArea = Jobs;
-                ToolTip = 'Specifies the Recognized Cost amount that was last calculated for the project. The Recognized Cost Amount for the project is the sum of the Recognized Cost Project WIP Entries.';
             }
             field("Recog. Sales Amount"; Rec."Recog. Sales Amount")
             {
                 ApplicationArea = Jobs;
-                ToolTip = 'Specifies the recognized sales amount that was last calculated for the project, which is the sum of the Recognized Sales Project WIP Entries.';
             }
             field("Recog. Profit Amount"; Rec.CalcRecognizedProfitAmount())
             {

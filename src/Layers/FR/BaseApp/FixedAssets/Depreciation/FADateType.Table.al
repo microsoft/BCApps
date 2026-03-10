@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -19,6 +19,7 @@ table 5645 "FA Date Type"
         field(2; "FA Date Type Name"; Text[50])
         {
             Caption = 'FA Date Type Name';
+            ToolTip = 'Specifies the name of the fixed asset data type.';
         }
         field(3; "FA Entry"; Boolean)
         {

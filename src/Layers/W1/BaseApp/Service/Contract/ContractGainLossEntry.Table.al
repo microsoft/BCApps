@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -26,44 +26,53 @@ table 5969 "Contract Gain/Loss Entry"
         field(2; "Contract No."; Code[20])
         {
             Caption = 'Contract No.';
+            ToolTip = 'Specifies the contract number linked to this contract gain/loss entry.';
             TableRelation = "Service Contract Header"."Contract No." where("Contract Type" = const(Contract));
         }
         field(3; "Contract Group Code"; Code[10])
         {
             Caption = 'Contract Group Code';
+            ToolTip = 'Specifies the contract group code linked to this contract gain/loss entry.';
             TableRelation = "Contract Group";
         }
         field(4; "Change Date"; Date)
         {
             Caption = 'Change Date';
+            ToolTip = 'Specifies the date when the change on the service contract occurred.';
         }
         field(5; "Reason Code"; Code[10])
         {
             Caption = 'Reason Code';
+            ToolTip = 'Specifies the reason code, a supplementary source code that enables you to trace the entry.';
             TableRelation = "Reason Code";
         }
         field(6; "Type of Change"; Enum "Service Contract Change Type")
         {
             Caption = 'Type of Change';
+            ToolTip = 'Specifies the type of change on the service contract.';
         }
         field(8; "Responsibility Center"; Code[10])
         {
             Caption = 'Responsibility Center';
+            ToolTip = 'Specifies the code of the responsibility center, such as a distribution hub, that is associated with the involved user, company, customer, or vendor.';
             TableRelation = "Responsibility Center";
         }
         field(9; "Customer No."; Code[20])
         {
             Caption = 'Customer No.';
+            ToolTip = 'Specifies the customer number that is linked to this contract gain/loss entry.';
             TableRelation = Customer;
         }
         field(10; "Ship-to Code"; Code[10])
         {
             Caption = 'Ship-to Code';
+            ToolTip = 'Specifies a code for an alternate shipment address if you want to ship to another address than the one that has been entered automatically. This field is also used in case of drop shipment.';
             TableRelation = "Ship-to Address".Code where("Customer No." = field("Customer No."));
         }
         field(11; "User ID"; Code[50])
         {
             Caption = 'User ID';
+            ToolTip = 'Specifies the ID of the user who posted the entry, to be used, for example, in the change log.';
             DataClassification = EndUserIdentifiableInformation;
             TableRelation = User."User Name";
         }
@@ -72,6 +81,7 @@ table 5969 "Contract Gain/Loss Entry"
             AutoFormatExpression = '';
             AutoFormatType = 1;
             Caption = 'Amount';
+            ToolTip = 'Specifies the change in annual amount on the service contract.';
         }
     }
 

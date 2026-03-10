@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -65,100 +65,83 @@ page 9302 "Sales Credit Memos"
                 field("External Document No."; Rec."External Document No.")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies a document number that refers to the customer''s or vendor''s numbering system.';
                 }
                 field("Sell-to Post Code"; Rec."Sell-to Post Code")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the postal code of the customer''s main address.';
                     Visible = false;
                 }
                 field("Sell-to Country/Region Code"; Rec."Sell-to Country/Region Code")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the country/region code of the customer''s main address.';
                     Visible = false;
                 }
                 field("Sell-to Contact"; Rec."Sell-to Contact")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the name of the contact person at the customer''s main address.';
                 }
                 field("Bill-to Customer No."; Rec."Bill-to Customer No.")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the number of the customer that you send or sent the invoice or credit memo to.';
                     Visible = false;
                 }
                 field("Bill-to Name"; Rec."Bill-to Name")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the name of the customer that you send or sent the invoice or credit memo to.';
                     Visible = false;
                 }
                 field("Bill-to Post Code"; Rec."Bill-to Post Code")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the postal code of the customer''s billing address.';
                     Visible = false;
                 }
                 field("Bill-to Country/Region Code"; Rec."Bill-to Country/Region Code")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the country/region code of the customer''s billing address.';
                     Visible = false;
                 }
                 field("Bill-to Contact"; Rec."Bill-to Contact")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the name of the contact person at the customer''s billing address.';
                     Visible = false;
                 }
                 field("Ship-to Code"; Rec."Ship-to Code")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies a code for an alternate shipment address if you want to ship to another address than the one that has been entered automatically. This field is also used in case of drop shipment.';
                     Visible = false;
                 }
                 field("Ship-to Name"; Rec."Ship-to Name")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the name of the customer at the address that the items are shipped to.';
                     Visible = false;
                 }
                 field("Ship-to Post Code"; Rec."Ship-to Post Code")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the postal code of the address that the items are shipped to.';
                     Visible = false;
                 }
                 field("Ship-to Country/Region Code"; Rec."Ship-to Country/Region Code")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the country/region code of the address that the items are shipped to.';
                     Visible = false;
                 }
                 field("Ship-to Contact"; Rec."Ship-to Contact")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the name of the contact person at the address that the items are shipped to.';
                     Visible = false;
                 }
                 field("Posting Date"; Rec."Posting Date")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the date when the posting of the sales document will be recorded.';
                 }
                 field("Shortcut Dimension 1 Code"; Rec."Shortcut Dimension 1 Code")
                 {
                     ApplicationArea = Dimensions;
-                    ToolTip = 'Specifies the code for Shortcut Dimension 1, which is one of two global dimension codes that you set up in the General Ledger Setup window.';
                     Visible = false;
                 }
                 field("Shortcut Dimension 2 Code"; Rec."Shortcut Dimension 2 Code")
                 {
                     ApplicationArea = Dimensions;
-                    ToolTip = 'Specifies the code for Shortcut Dimension 2, which is one of two global dimension codes that you set up in the General Ledger Setup window.';
                     Visible = false;
                 }
                 field("Location Code"; Rec."Location Code")
@@ -175,18 +158,15 @@ page 9302 "Sales Credit Memos"
                 field("Assigned User ID"; Rec."Assigned User ID")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the ID of the user who is responsible for the document.';
                 }
                 field("Currency Code"; Rec."Currency Code")
                 {
                     ApplicationArea = Suite;
-                    ToolTip = 'Specifies the currency of amounts on the sales document.';
                     Visible = false;
                 }
                 field("Document Date"; Rec."Document Date")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the date when the related document was created.';
                     Visible = false;
                 }
                 field("Campaign No."; Rec."Campaign No.")
@@ -198,31 +178,26 @@ page 9302 "Sales Credit Memos"
                 field(Status; Rec.Status)
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies whether the document is open, waiting to be approved, has been invoiced for prepayment, or has been released to the next stage of processing.';
                     Visible = false;
                     StyleExpr = StatusStyleTxt;
                 }
                 field("Payment Terms Code"; Rec."Payment Terms Code")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies a formula that calculates the payment due date, payment discount date, and payment discount amount.';
                     Visible = false;
                 }
                 field("Due Date"; Rec."Due Date")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies when the sales invoice must be paid.';
                 }
                 field("Shipment Date"; Rec."Shipment Date")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies when items on the document are shipped or were shipped. A shipment date is usually calculated from a requested delivery date plus lead time.';
                     Visible = false;
                 }
                 field("Applies-to Doc. Type"; Rec."Applies-to Doc. Type")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the type of the posted document that this document or journal line will be applied to when you post, for example to register payment.';
                     Visible = false;
                 }
                 field("Job Queue Status"; Rec."Job Queue Status")
@@ -245,7 +220,6 @@ page 9302 "Sales Credit Memos"
                 field(Amount; Rec.Amount)
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the sum of amounts on all the lines in the document. This will include invoice discounts.';
                 }
                 field("Amount Including VAT"; Rec."Amount Including VAT")
                 {
@@ -255,7 +229,6 @@ page 9302 "Sales Credit Memos"
                 field("Posting Description"; Rec."Posting Description")
                 {
                     ApplicationArea = Suite;
-                    ToolTip = 'Specifies additional posting information for the document. After you post the document, the description can add detail to vendor and customer ledger entries.';
                     Visible = false;
                 }
             }

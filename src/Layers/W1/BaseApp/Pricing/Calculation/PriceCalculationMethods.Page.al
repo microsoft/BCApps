@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -27,7 +27,6 @@ page 7025 "Price Calculation Methods"
                 field(Method; Rec.Method)
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'The name of the price calculation method.';
                     trigger OnDrillDown()
                     var
                         PriceCalculationMethodCard: Page "Price Calculation Method Card";

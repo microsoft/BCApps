@@ -29,12 +29,10 @@ page 172 "Standard Sales Codes"
                 field("Code"; Rec.Code)
                 {
                     ApplicationArea = Suite;
-                    ToolTip = 'Specifies a code which identifies this standard sales code.';
                 }
                 field(Description; Rec.Description)
                 {
                     ApplicationArea = Suite;
-                    ToolTip = 'Specifies a description of the standard sales code.';
                 }
                 field("Currency Code"; Rec."Currency Code")
                 {

@@ -6,11 +6,36 @@ namespace Microsoft.Inventory.Location;
 
 using Microsoft.Manufacturing.Document;
 using Microsoft.Manufacturing.Setup;
+using Microsoft.Warehouse.Structure;
 
 tableextension 99000761 "Mfg. Location" extends Location
 {
     fields
     {
+        field(7314; "To-Production Bin Code"; Code[20])
+        {
+            Caption = 'To-Production Bin Code';
+            DataClassification = CustomerContent;
+            ToolTip = 'Specifies the bin in the production area where components picked for production are placed by default, before they can be consumed.';
+            TableRelation = Bin.Code where("Location Code" = field(Code));
+
+            trigger OnValidate()
+            begin
+                CheckBinCode(Code, "To-Production Bin Code", FieldCaption("To-Production Bin Code"), Code);
+            end;
+        }
+        field(7315; "From-Production Bin Code"; Code[20])
+        {
+            Caption = 'From-Production Bin Code';
+            DataClassification = CustomerContent;
+            ToolTip = 'Specifies the bin in the production area, where finished end items are taken from by default, when the process involves warehouse activity.';
+            TableRelation = Bin.Code where("Location Code" = field(Code));
+
+            trigger OnValidate()
+            begin
+                CheckBinCode(Code, "From-Production Bin Code", FieldCaption("From-Production Bin Code"), Code);
+            end;
+        }
         field(7316; "Prod. Consump. Whse. Handling"; Enum "Prod. Consump. Whse. Handling")
         {
             Caption = 'Prod. Consump. Whse. Handling';
@@ -34,7 +59,22 @@ tableextension 99000761 "Mfg. Location" extends Location
                         Error(InvalidProdOutputHandlingErr, Rec."Prod. Output Whse. Handling", Rec.TableCaption, Rec.Code, Rec.FieldCaption("Directed Put-away and Pick"));
             end;
         }
+        field(7350; "Missing SKU Planning Policy"; Enum "Missing SKU Planning Policy")
+        {
+            Caption = 'Missing SKU Planning Policy';
+            DataClassification = SystemMetadata;
+        }
+        field(7351; "SKU Creation Policy"; Enum "SKU Creation Policy")
+        {
+            Caption = 'SKU Creation Policy';
+            DataClassification = SystemMetadata;
+        }
     }
+
+    procedure IsBinBWProdOutput(BinCode: Code[20]): Boolean
+    begin
+        exit(("To-Production Bin Code" <> '') and (BinCode = "To-Production Bin Code"));
+    end;
 
     procedure RequireWhsePutAwayForProdOutput(LocationCode: Code[10]): Boolean
     var

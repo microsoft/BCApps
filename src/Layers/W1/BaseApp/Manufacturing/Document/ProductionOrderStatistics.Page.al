@@ -426,6 +426,7 @@ page 99000816 "Production Order Statistics"
         ProdOrderLine.SetRange("Prod. Order No.", Rec."No.");
         ProdOrderLine.SetRange("Planning Level Code", 0);
         ProdOrderLine.SetFilter("Item No.", '<>%1', '');
+        OnAfterGetRecordOnAfterSetProdOrderLineFilters(ProdOrderLine, Rec);
         if ProdOrderLine.Find('-') then
             repeat
                 MfgCostCalcMgt.CalcShareOfTotalCapCost(ProdOrderLine, ShareOfTotalCapCost);
@@ -537,6 +538,11 @@ page 99000816 "Production Order Statistics"
 
     [IntegrationEvent(false, false)]
     local procedure OnBeforeCalcVariance(var VarAmt: array[6] of Decimal; var VarPct: array[6] of Decimal; var StdCost: array[6] of Decimal; var ActCost: array[6] of Decimal; i: Integer; var IsHandled: Boolean; var ExpCost: array[6] of Decimal)
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnAfterGetRecordOnAfterSetProdOrderLineFilters(var ProdOrderLine: Record "Prod. Order Line"; ProductionOrder: Record "Production Order")
     begin
     end;
 }

@@ -618,5 +618,30 @@
     "codeunitId": 139314,
     "codeunitName": "CRM Connection Wizard Tests",
     "method": "VerifyWizardWithExistedSetupCommonFieldsTrue"
+  },
+  {
+    "codeunitId": 130481,
+    "codeunitName": "Contact Sync Test",
+    "method": "TestProcessBidirectionalSync_EmptyQueue"
+  },
+  {
+    "codeunitId": 130481,
+    "codeunitName": "Contact Sync Test",
+    "method": "TestProcessBidirectionalSync_SuppressedUI_LargeBatch"
+  },
+  {
+    "codeunitId": 130481,
+    "codeunitName": "Contact Sync Test",
+    "method": "TestProcessBidirectionalSync_SuppressedUI_SyncToBCWithValidContacts"
+  },
+  {
+    "codeunitId": 130481,
+    "codeunitName": "Contact Sync Test",
+    "method": "TestSyncQueueCopyFromBCContact"
+  },
+  {
+    "codeunitId": 130481,
+    "codeunitName": "Contact Sync Test",
+    "method": "TestSyncQueueCopyFromO365Contact"
   }
 ]

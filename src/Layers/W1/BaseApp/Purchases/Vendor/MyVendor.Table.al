@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -24,6 +24,7 @@ table 9151 "My Vendor"
         field(2; "Vendor No."; Code[20])
         {
             Caption = 'Vendor No.';
+            ToolTip = 'Specifies the vendor numbers that are displayed in the My Vendor Cue on the Role Center.';
             NotBlank = true;
             TableRelation = Vendor;
 
@@ -35,11 +36,13 @@ table 9151 "My Vendor"
         field(3; Name; Text[100])
         {
             Caption = 'Name';
+            ToolTip = 'Specifies the name of the record.';
             Editable = false;
         }
         field(4; "Phone No."; Text[30])
         {
             Caption = 'Phone No.';
+            ToolTip = 'Specifies the vendor''s phone number.';
             Editable = false;
         }
         field(5; "Balance (LCY)"; Decimal)

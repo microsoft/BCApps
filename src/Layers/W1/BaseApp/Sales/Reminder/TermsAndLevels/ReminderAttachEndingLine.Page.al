@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -28,7 +28,6 @@ page 547 "Reminder Attach Ending Line"
                 field(Text; Rec.Text)
                 {
                     Caption = 'Text';
-                    ToolTip = 'Specifies the text of the reminder attachment ending line for the selected language.';
                     ApplicationArea = All;
                 }
             }

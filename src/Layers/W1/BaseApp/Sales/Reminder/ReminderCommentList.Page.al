@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -28,22 +28,18 @@ page 443 "Reminder Comment List"
                 field(Type; Rec.Type)
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the type of document the comment is attached to: either Reminder or Issued Reminder.';
                 }
                 field("No."; Rec."No.")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the number of the involved entry or record, according to the specified number series.';
                 }
                 field(Date; Rec.Date)
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the date the comment was created.';
                 }
                 field(Comment; Rec.Comment)
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the comment itself.';
                 }
             }
         }

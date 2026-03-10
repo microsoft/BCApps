@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -32,37 +32,30 @@ page 9319 "Service Invoices"
                 field("No."; Rec."No.")
                 {
                     ApplicationArea = Service;
-                    ToolTip = 'Specifies the number of the involved entry or record, according to the specified number series.';
                 }
                 field(Status; Rec.Status)
                 {
                     ApplicationArea = Service;
-                    ToolTip = 'Specifies the service order status, which reflects the repair or maintenance status of all service items on the service order.';
                 }
                 field("Order Date"; Rec."Order Date")
                 {
                     ApplicationArea = Service;
-                    ToolTip = 'Specifies the date when the order was created.';
                 }
                 field("Order Time"; Rec."Order Time")
                 {
                     ApplicationArea = Service;
-                    ToolTip = 'Specifies the time when the service order was created.';
                 }
                 field("Customer No."; Rec."Customer No.")
                 {
                     ApplicationArea = Service;
-                    ToolTip = 'Specifies the number of the customer who owns the items in the service document.';
                 }
                 field("Ship-to Code"; Rec."Ship-to Code")
                 {
                     ApplicationArea = Service;
-                    ToolTip = 'Specifies a code for an alternate shipment address if you want to ship to another address than the one that has been entered automatically. This field is also used in case of drop shipment.';
                 }
                 field(Name; Rec.Name)
                 {
                     ApplicationArea = Service;
-                    ToolTip = 'Specifies the name of the customer to whom the items on the document will be shipped.';
                 }
                 field("External Document No."; Rec."External Document No.")
                 {
@@ -82,64 +75,53 @@ page 9319 "Service Invoices"
                 field("Location Code"; Rec."Location Code")
                 {
                     ApplicationArea = Location;
-                    ToolTip = 'Specifies the code of the location (for example, warehouse or distribution center) of the items specified on the service item lines.';
                 }
                 field(Priority; Rec.Priority)
                 {
                     ApplicationArea = Service;
-                    ToolTip = 'Specifies the priority of the service order.';
                 }
                 field("Shortcut Dimension 1 Code"; Rec."Shortcut Dimension 1 Code")
                 {
                     ApplicationArea = Dimensions;
-                    ToolTip = 'Specifies the code for Shortcut Dimension 1, which is one of two global dimension codes that you set up in the General Ledger Setup window.';
                     Visible = false;
                 }
                 field("Shortcut Dimension 2 Code"; Rec."Shortcut Dimension 2 Code")
                 {
                     ApplicationArea = Dimensions;
-                    ToolTip = 'Specifies the code for Shortcut Dimension 2, which is one of two global dimension codes that you set up in the General Ledger Setup window.';
                     Visible = false;
                 }
                 field("Assigned User ID"; Rec."Assigned User ID")
                 {
                     ApplicationArea = Service;
-                    ToolTip = 'Specifies the ID of the user who is responsible for the document.';
                 }
                 field("Document Date"; Rec."Document Date")
                 {
                     ApplicationArea = Service;
-                    ToolTip = 'Specifies the date when the related document was created.';
                     Visible = false;
                 }
                 field("Payment Terms Code"; Rec."Payment Terms Code")
                 {
                     ApplicationArea = Service;
-                    ToolTip = 'Specifies a formula that calculates the payment due date, payment discount date, and payment discount amount.';
                     Visible = false;
                 }
                 field("Due Date"; Rec."Due Date")
                 {
                     ApplicationArea = Service;
-                    ToolTip = 'Specifies when the invoice is due.';
                     Visible = false;
                 }
                 field("Payment Discount %"; Rec."Payment Discount %")
                 {
                     ApplicationArea = Service;
-                    ToolTip = 'Specifies the percentage of payment discount given, if the customer pays by the date entered in the Pmt. Discount Date field.';
                     Visible = false;
                 }
                 field("Payment Method Code"; Rec."Payment Method Code")
                 {
                     ApplicationArea = Service;
-                    ToolTip = 'Specifies how to make payment, such as with bank transfer, cash, or check.';
                     Visible = false;
                 }
                 field("Your Reference"; Rec."Your Reference")
                 {
                     ApplicationArea = Service;
-                    ToolTip = 'Specifies a customer reference, which will be used when printing service documents.';
                 }
             }
         }

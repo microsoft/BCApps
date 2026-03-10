@@ -5,6 +5,7 @@
 namespace Microsoft.Finance.FinancialReports;
 
 using Microsoft.Finance.GeneralLedger.Account;
+using Microsoft.Finance.GeneralLedger.Setup;
 using Microsoft.Foundation.Period;
 using System.Environment;
 using System.Environment.Configuration;
@@ -44,6 +45,7 @@ codeunit 18 "Financial Report Mgt."
         UpdateFinancialReportNotificationIdTok: Label 'cc02b894-bef8-4945-8042-f177422f8906', Locked = true;
         UpdateRowDefinitionMsg: Label 'You have changed one or more G/L accounts and might need to update your financial report row definitions. We recommend that you review your row definitions by choosing the Open Where-Used action.';
         UpdateRowDefGLAccNoKeyTok: Label 'GLAccountNo', Locked = true;
+        StatusBlockedErr: Label 'The current %1 has a blocked status of %2.', Comment = '%1 = type, %2 = status';
 
     internal procedure LaunchEditRowsWarningNotification()
     var
@@ -732,6 +734,35 @@ codeunit 18 "Financial Report Mgt."
             AccScheduleLine.SetRange("Date Filter", StartDate, EndDate);
             exit(true);
         end;
+    end;
+
+    procedure GetDefaultStatus(): Code[10]
+    var
+        GLSetup: Record "General Ledger Setup";
+    begin
+        GLSetup.Get();
+        if GLSetup.DefaultFinancialReportStatus <> '' then
+            exit(GLSetup.DefaultFinancialReportStatus);
+    end;
+
+    procedure CheckStatus(Type: Text; StatusCode: Code[10])
+    var
+        FinancialReportStatus: Record "Financial Report Status";
+        NotificationLifecycleMgt: Codeunit "Notification Lifecycle Mgt.";
+        StatusBlockedNotify: Notification;
+    begin
+        if StatusCode = '' then
+            exit;
+        if not FinancialReportStatus.Get(StatusCode) then
+            exit;
+        if not FinancialReportStatus.Blocked then
+            exit;
+        if FinancialReportStatus.WritePermission() then begin
+            StatusBlockedNotify.Message := StrSubstNo(StatusBlockedErr, Type, FinancialReportStatus.Code);
+            NotificationLifecycleMgt.RecallNotificationsForRecord(FinancialReportStatus.RecordId, false);
+            NotificationLifecycleMgt.SendNotification(StatusBlockedNotify, FinancialReportStatus.RecordId);
+        end else
+            Error(StatusBlockedErr, Type, FinancialReportStatus.Code);
     end;
 
     /// <summary>

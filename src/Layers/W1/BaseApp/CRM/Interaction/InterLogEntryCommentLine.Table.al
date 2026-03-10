@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -17,6 +17,7 @@ table 5123 "Inter. Log Entry Comment Line"
         field(1; "Entry No."; Integer)
         {
             Caption = 'Entry No.';
+            ToolTip = 'Specifies the number of the entry, as assigned from the specified number series when the entry was created.';
             TableRelation = "Interaction Log Entry"."Entry No.";
         }
         field(4; "Line No."; Integer)
@@ -26,14 +27,17 @@ table 5123 "Inter. Log Entry Comment Line"
         field(5; Date; Date)
         {
             Caption = 'Date';
+            ToolTip = 'Specifies the date on which the comment was created.';
         }
         field(6; "Code"; Code[10])
         {
             Caption = 'Code';
+            ToolTip = 'Specifies the code for the comment.';
         }
         field(7; Comment; Text[80])
         {
             Caption = 'Comment';
+            ToolTip = 'Specifies the comment itself. You can enter a maximum of 80 characters, both numbers and letters.';
         }
         field(8; "Last Date Modified"; Date)
         {

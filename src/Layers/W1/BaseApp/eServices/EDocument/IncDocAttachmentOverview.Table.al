@@ -28,20 +28,24 @@ table 137 "Inc. Doc. Attachment Overview"
         field(3; "Created Date-Time"; DateTime)
         {
             Caption = 'Created Date-Time';
+            ToolTip = 'Specifies when the incoming document line was created.';
         }
         field(4; "Created By User Name"; Code[50])
         {
             Caption = 'Created By User Name';
+            ToolTip = 'Specifies the name of the user who created the incoming document line.';
             DataClassification = EndUserIdentifiableInformation;
         }
         field(5; Name; Text[250])
         {
             Caption = 'Name';
+            ToolTip = 'Specifies the name of the record.';
             Editable = false;
         }
         field(6; Type; Option)
         {
             Caption = 'Type';
+            ToolTip = 'Specifies the type of the attached file.';
             Editable = false;
             OptionCaption = ' ,Image,PDF,Word,Excel,PowerPoint,Email,XML,Other';
             OptionMembers = " ",Image,PDF,Word,Excel,PowerPoint,Email,XML,Other;
@@ -49,6 +53,7 @@ table 137 "Inc. Doc. Attachment Overview"
         field(7; "File Extension"; Text[30])
         {
             Caption = 'File Extension';
+            ToolTip = 'Specifies the file extension of the attached file.';
             Editable = false;
         }
 

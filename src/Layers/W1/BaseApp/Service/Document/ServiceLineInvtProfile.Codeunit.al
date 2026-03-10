@@ -44,7 +44,7 @@ codeunit 99000863 "Service Line Invt. Profile"
     begin
     end;
 
-    [EventSubscriber(ObjectType::Table, Database::"Inventory Profile", 'OnTransferToTrackingEntrySourceTypeElseCase', '', false, false)]
+    [EventSubscriber(ObjectType::Table, Database::"Inventory Profile", 'OnTransferToTrackingEntrySourceTypeElseCase', '', true, false)]
     local procedure OnTransferToTrackingEntrySourceTypeElseCase(var InventoryProfile: Record "Inventory Profile"; var ReservationEntry: Record "Reservation Entry"; var IsHandled: Boolean)
     begin
         if InventoryProfile."Source Type" = Database::"Service Line" then begin
@@ -54,7 +54,7 @@ codeunit 99000863 "Service Line Invt. Profile"
         end;
     end;
 
-    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Inventory Profile Offsetting", 'OnAfterDemandToInvProfile', '', false, false)]
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Inventory Profile Offsetting", 'OnAfterDemandToInvProfile', '', true, false)]
     local procedure OnAfterDemandToInvProfile(var InventoryProfile: Record "Inventory Profile"; var Item: Record Item; var ReservEntry: Record "Reservation Entry"; var NextLineNo: Integer)
     begin
         TransServLineToProfile(InventoryProfile, Item, ReservEntry, NextLineNo);
@@ -86,21 +86,21 @@ codeunit 99000863 "Service Line Invt. Profile"
     begin
     end;
 
-    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Inventory Profile Offsetting", 'OnAfterSetDemandPriority', '', false, false)]
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Inventory Profile Offsetting", 'OnAfterSetDemandPriority', '', true, false)]
     local procedure OnAfterSetDemandPriority(var InventoryProfile: Record "Inventory Profile")
     begin
         if InventoryProfile."Source Type" = Database::"Service Line" then
             InventoryProfile."Order Priority" := 400;
     end;
 
-    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Inventory Profile Offsetting", 'OnAfterSetSupplyPriority', '', false, false)]
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Inventory Profile Offsetting", 'OnAfterSetSupplyPriority', '', true, false)]
     local procedure OnAfterSetSupplyPriority(var InventoryProfile: Record "Inventory Profile")
     begin
         if InventoryProfile."Source Type" = Database::"Service Line" then
             InventoryProfile."Order Priority" := 300;
     end;
 
-    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Inventory Profile Offsetting", 'OnForecastConsumptionOnAfterSetSalesSourceTypeFilter', '', false, false)]
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Inventory Profile Offsetting", 'OnForecastConsumptionOnAfterSetSalesSourceTypeFilter', '', true, false)]
     local procedure OnForecastConsumptionOnAfterSetSalesSourceTypeFilter(var DemandInventoryProfile: Record "Inventory Profile")
     begin
         DemandInventoryProfile.SetSourceTypeFilter(Database::"Service Line");

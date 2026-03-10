@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -29,17 +29,14 @@ page 5627 "FA Registers"
                 field("No."; Rec."No.")
                 {
                     ApplicationArea = FixedAssets;
-                    ToolTip = 'Specifies the number of the involved entry or record, according to the specified number series.';
                 }
                 field("Journal Type"; Rec."Journal Type")
                 {
                     ApplicationArea = FixedAssets;
-                    ToolTip = 'Specifies the type of journal (G/L or Fixed Asset) that the entries were posted from.';
                 }
                 field("G/L Register No."; Rec."G/L Register No.")
                 {
                     ApplicationArea = FixedAssets;
-                    ToolTip = 'Specifies the number of the G/L register that was created when the entries were posted.';
                 }
                 field(SystemCreatedAt; Rec.SystemCreatedAt)
                 {
@@ -49,7 +46,6 @@ page 5627 "FA Registers"
                 field("User ID"; Rec."User ID")
                 {
                     ApplicationArea = FixedAssets;
-                    ToolTip = 'Specifies the ID of the user who posted the entry, to be used, for example, in the change log.';
 
                     trigger OnDrillDown()
                     var
@@ -61,32 +57,26 @@ page 5627 "FA Registers"
                 field("Source Code"; Rec."Source Code")
                 {
                     ApplicationArea = FixedAssets;
-                    ToolTip = 'Specifies the source code that specifies where the entry was created.';
                 }
                 field("Journal Batch Name"; Rec."Journal Batch Name")
                 {
                     ApplicationArea = FixedAssets;
-                    ToolTip = 'Specifies the name of the journal batch, a personalized journal layout, that the entries were posted from.';
                 }
                 field("From Entry No."; Rec."From Entry No.")
                 {
                     ApplicationArea = FixedAssets;
-                    ToolTip = 'Specifies the first item entry number in the register.';
                 }
                 field("To Entry No."; Rec."To Entry No.")
                 {
                     ApplicationArea = FixedAssets;
-                    ToolTip = 'Specifies the last FA entry number in the register.';
                 }
                 field("From Maintenance Entry No."; Rec."From Maintenance Entry No.")
                 {
                     ApplicationArea = FixedAssets;
-                    ToolTip = 'Specifies the first maintenance entry number in the register.';
                 }
                 field("To Maintenance Entry No."; Rec."To Maintenance Entry No.")
                 {
                     ApplicationArea = FixedAssets;
-                    ToolTip = 'Specifies the last maintenance entry number in the register.';
                 }
             }
         }

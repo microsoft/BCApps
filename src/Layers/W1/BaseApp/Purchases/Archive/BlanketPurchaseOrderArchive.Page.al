@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -33,12 +33,10 @@ page 6623 "Blanket Purchase Order Archive"
                 {
                     ApplicationArea = Suite;
                     Importance = Promoted;
-                    ToolTip = 'Specifies the name of the vendor who delivered the items.';
                 }
                 field("Buy-from Vendor Name"; Rec."Buy-from Vendor Name")
                 {
                     ApplicationArea = Suite;
-                    ToolTip = 'Specifies the name of the vendor who delivered the items.';
                 }
                 field("Buy-from Vendor Name 2"; Rec."Buy-from Vendor Name 2")
                 {
@@ -49,27 +47,22 @@ page 6623 "Blanket Purchase Order Archive"
                 field("Buy-from Address"; Rec."Buy-from Address")
                 {
                     ApplicationArea = Suite;
-                    ToolTip = 'Specifies the address of the vendor who delivered the items.';
                 }
                 field("Buy-from Address 2"; Rec."Buy-from Address 2")
                 {
                     ApplicationArea = Suite;
-                    ToolTip = 'Specifies an additional part of the address of the vendor who delivered the items.';
                 }
                 field("Buy-from Post Code"; Rec."Buy-from Post Code")
                 {
                     ApplicationArea = Suite;
-                    ToolTip = 'Specifies the post code of the vendor who delivered the items.';
                 }
                 field("Buy-from City"; Rec."Buy-from City")
                 {
                     ApplicationArea = Suite;
-                    ToolTip = 'Specifies the city of the vendor who delivered the items.';
                 }
                 field("Buy-from Contact"; Rec."Buy-from Contact")
                 {
                     ApplicationArea = Suite;
-                    ToolTip = 'Specifies the name of the contact person at the vendor who delivered the items.';
                 }
                 field("Posting Date"; Rec."Posting Date")
                 {
@@ -80,7 +73,6 @@ page 6623 "Blanket Purchase Order Archive"
                 {
                     ApplicationArea = Suite;
                     Importance = Promoted;
-                    ToolTip = 'Specifies the date when the order was created.';
                 }
                 field("Document Date"; Rec."Document Date")
                 {
@@ -90,27 +82,22 @@ page 6623 "Blanket Purchase Order Archive"
                 field("Vendor Order No."; Rec."Vendor Order No.")
                 {
                     ApplicationArea = Suite;
-                    ToolTip = 'Specifies the vendor''s order number.';
                 }
                 field("Vendor Shipment No."; Rec."Vendor Shipment No.")
                 {
                     ApplicationArea = Suite;
-                    ToolTip = 'Specifies the vendor''s shipment number. It is inserted in the corresponding field on the source document during posting.';
                 }
                 field("Vendor Invoice No."; Rec."Vendor Invoice No.")
                 {
                     ApplicationArea = Suite;
-                    ToolTip = 'Specifies the document number of the original document you received from the vendor. You can require the document number for posting, or let it be optional. By default, it''s required, so that this document references the original. Making document numbers optional removes a step from the posting process. For example, if you attach the original invoice as a PDF, you might not need to enter the document number. To specify whether document numbers are required, in the Purchases & Payables Setup window, select or clear the Ext. Doc. No. Mandatory field.';
                 }
                 field("Order Address Code"; Rec."Order Address Code")
                 {
                     ApplicationArea = Suite;
-                    ToolTip = 'Specifies the order address of the related vendor.';
                 }
                 field("Purchaser Code"; Rec."Purchaser Code")
                 {
                     ApplicationArea = Suite;
-                    ToolTip = 'Specifies which purchaser is assigned to the vendor.';
                 }
                 field("Responsibility Center"; Rec."Responsibility Center")
                 {
@@ -138,12 +125,10 @@ page 6623 "Blanket Purchase Order Archive"
                 {
                     ApplicationArea = Suite;
                     Importance = Promoted;
-                    ToolTip = 'Specifies the number of the vendor that you received the invoice from.';
                 }
                 field("Pay-to Name"; Rec."Pay-to Name")
                 {
                     ApplicationArea = Suite;
-                    ToolTip = 'Specifies the name of the vendor who you received the invoice from.';
                 }
                 field("Pay-to Name 2"; Rec."Pay-to Name 2")
                 {
@@ -154,37 +139,30 @@ page 6623 "Blanket Purchase Order Archive"
                 field("Pay-to Address"; Rec."Pay-to Address")
                 {
                     ApplicationArea = Suite;
-                    ToolTip = 'Specifies the address of the vendor that you received the invoice from.';
                 }
                 field("Pay-to Address 2"; Rec."Pay-to Address 2")
                 {
                     ApplicationArea = Suite;
-                    ToolTip = 'Specifies an additional part of the address of the vendor that the invoice was received from.';
                 }
                 field("Pay-to Post Code"; Rec."Pay-to Post Code")
                 {
                     ApplicationArea = Suite;
-                    ToolTip = 'Specifies the post code of the vendor that you received the invoice from.';
                 }
                 field("Pay-to City"; Rec."Pay-to City")
                 {
                     ApplicationArea = Suite;
-                    ToolTip = 'Specifies the city of the vendor that you received the invoice from.';
                 }
                 field("Pay-to Contact"; Rec."Pay-to Contact")
                 {
                     ApplicationArea = Suite;
-                    ToolTip = 'Specifies the name of the person to contact about an invoice from this vendor.';
                 }
                 field("Shortcut Dimension 1 Code"; Rec."Shortcut Dimension 1 Code")
                 {
                     ApplicationArea = Dimensions;
-                    ToolTip = 'Specifies the code for Shortcut Dimension 1, which is one of two global dimension codes that you set up in the General Ledger Setup window.';
                 }
                 field("Shortcut Dimension 2 Code"; Rec."Shortcut Dimension 2 Code")
                 {
                     ApplicationArea = Dimensions;
-                    ToolTip = 'Specifies the code for Shortcut Dimension 2, which is one of two global dimension codes that you set up in the General Ledger Setup window.';
                 }
                 field("Payment Terms Code"; Rec."Payment Terms Code")
                 {
@@ -196,7 +174,6 @@ page 6623 "Blanket Purchase Order Archive"
                 {
                     ApplicationArea = Suite;
                     Importance = Promoted;
-                    ToolTip = 'Specifies when the related purchase invoice must be paid.';
                 }
                 field("Payment Discount %"; Rec."Payment Discount %")
                 {
@@ -216,7 +193,6 @@ page 6623 "Blanket Purchase Order Archive"
                 field("Prices Including VAT"; Rec."Prices Including VAT")
                 {
                     ApplicationArea = Suite;
-                    ToolTip = 'Specifies if the Unit Price and Line Amount fields on document lines should be shown with or without VAT.';
                 }
             }
             group(Shipping)
@@ -230,12 +206,10 @@ page 6623 "Blanket Purchase Order Archive"
                 field("Ship-to Address"; Rec."Ship-to Address")
                 {
                     ApplicationArea = Suite;
-                    ToolTip = 'Specifies the address that the items are shipped to.';
                 }
                 field("Ship-to Address 2"; Rec."Ship-to Address 2")
                 {
                     ApplicationArea = Suite;
-                    ToolTip = 'Specifies an additional part of the ship-to address, in case it is a long address.';
                 }
                 field("Ship-to Post Code"; Rec."Ship-to Post Code")
                 {
@@ -245,12 +219,10 @@ page 6623 "Blanket Purchase Order Archive"
                 field("Ship-to City"; Rec."Ship-to City")
                 {
                     ApplicationArea = Suite;
-                    ToolTip = 'Specifies the city of the address that the items are shipped to.';
                 }
                 field("Ship-to Phone No."; Rec."Ship-to Phone No.")
                 {
                     ApplicationArea = Suite;
-                    ToolTip = 'Specifies the telephone number of the company''s shipping address.';
                 }
                 field("Ship-to Contact"; Rec."Ship-to Contact")
                 {
@@ -261,22 +233,18 @@ page 6623 "Blanket Purchase Order Archive"
                 {
                     ApplicationArea = Location;
                     Importance = Promoted;
-                    ToolTip = 'Specifies the location where the items are to be placed when they are received. This field acts as the default location for new lines. Location code for individual lines can differ from it.';
                 }
                 field("Inbound Whse. Handling Time"; Rec."Inbound Whse. Handling Time")
                 {
                     ApplicationArea = Warehouse;
-                    ToolTip = 'Specifies the time it takes to make items part of available inventory, after the items have been posted as received.';
                 }
                 field("Shipment Method Code"; Rec."Shipment Method Code")
                 {
                     ApplicationArea = Suite;
-                    ToolTip = 'Specifies the delivery conditions of the related shipment, such as free on board (FOB).';
                 }
                 field("Lead Time Calculation"; Rec."Lead Time Calculation")
                 {
                     ApplicationArea = Suite;
-                    ToolTip = 'Specifies a date formula for the amount of time it takes to replenish the item.';
                 }
                 field("Requested Receipt Date"; Rec."Requested Receipt Date")
                 {
@@ -286,7 +254,6 @@ page 6623 "Blanket Purchase Order Archive"
                 field("Promised Receipt Date"; Rec."Promised Receipt Date")
                 {
                     ApplicationArea = Suite;
-                    ToolTip = 'Specifies the date that the vendor has promised to deliver the order.';
                 }
                 field("Expected Receipt Date"; Rec."Expected Receipt Date")
                 {
@@ -302,7 +269,6 @@ page 6623 "Blanket Purchase Order Archive"
                 field("Ship-to Code"; Rec."Ship-to Code")
                 {
                     ApplicationArea = Suite;
-                    ToolTip = 'Specifies a code for an alternate shipment address if you want to ship to another address than the one that has been entered automatically. This field is also used in case of drop shipment.';
                 }
             }
             group("Foreign Trade")
@@ -327,12 +293,10 @@ page 6623 "Blanket Purchase Order Archive"
                 field("Transport Method"; Rec."Transport Method")
                 {
                     ApplicationArea = BasicEU, BasicNO;
-                    ToolTip = 'Specifies the transport method, for the purpose of reporting to INTRASTAT.';
                 }
                 field("Entry Point"; Rec."Entry Point")
                 {
                     ApplicationArea = BasicEU, BasicNO;
-                    ToolTip = 'Specifies the code of the port of entry where the items pass into your country/region, for reporting to Intrastat.';
                 }
                 field("Area"; Rec.Area)
                 {
@@ -347,7 +311,6 @@ page 6623 "Blanket Purchase Order Archive"
                 {
                     ApplicationArea = Suite;
                     Importance = Promoted;
-                    ToolTip = 'Specifies the version number of the archived document.';
                 }
                 field("Archived By"; Rec."Archived By")
                 {
@@ -365,17 +328,14 @@ page 6623 "Blanket Purchase Order Archive"
                 {
                     ApplicationArea = Suite;
                     Importance = Promoted;
-                    ToolTip = 'Specifies the date when the document was archived.';
                 }
                 field("Time Archived"; Rec."Time Archived")
                 {
                     ApplicationArea = Suite;
-                    ToolTip = 'Specifies what time the document was archived.';
                 }
                 field("Interaction Exist"; Rec."Interaction Exist")
                 {
                     ApplicationArea = RelationshipMgmt;
-                    ToolTip = 'Specifies that the archived document is linked to an interaction log entry.';
                 }
             }
         }

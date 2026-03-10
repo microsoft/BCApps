@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -22,19 +22,23 @@ table 99000851 "Production Forecast Name"
         field(1; Name; Code[10])
         {
             Caption = 'Name';
+            ToolTip = 'Specifies the name of the demand forecast.';
             NotBlank = true;
         }
         field(2; Description; Text[100])
         {
             Caption = 'Description';
+            ToolTip = 'Specifies a brief description of the demand forecast.';
         }
         field(3; "View By"; Enum "Analysis Period Type")
         {
             Caption = 'View By';
+            ToolTip = 'Specifies the period of time for which amounts are displayed.';
         }
         field(4; "Forecast Type"; Enum "Demand Forecast Type")
         {
             Caption = 'Forecast Type';
+            ToolTip = 'Specifies whether the demand forecast entry is for a sales item or a component item. If you choose Sales Item, only sales orders net the forecast. If you choose Component Item, demand from production order components net the forecast.';
         }
         field(5; "Location Filter"; Blob)
         {
@@ -51,6 +55,7 @@ table 99000851 "Production Forecast Name"
         field(8; "Forecast By Locations"; Boolean)
         {
             Caption = 'Forecast by Locations';
+            ToolTip = 'Specifies whether to create a forecast entry that includes locations.';
             trigger OnValidate()
             begin
                 if not "Forecast By Locations" then begin
@@ -62,6 +67,7 @@ table 99000851 "Production Forecast Name"
         field(9; "Forecast By Variants"; Boolean)
         {
             Caption = 'Forecast by Variants';
+            ToolTip = 'Use this if you want to create a forecast entry including the variants.';
             trigger OnValidate()
             begin
                 if not "Forecast By Variants" then begin
@@ -73,10 +79,12 @@ table 99000851 "Production Forecast Name"
         field(10; "Quantity Type"; Enum "Analysis Amount Type")
         {
             Caption = 'Quantity Type';
+            ToolTip = 'Specifies how amounts are displayed. Net Change: The net change in the balance for the selected period. Balance at Date: The balance as of the last day in the selected period.';
         }
         field(11; "Date Filter"; Text[1024])
         {
             Caption = 'Date Filter';
+            ToolTip = 'Specifies the dates that will be used to filter the amounts in the window.';
         }
     }
 

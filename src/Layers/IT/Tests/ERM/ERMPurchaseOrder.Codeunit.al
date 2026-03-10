@@ -9173,6 +9173,77 @@
         VerifyPurchaseDocument(PurchaseHeader."No.", InvPurchaseHeader."No.");
     end;
 
+    [Test]
+    [HandlerFunctions('ConfirmHandler')]
+    procedure VerifyPurchaseCrMemoUpdateExistingPurchaseOrderForNonInventoryAndServiceItem()
+    var
+        FromPurchInvLine: Record "Purch. Inv. Line";
+        NonInvItem: Record Item;
+        PurchaseHeader: Record "Purchase Header";
+        PurchaseHeader2: Record "Purchase Header";
+        PurchaseLine: Record "Purchase Line";
+        ServiceItem: Record Item;
+        Vendor: Record Vendor;
+        CopyDocumentMgt: Codeunit "Copy Document Mgt.";
+        PurchCreditMemo: TestPage "Purchase Credit Memo";
+        InvoiceNo: Code[20];
+        Quantity: Decimal;
+        LinesNotCopied: Integer;
+        MissingExCostRevLink: Boolean;
+    begin
+        // [SCENARIO 620074] When you use "Get Posted Document Lines to Reverse" in the Purchase credit Memo
+        // the Quantity to receive and the Quantity to invoice should be corrected For Non-Inventory and Service Items
+        Initialize();
+
+        // [GIVEN] Create a Non-Inventory Type Item.
+        LibraryInventory.CreateNonInventoryTypeItem(NonInvItem);
+
+        // [GIVEN] Create a Service Type Item.
+        LibraryInventory.CreateServiceTypeItem(ServiceItem);
+
+        // [GIVEN] Create Vendor.
+        LibraryPurchase.CreateVendor(Vendor);
+
+        // [GIVEN] Create Purchase Header.
+        LibraryPurchase.CreatePurchHeader(PurchaseHeader, PurchaseHeader."Document Type"::Order, Vendor."No.");
+
+        // [GIVEN] Create Purchase Line for Non-Inventory and Service Item and updated Qty. to Receive.
+        Quantity := LibraryRandom.RandIntInRange(10, 10);
+        CreatePurchaseLinesAndUpdateQtytoReceive(
+            PurchaseLine, PurchaseHeader, PurchaseLine.Type::Item, NonInvItem."No.",
+             Quantity, LibraryRandom.RandIntInRange(5, 5), LibraryRandom.RandIntInRange(100, 200));
+
+        CreatePurchaseLinesAndUpdateQtytoReceive(
+            PurchaseLine, PurchaseHeader, PurchaseLine.Type::Item, ServiceItem."No.",
+            Quantity, LibraryRandom.RandIntInRange(5, 5), LibraryRandom.RandIntInRange(100, 200));
+
+        // [GIVEN] Post the Receipt of Purchase Order.
+        LibraryPurchase.PostPurchaseDocument(PurchaseHeader, true, false);
+
+        // [GIVEN] Create and Post Purchase Invoice with Get Receipt Lines for Invoice.
+        InvoicePostedPurchaseOrder(PurchaseHeader2, PurchaseHeader);
+        InvoiceNo := LibraryPurchase.PostPurchaseDocument(PurchaseHeader2, false, true);
+
+        // [GIVEN] Create Purchase Credit Memo
+        LibraryPurchase.CreatePurchHeader(PurchaseHeader2, PurchaseHeader2."Document Type"::"Credit Memo", Vendor."No.");
+        FromPurchInvLine.SetRange("Document No.", InvoiceNo);
+
+        // [GIVEN] Copy both Posted Purchase Invoice Lines to Purchase Credit Memo
+        CopyDocumentMgt.CopyPurchInvLinesToDoc(PurchaseHeader2, FromPurchInvLine, LinesNotCopied, MissingExCostRevLink);
+
+        PurchaseHeader2.CalcFields("Amount Including VAT");
+        PurchaseHeader2.Validate("Check Total", PurchaseHeader2."Amount Including VAT");
+        PurchaseHeader2.Modify(true);
+
+        // [WHEN] Post the Credit Memo
+        PurchCreditMemo.OpenView();
+        PurchCreditMemo.GotoRecord(PurchaseHeader2);
+        PurchCreditMemo.Post.Invoke();
+
+        // [THEN] Verify Purchase Order Qty. to Receive and Qty. to Invoice are updated as Quantity in the Purchase line.
+        VerifyPurchaseOrderQuantityforManualPurchaseCreditMemo(PurchaseHeader."No.", Quantity);
+    end;
+
     local procedure Initialize()
     var
         PurchaseHeader: Record "Purchase Header";

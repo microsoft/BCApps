@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -31,23 +31,19 @@ page 1003 "Job Task Card"
                 field("Job Task No."; Rec."Job Task No.")
                 {
                     ApplicationArea = Jobs;
-                    ToolTip = 'Specifies the number of the related project task.';
                 }
                 field(Description; Rec.Description)
                 {
                     ApplicationArea = Jobs;
-                    ToolTip = 'Specifies a description of the project task. You can enter anything that is meaningful in describing the task. The description is copied and used in descriptions on the project planning line.';
                 }
                 field("Job Task Type"; Rec."Job Task Type")
                 {
                     ApplicationArea = Jobs;
-                    ToolTip = 'Specifies the purpose of the account. Newly created accounts are automatically assigned the Posting account type, but you can change this. Choose the field to select one of the following five options:';
                 }
                 field("Sell-to Customer No."; Rec."Sell-to Customer No.")
                 {
                     ApplicationArea = Jobs;
                     Caption = 'Customer No.';
-                    ToolTip = 'Specifies the number of the customer who will receive the products and be billed by default for the project task.';
                     Visible = PerTaskBillingFieldsVisible;
                 }
                 field("Sell-to Customer Name"; Rec."Sell-to Customer Name")
@@ -57,7 +53,6 @@ page 1003 "Job Task Card"
                     Importance = Promoted;
                     NotBlank = true;
                     Visible = PerTaskBillingFieldsVisible;
-                    ToolTip = 'Specifies the name of the customer who will receive the products and be billed by default.';
 
                     trigger OnValidate()
                     begin
@@ -89,7 +84,6 @@ page 1003 "Job Task Card"
                         Caption = 'Address';
                         Importance = Additional;
                         QuickEntry = false;
-                        ToolTip = 'Specifies the address where the customer is located.';
                     }
                     field("Sell-to Address 2"; Rec."Sell-to Address 2")
                     {
@@ -97,7 +91,6 @@ page 1003 "Job Task Card"
                         Caption = 'Address 2';
                         Importance = Additional;
                         QuickEntry = false;
-                        ToolTip = 'Specifies additional address information.';
                     }
                     field("Sell-to City"; Rec."Sell-to City")
                     {
@@ -105,7 +98,6 @@ page 1003 "Job Task Card"
                         Caption = 'City';
                         Importance = Additional;
                         QuickEntry = false;
-                        ToolTip = 'Specifies the city of the customer on the sales document.';
                     }
                     group(Control60)
                     {
@@ -117,7 +109,6 @@ page 1003 "Job Task Card"
                             CaptionClass = '5,1,' + Rec."Sell-to Country/Region Code";
                             Importance = Additional;
                             QuickEntry = false;
-                            ToolTip = 'Specifies the state, province or county of the address.';
                         }
                     }
                     field("Sell-to Post Code"; Rec."Sell-to Post Code")
@@ -126,7 +117,6 @@ page 1003 "Job Task Card"
                         Caption = 'Post Code';
                         Importance = Additional;
                         QuickEntry = false;
-                        ToolTip = 'Specifies the postal code.';
                     }
                     field("Sell-to Country/Region Code"; Rec."Sell-to Country/Region Code")
                     {
@@ -134,7 +124,6 @@ page 1003 "Job Task Card"
                         Caption = 'Country/Region Code';
                         Importance = Additional;
                         QuickEntry = false;
-                        ToolTip = 'Specifies the country or region of the address.';
 
                         trigger OnValidate()
                         begin
@@ -146,7 +135,6 @@ page 1003 "Job Task Card"
                         ApplicationArea = Jobs;
                         Caption = 'Contact No.';
                         Importance = Additional;
-                        ToolTip = 'Specifies the number of the contact person that the sales document will be sent to.';
 
                         trigger OnLookup(var Text: Text): Boolean
                         begin
@@ -172,13 +160,11 @@ page 1003 "Job Task Card"
                         Caption = 'Contact';
                         Importance = Additional;
                         Editable = Rec."Sell-to Customer No." <> '';
-                        ToolTip = 'Specifies the name of the person to contact at the customer.';
                     }
                 }
                 field(Totaling; Rec.Totaling)
                 {
                     ApplicationArea = Jobs;
-                    ToolTip = 'Specifies an interval or a list of project task numbers.';
                 }
                 field("External Document No."; Rec."External Document No.")
                 {
@@ -195,12 +181,10 @@ page 1003 "Job Task Card"
                 field("New Page"; Rec."New Page")
                 {
                     ApplicationArea = Jobs;
-                    ToolTip = 'Specifies whether you want a new page to start immediately after this project task when you print the project tasks. To start a new page after this project task, select the New Page check box.';
                 }
                 field("No. of Blank Lines"; Rec."No. of Blank Lines")
                 {
                     ApplicationArea = Jobs;
-                    ToolTip = 'Specifies the number of blank lines that you want inserted before this project task in reports that shows project tasks.';
                 }
             }
             part(JobPlanningLines; "Job Planning Lines Part")
@@ -215,7 +199,6 @@ page 1003 "Job Task Card"
                 field("Job Posting Group"; Rec."Job Posting Group")
                 {
                     ApplicationArea = Jobs;
-                    ToolTip = 'Specifies the project posting group of the task.';
                 }
                 field("WIP Method"; Rec."WIP Method")
                 {
@@ -225,12 +208,10 @@ page 1003 "Job Task Card"
                 field("Location Code"; Rec."Location Code")
                 {
                     ApplicationArea = Jobs;
-                    ToolTip = 'Specifies the location code of the task.';
                 }
                 field("Bin Code"; Rec."Bin Code")
                 {
                     ApplicationArea = Jobs;
-                    ToolTip = 'Specifies a bin code for specific location of the task.';
                 }
             }
             group("Invoice and Shipping")
@@ -266,7 +247,6 @@ page 1003 "Job Task Card"
                         {
                             ApplicationArea = Jobs;
                             Importance = Promoted;
-                            ToolTip = 'Specifies the number of the customer who pays for the project.';
                             Visible = false;
 
                             trigger OnValidate()
@@ -279,7 +259,6 @@ page 1003 "Job Task Card"
                             Caption = 'Name';
                             ApplicationArea = Jobs;
                             Importance = Promoted;
-                            ToolTip = 'Specifies the name of the customer who pays for the project.';
                             Editable = ((BillToOptions = BillToOptions::"Another Customer") or ((BillToOptions = BillToOptions::"Custom Address") and not ShouldSearchForCustByName));
                             Enabled = ((BillToOptions = BillToOptions::"Another Customer") or ((BillToOptions = BillToOptions::"Custom Address") and not ShouldSearchForCustByName));
                             NotBlank = true;
@@ -311,7 +290,6 @@ page 1003 "Job Task Card"
                             ApplicationArea = Jobs;
                             Importance = Additional;
                             QuickEntry = false;
-                            ToolTip = 'Specifies the address of the customer to whom you will send the invoice.';
                             Editable = BillToInformationEditable;
                             Enabled = BillToInformationEditable;
                         }
@@ -321,7 +299,6 @@ page 1003 "Job Task Card"
                             ApplicationArea = Jobs;
                             Importance = Additional;
                             QuickEntry = false;
-                            ToolTip = 'Specifies an additional line of the address.';
                             Editable = BillToInformationEditable;
                             Enabled = BillToInformationEditable;
                         }
@@ -331,7 +308,6 @@ page 1003 "Job Task Card"
                             ApplicationArea = Jobs;
                             Importance = Additional;
                             QuickEntry = false;
-                            ToolTip = 'Specifies the city of the address.';
                             Editable = BillToInformationEditable;
                             Enabled = BillToInformationEditable;
                         }
@@ -345,7 +321,6 @@ page 1003 "Job Task Card"
                                 CaptionClass = '5,1,' + Rec."Bill-to Country/Region Code";
                                 QuickEntry = false;
                                 Importance = Additional;
-                                ToolTip = 'Specifies the county code of the customer''s billing address.';
                                 Editable = BillToInformationEditable;
                                 Enabled = BillToInformationEditable;
                             }
@@ -356,7 +331,6 @@ page 1003 "Job Task Card"
                             ApplicationArea = Jobs;
                             Importance = Additional;
                             QuickEntry = false;
-                            ToolTip = 'Specifies the postal code of the customer who pays for the project.';
                             Editable = BillToInformationEditable;
                             Enabled = BillToInformationEditable;
                         }
@@ -366,7 +340,6 @@ page 1003 "Job Task Card"
                             ApplicationArea = Jobs;
                             Importance = Additional;
                             QuickEntry = false;
-                            ToolTip = 'Specifies the country/region code of the customer''s billing address.';
                             Editable = BillToInformationEditable;
                             Enabled = BillToInformationEditable;
 
@@ -379,7 +352,6 @@ page 1003 "Job Task Card"
                         {
                             Caption = 'Contact No.';
                             ApplicationArea = Jobs;
-                            ToolTip = 'Specifies the number of the contact person at the customer''s billing address.';
                             Importance = Additional;
                             Editable = BillToInformationEditable;
                             Enabled = BillToInformationEditable;
@@ -403,7 +375,6 @@ page 1003 "Job Task Card"
                             Caption = 'Contact';
                             ApplicationArea = Jobs;
                             Importance = Additional;
-                            ToolTip = 'Specifies the name of the contact person at the customer who pays for the project.';
                             Editable = BillToInformationEditable;
                             Enabled = BillToInformationEditable;
                         }
@@ -477,7 +448,6 @@ page 1003 "Job Task Card"
                             Caption = 'Code';
                             Editable = ShipToOptions = ShipToOptions::"Alternate Shipping Address";
                             Importance = Promoted;
-                            ToolTip = 'Specifies the code for another shipment address than the customer''s own address, which is entered by default.';
 
                             trigger OnValidate()
                             var
@@ -497,7 +467,6 @@ page 1003 "Job Task Card"
                             ApplicationArea = Jobs;
                             Caption = 'Name';
                             Editable = ShipToOptions = ShipToOptions::"Custom Address";
-                            ToolTip = 'Specifies the name that products on the sales document will be shipped to.';
                         }
                         field("Ship-to Name 2"; Rec."Ship-to Name 2")
                         {
@@ -505,7 +474,6 @@ page 1003 "Job Task Card"
                             Caption = 'Name 2';
                             Editable = ShipToOptions = ShipToOptions::"Custom Address";
                             Importance = Additional;
-                            ToolTip = 'Specifies an additional part of the name that products on the sales document will be shipped to.';
                             QuickEntry = false;
                             Visible = false;
                         }
@@ -515,7 +483,6 @@ page 1003 "Job Task Card"
                             Caption = 'Address';
                             Editable = ShipToOptions = ShipToOptions::"Custom Address";
                             QuickEntry = false;
-                            ToolTip = 'Specifies the address that products on the sales document will be shipped to.';
                         }
                         field("Ship-to Address 2"; Rec."Ship-to Address 2")
                         {
@@ -523,7 +490,6 @@ page 1003 "Job Task Card"
                             Caption = 'Address 2';
                             Editable = ShipToOptions = ShipToOptions::"Custom Address";
                             QuickEntry = false;
-                            ToolTip = 'Specifies additional address information.';
                         }
                         field("Ship-to City"; Rec."Ship-to City")
                         {
@@ -531,7 +497,6 @@ page 1003 "Job Task Card"
                             Caption = 'City';
                             Editable = ShipToOptions = ShipToOptions::"Custom Address";
                             QuickEntry = false;
-                            ToolTip = 'Specifies the city of the customer on the sales document.';
                         }
                         group(Control82)
                         {
@@ -543,7 +508,6 @@ page 1003 "Job Task Card"
                                 CaptionClass = '5,1,' + Rec."Ship-to Country/Region Code";
                                 Editable = ShipToOptions = ShipToOptions::"Custom Address";
                                 QuickEntry = false;
-                                ToolTip = 'Specifies the state, province or county of the address.';
                             }
                         }
                         field("Ship-to Post Code"; Rec."Ship-to Post Code")
@@ -552,7 +516,6 @@ page 1003 "Job Task Card"
                             Caption = 'Post Code';
                             Editable = ShipToOptions = ShipToOptions::"Custom Address";
                             QuickEntry = false;
-                            ToolTip = 'Specifies the postal code.';
                         }
                         field("Ship-to Country/Region Code"; Rec."Ship-to Country/Region Code")
                         {
@@ -561,7 +524,6 @@ page 1003 "Job Task Card"
                             Editable = ShipToOptions = ShipToOptions::"Custom Address";
                             Importance = Additional;
                             QuickEntry = false;
-                            ToolTip = 'Specifies the customer''s country/region.';
 
                             trigger OnValidate()
                             begin
@@ -573,7 +535,6 @@ page 1003 "Job Task Card"
                     {
                         ApplicationArea = Jobs;
                         Caption = 'Contact';
-                        ToolTip = 'Specifies the name of the contact person at the address that products on the sales document will be shipped to.';
                     }
                 }
             }
@@ -586,19 +547,16 @@ page 1003 "Job Task Card"
                 {
                     ApplicationArea = Suite;
                     Editable = InvoiceCurrencyCodeEditable;
-                    ToolTip = 'Specifies the currency code you want to apply when creating invoices for a project. By default, the invoice currency code for a project is based on what currency code is defined on the customer card.';
                 }
                 field("Price Calculation Method"; Rec."Price Calculation Method")
                 {
                     Visible = ExtendedPriceEnabled;
                     ApplicationArea = Basic, Suite;
                     Importance = Promoted;
-                    ToolTip = 'Specifies the default method of the unit price calculation.';
                 }
                 field("Language Code"; Rec."Language Code")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the language to be used on printouts for this project.';
                     Visible = false;
                 }
             }

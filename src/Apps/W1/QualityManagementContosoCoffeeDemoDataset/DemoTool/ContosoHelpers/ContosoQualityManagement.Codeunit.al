@@ -15,7 +15,7 @@ codeunit 5710 "Contoso Quality Management"
     InherentPermissions = X;
 
     Permissions = tabledata "Qlty. Test" = rim,
-                    tabledata "Qlty. Lookup Code" = rim,
+                    tabledata "Qlty. Test Lookup Value" = rim,
                     tabledata "Qlty. Inspection Result" = rim,
                     tabledata "Qlty. Inspection Template Hdr." = rim,
                     tabledata "Qlty. Inspection Template Line" = rim,
@@ -70,26 +70,26 @@ codeunit 5710 "Contoso Quality Management"
             QltyTest.Insert(true);
     end;
 
-    procedure InsertQualityLookupCode(GroupCode: Code[20]; Code: Code[100]; Description: Text[250])
+    procedure InsertQualityTestLookupValue(LookupGroupCode: Code[20]; LookupValue: Code[100]; Description: Text[250])
     var
-        QltyLookupCode: Record "Qlty. Lookup Code";
+        QltyTestLookupValue: Record "Qlty. Test Lookup Value";
         Exists: Boolean;
     begin
-        if QltyLookupCode.Get(GroupCode, Code) then begin
+        if QltyTestLookupValue.Get(LookupGroupCode, LookupValue) then begin
             Exists := true;
 
             if not OverwriteData then
                 exit;
         end;
 
-        QltyLookupCode.Validate("Group Code", GroupCode);
-        QltyLookupCode.Validate(Code, Code);
-        QltyLookupCode.Validate(Description, Description);
+        QltyTestLookupValue.Validate("Lookup Group Code", LookupGroupCode);
+        QltyTestLookupValue.Validate("Value", LookupValue);
+        QltyTestLookupValue.Validate(Description, Description);
 
         if Exists then
-            QltyLookupCode.Modify(true)
+            QltyTestLookupValue.Modify(true)
         else
-            QltyLookupCode.Insert(true);
+            QltyTestLookupValue.Insert(true);
     end;
 
     procedure InsertQualityInspectionResult(Code: Code[20]; Description: Text[100]; EvaluationSequence: Integer; CopyBehavior: Enum "Qlty. Result Copy Behavior"; ResultVisibility: Enum "Qlty. Result Visibility"; DefaultNumberCondition: Text[500]; DefaultTextCondition: Text[500]; DefaultBooleanCondition: Text[500]; ResultCategory: Enum "Qlty. Result Category"; FinishAllowed: Enum "Qlty. Result Finish Allowed")

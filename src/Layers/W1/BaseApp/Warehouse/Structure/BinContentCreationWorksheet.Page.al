@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -61,13 +61,11 @@ page 7371 "Bin Content Creation Worksheet"
                 field("Zone Code"; Rec."Zone Code")
                 {
                     ApplicationArea = Warehouse;
-                    ToolTip = 'Specifies the code of the zone where the bin on the worksheet will be located.';
                     Visible = false;
                 }
                 field("Bin Code"; Rec."Bin Code")
                 {
                     ApplicationArea = Warehouse;
-                    ToolTip = 'Specifies the bin where the items are picked or put away.';
 
                     trigger OnValidate()
                     begin
@@ -78,27 +76,23 @@ page 7371 "Bin Content Creation Worksheet"
                 {
                     ApplicationArea = Warehouse;
                     Editable = false;
-                    ToolTip = 'Specifies the bin type or bin content that should be created.';
                     Visible = false;
                 }
                 field("Warehouse Class Code"; Rec."Warehouse Class Code")
                 {
                     ApplicationArea = Warehouse;
                     Editable = false;
-                    ToolTip = 'Specifies the warehouse class of the bin or bin content that should be created.';
                     Visible = false;
                 }
                 field("Bin Ranking"; Rec."Bin Ranking")
                 {
                     ApplicationArea = Warehouse;
                     Editable = false;
-                    ToolTip = 'Specifies the ranking of the bin or bin content that should be created.';
                     Visible = false;
                 }
                 field("Item No."; Rec."Item No.")
                 {
                     ApplicationArea = Warehouse;
-                    ToolTip = 'Specifies the item number for which bin content should be created.';
 
                     trigger OnValidate()
                     begin
@@ -109,7 +103,6 @@ page 7371 "Bin Content Creation Worksheet"
                 field("Variant Code"; Rec."Variant Code")
                 {
                     ApplicationArea = Planning;
-                    ToolTip = 'Specifies the variant of the item on the line.';
                     Visible = false;
 
                     trigger OnValidate()
@@ -120,7 +113,6 @@ page 7371 "Bin Content Creation Worksheet"
                 field("Unit of Measure Code"; Rec."Unit of Measure Code")
                 {
                     ApplicationArea = Warehouse;
-                    ToolTip = 'Specifies how each unit of the item or resource is measured, such as in pieces or hours. By default, the value in the Base Unit of Measure field on the item or resource card is inserted.';
                     Visible = false;
 
                     trigger OnValidate()
@@ -131,35 +123,29 @@ page 7371 "Bin Content Creation Worksheet"
                 field("Min. Qty."; Rec."Min. Qty.")
                 {
                     ApplicationArea = Warehouse;
-                    ToolTip = 'Specifies the minimum quantity for the bin content that should be created.';
                     Visible = false;
                 }
                 field("Max. Qty."; Rec."Max. Qty.")
                 {
                     ApplicationArea = Warehouse;
-                    ToolTip = 'Specifies the maximum quantity for the bin content that should be created.';
                     Visible = false;
                 }
                 field("Block Movement"; Rec."Block Movement")
                 {
                     ApplicationArea = Warehouse;
-                    ToolTip = 'Specifies how the movement of a particular item, or bin content, into or out of this bin, is blocked.';
                     Visible = false;
                 }
                 field("Fixed"; Rec.Fixed)
                 {
                     ApplicationArea = Warehouse;
-                    ToolTip = 'Specifies whether the bin content that is to be created will be fixed for the item.';
                 }
                 field(Default; Rec.Default)
                 {
                     ApplicationArea = Warehouse;
-                    ToolTip = 'Specifies if the bin is to be the default bin for the item on the bin worksheet line.';
                 }
                 field("Cross-Dock Bin"; Rec."Cross-Dock Bin")
                 {
                     ApplicationArea = Warehouse;
-                    ToolTip = 'Specifies new cross-dock bins.';
                     Visible = false;
                 }
             }

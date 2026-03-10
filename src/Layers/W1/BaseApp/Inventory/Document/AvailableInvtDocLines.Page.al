@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -30,12 +30,10 @@ page 6873 "Available - Invt. Doc. Lines"
                 field("Location Code"; Rec."Location Code")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the warehouse or other place where the involved items are handled or stored.';
                 }
                 field("Document Date"; Rec."Document Date")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the date when the related document was created.';
                 }
                 field("Quantity (Base)"; Rec."Quantity (Base)")
                 {

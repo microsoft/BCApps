@@ -388,5 +388,10 @@
     "codeunitId": 132600,
     "codeunitName": "Report Layout",
     "method": "TestClosingTrialBalance"
+  },
+  {
+    "codeunitId": 132600,
+    "codeunitName": "Report Layout",
+    "method": "TestInventoryValuationWIP"
   }
 ]

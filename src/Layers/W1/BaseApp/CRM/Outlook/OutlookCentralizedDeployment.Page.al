@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -150,13 +150,11 @@ page 1831 "Outlook Centralized Deployment"
                         field(Name; Rec.Name)
                         {
                             ApplicationArea = Basic, Suite;
-                            ToolTip = 'Specifies the name of the add-in.';
                             Editable = false;
                         }
                         field(Deploy; Rec.Deploy)
                         {
                             ApplicationArea = All;
-                            ToolTip = 'Specifies whether the add-in will be deployed.';
                             Width = 5;
                         }
                         field(Description; Rec.Description)
@@ -169,7 +167,6 @@ page 1831 "Outlook Centralized Deployment"
                         {
                             ApplicationArea = Basic, Suite;
                             Editable = false;
-                            ToolTip = 'Specifies the version of the record.';
                         }
                     }
                 }

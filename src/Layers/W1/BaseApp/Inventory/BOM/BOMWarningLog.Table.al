@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -22,15 +22,18 @@ table 5874 "BOM Warning Log"
         field(2; "Warning Description"; Text[250])
         {
             Caption = 'Warning Description';
+            ToolTip = 'Specifies the description of the warning associated with the entry.';
         }
         field(6; "Table ID"; Integer)
         {
             Caption = 'Table ID';
+            ToolTip = 'Specifies the table ID associated with the entry.';
             TableRelation = AllObjWithCaption."Object ID" where("Object Type" = const(Table));
         }
         field(7; "Table Position"; Text[250])
         {
             Caption = 'Table Position';
+            ToolTip = 'Specifies the table position associated with the entry.';
         }
     }
 

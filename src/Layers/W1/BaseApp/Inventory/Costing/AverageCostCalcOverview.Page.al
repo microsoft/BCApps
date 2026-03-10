@@ -36,33 +36,28 @@ page 5847 "Average Cost Calc. Overview"
                     ApplicationArea = Basic, Suite;
                     Editable = false;
                     StyleExpr = 'Strong';
-                    ToolTip = 'Specifies either that the entry is a summary entry, Closing Entry, or the type that was used in the calculation of the average cost of the item.';
                 }
                 field("Valuation Date"; Rec."Valuation Date")
                 {
                     ApplicationArea = Basic, Suite;
                     Editable = false;
                     StyleExpr = 'Strong';
-                    ToolTip = 'Specifies the valuation date associated with the average cost calculation.';
                 }
                 field("Item No."; Rec."Item No.")
                 {
                     ApplicationArea = Basic, Suite;
                     Editable = false;
-                    ToolTip = 'Specifies the number of the item associated with the entry.';
                 }
                 field("Location Code"; Rec."Location Code")
                 {
                     ApplicationArea = Location;
                     Editable = false;
-                    ToolTip = 'Specifies the location code associated with the entry.';
                     Visible = false;
                 }
                 field("Variant Code"; Rec."Variant Code")
                 {
                     ApplicationArea = Planning;
                     Editable = false;
-                    ToolTip = 'Specifies the variant of the item on the line.';
                     Visible = false;
                 }
                 field(AverageCostCntrl; Rec.CalculateAverageCost())
@@ -79,21 +74,18 @@ page 5847 "Average Cost Calc. Overview"
                 {
                     ApplicationArea = Basic, Suite;
                     Editable = false;
-                    ToolTip = 'Specifies whether the cost is adjusted for the entry.';
                 }
                 field("Item Ledger Entry No."; Rec."Item Ledger Entry No.")
                 {
                     ApplicationArea = Basic, Suite;
                     Editable = false;
                     HideValue = ItemLedgerEntryNoHideValue;
-                    ToolTip = 'Specifies the number of the item ledger entry that this entry is linked to.';
                     Visible = false;
                 }
                 field("Posting Date"; Rec."Posting Date")
                 {
                     ApplicationArea = Basic, Suite;
                     Editable = false;
-                    ToolTip = 'Specifies the posting date for the entry.';
                     Visible = false;
                 }
                 field("Entry Type"; Rec."Entry Type")
@@ -101,20 +93,17 @@ page 5847 "Average Cost Calc. Overview"
                     ApplicationArea = Basic, Suite;
                     Editable = false;
                     HideValue = EntryTypeHideValue;
-                    ToolTip = 'Specifies which type of transaction that the entry is created from.';
                 }
                 field("Document Type"; Rec."Document Type")
                 {
                     ApplicationArea = Basic, Suite;
                     Editable = false;
-                    ToolTip = 'Specifies the type of document that the average cost applies to.';
                     Visible = false;
                 }
                 field("Document No."; Rec."Document No.")
                 {
                     ApplicationArea = Basic, Suite;
                     Editable = false;
-                    ToolTip = 'Specifies a document number for the entry.';
                     Visible = false;
                 }
                 field("Document Line No."; Rec."Document Line No.")
@@ -122,7 +111,6 @@ page 5847 "Average Cost Calc. Overview"
                     ApplicationArea = Basic, Suite;
                     Editable = false;
                     HideValue = DocumentLineNoHideValue;
-                    ToolTip = 'Specifies the document line that the comment applies to.';
                     Visible = false;
                 }
                 field(Quantity; Rec.Quantity)
@@ -130,7 +118,6 @@ page 5847 "Average Cost Calc. Overview"
                     ApplicationArea = Basic, Suite;
                     Editable = false;
                     StyleExpr = 'Strong';
-                    ToolTip = 'Specifies the quantity associated with the entry.';
                 }
                 field("Cost Amount (Expected)"; Rec."Cost Amount (Expected)")
                 {

@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -59,6 +59,7 @@ table 303 "Finance Charge Memo Line"
         field(4; Type; Option)
         {
             Caption = 'Type';
+            ToolTip = 'Specifies the line type.';
             OptionCaption = ' ,G/L Account,Customer Ledger Entry';
             OptionMembers = " ","G/L Account","Customer Ledger Entry";
 
@@ -133,6 +134,7 @@ table 303 "Finance Charge Memo Line"
         field(7; "Posting Date"; Date)
         {
             Caption = 'Posting Date';
+            ToolTip = 'Specifies the posting date of the customer ledger entry that this finance charge memo line is for.';
             Editable = false;
         }
         /// <summary>
@@ -141,6 +143,7 @@ table 303 "Finance Charge Memo Line"
         field(8; "Document Date"; Date)
         {
             Caption = 'Document Date';
+            ToolTip = 'Specifies the date when the related document was created.';
             Editable = false;
         }
         /// <summary>
@@ -149,6 +152,7 @@ table 303 "Finance Charge Memo Line"
         field(9; "Due Date"; Date)
         {
             Caption = 'Due Date';
+            ToolTip = 'Specifies the due date of the customer ledger entry this finance charge memo line is for.';
             Editable = false;
         }
         /// <summary>
@@ -157,6 +161,7 @@ table 303 "Finance Charge Memo Line"
         field(10; "Document Type"; Enum "Gen. Journal Document Type")
         {
             Caption = 'Document Type';
+            ToolTip = 'Specifies the document type of the customer ledger entry this finance charge memo line is for.';
 
             trigger OnValidate()
             begin
@@ -170,6 +175,7 @@ table 303 "Finance Charge Memo Line"
         field(11; "Document No."; Code[20])
         {
             Caption = 'Document No.';
+            ToolTip = 'Specifies the document number of the customer ledger entry this finance charge memo line is for.';
 
             trigger OnLookup()
             begin
@@ -198,6 +204,7 @@ table 303 "Finance Charge Memo Line"
         field(12; Description; Text[100])
         {
             Caption = 'Description';
+            ToolTip = 'Specifies an entry description, based on the contents of the Type field.';
         }
         /// <summary>
         /// Specifies the original amount of the customer ledger entry before any payments.
@@ -208,6 +215,7 @@ table 303 "Finance Charge Memo Line"
             AutoFormatType = 1;
             BlankZero = true;
             Caption = 'Original Amount';
+            ToolTip = 'Specifies the original amount of the customer ledger entry that this finance charge memo line is for.';
             Editable = false;
         }
         /// <summary>
@@ -219,6 +227,7 @@ table 303 "Finance Charge Memo Line"
             AutoFormatType = 1;
             BlankZero = true;
             Caption = 'Remaining Amount';
+            ToolTip = 'Specifies the remaining amount of the customer ledger entry this finance charge memo line is for.';
             Editable = false;
         }
         /// <summary>
@@ -227,6 +236,7 @@ table 303 "Finance Charge Memo Line"
         field(15; "No."; Code[20])
         {
             Caption = 'No.';
+            ToolTip = 'Specifies the number of the involved entry or record, according to the specified number series.';
             TableRelation = if (Type = const(" ")) "Standard Text"
             else
             if (Type = const("G/L Account")) "G/L Account";
@@ -274,6 +284,7 @@ table 303 "Finance Charge Memo Line"
             AutoFormatType = 1;
             BlankZero = true;
             Caption = 'Amount';
+            ToolTip = 'Specifies the amount in the currency that is represented by the currency code on the finance charge memo header.';
 
             trigger OnValidate()
             begin

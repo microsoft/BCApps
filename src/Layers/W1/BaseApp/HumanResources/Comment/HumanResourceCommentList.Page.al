@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -26,22 +26,18 @@ page 5223 "Human Resource Comment List"
                 field("No."; Rec."No.")
                 {
                     ApplicationArea = BasicHR;
-                    ToolTip = 'Specifies the number of the involved entry or record, according to the specified number series.';
                 }
                 field(Date; Rec.Date)
                 {
                     ApplicationArea = BasicHR;
-                    ToolTip = 'Specifies the date the comment was created.';
                 }
                 field(Comment; Rec.Comment)
                 {
                     ApplicationArea = Comments;
-                    ToolTip = 'Specifies the comment itself.';
                 }
                 field("Code"; Rec.Code)
                 {
                     ApplicationArea = BasicHR;
-                    ToolTip = 'Specifies a code for the comment.';
                     Visible = false;
                 }
             }

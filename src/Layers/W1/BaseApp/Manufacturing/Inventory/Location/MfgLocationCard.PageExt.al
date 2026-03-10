@@ -29,5 +29,24 @@ pageextension 99000756 "Mfg. Location Card" extends "Location Card"
                 }
             }
         }
+        addafter(Warehouse)
+        {
+            group("Stockkeeping Unit")
+            {
+                Caption = 'Stockkeeping Unit';
+                field("SKU Creation Policy"; Rec."SKU Creation Policy")
+                {
+                    Caption = 'SKU Creation Policy';
+                    ApplicationArea = Basic, Suite;
+                    ToolTip = 'Specifies the SKU creation policy for the location.';
+                }
+                field("Missing SKU Planning Policy"; Rec."Missing SKU Planning Policy")
+                {
+                    Caption = 'Missing SKU Planning Policy';
+                    ApplicationArea = Basic, Suite;
+                    ToolTip = 'Specifies the missing SKU planning policy for the location.';
+                }
+            }
+        }
     }
 }

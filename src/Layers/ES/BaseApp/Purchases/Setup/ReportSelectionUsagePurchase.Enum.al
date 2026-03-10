@@ -29,4 +29,5 @@ enum 347 "Report Selection Usage Purchase"
     value(15; "Vendor Remittance - Posted Entries") { Caption = 'Vendor Remittance - Posted Entries'; }
     value(16; "Auto Invoice") { Caption = 'Auto Invoice'; }
     value(17; "Auto Credit Memo") { Caption = 'Auto Credit Memo'; }
+    value(20; "Self Billing Invoice") { Caption = 'Self Billing Invoice'; }
 }

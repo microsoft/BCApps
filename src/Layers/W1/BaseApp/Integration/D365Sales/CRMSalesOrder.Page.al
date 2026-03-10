@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -31,7 +31,6 @@ page 5380 "CRM Sales Order"
                 {
                     ApplicationArea = Suite;
                     Caption = 'Name';
-                    ToolTip = 'Specifies the name of the record.';
                 }
                 field(Account; CRMAccountName)
                 {
@@ -66,25 +65,21 @@ page 5380 "CRM Sales Order"
                 {
                     ApplicationArea = Suite;
                     Caption = 'Date Fulfilled';
-                    ToolTip = 'Specifies when the sales order was delivered.';
                 }
                 field(StateCode; Rec.StateCode)
                 {
                     ApplicationArea = Suite;
                     Caption = 'Status';
-                    ToolTip = 'Specifies information related to the Dynamics 365 Sales connection.';
                 }
                 field(StatusCode; Rec.StatusCode)
                 {
                     ApplicationArea = Suite;
                     Caption = 'Status Reason';
-                    ToolTip = 'Specifies information related to the Dynamics 365 Sales connection.';
                 }
                 field(Opportunity; Rec.OpportunityIdName)
                 {
                     ApplicationArea = Suite;
                     Caption = 'Opportunity';
-                    ToolTip = 'Specifies the sales opportunity that is coupled to this Dynamics 365 Sales opportunity.';
 
                     trigger OnDrillDown()
                     var
@@ -124,13 +119,11 @@ page 5380 "CRM Sales Order"
                 {
                     ApplicationArea = Suite;
                     Caption = 'Payment Terms';
-                    ToolTip = 'Specifies the payment terms that you select from on customer cards to define when the customer must pay, such as within 14 days.';
                 }
                 field("Price List"; Rec.PriceLevelIdName)
                 {
                     ApplicationArea = Suite;
                     Caption = 'Price List';
-                    ToolTip = 'Specifies a list of your items and their prices, for example, to send to customers. You can create the list for specific customers, campaigns, currencies, or other criteria.';
 
                     trigger OnDrillDown()
                     var
@@ -175,13 +168,11 @@ page 5380 "CRM Sales Order"
                 {
                     ApplicationArea = Suite;
                     Caption = 'Total Tax';
-                    ToolTip = 'Specifies the sum of TAX amounts on all lines in the document.';
                 }
                 field(Currency; Rec.TransactionCurrencyIdName)
                 {
                     ApplicationArea = Suite;
                     Caption = 'Currency';
-                    ToolTip = 'Specifies the currency that amounts are shown in.';
 
                     trigger OnDrillDown()
                     var
@@ -207,76 +198,65 @@ page 5380 "CRM Sales Order"
                 {
                     ApplicationArea = Suite;
                     Caption = 'Bill To Name';
-                    ToolTip = 'Specifies the name at the address that the invoice will be sent to.';
                 }
                 field(BillTo_ContactName; Rec.BillTo_ContactName)
                 {
                     ApplicationArea = Suite;
                     Caption = 'Bill To Contact Name';
                     Importance = Additional;
-                    ToolTip = 'Specifies the contact person at the address that the invoice will be sent to.';
                 }
                 field(BillTo_Line1; Rec.BillTo_Line1)
                 {
                     ApplicationArea = Suite;
                     Caption = 'Bill To Street 1';
                     Importance = Additional;
-                    ToolTip = 'Specifies the street of the address that the invoice will be sent to.';
                 }
                 field(BillTo_Line2; Rec.BillTo_Line2)
                 {
                     ApplicationArea = Suite;
                     Caption = 'Bill To Street 2';
                     Importance = Additional;
-                    ToolTip = 'Specifies the additional street information of the address that the invoice will be sent to.';
                 }
                 field(BillTo_Line3; Rec.BillTo_Line3)
                 {
                     ApplicationArea = Suite;
                     Caption = 'Bill To Street 3';
                     Importance = Additional;
-                    ToolTip = 'Specifies the additional street information of the address that the invoice will be sent to.';
                 }
                 field(BillTo_City; Rec.BillTo_City)
                 {
                     ApplicationArea = Suite;
                     Caption = 'Bill To City';
                     Importance = Additional;
-                    ToolTip = 'Specifies the city of the address that the invoice will be sent to.';
                 }
                 field(BillTo_StateOrProvince; Rec.BillTo_StateOrProvince)
                 {
                     ApplicationArea = Suite;
                     Caption = 'Bill To State/Province';
                     Importance = Additional;
-                    ToolTip = 'Specifies the state/province of the address that the invoice will be sent to.';
                 }
                 field(BillTo_Country; Rec.BillTo_Country)
                 {
                     ApplicationArea = Suite;
                     Caption = 'Bill To Country/Region';
                     Importance = Additional;
-                    ToolTip = 'Specifies the country/region of the address that the invoice will be sent to.';
                 }
                 field(BillTo_PostalCode; Rec.BillTo_PostalCode)
                 {
                     ApplicationArea = Suite;
                     Caption = 'Bill To ZIP/Postal Code';
                     Importance = Additional;
-                    ToolTip = 'Specifies the ZIP/postal code of the address that the invoice will be sent to.';
                 }
                 field(BillTo_Telephone; Rec.BillTo_Telephone)
                 {
                     ApplicationArea = Suite;
                     Caption = 'Bill To Phone';
-                    ToolTip = 'Specifies the phone number at the address that the invoice will be sent to.';
                 }
                 field(BillTo_Fax; Rec.BillTo_Fax)
                 {
                     ApplicationArea = Suite;
                     Caption = 'Bill To Fax';
                     Importance = Additional;
-                    ToolTip = 'Specifies the fax number at the address that the invoice will be sent to.';
                 }
             }
             group(Shipping)
@@ -298,7 +278,6 @@ page 5380 "CRM Sales Order"
                 {
                     ApplicationArea = Suite;
                     Caption = 'Freight Terms';
-                    ToolTip = 'Specifies the shipment method.';
                 }
                 field(ShipTo_Name; Rec.ShipTo_Name)
                 {
@@ -318,63 +297,54 @@ page 5380 "CRM Sales Order"
                     ApplicationArea = Suite;
                     Caption = 'Ship To Street 2';
                     Importance = Additional;
-                    ToolTip = 'Specifies information related to the Dynamics 365 Sales connection.';
                 }
                 field(ShipTo_Line3; Rec.ShipTo_Line3)
                 {
                     ApplicationArea = Suite;
                     Caption = 'Ship To Street 3';
                     Importance = Additional;
-                    ToolTip = 'Specifies information related to the Dynamics 365 Sales connection.';
                 }
                 field(ShipTo_City; Rec.ShipTo_City)
                 {
                     ApplicationArea = Suite;
                     Caption = 'Ship To City';
                     Importance = Additional;
-                    ToolTip = 'Specifies information related to the Dynamics 365 Sales connection.';
                 }
                 field(ShipTo_StateOrProvince; Rec.ShipTo_StateOrProvince)
                 {
                     ApplicationArea = Suite;
                     Caption = 'Ship To State/Province';
                     Importance = Additional;
-                    ToolTip = 'Specifies information related to the Dynamics 365 Sales connection.';
                 }
                 field(ShipTo_Country; Rec.ShipTo_Country)
                 {
                     ApplicationArea = Suite;
                     Caption = 'Ship To Country/Region';
                     Importance = Additional;
-                    ToolTip = 'Specifies the country/region of the address.';
                 }
                 field(ShipTo_PostalCode; Rec.ShipTo_PostalCode)
                 {
                     ApplicationArea = Suite;
                     Caption = 'Ship To ZIP/Postal Code';
                     Importance = Additional;
-                    ToolTip = 'Specifies information related to the Dynamics 365 Sales connection.';
                 }
                 field(ShipTo_Telephone; Rec.ShipTo_Telephone)
                 {
                     ApplicationArea = Suite;
                     Caption = 'Ship To Phone';
                     Importance = Additional;
-                    ToolTip = 'Specifies information related to the Dynamics 365 Sales connection.';
                 }
                 field(ShipTo_Fax; Rec.ShipTo_Fax)
                 {
                     ApplicationArea = Suite;
                     Caption = 'Ship to Fax';
                     Importance = Additional;
-                    ToolTip = 'Specifies information related to the Dynamics 365 Sales connection.';
                 }
                 field(ShipTo_FreightTermsCode; Rec.ShipTo_FreightTermsCode)
                 {
                     ApplicationArea = Suite;
                     Caption = 'Ship To Freight Terms';
                     Importance = Additional;
-                    ToolTip = 'Specifies information related to the Dynamics 365 Sales connection.';
                 }
             }
         }

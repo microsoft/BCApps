@@ -9,9 +9,9 @@ page 20436 "Qlty. Lookup Field Choose"
     Caption = 'Lookup Field Choose';
     Editable = false;
     PageType = List;
-    SourceTable = "Qlty. Lookup Code";
+    SourceTable = "Qlty. Test Lookup Value";
     SourceTableTemporary = true;
-    SourceTableView = sorting(Code);
+    SourceTableView = sorting("Value");
     UsageCategory = None;
     ApplicationArea = QualityManagement;
 
@@ -23,7 +23,7 @@ page 20436 "Qlty. Lookup Field Choose"
             {
                 ShowCaption = false;
 
-                field(Code; Rec.Code)
+                field(Code; Rec."Value")
                 {
                     ToolTip = 'Specifies the initial code to lookup.';
                 }

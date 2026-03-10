@@ -18,10 +18,11 @@ report 113 "Customer/Item Sales"
 {
     ApplicationArea = Basic, Suite;
     Caption = 'Customer/Item Sales';
+    DataAccessIntent = ReadOnly;
     DefaultRenderingLayout = Word;
+    ExcelLayoutMultipleDataSheets = true;
     PreviewMode = PrintLayout;
     UsageCategory = ReportsAndAnalysis;
-    DataAccessIntent = ReadOnly;
 
     dataset
     {
@@ -324,7 +325,7 @@ report 113 "Customer/Item Sales"
 
                 trigger OnPreDataItem()
                 begin
-                    if TempValueEntryBuffer.IsEmpty() then
+                    if TempValueEntryBuffer.IsEmpty() or (CurrReport.TargetFormat() = ReportFormat::Excel) then
                         CurrReport.Break();
                 end;
             }
@@ -365,7 +366,7 @@ report 113 "Customer/Item Sales"
 
             trigger OnPreDataItem()
             begin
-                if not ReportHasData then
+                if (not ReportHasData) or (CurrReport.TargetFormat() = ReportFormat::Excel) then
                     CurrReport.Break();
             end;
         }
@@ -445,7 +446,7 @@ report 113 "Customer/Item Sales"
 #if not CLEAN27
         layout(RDLC)
         {
-            Caption = 'Customer/Item Sales RDLC';
+            Caption = 'Customer Item Sales RDLC (Obsolete)';
             Type = RDLC;
             LayoutFile = './Sales/Reports/CustomerItemSales.rdlc';
             ObsoleteState = Pending;

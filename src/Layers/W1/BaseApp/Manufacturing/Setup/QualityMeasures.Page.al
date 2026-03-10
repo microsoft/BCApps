@@ -20,12 +20,10 @@ page 99000806 "Quality Measures"
                 field("Code"; Rec.Code)
                 {
                     ApplicationArea = RelationshipMgmt;
-                    ToolTip = 'Specifies the quality measure code.';
                 }
                 field(Description; Rec.Description)
                 {
                     ApplicationArea = RelationshipMgmt;
-                    ToolTip = 'Specifies a description for the quality measure.';
                 }
             }
         }

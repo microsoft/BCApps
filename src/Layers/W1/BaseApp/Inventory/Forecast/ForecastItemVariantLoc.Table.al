@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -21,12 +21,14 @@ table 2900 "Forecast Item Variant Loc"
         field(2; "No."; Code[20])
         {
             Caption = 'No.';
+            ToolTip = 'Specifies the number of the involved entry or record, according to the specified number series.';
             TableRelation = Item."No.";
             DataClassification = CustomerContent;
         }
         field(3; Description; Text[100])
         {
             Caption = 'Description';
+            ToolTip = 'Specifies a description of the item.';
             DataClassification = CustomerContent;
         }
         field(4; "Date Filter"; Date)
@@ -73,11 +75,13 @@ table 2900 "Forecast Item Variant Loc"
         field(10; "Variant Code"; Code[20])
         {
             Caption = 'Variant Code';
+            ToolTip = 'Specifies a variant code of the item.';
             DataClassification = CustomerContent;
         }
         field(11; "Location Code"; Code[10])
         {
             Caption = 'Location Code';
+            ToolTip = 'Specifies a location code of the item.';
             DataClassification = CustomerContent;
         }
     }

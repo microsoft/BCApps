@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -25,12 +25,10 @@ page 5649 "Total Value Insured"
                 field("No."; Rec."No.")
                 {
                     ApplicationArea = FixedAssets;
-                    ToolTip = 'Specifies the number of the involved entry or record, according to the specified number series.';
                 }
                 field(Description; Rec.Description)
                 {
                     ApplicationArea = FixedAssets;
-                    ToolTip = 'Specifies a description of the fixed asset.';
                 }
 #pragma warning disable AA0100
                 field("FASetup.""Insurance Depr. Book"""; FASetup."Insurance Depr. Book")

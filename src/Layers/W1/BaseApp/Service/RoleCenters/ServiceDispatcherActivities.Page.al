@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -27,25 +27,21 @@ page 9057 "Service Dispatcher Activities"
                 {
                     ApplicationArea = Service;
                     DrillDownPageID = "Service Orders";
-                    ToolTip = 'Specifies the number of in-service orders that are displayed in the Service Cue on the Role Center. The documents are filtered by today''s date.';
                 }
                 field("Service Orders - in Process"; Rec."Service Orders - in Process")
                 {
                     ApplicationArea = Service;
                     DrillDownPageID = "Service Orders";
-                    ToolTip = 'Specifies the number of in process service orders that are displayed in the Service Cue on the Role Center. The documents are filtered by today''s date.';
                 }
                 field("Service Orders - Finished"; Rec."Service Orders - Finished")
                 {
                     ApplicationArea = Service;
                     DrillDownPageID = "Service Orders";
-                    ToolTip = 'Specifies the finished service orders that are displayed in the Service Cue on the Role Center. The documents are filtered by today''s date.';
                 }
                 field("Service Orders - Inactive"; Rec."Service Orders - Inactive")
                 {
                     ApplicationArea = Service;
                     DrillDownPageID = "Service Orders";
-                    ToolTip = 'Specifies the number of inactive service orders that are displayed in the Service Cue on the Role Center. The documents are filtered by today''s date.';
                 }
 
                 actions
@@ -89,7 +85,6 @@ page 9057 "Service Dispatcher Activities"
                 {
                     ApplicationArea = Service;
                     DrillDownPageID = "Service Quotes";
-                    ToolTip = 'Specifies the number of open service quotes that are displayed in the Service Cue on the Role Center. The documents are filtered by today''s date.';
                 }
 
                 actions
@@ -119,13 +114,11 @@ page 9057 "Service Dispatcher Activities"
                 {
                     ApplicationArea = Service;
                     DrillDownPageID = "Service Contract Quotes";
-                    ToolTip = 'Specifies the number of open service contract quotes that are displayed in the Service Cue on the Role Center. The documents are filtered by today''s date.';
                 }
                 field("Service Contracts to Expire"; Rec."Service Contracts to Expire")
                 {
                     ApplicationArea = Service;
                     DrillDownPageID = "Service Contracts";
-                    ToolTip = 'Specifies the number of service contracts set to expire that are displayed in the Service Cue on the Role Center. The documents are filtered by today''s date.';
                 }
 
                 actions

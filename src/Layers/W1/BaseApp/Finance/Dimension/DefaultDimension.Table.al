@@ -982,6 +982,8 @@ table 352 "Default Dimension"
         AllowedValues: Text[250];
     begin
         AllowedValues := GetAllowedValuesFilter();
+        OnUpdateDefaultDimensionAllowedValuesFilterOnAfterGetAllowedValuesFilter(AllowedValues);
+
         if AllowedValues <> "Allowed Values Filter" then begin
             "Allowed Values Filter" := AllowedValues;
             if "Allowed Values Filter" = '' then begin
@@ -1919,6 +1921,16 @@ table 352 "Default Dimension"
     /// <param name="IsHandled">Set to true to skip standard allowed values filter validation</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeValidateAllowedValuesFilter(var RecDefaultDimension: Record "Default Dimension"; xRecDefaultDimension: Record "Default Dimension"; var IsHandled: Boolean)
+    begin
+    end;
+
+    /// <summary>
+    /// Integration event raised after retrieving allowed values filter for default dimension validation.
+    /// Enables custom logic to modify or replace the allowed values filter used during validation.
+    /// </summary>
+    /// <param name="AllowedValues">The allowed values filter string that can be modified by event subscribers.</param>
+    [IntegrationEvent(false, false)]
+    local procedure OnUpdateDefaultDimensionAllowedValuesFilterOnAfterGetAllowedValuesFilter(var AllowedValues: Text[250])
     begin
     end;
 }

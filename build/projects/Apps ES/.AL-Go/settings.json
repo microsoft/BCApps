@@ -33,6 +33,19 @@
           "Strict"
         ]
       }
+    },
+    {
+      "branches": [
+        "main"
+      ],
+      "settings": {
+        "overwriteSettings": [
+          "buildModes"
+        ],
+        "buildModes": [
+          "Default"
+        ]
+      }
     }
   ]
 }

@@ -4,7 +4,6 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Inventory.Reports;
 
-using Microsoft.Inventory.Costing;
 using Microsoft.Inventory.Ledger;
 using Microsoft.Manufacturing.Document;
 using System.Utilities;
@@ -14,21 +13,17 @@ report 5802 "Inventory Valuation - WIP"
     ApplicationArea = Manufacturing;
     Caption = 'Production Order - WIP';
     UsageCategory = ReportsAndAnalysis;
-    DefaultRenderingLayout = WordLayout;
+    DefaultRenderingLayout = Word;
 
     dataset
     {
         dataitem("Production Order"; "Production Order")
         {
+            CalcFields = "Inventory Adjmt. Entry Exists";
             DataItemTableView = where(Status = filter(Released ..));
             PrintOnlyIfDetail = true;
             RequestFilterFields = Status, "No.";
-            column(CompanyName; COMPANYPROPERTY.DisplayName())
-            {
-            }
-            column(TodayFormatted; Format(Today, 0, 4))
-            {
-            }
+
             column(ProdOrderFilter; ProdOrderFilter)
             {
             }
@@ -64,42 +59,92 @@ report 5802 "Inventory Valuation - WIP"
             {
                 IncludeCaption = true;
             }
+#if not CLEAN28
+            column(CompanyName; COMPANYPROPERTY.DisplayName())
+            {
+                ObsoleteState = Pending;
+                ObsoleteReason = 'RDLC Only layout column. To be removed along with the RDLC layout.';
+                ObsoleteTag = '28.0';
+            }
+            column(TodayFormatted; Format(Today, 0, 4))
+            {
+                ObsoleteState = Pending;
+                ObsoleteReason = 'RDLC Only layout column. To be removed along with the RDLC layout.';
+                ObsoleteTag = '28.0';
+            }
             column(InventoryValuationWIPCptn; InventoryValuationWIPCptnLbl)
             {
+                ObsoleteState = Pending;
+                ObsoleteReason = 'RDLC Only layout column. To be removed along with the RDLC layout.';
+                ObsoleteTag = '28.0';
             }
             column(CurrReportPageNoCaption; CurrReportPageNoCaptionLbl)
             {
+                ObsoleteState = Pending;
+                ObsoleteReason = 'RDLC Only layout column. To be removed along with the RDLC layout.';
+                ObsoleteTag = '28.0';
             }
             column(ValueOfCapCaption; ValueOfCapCaptionLbl)
             {
+                ObsoleteState = Pending;
+                ObsoleteReason = 'RDLC Only layout column. To be removed along with the RDLC layout.';
+                ObsoleteTag = '28.0';
             }
             column(ValueOfOutputCaption; ValueOfOutputCaptionLbl)
             {
+                ObsoleteState = Pending;
+                ObsoleteReason = 'RDLC Only layout column. To be removed along with the RDLC layout.';
+                ObsoleteTag = '28.0';
             }
             column(ValueEntryCostPostedtoGLCaption; ValueEntryCostPostedtoGLCaptionLbl)
             {
+                ObsoleteState = Pending;
+                ObsoleteReason = 'RDLC Only layout column. To be removed along with the RDLC layout.';
+                ObsoleteTag = '28.0';
             }
             column(ValueOfMatConsumpCaption; ValueOfMatConsumpCaptionLbl)
             {
+                ObsoleteState = Pending;
+                ObsoleteReason = 'RDLC Only layout column. To be removed along with the RDLC layout.';
+                ObsoleteTag = '28.0';
             }
             column(ProductionOrderNoCaption; ProductionOrderNoCaptionLbl)
             {
+                ObsoleteState = Pending;
+                ObsoleteReason = 'RDLC Only layout column. To be removed along with the RDLC layout.';
+                ObsoleteTag = '28.0';
             }
             column(ProdOrderStatusCaption; ProdOrderStatusCaptionLbl)
             {
+                ObsoleteState = Pending;
+                ObsoleteReason = 'RDLC Only layout column. To be removed along with the RDLC layout.';
+                ObsoleteTag = '28.0';
             }
             column(ProdOrderDescriptionCaption; ProdOrderDescriptionCaptionLbl)
             {
+                ObsoleteState = Pending;
+                ObsoleteReason = 'RDLC Only layout column. To be removed along with the RDLC layout.';
+                ObsoleteTag = '28.0';
             }
             column(ProdOrderSourceTypeCaptn; ProdOrderSourceTypeCaptnLbl)
             {
+                ObsoleteState = Pending;
+                ObsoleteReason = 'RDLC Only layout column. To be removed along with the RDLC layout.';
+                ObsoleteTag = '28.0';
             }
             column(ProdOrderSourceNoCaption; ProdOrderSourceNoCaptionLbl)
             {
+                ObsoleteState = Pending;
+                ObsoleteReason = 'RDLC Only layout column. To be removed along with the RDLC layout.';
+                ObsoleteTag = '28.0';
             }
             column(TotalCaption; TotalCaptionLbl)
             {
+                ObsoleteState = Pending;
+                ObsoleteReason = 'RDLC Only layout column. To be removed along with the RDLC layout.';
+                ObsoleteTag = '28.0';
             }
+#endif
             dataitem("Value Entry"; "Value Entry")
             {
                 DataItemTableView = sorting("Order Type", "Order No.");
@@ -243,6 +288,9 @@ report 5802 "Inventory Valuation - WIP"
                             NcValueOfRevalCostPstd := 0;
                             NcValueOfCostPstdToGL := 0;
                         end;
+
+                        if not ReportHasData then
+                            ReportHasData := true;
                     end;
 
                     IsHandled := false;
@@ -266,7 +314,7 @@ report 5802 "Inventory Valuation - WIP"
                     AtLastDateSum += AtLastDate;
                     ValueEntryCostPostedToGLSum += ValueOfCostPstdToGL;
 
-                    if CountRecord <> LengthRecord then
+                    if (CountRecord <> LengthRecord) or (SkipZeroLines and ((TotalAtLastDate = 0) and (TotalValueOfCostPstdToGL = 0))) then
                         CurrReport.Skip();
                 end;
 
@@ -312,6 +360,7 @@ report 5802 "Inventory Valuation - WIP"
         dataitem(Totals; "Integer")
         {
             DataItemTableView = sorting(Number) where(Number = const(1));
+
             column(LatWipSum; LastWipSum)
             {
             }
@@ -330,6 +379,12 @@ report 5802 "Inventory Valuation - WIP"
             column(ValueEntryCostPostedToGLSum; ValueEntryCostPostedToGLSum)
             {
             }
+
+            trigger OnPreDataItem()
+            begin
+                if not ReportHasData then
+                    CurrReport.Break();
+            end;
         }
     }
 
@@ -358,6 +413,34 @@ report 5802 "Inventory Valuation - WIP"
                         Caption = 'Ending Date';
                         ToolTip = 'Specifies the date to which the report or batch job processes information.';
                     }
+                    field(SkipZero; SkipZeroLines)
+                    {
+                        ApplicationArea = Basic, Suite;
+                        Caption = 'Skip Zero Lines';
+                        ToolTip = 'Specifies whether to skip zero lines.';
+                    }
+                    // Used to set a report header across multiple languages
+                    field(RequestProdOrderFilterHeading; ProdOrderFilterHeading)
+                    {
+                        ApplicationArea = All;
+                        Caption = 'Prod. Order Filter';
+                        ToolTip = 'Specifies the Prod. Order filters applied to this report.';
+                        Visible = false;
+                    }
+                    field(RequestStartDateHeading; StartDateHeading)
+                    {
+                        ApplicationArea = All;
+                        Caption = 'Start Date';
+                        ToolTip = 'Specifies the Start Date applied to this report as a text value for use in the Excel report header.';
+                        Visible = false;
+                    }
+                    field(RequestEndDateHeading; EndDateHeading)
+                    {
+                        ApplicationArea = All;
+                        Caption = 'End Date';
+                        ToolTip = 'Specifies the End Date applied to this report as a text value for use in the Excel report header.';
+                        Visible = false;
+                    }
                 }
             }
         }
@@ -371,66 +454,71 @@ report 5802 "Inventory Valuation - WIP"
             if (StartDate = 0D) and (EndDate = 0D) then
                 EndDate := WorkDate();
         end;
+
+        trigger OnClosePage()
+        begin
+            UpdateRequestPageFilterValues();
+        end;
     }
 
     rendering
     {
-        layout(ExcelLayout)
+        layout(Excel)
         {
             Caption = 'Production Order - WIP Excel';
             Type = Excel;
             LayoutFile = '.\Manufacturing\Reports\InventoryValuationWIP.xlsx';
+            Summary = 'Built in layout for the Production Order - WIP Excel report.';
         }
-        layout(WordLayout)
+        layout(Word)
         {
             Caption = 'Production Order - WIP Word';
             Type = Word;
             LayoutFile = '.\Manufacturing\Reports\InventoryValuationWIP.docx';
+            Summary = 'Built in layout for the Production Order - WIP Word report.';
         }
-        layout(RDLCLayout)
+#if not CLEAN28
+        layout(RDLC)
         {
-            Caption = 'Production Order - WIP RDLC';
+            Caption = 'Production Order - WIP RDLC (Obsolete)';
             Type = RDLC;
             LayoutFile = '.\Manufacturing\Reports\InventoryValuationWIP.rdlc';
+ObsoleteState = Pending;
+            ObsoleteReason = 'The RDLC layout has been replaced by the Excel and Word layouts and will be removed in a future release.';
+            ObsoleteTag = '28.0';
+            Summary = 'Built in layout for the Production Order - WIP RDLC (Obsolete) report.';
         }
+#endif
     }
 
     labels
     {
-        ProdOrderWIP = 'Prod. Order - WIP';
-        CurrReportPageNo = 'Page';
-        Capacity = 'Capacity ';
-        Output = 'Output ';
-        CostPostedToGL = 'Cost Posted to G/L';
-        Consumption = 'Consumption ';
-        Total = 'Total';
-        PeriodCaption = 'Period:';
-        UntilCaption = 'Until:';
-        StartDateHeader = 'As of Start Date';
-        EndDateHeader = 'As of End Date';
-        ProdOrderWipPrintLabel = 'Prod. Order - WIP (Print)', MaxLength = 31, Comment = 'Excel worksheet name.';
-        ProdOrderWipAnalysisLabel = 'Prod. Order - WIP (Analysis)', MaxLength = 31, Comment = 'Excel worksheet name.';
-        DataRetrieved = 'Data retrieved:';
+        ProdOrderWIPLbl = 'Production Order - WIP';
+        ProdOrderWipPrintLbl = 'Prod. Order - WIP (Print)', MaxLength = 31, Comment = 'Excel worksheet name.';
+        ProdOrderWipAnalysisLbl = 'Prod. Order - WIP (Analysis)', MaxLength = 31, Comment = 'Excel worksheet name.';
+        DataRetrievedLbl = 'Data retrieved:';
+        TotalLbl = 'Total';
+        PeriodLbl = 'Period:';
+        UntilLbl = 'Until:';
+        AsOfStartDateLbl = 'As of Start Date';
+        ConsumptionLbl = 'Consumption';
+        CapacityLbl = 'Capacity';
+        OutputLbl = 'Output';
+        AsOfEndDateLbl = 'As of End Date';
+        CostPostedToGLLbl = 'Cost Posted to G/L';
         // About the report labels
-        AboutTheReportLabel = 'About the report', MaxLength = 31, Comment = 'Excel worksheet name.';
-        EnvironmentLabel = 'Environment';
-        CompanyLabel = 'Company';
-        UserLabel = 'User';
-        RunOnLabel = 'Run on';
-        ReportNameLabel = 'Report name';
-        DocumentationLabel = 'Documentation';
+        AboutTheReportLbl = 'About the report', MaxLength = 31, Comment = 'Excel worksheet name.';
+        EnvironmentLbl = 'Environment';
+        CompanyLbl = 'Company';
+        UserLbl = 'User';
+        RunOnLbl = 'Run on';
+        ReportNameLbl = 'Report name';
+        DocumentationLbl = 'Documentation';
     }
 
     trigger OnPreReport()
     begin
-        ProdOrderFilter := "Production Order".GetFilters();
-        if (StartDate = 0D) and (EndDate = 0D) then
-            EndDate := WorkDate();
-
-        if StartDate in [0D, 00000101D] then
-            StartDateText := ''
-        else
-            StartDateText := Format(StartDate - 1);
+        UpdateRequestPageFilterValues();
     end;
 
     var
@@ -442,6 +530,7 @@ report 5802 "Inventory Valuation - WIP"
         StartDate: Date;
         EndDate: Date;
         ProdOrderFilter: Text;
+        ProdOrderFilterHeading: Text;
         StartDateText: Text[10];
         ValueOfWIP: Decimal;
         ValueOfMatConsump: Decimal;
@@ -476,6 +565,11 @@ report 5802 "Inventory Valuation - WIP"
         TotalLastOutput: Decimal;
         TotalAtLastDate: Decimal;
         TotalLastWIP: Decimal;
+        SkipZeroLines: Boolean;
+        ReportHasData: Boolean;
+        StartDateHeading: Text;
+        EndDateHeading: Text;
+#if not CLEAN28
         InventoryValuationWIPCptnLbl: Label 'Inventory Valuation - WIP';
         CurrReportPageNoCaptionLbl: Label 'Page';
         ValueOfCapCaptionLbl: Label 'Capacity ';
@@ -488,6 +582,7 @@ report 5802 "Inventory Valuation - WIP"
         ProdOrderSourceTypeCaptnLbl: Label 'Source Type';
         ProdOrderSourceNoCaptionLbl: Label 'Source No.';
         TotalCaptionLbl: Label 'Total';
+#endif
         EntryFound: Boolean;
         LastWipSum: Decimal;
         ValueOfMatConsumptionSum: Decimal;
@@ -517,29 +612,20 @@ report 5802 "Inventory Valuation - WIP"
     end;
 
     local procedure IsProductionCost(ValueEntry: Record "Value Entry"): Boolean
-    var
-        ILE: Record "Item Ledger Entry";
     begin
-        if (ValueEntry."Entry Type" = ValueEntry."Entry Type"::Revaluation) and (ValueEntry."Item Ledger Entry Type" = ValueEntry."Item Ledger Entry Type"::Consumption) then begin
-            ILE.Get(ValueEntry."Item Ledger Entry No.");
-            if ILE.Positive then
-                exit(false)
-        end;
+        if (ValueEntry."Entry Type" = ValueEntry."Entry Type"::Revaluation) and (ValueEntry."Item Ledger Entry Type" = ValueEntry."Item Ledger Entry Type"::Consumption)
+            and ("Value Entry"."Item Ledger Entry Quantity" > 0) then
+            exit(false);
 
         exit(true);
     end;
 
     local procedure FinishedProdOrderIsCompletelyInvoiced(): Boolean
-    var
-        InvtAdjmtEntryOrder: Record "Inventory Adjmt. Entry (Order)";
     begin
         if "Production Order".Status <> "Production Order".Status::Finished then
             exit(false);
 
-        InvtAdjmtEntryOrder.SetRange("Order Type", InvtAdjmtEntryOrder."Order Type"::Production);
-        InvtAdjmtEntryOrder.SetRange("Order No.", "Production Order"."No.");
-        InvtAdjmtEntryOrder.SetRange("Completely Invoiced", false);
-        if not InvtAdjmtEntryOrder.IsEmpty() then
+        if "Production Order"."Inventory Adjmt. Entry Exists" then
             exit(false);
 
         exit(not ValueEntryExist("Production Order", StartDate, 99991231D));
@@ -559,6 +645,25 @@ report 5802 "Inventory Valuation - WIP"
         ValueEntry.SetRange("Order No.", ProductionOrder."No.");
         ValueEntry.SetRange("Posting Date", StartDate, EndDate);
         exit(not ValueEntry.IsEmpty);
+    end;
+
+    // Ensures Layout Filter Headings are up to date
+    local procedure UpdateRequestPageFilterValues()
+    begin
+        ProdOrderFilter := "Production Order".GetFilters();
+        if ProdOrderFilter <> '' then
+            ProdOrderFilterHeading := "Production Order".TableCaption + ': ' + ProdOrderFilter;
+
+        if (StartDate = 0D) and (EndDate = 0D) then
+            EndDate := WorkDate();
+
+        if StartDate in [0D, 00000101D] then
+            StartDateText := ''
+        else
+            StartDateText := Format(StartDate - 1);
+
+        StartDateHeading := Format(StartDate);
+        EndDateHeading := Format(EndDate);
     end;
 
     [IntegrationEvent(false, false)]

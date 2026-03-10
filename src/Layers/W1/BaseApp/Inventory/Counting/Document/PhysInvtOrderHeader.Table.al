@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -30,6 +30,7 @@ table 5875 "Phys. Invt. Order Header"
         field(1; "No."; Code[20])
         {
             Caption = 'No.';
+            ToolTip = 'Specifies a number for the physical inventory order.';
 
             trigger OnValidate()
             begin
@@ -43,19 +44,23 @@ table 5875 "Phys. Invt. Order Header"
         field(10; Description; Text[100])
         {
             Caption = 'Description';
+            ToolTip = 'Specifies a short description of the physical inventory order.';
         }
         field(11; Status; Enum "Phys. Invt. Order Status")
         {
             Caption = 'Status';
+            ToolTip = 'Specifies if the physical inventory order is open or finished.';
             Editable = false;
         }
         field(20; "Order Date"; Date)
         {
             Caption = 'Order Date';
+            ToolTip = 'Specifies the order date for the physical inventory order.';
         }
         field(21; "Posting Date"; Date)
         {
             Caption = 'Posting Date';
+            ToolTip = 'Specifies the posting date of the physical inventory order.';
 
             trigger OnValidate()
             begin
@@ -102,6 +107,7 @@ table 5875 "Phys. Invt. Order Header"
         field(31; "Person Responsible"; Code[20])
         {
             Caption = 'Person Responsible';
+            ToolTip = 'Specifies the code of the person who is responsible for performing this physical inventory order.';
             TableRelation = Employee;
             ValidateTableRelation = false;
         }
@@ -119,6 +125,7 @@ table 5875 "Phys. Invt. Order Header"
         {
             CaptionClass = '1,2,1';
             Caption = 'Shortcut Dimension 1 Code';
+            ToolTip = 'Specifies the code for Shortcut Dimension 1, whose dimension values you can then enter directly on journals and sales or purchase lines.';
             TableRelation = "Dimension Value".Code where("Global Dimension No." = const(1),
                                                           Blocked = const(false));
 
@@ -131,6 +138,7 @@ table 5875 "Phys. Invt. Order Header"
         {
             CaptionClass = '1,2,2';
             Caption = 'Shortcut Dimension 2 Code';
+            ToolTip = 'Specifies the code for Shortcut Dimension 2, which is one of two global dimension codes that you set up in the General Ledger Setup window.';
             TableRelation = "Dimension Value".Code where("Global Dimension No." = const(2),
                                                           Blocked = const(false));
 
@@ -185,12 +193,14 @@ table 5875 "Phys. Invt. Order Header"
             CalcFormula = count("Phys. Invt. Record Header" where("Order No." = field("No."),
                                                                    Status = const(Finished)));
             Caption = 'No. Finished Recordings';
+            ToolTip = 'Specifies the number of entered physical inventory recording documents that have the status set to Finished.';
             Editable = false;
             FieldClass = FlowField;
         }
         field(110; "Location Code"; Code[10])
         {
             Caption = 'Location Code';
+            ToolTip = 'Specifies the code of the location where items on this line should be counted.';
             TableRelation = Location;
 
             trigger OnValidate()

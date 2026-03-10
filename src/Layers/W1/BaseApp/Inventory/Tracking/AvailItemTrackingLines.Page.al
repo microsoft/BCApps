@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -31,7 +31,6 @@ page 6503 "Avail. - Item Tracking Lines"
                 field("Reservation Status"; Rec."Reservation Status")
                 {
                     ApplicationArea = Reservation;
-                    ToolTip = 'Specifies the status of the reservation.';
                     Visible = false;
                 }
                 field(TextCaption; Rec.TextCaption())
@@ -43,38 +42,31 @@ page 6503 "Avail. - Item Tracking Lines"
                 field("Source Type"; Rec."Source Type")
                 {
                     ApplicationArea = Reservation;
-                    ToolTip = 'Specifies for which source type the reservation entry is related to.';
                     Visible = false;
                 }
                 field("Source ID"; Rec."Source ID")
                 {
                     ApplicationArea = Reservation;
-                    ToolTip = 'Specifies which source ID the reservation entry is related to.';
                 }
                 field("Location Code"; Rec."Location Code")
                 {
                     ApplicationArea = Location;
-                    ToolTip = 'Specifies the Location of the items that have been reserved in the entry.';
                 }
                 field("Serial No."; Rec."Serial No.")
                 {
                     ApplicationArea = ItemTracking;
-                    ToolTip = 'Specifies the serial number of the item that is being handled on the document line.';
                 }
                 field("Lot No."; Rec."Lot No.")
                 {
                     ApplicationArea = ItemTracking;
-                    ToolTip = 'Specifies the lot number of the item that is being handled with the associated document line.';
                 }
                 field("Package No."; Rec."Package No.")
                 {
                     ApplicationArea = ItemTracking;
-                    ToolTip = 'Specifies the package number of the item that is being handled with the associated document line.';
                 }
                 field("Expected Receipt Date"; Rec."Expected Receipt Date")
                 {
                     ApplicationArea = Reservation;
-                    ToolTip = 'Specifies the date on which the reserved items are expected to enter inventory.';
                 }
                 field("Quantity (Base)"; Rec."Quantity (Base)")
                 {

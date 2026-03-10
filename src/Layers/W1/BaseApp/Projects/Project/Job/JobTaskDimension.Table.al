@@ -30,6 +30,7 @@ table 1002 "Job Task Dimension"
         field(3; "Dimension Code"; Code[20])
         {
             Caption = 'Dimension Code';
+            ToolTip = 'Specifies the code for the dimension that the dimension value filter will be linked to. To select a dimension codes, which are set up in the Dimensions window, click the drop-down arrow in the field.';
             TableRelation = Dimension.Code;
 
             trigger OnValidate()
@@ -42,6 +43,7 @@ table 1002 "Job Task Dimension"
         field(4; "Dimension Value Code"; Code[20])
         {
             Caption = 'Dimension Value Code';
+            ToolTip = 'Specifies the code for the dimension value that the dimension value filter will be linked to. To select a value code, which are set up in the Dimensions window, choose the drop-down arrow in the field.';
             TableRelation = "Dimension Value".Code where("Dimension Code" = field("Dimension Code"), Blocked = const(false));
 
             trigger OnValidate()

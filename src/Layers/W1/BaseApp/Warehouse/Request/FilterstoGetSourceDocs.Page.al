@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -29,7 +29,6 @@ page 5784 "Filters to Get Source Docs."
                 field("Do Not Fill Qty. to Handle"; Rec."Do Not Fill Qty. to Handle")
                 {
                     ApplicationArea = Warehouse;
-                    ToolTip = 'Specifies that inventory quantities are assigned when you get outbound source document lines for shipment.';
                 }
             }
             repeater(Control1)
@@ -39,12 +38,10 @@ page 5784 "Filters to Get Source Docs."
                 field("Code"; Rec.Code)
                 {
                     ApplicationArea = Warehouse;
-                    ToolTip = 'Specifies the code that identifies the filter record.';
                 }
                 field(Description; Rec.Description)
                 {
                     ApplicationArea = Warehouse;
-                    ToolTip = 'Specifies the description of filter combinations in the Source Document Filter Card window to retrieve lines from source documents.';
                 }
             }
         }

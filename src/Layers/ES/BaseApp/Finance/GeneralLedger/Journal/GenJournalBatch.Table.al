@@ -254,6 +254,15 @@ table 232 "Gen. Journal Batch"
                 end;
             end;
         }
+        field(40; "No. of Lines"; Integer)
+        {
+            CalcFormula = count("Gen. Journal Line" where("Journal Template Name" = field("Journal Template Name"), "Journal Batch Name" = field(Name)));
+            Caption = 'No. of Lines';
+            Editable = false;
+            FieldClass = FlowField;
+            ToolTip = 'Specifies the number of lines in this journal batch.';
+        }
+
         /// <summary>
         /// System-maintained timestamp indicating when this journal batch was last modified for change tracking.
         /// </summary>

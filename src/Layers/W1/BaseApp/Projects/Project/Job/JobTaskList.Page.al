@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -29,39 +29,32 @@ page 1004 "Job Task List"
                     ApplicationArea = Jobs;
                     Style = Strong;
                     StyleExpr = StyleIsStrong;
-                    ToolTip = 'Specifies the number of the related project.';
                 }
                 field("Job Task No."; Rec."Job Task No.")
                 {
                     ApplicationArea = Jobs;
                     Style = Strong;
                     StyleExpr = StyleIsStrong;
-                    ToolTip = 'Specifies the number of the related project task.';
                 }
                 field(Description; Rec.Description)
                 {
                     ApplicationArea = Jobs;
-                    ToolTip = 'Specifies a description of the project task. You can enter anything that is meaningful in describing the task. The description is copied and used in descriptions on the project planning line.';
                 }
                 field("Job Task Type"; Rec."Job Task Type")
                 {
                     ApplicationArea = Jobs;
-                    ToolTip = 'Specifies the purpose of the account. Newly created accounts are automatically assigned the Posting account type, but you can change this. Choose the field to select one of the following five options:';
                 }
                 field("WIP-Total"; Rec."WIP-Total")
                 {
                     ApplicationArea = Jobs;
-                    ToolTip = 'Specifies the project tasks you want to group together when calculating Work In Process (WIP) and Recognition.';
                 }
                 field(Totaling; Rec.Totaling)
                 {
                     ApplicationArea = Jobs;
-                    ToolTip = 'Specifies an interval or a list of project task numbers.';
                 }
                 field("Job Posting Group"; Rec."Job Posting Group")
                 {
                     ApplicationArea = Jobs;
-                    ToolTip = 'Specifies the project posting group of the task.';
                 }
             }
         }

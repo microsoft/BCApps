@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -24,6 +24,7 @@ table 1052 "Reminder Terms Translation"
         field(1; "Reminder Terms Code"; Code[10])
         {
             Caption = 'Reminder Terms Code';
+            ToolTip = 'Specifies translation of reminder terms so that customers are reminded in their own language.';
             TableRelation = "Reminder Terms";
         }
         /// <summary>
@@ -32,6 +33,7 @@ table 1052 "Reminder Terms Translation"
         field(2; "Language Code"; Code[10])
         {
             Caption = 'Language Code';
+            ToolTip = 'Specifies the language that is used when translating specified text on documents to foreign business partner, such as an item description on an order confirmation.';
             NotBlank = true;
             TableRelation = Language;
         }
@@ -41,6 +43,7 @@ table 1052 "Reminder Terms Translation"
         field(3; "Note About Line Fee on Report"; Text[150])
         {
             Caption = 'Note About Line Fee on Report';
+            ToolTip = 'Specifies that any notes about line fees will be added to the reminder.';
         }
     }
 

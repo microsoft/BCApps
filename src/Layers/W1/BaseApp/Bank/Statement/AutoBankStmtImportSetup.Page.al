@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -29,7 +29,6 @@ page 1269 "Auto. Bank Stmt. Import Setup"
             {
                 ApplicationArea = Basic, Suite;
                 Caption = 'Number of Days Included';
-                ToolTip = 'Specifies how far back in time to get new bank transactions for.';
 
                 trigger OnValidate()
                 begin
@@ -43,7 +42,6 @@ page 1269 "Auto. Bank Stmt. Import Setup"
             {
                 ApplicationArea = Basic, Suite;
                 Caption = 'Enabled';
-                ToolTip = 'Specifies that the service is enabled.';
             }
         }
     }

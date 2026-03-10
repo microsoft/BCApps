@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -28,12 +28,14 @@ table 7153 "Item Analysis View Filter"
         field(3; "Dimension Code"; Code[20])
         {
             Caption = 'Dimension Code';
+            ToolTip = 'Specifies a dimension code that the dimension value filter will be linked to.';
             NotBlank = true;
             TableRelation = Dimension;
         }
         field(4; "Dimension Value Filter"; Code[250])
         {
             Caption = 'Dimension Value Filter';
+            ToolTip = 'Specifies the dimension value that the analysis view is based on.';
             TableRelation = "Dimension Value".Code where("Dimension Code" = field("Dimension Code"));
             ValidateTableRelation = false;
         }

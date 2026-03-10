@@ -551,10 +551,7 @@ table 11000000 "Proposal Line"
             trigger OnValidate()
             begin
                 if "Foreign Currency" <> xRec."Foreign Currency" then
-                    if "Foreign Currency" = "Currency Code" then
-                        "Foreign Amount" := Amount
-                    else
-                        "Foreign Amount" := GetAmountInDocumentCurrency(Rec);
+                    "Foreign Amount" := GetAmountInDocumentCurrency(Rec);
             end;
         }
         field(11401; "Foreign Amount"; Decimal)
@@ -849,6 +846,8 @@ table 11000000 "Proposal Line"
     var
         CurrencyExchangeRate: Record "Currency Exchange Rate";
     begin
+        if ("Foreign Currency" = '') and ("Currency Code" = '') then
+            exit(0);
         if ProposalLine."Foreign Currency" = ProposalLine."Currency Code" then
             exit(ProposalLine.Amount);
 

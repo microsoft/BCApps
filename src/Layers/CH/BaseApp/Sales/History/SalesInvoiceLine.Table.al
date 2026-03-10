@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -57,6 +57,7 @@ table 113 "Sales Invoice Line"
         field(2; "Sell-to Customer No."; Code[20])
         {
             Caption = 'Sell-to Customer No.';
+            ToolTip = 'Specifies the number of the customer.';
             Editable = false;
             TableRelation = Customer;
         }
@@ -66,6 +67,7 @@ table 113 "Sales Invoice Line"
         field(3; "Document No."; Code[20])
         {
             Caption = 'Document No.';
+            ToolTip = 'Specifies the document number.';
             TableRelation = "Sales Invoice Header";
         }
         /// <summary>
@@ -81,6 +83,7 @@ table 113 "Sales Invoice Line"
         field(5; Type; Enum "Sales Line Type")
         {
             Caption = 'Type';
+            ToolTip = 'Specifies the line type.';
         }
         /// <summary>
         /// Specifies the number of the item, G/L account, resource, or other entity on the line.
@@ -89,6 +92,7 @@ table 113 "Sales Invoice Line"
         {
             CaptionClass = GetCaptionClass(FieldNo("No."));
             Caption = 'No.';
+            ToolTip = 'Specifies the number of the involved entry or record, according to the specified number series.';
             TableRelation = if (Type = const("G/L Account")) "G/L Account"
             else
             if (Type = const(Item)) Item
@@ -105,6 +109,7 @@ table 113 "Sales Invoice Line"
         field(7; "Location Code"; Code[10])
         {
             Caption = 'Location Code';
+            ToolTip = 'Specifies the location in which the invoice line was registered.';
             TableRelation = Location where("Use As In-Transit" = const(false));
         }
         /// <summary>
@@ -124,6 +129,7 @@ table 113 "Sales Invoice Line"
         field(10; "Shipment Date"; Date)
         {
             Caption = 'Shipment Date';
+            ToolTip = 'Specifies when items on the document are shipped or were shipped. A shipment date is usually calculated from a requested delivery date plus lead time.';
         }
         /// <summary>
         /// Specifies a description of the item or service on the line.
@@ -131,6 +137,7 @@ table 113 "Sales Invoice Line"
         field(11; Description; Text[100])
         {
             Caption = 'Description';
+            ToolTip = 'Specifies the name of the item or general ledger account, or some descriptive text.';
         }
         /// <summary>
         /// Specifies additional description text for the line.
@@ -138,6 +145,7 @@ table 113 "Sales Invoice Line"
         field(12; "Description 2"; Text[50])
         {
             Caption = 'Description 2';
+            ToolTip = 'Specifies information in addition to the description.';
         }
         /// <summary>
         /// Specifies the name of the unit of measure for the line.
@@ -145,6 +153,7 @@ table 113 "Sales Invoice Line"
         field(13; "Unit of Measure"; Text[50])
         {
             Caption = 'Unit of Measure';
+            ToolTip = 'Specifies the name of the item or resource''s unit of measure, such as piece or hour.';
         }
         /// <summary>
         /// Specifies the quantity of items or resources invoiced on the line.
@@ -153,6 +162,7 @@ table 113 "Sales Invoice Line"
         {
             AutoFormatType = 0;
             Caption = 'Quantity';
+            ToolTip = 'Specifies the number of units of the item specified on the line.';
             DecimalPlaces = 0 : 5;
         }
         /// <summary>
@@ -164,6 +174,7 @@ table 113 "Sales Invoice Line"
             AutoFormatType = 2;
             CaptionClass = GetCaptionClass(FieldNo("Unit Price"));
             Caption = 'Unit Price';
+            ToolTip = 'Specifies the price of one unit of the item or resource. You can enter a price manually or have it entered according to the Price/Profit Calculation field on the related card.';
         }
         /// <summary>
         /// Specifies the unit cost in local currency.
@@ -181,6 +192,7 @@ table 113 "Sales Invoice Line"
         {
             AutoFormatType = 0;
             Caption = 'VAT %';
+            ToolTip = 'Specifies the VAT %.';
             DecimalPlaces = 0 : 5;
             Editable = false;
         }
@@ -191,6 +203,7 @@ table 113 "Sales Invoice Line"
         {
             AutoFormatType = 0;
             Caption = 'Line Discount %';
+            ToolTip = 'Specifies the discount percentage that is granted for the item on the line.';
             DecimalPlaces = 0 : 5;
             MaxValue = 100;
             MinValue = 0;
@@ -203,6 +216,7 @@ table 113 "Sales Invoice Line"
             AutoFormatExpression = GetCurrencyCode();
             AutoFormatType = 1;
             Caption = 'Line Discount Amount';
+            ToolTip = 'Specifies the discount amount that is granted for the item on the line.';
         }
         /// <summary>
         /// Specifies the line amount excluding VAT.
@@ -212,6 +226,7 @@ table 113 "Sales Invoice Line"
             AutoFormatExpression = GetCurrencyCode();
             AutoFormatType = 1;
             Caption = 'Amount';
+            ToolTip = 'Specifies the line''s net amount.';
         }
         /// <summary>
         /// Specifies the line amount including VAT.
@@ -221,6 +236,7 @@ table 113 "Sales Invoice Line"
             AutoFormatExpression = GetCurrencyCode();
             AutoFormatType = 1;
             Caption = 'Amount Including VAT';
+            ToolTip = 'Specifies the net amount, including VAT, for this line.';
         }
         /// <summary>
         /// Indicates whether the line can be included in invoice discount calculation.
@@ -228,6 +244,7 @@ table 113 "Sales Invoice Line"
         field(32; "Allow Invoice Disc."; Boolean)
         {
             Caption = 'Allow Invoice Disc.';
+            ToolTip = 'Specifies if the invoice line is included when the invoice discount is calculated.';
             InitValue = true;
         }
         /// <summary>
@@ -237,6 +254,7 @@ table 113 "Sales Invoice Line"
         {
             AutoFormatType = 0;
             Caption = 'Gross Weight';
+            ToolTip = 'Specifies the gross weight of one unit of the item. In the sales statistics window, the gross weight on the line is included in the total gross weight of all the lines for the particular sales document.';
             DecimalPlaces = 0 : 5;
         }
         /// <summary>
@@ -246,6 +264,7 @@ table 113 "Sales Invoice Line"
         {
             AutoFormatType = 0;
             Caption = 'Net Weight';
+            ToolTip = 'Specifies the net weight of one unit of the item. In the sales statistics window, the net weight on the line is included in the total net weight of all the lines for the particular sales document.';
             DecimalPlaces = 0 : 5;
         }
         /// <summary>
@@ -255,6 +274,7 @@ table 113 "Sales Invoice Line"
         {
             AutoFormatType = 0;
             Caption = 'Units per Parcel';
+            ToolTip = 'Specifies the number of units per parcel of the item. In the sales statistics window, the number of units per parcel on the line helps to determine the total number of units for all the lines for the particular sales document.';
             DecimalPlaces = 0 : 5;
         }
         /// <summary>
@@ -264,6 +284,7 @@ table 113 "Sales Invoice Line"
         {
             AutoFormatType = 0;
             Caption = 'Unit Volume';
+            ToolTip = 'Specifies the volume of one unit of the item. In the sales statistics window, the volume of one unit of the item on the line is included in the total volume of all the lines for the particular sales document.';
             DecimalPlaces = 0 : 5;
         }
         /// <summary>
@@ -273,6 +294,7 @@ table 113 "Sales Invoice Line"
         {
             AccessByPermission = TableData Item = R;
             Caption = 'Appl.-to Item Entry';
+            ToolTip = 'Specifies the number of the item ledger entry that the document or journal line is applied to.';
         }
         /// <summary>
         /// Specifies the first global dimension code for analysis.
@@ -281,6 +303,7 @@ table 113 "Sales Invoice Line"
         {
             CaptionClass = '1,2,1';
             Caption = 'Shortcut Dimension 1 Code';
+            ToolTip = 'Specifies the code for Shortcut Dimension 1, which is one of two global dimension codes that you set up in the General Ledger Setup window.';
             TableRelation = "Dimension Value".Code where("Global Dimension No." = const(1));
         }
         /// <summary>
@@ -290,6 +313,7 @@ table 113 "Sales Invoice Line"
         {
             CaptionClass = '1,2,2';
             Caption = 'Shortcut Dimension 2 Code';
+            ToolTip = 'Specifies the code for Shortcut Dimension 2, which is one of two global dimension codes that you set up in the General Ledger Setup window.';
             TableRelation = "Dimension Value".Code where("Global Dimension No." = const(2));
         }
         /// <summary>
@@ -306,6 +330,7 @@ table 113 "Sales Invoice Line"
         field(45; "Job No."; Code[20])
         {
             Caption = 'Project No.';
+            ToolTip = 'Specifies the number of the related project.';
             TableRelation = Job;
         }
         /// <summary>
@@ -338,6 +363,7 @@ table 113 "Sales Invoice Line"
         field(65; "Order No."; Code[20])
         {
             Caption = 'Order No.';
+            ToolTip = 'Specifies the order number this line is associated with.';
         }
         /// <summary>
         /// Specifies the line number from the original sales order.
@@ -352,6 +378,7 @@ table 113 "Sales Invoice Line"
         field(68; "Bill-to Customer No."; Code[20])
         {
             Caption = 'Bill-to Customer No.';
+            ToolTip = 'Specifies the number of the customer that you send or sent the invoice or credit memo to.';
             Editable = false;
             TableRelation = Customer;
         }
@@ -363,6 +390,7 @@ table 113 "Sales Invoice Line"
             AutoFormatExpression = GetCurrencyCode();
             AutoFormatType = 1;
             Caption = 'Inv. Discount Amount';
+            ToolTip = 'Specifies the total calculated invoice discount amount for the line.';
         }
         /// <summary>
         /// Indicates whether the items were shipped directly from the vendor to the customer.
@@ -378,6 +406,7 @@ table 113 "Sales Invoice Line"
         field(74; "Gen. Bus. Posting Group"; Code[20])
         {
             Caption = 'Gen. Bus. Posting Group';
+            ToolTip = 'Specifies the vendor''s or customer''s trade type to link transactions made for this business partner with the appropriate general ledger account according to the general posting setup.';
             TableRelation = "Gen. Business Posting Group";
         }
         /// <summary>
@@ -386,6 +415,7 @@ table 113 "Sales Invoice Line"
         field(75; "Gen. Prod. Posting Group"; Code[20])
         {
             Caption = 'Gen. Prod. Posting Group';
+            ToolTip = 'Specifies the item''s product type to link transactions made for this item with the appropriate general ledger account according to the general posting setup.';
             TableRelation = "Gen. Product Posting Group";
         }
         /// <summary>
@@ -456,6 +486,7 @@ table 113 "Sales Invoice Line"
         field(85; "Tax Area Code"; Code[20])
         {
             Caption = 'Tax Area Code';
+            ToolTip = 'Specifies the tax area that is used to calculate and post sales tax.';
             TableRelation = "Tax Area";
         }
         /// <summary>
@@ -464,6 +495,7 @@ table 113 "Sales Invoice Line"
         field(86; "Tax Liable"; Boolean)
         {
             Caption = 'Tax Liable';
+            ToolTip = 'Specifies if the customer or vendor is liable for sales tax.';
         }
         /// <summary>
         /// Specifies the tax group code for sales tax calculation.
@@ -471,6 +503,7 @@ table 113 "Sales Invoice Line"
         field(87; "Tax Group Code"; Code[20])
         {
             Caption = 'Tax Group Code';
+            ToolTip = 'Specifies the tax group that is used to calculate and post sales tax.';
             TableRelation = "Tax Group";
         }
         /// <summary>
@@ -487,6 +520,7 @@ table 113 "Sales Invoice Line"
         field(89; "VAT Bus. Posting Group"; Code[20])
         {
             Caption = 'VAT Bus. Posting Group';
+            ToolTip = 'Specifies the VAT specification of the involved customer or vendor to link transactions made for this record with the appropriate general ledger account according to the VAT posting setup.';
             TableRelation = "VAT Business Posting Group";
         }
         /// <summary>
@@ -495,6 +529,7 @@ table 113 "Sales Invoice Line"
         field(90; "VAT Prod. Posting Group"; Code[20])
         {
             Caption = 'VAT Prod. Posting Group';
+            ToolTip = 'Specifies the VAT specification of the involved item or resource to link transactions made for this record with the appropriate general ledger account according to the VAT posting setup.';
             TableRelation = "VAT Product Posting Group";
         }
         /// <summary>
@@ -503,6 +538,7 @@ table 113 "Sales Invoice Line"
         field(97; "Blanket Order No."; Code[20])
         {
             Caption = 'Blanket Order No.';
+            ToolTip = 'Specifies the number of the blanket order that the record originates from.';
             TableRelation = "Sales Header"."No." where("Document Type" = const("Blanket Order"));
         }
         /// <summary>
@@ -511,6 +547,7 @@ table 113 "Sales Invoice Line"
         field(98; "Blanket Order Line No."; Integer)
         {
             Caption = 'Blanket Order Line No.';
+            ToolTip = 'Specifies the number of the blanket order line that the record originates from.';
             TableRelation = "Sales Line"."Line No." where("Document Type" = const("Blanket Order"),
                                                            "Document No." = field("Blanket Order No."));
         }
@@ -551,6 +588,7 @@ table 113 "Sales Invoice Line"
             AutoFormatType = 1;
             CaptionClass = GetCaptionClass(FieldNo("Line Amount"));
             Caption = 'Line Amount';
+            ToolTip = 'Specifies the net amount, excluding any invoice discount amount, that must be paid for products on the line.';
         }
         /// <summary>
         /// Specifies the difference between calculated and posted VAT amounts.
@@ -597,6 +635,7 @@ table 113 "Sales Invoice Line"
         field(130; "IC Partner Code"; Code[20])
         {
             Caption = 'IC Partner Code';
+            ToolTip = 'Specifies the code of the intercompany partner that the transaction is related to if the entry was created from an intercompany transaction.';
             TableRelation = "IC Partner";
         }
         /// <summary>
@@ -652,6 +691,7 @@ table 113 "Sales Invoice Line"
         field(1001; "Job Task No."; Code[20])
         {
             Caption = 'Project Task No.';
+            ToolTip = 'Specifies the number of the related project task.';
             Editable = false;
             TableRelation = "Job Task"."Job Task No." where("Job No." = field("Job No."));
         }
@@ -661,6 +701,7 @@ table 113 "Sales Invoice Line"
         field(1002; "Job Contract Entry No."; Integer)
         {
             Caption = 'Project Contract Entry No.';
+            ToolTip = 'Specifies the entry number of the project planning line that the sales line is linked to.';
             Editable = false;
         }
         /// <summary>
@@ -669,6 +710,7 @@ table 113 "Sales Invoice Line"
         field(1700; "Deferral Code"; Code[10])
         {
             Caption = 'Deferral Code';
+            ToolTip = 'Specifies the deferral template that governs how revenue earned with this sales document is deferred to the different accounting periods when the good or service was delivered.';
             TableRelation = "Deferral Template"."Deferral Code";
         }
         /// <summary>
@@ -693,6 +735,7 @@ table 113 "Sales Invoice Line"
         field(5402; "Variant Code"; Code[10])
         {
             Caption = 'Variant Code';
+            ToolTip = 'Specifies the variant of the item on the line.';
             TableRelation = if (Type = const(Item)) "Item Variant".Code where("Item No." = field("No."));
         }
         /// <summary>
@@ -701,6 +744,7 @@ table 113 "Sales Invoice Line"
         field(5403; "Bin Code"; Code[20])
         {
             Caption = 'Bin Code';
+            ToolTip = 'Specifies the bin where the items are picked or put away.';
             TableRelation = Bin.Code where("Location Code" = field("Location Code"),
                                             "Item Filter" = field("No."),
                                             "Variant Filter" = field("Variant Code"));
@@ -721,6 +765,7 @@ table 113 "Sales Invoice Line"
         field(5407; "Unit of Measure Code"; Code[10])
         {
             Caption = 'Unit of Measure Code';
+            ToolTip = 'Specifies how each unit of the item or resource is measured, such as in pieces or hours. By default, the value in the Base Unit of Measure field on the item or resource card is inserted.';
             TableRelation = if (Type = const(Item)) "Item Unit of Measure".Code where("Item No." = field("No."))
             else
             "Unit of Measure";
@@ -793,6 +838,7 @@ table 113 "Sales Invoice Line"
         field(5710; Nonstock; Boolean)
         {
             Caption = 'Catalog';
+            ToolTip = 'Specifies that this item is a catalog item.';
         }
         /// <summary>
         /// Specifies the purchasing code for special order handling.
@@ -809,6 +855,7 @@ table 113 "Sales Invoice Line"
         {
             AccessByPermission = TableData "Item Reference" = R;
             Caption = 'Item Reference No.';
+            ToolTip = 'Specifies the referenced item number.';
         }
         /// <summary>
         /// Specifies the unit of measure associated with the item reference.
@@ -839,6 +886,7 @@ table 113 "Sales Invoice Line"
         {
             AccessByPermission = TableData Item = R;
             Caption = 'Appl.-from Item Entry';
+            ToolTip = 'Specifies the number of the item ledger entry that the document or journal line is applied from.';
             MinValue = 0;
         }
         /// <summary>
@@ -847,6 +895,7 @@ table 113 "Sales Invoice Line"
         field(6608; "Return Reason Code"; Code[10])
         {
             Caption = 'Return Reason Code';
+            ToolTip = 'Specifies the code explaining why the item was returned.';
             TableRelation = "Return Reason";
         }
         /// <summary>
@@ -886,6 +935,7 @@ table 113 "Sales Invoice Line"
         {
             CalcFormula = lookup(Customer.Name where("No." = field("Sell-to Customer No.")));
             Caption = 'Sell-to Customer Name';
+            ToolTip = 'Specifies the name of the customer.';
             Editable = false;
             FieldClass = FlowField;
         }

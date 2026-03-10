@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -25,17 +25,14 @@ page 5968 "Service Document Registers"
                 field("Source Document No."; Rec."Source Document No.")
                 {
                     ApplicationArea = Service;
-                    ToolTip = 'Specifies the number of the service order or service contract.';
                 }
                 field("Destination Document Type"; Rec."Destination Document Type")
                 {
                     ApplicationArea = Service;
-                    ToolTip = 'Specifies the type of document created from the service order or contract specified in the Source Document No.';
                 }
                 field("Destination Document No."; Rec."Destination Document No.")
                 {
                     ApplicationArea = Service;
-                    ToolTip = 'Specifies the number of the invoice or credit memo, based on the contents of the Destination Document Type field.';
                 }
                 field(CustNo; CustNo)
                 {

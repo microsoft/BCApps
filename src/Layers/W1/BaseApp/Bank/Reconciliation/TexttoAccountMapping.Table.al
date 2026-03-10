@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -47,6 +47,7 @@ table 1251 "Text-to-Account Mapping"
         field(2; "Mapping Text"; Text[250])
         {
             Caption = 'Mapping Text';
+            ToolTip = 'Specifies the text on the payment that is used to map the payment to a customer, vendor, or general ledger account when you choose the Apply Automatically function in the Payment Reconciliation Journal window.';
             NotBlank = true;
 
             trigger OnValidate()
@@ -61,6 +62,7 @@ table 1251 "Text-to-Account Mapping"
         field(3; "Debit Acc. No."; Code[20])
         {
             Caption = 'Debit Acc. No.';
+            ToolTip = 'Specifies the debit account that payments with this text-to-account mapping are matched with when you choose the Apply Automatically function in the Payment Reconciliation Journal window.';
             TableRelation = "G/L Account" where("Account Type" = const(Posting),
                                                  Blocked = const(false),
                                                  "Direct Posting" = const(true));
@@ -72,6 +74,7 @@ table 1251 "Text-to-Account Mapping"
         field(4; "Credit Acc. No."; Code[20])
         {
             Caption = 'Credit Acc. No.';
+            ToolTip = 'Specifies the credit account that payments with this text-to-account mapping are applied to when you choose the Apply Automatically function in the Payment Reconciliation Journal window.';
             TableRelation = "G/L Account" where("Account Type" = const(Posting),
                                                  Blocked = const(false),
                                                  "Direct Posting" = const(true));
@@ -83,6 +86,7 @@ table 1251 "Text-to-Account Mapping"
         field(5; "Bal. Source Type"; Option)
         {
             Caption = 'Bal. Source Type';
+            ToolTip = 'Specifies the type of balancing account that amounts on payments or incoming documents that have this text to account mapping are posted to. The Bank Account option is used only for incoming documents and cannot be used in payment reconciliation journals.';
             OptionCaption = 'G/L Account,Customer,Vendor,Bank Account';
             OptionMembers = "G/L Account",Customer,Vendor,"Bank Account";
 
@@ -98,6 +102,7 @@ table 1251 "Text-to-Account Mapping"
         field(6; "Bal. Source No."; Code[20])
         {
             Caption = 'Bal. Source No.';
+            ToolTip = 'Specifies the balancing account to post amounts on payments or incoming documents that have this text to account mapping. The Bank Account option in the Bal. Source Type cannot be used in payment reconciliation journals.';
             TableRelation = if ("Bal. Source Type" = const("G/L Account")) "G/L Account" where("Account Type" = const(Posting),
                                                                                               Blocked = const(false))
             else
@@ -114,6 +119,7 @@ table 1251 "Text-to-Account Mapping"
         field(7; "Vendor No."; Code[20])
         {
             Caption = 'Vendor No.';
+            ToolTip = 'Specifies the number of the vendor that incoming documents containing the mapping text will be created for, or that payments will be posted to.';
             TableRelation = Vendor;
         }
     }

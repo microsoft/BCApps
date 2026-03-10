@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -22,6 +22,7 @@ table 301 "Finance Charge Text"
         field(1; "Fin. Charge Terms Code"; Code[10])
         {
             Caption = 'Fin. Charge Terms Code';
+            ToolTip = 'Specifies the code for the involved finance charges in case of late payment.';
             NotBlank = true;
             TableRelation = "Finance Charge Terms";
         }
@@ -31,6 +32,7 @@ table 301 "Finance Charge Text"
         field(2; Position; Option)
         {
             Caption = 'Position';
+            ToolTip = 'Specifies whether the text will appear at the beginning or the end of the finance charge memo.';
             OptionCaption = 'Beginning,Ending';
             OptionMembers = Beginning,Ending;
         }
@@ -47,6 +49,7 @@ table 301 "Finance Charge Text"
         field(4; Text; Text[100])
         {
             Caption = 'Text';
+            ToolTip = 'Specifies the text that you want to insert in the finance charge memo.';
         }
     }
 

@@ -18,14 +18,14 @@ codeunit 6461 "Serv. Document Print"
         MissingReportSelectionErr: Label 'Report Selections is missing for %1 %2.', Comment = '%1 - Contract Type, %2 - Contract No.';
         MissingReportSelection2Err: Label '%1 for %2 is missing in Report Selections.', Comment = '%1 - Document Type, %2 - Service Header';
 
-    [EventSubscriber(ObjectType::Table, Database::"Report Selections", 'OnAfterIsCustomerAccount', '', false, false)]
+    [EventSubscriber(ObjectType::Table, Database::"Report Selections", 'OnAfterIsCustomerAccount', '', true, false)]
     local procedure OnAfterIsCustomerAccount(DocumentTableId: Integer; var IsCustomer: Boolean);
     begin
         if DocumentTableId = Database::"Service Invoice Header" then
             IsCustomer := true;
     end;
 
-    [EventSubscriber(ObjectType::Table, Database::"Report Selections", 'OnSendEmailDirectlyOnAfterSetFieldName', '', false, false)]
+    [EventSubscriber(ObjectType::Table, Database::"Report Selections", 'OnSendEmailDirectlyOnAfterSetFieldName', '', true, false)]
     local procedure OnSendEmailDirectlyOnAfterSetFieldName(DocumentTableId: Integer; var FieldName: Text);
     begin
         if DocumentTableId = Database::"Service Invoice Header" then
@@ -241,7 +241,7 @@ codeunit 6461 "Serv. Document Print"
     begin
     end;
 
-    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Report Selection Mgt.", 'OnInitReportUsage', '', false, false)]
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Report Selection Mgt.", 'OnInitReportUsage', '', true, false)]
     local procedure InitReportSelection(ReportUsage: Integer)
     begin
         case "Report Selection Usage".FromInteger(ReportUsage) of

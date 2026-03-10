@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -36,6 +36,7 @@ table 5346 "CRM Pricelevel"
         field(3; Name; Text[100])
         {
             Caption = 'Name';
+            ToolTip = 'Specifies the name of the record.';
             Description = 'Name of the price list.';
             ExternalName = 'name';
             ExternalType = 'String';
@@ -132,6 +133,7 @@ table 5346 "CRM Pricelevel"
         field(14; StateCode; Option)
         {
             Caption = 'Status ';
+            ToolTip = 'Specifies information related to the Dynamics 365 Sales connection.';
             Description = 'Status of the price list.';
             ExternalAccess = Modify;
             ExternalName = 'statecode';
@@ -152,6 +154,7 @@ table 5346 "CRM Pricelevel"
         field(16; StatusCode; Option)
         {
             Caption = 'Status Reason';
+            ToolTip = 'Specifies information related to the Dynamics 365 Sales connection.';
             Description = 'Reason for the status of the price list.';
             ExternalName = 'statuscode';
             ExternalType = 'Status';
@@ -232,6 +235,7 @@ table 5346 "CRM Pricelevel"
         {
             CalcFormula = lookup("CRM Transactioncurrency".CurrencyName where(TransactionCurrencyId = field(TransactionCurrencyId)));
             Caption = 'TransactionCurrencyIdName';
+            ToolTip = 'Specifies the currency that amounts are shown in.';
             ExternalAccess = Read;
             ExternalName = 'transactioncurrencyidname';
             ExternalType = 'String';
@@ -277,6 +281,7 @@ table 5346 "CRM Pricelevel"
         {
             AutoFormatType = 0;
             Caption = 'Exchange Rate';
+            ToolTip = 'Specifies the currency exchange rate.';
             Description = 'Shows the conversion rate of the record''s currency. The exchange rate is used to convert all money fields in the record from the local currency to the system''s default currency.';
             ExternalAccess = Read;
             ExternalName = 'exchangerate';

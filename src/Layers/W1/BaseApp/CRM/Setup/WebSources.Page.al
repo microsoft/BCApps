@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -24,22 +24,18 @@ page 5069 "Web Sources"
                 field("Code"; Rec.Code)
                 {
                     ApplicationArea = All;
-                    ToolTip = 'Specifies the code for the Web source.';
                 }
                 field(Description; Rec.Description)
                 {
                     ApplicationArea = All;
-                    ToolTip = 'Specifies the description of the Web source.';
                 }
                 field(URL; Rec.URL)
                 {
                     ApplicationArea = RelationshipMgmt;
-                    ToolTip = 'Specifies the URL to use to search for information about the contact on the Internet.';
                 }
                 field(Comment; Rec.Comment)
                 {
                     ApplicationArea = Comments;
-                    ToolTip = 'Specifies whether a comment has been assigned to this Web source.';
                 }
             }
         }

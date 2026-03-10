@@ -550,6 +550,38 @@ table 'Localized Labels'
 		isHidden
 		lineageTag: 9a67550e-0d9f-41ed-8d9f-8f5c9794f797
 
+	measure 'Customer Retention Overview' = 0
+		isHidden
+		lineageTag: faa2582c-a97c-48ff-8d3b-33ccf850be44
+
+	measure 'Customer Retention Over Time' = 0
+		isHidden
+		lineageTag: dc47d6b8-a5ff-4215-a582-b2b17b0fb4f0
+
+	measure 'Customer Retention' = 0
+		isHidden
+		lineageTag: d4e993b3-79d9-4f63-b3ae-ef0b9132fd0a
+
+	measure 'Customer Retention History' = 0
+		isHidden
+		lineageTag: d3bf3394-cb70-4ef9-b971-621b8bdf115b
+
+	measure 'New and Returning Customers' = 0
+		isHidden
+		lineageTag: 5c1496be-ff42-404a-9a7a-aa99d0c8784d
+
+	measure 'New and Returning Customer Sales' = 0
+		isHidden
+		lineageTag: 5a70466e-c120-4004-99d6-d7e2c430989c
+
+	measure 'Temporarily Lost vs. Recovered Customers' = 0
+		isHidden
+		lineageTag: 9a21b803-c1ad-4903-a4a9-9e6228d75d6c
+
+	measure 'Temporarily Lost vs. Lost Customers' = 0
+		isHidden
+		lineageTag: fa8348fb-9e92-4e0a-9218-926e919b8465
+
 	column unused
 		isHidden
 		displayFolder: unused

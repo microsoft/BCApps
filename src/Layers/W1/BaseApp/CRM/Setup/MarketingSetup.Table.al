@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -36,121 +36,145 @@ table 5079 "Marketing Setup"
         field(2; "Contact Nos."; Code[20])
         {
             Caption = 'Contact Nos.';
+            ToolTip = 'Specifies the code for the number series to use when assigning numbers to contacts.';
             TableRelation = "No. Series";
         }
         field(3; "Campaign Nos."; Code[20])
         {
             AccessByPermission = TableData Campaign = R;
             Caption = 'Campaign Nos.';
+            ToolTip = 'Specifies the code for the number series to use when assigning numbers to campaigns.';
             TableRelation = "No. Series";
         }
         field(4; "Segment Nos."; Code[20])
         {
             Caption = 'Segment Nos.';
+            ToolTip = 'Specifies the code for the number series to use when assigning numbers to segments.';
             TableRelation = "No. Series";
         }
         field(5; "To-do Nos."; Code[20])
         {
             Caption = 'Task Nos.';
+            ToolTip = 'Specifies the code for the number series to use when assigning numbers to tasks.';
             TableRelation = "No. Series";
         }
         field(6; "Opportunity Nos."; Code[20])
         {
             AccessByPermission = TableData "Sales Cycle" = R;
             Caption = 'Opportunity Nos.';
+            ToolTip = 'Specifies the code for the number series to use when assigning numbers to opportunities.';
             TableRelation = "No. Series";
         }
         field(7; "Bus. Rel. Code for Customers"; Code[10])
         {
             Caption = 'Bus. Rel. Code for Customers';
+            ToolTip = 'Specifies the business relation code that identifies that a contact is also a customer.';
             TableRelation = "Business Relation";
         }
         field(8; "Bus. Rel. Code for Vendors"; Code[10])
         {
             Caption = 'Bus. Rel. Code for Vendors';
+            ToolTip = 'Specifies the business relation code that identifies that a contact is also a vendor.';
             TableRelation = "Business Relation";
         }
         field(9; "Bus. Rel. Code for Bank Accs."; Code[10])
         {
             Caption = 'Bus. Rel. Code for Bank Accs.';
+            ToolTip = 'Specifies the business relation code that identifies that a contact is also a bank account.';
             TableRelation = "Business Relation";
         }
         field(10; "Bus. Rel. Code for Employees"; Code[10])
         {
             Caption = 'Bus. Rel. Code for Employees';
+            ToolTip = 'Specifies the business relation code that identifies that a contact is also an employee.';
             TableRelation = "Business Relation";
         }
         field(22; "Inherit Salesperson Code"; Boolean)
         {
             Caption = 'Inherit Salesperson Code';
+            ToolTip = 'Specifies that you want to copy the salesperson code from the contact card of a company to the contact card for the individual contact person or people working for that company.';
             InitValue = true;
         }
         field(23; "Inherit Territory Code"; Boolean)
         {
             Caption = 'Inherit Territory Code';
+            ToolTip = 'Specifies that you want to copy the territory code from the contact card of a company to the contact card for the individual contact person or people working for that company.';
             InitValue = true;
         }
         field(24; "Inherit Country/Region Code"; Boolean)
         {
             Caption = 'Inherit Country/Region Code';
+            ToolTip = 'Specifies that you want to copy the country/region code from the contact card of a company to the contact card for the individual contact person or people working for that company.';
             InitValue = true;
         }
         field(25; "Inherit Language Code"; Boolean)
         {
             Caption = 'Inherit Language Code';
+            ToolTip = 'Specifies that you want to copy the language code from the contact card of a company to the contact card for the individual contact person or people working for that company.';
             InitValue = true;
         }
         field(26; "Inherit Address Details"; Boolean)
         {
             Caption = 'Inherit Address Details';
+            ToolTip = 'Specifies that you want to copy the address details from the contact card of a company to the contact card for the individual contact person or people working for that company.';
             InitValue = true;
         }
         field(27; "Inherit Communication Details"; Boolean)
         {
             Caption = 'Inherit Communication Details';
+            ToolTip = 'Specifies that you want to copy the communication details, such as telex and fax numbers, from the contact card of a company to the contact card for the individual contact person or people working for that company.';
             InitValue = true;
         }
         field(28; "Default Salesperson Code"; Code[20])
         {
             Caption = 'Default Salesperson Code';
+            ToolTip = 'Specifies the salesperson code to assign automatically to contacts when they are created.';
             TableRelation = "Salesperson/Purchaser" where(Blocked = const(false));
         }
         field(29; "Default Territory Code"; Code[10])
         {
             Caption = 'Default Territory Code';
+            ToolTip = 'Specifies the territory code to automatically assign to contacts when they are created.';
             TableRelation = Territory;
         }
         field(30; "Default Country/Region Code"; Code[10])
         {
             Caption = 'Default Country/Region Code';
+            ToolTip = 'Specifies the country/region code to assign automatically to contacts when they are created.';
             TableRelation = "Country/Region";
         }
         field(31; "Default Language Code"; Code[10])
         {
             Caption = 'Default Language Code';
+            ToolTip = 'Specifies the language code to assign automatically to contacts when they are created.';
             TableRelation = Language;
         }
         field(32; "Default Format Region"; Text[80])
         {
             Caption = 'Default Format Region';
+            ToolTip = 'Specifies the region format to assign automatically to contacts when they are created.';
             TableRelation = "Language Selection"."Language Tag";
         }
         field(33; "Default Sales Cycle Code"; Code[10])
         {
             Caption = 'Default Sales Cycle Code';
+            ToolTip = 'Specifies the sales cycle code to automatically assign to opportunities when they are created.';
             TableRelation = "Sales Cycle";
         }
         field(35; "Attachment Storage Type"; Enum "Setup Attachment Storage Type")
         {
             Caption = 'Attachment Storage Type';
+            ToolTip = 'Specifies how you want to store attachments. The following options exist:';
         }
         field(36; "Attachment Storage Location"; Text[250])
         {
             Caption = 'Attachment Storage Location';
+            ToolTip = 'Specifies the drive and path to the location where you want attachments stored if you selected Disk File in the Attachment Storage Type field.';
         }
         field(37; "Autosearch for Duplicates"; Boolean)
         {
             Caption = 'Autosearch for Duplicates';
+            ToolTip = 'Specifies that you want to search automatically for duplicates each time a contact is created or modified.';
             InitValue = true;
 
             trigger OnValidate()
@@ -162,6 +186,7 @@ table 5079 "Marketing Setup"
         field(38; "Search Hit %"; Integer)
         {
             Caption = 'Search Hit %';
+            ToolTip = 'Specifies the level of precision to apply when searching for duplicates.';
             InitValue = 60;
             MaxValue = 100;
             MinValue = 1;
@@ -170,6 +195,7 @@ table 5079 "Marketing Setup"
         field(39; "Maintain Dupl. Search Strings"; Boolean)
         {
             Caption = 'Maintain Dupl. Search Strings';
+            ToolTip = 'Specifies the automatic update of search strings used to search for duplicates. You can set up search strings in the Duplicate Search String Setup table.';
             InitValue = true;
             NotBlank = true;
 
@@ -187,21 +213,25 @@ table 5079 "Marketing Setup"
         {
             BlankZero = true;
             Caption = 'Mergefield Language ID';
+            ToolTip = 'Specifies the language ID of the Windows language to use for naming the merge fields shown when editing an attachment in Microsoft Word.';
             TableRelation = "Windows Language";
         }
         field(51; "Def. Company Salutation Code"; Code[10])
         {
             Caption = 'Def. Company Salutation Code';
+            ToolTip = 'Specifies the salutation code to assign automatically to contact companies when they are created.';
             TableRelation = Salutation;
         }
         field(52; "Default Person Salutation Code"; Code[10])
         {
             Caption = 'Default Person Salutation Code';
+            ToolTip = 'Specifies the salutation code to assign automatically to contact persons when they are created.';
             TableRelation = Salutation;
         }
         field(53; "Default Correspondence Type"; Enum "Correspondence Type")
         {
             Caption = 'Default Correspondence Type';
+            ToolTip = 'Specifies the preferred type of correspondence for the interaction. NOTE: If you use the Web client, you must not select the Hard Copy option because printing is not possible from the web client.';
         }
 #if not CLEANSCHEMA25
         field(56; "Queue Folder Path"; Text[250])
@@ -238,6 +268,7 @@ table 5079 "Marketing Setup"
         field(67; "Default To-do Date Calculation"; DateFormula)
         {
             Caption = 'Default Task Date Calculation';
+            ToolTip = 'Specifies the task date calculation formula to use to calculate the ending date for tasks in Business Central if you haven''t entered any due date in the Outlook task. If you leave the field blank, today''s date is applied.';
         }
 #if not CLEANSCHEMA25
         field(69; "Autodiscovery E-Mail Address"; Text[250])

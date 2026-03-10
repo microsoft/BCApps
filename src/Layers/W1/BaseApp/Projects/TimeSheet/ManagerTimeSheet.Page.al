@@ -83,27 +83,23 @@ page 952 "Manager Time Sheet"
                 {
                     ApplicationArea = Jobs;
                     Editable = false;
-                    ToolTip = 'Specifies the type of time sheet line.';
                 }
                 field("Job No."; Rec."Job No.")
                 {
                     ApplicationArea = Jobs;
                     Editable = false;
-                    ToolTip = 'Specifies the number for the project that is associated with the time sheet line.';
                     Visible = false;
                 }
                 field("Job Task No."; Rec."Job Task No.")
                 {
                     ApplicationArea = Jobs;
                     Editable = false;
-                    ToolTip = 'Specifies the number of the related project task.';
                     Visible = false;
                 }
                 field(Description; Rec.Description)
                 {
                     ApplicationArea = Jobs;
                     Editable = false;
-                    ToolTip = 'Specifies a description of the time sheet line.';
 
                     trigger OnAssistEdit()
                     begin
@@ -115,33 +111,28 @@ page 952 "Manager Time Sheet"
                 {
                     ApplicationArea = Jobs;
                     Editable = false;
-                    ToolTip = 'Specifies a list of standard absence codes, from which you may select one.';
                     Visible = false;
                 }
                 field(Chargeable; Rec.Chargeable)
                 {
                     ApplicationArea = Jobs;
                     Editable = ChargeableAllowEdit;
-                    ToolTip = 'Specifies if the usage that you are posting is chargeable.';
                     Visible = false;
                 }
                 field("Work Type Code"; Rec."Work Type Code")
                 {
                     ApplicationArea = Jobs;
                     Editable = WorkTypeCodeAllowEdit;
-                    ToolTip = 'Specifies which work type the resource applies to. Prices are updated based on this entry.';
                     Visible = false;
                 }
                 field("Assembly Order No."; Rec."Assembly Order No.")
                 {
                     ApplicationArea = Assembly;
-                    ToolTip = 'Specifies the assembly order number that is associated with the time sheet line.';
                     Visible = false;
                 }
                 field(Posted; Rec.Posted)
                 {
                     ApplicationArea = Jobs;
-                    ToolTip = 'Specifies whether a time sheet line has been posted completely.';
                     Visible = false;
                 }
                 field(Field1; CellData[1])
@@ -215,7 +206,6 @@ page 952 "Manager Time Sheet"
                 field(Status; Rec.Status)
                 {
                     ApplicationArea = Jobs;
-                    ToolTip = 'Specifies information about the status of a time sheet line.';
                 }
                 field("Total Quantity"; Rec."Total Quantity")
                 {
@@ -223,7 +213,6 @@ page 952 "Manager Time Sheet"
                     AutoFormatType = 0;
                     Caption = 'Total';
                     DrillDown = false;
-                    ToolTip = 'Specifies the total number of hours that have been entered on a time sheet.';
                     Visible = false;
                 }
             }

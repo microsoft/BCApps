@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -24,12 +24,10 @@ page 99000758 "Work Center Groups"
                 field("Code"; Rec.Code)
                 {
                     ApplicationArea = Manufacturing;
-                    ToolTip = 'Specifies the code for the work center group.';
                 }
                 field(Name; Rec.Name)
                 {
                     ApplicationArea = Manufacturing;
-                    ToolTip = 'Specifies a name for the work center group.';
                 }
             }
         }

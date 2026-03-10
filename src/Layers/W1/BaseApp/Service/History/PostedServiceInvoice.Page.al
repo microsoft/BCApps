@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -36,20 +36,17 @@ page 5978 "Posted Service Invoice"
                     ApplicationArea = Service;
                     Editable = false;
                     Importance = Promoted;
-                    ToolTip = 'Specifies the number of the involved entry or record, according to the specified number series.';
                 }
                 field("Customer No."; Rec."Customer No.")
                 {
                     ApplicationArea = Service;
                     Editable = false;
                     Importance = Promoted;
-                    ToolTip = 'Specifies the number of the customer who owns the items on the invoice.';
                 }
                 field("Contact No."; Rec."Contact No.")
                 {
                     ApplicationArea = Service;
                     Editable = false;
-                    ToolTip = 'Specifies the number of the contact at the customer to whom you shipped the service.';
                 }
                 group("Sell-to")
                 {
@@ -58,7 +55,6 @@ page 5978 "Posted Service Invoice"
                     {
                         ApplicationArea = Service;
                         Editable = false;
-                        ToolTip = 'Specifies the name of the customer on the service invoice.';
                     }
                     field("Name 2"; Rec."Name 2")
                     {
@@ -70,19 +66,16 @@ page 5978 "Posted Service Invoice"
                     {
                         ApplicationArea = Service;
                         Editable = false;
-                        ToolTip = 'Specifies the address of the customer on the invoice.';
                     }
                     field("Address 2"; Rec."Address 2")
                     {
                         ApplicationArea = Service;
                         Editable = false;
-                        ToolTip = 'Specifies additional address information.';
                     }
                     field(City; Rec.City)
                     {
                         ApplicationArea = Service;
                         Editable = false;
-                        ToolTip = 'Specifies the city of the address.';
                     }
                     group(Control19)
                     {
@@ -92,26 +85,22 @@ page 5978 "Posted Service Invoice"
                         {
                             ApplicationArea = Service;
                             Editable = false;
-                            ToolTip = 'Specifies the county in the customer''s address.';
                         }
                     }
                     field("Post Code"; Rec."Post Code")
                     {
                         ApplicationArea = Service;
                         Editable = false;
-                        ToolTip = 'Specifies the postal code.';
                     }
                     field("Country/Region Code"; Rec."Country/Region Code")
                     {
                         ApplicationArea = Service;
                         Editable = false;
-                        ToolTip = 'Specifies the country/region of the address.';
                     }
                     field("Contact Name"; Rec."Contact Name")
                     {
                         ApplicationArea = Service;
                         Editable = false;
-                        ToolTip = 'Specifies the name of the contact person at the customer company.';
                     }
                     field(SellToPhoneNo; SellToContact."Phone No.")
                     {
@@ -145,14 +134,12 @@ page 5978 "Posted Service Invoice"
                 {
                     ApplicationArea = Service;
                     Editable = false;
-                    ToolTip = 'Specifies the date when the invoice was posted.';
                 }
                 field("VAT Reporting Date"; Rec."VAT Reporting Date")
                 {
                     ApplicationArea = VAT;
                     Editable = VATDateEnabled;
                     Visible = VATDateEnabled;
-                    ToolTip = 'Specifies the VAT date on the invoice.';
                 }
                 group(Control11)
                 {
@@ -163,7 +150,6 @@ page 5978 "Posted Service Invoice"
                         ApplicationArea = Service;
                         Editable = false;
                         StyleExpr = DocExchStatusStyle;
-                        ToolTip = 'Specifies the status of the document if you are using a document exchange service to send it as an electronic document. The status values are reported by the document exchange service.';
 
                         trigger OnDrillDown()
                         var
@@ -177,51 +163,43 @@ page 5978 "Posted Service Invoice"
                 {
                     ApplicationArea = Service;
                     Editable = false;
-                    ToolTip = 'Specifies the date when the related document was created.';
                 }
                 field("Quote No."; Rec."Quote No.")
                 {
                     ApplicationArea = Service;
                     Editable = false;
-                    ToolTip = 'Specifies the number of the service quote document if a quote was used to start the service process.';
                 }
                 field("Order No."; Rec."Order No.")
                 {
                     ApplicationArea = Service;
                     Editable = false;
                     Importance = Promoted;
-                    ToolTip = 'Specifies the number of the service order from which this invoice was posted.';
                 }
                 field("Pre-Assigned No."; Rec."Pre-Assigned No.")
                 {
                     ApplicationArea = Service;
                     Editable = false;
-                    ToolTip = 'Specifies the number of the service document from which the posted invoice was created.';
                 }
                 field("External Document No."; Rec."External Document No.")
                 {
                     ApplicationArea = Service;
                     Editable = false;
                     Importance = Additional;
-                    ToolTip = 'Specifies the external document number that is entered on the service header that this line was posted from.';
                 }
                 field("Salesperson Code"; Rec."Salesperson Code")
                 {
                     ApplicationArea = Service;
                     Editable = false;
-                    ToolTip = 'Specifies the code of the salesperson associated with the invoice.';
                 }
                 field("Responsibility Center"; Rec."Responsibility Center")
                 {
                     ApplicationArea = Service;
                     Editable = false;
-                    ToolTip = 'Specifies the code of the responsibility center, such as a distribution hub, that is associated with the involved user, company, customer, or vendor.';
                 }
                 field("No. Printed"; Rec."No. Printed")
                 {
                     ApplicationArea = Service;
                     Editable = false;
-                    ToolTip = 'Specifies how many times the document has been printed.';
                 }
                 group("Work Description")
                 {
@@ -250,13 +228,11 @@ page 5978 "Posted Service Invoice"
                     ApplicationArea = Service;
                     Editable = false;
                     Importance = Promoted;
-                    ToolTip = 'Specifies the number of the customer that you send or sent the invoice or credit memo to.';
                 }
                 field("Bill-to Contact No."; Rec."Bill-to Contact No.")
                 {
                     ApplicationArea = Service;
                     Editable = false;
-                    ToolTip = 'Specifies the number of the contact person at the customer''s billing address.';
                 }
                 group("Bill-to")
                 {
@@ -266,7 +242,6 @@ page 5978 "Posted Service Invoice"
                         ApplicationArea = Service;
                         Caption = 'Name';
                         Editable = false;
-                        ToolTip = 'Specifies the name of the customer that you send or sent the invoice or credit memo to.';
                     }
                     field("Bill-to Name 2"; Rec."Bill-to Name 2")
                     {
@@ -280,21 +255,18 @@ page 5978 "Posted Service Invoice"
                         ApplicationArea = Service;
                         Caption = 'Address';
                         Editable = false;
-                        ToolTip = 'Specifies the address of the customer to whom you sent the invoice.';
                     }
                     field("Bill-to Address 2"; Rec."Bill-to Address 2")
                     {
                         ApplicationArea = Service;
                         Caption = 'Address 2';
                         Editable = false;
-                        ToolTip = 'Specifies an additional line of the address.';
                     }
                     field("Bill-to City"; Rec."Bill-to City")
                     {
                         ApplicationArea = Service;
                         Caption = 'City';
                         Editable = false;
-                        ToolTip = 'Specifies the city of the address.';
                     }
                     group(Control28)
                     {
@@ -305,7 +277,6 @@ page 5978 "Posted Service Invoice"
                             ApplicationArea = Service;
                             CaptionClass = '5,1,' + Rec."Bill-to Country/Region Code";
                             Editable = false;
-                            ToolTip = 'Specifies the county in the customer''s address.';
                         }
                     }
                     field("Bill-to Post Code"; Rec."Bill-to Post Code")
@@ -313,7 +284,6 @@ page 5978 "Posted Service Invoice"
                         ApplicationArea = Service;
                         Caption = 'Post Code';
                         Editable = false;
-                        ToolTip = 'Specifies the postal code of the customer''s billing address.';
                     }
                     field("Bill-to Country/Region Code"; Rec."Bill-to Country/Region Code")
                     {
@@ -327,7 +297,6 @@ page 5978 "Posted Service Invoice"
                         ApplicationArea = Service;
                         Caption = 'Contact';
                         Editable = false;
-                        ToolTip = 'Specifies the name of the contact person at the customer''s billing address.';
                     }
                     field(BillToContactPhoneNo; BillToContact."Phone No.")
                     {
@@ -361,25 +330,21 @@ page 5978 "Posted Service Invoice"
                 {
                     ApplicationArea = Service;
                     Editable = false;
-                    ToolTip = 'Specifies a customer reference, which will be used when printing service documents.';
                 }
                 field("Shortcut Dimension 1 Code"; Rec."Shortcut Dimension 1 Code")
                 {
                     ApplicationArea = Dimensions;
                     Editable = false;
-                    ToolTip = 'Specifies the code for Shortcut Dimension 1, which is one of two global dimension codes that you set up in the General Ledger Setup window.';
                 }
                 field("Shortcut Dimension 2 Code"; Rec."Shortcut Dimension 2 Code")
                 {
                     ApplicationArea = Dimensions;
                     Editable = false;
-                    ToolTip = 'Specifies the code for Shortcut Dimension 2, which is one of two global dimension codes that you set up in the General Ledger Setup window.';
                 }
                 field("Customer Posting Group"; Rec."Customer Posting Group")
                 {
                     ApplicationArea = Service;
                     Editable = false;
-                    ToolTip = 'Specifies the customer''s market type to link business transactions to.';
                     Visible = false;
                 }
                 field("Due Date"; Rec."Due Date")
@@ -387,19 +352,16 @@ page 5978 "Posted Service Invoice"
                     ApplicationArea = Service;
                     Editable = false;
                     Importance = Promoted;
-                    ToolTip = 'Specifies when the related invoice must be paid.';
                 }
                 field("Tax Liable"; Rec."Tax Liable")
                 {
                     ApplicationArea = SalesTax;
                     Editable = false;
-                    ToolTip = 'Specifies if the customer is liable for sales tax.';
                 }
                 field("Tax Area Code"; Rec."Tax Area Code")
                 {
                     ApplicationArea = SalesTax;
                     Editable = false;
-                    ToolTip = 'Specifies the code of the tax area where the customer is located.';
                 }
             }
             group(Shipping)
@@ -410,7 +372,6 @@ page 5978 "Posted Service Invoice"
                     ApplicationArea = Service;
                     Editable = false;
                     Importance = Promoted;
-                    ToolTip = 'Specifies a code for an alternate shipment address if you want to ship to another address than the one that has been entered automatically. This field is also used in case of drop shipment.';
                 }
                 group("Ship-to")
                 {
@@ -420,7 +381,6 @@ page 5978 "Posted Service Invoice"
                         ApplicationArea = Service;
                         Caption = 'Name';
                         Editable = false;
-                        ToolTip = 'Specifies the name of the customer at the address that the items are shipped to.';
                     }
                     field("Ship-to Name 2"; Rec."Ship-to Name 2")
                     {
@@ -428,7 +388,6 @@ page 5978 "Posted Service Invoice"
                         Caption = 'Name 2';
                         Editable = false;
                         Importance = Additional;
-                        ToolTip = 'Specifies an additional part of thethe name of the customer at the address that the items are shipped to.';
                         Visible = false;
                     }
                     field("Ship-to Address"; Rec."Ship-to Address")
@@ -436,21 +395,18 @@ page 5978 "Posted Service Invoice"
                         ApplicationArea = Service;
                         Caption = 'Address';
                         Editable = false;
-                        ToolTip = 'Specifies the address that the items are shipped to.';
                     }
                     field("Ship-to Address 2"; Rec."Ship-to Address 2")
                     {
                         ApplicationArea = Service;
                         Caption = 'Address 2';
                         Editable = false;
-                        ToolTip = 'Specifies an additional part of the ship-to address, in case it is a long address.';
                     }
                     field("Ship-to City"; Rec."Ship-to City")
                     {
                         ApplicationArea = Service;
                         Caption = 'City';
                         Editable = false;
-                        ToolTip = 'Specifies the city of the address that the items are shipped to.';
                     }
                     group(Control31)
                     {
@@ -461,7 +417,6 @@ page 5978 "Posted Service Invoice"
                             ApplicationArea = Service;
                             CaptionClass = '5,1,' + Rec."Ship-to Country/Region Code";
                             Editable = false;
-                            ToolTip = 'Specifies the county in the customer''s address.';
                         }
                     }
                     field("Ship-to Post Code"; Rec."Ship-to Post Code")
@@ -470,34 +425,29 @@ page 5978 "Posted Service Invoice"
                         Caption = 'Post Code';
                         Editable = false;
                         Importance = Promoted;
-                        ToolTip = 'Specifies the postal code of the address that the items are shipped to.';
                     }
                     field("Ship-to Country/Region Code"; Rec."Ship-to Country/Region Code")
                     {
                         ApplicationArea = Service;
                         Editable = false;
                         Caption = 'Country/Region';
-                        ToolTip = 'Specifies the country/region in the customer''s address.';
                     }
                     field("Ship-to Contact"; Rec."Ship-to Contact")
                     {
                         ApplicationArea = Service;
                         Caption = 'Contact';
                         Editable = false;
-                        ToolTip = 'Specifies the name of the contact person at the address that the items are shipped to.';
                     }
                     field("Ship-to Phone"; Rec."Ship-to Phone")
                     {
                         ApplicationArea = Service;
                         Caption = 'Phone No.';
-                        ToolTip = 'Specifies the telephone number of the company''s shipping address.';
                     }
                 }
                 field("Location Code"; Rec."Location Code")
                 {
                     ApplicationArea = Location;
                     Editable = false;
-                    ToolTip = 'Specifies the location, such as warehouse or distribution center, from which the service was shipped.';
                 }
                 group("Shipping Details")
                 {
@@ -508,7 +458,6 @@ page 5978 "Posted Service Invoice"
                         Caption = 'Method';
                         Editable = false;
                         Importance = Additional;
-                        ToolTip = 'Specifies the code that represents the shipment method for the invoice.';
                     }
                     field("Shipping Agent Code"; Rec."Shipping Agent Code")
                     {
@@ -516,7 +465,6 @@ page 5978 "Posted Service Invoice"
                         Caption = 'Agent';
                         Editable = false;
                         Importance = Additional;
-                        ToolTip = 'Specifies which shipping agent is used to transport the items on the service document to the customer.';
                     }
                     field("Shipping Agent Service Code"; Rec."Shipping Agent Service Code")
                     {
@@ -524,7 +472,6 @@ page 5978 "Posted Service Invoice"
                         Caption = 'Agent Service';
                         Editable = false;
                         Importance = Additional;
-                        ToolTip = 'Specifies which shipping agent service is used to transport the items on the service document to the customer.';
                     }
                 }
             }
@@ -535,7 +482,6 @@ page 5978 "Posted Service Invoice"
                 {
                     ApplicationArea = Service;
                     Importance = Promoted;
-                    ToolTip = 'Specifies the currency code for the amounts on the invoice.';
 
                     trigger OnAssistEdit()
                     begin
@@ -553,13 +499,11 @@ page 5978 "Posted Service Invoice"
                     ApplicationArea = Service;
                     Editable = false;
                     Importance = Promoted;
-                    ToolTip = 'Specifies the bank account to use for bank information when the document is printed.';
                 }
                 field("EU 3-Party Trade"; Rec."EU 3-Party Trade")
                 {
                     ApplicationArea = Service;
                     Editable = false;
-                    ToolTip = 'Specifies if the transaction is related to trade with a third party within the EU.';
                 }
             }
         }

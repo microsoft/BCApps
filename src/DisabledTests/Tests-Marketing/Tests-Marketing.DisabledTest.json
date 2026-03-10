@@ -443,5 +443,50 @@
     "codeunitId": 136901,
     "codeunitName": "Marketing Reports",
     "method": "TeamTasksReport"
+  },
+  {
+    "codeunitId": 136200,
+    "codeunitName": "Marketing Campaign Segments",
+    "method": "CreateCampaignFromCardDetails"
+  },
+  {
+    "codeunitId": 136203,
+    "codeunitName": "Marketing Task Management",
+    "method": "PageMakePhoneCallCanChangeDateTimeOfInteraction"
+  },
+  {
+    "codeunitId": 136208,
+    "codeunitName": "Marketing Interaction",
+    "method": "CreateInteractionFromInteractionLogEntriesPageWithComments"
+  },
+  {
+    "codeunitId": 136208,
+    "codeunitName": "Marketing Interaction",
+    "method": "CreateInteractionLogWithCommentsForOpportunity"
+  },
+  {
+    "codeunitId": 136214,
+    "codeunitName": "Marketing Campaign Pricing",
+    "method": "CampaignSalesLineDiscountDateChangeError"
+  },
+  {
+    "codeunitId": 136214,
+    "codeunitName": "Marketing Campaign Pricing",
+    "method": "CampaignSalesPriceDateChangeError"
+  },
+  {
+    "codeunitId": 136214,
+    "codeunitName": "Marketing Campaign Pricing",
+    "method": "ChangeDateOnSalesPricesAndLineDiscount"
+  },
+  {
+    "codeunitId": 136214,
+    "codeunitName": "Marketing Campaign Pricing",
+    "method": "SalesPricesItemNoCanBeValidatedInCaseOfBlankedItemFilter"
+  },
+  {
+    "codeunitId": 136214,
+    "codeunitName": "Marketing Campaign Pricing",
+    "method": "ChangeDateOnSalesPriceAndLineDiscount"
   }
 ]

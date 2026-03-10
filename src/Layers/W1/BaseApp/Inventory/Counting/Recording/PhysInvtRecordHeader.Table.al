@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -24,6 +24,7 @@ table 5877 "Phys. Invt. Record Header"
         field(1; "Order No."; Code[20])
         {
             Caption = 'Order No.';
+            ToolTip = 'Specifies the physical inventory header number that is linked to the physical inventory recording.';
             TableRelation = "Phys. Invt. Order Header";
 
             trigger OnValidate()
@@ -35,15 +36,18 @@ table 5877 "Phys. Invt. Record Header"
         field(2; "Recording No."; Integer)
         {
             Caption = 'Recording No.';
+            ToolTip = 'Specifies a number that is assigned to the physical inventory recording, when you link a physical inventory recording to a physical inventory order.';
             Editable = false;
         }
         field(10; Description; Text[100])
         {
             Caption = 'Description';
+            ToolTip = 'Specifies the description of the inventory recording.';
         }
         field(11; Status; Option)
         {
             Caption = 'Status';
+            ToolTip = 'Specifies if the physical inventory recording is open or finished.';
             Editable = false;
             OptionCaption = 'Open,Finished';
             OptionMembers = Open,Finished;
@@ -60,24 +64,29 @@ table 5877 "Phys. Invt. Record Header"
         field(31; "Person Responsible"; Code[20])
         {
             Caption = 'Person Responsible';
+            ToolTip = 'Specifies the code of the person responsible for performing this physical inventory recording.';
             TableRelation = Employee;
             ValidateTableRelation = false;
         }
         field(40; "Allow Recording Without Order"; Boolean)
         {
             Caption = 'Allow Recording Without Order';
+            ToolTip = 'Specifies that recording lines are automatically created for items that do not exist on the physical inventory order. This can only happen if none of the values in these four fields exist for an item on the order: Item No., Variant Code, Location Code, and Bin Code.';
         }
         field(100; "Date Recorded"; Date)
         {
             Caption = 'Date Recorded';
+            ToolTip = 'Specifies the date when the physical inventory was taken.';
         }
         field(101; "Time Recorded"; Time)
         {
             Caption = 'Time Recorded';
+            ToolTip = 'Specifies the time when physical inventory was taken.';
         }
         field(102; "Person Recorded"; Code[20])
         {
             Caption = 'Person Recorded';
+            ToolTip = 'Specifies the user ID of the person who performed the physical inventory.';
             TableRelation = Employee;
             ValidateTableRelation = false;
         }
@@ -90,6 +99,7 @@ table 5877 "Phys. Invt. Record Header"
         field(110; "Location Code"; Code[10])
         {
             Caption = 'Location Code';
+            ToolTip = 'Specifies the location where the items must be counted.';
             TableRelation = Location;
         }
         field(111; "Bin Code"; Code[20])

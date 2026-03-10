@@ -52,6 +52,7 @@ page 617 "Handled IC Inbox Transactions"
                 {
                     ApplicationArea = Intercompany;
                     Editable = false;
+                    Visible = false;
                     ToolTip = 'Specifies whether the transaction was created in a journal, a sales document, or a purchase document.';
                     ObsoleteReason = 'Replaced with IC Source Type for consistent naming.';
                     ObsoleteState = Pending;

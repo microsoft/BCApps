@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -30,7 +30,6 @@ page 5091 Segment
                 {
                     ApplicationArea = All;
                     Importance = Additional;
-                    ToolTip = 'Specifies the number of the involved entry or record, according to the specified number series.';
 
                     trigger OnAssistEdit()
                     begin
@@ -41,7 +40,6 @@ page 5091 Segment
                 field(Description; Rec.Description)
                 {
                     ApplicationArea = All;
-                    ToolTip = 'Specifies the description of the segment.';
 
                     trigger OnValidate()
                     begin
@@ -51,7 +49,6 @@ page 5091 Segment
                 field("Salesperson Code"; Rec."Salesperson Code")
                 {
                     ApplicationArea = Suite;
-                    ToolTip = 'Specifies the code of the salesperson responsible for this segment and/or interaction.';
 
                     trigger OnValidate()
                     begin
@@ -61,7 +58,6 @@ page 5091 Segment
                 field(Date; Rec.Date)
                 {
                     ApplicationArea = RelationshipMgmt;
-                    ToolTip = 'Specifies the date that the segment was created.';
 
                     trigger OnValidate()
                     begin
@@ -72,12 +68,10 @@ page 5091 Segment
                 {
                     ApplicationArea = RelationshipMgmt;
                     DrillDown = false;
-                    ToolTip = 'Specifies the number of lines within the segment.';
                 }
                 field("No. of Criteria Actions"; Rec."No. of Criteria Actions")
                 {
                     ApplicationArea = RelationshipMgmt;
-                    ToolTip = 'Specifies the number of actions you have taken when modifying the segmentation criteria, that is, when adding contacts to the segment, refining, or reducing it.';
                 }
             }
             group(Interaction)
@@ -86,7 +80,6 @@ page 5091 Segment
                 field("Interaction Template Code"; Rec."Interaction Template Code")
                 {
                     ApplicationArea = RelationshipMgmt;
-                    ToolTip = 'Specifies the interaction template code of the interaction involving the segment.';
 
                     trigger OnValidate()
                     begin
@@ -135,7 +128,6 @@ page 5091 Segment
                 {
                     ApplicationArea = RelationshipMgmt;
                     Caption = 'Word Template Code';
-                    ToolTip = 'Specifies the Word Template code to use for merging.';
                 }
                 field("Modified Word Template"; Rec."Modified Word Template" > 0)
                 {
@@ -149,7 +141,6 @@ page 5091 Segment
                 {
                     ApplicationArea = RelationshipMgmt;
                     Enabled = IgnoreContactCorresTypeEnable;
-                    ToolTip = 'Specifies that the correspondence type that you select in the Correspondence Type (Default) field should be used. If there is no check mark, the program uses the correspondence type selected on the Contact Card.';
 
                     trigger OnValidate()
                     begin
@@ -171,7 +162,6 @@ page 5091 Segment
                 {
                     ApplicationArea = RelationshipMgmt;
                     Enabled = InformationFlowEnable;
-                    ToolTip = 'Specifies the direction of the information that is part of the interaction created for the segment. There are two options: Inbound and Outbound.';
 
                     trigger OnValidate()
                     begin
@@ -182,7 +172,6 @@ page 5091 Segment
                 {
                     ApplicationArea = RelationshipMgmt;
                     Enabled = InitiatedByEnable;
-                    ToolTip = 'Specifies whether the interaction recorded for this segment was initiated by your company or by one of your contacts. The Us option indicates that your company was the initiator; the Them option indicates that a contact was the initiator.';
 
                     trigger OnValidate()
                     begin
@@ -214,7 +203,6 @@ page 5091 Segment
                 field("Send Word Docs. as Attmt."; Rec."Send Word Docs. as Attmt.")
                 {
                     ApplicationArea = RelationshipMgmt;
-                    ToolTip = 'Specifies that the Microsoft Word document should be sent as an attachment in the e-mail message.';
 
                     trigger OnValidate()
                     begin
@@ -233,7 +221,6 @@ page 5091 Segment
                 field("Campaign No."; Rec."Campaign No.")
                 {
                     ApplicationArea = RelationshipMgmt;
-                    ToolTip = 'Specifies the number of the campaign for which the segment has been created.';
 
                     trigger OnValidate()
                     begin
@@ -244,13 +231,11 @@ page 5091 Segment
                 {
                     ApplicationArea = RelationshipMgmt;
                     Editable = false;
-                    ToolTip = 'Specifies a description of the campaign to which the segment is related. The description is copied from the campaign card.';
                 }
                 field("Campaign Target"; Rec."Campaign Target")
                 {
                     ApplicationArea = RelationshipMgmt;
                     Enabled = CampaignTargetEnable;
-                    ToolTip = 'Specifies that the segment is part of the target of the campaign to which it is linked.';
 
                     trigger OnValidate()
                     begin
@@ -261,7 +246,6 @@ page 5091 Segment
                 {
                     ApplicationArea = RelationshipMgmt;
                     Enabled = CampaignResponseEnable;
-                    ToolTip = 'Specifies that the interaction created for the segment is the response to a campaign.';
 
                     trigger OnValidate()
                     begin

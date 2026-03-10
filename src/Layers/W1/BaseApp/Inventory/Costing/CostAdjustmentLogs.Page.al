@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -24,34 +24,28 @@ page 5808 "Cost Adjustment Logs"
                 field("Entry No."; Rec."Entry No.")
                 {
                     Caption = 'Entry No.';
-                    ToolTip = 'Specifies the number of the entry.';
                 }
                 field("Cost Adjustment Run Guid"; Rec."Cost Adjustment Run Guid")
                 {
                     Caption = 'Cost Adjustment Run Guid';
-                    ToolTip = 'Specifies the unique identifier of the cost adjustment run.';
                     Visible = false;
                 }
                 field("Item Filter"; Rec."Item Filter")
                 {
                     Caption = 'Item Filter';
-                    ToolTip = 'Specifies the item filter used for the cost adjustment run.';
                 }
                 field(Status; Rec.Status)
                 {
                     Caption = 'Status';
-                    ToolTip = 'Specifies the status of the cost adjustment run.';
                     StyleExpr = StatusStyleExpr;
                 }
                 field("Starting Date-Time"; Rec."Starting Date-Time")
                 {
                     Caption = 'Starting Date-Time';
-                    ToolTip = 'Specifies the starting date and time of the cost adjustment run.';
                 }
                 field("Ending Date-Time"; Rec."Ending Date-Time")
                 {
                     Caption = 'Ending Date-Time';
-                    ToolTip = 'Specifies the ending date and time of the cost adjustment run.';
                 }
                 field(Duration; Rec."Ending Date-Time" - Rec."Starting Date-Time")
                 {
@@ -61,7 +55,6 @@ page 5808 "Cost Adjustment Logs"
                 field("Item Register No."; Rec."Item Register No.")
                 {
                     Caption = 'Item Register No.';
-                    ToolTip = 'Specifies the item register number that is created for the cost adjustment run. Blank value indicates that the cost adjustment has not produced any new value entries.';
                 }
                 field("New Value Entries"; ValueEntriesCreated)
                 {
@@ -80,17 +73,14 @@ page 5808 "Cost Adjustment Logs"
                 field("Last Error"; Rec."Last Error")
                 {
                     Caption = 'Last Error';
-                    ToolTip = 'Specifies the last error that occurred during the cost adjustment run.';
                 }
                 field("Last Error Call Stack"; Rec."Last Error Call Stack")
                 {
                     Caption = 'Last Error Call Stack';
-                    ToolTip = 'Specifies the last error call stack that occurred during the cost adjustment run.';
                 }
                 field("Failed Item No."; Rec."Failed Item No.")
                 {
                     Caption = 'Failed Item No.';
-                    ToolTip = 'Specifies the item number that failed during the cost adjustment run.';
                 }
             }
         }

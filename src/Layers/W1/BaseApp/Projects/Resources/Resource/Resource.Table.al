@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -43,6 +43,7 @@ table 156 Resource
         field(1; "No."; Code[20])
         {
             Caption = 'No.';
+            ToolTip = 'Specifies the number of the involved entry or record, according to the specified number series.';
             OptimizeForTextSearch = true;
 
             trigger OnValidate()
@@ -64,10 +65,12 @@ table 156 Resource
         field(2; Type; Enum "Resource Type")
         {
             Caption = 'Type';
+            ToolTip = 'Specifies whether the resource is a person or a machine.';
         }
         field(3; Name; Text[100])
         {
             Caption = 'Name';
+            ToolTip = 'Specifies a description of the resource.';
             OptimizeForTextSearch = true;
 
             trigger OnValidate()
@@ -79,26 +82,31 @@ table 156 Resource
         field(4; "Search Name"; Code[100])
         {
             Caption = 'Search Name';
+            ToolTip = 'Specifies an alternate name that you can use to search for the record in question when you cannot remember the value in the Name field.';
             OptimizeForTextSearch = true;
         }
         field(5; "Name 2"; Text[50])
         {
             Caption = 'Name 2';
+            ToolTip = 'Specifies information in addition to the description.';
             OptimizeForTextSearch = true;
         }
         field(6; Address; Text[100])
         {
             Caption = 'Address';
+            ToolTip = 'Specifies the address or location of the resource, if applicable.';
             OptimizeForTextSearch = true;
         }
         field(7; "Address 2"; Text[50])
         {
             Caption = 'Address 2';
+            ToolTip = 'Specifies additional address information.';
             OptimizeForTextSearch = true;
         }
         field(8; City; Text[30])
         {
             Caption = 'City';
+            ToolTip = 'Specifies the city of the resource''s address.';
             OptimizeForTextSearch = true;
             TableRelation = if ("Country/Region Code" = const('')) "Post Code".City
             else
@@ -123,27 +131,33 @@ table 156 Resource
         field(9; "Social Security No."; Text[30])
         {
             Caption = 'Social Security No.';
+            ToolTip = 'Specifies the person''s social security number or the machine''s serial number.';
             OptimizeForTextSearch = true;
         }
         field(10; "Job Title"; Text[30])
         {
             Caption = 'Job Title';
+            ToolTip = 'Specifies the person''s job title.';
         }
         field(11; Education; Text[30])
         {
             Caption = 'Education';
+            ToolTip = 'Specifies the training, education, or certification level of the person.';
         }
         field(12; "Contract Class"; Text[30])
         {
             Caption = 'Contract Class';
+            ToolTip = 'Specifies the contract class for the person.';
         }
         field(13; "Employment Date"; Date)
         {
             Caption = 'Employment Date';
+            ToolTip = 'Specifies the date when the person began working for you or the date when the machine was placed in service.';
         }
         field(14; "Resource Group No."; Code[20])
         {
             Caption = 'Resource Group No.';
+            ToolTip = 'Specifies the resource group that this resource is assigned to.';
             TableRelation = "Resource Group";
 
             trigger OnValidate()
@@ -205,6 +219,7 @@ table 156 Resource
         field(18; "Base Unit of Measure"; Code[10])
         {
             Caption = 'Base Unit of Measure';
+            ToolTip = 'Specifies the base unit used to measure the resource, such as hour, piece, or kilometer.';
             TableRelation = "Unit of Measure";
 
             trigger OnValidate()
@@ -243,6 +258,7 @@ table 156 Resource
             AutoFormatType = 2;
             AutoFormatExpression = '';
             Caption = 'Direct Unit Cost';
+            ToolTip = 'Specifies the cost of one unit of the selected item or resource.';
             MinValue = 0;
 
             trigger OnValidate()
@@ -254,6 +270,7 @@ table 156 Resource
         {
             AutoFormatType = 0;
             Caption = 'Indirect Cost %';
+            ToolTip = 'Specifies the percentage of the item''s last purchase cost that includes indirect costs, such as freight that is associated with the purchase of the item.';
             DecimalPlaces = 2 : 2;
 
             trigger OnValidate()
@@ -266,6 +283,7 @@ table 156 Resource
             AutoFormatType = 2;
             AutoFormatExpression = '';
             Caption = 'Unit Cost';
+            ToolTip = 'Specifies the cost of one unit of the item or resource on the line.';
             MinValue = 0;
 
             trigger OnValidate()
@@ -277,6 +295,7 @@ table 156 Resource
         {
             AutoFormatType = 0;
             Caption = 'Profit %';
+            ToolTip = 'Specifies the profit margin that you want to sell the resource at. You can enter a profit percentage manually or have it entered according to the Price/Profit Calculation field';
             DecimalPlaces = 0 : 5;
 
             trigger OnValidate()
@@ -287,6 +306,7 @@ table 156 Resource
         field(23; "Price/Profit Calculation"; Option)
         {
             Caption = 'Price/Profit Calculation';
+            ToolTip = 'Specifies the relationship between the Unit Cost, Unit Price, and Profit Percentage fields associated with this resource.';
             OptionCaption = 'Profit=Price-Cost,Price=Cost+Profit,No Relationship';
             OptionMembers = "Profit=Price-Cost","Price=Cost+Profit","No Relationship";
 
@@ -309,6 +329,7 @@ table 156 Resource
             AutoFormatType = 2;
             AutoFormatExpression = '';
             Caption = 'Unit Price';
+            ToolTip = 'Specifies the price of one unit of the item or resource. You can enter a price manually or have it entered according to the Price/Profit Calculation field on the related card.';
             MinValue = 0;
 
             trigger OnValidate()
@@ -324,6 +345,7 @@ table 156 Resource
         field(26; "Last Date Modified"; Date)
         {
             Caption = 'Last Date Modified';
+            ToolTip = 'Specifies the date of the most recent change of information in the Resource Card window.';
             Editable = false;
         }
         field(27; Comment; Boolean)
@@ -337,6 +359,7 @@ table 156 Resource
         field(38; Blocked; Boolean)
         {
             Caption = 'Blocked';
+            ToolTip = 'Specifies that the related record is blocked from being posted in transactions, for example a customer that is declared insolvent or an item that is placed in quarantine.';
 
             trigger OnValidate()
             begin
@@ -479,6 +502,7 @@ table 156 Resource
         field(51; "Gen. Prod. Posting Group"; Code[20])
         {
             Caption = 'Gen. Prod. Posting Group';
+            ToolTip = 'Specifies the item''s product type to link transactions made for this item with the appropriate general ledger account according to the general posting setup.';
             TableRelation = "Gen. Product Posting Group";
 
             trigger OnValidate()
@@ -491,6 +515,7 @@ table 156 Resource
         field(53; "Post Code"; Code[20])
         {
             Caption = 'Post Code';
+            ToolTip = 'Specifies the postal code.';
             TableRelation = if ("Country/Region Code" = const('')) "Post Code"
             else
             if ("Country/Region Code" = filter(<> '')) "Post Code" where("Country/Region Code" = field("Country/Region Code"));
@@ -517,10 +542,12 @@ table 156 Resource
         {
             CaptionClass = '5,1,' + "Country/Region Code";
             Caption = 'County';
+            ToolTip = 'Specifies a special region, to which the resource belongs.';
         }
         field(55; "Automatic Ext. Texts"; Boolean)
         {
             Caption = 'Automatic Ext. Texts';
+            ToolTip = 'Specifies that an Extended Text Header will be added on sales or purchase documents for this resource.';
         }
         field(56; "No. Series"; Code[20])
         {
@@ -536,11 +563,13 @@ table 156 Resource
         field(58; "VAT Prod. Posting Group"; Code[20])
         {
             Caption = 'VAT Prod. Posting Group';
+            ToolTip = 'Specifies the VAT specification of the involved item or resource to link transactions made for this record with the appropriate general ledger account according to the VAT posting setup.';
             TableRelation = "VAT Product Posting Group";
         }
         field(59; "Country/Region Code"; Code[10])
         {
             Caption = 'Country/Region Code';
+            ToolTip = 'Specifies the country/region of the address.';
             TableRelation = "Country/Region";
 
             trigger OnValidate()
@@ -551,6 +580,7 @@ table 156 Resource
         field(60; "IC Partner Purch. G/L Acc. No."; Code[20])
         {
             Caption = 'IC Partner Purch. G/L Acc. No.';
+            ToolTip = 'Specifies the intercompany g/l account number in your partner''s company that the amount for this resource is posted to.';
             TableRelation = "IC G/L Account";
         }
         field(61; "Unit Group Exists"; Boolean)
@@ -564,10 +594,12 @@ table 156 Resource
         field(140; Image; Media)
         {
             Caption = 'Image';
+            ToolTip = 'Specifies the picture that has been inserted for the resource.';
         }
         field(150; "Privacy Blocked"; Boolean)
         {
             Caption = 'Privacy Blocked';
+            ToolTip = 'Specifies whether to limit access to data for the data subject during daily operations. This is useful, for example, when protecting data from changes while it is under privacy review.';
 
             trigger OnValidate()
             begin
@@ -591,6 +623,7 @@ table 156 Resource
         {
             FieldClass = FlowField;
             Caption = 'Coupled to Dynamics 365 Sales';
+            ToolTip = 'Specifies that the resource is coupled to an entity in Dataverse.';
             Editable = false;
             CalcFormula = exist("CRM Integration Record" where("Integration ID" = field(SystemId), "Table ID" = const(Database::Resource)));
         }
@@ -609,6 +642,7 @@ table 156 Resource
         field(950; "Use Time Sheet"; Boolean)
         {
             Caption = 'Use Time Sheet';
+            ToolTip = 'Specifies whether a resource uses time sheets to record the time they use on tasks.';
 
             trigger OnValidate()
             begin
@@ -620,6 +654,7 @@ table 156 Resource
         field(951; "Time Sheet Owner User ID"; Code[50])
         {
             Caption = 'Time Sheet Owner User ID';
+            ToolTip = 'Specifies the name of the owner of the time sheet.';
             DataClassification = EndUserIdentifiableInformation;
             TableRelation = "User Setup";
 
@@ -633,6 +668,7 @@ table 156 Resource
         field(952; "Time Sheet Approver User ID"; Code[50])
         {
             Caption = 'Time Sheet Approver User ID';
+            ToolTip = 'Specifies the ID of the approver of the time sheet.';
             DataClassification = EndUserIdentifiableInformation;
             TableRelation = "User Setup";
 
@@ -653,6 +689,7 @@ table 156 Resource
         field(1700; "Default Deferral Template Code"; Code[10])
         {
             Caption = 'Default Deferral Template Code';
+            ToolTip = 'Specifies the default template that governs how to defer revenues and expenses to the periods when they occurred.';
             TableRelation = "Deferral Template"."Deferral Code";
         }
     }

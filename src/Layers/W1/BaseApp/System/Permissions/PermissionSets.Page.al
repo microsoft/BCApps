@@ -35,7 +35,6 @@ page 9802 "Permission Sets"
                     ApplicationArea = Basic, Suite;
                     Caption = 'Permission Set';
                     Editable = IsPermissionSetEditable;
-                    ToolTip = 'Specifies the name of the permission set.';
 
                     trigger OnValidate()
                     var
@@ -58,7 +57,6 @@ page 9802 "Permission Sets"
                     Caption = 'Name';
                     ApplicationArea = Basic, Suite;
                     Editable = IsPermissionSetEditable;
-                    ToolTip = 'Specifies the description of the record.';
 
                     trigger OnValidate()
                     var
@@ -72,7 +70,6 @@ page 9802 "Permission Sets"
                     ApplicationArea = Basic, Suite;
                     Editable = false;
                     Enabled = false;
-                    ToolTip = 'Specifies if the permission set is defined by your organization, the base application, or an extension. You can only edit or delete permission sets that you have created.';
                     AboutTitle = 'The source of the permission set';
                     AboutText = 'You can modify or delete permission sets that your organization created but not those that are built-in (System). Extensions can define permission sets that are also not editable and that will be removed if the extension is uninstalled.';
                 }
@@ -81,7 +78,6 @@ page 9802 "Permission Sets"
                     ApplicationArea = Basic, Suite;
                     Caption = 'Extension Name';
                     Editable = false;
-                    ToolTip = 'Specifies the name of the extension.';
                 }
             }
         }
@@ -186,13 +182,6 @@ page 9802 "Permission Sets"
                         PermissionConflict.SetPermissionSetId(Rec."Role ID");
                         PermissionConflict.Run();
                     end;
-                }
-                action(PermissionsOverview)
-                {
-                    Caption = 'Permissions Overview';
-                    Image = ViewWorksheet;
-                    RunObject = Page "Permissions Overview";
-                    ToolTip = 'View how permissions are distributed across permission sets in your system as well as how they are assigned.';
                 }
             }
             group("User Groups")

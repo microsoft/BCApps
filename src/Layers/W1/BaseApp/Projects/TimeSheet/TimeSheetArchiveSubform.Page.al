@@ -30,42 +30,34 @@ page 976 "Time Sheet Archive Subform"
                 field("Job No."; Rec."Job No.")
                 {
                     ApplicationArea = Jobs;
-                    ToolTip = 'Specifies the number for the project that is associated with the time sheet line.';
                 }
                 field("Job Task No."; Rec."Job Task No.")
                 {
                     ApplicationArea = Jobs;
-                    ToolTip = 'Specifies the number of the related project task.';
                 }
                 field(Description; Rec.Description)
                 {
                     ApplicationArea = Jobs;
-                    ToolTip = 'Specifies a description of the archived time sheet line.';
                 }
                 field("Cause of Absence Code"; Rec."Cause of Absence Code")
                 {
                     ApplicationArea = Jobs;
-                    ToolTip = 'Specifies the codes that you can use to describe the type of absence from work.';
                 }
                 field(Chargeable; Rec.Chargeable)
                 {
                     ApplicationArea = Jobs;
-                    ToolTip = 'Specifies whether the time associated with an archived time sheet is chargeable.';
                 }
                 field("Work Type Code"; Rec."Work Type Code")
                 {
                     ApplicationArea = Jobs;
-                    ToolTip = 'Specifies which work type the resource applies to. Prices are updated based on this entry.';
                 }
                 field("Assembly Order No."; Rec."Assembly Order No.")
                 {
                     ApplicationArea = Assembly;
-                    ToolTip = 'Specifies the assembly order number that is associated with the time sheet line.';
                 }
                 field(Status; Rec.Status)
                 {
                     ApplicationArea = Jobs;
-                    ToolTip = 'Specifies information about the status of an archived time sheet.';
                 }
                 field(Field1; CellData[1])
                 {

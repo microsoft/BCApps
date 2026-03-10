@@ -15,14 +15,14 @@ codeunit 6486 "Serv. VAT Specification Mgt."
         CanOnlyBeModifiedErr: Label '%1 can only be modified on the %2 tab.', Comment = '%1 - field caption, %2 - page tab caption';
         DetailsTxt: Label 'Details';
 
-    [EventSubscriber(ObjectType::Page, Page::"VAT Specification Subform", 'OnBeforeCheckAmountChange', '', false, false)]
+    [EventSubscriber(ObjectType::Page, Page::"VAT Specification Subform", 'OnBeforeCheckAmountChange', '', true, false)]
     local procedure OnBeforeCheckAmountChange(ParentControl: Integer; AmountFieldCaption: Text);
     begin
         if ParentControl = PAGE::"Service Order Statistics" then
             Error(CanOnlyBeModifiedErr, AmountFieldCaption, DetailsTxt)
     end;
 
-    [EventSubscriber(ObjectType::Page, Page::"VAT Specification Subform", 'OnAfterModifyRec', '', false, false)]
+    [EventSubscriber(ObjectType::Page, Page::"VAT Specification Subform", 'OnAfterModifyRec', '', true, false)]
     local procedure OnAfterModifyRec(var SourceHeader: Variant; var VATAmountLine: Record "VAT Amount Line"; ParentControl: Integer; CurrentTabNo: Integer)
     var
         ServiceHeader: Record "Service Header";
@@ -43,7 +43,7 @@ codeunit 6486 "Serv. VAT Specification Mgt."
             end;
     end;
 
-    [EventSubscriber(ObjectType::Table, Database::"VAT Clause", 'OnGetDocumentTypeAndLanguageCode', '', false, false)]
+    [EventSubscriber(ObjectType::Table, Database::"VAT Clause", 'OnGetDocumentTypeAndLanguageCode', '', true, false)]
     local procedure OnGetDocumentTypeAndLanguageCode(VATClause: Record "VAT Clause"; RecRelatedVariant: Variant; var DocumentType: Enum "VAT Clause Document Type"; var LanguageCode: Code[10]; var IsHandled: Boolean)
     var
         ServiceInvoiceHeader: Record "Service Invoice Header";

@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -35,6 +35,7 @@ table 5361 "CRM Uom"
         field(3; Name; Text[100])
         {
             Caption = 'Name';
+            ToolTip = 'Specifies the name of the record.';
             Description = 'Type a descriptive title or name for the unit of measure.';
             ExternalName = 'name';
             ExternalType = 'String';
@@ -52,6 +53,7 @@ table 5361 "CRM Uom"
         {
             AutoFormatType = 0;
             Caption = 'Quantity';
+            ToolTip = 'Specifies the quantity of the record.';
             Description = 'Unit quantity for the product.';
             ExternalName = 'quantity';
             ExternalType = 'Decimal';
@@ -102,6 +104,7 @@ table 5361 "CRM Uom"
         {
             CalcFormula = lookup("CRM Uom".Name where(UoMId = field(BaseUoM)));
             Caption = 'BaseUoMName';
+            ToolTip = 'Specifies the base unit of measure of the Dynamics 365 Sales record.';
             Description = 'Name of the base unit for the product, such as a two-liter bottle.';
             ExternalAccess = Read;
             ExternalName = 'baseuomname';

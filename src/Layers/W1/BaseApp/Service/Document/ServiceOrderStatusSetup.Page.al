@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -22,12 +22,10 @@ page 5943 "Service Order Status Setup"
                 field("Service Order Status"; Rec."Service Order Status")
                 {
                     ApplicationArea = Service;
-                    ToolTip = 'Specifies the service order status to which you are assigning a priority.';
                 }
                 field(Priority; Rec.Priority)
                 {
                     ApplicationArea = Service;
-                    ToolTip = 'Specifies the priority level for the service order status.';
                 }
             }
         }

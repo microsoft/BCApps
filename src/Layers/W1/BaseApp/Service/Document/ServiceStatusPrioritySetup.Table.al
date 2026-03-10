@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -19,10 +19,12 @@ table 5928 "Service Status Priority Setup"
         field(1; "Service Order Status"; Enum "Service Document Status")
         {
             Caption = 'Service Order Status';
+            ToolTip = 'Specifies the service order status to which you are assigning a priority.';
         }
         field(2; Priority; Option)
         {
             Caption = 'Priority';
+            ToolTip = 'Specifies the priority level for the service order status.';
             OptionCaption = 'High,Medium High,Medium Low,Low';
             OptionMembers = High,"Medium High","Medium Low",Low;
 

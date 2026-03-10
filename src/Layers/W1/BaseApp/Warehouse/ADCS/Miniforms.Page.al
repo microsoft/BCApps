@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -25,17 +25,14 @@ page 7703 Miniforms
                 field("Code"; Rec.Code)
                 {
                     ApplicationArea = ADCS;
-                    ToolTip = 'Specifies a unique code for a specific miniform.';
                 }
                 field(Description; Rec.Description)
                 {
                     ApplicationArea = ADCS;
-                    ToolTip = 'Specifies your description of the miniform with the code on the header.';
                 }
                 field("No. of Records in List"; Rec."No. of Records in List")
                 {
                     ApplicationArea = ADCS;
-                    ToolTip = 'Specifies the number of records that will be sent to the handheld if the miniform on the header is either Selection List or Data List.';
                 }
             }
         }

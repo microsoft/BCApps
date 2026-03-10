@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -19,11 +19,13 @@ table 7158 "Analysis Dim. Selection Buffer"
         field(1; "Code"; Text[30])
         {
             Caption = 'Code';
+            ToolTip = 'Specifies a code for the selection.';
             DataClassification = SystemMetadata;
         }
         field(2; Description; Text[30])
         {
             Caption = 'Description';
+            ToolTip = 'Specifies a description of the selection.';
             DataClassification = SystemMetadata;
         }
         field(3; Selected; Boolean)
@@ -56,6 +58,7 @@ table 7158 "Analysis Dim. Selection Buffer"
         field(5; "Dimension Value Filter"; Code[250])
         {
             Caption = 'Dimension Value Filter';
+            ToolTip = 'Specifies the dimension value that the analysis view is based on.';
             DataClassification = SystemMetadata;
             TableRelation = if (Code = const('Item')) Item."No."
             else
@@ -72,6 +75,7 @@ table 7158 "Analysis Dim. Selection Buffer"
         field(6; Level; Option)
         {
             Caption = 'Level';
+            ToolTip = 'Specifies the level for the selected dimension for analysis.';
             DataClassification = SystemMetadata;
             OptionCaption = ' ,Level 1,Level 2,Level 3';
             OptionMembers = " ","Level 1","Level 2","Level 3";

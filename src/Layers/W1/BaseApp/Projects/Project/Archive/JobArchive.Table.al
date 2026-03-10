@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -41,14 +41,17 @@ table 5135 "Job Archive"
         field(1; "No."; Code[20])
         {
             Caption = 'No.';
+            ToolTip = 'Specifies the number of the involved entry or record, according to the specified number series.';
         }
         field(2; "Search Description"; Code[100])
         {
             Caption = 'Search Description';
+            ToolTip = 'Specifies the additional name for the project. The field is used for searching purposes.';
         }
         field(3; Description; Text[100])
         {
             Caption = 'Description';
+            ToolTip = 'Specifies a short description of the project.';
         }
         field(4; "Description 2"; Text[50])
         {
@@ -57,29 +60,35 @@ table 5135 "Job Archive"
         field(5; "Bill-to Customer No."; Code[20])
         {
             Caption = 'Bill-to Customer No.';
+            ToolTip = 'Specifies the number of the customer who pays for the project.';
             TableRelation = Customer;
         }
         field(12; "Creation Date"; Date)
         {
             Caption = 'Creation Date';
+            ToolTip = 'Specifies the date on which you set up the project.';
             Editable = false;
         }
         field(13; "Starting Date"; Date)
         {
             Caption = 'Starting Date';
+            ToolTip = 'Specifies the date on which the project actually starts.';
         }
         field(14; "Ending Date"; Date)
         {
             Caption = 'Ending Date';
+            ToolTip = 'Specifies the date on which the project is expected to be completed.';
         }
         field(19; Status; Enum "Job Status")
         {
             Caption = 'Status';
+            ToolTip = 'Specifies a status for the current project. You can change the status for the project as it progresses. Final calculations can be made on completed projects.';
             InitValue = Open;
         }
         field(20; "Person Responsible"; Code[20])
         {
             Caption = 'Person Responsible';
+            ToolTip = 'Specifies the person at your company who is responsible for the project.';
             TableRelation = Resource where(Type = const(Person));
         }
         field(21; "Global Dimension 1 Code"; Code[20])
@@ -99,15 +108,18 @@ table 5135 "Job Archive"
         field(23; "Job Posting Group"; Code[20])
         {
             Caption = 'Project Posting Group';
+            ToolTip = 'Specifies the posting group that links transactions made for the project with the appropriate general ledger accounts according to the general posting setup.';
             TableRelation = "Job Posting Group";
         }
         field(24; Blocked; Enum "Job Blocked")
         {
             Caption = 'Blocked';
+            ToolTip = 'Specifies that the related record is blocked from being posted in transactions, for example a customer that is declared insolvent or an item that is placed in quarantine.';
         }
         field(29; "Last Date Modified"; Date)
         {
             Caption = 'Last Date Modified';
+            ToolTip = 'Specifies when the project card was last modified.';
             Editable = false;
         }
         field(30; Comment; Boolean)
@@ -132,12 +144,14 @@ table 5135 "Job Archive"
         field(35; "Location Code"; Code[10])
         {
             Caption = 'Location Code';
+            ToolTip = 'Specifies the location code of the project.';
             TableRelation = Location where("Use As In-Transit" = const(false));
             DataClassification = CustomerContent;
         }
         field(36; "Bin Code"; Code[20])
         {
             Caption = 'Bin Code';
+            ToolTip = 'Specifies a bin code for specific location of the project.';
             TableRelation = Bin.Code where("Location Code" = field("Location Code"));
             DataClassification = CustomerContent;
         }
@@ -194,20 +208,24 @@ table 5135 "Job Archive"
         field(58; "Bill-to Name"; Text[100])
         {
             Caption = 'Bill-to Name';
+            ToolTip = 'Specifies the name of the customer who pays for the project.';
             TableRelation = Customer.Name;
             ValidateTableRelation = false;
         }
         field(59; "Bill-to Address"; Text[100])
         {
             Caption = 'Bill-to Address';
+            ToolTip = 'Specifies the address of the customer to whom you will send the invoice.';
         }
         field(60; "Bill-to Address 2"; Text[50])
         {
             Caption = 'Bill-to Address 2';
+            ToolTip = 'Specifies an additional line of the address.';
         }
         field(61; "Bill-to City"; Text[30])
         {
             Caption = 'Bill-to City';
+            ToolTip = 'Specifies the city of the address.';
             TableRelation = if ("Bill-to Country/Region Code" = const('')) "Post Code".City
             else
             if ("Bill-to Country/Region Code" = filter(<> '')) "Post Code".City where("Country/Region Code" = field("Bill-to Country/Region Code"));
@@ -217,10 +235,12 @@ table 5135 "Job Archive"
         {
             CaptionClass = '5,3,' + "Bill-to Country/Region Code";
             Caption = 'Bill-to County';
+            ToolTip = 'Specifies the county code of the customer''s billing address.';
         }
         field(64; "Bill-to Post Code"; Code[20])
         {
             Caption = 'Bill-to Post Code';
+            ToolTip = 'Specifies the postal code of the customer who pays for the project.';
             TableRelation = if ("Bill-to Country/Region Code" = const('')) "Post Code"
             else
             if ("Bill-to Country/Region Code" = filter(<> '')) "Post Code" where("Country/Region Code" = field("Bill-to Country/Region Code"));
@@ -235,6 +255,7 @@ table 5135 "Job Archive"
         field(67; "Bill-to Country/Region Code"; Code[10])
         {
             Caption = 'Bill-to Country/Region Code';
+            ToolTip = 'Specifies the country/region code of the customer''s billing address.';
             Editable = true;
             TableRelation = "Country/Region";
         }
@@ -260,26 +281,31 @@ table 5135 "Job Archive"
         field(210; "Ship-to Phone No."; Text[30])
         {
             Caption = 'Ship-to Phone No.';
+            ToolTip = 'Specifies the telephone number of the company''s shipping address.';
             ExtendedDatatype = PhoneNo;
         }
         field(1000; "WIP Method"; Code[20])
         {
             Caption = 'WIP Method';
+            ToolTip = 'Specifies the method that is used to calculate the value of work in process for the project.';
             TableRelation = "Job WIP Method".Code where(Valid = const(true));
         }
         field(1001; "Currency Code"; Code[10])
         {
             Caption = 'Currency Code';
+            ToolTip = 'Specifies the currency code for the project. By default, the currency code is empty. If you enter a foreign currency code, it results in the project being planned and invoiced in that currency.';
             TableRelation = Currency;
         }
         field(1002; "Bill-to Contact No."; Code[20])
         {
             AccessByPermission = TableData Contact = R;
             Caption = 'Bill-to Contact No.';
+            ToolTip = 'Specifies the number of the contact person at the customer''s billing address.';
         }
         field(1003; "Bill-to Contact"; Text[100])
         {
             Caption = 'Bill-to Contact';
+            ToolTip = 'Specifies the name of the contact person at the customer who pays for the project.';
         }
         field(1004; "Planning Date Filter"; Date)
         {
@@ -294,6 +320,7 @@ table 5135 "Job Archive"
         field(1011; "Invoice Currency Code"; Code[10])
         {
             Caption = 'Invoice Currency Code';
+            ToolTip = 'Specifies the currency code you want to apply when creating invoices for a project. By default, the invoice currency code for a project is based on what currency code is defined on the customer card.';
             TableRelation = Currency;
         }
         field(1012; "Exch. Calculation (Cost)"; Option)
@@ -311,6 +338,7 @@ table 5135 "Job Archive"
         field(1014; "Allow Schedule/Contract Lines"; Boolean)
         {
             Caption = 'Allow Budget/Billable Lines';
+            ToolTip = 'Specifies if you can add planning lines of both type Budget and type Billable to the project.';
         }
         field(1015; Complete; Boolean)
         {
@@ -323,15 +351,18 @@ table 5135 "Job Archive"
                                                                          "Contract Line" = const(true),
                                                                          "Qty. to Invoice" = filter(<> 0)));
             Caption = 'Next Invoice Date';
+            ToolTip = 'Specifies the next invoice date for the project.';
             FieldClass = FlowField;
         }
         field(1025; "Apply Usage Link"; Boolean)
         {
             Caption = 'Apply Usage Link';
+            ToolTip = 'Specifies whether usage entries, from the project journal or purchase line, for example, are linked to project planning lines. Select this check box if you want to be able to track the quantities and amounts of the remaining work needed to complete a project and to create a relationship between demand planning, usage, and sales. On a project card, you can select this check box if there are no existing project planning lines that include type Budget that have been posted. The usage link only applies to project planning lines that include type Budget.';
         }
         field(1027; "WIP Posting Method"; Option)
         {
             Caption = 'WIP Posting Method';
+            ToolTip = 'Specifies how WIP posting is performed. Per Project: The total WIP costs and the sales value is used to calculate WIP. Per Project Ledger Entry: The accumulated values of WIP costs and sales are used to calculate WIP.';
             OptionCaption = 'Per Project,Per Project Ledger Entry';
             OptionMembers = "Per Job","Per Job Ledger Entry";
         }
@@ -382,16 +413,19 @@ table 5135 "Job Archive"
         field(1036; "Project Manager"; Code[50])
         {
             Caption = 'Project Manager';
+            ToolTip = 'Specifies the person who is assigned to manage the project.';
             TableRelation = "User Setup";
         }
         field(2000; "Sell-to Customer No."; Code[20])
         {
             Caption = 'Sell-to Customer No.';
+            ToolTip = 'Specifies the number of the customer who will receive the products and be billed by default.';
             TableRelation = Customer;
         }
         field(2001; "Sell-to Customer Name"; Text[100])
         {
             Caption = 'Sell-to Customer Name';
+            ToolTip = 'Specifies the name of the customer who will receive the products and be billed by default.';
             TableRelation = Customer.Name;
             ValidateTableRelation = false;
         }
@@ -403,14 +437,17 @@ table 5135 "Job Archive"
         field(2003; "Sell-to Address"; Text[100])
         {
             Caption = 'Sell-to Address';
+            ToolTip = 'Specifies the address where the customer is located.';
         }
         field(2004; "Sell-to Address 2"; Text[50])
         {
             Caption = 'Sell-to Address 2';
+            ToolTip = 'Specifies additional address information.';
         }
         field(2005; "Sell-to City"; Text[30])
         {
             Caption = 'Sell-to City';
+            ToolTip = 'Specifies the city of the customer on the sales document.';
             TableRelation = if ("Sell-to Country/Region Code" = const('')) "Post Code".City
             else
             if ("Sell-to Country/Region Code" = filter(<> '')) "Post Code".City where("Country/Region Code" = field("Sell-to Country/Region Code"));
@@ -419,10 +456,12 @@ table 5135 "Job Archive"
         field(2006; "Sell-to Contact"; Text[100])
         {
             Caption = 'Sell-to Contact';
+            ToolTip = 'Specifies the name of the person to contact at the customer.';
         }
         field(2007; "Sell-to Post Code"; Code[20])
         {
             Caption = 'Sell-to Post Code';
+            ToolTip = 'Specifies the postal code.';
             TableRelation = if ("Sell-to Country/Region Code" = const('')) "Post Code"
             else
             if ("Sell-to Country/Region Code" = filter(<> '')) "Post Code" where("Country/Region Code" = field("Sell-to Country/Region Code"));
@@ -432,10 +471,12 @@ table 5135 "Job Archive"
         {
             CaptionClass = '5,2,' + "Sell-to Country/Region Code";
             Caption = 'Sell-to County';
+            ToolTip = 'Specifies the state, province or county of the address.';
         }
         field(2009; "Sell-to Country/Region Code"; Code[10])
         {
             Caption = 'Sell-to Country/Region Code';
+            ToolTip = 'Specifies the country or region of the address.';
             TableRelation = "Country/Region";
         }
         field(2010; "Sell-to Phone No."; Text[30])
@@ -451,32 +492,39 @@ table 5135 "Job Archive"
         field(2012; "Sell-to Contact No."; Code[20])
         {
             Caption = 'Sell-to Contact No.';
+            ToolTip = 'Specifies the number of the contact person that the sales document will be sent to.';
             TableRelation = Contact;
         }
         field(3000; "Ship-to Code"; Code[10])
         {
             Caption = 'Ship-to Code';
+            ToolTip = 'Specifies the code for another shipment address than the customer''s own address, which is entered by default.';
             TableRelation = "Ship-to Address".Code where("Customer No." = field("Sell-to Customer No."));
         }
         field(3001; "Ship-to Name"; Text[100])
         {
             Caption = 'Ship-to Name';
+            ToolTip = 'Specifies the name that products on the sales document will be shipped to.';
         }
         field(3002; "Ship-to Name 2"; Text[50])
         {
             Caption = 'Ship-to Name 2';
+            ToolTip = 'Specifies an additional part of the name that products on the sales document will be shipped to.';
         }
         field(3003; "Ship-to Address"; Text[100])
         {
             Caption = 'Ship-to Address';
+            ToolTip = 'Specifies the address that products on the sales document will be shipped to.';
         }
         field(3004; "Ship-to Address 2"; Text[50])
         {
             Caption = 'Ship-to Address 2';
+            ToolTip = 'Specifies additional address information.';
         }
         field(3005; "Ship-to City"; Text[30])
         {
             Caption = 'Ship-to City';
+            ToolTip = 'Specifies the city of the customer on the sales document.';
             TableRelation = if ("Ship-to Country/Region Code" = const('')) "Post Code".City
             else
             if ("Ship-to Country/Region Code" = filter(<> '')) "Post Code".City where("Country/Region Code" = field("Ship-to Country/Region Code"));
@@ -485,10 +533,12 @@ table 5135 "Job Archive"
         field(3006; "Ship-to Contact"; Text[100])
         {
             Caption = 'Ship-to Contact';
+            ToolTip = 'Specifies the name of the contact person at the address that products on the sales document will be shipped to.';
         }
         field(3007; "Ship-to Post Code"; Code[20])
         {
             Caption = 'Ship-to Post Code';
+            ToolTip = 'Specifies the postal code.';
             TableRelation = if ("Ship-to Country/Region Code" = const('')) "Post Code"
             else
             if ("Ship-to Country/Region Code" = filter(<> '')) "Post Code" where("Country/Region Code" = field("Ship-to Country/Region Code"));
@@ -498,10 +548,12 @@ table 5135 "Job Archive"
         {
             CaptionClass = '5,4,' + "Ship-to Country/Region Code";
             Caption = 'Ship-to County';
+            ToolTip = 'Specifies the state, province or county of the address.';
         }
         field(3009; "Ship-to Country/Region Code"; Code[10])
         {
             Caption = 'Ship-to Country/Region Code';
+            ToolTip = 'Specifies the customer''s country/region.';
             TableRelation = "Country/Region";
         }
         field(3997; "No. of Archived Versions"; Integer)
@@ -528,6 +580,7 @@ table 5135 "Job Archive"
         field(4000; "External Document No."; Code[35])
         {
             Caption = 'External Document No.';
+            ToolTip = 'Specifies a document number that refers to the customer''s or vendor''s numbering system.';
         }
         field(4001; "Payment Method Code"; Code[10])
         {
@@ -542,22 +595,27 @@ table 5135 "Job Archive"
         field(4003; "Your Reference"; Text[35])
         {
             Caption = 'Your Reference';
+            ToolTip = 'Specifies the customer''s reference. The content will be printed on sales documents.';
         }
         field(5043; "Interaction Exist"; Boolean)
         {
             Caption = 'Interaction Exist';
+            ToolTip = 'Specifies that the archived document is linked to an interaction log entry.';
         }
         field(5044; "Time Archived"; Time)
         {
             Caption = 'Time Archived';
+            ToolTip = 'Specifies what time the document was archived.';
         }
         field(5045; "Date Archived"; Date)
         {
             Caption = 'Date Archived';
+            ToolTip = 'Specifies the date when the document was archived.';
         }
         field(5046; "Archived By"; Code[50])
         {
             Caption = 'Archived By';
+            ToolTip = 'Specifies the user ID of the person who archived this document.';
             DataClassification = EndUserIdentifiableInformation;
             Editable = false;
             TableRelation = User."User Name";
@@ -565,14 +623,17 @@ table 5135 "Job Archive"
         field(5047; "Version No."; Integer)
         {
             Caption = 'Version No.';
+            ToolTip = 'Specifies the version number of the archived document.';
         }
         field(7000; "Price Calculation Method"; Enum "Price Calculation Method")
         {
             Caption = 'Price Calculation Method';
+            ToolTip = 'Specifies the default method of the unit price calculation.';
         }
         field(7001; "Cost Calculation Method"; Enum "Price Calculation Method")
         {
             Caption = 'Cost Calculation Method';
+            ToolTip = 'Specifies the default method of the unit cost calculation.';
         }
         field(7300; "Completely Picked"; Boolean)
         {

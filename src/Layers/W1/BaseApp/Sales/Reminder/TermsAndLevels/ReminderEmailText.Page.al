@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -27,7 +27,6 @@ page 834 "Reminder Email Text"
                     ApplicationArea = All;
                     Importance = Promoted;
                     Caption = 'Subject';
-                    ToolTip = 'Specifies the subject of the generated email.';
                 }
             }
             group(GreetingGroup)
@@ -69,7 +68,6 @@ page 834 "Reminder Email Text"
                     Importance = Additional;
                     Caption = 'Closing';
                     ShowCaption = false;
-                    ToolTip = 'Specifies the last lines at the end of the email.';
                 }
             }
         }

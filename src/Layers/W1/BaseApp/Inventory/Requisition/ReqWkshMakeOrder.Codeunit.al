@@ -812,7 +812,7 @@ codeunit 333 "Req. Wksh.-Make Order"
             if not HideProgressWindow then
                 Window.Update(3, OrderCounter);
 
-        if (ReqLine2."Prod. Order No." <> '') and (OrderDateReq = 0D) then
+        if ReqLine2.IsProdOrder() and (OrderDateReq = 0D) then
             OrderDateReq := ReqLine2."Order Date";
 
         PurchSetup.Get();

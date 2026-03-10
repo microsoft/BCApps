@@ -29,6 +29,7 @@ codeunit 1621 "PEPPOL Service Validation"
     begin
         PEPPOLManagement.TransferHeaderToSalesHeader(ServiceHeader, SalesHeader);
         SalesHeader."Shipment Date" := SalesHeader."Posting Date";
+        SalesHeader."Sell-to E-Mail" := ServiceHeader."E-Mail";
         PEPPOLValidation.CheckSalesDocument(SalesHeader);
         ServiceLine.SetRange("Document No.", ServiceHeader."No.");
         OnAfterSetServiceLineFilter(ServiceLine, ServiceHeader);

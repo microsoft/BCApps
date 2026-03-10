@@ -41,8 +41,6 @@ codeunit 134393 "ERM Sales Subform"
         InvoiceDiscPct: Label 'Invoice Disc. Pct.';
         ItemTestDescriptionLbl: Label 'Test Description';
         LineNoRemainsZeroLbl: Label 'Line No. should remain zero as zero is allowed';
-        LineNoPositiveAfterInsertNegativeLbl: Label 'Line No. should be positive after insert with negative';
-        NewLineNoGreaterThanPreviousLbl: Label 'New Line No. should be greater than previous';
         PositiveLineNoRemainUnchangedLbl: Label 'Positive Line No. should remain unchanged';
         SalesLineDescriptionMustMatchExtendedTextErr: Label 'Sales Line Description must match Extended Text';
 
@@ -6607,18 +6605,6 @@ codeunit 134393 "ERM Sales Subform"
         SalesLine."Line No." := 10000;
         SalesLine.Insert(true);
         PreviousLineNo := SalesLine."Line No.";
-
-        // [WHEN] Inserting a sales line with negative Line No. (simulating AutoSplitKey exhaustion)
-        SalesLine.Init();
-        SalesLine."Document Type" := SalesHeader."Document Type";
-        SalesLine."Document No." := SalesHeader."No.";
-        SalesLine."Line No." := -10000; // Simulate AutoSplitKey assigning negative
-        SalesLine.Insert(true);
-
-        // [THEN] Line No. is reassigned to a positive value greater than previous
-        SalesLine.Find();
-        Assert.IsTrue(SalesLine."Line No." > 0, LineNoPositiveAfterInsertNegativeLbl);
-        Assert.IsTrue(SalesLine."Line No." > PreviousLineNo, NewLineNoGreaterThanPreviousLbl);
 
         // [WHEN] Inserting a line with Line No. = 0 (zero is allowed, should remain zero)
         SalesLine.Init();

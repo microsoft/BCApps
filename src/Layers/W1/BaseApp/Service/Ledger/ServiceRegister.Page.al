@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -25,17 +25,14 @@ page 5931 "Service Register"
                 field("No."; Rec."No.")
                 {
                     ApplicationArea = Service;
-                    ToolTip = 'Specifies the number of the involved entry or record, according to the specified number series.';
                 }
                 field("Creation Date"; Rec."Creation Date")
                 {
                     ApplicationArea = Service;
-                    ToolTip = 'Specifies the date when the entries in the register were created.';
                 }
                 field("User ID"; Rec."User ID")
                 {
                     ApplicationArea = Service;
-                    ToolTip = 'Specifies the ID of the user who posted the entry, to be used, for example, in the change log.';
 
                     trigger OnDrillDown()
                     var
@@ -47,22 +44,18 @@ page 5931 "Service Register"
                 field("From Entry No."; Rec."From Entry No.")
                 {
                     ApplicationArea = Service;
-                    ToolTip = 'Specifies the first item entry number in the register.';
                 }
                 field("To Entry No."; Rec."To Entry No.")
                 {
                     ApplicationArea = Service;
-                    ToolTip = 'Specifies the last sequence number from the range of service ledger entries created for this register line.';
                 }
                 field("From Warranty Entry No."; Rec."From Warranty Entry No.")
                 {
                     ApplicationArea = Service;
-                    ToolTip = 'Specifies the first sequence number from the range of warranty ledger entries created for this register line.';
                 }
                 field("To Warranty Entry No."; Rec."To Warranty Entry No.")
                 {
                     ApplicationArea = Service;
-                    ToolTip = 'Specifies the last sequence number from the range of warranty ledger entries created for this register line.';
                 }
             }
         }

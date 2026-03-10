@@ -45,6 +45,7 @@ codeunit 99000823 "Mfg. Item Jnl.-Post Batch"
             exit;
 
         MfgCreatePutaway.IncludeIntoWhsePutAwayForProdOrder(ItemJournalLine);
+        OnAfterHandleWhsePutAwayForProdOutput(ItemJournalLine);
     end;
 
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Item Jnl.-Post Batch", 'OnAfterPostLines', '', true, false)]
@@ -92,6 +93,11 @@ codeunit 99000823 "Mfg. Item Jnl.-Post Batch"
 
     [IntegrationEvent(false, false)]
     local procedure OnBeforeSelfReservedQty(SKU: Record "Stockkeeping Unit"; ItemJnlLine: Record "Item Journal Line"; var Result: Decimal; var IsHandled: Boolean)
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnAfterHandleWhsePutAwayForProdOutput(ItemJournalLine: Record "Item Journal Line")
     begin
     end;
 }

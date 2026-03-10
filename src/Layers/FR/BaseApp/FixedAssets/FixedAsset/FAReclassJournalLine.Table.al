@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -32,6 +32,7 @@ table 5624 "FA Reclass. Journal Line"
         field(4; "FA No."; Code[20])
         {
             Caption = 'FA No.';
+            ToolTip = 'Specifies the number of the related fixed asset.';
             TableRelation = "Fixed Asset";
 
             trigger OnValidate()
@@ -49,6 +50,7 @@ table 5624 "FA Reclass. Journal Line"
         field(5; "New FA No."; Code[20])
         {
             Caption = 'New FA No.';
+            ToolTip = 'Specifies the number of the fixed asset you want to reclassify to.';
             TableRelation = "Fixed Asset";
 
             trigger OnValidate()
@@ -63,14 +65,17 @@ table 5624 "FA Reclass. Journal Line"
         field(6; "FA Posting Date"; Date)
         {
             Caption = 'FA Posting Date';
+            ToolTip = 'Specifies the posting date of the related fixed asset transaction, such as a depreciation.';
         }
         field(7; "Posting Date"; Date)
         {
             Caption = 'Posting Date';
+            ToolTip = 'Specifies the same date as the FA Posting Date field when the line is posted.';
         }
         field(8; "Depreciation Book Code"; Code[10])
         {
             Caption = 'Depreciation Book Code';
+            ToolTip = 'Specifies the code for the depreciation book to which the line will be posted if you have selected Fixed Asset in the Type field for this line.';
             TableRelation = "Depreciation Book";
         }
         field(9; "Reclassify Acq. Cost Amount"; Decimal)
@@ -78,6 +83,7 @@ table 5624 "FA Reclass. Journal Line"
             AutoFormatType = 1;
             AutoFormatExpression = '';
             Caption = 'Reclassify Acq. Cost Amount';
+            ToolTip = 'Specifies the acquisition amount you want to reclassify.';
             MinValue = 0;
 
             trigger OnValidate()
@@ -89,6 +95,7 @@ table 5624 "FA Reclass. Journal Line"
         {
             AutoFormatType = 0;
             Caption = 'Reclassify Acq. Cost %';
+            ToolTip = 'Specifies the percentage of the acquisition cost you want to reclassify.';
             DecimalPlaces = 0 : 8;
             MaxValue = 100;
             MinValue = 0;
@@ -101,46 +108,57 @@ table 5624 "FA Reclass. Journal Line"
         field(11; "Reclassify Acquisition Cost"; Boolean)
         {
             Caption = 'Reclassify Acquisition Cost';
+            ToolTip = 'Specifies the reclassification of the acquisition cost for the fixed asset entered in the FA No. field, to the fixed asset entered in the New FA No. field.';
         }
         field(12; "Reclassify Depreciation"; Boolean)
         {
             Caption = 'Reclassify Depreciation';
+            ToolTip = 'Specifies the reclassification of the accumulated depreciation for the fixed asset entered in the FA No. field, to the fixed asset entered in the New FA No. field.';
         }
         field(13; "Reclassify Write-Down"; Boolean)
         {
             Caption = 'Reclassify Write-Down';
+            ToolTip = 'Specifies the reclassification of all write-down entries for the fixed asset entered in the FA No. field to the fixed asset you have entered in the New FA No. field.';
         }
         field(14; "Reclassify Appreciation"; Boolean)
         {
             Caption = 'Reclassify Appreciation';
+            ToolTip = 'Specifies the reclassification of all appreciation entries for the fixed asset entered in the FA No. field to the fixed asset entered in the New FA No. field.';
         }
         field(15; "Reclassify Custom 1"; Boolean)
         {
             Caption = 'Reclassify Custom 1';
+            ToolTip = 'Specifies the reclassification of all custom 1 entries for the fixed asset entered in the FA No. field to the fixed asset entered in the New FA No. field.';
         }
         field(16; "Reclassify Custom 2"; Boolean)
         {
             Caption = 'Reclassify Custom 2';
+            ToolTip = 'Specifies the reclassification of all custom 2 entries for the fixed asset entered in the FA No. field to the fixed asset entered in the New FA No. field.';
         }
         field(17; "Reclassify Salvage Value"; Boolean)
         {
             Caption = 'Reclassify Salvage Value';
+            ToolTip = 'Specifies the salvage value for the fixed asset to be reclassified to the fixed asset entered in the New FA No. field.';
         }
         field(18; "Insert Bal. Account"; Boolean)
         {
             Caption = 'Insert Bal. Account';
+            ToolTip = 'Specifies whether to create one or more balancing entry lines in the FA general ledger journal or FA Journal.';
         }
         field(19; Description; Text[100])
         {
             Caption = 'Description';
+            ToolTip = 'Specifies the description of the asset entered in the FA No field. field.';
         }
         field(20; "Document No."; Code[20])
         {
             Caption = 'Document No.';
+            ToolTip = 'Specifies a value depending on how you have set up the number series that is assigned to the current journal batch.';
         }
         field(22; "Calc. DB1 Depr. Amount"; Boolean)
         {
             Caption = 'Calc. DB1 Depr. Amount';
+            ToolTip = 'Specifies that the Reclassify function fills in the Temp. Ending Date and Temp. Fixed Depr. Amount fields on the FA depreciation book.';
         }
         field(10800; "Reclassify Derogatory"; Boolean)
         {

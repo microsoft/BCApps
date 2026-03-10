@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -131,7 +131,6 @@ page 6640 "Purchase Return Order"
                         ApplicationArea = PurchReturnOrder;
                         Caption = 'City';
                         Importance = Additional;
-                        ToolTip = 'Specifies the city of the vendor on the purchase document.';
                     }
                     group(Control69)
                     {
@@ -169,7 +168,6 @@ page 6640 "Purchase Return Order"
                         ApplicationArea = PurchReturnOrder;
                         Caption = 'Contact No.';
                         Importance = Additional;
-                        ToolTip = 'Specifies the number of your contact at the vendor.';
 
                         trigger OnLookup(var Text: Text): Boolean
                         begin
@@ -230,7 +228,6 @@ page 6640 "Purchase Return Order"
                 field("Document Date"; Rec."Document Date")
                 {
                     ApplicationArea = PurchReturnOrder;
-                    ToolTip = 'Specifies the date when the related document was created.';
                 }
                 field("Operation Occurred Date"; Rec."Operation Occurred Date")
                 {
@@ -259,19 +256,16 @@ page 6640 "Purchase Return Order"
                     Importance = Additional;
                     Editable = VATDateEnabled;
                     Visible = VATDateEnabled;
-                    ToolTip = 'Specifies the date used to include entries on VAT reports in a VAT period. This is either the date that the document was created or posted, depending on your setting on the General Ledger Setup page.';
                 }
                 field("No. of Archived Versions"; Rec."No. of Archived Versions")
                 {
                     ApplicationArea = PurchReturnOrder;
                     Importance = Additional;
-                    ToolTip = 'Specifies the number of archived versions for this document.';
                 }
                 field("Order Date"; Rec."Order Date")
                 {
                     ApplicationArea = PurchReturnOrder;
                     Importance = Additional;
-                    ToolTip = 'Specifies the date when the order was created.';
                 }
                 field("Vendor Authorization No."; Rec."Vendor Authorization No.")
                 {
@@ -289,7 +283,6 @@ page 6640 "Purchase Return Order"
                 field("Purchaser Code"; Rec."Purchaser Code")
                 {
                     ApplicationArea = PurchReturnOrder;
-                    ToolTip = 'Specifies which purchaser is assigned to the vendor.';
 
                     trigger OnValidate()
                     begin
@@ -299,19 +292,16 @@ page 6640 "Purchase Return Order"
                 field("Campaign No."; Rec."Campaign No.")
                 {
                     ApplicationArea = RelationshipMgmt;
-                    ToolTip = 'Specifies the campaign number the document is linked to.';
                 }
                 field("Responsibility Center"; Rec."Responsibility Center")
                 {
                     ApplicationArea = Suite;
                     Importance = Additional;
-                    ToolTip = 'Specifies the code of the responsibility center, such as a distribution hub, that is associated with the involved user, company, customer, or vendor.';
                 }
                 field("Assigned User ID"; Rec."Assigned User ID")
                 {
                     ApplicationArea = PurchReturnOrder;
                     Importance = Additional;
-                    ToolTip = 'Specifies the ID of the user who is responsible for the document.';
                 }
                 field("Operation Type"; Rec."Operation Type")
                 {
@@ -355,13 +345,11 @@ page 6640 "Purchase Return Order"
                 field("Language Code"; Rec."Language Code")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the language to be used on printouts for this document.';
                     Visible = false;
                 }
                 field("Format Region"; Rec."Format Region")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the format to be used on printouts for this document.';
                     Visible = false;
                 }
             }
@@ -405,7 +393,6 @@ page 6640 "Purchase Return Order"
                 {
                     ApplicationArea = PurchReturnOrder;
                     Importance = Promoted;
-                    ToolTip = 'Specifies the date you expect the items to be available in your warehouse. If you leave the field blank, it will be calculated as follows: Planned Receipt Date + Safety Lead Time + Inbound Warehouse Handling Time = Expected Receipt Date.';
                 }
                 field("Shipment Method Code"; Rec."Shipment Method Code")
                 {
@@ -430,7 +417,6 @@ page 6640 "Purchase Return Order"
                 field("Prices Including VAT"; Rec."Prices Including VAT")
                 {
                     ApplicationArea = VAT;
-                    ToolTip = 'Specifies if the Unit Price and Line Amount fields on document lines should be shown with or without VAT.';
 
                     trigger OnValidate()
                     begin
@@ -440,14 +426,12 @@ page 6640 "Purchase Return Order"
                 field("VAT Bus. Posting Group"; Rec."VAT Bus. Posting Group")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the VAT specification of the involved customer or vendor to link transactions made for this record with the appropriate general ledger account according to the VAT posting setup.';
                 }
                 field("Vendor Posting Group"; Rec."Vendor Posting Group")
                 {
                     ApplicationArea = Basic, Suite;
                     Editable = IsPostingGroupEditable;
                     Importance = Additional;
-                    ToolTip = 'Specifies the vendor''s market type to link business transactions to.';
                 }
                 field("Refers to Period"; Rec."Refers to Period")
                 {
@@ -463,19 +447,16 @@ page 6640 "Purchase Return Order"
                 {
                     ApplicationArea = Basic, Suite;
                     Importance = Promoted;
-                    ToolTip = 'Specifies a formula that calculates the payment due date, payment discount date, and payment discount amount.';
                 }
                 field("Payment Method Code"; Rec."Payment Method Code")
                 {
                     ApplicationArea = Basic, Suite;
                     Importance = Additional;
-                    ToolTip = 'Specifies how to make payment, such as with bank transfer, cash, or check.';
                     Visible = IsPaymentMethodCodeVisible;
                 }
                 field("Shortcut Dimension 1 Code"; Rec."Shortcut Dimension 1 Code")
                 {
                     ApplicationArea = Dimensions;
-                    ToolTip = 'Specifies the code for Shortcut Dimension 1, which is one of two global dimension codes that you set up in the General Ledger Setup window.';
 
                     trigger OnValidate()
                     begin
@@ -485,7 +466,6 @@ page 6640 "Purchase Return Order"
                 field("Shortcut Dimension 2 Code"; Rec."Shortcut Dimension 2 Code")
                 {
                     ApplicationArea = Dimensions;
-                    ToolTip = 'Specifies the code for Shortcut Dimension 2, which is one of two global dimension codes that you set up in the General Ledger Setup window.';
 
                     trigger OnValidate()
                     begin
@@ -502,23 +482,19 @@ page 6640 "Purchase Return Order"
                 {
                     ApplicationArea = PurchReturnOrder;
                     Importance = Promoted;
-                    ToolTip = 'Specifies the type of the posted document that this document or journal line will be applied to when you post, for example to register payment.';
                 }
                 field("Applies-to Doc. No."; Rec."Applies-to Doc. No.")
                 {
                     ApplicationArea = PurchReturnOrder;
                     Importance = Promoted;
-                    ToolTip = 'Specifies the number of the posted document that this document or journal line will be applied to when you post, for example to register payment.';
                 }
                 field("Applies-to ID"; Rec."Applies-to ID")
                 {
                     ApplicationArea = PurchReturnOrder;
-                    ToolTip = 'Specifies the ID of entries that will be applied to when you choose the Apply Entries action.';
                 }
                 field("Journal Templ. Name"; Rec."Journal Templ. Name")
                 {
                     ApplicationArea = PurchReturnOrder;
-                    ToolTip = 'Specifies the name of the journal template in which the purchase header is to be posted.';
                     Visible = IsJournalTemplNameVisible;
                 }
                 field("Tax Liable"; Rec."Tax Liable")
@@ -529,7 +505,6 @@ page 6640 "Purchase Return Order"
                 field("Tax Area Code"; Rec."Tax Area Code")
                 {
                     ApplicationArea = SalesTax;
-                    ToolTip = 'Specifies the tax area code used for this purchase to calculate and post sales tax.';
 
                     trigger OnValidate()
                     begin
@@ -564,7 +539,6 @@ page 6640 "Purchase Return Order"
                     {
                         ApplicationArea = PurchReturnOrder;
                         Caption = 'Alternate Vendor Address Code';
-                        ToolTip = 'Specifies the order address of the related vendor.';
                     }
                 }
                 group(Control62)
@@ -610,7 +584,6 @@ page 6640 "Purchase Return Order"
                         Caption = 'City';
                         Editable = ShipToOptions = ShipToOptions::"Custom Address";
                         Importance = Additional;
-                        ToolTip = 'Specifies the city of the vendor on the purchase document.';
                     }
                     group(Control174)
                     {
@@ -652,7 +625,6 @@ page 6640 "Purchase Return Order"
                         Caption = 'Phone No.';
                         Editable = ShipToOptions = ShipToOptions::"Custom Address";
                         Importance = Additional;
-                        ToolTip = 'Specifies the telephone number of the company''s shipping address.';
                     }
                     field("Ship-to Contact"; Rec."Ship-to Contact")
                     {
@@ -735,7 +707,6 @@ page 6640 "Purchase Return Order"
                         Editable = Rec."Buy-from Vendor No." <> Rec."Pay-to Vendor No.";
                         Enabled = Rec."Buy-from Vendor No." <> Rec."Pay-to Vendor No.";
                         Importance = Additional;
-                        ToolTip = 'Specifies the city of the vendor on the purchase document.';
                     }
                     group(Control79)
                     {
@@ -780,7 +751,6 @@ page 6640 "Purchase Return Order"
                         Caption = 'Contact No.';
                         Enabled = Rec."Buy-from Vendor No." <> Rec."Pay-to Vendor No.";
                         Importance = Additional;
-                        ToolTip = 'Specifies the number of the contact who sends the invoice.';
                         Visible = Rec."Buy-from Vendor No." <> Rec."Pay-to Vendor No.";
                     }
                     field(PayToContactPhoneNo; PayToContact."Phone No.")
@@ -827,27 +797,22 @@ page 6640 "Purchase Return Order"
                 field("Transaction Specification"; Rec."Transaction Specification")
                 {
                     ApplicationArea = BasicEU, BasicNO;
-                    ToolTip = 'Specifies a specification of the document''s transaction, for the purpose of reporting to INTRASTAT.';
                 }
                 field("Transaction Type"; Rec."Transaction Type")
                 {
                     ApplicationArea = BasicEU, BasicNO;
-                    ToolTip = 'Specifies the type of transaction that the document represents, for the purpose of reporting to INTRASTAT.';
                 }
                 field("Transport Method"; Rec."Transport Method")
                 {
                     ApplicationArea = BasicEU, BasicNO;
-                    ToolTip = 'Specifies the transport method, for the purpose of reporting to INTRASTAT.';
                 }
                 field("Entry Point"; Rec."Entry Point")
                 {
                     ApplicationArea = BasicEU, BasicNO;
-                    ToolTip = 'Specifies the code of the port of entry where the items pass into your country/region, for reporting to Intrastat.';
                 }
                 field("Area"; Rec.Area)
                 {
                     ApplicationArea = BasicEU, BasicNO;
-                    ToolTip = 'Specifies the destination country or region for the purpose of Intrastat reporting.';
                 }
                 field("Related Entry No."; Rec."Related Entry No.")
                 {

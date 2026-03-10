@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -29,32 +29,38 @@ table 5857 "Direct Trans. Line"
         field(3; "Item No."; Code[20])
         {
             Caption = 'Item No.';
+            ToolTip = 'Specifies the number of the item.';
             TableRelation = Item;
         }
         field(4; Quantity; Decimal)
         {
             AutoFormatType = 0;
             Caption = 'Quantity';
+            ToolTip = 'Specifies how many units of the record are processed.';
             DecimalPlaces = 0 : 5;
         }
         field(5; "Unit of Measure"; Text[50])
         {
             Caption = 'Unit of Measure';
+            ToolTip = 'Specifies the name of the item or resource''s unit of measure, such as piece or hour.';
         }
         field(7; Description; Text[100])
         {
             Caption = 'Description';
+            ToolTip = 'Specifies the description associated with this line.';
         }
         field(8; "Shortcut Dimension 1 Code"; Code[20])
         {
             CaptionClass = '1,2,1';
             Caption = 'Shortcut Dimension 1 Code';
+            ToolTip = 'Specifies the code for Shortcut Dimension 1, which is one of two global dimension codes that you set up in the General Ledger Setup window.';
             TableRelation = "Dimension Value".Code where("Global Dimension No." = const(1));
         }
         field(9; "Shortcut Dimension 2 Code"; Code[20])
         {
             CaptionClass = '1,2,2';
             Caption = 'Shortcut Dimension 2 Code';
+            ToolTip = 'Specifies the code for Shortcut Dimension 2, which is one of two global dimension codes that you set up in the General Ledger Setup window.';
             TableRelation = "Dimension Value".Code where("Global Dimension No." = const(2));
         }
         field(10; "Gen. Prod. Posting Group"; Code[20])
@@ -83,6 +89,7 @@ table 5857 "Direct Trans. Line"
         field(15; "Unit of Measure Code"; Code[10])
         {
             Caption = 'Unit of Measure Code';
+            ToolTip = 'Specifies how each unit of the item or resource is measured, such as in pieces or hours. By default, the value in the Base Unit of Measure field on the item or resource card is inserted.';
             TableRelation = "Item Unit of Measure".Code where("Item No." = field("Item No."));
         }
         field(16; "Gross Weight"; Decimal)
@@ -106,6 +113,7 @@ table 5857 "Direct Trans. Line"
         field(21; "Variant Code"; Code[10])
         {
             Caption = 'Variant Code';
+            ToolTip = 'Specifies the variant of the item on the line.';
             TableRelation = "Item Variant".Code where("Item No." = field("Item No."));
         }
         field(22; "Units per Parcel"; Decimal)
@@ -171,6 +179,7 @@ table 5857 "Direct Trans. Line"
         field(7300; "Transfer-from Bin Code"; Code[20])
         {
             Caption = 'Transfer-from Bin Code';
+            ToolTip = 'Specifies the code for the bin that the items are transferred from.';
             TableRelation = Bin.Code where("Location Code" = field("Transfer-from Code"),
                                             "Item Filter" = field("Item No."),
                                             "Variant Filter" = field("Variant Code"));

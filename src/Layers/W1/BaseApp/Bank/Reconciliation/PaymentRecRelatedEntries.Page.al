@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -36,7 +36,6 @@ page 496 "Payment Rec. Related Entries"
                 field("Entry No."; Rec."Entry No.")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the Entry No. that was created by the Posted Payment Reconciliation Journal.';
                     Editable = false;
                     trigger OnDrillDown()
                     var
@@ -74,13 +73,11 @@ page 496 "Payment Rec. Related Entries"
                 {
                     ApplicationArea = Basic, Suite;
                     Editable = false;
-                    ToolTip = 'Specifies the type of the entry that was created by the posted payment reconciliation journal.';
                 }
                 field(Unapplied; Rec.ToUnapply)
                 {
                     Caption = 'Unapply';
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies if the entry created by the posted payment reconciliation journal will be unapplied.';
                     Enabled = ToUnapplyEnabled;
                     trigger OnValidate()
                     begin
@@ -95,7 +92,6 @@ page 496 "Payment Rec. Related Entries"
                 {
                     Caption = 'Reverse';
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies if the entry created by the posted payment reconciliation journal will be reversed.';
                     Enabled = ToReverseEnabled;
                     trigger OnValidate()
                     begin

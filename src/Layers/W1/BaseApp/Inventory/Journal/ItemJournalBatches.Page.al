@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -24,32 +24,32 @@ page 262 "Item Journal Batches"
                 field(Name; Rec.Name)
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the name of the item journal you are creating.';
                 }
                 field(Description; Rec.Description)
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies a brief description of the item journal batch you are creating.';
                 }
                 field("No. Series"; Rec."No. Series")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the number series from which entry or record numbers are assigned to new entries or records.';
                 }
                 field("Posting No. Series"; Rec."Posting No. Series")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the number series code used to assign document numbers to ledger entries that are posted from this journal batch.';
                 }
                 field("Reason Code"; Rec."Reason Code")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the reason code, a supplementary source code that enables you to trace the entry.';
                 }
                 field("Item Tracking on Lines"; Rec."Item Tracking on Lines")
                 {
                     ApplicationArea = ItemTracking;
-                    ToolTip = 'Specifies if item tracking can be selected directly on the item journal lines.';
+                }
+                field("No. of Lines"; Rec."No. of Lines")
+                {
+                    ApplicationArea = Basic, Suite;
+                    ToolTip = 'Specifies the number of lines in this journal batch.';
+                    Visible = false;
                 }
             }
         }

@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -382,17 +382,14 @@ page 5823 "G/L - Item Ledger Relation"
                 field("G/L Entry No."; Rec."G/L Entry No.")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the number of the general ledger entry where cost from the associated value entry number in this record is posted.';
                 }
                 field("Value Entry No."; Rec."Value Entry No.")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the number of the value entry that has its cost posted in the associated general ledger entry in this record.';
                 }
                 field("G/L Register No."; Rec."G/L Register No.")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the number of the general ledger register, where the general ledger entry in this record was posted.';
                     Visible = false;
                 }
             }

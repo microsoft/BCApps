@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -25,32 +25,26 @@ page 5987 "Replaced Component List"
                 field(Active; Rec.Active)
                 {
                     ApplicationArea = Service;
-                    ToolTip = 'Specifies that the component is in use.';
                 }
                 field("Parent Service Item No."; Rec."Parent Service Item No.")
                 {
                     ApplicationArea = Service;
-                    ToolTip = 'Specifies the number of the service item in which the component is included.';
                 }
                 field("No."; Rec."No.")
                 {
                     ApplicationArea = Service;
-                    ToolTip = 'Specifies the number of the involved entry or record, according to the specified number series.';
                 }
                 field(Type; Rec.Type)
                 {
                     ApplicationArea = Service;
-                    ToolTip = 'Specifies the component type.';
                 }
                 field(Description; Rec.Description)
                 {
                     ApplicationArea = Service;
-                    ToolTip = 'Specifies a description of the component.';
                 }
                 field("Serial No."; Rec."Serial No.")
                 {
                     ApplicationArea = ItemTracking;
-                    ToolTip = 'Specifies the serial number of the component.';
 
                     trigger OnAssistEdit()
                     begin
@@ -60,12 +54,10 @@ page 5987 "Replaced Component List"
                 field("Date Installed"; Rec."Date Installed")
                 {
                     ApplicationArea = Service;
-                    ToolTip = 'Specifies the date when the component was installed.';
                 }
                 field("Service Order No."; Rec."Service Order No.")
                 {
                     ApplicationArea = Service;
-                    ToolTip = 'Specifies the number of the service order under which this component was replaced.';
                 }
             }
         }

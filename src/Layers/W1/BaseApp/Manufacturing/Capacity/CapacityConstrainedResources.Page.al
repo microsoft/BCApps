@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -25,24 +25,20 @@ page 99000866 "Capacity Constrained Resources"
                 field("Capacity Type"; Rec."Capacity Type")
                 {
                     ApplicationArea = Manufacturing;
-                    ToolTip = 'Specifies the capacity type to apply finite loading to.';
                 }
                 field("Capacity No."; Rec."Capacity No.")
                 {
                     ApplicationArea = Manufacturing;
-                    ToolTip = 'Specifies the number of an existing machine center or work center to assign finite loading to.';
                 }
                 field(Name; Rec.Name)
                 {
                     ApplicationArea = Manufacturing;
                     Editable = false;
                     Enabled = true;
-                    ToolTip = 'Specifies the name of the work center or machine center associated with the capacity number on this line.';
                 }
                 field("Critical Load %"; Rec."Critical Load %")
                 {
                     ApplicationArea = Manufacturing;
-                    ToolTip = 'Specifies the percentage of the available capacity of a work center or machine center to apply load to. Operations on work centers or machine centers that are set up as constrained resources will always be planned serially. This means that if a constrained resource has multiple capacities, then those capacities can only be planned in sequence, not in parallel as they would be if the work or machine center was not set up as a constrained resource. In a constrained resource, the Capacity field on the work center or machine center is greater than 1.';
                 }
                 field("Dampener (% of Total Capacity)"; Rec."Dampener (% of Total Capacity)")
                 {

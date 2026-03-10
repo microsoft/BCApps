@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -20,26 +20,31 @@ table 208 "Job Posting Group"
         field(1; "Code"; Code[20])
         {
             Caption = 'Code';
+            ToolTip = 'Specifies a code for the posting group that defines to which G/L account you post project transactions when the project card contains the project posting group.';
             NotBlank = true;
         }
         field(2; "WIP Costs Account"; Code[20])
         {
             Caption = 'WIP Costs Account';
+            ToolTip = 'Specifies the work in process (WIP) account for the calculated cost of the project WIP for project tasks with this posting group. The account is normally a balance sheet asset account.';
             TableRelation = "G/L Account";
         }
         field(3; "WIP Accrued Costs Account"; Code[20])
         {
             Caption = 'WIP Accrued Costs Account';
+            ToolTip = 'Specifies an account that accumulates postings when the costs recognized, based on the invoiced value of the project, are greater than the current usage total posted If the WIP method for the project is Cost Value or Cost of Sales. The account is normally a balance sheet accrued expense liability account.';
             TableRelation = "G/L Account";
         }
         field(4; "Job Costs Applied Account"; Code[20])
         {
             Caption = 'Project Costs Applied Account';
+            ToolTip = 'Specifies the balancing account for WIP Cost account for projects. The account is normally an expense (credit) account.';
             TableRelation = "G/L Account";
         }
         field(5; "Job Costs Adjustment Account"; Code[20])
         {
             Caption = 'Project Costs Adjustment Account';
+            ToolTip = 'Specifies the balancing account to WIP Accrued Costs account if the work in process (WIP) method for the project is Cost Value or Cost of Sales. The account is normally an expense account.';
             TableRelation = "G/L Account";
         }
         field(6; "G/L Expense Acc. (Contract)"; Code[20])
@@ -50,51 +55,61 @@ table 208 "Job Posting Group"
         field(7; "Job Sales Adjustment Account"; Code[20])
         {
             Caption = 'Project Sales Adjustment Account';
+            ToolTip = 'Specifies the balancing account to the WIP Accrued Sales account if the work in process (WIP) Method for the project is the Sales Value. The account is normally an income account.';
             TableRelation = "G/L Account";
         }
         field(8; "WIP Accrued Sales Account"; Code[20])
         {
             Caption = 'WIP Accrued Sales Account';
+            ToolTip = 'Specifies an account that will be posted to when the revenue that can be recognized for the project is greater than the current invoiced value for the project if the work in process (WIP) method for the project is Sales Value.';
             TableRelation = "G/L Account";
         }
         field(9; "WIP Invoiced Sales Account"; Code[20])
         {
             Caption = 'WIP Invoiced Sales Account';
+            ToolTip = 'Specifies the account for the invoiced value, for the project for project tasks, with this posting group. The account is normally a Balance sheet liability account.';
             TableRelation = "G/L Account";
         }
         field(10; "Job Sales Applied Account"; Code[20])
         {
             Caption = 'Project Sales Applied Account';
+            ToolTip = 'Specifies the balancing account to WIP Invoiced Sales Account. The account is normally a contra (or debit) income account.';
             TableRelation = "G/L Account";
         }
         field(11; "Recognized Costs Account"; Code[20])
         {
             Caption = 'Recognized Costs Account';
+            ToolTip = 'Specifies the account for recognized costs for the project. The account is normally an expense account.';
             TableRelation = "G/L Account";
         }
         field(12; "Recognized Sales Account"; Code[20])
         {
             Caption = 'Recognized Sales Account';
+            ToolTip = 'Specifies the account for recognized sales (or revenue) for the project. The account is normally an income account.';
             TableRelation = "G/L Account";
         }
         field(13; "Item Costs Applied Account"; Code[20])
         {
             Caption = 'Item Costs Applied Account';
+            ToolTip = 'Specifies the balancing account for the WIP Costs account for items used in projects. The account is normally an expense (credit) account.';
             TableRelation = "G/L Account";
         }
         field(14; "Resource Costs Applied Account"; Code[20])
         {
             Caption = 'Resource Costs Applied Account';
+            ToolTip = 'Specifies the balancing account for the WIP Costs account for resources used in projects. The account is normally an expense (credit) account.';
             TableRelation = "G/L Account";
         }
         field(15; "G/L Costs Applied Account"; Code[20])
         {
             Caption = 'G/L Costs Applied Account';
+            ToolTip = 'Specifies the balancing account for the WIP Costs account.';
             TableRelation = "G/L Account";
         }
         field(20; Description; Text[100])
         {
             Caption = 'Description';
+            ToolTip = 'Specifies a description of project posting groups.';
         }
     }
 

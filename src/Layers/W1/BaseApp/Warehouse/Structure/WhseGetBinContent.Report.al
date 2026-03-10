@@ -508,18 +508,21 @@ report 7391 "Whse. Get Bin Content"
         BinContent.Copy("Bin Content");
         BinContent.FilterGroup(8);
         BinContent.SetTrackingFilterFromItemTrackingSetupIfNotBlank(ItemTrackingSetup);
-        if DestinationType2 = DestinationType2::TransferHeader then
-            exit(BinContent.CalcQtyAvailToPick(0));
+        case DestinationType2 of
+            DestinationType2::TransferHeader:
+                exit(BinContent.CalcQtyAvailToPick(0));
 
-        if DestinationType2 = DestinationType2::ItemJournalLine then begin
-            BinContent.CalcFields("Quantity (Base)", "Pick Quantity (Base)", "ATO Components Pick Qty (Base)");
-            AvailableQty := BinContent."Quantity (Base)" - (BinContent."Pick Quantity (Base)" + BinContent."ATO Components Pick Qty (Base)");
-            if AvailableQty > 0 then
-                exit(AvailableQty);
-            exit(0);
+            DestinationType2::ItemJournalLine:
+                begin
+                    BinContent.CalcFields("Quantity (Base)", "Pick Quantity (Base)", "ATO Components Pick Qty (Base)");
+                    AvailableQty := BinContent."Quantity (Base)" - (BinContent."Pick Quantity (Base)" + BinContent."ATO Components Pick Qty (Base)");
+                    if AvailableQty > 0 then
+                        exit(AvailableQty);
+                    exit(0);
+                end;
+            else
+                exit(BinContent.CalcQtyAvailToTake(0));
         end;
-
-        exit(BinContent.CalcQtyAvailToTake(0));
     end;
 
     local procedure CreateBinContentProgressWindowText(BinContent: Record "Bin Content") BinContentProgressWindowText: Text

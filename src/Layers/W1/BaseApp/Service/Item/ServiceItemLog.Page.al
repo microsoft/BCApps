@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -29,13 +29,11 @@ page 5989 "Service Item Log"
                 {
                     ApplicationArea = Service;
                     Editable = false;
-                    ToolTip = 'Specifies the number of the event associated with the service item.';
                     Visible = ServiceItemNoVisible;
                 }
                 field("Entry No."; Rec."Entry No.")
                 {
                     ApplicationArea = Service;
-                    ToolTip = 'Specifies the number of the entry, as assigned from the specified number series when the entry was created.';
                     Visible = false;
                 }
 #pragma warning disable AA0100
@@ -50,37 +48,30 @@ page 5989 "Service Item Log"
                 field(After; Rec.After)
                 {
                     ApplicationArea = Service;
-                    ToolTip = 'Specifies the value of the field modified after the event takes place.';
                 }
                 field(Before; Rec.Before)
                 {
                     ApplicationArea = Service;
-                    ToolTip = 'Specifies the previous value of the field, modified after the event takes place.';
                 }
                 field("Document Type"; Rec."Document Type")
                 {
                     ApplicationArea = Service;
-                    ToolTip = 'Specifies the document type of the service item associated with the event, such as contract, order, or quote.';
                 }
                 field("Document No."; Rec."Document No.")
                 {
                     ApplicationArea = Service;
-                    ToolTip = 'Specifies the document number of the event associated with the service item.';
                 }
                 field("Change Date"; Rec."Change Date")
                 {
                     ApplicationArea = Service;
-                    ToolTip = 'Specifies the date of the event.';
                 }
                 field("Change Time"; Rec."Change Time")
                 {
                     ApplicationArea = Service;
-                    ToolTip = 'Specifies the time of the event.';
                 }
                 field("User ID"; Rec."User ID")
                 {
                     ApplicationArea = Service;
-                    ToolTip = 'Specifies the ID of the user who posted the entry, to be used, for example, in the change log.';
 
                     trigger OnDrillDown()
                     var

@@ -310,6 +310,7 @@ permissionset 6121 "INTELLIGENT CLOUD"
                   table "Power BI Report Labels" = X,
 
                   tabledata "AAD Application" = R,
+                  tabledata "ABC Analysis Setup" = R,
                   tabledata "Acc. Sched. Cell Value" = R,
                   tabledata "Acc. Sched. Chart Setup Line" = R,
                   tabledata "Acc. Sched. KPI Buffer" = R,
@@ -324,6 +325,9 @@ permissionset 6121 "INTELLIGENT CLOUD"
                   tabledata "Financial Report Schedule" = R,
                   tabledata "Financial Report User Filters" = RIMD,
                   tabledata "Fin. Report Excel Template" = R,
+                  tabledata "Financial Report Category" = R,
+                  tabledata "Financial Report Audit Log" = Ri,
+                  tabledata "Financial Report Status" = R,
                   tabledata "Account Schedules Chart Setup" = RIMD,
                   tabledata "Account Use Buffer" = R,
                   tabledata "Accounting Period" = R,
@@ -733,6 +737,8 @@ permissionset 6121 "INTELLIGENT CLOUD"
                   tabledata "Excel Template Storage" = R,
                   tabledata "Exch. Rate Adjmt. Reg." = R,
                   tabledata "Exch. Rate Adjmt. Ledg. Entry" = R,
+                  tabledata "Contact Sync User" = R,
+                  tabledata "Outlook Contacts" = R,
 #if not CLEAN28
                   tabledata "Exchange Contact" = R,
 #endif

@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -38,6 +38,7 @@ table 1209 "Credit Trans Re-export History"
         field(3; "Re-export Date"; DateTime)
         {
             Caption = 'Re-export Date';
+            ToolTip = 'Specifies the date when the payment file was re-exported.';
         }
         /// <summary>
         /// User who performed the re-export operation.
@@ -45,6 +46,7 @@ table 1209 "Credit Trans Re-export History"
         field(4; "Re-exported By"; Code[50])
         {
             Caption = 'Re-exported By';
+            ToolTip = 'Specifies the user who re-exported the payment file.';
             DataClassification = EndUserIdentifiableInformation;
         }
     }

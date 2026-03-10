@@ -2744,7 +2744,7 @@ codeunit 137047 "SCM Warehouse I"
         Initialize();
 
         // [GIVEN] Create location with Inventory Posting Setup
-        LibraryWarehouse.CreateLocationWMS(Location, true, true, true, true, true);
+        LibraryWarehouse.CreateLocationWMS(Location, true, false, true, true, true);
 
         // [GIVEN] Assign Bins to "Receipt Bin Code", "Shipment Bin Code" fields on Location.
         Location.Validate("Receipt Bin Code", AddBin(Location.Code));
@@ -2763,7 +2763,7 @@ codeunit 137047 "SCM Warehouse I"
 
         // [GIVEN] Create and Post Item Journal Line With Lot No.
         CreateItemJournalLine(ItemJournalLine, Item."No.", Location.Code, Quantity);
-        ItemJournalLine.Validate("Bin Code", AddBin(Location.Code));
+        ItemJournalLine.Validate("Bin Code", Location."Receipt Bin Code");
         ItemJournalLine.Modify(true);
 
         AssignLotNoToItemJournalLine(ItemJournalLine, LotNo, Quantity);

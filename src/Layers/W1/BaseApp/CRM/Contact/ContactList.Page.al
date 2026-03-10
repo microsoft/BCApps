@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -9,6 +9,7 @@ using Microsoft.CRM.BusinessRelation;
 using Microsoft.CRM.Comment;
 using Microsoft.CRM.Interaction;
 using Microsoft.CRM.Opportunity;
+using Microsoft.CRM.Outlook;
 using Microsoft.CRM.Profiling;
 using Microsoft.CRM.Reports;
 using Microsoft.CRM.Segment;
@@ -50,60 +51,50 @@ page 5052 "Contact List"
                     ApplicationArea = All;
                     Style = Strong;
                     StyleExpr = StyleIsStrong;
-                    ToolTip = 'Specifies the number of the involved entry or record, according to the specified number series.';
                 }
                 field(Name; Rec.Name)
                 {
                     ApplicationArea = All;
                     Style = Strong;
                     StyleExpr = StyleIsStrong;
-                    ToolTip = 'Specifies the name of the contact. If the contact is a person, you can click the field to see the Name Details window.';
                 }
                 field("Name 2"; Rec."Name 2")
                 {
                     ApplicationArea = All;
                     Importance = Additional;
-                    ToolTip = 'Specifies an additional part of the name.';
                     Visible = false;
                 }
                 field("Company Name"; Rec."Company Name")
                 {
                     ApplicationArea = All;
-                    ToolTip = 'Specifies the name of the company. If the contact is a person, Specifies the name of the company for which this contact works. This field is not editable.';
                 }
                 field("Job Title"; Rec."Job Title")
                 {
                     ApplicationArea = All;
                     Importance = Additional;
-                    ToolTip = 'Specifies the contact''s job title.';
                     Visible = false;
                 }
                 field("Business Relation"; Rec."Contact Business Relation")
                 {
                     ApplicationArea = All;
-                    ToolTip = 'Specifies the type of the existing business relation.';
                 }
                 field("Post Code"; Rec."Post Code")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the postal code.';
                     Visible = false;
                 }
                 field("Country/Region Code"; Rec."Country/Region Code")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the country/region of the address.';
                     Visible = false;
                 }
                 field("Phone No."; Rec."Phone No.")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the contact''s phone number.';
                 }
                 field("Mobile Phone No."; Rec."Mobile Phone No.")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the contact''s mobile telephone number.';
                     Visible = false;
                 }
                 field("E-Mail"; Rec."E-Mail")
@@ -115,62 +106,52 @@ page 5052 "Contact List"
                 field("Fax No."; Rec."Fax No.")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the contact''s fax number.';
                     Visible = false;
                 }
                 field("Salesperson Code"; Rec."Salesperson Code")
                 {
                     ApplicationArea = Suite;
-                    ToolTip = 'Specifies the code of the salesperson who normally handles this contact.';
                 }
                 field("Territory Code"; Rec."Territory Code")
                 {
                     ApplicationArea = RelationshipMgmt;
-                    ToolTip = 'Specifies the territory code for the contact.';
                 }
                 field("Currency Code"; Rec."Currency Code")
                 {
                     ApplicationArea = Suite;
-                    ToolTip = 'Specifies the currency code for the contact.';
                     Visible = false;
                 }
                 field("Language Code"; Rec."Language Code")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the language that is used when translating specified text on documents to foreign business partner, such as an item description on an order confirmation.';
                     Visible = false;
                 }
                 field("Search Name"; Rec."Search Name")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies an alternate name that you can use to search for the record in question when you cannot remember the value in the Name field.';
                     Visible = false;
                 }
                 field("Privacy Blocked"; Rec."Privacy Blocked")
                 {
                     ApplicationArea = Basic, Suite;
                     Importance = Additional;
-                    ToolTip = 'Specifies whether to limit access to data for the data subject during daily operations. This is useful, for example, when protecting data from changes while it is under privacy review.';
                     Visible = false;
                 }
                 field(Minor; Rec.Minor)
                 {
                     ApplicationArea = Basic, Suite;
                     Importance = Additional;
-                    ToolTip = 'Specifies that the person''s age is below the definition of adulthood as recognized by law. Data for minors is blocked until a parent or guardian of the minor provides parental consent. You unblock the data by selecting the Parental Consent Received check box.';
                     Visible = false;
                 }
                 field("Parental Consent Received"; Rec."Parental Consent Received")
                 {
                     ApplicationArea = Basic, Suite;
                     Importance = Additional;
-                    ToolTip = 'Specifies that a parent or guardian of the minor has provided their consent to allow the minor to use this service. When this check box is selected, data for the minor can be processed.';
                     Visible = false;
                 }
                 field("Coupled to Dataverse"; Rec."Coupled to Dataverse")
                 {
                     ApplicationArea = All;
-                    ToolTip = 'Specifies that the contact is coupled to a contact in Dataverse.';
                     Visible = CRMIntegrationEnabled or CDSIntegrationEnabled;
                 }
             }
@@ -964,6 +945,21 @@ page 5052 "Contact List"
                     CurrPage.SetSelectionFilter(Contact);
                     WordTemplateSelectionWizard.SetData(Contact);
                     WordTemplateSelectionWizard.RunModal();
+                end;
+            }
+            action(SynchronizeWithOutlookAndTeams)
+            {
+                ApplicationArea = Basic, Suite;
+                Caption = 'Synchronize with Outlook and Teams';
+                Image = Refresh;
+                Ellipsis = true;
+                ToolTip = 'Synchronize this list with your contacts stored in Microsoft 365, so that you can get to them easily from your Outlook or Teams apps. You will be able to choose which specific contacts are synchronized.';
+
+                trigger OnAction()
+                var
+                    ContactSyncPage: Page "Contact Sync";
+                begin
+                    ContactSyncPage.RunModal();
                 end;
             }
             action(Email)

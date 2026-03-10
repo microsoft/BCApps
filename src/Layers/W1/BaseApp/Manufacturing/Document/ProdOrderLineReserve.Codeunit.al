@@ -400,7 +400,13 @@ codeunit 99000837 "Prod. Order Line-Reserve"
     procedure AssignForPlanning(var ProdOrderLine: Record "Prod. Order Line")
     var
         PlanningAssignment: Record "Planning Assignment";
+        IsHandled: Boolean;
     begin
+        IsHandled := false;
+        OnBeforeAssignForPlanning(ProdOrderLine, IsHandled);
+        if IsHandled then
+            exit;
+
         if ProdOrderLine.Status = ProdOrderLine.Status::Simulated then
             exit;
         if ProdOrderLine."Item No." <> '' then
@@ -1222,5 +1228,10 @@ codeunit 99000837 "Prod. Order Line-Reserve"
                     ReservationEntry.SetRange("Source Prod. Order Line", RequisitionLine."Ref. Line No.");
                 end;
         end;
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnBeforeAssignForPlanning(var ProdOrderLine: Record "Prod. Order Line"; var IsHandled: Boolean)
+    begin
     end;
 }

@@ -10,12 +10,11 @@ using System.Utilities;
 
 report 5808 "Item Age Composition - Value"
 {
-    DefaultLayout = RDLC;
-    RDLCLayout = './Inventory/Reports/ItemAgeCompositionValue.rdlc';
     ApplicationArea = Basic, Suite;
-    Caption = 'Item Age Composition - Value';
+    Caption = 'Item Age Composition by Quantity and Value';
     UsageCategory = ReportsAndAnalysis;
     DataAccessIntent = ReadOnly;
+    DefaultRenderingLayout = Excel;
 
     dataset
     {
@@ -23,103 +22,195 @@ report 5808 "Item Age Composition - Value"
         {
             DataItemTableView = sorting("No.") where(Type = const(Inventory));
             RequestFilterFields = "No.", "Inventory Posting Group", "Statistics Group", "Location Filter";
+#if not CLEAN28
             column(TodayFormatted; Format(Today, 0, 4))
             {
+                ObsoleteState = Pending;
+                ObsoleteReason = 'RDLC Only layout column. To be removed along with the RDLC layout.';
+                ObsoleteTag = '28.0';
             }
             column(CompanyName; COMPANYPROPERTY.DisplayName())
             {
+                ObsoleteState = Pending;
+                ObsoleteReason = 'RDLC Only layout column. To be removed along with the RDLC layout.';
+                ObsoleteTag = '28.0';
             }
             column(ItemTableCaptItemFilter; TableCaption + ': ' + ItemFilter)
             {
+                ObsoleteState = Pending;
+                ObsoleteReason = 'RDLC Only layout column. To be removed along with the RDLC layout.';
+                ObsoleteTag = '28.0';
             }
             column(ItemFilter; ItemFilter)
             {
+                ObsoleteState = Pending;
+                ObsoleteReason = 'RDLC Only layout column. To be removed along with the RDLC layout.';
+                ObsoleteTag = '28.0';
             }
             column(PeriodStartDate21; Format(PeriodStartDate[2] + 1))
             {
+                ObsoleteState = Pending;
+                ObsoleteReason = 'RDLC Only layout column. To be removed along with the RDLC layout.';
+                ObsoleteTag = '28.0';
             }
             column(PeriodStartDate3; Format(PeriodStartDate[3]))
             {
+                ObsoleteState = Pending;
+                ObsoleteReason = 'RDLC Only layout column. To be removed along with the RDLC layout.';
+                ObsoleteTag = '28.0';
             }
             column(PeriodStartDate31; Format(PeriodStartDate[3] + 1))
             {
+                ObsoleteState = Pending;
+                ObsoleteReason = 'RDLC Only layout column. To be removed along with the RDLC layout.';
+                ObsoleteTag = '28.0';
             }
             column(PeriodStartDate4; Format(PeriodStartDate[4]))
             {
+                ObsoleteState = Pending;
+                ObsoleteReason = 'RDLC Only layout column. To be removed along with the RDLC layout.';
+                ObsoleteTag = '28.0';
             }
             column(PeriodStartDate41; Format(PeriodStartDate[4] + 1))
             {
+                ObsoleteState = Pending;
+                ObsoleteReason = 'RDLC Only layout column. To be removed along with the RDLC layout.';
+                ObsoleteTag = '28.0';
             }
             column(PeriodStartDate5; Format(PeriodStartDate[5]))
             {
-            }
-            column(PrintLine; PrintLine)
-            {
+                ObsoleteState = Pending;
+                ObsoleteReason = 'RDLC Only layout column. To be removed along with the RDLC layout.';
+                ObsoleteTag = '28.0';
             }
             column(InvtValueRTC1; InvtValueRTC[1])
             {
+                ObsoleteState = Pending;
+                ObsoleteReason = 'RDLC Only layout column. To be removed along with the RDLC layout.';
+                ObsoleteTag = '28.0';
             }
             column(InvtValueRTC2; InvtValueRTC[2])
             {
+                ObsoleteState = Pending;
+                ObsoleteReason = 'RDLC Only layout column. To be removed along with the RDLC layout.';
+                ObsoleteTag = '28.0';
             }
             column(InvtValueRTC5; InvtValueRTC[5])
             {
+                ObsoleteState = Pending;
+                ObsoleteReason = 'RDLC Only layout column. To be removed along with the RDLC layout.';
+                ObsoleteTag = '28.0';
             }
             column(InvtValueRTC4; InvtValueRTC[4])
             {
+                ObsoleteState = Pending;
+                ObsoleteReason = 'RDLC Only layout column. To be removed along with the RDLC layout.';
+                ObsoleteTag = '28.0';
             }
             column(InvtValueRTC3; InvtValueRTC[3])
             {
+                ObsoleteState = Pending;
+                ObsoleteReason = 'RDLC Only layout column. To be removed along with the RDLC layout.';
+                ObsoleteTag = '28.0';
             }
             column(TotalInvtValueRTC; TotalInvtValueRTC)
             {
+                ObsoleteState = Pending;
+                ObsoleteReason = 'RDLC Only layout column. To be removed along with the RDLC layout.';
+                ObsoleteTag = '28.0';
             }
             column(InvtValue1_Item; InvtValue[1])
             {
                 AutoFormatType = 1;
+                ObsoleteState = Pending;
+                ObsoleteReason = 'RDLC Only layout column. To be removed along with the RDLC layout.';
+                ObsoleteTag = '28.0';
             }
             column(InvtValue2_Item; InvtValue[2])
             {
                 AutoFormatType = 1;
+                ObsoleteState = Pending;
+                ObsoleteReason = 'RDLC Only layout column. To be removed along with the RDLC layout.';
+                ObsoleteTag = '28.0';
             }
             column(InvtValue3_Item; InvtValue[3])
             {
                 AutoFormatType = 1;
+                ObsoleteState = Pending;
+                ObsoleteReason = 'RDLC Only layout column. To be removed along with the RDLC layout.';
+                ObsoleteTag = '28.0';
             }
             column(InvtValue4_Item; InvtValue[4])
             {
                 AutoFormatType = 1;
+                ObsoleteState = Pending;
+                ObsoleteReason = 'RDLC Only layout column. To be removed along with the RDLC layout.';
+                ObsoleteTag = '28.0';
             }
             column(InvtValue5_Item; InvtValue[5])
             {
                 AutoFormatType = 1;
+                ObsoleteState = Pending;
+                ObsoleteReason = 'RDLC Only layout column. To be removed along with the RDLC layout.';
+                ObsoleteTag = '28.0';
             }
             column(TotalInvtValue_Item; TotalInvtValue_Item)
             {
                 AutoFormatType = 1;
+                ObsoleteState = Pending;
+                ObsoleteReason = 'RDLC Only layout column. To be removed along with the RDLC layout.';
+                ObsoleteTag = '28.0';
             }
             column(ItemAgeCompositionValueCaption; ItemAgeCompositionValueCaptionLbl)
             {
+                ObsoleteState = Pending;
+                ObsoleteReason = 'RDLC Only layout column. To be removed along with the RDLC layout.';
+                ObsoleteTag = '28.0';
             }
             column(CurrReportPageNoCaption; CurrReportPageNoCaptionLbl)
             {
+                ObsoleteState = Pending;
+                ObsoleteReason = 'RDLC Only layout column. To be removed along with the RDLC layout.';
+                ObsoleteTag = '28.0';
             }
             column(AfterCaption; AfterCaptionLbl)
             {
+                ObsoleteState = Pending;
+                ObsoleteReason = 'RDLC Only layout column. To be removed along with the RDLC layout.';
+                ObsoleteTag = '28.0';
             }
             column(BeforeCaption; BeforeCaptionLbl)
             {
+                ObsoleteState = Pending;
+                ObsoleteReason = 'RDLC Only layout column. To be removed along with the RDLC layout.';
+                ObsoleteTag = '28.0';
             }
             column(InventoryValueCaption; InventoryValueCaptionLbl)
             {
+                ObsoleteState = Pending;
+                ObsoleteReason = 'RDLC Only layout column. To be removed along with the RDLC layout.';
+                ObsoleteTag = '28.0';
             }
             column(ItemDescriptionCaption; ItemDescriptionCaptionLbl)
             {
+                ObsoleteState = Pending;
+                ObsoleteReason = 'RDLC Only layout column. To be removed along with the RDLC layout.';
+                ObsoleteTag = '28.0';
             }
             column(ItemNoCaption; ItemNoCaptionLbl)
             {
+                ObsoleteState = Pending;
+                ObsoleteReason = 'RDLC Only layout column. To be removed along with the RDLC layout.';
+                ObsoleteTag = '28.0';
             }
             column(TotalCaption; TotalCaptionLbl)
+            {
+                ObsoleteState = Pending;
+                ObsoleteReason = 'RDLC Only layout column. To be removed along with the RDLC layout.';
+                ObsoleteTag = '28.0';
+            }
+#endif
+            column(PrintLine; PrintLine)
             {
             }
             dataitem("Item Ledger Entry"; "Item Ledger Entry")
@@ -194,11 +285,45 @@ report 5808 "Item Age Composition - Value"
                 {
                     AutoFormatType = 1;
                 }
+                column(InvtQty1_ItemLedgEntry; InvtQty[1])
+                {
+                    DecimalPlaces = 0 : 2;
+                }
+                column(InvtQty2_ItemLedgEntry; InvtQty[2])
+                {
+                    DecimalPlaces = 0 : 2;
+                }
+                column(InvtQty3_ItemLedgEntry; InvtQty[3])
+                {
+                    DecimalPlaces = 0 : 2;
+                }
+                column(InvtQty4_ItemLedgEntry; InvtQty[4])
+                {
+                    DecimalPlaces = 0 : 2;
+                }
+                column(InvtQty5_ItemLedgEntry; InvtQty[5])
+                {
+                    DecimalPlaces = 0 : 2;
+                }
+                column(TotalInvtQty; TotalInvtQty)
+                {
+                    DecimalPlaces = 0 : 2;
+                }
                 column(Description_Item; Item.Description)
                 {
+                    IncludeCaption = true;
                 }
                 column(No_Item; Item."No.")
                 {
+                    IncludeCaption = true;
+                }
+                column(InventoryPostingGroup_Item; Item."Inventory Posting Group")
+                {
+                    IncludeCaption = true;
+                }
+                column(StatisticsGroup_Item; Item."Statistics Group")
+                {
+                    IncludeCaption = true;
                 }
             }
 
@@ -223,7 +348,7 @@ report 5808 "Item Age Composition - Value"
 
     requestpage
     {
-        AboutTitle = 'About Item Age Composition – Value';
+        AboutTitle = 'About Item Age Composition by Quantity and Value';
         AboutText = 'Review the age of stock in your warehouse by value to determine obsolescence and identify slow moving inventory. View your open inventory value split across 5 aging buckets based on the period length and ending date. Filter the report by Location to determine the age of Inventory by warehouse.';
         SaveValues = true;
 
@@ -258,6 +383,27 @@ report 5808 "Item Age Composition - Value"
                                 Evaluate(PeriodLength, '<0D>');
                         end;
                     }
+                    field(RequestPeriod1Text; Period1Text)
+                    {
+                        ApplicationArea = All;
+                        Caption = 'Period 1';
+                        ToolTip = 'Specifies Period 1 on this report.';
+                        Visible = false;
+                    }
+                    field(RequestPeriod2Text; Period2Text)
+                    {
+                        ApplicationArea = All;
+                        Caption = 'Period 2';
+                        ToolTip = 'Specifies Period 2 on this report.';
+                        Visible = false;
+                    }
+                    field(RequestPeriod3Text; Period3Text)
+                    {
+                        ApplicationArea = All;
+                        Caption = 'Period 3';
+                        ToolTip = 'Specifies Period 3 on this report.';
+                        Visible = false;
+                    }
                 }
             }
         }
@@ -273,10 +419,70 @@ report 5808 "Item Age Composition - Value"
             if Format(PeriodLength) = '' then
                 Evaluate(PeriodLength, '<1M>');
         end;
+
+        trigger OnClosePage()
+        var
+            NegPeriodLength: DateFormula;
+        begin
+            PeriodStartDate[6] := DMY2Date(31, 12, 9999);
+            Evaluate(NegPeriodLength, StrSubstNo('-%1', Format(PeriodLength)));
+            for i := 1 to 3 do
+                PeriodStartDate[5 - i] := CalcDate(NegPeriodLength, PeriodStartDate[6 - i]);
+            UpdateRequestPageFilterValues();
+        end;
+    }
+
+    rendering
+    {
+        layout(Excel)
+        {
+            Caption = 'Item Age Composition by Quantity and Value Excel';
+            Type = Excel;
+            LayoutFile = './Inventory/Reports/ItemAgeCompositionValue.xlsx';
+        }
+#if not CLEAN28
+        layout(RDLC)
+        {
+            Caption = 'Item Age Composition by Quantity and Value RDLC';
+            Type = RDLC;
+            LayoutFile = './Inventory/Reports/ItemAgeCompositionValue.rdlc';
+            ObsoleteState = Pending;
+            ObsoleteReason = 'The RDLC layout has been replaced by the Excel layout and will be removed in a future release.';
+            ObsoleteTag = '28.0';
+        }
+#endif
     }
 
     labels
     {
+        ItemAgeCompositionValueLbl = 'Item Age Composition - Value';
+        ItemAgeCompositionQtyLbl = 'Item Age Composition - Quantity';
+        ItemAgeComposValuePrintLbl = 'Item Age Com. - Val. (Print)', MaxLength = 31, Comment = 'Excel worksheet name.';
+        ItemAgeComposQtyPrintLbl = 'Item Age Com. - Qty. (Print)', MaxLength = 31, Comment = 'Excel worksheet name.';
+        ItemAgeComposValueAnalysisLbl = 'Item Age Com. - Val. (Analysis)', MaxLength = 31, Comment = 'Excel worksheet name.';
+        DataRetrievedLbl = 'Data retrieved:';
+        BeforeLbl = '...before';
+        AfterLbl = 'after...';
+        InvValueBeforeLbl = '...before (Inventory Value)';
+        InvValueAfterLbl = 'after... (Inventory Value)';
+        InvBeforeLbl = '...before (Inventory)';
+        InvAfterLbl = 'after... (Inventory)';
+        InventoryValue2Lbl = 'Inventory Value for Period 2';
+        InventoryValue3Lbl = 'Inventory Value for Period 3';
+        InventoryValue4Lbl = 'Inventory Value for Period 4';
+        Inventory2Lbl = 'Inventory for Period 2';
+        Inventory3Lbl = 'Inventory for Period 3';
+        Inventory4Lbl = 'Inventory for Period 4';
+        InventoryValueLbl = 'Inventory Value';
+        InventoryLbl = 'Inventory';
+        // About the report labels
+        AboutTheReportLbl = 'About the report';
+        EnvironmentLbl = 'Environment';
+        CompanyLbl = 'Company';
+        UserLbl = 'User';
+        RunOnLbl = 'Run on';
+        ReportNameLbl = 'Report name';
+        DocumentationLbl = 'Documentation';
     }
 
     trigger OnPreReport()
@@ -289,6 +495,7 @@ report 5808 "Item Age Composition - Value"
         Evaluate(NegPeriodLength, StrSubstNo('-%1', Format(PeriodLength)));
         for i := 1 to 3 do
             PeriodStartDate[5 - i] := CalcDate(NegPeriodLength, PeriodStartDate[6 - i]);
+        UpdateRequestPageFilterValues();
     end;
 
     var
@@ -305,10 +512,14 @@ report 5808 "Item Age Composition - Value"
         TotalInvtQty: Decimal;
         PrintLine: Boolean;
         AverageCost: array[5] of Decimal;
-
+        RemainingQty: Decimal;
+        Period1Text: Text;
+        Period2Text: Text;
+        Period3Text: Text;
 #pragma warning disable AA0074
         Text002: Label 'Enter the ending date';
 #pragma warning restore AA0074
+#if not CLEAN28
         ItemAgeCompositionValueCaptionLbl: Label 'Item Age Composition - Value';
         CurrReportPageNoCaptionLbl: Label 'Page';
         AfterCaptionLbl: Label 'After...';
@@ -317,7 +528,7 @@ report 5808 "Item Age Composition - Value"
         ItemDescriptionCaptionLbl: Label 'Description';
         ItemNoCaptionLbl: Label 'Item No.';
         TotalCaptionLbl: Label 'Total';
-        RemainingQty: Decimal;
+#endif
 
     local procedure CalcRemainingQty()
     begin
@@ -387,6 +598,15 @@ report 5808 "Item Age Composition - Value"
     begin
         PeriodStartDate[5] := NewEndingDate;
         PeriodLength := NewPeriodLength;
+    end;
+
+    local procedure UpdateRequestPageFilterValues()
+    begin
+        if (PeriodStartDate[2] <> 0D) and (PeriodStartDate[3] <> 0D) and (PeriodStartDate[4] <> 0D) then begin
+            Period1Text := Format(PeriodStartDate[2] + 1) + '..' + Format(PeriodStartDate[3]);
+            Period2Text := Format(PeriodStartDate[3] + 1) + '..' + Format(PeriodStartDate[4]);
+            Period3Text := Format(PeriodStartDate[4] + 1) + '..' + Format(PeriodStartDate[5]);
+        end;
     end;
 }
 

@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -25,23 +25,19 @@ page 56 "Purchase Orders"
                 field(Type; Rec.Type)
                 {
                     ApplicationArea = Suite;
-                    ToolTip = 'Specifies the line type.';
                 }
                 field("No."; Rec."No.")
                 {
                     ApplicationArea = Suite;
-                    ToolTip = 'Specifies the number of the involved entry or record, according to the specified number series.';
                 }
                 field(Description; Rec.Description)
                 {
                     ApplicationArea = Suite;
-                    ToolTip = 'Specifies a description of the entry of the product to be purchased. To add a non-transactional text line, fill in the Description field only.';
                 }
                 field("Description 2"; Rec."Description 2")
                 {
                     ApplicationArea = Suite;
                     Importance = Additional;
-                    ToolTip = 'Specifies information in addition to the description.';
                     Visible = false;
                 }
                 field("Expected Receipt Date"; Rec."Expected Receipt Date")
@@ -52,12 +48,10 @@ page 56 "Purchase Orders"
                 field("Buy-from Vendor No."; Rec."Buy-from Vendor No.")
                 {
                     ApplicationArea = Suite;
-                    ToolTip = 'Specifies the name of the vendor who delivered the items.';
                 }
                 field("Document No."; Rec."Document No.")
                 {
                     ApplicationArea = Suite;
-                    ToolTip = 'Specifies the document number.';
                 }
                 field("Currency Code"; Rec."Currency Code")
                 {
@@ -72,12 +66,10 @@ page 56 "Purchase Orders"
                 field("Outstanding Quantity"; Rec."Outstanding Quantity")
                 {
                     ApplicationArea = Suite;
-                    ToolTip = 'Specifies how many units on the order line have not yet been received.';
                 }
                 field("Unit of Measure Code"; Rec."Unit of Measure Code")
                 {
                     ApplicationArea = Suite;
-                    ToolTip = 'Specifies how each unit of the item or resource is measured, such as in pieces or hours. By default, the value in the Base Unit of Measure field on the item or resource card is inserted.';
                 }
                 field(Amount; Rec.Amount)
                 {
@@ -92,12 +84,10 @@ page 56 "Purchase Orders"
                 field("Direct Unit Cost"; Rec."Direct Unit Cost")
                 {
                     ApplicationArea = Suite;
-                    ToolTip = 'Specifies the cost of one unit of the selected item or resource.';
                 }
                 field("Line Discount %"; Rec."Line Discount %")
                 {
                     ApplicationArea = Suite;
-                    ToolTip = 'Specifies the discount percentage that is granted for the item on the line.';
                 }
             }
         }

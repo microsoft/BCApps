@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -32,48 +32,58 @@ table 5967 "Contract Change Log"
         field(4; "User ID"; Code[50])
         {
             Caption = 'User ID';
+            ToolTip = 'Specifies the ID of the user who posted the entry, to be used, for example, in the change log.';
             DataClassification = EndUserIdentifiableInformation;
             TableRelation = User."User Name";
         }
         field(5; "Date of Change"; Date)
         {
             Caption = 'Date of Change';
+            ToolTip = 'Specifies the date of the change.';
         }
         field(6; "Time of Change"; Time)
         {
             Caption = 'Time of Change';
+            ToolTip = 'Specifies the time of the change.';
         }
         field(7; "Contract Part"; Option)
         {
             Caption = 'Contract Part';
+            ToolTip = 'Specifies the part of the contract that was changed.';
             OptionCaption = 'Header,Line,Discount';
             OptionMembers = Header,Line,Discount;
         }
         field(8; "Field Description"; Text[100])
         {
             Caption = 'Field Description';
+            ToolTip = 'Specifies the description of the field that was modified.';
         }
         field(9; "Old Value"; Text[100])
         {
             Caption = 'Old Value';
+            ToolTip = 'Specifies the contents of the modified field before the change takes place.';
         }
         field(10; "New Value"; Text[100])
         {
             Caption = 'New Value';
+            ToolTip = 'Specifies the contents of the modified field after the change has taken place.';
         }
         field(12; "Type of Change"; Option)
         {
             Caption = 'Type of Change';
+            ToolTip = 'Specifies the type of change on the contract.';
             OptionCaption = 'Modify,Insert,Delete,Rename';
             OptionMembers = Modify,Insert,Delete,Rename;
         }
         field(13; "Service Item No."; Code[20])
         {
             Caption = 'Service Item No.';
+            ToolTip = 'Specifies the number of the item on the service contract line, for which a log entry was created.';
         }
         field(14; "Serv. Contract Line No."; Integer)
         {
             Caption = 'Serv. Contract Line No.';
+            ToolTip = 'Specifies the number of the service contract line for which a log entry was created.';
         }
     }
 

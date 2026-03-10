@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -22,22 +22,18 @@ page 5727 "Purchasing Codes"
                 field("Code"; Rec.Code)
                 {
                     ApplicationArea = Suite;
-                    ToolTip = 'Specifies a code for a purchasing activity.';
                 }
                 field(Description; Rec.Description)
                 {
                     ApplicationArea = Suite;
-                    ToolTip = 'Specifies a description of the purchasing activity specified by the code.';
                 }
                 field("Drop Shipment"; Rec."Drop Shipment")
                 {
                     ApplicationArea = Suite;
-                    ToolTip = 'Specifies if your vendor ships the items directly to your customer.';
                 }
                 field("Special Order"; Rec."Special Order")
                 {
                     ApplicationArea = Suite;
-                    ToolTip = 'Specifies that this purchase activity includes arranging for a special order.';
                 }
             }
         }

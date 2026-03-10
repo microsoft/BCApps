@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -33,7 +33,6 @@ page 1002 "Job Task Lines"
                     ApplicationArea = Jobs;
                     Style = Strong;
                     StyleExpr = StyleIsStrong;
-                    ToolTip = 'Specifies the number of the related project.';
                     Visible = false;
                 }
                 field("Job Task No."; Rec."Job Task No.")
@@ -41,59 +40,48 @@ page 1002 "Job Task Lines"
                     ApplicationArea = Jobs;
                     Style = Strong;
                     StyleExpr = StyleIsStrong;
-                    ToolTip = 'Specifies the number of the related project task.';
                 }
                 field(Description; Rec.Description)
                 {
                     ApplicationArea = Jobs;
                     Style = Strong;
                     StyleExpr = StyleIsStrong;
-                    ToolTip = 'Specifies a description of the project task. You can enter anything that is meaningful in describing the task. The description is copied and used in descriptions on the project planning line.';
                 }
                 field("Job Task Type"; Rec."Job Task Type")
                 {
                     ApplicationArea = Jobs;
-                    ToolTip = 'Specifies the purpose of the account. Newly created accounts are automatically assigned the Posting account type, but you can change this. Choose the field to select one of the following five options:';
                 }
                 field(Totaling; Rec.Totaling)
                 {
                     ApplicationArea = Jobs;
-                    ToolTip = 'Specifies an interval or a list of project task numbers.';
                 }
                 field("Job Posting Group"; Rec."Job Posting Group")
                 {
                     ApplicationArea = Jobs;
-                    ToolTip = 'Specifies the project posting group of the task.';
                 }
                 field("Location Code"; Rec."Location Code")
                 {
                     ApplicationArea = Jobs;
-                    ToolTip = 'Specifies the location code of the task.';
                 }
                 field("Bin Code"; Rec."Bin Code")
                 {
                     ApplicationArea = Jobs;
-                    ToolTip = 'Specifies a bin code for specific location of the task.';
                 }
                 field("WIP-Total"; Rec."WIP-Total")
                 {
                     ApplicationArea = Jobs;
-                    ToolTip = 'Specifies the project tasks you want to group together when calculating Work In Process (WIP) and Recognition.';
                 }
                 field("WIP Method"; Rec."WIP Method")
                 {
                     ApplicationArea = Jobs;
-                    ToolTip = 'Specifies the name of the Work in Process calculation method that is associated with a project. The value in this field comes from the WIP method specified on the project card.';
                 }
                 field("Start Date"; Rec."Start Date")
                 {
                     ApplicationArea = Jobs;
-                    ToolTip = 'Specifies the start date for the project task. The date is based on the date on the related project planning line.';
                 }
                 field("End Date"; Rec."End Date")
                 {
                     ApplicationArea = Jobs;
-                    ToolTip = 'Specifies the end date for the project task. The date is based on the date on the related project planning line.';
                 }
                 field("Schedule (Total Cost)"; Rec."Schedule (Total Cost)")
                 {
@@ -164,20 +152,17 @@ page 1002 "Job Task Lines"
                 field("Global Dimension 1 Code"; Rec."Global Dimension 1 Code")
                 {
                     ApplicationArea = Dimensions;
-                    ToolTip = 'Specifies the code for the global dimension that is linked to the record or entry for analysis purposes. Two global dimensions, typically for the company''s most important activities, are available on all cards, documents, reports, and lists.';
                     Visible = false;
                 }
                 field("Global Dimension 2 Code"; Rec."Global Dimension 2 Code")
                 {
                     ApplicationArea = Dimensions;
-                    ToolTip = 'Specifies the code for the global dimension that is linked to the record or entry for analysis purposes. Two global dimensions, typically for the company''s most important activities, are available on all cards, documents, reports, and lists.';
                     Visible = false;
                 }
                 field("Outstanding Orders"; Rec."Outstanding Orders")
                 {
                     ApplicationArea = Jobs;
                     Editable = false;
-                    ToolTip = 'Specifies the sum of outstanding orders, in local currency, for this project task. The value of the Outstanding Amount (LCY) field is used for entries in the Purchase Line table of document type Order to calculate and update the contents of this field.';
                     Visible = false;
 
                     trigger OnDrillDown()
@@ -193,7 +178,6 @@ page 1002 "Job Task Lines"
                 {
                     ApplicationArea = Jobs;
                     Editable = false;
-                    ToolTip = 'Specifies the sum for items that have been received but have not yet been invoiced. The value in the Amt. Rcd. Not Invoiced (LCY) field is used for entries in the Purchase Line table of document type Order to calculate and update the contents of this field.';
                     Visible = false;
 
                     trigger OnDrillDown()

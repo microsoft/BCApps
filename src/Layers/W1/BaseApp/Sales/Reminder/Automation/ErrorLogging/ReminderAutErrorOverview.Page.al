@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -26,19 +26,16 @@ page 6759 "Reminder Aut. Error Overview"
                 {
                     ApplicationArea = All;
                     Caption = 'Run Id';
-                    ToolTip = 'Specifies the id of the reminder action job that caused the error.';
                 }
                 field(ReminderActionId; Rec.ReminderActionId)
                 {
                     ApplicationArea = All;
                     Caption = 'Action Id';
-                    ToolTip = 'Specifies the id of the reminder action that caused the error.';
                 }
                 field(ErrorMessage; Rec."Error Text Short")
                 {
                     ApplicationArea = All;
                     Caption = 'Error';
-                    ToolTip = 'Specifies the error message. Invoke the error message to see the full error message.';
 
                     trigger OnDrillDown()
                     var

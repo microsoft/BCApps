@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -30,12 +30,10 @@ page 72 "Resource Groups"
                 field("No."; Rec."No.")
                 {
                     ApplicationArea = Jobs;
-                    ToolTip = 'Specifies the number of the involved entry or record, according to the specified number series.';
                 }
                 field(Name; Rec.Name)
                 {
                     ApplicationArea = Jobs;
-                    ToolTip = 'Specifies a short description of the resource group.';
                 }
             }
         }

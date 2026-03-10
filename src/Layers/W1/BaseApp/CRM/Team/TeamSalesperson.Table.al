@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -14,12 +14,14 @@ table 5084 "Team Salesperson"
         field(1; "Team Code"; Code[10])
         {
             Caption = 'Team Code';
+            ToolTip = 'Specifies the code of the team to which the salesperson belongs.';
             NotBlank = true;
             TableRelation = Team;
         }
         field(2; "Salesperson Code"; Code[20])
         {
             Caption = 'Salesperson Code';
+            ToolTip = 'Specifies the code of the salesperson you want to register as part of the team.';
             NotBlank = true;
             TableRelation = "Salesperson/Purchaser";
         }
@@ -27,6 +29,7 @@ table 5084 "Team Salesperson"
         {
             CalcFormula = lookup(Team.Name where(Code = field("Team Code")));
             Caption = 'Team Name';
+            ToolTip = 'Specifies the name of the team.';
             Editable = false;
             FieldClass = FlowField;
         }
@@ -34,6 +37,7 @@ table 5084 "Team Salesperson"
         {
             CalcFormula = lookup("Salesperson/Purchaser".Name where(Code = field("Salesperson Code")));
             Caption = 'Salesperson Name';
+            ToolTip = 'Specifies the name of the salesperson you want to register as part of the team.';
             Editable = false;
             FieldClass = FlowField;
         }

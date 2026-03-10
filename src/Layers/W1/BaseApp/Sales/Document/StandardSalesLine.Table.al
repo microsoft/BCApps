@@ -46,6 +46,7 @@ table 171 "Standard Sales Line"
         field(3; Type; Enum "Sales Line Type")
         {
             Caption = 'Type';
+            ToolTip = 'Specifies whether the line is for a general ledger account, item, resource, fixed asset or item charge.';
 
             trigger OnValidate()
             var
@@ -62,6 +63,7 @@ table 171 "Standard Sales Line"
         field(4; "No."; Code[20])
         {
             Caption = 'No.';
+            ToolTip = 'Specifies the number of a general ledger account, item, resource, additional cost, or fixed asset, depending on the contents of the Type field.';
             TableRelation = if (Type = const(" ")) "Standard Text"
             else
             if (Type = const("G/L Account")) "G/L Account"
@@ -148,6 +150,7 @@ table 171 "Standard Sales Line"
         field(5; Description; Text[100])
         {
             Caption = 'Description';
+            ToolTip = 'Specifies a description of the entry, which is based on the contents of the Type and No. fields.';
         }
         /// <summary>
         /// Specifies the quantity of the item or resource on the line.
@@ -157,6 +160,7 @@ table 171 "Standard Sales Line"
             AutoFormatType = 0;
             BlankZero = true;
             Caption = 'Quantity';
+            ToolTip = 'Specifies the number of units of the item on the line.';
             DecimalPlaces = 0 : 5;
 
             trigger OnValidate()
@@ -173,6 +177,7 @@ table 171 "Standard Sales Line"
             AutoFormatType = 2;
             BlankZero = true;
             Caption = 'Amount Excl. VAT';
+            ToolTip = 'Specifies the net amount for the standard sales line. This field only applies to lines of type G/L Account and Charge (Item).';
 
             trigger OnValidate()
             begin
@@ -186,6 +191,7 @@ table 171 "Standard Sales Line"
         field(8; "Unit of Measure Code"; Code[10])
         {
             Caption = 'Unit of Measure Code';
+            ToolTip = 'Specifies how each unit of the item or resource is measured, such as in pieces or hours. By default, the value in the Base Unit of Measure field on the item or resource card is inserted.';
             TableRelation = if (Type = const(Item)) "Item Unit of Measure".Code where("Item No." = field("No."))
             else
             if (Type = const(Resource)) "Resource Unit of Measure".Code where("Resource No." = field("No."))
@@ -204,6 +210,7 @@ table 171 "Standard Sales Line"
         {
             CaptionClass = '1,2,1';
             Caption = 'Shortcut Dimension 1 Code';
+            ToolTip = 'Specifies the code for Shortcut Dimension 1, which is one of two global dimension codes that you set up in the General Ledger Setup window.';
             TableRelation = "Dimension Value".Code where("Global Dimension No." = const(1),
                                                           Blocked = const(false));
 
@@ -219,6 +226,7 @@ table 171 "Standard Sales Line"
         {
             CaptionClass = '1,2,2';
             Caption = 'Shortcut Dimension 2 Code';
+            ToolTip = 'Specifies the code for Shortcut Dimension 2, which is one of two global dimension codes that you set up in the General Ledger Setup window.';
             TableRelation = "Dimension Value".Code where("Global Dimension No." = const(2),
                                                           Blocked = const(false));
 
@@ -233,6 +241,7 @@ table 171 "Standard Sales Line"
         field(11; "Variant Code"; Code[10])
         {
             Caption = 'Variant Code';
+            ToolTip = 'Specifies the variant of the item on the line.';
             TableRelation = if (Type = const(Item)) "Item Variant".Code where("Item No." = field("No."), Blocked = const(false));
 
             trigger OnValidate()

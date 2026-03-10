@@ -25,17 +25,14 @@ page 71 "User Time Registers"
                 {
                     ApplicationArea = Basic, Suite;
                     LookupPageID = "User Lookup";
-                    ToolTip = 'Specifies the ID of the user who posted the entry, to be used, for example, in the change log.';
                 }
                 field(Date; Rec.Date)
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the date.';
                 }
                 field(Minutes; Rec.Minutes)
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies how many minutes an individual user works on the accounts.';
                 }
             }
         }

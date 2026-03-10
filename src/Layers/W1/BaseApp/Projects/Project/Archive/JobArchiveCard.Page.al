@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -32,13 +32,11 @@ page 5177 "Job Archive Card"
                 {
                     ApplicationArea = All;
                     Importance = Standard;
-                    ToolTip = 'Specifies the number of the involved entry or record, according to the specified number series.';
                     Visible = NoFieldVisible;
                 }
                 field(Description; Rec.Description)
                 {
                     ApplicationArea = Jobs;
-                    ToolTip = 'Specifies a short description of the project.';
                 }
                 field("Sell-to Customer No."; Rec."Sell-to Customer No.")
                 {
@@ -46,7 +44,6 @@ page 5177 "Job Archive Card"
                     Caption = 'Customer No.';
                     Importance = Additional;
                     NotBlank = true;
-                    ToolTip = 'Specifies the number of the customer who will receive the products and be billed by default.';
                 }
                 field("Sell-to Customer Name"; Rec."Sell-to Customer Name")
                 {
@@ -55,7 +52,6 @@ page 5177 "Job Archive Card"
                     Importance = Promoted;
                     NotBlank = true;
                     ShowMandatory = true;
-                    ToolTip = 'Specifies the name of the customer who will receive the products and be billed by default.';
                 }
                 field("Sell-to Customer Name 2"; Rec."Sell-to Customer Name 2")
                 {
@@ -74,7 +70,6 @@ page 5177 "Job Archive Card"
                         Caption = 'Address';
                         Importance = Additional;
                         QuickEntry = false;
-                        ToolTip = 'Specifies the address where the customer is located.';
                     }
                     field("Sell-to Address 2"; Rec."Sell-to Address 2")
                     {
@@ -82,7 +77,6 @@ page 5177 "Job Archive Card"
                         Caption = 'Address 2';
                         Importance = Additional;
                         QuickEntry = false;
-                        ToolTip = 'Specifies additional address information.';
                     }
                     field("Sell-to City"; Rec."Sell-to City")
                     {
@@ -90,7 +84,6 @@ page 5177 "Job Archive Card"
                         Caption = 'City';
                         Importance = Additional;
                         QuickEntry = false;
-                        ToolTip = 'Specifies the city of the customer on the sales document.';
                     }
                     group(Control60)
                     {
@@ -102,7 +95,6 @@ page 5177 "Job Archive Card"
                             CaptionClass = '5,1,' + Rec."Sell-to Country/Region Code";
                             Importance = Additional;
                             QuickEntry = false;
-                            ToolTip = 'Specifies the state, province or county of the address.';
                         }
                     }
                     field("Sell-to Post Code"; Rec."Sell-to Post Code")
@@ -111,7 +103,6 @@ page 5177 "Job Archive Card"
                         Caption = 'Post Code';
                         Importance = Additional;
                         QuickEntry = false;
-                        ToolTip = 'Specifies the postal code.';
                     }
                     field("Sell-to Country/Region Code"; Rec."Sell-to Country/Region Code")
                     {
@@ -119,14 +110,12 @@ page 5177 "Job Archive Card"
                         Caption = 'Country/Region Code';
                         Importance = Additional;
                         QuickEntry = false;
-                        ToolTip = 'Specifies the country or region of the address.';
                     }
                     field("Sell-to Contact No."; Rec."Sell-to Contact No.")
                     {
                         ApplicationArea = Jobs;
                         Caption = 'Contact No.';
                         Importance = Additional;
-                        ToolTip = 'Specifies the number of the contact person that the sales document will be sent to.';
                     }
                     field(SellToPhoneNo; SellToContact."Phone No.")
                     {
@@ -161,7 +150,6 @@ page 5177 "Job Archive Card"
                         Caption = 'Contact';
                         Importance = Additional;
                         Editable = Rec."Sell-to Customer No." <> '';
-                        ToolTip = 'Specifies the name of the person to contact at the customer.';
                     }
                 }
                 field("Search Description"; Rec."Search Description")
@@ -186,22 +174,18 @@ page 5177 "Job Archive Card"
                 {
                     ApplicationArea = Jobs;
                     Importance = Promoted;
-                    ToolTip = 'Specifies the person at your company who is responsible for the project.';
                 }
                 field(Blocked; Rec.Blocked)
                 {
                     ApplicationArea = Jobs;
-                    ToolTip = 'Specifies that the related record is blocked from being posted in transactions, for example a customer that is declared insolvent or an item that is placed in quarantine.';
                 }
                 field("Last Date Modified"; Rec."Last Date Modified")
                 {
                     ApplicationArea = Jobs;
-                    ToolTip = 'Specifies when the project card was last modified.';
                 }
                 field("Project Manager"; Rec."Project Manager")
                 {
                     ApplicationArea = Jobs;
-                    ToolTip = 'Specifies the person who is assigned to manage the project.';
                 }
             }
             part(JobTaskLines; "Job Task Archive Lines Subform")
@@ -225,44 +209,37 @@ page 5177 "Job Archive Card"
                 field("Job Posting Group"; Rec."Job Posting Group")
                 {
                     ApplicationArea = Jobs;
-                    ToolTip = 'Specifies the posting group that links transactions made for the project with the appropriate general ledger accounts according to the general posting setup.';
                 }
                 field("Location Code"; Rec."Location Code")
                 {
                     ApplicationArea = Jobs;
                     Importance = Promoted;
-                    ToolTip = 'Specifies the location code of the project.';
                 }
                 field("Bin Code"; Rec."Bin Code")
                 {
                     ApplicationArea = Jobs;
                     Importance = Promoted;
-                    ToolTip = 'Specifies a bin code for specific location of the project.';
                 }
                 field("WIP Method"; Rec."WIP Method")
                 {
                     ApplicationArea = Jobs;
                     Importance = Additional;
-                    ToolTip = 'Specifies the method that is used to calculate the value of work in process for the project.';
                 }
                 field("WIP Posting Method"; Rec."WIP Posting Method")
                 {
                     ApplicationArea = Jobs;
                     Importance = Additional;
-                    ToolTip = 'Specifies how WIP posting is performed. Per Project: The total WIP costs and the sales value is used to calculate WIP. Per Project Ledger Entry: The accumulated values of WIP costs and sales are used to calculate WIP.';
                 }
                 field("Allow Schedule/Contract Lines"; Rec."Allow Schedule/Contract Lines")
                 {
                     ApplicationArea = Jobs;
                     Caption = 'Allow Budget/Billable Lines';
                     Importance = Additional;
-                    ToolTip = 'Specifies if you can add planning lines of both type Budget and type Billable to the project.';
                 }
                 field("Apply Usage Link"; Rec."Apply Usage Link")
                 {
                     ApplicationArea = Jobs;
                     Importance = Additional;
-                    ToolTip = 'Specifies whether usage entries, from the project journal or purchase line, for example, are linked to project planning lines. Select this check box if you want to be able to track the quantities and amounts of the remaining work needed to complete a project and to create a relationship between demand planning, usage, and sales. On a project card, you can select this check box if there are no existing project planning lines that include type Budget that have been posted. The usage link only applies to project planning lines that include type Budget.';
                 }
             }
             group("Invoice and Shipping")
@@ -288,7 +265,6 @@ page 5177 "Job Archive Card"
                             ApplicationArea = Jobs;
                             Importance = Promoted;
                             ShowMandatory = true;
-                            ToolTip = 'Specifies the number of the customer who pays for the project.';
                             Visible = false;
                         }
                         field("Bill-to Name"; Rec."Bill-to Name")
@@ -296,7 +272,6 @@ page 5177 "Job Archive Card"
                             Caption = 'Name';
                             ApplicationArea = Jobs;
                             Importance = Promoted;
-                            ToolTip = 'Specifies the name of the customer who pays for the project.';
                             Editable = ((BillToOptions = BillToOptions::"Another Customer") or ((BillToOptions = BillToOptions::"Custom Address") and not ShouldSearchForCustByName));
                             Enabled = ((BillToOptions = BillToOptions::"Another Customer") or ((BillToOptions = BillToOptions::"Custom Address") and not ShouldSearchForCustByName));
                             NotBlank = true;
@@ -314,7 +289,6 @@ page 5177 "Job Archive Card"
                             ApplicationArea = Jobs;
                             Importance = Additional;
                             QuickEntry = false;
-                            ToolTip = 'Specifies the address of the customer to whom you will send the invoice.';
                             Editable = BillToInformationEditable;
                             Enabled = BillToInformationEditable;
                         }
@@ -324,7 +298,6 @@ page 5177 "Job Archive Card"
                             ApplicationArea = Jobs;
                             Importance = Additional;
                             QuickEntry = false;
-                            ToolTip = 'Specifies an additional line of the address.';
                             Editable = BillToInformationEditable;
                             Enabled = BillToInformationEditable;
                         }
@@ -334,7 +307,6 @@ page 5177 "Job Archive Card"
                             ApplicationArea = Jobs;
                             Importance = Additional;
                             QuickEntry = false;
-                            ToolTip = 'Specifies the city of the address.';
                             Editable = BillToInformationEditable;
                             Enabled = BillToInformationEditable;
                         }
@@ -348,7 +320,6 @@ page 5177 "Job Archive Card"
                                 CaptionClass = '5,1,' + Rec."Bill-to Country/Region Code";
                                 QuickEntry = false;
                                 Importance = Additional;
-                                ToolTip = 'Specifies the county code of the customer''s billing address.';
                                 Editable = BillToInformationEditable;
                                 Enabled = BillToInformationEditable;
                             }
@@ -359,7 +330,6 @@ page 5177 "Job Archive Card"
                             ApplicationArea = Jobs;
                             Importance = Additional;
                             QuickEntry = false;
-                            ToolTip = 'Specifies the postal code of the customer who pays for the project.';
                             Editable = BillToInformationEditable;
                             Enabled = BillToInformationEditable;
                         }
@@ -369,7 +339,6 @@ page 5177 "Job Archive Card"
                             ApplicationArea = Jobs;
                             Importance = Additional;
                             QuickEntry = false;
-                            ToolTip = 'Specifies the country/region code of the customer''s billing address.';
                             Editable = BillToInformationEditable;
                             Enabled = BillToInformationEditable;
 
@@ -382,7 +351,6 @@ page 5177 "Job Archive Card"
                         {
                             Caption = 'Contact No.';
                             ApplicationArea = Jobs;
-                            ToolTip = 'Specifies the number of the contact person at the customer''s billing address.';
                             Importance = Additional;
                             Editable = BillToInformationEditable;
                             Enabled = BillToInformationEditable;
@@ -419,7 +387,6 @@ page 5177 "Job Archive Card"
                             Caption = 'Contact';
                             ApplicationArea = Jobs;
                             Importance = Additional;
-                            ToolTip = 'Specifies the name of the contact person at the customer who pays for the project.';
                             Editable = BillToInformationEditable;
                             Enabled = BillToInformationEditable;
                         }
@@ -461,14 +428,12 @@ page 5177 "Job Archive Card"
                             Caption = 'Code';
                             Editable = ShipToOptions = ShipToOptions::"Alternate Shipping Address";
                             Importance = Promoted;
-                            ToolTip = 'Specifies the code for another shipment address than the customer''s own address, which is entered by default.';
                         }
                         field("Ship-to Name"; Rec."Ship-to Name")
                         {
                             ApplicationArea = Jobs;
                             Caption = 'Name';
                             Editable = ShipToOptions = ShipToOptions::"Custom Address";
-                            ToolTip = 'Specifies the name that products on the sales document will be shipped to.';
                         }
                         field("Ship-to Name 2"; Rec."Ship-to Name 2")
                         {
@@ -476,7 +441,6 @@ page 5177 "Job Archive Card"
                             Caption = 'Name 2';
                             Editable = ShipToOptions = ShipToOptions::"Custom Address";
                             Importance = Additional;
-                            ToolTip = 'Specifies an additional part of the name that products on the sales document will be shipped to.';
                             QuickEntry = false;
                             Visible = false;
                         }
@@ -486,7 +450,6 @@ page 5177 "Job Archive Card"
                             Caption = 'Address';
                             Editable = ShipToOptions = ShipToOptions::"Custom Address";
                             QuickEntry = false;
-                            ToolTip = 'Specifies the address that products on the sales document will be shipped to.';
                         }
                         field("Ship-to Address 2"; Rec."Ship-to Address 2")
                         {
@@ -494,7 +457,6 @@ page 5177 "Job Archive Card"
                             Caption = 'Address 2';
                             Editable = ShipToOptions = ShipToOptions::"Custom Address";
                             QuickEntry = false;
-                            ToolTip = 'Specifies additional address information.';
                         }
                         field("Ship-to City"; Rec."Ship-to City")
                         {
@@ -502,7 +464,6 @@ page 5177 "Job Archive Card"
                             Caption = 'City';
                             Editable = ShipToOptions = ShipToOptions::"Custom Address";
                             QuickEntry = false;
-                            ToolTip = 'Specifies the city of the customer on the sales document.';
                         }
                         group(Control82)
                         {
@@ -514,7 +475,6 @@ page 5177 "Job Archive Card"
                                 CaptionClass = '5,1,' + Rec."Ship-to Country/Region Code";
                                 Editable = ShipToOptions = ShipToOptions::"Custom Address";
                                 QuickEntry = false;
-                                ToolTip = 'Specifies the state, province or county of the address.';
                             }
                         }
                         field("Ship-to Post Code"; Rec."Ship-to Post Code")
@@ -523,7 +483,6 @@ page 5177 "Job Archive Card"
                             Caption = 'Post Code';
                             Editable = ShipToOptions = ShipToOptions::"Custom Address";
                             QuickEntry = false;
-                            ToolTip = 'Specifies the postal code.';
                         }
                         field("Ship-to Country/Region Code"; Rec."Ship-to Country/Region Code")
                         {
@@ -532,7 +491,6 @@ page 5177 "Job Archive Card"
                             Editable = ShipToOptions = ShipToOptions::"Custom Address";
                             Importance = Additional;
                             QuickEntry = false;
-                            ToolTip = 'Specifies the customer''s country/region.';
 
                             trigger OnValidate()
                             begin
@@ -544,13 +502,11 @@ page 5177 "Job Archive Card"
                     {
                         ApplicationArea = Jobs;
                         Caption = 'Phone No.';
-                        ToolTip = 'Specifies the telephone number of the company''s shipping address.';
                     }
                     field("Ship-to Contact"; Rec."Ship-to Contact")
                     {
                         ApplicationArea = Jobs;
                         Caption = 'Contact';
-                        ToolTip = 'Specifies the name of the contact person at the address that products on the sales document will be shipped to.';
                     }
                 }
             }
@@ -561,18 +517,15 @@ page 5177 "Job Archive Card"
                 {
                     ApplicationArea = Jobs;
                     Importance = Promoted;
-                    ToolTip = 'Specifies the date on which the project actually starts.';
                 }
                 field("Ending Date"; Rec."Ending Date")
                 {
                     ApplicationArea = Jobs;
                     Importance = Promoted;
-                    ToolTip = 'Specifies the date on which the project is expected to be completed.';
                 }
                 field("Creation Date"; Rec."Creation Date")
                 {
                     ApplicationArea = Jobs;
-                    ToolTip = 'Specifies the date on which you set up the project.';
                 }
             }
             group("Foreign Trade")
@@ -582,26 +535,22 @@ page 5177 "Job Archive Card"
                 {
                     ApplicationArea = Suite;
                     Importance = Promoted;
-                    ToolTip = 'Specifies the currency code for the project. By default, the currency code is empty. If you enter a foreign currency code, it results in the project being planned and invoiced in that currency.';
                 }
                 field("Invoice Currency Code"; Rec."Invoice Currency Code")
                 {
                     ApplicationArea = Suite;
-                    ToolTip = 'Specifies the currency code you want to apply when creating invoices for a project. By default, the invoice currency code for a project is based on what currency code is defined on the customer card.';
                 }
                 field("Price Calculation Method"; Rec."Price Calculation Method")
                 {
                     Visible = ExtendedPriceEnabled;
                     ApplicationArea = Basic, Suite;
                     Importance = Promoted;
-                    ToolTip = 'Specifies the default method of the unit price calculation.';
                 }
                 field("Cost Calculation Method"; Rec."Cost Calculation Method")
                 {
                     Visible = ExtendedPriceEnabled;
                     ApplicationArea = Basic, Suite;
                     Importance = Promoted;
-                    ToolTip = 'Specifies the default method of the unit cost calculation.';
                 }
                 field("Exch. Calculation (Cost)"; Rec."Exch. Calculation (Cost)")
                 {
@@ -620,12 +569,10 @@ page 5177 "Job Archive Card"
                 field("Version No."; Rec."Version No.")
                 {
                     ApplicationArea = Suite;
-                    ToolTip = 'Specifies the version number of the archived document.';
                 }
                 field("Archived By"; Rec."Archived By")
                 {
                     ApplicationArea = Suite;
-                    ToolTip = 'Specifies the user ID of the person who archived this document.';
 
                     trigger OnDrillDown()
                     var
@@ -637,12 +584,10 @@ page 5177 "Job Archive Card"
                 field("Date Archived"; Rec."Date Archived")
                 {
                     ApplicationArea = Suite;
-                    ToolTip = 'Specifies the date when the document was archived.';
                 }
                 field("Time Archived"; Rec."Time Archived")
                 {
                     ApplicationArea = Suite;
-                    ToolTip = 'Specifies what time the document was archived.';
                 }
             }
         }

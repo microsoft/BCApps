@@ -5104,6 +5104,101 @@ codeunit 137020 "SCM Planning"
             SalesHeaderMustNotBeFoundErr);
     end;
 
+    [Test]
+    [Scope('OnPrem')]
+    procedure RegenPlanAfterCarryOutShouldNotReplanOrderPolicyMultiLevelBOM()
+    var
+        ComponentItem: Record Item;
+        SubBOMItem: Record Item;
+        MainItem: Record Item;
+        SubBOMHeader: Record "Production BOM Header";
+        MainBOMHeader: Record "Production BOM Header";
+        SalesHeader: Record "Sales Header";
+        SalesLine: Record "Sales Line";
+        RequisitionLine: Record "Requisition Line";
+        DampenerPeriod: DateFormula;
+        ShipmentDate1: Date;
+        ShipmentDate2: Date;
+    begin
+        // [SCENARIO 611978] Regenerative plan should not create new lines after carry out action message for multi-level BOM with Order reordering policy
+        Initialize();
+
+        // [GIVEN] Set up dates: Shipment dates 2 years in future to avoid conflicts
+        ShipmentDate1 := CalcDate('<+2Y>', WorkDate());
+        ShipmentDate2 := CalcDate('<+2Y+1D>', WorkDate());
+
+        // [GIVEN] Item (Component): Replenishment System = Purchase
+        LibraryInventory.CreateItem(ComponentItem);
+        ComponentItem.Validate("Replenishment System", ComponentItem."Replenishment System"::Purchase);
+        ComponentItem.Validate("Vendor No.", LibraryPurchase.CreateVendorNo());
+        ComponentItem.Modify(true);
+
+        // [GIVEN] Item (Sub BOM): Replenishment System = Prod. Order, Reordering Policy = Order, Dampener Period = 10D Production BOM with Component Item, Quantity per = 1
+        LibraryInventory.CreateItem(SubBOMItem);
+        SubBOMItem.Validate("Replenishment System", SubBOMItem."Replenishment System"::"Prod. Order");
+        SubBOMItem.Validate("Reordering Policy", SubBOMItem."Reordering Policy"::Order);
+        Evaluate(DampenerPeriod, '<10D>');
+        SubBOMItem.Validate("Dampener Period", DampenerPeriod);
+        SubBOMItem.Modify(true);
+
+        // [GIVEN]  Create Production BOM for Sub BOM Item with Component Item
+        LibraryManufacturing.CreateProductionBOMHeader(SubBOMHeader, SubBOMItem."Base Unit of Measure");
+        CreateProductionBOMLineWithItem(SubBOMHeader, ComponentItem."No.", 1);
+        SubBOMHeader.Validate(Status, SubBOMHeader.Status::Certified);
+        SubBOMHeader.Modify(true);
+
+        SubBOMItem.Validate("Production BOM No.", SubBOMHeader."No.");
+        SubBOMItem.Modify(true);
+
+        // [GIVEN] Item (Main): Replenishment System = Prod. Order, Reordering Policy = Order Production BOM with Sub BOM Item, Quantity per = 1
+        LibraryInventory.CreateItem(MainItem);
+        MainItem.Validate("Replenishment System", MainItem."Replenishment System"::"Prod. Order");
+        MainItem.Validate("Reordering Policy", MainItem."Reordering Policy"::Order);
+        MainItem.Modify(true);
+
+        // [GIVEN]  Create Production BOM for Main Item with Sub BOM Item
+        LibraryManufacturing.CreateProductionBOMHeader(MainBOMHeader, MainItem."Base Unit of Measure");
+        CreateProductionBOMLineWithItem(MainBOMHeader, SubBOMItem."No.", 1);
+        MainBOMHeader.Validate(Status, MainBOMHeader.Status::Certified);
+        MainBOMHeader.Modify(true);
+
+        MainItem.Validate("Production BOM No.", MainBOMHeader."No.");
+        MainItem.Modify(true);
+
+        // [GIVEN] Positive adjustment: Component Item, Quantity = 10
+        UpdateItemInventory(ComponentItem."No.", 10);
+
+        // [GIVEN] Sales Order with 4 lines for Main Item:
+        LibrarySales.CreateSalesHeader(SalesHeader, SalesHeader."Document Type"::Order, LibrarySales.CreateCustomerNo());
+        CreateSalesLineWithShipmentDate(SalesHeader, SalesLine, MainItem."No.", LibraryRandom.RandIntInRange(10, 2), ShipmentDate1);
+        CreateSalesLineWithShipmentDate(SalesHeader, SalesLine, MainItem."No.", LibraryRandom.RandIntInRange(15, 2), ShipmentDate1);
+        CreateSalesLineWithShipmentDate(SalesHeader, SalesLine, MainItem."No.", LibraryRandom.RandIntInRange(20, 2), ShipmentDate2);
+        CreateSalesLineWithShipmentDate(SalesHeader, SalesLine, MainItem."No.", LibraryRandom.RandIntInRange(25, 2), ShipmentDate2);
+
+        // [GIVEN] Calculate Regenerative Plan - expect 8 lines (4 for Main, 4 for Sub BOM)
+        LibraryPlanning.CalcRegenPlanForPlanWksh(MainItem, WorkDate(), CalcDate('<+3Y>', WorkDate()));
+        LibraryPlanning.CalcRegenPlanForPlanWksh(SubBOMItem, WorkDate(), CalcDate('<+3Y>', WorkDate()));
+        LibraryPlanning.CalcRegenPlanForPlanWksh(ComponentItem, WorkDate(), CalcDate('<+3Y>', WorkDate()));
+
+        // [GIVEN] Carry Out Action Message for all items
+        AcceptAndCarryOutActionMessageForItem(MainItem."No.");
+        AcceptAndCarryOutActionMessageForItem(SubBOMItem."No.");
+        AcceptAndCarryOutActionMessageForItem(ComponentItem."No.");
+
+        // [WHEN] Calculate Regenerative Plan again
+        LibraryPlanning.CalcRegenPlanForPlanWksh(MainItem, WorkDate(), CalcDate('<+3Y>', WorkDate()));
+        LibraryPlanning.CalcRegenPlanForPlanWksh(SubBOMItem, WorkDate(), CalcDate('<+3Y>', WorkDate()));
+        LibraryPlanning.CalcRegenPlanForPlanWksh(ComponentItem, WorkDate(), CalcDate('<+3Y>', WorkDate()));
+
+        // [THEN] No planning lines for Main Item should be created - demand is already matched with supply
+        FilterRequisitionLine(RequisitionLine, MainItem."No.");
+        Assert.RecordIsEmpty(RequisitionLine);
+
+        // [THEN] No planning lines for Sub BOM Item should be created - demand is already matched with supply
+        FilterRequisitionLine(RequisitionLine, SubBOMItem."No.");
+        Assert.RecordIsEmpty(RequisitionLine);
+    end;
+
     local procedure Initialize()
     var
         LibraryERMCountryData: Codeunit "Library - ERM Country Data";
@@ -5283,6 +5378,57 @@ codeunit 137020 "SCM Planning"
         LibraryPlanning.CreateRequisitionLine(RequisitionLine, ReqWkshTemplate.Name, RequisitionWkshName.Name);
         LibraryPlanning.GetSpecialOrder(RequisitionLine, ItemNo);
         LibraryPlanning.CarryOutReqWksh(RequisitionLine, WorkDate(), WorkDate(), WorkDate(), WorkDate(), '');
+    end;
+
+    local procedure CreateProductionBOMLineWithItem(var ProductionBOMHeader: Record "Production BOM Header"; ItemNo: Code[20]; QtyPer: Decimal)
+    var
+        ProductionBOMLine: Record "Production BOM Line";
+    begin
+        LibraryManufacturing.CreateProductionBOMLine(ProductionBOMHeader, ProductionBOMLine, '', ProductionBOMLine.Type::Item, ItemNo, QtyPer);
+    end;
+
+    local procedure CreateSalesLineWithShipmentDate(var SalesHeader: Record "Sales Header"; var SalesLine: Record "Sales Line"; ItemNo: Code[20]; Quantity: Decimal; ShipmentDate: Date)
+    begin
+        LibrarySales.CreateSalesLine(SalesLine, SalesHeader, SalesLine.Type::Item, ItemNo, Quantity);
+        SalesLine.Validate("Shipment Date", ShipmentDate);
+        SalesLine.Modify(true);
+    end;
+
+    local procedure UpdateItemInventory(ItemNo: Code[20]; ItemQty: Decimal)
+    var
+        ItemJournalTemplate: Record "Item Journal Template";
+        ItemJournalBatch: Record "Item Journal Batch";
+        ItemJournalLine: Record "Item Journal Line";
+    begin
+        LibraryInventory.SelectItemJournalTemplateName(ItemJournalTemplate, ItemJournalTemplate.Type::Item);
+        LibraryInventory.SelectItemJournalBatchName(ItemJournalBatch, ItemJournalTemplate.Type::Item, ItemJournalTemplate.Name);
+        ItemJournalBatch.Validate("No. Series", LibraryUtility.GetGlobalNoSeriesCode());
+        ItemJournalBatch.Modify(true);
+        LibraryInventory.CreateItemJournalLine(
+          ItemJournalLine, ItemJournalBatch."Journal Template Name", ItemJournalBatch.Name,
+          ItemJournalLine."Entry Type"::"Positive Adjmt.", ItemNo, ItemQty);
+        LibraryInventory.PostItemJournalLine(ItemJournalBatch."Journal Template Name", ItemJournalBatch.Name);
+    end;
+
+    local procedure AcceptAndCarryOutActionMessageForItem(ItemNo: Code[20])
+    var
+        ReqLine: Record "Requisition Line";
+    begin
+        FilterRequisitionLine(ReqLine, ItemNo);
+        if ReqLine.FindSet() then
+            repeat
+                ReqLine.Validate("Accept Action Message", true);
+                ReqLine.Modify(true);
+            until ReqLine.Next() = 0;
+
+        if ReqLine.FindFirst() then
+            LibraryPlanning.CarryOutActionMsgPlanWksh(ReqLine);
+    end;
+
+    local procedure FilterRequisitionLine(var RequisitionLine: Record "Requisition Line"; ItemNo: Code[20])
+    begin
+        RequisitionLine.SetRange(Type, RequisitionLine.Type::Item);
+        RequisitionLine.SetRange("No.", ItemNo);
     end;
 
     [MessageHandler]

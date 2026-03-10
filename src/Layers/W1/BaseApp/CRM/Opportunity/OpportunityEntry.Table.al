@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -31,6 +31,7 @@ table 5093 "Opportunity Entry"
         field(2; "Opportunity No."; Code[20])
         {
             Caption = 'Opportunity No.';
+            ToolTip = 'Specifies the number of the opportunity to which this entry applies.';
             TableRelation = Opportunity;
 
             trigger OnValidate()
@@ -58,11 +59,13 @@ table 5093 "Opportunity Entry"
         field(3; "Sales Cycle Code"; Code[10])
         {
             Caption = 'Sales Cycle Code';
+            ToolTip = 'Specifies the code of the sales cycle to which the opportunity is linked.';
             TableRelation = "Sales Cycle";
         }
         field(4; "Sales Cycle Stage"; Integer)
         {
             Caption = 'Sales Cycle Stage';
+            ToolTip = 'Specifies the sales cycle stage currently of the opportunity.';
             MinValue = 1;
             TableRelation = "Sales Cycle Stage".Stage where("Sales Cycle Code" = field("Sales Cycle Code"));
 
@@ -95,25 +98,30 @@ table 5093 "Opportunity Entry"
         field(9; "Date of Change"; Date)
         {
             Caption = 'Date of Change';
+            ToolTip = 'Specifies the date this opportunity entry was last changed.';
         }
         field(10; Active; Boolean)
         {
             Caption = 'Active';
+            ToolTip = 'Specifies that the opportunity entry is active.';
         }
         field(11; "Date Closed"; Date)
         {
             Caption = 'Date Closed';
+            ToolTip = 'Specifies the date that the opportunity was closed.';
         }
         field(12; "Days Open"; Decimal)
         {
             AutoFormatType = 0;
             Caption = 'Days Open';
+            ToolTip = 'Specifies the number of days that the opportunity entry was open.';
             DecimalPlaces = 0 : 0;
             MinValue = 0;
         }
         field(13; "Action Taken"; Enum "Opportunity Action Taken")
         {
             Caption = 'Action Taken';
+            ToolTip = 'Specifies the action that was taken when the entry was last updated. There are six options:';
 
             trigger OnValidate()
             begin
@@ -137,12 +145,14 @@ table 5093 "Opportunity Entry"
         {
             AutoFormatType = 0;
             Caption = 'Completed %';
+            ToolTip = 'Specifies the percentage of the sales cycle that has been completed for this opportunity entry.';
             DecimalPlaces = 0 : 0;
         }
         field(17; "Chances of Success %"; Decimal)
         {
             AutoFormatType = 0;
             Caption = 'Chances of Success %';
+            ToolTip = 'Specifies the chances of success of the opportunity entry.';
             DecimalPlaces = 0 : 0;
             MaxValue = 100;
         }
@@ -150,11 +160,13 @@ table 5093 "Opportunity Entry"
         {
             AutoFormatType = 0;
             Caption = 'Probability %';
+            ToolTip = 'Specifies the probability of the opportunity resulting in a sale.';
             DecimalPlaces = 0 : 0;
         }
         field(19; "Close Opportunity Code"; Code[10])
         {
             Caption = 'Close Opportunity Code';
+            ToolTip = 'Specifies the code for closing the opportunity.';
             TableRelation = if ("Action Taken" = const(Won)) "Close Opportunity Code" where(Type = const(Won))
             else
             if ("Action Taken" = const(Lost)) "Close Opportunity Code" where(Type = const(Lost));
@@ -162,11 +174,13 @@ table 5093 "Opportunity Entry"
         field(20; "Previous Sales Cycle Stage"; Integer)
         {
             Caption = 'Previous Sales Cycle Stage';
+            ToolTip = 'Specifies the sales cycle stage of the opportunity before this entry.';
             TableRelation = "Sales Cycle Stage".Stage where("Sales Cycle Code" = field("Sales Cycle Code"));
         }
         field(21; "Estimated Close Date"; Date)
         {
             Caption = 'Estimated Close Date';
+            ToolTip = 'Specifies the estimated date when the opportunity entry will be closed.';
         }
         field(9501; "Wizard Step"; Option)
         {
@@ -178,16 +192,19 @@ table 5093 "Opportunity Entry"
         field(9502; "Cancel Old To Do"; Boolean)
         {
             Caption = 'Cancel Old Task';
+            ToolTip = 'Specifies a task is to be cancelled from the opportunity.';
         }
         field(9503; "Action Type"; Option)
         {
             Caption = 'Action Type';
+            ToolTip = 'Specifies options that you can take when you reenter an opportunity to update it in the Update Opportunity window. Certain options are not available, depending on what stage you are in for your opportunity. For example, if you are in stage 1, you cannot select the Previous option.';
             OptionCaption = ' ,First,Next,Previous,Skip,Update,Jump';
             OptionMembers = " ",First,Next,Previous,Skip,Update,Jump;
         }
         field(9504; "Sales Cycle Stage Description"; Text[100])
         {
             Caption = 'Sales Cycle Stage Description';
+            ToolTip = 'Specifies a description of the sales cycle that is related to the task. The description is copied from the sales cycle card.';
         }
     }
 

@@ -11,7 +11,7 @@ codeunit 6487 "Serv. VAT Setup Mgt."
 {
     Permissions = TableData "Service Line" = rimd;
 
-    [EventSubscriber(ObjectType::Table, Database::"VAT Setup Posting Groups", 'OnBeforeCheckExistingItemAndServiceWithVAT', '', false, false)]
+    [EventSubscriber(ObjectType::Table, Database::"VAT Setup Posting Groups", 'OnBeforeCheckExistingItemAndServiceWithVAT', '', true, false)]
     local procedure OnBeforeCheckExistingItemAndServiceWithVAT(VATProdPostingGroupCode: Code[20]; var Result: Boolean)
     var
         ServiceLine: Record "Service Line";
@@ -20,7 +20,7 @@ codeunit 6487 "Serv. VAT Setup Mgt."
         Result := not ServiceLine.IsEmpty();
     end;
 
-    [EventSubscriber(ObjectType::Page, Page::"VAT Setup Wizard", 'OnBeforeDeleteVATProdPostingGroup', '', false, false)]
+    [EventSubscriber(ObjectType::Page, Page::"VAT Setup Wizard", 'OnBeforeDeleteVATProdPostingGroup', '', true, false)]
     local procedure OnBeforeDeleteVATProdPostingGroup(var VATProductPostingGroup: Record "VAT Product Posting Group"; var ShouldDelete: Boolean)
     var
         ServiceLine: Record "Service Line";

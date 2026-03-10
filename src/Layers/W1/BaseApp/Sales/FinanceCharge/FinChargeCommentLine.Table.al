@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -22,6 +22,7 @@ table 306 "Fin. Charge Comment Line"
         field(1; Type; Option)
         {
             Caption = 'Type';
+            ToolTip = 'Specifies the type of document the comment is attached to: either Finance Charge Memo or Issued Finance Charge Memo.';
             OptionCaption = 'Finance Charge Memo,Issued Finance Charge Memo';
             OptionMembers = "Finance Charge Memo","Issued Finance Charge Memo";
         }
@@ -31,6 +32,7 @@ table 306 "Fin. Charge Comment Line"
         field(2; "No."; Code[20])
         {
             Caption = 'No.';
+            ToolTip = 'Specifies the number of the involved entry or record, according to the specified number series.';
             NotBlank = true;
             TableRelation = if (Type = const("Finance Charge Memo")) "Finance Charge Memo Header"
             else
@@ -49,6 +51,7 @@ table 306 "Fin. Charge Comment Line"
         field(4; Date; Date)
         {
             Caption = 'Date';
+            ToolTip = 'Specifies the date the comment was created.';
         }
         /// <summary>
         /// Specifies an optional code to categorize or identify the comment.
@@ -56,6 +59,7 @@ table 306 "Fin. Charge Comment Line"
         field(5; "Code"; Code[10])
         {
             Caption = 'Code';
+            ToolTip = 'Specifies a code for the comment.';
         }
         /// <summary>
         /// Contains the text of the comment for the finance charge memo.
@@ -63,6 +67,7 @@ table 306 "Fin. Charge Comment Line"
         field(6; Comment; Text[80])
         {
             Caption = 'Comment';
+            ToolTip = 'Specifies the comment itself.';
         }
     }
 

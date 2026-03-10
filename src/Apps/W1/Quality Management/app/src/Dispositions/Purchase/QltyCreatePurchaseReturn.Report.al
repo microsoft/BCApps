@@ -17,7 +17,7 @@ report 20411 "Qlty. Create Purchase Return"
     UsageCategory = Tasks;
     ProcessingOnly = true;
     AllowScheduling = false;
-    Description = 'Use this to create a Purchase Return Order from a Quality Inspection.';
+    ToolTip = 'Use this to create a Purchase Return Order from a Quality Inspection.';
 
     dataset
     {
@@ -43,7 +43,7 @@ report 20411 "Qlty. Create Purchase Return"
         {
             area(Content)
             {
-                group(SettingsForQuantity)
+                group(Quantity)
                 {
                     Caption = 'Quantity';
                     InstructionalText = 'The quantity of the inspected item that will be returned.';
@@ -90,7 +90,7 @@ report 20411 "Qlty. Create Purchase Return"
                             CurrReport.RequestOptionsPage.Update(true);
                         end;
                     }
-                    group(SettingsForSpecificQty)
+                    group(SpecificQty)
                     {
                         ShowCaption = false;
                         Visible = ReturnSpecific;
@@ -170,7 +170,7 @@ report 20411 "Qlty. Create Purchase Return"
                         end;
                     }
                 }
-                group(SettingsForReason)
+                group(Reason)
                 {
                     Caption = 'Reason (optional)';
                     InstructionalText = 'Optional return reason for the Purchase Return Order.';
@@ -183,7 +183,7 @@ report 20411 "Qlty. Create Purchase Return"
                         Tooltip = 'Specifies an optional reason code to use.';
                     }
                 }
-                group(SettingsForSource)
+                group(Source)
                 {
                     Caption = 'Source (optional)';
                     InstructionalText = 'Optional filters that limit where the inventory is adjusted from if the inspection covers more than one bin.';
@@ -203,7 +203,7 @@ report 20411 "Qlty. Create Purchase Return"
                         ToolTip = 'Specifies to optionally limit which bins will be used to pull the inventory from.';
                     }
                 }
-                group(SettingsForCreditMemo)
+                group(CreditMemo)
                 {
                     Caption = 'Vendor Credit Memo No. (optional)';
 

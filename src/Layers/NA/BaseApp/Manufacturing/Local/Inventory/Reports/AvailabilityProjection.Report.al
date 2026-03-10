@@ -1,4 +1,5 @@
-﻿// ------------------------------------------------------------------------------------------------
+﻿#if not CLEAN28
+// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -16,6 +17,9 @@ report 10130 "Availability Projection"
     Caption = 'Availability Projection';
     UsageCategory = ReportsAndAnalysis;
     DataAccessIntent = ReadOnly;
+    ObsoleteReason = 'Prepare for extraction of Manufacturing app';
+    ObsoleteState = Pending;
+    ObsoleteTag = '28.0';
 
     dataset
     {
@@ -1344,4 +1348,4 @@ report 10130 "Availability Projection"
         Quantity_AvailableCaption_Control125Lbl: Label 'Quantity Available';
         Quantity_on_Service_OrdersCaption_Control175Lbl: Label 'Quantity on Service Orders';
 }
-
+#endif

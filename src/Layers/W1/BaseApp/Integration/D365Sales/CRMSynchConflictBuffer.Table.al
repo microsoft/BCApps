@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -89,6 +89,7 @@ table 5374 "CRM Synch. Conflict Buffer"
         field(4; "Table ID"; Integer)
         {
             Caption = 'Table ID';
+            ToolTip = 'Specifies the ID of the table that holds the record.';
             DataClassification = SystemMetadata;
 
             trigger OnValidate()
@@ -99,6 +100,7 @@ table 5374 "CRM Synch. Conflict Buffer"
         field(5; "Table Name"; Text[250])
         {
             Caption = 'Table Name';
+            ToolTip = 'Specifies the name of the table that holds the record.';
             DataClassification = SystemMetadata;
         }
         field(6; "Record ID"; RecordID)
@@ -125,6 +127,7 @@ table 5374 "CRM Synch. Conflict Buffer"
         field(7; Description; Text[250])
         {
             Caption = 'Description';
+            ToolTip = 'Specifies the description of the table that holds the record.';
             DataClassification = SystemMetadata;
         }
         field(8; "Modified On"; DateTime)
@@ -145,6 +148,7 @@ table 5374 "CRM Synch. Conflict Buffer"
         field(11; "Int. Description"; Text[250])
         {
             Caption = 'Int. Description';
+            ToolTip = 'Specifies the coupled entity in Dynamics 365 Sales';
             DataClassification = SystemMetadata;
         }
         field(12; "Int. Modified On"; DateTime)
@@ -155,21 +159,25 @@ table 5374 "CRM Synch. Conflict Buffer"
         field(13; "Error Message"; Text[250])
         {
             Caption = 'Error Message';
+            ToolTip = 'Specifies why the record was could not be synchronized.';
             DataClassification = SystemMetadata;
         }
         field(14; "Failed On"; DateTime)
         {
             Caption = 'Failed On';
+            ToolTip = 'Specifies when the synchronization failed.';
             DataClassification = SystemMetadata;
         }
         field(16; "Record Exists"; Boolean)
         {
             Caption = 'Record Exists';
+            ToolTip = 'Specifies if the coupled record exists in Business Central.';
             DataClassification = SystemMetadata;
         }
         field(17; "Int. Record Exists"; Boolean)
         {
             Caption = 'Int. Record Exists';
+            ToolTip = 'Specifies if a coupled entity exists in Dynamics 365 Sales';
             DataClassification = SystemMetadata;
         }
         field(18; "CRM Option Id"; Integer)

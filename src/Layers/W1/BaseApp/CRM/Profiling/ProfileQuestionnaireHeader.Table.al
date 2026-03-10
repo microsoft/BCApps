@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -19,24 +19,29 @@ table 5087 "Profile Questionnaire Header"
         field(1; "Code"; Code[20])
         {
             Caption = 'Code';
+            ToolTip = 'Specifies the code of the profile questionnaire.';
             NotBlank = true;
         }
         field(2; Description; Text[250])
         {
             Caption = 'Description';
+            ToolTip = 'Specifies the description of the profile questionnaire.';
         }
         field(3; "Contact Type"; Enum "Profile Questionnaire Contact Type")
         {
             Caption = 'Contact Type';
+            ToolTip = 'Specifies the type of contact you want to use this profile questionnaire for.';
         }
         field(4; "Business Relation Code"; Code[10])
         {
             Caption = 'Business Relation Code';
+            ToolTip = 'Specifies the code of the business relation to which the profile questionnaire applies.';
             TableRelation = "Business Relation";
         }
         field(5; Priority; Enum "Profile Questionnaire Priority")
         {
             Caption = 'Priority';
+            ToolTip = 'Specifies the priority you give to the profile questionnaire and where it should be displayed on the lines of the Contact Card. There are five options:';
             InitValue = Normal;
 
             trigger OnValidate()

@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -21,17 +21,14 @@ page 7111 "Analysis Type List"
                 field("Code"; Rec.Code)
                 {
                     ApplicationArea = SalesAnalysis, PurchaseAnalysis;
-                    ToolTip = 'Specifies the code of the analysis type.';
                 }
                 field(Name; Rec.Name)
                 {
                     ApplicationArea = SalesAnalysis, PurchaseAnalysis;
-                    ToolTip = 'Specifies a description of the analysis type.';
                 }
                 field("Value Type"; Rec."Value Type")
                 {
                     ApplicationArea = SalesAnalysis, PurchaseAnalysis;
-                    ToolTip = 'Specifies the value type that the analysis type is based on.';
                 }
             }
         }

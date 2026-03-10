@@ -47,7 +47,6 @@ page 800 "Online Map Setup"
                 {
                     ApplicationArea = Basic, Suite;
                     Caption = 'Enabled';
-                    ToolTip = 'Specifies if the connection to online map service should be enabled';
                 }
             }
             group(Settings)
@@ -57,19 +56,16 @@ page 800 "Online Map Setup"
                 {
                     ApplicationArea = Basic, Suite;
                     LookupPageID = "Online Map Parameter Setup";
-                    ToolTip = 'Specifies the map parameter code that is set up in the Online Map Parameter Setup window.';
                 }
                 field("Distance In"; Rec."Distance In")
                 {
                     ApplicationArea = Basic, Suite;
                     Caption = 'Show Distance in';
-                    ToolTip = 'Specifies if distances in your online map should be shown in miles or kilometers.';
                 }
                 field(Route; Rec.Route)
                 {
                     ApplicationArea = Basic, Suite;
                     Caption = 'Route (Quickest/Shortest)';
-                    ToolTip = 'Specifies whether to use the quickest or shortest route for calculation.';
                 }
             }
         }

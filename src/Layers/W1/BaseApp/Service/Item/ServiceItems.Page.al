@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -31,32 +31,26 @@ page 5988 "Service Items"
                 field("No."; Rec."No.")
                 {
                     ApplicationArea = Service;
-                    ToolTip = 'Specifies the number of the involved entry or record, according to the specified number series.';
                 }
                 field(Description; Rec.Description)
                 {
                     ApplicationArea = Service;
-                    ToolTip = 'Specifies a description of this item.';
                 }
                 field("Item No."; Rec."Item No.")
                 {
                     ApplicationArea = Service;
-                    ToolTip = 'Specifies the item number linked to the service item.';
                 }
                 field("Serial No."; Rec."Serial No.")
                 {
                     ApplicationArea = ItemTracking;
-                    ToolTip = 'Specifies the serial number of this item.';
                 }
                 field("Customer No."; Rec."Customer No.")
                 {
                     ApplicationArea = Service;
-                    ToolTip = 'Specifies the number of the customer who owns this item.';
                 }
                 field("Ship-to Code"; Rec."Ship-to Code")
                 {
                     ApplicationArea = Service;
-                    ToolTip = 'Specifies a code for an alternate shipment address if you want to ship to another address than the one that has been entered automatically. This field is also used in case of drop shipment.';
                 }
                 field("Warranty Starting Date (Parts)"; Rec."Warranty Starting Date (Parts)")
                 {
@@ -81,7 +75,6 @@ page 5988 "Service Items"
                 field(Blocked; Rec.Blocked)
                 {
                     ApplicationArea = Service;
-                    ToolTip = 'Specifies that the service item is blocked from being used in service contracts or used and posted in transactions via service documents, except credit memos.';
                 }
             }
         }

@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -35,20 +35,17 @@ page 1615 "Office Job Journal"
             {
                 ApplicationArea = Jobs;
                 Editable = false;
-                ToolTip = 'Specifies the number of the related project.';
             }
             field("Job Task No."; Rec."Job Task No.")
             {
                 ApplicationArea = Jobs;
                 Editable = false;
-                ToolTip = 'Specifies the number of the related project task.';
             }
             field(JobJournalTemplate; Rec."Job Journal Template Name")
             {
                 ApplicationArea = Jobs;
                 Caption = 'Project Journal Template';
                 Editable = TemplateEditable and IsEditable;
-                ToolTip = 'Specifies the journal template that is used for the project journal.';
 
                 trigger OnValidate()
                 var
@@ -77,7 +74,6 @@ page 1615 "Office Job Journal"
                 ApplicationArea = Jobs;
                 Caption = 'Project Journal Batch';
                 Editable = BatchEditable and IsEditable;
-                ToolTip = 'Specifies the journal batch that is used for the project journal.';
             }
             field(Date; JobPlanningLine."Planning Date")
             {

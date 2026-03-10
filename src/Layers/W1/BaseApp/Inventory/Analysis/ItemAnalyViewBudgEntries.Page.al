@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -22,42 +22,34 @@ page 7154 "Item Analy. View Budg. Entries"
                 field("Budget Name"; Rec."Budget Name")
                 {
                     ApplicationArea = ItemBudget;
-                    ToolTip = 'Specifies the name of the budget that the analysis view budget entries are linked to.';
                 }
                 field("Location Code"; Rec."Location Code")
                 {
                     ApplicationArea = Location;
-                    ToolTip = 'Specifies the code of the location to which the analysis view budget entry was posted.';
                 }
                 field("Item No."; Rec."Item No.")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the number of the item that the analysis view budget entry is linked to.';
                 }
                 field("Dimension 1 Value Code"; Rec."Dimension 1 Value Code")
                 {
                     ApplicationArea = Dimensions;
-                    ToolTip = 'Specifies the dimension value you selected for the analysis view dimension that you defined as Dimension 1 on the analysis view card.';
                 }
                 field("Dimension 2 Value Code"; Rec."Dimension 2 Value Code")
                 {
                     ApplicationArea = Dimensions;
-                    ToolTip = 'Specifies which dimension value you have selected for the analysis view dimension that you defined as Dimension 2 on the analysis view card.';
                 }
                 field("Dimension 3 Value Code"; Rec."Dimension 3 Value Code")
                 {
                     ApplicationArea = Dimensions;
-                    ToolTip = 'Specifies which dimension value you have selected for the analysis view dimension that you defined as Dimension 1 on the analysis view card.';
                 }
                 field("Posting Date"; Rec."Posting Date")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the date on which the item budget entries in an analysis view budget entry were posted.';
                 }
                 field("Sales Amount"; Rec."Sales Amount")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the item budget entry sales amount included in an analysis view budget entry.';
 
                     trigger OnDrillDown()
                     begin
@@ -67,7 +59,6 @@ page 7154 "Item Analy. View Budg. Entries"
                 field("Cost Amount"; Rec."Cost Amount")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the item budget entry cost amount included in an analysis view budget entry.';
 
                     trigger OnDrillDown()
                     begin
@@ -77,7 +68,6 @@ page 7154 "Item Analy. View Budg. Entries"
                 field(Quantity; Rec.Quantity)
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the item budget entry quantity included in an analysis view budget entry.';
 
                     trigger OnDrillDown()
                     begin

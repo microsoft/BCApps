@@ -359,7 +359,7 @@ table 363 "Analysis View"
             begin
                 OnBeforeValidateDimension1Code(Rec, xRec);
                 TestField(Blocked, false);
-                if Dim.CheckIfDimUsed("Dimension 1 Code", 13, '', Code, 0) then
+                if Dim.CheckIfDimUsed("Dimension 1 Code", Enum::"Dim Type Checked".FromInteger(13), '', Code, 0) then
                     Error(Text000, Dim.GetCheckDimErr());
                 if ClearDimTotalingLines("Dimension 1 Code", xRec."Dimension 1 Code", 1) then begin
                     ModifyDim(FieldCaption("Dimension 1 Code"), "Dimension 1 Code", xRec."Dimension 1 Code");
@@ -380,7 +380,7 @@ table 363 "Analysis View"
             begin
                 OnBeforeValidateDimension2Code(Rec, xRec);
                 TestField(Blocked, false);
-                if Dim.CheckIfDimUsed("Dimension 2 Code", 14, '', Code, 0) then
+                if Dim.CheckIfDimUsed("Dimension 2 Code", Enum::"Dim Type Checked".FromInteger(14), '', Code, 0) then
                     Error(Text000, Dim.GetCheckDimErr());
                 if ClearDimTotalingLines("Dimension 2 Code", xRec."Dimension 2 Code", 2) then begin
                     ModifyDim(FieldCaption("Dimension 2 Code"), "Dimension 2 Code", xRec."Dimension 2 Code");
@@ -401,7 +401,7 @@ table 363 "Analysis View"
             begin
                 OnBeforeValidateDimension3Code(Rec, xRec);
                 TestField(Blocked, false);
-                if Dim.CheckIfDimUsed("Dimension 3 Code", 15, '', Code, 0) then
+                if Dim.CheckIfDimUsed("Dimension 3 Code", Enum::"Dim Type Checked".FromInteger(15), '', Code, 0) then
                     Error(Text000, Dim.GetCheckDimErr());
                 if ClearDimTotalingLines("Dimension 3 Code", xRec."Dimension 3 Code", 3) then begin
                     ModifyDim(FieldCaption("Dimension 3 Code"), "Dimension 3 Code", xRec."Dimension 3 Code");
@@ -422,7 +422,7 @@ table 363 "Analysis View"
             begin
                 OnBeforeValidateDimension4Code(Rec, xRec);
                 TestField(Blocked, false);
-                if Dim.CheckIfDimUsed("Dimension 4 Code", 16, '', Code, 0) then
+                if Dim.CheckIfDimUsed("Dimension 4 Code", Enum::"Dim Type Checked".FromInteger(16), '', Code, 0) then
                     Error(Text000, Dim.GetCheckDimErr());
                 if ClearDimTotalingLines("Dimension 4 Code", xRec."Dimension 4 Code", 4) then begin
                     ModifyDim(FieldCaption("Dimension 4 Code"), "Dimension 4 Code", xRec."Dimension 4 Code");

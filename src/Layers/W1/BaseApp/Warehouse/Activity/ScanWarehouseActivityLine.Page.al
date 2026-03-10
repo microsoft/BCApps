@@ -33,14 +33,12 @@ page 7388 "Scan Warehouse Activity Line"
                     {
                         ApplicationArea = Warehouse;
                         Editable = false;
-                        ToolTip = 'Specifies the action type for the warehouse activity line.';
                     }
                 }
                 field("Item No."; Rec."Item No.")
                 {
                     ApplicationArea = Warehouse;
                     Editable = false;
-                    ToolTip = 'Specifies the item number of the item to be handled, such as picked or put away.';
                 }
                 group(Variant)
                 {
@@ -50,14 +48,12 @@ page 7388 "Scan Warehouse Activity Line"
                     {
                         ApplicationArea = Warehouse;
                         Editable = false;
-                        ToolTip = 'Specifies the variant of the item on the line.';
                     }
                 }
                 field(Description; Rec.Description)
                 {
                     ApplicationArea = Warehouse;
                     Editable = false;
-                    ToolTip = 'Specifies a description of the item on the line.';
                 }
                 group(DescriptionGrp)
                 {
@@ -79,7 +75,6 @@ page 7388 "Scan Warehouse Activity Line"
                     {
                         ApplicationArea = ItemTracking;
                         Editable = false;
-                        ToolTip = 'Specifies the serial number to handle in the document.';
                     }
                 }
                 group(LotNo)
@@ -90,7 +85,6 @@ page 7388 "Scan Warehouse Activity Line"
                     {
                         ApplicationArea = ItemTracking;
                         Editable = false;
-                        ToolTip = 'Specifies the lot number to handle in the document.';
                         Visible = LotNoVisible;
                     }
                 }
@@ -102,7 +96,6 @@ page 7388 "Scan Warehouse Activity Line"
                     {
                         ApplicationArea = ItemTracking;
                         Editable = false;
-                        ToolTip = 'Specifies the package number to handle in the document.';
                     }
                 }
                 group(Bin)
@@ -113,7 +106,6 @@ page 7388 "Scan Warehouse Activity Line"
                     {
                         ApplicationArea = Warehouse;
                         Editable = false;
-                        ToolTip = 'Specifies the bin where the items are picked or put away.';
                     }
                 }
                 group(ShelfNo)
@@ -124,7 +116,6 @@ page 7388 "Scan Warehouse Activity Line"
                     {
                         ApplicationArea = Warehouse;
                         Editable = false;
-                        ToolTip = 'Specifies the shelf number of the item for informational use.';
                     }
                 }
                 group(SpecialEquipment)
@@ -135,7 +126,6 @@ page 7388 "Scan Warehouse Activity Line"
                     {
                         ApplicationArea = Warehouse;
                         Editable = false;
-                        ToolTip = 'Specifies the code of the equipment required when you perform the action on the line.';
                     }
                 }
             }
@@ -162,19 +152,16 @@ page 7388 "Scan Warehouse Activity Line"
                 field("Scan Qty. to Handle"; Rec."Qty. to Handle")
                 {
                     ApplicationArea = Warehouse;
-                    ToolTip = 'Specifies how many units to handle in this warehouse activity.';
                 }
                 field("Qty. Outstanding"; Rec."Qty. Outstanding")
                 {
                     ApplicationArea = Warehouse;
                     Editable = false;
-                    ToolTip = 'Specifies the number of items that have not yet been handled for this warehouse activity line.';
                 }
                 field("Unit of Measure Code"; Rec."Unit of Measure Code")
                 {
                     ApplicationArea = Suite;
                     Editable = false;
-                    ToolTip = 'Specifies how each unit of the item or resource is measured, such as in pieces or hours. By default, the value in the Base Unit of Measure field on the item or resource card is inserted.';
                 }
                 group(ScanSerial)
                 {
@@ -224,7 +211,6 @@ page 7388 "Scan Warehouse Activity Line"
                 field("Scan Warehouse Reason Code"; Rec."Warehouse Reason Code")
                 {
                     ApplicationArea = Warehouse;
-                    ToolTip = 'Specifies the reason for the warehouse activity.';
                 }
             }
             usercontrol(BarCodeScanner; BarcodeScannerProviderAddIn)

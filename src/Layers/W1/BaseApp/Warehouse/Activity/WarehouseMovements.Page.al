@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -31,64 +31,52 @@ page 9314 "Warehouse Movements"
                 field("No."; Rec."No.")
                 {
                     ApplicationArea = Warehouse;
-                    ToolTip = 'Specifies the number of the involved entry or record, according to the specified number series.';
                 }
                 field("Source Document"; Rec."Source Document")
                 {
                     ApplicationArea = Warehouse;
-                    ToolTip = 'Specifies the type of document that the line relates to.';
                 }
                 field("Source No."; Rec."Source No.")
                 {
                     ApplicationArea = Warehouse;
-                    ToolTip = 'Specifies the number of the source document that the entry originates from.';
                 }
                 field(Type; Rec.Type)
                 {
                     ApplicationArea = Warehouse;
-                    ToolTip = 'Specifies the type of activity, such as Put-away, that the warehouse performs on the lines that are attached to the header.';
                     Visible = false;
                 }
                 field("Location Code"; Rec."Location Code")
                 {
                     ApplicationArea = Warehouse;
-                    ToolTip = 'Specifies the code for the location where the warehouse activity takes place.';
                 }
                 field("Destination Type"; Rec."Destination Type")
                 {
                     ApplicationArea = Warehouse;
-                    ToolTip = 'Specifies information about the type of destination, such as customer or vendor, associated with the warehouse activity.';
                 }
                 field("Destination No."; Rec."Destination No.")
                 {
                     ApplicationArea = Warehouse;
-                    ToolTip = 'Specifies the number or the code of the customer or vendor that the line is linked to.';
                 }
                 field("External Document No."; Rec."External Document No.")
                 {
                     ApplicationArea = Warehouse;
-                    ToolTip = 'Specifies a document number that refers to the customer''s or vendor''s numbering system.';
                 }
                 field("Assigned User ID"; Rec."Assigned User ID")
                 {
                     ApplicationArea = Warehouse;
-                    ToolTip = 'Specifies the ID of the user who is responsible for the document.';
                 }
                 field("No. of Lines"; Rec."No. of Lines")
                 {
                     ApplicationArea = Warehouse;
-                    ToolTip = 'Specifies the number of lines in the warehouse activity document.';
                 }
                 field("Sorting Method"; Rec."Sorting Method")
                 {
                     ApplicationArea = Warehouse;
-                    ToolTip = 'Specifies the method by which the lines are sorted on the warehouse header, such as Item or Document.';
                     Visible = false;
                 }
                 field("Assignment Date"; Rec."Assignment Date")
                 {
                     ApplicationArea = Warehouse;
-                    ToolTip = 'Specifies the date when the user was assigned the activity.';
                     Visible = false;
                 }
             }

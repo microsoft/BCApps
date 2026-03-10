@@ -103,6 +103,29 @@ codeunit 147316 "Test 347 Declaration"
     [Test]
     [HandlerFunctions('Make347DeclarationReportHandler')]
     [Scope('OnPrem')]
+    procedure VATVerifyBDNSNumberSales()
+    var
+        CustomerNo: Code[20];
+        FileName: Text[1024];
+    begin
+        Initialize();
+        // VATEntry."VAT Cash Regime" = FALSE values are propagated correctly to 347 lines
+        // [GIVEN] VAT Entry Line X Unrealized = FALSE
+        // [GIVEN] VAT Entry Line X has VAT Cash Regime = FALSE
+        // [GIVEN] VATEntry.Document Type = Invoice and VATEntry.Type = SALE
+        CreateAndPostSalesInvoiceWithVATCashRegime(CustomerNo, false, false);
+
+        // [WHEN] The user runs "Make 347 Declaration report"
+        FileName := RunMake347DeclarationReport();
+
+        // [THEN] In the generated file, the 6-digit BDNS call number is present at position 300
+        ValidateFileHasExpectedBDNSNumber(
+          FileName, CustomerNo, '000000', 'Incorrect BDNS Number exported');
+    end;
+
+    [Test]
+    [HandlerFunctions('Make347DeclarationReportHandler')]
+    [Scope('OnPrem')]
     procedure VATCashRegimeUnrealizedVATAmountsSales()
     var
         CustomerNo: Code[20];
@@ -263,6 +286,28 @@ codeunit 147316 "Test 347 Declaration"
 
         // [THEN] In the generated file, the record regarding "Seller Company" includes an X in 281 field
         ValidateFileHasExpectedVATCashRegimeFlag(FileName, VendorNo, 'X', VATCashRegimeFlagErr);
+    end;
+
+    [Test]
+    [HandlerFunctions('Make347DeclarationReportHandler')]
+    [Scope('OnPrem')]
+    procedure VATBDNSCallNumberPurchase()
+    var
+        VendorNo: Code[20];
+        FileName: Text[1024];
+    begin
+        Initialize();
+        // VATEntry."VAT Cash Regime" = TRUE values are propagated correctly to 347 lines
+        // [GIVEN] VAT Entry Line X Unrealized = TRUE
+        // [GIVEN] VAT Entry Line X has VAT Cash Regime = TRUE
+        // [GIVEN] VATEntry.Document Type = Invoice and VATEntry.Type = PURCHASE
+        CreateAndPostPurchaseInvoiceWithVATCashRegime(VendorNo, WorkDate(), true, true);
+
+        // [WHEN] The user runs "Make 347 Declaration report"
+        FileName := RunMake347DeclarationReport();
+
+        // [THEN] In the generated file, the 6-digit BDNS call number is present at position 300
+        ValidateFileHasExpectedBDNSNumber(FileName, VendorNo, '000000', 'Incorrect BDNS Number exported');
     end;
 
     [Test]
@@ -1139,6 +1184,11 @@ codeunit 147316 "Test 347 Declaration"
         exit(LibraryTextFileValidation.ReadValue(Line, 281, 1));
     end;
 
+    local procedure ReadBDNSNumber(Line: Text[1024]): Text[6]
+    begin
+        exit(LibraryTextFileValidation.ReadValue(Line, 300, 6));
+    end;
+
     local procedure ReadVATCashRegimeYearlyAmount(Line: Text[1024]): Decimal
     var
         VATCashRegimeYearlyAmount: Integer;
@@ -1206,6 +1256,16 @@ codeunit 147316 "Test 347 Declaration"
         Line := ReadLineIn347ReportFile(FileName, CustVendNo);
         ActualFlagValue := ReadVATCashRegimeFlag(Line);
         Assert.AreEqual(ExpectedFlagVallue, ActualFlagValue, ErrorMessage);
+    end;
+
+    local procedure ValidateFileHasExpectedBDNSNumber(FileName: Text[1024]; CustVendNo: Code[20]; ExpectedValue: Text[6]; ErrorMessage: Text)
+    var
+        Line: Text[500];
+        ActualValue: Text[6];
+    begin
+        Line := ReadLineIn347ReportFile(FileName, CustVendNo);
+        ActualValue := ReadBDNSNumber(Line);
+        Assert.AreEqual(ExpectedValue, ActualValue, ErrorMessage);
     end;
 
     local procedure ValidateFileQuarterAmount(FileName: Text[1024]; CustVendNo: Code[20]; PostingDate: Date; ExpectedQuarterAmount: Decimal)

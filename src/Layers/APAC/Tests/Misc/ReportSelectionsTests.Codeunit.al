@@ -36,7 +36,9 @@ codeunit 134421 "Report Selections Tests"
         EmailAddressErr: Label 'Destination email address does not match expected address.';
         StatementTitlePdfTxt: Label 'Statement';
         ReportTitleTemplatePdfTxt: Label '%1 for %2 as of %3.pdf';
+#if not CLEAN28
         LayoutCodeShouldNotChangedErr: Label 'Layout code should not change.';
+#endif
         SendToEmailTxt: Label 'test@test.com';
         MSXLbl: Label 'MS-X%1', Comment = '%1 = Random Value';
         DocxLbl: Label 'docx';
@@ -1923,6 +1925,7 @@ codeunit 134421 "Report Selections Tests"
         Assert.RecordIsNotEmpty(CustomReportSelection);
     end;
 
+#if not CLEAN28
     [Test]
     [HandlerFunctions('CustomReportLayoutsHandlerCancel')]
     [Scope('OnPrem')]
@@ -1963,6 +1966,7 @@ codeunit 134421 "Report Selections Tests"
         ReportLayoutSelection.Get(StandardSalesInvoiceReportID(), CompanyName);
         Assert.AreEqual(LayoutCode, ReportLayoutSelection."Custom Report Layout Code", LayoutCodeShouldNotChangedErr);
     end;
+#endif
 
     [Test]
     [Scope('OnPrem')]
@@ -3260,10 +3264,12 @@ codeunit 134421 "Report Selections Tests"
         Customer.Modify();
     end;
 
+#if not CLEAN28
     local procedure StandardSalesInvoiceReportID(): Integer
     begin
         exit(Report::"Standard Sales - Invoice");
     end;
+#endif
 
     local procedure SetupSalesShipmentReportSelections(UseForEmailAttachment: Boolean; UseForEmailBody: Boolean)
     var
@@ -3649,12 +3655,14 @@ codeunit 134421 "Report Selections Tests"
         CustomerReportSelections.Usage2.SetValue('Pro Forma Invoice');
     end;
 
+#if not CLEAN28
     [ModalPageHandler]
     [Scope('OnPrem')]
     procedure CustomReportLayoutsHandlerCancel(var CustomReportLayouts: TestPage "Custom Report Layouts")
     begin
         CustomReportLayouts.Cancel().Invoke();
     end;
+#endif
 
     [ModalPageHandler]
     procedure InvoiceCustomerReportSelectionsHandler(var CustomerReportSelections: TestPage "Customer Report Selections")

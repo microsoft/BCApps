@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -19,11 +19,13 @@ table 99000773 Family
         field(1; "No."; Code[20])
         {
             Caption = 'No.';
+            ToolTip = 'Specifies the number of the involved entry or record, according to the specified number series.';
             NotBlank = true;
         }
         field(10; Description; Text[100])
         {
             Caption = 'Description';
+            ToolTip = 'Specifies a description for a product family.';
 
             trigger OnValidate()
             begin
@@ -33,10 +35,12 @@ table 99000773 Family
         field(11; "Description 2"; Text[50])
         {
             Caption = 'Description 2';
+            ToolTip = 'Specifies an additional description of the product family if there is not enough space in the Description field.';
         }
         field(12; "Search Name"; Code[100])
         {
             Caption = 'Search Name';
+            ToolTip = 'Specifies an alternate name that you can use to search for the record in question when you cannot remember the value in the Name field.';
         }
         field(13; Blocked; Boolean)
         {
@@ -46,11 +50,13 @@ table 99000773 Family
         field(14; "Last Date Modified"; Date)
         {
             Caption = 'Last Date Modified';
+            ToolTip = 'Specifies when the standard data of this production family was last modified.';
             Editable = false;
         }
         field(20; "Routing No."; Code[20])
         {
             Caption = 'Routing No.';
+            ToolTip = 'Specifies the number of the routing which is used for the production of the family.';
             TableRelation = "Routing Header";
         }
     }

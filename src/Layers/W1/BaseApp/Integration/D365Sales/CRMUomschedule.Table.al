@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -36,6 +36,7 @@ table 5362 "CRM Uomschedule"
         field(3; Name; Text[200])
         {
             Caption = 'Name';
+            ToolTip = 'Specifies the name of the record.';
             Description = 'Name of the unit group.';
             ExternalName = 'name';
             ExternalType = 'String';
@@ -128,6 +129,7 @@ table 5362 "CRM Uomschedule"
         field(14; BaseUoMName; Text[100])
         {
             Caption = 'Base Unit name';
+            ToolTip = 'Specifies the base unit of measure of the Dynamics 365 Sales record.';
             Description = 'Name of the base unit.';
             ExternalAccess = Insert;
             ExternalName = 'baseuomname';
@@ -180,6 +182,7 @@ table 5362 "CRM Uomschedule"
         field(20; StateCode; Option)
         {
             Caption = 'Status';
+            ToolTip = 'Specifies information related to the Dynamics 365 Sales connection.';
             Description = 'Status of the Unit Group.';
             ExternalAccess = Modify;
             ExternalName = 'statecode';
@@ -192,6 +195,7 @@ table 5362 "CRM Uomschedule"
         field(21; StatusCode; Option)
         {
             Caption = 'Status Reason';
+            ToolTip = 'Specifies information related to the Dynamics 365 Sales connection.';
             Description = 'Reason for the status of the Unit Group.';
             ExternalName = 'statuscode';
             ExternalType = 'Status';

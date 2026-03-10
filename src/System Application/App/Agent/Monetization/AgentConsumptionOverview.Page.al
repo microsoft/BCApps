@@ -5,6 +5,7 @@
 
 namespace System.Agents;
 
+using System.Agents.Troubleshooting;
 using System.Environment.Consumption;
 using System.Security.AccessControl;
 

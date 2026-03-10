@@ -119,14 +119,18 @@ table 77 "Report Selections"
             FieldClass = Flowfield;
             ToolTip = 'Specifies a description of the custom email body layout that is used.';
 
+#if not CLEAN28
             trigger OnLookup()
             var
                 CustomReportLayout: Record "Custom Report Layout";
             begin
                 if "Email Body Layout Type" = "Email Body Layout Type"::"Custom Report Layout" then
+#pragma warning disable AL0432
                     if CustomReportLayout.LookupLayoutOK("Report ID") then
+#pragma warning restore AL0432
                         Validate("Email Body Layout Code", CustomReportLayout.Code);
             end;
+#endif
         }
         field(25; "Email Body Layout Type"; Enum "Email Body Layout Type")
         {
@@ -322,7 +326,6 @@ table 77 "Report Selections"
         JobQueueParameterStringTok: Label '%1|%2|%3|%4|%5|%6', Locked = true;
         ReportSelectionsMustBeTemporaryErr: Label 'The Report Selections parameter must be temporary.';
         ReminderAndSalesInvoiceErr: Label 'The Reminder report cannot be used with Sales Invoices';
-        SelfBillingInvoiceLayoutNameLbl: Label 'SelfBillingInvoice.rdlc';
 
     procedure NewRecord()
     begin
@@ -573,7 +576,6 @@ table 77 "Report Selections"
         if TempReportSelections.FindSet() then
             repeat
                 ReportLayoutSelection.ClearTempLayoutSelected();
-                CheckAndSetSelfBillingInvoiceLayoutForRecord(TempReportSelections, RecRef);
                 if TempReportSelections."Report Layout Name" <> '' then
                     ReportLayoutSelection.SetTempLayoutSelectedName(TempReportSelections."Report Layout Name", TempReportSelections."Report Layout AppID")
                 else
@@ -746,6 +748,42 @@ table 77 "Report Selections"
         TempBodyReportSelections: Record "Report Selections" temporary;
     begin
         FindReportUsageForCust(ReportUsage, CustNo, TempBodyReportSelections);
+
+        SaveReportAsPDFInTempBlob(TempBlob, TempBodyReportSelections."Report ID", RecordVariant, TempBodyReportSelections."Custom Report Layout Code", ReportUsage);
+    end;
+
+    /// <summary>
+    /// Gets File Path to the PDF report for a vendor
+    /// </summary>
+    /// <param name="ServerEmailBodyFilePath">File Path</param>
+    /// <param name="ReportUsage">Vendor based report usage</param>
+    /// <param name="RecordVariant">Record applied to report dataitem</param>
+    /// <param name="VendNo">Vendor No.</param>
+    [Scope('OnPrem')]
+    procedure GetPdfReportForVend(var ServerEmailBodyFilePath: Text[250]; ReportUsage: Enum "Report Selection Usage"; RecordVariant: Variant; VendNo: Code[20])
+    var
+        TempBodyReportSelections: Record "Report Selections" temporary;
+    begin
+        ServerEmailBodyFilePath := '';
+
+        FindReportUsageForVend(ReportUsage, VendNo, TempBodyReportSelections);
+
+        ServerEmailBodyFilePath :=
+            SaveReportAsPDF(TempBodyReportSelections."Report ID", RecordVariant, TempBodyReportSelections."Custom Report Layout Code", ReportUsage);
+    end;
+
+    /// <summary>
+    /// Gets the PDF report for a vendor to TempBlob
+    /// </summary>
+    /// <param name="TempBlob">The temporary blob to store the generated PDF report</param>
+    /// <param name="ReportUsage">Vendor based report usage</param>
+    /// <param name="RecordVariant">Record applied to report dataitem</param>
+    /// <param name="VendNo">Vendor No.</param>
+    procedure GetPdfReportForVend(var TempBlob: Codeunit "Temp Blob"; ReportUsage: Enum "Report Selection Usage"; RecordVariant: Variant; VendNo: Code[20])
+    var
+        TempBodyReportSelections: Record "Report Selections" temporary;
+    begin
+        FindReportUsageForVend(ReportUsage, VendNo, TempBodyReportSelections);
 
         SaveReportAsPDFInTempBlob(TempBlob, TempBodyReportSelections."Report ID", RecordVariant, TempBodyReportSelections."Custom Report Layout Code", ReportUsage);
     end;
@@ -1520,6 +1558,7 @@ table 77 "Report Selections"
                                 SourceIDs.Add(SalesInvoice.SystemId);
                                 SourceRelationTypes.Add(Enum::"Email Relation Type"::"Related Entity".AsInteger());
                             end;
+                        OnSendEmailDirectlyOnAfterAddRelatedReminderInvoiceSource(SourceTableIDs, SourceRelationTypes, SourceIDs, ReminderLines);
                     until ReminderLines.Next() = 0;
             end;
 
@@ -1883,8 +1922,6 @@ table 77 "Report Selections"
         OutStream: OutStream;
     begin
         OnBeforeSetReportLayout(RecordVariant, ReportUsage.AsInteger());
-        if Rec.IsTemporary then
-            CheckAndSetSelfBillingInvoiceLayoutForRecord(Rec, RecordVariant);
         if Rec."Report Layout Name" <> '' then
             ReportLayoutSelectionLocal.SetTempLayoutSelectedName(Rec."Report Layout Name", Rec."Report Layout AppID")
         else
@@ -2263,38 +2300,6 @@ table 77 "Report Selections"
     begin
         CustomReportLayout.SetRange("Built-In", false);
         exit(not CustomReportLayout.IsEmpty());
-    end;
-
-    local procedure CheckAndSetSelfBillingInvoiceLayoutForRecord(var TempReportSelections: Record "Report Selections" temporary; RecordVariant: Variant)
-    var
-        PurchInvHeader: Record "Purch. Inv. Header";
-        ReportLayoutList: Record "Report Layout List";
-        RecRef: RecordRef;
-    begin
-        if TempReportSelections.Usage <> TempReportSelections.Usage::"P.Invoice" then
-            exit;
-
-        if TempReportSelections."Report ID" <> Report::"Purchase - Invoice" then
-            exit;
-
-        RecRef := GetRecRef(RecordVariant);
-        if RecRef.Number <> Database::"Purch. Inv. Header" then
-            exit;
-
-        RecRef.SetTable(PurchInvHeader);
-        if not PurchInvHeader."Self-Billing Invoice" then
-            exit;
-
-        FindReportLayoutList(ReportLayoutList, TempReportSelections."Report ID", SelfBillingInvoiceLayoutNameLbl);
-        TempReportSelections."Report Layout Name" := ReportLayoutList.Name;
-        TempReportSelections."Report Layout AppID" := ReportLayoutList."Application ID";
-    end;
-
-    local procedure FindReportLayoutList(var ReportLayoutList: Record "Report Layout List"; ReportID: Integer; Name: Text[250])
-    begin
-        ReportLayoutList.SetRange("Report ID", ReportID);
-        ReportLayoutList.SetRange(Name, Name);
-        ReportLayoutList.FindFirst();
     end;
 
     [IntegrationEvent(false, false)]
@@ -2746,6 +2751,11 @@ table 77 "Report Selections"
 
     [IntegrationEvent(false, false)]
     local procedure OnAfterCopyReportSelectionToReportSelection(ReportSelections: Record "Report Selections"; var TempToReportSelections: Record "Report Selections" temporary)
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnSendEmailDirectlyOnAfterAddRelatedReminderInvoiceSource(var SourceTableIDs: List of [Integer]; var SourceRelationTypes: List of [Integer]; var SourceIDs: List of [Guid]; ReminderLines: Record "Issued Reminder Line")
     begin
     end;
 }

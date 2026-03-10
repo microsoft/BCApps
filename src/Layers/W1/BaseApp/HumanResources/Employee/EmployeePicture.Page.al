@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -25,7 +25,6 @@ page 5202 "Employee Picture"
             {
                 ApplicationArea = Basic, Suite;
                 ShowCaption = false;
-                ToolTip = 'Specifies the picture of the employee.';
             }
         }
     }

@@ -15,12 +15,14 @@ table 259 "Transport Method"
         field(1; "Code"; Code[10])
         {
             Caption = 'Code';
+            ToolTip = 'Specifies a code for the transport method.';
             NotBlank = true;
             Numeric = true;
         }
         field(2; Description; Text[100])
         {
             Caption = 'Description';
+            ToolTip = 'Specifies a description of the transport method.';
         }
     }
 

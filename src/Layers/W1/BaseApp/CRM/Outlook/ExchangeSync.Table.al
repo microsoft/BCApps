@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -19,6 +19,7 @@ table 6700 "Exchange Sync"
         field(1; "User ID"; Code[50])
         {
             Caption = 'User ID';
+            ToolTip = 'Specifies the ID of the user who posted the entry, to be used, for example, in the change log.';
             DataClassification = EndUserIdentifiableInformation;
             NotBlank = true;
             TableRelation = User."User Name";
@@ -27,6 +28,7 @@ table 6700 "Exchange Sync"
         field(2; Enabled; Boolean)
         {
             Caption = 'Enabled';
+            ToolTip = 'Specifies that data synchronization can occur while users perform related tasks.';
         }
         field(3; "Exchange Service URI"; Text[250])
         {
@@ -40,11 +42,13 @@ table 6700 "Exchange Sync"
         field(5; "Last Sync Date Time"; DateTime)
         {
             Caption = 'Last Sync Date Time';
+            ToolTip = 'Specifies the last date/time that the Exchange server was synchronized.';
             Editable = false;
         }
         field(7; "Folder ID"; Text[30])
         {
             Caption = 'Folder ID';
+            ToolTip = 'Specifies the public folder on the Exchange server that you want to use for your queue and storage folders.';
         }
         field(9; "Filter"; BLOB)
         {

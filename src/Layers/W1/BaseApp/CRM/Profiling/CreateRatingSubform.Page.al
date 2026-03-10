@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -29,19 +29,16 @@ page 5191 "Create Rating Subform"
                     ApplicationArea = All;
                     Style = Strong;
                     StyleExpr = StyleIsStrong;
-                    ToolTip = 'Specifies the profile question or answer.';
                 }
                 field("From Value"; Rec."From Value")
                 {
                     ApplicationArea = RelationshipMgmt;
                     Caption = 'From';
-                    ToolTip = 'Specifies the value from which the automatic classification of your contacts starts.';
                 }
                 field("To Value"; Rec."To Value")
                 {
                     ApplicationArea = RelationshipMgmt;
                     Caption = 'To';
-                    ToolTip = 'Specifies the value that the automatic classification of your contacts stops at.';
                 }
             }
         }

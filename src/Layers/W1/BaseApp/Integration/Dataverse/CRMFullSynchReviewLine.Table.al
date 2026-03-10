@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -18,10 +18,12 @@ table 5373 "CRM Full Synch. Review Line"
         field(1; Name; Code[20])
         {
             Caption = 'Name';
+            ToolTip = 'Specifies the name.';
         }
         field(2; "Dependency Filter"; Text[250])
         {
             Caption = 'Dependency Filter';
+            ToolTip = 'Specifies a dependency to the synchronization of another record, such as a customer that must be synchronized before a contact can be synchronized.';
         }
         field(3; "Session ID"; Integer)
         {
@@ -39,6 +41,7 @@ table 5373 "CRM Full Synch. Review Line"
         field(5; "To Int. Table Job Status"; Option)
         {
             Caption = 'To Int. Table Job Status';
+            ToolTip = 'Specifies the status of jobs for data going to the integration table.';
             OptionCaption = ' ,Success,In Process,Error';
             OptionMembers = " ",Success,"In Process",Error;
         }
@@ -54,12 +57,14 @@ table 5373 "CRM Full Synch. Review Line"
         field(7; "From Int. Table Job Status"; Option)
         {
             Caption = 'From Int. Table Job Status';
+            ToolTip = 'Specifies the status of jobs for data coming from the integration table.';
             OptionCaption = ' ,Success,In Process,Error';
             OptionMembers = " ",Success,"In Process",Error;
         }
         field(8; Direction; Option)
         {
             Caption = 'Direction';
+            ToolTip = 'Specifies the synchronization direction.';
             Editable = false;
             OptionCaption = 'Bidirectional,To Integration Table,From Integration Table';
             OptionMembers = Bidirectional,"To Integration Table","From Integration Table";
@@ -82,6 +87,7 @@ table 5373 "CRM Full Synch. Review Line"
         field(10; "Job Queue Entry Status"; Option)
         {
             Caption = 'Job Queue Entry Status';
+            ToolTip = 'Specifies the status of the job queue entry.';
             OptionCaption = ' ,Ready,In Process,Error,On Hold,Finished,On Hold with Inactivity Timeout,Waiting';
             OptionMembers = " ",Ready,"In Process",Error,"On Hold",Finished,"On Hold with Inactivity Timeout",Waiting;
 
@@ -101,6 +107,7 @@ table 5373 "CRM Full Synch. Review Line"
         field(34; "Multi Company Synch. Enabled"; Boolean)
         {
             Caption = 'Multi-Company Synchronization Enabled';
+            ToolTip = 'Specifies if the multi-company synchronization should be enabled for the corresponding integration table mapping.';
 
             trigger OnValidate()
             var

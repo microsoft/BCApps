@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -26,7 +26,6 @@ page 5877 "Physical Inventory Order Subf."
                 field("Item No."; Rec."Item No.")
                 {
                     ApplicationArea = Warehouse;
-                    ToolTip = 'Specifies the number of the item, which should be counted when taking the physical inventory.';
 
                     trigger OnValidate()
                     begin
@@ -38,7 +37,6 @@ page 5877 "Physical Inventory Order Subf."
                     AccessByPermission = tabledata "Item Reference" = R;
                     ApplicationArea = Suite, ItemReferences;
                     QuickEntry = false;
-                    ToolTip = 'Specifies a reference to the item number as defined by the item''s barcode.';
                     Visible = ItemReferenceVisible;
 
                     trigger OnLookup(var Text: Text): Boolean
@@ -58,7 +56,6 @@ page 5877 "Physical Inventory Order Subf."
                 field("Variant Code"; Rec."Variant Code")
                 {
                     ApplicationArea = Warehouse;
-                    ToolTip = 'Specifies the variant of the item on the line.';
                     Visible = false;
                     ShowMandatory = VariantCodeMandatory;
 
@@ -70,29 +67,24 @@ page 5877 "Physical Inventory Order Subf."
                 field(Description; Rec.Description)
                 {
                     ApplicationArea = Warehouse;
-                    ToolTip = 'Specifies the description of the item.';
                 }
                 field("Description 2"; Rec."Description 2")
                 {
                     ApplicationArea = Warehouse;
-                    ToolTip = 'Specifies an additional description of the item.';
                     Visible = false;
                 }
                 field("Location Code"; Rec."Location Code")
                 {
                     ApplicationArea = Warehouse;
-                    ToolTip = 'Specifies the location where the item must be counted.';
                 }
                 field("Bin Code"; Rec."Bin Code")
                 {
                     ApplicationArea = Warehouse;
-                    ToolTip = 'Specifies the bin where the item must be counted.';
                     Visible = false;
                 }
                 field("Unit of Measure"; Rec."Unit of Measure")
                 {
                     ApplicationArea = Warehouse;
-                    ToolTip = 'Specifies the unit of measure, such as bottle or piece, that is currently used for the item.';
                     Visible = false;
                 }
                 field("Base Unit of Measure Code"; Rec."Base Unit of Measure Code")
@@ -103,7 +95,6 @@ page 5877 "Physical Inventory Order Subf."
                 field("Shelf No."; Rec."Shelf No.")
                 {
                     ApplicationArea = Warehouse;
-                    ToolTip = 'Specifies the shelf number where the item can be found normally.';
                     Visible = false;
                 }
                 field("Qty. Expected (Base)"; Rec."Qty. Expected (Base)")
@@ -114,7 +105,6 @@ page 5877 "Physical Inventory Order Subf."
                 field("Qty. Exp. Calculated"; Rec."Qty. Exp. Calculated")
                 {
                     ApplicationArea = Warehouse;
-                    ToolTip = 'Specifies if the Qty. Expected (Base) field has been updated with the Calculate Expected Qty. function.';
                 }
                 field("Qty. Exp. Tracking (Base)"; Rec."Qty. Exp. Tracking (Base)")
                 {
@@ -124,7 +114,6 @@ page 5877 "Physical Inventory Order Subf."
                 field("Use Item Tracking"; Rec."Use Item Tracking")
                 {
                     ApplicationArea = Warehouse;
-                    ToolTip = 'Specifies that the counting of the item is done by counting its serial, lot and package numbers.';
                 }
                 field("Qty. Recorded (Base)"; Rec."Qty. Recorded (Base)")
                 {
@@ -134,13 +123,11 @@ page 5877 "Physical Inventory Order Subf."
                 field("On Recording Lines"; Rec."On Recording Lines")
                 {
                     ApplicationArea = Warehouse;
-                    ToolTip = 'Specifies if the item exists on one or more physical inventory recording lines.';
                 }
                 field("No. Finished Rec.-Lines"; Rec."No. Finished Rec.-Lines")
                 {
                     ApplicationArea = Warehouse;
                     BlankZero = true;
-                    ToolTip = 'Specifies how many of the related physical inventory recordings are closed.';
                 }
                 field("Recorded Without Order"; Rec."Recorded Without Order")
                 {
@@ -151,7 +138,6 @@ page 5877 "Physical Inventory Order Subf."
                 field("Entry Type"; Rec."Entry Type")
                 {
                     ApplicationArea = Warehouse;
-                    ToolTip = 'Specifies if the difference in the Quantity (Base) field on the related closed recording is positive or negative.';
                     Visible = false;
                 }
                 field("Quantity (Base)"; Rec."Quantity (Base)")
@@ -175,25 +161,21 @@ page 5877 "Physical Inventory Order Subf."
                 field("Unit Amount"; Rec."Unit Amount")
                 {
                     ApplicationArea = Warehouse;
-                    ToolTip = 'Specifies the unit price of the item.';
                     Visible = false;
                 }
                 field("Unit Cost"; Rec."Unit Cost")
                 {
                     ApplicationArea = Warehouse;
-                    ToolTip = 'Specifies the unit costs of the item, which will be used when posting the physical inventory.';
                     Visible = false;
                 }
                 field("Shortcut Dimension 1 Code"; Rec."Shortcut Dimension 1 Code")
                 {
                     ApplicationArea = Dimensions;
-                    ToolTip = 'Specifies the code for Shortcut Dimension 1, which is one of two global dimension codes that you set up in the General Ledger Setup window.';
                     Visible = DimVisible1;
                 }
                 field("Shortcut Dimension 2 Code"; Rec."Shortcut Dimension 2 Code")
                 {
                     ApplicationArea = Dimensions;
-                    ToolTip = 'Specifies the code for Shortcut Dimension 2, which is one of two global dimension codes that you set up in the General Ledger Setup window.';
                     Visible = DimVisible2;
                 }
                 field("ShortcutDimCode[3]"; ShortcutDimCode[3])

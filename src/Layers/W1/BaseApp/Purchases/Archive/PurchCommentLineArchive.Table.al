@@ -30,14 +30,17 @@ table 5125 "Purch. Comment Line Archive"
         field(4; Date; Date)
         {
             Caption = 'Date';
+            ToolTip = 'Specifies the version number of the archived document.';
         }
         field(5; "Code"; Code[10])
         {
             Caption = 'Code';
+            ToolTip = 'Specifies the document line number of the quote or order to which the comment applies.';
         }
         field(6; Comment; Text[80])
         {
             Caption = 'Comment';
+            ToolTip = 'Specifies the line number for the comment.';
         }
         field(7; "Document Line No."; Integer)
         {

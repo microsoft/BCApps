@@ -33,10 +33,12 @@ table 5766 "Warehouse Activity Header"
         field(1; Type; Enum "Warehouse Activity Type")
         {
             Caption = 'Type';
+            ToolTip = 'Specifies the type of activity, such as Put-away, that the warehouse performs on the lines that are attached to the header.';
         }
         field(2; "No."; Code[20])
         {
             Caption = 'No.';
+            ToolTip = 'Specifies the number of the involved entry or record, according to the specified number series.';
 
             trigger OnValidate()
             begin
@@ -49,6 +51,7 @@ table 5766 "Warehouse Activity Header"
         field(3; "Location Code"; Code[10])
         {
             Caption = 'Location Code';
+            ToolTip = 'Specifies the code for the location where the warehouse activity takes place.';
             TableRelation = Location where("Use As In-Transit" = const(false));
 
             trigger OnValidate()
@@ -81,6 +84,7 @@ table 5766 "Warehouse Activity Header"
         field(4; "Assigned User ID"; Code[50])
         {
             Caption = 'Assigned User ID';
+            ToolTip = 'Specifies the ID of the user who is responsible for the document.';
             DataClassification = EndUserIdentifiableInformation;
             TableRelation = "Warehouse Employee" where("Location Code" = field("Location Code"));
 
@@ -98,16 +102,19 @@ table 5766 "Warehouse Activity Header"
         field(5; "Assignment Date"; Date)
         {
             Caption = 'Assignment Date';
+            ToolTip = 'Specifies the date when the user was assigned the activity.';
             Editable = false;
         }
         field(6; "Assignment Time"; Time)
         {
             Caption = 'Assignment Time';
+            ToolTip = 'Specifies the time when the user was assigned the activity.';
             Editable = false;
         }
         field(7; "Sorting Method"; Enum "Whse. Activity Sorting Method")
         {
             Caption = 'Sorting Method';
+            ToolTip = 'Specifies the method by which the lines are sorted on the warehouse header, such as Item or Document.';
 
             trigger OnValidate()
             begin
@@ -143,6 +150,7 @@ table 5766 "Warehouse Activity Header"
                                                                  "Source No." = field("Source No. Filter"),
                                                                  "Location Code" = field("Location Filter")));
             Caption = 'No. of Lines';
+            ToolTip = 'Specifies the number of lines in the warehouse activity document.';
             Editable = false;
             FieldClass = FlowField;
         }
@@ -173,6 +181,7 @@ table 5766 "Warehouse Activity Header"
         field(20; "Posting Date"; Date)
         {
             Caption = 'Posting Date';
+            ToolTip = 'Specifies the date when the warehouse activity should be recorded as being posted.';
         }
         field(61; "Registering No."; Code[20])
         {
@@ -226,6 +235,7 @@ table 5766 "Warehouse Activity Header"
         {
             AccessByPermission = TableData "Warehouse Source Filter" = R;
             Caption = 'Breakbulk Filter';
+            ToolTip = 'Specifies that the intermediate Take and Place lines will not show as put-away, pick, or movement lines, when the quantity in the larger unit of measure is being put-away, picked or moved completely.';
 
             trigger OnValidate()
             begin
@@ -236,6 +246,7 @@ table 5766 "Warehouse Activity Header"
         field(7306; "Source No."; Code[20])
         {
             Caption = 'Source No.';
+            ToolTip = 'Specifies the number of the source document that the entry originates from.';
 
             trigger OnValidate()
             var
@@ -283,6 +294,7 @@ table 5766 "Warehouse Activity Header"
         {
             BlankZero = true;
             Caption = 'Source Document';
+            ToolTip = 'Specifies the type of document that the line relates to.';
 
             trigger OnValidate()
             var
@@ -362,10 +374,12 @@ table 5766 "Warehouse Activity Header"
         field(7310; "Destination Type"; enum "Warehouse Destination Type")
         {
             Caption = 'Destination Type';
+            ToolTip = 'Specifies information about the type of destination, such as customer or vendor, associated with the warehouse activity.';
         }
         field(7311; "Destination No."; Code[20])
         {
             Caption = 'Destination No.';
+            ToolTip = 'Specifies the number or the code of the customer or vendor that the line is linked to.';
             TableRelation = if ("Destination Type" = const(Vendor)) Vendor
             else
             if ("Destination Type" = const(Customer)) Customer
@@ -379,18 +393,22 @@ table 5766 "Warehouse Activity Header"
         field(7312; "External Document No."; Code[35])
         {
             Caption = 'External Document No.';
+            ToolTip = 'Specifies a document number that refers to the customer''s or vendor''s numbering system.';
         }
         field(7313; "Expected Receipt Date"; Date)
         {
             Caption = 'Expected Receipt Date';
+            ToolTip = 'Specifies the date you expect the items to be available in your warehouse. If you leave the field blank, it will be calculated as follows: Planned Receipt Date + Safety Lead Time + Inbound Warehouse Handling Time = Expected Receipt Date.';
         }
         field(7314; "Shipment Date"; Date)
         {
             Caption = 'Shipment Date';
+            ToolTip = 'Specifies when items on the document are shipped or were shipped. A shipment date is usually calculated from a requested delivery date plus lead time.';
         }
         field(7315; "External Document No.2"; Code[35])
         {
             Caption = 'External Document No.2';
+            ToolTip = 'Specifies an additional part of the document number that refers to the customer''s or vendor''s numbering system.';
         }
         field(7316; "Do Not Fill Qty. to Handle"; Boolean)
         {

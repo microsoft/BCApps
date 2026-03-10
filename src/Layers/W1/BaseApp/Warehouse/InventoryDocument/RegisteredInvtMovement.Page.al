@@ -27,29 +27,24 @@ page 7384 "Registered Invt. Movement"
                 field("No."; Rec."No.")
                 {
                     ApplicationArea = Warehouse;
-                    ToolTip = 'Specifies the number of the involved entry or record, according to the specified number series.';
                 }
                 field("Location Code"; Rec."Location Code")
                 {
                     ApplicationArea = Location;
-                    ToolTip = 'Specifies the same as the field with the same name in the Registered Whse. Activity Hdr. table.';
                 }
                 field("Source Document"; Rec."Source Document")
                 {
                     ApplicationArea = Warehouse;
-                    ToolTip = 'Specifies the type of document that the line relates to.';
                 }
                 field("Source No."; Rec."Source No.")
                 {
                     ApplicationArea = Warehouse;
-                    ToolTip = 'Specifies the number of the source document that the entry originates from.';
                 }
                 field("Destination No."; Rec."Destination No.")
                 {
                     ApplicationArea = Warehouse;
                     CaptionClass = Format(WMSMgt.GetCaptionClass(Rec."Destination Type", Rec."Source Document", 0));
                     Editable = false;
-                    ToolTip = 'Specifies the same as the field with the same name in the Registered Whse. Activity Hdr. table.';
                 }
 #pragma warning disable AA0100
                 field("WMSMgt.GetDestinationName(""Destination Type"",""Destination No."")"; WMSMgt.GetDestinationEntityName(Rec."Destination Type", Rec."Destination No."))
@@ -64,24 +59,20 @@ page 7384 "Registered Invt. Movement"
                 field("Posting Date"; Rec."Posting Date")
                 {
                     ApplicationArea = Warehouse;
-                    ToolTip = 'Specifies the same as the field with the same name in the Registered Whse. Activity Hdr. table.';
                 }
                 field("Shipment Date"; Rec."Shipment Date")
                 {
                     ApplicationArea = Warehouse;
-                    ToolTip = 'Specifies when items on the document are shipped or were shipped. A shipment date is usually calculated from a requested delivery date plus lead time.';
                 }
                 field("External Document No."; Rec."External Document No.")
                 {
                     ApplicationArea = Warehouse;
                     CaptionClass = Format(WMSMgt.GetCaptionClass(Rec."Destination Type", Rec."Source Document", 2));
-                    ToolTip = 'Specifies a document number that refers to the customer''s or vendor''s numbering system.';
                 }
                 field("External Document No.2"; Rec."External Document No.2")
                 {
                     ApplicationArea = Warehouse;
                     CaptionClass = Format(WMSMgt.GetCaptionClass(Rec."Destination Type", Rec."Source Document", 3));
-                    ToolTip = 'Specifies an additional part of the document number that refers to the customer''s or vendor''s numbering system.';
                 }
             }
             part(WhseActivityLines; "Reg. Invt. Movement Subform")

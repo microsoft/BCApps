@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -36,7 +36,6 @@ page 9130 "Contact Statistics FactBox"
                 field("No. of Opportunities"; Rec."No. of Opportunities")
                 {
                     ApplicationArea = RelationshipMgmt;
-                    ToolTip = 'Specifies the number of open opportunities involving the contact. The field is not editable.';
                 }
                 field("Estimated Value (LCY)"; Rec."Estimated Value (LCY)")
                 {
@@ -55,12 +54,10 @@ page 9130 "Contact Statistics FactBox"
                 field("No. of Job Responsibilities"; Rec."No. of Job Responsibilities")
                 {
                     ApplicationArea = RelationshipMgmt;
-                    ToolTip = 'Specifies the number of job responsibilities for this contact. This field is valid for persons only and is not editable.';
                 }
                 field("No. of Industry Groups"; Rec."No. of Industry Groups")
                 {
                     ApplicationArea = RelationshipMgmt;
-                    ToolTip = 'Specifies the number of industry groups to which the contact belongs. When the contact is a person, this field contains the number of industry groups for the contact''s company. This field is not editable.';
                 }
                 field("No. of Business Relations"; NoOfBusinessRelations)
                 {
@@ -76,7 +73,6 @@ page 9130 "Contact Statistics FactBox"
                 field("No. of Mailing Groups"; Rec."No. of Mailing Groups")
                 {
                     ApplicationArea = RelationshipMgmt;
-                    ToolTip = 'Specifies the number of mailing groups for this contact.';
                 }
             }
         }

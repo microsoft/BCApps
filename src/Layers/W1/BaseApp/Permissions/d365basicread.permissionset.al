@@ -211,6 +211,7 @@ permissionset 209 "D365 Basic - Read"
                   tabledata User = R,
                   tabledata "User Property" = R,
                   tabledata "AAD Application" = R,
+                  tabledata "ABC Analysis Setup" = R,
                   tabledata "Acc. Sched. Cell Value" = R,
                   tabledata "Acc. Sched. Chart Setup Line" = R,
                   tabledata "Acc. Sched. KPI Buffer" = R,
@@ -223,6 +224,9 @@ permissionset 209 "D365 Basic - Read"
                   tabledata "Financial Report Schedule" = R,
                   tabledata "Financial Report User Filters" = R,
                   tabledata "Fin. Report Excel Template" = R,
+                  tabledata "Financial Report Category" = R,
+                  tabledata "Financial Report Audit Log" = r,
+                  tabledata "Financial Report Status" = R,
                   tabledata "Account Schedules Chart Setup" = R,
                   tabledata "Account Use Buffer" = R,
                   tabledata "Accounting Period" = R,
@@ -442,6 +446,8 @@ permissionset 209 "D365 Basic - Read"
                   tabledata "Error Message Register" = R,
                   tabledata "Excel Buffer" = R,
                   tabledata "Excel Template Storage" = R,
+                  tabledata "Contact Sync User" = R,
+                  tabledata "Outlook Contacts" = R,
 #if not CLEAN28
                   tabledata "Exchange Contact" = R,
 #endif

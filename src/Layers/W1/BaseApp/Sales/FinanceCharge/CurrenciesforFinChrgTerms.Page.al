@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -24,12 +24,10 @@ page 477 "Currencies for Fin. Chrg Terms"
                 field("Currency Code"; Rec."Currency Code")
                 {
                     ApplicationArea = Suite;
-                    ToolTip = 'Specifies the code for the currency in which you want to define finance charge terms.';
                 }
                 field("Additional Fee"; Rec."Additional Fee")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies a fee amount in foreign currency. The currency of this amount is determined by the currency code.';
                 }
             }
         }

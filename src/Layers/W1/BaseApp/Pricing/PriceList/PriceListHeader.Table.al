@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -31,6 +31,7 @@ table 7000 "Price List Header"
         field(1; Code; Code[20])
         {
             Caption = 'Code';
+            ToolTip = 'Specifies the unique identifier of the price list.';
             DataClassification = CustomerContent;
             trigger OnValidate()
             var
@@ -47,6 +48,7 @@ table 7000 "Price List Header"
         field(2; Description; Text[250])
         {
             Caption = 'Description';
+            ToolTip = 'Specifies the description of the price list.';
             DataClassification = CustomerContent;
 
             trigger OnValidate()
@@ -58,6 +60,7 @@ table 7000 "Price List Header"
         {
             DataClassification = CustomerContent;
             Caption = 'Assign-to Group';
+            ToolTip = 'Specifies whether the prices come from groups of customers, vendors or projects.';
         }
         field(4; "Source Type"; Enum "Price Source Type")
         {
@@ -79,6 +82,7 @@ table 7000 "Price List Header"
         {
             DataClassification = CustomerContent;
             Caption = 'Assign-to No. (custom)';
+            ToolTip = 'Specifies the entity to which the prices are assigned. The options depend on the selection in the Assign-to Type field. If you choose an entity, the price list will be used only for that entity.';
             trigger OnValidate()
             begin
                 if xRec."Source No." = "Source No." then
@@ -139,6 +143,7 @@ table 7000 "Price List Header"
         {
             DataClassification = CustomerContent;
             Caption = 'Defines';
+            ToolTip = 'Specifies whether the price list defines prices, discounts, or both.';
 
             trigger OnValidate()
             begin
@@ -153,6 +158,7 @@ table 7000 "Price List Header"
         {
             DataClassification = CustomerContent;
             Caption = 'Currency Code';
+            ToolTip = 'Specifies the currency code of the price list.';
             TableRelation = Currency;
 
             trigger OnValidate()
@@ -165,6 +171,7 @@ table 7000 "Price List Header"
         {
             DataClassification = CustomerContent;
             Caption = 'Starting Date';
+            ToolTip = 'Specifies the date from which the price is valid.';
             trigger OnValidate()
             begin
                 if "Starting Date" = xRec."Starting Date" then
@@ -182,6 +189,7 @@ table 7000 "Price List Header"
         {
             DataClassification = CustomerContent;
             Caption = 'Ending Date';
+            ToolTip = 'Specifies the last date that the price is valid.';
             trigger OnValidate()
             begin
                 if "Ending Date" = xRec."Ending Date" then
@@ -199,6 +207,7 @@ table 7000 "Price List Header"
         {
             DataClassification = CustomerContent;
             Caption = 'Price Includes VAT';
+            ToolTip = 'Specifies if prices include VAT.';
 
             trigger OnValidate()
             begin
@@ -222,6 +231,7 @@ table 7000 "Price List Header"
         {
             DataClassification = CustomerContent;
             Caption = 'Allow Line Disc.';
+            ToolTip = 'Specifies whether line discounts are allowed. You can change this value on the lines.';
             InitValue = true;
 
             trigger OnValidate()
@@ -233,6 +243,7 @@ table 7000 "Price List Header"
         {
             DataClassification = CustomerContent;
             Caption = 'Allow Invoice Disc.';
+            ToolTip = 'Specifies whether invoice discount is allowed. You can change this value on the lines.';
             InitValue = true;
 
             trigger OnValidate()
@@ -250,6 +261,7 @@ table 7000 "Price List Header"
         field(18; Status; Enum "Price Status")
         {
             Caption = 'Status';
+            ToolTip = 'Specifies whether the price list is in Draft status and can be edited, Inactive and cannot be edited or used, or Active and can be edited (when Allow Editing Active Price is enabled) and used for price calculations.';
             DataClassification = CustomerContent;
 
             trigger OnValidate()
@@ -277,6 +289,7 @@ table 7000 "Price List Header"
         field(20; "Allow Updating Defaults"; Boolean)
         {
             Caption = 'Allow Updating Defaults';
+            ToolTip = 'Specifies whether users can change the values in the fields on the price list lines that contain default values from the header. This does not affect the ability to allow line or invoice discounts.';
             DataClassification = SystemMetadata;
 
             trigger OnValidate()
@@ -288,6 +301,7 @@ table 7000 "Price List Header"
         field(21; "Assign-to No."; Code[20])
         {
             Caption = 'Assign-to No.';
+            ToolTip = 'Specifies the entity to which the prices are assigned. The options depend on the selection in the Assign-to Type field. If you choose an entity, the price list will be used only for that entity.';
             DataClassification = CustomerContent;
             TableRelation = if ("Source Type" = const(Campaign)) Campaign
             else
@@ -314,6 +328,7 @@ table 7000 "Price List Header"
         field(22; "Assign-to Parent No."; Code[20])
         {
             Caption = 'Assign-to Parent No.';
+            ToolTip = 'Specifies the entity to which the prices are assigned. The options depend on the selection in the Assign-to Type field. If you choose an entity, the price list will be used only for that entity.';
             DataClassification = CustomerContent;
             TableRelation = if ("Source Type" = const("Job Task")) Job;
             ValidateTableRelation = false;

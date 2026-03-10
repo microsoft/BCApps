@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -23,12 +23,10 @@ page 99000921 "Demand Forecast Names"
                 field(Name; Rec.Name)
                 {
                     ApplicationArea = Planning;
-                    ToolTip = 'Specifies the name of the demand forecast.';
                 }
                 field(Description; Rec.Description)
                 {
                     ApplicationArea = Planning;
-                    ToolTip = 'Specifies a brief description of the demand forecast.';
                 }
                 field("View By"; Rec."View By")
                 {
@@ -42,7 +40,6 @@ page 99000921 "Demand Forecast Names"
                 {
                     ApplicationArea = Planning;
                     Caption = 'View as';
-                    ToolTip = 'Specifies how amounts are displayed. Net Change: The net change in the balance for the selected period. Balance at Date: The balance as of the last day in the selected period.';
                     Visible = false;
                     Editable = false;
                 }
@@ -82,7 +79,6 @@ page 99000921 "Demand Forecast Names"
                 {
                     ApplicationArea = Planning;
                     Caption = 'Forecast by Variants';
-                    ToolTip = 'Use this if you want to create a forecast entry including the variants.';
                     Visible = false;
                     Editable = false;
                 }
@@ -99,7 +95,6 @@ page 99000921 "Demand Forecast Names"
                 {
                     ApplicationArea = Planning;
                     Caption = 'Date Filter';
-                    ToolTip = 'Specifies the dates that will be used to filter the amounts in the window.';
                     Visible = false;
                     Editable = false;
                 }

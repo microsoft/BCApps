@@ -21,7 +21,7 @@ codeunit 6464 "Serv. Electr. Doc. Format"
         CODEUNIT.Run(ElectronicDocumentFormat."Codeunit ID", ServiceHeader);
     end;
 
-    [EventSubscriber(ObjectType::Table, Database::"Electronic Document Format", 'OnGetDocumentFormatUsageCaseElse', '', false, false)]
+    [EventSubscriber(ObjectType::Table, Database::"Electronic Document Format", 'OnGetDocumentFormatUsageCaseElse', '', true, false)]
     local procedure OnGetDocumentUsageCaseElse(DocumentRecordRef: RecordRef; var DocumentFormatUsage: Enum "Electronic Document Format Usage"; var IsHandled: Boolean)
     begin
         case DocumentRecordRef.Number of
@@ -68,7 +68,7 @@ codeunit 6464 "Serv. Electr. Doc. Format"
     begin
     end;
 
-    [EventSubscriber(ObjectType::Table, Database::"Electronic Document Format", 'OnGetDocumentNoCaseElse', '', false, false)]
+    [EventSubscriber(ObjectType::Table, Database::"Electronic Document Format", 'OnGetDocumentNoCaseElse', '', true, false)]
     local procedure OnGetDocumentNoCaseElse(DocumentVariant: Variant; var DocumentNo: Code[20]; var IsHandled: Boolean; DocumentRecordRef: RecordRef)
     var
         ServiceHeader: Record "Service Header";
@@ -97,7 +97,7 @@ codeunit 6464 "Serv. Electr. Doc. Format"
         end;
     end;
 
-    [EventSubscriber(ObjectType::Table, Database::"Electronic Document Format", 'OnGetDocumentTypeCaseElse', '', false, false)]
+    [EventSubscriber(ObjectType::Table, Database::"Electronic Document Format", 'OnGetDocumentTypeCaseElse', '', true, false)]
     local procedure OnGetDocumentTypeCaseElse(DocumentVariant: Variant; var DocumentTypeText: Text[50]; DocumentRecordRef: RecordRef)
     var
         DummyServiceHeader: Record "Service Header";
@@ -116,7 +116,7 @@ codeunit 6464 "Serv. Electr. Doc. Format"
         end;
     end;
 
-    [EventSubscriber(ObjectType::Table, Database::"Electronic Document Format", 'OnAfterShouldLogUptake', '', false, false)]
+    [EventSubscriber(ObjectType::Table, Database::"Electronic Document Format", 'OnAfterShouldLogUptake', '', true, false)]
     local procedure OnAfterShouldLogUptake(var ElectronicDocumentFormat: Record "Electronic Document Format"; var Result: Boolean)
     begin
         if ElectronicDocumentFormat."Codeunit ID" in [

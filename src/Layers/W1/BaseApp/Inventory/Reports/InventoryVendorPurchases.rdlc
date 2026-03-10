@@ -1756,7 +1756,7 @@
                     </TablixMember>
                     <TablixMember>
                       <Visibility>
-                        <Hidden>=Fields!No_Item.Value=""</Hidden>
+                        <Hidden>=(Fields!No_Item.Value="") Or (Fields!SourceNo_ValueEntry.Value="")</Hidden>
                       </Visibility>
                       <KeepWithGroup>After</KeepWithGroup>
                       <KeepTogether>true</KeepTogether>
@@ -1773,7 +1773,7 @@
                         </TablixMember>
                       </TablixMembers>
                       <Visibility>
-                        <Hidden>=Fields!No_Item.Value=""</Hidden>
+                        <Hidden>=(Fields!No_Item.Value="") Or (Fields!SourceNo_ValueEntry.Value="")</Hidden>
                       </Visibility>
                     </TablixMember>
                     <TablixMember>
@@ -2100,6 +2100,141 @@
       </DefaultValue>
       <Prompt>TotalCaption</Prompt>
     </ReportParameter>
+    <ReportParameter Name="InvVendorPurchLbl">
+      <DataType>String</DataType>
+      <DefaultValue>
+        <Values>
+          <Value>InvVendorPurchLbl</Value>
+        </Values>
+      </DefaultValue>
+      <Prompt>InvVendorPurchLbl</Prompt>
+    </ReportParameter>
+    <ReportParameter Name="InvVendorPurchPrintLbl">
+      <DataType>String</DataType>
+      <DefaultValue>
+        <Values>
+          <Value>InvVendorPurchPrintLbl</Value>
+        </Values>
+      </DefaultValue>
+      <Prompt>InvVendorPurchPrintLbl</Prompt>
+    </ReportParameter>
+    <ReportParameter Name="InvVendorPurchAnalysisLbl">
+      <DataType>String</DataType>
+      <DefaultValue>
+        <Values>
+          <Value>InvVendorPurchAnalysisLbl</Value>
+        </Values>
+      </DefaultValue>
+      <Prompt>InvVendorPurchAnalysisLbl</Prompt>
+    </ReportParameter>
+    <ReportParameter Name="DataRetrievedLbl">
+      <DataType>String</DataType>
+      <DefaultValue>
+        <Values>
+          <Value>DataRetrievedLbl</Value>
+        </Values>
+      </DefaultValue>
+      <Prompt>DataRetrievedLbl</Prompt>
+    </ReportParameter>
+    <ReportParameter Name="TotalLbl">
+      <DataType>String</DataType>
+      <DefaultValue>
+        <Values>
+          <Value>TotalLbl</Value>
+        </Values>
+      </DefaultValue>
+      <Prompt>TotalLbl</Prompt>
+    </ReportParameter>
+    <ReportParameter Name="VendorNoLbl">
+      <DataType>String</DataType>
+      <DefaultValue>
+        <Values>
+          <Value>VendorNoLbl</Value>
+        </Values>
+      </DefaultValue>
+      <Prompt>VendorNoLbl</Prompt>
+    </ReportParameter>
+    <ReportParameter Name="ItemNoLbl">
+      <DataType>String</DataType>
+      <DefaultValue>
+        <Values>
+          <Value>ItemNoLbl</Value>
+        </Values>
+      </DefaultValue>
+      <Prompt>ItemNoLbl</Prompt>
+    </ReportParameter>
+    <ReportParameter Name="DescriptionLbl">
+      <DataType>String</DataType>
+      <DefaultValue>
+        <Values>
+          <Value>DescriptionLbl</Value>
+        </Values>
+      </DefaultValue>
+      <Prompt>DescriptionLbl</Prompt>
+    </ReportParameter>
+    <ReportParameter Name="AboutTheReportLbl">
+      <DataType>String</DataType>
+      <DefaultValue>
+        <Values>
+          <Value>AboutTheReportLbl</Value>
+        </Values>
+      </DefaultValue>
+      <Prompt>AboutTheReportLbl</Prompt>
+    </ReportParameter>
+    <ReportParameter Name="EnvironmentLbl">
+      <DataType>String</DataType>
+      <DefaultValue>
+        <Values>
+          <Value>EnvironmentLbl</Value>
+        </Values>
+      </DefaultValue>
+      <Prompt>EnvironmentLbl</Prompt>
+    </ReportParameter>
+    <ReportParameter Name="CompanyLbl">
+      <DataType>String</DataType>
+      <DefaultValue>
+        <Values>
+          <Value>CompanyLbl</Value>
+        </Values>
+      </DefaultValue>
+      <Prompt>CompanyLbl</Prompt>
+    </ReportParameter>
+    <ReportParameter Name="UserLbl">
+      <DataType>String</DataType>
+      <DefaultValue>
+        <Values>
+          <Value>UserLbl</Value>
+        </Values>
+      </DefaultValue>
+      <Prompt>UserLbl</Prompt>
+    </ReportParameter>
+    <ReportParameter Name="RunOnLbl">
+      <DataType>String</DataType>
+      <DefaultValue>
+        <Values>
+          <Value>RunOnLbl</Value>
+        </Values>
+      </DefaultValue>
+      <Prompt>RunOnLbl</Prompt>
+    </ReportParameter>
+    <ReportParameter Name="ReportNameLbl">
+      <DataType>String</DataType>
+      <DefaultValue>
+        <Values>
+          <Value>ReportNameLbl</Value>
+        </Values>
+      </DefaultValue>
+      <Prompt>ReportNameLbl</Prompt>
+    </ReportParameter>
+    <ReportParameter Name="DocumentationLbl">
+      <DataType>String</DataType>
+      <DefaultValue>
+        <Values>
+          <Value>DocumentationLbl</Value>
+        </Values>
+      </DefaultValue>
+      <Prompt>DocumentationLbl</Prompt>
+    </ReportParameter>
     <ReportParameter Name="BaseUOM_ItemCaption">
       <DataType>String</DataType>
       <DefaultValue>
@@ -2108,6 +2243,15 @@
         </Values>
       </DefaultValue>
       <Prompt>BaseUOM_ItemCaption</Prompt>
+    </ReportParameter>
+    <ReportParameter Name="VendNameCaption">
+      <DataType>String</DataType>
+      <DefaultValue>
+        <Values>
+          <Value>VendNameCaption</Value>
+        </Values>
+      </DefaultValue>
+      <Prompt>VendNameCaption</Prompt>
     </ReportParameter>
     <ReportParameter Name="InvQty_ValueEntryCaption">
       <DataType>String</DataType>
@@ -2140,7 +2284,7 @@
   <ReportParametersLayout>
     <GridLayoutDefinition>
       <NumberOfColumns>1</NumberOfColumns>
-      <NumberOfRows>9</NumberOfRows>
+      <NumberOfRows>25</NumberOfRows>
       <CellDefinitions>
         <CellDefinition>
           <ColumnIndex>0</ColumnIndex>
@@ -2170,21 +2314,101 @@
         <CellDefinition>
           <ColumnIndex>0</ColumnIndex>
           <RowIndex>5</RowIndex>
-          <ParameterName>BaseUOM_ItemCaption</ParameterName>
+          <ParameterName>InvVendorPurchLbl</ParameterName>
         </CellDefinition>
         <CellDefinition>
           <ColumnIndex>0</ColumnIndex>
           <RowIndex>6</RowIndex>
-          <ParameterName>InvQty_ValueEntryCaption</ParameterName>
+          <ParameterName>InvVendorPurchPrintLbl</ParameterName>
         </CellDefinition>
         <CellDefinition>
           <ColumnIndex>0</ColumnIndex>
           <RowIndex>7</RowIndex>
-          <ParameterName>CostAmtAct_ValueEntryCaption</ParameterName>
+          <ParameterName>InvVendorPurchAnalysisLbl</ParameterName>
         </CellDefinition>
         <CellDefinition>
           <ColumnIndex>0</ColumnIndex>
           <RowIndex>8</RowIndex>
+          <ParameterName>DataRetrievedLbl</ParameterName>
+        </CellDefinition>
+        <CellDefinition>
+          <ColumnIndex>0</ColumnIndex>
+          <RowIndex>9</RowIndex>
+          <ParameterName>TotalLbl</ParameterName>
+        </CellDefinition>
+        <CellDefinition>
+          <ColumnIndex>0</ColumnIndex>
+          <RowIndex>10</RowIndex>
+          <ParameterName>VendorNoLbl</ParameterName>
+        </CellDefinition>
+        <CellDefinition>
+          <ColumnIndex>0</ColumnIndex>
+          <RowIndex>11</RowIndex>
+          <ParameterName>ItemNoLbl</ParameterName>
+        </CellDefinition>
+        <CellDefinition>
+          <ColumnIndex>0</ColumnIndex>
+          <RowIndex>12</RowIndex>
+          <ParameterName>DescriptionLbl</ParameterName>
+        </CellDefinition>
+        <CellDefinition>
+          <ColumnIndex>0</ColumnIndex>
+          <RowIndex>13</RowIndex>
+          <ParameterName>AboutTheReportLbl</ParameterName>
+        </CellDefinition>
+        <CellDefinition>
+          <ColumnIndex>0</ColumnIndex>
+          <RowIndex>14</RowIndex>
+          <ParameterName>EnvironmentLbl</ParameterName>
+        </CellDefinition>
+        <CellDefinition>
+          <ColumnIndex>0</ColumnIndex>
+          <RowIndex>15</RowIndex>
+          <ParameterName>CompanyLbl</ParameterName>
+        </CellDefinition>
+        <CellDefinition>
+          <ColumnIndex>0</ColumnIndex>
+          <RowIndex>16</RowIndex>
+          <ParameterName>UserLbl</ParameterName>
+        </CellDefinition>
+        <CellDefinition>
+          <ColumnIndex>0</ColumnIndex>
+          <RowIndex>17</RowIndex>
+          <ParameterName>RunOnLbl</ParameterName>
+        </CellDefinition>
+        <CellDefinition>
+          <ColumnIndex>0</ColumnIndex>
+          <RowIndex>18</RowIndex>
+          <ParameterName>ReportNameLbl</ParameterName>
+        </CellDefinition>
+        <CellDefinition>
+          <ColumnIndex>0</ColumnIndex>
+          <RowIndex>19</RowIndex>
+          <ParameterName>DocumentationLbl</ParameterName>
+        </CellDefinition>
+        <CellDefinition>
+          <ColumnIndex>0</ColumnIndex>
+          <RowIndex>20</RowIndex>
+          <ParameterName>BaseUOM_ItemCaption</ParameterName>
+        </CellDefinition>
+        <CellDefinition>
+          <ColumnIndex>0</ColumnIndex>
+          <RowIndex>21</RowIndex>
+          <ParameterName>VendNameCaption</ParameterName>
+        </CellDefinition>
+        <CellDefinition>
+          <ColumnIndex>0</ColumnIndex>
+          <RowIndex>22</RowIndex>
+          <ParameterName>InvQty_ValueEntryCaption</ParameterName>
+        </CellDefinition>
+        <CellDefinition>
+          <ColumnIndex>0</ColumnIndex>
+          <RowIndex>23</RowIndex>
+          <ParameterName>CostAmtAct_ValueEntryCaption</ParameterName>
+        </CellDefinition>
+        <CellDefinition>
+          <ColumnIndex>0</ColumnIndex>
+          <RowIndex>24</RowIndex>
           <ParameterName>DiscAmt_ValueEntryCaption</ParameterName>
         </CellDefinition>
       </CellDefinitions>
@@ -2232,17 +2456,17 @@ End Function
   <DataSets>
     <DataSet Name="DataSet_Result">
       <Fields>
-        <Field Name="CompanyName">
-          <DataField>CompanyName</DataField>
-        </Field>
-        <Field Name="PeriodText">
-          <DataField>PeriodText</DataField>
-        </Field>
         <Field Name="ItemFilter">
           <DataField>ItemFilter</DataField>
         </Field>
         <Field Name="ItemLedgEntryFilter">
           <DataField>ItemLedgEntryFilter</DataField>
+        </Field>
+        <Field Name="CompanyName">
+          <DataField>CompanyName</DataField>
+        </Field>
+        <Field Name="PeriodText">
+          <DataField>PeriodText</DataField>
         </Field>
         <Field Name="No_Item">
           <DataField>No_Item</DataField>
@@ -2276,6 +2500,36 @@ End Function
         </Field>
         <Field Name="DiscAmt_ValueEntryFormat">
           <DataField>DiscAmt_ValueEntryFormat</DataField>
+        </Field>
+        <Field Name="Subtotals_InvoicedQuantity">
+          <DataField>Subtotals_InvoicedQuantity</DataField>
+        </Field>
+        <Field Name="Subtotals_InvoicedQuantityFormat">
+          <DataField>Subtotals_InvoicedQuantityFormat</DataField>
+        </Field>
+        <Field Name="Subtotals_CostAmount">
+          <DataField>Subtotals_CostAmount</DataField>
+        </Field>
+        <Field Name="Subtotals_CostAmountFormat">
+          <DataField>Subtotals_CostAmountFormat</DataField>
+        </Field>
+        <Field Name="Subtotals_DiscountAmount">
+          <DataField>Subtotals_DiscountAmount</DataField>
+        </Field>
+        <Field Name="Subtotals_DiscountAmountFormat">
+          <DataField>Subtotals_DiscountAmountFormat</DataField>
+        </Field>
+        <Field Name="Totals_CostAmount">
+          <DataField>Totals_CostAmount</DataField>
+        </Field>
+        <Field Name="Totals_CostAmountFormat">
+          <DataField>Totals_CostAmountFormat</DataField>
+        </Field>
+        <Field Name="Totals_DiscountAmount">
+          <DataField>Totals_DiscountAmount</DataField>
+        </Field>
+        <Field Name="Totals_DiscountAmountFormat">
+          <DataField>Totals_DiscountAmountFormat</DataField>
         </Field>
       </Fields>
       <Query>

@@ -13,7 +13,7 @@ codeunit 5959 "Serv. Posting Group Change"
     var
         CannotChangePostingGroupErr: Label 'You cannot change the value %1 to %2 because %3 has not been filled in.', Comment = '%1 = old posting group; %2 = new posting group; %3 = tablecaption of Subst. Vendor/Customer Posting Group';
 
-    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Posting Group Change", 'OnAfterChangePostingGroup', '', false, false)]
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Posting Group Change", 'OnAfterChangePostingGroup', '', true, false)]
     local procedure OnAfterChangePostingGroup(SourceRecordRef: RecordRef; NewPostingGroup: Code[20]; OldPostingGroup: Code[20])
     begin
         if SourceRecordRef.Number = Database::"Service Header" then

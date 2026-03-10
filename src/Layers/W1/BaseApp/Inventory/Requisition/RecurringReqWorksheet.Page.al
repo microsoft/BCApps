@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -53,17 +53,14 @@ page 296 "Recurring Req. Worksheet"
                 field("Recurring Method"; Rec."Recurring Method")
                 {
                     ApplicationArea = Planning;
-                    ToolTip = 'Specifies a recurring method, if you have indicated in the Recurring field that the worksheet is a recurring requisition worksheet.';
                 }
                 field("Recurring Frequency"; Rec."Recurring Frequency")
                 {
                     ApplicationArea = Planning;
-                    ToolTip = 'Specifies a recurring frequency, if it is indicated in the Recurring field that the worksheet is a recurring requisition worksheet.';
                 }
                 field(Type; Rec.Type)
                 {
                     ApplicationArea = Planning;
-                    ToolTip = 'Specifies the type of requisition worksheet line you are creating.';
 
                     trigger OnValidate()
                     begin
@@ -73,7 +70,6 @@ page 296 "Recurring Req. Worksheet"
                 field("No."; Rec."No.")
                 {
                     ApplicationArea = Planning;
-                    ToolTip = 'Specifies the number of the involved entry or record, according to the specified number series.';
 
                     trigger OnValidate()
                     begin
@@ -84,34 +80,28 @@ page 296 "Recurring Req. Worksheet"
                 field("Variant Code"; Rec."Variant Code")
                 {
                     ApplicationArea = Planning;
-                    ToolTip = 'Specifies the variant of the item on the line.';
                     Visible = false;
                 }
                 field("Action Message"; Rec."Action Message")
                 {
                     ApplicationArea = Planning;
-                    ToolTip = 'Specifies an action to take to rebalance the demand-supply situation.';
                 }
                 field("Accept Action Message"; Rec."Accept Action Message")
                 {
                     ApplicationArea = Planning;
-                    ToolTip = 'Specifies whether to accept the action message proposed for the line.';
                 }
                 field(Description; Rec.Description)
                 {
                     ApplicationArea = Planning;
-                    ToolTip = 'Specifies text that describes the entry.';
                 }
                 field("Description 2"; Rec."Description 2")
                 {
                     ApplicationArea = Planning;
-                    ToolTip = 'Specifies additional text describing the entry, or a remark about the requisition worksheet line.';
                     Visible = false;
                 }
                 field("Location Code"; Rec."Location Code")
                 {
                     ApplicationArea = Location;
-                    ToolTip = 'Specifies a code for an inventory location where the items that are being ordered will be registered.';
                 }
                 field(Quantity; Rec.Quantity)
                 {
@@ -121,12 +111,10 @@ page 296 "Recurring Req. Worksheet"
                 field("Unit of Measure Code"; Rec."Unit of Measure Code")
                 {
                     ApplicationArea = Planning;
-                    ToolTip = 'Specifies how each unit of the item or resource is measured, such as in pieces or hours. By default, the value in the Base Unit of Measure field on the item or resource card is inserted.';
                 }
                 field("Vendor No."; Rec."Vendor No.")
                 {
                     ApplicationArea = Planning;
-                    ToolTip = 'Specifies the number of the vendor who will ship the items in the purchase order.';
 
                     trigger OnValidate()
                     begin
@@ -137,18 +125,15 @@ page 296 "Recurring Req. Worksheet"
                 field("Vendor Item No."; Rec."Vendor Item No.")
                 {
                     ApplicationArea = Planning;
-                    ToolTip = 'Specifies the number that the vendor uses for this item.';
                 }
                 field("Shortcut Dimension 1 Code"; Rec."Shortcut Dimension 1 Code")
                 {
                     ApplicationArea = Dimensions;
-                    ToolTip = 'Specifies the code for Shortcut Dimension 1, which is one of two global dimension codes that you set up in the General Ledger Setup window.';
                     Visible = false;
                 }
                 field("Shortcut Dimension 2 Code"; Rec."Shortcut Dimension 2 Code")
                 {
                     ApplicationArea = Dimensions;
-                    ToolTip = 'Specifies the code for Shortcut Dimension 2, which is one of two global dimension codes that you set up in the General Ledger Setup window.';
                     Visible = false;
                 }
                 field("ShortcutDimCode[3]"; ShortcutDimCode[3])
@@ -239,7 +224,6 @@ page 296 "Recurring Req. Worksheet"
                 {
                     ApplicationArea = Planning;
                     AssistEdit = true;
-                    ToolTip = 'Specifies the currency code for the requisition lines.';
                     Visible = false;
 
                     trigger OnAssistEdit()
@@ -254,42 +238,35 @@ page 296 "Recurring Req. Worksheet"
                 field("Direct Unit Cost"; Rec."Direct Unit Cost")
                 {
                     ApplicationArea = Planning;
-                    ToolTip = 'Specifies the cost of one unit of the selected item or resource.';
                 }
                 field("Line Discount %"; Rec."Line Discount %")
                 {
                     ApplicationArea = Planning;
-                    ToolTip = 'Specifies the discount percentage that is granted for the item on the line.';
                     Visible = false;
                 }
                 field("Order Date"; Rec."Order Date")
                 {
                     ApplicationArea = Planning;
-                    ToolTip = 'Specifies the date when the related order was created.';
                     Visible = false;
                 }
                 field("Due Date"; Rec."Due Date")
                 {
                     ApplicationArea = Planning;
-                    ToolTip = 'Specifies the date when you can expect to receive the items.';
                 }
                 field("Requester ID"; Rec."Requester ID")
                 {
                     ApplicationArea = Planning;
                     LookupPageID = "User Lookup";
-                    ToolTip = 'Specifies the ID of the user who is ordering the items on the line.';
                     Visible = false;
                 }
                 field(Confirmed; Rec.Confirmed)
                 {
                     ApplicationArea = Planning;
-                    ToolTip = 'Specifies whether the items on the line have been approved for purchase.';
                     Visible = false;
                 }
                 field("Expiration Date"; Rec."Expiration Date")
                 {
                     ApplicationArea = Planning;
-                    ToolTip = 'Specifies the last date on which the recurring requisition worksheet will be converted to a purchase order.';
                 }
             }
             group(Control28)

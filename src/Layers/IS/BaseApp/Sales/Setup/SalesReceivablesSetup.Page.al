@@ -7,7 +7,9 @@ namespace Microsoft.Sales.Setup;
 using Microsoft.Bank.BankAccount;
 using Microsoft.Bank.Payment;
 using Microsoft.Finance.GeneralLedger.Setup;
+#if not CLEAN28
 using Microsoft.Finance.VAT.Reporting;
+#endif
 using Microsoft.Foundation.PaymentTerms;
 using Microsoft.Integration.Dataverse;
 using Microsoft.Pricing.Calculation;
@@ -175,7 +177,6 @@ page 459 "Sales & Receivables Setup"
                 field("Posting Date Check on Posting"; Rec."Posting Date Check on Posting")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies if you want the program to warn you when you post a sales document with a posting date that is different from the Work Date.';
                 }
                 field("Allow Document Deletion Before"; Rec."Allow Document Deletion Before")
                 {
@@ -503,21 +504,30 @@ page 459 "Sales & Receivables Setup"
 
     actions
     {
+#if not CLEAN28
         area(processing)
         {
             group("Actions")
             {
+                ObsoleteReason = 'Will be added by the IS Core App  instead.';
+                ObsoleteState = Pending;
+                ObsoleteTag = '28.0';
                 Caption = 'Actions';
                 action("Print Statement")
                 {
                     ApplicationArea = Basic, Suite;
                     Caption = 'Print Statement';
                     Image = "Report";
+                    Visible = false;
                     RunObject = Report "IRS notification";
                     ToolTip = 'Generate a letter that can be sent to the Internal Revenue Service (IRS) if the company wants to print invoices in a single copy. The report includes the company information by default. To change the wording, you must modify the text in Visual Studio Report Designer.';
+                    ObsoleteReason = 'Use page 14606 IS Sales & Receivables Setup.';
+                    ObsoleteState = Pending;
+                    ObsoleteTag = '28.0';
                 }
             }
         }
+#endif
         area(navigation)
         {
             action("Customer Posting Groups")
@@ -599,14 +609,21 @@ page 459 "Sales & Receivables Setup"
         }
         area(Promoted)
         {
+#if not CLEAN28
             group(Category_Report)
             {
                 Caption = 'Report', Comment = 'Generated from the PromotedActionCategories property index 2.';
-
+                ObsoleteReason = 'Use page 14606 IS Sales & Receivables Setup.';
+                ObsoleteState = Pending;
+                ObsoleteTag = '28.0';
                 actionref("Print Statement_Promoted"; "Print Statement")
                 {
+                    ObsoleteReason = 'Use page 14606 IS Sales & Receivables Setup.';
+                    ObsoleteState = Pending;
+                    ObsoleteTag = '28.0';
                 }
             }
+#endif
             group(Category_Category4)
             {
                 Caption = 'Customer Groups', Comment = 'Generated from the PromotedActionCategories property index 3.';

@@ -11,9 +11,4 @@ permissionset 7453 "ExciseTaxes - Admin"
     Assignable = true;
 
     IncludedPermissionSets = "ExciseTaxes - Edit";
-
-    Permissions =
-        tabledata "Excise Tax Type" = IMD,
-        tabledata "Excise Tax Item/FA Rate" = IMD,
-        tabledata "Excise Tax Entry Permission" = IMD;
 }

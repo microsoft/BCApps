@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -30,13 +30,11 @@ page 5345 "CRM TransactionCurrency List"
                     ApplicationArea = Suite;
                     Caption = 'ISO Currency Code';
                     StyleExpr = FirstColumnStyle;
-                    ToolTip = 'Specifies the ISO currency code, which is required in Dataverse.';
                 }
                 field(CurrencyName; Rec.CurrencyName)
                 {
                     ApplicationArea = Suite;
                     Caption = 'Currency Name';
-                    ToolTip = 'Specifies the name of the currency.';
                 }
                 field(Coupled; Coupled)
                 {

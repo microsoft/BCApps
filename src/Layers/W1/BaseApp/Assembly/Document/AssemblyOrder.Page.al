@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -43,7 +43,6 @@ page 900 "Assembly Order"
                 {
                     ApplicationArea = Assembly;
                     AssistEdit = true;
-                    ToolTip = 'Specifies the number of the involved entry or record, according to the specified number series.';
 
                     trigger OnAssistEdit()
                     begin
@@ -58,7 +57,6 @@ page 900 "Assembly Order"
                     Importance = Promoted;
                     ShowMandatory = true;
                     TableRelation = Item."No." where("Assembly BOM" = const(true));
-                    ToolTip = 'Specifies the number of the item that is being assembled with the assembly order.';
 
                     trigger OnValidate()
                     begin
@@ -68,12 +66,10 @@ page 900 "Assembly Order"
                 field(Description; Rec.Description)
                 {
                     ApplicationArea = Assembly;
-                    ToolTip = 'Specifies the description of the assembly item.';
                 }
                 field("Description 2"; Rec."Description 2")
                 {
                     ApplicationArea = Assembly;
-                    ToolTip = 'Specifies information in addition to the description.';
                     Visible = false;
                 }
                 group(Control33)
@@ -86,7 +82,6 @@ page 900 "Assembly Order"
                         Importance = Promoted;
                         BlankZero = true;
                         ShowMandatory = true;
-                        ToolTip = 'Specifies how many units of the assembly item that you expect to assemble with the assembly order.';
 
                         trigger OnValidate()
                         begin
@@ -97,7 +92,6 @@ page 900 "Assembly Order"
                     {
                         ApplicationArea = Assembly;
                         Importance = Promoted;
-                        ToolTip = 'Specifies how many of the assembly item units you want to partially post. To post the full quantity on the assembly order, leave the field unchanged.';
 
                         trigger OnValidate()
                         begin
@@ -108,7 +102,6 @@ page 900 "Assembly Order"
                     {
                         ApplicationArea = Assembly;
                         Editable = IsAsmToOrderEditable;
-                        ToolTip = 'Specifies how each unit of the item or resource is measured, such as in pieces or hours. By default, the value in the Base Unit of Measure field on the item or resource card is inserted.';
 
                         trigger OnValidate()
                         begin
@@ -120,14 +113,12 @@ page 900 "Assembly Order"
                 {
                     ApplicationArea = Assembly;
                     Importance = Promoted;
-                    ToolTip = 'Specifies the date on which the assembly order is posted.';
                 }
                 field("Due Date"; Rec."Due Date")
                 {
                     ApplicationArea = Assembly;
                     Editable = IsAsmToOrderEditable;
                     Importance = Promoted;
-                    ToolTip = 'Specifies the date when the assembled item is due to be available for use.';
 
                     trigger OnValidate()
                     begin
@@ -137,34 +128,28 @@ page 900 "Assembly Order"
                 field("Starting Date"; Rec."Starting Date")
                 {
                     ApplicationArea = Assembly;
-                    ToolTip = 'Specifies the date when the assembly order is expected to start.';
                 }
                 field("Ending Date"; Rec."Ending Date")
                 {
                     ApplicationArea = Assembly;
-                    ToolTip = 'Specifies the date when the assembly order is expected to finish.';
                 }
                 field("Remaining Quantity"; Rec."Remaining Quantity")
                 {
                     ApplicationArea = Assembly;
-                    ToolTip = 'Specifies how many units of the assembly item remain to be posted as assembled output.';
                 }
                 field("Assembled Quantity"; Rec."Assembled Quantity")
                 {
                     ApplicationArea = Assembly;
-                    ToolTip = 'Specifies how many units of the assembly item are posted as assembled output.';
                 }
                 field("Reserved Quantity"; Rec."Reserved Quantity")
                 {
                     ApplicationArea = Reservation;
                     Editable = false;
-                    ToolTip = 'Specifies how many units of the assembly item are reserved for this assembly order header.';
                     Visible = false;
                 }
                 field("Assemble to Order"; Rec."Assemble to Order")
                 {
                     ApplicationArea = Assembly;
-                    ToolTip = 'Specifies if the assembly order is linked to a sales order, which indicates that the item is assembled to order.';
 
                     trigger OnDrillDown()
                     begin
@@ -174,7 +159,6 @@ page 900 "Assembly Order"
                 field(Status; Rec.Status)
                 {
                     ApplicationArea = Assembly;
-                    ToolTip = 'Specifies if the document is open, waiting to be approved, invoiced for prepayment, or released to the next stage of processing.';
                 }
             }
             part(Lines; "Assembly Order Subform")
@@ -193,7 +177,6 @@ page 900 "Assembly Order"
                     ApplicationArea = Planning;
                     Editable = IsAsmToOrderEditable;
                     Importance = Promoted;
-                    ToolTip = 'Specifies the variant of the item on the line.';
                     ShowMandatory = VariantCodeMandatory;
 
                     trigger OnValidate()
@@ -206,7 +189,6 @@ page 900 "Assembly Order"
                     ApplicationArea = Location;
                     Editable = IsAsmToOrderEditable;
                     Importance = Promoted;
-                    ToolTip = 'Specifies the location to which you want to post output of the assembly item.';
 
                     trigger OnValidate()
                     begin
@@ -217,7 +199,6 @@ page 900 "Assembly Order"
                 {
                     ApplicationArea = Warehouse;
                     Editable = IsAsmToOrderEditable;
-                    ToolTip = 'Specifies the bin the assembly item is posted to as output and from where it is taken to storage or shipped if it is assembled to a sales order.';
 
                     trigger OnValidate()
                     begin
@@ -227,52 +208,43 @@ page 900 "Assembly Order"
                 field("Indirect Cost %"; Rec."Indirect Cost %")
                 {
                     ApplicationArea = Assembly;
-                    ToolTip = 'Specifies the percentage of the item''s last purchase cost that includes indirect costs, such as freight that is associated with the purchase of the item.';
                     Visible = false;
                 }
                 field("Overhead Rate"; Rec."Overhead Rate")
                 {
                     ApplicationArea = Assembly;
-                    ToolTip = 'Specifies the indirect cost of the assembly item as an absolute amount.';
                     Visible = false;
                 }
                 field("Unit Cost"; Rec."Unit Cost")
                 {
                     ApplicationArea = Assembly;
                     Editable = IsUnitCostEditable;
-                    ToolTip = 'Specifies the cost of one unit of the item or resource on the line.';
                 }
                 field("Cost Amount"; Rec."Cost Amount")
                 {
                     ApplicationArea = Assembly;
-                    ToolTip = 'Specifies the total unit cost of the assembly order.';
                 }
                 field("Assigned User ID"; Rec."Assigned User ID")
                 {
                     ApplicationArea = Assembly;
-                    ToolTip = 'Specifies the ID of the user who is responsible for the document.';
                     Visible = false;
                 }
                 field("Planning Flexibility"; Rec."Planning Flexibility")
                 {
                     ApplicationArea = Planning;
-                    ToolTip = 'Specifies whether the supply represented by the assembly order is considered by the planning system when calculating action messages.';
                     Visible = false;
                 }
                 field("Shortcut Dimension 1 Code"; Rec."Shortcut Dimension 1 Code")
                 {
                     ApplicationArea = Assembly;
-                    ToolTip = 'Specifies the code for Shortcut Dimension 1, which is one of two global dimension codes that you set up in the General Ledger Setup window.';
                 }
                 field("Shortcut Dimension 2 Code"; Rec."Shortcut Dimension 2 Code")
                 {
                     ApplicationArea = Assembly;
-                    ToolTip = 'Specifies the code for Shortcut Dimension 2, which is one of two global dimension codes that you set up in the General Ledger Setup window.';
                 }
                 field("Gen. Bus. Posting Group"; Rec."Gen. Bus. Posting Group")
                 {
                     ApplicationArea = Assembly;
-                    ToolTip = 'Specifies the code for the General Business Posting Group that applies to the entry.';
                 }
             }
         }

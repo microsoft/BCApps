@@ -332,7 +332,7 @@ codeunit 148326 "ERM Withholding VAT For SEA"
     begin
         GenBusinessPostingGroup.Get(GenBusPostingGroup);
         LibraryPurchase.CreateVendor(Vendor);
-        Vendor.Validate("WHT ABN", '');
+        Vendor.Validate("Withholding Tax Liable", true);
         Vendor.Validate("Wthldg. Tax Bus. Post. Group", WHTBusinessPostingGroup);
         Vendor.Validate("Gen. Bus. Posting Group", GenBusinessPostingGroup.Code);
         Vendor.Validate("VAT Bus. Posting Group", GenBusinessPostingGroup."Def. VAT Bus. Posting Group");
@@ -439,7 +439,6 @@ codeunit 148326 "ERM Withholding VAT For SEA"
     begin
         GeneralLedgerSetup.Get();
         GeneralLedgerSetup.Validate("Enable Withholding Tax", true);
-        GeneralLedgerSetup.Validate("WHT Enable Tax Invoices", true);
         GeneralLedgerSetup.Modify(true);
     end;
 

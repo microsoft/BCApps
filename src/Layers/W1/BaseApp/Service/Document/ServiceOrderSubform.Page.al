@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -34,13 +34,11 @@ page 5902 "Service Order Subform"
                 field("Line No."; Rec."Line No.")
                 {
                     ApplicationArea = Service;
-                    ToolTip = 'Specifies the number of the line.';
                     Visible = false;
                 }
                 field(ServiceItemNo; Rec."Service Item No.")
                 {
                     ApplicationArea = Service;
-                    ToolTip = 'Specifies the service item number registered in the Service Item table.';
 
                     trigger OnLookup(var Text: Text): Boolean
                     var
@@ -53,30 +51,25 @@ page 5902 "Service Order Subform"
                 field("Item No."; Rec."Item No.")
                 {
                     ApplicationArea = Service;
-                    ToolTip = 'Specifies the item number linked to this service item.';
                     Visible = true;
                 }
                 field("Service Item Group Code"; Rec."Service Item Group Code")
                 {
                     ApplicationArea = Service;
-                    ToolTip = 'Specifies the code of the service item group for this item.';
                 }
                 field("Ship-to Code"; Rec."Ship-to Code")
                 {
                     ApplicationArea = Service;
-                    ToolTip = 'Specifies a code for an alternate shipment address if you want to ship to another address than the one that has been entered automatically. This field is also used in case of drop shipment.';
                     Visible = false;
                 }
                 field("Variant Code"; Rec."Variant Code")
                 {
                     ApplicationArea = Service;
-                    ToolTip = 'Specifies the variant of the item on the line.';
                     Visible = false;
                 }
                 field("Serial No."; Rec."Serial No.")
                 {
                     ApplicationArea = ItemTracking;
-                    ToolTip = 'Specifies the serial number of this item.';
 
                     trigger OnAssistEdit()
                     begin
@@ -86,29 +79,24 @@ page 5902 "Service Order Subform"
                 field(Description; Rec.Description)
                 {
                     ApplicationArea = Service;
-                    ToolTip = 'Specifies a description of this service item.';
                 }
                 field("Description 2"; Rec."Description 2")
                 {
                     ApplicationArea = Service;
-                    ToolTip = 'Specifies an additional description of this item.';
                     Visible = false;
                 }
                 field("Repair Status Code"; Rec."Repair Status Code")
                 {
                     ApplicationArea = Service;
-                    ToolTip = 'Specifies the repair status of this service item.';
                 }
                 field("Service Shelf No."; Rec."Service Shelf No.")
                 {
                     ApplicationArea = Service;
-                    ToolTip = 'Specifies the number of the service shelf this item is stored on.';
                     Visible = false;
                 }
                 field(Warranty; Rec.Warranty)
                 {
                     ApplicationArea = Service;
-                    ToolTip = 'Specifies that warranty on either parts or labor exists for this item.';
                 }
                 field("Warranty Starting Date (Parts)"; Rec."Warranty Starting Date (Parts)")
                 {
@@ -149,59 +137,49 @@ page 5902 "Service Order Subform"
                 field("Contract No."; Rec."Contract No.")
                 {
                     ApplicationArea = Service;
-                    ToolTip = 'Specifies the number of the service contract associated with the item or service on the line.';
                 }
                 field("Fault Reason Code"; Rec."Fault Reason Code")
                 {
                     ApplicationArea = Service;
-                    ToolTip = 'Specifies the fault reason code for the item.';
                     Visible = false;
                 }
                 field("Service Price Group Code"; Rec."Service Price Group Code")
                 {
                     ApplicationArea = Service;
-                    ToolTip = 'Specifies the code of the service price group associated with the item.';
                 }
                 field("Adjustment Type"; Rec."Adjustment Type")
                 {
                     ApplicationArea = Service;
-                    ToolTip = 'Specifies the adjustment type for the line.';
                     Visible = false;
                 }
                 field("Base Amount to Adjust"; Rec."Base Amount to Adjust")
                 {
                     ApplicationArea = Service;
-                    ToolTip = 'Specifies the amount that the service line, linked to this service item line, will be adjusted to.';
                     Visible = false;
                 }
                 field("Fault Area Code"; Rec."Fault Area Code")
                 {
                     ApplicationArea = Service;
-                    ToolTip = 'Specifies the fault area code for this item.';
                     Visible = FaultAreaCodeVisible;
                 }
                 field("Symptom Code"; Rec."Symptom Code")
                 {
                     ApplicationArea = Service;
-                    ToolTip = 'Specifies the symptom code for this item.';
                     Visible = SymptomCodeVisible;
                 }
                 field("Fault Code"; Rec."Fault Code")
                 {
                     ApplicationArea = Service;
-                    ToolTip = 'Specifies the fault code for this item.';
                     Visible = FaultCodeVisible;
                 }
                 field("Resolution Code"; Rec."Resolution Code")
                 {
                     ApplicationArea = Service;
-                    ToolTip = 'Specifies the resolution code for this item.';
                     Visible = ResolutionCodeVisible;
                 }
                 field(Priority; Rec.Priority)
                 {
                     ApplicationArea = Service;
-                    ToolTip = 'Specifies the service priority for this item.';
                 }
                 field("Response Time (Hours)"; Rec."Response Time (Hours)")
                 {
@@ -211,18 +189,15 @@ page 5902 "Service Order Subform"
                 field("Response Date"; Rec."Response Date")
                 {
                     ApplicationArea = Service;
-                    ToolTip = 'Specifies the estimated date when service should start on this service item line.';
                 }
                 field("Response Time"; Rec."Response Time")
                 {
                     ApplicationArea = Service;
-                    ToolTip = 'Specifies the estimated time when service should start on this service item.';
                 }
                 field("Loaner No."; Rec."Loaner No.")
                 {
                     ApplicationArea = Service;
                     LookupPageID = "Available Loaners";
-                    ToolTip = 'Specifies the number of the loaner that has been lent to the customer in the service order to replace this item.';
 
                     trigger OnValidate()
                     begin
@@ -238,43 +213,36 @@ page 5902 "Service Order Subform"
                 field("Vendor No."; Rec."Vendor No.")
                 {
                     ApplicationArea = Service;
-                    ToolTip = 'Specifies the number of the vendor of this item.';
                     Visible = false;
                 }
                 field("Vendor Item No."; Rec."Vendor Item No.")
                 {
                     ApplicationArea = Service;
-                    ToolTip = 'Specifies the number that the vendor uses for this item.';
                     Visible = false;
                 }
                 field("Starting Date"; Rec."Starting Date")
                 {
                     ApplicationArea = Service;
-                    ToolTip = 'Specifies the date when service on this item began and when the repair status changed to In process.';
                     Visible = false;
                 }
                 field("Starting Time"; Rec."Starting Time")
                 {
                     ApplicationArea = Service;
-                    ToolTip = 'Specifies the time when service on this item began and when the repair status changed to In process.';
                     Visible = false;
                 }
                 field("Finishing Date"; Rec."Finishing Date")
                 {
                     ApplicationArea = Service;
-                    ToolTip = 'Specifies the finishing date of the service and when the repair status of this item changes to Finished.';
                     Visible = false;
                 }
                 field("Finishing Time"; Rec."Finishing Time")
                 {
                     ApplicationArea = Service;
-                    ToolTip = 'Specifies the finishing time of the service and when the repair status of this item changes to Finished.';
                     Visible = false;
                 }
                 field("No. of Previous Services"; Rec."No. of Previous Services")
                 {
                     ApplicationArea = Service;
-                    ToolTip = 'Specifies the number of services performed on service items with the same item and serial number as this service item.';
                 }
             }
         }

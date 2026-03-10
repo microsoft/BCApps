@@ -34,6 +34,7 @@ table 7207 "CRM BC Virtual Table Config."
             ExternalType = 'String';
             Description = '';
             Caption = 'Environment';
+            ToolTip = 'Specifies data from a corresponding field in a Dataverse entity. For more information about Dataverse, see Dataverse Help Center.';
         }
         field(4; msdyn_apimanagedprefix; Text[8])
         {
@@ -65,6 +66,7 @@ table 7207 "CRM BC Virtual Table Config."
             ExternalType = 'String';
             Description = '';
             Caption = 'Target Host';
+            ToolTip = 'Specifies data from a corresponding field in a Dataverse entity. For more information about Dataverse, see Dataverse Help Center.';
         }
         field(8; msdyn_odataauthorizationheader; Text[100])
         {
@@ -79,6 +81,7 @@ table 7207 "CRM BC Virtual Table Config."
             ExternalType = 'String';
             Description = '';
             Caption = 'Tenant ID';
+            ToolTip = 'Specifies data from a corresponding field in a Dataverse entity. For more information about Dataverse, see Dataverse Help Center.';
         }
         field(10; msdyn_DefaultCompanyIdName; Text[30])
         {
@@ -94,6 +97,7 @@ table 7207 "CRM BC Virtual Table Config."
             ExternalType = 'String';
             Description = '';
             Caption = 'Microsoft Entra user ID';
+            ToolTip = 'Specifies data from a corresponding field in a Dataverse entity. For more information about Dataverse, see Dataverse Help Center.';
         }
     }
     keys

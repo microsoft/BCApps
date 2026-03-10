@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -42,7 +42,6 @@ page 1287 "Payment Application Review"
                     field("Transaction Text"; Rec."Transaction Text")
                     {
                         ApplicationArea = Basic, Suite;
-                        ToolTip = 'Specifies the text that the customer or vendor entered on that payment transaction that is represented by the journal line.';
                         Width = 40;
                         MultiLine = true;
                     }
@@ -51,7 +50,6 @@ page 1287 "Payment Application Review"
                     {
                         ApplicationArea = Basic, Suite;
                         Caption = 'Transaction Amount';
-                        ToolTip = 'Specifies the amount that was paid into the bank account and then imported as a bank statement line represented by the journal line.';
 
                         trigger OnValidate()
                         begin
@@ -129,13 +127,11 @@ page 1287 "Payment Application Review"
                     field("Account Type"; Rec."Account Type")
                     {
                         ApplicationArea = Basic, Suite;
-                        ToolTip = 'Specifies the type of account that the payment application will be posted to when you post the payment reconciliation journal.';
                     }
 
                     field("Account No."; Rec."Account No.")
                     {
                         ApplicationArea = Basic, Suite;
-                        ToolTip = 'Specifies the account number that the payment application will be posted to when you post the payment reconciliation journal.';
 
                         trigger OnValidate()
                         begin

@@ -2733,7 +2733,6 @@ codeunit 136305 "Job Journal"
     begin
         // [SCENARIO 445152] The Unit Cost (LCY) gets updated incorrectly in case of a posting involving a Job in a different currency than the local one and different exchange rates.
         Initialize();
-        LibraryPriceCalculation.DisableExtendedPriceCalculation();
 
         // [GIVEN] Create Currency code and exchange rates for 2days. and save unit cost in variable
         CurrencyCode := SetupCurrencyWithExchRates();

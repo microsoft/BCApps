@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -25,7 +25,6 @@ page 5404 "Item Units of Measure"
                 field("Item No."; Rec."Item No.")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the number of the item card from which you opened the Item Units of Measure window.';
                     Visible = false;
                 }
                 field("Code"; Rec.Code)
@@ -38,42 +37,35 @@ page 5404 "Item Units of Measure"
                 {
                     ApplicationArea = Basic, Suite;
                     StyleExpr = StyleName;
-                    ToolTip = 'Specifies how many of the base unit of measure are contained in one unit of the item.';
                 }
                 field(Height; Rec.Height)
                 {
                     ApplicationArea = Basic, Suite;
                     StyleExpr = StyleName;
-                    ToolTip = 'Specifies the height of one item unit when measured in the unit of measure in the Code field.';
                 }
                 field(Width; Rec.Width)
                 {
                     ApplicationArea = Basic, Suite;
                     StyleExpr = StyleName;
-                    ToolTip = 'Specifies the width of one item unit when measured in the specified unit of measure.';
                 }
                 field(Length; Rec.Length)
                 {
                     ApplicationArea = Basic, Suite;
                     StyleExpr = StyleName;
-                    ToolTip = 'Specifies the length of one item unit when measured in the specified unit of measure.';
                 }
                 field(Cubage; Rec.Cubage)
                 {
                     ApplicationArea = Basic, Suite;
                     StyleExpr = StyleName;
-                    ToolTip = 'Specifies the volume (cubage) of one item unit in the unit of measure in the Code field.';
                 }
                 field(Weight; Rec.Weight)
                 {
                     ApplicationArea = Basic, Suite;
                     StyleExpr = StyleName;
-                    ToolTip = 'Specifies the weight of one item unit when measured in the specified unit of measure.';
                 }
                 field("Coupled to Dataverse"; Rec."Coupled to Dataverse")
                 {
                     ApplicationArea = All;
-                    ToolTip = 'Specifies that the item unit of measure is coupled to a unit of measure in Dynamics 365 Sales.';
                     Visible = CRMIntegrationEnabled;
                 }
             }

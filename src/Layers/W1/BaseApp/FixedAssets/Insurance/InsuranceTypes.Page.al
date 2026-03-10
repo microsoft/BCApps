@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -23,12 +23,10 @@ page 5648 "Insurance Types"
                 field("Code"; Rec.Code)
                 {
                     ApplicationArea = FixedAssets;
-                    ToolTip = 'Specifies an insurance type code.';
                 }
                 field(Description; Rec.Description)
                 {
                     ApplicationArea = FixedAssets;
-                    ToolTip = 'Specifies a description for the insurance type.';
                 }
             }
         }

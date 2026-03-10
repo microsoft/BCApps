@@ -24,6 +24,7 @@ table 1050 "Additional Fee Setup"
         field(1; "Charge Per Line"; Boolean)
         {
             Caption = 'Charge Per Line';
+            ToolTip = 'Specifies that additional fees are calculated per document line.';
         }
         /// <summary>
         /// Specifies the reminder terms to which this fee setup belongs.
@@ -31,6 +32,7 @@ table 1050 "Additional Fee Setup"
         field(2; "Reminder Terms Code"; Code[10])
         {
             Caption = 'Reminder Terms Code';
+            ToolTip = 'Specifies the reminder terms code for the reminder.';
             NotBlank = true;
             TableRelation = "Reminder Terms".Code;
         }
@@ -40,6 +42,7 @@ table 1050 "Additional Fee Setup"
         field(3; "Reminder Level No."; Integer)
         {
             Caption = 'Reminder Level No.';
+            ToolTip = 'Specifies the total of the additional fee amounts on the reminder lines.';
             NotBlank = true;
             TableRelation = "Reminder Level"."No.";
         }
@@ -49,6 +52,7 @@ table 1050 "Additional Fee Setup"
         field(4; "Currency Code"; Code[10])
         {
             Caption = 'Currency Code';
+            ToolTip = 'Specifies the currency that is used on the entry.';
             TableRelation = Currency.Code;
         }
         /// <summary>
@@ -59,6 +63,7 @@ table 1050 "Additional Fee Setup"
             AutoFormatType = 1;
             AutoFormatExpression = '';
             Caption = 'Threshold Remaining Amount';
+            ToolTip = 'Specifies the amount that remains before the additional fee is incurred.';
             MinValue = 0;
         }
         /// <summary>
@@ -69,6 +74,7 @@ table 1050 "Additional Fee Setup"
             AutoFormatType = 1;
             AutoFormatExpression = '';
             Caption = 'Additional Fee Amount';
+            ToolTip = 'Specifies the line amount of the additional fee.';
             MinValue = 0;
 
             trigger OnValidate()
@@ -92,6 +98,7 @@ table 1050 "Additional Fee Setup"
         {
             AutoFormatType = 0;
             Caption = 'Additional Fee %';
+            ToolTip = 'Specifies the percentage of the total amount that makes up the additional fee.';
             MaxValue = 100;
             MinValue = 0;
         }
@@ -103,6 +110,7 @@ table 1050 "Additional Fee Setup"
             AutoFormatType = 1;
             AutoFormatExpression = '';
             Caption = 'Min. Additional Fee Amount';
+            ToolTip = 'Specifies the lowest amount that a fee can be.';
             MinValue = 0;
 
             trigger OnValidate()
@@ -119,6 +127,7 @@ table 1050 "Additional Fee Setup"
             AutoFormatType = 1;
             AutoFormatExpression = '';
             Caption = 'Max. Additional Fee Amount';
+            ToolTip = 'Specifies the highest amount that a fee can be.';
             MinValue = 0;
 
             trigger OnValidate()

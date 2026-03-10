@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -26,34 +26,29 @@ page 973 "Time Sheet Card"
                 field("No."; Rec."No.")
                 {
                     ApplicationArea = Jobs;
-                    ToolTip = 'Specifies the number of the involved entry or record, according to the specified number series.';
                     Editable = false;
                     Importance = Additional;
                 }
                 field("Starting Date"; Rec."Starting Date")
                 {
                     ApplicationArea = Jobs;
-                    ToolTip = 'Specifies the starting date for a time sheet.';
                     Editable = false;
                     Importance = Additional;
                 }
                 field("Ending Date"; Rec."Ending Date")
                 {
                     ApplicationArea = Jobs;
-                    ToolTip = 'Specifies the ending date for a time sheet.';
                     Editable = false;
                     Importance = Additional;
                 }
                 field("Resource No."; Rec."Resource No.")
                 {
                     ApplicationArea = Jobs;
-                    ToolTip = 'Specifies the number of the resource for the time sheet.';
                     Editable = false;
                 }
                 field("Resource Name"; Rec."Resource Name")
                 {
                     ApplicationArea = Jobs;
-                    ToolTip = 'Specifies the name of the resource for the time sheet.';
                     Editable = false;
                     Visible = false;
                 }

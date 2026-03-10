@@ -573,7 +573,7 @@ codeunit 134386 "ERM Sales Documents II"
     end;
 
     [Test]
-    [HandlerFunctions('ConfirmHandlerYes,SendNotificationHandler,NotificationDetailsHandler,RecallNotificationHandler')]
+    [HandlerFunctions('ConfirmHandlerYes,SendNotificationHandler,RecallNotificationHandler')]
     [Scope('OnPrem')]
     procedure CustomerCreditLimitWithItemSalesPrices()
     var

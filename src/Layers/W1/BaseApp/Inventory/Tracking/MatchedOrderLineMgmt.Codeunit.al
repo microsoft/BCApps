@@ -604,6 +604,9 @@ codeunit 5826 "Matched Order Line Mgmt."
         PurchaseLines: Page "Purchase Lines";
     begin
         PurchaseLineInvoice.GetBySystemId(DetailedMatchedOrderLine."Document Line SystemId");
+        PurchaseLineOrder.FilterGroup(-1);
+        PurchaseLineOrder.SetFilter("Outstanding Quantity", '<>0');
+        PurchaseLineOrder.SetFilter("Qty. Rcd. Not Invoiced", '<>0');
         PurchaseLineOrder.FilterGroup(2);
         PurchaseLineOrder.SetRange("Document Type", PurchaseLineOrder."Document Type"::Order);
         PurchaseLineOrder.SetRange("Buy-from Vendor No.", PurchaseLineInvoice."Buy-from Vendor No.");
@@ -613,9 +616,11 @@ codeunit 5826 "Matched Order Line Mgmt."
         PurchaseLineOrder.SetRange("Location Code", PurchaseLineInvoice."Location Code");
         PurchaseLineOrder.SetRange("Variant Code", PurchaseLineInvoice."Variant Code");
         PurchaseLineOrder.SetRange("Unit of Measure Code", PurchaseLineInvoice."Unit of Measure Code");
-        PurchaseLineOrder.FilterGroup(-1);
-        PurchaseLineOrder.SetFilter("Outstanding Quantity", '<>0');
-        PurchaseLineOrder.SetFilter("Qty. Rcd. Not Invoiced", '<>0');
+        if PurchaseLineOrder.FindSet() then
+            repeat
+                PurchaseLineOrder.Mark(true);
+            until PurchaseLineOrder.Next() = 0;
+        PurchaseLineOrder.MarkedOnly(true);
         PurchaseLineOrder.FilterGroup(0);
 
         PurchaseLines.SetTableView(PurchaseLineOrder);
@@ -870,13 +875,18 @@ codeunit 5826 "Matched Order Line Mgmt."
         if PurchaseLineInvoice.FindLast() then
             LineNo += PurchaseLineInvoice."Line No.";
 
+        PurchaseLineOrder.FilterGroup(-1);
+        PurchaseLineOrder.SetFilter("Outstanding Quantity", '<>0');
+        PurchaseLineOrder.SetFilter("Qty. Rcd. Not Invoiced", '<>0');
         PurchaseLineOrder.FilterGroup(2);
         PurchaseLineOrder.SetRange("Document Type", PurchaseHeaderInvoice."Document Type"::Order);
         PurchaseLineOrder.SetRange("Buy-from Vendor No.", PurchaseHeaderInvoice."Buy-from Vendor No.");
         PurchaseLineOrder.SetRange("Pay-to Vendor No.", PurchaseHeaderInvoice."Pay-to Vendor No.");
-        PurchaseLineOrder.FilterGroup(-1);
-        PurchaseLineOrder.SetFilter("Outstanding Quantity", '<>0');
-        PurchaseLineOrder.SetFilter("Qty. Rcd. Not Invoiced", '<>0');
+        if PurchaseLineOrder.FindSet() then
+            repeat
+                PurchaseLineOrder.Mark(true);
+            until PurchaseLineOrder.Next() = 0;
+        PurchaseLineOrder.MarkedOnly(true);
         PurchaseLineOrder.FilterGroup(0);
 
         PurchaseLines.SetTableView(PurchaseLineOrder);

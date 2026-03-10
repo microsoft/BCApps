@@ -319,6 +319,7 @@ permissionset 7931 "D365 TEAM MEMBER"
                   tabledata "User Property" = Rimd,
                   tabledata "Windows Language" = m,
                   tabledata "AAD Application" = RM,
+                  tabledata "ABC Analysis Setup" = RM,
                   tabledata "Acc. Sched. Cell Value" = RM,
                   tabledata "Acc. Sched. Chart Setup Line" = RM,
                   tabledata "Acc. Sched. KPI Buffer" = RM,
@@ -333,6 +334,9 @@ permissionset 7931 "D365 TEAM MEMBER"
                   tabledata "Financial Report Schedule" = RM,
                   tabledata "Financial Report User Filters" = RIMD,
                   tabledata "Fin. Report Excel Template" = RM,
+                  tabledata "Financial Report Category" = RM,
+                  tabledata "Financial Report Audit Log" = Rimd,
+                  tabledata "Financial Report Status" = RM,
                   tabledata "Account Schedules Chart Setup" = RM,
                   tabledata "Account Use Buffer" = RM,
                   tabledata "Accounting Period" = RM,
@@ -738,6 +742,8 @@ permissionset 7931 "D365 TEAM MEMBER"
                   tabledata "Excel Template Storage" = RM,
                   tabledata "Exch. Rate Adjmt. Reg." = Rm,
                   tabledata "Exch. Rate Adjmt. Ledg. Entry" = Rm,
+                  tabledata "Contact Sync User" = RM,
+                  tabledata "Outlook Contacts" = RM,
 #if not CLEAN28
                   tabledata "Exchange Contact" = RM,
 #endif

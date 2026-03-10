@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -26,39 +26,33 @@ page 838 "Reminder Terms Setup"
                 {
                     Caption = 'Reminder Terms Code';
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies a code to identify this set of reminder terms.';
                 }
                 field(Description; Rec.Description)
                 {
                     Caption = 'Description';
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies a description of the reminder terms.';
                 }
                 field("Max. No. of Reminders"; Rec."Max. No. of Reminders")
                 {
                     Caption = 'Maximum Number of Reminders';
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the maximum number of reminders that can be created for an invoice.';
                 }
                 field("Post Interest"; Rec."Post Interest")
                 {
                     Caption = 'Post Interest';
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies whether to post any interest listed on the reminder to the general ledger and customer accounts.';
                     Importance = Additional;
                 }
                 field("Post Additional Fee"; Rec."Post Additional Fee")
                 {
                     Caption = 'Post Additional Fee';
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies whether to post any additional fee listed on the reminder to the general ledger and customer accounts';
                     Importance = Additional;
                 }
                 field("Post Add. Fee per Line"; Rec."Post Add. Fee per Line")
                 {
                     Caption = 'Post Additional Fee per Line';
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies whether to post any additional fee listed on the finance charge memo to the general ledger and customer accounts when the memo is issued.';
                     Importance = Additional;
                 }
                 field("Minimum Amount (LCY)"; Rec."Minimum Amount (LCY)")

@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -29,7 +29,6 @@ page 36 "Assembly BOM"
                 field(Type; Rec.Type)
                 {
                     ApplicationArea = Assembly;
-                    ToolTip = 'Specifies if the assembly BOM component is an item or a resource.';
 
                     trigger OnValidate()
                     begin
@@ -39,7 +38,6 @@ page 36 "Assembly BOM"
                 field("No."; Rec."No.")
                 {
                     ApplicationArea = Assembly;
-                    ToolTip = 'Specifies the number of the involved entry or record, according to the specified number series.';
 
                     trigger OnValidate()
                     var
@@ -52,7 +50,6 @@ page 36 "Assembly BOM"
                 field("Variant Code"; Rec."Variant Code")
                 {
                     ApplicationArea = Planning;
-                    ToolTip = 'Specifies the variant of the item on the line.';
                     Visible = false;
                     ShowMandatory = VariantCodeMandatory;
 
@@ -67,12 +64,10 @@ page 36 "Assembly BOM"
                 field(Description; Rec.Description)
                 {
                     ApplicationArea = Assembly;
-                    ToolTip = 'Specifies a description of the assembly BOM component.';
                 }
                 field("Assembly BOM"; Rec."Assembly BOM")
                 {
                     ApplicationArea = Assembly;
-                    ToolTip = 'Specifies if the assembly BOM component is an assembly BOM.';
                 }
                 field("Quantity per"; Rec."Quantity per")
                 {
@@ -82,40 +77,33 @@ page 36 "Assembly BOM"
                 field("Unit of Measure Code"; Rec."Unit of Measure Code")
                 {
                     ApplicationArea = Assembly;
-                    ToolTip = 'Specifies how each unit of the item or resource is measured, such as in pieces or hours. By default, the value in the Base Unit of Measure field on the item or resource card is inserted.';
                 }
                 field("Installed in Item No."; Rec."Installed in Item No.")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies which service item the component on the line is used in.';
                 }
                 field(Position; Rec.Position)
                 {
                     ApplicationArea = Assembly;
-                    ToolTip = 'Specifies the position of the component on the bill of material.';
                 }
                 field("Position 2"; Rec."Position 2")
                 {
                     ApplicationArea = Assembly;
-                    ToolTip = 'Specifies the component''s position in the assembly BOM structure.';
                     Visible = false;
                 }
                 field("Position 3"; Rec."Position 3")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the third reference number for the component position on a bill of material, such as the alternate position number of a component on a print card.';
                     Visible = false;
                 }
                 field("Machine No."; Rec."Machine No.")
                 {
                     ApplicationArea = Manufacturing;
-                    ToolTip = 'Specifies a machine that should be used when processing the component on this line of the assembly BOM.';
                     Visible = false;
                 }
                 field("Lead-Time Offset"; Rec."Lead-Time Offset")
                 {
                     ApplicationArea = Assembly;
-                    ToolTip = 'Specifies the total number of days required to assemble the item on the assembly BOM line.';
                     Visible = false;
                 }
                 field("Resource Usage Type"; Rec."Resource Usage Type")
@@ -123,7 +111,6 @@ page 36 "Assembly BOM"
                     ApplicationArea = Assembly;
                     Editable = not IsEmptyOrItem;
                     HideValue = IsEmptyOrItem;
-                    ToolTip = 'Specifies how the cost of the resource on the assembly BOM is allocated during assembly.';
                     Visible = false;
                 }
             }

@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -39,12 +39,10 @@ page 6624 "Blanket Purch. Order Arch.Sub."
                 {
                     AccessByPermission = tabledata "Item Reference" = R;
                     ApplicationArea = Suite, ItemReferences;
-                    ToolTip = 'Specifies the referenced item number.';
                 }
                 field("Variant Code"; Rec."Variant Code")
                 {
                     ApplicationArea = Planning;
-                    ToolTip = 'Specifies the variant of the item on the line.';
                     Visible = false;
                 }
                 field(Nonstock; Rec.Nonstock)
@@ -62,19 +60,16 @@ page 6624 "Blanket Purch. Order Arch.Sub."
                 field(Description; Rec.Description)
                 {
                     ApplicationArea = Suite;
-                    ToolTip = 'Specifies a description of the record.';
                 }
                 field("Description 2"; Rec."Description 2")
                 {
                     ApplicationArea = Suite;
                     Importance = Additional;
-                    ToolTip = 'Specifies information in addition to the description.';
                     Visible = false;
                 }
                 field("Drop Shipment"; Rec."Drop Shipment")
                 {
                     ApplicationArea = Suite;
-                    ToolTip = 'Specifies if your vendor ships the items directly to your customer.';
                     Visible = false;
                 }
                 field("Return Reason Code"; Rec."Return Reason Code")
@@ -86,18 +81,15 @@ page 6624 "Blanket Purch. Order Arch.Sub."
                 field("Location Code"; Rec."Location Code")
                 {
                     ApplicationArea = Location;
-                    ToolTip = 'Specifies a code for the location where you want the items to be placed when they are received.';
                 }
                 field(Quantity; Rec.Quantity)
                 {
                     ApplicationArea = Suite;
                     BlankZero = true;
-                    ToolTip = 'Specifies the quantity of the record.';
                 }
                 field("Unit of Measure Code"; Rec."Unit of Measure Code")
                 {
                     ApplicationArea = Suite;
-                    ToolTip = 'Specifies how each unit of the item or resource is measured, such as in pieces or hours. By default, the value in the Base Unit of Measure field on the item or resource card is inserted.';
                 }
                 field("Unit of Measure"; Rec."Unit of Measure")
                 {
@@ -109,12 +101,10 @@ page 6624 "Blanket Purch. Order Arch.Sub."
                 {
                     ApplicationArea = Suite;
                     BlankZero = true;
-                    ToolTip = 'Specifies the cost of one unit of the selected item or resource.';
                 }
                 field("Indirect Cost %"; Rec."Indirect Cost %")
                 {
                     ApplicationArea = Suite;
-                    ToolTip = 'Specifies the percentage of the item''s last purchase cost that includes indirect costs, such as freight that is associated with the purchase of the item.';
                     Visible = false;
                 }
                 field("Unit Cost (LCY)"; Rec."Unit Cost (LCY)")
@@ -133,18 +123,15 @@ page 6624 "Blanket Purch. Order Arch.Sub."
                 {
                     ApplicationArea = Suite;
                     BlankZero = true;
-                    ToolTip = 'Specifies the net amount, excluding any invoice discount amount, that must be paid for products on the line.';
                 }
                 field("Line Discount %"; Rec."Line Discount %")
                 {
                     ApplicationArea = Suite;
                     BlankZero = true;
-                    ToolTip = 'Specifies the discount percentage that is granted for the item on the line.';
                 }
                 field("Line Discount Amount"; Rec."Line Discount Amount")
                 {
                     ApplicationArea = Suite;
-                    ToolTip = 'Specifies the discount amount that is granted for the item on the line.';
                     Visible = false;
                 }
                 field("Allow Invoice Disc."; Rec."Allow Invoice Disc.")
@@ -163,25 +150,21 @@ page 6624 "Blanket Purch. Order Arch.Sub."
                 {
                     ApplicationArea = Suite;
                     BlankZero = true;
-                    ToolTip = 'Specifies the quantity of items that remains to be received.';
                 }
                 field("Quantity Received"; Rec."Quantity Received")
                 {
                     ApplicationArea = Suite;
                     BlankZero = true;
-                    ToolTip = 'Specifies how many units of the item on the line have been posted as received.';
                 }
                 field("Qty. to Invoice"; Rec."Qty. to Invoice")
                 {
                     ApplicationArea = Suite;
                     BlankZero = true;
-                    ToolTip = 'Specifies the quantity that remains to be invoiced. It is calculated as Quantity - Qty. Invoiced.';
                 }
                 field("Quantity Invoiced"; Rec."Quantity Invoiced")
                 {
                     ApplicationArea = Suite;
                     BlankZero = true;
-                    ToolTip = 'Specifies how many units of the item on the line have been posted as invoiced.';
                 }
                 field("Allow Item Charge Assignment"; Rec."Allow Item Charge Assignment")
                 {
@@ -198,28 +181,23 @@ page 6624 "Blanket Purch. Order Arch.Sub."
                 field("Promised Receipt Date"; Rec."Promised Receipt Date")
                 {
                     ApplicationArea = Suite;
-                    ToolTip = 'Specifies the date that the vendor has promised to deliver the order.';
                     Visible = false;
                 }
                 field("Planned Receipt Date"; Rec."Planned Receipt Date")
                 {
                     ApplicationArea = Suite;
-                    ToolTip = 'Specifies the date when the item is planned to arrive in inventory. Forward calculation: planned receipt date = order date + vendor lead time (per the vendor calendar and rounded to the next working day in first the vendor calendar and then the location calendar). If no vendor calendar exists, then: planned receipt date = order date + vendor lead time (per the location calendar). Backward calculation: order date = planned receipt date - vendor lead time (per the vendor calendar and rounded to the previous working day in first the vendor calendar and then the location calendar). If no vendor calendar exists, then: order date = planned receipt date - vendor lead time (per the location calendar).';
                 }
                 field("Expected Receipt Date"; Rec."Expected Receipt Date")
                 {
                     ApplicationArea = Suite;
-                    ToolTip = 'Specifies the date you expect the items to be available in your warehouse. If you leave the field blank, it will be calculated as follows: Planned Receipt Date + Safety Lead Time + Inbound Warehouse Handling Time = Expected Receipt Date.';
                 }
                 field("Order Date"; Rec."Order Date")
                 {
                     ApplicationArea = Suite;
-                    ToolTip = 'Specifies the date when the order was created.';
                 }
                 field("Lead Time Calculation"; Rec."Lead Time Calculation")
                 {
                     ApplicationArea = Suite;
-                    ToolTip = 'Specifies a date formula for the amount of time it takes to replenish the item.';
                     Visible = false;
                 }
                 field("Job No."; Rec."Job No.")
@@ -231,13 +209,11 @@ page 6624 "Blanket Purch. Order Arch.Sub."
                 field("Planning Flexibility"; Rec."Planning Flexibility")
                 {
                     ApplicationArea = Planning;
-                    ToolTip = 'Specifies whether the supply represented by this line is considered by the planning system when calculating action messages.';
                     Visible = false;
                 }
                 field("Inbound Whse. Handling Time"; Rec."Inbound Whse. Handling Time")
                 {
                     ApplicationArea = Warehouse;
-                    ToolTip = 'Specifies the time it takes to make items part of available inventory, after the items have been posted as received.';
                     Visible = false;
                 }
                 field("Blanket Order No."; Rec."Blanket Order No.")
@@ -261,13 +237,11 @@ page 6624 "Blanket Purch. Order Arch.Sub."
                 field("Shortcut Dimension 1 Code"; Rec."Shortcut Dimension 1 Code")
                 {
                     ApplicationArea = Dimensions;
-                    ToolTip = 'Specifies the code for Shortcut Dimension 1, which is one of two global dimension codes that you set up in the General Ledger Setup window.';
                     Visible = DimVisible1;
                 }
                 field("Shortcut Dimension 2 Code"; Rec."Shortcut Dimension 2 Code")
                 {
                     ApplicationArea = Dimensions;
-                    ToolTip = 'Specifies the code for Shortcut Dimension 2, which is one of two global dimension codes that you set up in the General Ledger Setup window.';
                     Visible = DimVisible2;
                 }
                 field(ShortcutDimCode3; ShortcutDimCode[3])
@@ -334,26 +308,22 @@ page 6624 "Blanket Purch. Order Arch.Sub."
                 {
                     Caption = 'Unit Gross Weight';
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the gross weight of one unit of the item. In the purchase statistics window, the gross weight on the line is included in the total gross weight of all the lines for the particular purchase document.';
                     Visible = false;
                 }
                 field("Net Weight"; Rec."Net Weight")
                 {
                     Caption = 'Unit Net Weight';
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the net weight of one unit of the item. In the purchase statistics window, the net weight on the line is included in the total net weight of all the lines for the particular purchase document.';
                     Visible = false;
                 }
                 field("Unit Volume"; Rec."Unit Volume")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the volume of one unit of the item. In the purchase statistics window, the volume of one unit of the item on the line is included in the total volume of all the lines for the particular purchase document.';
                     Visible = false;
                 }
                 field("Units per Parcel"; Rec."Units per Parcel")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the number of units per parcel of the item. In the purchase statistics window, the number of units per parcel on the line helps to determine the total number of units for all the lines for the particular purchase document.';
                     Visible = false;
                 }
             }

@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -27,34 +27,28 @@ page 1029 "Job Invoices"
                 field("Document Type"; Rec."Document Type")
                 {
                     ApplicationArea = Jobs;
-                    ToolTip = 'Specifies the information about the type of document. There are four options:';
                 }
                 field("Document No."; Rec."Document No.")
                 {
                     ApplicationArea = Jobs;
-                    ToolTip = 'Specifies the number associated with the document. For example, if you have created an invoice, the field Specifies the invoice number.';
                 }
                 field("Line No."; Rec."Line No.")
                 {
                     ApplicationArea = All;
-                    ToolTip = 'Specifies the line number that is linked to the document. Numbers are created sequentially.';
                     Visible = ShowDetails;
                 }
                 field("Quantity Transferred"; Rec."Quantity Transferred")
                 {
                     ApplicationArea = Jobs;
-                    ToolTip = 'Specifies the quantity transferred from the project planning line to the invoice or credit memo.';
                 }
                 field("Transferred Date"; Rec."Transferred Date")
                 {
                     ApplicationArea = All;
-                    ToolTip = 'Specifies the date on which the invoice or credit document was created. The date is set to the posting date you specified when you created the invoice or credit memo.';
                     Visible = ShowDetails;
                 }
                 field("Invoiced Date"; Rec."Invoiced Date")
                 {
                     ApplicationArea = All;
-                    ToolTip = 'Specifies the date on which the invoice or credit memo was posted.';
                     Visible = ShowDetails;
                 }
                 field("Invoiced Amount (LCY)"; Rec."Invoiced Amount (LCY)")
@@ -70,7 +64,6 @@ page 1029 "Job Invoices"
                 field("Job Ledger Entry No."; Rec."Job Ledger Entry No.")
                 {
                     ApplicationArea = All;
-                    ToolTip = 'Specifies a link to the project ledger entry that was created when the document was posted.';
                     Visible = ShowDetails;
                 }
             }

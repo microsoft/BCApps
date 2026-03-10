@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -29,6 +29,7 @@ table 5071 Campaign
         field(1; "No."; Code[20])
         {
             Caption = 'No.';
+            ToolTip = 'Specifies the number of the involved entry or record, according to the specified number series.';
 
             trigger OnValidate()
             begin
@@ -42,10 +43,12 @@ table 5071 Campaign
         field(2; Description; Text[100])
         {
             Caption = 'Description';
+            ToolTip = 'Specifies the description of the campaign.';
         }
         field(3; "Starting Date"; Date)
         {
             Caption = 'Starting Date';
+            ToolTip = 'Specifies the date on which the campaign is valid. There are certain rules for how dates should be entered.';
 
             trigger OnValidate()
             begin
@@ -56,6 +59,7 @@ table 5071 Campaign
         field(4; "Ending Date"; Date)
         {
             Caption = 'Ending Date';
+            ToolTip = 'Specifies the last day on which this campaign is valid.';
 
             trigger OnValidate()
             begin
@@ -66,6 +70,7 @@ table 5071 Campaign
         field(5; "Salesperson Code"; Code[20])
         {
             Caption = 'Salesperson Code';
+            ToolTip = 'Specifies the code of the salesperson responsible for the campaign.';
             TableRelation = "Salesperson/Purchaser" where(Blocked = const(false));
         }
         field(6; Comment; Boolean)
@@ -79,6 +84,7 @@ table 5071 Campaign
         field(7; "Last Date Modified"; Date)
         {
             Caption = 'Last Date Modified';
+            ToolTip = 'Specifies the date when the campaign card was last modified. This field is not editable.';
             Editable = false;
         }
         field(8; "No. Series"; Code[20])
@@ -91,6 +97,7 @@ table 5071 Campaign
         {
             CaptionClass = '1,1,1';
             Caption = 'Global Dimension 1 Code';
+            ToolTip = 'Specifies the code for the global dimension that is linked to the record or entry for analysis purposes. Two global dimensions, typically for the company''s most important activities, are available on all cards, documents, reports, and lists.';
             TableRelation = "Dimension Value".Code where("Global Dimension No." = const(1),
                                                           Blocked = const(false));
 
@@ -103,6 +110,7 @@ table 5071 Campaign
         {
             CaptionClass = '1,1,2';
             Caption = 'Global Dimension 2 Code';
+            ToolTip = 'Specifies the code for the global dimension that is linked to the record or entry for analysis purposes. Two global dimensions, typically for the company''s most important activities, are available on all cards, documents, reports, and lists.';
             TableRelation = "Dimension Value".Code where("Global Dimension No." = const(2),
                                                           Blocked = const(false));
 
@@ -114,6 +122,7 @@ table 5071 Campaign
         field(11; "Status Code"; Code[10])
         {
             Caption = 'Status Code';
+            ToolTip = 'Specifies the status code for the campaign.';
             TableRelation = "Campaign Status";
         }
         field(12; "Target Contacts Contacted"; Integer)
@@ -124,6 +133,7 @@ table 5071 Campaign
                                                                Date = field("Date Filter"),
                                                                Postponed = const(false)));
             Caption = 'Target Contacts Contacted';
+            ToolTip = 'Specifies the number of target contacts that you have contacted with this campaign. The field is not editable.';
             Editable = false;
             FieldClass = FlowField;
         }
@@ -135,6 +145,7 @@ table 5071 Campaign
                                                                Date = field("Date Filter"),
                                                                Postponed = const(false)));
             Caption = 'Contacts Responded';
+            ToolTip = 'Specifies the number of contacts who have responded to the campaign. This field is not editable.';
             Editable = false;
             FieldClass = FlowField;
         }
@@ -167,6 +178,7 @@ table 5071 Campaign
             CalcFormula = count("Opportunity Entry" where("Campaign No." = field("No."),
                                                            Active = const(true)));
             Caption = 'No. of Opportunities';
+            ToolTip = 'Specifies the number of opportunities created as part of this campaign. This field is not editable.';
             Editable = false;
             FieldClass = FlowField;
         }
@@ -340,6 +352,7 @@ table 5071 Campaign
         {
             CalcFormula = exist("Campaign Target Group" where("Campaign No." = field("No.")));
             Caption = 'Activated';
+            ToolTip = 'Specifies if a sales lines price discount has been activated. After you set up a campaign and create segments for it, you can create discounts for targeted audiences.';
             Editable = false;
             FieldClass = FlowField;
         }

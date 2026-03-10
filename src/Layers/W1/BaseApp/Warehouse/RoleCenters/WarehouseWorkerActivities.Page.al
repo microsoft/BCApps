@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -26,13 +26,11 @@ page 9056 "Warehouse Worker Activities"
                 {
                     ApplicationArea = Warehouse;
                     DrillDownPageID = "Warehouse Picks";
-                    ToolTip = 'Specifies the number of unassigned picks that are displayed in the Warehouse Worker WMS Cue on the Role Center. The documents are filtered by today''s date.';
                 }
                 field("My Picks"; Rec."My Picks")
                 {
                     ApplicationArea = Warehouse;
                     DrillDownPageID = "Warehouse Picks";
-                    ToolTip = 'Specifies the number of picks that are displayed in the Warehouse Worker WMS Cue on the Role Center. The documents are filtered by today''s date.';
                 }
 
                 actions
@@ -53,13 +51,11 @@ page 9056 "Warehouse Worker Activities"
                 {
                     ApplicationArea = Warehouse;
                     DrillDownPageID = "Warehouse Put-aways";
-                    ToolTip = 'Specifies the number of unassigned put-always that are displayed in the Warehouse Worker WMS Cue on the Role Center. The documents are filtered by today''s date.';
                 }
                 field("My Put-aways"; Rec."My Put-aways")
                 {
                     ApplicationArea = Warehouse;
                     DrillDownPageID = "Warehouse Put-aways";
-                    ToolTip = 'Specifies the number of put-always that are displayed in the Warehouse Worker WMS Cue on the Role Center. The documents are filtered by today''s date.';
                 }
 
                 actions
@@ -80,13 +76,11 @@ page 9056 "Warehouse Worker Activities"
                 {
                     ApplicationArea = Warehouse;
                     DrillDownPageID = "Warehouse Movements";
-                    ToolTip = 'Specifies the number of unassigned movements that are displayed in the Warehouse Worker WMS Cue on the Role Center. The documents are filtered by today''s date.';
                 }
                 field("My Movements"; Rec."My Movements")
                 {
                     ApplicationArea = Warehouse;
                     DrillDownPageID = "Warehouse Movements";
-                    ToolTip = 'Specifies the number of movements that are displayed in the Warehouse Worker WMS Cue on the Role Center. The documents are filtered by today''s date.';
                 }
 
                 actions

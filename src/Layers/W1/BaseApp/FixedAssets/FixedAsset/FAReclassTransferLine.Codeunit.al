@@ -63,9 +63,11 @@ codeunit 5642 "FA Reclass. Transfer Line"
     procedure FAReclassLine(var FAReclassJnlLine: Record "FA Reclass. Journal Line"; var Done: Boolean)
     var
         IsHandled: Boolean;
+        SkipTestFieldInactive: Boolean;
     begin
         IsHandled := false;
-        OnBeforeFAReclassLine(FAReclassJnlLine, Done, IsHandled);
+        SkipTestFieldInactive := false;
+        OnBeforeFAReclassLine(FAReclassJnlLine, Done, IsHandled, SkipTestFieldInactive);
         if IsHandled then
             exit;
 
@@ -77,8 +79,11 @@ codeunit 5642 "FA Reclass. Transfer Line"
         FADeprBook2.Get(FAReclassJnlLine."New FA No.", FAReclassJnlLine."Depreciation Book Code");
         OldFA.TestField(Blocked, false);
         NewFA.TestField(Blocked, false);
-        OldFA.TestField(Inactive, false);
-        NewFA.TestField(Inactive, false);
+
+        if not SkipTestFieldInactive then begin
+            OldFA.TestField(Inactive, false);
+            NewFA.TestField(Inactive, false);
+        end;
 
         if OldFA."Budgeted Asset" and not NewFA."Budgeted Asset" then
             FAReclassJnlLine.FieldError(
@@ -458,7 +463,7 @@ codeunit 5642 "FA Reclass. Transfer Line"
     end;
 
     [IntegrationEvent(false, false)]
-    local procedure OnBeforeFAReclassLine(var FAReclassJnlLine: Record "FA Reclass. Journal Line"; var Done: Boolean; var IsHandled: Boolean)
+    local procedure OnBeforeFAReclassLine(var FAReclassJnlLine: Record "FA Reclass. Journal Line"; var Done: Boolean; var IsHandled: Boolean; var SkipTestFieldInactive: Boolean)
     begin
     end;
 

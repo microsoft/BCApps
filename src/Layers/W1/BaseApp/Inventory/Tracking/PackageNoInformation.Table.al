@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -24,17 +24,20 @@ table 6515 "Package No. Information"
         field(1; "Item No."; Code[20])
         {
             Caption = 'Item No.';
+            ToolTip = 'Specifies the number of the involved entry or record, according to the specified number series.';
             NotBlank = true;
             TableRelation = Item;
         }
         field(2; "Variant Code"; Code[10])
         {
             Caption = 'Variant Code';
+            ToolTip = 'Specifies the variant of the item on the line.';
             TableRelation = "Item Variant".Code where("Item No." = field("Item No."));
         }
         field(3; "Package No."; Code[50])
         {
             Caption = 'Package No.';
+            ToolTip = 'Specifies the customs declaration number.';
             CaptionClass = '6,1';
             ExtendedDatatype = Barcode;
             NotBlank = true;
@@ -42,11 +45,13 @@ table 6515 "Package No. Information"
         field(5; "Country/Region Code"; Code[10])
         {
             Caption = 'Country/Region Code';
+            ToolTip = 'Specifies the country/region of the address.';
             TableRelation = "Country/Region";
         }
         field(10; Description; Text[100])
         {
             Caption = 'Description';
+            ToolTip = 'Specifies the description associated with this line.';
         }
         field(12; "Certificate Number"; Code[20])
         {
@@ -55,6 +60,7 @@ table 6515 "Package No. Information"
         field(13; Blocked; Boolean)
         {
             Caption = 'Blocked';
+            ToolTip = 'Specifies that the related record is blocked from being posted in transactions, for example a customer that is declared insolvent or an item that is placed in quarantine.';
         }
         field(14; Comment; Boolean)
         {
@@ -62,6 +68,7 @@ table 6515 "Package No. Information"
                                                                "Variant Code" = field("Variant Code"),
                                                                "Serial/Lot No." = field("Package No.")));
             Caption = 'Comment';
+            ToolTip = 'Specifies the comment associated with this line.';
             Editable = false;
             FieldClass = FlowField;
         }
@@ -73,6 +80,7 @@ table 6515 "Package No. Information"
                                                                   "Package No." = field("Package No."),
                                                                   "Location Code" = field("Location Filter")));
             Caption = 'Inventory';
+            ToolTip = 'Specifies the quantity on inventory with this line.';
             DecimalPlaces = 0 : 5;
             Editable = false;
             FieldClass = FlowField;

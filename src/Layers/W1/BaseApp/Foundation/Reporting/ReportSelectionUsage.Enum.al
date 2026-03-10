@@ -73,5 +73,6 @@ enum 77 "Report Selection Usage"
     value(130; "VAT Statement") { Caption = 'VAT Statement'; }
     value(131; "Sales VAT Acc. Proof") { Caption = 'Sales VAT Acc. Proof'; }
     value(132; "VAT Statement Schedule") { Caption = 'VAT Statement Schedule'; }
+    value(150; "P.Self Billing Invoice") { Caption = 'Purchase Self Billing Invoice'; }
 }
 

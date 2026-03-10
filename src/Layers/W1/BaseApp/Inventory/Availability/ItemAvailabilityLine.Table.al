@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -18,11 +18,13 @@ table 99000832 "Item Availability Line"
         field(2; Name; Text[50])
         {
             Caption = 'Name';
+            ToolTip = 'Specifies the name for this entry.';
         }
         field(3; Quantity; Decimal)
         {
             AutoFormatType = 0;
             Caption = 'Quantity';
+            ToolTip = 'Specifies the quantity for this entry.';
             DecimalPlaces = 0 : 5;
         }
         field(5; QuerySource; Integer)

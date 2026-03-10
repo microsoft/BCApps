@@ -109,6 +109,8 @@ report 108 "Customer - Order Detail"
             {
                 DataItemLink = "Bill-to Customer No." = field("No.");
                 DataItemTableView = sorting("Document Type", "Bill-to Customer No.", "Currency Code") where("Document Type" = const(Order));
+                RequestFilterFields = "No.";
+                RequestFilterHeading = 'Sales Order';
                 column(No_; "No.")
                 {
                     IncludeCaption = true;
@@ -320,6 +322,9 @@ report 108 "Customer - Order Detail"
 #if not CLEAN27
             column(TotalCaption; TotalCaptionLbl)
             {
+                ObsoleteState = Pending;
+                ObsoleteReason = 'The RDLC layout has been replaced by the Excel layout and will be removed in a future release.';
+                ObsoleteTag = '27.0';
             }
 #endif
 
@@ -403,7 +408,7 @@ report 108 "Customer - Order Detail"
 #if not CLEAN27
         layout(RDLC)
         {
-            Caption = 'Customer - Order Detail RDLC';
+            Caption = 'Customer - Order Detail RDLC (Obsolete)';
             Type = RDLC;
             LayoutFile = './Sales/Reports/CustomerOrderDetail.rdlc';
             ObsoleteState = Pending;

@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -29,6 +29,7 @@ table 7200 "CDS Connection Setup"
         field(2; "Server Address"; Text[250])
         {
             Caption = 'Environment URL';
+            ToolTip = 'The Dataverse environment URL.';
             DataClassification = OrganizationIdentifiableInformation;
 
             trigger OnValidate()

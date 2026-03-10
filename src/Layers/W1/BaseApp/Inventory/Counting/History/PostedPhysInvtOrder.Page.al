@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -27,62 +27,52 @@ page 5883 "Posted Phys. Invt. Order"
                 {
                     ApplicationArea = Warehouse;
                     Editable = false;
-                    ToolTip = 'Specifies the No. of the table physical inventory order header.';
                 }
                 field(Description; Rec.Description)
                 {
                     ApplicationArea = Warehouse;
                     Editable = false;
-                    ToolTip = 'Specifies the Description of the table physical inventory order header.';
                 }
                 field("Location Code"; Rec."Location Code")
                 {
                     ApplicationArea = Warehouse;
                     Editable = false;
                     Importance = Promoted;
-                    ToolTip = 'Specifies the Location Code of the table physical inventory order header.';
                 }
                 field("Person Responsible"; Rec."Person Responsible")
                 {
                     ApplicationArea = Warehouse;
                     Editable = false;
-                    ToolTip = 'Specifies the Person Responsible of the table physical inventory order header.';
                 }
                 field("No. Finished Recordings"; Rec."No. Finished Recordings")
                 {
                     ApplicationArea = Warehouse;
                     Editable = false;
-                    ToolTip = 'Specifies the No. Finished Recordings.';
                 }
                 field("Order Date"; Rec."Order Date")
                 {
                     ApplicationArea = Warehouse;
                     Editable = false;
-                    ToolTip = 'Specifies the Order Date of the table physical inventory order header.';
                 }
                 field("Posting Date"; Rec."Posting Date")
                 {
                     ApplicationArea = Warehouse;
                     Editable = false;
-                    ToolTip = 'Specifies the Posting Date of the table physical inventory order header.';
                 }
                 field("Pre-Assigned No."; Rec."Pre-Assigned No.")
                 {
                     ApplicationArea = Warehouse;
                     Editable = false;
-                    ToolTip = 'Specifies the number of the physical inventory header, from which the posted physical inventory order was posted.';
                 }
                 field("Shortcut Dimension 1 Code"; Rec."Shortcut Dimension 1 Code")
                 {
                     ApplicationArea = Dimensions;
                     Editable = false;
-                    ToolTip = 'Specifies the code for Shortcut Dimension 1, which is one of two global dimension codes that you set up in the General Ledger Setup window.';
                 }
                 field("Shortcut Dimension 2 Code"; Rec."Shortcut Dimension 2 Code")
                 {
                     ApplicationArea = Dimensions;
                     Editable = false;
-                    ToolTip = 'Specifies the code for Shortcut Dimension 2, which is one of two global dimension codes that you set up in the General Ledger Setup window.';
                 }
             }
             part(OrderLines; "Posted Phys. Invt. Order Subf.")

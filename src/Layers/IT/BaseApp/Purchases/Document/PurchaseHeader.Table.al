@@ -137,8 +137,6 @@ table 38 "Purchase Header"
                 Validate("Lead Time Calculation", Vend."Lead Time Calculation");
                 "Shipment Method Code" := Vend."Shipment Method Code";
                 "Self-Billing Invoice" := Vend."Self-Billing Agreement" and Rec."Document Type" in [Rec."Document Type"::Order, Rec."Document Type"::Invoice];
-                if "Self-Billing Invoice" then
-                    CheckAndUpdatePostingNoSeriesForSelfBillingInvoice();
 
                 IsHandled := false;
                 OnValidateBuyFromVendorNoOnBeforeAssignResponsibilityCenter(Rec, xRec, CurrFieldNo, IsHandled);
@@ -372,6 +370,7 @@ table 38 "Purchase Header"
         field(7; "Pay-to Address"; Text[100])
         {
             Caption = 'Pay-to Address';
+            ToolTip = 'Specifies the address of the vendor sending the invoice.';
 
             trigger OnValidate()
             begin
@@ -381,6 +380,7 @@ table 38 "Purchase Header"
         field(8; "Pay-to Address 2"; Text[50])
         {
             Caption = 'Pay-to Address 2';
+            ToolTip = 'Specifies additional address information.';
 
             trigger OnValidate()
             begin
@@ -390,6 +390,7 @@ table 38 "Purchase Header"
         field(9; "Pay-to City"; Text[30])
         {
             Caption = 'Pay-to City';
+            ToolTip = 'Specifies the city of the vendor on the purchase document.';
             TableRelation = if ("Pay-to Country/Region Code" = const('')) "Post Code".City
             else
             if ("Pay-to Country/Region Code" = filter(<> '')) "Post Code".City where("Country/Region Code" = field("Pay-to Country/Region Code"));
@@ -501,18 +502,22 @@ table 38 "Purchase Header"
         field(14; "Ship-to Name 2"; Text[50])
         {
             Caption = 'Ship-to Name 2';
+            ToolTip = 'Specifies an additional part of the name of the customer that items on the purchase order were shipped to, as a drop shipment.';
         }
         field(15; "Ship-to Address"; Text[100])
         {
             Caption = 'Ship-to Address';
+            ToolTip = 'Specifies the address that you want the items in the purchase order to be shipped to.';
         }
         field(16; "Ship-to Address 2"; Text[50])
         {
             Caption = 'Ship-to Address 2';
+            ToolTip = 'Specifies additional address information.';
         }
         field(17; "Ship-to City"; Text[30])
         {
             Caption = 'Ship-to City';
+            ToolTip = 'Specifies the city of the vendor on the purchase document.';
             TableRelation = if ("Ship-to Country/Region Code" = const('')) "Post Code".City
             else
             if ("Ship-to Country/Region Code" = filter(<> '')) "Post Code".City where("Country/Region Code" = field("Ship-to Country/Region Code"));
@@ -543,6 +548,7 @@ table 38 "Purchase Header"
         {
             AccessByPermission = TableData "Purch. Rcpt. Header" = R;
             Caption = 'Order Date';
+            ToolTip = 'Specifies the date when the order was created.';
 
             trigger OnValidate()
             var
@@ -649,6 +655,7 @@ table 38 "Purchase Header"
         field(21; "Expected Receipt Date"; Date)
         {
             Caption = 'Expected Receipt Date';
+            ToolTip = 'Specifies the date you expect the items to be available in your warehouse. If you leave the field blank, it will be calculated as follows: Planned Receipt Date + Safety Lead Time + Inbound Warehouse Handling Time = Expected Receipt Date.';
 
             trigger OnValidate()
             var
@@ -723,6 +730,7 @@ table 38 "Purchase Header"
         field(26; "Pmt. Discount Date"; Date)
         {
             Caption = 'Pmt. Discount Date';
+            ToolTip = 'Specifies the date on which the amount in the entry must be paid for a payment discount to be granted.';
         }
         field(27; "Shipment Method Code"; Code[10])
         {
@@ -812,6 +820,7 @@ table 38 "Purchase Header"
         field(31; "Vendor Posting Group"; Code[20])
         {
             Caption = 'Vendor Posting Group';
+            ToolTip = 'Specifies the vendor''s market type to link business transactions to.';
             TableRelation = "Vendor Posting Group";
 
             trigger OnValidate()
@@ -878,6 +887,7 @@ table 38 "Purchase Header"
         field(35; "Prices Including VAT"; Boolean)
         {
             Caption = 'Prices Including VAT';
+            ToolTip = 'Specifies if the Unit Price and Line Amount fields on document lines should be shown with or without VAT.';
 
             trigger OnValidate()
             var
@@ -972,6 +982,7 @@ table 38 "Purchase Header"
         field(41; "Language Code"; Code[10])
         {
             Caption = 'Language Code';
+            ToolTip = 'Specifies the language to be used on printouts for this document.';
             TableRelation = Language;
 
             trigger OnValidate()
@@ -982,6 +993,7 @@ table 38 "Purchase Header"
         field(42; "Format Region"; Text[80])
         {
             Caption = 'Format Region';
+            ToolTip = 'Specifies the format to be used on printouts for this document.';
             TableRelation = "Language Selection"."Language Tag";
         }
         field(43; "Purchaser Code"; Code[20])
@@ -1028,14 +1040,17 @@ table 38 "Purchase Header"
         field(51; "On Hold"; Code[3])
         {
             Caption = 'On Hold';
+            ToolTip = 'Specifies that the related entry represents an unpaid invoice for which either a payment suggestion, a reminder, or a finance charge memo exists.';
         }
         field(52; "Applies-to Doc. Type"; Enum "Gen. Journal Document Type")
         {
             Caption = 'Applies-to Doc. Type';
+            ToolTip = 'Specifies the type of the posted document that this document or journal line will be applied to when you post, for example to register payment.';
         }
         field(53; "Applies-to Doc. No."; Code[20])
         {
             Caption = 'Applies-to Doc. No.';
+            ToolTip = 'Specifies the number of the posted document that this document or journal line will be applied to when you post, for example to register payment.';
 
             trigger OnLookup()
             var
@@ -1208,6 +1223,7 @@ table 38 "Purchase Header"
         field(67; "Vendor Shipment No."; Code[35])
         {
             Caption = 'Vendor Shipment No.';
+            ToolTip = 'Specifies the vendor''s shipment number.';
 
             trigger OnValidate()
             var
@@ -1222,6 +1238,7 @@ table 38 "Purchase Header"
         field(68; "Vendor Invoice No."; Code[35])
         {
             Caption = 'Vendor Invoice No.';
+            ToolTip = 'Specifies the document number of the original document you received from the vendor. You can require the document number for posting, or let it be optional. By default, it''s required, so that this document references the original. Making document numbers optional removes a step from the posting process. For example, if you attach the original invoice as a PDF, you might not need to enter the document number. To specify whether document numbers are required, in the Purchases & Payables Setup window, select or clear the Ext. Doc. No. Mandatory field.';
 
             trigger OnValidate()
             var
@@ -1243,6 +1260,7 @@ table 38 "Purchase Header"
         field(69; "Vendor Cr. Memo No."; Code[35])
         {
             Caption = 'Vendor Cr. Memo No.';
+            ToolTip = 'Specifies the document number of the original document you received from the vendor. You can require the document number for posting, or let it be optional. By default, it''s required, so that this document references the original. Making document numbers optional removes a step from the posting process. For example, if you attach the original invoice as a PDF, you might not need to enter the document number. To specify whether document numbers are required, in the Purchases & Payables Setup window, select or clear the Ext. Doc. No. Mandatory field.';
 
             trigger OnValidate()
             var
@@ -1268,6 +1286,7 @@ table 38 "Purchase Header"
         field(72; "Sell-to Customer No."; Code[20])
         {
             Caption = 'Sell-to Customer No.';
+            ToolTip = 'Specifies the number of the customer that the items are shipped to directly from your vendor, as a drop shipment.';
             TableRelation = Customer;
 
             trigger OnValidate()
@@ -1303,6 +1322,7 @@ table 38 "Purchase Header"
         field(73; "Reason Code"; Code[10])
         {
             Caption = 'Reason Code';
+            ToolTip = 'Specifies the reason code, a supplementary source code that enables you to trace the document.';
             TableRelation = "Reason Code";
         }
         field(74; "Gen. Bus. Posting Group"; Code[20])
@@ -1328,6 +1348,7 @@ table 38 "Purchase Header"
         field(76; "Transaction Type"; Code[10])
         {
             Caption = 'Transaction Type';
+            ToolTip = 'Specifies the type of transaction that the document represents, for the purpose of reporting to INTRASTAT.';
             TableRelation = "Transaction Type";
 
             trigger OnValidate()
@@ -1338,6 +1359,7 @@ table 38 "Purchase Header"
         field(77; "Transport Method"; Code[10])
         {
             Caption = 'Transport Method';
+            ToolTip = 'Specifies the transport method, for the purpose of reporting to INTRASTAT.';
             TableRelation = "Transport Method";
 
             trigger OnValidate()
@@ -1392,6 +1414,7 @@ table 38 "Purchase Header"
         field(81; "Buy-from Address"; Text[100])
         {
             Caption = 'Buy-from Address';
+            ToolTip = 'Specifies the address of the vendor who ships the items.';
 
             trigger OnValidate()
             begin
@@ -1402,6 +1425,7 @@ table 38 "Purchase Header"
         field(82; "Buy-from Address 2"; Text[50])
         {
             Caption = 'Buy-from Address 2';
+            ToolTip = 'Specifies additional address information.';
 
             trigger OnValidate()
             begin
@@ -1412,6 +1436,7 @@ table 38 "Purchase Header"
         field(83; "Buy-from City"; Text[30])
         {
             Caption = 'Buy-from City';
+            ToolTip = 'Specifies the city of the vendor on the purchase document.';
             TableRelation = if ("Buy-from Country/Region Code" = const('')) "Post Code".City
             else
             if ("Buy-from Country/Region Code" = filter(<> '')) "Post Code".City where("Country/Region Code" = field("Buy-from Country/Region Code"));
@@ -1486,6 +1511,7 @@ table 38 "Purchase Header"
         {
             CaptionClass = '5,6,' + "Pay-to Country/Region Code";
             Caption = 'Pay-to County';
+            ToolTip = 'Specifies the state, province or county of the address.';
 
             trigger OnValidate()
             begin
@@ -1541,6 +1567,7 @@ table 38 "Purchase Header"
         {
             CaptionClass = '5,5,' + "Buy-from Country/Region Code";
             Caption = 'Buy-from County';
+            ToolTip = 'Specifies the state, province or county of the address.';
 
             trigger OnValidate()
             begin
@@ -1600,6 +1627,7 @@ table 38 "Purchase Header"
         {
             CaptionClass = '5,4,' + "Ship-to Country/Region Code";
             Caption = 'Ship-to County';
+            ToolTip = 'Specifies the state, province or county of the address.';
         }
         field(93; "Ship-to Country/Region Code"; Code[10])
         {
@@ -1653,6 +1681,7 @@ table 38 "Purchase Header"
         field(97; "Entry Point"; Code[10])
         {
             Caption = 'Entry Point';
+            ToolTip = 'Specifies the code of the port of entry where the items pass into your country/region, for reporting to Intrastat.';
             TableRelation = "Entry/Exit Point";
 
             trigger OnValidate()
@@ -1663,6 +1692,7 @@ table 38 "Purchase Header"
         field(98; Correction; Boolean)
         {
             Caption = 'Correction';
+            ToolTip = 'Specifies the entry as a corrective entry. You can use the field if you need to post a corrective entry to a vendor account. If you place a check mark in this field when posting a corrective entry, the system will post a negative debit instead of a credit or a negative credit instead of a debit. Correction flag does not affect how inventory reconciled with general ledger.';
         }
         field(99; "Document Date"; Date)
         {
@@ -1698,6 +1728,7 @@ table 38 "Purchase Header"
         field(101; "Area"; Code[10])
         {
             Caption = 'Area';
+            ToolTip = 'Specifies the destination country or region for the purpose of Intrastat reporting.';
             TableRelation = Area;
 
             trigger OnValidate()
@@ -1708,6 +1739,7 @@ table 38 "Purchase Header"
         field(102; "Transaction Specification"; Code[10])
         {
             Caption = 'Transaction Specification';
+            ToolTip = 'Specifies a specification of the document''s transaction, for the purpose of reporting to INTRASTAT.';
             TableRelation = "Transaction Specification";
 
             trigger OnValidate()
@@ -1807,6 +1839,7 @@ table 38 "Purchase Header"
         field(114; "Tax Area Code"; Code[20])
         {
             Caption = 'Tax Area Code';
+            ToolTip = 'Specifies the tax area code used for this purchase to calculate and post sales tax.';
             TableRelation = "Tax Area";
 
             trigger OnValidate()
@@ -1818,6 +1851,7 @@ table 38 "Purchase Header"
         field(115; "Tax Liable"; Boolean)
         {
             Caption = 'Tax Liable';
+            ToolTip = 'Specifies if this vendor charges you sales tax for purchases.';
 
             trigger OnValidate()
             begin
@@ -1828,6 +1862,7 @@ table 38 "Purchase Header"
         field(116; "VAT Bus. Posting Group"; Code[20])
         {
             Caption = 'VAT Bus. Posting Group';
+            ToolTip = 'Specifies the VAT specification of the involved customer or vendor to link transactions made for this record with the appropriate general ledger account according to the VAT posting setup.';
             TableRelation = "VAT Business Posting Group";
 
             trigger OnValidate()
@@ -1846,6 +1881,7 @@ table 38 "Purchase Header"
         field(118; "Applies-to ID"; Code[50])
         {
             Caption = 'Applies-to ID';
+            ToolTip = 'Specifies the ID of entries that will be applied to when you choose the Apply Entries action.';
 
             trigger OnValidate()
             var
@@ -1999,6 +2035,7 @@ table 38 "Purchase Header"
         {
             AutoFormatType = 0;
             Caption = 'Prepayment %';
+            ToolTip = 'Specifies the prepayment percentage to use to calculate the prepayment for purchase.';
             DecimalPlaces = 0 : 5;
             MaxValue = 100;
             MinValue = 0;
@@ -2053,11 +2090,13 @@ table 38 "Purchase Header"
         field(136; "Compress Prepayment"; Boolean)
         {
             Caption = 'Compress Prepayment';
+            ToolTip = 'Specifies that prepayments on the purchase order are combined if they have the same general ledger account for prepayments or the same dimensions.';
             InitValue = true;
         }
         field(137; "Prepayment Due Date"; Date)
         {
             Caption = 'Prepayment Due Date';
+            ToolTip = 'Specifies when the prepayment invoice for this purchase order is due.';
         }
         field(138; "Prepmt. Cr. Memo No. Series"; Code[20])
         {
@@ -2105,10 +2144,12 @@ table 38 "Purchase Header"
         field(142; "Prepmt. Pmt. Discount Date"; Date)
         {
             Caption = 'Prepmt. Pmt. Discount Date';
+            ToolTip = 'Specifies the last date the vendor can pay the prepayment invoice and still receive a payment discount on the prepayment amount.';
         }
         field(143; "Prepmt. Payment Terms Code"; Code[10])
         {
             Caption = 'Prepmt. Payment Terms Code';
+            ToolTip = 'Specifies the code that represents the payment terms for prepayment invoices related to the purchase document.';
             TableRelation = "Payment Terms" where("Payment Nos." = const(1));
 
             trigger OnValidate()
@@ -2158,6 +2199,7 @@ table 38 "Purchase Header"
         {
             AutoFormatType = 0;
             Caption = 'Prepmt. Payment Discount %';
+            ToolTip = 'Specifies the payment discount percent granted on the prepayment if the vendor pays on or before the date entered in the Prepmt. Pmt. Discount Date field.';
             DecimalPlaces = 0 : 5;
             MaxValue = 100;
             MinValue = 0;
@@ -2184,6 +2226,7 @@ table 38 "Purchase Header"
         field(151; "Quote No."; Code[20])
         {
             Caption = 'Quote No.';
+            ToolTip = 'Specifies the quote number for the purchase order.';
             Editable = false;
         }
         field(160; "Job Queue Status"; Enum "Document Job Queue Status")
@@ -2209,6 +2252,7 @@ table 38 "Purchase Header"
         field(165; "Incoming Document Entry No."; Integer)
         {
             Caption = 'Incoming Document Entry No.';
+            ToolTip = 'Specifies the number of the incoming document that this purchase document is created for.';
             TableRelation = "Incoming Document";
 
             trigger OnValidate()
@@ -2226,18 +2270,22 @@ table 38 "Purchase Header"
         field(170; "Creditor No."; Code[20])
         {
             Caption = 'Creditor No.';
+            ToolTip = 'Specifies the number of the vendor.';
         }
         field(171; "Payment Reference"; Code[50])
         {
             Caption = 'Payment Reference';
+            ToolTip = 'Specifies the payment of the purchase invoice.';
         }
         field(175; "Invoice Received Date"; Date)
         {
+            ToolTip = 'Specifies the date when the related document was received.';
 
         }
         field(178; "Journal Templ. Name"; Code[10])
         {
             Caption = 'Journal Template Name';
+            ToolTip = 'Specifies the name of the journal template in which the purchase header is to be posted.';
             TableRelation = "Gen. Journal Template" where(Type = filter(Purchases));
 
             trigger OnValidate()
@@ -2250,6 +2298,7 @@ table 38 "Purchase Header"
         field(179; "VAT Reporting Date"; Date)
         {
             Caption = 'VAT Date';
+            ToolTip = 'Specifies the date used to include entries on VAT reports in a VAT period. This is either the date that the document was created or posted, depending on your setting on the General Ledger Setup page.';
             Editable = false;
 
             trigger OnValidate()
@@ -2265,6 +2314,7 @@ table 38 "Purchase Header"
         field(210; "Ship-to Phone No."; Text[30])
         {
             Caption = 'Ship-to Phone No.';
+            ToolTip = 'Specifies the telephone number of the company''s shipping address.';
             ExtendedDatatype = PhoneNo;
         }
         field(300; "A. Rcd. Not Inv. Ex. VAT (LCY)"; Decimal)
@@ -2306,6 +2356,7 @@ table 38 "Purchase Header"
         field(1000; "Remit-to Code"; Code[20])
         {
             Caption = 'Remit-to Code';
+            ToolTip = 'Specifies the code for the vendor''s remit address for this invoice.';
             TableRelation = "Remit Address".Code where("Vendor No." = field("Buy-from Vendor No."));
         }
         field(1305; "Invoice Discount Amount"; Decimal)
@@ -2324,6 +2375,7 @@ table 38 "Purchase Header"
                                                                              "No." = field("No."),
                                                                              "Doc. No. Occurrence" = field("Doc. No. Occurrence")));
             Caption = 'No. of Archived Versions';
+            ToolTip = 'Specifies the number of archived versions for this document.';
             Editable = false;
             FieldClass = FlowField;
         }
@@ -2334,6 +2386,7 @@ table 38 "Purchase Header"
         field(5050; "Campaign No."; Code[20])
         {
             Caption = 'Campaign No.';
+            ToolTip = 'Specifies the campaign number the document is linked to.';
             TableRelation = Campaign;
 
             trigger OnValidate()
@@ -2345,6 +2398,7 @@ table 38 "Purchase Header"
         field(5052; "Buy-from Contact No."; Code[20])
         {
             Caption = 'Buy-from Contact No.';
+            ToolTip = 'Specifies the number of your contact at the vendor.';
             TableRelation = Contact;
 
             trigger OnLookup()
@@ -2385,6 +2439,7 @@ table 38 "Purchase Header"
         field(5053; "Pay-to Contact No."; Code[20])
         {
             Caption = 'Pay-to Contact No.';
+            ToolTip = 'Specifies the number of the contact who sends the invoice.';
             TableRelation = Contact;
 
             trigger OnLookup()
@@ -2447,6 +2502,7 @@ table 38 "Purchase Header"
         field(5056; "Buy-from Vendor Templ. Code"; Code[20])
         {
             Caption = 'Buy-from Vendor Template Code';
+            ToolTip = 'Specifies the code for the template to create a new vendors';
             TableRelation = "Vendor Templ.";
 
             trigger OnValidate()
@@ -2529,6 +2585,7 @@ table 38 "Purchase Header"
         field(5700; "Responsibility Center"; Code[10])
         {
             Caption = 'Responsibility Center';
+            ToolTip = 'Specifies the code of the responsibility center, such as a distribution hub, that is associated with the involved user, company, customer, or vendor.';
             TableRelation = "Responsibility Center";
 
             trigger OnValidate()
@@ -2570,6 +2627,7 @@ table 38 "Purchase Header"
                                                                            Type = filter(<> " "),
                                                                            "Location Code" = field("Location Filter")));
             Caption = 'Completely Received';
+            ToolTip = 'Specifies if all the items on the order have been shipped or, in the case of inbound items, completely received.';
             Editable = false;
             FieldClass = FlowField;
         }
@@ -2622,6 +2680,7 @@ table 38 "Purchase Header"
         field(5791; "Promised Receipt Date"; Date)
         {
             Caption = 'Promised Receipt Date';
+            ToolTip = 'Specifies the date that the vendor has promised to deliver the order.';
 
             trigger OnValidate()
             var
@@ -2641,6 +2700,7 @@ table 38 "Purchase Header"
         {
             AccessByPermission = TableData "Purch. Rcpt. Header" = R;
             Caption = 'Lead Time Calculation';
+            ToolTip = 'Specifies a date formula for the amount of time it takes to replenish the item.';
 
             trigger OnValidate()
             begin
@@ -2654,6 +2714,7 @@ table 38 "Purchase Header"
         {
             AccessByPermission = TableData Location = R;
             Caption = 'Inbound Whse. Handling Time';
+            ToolTip = 'Specifies the time it takes to make items part of available inventory, after the items have been posted as received.';
 
             trigger OnValidate()
             begin
@@ -3653,10 +3714,7 @@ table 38 "Purchase Header"
             if not GLSetup."Journal Templ. Name Mandatory" then
                 case "Document Type" of
                     "Document Type"::Invoice:
-                        if Rec."Self-Billing Invoice" then
-                            PurchSetup.TestField("Posted Self-Billing Inv. Nos.")
-                        else
-                            PurchSetup.TestField("Posted Invoice Nos.");
+                        PurchSetup.TestField("Posted Invoice Nos.");
                     "Document Type"::"Credit Memo":
                         PurchSetup.TestField("Posted Credit Memo Nos.");
                 end
@@ -3757,10 +3815,7 @@ table 38 "Purchase Header"
             if IsCreditDocType() then
                 PostingNos := PurchSetup."Posted Credit Memo Nos."
             else
-                if Rec."Self-Billing Invoice" then
-                    PostingNos := PurchSetup."Posted Self-Billing Inv. Nos."
-                else
-                    PostingNos := PurchSetup."Posted Invoice Nos."
+                PostingNos := PurchSetup."Posted Invoice Nos."
         else begin
             GenJournalTemplate.Get("Journal Templ. Name");
             PostingNos := GenJournalTemplate."Posting No. Series";
@@ -7078,10 +7133,7 @@ table 38 "Purchase Header"
             if IsCreditDocType() then
                 PostingNoSeries := PurchSetup."Posted Credit Memo Nos."
             else
-                if Rec."Self-Billing Invoice" then
-                    PostingNoSeries := PurchSetup."Posted Self-Billing Inv. Nos."
-                else
-                    PostingNoSeries := PurchSetup."Posted Invoice Nos.";
+                PostingNoSeries := PurchSetup."Posted Invoice Nos.";
 
         case "Document Type" of
             "Document Type"::Quote, "Document Type"::Order:
@@ -8594,15 +8646,6 @@ table 38 "Purchase Header"
         if GetFilter("Buy-from Contact No.") <> '' then
             if GetRangeMin("Buy-from Contact No.") = GetRangeMax("Buy-from Contact No.") then
                 exit(GetRangeMax("Buy-from Contact No."));
-    end;
-
-    local procedure CheckAndUpdatePostingNoSeriesForSelfBillingInvoice()
-    begin
-        GetPurchSetup();
-        PurchSetup.TestField("Posted Self-Billing Inv. Nos.");
-
-        if not InsertMode then
-            InitPostingNoSeries();
     end;
 
     [IntegrationEvent(false, false)]

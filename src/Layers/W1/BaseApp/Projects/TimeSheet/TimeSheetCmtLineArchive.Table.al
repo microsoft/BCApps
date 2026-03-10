@@ -26,14 +26,17 @@ table 957 "Time Sheet Cmt. Line Archive"
         field(4; Date; Date)
         {
             Caption = 'Date';
+            ToolTip = 'Specifies the date when a comment was entered for an archived time sheet.';
         }
         field(5; "Code"; Code[10])
         {
             Caption = 'Code';
+            ToolTip = 'Specifies a code for a comment for an archived time sheet.';
         }
         field(6; Comment; Text[80])
         {
             Caption = 'Comment';
+            ToolTip = 'Specifies the comment relating to an archived time sheet or time sheet line.';
         }
     }
 

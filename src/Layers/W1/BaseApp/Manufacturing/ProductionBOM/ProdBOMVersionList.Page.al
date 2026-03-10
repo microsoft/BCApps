@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -23,12 +23,10 @@ page 99000800 "Prod. BOM Version List"
                 field("Version Code"; Rec."Version Code")
                 {
                     ApplicationArea = Manufacturing;
-                    ToolTip = 'Specifies the version code of the production BOM.';
                 }
                 field(Description; Rec.Description)
                 {
                     ApplicationArea = Manufacturing;
-                    ToolTip = 'Specifies a description for the production BOM version.';
                 }
                 field(Status; Rec.Status)
                 {
@@ -38,12 +36,10 @@ page 99000800 "Prod. BOM Version List"
                 field("Unit of Measure Code"; Rec."Unit of Measure Code")
                 {
                     ApplicationArea = Manufacturing;
-                    ToolTip = 'Specifies the manufacturing batch unit of measure.';
                 }
                 field("Starting Date"; Rec."Starting Date")
                 {
                     ApplicationArea = Manufacturing;
-                    ToolTip = 'Specifies the starting date for this production BOM version.';
 
                     trigger OnValidate()
                     begin
@@ -53,7 +49,6 @@ page 99000800 "Prod. BOM Version List"
                 field("Last Date Modified"; Rec."Last Date Modified")
                 {
                     ApplicationArea = Manufacturing;
-                    ToolTip = 'Specifies when the production BOM version card was last modified.';
                     Visible = false;
                 }
             }

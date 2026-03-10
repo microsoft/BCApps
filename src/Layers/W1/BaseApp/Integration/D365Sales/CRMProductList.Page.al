@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -36,7 +36,6 @@ page 5348 "CRM Product List"
                 {
                     ApplicationArea = Suite;
                     Caption = 'Name';
-                    ToolTip = 'Specifies the name of the record.';
                 }
                 field(Price; Rec.Price)
                 {
@@ -54,7 +53,6 @@ page 5348 "CRM Product List"
                 {
                     ApplicationArea = Suite;
                     Caption = 'Current Cost';
-                    ToolTip = 'Specifies the item''s unit cost.';
                 }
                 field(Coupled; Coupled)
                 {

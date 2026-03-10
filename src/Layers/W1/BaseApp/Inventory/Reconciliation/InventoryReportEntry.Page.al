@@ -21,22 +21,18 @@ page 5846 "Inventory Report Entry"
                 field(Type; Rec.Type)
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies whether the inventory report entry refers to an item or a general ledger account.';
                 }
                 field("No."; Rec."No.")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the number of the involved entry or record, according to the specified number series.';
                 }
                 field(Description; Rec.Description)
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies a value that depends on the type of the inventory report entry.';
                 }
                 field(Inventory; Rec.Inventory)
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies a value that depends on the type of the inventory period entry.';
 
                     trigger OnDrillDown()
                     begin
@@ -56,7 +52,6 @@ page 5846 "Inventory Report Entry"
                 field("WIP Inventory"; Rec."WIP Inventory")
                 {
                     ApplicationArea = Manufacturing;
-                    ToolTip = 'Specifies a value that depends on the type of the inventory period entry.';
 
                     trigger OnDrillDown()
                     begin
@@ -66,7 +61,6 @@ page 5846 "Inventory Report Entry"
                 field("Direct Cost Applied Actual"; Rec."Direct Cost Applied Actual")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies a value that depends on the type of the inventory period entry.';
 
                     trigger OnDrillDown()
                     begin
@@ -76,7 +70,6 @@ page 5846 "Inventory Report Entry"
                 field("Overhead Applied Actual"; Rec."Overhead Applied Actual")
                 {
                     ApplicationArea = Manufacturing;
-                    ToolTip = 'Specifies a value that depends on the type of the inventory period entry.';
 
                     trigger OnDrillDown()
                     begin
@@ -86,7 +79,6 @@ page 5846 "Inventory Report Entry"
                 field("Purchase Variance"; Rec."Purchase Variance")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies a value that depends on the type of the inventory period entry.';
 
                     trigger OnDrillDown()
                     begin
@@ -96,7 +88,6 @@ page 5846 "Inventory Report Entry"
                 field("Inventory Adjmt."; Rec."Inventory Adjmt.")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies a value that depends on the type of the inventory period entry.';
 
                     trigger OnDrillDown()
                     begin
@@ -116,7 +107,6 @@ page 5846 "Inventory Report Entry"
                 field(COGS; Rec.COGS)
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies a value that depends on the type of the inventory period entry.';
 
                     trigger OnDrillDown()
                     begin
@@ -136,7 +126,6 @@ page 5846 "Inventory Report Entry"
                 field("Material Variance"; Rec."Material Variance")
                 {
                     ApplicationArea = Manufacturing;
-                    ToolTip = 'Specifies a value that depends on the type of the inventory period entry.';
 
                     trigger OnDrillDown()
                     begin
@@ -146,7 +135,6 @@ page 5846 "Inventory Report Entry"
                 field("Mat. Non-Inventory Variance"; Rec."Mat. Non-Inventory Variance")
                 {
                     ApplicationArea = Manufacturing;
-                    ToolTip = 'Specifies a value that depends on the type of the inventory period entry.';
 
                     trigger OnDrillDown()
                     begin
@@ -156,7 +144,6 @@ page 5846 "Inventory Report Entry"
                 field("Capacity Variance"; Rec."Capacity Variance")
                 {
                     ApplicationArea = Manufacturing;
-                    ToolTip = 'Specifies a value that depends on the type of the inventory period entry.';
 
                     trigger OnDrillDown()
                     begin
@@ -166,7 +153,6 @@ page 5846 "Inventory Report Entry"
                 field("Subcontracted Variance"; Rec."Subcontracted Variance")
                 {
                     ApplicationArea = Manufacturing;
-                    ToolTip = 'Specifies a value that depends on the type of the inventory period entry.';
 
                     trigger OnDrillDown()
                     begin
@@ -176,7 +162,6 @@ page 5846 "Inventory Report Entry"
                 field("Capacity Overhead Variance"; Rec."Capacity Overhead Variance")
                 {
                     ApplicationArea = Manufacturing;
-                    ToolTip = 'Specifies a value that depends on the type of the inventory period entry.';
 
                     trigger OnDrillDown()
                     begin
@@ -186,7 +171,6 @@ page 5846 "Inventory Report Entry"
                 field("Mfg. Overhead Variance"; Rec."Mfg. Overhead Variance")
                 {
                     ApplicationArea = Manufacturing;
-                    ToolTip = 'Specifies a value that depends on the type of the inventory period entry.';
 
                     trigger OnDrillDown()
                     begin
@@ -196,7 +180,6 @@ page 5846 "Inventory Report Entry"
                 field("Direct Cost Applied WIP"; Rec."Direct Cost Applied WIP")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies a value that depends on the type of the inventory period entry.';
 
                     trigger OnDrillDown()
                     begin
@@ -206,7 +189,6 @@ page 5846 "Inventory Report Entry"
                 field("Overhead Applied WIP"; Rec."Overhead Applied WIP")
                 {
                     ApplicationArea = Manufacturing;
-                    ToolTip = 'Specifies a value that depends on the type of the inventory period entry.';
 
                     trigger OnLookup(var Text: Text): Boolean
                     begin
@@ -216,7 +198,6 @@ page 5846 "Inventory Report Entry"
                 field("Inventory To WIP"; Rec."Inventory To WIP")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies a value that depends on the type of the inventory period entry.';
 
                     trigger OnDrillDown()
                     begin
@@ -226,7 +207,6 @@ page 5846 "Inventory Report Entry"
                 field("WIP To Interim"; Rec."WIP To Interim")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies a value that depends on the type of the inventory period entry.';
 
                     trigger OnDrillDown()
                     begin
@@ -236,7 +216,6 @@ page 5846 "Inventory Report Entry"
                 field("Direct Cost Applied"; Rec."Direct Cost Applied")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies a value that depends on the type of the inventory period entry.';
 
                     trigger OnDrillDown()
                     begin
@@ -246,7 +225,6 @@ page 5846 "Inventory Report Entry"
                 field("Overhead Applied"; Rec."Overhead Applied")
                 {
                     ApplicationArea = Manufacturing;
-                    ToolTip = 'Specifies a value that depends on the type of the inventory period entry.';
 
                     trigger OnDrillDown()
                     begin

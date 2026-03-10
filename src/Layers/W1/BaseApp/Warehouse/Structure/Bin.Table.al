@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -27,6 +27,7 @@ table 7354 Bin
         field(1; "Location Code"; Code[10])
         {
             Caption = 'Location Code';
+            ToolTip = 'Specifies the location from which you opened the Bins window.';
             Editable = false;
             NotBlank = true;
             TableRelation = Location;
@@ -34,15 +35,18 @@ table 7354 Bin
         field(2; "Code"; Code[20])
         {
             Caption = 'Code';
+            ToolTip = 'Specifies a code that uniquely describes the bin.';
             NotBlank = true;
         }
         field(3; Description; Text[100])
         {
             Caption = 'Description';
+            ToolTip = 'Specifies a description of the bin.';
         }
         field(4; "Zone Code"; Code[10])
         {
             Caption = 'Zone Code';
+            ToolTip = 'Specifies the code of the zone in which the bin is located.';
             Editable = false;
             TableRelation = Zone.Code where("Location Code" = field("Location Code"));
 
@@ -70,6 +74,7 @@ table 7354 Bin
         field(10; "Bin Type Code"; Code[10])
         {
             Caption = 'Bin Type Code';
+            ToolTip = 'Specifies the code of the bin type that applies to the bin.';
             TableRelation = "Bin Type";
 
             trigger OnValidate()
@@ -86,6 +91,7 @@ table 7354 Bin
         field(11; "Warehouse Class Code"; Code[10])
         {
             Caption = 'Warehouse Class Code';
+            ToolTip = 'Specifies the code of the warehouse class that applies to the bin.';
             TableRelation = "Warehouse Class";
 
             trigger OnValidate()
@@ -102,6 +108,7 @@ table 7354 Bin
         field(12; "Block Movement"; Option)
         {
             Caption = 'Block Movement';
+            ToolTip = 'Specifies how the movement of an item, or bin content, into or out of this bin, is blocked.';
             OptionCaption = ' ,Inbound,Outbound,All';
             OptionMembers = " ",Inbound,Outbound,All;
 
@@ -118,11 +125,13 @@ table 7354 Bin
         field(20; "Special Equipment Code"; Code[10])
         {
             Caption = 'Special Equipment Code';
+            ToolTip = 'Specifies the code of the equipment needed when working in the bin.';
             TableRelation = "Special Equipment";
         }
         field(21; "Bin Ranking"; Integer)
         {
             Caption = 'Bin Ranking';
+            ToolTip = 'Specifies the ranking of the bin. Items in the highest-ranking bins (with the highest number in the field) will be picked first.';
 
             trigger OnValidate()
             var
@@ -146,6 +155,7 @@ table 7354 Bin
             AutoFormatType = 0;
             BlankZero = true;
             Caption = 'Maximum Cubage';
+            ToolTip = 'Specifies the maximum cubage (volume) that the bin can hold.';
             DecimalPlaces = 0 : 5;
             MinValue = 0;
 
@@ -159,6 +169,7 @@ table 7354 Bin
             AutoFormatType = 0;
             BlankZero = true;
             Caption = 'Maximum Weight';
+            ToolTip = 'Specifies the maximum weight that this bin can hold.';
             DecimalPlaces = 0 : 5;
             MinValue = 0;
 
@@ -170,6 +181,7 @@ table 7354 Bin
         field(30; Empty; Boolean)
         {
             Caption = 'Empty';
+            ToolTip = 'Specifies that the bin Specifies no items.';
             Editable = false;
             InitValue = true;
         }
@@ -194,12 +206,14 @@ table 7354 Bin
                                                      "Variant Code" = field("Variant Filter"),
                                                      Default = const(true)));
             Caption = 'Default';
+            ToolTip = 'Specifies if the bin is the default bin for an item.';
             Editable = false;
             FieldClass = FlowField;
         }
         field(40; "Cross-Dock Bin"; Boolean)
         {
             Caption = 'Cross-Dock Bin';
+            ToolTip = 'Specifies if the bin is considered a cross-dock bin.';
 
             trigger OnValidate()
             begin
@@ -214,6 +228,7 @@ table 7354 Bin
         field(41; Dedicated; Boolean)
         {
             Caption = 'Dedicated';
+            ToolTip = 'Specifies that quantities in the bin are protected from being picked for other demands.';
 
             trigger OnValidate()
             begin

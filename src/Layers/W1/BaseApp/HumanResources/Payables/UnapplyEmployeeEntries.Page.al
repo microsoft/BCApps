@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -60,7 +60,6 @@ page 625 "Unapply Employee Entries"
                 field("Document No."; Rec."Document No.")
                 {
                     ApplicationArea = BasicHR;
-                    ToolTip = 'Specifies the document number of the transaction that created the entry.';
                 }
                 field("Employee No."; Rec."Employee No.")
                 {
@@ -70,7 +69,6 @@ page 625 "Unapply Employee Entries"
                 field("Initial Document Type"; Rec."Initial Document Type")
                 {
                     ApplicationArea = BasicHR;
-                    ToolTip = 'Specifies the document type that the initial vendor ledger entry was created with.';
                 }
                 field(DocumentNo; GetDocumentNo())
                 {
@@ -93,7 +91,6 @@ page 625 "Unapply Employee Entries"
                 field("Currency Code"; Rec."Currency Code")
                 {
                     ApplicationArea = BasicHR;
-                    ToolTip = 'Specifies the code for the currency if the amount is in a foreign currency.';
                 }
                 field(Amount; Rec.Amount)
                 {
@@ -108,7 +105,6 @@ page 625 "Unapply Employee Entries"
                 field("Debit Amount"; Rec."Debit Amount")
                 {
                     ApplicationArea = BasicHR;
-                    ToolTip = 'Specifies the total of the ledger entries that represent debits.';
                     Visible = false;
                 }
                 field("Debit Amount (LCY)"; Rec."Debit Amount (LCY)")
@@ -120,7 +116,6 @@ page 625 "Unapply Employee Entries"
                 field("Credit Amount"; Rec."Credit Amount")
                 {
                     ApplicationArea = BasicHR;
-                    ToolTip = 'Specifies the total of the ledger entries that represent credits.';
                     Visible = false;
                 }
                 field("Credit Amount (LCY)"; Rec."Credit Amount (LCY)")
@@ -133,19 +128,16 @@ page 625 "Unapply Employee Entries"
                 {
                     ApplicationArea = BasicHR;
                     LookupPageID = "User Lookup";
-                    ToolTip = 'Specifies the ID of the user who posted the entry, to be used, for example, in the change log.';
                     Visible = false;
                 }
                 field("Source Code"; Rec."Source Code")
                 {
                     ApplicationArea = BasicHR;
-                    ToolTip = 'Specifies the source code that specifies where the entry was created.';
                     Visible = false;
                 }
                 field("Reason Code"; Rec."Reason Code")
                 {
                     ApplicationArea = BasicHR;
-                    ToolTip = 'Specifies the reason code, a supplementary source code that enables you to trace the entry.';
                     Visible = false;
                 }
                 field("Employee Ledger Entry No."; Rec."Employee Ledger Entry No.")

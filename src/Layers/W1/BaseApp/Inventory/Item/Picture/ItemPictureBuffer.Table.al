@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -19,6 +19,7 @@ table 31 "Item Picture Buffer"
         field(1; "File Name"; Text[260])
         {
             Caption = 'File Name';
+            ToolTip = 'Specifies the name of the picture file. It must be the same as the item number.';
         }
         field(2; Picture; Media)
         {
@@ -27,17 +28,20 @@ table 31 "Item Picture Buffer"
         field(3; "Item No."; Code[20])
         {
             Caption = 'Item No.';
+            ToolTip = 'Specifies the number of the item that the picture is for.';
             TableRelation = Item;
         }
         field(4; "Item Description"; Text[100])
         {
             CalcFormula = lookup(Item.Description where("No." = field("Item No.")));
             Caption = 'Item Description';
+            ToolTip = 'Specifies the description of the item that the picture is for.';
             FieldClass = FlowField;
         }
         field(5; "Import Status"; Option)
         {
             Caption = 'Import Status';
+            ToolTip = 'Specifies if the last import of the picture was been skipped, is pending, or is completed.';
             Editable = false;
             OptionCaption = 'Skip,Pending,Completed';
             OptionMembers = Skip,Pending,Completed;
@@ -45,6 +49,7 @@ table 31 "Item Picture Buffer"
         field(6; "Picture Already Exists"; Boolean)
         {
             Caption = 'Picture Already Exists';
+            ToolTip = 'Specifies if a picture already exists for the item card.';
         }
         field(7; "File Size (KB)"; BigInteger)
         {
@@ -53,6 +58,7 @@ table 31 "Item Picture Buffer"
         field(8; "File Extension"; Text[30])
         {
             Caption = 'File Extension';
+            ToolTip = 'Specifies the format of the picture file.';
         }
         field(9; "Modified Date"; Date)
         {
@@ -61,6 +67,7 @@ table 31 "Item Picture Buffer"
         field(10; "Modified Time"; Time)
         {
             Caption = 'Modified Time';
+            ToolTip = 'Specifies when the picture was last modified.';
         }
     }
 

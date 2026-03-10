@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -16,10 +16,12 @@ table 138 "Unlinked Attachment"
         field(3; "Created Date-Time"; DateTime)
         {
             Caption = 'Created Date-Time';
+            ToolTip = 'Specifies when the record was created.';
         }
         field(5; "File Name"; Text[250])
         {
             Caption = 'File Name';
+            ToolTip = 'Specifies the name of the record.';
 
             trigger OnValidate()
             var
@@ -50,6 +52,7 @@ table 138 "Unlinked Attachment"
         field(6; Type; Option)
         {
             Caption = 'Type';
+            ToolTip = 'Specifies the file type.';
             OptionCaption = ' ,Image,PDF,Word,Excel,PowerPoint,Email,XML,Other';
             OptionMembers = " ",Image,PDF,Word,Excel,PowerPoint,Email,XML,Other;
         }
@@ -61,6 +64,7 @@ table 138 "Unlinked Attachment"
         field(8000; Id; Guid)
         {
             Caption = 'Id';
+            ToolTip = 'Specifies the record ID.';
         }
     }
 

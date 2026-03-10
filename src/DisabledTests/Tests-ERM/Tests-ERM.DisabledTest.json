@@ -1733,5 +1733,285 @@
     "codeunitId": 134168,
     "codeunitName": "Suggest Price Lines UT",
     "method": "T022_SalesPriceListCopyLinesAsNewToWorksheetForceDefaults"
+  },
+  {
+    "codeunitId": 134117,
+    "codeunitName": "Price Lists UI",
+    "method": "T039_DefaultsCopiedToNewLineInSalesPriceListAllowEditing"
+  },
+  {
+    "codeunitId": 134117,
+    "codeunitName": "Price Lists UI",
+    "method": "T107_SalesPriceListPageKeepsChangedAmountType"
+  },
+  {
+    "codeunitId": 134117,
+    "codeunitName": "Price Lists UI",
+    "method": "T157_PurchPriceListPageKeepsChangedAmountType"
+  },
+  {
+    "codeunitId": 134123,
+    "codeunitName": "Price List Line UT",
+    "method": "T143_ValidateEndingDateForCampaignViaUI"
+  },
+  {
+    "codeunitId": 134168,
+    "codeunitName": "Suggest Price Lines UT",
+    "method": "T015_PurchasePriceListFCY1CopyLinesFCY2"
+  },
+  {
+    "codeunitId": 134168,
+    "codeunitName": "Suggest Price Lines UT",
+    "method": "T016_PurchasePriceListLCYCopyLinesFCY"
+  },
+  {
+    "codeunitId": 134168,
+    "codeunitName": "Suggest Price Lines UT",
+    "method": "T017_PurchasePriceListFCYCopyLinesLCY"
+  },
+  {
+    "codeunitId": 134168,
+    "codeunitName": "Suggest Price Lines UT",
+    "method": "T018_PurchasePriceListFCYCopyLinesSameFCY"
+  },
+  {
+    "codeunitId": 134168,
+    "codeunitName": "Suggest Price Lines UT",
+    "method": "T019_PurchasePriceListFCYCopyLinesAnotherFCY"
+  },
+  {
+    "codeunitId": 134168,
+    "codeunitName": "Suggest Price Lines UT",
+    "method": "T025_PurchasePriceListLCYCopyLinesOfDiffCurrencies"
+  },
+  {
+    "codeunitId": 134168,
+    "codeunitName": "Suggest Price Lines UT",
+    "method": "T026_PurchasePriceListAllowEditingDefaultsCopyLinesOfDiffCurrencies"
+  },
+  {
+    "codeunitId": 134168,
+    "codeunitName": "Suggest Price Lines UT",
+    "method": "T027_PurchasePriceListAllowEditingDefaultsCopyLinesOfDiffCurrenciesForceDefaults"
+  },
+  {
+    "codeunitId": 134168,
+    "codeunitName": "Suggest Price Lines UT",
+    "method": "T110_PriceListFCYAddLines"
+  },
+  {
+    "codeunitId": 134198,
+    "codeunitName": "Price Worksheet Line UT",
+    "method": "T143_ValidateEndingDateForCampaignViaUI"
+  },
+  {
+    "codeunitId": 134265,
+    "codeunitName": "Payment Recon. E2E Tests 1",
+    "method": "GLBalanceOnBankAccountStatementWhenPostedFromPaymentRecJournal"
+  },
+  {
+    "codeunitId": 134265,
+    "codeunitName": "Payment Recon. E2E Tests 1",
+    "method": "TestEndToEnd"
+  },
+  {
+    "codeunitId": 134265,
+    "codeunitName": "Payment Recon. E2E Tests 1",
+    "method": "TestOneFCYSaleOneFCYPmtWithLateDueDatePmtDisc"
+  },
+  {
+    "codeunitId": 134265,
+    "codeunitName": "Payment Recon. E2E Tests 1",
+    "method": "TestOneFCYSaleOnePmtWithLateDueDatePmtDisc"
+  },
+  {
+    "codeunitId": 134265,
+    "codeunitName": "Payment Recon. E2E Tests 1",
+    "method": "TestOneSaleOnePmtWithLateDueDatePmtDisc"
+  },
+  {
+    "codeunitId": 134265,
+    "codeunitName": "Payment Recon. E2E Tests 1",
+    "method": "TestOneSaleOnePmtWithWrongPmtDiscPct"
+  },
+  {
+    "codeunitId": 134265,
+    "codeunitName": "Payment Recon. E2E Tests 1",
+    "method": "TestSortingForReview"
+  },
+  {
+    "codeunitId": 134265,
+    "codeunitName": "Payment Recon. E2E Tests 1",
+    "method": "TestToggleShowNonMatchedLines"
+  },
+  {
+    "codeunitId": 134266,
+    "codeunitName": "Payment Recon. E2E Tests 2",
+    "method": "BalanceAfterPostingConsidersBankAccountLines"
+  },
+  {
+    "codeunitId": 134266,
+    "codeunitName": "Payment Recon. E2E Tests 2",
+    "method": "ReversePaymentRecJournal"
+  },
+  {
+    "codeunitId": 134266,
+    "codeunitName": "Payment Recon. E2E Tests 2",
+    "method": "ReversePaymentRecJournalWhenPreviouslyUndone"
+  },
+  {
+    "codeunitId": 134266,
+    "codeunitName": "Payment Recon. E2E Tests 2",
+    "method": "ShowReviewRequiredNotification"
+  },
+  {
+    "codeunitId": 134266,
+    "codeunitName": "Payment Recon. E2E Tests 2",
+    "method": "TestEndToEnd"
+  },
+  {
+    "codeunitId": 134266,
+    "codeunitName": "Payment Recon. E2E Tests 2",
+    "method": "TestOneFCYPurchOneFCYPmtWithLateDueDatePmtDisc"
+  },
+  {
+    "codeunitId": 134266,
+    "codeunitName": "Payment Recon. E2E Tests 2",
+    "method": "TestOneFCYPurchOnePmtWithLateDueDatePmtDisc"
+  },
+  {
+    "codeunitId": 134266,
+    "codeunitName": "Payment Recon. E2E Tests 2",
+    "method": "TestOnePurchOnePmtWithLateDueDatePmtDisc"
+  },
+  {
+    "codeunitId": 134266,
+    "codeunitName": "Payment Recon. E2E Tests 2",
+    "method": "TestOnePurchOnePmtWithWrongPmtDiscPct"
+  },
+  {
+    "codeunitId": 134344,
+    "codeunitName": "Document Totals Pages",
+    "method": "PurchaseCreditMemoUpdateCurrrencyFactor"
+  },
+  {
+    "codeunitId": 134344,
+    "codeunitName": "Document Totals Pages",
+    "method": "PurchaseInvoiceUpdateCurrrencyFactor"
+  },
+  {
+    "codeunitId": 134344,
+    "codeunitName": "Document Totals Pages",
+    "method": "PurchaseOrderUpdateCurrrencyFactor"
+  },
+  {
+    "codeunitId": 134344,
+    "codeunitName": "Document Totals Pages",
+    "method": "PurchaseReturnOrderUpdateCurrrencyFactor"
+  },
+  {
+    "codeunitId": 134344,
+    "codeunitName": "Document Totals Pages",
+    "method": "SalesCreditMemoUpdateCurrrencyFactor"
+  },
+  {
+    "codeunitId": 134344,
+    "codeunitName": "Document Totals Pages",
+    "method": "SalesInvoiceUpdateCurrrencyFactor"
+  },
+  {
+    "codeunitId": 134344,
+    "codeunitName": "Document Totals Pages",
+    "method": "SalesOrderUpdateCurrrencyFactor"
+  },
+  {
+    "codeunitId": 134344,
+    "codeunitName": "Document Totals Pages",
+    "method": "SalesReturnOrderUpdateCurrrencyFactor"
+  },
+  {
+    "codeunitId": 134351,
+    "codeunitName": "Doc. Backgr. Error Handling",
+    "method": "SalesOrderHeaderAndLineErrors"
+  },
+  {
+    "codeunitId": 134351,
+    "codeunitName": "Doc. Backgr. Error Handling",
+    "method": "SalesOrderNotification_Action_EnableThisForMe"
+  },
+  {
+    "codeunitId": 134351,
+    "codeunitName": "Doc. Backgr. Error Handling",
+    "method": "SalesOrderOneError"
+  },
+  {
+    "codeunitId": 134379,
+    "codeunitName": "ERM Sales Quotes",
+    "method": "SalesQuoteYourReferenceQuoteValidUntilDateFieldsEditable"
+  },
+  {
+    "codeunitId": 134386,
+    "codeunitName": "ERM Sales Documents II",
+    "method": "CustomerCreditLimitWithItemSalesPrices"
+  },
+  {
+    "codeunitId": 134386,
+    "codeunitName": "ERM Sales Documents II",
+    "method": "ModifyCustomerLedgerEntry"
+  },
+  {
+    "codeunitId": 134387,
+    "codeunitName": "ERM Sales Documents III",
+    "method": "ConfirmationOnShipmentDateUpdateOnPrem"
+  },
+  {
+    "codeunitId": 134710,
+    "codeunitName": "Manual Payment Registration",
+    "method": "WarningMessageDueDate"
+  },
+  {
+    "codeunitId": 134783,
+    "codeunitName": "Test Whse. Rcpt. Post Prev.",
+    "method": "CheckTransferOrderPostingWithLotItemAndUpdatingExpirationDate"
+  },
+  {
+    "codeunitId": 134803,
+    "codeunitName": "Test RED Setup Gen. Jnl.",
+    "method": "AssistEditOnDeferralCodeForNewLine"
+  },
+  {
+    "codeunitId": 134803,
+    "codeunitName": "Test RED Setup Gen. Jnl.",
+    "method": "T120_AllowDeferralPostingFromToOnGLSetup"
+  },
+  {
+    "codeunitId": 134803,
+    "codeunitName": "Test RED Setup Gen. Jnl.",
+    "method": "T121_AllowDeferralPostingFromToOnUserSetup"
+  },
+  {
+    "codeunitId": 134922,
+    "codeunitName": "ERM Budget",
+    "method": "BudgetEntriesPageGetFirstBusUnitCodeLength"
+  },
+  {
+    "codeunitId": 136132,
+    "codeunitName": "Sales Stockout",
+    "method": "SalesChangeDate"
+  },
+  {
+    "codeunitId": 138044,
+    "codeunitName": "Simple UI: Cust. Address Sync",
+    "method": "TestReplaceExistingBillToCustomerByCustomerWithoutAddress"
+  },
+  {
+    "codeunitId": 138044,
+    "codeunitName": "Simple UI: Cust. Address Sync",
+    "method": "TestReplaceExistingSellToAndBillToCustomersByCustomerWithoutAddress"
+  },
+  {
+    "codeunitId": 138044,
+    "codeunitName": "Simple UI: Cust. Address Sync",
+    "method": "TestReplaceExistingSellToCustomerByCustomerWithoutAddress"
   }
 ]

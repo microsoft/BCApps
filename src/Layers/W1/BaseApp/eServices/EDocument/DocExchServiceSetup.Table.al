@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -25,6 +25,7 @@ table 1275 "Doc. Exch. Service Setup"
         field(4; "Sign-up URL"; Text[250])
         {
             Caption = 'Sign-up URL';
+            ToolTip = 'Specifies the web page where you sign up for the document exchange service.';
             ExtendedDatatype = URL;
 
             trigger OnValidate()
@@ -38,6 +39,7 @@ table 1275 "Doc. Exch. Service Setup"
         field(5; "Service URL"; Text[250])
         {
             Caption = 'Service URL';
+            ToolTip = 'Specifies the URL address of the document exchange service. The service specified in the Service URL field is called when you send and receive electronic documents.';
             ExtendedDatatype = URL;
 
             trigger OnValidate()
@@ -51,6 +53,7 @@ table 1275 "Doc. Exch. Service Setup"
         field(6; "Sign-in URL"; Text[250])
         {
             Caption = 'Sign-in URL';
+            ToolTip = 'Specifies the web page where you sign in to the document exchange service.';
             ExtendedDatatype = URL;
 
             trigger OnValidate()
@@ -106,12 +109,14 @@ table 1275 "Doc. Exch. Service Setup"
         field(12; "User Agent"; Text[30])
         {
             Caption = 'User Agent';
+            ToolTip = 'Specifies any text that you have entered to identify your company in document exchange processes.';
             DataClassification = EndUserIdentifiableInformation;
             NotBlank = true;
         }
         field(13; "Client Id"; Text[250])
         {
             Caption = 'Client Id';
+            ToolTip = 'Specifies the client ID of the application that will be used to connect to the document exchange service.';
             DataClassification = EndUserIdentifiableInformation;
         }
         field(14; "Client Secret Key"; Guid)
@@ -122,6 +127,7 @@ table 1275 "Doc. Exch. Service Setup"
         field(15; "Redirect URL"; Text[250])
         {
             Caption = 'Redirect URL';
+            ToolTip = 'Specifies the redirect URL of the application that will be used to to the document exchange service.';
             ExtendedDatatype = URL;
             DataClassification = OrganizationIdentifiableInformation;
 
@@ -136,6 +142,7 @@ table 1275 "Doc. Exch. Service Setup"
         field(16; "Auth URL"; Text[250])
         {
             Caption = 'Authentication URL';
+            ToolTip = 'Specifies the authentication URL address of the document exchange service.';
             ExtendedDatatype = URL;
             DataClassification = OrganizationIdentifiableInformation;
 
@@ -150,6 +157,7 @@ table 1275 "Doc. Exch. Service Setup"
         field(17; "Token URL"; Text[250])
         {
             Caption = 'Token URL';
+            ToolTip = 'Specifies the token URL address of the document exchange service.';
             ExtendedDatatype = URL;
             DataClassification = OrganizationIdentifiableInformation;
 
@@ -174,6 +182,7 @@ table 1275 "Doc. Exch. Service Setup"
         field(20; Enabled; Boolean)
         {
             Caption = 'Enabled';
+            ToolTip = 'Specifies if the service is enabled. When you enable the service, at least two job queue entries are created to process the traffic of electronic documents in and out of Microsoft Dynamics 365.';
 
             trigger OnValidate()
             var
@@ -193,6 +202,7 @@ table 1275 "Doc. Exch. Service Setup"
         field(21; "Log Web Requests"; Boolean)
         {
             Caption = 'Log Web Requests';
+            ToolTip = 'Specifies if web requests occurring in connection with the service are logged. The log is located in the server Temp folder.';
         }
         field(24; "Token Subject"; Text[250])
         {
@@ -202,6 +212,7 @@ table 1275 "Doc. Exch. Service Setup"
         field(25; "Token Issued At"; DateTime)
         {
             Caption = 'Token Issued At';
+            ToolTip = 'Specifies the time at which the token was issued.';
             DataClassification = AccountData;
         }
         field(27; "Id Token"; Text[1024])
@@ -212,6 +223,7 @@ table 1275 "Doc. Exch. Service Setup"
         field(28; "Token Expired"; Boolean)
         {
             Caption = 'Id Token';
+            ToolTip = 'Specifies whether the token has expired.';
             DataClassification = AccountData;
         }
     }

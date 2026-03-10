@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -30,6 +30,7 @@ table 300 "Reminder/Fin. Charge Entry"
         field(1; "Entry No."; Integer)
         {
             Caption = 'Entry No.';
+            ToolTip = 'Specifies the number of the entry, as assigned from the specified number series when the entry was created.';
             NotBlank = true;
         }
         /// <summary>
@@ -38,6 +39,7 @@ table 300 "Reminder/Fin. Charge Entry"
         field(2; Type; Enum "Reminder/Fin.ChargeEntry Type")
         {
             Caption = 'Type';
+            ToolTip = 'Specifies whether the entry comes from a reminder or a finance charge memo.';
         }
         /// <summary>
         /// Specifies the document number of the issued reminder or finance charge memo.
@@ -45,6 +47,7 @@ table 300 "Reminder/Fin. Charge Entry"
         field(3; "No."; Code[20])
         {
             Caption = 'No.';
+            ToolTip = 'Specifies the number of the involved entry or record, according to the specified number series.';
             TableRelation = if (Type = const(Reminder)) "Issued Reminder Header"
             else
             if (Type = const("Finance Charge Memo")) "Issued Fin. Charge Memo Header";
@@ -55,6 +58,7 @@ table 300 "Reminder/Fin. Charge Entry"
         field(4; "Reminder Level"; Integer)
         {
             Caption = 'Reminder Level';
+            ToolTip = 'Specifies the reminder level if the Type field contains Reminder.';
         }
         /// <summary>
         /// Specifies the date when the reminder or finance charge memo was posted.
@@ -62,6 +66,7 @@ table 300 "Reminder/Fin. Charge Entry"
         field(5; "Posting Date"; Date)
         {
             Caption = 'Posting Date';
+            ToolTip = 'Specifies the posting date of the reminder or finance charge memo.';
         }
         /// <summary>
         /// Specifies the date of the reminder or finance charge memo document.
@@ -76,6 +81,7 @@ table 300 "Reminder/Fin. Charge Entry"
         field(7; "Interest Posted"; Boolean)
         {
             Caption = 'Interest Posted';
+            ToolTip = 'Specifies whether or not interest was posted to the customer account and a general ledger account when the reminder or finance charge memo was issued.';
         }
         /// <summary>
         /// Specifies the interest amount that was charged on the customer ledger entry.
@@ -92,6 +98,7 @@ table 300 "Reminder/Fin. Charge Entry"
         field(9; "Customer Entry No."; Integer)
         {
             Caption = 'Customer Entry No.';
+            ToolTip = 'Specifies the number of the customer ledger entry on the reminder line or finance charge memo line.';
             TableRelation = "Cust. Ledger Entry";
         }
         /// <summary>
@@ -100,6 +107,7 @@ table 300 "Reminder/Fin. Charge Entry"
         field(10; "Document Type"; Enum "Gen. Journal Document Type")
         {
             Caption = 'Document Type';
+            ToolTip = 'Specifies the document type of the customer entry on the reminder line or finance charge memo line.';
         }
         /// <summary>
         /// Specifies the document number of the original customer ledger entry.
@@ -107,6 +115,7 @@ table 300 "Reminder/Fin. Charge Entry"
         field(11; "Document No."; Code[20])
         {
             Caption = 'Document No.';
+            ToolTip = 'Specifies the document number of the customer entry on the reminder line or finance charge memo line.';
         }
         /// <summary>
         /// Specifies the remaining amount on the customer ledger entry at the time the reminder or finance charge was issued.
@@ -116,6 +125,7 @@ table 300 "Reminder/Fin. Charge Entry"
             AutoFormatExpression = GetCurrencyCode();
             AutoFormatType = 1;
             Caption = 'Remaining Amount';
+            ToolTip = 'Specifies the remaining amount of the customer ledger entry this reminder or finance charge memo entry is for.';
         }
         /// <summary>
         /// Specifies the customer number associated with this reminder or finance charge entry.
@@ -147,6 +157,7 @@ table 300 "Reminder/Fin. Charge Entry"
         field(50; Canceled; Boolean)
         {
             Caption = 'Canceled';
+            ToolTip = 'Specifies if the issued reminder or finance charge has been canceled.';
             DataClassification = SystemMetadata;
         }
     }

@@ -65,6 +65,7 @@ codeunit 134820 "ERM Cost Accounting - Codeunit"
         AllowedPostingDateMsg: Label 'The setup of allowed posting dates is incorrect. The date in the Allow Posting From field must not be after the date in the Allow Posting To field.';
         NoRecordsInFilterErr: Label 'There are no records within the filters specified for table %1. The filters are: %2.';
         AllocatedregitserNoErr: Label 'Allocated Register No. does not exist.';
+        InvalidAllowedDateRangeErr: Label 'The allowed date range is invalid. The "Allow From" date %1 must not be after the "Allow To" date %2 on %3.', Comment = '%1 - Allow From caption, %2 - Allow To caption, %3 - Setup name';
 
     [Test]
     [HandlerFunctions('ConfirmHandlerNo')]
@@ -3101,6 +3102,82 @@ codeunit 134820 "ERM Cost Accounting - Codeunit"
         CostEntry.SetRange("Document No.", CostJournalLine."Document No.");
         CostEntry.FindLast();
         Assert.AreEqual(CostRegister."No.", CostEntry."Allocated with Journal No.", AllocatedregitserNoErr);
+    end;
+
+    [Test]
+    procedure AllowPostingToDateFormulaEarlierThanAllowPostingFromDateFormulaGLSetup()
+    var
+        GeneralLedgerSetup: Record "General Ledger Setup";
+        AllowPostingFromDateFormula, AllowPostingToDateFormula : DateFormula;
+    begin
+        // [FEATURE] [Allowed Posting Period]
+        // [SCENARIO 540948] When Allow Posting To is set with date that is earlier than Allow Posting From in GL Setup an error must occur
+
+        Initialize();
+
+        // [GIVEN] Init GL Setup
+        GeneralLedgerSetup.Init();
+
+        // [GIVEN] Setting up Allow Posting From
+        Evaluate(AllowPostingFromDateFormula, '<-1M>');
+        GeneralLedgerSetup.Validate("Allow Posting From DateFormula", AllowPostingFromDateFormula);
+
+        // [WHEN] Setting up Allow Posting To with an earlier value than Allow Posting From
+        Evaluate(AllowPostingToDateFormula, '<-2M>');
+        asserterror GeneralLedgerSetup.Validate("Allow Posting To DateFormula", AllowPostingToDateFormula);
+
+        // [THEN] Expected error occurs
+        Assert.ExpectedError(StrSubstNo(InvalidAllowedDateRangeErr, CalcDate('<-1M>', WorkDate()), CalcDate('<-2M>', WorkDate()), Format(GeneralLedgerSetup.RecordID(), 0, 1)));
+    end;
+
+    [Test]
+    procedure AllowPostingToDateFormulaEarlierThanAllowPostingFromDateFormulaUserSetup()
+    var
+        UserSetup: Record "User Setup";
+        AllowPostingFromDateFormula, AllowPostingToDateFormula : DateFormula;
+    begin
+        // [FEATURE] [Allowed Posting Period]
+        // [SCENARIO 540948] When Allow Posting To is set with date that is earlier than Allow Posting From in User Setup an error must occur
+        Initialize();
+
+        // [GIVEN] Init User Setup
+        UserSetup.Init();
+
+        // [GIVEN] Setting up Allow Posting From
+        Evaluate(AllowPostingFromDateFormula, '<-1M>');
+        UserSetup.Validate("Allow Posting From DateFormula", AllowPostingFromDateFormula);
+
+        // [WHEN] Setting up Allow Posting To with an earlier value than Allow Posting From
+        Evaluate(AllowPostingToDateFormula, '<-2M>');
+        asserterror UserSetup.Validate("Allow Posting To DateFormula", AllowPostingToDateFormula);
+
+        // [THEN] Expected error occurs
+        Assert.ExpectedError(StrSubstNo(InvalidAllowedDateRangeErr, CalcDate('<-1M>', WorkDate()), CalcDate('<-2M>', WorkDate()), Format(UserSetup.RecordID(), 0, 1)));
+    end;
+
+    [Test]
+    procedure AllowPostingToDateFormulaEarlierThanAllowPostingFromDateFormulaGeneralJournalTemplate()
+    var
+        GenJournalTemplate: Record "Gen. Journal Template";
+        AllowPostingFromDateFormula, AllowPostingToDateFormula : DateFormula;
+    begin
+        // [FEATURE] [Allowed Posting Period]
+        // [SCENARIO 540948] When Allow Posting To is set with date that is earlier than Allow Posting From in Gen. Journal Template an error must occur
+        Initialize();
+
+        // [GIVEN] Init User Setup
+        LibraryERM.CreateGenJournalTemplate(GenJournalTemplate);
+
+        // [GIVEN] Setting up Allow Posting From
+        Evaluate(AllowPostingFromDateFormula, '<-1M>');
+        GenJournalTemplate.Validate("Allow Posting From DateFormula", AllowPostingFromDateFormula);
+
+        // [WHEN] Setting up Allow Posting To with an earlier value than Allow Posting From
+        Evaluate(AllowPostingToDateFormula, '<-2M>');
+        asserterror GenJournalTemplate.Validate("Allow Posting To DateFormula", AllowPostingToDateFormula);
+
+        // [THEN] Expected error occurs
+        Assert.ExpectedError(StrSubstNo(InvalidAllowedDateRangeErr, CalcDate('<-1M>', WorkDate()), CalcDate('<-2M>', WorkDate()), Format(GenJournalTemplate.RecordID(), 0, 1)));
     end;
 
     local procedure Initialize()

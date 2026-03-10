@@ -23,18 +23,15 @@ page 368 "Order Address"
                 field("Code"; Rec.Code)
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies an order-from address code.';
                 }
                 field(Name; Rec.Name)
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the name of the company located at the address.';
                 }
                 field("Name 2"; Rec."Name 2")
                 {
                     ApplicationArea = Basic, Suite;
                     Importance = Additional;
-                    ToolTip = 'Specifies an additional part of the name.';
                     Visible = false;
                 }
                 field(Address; Rec.Address)
@@ -45,7 +42,6 @@ page 368 "Order Address"
                 field("Address 2"; Rec."Address 2")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies additional address information.';
                 }
                 field("Post Code"; Rec."Post Code")
                 {
@@ -64,13 +60,11 @@ page 368 "Order Address"
                     field(County; Rec.County)
                     {
                         ApplicationArea = Basic, Suite;
-                        ToolTip = 'Specifies the county of the address.';
                     }
                 }
                 field("Country/Region Code"; Rec."Country/Region Code")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the country/region of the address.';
 
                     trigger OnValidate()
                     begin
@@ -80,12 +74,10 @@ page 368 "Order Address"
                 field(Contact; Rec.Contact)
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the name of the person you regularly contact when you do business with this vendor at this address.';
                 }
                 field("Last Date Modified"; Rec."Last Date Modified")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies when this order address was last modified.';
                 }
             }
             group(Communication)
@@ -94,7 +86,6 @@ page 368 "Order Address"
                 field("Phone No."; Rec."Phone No.")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the telephone number that is associated with the order address.';
                 }
                 field("Fax No."; Rec."Fax No.")
                 {
@@ -106,12 +97,10 @@ page 368 "Order Address"
                 {
                     ApplicationArea = Basic, Suite;
                     ExtendedDatatype = EMail;
-                    ToolTip = 'Specifies the email address associated with the order address.';
                 }
                 field("Home Page"; Rec."Home Page")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the recipient''s web site.';
                 }
             }
         }

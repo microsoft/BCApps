@@ -27,22 +27,18 @@ page 962 "Manager Time Sheet Arc. List"
                 field("No."; Rec."No.")
                 {
                     ApplicationArea = Jobs;
-                    ToolTip = 'Specifies the number of the involved entry or record, according to the specified number series.';
                 }
                 field("Starting Date"; Rec."Starting Date")
                 {
                     ApplicationArea = Jobs;
-                    ToolTip = 'Specifies the start date for the archived time sheet.';
                 }
                 field("Ending Date"; Rec."Ending Date")
                 {
                     ApplicationArea = Jobs;
-                    ToolTip = 'Specifies the end date for an archived time sheet.';
                 }
                 field("Resource No."; Rec."Resource No.")
                 {
                     ApplicationArea = Jobs;
-                    ToolTip = 'Specifies the list of resource numbers associated with an archived time sheet.';
                 }
             }
         }

@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -21,22 +21,18 @@ page 99000752 "Shop Calendar Working Days"
                 field(Day; Rec.Day)
                 {
                     ApplicationArea = Manufacturing;
-                    ToolTip = 'Specifies your working days of the week.';
                 }
                 field("Starting Time"; Rec."Starting Time")
                 {
                     ApplicationArea = Manufacturing;
-                    ToolTip = 'Specifies the starting time of the shift for this working day.';
                 }
                 field("Ending Time"; Rec."Ending Time")
                 {
                     ApplicationArea = Manufacturing;
-                    ToolTip = 'Specifies the ending time of the shift for this working day.';
                 }
                 field("Work Shift Code"; Rec."Work Shift Code")
                 {
                     ApplicationArea = Manufacturing;
-                    ToolTip = 'Specifies the work shift that this working day refers to.';
                 }
             }
         }

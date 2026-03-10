@@ -22,12 +22,10 @@ page 429 Territories
                 field("Code"; Rec.Code)
                 {
                     ApplicationArea = RelationshipMgmt;
-                    ToolTip = 'Specifies a territory code.';
                 }
                 field(Name; Rec.Name)
                 {
                     ApplicationArea = RelationshipMgmt;
-                    ToolTip = 'Specifies a description of the territory.';
                 }
             }
         }

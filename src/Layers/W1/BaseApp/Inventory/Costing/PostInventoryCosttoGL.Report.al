@@ -429,6 +429,9 @@ report 1002 "Post Inventory Cost to G/L"
                 column(InvtPostBufPostingDate; Format(TempInvtPostBuf."Posting Date"))
                 {
                 }
+                column(PostingDateCaptionLbl_InvtPostBufPostingDate; PostingDateCaptionLbl)
+                {
+                }
                 column(EntryTypeCaption; EntryTypeCaptionLbl)
                 {
                 }

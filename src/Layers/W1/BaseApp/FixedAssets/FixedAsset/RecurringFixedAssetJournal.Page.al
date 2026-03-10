@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -55,35 +55,29 @@ page 5634 "Recurring Fixed Asset Journal"
                     ApplicationArea = FixedAssets;
                     AboutTitle = 'Recurring Method';
                     AboutText = 'Specifies a recurring method F Fixed or V Variable.';
-                    ToolTip = 'Specifies a recurring method, if you have indicated that the journal is recurring.';
                 }
                 field("Recurring Frequency"; Rec."Recurring Frequency")
                 {
                     ApplicationArea = FixedAssets;
                     AboutTitle = 'Recurring Frequency';
                     AboutText = 'This field contains a formula that determines how frequently the entry in the recurring fixed asset journal will be posted.';
-                    ToolTip = 'Specifies a recurring frequency if you indicated that the journal is a recurring.';
                 }
                 field("FA Posting Date"; Rec."FA Posting Date")
                 {
                     ApplicationArea = FixedAssets;
-                    ToolTip = 'Specifies the posting date of the related fixed asset transaction, such as a depreciation.';
                 }
                 field("Posting Date"; Rec."Posting Date")
                 {
                     ApplicationArea = FixedAssets;
-                    ToolTip = 'Specifies the same date as the FA Posting Date field when the line is posted.';
                     Visible = false;
                 }
                 field("Document Type"; Rec."Document Type")
                 {
                     ApplicationArea = FixedAssets;
-                    ToolTip = 'Specifies the appropriate document type for the amount you want to post.';
                 }
                 field("Document No."; Rec."Document No.")
                 {
                     ApplicationArea = FixedAssets;
-                    ToolTip = 'Specifies a document number for the journal line.';
                 }
                 field("FA No."; Rec."FA No.")
                 {
@@ -98,12 +92,10 @@ page 5634 "Recurring Fixed Asset Journal"
                 field("Depreciation Book Code"; Rec."Depreciation Book Code")
                 {
                     ApplicationArea = FixedAssets;
-                    ToolTip = 'Specifies the code for the depreciation book to which the line will be posted if you have selected Fixed Asset in the Type field for this line.';
                 }
                 field("FA Posting Type"; Rec."FA Posting Type")
                 {
                     ApplicationArea = FixedAssets;
-                    ToolTip = 'Specifies the posting type, if Account Type field contains Fixed Asset.';
                 }
                 field(Description; Rec.Description)
                 {
@@ -113,89 +105,74 @@ page 5634 "Recurring Fixed Asset Journal"
                 field(Amount; Rec.Amount)
                 {
                     ApplicationArea = FixedAssets;
-                    ToolTip = 'Specifies the total amount the journal line consists of.';
                 }
                 field("Debit Amount"; Rec."Debit Amount")
                 {
                     ApplicationArea = FixedAssets;
-                    ToolTip = 'Specifies the total of the ledger entries that represent debits.';
                     Visible = false;
                 }
                 field("Credit Amount"; Rec."Credit Amount")
                 {
                     ApplicationArea = FixedAssets;
-                    ToolTip = 'Specifies the total of the ledger entries that represent credits.';
                     Visible = false;
                 }
                 field("Depr. until FA Posting Date"; Rec."Depr. until FA Posting Date")
                 {
                     ApplicationArea = FixedAssets;
-                    ToolTip = 'Specifies if depreciation was calculated until the FA posting date of the line.';
                     Visible = false;
                 }
                 field("Maintenance Code"; Rec."Maintenance Code")
                 {
                     ApplicationArea = FixedAssets;
-                    ToolTip = 'Specifies a maintenance code.';
                     Visible = false;
                 }
                 field("Insurance No."; Rec."Insurance No.")
                 {
                     ApplicationArea = FixedAssets;
-                    ToolTip = 'Specifies an insurance code if you have selected the Acquisition Cost option in the FA Posting Type field.';
                     Visible = false;
                 }
                 field("Budgeted FA No."; Rec."Budgeted FA No.")
                 {
                     ApplicationArea = Suite;
-                    ToolTip = 'Specifies the number of a fixed asset with the Budgeted Asset check box selected. When you post the journal or document line, an additional entry is created for the budgeted fixed asset where the amount has the opposite sign.';
                     Visible = false;
                 }
                 field("Duplicate in Depreciation Book"; Rec."Duplicate in Depreciation Book")
                 {
                     ApplicationArea = FixedAssets;
-                    ToolTip = 'Specifies a depreciation book code if you want the journal line to be posted to that depreciation book, as well as to the depreciation book in the Depreciation Book Code field.';
                     Visible = false;
                 }
                 field("Use Duplication List"; Rec."Use Duplication List")
                 {
                     ApplicationArea = FixedAssets;
-                    ToolTip = 'Specifies whether the line is to be posted to all depreciation books, using different journal batches and with a check mark in the Part of Duplication List field.';
                     Visible = false;
                 }
                 field("FA Reclassification Entry"; Rec."FA Reclassification Entry")
                 {
                     ApplicationArea = FixedAssets;
-                    ToolTip = 'Specifies if the entry was generated from a fixed asset reclassification journal.';
                     Visible = false;
                 }
                 field("Index Entry"; Rec."Index Entry")
                 {
                     ApplicationArea = FixedAssets;
-                    ToolTip = 'Specifies whether to post an indexation.';
                     Visible = false;
                 }
                 field("FA Error Entry No."; Rec."FA Error Entry No.")
                 {
                     ApplicationArea = FixedAssets;
-                    ToolTip = 'Specifies the number of a posted FA ledger entry to mark as an error entry.';
                     Visible = false;
                 }
                 field("Expiration Date"; Rec."Expiration Date")
                 {
                     ApplicationArea = FixedAssets;
-                    ToolTip = 'Specifies the last date on which the recurring journal will be posted.';
                 }
                 field("Shortcut Dimension 1 Code"; Rec."Shortcut Dimension 1 Code")
                 {
                     ApplicationArea = Dimensions;
-                    ToolTip = 'Specifies the code for Shortcut Dimension 1, which is one of two global dimension codes that you set up in the General Ledger Setup window.';
                     Visible = DimVisible1;
                 }
                 field("Shortcut Dimension 2 Code"; Rec."Shortcut Dimension 2 Code")
                 {
                     ApplicationArea = Dimensions;
-                    ToolTip = 'Specifies the code for Shortcut Dimension 2, which is one of two global dimension codes that you set up in the General Ledger Setup window.';
                     Visible = DimVisible2;
                 }
                 field(ShortcutDimCode3; ShortcutDimCode[3])

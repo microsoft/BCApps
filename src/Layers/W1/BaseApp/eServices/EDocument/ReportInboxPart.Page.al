@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -31,7 +31,6 @@ page 681 "Report Inbox Part"
                     ApplicationArea = Basic, Suite;
                     Style = Strong;
                     StyleExpr = not Rec.Read;
-                    ToolTip = 'Specifies the name of the report.';
                     Visible = false;
 
                     trigger OnDrillDown()
@@ -58,7 +57,6 @@ page 681 "Report Inbox Part"
                     ApplicationArea = Basic, Suite;
                     Style = Strong;
                     StyleExpr = not Rec.Read;
-                    ToolTip = 'Specifies the ID of the user who posted the entry, to be used, for example, in the change log.';
                     Visible = false;
                 }
                 field("Created Date-Time"; Rec."Created Date-Time")
@@ -66,14 +64,12 @@ page 681 "Report Inbox Part"
                     ApplicationArea = Basic, Suite;
                     Style = Strong;
                     StyleExpr = not Rec.Read;
-                    ToolTip = 'Specifies the date and time that the scheduled report was processed from the job queue.';
                 }
                 field("Report ID"; Rec."Report ID")
                 {
                     ApplicationArea = Basic, Suite;
                     Style = Strong;
                     StyleExpr = not Rec.Read;
-                    ToolTip = 'Specifies the object ID of the report.';
                     Visible = false;
                 }
                 field("Output Type"; Rec."Output Type")
@@ -81,7 +77,6 @@ page 681 "Report Inbox Part"
                     ApplicationArea = Basic, Suite;
                     Style = Strong;
                     StyleExpr = not Rec.Read;
-                    ToolTip = 'Specifies the output type of the scheduled report.';
                 }
             }
         }

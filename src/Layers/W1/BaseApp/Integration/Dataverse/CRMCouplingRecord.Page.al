@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -35,7 +35,6 @@ page 5336 "CRM Coupling Record"
                             Caption = 'Business Central Name';
                             Editable = false;
                             ShowCaption = false;
-                            ToolTip = 'Specifies the name of the record in Business Central to couple to an existing Dataverse record.';
                         }
                         group(Control13)
                         {
@@ -46,7 +45,6 @@ page 5336 "CRM Coupling Record"
                                 Caption = 'Synchronize After Coupling';
                                 Enabled = not Rec."Create New";
                                 OptionCaption = 'No,Yes - Use the Business Central data,Yes - Use the Dataverse data';
-                                ToolTip = 'Specifies whether to synchronize the data in the record in Business Central and the record in Dataverse.';
                             }
                         }
                     }
@@ -59,7 +57,6 @@ page 5336 "CRM Coupling Record"
                             Caption = 'Dataverse Name';
                             Enabled = not Rec."Create New" and not IsBidirectionalSalesOrderIntEnabled;
                             ShowCaption = false;
-                            ToolTip = 'Specifies the name of the record in Dataverse that is coupled to the record in Business Central.';
 
                             trigger OnLookup(var Text: Text): Boolean
                             begin
@@ -100,7 +97,6 @@ page 5336 "CRM Coupling Record"
                                 Caption = 'Create New';
                                 Enabled = EnableCreateNew;
                                 Editable = not IsBidirectionalSalesOrderIntEnabled;
-                                ToolTip = 'Specifies if a new record in Dataverse is automatically created and coupled to the related record in Business Central.';
                             }
                         }
                     }

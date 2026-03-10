@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -38,15 +38,18 @@ table 5077 "Segment Line"
         field(1; "Segment No."; Code[20])
         {
             Caption = 'Segment No.';
+            ToolTip = 'Specifies the segment number of the contact to whom the segment line applies.';
             TableRelation = "Segment Header";
         }
         field(2; "Line No."; Integer)
         {
             Caption = 'Line No.';
+            ToolTip = 'Specifies the line number of the contact to whom the segment line applies.';
         }
         field(3; "Contact No."; Code[20])
         {
             Caption = 'Contact No.';
+            ToolTip = 'Specifies the number of the contact to which this segment line applies.';
             TableRelation = Contact;
 
             trigger OnValidate()
@@ -124,6 +127,7 @@ table 5077 "Segment Line"
         field(4; "Campaign No."; Code[20])
         {
             Caption = 'Campaign No.';
+            ToolTip = 'Specifies the number of the campaign for which the segment line has been created.';
             TableRelation = Campaign;
 
             trigger OnValidate()
@@ -135,15 +139,18 @@ table 5077 "Segment Line"
         field(5; "Salesperson Code"; Code[20])
         {
             Caption = 'Salesperson Code';
+            ToolTip = 'Specifies the code of the salesperson responsible for this segment line and/or interaction.';
             TableRelation = "Salesperson/Purchaser" where(Blocked = const(false));
         }
         field(6; "Correspondence Type"; Enum "Correspondence Type")
         {
             Caption = 'Correspondence Type';
+            ToolTip = 'Specifies the type of correspondence for the interaction. NOTE: If you use the Web client, you must not select the Hard Copy option because printing is not possible from the web client.';
         }
         field(7; "Interaction Template Code"; Code[10])
         {
             Caption = 'Interaction Template Code';
+            ToolTip = 'Specifies the type of the interaction.';
             TableRelation = "Interaction Template";
 
             trigger OnValidate()
@@ -267,12 +274,14 @@ table 5077 "Segment Line"
         field(11; "Campaign Response"; Boolean)
         {
             Caption = 'Campaign Response';
+            ToolTip = 'Specifies that the interaction created for the segment is the response to a campaign. For example, coupons that are sent as a response to a campaign.';
         }
         field(12; "Contact Name"; Text[100])
         {
             CalcFormula = lookup(Contact.Name where("No." = field("Contact No."),
                                                      Type = const(Person)));
             Caption = 'Contact Name';
+            ToolTip = 'Specifies the name of the contact to which the segment line applies. The program automatically fills in this field when you fill in the Contact No. field on the line.';
             Editable = false;
             FieldClass = FlowField;
         }
@@ -280,6 +289,7 @@ table 5077 "Segment Line"
         {
             BlankZero = true;
             Caption = 'Information Flow';
+            ToolTip = 'Specifies the direction of the information that is part of the interaction created for this segment line. There are two options: Inbound and Outbound.';
             OptionCaption = ' ,Outbound,Inbound';
             OptionMembers = " ",Outbound,Inbound;
         }
@@ -287,21 +297,25 @@ table 5077 "Segment Line"
         {
             BlankZero = true;
             Caption = 'Initiated By';
+            ToolTip = 'Specifies whether the interaction recorded for this segment line was initiated by your company or by one of your contacts. The Us option indicates that your company was the initiator; the Them option indicates that a contact was the initiator.';
             OptionCaption = ' ,Us,Them';
             OptionMembers = " ",Us,Them;
         }
         field(15; "Contact Alt. Address Code"; Code[10])
         {
             Caption = 'Contact Alt. Address Code';
+            ToolTip = 'Specifies the code of the contact''s alternate address to use for this interaction.';
             TableRelation = "Contact Alt. Address".Code where("Contact No." = field("Contact No."));
         }
         field(16; Evaluation; Enum "Interaction Evaluation")
         {
             Caption = 'Evaluation';
+            ToolTip = 'Specifies the evaluation of the interaction involving the contact in the segment.';
         }
         field(17; "Campaign Target"; Boolean)
         {
             Caption = 'Campaign Target';
+            ToolTip = 'Specifies that the segment involved in this interaction is the target of a campaign. This is used to measure the response rate of a campaign.';
 
             trigger OnValidate()
             begin
@@ -314,12 +328,14 @@ table 5077 "Segment Line"
             CalcFormula = lookup(Contact.Name where("No." = field("Contact Company No."),
                                                      Type = const(Company)));
             Caption = 'Contact Company Name';
+            ToolTip = 'Specifies the name of the company for which the contact works. If the contact is a company, this field contains the company''s name.';
             Editable = false;
             FieldClass = FlowField;
         }
         field(19; "Language Code"; Code[10])
         {
             Caption = 'Language Code';
+            ToolTip = 'Specifies the language that is used when translating specified text on documents to foreign business partner, such as an item description on an order confirmation.';
             TableRelation = Language;
 
             trigger OnLookup()
@@ -372,10 +388,12 @@ table 5077 "Segment Line"
         field(22; Description; Text[100])
         {
             Caption = 'Description';
+            ToolTip = 'Specifies the description of the segment line.';
         }
         field(23; Date; Date)
         {
             Caption = 'Date';
+            ToolTip = 'Specifies the date of the contact to whom the segment line applies.';
 
             trigger OnValidate()
             begin
@@ -387,51 +405,62 @@ table 5077 "Segment Line"
         field(24; "Time of Interaction"; Time)
         {
             Caption = 'Time of Interaction';
+            ToolTip = 'Specifies the time when the interaction took place';
         }
         field(25; "Attempt Failed"; Boolean)
         {
             Caption = 'Attempt Failed';
+            ToolTip = 'Specifies the attempt failed of the contact to whom the segment line applies.';
         }
         field(26; "To-do No."; Code[20])
         {
             Caption = 'Task No.';
+            ToolTip = 'Specifies the To-do number of the contact to whom the segment line applies.';
             TableRelation = "To-do";
         }
         field(27; "Contact Company No."; Code[20])
         {
             Caption = 'Contact Company No.';
+            ToolTip = 'Specifies the contact company number of the contact to whom the segment line applies.';
             TableRelation = Contact where(Type = const(Company));
         }
         field(28; "Campaign Entry No."; Integer)
         {
             Caption = 'Campaign Entry No.';
+            ToolTip = 'Specifies the campaign entry number of the contact to whom the segment line applies.';
             Editable = false;
             TableRelation = "Campaign Entry";
         }
         field(29; "Interaction Group Code"; Code[10])
         {
             Caption = 'Interaction Group Code';
+            ToolTip = 'Specifies the interaction group code of the contact to whom the segment line applies.';
             TableRelation = "Interaction Group";
         }
         field(31; "Document Type"; Enum "Interaction Log Entry Document Type")
         {
             Caption = 'Document Type';
+            ToolTip = 'Specifies the document type of the contact to whom the segment line applies.';
         }
         field(32; "Document No."; Code[20])
         {
             Caption = 'Document No.';
+            ToolTip = 'Specifies the document number of the contact to whom the segment line applies.';
         }
         field(33; "Send Word Doc. As Attmt."; Boolean)
         {
             Caption = 'Send Word Doc. As Attmt.';
+            ToolTip = 'Specifies that the Microsoft Word document that is linked to that segment line should be sent as an attachment in the e-mail message.';
         }
         field(34; "Contact Via"; Text[80])
         {
             Caption = 'Contact Via';
+            ToolTip = 'Specifies the telephone number you used when calling the contact, or the email address you used when sending an email to the contact.';
         }
         field(35; "Version No."; Integer)
         {
             Caption = 'Version No.';
+            ToolTip = 'Specifies the version number of the contact to whom the segment line applies.';
         }
         field(36; "Doc. No. Occurrence"; Integer)
         {
@@ -440,16 +469,19 @@ table 5077 "Segment Line"
         field(37; Subject; Text[100])
         {
             Caption = 'Subject';
+            ToolTip = 'Specifies the subject of the segment line. The text in the field is used as the subject in e-mails and Word documents.';
         }
         field(44; "Opportunity No."; Code[20])
         {
             Caption = 'Opportunity No.';
+            ToolTip = 'Specifies the opportunity number of the contact to whom the segment line applies.';
             TableRelation = Opportunity;
         }
         field(50; "Contact Phone No."; Text[30])
         {
             CalcFormula = lookup(Contact."Phone No." where("No." = field("Contact No.")));
             Caption = 'Contact Phone No.';
+            ToolTip = 'Specifies the telephone number of the contact to whom the segment line applies. The number will be filled in for you if you choose a contact in the Contact No. field on the line.';
             Editable = false;
             FieldClass = FlowField;
             ExtendedDatatype = PhoneNo;
@@ -459,6 +491,7 @@ table 5077 "Segment Line"
         {
             CalcFormula = lookup(Contact."Mobile Phone No." where("No." = field("Contact No.")));
             Caption = 'Contact Mobile Phone No.';
+            ToolTip = 'Specifies the mobile telephone number of the contact to whom the segment line applies. The number will be filled in for you if you choose a contact in the Contact No. field on the line.';
             Editable = false;
             FieldClass = FlowField;
             ExtendedDatatype = PhoneNo;
@@ -468,6 +501,7 @@ table 5077 "Segment Line"
         {
             CalcFormula = lookup(Contact."E-Mail" where("No." = field("Contact No.")));
             Caption = 'Contact Email';
+            ToolTip = 'Specifies the email address of the contact to whom the segment line applies. The address will be filled in for you if you choose a contact in the Contact No. field on the line.';
             Editable = false;
             FieldClass = FlowField;
             ExtendedDatatype = EMail;
@@ -475,6 +509,7 @@ table 5077 "Segment Line"
         }
         field(53; "Word Template Code"; Code[30])
         {
+            ToolTip = 'Specifies the Word Template code to use for merging.';
             DataClassification = CustomerContent;
             TableRelation = "Word Template".Code where("Table ID" = const(5106)); // Only Interaction Merge Data Word templates are allowed
         }
@@ -485,31 +520,38 @@ table 5077 "Segment Line"
         field(9501; "Wizard Step"; Enum "Segment Line Wizard Step")
         {
             Caption = 'Wizard Step';
+            ToolTip = 'Specifies the wizard step of the contact to whom the segment line applies.';
             Editable = false;
         }
         field(9502; "Wizard Contact Name"; Text[100])
         {
             Caption = 'Wizard Contact Name';
+            ToolTip = 'Specifies the wizard contact name of the contact to whom the segment line applies.';
         }
         field(9503; "Opportunity Description"; Text[100])
         {
             Caption = 'Opportunity Description';
+            ToolTip = 'Specifies a description of the opportunity that is related to the segment. The description is copied from the opportunity card.';
         }
         field(9504; "Campaign Description"; Text[100])
         {
             Caption = 'Campaign Description';
+            ToolTip = 'Specifies the campaign description of the contact to whom the segment line applies.';
         }
         field(9505; "Interaction Successful"; Boolean)
         {
             Caption = 'Interaction Successful';
+            ToolTip = 'Specifies if the interaction was successful. Clear this check box to indicate that the interaction was not a success.';
         }
         field(9506; "Dial Contact"; Boolean)
         {
             Caption = 'Dial Contact';
+            ToolTip = 'Specifies the dial contact of the contact to whom the segment line applies.';
         }
         field(9507; "Mail Contact"; Boolean)
         {
             Caption = 'Mail Contact';
+            ToolTip = 'Specifies the mail contact of the contact to whom the segment line applies.';
         }
     }
 

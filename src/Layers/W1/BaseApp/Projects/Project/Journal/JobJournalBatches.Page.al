@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -26,28 +26,29 @@ page 276 "Job Journal Batches"
                 field(Name; Rec.Name)
                 {
                     ApplicationArea = Jobs;
-                    ToolTip = 'Specifies the name of this project journal. You can enter a maximum of 10 characters, both numbers and letters.';
                 }
                 field(Description; Rec.Description)
                 {
                     ApplicationArea = Jobs;
-                    ToolTip = 'Specifies a description of this journal.';
                 }
                 field("No. Series"; Rec."No. Series")
                 {
                     ApplicationArea = Jobs;
-                    ToolTip = 'Specifies the number series from which entry or record numbers are assigned to new entries or records.';
                 }
                 field("Posting No. Series"; Rec."Posting No. Series")
                 {
                     ApplicationArea = Jobs;
-                    ToolTip = 'Specifies the code for the number series that will be used to assign document numbers to ledger entries that are posted from this journal batch. To see the number series that have been set up in the No. Series table, choose the field.';
                 }
                 field("Reason Code"; Rec."Reason Code")
                 {
                     ApplicationArea = Jobs;
-                    ToolTip = 'Specifies the reason code, a supplementary source code that enables you to trace the entry.';
                     Visible = true;
+                }
+                field("No. of Lines"; Rec."No. of Lines")
+                {
+                    ApplicationArea = Jobs;
+                    ToolTip = 'Specifies the number of lines in this journal batch.';
+                    Visible = false;
                 }
             }
         }

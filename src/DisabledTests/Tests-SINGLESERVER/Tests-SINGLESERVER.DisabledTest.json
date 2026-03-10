@@ -1233,5 +1233,20 @@
     "codeunitId": 139460,
     "codeunitName": "User Access in SaaS Tests",
     "method": "TestUpdateUserAccessForSaaSWithInvalidRoleCenter"
+  },
+  {
+    "codeunitId": 138698,
+    "codeunitName": "AllProfile V2 Test",
+    "method": "TestCopyDefaultProfileDoesNotCreateAnotherDefault"
+  },
+  {
+    "codeunitId": 138698,
+    "codeunitName": "AllProfile V2 Test",
+    "method": "TestCopyProfileActionCard"
+  },
+  {
+    "codeunitId": 138698,
+    "codeunitName": "AllProfile V2 Test",
+    "method": "TestCopyProfileActionList"
   }
 ]

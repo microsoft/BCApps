@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -22,25 +22,21 @@ page 5993 "Troubleshooting Setup"
                 field(Type; Rec.Type)
                 {
                     ApplicationArea = Service;
-                    ToolTip = 'Specifies the type of troubleshooting issue.';
                     Visible = TypeVisible;
                 }
                 field("No."; Rec."No.")
                 {
                     ApplicationArea = Service;
-                    ToolTip = 'Specifies the number of the involved entry or record, according to the specified number series.';
                     Visible = NoVisible;
                 }
                 field("Troubleshooting No."; Rec."Troubleshooting No.")
                 {
                     ApplicationArea = Service;
-                    ToolTip = 'Specifies the number of the troubleshooting issue.';
                 }
                 field("Troubleshooting Description"; Rec."Troubleshooting Description")
                 {
                     ApplicationArea = Service;
                     DrillDown = false;
-                    ToolTip = 'Specifies a description of the troubleshooting issue.';
                 }
             }
         }

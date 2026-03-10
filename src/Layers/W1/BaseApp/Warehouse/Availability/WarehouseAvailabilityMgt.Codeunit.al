@@ -147,6 +147,7 @@ codeunit 7314 "Warehouse Availability Mgt."
                 QtyPicked :=
                   CalcQtyRegisteredPick(
                     LocationCode, TempReservEntryBuffer."Source Type", TempReservEntryBuffer."Source Subtype", TempReservEntryBuffer."Source ID", TempReservEntryBuffer."Source Ref. No.", TempReservEntryBuffer."Source Prod. Order Line");
+                ValidateQtyPickedInShipmentBin(QtyPicked, LocationCode, ItemNo, VariantCode, TrackingSpecification, TempReservEntryBuffer."Source Type");
                 QtyToPick :=
                   CalcQtyOutstandingPick(
                     TempReservEntryBuffer."Source Type", TempReservEntryBuffer."Source Subtype", TempReservEntryBuffer."Source ID", TempReservEntryBuffer."Source Ref. No.", TempReservEntryBuffer."Source Prod. Order Line", WarehouseActivityLine);
@@ -877,9 +878,7 @@ codeunit 7314 "Warehouse Availability Mgt."
         end else
             AvailQtyBase := CalcInvtAvailQty(Item, Location, WhseWorksheetLine."Variant Code", TempWhseActivLine);
 
-        if Location."Require Pick" or
-           (Location."Prod. Consump. Whse. Handling" = Location."Prod. Consump. Whse. Handling"::"Warehouse Pick (mandatory)")
-        then
+        if Location."Require Pick" or Location.IsProdConsumpWhseHandlingTypeWarehousePick() then
             QtyReservedOnPickShip := CalcReservQtyOnPicksShips(WhseWorksheetLine."Location Code", WhseWorksheetLine."Item No.", WhseWorksheetLine."Variant Code", TempWhseActivLine);
 
         QtyReservedForCurrLine :=
@@ -900,6 +899,27 @@ codeunit 7314 "Warehouse Availability Mgt."
             WarehouseShipmentLine.SetRange("Variant Code", WhseWorksheetLine."Variant Code");
         WarehouseShipmentLine.CalcSums("Qty. Picked (Base)", "Qty. Shipped (Base)");
         exit(WarehouseShipmentLine."Qty. Picked (Base)" - WarehouseShipmentLine."Qty. Shipped (Base)")
+    end;
+
+    local procedure ValidateQtyPickedInShipmentBin(var QtyPicked: Decimal; LocationCode: Code[10]; ItemNo: Code[20]; VariantCode: Code[10]; TrackingSpecification: Record "Tracking Specification"; SourceType: Integer)
+    var
+        Location: Record Location;
+        ItemTrackingSetup: Record "Item Tracking Setup";
+        QtyOnShipmentBin: Decimal;
+    begin
+        if not (Location.RequireShipment(LocationCode) and (QtyPicked <> 0)) then
+            exit;
+
+        if SourceType <> 37 then // Database::Sales Line
+            exit;
+
+        ItemTrackingSetup.CopyTrackingFromTrackingSpec(TrackingSpecification);
+        if not (Location.Get(LocationCode) and Location."Bin Mandatory" and (Location."Shipment Bin Code" <> '')) then
+            exit;
+
+        QtyOnShipmentBin := CalcQtyOnBin(LocationCode, Location."Shipment Bin Code", ItemNo, VariantCode, ItemTrackingSetup);
+        if QtyOnShipmentBin = 0 then
+            QtyPicked := 0
     end;
 
     [IntegrationEvent(false, false)]

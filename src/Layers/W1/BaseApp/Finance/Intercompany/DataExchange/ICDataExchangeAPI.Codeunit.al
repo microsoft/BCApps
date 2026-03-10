@@ -696,6 +696,7 @@ codeunit 561 "IC Data Exchange API" implements "IC Data Exchange"
         TempICPartnerICInboxTransaction."IC Account Type" := Enum::"IC Journal Account Type".FromInteger(GetValueFromJsonTokenOrIntegerZero(IndividualToken, 'icAccountTypeOrdinal'));
         TempICPartnerICInboxTransaction."IC Account No." := GetValueFromJsonTokenOrEmptyText(IndividualToken, 'icAccountNumber');
 
+        OnPopulateICInboxTransactionFromJsonOnBeforeInsert(TempICPartnerICInboxTransaction, IndividualToken);
         TempICPartnerICInboxTransaction.Insert();
         GlobalLanguage(CurrentGlobalLanguage);
     end;
@@ -808,6 +809,7 @@ codeunit 561 "IC Data Exchange API" implements "IC Data Exchange"
         ICInboxTransaction."IC Account Type" := Enum::"IC Journal Account Type".FromInteger(GetValueFromJsonTokenOrIntegerZero(IndividualToken, 'icAccountTypeOrdinal'));
         ICInboxTransaction."IC Account No." := GetValueFromJsonTokenOrEmptyText(IndividualToken, 'icAccountNumber');
 
+        OnPopulateICInboxTransactionFromJsonOnBeforeInsert(ICInboxTransaction, IndividualToken);
         ICInboxTransaction.Insert();
     end;
 
@@ -833,6 +835,7 @@ codeunit 561 "IC Data Exchange API" implements "IC Data Exchange"
         ICInboxJnlLine."Transaction Source" := GetValueFromJsonTokenOrIntegerZero(IndividualToken, 'transactionSourceIndex');
         ICInboxJnlLine."Document No." := GetValueFromJsonTokenOrEmptyText(IndividualToken, 'documentNumber');
 
+        OnPopulateICInboxJournalLineFromJsonOnBeforeInsert(ICInboxJnlLine, IndividualToken);
         ICInboxJnlLine.Insert();
     end;
 
@@ -872,6 +875,7 @@ codeunit 561 "IC Data Exchange API" implements "IC Data Exchange"
         ICInboxPurchaseHeader."Requested Receipt Date" := GetValueFromJsonTokenOrToday(IndividualToken, 'requestedReceiptDate');
         ICInboxPurchaseHeader."Promised Receipt Date" := GetValueFromJsonTokenOrToday(IndividualToken, 'promisedReceiptDate');
 
+        OnPopulateICInboxPurchaseHeaderFromJsonOnBeforeInsert(ICInboxPurchaseHeader, IndividualToken);
         ICInboxPurchaseHeader.Insert();
     end;
 
@@ -915,6 +919,7 @@ codeunit 561 "IC Data Exchange API" implements "IC Data Exchange"
         ICInboxPurchaseLine."Return Shipment No." := GetValueFromJsonTokenOrEmptyText(IndividualToken, 'returnShipmentNumber');
         ICInboxPurchaseLine."Return Shipment Line No." := GetValueFromJsonTokenOrIntegerZero(IndividualToken, 'returnShipmentLineNumber');
 
+        OnPopulateICInboxPurchaseLineFromJsonOnBeforeInsert(ICInboxPurchaseLine, IndividualToken);
         ICInboxPurchaseLine.Insert();
     end;
 
@@ -950,6 +955,7 @@ codeunit 561 "IC Data Exchange API" implements "IC Data Exchange"
         ICInboxSalesHeader."Requested Delivery Date" := GetValueFromJsonTokenOrToday(IndividualToken, 'requestedDeliveryDate');
         ICInboxSalesHeader."Promised Delivery Date" := GetValueFromJsonTokenOrToday(IndividualToken, 'promisedDeliveryDate');
 
+        OnPopulateICInboxSalesHeaderFromJsonOnBeforeInsert(ICInboxSalesHeader, IndividualToken);
         ICInboxSalesHeader.Insert();
     end;
 
@@ -987,6 +993,7 @@ codeunit 561 "IC Data Exchange API" implements "IC Data Exchange"
         ICInboxSalesLine."Requested Delivery Date" := GetValueFromJsonTokenOrToday(IndividualToken, 'requestedDeliveryDate');
         ICInboxSalesLine."Promised Delivery Date" := GetValueFromJsonTokenOrToday(IndividualToken, 'promisedDeliveryDate');
 
+        OnPopulateICInboxSalesLineFromJsonOnBeforeInsert(ICInboxSalesLine, IndividualToken);
         ICInboxSalesLine.Insert();
     end;
 
@@ -1004,6 +1011,7 @@ codeunit 561 "IC Data Exchange API" implements "IC Data Exchange"
         ICInboxOutboxJnlLineDim."Dimension Value Code" := GetValueFromJsonTokenOrEmptyText(IndividualToken, 'dimensionValueCode');
         ICInboxOutboxJnlLineDim."Transaction Source" := GetValueFromJsonTokenOrIntegerZero(IndividualToken, 'transactionSourceIndex');
 
+        OnPopulateICInboxOutboxJnlLineDimFromJsonOnBeforeInsert(ICInboxOutboxJnlLineDim, IndividualToken);
         ICInboxOutboxJnlLineDim.Insert();
     end;
 
@@ -1021,6 +1029,7 @@ codeunit 561 "IC Data Exchange API" implements "IC Data Exchange"
         ICDocumentDimension."Dimension Code" := GetValueFromJsonTokenOrEmptyText(IndividualToken, 'dimensionCode');
         ICDocumentDimension."Dimension Value Code" := GetValueFromJsonTokenOrEmptyText(IndividualToken, 'dimensionValueCode');
 
+        OnPopulateICDocumentDimensionFromJsonOnBeforeInsert(ICDocumentDimension, IndividualToken);
         ICDocumentDimension.Insert();
     end;
 
@@ -1039,6 +1048,7 @@ codeunit 561 "IC Data Exchange API" implements "IC Data Exchange"
         ICCommentLine."Transaction Source" := GetValueFromJsonTokenOrIntegerZero(IndividualToken, 'transactionSourceIndex');
         ICCommentLine."Created By IC Partner Code" := GetValueFromJsonTokenOrEmptyText(IndividualToken, 'createdByIcPartnerCode');
 
+        OnPopulateICCommentLineFromJsonOnBeforeInsert(ICCommentLine, IndividualToken);
         ICCommentLine.Insert();
     end;
 
@@ -1386,6 +1396,51 @@ codeunit 561 "IC Data Exchange API" implements "IC Data Exchange"
     /// <param name="RegisteredPartner">Registered partner information</param>
     [IntegrationEvent(false, false)]
     local procedure OnPostICSalesHeaderToICPartnerInboxOnBeforeBufferICInboxSalesHeaderInsert(var BufferICInboxSalesHeader: Record "Buffer IC Inbox Sales Header"; TempICPartnerICInboxSalesHeader: Record "IC Inbox Sales Header" temporary; ICPartner: Record "IC Partner"; RegisteredPartner: Record "IC Partner" temporary)
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnPopulateICInboxTransactionFromJsonOnBeforeInsert(var ICInboxTransaction: Record "IC Inbox Transaction"; IndividualToken: JsonToken)
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnPopulateICInboxJournalLineFromJsonOnBeforeInsert(var ICInboxJournalLine: Record "IC Inbox Jnl. Line"; IndividualToken: JsonToken)
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnPopulateICInboxPurchaseLineFromJsonOnBeforeInsert(var ICInboxPurchaseLine: Record "IC Inbox Purchase Line"; IndividualToken: JsonToken)
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnPopulateICInboxSalesHeaderFromJsonOnBeforeInsert(var ICInboxSalesHeader: Record "IC Inbox Sales Header"; IndividualToken: JsonToken)
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnPopulateICInboxSalesLineFromJsonOnBeforeInsert(var ICInboxSalesLine: Record "IC Inbox Sales Line"; IndividualToken: JsonToken)
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnPopulateICInboxOutboxJnlLineDimFromJsonOnBeforeInsert(var ICInboxOutboxJnlLineDim: Record "IC Inbox/Outbox Jnl. Line Dim."; IndividualToken: JsonToken)
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnPopulateICDocumentDimensionFromJsonOnBeforeInsert(var ICDocumentDimension: Record "IC Document Dimension"; IndividualToken: JsonToken)
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnPopulateICInboxPurchaseHeaderFromJsonOnBeforeInsert(var ICInboxPurchaseHeader: Record "IC Inbox Purchase Header"; IndividualToken: JsonToken)
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnPopulateICCommentLineFromJsonOnBeforeInsert(var ICCommentLine: Record "IC Comment Line"; IndividualToken: JsonToken)
     begin
     end;
 }

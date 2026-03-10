@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -25,7 +25,6 @@ page 5346 "CRM Pricelevel List"
                     ApplicationArea = Suite;
                     Caption = 'Name';
                     StyleExpr = FirstColumnStyle;
-                    ToolTip = 'Specifies the name of the record.';
                 }
                 field(StateCode; Rec.StateCode)
                 {
@@ -43,13 +42,11 @@ page 5346 "CRM Pricelevel List"
                 {
                     ApplicationArea = Suite;
                     Caption = 'Currency';
-                    ToolTip = 'Specifies the currency that amounts are shown in.';
                 }
                 field(ExchangeRate; Rec.ExchangeRate)
                 {
                     ApplicationArea = Suite;
                     Caption = 'Exchange Rate';
-                    ToolTip = 'Specifies the currency exchange rate.';
                 }
                 field(Coupled; Coupled)
                 {

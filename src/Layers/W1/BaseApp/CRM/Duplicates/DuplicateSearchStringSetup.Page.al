@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -22,7 +22,6 @@ page 5138 "Duplicate Search String Setup"
                 {
                     ApplicationArea = RelationshipMgmt;
                     Editable = false;
-                    ToolTip = 'Specifies the field to use to generate the search string.';
 
                     trigger OnAssistEdit()
                     begin
@@ -33,12 +32,10 @@ page 5138 "Duplicate Search String Setup"
                 field("Part of Field"; Rec."Part of Field")
                 {
                     ApplicationArea = RelationshipMgmt;
-                    ToolTip = 'Specifies the part of the field to use to generate the search string. There are two options: First and Last.';
                 }
                 field(Length; Rec.Length)
                 {
                     ApplicationArea = RelationshipMgmt;
-                    ToolTip = 'Specifies how many characters the search string will contain. You can enter a number from 2 to 10. The program automatically enters 5 as a default value.';
                 }
             }
         }

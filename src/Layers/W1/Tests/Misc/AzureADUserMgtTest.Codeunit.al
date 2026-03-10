@@ -686,4 +686,208 @@ codeunit 132907 AzureADUserMgtTest
 
         TearDown();
     end;
+
+    [Test]
+    [TransactionModel(TransactionModel::AutoRollback)]
+    [Scope('OnPrem')]
+    procedure TestAADAppCardPermissionSetsDisabledWhenNoUserInitialized()
+    var
+        AADApplication: Record "AAD Application";
+        AADApplicationCard: TestPage "AAD Application Card";
+    begin
+        // [SCENARIO 615864] When AAD Application has no User initialized, Permission Sets subform should be disabled
+        // [GIVEN] A new AAD Application record with State=Disabled and no User ID
+        CreateAADApplicationRecord(AADApplication, CreateGuid(), 'Test App', '');
+
+        // [WHEN] Opening the AAD Application Card
+        AADApplicationCard.Trap();
+        Page.Run(Page::"AAD Application Card", AADApplication);
+
+        // [THEN] Permission Sets subform should be disabled (not editable)
+        Assert.IsFalse(AADApplicationCard.Permissions.Enabled(), 'Permission Sets should be disabled when User is not initialized');
+
+        AADApplicationCard.Close();
+    end;
+
+    [Test]
+    [TransactionModel(TransactionModel::AutoRollback)]
+    [Scope('OnPrem')]
+    procedure TestAADAppCardPermissionSetsDisabledWhenStateEnabled()
+    var
+        AADApplication: Record "AAD Application";
+        User: Record User;
+        AADApplicationCard: TestPage "AAD Application Card";
+    begin
+        // [SCENARIO 615864] When AAD Application State is Enabled, Permission Sets subform should be disabled
+        // [GIVEN] An AAD Application record with State=Enabled and User initialized
+        CreateAADApplicationWithUser(AADApplication, User);
+        AADApplication.State := AADApplication.State::Enabled;
+        AADApplication.Modify();
+
+        // [WHEN] Opening the AAD Application Card
+        AADApplicationCard.Trap();
+        Page.Run(Page::"AAD Application Card", AADApplication);
+
+        // [THEN] Permission Sets subform should be disabled
+        Assert.IsFalse(AADApplicationCard.Permissions.Enabled(), 'Permission Sets should be disabled when State is Enabled');
+
+        AADApplicationCard.Close();
+    end;
+
+    [Test]
+    [TransactionModel(TransactionModel::AutoRollback)]
+    [Scope('OnPrem')]
+    procedure TestAADAppCardPermissionSetsEnabledWhenDisabledAndUserExists()
+    var
+        AADApplication: Record "AAD Application";
+        User: Record User;
+        AADApplicationCard: TestPage "AAD Application Card";
+    begin
+        // [SCENARIO 615864] When AAD Application State is Disabled and User exists, Permission Sets subform should be enabled
+        // [GIVEN] An AAD Application record with State=Disabled and User initialized
+        CreateAADApplicationWithUser(AADApplication, User);
+        AADApplication.State := AADApplication.State::Disabled;
+        AADApplication.Modify();
+
+        // [WHEN] Opening the AAD Application Card
+        AADApplicationCard.Trap();
+        Page.Run(Page::"AAD Application Card", AADApplication);
+
+        // [THEN] Permission Sets subform should be enabled
+        Assert.IsTrue(AADApplicationCard.Permissions.Enabled(), 'Permission Sets should be enabled when State is Disabled and User exists');
+
+        AADApplicationCard.Close();
+    end;
+
+    [Test]
+    [TransactionModel(TransactionModel::AutoRollback)]
+    [Scope('OnPrem')]
+    procedure TestAADAppCardInitializeUserWarningShownWhenNoUser()
+    var
+        AADApplication: Record "AAD Application";
+        AADApplicationCard: TestPage "AAD Application Card";
+    begin
+        // [SCENARIO 615864] When AAD Application has no User initialized, Initialize User warning should be shown
+        // [GIVEN] A new AAD Application record with State=Disabled, Description filled, and no User ID
+        CreateAADApplicationRecord(AADApplication, CreateGuid(), 'Test App', '');
+
+        // [WHEN] Opening the AAD Application Card
+        AADApplicationCard.Trap();
+        Page.Run(Page::"AAD Application Card", AADApplication);
+
+        // [THEN] Initialize User warning field should contain warning text
+        Assert.AreNotEqual('', AADApplicationCard.ShowInitializeUserWarningField.Value(),
+            'Initialize User warning should be shown when User is not initialized');
+
+        AADApplicationCard.Close();
+    end;
+
+    [Test]
+    [TransactionModel(TransactionModel::AutoRollback)]
+    [Scope('OnPrem')]
+    procedure TestAADAppCardInitializeUserWarningHiddenWhenUserExists()
+    var
+        AADApplication: Record "AAD Application";
+        User: Record User;
+        AADApplicationCard: TestPage "AAD Application Card";
+    begin
+        // [SCENARIO 615864] When AAD Application has User initialized, Initialize User warning should be hidden
+        // [GIVEN] An AAD Application record with State=Disabled and User initialized
+        CreateAADApplicationWithUser(AADApplication, User);
+
+        // [WHEN] Opening the AAD Application Card
+        AADApplicationCard.Trap();
+        Page.Run(Page::"AAD Application Card", AADApplication);
+
+        // [THEN] Initialize User warning field should be empty
+        Assert.AreEqual('', AADApplicationCard.ShowInitializeUserWarningField.Value(),
+            'Initialize User warning should be hidden when User exists');
+
+        AADApplicationCard.Close();
+    end;
+
+    [Test]
+    [TransactionModel(TransactionModel::AutoRollback)]
+    [Scope('OnPrem')]
+    procedure TestAADAppCardInitializeUserWarningDrillDownEnabledWithDescription()
+    var
+        AADApplication: Record "AAD Application";
+        AADApplicationCard: TestPage "AAD Application Card";
+    begin
+        // [SCENARIO 615864] When AAD Application has Description but no User, Initialize User warning DrillDown should be enabled
+        // [GIVEN] A new AAD Application record with State=Disabled, Description filled, and no User ID
+        CreateAADApplicationRecord(AADApplication, CreateGuid(), 'Test App', '');
+
+        // [WHEN] Opening the AAD Application Card
+        AADApplicationCard.Trap();
+        Page.Run(Page::"AAD Application Card", AADApplication);
+
+        // [THEN] Initialize User warning field should be enabled (DrillDown enabled)
+        Assert.IsTrue(AADApplicationCard.ShowInitializeUserWarningField.Enabled(),
+            'Initialize User warning DrillDown should be enabled when Description is filled');
+
+        AADApplicationCard.Close();
+    end;
+
+    [Test]
+    [TransactionModel(TransactionModel::AutoRollback)]
+    [Scope('OnPrem')]
+    procedure TestAADAppCardEnableWarningShownWhenStateEnabled()
+    var
+        AADApplication: Record "AAD Application";
+        User: Record User;
+        AADApplicationCard: TestPage "AAD Application Card";
+    begin
+        // [SCENARIO 615864] When AAD Application State is Enabled, Enable warning should be shown
+        // [GIVEN] An AAD Application record with State=Enabled and User initialized
+        CreateAADApplicationWithUser(AADApplication, User);
+        AADApplication.State := AADApplication.State::Enabled;
+        AADApplication.Modify();
+
+        // [WHEN] Opening the AAD Application Card
+        AADApplicationCard.Trap();
+        Page.Run(Page::"AAD Application Card", AADApplication);
+
+        // [THEN] Enable warning field should contain warning text
+        Assert.AreNotEqual('', AADApplicationCard.ShowEnableWarning.Value(),
+            'Enable warning should be shown when State is Enabled');
+
+        AADApplicationCard.Close();
+    end;
+
+    local procedure CreateAADApplicationRecord(var AADApplication: Record "AAD Application"; ClientId: Guid; Description: Text[50]; ContactInfo: Text[50])
+    begin
+        AADApplication.Init();
+        AADApplication."Client Id" := ClientId;
+        AADApplication.Description := Description;
+        AADApplication."Contact Information" := ContactInfo;
+        AADApplication.State := AADApplication.State::Disabled;
+        AADApplication.Insert(true);
+    end;
+
+    local procedure CreateAADApplicationWithUser(var AADApplication: Record "AAD Application"; var User: Record User)
+    var
+        ClientId: Guid;
+    begin
+        ClientId := CreateGuid();
+
+        // Create User record
+        User.Init();
+        User."User Security ID" := CreateGuid();
+        User."User Name" := 'Test AAD App User';
+        User."Full Name" := 'Test AAD App User';
+        User."License Type" := User."License Type"::Application;
+        User."Application ID" := ClientId;
+        User.State := User.State::Disabled;
+        User.Insert(true);
+
+        // Create AAD Application record
+        AADApplication.Init();
+        AADApplication."Client Id" := ClientId;
+        AADApplication.Description := 'Test AAD Application';
+        AADApplication."Contact Information" := 'Test Contact';
+        AADApplication.State := AADApplication.State::Disabled;
+        AADApplication."User ID" := User."User Security ID";
+        AADApplication.Insert(true);
+    end;
 }

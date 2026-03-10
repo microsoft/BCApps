@@ -467,6 +467,7 @@ codeunit 99000875 "Prod. Order Availability Mgt."
         ItemAvailByBOMLevel.InitDate(OldDate);
         if FieldCaption <> '' then
             ItemAvailByBOMLevel.LookupMode(true);
+        OnShowCustomProdItemAvailByBOMLevelOnBeforeRunModal(ItemAvailByBOMLevel, ProdOrderLine, FieldCaption, OldDate);
         if ItemAvailByBOMLevel.RunModal() = ACTION::LookupOK then begin
             NewDate := ItemAvailByBOMLevel.GetSelectedDate();
             if OldDate <> NewDate then
@@ -956,6 +957,11 @@ codeunit 99000875 "Prod. Order Availability Mgt."
 
     [IntegrationEvent(false, false)]
     local procedure OnReassignRefOrderNosOnAfterRequisitionLineModifyAll(var RequisitionLine: Record "Requisition Line");
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnShowCustomProdItemAvailByBOMLevelOnBeforeRunModal(var ItemAvailabilityByBOMLevel: Page "Item Availability by BOM Level"; var ProdOrderLine: Record "Prod. Order Line"; FieldCaption: Text[80]; OldDate: Date)
     begin
     end;
 

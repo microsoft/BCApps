@@ -2036,6 +2036,73 @@ codeunit 1605 "PEPPOL Management"
     end;
 
     /// <summary>
+    /// Transfers fields from a source record to a sales invoice header record.
+    /// </summary>
+    /// <param name="FromRecord">Specifies the source record to transfer fields from.</param>
+    /// <param name="ToSalesInvoiceHeader">Returns the sales invoice header with transferred fields.</param>
+    procedure TransferHeaderToSalesInvoiceHeader(FromRecord: Variant; var ToSalesInvoiceHeader: Record "Sales Invoice Header")
+    var
+        ToRecord: Variant;
+    begin
+        ToRecord := ToSalesInvoiceHeader;
+        RecRefTransferFields(FromRecord, ToRecord);
+
+        OnAfterRecRefTransferHeaderToSalesInvoiceHeader(FromRecord, ToRecord);
+
+        ToSalesInvoiceHeader := ToRecord;
+    end;
+
+    /// <summary>
+    /// Transfers fields from a source record to a sales credit memo header record.
+    /// </summary>
+    /// <param name="FromRecord">Specifies the source record to transfer fields from.</param>
+    /// <param name="ToSalesCrMemoHeader">Returns the sales credit memo header with transferred fields.</param>
+    procedure TransferHeaderToSalesCrMemoHeader(FromRecord: Variant; var ToSalesCrMemoHeader: Record "Sales Cr.Memo Header")
+    var
+        ToRecord: Variant;
+    begin
+        ToRecord := ToSalesCrMemoHeader;
+        RecRefTransferFields(FromRecord, ToRecord);
+
+        OnAfterRecRefTransferHeaderToSalesCrMemoHeader(FromRecord, ToRecord);
+
+        ToSalesCrMemoHeader := ToRecord;
+    end;
+
+    /// <summary>
+    /// Transfers fields from a source record to a sales invoice line record.
+    /// </summary>
+    /// <param name="FromRecord">Specifies the source record to transfer fields from.</param>
+    /// <param name="ToSalesInvoiceLine">Returns the sales invoice line with transferred fields.</param>
+    procedure TransferLineToSalesInvoiceLine(FromRecord: Variant; var ToSalesInvoiceLine: Record "Sales Invoice Line")
+    var
+        ToRecord: Variant;
+    begin
+        ToRecord := ToSalesInvoiceLine;
+        RecRefTransferFields(FromRecord, ToRecord);
+
+        OnAfterRecRefTransferFieldsOnTransferLineToSalesInvoiceLine(FromRecord, ToRecord);
+
+        ToSalesInvoiceLine := ToRecord;
+    end;
+
+    /// <summary>
+    /// Transfers fields from a source record to a sales credit memo line record.
+    /// </summary>
+    /// <param name="FromRecord">Specifies the source record to transfer fields from.</param>
+    /// <param name="ToSalesCrMemoLine">Returns the sales credit memo line with transferred fields.</param>
+    procedure TransferLineToSalesCrMemoLine(FromRecord: Variant; var ToSalesCrMemoLine: Record "Sales Cr.Memo Line")
+    var
+        ToRecord: Variant;
+    begin
+        ToRecord := ToSalesCrMemoLine;
+        RecRefTransferFields(FromRecord, ToRecord);
+
+        OnAfterRecRefTransferFieldsOnTransferLineToSalesCrMemoLine(FromRecord, ToRecord);
+
+        ToSalesCrMemoLine := ToRecord;
+    end;
+    /// <summary>
     /// Transfers matching fields between two records using RecordRef.
     /// </summary>
     /// <param name="FromRecord">Specifies the source record.</param>
@@ -2595,6 +2662,46 @@ codeunit 1605 "PEPPOL Management"
     /// <param name="IsHandled">Set to true to skip the default PDF generation logic.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeGeneratePDFAttachmentAsAdditionalDocRef(SalesHeader: Record "Sales Header"; var AdditionalDocumentReferenceID: Text; var AdditionalDocRefDocumentType: Text; var URI: Text; var MimeCode: Text; var Filename: Text; var EmbeddedDocumentBinaryObject: Text; var IsHandled: Boolean)
+    begin
+    end;
+
+    /// <summary>
+    /// Raised after transferring fields from a posted document header to a sales invoice header record.
+    /// </summary>
+    /// <param name="FromRecord">Specifies the source record.</param>
+    /// <param name="ToRecord">Specifies the target sales invoice header record.</param>
+    [IntegrationEvent(false, false)]
+    local procedure OnAfterRecRefTransferHeaderToSalesInvoiceHeader(FromRecord: Variant; var ToRecord: Variant)
+    begin
+    end;
+
+    /// <summary>
+    /// Raised after transferring fields from a posted document header to a sales credit memo header record.
+    /// </summary>
+    /// <param name="FromRecord">Specifies the source record.</param>
+    /// <param name="ToRecord">Specifies the target sales credit memo header record.</param>
+    [IntegrationEvent(false, false)]
+    local procedure OnAfterRecRefTransferHeaderToSalesCrMemoHeader(FromRecord: Variant; var ToRecord: Variant)
+    begin
+    end;
+
+    /// <summary>
+    /// Raised after transferring fields from a posted document line to a sales invoice line record.
+    /// </summary>
+    /// <param name="FromRecord">Specifies the source record.</param>
+    /// <param name="ToRecord">Specifies the target sales invoice line record.</param>
+    [IntegrationEvent(false, false)]
+    local procedure OnAfterRecRefTransferFieldsOnTransferLineToSalesInvoiceLine(FromRecord: Variant; var ToRecord: Variant)
+    begin
+    end;
+
+    /// <summary>
+    /// Raised after transferring fields from a posted document line to a sales credit memo line record.
+    /// </summary>
+    /// <param name="FromRecord">Specifies the source record.</param>
+    /// <param name="ToRecord">Specifies the target sales credit memo line record.</param>
+    [IntegrationEvent(false, false)]
+    local procedure OnAfterRecRefTransferFieldsOnTransferLineToSalesCrMemoLine(FromRecord: Variant; var ToRecord: Variant)
     begin
     end;
 }

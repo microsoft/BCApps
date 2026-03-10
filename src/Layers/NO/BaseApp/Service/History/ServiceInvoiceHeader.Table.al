@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -57,22 +57,26 @@ table 5992 "Service Invoice Header"
         field(2; "Customer No."; Code[20])
         {
             Caption = 'Customer No.';
+            ToolTip = 'Specifies the number of the customer who owns the items on the invoice.';
             NotBlank = true;
             TableRelation = Customer;
         }
         field(3; "No."; Code[20])
         {
             Caption = 'No.';
+            ToolTip = 'Specifies the number of the involved entry or record, according to the specified number series.';
         }
         field(4; "Bill-to Customer No."; Code[20])
         {
             Caption = 'Bill-to Customer No.';
+            ToolTip = 'Specifies the number of the customer that you send or sent the invoice or credit memo to.';
             NotBlank = true;
             TableRelation = Customer;
         }
         field(5; "Bill-to Name"; Text[100])
         {
             Caption = 'Bill-to Name';
+            ToolTip = 'Specifies the name of the customer that you send or sent the invoice or credit memo to.';
         }
         field(6; "Bill-to Name 2"; Text[50])
         {
@@ -82,55 +86,67 @@ table 5992 "Service Invoice Header"
         field(7; "Bill-to Address"; Text[100])
         {
             Caption = 'Bill-to Address';
+            ToolTip = 'Specifies the address of the customer to whom you sent the invoice.';
         }
         field(8; "Bill-to Address 2"; Text[50])
         {
             Caption = 'Bill-to Address 2';
+            ToolTip = 'Specifies an additional line of the address.';
         }
         field(9; "Bill-to City"; Text[30])
         {
             Caption = 'Bill-to City';
+            ToolTip = 'Specifies the city of the address.';
             TableRelation = "Post Code".City;
             ValidateTableRelation = false;
         }
         field(10; "Bill-to Contact"; Text[100])
         {
             Caption = 'Bill-to Contact';
+            ToolTip = 'Specifies the name of the contact person at the customer''s billing address.';
         }
         field(11; "Your Reference"; Text[35])
         {
             Caption = 'Your Reference';
+            ToolTip = 'Specifies a customer reference, which will be used when printing service documents.';
         }
         field(12; "Ship-to Code"; Code[10])
         {
             Caption = 'Ship-to Code';
+            ToolTip = 'Specifies a code for an alternate shipment address if you want to ship to another address than the one that has been entered automatically. This field is also used in case of drop shipment.';
             TableRelation = "Ship-to Address".Code where("Customer No." = field("Customer No."));
         }
         field(13; "Ship-to Name"; Text[100])
         {
             Caption = 'Ship-to Name';
+            ToolTip = 'Specifies the name of the customer at the address that the items are shipped to.';
         }
         field(14; "Ship-to Name 2"; Text[50])
         {
             Caption = 'Ship-to Name 2';
+            ToolTip = 'Specifies an additional part of thethe name of the customer at the address that the items are shipped to.';
         }
         field(15; "Ship-to Address"; Text[100])
         {
             Caption = 'Ship-to Address';
+            ToolTip = 'Specifies the address that the items are shipped to.';
         }
         field(16; "Ship-to Address 2"; Text[50])
         {
             Caption = 'Ship-to Address 2';
+            ToolTip = 'Specifies an additional part of the ship-to address, in case it is a long address.';
         }
         field(17; "Ship-to City"; Text[30])
         {
             Caption = 'Ship-to City';
+            ToolTip = 'Specifies the city of the address that the items are shipped to.';
             TableRelation = "Post Code".City;
             ValidateTableRelation = false;
         }
         field(18; "Ship-to Contact"; Text[100])
         {
             Caption = 'Ship-to Contact';
+            ToolTip = 'Specifies the name of the contact person at the address that the items are shipped to.';
         }
         field(19; "Order Date"; Date)
         {
@@ -140,6 +156,7 @@ table 5992 "Service Invoice Header"
         field(20; "Posting Date"; Date)
         {
             Caption = 'Posting Date';
+            ToolTip = 'Specifies the date when the invoice was posted.';
         }
         field(22; "Posting Description"; Text[100])
         {
@@ -153,6 +170,7 @@ table 5992 "Service Invoice Header"
         field(24; "Due Date"; Date)
         {
             Caption = 'Due Date';
+            ToolTip = 'Specifies when the related invoice must be paid.';
         }
         field(25; "Payment Discount %"; Decimal)
         {
@@ -169,34 +187,40 @@ table 5992 "Service Invoice Header"
         field(27; "Shipment Method Code"; Code[10])
         {
             Caption = 'Shipment Method Code';
+            ToolTip = 'Specifies the code that represents the shipment method for the invoice.';
             TableRelation = "Shipment Method";
         }
         field(28; "Location Code"; Code[10])
         {
             Caption = 'Location Code';
+            ToolTip = 'Specifies the location, such as warehouse or distribution center, from which the service was shipped.';
             TableRelation = Location where("Use As In-Transit" = const(false));
         }
         field(29; "Shortcut Dimension 1 Code"; Code[20])
         {
             CaptionClass = '1,2,1';
             Caption = 'Shortcut Dimension 1 Code';
+            ToolTip = 'Specifies the code for Shortcut Dimension 1, which is one of two global dimension codes that you set up in the General Ledger Setup window.';
             TableRelation = "Dimension Value".Code where("Global Dimension No." = const(1));
         }
         field(30; "Shortcut Dimension 2 Code"; Code[20])
         {
             CaptionClass = '1,2,2';
             Caption = 'Shortcut Dimension 2 Code';
+            ToolTip = 'Specifies the code for Shortcut Dimension 2, which is one of two global dimension codes that you set up in the General Ledger Setup window.';
             TableRelation = "Dimension Value".Code where("Global Dimension No." = const(2));
         }
         field(31; "Customer Posting Group"; Code[20])
         {
             Caption = 'Customer Posting Group';
+            ToolTip = 'Specifies the customer''s market type to link business transactions to.';
             Editable = false;
             TableRelation = "Customer Posting Group";
         }
         field(32; "Currency Code"; Code[10])
         {
             Caption = 'Currency Code';
+            ToolTip = 'Specifies the currency code for the amounts on the invoice.';
             Editable = false;
             TableRelation = Currency;
         }
@@ -238,11 +262,13 @@ table 5992 "Service Invoice Header"
         field(43; "Salesperson Code"; Code[20])
         {
             Caption = 'Salesperson Code';
+            ToolTip = 'Specifies the code of the salesperson associated with the invoice.';
             TableRelation = "Salesperson/Purchaser";
         }
         field(44; "Order No."; Code[20])
         {
             Caption = 'Order No.';
+            ToolTip = 'Specifies the number of the service order from which this invoice was posted.';
         }
         field(46; Comment; Boolean)
         {
@@ -256,6 +282,7 @@ table 5992 "Service Invoice Header"
         field(47; "No. Printed"; Integer)
         {
             Caption = 'No. Printed';
+            ToolTip = 'Specifies how many times the document has been printed.';
             Editable = false;
         }
         field(52; "Applies-to Doc. Type"; Enum "Gen. Journal Document Type")
@@ -288,6 +315,7 @@ table 5992 "Service Invoice Header"
             AutoFormatType = 1;
             CalcFormula = sum("Service Invoice Line".Amount where("Document No." = field("No.")));
             Caption = 'Amount';
+            ToolTip = 'Specifies the total invoice amount excluding VAT.';
             Editable = false;
             FieldClass = FlowField;
         }
@@ -297,6 +325,7 @@ table 5992 "Service Invoice Header"
             AutoFormatType = 1;
             CalcFormula = sum("Service Invoice Line"."Amount Including VAT" where("Document No." = field("No.")));
             Caption = 'Amount Including VAT';
+            ToolTip = 'Specifies the total invoice amount including VAT.';
             Editable = false;
             FieldClass = FlowField;
         }
@@ -337,6 +366,7 @@ table 5992 "Service Invoice Header"
         field(75; "EU 3-Party Trade"; Boolean)
         {
             Caption = 'EU 3-Party Trade';
+            ToolTip = 'Specifies if the transaction is related to trade with a third party within the EU.';
         }
         field(76; "Transaction Type"; Code[10])
         {
@@ -356,6 +386,7 @@ table 5992 "Service Invoice Header"
         field(79; Name; Text[100])
         {
             Caption = 'Name';
+            ToolTip = 'Specifies the name of the customer on the service invoice.';
         }
         field(80; "Name 2"; Text[50])
         {
@@ -365,24 +396,29 @@ table 5992 "Service Invoice Header"
         field(81; Address; Text[100])
         {
             Caption = 'Address';
+            ToolTip = 'Specifies the address of the customer on the invoice.';
         }
         field(82; "Address 2"; Text[50])
         {
             Caption = 'Address 2';
+            ToolTip = 'Specifies additional address information.';
         }
         field(83; City; Text[30])
         {
             Caption = 'City';
+            ToolTip = 'Specifies the city of the address.';
             TableRelation = "Post Code".City;
             ValidateTableRelation = false;
         }
         field(84; "Contact Name"; Text[100])
         {
             Caption = 'Contact Name';
+            ToolTip = 'Specifies the name of the contact person at the customer company.';
         }
         field(85; "Bill-to Post Code"; Code[20])
         {
             Caption = 'Bill-to Post Code';
+            ToolTip = 'Specifies the postal code of the customer''s billing address.';
             TableRelation = "Post Code";
             ValidateTableRelation = false;
         }
@@ -390,15 +426,18 @@ table 5992 "Service Invoice Header"
         {
             CaptionClass = '5,3,' + "Bill-to Country/Region Code";
             Caption = 'Bill-to County';
+            ToolTip = 'Specifies the county in the customer''s address.';
         }
         field(87; "Bill-to Country/Region Code"; Code[10])
         {
             Caption = 'Bill-to Country/Region Code';
+            ToolTip = 'Specifies the country/region code of the customer''s billing address.';
             TableRelation = "Country/Region";
         }
         field(88; "Post Code"; Code[20])
         {
             Caption = 'Post Code';
+            ToolTip = 'Specifies the postal code.';
             TableRelation = "Post Code";
             ValidateTableRelation = false;
         }
@@ -406,15 +445,18 @@ table 5992 "Service Invoice Header"
         {
             CaptionClass = '5,1,' + "Country/Region Code";
             Caption = 'County';
+            ToolTip = 'Specifies the county in the customer''s address.';
         }
         field(90; "Country/Region Code"; Code[10])
         {
             Caption = 'Country/Region Code';
+            ToolTip = 'Specifies the country/region of the address.';
             TableRelation = "Country/Region";
         }
         field(91; "Ship-to Post Code"; Code[20])
         {
             Caption = 'Ship-to Post Code';
+            ToolTip = 'Specifies the postal code of the address that the items are shipped to.';
             TableRelation = "Post Code";
             ValidateTableRelation = false;
         }
@@ -422,10 +464,12 @@ table 5992 "Service Invoice Header"
         {
             CaptionClass = '5,4,' + "Ship-to Country/Region Code";
             Caption = 'Ship-to County';
+            ToolTip = 'Specifies the county in the customer''s address.';
         }
         field(93; "Ship-to Country/Region Code"; Code[10])
         {
             Caption = 'Ship-to Country/Region Code';
+            ToolTip = 'Specifies the country/region in the customer''s address.';
             TableRelation = "Country/Region";
         }
         field(94; "Bal. Account Type"; enum "Payment Balance Account Type")
@@ -444,10 +488,18 @@ table 5992 "Service Invoice Header"
         field(99; "Document Date"; Date)
         {
             Caption = 'Document Date';
+            ToolTip = 'Specifies the date when the related document was created.';
         }
-        field(10606; "External Document No."; Code[35])
+#if not CLEAN28
+#pragma warning disable AS0136
+#endif
+        field(100; "External Document No."; Code[35])
+#if not CLEAN28
+#pragma warning restore AS0136
+#endif
         {
             Caption = 'External Document No.';
+            ToolTip = 'Specifies the external document number that is entered on the service header that this line was posted from.';
         }
         field(101; "Area"; Code[10])
         {
@@ -462,11 +514,13 @@ table 5992 "Service Invoice Header"
         field(104; "Payment Method Code"; Code[10])
         {
             Caption = 'Payment Method Code';
+            ToolTip = 'Specifies how the customer must pay for products on the service document, such as with bank transfer, cash, or check.';
             TableRelation = "Payment Method";
         }
         field(105; "Shipping Agent Code"; Code[10])
         {
             Caption = 'Shipping Agent Code';
+            ToolTip = 'Specifies which shipping agent is used to transport the items on the service document to the customer.';
             TableRelation = "Shipping Agent";
         }
         field(107; "Pre-Assigned No. Series"; Code[20])
@@ -493,6 +547,7 @@ table 5992 "Service Invoice Header"
         field(111; "Pre-Assigned No."; Code[20])
         {
             Caption = 'Pre-Assigned No.';
+            ToolTip = 'Specifies the number of the service document from which the posted invoice was created.';
         }
         field(112; "User ID"; Code[50])
         {
@@ -508,11 +563,13 @@ table 5992 "Service Invoice Header"
         field(114; "Tax Area Code"; Code[20])
         {
             Caption = 'Tax Area Code';
+            ToolTip = 'Specifies the code of the tax area where the customer is located.';
             TableRelation = "Tax Area";
         }
         field(115; "Tax Liable"; Boolean)
         {
             Caption = 'Tax Liable';
+            ToolTip = 'Specifies if the customer is liable for sales tax.';
         }
         field(116; "VAT Bus. Posting Group"; Code[20])
         {
@@ -530,16 +587,19 @@ table 5992 "Service Invoice Header"
         field(129; "Company Bank Account Code"; Code[20])
         {
             Caption = 'Company Bank Account Code';
+            ToolTip = 'Specifies the bank account to use for bank information when the document is printed.';
             TableRelation = "Bank Account" where("Currency Code" = field("Currency Code"));
         }
         field(131; "VAT Reporting Date"; Date)
         {
             Caption = 'VAT Date';
+            ToolTip = 'Specifies the VAT date on the invoice.';
             Editable = false;
         }
         field(180; "Payment Reference"; Code[50])
         {
             Caption = 'Payment Reference';
+            ToolTip = 'Specifies the payment of the service invoice.';
         }
         field(200; "Work Description"; BLOB)
         {
@@ -564,6 +624,7 @@ table 5992 "Service Invoice Header"
         field(711; "Document Exchange Status"; Enum "Service Document Exchange Status")
         {
             Caption = 'Document Exchange Status';
+            ToolTip = 'Specifies the status of the document if you are using a document exchange service to send it as an electronic document. The status values are reported by the document exchange service.';
         }
         field(712; "Doc. Exch. Original Identifier"; Text[50])
         {
@@ -578,21 +639,25 @@ table 5992 "Service Invoice Header"
         field(5052; "Contact No."; Code[20])
         {
             Caption = 'Contact No.';
+            ToolTip = 'Specifies the number of the contact at the customer to whom you shipped the service.';
             TableRelation = Contact;
         }
         field(5053; "Bill-to Contact No."; Code[20])
         {
             Caption = 'Bill-to Contact No.';
+            ToolTip = 'Specifies the number of the contact person at the customer''s billing address.';
             TableRelation = Contact;
         }
         field(5700; "Responsibility Center"; Code[10])
         {
             Caption = 'Responsibility Center';
+            ToolTip = 'Specifies the code of the responsibility center, such as a distribution hub, that is associated with the involved user, company, customer, or vendor.';
             TableRelation = "Responsibility Center";
         }
         field(5794; "Shipping Agent Service Code"; Code[10])
         {
             Caption = 'Shipping Agent Service Code';
+            ToolTip = 'Specifies which shipping agent service is used to transport the items on the service document to the customer.';
             TableRelation = "Shipping Agent Services".Code where("Shipping Agent Code" = field("Shipping Agent Code"));
         }
         field(5902; Description; Text[100])
@@ -822,6 +887,7 @@ table 5992 "Service Invoice Header"
         field(5958; "Ship-to Phone"; Text[30])
         {
             Caption = 'Ship-to Phone';
+            ToolTip = 'Specifies the telephone number of the company''s shipping address.';
             ExtendedDatatype = PhoneNo;
         }
         field(5959; "Ship-to Phone 2"; Text[30])
@@ -856,6 +922,7 @@ table 5992 "Service Invoice Header"
         field(9001; "Quote No."; Code[20])
         {
             Caption = 'Quote No.';
+            ToolTip = 'Specifies the number of the service quote document if a quote was used to start the service process.';
         }
     }
 

@@ -22,7 +22,6 @@ page 425 "Vendor Bank Account Card"
                 field("Code"; Rec.Code)
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies a code to identify this vendor bank account.';
                 }
                 field("Payment Form"; Rec."Payment Form")
                 {
@@ -40,7 +39,6 @@ page 425 "Vendor Bank Account Card"
                 {
                     ApplicationArea = Basic, Suite;
                     Enabled = NameEnable;
-                    ToolTip = 'Specifies the name of the bank where the vendor has this bank account.';
 
                     trigger OnValidate()
                     begin
@@ -51,7 +49,6 @@ page 425 "Vendor Bank Account Card"
                 {
                     ApplicationArea = Basic, Suite;
                     Enabled = AddressEnable;
-                    ToolTip = 'Specifies the address of the bank where the vendor has the bank account.';
 
                     trigger OnValidate()
                     begin
@@ -62,7 +59,6 @@ page 425 "Vendor Bank Account Card"
                 {
                     ApplicationArea = Basic, Suite;
                     Enabled = Address2Enable;
-                    ToolTip = 'Specifies additional address information.';
                 }
                 field("Post Code"; Rec."Post Code")
                 {
@@ -79,7 +75,6 @@ page 425 "Vendor Bank Account Card"
                 {
                     ApplicationArea = Basic, Suite;
                     Enabled = CountryRegionCodeEnable;
-                    ToolTip = 'Specifies the country/region of the address.';
 
                     trigger OnValidate()
                     begin
@@ -94,20 +89,17 @@ page 425 "Vendor Bank Account Card"
                     field(County; Rec.County)
                     {
                         ApplicationArea = Basic, Suite;
-                        ToolTip = 'Specifies the state, province or county as a part of the address.';
                     }
                 }
                 field("Phone No."; Rec."Phone No.")
                 {
                     ApplicationArea = Basic, Suite;
                     Enabled = PhoneNoEnable;
-                    ToolTip = 'Specifies the telephone number of the bank where the vendor has the bank account.';
                 }
                 field(Contact; Rec.Contact)
                 {
                     ApplicationArea = Basic, Suite;
                     Enabled = ContactEnable;
-                    ToolTip = 'Specifies the name of the bank employee regularly contacted in connection with this bank account.';
                 }
                 field(City; Rec.City)
                 {
@@ -122,14 +114,12 @@ page 425 "Vendor Bank Account Card"
                 field("Bank Branch No."; Rec."Bank Branch No.")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the number of the bank branch.';
                     MaskType = Concealed;
                 }
                 field("Bank Account No."; Rec."Bank Account No.")
                 {
                     ApplicationArea = Basic, Suite;
                     Enabled = BankAccountNoEnable;
-                    ToolTip = 'Specifies the number used by the bank for the bank account.';
                     MaskType = Concealed;
 
                     trigger OnValidate()
@@ -140,7 +130,6 @@ page 425 "Vendor Bank Account Card"
                 field("Transit No."; Rec."Transit No.")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies a bank identification number of your own choice.';
                     MaskType = Concealed;
                 }
                 field("Fax No."; Rec."Fax No.")
@@ -155,13 +144,11 @@ page 425 "Vendor Bank Account Card"
                     ApplicationArea = Basic, Suite;
                     Enabled = EMailEnable;
                     ExtendedDatatype = EMail;
-                    ToolTip = 'Specifies the email address associated with the bank account.';
                 }
                 field("Home Page"; Rec."Home Page")
                 {
                     ApplicationArea = Basic, Suite;
                     Enabled = HomePageEnable;
-                    ToolTip = 'Specifies the bank web site.';
                 }
             }
             group(Transfer)
@@ -183,7 +170,6 @@ page 425 "Vendor Bank Account Card"
                 {
                     ApplicationArea = Basic, Suite;
                     Enabled = SWIFTCodeEnable;
-                    ToolTip = 'Specifies the SWIFT code (international bank identifier code) of the bank where the vendor has the account.';
                     MaskType = Concealed;
 
                     trigger OnValidate()
@@ -262,7 +248,6 @@ page 425 "Vendor Bank Account Card"
                 {
                     ApplicationArea = Basic, Suite;
                     Enabled = IBANEnable;
-                    ToolTip = 'Specifies the bank account''s international bank account number.';
                     MaskType = Concealed;
 
                     trigger OnValidate()
@@ -288,12 +273,10 @@ page 425 "Vendor Bank Account Card"
                 field("Bank Clearing Standard"; Rec."Bank Clearing Standard")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the format standard to be used in bank transfers if you use the Bank Clearing Code field to identify you as the sender.';
                 }
                 field("Bank Clearing Code"; Rec."Bank Clearing Code")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the code for bank clearing that is required according to the format standard you selected in the Bank Clearing Standard field.';
                 }
                 field(SuggestedSwissPaymentType; SuggestedSwissPaymentType)
                 {

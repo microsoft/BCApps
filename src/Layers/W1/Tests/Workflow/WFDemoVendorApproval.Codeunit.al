@@ -26,6 +26,7 @@ codeunit 134211 "WF Demo Vendor Approval"
         LibraryJobQueue: Codeunit "Library - Job Queue";
         IsInitialized: Boolean;
         WorkflowStepInstanceExistsErr: Label 'There are not completed Workflow Step Instances';
+        ApprovalEntryNotFoundErr: Label 'Approval Entry should exist when Vendor approval is requested.';
 
     [Test]
     [HandlerFunctions('MessageHandler')]
@@ -519,6 +520,43 @@ codeunit 134211 "WF Demo Vendor Approval"
         VerifyApprovalEntry(ApprovalEntry, ApprovalEntry.Status::Open, Vendor);
     end;
 
+    [Test]
+    [HandlerFunctions('MessageHandler,ApprovalEntriesPageHandler')]
+    [Scope('OnPrem')]
+    procedure TestChangeInApprovalEntriesVisibleInVendorApprovalsPage()
+    var
+        Vendor: Record Vendor;
+        Workflow: Record Workflow;
+        CurrentUserSetup: Record "User Setup";
+        ApproverUserSetup: Record "User Setup";
+        ApprovalsMgmt: Codeunit "Approvals Mgmt.";
+        VendorCard: TestPage "Vendor Card";
+    begin
+        // [SCENARIO 7] A user can delegate a Vendor approval.
+        // [GIVEN] A Vendor Approval.
+        // [WHEN] The user delegates a request for Vendor approval.
+        // [THEN] The Vendor gets assigned to the substitute.
+        Initialize();
+
+        // Setup
+        LibraryDocumentApprovals.CreateOrFindUserSetup(CurrentUserSetup, UserId);
+        LibraryDocumentApprovals.CreateMockupUserSetup(ApproverUserSetup);
+        LibraryDocumentApprovals.SetApprover(CurrentUserSetup, ApproverUserSetup);
+        LibraryDocumentApprovals.SetSubstitute(CurrentUserSetup, ApproverUserSetup);
+
+        LibraryWorkflow.CreateEnabledWorkflow(Workflow, WorkflowSetup.VendorWorkflowCode());
+        LibraryPurchase.CreateVendor(Vendor);
+
+        VendorCard.OpenEdit();
+        VendorCard.GotoRecord(Vendor);
+        VendorCard.SendApprovalRequest.Invoke();
+        VendorCard.Close();
+
+        LibraryDocumentApprovals.UpdateApprovalEntryWithCurrUser(Vendor.RecordId);
+
+        ApprovalsMgmt.OpenApprovalEntriesPage(Vendor.RecordId);
+    end;
+
     [MessageHandler]
     [Scope('OnPrem')]
     procedure MessageHandler(Message: Text[1024])
@@ -622,6 +660,12 @@ codeunit 134211 "WF Demo Vendor Approval"
     begin
         WorkflowStepInstance.SetRange("Workflow Code", WorkflowCode);
         Assert.AreEqual(0, WorkflowStepInstance.Count, WorkflowStepInstanceExistsErr);
+    end;
+
+    [ModalPageHandler]
+    procedure ApprovalEntriesPageHandler(var ApprovalEntries: TestPage "Approval Entries")
+    begin
+        Assert.IsTrue(ApprovalEntries.First(), ApprovalEntryNotFoundErr);
     end;
 }
 

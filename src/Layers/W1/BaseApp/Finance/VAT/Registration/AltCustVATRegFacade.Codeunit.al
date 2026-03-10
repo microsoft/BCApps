@@ -6,6 +6,7 @@ namespace Microsoft.Finance.VAT.Registration;
 
 using Microsoft.Sales.Customer;
 using Microsoft.Sales.Document;
+using System.Diagnostics;
 
 /// <summary>
 /// Facade for alternative customer VAT registration functionality in sales documents.
@@ -147,6 +148,66 @@ codeunit 200 "Alt. Cust. VAT. Reg. Facade"
     end;
 
     /// <summary>
+    /// Copies the alternative customer VAT registration data to the sales header.
+    /// </summary>
+    procedure CopyAltCustVATRegToSalesHeader(var SalesHeader: Record "Sales Header"; AltCustVATReg: Record "Alt. Cust. VAT Reg.")
+    begin
+        if AltCustVATReg."VAT Registration No." <> '' then begin
+            SalesHeader.Validate("Alt. VAT Registration No.", true);
+            SalesHeader.Validate("VAT Registration No.", AltCustVATReg."VAT Registration No.");
+        end;
+        if AltCustVATReg."Gen. Bus. Posting Group" <> '' then begin
+            SalesHeader.Validate("Alt. Gen. Bus Posting Group", true);
+            SalesHeader.Validate("Gen. Bus. Posting Group", AltCustVATReg."Gen. Bus. Posting Group");
+        end;
+        if AltCustVATReg."VAT Bus. Posting Group" <> '' then begin
+            SalesHeader.Validate("Alt. VAT Bus Posting Group", true);
+            SalesHeader.Validate("VAT Bus. Posting Group", AltCustVATReg."VAT Bus. Posting Group");
+        end;
+        OnAfterCopyAltCustVATRegToSalesHeader(SalesHeader, AltCustVATReg);
+    end;
+
+    /// <summary>
+    /// Adds a record to the temporary change log entry if values of alternative customer VAT registration fields have changed.
+    /// </summary>
+    procedure AddTempChangeLogEntryForAltCustVATRegChanges(var TempChangeLogEntry: Record "Change Log Entry" temporary; SalesHeader: Record "Sales Header"; AltCustVATReg: Record "Alt. Cust. VAT Reg.")
+    begin
+        if (AltCustVATReg."VAT Registration No." <> '') and (SalesHeader."VAT Registration No." <> AltCustVATReg."VAT Registration No.") then
+            AddFieldChangeBuffer(TempChangeLogEntry, SalesHeader.FieldNo("VAT Registration No."), SalesHeader."VAT Registration No.", AltCustVATReg."VAT Registration No.");
+        if (AltCustVATReg."Gen. Bus. Posting Group" <> '') and (SalesHeader."Gen. Bus. Posting Group" <> AltCustVATReg."Gen. Bus. Posting Group") then
+            AddFieldChangeBuffer(TempChangeLogEntry, SalesHeader.FieldNo("Gen. Bus. Posting Group"), SalesHeader."Gen. Bus. Posting Group", AltCustVATReg."Gen. Bus. Posting Group");
+        if (AltCustVATReg."VAT Bus. Posting Group" <> '') and (SalesHeader."VAT Bus. Posting Group" <> AltCustVATReg."VAT Bus. Posting Group") then
+            AddFieldChangeBuffer(TempChangeLogEntry, SalesHeader.FieldNo("VAT Bus. Posting Group"), SalesHeader."VAT Bus. Posting Group", AltCustVATReg."VAT Bus. Posting Group");
+        OnAfterAddTempChangeLogEntryForAltCustVATRegChanges(TempChangeLogEntry, SalesHeader);
+    end;
+
+    /// <summary>
+    /// Copies the bill-to customer data to sales header.
+    /// </summary>
+    procedure CopyBillToCustomerToSalesHeader(var SalesHeader: Record "Sales Header"; BillToCustomer: Record Customer)
+    begin
+        if (SalesHeader."VAT Bus. Posting Group" <> '') and (SalesHeader."VAT Bus. Posting Group" <> BillToCustomer."VAT Bus. Posting Group") then
+            SalesHeader.Validate("VAT Bus. Posting Group", BillToCustomer."VAT Bus. Posting Group")
+        else
+            SalesHeader."VAT Bus. Posting Group" := BillToCustomer."VAT Bus. Posting Group";
+        SalesHeader."VAT Country/Region Code" := BillToCustomer."Country/Region Code";
+        SalesHeader."VAT Registration No." := BillToCustomer."VAT Registration No.";
+        SalesHeader."Registration Number" := BillToCustomer."Registration Number";
+        SalesHeader."Gen. Bus. Posting Group" := BillToCustomer."Gen. Bus. Posting Group";
+        OnAfterCopyBillToCustomerToSalesHeader(SalesHeader, BillToCustomer);
+    end;
+
+    local procedure AddFieldChangeBuffer(var TempChangeLogEntry: Record "Change Log Entry" temporary; DocFieldNo: Integer; OldValue: Text[2048]; NewValue: Text[2048])
+    begin
+        TempChangeLogEntry."Entry No." += 1;
+        TempChangeLogEntry."Table No." := Database::"Sales Header";
+        TempChangeLogEntry."Field No." := DocFieldNo;
+        TempChangeLogEntry."Old Value" := OldValue;
+        TempChangeLogEntry."New Value" := NewValue;
+        TempChangeLogEntry.Insert();
+    end;
+
+    /// <summary>
     /// Integration event raised before determining whether to update customer VAT registration number from sales header.
     /// </summary>
     /// <param name="SalesHeader">Sales header containing VAT registration information</param>
@@ -167,6 +228,30 @@ codeunit 200 "Alt. Cust. VAT. Reg. Facade"
     /// <param name="IsHandled">Set to true to skip standard logic</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeVATDataIsChangedOnShipToCodeValidation(var SalesHeader: Record "Sales Header"; var xSalesHeader: Record "Sales Header"; var Changed: Boolean; var IsHandled: Boolean)
+    begin
+    end;
+
+    /// <summary>
+    /// Integration event raised after copying alternative customer VAT registration data to sales header.
+    /// </summary>
+    [IntegrationEvent(false, false)]
+    local procedure OnAfterCopyAltCustVATRegToSalesHeader(var SalesHeader: Record "Sales Header"; var AltCustVATReg: Record "Alt. Cust. VAT Reg.")
+    begin
+    end;
+
+    /// <summary>
+    /// Integration event raised after adding temporary change log entries for alternative customer VAT registration changes.
+    /// </summary>
+    [IntegrationEvent(false, false)]
+    local procedure OnAfterAddTempChangeLogEntryForAltCustVATRegChanges(var TempChangeLogEntry: Record "Change Log Entry" temporary; SalesHeader: Record "Sales Header");
+    begin
+    end;
+
+    /// <summary>
+    /// Integration event raised after copying bill-to customer data to sales header.
+    /// </summary>
+    [IntegrationEvent(false, false)]
+    local procedure OnAfterCopyBillToCustomerToSalesHeader(var SalesHeader: Record "Sales Header"; Customer: Record Customer)
     begin
     end;
 }

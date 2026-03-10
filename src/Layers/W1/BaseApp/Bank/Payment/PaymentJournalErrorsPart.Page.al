@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -29,7 +29,6 @@ page 1228 "Payment Journal Errors Part"
                 {
                     ApplicationArea = Basic, Suite;
                     DrillDown = true;
-                    ToolTip = 'Specifies the error that is shown in the Payment Journal window in case payment lines cannot be exported.';
 
                     trigger OnDrillDown()
                     begin

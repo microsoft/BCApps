@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -22,7 +22,6 @@ page 5092 "Segment Subform"
                 field("Contact No."; Rec."Contact No.")
                 {
                     ApplicationArea = All;
-                    ToolTip = 'Specifies the number of the contact to which this segment line applies.';
 
                     trigger OnValidate()
                     begin
@@ -32,41 +31,34 @@ page 5092 "Segment Subform"
                 field("Correspondence Type"; Rec."Correspondence Type")
                 {
                     ApplicationArea = RelationshipMgmt;
-                    ToolTip = 'Specifies the type of correspondence for the interaction. NOTE: If you use the Web client, you must not select the Hard Copy option because printing is not possible from the web client.';
                 }
                 field("Send Word Doc. As Attmt."; Rec."Send Word Doc. As Attmt.")
                 {
                     ApplicationArea = RelationshipMgmt;
-                    ToolTip = 'Specifies that the Microsoft Word document that is linked to that segment line should be sent as an attachment in the e-mail message.';
                     Visible = false;
                 }
                 field("Contact Alt. Address Code"; Rec."Contact Alt. Address Code")
                 {
                     ApplicationArea = RelationshipMgmt;
-                    ToolTip = 'Specifies the code of the contact''s alternate address to use for this interaction.';
                     Visible = false;
                 }
                 field("Contact Company Name"; Rec."Contact Company Name")
                 {
                     ApplicationArea = RelationshipMgmt;
                     DrillDown = false;
-                    ToolTip = 'Specifies the name of the company for which the contact works. If the contact is a company, this field contains the company''s name.';
                 }
                 field("Contact Name"; Rec."Contact Name")
                 {
                     ApplicationArea = RelationshipMgmt;
                     DrillDown = false;
-                    ToolTip = 'Specifies the name of the contact to which the segment line applies. The program automatically fills in this field when you fill in the Contact No. field on the line.';
                 }
                 field(Description; Rec.Description)
                 {
                     ApplicationArea = All;
-                    ToolTip = 'Specifies the description of the segment line.';
                 }
                 field("Salesperson Code"; Rec."Salesperson Code")
                 {
                     ApplicationArea = Suite, RelationshipMgmt;
-                    ToolTip = 'Specifies the code of the salesperson responsible for this segment line and/or interaction.';
                 }
                 field("Interaction Template Code"; Rec."Interaction Template Code")
                 {
@@ -76,7 +68,6 @@ page 5092 "Segment Subform"
                 field("Language Code"; Rec."Language Code")
                 {
                     ApplicationArea = RelationshipMgmt;
-                    ToolTip = 'Specifies the language that is used when translating specified text on documents to foreign business partner, such as an item description on an order confirmation.';
 
                     trigger OnValidate()
                     begin
@@ -86,12 +77,10 @@ page 5092 "Segment Subform"
                 field(Subject; Rec.Subject)
                 {
                     ApplicationArea = RelationshipMgmt;
-                    ToolTip = 'Specifies the subject of the segment line. The text in the field is used as the subject in e-mails and Word documents.';
                 }
                 field(Evaluation; Rec.Evaluation)
                 {
                     ApplicationArea = RelationshipMgmt;
-                    ToolTip = 'Specifies the evaluation of the interaction involving the contact in the segment.';
                 }
                 field("Cost (LCY)"; Rec."Cost (LCY)")
                 {
@@ -106,31 +95,26 @@ page 5092 "Segment Subform"
                 field("Initiated By"; Rec."Initiated By")
                 {
                     ApplicationArea = RelationshipMgmt;
-                    ToolTip = 'Specifies whether the interaction recorded for this segment line was initiated by your company or by one of your contacts. The Us option indicates that your company was the initiator; the Them option indicates that a contact was the initiator.';
                     Visible = false;
                 }
                 field("Information Flow"; Rec."Information Flow")
                 {
                     ApplicationArea = RelationshipMgmt;
-                    ToolTip = 'Specifies the direction of the information that is part of the interaction created for this segment line. There are two options: Inbound and Outbound.';
                     Visible = false;
                 }
                 field("Campaign No."; Rec."Campaign No.")
                 {
                     ApplicationArea = RelationshipMgmt;
-                    ToolTip = 'Specifies the number of the campaign for which the segment line has been created.';
                     Visible = false;
                 }
                 field("Campaign Target"; Rec."Campaign Target")
                 {
                     ApplicationArea = RelationshipMgmt;
-                    ToolTip = 'Specifies that the segment involved in this interaction is the target of a campaign. This is used to measure the response rate of a campaign.';
                     Visible = false;
                 }
                 field("Campaign Response"; Rec."Campaign Response")
                 {
                     ApplicationArea = RelationshipMgmt;
-                    ToolTip = 'Specifies that the interaction created for the segment is the response to a campaign. For example, coupons that are sent as a response to a campaign.';
                     Visible = false;
                 }
                 field(AttachmentText; Rec.AttachmentText())
@@ -152,7 +136,6 @@ page 5092 "Segment Subform"
                 {
                     ApplicationArea = RelationshipMgmt;
                     Caption = 'Word Template Code';
-                    ToolTip = 'Specifies the Word Template code to use for merging.';
                 }
 
                 field("Contact Via"; Rec."Contact Via")
@@ -165,37 +148,31 @@ page 5092 "Segment Subform"
                 {
                     ApplicationArea = RelationshipMgmt;
                     DrillDown = false;
-                    ToolTip = 'Specifies the telephone number of the contact to whom the segment line applies. The number will be filled in for you if you choose a contact in the Contact No. field on the line.';
                 }
                 field("Contact Mobile Phone No."; Rec."Contact Mobile Phone No.")
                 {
                     ApplicationArea = RelationshipMgmt;
                     DrillDown = false;
-                    ToolTip = 'Specifies the mobile telephone number of the contact to whom the segment line applies. The number will be filled in for you if you choose a contact in the Contact No. field on the line.';
                 }
                 field("Contact E-Mail"; Rec."Contact Email")
                 {
                     ApplicationArea = RelationshipMgmt;
                     DrillDown = false;
-                    ToolTip = 'Specifies the email address of the contact to whom the segment line applies. The address will be filled in for you if you choose a contact in the Contact No. field on the line.';
                 }
                 field("Line No."; Rec."Line No.")
                 {
                     ApplicationArea = RelationshipMgmt;
                     Visible = false;
-                    ToolTip = 'Specifies the line number of the contact to whom the segment line applies.';
                 }
                 field("Segment No."; Rec."Segment No.")
                 {
                     ApplicationArea = RelationshipMgmt;
                     Visible = false;
-                    ToolTip = 'Specifies the segment number of the contact to whom the segment line applies.';
                 }
                 field(Date; Rec.Date)
                 {
                     ApplicationArea = RelationshipMgmt;
                     Visible = false;
-                    ToolTip = 'Specifies the date of the contact to whom the segment line applies.';
                 }
                 field("Time of Interaction"; Rec."Time of Interaction")
                 {
@@ -207,67 +184,56 @@ page 5092 "Segment Subform"
                 {
                     ApplicationArea = RelationshipMgmt;
                     Visible = false;
-                    ToolTip = 'Specifies the attempt failed of the contact to whom the segment line applies.';
                 }
                 field("To-do No."; Rec."To-do No.")
                 {
                     ApplicationArea = RelationshipMgmt;
                     Visible = false;
-                    ToolTip = 'Specifies the To-do number of the contact to whom the segment line applies.';
                 }
                 field("Contact Company No."; Rec."Contact Company No.")
                 {
                     ApplicationArea = RelationshipMgmt;
                     Visible = false;
-                    ToolTip = 'Specifies the contact company number of the contact to whom the segment line applies.';
                 }
                 field("Campaign Entry No."; Rec."Campaign Entry No.")
                 {
                     ApplicationArea = RelationshipMgmt;
                     Visible = false;
-                    ToolTip = 'Specifies the campaign entry number of the contact to whom the segment line applies.';
                 }
                 field("Interaction Group Code"; Rec."Interaction Group Code")
                 {
                     ApplicationArea = RelationshipMgmt;
                     Visible = false;
-                    ToolTip = 'Specifies the interaction group code of the contact to whom the segment line applies.';
                 }
                 field("Document Type"; Rec."Document Type")
                 {
                     ApplicationArea = RelationshipMgmt;
                     Visible = false;
-                    ToolTip = 'Specifies the document type of the contact to whom the segment line applies.';
                 }
                 field("Document No."; Rec."Document No.")
                 {
                     ApplicationArea = RelationshipMgmt;
                     Visible = false;
-                    ToolTip = 'Specifies the document number of the contact to whom the segment line applies.';
                 }
                 field("Version No."; Rec."Version No.")
                 {
                     ApplicationArea = RelationshipMgmt;
                     Visible = false;
-                    ToolTip = 'Specifies the version number of the contact to whom the segment line applies.';
                 }
                 field("Opportunity No."; Rec."Opportunity No.")
                 {
                     ApplicationArea = RelationshipMgmt;
                     Visible = false;
-                    ToolTip = 'Specifies the opportunity number of the contact to whom the segment line applies.';
                 }
                 field("Wizard Step"; Rec."Wizard Step")
                 {
                     ApplicationArea = RelationshipMgmt;
                     Visible = false;
-                    ToolTip = 'Specifies the wizard step of the contact to whom the segment line applies.';
                 }
                 field("Wizard Contact Name"; Rec."Wizard Contact Name")
                 {
                     ApplicationArea = RelationshipMgmt;
                     Visible = false;
-                    ToolTip = 'Specifies the wizard contact name of the contact to whom the segment line applies.';
                 }
                 field("Opportunity Description"; Rec."Opportunity Description")
                 {
@@ -279,7 +245,6 @@ page 5092 "Segment Subform"
                 {
                     ApplicationArea = RelationshipMgmt;
                     Visible = false;
-                    ToolTip = 'Specifies the campaign description of the contact to whom the segment line applies.';
                 }
                 field("Interaction Successful"; Rec."Interaction Successful")
                 {
@@ -291,13 +256,11 @@ page 5092 "Segment Subform"
                 {
                     ApplicationArea = RelationshipMgmt;
                     Visible = false;
-                    ToolTip = 'Specifies the dial contact of the contact to whom the segment line applies.';
                 }
                 field("Mail Contact"; Rec."Mail Contact")
                 {
                     ApplicationArea = RelationshipMgmt;
                     Visible = false;
-                    ToolTip = 'Specifies the mail contact of the contact to whom the segment line applies.';
                 }
 
             }

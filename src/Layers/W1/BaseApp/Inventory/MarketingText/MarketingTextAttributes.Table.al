@@ -13,16 +13,19 @@ table 5834 "Marketing Text Attributes"
     {
         field(1; Selected; Boolean)
         {
+            ToolTip = 'Specifies if the attribute should be used to generate the marketing text.';
             DataClassification = SystemMetadata;
         }
 
         field(2; Property; Text[2048])
         {
+            ToolTip = 'Specifies the name of the attribute.';
             DataClassification = CustomerContent;
         }
 
         field(3; Value; Text[2048])
         {
+            ToolTip = 'Specifies the value of the attribute.';
             DataClassification = CustomerContent;
         }
     }

@@ -11,7 +11,7 @@ using Microsoft.Service.Document;
 codeunit 6466 "Serv. Page Management"
 {
 
-    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Page Management", 'OnConditionalCardPageIDNotFound', '', false, false)]
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Page Management", 'OnConditionalCardPageIDNotFound', '', true, false)]
     local procedure OnConditionalCardPageIDNotFound(RecordRef: RecordRef; var CardPageID: Integer);
     begin
         case RecordRef.Number of

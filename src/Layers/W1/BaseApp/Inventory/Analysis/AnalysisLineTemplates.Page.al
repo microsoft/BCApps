@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -21,23 +21,19 @@ page 7112 "Analysis Line Templates"
                 field(Name; Rec.Name)
                 {
                     ApplicationArea = SalesAnalysis, PurchaseAnalysis;
-                    ToolTip = 'Specifies the name of the analysis line template.';
                 }
                 field(Description; Rec.Description)
                 {
                     ApplicationArea = SalesAnalysis, PurchaseAnalysis;
-                    ToolTip = 'Specifies a description of the analysis line template.';
                 }
                 field("Default Column Template Name"; Rec."Default Column Template Name")
                 {
                     ApplicationArea = SalesAnalysis, PurchaseAnalysis;
-                    ToolTip = 'Specifies the column template name that you have set up for this analysis report.';
                     Visible = false;
                 }
                 field("Item Analysis View Code"; Rec."Item Analysis View Code")
                 {
                     ApplicationArea = SalesAnalysis, PurchaseAnalysis;
-                    ToolTip = 'Specifies the name of the analysis view that the analysis report is based on.';
 
                     trigger OnLookup(var Text: Text): Boolean
                     var

@@ -346,6 +346,8 @@ permissionset 208 "D365 Basic - Edit"
                   tabledata "Error Message Register" = IMD,
                   tabledata "Excel Buffer" = IMD,
                   tabledata "Excel Template Storage" = IMD,
+                  tabledata "Contact Sync User" = IMD,
+                  tabledata "Outlook Contacts" = IMD,
 #if not CLEAN28
                   tabledata "Exchange Contact" = IMD,
 #endif

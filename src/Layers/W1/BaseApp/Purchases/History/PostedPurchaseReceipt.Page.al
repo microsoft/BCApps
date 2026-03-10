@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -29,7 +29,6 @@ page 136 "Posted Purchase Receipt"
                     ApplicationArea = Suite;
                     Editable = false;
                     Importance = Promoted;
-                    ToolTip = 'Specifies the number of a general ledger account, item, additional cost, or fixed asset, depending on what you selected in the Type field.';
                 }
                 field("Buy-from Vendor No."; Rec."Buy-from Vendor No.")
                 {
@@ -41,7 +40,6 @@ page 136 "Posted Purchase Receipt"
                 {
                     ApplicationArea = Basic, Suite;
                     Editable = false;
-                    ToolTip = 'Specifies the number of the contact person at the vendor who delivered the items.';
                 }
                 field(BuyFromContactPhoneNo; BuyFromContact."Phone No.")
                 {
@@ -78,7 +76,6 @@ page 136 "Posted Purchase Receipt"
                         ApplicationArea = Suite;
                         Caption = 'Name';
                         Editable = false;
-                        ToolTip = 'Specifies the name of the vendor who delivered the items.';
                     }
                     field("Buy-from Vendor Name 2"; Rec."Buy-from Vendor Name 2")
                     {
@@ -93,21 +90,18 @@ page 136 "Posted Purchase Receipt"
                         ApplicationArea = Suite;
                         Caption = 'Address';
                         Editable = false;
-                        ToolTip = 'Specifies the address of the vendor who delivered the items.';
                     }
                     field("Buy-from Address 2"; Rec."Buy-from Address 2")
                     {
                         ApplicationArea = Suite;
                         Caption = 'Address 2';
                         Editable = false;
-                        ToolTip = 'Specifies an additional part of the address of the vendor who delivered the items.';
                     }
                     field("Buy-from City"; Rec."Buy-from City")
                     {
                         ApplicationArea = Suite;
                         Caption = 'City';
                         Editable = false;
-                        ToolTip = 'Specifies the city of the vendor who delivered the items.';
                     }
                     group(Control11)
                     {
@@ -118,7 +112,6 @@ page 136 "Posted Purchase Receipt"
                             ApplicationArea = Suite;
                             CaptionClass = '5,1,' + Rec."Buy-from Country/Region Code";
                             Editable = false;
-                            ToolTip = 'Specifies the state, province or county related to the posted purchase order.';
                         }
                     }
                     field("Buy-from Post Code"; Rec."Buy-from Post Code")
@@ -126,28 +119,24 @@ page 136 "Posted Purchase Receipt"
                         ApplicationArea = Suite;
                         Caption = 'Post Code';
                         Editable = false;
-                        ToolTip = 'Specifies the post code of the vendor who delivered the items.';
                     }
                     field("Buy-from Country/Region Code"; Rec."Buy-from Country/Region Code")
                     {
                         ApplicationArea = Suite;
                         Caption = 'Country/Region';
                         Editable = false;
-                        ToolTip = 'Specifies the country or region of the address.';
                     }
                     field("Buy-from Contact"; Rec."Buy-from Contact")
                     {
                         ApplicationArea = Suite;
                         Caption = 'Contact';
                         Editable = false;
-                        ToolTip = 'Specifies the name of the contact person at the vendor who delivered the items.';
                     }
                 }
                 field("No. Printed"; Rec."No. Printed")
                 {
                     ApplicationArea = Basic, Suite;
                     Editable = false;
-                    ToolTip = 'Specifies how many times the document has been printed.';
                 }
                 field("Posting Date"; Rec."Posting Date")
                 {
@@ -165,54 +154,45 @@ page 136 "Posted Purchase Receipt"
                 field("Requested Receipt Date"; Rec."Requested Receipt Date")
                 {
                     ApplicationArea = Suite;
-                    ToolTip = 'Specifies the date that you want the vendor to deliver to the ship-to address. The value in the field is used to calculate the latest date you can order the items to have them delivered on the requested receipt date. If you do not need delivery on a specific date, you can leave the field blank.';
                 }
                 field("Promised Receipt Date"; Rec."Promised Receipt Date")
                 {
                     ApplicationArea = OrderPromising;
-                    ToolTip = 'Specifies the date that the vendor has promised to deliver the order.';
                 }
                 field("Quote No."; Rec."Quote No.")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the quote number for the posted purchase receipt.';
                 }
                 field("Order No."; Rec."Order No.")
                 {
                     ApplicationArea = Basic, Suite;
                     Editable = false;
-                    ToolTip = 'Specifies the line number of the order that created the entry.';
                 }
                 field("Vendor Order No."; Rec."Vendor Order No.")
                 {
                     ApplicationArea = Suite;
                     Editable = false;
                     Importance = Promoted;
-                    ToolTip = 'Specifies the vendor''s order number.';
                 }
                 field("Vendor Shipment No."; Rec."Vendor Shipment No.")
                 {
                     ApplicationArea = Basic, Suite;
                     Editable = false;
-                    ToolTip = 'Specifies the vendor''s shipment number. It is inserted in the corresponding field on the source document during posting.';
                 }
                 field("Order Address Code"; Rec."Order Address Code")
                 {
                     ApplicationArea = Basic, Suite;
                     Editable = false;
-                    ToolTip = 'Specifies the order address of the related vendor.';
                 }
                 field("Purchaser Code"; Rec."Purchaser Code")
                 {
                     ApplicationArea = Suite;
                     Editable = false;
-                    ToolTip = 'Specifies which purchaser is assigned to the vendor.';
                 }
                 field("Responsibility Center"; Rec."Responsibility Center")
                 {
                     ApplicationArea = Suite;
                     Editable = false;
-                    ToolTip = 'Specifies the responsibility center code that is linked to this posted return receipt.';
                 }
             }
             part(PurchReceiptLines; "Posted Purchase Rcpt. Subform")
@@ -233,7 +213,6 @@ page 136 "Posted Purchase Receipt"
                 {
                     ApplicationArea = Basic, Suite;
                     Editable = false;
-                    ToolTip = 'Specifies the number of the person to contact about an invoice from this vendor.';
                 }
                 field(PayToContactPhoneNo; PayToContact."Phone No.")
                 {
@@ -270,7 +249,6 @@ page 136 "Posted Purchase Receipt"
                         ApplicationArea = Suite;
                         Caption = 'Name';
                         Editable = false;
-                        ToolTip = 'Specifies the name of the vendor who you received the invoice from.';
                     }
                     field("Pay-to Name 2"; Rec."Pay-to Name 2")
                     {
@@ -285,21 +263,18 @@ page 136 "Posted Purchase Receipt"
                         ApplicationArea = Suite;
                         Caption = 'Address';
                         Editable = false;
-                        ToolTip = 'Specifies the address of the vendor that you received the invoice from.';
                     }
                     field("Pay-to Address 2"; Rec."Pay-to Address 2")
                     {
                         ApplicationArea = Suite;
                         Caption = 'Address 2';
                         Editable = false;
-                        ToolTip = 'Specifies an additional part of the address of the vendor that the invoice was received from.';
                     }
                     field("Pay-to City"; Rec."Pay-to City")
                     {
                         ApplicationArea = Suite;
                         Caption = 'City';
                         Editable = false;
-                        ToolTip = 'Specifies the city of the vendor that you received the invoice from.';
                     }
                     group(Control19)
                     {
@@ -310,7 +285,6 @@ page 136 "Posted Purchase Receipt"
                             ApplicationArea = Suite;
                             CaptionClass = '5,1,' + Rec."Pay-to Country/Region Code";
                             Editable = false;
-                            ToolTip = 'Specifies the state, province or county related to the posted purchase order.';
                         }
                     }
                     field("Pay-to Post Code"; Rec."Pay-to Post Code")
@@ -318,14 +292,12 @@ page 136 "Posted Purchase Receipt"
                         ApplicationArea = Suite;
                         Caption = 'Post Code';
                         Editable = false;
-                        ToolTip = 'Specifies the post code of the vendor that you received the invoice from.';
                     }
                     field("Pay-to Country/Region Code"; Rec."Pay-to Country/Region Code")
                     {
                         ApplicationArea = Suite;
                         Caption = 'Country/Region';
                         Editable = false;
-                        ToolTip = 'Specifies the country or region of the vendor on the purchase document.';
                     }
                     field("Pay-to Contact"; Rec."Pay-to Contact")
                     {
@@ -339,13 +311,11 @@ page 136 "Posted Purchase Receipt"
                 {
                     ApplicationArea = Dimensions;
                     Editable = false;
-                    ToolTip = 'Specifies the code for Shortcut Dimension 1, which is one of two global dimension codes that you set up in the General Ledger Setup window.';
                 }
                 field("Shortcut Dimension 2 Code"; Rec."Shortcut Dimension 2 Code")
                 {
                     ApplicationArea = Dimensions;
                     Editable = false;
-                    ToolTip = 'Specifies the code for Shortcut Dimension 2, which is one of two global dimension codes that you set up in the General Ledger Setup window.';
                 }
             }
             group(Shipping)
@@ -359,7 +329,6 @@ page 136 "Posted Purchase Receipt"
                         ApplicationArea = Suite;
                         Caption = 'Name';
                         Editable = false;
-                        ToolTip = 'Specifies the name of the customer that items on the purchase order were shipped to, as a drop shipment.';
                     }
                     field("Ship-to Name 2"; Rec."Ship-to Name 2")
                     {
@@ -367,7 +336,6 @@ page 136 "Posted Purchase Receipt"
                         Caption = 'Name 2';
                         Editable = false;
                         Importance = Additional;
-                        ToolTip = 'Specifies an additional part of the name of the customer that items on the purchase order were shipped to, as a drop shipment.';
                         Visible = false;
                     }
                     field("Ship-to Address"; Rec."Ship-to Address")
@@ -375,21 +343,18 @@ page 136 "Posted Purchase Receipt"
                         ApplicationArea = Suite;
                         Caption = 'Address';
                         Editable = false;
-                        ToolTip = 'Specifies the address that items on the purchase order were shipped to, as a drop shipment..';
                     }
                     field("Ship-to Address 2"; Rec."Ship-to Address 2")
                     {
                         ApplicationArea = Suite;
                         Caption = 'Address 2';
                         Editable = false;
-                        ToolTip = 'Specifies an additional part of the ship-to address, in case it is a long address.';
                     }
                     field("Ship-to City"; Rec."Ship-to City")
                     {
                         ApplicationArea = Suite;
                         Caption = 'City';
                         Editable = false;
-                        ToolTip = 'Specifies the city of the address that the items are shipped to.';
                     }
                     group(Control29)
                     {
@@ -400,7 +365,6 @@ page 136 "Posted Purchase Receipt"
                             ApplicationArea = Suite;
                             CaptionClass = '5,1,' + Rec."Ship-to Country/Region Code";
                             Editable = false;
-                            ToolTip = 'Specifies the state, province or county related to the posted purchase order.';
                         }
                     }
                     field("Ship-to Post Code"; Rec."Ship-to Post Code")
@@ -408,28 +372,24 @@ page 136 "Posted Purchase Receipt"
                         ApplicationArea = Suite;
                         Caption = 'Post Code';
                         Editable = false;
-                        ToolTip = 'Specifies the post code that items on the purchase order were shipped to, as a drop shipment.';
                     }
                     field("Ship-to Country/Region Code"; Rec."Ship-to Country/Region Code")
                     {
                         ApplicationArea = Suite;
                         Caption = 'Country/Region';
                         Editable = false;
-                        ToolTip = 'Specifies the country or region of the ship-to address.';
                     }
                     field("Ship-to Phone No."; Rec."Ship-to Phone No.")
                     {
                         ApplicationArea = Suite;
                         Caption = 'Phone No.';
                         Editable = false;
-                        ToolTip = 'Specifies the telephone number of the company''s shipping address.';
                     }
                     field("Ship-to Contact"; Rec."Ship-to Contact")
                     {
                         ApplicationArea = Suite;
                         Caption = 'Contact';
                         Editable = false;
-                        ToolTip = 'Specifies the contact person at the customer that items on the purchase order were shipped to, as a drop shipment.';
                     }
                 }
                 field("Location Code"; Rec."Location Code")
@@ -437,30 +397,25 @@ page 136 "Posted Purchase Receipt"
                     ApplicationArea = Location;
                     Editable = false;
                     Importance = Promoted;
-                    ToolTip = 'Specifies a code for the location where you want the items to be placed when they are received.';
                 }
                 field("Inbound Whse. Handling Time"; Rec."Inbound Whse. Handling Time")
                 {
                     ApplicationArea = Warehouse;
-                    ToolTip = 'Specifies the time it takes to make items part of available inventory, after the items have been posted as received.';
                 }
                 field("Shipment Method Code"; Rec."Shipment Method Code")
                 {
                     ApplicationArea = Suite;
                     Editable = false;
-                    ToolTip = 'Specifies the delivery conditions of the related shipment, such as free on board (FOB).';
                 }
                 field("Lead Time Calculation"; Rec."Lead Time Calculation")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies a date formula for the amount of time it takes to replenish the item.';
                 }
                 field("Expected Receipt Date"; Rec."Expected Receipt Date")
                 {
                     ApplicationArea = Suite;
                     Editable = false;
                     Importance = Promoted;
-                    ToolTip = 'Specifies the date you expect the items to be available in your warehouse. If you leave the field blank, it will be calculated as follows: Planned Receipt Date + Safety Lead Time + Inbound Warehouse Handling Time = Expected Receipt Date.';
                 }
             }
         }

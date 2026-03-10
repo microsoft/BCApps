@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -36,38 +36,47 @@ table 5611 "Depreciation Book"
         field(3; "G/L Integration - Acq. Cost"; Boolean)
         {
             Caption = 'G/L Integration - Acq. Cost';
+            ToolTip = 'Specifies whether acquisition cost entries posted to this depreciation book are posted both to the general ledger and the FA ledger.';
         }
         field(4; "G/L Integration - Depreciation"; Boolean)
         {
             Caption = 'G/L Integration - Depreciation';
+            ToolTip = 'Specifies whether depreciation entries posted to this depreciation book are posted both to the general ledger and the FA ledger.';
         }
         field(5; "G/L Integration - Write-Down"; Boolean)
         {
             Caption = 'G/L Integration - Write-Down';
+            ToolTip = 'Specifies whether write-down entries posted to this depreciation book should be posted to the general ledger and the FA ledger.';
         }
         field(6; "G/L Integration - Appreciation"; Boolean)
         {
             Caption = 'G/L Integration - Appreciation';
+            ToolTip = 'Specifies whether appreciation entries posted to this depreciation book are posted to the general ledger and the FA ledger.';
         }
         field(7; "G/L Integration - Custom 1"; Boolean)
         {
             Caption = 'G/L Integration - Custom 1';
+            ToolTip = 'Specifies whether custom 1 entries posted to this depreciation book are posted to the general ledger and the FA ledger.';
         }
         field(8; "G/L Integration - Custom 2"; Boolean)
         {
             Caption = 'G/L Integration - Custom 2';
+            ToolTip = 'Specifies whether custom 2 entries posted to this depreciation book are posted to the general ledger and the FA ledger.';
         }
         field(9; "G/L Integration - Disposal"; Boolean)
         {
             Caption = 'G/L Integration - Disposal';
+            ToolTip = 'Specifies whether disposal entries posted to this depreciation book are posted to the general ledger and the FA ledger.';
         }
         field(10; "G/L Integration - Maintenance"; Boolean)
         {
             Caption = 'G/L Integration - Maintenance';
+            ToolTip = 'Specifies whether maintenance entries that are posted to this depreciation book are posted both to the general ledger and the FA ledger.';
         }
         field(11; "Disposal Calculation Method"; Option)
         {
             Caption = 'Disposal Calculation Method';
+            ToolTip = 'Specifies the disposal method for the current depreciation book.';
             OptionCaption = 'Net,Gross';
             OptionMembers = Net,Gross;
         }
@@ -84,10 +93,12 @@ table 5611 "Depreciation Book"
         field(13; "Allow Depr. below Zero"; Boolean)
         {
             Caption = 'Allow Depr. below Zero';
+            ToolTip = 'Specifies whether to allow the Calculate Depreciation batch job to continue calculating depreciation even if the book value is zero or below.';
         }
         field(14; "Use FA Exch. Rate in Duplic."; Boolean)
         {
             Caption = 'Use FA Exch. Rate in Duplic.';
+            ToolTip = 'Specifies whether to use the FA Exchange Rate field when you duplicate entries from one depreciation book to another.';
 
             trigger OnValidate()
             begin
@@ -98,6 +109,7 @@ table 5611 "Depreciation Book"
         field(15; "Part of Duplication List"; Boolean)
         {
             Caption = 'Part of Duplication List';
+            ToolTip = 'Specifies whether to indicate that entries made in another depreciation book should be duplicated to this depreciation book.';
         }
         field(17; "Last Date Modified"; Date)
         {
@@ -107,16 +119,19 @@ table 5611 "Depreciation Book"
         field(18; "Allow Indexation"; Boolean)
         {
             Caption = 'Allow Indexation';
+            ToolTip = 'Specifies whether to allow indexation of FA ledger entries and maintenance ledger entries posted to this book.';
         }
         field(19; "Use Same FA+G/L Posting Dates"; Boolean)
         {
             Caption = 'Use Same FA+G/L Posting Dates';
+            ToolTip = 'Specifies whether to indicate that the Posting Date and the FA Posting Date must be the same on a journal line before posting.';
             InitValue = true;
         }
         field(20; "Default Exchange Rate"; Decimal)
         {
             AutoFormatType = 0;
             Caption = 'Default Exchange Rate';
+            ToolTip = 'Specifies the exchange rate to use if the rate in the FA Exchange Rate field is zero.';
             DecimalPlaces = 4 : 4;
             MinValue = 0;
 
@@ -129,11 +144,13 @@ table 5611 "Depreciation Book"
         field(23; "Use FA Ledger Check"; Boolean)
         {
             Caption = 'Use FA Ledger Check';
+            ToolTip = 'Specifies which checks to perform before posting a journal line.';
             InitValue = true;
         }
         field(24; "Use Rounding in Periodic Depr."; Boolean)
         {
             Caption = 'Use Rounding in Periodic Depr.';
+            ToolTip = 'Specifies whether the calculated periodic depreciation amounts should be rounded to whole numbers.';
         }
         field(25; "New Fiscal Year Starting Date"; Date)
         {
@@ -148,12 +165,14 @@ table 5611 "Depreciation Book"
         field(27; "Allow Changes in Depr. Fields"; Boolean)
         {
             Caption = 'Allow Changes in Depr. Fields';
+            ToolTip = 'Specifies whether to allow the depreciation fields to be modified.';
         }
         field(28; "Default Final Rounding Amount"; Decimal)
         {
             AutoFormatType = 1;
             AutoFormatExpression = GetCurrencyCode();
             Caption = 'Default Final Rounding Amount';
+            ToolTip = 'Specifies the final rounding amount to use if the Final Rounding Amount field is zero.';
             MinValue = 0;
         }
         field(29; "Default Ending Book Value"; Decimal)
@@ -161,6 +180,7 @@ table 5611 "Depreciation Book"
             AutoFormatType = 1;
             AutoFormatExpression = GetCurrencyCode();
             Caption = 'Default Ending Book Value';
+            ToolTip = 'Specifies the ending book value to use if the Ending Book Value field is zero.';
             MinValue = 0;
         }
         field(32; "Periodic Depr. Date Calc."; Option)
@@ -183,41 +203,49 @@ table 5611 "Depreciation Book"
         {
             AccessByPermission = TableData Currency = R;
             Caption = 'Add-Curr Exch Rate - Acq. Cost';
+            ToolTip = 'Specifies that acquisition transactions in the general ledger can be in both LCY and any additional reporting currency.';
         }
         field(35; "Add.-Curr. Exch. Rate - Depr."; Boolean)
         {
             AccessByPermission = TableData Currency = R;
             Caption = 'Add.-Curr. Exch. Rate - Depr.';
+            ToolTip = 'Specifies depreciation transactions in the general ledger in both LCY and any additional reporting currency.';
         }
         field(36; "Add-Curr Exch Rate -Write-Down"; Boolean)
         {
             AccessByPermission = TableData Currency = R;
             Caption = 'Add-Curr Exch Rate -Write-Down';
+            ToolTip = 'Specifies write-down transactions in the general ledger in both LCY and any additional reporting currency.';
         }
         field(37; "Add-Curr. Exch. Rate - Apprec."; Boolean)
         {
             AccessByPermission = TableData Currency = R;
             Caption = 'Add-Curr. Exch. Rate - Apprec.';
+            ToolTip = 'Specifies appreciation transactions in the general ledger in both LCY and any additional reporting currency.';
         }
         field(38; "Add-Curr. Exch Rate - Custom 1"; Boolean)
         {
             AccessByPermission = TableData Currency = R;
             Caption = 'Add-Curr. Exch Rate - Custom 1';
+            ToolTip = 'Specifies that custom 1 transactions in the general ledger can be in both LCY and any additional reporting currency.';
         }
         field(39; "Add-Curr. Exch Rate - Custom 2"; Boolean)
         {
             AccessByPermission = TableData Currency = R;
             Caption = 'Add-Curr. Exch Rate - Custom 2';
+            ToolTip = 'Specifies custom 2 transactions in the general ledger in both LCY and any additional reporting currency.';
         }
         field(40; "Add.-Curr. Exch. Rate - Disp."; Boolean)
         {
             AccessByPermission = TableData Currency = R;
             Caption = 'Add.-Curr. Exch. Rate - Disp.';
+            ToolTip = 'Specifies disposal transactions in the general ledger in both LCY and any additional reporting currency.';
         }
         field(41; "Add.-Curr. Exch. Rate - Maint."; Boolean)
         {
             AccessByPermission = TableData Currency = R;
             Caption = 'Add.-Curr. Exch. Rate - Maint.';
+            ToolTip = 'Specifies maintenance transactions in the general ledger in both LCY and any additional reporting currency.';
         }
         field(42; "Use Default Dimension"; Boolean)
         {
@@ -226,18 +254,22 @@ table 5611 "Depreciation Book"
         field(43; "Subtract Disc. in Purch. Inv."; Boolean)
         {
             Caption = 'Subtract Disc. in Purch. Inv.';
+            ToolTip = 'Specifies that the line and invoice discount are subtracted from the acquisition cost posted for the fixed asset.';
         }
         field(44; "Allow Correction of Disposal"; Boolean)
         {
             Caption = 'Allow Correction of Disposal';
+            ToolTip = 'Specifies whether to correct fixed ledger entries of the Disposal type.';
         }
         field(45; "Allow more than 360/365 Days"; Boolean)
         {
             Caption = 'Allow more than 360/365 Days';
+            ToolTip = 'Specifies if the fiscal year has more than 360 depreciation days.';
         }
         field(46; "VAT on Net Disposal Entries"; Boolean)
         {
             Caption = 'VAT on Net Disposal Entries';
+            ToolTip = 'Specifies whether you sell a fixed asset with the net disposal method.';
         }
         field(47; "Allow Acq. Cost below Zero"; Boolean)
         {
@@ -246,10 +278,12 @@ table 5611 "Depreciation Book"
         field(48; "Allow Identical Document No."; Boolean)
         {
             Caption = 'Allow Identical Document No.';
+            ToolTip = 'Specifies the check box for this field to allow identical document numbers in the depreciation book.';
         }
         field(49; "Fiscal Year 365 Days"; Boolean)
         {
             Caption = 'Fiscal Year 365 Days';
+            ToolTip = 'Specifies that when the Calculate Depreciation batch job calculates depreciations, a standardized year of 360 days, where each month has 30 days, is used.';
 
             trigger OnValidate()
             var
@@ -273,6 +307,7 @@ table 5611 "Depreciation Book"
         field(10500; "Use Accounting Period"; Boolean)
         {
             Caption = 'Use Accounting Period';
+            ToolTip = 'Specifies if you want the periods between start date and ending date to correspond to the accounting periods that you have set up.';
 
             trigger OnValidate()
             var

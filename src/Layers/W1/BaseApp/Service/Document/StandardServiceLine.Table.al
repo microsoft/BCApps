@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -34,6 +34,7 @@ table 5997 "Standard Service Line"
         field(3; Type; Enum "Service Line Type")
         {
             Caption = 'Type';
+            ToolTip = 'Specifies the type, item, resource, cost, or g/l account associated with the standard service line.';
 
             trigger OnValidate()
             var
@@ -47,6 +48,7 @@ table 5997 "Standard Service Line"
         field(4; "No."; Code[20])
         {
             Caption = 'No.';
+            ToolTip = 'Specifies the number of the involved entry or record, according to the specified number series.';
             TableRelation = if (Type = const(" ")) "Standard Text"
             else
             if (Type = const(Item)) Item where(Blocked = const(false), "Service Blocked" = const(false))
@@ -123,12 +125,14 @@ table 5997 "Standard Service Line"
         field(5; Description; Text[100])
         {
             Caption = 'Description';
+            ToolTip = 'Specifies a description of this entry.';
         }
         field(6; Quantity; Decimal)
         {
             AutoFormatType = 0;
             BlankZero = true;
             Caption = 'Quantity';
+            ToolTip = 'Specifies the number of item units, resource hours, or costs on the line.';
             DecimalPlaces = 0 : 5;
 
             trigger OnValidate()
@@ -145,6 +149,7 @@ table 5997 "Standard Service Line"
             AutoFormatType = 2;
             BlankZero = true;
             Caption = 'Amount Excl. VAT';
+            ToolTip = 'Specifies the net amount for this standard service line.';
 
             trigger OnValidate()
             begin
@@ -155,6 +160,7 @@ table 5997 "Standard Service Line"
         field(8; "Unit of Measure Code"; Code[10])
         {
             Caption = 'Unit of Measure Code';
+            ToolTip = 'Specifies how each unit of the item or resource is measured, such as in pieces or hours. By default, the value in the Base Unit of Measure field on the item or resource card is inserted.';
             TableRelation = if (Type = const(Item)) "Item Unit of Measure".Code where("Item No." = field("No."))
             else
             if (Type = const(Resource)) "Resource Unit of Measure".Code where("Resource No." = field("No."))
@@ -170,6 +176,7 @@ table 5997 "Standard Service Line"
         {
             CaptionClass = '1,2,1';
             Caption = 'Shortcut Dimension 1 Code';
+            ToolTip = 'Specifies the code for Shortcut Dimension 1, which is one of two global dimension codes that you set up in the General Ledger Setup window.';
             TableRelation = "Dimension Value".Code where("Global Dimension No." = const(1),
                                                           Blocked = const(false));
 
@@ -182,6 +189,7 @@ table 5997 "Standard Service Line"
         {
             CaptionClass = '1,2,2';
             Caption = 'Shortcut Dimension 2 Code';
+            ToolTip = 'Specifies the code for Shortcut Dimension 2, which is one of two global dimension codes that you set up in the General Ledger Setup window.';
             TableRelation = "Dimension Value".Code where("Global Dimension No." = const(2),
                                                           Blocked = const(false));
 
@@ -193,6 +201,7 @@ table 5997 "Standard Service Line"
         field(11; "Variant Code"; Code[10])
         {
             Caption = 'Variant Code';
+            ToolTip = 'Specifies the variant of the item on the line.';
             TableRelation = if (Type = const(Item)) "Item Variant".Code where("Item No." = field("No."), Blocked = const(false), "Service Blocked" = const(false));
 
             trigger OnValidate()

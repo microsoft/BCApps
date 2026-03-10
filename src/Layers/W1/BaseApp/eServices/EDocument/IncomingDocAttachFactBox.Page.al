@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -38,18 +38,15 @@ page 193 "Incoming Doc. Attach. FactBox"
                 field(Type; Rec.Type)
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the type of the attached file.';
                     Visible = false;
                 }
                 field("File Extension"; Rec."File Extension")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the file extension of the attached file.';
                 }
                 field("Created Date-Time"; Rec."Created Date-Time")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies when the incoming document line was created.';
                     Visible = false;
                 }
             }

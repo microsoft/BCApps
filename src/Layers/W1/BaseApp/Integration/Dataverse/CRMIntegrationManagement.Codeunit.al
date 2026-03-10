@@ -2972,12 +2972,28 @@ codeunit 5330 "CRM Integration Management"
 
     procedure CheckModifyCRMConnectionURL(var ServerAddress: Text[250])
     var
-        CRMSetupDefaults: Codeunit "CRM Setup Defaults";
         UriHelper: DotNet Uri;
         UriHelper2: DotNet Uri;
-        UriKindHelper: DotNet UriKind;
         UriPartialHelper: DotNet UriPartial;
         ProposedUri: Text[250];
+    begin
+        FirstCheckCRMConnectionURL(ServerAddress, UriHelper, UriHelper2);
+
+        if IsNull(UriHelper2) then
+            exit;
+
+        ProposedUri := UriHelper2.GetLeftPart(UriPartialHelper.Authority);
+
+        // Test that a specific port number is given
+        if ((UriHelper2.Port = 443) or (UriHelper2.Port = 80)) and (LowerCase(ServerAddress) <> LowerCase(ProposedUri)) then
+            if Confirm(StrSubstNo(ReplaceServerAddressQst, ServerAddress, ProposedUri)) then
+                ServerAddress := ProposedUri;
+    end;
+
+    local procedure FirstCheckCRMConnectionURL(var ServerAddress: Text[250]; var UriHelper: DotNet Uri; var UriHelper2: DotNet Uri)
+    var
+        CRMSetupDefaults: Codeunit "CRM Setup Defaults";
+        UriKindHelper: DotNet UriKind;
     begin
         if (ServerAddress = '') or (ServerAddress = '@@test@@') then
             exit;
@@ -2994,13 +3010,19 @@ codeunit 5330 "CRM Integration Management"
             if UriHelper2.Scheme <> 'http' then
                 Error(MustUseHttpOrHttpsErr, UriHelper2.Scheme, CRMProductName.SHORT());
         end;
+    end;
 
-        ProposedUri := UriHelper2.GetLeftPart(UriPartialHelper.Authority);
+    procedure CheckCRMConnectionURL(ServerAddress: Text[250])
+    var
+        UriHelper: DotNet Uri;
+        UriHelper2: DotNet Uri;
+        CheckedServerAddress: Text[250];
+    begin
+        CheckedServerAddress := ServerAddress;
+        FirstCheckCRMConnectionURL(CheckedServerAddress, UriHelper, UriHelper2);
 
-        // Test that a specific port number is given
-        if ((UriHelper2.Port = 443) or (UriHelper2.Port = 80)) and (LowerCase(ServerAddress) <> LowerCase(ProposedUri)) then
-            if Confirm(StrSubstNo(ReplaceServerAddressQst, ServerAddress, ProposedUri)) then
-                ServerAddress := ProposedUri;
+        if CheckedServerAddress <> ServerAddress then
+            Error(InvalidUriErr);
     end;
 
     procedure GetOrganizationFromUrl(ServerAddress: Text[250]) orgName: Text

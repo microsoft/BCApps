@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -32,13 +32,11 @@ page 9217 "ResGrp. All. per Serv.  Matrix"
                 {
                     ApplicationArea = Service;
                     Editable = false;
-                    ToolTip = 'Specifies the number of the involved entry or record, according to the specified number series.';
                 }
                 field(Description; Rec.Description)
                 {
                     ApplicationArea = Service;
                     Editable = false;
-                    ToolTip = 'Specifies a short description of the service document, such as Order 2001.';
                 }
                 field(Col1; MatrixCellData[1])
                 {

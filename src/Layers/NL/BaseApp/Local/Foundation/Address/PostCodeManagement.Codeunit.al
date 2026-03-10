@@ -11,8 +11,6 @@ using Microsoft.HumanResources.Employee;
 using Microsoft.HumanResources.Setup;
 using Microsoft.Inventory.Location;
 using Microsoft.Inventory.Transfer;
-using Microsoft.Manufacturing.MachineCenter;
-using Microsoft.Manufacturing.WorkCenter;
 using Microsoft.Projects.Resources.Resource;
 using Microsoft.Purchases.Document;
 using Microsoft.Purchases.Vendor;
@@ -333,8 +331,9 @@ codeunit 11401 "Post Code Management"
             Rec.Address, Rec."Address 2", Rec."Post Code", Rec.City, Rec."Country/Region Code", Rec."Phone No.", Rec."Fax No.");
     end;
 
-    [EventSubscriber(ObjectType::Table, Database::"Machine Center", 'OnBeforeValidateEvent', 'Address', false, false)]
-    local procedure MachineCenterOnBeforeValidateAddress(var Rec: Record "Machine Center")
+#if not CLEAN28
+    [EventSubscriber(ObjectType::Table, Database::Microsoft.Manufacturing.MachineCenter."Machine Center", 'OnBeforeValidateEvent', 'Address', false, false)]
+    local procedure MachineCenterOnBeforeValidateAddress(var Rec: Record Microsoft.Manufacturing.MachineCenter."Machine Center")
     var
         PhoneNo: Text[30];
         FaxNo: Text[30];
@@ -342,6 +341,7 @@ codeunit 11401 "Post Code Management"
         FindStreetName(
             Rec.Address, Rec."Address 2", Rec."Post Code", Rec.City, Rec."Country/Region Code", PhoneNo, FaxNo);
     end;
+#endif
 
     [EventSubscriber(ObjectType::Table, Database::"Order Address", 'OnBeforeValidateEvent', 'Address', false, false)]
     local procedure OrderAddressOnBeforeValidateAddress(var Rec: Record "Order Address")
@@ -505,8 +505,9 @@ codeunit 11401 "Post Code Management"
             Rec."Acc. Hold. Country/Region Code", PhoneNo, FaxNo);
     end;
 
-    [EventSubscriber(ObjectType::Table, Database::"Work Center", 'OnBeforeValidateEvent', 'Address', false, false)]
-    local procedure WorkCenterOnBeforeValidateAddress(var Rec: Record "Work Center")
+#if not CLEAN28
+    [EventSubscriber(ObjectType::Table, Database::Microsoft.Manufacturing.WorkCenter."Work Center", 'OnBeforeValidateEvent', 'Address', false, false)]
+    local procedure WorkCenterOnBeforeValidateAddress(var Rec: Record Microsoft.Manufacturing.WorkCenter."Work Center")
     var
         PhoneNo: Text[30];
         FaxNo: Text[30];
@@ -514,6 +515,7 @@ codeunit 11401 "Post Code Management"
         FindStreetName(
             Rec.Address, Rec."Address 2", Rec."Post Code", Rec.City, Rec."Country/Region Code", PhoneNo, FaxNo);
     end;
+#endif
 }
 #pragma warning restore AA0217
 

@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -27,7 +27,6 @@ page 63 "Applied Employee Entries"
                 field("Posting Date"; Rec."Posting Date")
                 {
                     ApplicationArea = BasicHR;
-                    ToolTip = 'Specifies the employee entry''s posting date.';
                 }
                 field("Document Type"; Rec."Document Type")
                 {
@@ -37,78 +36,64 @@ page 63 "Applied Employee Entries"
                 field("Document No."; Rec."Document No.")
                 {
                     ApplicationArea = BasicHR;
-                    ToolTip = 'Specifies the employee entry''s document number.';
                 }
                 field(Description; Rec.Description)
                 {
                     ApplicationArea = BasicHR;
-                    ToolTip = 'Specifies a description of the employee entry.';
                 }
                 field("Global Dimension 1 Code"; Rec."Global Dimension 1 Code")
                 {
                     ApplicationArea = Dimensions;
-                    ToolTip = 'Specifies the code for the global dimension that is linked to the record or entry for analysis purposes. Two global dimensions, typically for the company''s most important activities, are available on all cards, documents, reports, and lists.';
                     Visible = DimVisible1;
                 }
                 field("Global Dimension 2 Code"; Rec."Global Dimension 2 Code")
                 {
                     ApplicationArea = Dimensions;
-                    ToolTip = 'Specifies the code for the global dimension that is linked to the record or entry for analysis purposes. Two global dimensions, typically for the company''s most important activities, are available on all cards, documents, reports, and lists.';
                     Visible = DimVisible2;
                 }
                 field("Salespers./Purch. Code"; Rec."Salespers./Purch. Code")
                 {
                     ApplicationArea = BasicHR;
-                    ToolTip = 'Specifies which purchaser is assigned to the employee.';
                     Visible = false;
                 }
                 field("Currency Code"; Rec."Currency Code")
                 {
                     ApplicationArea = BasicHR;
-                    ToolTip = 'Specifies the currency code for the amount on the line.';
                 }
                 field("Original Amount"; Rec."Original Amount")
                 {
                     ApplicationArea = BasicHR;
-                    ToolTip = 'Specifies the amount of the original entry.';
                 }
                 field(Amount; Rec.Amount)
                 {
                     ApplicationArea = BasicHR;
-                    ToolTip = 'Specifies the amount of the entry.';
                     Visible = AmountVisible;
                 }
                 field("Debit Amount"; Rec."Debit Amount")
                 {
                     ApplicationArea = BasicHR;
-                    ToolTip = 'Specifies the total of the ledger entries that represent debits.';
                     Visible = DebitCreditVisible;
                 }
                 field("Credit Amount"; Rec."Credit Amount")
                 {
                     ApplicationArea = BasicHR;
-                    ToolTip = 'Specifies the total of the ledger entries that represent credits.';
                     Visible = DebitCreditVisible;
                 }
                 field("Closed by Amount"; Rec."Closed by Amount")
                 {
                     ApplicationArea = BasicHR;
-                    ToolTip = 'Specifies the amount that the entry was finally applied to (closed) with.';
                 }
                 field("Closed by Currency Code"; Rec."Closed by Currency Code")
                 {
                     ApplicationArea = BasicHR;
-                    ToolTip = 'Specifies the currency code of the entry that was applied to (and closed) this employee ledger entry.';
                 }
                 field("Closed by Currency Amount"; Rec."Closed by Currency Amount")
                 {
                     ApplicationArea = BasicHR;
-                    ToolTip = 'Specifies the amount that was finally applied to (and closed) this employee ledger entry.';
                 }
                 field("User ID"; Rec."User ID")
                 {
                     ApplicationArea = BasicHR;
-                    ToolTip = 'Specifies the ID of the user who posted the entry, to be used, for example, in the change log.';
                     Visible = false;
 
                     trigger OnDrillDown()
@@ -121,7 +106,6 @@ page 63 "Applied Employee Entries"
                 field("Entry No."; Rec."Entry No.")
                 {
                     ApplicationArea = BasicHR;
-                    ToolTip = 'Specifies the entry number that is assigned to the entry.';
                 }
             }
         }

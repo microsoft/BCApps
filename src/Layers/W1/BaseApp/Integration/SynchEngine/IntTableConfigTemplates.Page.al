@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -22,7 +22,6 @@ page 5326 "Int. Table Config Templates"
                 field("Integration Table Config Template Code"; Rec."Int. Tbl. Config Template Code")
                 {
                     ApplicationArea = Suite;
-                    ToolTip = 'Specifies a configuration template to use when creating new records in the Dataverse table during synchronization.';
                 }
                 field("Table Filter"; TableFilter)
                 {
@@ -48,7 +47,6 @@ page 5326 "Int. Table Config Templates"
                 field(Priority; Rec.Priority)
                 {
                     ApplicationArea = Suite;
-                    ToolTip = 'Specifies the priority of the configuration template.';
                 }
             }
         }

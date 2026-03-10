@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -24,28 +24,23 @@ page 5209 "Employee Relatives"
                 field("Relative Code"; Rec."Relative Code")
                 {
                     ApplicationArea = BasicHR;
-                    ToolTip = 'Specifies a relative code for the employee.';
                 }
                 field("First Name"; Rec."First Name")
                 {
                     ApplicationArea = BasicHR;
-                    ToolTip = 'Specifies the first name of the employee''s relative.';
                 }
                 field("Middle Name"; Rec."Middle Name")
                 {
                     ApplicationArea = BasicHR;
-                    ToolTip = 'Specifies the middle name of the employee''s relative.';
                     Visible = false;
                 }
                 field("Birth Date"; Rec."Birth Date")
                 {
                     ApplicationArea = BasicHR;
-                    ToolTip = 'Specifies the relative''s date of birth.';
                 }
                 field("Phone No."; Rec."Phone No.")
                 {
                     ApplicationArea = BasicHR;
-                    ToolTip = 'Specifies the relative''s telephone number.';
                 }
                 field("Relative's Employee No."; Rec."Relative's Employee No.")
                 {
@@ -56,7 +51,6 @@ page 5209 "Employee Relatives"
                 field(Comment; Rec.Comment)
                 {
                     ApplicationArea = Comments;
-                    ToolTip = 'Specifies if a comment was entered for this entry.';
                 }
             }
         }

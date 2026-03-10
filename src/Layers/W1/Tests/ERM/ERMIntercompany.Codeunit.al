@@ -2895,7 +2895,7 @@ codeunit 134151 "ERM Intercompany"
     end;
 
     [EventSubscriber(ObjectType::Table, Database::Dimension, 'OnBeforeCheckIfDimUsedAsAnalysisViewDim', '', false, false)]
-    local procedure OnBeforeCheckIfDimUsedAsAnalysisViewDim(AnalysisView: Record "Analysis View"; DimChecked: Code[20]; DimTypeChecked: Option " ",Global1,Global2,Shortcut3,Shortcut4,Shortcut5,Shortcut6,Shortcut7,Shortcut8,Budget1,Budget2,Budget3,Budget4,Analysis1,Analysis2,Analysis3,Analysis4,ItemBudget1,ItemBudget2,ItemBudget3,ItemAnalysis1,ItemAnalysis2,ItemAnalysis3; CheckAllDim: Boolean; CheckAnalysisViewDim: Boolean; AnalysisViewChecked: Code[10]; var UsedAsAnalysisViewDim: Boolean; var IsHandled: Boolean)
+    local procedure OnBeforeCheckIfDimUsedAsAnalysisViewDim(AnalysisView: Record "Analysis View"; DimChecked: Code[20]; DimTypeChecked: Enum "Dim Type Checked"; CheckAllDim: Boolean; CheckAnalysisViewDim: Boolean; AnalysisViewChecked: Code[10]; var UsedAsAnalysisViewDim: Boolean; var IsHandled: Boolean)
     begin
         IsHandled := true;
     end;

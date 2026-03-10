@@ -207,13 +207,18 @@ codeunit 4316 "Agent Task Message Builder"
     /// </summary>
     /// <param name="AgentTaskFile">The file to attach.</param>
     /// <returns>This instance of the Agent Task Message Builder.</returns>
-    procedure AddAttachment(AgentTaskFile: Record "Agent Task File"): codeunit "Agent Task Message Builder"
+#if not CLEAN28
+#pragma warning disable AS0078
+#endif
+    procedure AddAttachment(var AgentTaskFile: Record "Agent Task File"): codeunit "Agent Task Message Builder"
     begin
         FeatureAccessManagement.AgentTaskManagementPreviewEnabled(true);
         AgentTaskMsgBuilderImpl.AddAttachment(AgentTaskFile);
         exit(this);
     end;
-
+#if not CLEAN28
+#pragma warning restore AS0078
+#endif
     /// <summary>
     /// Uploads a file to the task message.
     /// The file will be attached when the message is created.
@@ -244,11 +249,9 @@ codeunit 4316 "Agent Task Message Builder"
     /// <returns>
     /// True if any attachments exist for the task message, false otherwise.
     /// </returns>
-#pragma warning disable AS0102
     procedure GetAttachments(var TempAttachments: Record "Agent Task File" temporary): Boolean
     begin
         FeatureAccessManagement.AgentTaskManagementPreviewEnabled(true);
         exit(AgentTaskMsgBuilderImpl.GetAttachments(TempAttachments));
     end;
-#pragma warning restore AS0102
 }

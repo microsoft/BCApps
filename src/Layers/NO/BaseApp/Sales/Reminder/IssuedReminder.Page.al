@@ -35,42 +35,34 @@ page 438 "Issued Reminder"
                 field("No."; Rec."No.")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the number of the involved entry or record, according to the specified number series.';
                 }
                 field("Customer No."; Rec."Customer No.")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the customer number the reminder is for.';
                 }
                 field(Name; Rec.Name)
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the name of the customer the reminder is for.';
                 }
                 field(Address; Rec.Address)
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the address of the customer the reminder is for.';
                 }
                 field("Address 2"; Rec."Address 2")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies additional address information.';
                 }
                 field("Post Code"; Rec."Post Code")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the postal code.';
                 }
                 field(City; Rec.City)
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the city name of the customer the reminder is for.';
                 }
                 field(Contact; Rec.Contact)
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the name of the person you regularly contact when you communicate with the customer the reminder is for.';
                 }
                 field(ContactPhoneNo; PrimaryContact."Phone No.")
                 {
@@ -102,43 +94,35 @@ page 438 "Issued Reminder"
                 field("Your Reference"; Rec."Your Reference")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the customer''s reference. The content will be printed on the related document.';
                 }
                 field("Posting Date"; Rec."Posting Date")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the posting date that the reminder was issued on.';
                 }
                 field("VAT Reporting Date"; Rec."VAT Reporting Date")
                 {
                     ApplicationArea = VAT;
                     Visible = VATDateEnabled;
-                    ToolTip = 'Specifies the VAT date for the reminder.';
                 }
                 field("Document Date"; Rec."Document Date")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the date when the related document was created.';
                 }
                 field("Pre-Assigned No."; Rec."Pre-Assigned No.")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the number of the reminder from which the issued reminder was created.';
                 }
                 field("Reminder Level"; Rec."Reminder Level")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the reminder''s level.';
                 }
                 field("No. Printed"; Rec."No. Printed")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies how many times the document has been printed.';
                 }
                 field(Canceled; Rec.Canceled)
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies if the issued reminder has been canceled.';
                 }
             }
             part(ReminderLines; "Issued Reminder Lines")
@@ -154,22 +138,18 @@ page 438 "Issued Reminder"
                 field("Reminder Terms Code"; Rec."Reminder Terms Code")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the reminder terms code for the reminder.';
                 }
                 field("Fin. Charge Terms Code"; Rec."Fin. Charge Terms Code")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the code for the involved finance charges in case of late payment.';
                 }
                 field("Due Date"; Rec."Due Date")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the date when payment of the amount on the reminder is due.';
                 }
                 field("Currency Code"; Rec."Currency Code")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the currency code of the issued reminder.';
 
                     trigger OnAssistEdit()
                     begin
@@ -186,7 +166,6 @@ page 438 "Issued Reminder"
                 {
                     ApplicationArea = Basic, Suite;
                     Importance = Promoted;
-                    ToolTip = 'Specifies the bank account to use for bank information when the document is printed.';
                 }
                 field(GLN; Rec.GLN)
                 {
@@ -211,12 +190,10 @@ page 438 "Issued Reminder"
                 field("Shortcut Dimension 1 Code"; Rec."Shortcut Dimension 1 Code")
                 {
                     ApplicationArea = Dimensions;
-                    ToolTip = 'Specifies the code for Shortcut Dimension 1, which is one of two global dimension codes that you set up in the General Ledger Setup window.';
                 }
                 field("Shortcut Dimension 2 Code"; Rec."Shortcut Dimension 2 Code")
                 {
                     ApplicationArea = Dimensions;
-                    ToolTip = 'Specifies the code for Shortcut Dimension 2, which is one of two global dimension codes that you set up in the General Ledger Setup window.';
                 }
             }
         }

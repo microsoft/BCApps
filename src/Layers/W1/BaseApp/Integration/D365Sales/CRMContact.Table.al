@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -196,6 +196,7 @@ table 5342 "CRM Contact"
         field(23; FullName; Text[160])
         {
             Caption = 'Full Name';
+            ToolTip = 'Specifies data from a corresponding field in a Dataverse entity. For more information about Dataverse, see Dataverse Help Center.';
             Description = 'Combines and shows the contact''s first and last names so that the full name can be displayed in views and reports.';
             ExternalAccess = Read;
             ExternalName = 'fullname';
@@ -303,6 +304,7 @@ table 5342 "CRM Contact"
         field(36; WebSiteUrl; Text[200])
         {
             Caption = 'Website';
+            ToolTip = 'Specifies data from a corresponding field in a Dataverse entity. For more information about Dataverse, see Dataverse Help Center.';
             Description = 'Type the contact''s professional or personal website or blog URL.';
             ExtendedDatatype = URL;
             ExternalName = 'websiteurl';
@@ -330,6 +332,7 @@ table 5342 "CRM Contact"
         field(39; EMailAddress1; Text[100])
         {
             Caption = 'Email';
+            ToolTip = 'Specifies the email address.';
             Description = 'Type the primary email address for the contact.';
             ExtendedDatatype = EMail;
             ExternalName = 'emailaddress1';
@@ -526,6 +529,7 @@ table 5342 "CRM Contact"
         field(64; MobilePhone; Text[50])
         {
             Caption = 'Mobile Phone';
+            ToolTip = 'Specifies data from a corresponding field in a Dataverse entity. For more information about Dataverse, see Dataverse Help Center.';
             Description = 'Type the mobile phone number for the contact.';
             ExternalName = 'mobilephone';
             ExternalType = 'String';
@@ -533,6 +537,7 @@ table 5342 "CRM Contact"
         field(65; Pager; Text[50])
         {
             Caption = 'Pager';
+            ToolTip = 'Specifies data from a corresponding field in a Dataverse entity. For more information about Dataverse, see Dataverse Help Center.';
             Description = 'Type the pager number for the contact.';
             ExternalName = 'pager';
             ExternalType = 'String';
@@ -540,6 +545,7 @@ table 5342 "CRM Contact"
         field(66; Telephone1; Text[50])
         {
             Caption = 'Business Phone';
+            ToolTip = 'Specifies data from a corresponding field in a Dataverse entity. For more information about Dataverse, see Dataverse Help Center.';
             Description = 'Type the main phone number for this contact.';
             ExternalName = 'telephone1';
             ExternalType = 'String';
@@ -561,6 +567,7 @@ table 5342 "CRM Contact"
         field(69; Fax; Text[50])
         {
             Caption = 'Fax';
+            ToolTip = 'Specifies data from a corresponding field in a Dataverse entity. For more information about Dataverse, see Dataverse Help Center.';
             Description = 'Type the fax number for the contact.';
             ExternalName = 'fax';
             ExternalType = 'String';
@@ -686,6 +693,7 @@ table 5342 "CRM Contact"
         field(83; Address1_Line1; Text[250])
         {
             Caption = 'Address 1: Street 1';
+            ToolTip = 'Specifies data from a corresponding field in a Dataverse entity. For more information about Dataverse, see Dataverse Help Center.';
             Description = 'Type the first line of the primary address.';
             ExternalName = 'address1_line1';
             ExternalType = 'String';
@@ -693,6 +701,7 @@ table 5342 "CRM Contact"
         field(84; Address1_Line2; Text[250])
         {
             Caption = 'Address 1: Street 2';
+            ToolTip = 'Specifies data from a corresponding field in a Dataverse entity. For more information about Dataverse, see Dataverse Help Center.';
             Description = 'Type the second line of the primary address.';
             ExternalName = 'address1_line2';
             ExternalType = 'String';
@@ -707,6 +716,7 @@ table 5342 "CRM Contact"
         field(86; Address1_City; Text[80])
         {
             Caption = 'Address 1: City';
+            ToolTip = 'Specifies data from a corresponding field in a Dataverse entity. For more information about Dataverse, see Dataverse Help Center.';
             Description = 'Type the city for the primary address.';
             ExternalName = 'address1_city';
             ExternalType = 'String';
@@ -728,6 +738,7 @@ table 5342 "CRM Contact"
         field(89; Address1_Country; Text[80])
         {
             Caption = 'Address 1: Country/Region';
+            ToolTip = 'Specifies data from a corresponding field in a Dataverse entity. For more information about Dataverse, see Dataverse Help Center.';
             Description = 'Type the country or region for the primary address.';
             ExternalName = 'address1_country';
             ExternalType = 'String';
@@ -742,6 +753,7 @@ table 5342 "CRM Contact"
         field(91; Address1_PostalCode; Text[20])
         {
             Caption = 'Address 1: ZIP/Postal Code';
+            ToolTip = 'Specifies data from a corresponding field in a Dataverse entity. For more information about Dataverse, see Dataverse Help Center.';
             Description = 'Type the ZIP Code or postal code for the primary address.';
             ExternalName = 'address1_postalcode';
             ExternalType = 'String';

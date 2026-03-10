@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -26,45 +26,53 @@ table 5771 "Warehouse Source Filter"
         field(1; "Code"; Code[10])
         {
             Caption = 'Code';
+            ToolTip = 'Specifies the code that identifies the filter record.';
             NotBlank = true;
         }
         field(2; Description; Text[100])
         {
             Caption = 'Description';
+            ToolTip = 'Specifies the description of filter combinations in the Source Document Filter Card window to retrieve lines from source documents.';
         }
         field(3; "Item No. Filter"; Code[100])
         {
             Caption = 'Item No. Filter';
+            ToolTip = 'Specifies the item number used to filter the source documents to get.';
             TableRelation = Item;
             ValidateTableRelation = false;
         }
         field(4; "Variant Code Filter"; Code[100])
         {
             Caption = 'Variant Code Filter';
+            ToolTip = 'Specifies the item variant used to filter the source documents to get.';
             TableRelation = "Item Variant".Code;
             ValidateTableRelation = false;
         }
         field(5; "Unit of Measure Filter"; Code[100])
         {
             Caption = 'Unit of Measure Filter';
+            ToolTip = 'Specifies the unit of measure used to filter the source documents to get.';
             TableRelation = "Unit of Measure";
             ValidateTableRelation = false;
         }
         field(6; "Sell-to Customer No. Filter"; Code[100])
         {
             Caption = 'Sell-to Customer No. Filter';
+            ToolTip = 'Specifies the sell-to customer number used to filter the source documents to get.';
             TableRelation = Customer;
             ValidateTableRelation = false;
         }
         field(7; "Buy-from Vendor No. Filter"; Code[100])
         {
             Caption = 'Buy-from Vendor No. Filter';
+            ToolTip = 'Specifies the buy-from vendor number used to filter the source documents to get.';
             TableRelation = Vendor;
             ValidateTableRelation = false;
         }
         field(8; "Customer No. Filter"; Code[100])
         {
             Caption = 'Customer No. Filter';
+            ToolTip = 'Specifies which customers are included when you use the Filters to Get Source Docs. window to retrieve source document lines.';
             TableRelation = Customer;
             ValidateTableRelation = false;
         }
@@ -76,12 +84,14 @@ table 5771 "Warehouse Source Filter"
         field(11; "Shipment Method Code Filter"; Code[100])
         {
             Caption = 'Shipment Method Code Filter';
+            ToolTip = 'Specifies the shipment method code used to filter the source documents to get.';
             TableRelation = "Shipment Method";
             ValidateTableRelation = false;
         }
         field(12; "Shipping Agent Code Filter"; Code[100])
         {
             Caption = 'Shipping Agent Code Filter';
+            ToolTip = 'Specifies the shipping agent code used to filter the source documents.';
             TableRelation = "Shipping Agent";
             ValidateTableRelation = false;
         }
@@ -92,32 +102,38 @@ table 5771 "Warehouse Source Filter"
         field(15; "Do Not Fill Qty. to Handle"; Boolean)
         {
             Caption = 'Do Not Fill Qty. to Handle';
+            ToolTip = 'Specifies that inventory quantities are assigned when you get outbound source document lines for shipment.';
         }
         field(16; "Show Filter Request"; Boolean)
         {
             Caption = 'Show Filter Request';
+            ToolTip = 'Specifies if the Filters to Get Source Docs. window appears when you choose Use Filters to Get Source Docs on a warehouse shipment or receipt.';
         }
         field(17; "Shipping Agent Service Filter"; Code[100])
         {
             Caption = 'Shipping Agent Service Filter';
+            ToolTip = 'Specifies the shipping agent service used to filter the source documents.';
             TableRelation = "Shipping Agent Services".Code;
             ValidateTableRelation = false;
         }
         field(18; "In-Transit Code Filter"; Code[100])
         {
             Caption = 'In-Transit Code Filter';
+            ToolTip = 'Specifies the in-transit code used to filter the source documents.';
             TableRelation = Location where("Use As In-Transit" = const(true));
             ValidateTableRelation = false;
         }
         field(19; "Transfer-from Code Filter"; Code[100])
         {
             Caption = 'Transfer-from Code Filter';
+            ToolTip = 'Specifies the transfer-from code used to filter the source documents.';
             TableRelation = Location where("Use As In-Transit" = const(false));
             ValidateTableRelation = false;
         }
         field(20; "Transfer-to Code Filter"; Code[100])
         {
             Caption = 'Transfer-to Code Filter';
+            ToolTip = 'Specifies the transfer-to code used to filter the source documents to get.';
             TableRelation = Location where("Use As In-Transit" = const(false));
             ValidateTableRelation = false;
         }
@@ -164,6 +180,7 @@ table 5771 "Warehouse Source Filter"
         field(98; "Source No. Filter"; Code[100])
         {
             Caption = 'Source No. Filter';
+            ToolTip = 'Specifies the number, or number range, that is used to filter the source documents to get.';
         }
         field(99; "Source Document"; Code[250])
         {
@@ -184,6 +201,7 @@ table 5771 "Warehouse Source Filter"
         {
             AccessByPermission = TableData "Sales Shipment Header" = R;
             Caption = 'Sales Orders';
+            ToolTip = 'Specifies that sales orders are retrieved when you choose Use Filters to Get Src. Docs in the Warehouse Shipment window.';
             InitValue = true;
 
             trigger OnValidate()
@@ -196,6 +214,7 @@ table 5771 "Warehouse Source Filter"
         {
             AccessByPermission = TableData "Return Receipt Header" = R;
             Caption = 'Sales Return Orders';
+            ToolTip = 'Specifies that sales return orders are retrieved when you choose Use Filters to Get Src. Docs in the Warehouse Shipment window.';
             InitValue = true;
 
             trigger OnValidate()
@@ -208,6 +227,7 @@ table 5771 "Warehouse Source Filter"
         {
             AccessByPermission = TableData "Purch. Rcpt. Header" = R;
             Caption = 'Purchase Orders';
+            ToolTip = 'Specifies that purchase orders are retrieved when you choose Use Filters to Get Src. Docs in the Warehouse Receipt window.';
             InitValue = true;
 
             trigger OnValidate()
@@ -220,6 +240,7 @@ table 5771 "Warehouse Source Filter"
         {
             AccessByPermission = TableData "Return Shipment Header" = R;
             Caption = 'Purchase Return Orders';
+            ToolTip = 'Specifies that purchase return orders are retrieved when you choose Use Filters to Get Src. Docs in the Warehouse Shipment window.';
             InitValue = true;
 
             trigger OnValidate()
@@ -232,6 +253,7 @@ table 5771 "Warehouse Source Filter"
         {
             AccessByPermission = TableData "Transfer Header" = R;
             Caption = 'Inbound Transfers';
+            ToolTip = 'Specifies that inbound transfer orders are retrieved when you choose Use Filters to Get Src. Docs in the Warehouse Receipt.';
             InitValue = true;
 
             trigger OnValidate()
@@ -244,6 +266,7 @@ table 5771 "Warehouse Source Filter"
         {
             AccessByPermission = TableData "Transfer Header" = R;
             Caption = 'Outbound Transfers';
+            ToolTip = 'Specifies that outbound transfer orders are retrieved when you choose Use Filters to Get Src. Docs in the Warehouse Shipment window.';
             InitValue = true;
 
             trigger OnValidate()
@@ -255,6 +278,7 @@ table 5771 "Warehouse Source Filter"
         field(108; Partial; Boolean)
         {
             Caption = 'Partial';
+            ToolTip = 'Specifies the Shipping Advice field on sales orders must contain Partial when you choose Use Filters to Get Src. Docs.';
             InitValue = true;
 
             trigger OnValidate()
@@ -266,6 +290,7 @@ table 5771 "Warehouse Source Filter"
         field(109; Complete; Boolean)
         {
             Caption = 'Complete';
+            ToolTip = 'Specifies the Shipping Advice field on sales orders must contain Complete when you choose Use Filters to Get Src. Docs.';
             InitValue = true;
 
             trigger OnValidate()

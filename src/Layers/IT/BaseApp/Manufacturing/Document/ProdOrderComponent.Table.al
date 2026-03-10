@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -47,6 +47,7 @@ table 5407 "Prod. Order Component"
         field(1; Status; Enum "Production Order Status")
         {
             Caption = 'Status';
+            ToolTip = 'Specifies the status of the production order to which the component list belongs.';
 
             trigger OnValidate()
             begin
@@ -56,11 +57,13 @@ table 5407 "Prod. Order Component"
         field(2; "Prod. Order No."; Code[20])
         {
             Caption = 'Prod. Order No.';
+            ToolTip = 'Specifies the number of the related production order.';
             TableRelation = "Production Order"."No." where(Status = field(Status));
         }
         field(3; "Prod. Order Line No."; Integer)
         {
             Caption = 'Prod. Order Line No.';
+            ToolTip = 'Specifies the number of the production order line to which the component list belongs.';
             TableRelation = "Prod. Order Line"."Line No." where(Status = field(Status),
                                                                  "Prod. Order No." = field("Prod. Order No."));
         }
@@ -71,6 +74,7 @@ table 5407 "Prod. Order Component"
         field(11; "Item No."; Code[20])
         {
             Caption = 'Item No.';
+            ToolTip = 'Specifies the number of the item that is a component in the production order component list.';
             TableRelation = Item where(Type = filter(Inventory | "Non-Inventory"));
 
             trigger OnValidate()
@@ -111,10 +115,12 @@ table 5407 "Prod. Order Component"
         field(12; Description; Text[100])
         {
             Caption = 'Description';
+            ToolTip = 'Specifies a description of the item on the line.';
         }
         field(13; "Unit of Measure Code"; Code[10])
         {
             Caption = 'Unit of Measure Code';
+            ToolTip = 'Specifies how each unit of the item or resource is measured, such as in pieces or hours. By default, the value in the Base Unit of Measure field on the item or resource card is inserted.';
             TableRelation = "Item Unit of Measure".Code where("Item No." = field("Item No."));
 
             trigger OnValidate()
@@ -145,22 +151,27 @@ table 5407 "Prod. Order Component"
         field(15; Position; Code[10])
         {
             Caption = 'Position';
+            ToolTip = 'Specifies the position of the component on the bill of material.';
         }
         field(16; "Position 2"; Code[10])
         {
             Caption = 'Position 2';
+            ToolTip = 'Specifies the components position in the BOM. It is copied from the production BOM when you calculate the production order.';
         }
         field(17; "Position 3"; Code[10])
         {
             Caption = 'Position 3';
+            ToolTip = 'Specifies the third reference number for the component position on a bill of material, such as the alternate position number of a component on a print card.';
         }
         field(18; "Lead-Time Offset"; DateFormula)
         {
             Caption = 'Lead-Time Offset';
+            ToolTip = 'Specifies the lead-time offset for the component line. It is copied from the corresponding field in the production BOM when you calculate the production order.';
         }
         field(19; "Routing Link Code"; Code[10])
         {
             Caption = 'Routing Link Code';
+            ToolTip = 'Specifies the routing link code when you calculate the production order.';
             TableRelation = "Routing Link";
 
             trigger OnValidate()
@@ -237,6 +248,7 @@ table 5407 "Prod. Order Component"
         {
             AutoFormatType = 0;
             Caption = 'Scrap %';
+            ToolTip = 'Specifies the percentage of the item that you expect to be scrapped in the production process.';
             DecimalPlaces = 0 : 5;
             MaxValue = 100;
             MinValue = 0;
@@ -249,6 +261,7 @@ table 5407 "Prod. Order Component"
         field(21; "Variant Code"; Code[10])
         {
             Caption = 'Variant Code';
+            ToolTip = 'Specifies the variant of the item on the line.';
             TableRelation = "Item Variant".Code where("Item No." = field("Item No."));
 
             trigger OnValidate()
@@ -291,6 +304,7 @@ table 5407 "Prod. Order Component"
         {
             AutoFormatType = 0;
             Caption = 'Expected Quantity';
+            ToolTip = 'Specifies the quantity of the component expected to be consumed during the production of the quantity on this line.';
             DecimalPlaces = 0 : 5;
             Editable = false;
 
@@ -357,6 +371,7 @@ table 5407 "Prod. Order Component"
         {
             AutoFormatType = 0;
             Caption = 'Remaining Quantity';
+            ToolTip = 'Specifies the difference between the finished and planned quantities, or zero if the finished quantity is greater than the remaining quantity.';
             DecimalPlaces = 0 : 5;
             Editable = false;
         }
@@ -377,6 +392,7 @@ table 5407 "Prod. Order Component"
         field(28; "Flushing Method"; Enum "Flushing Method")
         {
             Caption = 'Flushing Method';
+            ToolTip = 'Specifies how consumption of the item (component) is calculated and handled in production processes. Manual: Enter and post consumption in the consumption journal manually. Forward: Automatically posts consumption according to the production order component lines when the first operation starts. Backward: Automatically calculates and posts consumption according to the production order component lines when the production order is finished. Pick + Forward / Pick + Backward: Variations with warehousing.';
 
             trigger OnValidate()
             var
@@ -455,6 +471,7 @@ table 5407 "Prod. Order Component"
         field(30; "Location Code"; Code[10])
         {
             Caption = 'Location Code';
+            ToolTip = 'Specifies the location where the component is stored. Copies the location code from the corresponding field on the production order line.';
             TableRelation = Location where("Use As In-Transit" = const(false));
 
             trigger OnValidate()
@@ -478,6 +495,7 @@ table 5407 "Prod. Order Component"
         {
             CaptionClass = '1,2,1';
             Caption = 'Shortcut Dimension 1 Code';
+            ToolTip = 'Specifies the code for Shortcut Dimension 1, which is one of two global dimension codes that you set up in the General Ledger Setup window.';
             TableRelation = "Dimension Value".Code where("Global Dimension No." = const(1),
                                                           Blocked = const(false));
 
@@ -490,6 +508,7 @@ table 5407 "Prod. Order Component"
         {
             CaptionClass = '1,2,2';
             Caption = 'Shortcut Dimension 2 Code';
+            ToolTip = 'Specifies the code for Shortcut Dimension 2, which is one of two global dimension codes that you set up in the General Ledger Setup window.';
             TableRelation = "Dimension Value".Code where("Global Dimension No." = const(2),
                                                           Blocked = const(false));
 
@@ -501,6 +520,7 @@ table 5407 "Prod. Order Component"
         field(33; "Bin Code"; Code[20])
         {
             Caption = 'Bin Code';
+            ToolTip = 'Specifies the bin in which the component is to be placed before it is consumed.';
             TableRelation = Bin.Code where("Location Code" = field("Location Code"));
 
             trigger OnLookup()
@@ -567,6 +587,7 @@ table 5407 "Prod. Order Component"
         {
             AutoFormatType = 0;
             Caption = 'Length';
+            ToolTip = 'Specifies the length of one item unit when measured in the specified unit of measure.';
             DecimalPlaces = 0 : 5;
 
             trigger OnValidate()
@@ -578,6 +599,7 @@ table 5407 "Prod. Order Component"
         {
             AutoFormatType = 0;
             Caption = 'Width';
+            ToolTip = 'Specifies the width of one item unit when measured in the specified unit of measure.';
             DecimalPlaces = 0 : 5;
 
             trigger OnValidate()
@@ -589,6 +611,7 @@ table 5407 "Prod. Order Component"
         {
             AutoFormatType = 0;
             Caption = 'Weight';
+            ToolTip = 'Specifies the weight of one item unit when measured in the specified unit of measure.';
             DecimalPlaces = 0 : 5;
 
             trigger OnValidate()
@@ -600,6 +623,7 @@ table 5407 "Prod. Order Component"
         {
             AutoFormatType = 0;
             Caption = 'Depth';
+            ToolTip = 'Specifies the depth of one item unit when measured in the specified unit of measure.';
             DecimalPlaces = 0 : 5;
 
             trigger OnValidate()
@@ -610,6 +634,7 @@ table 5407 "Prod. Order Component"
         field(44; "Calculation Formula"; Enum "Quantity Calculation Formula")
         {
             Caption = 'Calculation Formula';
+            ToolTip = 'Specifies how to calculate the Quantity field.';
 
             trigger OnValidate()
             var
@@ -635,6 +660,7 @@ table 5407 "Prod. Order Component"
         {
             AutoFormatType = 0;
             Caption = 'Quantity per';
+            ToolTip = 'Specifies how many units of the component are required to produce the parent item.';
             DecimalPlaces = 0 : 5;
 
             trigger OnValidate()
@@ -656,6 +682,7 @@ table 5407 "Prod. Order Component"
             AutoFormatType = 2;
             AutoFormatExpression = '';
             Caption = 'Unit Cost';
+            ToolTip = 'Specifies the cost of one unit of the item or resource on the line.';
             DecimalPlaces = 2 : 5;
 
             trigger OnValidate()
@@ -679,11 +706,13 @@ table 5407 "Prod. Order Component"
             AutoFormatType = 1;
             AutoFormatExpression = '';
             Caption = 'Cost Amount';
+            ToolTip = 'Specifies the total cost on the line by multiplying the unit cost by the quantity.';
             Editable = false;
         }
         field(52; "Due Date"; Date)
         {
             Caption = 'Due Date';
+            ToolTip = 'Specifies the date when the produced item must be available. The date is copied from the header of the production order.';
 
             trigger OnValidate()
             var
@@ -758,6 +787,7 @@ table 5407 "Prod. Order Component"
                                                                    "Source Prod. Order Line" = field("Prod. Order Line No."),
                                                                    "Reservation Status" = const(Reservation)));
             Caption = 'Reserved Quantity';
+            ToolTip = 'Specifies how many units of this item have been reserved.';
             DecimalPlaces = 0 : 5;
             Editable = false;
             FieldClass = FlowField;
@@ -797,6 +827,7 @@ table 5407 "Prod. Order Component"
         field(76; "Due Date-Time"; DateTime)
         {
             Caption = 'Due Date-Time';
+            ToolTip = 'Specifies the due date and the due time, which are combined in a format called "due date-time".';
 
             trigger OnValidate()
             begin
@@ -828,6 +859,7 @@ table 5407 "Prod. Order Component"
                                                            "No." = field("Item No."),
                                                            "Variant Code" = field("Variant Code")));
             Caption = 'Substitution Available';
+            ToolTip = 'Specifies if an item substitute is available for the production order component.';
             Editable = false;
             FieldClass = FlowField;
         }
@@ -867,6 +899,7 @@ table 5407 "Prod. Order Component"
         {
             AutoFormatType = 0;
             Caption = 'Qty. Picked';
+            ToolTip = 'Specifies the quantity of the item you have picked for the component line.';
             DecimalPlaces = 0 : 5;
             Editable = false;
 
@@ -1223,6 +1256,11 @@ table 5407 "Prod. Order Component"
         Text99000009: Label 'Automatic reservation is not possible.\Do you want to reserve items manually?';
 #pragma warning restore AA0074
         ConfirmDeleteQst: Label '%1 = %2 is greater than %3 = %4. If you delete the %5, the items will remain in the operation area until you put them away.\Any related item tracking information defined during the pick process will be deleted.\Do you still want to delete the %5?', Comment = '%1 = FieldCaption("Qty. Picked"), %2 = "Qty. Picked", %3 = Qty. Posted, %4 = ("Expected Quantity" - "Remaining Quantity"), %5 = TableCaption';
+        CannotAutoReserveErr: Label 'Quantity %1 in line %2 cannot be reserved automatically.', Comment = '%1 - quantity, %2 - line number';
+#pragma warning disable AA0470
+        ProgressMsg: Label 'Reserving inventory...\#1##############\@2@@@@@';
+#pragma warning restore AA0470
+        CountFromTotalLineLbl: Label '%1 of %2', Comment = '%1= Current line number, %2= Total line number';
         IgnoreErrors: Boolean;
         ErrorOccured: Boolean;
 #if not CLEAN27
@@ -2275,6 +2313,43 @@ table 5407 "Prod. Order Component"
         if Item."No." <> "Item No." then
             Item.Get("Item No.");
         exit(Item.IsInventoriableType());
+    end;
+
+    procedure ReserveFromInventory(var ProdOrderComponent: Record "Prod. Order Component")
+    var
+        ReserveMgt: Codeunit "Reservation Management";
+        SourceRecRef: RecordRef;
+        AutoReserved: Boolean;
+        Window: Dialog;
+        TotalLines: Integer;
+        CurrentLine: Integer;
+    begin
+        ProdOrderComponent.SetAutoCalcFields("Reserved Quantity", "Reserved Qty. (Base)");
+        if ProdOrderComponent.FindSet() then begin
+            TotalLines := ProdOrderComponent.Count();
+            CurrentLine := 0;
+
+            Window.Open(ProgressMsg);
+            repeat
+                CurrentLine += 1;
+
+                Window.Update(1, StrSubstNo(CountFromTotalLineLbl, CurrentLine, TotalLines));
+                Window.Update(2, Round(CurrentLine * 100 / TotalLines, 1));
+                SourceRecRef.GetTable(ProdOrderComponent);
+                ReserveMgt.SetReservSource(SourceRecRef);
+                ProdOrderComponent.TestField("Due Date");
+                ReserveMgt.AutoReserveToShip(
+                  AutoReserved, '', ProdOrderComponent."Due Date",
+                  ProdOrderComponent.Quantity - ProdOrderComponent."Reserved Quantity",
+                  ProdOrderComponent."Quantity (Base)" - ProdOrderComponent."Reserved Qty. (Base)");
+
+                if not AutoReserved then begin
+                    Window.Close();
+                    Error(CannotAutoReserveErr, ProdOrderComponent."Quantity (Base)", ProdOrderComponent."Line No.");
+                end;
+            until ProdOrderComponent.Next() = 0;
+            Window.Close();
+        end;
     end;
 
     local procedure ConfirmDeletion()

@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -28,45 +28,37 @@ page 5406 "Prod. Order Line List"
                 field(Status; Rec.Status)
                 {
                     ApplicationArea = Manufacturing;
-                    ToolTip = 'Specifies a value that is copied from the corresponding field on the production order header.';
                 }
                 field("Prod. Order No."; Rec."Prod. Order No.")
                 {
                     ApplicationArea = Manufacturing;
-                    ToolTip = 'Specifies the number of the related production order.';
                 }
                 field("Item No."; Rec."Item No.")
                 {
                     ApplicationArea = Manufacturing;
-                    ToolTip = 'Specifies the number of the item that is to be produced.';
                 }
                 field("Variant Code"; Rec."Variant Code")
                 {
                     ApplicationArea = Planning;
-                    ToolTip = 'Specifies the variant of the item on the line.';
                     Visible = false;
                 }
                 field(Description; Rec.Description)
                 {
                     ApplicationArea = Manufacturing;
-                    ToolTip = 'Specifies the value of the Description field on the item card. If you enter a variant code, the variant description is copied to this field instead.';
                 }
                 field("Description 2"; Rec."Description 2")
                 {
                     ApplicationArea = Manufacturing;
-                    ToolTip = 'Specifies an additional description.';
                     Visible = false;
                 }
                 field("Shortcut Dimension 1 Code"; Rec."Shortcut Dimension 1 Code")
                 {
                     ApplicationArea = Dimensions;
-                    ToolTip = 'Specifies the code for Shortcut Dimension 1, which is one of two global dimension codes that you set up in the General Ledger Setup window.';
                     Visible = false;
                 }
                 field("Shortcut Dimension 2 Code"; Rec."Shortcut Dimension 2 Code")
                 {
                     ApplicationArea = Dimensions;
-                    ToolTip = 'Specifies the code for Shortcut Dimension 2, which is one of two global dimension codes that you set up in the General Ledger Setup window.';
                     Visible = false;
                 }
                 field("ShortcutDimCode[3]"; ShortcutDimCode[3])
@@ -126,34 +118,28 @@ page 5406 "Prod. Order Line List"
                 field("Location Code"; Rec."Location Code")
                 {
                     ApplicationArea = Location;
-                    ToolTip = 'Specifies the location code, if the produced items should be stored in a specific location.';
                     Visible = true;
                 }
                 field(Quantity; Rec.Quantity)
                 {
                     ApplicationArea = Manufacturing;
-                    ToolTip = 'Specifies the quantity to be produced if you manually fill in this line.';
                 }
                 field("Finished Quantity"; Rec."Finished Quantity")
                 {
                     ApplicationArea = Manufacturing;
-                    ToolTip = 'Specifies how much of the quantity on this line has been produced.';
                 }
                 field("Remaining Quantity"; Rec."Remaining Quantity")
                 {
                     ApplicationArea = Manufacturing;
-                    ToolTip = 'Specifies the difference between the finished and planned quantities, or zero if the finished quantity is greater than the remaining quantity.';
                 }
                 field("Scrap %"; Rec."Scrap %")
                 {
                     ApplicationArea = Manufacturing;
-                    ToolTip = 'Specifies the percentage of the item that you expect to be scrapped in the production process.';
                     Visible = false;
                 }
                 field("Due Date"; Rec."Due Date")
                 {
                     ApplicationArea = Manufacturing;
-                    ToolTip = 'Specifies the date when the produced item must be available. The date is copied from the header of the production order.';
                 }
                 field("Starting Date"; StartingDate)
                 {
@@ -196,17 +182,14 @@ page 5406 "Prod. Order Line List"
                 field("Production BOM No."; Rec."Production BOM No.")
                 {
                     ApplicationArea = Manufacturing;
-                    ToolTip = 'Specifies the number of the production BOM that is the basis for creating the Prod. Order Component list for this line.';
                 }
                 field("Unit Cost"; Rec."Unit Cost")
                 {
                     ApplicationArea = Manufacturing;
-                    ToolTip = 'Specifies the cost of one unit of the item or resource on the line.';
                 }
                 field("Cost Amount"; Rec."Cost Amount")
                 {
                     ApplicationArea = Manufacturing;
-                    ToolTip = 'Specifies the total cost on the line by multiplying the unit cost by the quantity.';
                 }
             }
         }

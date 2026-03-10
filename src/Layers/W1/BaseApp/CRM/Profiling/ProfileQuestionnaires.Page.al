@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -22,27 +22,22 @@ page 5109 "Profile Questionnaires"
                 field("Code"; Rec.Code)
                 {
                     ApplicationArea = All;
-                    ToolTip = 'Specifies the code of the profile questionnaire.';
                 }
                 field(Description; Rec.Description)
                 {
                     ApplicationArea = All;
-                    ToolTip = 'Specifies the description of the profile questionnaire.';
                 }
                 field(Priority; Rec.Priority)
                 {
                     ApplicationArea = RelationshipMgmt;
-                    ToolTip = 'Specifies the priority you give to the profile questionnaire and where it should be displayed on the lines of the Contact Card. There are five options:';
                 }
                 field("Contact Type"; Rec."Contact Type")
                 {
                     ApplicationArea = RelationshipMgmt;
-                    ToolTip = 'Specifies the type of contact you want to use this profile questionnaire for.';
                 }
                 field("Business Relation Code"; Rec."Business Relation Code")
                 {
                     ApplicationArea = RelationshipMgmt;
-                    ToolTip = 'Specifies the code of the business relation to which the profile questionnaire applies.';
                 }
             }
         }

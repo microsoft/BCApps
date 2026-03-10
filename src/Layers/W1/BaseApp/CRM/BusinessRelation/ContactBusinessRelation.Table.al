@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -22,6 +22,7 @@ table 5054 "Contact Business Relation"
         field(1; "Contact No."; Code[20])
         {
             Caption = 'Contact No.';
+            ToolTip = 'Specifies the contact number of the company you are assigning a business relation.';
             NotBlank = true;
             TableRelation = Contact where(Type = const(Company));
 
@@ -34,6 +35,7 @@ table 5054 "Contact Business Relation"
         field(2; "Business Relation Code"; Code[10])
         {
             Caption = 'Business Relation Code';
+            ToolTip = 'Specifies the business relation code.';
             NotBlank = true;
             TableRelation = "Business Relation";
 
@@ -68,10 +70,12 @@ table 5054 "Contact Business Relation"
         field(3; "Link to Table"; Enum "Contact Business Relation Link To Table")
         {
             Caption = 'Link to Table';
+            ToolTip = 'Specifies the name of the table to which the contact is linked. There are four possible options: &lt;blank&gt;, Vendor, Customer, and Bank Account.';
         }
         field(4; "No."; Code[20])
         {
             Caption = 'No.';
+            ToolTip = 'Specifies the number assigned to the contact in the Customer, Vendor, or Bank Account table. This field is only valid for contacts recorded as customer, vendor or bank accounts.';
             TableRelation = if ("Link to Table" = const(Customer)) Customer
             else
             if ("Link to Table" = const(Vendor)) Vendor
@@ -84,6 +88,7 @@ table 5054 "Contact Business Relation"
         {
             CalcFormula = lookup("Business Relation".Description where(Code = field("Business Relation Code")));
             Caption = 'Business Relation Description';
+            ToolTip = 'Specifies the description for the business relation you have assigned to the contact. This field is not editable.';
             Editable = false;
             FieldClass = FlowField;
         }
@@ -91,6 +96,7 @@ table 5054 "Contact Business Relation"
         {
             CalcFormula = lookup(Contact.Name where("No." = field("Contact No.")));
             Caption = 'Contact Name';
+            ToolTip = 'Specifies the name of the contact.';
             Editable = false;
             FieldClass = FlowField;
         }

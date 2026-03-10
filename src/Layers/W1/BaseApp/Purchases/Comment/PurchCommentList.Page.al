@@ -23,17 +23,14 @@ page 68 "Purch. Comment List"
                 field("No."; Rec."No.")
                 {
                     ApplicationArea = Comments;
-                    ToolTip = 'Specifies the number of the involved entry or record, according to the specified number series.';
                 }
                 field(Date; Rec.Date)
                 {
                     ApplicationArea = Comments;
-                    ToolTip = 'Specifies the date the comment was created.';
                 }
                 field(Comment; Rec.Comment)
                 {
                     ApplicationArea = Comments;
-                    ToolTip = 'Specifies the comment itself.';
                 }
             }
         }

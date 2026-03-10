@@ -29,7 +29,6 @@ page 5831 "Inventory Posting Setup Card"
                 {
                     ApplicationArea = Basic, Suite;
                     ShowMandatory = true;
-                    ToolTip = 'Specifies the code for the inventory posting group, in the combination of location and inventory posting group, that you are setting up.';
                 }
                 field(Description; Rec.Description)
                 {
@@ -39,7 +38,6 @@ page 5831 "Inventory Posting Setup Card"
                 field("Inventory Account"; Rec."Inventory Account")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the number of the G/L account to which to post transactions with the expected cost for items in this combination.';
                 }
                 field("Inventory Account (Interim)"; Rec."Inventory Account (Interim)")
                 {
@@ -55,37 +53,31 @@ page 5831 "Inventory Posting Setup Card"
                     {
                         ApplicationArea = Basic, Suite;
                         Importance = Additional;
-                        ToolTip = 'Specifies the general ledger account number to which to post transactions for items in WIP inventory in this combination.';
                     }
                     field("Material Variance Account"; Rec."Material Variance Account")
                     {
                         ApplicationArea = Basic, Suite;
                         Importance = Additional;
-                        ToolTip = 'Specifies the number of the general ledger account to which to post material variance transactions for items in this combination.';
                     }
                     field("Capacity Variance Account"; Rec."Capacity Variance Account")
                     {
                         ApplicationArea = Suite;
                         Importance = Additional;
-                        ToolTip = 'Specifies the number of the general ledger account to which to post capacity variance transactions for items in this combination.';
                     }
                     field("Mfg. Overhead Variance Account"; Rec."Mfg. Overhead Variance Account")
                     {
                         ApplicationArea = Suite;
                         Importance = Additional;
-                        ToolTip = 'Specifies the general ledger account number to which to post manufacturing overhead variance transactions for items in this combination.';
                     }
                     field("Cap. Overhead Variance Account"; Rec."Cap. Overhead Variance Account")
                     {
                         ApplicationArea = Suite;
                         Importance = Additional;
-                        ToolTip = 'Specifies the general ledger account number to which to post capacity overhead variance transactions for items in this combination.';
                     }
                     field("Subcontracted Variance Account"; Rec."Subcontracted Variance Account")
                     {
                         ApplicationArea = Manufacturing;
                         Importance = Additional;
-                        ToolTip = 'Specifies the general ledger account number to which to post subcontracted variance transactions for items in this combination.';
                     }
                 }
                 group(Usage)

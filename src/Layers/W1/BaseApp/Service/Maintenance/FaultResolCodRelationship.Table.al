@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -16,22 +16,26 @@ table 5920 "Fault/Resol. Cod. Relationship"
         field(1; "Fault Code"; Code[10])
         {
             Caption = 'Fault Code';
+            ToolTip = 'Specifies the fault code.';
             TableRelation = "Fault Code".Code where("Fault Area Code" = field("Fault Area Code"),
                                                      "Symptom Code" = field("Symptom Code"));
         }
         field(2; "Symptom Code"; Code[10])
         {
             Caption = 'Symptom Code';
+            ToolTip = 'Specifies the symptom code.';
             TableRelation = "Symptom Code";
         }
         field(3; "Fault Area Code"; Code[10])
         {
             Caption = 'Fault Area Code';
+            ToolTip = 'Specifies the fault area code.';
             TableRelation = "Fault Area";
         }
         field(4; "Resolution Code"; Code[10])
         {
             Caption = 'Resolution Code';
+            ToolTip = 'Specifies the resolution code.';
             TableRelation = "Resolution Code";
 
             trigger OnValidate()
@@ -46,15 +50,18 @@ table 5920 "Fault/Resol. Cod. Relationship"
         field(5; Occurrences; Integer)
         {
             Caption = 'Occurrences';
+            ToolTip = 'Specifies the number of times the combination of fault code, symptom code, fault area, and resolution code occurs in the posted service lines.';
             Editable = false;
         }
         field(6; Description; Text[80])
         {
             Caption = 'Description';
+            ToolTip = 'Specifies a description of the relationship between the fault code and the resolution code.';
         }
         field(7; "Service Item Group Code"; Code[10])
         {
             Caption = 'Service Item Group Code';
+            ToolTip = 'Specifies the code of the service item group linked to the relationship.';
             TableRelation = "Service Item Group";
         }
         field(8; "Created Manually"; Boolean)

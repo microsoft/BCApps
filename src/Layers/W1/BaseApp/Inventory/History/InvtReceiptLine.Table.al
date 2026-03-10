@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -30,6 +30,7 @@ table 5853 "Invt. Receipt Line"
         field(3; "Item No."; Code[20])
         {
             Caption = 'Item No.';
+            ToolTip = 'Specifies the number of the item.';
             TableRelation = Item;
         }
         field(4; "Posting Date"; Date)
@@ -39,6 +40,7 @@ table 5853 "Invt. Receipt Line"
         field(5; "Document Date"; Date)
         {
             Caption = 'Document Date';
+            ToolTip = 'Specifies the transaction amount.';
         }
         field(7; "Document No."; Code[20])
         {
@@ -47,6 +49,7 @@ table 5853 "Invt. Receipt Line"
         field(8; Description; Text[100])
         {
             Caption = 'Description';
+            ToolTip = 'Specifies the item description.';
         }
         field(9; "Location Code"; Code[10])
         {
@@ -63,18 +66,22 @@ table 5853 "Invt. Receipt Line"
         {
             AutoFormatType = 0;
             Caption = 'Quantity';
+            ToolTip = 'Specifies the number of item units.';
             DecimalPlaces = 0 : 5;
         }
         field(16; "Unit Amount"; Decimal)
         {
             AutoFormatType = 2;
             AutoFormatExpression = '';
+            Caption = 'Unit Amount';
+            ToolTip = 'Specifies the unit price for the item.';
         }
         field(17; "Unit Cost"; Decimal)
         {
             AutoFormatType = 2;
             AutoFormatExpression = '';
             Caption = 'Unit Cost';
+            ToolTip = 'Specifies the cost of one unit of the item or resource on the line.';
         }
         field(18; Amount; Decimal)
         {
@@ -109,12 +116,14 @@ table 5853 "Invt. Receipt Line"
         {
             CaptionClass = '1,2,1';
             Caption = 'Shortcut Dimension 1 Code';
+            ToolTip = 'Specifies the code for Shortcut Dimension 1, which is one of two global dimension codes that you set up in the General Ledger Setup window.';
             TableRelation = "Dimension Value".Code where("Global Dimension No." = const(1));
         }
         field(35; "Shortcut Dimension 2 Code"; Code[20])
         {
             CaptionClass = '1,2,2';
             Caption = 'Shortcut Dimension 2 Code';
+            ToolTip = 'Specifies the code for Shortcut Dimension 2, which is one of two global dimension codes that you set up in the General Ledger Setup window.';
             TableRelation = "Dimension Value".Code where("Global Dimension No." = const(2));
         }
         field(37; "Indirect Cost %"; Decimal)
@@ -195,11 +204,13 @@ table 5853 "Invt. Receipt Line"
         field(5402; "Variant Code"; Code[10])
         {
             Caption = 'Variant Code';
+            ToolTip = 'Specifies the variant of the item on the line.';
             TableRelation = "Item Variant".Code where("Item No." = field("Item No."));
         }
         field(5403; "Bin Code"; Code[20])
         {
             Caption = 'Bin Code';
+            ToolTip = 'Specifies the bin where the items are picked or put away.';
             TableRelation = Bin.Code where("Location Code" = field("Location Code"),
                                             "Item Filter" = field("Item No."),
                                             "Variant Filter" = field("Variant Code"));
@@ -235,6 +246,7 @@ table 5853 "Invt. Receipt Line"
         field(5407; "Unit of Measure Code"; Code[10])
         {
             Caption = 'Unit of Measure Code';
+            ToolTip = 'Specifies how each unit of the item or resource is measured, such as in pieces or hours. By default, the value in the Base Unit of Measure field on the item or resource card is inserted.';
             TableRelation = "Item Unit of Measure".Code where("Item No." = field("Item No."));
         }
         field(5413; "Quantity (Base)"; Decimal)
@@ -258,6 +270,7 @@ table 5853 "Invt. Receipt Line"
         {
             AccessByPermission = TableData "Item Reference" = R;
             Caption = 'Item Reference No.';
+            ToolTip = 'Specifies a reference to the item number as defined by the item''s barcode.';
             ExtendedDatatype = Barcode;
         }
         field(5726; "Item Reference Unit of Measure"; Code[10])

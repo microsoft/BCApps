@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -117,7 +117,6 @@ page 233 "Apply Vendor Entries"
                 field(AppliesToID; Rec."Applies-to ID")
                 {
                     ApplicationArea = All;
-                    ToolTip = 'Specifies the ID of entries that will be applied to when you choose the Apply Entries action.';
                     Visible = AppliesToIDVisible;
 
                     trigger OnValidate()
@@ -140,82 +139,69 @@ page 233 "Apply Vendor Entries"
                 {
                     ApplicationArea = Basic, Suite;
                     Editable = false;
-                    ToolTip = 'Specifies the vendor entry''s posting date.';
                 }
                 field("Document Type"; Rec."Document Type")
                 {
                     ApplicationArea = Basic, Suite;
                     Editable = false;
                     StyleExpr = StyleTxt;
-                    ToolTip = 'Specifies the document type that the vendor entry belongs to.';
                 }
                 field("Document No."; Rec."Document No.")
                 {
                     ApplicationArea = Basic, Suite;
                     Editable = false;
                     StyleExpr = StyleTxt;
-                    ToolTip = 'Specifies the vendor entry''s document number.';
                 }
                 field("External Document No."; Rec."External Document No.")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies a document number that refers to the customer''s or vendor''s numbering system.';
                 }
                 field("Vendor No."; Rec."Vendor No.")
                 {
                     ApplicationArea = Basic, Suite;
                     Editable = false;
-                    ToolTip = 'Specifies the number of the vendor account that the entry is linked to.';
                 }
                 field("Vendor Name"; Rec."Vendor Name")
                 {
                     ApplicationArea = Basic, Suite;
                     Editable = false;
-                    ToolTip = 'Specifies the name of the vendor account that the entry is linked to.';
                     Visible = VendNameVisible;
                 }
                 field(Description; Rec.Description)
                 {
                     ApplicationArea = Basic, Suite;
                     Editable = false;
-                    ToolTip = 'Specifies a description of the vendor entry.';
                 }
                 field("Currency Code"; Rec."Currency Code")
                 {
                     ApplicationArea = Suite;
-                    ToolTip = 'Specifies the currency code for the amount on the line.';
                 }
                 field("Original Amount"; Rec."Original Amount")
                 {
                     ApplicationArea = Basic, Suite;
                     Editable = false;
-                    ToolTip = 'Specifies the amount of the original entry.';
                     Visible = false;
                 }
                 field(Amount; Rec.Amount)
                 {
                     ApplicationArea = Basic, Suite;
                     Editable = false;
-                    ToolTip = 'Specifies the amount of the entry.';
                     Visible = false;
                 }
                 field("Debit Amount"; Rec."Debit Amount")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the total of the ledger entries that represent debits.';
                     Visible = false;
                 }
                 field("Credit Amount"; Rec."Credit Amount")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the total of the ledger entries that represent credits.';
                     Visible = false;
                 }
                 field("Remaining Amount"; Rec."Remaining Amount")
                 {
                     ApplicationArea = Basic, Suite;
                     Editable = false;
-                    ToolTip = 'Specifies the amount that remains to be applied to before the entry is totally applied to.';
                 }
 #pragma warning disable AA0100
                 field("CalcApplnRemainingAmount(""Remaining Amount"")"; CalcApplnRemainingAmount(Rec."Remaining Amount"))
@@ -230,7 +216,6 @@ page 233 "Apply Vendor Entries"
                 field("Amount to Apply"; Rec."Amount to Apply")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the amount to apply.';
 
                     trigger OnValidate()
                     begin
@@ -256,12 +241,10 @@ page 233 "Apply Vendor Entries"
                 {
                     ApplicationArea = Basic, Suite;
                     StyleExpr = StyleTxt;
-                    ToolTip = 'Specifies the due date on the entry.';
                 }
                 field("Pmt. Discount Date"; Rec."Pmt. Discount Date")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the date on which the amount in the entry must be paid for a payment discount to be granted.';
 
                     trigger OnValidate()
                     begin
@@ -271,23 +254,19 @@ page 233 "Apply Vendor Entries"
                 field("Pmt. Disc. Tolerance Date"; Rec."Pmt. Disc. Tolerance Date")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the latest date the amount in the entry must be paid in order for payment discount tolerance to be granted.';
                 }
                 field("Payment Reference"; Rec."Payment Reference")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the payment of the purchase invoice.';
                 }
                 field("Original Pmt. Disc. Possible"; Rec."Original Pmt. Disc. Possible")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the discount that you can obtain if the entry is applied to before the payment discount date.';
                     Visible = false;
                 }
                 field("Remaining Pmt. Disc. Possible"; Rec."Remaining Pmt. Disc. Possible")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the remaining payment discount which can be received if the payment is made before the payment discount date.';
 
                     trigger OnValidate()
                     begin
@@ -307,19 +286,16 @@ page 233 "Apply Vendor Entries"
                 field("Max. Payment Tolerance"; Rec."Max. Payment Tolerance")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the maximum tolerated amount the entry can differ from the amount on the invoice or credit memo.';
                 }
                 field(Open; Rec.Open)
                 {
                     ApplicationArea = Basic, Suite;
                     Editable = false;
-                    ToolTip = 'Specifies whether the amount on the entry has been fully paid or there is still a remaining amount that must be applied to.';
                 }
                 field(Positive; Rec.Positive)
                 {
                     ApplicationArea = Basic, Suite;
                     Editable = false;
-                    ToolTip = 'Specifies if the entry to be applied is positive.';
                 }
                 field("Payments in Process"; Rec."Payments in Process")
                 {
@@ -329,19 +305,16 @@ page 233 "Apply Vendor Entries"
                 field("Remit-to Code"; Rec."Remit-to Code")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the address for the remit-to code.';
                     Visible = true;
                     TableRelation = "Remit Address".Code where("Vendor No." = field("Vendor No."));
                 }
                 field("Global Dimension 1 Code"; Rec."Global Dimension 1 Code")
                 {
                     ApplicationArea = Dimensions;
-                    ToolTip = 'Specifies the code for the global dimension that is linked to the record or entry for analysis purposes. Two global dimensions, typically for the company''s most important activities, are available on all cards, documents, reports, and lists.';
                 }
                 field("Global Dimension 2 Code"; Rec."Global Dimension 2 Code")
                 {
                     ApplicationArea = Dimensions;
-                    ToolTip = 'Specifies the code for the global dimension that is linked to the record or entry for analysis purposes. Two global dimensions, typically for the company''s most important activities, are available on all cards, documents, reports, and lists.';
                 }
             }
             group(Control41)

@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -31,25 +31,21 @@ page 9053 "WMS Ship & Receive Activities"
                 {
                     ApplicationArea = Warehouse;
                     DrillDownPageID = "Sales Order List";
-                    ToolTip = 'Specifies the number of released sales orders that are displayed in the Warehouse WMS Cue on the Role Center. The documents are filtered by today''s date.';
                 }
                 field("Shipments - Today"; Rec."Shipments - Today")
                 {
                     ApplicationArea = Warehouse;
                     DrillDownPageID = "Warehouse Shipment List";
-                    ToolTip = 'Specifies the number of shipments that are displayed in the Warehouse WMS Cue on the Role Center. The documents are filtered by today''s date.';
                 }
                 field("Picked Shipments - Today"; Rec."Picked Shipments - Today")
                 {
                     ApplicationArea = Warehouse;
                     DrillDownPageID = "Warehouse Shipment List";
-                    ToolTip = 'Specifies the number of picked shipments that are displayed in the Warehouse WMS Cue on the Role Center. The documents are filtered by today''s date.';
                 }
                 field("Posted Shipments - Today"; Rec."Posted Shipments - Today")
                 {
                     ApplicationArea = Warehouse;
                     DrillDownPageID = "Posted Whse. Shipment List";
-                    ToolTip = 'Specifies the number of posted shipments that are displayed in the Warehouse WMS Cue on the Role Center. The documents are filtered by today''s date.';
                 }
 
                 actions
@@ -79,19 +75,16 @@ page 9053 "WMS Ship & Receive Activities"
                 {
                     ApplicationArea = Warehouse;
                     DrillDownPageID = "Purchase Order List";
-                    ToolTip = 'Specifies the number of expected purchase orders that are displayed in the Warehouse WMS Cue on the Role Center. The documents are filtered by today''s date.';
                 }
                 field(Arrivals; Rec.Arrivals)
                 {
                     ApplicationArea = Warehouse;
                     DrillDownPageID = "Warehouse Receipts";
-                    ToolTip = 'Specifies the number of arrivals that are displayed in the Warehouse WMS Cue on the Role Center. The documents are filtered by today''s date.';
                 }
                 field("Posted Receipts - Today"; Rec."Posted Receipts - Today")
                 {
                     ApplicationArea = Warehouse;
                     DrillDownPageID = "Posted Whse. Receipt List";
-                    ToolTip = 'Specifies the number of posted receipts that are displayed in the Warehouse WMS Cue on the Role Center. The documents are filtered by today''s date.';
                 }
 
                 actions
@@ -121,43 +114,36 @@ page 9053 "WMS Ship & Receive Activities"
                 {
                     ApplicationArea = Warehouse;
                     DrillDownPageID = "Warehouse Picks";
-                    ToolTip = 'Specifies the number of picks that are displayed in the Warehouse WMS Cue on the Role Center. The documents are filtered by today''s date.';
                 }
                 field("Unassigned Picks"; Rec."Unassigned Picks")
                 {
                     ApplicationArea = Warehouse;
                     DrillDownPageID = "Warehouse Picks";
-                    ToolTip = 'Specifies the number of unassigned picks that are displayed in the Warehouse Worker WMS Cue on the Role Center. The documents are filtered by today''s date.';
                 }
                 field("Put-aways - All"; Rec."Put-aways - All")
                 {
                     ApplicationArea = Warehouse;
                     DrillDownPageID = "Warehouse Put-aways";
-                    ToolTip = 'Specifies the number of put-always that are displayed in the Warehouse WMS Cue on the Role Center. The documents are filtered by today''s date.';
                 }
                 field("Unassigned Put-aways"; Rec."Unassigned Put-aways")
                 {
                     ApplicationArea = Warehouse;
                     DrillDownPageID = "Warehouse Put-aways";
-                    ToolTip = 'Specifies the number of unassigned put-always that are displayed in the Warehouse Worker WMS Cue on the Role Center. The documents are filtered by today''s date.';
                 }
                 field("Movements - All"; Rec."Movements - All")
                 {
                     ApplicationArea = Warehouse;
                     DrillDownPageID = "Warehouse Movements";
-                    ToolTip = 'Specifies the number of movements that are displayed in the Warehouse WMS Cue on the Role Center. The documents are filtered by today''s date.';
                 }
                 field("Unassigned Movements"; Rec."Unassigned Movements")
                 {
                     ApplicationArea = Warehouse;
                     DrillDownPageID = "Warehouse Movements";
-                    ToolTip = 'Specifies the number of unassigned movements that are displayed in the Warehouse Worker WMS Cue on the Role Center. The documents are filtered by today''s date.';
                 }
                 field("Registered Picks - Today"; Rec."Registered Picks - Today")
                 {
                     ApplicationArea = Warehouse;
                     DrillDownPageID = "Registered Whse. Picks";
-                    ToolTip = 'Specifies the number of registered picks that are displayed in the Warehouse WMS Cue on the Role Center. The documents are filtered by today''s date.';
                 }
 
                 actions

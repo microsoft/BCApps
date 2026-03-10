@@ -42,9 +42,8 @@ codeunit 134394 "ERM Purchase Subform"
         InvoiceDiscPct: Label 'Invoice Disc. Pct.';
         ItemTestDescriptionLbl: Label 'Test Description';
         LineNoRemainsZeroLbl: Label 'Line No. should remain zero as zero is allowed';
-        LineNoPositiveAfterInsertNegativeLbl: Label 'Line No. should be positive after insert with negative';
-        NewLineNoGreaterThanPreviousLbl: Label 'New Line No. should be greater than previous';
         PositiveLineNoRemainUnchangedLbl: Label 'Positive Line No. should remain unchanged';
+        DirectUnitCostErr: Label 'The direct cost is not being calculated correctly or missing.';
 
 #if not CLEAN26
     [Obsolete('The statistics action will be replaced with the PurchaseOrderStatistics action. The new action uses RunObject and does not run the action trigger. Use a page extension to modify the behaviour.', '26.0')]
@@ -7013,18 +7012,6 @@ codeunit 134394 "ERM Purchase Subform"
         PurchaseLine.Insert(true);
         PreviousLineNo := PurchaseLine."Line No.";
 
-        // [WHEN] Inserting a purchase line with negative Line No. (simulating AutoSplitKey exhaustion)
-        PurchaseLine.Init();
-        PurchaseLine."Document Type" := PurchaseHeader."Document Type";
-        PurchaseLine."Document No." := PurchaseHeader."No.";
-        PurchaseLine."Line No." := -10000; // Simulate AutoSplitKey assigning negative
-        PurchaseLine.Insert(true);
-
-        // [THEN] Line No. is reassigned to a positive value greater than previous
-        PurchaseLine.Find();
-        Assert.IsTrue(PurchaseLine."Line No." > 0, LineNoPositiveAfterInsertNegativeLbl);
-        Assert.IsTrue(PurchaseLine."Line No." > PreviousLineNo, NewLineNoGreaterThanPreviousLbl);
-
         // [WHEN] Inserting a line with Line No. = 0 (zero is allowed, should remain zero)
         PurchaseLine.Init();
         PurchaseLine."Document Type" := PurchaseHeader."Document Type";
@@ -7046,6 +7033,39 @@ codeunit 134394 "ERM Purchase Subform"
         // [THEN] Line No. remains unchanged
         PurchaseLine.Find();
         Assert.AreEqual(PreviousLineNo + 20000, PurchaseLine."Line No.", PositiveLineNoRemainUnchangedLbl);
+    end;
+
+    [Test]
+    procedure VerifyDirectUnitCostPurchaseOrderFromDescription()
+    var
+        Item: Record Item;
+        PurchaseLine: Record "Purchase Line";
+        Vendor: Record Vendor;
+        PurchaseOrder: TestPage "Purchase Order";
+    begin
+        // [SCENARIO 621543] The Direct Unit Cost is automatically populated when the item is selected through the Description field.
+        Initialize();
+
+        // [GIVEN] Create Item with Unit Cost and Unit Price.
+        LibraryInventory.CreateItemWithUnitPriceAndUnitCost(
+            Item, LibraryRandom.RandIntInRange(100, 1000), LibraryRandom.RandIntInRange(2000, 3000));
+        Item.Validate("Last Direct Cost", Item."Unit Cost");
+        Item.Modify(true);
+
+        // [GIVEN] Create a new Vendor.
+        LibraryPurchase.CreateVendor(Vendor);
+
+        // [GIVEN] Open Purchase Order for the Vendor.
+        PurchaseOrder.OpenNew();
+        PurchaseOrder."Buy-from Vendor Name".SetValue(Vendor.Name);
+
+        // [WHEN] Insert Purchase Line by Description.
+        PurchaseOrder.PurchLines.New();
+        PurchaseOrder.PurchLines.Type.SetValue(PurchaseLine.Type::Item);
+        PurchaseOrder.PurchLines.Description.SetValue(Item.Description);
+
+        // [THEN] Verify that Direct Unit Cost is correctly populated.
+        Assert.AreEqual(Item."Unit Cost", PurchaseOrder.PurchLines."Direct Unit Cost".AsDecimal(), DirectUnitCostErr);
     end;
 
     local procedure Initialize()

@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -23,7 +23,6 @@ page 5952 "Posted Service Cr. Memo Lines"
                 field("Document No."; Rec."Document No.")
                 {
                     ApplicationArea = Service;
-                    ToolTip = 'Specifies the number of the credit memo.';
                 }
                 field("Customer No."; Rec."Customer No.")
                 {
@@ -38,12 +37,10 @@ page 5952 "Posted Service Cr. Memo Lines"
                 field("No."; Rec."No.")
                 {
                     ApplicationArea = Service;
-                    ToolTip = 'Specifies the number of the involved entry or record, according to the specified number series.';
                 }
                 field("Variant Code"; Rec."Variant Code")
                 {
                     ApplicationArea = Planning;
-                    ToolTip = 'Specifies the variant of the item on the line.';
                     Visible = false;
                 }
                 field(Description; Rec.Description)
@@ -55,41 +52,34 @@ page 5952 "Posted Service Cr. Memo Lines"
                 {
                     ApplicationArea = Service;
                     Importance = Additional;
-                    ToolTip = 'Specifies information in addition to the description.';
                     Visible = false;
                 }
                 field("Shortcut Dimension 1 Code"; Rec."Shortcut Dimension 1 Code")
                 {
                     ApplicationArea = Dimensions;
-                    ToolTip = 'Specifies the code for Shortcut Dimension 1, which is one of two global dimension codes that you set up in the General Ledger Setup window.';
                     Visible = false;
                 }
                 field("Shortcut Dimension 2 Code"; Rec."Shortcut Dimension 2 Code")
                 {
                     ApplicationArea = Dimensions;
-                    ToolTip = 'Specifies the code for Shortcut Dimension 2, which is one of two global dimension codes that you set up in the General Ledger Setup window.';
                     Visible = false;
                 }
                 field(Quantity; Rec.Quantity)
                 {
                     ApplicationArea = Service;
-                    ToolTip = 'Specifies the number of item units, resource hours, general ledger account payments, or cost specified on the credit memo line.';
                 }
                 field("Unit of Measure Code"; Rec."Unit of Measure Code")
                 {
                     ApplicationArea = Service;
-                    ToolTip = 'Specifies how each unit of the item or resource is measured, such as in pieces or hours. By default, the value in the Base Unit of Measure field on the item or resource card is inserted.';
                 }
                 field("Unit of Measure"; Rec."Unit of Measure")
                 {
                     ApplicationArea = Service;
-                    ToolTip = 'Specifies the name of the item or resource''s unit of measure, such as piece or hour.';
                     Visible = false;
                 }
                 field("Unit Price"; Rec."Unit Price")
                 {
                     ApplicationArea = Service;
-                    ToolTip = 'Specifies the price of one unit of the item or resource. You can enter a price manually or have it entered according to the Price/Profit Calculation field on the related card.';
                 }
                 field("Unit Cost (LCY)"; Rec."Unit Cost (LCY)")
                 {
@@ -100,23 +90,19 @@ page 5952 "Posted Service Cr. Memo Lines"
                 field(Amount; Rec.Amount)
                 {
                     ApplicationArea = Service;
-                    ToolTip = 'Specifies the total net amount on the service line.';
                 }
                 field("Amount Including VAT"; Rec."Amount Including VAT")
                 {
                     ApplicationArea = Service;
-                    ToolTip = 'Specifies the net amount, including VAT, for this line.';
                     Visible = false;
                 }
                 field("Line Discount %"; Rec."Line Discount %")
                 {
                     ApplicationArea = Service;
-                    ToolTip = 'Specifies the discount percentage that is granted for the item on the line.';
                 }
                 field("Line Discount Amount"; Rec."Line Discount Amount")
                 {
                     ApplicationArea = Service;
-                    ToolTip = 'Specifies the discount amount that is granted for the item on the line.';
                     Visible = false;
                 }
             }

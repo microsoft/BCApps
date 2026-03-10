@@ -69,18 +69,15 @@ page 7326 "Whse. Phys. Invt. Journal"
                 field("Registering Date"; Rec."Registering Date")
                 {
                     ApplicationArea = Warehouse;
-                    ToolTip = 'Specifies the date the line is registered.';
                 }
                 field("Whse. Document No."; Rec."Whse. Document No.")
                 {
                     ApplicationArea = Warehouse;
                     Caption = 'Whse. Document No.';
-                    ToolTip = 'Specifies the warehouse document number of the journal line.';
                 }
                 field("Item No."; Rec."Item No.")
                 {
                     ApplicationArea = Warehouse;
-                    ToolTip = 'Specifies the number of the item on the journal line.';
 
                     trigger OnValidate()
                     begin
@@ -90,20 +87,17 @@ page 7326 "Whse. Phys. Invt. Journal"
                 field("Variant Code"; Rec."Variant Code")
                 {
                     ApplicationArea = Planning;
-                    ToolTip = 'Specifies the variant of the item on the line.';
                     Visible = false;
                 }
                 field(Description; Rec.Description)
                 {
                     ApplicationArea = Warehouse;
-                    ToolTip = 'Specifies the description of the item.';
                 }
                 field("Serial No."; Rec."Serial No.")
                 {
                     ApplicationArea = ItemTracking;
                     Editable = SerialNoEditable;
                     ExtendedDatatype = Barcode;
-                    ToolTip = 'Specifies the same as for the field in the Item Journal window.';
                     Visible = false;
                 }
                 field("Lot No."; Rec."Lot No.")
@@ -111,7 +105,6 @@ page 7326 "Whse. Phys. Invt. Journal"
                     ApplicationArea = ItemTracking;
                     Editable = LotNoEditable;
                     ExtendedDatatype = Barcode;
-                    ToolTip = 'Specifies the same as for the field in the Item Journal window.';
                     Visible = false;
                 }
                 field("Package No."; Rec."Package No.")
@@ -119,31 +112,26 @@ page 7326 "Whse. Phys. Invt. Journal"
                     ApplicationArea = ItemTracking;
                     Editable = PackageNoEditable;
                     ExtendedDatatype = Barcode;
-                    ToolTip = 'Specifies the same as for the field in the Item Journal window.';
                     Visible = false;
                 }
                 field("Warranty Date"; Rec."Warranty Date")
                 {
                     ApplicationArea = ItemTracking;
-                    ToolTip = 'Specifies the last day of warranty for the item on the line.';
                     visible = false;
                 }
                 field("Expiration Date"; Rec."Expiration Date")
                 {
                     ApplicationArea = ItemTracking;
                     Editable = ExpirationDateEditable;
-                    ToolTip = 'Specifies the last date that the item on the line can be used.';
                     visible = false;
                 }
                 field("Zone Code"; Rec."Zone Code")
                 {
                     ApplicationArea = ItemTracking;
-                    ToolTip = 'Specifies the zone code where the bin on this line is located.';
                 }
                 field("Bin Code"; Rec."Bin Code")
                 {
                     ApplicationArea = Warehouse;
-                    ToolTip = 'Specifies the bin where the items are picked or put away.';
                 }
                 field("Qty. (Calculated) (Base)"; Rec."Qty. (Calculated) (Base)")
                 {
@@ -171,30 +159,25 @@ page 7326 "Whse. Phys. Invt. Journal"
                 field(Quantity; Rec.Quantity)
                 {
                     ApplicationArea = Warehouse;
-                    ToolTip = 'Specifies the number of units of the item in the adjustment (positive or negative) or the reclassification.';
                 }
                 field("Unit of Measure Code"; Rec."Unit of Measure Code")
                 {
                     ApplicationArea = Warehouse;
-                    ToolTip = 'Specifies how each unit of the item or resource is measured, such as in pieces or hours. By default, the value in the Base Unit of Measure field on the item or resource card is inserted.';
                 }
                 field("Reason Code"; Rec."Reason Code")
                 {
                     ApplicationArea = Warehouse;
                     Caption = 'Reason Code';
-                    ToolTip = 'Specifies the reason code for the warehouse journal line.';
                     Visible = false;
                 }
                 field("Phys Invt Counting Period Type"; Rec."Phys Invt Counting Period Type")
                 {
                     ApplicationArea = Warehouse;
-                    ToolTip = 'Specifies whether the physical inventory counting period was assigned to a stockkeeping unit or an item.';
                     Visible = false;
                 }
                 field("Phys Invt Counting Period Code"; Rec."Phys Invt Counting Period Code")
                 {
                     ApplicationArea = Warehouse;
-                    ToolTip = 'Specifies a code for the physical inventory counting period, if the counting period functionality was used when the line was created.';
                     Visible = false;
                 }
             }

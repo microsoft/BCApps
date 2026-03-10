@@ -651,6 +651,8 @@ codeunit 22 "Item Jnl.-Post Line"
         ValueEntry."Global Dimension 1 Code" := ItemJournalLine."Shortcut Dimension 1 Code";
         ValueEntry."Global Dimension 2 Code" := ItemJournalLine."Shortcut Dimension 2 Code";
         ValueEntry."Dimension Set ID" := ItemJournalLine."Dimension Set ID";
+        if (ValueEntry.Type = ValueEntry.Type::"Work Center") and (ValueEntry."Order Type" = ValueEntry."Order Type"::Production) then
+            ValueEntry."Location Code" := ItemJournalLine."Location Code";
 
         OnBeforeInsertCapValueEntry(ValueEntry, ItemJournalLine);
 
@@ -1897,9 +1899,13 @@ codeunit 22 "Item Jnl.-Post Line"
         OnBeforeInsertTransferEntry(NewItemLedgEntry, OldItemLedgEntry, ItemJnlLine);
 
         InsertItemLedgEntry(NewItemLedgEntry, true);
-        InsertValueEntry(NewValueEntry, NewItemLedgEntry, true);
 
-        UpdateUnitCost(NewValueEntry);
+        IsHandled := false;
+        OnInsertTransferEntryOnBeforeInsertValueEntry(NewValueEntry, NewItemLedgEntry, ValueEntryNo, IsHandled);
+        if not IsHandled then begin
+            InsertValueEntry(NewValueEntry, NewItemLedgEntry, true);
+            UpdateUnitCost(NewValueEntry);
+        end;
 
         xValueEntryNo := ValueEntryNo;
         OnAfterInsertTransferEntry(ItemJnlLine, NewItemLedgEntry, OldItemLedgEntry, NewValueEntry, ValueEntryNo);
@@ -3019,6 +3025,11 @@ codeunit 22 "Item Jnl.-Post Line"
         ValueEntry."Cost per Unit (ACY)" :=
           CalcCostPerUnit(ValueEntry."Cost Amount (Actual) (ACY)", ValueEntry."Valued Quantity", true);
 
+        IsHandled := false;
+        OnInsertVarValueEntryOnBeforeInsertValueEntry(ValueEntry, GlobalItemLedgEntry, IsHandled);
+        if IsHandled then
+            exit;
+
         InsertValueEntry(ValueEntry, GlobalItemLedgEntry, false);
     end;
 
@@ -3156,6 +3167,8 @@ codeunit 22 "Item Jnl.-Post Line"
                 ValueEntry."Cost per Unit" := 0;
                 ValueEntry."Cost per Unit (ACY)" := 0;
             end;
+
+            OnInitTransValueEntryOnAfterCalcAdjustedCost(ValueEntry, GlobalValueEntry);
 
             GlobalValueEntry."Cost Amount (Actual)" := GlobalValueEntry."Cost Amount (Actual)" - ValueEntry."Cost Amount (Actual)";
             if GLSetup."Additional Reporting Currency" <> '' then
@@ -4455,6 +4468,7 @@ codeunit 22 "Item Jnl.-Post Line"
     local procedure InsertCorrValueEntry(OldValueEntry: Record "Value Entry"; var NewValueEntry: Record "Value Entry"; ItemLedgEntry: Record "Item Ledger Entry"; DocumentLineNo: Integer; Sign: Integer; QtyToShip: Decimal; QtyToInvoice: Decimal)
     var
         xValueEntryNo: Integer;
+        ShouldInsertValueEntry: Boolean;
     begin
         ValueEntryNo := GetNextValueEntryNo(ValueEntryNo);
 
@@ -4511,6 +4525,12 @@ codeunit 22 "Item Jnl.-Post Line"
 
         InsertItemReg(0, 0, NewValueEntry."Entry No.", 0);
         NewValueEntry."Item Register No." := ItemReg."No.";
+
+        ShouldInsertValueEntry := true;
+        OnInsertCorrValueEntryOnBeforeInsert(NewValueEntry, ItemLedgEntry, ShouldInsertValueEntry);
+        if not ShouldInsertValueEntry then
+            exit;
+
         NewValueEntry.Insert(true);
 
         xValueEntryNo := ValueEntryNo;
@@ -4729,7 +4749,7 @@ codeunit 22 "Item Jnl.-Post Line"
         IsHandled: Boolean;
     begin
         IsHandled := false;
-        OnBeforeCheckSerialNo(ItemJnlLine, IsHandled);
+        OnBeforeCheckSerialNo(ItemJnlLine, IsHandled, SkipSerialNoQtyValidation);
         if IsHandled then
             exit;
 
@@ -5619,7 +5639,7 @@ codeunit 22 "Item Jnl.-Post Line"
 
         TempSplitItemJnlLine."Line No." := TempTrackingSpecification."Entry No.";
 
-        if TempTrackingSpecification.Correction or TempSplitItemJnlLine."Drop Shipment" or IsServUndoConsumption then
+        if TempTrackingSpecification.Correction or CheckDropShipmentForSetupTempSplitItemJnlLine(TempSplitItemJnlLine) or IsServUndoConsumption then
             TempSplitItemJnlLine."Applies-to Entry" := TempTrackingSpecification."Item Ledger Entry No."
         else
             TempSplitItemJnlLine."Applies-to Entry" := TempTrackingSpecification."Appl.-to Item Entry";
@@ -6317,7 +6337,7 @@ codeunit 22 "Item Jnl.-Post Line"
 #endif
 
     [IntegrationEvent(false, false)]
-    local procedure OnBeforeCheckSerialNo(ItemJournalLine: Record "Item Journal Line"; var IsHandled: Boolean)
+    local procedure OnBeforeCheckSerialNo(ItemJournalLine: Record "Item Journal Line"; var IsHandled: Boolean; var SkipSerialNoQtyValidation: Boolean)
     begin
     end;
 
@@ -7610,6 +7630,17 @@ codeunit 22 "Item Jnl.-Post Line"
         CostAmtACY := ItemJnlLine."Amount (ACY)";
     end;
 
+    local procedure CheckDropShipmentForSetupTempSplitItemJnlLine(ItemJournalLine: Record "Item Journal Line"): Boolean
+    begin
+        if (ItemJournalLine."Drop Shipment") then
+            if (ItemJournalLine."Document Type" = ItemJournalLine."Document Type"::"Purchase Receipt") and (ItemJournalLine.Quantity > 0) then
+                exit(false)
+            else
+                exit(true);
+
+        exit(false);
+    end;
+
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Sequence No. Mgt.", 'OnPreviewableLedgerEntry', '', false, false)]
     local procedure OnPreviewableLedgerEntry(TableNo: Integer; var IsPreviewable: Boolean)
     begin
@@ -8084,7 +8115,7 @@ codeunit 22 "Item Jnl.-Post Line"
     end;
 
     [IntegrationEvent(false, false)]
-    local procedure OnCodeOnBeforeCheckItemTracking(var ItemJnlLine: Record "Item Journal Line"; DisableItemTracking: Boolean; var IsHandled: Boolean; var TempTrackingSpecification: Record "Tracking Specification"; var ItemTrackingSetup: Record "Item Tracking Setup")
+    local procedure OnCodeOnBeforeCheckItemTracking(var ItemJnlLine: Record "Item Journal Line"; var DisableItemTracking: Boolean; var IsHandled: Boolean; var TempTrackingSpecification: Record "Tracking Specification"; var ItemTrackingSetup: Record "Item Tracking Setup")
     begin
     end;
 
@@ -8351,6 +8382,11 @@ codeunit 22 "Item Jnl.-Post Line"
     end;
 
     [IntegrationEvent(false, false)]
+    local procedure OnInitTransValueEntryOnAfterCalcAdjustedCost(var ValueEntry: Record "Value Entry"; var GlobalValueEntry: Record "Value Entry")
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
     local procedure OnGetLastDirectCostValEntryOnBeforeFindDirCostValueEntry(var DirCostValueEntry: Record "Value Entry")
     begin
     end;
@@ -8578,6 +8614,21 @@ codeunit 22 "Item Jnl.-Post Line"
 
     [IntegrationEvent(false, false)]
     local procedure OnBeforeGetValuationDate(OldItemLedgerEntry: Record "Item Ledger Entry"; OldValuationDate: Date; var IsHandled: Boolean)
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnInsertVarValueEntryOnBeforeInsertValueEntry(var ValueEntry: Record "Value Entry"; var GlobalItemLedgerEntry: Record "Item Ledger Entry"; var IsHandled: Boolean)
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnInsertTransferEntryOnBeforeInsertValueEntry(var NewValueEntry: Record "Value Entry"; var NewItemLedgerEntry: Record "Item Ledger Entry"; var ValueEntryNo: Integer; var IsHandled: Boolean)
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnInsertCorrValueEntryOnBeforeInsert(var NewValueEntry: Record "Value Entry"; var ItemLedgerEntry: Record "Item Ledger Entry"; var ShouldInsertValueEntry: Boolean)
     begin
     end;
 }

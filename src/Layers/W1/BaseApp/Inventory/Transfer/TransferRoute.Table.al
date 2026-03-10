@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -29,12 +29,14 @@ table 5742 "Transfer Route"
         field(4; "In-Transit Code"; Code[10])
         {
             Caption = 'In-Transit Code';
+            ToolTip = 'Specifies the in-transit code for the transfer order, such as a shipping agent.';
             TableRelation = Location where("Use As In-Transit" = const(true));
         }
         field(5; "Shipping Agent Code"; Code[10])
         {
             AccessByPermission = TableData "Shipping Agent Services" = R;
             Caption = 'Shipping Agent Code';
+            ToolTip = 'Specifies the code for the shipping agent who is transporting the items.';
             TableRelation = "Shipping Agent";
 
             trigger OnValidate()
@@ -46,6 +48,7 @@ table 5742 "Transfer Route"
         field(6; "Shipping Agent Service Code"; Code[10])
         {
             Caption = 'Shipping Agent Service Code';
+            ToolTip = 'Specifies the code for the service, such as a one-day delivery, that is offered by the shipping agent.';
             TableRelation = "Shipping Agent Services".Code where("Shipping Agent Code" = field("Shipping Agent Code"));
         }
     }

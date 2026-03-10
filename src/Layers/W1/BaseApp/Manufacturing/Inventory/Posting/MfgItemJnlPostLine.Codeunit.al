@@ -431,8 +431,9 @@ codeunit 99000822 "Mfg. Item Jnl.-Post Line"
         PostWhseJnlLine: Boolean;
         SkipPost: Boolean;
         IsHandled: Boolean;
+        SkipInventoryValueZeroCheck: Boolean;
     begin
-        OnBeforePostOutput(ItemJnlLine);
+        OnBeforePostOutput(ItemJnlLine, SkipInventoryValueZeroCheck);
 #if not CLEAN27
         sender.RunOnBeforePostOutput(ItemJnlLine);
 #endif
@@ -460,7 +461,8 @@ codeunit 99000822 "Mfg. Item Jnl.-Post Line"
 
         if GetItem(ItemJnlLine."Item No.", false) then
             if not sender.GetCalledFromAdjustment() then
-                Item.TestField("Inventory Value Zero", false);
+                if not SkipInventoryValueZeroCheck then
+                    Item.TestField("Inventory Value Zero", false);
 
         if ItemJnlLine."Item Shpt. Entry No." <> 0 then
             CapLedgEntry.Get(ItemJnlLine."Item Shpt. Entry No.")
@@ -1420,7 +1422,7 @@ codeunit 99000822 "Mfg. Item Jnl.-Post Line"
     end;
 
     [IntegrationEvent(false, false)]
-    local procedure OnBeforePostOutput(var ItemJnlLine: Record "Item Journal Line")
+    local procedure OnBeforePostOutput(var ItemJnlLine: Record "Item Journal Line"; var SkipInventoryValueZeroCheck: Boolean)
     begin
     end;
 

@@ -2384,6 +2384,32 @@ codeunit 134984 "ERM Sales Report III"
         Assert.AreNotEqual(0, LibraryReportDataset.RowCount(), '');
     end;
 
+    [Test]
+    [HandlerFunctions('StandardStatementRequestPageHandler')]
+    procedure VerifyCustomerStatementReportWhenCustomerNoHasCharacterApostrophe()
+    var
+        Customer: Record Customer;
+        SalesHeader: Record "Sales Header";
+    begin
+        // [SCENARIO 616108] Verify Customer Statement Report when Customer No has Special Character Apostrophe.
+        Initialize();
+
+        // [GIVEN] Create Customer with special character Apostrophe in No.
+        LibrarySales.CreateCustomer(Customer);
+        Customer.Rename('"FVAL D'' OR "');
+
+        // [GIVEN] Create and post Sales Order for the Customer
+        LibrarySales.CreateSalesOrderForCustomerNo(SalesHeader, Customer."No.");
+        LibrarySales.PostSalesDocument(SalesHeader, true, true);
+
+        // [WHEN] Run Customer Statement Report
+        RunStandardStatementReport(Customer."No.");
+
+        // [THEN] Dataset contains data for the Customer
+        LibraryReportDataset.LoadDataSetFile();
+        Assert.AreNotEqual(0, LibraryReportDataset.RowCount(), '');
+    end;
+
     local procedure Initialize()
     var
         LibraryERMCountryData: Codeunit "Library - ERM Country Data";

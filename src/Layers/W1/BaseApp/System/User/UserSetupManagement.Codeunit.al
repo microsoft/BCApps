@@ -43,6 +43,7 @@ codeunit 5700 "User Setup Management"
         OpenGLSetupActionTxt: Label 'Open the General Ledger Setup window';
         OpenUserSetupActionTxt: Label 'Open the User Setup window';
         PostingDateRangeErr: Label 'The Posting Date is not within your range of allowed posting dates.';
+        InvalidAllowedDateRangeErr: Label 'The allowed date range is invalid. The "Allow From" date %1 must not be after the "Allow To" date %2 on %3.', Comment = '%1 - Allow From caption, %2 - Allow To caption, %3 - Setup name';
 
     procedure GetSalesFilter(): Code[10]
     begin
@@ -344,6 +345,11 @@ codeunit 5700 "User Setup Management"
 
         if UserId <> '' then
             if UserSetup.Get(UserId) then begin
+                GetDateRange(
+                    UserSetup."Allow Posting From", UserSetup."Allow Posting To",
+                    UserSetup."Allow Posting From DateFormula", UserSetup."Allow Posting To DateFormula",
+                    UserSetup.RecordId());
+
                 UserSetup.CheckAllowedPostingDates(1);
                 AllowPostingFrom := UserSetup."Allow Posting From";
                 AllowPostingTo := UserSetup."Allow Posting To";
@@ -351,6 +357,11 @@ codeunit 5700 "User Setup Management"
             end;
         if (AllowPostingFrom = 0D) and (AllowPostingTo = 0D) then begin
             GLSetup.GetRecordOnce();
+            GetDateRange(
+                    GLSetup."Allow Posting From", GLSetup."Allow Posting To",
+                    GLSetup."Allow Posting From DateFormula", GLSetup."Allow Posting To DateFormula",
+                    GLSetup.RecordId());
+
             GLSetup.CheckAllowedPostingDates(1);
             AllowPostingFrom := GLSetup."Allow Posting From";
             AllowPostingTo := GLSetup."Allow Posting To";
@@ -408,8 +419,15 @@ codeunit 5700 "User Setup Management"
             GLSetup.GetRecordOnce();
             if GLSetup."Journal Templ. Name Mandatory" then begin
                 GenJnlTemplate.Get(TemplateName);
-                AllowPostingFrom := GenJnlTemplate."Allow Posting Date From";
+                GetDateRange(
+                    GenJnlTemplate."Allow Posting Date From", GenJnlTemplate."Allow Posting Date To",
+                    GenJnlTemplate."Allow Posting From DateFormula", GenJnlTemplate."Allow Posting To DateFormula",
+                    GenJnlTemplate.RecordId());
+
+                if GenJnlTemplate."Allow Posting Date From" <> 0D then
+                    AllowPostingFrom := GenJnlTemplate."Allow Posting Date From";
                 AllowPostingTo := GenJnlTemplate."Allow Posting Date To";
+
                 SetupRecordID := GenJnlTemplate.RecordId();
             end;
         end;
@@ -423,6 +441,21 @@ codeunit 5700 "User Setup Management"
             exit(false);
 
         exit(true);
+    end;
+
+    procedure GetDateRange(var AllowFrom: Date; var AllowTo: Date; AllowFromDateFormula: DateFormula; AllowToDateFormula: DateFormula; SetupRecordID: RecordID)
+    begin
+        if (Format(AllowFromDateFormula) = '') and (Format(AllowToDateFormula) = '') then
+            exit;
+
+        if Format(AllowFromDateFormula) <> '' then
+            AllowFrom := CalcDate(AllowFromDateFormula, WorkDate());
+
+        if Format(AllowToDateFormula) <> '' then
+            AllowTo := CalcDate(AllowToDateFormula, WorkDate());
+
+        if (AllowFrom <> 0D) and (AllowTo <> 0D) and (AllowFrom > AllowTo) then
+            Error(InvalidAllowedDateRangeErr, AllowFrom, AllowTo, Format(SetupRecordID, 0, 1));
     end;
 
     procedure GetSalesInvoicePostingPolicy(var PostQty: Boolean; var PostAmount: Boolean)

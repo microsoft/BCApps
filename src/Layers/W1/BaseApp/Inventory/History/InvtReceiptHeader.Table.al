@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -27,34 +27,41 @@ table 5852 "Invt. Receipt Header"
         field(2; "No."; Code[20])
         {
             Caption = 'No.';
+            ToolTip = 'Specifies the number of the involved entry or record, according to the specified number series.';
         }
         field(3; "Posting Description"; Text[100])
         {
             Caption = 'Posting Description';
+            ToolTip = 'Specifies any text that is entered to accompany the posting, for example for information to auditors.';
         }
         field(5; "Document Date"; Date)
         {
             Caption = 'Document Date';
+            ToolTip = 'Specifies the date when the related document was created.';
         }
         field(6; "Posting Date"; Date)
         {
             Caption = 'Posting Date';
+            ToolTip = 'Specifies the entry''s posting date.';
         }
         field(7; "Location Code"; Code[10])
         {
             Caption = 'Location Code';
+            ToolTip = 'Specifies the warehouse or other place where the involved items are handled or stored.';
             TableRelation = Location.Code where("Use As In-Transit" = const(false));
         }
         field(8; "Shortcut Dimension 1 Code"; Code[20])
         {
             CaptionClass = '1,2,1';
             Caption = 'Shortcut Dimension 1 Code';
+            ToolTip = 'Specifies the code for Shortcut Dimension 1, which is one of two global dimension codes that you set up in the General Ledger Setup window.';
             TableRelation = "Dimension Value".Code where("Global Dimension No." = const(1));
         }
         field(9; "Shortcut Dimension 2 Code"; Code[20])
         {
             CaptionClass = '1,2,2';
             Caption = 'Shortcut Dimension 2 Code';
+            ToolTip = 'Specifies the code for Shortcut Dimension 2, which is one of two global dimension codes that you set up in the General Ledger Setup window.';
             TableRelation = "Dimension Value".Code where("Global Dimension No." = const(2));
         }
         field(10; "Language Code"; Code[10])
@@ -65,6 +72,7 @@ table 5852 "Invt. Receipt Header"
         field(11; "Purchaser Code"; Code[20])
         {
             Caption = 'Purchaser Code';
+            ToolTip = 'Specifies which purchaser is assigned to the vendor.';
             TableRelation = "Salesperson/Purchaser";
         }
         field(12; Comment; Boolean)
@@ -89,6 +97,7 @@ table 5852 "Invt. Receipt Header"
         field(16; "External Document No."; Code[35])
         {
             Caption = 'External Document No.';
+            ToolTip = 'Specifies a document number that refers to the customer''s or vendor''s numbering system.';
         }
         field(20; "Posting No."; Code[10])
         {
@@ -97,6 +106,7 @@ table 5852 "Invt. Receipt Header"
         field(23; "Gen. Bus. Posting Group"; Code[20])
         {
             Caption = 'Gen. Bus. Posting Group';
+            ToolTip = 'Specifies the vendor''s or customer''s trade type to link transactions made for this business partner with the appropriate general ledger account according to the general posting setup.';
             TableRelation = "Gen. Business Posting Group";
         }
         field(24; "Receipt No."; Code[20])
@@ -110,6 +120,7 @@ table 5852 "Invt. Receipt Header"
         field(30; Correction; Boolean)
         {
             Caption = 'Correction';
+            ToolTip = 'Specifies the entry as a corrective entry. You can use the field if you need to post a corrective entry to an account.';
         }
         field(31; "Format Region"; Text[80])
         {

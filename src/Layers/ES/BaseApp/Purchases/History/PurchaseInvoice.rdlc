@@ -9056,9 +9056,6 @@ End Function
         <Field Name="PurchInvHeaderCopyText">
           <DataField>PurchInvHeaderCopyText</DataField>
         </Field>
-        <Field Name="SelfBillingCaption">
-          <DataField>SelfBillingCaption</DataField>
-        </Field>
         <Field Name="VendAddr1">
           <DataField>VendAddr1</DataField>
         </Field>
@@ -9118,15 +9115,6 @@ End Function
         </Field>
         <Field Name="CompanyInfoBankAccNo">
           <DataField>CompanyInfoBankAccNo</DataField>
-        </Field>
-        <Field Name="CompanyInfoSwiftCode">
-          <DataField>CompanyInfoSwiftCode</DataField>
-        </Field>
-        <Field Name="CompanyInfoIBAN">
-          <DataField>CompanyInfoIBAN</DataField>
-        </Field>
-        <Field Name="CompanyInfoBankBranchNo">
-          <DataField>CompanyInfoBankBranchNo</DataField>
         </Field>
         <Field Name="PaytoVendNo_PurchInvHeader">
           <DataField>PaytoVendNo_PurchInvHeader</DataField>
@@ -9250,12 +9238,6 @@ End Function
         </Field>
         <Field Name="CACCaption">
           <DataField>CACCaption</DataField>
-        </Field>
-        <Field Name="SwiftCodeCaption">
-          <DataField>SwiftCodeCaption</DataField>
-        </Field>
-        <Field Name="CompanyIBAN_Lbl">
-          <DataField>CompanyIBAN_Lbl</DataField>
         </Field>
         <Field Name="DimText_DimensionLoop1">
           <DataField>DimText_DimensionLoop1</DataField>

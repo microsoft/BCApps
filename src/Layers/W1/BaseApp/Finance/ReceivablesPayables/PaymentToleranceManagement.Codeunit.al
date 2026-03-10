@@ -1076,21 +1076,22 @@ codeunit 426 "Payment Tolerance Management"
                 TotalAmount := TotalAmount + AppliedCustLedgEntry.Amount;
             until AppliedCustLedgEntry.Next() = 0;
 
+        AcceptedTolAmount := Amount + AppliedAmount;
+        Number := AppliedCustLedgEntry.Count();
+
         AppliedCustLedgEntry.ReadIsolation(IsolationLevel::UpdLock);
         AppliedCustLedgEntry.SetLoadFields();
 
-        AcceptedTolAmount := Amount + AppliedAmount;
-        Number := AppliedCustLedgEntry.Count();
         if Number <> 1 then begin
             OneToManyApplication := true;
-            AppliedCustLedgEntry.SetAutoCalcFields(Amount);
-            AppliedCustLedgEntry.SetCurrentKey(Amount);
-            AppliedCustLedgEntry.SetAscending(Amount, false);
+            AppliedCustLedgEntry.SetAutoCalcFields("Amount");
+            AppliedCustLedgEntry.SetCurrentKey("Max. Payment Tolerance");
+            AppliedCustLedgEntry.SetAscending("Max. Payment Tolerance", false);
         end;
 
-        if AppliedCustLedgEntry.FindSet(true) then
+        AppliedCustLedgEntry.SetAutoCalcFields("Remaining Amount");
+        if AppliedCustLedgEntry.FindSet() then
             repeat
-                AppliedCustLedgEntry.CalcFields("Remaining Amount");
                 AppliedCustLedgerEntry2 := AppliedCustLedgEntry;
                 if AppliedCustLedgEntry."Currency Code" = '' then begin
                     Currency.Init();
@@ -1126,7 +1127,7 @@ codeunit 426 "Payment Tolerance Management"
             until AppliedCustLedgEntry.Next() = 0;
 
         if RemainingPmtToleranceToAccept <> 0 then
-            if AppliedCustLedgEntry.FindSet(true) then
+            if AppliedCustLedgEntry.FindSet() then
                 repeat
                     if RemainingPmtToleranceToAccept < (AppliedCustLedgEntry."Max. Payment Tolerance" - AppliedCustLedgEntry."Accepted Payment Tolerance") then begin
                         AppliedCustLedgEntry."Accepted Payment Tolerance" += RemainingPmtToleranceToAccept;
@@ -1185,21 +1186,22 @@ codeunit 426 "Payment Tolerance Management"
                 TotalAmount := TotalAmount + AppliedVendLedgEntry.Amount;
             until AppliedVendLedgEntry.Next() = 0;
 
+        AcceptedTolAmount := Amount + AppliedAmount;
+        Number := AppliedVendLedgEntry.Count();
+
         AppliedVendLedgEntry.ReadIsolation(IsolationLevel::UpdLock);
         AppliedVendLedgEntry.SetLoadFields();
 
-        AcceptedTolAmount := Amount + AppliedAmount;
-        Number := AppliedVendLedgEntry.Count();
         if Number <> 1 then begin
             OneToManyApplication := true;
-            AppliedVendLedgEntry.SetAutoCalcFields(Amount);
-            AppliedVendLedgEntry.SetCurrentKey(Amount);
-            AppliedVendLedgEntry.SetAscending(Amount, false);
+            AppliedVendLedgEntry.SetAutoCalcFields("Amount");
+            AppliedVendLedgEntry.SetCurrentKey("Max. Payment Tolerance");
+            AppliedVendLedgEntry.SetAscending("Max. Payment Tolerance", false);
         end;
 
-        if AppliedVendLedgEntry.FindSet(true) then
+        AppliedVendLedgEntry.SetAutoCalcFields("Remaining Amount");
+        if AppliedVendLedgEntry.FindSet() then
             repeat
-                AppliedVendLedgEntry.CalcFields("Remaining Amount");
                 AppliedVendorLedgerEntry2 := AppliedVendLedgEntry;
                 if AppliedVendLedgEntry."Currency Code" = '' then begin
                     Currency.Init();
@@ -1241,7 +1243,7 @@ codeunit 426 "Payment Tolerance Management"
             until AppliedVendLedgEntry.Next() = 0;
 
         if RemainingPmtToleranceToAccept <> 0 then
-            if AppliedVendLedgEntry.FindSet(true) then
+            if AppliedVendLedgEntry.FindSet() then
                 repeat
                     if RemainingPmtToleranceToAccept < (AppliedVendLedgEntry."Max. Payment Tolerance" - AppliedVendLedgEntry."Accepted Payment Tolerance") then begin
                         AppliedVendLedgEntry."Accepted Payment Tolerance" += RemainingPmtToleranceToAccept;

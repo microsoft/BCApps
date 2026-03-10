@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -17,16 +17,19 @@ table 5053 "Business Relation"
         field(1; "Code"; Code[10])
         {
             Caption = 'Code';
+            ToolTip = 'Specifies the code for the business relation.';
             NotBlank = true;
         }
         field(2; Description; Text[100])
         {
             Caption = 'Description';
+            ToolTip = 'Specifies the description of the business relation.';
         }
         field(3; "No. of Contacts"; Integer)
         {
             CalcFormula = count("Contact Business Relation" where("Business Relation Code" = field(Code)));
             Caption = 'No. of Contacts';
+            ToolTip = 'Specifies the number of contacts that have been assigned the business relation. The field is not editable.';
             Editable = false;
             FieldClass = FlowField;
         }

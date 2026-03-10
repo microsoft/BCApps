@@ -123,7 +123,7 @@ codeunit 6003 "Service Transfer Ext. Text"
         ServiceLine2 := ServiceLine;
         if ServiceLine2.Find('>') then begin
             repeat
-                ServiceLine2.Delete();
+                ServiceLine2.Delete(true);
             until ServiceLine2.Next() = 0;
             exit(true);
         end;

@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -24,14 +24,12 @@ page 5361 "Integration Field Mapping List"
                 field(Status; Rec.Status)
                 {
                     ApplicationArea = Suite;
-                    ToolTip = 'Specifies if field synchronization is enabled or disabled.';
                 }
                 field("Field No."; Rec."Field No.")
                 {
                     ApplicationArea = Suite;
                     BlankZero = true;
                     Editable = false;
-                    ToolTip = 'Specifies the number of the field in Business Central.';
                 }
                 field(FieldName; NAVFieldName)
                 {
@@ -57,22 +55,18 @@ page 5361 "Integration Field Mapping List"
                 field(Direction; Rec.Direction)
                 {
                     ApplicationArea = Suite;
-                    ToolTip = 'Specifies the direction of the synchronization.';
                 }
                 field("Constant Value"; Rec."Constant Value")
                 {
                     ApplicationArea = Suite;
-                    ToolTip = 'Specifies the constant value that the mapped field will be set to.';
                 }
                 field("Transformation Rule"; Rec."Transformation Rule")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies a rule for transforming imported text to a supported value before it can be mapped to a specified field in Microsoft Dynamics 365.';
                 }
                 field("Transformation Direction"; Rec."Transformation Direction")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the direction of the transformation.';
                     Editable = Rec."Direction" = Rec."Direction"::Bidirectional;
                 }
                 field("Validate Field"; Rec."Validate Field")
@@ -83,22 +77,18 @@ page 5361 "Integration Field Mapping List"
                 field("Validate Integration Table Fld"; Rec."Validate Integration Table Fld")
                 {
                     ApplicationArea = Suite;
-                    ToolTip = 'Specifies if the integration field should be validated during assignment in Dynamics 365 Sales.';
                 }
                 field("Clear Value on Failed Sync"; Rec."Clear Value on Failed Sync")
                 {
                     ApplicationArea = Suite;
-                    ToolTip = 'Specifies if the field value should be cleared in case of integration error during assignment in Dynamics 365 Sales.';
                 }
                 field("Not Null"; Rec."Not Null")
                 {
                     ApplicationArea = Suite;
-                    ToolTip = 'Specifies if the data transfer should be skipped for destination fields whose new value is going to be null. This is only applicable for GUID fields, such as OwnerId, that must not be changed to null during synchronization.';
                 }
                 field("User Defined"; Rec."User Defined")
                 {
                     Editable = false;
-                    ToolTip = 'Specifies if the field is generated manually through the integration table mapping wizard.';
                 }
             }
         }

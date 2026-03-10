@@ -161,6 +161,9 @@ codeunit 9030 "Undo Transfer Shipment"
 
         UndoPostingMgt.TestTransferShptLine(TransShptLine);
 
+        if NoItemLedgerEntriesCheckIsNeeded(TransShptLine) then // At posting transfer order line for WIP Items no Item Ledger Entries are created. Therefore no Item Ledger Entries could be collected (and checked) for undoing a transfer shipment.
+            exit;
+
         UndoPostingMgt.CollectItemLedgEntries(
             TempItemLedgEntry, Database::"Transfer Shipment Line", TransShptLine."Document No.", TransShptLine."Line No.", TransShptLine."Quantity (Base)", TransShptLine."Item Shpt. Entry No.");
         UndoPostingMgt.CheckItemLedgEntries(TempItemLedgEntry, TransShptLine."Line No.", false);
@@ -371,6 +374,11 @@ codeunit 9030 "Undo Transfer Shipment"
         end;
     end;
 
+    local procedure NoItemLedgerEntriesCheckIsNeeded(TransferShipmentLine: Record "Transfer Shipment Line") NoCheckNeeded: Boolean
+    begin
+        OnNoItemLedgerEntriesCheckIsNeeded(TransferShipmentLine, NoCheckNeeded);
+    end;
+
     [IntegrationEvent(false, false)]
     local procedure OnBeforeOnRun(var TransferShipmentLine: Record "Transfer Shipment Line"; var IsHandled: Boolean; var HideDialog: Boolean)
     begin
@@ -443,6 +451,11 @@ codeunit 9030 "Undo Transfer Shipment"
 
     [IntegrationEvent(false, false)]
     local procedure OnBeforePostCorrectiveItemLedgEntries(var ItemJournalLine: Record "Item Journal Line"; var ItemLedgerEntry: Record "Item Ledger Entry"; var IsHandled: Boolean)
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnNoItemLedgerEntriesCheckIsNeeded(TransShptLine: Record "Transfer Shipment Line"; var NoCheckNeeded: Boolean)
     begin
     end;
 }

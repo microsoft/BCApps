@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -26,130 +26,107 @@ page 99000863 "Planning Routing"
                 field("Operation No."; Rec."Operation No.")
                 {
                     ApplicationArea = Planning;
-                    ToolTip = 'Specifies the operation number for this planning routing line.';
                 }
                 field("Previous Operation No."; Rec."Previous Operation No.")
                 {
                     ApplicationArea = Planning;
-                    ToolTip = 'Specifies the previous operation number and shows the operation that is run directly before the operation.';
                     Visible = false;
                 }
                 field("Next Operation No."; Rec."Next Operation No.")
                 {
                     ApplicationArea = Planning;
                     Editable = NextOperationNoEditable;
-                    ToolTip = 'Specifies the next operation number if you use parallel routings.';
                     Visible = false;
                 }
                 field(Type; Rec.Type)
                 {
                     ApplicationArea = Planning;
-                    ToolTip = 'Specifies the type of operation.';
                 }
                 field("No."; Rec."No.")
                 {
                     ApplicationArea = Planning;
-                    ToolTip = 'Specifies the number of the involved entry or record, according to the specified number series.';
                 }
                 field(Description; Rec.Description)
                 {
                     ApplicationArea = Planning;
-                    ToolTip = 'Specifies a description of the task related to this routing line.';
                 }
                 field("Description 2"; Rec."Description 2")
                 {
                     ApplicationArea = Planning;
-                    ToolTip = 'Specifies additional description text.';
                     Visible = false;
                 }
                 field("Starting Date-Time"; Rec."Starting Date-Time")
                 {
                     ApplicationArea = Planning;
-                    ToolTip = 'Specifies the starting date and the starting time, which are combined in a format called "starting date-time".';
                 }
                 field("Starting Time"; Rec."Starting Time")
                 {
                     ApplicationArea = Planning;
-                    ToolTip = 'Specifies the starting time for the operation for this planning routing line.';
                     Visible = false;
                 }
                 field("Starting Date"; Rec."Starting Date")
                 {
                     ApplicationArea = Planning;
-                    ToolTip = 'Specifies the starting date for the operation for this planning routing line.';
                     Visible = false;
                 }
                 field("Ending Date-Time"; Rec."Ending Date-Time")
                 {
                     ApplicationArea = Planning;
-                    ToolTip = 'Specifies the ending date and the ending time, which are combined in a format called "ending date-time".';
                 }
                 field("Ending Time"; Rec."Ending Time")
                 {
                     ApplicationArea = Planning;
-                    ToolTip = 'Specifies the ending time of the operation for this planning routing line.';
                     Visible = false;
                 }
                 field("Ending Date"; Rec."Ending Date")
                 {
                     ApplicationArea = Planning;
-                    ToolTip = 'Specifies the ending date of the operation for this planning routing line.';
                     Visible = false;
                 }
                 field("Setup Time"; Rec."Setup Time")
                 {
                     ApplicationArea = Planning;
-                    ToolTip = 'Specifies the setup time using the unit of measure from the Setup Time Unit of Measure field on the work or machine center card.';
                 }
                 field("Run Time"; Rec."Run Time")
                 {
                     ApplicationArea = Planning;
-                    ToolTip = 'Specifies the run time of the operation.';
                 }
                 field("Wait Time"; Rec."Wait Time")
                 {
                     ApplicationArea = Planning;
-                    ToolTip = 'Specifies the wait time.';
                 }
                 field("Move Time"; Rec."Move Time")
                 {
                     ApplicationArea = Planning;
-                    ToolTip = 'Specifies the move time using the unit of measure in the Move Time Unit of Measure field on the machine or work center card.';
                 }
                 field("Fixed Scrap Quantity"; Rec."Fixed Scrap Quantity")
                 {
                     ApplicationArea = Planning;
-                    ToolTip = 'Specifies a fixed scrap quantity for this routing line.';
                     Visible = false;
                 }
                 field("Scrap Factor %"; Rec."Scrap Factor %")
                 {
                     ApplicationArea = Planning;
-                    ToolTip = 'Specifies the scrap factor as a percentage.';
                     Visible = false;
                 }
                 field("Send-Ahead Quantity"; Rec."Send-Ahead Quantity")
                 {
                     ApplicationArea = Planning;
-                    ToolTip = 'Specifies the output of the operation that must be completed before the next operation can be started.';
                     Visible = false;
                 }
                 field("Concurrent Capacities"; Rec."Concurrent Capacities")
                 {
                     ApplicationArea = Planning;
-                    ToolTip = 'Specifies the quantity of machines or personnel that can perform their expected functions simultaneously.';
                     Visible = false;
                 }
                 field("Unit Cost per"; Rec."Unit Cost per")
                 {
                     ApplicationArea = Planning;
-                    ToolTip = 'Specifies the unit cost for this operation if it is different than the unit cost on the work center or machine center card.';
                     Visible = false;
                 }
                 field("Lot Size"; Rec."Lot Size")
                 {
                     ApplicationArea = Manufacturing;
-                    ToolTip = 'Specifies the number of items that are included in the same operation at the same time. The run time on routing lines is reduced proportionally to the lot size. For example, if the lot size is two pieces, the run time will be reduced by half.';
                     Visible = false;
                 }
             }

@@ -10,6 +10,7 @@ codeunit 137297 "SCM Inventory Misc. V"
     end;
 
     var
+        ABCAnalysisSetup: Record "ABC Analysis Setup";
         Assert: Codeunit Assert;
         LibraryTestInitialize: Codeunit "Library - Test Initialize";
         LibraryAssembly: Codeunit "Library - Assembly";
@@ -1344,6 +1345,73 @@ codeunit 137297 "SCM Inventory Misc. V"
         LibraryVariableStorage.AssertEmpty();
     end;
 
+    [Test]
+    [Scope('OnPrem')]
+    procedure TestInitABCAnalysisSetup()
+    begin
+        // [SCENARIO] Verify that the ABC Analysis Setup is initialized with default values.
+        Initialize();
+
+        // [GIVEN] ABC Analysis Setup is initialized in a new company.
+
+        // [WHEN] When the ABC Analysis Setup is retrieved
+        ABCAnalysisSetup.Get();
+
+        // [THEN] The default category setup should be set.
+        Assert.AreEqual(ABCAnalysisSetup."Category A", 50, 'Category A default percentage should be 50.');
+        Assert.AreEqual(ABCAnalysisSetup."Category B", 30, 'Category B default percentage should be 30.');
+        Assert.AreEqual(ABCAnalysisSetup."Category C", 20, 'Category C default percentage should be 20.');
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure TestABCAnalysisSetupPageSum()
+    var
+        ABCAnalysisSetupTestPage: TestPage "ABC Analysis Setup";
+    begin
+        // [SCENARIO] Verify that the ABC Analysis Setup page should calculate all category percentages and sum to 100.
+        Initialize();
+
+        // [GIVEN] ABC Analysis Setup page is configured with all categories summing up to 100.
+        ABCAnalysisSetupTestPage.OpenEdit();
+        ABCAnalysisSetupTestPage."Category A".SetValue(60);
+        ABCAnalysisSetupTestPage."Category B".SetValue(30);
+        ABCAnalysisSetupTestPage."Category C".SetValue(10);
+
+        // [WHEN] When the ABC Analysis Setup page calculates the sum of all categories.
+
+        // [THEN] The sum of all three categories should equal 100.
+        Assert.AreEqual(ABCAnalysisSetupTestPage."Category A".AsInteger(), 60, 'Category A should be 60');
+        Assert.AreEqual(ABCAnalysisSetupTestPage."Category B".AsInteger(), 30, 'Category B should be 30');
+        Assert.AreEqual(ABCAnalysisSetupTestPage."Category C".AsInteger(), 10, 'Category C should be 10');
+        Assert.AreEqual(ABCAnalysisSetupTestPage.Sum.AsInteger(), 100, 'Sum of all three categories should be 100.');
+
+        // [THEN] The ABC Analysis Setup page can close without error.
+        ABCAnalysisSetupTestPage.Close();
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure TestABCAnalysisSetupPageSumError()
+    var
+        ABCAnalysisSetupTestPage: TestPage "ABC Analysis Setup";
+    begin
+        // [SCENARIO] Verify that the ABC Analysis Setup page throws an error when the sum of all category percentages does not equal 100.
+        Initialize();
+
+        // [GIVEN] ABC Analysis Setup page is configured with all categories not summing up to 100.
+        ABCAnalysisSetupTestPage.OpenEdit();
+        ABCAnalysisSetupTestPage."Category A".SetValue(60);
+        ABCAnalysisSetupTestPage."Category B".SetValue(20);
+        ABCAnalysisSetupTestPage."Category C".SetValue(10);
+
+        // [WHEN] When the ABC Analysis Setup page closes.
+        asserterror ABCAnalysisSetupTestPage.Close();
+
+        // [THEN] An error should be thrown indicating the sum must equal 100.
+        Assert.ExpectedError('The total of Category A, B, and C percentages must equal 100. Please adjust the values accordingly.');
+    end;
+
     local procedure Initialize()
     var
         WarehouseSetup: Record "Warehouse Setup";
@@ -1364,6 +1432,7 @@ codeunit 137297 "SCM Inventory Misc. V"
         WarehouseSetup.Validate("Receipt Posting Policy", WarehouseSetup."Receipt Posting Policy"::"Posting errors are not processed");
         WarehouseSetup.Validate("Shipment Posting Policy", WarehouseSetup."Shipment Posting Policy"::"Posting errors are not processed");
         WarehouseSetup.Modify();
+        InitializeABCAnalysisSetup();
         isInitialized := true;
         Commit();
         LibraryTestInitialize.OnAfterTestSuiteInitialize(CODEUNIT::"SCM Inventory Misc. V");
@@ -1977,6 +2046,18 @@ codeunit 137297 "SCM Inventory Misc. V"
         LibraryInventory.CreateItemUnitOfMeasure(ItemNonBaseUoM, Item."No.", NonBaseUOM.Code, 6);
         Item.Validate("Base Unit of Measure", ItemUoM.Code);
         Item.Modify();
+    end;
+
+    local procedure InitializeABCAnalysisSetup()
+    begin
+        if not ABCAnalysisSetup.Get() then begin
+            ABCAnalysisSetup.Init();
+            ABCAnalysisSetup.InitializeValues();
+            ABCAnalysisSetup.Insert()
+        end else begin
+            ABCAnalysisSetup.InitializeValues();
+            ABCAnalysisSetup.Modify();
+        end;
     end;
 
     [ConfirmHandler]

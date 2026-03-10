@@ -1003,6 +1003,7 @@ table 311 "Sales & Receivables Setup"
         field(10500; "Posting Date Check on Posting"; Boolean)
         {
             Caption = 'Posting Date Check on Posting';
+            ToolTip = 'Specifies if you want the program to warn you when you post a sales document with a posting date that is different from the Work Date.';
 #if not CLEAN27
             InitValue = true;
 #endif

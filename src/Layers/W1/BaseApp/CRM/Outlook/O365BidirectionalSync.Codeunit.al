@@ -4,11 +4,10 @@ using Microsoft.CRM.Contact;
 codeunit 7106 "O365 Bidirectional Sync"
 {
     var
-        TempSyncQueue: Record "Contact Sync Queue" temporary;
         LastSyncCreatedCount: Integer;
-        SyncStartDateTime: DateTime;
         NextEntryNo: Integer;
-        NoContactsFoundMsg: Label 'No contacts found in the selected folder.';
+        NoContactsFoundMsg: Label 'No contacts found in the selected folder to Synchronize.';
+        StartMsgTxt: Label 'Retrieving your contacts...';
         ContentTypeLbl: Label 'application/json', Locked = true;
         ResponseLbl: Label 'Folder ID not found in the response.';
         RetrievedContactsMsg: Label 'Found %1 contacts', Comment = '%1 = count of contacts';
@@ -16,19 +15,21 @@ codeunit 7106 "O365 Bidirectional Sync"
         NoContactsDataMsg: Label 'No contacts data found in the response.';
         NoContactFoldersMsg: Label 'No contact folders found in the response.';
         AccessTokenEmptyMsg: Label 'Access token cannot be empty';
+        DefaultFolderTxt: Label 'Default', Locked = true, Comment = 'Default folder Name';
         GraphApiUrlTxt: Label 'https://graph.microsoft.com/v1.0/me/contactFolders/', Locked = true;
-        GraphEndpointTxt: Label '/contacts?$top=999', Locked = true;
+        DeltaUrlTxt: Label '/contacts/delta', Locked = true;
+        ExistingEmails: Dictionary of [Text, Boolean];
+        OutSyncQueueEmails: Dictionary of [Text, Boolean];
         NetworkErrorMsg: Label 'Unable to connect to Microsoft Graph API. Please check your network connection.';
         GetContactsStartTxt: Label 'Starting GetContacts procedure for folder %1 with filter: %2', Comment = '%1 = folder id, %2 = filter text', Locked = true;
         FetchingContactsFromGraphTxt: Label 'Fetching contacts from Graph API endpoint: %1', Comment = '%1 = endpoint URI', Locked = true;
         ContactsRetrievedCountTxt: Label 'Retrieved %1 contacts from Microsoft Graph API response', Comment = '%1 = count of contacts', Locked = true;
         ComparingQueueingContactsTxt: Label 'Comparing and queueing contacts for synchronization', Locked = true;
         TotalContactsQueuedTxt: Label 'Total contacts queued for synchronization: %1', Comment = '%1 = count of queued contacts', Locked = true;
-        GetContactsCompleteTxt: Label 'GetContacts procedure completed successfully', Locked = true;
+        GetContactsCompleteTxt: Label 'GetContacts procedure completed successfully with ', Locked = true;
         PaginationNextLinkTxt: Label 'Found pagination link, fetching next page from: %1', Comment = '%1 = next page URI', Locked = true;
         NoPaginationLinkTxt: Label 'No more pages to fetch, pagination complete', Locked = true;
         // JSON Property Names
-        ContactIdPropertyTxt: Label 'id', Locked = true, Comment = 'Microsoft Graph Contact ID property';
         DisplayNamePropertyTxt: Label 'displayName', Locked = true, Comment = 'Microsoft Graph Display Name property';
         GivenNamePropertyTxt: Label 'givenName', Locked = true, Comment = 'Microsoft Graph Given Name property';
         SurnamePropertyTxt: Label 'surname', Locked = true, Comment = 'Microsoft Graph Surname property';
@@ -57,7 +58,11 @@ codeunit 7106 "O365 Bidirectional Sync"
         ErrorCodePropertyTxt: Label 'code', Locked = true, Comment = 'Microsoft Graph error code property';
         ErrorMessagePropertyTxt: Label 'message', Locked = true, Comment = 'Microsoft Graph error message property';
         ODataNextLinkPropertyTxt: Label '@odata.nextLink', Locked = true, Comment = 'Microsoft Graph pagination next link property';
-        ParentFolderIdPropertyTxt: Label 'parentFolderId', Locked = true, Comment = 'Microsoft Graph Parent Folder ID property';
+        ODataDeltaPropertyTxt: Label '@odata.deltaLink', Locked = true, Comment = 'Microsoft Graph delta link property';
+        ParentFolderIdPropertyTxt: Label 'id', Locked = true, Comment = 'Microsoft Graph Parent Folder ID property';
+        OutlookContactIdPropertyTxt: Label 'id', Locked = true, Comment = 'Microsoft Graph Outlook Contact ID property';
+        DefaultFolderIdsPropertyTxt: Label 'parentFolderId', Locked = true, Comment = 'Microsoft Graph defaultFolderIds property';
+        StatePropertyTxt: Label 'state', Locked = true, Comment = 'Microsoft Graph State property (for address)';
         // HTTP Headers
         AuthorizationHeaderTxt: Label 'Authorization', Locked = true, Comment = 'HTTP Authorization header';
         BearerTokenFormatTxt: Label 'Bearer %1', Locked = true, Comment = '%1 = access token';
@@ -71,6 +76,9 @@ codeunit 7106 "O365 Bidirectional Sync"
         StartingSyncingFoldersTxt: Label 'Starting Syncing Contact Folders', Comment = 'Telemetry message when starting folder sync', Locked = true;
         ReceivedFolderResponseTxt: Label 'Received response from Graph API for Contact Folders %1', Locked = true, Comment = '%1 = HTTP status code';
         FolderErrorResponseTxt: Label 'Error response from Graph API for Contact Folders %1', Locked = true, Comment = '%1 = HTTP status code';
+        CustomErr: Label 'You haven''t synced for a long time. Please reconfigure the synchronization method to Full Sync to continue';
+        CustomSyncMsg: Label 'There was no recent sync for the selected folder. Do you want to perform a Full Sync? Click Yes to perform Full Sync, or No to cancel the sync operation.';
+        PerformFullSyncErr: Label 'Please Select Full Sync to continue or select a different folder.';
         // HTTP Status Code Error Messages
         Http401UnauthorizedErr: Label 'HTTP 401 - Unauthorized: %1', Locked = true, Comment = '%1 = error message';
         Http403ForbiddenErr: Label 'HTTP 403 - Forbidden: %1', Locked = true, Comment = '%1 = error message';
@@ -78,19 +86,33 @@ codeunit 7106 "O365 Bidirectional Sync"
         Http500InternalServerErr: Label 'HTTP 500 - Internal Server Error: %1', Locked = true, Comment = '%1 = error message';
         Http502BadGatewayErr: Label 'HTTP 502 - Bad Gateway: %1', Locked = true, Comment = '%1 = error message';
         Http503ServiceUnavailableErr: Label 'HTTP 503 - Service Unavailable: %1', Locked = true, Comment = '%1 = error message';
+        Http410GoneErr: Label 'HTTP 410 - Gone: %1', Locked = true, Comment = '%1 = Missing or expired delta token for delta sync';
         HttpGenericErr: Label 'HTTP %1 Error: %2', Locked = true, Comment = '%1 = HTTP status code, %2 = error message';
         HttpUnexpectedResponseErr: Label 'HTTP %1 - Unexpected error response format', Locked = true, Comment = '%1 = HTTP status code';
         HttpParseErrorErr: Label 'HTTP %1 - Unable to parse error response', Locked = true, Comment = '%1 = HTTP status code';
         HttpStatusErrorLogTxt: Label 'HTTP Status %1: %2 - %3', Locked = true, Comment = '%1 = HTTP status code, %2 = error code, %3 = error message';
+        UpgradeInProgressErr: Label 'Cannot perform this operation while an upgrade is in progress.';
         // Telemetry-only Messages (Locked for consistent logging)
         AccessTokenEmptyTeleTxt: Label 'Access token is empty', Locked = true;
         InvalidJsonTeleTxt: Label 'Invalid JSON response received from Microsoft Graph', Locked = true;
         NetworkErrorTeleTxt: Label 'Network error occurred: %1', Locked = true, Comment = '%1 = error description';
-
-
+#if not CLEAN29
+    [Obsolete('Removed due to Contact Sync redesign, will be deleted in future release.', '29.0')]
     procedure GetContacts(AccessToken: SecretText; var OutSyncQueue: Record "Contact Sync Queue" temporary; ContactFilterText: Text; FolderId: Text)
+    begin
+    end;
+#endif
+#if not CLEAN29
+    [Obsolete('Removed due to Contact Sync redesign, will be deleted in future release.', '29.0')]
+    procedure GetLastSyncStartDateTime(): DateTime
+    begin
+        exit(0DT);
+    end;
+#endif
+
+    procedure GetContacts(AccessToken: SecretText; var OutSyncQueue: Record "Contact Sync Queue" temporary; ContactFilterText: Text; FolderId: Text; FullSync: Boolean; var DeltaLink: Text)
     var
-        O365Records: Record "O365 Contact";
+        O365Records: Record "Outlook Contacts";
         HttpClient: HttpClient;
         HttpResponse: HttpResponseMessage;
         JsonResponse: Text;
@@ -98,25 +120,53 @@ codeunit 7106 "O365 Bidirectional Sync"
         NextLink: Text;
         JsonObj: JsonObject;
         JsonValue: JsonToken;
+        ProgressDialog: Dialog;
+        DeltaUrl: Text;
+        Counter: Integer;
     begin
+        if Session.GetCurrentModuleExecutionContext() = ExecutionContext::Upgrade then
+            Error(UpgradeInProgressErr);
+
         OutSyncQueue.DeleteAll();
-
-        SyncStartDateTime := CurrentDateTime;
+        ProgressDialog.Open(StartMsgTxt);
         LastSyncCreatedCount := 0;
-
+        NextEntryNo := 1;
+        Counter := 0;
         Session.LogMessage('0000QT8', StrSubstNo(GetContactsStartTxt, FolderId, ContactFilterText), Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', getTracecat());
 
         if AccessToken.IsEmpty() then begin
             Session.LogMessage('0000QU4', AccessTokenEmptyTeleTxt, Verbosity::Error, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', getTracecat());
             Error(AccessTokenEmptyMsg);
         end;
+        Uri := '';
+        DeltaUrl := GetDeltaUrl(FolderId);
+        if not FullSync then begin
+            if DeltaUrl = '' then begin
+                if not Confirm(CustomSyncMsg) then
+                    Error(PerformFullSyncErr);
 
-        Uri := GraphApiUrlTxt + FolderId + GraphEndpointTxt;
+                // fallback to full sync
+                DoFullSync(FolderId, O365Records, Uri);
+            end else
+                Uri := DeltaUrl; // delta sync
+        end else
+            DoFullSync(FolderId, O365Records, Uri);
 
         Session.LogMessage('0000QT9', StrSubstNo(FetchingContactsFromGraphTxt, Uri), Verbosity::Verbose, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', getTracecat());
-
         SetupHttpClientHeaders(HttpClient, AccessToken);
-
+        // Pre-load existing emails into dictionary for O(1) lookup
+        // Load existing emails in batches to handle large folders efficiently
+        // Note: Ensure index exists on O365 Contact table for "Folder Id" + "Email Address" fields
+        O365Records.Reset();
+        O365Records.SetCurrentKey("Folder Id", "Email Address");
+        O365Records.SetRange("Folder Id", FolderId);
+        O365Records.SetFilter("Email Address", '<>%1', '');
+        O365Records.SetLoadFields("Email Address");
+        if O365Records.FindSet() then
+            repeat
+                if not ExistingEmails.ContainsKey(NormalizeEmail(O365Records."Email Address")) then
+                    ExistingEmails.Add(NormalizeEmail(O365Records."Email Address"), true);
+            until O365Records.Next() = 0;
         repeat
             if not HttpClient.Get(Uri, HttpResponse) then begin
                 Session.LogMessage('0000QTA', StrSubstNo(NetworkErrorTeleTxt, HttpGetRequestFailedTxt), Verbosity::Error, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', getTracecat());
@@ -124,7 +174,6 @@ codeunit 7106 "O365 Bidirectional Sync"
             end;
 
             HttpResponse.Content.ReadAs(JsonResponse);
-
             Session.LogMessage('0000QTB', StrSubstNo(ReceivedHttpResponseTxt, HttpResponse.HttpStatusCode()), Verbosity::Verbose, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', getTracecat());
 
             if not HttpResponse.IsSuccessStatusCode() then begin
@@ -133,25 +182,12 @@ codeunit 7106 "O365 Bidirectional Sync"
             end;
 
             // Parse JSON to find contacts
-            Clear(O365Records);
-            ParseContactsResponse(JsonResponse, O365Records);
+            ParseContactsResponse(JsonResponse, O365Records, FolderId, Counter);
             Session.LogMessage('0000QTD', StrSubstNo(ContactsRetrievedCountTxt, O365Records.Count()), Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', getTracecat());
-
-            // Compare and queue contacts
-            Session.LogMessage('0000QTE', ComparingQueueingContactsTxt, Verbosity::Verbose, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', getTracecat());
-            CompareAndQueueContacts(O365Records, ContactFilterText);
-            Session.LogMessage('0000QTF', StrSubstNo(TotalContactsQueuedTxt, TempSyncQueue.Count()), Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', getTracecat());
-
-            // Copy queued items to out parameter
-            if TempSyncQueue.FindSet() then
-                repeat
-                    OutSyncQueue := TempSyncQueue;
-                    OutSyncQueue.Insert(false);
-                until TempSyncQueue.Next() = 0;
 
             // Read nextLink for pagination
             Clear(JsonObj);
-            if JsonObj.ReadFrom(JsonResponse) then
+            if JsonObj.ReadFrom(JsonResponse) then begin
                 if JsonObj.Contains(ODataNextLinkPropertyTxt) then begin
                     JsonObj.Get(ODataNextLinkPropertyTxt, JsonValue);
                     NextLink := JsonValue.AsValue().AsText();
@@ -160,33 +196,62 @@ codeunit 7106 "O365 Bidirectional Sync"
                     NextLink := '';
                     Session.LogMessage('0000QTH', NoPaginationLinkTxt, Verbosity::Verbose, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', getTracecat());
                 end;
+                if JsonObj.Contains(ODataDeltaPropertyTxt) then begin
+                    JsonObj.Get(ODataDeltaPropertyTxt, JsonValue);
+                    DeltaLink := JsonValue.AsValue().AsText();
+                end;
+            end;
 
             Uri := NextLink;
-
         until Uri = '';
+        if not (DeltaLink = '') then
+            UpdateDeltaUrl(FolderId, DeltaLink);
+        // Compare and queue contacts
+        Session.LogMessage('0000QTE', ComparingQueueingContactsTxt, Verbosity::Verbose, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', getTracecat());
+        CompareAndQueueContacts(O365Records, ContactFilterText, OutSyncQueue, FolderId);
+        Session.LogMessage('0000QTF', StrSubstNo(TotalContactsQueuedTxt, OutSyncQueue.Count()), Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', getTracecat());
 
-        Session.LogMessage('0000QTI', GetContactsCompleteTxt, Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', getTracecat());
-
+        Session.LogMessage('0000QTI', GetContactsCompleteTxt + Format(Counter), Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', getTracecat());
         if OutSyncQueue.IsEmpty() then
             Message(NoContactsFoundMsg)
         else
             Message(RetrievedContactsMsg, OutSyncQueue.Count());
+        ProgressDialog.Close();
     end;
 
+    local procedure UpdateDeltaUrl(FolderId: Text; NewDeltaLink: Text)
+    var
+        ContactSyncUserRec: Record "Contact Sync User";
+    begin
+        ContactSyncUserRec.Reset();
+        ContactSyncUserRec.SetCurrentKey("User ID", "Folder ID");
+        ContactSyncUserRec.SetRange("User ID", CopyStr(UserId(), 1, 50));
+        ContactSyncUserRec.SetRange("Folder ID", CopyStr(FolderId, 1, 250));
+        ContactSyncUserRec.SetLoadFields("Delta Url");
+        if ContactSyncUserRec.FindFirst() and not (NewDeltaLink = '') then begin
+            ContactSyncUserRec.SetDeltaUrl(CopyStr(NewDeltaLink, 1, 2048));
+            ContactSyncUserRec.Modify(false);
+        end;
+    end;
 
+    local procedure DoFullSync(FolderId: Text; var O365Records: Record "Outlook Contacts"; var Uri: Text)
+    begin
+        Uri := GraphApiUrlTxt + FolderId + DeltaUrlTxt;
+        O365Records.Reset();
+        O365Records.SetRange("Folder Id", FolderId);
+        O365Records.DeleteAll();
+    end;
 
-    local procedure ParseContactsResponse(JsonResponse: Text; var O365Records: Record "O365 Contact")
+    local procedure ParseContactsResponse(JsonResponse: Text; var O365Records: Record "Outlook Contacts"; FolderId: Text; var Counter: Integer)
     var
         JsonToken: JsonToken;
         JsonObject: JsonObject;
         JsonArray: JsonArray;
         ContactToken: JsonToken;
         ContactObject: JsonObject;
+        Email: Text;
         i: Integer;
     begin
-        O365Records.Reset();
-        O365Records.DeleteAll();
-
         if not JsonObject.ReadFrom(JsonResponse) then
             Error(InvalidJsonMsg);
 
@@ -194,19 +259,29 @@ codeunit 7106 "O365 Bidirectional Sync"
             Error(NoContactsDataMsg);
 
         JsonArray := JsonToken.AsArray();
-
+        Counter += JsonArray.Count();
+        O365Records.Reset();
         for i := 0 to JsonArray.Count() - 1 do begin
             JsonArray.Get(i, ContactToken);
             ContactObject := ContactToken.AsObject();
+            Email := NormalizeEmail(GetPrimaryEmailAddress(ContactObject));
+            if Email = '' then
+                continue;
+
+            // Check in-memory dictionary instead of database lookup
+            if ExistingEmails.ContainsKey(Email) then
+                continue;
+
+            // Add to dictionary to prevent duplicates within the same batch
+            ExistingEmails.Add(Email, true);
 
             O365Records.Init();
             // Parse email addresses
-            O365Records."Email Address" := CopyStr(GetPrimaryEmailAddress(ContactObject), 1, MaxStrLen(O365Records."Email Address"));
+            O365Records."Email Address" := CopyStr(Email, 1, MaxStrLen(O365Records."Email Address"));
             if O365Records."Email Address" = '' then
                 continue;
-            O365Records."Email 2" := CopyStr(GetSecondaryEmailAddress(ContactObject), 1, MaxStrLen(O365Records."Email 2"));
+            O365Records."Email 2" := CopyStr(NormalizeEmail(GetSecondaryEmailAddress(ContactObject)), 1, MaxStrLen(O365Records."Email 2"));
             O365Records."Display Name" := CopyStr(GetJsonValue(ContactObject, DisplayNamePropertyTxt), 1, MaxStrLen(O365Records."Display Name"));
-            O365Records."Contact ID" := CopyStr(GetJsonValue(ContactObject, ContactIdPropertyTxt), 1, MaxStrLen(O365Records."Contact ID"));
             O365Records."Given Name" := CopyStr(GetJsonValue(ContactObject, GivenNamePropertyTxt), 1, MaxStrLen(O365Records."Given Name"));
             O365Records."Surname" := CopyStr(GetJsonValue(ContactObject, SurnamePropertyTxt), 1, MaxStrLen(O365Records."Surname"));
             O365Records."Job Title" := CopyStr(GetJsonValue(ContactObject, JobTitlePropertyTxt), 1, MaxStrLen(O365Records."Job Title"));
@@ -224,7 +299,8 @@ codeunit 7106 "O365 Bidirectional Sync"
             // Parse phone numbers
             O365Records."Business Phone" := CopyStr(GetBusinessPhone(ContactObject), 1, MaxStrLen(O365Records."Business Phone"));
             O365Records."Home Phone" := CopyStr(GetHomePhone(ContactObject), 1, MaxStrLen(O365Records."Home Phone"));
-
+            O365Records."Folder Id" := CopyStr(FolderId, 1, MaxStrLen(O365Records."Folder Id"));
+            O365Records."Outlook Id" := CopyStr(GetJsonValue(ContactObject, OutlookContactIdPropertyTxt), 1, MaxStrLen(O365Records."Outlook Id"));
             // Parse dates
             O365Records."Created DateTime" := GetDateTimeValue(ContactObject, CreatedDateTimePropertyTxt);
             O365Records."Last Modified DateTime" := GetDateTimeValue(ContactObject, LastModifiedDateTimePropertyTxt);
@@ -239,7 +315,7 @@ codeunit 7106 "O365 Bidirectional Sync"
         end;
     end;
 
-    local procedure ParseAddressFields(JsonObject: JsonObject; var O365Records: Record "O365 Contact")
+    local procedure ParseAddressFields(JsonObject: JsonObject; var O365Records: Record "Outlook Contacts")
     var
         BusinessAddressObject: JsonObject;
         JsonToken: JsonToken;
@@ -254,6 +330,7 @@ codeunit 7106 "O365 Bidirectional Sync"
         if JsonToken.IsObject() then begin
             O365Records.Address := CopyStr(GetJsonValue(BusinessAddressObject, StreetPropertyTxt), 1, MaxStrLen(O365Records.Address));
             O365Records.City := CopyStr(GetJsonValue(BusinessAddressObject, CityPropertyTxt), 1, MaxStrLen(O365Records.City));
+            O365Records.County := CopyStr(GetJsonValue(BusinessAddressObject, StatePropertyTxt), 1, MaxStrLen(O365Records.County));
             O365Records."Post Code" := CopyStr(GetJsonValue(BusinessAddressObject, PostalCodePropertyTxt), 1, MaxStrLen(O365Records."Post Code"));
             O365Records."Country/Region Code" := CopyStr(GetJsonValue(BusinessAddressObject, CountryOrRegionPropertyTxt), 1, MaxStrLen(O365Records."Country/Region Code"));
         end;
@@ -359,6 +436,8 @@ codeunit 7106 "O365 Bidirectional Sync"
                         Error(Http502BadGatewayErr, ErrorMessage);
                     503:
                         Error(Http503ServiceUnavailableErr, ErrorMessage);
+                    410:
+                        Error(Http410GoneErr, CustomErr);
                     else
                         Error(HttpGenericErr, HttpStatusCode, ErrorMessage);
                 end;
@@ -368,9 +447,20 @@ codeunit 7106 "O365 Bidirectional Sync"
             Error(HttpParseErrorErr, HttpStatusCode);
     end;
 
-    procedure GetLastSyncStartDateTime(): DateTime
+    local procedure GetDeltaUrl(FolderId: Text): Text
+    var
+        ContactSyncUserRec: Record "Contact Sync User";
     begin
-        exit(SyncStartDateTime);
+        ContactSyncUserRec.Reset();
+        ContactSyncUserRec.SetCurrentKey("User ID", "Folder ID");
+        ContactSyncUserRec.SetRange("User ID", CopyStr(UserId(), 1, 50));
+        ContactSyncUserRec.SetRange("Folder ID", FolderId);
+        ContactSyncUserRec.SetLoadFields("Delta Url");
+        if ContactSyncUserRec.FindFirst() then begin
+            ContactSyncUserRec.MigrateDeltaUrlToIsolatedStorage();
+            exit(ContactSyncUserRec.GetDeltaUrl());
+        end;
+        exit('');
     end;
 
     local procedure GetSecondaryEmailAddress(JsonObject: JsonObject): Text
@@ -415,68 +505,66 @@ codeunit 7106 "O365 Bidirectional Sync"
         exit(LastSyncCreatedCount);
     end;
 
-    local procedure CompareAndQueueContacts(var O365Records: Record "O365 Contact"; ContactFilterText: Text)
+    local procedure CompareAndQueueContacts(var O365Records: Record "Outlook Contacts"; ContactFilterText: Text; var OutSyncQueue: Record "Contact Sync Queue" temporary; FolderId: Text)
     var
         LocalContact: Record Contact;
-        GraphEmails: List of [Text];
-        LocalEmails: List of [Text];
+        LocalEmailDict: Dictionary of [Text, Boolean];
     begin
-        NextEntryNo := 1;  // Initialize counter
 
-        if O365Records.FindSet() then
-            repeat
-                if O365Records."Email Address" <> '' then
-                    if not GraphEmails.Contains(O365Records."Email Address") then
-                        GraphEmails.Add(O365Records."Email Address");
-            until O365Records.Next() = 0;
-
-        // Build Set B: Local contact emails
+        // Build Set B: Local contact emails - check against O365 HashSet
         LocalContact.Reset();
         LocalContact.SetView(ContactFilterText);
         LocalContact.SetRange(Type, LocalContact.Type::Person);
         LocalContact.SetRange("Privacy Blocked", false);
         LocalContact.SetFilter("E-Mail", '<>%1', '');
+        LocalContact.SetLoadFields("No.", "E-Mail", "E-Mail 2", Name, "First Name", "Surname", "Job Title", "Company Name", "Mobile Phone No.", "Phone No.", "Home Page", Address, City, County, "Post Code", "Country/Region Code");
         if LocalContact.FindSet() then
             repeat
-                if not LocalEmails.Contains(LocalContact."E-Mail") then
-                    LocalEmails.Add(LocalContact."E-Mail");
+                if not (LocalContact."E-Mail" = '') then begin
+                    // Build LocalEmailDict for O(1) lookup when processing O365Records
+                    if not LocalEmailDict.ContainsKey(NormalizeEmail(LocalContact."E-Mail")) then
+                        LocalEmailDict.Add(NormalizeEmail(LocalContact."E-Mail"), true);
+
+                    // Queue contacts not in O365 for sync to M365
+                    if not ExistingEmails.ContainsKey(NormalizeEmail(LocalContact."E-Mail")) and not ContactAlreadyInTempQueue(LocalContact."E-Mail") then begin
+                        Clear(OutSyncQueue);
+                        OutSyncQueue."Entry No." := NextEntryNo;
+                        NextEntryNo += 1;
+                        OutSyncQueue.CopyFromBCContact(LocalContact, OutSyncQueue."Sync Direction"::"To M365");
+                        OutSyncQueueEmails.Add(NormalizeEmail(LocalContact."E-Mail"), true);
+                        OutSyncQueue.Insert(false);
+                    end;
+                end;
             until LocalContact.Next() = 0;
+
+        // Process O365Records - check against LocalContact HashSet
+        O365Records.Reset();
+        O365Records.SetRange("Folder Id", FolderId);
+        O365Records.SetLoadFields("Email Address", "Display Name", "Given Name", "Surname", "Job Title", "Company Name", "Mobile Phone", "Business Phone", "Home Phone", "Middle Name", "Initials", "Home Page", "Email 2", "Address", "City", "County", "Post Code", "Country/Region Code", "Categories", "Created DateTime", "Last Modified DateTime", "Outlook Id");
         if O365Records.FindSet() then
             repeat
-                if (O365Records."Email Address" <> '') and not LocalEmails.Contains(O365Records."Email Address") then
-                    if not ContactAlreadyInTempQueue(O365Records."Email Address") then begin
-                        Clear(TempSyncQueue);
-                        TempSyncQueue."Entry No." := NextEntryNo;
-                        NextEntryNo += 1;
-                        TempSyncQueue.CopyFromO365Contact(O365Records, TempSyncQueue."Sync Direction"::"To BC");
-                        TempSyncQueue.Insert(false);
-                    end;
+                if not (O365Records."Email Address" = '') and not LocalEmailDict.ContainsKey(NormalizeEmail(O365Records."Email Address")) and not ContactAlreadyInTempQueue(O365Records."Email Address") then begin
+                    Clear(OutSyncQueue);
+                    OutSyncQueue."Entry No." := NextEntryNo;
+                    NextEntryNo += 1;
+                    OutSyncQueue.CopyFromO365Contact(O365Records, OutSyncQueue."Sync Direction"::"To BC");
+                    OutSyncQueue.Insert(false);
+                    OutSyncQueueEmails.Add(NormalizeEmail(O365Records."Email Address"), true);
+                end;
             until O365Records.Next() = 0;
-
-        LocalContact.SetRange(Type, LocalContact.Type::Person);
-        LocalContact.SetFilter("E-Mail", '<>%1', '');
-        if LocalContact.FindSet() then
-            repeat
-                if not GraphEmails.Contains(LocalContact."E-Mail") then
-                    if not ContactAlreadyInTempQueue(LocalContact."E-Mail") then begin
-                        Clear(TempSyncQueue);
-                        TempSyncQueue."Entry No." := NextEntryNo;
-                        NextEntryNo += 1;
-                        TempSyncQueue.CopyFromBCContact(LocalContact, TempSyncQueue."Sync Direction"::"To M365");
-                        TempSyncQueue.Insert(false);
-                    end;
-            until LocalContact.Next() = 0;
 
     end;
 
     local procedure ContactAlreadyInTempQueue(Email: Text[250]): Boolean
-    var
-        TempQueueCheck: Record "Contact Sync Queue" temporary;
     begin
-        TempQueueCheck.Copy(TempSyncQueue, true); // Copy structure and data
-        TempQueueCheck.Reset();
-        TempQueueCheck.SetRange("Email Address", Email);
-        exit(not TempQueueCheck.IsEmpty());
+        if OutSyncQueueEmails.ContainsKey(NormalizeEmail(Email)) then
+            exit(true);
+        exit(false);
+    end;
+
+    local procedure NormalizeEmail(Email: Text): Text
+    begin
+        exit(LowerCase(DelChr(Email, '=', ' ')));
     end;
 
     procedure GetContactFolders(AccessToken: SecretText; var OutFolderTable: Record "Contact Sync Folder" temporary)
@@ -493,6 +581,7 @@ codeunit 7106 "O365 Bidirectional Sync"
         FolderId: Text;
         FolderName: Text;
         EntryNo: Integer;
+        DefaultParentFolderId: Text;
     begin
         OutFolderTable.DeleteAll();
 
@@ -523,7 +612,7 @@ codeunit 7106 "O365 Bidirectional Sync"
 
                     FolderId := GetJsonValue(FolderObject, ParentFolderIdPropertyTxt);
                     FolderName := GetJsonValue(FolderObject, DisplayNamePropertyTxt);
-
+                    DefaultParentFolderId := GetJsonValue(FolderObject, defaultfolderidsPropertyTxt);
                     if FolderId <> '' then begin
                         EntryNo += 1;
                         OutFolderTable."Entry No." := EntryNo;
@@ -531,6 +620,13 @@ codeunit 7106 "O365 Bidirectional Sync"
                         OutFolderTable."Display Name" := CopyStr(FolderName, 1, 250);
                         OutFolderTable.Insert();
                     end;
+                end;
+                if JsonArray.Count() >= 1 then begin
+                    EntryNo += 1;
+                    OutFolderTable."Entry No." := EntryNo;
+                    OutFolderTable."Folder ID" := CopyStr(DefaultParentFolderId, 1, 2048);
+                    OutFolderTable."Display Name" := DefaultFolderTxt;
+                    OutFolderTable.Insert();
                 end;
             end else begin
                 Session.LogMessage('0000QTL', StrSubstNo(FolderErrorResponseTxt, HttpResponse.HttpStatusCode()), Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', getTracecat());
@@ -562,6 +658,7 @@ codeunit 7106 "O365 Bidirectional Sync"
         RequestBody: Text;
         Headers: HttpHeaders;
         FolderId: Text;
+        ParentDefaultId: Text;
     begin
         RequestBody := StrSubstNo(RequestBodyTxt, FolderName);
 
@@ -578,11 +675,16 @@ codeunit 7106 "O365 Bidirectional Sync"
                 if not JsonObject.ReadFrom(JsonResponse) then
                     Session.LogMessage('0000QTM', InvalidJsonTeleTxt + JsonResponse, Verbosity::Error, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', getTracecat());
                 FolderId := GetJsonValue(JsonObject, ParentFolderIdPropertyTxt);
+                ParentDefaultId := GetJsonValue(JsonObject, defaultfolderidsPropertyTxt);
                 if FolderId <> '' then begin
                     OutFolderTable.DeleteAll();
                     OutFolderTable."Entry No." := 1;
                     OutFolderTable."Folder ID" := CopyStr(FolderId, 1, 2048);
                     OutFolderTable."Display Name" := CopyStr(FolderName, 1, 250);
+                    OutFolderTable.Insert();
+                    OutFolderTable."Entry No." := 2;
+                    OutFolderTable."Folder ID" := CopyStr(ParentDefaultId, 1, 2048);
+                    OutFolderTable."Display Name" := DefaultFolderTxt;
                     OutFolderTable.Insert();
                     exit(FolderId);
                 end else

@@ -8,7 +8,7 @@ using Microsoft.Service.Document;
 
 codeunit 6480 "Serv. Item Unit of Measure"
 {
-    [EventSubscriber(ObjectType::Table, Database::"Item Unit of Measure", 'OnAfterCheckNoOutstandingQty', '', false, false)]
+    [EventSubscriber(ObjectType::Table, Database::"Item Unit of Measure", 'OnAfterCheckNoOutstandingQty', '', true, false)]
     local procedure OnAfterCheckNoOutstandingQty(ItemUnitOfMeasure: Record "Item Unit of Measure"; xItemUnitOfMeasure: Record "Item Unit of Measure")
     begin
         CheckNoOutstandingQtyServiceLine(ItemUnitOfMeasure, xItemUnitOfMeasure);

@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -56,20 +56,17 @@ page 1355 "Posted Sales Inv. - Update"
                     ApplicationArea = Suite;
                     Caption = 'Agent';
                     Editable = true;
-                    ToolTip = 'Specifies which shipping agent is used to transport the items on the sales document to the customer.';
                 }
                 field("Shipping Agent Service Code"; Rec."Shipping Agent Service Code")
                 {
                     ApplicationArea = Suite;
                     Caption = 'Agent Service';
                     Editable = true;
-                    ToolTip = 'Specifies which shipping agent service is used to transport the items on the sales document to the customer.';
                 }
                 field("Package Tracking No."; Rec."Package Tracking No.")
                 {
                     ApplicationArea = Suite;
                     Editable = true;
-                    ToolTip = 'Specifies the shipping agent''s package number.';
                 }
             }
             group("Invoice Details")
@@ -79,19 +76,16 @@ page 1355 "Posted Sales Inv. - Update"
                 {
                     ApplicationArea = Basic, Suite;
                     Editable = true;
-                    ToolTip = 'Specifies any text that is entered to accompany the posting, for example for information to auditors.';
                 }
                 field("Due Date"; Rec."Due Date")
                 {
                     ApplicationArea = Basic, Suite;
                     Editable = true;
-                    ToolTip = 'Specifies the date on which the invoice is due for payment.';
                 }
                 field("Promised Pay Date"; Rec."Promised Pay Date")
                 {
                     ApplicationArea = Basic, Suite;
                     Editable = true;
-                    ToolTip = 'Specifies the date on which the customer have promised to pay this invoice.';
                 }
                 field("Dispute Status"; Rec."Dispute Status")
                 {
@@ -105,7 +99,6 @@ page 1355 "Posted Sales Inv. - Update"
                     ApplicationArea = Basic, Suite;
                     Editable = true;
                     Importance = Additional;
-                    ToolTip = 'Specifies the customer''s reference. The contents will be printed on sales documents.';
                 }
             }
             group(Payment)
@@ -122,13 +115,11 @@ page 1355 "Posted Sales Inv. - Update"
                 {
                     ApplicationArea = Basic, Suite;
                     Caption = 'Payment Reference';
-                    ToolTip = 'Specifies the payment of the sales invoice.';
                 }
                 field("Company Bank Account Code"; Rec."Company Bank Account Code")
                 {
                     ApplicationArea = Basic, Suite;
                     Caption = 'Company Bank Account Code';
-                    ToolTip = 'Specifies the bank account to use for bank information when the document is printed.';
                     Visible = IsCompanyBankAccountVisible;
                 }
             }

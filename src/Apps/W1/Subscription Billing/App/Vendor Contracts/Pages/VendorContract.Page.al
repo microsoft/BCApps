@@ -13,6 +13,9 @@ page 8070 "Vendor Contract"
     SourceTable = "Vendor Subscription Contract";
     UsageCategory = None;
     ApplicationArea = Basic, Suite;
+    AdditionalSearchTerms = 'Vendor Contract, Subscription Contract, Contract Details, Vendor Subscription, Contract Lines, Purchase Contract';
+    AboutTitle = 'About Vendor Subscription Contract details';
+    AboutText = 'Take a closer look at the details of a contract. Review assigned subscriptions and their billing details or assign new subscriptions.';
 
     layout
     {

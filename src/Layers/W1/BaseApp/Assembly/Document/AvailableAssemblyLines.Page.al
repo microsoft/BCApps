@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -30,27 +30,22 @@ page 926 "Available - Assembly Lines"
                 field("Document Type"; Rec."Document Type")
                 {
                     ApplicationArea = Assembly;
-                    ToolTip = 'Specifies the type of assembly document that the assembly order header represents in assemble-to-order scenarios.';
                 }
                 field("Document No."; Rec."Document No.")
                 {
                     ApplicationArea = Assembly;
-                    ToolTip = 'Specifies the number of the assembly order header that the assembly order line refers to.';
                 }
                 field("Location Code"; Rec."Location Code")
                 {
                     ApplicationArea = Location;
-                    ToolTip = 'Specifies the location from which you want to post consumption of the assembly component.';
                 }
                 field("Due Date"; Rec."Due Date")
                 {
                     ApplicationArea = Assembly;
-                    ToolTip = 'Specifies the date when the assembly component must be available for consumption by the assembly order.';
                 }
                 field("Remaining Quantity"; Rec."Remaining Quantity")
                 {
                     ApplicationArea = Assembly;
-                    ToolTip = 'Specifies how many units of the assembly component remain to be consumed during assembly.';
                 }
                 field("Reserved Qty. (Base)"; Rec."Reserved Qty. (Base)")
                 {

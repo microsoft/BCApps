@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -21,12 +21,10 @@ page 7152 "Item Analysis View Filter"
                 field("Dimension Code"; Rec."Dimension Code")
                 {
                     ApplicationArea = Dimensions;
-                    ToolTip = 'Specifies a dimension code that the dimension value filter will be linked to.';
                 }
                 field("Dimension Value Filter"; Rec."Dimension Value Filter")
                 {
                     ApplicationArea = Dimensions;
-                    ToolTip = 'Specifies the dimension value that the analysis view is based on.';
                 }
             }
         }

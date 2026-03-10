@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -24,6 +24,7 @@ table 184 "Payment Rec. Related Entry"
         field(1; "Entry No."; Integer)
         {
             Caption = 'Entry No.';
+            ToolTip = 'Specifies the Entry No. that was created by the Posted Payment Reconciliation Journal.';
         }
         /// <summary>
         /// Type of ledger entry being referenced.
@@ -31,6 +32,7 @@ table 184 "Payment Rec. Related Entry"
         field(2; "Entry Type"; Enum "Gen. Journal Source Type")
         {
             Caption = 'Entry Type';
+            ToolTip = 'Specifies the type of the entry that was created by the posted payment reconciliation journal.';
         }
         /// <summary>
         /// Bank account identifier for the reconciliation.
@@ -67,10 +69,12 @@ table 184 "Payment Rec. Related Entry"
         field(8; ToUnapply; Boolean)
         {
             Caption = 'To Unapply';
+            ToolTip = 'Specifies if the entry created by the posted payment reconciliation journal will be unapplied.';
         }
         field(9; ToReverse; Boolean)
         {
             Caption = 'To Reverse';
+            ToolTip = 'Specifies if the entry created by the posted payment reconciliation journal will be reversed.';
         }
     }
     keys

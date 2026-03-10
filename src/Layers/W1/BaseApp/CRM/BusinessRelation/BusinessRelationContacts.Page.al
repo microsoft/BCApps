@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -23,7 +23,6 @@ page 5062 "Business Relation Contacts"
                 field("Contact No."; Rec."Contact No.")
                 {
                     ApplicationArea = All;
-                    ToolTip = 'Specifies the contact number of the company you are assigning a business relation.';
                 }
                 field("Contact Name"; Rec."Contact Name")
                 {
@@ -34,7 +33,6 @@ page 5062 "Business Relation Contacts"
                 field("Link to Table"; Rec."Link to Table")
                 {
                     ApplicationArea = RelationshipMgmt;
-                    ToolTip = 'Specifies the name of the table to which the contact is linked. There are four possible options: &lt;blank&gt;, Vendor, Customer, and Bank Account.';
                 }
                 field("No."; Rec."No.")
                 {

@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -24,12 +24,14 @@ table 5800 "Item Charge"
         field(1; "No."; Code[20])
         {
             Caption = 'No.';
+            ToolTip = 'Specifies the number of the involved entry or record, according to the specified number series.';
             OptimizeForTextSearch = true;
             NotBlank = true;
         }
         field(2; Description; Text[100])
         {
             Caption = 'Description';
+            ToolTip = 'Specifies a description of the item charge number that you are setting up.';
             OptimizeForTextSearch = true;
 
             trigger OnValidate()
@@ -41,6 +43,7 @@ table 5800 "Item Charge"
         field(3; "Gen. Prod. Posting Group"; Code[20])
         {
             Caption = 'Gen. Prod. Posting Group';
+            ToolTip = 'Specifies the item charge''s product type to link transactions made for this item charge with the appropriate general ledger account according to the general posting setup.';
             TableRelation = "Gen. Product Posting Group";
             OptimizeForTextSearch = true;
 
@@ -56,17 +59,20 @@ table 5800 "Item Charge"
         field(4; "Tax Group Code"; Code[20])
         {
             Caption = 'Tax Group Code';
+            ToolTip = 'Specifies the sales tax group code that this item charge belongs to.';
             TableRelation = "Tax Group";
         }
         field(5; "VAT Prod. Posting Group"; Code[20])
         {
             Caption = 'VAT Prod. Posting Group';
+            ToolTip = 'Specifies the VAT specification of the involved item or resource to link transactions made for this record with the appropriate general ledger account according to the VAT posting setup.';
             TableRelation = "VAT Product Posting Group";
             OptimizeForTextSearch = true;
         }
         field(6; "Search Description"; Code[100])
         {
             Caption = 'Search Description';
+            ToolTip = 'Specifies text to search for when you do not know the number of the item charge.';
             OptimizeForTextSearch = true;
         }
         field(7; "Global Dimension 1 Code"; Code[20])

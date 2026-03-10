@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -22,44 +22,36 @@ page 99000772 "Capacity Absence"
                 field(Date; Rec.Date)
                 {
                     ApplicationArea = Manufacturing;
-                    ToolTip = 'Specifies the date associated with this absence entry.';
                 }
                 field("Starting Date-Time"; Rec."Starting Date-Time")
                 {
                     ApplicationArea = Manufacturing;
-                    ToolTip = 'Specifies the date and the starting time, which are combined in a format called "starting date-time".';
                     Visible = false;
                 }
                 field("Starting Time"; Rec."Starting Time")
                 {
                     ApplicationArea = Manufacturing;
-                    ToolTip = 'Specifies the starting time of the absence entry.';
                 }
                 field("Ending Date-Time"; Rec."Ending Date-Time")
                 {
                     ApplicationArea = Manufacturing;
-                    ToolTip = 'Specifies the date and the ending time, which are combined in a format called "ending date-time".';
                     Visible = false;
                 }
                 field("Ending Time"; Rec."Ending Time")
                 {
                     ApplicationArea = Manufacturing;
-                    ToolTip = 'Specifies the ending time of the absence entry.';
                 }
                 field(Description; Rec.Description)
                 {
                     ApplicationArea = Manufacturing;
-                    ToolTip = 'Specifies the description for the absence entry, for example, holiday or vacation"';
                 }
                 field(Capacity; Rec.Capacity)
                 {
                     ApplicationArea = Manufacturing;
-                    ToolTip = 'Specifies the capacity of the absence entry, which was planned for this work center or machine center.';
                 }
                 field(Updated; Rec.Updated)
                 {
                     ApplicationArea = Manufacturing;
-                    ToolTip = 'Specifies the calendar has been updated with this absence entry.';
                 }
             }
         }

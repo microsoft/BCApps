@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -23,7 +23,6 @@ page 5079 "Interaction Tmpl. Statistics"
                 field("No. of Interactions"; Rec."No. of Interactions")
                 {
                     ApplicationArea = RelationshipMgmt;
-                    ToolTip = 'Specifies the number of interactions that have been created using this interaction template.';
                 }
                 field("Cost (LCY)"; Rec."Cost (LCY)")
                 {

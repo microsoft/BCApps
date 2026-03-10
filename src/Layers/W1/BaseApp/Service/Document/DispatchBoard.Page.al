@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -221,64 +221,52 @@ page 6000 "Dispatch Board"
                 field("Response Date"; Rec."Response Date")
                 {
                     ApplicationArea = Service;
-                    ToolTip = 'Specifies the estimated date when work on the order should start, that is, when the service order status changes from Pending, to In Process.';
                 }
                 field("Response Time"; Rec."Response Time")
                 {
                     ApplicationArea = Service;
-                    ToolTip = 'Specifies the estimated time when work on the order starts, that is, when the service order status changes from Pending, to In Process.';
                 }
                 field(Priority; Rec.Priority)
                 {
                     ApplicationArea = Service;
-                    ToolTip = 'Specifies the priority of the service order.';
                 }
                 field("Document Type"; Rec."Document Type")
                 {
                     ApplicationArea = Service;
-                    ToolTip = 'Specifies the type of the service document on the line.';
                 }
                 field("No."; Rec."No.")
                 {
                     ApplicationArea = Service;
-                    ToolTip = 'Specifies the number of the involved entry or record, according to the specified number series.';
                 }
                 field(Description; Rec.Description)
                 {
                     ApplicationArea = Service;
-                    ToolTip = 'Specifies a short description of the service document, such as Order 2001.';
                     Visible = false;
                 }
                 field(Status; Rec.Status)
                 {
                     ApplicationArea = Service;
-                    ToolTip = 'Specifies the service order status, which reflects the repair or maintenance status of all service items on the service order.';
                 }
                 field("Customer No."; Rec."Customer No.")
                 {
                     ApplicationArea = Service;
-                    ToolTip = 'Specifies the number of the customer who owns the items in the service document.';
                 }
                 field(Name; Rec.Name)
                 {
                     ApplicationArea = Service;
-                    ToolTip = 'Specifies the name of the customer to whom the items on the document will be shipped.';
                 }
                 field("Contract No."; Rec."Contract No.")
                 {
                     ApplicationArea = Service;
                     Editable = false;
-                    ToolTip = 'Specifies the number of the contract associated with the order.';
                 }
                 field("Service Zone Code"; Rec."Service Zone Code")
                 {
                     ApplicationArea = Service;
-                    ToolTip = 'Specifies the service zone code of the customer''s ship-to address in the service order.';
                 }
                 field("No. of Allocations"; Rec."No. of Allocations")
                 {
                     ApplicationArea = Service;
-                    ToolTip = 'Specifies the number of resource allocations to service items in this order.';
                 }
                 field("Order Date"; Rec."Order Date")
                 {
@@ -288,12 +276,10 @@ page 6000 "Dispatch Board"
                 field("Order Time"; Rec."Order Time")
                 {
                     ApplicationArea = Service;
-                    ToolTip = 'Specifies the time when the service order was created.';
                 }
                 field("Reallocation Needed"; Rec."Reallocation Needed")
                 {
                     ApplicationArea = Service;
-                    ToolTip = 'Specifies that you must reallocate resources to at least one service item in this service order.';
                 }
             }
             group(Control94)

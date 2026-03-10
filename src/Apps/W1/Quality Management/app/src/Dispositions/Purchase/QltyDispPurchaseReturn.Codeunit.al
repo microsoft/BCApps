@@ -58,12 +58,12 @@ codeunit 20441 "Qlty. Disp. Purchase Return" implements "Qlty. Disposition"
         TempQuantityToActQltyDispositionBuffer: Record "Qlty. Disposition Buffer" temporary;
         QltyInventoryAvailability: Codeunit "Qlty. Inventory Availability";
         QltyNotificationMgmt: Codeunit "Qlty. Notification Mgmt.";
-        Handled: Boolean;
+        IsHandled: Boolean;
         VendorCreditMemoNo: Code[35];
     begin
         VendorCreditMemoNo := CopyStr(TempInstructionQltyDispositionBuffer."External Document No.", 1, MaxStrLen(VendorCreditMemoNo));
-        OnBeforeProcessDisposition(QltyInspectionHeader, TempInstructionQltyDispositionBuffer, DidSomething, Handled);
-        if Handled then
+        OnBeforeProcessDisposition(QltyInspectionHeader, TempInstructionQltyDispositionBuffer, DidSomething, IsHandled);
+        if IsHandled then
             exit;
 
         QltyInventoryAvailability.PopulateQuantityBuffer(QltyInspectionHeader, TempInstructionQltyDispositionBuffer, TempQuantityToActQltyDispositionBuffer);
@@ -156,7 +156,7 @@ codeunit 20441 "Qlty. Disp. Purchase Return" implements "Qlty. Disposition"
 
         ReturnOrderPurchaseHeader.Insert(true);
         if TempCreatedBufferPurchaseHeader."No." <> ReturnOrderPurchaseHeader."No." then begin
-        TempCreatedBufferPurchaseHeader := ReturnOrderPurchaseHeader;
+            TempCreatedBufferPurchaseHeader := ReturnOrderPurchaseHeader;
             TempCreatedBufferPurchaseHeader.Insert();
         end;
     end;
@@ -174,7 +174,7 @@ codeunit 20441 "Qlty. Disp. Purchase Return" implements "Qlty. Disposition"
         UnusedMissingExCostRevLink: Boolean;
         ExistingLine: Boolean;
         ItemTracking: Boolean;
-        Handled: Boolean;
+        IsHandled: Boolean;
 
     begin
         Item.Get(QltyInspectionHeader."Source Item No.");
@@ -188,8 +188,8 @@ codeunit 20441 "Qlty. Disp. Purchase Return" implements "Qlty. Disposition"
         if ReturnOrderPurchaseLine.FindFirst() then
             ExistingLine := true;
 
-        OnBeforeCreateOrUpdatePurchaseReturnOrderLine(QltyInspectionHeader, TempQuantityToActQltyDispositionBuffer, PurchRcptLine, ReturnOrderPurchaseHeader, ReturnOrderPurchaseLine, Handled);
-        if Handled then
+        OnBeforeCreateOrUpdatePurchaseReturnOrderLine(QltyInspectionHeader, TempQuantityToActQltyDispositionBuffer, PurchRcptLine, ReturnOrderPurchaseHeader, ReturnOrderPurchaseLine, IsHandled);
+        if IsHandled then
             exit;
 
         if not ExistingLine then begin
@@ -242,10 +242,10 @@ codeunit 20441 "Qlty. Disp. Purchase Return" implements "Qlty. Disposition"
     /// </summary>
     /// <param name="QltyInspectionHeader">Quality Inspection</param>
     /// <param name="TempInstructionQltyDispositionBuffer">The instruction</param>
-    /// <param name="prbDidSomething">Provides an opportunity to replace the default boolean success/fail of if it worked.</param>
-    /// <param name="Handled">Provides an opportunity to replace the default behavior</param>
+    /// <param name="DidSomething">Provides an opportunity to replace the default boolean success/fail of if it worked.</param>
+    /// <param name="IsHandled">Provides an opportunity to replace the default behavior</param>
     [IntegrationEvent(false, false)]
-    procedure OnBeforeProcessDisposition(var QltyInspectionHeader: Record "Qlty. Inspection Header"; var TempInstructionQltyDispositionBuffer: Record "Qlty. Disposition Buffer" temporary; var prbDidSomething: Boolean; var Handled: Boolean)
+    procedure OnBeforeProcessDisposition(var QltyInspectionHeader: Record "Qlty. Inspection Header"; var TempInstructionQltyDispositionBuffer: Record "Qlty. Disposition Buffer" temporary; var DidSomething: Boolean; var IsHandled: Boolean)
     begin
     end;
 
@@ -255,9 +255,9 @@ codeunit 20441 "Qlty. Disp. Purchase Return" implements "Qlty. Disposition"
     /// <param name="QltyInspectionHeader">Quality Inspection</param>
     /// <param name="TempInstructionQltyDispositionBuffer">The instruction</param>
     /// <param name="CreatedReturnOrderPurchaseHeader">The created purchase return order</param>
-    /// <param name="prbDidSomething">Provides an opportunity to replace the default boolean success/fail of if it worked.</param>
+    /// <param name="DidSomething">Provides an opportunity to replace the default boolean success/fail of if it worked.</param>
     [IntegrationEvent(false, false)]
-    procedure OnAfterProcessDisposition(var QltyInspectionHeader: Record "Qlty. Inspection Header"; var TempInstructionQltyDispositionBuffer: Record "Qlty. Disposition Buffer" temporary; var CreatedReturnOrderPurchaseHeader: Record "Purchase Header"; var prbDidSomething: Boolean)
+    procedure OnAfterProcessDisposition(var QltyInspectionHeader: Record "Qlty. Inspection Header"; var TempInstructionQltyDispositionBuffer: Record "Qlty. Disposition Buffer" temporary; var CreatedReturnOrderPurchaseHeader: Record "Purchase Header"; var DidSomething: Boolean)
     begin
     end;
 
@@ -269,9 +269,9 @@ codeunit 20441 "Qlty. Disp. Purchase Return" implements "Qlty. Disposition"
     /// <param name="PurchRcptLine">The original purchase receipt line.</param>
     /// <param name="ReturnOrderPurchaseHeader">The purchase return order</param>
     /// <param name="ReturnOrderPurchaseLine">The new or existing purchase return order line.</param>
-    /// <param name="Handled"></param>
+    /// <param name="IsHandled"></param>
     [IntegrationEvent(false, false)]
-    procedure OnBeforeCreateOrUpdatePurchaseReturnOrderLine(var QltyInspectionHeader: Record "Qlty. Inspection Header"; var TempQuantityToActQltyDispositionBuffer: Record "Qlty. Disposition Buffer" temporary; var PurchRcptLine: Record "Purch. Rcpt. Line"; var ReturnOrderPurchaseHeader: Record "Purchase Header"; var ReturnOrderPurchaseLine: Record "Purchase Line"; var Handled: Boolean)
+    procedure OnBeforeCreateOrUpdatePurchaseReturnOrderLine(var QltyInspectionHeader: Record "Qlty. Inspection Header"; var TempQuantityToActQltyDispositionBuffer: Record "Qlty. Disposition Buffer" temporary; var PurchRcptLine: Record "Purch. Rcpt. Line"; var ReturnOrderPurchaseHeader: Record "Purchase Header"; var ReturnOrderPurchaseLine: Record "Purchase Line"; var IsHandled: Boolean)
     begin
     end;
 

@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -18,23 +18,28 @@ table 5807 "Cost Adjustment Detailed Log"
         field(1; "Cost Adjustment Run Guid"; Guid)
         {
             Caption = 'Cost Adjustment Run Guid';
+            ToolTip = 'Specifies the unique identifier of the cost adjustment run.';
         }
         field(2; "Item No."; Code[20])
         {
             Caption = 'Item No.';
+            ToolTip = 'Specifies the item number.';
             TableRelation = Item;
         }
         field(3; "Starting Date-Time"; DateTime)
         {
             Caption = 'Starting Date-Time';
+            ToolTip = 'Specifies the starting date and time of the cost adjustment run for the item.';
         }
         field(4; "Ending Date-Time"; DateTime)
         {
             Caption = 'Ending Date-Time';
+            ToolTip = 'Specifies the ending date and time of the cost adjustment run for the item.';
         }
         field(5; "Duration"; Duration)
         {
             Caption = 'Duration';
+            ToolTip = 'Specifies the duration of the cost adjustment run for the item.';
         }
         field(6; "Interim Date-Time"; DateTime)
         {

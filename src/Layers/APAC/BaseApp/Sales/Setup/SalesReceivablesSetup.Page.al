@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -174,7 +174,6 @@ page 459 "Sales & Receivables Setup"
                 field("Posting Date Check on Posting"; Rec."Posting Date Check on Posting")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies if you want the program to warn you when you post a sales document with a posting date that is different from the Work Date.';
                 }
                 field("Allow Document Deletion Before"; Rec."Allow Document Deletion Before")
                 {

@@ -21,6 +21,7 @@ codeunit 134213 "WF Demo Item Unit Pri Approval"
         LibraryVariableStorage: Codeunit "Library - Variable Storage";
         LibraryJobQueue: Codeunit "Library - Job Queue";
         IsInitialized: Boolean;
+        ApprovalEntryNotFoundErr: Label 'Approval Entry should exist when Item Unit Price is changed.';
 
     local procedure Initialize()
     var
@@ -741,6 +742,41 @@ codeunit 134213 "WF Demo Item Unit Pri Approval"
         VerifyUnitPriceForItem(Item, NewUnitPrice);
     end;
 
+    [Test]
+    [HandlerFunctions('MessageHandler,ApprovalEntriesPageHandler')]
+    procedure TestItemUnitPriceChangeApprovalEntriesVisibleInItemApprovalsPage()
+    var
+        Workflow: Record Workflow;
+        Item: Record Item;
+        CurrentUserSetup: Record "User Setup";
+        IntermediateApproverUserSetup: Record "User Setup";
+        FinalApproverUserSetup: Record "User Setup";
+        WorkflowUserGroup: Record "Workflow User Group";
+        WorkflowSetup: Codeunit "Workflow Setup";
+        ApprovalsMgmt: Codeunit "Approvals Mgmt.";
+        NewUnitPrice: Decimal;
+    begin
+        // [SCENARIO 1] Test that the Item unit price Change Approval Workflow approval path works with a group of 3 users.
+        // [GIVEN] The Item unit price Change Approval Workflow is enabled.
+        // [WHEN] A user sends the Item unit price change for approval and all users in the group of approvals approve the document.
+        // [THEN] The Item unit price change is approved and applied.
+
+        Initialize();
+        LibraryWorkflow.CopyWorkflowTemplate(Workflow, WorkflowSetup.ItemUnitPriceChangeApprovalWorkflowCode());
+
+        // Setup - Create 3 user setups, create workflow user group and set the group for the workflow
+        CreateUserSetupsAndGroupOfApproversForWorkflow(WorkflowUserGroup, CurrentUserSetup, IntermediateApproverUserSetup, FinalApproverUserSetup);
+        LibraryWorkflow.SetWorkflowGroupApprover(Workflow.Code, WorkflowUserGroup.Code);
+        LibraryWorkflow.EnableWorkflow(Workflow);
+
+        // Excercise - Open Item card and sent the unit price change for approval
+        NewUnitPrice := LibraryRandom.RandDec(1000, 2);
+        CreateItemAndChangeUnitPriceAndSendForApproval(Item, NewUnitPrice);
+
+        // [THEN] The approval entry is visible in Item Approvals page.
+        ApprovalsMgmt.OpenApprovalEntriesPage(Item.RecordId);
+    end;
+
     [MessageHandler]
     [Scope('OnPrem')]
     procedure MessageHandlerValidateMessage(Message: Text[1024])
@@ -993,6 +1029,12 @@ codeunit 134213 "WF Demo Item Unit Pri Approval"
         ItemList.GotoRecord(Item);
         Assert.AreEqual(CancelActionExpectedEnabled, ItemList.CancelApprovalRequest.Enabled(), 'Wrong state for the Cancel action');
         ItemList.Close();
+    end;
+
+    [ModalPageHandler]
+    procedure ApprovalEntriesPageHandler(var ApprovalEntries: TestPage "Approval Entries")
+    begin
+        Assert.IsTrue(ApprovalEntries.First(), ApprovalEntryNotFoundErr);
     end;
 }
 

@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -35,7 +35,6 @@ page 10001 "Overdue Purchase Invoices"
                 }
                 field("Remaining Amount"; Rec."Remaining Amount")
                 {
-                    ToolTip = 'Specifies the remaining amount of the invoice.';
                 }
                 field("Due Date"; Rec."Due Date")
                 {

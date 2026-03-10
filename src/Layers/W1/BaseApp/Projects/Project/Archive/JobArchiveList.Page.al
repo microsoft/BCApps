@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -29,27 +29,22 @@ page 5176 "Job Archive List"
                 field("No."; Rec."No.")
                 {
                     ApplicationArea = Jobs;
-                    ToolTip = 'Specifies the number of the involved entry or record, according to the specified number series.';
                 }
                 field("Version No."; Rec."Version No.")
                 {
                     ApplicationArea = Suite;
-                    ToolTip = 'Specifies the version number of the archived document.';
                 }
                 field("Date Archived"; Rec."Date Archived")
                 {
                     ApplicationArea = Suite;
-                    ToolTip = 'Specifies the date when the document was archived.';
                 }
                 field("Time Archived"; Rec."Time Archived")
                 {
                     ApplicationArea = Suite;
-                    ToolTip = 'Specifies what time the document was archived.';
                 }
                 field("Archived By"; Rec."Archived By")
                 {
                     ApplicationArea = Suite;
-                    ToolTip = 'Specifies the user ID of the person who archived this document.';
 
                     trigger OnDrillDown()
                     var
@@ -61,22 +56,18 @@ page 5176 "Job Archive List"
                 field("Interaction Exist"; Rec."Interaction Exist")
                 {
                     ApplicationArea = RelationshipMgmt;
-                    ToolTip = 'Specifies that the archived document is linked to an interaction log entry.';
                 }
                 field(Description; Rec.Description)
                 {
                     ApplicationArea = Jobs;
-                    ToolTip = 'Specifies a short description of the project.';
                 }
                 field("Bill-to Customer No."; Rec."Bill-to Customer No.")
                 {
                     ApplicationArea = Jobs;
-                    ToolTip = 'Specifies the number of the customer who pays for the project.';
                 }
                 field(Status; Rec.Status)
                 {
                     ApplicationArea = Jobs;
-                    ToolTip = 'Specifies a status for the current project. You can change the status for the project as it progresses. Final calculations can be made on completed projects.';
                 }
                 field("Person Responsible"; Rec."Person Responsible")
                 {
@@ -87,7 +78,6 @@ page 5176 "Job Archive List"
                 field("Next Invoice Date"; Rec."Next Invoice Date")
                 {
                     ApplicationArea = Jobs;
-                    ToolTip = 'Specifies the next invoice date for the project.';
                     Visible = false;
                 }
                 field("Job Posting Group"; Rec."Job Posting Group")
@@ -99,7 +89,6 @@ page 5176 "Job Archive List"
                 field("Search Description"; Rec."Search Description")
                 {
                     ApplicationArea = Jobs;
-                    ToolTip = 'Specifies the additional name for the project. The field is used for searching purposes.';
                 }
                 field("Project Manager"; Rec."Project Manager")
                 {
@@ -110,13 +99,11 @@ page 5176 "Job Archive List"
                 field("External Document No."; Rec."External Document No.")
                 {
                     ApplicationArea = Jobs;
-                    ToolTip = 'Specifies a document number that refers to the customer''s or vendor''s numbering system.';
                     Visible = false;
                 }
                 field("Your Reference"; Rec."Your Reference")
                 {
                     ApplicationArea = Jobs;
-                    ToolTip = 'Specifies the customer''s reference. The content will be printed on sales documents.';
                     Visible = false;
                 }
             }

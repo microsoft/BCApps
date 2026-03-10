@@ -196,6 +196,7 @@ report 7000097 "Reject Docs."
             trigger OnPostDataItem()
             var
                 PostedDoc2: Record "Posted Cartera Doc.";
+                SkipMessage: Boolean;
             begin
                 if GenJnlLine.Find('-') then
                     repeat
@@ -219,7 +220,10 @@ report 7000097 "Reject Docs."
 
                 Commit();
 
-                Message(Text1100007, DocCount);
+                SkipMessage := false;
+                OnPostDataItemCustLedgEntryOnBeforeShowCompletationMessage(DocCount, SkipMessage);
+                if not SkipMessage then
+                    Message(Text1100007, DocCount);
             end;
 
             trigger OnPreDataItem()
@@ -714,6 +718,11 @@ report 7000097 "Reject Docs."
 
     [IntegrationEvent(false, false)]
     local procedure OnBeforeOnPreReport(var PostingDate: Date; var IncludeExpenses: Boolean; var UseJournal: Option; var TemplName: Code[10]; var BatchName: Code[10])
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnPostDataItemCustLedgEntryOnBeforeShowCompletationMessage(DocumentCount: Integer; var SkipMessage: Boolean)
     begin
     end;
 }

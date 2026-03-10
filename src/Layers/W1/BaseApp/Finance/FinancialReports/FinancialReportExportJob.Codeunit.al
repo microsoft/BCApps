@@ -177,6 +177,7 @@ codeunit 8361 "Financial Report Export Job"
             FinReportExcelTemplate.Get(FinancialReport.Name, ExcelTemplateCode);
             ExportAccSchedToExcel.SetUseExistingTemplate(FinReportExcelTemplate);
         end;
+        ExportAccSchedToExcel.SetRunForExport();
 
         TempBlob.CreateOutStream(OutStr);
         OnBeforeSaveExcel(FinancialReportSchedule, FinancialReport, ExportAccSchedToExcel, OutStr, IsHandled);

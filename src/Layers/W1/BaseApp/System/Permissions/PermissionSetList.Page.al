@@ -25,13 +25,11 @@ page 9851 "Permission Set List"
                     ApplicationArea = Basic, Suite;
                     Caption = 'Permission Set';
                     Editable = false;
-                    ToolTip = 'Specifies the permission set.';
                 }
                 field(Name; Rec.Name)
                 {
                     ApplicationArea = Basic, Suite;
                     Editable = false;
-                    ToolTip = 'Specifies the name of the record.';
                 }
                 field(Type; Rec.Type)
                 {
@@ -44,7 +42,6 @@ page 9851 "Permission Set List"
                     ApplicationArea = Basic, Suite;
                     Caption = 'Extension Name';
                     Editable = false;
-                    ToolTip = 'Specifies the name of the extension.';
                 }
             }
         }

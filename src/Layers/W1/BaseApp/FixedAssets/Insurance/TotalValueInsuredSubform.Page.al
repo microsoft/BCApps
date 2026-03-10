@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -29,17 +29,14 @@ page 5650 "Total Value Insured Subform"
                 field("Insurance No."; Rec."Insurance No.")
                 {
                     ApplicationArea = FixedAssets;
-                    ToolTip = 'Specifies the number of the insurance policy that the entry is linked to.';
                 }
                 field(Description; Rec.Description)
                 {
                     ApplicationArea = FixedAssets;
-                    ToolTip = 'Specifies the description of the insurance policy.';
                 }
                 field("Total Value Insured"; Rec."Total Value Insured")
                 {
                     ApplicationArea = FixedAssets;
-                    ToolTip = 'Specifies the amounts you posted to each insurance policy for the fixed asset.';
                 }
             }
         }

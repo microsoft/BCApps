@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -18,18 +18,22 @@ table 950 "Time Sheet Header"
         field(1; "No."; Code[20])
         {
             Caption = 'No.';
+            ToolTip = 'Specifies the number of the involved entry or record, according to the specified number series.';
         }
         field(3; "Starting Date"; Date)
         {
             Caption = 'Starting Date';
+            ToolTip = 'Specifies the starting date for a time sheet.';
         }
         field(4; "Ending Date"; Date)
         {
             Caption = 'Ending Date';
+            ToolTip = 'Specifies the ending date for a time sheet.';
         }
         field(5; "Resource No."; Code[20])
         {
             Caption = 'Resource No.';
+            ToolTip = 'Specifies the number of the resource for the time sheet.';
             TableRelation = Resource;
 
             trigger OnValidate()
@@ -57,6 +61,7 @@ table 950 "Time Sheet Header"
         field(6; "Resource Name"; Text[100])
         {
             Caption = 'Resource Name';
+            ToolTip = 'Specifies the name of the resource for the time sheet.';
             FieldClass = FlowField;
             CalcFormula = lookup(Resource.Name where("No." = field("Resource No.")));
             Editable = false;
@@ -76,6 +81,7 @@ table 950 "Time Sheet Header"
         field(10; Description; Text[100])
         {
             Caption = 'Description';
+            ToolTip = 'Specifies the description for a time sheet.';
             DataClassification = CustomerContent;
         }
         field(11; "Unit of Measure"; Code[10])
@@ -90,6 +96,7 @@ table 950 "Time Sheet Header"
             CalcFormula = exist("Time Sheet Line" where("Time Sheet No." = field("No."),
                                                          Status = const(Open)));
             Caption = 'Open Exists';
+            ToolTip = 'Specifies if there are time sheet lines with the status Open.';
             Editable = false;
             FieldClass = FlowField;
         }
@@ -98,6 +105,7 @@ table 950 "Time Sheet Header"
             CalcFormula = exist("Time Sheet Line" where("Time Sheet No." = field("No."),
                                                          Status = const(Submitted)));
             Caption = 'Submitted Exists';
+            ToolTip = 'Specifies if there are time sheet lines with the status Submitted.';
             Editable = false;
             FieldClass = FlowField;
         }
@@ -106,6 +114,7 @@ table 950 "Time Sheet Header"
             CalcFormula = exist("Time Sheet Line" where("Time Sheet No." = field("No."),
                                                          Status = const(Rejected)));
             Caption = 'Rejected Exists';
+            ToolTip = 'Specifies whether there are time sheet lines with the status Rejected.';
             Editable = false;
             FieldClass = FlowField;
         }
@@ -114,6 +123,7 @@ table 950 "Time Sheet Header"
             CalcFormula = exist("Time Sheet Line" where("Time Sheet No." = field("No."),
                                                          Status = const(Approved)));
             Caption = 'Approved Exists';
+            ToolTip = 'Specifies whether there are time sheet lines with the status Approved.';
             Editable = false;
             FieldClass = FlowField;
         }
@@ -121,6 +131,7 @@ table 950 "Time Sheet Header"
         {
             CalcFormula = exist("Time Sheet Posting Entry" where("Time Sheet No." = field("No.")));
             Caption = 'Posted Exists';
+            ToolTip = 'Specifies whether there are time sheet lines with the status Posted.';
             Editable = false;
             FieldClass = FlowField;
         }
@@ -142,6 +153,7 @@ table 950 "Time Sheet Header"
                                                                   Posted = field("Posted Filter"),
                                                                   Type = field("Type Filter")));
             Caption = 'Quantity';
+            ToolTip = 'Specifies the total number of hours that are registered on the time sheet.';
             FieldClass = FlowField;
         }
         field(21; "Posted Quantity"; Decimal)
@@ -156,6 +168,7 @@ table 950 "Time Sheet Header"
             CalcFormula = exist("Time Sheet Comment Line" where("No." = field("No."),
                                                                  "Time Sheet Line No." = const(0)));
             Caption = 'Comment';
+            ToolTip = 'Specifies that a comment about this document has been entered.';
             Editable = false;
             FieldClass = FlowField;
         }
@@ -195,6 +208,7 @@ table 950 "Time Sheet Header"
             CalcFormula = sum("Time Sheet Detail".Quantity where("Time Sheet No." = field("No."),
                                                          Status = const(Open)));
             Caption = 'Quantity Open';
+            ToolTip = 'Specifies the total number of hours with the status Open on the time sheet.';
             Editable = false;
             FieldClass = FlowField;
         }
@@ -204,6 +218,7 @@ table 950 "Time Sheet Header"
             CalcFormula = sum("Time Sheet Detail".Quantity where("Time Sheet No." = field("No."),
                                                          Status = const(Submitted)));
             Caption = 'Quantity Submitted';
+            ToolTip = 'Specifies the total number of hours with the status Submitted on the time sheet.';
             Editable = false;
             FieldClass = FlowField;
         }
@@ -213,6 +228,7 @@ table 950 "Time Sheet Header"
             CalcFormula = sum("Time Sheet Detail".Quantity where("Time Sheet No." = field("No."),
                                                          Status = const(Approved)));
             Caption = 'Quantity Approved';
+            ToolTip = 'Specifies the total number of hours with the status Approved on the time sheet.';
             Editable = false;
             FieldClass = FlowField;
         }
@@ -222,6 +238,7 @@ table 950 "Time Sheet Header"
             CalcFormula = sum("Time Sheet Detail".Quantity where("Time Sheet No." = field("No."),
                                                          Status = const(Rejected)));
             Caption = 'Quantity Rejected';
+            ToolTip = 'Specifies the total number of hours with the status Rejected on the time sheet.';
             Editable = false;
             FieldClass = FlowField;
         }

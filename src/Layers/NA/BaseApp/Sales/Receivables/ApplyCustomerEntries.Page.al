@@ -1366,7 +1366,7 @@ page 232 "Apply Customer Entries"
         IsHandled: Boolean;
     begin
         IsHandled := false;
-        OnBeforeHandledChosenEntries(Type.AsInteger(), CurrentAmount, CurrencyCode, PostingDate, AppliedCustLedgEntry, IsHandled, CustLedgEntry);
+        OnBeforeHandledChosenEntries(Type.AsInteger(), CurrentAmount, CurrencyCode, PostingDate, AppliedCustLedgEntry, IsHandled, CustLedgEntry, GenJnlLine2, PmtDiscAmount, AppliedAmount);
         if IsHandled then
             exit;
 
@@ -1800,8 +1800,11 @@ page 232 "Apply Customer Entries"
     /// <param name="AppliedCustLedgerEntry">The applied customer ledger entries.</param>
     /// <param name="IsHandled">Set to true to skip default processing.</param>
     /// <param name="CustLedgEntry">The customer ledger entry.</param>
+    /// <param name="GenJournalLine">The general journal line.</param>
+    /// <param name="PaymentDiscountAmount">The payment discount amount.</param>
+    /// <param name="AppliedAmount">The applied amount.</param>
     [IntegrationEvent(true, false)]
-    local procedure OnBeforeHandledChosenEntries(Type: Option Direct,GenJnlLine,SalesHeader; CurrentAmount: Decimal; CurrencyCode: Code[10]; PostingDate: Date; var AppliedCustLedgerEntry: Record "Cust. Ledger Entry"; var IsHandled: Boolean; var CustLedgEntry: Record "Cust. Ledger Entry")
+    local procedure OnBeforeHandledChosenEntries(Type: Option Direct,GenJnlLine,SalesHeader; CurrentAmount: Decimal; CurrencyCode: Code[10]; PostingDate: Date; var AppliedCustLedgerEntry: Record "Cust. Ledger Entry"; var IsHandled: Boolean; var CustLedgEntry: Record "Cust. Ledger Entry"; GenJournalLine: Record "Gen. Journal Line"; var PaymentDiscountAmount: Decimal; var AppliedAmount: Decimal)
     begin
     end;
 

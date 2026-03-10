@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -20,12 +20,10 @@ page 7132 "Item Budget Names"
                 field(Name; Rec.Name)
                 {
                     ApplicationArea = ItemBudget;
-                    ToolTip = 'Specifies the name of the item budget.';
                 }
                 field(Description; Rec.Description)
                 {
                     ApplicationArea = ItemBudget;
-                    ToolTip = 'Specifies a description of the item budget.';
                 }
                 field(Blocked; Rec.Blocked)
                 {
@@ -35,17 +33,14 @@ page 7132 "Item Budget Names"
                 field("Budget Dimension 1 Code"; Rec."Budget Dimension 1 Code")
                 {
                     ApplicationArea = Dimensions;
-                    ToolTip = 'Specifies a dimension code for Item Budget Dimension 1.';
                 }
                 field("Budget Dimension 2 Code"; Rec."Budget Dimension 2 Code")
                 {
                     ApplicationArea = Dimensions;
-                    ToolTip = 'Specifies a dimension code for Item Budget Dimension 2.';
                 }
                 field("Budget Dimension 3 Code"; Rec."Budget Dimension 3 Code")
                 {
                     ApplicationArea = Dimensions;
-                    ToolTip = 'Specifies a dimension code for Item Budget Dimension 3.';
                 }
             }
         }

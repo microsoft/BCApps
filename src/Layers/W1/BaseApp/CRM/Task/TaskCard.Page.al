@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -29,24 +29,20 @@ page 5098 "Task Card"
                 field("No."; Rec."No.")
                 {
                     ApplicationArea = RelationshipMgmt;
-                    ToolTip = 'Specifies the number of the involved entry or record, according to the specified number series.';
                 }
                 field(Description; Rec.Description)
                 {
                     ApplicationArea = RelationshipMgmt;
-                    ToolTip = 'Specifies the description of the task.';
                 }
                 field(Location; Rec.Location)
                 {
                     ApplicationArea = RelationshipMgmt;
                     Enabled = LocationEnable;
-                    ToolTip = 'Specifies the location where the meeting will take place.';
                     Visible = not IsSoftwareAsAService;
                 }
                 field("Salesperson Code"; Rec."Salesperson Code")
                 {
                     ApplicationArea = RelationshipMgmt;
-                    ToolTip = 'Specifies the code of the salesperson assigned to the task.';
 
                     trigger OnValidate()
                     begin
@@ -57,7 +53,6 @@ page 5098 "Task Card"
                 {
                     ApplicationArea = RelationshipMgmt;
                     Enabled = NoOfAttendeesEnable;
-                    ToolTip = 'Specifies the number of attendees for the meeting. click the field to view the Attendee Scheduling card.';
 
                     trigger OnDrillDown()
                     begin
@@ -72,7 +67,6 @@ page 5098 "Task Card"
                 {
                     ApplicationArea = RelationshipMgmt;
                     Enabled = AttendeesAcceptedNoEnable;
-                    ToolTip = 'Specifies the number of attendees that have confirmed their participation in the meeting.';
 
                     trigger OnDrillDown()
                     begin
@@ -87,7 +81,6 @@ page 5098 "Task Card"
                 {
                     ApplicationArea = RelationshipMgmt;
                     Editable = ContactNoEditable;
-                    ToolTip = 'Specifies the number of the contact linked to the task.';
 
                     trigger OnLookup(var Text: Text): Boolean
                     var
@@ -115,7 +108,6 @@ page 5098 "Task Card"
                 {
                     ApplicationArea = RelationshipMgmt;
                     Editable = false;
-                    ToolTip = 'Specifies the name of the contact to which this task has been assigned.';
                 }
                 field(ContactPhoneNo; Contact."Phone No.")
                 {
@@ -148,12 +140,10 @@ page 5098 "Task Card"
                 {
                     ApplicationArea = RelationshipMgmt;
                     Editable = false;
-                    ToolTip = 'Specifies the name of the company for which the contact involved in the task works.';
                 }
                 field("Team Code"; Rec."Team Code")
                 {
                     ApplicationArea = RelationshipMgmt;
-                    ToolTip = 'Specifies the code of the team to which the task is assigned.';
 
                     trigger OnValidate()
                     begin
@@ -165,7 +155,6 @@ page 5098 "Task Card"
                     ApplicationArea = RelationshipMgmt;
                     Editable = CompletedByEditable;
                     Enabled = CompletedByEnable;
-                    ToolTip = 'Specifies the salesperson who completed this team task.';
 
                     trigger OnValidate()
                     begin
@@ -175,18 +164,15 @@ page 5098 "Task Card"
                 field(Status; Rec.Status)
                 {
                     ApplicationArea = RelationshipMgmt;
-                    ToolTip = 'Specifies the status of the task. There are five options: Not Started, In Progress, Completed, Waiting and Postponed.';
                 }
                 field(Priority; Rec.Priority)
                 {
                     ApplicationArea = RelationshipMgmt;
-                    ToolTip = 'Specifies the priority of the task.';
                 }
                 field(TypeSaaS; Rec.Type)
                 {
                     ApplicationArea = RelationshipMgmt;
                     Caption = 'Type';
-                    ToolTip = 'Specifies the type of the task.';
                     Visible = IsSoftwareAsAService;
 
                     trigger OnValidate()
@@ -211,7 +197,6 @@ page 5098 "Task Card"
                     ApplicationArea = RelationshipMgmt;
                     Caption = 'All Day Event';
                     Enabled = AllDayEventEnable;
-                    ToolTip = 'Specifies that the task of the Meeting type is an all-day event, which is an activity that lasts 24 hours or longer.';
 
                     trigger OnValidate()
                     begin
@@ -221,38 +206,32 @@ page 5098 "Task Card"
                 field(Date; Rec.Date)
                 {
                     ApplicationArea = RelationshipMgmt;
-                    ToolTip = 'Specifies the date when the task should be started. There are certain rules for how dates should be entered found in How to: Enter Dates and Times.';
                 }
                 field(StartTime; Rec."Start Time")
                 {
                     ApplicationArea = RelationshipMgmt;
                     Enabled = StartTimeEnable;
-                    ToolTip = 'Specifies the time when the task of the Meeting type should be started.';
                 }
                 field(Duration; Rec.Duration)
                 {
                     ApplicationArea = RelationshipMgmt;
                     BlankZero = true;
                     Enabled = DurationEnable;
-                    ToolTip = 'Specifies the duration of the task of the Meeting type.';
                 }
                 field(EndingDate; Rec."Ending Date")
                 {
                     ApplicationArea = RelationshipMgmt;
                     Caption = 'Ending Date';
-                    ToolTip = 'Specifies the date of when the task should end. There are certain rules for how dates should be entered. For more information, see How to: Enter Dates and Times.';
                 }
                 field(EndingTime; Rec."Ending Time")
                 {
                     ApplicationArea = RelationshipMgmt;
                     Caption = 'Ending Time';
                     Enabled = EndingTimeEnable;
-                    ToolTip = 'Specifies the time of when the task of the Meeting type should end.';
                 }
                 field(Canceled; Rec.Canceled)
                 {
                     ApplicationArea = RelationshipMgmt;
-                    ToolTip = 'Specifies that the task has been canceled.';
 
                     trigger OnValidate()
                     begin
@@ -262,7 +241,6 @@ page 5098 "Task Card"
                 field(Closed; Rec.Closed)
                 {
                     ApplicationArea = RelationshipMgmt;
-                    ToolTip = 'Specifies that the task is closed.';
 
                     trigger OnValidate()
                     begin
@@ -272,7 +250,6 @@ page 5098 "Task Card"
                 field("Date Closed"; Rec."Date Closed")
                 {
                     ApplicationArea = RelationshipMgmt;
-                    ToolTip = 'Specifies the date the task was closed.';
                 }
             }
             group("Related Activities")
@@ -282,7 +259,6 @@ page 5098 "Task Card"
                 field("Campaign No."; Rec."Campaign No.")
                 {
                     ApplicationArea = RelationshipMgmt;
-                    ToolTip = 'Specifies the number of the campaign to which the task is linked.';
 
                     trigger OnValidate()
                     begin
@@ -293,12 +269,10 @@ page 5098 "Task Card"
                 {
                     ApplicationArea = RelationshipMgmt;
                     Editable = false;
-                    ToolTip = 'Specifies the description of the campaign to which the task is linked.';
                 }
                 field("Opportunity No."; Rec."Opportunity No.")
                 {
                     ApplicationArea = RelationshipMgmt;
-                    ToolTip = 'Specifies the number of the opportunity to which the task is linked.';
 
                     trigger OnValidate()
                     begin
@@ -309,7 +283,6 @@ page 5098 "Task Card"
                 {
                     ApplicationArea = RelationshipMgmt;
                     Editable = false;
-                    ToolTip = 'Specifies a description of the opportunity related to the task. The description is copied from the opportunity card.';
                 }
             }
             group(Recurring)
@@ -319,7 +292,6 @@ page 5098 "Task Card"
                 field(Control39; Rec.Recurring)
                 {
                     ApplicationArea = RelationshipMgmt;
-                    ToolTip = 'Specifies that the task occurs periodically.';
 
                     trigger OnValidate()
                     begin
@@ -331,14 +303,12 @@ page 5098 "Task Card"
                     ApplicationArea = RelationshipMgmt;
                     Editable = RecurringDateIntervalEditable;
                     Enabled = RecurringDateIntervalEnable;
-                    ToolTip = 'Specifies the date formula to assign automatically a recurring task to a salesperson or team.';
                 }
                 field("Calc. Due Date From"; Rec."Calc. Due Date From")
                 {
                     ApplicationArea = RelationshipMgmt;
                     Editable = CalcDueDateFromEditable;
                     Enabled = CalcDueDateFromEnable;
-                    ToolTip = 'Specifies the date to use to calculate the date on which the next task should be completed.';
                 }
             }
         }

@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -21,19 +21,16 @@ page 6019 "Resource Skills"
                 field(Type; Rec.Type)
                 {
                     ApplicationArea = Jobs;
-                    ToolTip = 'Specifies the skill type associated with the entry.';
                     Visible = TypeVisible;
                 }
                 field("No."; Rec."No.")
                 {
                     ApplicationArea = Jobs;
-                    ToolTip = 'Specifies the number of the involved entry or record, according to the specified number series.';
                     Visible = NoVisible;
                 }
                 field("Skill Code"; Rec."Skill Code")
                 {
                     ApplicationArea = Jobs;
-                    ToolTip = 'Specifies the code of the skill you want to assign.';
                     Visible = SkillCodeVisible;
                 }
                 field("Assigned From"; Rec."Assigned From")
@@ -41,7 +38,6 @@ page 6019 "Resource Skills"
                     ApplicationArea = Jobs;
                     BlankZero = true;
                     Editable = false;
-                    ToolTip = 'Specifies the object, such as item or service item group, from which the skill code was assigned.';
                 }
             }
         }

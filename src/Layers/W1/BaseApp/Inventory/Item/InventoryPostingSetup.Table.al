@@ -21,17 +21,20 @@ table 5813 "Inventory Posting Setup"
         field(1; "Location Code"; Code[10])
         {
             Caption = 'Location Code';
+            ToolTip = 'Specifies the location code for setting up posting groups of inventory to general ledger.';
             TableRelation = Location;
         }
         field(2; "Invt. Posting Group Code"; Code[20])
         {
             Caption = 'Invt. Posting Group Code';
+            ToolTip = 'Specifies the code for the inventory posting group, in the combination of location and inventory posting group, that you are setting up.';
             NotBlank = true;
             TableRelation = "Inventory Posting Group";
         }
         field(6; "Inventory Account"; Code[20])
         {
             Caption = 'Inventory Account';
+            ToolTip = 'Specifies the number of the G/L account to which to post transactions with the expected cost for items in this combination.';
             TableRelation = "G/L Account";
 
             trigger OnLookup()
@@ -57,10 +60,12 @@ table 5813 "Inventory Posting Setup"
         field(20; Description; Text[100])
         {
             Caption = 'Description';
+            ToolTip = 'Specifies a description of the combination of inventory posting groups and locations.';
         }
         field(21; "View All Accounts on Lookup"; Boolean)
         {
             Caption = 'View All Accounts on Lookup';
+            ToolTip = 'Specifies that all possible accounts are shown when you look up from a field. If the check box is not selected, then only accounts related to the involved account category are shown.';
         }
         field(5800; "Inventory Account (Interim)"; Code[20])
         {
@@ -90,31 +95,37 @@ table 5813 "Inventory Posting Setup"
         field(99000750; "WIP Account"; Code[20])
         {
             Caption = 'WIP Account';
+            ToolTip = 'Specifies the general ledger account number to which to post transactions for items in WIP inventory in this combination.';
             TableRelation = "G/L Account";
         }
         field(99000753; "Material Variance Account"; Code[20])
         {
             Caption = 'Material Variance Account';
+            ToolTip = 'Specifies the number of the general ledger account to which to post material variance transactions for items in this combination.';
             TableRelation = "G/L Account";
         }
         field(99000754; "Capacity Variance Account"; Code[20])
         {
             Caption = 'Capacity Variance Account';
+            ToolTip = 'Specifies the number of the general ledger account to which to post capacity variance transactions for items in this combination.';
             TableRelation = "G/L Account";
         }
         field(99000755; "Mfg. Overhead Variance Account"; Code[20])
         {
             Caption = 'Mfg. Overhead Variance Account';
+            ToolTip = 'Specifies the general ledger account number to which to post manufacturing overhead variance transactions for items in this combination.';
             TableRelation = "G/L Account";
         }
         field(99000756; "Cap. Overhead Variance Account"; Code[20])
         {
             Caption = 'Cap. Overhead Variance Account';
+            ToolTip = 'Specifies the general ledger account number to which to post capacity overhead variance transactions for items in this combination.';
             TableRelation = "G/L Account";
         }
         field(99000757; "Subcontracted Variance Account"; Code[20])
         {
             Caption = 'Subcontracted Variance Account';
+            ToolTip = 'Specifies the general ledger account number to which to post subcontracted variance transactions for items in this combination.';
             TableRelation = "G/L Account";
         }
         field(99000758; "Mat. Non-Inv. Variance Acc."; Code[20])

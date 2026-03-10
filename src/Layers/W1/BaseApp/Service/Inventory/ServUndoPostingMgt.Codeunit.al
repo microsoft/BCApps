@@ -23,13 +23,13 @@ codeunit 6484 "Serv. Undo Posting Mgt."
             DATABASE::"Service Line", ServLine."Document Type"::Order.AsInteger(), ServShptLine."Order No.", ServShptLine."Order Line No.");
     end;
 
-    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Undo Posting Management", 'OnShouldRevertBaseQtySign', '', false, false)]
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Undo Posting Management", 'OnShouldRevertBaseQtySign', '', true, false)]
     local procedure OnShouldCollectSourceType(SourceType: Integer; var RevertSign: Boolean);
     begin
         RevertSign := RevertSign or (SourceType = Database::"Service Shipment Line");
     end;
 
-    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Undo Posting Management", 'OnSkipTestWarehouseShipmentLine', '', false, false)]
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Undo Posting Management", 'OnSkipTestWarehouseShipmentLine', '', true, false)]
     local procedure OnSkipTestWarehouseShipmentLine(UndoType: Integer; var SkipTest: Boolean);
     begin
         SkipTest := SkipTest or (UndoType = Database::"Service Shipment Line");

@@ -546,15 +546,20 @@ codeunit 10750 "SII XML Creator"
               TempGoodsVATEntryCalcNonExempt, ExemptionCausePresent[2], ExemptionBaseAmounts[2],
               NonExemptTransactionType[2], ExemptExists[2], CustLedgerEntry, false, DomesticCustomer);
 
-            AddNodeForTotals :=
-              IncludeImporteTotalNode() and
-              ((InvoiceType in [GetF2InvoiceType(), 'F4']) and
-               (TempServVATEntryCalcNonExempt.Count + TempGoodsVATEntryCalcNonExempt.Count = 1)) or
-              (SIIDocUploadState."Sales Special Scheme Code" in [SIIDocUploadState."Sales Special Scheme Code"::"03 Special System",
-                                                                 SIIDocUploadState."Sales Special Scheme Code"::"05 Travel Agencies",
-                                                                 SIIDocUploadState."Sales Special Scheme Code"::"09 Travel Agency Services"]);
             DataTypeManagement.GetRecordRef(CustLedgerEntry, CustLedgerEntryRecRef);
             CalculateTotalVatAndBaseAmounts(CustLedgerEntryRecRef, TotalBase, TotalNonExemptBase, TotalVATAmount, TotalNDBase, TotalNDAmount);
+
+            AddNodeForTotals :=
+                (IncludeImporteTotalNode() and
+                 ((InvoiceType in [GetF2InvoiceType(), 'F4']) and
+                    (TempServVATEntryCalcNonExempt.Count + TempGoodsVATEntryCalcNonExempt.Count = 1))) or
+                (SIIDocUploadState."Sales Special Scheme Code" in [SIIDocUploadState."Sales Special Scheme Code"::"03 Special System",
+                                                                                                                     SIIDocUploadState."Sales Special Scheme Code"::"05 Travel Agencies",
+                                                                                                                     SIIDocUploadState."Sales Special Scheme Code"::"09 Travel Agency Services"]) or
+                IncludeMandatoryImporteTotalNode(
+                    InvoiceType,
+                    TempServVATEntryCalcNonExempt.Count + TempGoodsVATEntryCalcNonExempt.Count,
+                    TotalBase);
 
             OnPopulateXMLWithSalesInvoiceOnBeforeAddNodeForTotals(AddNodeForTotals, CustLedgerEntry, TotalBase, TotalNonExemptBase, TotalVATAmount);
 
@@ -666,13 +671,18 @@ codeunit 10750 "SII XML Creator"
                     ECVATEntryExists := ECVATEntryExists or (VATEntry."EC %" <> 0);
                 until VATEntry.Next() = 0;
 
-            AddNodeForTotals :=
-              IncludeImporteTotalNode() and
-              ((InvoiceType in [GetF2InvoiceType(), 'F4']) and
-               (TempVATEntryNormalCalculated.Count + TempVATEntryReverseChargeCalculated.Count = 1)) or
-              (SIIDocUploadState."Purch. Special Scheme Code" in [SIIDocUploadState."Purch. Special Scheme Code"::"03 Special System",
-                                                                  SIIDocUploadState."Purch. Special Scheme Code"::"05 Travel Agencies"]);
             CalculateTotalVatAndBaseAmounts(VendorLedgerEntryRecRef, TotalBase, TotalNonExemptBase, TotalVATAmount, TotalNDBase, TotalNDAmount);
+
+            AddNodeForTotals :=
+                (IncludeImporteTotalNode() and
+                 ((InvoiceType in [GetF2InvoiceType(), 'F4']) and
+                    (TempVATEntryNormalCalculated.Count + TempVATEntryReverseChargeCalculated.Count = 1))) or
+                (SIIDocUploadState."Purch. Special Scheme Code" in [SIIDocUploadState."Purch. Special Scheme Code"::"03 Special System",
+                                                                                                                        SIIDocUploadState."Purch. Special Scheme Code"::"05 Travel Agencies"]) or
+                IncludeMandatoryImporteTotalNode(
+                    InvoiceType,
+                    TempVATEntryNormalCalculated.Count + TempVATEntryReverseChargeCalculated.Count,
+                    TotalBase);
 
             OnPopulateXMLWithPurchInvoiceOnBeforeAddNodeForTotals(AddNodeForTotals, VendorLedgerEntry, TotalBase, TotalNonExemptBase, TotalVATAmount);
 
@@ -2878,6 +2888,14 @@ codeunit 10750 "SII XML Creator"
         if not IncludeChangesVersion11bis() then
             exit(true);
         exit(SIISetup."Include ImporteTotal");
+    end;
+
+    local procedure IncludeMandatoryImporteTotalNode(InvoiceType: Text; VATDetailLinesCount: Integer; TotalBase: Decimal): Boolean
+    begin
+        exit(
+          (InvoiceType in [GetF2InvoiceType(), 'F4', 'R5']) and
+          (VATDetailLinesCount = 1) and
+          (TotalBase = 0));
     end;
 
     local procedure GetF2InvoiceType(): Text[2]

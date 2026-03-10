@@ -136,7 +136,8 @@ codeunit 6502 "Late Binding Management"
             repeat
                 TempTrackingSpecification.SetTrackingFilterFromItemLedgEntry(ItemLedgEntry);
                 if TempTrackingSpecification.IsEmpty() then begin
-                    InsertTempSupplyReservEntry(ItemLedgEntry);
+                    if not TempSupplyReservEntry.Get(-ItemLedgEntry."Entry No.", true) then
+                        InsertTempSupplyReservEntry(ItemLedgEntry);
                     // GET record
                     QtyToPrepare -= ItemLedgEntry."Remaining Quantity";
                     TempSupplyReservEntry.Get(-ItemLedgEntry."Entry No.", true);
@@ -388,9 +389,11 @@ codeunit 6502 "Late Binding Management"
                 ItemLedgEntry.SetTrackingFilterFromSpec(TempTrackingSpecification);
                 if ItemLedgEntry.FindSet() then
                     repeat
-                        TempTrackingSpecification."Buffer Value2" += ItemLedgEntry."Remaining Quantity";
-                        TempTrackingSpecification."Buffer Value3" += ItemLedgEntry."Reserved Quantity";
-                        InsertTempSupplyReservEntry(ItemLedgEntry);
+                        if not TempSupplyReservEntry.Get(-ItemLedgEntry."Entry No.", true) then begin
+                            TempTrackingSpecification."Buffer Value2" += ItemLedgEntry."Remaining Quantity";
+                            TempTrackingSpecification."Buffer Value3" += ItemLedgEntry."Reserved Quantity";
+                            InsertTempSupplyReservEntry(ItemLedgEntry);
+                        end;
                     until ItemLedgEntry.Next() = 0;
 
                 TempTrackingSpecification."Buffer Value4" :=

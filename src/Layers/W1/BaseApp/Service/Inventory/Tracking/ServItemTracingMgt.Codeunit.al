@@ -10,7 +10,7 @@ using Microsoft.Service.History;
 codeunit 6481 "Serv. Item Tracing Mgt."
 {
 
-    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Item Tracing Mgt.", 'OnSetRecordIDOnProcessServiceDocument', '', false, false)]
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Item Tracing Mgt.", 'OnSetRecordIDOnProcessServiceDocument', '', true, false)]
     local procedure OnSetRecordIDOnProcessServiceDocument(ItemLedgEntry: Record "Item Ledger Entry"; var TrackingEntry: Record "Item Tracing Buffer")
     var
         ServShptHeader: Record "Service Shipment Header";
@@ -53,7 +53,7 @@ codeunit 6481 "Serv. Item Tracing Mgt."
     begin
     end;
 
-    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Item Tracing Mgt.", 'OnShowDocument', '', false, false)]
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Item Tracing Mgt.", 'OnShowDocument', '', true, false)]
     local procedure OnShowDocument(RecRef: RecordRef)
     var
         ServShptHeader: Record "Service Shipment Header";

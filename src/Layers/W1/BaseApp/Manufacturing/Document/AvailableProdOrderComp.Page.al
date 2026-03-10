@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -30,12 +30,10 @@ page 99000898 "Available - Prod. Order Comp."
                 field("Prod. Order No."; Rec."Prod. Order No.")
                 {
                     ApplicationArea = Manufacturing;
-                    ToolTip = 'Specifies the number of the related production order.';
                 }
                 field(Status; Rec.Status)
                 {
                     ApplicationArea = Manufacturing;
-                    ToolTip = 'Specifies the status of the production order to which the component list belongs.';
                 }
                 field("Location Code"; Rec."Location Code")
                 {
@@ -50,7 +48,6 @@ page 99000898 "Available - Prod. Order Comp."
                 field("Remaining Quantity"; Rec."Remaining Quantity")
                 {
                     ApplicationArea = Manufacturing;
-                    ToolTip = 'Specifies the difference between the finished and planned quantities, or zero if the finished quantity is greater than the remaining quantity.';
                 }
                 field("Reserved Qty. (Base)"; Rec."Reserved Qty. (Base)")
                 {

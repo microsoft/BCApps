@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -19,17 +19,20 @@ table 5064 "Interaction Template"
         field(1; "Code"; Code[10])
         {
             Caption = 'Code';
+            ToolTip = 'Specifies the code for the interaction template.';
             NotBlank = true;
         }
         field(2; "Interaction Group Code"; Code[10])
         {
             Caption = 'Interaction Group Code';
+            ToolTip = 'Specifies the code for the interaction group to which the interaction template belongs.';
             NotBlank = true;
             TableRelation = "Interaction Group";
         }
         field(3; Description; Text[100])
         {
             Caption = 'Description';
+            ToolTip = 'Specifies a description of the interaction template.';
         }
         field(4; "Unit Cost (LCY)"; Decimal)
         {
@@ -48,12 +51,14 @@ table 5064 "Interaction Template"
         field(6; "Information Flow"; Option)
         {
             Caption = 'Information Flow';
+            ToolTip = 'Specifies the direction of the information flow for the interaction template. There are two options: Outbound and Inbound. Select Outbound if the information is usually sent by your company. Select Inbound if the information is usually received by your company.';
             OptionCaption = ' ,Outbound,Inbound';
             OptionMembers = " ",Outbound,Inbound;
         }
         field(7; "Initiated By"; Option)
         {
             Caption = 'Initiated By';
+            ToolTip = 'Specifies who usually initiates interactions created using the interaction template. There are two options: Us and Them. Select Us if the interaction is usually initiated by your company. Select Them if the information is usually initiated by your contacts.';
             OptionCaption = ' ,Us,Them';
             OptionMembers = " ",Us,Them;
         }
@@ -68,15 +73,18 @@ table 5064 "Interaction Template"
         field(9; "Campaign No."; Code[20])
         {
             Caption = 'Campaign No.';
+            ToolTip = 'Specifies the number of the campaign for which the interaction template has been created.';
             TableRelation = Campaign;
         }
         field(10; "Campaign Target"; Boolean)
         {
             Caption = 'Campaign Target';
+            ToolTip = 'Specifies that the contact who is involved in the interaction is the target of a campaign. This is used to measure the response rate of a campaign.';
         }
         field(11; "Campaign Response"; Boolean)
         {
             Caption = 'Campaign Response';
+            ToolTip = 'Specifies that the interaction template is being used to record interactions that are a response to a campaign. For example, coupons that are sent in as a response to a campaign.';
         }
         field(12; "Correspondence Type (Default)"; Enum "Correspondence Type")
         {
@@ -103,6 +111,7 @@ table 5064 "Interaction Template"
                                                                Date = field("Date Filter"),
                                                                Postponed = const(false)));
             Caption = 'No. of Interactions';
+            ToolTip = 'Specifies the number of interactions that have been created using this interaction template.';
             Editable = false;
             FieldClass = FlowField;
         }
@@ -172,6 +181,7 @@ table 5064 "Interaction Template"
         field(18; "Wizard Action"; Enum "Interaction Template Wizard Action")
         {
             Caption = 'Wizard Action';
+            ToolTip = 'Specifies the action to perform when you click Next in the first page of the Create Interaction guide. Blank results in no action. Open will fill out the template and open the email editor where you can edit the text if needed. Merge will fill out the template and send it immediately.';
 
             trigger OnValidate()
             var
@@ -197,9 +207,11 @@ table 5064 "Interaction Template"
         field(19; "Ignore Contact Corres. Type"; Boolean)
         {
             Caption = 'Ignore Contact Corres. Type';
+            ToolTip = 'Specifies that the correspondence type that you select in the Correspondence Type (Default) field should be used.';
         }
         field(20; "Word Template Code"; Code[30])
         {
+            ToolTip = 'Specifies the Word template to use when you create communications for an interaction. The Word template will create either a document or be used as the body text in an email.';
             TableRelation = "Word Template".Code where("Table ID" = const(Database::"Interaction Merge Data"));
 
             trigger OnValidate()

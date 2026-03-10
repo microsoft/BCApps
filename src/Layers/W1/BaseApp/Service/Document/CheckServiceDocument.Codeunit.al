@@ -28,7 +28,7 @@ codeunit 9065 "Check Service Document"
         ServicePost.CheckServiceDocument(ServiceHeader, TempServLine);
     end;
 
-    [EventSubscriber(ObjectType::Table, Database::Item, 'OnAfterCheckDocuments', '', false, false)]
+    [EventSubscriber(ObjectType::Table, Database::Item, 'OnAfterCheckDocuments', '', true, false)]
     local procedure ItemOnBeforeCheckDocuments(Item: Record Item; CurrentFieldNo: Integer; CheckFieldNo: Integer; CheckFieldCaption: Text);
     begin
         CheckServiceLines(Item, CurrentFieldNo, CheckFieldNo, CheckFieldCaption);

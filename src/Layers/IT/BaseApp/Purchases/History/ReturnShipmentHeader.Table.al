@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -50,22 +50,26 @@ table 6650 "Return Shipment Header"
         field(2; "Buy-from Vendor No."; Code[20])
         {
             Caption = 'Buy-from Vendor No.';
+            ToolTip = 'Specifies the name of the vendor who delivered the items.';
             NotBlank = true;
             TableRelation = Vendor;
         }
         field(3; "No."; Code[20])
         {
             Caption = 'No.';
+            ToolTip = 'Specifies the number of the involved entry or record, according to the specified number series.';
         }
         field(4; "Pay-to Vendor No."; Code[20])
         {
             Caption = 'Pay-to Vendor No.';
+            ToolTip = 'Specifies the number of the vendor that you received the invoice from.';
             NotBlank = true;
             TableRelation = Vendor;
         }
         field(5; "Pay-to Name"; Text[100])
         {
             Caption = 'Pay-to Name';
+            ToolTip = 'Specifies the name of the customer who you received the invoice from.';
         }
         field(6; "Pay-to Name 2"; Text[50])
         {
@@ -75,14 +79,17 @@ table 6650 "Return Shipment Header"
         field(7; "Pay-to Address"; Text[100])
         {
             Caption = 'Pay-to Address';
+            ToolTip = 'Specifies the address of the vendor that you received the invoice from.';
         }
         field(8; "Pay-to Address 2"; Text[50])
         {
             Caption = 'Pay-to Address 2';
+            ToolTip = 'Specifies an additional part of the address of the customer that the invoice was shipped to.';
         }
         field(9; "Pay-to City"; Text[30])
         {
             Caption = 'Pay-to City';
+            ToolTip = 'Specifies the city of the customer that you shipped the invoice to.';
             TableRelation = if ("Pay-to Country/Region Code" = const('')) "Post Code".City
             else
             if ("Pay-to Country/Region Code" = filter(<> '')) "Post Code".City where("Country/Region Code" = field("Pay-to Country/Region Code"));
@@ -91,6 +98,7 @@ table 6650 "Return Shipment Header"
         field(10; "Pay-to Contact"; Text[100])
         {
             Caption = 'Pay-to Contact';
+            ToolTip = 'Specifies the name of the person to contact about an invoice from this customer.';
         }
         field(11; "Your Reference"; Text[35])
         {
@@ -99,27 +107,33 @@ table 6650 "Return Shipment Header"
         field(12; "Ship-to Code"; Code[10])
         {
             Caption = 'Ship-to Code';
+            ToolTip = 'Specifies a code for an alternate shipment address if you want to ship to another address than the one that has been entered automatically. This field is also used in case of drop shipment.';
             TableRelation = "Ship-to Address".Code where("Customer No." = field("Sell-to Customer No."));
         }
         field(13; "Ship-to Name"; Text[100])
         {
             Caption = 'Ship-to Name';
+            ToolTip = 'Specifies the name of the customer at the address that the items are shipped to.';
         }
         field(14; "Ship-to Name 2"; Text[50])
         {
             Caption = 'Ship-to Name 2';
+            ToolTip = 'Specifies an additional part of the name of the customer at the address that the items are shipped to.';
         }
         field(15; "Ship-to Address"; Text[100])
         {
             Caption = 'Ship-to Address';
+            ToolTip = 'Specifies the address that the items are shipped to.';
         }
         field(16; "Ship-to Address 2"; Text[50])
         {
             Caption = 'Ship-to Address 2';
+            ToolTip = 'Specifies an additional part of the ship-to address, in case it is a long address.';
         }
         field(17; "Ship-to City"; Text[30])
         {
             Caption = 'Ship-to City';
+            ToolTip = 'Specifies the city of the address that the items are shipped to.';
             TableRelation = if ("Ship-to Country/Region Code" = const('')) "Post Code".City
             else
             if ("Ship-to Country/Region Code" = filter(<> '')) "Post Code".City where("Country/Region Code" = field("Ship-to Country/Region Code"));
@@ -128,10 +142,12 @@ table 6650 "Return Shipment Header"
         field(18; "Ship-to Contact"; Text[100])
         {
             Caption = 'Ship-to Contact';
+            ToolTip = 'Specifies the name of the contact person at the address that the items are shipped to.';
         }
         field(20; "Posting Date"; Date)
         {
             Caption = 'Posting Date';
+            ToolTip = 'Specifies the entry''s posting date.';
         }
         field(21; "Expected Receipt Date"; Date)
         {
@@ -182,18 +198,21 @@ table 6650 "Return Shipment Header"
         field(28; "Location Code"; Code[10])
         {
             Caption = 'Location Code';
+            ToolTip = 'Specifies the location from where inventory items to the customer on the sales document are to be shipped by default.';
             TableRelation = Location where("Use As In-Transit" = const(false));
         }
         field(29; "Shortcut Dimension 1 Code"; Code[20])
         {
             CaptionClass = '1,2,1';
             Caption = 'Shortcut Dimension 1 Code';
+            ToolTip = 'Specifies the code for Shortcut Dimension 1, which is one of two global dimension codes that you set up in the General Ledger Setup window.';
             TableRelation = "Dimension Value".Code where("Global Dimension No." = const(1));
         }
         field(30; "Shortcut Dimension 2 Code"; Code[20])
         {
             CaptionClass = '1,2,2';
             Caption = 'Shortcut Dimension 2 Code';
+            ToolTip = 'Specifies the code for Shortcut Dimension 2, which is one of two global dimension codes that you set up in the General Ledger Setup window.';
             TableRelation = "Dimension Value".Code where("Global Dimension No." = const(2));
         }
         field(31; "Vendor Posting Group"; Code[20])
@@ -205,6 +224,7 @@ table 6650 "Return Shipment Header"
         field(32; "Currency Code"; Code[10])
         {
             Caption = 'Currency Code';
+            ToolTip = 'Specifies the currency that is used on the entry.';
             Editable = false;
             TableRelation = Currency;
         }
@@ -232,6 +252,7 @@ table 6650 "Return Shipment Header"
         field(43; "Purchaser Code"; Code[20])
         {
             Caption = 'Purchaser Code';
+            ToolTip = 'Specifies which purchaser is assigned to the vendor.';
             TableRelation = "Salesperson/Purchaser";
         }
         field(46; Comment; Boolean)
@@ -246,6 +267,7 @@ table 6650 "Return Shipment Header"
         field(47; "No. Printed"; Integer)
         {
             Caption = 'No. Printed';
+            ToolTip = 'Specifies how many times the document has been printed.';
             Editable = false;
         }
         field(51; "On Hold"; Code[3])
@@ -255,10 +277,12 @@ table 6650 "Return Shipment Header"
         field(52; "Applies-to Doc. Type"; Enum "Gen. Journal Document Type")
         {
             Caption = 'Applies-to Doc. Type';
+            ToolTip = 'Specifies the type of the posted document that this document or journal line will be applied to when you post, for example to register payment.';
         }
         field(53; "Applies-to Doc. No."; Code[20])
         {
             Caption = 'Applies-to Doc. No.';
+            ToolTip = 'Specifies the number of the posted document that this document or journal line will be applied to when you post, for example to register payment.';
 
             trigger OnLookup()
             var
@@ -315,6 +339,7 @@ table 6650 "Return Shipment Header"
         field(79; "Buy-from Vendor Name"; Text[100])
         {
             Caption = 'Buy-from Vendor Name';
+            ToolTip = 'Specifies the name of the vendor who delivered the items.';
         }
         field(80; "Buy-from Vendor Name 2"; Text[50])
         {
@@ -324,14 +349,17 @@ table 6650 "Return Shipment Header"
         field(81; "Buy-from Address"; Text[100])
         {
             Caption = 'Buy-from Address';
+            ToolTip = 'Specifies the address of the vendor who delivered the items.';
         }
         field(82; "Buy-from Address 2"; Text[50])
         {
             Caption = 'Buy-from Address 2';
+            ToolTip = 'Specifies an additional part of the address of the vendor who delivered the items.';
         }
         field(83; "Buy-from City"; Text[30])
         {
             Caption = 'Buy-from City';
+            ToolTip = 'Specifies the city of the vendor who delivered the items.';
             TableRelation = if ("Buy-from Country/Region Code" = const('')) "Post Code".City
             else
             if ("Buy-from Country/Region Code" = filter(<> '')) "Post Code".City where("Country/Region Code" = field("Buy-from Country/Region Code"));
@@ -340,10 +368,12 @@ table 6650 "Return Shipment Header"
         field(84; "Buy-from Contact"; Text[100])
         {
             Caption = 'Buy-from Contact';
+            ToolTip = 'Specifies the name of the contact person at the vendor who delivered the items.';
         }
         field(85; "Pay-to Post Code"; Code[20])
         {
             Caption = 'Pay-to Post Code';
+            ToolTip = 'Specifies the post code of the customer that you received the invoice from.';
             TableRelation = if ("Pay-to Country/Region Code" = const('')) "Post Code"
             else
             if ("Pay-to Country/Region Code" = filter(<> '')) "Post Code" where("Country/Region Code" = field("Pay-to Country/Region Code"));
@@ -357,11 +387,13 @@ table 6650 "Return Shipment Header"
         field(87; "Pay-to Country/Region Code"; Code[10])
         {
             Caption = 'Pay-to Country/Region Code';
+            ToolTip = 'Specifies the country/region code of the address.';
             TableRelation = "Country/Region";
         }
         field(88; "Buy-from Post Code"; Code[20])
         {
             Caption = 'Buy-from Post Code';
+            ToolTip = 'Specifies the post code of the vendor who delivered the items.';
             TableRelation = if ("Buy-from Country/Region Code" = const('')) "Post Code"
             else
             if ("Buy-from Country/Region Code" = filter(<> '')) "Post Code" where("Country/Region Code" = field("Buy-from Country/Region Code"));
@@ -375,11 +407,13 @@ table 6650 "Return Shipment Header"
         field(90; "Buy-from Country/Region Code"; Code[10])
         {
             Caption = 'Buy-from Country/Region Code';
+            ToolTip = 'Specifies the city of the vendor who delivered the items.';
             TableRelation = "Country/Region";
         }
         field(91; "Ship-to Post Code"; Code[20])
         {
             Caption = 'Ship-to Post Code';
+            ToolTip = 'Specifies the postal code of the address that the items are shipped to.';
             TableRelation = if ("Ship-to Country/Region Code" = const('')) "Post Code"
             else
             if ("Ship-to Country/Region Code" = filter(<> '')) "Post Code" where("Country/Region Code" = field("Ship-to Country/Region Code"));
@@ -393,6 +427,7 @@ table 6650 "Return Shipment Header"
         field(93; "Ship-to Country/Region Code"; Code[10])
         {
             Caption = 'Ship-to Country/Region Code';
+            ToolTip = 'Specifies the country or region of the ship-to address.';
             TableRelation = "Country/Region";
         }
         field(94; "Bal. Account Type"; enum "Payment Balance Account Type")
@@ -402,6 +437,7 @@ table 6650 "Return Shipment Header"
         field(95; "Order Address Code"; Code[10])
         {
             Caption = 'Order Address Code';
+            ToolTip = 'Specifies the order address of the related customer.';
             TableRelation = "Order Address".Code where("Vendor No." = field("Buy-from Vendor No."));
         }
         field(97; "Entry Point"; Code[10])
@@ -416,6 +452,7 @@ table 6650 "Return Shipment Header"
         field(99; "Document Date"; Date)
         {
             Caption = 'Document Date';
+            ToolTip = 'Specifies the date when the related document was created.';
         }
         field(101; "Area"; Code[10])
         {
@@ -474,6 +511,7 @@ table 6650 "Return Shipment Header"
         field(210; "Ship-to Phone No."; Text[30])
         {
             Caption = 'Ship-to Phone No.';
+            ToolTip = 'Specifies the telephone number of the company''s shipping address.';
             ExtendedDatatype = PhoneNo;
         }
         field(480; "Dimension Set ID"; Integer)
@@ -495,25 +533,30 @@ table 6650 "Return Shipment Header"
         field(5052; "Buy-from Contact No."; Code[20])
         {
             Caption = 'Buy-from Contact No.';
+            ToolTip = 'Specifies the number of the contact person at the vendor who delivered the items.';
             TableRelation = Contact;
         }
         field(5053; "Pay-to Contact No."; Code[20])
         {
             Caption = 'Pay-to Contact No.';
+            ToolTip = 'Specifies the number of the person to contact about an invoice from this customer.';
             TableRelation = Contact;
         }
         field(5700; "Responsibility Center"; Code[10])
         {
             Caption = 'Responsibility Center';
+            ToolTip = 'Specifies the code of the responsibility center, such as a distribution hub, that is associated with the involved user, company, customer, or vendor.';
             TableRelation = "Responsibility Center";
         }
         field(5800; "Vendor Authorization No."; Code[35])
         {
             Caption = 'Vendor Authorization No.';
+            ToolTip = 'Specifies the identification number of a compensation agreement.';
         }
         field(6601; "Return Order No."; Code[20])
         {
             Caption = 'Return Order No.';
+            ToolTip = 'Specifies the number of the return order that will post a return shipment.';
         }
         field(6602; "Return Order No. Series"; Code[20])
         {

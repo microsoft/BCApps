@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -29,6 +29,7 @@ table 7008 "Dtld. Price Calculation Setup"
         }
         field(2; "Setup Code"; Code[100])
         {
+            ToolTip = 'Specifies a price calculation setup code.';
             TableRelation = "Price Calculation Setup".Code where(Enabled = const(true));
 
             trigger OnValidate()
@@ -46,15 +47,18 @@ table 7008 "Dtld. Price Calculation Setup"
         }
         field(3; Method; Enum "Price Calculation Method")
         {
+            ToolTip = 'Specifies a price calculation method.';
             Editable = false;
         }
         field(4; Type; Enum "Price Type")
         {
+            ToolTip = 'Specifies what type of amount to calculate - sale or purchase.';
             Editable = false;
         }
         field(5; "Asset Type"; Enum "Price Asset Type")
         {
             Caption = 'Product Type';
+            ToolTip = 'Specifies a product type.';
             Editable = false;
 
             trigger OnValidate()
@@ -66,6 +70,7 @@ table 7008 "Dtld. Price Calculation Setup"
         field(6; "Asset No."; Code[20])
         {
             Caption = 'Product No.';
+            ToolTip = 'Specifies a product number.';
             DataClassification = CustomerContent;
 
             trigger OnValidate()
@@ -86,6 +91,7 @@ table 7008 "Dtld. Price Calculation Setup"
         field(7; "Source Group"; Enum "Price Source Group")
         {
             Caption = 'Assign-to Group';
+            ToolTip = 'Specifies whether the prices come from groups of customers, vendors or projects.';
             DataClassification = CustomerContent;
 
             trigger OnValidate()
@@ -114,6 +120,7 @@ table 7008 "Dtld. Price Calculation Setup"
         {
             DataClassification = CustomerContent;
             Caption = 'Assign-to No.';
+            ToolTip = 'Specifies the unique identifier of the source of the price on the price list line.';
             trigger OnValidate()
             begin
                 xRec.CopyTo(PriceSource);
@@ -131,6 +138,7 @@ table 7008 "Dtld. Price Calculation Setup"
         }
         field(10; Implementation; Enum "Price Calculation Handler")
         {
+            ToolTip = 'Specifies a price calculation implementation name.';
             Editable = false;
         }
         field(11; "Group Id"; Code[100])
@@ -139,10 +147,12 @@ table 7008 "Dtld. Price Calculation Setup"
         }
         field(12; Enabled; Boolean)
         {
+            ToolTip = 'Specifies whether the implementation codeunit is enabled.';
         }
         field(13; "Product No."; Code[20])
         {
             Caption = 'Product No.';
+            ToolTip = 'Specifies a product number.';
             DataClassification = CustomerContent;
             TableRelation = if ("Asset Type" = const(Item)) Item where("No." = field("Product No."))
             else
@@ -162,6 +172,7 @@ table 7008 "Dtld. Price Calculation Setup"
         }
         field(14; "Assign-to No."; Code[20])
         {
+            ToolTip = 'Specifies the unique identifier of the source of the price on the price list line.';
             DataClassification = CustomerContent;
             TableRelation = if ("Source Type" = const(Customer)) Customer
             else

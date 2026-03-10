@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -21,20 +21,24 @@ table 7309 "Warehouse Journal Template"
         field(1; Name; Code[10])
         {
             Caption = 'Name';
+            ToolTip = 'Specifies the name of the warehouse journal template.';
             NotBlank = true;
         }
         field(2; Description; Text[80])
         {
             Caption = 'Description';
+            ToolTip = 'Specifies a description of the warehouse journal template.';
         }
         field(5; "Test Report ID"; Integer)
         {
             Caption = 'Test Report ID';
+            ToolTip = 'Specifies the number of the test report that is printed when you click Registering, Test Report.';
             TableRelation = AllObjWithCaption."Object ID" where("Object Type" = const(Report));
         }
         field(6; "Page ID"; Integer)
         {
             Caption = 'Page ID';
+            ToolTip = 'Specifies the number of the page that is used to show the journal or worksheet that uses the template.';
             TableRelation = AllObjWithCaption."Object ID" where("Object Type" = const(Page));
 
             trigger OnValidate()
@@ -46,15 +50,18 @@ table 7309 "Warehouse Journal Template"
         field(7; "Registering Report ID"; Integer)
         {
             Caption = 'Registering Report ID';
+            ToolTip = 'Specifies the number of the registering report that is printed when you click Registering, Register and Print.';
             TableRelation = AllObjWithCaption."Object ID" where("Object Type" = const(Report));
         }
         field(8; "Force Registering Report"; Boolean)
         {
             Caption = 'Force Registering Report';
+            ToolTip = 'Specifies that a registering report is printed automatically when you register entries from the journal.';
         }
         field(9; Type; Enum "Warehouse Journal Template Type")
         {
             Caption = 'Type';
+            ToolTip = 'Specifies the type of transaction the warehouse journal template is being used for.';
 
             trigger OnValidate()
             begin
@@ -83,6 +90,7 @@ table 7309 "Warehouse Journal Template"
         field(10; "Source Code"; Code[10])
         {
             Caption = 'Source Code';
+            ToolTip = 'Specifies the source code that specifies where the entry was created.';
             TableRelation = "Source Code";
 
             trigger OnValidate()
@@ -95,6 +103,7 @@ table 7309 "Warehouse Journal Template"
         field(11; "Reason Code"; Code[10])
         {
             Caption = 'Reason Code';
+            ToolTip = 'Specifies the reason code, a supplementary source code that enables you to trace the entry.';
             TableRelation = "Reason Code";
         }
         field(15; "Test Report Caption"; Text[250])
@@ -102,6 +111,7 @@ table 7309 "Warehouse Journal Template"
             CalcFormula = lookup(AllObjWithCaption."Object Caption" where("Object Type" = const(Report),
                                                                            "Object ID" = field("Test Report ID")));
             Caption = 'Test Report Caption';
+            ToolTip = 'Specifies the name of the test report that is printed when you click Registering, Test Report.';
             Editable = false;
             FieldClass = FlowField;
         }
@@ -110,6 +120,7 @@ table 7309 "Warehouse Journal Template"
             CalcFormula = lookup(AllObjWithCaption."Object Caption" where("Object Type" = const(Page),
                                                                            "Object ID" = field("Page ID")));
             Caption = 'Page Caption';
+            ToolTip = 'Specifies the displayed name of the journal or worksheet that uses the template.';
             Editable = false;
             FieldClass = FlowField;
         }
@@ -118,12 +129,14 @@ table 7309 "Warehouse Journal Template"
             CalcFormula = lookup(AllObjWithCaption."Object Caption" where("Object Type" = const(Report),
                                                                            "Object ID" = field("Registering Report ID")));
             Caption = 'Registering Report Caption';
+            ToolTip = 'Specifies the name of the report that is printed when you click Registering, Register and Print.';
             Editable = false;
             FieldClass = FlowField;
         }
         field(19; "No. Series"; Code[20])
         {
             Caption = 'No. Series';
+            ToolTip = 'Specifies the number series from which entry or record numbers are assigned to new entries or records.';
             TableRelation = "No. Series";
 
             trigger OnValidate()
@@ -136,6 +149,7 @@ table 7309 "Warehouse Journal Template"
         field(20; "Registering No. Series"; Code[20])
         {
             Caption = 'Registering No. Series';
+            ToolTip = 'Specifies the number series code used to assign document numbers to the warehouse entries that are registered from this journal.';
             TableRelation = "No. Series";
 
             trigger OnValidate()
@@ -147,6 +161,7 @@ table 7309 "Warehouse Journal Template"
         field(30; "Increment Batch Name"; Boolean)
         {
             Caption = 'Increment Batch Name';
+            ToolTip = 'Specifies if batch names using this template are automatically incremented. Example: The posting following BATCH001 is automatically named BATCH002.';
         }
     }
 

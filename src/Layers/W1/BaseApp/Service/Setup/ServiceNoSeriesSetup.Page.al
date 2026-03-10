@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -35,7 +35,6 @@ page 1403 "Service No. Series Setup"
                 field("Service Invoice Nos."; Rec."Service Invoice Nos.")
                 {
                     ApplicationArea = All;
-                    ToolTip = 'Specifies the code for the number series that will be used to assign numbers to service invoices. To see the number series that have been set up in the No. Series table, click the field.';
                     Visible = InvoiceNosVisible;
                 }
                 field("Service Credit Memo Nos."; Rec."Service Credit Memo Nos.")

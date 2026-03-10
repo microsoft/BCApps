@@ -17,14 +17,14 @@ codeunit 6459 "Serv. Document Attachment Mgt."
     var
         DocumentAttachmentMgmt: Codeunit "Document Attachment Mgmt";
 
-    [EventSubscriber(ObjectType::Table, Database::"Document Attachment", 'OnAfterIsPostedDocument', '', false, false)]
+    [EventSubscriber(ObjectType::Table, Database::"Document Attachment", 'OnAfterIsPostedDocument', '', true, false)]
     local procedure OnInsertOrderTrackingEntry(TableID: Integer; var Posted: Boolean)
     begin
         if TableID in [Database::"Service Invoice Header", Database::"Service Cr.Memo Header"] then
             Posted := true;
     end;
 
-    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Document Attachment Mgmt", 'OnAfterIsServiceDocumentFlow', '', false, false)]
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Document Attachment Mgmt", 'OnAfterIsServiceDocumentFlow', '', true, false)]
     local procedure OnAfterIsServiceDocumentFlow(TableNo: Integer; var IsDocumentFlow: Boolean)
     begin
         if IsServiceDocumentFlow(TableNo) then
@@ -47,7 +47,7 @@ codeunit 6459 "Serv. Document Attachment Mgt."
              Database::"Service Item"]);
     end;
 
-    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Document Attachment Mgmt", 'OnAfterGetRefTable', '', false, false)]
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Document Attachment Mgmt", 'OnAfterGetRefTable', '', true, false)]
     local procedure OnAfterGetRefTable(var RecRef: RecordRef; DocumentAttachment: Record "Document Attachment")
     var
         ServiceItem: Record "Service Item";
@@ -103,7 +103,7 @@ codeunit 6459 "Serv. Document Attachment Mgt."
         end;
     end;
 
-    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Document Attachment Mgmt", 'OnSetRelatedAttachmentsFilterOnBeforeSetTableIdFilter', '', false, false)]
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Document Attachment Mgmt", 'OnSetRelatedAttachmentsFilterOnBeforeSetTableIdFilter', '', true, false)]
     local procedure OnSetRelatedAttachmentsFilterOnBeforeSetTableIdFilter(TableNo: Integer; var RelatedTable: Integer);
     begin
         case TableNo of
@@ -118,7 +118,7 @@ codeunit 6459 "Serv. Document Attachment Mgt."
         end;
     end;
 
-    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Document Attachment Mgmt", 'OnAfterTableIsDocument', '', false, false)]
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Document Attachment Mgmt", 'OnAfterTableIsDocument', '', true, false)]
     local procedure OnAfterIsTableDocument(TableNo: Integer; var IsDocument: Boolean)
     begin
         if IsDocument then
@@ -135,7 +135,7 @@ codeunit 6459 "Serv. Document Attachment Mgt."
                                     Database::"Service Contract Line"];
     end;
 
-    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Document Attachment Mgmt", 'OnAfterTableHasNumberFieldPrimaryKey', '', false, false)]
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Document Attachment Mgmt", 'OnAfterTableHasNumberFieldPrimaryKey', '', true, false)]
     local procedure OnAfterTableHasNumberFieldPrimaryKey(TableNo: Integer; var Result: Boolean; var FieldNo: Integer)
     begin
         case TableNo of
@@ -163,7 +163,7 @@ codeunit 6459 "Serv. Document Attachment Mgt."
         end;
     end;
 
-    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Document Attachment Mgmt", 'OnAfterTableHasDocTypePrimaryKey', '', false, false)]
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Document Attachment Mgmt", 'OnAfterTableHasDocTypePrimaryKey', '', true, false)]
     local procedure OnAfterTableHasDocTypePrimaryKey(TableNo: Integer; var Result: Boolean; var FieldNo: Integer)
     begin
         case TableNo of
@@ -182,7 +182,7 @@ codeunit 6459 "Serv. Document Attachment Mgt."
         end;
     end;
 
-    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Document Attachment Mgmt", 'OnAfterTableHasLineNumberPrimaryKey', '', false, false)]
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Document Attachment Mgmt", 'OnAfterTableHasLineNumberPrimaryKey', '', true, false)]
     local procedure OnAfterTableHasLineNumberPrimaryKey(TableNo: Integer; var Result: Boolean; var FieldNo: Integer)
     begin
         case TableNo of
@@ -201,7 +201,7 @@ codeunit 6459 "Serv. Document Attachment Mgt."
         end;
     end;
 
-    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Document Attachment Mgmt", 'OnCopyAttachmentsOnAfterSetFromParameters', '', false, false)]
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Document Attachment Mgmt", 'OnCopyAttachmentsOnAfterSetFromParameters', '', true, false)]
     local procedure OnCopyAttachmentsOnAfterSetFromParameters(FromRecRef: RecordRef; var FromDocumentAttachment: Record "Document Attachment"; var FromAttachmentDocumentType: Enum "Attachment Document Type")
     var
         FromFieldRef: FieldRef;
@@ -262,7 +262,7 @@ codeunit 6459 "Serv. Document Attachment Mgt."
         end;
     end;
 
-    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Document Attachment Mgmt", 'OnAfterTransformAttachmentDocumentTypeValue', '', false, false)]
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Document Attachment Mgmt", 'OnAfterTransformAttachmentDocumentTypeValue', '', true, false)]
     local procedure OnAfterTransformAttachmentDocumentTypeValue(TableNo: Integer; var AttachmentDocumentType: Enum "Attachment Document Type")
     begin
         TransformAttachmentDocumentTypeValue(TableNo, AttachmentDocumentType);
@@ -281,7 +281,7 @@ codeunit 6459 "Serv. Document Attachment Mgt."
         end;
     end;
 
-    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Document Attachment Mgmt", 'OnCopyAttachmentsOnAfterSetDocumentFlowFilter', '', false, false)]
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Document Attachment Mgmt", 'OnCopyAttachmentsOnAfterSetDocumentFlowFilter', '', true, false)]
     local procedure OnCopyAttachmentsOnAfterSetDocumentFlowFilter(var FromDocumentAttachment: Record "Document Attachment"; FromRecRef: RecordRef; ToRecRef: RecordRef);
     begin
         case ToRecRef.Number() of
@@ -303,7 +303,7 @@ codeunit 6459 "Serv. Document Attachment Mgt."
         end;
     end;
 
-    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Document Attachment Mgmt", 'OnCopyAttachmentsOnAfterSetToParameters', '', false, false)]
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Document Attachment Mgmt", 'OnCopyAttachmentsOnAfterSetToParameters', '', true, false)]
     local procedure OnCopyAttachmentsOnAfterSetToParameters(var ToDocumentAttachment: Record "Document Attachment"; ToRecRef: RecordRef; var ToFieldRef: FieldRef; var ToNo: Code[20]; var ToLineNo: Integer; var ToAttachmentDocumentType: Enum "Attachment Document Type");
     begin
         case ToRecRef.Number() of
@@ -355,7 +355,7 @@ codeunit 6459 "Serv. Document Attachment Mgt."
         end;
     end;
 
-    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Document Attachment Mgmt", 'OnCopyAttachmentsOnAfterSetToDocumentFilters', '', false, false)]
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Document Attachment Mgmt", 'OnCopyAttachmentsOnAfterSetToDocumentFilters', '', true, false)]
     local procedure OnCopyAttachmentsOnAfterSetToDocumentFilters(var ToDocumentAttachment: Record "Document Attachment"; ToRecRef: RecordRef; ToAttachmentDocumentType: Enum "Attachment Document Type"; ToNo: Code[20]; ToLineNo: Integer)
     begin
         case ToRecRef.Number() of
@@ -371,28 +371,28 @@ codeunit 6459 "Serv. Document Attachment Mgt."
         end;
     end;
 
-    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Document Attachment Mgmt", 'OnAfterTableIsDocumentHeader', '', false, false)]
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Document Attachment Mgmt", 'OnAfterTableIsDocumentHeader', '', true, false)]
     local procedure OnAfterTableIsDocumentHeader(TableNo: Integer; var IsHeader: Boolean)
     begin
         if TableNo = Database::"Service Header" then
             IsHeader := true;
     end;
 
-    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Document Attachment Mgmt", 'OnAfterTableIsDocumentLine', '', false, false)]
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Document Attachment Mgmt", 'OnAfterTableIsDocumentLine', '', true, false)]
     local procedure OnAfterTableIsDocumentLine(TableNo: Integer; var IsLine: Boolean)
     begin
         if TableNo = Database::"Service Line" then
             IsLine := true;
     end;
 
-    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Document Attachment Mgmt", 'OnAfterTableIsEntity', '', false, false)]
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Document Attachment Mgmt", 'OnAfterTableIsEntity', '', true, false)]
     local procedure OnAfterTableIsEntity(TableNo: Integer; var IsEntity: Boolean)
     begin
         if TableNo = Database::"Service Item" then
             IsEntity := true;
     end;
 
-    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Document Attachment Mgmt", 'OnCopyAttachmentsForPostedDocsLinesOnAfterSetFromFilters', '', false, false)]
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Document Attachment Mgmt", 'OnCopyAttachmentsForPostedDocsLinesOnAfterSetFromFilters', '', true, false)]
     local procedure OnCopyAttachmentsForPostedDocsLinesOnAfterSetFromFilters(FromRecRef: RecordRef; var FromDocumentAttachmentLine: Record "Document Attachment")
     begin
         case FromRecRef.Number() of
@@ -401,7 +401,7 @@ codeunit 6459 "Serv. Document Attachment Mgt."
         end;
     end;
 
-    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Document Attachment Mgmt", 'OnCopyAttachmentsForPostedDocsLinesOnAfterSetToTableID', '', false, false)]
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Document Attachment Mgmt", 'OnCopyAttachmentsForPostedDocsLinesOnAfterSetToTableID', '', true, false)]
     local procedure OnCopyAttachmentsForPostedDocsLinesOnAfterSetToTableID(ToRecRef: RecordRef; var ToDocumentAttachmentLine: Record "Document Attachment")
     begin
         case ToRecRef.Number of
@@ -413,13 +413,13 @@ codeunit 6459 "Serv. Document Attachment Mgt."
     end;
 
     #region [Service Management event subscribers]
-    [EventSubscriber(ObjectType::Table, Database::"Service Item", 'OnAfterDeleteEvent', '', false, false)]
+    [EventSubscriber(ObjectType::Table, Database::"Service Item", 'OnAfterDeleteEvent', '', true, false)]
     local procedure DeleteAttachedDocumentsOnAfterDeleteServiceItem(var Rec: Record "Service Item"; RunTrigger: Boolean)
     begin
         DocumentAttachmentMgmt.DeleteAttachedDocuments(Rec, false);
     end;
 
-    [EventSubscriber(ObjectType::Table, Database::"Service Item", 'OnAfterRenameEvent', '', false, false)]
+    [EventSubscriber(ObjectType::Table, Database::"Service Item", 'OnAfterRenameEvent', '', true, false)]
     local procedure MoveAttachedDocumentsOnAfterRenameServiceItem(var Rec: Record "Service Item"; var xRec: Record "Service Item"; RunTrigger: Boolean)
     var
         MoveFromRecordRef: RecordRef;
@@ -432,55 +432,55 @@ codeunit 6459 "Serv. Document Attachment Mgt."
         DocumentAttachmentMgmt.MoveAttachmentsWithinSameRecordType(MoveFromRecordRef, MoveToRecordRef);
     end;
 
-    [EventSubscriber(ObjectType::Table, Database::"Service Header", 'OnAfterDeleteEvent', '', false, false)]
+    [EventSubscriber(ObjectType::Table, Database::"Service Header", 'OnAfterDeleteEvent', '', true, false)]
     local procedure DeleteAttachedDocumentsOnAfterDeleteServiceHeader(var Rec: Record "Service Header"; RunTrigger: Boolean)
     begin
         DocumentAttachmentMgmt.DeleteAttachedDocuments(Rec, false);
     end;
 
-    [EventSubscriber(ObjectType::Table, Database::"Service Line", 'OnAfterDeleteEvent', '', false, false)]
+    [EventSubscriber(ObjectType::Table, Database::"Service Line", 'OnAfterDeleteEvent', '', true, false)]
     local procedure DeleteAttachedDocumentsOnAfterDeleteServiceLine(var Rec: Record "Service Line"; RunTrigger: Boolean)
     begin
         DocumentAttachmentMgmt.DeleteAttachedDocuments(Rec, false);
     end;
 
-    [EventSubscriber(ObjectType::Table, Database::"Service Invoice Header", 'OnAfterDeleteEvent', '', false, false)]
+    [EventSubscriber(ObjectType::Table, Database::"Service Invoice Header", 'OnAfterDeleteEvent', '', true, false)]
     local procedure DeleteAttachedDocumentsOnAfterDeleteServiceInvoiceHeader(var Rec: Record "Service Invoice Header"; RunTrigger: Boolean)
     begin
         DocumentAttachmentMgmt.DeleteAttachedDocuments(Rec, false);
     end;
 
-    [EventSubscriber(ObjectType::Table, Database::"Service Invoice Line", 'OnAfterDeleteEvent', '', false, false)]
+    [EventSubscriber(ObjectType::Table, Database::"Service Invoice Line", 'OnAfterDeleteEvent', '', true, false)]
     local procedure DeleteAttachedDocumentsOnAfterDeleteServiceInvoiceLine(var Rec: Record "Service Invoice Line"; RunTrigger: Boolean)
     begin
         DocumentAttachmentMgmt.DeleteAttachedDocuments(Rec, false);
     end;
 
-    [EventSubscriber(ObjectType::Table, Database::"Service Cr.Memo Header", 'OnAfterDeleteEvent', '', false, false)]
+    [EventSubscriber(ObjectType::Table, Database::"Service Cr.Memo Header", 'OnAfterDeleteEvent', '', true, false)]
     local procedure DeleteAttachedDocumentsOnAfterDeleteServiceCreditMemoHeader(var Rec: Record "Service Cr.Memo Header"; RunTrigger: Boolean)
     begin
         DocumentAttachmentMgmt.DeleteAttachedDocuments(Rec, false);
     end;
 
-    [EventSubscriber(ObjectType::Table, Database::"Service Cr.Memo Line", 'OnAfterDeleteEvent', '', false, false)]
+    [EventSubscriber(ObjectType::Table, Database::"Service Cr.Memo Line", 'OnAfterDeleteEvent', '', true, false)]
     local procedure DeleteAttachedDocumentsOnAfterDeleteServiceCreditMemoLine(var Rec: Record "Service Cr.Memo Line"; RunTrigger: Boolean)
     begin
         DocumentAttachmentMgmt.DeleteAttachedDocuments(Rec, false);
     end;
 
-    [EventSubscriber(ObjectType::Table, Database::"Service Contract Header", 'OnAfterDeleteEvent', '', false, false)]
+    [EventSubscriber(ObjectType::Table, Database::"Service Contract Header", 'OnAfterDeleteEvent', '', true, false)]
     local procedure DeleteAttachedDocumentsOnAfterDeleteServiceContractHeader(var Rec: Record "Service Contract Header"; RunTrigger: Boolean)
     begin
         DocumentAttachmentMgmt.DeleteAttachedDocuments(Rec, false);
     end;
 
-    [EventSubscriber(ObjectType::Table, Database::"Service Contract Line", 'OnAfterDeleteEvent', '', false, false)]
+    [EventSubscriber(ObjectType::Table, Database::"Service Contract Line", 'OnAfterDeleteEvent', '', true, false)]
     local procedure DeleteAttachedDocumentsOnAfterDeleteServiceContractLine(var Rec: Record "Service Contract Line"; RunTrigger: Boolean)
     begin
         DocumentAttachmentMgmt.DeleteAttachedDocuments(Rec, false);
     end;
 
-    [EventSubscriber(ObjectType::Table, Database::"Service Item", 'OnAfterInsertEvent', '', false, false)]
+    [EventSubscriber(ObjectType::Table, Database::"Service Item", 'OnAfterInsertEvent', '', true, false)]
     local procedure DocumentAttachmentFlow_ForServiceItemInsert(var Rec: Record "Service Item"; RunTrigger: Boolean)
     var
         Item: Record Item;
@@ -499,7 +499,7 @@ codeunit 6459 "Serv. Document Attachment Mgt."
         DocumentAttachmentMgmt.CopyAttachments(Item, Rec);
     end;
 
-    [EventSubscriber(ObjectType::Table, Database::"Service Item", 'OnAfterValidateEvent', 'Item No.', false, false)]
+    [EventSubscriber(ObjectType::Table, Database::"Service Item", 'OnAfterValidateEvent', 'Item No.', true, false)]
     local procedure DocumentAttachmentFlow_ForServiceItemItemNoChange(var Rec: Record "Service Item"; var xRec: Record "Service Item"; CurrFieldNo: Integer)
     begin
         if (Rec."No." = '') or IsNullGuid(Rec.SystemId) then
@@ -514,7 +514,7 @@ codeunit 6459 "Serv. Document Attachment Mgt."
         DocumentAttachmentFlow_ForServiceItemInsert(Rec, true);
     end;
 
-    [EventSubscriber(ObjectType::Table, Database::"Service Header", 'OnAfterInsertEvent', '', false, false)]
+    [EventSubscriber(ObjectType::Table, Database::"Service Header", 'OnAfterInsertEvent', '', true, false)]
     local procedure DocumentAttachmentFlow_ForServiceHeaderInsert(var Rec: Record "Service Header"; RunTrigger: Boolean)
     var
         Customer: Record Customer;
@@ -533,7 +533,7 @@ codeunit 6459 "Serv. Document Attachment Mgt."
         DocumentAttachmentMgmt.CopyAttachments(Customer, Rec);
     end;
 
-    [EventSubscriber(ObjectType::Table, Database::"Service Header", 'OnAfterValidateEvent', 'Customer No.', false, false)]
+    [EventSubscriber(ObjectType::Table, Database::"Service Header", 'OnAfterValidateEvent', 'Customer No.', true, false)]
     local procedure DocumentAttachmentFlow_ForServiceHeaderCustomerNoChange(var Rec: Record "Service Header"; var xRec: Record "Service Header"; CurrFieldNo: Integer)
     begin
         if (Rec."No." = '') or IsNullGuid(Rec.SystemId) then
@@ -548,7 +548,7 @@ codeunit 6459 "Serv. Document Attachment Mgt."
         DocumentAttachmentFlow_ForServiceHeaderInsert(Rec, true);
     end;
 
-    [EventSubscriber(ObjectType::Codeunit, Codeunit::ServContractManagement, 'OnCreateServHeaderOnAfterCopyFromCustomer', '', false, false)]
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::ServContractManagement, 'OnCreateServHeaderOnAfterCopyFromCustomer', '', true, false)]
     local procedure DocumentAttachmentFlow_ForServiceHeaderCustomerChange_OnCreateServHeaderOnAfterCopyFromCustomer(var ServiceHeader: Record "Service Header"; ServiceContract: Record "Service Contract Header"; Customer: Record Customer)
     begin
         if (ServiceHeader."No." = '') or IsNullGuid(ServiceHeader.SystemId) then
@@ -565,13 +565,13 @@ codeunit 6459 "Serv. Document Attachment Mgt."
         DocumentAttachmentFlow_ForServiceHeaderInsert(ServiceHeader, true);
     end;
 
-    [EventSubscriber(ObjectType::Codeunit, Codeunit::ServContractManagement, 'OnCreateOrGetCreditHeaderOnAfterCopyFromCustomer', '', false, false)]
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::ServContractManagement, 'OnCreateOrGetCreditHeaderOnAfterCopyFromCustomer', '', true, false)]
     local procedure DocumentAttachmentFlow_ForServiceHeaderCustomerChange_OnCreateOrGetCreditHeaderOnAfterCopyFromCustomer(var ServiceHeader: Record "Service Header"; ServiceContract: Record "Service Contract Header"; Customer: Record Customer)
     begin
         DocumentAttachmentFlow_ForServiceHeaderCustomerChange_OnCreateServHeaderOnAfterCopyFromCustomer(ServiceHeader, ServiceContract, Customer);
     end;
 
-    [EventSubscriber(ObjectType::Table, Database::"Service Line", 'OnAfterInsertEvent', '', false, false)]
+    [EventSubscriber(ObjectType::Table, Database::"Service Line", 'OnAfterInsertEvent', '', true, false)]
     local procedure DocumentAttachmentFlow_ForServiceLineInsert(var Rec: Record "Service Line"; RunTrigger: Boolean)
     var
         Item: Record Item;
@@ -592,7 +592,7 @@ codeunit 6459 "Serv. Document Attachment Mgt."
                 DocumentAttachmentMgmt.CopyAttachments(Item, Rec);
     end;
 
-    [EventSubscriber(ObjectType::Table, Database::"Service Line", 'OnAfterValidateEvent', 'Service Item No.', false, false)]
+    [EventSubscriber(ObjectType::Table, Database::"Service Line", 'OnAfterValidateEvent', 'Service Item No.', true, false)]
     local procedure DocumentAttachmentFlow_ForServiceLineServiceItemNoChange(var Rec: Record "Service Line"; var xRec: Record "Service Line"; CurrFieldNo: Integer)
     begin
         if (Rec."Line No." = 0) or IsNullGuid(Rec.SystemId) then
@@ -607,7 +607,7 @@ codeunit 6459 "Serv. Document Attachment Mgt."
         DocumentAttachmentFlow_ForServiceLineInsert(Rec, true);
     end;
 
-    [EventSubscriber(ObjectType::Table, Database::"Service Line", 'OnAfterValidateEvent', 'Service Item Line No.', false, false)]
+    [EventSubscriber(ObjectType::Table, Database::"Service Line", 'OnAfterValidateEvent', 'Service Item Line No.', true, false)]
     local procedure DocumentAttachmentFlow_ForServiceLineServiceItemLineNoChange(var Rec: Record "Service Line"; var xRec: Record "Service Line"; CurrFieldNo: Integer)
     begin
         if (Rec."Line No." = 0) or IsNullGuid(Rec.SystemId) then
@@ -623,7 +623,7 @@ codeunit 6459 "Serv. Document Attachment Mgt."
             DocumentAttachmentFlow_ForServiceLineInsert(Rec, true);
     end;
 
-    [EventSubscriber(ObjectType::Table, Database::"Service Line", 'OnAfterValidateEvent', 'No.', false, false)]
+    [EventSubscriber(ObjectType::Table, Database::"Service Line", 'OnAfterValidateEvent', 'No.', true, false)]
     local procedure DocumentAttachmentFlow_ForServiceLineNoChange(var Rec: Record "Service Line"; var xRec: Record "Service Line"; CurrFieldNo: Integer)
     begin
         if (Rec."Line No." = 0) or IsNullGuid(Rec.SystemId) then
@@ -638,7 +638,7 @@ codeunit 6459 "Serv. Document Attachment Mgt."
         DocumentAttachmentFlow_ForServiceLineInsert(Rec, true);
     end;
 
-    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Service-Quote to Order", 'OnBeforeServiceHeaderOrderModify', '', false, false)]
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Service-Quote to Order", 'OnBeforeServiceHeaderOrderModify', '', true, false)]
     local procedure DocumentAttachmentFlow_FromServiceQuoteHeaderToServiceOrderHeader(var ServiceOrderHeader: Record "Service Header"; ServiceQuoteHeader: Record "Service Header")
     begin
         if (ServiceQuoteHeader."No." = '') or IsNullGuid(ServiceQuoteHeader.SystemId) then
@@ -658,7 +658,7 @@ codeunit 6459 "Serv. Document Attachment Mgt."
         DocumentAttachmentMgmt.CopyAttachments(ServiceQuoteHeader, ServiceOrderHeader);
     end;
 
-    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Service-Quote to Order", 'OnAfterServOrderLineInsert', '', false, false)]
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Service-Quote to Order", 'OnAfterServOrderLineInsert', '', true, false)]
     local procedure DocumentAttachmentFlow_FromServiceQuoteLineToServiceOrderLine(var ServiceOrderLine2: Record "Service Line"; ServiceOrderLine: Record "Service Line")
     begin
         // ServiceOrderLine - quote line
@@ -674,7 +674,7 @@ codeunit 6459 "Serv. Document Attachment Mgt."
         DocumentAttachmentMgmt.CopyAttachments(ServiceOrderLine, ServiceOrderLine2);
     end;
 
-    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Serv-Documents Mgt.", 'OnFinalizeOnBeforeDeleteHeaderAndLines', '', false, false)]
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Serv-Documents Mgt.", 'OnFinalizeOnBeforeDeleteHeaderAndLines', '', true, false)]
     local procedure CopyDocumentAttachmentsToPostedServiceDocument(var ServiceHeader: Record "Service Header")
     var
         ServiceInvoiceHeader: Record "Service Invoice Header";
@@ -717,7 +717,7 @@ codeunit 6459 "Serv. Document Attachment Mgt."
         end;
     end;
 
-    [EventSubscriber(ObjectType::Table, Database::"Service Contract Header", 'OnAfterInsertEvent', '', false, false)]
+    [EventSubscriber(ObjectType::Table, Database::"Service Contract Header", 'OnAfterInsertEvent', '', true, false)]
     local procedure DocumentAttachmentFlow_ForServiceContractHeaderInsert(var Rec: Record "Service Contract Header"; RunTrigger: Boolean)
     var
         Customer: Record Customer;
@@ -736,7 +736,7 @@ codeunit 6459 "Serv. Document Attachment Mgt."
         DocumentAttachmentMgmt.CopyAttachments(Customer, Rec);
     end;
 
-    [EventSubscriber(ObjectType::Table, Database::"Service Contract Header", 'OnAfterValidateEvent', 'Customer No.', false, false)]
+    [EventSubscriber(ObjectType::Table, Database::"Service Contract Header", 'OnAfterValidateEvent', 'Customer No.', true, false)]
     local procedure DocumentAttachmentFlow_ForServiceContractHeaderCustomerNoChange(var Rec: Record "Service Contract Header"; var xRec: Record "Service Contract Header"; CurrFieldNo: Integer)
     begin
         if (Rec."Contract No." = '') or IsNullGuid(Rec.SystemId) then
@@ -752,7 +752,7 @@ codeunit 6459 "Serv. Document Attachment Mgt."
     end;
 
 
-    [EventSubscriber(ObjectType::Codeunit, Codeunit::ServContractManagement, 'OnChangeCustNoOnServContractOnAfterGetCustomer', '', false, false)]
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::ServContractManagement, 'OnChangeCustNoOnServContractOnAfterGetCustomer', '', true, false)]
     local procedure DocumentAttachmentFlow_ForServiceContractHeaderCustomerChange_OnChangeCustNoOnServContractOnAfterGetCustomer(Customer: Record Customer; var ServiceContractHeader: Record "Service Contract Header"; var ServCheckCreditLimit: Codeunit "Serv. Check Credit Limit"; var IsHandled: Boolean)
     begin
         if (ServiceContractHeader."Contract No." = '') or IsNullGuid(ServiceContractHeader.SystemId) then
@@ -769,7 +769,7 @@ codeunit 6459 "Serv. Document Attachment Mgt."
         DocumentAttachmentFlow_ForServiceContractHeaderInsert(ServiceContractHeader, true);
     end;
 
-    [EventSubscriber(ObjectType::Table, Database::"Service Contract Line", 'OnAfterInsertEvent', '', false, false)]
+    [EventSubscriber(ObjectType::Table, Database::"Service Contract Line", 'OnAfterInsertEvent', '', true, false)]
     local procedure DocumentAttachmentFlow_ForServiceContractLineInsert(var Rec: Record "Service Contract Line"; RunTrigger: Boolean)
     var
         Item: Record Item;
@@ -790,7 +790,7 @@ codeunit 6459 "Serv. Document Attachment Mgt."
                 DocumentAttachmentMgmt.CopyAttachments(Item, Rec);
     end;
 
-    [EventSubscriber(ObjectType::Table, Database::"Service Contract Line", 'OnAfterValidateEvent', 'Service Item No.', false, false)]
+    [EventSubscriber(ObjectType::Table, Database::"Service Contract Line", 'OnAfterValidateEvent', 'Service Item No.', true, false)]
     local procedure DocumentAttachmentFlow_ForServiceContractLineServiceItemNoChange(var Rec: Record "Service Contract Line"; var xRec: Record "Service Contract Line"; CurrFieldNo: Integer)
     begin
         if (Rec."Line No." = 0) or IsNullGuid(Rec.SystemId) then
@@ -805,7 +805,7 @@ codeunit 6459 "Serv. Document Attachment Mgt."
         DocumentAttachmentFlow_ForServiceContractLineInsert(Rec, true);
     end;
 
-    [EventSubscriber(ObjectType::Table, Database::"Service Contract Line", 'OnAfterValidateEvent', 'Item No.', false, false)]
+    [EventSubscriber(ObjectType::Table, Database::"Service Contract Line", 'OnAfterValidateEvent', 'Item No.', true, false)]
     local procedure DocumentAttachmentFlow_ForServiceContractLineItemNoChange(var Rec: Record "Service Contract Line"; var xRec: Record "Service Contract Line"; CurrFieldNo: Integer)
     begin
         if (Rec."Line No." = 0) or IsNullGuid(Rec.SystemId) then
@@ -820,7 +820,7 @@ codeunit 6459 "Serv. Document Attachment Mgt."
         DocumentAttachmentFlow_ForServiceContractLineInsert(Rec, true);
     end;
 
-    [EventSubscriber(ObjectType::Codeunit, Codeunit::"SignServContractDoc", 'OnAfterToServContractHeaderInsert', '', false, false)]
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"SignServContractDoc", 'OnAfterToServContractHeaderInsert', '', true, false)]
     local procedure DocumentAttachmentFlow_FromServiceContractQuoteHeaderToServiceContractHeader(var ToServiceContractHeader: Record "Service Contract Header"; FromServiceContractHeader: Record "Service Contract Header")
     begin
         if (FromServiceContractHeader."Contract No." = '') or IsNullGuid(FromServiceContractHeader.SystemId) then
@@ -840,7 +840,7 @@ codeunit 6459 "Serv. Document Attachment Mgt."
         DocumentAttachmentMgmt.CopyAttachments(FromServiceContractHeader, ToServiceContractHeader);
     end;
 
-    [EventSubscriber(ObjectType::Codeunit, Codeunit::"SignServContractDoc", 'OnAfterToServContractLineInsert', '', false, false)]
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"SignServContractDoc", 'OnAfterToServContractLineInsert', '', true, false)]
     local procedure DocumentAttachmentFlow_FromServiceContractQuoteLineToServiceContractLine(var ToServiceContractLine: Record "Service Contract Line"; FromServiceContractLine: Record "Service Contract Line")
     begin
         if (ToServiceContractLine."Contract No." = '') or IsNullGuid(ToServiceContractLine.SystemId) then
@@ -854,7 +854,7 @@ codeunit 6459 "Serv. Document Attachment Mgt."
         DocumentAttachmentMgmt.CopyAttachments(FromServiceContractLine, ToServiceContractLine);
     end;
 
-    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Copy Service Contract Mgt.", 'OnAfterProcessServiceContractLine', '', false, false)]
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Copy Service Contract Mgt.", 'OnAfterProcessServiceContractLine', '', true, false)]
     local procedure DocumentAttachmentFlow_OnServiceContractLineCopy(var ToServiceContractLine: Record "Service Contract Line"; FromServiceContractLine: Record "Service Contract Line")
     begin
         DocumentAttachmentFlow_FromServiceContractQuoteLineToServiceContractLine(ToServiceContractLine, FromServiceContractLine);

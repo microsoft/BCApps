@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -31,13 +31,11 @@ page 980 "Balancing Account Setup"
                 {
                     ApplicationArea = Basic, Suite;
                     Caption = 'Balancing Account';
-                    ToolTip = 'Specifies the account number that is used as the balancing account for payments.';
                 }
                 field("Use this Account as Def."; Rec."Use this Account as Def.")
                 {
                     ApplicationArea = Basic, Suite;
                     Caption = 'Use this Account as Default';
-                    ToolTip = 'Specifies if the Date Received and the Amount Received fields are automatically filled when you select the Payment Made check box.';
                 }
             }
         }

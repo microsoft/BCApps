@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -24,6 +24,7 @@ table 6756 "Issue Reminders Setup"
         /// </summary>
         field(1; Code; Code[50])
         {
+            ToolTip = 'Specifies the unique code of the issue reminder setup.';
         }
         /// <summary>
         /// Specifies the reminder action group to which this setup belongs.
@@ -36,12 +37,14 @@ table 6756 "Issue Reminders Setup"
         /// </summary>
         field(3; Description; Text[50])
         {
+            ToolTip = 'Specifies the description of the issue reminder setup.';
         }
         /// <summary>
         /// Specifies whether and how to replace the posting date when issuing reminders.
         /// </summary>
         field(10; "Replace Posting Date"; Option)
         {
+            ToolTip = 'Specifies whether to replace the posting date of the reminder with the posting date of the original document.';
             OptionMembers = "No","Use date from reminder","Use Workdate";
         }
         /// <summary>
@@ -49,12 +52,14 @@ table 6756 "Issue Reminders Setup"
         /// </summary>
         field(11; "Replace Posting Date formula"; DateFormula)
         {
+            ToolTip = 'Specifies the formula that is used to calculate the posting date of the reminder. Base date is the date when the job is started.';
         }
         /// <summary>
         /// Specifies whether and how to replace the VAT date when issuing reminders.
         /// </summary>
         field(12; "Replace VAT Date"; Option)
         {
+            ToolTip = 'Specifies whether to replace the VAT date of the reminder with the VAT date of the original document.';
             OptionMembers = "No","Use date from reminder","Use Workdate";
         }
         /// <summary>
@@ -62,6 +67,7 @@ table 6756 "Issue Reminders Setup"
         /// </summary>
         field(13; "Replace VAT Date formula"; DateFormula)
         {
+            ToolTip = 'Specifies the formula that is used to calculate the VAT date of the reminder. Base date is the date when the job is started.';
         }
         /// <summary>
         /// Stores the filter criteria for selecting reminders to issue.
@@ -75,6 +81,7 @@ table 6756 "Issue Reminders Setup"
         field(21; "Journal Template Name"; Code[10])
         {
             Caption = 'Journal Template Name';
+            ToolTip = 'Specifies the name of the journal template that is used for the posting.';
             TableRelation = "Gen. Journal Template";
         }
         /// <summary>
@@ -83,6 +90,7 @@ table 6756 "Issue Reminders Setup"
         field(22; "Journal Batch Name"; Code[10])
         {
             Caption = 'Journal Batch Name';
+            ToolTip = 'Specifies the name of the journal batch that is used for the posting.';
         }
     }
     keys

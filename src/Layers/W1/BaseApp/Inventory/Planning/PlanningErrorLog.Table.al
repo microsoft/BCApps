@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -40,11 +40,13 @@ table 5430 "Planning Error Log"
         field(4; "Item No."; Code[20])
         {
             Caption = 'Item No.';
+            ToolTip = 'Specifies the item number associated with this entry.';
             TableRelation = Item;
         }
         field(5; "Error Description"; Text[250])
         {
             Caption = 'Error Description';
+            ToolTip = 'Specifies the description to the error in this entry.';
         }
         field(6; "Table ID"; Integer)
         {

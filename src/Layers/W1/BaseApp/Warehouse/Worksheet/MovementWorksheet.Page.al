@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -81,7 +81,6 @@ page 7351 "Movement Worksheet"
                 field("Item No."; Rec."Item No.")
                 {
                     ApplicationArea = Warehouse;
-                    ToolTip = 'Specifies the number of the item that the line concerns.';
 
                     trigger OnValidate()
                     begin
@@ -92,39 +91,32 @@ page 7351 "Movement Worksheet"
                 field("Variant Code"; Rec."Variant Code")
                 {
                     ApplicationArea = Planning;
-                    ToolTip = 'Specifies the variant of the item on the line.';
                     Visible = false;
                 }
                 field(Description; Rec.Description)
                 {
                     ApplicationArea = Warehouse;
-                    ToolTip = 'Specifies the description of the item on the line.';
                 }
                 field("Description 2"; Rec."Description 2")
                 {
                     ApplicationArea = Warehouse;
-                    ToolTip = 'Specifies information in addition to the description.';
                     Visible = false;
                 }
                 field("From Zone Code"; Rec."From Zone Code")
                 {
                     ApplicationArea = Warehouse;
-                    ToolTip = 'Specifies the zone from which the items should be taken.';
                 }
                 field("From Bin Code"; Rec."From Bin Code")
                 {
                     ApplicationArea = Warehouse;
-                    ToolTip = 'Specifies the code of the bin from which the items should be taken.';
                 }
                 field("To Zone Code"; Rec."To Zone Code")
                 {
                     ApplicationArea = Warehouse;
-                    ToolTip = 'Specifies the code of the zone in which the items should be placed.';
                 }
                 field("To Bin Code"; Rec."To Bin Code")
                 {
                     ApplicationArea = Warehouse;
-                    ToolTip = 'Specifies the code of the bin into which the items should be placed.';
 
                     trigger OnValidate()
                     begin
@@ -134,7 +126,6 @@ page 7351 "Movement Worksheet"
                 field(Quantity; Rec.Quantity)
                 {
                     ApplicationArea = Warehouse;
-                    ToolTip = 'Specifies how many units of the item you want to move.';
 
                     trigger OnValidate()
                     begin
@@ -150,7 +141,6 @@ page 7351 "Movement Worksheet"
                 field("Qty. Outstanding"; Rec."Qty. Outstanding")
                 {
                     ApplicationArea = Warehouse;
-                    ToolTip = 'Specifies the quantity that still needs to be handled.';
                 }
                 field("Qty. Outstanding (Base)"; Rec."Qty. Outstanding (Base)")
                 {
@@ -161,7 +151,6 @@ page 7351 "Movement Worksheet"
                 field("Qty. to Handle"; Rec."Qty. to Handle")
                 {
                     ApplicationArea = Warehouse;
-                    ToolTip = 'Specifies how many units of the item you want to move.';
 
                     trigger OnValidate()
                     begin
@@ -177,7 +166,6 @@ page 7351 "Movement Worksheet"
                 field("Qty. Handled"; Rec."Qty. Handled")
                 {
                     ApplicationArea = Warehouse;
-                    ToolTip = 'Specifies the quantity that has been handled and registered.';
                 }
                 field("Qty. Handled (Base)"; Rec."Qty. Handled (Base)")
                 {
@@ -188,7 +176,6 @@ page 7351 "Movement Worksheet"
                 field("Due Date"; Rec."Due Date")
                 {
                     ApplicationArea = Warehouse;
-                    ToolTip = 'Specifies the due date of the line.';
 
                     trigger OnValidate()
                     begin
@@ -198,7 +185,6 @@ page 7351 "Movement Worksheet"
                 field("Unit of Measure Code"; Rec."Unit of Measure Code")
                 {
                     ApplicationArea = Warehouse;
-                    ToolTip = 'Specifies how each unit of the item or resource is measured, such as in pieces or hours. By default, the value in the Base Unit of Measure field on the item or resource card is inserted.';
                 }
 #pragma warning disable AA0100
                 field("ROUND(CheckAvailQtytoMove / ItemUOM.""Qty. per Unit of Measure"",UOMMgt.QtyRndPrecision)"; Round(Rec.CheckAvailQtytoMove() / ItemUOM."Qty. per Unit of Measure", UOMMgt.QtyRndPrecision()))

@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -26,6 +26,7 @@ table 9055 "Purchase Cue"
                                                          Status = filter(Open),
                                                          "Responsibility Center" = field("Responsibility Center Filter")));
             Caption = 'To Send or Confirm';
+            ToolTip = 'Specifies the number of documents to send or confirm that are displayed in the Purchase Cue on the Role Center. The documents are filtered by today''s date.';
             Editable = false;
             FieldClass = FlowField;
         }
@@ -37,6 +38,7 @@ table 9055 "Purchase Cue"
                                                          "Expected Receipt Date" = field("Date Filter"),
                                                          "Responsibility Center" = field("Responsibility Center Filter")));
             Caption = 'Upcoming Orders';
+            ToolTip = 'Specifies the number of upcoming orders that are displayed in the Purchase Cue on the Role Center. The documents are filtered by today''s date.';
             Editable = false;
             FieldClass = FlowField;
         }
@@ -48,6 +50,7 @@ table 9055 "Purchase Cue"
                                                          "Completely Received" = filter(false),
                                                          "Responsibility Center" = field("Responsibility Center Filter")));
             Caption = 'Outstanding Purchase Orders';
+            ToolTip = 'Specifies the number of outstanding purchase orders that are displayed in the Purchase Cue on the Role Center. The documents are filtered by today''s date.';
             Editable = false;
             FieldClass = FlowField;
         }
@@ -57,6 +60,7 @@ table 9055 "Purchase Cue"
             CalcFormula = count("Purchase Header" where("Document Type" = filter("Return Order"),
                                                          "Responsibility Center" = field("Responsibility Center Filter")));
             Caption = 'Purchase Return Orders - All';
+            ToolTip = 'Specifies the number of purchase return orders that are displayed in the Purchase Cue on the Role Center. The documents are filtered by today''s date.';
             Editable = false;
             FieldClass = FlowField;
         }
@@ -68,6 +72,7 @@ table 9055 "Purchase Cue"
                                                          Invoice = filter(false),
                                                          "Responsibility Center" = field("Responsibility Center Filter")));
             Caption = 'Not Invoiced';
+            ToolTip = 'Specifies received orders that are not invoiced. The orders are displayed in the Purchase Cue on the Purchasing Agent role center, and filtered by today''s date.';
             Editable = false;
             FieldClass = FlowField;
         }
@@ -79,6 +84,7 @@ table 9055 "Purchase Cue"
                                                          Invoice = filter(true),
                                                          "Responsibility Center" = field("Responsibility Center Filter")));
             Caption = 'Partially Invoiced';
+            ToolTip = 'Specifies the number of partially invoiced orders that are displayed in the Purchase Cue on the Role Center. The documents are filtered by today''s date.';
             Editable = false;
             FieldClass = FlowField;
         }

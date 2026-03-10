@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -23,6 +23,7 @@ table 5334 "CRM Option Mapping"
         field(2; "Option Value"; Integer)
         {
             Caption = 'Option Value';
+            ToolTip = 'Specifies the numeric value of the mapped option value in Dataverse.';
         }
         field(3; "Table ID"; Integer)
         {
@@ -39,6 +40,7 @@ table 5334 "CRM Option Mapping"
         field(6; "Option Value Caption"; Text[250])
         {
             Caption = 'Option Value Caption';
+            ToolTip = 'Specifies the caption of the mapped option value in Dataverse.';
         }
 #pragma warning disable AS0044	
         field(7; "Last Synch. Result"; Option)

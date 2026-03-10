@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -75,6 +75,7 @@ table 112 "Sales Invoice Header"
         field(3; "No."; Code[20])
         {
             Caption = 'No.';
+            ToolTip = 'Specifies the posted sales invoice number. Each posted sales invoice gets a unique number. Typically, the number is generated based on a number series.';
         }
         /// <summary>
         /// Specifies the customer number to whom the invoice was sent for payment.
@@ -92,6 +93,7 @@ table 112 "Sales Invoice Header"
         field(5; "Bill-to Name"; Text[100])
         {
             Caption = 'Bill-to Name';
+            ToolTip = 'Specifies the name of the customer that you send or sent the invoice or credit memo to.';
         }
         /// <summary>
         /// Specifies additional name information for the bill-to customer.
@@ -107,6 +109,7 @@ table 112 "Sales Invoice Header"
         field(7; "Bill-to Address"; Text[100])
         {
             Caption = 'Bill-to Address';
+            ToolTip = 'Specifies the address of the customer that the invoice was sent to.';
         }
         /// <summary>
         /// Specifies additional street address information for the bill-to customer.
@@ -114,6 +117,7 @@ table 112 "Sales Invoice Header"
         field(8; "Bill-to Address 2"; Text[50])
         {
             Caption = 'Bill-to Address 2';
+            ToolTip = 'Specifies additional address information.';
         }
         /// <summary>
         /// Specifies the city of the customer receiving the invoice.
@@ -121,6 +125,7 @@ table 112 "Sales Invoice Header"
         field(9; "Bill-to City"; Text[30])
         {
             Caption = 'Bill-to City';
+            ToolTip = 'Specifies the city of the customer on the sales document.';
             TableRelation = "Post Code".City;
             ValidateTableRelation = false;
         }
@@ -130,6 +135,7 @@ table 112 "Sales Invoice Header"
         field(10; "Bill-to Contact"; Text[100])
         {
             Caption = 'Bill-to Contact';
+            ToolTip = 'Specifies the name of the contact person at the customer''s billing address.';
         }
         /// <summary>
         /// Specifies the customer's own reference number for this document.
@@ -137,6 +143,7 @@ table 112 "Sales Invoice Header"
         field(11; "Your Reference"; Text[35])
         {
             Caption = 'Your Reference';
+            ToolTip = 'Specifies the customer''s reference. The contents will be printed on sales documents.';
         }
         /// <summary>
         /// Specifies the code for an alternate ship-to address.
@@ -144,6 +151,7 @@ table 112 "Sales Invoice Header"
         field(12; "Ship-to Code"; Code[10])
         {
             Caption = 'Ship-to Code';
+            ToolTip = 'Specifies the address on purchase orders shipped with a drop shipment directly from the vendor to a customer.';
             TableRelation = "Ship-to Address".Code where("Customer No." = field("Sell-to Customer No."));
         }
         /// <summary>
@@ -152,6 +160,7 @@ table 112 "Sales Invoice Header"
         field(13; "Ship-to Name"; Text[100])
         {
             Caption = 'Ship-to Name';
+            ToolTip = 'Specifies the name of the customer at the address that the items are shipped to.';
         }
         /// <summary>
         /// Specifies additional name information for the ship-to address.
@@ -159,6 +168,7 @@ table 112 "Sales Invoice Header"
         field(14; "Ship-to Name 2"; Text[50])
         {
             Caption = 'Ship-to Name 2';
+            ToolTip = 'Specifies an additional part of the the name of the customer that you delivered the items to.';
         }
         /// <summary>
         /// Specifies the street address where items were shipped.
@@ -166,6 +176,7 @@ table 112 "Sales Invoice Header"
         field(15; "Ship-to Address"; Text[100])
         {
             Caption = 'Ship-to Address';
+            ToolTip = 'Specifies the address that the items on the invoice were shipped to.';
         }
         /// <summary>
         /// Specifies additional street address information for the ship-to address.
@@ -173,6 +184,7 @@ table 112 "Sales Invoice Header"
         field(16; "Ship-to Address 2"; Text[50])
         {
             Caption = 'Ship-to Address 2';
+            ToolTip = 'Specifies additional address information.';
         }
         /// <summary>
         /// Specifies the city of the ship-to address.
@@ -180,6 +192,7 @@ table 112 "Sales Invoice Header"
         field(17; "Ship-to City"; Text[30])
         {
             Caption = 'Ship-to City';
+            ToolTip = 'Specifies the city of the customer on the sales document.';
             TableRelation = "Post Code".City;
             ValidateTableRelation = false;
         }
@@ -189,6 +202,7 @@ table 112 "Sales Invoice Header"
         field(18; "Ship-to Contact"; Text[100])
         {
             Caption = 'Ship-to Contact';
+            ToolTip = 'Specifies the name of the person you regularly contact at the address that the items were shipped to.';
         }
         /// <summary>
         /// Specifies the date when the sales order was created.
@@ -203,6 +217,7 @@ table 112 "Sales Invoice Header"
         field(20; "Posting Date"; Date)
         {
             Caption = 'Posting Date';
+            ToolTip = 'Specifies the date on which the invoice was posted.';
         }
         /// <summary>
         /// Specifies the date when the items were shipped to the customer.
@@ -210,6 +225,7 @@ table 112 "Sales Invoice Header"
         field(21; "Shipment Date"; Date)
         {
             Caption = 'Shipment Date';
+            ToolTip = 'Specifies when items on the document are shipped or were shipped. A shipment date is usually calculated from a requested delivery date plus lead time.';
         }
         /// <summary>
         /// Specifies a description of the posting that appears in the general ledger.
@@ -217,6 +233,7 @@ table 112 "Sales Invoice Header"
         field(22; "Posting Description"; Text[100])
         {
             Caption = 'Posting Description';
+            ToolTip = 'Specifies any text that is entered to accompany the posting, for example for information to auditors.';
         }
         /// <summary>
         /// Specifies the code for payment terms used for this invoice.
@@ -224,6 +241,7 @@ table 112 "Sales Invoice Header"
         field(23; "Payment Terms Code"; Code[10])
         {
             Caption = 'Payment Terms Code';
+            ToolTip = 'Specifies a formula that calculates the payment due date, payment discount date, and payment discount amount on the sales document.';
             TableRelation = "Payment Terms";
         }
         /// <summary>
@@ -232,6 +250,7 @@ table 112 "Sales Invoice Header"
         field(24; "Due Date"; Date)
         {
             Caption = 'Due Date';
+            ToolTip = 'Specifies the date on which the invoice is due for payment.';
         }
         /// <summary>
         /// Specifies the percentage of payment discount given if payment is made within the discount period.
@@ -240,6 +259,7 @@ table 112 "Sales Invoice Header"
         {
             AutoFormatType = 0;
             Caption = 'Payment Discount %';
+            ToolTip = 'Specifies the payment discount percent granted if payment is made on or before the date in the Pmt. Discount Date field.';
             DecimalPlaces = 0 : 5;
             MaxValue = 100;
             MinValue = 0;
@@ -250,6 +270,7 @@ table 112 "Sales Invoice Header"
         field(26; "Pmt. Discount Date"; Date)
         {
             Caption = 'Pmt. Discount Date';
+            ToolTip = 'Specifies the date on which the amount in the entry must be paid for a payment discount to be granted.';
         }
         /// <summary>
         /// Specifies the shipment method used for delivering the items.
@@ -257,6 +278,7 @@ table 112 "Sales Invoice Header"
         field(27; "Shipment Method Code"; Code[10])
         {
             Caption = 'Shipment Method Code';
+            ToolTip = 'Specifies the code that represents the shipment method for the invoice.';
             TableRelation = "Shipment Method";
         }
         /// <summary>
@@ -265,6 +287,7 @@ table 112 "Sales Invoice Header"
         field(28; "Location Code"; Code[10])
         {
             Caption = 'Location Code';
+            ToolTip = 'Specifies the code for the location from which the items were shipped.';
             TableRelation = Location where("Use As In-Transit" = const(false));
         }
         /// <summary>
@@ -274,6 +297,7 @@ table 112 "Sales Invoice Header"
         {
             CaptionClass = '1,2,1';
             Caption = 'Shortcut Dimension 1 Code';
+            ToolTip = 'Specifies the code for Shortcut Dimension 1, which is one of two global dimension codes that you set up in the General Ledger Setup window.';
             TableRelation = "Dimension Value".Code where("Global Dimension No." = const(1));
         }
         /// <summary>
@@ -283,6 +307,7 @@ table 112 "Sales Invoice Header"
         {
             CaptionClass = '1,2,2';
             Caption = 'Shortcut Dimension 2 Code';
+            ToolTip = 'Specifies the code for Shortcut Dimension 2, which is one of two global dimension codes that you set up in the General Ledger Setup window.';
             TableRelation = "Dimension Value".Code where("Global Dimension No." = const(2));
         }
         /// <summary>
@@ -291,6 +316,7 @@ table 112 "Sales Invoice Header"
         field(31; "Customer Posting Group"; Code[20])
         {
             Caption = 'Customer Posting Group';
+            ToolTip = 'Specifies the customer''s market type to link business transactions to.';
             Editable = false;
             TableRelation = "Customer Posting Group";
         }
@@ -300,6 +326,7 @@ table 112 "Sales Invoice Header"
         field(32; "Currency Code"; Code[10])
         {
             Caption = 'Currency Code';
+            ToolTip = 'Specifies the currency code of the invoice.';
             Editable = false;
             TableRelation = Currency;
         }
@@ -365,6 +392,7 @@ table 112 "Sales Invoice Header"
         field(43; "Salesperson Code"; Code[20])
         {
             Caption = 'Salesperson Code';
+            ToolTip = 'Specifies which salesperson is associated with the invoice.';
             TableRelation = "Salesperson/Purchaser";
         }
         /// <summary>
@@ -374,6 +402,7 @@ table 112 "Sales Invoice Header"
         {
             AccessByPermission = TableData "Sales Shipment Header" = R;
             Caption = 'Order No.';
+            ToolTip = 'Specifies the number of the related order.';
         }
         /// <summary>
         /// Indicates whether comments exist for this invoice.
@@ -393,6 +422,7 @@ table 112 "Sales Invoice Header"
         field(47; "No. Printed"; Integer)
         {
             Caption = 'No. Printed';
+            ToolTip = 'Specifies how many times the document has been printed.';
             Editable = false;
         }
         /// <summary>
@@ -446,6 +476,7 @@ table 112 "Sales Invoice Header"
             AutoFormatType = 1;
             CalcFormula = sum("Sales Invoice Line".Amount where("Document No." = field("No.")));
             Caption = 'Amount';
+            ToolTip = 'Specifies the total, in the currency of the invoice, of the amounts on all the invoice lines. The amount does not include VAT.';
             Editable = false;
             FieldClass = FlowField;
         }
@@ -458,6 +489,7 @@ table 112 "Sales Invoice Header"
             AutoFormatType = 1;
             CalcFormula = sum("Sales Invoice Line"."Amount Including VAT" where("Document No." = field("No.")));
             Caption = 'Amount Including VAT';
+            ToolTip = 'Specifies the total of the amounts, including VAT, on all the lines on the document.';
             Editable = false;
             FieldClass = FlowField;
         }
@@ -467,6 +499,7 @@ table 112 "Sales Invoice Header"
         field(70; "VAT Registration No."; Text[20])
         {
             Caption = 'VAT Registration No.';
+            ToolTip = 'Specifies the customer''s VAT registration number for customers.';
         }
         /// <summary>
         /// Specifies the customer's company registration number.
@@ -498,6 +531,7 @@ table 112 "Sales Invoice Header"
         field(75; "EU 3-Party Trade"; Boolean)
         {
             Caption = 'EU 3-Party Trade';
+            ToolTip = 'Specifies whether the invoice was part of an EU 3-party trade transaction.';
         }
         /// <summary>
         /// Specifies the transaction type for Intrastat reporting.
@@ -513,6 +547,7 @@ table 112 "Sales Invoice Header"
         field(77; "Transport Method"; Code[10])
         {
             Caption = 'Transport Method';
+            ToolTip = 'Specifies the transport method of the sales header that this line was posted from.';
             TableRelation = "Transport Method";
         }
         /// <summary>
@@ -529,6 +564,7 @@ table 112 "Sales Invoice Header"
         field(79; "Sell-to Customer Name"; Text[100])
         {
             Caption = 'Sell-to Customer Name';
+            ToolTip = 'Specifies the name of the customer that you shipped the items on the invoice to.';
         }
         /// <summary>
         /// Specifies additional name information for the sell-to customer.
@@ -544,6 +580,7 @@ table 112 "Sales Invoice Header"
         field(81; "Sell-to Address"; Text[100])
         {
             Caption = 'Sell-to Address';
+            ToolTip = 'Specifies the address of the customer that the items on the invoice were shipped to.';
         }
         /// <summary>
         /// Specifies additional street address information for the sell-to customer.
@@ -551,6 +588,7 @@ table 112 "Sales Invoice Header"
         field(82; "Sell-to Address 2"; Text[50])
         {
             Caption = 'Sell-to Address 2';
+            ToolTip = 'Specifies additional address information.';
         }
         /// <summary>
         /// Specifies the city of the sell-to customer.
@@ -558,6 +596,7 @@ table 112 "Sales Invoice Header"
         field(83; "Sell-to City"; Text[30])
         {
             Caption = 'Sell-to City';
+            ToolTip = 'Specifies the city of the customer on the sales document.';
             TableRelation = "Post Code".City;
             ValidateTableRelation = false;
         }
@@ -567,6 +606,7 @@ table 112 "Sales Invoice Header"
         field(84; "Sell-to Contact"; Text[100])
         {
             Caption = 'Sell-to Contact';
+            ToolTip = 'Specifies the name of the contact person at the customer''s main address.';
         }
         /// <summary>
         /// Specifies the postal code of the bill-to customer.
@@ -574,6 +614,7 @@ table 112 "Sales Invoice Header"
         field(85; "Bill-to Post Code"; Code[20])
         {
             Caption = 'Bill-to Post Code';
+            ToolTip = 'Specifies the postal code of the customer''s billing address.';
             TableRelation = "Post Code";
             ValidateTableRelation = false;
         }
@@ -584,6 +625,7 @@ table 112 "Sales Invoice Header"
         {
             CaptionClass = '5,3,' + "Bill-to Country/Region Code";
             Caption = 'Bill-to County';
+            ToolTip = 'Specifies the state, province or county as a part of the address.';
         }
         /// <summary>
         /// Specifies the country or region of the bill-to customer.
@@ -591,6 +633,7 @@ table 112 "Sales Invoice Header"
         field(87; "Bill-to Country/Region Code"; Code[10])
         {
             Caption = 'Bill-to Country/Region Code';
+            ToolTip = 'Specifies the country or region of the address.';
             TableRelation = "Country/Region";
         }
         /// <summary>
@@ -599,6 +642,7 @@ table 112 "Sales Invoice Header"
         field(88; "Sell-to Post Code"; Code[20])
         {
             Caption = 'Sell-to Post Code';
+            ToolTip = 'Specifies the postal code of the customer''s main address.';
             TableRelation = "Post Code";
             ValidateTableRelation = false;
         }
@@ -609,6 +653,7 @@ table 112 "Sales Invoice Header"
         {
             CaptionClass = '5,2,' + "Sell-to Country/Region Code";
             Caption = 'Sell-to County';
+            ToolTip = 'Specifies the state, province or county as a part of the address.';
         }
         /// <summary>
         /// Specifies the country or region of the sell-to customer.
@@ -616,6 +661,7 @@ table 112 "Sales Invoice Header"
         field(90; "Sell-to Country/Region Code"; Code[10])
         {
             Caption = 'Sell-to Country/Region Code';
+            ToolTip = 'Specifies the country or region of the address.';
             TableRelation = "Country/Region";
         }
         /// <summary>
@@ -624,6 +670,7 @@ table 112 "Sales Invoice Header"
         field(91; "Ship-to Post Code"; Code[20])
         {
             Caption = 'Ship-to Post Code';
+            ToolTip = 'Specifies the postal code of the address that the items are shipped to.';
             TableRelation = "Post Code";
             ValidateTableRelation = false;
         }
@@ -634,6 +681,7 @@ table 112 "Sales Invoice Header"
         {
             CaptionClass = '5,4,' + "Ship-to Country/Region Code";
             Caption = 'Ship-to County';
+            ToolTip = 'Specifies the state, province or county as a part of the address.';
         }
         /// <summary>
         /// Specifies the country or region of the ship-to address.
@@ -641,6 +689,7 @@ table 112 "Sales Invoice Header"
         field(93; "Ship-to Country/Region Code"; Code[10])
         {
             Caption = 'Ship-to Country/Region Code';
+            ToolTip = 'Specifies the country or region of the address.';
             TableRelation = "Country/Region";
         }
         /// <summary>
@@ -656,6 +705,7 @@ table 112 "Sales Invoice Header"
         field(97; "Exit Point"; Code[10])
         {
             Caption = 'Exit Point';
+            ToolTip = 'Specifies the point of exit through which you ship the items out of your country/region, for reporting to Intrastat.';
             TableRelation = "Entry/Exit Point";
         }
         /// <summary>
@@ -671,6 +721,7 @@ table 112 "Sales Invoice Header"
         field(99; "Document Date"; Date)
         {
             Caption = 'Document Date';
+            ToolTip = 'Specifies the date on which you created the sales document.';
         }
         /// <summary>
         /// Specifies an external document number such as the customer's purchase order number.
@@ -678,6 +729,7 @@ table 112 "Sales Invoice Header"
         field(100; "External Document No."; Code[35])
         {
             Caption = 'External Document No.';
+            ToolTip = 'Specifies the external document number that is entered on the sales header that this line was posted from.';
         }
         /// <summary>
         /// Specifies the geographic area for Intrastat reporting.
@@ -685,6 +737,7 @@ table 112 "Sales Invoice Header"
         field(101; "Area"; Code[10])
         {
             Caption = 'Area';
+            ToolTip = 'Specifies the area code used in the invoice.';
             TableRelation = Area;
         }
         /// <summary>
@@ -693,6 +746,7 @@ table 112 "Sales Invoice Header"
         field(102; "Transaction Specification"; Code[10])
         {
             Caption = 'Transaction Specification';
+            ToolTip = 'Specifies the transaction specification that was used in the invoice.';
             TableRelation = "Transaction Specification";
         }
         /// <summary>
@@ -701,6 +755,7 @@ table 112 "Sales Invoice Header"
         field(104; "Payment Method Code"; Code[10])
         {
             Caption = 'Payment Method Code';
+            ToolTip = 'Specifies how the customer must pay for products on the sales document.';
             TableRelation = "Payment Method";
         }
         /// <summary>
@@ -710,6 +765,7 @@ table 112 "Sales Invoice Header"
         {
             AccessByPermission = TableData "Shipping Agent Services" = R;
             Caption = 'Shipping Agent Code';
+            ToolTip = 'Specifies which shipping agent is used to transport the items on the sales document to the customer.';
             TableRelation = "Shipping Agent";
         }
         /// <summary>
@@ -724,6 +780,7 @@ table 112 "Sales Invoice Header"
 #endif
         {
             Caption = 'Package Tracking No.';
+            ToolTip = 'Specifies the shipping agent''s package number.';
         }
         /// <summary>
         /// Specifies the number series used before the invoice was posted.
@@ -756,6 +813,7 @@ table 112 "Sales Invoice Header"
         field(111; "Pre-Assigned No."; Code[20])
         {
             Caption = 'Pre-Assigned No.';
+            ToolTip = 'Specifies the number of the sales document that the posted invoice was created for.';
         }
         /// <summary>
         /// Specifies the user who posted the invoice.
@@ -780,6 +838,7 @@ table 112 "Sales Invoice Header"
         field(114; "Tax Area Code"; Code[20])
         {
             Caption = 'Tax Area Code';
+            ToolTip = 'Specifies the tax area that is used to calculate and post sales tax.';
             TableRelation = "Tax Area";
         }
         /// <summary>
@@ -788,6 +847,7 @@ table 112 "Sales Invoice Header"
         field(115; "Tax Liable"; Boolean)
         {
             Caption = 'Tax Liable';
+            ToolTip = 'Specifies if the customer or vendor is liable for sales tax.';
         }
         /// <summary>
         /// Specifies the VAT business posting group for VAT calculation.
@@ -854,6 +914,7 @@ table 112 "Sales Invoice Header"
         field(151; "Quote No."; Code[20])
         {
             Caption = 'Quote No.';
+            ToolTip = 'Specifies the number of the sales quote document if a quote was used to start the sales process.';
             Editable = false;
         }
         /// <summary>
@@ -862,6 +923,7 @@ table 112 "Sales Invoice Header"
         field(163; "Company Bank Account Code"; Code[20])
         {
             Caption = 'Company Bank Account Code';
+            ToolTip = 'Specifies the bank account to use for bank information when the document is printed.';
             TableRelation = "Bank Account" where("Currency Code" = field("Currency Code"));
         }
         /// <summary>
@@ -910,6 +972,7 @@ table 112 "Sales Invoice Header"
         field(179; "VAT Reporting Date"; Date)
         {
             Caption = 'VAT Date';
+            ToolTip = 'Specifies the VAT date on the invoice.';
             Editable = false;
         }
         /// <summary>
@@ -918,6 +981,7 @@ table 112 "Sales Invoice Header"
         field(180; "Payment Reference"; Code[50])
         {
             Caption = 'Payment Reference';
+            ToolTip = 'Specifies the payment of the sales invoice.';
         }
         /// <summary>
         /// Contains the timestamp of when the last email was sent for this invoice.
@@ -948,6 +1012,7 @@ table 112 "Sales Invoice Header"
         field(210; "Ship-to Phone No."; Text[30])
         {
             Caption = 'Ship-to Phone No.';
+            ToolTip = 'Specifies the telephone number of the company''s shipping address.';
             ExtendedDatatype = PhoneNo;
         }
         /// <summary>
@@ -984,6 +1049,7 @@ table 112 "Sales Invoice Header"
         field(711; "Document Exchange Status"; Enum "Sales Document Exchange Status")
         {
             Caption = 'Document Exchange Status';
+            ToolTip = 'Specifies the status of the document if you are using a document exchange service to send it as an electronic document. The status values are reported by the document exchange service.';
         }
         /// <summary>
         /// Specifies the original identifier of the document in the exchange service.
@@ -1009,6 +1075,7 @@ table 112 "Sales Invoice Header"
         {
             FieldClass = FlowField;
             Caption = 'Coupled to Dynamics 365 Sales';
+            ToolTip = 'Specifies that the posted sales order is coupled to a sales order in Dynamics 365 Sales.';
             Editable = false;
             CalcFormula = exist("CRM Integration Record" where("Integration ID" = field(SystemId), "Table ID" = const(Database::"Sales Invoice Header")));
         }
@@ -1018,6 +1085,7 @@ table 112 "Sales Invoice Header"
         field(1200; "Direct Debit Mandate ID"; Code[35])
         {
             Caption = 'Direct Debit Mandate ID';
+            ToolTip = 'Specifies the direct-debit mandate that the customer has signed to allow direct debit collection of payments.';
             TableRelation = "SEPA Direct Debit Mandate" where("Customer No." = field("Bill-to Customer No."));
         }
         /// <summary>
@@ -1028,6 +1096,7 @@ table 112 "Sales Invoice Header"
             CalcFormula = - exist("Cust. Ledger Entry" where("Entry No." = field("Cust. Ledger Entry No."),
                                                              Open = filter(true)));
             Caption = 'Closed';
+            ToolTip = 'Specifies if the posted invoice is paid. The check box will also be selected if a credit memo for the remaining amount has been applied.';
             Editable = false;
             FieldClass = FlowField;
         }
@@ -1040,6 +1109,7 @@ table 112 "Sales Invoice Header"
             AutoFormatType = 1;
             CalcFormula = sum("Detailed Cust. Ledg. Entry".Amount where("Cust. Ledger Entry No." = field("Cust. Ledger Entry No.")));
             Caption = 'Remaining Amount';
+            ToolTip = 'Specifies the amount that remains to be paid on the sales invoices that are due next week.';
             Editable = false;
             FieldClass = FlowField;
         }
@@ -1072,6 +1142,7 @@ table 112 "Sales Invoice Header"
             CalcFormula = exist("Cancelled Document" where("Source ID" = const(112),
                                                             "Cancelled Doc. No." = field("No.")));
             Caption = 'Cancelled';
+            ToolTip = 'Specifies if the posted sales invoice has been either corrected or canceled.';
             Editable = false;
             FieldClass = FlowField;
         }
@@ -1083,6 +1154,7 @@ table 112 "Sales Invoice Header"
             CalcFormula = exist("Cancelled Document" where("Source ID" = const(114),
                                                             "Cancelled By Doc. No." = field("No.")));
             Caption = 'Corrective';
+            ToolTip = 'Specifies if the posted sales invoice is a corrective document.';
             Editable = false;
             FieldClass = FlowField;
         }
@@ -1115,6 +1187,7 @@ table 112 "Sales Invoice Header"
         field(1341; "Promised Pay Date"; Date)
         {
             Caption = 'Promised Pay Date';
+            ToolTip = 'Specifies the date on which the customer have promised to pay this invoice.';
             DataClassification = CustomerContent;
         }
         /// <summary>
@@ -1131,6 +1204,7 @@ table 112 "Sales Invoice Header"
         field(5052; "Sell-to Contact No."; Code[20])
         {
             Caption = 'Sell-to Contact No.';
+            ToolTip = 'Specifies a unique identifier for the contact person at the customer the invoice was sent to.';
             TableRelation = Contact;
         }
         /// <summary>
@@ -1139,6 +1213,7 @@ table 112 "Sales Invoice Header"
         field(5053; "Bill-to Contact No."; Code[20])
         {
             Caption = 'Bill-to Contact No.';
+            ToolTip = 'Specifies the number of the contact the invoice was sent to.';
             TableRelation = Contact;
         }
         /// <summary>
@@ -1155,6 +1230,7 @@ table 112 "Sales Invoice Header"
         field(5700; "Responsibility Center"; Code[10])
         {
             Caption = 'Responsibility Center';
+            ToolTip = 'Specifies the code of the responsibility center associated with the user who created the invoice, your company, or the customer in the sales invoice.';
             TableRelation = "Responsibility Center";
         }
         /// <summary>
@@ -1163,6 +1239,7 @@ table 112 "Sales Invoice Header"
         field(5794; "Shipping Agent Service Code"; Code[10])
         {
             Caption = 'Shipping Agent Service Code';
+            ToolTip = 'Specifies which shipping agent service is used to transport the items on the sales document to the customer.';
             TableRelation = "Shipping Agent Services".Code where("Shipping Agent Code" = field("Shipping Agent Code"));
         }
         /// <summary>

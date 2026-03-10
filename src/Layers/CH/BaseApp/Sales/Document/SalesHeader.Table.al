@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -314,6 +314,7 @@ table 36 "Sales Header"
                 OnAfterCheckBillToCust(Rec, xRec, Customer);
 
                 SetBillToCustomerAddressFieldsFromCustomer(Customer);
+                Validate("Currency Code");
 
                 if not BilltoCustomerNoChanged then
                     if ShippedSalesLinesExist() then begin
@@ -326,7 +327,6 @@ table 36 "Sales Header"
                 Validate("Payment Terms Code");
                 Validate("Prepmt. Payment Terms Code");
                 Validate("Payment Method Code");
-                Validate("Currency Code");
                 Validate("Prepayment %");
 
                 if (xRec."Sell-to Customer No." = "Sell-to Customer No.") and
@@ -383,6 +383,7 @@ table 36 "Sales Header"
         field(7; "Bill-to Address"; Text[100])
         {
             Caption = 'Bill-to Address';
+            ToolTip = 'Specifies the address of the customer that you will send the invoice to.';
 
             trigger OnValidate()
             begin
@@ -395,6 +396,7 @@ table 36 "Sales Header"
         field(8; "Bill-to Address 2"; Text[50])
         {
             Caption = 'Bill-to Address 2';
+            ToolTip = 'Specifies additional address information.';
 
             trigger OnValidate()
             begin
@@ -407,6 +409,7 @@ table 36 "Sales Header"
         field(9; "Bill-to City"; Text[30])
         {
             Caption = 'Bill-to City';
+            ToolTip = 'Specifies the city of the customer on the sales document.';
             TableRelation = if ("Bill-to Country/Region Code" = const('')) "Post Code".City
             else
             if ("Bill-to Country/Region Code" = filter(<> '')) "Post Code".City where("Country/Region Code" = field("Bill-to Country/Region Code"));
@@ -552,6 +555,7 @@ table 36 "Sales Header"
         field(14; "Ship-to Name 2"; Text[50])
         {
             Caption = 'Ship-to Name 2';
+            ToolTip = 'Specifies an additional part of the name that products on the sales document will be shipped to.';
         }
         /// <summary>
         /// Specifies the street address where items are shipped to.
@@ -559,6 +563,7 @@ table 36 "Sales Header"
         field(15; "Ship-to Address"; Text[100])
         {
             Caption = 'Ship-to Address';
+            ToolTip = 'Specifies the address that products on the sales document will be shipped to.';
         }
         /// <summary>
         /// Specifies additional street address information for the shipping address.
@@ -566,6 +571,7 @@ table 36 "Sales Header"
         field(16; "Ship-to Address 2"; Text[50])
         {
             Caption = 'Ship-to Address 2';
+            ToolTip = 'Specifies additional address information.';
         }
         /// <summary>
         /// Specifies the city of the shipping address.
@@ -573,6 +579,7 @@ table 36 "Sales Header"
         field(17; "Ship-to City"; Text[30])
         {
             Caption = 'Ship-to City';
+            ToolTip = 'Specifies the city of the customer on the sales document.';
             TableRelation = if ("Ship-to Country/Region Code" = const('')) "Post Code".City
             else
             if ("Ship-to Country/Region Code" = filter(<> '')) "Post Code".City where("Country/Region Code" = field("Ship-to Country/Region Code"));
@@ -613,6 +620,7 @@ table 36 "Sales Header"
         {
             AccessByPermission = TableData "Sales Shipment Header" = R;
             Caption = 'Order Date';
+            ToolTip = 'Specifies the date when the order was created.';
 
             trigger OnValidate()
             begin
@@ -811,6 +819,7 @@ table 36 "Sales Header"
         field(26; "Pmt. Discount Date"; Date)
         {
             Caption = 'Pmt. Discount Date';
+            ToolTip = 'Specifies the date on which the amount in the entry must be paid for a payment discount to be granted.';
         }
         /// <summary>
         /// Specifies the delivery conditions such as FOB or CIF for the shipment.
@@ -901,6 +910,7 @@ table 36 "Sales Header"
         field(31; "Customer Posting Group"; Code[20])
         {
             Caption = 'Customer Posting Group';
+            ToolTip = 'Specifies the customer''s market type to link business transactions to.';
             TableRelation = "Customer Posting Group";
 
             trigger OnValidate()
@@ -986,6 +996,7 @@ table 36 "Sales Header"
         field(35; "Prices Including VAT"; Boolean)
         {
             Caption = 'Prices Including VAT';
+            ToolTip = 'Specifies if the Unit Price and Line Amount fields on document lines should be shown with or without VAT.';
 
             trigger OnValidate()
             var
@@ -1104,6 +1115,7 @@ table 36 "Sales Header"
         field(41; "Language Code"; Code[10])
         {
             Caption = 'Language Code';
+            ToolTip = 'Specifies the language to be used on printouts for this document.';
             TableRelation = Language;
 
             trigger OnValidate()
@@ -1117,6 +1129,7 @@ table 36 "Sales Header"
         field(42; "Format Region"; Text[80])
         {
             Caption = 'Format Region';
+            ToolTip = 'Specifies the format to be used on printouts for this document.';
             TableRelation = "Language Selection"."Language Tag";
         }
         /// <summary>
@@ -1185,6 +1198,7 @@ table 36 "Sales Header"
         field(52; "Applies-to Doc. Type"; Enum "Gen. Journal Document Type")
         {
             Caption = 'Applies-to Doc. Type';
+            ToolTip = 'Specifies the type of the posted document that this document or journal line will be applied to when you post, for example to register payment.';
         }
         /// <summary>
         /// Specifies the document number to which this document applies for payment or credit.
@@ -1192,6 +1206,7 @@ table 36 "Sales Header"
         field(53; "Applies-to Doc. No."; Code[20])
         {
             Caption = 'Applies-to Doc. No.';
+            ToolTip = 'Specifies the number of the posted document that this document or journal line will be applied to when you post, for example to register payment.';
 
             trigger OnLookup()
             var
@@ -1411,6 +1426,7 @@ table 36 "Sales Header"
         field(70; "VAT Registration No."; Text[20])
         {
             Caption = 'VAT Registration No.';
+            ToolTip = 'Specifies the customer''s VAT registration number for customers.';
 
             trigger OnValidate()
             var
@@ -1483,6 +1499,7 @@ table 36 "Sales Header"
         field(71; "Combine Shipments"; Boolean)
         {
             Caption = 'Combine Shipments';
+            ToolTip = 'Specifies whether the order will be included when you use the Combine Shipments function.';
         }
         /// <summary>
         /// Specifies the company registration number of the customer.
@@ -1490,6 +1507,7 @@ table 36 "Sales Header"
         field(72; "Registration Number"; Text[50])
         {
             Caption = 'Registration No.';
+            ToolTip = 'Specifies the customer''s registration number.';
             DataClassification = CustomerContent;
         }
         /// <summary>
@@ -1498,6 +1516,7 @@ table 36 "Sales Header"
         field(73; "Reason Code"; Code[10])
         {
             Caption = 'Reason Code';
+            ToolTip = 'Specifies the reason code, a supplementary source code that enables you to trace the document.';
             TableRelation = "Reason Code";
         }
         /// <summary>
@@ -1506,6 +1525,7 @@ table 36 "Sales Header"
         field(74; "Gen. Bus. Posting Group"; Code[20])
         {
             Caption = 'Gen. Bus. Posting Group';
+            ToolTip = 'Specifies the general business posting group that the sales document is linked to. The general business posting group is used to link the sales document to the appropriate general ledger account.';
             TableRelation = "Gen. Business Posting Group";
 
             trigger OnValidate()
@@ -1526,6 +1546,7 @@ table 36 "Sales Header"
         field(75; "EU 3-Party Trade"; Boolean)
         {
             Caption = 'EU 3-Party Trade';
+            ToolTip = 'Specifies if the transaction is related to trade with a third party within the EU.';
         }
         /// <summary>
         /// Specifies the transaction type for Intrastat reporting.
@@ -1533,6 +1554,7 @@ table 36 "Sales Header"
         field(76; "Transaction Type"; Code[10])
         {
             Caption = 'Transaction Type';
+            ToolTip = 'Specifies the type of transaction that the document represents, for the purpose of reporting to INTRASTAT.';
             TableRelation = "Transaction Type";
 
             trigger OnValidate()
@@ -1546,6 +1568,7 @@ table 36 "Sales Header"
         field(77; "Transport Method"; Code[10])
         {
             Caption = 'Transport Method';
+            ToolTip = 'Specifies the transport method, for the purpose of reporting to INTRASTAT.';
             TableRelation = "Transport Method";
 
             trigger OnValidate()
@@ -1559,6 +1582,7 @@ table 36 "Sales Header"
         field(78; "VAT Country/Region Code"; Code[10])
         {
             Caption = 'VAT Country/Region Code';
+            ToolTip = 'Specifies the country or region code for the VAT.';
             TableRelation = "Country/Region";
 
             trigger OnValidate()
@@ -1618,6 +1642,7 @@ table 36 "Sales Header"
         field(81; "Sell-to Address"; Text[100])
         {
             Caption = 'Sell-to Address';
+            ToolTip = 'Specifies the address where the customer is located.';
 
             trigger OnValidate()
             begin
@@ -1631,6 +1656,7 @@ table 36 "Sales Header"
         field(82; "Sell-to Address 2"; Text[50])
         {
             Caption = 'Sell-to Address 2';
+            ToolTip = 'Specifies additional address information.';
 
             trigger OnValidate()
             begin
@@ -1644,6 +1670,7 @@ table 36 "Sales Header"
         field(83; "Sell-to City"; Text[30])
         {
             Caption = 'Sell-to City';
+            ToolTip = 'Specifies the city of the customer on the sales document.';
             TableRelation = if ("Sell-to Country/Region Code" = const('')) "Post Code".City
             else
             if ("Sell-to Country/Region Code" = filter(<> '')) "Post Code".City where("Country/Region Code" = field("Sell-to Country/Region Code"));
@@ -1745,6 +1772,7 @@ table 36 "Sales Header"
         {
             CaptionClass = '5,3,' + "Bill-to Country/Region Code";
             Caption = 'Bill-to County';
+            ToolTip = 'Specifies the state, province or county of the address.';
 
             trigger OnValidate()
             begin
@@ -1814,6 +1842,7 @@ table 36 "Sales Header"
         {
             CaptionClass = '5,2,' + "Sell-to Country/Region Code";
             Caption = 'Sell-to County';
+            ToolTip = 'Specifies the state, province or county of the address.';
 
             trigger OnValidate()
             begin
@@ -1880,6 +1909,7 @@ table 36 "Sales Header"
         {
             CaptionClass = '5,4,' + "Ship-to Country/Region Code";
             Caption = 'Ship-to County';
+            ToolTip = 'Specifies the state, province or county of the address.';
         }
         /// <summary>
         /// Specifies the country/region code of the shipping address.
@@ -1908,6 +1938,7 @@ table 36 "Sales Header"
         field(97; "Exit Point"; Code[10])
         {
             Caption = 'Exit Point';
+            ToolTip = 'Specifies the point of exit through which you ship the items out of your country/region, for reporting to Intrastat.';
             TableRelation = "Entry/Exit Point";
 
             trigger OnValidate()
@@ -1921,6 +1952,7 @@ table 36 "Sales Header"
         field(98; Correction; Boolean)
         {
             Caption = 'Correction';
+            ToolTip = 'Specifies the entry as a corrective entry. You can use the field if you need to post a corrective entry to a customer account. If you place a check mark in this field when posting a corrective entry, the system will post a negative debit instead of a credit or a negative credit instead of a debit. Correction flag does not affect how inventory reconciled with general ledger.';
         }
         /// <summary>
         /// Specifies the date when the document was created.
@@ -1987,6 +2019,7 @@ table 36 "Sales Header"
         field(101; "Area"; Code[10])
         {
             Caption = 'Area';
+            ToolTip = 'Specifies the country or region of origin for the purpose of Intrastat reporting.';
             TableRelation = Area;
 
             trigger OnValidate()
@@ -2000,6 +2033,7 @@ table 36 "Sales Header"
         field(102; "Transaction Specification"; Code[10])
         {
             Caption = 'Transaction Specification';
+            ToolTip = 'Specifies a specification of the document''s transaction, for the purpose of reporting to INTRASTAT.';
             TableRelation = "Transaction Specification";
 
             trigger OnValidate()
@@ -2013,6 +2047,7 @@ table 36 "Sales Header"
         field(104; "Payment Method Code"; Code[10])
         {
             Caption = 'Payment Method Code';
+            ToolTip = 'Specifies how to make payment, such as with bank transfer, cash, or check.';
             TableRelation = "Payment Method";
 
             trigger OnValidate()
@@ -2170,6 +2205,7 @@ table 36 "Sales Header"
         field(114; "Tax Area Code"; Code[20])
         {
             Caption = 'Tax Area Code';
+            ToolTip = 'Specifies the tax area that is used to calculate and post sales tax.';
             TableRelation = "Tax Area";
             ValidateTableRelation = false;
 
@@ -2188,6 +2224,7 @@ table 36 "Sales Header"
         field(115; "Tax Liable"; Boolean)
         {
             Caption = 'Tax Liable';
+            ToolTip = 'Specifies if the customer or vendor is liable for sales tax.';
 
             trigger OnValidate()
             begin
@@ -2203,6 +2240,7 @@ table 36 "Sales Header"
         field(116; "VAT Bus. Posting Group"; Code[20])
         {
             Caption = 'VAT Bus. Posting Group';
+            ToolTip = 'Specifies the VAT specification of the involved customer or vendor to link transactions made for this record with the appropriate general ledger account according to the VAT posting setup.';
             TableRelation = "VAT Business Posting Group";
 
             trigger OnValidate()
@@ -2229,6 +2267,7 @@ table 36 "Sales Header"
         field(118; "Applies-to ID"; Code[50])
         {
             Caption = 'Applies-to ID';
+            ToolTip = 'Specifies the ID of entries that will be applied to when you choose the Apply Entries action.';
 
             trigger OnValidate()
             var
@@ -2387,6 +2426,7 @@ table 36 "Sales Header"
         {
             AutoFormatType = 0;
             Caption = 'Prepayment %';
+            ToolTip = 'Specifies the prepayment percentage to use to calculate the prepayment for sales.';
             DecimalPlaces = 0 : 5;
             MaxValue = 100;
             MinValue = 0;
@@ -2449,6 +2489,7 @@ table 36 "Sales Header"
         field(132; "Compress Prepayment"; Boolean)
         {
             Caption = 'Compress Prepayment';
+            ToolTip = 'Specifies that prepayments on the sales order are combined if they have the same general ledger account for prepayments or the same dimensions.';
             InitValue = true;
 
             trigger OnValidate()
@@ -2462,6 +2503,7 @@ table 36 "Sales Header"
         field(133; "Prepayment Due Date"; Date)
         {
             Caption = 'Prepayment Due Date';
+            ToolTip = 'Specifies when the prepayment invoice for this sales order is due.';
         }
         /// <summary>
         /// Specifies the number series for prepayment credit memos.
@@ -2520,6 +2562,7 @@ table 36 "Sales Header"
         field(138; "Prepmt. Pmt. Discount Date"; Date)
         {
             Caption = 'Prepmt. Pmt. Discount Date';
+            ToolTip = 'Specifies the last date the customer can pay the prepayment invoice and still receive a payment discount on the prepayment amount.';
         }
         /// <summary>
         /// Specifies the payment terms code for prepayment invoices.
@@ -2527,6 +2570,7 @@ table 36 "Sales Header"
         field(139; "Prepmt. Payment Terms Code"; Code[10])
         {
             Caption = 'Prepmt. Payment Terms Code';
+            ToolTip = 'Specifies the code that represents the payment terms for prepayment invoices related to the sales document.';
             TableRelation = "Payment Terms";
 
             trigger OnValidate()
@@ -2579,6 +2623,7 @@ table 36 "Sales Header"
         {
             AutoFormatType = 0;
             Caption = 'Prepmt. Payment Discount %';
+            ToolTip = 'Specifies the payment discount percent granted on the prepayment if the customer pays on or before the date entered in the Prepmt. Pmt. Discount Date field.';
             DecimalPlaces = 0 : 5;
             MaxValue = 100;
             MinValue = 0;
@@ -2610,6 +2655,7 @@ table 36 "Sales Header"
         field(152; "Quote Valid Until Date"; Date)
         {
             Caption = 'Quote Valid To Date';
+            ToolTip = 'Specifies how long the quote is valid.';
         }
         /// <summary>
         /// Specifies when the quote was sent to the customer.
@@ -2625,6 +2671,7 @@ table 36 "Sales Header"
         field(154; "Quote Accepted"; Boolean)
         {
             Caption = 'Quote Accepted';
+            ToolTip = 'Specifies that the quote was accepted by the customer.';
 
             trigger OnValidate()
             begin
@@ -2641,6 +2688,7 @@ table 36 "Sales Header"
         field(155; "Quote Accepted Date"; Date)
         {
             Caption = 'Quote Accepted Date';
+            ToolTip = 'Specifies when the quote was accepted by the customer.';
             Editable = false;
         }
         /// <summary>
@@ -2675,6 +2723,7 @@ table 36 "Sales Header"
         field(163; "Company Bank Account Code"; Code[20])
         {
             Caption = 'Company Bank Account Code';
+            ToolTip = 'Specifies the bank account to use for bank information when the document is printed.';
             TableRelation = "Bank Account" where("Currency Code" = field("Currency Code"));
 
             trigger OnValidate()
@@ -2689,6 +2738,7 @@ table 36 "Sales Header"
         field(165; "Incoming Document Entry No."; Integer)
         {
             Caption = 'Incoming Document Entry No.';
+            ToolTip = 'Specifies the number of the incoming document that this sales document is created for.';
             TableRelation = "Incoming Document";
 
             trigger OnValidate()
@@ -2741,6 +2791,7 @@ table 36 "Sales Header"
         field(171; "Sell-to Phone No."; Text[30])
         {
             Caption = 'Sell-to Phone No.';
+            ToolTip = 'Specifies the telephone number of the contact person that the sales document will be sent to.';
             ExtendedDatatype = PhoneNo;
 
             trigger OnValidate()
@@ -2761,6 +2812,7 @@ table 36 "Sales Header"
         field(172; "Sell-to E-Mail"; Text[80])
         {
             Caption = 'Email';
+            ToolTip = 'Specifies the email address of the contact person that the sales document will be sent to.';
             ExtendedDatatype = EMail;
 
             trigger OnValidate()
@@ -2778,6 +2830,7 @@ table 36 "Sales Header"
         field(178; "Journal Templ. Name"; Code[10])
         {
             Caption = 'Journal Template Name';
+            ToolTip = 'Specifies the name of the journal template in which the sales header is to be posted.';
             TableRelation = "Gen. Journal Template" where(Type = filter(Sales));
 
             trigger OnValidate()
@@ -2793,6 +2846,7 @@ table 36 "Sales Header"
         field(179; "VAT Reporting Date"; Date)
         {
             Caption = 'VAT Date';
+            ToolTip = 'Specifies the date used to include entries on VAT reports in a VAT period. This is either the date that the document was created or posted, depending on your setting on the General Ledger Setup page.';
             Editable = false;
 
             trigger OnValidate()
@@ -2813,6 +2867,7 @@ table 36 "Sales Header"
         field(181; "Rcvd.-from Count./Region Code"; Code[10])
         {
             Caption = 'Received-from Country/Region Code';
+            ToolTip = 'Specifies the country or region from which the items are returned for the purpose of Intrastat reporting.';
             TableRelation = "Country/Region";
         }
         /// <summary>
@@ -2847,6 +2902,7 @@ table 36 "Sales Header"
         field(210; "Ship-to Phone No."; Text[30])
         {
             Caption = 'Ship-to Phone No.';
+            ToolTip = 'Specifies the telephone number of the company''s shipping address.';
             ExtendedDatatype = PhoneNo;
         }
         /// <summary>
@@ -2930,6 +2986,7 @@ table 36 "Sales Header"
         field(1200; "Direct Debit Mandate ID"; Code[35])
         {
             Caption = 'Direct Debit Mandate ID';
+            ToolTip = 'Specifies the direct-debit mandate that the customer has signed to allow direct debit collection of payments.';
             TableRelation = "SEPA Direct Debit Mandate" where("Customer No." = field("Bill-to Customer No."),
                                                                Closed = const(false),
                                                                Blocked = const(false));
@@ -2956,6 +3013,7 @@ table 36 "Sales Header"
                                                                           "No." = field("No."),
                                                                           "Doc. No. Occurrence" = field("Doc. No. Occurrence")));
             Caption = 'No. of Archived Versions';
+            ToolTip = 'Specifies the number of archived versions for this document.';
             Editable = false;
             FieldClass = FlowField;
         }
@@ -2987,6 +3045,7 @@ table 36 "Sales Header"
         field(5052; "Sell-to Contact No."; Code[20])
         {
             Caption = 'Sell-to Contact No.';
+            ToolTip = 'Specifies the number of the contact person that the sales document will be sent to.';
             TableRelation = Contact;
 
             trigger OnLookup()
@@ -3067,6 +3126,7 @@ table 36 "Sales Header"
         field(5053; "Bill-to Contact No."; Code[20])
         {
             Caption = 'Bill-to Contact No.';
+            ToolTip = 'Specifies the number of the contact the invoice will be sent to.';
             TableRelation = Contact;
 
             trigger OnLookup()
@@ -3139,6 +3199,7 @@ table 36 "Sales Header"
         field(5055; "Opportunity No."; Code[20])
         {
             Caption = 'Opportunity No.';
+            ToolTip = 'Specifies the number of the opportunity that the sales quote is assigned to.';
             TableRelation = if ("Document Type" = filter(<> Order)) Opportunity."No." where("Contact No." = field("Sell-to Contact No."),
                                                                                           Closed = const(false))
             else
@@ -3157,6 +3218,7 @@ table 36 "Sales Header"
         field(5056; "Sell-to Customer Templ. Code"; Code[20])
         {
             Caption = 'Sell-to Customer Template Code';
+            ToolTip = 'Specifies the code for the template to create a new customer';
             TableRelation = "Customer Templ.";
 
             trigger OnValidate()
@@ -3246,11 +3308,18 @@ table 36 "Sales Header"
         field(5700; "Responsibility Center"; Code[10])
         {
             Caption = 'Responsibility Center';
+            ToolTip = 'Specifies the code of the responsibility center, such as a distribution hub, that is associated with the involved user, company, customer, or vendor.';
             TableRelation = "Responsibility Center";
 
             trigger OnValidate()
+            var
+                IsHandled: Boolean;
             begin
                 TestStatusOpen();
+                IsHandled := false;
+                OnBeforeResponsibilityCenterValidate(Rec, xRec, IsHandled);
+                if IsHandled then
+                    exit;
                 if not UserSetupMgt.CheckRespCenter(0, "Responsibility Center") then
                     Error(
                       Text027,
@@ -3388,6 +3457,7 @@ table 36 "Sales Header"
         {
             AccessByPermission = TableData "Order Promising Line" = R;
             Caption = 'Promised Delivery Date';
+            ToolTip = 'Specifies the date that you have promised to deliver the order, as a result of the Order Promising function.';
 
             trigger OnValidate()
             var
@@ -3410,6 +3480,7 @@ table 36 "Sales Header"
         {
             AccessByPermission = TableData "Sales Shipment Header" = R;
             Caption = 'Shipping Time';
+            ToolTip = 'Specifies how long it takes from when the items are shipped from the warehouse to when they are delivered.';
 
             trigger OnValidate()
             begin
@@ -3425,6 +3496,7 @@ table 36 "Sales Header"
         {
             AccessByPermission = TableData "Warehouse Shipment Header" = R;
             Caption = 'Outbound Whse. Handling Time';
+            ToolTip = 'Specifies a date formula for the time it takes to get items ready to ship from this location. The time element is used in the calculation of the delivery date as follows: Shipment Date + Outbound Warehouse Handling Time = Planned Shipment Date + Shipping Time = Planned Delivery Date.';
 
             trigger OnValidate()
             begin
@@ -3473,6 +3545,7 @@ table 36 "Sales Header"
                                                     "Shipment Date" = field("Date Filter"),
                                                     "Outstanding Quantity" = filter(<> 0)));
             Caption = 'Late Order Shipping';
+            ToolTip = 'Indicates a delay in the shipment of one or more lines, or that the shipment date is either the same as or earlier than the work date.';
             Editable = false;
             FieldClass = FlowField;
         }
@@ -4524,7 +4597,7 @@ table 36 "Sales Header"
 
                 SalesLine.Init();
                 SalesLine."Line No." := 0;
-                OnRecreateSalesLinesOnBeforeTempSalesLineFindSet(TempSalesLine);
+                OnRecreateSalesLinesOnBeforeTempSalesLineFindSet(TempSalesLine, SalesLine);
                 TempSalesLine.FindSet();
                 ExtendedTextAdded := false;
                 SalesLine.BlockDynamicTracking(true);
@@ -6660,7 +6733,7 @@ table 36 "Sales Header"
         ErrorMessageMgt.PushContext(ErrorContextElement, RecordId, 0, '');
         IsSuccess := CODEUNIT.Run(PostingCodeunitID, Rec);
 
-        OnSendToPostingOnAfterPost(Rec);
+        OnSendToPostingOnAfterPost(Rec, IsSuccess);
         if not IsSuccess then begin
             if Rec.Status <> Rec.Status::Released then
                 DeleteWarehouseRequest();
@@ -9143,10 +9216,13 @@ table 36 "Sales Header"
     local procedure CalcQuoteValidUntilDate()
     var
         BlankDateFormula: DateFormula;
+        QuoteValidityCalculation: DateFormula;
     begin
         GetSalesSetup();
-        if SalesSetup."Quote Validity Calculation" <> BlankDateFormula then
-            "Quote Valid Until Date" := CalcDate(SalesSetup."Quote Validity Calculation", "Document Date");
+        QuoteValidityCalculation := SalesSetup."Quote Validity Calculation";
+        OnCalcQuoteValidUntilDateOnBeforeAssign(Rec, xRec, QuoteValidityCalculation, UpdateDocumentDate);
+        if QuoteValidityCalculation <> BlankDateFormula then
+            "Quote Valid Until Date" := CalcDate(QuoteValidityCalculation, "Document Date");
     end;
 
     /// <summary>
@@ -12789,7 +12865,7 @@ table 36 "Sales Header"
     /// </summary>
     /// <param name="TempSalesLine">The temporary sales line record.</param>
     [IntegrationEvent(false, false)]
-    local procedure OnRecreateSalesLinesOnBeforeTempSalesLineFindSet(var TempSalesLine: Record "Sales Line" temporary)
+    local procedure OnRecreateSalesLinesOnBeforeTempSalesLineFindSet(var TempSalesLine: Record "Sales Line" temporary; var SalesLine: Record "Sales Line")
     begin
     end;
 
@@ -13659,8 +13735,9 @@ table 36 "Sales Header"
     /// Raised after posting when sending to posting.
     /// </summary>
     /// <param name="SalesHeader">The sales header record that was posted.</param>
+    /// <param name="IsSuccess">Indicates whether the posting was successful.</param>
     [IntegrationEvent(false, false)]
-    local procedure OnSendToPostingOnAfterPost(var SalesHeader: Record "Sales Header")
+    local procedure OnSendToPostingOnAfterPost(var SalesHeader: Record "Sales Header"; IsSuccess: Boolean)
     begin
     end;
 
@@ -14150,6 +14227,16 @@ table 36 "Sales Header"
     /// <param name="CustomerName">The customer name text.</param>
     [IntegrationEvent(false, false)]
     local procedure OnLookupSellToCustomerNameOnBeforeSelectCustomer(SalesHeader: Record "Sales Header"; var Customer: Record Customer; var CustomerName: Text)
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnCalcQuoteValidUntilDateOnBeforeAssign(var SalesHeader: Record "Sales Header"; xSalesHeader: Record "Sales Header"; var QuoteValidityCalculation: DateFormula; UpdateDocumentDate: Boolean)
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnBeforeResponsibilityCenterValidate(var SalesHeader: Record "Sales Header"; xSalesHeader: Record "Sales Header"; var IsHandled: Boolean)
     begin
     end;
 }

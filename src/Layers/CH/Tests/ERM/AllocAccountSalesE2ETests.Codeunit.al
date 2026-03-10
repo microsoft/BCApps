@@ -36,6 +36,75 @@ codeunit 134830 "Alloc. Account Sales E2E Tests"
 
     [Test]
     [HandlerFunctions('ConfirmHandlerTrue')]
+    procedure TestFixedPercentageRoundingWithFourAccounts()
+    var
+        GLAccount: array[4] of Record "G/L Account";
+        AllocationAccount: Record "Allocation Account";
+        SalesHeader: Record "Sales Header";
+        SalesInvoiceHeader: Record "Sales Invoice Header";
+        SalesInvoiceLine: Record "Sales Invoice Line";
+        DummySalesLine: Record "Sales Line";
+        AllocationAccountPage: TestPage "Allocation Account";
+        SalesInvoice: TestPage "Sales Invoice";
+        Percentages: array[4] of Decimal;
+        PostedAmount: Decimal;
+        I: Integer;
+    begin
+        // [FEATURE] [AI test]
+        // [SCENARIO 617826 Sales invoice with allocation account using four fixed percentages should not have rounding errors
+        Initialize();
+
+        // [GIVEN] Four G/L Accounts "A", "B", "C", "D" for sales setup
+        for I := 1 to 4 do
+            GLAccount[I].Get(LibraryERM.CreateGLAccountWithSalesSetup());
+
+        // [GIVEN] Allocation Account with fixed percentages: "A" 30.83%, "B" 30.95%, "C" 7.15%, "D" 31.07%
+        Percentages[1] := 0.3083;
+        Percentages[2] := 0.3095;
+        Percentages[3] := 0.0715;
+        Percentages[4] := 0.3107;
+
+        AllocationAccount.Get(CreateAllocationAccountWithFixedDistribution(AllocationAccountPage));
+        for I := 1 to 4 do begin
+            if I > 1 then
+                AllocationAccountPage.FixedAccountDistribution.New();
+            AddGLDestinationAccountForFixedDistribution(AllocationAccountPage, GLAccount[I]);
+            AllocationAccountPage.FixedAccountDistribution.Share.SetValue(Percentages[I]);
+        end;
+        AllocationAccountPage.Close();
+
+        // [GIVEN] Sales Invoice for customer "C" with allocation account, quantity 2, unit price 288
+        LibrarySales.CreateSalesInvoice(SalesHeader);
+        SalesInvoice.OpenEdit();
+        SalesInvoice.GoToRecord(SalesHeader);
+        SalesInvoice.SalesLines.New();
+        SalesInvoice.SalesLines.Type.SetValue(DummySalesLine.Type::"Allocation Account");
+        SalesInvoice.SalesLines."No.".SetValue(AllocationAccount."No.");
+        SalesInvoice.SalesLines.Quantity.SetValue(2);
+        SalesInvoice.SalesLines."Unit Price".SetValue(288);
+
+        // [WHEN] Sales Invoice is posted
+        SalesInvoice.Post.Invoke();
+        SalesInvoiceHeader.SetRange("Draft Invoice SystemId", SalesHeader.SystemId);
+        SalesInvoiceHeader.FindFirst();
+
+        // [THEN] Total amount of posted sales invoice lines equals 576.00 with no rounding errors
+        SalesInvoiceLine.SetRange("Document No.", SalesInvoiceHeader."No.");
+        SalesInvoiceLine.SetRange(Type, SalesInvoiceLine.Type::"G/L Account");
+        Assert.AreEqual(4, SalesInvoiceLine.Count(), 'Wrong number of Sales Invoice Lines created');
+
+        PostedAmount := 0;
+        for I := 1 to 4 do begin
+            SalesInvoiceLine.SetRange("No.", GLAccount[I]."No.");
+            SalesInvoiceLine.FindFirst();
+            PostedAmount += SalesInvoiceLine.Amount;
+        end;
+
+        Assert.AreEqual(576, PostedAmount, 'The total amount was not distributed correctly, rounding error detected');
+    end;
+
+    [Test]
+    [HandlerFunctions('ConfirmHandlerTrue')]
     procedure TestAllocateToDifferentAccountsVariableGLAllocation()
     var
         FirstDestinationGLAccount: Record "G/L Account";
@@ -1162,9 +1231,9 @@ codeunit 134830 "Alloc. Account Sales E2E Tests"
         SalesHeader: Record "Sales Header";
         DefaultDimension: Record "Default Dimension";
         GeneralLedgerSetup: Record "General Ledger Setup";
+        DummySalesLine: Record "Sales Line";
         AllocationAccountPage: TestPage "Allocation Account";
         SalesInvoice: TestPage "Sales Invoice";
-        DummySalesLine: Record "Sales Line";
         DimensionValueCode: Code[20];
         CustomerDimensionSetID: Integer;
     begin

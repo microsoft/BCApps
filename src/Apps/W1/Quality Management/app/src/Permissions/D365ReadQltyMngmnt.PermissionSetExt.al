@@ -6,7 +6,7 @@ namespace Microsoft.QualityManagement.Permissions;
 
 using System.Security.AccessControl;
 
-permissionsetextension 20402 "D365 READ - QltyMngmnt" extends "D365 READ"
+permissionsetextension 20403 "D365 READ - QltyMngmnt" extends "D365 READ"
 {
     IncludedPermissionSets = "QltyMngmnt - Read";
 }

@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -23,7 +23,6 @@ page 5053 "Contact Statistics"
                 field("No. of Interactions"; Rec."No. of Interactions")
                 {
                     ApplicationArea = RelationshipMgmt;
-                    ToolTip = 'Specifies the number of interactions created for this contact. The field is not editable.';
                 }
                 field("Cost (LCY)"; Rec."Cost (LCY)")
                 {
@@ -42,7 +41,6 @@ page 5053 "Contact Statistics"
                 field("No. of Opportunities"; Rec."No. of Opportunities")
                 {
                     ApplicationArea = RelationshipMgmt;
-                    ToolTip = 'Specifies the number of open opportunities involving the contact. The field is not editable.';
                 }
                 field("Estimated Value (LCY)"; Rec."Estimated Value (LCY)")
                 {

@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -71,6 +71,7 @@ table 114 "Sales Cr.Memo Header"
         field(3; "No."; Code[20])
         {
             Caption = 'No.';
+            ToolTip = 'Specifies the posted credit memo number. You cannot change the number because the document has already been posted.';
         }
         /// <summary>
         /// Specifies the customer number who receives the credit memo for billing purposes.
@@ -88,6 +89,7 @@ table 114 "Sales Cr.Memo Header"
         field(5; "Bill-to Name"; Text[100])
         {
             Caption = 'Bill-to Name';
+            ToolTip = 'Specifies the name of the customer that you send or sent the invoice or credit memo to.';
         }
         /// <summary>
         /// Specifies an additional part of the bill-to customer name.
@@ -103,6 +105,7 @@ table 114 "Sales Cr.Memo Header"
         field(7; "Bill-to Address"; Text[100])
         {
             Caption = 'Bill-to Address';
+            ToolTip = 'Specifies the address of the customer that the credit memo was sent to.';
         }
         /// <summary>
         /// Specifies additional address information for the bill-to customer.
@@ -110,6 +113,7 @@ table 114 "Sales Cr.Memo Header"
         field(8; "Bill-to Address 2"; Text[50])
         {
             Caption = 'Bill-to Address 2';
+            ToolTip = 'Specifies additional address information.';
         }
         /// <summary>
         /// Specifies the city of the customer who receives the credit memo.
@@ -117,6 +121,7 @@ table 114 "Sales Cr.Memo Header"
         field(9; "Bill-to City"; Text[30])
         {
             Caption = 'Bill-to City';
+            ToolTip = 'Specifies the city of the customer on the sales document.';
             TableRelation = "Post Code".City;
             ValidateTableRelation = false;
         }
@@ -126,6 +131,7 @@ table 114 "Sales Cr.Memo Header"
         field(10; "Bill-to Contact"; Text[100])
         {
             Caption = 'Bill-to Contact';
+            ToolTip = 'Specifies the name of the person you regularly contact when you communicate with the customer to whom the credit memo was sent.';
         }
         /// <summary>
         /// Specifies the customer's own reference number for this transaction.
@@ -133,6 +139,7 @@ table 114 "Sales Cr.Memo Header"
         field(11; "Your Reference"; Text[35])
         {
             Caption = 'Your Reference';
+            ToolTip = 'Specifies the customer''s reference. The contents will be printed on sales documents.';
         }
         /// <summary>
         /// Specifies the code for the ship-to address used on the credit memo.
@@ -140,6 +147,7 @@ table 114 "Sales Cr.Memo Header"
         field(12; "Ship-to Code"; Code[10])
         {
             Caption = 'Ship-to Code';
+            ToolTip = 'Specifies a code for an alternate shipment address if you want to ship to another address than the one that has been entered automatically. This field is also used in case of drop shipment.';
             TableRelation = "Ship-to Address".Code where("Customer No." = field("Sell-to Customer No."));
         }
         /// <summary>
@@ -148,6 +156,7 @@ table 114 "Sales Cr.Memo Header"
         field(13; "Ship-to Name"; Text[100])
         {
             Caption = 'Ship-to Name';
+            ToolTip = 'Specifies the name of the customer at the address that the items are shipped to.';
         }
         /// <summary>
         /// Specifies an additional part of the ship-to name.
@@ -155,6 +164,7 @@ table 114 "Sales Cr.Memo Header"
         field(14; "Ship-to Name 2"; Text[50])
         {
             Caption = 'Ship-to Name 2';
+            ToolTip = 'Specifies an additional part of the name of the customer that the items were shipped to.';
         }
         /// <summary>
         /// Specifies the street address of the ship-to location.
@@ -162,6 +172,7 @@ table 114 "Sales Cr.Memo Header"
         field(15; "Ship-to Address"; Text[100])
         {
             Caption = 'Ship-to Address';
+            ToolTip = 'Specifies the address that the items were shipped to.';
         }
         /// <summary>
         /// Specifies additional address information for the ship-to location.
@@ -169,6 +180,7 @@ table 114 "Sales Cr.Memo Header"
         field(16; "Ship-to Address 2"; Text[50])
         {
             Caption = 'Ship-to Address 2';
+            ToolTip = 'Specifies additional address information.';
         }
         /// <summary>
         /// Specifies the city of the ship-to location.
@@ -176,6 +188,7 @@ table 114 "Sales Cr.Memo Header"
         field(17; "Ship-to City"; Text[30])
         {
             Caption = 'Ship-to City';
+            ToolTip = 'Specifies the city of the customer on the sales document.';
             TableRelation = "Post Code".City;
             ValidateTableRelation = false;
         }
@@ -185,6 +198,7 @@ table 114 "Sales Cr.Memo Header"
         field(18; "Ship-to Contact"; Text[100])
         {
             Caption = 'Ship-to Contact';
+            ToolTip = 'Specifies the name of the person you regularly contact at the customer to whom the items were shipped.';
         }
         /// <summary>
         /// Specifies the date when the credit memo was posted to the ledger.
@@ -192,6 +206,7 @@ table 114 "Sales Cr.Memo Header"
         field(20; "Posting Date"; Date)
         {
             Caption = 'Posting Date';
+            ToolTip = 'Specifies the date when the credit memo was posted.';
         }
         /// <summary>
         /// Specifies the date when items were shipped related to this credit memo.
@@ -206,6 +221,7 @@ table 114 "Sales Cr.Memo Header"
         field(22; "Posting Description"; Text[100])
         {
             Caption = 'Posting Description';
+            ToolTip = 'Specifies any text that is entered to accompany the posting, for example for information to auditors.';
         }
         /// <summary>
         /// Specifies the code for the payment terms used on the credit memo.
@@ -221,6 +237,7 @@ table 114 "Sales Cr.Memo Header"
         field(24; "Due Date"; Date)
         {
             Caption = 'Due Date';
+            ToolTip = 'Specifies the date on which the shipment is due for payment.';
         }
         /// <summary>
         /// Specifies the payment discount percentage applied to the credit memo.
@@ -246,6 +263,7 @@ table 114 "Sales Cr.Memo Header"
         field(27; "Shipment Method Code"; Code[10])
         {
             Caption = 'Shipment Method Code';
+            ToolTip = 'Specifies the shipment method for the shipment.';
             TableRelation = "Shipment Method";
         }
         /// <summary>
@@ -254,6 +272,7 @@ table 114 "Sales Cr.Memo Header"
         field(28; "Location Code"; Code[10])
         {
             Caption = 'Location Code';
+            ToolTip = 'Specifies the location where the credit memo was registered.';
             TableRelation = Location where("Use As In-Transit" = const(false));
         }
         /// <summary>
@@ -263,6 +282,7 @@ table 114 "Sales Cr.Memo Header"
         {
             CaptionClass = '1,2,1';
             Caption = 'Shortcut Dimension 1 Code';
+            ToolTip = 'Specifies the code for Shortcut Dimension 1, which is one of two global dimension codes that you set up in the General Ledger Setup window.';
             TableRelation = "Dimension Value".Code where("Global Dimension No." = const(1));
         }
         /// <summary>
@@ -272,6 +292,7 @@ table 114 "Sales Cr.Memo Header"
         {
             CaptionClass = '1,2,2';
             Caption = 'Shortcut Dimension 2 Code';
+            ToolTip = 'Specifies the code for Shortcut Dimension 2, which is one of two global dimension codes that you set up in the General Ledger Setup window.';
             TableRelation = "Dimension Value".Code where("Global Dimension No." = const(2));
         }
         /// <summary>
@@ -280,6 +301,7 @@ table 114 "Sales Cr.Memo Header"
         field(31; "Customer Posting Group"; Code[20])
         {
             Caption = 'Customer Posting Group';
+            ToolTip = 'Specifies the customer''s market type to link business transactions to.';
             Editable = false;
             TableRelation = "Customer Posting Group";
         }
@@ -289,6 +311,7 @@ table 114 "Sales Cr.Memo Header"
         field(32; "Currency Code"; Code[10])
         {
             Caption = 'Currency Code';
+            ToolTip = 'Specifies the currency code of the credit memo.';
             Editable = false;
             TableRelation = Currency;
         }
@@ -354,6 +377,7 @@ table 114 "Sales Cr.Memo Header"
         field(43; "Salesperson Code"; Code[20])
         {
             Caption = 'Salesperson Code';
+            ToolTip = 'Specifies which salesperson is associated with the credit memo.';
             TableRelation = "Salesperson/Purchaser";
         }
         /// <summary>
@@ -374,6 +398,7 @@ table 114 "Sales Cr.Memo Header"
         field(47; "No. Printed"; Integer)
         {
             Caption = 'No. Printed';
+            ToolTip = 'Specifies how many times the document has been printed.';
             Editable = false;
         }
         /// <summary>
@@ -389,6 +414,7 @@ table 114 "Sales Cr.Memo Header"
         field(52; "Applies-to Doc. Type"; Enum "Gen. Journal Document Type")
         {
             Caption = 'Applies-to Doc. Type';
+            ToolTip = 'Specifies the type of the posted document that this document or journal line will be applied to when you post, for example to register payment.';
         }
         /// <summary>
         /// Specifies the document number this credit memo is applied to.
@@ -396,6 +422,7 @@ table 114 "Sales Cr.Memo Header"
         field(53; "Applies-to Doc. No."; Code[20])
         {
             Caption = 'Applies-to Doc. No.';
+            ToolTip = 'Specifies the number of the posted document that this document or journal line will be applied to when you post, for example to register payment.';
 
             trigger OnLookup()
             var
@@ -427,6 +454,7 @@ table 114 "Sales Cr.Memo Header"
             AutoFormatType = 1;
             CalcFormula = sum("Sales Cr.Memo Line".Amount where("Document No." = field("No.")));
             Caption = 'Amount';
+            ToolTip = 'Specifies the total of the amounts on all the credit memo lines, in the currency of the credit memo. The amount does not include VAT.';
             Editable = false;
             FieldClass = FlowField;
         }
@@ -439,6 +467,7 @@ table 114 "Sales Cr.Memo Header"
             AutoFormatType = 1;
             CalcFormula = sum("Sales Cr.Memo Line"."Amount Including VAT" where("Document No." = field("No.")));
             Caption = 'Amount Including VAT';
+            ToolTip = 'Specifies the total of the amounts, including VAT, on all the lines on the document.';
             Editable = false;
             FieldClass = FlowField;
         }
@@ -448,6 +477,7 @@ table 114 "Sales Cr.Memo Header"
         field(70; "VAT Registration No."; Text[20])
         {
             Caption = 'VAT Registration No.';
+            ToolTip = 'Specifies the customer''s VAT registration number for customers.';
         }
         /// <summary>
         /// Specifies the customer's company registration number.
@@ -479,6 +509,7 @@ table 114 "Sales Cr.Memo Header"
         field(75; "EU 3-Party Trade"; Boolean)
         {
             Caption = 'EU 3-Party Trade';
+            ToolTip = 'Specifies whether the invoice was part of an EU 3-party trade transaction.';
         }
         /// <summary>
         /// Specifies the transaction type code for Intrastat reporting.
@@ -510,6 +541,7 @@ table 114 "Sales Cr.Memo Header"
         field(79; "Sell-to Customer Name"; Text[100])
         {
             Caption = 'Sell-to Customer Name';
+            ToolTip = 'Specifies the name of the customer that you shipped the items on the credit memo to.';
         }
         /// <summary>
         /// Specifies an additional part of the sell-to customer name.
@@ -525,6 +557,7 @@ table 114 "Sales Cr.Memo Header"
         field(81; "Sell-to Address"; Text[100])
         {
             Caption = 'Sell-to Address';
+            ToolTip = 'Specifies the address of the customer that the items on the credit memo were sent to.';
         }
         /// <summary>
         /// Specifies additional address information for the sell-to customer.
@@ -532,6 +565,7 @@ table 114 "Sales Cr.Memo Header"
         field(82; "Sell-to Address 2"; Text[50])
         {
             Caption = 'Sell-to Address 2';
+            ToolTip = 'Specifies additional address information.';
         }
         /// <summary>
         /// Specifies the city of the sell-to customer.
@@ -539,6 +573,7 @@ table 114 "Sales Cr.Memo Header"
         field(83; "Sell-to City"; Text[30])
         {
             Caption = 'Sell-to City';
+            ToolTip = 'Specifies the city of the customer on the sales document.';
             TableRelation = "Post Code".City;
             ValidateTableRelation = false;
         }
@@ -548,6 +583,7 @@ table 114 "Sales Cr.Memo Header"
         field(84; "Sell-to Contact"; Text[100])
         {
             Caption = 'Sell-to Contact';
+            ToolTip = 'Specifies the name of the contact person at the customer''s main address.';
         }
         /// <summary>
         /// Specifies the postal code of the bill-to customer address.
@@ -555,6 +591,7 @@ table 114 "Sales Cr.Memo Header"
         field(85; "Bill-to Post Code"; Code[20])
         {
             Caption = 'Bill-to Post Code';
+            ToolTip = 'Specifies the postal code of the customer''s billing address.';
             TableRelation = "Post Code";
             ValidateTableRelation = false;
         }
@@ -565,6 +602,7 @@ table 114 "Sales Cr.Memo Header"
         {
             CaptionClass = '5,3,' + "Bill-to Country/Region Code";
             Caption = 'Bill-to County';
+            ToolTip = 'Specifies the state, province or county as a part of the address.';
         }
         /// <summary>
         /// Specifies the country/region code of the bill-to customer address.
@@ -572,6 +610,7 @@ table 114 "Sales Cr.Memo Header"
         field(87; "Bill-to Country/Region Code"; Code[10])
         {
             Caption = 'Bill-to Country/Region Code';
+            ToolTip = 'Specifies the country or region of the address.';
             TableRelation = "Country/Region";
         }
         /// <summary>
@@ -580,6 +619,7 @@ table 114 "Sales Cr.Memo Header"
         field(88; "Sell-to Post Code"; Code[20])
         {
             Caption = 'Sell-to Post Code';
+            ToolTip = 'Specifies the postal code of the customer''s main address.';
             TableRelation = "Post Code";
             ValidateTableRelation = false;
         }
@@ -590,6 +630,7 @@ table 114 "Sales Cr.Memo Header"
         {
             CaptionClass = '5,2,' + "Sell-to Country/Region Code";
             Caption = 'Sell-to County';
+            ToolTip = 'Specifies the state, province or county as a part of the address.';
         }
         /// <summary>
         /// Specifies the country/region code of the sell-to customer address.
@@ -597,6 +638,7 @@ table 114 "Sales Cr.Memo Header"
         field(90; "Sell-to Country/Region Code"; Code[10])
         {
             Caption = 'Sell-to Country/Region Code';
+            ToolTip = 'Specifies the country or region of the address.';
             TableRelation = "Country/Region";
         }
         /// <summary>
@@ -605,6 +647,7 @@ table 114 "Sales Cr.Memo Header"
         field(91; "Ship-to Post Code"; Code[20])
         {
             Caption = 'Ship-to Post Code';
+            ToolTip = 'Specifies the postal code of the address that the items are shipped to.';
             TableRelation = "Post Code";
             ValidateTableRelation = false;
         }
@@ -615,6 +658,7 @@ table 114 "Sales Cr.Memo Header"
         {
             CaptionClass = '5,4,' + "Ship-to Country/Region Code";
             Caption = 'Ship-to County';
+            ToolTip = 'Specifies the state, province or county as a part of the address.';
         }
         /// <summary>
         /// Specifies the country/region code of the ship-to address.
@@ -622,6 +666,7 @@ table 114 "Sales Cr.Memo Header"
         field(93; "Ship-to Country/Region Code"; Code[10])
         {
             Caption = 'Ship-to Country/Region Code';
+            ToolTip = 'Specifies the country or region of the address.';
             TableRelation = "Country/Region";
         }
         /// <summary>
@@ -645,6 +690,7 @@ table 114 "Sales Cr.Memo Header"
         field(98; Correction; Boolean)
         {
             Caption = 'Correction';
+            ToolTip = 'Specifies the entry was posted as a corrective entry.';
         }
         /// <summary>
         /// Specifies the date when the credit memo document was created.
@@ -652,6 +698,7 @@ table 114 "Sales Cr.Memo Header"
         field(99; "Document Date"; Date)
         {
             Caption = 'Document Date';
+            ToolTip = 'Specifies the date on which you created the sales document.';
         }
         /// <summary>
         /// Specifies the external document number provided by the customer.
@@ -659,6 +706,7 @@ table 114 "Sales Cr.Memo Header"
         field(100; "External Document No."; Code[35])
         {
             Caption = 'External Document No.';
+            ToolTip = 'Specifies the external document number that is entered on the sales header that this line was posted from.';
         }
         /// <summary>
         /// Specifies the area code for Intrastat reporting.
@@ -682,6 +730,7 @@ table 114 "Sales Cr.Memo Header"
         field(104; "Payment Method Code"; Code[10])
         {
             Caption = 'Payment Method Code';
+            ToolTip = 'Specifies the customer''s method of payment. The program has copied the code from the Payment Method Code field on the sales header.';
             TableRelation = "Payment Method";
         }
         /// <summary>
@@ -691,6 +740,7 @@ table 114 "Sales Cr.Memo Header"
         {
             AccessByPermission = TableData "Shipping Agent Services" = R;
             Caption = 'Shipping Agent Code';
+            ToolTip = 'Specifies which shipping agent is used to transport the items on the sales document to the customer.';
             TableRelation = "Shipping Agent";
         }
         /// <summary>
@@ -705,6 +755,7 @@ table 114 "Sales Cr.Memo Header"
 #endif
         {
             Caption = 'Package Tracking No.';
+            ToolTip = 'Specifies the shipping agent''s package number.';
         }
         /// <summary>
         /// Specifies the number series used before the credit memo was posted.
@@ -729,6 +780,7 @@ table 114 "Sales Cr.Memo Header"
         field(111; "Pre-Assigned No."; Code[20])
         {
             Caption = 'Pre-Assigned No.';
+            ToolTip = 'Specifies the number of the credit memo that the posted credit memo was created from.';
         }
         /// <summary>
         /// Specifies the user who posted the credit memo.
@@ -753,6 +805,7 @@ table 114 "Sales Cr.Memo Header"
         field(114; "Tax Area Code"; Code[20])
         {
             Caption = 'Tax Area Code';
+            ToolTip = 'Specifies the tax area that is used to calculate and post sales tax.';
             TableRelation = "Tax Area";
         }
         /// <summary>
@@ -761,6 +814,7 @@ table 114 "Sales Cr.Memo Header"
         field(115; "Tax Liable"; Boolean)
         {
             Caption = 'Tax Liable';
+            ToolTip = 'Specifies if the customer or vendor is liable for sales tax.';
         }
         /// <summary>
         /// Specifies the VAT business posting group used for tax calculations.
@@ -809,6 +863,7 @@ table 114 "Sales Cr.Memo Header"
         field(163; "Company Bank Account Code"; Code[20])
         {
             Caption = 'Company Bank Account Code';
+            ToolTip = 'Specifies the bank account to use for bank information when the document is printed.';
             TableRelation = "Bank Account" where("Currency Code" = field("Currency Code"));
         }
         /// <summary>
@@ -857,6 +912,7 @@ table 114 "Sales Cr.Memo Header"
         field(179; "VAT Reporting Date"; Date)
         {
             Caption = 'VAT Date';
+            ToolTip = 'Specifies the VAT date on the invoice.';
             Editable = false;
         }
         /// <summary>
@@ -881,6 +937,7 @@ table 114 "Sales Cr.Memo Header"
         field(210; "Ship-to Phone No."; Text[30])
         {
             Caption = 'Ship-to Phone No.';
+            ToolTip = 'Specifies the telephone number of the company''s shipping address.';
             ExtendedDatatype = PhoneNo;
         }
         /// <summary>
@@ -910,6 +967,7 @@ table 114 "Sales Cr.Memo Header"
         field(711; "Document Exchange Status"; Enum "Sales Document Exchange Status")
         {
             Caption = 'Document Exchange Status';
+            ToolTip = 'Specifies the status of the document if you are using a document exchange service to send it as an electronic document. The status values are reported by the document exchange service.';
         }
         /// <summary>
         /// Specifies the original identifier from the document exchange service.
@@ -926,6 +984,7 @@ table 114 "Sales Cr.Memo Header"
             CalcFormula = - exist("Cust. Ledger Entry" where("Entry No." = field("Cust. Ledger Entry No."),
                                                              Open = filter(true)));
             Caption = 'Paid';
+            ToolTip = 'Specifies if the posted sales invoice that relates to this sales credit memo is paid.';
             Editable = false;
             FieldClass = FlowField;
         }
@@ -938,6 +997,7 @@ table 114 "Sales Cr.Memo Header"
             AutoFormatType = 1;
             CalcFormula = sum("Detailed Cust. Ledg. Entry".Amount where("Cust. Ledger Entry No." = field("Cust. Ledger Entry No.")));
             Caption = 'Remaining Amount';
+            ToolTip = 'Specifies the amount that remains to be paid for the posted sales invoice.';
             Editable = false;
             FieldClass = FlowField;
         }
@@ -970,6 +1030,7 @@ table 114 "Sales Cr.Memo Header"
             CalcFormula = exist("Cancelled Document" where("Source ID" = const(114),
                                                             "Cancelled Doc. No." = field("No.")));
             Caption = 'Cancelled';
+            ToolTip = 'Specifies if the posted sales invoice that relates to this sales credit memo has been either corrected or canceled.';
             Editable = false;
             FieldClass = FlowField;
         }
@@ -981,6 +1042,7 @@ table 114 "Sales Cr.Memo Header"
             CalcFormula = exist("Cancelled Document" where("Source ID" = const(112),
                                                             "Cancelled By Doc. No." = field("No.")));
             Caption = 'Corrective';
+            ToolTip = 'Specifies if the posted sales invoice has been either corrected or canceled by this sales credit memo.';
             Editable = false;
             FieldClass = FlowField;
         }
@@ -998,6 +1060,7 @@ table 114 "Sales Cr.Memo Header"
         field(5052; "Sell-to Contact No."; Code[20])
         {
             Caption = 'Sell-to Contact No.';
+            ToolTip = 'Specifies the number of the contact at the customer who handles the credit memo.';
             TableRelation = Contact;
         }
         /// <summary>
@@ -1006,6 +1069,7 @@ table 114 "Sales Cr.Memo Header"
         field(5053; "Bill-to Contact No."; Code[20])
         {
             Caption = 'Bill-to Contact No.';
+            ToolTip = 'Specifies the number of the contact at the customer who handles the credit memo.';
             TableRelation = Contact;
         }
         /// <summary>
@@ -1022,6 +1086,7 @@ table 114 "Sales Cr.Memo Header"
         field(5700; "Responsibility Center"; Code[10])
         {
             Caption = 'Responsibility Center';
+            ToolTip = 'Specifies the code for the responsibility center that serves the customer on this sales document.';
             TableRelation = "Responsibility Center";
         }
         /// <summary>
@@ -1030,6 +1095,7 @@ table 114 "Sales Cr.Memo Header"
         field(5794; "Shipping Agent Service Code"; Code[10])
         {
             Caption = 'Shipping Agent Service Code';
+            ToolTip = 'Specifies which shipping agent service is used to transport the items on the sales document to the customer.';
             TableRelation = "Shipping Agent Services".Code where("Shipping Agent Code" = field("Shipping Agent Code"));
         }
         /// <summary>

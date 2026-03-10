@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -42,13 +42,11 @@ page 6758 "Reminder Act. History Detailed"
                     {
                         ApplicationArea = All;
                         Caption = 'Started on';
-                        ToolTip = 'Specifies when the job was started.';
                     }
                     field("Completed On"; Rec."Completed On")
                     {
                         ApplicationArea = All;
                         Caption = 'Completed on';
-                        ToolTip = 'Specifies when the job was completed.';
                     }
                 }
                 group(NumberOfErrorsGroup)

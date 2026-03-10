@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -31,17 +31,14 @@ page 5971 "Posted Service Credit Memos"
                 field("No."; Rec."No.")
                 {
                     ApplicationArea = Service;
-                    ToolTip = 'Specifies the number of the involved entry or record, according to the specified number series.';
                 }
                 field("Customer No."; Rec."Customer No.")
                 {
                     ApplicationArea = Service;
-                    ToolTip = 'Specifies the number of the customer associated with the credit memo.';
                 }
                 field(Name; Rec.Name)
                 {
                     ApplicationArea = Service;
-                    ToolTip = 'Specifies the name of the customer to whom you shipped the service on the credit memo.';
                 }
                 field("External Document No."; Rec."External Document No.")
                 {
@@ -51,80 +48,66 @@ page 5971 "Posted Service Credit Memos"
                 field("Currency Code"; Rec."Currency Code")
                 {
                     ApplicationArea = Service;
-                    ToolTip = 'Specifies the currency code for the amounts on the credit memo.';
                 }
                 field(Amount; Rec.Amount)
                 {
-                    ToolTip = 'Specifies the total credit memo amount excluding VAT.';
                 }
                 field("Amount Including VAT"; Rec."Amount Including VAT")
                 {
-                    ToolTip = 'Specifies the total credit memo amount including VAT.';
                 }
                 field("Post Code"; Rec."Post Code")
                 {
                     ApplicationArea = Service;
-                    ToolTip = 'Specifies the postal code.';
                     Visible = false;
                 }
                 field("Country/Region Code"; Rec."Country/Region Code")
                 {
                     ApplicationArea = Service;
-                    ToolTip = 'Specifies the country/region of the address.';
                     Visible = false;
                 }
                 field("Contact Name"; Rec."Contact Name")
                 {
                     ApplicationArea = Service;
-                    ToolTip = 'Specifies the name of the contact person at the customer company.';
                     Visible = false;
                 }
                 field("Bill-to Customer No."; Rec."Bill-to Customer No.")
                 {
                     ApplicationArea = Service;
-                    ToolTip = 'Specifies the number of the customer that you send or sent the invoice or credit memo to.';
                     Visible = false;
                 }
                 field("Bill-to Name"; Rec."Bill-to Name")
                 {
                     ApplicationArea = Service;
-                    ToolTip = 'Specifies the name of the customer that you send or sent the invoice or credit memo to.';
                     Visible = false;
                 }
                 field("Bill-to Post Code"; Rec."Bill-to Post Code")
                 {
                     ApplicationArea = Service;
-                    ToolTip = 'Specifies the postal code of the customer''s billing address.';
                     Visible = false;
                 }
                 field("Bill-to Country/Region Code"; Rec."Bill-to Country/Region Code")
                 {
                     ApplicationArea = Service;
-                    ToolTip = 'Specifies the country/region code of the customer''s billing address.';
                     Visible = false;
                 }
                 field("Bill-to Contact"; Rec."Bill-to Contact")
                 {
                     ApplicationArea = Service;
-                    ToolTip = 'Specifies the name of the contact person at the customer''s billing address.';
                     Visible = false;
                 }
                 field("Ship-to Code"; Rec."Ship-to Code")
                 {
                     ApplicationArea = Service;
-                    ToolTip = 'Specifies a code for an alternate shipment address if you want to ship to another address than the one that has been entered automatically. This field is also used in case of drop shipment.';
                     Visible = false;
                 }
                 field("Ship-to Name"; Rec."Ship-to Name")
                 {
                     ApplicationArea = Service;
-                    ToolTip = 'Specifies the name of the customer at the address that the items are shipped to.';
                     Visible = false;
                 }
                 field("Ship-to Post Code"; Rec."Ship-to Post Code")
                 {
                     ApplicationArea = Service;
-                    ToolTip = 'Specifies the postal code of the address that the items are shipped to.';
                     Visible = false;
                 }
                 field("Ship-to Country/Region Code"; Rec."Ship-to Country/Region Code")
@@ -136,44 +119,37 @@ page 5971 "Posted Service Credit Memos"
                 field("Ship-to Contact"; Rec."Ship-to Contact")
                 {
                     ApplicationArea = Service;
-                    ToolTip = 'Specifies the name of the contact person at the address that the items are shipped to.';
                     Visible = false;
                 }
                 field("Posting Date"; Rec."Posting Date")
                 {
                     ApplicationArea = Service;
-                    ToolTip = 'Specifies the date when the credit memo was posted.';
                     Visible = false;
                 }
                 field("Salesperson Code"; Rec."Salesperson Code")
                 {
                     ApplicationArea = Service;
-                    ToolTip = 'Specifies the code of the salesperson associated with the credit memo.';
                     Visible = false;
                 }
                 field("Shortcut Dimension 1 Code"; Rec."Shortcut Dimension 1 Code")
                 {
                     ApplicationArea = Dimensions;
-                    ToolTip = 'Specifies the code for Shortcut Dimension 1, which is one of two global dimension codes that you set up in the General Ledger Setup window.';
                     Visible = false;
                 }
                 field("Shortcut Dimension 2 Code"; Rec."Shortcut Dimension 2 Code")
                 {
                     ApplicationArea = Dimensions;
-                    ToolTip = 'Specifies the code for Shortcut Dimension 2, which is one of two global dimension codes that you set up in the General Ledger Setup window.';
                     Visible = false;
                 }
                 field("Location Code"; Rec."Location Code")
                 {
                     ApplicationArea = Location;
-                    ToolTip = 'Specifies the location, such as warehouse or distribution center, where the credit memo was registered.';
                     Visible = true;
                 }
                 field("Document Exchange Status"; Rec."Document Exchange Status")
                 {
                     ApplicationArea = Service;
                     StyleExpr = DocExchStatusStyle;
-                    ToolTip = 'Specifies the status of the document if you are using a document exchange service to send it as an electronic document. The status values are reported by the document exchange service.';
                     Visible = DocExchStatusVisible;
 
                     trigger OnDrillDown()

@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -16,11 +16,13 @@ table 99000788 "Production Matrix BOM Line"
         field(1; "Item No."; Code[20])
         {
             Caption = 'Item No.';
+            ToolTip = 'Specifies the number of the item included in one ore more of the production BOM versions.';
             TableRelation = Item;
         }
         field(2; "Variant Code"; Code[10])
         {
             Caption = 'Variant Code';
+            ToolTip = 'Specifies the variant of the item on the line.';
             TableRelation = "Item Variant".Code where("Item No." = field("Item No."));
         }
         field(10; "Unit of Measure Code"; Code[10])
@@ -31,6 +33,7 @@ table 99000788 "Production Matrix BOM Line"
         field(11; Description; Text[100])
         {
             Caption = 'Description';
+            ToolTip = 'Specifies a description of the entry.';
         }
         field(12; "Description 2"; Text[50])
         {

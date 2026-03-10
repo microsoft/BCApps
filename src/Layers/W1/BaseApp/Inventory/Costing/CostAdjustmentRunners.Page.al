@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -27,13 +27,11 @@ page 5811 "Cost Adjustment Runners"
                 field("Line No."; Rec."Line No.")
                 {
                     Caption = 'Line No.';
-                    ToolTip = 'Specifies the line number of the item batch.';
                     Visible = false;
                 }
                 field("Item Filter"; Rec."Item Filter")
                 {
                     Caption = 'Item Filter';
-                    ToolTip = 'Specifies the item filter that is used to select the items to be adjusted.';
                 }
                 field("Timeout (Minutes)"; Rec."Timeout (Minutes)")
                 {
@@ -43,48 +41,40 @@ page 5811 "Cost Adjustment Runners"
                 field("Reschedule Count"; Rec."Reschedule Count")
                 {
                     Caption = 'Max. Retry Attempts';
-                    ToolTip = 'Specifies the number of times that the cost adjustment process is allowed to be retried if it fails.';
                 }
                 field("Post to G/L"; Rec."Post to G/L")
                 {
                     Caption = 'Post to G/L';
-                    ToolTip = 'Specifies whether the cost adjustment process should post the cost adjustment entries to the general ledger.';
                     Editable = AutoPostToGLEnabled;
                 }
                 field(Trace; Rec.Trace)
                 {
                     Caption = 'Trace';
-                    ToolTip = 'Specifies whether you want to trace the next cost adjustment run. It can be used to pinpoint issues in the cost adjustment process.';
                 }
                 field(Status; Rec.Status)
                 {
                     Caption = 'Status';
-                    ToolTip = 'Specifies the status of the cost adjustment process.';
                     StyleExpr = StatusStyleExpr;
                     Editable = false;
                 }
                 field("Starting Date-Time"; Rec."Starting Date-Time")
                 {
                     Caption = 'Starting Date-Time';
-                    ToolTip = 'Specifies the date and time when the cost adjustment process started.';
                     Editable = false;
                 }
                 field("Ending Date-Time"; Rec."Ending Date-Time")
                 {
                     Caption = 'Ending Date-Time';
-                    ToolTip = 'Specifies the date and time when the cost adjustment process ended or was canceled.';
                     Editable = false;
                 }
                 field("Last Error"; Rec."Last Error")
                 {
                     Caption = 'Last Error';
-                    ToolTip = 'Specifies the last error that occurred during the cost adjustment process.';
                     Editable = false;
                 }
                 field("Last Error Call Stack"; Rec."Last Error Call Stack")
                 {
                     Caption = 'Last Error Call Stack';
-                    ToolTip = 'Specifies the call stack of the last error that occurred during the cost adjustment process.';
                     Editable = false;
                 }
             }

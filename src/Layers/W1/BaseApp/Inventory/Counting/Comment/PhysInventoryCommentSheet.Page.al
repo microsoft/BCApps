@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -24,17 +24,14 @@ page 5891 "Phys. Inventory Comment Sheet"
                 field(Date; Rec.Date)
                 {
                     ApplicationArea = Warehouse;
-                    ToolTip = 'Specifies the date when the comment was created.';
                 }
                 field(Comment; Rec.Comment)
                 {
                     ApplicationArea = Warehouse;
-                    ToolTip = 'Specifies the comment itself.';
                 }
                 field("Code"; Rec.Code)
                 {
                     ApplicationArea = Warehouse;
-                    ToolTip = 'Specifies a code for the comment.';
                     Visible = false;
                 }
             }

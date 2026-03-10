@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -21,17 +21,20 @@ table 5083 Team
         field(1; "Code"; Code[10])
         {
             Caption = 'Code';
+            ToolTip = 'Specifies the code for the team.';
             NotBlank = true;
         }
         field(2; Name; Text[50])
         {
             Caption = 'Name';
+            ToolTip = 'Specifies the name of the team.';
         }
         field(3; "Next Task Date"; Date)
         {
             CalcFormula = min("To-do".Date where("Team Code" = field(Code),
                                                   Closed = const(false)));
             Caption = 'Next Task Date';
+            ToolTip = 'Specifies the date of the next task involving the team.';
             Editable = false;
             FieldClass = FlowField;
         }

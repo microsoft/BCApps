@@ -11,6 +11,7 @@ using Microsoft.Projects.Project.Journal;
 using Microsoft.Projects.Project.Planning;
 using Microsoft.Purchases.Document;
 using Microsoft.Sales.Document;
+using Microsoft.Service.Document;
 using Microsoft.Warehouse.Ledger;
 
 codeunit 6501 "Item Tracking Data Collection"
@@ -1473,6 +1474,7 @@ codeunit 6501 "Item Tracking Data Collection"
     local procedure CanIncludeReservEntryToTrackingSpec(TempReservEntry: Record "Reservation Entry" temporary) Result: Boolean
     var
         SalesLine: Record "Sales Line";
+        ServiceLine: Record "Service Line";
         IsHandled: Boolean;
     begin
         IsHandled := false;
@@ -1487,6 +1489,15 @@ codeunit 6501 "Item Tracking Data Collection"
             SalesLine.SetLoadFields("Shipment No.");
             SalesLine.Get(TempReservEntry."Source Subtype", TempReservEntry."Source ID", TempReservEntry."Source Ref. No.");
             if SalesLine."Shipment No." <> '' then
+                exit(false);
+        end;
+
+        if (TempReservEntry."Reservation Status" = TempReservEntry."Reservation Status"::Prospect) and
+              (TempReservEntry."Source Type" = Database::"Service Line") and
+              (TempReservEntry."Source Subtype" = 2)
+       then begin
+            ServiceLine.Get(TempReservEntry."Source Subtype", TempReservEntry."Source ID", TempReservEntry."Source Ref. No.");
+            if ServiceLine."Shipment No." <> '' then
                 exit(false);
         end;
 

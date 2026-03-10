@@ -1779,9 +1779,37 @@ codeunit 137112 "SCM Certificate Of Supply"
         Page.Run(Page::"Certificates of Supply", CertificateOfSupply);
     end;
 
+    [Test]
+    [HandlerFunctions('ServiceCertificateOfSupplyRequestPageHandler')]
+    procedure PrintCertificateOfSupplyServiceShipment()
+    var
+        ServiceHeader: Record "Service Header";
+        ServiceShipmentHeader: Record "Service Shipment Header";
+        PostedServiceShipment: TestPage "Posted Service Shipments";
+    begin
+        // [SCENARIO 618742] Report "Service Certificate of Supply" can be printed without errors for Service Shipment.
+        Initialize();
+
+        // [GIVEN] Prepare Certificate of Supply for Service Shipment.
+        PostServiceDoc(ServiceShipmentHeader, ServiceHeader."Document Type"::Order, true);
+
+        // [WHEN] Report Service Certificate of Supply is being printed to PDF.
+        PostedServiceShipment.OpenEdit();
+        PostedServiceShipment.GoToRecord(ServiceShipmentHeader);
+
+        // [THEN] No RDLC error.
+        PostedServiceShipment.PrintCertificateofSupply.Invoke();
+    end;
+
     [PageHandler]
     procedure CertificatesOfSupplyPageHandler(var CertificatesOfSupply: TestPage "Certificates of Supply")
     begin
+    end;
+
+    [RequestPageHandler]
+    procedure ServiceCertificateOfSupplyRequestPageHandler(var ServiceCertificateOfSupply: TestRequestPage "Service Certificate of Supply")
+    begin
+        ServiceCertificateOfSupply.SaveAsXml(LibraryReportDataset.GetParametersFileName(), LibraryReportDataset.GetFileName());
     end;
 }
 

@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -26,39 +26,32 @@ page 7325 "Warehouse Registers"
                 field("No."; Rec."No.")
                 {
                     ApplicationArea = Warehouse;
-                    ToolTip = 'Specifies the number of the involved entry or record, according to the specified number series.';
                 }
                 field("From Entry No."; Rec."From Entry No.")
                 {
                     ApplicationArea = Warehouse;
-                    ToolTip = 'Specifies the first item entry number in the register.';
                     Visible = false;
                 }
                 field("To Entry No."; Rec."To Entry No.")
                 {
                     ApplicationArea = Warehouse;
-                    ToolTip = 'Specifies the last warehouse entry number in the register.';
                     Visible = false;
                 }
                 field("Creation Date"; Rec."Creation Date")
                 {
                     ApplicationArea = Warehouse;
-                    ToolTip = 'Specifies the date on which the entries in the register were posted.';
                 }
                 field("Creation Time"; Rec."Creation Time")
                 {
                     ApplicationArea = Warehouse;
-                    ToolTip = 'Specifies the time on which the entries in the register were posted.';
                 }
                 field("Source Code"; Rec."Source Code")
                 {
                     ApplicationArea = Warehouse;
-                    ToolTip = 'Specifies the source code that specifies where the entry was created.';
                 }
                 field("User ID"; Rec."User ID")
                 {
                     ApplicationArea = Warehouse;
-                    ToolTip = 'Specifies the ID of the user who posted the entry, to be used, for example, in the change log.';
 
                     trigger OnDrillDown()
                     var
@@ -70,7 +63,6 @@ page 7325 "Warehouse Registers"
                 field("Journal Batch Name"; Rec."Journal Batch Name")
                 {
                     ApplicationArea = Warehouse;
-                    ToolTip = 'Specifies the name of the journal batch, a personalized journal layout, that the entries were posted from.';
                 }
             }
         }

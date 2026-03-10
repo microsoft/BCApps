@@ -25,36 +25,43 @@ tableextension 7418 "Excise Fixed Asset Ext" extends "Fixed Asset"
                     ExciseTaxType.Get("Excise Tax Type");
                     if not ExciseTaxType.Enabled then
                         Error(ExciseTaxTypeNotEnabledErr, "Excise Tax Type");
+
+                    if Rec."Excise Tax Type" <> xRec."Excise Tax Type" then begin
+                        Rec.TestField("Quantity for Excise Tax", 0);
+                        Rec.TestField("Excise Unit of Measure Code", '');
+                    end;
+
                 end else begin
-                    "Qty for Excise Tax" := 0;
-                    "Excise Tax UOM" := '';
+                    "Quantity for Excise Tax" := 0;
+                    "Excise Unit of Measure Code" := '';
                 end;
             end;
         }
 
-        field(7413; "Qty for Excise Tax"; Decimal)
+        field(7413; "Quantity for Excise Tax"; Decimal)
         {
-            Caption = 'Qty for Excise Tax';
+            AutoFormatType = 0;
+            Caption = 'Quantity for Excise Tax';
             DecimalPlaces = 0 : 5;
             MinValue = 0;
             DataClassification = CustomerContent;
 
             trigger OnValidate()
             begin
-                if ("Qty for Excise Tax" <> 0) and ("Excise Tax Type" = '') then
+                if ("Quantity for Excise Tax" <> 0) and ("Excise Tax Type" = '') then
                     Error(MustSpecifyExciseTaxTypeForQuantityErr);
             end;
         }
 
-        field(7414; "Excise Tax UOM"; Code[10])
+        field(7414; "Excise Unit of Measure Code"; Code[10])
         {
-            Caption = 'Excise Tax UOM';
+            Caption = 'Excise Tax Unit of Measure';
             TableRelation = "Unit of Measure".Code;
             DataClassification = CustomerContent;
 
             trigger OnValidate()
             begin
-                if ("Excise Tax UOM" <> '') and ("Excise Tax Type" = '') then
+                if ("Excise Unit of Measure Code" <> '') and ("Excise Tax Type" = '') then
                     Error(MustSpecifyExciseTaxTypeForUOMErr);
             end;
         }

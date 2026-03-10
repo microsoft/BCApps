@@ -382,7 +382,7 @@ report 5913 "Service - Shipment"
                                 MoreLines := Next(-1) <> 0;
                             if not MoreLines then
                                 CurrReport.Break();
-                            SetRange("Line No.", 0, "Line No.");
+                            SetFilter("Line No.", '<=%1', "Line No.");
                         end;
                     }
                     dataitem(Total; "Integer")

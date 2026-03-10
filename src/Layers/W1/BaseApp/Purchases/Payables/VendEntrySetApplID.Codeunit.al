@@ -19,7 +19,7 @@ codeunit 111 "Vend. Entry-SetAppl.ID"
     var
         TempVendLedgEntry: Record "Vendor Ledger Entry" temporary;
     begin
-        VendLedgEntry.LockTable();
+        VendLedgEntry.ReadIsolation(IsolationLevel::UpdLock);
         if VendLedgEntry.FindSet() then begin
             // Make Applies-to ID
             if VendLedgEntry."Applies-to ID" <> '' then

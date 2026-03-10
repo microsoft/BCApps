@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -30,12 +30,10 @@ page 9211 "Resource Alloc. per Job Matrix"
                 {
                     ApplicationArea = Jobs;
                     Editable = false;
-                    ToolTip = 'Specifies the number of the involved entry or record, according to the specified number series.';
                 }
                 field("Bill-to Name"; Rec."Bill-to Name")
                 {
                     ApplicationArea = Jobs;
-                    ToolTip = 'Specifies the name of the customer that you send or sent the invoice or credit memo to.';
                 }
                 field(Col1; MatrixCellData[1])
                 {

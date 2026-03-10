@@ -9,6 +9,7 @@ using Microsoft.Assembly.Document;
 using Microsoft.Bank.BankAccount;
 using Microsoft.Bank.Check;
 using Microsoft.Bank.DirectDebit;
+using Microsoft.Bank.Ledger;
 using Microsoft.Bank.Payment;
 using Microsoft.Bank.Reconciliation;
 using Microsoft.Bank.Setup;
@@ -44,6 +45,7 @@ using Microsoft.Integration.SyncEngine;
 using Microsoft.Intercompany.Inbox;
 using Microsoft.Intercompany.Journal;
 using Microsoft.Intercompany.Outbox;
+using Microsoft.Inventory.Analysis;
 using Microsoft.Inventory.Item;
 using Microsoft.Inventory.Location;
 using Microsoft.Inventory.Requisition;
@@ -66,6 +68,7 @@ using Microsoft.Sales.History;
 using Microsoft.Sales.Receivables;
 using Microsoft.Sales.Reminder;
 using Microsoft.Sales.Setup;
+using Microsoft.Service.History;
 using Microsoft.Utilities;
 using Microsoft.Warehouse.Activity;
 using Microsoft.Warehouse.Structure;
@@ -90,7 +93,8 @@ codeunit 104000 "Upgrade - BaseApp"
     Subtype = Upgrade;
     Permissions =
         TableData "User Group Plan" = rimd,
-        TableData "Cust. Ledger Entry" = rm;
+        TableData "Cust. Ledger Entry" = rm,
+        Tabledata "ABC Analysis Setup" = ri;
 
     var
         HybridDeployment: Codeunit "Hybrid Deployment";
@@ -115,6 +119,9 @@ codeunit 104000 "Upgrade - BaseApp"
         XGenericSEPA09Txt: Label 'SEPA00100109', Locked = true;
         XGenericSEPADesc09Txt: Label 'SEPA CT pain.001.001.09', Locked = true;
         JobConsumpWhseHandlingUnexpectedValueLbl: Label 'UpgradeJobConsumpWhseHandlingForDirectedPutAwayAndPickLocation skipped. %1 set to different value than %2 for at least one record in table %3 with %4 enabled.', Comment = '%1 = "Job Consump. Whse. Handling" field caption, %2 = "Job Consump. Whse. Handling" expected value, %3 = "Location" table caption, %4 = "Directed Put-away and Pick" field caption', Locked = true;
+        PurchRcptLineFieldsAlreadyPopulatedLbl: Label 'UpgradePurchRcptLineFields skipped. Purch. Rcpt. Line records already have values populated.', Locked = true;
+        SalesShptLineFieldsAlreadyPopulatedLbl: Label 'UpgradeSalesShptLineFields skipped. Sales Shipment Line records already have values populated.', Locked = true;
+        ServiceShptLineFieldsAlreadyPopulatedLbl: Label 'UpgradeServiceShptLineFields skipped. Service Shipment Line records already have values populated.', Locked = true;
         SEPACAMTMappingBankAccRecLineLbl: Label 'SEPA CAMT to Bank Acc. Reconciliation Line', Comment = 'SEPA CAMT is ISO standard name, should not be translated. Bank Acc. Reconciliation Line is the name of table 274 - use its translated caption here.', MaxLength = 250;
         SEPACAMTMappingGenJnlLineLbl: Label 'SEPA CAMT to Gen. Journal Line', Comment = 'SEPA CAMT is ISO standard name, should not be translated. Gen. Journal Line is the name of table 81 - use its translated caption here.', MaxLength = 250;
         SEPACAMTMappingCBGStatementLineLbl: Label 'SEPA CAMT to CBG Statement Line', Comment = 'SEPA CAMT is ISO standard name, should not be translated. CBG Statement Line is the name of table 11401 - use its translated caption here.', MaxLength = 250;
@@ -232,7 +239,12 @@ codeunit 104000 "Upgrade - BaseApp"
         UpgradeIntegrationTableMappingTemplates();
         UpgradeICOutboxTransactionSourceType();
         UpgradeICTransactionSourceType();
-        UpgradeNewSalesPricingFeatureKeyState();
+        UpgradeABCAnalysisSetup();
+        UpgradePurchRcptLineFields();
+        UpgradeSalesShptLineFields();
+        UpgradeServiceShptLineFields();
+        UpgradeFinancialReportAuditLogAddRetentionPolicy();
+        UpgradeZeroClosedBankAccountLedgerEntries();
     end;
 
     local procedure ClearTemporaryTables()
@@ -306,7 +318,7 @@ codeunit 104000 "Upgrade - BaseApp"
               CODEUNIT::"SEPA DD-Export File", XMLPORT::"SEPA DD pain.008.001.08", CODEUNIT::"SEPA DD-Check Line");
 
         ExportProtocolDescription := CopyStr(XGenericSEPADesc09Txt, 1, MaxStrLen(ExportProtocolDescription));
-	if not ExportProtocol.Get(XGenericSEPA09Txt) then
+        if not ExportProtocol.Get(XGenericSEPA09Txt) then
             CreateExportProtocol(XGenericSEPA09Txt, ExportProtocolDescription, Codeunit::"Check BTL91", Report::Docket, Report::"SEPA ISO20022 Pain 01.01.09", '');
 
         UpgradeTag.SetUpgradeTag(UpgradeTagDefinitions.GetBankExportImportSetupSEPACT09UpgradeTag());
@@ -3845,6 +3857,121 @@ codeunit 104000 "Upgrade - BaseApp"
         UpgradeTag.SetUpgradeTag(UpgradeTagDefinitions.GetICTransactionSourceTypeUpgradeTag());
     end;
 
+    local procedure UpgradePurchRcptLineFields()
+    var
+        PurchRcptHeader: Record "Purch. Rcpt. Header";
+        PurchRcptLine: Record "Purch. Rcpt. Line";
+        UpgradeTag: Codeunit "Upgrade Tag";
+        UpgradeTagDefinitions: Codeunit "Upgrade Tag Definitions";
+        PurchRcptLineDataTransfer: DataTransfer;
+    begin
+        if UpgradeTag.HasUpgradeTag(UpgradeTagDefinitions.GetPurchRcptLineFieldsUpgradeTag()) then
+            exit;
+
+        PurchRcptLine.FilterGroup(-1);
+        PurchRcptLine.SetFilter("Your Reference", '<>%1', '');
+        PurchRcptLine.SetFilter("Vendor Shipment No.", '<>%1', '');
+        PurchRcptLine.SetFilter("Vendor Order No.", '<>%1', '');
+        PurchRcptLine.FilterGroup(0);
+        if not PurchRcptLine.IsEmpty() then begin
+            Session.LogMessage('0000RIS', PurchRcptLineFieldsAlreadyPopulatedLbl, Verbosity::Warning, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', 'AL SaaS Upgrade');
+            exit;
+        end;
+
+        PurchRcptLineDataTransfer.SetTables(Database::"Purch. Rcpt. Header", Database::"Purch. Rcpt. Line");
+        PurchRcptLineDataTransfer.AddJoin(PurchRcptHeader.FieldNo("No."), PurchRcptLine.FieldNo("Document No."));
+        PurchRcptLineDataTransfer.AddFieldValue(PurchRcptHeader.FieldNo("Vendor Order No."), PurchRcptLine.FieldNo("Vendor Order No."));
+        PurchRcptLineDataTransfer.AddFieldValue(PurchRcptHeader.FieldNo("Vendor Shipment No."), PurchRcptLine.FieldNo("Vendor Shipment No."));
+        PurchRcptLineDataTransfer.AddFieldValue(PurchRcptHeader.FieldNo("Your Reference"), PurchRcptLine.FieldNo("Your Reference"));
+        PurchRcptLineDataTransfer.UpdateAuditFields := false;
+        PurchRcptLineDataTransfer.CopyFields();
+
+        UpgradeTag.SetUpgradeTag(UpgradeTagDefinitions.GetPurchRcptLineFieldsUpgradeTag());
+    end;
+
+    local procedure UpgradeSalesShptLineFields()
+    var
+        SalesShipmentHeader: Record "Sales Shipment Header";
+        SalesShipmentLine: Record "Sales Shipment Line";
+        UpgradeTag: Codeunit "Upgrade Tag";
+        UpgradeTagDefinitions: Codeunit "Upgrade Tag Definitions";
+        SalesShptLineDataTransfer: DataTransfer;
+    begin
+        if UpgradeTag.HasUpgradeTag(UpgradeTagDefinitions.GetSalesShptLineFieldsUpgradeTag()) then
+            exit;
+
+        SalesShipmentLine.FilterGroup(-1);
+        SalesShipmentLine.SetFilter("Your Reference", '<>%1', '');
+        SalesShipmentLine.SetFilter("External Document No.", '<>%1', '');
+        SalesShipmentLine.FilterGroup(0);
+        if not SalesShipmentLine.IsEmpty() then begin
+            Session.LogMessage('0000RIT', SalesShptLineFieldsAlreadyPopulatedLbl, Verbosity::Warning, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', 'AL SaaS Upgrade');
+            exit;
+        end;
+
+        SalesShptLineDataTransfer.SetTables(Database::"Sales Shipment Header", Database::"Sales Shipment Line");
+        SalesShptLineDataTransfer.AddJoin(SalesShipmentHeader.FieldNo("No."), SalesShipmentLine.FieldNo("Document No."));
+        SalesShptLineDataTransfer.AddFieldValue(SalesShipmentHeader.FieldNo("External Document No."), SalesShipmentLine.FieldNo("External Document No."));
+        SalesShptLineDataTransfer.AddFieldValue(SalesShipmentHeader.FieldNo("Your Reference"), SalesShipmentLine.FieldNo("Your Reference"));
+        SalesShptLineDataTransfer.UpdateAuditFields := false;
+        SalesShptLineDataTransfer.CopyFields();
+
+        UpgradeTag.SetUpgradeTag(UpgradeTagDefinitions.GetSalesShptLineFieldsUpgradeTag());
+    end;
+
+    local procedure UpgradeServiceShptLineFields()
+    var
+        ServiceShipmentHeader: Record "Service Shipment Header";
+        ServiceShipmentLine: Record "Service Shipment Line";
+        UpgradeTag: Codeunit "Upgrade Tag";
+        UpgradeTagDefinitions: Codeunit "Upgrade Tag Definitions";
+        ServiceShptLineDataTransfer: DataTransfer;
+    begin
+        if UpgradeTag.HasUpgradeTag(UpgradeTagDefinitions.GetServiceShptLineFieldsUpgradeTag()) then
+            exit;
+
+        ServiceShipmentLine.FilterGroup(-1);
+        ServiceShipmentLine.SetFilter("Your Reference", '<>%1', '');
+        ServiceShipmentLine.SetFilter("External Document No.", '<>%1', '');
+        ServiceShipmentLine.FilterGroup(0);
+        if not ServiceShipmentLine.IsEmpty() then begin
+            Session.LogMessage('0000RIU', ServiceShptLineFieldsAlreadyPopulatedLbl, Verbosity::Warning, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', 'AL SaaS Upgrade');
+            exit;
+        end;
+
+        ServiceShptLineDataTransfer.SetTables(Database::"Service Shipment Header", Database::"Service Shipment Line");
+        ServiceShptLineDataTransfer.AddJoin(ServiceShipmentHeader.FieldNo("No."), ServiceShipmentLine.FieldNo("Document No."));
+        ServiceShptLineDataTransfer.AddFieldValue(ServiceShipmentHeader.FieldNo("External Document No."), ServiceShipmentLine.FieldNo("External Document No."));
+        ServiceShptLineDataTransfer.AddFieldValue(ServiceShipmentHeader.FieldNo("Your Reference"), ServiceShipmentLine.FieldNo("Your Reference"));
+        ServiceShptLineDataTransfer.UpdateAuditFields := false;
+        ServiceShptLineDataTransfer.CopyFields();
+
+        UpgradeTag.SetUpgradeTag(UpgradeTagDefinitions.GetServiceShptLineFieldsUpgradeTag());
+    end;
+
+    local procedure UpgradeZeroClosedBankAccountLedgerEntries()
+    var
+        BankAccountLedgerEntry: Record "Bank Account Ledger Entry";
+        UpgradeTag: Codeunit "Upgrade Tag";
+        UpgradeTagDefinitions: Codeunit "Upgrade Tag Definitions";
+        BankAccLedgEntryDataTransfer: DataTransfer;
+    begin
+        if UpgradeTag.HasUpgradeTag(UpgradeTagDefinitions.GetZeroClosedBankAccountLedgerEntriesUpgradeTag()) then
+            exit;
+        // Bank account ledger entries created from processes like currency exchange adjustments, have a zero amount, but with a non-zero "Amount (LCY)"
+        // The general posting of journal lines considers such entries as closed by setting the Open flag to false, but other properties like "Closed at Date" and "Statement Status" were previously not set.
+        // This upgrade will set the "Closed at Date" to the "Posting Date" and "Statement Status" to "Closed" for those entries, to avoid confusion in bank statements and reconciliation processes.
+        BankAccLedgEntryDataTransfer.SetTables(Database::"Bank Account Ledger Entry", Database::"Bank Account Ledger Entry");
+        BankAccLedgEntryDataTransfer.AddSourceFilter(BankAccountLedgerEntry.FieldNo(Amount), '=%1', 0);
+        BankAccLedgEntryDataTransfer.AddSourceFilter(BankAccountLedgerEntry.FieldNo("Amount (LCY)"), '<>%1', 0);
+        BankAccLedgEntryDataTransfer.AddSourceFilter(BankAccountLedgerEntry.FieldNo(Open), '=%1', false);
+        BankAccLedgEntryDataTransfer.AddFieldValue(BankAccountLedgerEntry.FieldNo("Posting Date"), BankAccountLedgerEntry.FieldNo("Closed at Date"));
+        BankAccLedgEntryDataTransfer.AddConstantValue(BankAccountLedgerEntry."Statement Status"::Closed, BankAccountLedgerEntry.FieldNo("Statement Status"));
+        BankAccLedgEntryDataTransfer.CopyFields();
+
+        UpgradeTag.SetUpgradeTag(UpgradeTagDefinitions.GetZeroClosedBankAccountLedgerEntriesUpgradeTag());
+    end;
+
     local procedure SEPACAMT05300108(): Code[20]
     begin
         exit('SEPA CAMT 053-08');
@@ -3855,26 +3982,28 @@ codeunit 104000 "Upgrade - BaseApp"
         exit('SEPA CAMT 053-08-NL');
     end;
 
-    local procedure UpgradeNewSalesPricingFeatureKeyState()
+    local procedure UpgradeABCAnalysisSetup()
     var
-        CompanyInformation: Record "Company Information";
-        FeatureDataUpdateStatus: Record "Feature Data Update Status";
-        FeaturePriceCalculation: Codeunit "Feature - Price Calculation";
-        PriceCalculationMgt: Codeunit "Price Calculation Mgt.";
+        ABCAnalysisSetup: Record "ABC Analysis Setup";
         UpgradeTag: Codeunit "Upgrade Tag";
         UpgradeTagDefinitions: Codeunit "Upgrade Tag Definitions";
     begin
-        if UpgradeTag.HasUpgradeTag(UpgradeTagDefinitions.GetNewSalesPricingFeatureKeyStateTag()) then
+        if UpgradeTag.HasUpgradeTag(UpgradeTagDefinitions.GetInitializeABCAnalysisSetupUpgradeTag()) then
             exit;
 
-        if FeatureDataUpdateStatus.Get(PriceCalculationMgt.GetFeatureKey(), CompanyName()) then
-            if FeatureDataUpdateStatus."Feature Status" = FeatureDataUpdateStatus."Feature Status"::Enabled then begin
-                CompanyInformation.Get();
-                CompanyInformation."Pricing Implementation" := CompanyInformation."Pricing Implementation"::"Extended Pricing";
-                FeaturePriceCalculation.CopyBasicPricingData(CompanyInformation."Pricing Implementation", false);
-                CompanyInformation.Modify();
-            end;
+        if not ABCAnalysisSetup.Get() then begin
+            ABCAnalysisSetup.Init();
+            ABCAnalysisSetup.InitializeValues();
+            ABCAnalysisSetup.Insert();
+        end;
 
-        UpgradeTag.SetUpgradeTag(UpgradeTagDefinitions.GetNewSalesPricingFeatureKeyStateTag());
+        UpgradeTag.SetUpgradeTag(UpgradeTagDefinitions.GetInitializeABCAnalysisSetupUpgradeTag());
+    end;
+
+    local procedure UpgradeFinancialReportAuditLogAddRetentionPolicy()
+    var
+        FinancialReportAutiting: Codeunit "Financial Report Auditing";
+    begin
+        FinancialReportAutiting.AddRetentionPolicy();
     end;
 }

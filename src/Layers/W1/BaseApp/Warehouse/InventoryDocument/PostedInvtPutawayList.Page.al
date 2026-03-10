@@ -28,32 +28,26 @@ page 7394 "Posted Invt. Put-away List"
                 field("No."; Rec."No.")
                 {
                     ApplicationArea = Warehouse;
-                    ToolTip = 'Specifies the number of the involved entry or record, according to the specified number series.';
                 }
                 field("Posting Date"; Rec."Posting Date")
                 {
                     ApplicationArea = Warehouse;
-                    ToolTip = 'Specifies the posting date from the inventory put-away.';
                 }
                 field("Source No."; Rec."Source No.")
                 {
                     ApplicationArea = Warehouse;
-                    ToolTip = 'Specifies the number of the source document that the entry originates from.';
                 }
                 field("Invt. Put-away No."; Rec."Invt. Put-away No.")
                 {
                     ApplicationArea = Warehouse;
-                    ToolTip = 'Specifies the inventory put-away number from which the put-away was posted.';
                 }
                 field("Location Code"; Rec."Location Code")
                 {
                     ApplicationArea = Location;
-                    ToolTip = 'Specifies the code of the location in which the posted inventory put-away occurred.';
                 }
                 field("No. Series"; Rec."No. Series")
                 {
                     ApplicationArea = Warehouse;
-                    ToolTip = 'Specifies the number series from which entry or record numbers are assigned to new entries or records.';
                 }
             }
         }

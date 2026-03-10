@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -102,7 +102,6 @@ page 234 "Apply Employee Entries"
                 field("Applies-to ID"; Rec."Applies-to ID")
                 {
                     ApplicationArea = All;
-                    ToolTip = 'Specifies the ID of entries that will be applied to when you choose the Apply Entries action.';
                     Visible = AppliesToIDVisible;
                     trigger OnValidate()
                     begin
@@ -114,7 +113,6 @@ page 234 "Apply Employee Entries"
                 {
                     ApplicationArea = BasicHR;
                     Editable = false;
-                    ToolTip = 'Specifies the employee entry''s posting date.';
                 }
                 field("Document Type"; Rec."Document Type")
                 {
@@ -126,7 +124,6 @@ page 234 "Apply Employee Entries"
                 {
                     ApplicationArea = BasicHR;
                     Editable = false;
-                    ToolTip = 'Specifies the employee entry''s document number.';
                 }
                 field("Employee No."; Rec."Employee No.")
                 {
@@ -138,44 +135,37 @@ page 234 "Apply Employee Entries"
                 {
                     ApplicationArea = BasicHR;
                     Editable = false;
-                    ToolTip = 'Specifies a description of the employee entry.';
                 }
                 field("Currency Code"; Rec."Currency Code")
                 {
                     ApplicationArea = BasicHR;
-                    ToolTip = 'Specifies the currency code for the amount on the line.';
                 }
                 field("Original Amount"; Rec."Original Amount")
                 {
                     ApplicationArea = BasicHR;
                     Editable = false;
-                    ToolTip = 'Specifies the amount of the original entry.';
                     Visible = false;
                 }
                 field(Amount; Rec.Amount)
                 {
                     ApplicationArea = BasicHR;
                     Editable = false;
-                    ToolTip = 'Specifies the amount of the entry.';
                     Visible = false;
                 }
                 field("Debit Amount"; Rec."Debit Amount")
                 {
                     ApplicationArea = BasicHR;
-                    ToolTip = 'Specifies the total of the ledger entries that represent debits.';
                     Visible = false;
                 }
                 field("Credit Amount"; Rec."Credit Amount")
                 {
                     ApplicationArea = BasicHR;
-                    ToolTip = 'Specifies the total of the ledger entries that represent credits.';
                     Visible = false;
                 }
                 field("Remaining Amount"; Rec."Remaining Amount")
                 {
                     ApplicationArea = BasicHR;
                     Editable = false;
-                    ToolTip = 'Specifies the amount that remains to be applied to before the entry is totally applied to.';
                 }
 #pragma warning disable AA0100
                 field("CalcApplnRemainingAmount(""Remaining Amount"")"; CalcApplnRemainingAmount(Rec."Remaining Amount"))
@@ -190,7 +180,6 @@ page 234 "Apply Employee Entries"
                 field("Amount to Apply"; Rec."Amount to Apply")
                 {
                     ApplicationArea = BasicHR;
-                    ToolTip = 'Specifies the amount to apply.';
 
                     trigger OnValidate()
                     begin
@@ -217,29 +206,24 @@ page 234 "Apply Employee Entries"
                 field("Payment Reference"; Rec."Payment Reference")
                 {
                     ApplicationArea = BasicHR;
-                    ToolTip = 'Specifies the payment to the employee.';
                 }
                 field(Open; Rec.Open)
                 {
                     ApplicationArea = BasicHR;
                     Editable = false;
-                    ToolTip = 'Specifies whether the amount on the entry has been fully paid or there is still a remaining amount that must be applied to.';
                 }
                 field(Positive; Rec.Positive)
                 {
                     ApplicationArea = BasicHR;
                     Editable = false;
-                    ToolTip = 'Specifies if the entry to be applied is positive.';
                 }
                 field("Global Dimension 1 Code"; Rec."Global Dimension 1 Code")
                 {
                     ApplicationArea = Dimensions;
-                    ToolTip = 'Specifies the code for the global dimension that is linked to the record or entry for analysis purposes. Two global dimensions, typically for the company''s most important activities, are available on all cards, documents, reports, and lists.';
                 }
                 field("Global Dimension 2 Code"; Rec."Global Dimension 2 Code")
                 {
                     ApplicationArea = Dimensions;
-                    ToolTip = 'Specifies the code for the global dimension that is linked to the record or entry for analysis purposes. Two global dimensions, typically for the company''s most important activities, are available on all cards, documents, reports, and lists.';
                 }
             }
             group(Control41)

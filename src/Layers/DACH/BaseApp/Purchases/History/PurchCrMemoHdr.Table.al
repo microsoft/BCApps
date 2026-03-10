@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -57,6 +57,7 @@ table 124 "Purch. Cr. Memo Hdr."
         field(3; "No."; Code[20])
         {
             Caption = 'No.';
+            ToolTip = 'Specifies the posted credit memo number.';
         }
         field(4; "Pay-to Vendor No."; Code[20])
         {
@@ -68,6 +69,7 @@ table 124 "Purch. Cr. Memo Hdr."
         field(5; "Pay-to Name"; Text[100])
         {
             Caption = 'Pay-to Name';
+            ToolTip = 'Specifies the name of the vendor that you received the credit memo from.';
         }
         field(6; "Pay-to Name 2"; Text[50])
         {
@@ -77,20 +79,24 @@ table 124 "Purch. Cr. Memo Hdr."
         field(7; "Pay-to Address"; Text[100])
         {
             Caption = 'Pay-to Address';
+            ToolTip = 'Specifies the address of the vendor that you received the credit memo from.';
         }
         field(8; "Pay-to Address 2"; Text[50])
         {
             Caption = 'Pay-to Address 2';
+            ToolTip = 'Specifies additional address information.';
         }
         field(9; "Pay-to City"; Text[30])
         {
             Caption = 'Pay-to City';
+            ToolTip = 'Specifies the city of the vendor on the purchase document.';
             TableRelation = "Post Code".City;
             ValidateTableRelation = false;
         }
         field(10; "Pay-to Contact"; Text[100])
         {
             Caption = 'Pay-to Contact';
+            ToolTip = 'Specifies the name of the person you should contact at the vendor who you received the credit memo from.';
         }
         field(11; "Your Reference"; Text[35])
         {
@@ -99,11 +105,13 @@ table 124 "Purch. Cr. Memo Hdr."
         field(12; "Ship-to Code"; Code[10])
         {
             Caption = 'Ship-to Code';
+            ToolTip = 'Specifies a code for an alternate shipment address if you want to ship to another address than the one that has been entered automatically. This field is also used in case of drop shipment.';
             TableRelation = "Ship-to Address".Code where("Customer No." = field("Sell-to Customer No."));
         }
         field(13; "Ship-to Name"; Text[100])
         {
             Caption = 'Ship-to Name';
+            ToolTip = 'Specifies the name of the customer at the address that the items are shipped to.';
         }
         field(14; "Ship-to Name 2"; Text[50])
         {
@@ -112,24 +120,29 @@ table 124 "Purch. Cr. Memo Hdr."
         field(15; "Ship-to Address"; Text[100])
         {
             Caption = 'Ship-to Address';
+            ToolTip = 'Specifies the address that the items in the purchase order were shipped to.';
         }
         field(16; "Ship-to Address 2"; Text[50])
         {
             Caption = 'Ship-to Address 2';
+            ToolTip = 'Specifies additional address information.';
         }
         field(17; "Ship-to City"; Text[30])
         {
             Caption = 'Ship-to City';
+            ToolTip = 'Specifies the city of the vendor on the purchase document.';
             TableRelation = "Post Code".City;
             ValidateTableRelation = false;
         }
         field(18; "Ship-to Contact"; Text[100])
         {
             Caption = 'Ship-to Contact';
+            ToolTip = 'Specifies the name of a contact person at the address that the items were shipped to.';
         }
         field(20; "Posting Date"; Date)
         {
             Caption = 'Posting Date';
+            ToolTip = 'Specifies the date the credit memo was posted.';
         }
         field(21; "Expected Receipt Date"; Date)
         {
@@ -138,6 +151,7 @@ table 124 "Purch. Cr. Memo Hdr."
         field(22; "Posting Description"; Text[100])
         {
             Caption = 'Posting Description';
+            ToolTip = 'Specifies any text that is entered to accompany the posting, for example for information to auditors.';
         }
         field(23; "Payment Terms Code"; Code[10])
         {
@@ -147,6 +161,7 @@ table 124 "Purch. Cr. Memo Hdr."
         field(24; "Due Date"; Date)
         {
             Caption = 'Due Date';
+            ToolTip = 'Specifies when the credit memo is due. The program calculates the date using the Payment Terms Code and Posting Date fields on the purchase header.';
         }
         field(25; "Payment Discount %"; Decimal)
         {
@@ -166,29 +181,34 @@ table 124 "Purch. Cr. Memo Hdr."
         field(28; "Location Code"; Code[10])
         {
             Caption = 'Location Code';
+            ToolTip = 'Specifies the code for the location used when you posted the credit memo.';
             TableRelation = Location where("Use As In-Transit" = const(false));
         }
         field(29; "Shortcut Dimension 1 Code"; Code[20])
         {
             CaptionClass = '1,2,1';
             Caption = 'Shortcut Dimension 1 Code';
+            ToolTip = 'Specifies the code for Shortcut Dimension 1, which is one of two global dimension codes that you set up in the General Ledger Setup window.';
             TableRelation = "Dimension Value".Code where("Global Dimension No." = const(1));
         }
         field(30; "Shortcut Dimension 2 Code"; Code[20])
         {
             CaptionClass = '1,2,2';
             Caption = 'Shortcut Dimension 2 Code';
+            ToolTip = 'Specifies the code for Shortcut Dimension 2, which is one of two global dimension codes that you set up in the General Ledger Setup window.';
             TableRelation = "Dimension Value".Code where("Global Dimension No." = const(2));
         }
         field(31; "Vendor Posting Group"; Code[20])
         {
             Caption = 'Vendor Posting Group';
+            ToolTip = 'Specifies the vendor''s market type to link business transactions made for the vendor with the appropriate account in the general ledger.';
             Editable = false;
             TableRelation = "Vendor Posting Group";
         }
         field(32; "Currency Code"; Code[10])
         {
             Caption = 'Currency Code';
+            ToolTip = 'Specifies the currency code used to calculate the amounts on the credit memo.';
             Editable = false;
             TableRelation = Currency;
         }
@@ -220,6 +240,7 @@ table 124 "Purch. Cr. Memo Hdr."
         field(43; "Purchaser Code"; Code[20])
         {
             Caption = 'Purchaser Code';
+            ToolTip = 'Specifies which purchaser is assigned to the vendor.';
             TableRelation = "Salesperson/Purchaser";
         }
         field(46; Comment; Boolean)
@@ -234,6 +255,7 @@ table 124 "Purch. Cr. Memo Hdr."
         field(47; "No. Printed"; Integer)
         {
             Caption = 'No. Printed';
+            ToolTip = 'Specifies how many times the document has been printed.';
             Editable = false;
         }
         field(51; "On Hold"; Code[3])
@@ -243,10 +265,12 @@ table 124 "Purch. Cr. Memo Hdr."
         field(52; "Applies-to Doc. Type"; Enum "Gen. Journal Document Type")
         {
             Caption = 'Applies-to Doc. Type';
+            ToolTip = 'Specifies the type of the posted document that this document or journal line will be applied to when you post, for example to register payment.';
         }
         field(53; "Applies-to Doc. No."; Code[20])
         {
             Caption = 'Applies-to Doc. No.';
+            ToolTip = 'Specifies the number of the posted document that this document or journal line will be applied to when you post, for example to register payment.';
 
             trigger OnLookup()
             var
@@ -272,6 +296,7 @@ table 124 "Purch. Cr. Memo Hdr."
             AutoFormatType = 1;
             CalcFormula = sum("Purch. Cr. Memo Line".Amount where("Document No." = field("No.")));
             Caption = 'Amount';
+            ToolTip = 'Specifies the total, in the currency of the credit memo, of the amounts on all the credit memo lines.';
             Editable = false;
             FieldClass = FlowField;
         }
@@ -281,12 +306,14 @@ table 124 "Purch. Cr. Memo Hdr."
             AutoFormatType = 1;
             CalcFormula = sum("Purch. Cr. Memo Line"."Amount Including VAT" where("Document No." = field("No.")));
             Caption = 'Amount Including VAT';
+            ToolTip = 'Specifies the total of the amounts, including VAT, on all the lines on the document.';
             Editable = false;
             FieldClass = FlowField;
         }
         field(69; "Vendor Cr. Memo No."; Code[35])
         {
             Caption = 'Vendor Cr. Memo No.';
+            ToolTip = 'Specifies the vendor''s number for this credit memo.';
         }
         field(70; "VAT Registration No."; Text[20])
         {
@@ -325,6 +352,7 @@ table 124 "Purch. Cr. Memo Hdr."
         field(79; "Buy-from Vendor Name"; Text[100])
         {
             Caption = 'Buy-from Vendor Name';
+            ToolTip = 'Specifies the name of the vendor who shipped the items.';
         }
         field(80; "Buy-from Vendor Name 2"; Text[50])
         {
@@ -334,24 +362,29 @@ table 124 "Purch. Cr. Memo Hdr."
         field(81; "Buy-from Address"; Text[100])
         {
             Caption = 'Buy-from Address';
+            ToolTip = 'Specifies the address of the vendor who shipped the items.';
         }
         field(82; "Buy-from Address 2"; Text[50])
         {
             Caption = 'Buy-from Address 2';
+            ToolTip = 'Specifies additional address information.';
         }
         field(83; "Buy-from City"; Text[30])
         {
             Caption = 'Buy-from City';
+            ToolTip = 'Specifies the city of the vendor on the purchase document.';
             TableRelation = "Post Code".City;
             ValidateTableRelation = false;
         }
         field(84; "Buy-from Contact"; Text[100])
         {
             Caption = 'Buy-from Contact';
+            ToolTip = 'Specifies the name of the contact person at the vendor who delivered the items.';
         }
         field(85; "Pay-to Post Code"; Code[20])
         {
             Caption = 'Pay-to Post Code';
+            ToolTip = 'Specifies the post code of the vendor that you received the invoice from.';
             TableRelation = "Post Code";
             ValidateTableRelation = false;
         }
@@ -359,15 +392,18 @@ table 124 "Purch. Cr. Memo Hdr."
         {
             CaptionClass = '5,6,' + "Pay-to Country/Region Code";
             Caption = 'Pay-to County';
+            ToolTip = 'Specifies the state, province or county as a part of the address.';
         }
         field(87; "Pay-to Country/Region Code"; Code[10])
         {
             Caption = 'Pay-to Country/Region Code';
+            ToolTip = 'Specifies the country or region of the ship-to address.';
             TableRelation = "Country/Region";
         }
         field(88; "Buy-from Post Code"; Code[20])
         {
             Caption = 'Buy-from Post Code';
+            ToolTip = 'Specifies the post code of the vendor who delivered the items.';
             TableRelation = "Post Code";
             ValidateTableRelation = false;
         }
@@ -375,15 +411,18 @@ table 124 "Purch. Cr. Memo Hdr."
         {
             CaptionClass = '5,5,' + "Buy-from Country/Region Code";
             Caption = 'Buy-from County';
+            ToolTip = 'Specifies the state, province or county as a part of the address.';
         }
         field(90; "Buy-from Country/Region Code"; Code[10])
         {
             Caption = 'Buy-from Country/Region Code';
+            ToolTip = 'Specifies the country or region of the ship-to address.';
             TableRelation = "Country/Region";
         }
         field(91; "Ship-to Post Code"; Code[20])
         {
             Caption = 'Ship-to Post Code';
+            ToolTip = 'Specifies the postal code of the address that the items are shipped to.';
             TableRelation = "Post Code";
             ValidateTableRelation = false;
         }
@@ -391,10 +430,12 @@ table 124 "Purch. Cr. Memo Hdr."
         {
             CaptionClass = '5,4,' + "Ship-to Country/Region Code";
             Caption = 'Ship-to County';
+            ToolTip = 'Specifies the state, province or county as a part of the address.';
         }
         field(93; "Ship-to Country/Region Code"; Code[10])
         {
             Caption = 'Ship-to Country/Region Code';
+            ToolTip = 'Specifies the country or region of the ship-to address.';
             TableRelation = "Country/Region";
         }
         field(94; "Bal. Account Type"; enum "Payment Balance Account Type")
@@ -404,6 +445,7 @@ table 124 "Purch. Cr. Memo Hdr."
         field(95; "Order Address Code"; Code[10])
         {
             Caption = 'Order Address Code';
+            ToolTip = 'Specifies the order address of the related vendor.';
             TableRelation = "Order Address".Code where("Vendor No." = field("Buy-from Vendor No."));
         }
         field(97; "Entry Point"; Code[10])
@@ -414,10 +456,12 @@ table 124 "Purch. Cr. Memo Hdr."
         field(98; Correction; Boolean)
         {
             Caption = 'Correction';
+            ToolTip = 'Specifies the entry was posted as a corrective entry.';
         }
         field(99; "Document Date"; Date)
         {
             Caption = 'Document Date';
+            ToolTip = 'Specifies the date on which the purchase document was created.';
         }
         field(101; "Area"; Code[10])
         {
@@ -448,6 +492,7 @@ table 124 "Purch. Cr. Memo Hdr."
         field(111; "Pre-Assigned No."; Code[20])
         {
             Caption = 'Pre-Assigned No.';
+            ToolTip = 'Specifies the number of the credit memo that the posted credit memo was created from.';
         }
         field(112; "User ID"; Code[50])
         {
@@ -498,11 +543,13 @@ table 124 "Purch. Cr. Memo Hdr."
         field(179; "VAT Reporting Date"; Date)
         {
             Caption = 'VAT Date';
+            ToolTip = 'Specifies the VAT date on the invoice.';
             Editable = false;
         }
         field(210; "Ship-to Phone No."; Text[30])
         {
             Caption = 'Ship-to Phone No.';
+            ToolTip = 'Specifies the telephone number of the company''s shipping address.';
             ExtendedDatatype = PhoneNo;
         }
         field(480; "Dimension Set ID"; Integer)
@@ -521,6 +568,7 @@ table 124 "Purch. Cr. Memo Hdr."
             CalcFormula = - exist("Vendor Ledger Entry" where("Entry No." = field("Vendor Ledger Entry No."),
                                                               Open = filter(true)));
             Caption = 'Paid';
+            ToolTip = 'Specifies if the posted purchase invoice that relates to this purchase credit memo is paid. The check box will also be selected if a credit memo for the remaining amount has been applied.';
             Editable = false;
             FieldClass = FlowField;
         }
@@ -530,6 +578,7 @@ table 124 "Purch. Cr. Memo Hdr."
             AutoFormatType = 1;
             CalcFormula = - sum("Detailed Vendor Ledg. Entry".Amount where("Vendor Ledger Entry No." = field("Vendor Ledger Entry No.")));
             Caption = 'Remaining Amount';
+            ToolTip = 'Specifies the amount that remains to be paid for the posted purchase invoice that relates to this purchase credit memo.';
             Editable = false;
             FieldClass = FlowField;
         }
@@ -553,6 +602,7 @@ table 124 "Purch. Cr. Memo Hdr."
             CalcFormula = exist("Cancelled Document" where("Source ID" = const(124),
                                                             "Cancelled Doc. No." = field("No.")));
             Caption = 'Cancelled';
+            ToolTip = 'Specifies if the posted purchase invoice that relates to this purchase credit memo has been either corrected or canceled.';
             Editable = false;
             FieldClass = FlowField;
         }
@@ -561,6 +611,7 @@ table 124 "Purch. Cr. Memo Hdr."
             CalcFormula = exist("Cancelled Document" where("Source ID" = const(122),
                                                             "Cancelled By Doc. No." = field("No.")));
             Caption = 'Corrective';
+            ToolTip = 'Specifies if the posted purchase invoice has been either corrected or canceled by this purchase credit memo .';
             Editable = false;
             FieldClass = FlowField;
         }
@@ -572,16 +623,19 @@ table 124 "Purch. Cr. Memo Hdr."
         field(5052; "Buy-from Contact No."; Code[20])
         {
             Caption = 'Buy-from Contact No.';
+            ToolTip = 'Specifies the number of the contact who you sent the purchase credit memo to.';
             TableRelation = Contact;
         }
         field(5053; "Pay-to Contact No."; Code[20])
         {
             Caption = 'Pay-to Contact No.';
+            ToolTip = 'Specifies the number of the contact at the vendor who handles the credit memo.';
             TableRelation = Contact;
         }
         field(5700; "Responsibility Center"; Code[10])
         {
             Caption = 'Responsibility Center';
+            ToolTip = 'Specifies the code for the responsibility center that serves the vendor on this purchase document.';
             TableRelation = "Responsibility Center";
         }
         field(6601; "Return Order No."; Code[20])

@@ -3777,6 +3777,112 @@ codeunit 137059 "SCM RTAM Item Tracking-II"
         Assert.ExpectedError(ReceiptIsAlreadyInvoicedErr);
     end;
 
+    [Test]
+    [HandlerFunctions('ItemTrackingDropShipmentPageHandler,QuantityToCreatePageHandler,SalesListPageHandler,AvailabilityConfirmHandler')]
+    procedure CorrectQuantityUpdateOnShippingAfterPurchaseOrderFullyPosted()
+    var
+        Item: Record Item;
+        SalesHeader: Record "Sales Header";
+        SalesLine: Record "Sales Line";
+        PurchaseHeader: Record "Purchase Header";
+        Quantity: Decimal;
+    begin
+        // [SCENARIO 618870] Verify there is no error when performing Shipment after Undo Drop Shipment Sales Shipment is executed with Serial No.
+        Initialize();
+
+        // [GIVEN] Generate a random quantity.
+        Quantity := LibraryRandom.RandInt(50);
+
+        // [GIVEN] Create an item with Serial No. tracking.
+        CreateItem(Item, ItemTrackingCodeSerialSpecific.Code);
+        Item.Validate("Unit Price", LibraryRandom.RandDec(10, 2));
+        Item.Validate("Unit Cost", LibraryRandom.RandDec(10, 2));
+        Item.Validate("Last Direct Cost", Item."Unit Cost");
+        Item.Modify(true);
+
+        // [GIVEN] Create a sales order with drop shipment.
+        CreateSalesOrderWithPurchasingCode(SalesHeader, SalesLine, Item."No.", '', Quantity, false);
+
+        // [GIVEN] Assign Global variable for Page Handler. Assign Tracking as SerialNo.
+        SetGlobalValue(Item."No.", false, false, false, AssignTracking::SerialNo, 0);
+
+        // [GIVEN] Open Item Tracking Lines for Sales Line.
+        SalesLine.OpenItemTrackingLines();
+
+        // [GIVEN] Create a purchase order for drop shipment.
+        CreatePurchaseHeaderAndGetDropShipment(PurchaseHeader, SalesHeader."Sell-to Customer No.");
+
+        // [GIVEN] Assign Global variable for Page Handler. PartialTracking as True.
+        SetGlobalValue(Item."No.", false, false, true, AssignTracking::None, 0);
+
+        // [GIVEN] Assign Tracking on Purchase Line.
+        AssignTrackingOnPurchaseLine(PurchaseHeader."No.");
+
+        // [WHEN] Post Purchase Document With Receive + Invoice.
+        PostPurchaseDocument(PurchaseHeader."Document Type", PurchaseHeader."No.", true, true);
+
+        // [THEN] Verify that the shipment is posted and quantity shipped.
+        VerifyQuantityForDropShipmentInSalesLine(SalesHeader, Item."No.", Quantity, 0);
+    end;
+
+    [Test]
+    [HandlerFunctions('ItemTrackingDropShipmentPageHandler,QuantityToCreatePageHandler,SalesListPageHandler,AvailabilityConfirmHandler')]
+    procedure NoErrorOnShippingAfterUndoDropShipmentIsExecutedWithSerialNo()
+    var
+        Item: Record Item;
+        SalesHeader: Record "Sales Header";
+        SalesLine: Record "Sales Line";
+        PurchaseHeader: Record "Purchase Header";
+        Quantity: Decimal;
+    begin
+        // [SCENARIO 618870] Verify there is no error when performing Shipment after Undo Drop Shipment Sales Shipment is executed with Serial No.
+        Initialize();
+
+        // [GIVEN] Generate a random quantity.
+        Quantity := LibraryRandom.RandInt(50);
+
+        // [GIVEN] Create an item with Serial No. tracking.
+        CreateItem(Item, ItemTrackingCodeSerialSpecific.Code);
+        Item.Validate("Unit Price", LibraryRandom.RandDec(10, 2));
+        Item.Validate("Unit Cost", LibraryRandom.RandDec(10, 2));
+        Item.Validate("Last Direct Cost", Item."Unit Cost");
+        Item.Modify(true);
+
+        // [GIVEN] Create a sales order with drop shipment.
+        CreateSalesOrderWithPurchasingCode(SalesHeader, SalesLine, Item."No.", '', Quantity, false);
+
+        // [GIVEN] Assign Global variable for Page Handler. Assign Tracking as SerialNo.
+        SetGlobalValue(Item."No.", false, false, false, AssignTracking::SerialNo, 0);
+
+        // [GIVEN] Open Item Tracking Lines for Sales Line.
+        SalesLine.OpenItemTrackingLines();
+
+        // [GIVEN] Create a purchase order for drop shipment.
+        CreatePurchaseHeaderAndGetDropShipment(PurchaseHeader, SalesHeader."Sell-to Customer No.");
+
+        // [GIVEN] Assign Global variable for Page Handler. PartialTracking as True.
+        SetGlobalValue(Item."No.", false, false, true, AssignTracking::None, 0);
+
+        // [GIVEN] Assign Tracking on Purchase Line.
+        AssignTrackingOnPurchaseLine(PurchaseHeader."No.");
+
+        // [GIVEN] Post Sales Document with shipment only.
+        PostSalesDocument(SalesHeader."Document Type", SalesHeader."No.", true, false);
+
+        // [GIVEN] Undo Sales Shipment.
+        UndoSalesShipment(SalesHeader."No.");
+
+        // [WHEN] Post Sales Document with shipment only again.
+        SalesHeader.Get(SalesHeader."Document Type", SalesHeader."No.");
+        PostSalesDocument(SalesHeader."Document Type", SalesHeader."No.", true, false);
+
+        // [THEN] Verify that the shipment is posted and quantity shipped.
+        VerifyQuantityForDropShipmentInSalesLine(SalesHeader, Item."No.", Quantity, 0);
+
+        // [THEN] Verify that the Receipt is posted and quantity received.
+        VerifyQuantityForDropShipmentInPurchaseLine(PurchaseHeader, Item."No.", Quantity, 0);
+    end;
+
     local procedure Initialize()
     var
         LibraryERMCountryData: Codeunit "Library - ERM Country Data";

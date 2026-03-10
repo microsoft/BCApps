@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -58,6 +58,7 @@ table 296 "Reminder Line"
         field(4; Type; Enum "Reminder Source Type")
         {
             Caption = 'Type';
+            ToolTip = 'Specifies the line type.';
 
             trigger OnValidate()
             var
@@ -143,6 +144,7 @@ table 296 "Reminder Line"
         field(6; "No. of Reminders"; Integer)
         {
             Caption = 'No. of Reminders';
+            ToolTip = 'Specifies a number that indicates the reminder level.';
 
             trigger OnValidate()
             begin
@@ -156,6 +158,7 @@ table 296 "Reminder Line"
         field(7; "Posting Date"; Date)
         {
             Caption = 'Posting Date';
+            ToolTip = 'Specifies the posting date of the customer ledger entry that this reminder line is for.';
             Editable = false;
         }
         /// <summary>
@@ -164,6 +167,7 @@ table 296 "Reminder Line"
         field(8; "Document Date"; Date)
         {
             Caption = 'Document Date';
+            ToolTip = 'Specifies the date when the related document was created.';
             Editable = false;
         }
         /// <summary>
@@ -172,6 +176,7 @@ table 296 "Reminder Line"
         field(9; "Due Date"; Date)
         {
             Caption = 'Due Date';
+            ToolTip = 'Specifies the due date of the customer ledger entry this reminder line is for.';
             Editable = false;
         }
         /// <summary>
@@ -180,6 +185,7 @@ table 296 "Reminder Line"
         field(10; "Document Type"; Enum "Gen. Journal Document Type")
         {
             Caption = 'Document Type';
+            ToolTip = 'Specifies the document type of the customer ledger entry this reminder line is for.';
 
             trigger OnValidate()
             var
@@ -200,6 +206,7 @@ table 296 "Reminder Line"
         field(11; "Document No."; Code[20])
         {
             Caption = 'Document No.';
+            ToolTip = 'Specifies the document number of the customer ledger entry this reminder line is for.';
 
             trigger OnLookup()
             begin
@@ -235,6 +242,7 @@ table 296 "Reminder Line"
         field(12; Description; Text[100])
         {
             Caption = 'Description';
+            ToolTip = 'Specifies an entry description, based on the contents of the Type field.';
         }
         /// <summary>
         /// Specifies the original amount of the document being reminded.
@@ -245,6 +253,7 @@ table 296 "Reminder Line"
             AutoFormatType = 1;
             BlankZero = true;
             Caption = 'Original Amount';
+            ToolTip = 'Specifies the original amount of the customer ledger entry that this reminder line is for.';
             Editable = false;
         }
         /// <summary>
@@ -256,6 +265,7 @@ table 296 "Reminder Line"
             AutoFormatType = 1;
             BlankZero = true;
             Caption = 'Remaining Amount';
+            ToolTip = 'Specifies the remaining amount of the customer ledger entry this reminder line is for.';
             Editable = false;
         }
         /// <summary>
@@ -264,6 +274,7 @@ table 296 "Reminder Line"
         field(15; "No."; Code[20])
         {
             Caption = 'No.';
+            ToolTip = 'Specifies the number of the involved entry or record, according to the specified number series.';
             TableRelation = if (Type = const(" ")) "Standard Text"
             else
             if (Type = const("G/L Account")) "G/L Account"
@@ -303,6 +314,7 @@ table 296 "Reminder Line"
             AutoFormatType = 1;
             BlankZero = true;
             Caption = 'Amount';
+            ToolTip = 'Specifies the amount in the currency that is represented by the currency code on the reminder header.';
 
             trigger OnValidate()
             begin
@@ -403,6 +415,7 @@ table 296 "Reminder Line"
             AutoFormatType = 1;
             BlankZero = true;
             Caption = 'VAT Amount';
+            ToolTip = 'Specifies the VAT amount in the currency that is represented by the currency code on the reminder header.';
             Editable = false;
         }
         /// <summary>
@@ -473,6 +486,7 @@ table 296 "Reminder Line"
         field(25; "Line Type"; Enum "Reminder Line Type")
         {
             Caption = 'Line Type';
+            ToolTip = 'Specifies the type of the reminder line.';
         }
         /// <summary>
         /// Specifies a VAT clause code for special VAT treatments that must appear on documents.
@@ -488,6 +502,7 @@ table 296 "Reminder Line"
         field(27; "Applies-to Document Type"; Enum "Gen. Journal Document Type")
         {
             Caption = 'Applies-to Document Type';
+            ToolTip = 'Specifies the type of the posted document that this document or journal line will be applied to when you post, for example to register payment.';
 
             trigger OnValidate()
             begin
@@ -501,6 +516,7 @@ table 296 "Reminder Line"
         field(28; "Applies-to Document No."; Code[20])
         {
             Caption = 'Applies-to Document No.';
+            ToolTip = 'Specifies the number of the posted document that this document or journal line will be applied to when you post, for example to register payment.';
 
             trigger OnLookup()
             begin

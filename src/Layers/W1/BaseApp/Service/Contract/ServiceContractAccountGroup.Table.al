@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -18,15 +18,18 @@ table 5973 "Service Contract Account Group"
         field(1; "Code"; Code[10])
         {
             Caption = 'Code';
+            ToolTip = 'Specifies the code assigned to the service contract account group.';
             NotBlank = true;
         }
         field(2; Description; Text[100])
         {
             Caption = 'Description';
+            ToolTip = 'Specifies a description of the service contract account group.';
         }
         field(3; "Non-Prepaid Contract Acc."; Code[20])
         {
             Caption = 'Non-Prepaid Contract Acc.';
+            ToolTip = 'Specifies the general ledger account number for the non-prepaid account.';
             TableRelation = "G/L Account"."No.";
 
             trigger OnValidate()
@@ -44,6 +47,7 @@ table 5973 "Service Contract Account Group"
         field(4; "Prepaid Contract Acc."; Code[20])
         {
             Caption = 'Prepaid Contract Acc.';
+            ToolTip = 'Specifies the general ledger account number for the prepaid account.';
             TableRelation = "G/L Account"."No.";
 
             trigger OnValidate()

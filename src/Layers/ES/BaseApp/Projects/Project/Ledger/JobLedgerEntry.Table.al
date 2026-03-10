@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -38,27 +38,33 @@ table 169 "Job Ledger Entry"
         field(1; "Entry No."; Integer)
         {
             Caption = 'Entry No.';
+            ToolTip = 'Specifies the number of the entry, as assigned from the specified number series when the entry was created.';
         }
         field(2; "Job No."; Code[20])
         {
             Caption = 'Project No.';
+            ToolTip = 'Specifies the number of the project.';
             TableRelation = Job;
         }
         field(3; "Posting Date"; Date)
         {
             Caption = 'Posting Date';
+            ToolTip = 'Specifies the posting date for the entry.';
         }
         field(4; "Document No."; Code[20])
         {
             Caption = 'Document No.';
+            ToolTip = 'Specifies the document number on the project ledger entry.';
         }
         field(5; Type; Enum "Job Journal Line Type")
         {
             Caption = 'Type';
+            ToolTip = 'Specifies the type of account to which the project ledger entry is posted.';
         }
         field(7; "No."; Code[20])
         {
             Caption = 'No.';
+            ToolTip = 'Specifies the number of the involved entry or record, according to the specified number series.';
             TableRelation = if (Type = const(Resource)) Resource
             else
             if (Type = const(Item)) Item
@@ -68,11 +74,13 @@ table 169 "Job Ledger Entry"
         field(8; Description; Text[100])
         {
             Caption = 'Description';
+            ToolTip = 'Specifies the description of the project ledger entry.';
         }
         field(9; Quantity; Decimal)
         {
             AutoFormatType = 0;
             Caption = 'Quantity';
+            ToolTip = 'Specifies the quantity that was posted on the entry.';
             DecimalPlaces = 0 : 5;
         }
         field(11; "Direct Unit Cost (LCY)"; Decimal)
@@ -118,6 +126,7 @@ table 169 "Job Ledger Entry"
         field(17; "Unit of Measure Code"; Code[10])
         {
             Caption = 'Unit of Measure Code';
+            ToolTip = 'Specifies how each unit of the item or resource is measured, such as in pieces or hours. By default, the value in the Base Unit of Measure field on the item or resource card is inserted.';
             TableRelation = if (Type = const(Item)) "Item Unit of Measure".Code where("Item No." = field("No."))
             else
             if (Type = const(Resource)) "Resource Unit of Measure".Code where("Resource No." = field("No."));
@@ -131,28 +140,33 @@ table 169 "Job Ledger Entry"
         field(20; "Location Code"; Code[10])
         {
             Caption = 'Location Code';
+            ToolTip = 'Specifies the relevant location code if an item is posted.';
             TableRelation = Location where("Use As In-Transit" = const(false));
         }
         field(29; "Job Posting Group"; Code[20])
         {
             Caption = 'Posting Group';
+            ToolTip = 'Specifies the posting group that was used when the entry was posted. The value depends on the account type. For inventoriable items, the field contains the Inventory Posting Group. For other account types the field is blank.';
             TableRelation = "Inventory Posting Group";
         }
         field(30; "Global Dimension 1 Code"; Code[20])
         {
             CaptionClass = '1,1,1';
             Caption = 'Global Dimension 1 Code';
+            ToolTip = 'Specifies the code for the global dimension that is linked to the record or entry for analysis purposes. Two global dimensions, typically for the company''s most important activities, are available on all cards, documents, reports, and lists.';
             TableRelation = "Dimension Value".Code where("Global Dimension No." = const(1));
         }
         field(31; "Global Dimension 2 Code"; Code[20])
         {
             CaptionClass = '1,1,2';
             Caption = 'Global Dimension 2 Code';
+            ToolTip = 'Specifies the code for the global dimension that is linked to the record or entry for analysis purposes. Two global dimensions, typically for the company''s most important activities, are available on all cards, documents, reports, and lists.';
             TableRelation = "Dimension Value".Code where("Global Dimension No." = const(2));
         }
         field(32; "Work Type Code"; Code[10])
         {
             Caption = 'Work Type Code';
+            ToolTip = 'Specifies which work type the resource applies to. Prices are updated based on this entry.';
             TableRelation = "Work Type";
         }
         field(33; "Customer Price Group"; Code[10])
@@ -163,12 +177,14 @@ table 169 "Job Ledger Entry"
         field(37; "User ID"; Code[50])
         {
             Caption = 'User ID';
+            ToolTip = 'Specifies the ID of the user who posted the entry, to be used, for example, in the change log.';
             DataClassification = EndUserIdentifiableInformation;
             TableRelation = User."User Name";
         }
         field(38; "Source Code"; Code[10])
         {
             Caption = 'Source Code';
+            ToolTip = 'Specifies the source code that specifies where the entry was created.';
             TableRelation = "Source Code";
         }
         field(40; "Shpt. Method Code"; Code[10])
@@ -181,16 +197,19 @@ table 169 "Job Ledger Entry"
             AutoFormatType = 1;
             AutoFormatExpression = "Currency Code";
             Caption = 'Amt. to Post to G/L';
+            ToolTip = 'Specifies the amount that will be posted to the general ledger.';
         }
         field(61; "Amt. Posted to G/L"; Decimal)
         {
             AutoFormatType = 1;
             AutoFormatExpression = "Currency Code";
             Caption = 'Amt. Posted to G/L';
+            ToolTip = 'Specifies the amount that has been posted to the general ledger.';
         }
         field(64; "Entry Type"; Enum "Job Journal Line Entry Type")
         {
             Caption = 'Entry Type';
+            ToolTip = 'Specifies the type of the entry. There are two types of entries:';
         }
         field(75; "Journal Batch Name"; Code[10])
         {
@@ -199,6 +218,7 @@ table 169 "Job Ledger Entry"
         field(76; "Reason Code"; Code[10])
         {
             Caption = 'Reason Code';
+            ToolTip = 'Specifies the reason code, a supplementary source code that enables you to trace the entry.';
             TableRelation = "Reason Code";
         }
         field(77; "Transaction Type"; Code[10])
@@ -219,11 +239,13 @@ table 169 "Job Ledger Entry"
         field(80; "Gen. Bus. Posting Group"; Code[20])
         {
             Caption = 'Gen. Bus. Posting Group';
+            ToolTip = 'Specifies the vendor''s or customer''s trade type to link transactions made for this business partner with the appropriate general ledger account according to the general posting setup.';
             TableRelation = "Gen. Business Posting Group";
         }
         field(81; "Gen. Prod. Posting Group"; Code[20])
         {
             Caption = 'Gen. Prod. Posting Group';
+            ToolTip = 'Specifies the item''s product type to link transactions made for this item with the appropriate general ledger account according to the general posting setup.';
             TableRelation = "Gen. Product Posting Group";
         }
         field(82; "Entry/Exit Point"; Code[10])
@@ -275,6 +297,7 @@ table 169 "Job Ledger Entry"
         field(480; "Dimension Set ID"; Integer)
         {
             Caption = 'Dimension Set ID';
+            ToolTip = 'Specifies a reference to a combination of dimension values. The actual values are stored in the Dimension Set Entry table.';
             Editable = false;
             TableRelation = "Dimension Set Entry";
 
@@ -287,6 +310,7 @@ table 169 "Job Ledger Entry"
         {
             CaptionClass = '1,2,3';
             Caption = 'Shortcut Dimension 3 Code';
+            ToolTip = 'Specifies the code for Shortcut Dimension 3, which is one of dimension codes that you set up in the General Ledger Setup window.';
             Editable = false;
             FieldClass = FlowField;
             CalcFormula = lookup("Dimension Set Entry"."Dimension Value Code" where("Dimension Set ID" = field("Dimension Set ID"),
@@ -296,6 +320,7 @@ table 169 "Job Ledger Entry"
         {
             CaptionClass = '1,2,4';
             Caption = 'Shortcut Dimension 4 Code';
+            ToolTip = 'Specifies the code for Shortcut Dimension 4, which is one of dimension codes that you set up in the General Ledger Setup window.';
             Editable = false;
             FieldClass = FlowField;
             CalcFormula = lookup("Dimension Set Entry"."Dimension Value Code" where("Dimension Set ID" = field("Dimension Set ID"),
@@ -305,6 +330,7 @@ table 169 "Job Ledger Entry"
         {
             CaptionClass = '1,2,5';
             Caption = 'Shortcut Dimension 5 Code';
+            ToolTip = 'Specifies the code for Shortcut Dimension 5, which is one of dimension codes that you set up in the General Ledger Setup window.';
             Editable = false;
             FieldClass = FlowField;
             CalcFormula = lookup("Dimension Set Entry"."Dimension Value Code" where("Dimension Set ID" = field("Dimension Set ID"),
@@ -314,6 +340,7 @@ table 169 "Job Ledger Entry"
         {
             CaptionClass = '1,2,6';
             Caption = 'Shortcut Dimension 6 Code';
+            ToolTip = 'Specifies the code for Shortcut Dimension 6, which is one of dimension codes that you set up in the General Ledger Setup window.';
             Editable = false;
             FieldClass = FlowField;
             CalcFormula = lookup("Dimension Set Entry"."Dimension Value Code" where("Dimension Set ID" = field("Dimension Set ID"),
@@ -323,6 +350,7 @@ table 169 "Job Ledger Entry"
         {
             CaptionClass = '1,2,7';
             Caption = 'Shortcut Dimension 7 Code';
+            ToolTip = 'Specifies the code for Shortcut Dimension 7, which is one of dimension codes that you set up in the General Ledger Setup window.';
             Editable = false;
             FieldClass = FlowField;
             CalcFormula = lookup("Dimension Set Entry"."Dimension Value Code" where("Dimension Set ID" = field("Dimension Set ID"),
@@ -332,6 +360,7 @@ table 169 "Job Ledger Entry"
         {
             CaptionClass = '1,2,8';
             Caption = 'Shortcut Dimension 8 Code';
+            ToolTip = 'Specifies the code for Shortcut Dimension 8, which is one of dimension codes that you set up in the General Ledger Setup window.';
             Editable = false;
             FieldClass = FlowField;
             CalcFormula = lookup("Dimension Set Entry"."Dimension Value Code" where("Dimension Set ID" = field("Dimension Set ID"),
@@ -340,6 +369,7 @@ table 169 "Job Ledger Entry"
         field(1000; "Job Task No."; Code[20])
         {
             Caption = 'Project Task No.';
+            ToolTip = 'Specifies the number of the related project task.';
             TableRelation = "Job Task"."Job Task No." where("Job No." = field("Job No."));
         }
         field(1001; "Line Amount (LCY)"; Decimal)
@@ -354,36 +384,42 @@ table 169 "Job Ledger Entry"
             AutoFormatExpression = Rec."Currency Code";
             AutoFormatType = 2;
             Caption = 'Unit Cost';
+            ToolTip = 'Specifies the cost of one unit of the item or resource on the line.';
         }
         field(1003; "Total Cost"; Decimal)
         {
             AutoFormatExpression = Rec."Currency Code";
             AutoFormatType = 1;
             Caption = 'Total Cost';
+            ToolTip = 'Specifies the total cost for the posted entry, in the currency specified for the project.';
         }
         field(1004; "Unit Price"; Decimal)
         {
             AutoFormatExpression = Rec."Currency Code";
             AutoFormatType = 2;
             Caption = 'Unit Price';
+            ToolTip = 'Specifies the price of one unit of the item or resource. You can enter a price manually or have it entered according to the Price/Profit Calculation field on the related card.';
         }
         field(1005; "Total Price"; Decimal)
         {
             AutoFormatExpression = Rec."Currency Code";
             AutoFormatType = 1;
             Caption = 'Total Price';
+            ToolTip = 'Specifies the total price for the posted entry, in the currency specified for the project.';
         }
         field(1006; "Line Amount"; Decimal)
         {
             AutoFormatExpression = Rec."Currency Code";
             AutoFormatType = 1;
             Caption = 'Line Amount';
+            ToolTip = 'Specifies the value of products on the entry.';
         }
         field(1007; "Line Discount Amount"; Decimal)
         {
             AutoFormatExpression = Rec."Currency Code";
             AutoFormatType = 1;
             Caption = 'Line Discount Amount';
+            ToolTip = 'Specifies the line discount amount for the posted entry, in the currency specified for the project.';
         }
         field(1008; "Line Discount Amount (LCY)"; Decimal)
         {
@@ -409,11 +445,13 @@ table 169 "Job Ledger Entry"
         field(1017; "Ledger Entry Type"; Enum "Job Ledger Entry Type")
         {
             Caption = 'Ledger Entry Type';
+            ToolTip = 'Specifies the entry type that the project ledger entry is linked to.';
         }
         field(1018; "Ledger Entry No."; Integer)
         {
             BlankZero = true;
             Caption = 'Ledger Entry No.';
+            ToolTip = 'Specifies the entry number (Resource, Item or G/L) to which the project ledger entry is linked.';
             TableRelation = if ("Ledger Entry Type" = const(Resource)) "Res. Ledger Entry"
             else
             if ("Ledger Entry Type" = const(Item)) "Item Ledger Entry"
@@ -423,15 +461,18 @@ table 169 "Job Ledger Entry"
         field(1019; "Serial No."; Code[50])
         {
             Caption = 'Serial No.';
+            ToolTip = 'Specifies the serial number if the project ledger entry Specifies an item usage that was posted with serial number tracking.';
         }
         field(1020; "Lot No."; Code[50])
         {
             Caption = 'Lot No.';
+            ToolTip = 'Specifies the lot number if the project ledger entry Specifies an item usage that was posted with lot number tracking.';
         }
         field(1021; "Line Discount %"; Decimal)
         {
             AutoFormatType = 0;
             Caption = 'Line Discount %';
+            ToolTip = 'Specifies the line discount percent of the posted entry.';
             DecimalPlaces = 0 : 5;
         }
         field(1022; "Line Type"; Enum "Job Line Type")
@@ -457,12 +498,14 @@ table 169 "Job Ledger Entry"
             AutoFormatExpression = Rec."Currency Code";
             AutoFormatType = 2;
             Caption = 'Original Unit Cost';
+            ToolTip = 'Specifies the unit cost for the posted entry at the time of posting, in the currency specified for the project. No item cost adjustments are included.';
         }
         field(1026; "Original Total Cost"; Decimal)
         {
             AutoFormatExpression = Rec."Currency Code";
             AutoFormatType = 1;
             Caption = 'Original Total Cost';
+            ToolTip = 'Specifies the total cost for the posted entry at the time of posting, in the currency specified for the project. No item cost adjustments are included.';
         }
         field(1027; "Original Total Cost (ACY)"; Decimal)
         {
@@ -473,14 +516,17 @@ table 169 "Job Ledger Entry"
         field(1028; Adjusted; Boolean)
         {
             Caption = 'Adjusted';
+            ToolTip = 'Specifies whether a project ledger entry has been modified or adjusted. The value in this field is inserted by the Adjust Cost - Item Entries batch job. The Adjusted check box is selected if applicable.';
         }
         field(1029; "DateTime Adjusted"; DateTime)
         {
             Caption = 'DateTime Adjusted';
+            ToolTip = 'Specifies the time stamp of a project ledger entry adjustment or modification.';
         }
         field(5402; "Variant Code"; Code[10])
         {
             Caption = 'Variant Code';
+            ToolTip = 'Specifies the variant of the item on the line.';
             TableRelation = if (Type = const(Item)) "Item Variant".Code where("Item No." = field("No."));
         }
         field(5403; "Bin Code"; Code[20])

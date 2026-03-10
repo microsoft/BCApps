@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -27,46 +27,38 @@ page 5994 "Get Service Shipment Lines"
                     HideValue = DocumentNoHideValue;
                     Style = Strong;
                     StyleExpr = StyleIsStrong;
-                    ToolTip = 'Specifies the number of this shipment.';
                 }
                 field("Bill-to Customer No."; Rec."Bill-to Customer No.")
                 {
                     ApplicationArea = Service;
-                    ToolTip = 'Specifies the number of the customer that you send or sent the invoice or credit memo to.';
                     Visible = true;
                 }
                 field("Customer No."; Rec."Customer No.")
                 {
                     ApplicationArea = Service;
-                    ToolTip = 'Specifies the number of the customer who owns the items on the service order.';
                     Visible = false;
                 }
                 field(Type; Rec.Type)
                 {
                     ApplicationArea = Service;
-                    ToolTip = 'Specifies the type of this shipment line.';
                 }
                 field("No."; Rec."No.")
                 {
                     ApplicationArea = Service;
-                    ToolTip = 'Specifies the number of the involved entry or record, according to the specified number series.';
                 }
                 field("Variant Code"; Rec."Variant Code")
                 {
                     ApplicationArea = Planning;
-                    ToolTip = 'Specifies the variant of the item on the line.';
                     Visible = false;
                 }
                 field(Description; Rec.Description)
                 {
                     ApplicationArea = Service;
-                    ToolTip = 'Specifies the description of an item, resource, cost, or a standard text on the service line.';
                 }
                 field("Description 2"; Rec."Description 2")
                 {
                     ApplicationArea = Service;
                     Importance = Additional;
-                    ToolTip = 'Specifies information in addition to the description.';
                     Visible = false;
                 }
                 field("Currency Code"; Rec."Currency Code")
@@ -74,19 +66,16 @@ page 5994 "Get Service Shipment Lines"
                     ApplicationArea = Service;
                     DrillDown = false;
                     Lookup = false;
-                    ToolTip = 'Specifies the currency code for various amounts on the shipment.';
                     Visible = false;
                 }
                 field("Shortcut Dimension 1 Code"; Rec."Shortcut Dimension 1 Code")
                 {
                     ApplicationArea = Dimensions;
-                    ToolTip = 'Specifies the code for Shortcut Dimension 1, which is one of two global dimension codes that you set up in the General Ledger Setup window.';
                     Visible = false;
                 }
                 field("Shortcut Dimension 2 Code"; Rec."Shortcut Dimension 2 Code")
                 {
                     ApplicationArea = Dimensions;
-                    ToolTip = 'Specifies the code for Shortcut Dimension 2, which is one of two global dimension codes that you set up in the General Ledger Setup window.';
                     Visible = false;
                 }
                 field("Location Code"; Rec."Location Code")
@@ -98,33 +87,48 @@ page 5994 "Get Service Shipment Lines"
                 field("Unit of Measure Code"; Rec."Unit of Measure Code")
                 {
                     ApplicationArea = Service;
-                    ToolTip = 'Specifies how each unit of the item or resource is measured, such as in pieces or hours. By default, the value in the Base Unit of Measure field on the item or resource card is inserted.';
                 }
                 field(Quantity; Rec.Quantity)
                 {
                     ApplicationArea = Service;
-                    ToolTip = 'Specifies the number of item units, resource hours, general ledger account payments, or cost that have been shipped to the customer.';
                 }
                 field("Qty. Shipped Not Invoiced"; Rec."Qty. Shipped Not Invoiced")
                 {
                     ApplicationArea = Service;
-                    ToolTip = 'Specifies the quantity of the shipped item that has been posted as shipped but that has not yet been posted as invoiced.';
                 }
                 field("Quantity Invoiced"; Rec."Quantity Invoiced")
                 {
                     ApplicationArea = Service;
-                    ToolTip = 'Specifies how many units of the item on the line have been posted as invoiced.';
                 }
                 field("Unit of Measure"; Rec."Unit of Measure")
                 {
                     ApplicationArea = Service;
-                    ToolTip = 'Specifies the name of the item or resource''s unit of measure, such as piece or hour.';
                     Visible = false;
                 }
                 field("Appl.-to Item Entry"; Rec."Appl.-to Item Entry")
                 {
                     ApplicationArea = Service;
-                    ToolTip = 'Specifies the number of the item ledger entry that the document or journal line is applied to.';
+                    Visible = false;
+                }
+                field("Order No."; Rec."Order No.")
+                {
+                    Caption = 'Order No.';
+                    ApplicationArea = Service;
+                    ToolTip = 'Specifies the number of the service order that this shipment was posted from.';
+                    Visible = false;
+                }
+                field("External Document No."; Rec."External Document No.")
+                {
+                    Caption = 'External Document No.';
+                    ApplicationArea = Service;
+                    ToolTip = 'Specifies the number that the customer uses in their own system to refer to this service document.';
+                    Visible = false;
+                }
+                field("Your Reference"; Rec."Your Reference")
+                {
+                    Caption = 'Your Reference';
+                    ApplicationArea = Service;
+                    ToolTip = 'Specifies the reference information that the customer uses in their own system to refer to this service document.';
                     Visible = false;
                 }
             }

@@ -22,9 +22,6 @@ using Microsoft.Inventory.Item;
 using Microsoft.Inventory.Item.Catalog;
 using Microsoft.Inventory.Location;
 using Microsoft.Inventory.Tracking;
-using Microsoft.Manufacturing.Document;
-using Microsoft.Manufacturing.Routing;
-using Microsoft.Manufacturing.WorkCenter;
 using Microsoft.Projects.Project.Job;
 using Microsoft.Purchases.Document;
 using Microsoft.Purchases.History;
@@ -356,8 +353,14 @@ table 28076 "Purch. Tax Inv. Line"
         field(5401; "Prod. Order No."; Code[20])
         {
             Caption = 'Prod. Order No.';
-            TableRelation = "Production Order"."No." where(Status = filter(Released | Finished));
-            ValidateTableRelation = false;
+            ObsoleteReason = 'Preparation for extraction Manufacturing app';
+#if not CLEAN28
+            ObsoleteState = Pending;
+            ObsoleteTag = '28.0';
+#else
+            ObsoleteState = Removed;
+            ObsoleteTag = '31.0';
+#endif
         }
         field(5402; "Variant Code"; Code[10])
         {
@@ -532,35 +535,76 @@ table 28076 "Purch. Tax Inv. Line"
         field(99000750; "Routing No."; Code[20])
         {
             Caption = 'Routing No.';
-            TableRelation = "Routing Header";
+            ObsoleteReason = 'Preparation for extraction Manufacturing app';
+#if not CLEAN28
+            ObsoleteState = Pending;
+            ObsoleteTag = '28.0';
+#else
+            ObsoleteState = Removed;
+            ObsoleteTag = '31.0';
+#endif
         }
         field(99000751; "Operation No."; Code[10])
         {
             Caption = 'Operation No.';
-            TableRelation = "Prod. Order Routing Line"."Operation No." where(Status = filter(Released ..),
-                                                                              "Prod. Order No." = field("Prod. Order No."),
-                                                                              "Routing No." = field("Routing No."));
+            ObsoleteReason = 'Preparation for extraction Manufacturing app';
+#if not CLEAN28
+            ObsoleteState = Pending;
+            ObsoleteTag = '28.0';
+#else
+            ObsoleteState = Removed;
+            ObsoleteTag = '31.0';
+#endif
         }
         field(99000752; "Work Center No."; Code[20])
         {
             Caption = 'Work Center No.';
-            TableRelation = "Work Center";
+            ObsoleteReason = 'Preparation for extraction Manufacturing app';
+#if not CLEAN28
+            ObsoleteState = Pending;
+            ObsoleteTag = '28.0';
+#else
+            ObsoleteState = Removed;
+            ObsoleteTag = '31.0';
+#endif
         }
         field(99000754; "Prod. Order Line No."; Integer)
         {
             Caption = 'Prod. Order Line No.';
-            TableRelation = "Prod. Order Line"."Line No." where(Status = filter(Released ..),
-                                                                 "Prod. Order No." = field("Prod. Order No."));
+            ObsoleteReason = 'Preparation for extraction Manufacturing app';
+#if not CLEAN28
+            ObsoleteState = Pending;
+            ObsoleteTag = '28.0';
+#else
+            ObsoleteState = Removed;
+            ObsoleteTag = '31.0';
+#endif
         }
         field(99000755; "Overhead Rate"; Decimal)
         {
             AutoFormatType = 0;
             Caption = 'Overhead Rate';
             DecimalPlaces = 0 : 5;
+            ObsoleteReason = 'Preparation for extraction Manufacturing app';
+#if not CLEAN28
+            ObsoleteState = Pending;
+            ObsoleteTag = '28.0';
+#else
+            ObsoleteState = Removed;
+            ObsoleteTag = '31.0';
+#endif
         }
         field(99000759; "Routing Reference No."; Integer)
         {
             Caption = 'Routing Reference No.';
+            ObsoleteReason = 'Preparation for extraction Manufacturing app';
+#if not CLEAN28
+            ObsoleteState = Pending;
+            ObsoleteTag = '28.0';
+#else
+            ObsoleteState = Removed;
+            ObsoleteTag = '31.0';
+#endif
         }
     }
 

@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -17,21 +17,25 @@ table 770 "Analysis Report Chart Setup"
         field(1; "User ID"; Text[132])
         {
             Caption = 'User ID';
+            ToolTip = 'Specifies the ID of the user who posted the entry, to be used, for example, in the change log.';
             DataClassification = EndUserIdentifiableInformation;
             Editable = false;
         }
         field(2; Name; Text[30])
         {
             Caption = 'Name';
+            ToolTip = 'Specifies the name of the specific chart.';
         }
         field(10; "Analysis Area"; Enum "Analysis Area Type")
         {
             Caption = 'Analysis Area';
+            ToolTip = 'Specifies if the analysis report chart shows values for sales, purchase, or inventory.';
             Editable = false;
         }
         field(20; "Analysis Report Name"; Code[10])
         {
             Caption = 'Analysis Report Name';
+            ToolTip = 'Specifies the name of the analysis report that is used to generate the specific chart that is shown in, for example, the Sales Performance window.';
             TableRelation = "Analysis Report Name".Name where("Analysis Area" = field("Analysis Area"));
 
             trigger OnValidate()
@@ -51,6 +55,7 @@ table 770 "Analysis Report Chart Setup"
         field(21; "Analysis Line Template Name"; Code[10])
         {
             Caption = 'Analysis Line Template Name';
+            ToolTip = 'Specifies the name of the analysis line template that is used to generate the specific chart that is shown in, for example, the Sales Performance window.';
             Editable = false;
             TableRelation = "Analysis Report Name"."Analysis Line Template Name" where("Analysis Area" = field("Analysis Area"),
                                                                                         Name = field("Analysis Report Name"));
@@ -69,6 +74,7 @@ table 770 "Analysis Report Chart Setup"
         field(22; "Analysis Column Template Name"; Code[10])
         {
             Caption = 'Analysis Column Template Name';
+            ToolTip = 'Specifies the name of the analysis column template that is used to generate the chart that is shown in, for example, the Sales Performance window.';
             Editable = false;
             TableRelation = "Analysis Report Name"."Analysis Column Template Name" where("Analysis Area" = field("Analysis Area"),
                                                                                           Name = field("Analysis Report Name"));
@@ -87,6 +93,7 @@ table 770 "Analysis Report Chart Setup"
         field(30; "Base X-Axis on"; Option)
         {
             Caption = 'Base X-Axis on';
+            ToolTip = 'Specifies how the values from the selected analysis report are displayed in the specific chart.';
             OptionCaption = 'Period,Line,Column';
             OptionMembers = Period,Line,Column;
 
@@ -100,6 +107,7 @@ table 770 "Analysis Report Chart Setup"
         field(31; "Start Date"; Date)
         {
             Caption = 'Start Date';
+            ToolTip = 'Specifies the first date on which analysis report values are included in the chart.';
 
             trigger OnValidate()
             begin
@@ -109,6 +117,7 @@ table 770 "Analysis Report Chart Setup"
         field(32; "End Date"; Date)
         {
             Caption = 'End Date';
+            ToolTip = 'Specifies the last date on which analysis report values are included in the chart.';
 
             trigger OnValidate()
             begin
@@ -118,12 +127,14 @@ table 770 "Analysis Report Chart Setup"
         field(41; "Period Length"; Option)
         {
             Caption = 'Period Length';
+            ToolTip = 'Specifies the length of periods in the chart.';
             OptionCaption = 'Day,Week,Month,Quarter,Year';
             OptionMembers = Day,Week,Month,Quarter,Year;
         }
         field(42; "No. of Periods"; Integer)
         {
             Caption = 'No. of Periods';
+            ToolTip = 'Specifies how many periods are shown in the chart.';
             InitValue = 12;
 
             trigger OnValidate()

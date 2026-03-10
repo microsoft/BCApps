@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -24,7 +24,6 @@ page 5144 "Saved Segment Criteria Subform"
                 field("Line No."; Rec."Line No.")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the number of the segment criteria line.';
                     Visible = false;
                 }
                 field(Type; Rec.Type)
@@ -32,7 +31,6 @@ page 5144 "Saved Segment Criteria Subform"
                     ApplicationArea = Basic, Suite;
                     Style = Strong;
                     StyleExpr = StyleIsStrong;
-                    ToolTip = 'Specifies the type of information the line shows. There are two options: Action or Filter.';
                     Visible = false;
                 }
                 field(ActionTable; Rec.ActionTable())

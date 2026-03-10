@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -34,6 +34,7 @@ table 1205 "Credit Transfer Register"
         field(1; "No."; Integer)
         {
             Caption = 'No.';
+            ToolTip = 'Specifies the number of the involved entry or record, according to the specified number series.';
         }
         /// <summary>
         /// Identifier code for the credit transfer register, used in file naming.
@@ -41,6 +42,7 @@ table 1205 "Credit Transfer Register"
         field(2; Identifier; Code[20])
         {
             Caption = 'Identifier';
+            ToolTip = 'Specifies a serial number for a successful credit transfer. Failed file exports are excluded from the sequence of serial numbers. For more information, see the Status field.';
         }
         /// <summary>
         /// Date and time when the credit transfer register was created.
@@ -55,6 +57,7 @@ table 1205 "Credit Transfer Register"
         field(4; "Created by User"; Code[50])
         {
             Caption = 'Created by User';
+            ToolTip = 'Specifies which user made the credit transfer.';
             DataClassification = EndUserIdentifiableInformation;
             TableRelation = User."User Name";
         }
@@ -64,6 +67,7 @@ table 1205 "Credit Transfer Register"
         field(5; Status; Option)
         {
             Caption = 'Status';
+            ToolTip = 'Specifies the status of the payment file export for this credit transfer. The field is read-only.';
             Editable = false;
             OptionCaption = 'Canceled,File Created,File Re-exported';
             OptionMembers = Canceled,"File Created","File Re-exported";
@@ -75,6 +79,7 @@ table 1205 "Credit Transfer Register"
         {
             CalcFormula = count("Credit Transfer Entry" where("Credit Transfer Register No." = field("No.")));
             Caption = 'No. of Transfers';
+            ToolTip = 'Specifies how many credit transfers the exported file covers.';
             FieldClass = FlowField;
         }
         /// <summary>
@@ -83,6 +88,7 @@ table 1205 "Credit Transfer Register"
         field(7; "From Bank Account No."; Code[20])
         {
             Caption = 'From Bank Account No.';
+            ToolTip = 'Specifies the number of your bank account from which the credit transfer was made.';
             TableRelation = "Bank Account";
         }
         /// <summary>
@@ -92,6 +98,7 @@ table 1205 "Credit Transfer Register"
         {
             CalcFormula = lookup("Bank Account".Name where("No." = field("From Bank Account No.")));
             Caption = 'From Bank Account Name';
+            ToolTip = 'Specifies the name of your bank account from which the credit transfer was made.';
             FieldClass = FlowField;
         }
         /// <summary>

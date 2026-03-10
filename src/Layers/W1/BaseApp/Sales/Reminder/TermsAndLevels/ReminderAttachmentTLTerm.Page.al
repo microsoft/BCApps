@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -36,7 +36,6 @@ page 533 "Reminder Attachment T.L. Term"
                     ApplicationArea = All;
                     Importance = Promoted;
                     Caption = 'Language Code';
-                    ToolTip = 'Specifies the language code of the beginning and ending lines.';
                     Enabled = false;
                     Editable = false;
                 }

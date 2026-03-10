@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -38,7 +38,6 @@ page 7209 "CDS Couple Salespersons"
                     Caption = 'Email Address';
                     Editable = false;
                     ExtendedDatatype = EMail;
-                    ToolTip = 'Specifies the email address.';
                 }
                 field(SalespersonPurchaserCode; TempCRMSystemuser.FirstName)
                 {

@@ -17,7 +17,7 @@ codeunit 6460 "Serv. Notification Mgt."
         ServiceInvoiceTxt: Label 'Service Invoice';
         ServiceCreditMemoTxt: Label 'Service Credit Memo';
 
-    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Notification Management", 'OnGetDocumentTypeAndNumber', '', false, false)]
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Notification Management", 'OnGetDocumentTypeAndNumber', '', true, false)]
     local procedure OnGetDocumentTypeAndNumber(var RecRef: RecordRef; var DocumentType: Text; var DocumentNo: Text)
     var
         ServiceHeader: Record "Service Header";
@@ -48,7 +48,7 @@ codeunit 6460 "Serv. Notification Mgt."
         end;
     end;
 
-    [EventSubscriber(ObjectType::Table, Database::"Service Line", 'OnAfterInsertEvent', '', false, false)]
+    [EventSubscriber(ObjectType::Table, Database::"Service Line", 'OnAfterInsertEvent', '', true, false)]
     local procedure OnAfterServiceLineInsertSetRecId(var Rec: Record "Service Line"; RunTrigger: Boolean)
     begin
         if Rec.IsTemporary or NotificationLifecycleMgt.AreSubscribersDisabled() then
@@ -57,7 +57,7 @@ codeunit 6460 "Serv. Notification Mgt."
         NotificationLifecycleMgt.SetRecordID(Rec.RecordId);
     end;
 
-    [EventSubscriber(ObjectType::Table, Database::"Service Line", 'OnAfterRenameEvent', '', false, false)]
+    [EventSubscriber(ObjectType::Table, Database::"Service Line", 'OnAfterRenameEvent', '', true, false)]
     local procedure OnAfterServiceLineRenameUpdateRecId(var Rec: Record "Service Line"; var xRec: Record "Service Line"; RunTrigger: Boolean)
     begin
         if Rec.IsTemporary or NotificationLifecycleMgt.AreSubscribersDisabled() then
@@ -66,7 +66,7 @@ codeunit 6460 "Serv. Notification Mgt."
         NotificationLifecycleMgt.UpdateRecordID(xRec.RecordId, Rec.RecordId);
     end;
 
-    [EventSubscriber(ObjectType::Table, Database::"Service Line", 'OnAfterDeleteEvent', '', false, false)]
+    [EventSubscriber(ObjectType::Table, Database::"Service Line", 'OnAfterDeleteEvent', '', true, false)]
     local procedure OnAfterServiceLineDeleteRecall(var Rec: Record "Service Line"; RunTrigger: Boolean)
     begin
         if Rec.IsTemporary or NotificationLifecycleMgt.AreSubscribersDisabled() then
@@ -75,7 +75,7 @@ codeunit 6460 "Serv. Notification Mgt."
         NotificationLifecycleMgt.RecallNotificationsForRecord(Rec.RecordId, false);
     end;
 
-    [EventSubscriber(ObjectType::Table, Database::"Service Contract Header", 'OnAfterInsertEvent', '', false, false)]
+    [EventSubscriber(ObjectType::Table, Database::"Service Contract Header", 'OnAfterInsertEvent', '', true, false)]
     local procedure OnAfterServiceContractHeaderInsertSetRecId(var Rec: Record "Service Contract Header"; RunTrigger: Boolean)
     begin
         if Rec.IsTemporary or NotificationLifecycleMgt.AreSubscribersDisabled() then
@@ -84,7 +84,7 @@ codeunit 6460 "Serv. Notification Mgt."
         NotificationLifecycleMgt.SetRecordID(Rec.RecordId);
     end;
 
-    [EventSubscriber(ObjectType::Table, Database::"Service Line", 'OnBeforeValidateEvent', 'Type', false, false)]
+    [EventSubscriber(ObjectType::Table, Database::"Service Line", 'OnBeforeValidateEvent', 'Type', true, false)]
     local procedure OnServiceLineUpdateTypeRecallItemNotif(var Rec: Record "Service Line"; var xRec: Record "Service Line"; CurrFieldNo: Integer)
     var
         ItemCheckAvail: Codeunit "Item-Check Avail.";
@@ -97,7 +97,7 @@ codeunit 6460 "Serv. Notification Mgt."
               Rec.RecordId, ItemCheckAvail.GetItemAvailabilityNotificationId(), Rec."Line No." = 0);
     end;
 
-    [EventSubscriber(ObjectType::Table, Database::"Service Line", 'OnBeforeValidateEvent', 'Quantity', false, false)]
+    [EventSubscriber(ObjectType::Table, Database::"Service Line", 'OnBeforeValidateEvent', 'Quantity', true, false)]
     local procedure OnServiceLineUpdateQtyTo0RecallItemNotif(var Rec: Record "Service Line"; var xRec: Record "Service Line"; CurrFieldNo: Integer)
     var
         ItemCheckAvail: Codeunit "Item-Check Avail.";
@@ -110,13 +110,13 @@ codeunit 6460 "Serv. Notification Mgt."
               Rec.RecordId, ItemCheckAvail.GetItemAvailabilityNotificationId(), Rec."Line No." = 0);
     end;
 
-    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Service-Post", 'OnBeforePostWithLines', '', false, false)]
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Service-Post", 'OnBeforePostWithLines', '', true, false)]
     local procedure OnBeforeServicePost(var PassedServHeader: Record "Service Header"; var PassedServLine: Record "Service Line"; var PassedShip: Boolean; var PassedConsume: Boolean; var PassedInvoice: Boolean)
     begin
         NotificationLifecycleMgt.DisableSubscribers();
     end;
 
-    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Service-Post", 'OnAfterPostWithLines', '', false, false)]
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Service-Post", 'OnAfterPostWithLines', '', true, false)]
     local procedure OnAfterServicePost(var PassedServiceHeader: Record "Service Header")
     begin
         NotificationLifecycleMgt.EnableSubscribers();

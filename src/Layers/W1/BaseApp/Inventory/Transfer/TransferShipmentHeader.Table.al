@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -28,37 +28,45 @@ table 5744 "Transfer Shipment Header"
         field(1; "No."; Code[20])
         {
             Caption = 'No.';
+            ToolTip = 'Specifies the number of the involved entry or record, according to the specified number series.';
         }
         field(2; "Transfer-from Code"; Code[10])
         {
             Caption = 'Transfer-from Code';
+            ToolTip = 'Specifies the code of the location that items are transferred from.';
             TableRelation = Location where("Use As In-Transit" = const(false));
         }
         field(3; "Transfer-from Name"; Text[100])
         {
             Caption = 'Transfer-from Name';
+            ToolTip = 'Specifies the name of the sender at the location that the items are transferred from.';
         }
         field(4; "Transfer-from Name 2"; Text[50])
         {
             Caption = 'Transfer-from Name 2';
+            ToolTip = 'Specifies an additional part of the name of the sender at the location that the items are transferred from.';
         }
         field(5; "Transfer-from Address"; Text[100])
         {
             Caption = 'Transfer-from Address';
+            ToolTip = 'Specifies the address of the location that the items are transferred from.';
         }
         field(6; "Transfer-from Address 2"; Text[50])
         {
             Caption = 'Transfer-from Address 2';
+            ToolTip = 'Specifies an additional part of the address of the location that items are transferred from.';
         }
         field(7; "Transfer-from Post Code"; Code[20])
         {
             Caption = 'Transfer-from Post Code';
+            ToolTip = 'Specifies the postal code of the location that the items are transferred from.';
             TableRelation = "Post Code";
             ValidateTableRelation = false;
         }
         field(8; "Transfer-from City"; Text[30])
         {
             Caption = 'Transfer-from City';
+            ToolTip = 'Specifies the city of the location that the items are transferred from.';
             TableRelation = "Post Code".City;
             ValidateTableRelation = false;
         }
@@ -75,23 +83,28 @@ table 5744 "Transfer Shipment Header"
         field(11; "Transfer-to Code"; Code[10])
         {
             Caption = 'Transfer-to Code';
+            ToolTip = 'Specifies the code of the location that the items are transferred to.';
             TableRelation = Location where("Use As In-Transit" = const(false));
         }
         field(12; "Transfer-to Name"; Text[100])
         {
             Caption = 'Transfer-to Name';
+            ToolTip = 'Specifies the name of the recipient at the location that the items are transferred to.';
         }
         field(13; "Transfer-to Name 2"; Text[50])
         {
             Caption = 'Transfer-to Name 2';
+            ToolTip = 'Specifies an additional part of the name of the recipient at the location that the items are transferred to.';
         }
         field(14; "Transfer-to Address"; Text[100])
         {
             Caption = 'Transfer-to Address';
+            ToolTip = 'Specifies the address of the location that the items are transferred to.';
         }
         field(15; "Transfer-to Address 2"; Text[50])
         {
             Caption = 'Transfer-to Address 2';
+            ToolTip = 'Specifies an additional part of the address of the location that items are transferred to.';
         }
         field(16; "Transfer-to Post Code"; Code[20])
         {
@@ -102,6 +115,7 @@ table 5744 "Transfer Shipment Header"
         field(17; "Transfer-to City"; Text[30])
         {
             Caption = 'Transfer-to City';
+            ToolTip = 'Specifies the city of the location that items are transferred to.';
             TableRelation = "Post Code".City;
             ValidateTableRelation = false;
         }
@@ -118,10 +132,12 @@ table 5744 "Transfer Shipment Header"
         field(20; "Transfer Order Date"; Date)
         {
             Caption = 'Transfer Order Date';
+            ToolTip = 'Specifies the date when the transfer order was created.';
         }
         field(21; "Posting Date"; Date)
         {
             Caption = 'Posting Date';
+            ToolTip = 'Specifies the posting date for this document.';
         }
         field(22; Comment; Boolean)
         {
@@ -135,17 +151,20 @@ table 5744 "Transfer Shipment Header"
         {
             CaptionClass = '1,2,1';
             Caption = 'Shortcut Dimension 1 Code';
+            ToolTip = 'Specifies the code for Shortcut Dimension 1, which is one of two global dimension codes that you set up in the General Ledger Setup window.';
             TableRelation = "Dimension Value".Code where("Global Dimension No." = const(1));
         }
         field(24; "Shortcut Dimension 2 Code"; Code[20])
         {
             CaptionClass = '1,2,2';
             Caption = 'Shortcut Dimension 2 Code';
+            ToolTip = 'Specifies the code for Shortcut Dimension 2, which is one of two global dimension codes that you set up in the General Ledger Setup window.';
             TableRelation = "Dimension Value".Code where("Global Dimension No." = const(2));
         }
         field(25; "Transfer Order No."; Code[20])
         {
             Caption = 'Transfer Order No.';
+            ToolTip = 'Specifies the number of the related transfer order.';
             TableRelation = "Transfer Header";
             ValidateTableRelation = false;
         }
@@ -157,23 +176,28 @@ table 5744 "Transfer Shipment Header"
         field(27; "Shipment Date"; Date)
         {
             Caption = 'Shipment Date';
+            ToolTip = 'Specifies when items on the document are shipped or were shipped. A shipment date is usually calculated from a requested delivery date plus lead time.';
         }
         field(28; "Receipt Date"; Date)
         {
             Caption = 'Receipt Date';
+            ToolTip = 'Specifies the receipt date of the transfer order.';
         }
         field(29; "In-Transit Code"; Code[10])
         {
             Caption = 'In-Transit Code';
+            ToolTip = 'Specifies the in-transit code for the transfer order, such as a shipping agent.';
             TableRelation = Location.Code where("Use As In-Transit" = const(true));
         }
         field(30; "Transfer-from Contact"; Text[100])
         {
             Caption = 'Transfer-from Contact';
+            ToolTip = 'Specifies the name of the contact person at the location that the items are transferred from.';
         }
         field(31; "Transfer-to Contact"; Text[100])
         {
             Caption = 'Transfer-to Contact';
+            ToolTip = 'Specifies the name of the contact person at the location that items are transferred to.';
         }
         field(32; "External Document No."; Code[35])
         {
@@ -183,50 +207,60 @@ table 5744 "Transfer Shipment Header"
         {
             AccessByPermission = TableData "Shipping Agent Services" = R;
             Caption = 'Shipping Agent Code';
+            ToolTip = 'Specifies the code for the shipping agent who is transporting the items.';
             TableRelation = "Shipping Agent";
         }
         field(34; "Shipping Agent Service Code"; Code[10])
         {
             Caption = 'Shipping Agent Service Code';
+            ToolTip = 'Specifies the code for the service, such as a one-day delivery, that is offered by the shipping agent.';
             TableRelation = "Shipping Agent Services".Code where("Shipping Agent Code" = field("Shipping Agent Code"));
         }
         field(35; "Shipment Method Code"; Code[10])
         {
             Caption = 'Shipment Method Code';
+            ToolTip = 'Specifies the delivery conditions of the related shipment, such as free on board (FOB).';
             TableRelation = "Shipment Method";
         }
         field(47; "Transaction Type"; Code[10])
         {
             Caption = 'Transaction Type';
+            ToolTip = 'Specifies the type of transaction that the document represents, for the purpose of reporting to INTRASTAT.';
             TableRelation = "Transaction Type";
         }
         field(48; "Transport Method"; Code[10])
         {
             Caption = 'Transport Method';
+            ToolTip = 'Specifies the transport method, for the purpose of reporting to INTRASTAT.';
             TableRelation = "Transport Method";
         }
         field(49; "Partner VAT ID"; Code[20])
         {
             Caption = 'Partner VAT ID';
+            ToolTip = 'Specifies the counter party''s VAT number.';
         }
         field(59; "Entry/Exit Point"; Code[10])
         {
             Caption = 'Entry/Exit Point';
+            ToolTip = 'Specifies the code of either the port of entry at which the items passed into your country/region, or the port of exit.';
             TableRelation = "Entry/Exit Point";
         }
         field(63; "Area"; Code[10])
         {
             Caption = 'Area';
+            ToolTip = 'Specifies the area of the customer or vendor, for the purpose of reporting to INTRASTAT.';
             TableRelation = Area;
         }
         field(64; "Transaction Specification"; Code[10])
         {
             Caption = 'Transaction Specification';
+            ToolTip = 'Specifies a specification of the document''s transaction, for the purpose of reporting to INTRASTAT.';
             TableRelation = "Transaction Specification";
         }
         field(70; "Direct Transfer"; Boolean)
         {
             Caption = 'Direct Transfer';
+            ToolTip = 'Specifies that the transfer does not use an in-transit location.';
         }
         field(480; "Dimension Set ID"; Integer)
         {

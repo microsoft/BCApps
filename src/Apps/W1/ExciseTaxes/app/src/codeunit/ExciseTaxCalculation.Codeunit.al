@@ -9,7 +9,7 @@ using Microsoft.FixedAssets.Ledger;
 using Microsoft.Foundation.NoSeries;
 using Microsoft.Inventory.Item;
 using Microsoft.Inventory.Ledger;
-using Microsoft.Purchases.Payables;
+using Microsoft.Purchases.History;
 using Microsoft.Sustainability.ExciseTax;
 
 codeunit 7412 "Excise Tax Calculation"
@@ -18,10 +18,9 @@ codeunit 7412 "Excise Tax Calculation"
                   tabledata "FA Ledger Entry" = rm;
 
     var
-        NoExciseJournalBatchFoundErr: Label 'No Excise journal batch found for tax type %1.', Comment = '%1 = Excise Tax Type Code';
-        ExciseTaxDescriptionLbl: Label 'Excise Tax for %1 - %2', Comment = '%1 = Excise Tax Type Code, %2 = Description', MaxLength = 100;
+        ExciseJournalBatch: Record "Sust. Excise Journal Batch";
 
-    procedure UpdateItemLedgerEntryExciseTaxInfo(ExciseTaxesTransactionLog: Record "Sust. Excise Taxes Trans. Log")
+    internal procedure UpdateItemLedgerEntryExciseTaxInfo(ExciseTaxesTransactionLog: Record "Sust. Excise Taxes Trans. Log")
     var
         ItemLedgerEntry: Record "Item Ledger Entry";
     begin
@@ -29,14 +28,12 @@ codeunit 7412 "Excise Tax Calculation"
             exit;
 
         ItemLedgerEntry.SetLoadFields("Excise Tax Posted");
-        if not ItemLedgerEntry.Get(ExciseTaxesTransactionLog."Item Ledger Entry No.") then
-            exit;
-
+        ItemLedgerEntry.Get(ExciseTaxesTransactionLog."Item Ledger Entry No.");
         ItemLedgerEntry."Excise Tax Posted" := true;
         ItemLedgerEntry.Modify();
     end;
 
-    procedure UpdateFALedgerEntryExciseTaxInfo(ExciseTaxesTransactionLog: Record "Sust. Excise Taxes Trans. Log")
+    internal procedure UpdateFALedgerEntryExciseTaxInfo(ExciseTaxesTransactionLog: Record "Sust. Excise Taxes Trans. Log")
     var
         FALedgerEntry: Record "FA Ledger Entry";
     begin
@@ -44,14 +41,12 @@ codeunit 7412 "Excise Tax Calculation"
             exit;
 
         FALedgerEntry.SetLoadFields("Excise Tax Posted");
-        if not FALedgerEntry.Get(ExciseTaxesTransactionLog."FA Ledger Entry No.") then
-            exit;
-
+        FALedgerEntry.Get(ExciseTaxesTransactionLog."FA Ledger Entry No.");
         FALedgerEntry."Excise Tax Posted" := true;
         FALedgerEntry.Modify();
     end;
 
-    procedure IsExciseTaxEntry(var ExciseJnlLine: Record "Sust. Excise Jnl. Line"): Boolean
+    internal procedure IsExciseTaxEntry(var ExciseJnlLine: Record "Sust. Excise Jnl. Line"): Boolean
     var
         ExciseJnlBatch: Record "Sust. Excise Journal Batch";
     begin
@@ -59,11 +54,9 @@ codeunit 7412 "Excise Tax Calculation"
         if ExciseJnlBatch.Get(ExciseJnlLine."Journal Template Name", ExciseJnlLine."Journal Batch Name") then
             if ExciseJnlBatch.Type = ExciseJnlBatch.Type::Excises then
                 exit(true);
-
-        exit(false);
     end;
 
-    procedure ProcessTaxTypeItemsWithFilter(TaxTypeCode: Code[20]; StartingDate: Date; EndingDate: Date; ItemFilter: Text[250]; PostingDate: Date)
+    internal procedure CreateExciseJournalLineForItem(TaxTypeCode: Code[20]; StartingDate: Date; EndingDate: Date; ItemFilter: Text[250]; PostingDate: Date)
     var
         Item: Record Item;
     begin
@@ -71,15 +64,14 @@ codeunit 7412 "Excise Tax Calculation"
         Item.SetRange("Excise Tax Type", TaxTypeCode);
         if ItemFilter <> '' then
             Item.SetFilter("No.", ItemFilter);
-        if not Item.FindSet() then
-            exit;
 
-        repeat
-            ProcessEntryTypesForSource(Item."No.", "Sust. Excise Jnl. Source Type"::Item, Item."Excise Tax Type", StartingDate, EndingDate, PostingDate);
-        until Item.Next() = 0;
+        if Item.FindSet() then
+            repeat
+                ProcessEntryTypesForSource(Item."No.", "Sust. Excise Jnl. Source Type"::Item, Item."Excise Tax Type", StartingDate, EndingDate, PostingDate);
+            until Item.Next() = 0;
     end;
 
-    procedure ProcessFATaxTypeItemsWithFilter(TaxTypeCode: Code[20]; StartingDate: Date; EndingDate: Date; FixedAssetFilter: Text[250]; PostingDate: Date)
+    internal procedure CreateExciseJournalLineForFixedAsset(TaxTypeCode: Code[20]; StartingDate: Date; EndingDate: Date; FixedAssetFilter: Text[250]; PostingDate: Date)
     var
         FixedAsset: Record "Fixed Asset";
     begin
@@ -88,76 +80,16 @@ codeunit 7412 "Excise Tax Calculation"
             FixedAsset.SetFilter("No.", FixedAssetFilter);
 
         FixedAsset.SetRange("Excise Tax Type", TaxTypeCode);
-        if not FixedAsset.FindSet() then
-            exit;
-
-        repeat
-            if FixedAsset."Excise Tax Type" <> '' then
-                ProcessEntryTypesForSource(FixedAsset."No.", "Sust. Excise Jnl. Source Type"::"Fixed Asset", FixedAsset."Excise Tax Type", StartingDate, EndingDate, PostingDate);
-        until FixedAsset.Next() = 0;
+        if FixedAsset.FindSet() then
+            repeat
+                if FixedAsset."Excise Tax Type" <> '' then
+                    ProcessEntryTypesForSource(FixedAsset."No.", "Sust. Excise Jnl. Source Type"::"Fixed Asset", FixedAsset."Excise Tax Type", StartingDate, EndingDate, PostingDate);
+            until FixedAsset.Next() = 0;
     end;
 
-    procedure GetExciseBatchForTaxType(var ExciseJnlBatch: Record "Sust. Excise Journal Batch"; TaxType: Code[20]; ShowBatchError: Boolean)
+    internal procedure SetExciseJournalBatch(var ExciseJnlBatch: Record "Sust. Excise Journal Batch")
     begin
-        ExciseJnlBatch.SetRange("Excise Tax Type Filter", TaxType);
-        ExciseJnlBatch.SetRange(Type, ExciseJnlBatch.Type::Excises);
-        if not ExciseJnlBatch.FindFirst() and ShowBatchError then
-            Error(NoExciseJournalBatchFoundErr, TaxType);
-    end;
-
-    local procedure GetQtyForTaxCalculation(SourceType: Enum "Sust. Excise Jnl. Source Type"; SourceNo: Code[20]): Decimal
-    begin
-        case SourceType of
-            SourceType::Item:
-                exit(GetQtyForExciseTaxForItem(SourceNo));
-            SourceType::"Fixed Asset":
-                exit(GetQtyForExciseTaxForFA(SourceNo));
-            else
-                exit(0);
-        end;
-    end;
-
-    local procedure GetTaxRateForSource(TaxTypeCode: Code[20]; SourceType: Enum "Sust. Excise Jnl. Source Type"; SourceNo: Code[20]; EffectiveDate: Date): Decimal
-    var
-        ExciseTaxItemFARate: Record "Excise Tax Item/FA Rate";
-        TaxRate: Decimal;
-        ExciseSourceType: Enum "Excise Source Type";
-    begin
-        ExciseSourceType := ExciseTaxItemFARate.ConvertSustSourceTypeToExciseSourceType(SourceType);
-        if ExciseTaxItemFARate.GetEffectiveTaxRate(TaxTypeCode, ExciseSourceType, SourceNo, EffectiveDate, TaxRate) then
-            exit(TaxRate);
-
-        exit(0);
-    end;
-
-    local procedure CalculateTaxAmount(TaxRatePer: Decimal; Quantity: Decimal; QtyForTax: Decimal): Decimal
-    begin
-        if (TaxRatePer = 0) or (Quantity = 0) or (QtyForTax = 0) then
-            exit(0);
-
-        exit((TaxRatePer / 100) * Quantity * QtyForTax);
-    end;
-
-    local procedure GetQtyForExciseTaxForItem(ItemNo: Code[20]): Decimal
-    var
-        Item: Record Item;
-    begin
-        Item.SetLoadFields("Qty for Excise Tax");
-        if not Item.Get(ItemNo) then
-            exit(0);
-
-        exit(Item."Qty for Excise Tax");
-    end;
-
-    local procedure GetQtyForExciseTaxForFA(FANo: Code[20]): Decimal
-    var
-        FixedAsset: Record "Fixed Asset";
-    begin
-        FixedAsset.SetLoadFields("Qty for Excise Tax");
-        if not FixedAsset.Get(FANo) then
-            exit(0);
-
-        exit(FixedAsset."Qty for Excise Tax");
+        ExciseJournalBatch := ExciseJnlBatch;
     end;
 
     local procedure GetLastLineNo(TemplateName: Code[10]; BatchName: Code[10]): Integer
@@ -178,40 +110,38 @@ codeunit 7412 "Excise Tax Calculation"
         TempExciseEntryPermission: Record "Excise Tax Entry Permission" temporary;
     begin
         ExciseTaxEntryPermission.GetAllowedEntryTypes(TaxType, TempExciseEntryPermission);
+
+        if SourceType = SourceType::"Fixed Asset" then
+            TempExciseEntryPermission.SetRange("Excise Entry Type", TempExciseEntryPermission."Excise Entry Type"::Purchase);
+
         if not TempExciseEntryPermission.FindSet() then
             exit;
 
         repeat
-            GetQuantityForSourceEntryType(TaxType, SourceNo, SourceType, TempExciseEntryPermission."Excise Entry Type", StartingDate, EndingDate, PostingDate);
+            CreateExciseJournalLineForItemAndFixedAsset(TaxType, SourceNo, SourceType, TempExciseEntryPermission."Excise Entry Type", StartingDate, EndingDate, PostingDate);
         until TempExciseEntryPermission.Next() = 0;
     end;
 
-    local procedure GetQuantityForSourceEntryType(TaxType: Code[20]; SourceNo: Code[20]; SourceType: Enum "Sust. Excise Jnl. Source Type"; EntryType: Enum "Excise Entry Type"; StartingDate: Date; EndingDate: Date; PostingDate: Date)
+    local procedure CreateExciseJournalLineForItemAndFixedAsset(TaxType: Code[20]; SourceNo: Code[20]; SourceType: Enum "Sust. Excise Jnl. Source Type"; EntryType: Enum "Excise Entry Type"; StartingDate: Date; EndingDate: Date; PostingDate: Date)
     begin
         case SourceType of
             "Sust. Excise Jnl. Source Type"::Item:
-                ProcessItemLedgerEntriesForTax(TaxType, SourceNo, EntryType, StartingDate, EndingDate, PostingDate);
+                CreateExciseJournalLineForItem(TaxType, SourceNo, EntryType, StartingDate, EndingDate, PostingDate);
             "Sust. Excise Jnl. Source Type"::"Fixed Asset":
-                ProcessFALedgerEntriesForTax(TaxType, SourceNo, EntryType, StartingDate, EndingDate, PostingDate);
+                CreateExciseJournalLineForFixedAsset(TaxType, SourceNo, EntryType, StartingDate, EndingDate, PostingDate);
         end;
     end;
 
-    local procedure ProcessItemLedgerEntriesForTax(TaxType: Code[20]; ItemNo: Code[20]; EntryType: Enum "Excise Entry Type"; StartingDate: Date; EndingDate: Date; PostingDate: Date)
+    local procedure CreateExciseJournalLineForItem(TaxType: Code[20]; ItemNo: Code[20]; EntryType: Enum "Excise Entry Type"; StartingDate: Date; EndingDate: Date; PostingDate: Date)
     var
         ItemLedgerEntry: Record "Item Ledger Entry";
         ExciseJnlLine: Record "Sust. Excise Jnl. Line";
-        ExciseJnlBatch: Record "Sust. Excise Journal Batch";
         LineNo: Integer;
-        QtyForTax: Decimal;
-        TaxRate: Decimal;
     begin
-        GetExciseBatchForTaxType(ExciseJnlBatch, TaxType, true);
-        if ExciseJnlBatch.IsEmpty() then
-            exit;
+        ExciseJournalBatch.TestField("Journal Template Name");
+        ExciseJournalBatch.TestField(Type, ExciseJournalBatch.Type::Excises);
 
-        LineNo := GetLastLineNo(ExciseJnlBatch."Journal Template Name", ExciseJnlBatch.Name);
-        TaxRate := GetTaxRateForSource(TaxType, ExciseJnlLine."Source Type"::Item, ItemNo, PostingDate);
-        QtyForTax := GetQtyForTaxCalculation(ExciseJnlLine."Source Type"::Item, ItemNo);
+        LineNo := GetLastLineNo(ExciseJournalBatch."Journal Template Name", ExciseJournalBatch.Name);
 
         ItemLedgerEntry.SetRange("Item No.", ItemNo);
         ItemLedgerEntry.SetRange("Posting Date", StartingDate, EndingDate);
@@ -219,32 +149,25 @@ codeunit 7412 "Excise Tax Calculation"
         SetFilterOnILEEntryType(EntryType, ItemLedgerEntry);
         if ItemLedgerEntry.FindSet() then
             repeat
-                InitializeExciseJournalLine(ExciseJnlLine, ExciseJnlBatch, PostingDate, LineNo);
-                UpdateILEDetailsInExciseJnlLine(ExciseJnlLine, ItemLedgerEntry, TaxType, EntryType, TaxRate, QtyForTax);
-                ExciseJnlLine.Insert(true);
-                LineNo += 10000;
+                if not ExciseJournalLineExist(ItemLedgerEntry) then begin
+                    InitializeExciseJournalLine(ExciseJnlLine, ExciseJournalBatch, PostingDate, LineNo);
+                    UpdateExciseJournalLineFromItemLedgerEntry(ExciseJnlLine, ItemLedgerEntry, TaxType, EntryType);
+                    ExciseJnlLine.Insert(true);
+                    LineNo += 10000;
+                end;
             until ItemLedgerEntry.Next() = 0;
     end;
 
-    local procedure ProcessFALedgerEntriesForTax(TaxType: Code[20]; FANo: Code[20]; EntryType: Enum "Excise Entry Type"; FromDate: Date; ToDate: Date; PostingDate: Date)
+    local procedure CreateExciseJournalLineForFixedAsset(TaxType: Code[20]; FANo: Code[20]; EntryType: Enum "Excise Entry Type"; FromDate: Date; ToDate: Date; PostingDate: Date)
     var
         FALedgerEntry: Record "FA Ledger Entry";
         ExciseJnlLine: Record "Sust. Excise Jnl. Line";
-        ExciseJnlBatch: Record "Sust. Excise Journal Batch";
         LineNo: Integer;
-        TaxRate: Decimal;
-        QtyForTax: Decimal;
     begin
-        if EntryType <> EntryType::Purchase then
-            exit;
+        ExciseJournalBatch.TestField("Journal Template Name");
+        ExciseJournalBatch.TestField(Type, ExciseJournalBatch.Type::Excises);
 
-        GetExciseBatchForTaxType(ExciseJnlBatch, TaxType, true);
-        if ExciseJnlBatch.IsEmpty() then
-            exit;
-
-        LineNo := GetLastLineNo(ExciseJnlBatch."Journal Template Name", ExciseJnlBatch.Name);
-        TaxRate := GetTaxRateForSource(TaxType, ExciseJnlLine."Source Type"::"Fixed Asset", FANo, PostingDate);
-        QtyForTax := GetQtyForTaxCalculation(ExciseJnlLine."Source Type"::"Fixed Asset", FANo);
+        LineNo := GetLastLineNo(ExciseJournalBatch."Journal Template Name", ExciseJournalBatch.Name);
 
         FALedgerEntry.SetRange("FA No.", FANo);
         FALedgerEntry.SetRange("Posting Date", FromDate, ToDate);
@@ -252,10 +175,12 @@ codeunit 7412 "Excise Tax Calculation"
         FALedgerEntry.SetRange("Excise Tax Posted", false);
         if FALedgerEntry.FindSet() then
             repeat
-                InitializeExciseJournalLine(ExciseJnlLine, ExciseJnlBatch, PostingDate, LineNo);
-                UpdateFALedgerEntriesDetailsInExciseJnlLine(ExciseJnlLine, FALedgerEntry, TaxType, EntryType, TaxRate, QtyForTax);
-                ExciseJnlLine.Insert(true);
-                LineNo += 10000;
+                if not ExciseJournalLineExist(FALedgerEntry) then begin
+                    InitializeExciseJournalLine(ExciseJnlLine, ExciseJournalBatch, PostingDate, LineNo);
+                    UpdateExciseJournalLineFromFALedgerEntry(ExciseJnlLine, FALedgerEntry, TaxType, EntryType);
+                    ExciseJnlLine.Insert(true);
+                    LineNo += 10000;
+                end;
             until FALedgerEntry.Next() = 0;
     end;
 
@@ -297,19 +222,6 @@ codeunit 7412 "Excise Tax Calculation"
         end;
     end;
 
-    local procedure GetPartnerNo(FALedgerEntry: Record "FA Ledger Entry"): Code[20]
-    var
-        VendorLedgerEntry: Record "Vendor Ledger Entry";
-    begin
-        if FALedgerEntry."Document Type" <> FALedgerEntry."Document Type"::Invoice then
-            exit;
-
-        VendorLedgerEntry.SetRange("Document No.", FALedgerEntry."Document No.");
-        VendorLedgerEntry.SetRange("Document Type", VendorLedgerEntry."Document Type"::Invoice);
-        if VendorLedgerEntry.FindFirst() then
-            exit(VendorLedgerEntry."Vendor No.");
-    end;
-
     local procedure InitializeExciseJournalLine(var ExciseJnlLine: Record "Sust. Excise Jnl. Line"; ExciseJnlBatch: Record "Sust. Excise Journal Batch"; PostingDate: Date; LineNo: Integer);
     var
         NoSeriesBatch: Codeunit "No. Series - Batch";
@@ -320,57 +232,131 @@ codeunit 7412 "Excise Tax Calculation"
         ExciseJnlLine."Line No." := LineNo;
         ExciseJnlLine."Posting Date" := PostingDate;
         ExciseJnlLine."Document No." := NoSeriesBatch.GetNextNo(ExciseJnlBatch."No Series", ExciseJnlLine."Posting Date");
-        ExciseJnlLine."Document Type" := ExciseJnlLine."Document Type"::Journal;
+        ExciseJnlLine."Source Code" := ExciseJnlBatch."Source Code";
+        ExciseJnlLine."Reason Code" := ExciseJnlBatch."Reason Code";
     end;
 
-    local procedure UpdateILEDetailsInExciseJnlLine(var ExciseJnlLine: Record "Sust. Excise Jnl. Line"; ItemLedgerEntry: Record "Item Ledger Entry"; TaxType: Code[20]; EntryType: Enum "Excise Entry Type"; TaxRate: Decimal; QtyForTax: Decimal)
+    local procedure UpdateExciseJournalLineFromItemLedgerEntry(var ExciseJnlLine: Record "Sust. Excise Jnl. Line"; ItemLedgerEntry: Record "Item Ledger Entry"; TaxType: Code[20]; EntryType: Enum "Excise Entry Type")
     var
-        Item: Record Item;
         PartnerType: Enum "Sust. Excise Jnl. Partner Type";
         PartnerNo: Code[20];
     begin
-        Item.SetLoadFields("Excise Tax UOM");
-        Item.Get(ItemLedgerEntry."Item No.");
-
         GetPartnerDetailFromILE(ItemLedgerEntry, PartnerType, PartnerNo);
-        ExciseJnlLine.Description := ItemLedgerEntry.Description;
-        if ExciseJnlLine.Description = '' then
-            ExciseJnlLine.Description := StrSubstNo(ExciseTaxDescriptionLbl, TaxType, ItemLedgerEntry."Item No.");
+        if ItemLedgerEntry.Description = '' then
+            ExciseJnlLine.Description := ExciseJournalBatch.Description
+        else
+            ExciseJnlLine.Description := ItemLedgerEntry.Description;
 
         ExciseJnlLine."Excise Tax Type" := TaxType;
         ExciseJnlLine."Excise Entry Type" := EntryType;
-        ExciseJnlLine."Excise Tax UOM" := Item."Excise Tax UOM";
+
+        case EntryType of
+            EntryType::Purchase,
+            EntryType::Sale,
+            EntryType::"Positive Adjmt.",
+            EntryType::"Negative Adjmt.":
+                case ItemLedgerEntry."Document Type" of
+                    ItemLedgerEntry."Document Type"::"Purchase Invoice",
+                    ItemLedgerEntry."Document Type"::"Purchase Receipt",
+                    ItemLedgerEntry."Document Type"::"Sales Invoice",
+                    ItemLedgerEntry."Document Type"::"Sales Shipment":
+                        ExciseJnlLine.Validate("Document Type", ExciseJnlLine."Document Type"::Invoice);
+                    ItemLedgerEntry."Document Type"::"Purchase Credit Memo",
+                    ItemLedgerEntry."Document Type"::"Purchase Return Shipment",
+                    ItemLedgerEntry."Document Type"::"Sales Credit Memo",
+                    ItemLedgerEntry."Document Type"::"Sales Return Receipt":
+                        ExciseJnlLine.Validate("Document Type", ExciseJnlLine."Document Type"::"Credit Memo");
+                    else
+                        ExciseJnlLine.Validate("Document Type", ExciseJnlLine."Document Type"::Journal);
+                end;
+            EntryType::Output:
+                ExciseJnlLine.Validate("Document Type", ExciseJnlLine."Document Type"::"Production Order");
+            EntryType::"Assembly Output":
+                ExciseJnlLine.Validate("Document Type", ExciseJnlLine."Document Type"::"Assembly Order");
+        end;
+
         ExciseJnlLine.Validate("Partner Type", PartnerType);
         ExciseJnlLine.Validate("Partner No.", PartnerNo);
+        ExciseJnlLine.Validate("Country/Region Code", ItemLedgerEntry."Country/Region Code");
         ExciseJnlLine.Validate("Source Type", ExciseJnlLine."Source Type"::Item);
         ExciseJnlLine.Validate("Source No.", ItemLedgerEntry."Item No.");
+        ExciseJnlLine.Validate("Source Qty.", Abs(ItemLedgerEntry.Quantity));
         ExciseJnlLine."Item Ledger Entry No." := ItemLedgerEntry."Entry No.";
-        ExciseJnlLine."Tax Rate %" := TaxRate;
-        ExciseJnlLine.Quantity := Abs(ItemLedgerEntry.Quantity);
-        ExciseJnlLine."Tax Amount" := CalculateTaxAmount(ExciseJnlLine."Tax Rate %", ExciseJnlLine.Quantity, QtyForTax);
     end;
 
-    local procedure UpdateFALedgerEntriesDetailsInExciseJnlLine(var ExciseJnlLine: Record "Sust. Excise Jnl. Line"; FALedgerEntry: Record "FA Ledger Entry"; TaxType: Code[20]; EntryType: Enum "Excise Entry Type"; TaxRate: Decimal; QtyForTax: Decimal)
-    var
-        FixedAsset: Record "Fixed Asset";
+    local procedure UpdateExciseJournalLineFromFALedgerEntry(var ExciseJnlLine: Record "Sust. Excise Jnl. Line"; FALedgerEntry: Record "FA Ledger Entry"; TaxType: Code[20]; EntryType: Enum "Excise Entry Type")
     begin
-        FixedAsset.SetLoadFields("Excise Tax UOM");
-        FixedAsset.Get(FALedgerEntry."FA No.");
-
-        ExciseJnlLine.Description := FALedgerEntry.Description;
-        if ExciseJnlLine.Description = '' then
-            ExciseJnlLine.Description := StrSubstNo(ExciseTaxDescriptionLbl, TaxType, FALedgerEntry."FA No.");
-
+        if FALedgerEntry.Description = '' then
+            ExciseJnlLine.Description := ExciseJournalBatch.Description
+        else
+            ExciseJnlLine.Description := FALedgerEntry.Description;
         ExciseJnlLine."Excise Tax Type" := TaxType;
         ExciseJnlLine."Excise Entry Type" := EntryType;
-        ExciseJnlLine."Excise Tax UOM" := FixedAsset."Excise Tax UOM";
-        ExciseJnlLine.Validate("Partner Type", ExciseJnlLine."Partner Type"::Vendor);
-        ExciseJnlLine.Validate("Partner No.", GetPartnerNo(FALedgerEntry));
+
+        case FALedgerEntry."Document Type" of
+            FALedgerEntry."Document Type"::Invoice:
+                begin
+                    ExciseJnlLine.Validate("Document Type", ExciseJnlLine."Document Type"::Invoice);
+                    UpdateExciseJournalFromPurchaseInvoice(ExciseJnlLine, FALedgerEntry."Document No.");
+                end;
+            FALedgerEntry."Document Type"::"Credit Memo":
+                begin
+                    ExciseJnlLine.Validate("Document Type", ExciseJnlLine."Document Type"::"Credit Memo");
+                    UpdateExciseJournalFromPurchaseCreditMemo(ExciseJnlLine, FALedgerEntry."Document No.");
+                end;
+            else
+                ExciseJnlLine.Validate("Document Type", ExciseJnlLine."Document Type"::Journal);
+        end;
+
         ExciseJnlLine.Validate("Source Type", ExciseJnlLine."Source Type"::"Fixed Asset");
         ExciseJnlLine.Validate("Source No.", FALedgerEntry."FA No.");
+        ExciseJnlLine.Validate("Source Qty.", 1);
         ExciseJnlLine."FA Ledger Entry No." := FALedgerEntry."Entry No.";
-        ExciseJnlLine."Tax Rate %" := TaxRate;
-        ExciseJnlLine.Quantity := 1;
-        ExciseJnlLine."Tax Amount" := CalculateTaxAmount(ExciseJnlLine."Tax Rate %", ExciseJnlLine.Quantity, QtyForTax);
+    end;
+
+    local procedure UpdateExciseJournalFromPurchaseInvoice(var SustExciseJournalLine: Record "Sust. Excise Jnl. Line"; DocumentNo: Code[20])
+    var
+        PurchaseInvoiceHeader: Record "Purch. Inv. Header";
+    begin
+        PurchaseInvoiceHeader.SetLoadFields("Buy-from Vendor No.", "Buy-from Country/Region Code");
+        if not PurchaseInvoiceHeader.Get(DocumentNo) then
+            exit;
+
+        SustExciseJournalLine.Validate("Partner Type", SustExciseJournalLine."Partner Type"::Vendor);
+        SustExciseJournalLine.Validate("Partner No.", PurchaseInvoiceHeader."Buy-from Vendor No.");
+        SustExciseJournalLine.Validate("Country/Region Code", PurchaseInvoiceHeader."Buy-from Country/Region Code");
+    end;
+
+    local procedure UpdateExciseJournalFromPurchaseCreditMemo(var SustExciseJournalLine: Record "Sust. Excise Jnl. Line"; DocumentNo: Code[20])
+    var
+        PurchaseCrMemoHeader: Record "Purch. Cr. Memo Hdr.";
+    begin
+        PurchaseCrMemoHeader.SetLoadFields("Buy-from Vendor No.", "Buy-from Country/Region Code");
+        if not PurchaseCrMemoHeader.Get(DocumentNo) then
+            exit;
+
+        SustExciseJournalLine.Validate("Partner Type", SustExciseJournalLine."Partner Type"::Vendor);
+        SustExciseJournalLine.Validate("Partner No.", PurchaseCrMemoHeader."Buy-from Vendor No.");
+        SustExciseJournalLine.Validate("Country/Region Code", PurchaseCrMemoHeader."Buy-from Country/Region Code");
+    end;
+
+    local procedure ExciseJournalLineExist(ItemLedgerEntry: Record "Item Ledger Entry"): Boolean
+    var
+        ExciseJournalLine: Record "Sust. Excise Jnl. Line";
+    begin
+        ExciseJournalLine.SetLoadFields("Item Ledger Entry No.");
+        ExciseJournalLine.SetRange("Item Ledger Entry No.", ItemLedgerEntry."Entry No.");
+        if not ExciseJournalLine.IsEmpty() then
+            exit(true);
+    end;
+
+    local procedure ExciseJournalLineExist(FALedgerEntry: Record "FA Ledger Entry"): Boolean
+    var
+        ExciseJournalLine: Record "Sust. Excise Jnl. Line";
+    begin
+        ExciseJournalLine.SetLoadFields("FA Ledger Entry No.");
+        ExciseJournalLine.SetRange("FA Ledger Entry No.", FALedgerEntry."Entry No.");
+        if not ExciseJournalLine.IsEmpty() then
+            exit(true);
     end;
 }

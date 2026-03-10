@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -34,6 +34,7 @@ table 7347 "Internal Movement Line"
         field(10; "Location Code"; Code[10])
         {
             Caption = 'Location Code';
+            ToolTip = 'Specifies the code of the location where the internal movement is being performed.';
             Editable = false;
             TableRelation = Location;
 
@@ -47,10 +48,12 @@ table 7347 "Internal Movement Line"
         field(11; "Shelf No."; Code[10])
         {
             Caption = 'Shelf No.';
+            ToolTip = 'Specifies the shelf number that is recorded on the item card or on the stockkeeping unit card of the item that is being moved.';
         }
         field(12; "From Bin Code"; Code[20])
         {
             Caption = 'From Bin Code';
+            ToolTip = 'Specifies the code of the bin that the items on the internal movement are picked from.';
             TableRelation = Bin.Code where("Location Code" = field("Location Code"));
 
             trigger OnLookup()
@@ -73,6 +76,7 @@ table 7347 "Internal Movement Line"
         field(13; "To Bin Code"; Code[20])
         {
             Caption = 'To Bin Code';
+            ToolTip = 'Specifies the bin where you want items on this internal movement to be placed when they are picked.';
             TableRelation = Bin.Code where("Location Code" = field("Location Code"));
 
             trigger OnLookup()
@@ -99,6 +103,7 @@ table 7347 "Internal Movement Line"
         field(14; "Item No."; Code[20])
         {
             Caption = 'Item No.';
+            ToolTip = 'Specifies the number of the item that is available to move from the bin.';
 
             trigger OnLookup()
             begin
@@ -137,6 +142,7 @@ table 7347 "Internal Movement Line"
         {
             AutoFormatType = 0;
             Caption = 'Quantity';
+            ToolTip = 'Specifies the quantity of items to be moved. The quantity must be lower than or equal to the bin content.';
             DecimalPlaces = 0 : 5;
             MinValue = 0;
 
@@ -163,6 +169,7 @@ table 7347 "Internal Movement Line"
         field(29; "Unit of Measure Code"; Code[10])
         {
             Caption = 'Unit of Measure Code';
+            ToolTip = 'Specifies how each unit of the item or resource is measured, such as in pieces or hours. By default, the value in the Base Unit of Measure field on the item or resource card is inserted.';
             TableRelation = "Item Unit of Measure".Code where("Item No." = field("Item No."));
 
             trigger OnLookup()
@@ -185,6 +192,7 @@ table 7347 "Internal Movement Line"
         {
             AutoFormatType = 0;
             Caption = 'Qty. per Unit of Measure';
+            ToolTip = 'Specifies the same as the field with the same name in the Whse. Internal Put-away Line table.';
             DecimalPlaces = 0 : 5;
             Editable = false;
             InitValue = 1;
@@ -192,6 +200,7 @@ table 7347 "Internal Movement Line"
         field(31; "Variant Code"; Code[10])
         {
             Caption = 'Variant Code';
+            ToolTip = 'Specifies the variant of the item on the line.';
             TableRelation = "Item Variant".Code where("Item No." = field("Item No."));
 
             trigger OnLookup()
@@ -215,10 +224,12 @@ table 7347 "Internal Movement Line"
         field(32; Description; Text[100])
         {
             Caption = 'Description';
+            ToolTip = 'Specifies the same as the field with the same name in the Whse. Internal Put-away Line table.';
         }
         field(33; "Description 2"; Text[50])
         {
             Caption = 'Description 2';
+            ToolTip = 'Specifies the second description of the item.';
         }
         field(35; "Sorting Sequence No."; Integer)
         {
@@ -228,6 +239,7 @@ table 7347 "Internal Movement Line"
         field(36; "Due Date"; Date)
         {
             Caption = 'Due Date';
+            ToolTip = 'Specifies the date when the warehouse activity must be completed.';
         }
         field(37; Cubage; Decimal)
         {

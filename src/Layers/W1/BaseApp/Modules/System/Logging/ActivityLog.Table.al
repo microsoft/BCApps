@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -21,6 +21,7 @@ table 710 "Activity Log"
         {
             AutoIncrement = true;
             Caption = 'ID';
+            ToolTip = 'Specifies the activity ID.';
         }
         field(2; "Record ID"; RecordID)
         {
@@ -30,6 +31,7 @@ table 710 "Activity Log"
         field(3; "Activity Date"; DateTime)
         {
             Caption = 'Activity Date';
+            ToolTip = 'Specifies the data of the activity.';
         }
         field(4; "User ID"; Code[50])
         {
@@ -40,20 +42,24 @@ table 710 "Activity Log"
         field(5; Status; Option)
         {
             Caption = 'Status';
+            ToolTip = 'Specifies the status of the activity.';
             OptionCaption = 'Success,Failed';
             OptionMembers = Success,Failed;
         }
         field(6; Context; Text[30])
         {
             Caption = 'Context';
+            ToolTip = 'Specifies the context in which the activity occurred.';
         }
         field(10; Description; Text[250])
         {
             Caption = 'Description';
+            ToolTip = 'Specifies the activity.';
         }
         field(20; "Activity Message"; Text[250])
         {
             Caption = 'Activity Message';
+            ToolTip = 'Specifies the status or error message for the activity.';
         }
         field(21; "Detailed Info"; BLOB)
         {

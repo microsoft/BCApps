@@ -1343,5 +1343,85 @@
     "codeunitId": 137404,
     "codeunitName": "SCM Manufacturing",
     "method": "CalculateWaitingTimeIncludingWeekendWithMultipleCalendars"
+  },
+  {
+    "codeunitId": 137072,
+    "codeunitName": "SCM Production Orders II",
+    "method": "WarehousePickWithBinsAndLotTrackingForProduction"
+  },
+  {
+    "codeunitId": 137079,
+    "codeunitName": "SCM Production Order III",
+    "method": "StartingEndingDatesOnFirmPlannedProductionOrderCard"
+  },
+  {
+    "codeunitId": 137083,
+    "codeunitName": "SCM Production Orders IV",
+    "method": "IfDueDateGreatThanEndDateIsEnteredOnProdOrderThanEndDateRemainsSameIfManualSchedulingIsTrue"
+  },
+  {
+    "codeunitId": 137083,
+    "codeunitName": "SCM Production Orders IV",
+    "method": "IfDueDateLessThanEndDateIsEnteredOnProdOrderSrcTypeSalesThanEndDateIsCalcBySafetyLeadTimeForManSchIfManualSchIsTrue"
+  },
+  {
+    "codeunitId": 137083,
+    "codeunitName": "SCM Production Orders IV",
+    "method": "IfDueDateLessThanEndDateIsEnteredOnProdOrderThanEndDateIsCalcBySafetyLeadTimeForManSchIfManualSchedulingIsTrue"
+  },
+  {
+    "codeunitId": 137083,
+    "codeunitName": "SCM Production Orders IV",
+    "method": "IfDueDateSameAsEndDateIsEnteredOnProdOrderSrcTypeSalesThanEndDateIsCalcBySafetyLeadTimeForManSchIfManualSchIsTrue"
+  },
+  {
+    "codeunitId": 137083,
+    "codeunitName": "SCM Production Orders IV",
+    "method": "IfDueDateSameAsEndDateIsEnteredOnProdOrderThanEndDateIsCalcBySafetyLeadTimeForManSchIfManualSchedulingIsTrue"
+  },
+  {
+    "codeunitId": 137083,
+    "codeunitName": "SCM Production Orders IV",
+    "method": "IfEndDateGreatThanDueDateIsEnteredOnProdOrderLineSrcTypeSalesThanEndDateIsCalcBySafetyLeadTimeForManSchIfManualSchIsTrue"
+  },
+  {
+    "codeunitId": 137083,
+    "codeunitName": "SCM Production Orders IV",
+    "method": "IfEndDateGreatThanDueDateIsEnteredOnProdOrderSrcTypeSalesThanEndDateIsCalcBySafetyLeadTimeForManSchIfManualSchIsTrue"
+  },
+  {
+    "codeunitId": 137083,
+    "codeunitName": "SCM Production Orders IV",
+    "method": "IfEndDateGreatThanDueDateIsEnteredOnProdOrderThanDueDateIsCalcBySafetyLeadTimeForManSchIfManualSchedulingIsTrue"
+  },
+  {
+    "codeunitId": 137083,
+    "codeunitName": "SCM Production Orders IV",
+    "method": "IfEndDateSameAsDueDateIsEnteredOnProdOrderLineSrcTypeSalesThanDueDateIsCalcBySafetyLeadTimeForManSchIfManualSchIsTrue"
+  },
+  {
+    "codeunitId": 137083,
+    "codeunitName": "SCM Production Orders IV",
+    "method": "IfEndDateSameAsDueDateIsEnteredOnProdOrderSrcTypeSalesThanDueDateIsCalcBySafetyLeadTimeForManSchIfManualSchIsTrue"
+  },
+  {
+    "codeunitId": 137083,
+    "codeunitName": "SCM Production Orders IV",
+    "method": "IfEndDateSameAsDueDateIsEnteredOnProdOrderThanDueDateIsCalcBySafetyLeadTimeForManSchIfManualSchedulingIsTrue"
+  },
+  {
+    "codeunitId": 137083,
+    "codeunitName": "SCM Production Orders IV",
+    "method": "VerifyVarianceTypeMaterialNonInventoryValueInPageInventoryGLReconciliation"
+  },
+  {
+    "codeunitId": 137404,
+    "codeunitName": "SCM Manufacturing",
+    "method": "CalculateWaitingTimeWithMultipleCalendars"
+  },
+  {
+    "codeunitId": 137404,
+    "codeunitName": "SCM Manufacturing",
+    "method": "ConsideringAbsenceForConstrainedCapacityCalculateForward"
   }
 ]

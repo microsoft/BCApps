@@ -33,99 +33,82 @@ page 953 "Manager Time Sheet List"
                 field("No."; Rec."No.")
                 {
                     ApplicationArea = Jobs;
-                    ToolTip = 'Specifies the number of the involved entry or record, according to the specified number series.';
                 }
                 field("Starting Date"; Rec."Starting Date")
                 {
                     ApplicationArea = Jobs;
-                    ToolTip = 'Specifies the starting date for a time sheet.';
                 }
                 field("Ending Date"; Rec."Ending Date")
                 {
                     ApplicationArea = Jobs;
-                    ToolTip = 'Specifies the ending date for a time sheet.';
                 }
                 field(Description; Rec.Description)
                 {
                     ApplicationArea = Jobs;
-                    ToolTip = 'Specifies the description for a time sheet.';
                 }
                 field("Resource No."; Rec."Resource No.")
                 {
                     ApplicationArea = Jobs;
-                    ToolTip = 'Specifies the number of the resource for the time sheet.';
                 }
                 field("Resource Name"; Rec."Resource Name")
                 {
                     ApplicationArea = Jobs;
-                    ToolTip = 'Specifies the name of the resource for the time sheet.';
                     Visible = false;
                 }
                 field("Quantity"; Rec."Quantity")
                 {
                     ApplicationArea = Jobs;
                     Caption = 'Total';
-                    ToolTip = 'Specifies the total number of hours that are registered on the time sheet.';
                 }
                 field("Quantity Open"; Rec."Quantity Open")
                 {
                     ApplicationArea = Jobs;
                     Caption = 'Open';
-                    ToolTip = 'Specifies the total number of hours with the status Open on the time sheet.';
                 }
                 field("Quantity Submitted"; Rec."Quantity Submitted")
                 {
                     ApplicationArea = Jobs;
                     Caption = 'Submitted';
-                    ToolTip = 'Specifies the total number of hours with the status Submitted on the time sheet.';
                 }
                 field("Quantity Approved"; Rec."Quantity Approved")
                 {
                     ApplicationArea = Jobs;
                     Caption = 'Approved';
-                    ToolTip = 'Specifies the total number of hours with the status Approved on the time sheet.';
                 }
                 field("Quantity Rejected"; Rec."Quantity Rejected")
                 {
                     ApplicationArea = Jobs;
                     Caption = 'Rejected';
-                    ToolTip = 'Specifies the total number of hours with the status Rejected on the time sheet.';
                 }
                 field("Open Exists"; Rec."Open Exists")
                 {
                     ApplicationArea = Jobs;
                     DrillDown = false;
-                    ToolTip = 'Specifies if there are time sheet lines with the status Open.';
                 }
                 field("Submitted Exists"; Rec."Submitted Exists")
                 {
                     ApplicationArea = Jobs;
                     DrillDown = false;
-                    ToolTip = 'Specifies if there are time sheet lines with the status Submitted.';
                 }
                 field("Rejected Exists"; Rec."Rejected Exists")
                 {
                     ApplicationArea = Jobs;
                     DrillDown = false;
-                    ToolTip = 'Specifies whether there are time sheet lines with the status Rejected.';
                 }
                 field("Approved Exists"; Rec."Approved Exists")
                 {
                     ApplicationArea = Jobs;
                     DrillDown = false;
-                    ToolTip = 'Specifies whether there are time sheet lines with the status Approved.';
                 }
                 field("Posted Exists"; Rec."Posted Exists")
                 {
                     ApplicationArea = Jobs;
                     DrillDown = false;
-                    ToolTip = 'Specifies whether there are time sheet lines with the status Posted.';
                 }
                 field(Comment; Rec.Comment)
                 {
                     ApplicationArea = Comments;
                     DrillDown = false;
-                    ToolTip = 'Specifies that a comment about this document has been entered.';
                 }
             }
         }

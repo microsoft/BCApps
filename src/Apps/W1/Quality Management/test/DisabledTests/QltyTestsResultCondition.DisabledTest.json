@@ -1,0 +1,14 @@
+[
+    {
+        "bug": "Not Provided",
+        "codeunitId": 139956,
+        "codeunitName": "Qlty. Tests - Result Condition",
+        "method": "PromptUpdateTestsFromResult_UpdateTextCondition_ShouldUpdate"
+    },
+    {
+        "bug": "Not Provided",
+        "codeunitId": 139956,
+        "codeunitName": "Qlty. Tests - Result Condition",
+        "method": "PromptUpdateTestsFromResult_UpdateTextCondition_ShouldNotUpdate"
+    }
+]

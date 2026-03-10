@@ -22,6 +22,7 @@ table 5557 "Permission Conflicts"
         {
             DataClassification = SystemMetadata;
             Caption = 'Object ID';
+            ToolTip = 'Specifies the Object ID';
         }
         field(5; "Object Name"; Text[249])
         {
@@ -29,36 +30,42 @@ table 5557 "Permission Conflicts"
                                                                            "Object ID" = field("Object ID")));
             Caption = 'Object Name';
             FieldClass = FlowField;
+            ToolTip = 'Specifies the Object Name';
         }
         field(6; "Read Permission"; Enum "Permission")
         {
             DataClassification = SystemMetadata;
             Caption = 'Read Permission';
             InitValue = Direct;
+            ToolTip = 'Specifies the permission assigned to the access type, or whether it is in conflict with the product license. For details about a conflict, click the word Conflict.';
         }
         field(7; "Insert Permission"; Enum "Permission")
         {
             DataClassification = SystemMetadata;
             Caption = 'Insert Permission';
             InitValue = Direct;
+            ToolTip = 'Specifies the permission assigned to the access type, or whether it is in conflict with the product license. For details about a conflict, click the word Conflict.';
         }
         field(8; "Modify Permission"; Enum "Permission")
         {
             DataClassification = SystemMetadata;
             Caption = 'Modify Permission';
             InitValue = Direct;
+            ToolTip = 'Specifies the permission assigned to the access type, or whether it is in conflict with the product license. For details about a conflict, click the word Conflict.';
         }
         field(9; "Delete Permission"; Enum "Permission")
         {
             DataClassification = SystemMetadata;
             Caption = 'Delete Permission';
             InitValue = Direct;
+            ToolTip = 'Specifies the permission assigned to the access type, or whether it is in conflict with the product license. For details about a conflict, click the word Conflict.';
         }
         field(10; "Execute Permission"; Enum "Permission")
         {
             DataClassification = SystemMetadata;
             Caption = 'Execute Permission';
             InitValue = Direct;
+            ToolTip = 'Specifies the permission assigned to the access type, or whether it is in conflict with the product license. For details about a conflict, click the word Conflict.';
         }
         field(11; "Entitlement Read Permission"; Enum "Permission")
         {

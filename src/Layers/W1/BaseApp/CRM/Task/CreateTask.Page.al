@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -33,7 +33,6 @@ page 5097 "Create Task"
                 {
                     ApplicationArea = RelationshipMgmt;
                     Caption = 'Type';
-                    ToolTip = 'Specifies the type of the Task.';
                     Visible = IsSoftwareAsAService;
 
                     trigger OnValidate()
@@ -56,14 +55,12 @@ page 5097 "Create Task"
                 field(Description; Rec.Description)
                 {
                     ApplicationArea = RelationshipMgmt;
-                    ToolTip = 'Specifies the description of the Task.';
                 }
                 field(AllDayEvent; Rec."All Day Event")
                 {
                     ApplicationArea = RelationshipMgmt;
                     Caption = 'All Day Event';
                     Enabled = AllDayEventEnable;
-                    ToolTip = 'Specifies that the Task of the Meeting type is an all-day event, which is an activity that lasts 24 hours or longer.';
 
                     trigger OnValidate()
                     begin
@@ -74,40 +71,34 @@ page 5097 "Create Task"
                 {
                     ApplicationArea = RelationshipMgmt;
                     Caption = 'Start Date';
-                    ToolTip = 'Specifies the date when the Task should be started. There are certain rules for how dates should be entered found in How to: Enter Dates and Times.';
                 }
                 field("Start Time"; Rec."Start Time")
                 {
                     ApplicationArea = RelationshipMgmt;
                     Caption = 'Start Time';
                     Enabled = StartTimeEnable;
-                    ToolTip = 'Specifies the time when the Task of the Meeting type should be started.';
                 }
                 field(Duration; Rec.Duration)
                 {
                     ApplicationArea = RelationshipMgmt;
                     Caption = 'Duration';
                     Enabled = DurationEnable;
-                    ToolTip = 'Specifies the duration of the Task of the Meeting type.';
                 }
                 field("Ending Date"; Rec."Ending Date")
                 {
                     ApplicationArea = RelationshipMgmt;
                     Caption = 'Ending Date';
-                    ToolTip = 'Specifies the date of when the Task should end. There are certain rules for how dates should be entered. For more information, see How to: Enter Dates and Times.';
                 }
                 field("Ending Time"; Rec."Ending Time")
                 {
                     ApplicationArea = RelationshipMgmt;
                     Caption = 'Ending Time';
                     Enabled = EndingTimeEnable;
-                    ToolTip = 'Specifies the time of when the Task of the Meeting type should end.';
                 }
                 field(TeamTask; Rec."Team To-do")
                 {
                     ApplicationArea = RelationshipMgmt;
                     Caption = 'Team Task';
-                    ToolTip = 'Specifies if the Task is meant to be done team-wide. Select the check box to specify that the Task applies to the entire Team.';
 
                     trigger OnValidate()
                     begin
@@ -132,7 +123,6 @@ page 5097 "Create Task"
                     Enabled = WizardContactNameEnable;
                     Lookup = false;
                     TableRelation = Contact;
-                    ToolTip = 'Specifies a Contact name from the wizard.';
 
                     trigger OnAssistEdit()
                     var
@@ -152,7 +142,6 @@ page 5097 "Create Task"
                     ApplicationArea = RelationshipMgmt;
                     Caption = 'Salesperson';
                     Enabled = SalespersonCodeEnable;
-                    ToolTip = 'Specifies the code of the Salesperson assigned to the Task.';
                 }
                 field("Team Code"; Rec."Team Code")
                 {
@@ -160,7 +149,6 @@ page 5097 "Create Task"
                     Caption = 'Team';
                     Editable = Rec."Team To-do";
                     Enabled = Rec."Team To-do" or not IsMeeting;
-                    ToolTip = 'Specifies the code of the Team to which the Task is assigned.';
 
                     trigger OnValidate()
                     begin
@@ -181,7 +169,6 @@ page 5097 "Create Task"
                     Importance = Additional;
                     Lookup = false;
                     TableRelation = Campaign;
-                    ToolTip = 'Specifies a description of the campaign that is related to the task. The description is copied from the campaign card.';
 
                     trigger OnAssistEdit()
                     var
@@ -204,7 +191,6 @@ page 5097 "Create Task"
                     Importance = Additional;
                     Lookup = false;
                     TableRelation = Opportunity;
-                    ToolTip = 'Specifies a description of the Opportunity that is related to the Task. The description is copied from the Campaign card.';
 
                     trigger OnAssistEdit()
                     var
@@ -227,7 +213,6 @@ page 5097 "Create Task"
                     Importance = Additional;
                     Lookup = false;
                     TableRelation = "Segment Header";
-                    ToolTip = 'Specifies a description of the Segment related to the Task. The description is copied from the Segment Card.';
 
                     trigger OnAssistEdit()
                     var
@@ -255,7 +240,6 @@ page 5097 "Create Task"
                     Caption = 'Location';
                     Enabled = LocationEnable;
                     Importance = Promoted;
-                    ToolTip = 'Specifies the Location where the Meeting will take place.';
                 }
             }
             group(MeetingAttendees)
@@ -274,14 +258,12 @@ page 5097 "Create Task"
                     {
                         ApplicationArea = RelationshipMgmt;
                         Caption = 'Send Invitation(s) on Finish';
-                        ToolTip = 'Specifies if the meeting invitation task will be sent when the Create Task wizard is finished.';
                     }
                     field("Interaction Template Code"; Rec."Interaction Template Code")
                     {
                         ApplicationArea = RelationshipMgmt;
                         Caption = 'Interaction Template';
                         TableRelation = "Interaction Template";
-                        ToolTip = 'Specifies the code for the Interaction Template that you have selected.';
 
                         trigger OnValidate()
                         begin
@@ -293,7 +275,6 @@ page 5097 "Create Task"
                     {
                         ApplicationArea = RelationshipMgmt;
                         Enabled = LanguageCodeEnable;
-                        ToolTip = 'Specifies the language that is used when translating specified text on documents to foreign business partner, such as an item description on an order confirmation.';
 
                         trigger OnLookup(var Text: Text): Boolean
                         begin
@@ -328,7 +309,6 @@ page 5097 "Create Task"
                 {
                     ApplicationArea = RelationshipMgmt;
                     Caption = 'Recurring Task';
-                    ToolTip = 'Specifies that the Task occurs periodically.';
 
                     trigger OnValidate()
                     begin
@@ -340,14 +320,12 @@ page 5097 "Create Task"
                     ApplicationArea = RelationshipMgmt;
                     Caption = 'Recurring Date Interval';
                     Enabled = RecurringDateIntervalEnable;
-                    ToolTip = 'Specifies the date formula to assign automatically a recurring Task to a Salesperson or Team.';
                 }
                 field("Calc. Due Date From"; Rec."Calc. Due Date From")
                 {
                     ApplicationArea = RelationshipMgmt;
                     Caption = 'Calculate from Date';
                     Enabled = CalcDueDateFromEnable;
-                    ToolTip = 'Specifies the date to use to calculate the date on which the next Task should be completed.';
                 }
             }
         }

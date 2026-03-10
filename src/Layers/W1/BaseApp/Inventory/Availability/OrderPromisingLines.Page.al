@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -40,52 +40,43 @@ page 99000959 "Order Promising Lines"
                 {
                     ApplicationArea = OrderPromising;
                     Editable = false;
-                    ToolTip = 'Specifies the item number of the item that is on the promised order.';
                 }
                 field(Description; Rec.Description)
                 {
                     ApplicationArea = OrderPromising;
                     Editable = false;
-                    ToolTip = 'Specifies the description of the entry.';
                 }
                 field("Requested Delivery Date"; Rec."Requested Delivery Date")
                 {
                     ApplicationArea = OrderPromising;
                     Editable = false;
-                    ToolTip = 'Specifies the requested delivery date for the entry.';
                 }
                 field("Requested Shipment Date"; Rec."Requested Shipment Date")
                 {
                     ApplicationArea = OrderPromising;
-                    ToolTip = 'Specifies the delivery date that the customer requested, minus the shipping time.';
                 }
                 field("Planned Delivery Date"; Rec."Planned Delivery Date")
                 {
                     ApplicationArea = OrderPromising;
-                    ToolTip = 'Specifies the planned date that the shipment will be delivered at the customer''s address. If the customer requests a delivery date, the program calculates whether the items will be available for delivery on this date. If the items are available, the planned delivery date will be the same as the requested delivery date. If not, the program calculates the date that the items are available for delivery and enters this date in the Planned Delivery Date field.';
                 }
                 field("Original Shipment Date"; Rec."Original Shipment Date")
                 {
                     ApplicationArea = OrderPromising;
                     Editable = false;
-                    ToolTip = 'Specifies the shipment date of the entry.';
                 }
                 field("Earliest Shipment Date"; Rec."Earliest Shipment Date")
                 {
                     ApplicationArea = OrderPromising;
-                    ToolTip = 'Specifies the Capable to Promise function as the earliest possible shipment date for the item.';
                 }
                 field(Quantity; Rec.Quantity)
                 {
                     ApplicationArea = OrderPromising;
                     Editable = false;
-                    ToolTip = 'Specifies the number of units, calculated by subtracting the reserved quantity from the outstanding quantity in the Sales Line table.';
                 }
                 field("Required Quantity"; Rec."Required Quantity")
                 {
                     ApplicationArea = OrderPromising;
                     Editable = false;
-                    ToolTip = 'Specifies the quantity required for order promising lines.';
                 }
                 field(CalcAvailability; Rec.CalcAvailability())
                 {
@@ -99,19 +90,16 @@ page 99000959 "Order Promising Lines"
                 {
                     ApplicationArea = OrderPromising;
                     Editable = false;
-                    ToolTip = 'Specifies the date when the order promising line is no longer available.';
                 }
                 field("Unavailable Quantity"; Rec."Unavailable Quantity")
                 {
                     ApplicationArea = OrderPromising;
                     Editable = false;
-                    ToolTip = 'Specifies the quantity of items that are not available for the requested delivery date on the order.';
                 }
                 field("Unit of Measure Code"; Rec."Unit of Measure Code")
                 {
                     ApplicationArea = OrderPromising;
                     Editable = false;
-                    ToolTip = 'Specifies how each unit of the item or resource is measured, such as in pieces or hours. By default, the value in the Base Unit of Measure field on the item or resource card is inserted.';
                 }
             }
         }

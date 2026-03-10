@@ -1711,6 +1711,10 @@ codeunit 12 "Gen. Jnl.-Post Line"
         BankAccLedgEntry."Amount (LCY)" := GenJnlLine."Amount (LCY)";
         OnBeforeBankAccLedgEntryUpdateAmounts(BankAccLedgEntry, GenJnlLine, BankAcc, TaxAmount, TaxAmountLCY);
         BankAccLedgEntry.Open := GenJnlLine.Amount <> 0;
+        if not BankAccLedgEntry.Open then begin
+            BankAccLedgEntry."Closed at Date" := GenJnlLine."Posting Date";
+            BankAccLedgEntry."Statement Status" := BankAccLedgEntry."Statement Status"::Closed;
+        end;
         BankAccLedgEntry."Remaining Amount" := BankAccLedgEntry.Amount;
         BankAccLedgEntry.Positive := GenJnlLine.Amount > 0;
         BankAccLedgEntry.UpdateDebitCredit(GenJnlLine.Correction);
@@ -7132,6 +7136,7 @@ codeunit 12 "Gen. Jnl.-Post Line"
                 VATPostingSetup.Get(VATEntry."VAT Bus. Posting Group", VATEntry."VAT Prod. Posting Group");
                 OnPostUnapplyOnBeforeUnapplyVATEntry(VATEntry, UnapplyVATEntries);
                 if UnapplyVATEntries or (VATEntry."Unrealized VAT Entry No." <> 0) then begin
+                    OnPostUnapplyOnBeforeInsertTempVATEntry(VATEntry, UnapplyVATEntries);
                     InsertTempVATEntry(GenJnlLine, VATEntry, TempVATEntryNo, TempVATEntry);
                     if VATEntry."Unrealized VAT Entry No." <> 0 then begin
                         VATPostingSetup.Get(VATEntry."VAT Bus. Posting Group", VATEntry."VAT Prod. Posting Group");
@@ -8136,8 +8141,7 @@ codeunit 12 "Gen. Jnl.-Post Line"
             end;
             InitGLEntry(
                 GenJnlLine, GLEntry, GLAcc, TotalAmountLCY + AdjAmount[ArrayIndex],
-                TotalAmountAddCurr + AdjAmount[ArrayIndex + 1], true, true,
-                CalcAmountSrcCurr(GenJnlLine, TotalAmountLCY + AdjAmount[ArrayIndex]));
+                TotalAmountAddCurr + AdjAmount[ArrayIndex + 1], true, true, TotalAmountAddCurr);
             AdjAmount[ArrayIndex] := 0;
             AdjAmount[ArrayIndex + 1] := 0;
             exit(true);
@@ -12681,6 +12685,11 @@ codeunit 12 "Gen. Jnl.-Post Line"
 
 	[IntegrationEvent(false, false)]
     local procedure OnAfterSendDocToCartera(var GenJnlLine: Record "Gen. Journal Line"; var VendLedgEntry: Record "Vendor Ledger Entry"; var CustLedgEntry: Record "Cust. Ledger Entry"; DocType: Option Sale,Purchase; var CVLedgEntryBuf: Record "CV Ledger Entry Buffer")
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnPostUnapplyOnBeforeInsertTempVATEntry(var VATEntry: Record "VAT Entry"; var UnapplyVATEntries: Boolean)
     begin
     end;
 }

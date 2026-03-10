@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -25,24 +25,20 @@ page 5637 "FA Reclass. Journal Templates"
                 field(Name; Rec.Name)
                 {
                     ApplicationArea = FixedAssets;
-                    ToolTip = 'Specifies the name of the journal template you are creating.';
                 }
                 field(Description; Rec.Description)
                 {
                     ApplicationArea = FixedAssets;
-                    ToolTip = 'Specifies the journal template that you are creating.';
                 }
                 field("Page ID"; Rec."Page ID")
                 {
                     ApplicationArea = FixedAssets;
-                    ToolTip = 'Specifies the number of the page that is used to show the journal or worksheet that uses the template.';
                     Visible = false;
                 }
                 field("Page Caption"; Rec."Page Caption")
                 {
                     ApplicationArea = FixedAssets;
                     DrillDown = false;
-                    ToolTip = 'Specifies the displayed name of the journal or worksheet that uses the template.';
                     Visible = false;
                 }
             }

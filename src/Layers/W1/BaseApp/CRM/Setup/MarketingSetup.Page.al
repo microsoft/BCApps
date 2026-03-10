@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -30,7 +30,6 @@ page 5094 "Marketing Setup"
                 field("Attachment Storage Type"; Rec."Attachment Storage Type")
                 {
                     ApplicationArea = RelationshipMgmt;
-                    ToolTip = 'Specifies how you want to store attachments. The following options exist:';
 
                     trigger OnValidate()
                     begin
@@ -41,7 +40,6 @@ page 5094 "Marketing Setup"
                 {
                     ApplicationArea = RelationshipMgmt;
                     Enabled = AttachmentStorageLocationEnabl;
-                    ToolTip = 'Specifies the drive and path to the location where you want attachments stored if you selected Disk File in the Attachment Storage Type field.';
 
                     trigger OnValidate()
                     begin
@@ -59,37 +57,31 @@ page 5094 "Marketing Setup"
                     {
                         ApplicationArea = Suite, RelationshipMgmt;
                         Caption = 'Salesperson Code';
-                        ToolTip = 'Specifies that you want to copy the salesperson code from the contact card of a company to the contact card for the individual contact person or people working for that company.';
                     }
                     field("Inherit Territory Code"; Rec."Inherit Territory Code")
                     {
                         ApplicationArea = RelationshipMgmt;
                         Caption = 'Territory Code';
-                        ToolTip = 'Specifies that you want to copy the territory code from the contact card of a company to the contact card for the individual contact person or people working for that company.';
                     }
                     field("Inherit Country/Region Code"; Rec."Inherit Country/Region Code")
                     {
                         ApplicationArea = RelationshipMgmt;
                         Caption = 'Country/Region Code';
-                        ToolTip = 'Specifies that you want to copy the country/region code from the contact card of a company to the contact card for the individual contact person or people working for that company.';
                     }
                     field("Inherit Language Code"; Rec."Inherit Language Code")
                     {
                         ApplicationArea = RelationshipMgmt;
                         Caption = 'Language Code';
-                        ToolTip = 'Specifies that you want to copy the language code from the contact card of a company to the contact card for the individual contact person or people working for that company.';
                     }
                     field("Inherit Address Details"; Rec."Inherit Address Details")
                     {
                         ApplicationArea = RelationshipMgmt;
                         Caption = 'Address Details';
-                        ToolTip = 'Specifies that you want to copy the address details from the contact card of a company to the contact card for the individual contact person or people working for that company.';
                     }
                     field("Inherit Communication Details"; Rec."Inherit Communication Details")
                     {
                         ApplicationArea = RelationshipMgmt;
                         Caption = 'Communication Details';
-                        ToolTip = 'Specifies that you want to copy the communication details, such as telex and fax numbers, from the contact card of a company to the contact card for the individual contact person or people working for that company.';
                     }
                 }
             }
@@ -103,61 +95,51 @@ page 5094 "Marketing Setup"
                     {
                         ApplicationArea = Suite, RelationshipMgmt;
                         Caption = 'Salesperson Code';
-                        ToolTip = 'Specifies the salesperson code to assign automatically to contacts when they are created.';
                     }
                     field("Default Territory Code"; Rec."Default Territory Code")
                     {
                         ApplicationArea = RelationshipMgmt;
                         Caption = 'Territory Code';
-                        ToolTip = 'Specifies the territory code to automatically assign to contacts when they are created.';
                     }
                     field("Default Country/Region Code"; Rec."Default Country/Region Code")
                     {
                         ApplicationArea = RelationshipMgmt;
                         Caption = 'Country/Region Code';
-                        ToolTip = 'Specifies the country/region code to assign automatically to contacts when they are created.';
                     }
                     field("Default Language Code"; Rec."Default Language Code")
                     {
                         ApplicationArea = RelationshipMgmt;
                         Caption = 'Language Code';
-                        ToolTip = 'Specifies the language code to assign automatically to contacts when they are created.';
                     }
                     field("Default Format Region"; Rec."Default Format Region")
                     {
                         ApplicationArea = RelationshipMgmt;
                         Caption = 'Format Region Code';
-                        ToolTip = 'Specifies the region format to assign automatically to contacts when they are created.';
                     }
                     field("Default Correspondence Type"; Rec."Default Correspondence Type")
                     {
                         ApplicationArea = RelationshipMgmt;
                         Caption = 'Correspondence Type';
-                        ToolTip = 'Specifies the preferred type of correspondence for the interaction. NOTE: If you use the Web client, you must not select the Hard Copy option because printing is not possible from the web client.';
                     }
                     field("Def. Company Salutation Code"; Rec."Def. Company Salutation Code")
                     {
                         ApplicationArea = RelationshipMgmt;
                         Caption = 'Company Salutation Code';
-                        ToolTip = 'Specifies the salutation code to assign automatically to contact companies when they are created.';
                     }
                     field("Default Person Salutation Code"; Rec."Default Person Salutation Code")
                     {
                         ApplicationArea = RelationshipMgmt;
                         Caption = 'Person Salutation Code';
-                        ToolTip = 'Specifies the salutation code to assign automatically to contact persons when they are created.';
                     }
                     field("Default Sales Cycle Code"; Rec."Default Sales Cycle Code")
                     {
                         ApplicationArea = RelationshipMgmt;
                         Caption = 'Sales Cycle Code';
-                        ToolTip = 'Specifies the sales cycle code to automatically assign to opportunities when they are created.';
                     }
                     field("Default To-do Date Calculation"; Rec."Default To-do Date Calculation")
                     {
                         ApplicationArea = RelationshipMgmt;
                         Caption = 'Task Date Calculation';
-                        ToolTip = 'Specifies the task date calculation formula to use to calculate the ending date for tasks in Business Central if you haven''t entered any due date in the Outlook task. If you leave the field blank, today''s date is applied.';
                     }
                 }
             }
@@ -167,7 +149,6 @@ page 5094 "Marketing Setup"
                 field("Mergefield Language ID"; Rec."Mergefield Language ID")
                 {
                     ApplicationArea = RelationshipMgmt;
-                    ToolTip = 'Specifies the language ID of the Windows language to use for naming the merge fields shown when editing an attachment in Microsoft Word.';
 
                     trigger OnLookup(var Text: Text): Boolean
                     var
@@ -183,25 +164,21 @@ page 5094 "Marketing Setup"
                     {
                         ApplicationArea = Basic, Suite, RelationshipMgmt;
                         Caption = 'Customers';
-                        ToolTip = 'Specifies the business relation code that identifies that a contact is also a customer.';
                     }
                     field("Bus. Rel. Code for Vendors"; Rec."Bus. Rel. Code for Vendors")
                     {
                         ApplicationArea = Basic, Suite, RelationshipMgmt;
                         Caption = 'Vendors';
-                        ToolTip = 'Specifies the business relation code that identifies that a contact is also a vendor.';
                     }
                     field("Bus. Rel. Code for Bank Accs."; Rec."Bus. Rel. Code for Bank Accs.")
                     {
                         ApplicationArea = RelationshipMgmt;
                         Caption = 'Bank Accounts';
-                        ToolTip = 'Specifies the business relation code that identifies that a contact is also a bank account.';
                     }
                     field("Bus. Rel. Code for Employees"; Rec."Bus. Rel. Code for Employees")
                     {
                         ApplicationArea = Basic, Suite, RelationshipMgmt;
                         Caption = 'Employees';
-                        ToolTip = 'Specifies the business relation code that identifies that a contact is also an employee.';
                     }
                 }
             }
@@ -211,27 +188,22 @@ page 5094 "Marketing Setup"
                 field("Contact Nos."; Rec."Contact Nos.")
                 {
                     ApplicationArea = Basic, Suite, RelationshipMgmt;
-                    ToolTip = 'Specifies the code for the number series to use when assigning numbers to contacts.';
                 }
                 field("Campaign Nos."; Rec."Campaign Nos.")
                 {
                     ApplicationArea = RelationshipMgmt;
-                    ToolTip = 'Specifies the code for the number series to use when assigning numbers to campaigns.';
                 }
                 field("Segment Nos."; Rec."Segment Nos.")
                 {
                     ApplicationArea = RelationshipMgmt;
-                    ToolTip = 'Specifies the code for the number series to use when assigning numbers to segments.';
                 }
                 field("To-do Nos."; Rec."To-do Nos.")
                 {
                     ApplicationArea = RelationshipMgmt;
-                    ToolTip = 'Specifies the code for the number series to use when assigning numbers to tasks.';
                 }
                 field("Opportunity Nos."; Rec."Opportunity Nos.")
                 {
                     ApplicationArea = RelationshipMgmt;
-                    ToolTip = 'Specifies the code for the number series to use when assigning numbers to opportunities.';
                 }
             }
             group(Duplicates)
@@ -240,17 +212,14 @@ page 5094 "Marketing Setup"
                 field("Maintain Dupl. Search Strings"; Rec."Maintain Dupl. Search Strings")
                 {
                     ApplicationArea = RelationshipMgmt;
-                    ToolTip = 'Specifies the automatic update of search strings used to search for duplicates. You can set up search strings in the Duplicate Search String Setup table.';
                 }
                 field("Autosearch for Duplicates"; Rec."Autosearch for Duplicates")
                 {
                     ApplicationArea = RelationshipMgmt;
-                    ToolTip = 'Specifies that you want to search automatically for duplicates each time a contact is created or modified.';
                 }
                 field("Search Hit %"; Rec."Search Hit %")
                 {
                     ApplicationArea = RelationshipMgmt;
-                    ToolTip = 'Specifies the level of precision to apply when searching for duplicates.';
                 }
             }
         }

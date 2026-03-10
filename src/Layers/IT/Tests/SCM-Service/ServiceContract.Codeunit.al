@@ -166,6 +166,32 @@ codeunit 136100 "Service Contract"
 
     [Test]
     [HandlerFunctions('ConfirmDialogHandler,SelectTemplate')]
+    procedure ActiveCurrentAmount()
+    var
+        ServiceContractHeader: Record "Service Contract Header";
+        ServiceContractLine: Record "Service Contract Line";
+        LastLineAmount: Decimal;
+    begin
+        // Refresh Shared Fixture
+        Initialize();
+
+        // Setup: Create Contract and save state for later validation
+        SetupForContractValueCalculate();
+        CreateServiceContract(ServiceContractHeader, false);
+        LastLineAmount := CreateServiceContractLine(ServiceContractHeader, CreateServiceItem(ServiceContractHeader."Customer No."));
+        ServiceContractLine.SetRange("Contract Type", ServiceContractHeader."Contract Type");
+        ServiceContractLine.SetRange("Contract No.", ServiceContractHeader."Contract No.");
+        ServiceContractLine.FindLast();
+        ServiceContractLine."Contract Expiration Date" := WorkDate() - 1;
+        ServiceContractLine.Modify();
+
+        // Excercise: Verify only active lines are summarized in the "Current Annual Amount"
+        ServiceContractHeader.CalcFields("Calcd. Annual Amount");
+        AssertEqual(ServiceContractHeader."Calcd. Annual Amount" - LastLineAmount, ServiceContractHeader.GetActiveAnnualAmount(), 'Unexpected current annual amount.');
+    end;
+
+    [Test]
+    [HandlerFunctions('ConfirmDialogHandler,SelectTemplate')]
     [Scope('OnPrem')]
     procedure TwoContractsForOneServiceItem()
     var

@@ -63,6 +63,7 @@
         AmountMustSameErr: Label 'Amount must be same';
         ChangeExtendedTextErr: Label 'You cannot change %1 for Extended Text Line.', Comment = '%1= Field Caption';
         PayToVendorNoShouldBeSameErr: Label 'Pay-to Vendor No. should be set to the selected vendor.';
+        DeleteVendorPurchaseDocExistsErr: Label 'The salesperson/purchaser %1 cannot be deleted because vendor ledger entries exist.', Comment = '%1 = Salesperson/Purchaser code.';
 
     [Test]
     [Scope('OnPrem')]
@@ -3240,6 +3241,46 @@
         PurchaseInvoice.Close();
 
         LibraryVariableStorage.AssertEmpty();
+    end;
+
+    [Test]
+    procedure PrintSendDocumentsWithRemovedSalesPersonPurchaserCodesIsNotPossible()
+    var
+        SalespersonPurchaser: Record "Salesperson/Purchaser";
+        SalespersonPurchaser1: Record "Salesperson/Purchaser";
+        PurchaseHeader: Record "Purchase Header";
+        PurchaseLine: Record "Purchase Line";
+        VATPostingSetup: Record "VAT Posting Setup";
+        PostedInvoiceNo: Code[20];
+    begin
+        // [SCENARIO 620803] Printing/Sending of documents with removed SalesPerson/Purchaser Codes is not possible.
+        Initialize();
+
+        //[GIVEN] Create Purchase setup
+        UpdatePurchaseAndPayableSetup(true, false);
+        FindVATPostingSetup(VATPostingSetup);
+
+        //[GIVEN] Create Salesperson/Purchaser
+        LibrarySales.CreateSalesperson(SalespersonPurchaser);
+
+        //[GIVEN] Create Purchase Invoice
+        CreatePurchaseInvoice(PurchaseHeader, PurchaseLine, CreateAndModifyVendor('', VATPostingSetup."VAT Bus. Posting Group"));
+        PurchaseHeader.Validate("Vendor Invoice No.", PurchaseHeader."No.");
+        PurchaseHeader.Validate("Purchaser Code", SalespersonPurchaser.Code);
+        PurchaseHeader.Modify(true);
+
+        //[WHEN] Post Purchase Invoice.
+        LibraryLowerPermissions.SetPurchDocsPost();
+        PostedInvoiceNo := LibraryPurchase.PostPurchaseDocument(PurchaseHeader, true, true);
+
+        //[THEN] Remove Salesperson/Purchaser Code
+        SalespersonPurchaser1.SetRange(Code, SalespersonPurchaser.Code);
+        if SalespersonPurchaser1.FindFirst() then
+            asserterror SalespersonPurchaser1.Delete(true);
+
+        Assert.ExpectedError(
+      StrSubstNo(
+        DeleteVendorPurchaseDocExistsErr, SalespersonPurchaser1.Code));
     end;
 
     local procedure Initialize()

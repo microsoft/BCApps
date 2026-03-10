@@ -262,6 +262,7 @@ codeunit 5520 "Get Unplanned Demand"
             PurchaseLine.SetRange("Job No.", JobPlanningLine."Job No.");
             PurchaseLine.SetRange("Job Task No.", JobPlanningLine."Job Task No.");
             PurchaseLine.SetRange("Job Planning Line No.", JobPlanningLine."Line No.");
+            PurchaseLine.SetRange("No.", JobPlanningLine."No.");
             if PurchaseLine.FindFirst() then
                 NeededQty -= PurchaseLine."Outstanding Qty. (Base)";
         end;

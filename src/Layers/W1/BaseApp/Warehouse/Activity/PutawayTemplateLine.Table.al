@@ -24,10 +24,12 @@ table 7308 "Put-away Template Line"
         field(3; Description; Text[100])
         {
             Caption = 'Description';
+            ToolTip = 'Specifies the description of the set of criteria that is on the put-away template line.';
         }
         field(4; "Find Fixed Bin"; Boolean)
         {
             Caption = 'Find Fixed Bin';
+            ToolTip = 'Specifies that you must put items in a particular bin. You define the bin by choosing the item on a line on the Bin Contents page and selecting the Fixed checkbox. If you haven''t specified a fixed bin for items, choose the Find Floating Bin checkbox.';
 
             trigger OnValidate()
             begin
@@ -41,6 +43,7 @@ table 7308 "Put-away Template Line"
         field(5; "Find Floating Bin"; Boolean)
         {
             Caption = 'Find Floating Bin';
+            ToolTip = 'Specifies that you must put items in a bin that is not specifically tied to any particular item. A bin is considered floating when there are no lines in the Bin Contents page where the Fixed, Default, or Dedicated checkbox is selected.';
             InitValue = true;
 
             trigger OnValidate()
@@ -57,6 +60,7 @@ table 7308 "Put-away Template Line"
         field(6; "Find Same Item"; Boolean)
         {
             Caption = 'Find Same Item';
+            ToolTip = 'Specifies that you must put items in bins that already contain the same item. You define the bin for an item by choosing the item on a line on the Bin Contents page. This setting doesn''t consider the quantity that''s currently in the bin.';
 
             trigger OnValidate()
             begin
@@ -70,6 +74,7 @@ table 7308 "Put-away Template Line"
         field(7; "Find Unit of Measure Match"; Boolean)
         {
             Caption = 'Find Unit of Measure Match';
+            ToolTip = 'Specifies that you must put items in bins that have the same unit of measure as the item. You define the unit of measure for a bin on the Bin Contents page. To use this option, the bin must be assigned to a location where Directed Put-Away and Pick is enabled.';
 
             trigger OnValidate()
             begin
@@ -80,6 +85,7 @@ table 7308 "Put-away Template Line"
         field(8; "Find Bin w. Less than Min. Qty"; Boolean)
         {
             Caption = 'Find Bin w. Less than Min. Qty';
+            ToolTip = 'Specifies that you must put items in bins that are currently below their minimum quantity of items. You define a minimum quantity for bins on the Bin Contents page.';
 
             trigger OnValidate()
             begin
@@ -92,6 +98,7 @@ table 7308 "Put-away Template Line"
         field(9; "Find Empty Bin"; Boolean)
         {
             Caption = 'Find Empty Bin';
+            ToolTip = 'Specifies that an empty bin must be used in the put-away process.';
 
             trigger OnValidate()
             begin

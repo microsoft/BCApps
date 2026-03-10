@@ -17,19 +17,19 @@ codeunit 6454 "Serv. Purch.-Post"
     var
         ServItemManagement: Codeunit ServItemManagement;
 
-    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Purch.-Post", 'OnBeforeCheckAndUpdate', '', false, false)]
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Purch.-Post", 'OnBeforeCheckAndUpdate', '', true, false)]
     local procedure OnRunOnBeforeCheckAndUpdate(var PurchaseHeader: Record "Purchase Header"; var ModifyHeader: Boolean)
     begin
         Clear(ServItemManagement);
     end;
 
-    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Purch.-Post", 'OnAfterInsertReceiptHeader', '', false, false)]
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Purch.-Post", 'OnAfterInsertReceiptHeader', '', true, false)]
     local procedure OnAfterInsertReceiptHeader(var PurchHeader: Record "Purchase Header")
     begin
         ServItemManagement.CopyReservation(PurchHeader);
     end;
 
-    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Purch.-Post", 'OnPostCombineSalesOrderShipmentOnAfterUpdateSalesOrderLine', '', false, false)]
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Purch.-Post", 'OnPostCombineSalesOrderShipmentOnAfterUpdateSalesOrderLine', '', true, false)]
     local procedure OnPostCombineSalesOrderShipmentOnAfterUpdateSalesOrderLine(SalesOrderHeader: Record "Sales Header"; var SalesOrderLine: Record "Sales Line"; SalesShipmentLine: Record "Sales Shipment Line")
     begin
         ServItemManagement.CreateServItemOnSalesLineShpt(SalesOrderHeader, SalesOrderLine, SalesShipmentLine);

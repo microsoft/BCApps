@@ -44,7 +44,6 @@ page 1163 "Sales Invoices Due Next Week"
                 field("Remaining Amount"; Rec."Remaining Amount")
                 {
                     ApplicationArea = All;
-                    ToolTip = 'Specifies the amount that remains to be paid on the sales invoices that are due next week.';
 
                     trigger OnDrillDown()
                     var

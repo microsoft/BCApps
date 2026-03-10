@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -24,6 +24,7 @@ table 7500 "Item Attribute"
         field(2; Name; Text[250])
         {
             Caption = 'Name';
+            ToolTip = 'Specifies the name of the item attribute.';
             NotBlank = true;
 
             trigger OnValidate()
@@ -42,10 +43,12 @@ table 7500 "Item Attribute"
         field(6; Blocked; Boolean)
         {
             Caption = 'Blocked';
+            ToolTip = 'Specifies that the attribute cannot be assigned to an item. Items to which the attribute is already assigned are not affected.';
         }
         field(7; Type; Option)
         {
             Caption = 'Type';
+            ToolTip = 'Specifies the type of the item attribute.';
             InitValue = Text;
             OptionCaption = 'Option,Text,Integer,Decimal,Date';
             OptionMembers = Option,Text,"Integer",Decimal,Date;
@@ -64,6 +67,7 @@ table 7500 "Item Attribute"
         field(8; "Unit of Measure"; Text[30])
         {
             Caption = 'Unit of Measure';
+            ToolTip = 'Specifies the name of the item or resource''s unit of measure, such as piece or hour.';
 
             trigger OnValidate()
             begin

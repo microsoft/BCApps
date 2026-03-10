@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -17,12 +17,14 @@ table 5056 "Contact Mailing Group"
         field(1; "Contact No."; Code[20])
         {
             Caption = 'Contact No.';
+            ToolTip = 'Specifies the number of the contact to which you assign a mailing group.';
             NotBlank = true;
             TableRelation = Contact;
         }
         field(2; "Mailing Group Code"; Code[10])
         {
             Caption = 'Mailing Group Code';
+            ToolTip = 'Specifies the mailing group code. This field is not editable.';
             NotBlank = true;
             TableRelation = "Mailing Group";
         }
@@ -30,6 +32,7 @@ table 5056 "Contact Mailing Group"
         {
             CalcFormula = lookup(Contact.Name where("No." = field("Contact No.")));
             Caption = 'Contact Name';
+            ToolTip = 'Specifies the name of the contact to which you assign a mailing group.';
             Editable = false;
             FieldClass = FlowField;
         }
@@ -37,6 +40,7 @@ table 5056 "Contact Mailing Group"
         {
             CalcFormula = lookup(Contact."Company Name" where("No." = field("Contact No.")));
             Caption = 'Contact Company Name';
+            ToolTip = 'Specifies the name of the contact company. If the contact you assign the mailing group is a person, this field contains the name of the company for which the contact works.';
             Editable = false;
             FieldClass = FlowField;
         }
@@ -44,6 +48,7 @@ table 5056 "Contact Mailing Group"
         {
             CalcFormula = lookup("Mailing Group".Description where(Code = field("Mailing Group Code")));
             Caption = 'Mailing Group Description';
+            ToolTip = 'Specifies the description of the mailing group you have chosen to assign the contact.';
             Editable = false;
             FieldClass = FlowField;
         }

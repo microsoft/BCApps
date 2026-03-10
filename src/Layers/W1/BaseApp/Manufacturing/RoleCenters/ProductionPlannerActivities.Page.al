@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -33,25 +33,21 @@ page 9038 "Production Planner Activities"
                 {
                     ApplicationArea = Manufacturing;
                     DrillDownPageID = "Simulated Production Orders";
-                    ToolTip = 'Specifies the number of simulated production orders that are displayed in the Manufacturing Cue on the Role Center. The documents are filtered by today''s date.';
                 }
                 field("Planned Prod. Orders - All"; Rec."Planned Prod. Orders - All")
                 {
                     ApplicationArea = Manufacturing;
                     DrillDownPageID = "Planned Production Orders";
-                    ToolTip = 'Specifies the number of planned production orders that are displayed in the Manufacturing Cue on the Role Center. The documents are filtered by today''s date.';
                 }
                 field("Firm Plan. Prod. Orders - All"; Rec."Firm Plan. Prod. Orders - All")
                 {
                     ApplicationArea = Manufacturing;
                     DrillDownPageID = "Firm Planned Prod. Orders";
-                    ToolTip = 'Specifies the number of firm planned production orders that are displayed in the Manufacturing Cue on the Role Center. The documents are filtered by today''s date.';
                 }
                 field("Released Prod. Orders - All"; Rec."Released Prod. Orders - All")
                 {
                     ApplicationArea = Manufacturing;
                     DrillDownPageID = "Released Production Orders";
-                    ToolTip = 'Specifies the number of released production orders that are displayed in the Manufacturing Cue on the Role Center. The documents are filtered by today''s date.';
                 }
 
                 actions
@@ -90,7 +86,6 @@ page 9038 "Production Planner Activities"
                     Caption = 'My Purchase Orders';
                     DrillDown = true;
                     DrillDownPageID = "Purchase Order List";
-                    ToolTip = 'Specifies the number of purchase orders that are displayed in the Manufacturing Cue on the Role Center. The documents are filtered by today''s date.';
                 }
 
                 actions
@@ -126,13 +121,11 @@ page 9038 "Production Planner Activities"
                 {
                     ApplicationArea = Manufacturing;
                     DrillDownPageID = "Production BOM List";
-                    ToolTip = 'Specifies the number of production BOMs that are under development that are displayed in the Manufacturing Cue on the Role Center. The documents are filtered by today''s date.';
                 }
                 field("Routings under Development"; Rec."Routings under Development")
                 {
                     ApplicationArea = Manufacturing;
                     DrillDownPageID = "Routing List";
-                    ToolTip = 'Specifies the routings under development that are displayed in the Manufacturing Cue on the Role Center. The documents are filtered by today''s date.';
                 }
 
                 actions

@@ -47,6 +47,8 @@ codeunit 137916 "SCM Assembly Reservation I"
         WrongRemainingQtyErr: Label 'Wrong Remaining Quantity in the availability page';
         WrongReservedQtyErr: Label 'Wrong Reserved Quantity in the availability page';
         ReservationQtyErr: Label 'Quantity must be %1 in %2.', Comment = '%1=Actual Quantity ,%2=Table Name';
+        ReservedQtyAsmLineErr: Label 'Expected reserved quantity does not match actual quantity in Assembly Line.';
+        CannotReserveAutomaticallyErr: Label 'Quantity %1 in line %2 cannot be reserved automatically.', Comment = '%1 = Quantity, %2 = Line No.';
 
     [Test]
     [HandlerFunctions('ReservationPage,AvailToReservePage')]
@@ -628,6 +630,165 @@ codeunit 137916 "SCM Assembly Reservation I"
 
         // [THEN] Verify Reserved item is not on inventory error
         Assert.ExpectedError(StrSubstNo(ReservedItemErr, AsmItem."No."));
+    end;
+
+    [Test]
+    procedure TestReserveFromInventoryActionAssemblyLine()
+    var
+        ParentItem: Record Item;
+        ComponentItem: Record Item;
+        AssemblyHeader: Record "Assembly Header";
+        AssemblyLine: Record "Assembly Line";
+        ItemJournalLine: Record "Item Journal Line";
+        ComponentQuantity: Decimal;
+        AssemblyQuantity: Decimal;
+    begin
+        // [SCENARIO 617913] Verify the Reserve from inventory creates reservation matching Assembly line quantity.
+        Initialize();
+
+        // [GIVEN] Generate Random quantity for Component and Assembly.
+        ComponentQuantity := LibraryRandom.RandDecInRange(10, 20, 2);
+        AssemblyQuantity := LibraryRandom.RandDecInRange(1, 5, 2);
+
+        // [GIVEN] create items.
+        CreateItem(ParentItem);
+        CreateItem(ComponentItem);
+
+        // [GIVEN] Add component item to inventory.
+        LibraryInventory.CreateItemJournalLineInItemTemplate(ItemJournalLine, ComponentItem."No.", '', '', ComponentQuantity);
+        LibraryInventory.PostItemJournalLine(ItemJournalLine."Journal Template Name", ItemJournalLine."Journal Batch Name");
+
+        // [GIVEN] Create Assembly Order with component.
+        CreateAssemblyOrder(AssemblyHeader, AssemblyLine, ParentItem."No.", ComponentItem."No.", WorkDate2, AssemblyQuantity, '');
+
+        // [WHEN] Use Reserve From Inventory action on Assembly Line.
+        AssemblyLine.SetRange("Document No.", AssemblyHeader."No.");
+        AssemblyLine.ReserveFromInventory(AssemblyLine);
+
+        // [THEN] Verify reserved quantity matches component expected quantity.
+        AssemblyLine.CalcFields("Reserved Quantity");
+        Assert.AreEqual(AssemblyLine.Quantity, AssemblyLine."Reserved Quantity", ReservedQtyAsmLineErr);
+    end;
+
+    [Test]
+    procedure TestReserveFromInventoryActionAssemblyLineInsufficientInventory()
+    var
+        ParentItem: Record Item;
+        ComponentItem: Record Item;
+        AssemblyHeader: Record "Assembly Header";
+        AssemblyLine: Record "Assembly Line";
+        ItemJournalLine: Record "Item Journal Line";
+        ComponentQuantity: Decimal;
+        AssemblyQuantity: Decimal;
+    begin
+        // [SCENARIO 617913] Verify the Reserve From Inventory action with insufficient inventory.
+        Initialize();
+
+        // [GIVEN] Generate Random quantity for Component and Assembly.
+        ComponentQuantity := LibraryRandom.RandDecInRange(1, 5, 2);
+        AssemblyQuantity := LibraryRandom.RandDecInRange(10, 20, 2);
+
+        // [GIVEN] Create items. 
+        CreateItem(ParentItem);
+        CreateItem(ComponentItem);
+
+        // [GIVEN] Add limited component item to inventory.
+        LibraryInventory.CreateItemJournalLineInItemTemplate(ItemJournalLine, ComponentItem."No.", '', '', ComponentQuantity);
+        LibraryInventory.PostItemJournalLine(ItemJournalLine."Journal Template Name", ItemJournalLine."Journal Batch Name");
+
+        // [GIVEN] Create Assembly Order with higher quantity than available.
+        CreateAssemblyOrder(AssemblyHeader, AssemblyLine, ParentItem."No.", ComponentItem."No.", WorkDate2, AssemblyQuantity, '');
+
+        // [WHEN] Use ReserveFromInventory action.
+        AssemblyLine.SetRange("Document No.", AssemblyHeader."No.");
+        asserterror AssemblyLine.ReserveFromInventory(AssemblyLine);
+
+        // [THEN] Verify that reservation fails when insufficient inventory.
+        Assert.ExpectedError(StrSubstNo(CannotReserveAutomaticallyErr, AssemblyQuantity, AssemblyLine."Line No."));
+    end;
+
+    [Test]
+    procedure TestReserveFromInventoryActionAssemblyLineWithLocation()
+    var
+        ParentItem: Record Item;
+        ComponentItem: Record Item;
+        Location: Record Location;
+        AssemblyHeader: Record "Assembly Header";
+        AssemblyLine: Record "Assembly Line";
+        ItemJournalLine: Record "Item Journal Line";
+        ComponentQuantity: Decimal;
+        AssemblyQuantity: Decimal;
+    begin
+        // [SCENARIO 617913] Verify the Reserve From Inventory action with location-specific inventory.
+        Initialize();
+
+        // [GIVEN] Generate Random quantity for Component and Assembly.
+        ComponentQuantity := LibraryRandom.RandDecInRange(10, 20, 2);
+        AssemblyQuantity := LibraryRandom.RandDecInRange(1, 5, 2);
+
+        // [GIVEN] Create items.
+        CreateItem(ParentItem);
+        CreateItem(ComponentItem);
+
+        // [GIVEN] Setup inventory posting.
+        LibraryWarehouse.CreateLocationWithInventoryPostingSetup(Location);
+
+        // [GIVEN] Add component item to inventory at specific location.
+        LibraryInventory.CreateItemJournalLineInItemTemplate(ItemJournalLine, ComponentItem."No.", Location.Code, '', ComponentQuantity);
+        LibraryInventory.PostItemJournalLine(ItemJournalLine."Journal Template Name", ItemJournalLine."Journal Batch Name");
+
+        // [GIVEN] Create Assembly Order at the same location.
+        CreateAssemblyOrder(AssemblyHeader, AssemblyLine, ParentItem."No.", ComponentItem."No.", WorkDate2, AssemblyQuantity, Location.Code);
+
+        // [WHEN] Use ReserveFromInventory action.
+        AssemblyLine.SetRange("Document No.", AssemblyHeader."No.");
+        AssemblyLine.ReserveFromInventory(AssemblyLine);
+
+        // [THEN] Verify reserved quantity matches component expected quantity.
+        AssemblyLine.CalcFields("Reserved Quantity");
+        Assert.AreEqual(AssemblyLine.Quantity, AssemblyLine."Reserved Quantity", ReservedQtyAsmLineErr);
+    end;
+
+    [Test]
+    [HandlerFunctions('ItemTrackingLinesPageHandlerTrackingOption')]
+    procedure TestReserveFromInventoryActionAssemblyLineWithItemTracking()
+    var
+        ParentItem: Record Item;
+        ComponentItem: Record Item;
+        AssemblyHeader: Record "Assembly Header";
+        AssemblyLine: Record "Assembly Line";
+        ItemJournalLine: Record "Item Journal Line";
+        ComponentQuantity: Decimal;
+        AssemblyQuantity: Decimal;
+    begin
+        // [SCENARIO 617913] Verify the Reserve From Inventory action with lot-tracked component item.
+        Initialize();
+
+        // [GIVEN] Generate Random quantity for Component and Assembly.
+        ComponentQuantity := LibraryRandom.RandDecInRange(10, 20, 2);
+        AssemblyQuantity := LibraryRandom.RandDecInRange(1, 5, 2);
+
+        // [GIVEN] create items.
+        CreateItem(ParentItem);
+        LibraryItemTracking.CreateLotItem(ComponentItem);
+
+        // [GIVEN] Add lot-tracked component item to inventory.
+        LibraryInventory.CreateItemJournalLineInItemTemplate(ItemJournalLine, ComponentItem."No.", '', '', ComponentQuantity);
+        LibraryVariableStorage.Enqueue(ItemTrackingOption::AssignLotNo);
+        LibraryVariableStorage.Enqueue(ComponentQuantity);
+        ItemJournalLine.OpenItemTrackingLines(false);
+        LibraryInventory.PostItemJournalLine(ItemJournalLine."Journal Template Name", ItemJournalLine."Journal Batch Name");
+
+        // [GIVEN] Create Assembly Order.
+        CreateAssemblyOrder(AssemblyHeader, AssemblyLine, ParentItem."No.", ComponentItem."No.", WorkDate2, AssemblyQuantity, '');
+
+        // [WHEN] Use ReserveFromInventory action on tracked item.
+        AssemblyLine.SetRange("Document No.", AssemblyHeader."No.");
+        AssemblyLine.ReserveFromInventory(AssemblyLine);
+
+        // [THEN] Verify reserved quantity matches component expected quantity.
+        AssemblyLine.CalcFields("Reserved Quantity");
+        Assert.AreEqual(AssemblyLine.Quantity, AssemblyLine."Reserved Quantity", ReservedQtyAsmLineErr);
     end;
 
     local procedure Initialize()

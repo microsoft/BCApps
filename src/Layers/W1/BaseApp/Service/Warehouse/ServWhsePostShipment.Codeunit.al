@@ -17,7 +17,7 @@ using Microsoft.Warehouse.Setup;
 codeunit 5749 "Serv. Whse Post-Shipment"
 {
 
-    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Whse.-Post Shipment", 'OnGetSourceDocumentOnElseCase', '', false, false)]
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Whse.-Post Shipment", 'OnGetSourceDocumentOnElseCase', '', true, false)]
     local procedure OnGetSourceDocument(var SourceHeader: Variant; var WhseShptLine: Record "Warehouse Shipment Line")
     var
         ServiceHeader: Record "Service Header";
@@ -31,7 +31,7 @@ codeunit 5749 "Serv. Whse Post-Shipment"
         end;
     end;
 
-    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Whse.-Post Shipment", 'OnInitSourceDocumentHeader', '', false, false)]
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Whse.-Post Shipment", 'OnInitSourceDocumentHeader', '', true, false)]
     local procedure OnInitSourceDocumentHeader(var WhseShptHeader: Record "Warehouse Shipment Header"; var WhseShptLine: Record "Warehouse Shipment Line"; var SourceHeader: Variant);
     var
         ServiceHeader: Record "Service Header";
@@ -88,7 +88,7 @@ codeunit 5749 "Serv. Whse Post-Shipment"
         end;
     end;
 
-    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Whse.-Post Shipment", 'OnAfterInitSourceDocumentLines', '', false, false)]
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Whse.-Post Shipment", 'OnAfterInitSourceDocumentLines', '', true, false)]
     local procedure OnAfterInitSourceDocumentLines(var WhseShptLine2: Record "Warehouse Shipment Line"; WhsePostParameters: Record "Whse. Post Parameters" temporary)
     begin
         case WhseShptLine2."Source Type" of
@@ -156,7 +156,7 @@ codeunit 5749 "Serv. Whse Post-Shipment"
             until ServiceLine.Next() = 0;
     end;
 
-    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Whse.-Post Shipment", 'OnPostSourceDocument', '', false, false)]
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Whse.-Post Shipment", 'OnPostSourceDocument', '', true, false)]
     local procedure OnPostSourceDocument(var WhseShptHeader: Record "Warehouse Shipment Header"; var WhseShptLine: Record "Warehouse Shipment Line"; var CounterDocOK: Integer; var SourceHeader: Variant; var DocumentEntryToPrint: Record "Document Entry" temporary; WhsePostParameters: Record "Whse. Post Parameters" temporary)
     var
         ServiceHeader: Record "Service Header";
@@ -217,7 +217,7 @@ codeunit 5749 "Serv. Whse Post-Shipment"
         DocumentEntry.Insert();
     end;
 
-    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Whse.-Post Shipment", 'OnPrintDocuments', '', false, false)]
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Whse.-Post Shipment", 'OnPrintDocuments', '', true, false)]
     local procedure OnPrintDocuments(var DocumentEntryToPrint: Record "Document Entry")
     begin
         PrintDocuments(DocumentEntryToPrint);
@@ -309,7 +309,7 @@ codeunit 5749 "Serv. Whse Post-Shipment"
     begin
     end;
 
-    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Whse.-Post Shipment", 'OnCreatePostedShptLineOnBeforePostedWhseShptLineInsert', '', false, false)]
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Whse.-Post Shipment", 'OnCreatePostedShptLineOnBeforePostedWhseShptLineInsert', '', true, false)]
     local procedure OnCreatePostedShptLineOnBeforePostedWhseShptLineInsert(var PostedWhseShptLine: Record "Posted Whse. Shipment Line");
     begin
         case PostedWhseShptLine."Source Document" of
@@ -318,7 +318,7 @@ codeunit 5749 "Serv. Whse Post-Shipment"
         end;
     end;
 
-    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Whse.-Post Shipment", 'OnCreateWhseJnlLineOnSetSourceCode', '', false, false)]
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Whse.-Post Shipment", 'OnCreateWhseJnlLineOnSetSourceCode', '', true, false)]
     local procedure OnCreateWhseJnlLineOnSetSourceCode(var WarehouseJournalLine: Record "Warehouse Journal Line"; var PostedWhseShipmentLine: Record "Posted Whse. Shipment Line"; SourceCodeSetup: Record "Source Code Setup")
     begin
         case PostedWhseShipmentLine."Source Document" of

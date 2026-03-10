@@ -49,14 +49,12 @@ page 954 "Manager Time Sheet by Job"
                 {
                     ApplicationArea = Jobs;
                     Editable = false;
-                    ToolTip = 'Specifies the number for the project that is associated with the time sheet line.';
                     Visible = false;
                 }
                 field("Job Task No."; Rec."Job Task No.")
                 {
                     ApplicationArea = Jobs;
                     Editable = false;
-                    ToolTip = 'Specifies the number of the related project task.';
                     Visible = false;
                 }
                 field("Header Resource No."; TimeSheetHeader."Resource No.")
@@ -78,7 +76,6 @@ page 954 "Manager Time Sheet by Job"
                 {
                     ApplicationArea = Jobs;
                     Editable = false;
-                    ToolTip = 'Specifies a description of the time sheet line.';
 
                     trigger OnAssistEdit()
                     begin
@@ -90,7 +87,6 @@ page 954 "Manager Time Sheet by Job"
                 {
                     ApplicationArea = Jobs;
                     Editable = WorkTypeCodeAllowEdit;
-                    ToolTip = 'Specifies which work type the resource applies to. Prices are updated based on this entry.';
                     Visible = false;
 
                     trigger OnValidate()
@@ -102,7 +98,6 @@ page 954 "Manager Time Sheet by Job"
                 {
                     ApplicationArea = Jobs;
                     Editable = ChargeableAllowEdit;
-                    ToolTip = 'Specifies if the usage that you are posting is chargeable.';
                     Visible = false;
 
                     trigger OnValidate()
@@ -181,13 +176,11 @@ page 954 "Manager Time Sheet by Job"
                 field(Status; Rec.Status)
                 {
                     ApplicationArea = Jobs;
-                    ToolTip = 'Specifies information about the status of a time sheet line.';
                 }
                 field("Total Quantity"; Rec."Total Quantity")
                 {
                     AutoFormatType = 0;
                     ApplicationArea = Jobs;
-                    ToolTip = 'Specifies the total number of hours that have been entered on a time sheet.';
                     Style = Strong;
                 }
             }

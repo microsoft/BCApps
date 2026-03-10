@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -39,59 +39,49 @@ page 5856 "Get Post.Doc - P.RcptLn Sbfrm"
                 field("Pay-to Vendor No."; Rec."Pay-to Vendor No.")
                 {
                     ApplicationArea = SalesReturnOrder;
-                    ToolTip = 'Specifies the number of the vendor that you received the invoice from.';
                     Visible = false;
                 }
                 field("Buy-from Vendor No."; Rec."Buy-from Vendor No.")
                 {
                     ApplicationArea = SalesReturnOrder;
-                    ToolTip = 'Specifies the name of the vendor who delivered the items.';
                     Visible = false;
                 }
                 field(Type; Rec.Type)
                 {
                     ApplicationArea = SalesReturnOrder;
-                    ToolTip = 'Specifies the line type.';
                 }
                 field("No."; Rec."No.")
                 {
                     ApplicationArea = SalesReturnOrder;
-                    ToolTip = 'Specifies the number of the involved entry or record, according to the specified number series.';
                 }
                 field("Item Reference No."; Rec."Item Reference No.")
                 {
                     AccessByPermission = tabledata "Item Reference" = R;
                     ApplicationArea = Suite, ItemReferences;
-                    ToolTip = 'Specifies the referenced item number.';
                 }
                 field("Variant Code"; Rec."Variant Code")
                 {
                     ApplicationArea = Planning;
-                    ToolTip = 'Specifies the variant of the item on the line.';
                     Visible = false;
                 }
                 field(Nonstock; Rec.Nonstock)
                 {
                     ApplicationArea = SalesReturnOrder;
-                    ToolTip = 'Specifies that this item is a catalog item.';
                     Visible = false;
                 }
                 field(Description; Rec.Description)
                 {
                     ApplicationArea = SalesReturnOrder;
-                    ToolTip = 'Specifies either the name of or a description of the item or general ledger account.';
                 }
                 field("Description 2"; Rec."Description 2")
                 {
                     ApplicationArea = SalesReturnOrder;
                     Importance = Additional;
-                    ToolTip = 'Specifies information in addition to the description.';
                     Visible = false;
                 }
                 field("Return Reason Code"; Rec."Return Reason Code")
                 {
                     ApplicationArea = SalesReturnOrder;
-                    ToolTip = 'Specifies the code explaining why the item was returned.';
                     Visible = false;
                 }
                 field("Location Code"; Rec."Location Code")
@@ -103,30 +93,25 @@ page 5856 "Get Post.Doc - P.RcptLn Sbfrm"
                 field("Bin Code"; Rec."Bin Code")
                 {
                     ApplicationArea = SalesReturnOrder;
-                    ToolTip = 'Specifies the bin where the items are picked or put away.';
                     Visible = false;
                 }
                 field("Shortcut Dimension 1 Code"; Rec."Shortcut Dimension 1 Code")
                 {
                     ApplicationArea = Dimensions;
-                    ToolTip = 'Specifies the code for Shortcut Dimension 1, which is one of two global dimension codes that you set up in the General Ledger Setup window.';
                     Visible = false;
                 }
                 field("Shortcut Dimension 2 Code"; Rec."Shortcut Dimension 2 Code")
                 {
                     ApplicationArea = Dimensions;
-                    ToolTip = 'Specifies the code for Shortcut Dimension 2, which is one of two global dimension codes that you set up in the General Ledger Setup window.';
                     Visible = false;
                 }
                 field("Unit of Measure Code"; Rec."Unit of Measure Code")
                 {
                     ApplicationArea = SalesReturnOrder;
-                    ToolTip = 'Specifies how each unit of the item or resource is measured, such as in pieces or hours. By default, the value in the Base Unit of Measure field on the item or resource card is inserted.';
                 }
                 field(Quantity; Rec.Quantity)
                 {
                     ApplicationArea = SalesReturnOrder;
-                    ToolTip = 'Specifies the number of units of the item specified on the line.';
                 }
                 field("Qty. Rcd. Not Invoiced"; Rec."Qty. Rcd. Not Invoiced")
                 {
@@ -152,7 +137,6 @@ page 5856 "Get Post.Doc - P.RcptLn Sbfrm"
                 field("Unit of Measure"; Rec."Unit of Measure")
                 {
                     ApplicationArea = SalesReturnOrder;
-                    ToolTip = 'Specifies the name of the item or resource''s unit of measure, such as piece or hour.';
                     Visible = false;
                 }
                 field("Unit Cost (LCY)"; Rec."Unit Cost (LCY)")
@@ -173,19 +157,16 @@ page 5856 "Get Post.Doc - P.RcptLn Sbfrm"
                 field("Job No."; Rec."Job No.")
                 {
                     ApplicationArea = SalesReturnOrder;
-                    ToolTip = 'Specifies the number of the related project.';
                     Visible = false;
                 }
                 field("Blanket Order No."; Rec."Blanket Order No.")
                 {
                     ApplicationArea = SalesReturnOrder;
-                    ToolTip = 'Specifies the number of the blanket order that the record originates from.';
                     Visible = false;
                 }
                 field("Blanket Order Line No."; Rec."Blanket Order Line No.")
                 {
                     ApplicationArea = SalesReturnOrder;
-                    ToolTip = 'Specifies the number of the blanket order line that the record originates from.';
                     Visible = false;
                 }
             }

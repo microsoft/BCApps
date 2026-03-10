@@ -7,6 +7,9 @@ page 8056 "Service Commitment Package"
     SourceTable = "Subscription Package";
     UsageCategory = None;
     ApplicationArea = All;
+    AdditionalSearchTerms = 'Subscription Package, Package Details, Package Lines, Subscription Template, Commitment Package, Package Setup';
+    AboutTitle = 'About Subscription Package details';
+    AboutText = 'Subscription elements are grouped together in the form of package lines so that they can be used.';
 
     layout
     {
@@ -39,6 +42,8 @@ page 8056 "Service Commitment Package"
                 Enabled = PackageLinesEnabled;
                 SubPageLink = "Subscription Package Code" = field(Code);
                 UpdatePropagation = Both;
+                AboutTitle = 'Set up subscription lines';
+                AboutText = 'The lines represent the elements made available by the package. Create new lines manually or by selecting a template.';
             }
 
         }
@@ -54,6 +59,8 @@ page 8056 "Service Commitment Package"
                 RunObject = page "Assigned Items";
                 RunPageLink = Code = field(Code);
                 ToolTip = 'Shows items related to a package.';
+                AboutTitle = 'Subscription packages and items';
+                AboutText = 'Display the items to which the subscription package is already assigned or assign it to other items if required.';
             }
         }
         area(Promoted)

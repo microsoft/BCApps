@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -22,11 +22,21 @@ table 5623 "FA Reclass. Journal Batch"
         field(2; Name; Code[10])
         {
             Caption = 'Name';
+            ToolTip = 'Specifies the name of the journal batch you are creating.';
             NotBlank = true;
         }
         field(3; Description; Text[100])
         {
             Caption = 'Description';
+            ToolTip = 'Specifies the journal batch that you are creating.';
+        }
+        field(40; "No. of Lines"; Integer)
+        {
+            CalcFormula = count("FA Reclass. Journal Line" where("Journal Template Name" = field("Journal Template Name"), "Journal Batch Name" = field(Name)));
+            Caption = 'No. of Lines';
+            Editable = false;
+            FieldClass = FlowField;
+            ToolTip = 'Specifies the number of lines in this journal batch.';
         }
     }
 

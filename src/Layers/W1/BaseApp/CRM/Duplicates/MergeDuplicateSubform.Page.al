@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -27,7 +27,6 @@ page 703 "Merge Duplicate Subform"
                     Editable = false;
                     Style = Strong;
                     StyleExpr = Rec."In Primary Key" = Rec."In Primary Key"::Yes;
-                    ToolTip = 'Specifies the ID of the table.';
                     Visible = IsTableLine;
                 }
                 field("Table Name"; Rec."Table Name")
@@ -36,7 +35,6 @@ page 703 "Merge Duplicate Subform"
                     Editable = false;
                     Style = Strong;
                     StyleExpr = Rec."In Primary Key" = Rec."In Primary Key"::Yes;
-                    ToolTip = 'Specifies the name of the table.';
                     Visible = IsTableLine;
                 }
                 field(ID; Rec.ID)
@@ -44,7 +42,6 @@ page 703 "Merge Duplicate Subform"
                     ApplicationArea = Basic, Suite;
                     Editable = false;
                     StyleExpr = StyleExpr;
-                    ToolTip = 'Specifies the ID of the field.';
                 }
                 field(Name; Rec.Name)
                 {
@@ -52,32 +49,27 @@ page 703 "Merge Duplicate Subform"
                     Caption = 'Field Name';
                     Editable = false;
                     StyleExpr = StyleExpr;
-                    ToolTip = 'Specifies the name of the field.';
                 }
                 field("Data Type"; Rec."Data Type")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the data type of the field.';
                     Visible = not IsTableLine;
                 }
                 field("In Primary Key"; Rec."In Primary Key")
                 {
                     ApplicationArea = Basic, Suite;
                     Editable = false;
-                    ToolTip = 'Specifies if the field is part of the primary key.';
                 }
                 field("Current Value"; Rec."Current Value")
                 {
                     ApplicationArea = Basic, Suite;
                     Editable = false;
-                    ToolTip = 'Specifies the value of the field in the current record.';
                     Visible = not IsTableLine;
                 }
                 field("Current Count"; Rec."Current Count")
                 {
                     ApplicationArea = Basic, Suite;
                     Editable = false;
-                    ToolTip = 'Specifies the number of records related to the current record.';
                     Visible = IsTableLine;
                 }
                 field(Override; Rec.Override)
@@ -100,7 +92,6 @@ page 703 "Merge Duplicate Subform"
                     Editable = IsFieldEditable;
                     Style = Strong;
                     StyleExpr = Rec.Override or Rec.Modified;
-                    ToolTip = 'Specifies the value of the field in the duplicate record.';
                     Visible = not IsTableLine;
 
                     trigger OnValidate()
@@ -113,7 +104,6 @@ page 703 "Merge Duplicate Subform"
                 {
                     ApplicationArea = Basic, Suite;
                     Editable = false;
-                    ToolTip = 'Specifies the number of records related to the duplicate record.';
                     Visible = IsTableLine;
                 }
                 field(Conflicts; Rec.Conflicts)
@@ -123,7 +113,6 @@ page 703 "Merge Duplicate Subform"
                     Editable = false;
                     Style = Unfavorable;
                     StyleExpr = Rec.Conflicts > 0;
-                    ToolTip = 'Specifies if conflicting records exist.';
                     Visible = IsTableLine;
                 }
             }

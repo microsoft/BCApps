@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -23,38 +23,31 @@ page 5716 "Item Substitution Entry"
                 field("Variant Code"; Rec."Variant Code")
                 {
                     ApplicationArea = Planning;
-                    ToolTip = 'Specifies the variant of the item on the line.';
                 }
                 field("Substitute Type"; Rec."Substitute Type")
                 {
                     ApplicationArea = Suite;
-                    ToolTip = 'Specifies the type of the item that can be used as a substitute.';
                 }
                 field("Substitute No."; Rec."Substitute No.")
                 {
                     ApplicationArea = Suite;
-                    ToolTip = 'Specifies the number of the item that can be used as a substitute in case the original item is unavailable.';
                 }
                 field("Substitute Variant Code"; Rec."Substitute Variant Code")
                 {
                     ApplicationArea = Planning;
-                    ToolTip = 'Specifies the code of the variant that can be used as a substitute.';
                     Visible = false;
                 }
                 field(Description; Rec.Description)
                 {
                     ApplicationArea = Suite;
-                    ToolTip = 'Specifies the description of the substitute item.';
                 }
                 field(Interchangeable; Rec.Interchangeable)
                 {
                     ApplicationArea = Suite;
-                    ToolTip = 'Specifies that the item and the substitute item are interchangeable.';
                 }
                 field(Condition; Rec.Condition)
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies that a condition exists for this substitution.';
                 }
             }
         }

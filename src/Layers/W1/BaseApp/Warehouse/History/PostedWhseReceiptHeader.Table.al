@@ -23,15 +23,18 @@ table 7318 "Posted Whse. Receipt Header"
         field(1; "No."; Code[20])
         {
             Caption = 'No.';
+            ToolTip = 'Specifies the number of the involved entry or record, according to the specified number series.';
         }
         field(2; "Location Code"; Code[10])
         {
             Caption = 'Location Code';
+            ToolTip = 'Specifies the code of the location where the items were received.';
             TableRelation = Location where("Use As In-Transit" = const(false));
         }
         field(3; "Assigned User ID"; Code[50])
         {
             Caption = 'Assigned User ID';
+            ToolTip = 'Specifies the ID of the user who is responsible for the document.';
             DataClassification = EndUserIdentifiableInformation;
             Editable = false;
             TableRelation = "Warehouse Employee" where("Location Code" = field("Location Code"));
@@ -39,26 +42,31 @@ table 7318 "Posted Whse. Receipt Header"
         field(4; "Assignment Date"; Date)
         {
             Caption = 'Assignment Date';
+            ToolTip = 'Specifies the date when the user was assigned the activity.';
             Editable = false;
         }
         field(5; "Assignment Time"; Time)
         {
             Caption = 'Assignment Time';
+            ToolTip = 'Specifies the time when the user was assigned the activity.';
             Editable = false;
         }
         field(7; "No. Series"; Code[20])
         {
             Caption = 'No. Series';
+            ToolTip = 'Specifies the number series from which entry or record numbers are assigned to new entries or records.';
             TableRelation = "No. Series";
         }
         field(8; "Zone Code"; Code[10])
         {
             Caption = 'Zone Code';
+            ToolTip = 'Specifies the code of the zone on this posted receipt header.';
             TableRelation = Zone.Code where("Location Code" = field("Location Code"));
         }
         field(9; "Bin Code"; Code[20])
         {
             Caption = 'Bin Code';
+            ToolTip = 'Specifies the bin where the items are picked or put away.';
             TableRelation = if ("Zone Code" = filter('')) Bin.Code where("Location Code" = field("Location Code"))
             else
             if ("Zone Code" = filter(<> '')) Bin.Code where("Location Code" = field("Location Code"),
@@ -76,18 +84,22 @@ table 7318 "Posted Whse. Receipt Header"
         field(12; "Posting Date"; Date)
         {
             Caption = 'Posting Date';
+            ToolTip = 'Specifies the posting date of the receipt.';
         }
         field(13; "Vendor Shipment No."; Code[35])
         {
             Caption = 'Vendor Shipment No.';
+            ToolTip = 'Specifies the vendor''s shipment number. It is inserted in the corresponding field on the source document during posting.';
         }
         field(14; "Whse. Receipt No."; Code[20])
         {
             Caption = 'Whse. Receipt No.';
+            ToolTip = 'Specifies the number of the warehouse receipt that the posted warehouse receipt concerns.';
         }
         field(15; "Document Status"; Option)
         {
             Caption = 'Document Status';
+            ToolTip = 'Specifies the status of the posted warehouse receipt.';
             Editable = false;
             OptionCaption = ' ,Partially Put Away,Completely Put Away';
             OptionMembers = " ","Partially Put Away","Completely Put Away";

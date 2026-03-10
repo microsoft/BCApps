@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -24,7 +24,6 @@ page 210 "Resource Units of Measure"
                 field("Resource No."; Rec."Resource No.")
                 {
                     ApplicationArea = Jobs;
-                    ToolTip = 'Specifies the number of the resource.';
                     Visible = false;
                 }
                 field("Code"; Rec.Code)
@@ -32,24 +31,20 @@ page 210 "Resource Units of Measure"
                     ApplicationArea = Jobs;
                     Style = Strong;
                     StyleExpr = StyleName;
-                    ToolTip = 'Specifies one of the unit of measure codes that has been set up in the Unit of Measure table.';
                 }
                 field("Qty. per Unit of Measure"; Rec."Qty. per Unit of Measure")
                 {
                     ApplicationArea = Jobs;
                     Style = Strong;
                     StyleExpr = StyleName;
-                    ToolTip = 'Specifies the number of units of the code. If, for example, the base unit of measure is hour, and the code is day, enter 8 in this field.';
                 }
                 field("Related to Base Unit of Meas."; Rec."Related to Base Unit of Meas.")
                 {
                     ApplicationArea = Jobs;
-                    ToolTip = 'Specifies that the unit of measure can be calculated into the base unit of measure. For example, 2 days equals 16 hours.';
                 }
                 field("Coupled to Dataverse"; Rec."Coupled to Dataverse")
                 {
                     ApplicationArea = All;
-                    ToolTip = 'Specifies that the resource unit of measure is coupled to a unit of measure in Dynamics 365 Sales.';
                     Visible = CRMIntegrationEnabled;
                 }
             }

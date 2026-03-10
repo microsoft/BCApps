@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -30,20 +30,17 @@ page 1350 "Posted Sales Shipment - Update"
                 {
                     ApplicationArea = Basic, Suite;
                     Editable = false;
-                    ToolTip = 'Specifies the number of the record.';
                 }
                 field("Sell-to Customer Name"; Rec."Sell-to Customer Name")
                 {
                     ApplicationArea = Basic, Suite;
                     Caption = 'Customer';
                     Editable = false;
-                    ToolTip = 'Specifies the name of customer at the sell-to address.';
                 }
                 field("Posting Date"; Rec."Posting Date")
                 {
                     ApplicationArea = Basic, Suite;
                     Editable = false;
-                    ToolTip = 'Specifies the posting date for the entry.';
                 }
 #if not CLEAN27
                 field("Promised Delivery Date"; Rec."Promised Delivery Date")
@@ -65,20 +62,17 @@ page 1350 "Posted Sales Shipment - Update"
                     ApplicationArea = Suite;
                     Caption = 'Agent';
                     Editable = true;
-                    ToolTip = 'Specifies which shipping agent is used to transport the items on the sales document to the customer.';
                 }
                 field("Shipping Agent Service Code"; Rec."Shipping Agent Service Code")
                 {
                     ApplicationArea = Suite;
                     Caption = 'Agent Service';
                     Editable = true;
-                    ToolTip = 'Specifies which shipping agent service is used to transport the items on the sales document to the customer.';
                 }
                 field("Package Tracking No."; Rec."Package Tracking No.")
                 {
                     ApplicationArea = Suite;
                     Editable = true;
-                    ToolTip = 'Specifies the shipping agent''s package number.';
                 }
 #if not CLEAN27
                 field("Outbound Whse. Handling Time"; Rec."Outbound Whse. Handling Time")

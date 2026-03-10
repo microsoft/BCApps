@@ -73,16 +73,12 @@ codeunit 130510 "Library - Price Calculation"
 
     procedure DisableExtendedPriceCalculation()
     begin
-        UpdatePriceImplementation("Pricing Implementation"::"Basic Pricing");
-
         // turn off ExtendedPriceCalculationEnabledHandler
         UnbindSubscription(LibraryPriceCalculation);
     end;
 
     procedure EnableExtendedPriceCalculation()
     begin
-        UpdatePriceImplementation("Pricing Implementation"::"Extended Pricing");
-
         // turn on ExtendedPriceCalculationEnabledHandler
         UnbindSubscription(LibraryPriceCalculation);
         BindSubscription(LibraryPriceCalculation);
@@ -90,25 +86,10 @@ codeunit 130510 "Library - Price Calculation"
 
     procedure EnableExtendedPriceCalculation(Enable: Boolean)
     begin
-        if Enable then
-            UpdatePriceImplementation(Enum::"Pricing Implementation"::"Extended Pricing")
-        else
-            UpdatePriceImplementation(Enum::"Pricing Implementation"::"Basic Pricing");
         // turn on/off ExtendedPriceCalculationEnabledHandler
         UnbindSubscription(LibraryPriceCalculation);
         if Enable then
             BindSubscription(LibraryPriceCalculation);
-    end;
-
-    local procedure UpdatePriceImplementation(PricingImplementation: Enum "Pricing Implementation")
-    var
-        CompanyInformation: Record "Company Information";
-    begin
-        CompanyInformation.Get();
-        if CompanyInformation."Pricing Implementation" <> PricingImplementation then begin
-            CompanyInformation."Pricing Implementation" := PricingImplementation;
-            CompanyInformation.Modify();
-        end;
     end;
 
     procedure SetupDefaultHandler(NewImplementation: Enum "Price Calculation Handler") xImplementation: Enum "Price Calculation Handler";

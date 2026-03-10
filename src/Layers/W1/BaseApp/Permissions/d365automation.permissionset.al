@@ -320,6 +320,7 @@ permissionset 5117 "D365 AUTOMATION"
                   tabledata "Web Service" = RIMD,
                   tabledata "Windows Language" = imd,
                   tabledata "AAD Application" = RIMD,
+                  tabledata "ABC Analysis Setup" = RIMD,
                   tabledata "Acc. Sched. Cell Value" = RIMD,
                   tabledata "Acc. Sched. Chart Setup Line" = RIMD,
                   tabledata "Acc. Sched. KPI Buffer" = RIMD,
@@ -333,6 +334,9 @@ permissionset 5117 "D365 AUTOMATION"
                   tabledata "Financial Report Recipient" = RIMD,
                   tabledata "Financial Report Schedule" = RIMD,
                   tabledata "Financial Report User Filters" = RIMD,
+                  tabledata "Financial Report Category" = RIMD,
+                  tabledata "Financial Report Audit Log" = Rimd,
+                  tabledata "Financial Report Status" = RIMD,
                   tabledata "Account Schedules Chart Setup" = RIMD,
                   tabledata "Account Use Buffer" = RIMD,
                   tabledata "Account Payable Cue" = RIMD,
@@ -758,6 +762,8 @@ permissionset 5117 "D365 AUTOMATION"
                   tabledata "Exchange Folder" = RIMD,
                   tabledata "Exchange Object" = RIMD,
                   tabledata "Exchange Service Setup" = RIMD,
+                  tabledata "Contact Sync User" = RIMD,
+                  tabledata "Outlook Contacts" = RIMD,
 #if not CLEAN28
                   tabledata "Exchange Sync" = RIMD,
 #endif

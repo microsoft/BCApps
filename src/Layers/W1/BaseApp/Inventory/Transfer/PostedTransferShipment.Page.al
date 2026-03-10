@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -28,33 +28,28 @@ page 5743 "Posted Transfer Shipment"
                     ApplicationArea = Location;
                     Editable = false;
                     Importance = Promoted;
-                    ToolTip = 'Specifies the number of the involved entry or record, according to the specified number series.';
                 }
                 field("Transfer-from Code"; Rec."Transfer-from Code")
                 {
                     ApplicationArea = Location;
                     Editable = false;
                     Importance = Promoted;
-                    ToolTip = 'Specifies the code of the location that items are transferred from.';
                 }
                 field("Transfer-to Code"; Rec."Transfer-to Code")
                 {
                     ApplicationArea = Location;
                     Editable = false;
                     Importance = Promoted;
-                    ToolTip = 'Specifies the code of the location that the items are transferred to.';
                 }
                 field("Direct Transfer"; Rec."Direct Transfer")
                 {
                     ApplicationArea = Location;
                     Editable = false;
-                    ToolTip = 'Specifies that the transfer does not use an in-transit location.';
                 }
                 field("In-Transit Code"; Rec."In-Transit Code")
                 {
                     ApplicationArea = Location;
                     Editable = false;
-                    ToolTip = 'Specifies the in-transit code for the transfer order, such as a shipping agent.';
                 }
                 field("Transfer Order No."; Rec."Transfer Order No.")
                 {
@@ -62,33 +57,28 @@ page 5743 "Posted Transfer Shipment"
                     Editable = false;
                     Importance = Promoted;
                     Lookup = false;
-                    ToolTip = 'Specifies the number of the related transfer order.';
                 }
                 field("Transfer Order Date"; Rec."Transfer Order Date")
                 {
                     ApplicationArea = Location;
                     Editable = false;
-                    ToolTip = 'Specifies the date when the transfer order was created.';
                 }
                 field("Posting Date"; Rec."Posting Date")
                 {
                     ApplicationArea = Location;
                     Editable = false;
-                    ToolTip = 'Specifies the posting date for this document.';
                 }
                 field("Shortcut Dimension 1 Code"; Rec."Shortcut Dimension 1 Code")
                 {
                     ApplicationArea = Dimensions;
                     Editable = false;
                     Importance = Additional;
-                    ToolTip = 'Specifies the code for Shortcut Dimension 1, which is one of two global dimension codes that you set up in the General Ledger Setup window.';
                 }
                 field("Shortcut Dimension 2 Code"; Rec."Shortcut Dimension 2 Code")
                 {
                     ApplicationArea = Dimensions;
                     Editable = false;
                     Importance = Additional;
-                    ToolTip = 'Specifies the code for Shortcut Dimension 2, which is one of two global dimension codes that you set up in the General Ledger Setup window.';
                 }
             }
             part(TransferShipmentLines; "Posted Transfer Shpt. Subform")
@@ -103,33 +93,28 @@ page 5743 "Posted Transfer Shipment"
                 {
                     ApplicationArea = Location;
                     Editable = false;
-                    ToolTip = 'Specifies when items on the document are shipped or were shipped. A shipment date is usually calculated from a requested delivery date plus lead time.';
                 }
                 field("Shipment Method Code"; Rec."Shipment Method Code")
                 {
                     ApplicationArea = Location;
                     Editable = false;
-                    ToolTip = 'Specifies the delivery conditions of the related shipment, such as free on board (FOB).';
                 }
                 field("Shipping Agent Code"; Rec."Shipping Agent Code")
                 {
                     ApplicationArea = Location;
                     Editable = false;
-                    ToolTip = 'Specifies the code for the shipping agent who is transporting the items.';
                 }
                 field("Shipping Agent Service Code"; Rec."Shipping Agent Service Code")
                 {
                     ApplicationArea = Location;
                     Editable = false;
                     Importance = Promoted;
-                    ToolTip = 'Specifies the code for the service, such as a one-day delivery, that is offered by the shipping agent.';
                 }
                 field("Receipt Date"; Rec."Receipt Date")
                 {
                     ApplicationArea = Location;
                     Editable = false;
                     Importance = Promoted;
-                    ToolTip = 'Specifies the receipt date of the transfer order.';
                 }
             }
             group("Transfer-from")
@@ -140,7 +125,6 @@ page 5743 "Posted Transfer Shipment"
                     ApplicationArea = Location;
                     Caption = 'Name';
                     Editable = false;
-                    ToolTip = 'Specifies the name of the sender at the location that the items are transferred from.';
                 }
                 field("Transfer-from Name 2"; Rec."Transfer-from Name 2")
                 {
@@ -148,7 +132,6 @@ page 5743 "Posted Transfer Shipment"
                     Caption = 'Name 2';
                     Editable = false;
                     Importance = Additional;
-                    ToolTip = 'Specifies an additional part of the name of the sender at the location that the items are transferred from.';
                 }
                 field("Transfer-from Address"; Rec."Transfer-from Address")
                 {
@@ -156,7 +139,6 @@ page 5743 "Posted Transfer Shipment"
                     Caption = 'Address';
                     Editable = false;
                     Importance = Additional;
-                    ToolTip = 'Specifies the address of the location that the items are transferred from.';
                 }
                 field("Transfer-from Address 2"; Rec."Transfer-from Address 2")
                 {
@@ -164,7 +146,6 @@ page 5743 "Posted Transfer Shipment"
                     Caption = 'Address 2';
                     Editable = false;
                     Importance = Additional;
-                    ToolTip = 'Specifies an additional part of the address of the location that items are transferred from.';
                 }
                 field("Transfer-from City"; Rec."Transfer-from City")
                 {
@@ -172,7 +153,6 @@ page 5743 "Posted Transfer Shipment"
                     Caption = 'City';
                     Editable = false;
                     Importance = Additional;
-                    ToolTip = 'Specifies the city of the location that the items are transferred from.';
                 }
                 group(Control13)
                 {
@@ -192,7 +172,6 @@ page 5743 "Posted Transfer Shipment"
                     Caption = 'Post Code';
                     Editable = false;
                     Importance = Additional;
-                    ToolTip = 'Specifies the postal code of the location that the items are transferred from.';
                 }
                 field("Trsf.-from Country/Region Code"; Rec."Trsf.-from Country/Region Code")
                 {
@@ -207,7 +186,6 @@ page 5743 "Posted Transfer Shipment"
                     Caption = 'Contact';
                     Editable = false;
                     Importance = Additional;
-                    ToolTip = 'Specifies the name of the contact person at the location that the items are transferred from.';
                 }
             }
             group("Transfer-to")
@@ -218,7 +196,6 @@ page 5743 "Posted Transfer Shipment"
                     ApplicationArea = Location;
                     Caption = 'Name';
                     Editable = false;
-                    ToolTip = 'Specifies the name of the recipient at the location that the items are transferred to.';
                 }
                 field("Transfer-to Name 2"; Rec."Transfer-to Name 2")
                 {
@@ -226,7 +203,6 @@ page 5743 "Posted Transfer Shipment"
                     Caption = 'Name 2';
                     Editable = false;
                     Importance = Additional;
-                    ToolTip = 'Specifies an additional part of the name of the recipient at the location that the items are transferred to.';
                 }
                 field("Transfer-to Address"; Rec."Transfer-to Address")
                 {
@@ -234,7 +210,6 @@ page 5743 "Posted Transfer Shipment"
                     Caption = 'Address';
                     Editable = false;
                     Importance = Additional;
-                    ToolTip = 'Specifies the address of the location that the items are transferred to.';
                 }
                 field("Transfer-to Address 2"; Rec."Transfer-to Address 2")
                 {
@@ -242,7 +217,6 @@ page 5743 "Posted Transfer Shipment"
                     Caption = 'Address 2';
                     Editable = false;
                     Importance = Additional;
-                    ToolTip = 'Specifies an additional part of the address of the location that items are transferred to.';
                 }
                 field("Transfer-to City"; Rec."Transfer-to City")
                 {
@@ -250,7 +224,6 @@ page 5743 "Posted Transfer Shipment"
                     Caption = 'City';
                     Editable = false;
                     Importance = Additional;
-                    ToolTip = 'Specifies the city of the location that items are transferred to.';
                 }
                 group(Control21)
                 {
@@ -284,7 +257,6 @@ page 5743 "Posted Transfer Shipment"
                     Caption = 'Contact';
                     Editable = false;
                     Importance = Additional;
-                    ToolTip = 'Specifies the name of the contact person at the location that items are transferred to.';
                 }
             }
             group("Foreign Trade")
@@ -295,38 +267,32 @@ page 5743 "Posted Transfer Shipment"
                     ApplicationArea = BasicEU, BasicNO;
                     Editable = false;
                     Importance = Promoted;
-                    ToolTip = 'Specifies the type of transaction that the document represents, for the purpose of reporting to INTRASTAT.';
                 }
                 field("Transaction Specification"; Rec."Transaction Specification")
                 {
                     ApplicationArea = BasicEU, BasicNO;
                     Editable = false;
-                    ToolTip = 'Specifies a specification of the document''s transaction, for the purpose of reporting to INTRASTAT.';
                 }
                 field("Transport Method"; Rec."Transport Method")
                 {
                     ApplicationArea = BasicEU, BasicNO;
                     Editable = false;
                     Importance = Promoted;
-                    ToolTip = 'Specifies the transport method, for the purpose of reporting to INTRASTAT.';
                 }
                 field("Area"; Rec.Area)
                 {
                     ApplicationArea = BasicEU, BasicNO;
                     Editable = false;
-                    ToolTip = 'Specifies the area of the customer or vendor, for the purpose of reporting to INTRASTAT.';
                 }
                 field("Entry/Exit Point"; Rec."Entry/Exit Point")
                 {
                     ApplicationArea = BasicEU, BasicNO;
                     Editable = false;
-                    ToolTip = 'Specifies the code of either the port of entry at which the items passed into your country/region, or the port of exit.';
                 }
                 field("Partner VAT ID"; Rec."Partner VAT ID")
                 {
                     ApplicationArea = BasicEU, BasicNO;
                     Editable = false;
-                    ToolTip = 'Specifies the counter party''s VAT number.';
                 }
             }
         }

@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -23,12 +23,10 @@ page 6266 "Service Archive Comment Sheet"
                 field(Date; Rec."Comment Date")
                 {
                     ApplicationArea = Service;
-                    ToolTip = 'Specifies the date when the comment was entered.';
                 }
                 field(Comment; Rec.Comment)
                 {
                     ApplicationArea = Comments;
-                    ToolTip = 'Specifies the service comment.';
                 }
             }
         }

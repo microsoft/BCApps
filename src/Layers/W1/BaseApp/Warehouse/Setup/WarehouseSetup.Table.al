@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -28,42 +28,49 @@ table 5769 "Warehouse Setup"
         {
             AccessByPermission = TableData "Warehouse Receipt Header" = R;
             Caption = 'Whse. Receipt Nos.';
+            ToolTip = 'Specifies the number series code to use when you assign numbers to warehouse receipt journals.';
             TableRelation = "No. Series";
         }
         field(3; "Whse. Put-away Nos."; Code[20])
         {
             AccessByPermission = TableData "Posted Invt. Put-away Header" = R;
             Caption = 'Whse. Put-away Nos.';
+            ToolTip = 'Specifies the number series code you want used when you assign numbers to warehouse put-away documents.';
             TableRelation = "No. Series";
         }
         field(5; "Whse. Pick Nos."; Code[20])
         {
             AccessByPermission = TableData "Posted Invt. Pick Header" = R;
             Caption = 'Whse. Pick Nos.';
+            ToolTip = 'Specifies the number series code you want used when you assign numbers to warehouse pick documents.';
             TableRelation = "No. Series";
         }
         field(6; "Whse. Ship Nos."; Code[20])
         {
             AccessByPermission = TableData "Warehouse Shipment Header" = R;
             Caption = 'Whse. Ship Nos.';
+            ToolTip = 'Specifies the number series code you want used when you assign numbers to warehouse shipment journals.';
             TableRelation = "No. Series";
         }
         field(7; "Registered Whse. Pick Nos."; Code[20])
         {
             AccessByPermission = TableData "Posted Invt. Pick Header" = R;
             Caption = 'Registered Whse. Pick Nos.';
+            ToolTip = 'Specifies the number series code you want to be used to assign numbers to registered pick documents.';
             TableRelation = "No. Series";
         }
         field(10; "Registered Whse. Put-away Nos."; Code[20])
         {
             AccessByPermission = TableData "Posted Invt. Put-away Header" = R;
             Caption = 'Registered Whse. Put-away Nos.';
+            ToolTip = 'Specifies the number series code used when numbers are assigned to registered put-away documents.';
             TableRelation = "No. Series";
         }
         field(13; "Require Receive"; Boolean)
         {
             AccessByPermission = TableData "Warehouse Receipt Header" = R;
             Caption = 'Require Receive';
+            ToolTip = 'Specifies whether you require users to use the receive activity.';
 
             trigger OnValidate()
             begin
@@ -77,6 +84,7 @@ table 5769 "Warehouse Setup"
         {
             AccessByPermission = TableData "Posted Invt. Put-away Header" = R;
             Caption = 'Require Put-away';
+            ToolTip = 'Specifies whether you require users to use the put-away activity.';
 
             trigger OnValidate()
             begin
@@ -91,6 +99,7 @@ table 5769 "Warehouse Setup"
         {
             AccessByPermission = TableData "Posted Invt. Pick Header" = R;
             Caption = 'Require Pick';
+            ToolTip = 'Specifies whether you require users to use the pick activity.';
 
             trigger OnValidate()
             begin
@@ -104,6 +113,7 @@ table 5769 "Warehouse Setup"
         {
             AccessByPermission = TableData "Warehouse Shipment Header" = R;
             Caption = 'Require Shipment';
+            ToolTip = 'Specifies if warehouse shipments are required in warehouse work flows.';
 
             trigger OnValidate()
             begin
@@ -126,6 +136,7 @@ table 5769 "Warehouse Setup"
         field(18; "Receipt Posting Policy"; Option)
         {
             Caption = 'Receipt Posting Policy';
+            ToolTip = 'Specifies what should happen if errors occur when warehouse receipts are posted.';
             OptionCaption = 'Posting errors are not processed,Stop and show the first posting error';
             OptionMembers = "Posting errors are not processed","Stop and show the first posting error";
             InitValue = "Stop and show the first posting error";
@@ -133,6 +144,7 @@ table 5769 "Warehouse Setup"
         field(19; "Shipment Posting Policy"; Option)
         {
             Caption = 'Shipment Posting Policy';
+            ToolTip = 'Specifies what should happen if errors occur when warehouse shipments are posted per source document.';
             OptionCaption = 'Posting errors are not processed,Stop and show the first posting error';
             OptionMembers = "Posting errors are not processed","Stop and show the first posting error";
             InitValue = "Stop and show the first posting error";
@@ -145,6 +157,7 @@ table 5769 "Warehouse Setup"
         field(51; "Copy Item Descr. to Entries"; Boolean)
         {
             Caption = 'Copy Item Descr. to Entries';
+            ToolTip = 'Specifies if you want the description on item cards to be copied to warehouse entries during registering.';
             DataClassification = SystemMetadata;
 
             trigger OnValidate()
@@ -159,36 +172,42 @@ table 5769 "Warehouse Setup"
         {
             AccessByPermission = TableData "Warehouse Receipt Header" = R;
             Caption = 'Posted Whse. Receipt Nos.';
+            ToolTip = 'Specifies the number series code used to assign numbers to posted warehouse receipts.';
             TableRelation = "No. Series";
         }
         field(7303; "Posted Whse. Shipment Nos."; Code[20])
         {
             AccessByPermission = TableData "Warehouse Shipment Header" = R;
             Caption = 'Posted Whse. Shipment Nos.';
+            ToolTip = 'Specifies the number series code used to assign numbers to posted warehouse shipments.';
             TableRelation = "No. Series";
         }
         field(7304; "Whse. Internal Put-away Nos."; Code[20])
         {
             AccessByPermission = TableData "Warehouse Source Filter" = R;
             Caption = 'Whse. Internal Put-away Nos.';
+            ToolTip = 'Specifies the number series code used to assign numbers to internal put-always.';
             TableRelation = "No. Series";
         }
         field(7306; "Whse. Internal Pick Nos."; Code[20])
         {
             AccessByPermission = TableData "Warehouse Source Filter" = R;
             Caption = 'Whse. Internal Pick Nos.';
+            ToolTip = 'Specifies the number series code used to assign numbers to internal picks.';
             TableRelation = "No. Series";
         }
         field(7308; "Whse. Movement Nos."; Code[20])
         {
             AccessByPermission = TableData "Warehouse Source Filter" = R;
             Caption = 'Whse. Movement Nos.';
+            ToolTip = 'Specifies the number series code used to assign numbers to warehouse movements.';
             TableRelation = "No. Series";
         }
         field(7309; "Registered Whse. Movement Nos."; Code[20])
         {
             AccessByPermission = TableData "Warehouse Source Filter" = R;
             Caption = 'Registered Whse. Movement Nos.';
+            ToolTip = 'Specifies the number series code used to assign numbers to registered warehouse movements.';
             TableRelation = "No. Series";
         }
     }

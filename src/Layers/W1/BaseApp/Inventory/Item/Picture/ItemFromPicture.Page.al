@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -27,7 +27,6 @@ page 7498 "Item From Picture"
             {
                 ApplicationArea = Basic, Suite;
                 ShowCaption = false;
-                ToolTip = 'Specifies the media set for the new item.';
                 Editable = false;
             }
             group(ItemSetupGroup)
@@ -38,7 +37,6 @@ page 7498 "Item From Picture"
                 {
                     ApplicationArea = Basic, Suite;
                     Caption = 'Category';
-                    ToolTip = 'Specifies the item category for the new item.';
                     TableRelation = "Item Category";
 
                     trigger OnValidate()
@@ -61,7 +59,6 @@ page 7498 "Item From Picture"
                 {
                     ApplicationArea = Basic, Suite;
                     Caption = 'Template to apply';
-                    ToolTip = 'Specifies the template to apply to the new item.';
                     TableRelation = "Item Templ.";
 
                     trigger OnValidate()

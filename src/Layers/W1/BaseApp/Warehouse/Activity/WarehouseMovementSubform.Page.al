@@ -27,28 +27,23 @@ page 7316 "Warehouse Movement Subform"
                 field("Action Type"; Rec."Action Type")
                 {
                     ApplicationArea = Warehouse;
-                    ToolTip = 'Specifies the action type for the warehouse activity line.';
                 }
                 field("Item No."; Rec."Item No.")
                 {
                     ApplicationArea = Warehouse;
-                    ToolTip = 'Specifies the item number of the item to be handled, such as picked or put away.';
                 }
                 field("Variant Code"; Rec."Variant Code")
                 {
                     ApplicationArea = Planning;
-                    ToolTip = 'Specifies the variant of the item on the line.';
                     Visible = false;
                 }
                 field(Description; Rec.Description)
                 {
                     ApplicationArea = Warehouse;
-                    ToolTip = 'Specifies a description of the item on the line.';
                 }
                 field("Serial No."; Rec."Serial No.")
                 {
                     ApplicationArea = ItemTracking;
-                    ToolTip = 'Specifies the serial number to handle in the document.';
                     Visible = false;
 
                     trigger OnValidate()
@@ -59,7 +54,6 @@ page 7316 "Warehouse Movement Subform"
                 field("Lot No."; Rec."Lot No.")
                 {
                     ApplicationArea = ItemTracking;
-                    ToolTip = 'Specifies the lot number to handle in the document.';
                     Visible = false;
 
                     trigger OnValidate()
@@ -70,7 +64,6 @@ page 7316 "Warehouse Movement Subform"
                 field("Package No."; Rec."Package No.")
                 {
                     ApplicationArea = ItemTracking;
-                    ToolTip = 'Specifies the package number to handle in the document.';
                     Visible = false;
 
                     trigger OnValidate()
@@ -82,14 +75,12 @@ page 7316 "Warehouse Movement Subform"
                 {
                     ApplicationArea = ItemTracking;
                     Editable = false;
-                    ToolTip = 'Specifies the expiration date of the serial/lot numbers if you are putting items away.';
                     Visible = false;
                 }
                 field("Zone Code"; Rec."Zone Code")
                 {
                     ApplicationArea = Warehouse;
                     Caption = 'Zone Code';
-                    ToolTip = 'Specifies the zone code where the bin on this line is located.';
                 }
                 field("Bin Code"; Rec."Bin Code")
                 {
@@ -106,13 +97,11 @@ page 7316 "Warehouse Movement Subform"
                 {
                     ApplicationArea = Warehouse;
                     Caption = 'Special Equipment Code';
-                    ToolTip = 'Specifies the code of the equipment required when you perform the action on the line.';
                     Visible = false;
                 }
                 field(Quantity; Rec.Quantity)
                 {
                     ApplicationArea = Warehouse;
-                    ToolTip = 'Specifies the quantity of the item to be handled, such as received, put-away, or assigned.';
                     Editable = false;
                 }
                 field("Qty. (Base)"; Rec."Qty. (Base)")
@@ -124,7 +113,6 @@ page 7316 "Warehouse Movement Subform"
                 field("Qty. to Handle"; Rec."Qty. to Handle")
                 {
                     ApplicationArea = Warehouse;
-                    ToolTip = 'Specifies how many units to handle in this warehouse activity.';
 
                     trigger OnValidate()
                     begin
@@ -140,7 +128,6 @@ page 7316 "Warehouse Movement Subform"
                 field("Qty. Outstanding"; Rec."Qty. Outstanding")
                 {
                     ApplicationArea = Warehouse;
-                    ToolTip = 'Specifies the number of items that have not yet been handled for this warehouse activity line.';
                 }
                 field("Qty. Outstanding (Base)"; Rec."Qty. Outstanding (Base)")
                 {
@@ -150,28 +137,23 @@ page 7316 "Warehouse Movement Subform"
                 field("Due Date"; Rec."Due Date")
                 {
                     ApplicationArea = Warehouse;
-                    ToolTip = 'Specifies the date when the warehouse activity must be completed.';
                 }
                 field("Unit of Measure Code"; Rec."Unit of Measure Code")
                 {
                     ApplicationArea = Warehouse;
-                    ToolTip = 'Specifies how each unit of the item or resource is measured, such as in pieces or hours. By default, the value in the Base Unit of Measure field on the item or resource card is inserted.';
                 }
                 field("Qty. per Unit of Measure"; Rec."Qty. per Unit of Measure")
                 {
                     ApplicationArea = Warehouse;
-                    ToolTip = 'Specifies the quantity per unit of measure of the item on the line.';
                 }
                 field(Weight; Rec.Weight)
                 {
                     ApplicationArea = Warehouse;
-                    ToolTip = 'Specifies the weight of one item unit when measured in the specified unit of measure.';
                     Visible = false;
                 }
                 field(Cubage; Rec.Cubage)
                 {
                     ApplicationArea = Warehouse;
-                    ToolTip = 'Specifies the total cubage of items on the line, calculated based on the Quantity field.';
                     Visible = false;
                 }
             }

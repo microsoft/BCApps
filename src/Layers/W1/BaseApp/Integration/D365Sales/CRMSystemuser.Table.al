@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -87,6 +87,7 @@ table 5340 "CRM Systemuser"
         field(10; FullName; Text[200])
         {
             Caption = 'Full Name';
+            ToolTip = 'Specifies data from a corresponding field in a Dataverse entity. For more information about Dataverse, see Dataverse Help Center.';
             Description = 'Full name of the user.';
             ExternalAccess = Read;
             ExternalName = 'fullname';
@@ -109,6 +110,7 @@ table 5340 "CRM Systemuser"
         field(13; InternalEMailAddress; Text[100])
         {
             Caption = 'Primary Email';
+            ToolTip = 'Specifies the email address.';
             Description = 'Internal email address for the user.';
             ExtendedDatatype = EMail;
             ExternalName = 'internalemailaddress';
@@ -150,6 +152,7 @@ table 5340 "CRM Systemuser"
         field(18; MobilePhone; Text[64])
         {
             Caption = 'Mobile Phone';
+            ToolTip = 'Specifies data from a corresponding field in a Dataverse entity. For more information about Dataverse, see Dataverse Help Center.';
             Description = 'Mobile phone number for the user.';
             ExternalName = 'mobilephone';
             ExternalType = 'String';

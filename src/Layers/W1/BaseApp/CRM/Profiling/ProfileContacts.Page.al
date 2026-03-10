@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -20,19 +20,16 @@ page 5115 "Profile Contacts"
                 field("Contact No."; Rec."Contact No.")
                 {
                     ApplicationArea = All;
-                    ToolTip = 'Specifies the number of the contact to which you have assigned this questionnaire.';
                 }
                 field("Contact Company Name"; Rec."Contact Company Name")
                 {
                     ApplicationArea = RelationshipMgmt;
                     DrillDown = false;
-                    ToolTip = 'Specifies the name of the company for which the contact works, if the contact is a person.';
                 }
                 field("Contact Name"; Rec."Contact Name")
                 {
                     ApplicationArea = RelationshipMgmt;
                     DrillDown = false;
-                    ToolTip = 'Specifies the name of the contact to which you have assigned the questionnaire.';
                 }
             }
         }

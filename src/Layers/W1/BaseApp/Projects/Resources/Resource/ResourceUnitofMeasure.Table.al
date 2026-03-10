@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -19,12 +19,14 @@ table 205 "Resource Unit of Measure"
         field(1; "Resource No."; Code[20])
         {
             Caption = 'Resource No.';
+            ToolTip = 'Specifies the number of the resource.';
             NotBlank = true;
             TableRelation = Resource;
         }
         field(2; "Code"; Code[10])
         {
             Caption = 'Code';
+            ToolTip = 'Specifies one of the unit of measure codes that has been set up in the Unit of Measure table.';
             NotBlank = true;
             TableRelation = "Unit of Measure";
         }
@@ -32,6 +34,7 @@ table 205 "Resource Unit of Measure"
         {
             AutoFormatType = 0;
             Caption = 'Qty. per Unit of Measure';
+            ToolTip = 'Specifies the number of units of the code. If, for example, the base unit of measure is hour, and the code is day, enter 8 in this field.';
             DecimalPlaces = 0 : 5;
             InitValue = 1;
 
@@ -49,6 +52,7 @@ table 205 "Resource Unit of Measure"
         field(4; "Related to Base Unit of Meas."; Boolean)
         {
             Caption = 'Related to Base Unit of Meas.';
+            ToolTip = 'Specifies that the unit of measure can be calculated into the base unit of measure. For example, 2 days equals 16 hours.';
             InitValue = true;
 
             trigger OnValidate()
@@ -60,6 +64,7 @@ table 205 "Resource Unit of Measure"
         field(721; "Coupled to Dataverse"; Boolean)
         {
             Caption = 'Coupled to Dynamics 365 Sales';
+            ToolTip = 'Specifies that the resource unit of measure is coupled to a unit of measure in Dynamics 365 Sales.';
             FieldClass = FlowField;
             CalcFormula = exist("CRM Integration Record" where("Integration ID" = field(SystemId), "Table ID" = const(Database::"Resource Unit of Measure")));
         }

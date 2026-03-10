@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -28,14 +28,12 @@ page 9047 "Machine Operator Activities"
                 {
                     ApplicationArea = Manufacturing;
                     DrillDownPageID = "Released Production Orders";
-                    ToolTip = 'Specifies the number of released production orders that are displayed in the Manufacturing Cue on the Role Center. The documents are filtered by today''s date.';
                 }
                 field("Rlsd. Prod. Orders Until Today"; Rec."Rlsd. Prod. Orders Until Today")
                 {
                     ApplicationArea = Manufacturing;
                     Caption = 'Released Prod. Orders Until Today';
                     DrillDownPageID = "Released Production Orders";
-                    ToolTip = 'Specifies the number of released production orders that are displayed in the Manufacturing Cue on the Role Center. The documents are filtered by today''s date.';
                 }
 
                 actions
@@ -104,13 +102,11 @@ page 9047 "Machine Operator Activities"
                 {
                     ApplicationArea = Warehouse;
                     DrillDownPageID = "Inventory Picks";
-                    ToolTip = 'Specifies the number of inventory picks that are displayed in the Manufacturing Cue on the Role Center. The documents are filtered by today''s date.';
                 }
                 field("Invt. Put-aways from Prod."; Rec."Invt. Put-aways from Prod.")
                 {
                     ApplicationArea = Warehouse;
                     DrillDownPageID = "Inventory Put-aways";
-                    ToolTip = 'Specifies the number of inventory put-always from production that are displayed in the Manufacturing Cue on the Role Center. The documents are filtered by today''s date.';
                 }
 
                 actions

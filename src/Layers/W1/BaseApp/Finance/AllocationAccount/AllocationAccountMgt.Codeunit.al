@@ -181,8 +181,21 @@ codeunit 2675 "Allocation Account Mgt."
         if CurrencyCode <> '' then
             if Currency.Get(CurrencyCode) then
                 AmountRoundingPrecision := Currency."Amount Rounding Precision";
-
         exit(AmountRoundingPrecision);
+    end;
+
+    internal procedure GetCurrencyUnitAmountPrecision(CurrencyCode: Code[10]): Decimal
+    var
+        GeneralLedgerSetup: Record "General Ledger Setup";
+        Currency: Record Currency;
+        UnitAmountRoundingPrecision: Decimal;
+    begin
+        GeneralLedgerSetup.Get();
+        UnitAmountRoundingPrecision := GeneralLedgerSetup."Unit-Amount Rounding Precision";
+        if CurrencyCode <> '' then
+            if Currency.Get(CurrencyCode) then
+                UnitAmountRoundingPrecision := Currency."Unit-Amount Rounding Precision";
+        exit(UnitAmountRoundingPrecision);
     end;
 
     internal procedure SplitQuantitiesIfNeeded(OriginalQuantity: Decimal; var AllocationLine: Record "Allocation Line"; var AllocationAccount: Record "Allocation Account")

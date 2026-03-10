@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -100,6 +100,7 @@ table 5349 "CRM Incident"
         field(10; Title; Text[200])
         {
             Caption = 'Case Title';
+            ToolTip = 'Specifies the name of the case.';
             Description = 'Type a subject or descriptive name, such as the request, issue, or company name, to identify the case in Microsoft Dynamics CRM views.';
             ExternalName = 'title';
             ExternalType = 'String';
@@ -159,6 +160,7 @@ table 5349 "CRM Incident"
         field(17; CreatedOn; DateTime)
         {
             Caption = 'Created On';
+            ToolTip = 'Specifies when the sales order was created.';
             Description = 'Shows the date and time when the record was created. The date and time are displayed in the time zone selected in Microsoft Dynamics CRM options.';
             ExternalAccess = Read;
             ExternalName = 'createdon';
@@ -167,6 +169,7 @@ table 5349 "CRM Incident"
         field(18; TicketNumber; Text[100])
         {
             Caption = 'Case Number';
+            ToolTip = 'Specifies the number of the case.';
             Description = 'Shows the case number for customer reference and searching capabilities. This cannot be modified.';
             ExternalAccess = Insert;
             ExternalName = 'ticketnumber';
@@ -249,6 +252,7 @@ table 5349 "CRM Incident"
         field(27; StateCode; Option)
         {
             Caption = 'Status';
+            ToolTip = 'Specifies the status of the case.';
             Description = 'Shows whether the case is active, resolved, or canceled. Resolved and canceled cases are read-only and can''t be edited unless they are reactivated.';
             ExternalAccess = Modify;
             ExternalName = 'statecode';

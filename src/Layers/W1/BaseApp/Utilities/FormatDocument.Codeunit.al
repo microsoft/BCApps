@@ -144,6 +144,7 @@ codeunit 368 "Format Document"
             PaymentMethod.Init()
         else begin
             PaymentMethod.Get(Code);
+            SetDefaultLanguageCode(LanguageCode);
             PaymentMethod.TranslateDescription(LanguageCode);
         end;
     end;
@@ -154,6 +155,7 @@ codeunit 368 "Format Document"
             PaymentTerms.Init()
         else begin
             PaymentTerms.Get(Code);
+            SetDefaultLanguageCode(LanguageCode);
             PaymentTerms.TranslateDescription(PaymentTerms, LanguageCode);
         end;
     end;
@@ -170,10 +172,8 @@ codeunit 368 "Format Document"
         if Code = '' then begin
             SalespersonPurchaser.Init();
             PurchaserText := '';
-        end else begin
-            SalespersonPurchaser.Get(Code);
+        end else
             PurchaserText := PurchaserTxt;
-        end;
     end;
 
     procedure SetShipmentMethod(var ShipmentMethod: Record "Shipment Method"; "Code": Code[10]; LanguageCode: Code[10])
@@ -182,6 +182,7 @@ codeunit 368 "Format Document"
             ShipmentMethod.Init()
         else begin
             ShipmentMethod.Get(Code);
+            SetDefaultLanguageCode(LanguageCode);
             ShipmentMethod.TranslateDescription(ShipmentMethod, LanguageCode);
         end;
     end;
@@ -376,6 +377,14 @@ codeunit 368 "Format Document"
                 exit(false);
         end;
     end;
+
+    local procedure SetDefaultLanguageCode(LanguageCode: Code[10])
+    var
+        CompanyInformationMgt: Codeunit "Company Information Mgt.";
+    begin
+        CompanyInformationMgt.GetLanguageDefault(LanguageCode);
+    end;
+
 
     [IntegrationEvent(false, false)]
     local procedure OnAfterSetSalesPurchaseLine(Quantity: Decimal; UnitPrice: Decimal; VATPercentage: Decimal; LineAmount: Decimal; CurrencyCode: Code[10]; var FormattedQuantity: Text; var FormattedUnitPrice: Text; var FormattedVATPercentage: Text; var FormattedLineAmount: Text; CommentLine: Boolean)

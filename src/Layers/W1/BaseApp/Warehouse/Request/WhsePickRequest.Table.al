@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -22,16 +22,19 @@ table 7325 "Whse. Pick Request"
         field(1; "Document Type"; Enum "Warehouse Pick Request Document Type")
         {
             Caption = 'Document Type';
+            ToolTip = 'Specifies the type of document from which the pick originated.';
         }
         field(2; "Document Subtype"; Option)
         {
             Caption = 'Document Subtype';
+            ToolTip = 'Specifies the type of document that the component pick request is related to, such as Released and Assembly.';
             OptionCaption = '0,1,2,3,4,5,6,7,8,9,10';
             OptionMembers = "0","1","2","3","4","5","6","7","8","9","10";
         }
         field(3; "Document No."; Code[20])
         {
             Caption = 'Document No.';
+            ToolTip = 'Specifies the number of the warehouse document for which the program has received a pick request.';
             NotBlank = true;
             TableRelation = if ("Document Type" = const(Shipment)) "Warehouse Shipment Header"."No."
             else
@@ -47,6 +50,7 @@ table 7325 "Whse. Pick Request"
         field(4; "Location Code"; Code[10])
         {
             Caption = 'Location Code';
+            ToolTip = 'Specifies the code of the location in which the request is occurring.';
             TableRelation = Location;
         }
         field(5; "Zone Code"; Code[10])
@@ -77,6 +81,7 @@ table 7325 "Whse. Pick Request"
         {
             CalcFormula = lookup("Warehouse Shipment Header"."Shipment Method Code" where("No." = field("Document No.")));
             Caption = 'Shipment Method Code';
+            ToolTip = 'Specifies the delivery conditions of the related shipment, such as free on board (FOB).';
             Editable = false;
             FieldClass = FlowField;
             TableRelation = "Shipment Method";
@@ -86,6 +91,7 @@ table 7325 "Whse. Pick Request"
             AccessByPermission = TableData "Shipping Agent Services" = R;
             CalcFormula = lookup("Warehouse Shipment Header"."Shipping Agent Code" where("No." = field("Document No.")));
             Caption = 'Shipping Agent Code';
+            ToolTip = 'Specifies the code for the shipping agent who is transporting the items.';
             Editable = false;
             FieldClass = FlowField;
             TableRelation = "Shipping Agent";
@@ -94,6 +100,7 @@ table 7325 "Whse. Pick Request"
         {
             CalcFormula = lookup("Warehouse Shipment Header"."Shipping Agent Service Code" where("No." = field("Document No.")));
             Caption = 'Shipping Agent Service Code';
+            ToolTip = 'Specifies the code for the service, such as a one-day delivery, that is offered by the shipping agent.';
             Editable = false;
             FieldClass = FlowField;
             TableRelation = "Shipping Agent Services".Code where("Shipping Agent Code" = field("Shipping Agent Code"));

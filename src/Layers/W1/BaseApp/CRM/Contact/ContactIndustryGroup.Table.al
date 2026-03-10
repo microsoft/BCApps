@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -17,12 +17,14 @@ table 5058 "Contact Industry Group"
         field(1; "Contact No."; Code[20])
         {
             Caption = 'Contact No.';
+            ToolTip = 'Specifies the number of the contact company you are assigning industry groups.';
             NotBlank = true;
             TableRelation = Contact where(Type = const(Company));
         }
         field(2; "Industry Group Code"; Code[10])
         {
             Caption = 'Industry Group Code';
+            ToolTip = 'Specifies the industry group code. This field is not editable.';
             NotBlank = true;
             TableRelation = "Industry Group";
         }
@@ -30,6 +32,7 @@ table 5058 "Contact Industry Group"
         {
             CalcFormula = lookup("Industry Group".Description where(Code = field("Industry Group Code")));
             Caption = 'Industry Group Description';
+            ToolTip = 'Specifies the description of the industry group you have assigned to the contact.';
             Editable = false;
             FieldClass = FlowField;
         }
@@ -37,6 +40,7 @@ table 5058 "Contact Industry Group"
         {
             CalcFormula = lookup(Contact.Name where("No." = field("Contact No.")));
             Caption = 'Contact Name';
+            ToolTip = 'Specifies the name of the contact company you are assigning an industry group.';
             Editable = false;
             FieldClass = FlowField;
         }

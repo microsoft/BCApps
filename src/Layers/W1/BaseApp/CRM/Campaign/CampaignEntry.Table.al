@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -22,6 +22,7 @@ table 5072 "Campaign Entry"
         field(1; "Entry No."; Integer)
         {
             Caption = 'Entry No.';
+            ToolTip = 'Specifies the number of the entry, as assigned from the specified number series when the entry was created.';
         }
         field(2; "Campaign No."; Code[20])
         {
@@ -31,10 +32,12 @@ table 5072 "Campaign Entry"
         field(3; Description; Text[100])
         {
             Caption = 'Description';
+            ToolTip = 'Specifies the description of the campaign entry.';
         }
         field(4; Date; Date)
         {
             Caption = 'Date';
+            ToolTip = 'Specifies the date the campaign entry was recorded. The field is not editable.';
         }
         field(5; "User ID"; Code[50])
         {
@@ -52,6 +55,7 @@ table 5072 "Campaign Entry"
         {
             BlankZero = true;
             Caption = 'Canceled';
+            ToolTip = 'Specifies that the entry has been canceled.';
         }
         field(8; "No. of Interactions"; Integer)
         {
@@ -59,6 +63,7 @@ table 5072 "Campaign Entry"
                                                                "Campaign Entry No." = field("Entry No."),
                                                                Canceled = field(Canceled)));
             Caption = 'No. of Interactions';
+            ToolTip = 'Specifies the number of interactions created as part of the campaign entry. The field is not editable.';
             Editable = false;
             FieldClass = FlowField;
         }

@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -58,38 +58,32 @@ page 305 "Reservation Worksheet"
                 field("Source Type"; Rec."Source Type")
                 {
                     Caption = 'Source Type';
-                    ToolTip = 'Specifies the type of source document on the demand line.';
                     Visible = false;
                 }
                 field("Source ID"; Rec."Source ID")
                 {
                     Caption = 'Source ID';
-                    ToolTip = 'Specifies the number the source document on the demand line.';
                     Visible = false;
                 }
                 field("Sell-to Customer No."; Rec."Sell-to Customer No.")
                 {
                     Caption = 'Sell-to Customer No.';
-                    ToolTip = 'Specifies the number of the customer, if any, on the demand line.';
                     Editable = false;
                     Visible = false;
                 }
                 field("Sell-to Customer Name"; Rec."Sell-to Customer Name")
                 {
                     Caption = 'Sell-to Customer Name';
-                    ToolTip = 'Specifies the name of the customer, if any, on the demand line.';
                     Editable = false;
                 }
                 field("Demand Date"; Rec."Demand Date")
                 {
                     Caption = 'Demand Date';
-                    ToolTip = 'Specifies the demand date, which is the shipment date for sales orders and the due date for production components.';
                     Editable = false;
                 }
                 field(Accept; Rec.Accept)
                 {
                     Caption = 'Accept';
-                    ToolTip = 'Specifies if you want to reserve this demand line.';
 
                     trigger OnValidate()
                     begin
@@ -100,17 +94,14 @@ page 305 "Reservation Worksheet"
                 {
                     Caption = 'Item No.';
                     Editable = false;
-                    ToolTip = 'Specifies the number of the item on the demand line.';
                 }
                 field(Description; Rec.Description)
                 {
                     Caption = 'Description';
-                    ToolTip = 'Specifies text that describes the entry.';
                 }
                 field("Description 2"; Rec."Description 2")
                 {
                     Caption = 'Description 2';
-                    ToolTip = 'Specifies information in addition to the description.';
                     Visible = false;
                 }
                 field("Variant Code"; Rec."Variant Code")
@@ -118,32 +109,27 @@ page 305 "Reservation Worksheet"
                     Caption = 'Variant Code';
                     Editable = false;
                     Visible = false;
-                    ToolTip = 'Specifies the variant of the item on the demand line.';
                 }
                 field("Location Code"; Rec."Location Code")
                 {
                     Caption = 'Location Code';
                     Editable = false;
-                    ToolTip = 'Specifies the location code on the demand line.';
                 }
                 field("Unit of Measure Code"; Rec."Unit of Measure Code")
                 {
                     Caption = 'Unit of Measure Code';
                     Editable = false;
-                    ToolTip = 'Specifies how each unit of the item is measured.';
                 }
                 field("Remaining Qty. to Reserve"; Rec."Remaining Qty. to Reserve")
                 {
                     Caption = 'Remaining Qty. to Reserve';
                     Editable = false;
-                    ToolTip = 'Specifies how many units of the item on the demand line are not reserved from inventory.';
                     Style = Attention;
                     StyleExpr = NeedsAttention;
                 }
                 field("Qty. to Reserve"; Rec."Qty. to Reserve")
                 {
                     Caption = 'Qty. to Reserve';
-                    ToolTip = 'Specifies how many units of the item on the demand line you want to reserve.';
                     BlankZero = true;
 
                     trigger OnValidate()
@@ -155,7 +141,6 @@ page 305 "Reservation Worksheet"
                 {
                     Caption = 'Available Qty. to Reserve';
                     Editable = false;
-                    ToolTip = 'Specifies how many units of the item on the demand line can be reserved from inventory. This takes into account the Qty. to Reserve field on other demand lines with the same item number, location code, and variant code.';
                     Style = Ambiguous;
                     StyleExpr = NeedsAttention;
                 }

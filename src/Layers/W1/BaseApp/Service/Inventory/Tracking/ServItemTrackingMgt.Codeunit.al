@@ -11,14 +11,14 @@ using Microsoft.Service.History;
 codeunit 6483 "Serv. Item Tracking Mgt."
 {
 
-    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Item Tracking Management", 'OnIsOrderNetworkEntity', '', false, false)]
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Item Tracking Management", 'OnIsOrderNetworkEntity', '', true, false)]
     local procedure OnIsOrderNetworkEntity(Type: Integer; Subtype: Integer; var IsNetworkEntity: Boolean);
     begin
         if Type = Database::"Service Line" then
             IsNetworkEntity := (Subtype = 1);
     end;
 
-    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Item Tracking Management", 'OnAfterItemTrkgTypeIsManagedByWhse', '', false, false)]
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Item Tracking Management", 'OnAfterItemTrkgTypeIsManagedByWhse', '', true, false)]
     local procedure OnAfterItemTrkgTypeIsManagedByWhse(Type: Integer; var TypeIsManagedByWhse: Boolean);
     begin
         if Type = Database::"Service Line" then

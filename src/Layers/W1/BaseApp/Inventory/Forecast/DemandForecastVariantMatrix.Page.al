@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -31,26 +31,22 @@ page 2900 "Demand Forecast Variant Matrix"
                 {
                     ApplicationArea = Planning;
                     Editable = false;
-                    ToolTip = 'Specifies the number of the involved entry or record, according to the specified number series.';
                 }
                 field(Description; Rec.Description)
                 {
                     ApplicationArea = Planning;
                     Editable = false;
-                    ToolTip = 'Specifies a description of the item.';
                 }
                 field("Variant Code"; Rec."Variant Code")
                 {
                     ApplicationArea = Planning;
                     Editable = false;
-                    ToolTip = 'Specifies a variant code of the item.';
                     Visible = ShowVariants;
                 }
                 field("Location Code"; Rec."Location Code")
                 {
                     ApplicationArea = Planning;
                     Editable = false;
-                    ToolTip = 'Specifies a location code of the item.';
                     Visible = ShowLocations;
                 }
                 field(Field1; MATRIX_CellData[1])

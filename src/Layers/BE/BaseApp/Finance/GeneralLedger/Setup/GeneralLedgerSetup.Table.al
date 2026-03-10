@@ -69,6 +69,13 @@ table 98 "General Ledger Setup"
             trigger OnValidate()
             begin
                 CheckAllowedPostingDates(0);
+
+                if xRec."Allow Posting From" <> Rec."Allow Posting From" then begin
+                    if Rec."Allow Posting From" <> 0D then
+                        Evaluate(Rec."Allow Posting From DateFormula", '');
+
+                    CheckDateRange();
+                end;
             end;
         }
         /// <summary>
@@ -81,6 +88,13 @@ table 98 "General Ledger Setup"
             trigger OnValidate()
             begin
                 CheckAllowedPostingDates(0);
+
+                if xRec."Allow Posting To" <> Rec."Allow Posting To" then begin
+                    if Rec."Allow Posting To" <> 0D then
+                        Evaluate(Rec."Allow Posting To DateFormula", '');
+
+                    CheckDateRange();
+                end;
             end;
         }
         /// <summary>
@@ -1275,6 +1289,41 @@ table 98 "General Ledger Setup"
             ToolTip = 'Specifies the name of the Net Change column on Financial Reports.';
             ValidateTableRelation = false;
         }
+        field(204; DefaultFinancialReportStatus; Code[10])
+        {
+            Caption = 'Default Financial Report Status';
+            DataClassification = CustomerContent;
+            ToolTip = 'Specifies the name of the Default Financial Report Status on Financial Reports.';
+            TableRelation = "Financial Report Status";
+        }
+        field(205; "Allow Posting From DateFormula"; DateFormula)
+        {
+            Caption = 'Allow Posting From DateFormula';
+
+            trigger OnValidate()
+            begin
+                if xRec."Allow Posting From DateFormula" <> Rec."Allow Posting From DateFormula" then begin
+                    if Format(Rec."Allow Posting From DateFormula") <> '' then
+                        Rec.Validate("Allow Posting From", 0D);
+
+                    CheckDateRange();
+                end;
+            end;
+        }
+        field(206; "Allow Posting To DateFormula"; DateFormula)
+        {
+            Caption = 'Allow Posting To DateFormula';
+
+            trigger OnValidate()
+            begin
+                if xRec."Allow Posting To DateFormula" <> Rec."Allow Posting To DateFormula" then begin
+                    if Format(Rec."Allow Posting To DateFormula") <> '' then
+                        Rec.Validate("Allow Posting To", 0D);
+
+                    CheckDateRange();
+                end;
+            end;
+        }
         field(11315; "VAT Statement Template Name"; Code[10])
         {
             Caption = 'VAT Statement Template Name';
@@ -1584,7 +1633,7 @@ table 98 "General Ledger Setup"
         DimensionValue: Record "Dimension Value";
         DimensionSetEntry: Record "Dimension Set Entry";
     begin
-        if Dim.CheckIfDimUsed(DimCode, ShortcutDimNo, '', '', 0) then
+        if Dim.CheckIfDimUsed(DimCode, Enum::"Dim Type Checked".FromInteger(ShortcutDimNo), '', '', 0) then
             Error(Text023, Dim.GetCheckDimErr());
         if xDimCode <> '' then begin
             DimensionValue.SetRange("Dimension Code", xDimCode);
@@ -1605,6 +1654,22 @@ table 98 "General Ledger Setup"
     local procedure HideDialog(): Boolean
     begin
         exit((CurrFieldNo = 0) or not GuiAllowed);
+    end;
+
+    local procedure CheckDateRange()
+    var
+        AllowedFrom: Date;
+        AllowedTo: Date;
+    begin
+        if (Format(Rec."Allow Posting From DateFormula") = '') and (Format(Rec."Allow Posting To DateFormula") = '') then
+            exit;
+
+        AllowedFrom := Rec."Allow Posting From";
+        AllowedTo := Rec."Allow Posting To";
+        UserSetupManagement.GetDateRange(
+            AllowedFrom, AllowedTo,
+            Rec."Allow Posting From DateFormula", Rec."Allow Posting To DateFormula",
+            Rec.RecordId());
     end;
 
     /// <summary>

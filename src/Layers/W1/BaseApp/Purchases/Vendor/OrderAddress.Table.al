@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -26,27 +26,33 @@ table 224 "Order Address"
         field(2; "Code"; Code[10])
         {
             Caption = 'Code';
+            ToolTip = 'Specifies an order-from address code.';
             NotBlank = true;
         }
         field(3; Name; Text[100])
         {
             Caption = 'Name';
+            ToolTip = 'Specifies the name of the company located at the address.';
         }
         field(4; "Name 2"; Text[50])
         {
             Caption = 'Name 2';
+            ToolTip = 'Specifies an additional part of the name.';
         }
         field(5; Address; Text[100])
         {
             Caption = 'Address';
+            ToolTip = 'Specifies the order address.';
         }
         field(6; "Address 2"; Text[50])
         {
             Caption = 'Address 2';
+            ToolTip = 'Specifies additional address information.';
         }
         field(7; City; Text[30])
         {
             Caption = 'City';
+            ToolTip = 'Specifies the city of the order address.';
             TableRelation = if ("Country/Region Code" = const('')) "Post Code".City
             else
             if ("Country/Region Code" = filter(<> '')) "Post Code".City where("Country/Region Code" = field("Country/Region Code"));
@@ -72,10 +78,12 @@ table 224 "Order Address"
         field(8; Contact; Text[100])
         {
             Caption = 'Contact';
+            ToolTip = 'Specifies the name of the person you regularly contact when you do business with this vendor at this address.';
         }
         field(9; "Phone No."; Text[30])
         {
             Caption = 'Phone No.';
+            ToolTip = 'Specifies the telephone number that is associated with the order address.';
             ExtendedDatatype = PhoneNo;
         }
         field(10; "Telex No."; Text[30])
@@ -85,6 +93,7 @@ table 224 "Order Address"
         field(35; "Country/Region Code"; Code[10])
         {
             Caption = 'Country/Region Code';
+            ToolTip = 'Specifies the country/region of the address.';
             TableRelation = "Country/Region";
 
             trigger OnValidate()
@@ -95,11 +104,13 @@ table 224 "Order Address"
         field(54; "Last Date Modified"; Date)
         {
             Caption = 'Last Date Modified';
+            ToolTip = 'Specifies when this order address was last modified.';
             Editable = false;
         }
         field(84; "Fax No."; Text[30])
         {
             Caption = 'Fax No.';
+            ToolTip = 'Specifies the fax number associated with the address.';
         }
         field(85; "Telex Answer Back"; Text[20])
         {
@@ -108,6 +119,7 @@ table 224 "Order Address"
         field(91; "Post Code"; Code[20])
         {
             Caption = 'Post Code';
+            ToolTip = 'Specifies the postal code.';
             TableRelation = if ("Country/Region Code" = const('')) "Post Code"
             else
             if ("Country/Region Code" = filter(<> '')) "Post Code" where("Country/Region Code" = field("Country/Region Code"));
@@ -134,10 +146,12 @@ table 224 "Order Address"
         {
             CaptionClass = '5,1,' + "Country/Region Code";
             Caption = 'County';
+            ToolTip = 'Specifies the county of the address.';
         }
         field(102; "E-Mail"; Text[80])
         {
             Caption = 'Email';
+            ToolTip = 'Specifies the email address associated with the order address.';
             ExtendedDatatype = EMail;
 
             trigger OnValidate()
@@ -156,6 +170,7 @@ table 224 "Order Address"
 #endif
         {
             Caption = 'Home Page';
+            ToolTip = 'Specifies the recipient''s web site.';
             ExtendedDatatype = URL;
         }
     }

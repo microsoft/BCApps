@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -32,7 +32,6 @@ page 189 "Incoming Document"
                 {
                     ApplicationArea = Basic, Suite;
                     Importance = Promoted;
-                    ToolTip = 'Specifies the description of the incoming document. You must enter the description manually.';
                 }
                 field(URL; Rec.URL)
                 {
@@ -67,7 +66,6 @@ page 189 "Incoming Document"
                     ApplicationArea = Basic, Suite;
                     Editable = IsDataExchTypeEditable;
                     Importance = Additional;
-                    ToolTip = 'Specifies the data exchange type that is used to process the incoming document when it is an electronic document.';
 
                     trigger OnValidate()
                     begin
@@ -92,14 +90,12 @@ page 189 "Incoming Document"
                 {
                     ApplicationArea = Basic, Suite;
                     Importance = Promoted;
-                    ToolTip = 'Specifies the type of document or journal that the incoming document can be connected to.';
                     Visible = false;
                 }
                 field("Document No."; Rec."Document No.")
                 {
                     ApplicationArea = Basic, Suite;
                     Importance = Promoted;
-                    ToolTip = 'Specifies the number of the related document or journal line that is created for the incoming document.';
                     Visible = false;
                 }
                 field(StatusField; Rec.Status)
@@ -107,12 +103,10 @@ page 189 "Incoming Document"
                     ApplicationArea = Basic, Suite;
                     Importance = Promoted;
                     StyleExpr = StatusStyleText;
-                    ToolTip = 'Specifies the status of the incoming document record.';
                 }
                 field("OCR Status"; Rec."OCR Status")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the status of the incoming document record when it takes part in the OCR process.';
 
                     trigger OnDrillDown()
                     var
@@ -127,12 +121,10 @@ page 189 "Incoming Document"
                 {
                     ApplicationArea = Basic, Suite;
                     Editable = false;
-                    ToolTip = 'Specifies the process stage of the track ID in relation to the OCR service.';
                 }
                 field("Job Queue Status"; Rec."Job Queue Status")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the status of the job queue entry that is processing the incoming document.';
 
                     trigger OnDrillDown()
                     var
@@ -150,13 +142,11 @@ page 189 "Incoming Document"
                     {
                         ApplicationArea = Basic, Suite;
                         Importance = Additional;
-                        ToolTip = 'Specifies the code of the document template that you want the OCR service provider to use when they convert the incoming-document file to an electronic document. Chose the field to pick a supported document template from the OCR Service Setup window.';
                     }
                     field("OCR Service Doc. Template Name"; Rec."OCR Service Doc. Template Name")
                     {
                         ApplicationArea = Basic, Suite;
                         Importance = Additional;
-                        ToolTip = 'Specifies the name of the document template that you want the OCR service provider to use when they convert the incoming-document file to an electronic document. Chose the field to pick a supported document template from the OCR Service Setup window.';
                     }
                     field(OCRResultFileName; OCRResultFileName)
                     {
@@ -180,59 +170,49 @@ page 189 "Incoming Document"
                     {
                         ApplicationArea = Basic, Suite;
                         Importance = Additional;
-                        ToolTip = 'Specifies when the incoming document line was created.';
                     }
                     field("Created By User Name"; Rec."Created By User Name")
                     {
                         ApplicationArea = Basic, Suite;
                         Importance = Additional;
-                        ToolTip = 'Specifies the name of the user who created the incoming document line.';
                     }
                     field(Released; Rec.Released)
                     {
                         ApplicationArea = Basic, Suite;
-                        ToolTip = 'Specifies if the incoming document has been approved.';
                         Visible = false;
                     }
                     field("Released Date-Time"; Rec."Released Date-Time")
                     {
                         ApplicationArea = Basic, Suite;
                         Importance = Additional;
-                        ToolTip = 'Specifies when the incoming document was approved.';
                     }
                     field("Released By User Name"; Rec."Released By User Name")
                     {
                         ApplicationArea = Basic, Suite;
                         Importance = Additional;
-                        ToolTip = 'Specifies the name of the user who approved the incoming document.';
                     }
                     field("Last Date-Time Modified"; Rec."Last Date-Time Modified")
                     {
                         ApplicationArea = Basic, Suite;
                         Importance = Additional;
-                        ToolTip = 'Specifies when the incoming document line was last modified.';
                     }
                     field("Last Modified By User Name"; Rec."Last Modified By User Name")
                     {
                         ApplicationArea = Basic, Suite;
                         Importance = Additional;
-                        ToolTip = 'Specifies the name of the user who last modified the incoming document line.';
                     }
                     field(Posted; Rec.Posted)
                     {
                         ApplicationArea = Basic, Suite;
-                        ToolTip = 'Specifies if the document or journal line that was created for this incoming document has been posted.';
                     }
                     field("Posted Date-Time"; Rec."Posted Date-Time")
                     {
                         ApplicationArea = Basic, Suite;
                         Importance = Additional;
-                        ToolTip = 'Specifies when the related document or journal line was posted.';
                     }
                     field("Posting Date"; Rec."Posting Date")
                     {
                         ApplicationArea = Basic, Suite;
-                        ToolTip = 'Specifies when the document or journal line that relates to the incoming document was posted.';
                         Visible = false;
                     }
                 }
@@ -253,20 +233,17 @@ page 189 "Incoming Document"
                     ApplicationArea = Basic, Suite;
                     Editable = false;
                     Importance = Promoted;
-                    ToolTip = 'Specifies the number of the vendor on the incoming document. The field may be filled automatically.';
                 }
                 field("Vendor Name"; Rec."Vendor Name")
                 {
                     ApplicationArea = Basic, Suite;
                     Editable = false;
                     Importance = Promoted;
-                    ToolTip = 'Specifies the name of the vendor on the incoming document. The field may be filled automatically.';
                 }
                 field("Vendor VAT Registration No."; Rec."Vendor VAT Registration No.")
                 {
                     ApplicationArea = Basic, Suite;
                     Editable = false;
-                    ToolTip = 'Specifies the VAT registration number of the vendor, if the document contains that number. The field may be filled automatically.';
                 }
                 field("Vendor IBAN"; Rec."Vendor IBAN")
                 {
@@ -284,63 +261,53 @@ page 189 "Incoming Document"
                 {
                     ApplicationArea = Basic, Suite;
                     Editable = false;
-                    ToolTip = 'Specifies the bank account number of the vendor on the incoming document.';
                 }
                 field("Vendor Phone No."; Rec."Vendor Phone No.")
                 {
                     ApplicationArea = Basic, Suite;
                     Editable = false;
-                    ToolTip = 'Specifies the phone number of the vendor on the incoming document.';
                 }
                 field("Vendor Invoice No."; Rec."Vendor Invoice No.")
                 {
                     ApplicationArea = Basic, Suite;
                     Editable = false;
-                    ToolTip = 'Specifies the document number of the original document you received from the vendor. You can require the document number for posting, or let it be optional. By default, it''s required, so that this document references the original. Making document numbers optional removes a step from the posting process. For example, if you attach the original invoice as a PDF, you might not need to enter the document number. To specify whether document numbers are required, in the Purchases & Payables Setup window, select or clear the Ext. Doc. No. Mandatory field.';
                 }
                 field("Order No."; Rec."Order No.")
                 {
                     ApplicationArea = Basic, Suite;
                     Caption = 'Vendor Order No.';
                     Editable = false;
-                    ToolTip = 'Specifies the order number, if the document contains that number. The field may be filled automatically.';
                 }
                 field("Document Date"; Rec."Document Date")
                 {
                     ApplicationArea = Basic, Suite;
                     Editable = false;
                     Importance = Promoted;
-                    ToolTip = 'Specifies the date that is printed on the incoming document. This is the date when the vendor created the invoice, for example. The field may be filled automatically.';
                 }
                 field("Due Date"; Rec."Due Date")
                 {
                     ApplicationArea = Basic, Suite;
                     Editable = false;
-                    ToolTip = 'Specifies the date when the vendor document must be paid. The field may be filled automatically.';
                 }
                 field("Currency Code"; Rec."Currency Code")
                 {
                     ApplicationArea = Suite;
                     Editable = false;
-                    ToolTip = 'Specifies the currency code, if the document contains that code. The field may be filled automatically.';
                 }
                 field("Amount Excl. VAT"; Rec."Amount Excl. VAT")
                 {
                     ApplicationArea = Basic, Suite;
                     Editable = false;
-                    ToolTip = 'Specifies the amount excluding VAT for the whole document. The field may be filled automatically.';
                 }
                 field("Amount Incl. VAT"; Rec."Amount Incl. VAT")
                 {
                     ApplicationArea = Basic, Suite;
                     Editable = false;
-                    ToolTip = 'Specifies the amount including VAT for the whole document. The field may be filled automatically.';
                 }
                 field("VAT Amount"; Rec."VAT Amount")
                 {
                     ApplicationArea = Basic, Suite;
                     Editable = false;
-                    ToolTip = 'Specifies the amount of VAT that is included in the total amount.';
                 }
             }
             part(ErrorMessagesPart; "Error Messages Part")

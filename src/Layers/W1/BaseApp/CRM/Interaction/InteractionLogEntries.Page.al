@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -33,63 +33,52 @@ page 5076 "Interaction Log Entries"
                 field(Canceled; Rec.Canceled)
                 {
                     ApplicationArea = RelationshipMgmt;
-                    ToolTip = 'Specifies whether the interaction has been canceled. The field is not editable.';
                 }
                 field("Attempt Failed"; Rec."Attempt Failed")
                 {
                     ApplicationArea = RelationshipMgmt;
-                    ToolTip = 'Specifies whether the interaction records an failed attempt to reach the contact. This field is not editable.';
                 }
                 field("Document Type"; Rec."Document Type")
                 {
                     ApplicationArea = RelationshipMgmt;
-                    ToolTip = 'Specifies the type of document if there is one that the interaction log entry records. You cannot change the contents of this field.';
                     Visible = false;
                 }
                 field("Document No."; Rec."Document No.")
                 {
                     ApplicationArea = RelationshipMgmt;
-                    ToolTip = 'Specifies the number of the document (if any) that the interaction log entry records.';
                     Visible = false;
                 }
                 field("Delivery Status"; Rec."Delivery Status")
                 {
                     ApplicationArea = RelationshipMgmt;
-                    ToolTip = 'Specifies the status of the delivery of the attachment. There are three options:';
                     Visible = false;
                 }
                 field(Date; Rec.Date)
                 {
                     ApplicationArea = All;
-                    ToolTip = 'Specifies the date that you have entered in the Date field in the Create Interaction wizard or the Segment window when you created the interaction. The field is not editable.';
                 }
                 field("Time of Interaction"; Rec."Time of Interaction")
                 {
                     ApplicationArea = RelationshipMgmt;
-                    ToolTip = 'Specifies the time when the interaction was created. This field is not editable.';
                     Visible = false;
                 }
                 field("Correspondence Type"; Rec."Correspondence Type")
                 {
                     ApplicationArea = RelationshipMgmt;
-                    ToolTip = 'Specifies the type of correspondence of the attachment in the interaction template. This field is not editable.';
                     Visible = false;
                 }
                 field("Interaction Group Code"; Rec."Interaction Group Code")
                 {
                     ApplicationArea = RelationshipMgmt;
-                    ToolTip = 'Specifies the code of the interaction group used to create this interaction. This field is not editable.';
                     Visible = false;
                 }
                 field("Interaction Template Code"; Rec."Interaction Template Code")
                 {
                     ApplicationArea = RelationshipMgmt;
-                    ToolTip = 'Specifies the code for the interaction template used to create the interaction. This field is not editable.';
                 }
                 field(Description; Rec.Description)
                 {
                     ApplicationArea = All;
-                    ToolTip = 'Specifies the description of the interaction.';
                 }
                 field(Attachment; Rec."Attachment No." <> 0)
                 {
@@ -107,40 +96,33 @@ page 5076 "Interaction Log Entries"
                 field("Information Flow"; Rec."Information Flow")
                 {
                     ApplicationArea = RelationshipMgmt;
-                    ToolTip = 'Specifies the direction of information flow recorded by the interaction. There are two options: Outbound (the information was received by your contact) and Inbound (the information was received by your company).';
                     Visible = false;
                 }
                 field("Initiated By"; Rec."Initiated By")
                 {
                     ApplicationArea = RelationshipMgmt;
-                    ToolTip = 'Specifies who initiated the interaction. There are two options: Us (the interaction was initiated by your company) and Them (the interaction was initiated by your contact).';
                     Visible = false;
                 }
                 field("Contact No."; Rec."Contact No.")
                 {
                     ApplicationArea = RelationshipMgmt;
-                    ToolTip = 'Specifies the number of the contact involved in this interaction. This field is not editable.';
                 }
                 field("Contact Name"; Rec."Contact Name")
                 {
                     ApplicationArea = RelationshipMgmt;
-                    ToolTip = 'Specifies the name of the contact for which an interaction has been logged.';
                 }
                 field("Contact Company No."; Rec."Contact Company No.")
                 {
                     ApplicationArea = RelationshipMgmt;
-                    ToolTip = 'Specifies the number of the contact company.';
                     Visible = false;
                 }
                 field("Contact Company Name"; Rec."Contact Company Name")
                 {
                     ApplicationArea = RelationshipMgmt;
-                    ToolTip = 'Specifies the name of the contact company for which an interaction has been logged.';
                 }
                 field(Evaluation; Rec.Evaluation)
                 {
                     ApplicationArea = RelationshipMgmt;
-                    ToolTip = 'Specifies the evaluation of the interaction. There are five options: Very Positive, Positive, Neutral, Negative, and Very Negative.';
                 }
                 field("Cost (LCY)"; Rec."Cost (LCY)")
                 {
@@ -155,12 +137,10 @@ page 5076 "Interaction Log Entries"
                 field("Salesperson Code"; Rec."Salesperson Code")
                 {
                     ApplicationArea = Suite;
-                    ToolTip = 'Specifies the code for the salesperson who carried out the interaction. This field is not editable.';
                 }
                 field("User ID"; Rec."User ID")
                 {
                     ApplicationArea = RelationshipMgmt;
-                    ToolTip = 'Specifies the ID of the user who logged this entry. This field is not editable.';
                     Visible = false;
 
                     trigger OnDrillDown()
@@ -173,70 +153,58 @@ page 5076 "Interaction Log Entries"
                 field("Segment No."; Rec."Segment No.")
                 {
                     ApplicationArea = RelationshipMgmt;
-                    ToolTip = 'Specifies the number of the segment. This field is valid only for interactions created for segments, and is not editable.';
                     Visible = false;
                 }
                 field("Campaign No."; Rec."Campaign No.")
                 {
                     ApplicationArea = RelationshipMgmt;
-                    ToolTip = 'Specifies the number of the campaign (if any) to which the interaction is linked. This field is not editable.';
                 }
                 field("Campaign Entry No."; Rec."Campaign Entry No.")
                 {
                     ApplicationArea = RelationshipMgmt;
-                    ToolTip = 'Specifies the number of the campaign entry to which the interaction log entry is linked.';
                     Visible = false;
                 }
                 field("Campaign Response"; Rec."Campaign Response")
                 {
                     ApplicationArea = RelationshipMgmt;
-                    ToolTip = 'Specifies whether the interaction records a response to a campaign.';
                     Visible = false;
                 }
                 field("Campaign Target"; Rec."Campaign Target")
                 {
                     ApplicationArea = RelationshipMgmt;
-                    ToolTip = 'Specifies whether the interaction is applied to contacts that are part of the campaign target. This field is not editable.';
                     Visible = false;
                 }
                 field("Opportunity No."; Rec."Opportunity No.")
                 {
                     ApplicationArea = RelationshipMgmt;
-                    ToolTip = 'Specifies the number of the opportunity to which the interaction is linked.';
                 }
                 field("To-do No."; Rec."To-do No.")
                 {
                     ApplicationArea = RelationshipMgmt;
-                    ToolTip = 'Specifies the number of the task if the interaction has been created to complete a task. This field is not editable.';
                     Visible = false;
                 }
                 field("Interaction Language Code"; Rec."Interaction Language Code")
                 {
                     ApplicationArea = RelationshipMgmt;
-                    ToolTip = 'Specifies the language code for the interaction for the interaction log. The code is copied from the language code of the interaction template, if one is specified.';
                     Visible = false;
                 }
                 field(Subject; Rec.Subject)
                 {
                     ApplicationArea = RelationshipMgmt;
-                    ToolTip = 'Specifies the subject text that will be used for this interaction.';
                     Visible = false;
                 }
                 field("Contact Via"; Rec."Contact Via")
                 {
                     ApplicationArea = RelationshipMgmt;
-                    ToolTip = 'Specifies the telephone number that you used when calling the contact.';
                     Visible = false;
                 }
                 field("Entry No."; Rec."Entry No.")
                 {
                     ApplicationArea = All;
-                    ToolTip = 'Specifies the number of the entry, as assigned from the specified number series when the entry was created.';
                 }
                 field(Comment; Rec.Comment)
                 {
                     ApplicationArea = Comments;
-                    ToolTip = 'Specifies that a comment exists for this interaction log entry.';
                 }
             }
         }

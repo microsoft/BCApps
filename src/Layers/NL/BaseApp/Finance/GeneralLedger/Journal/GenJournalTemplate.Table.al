@@ -19,6 +19,7 @@ using Microsoft.Projects.Project.Journal;
 using Microsoft.Purchases.Vendor;
 using Microsoft.Sales.Customer;
 using System.Reflection;
+using System.Security.User;
 
 /// <summary>
 /// Stores journal template definitions that control journal behavior, validation rules, and user interface features.
@@ -422,6 +423,16 @@ table 80 "Gen. Journal Template"
         field(32; "Allow Posting Date From"; Date)
         {
             Caption = 'Allow Posting Date From';
+
+            trigger OnValidate()
+            begin
+                if xRec."Allow Posting Date From" <> Rec."Allow Posting Date From" then begin
+                    if Rec."Allow Posting Date From" <> 0D then
+                        Evaluate(Rec."Allow Posting From DateFormula", '');
+
+                    CheckDateRange();
+                end;
+            end;
         }
         /// <summary>
         /// End date for allowable posting dates when using this journal template.
@@ -429,6 +440,16 @@ table 80 "Gen. Journal Template"
         field(33; "Allow Posting Date To"; Date)
         {
             Caption = 'Allow Posting Date To';
+
+            trigger OnValidate()
+            begin
+                if xRec."Allow Posting Date To" <> Rec."Allow Posting Date To" then begin
+                    if Rec."Allow Posting Date To" <> 0D then
+                        Evaluate(Rec."Allow Posting To DateFormula", '');
+
+                    CheckDateRange();
+                end;
+            end;
         }
         /// <summary>
         /// Automatically unlinks incoming documents from journal lines when posting for document workflow management.
@@ -441,6 +462,34 @@ table 80 "Gen. Journal Template"
             begin
                 if "Unlink Inc. Doc On Posting" then
                     TestField(Recurring);
+            end;
+        }
+        field(35; "Allow Posting From DateFormula"; DateFormula)
+        {
+            Caption = 'Allow Posting From DateFormula';
+
+            trigger OnValidate()
+            begin
+                if xRec."Allow Posting From DateFormula" <> Rec."Allow Posting From DateFormula" then begin
+                    if Format(Rec."Allow Posting From DateFormula") <> '' then
+                        Rec.Validate("Allow Posting Date From", 0D);
+
+                    CheckDateRange();
+                end;
+            end;
+        }
+        field(36; "Allow Posting To DateFormula"; DateFormula)
+        {
+            Caption = 'Allow Posting To DateFormula';
+
+            trigger OnValidate()
+            begin
+                if xRec."Allow Posting To DateFormula" <> Rec."Allow Posting To DateFormula" then begin
+                    if Format(Rec."Allow Posting To DateFormula") <> '' then
+                        Rec.Validate("Allow Posting Date To", 0D);
+
+                    CheckDateRange();
+                end;
             end;
         }
         field(11402; "No. of CBG Statements"; Integer)
@@ -507,6 +556,20 @@ table 80 "Gen. Journal Template"
         end;
 
         OnAfterCheckGLAcc(Rec, GLAcc);
+    end;
+
+    local procedure CheckDateRange()
+    var
+        UserSetupManagement: Codeunit "User Setup Management";
+        AllowedFrom: Date;
+        AllowedTo: Date;
+    begin
+        AllowedFrom := Rec."Allow Posting Date From";
+        AllowedTo := Rec."Allow Posting Date To";
+        UserSetupManagement.GetDateRange(
+            AllowedFrom, AllowedTo,
+            Rec."Allow Posting From DateFormula", Rec."Allow Posting To DateFormula",
+            Rec.RecordId());
     end;
 
     /// <summary>

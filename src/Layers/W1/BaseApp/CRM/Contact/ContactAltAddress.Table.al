@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -27,27 +27,33 @@ table 5051 "Contact Alt. Address"
         field(2; "Code"; Code[10])
         {
             Caption = 'Code';
+            ToolTip = 'Specifies the code for the alternate address.';
             NotBlank = true;
         }
         field(3; "Company Name"; Text[100])
         {
             Caption = 'Company Name';
+            ToolTip = 'Specifies the name of the company for the alternate address.';
         }
         field(4; "Company Name 2"; Text[50])
         {
             Caption = 'Company Name 2';
+            ToolTip = 'Specifies the additional part of the company name for the alternate address.';
         }
         field(5; Address; Text[100])
         {
             Caption = 'Address';
+            ToolTip = 'Specifies the alternate address of the contact.';
         }
         field(6; "Address 2"; Text[50])
         {
             Caption = 'Address 2';
+            ToolTip = 'Specifies additional address information.';
         }
         field(7; City; Text[30])
         {
             Caption = 'City';
+            ToolTip = 'Specifies the city of the contact''s alternate address.';
             TableRelation = if ("Country/Region Code" = const('')) "Post Code".City
             else
             if ("Country/Region Code" = filter(<> '')) "Post Code".City where("Country/Region Code" = field("Country/Region Code"));
@@ -71,6 +77,7 @@ table 5051 "Contact Alt. Address"
         field(8; "Post Code"; Code[20])
         {
             Caption = 'Post Code';
+            ToolTip = 'Specifies the postal code.';
             TableRelation = if ("Country/Region Code" = const('')) "Post Code"
             else
             if ("Country/Region Code" = filter(<> '')) "Post Code" where("Country/Region Code" = field("Country/Region Code"));
@@ -95,10 +102,12 @@ table 5051 "Contact Alt. Address"
         {
             CaptionClass = '5,1,' + "Country/Region Code";
             Caption = 'County';
+            ToolTip = 'Specifies the county for the contact''s alternate address.';
         }
         field(10; "Country/Region Code"; Code[10])
         {
             Caption = 'Country/Region Code';
+            ToolTip = 'Specifies the country/region of the address.';
             TableRelation = "Country/Region";
 
             trigger OnValidate()
@@ -109,6 +118,7 @@ table 5051 "Contact Alt. Address"
         field(12; "Phone No."; Text[30])
         {
             Caption = 'Phone No.';
+            ToolTip = 'Specifies the telephone number for the alternate address.';
             ExtendedDatatype = PhoneNo;
 
             trigger OnValidate()
@@ -124,6 +134,7 @@ table 5051 "Contact Alt. Address"
         field(13; "Telex No."; Text[20])
         {
             Caption = 'Telex No.';
+            ToolTip = 'Specifies the telex number for the alternate address.';
         }
         field(14; "Extension No."; Text[30])
         {
@@ -132,6 +143,7 @@ table 5051 "Contact Alt. Address"
         field(15; "Mobile Phone No."; Text[30])
         {
             Caption = 'Mobile Phone No.';
+            ToolTip = 'Specifies the mobile phone number for the alternate address.';
             ExtendedDatatype = PhoneNo;
 
             trigger OnValidate()
@@ -147,10 +159,12 @@ table 5051 "Contact Alt. Address"
         field(16; Pager; Text[30])
         {
             Caption = 'Pager';
+            ToolTip = 'Specifies the pager number for the contact at the alternate address.';
         }
         field(17; "E-Mail"; Text[80])
         {
             Caption = 'Email';
+            ToolTip = 'Specifies the e-mail address for the contact at the alternate address.';
             ExtendedDatatype = EMail;
 
             trigger OnValidate()
@@ -170,15 +184,18 @@ table 5051 "Contact Alt. Address"
 #endif
         {
             Caption = 'Home Page';
+            ToolTip = 'Specifies the contact''s web site.';
             ExtendedDatatype = URL;
         }
         field(19; "Fax No."; Text[30])
         {
             Caption = 'Fax No.';
+            ToolTip = 'Specifies the fax number for the alternate address.';
         }
         field(20; "Telex Answer Back"; Text[20])
         {
             Caption = 'Telex Answer Back';
+            ToolTip = 'Specifies the telex answer back number for the alternate address.';
         }
         field(21; "Last Date Modified"; Date)
         {

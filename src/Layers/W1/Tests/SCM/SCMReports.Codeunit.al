@@ -30,9 +30,11 @@ codeunit 137309 "SCM Reports"
         ProductionBOMStatusErr: Label 'The maximum number of BOM levels, %1, was exceeded. The process stopped at item number %2, BOM header number', Comment = '%1 = Max. Level Value, %2 = Item No. Value';
         LineCountErr: Label 'Line count on page does not match line count in table for Usage %1.', Comment = '%1 = The report type being tested, e.g. Sales Invoice';
         MustBeEmptyErr: Label '%1 must be empty for %2.', Comment = '%1 = the expected value, %2 = the actual value.';
+#if not CLEAN28
         RepItemAgeCompQty_Qty1Txt: Label 'InvtQty1_ItemLedgEntry';
         RepItemAgeCompQty_Qty3Txt: Label 'InvtQty3_ItemLedgEntry';
         RepItemAgeCompQty_TotalTxt: Label 'TotalInvtQty';
+#endif
 
     [Test]
     [HandlerFunctions('ItemAgeCompositionValueRequestPageHandler')]
@@ -72,9 +74,11 @@ codeunit 137309 "SCM Reports"
         VerifyItemAgeCompositionReport(ItemNo, Column1, Column2, GetCostAmountFromItemLedgerEntry(ItemNo), 0);
     end;
 
+#if not CLEAN28
     [Test]
     [HandlerFunctions('ItemAgeCompositionQtyRequestPageHandler')]
     [Scope('OnPrem')]
+    [Obsolete('Item Age Composition - Qty. report has been deprecated', '28.0')]
     procedure ItemAgeCompositionQuantityWithoutPeriodLength()
     begin
         // [FEATURE] [Item] [Item Age Composition - Qty.]
@@ -87,6 +91,7 @@ codeunit 137309 "SCM Reports"
     [Test]
     [HandlerFunctions('ItemAgeCompositionQtyRequestPageHandler')]
     [Scope('OnPrem')]
+    [Obsolete('Item Age Composition - Qty. report has been deprecated', '28.0')]
     procedure ItemAgeCompositionQuantityWithPeriodLength()
     begin
         // [FEATURE] [Item] [Item Age Composition - Qty.]
@@ -102,6 +107,7 @@ codeunit 137309 "SCM Reports"
     [Test]
     [HandlerFunctions('ItemAgeCompositionQtyRequestPageHandler')]
     [Scope('OnPrem')]
+    [Obsolete('Item Age Composition - Qty. report has been deprecated', '28.0')]
     procedure ItemAgeCompositionQuantityLocationFilter()
     var
         PeriodLength: DateFormula;
@@ -129,7 +135,9 @@ codeunit 137309 "SCM Reports"
         ExpectedQty := GetQuantityFromItemLedgerEntry(ItemNo, LocationCode[1]);
         VerifyItemAgeCompositionReport(ItemNo, RepItemAgeCompQty_Qty1Txt, RepItemAgeCompQty_TotalTxt, ExpectedQty, ExpectedQty);
     end;
+#endif
 
+#if not CLEAN28
     local procedure RunItemAgeCompositionQuantityReportAndValidateData(RandomDays: Integer; Column1: Text[30]; Column2: Text[30])
     var
         PeriodLength: DateFormula;
@@ -148,6 +156,7 @@ codeunit 137309 "SCM Reports"
         ExpectedQty := GetQuantityFromItemLedgerEntry(ItemNo, '');
         VerifyItemAgeCompositionReport(ItemNo, Column1, Column2, ExpectedQty, ExpectedQty);
     end;
+#endif
 
     [Test]
     [HandlerFunctions('CalcInventoryValueTestRequestPageHandler')]
@@ -1234,9 +1243,11 @@ codeunit 137309 "SCM Reports"
         InvValuationWIPReportForCostPostedtoGL(InventoryValuationWIPDate, InventoryValuationWIPDate);
     end;
 
+#if not CLEAN28
     [Test]
     [HandlerFunctions('ItemAgeCompositionQtyRequestPageHandler')]
     [Scope('OnPrem')]
+    [Obsolete('Item Age Composition - Qty. report has been deprecated', '28.0')]
     procedure CheckItemAgeCompositionQtyWithYear()
     var
         ItemNo: Code[20];
@@ -1260,6 +1271,7 @@ codeunit 137309 "SCM Reports"
     [Test]
     [HandlerFunctions('ItemAgeCompositionValueRequestPageHandler')]
     [Scope('OnPrem')]
+    [Obsolete('Item Age Composition - Value report has been deprecated', '28.0')]
     procedure CheckItemAgeCompositionValueWithYear()
     var
         ItemNo: Code[20];
@@ -1279,6 +1291,7 @@ codeunit 137309 "SCM Reports"
         // Verify: Verifying that report running successfully with year value and Item no on report.
         VerifyItemNoOnItemAgeCompositionReport(ItemNo);
     end;
+#endif
 
     [Test]
     [Scope('OnPrem')]
@@ -1432,7 +1445,8 @@ codeunit 137309 "SCM Reports"
         LibraryTestInitialize.OnAfterTestSuiteInitialize(CODEUNIT::"SCM Reports");
     end;
 
-    local procedure AddParentItemAsBOMComponent(Type: Enum "Production BOM Line Type"; No: Code[20]; ItemProductionBOMNo: Code[20])
+    local procedure AddParentItemAsBOMComponent(Type: Enum "Production BOM Line Type"; No: Code[20];
+                                                          ItemProductionBOMNo: Code[20])
     var
         ProductionBOMHeader: Record "Production BOM Header";
         ProductionBOMLine: Record "Production BOM Line";
@@ -1679,7 +1693,9 @@ codeunit 137309 "SCM Reports"
         ParentItem.Modify(true);
     end;
 
-    local procedure CreateItemWithReplSysAndCostingMethod(var Item: Record Item; CostingMethod: Enum "Costing Method"; ReplenishmentSystem: Enum "Replenishment System"; ProductionBOMNo: Code[20]; UnitCost: Decimal)
+    local procedure CreateItemWithReplSysAndCostingMethod(var Item: Record Item; CostingMethod: Enum "Costing Method"; ReplenishmentSystem: Enum "Replenishment System";
+                                                                                                    ProductionBOMNo: Code[20];
+                                                                                                    UnitCost: Decimal)
     begin
         LibraryInventory.CreateItem(Item);
         Item.Validate("Costing Method", CostingMethod);
@@ -1689,7 +1705,8 @@ codeunit 137309 "SCM Reports"
         Item.Modify(true);
     end;
 
-    local procedure CreateManufacturingItem(var Item: Record Item; CostingMethod: Enum "Costing Method"; ProductionBOMHeaderStatus: Enum "BOM Status"; RoutingHeaderStatus: Enum "Routing Status")
+    local procedure CreateManufacturingItem(var Item: Record Item; CostingMethod: Enum "Costing Method"; ProductionBOMHeaderStatus: Enum "BOM Status";
+                                                                                      RoutingHeaderStatus: Enum "Routing Status")
     begin
         LibraryInventory.CreateItem(Item);
         Item.Validate("Costing Method", CostingMethod);
@@ -1731,7 +1748,8 @@ codeunit 137309 "SCM Reports"
         ProductionBOMCopy.CopyBOM(ProductionBOMHeader."No.", '', ProductionBOMHeader, ProductionBOMVersion."Version Code");
     end;
 
-    local procedure CreatePurchaseLine(var PurchaseLine: Record "Purchase Line"; PurchaseHeader: Record "Purchase Header"; Type: Enum "Purchase Line Type"; ItemNo: Code[20]; Quantity: Decimal)
+    local procedure CreatePurchaseLine(var PurchaseLine: Record "Purchase Line"; PurchaseHeader: Record "Purchase Header"; Type: Enum "Purchase Line Type"; ItemNo: Code[20];
+                                                                                                                                     Quantity: Decimal)
     begin
         LibraryPurchase.CreatePurchaseLine(PurchaseLine, PurchaseHeader, Type, ItemNo, Quantity);
         PurchaseLine.Validate("Direct Unit Cost", LibraryRandom.RandInt(100));  // Value not Important for test.
@@ -1777,7 +1795,8 @@ codeunit 137309 "SCM Reports"
           RoutingLine.Type::"Machine Center", MachineCenter."No.");
     end;
 
-    local procedure CreateSalesLine(var SalesLine: Record "Sales Line"; SalesHeader: Record "Sales Header"; Type: Enum "Sales Line Type"; ItemNo: Code[20]; Quantity: Decimal)
+    local procedure CreateSalesLine(var SalesLine: Record "Sales Line"; SalesHeader: Record "Sales Header"; Type: Enum "Sales Line Type"; ItemNo: Code[20];
+                                                                                                                      Quantity: Decimal)
     begin
         LibrarySales.CreateSalesLine(SalesLine, SalesHeader, Type, ItemNo, Quantity);
         SalesLine.Validate("Unit Price", LibraryRandom.RandDec(100, 2)); // Use random Unit Price.
@@ -1916,12 +1935,14 @@ codeunit 137309 "SCM Reports"
         Result := ReportSelections.Count();
     end;
 
+#if not CLEAN28
     local procedure CreateLocation(): Code[10]
     var
         Location: Record Location;
     begin
         exit(LibraryWarehouse.CreateLocationWithInventoryPostingSetup(Location));
     end;
+#endif
 
     local procedure FindBin(var Bin: Record Bin; LocationCode: Code[10])
     var
@@ -2000,6 +2021,7 @@ codeunit 137309 "SCM Reports"
         until ValueEntry.Next() = 0;
     end;
 
+#if not CLEAN28
     local procedure GetQuantityFromItemLedgerEntry(ItemNo: Code[20]; LocationCode: Code[10]): Decimal
     var
         ItemLedgerEntry: Record "Item Ledger Entry";
@@ -2010,6 +2032,7 @@ codeunit 137309 "SCM Reports"
         ItemLedgerEntry.FindFirst();
         exit(ItemLedgerEntry.Quantity);
     end;
+#endif
 
     local procedure InvValuationWIPReportForCostPostedtoGL(InventoryValuationWIPDate: Date; AllowPostingFromDate: Date)
     var
@@ -2191,6 +2214,7 @@ codeunit 137309 "SCM Reports"
         Report.Run(Report::"Compare Production Cost Shares", true, false);
     end;
 
+#if not CLEAN28
     local procedure RunItemAgeCompositionQuantityReport(ItemNo: Code[20]; PeriodLength: DateFormula; LocationFilter: Text)
     var
         Item: Record Item;
@@ -2201,6 +2225,7 @@ codeunit 137309 "SCM Reports"
         LibraryVariableStorage.Enqueue(LocationFilter);
         REPORT.Run(REPORT::"Item Age Composition - Qty.", true, false, Item);
     end;
+#endif
 
     local procedure RunItemAgeCompositionValueReport(ItemNo: Code[20]; PeriodLength: DateFormula)
     var
@@ -2372,11 +2397,13 @@ codeunit 137309 "SCM Reports"
         LibraryReportDataset.AssertCurrentRowValueEquals('CostperUnit_ValueEntry', ValueEntry."Cost per Unit");
     end;
 
+#if not CLEAN28
     local procedure VerifyItemNoOnItemAgeCompositionReport(ItemNo: Code[20])
     begin
         LibraryReportDataset.LoadDataSetFile();
         LibraryReportDataset.AssertElementWithValueExists('No_Item', ItemNo);
     end;
+#endif
 
     local procedure VerifySubcontractorDispatchListReport(ProductionOrder: Record "Production Order"; ProdOrderRoutingLine: Record "Prod. Order Routing Line")
     begin
@@ -2447,7 +2474,9 @@ codeunit 137309 "SCM Reports"
         LibraryReportDataset.AssertCurrentRowValueEquals('ProdBOMLineLevelDesc', Item.Description);
     end;
 
-    local procedure VerifyProductionBomErrorForTheReport(Item: Record Item; Type: Enum "Production BOM Line Type"; No: Code[20]; ProdBomNo: Code[20]; ReportId: Integer)
+    local procedure VerifyProductionBomErrorForTheReport(Item: Record Item; Type: Enum "Production BOM Line Type"; No: Code[20];
+                                                                                      ProdBomNo: Code[20];
+                                                                                      ReportId: Integer)
     begin
         // Setup: Add Type ProductionBom/Item as a Component in BOM.
         AddParentItemAsBOMComponent(Type, No, ProdBomNo);
@@ -2558,8 +2587,10 @@ codeunit 137309 "SCM Reports"
         ItemAgeCompositionValue.SaveAsXml(LibraryReportDataset.GetParametersFileName(), LibraryReportDataset.GetFileName());
     end;
 
+#if not CLEAN28
     [RequestPageHandler]
     [Scope('OnPrem')]
+    [Obsolete('Item Age Composition - Qty. report has been deprecated', '28.0')]
     procedure ItemAgeCompositionQtyRequestPageHandler(var ItemAgeCompositionQty: TestRequestPage "Item Age Composition - Qty.")
     begin
         ItemAgeCompositionQty.EndingDate.SetValue(LibraryVariableStorage.DequeueDate());
@@ -2567,6 +2598,7 @@ codeunit 137309 "SCM Reports"
         ItemAgeCompositionQty.Item.SetFilter("Location Filter", LibraryVariableStorage.DequeueText());
         ItemAgeCompositionQty.SaveAsXml(LibraryReportDataset.GetParametersFileName(), LibraryReportDataset.GetFileName());
     end;
+#endif
 
     [RequestPageHandler]
     [Scope('OnPrem')]
@@ -2638,7 +2670,10 @@ codeunit 137309 "SCM Reports"
 
     [ModalPageHandler]
     [Scope('OnPrem')]
-    procedure ProdJournalPageHandler(var ProductionJournal: Page "Production Journal"; var Response: Action)
+    procedure ProdJournalPageHandler(var ProductionJournal: Page "Production Journal";
+
+    var
+        Response: Action)
     var
         ItemJournalLine: Record "Item Journal Line";
         ProductionOrderNo: Variant;

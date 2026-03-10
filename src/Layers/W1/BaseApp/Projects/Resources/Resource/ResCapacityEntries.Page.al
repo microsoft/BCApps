@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -24,27 +24,22 @@ page 224 "Res. Capacity Entries"
                 field(Date; Rec.Date)
                 {
                     ApplicationArea = Jobs;
-                    ToolTip = 'Specifies the date for which the capacity entry is valid.';
                 }
                 field("Resource No."; Rec."Resource No.")
                 {
                     ApplicationArea = Jobs;
-                    ToolTip = 'Specifies the number of the corresponding resource.';
                 }
                 field("Resource Group No."; Rec."Resource Group No.")
                 {
                     ApplicationArea = Jobs;
-                    ToolTip = 'Specifies the number of the corresponding resource group assigned to the resource.';
                 }
                 field(Capacity; Rec.Capacity)
                 {
                     ApplicationArea = Jobs;
-                    ToolTip = 'Specifies the capacity that is calculated and recorded. The capacity is in the unit of measure.';
                 }
                 field("Entry No."; Rec."Entry No.")
                 {
                     ApplicationArea = Jobs;
-                    ToolTip = 'Specifies the number of the entry, as assigned from the specified number series when the entry was created.';
                 }
             }
         }

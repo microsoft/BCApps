@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -29,48 +29,58 @@ table 7312 "Warehouse Entry"
         field(1; "Entry No."; Integer)
         {
             Caption = 'Entry No.';
+            ToolTip = 'Specifies the number of the entry, as assigned from the specified number series when the entry was created.';
         }
         field(2; "Journal Batch Name"; Code[10])
         {
             Caption = 'Journal Batch Name';
+            ToolTip = 'Specifies the name of the journal batch, a personalized journal layout, that the entries were posted from.';
         }
         field(3; "Line No."; Integer)
         {
             BlankZero = true;
             Caption = 'Line No.';
+            ToolTip = 'Specifies the line number of the warehouse document line or warehouse journal line that was registered.';
         }
         field(4; "Registering Date"; Date)
         {
             Caption = 'Registering Date';
+            ToolTip = 'Specifies the date the entry was registered.';
         }
         field(5; "Location Code"; Code[10])
         {
             Caption = 'Location Code';
+            ToolTip = 'Specifies the code of the location to which the entry is linked.';
             TableRelation = Location;
         }
         field(6; "Zone Code"; Code[10])
         {
             Caption = 'Zone Code';
+            ToolTip = 'Specifies the code of the zone to which the entry is linked.';
             TableRelation = Zone.Code where("Location Code" = field("Location Code"));
         }
         field(7; "Bin Code"; Code[20])
         {
             Caption = 'Bin Code';
+            ToolTip = 'Specifies the bin where the items are picked or put away.';
             TableRelation = Bin.Code where("Location Code" = field("Location Code"));
         }
         field(8; Description; Text[100])
         {
             Caption = 'Description';
+            ToolTip = 'Specifies a description of the warehouse entry.';
         }
         field(9; "Item No."; Code[20])
         {
             Caption = 'Item No.';
+            ToolTip = 'Specifies the number of the item in the entry.';
             TableRelation = Item;
         }
         field(10; Quantity; Decimal)
         {
             AutoFormatType = 0;
             Caption = 'Quantity';
+            ToolTip = 'Specifies the number of units of the item in the warehouse entry.';
             DecimalPlaces = 0 : 5;
         }
         field(11; "Qty. (Base)"; Decimal)
@@ -94,30 +104,36 @@ table 7312 "Warehouse Entry"
         field(20; "Source Type"; Integer)
         {
             Caption = 'Source Type';
+            ToolTip = 'Specifies the table number that is the source of the entry line, for example, 39 for a purchase line, 37 for a sales line.';
         }
         field(21; "Source Subtype"; Option)
         {
             Caption = 'Source Subtype';
+            ToolTip = 'Specifies the source subtype of the document to which the warehouse entry line relates.';
             OptionCaption = '0,1,2,3,4,5,6,7,8,9,10';
             OptionMembers = "0","1","2","3","4","5","6","7","8","9","10";
         }
         field(22; "Source No."; Code[20])
         {
             Caption = 'Source No.';
+            ToolTip = 'Specifies the number of the source document that the entry originates from.';
         }
         field(23; "Source Line No."; Integer)
         {
             BlankZero = true;
             Caption = 'Source Line No.';
+            ToolTip = 'Specifies the line number of the source document that the entry originates from.';
         }
         field(24; "Source Subline No."; Integer)
         {
             Caption = 'Source Subline No.';
+            ToolTip = 'Specifies the source subline number of the document from which the entry originates.';
         }
         field(25; "Source Document"; Enum "Warehouse Journal Source Document")
         {
             BlankZero = true;
             Caption = 'Source Document';
+            ToolTip = 'Specifies the type of document that the line relates to.';
         }
         field(26; "Source Code"; Code[10])
         {
@@ -127,11 +143,13 @@ table 7312 "Warehouse Entry"
         field(29; "Reason Code"; Code[10])
         {
             Caption = 'Reason Code';
+            ToolTip = 'Specifies the reason code, a supplementary source code that enables you to trace the entry.';
             TableRelation = "Reason Code";
         }
         field(33; "No. Series"; Code[20])
         {
             Caption = 'No. Series';
+            ToolTip = 'Specifies the number series from which entry or record numbers are assigned to new entries or records.';
             TableRelation = "No. Series";
         }
         field(35; "Bin Type Code"; Code[10])
@@ -143,25 +161,30 @@ table 7312 "Warehouse Entry"
         {
             AutoFormatType = 0;
             Caption = 'Cubage';
+            ToolTip = 'Specifies the total cubage of the items on the warehouse entry line.';
             DecimalPlaces = 0 : 5;
         }
         field(41; Weight; Decimal)
         {
             AutoFormatType = 0;
             Caption = 'Weight';
+            ToolTip = 'Specifies the weight of one item unit when measured in the specified unit of measure.';
             DecimalPlaces = 0 : 5;
         }
         field(45; "Journal Template Name"; Code[10])
         {
             Caption = 'Journal Template Name';
+            ToolTip = 'Specifies the name of the journal template, the basis of the journal batch, that the entries were posted from.';
         }
         field(50; "Whse. Document No."; Code[20])
         {
             Caption = 'Whse. Document No.';
+            ToolTip = 'Specifies the number of the warehouse document from which this entry originated.';
         }
         field(51; "Whse. Document Type"; Enum "Warehouse Journal Document Type")
         {
             Caption = 'Whse. Document Type';
+            ToolTip = 'Specifies the type of the document from which this entry originated.';
         }
         field(52; "Whse. Document Line No."; Integer)
         {
@@ -171,6 +194,7 @@ table 7312 "Warehouse Entry"
         field(55; "Entry Type"; Option)
         {
             Caption = 'Entry Type';
+            ToolTip = 'Specifies the entry type, which can be Negative Adjmt., Positive Adjmt., or Movement.';
             OptionCaption = 'Negative Adjmt.,Positive Adjmt.,Movement';
             OptionMembers = "Negative Adjmt.","Positive Adjmt.",Movement;
         }
@@ -185,29 +209,34 @@ table 7312 "Warehouse Entry"
         field(67; "User ID"; Code[50])
         {
             Caption = 'User ID';
+            ToolTip = 'Specifies the ID of the user who posted the entry, to be used, for example, in the change log.';
             DataClassification = EndUserIdentifiableInformation;
             TableRelation = User."User Name";
         }
         field(5402; "Variant Code"; Code[10])
         {
             Caption = 'Variant Code';
+            ToolTip = 'Specifies the variant of the item on the line.';
             TableRelation = "Item Variant".Code where("Item No." = field("Item No."));
         }
         field(5404; "Qty. per Unit of Measure"; Decimal)
         {
             AutoFormatType = 0;
             Caption = 'Qty. per Unit of Measure';
+            ToolTip = 'Specifies the number of base units of measure that are in the unit of measure specified for the item on the line.';
             DecimalPlaces = 0 : 5;
             InitValue = 1;
         }
         field(5407; "Unit of Measure Code"; Code[10])
         {
             Caption = 'Unit of Measure Code';
+            ToolTip = 'Specifies how each unit of the item or resource is measured, such as in pieces or hours. By default, the value in the Base Unit of Measure field on the item or resource card is inserted.';
             TableRelation = "Item Unit of Measure".Code where("Item No." = field("Item No."));
         }
         field(6500; "Serial No."; Code[50])
         {
             Caption = 'Serial No.';
+            ToolTip = 'Specifies the serial number.';
 
             trigger OnLookup()
             begin
@@ -217,6 +246,7 @@ table 7312 "Warehouse Entry"
         field(6501; "Lot No."; Code[50])
         {
             Caption = 'Lot No.';
+            ToolTip = 'Specifies the lot number assigned to the warehouse entry.';
 
             trigger OnLookup()
             begin
@@ -230,10 +260,12 @@ table 7312 "Warehouse Entry"
         field(6503; "Expiration Date"; Date)
         {
             Caption = 'Expiration Date';
+            ToolTip = 'Specifies the expiration date of the serial number.';
         }
         field(6515; "Package No."; Code[50])
         {
             Caption = 'Package No.';
+            ToolTip = 'Specifies the package number assigned to the warehouse entry.';
             CaptionClass = '6,1';
 
             trigger OnLookup()

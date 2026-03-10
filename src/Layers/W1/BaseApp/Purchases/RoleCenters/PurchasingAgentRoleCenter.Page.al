@@ -125,12 +125,25 @@ page 9007 "Purchasing Agent Role Center"
             separator(Action28)
             {
             }
+#if not CLEAN28
             action("Inventory - &Availability Plan")
             {
                 ApplicationArea = Basic, Suite;
-                Caption = 'Inventory - &Availability Plan';
+                Caption = 'Inventory - &Availability Plan (Obsolete)';
                 Image = ItemAvailability;
                 RunObject = Report "Inventory - Availability Plan";
+                ToolTip = 'View a list of the quantity of each item in customer, purchase, and transfer orders and the quantity available in inventory. The list is divided into columns that cover six periods with starting and ending dates as well as the periods before and after those periods. The list is useful when you are planning your inventory purchases.';
+                ObsoleteState = Pending;
+                ObsoleteReason = 'This report has been replaced by the report Inventory - Availability Plan (Excel). This report will be removed in a future release.';
+                ObsoleteTag = '28.0';
+            }
+#endif
+            action("Inventory - &Availability Plan Excel")
+            {
+                ApplicationArea = Basic, Suite;
+                Caption = 'Inventory - &Availability Plan (Excel)';
+                Image = ItemAvailability;
+                RunObject = Report "Inv. Availability Plan";
                 ToolTip = 'View a list of the quantity of each item in customer, purchase, and transfer orders and the quantity available in inventory. The list is divided into columns that cover six periods with starting and ending dates as well as the periods before and after those periods. The list is useful when you are planning your inventory purchases.';
             }
             action("Inventory &Purchase Orders")
@@ -488,4 +501,3 @@ page 9007 "Purchasing Agent Role Center"
         }
     }
 }
-

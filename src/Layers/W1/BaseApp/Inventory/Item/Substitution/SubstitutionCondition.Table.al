@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -44,6 +44,7 @@ table 5716 "Substitution Condition"
         field(6; Condition; Text[80])
         {
             Caption = 'Condition';
+            ToolTip = 'Specifies the condition for item substitution.';
         }
         field(100; Type; Enum "Item Substitution Type")
         {

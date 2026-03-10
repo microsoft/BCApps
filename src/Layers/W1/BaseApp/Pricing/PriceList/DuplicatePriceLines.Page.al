@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -29,7 +29,6 @@ page 7003 "Duplicate Price Lines"
                     Caption = 'Remove';
                     ApplicationArea = All;
                     Editable = true;
-                    ToolTip = 'Specifies if the price list line should be removed to resolve duplication.';
                 }
                 field("Price List Code"; Rec."Price List Code")
                 {
@@ -38,7 +37,6 @@ page 7003 "Duplicate Price Lines"
                     Editable = false;
                     StyleExpr = not Rec.Remove;
                     Style = Strong;
-                    ToolTip = 'Specifies the unique identifier of the price list.';
 
                     trigger OnDrillDown()
                     var
@@ -54,7 +52,6 @@ page 7003 "Duplicate Price Lines"
                     Editable = false;
                     StyleExpr = not Rec.Remove;
                     Style = Strong;
-                    ToolTip = 'Specifies the number of the price list line.';
                 }
                 field("Source Type"; CurrPriceListLine."Source Type")
                 {

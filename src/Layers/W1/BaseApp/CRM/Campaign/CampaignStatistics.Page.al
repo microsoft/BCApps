@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -22,12 +22,10 @@ page 5088 "Campaign Statistics"
                 field("Target Contacts Contacted"; Rec."Target Contacts Contacted")
                 {
                     ApplicationArea = RelationshipMgmt;
-                    ToolTip = 'Specifies the number of target contacts that you have contacted with this campaign. The field is not editable.';
                 }
                 field("Contacts Responded"; Rec."Contacts Responded")
                 {
                     ApplicationArea = RelationshipMgmt;
-                    ToolTip = 'Specifies the number of contacts who have responded to the campaign. This field is not editable.';
                 }
                 field(ResponseRate; ResponseRate)
                 {
@@ -71,7 +69,6 @@ page 5088 "Campaign Statistics"
                 field("No. of Opportunities"; Rec."No. of Opportunities")
                 {
                     ApplicationArea = RelationshipMgmt;
-                    ToolTip = 'Specifies the number of opportunities created as part of this campaign. This field is not editable.';
                 }
                 field("Estimated Value (LCY)"; Rec."Estimated Value (LCY)")
                 {

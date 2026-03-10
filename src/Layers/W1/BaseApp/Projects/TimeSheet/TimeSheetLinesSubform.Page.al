@@ -29,7 +29,6 @@ page 974 "Time Sheet Lines Subform"
                 {
                     ApplicationArea = Jobs;
                     Editable = AllowEdit;
-                    ToolTip = 'Specifies the type of time sheet line.';
 
                     trigger OnValidate()
                     begin
@@ -40,7 +39,6 @@ page 974 "Time Sheet Lines Subform"
                 field(Status; Rec.Status)
                 {
                     ApplicationArea = Jobs;
-                    ToolTip = 'Specifies information about the status of a time sheet line.';
                     Style = Unfavorable;
                     StyleExpr = Rec."Total Quantity" = 0;
                     Width = 4;
@@ -49,7 +47,6 @@ page 974 "Time Sheet Lines Subform"
                 {
                     ApplicationArea = Jobs;
                     Editable = AllowEdit;
-                    ToolTip = 'Specifies a description of the time sheet line.';
 
                     trigger OnAssistEdit()
                     begin
@@ -69,7 +66,6 @@ page 974 "Time Sheet Lines Subform"
                 {
                     ApplicationArea = Jobs;
                     Editable = AllowEdit;
-                    ToolTip = 'Specifies the number for the project that is associated with the time sheet line.';
                     Visible = JobFieldsVisible;
 
                     trigger OnValidate()
@@ -81,7 +77,6 @@ page 974 "Time Sheet Lines Subform"
                 {
                     ApplicationArea = Jobs;
                     Editable = AllowEdit;
-                    ToolTip = 'Specifies the number of the related project task.';
                     Visible = JobFieldsVisible;
 
                     trigger OnValidate()
@@ -93,7 +88,6 @@ page 974 "Time Sheet Lines Subform"
                 {
                     ApplicationArea = Jobs;
                     Editable = AllowEdit;
-                    ToolTip = 'Specifies a list of standard absence codes, from which you may select one.';
                     Visible = AbsenceCauseVisible;
 
                     trigger OnValidate()
@@ -105,7 +99,6 @@ page 974 "Time Sheet Lines Subform"
                 {
                     ApplicationArea = Jobs;
                     Editable = AllowEdit;
-                    ToolTip = 'Specifies if the usage that you are posting is chargeable.';
                     Visible = ChargeableVisible;
 
                     trigger OnValidate()
@@ -117,7 +110,6 @@ page 974 "Time Sheet Lines Subform"
                 {
                     ApplicationArea = Jobs;
                     Editable = AllowEdit;
-                    ToolTip = 'Specifies which work type the resource applies to. Prices are updated based on this entry.';
                     Visible = WorkTypeCodeVisible;
 
                     trigger OnValidate()
@@ -128,7 +120,6 @@ page 974 "Time Sheet Lines Subform"
                 field("Assembly Order No."; Rec."Assembly Order No.")
                 {
                     ApplicationArea = Assembly;
-                    ToolTip = 'Specifies the assembly order number that is associated with the time sheet line.';
                     Visible = false;
                 }
                 field(Field1; CellData[1])
@@ -256,7 +247,6 @@ page 974 "Time Sheet Lines Subform"
                     AutoFormatType = 0;
                     Caption = 'Total';
                     DrillDown = false;
-                    ToolTip = 'Specifies the total number of hours that have been entered on a time sheet.';
                     DecimalPlaces = 0 : 2;
                     Width = 3;
                 }

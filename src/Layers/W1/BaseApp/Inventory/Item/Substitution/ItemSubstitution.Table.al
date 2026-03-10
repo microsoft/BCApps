@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -43,6 +43,7 @@ table 5715 "Item Substitution"
         field(2; "Variant Code"; Code[10])
         {
             Caption = 'Variant Code';
+            ToolTip = 'Specifies the variant of the item on the line.';
             TableRelation = "Item Variant".Code where("Item No." = field("No."));
 
             trigger OnValidate()
@@ -54,6 +55,7 @@ table 5715 "Item Substitution"
         field(3; "Substitute No."; Code[20])
         {
             Caption = 'Substitute No.';
+            ToolTip = 'Specifies the number of the item that can be used as a substitute in case the original item is unavailable.';
             NotBlank = true;
             TableRelation = if ("Substitute Type" = const(Item)) Item."No."
             else
@@ -83,6 +85,7 @@ table 5715 "Item Substitution"
         field(4; "Substitute Variant Code"; Code[10])
         {
             Caption = 'Substitute Variant Code';
+            ToolTip = 'Specifies the code of the variant that can be used as a substitute.';
             TableRelation = if ("Substitute Type" = const(Item)) "Item Variant".Code where("Item No." = field("Substitute No."));
 
             trigger OnValidate()
@@ -102,17 +105,20 @@ table 5715 "Item Substitution"
         field(5; Description; Text[100])
         {
             Caption = 'Description';
+            ToolTip = 'Specifies the description of the substitute item.';
             Editable = false;
         }
         field(6; Inventory; Decimal)
         {
             AutoFormatType = 0;
             Caption = 'Inventory';
+            ToolTip = 'Specifies how many units (such as pieces, boxes, or cans) of the item are available.';
             DecimalPlaces = 0 : 5;
         }
         field(7; Interchangeable; Boolean)
         {
             Caption = 'Interchangeable';
+            ToolTip = 'Specifies that the item and the substitute item are interchangeable.';
 
             trigger OnValidate()
             begin
@@ -133,6 +139,7 @@ table 5715 "Item Substitution"
                                                                 "Substitute No." = field("Substitute No."),
                                                                 "Substitute Variant Code" = field("Substitute Variant Code")));
             Caption = 'Condition';
+            ToolTip = 'Specifies that a condition exists for this substitution.';
             Editable = false;
             FieldClass = FlowField;
         }
@@ -166,6 +173,7 @@ table 5715 "Item Substitution"
         field(101; "Substitute Type"; Enum "Item Substitute Type")
         {
             Caption = 'Substitute Type';
+            ToolTip = 'Specifies the type of the item that can be used as a substitute.';
 
             trigger OnValidate()
             begin
@@ -195,23 +203,27 @@ table 5715 "Item Substitution"
         {
             CalcFormula = lookup("Nonstock Item"."Item No." where("Entry No." = field("Substitute No.")));
             Caption = 'Sub. Item No.';
+            ToolTip = 'Specifies the item number of the catalog substitute item.';
             Editable = false;
             FieldClass = FlowField;
         }
         field(103; "Relations Level"; Integer)
         {
             Caption = 'Relations Level';
+            ToolTip = 'Specifies the priority level of this substitute item.';
             Editable = false;
         }
         field(104; "Quantity Avail. on Shpt. Date"; Decimal)
         {
             AutoFormatType = 0;
             Caption = 'Quantity Avail. on Shpt. Date';
+            ToolTip = 'Specifies the substitute item quantity available on the shipment date.';
             DecimalPlaces = 0 : 5;
         }
         field(105; "Shipment Date"; Date)
         {
             Caption = 'Shipment Date';
+            ToolTip = 'Specifies when items on the document are shipped or were shipped. A shipment date is usually calculated from a requested delivery date plus lead time.';
         }
     }
 

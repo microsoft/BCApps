@@ -1,3 +1,5 @@
+#pragma warning disable AS0088
+
 // ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
@@ -8,7 +10,7 @@ namespace Microsoft.Finance.FinancialReports;
 /// Defines date formatting options for column headers in financial reports.
 /// Controls how date periods are displayed in column layout headers for readability.
 /// </summary>
-enum 5002000 ColumnHeaderDateType
+enum 764 ColumnHeaderDateType
 {
     /// <summary>
     /// No date formatting applied to column header.

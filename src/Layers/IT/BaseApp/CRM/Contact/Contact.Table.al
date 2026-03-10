@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -78,6 +78,7 @@ table 5050 Contact
         field(1; "No."; Code[20])
         {
             Caption = 'No.';
+            ToolTip = 'Specifies the number of the involved entry or record, according to the specified number series.';
             OptimizeForTextSearch = true;
 
             trigger OnValidate()
@@ -99,6 +100,7 @@ table 5050 Contact
         field(2; Name; Text[100])
         {
             Caption = 'Name';
+            ToolTip = 'Specifies the name of the contact. If the contact is a person, you can click the field to see the Name Details window.';
             OptimizeForTextSearch = true;
 
             trigger OnValidate()
@@ -110,26 +112,31 @@ table 5050 Contact
         field(3; "Search Name"; Code[100])
         {
             Caption = 'Search Name';
+            ToolTip = 'Specifies an alternate name that you can use to search for the record in question when you cannot remember the value in the Name field.';
             OptimizeForTextSearch = true;
         }
         field(4; "Name 2"; Text[50])
         {
             Caption = 'Name 2';
+            ToolTip = 'Specifies an additional part of the name.';
             OptimizeForTextSearch = true;
         }
         field(5; Address; Text[100])
         {
             Caption = 'Address';
+            ToolTip = 'Specifies the contact''s address.';
             OptimizeForTextSearch = true;
         }
         field(6; "Address 2"; Text[50])
         {
             Caption = 'Address 2';
+            ToolTip = 'Specifies additional address information.';
             OptimizeForTextSearch = true;
         }
         field(7; City; Text[30])
         {
             Caption = 'City';
+            ToolTip = 'Specifies the city where the contact is located.';
             OptimizeForTextSearch = true;
             TableRelation = if ("Country/Region Code" = const('')) "Post Code".City
             else
@@ -160,6 +167,7 @@ table 5050 Contact
         field(9; "Phone No."; Text[30])
         {
             Caption = 'Phone No.';
+            ToolTip = 'Specifies the contact''s phone number.';
             OptimizeForTextSearch = true;
             ExtendedDatatype = PhoneNo;
 
@@ -181,16 +189,19 @@ table 5050 Contact
         field(15; "Territory Code"; Code[10])
         {
             Caption = 'Territory Code';
+            ToolTip = 'Specifies the territory code for the contact.';
             TableRelation = Territory;
         }
         field(22; "Currency Code"; Code[10])
         {
             Caption = 'Currency Code';
+            ToolTip = 'Specifies the currency code for the contact.';
             TableRelation = Currency;
         }
         field(24; "Language Code"; Code[10])
         {
             Caption = 'Language Code';
+            ToolTip = 'Specifies the language that is used when translating specified text on documents to foreign business partner, such as an item description on an order confirmation.';
             TableRelation = Language;
 
             trigger OnValidate()
@@ -201,6 +212,7 @@ table 5050 Contact
         field(25; "Registration Number"; Text[50])
         {
             Caption = 'Registration No.';
+            ToolTip = 'Specifies the registration number of the contact. You can enter a maximum of 20 characters, both numbers and letters.';
             OptimizeForTextSearch = true;
 
             trigger OnValidate()
@@ -218,6 +230,7 @@ table 5050 Contact
         field(29; "Salesperson Code"; Code[20])
         {
             Caption = 'Salesperson Code';
+            ToolTip = 'Specifies the code of the salesperson who normally handles this contact.';
             TableRelation = "Salesperson/Purchaser";
 
             trigger OnValidate()
@@ -228,6 +241,7 @@ table 5050 Contact
         field(35; "Country/Region Code"; Code[10])
         {
             Caption = 'Country/Region Code';
+            ToolTip = 'Specifies the country/region of the address.';
             TableRelation = "Country/Region";
 
             trigger OnValidate()
@@ -250,6 +264,7 @@ table 5050 Contact
         field(48; "Format Region"; Text[80])
         {
             Caption = 'Format Region';
+            ToolTip = 'Specifies the format region that is used when formatting dates and numbers on documents to foreign business partner, such as an total amount on an order date.';
             OptimizeForTextSearch = true;
             TableRelation = "Language Selection"."Language Tag";
         }
@@ -261,6 +276,7 @@ table 5050 Contact
         field(84; "Fax No."; Text[30])
         {
             Caption = 'Fax No.';
+            ToolTip = 'Specifies the contact''s fax number.';
             OptimizeForTextSearch = true;
         }
         field(85; "Telex Answer Back"; Text[20])
@@ -271,6 +287,7 @@ table 5050 Contact
         field(86; "VAT Registration No."; Text[20])
         {
             Caption = 'VAT Registration No.';
+            ToolTip = 'Specifies the contact''s VAT registration number. This field is valid for companies only.';
             OptimizeForTextSearch = true;
 
             trigger OnValidate()
@@ -300,6 +317,7 @@ table 5050 Contact
         field(91; "Post Code"; Code[20])
         {
             Caption = 'Post Code';
+            ToolTip = 'Specifies the postal code.';
             TableRelation = if ("Country/Region Code" = const('')) "Post Code"
             else
             if ("Country/Region Code" = filter(<> '')) "Post Code" where("Country/Region Code" = field("Country/Region Code"));
@@ -330,11 +348,13 @@ table 5050 Contact
         {
             CaptionClass = '5,1,' + "Country/Region Code";
             Caption = 'County';
+            ToolTip = 'Specifies the state, province or county as a part of the address.';
             OptimizeForTextSearch = true;
         }
         field(102; "E-Mail"; Text[80])
         {
             Caption = 'Email';
+            ToolTip = 'Specifies the email address of the contact.';
             OptimizeForTextSearch = true;
             ExtendedDatatype = EMail;
 
@@ -365,6 +385,7 @@ table 5050 Contact
 #endif
         {
             Caption = 'Home Page';
+            ToolTip = 'Specifies the contact''s web site.';
             OptimizeForTextSearch = true;
             ExtendedDatatype = URL;
         }
@@ -376,11 +397,13 @@ table 5050 Contact
         field(140; Image; Media)
         {
             Caption = 'Image';
+            ToolTip = 'Specifies the picture of the contact, for example, a photograph if the contact is a person, or a logo if the contact is a company.';
             ExtendedDatatype = Person;
         }
         field(150; "Privacy Blocked"; Boolean)
         {
             Caption = 'Privacy Blocked';
+            ToolTip = 'Specifies whether to limit access to data for the data subject during daily operations. This is useful, for example, when protecting data from changes while it is under privacy review.';
 
             trigger OnValidate()
             begin
@@ -393,6 +416,7 @@ table 5050 Contact
         field(151; Minor; Boolean)
         {
             Caption = 'Minor';
+            ToolTip = 'Specifies that the person''s age is below the definition of adulthood as recognized by law. Data for minors is blocked until a parent or guardian of the minor provides parental consent. You unblock the data by selecting the Parental Consent Received check box.';
 
             trigger OnValidate()
             begin
@@ -403,6 +427,7 @@ table 5050 Contact
         field(152; "Parental Consent Received"; Boolean)
         {
             Caption = 'Parental Consent Received';
+            ToolTip = 'Specifies that a parent or guardian of the minor has provided their consent to allow the minor to use this service. When this check box is selected, data for the minor can be processed.';
 
             trigger OnValidate()
             begin
@@ -423,12 +448,14 @@ table 5050 Contact
         {
             FieldClass = FlowField;
             Caption = 'Coupled to Dataverse';
+            ToolTip = 'Specifies that the contact is coupled to a contact in Dataverse.';
             Editable = false;
             CalcFormula = exist("CRM Integration Record" where("Integration ID" = field(SystemId), "Table ID" = const(Database::Contact)));
         }
         field(5050; Type; Enum "Contact Type")
         {
             Caption = 'Type';
+            ToolTip = 'Specifies the type of contact, either company or person.';
 
             trigger OnValidate()
             begin
@@ -441,6 +468,7 @@ table 5050 Contact
         field(5051; "Company No."; Code[20])
         {
             Caption = 'Company No.';
+            ToolTip = 'Specifies the number for the contact''s company.';
             TableRelation = Contact where(Type = const(Company));
 
             trigger OnValidate()
@@ -466,6 +494,7 @@ table 5050 Contact
         field(5052; "Company Name"; Text[100])
         {
             Caption = 'Company Name';
+            ToolTip = 'Specifies the name of the company. If the contact is a person, Specifies the name of the company for which this contact works. This field is not editable.';
             OptimizeForTextSearch = true;
             TableRelation = Contact.Name where(Type = const(Company));
             ValidateTableRelation = false;
@@ -489,6 +518,7 @@ table 5050 Contact
         field(5054; "First Name"; Text[30])
         {
             Caption = 'First Name';
+            ToolTip = 'Specifies the contact''s first name and is valid for contact persons only.';
             OptimizeForTextSearch = true;
 
             trigger OnValidate()
@@ -500,6 +530,7 @@ table 5050 Contact
         field(5055; "Middle Name"; Text[30])
         {
             Caption = 'Middle Name';
+            ToolTip = 'Specifies the contact''s middle name and is valid for contact persons only.';
             OptimizeForTextSearch = true;
 
             trigger OnValidate()
@@ -511,6 +542,7 @@ table 5050 Contact
         field(5056; Surname; Text[30])
         {
             Caption = 'Surname';
+            ToolTip = 'Specifies the contact''s surname and is valid for contact persons only.';
             OptimizeForTextSearch = true;
 
             trigger OnValidate()
@@ -522,11 +554,13 @@ table 5050 Contact
         field(5058; "Job Title"; Text[30])
         {
             Caption = 'Job Title';
+            ToolTip = 'Specifies the contact''s job title.';
             OptimizeForTextSearch = true;
         }
         field(5059; Initials; Text[30])
         {
             Caption = 'Initials';
+            ToolTip = 'Specifies the contact''s initials, when the contact is a person.';
             OptimizeForTextSearch = true;
         }
         field(5060; "Extension No."; Text[30])
@@ -537,6 +571,7 @@ table 5050 Contact
         field(5061; "Mobile Phone No."; Text[30])
         {
             Caption = 'Mobile Phone No.';
+            ToolTip = 'Specifies the contact''s mobile telephone number.';
             OptimizeForTextSearch = true;
             ExtendedDatatype = PhoneNo;
 
@@ -558,11 +593,13 @@ table 5050 Contact
         field(5063; "Organizational Level Code"; Code[10])
         {
             Caption = 'Organizational Level Code';
+            ToolTip = 'Specifies the organizational code for the contact, for example, top management. This field is valid for persons only.';
             TableRelation = "Organizational Level";
         }
         field(5064; "Exclude from Segment"; Boolean)
         {
             Caption = 'Exclude from Segment';
+            ToolTip = 'Specifies if the contact should be excluded from segments:';
         }
         field(5065; "Date Filter"; Date)
         {
@@ -576,6 +613,7 @@ table 5050 Contact
                                                   Closed = const(false),
                                                   "System To-do Type" = filter(Organizer | "Contact Attendee")));
             Caption = 'Next Task Date';
+            ToolTip = 'Specifies the date of the next task involving the contact.';
             Editable = false;
             FieldClass = FlowField;
         }
@@ -586,6 +624,7 @@ table 5050 Contact
                                                                   "Initiated By" = const(Us),
                                                                   Postponed = const(false)));
             Caption = 'Last Date Attempted';
+            ToolTip = 'Specifies the date when the contact was last contacted, for example, when you tried to call the contact, with or without success. This field is not editable.';
             Editable = false;
             FieldClass = FlowField;
         }
@@ -596,6 +635,7 @@ table 5050 Contact
                                                                   "Attempt Failed" = const(false),
                                                                   Postponed = const(false)));
             Caption = 'Date of Last Interaction';
+            ToolTip = 'Specifies the date of the last interaction involving the contact, for example, a received or sent mail, e-mail, or phone call. This field is not editable.';
             Editable = false;
             FieldClass = FlowField;
         }
@@ -603,6 +643,7 @@ table 5050 Contact
         {
             CalcFormula = count("Contact Job Responsibility" where("Contact No." = field("No.")));
             Caption = 'No. of Job Responsibilities';
+            ToolTip = 'Specifies the number of job responsibilities for this contact. This field is valid for persons only and is not editable.';
             Editable = false;
             FieldClass = FlowField;
         }
@@ -610,6 +651,7 @@ table 5050 Contact
         {
             CalcFormula = count("Contact Industry Group" where("Contact No." = field("Company No.")));
             Caption = 'No. of Industry Groups';
+            ToolTip = 'Specifies the number of industry groups to which the contact belongs. When the contact is a person, this field contains the number of industry groups for the contact''s company. This field is not editable.';
             Editable = false;
             FieldClass = FlowField;
         }
@@ -624,6 +666,7 @@ table 5050 Contact
         {
             CalcFormula = count("Contact Mailing Group" where("Contact No." = field("No.")));
             Caption = 'No. of Mailing Groups';
+            ToolTip = 'Specifies the number of mailing groups for this contact.';
             Editable = false;
             FieldClass = FlowField;
         }
@@ -639,6 +682,7 @@ table 5050 Contact
                                                                Date = field("Date Filter"),
                                                                Postponed = const(false)));
             Caption = 'No. of Interactions';
+            ToolTip = 'Specifies the number of interactions created for this contact. The field is not editable.';
             Editable = false;
             FieldClass = FlowField;
         }
@@ -676,6 +720,7 @@ table 5050 Contact
                                                            "Contact No." = field(filter("Lookup Contact No.")),
                                                            "Action Taken" = field("Action Taken Filter")));
             Caption = 'No. of Opportunities';
+            ToolTip = 'Specifies the number of open opportunities involving the contact. The field is not editable.';
             Editable = false;
             FieldClass = FlowField;
         }
@@ -756,6 +801,7 @@ table 5050 Contact
         field(5086; "Contact Business Relation"; Enum "Contact Business Relation")
         {
             Caption = 'Contact Business Relation';
+            ToolTip = 'Specifies the type of the existing business relation.';
             Editable = false;
         }
         field(5087; "Action Taken Filter"; Enum "Opportunity Action Taken")
@@ -848,10 +894,12 @@ table 5050 Contact
         field(5100; "Correspondence Type"; Enum "Correspondence Type")
         {
             Caption = 'Correspondence Type';
+            ToolTip = 'Specifies the preferred type of correspondence for the interaction.';
         }
         field(5101; "Salutation Code"; Code[10])
         {
             Caption = 'Salutation Code';
+            ToolTip = 'Specifies the salutation code that will be used when you interact with the contact. The salutation code is only used in Word documents. To see a list of the salutation codes already defined, click the field.';
             TableRelation = Salutation;
         }
         field(5102; "Search E-Mail"; Code[80])
@@ -1542,11 +1590,16 @@ table 5050 Contact
         end;
     end;
 
-    procedure CreateCustomer(): Code[20];
+    procedure CreateCustomer() CustomerNo: Code[20];
     var
         CustomerTempl: Record "Customer Templ.";
         CustomerTemplMgt: Codeunit "Customer Templ. Mgt.";
+        IsHandled: Boolean;
     begin
+        OnBeforeCreateCustomer(Rec, CustomerNo, IsHandled);
+        if IsHandled then
+            exit(CustomerNo);
+
         if CustomerTemplMgt.SelectCustomerTemplateFromContact(CustomerTempl, Rec) then
             exit(CreateCustomerFromTemplate(CustomerTempl.Code))
         else
@@ -2055,6 +2108,7 @@ table 5050 Contact
         AppendFilter(CodeFilter, '|', MarketingSetup."Bus. Rel. Code for Vendors");
         AppendFilter(CodeFilter, '|', MarketingSetup."Bus. Rel. Code for Bank Accs.");
         AppendFilter(CodeFilter, '|', MarketingSetup."Bus. Rel. Code for Employees");
+        OnAfterGetSelectedRelationCodes(CodeFilter);
         SelectedBusRelationCodes := CodeFilter;
     end;
 
@@ -4184,6 +4238,16 @@ table 5050 Contact
 
     [IntegrationEvent(false, false)]
     local procedure OnBeforeCreateEmployeeLink(var Contact: Record Contact)
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnBeforeCreateCustomer(var Contact: Record Contact; var CustomerNo: Code[20]; var IsHandled: Boolean)
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnAfterGetSelectedRelationCodes(var CodeFilter: Text)
     begin
     end;
 }

@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -25,7 +25,6 @@ page 7161 "Analysis Dim. Selection-Level"
                 field(Level; Rec.Level)
                 {
                     ApplicationArea = Dimensions;
-                    ToolTip = 'Specifies the level for the selected dimension for analysis.';
 
                     trigger OnValidate()
                     var
@@ -48,18 +47,15 @@ page 7161 "Analysis Dim. Selection-Level"
                 {
                     ApplicationArea = Basic, Suite;
                     Editable = false;
-                    ToolTip = 'Specifies a code for the selection.';
                 }
                 field(Description; Rec.Description)
                 {
                     ApplicationArea = Basic, Suite;
                     Editable = false;
-                    ToolTip = 'Specifies a description of the selection.';
                 }
                 field("Dimension Value Filter"; Rec."Dimension Value Filter")
                 {
                     ApplicationArea = Dimensions;
-                    ToolTip = 'Specifies the dimension value that the analysis view is based on.';
                 }
             }
         }

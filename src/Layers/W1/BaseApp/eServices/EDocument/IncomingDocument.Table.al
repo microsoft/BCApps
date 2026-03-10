@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -41,14 +41,17 @@ table 130 "Incoming Document"
         {
             AutoIncrement = true;
             Caption = 'Entry No.';
+            ToolTip = 'Specifies the number of the entry, as assigned from the specified number series when the entry was created.';
         }
         field(2; Description; Text[100])
         {
             Caption = 'Description';
+            ToolTip = 'Specifies the description of the incoming document. You must enter the description manually.';
         }
         field(3; "Created Date-Time"; DateTime)
         {
             Caption = 'Created Date-Time';
+            ToolTip = 'Specifies when the incoming document line was created.';
             Editable = false;
         }
         field(4; "Created By User ID"; Guid)
@@ -62,17 +65,20 @@ table 130 "Incoming Document"
         {
             CalcFormula = lookup(User."User Name" where("User Security ID" = field("Created By User ID")));
             Caption = 'Created By User Name';
+            ToolTip = 'Specifies the name of the user who created the incoming document line.';
             Editable = false;
             FieldClass = FlowField;
         }
         field(6; Released; Boolean)
         {
             Caption = 'Released';
+            ToolTip = 'Specifies if the incoming document has been approved.';
             Editable = false;
         }
         field(7; "Released Date-Time"; DateTime)
         {
             Caption = 'Released Date-Time';
+            ToolTip = 'Specifies when the incoming document was approved.';
             Editable = false;
         }
         field(8; "Released By User ID"; Guid)
@@ -86,12 +92,14 @@ table 130 "Incoming Document"
         {
             CalcFormula = lookup(User."User Name" where("User Security ID" = field("Released By User ID")));
             Caption = 'Released By User Name';
+            ToolTip = 'Specifies the name of the user who approved the incoming document.';
             Editable = false;
             FieldClass = FlowField;
         }
         field(10; "Last Date-Time Modified"; DateTime)
         {
             Caption = 'Last Date-Time Modified';
+            ToolTip = 'Specifies when the incoming document line was last modified.';
             Editable = false;
         }
         field(11; "Last Modified By User ID"; Guid)
@@ -105,78 +113,94 @@ table 130 "Incoming Document"
         {
             CalcFormula = lookup(User."User Name" where("User Security ID" = field("Last Modified By User ID")));
             Caption = 'Last Modified By User Name';
+            ToolTip = 'Specifies the name of the user who last modified the incoming document line.';
             Editable = false;
             FieldClass = FlowField;
         }
         field(13; Posted; Boolean)
         {
             Caption = 'Posted';
+            ToolTip = 'Specifies if the document or journal line that was created for this incoming document has been posted.';
             Editable = false;
         }
         field(14; "Posted Date-Time"; DateTime)
         {
             Caption = 'Posted Date-Time';
+            ToolTip = 'Specifies when the related document or journal line was posted.';
             Editable = false;
         }
         field(15; "Document Type"; Enum "Incoming Related Document Type")
         {
             Caption = 'Document Type';
+            ToolTip = 'Specifies the type of document or journal that the incoming document can be connected to.';
             Editable = false;
             InitValue = " ";
         }
         field(16; "Document No."; Code[20])
         {
             Caption = 'Document No.';
+            ToolTip = 'Specifies the number of the related document or journal line that is created for the incoming document.';
             Editable = false;
         }
         field(17; "Posting Date"; Date)
         {
             Caption = 'Posting Date';
+            ToolTip = 'Specifies when the document or journal line that relates to the incoming document was posted.';
             ClosingDates = true;
             Editable = false;
         }
         field(18; Status; Enum "Incoming Document Status")
         {
             Caption = 'Status';
+            ToolTip = 'Specifies the status of the incoming document record.';
             Editable = false;
         }
         field(60; URL; Text[1024])
         {
             Caption = 'URL';
+            ToolTip = 'Specifies the location of the file that represents the incoming document.';
             Editable = false;
         }
         field(23; "Vendor Name"; Text[100])
         {
             Caption = 'Vendor Name';
+            ToolTip = 'Specifies the name of the vendor on the incoming document. The field may be filled automatically.';
         }
         field(24; "Vendor VAT Registration No."; Text[30])
         {
             Caption = 'Vendor VAT Registration No.';
+            ToolTip = 'Specifies the VAT registration number of the vendor, if the document contains that number. The field may be filled automatically.';
         }
         field(25; "Vendor IBAN"; Code[50])
         {
             Caption = 'Vendor IBAN';
+            ToolTip = 'Specifies the new value that you want the OCR service to produce for this field going forward.';
         }
         field(26; "Document Date"; Date)
         {
             Caption = 'Document Date';
+            ToolTip = 'Specifies the date that is printed on the incoming document. This is the date when the vendor created the invoice, for example. The field may be filled automatically.';
         }
         field(27; "Vendor Bank Branch No."; Text[20])
         {
             Caption = 'Vendor Bank Branch No.';
+            ToolTip = 'Specifies the new value that you want the OCR service to produce for this field going forward.';
         }
         field(28; "Vendor Bank Account No."; Text[30])
         {
             Caption = 'Vendor Bank Account No.';
+            ToolTip = 'Specifies the bank account number of the vendor on the incoming document.';
         }
         field(29; "Vendor No."; Code[20])
         {
             Caption = 'Vendor No.';
+            ToolTip = 'Specifies the number of the vendor on the incoming document. The field may be filled automatically.';
             TableRelation = Vendor;
         }
         field(30; "Data Exchange Type"; Code[20])
         {
             Caption = 'Data Exchange Type';
+            ToolTip = 'Specifies the data exchange type that is used to process the incoming document when it is an electronic document.';
             TableRelation = "Data Exchange Type";
         }
         field(31; "OCR Data Corrected"; Boolean)
@@ -187,6 +211,7 @@ table 130 "Incoming Document"
         field(32; "OCR Status"; Option)
         {
             Caption = 'OCR Status';
+            ToolTip = 'Specifies the status of the incoming document record when it takes part in the OCR process.';
             Editable = false;
             OptionCaption = ' ,Ready,Sent,Error,Success,Awaiting Verification';
             OptionMembers = " ",Ready,Sent,Error,Success,"Awaiting Verification";
@@ -194,12 +219,14 @@ table 130 "Incoming Document"
         field(33; "OCR Track ID"; Text[20])
         {
             Caption = 'OCR Track ID';
+            ToolTip = 'Specifies the process stage of the track ID in relation to the OCR service.';
             DataClassification = CustomerContent;
             Editable = false;
         }
         field(38; "OCR Service Doc. Template Code"; Code[20])
         {
             Caption = 'OCR Service Doc. Template Code';
+            ToolTip = 'Specifies the code of the document template that you want the OCR service provider to use when they convert the incoming-document file to an electronic document. Chose the field to pick a supported document template from the OCR Service Setup window.';
             TableRelation = "OCR Service Document Template";
 
             trigger OnValidate()
@@ -211,6 +238,7 @@ table 130 "Incoming Document"
         {
             CalcFormula = lookup("OCR Service Document Template".Name where(Code = field("OCR Service Doc. Template Code")));
             Caption = 'OCR Service Doc. Template Name';
+            ToolTip = 'Specifies the name of the document template that you want the OCR service provider to use when they convert the incoming-document file to an electronic document. Chose the field to pick a supported document template from the OCR Service Setup window.';
             Editable = false;
             FieldClass = FlowField;
         }
@@ -233,6 +261,7 @@ table 130 "Incoming Document"
         field(50; "Currency Code"; Code[10])
         {
             Caption = 'Currency Code';
+            ToolTip = 'Specifies the currency code, if the document contains that code. The field may be filled automatically.';
 
             trigger OnLookup()
             var
@@ -257,34 +286,41 @@ table 130 "Incoming Document"
             AutoFormatExpression = Rec."Currency Code";
             AutoFormatType = 1;
             Caption = 'Amount Excl. VAT';
+            ToolTip = 'Specifies the amount excluding VAT for the whole document. The field may be filled automatically.';
         }
         field(52; "Amount Incl. VAT"; Decimal)
         {
             AutoFormatExpression = Rec."Currency Code";
             AutoFormatType = 1;
             Caption = 'Amount Incl. VAT';
+            ToolTip = 'Specifies the amount including VAT for the whole document. The field may be filled automatically.';
         }
         field(53; "VAT Amount"; Decimal)
         {
             AutoFormatExpression = Rec."Currency Code";
             AutoFormatType = 1;
             Caption = 'VAT Amount';
+            ToolTip = 'Specifies the amount of VAT that is included in the total amount.';
         }
         field(54; "Due Date"; Date)
         {
             Caption = 'Due Date';
+            ToolTip = 'Specifies the date when the vendor document must be paid. The field may be filled automatically.';
         }
         field(55; "Vendor Invoice No."; Code[35])
         {
             Caption = 'Vendor Invoice No.';
+            ToolTip = 'Specifies the document number of the original document you received from the vendor. You can require the document number for posting, or let it be optional. By default, it''s required, so that this document references the original. Making document numbers optional removes a step from the posting process. For example, if you attach the original invoice as a PDF, you might not need to enter the document number. To specify whether document numbers are required, in the Purchases & Payables Setup window, select or clear the Ext. Doc. No. Mandatory field.';
         }
         field(56; "Order No."; Code[20])
         {
             Caption = 'Order No.';
+            ToolTip = 'Specifies the order number, if the document contains that number. The field may be filled automatically.';
         }
         field(57; "Vendor Phone No."; Text[30])
         {
             Caption = 'Vendor Phone No.';
+            ToolTip = 'Specifies the phone number of the vendor on the incoming document.';
         }
         field(58; "Related Record ID"; RecordID)
         {
@@ -294,6 +330,7 @@ table 130 "Incoming Document"
         field(160; "Job Queue Status"; Enum "Inc. Doc. Job Queue Status")
         {
             Caption = 'Job Queue Status';
+            ToolTip = 'Specifies the status of the job queue entry that is processing the incoming document.';
             Editable = false;
 
             trigger OnLookup()
@@ -313,6 +350,7 @@ table 130 "Incoming Document"
         field(162; Processed; Boolean)
         {
             Caption = 'Processed';
+            ToolTip = 'Specifies if the incoming document has been processed.';
         }
     }
 
@@ -778,10 +816,14 @@ table 130 "Incoming Document"
         if not GetUnpostedRecord(RelatedRecordVariant) then
             exit;
         RelatedRecordRecordRef.GetTable(RelatedRecordVariant);
-        DataTypeManagement.FindFieldByName(
-          RelatedRecordRecordRef, RelatedRecordFieldRef, SalesHeader.FieldName("Incoming Document Entry No."));
-        RelatedRecordFieldRef.Value := 0;
-        RelatedRecordRecordRef.Modify(true);
+        if DataTypeManagement.FindFieldByName(
+          RelatedRecordRecordRef, RelatedRecordFieldRef, SalesHeader.FieldName("Incoming Document Entry No."))
+        then begin
+            RelatedRecordFieldRef.Value := 0;
+            RelatedRecordRecordRef.Modify(true);
+        end;
+
+        OnAfterRemoveIncomingDocumentEntryNoFromUnpostedDocument(Rec, RelatedRecordVariant);
     end;
 
     procedure CreateIncomingDocument(NewDescription: Text; NewURL: Text): Integer
@@ -2391,6 +2433,11 @@ table 130 "Incoming Document"
 
     [IntegrationEvent(false, false)]
     local procedure OnFindByDocumentNoAndPostingDateOnSetFilters(var IncomingDocument: Record "Incoming Document"; MainRecordRef: RecordRef)
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnAfterRemoveIncomingDocumentEntryNoFromUnpostedDocument(var IncomingDocument: Record "Incoming Document"; RelatedRecord: Variant)
     begin
     end;
 }

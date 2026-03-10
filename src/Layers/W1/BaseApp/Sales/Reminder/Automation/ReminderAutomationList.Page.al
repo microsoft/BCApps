@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -32,7 +32,6 @@ page 6753 "Reminder Automation List"
                 {
                     ApplicationArea = All;
                     Caption = 'Code';
-                    ToolTip = 'Specifies a code that identifies a reminder action group.';
                 }
                 field(Description; Rec.Description)
                 {

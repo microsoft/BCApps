@@ -17,7 +17,6 @@ tableextension 20412 "Qlty. Transfer Receipt Header" extends "Transfer Receipt H
             ToolTip = 'Specifies the related quality inspection.';
             DataClassification = CustomerContent;
             TableRelation = "Qlty. Inspection Header"."No.";
-            Description = 'Only used to link to the inspection that created the original Transfer document that generated this.';
         }
         field(20401; "Qlty. Re-inspection No."; Integer)
         {
@@ -25,7 +24,6 @@ tableextension 20412 "Qlty. Transfer Receipt Header" extends "Transfer Receipt H
             ToolTip = 'Specifies the related quality re-inspection.';
             DataClassification = CustomerContent;
             TableRelation = "Qlty. Inspection Header"."Re-inspection No." where("No." = field("Qlty. Inspection No."));
-            Description = 'Only used to link to the inspection that created the original Transfer document that generated this.';
             BlankZero = true;
         }
     }

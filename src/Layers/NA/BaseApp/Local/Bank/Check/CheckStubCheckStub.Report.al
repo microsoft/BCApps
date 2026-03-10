@@ -1613,6 +1613,8 @@ report 10411 "Check (Stub/Check/Stub)"
         DescriptionLine: array[2] of Text[80];
 
     local procedure CustUpdateAmounts(var CustLedgEntry2: Record "Cust. Ledger Entry"; RemainingAmount2: Decimal)
+    var
+        AmountToUse: Decimal;
     begin
         if (ApplyMethod = ApplyMethod::OneLineOneEntry) or
            (ApplyMethod = ApplyMethod::MoreLinesOneEntry)
@@ -1630,7 +1632,12 @@ report 10411 "Check (Stub/Check/Stub)"
         CurrencyCode2 := CustLedgEntry2."Currency Code";
         CustLedgEntry2.CalcFields("Remaining Amount");
 
-        LineAmount := -(CustLedgEntry2."Remaining Amount" - CustLedgEntry2."Remaining Pmt. Disc. Possible" -
+        if (ApplyMethod = ApplyMethod::OneLineID) and (CustLedgEntry2."Amount to Apply" <> 0) then
+            AmountToUse := CustLedgEntry2."Amount to Apply"
+        else
+            AmountToUse := CustLedgEntry2."Remaining Amount";
+
+        LineAmount := -(AmountToUse - CustLedgEntry2."Remaining Pmt. Disc. Possible" -
                         CustLedgEntry2."Accepted Payment Tolerance");
         LineAmount2 :=
           Round(
@@ -1668,6 +1675,8 @@ report 10411 "Check (Stub/Check/Stub)"
     end;
 
     local procedure VendUpdateAmounts(var VendLedgEntry2: Record "Vendor Ledger Entry"; RemainingAmount2: Decimal)
+    var
+        AmountToUse: Decimal;
     begin
         if (ApplyMethod = ApplyMethod::OneLineOneEntry) or
            (ApplyMethod = ApplyMethod::MoreLinesOneEntry)
@@ -1685,7 +1694,14 @@ report 10411 "Check (Stub/Check/Stub)"
         VendLedgEntry2.CalcFields("Remaining Amount");
         PostingDesc := VendLedgEntry2.Description;
 
-        LineAmount := -(VendLedgEntry2."Remaining Amount" - VendLedgEntry2."Remaining Pmt. Disc. Possible" -
+        // When using Applies-to ID, use "Amount to Apply" instead of "Remaining Amount"
+        if (ApplyMethod = ApplyMethod::OneLineID) and (VendLedgEntry2."Amount to Apply" <> 0)
+        and (VendLedgEntry2."Document Type" = VendLedgEntry2."Document Type"::Invoice) then
+            AmountToUse := VendLedgEntry2."Amount to Apply"
+        else
+            AmountToUse := VendLedgEntry2."Remaining Amount";
+
+        LineAmount := -(AmountToUse - VendLedgEntry2."Remaining Pmt. Disc. Possible" -
                         VendLedgEntry2."Accepted Payment Tolerance");
 
         LineAmount2 :=
@@ -1748,9 +1764,9 @@ report 10411 "Check (Stub/Check/Stub)"
         LineAmount := -EmployeeLedgerEntry2."Remaining Amount";
 
         LineAmount2 :=
-          Round(
-            ExchangeAmt(EmployeeLedgerEntry2."Posting Date", GenJnlLine."Currency Code", CurrencyCode2, LineAmount),
-            Currency."Amount Rounding Precision");
+    Round(
+      ExchangeAmt(EmployeeLedgerEntry2."Posting Date", GenJnlLine."Currency Code", CurrencyCode2, LineAmount),
+      Currency."Amount Rounding Precision");
 
         if RemainingAmount2 >= Round(-ExchangeAmt(EmployeeLedgerEntry2."Posting Date", GenJnlLine."Currency Code", CurrencyCode2,
                EmployeeLedgerEntry2."Amount to Apply"), Currency."Amount Rounding Precision")

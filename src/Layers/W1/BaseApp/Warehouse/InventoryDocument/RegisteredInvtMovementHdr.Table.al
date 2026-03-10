@@ -30,10 +30,12 @@ table 7344 "Registered Invt. Movement Hdr."
         field(2; "No."; Code[20])
         {
             Caption = 'No.';
+            ToolTip = 'Specifies the number of the involved entry or record, according to the specified number series.';
         }
         field(3; "Location Code"; Code[10])
         {
             Caption = 'Location Code';
+            ToolTip = 'Specifies the same as the field with the same name in the Registered Whse. Activity Hdr. table.';
             NotBlank = true;
             TableRelation = Location.Code;
         }
@@ -73,6 +75,7 @@ table 7344 "Registered Invt. Movement Hdr."
         field(11; "Invt. Movement No."; Code[20])
         {
             Caption = 'Invt. Movement No.';
+            ToolTip = 'Specifies the number of the inventory movement from which the activity was registered.';
         }
         field(12; "No. Printed"; Integer)
         {
@@ -82,10 +85,12 @@ table 7344 "Registered Invt. Movement Hdr."
         field(20; "Posting Date"; Date)
         {
             Caption = 'Posting Date';
+            ToolTip = 'Specifies the same as the field with the same name in the Registered Whse. Activity Hdr. table.';
         }
         field(7306; "Source No."; Code[20])
         {
             Caption = 'Source No.';
+            ToolTip = 'Specifies the number of the source document that the entry originates from.';
             TableRelation = if ("Source Type" = const(120)) "Purch. Rcpt. Header" where("No." = field("Source No."))
             else
             if ("Source Type" = const(110)) "Sales Shipment Header" where("No." = field("Source No."))
@@ -105,6 +110,7 @@ table 7344 "Registered Invt. Movement Hdr."
         {
             BlankZero = true;
             Caption = 'Source Document';
+            ToolTip = 'Specifies the type of document that the line relates to.';
         }
         field(7308; "Source Type"; Integer)
         {
@@ -124,6 +130,7 @@ table 7344 "Registered Invt. Movement Hdr."
         field(7311; "Destination No."; Code[20])
         {
             Caption = 'Destination No.';
+            ToolTip = 'Specifies the same as the field with the same name in the Registered Whse. Activity Hdr. table.';
             TableRelation = if ("Destination Type" = const(Vendor)) Vendor
             else
             if ("Destination Type" = const(Customer)) Customer
@@ -137,14 +144,17 @@ table 7344 "Registered Invt. Movement Hdr."
         field(7312; "External Document No."; Code[35])
         {
             Caption = 'External Document No.';
+            ToolTip = 'Specifies a document number that refers to the customer''s or vendor''s numbering system.';
         }
         field(7314; "Shipment Date"; Date)
         {
             Caption = 'Shipment Date';
+            ToolTip = 'Specifies when items on the document are shipped or were shipped. A shipment date is usually calculated from a requested delivery date plus lead time.';
         }
         field(7315; "External Document No.2"; Code[35])
         {
             Caption = 'External Document No.2';
+            ToolTip = 'Specifies an additional part of the document number that refers to the customer''s or vendor''s numbering system.';
         }
     }
 

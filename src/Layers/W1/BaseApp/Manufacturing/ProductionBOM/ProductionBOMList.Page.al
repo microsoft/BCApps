@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -32,45 +32,37 @@ page 99000787 "Production BOM List"
                 field("No."; Rec."No.")
                 {
                     ApplicationArea = Manufacturing;
-                    ToolTip = 'Specifies the number of the involved entry or record, according to the specified number series.';
                 }
                 field(Description; Rec.Description)
                 {
                     ApplicationArea = Manufacturing;
-                    ToolTip = 'Specifies a description for the production BOM.';
                 }
                 field("Description 2"; Rec."Description 2")
                 {
                     ApplicationArea = Manufacturing;
-                    ToolTip = 'Specifies an extended description for the BOM if there is not enough space in the Description field.';
                     Visible = false;
                 }
                 field(Status; Rec.Status)
                 {
                     ApplicationArea = Manufacturing;
-                    ToolTip = 'Specifies the status of the production BOM.';
                 }
                 field("Unit of Measure Code"; Rec."Unit of Measure Code")
                 {
                     ApplicationArea = Manufacturing;
-                    ToolTip = 'Specifies the manufacturing batch unit of measure.';
                 }
                 field("Search Name"; Rec."Search Name")
                 {
                     ApplicationArea = Manufacturing;
-                    ToolTip = 'Specifies an alternate name that you can use to search for the record in question when you cannot remember the value in the Name field.';
                     Visible = false;
                 }
                 field("Version Nos."; Rec."Version Nos.")
                 {
                     ApplicationArea = Manufacturing;
-                    ToolTip = 'Specifies the version number series that the production BOM versions refer to.';
                     Visible = false;
                 }
                 field("Last Date Modified"; Rec."Last Date Modified")
                 {
                     ApplicationArea = Manufacturing;
-                    ToolTip = 'Specifies the last date that was modified.';
                     Visible = false;
                 }
             }

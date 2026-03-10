@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -31,12 +31,10 @@ page 5339 "Integration Synch. Error List"
                 field("No."; Rec."No.")
                 {
                     ApplicationArea = Suite;
-                    ToolTip = 'Specifies the number of the involved entry or record, according to the specified number series.';
                 }
                 field("Date/Time"; Rec."Date/Time")
                 {
                     ApplicationArea = Suite;
-                    ToolTip = 'Specifies the date and time that the error in the integration synchronization job occurred.';
                 }
                 field(Message; ErrorMessage)
                 {
@@ -80,7 +78,6 @@ page 5339 "Integration Synch. Error List"
                 field("Exception Detail"; Rec."Exception Detail")
                 {
                     ApplicationArea = Suite;
-                    ToolTip = 'Specifies the exception that occurred in the integration synchronization job.';
                     Visible = false;
                 }
                 field(Source; OpenSourcePageTxt)

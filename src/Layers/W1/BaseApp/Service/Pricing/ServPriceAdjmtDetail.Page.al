@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -21,33 +21,27 @@ page 6083 "Serv. Price Adjmt. Detail"
                 field("Serv. Price Adjmt. Gr. Code"; Rec."Serv. Price Adjmt. Gr. Code")
                 {
                     ApplicationArea = Service;
-                    ToolTip = 'Specifies the code of the service price adjustment group that applies to the posted service line.';
                     Visible = ServPriceAdjmtGrCodeVisible;
                 }
                 field(Type; Rec.Type)
                 {
                     ApplicationArea = Service;
-                    ToolTip = 'Specifies the type for the service item line to be adjusted.';
                 }
                 field("No."; Rec."No.")
                 {
                     ApplicationArea = Service;
-                    ToolTip = 'Specifies the number of the involved entry or record, according to the specified number series.';
                 }
                 field("Work Type"; Rec."Work Type")
                 {
                     ApplicationArea = Service;
-                    ToolTip = 'Specifies the work type of the resource.';
                 }
                 field("Gen. Prod. Posting Group"; Rec."Gen. Prod. Posting Group")
                 {
                     ApplicationArea = Service;
-                    ToolTip = 'Specifies the item''s product type to link transactions made for this item with the appropriate general ledger account according to the general posting setup.';
                 }
                 field(Description; Rec.Description)
                 {
                     ApplicationArea = Service;
-                    ToolTip = 'Specifies the service item, resource, resource group, or service cost, of which the price will be adjusted, based on the value selected in the Type field.';
                 }
             }
         }

@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -27,6 +27,7 @@ table 7021 "Price Line Filters"
         field(2; "Asset Type"; Enum "Price Asset Type")
         {
             Caption = 'Product Type';
+            ToolTip = 'Specifies the product type that defines the table being a source for the suggested price list lines.';
             DataClassification = SystemMetadata;
 
             trigger OnValidate()
@@ -56,6 +57,7 @@ table 7021 "Price Line Filters"
         {
             AutoFormatType = 0;
             Caption = 'Minimum Quantity';
+            ToolTip = 'Specifies the default minimum quantity for the suggested lines. If you do not specify minimum qunatity, pricing will apply same price irrespective of quantity.';
             DataClassification = SystemMetadata;
             DecimalPlaces = 0 : 5;
             MinValue = 0;
@@ -64,6 +66,7 @@ table 7021 "Price Line Filters"
         {
             AutoFormatType = 0;
             Caption = 'Adjustment Factor';
+            ToolTip = 'Specifies an adjustment factor to multiply the amounts that you want to copy. By entering an adjustment factor, you can increase or decrease the amounts.';
             DataClassification = SystemMetadata;
             DecimalPlaces = 0 : 5;
             MinValue = 0;
@@ -72,12 +75,14 @@ table 7021 "Price Line Filters"
         field(7; "Rounding Method Code"; Code[10])
         {
             Caption = 'Rounding Method Code';
+            ToolTip = 'Specifies a rounding method code that you want applied to prices.';
             DataClassification = SystemMetadata;
             TableRelation = "Rounding Method";
         }
         field(8; "From Price List Code"; Code[20])
         {
             Caption = 'From Price List Code';
+            ToolTip = 'Specifies the price list code to copy lines from.';
             DataClassification = SystemMetadata;
             TableRelation = "Price List Header";
 
@@ -135,6 +140,7 @@ table 7021 "Price Line Filters"
         field(16; "Exchange Rate Date"; Date)
         {
             Caption = 'Exchange Rate Date';
+            ToolTip = 'Specifies a date for the currency exchange rate calculations.';
             DataClassification = SystemMetadata;
         }
         field(17; "Different Currencies"; Boolean)
@@ -163,6 +169,7 @@ table 7021 "Price Line Filters"
         field(20; "Copy As New Lines"; Boolean)
         {
             Caption = 'Copy as new lines';
+            ToolTip = 'Specifies if the suggested lines will become new lines in the target price list.';
             DataClassification = SystemMetadata;
         }
         field(21; "Update Multiple Price Lists"; Boolean)
@@ -173,6 +180,7 @@ table 7021 "Price Line Filters"
         field(22; "Force Defaults"; Boolean)
         {
             Caption = 'Use defaults from target';
+            ToolTip = 'Specifies whether to apply the values of the target price list header to the new lines instead of the values of the price list you are copying.';
             DataClassification = SystemMetadata;
         }
     }

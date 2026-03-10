@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -56,6 +56,7 @@ table 504 "Reminder Attachment Text Line"
         field(5; Text; Text[100])
         {
             Caption = 'Text';
+            ToolTip = 'Specifies the text of the reminder attachment ending line for the selected language.';
             DataClassification = CustomerContent;
         }
     }

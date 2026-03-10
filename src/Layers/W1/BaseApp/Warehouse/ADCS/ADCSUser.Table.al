@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -16,12 +16,14 @@ table 7710 "ADCS User"
         field(1; Name; Code[50])
         {
             Caption = 'Name';
+            ToolTip = 'Specifies the name of an ADCS user.';
             DataClassification = EndUserIdentifiableInformation;
             NotBlank = true;
         }
         field(2; Password; Text[250])
         {
             Caption = 'Password';
+            ToolTip = 'Specifies the password of an ADCS user.';
             NotBlank = true;
 
             trigger OnValidate()

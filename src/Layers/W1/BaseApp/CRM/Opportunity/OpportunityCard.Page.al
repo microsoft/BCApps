@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -32,18 +32,15 @@ page 5124 "Opportunity Card"
                 {
                     ApplicationArea = All;
                     Importance = Additional;
-                    ToolTip = 'Specifies the number of the involved entry or record, according to the specified number series.';
                 }
                 field(Description; Rec.Description)
                 {
                     ApplicationArea = All;
-                    ToolTip = 'Specifies the description of the opportunity.';
                 }
                 field("Contact No."; Rec."Contact No.")
                 {
                     ApplicationArea = RelationshipMgmt;
                     Editable = ContactNoEditable;
-                    ToolTip = 'Specifies the number of the contact that this opportunity is linked to.';
 
                     trigger OnValidate()
                     var
@@ -60,7 +57,6 @@ page 5124 "Opportunity Card"
                     ApplicationArea = RelationshipMgmt;
                     DrillDown = false;
                     Editable = false;
-                    ToolTip = 'Specifies the name of the contact to which this opportunity is linked. The program automatically fills in this field when you have entered a number in the No. field.';
                 }
                 field(ContactPhoneNo; GlobalContact."Phone No.")
                 {
@@ -95,20 +91,17 @@ page 5124 "Opportunity Card"
                     DrillDown = false;
                     Editable = false;
                     Importance = Additional;
-                    ToolTip = 'Specifies the name of the company of the contact person to which this opportunity is linked. The program automatically fills in this field when you have entered a number in the Contact Company No. field.';
                 }
                 field("Salesperson Code"; Rec."Salesperson Code")
                 {
                     ApplicationArea = Suite;
                     Editable = SalespersonCodeEditable;
-                    ToolTip = 'Specifies the code of the salesperson that is responsible for the opportunity.';
                 }
                 field("Sales Document Type"; Rec."Sales Document Type")
                 {
                     ApplicationArea = Basic, Suite;
                     Editable = SalesDocumentTypeEditable;
                     Importance = Additional;
-                    ToolTip = 'Specifies the type of the sales document (Quote, Order, Posted Invoice). The combination of Sales Document No. and Sales Document Type specifies which sales document is assigned to the opportunity.';
                     ValuesAllowed = " ", Quote, Order;
                 }
                 field("Sales Document No."; Rec."Sales Document No.")
@@ -116,57 +109,48 @@ page 5124 "Opportunity Card"
                     ApplicationArea = Basic, Suite;
                     Editable = SalesDocumentNoEditable;
                     Importance = Additional;
-                    ToolTip = 'Specifies the number of the sales document that has been created for this opportunity.';
                 }
                 field("Campaign No."; Rec."Campaign No.")
                 {
                     ApplicationArea = RelationshipMgmt;
                     Editable = CampaignNoEditable;
                     Importance = Additional;
-                    ToolTip = 'Specifies the number of the campaign to which this opportunity is linked.';
                 }
                 field(Priority; Rec.Priority)
                 {
                     ApplicationArea = RelationshipMgmt;
                     Editable = PriorityEditable;
                     Importance = Additional;
-                    ToolTip = 'Specifies the priority of the opportunity. There are three options:';
                 }
                 field("Sales Cycle Code"; Rec."Sales Cycle Code")
                 {
                     ApplicationArea = RelationshipMgmt;
                     Editable = SalesCycleCodeEditable;
-                    ToolTip = 'Specifies the code of the sales cycle that the opportunity is linked to.';
                 }
                 field(Status; Rec.Status)
                 {
                     ApplicationArea = RelationshipMgmt;
-                    ToolTip = 'Specifies the status of the opportunity. There are four options:';
                 }
                 field(Closed; Rec.Closed)
                 {
                     ApplicationArea = RelationshipMgmt;
                     Importance = Additional;
-                    ToolTip = 'Specifies that the opportunity is closed.';
                 }
                 field("Creation Date"; Rec."Creation Date")
                 {
                     ApplicationArea = RelationshipMgmt;
                     Editable = false;
                     Importance = Additional;
-                    ToolTip = 'Specifies the date that the opportunity was created.';
                 }
                 field("Date Closed"; Rec."Date Closed")
                 {
                     ApplicationArea = RelationshipMgmt;
                     Importance = Additional;
-                    ToolTip = 'Specifies the date the opportunity was closed.';
                 }
                 field("Segment No."; Rec."Segment No.")
                 {
                     ApplicationArea = RelationshipMgmt;
                     Importance = Additional;
-                    ToolTip = 'Specifies the number of the segment (if any) that is linked to the opportunity.';
                 }
             }
             part(Control25; "Opportunity Subform")

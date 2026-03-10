@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -22,17 +22,14 @@ page 99000802 "Capacity Units of Measure"
                 field("Code"; Rec.Code)
                 {
                     ApplicationArea = Manufacturing;
-                    ToolTip = 'Specifies the unit code.';
                 }
                 field(Type; Rec.Type)
                 {
                     ApplicationArea = Manufacturing;
-                    ToolTip = 'Specifies the type of unit of measure.';
                 }
                 field(Description; Rec.Description)
                 {
                     ApplicationArea = Manufacturing;
-                    ToolTip = 'Specifies the description of the unit of measure.';
                 }
             }
         }

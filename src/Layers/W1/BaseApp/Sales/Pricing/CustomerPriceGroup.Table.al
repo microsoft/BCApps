@@ -28,6 +28,7 @@ table 6 "Customer Price Group"
         field(1; "Code"; Code[10])
         {
             Caption = 'Code';
+            ToolTip = 'Specifies a code to identify the price group.';
             NotBlank = true;
         }
         /// <summary>
@@ -36,6 +37,7 @@ table 6 "Customer Price Group"
         field(2; "Price Includes VAT"; Boolean)
         {
             Caption = 'Price Includes VAT';
+            ToolTip = 'Specifies whether the prices given for this price group will include VAT.';
 
             trigger OnValidate()
             var
@@ -54,6 +56,7 @@ table 6 "Customer Price Group"
         field(5; "Allow Invoice Disc."; Boolean)
         {
             Caption = 'Allow Invoice Disc.';
+            ToolTip = 'Specifies whether the ordinary invoice discount calculation will apply to customers in this price group.';
             InitValue = true;
         }
         /// <summary>
@@ -70,6 +73,7 @@ table 6 "Customer Price Group"
         field(10; Description; Text[100])
         {
             Caption = 'Description';
+            ToolTip = 'Specifies the description of the customer price group.';
         }
 #if not CLEANSCHEMA26
         field(720; "Coupled to CRM"; Boolean)
@@ -88,6 +92,7 @@ table 6 "Customer Price Group"
         {
             FieldClass = FlowField;
             Caption = 'Coupled to Dynamics 365 Sales';
+            ToolTip = 'Specifies that the customer price group is coupled to a price list in Dynamics 365 Sales.';
             Editable = false;
             CalcFormula = exist("CRM Integration Record" where("Integration ID" = field(SystemId), "Table ID" = const(Database::"Customer Price Group")));
         }
@@ -97,6 +102,7 @@ table 6 "Customer Price Group"
         field(7000; "Price Calculation Method"; Enum "Price Calculation Method")
         {
             Caption = 'Price Calculation Method';
+            ToolTip = 'Specifies the price calculation method that will override the method set in the sales setup for customers in this group.';
 
             trigger OnValidate()
             var
@@ -113,6 +119,7 @@ table 6 "Customer Price Group"
         field(7001; "Allow Line Disc."; Boolean)
         {
             Caption = 'Allow Line Disc.';
+            ToolTip = 'Specifies if a line discount will be calculated when the sales price is offered.';
             InitValue = true;
         }
     }

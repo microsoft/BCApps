@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -20,18 +20,15 @@ page 5874 "BOM Warning Log"
                 field("Warning Description"; Rec."Warning Description")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the description of the warning associated with the entry.';
                 }
                 field("Table ID"; Rec."Table ID")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the table ID associated with the entry.';
                     Visible = false;
                 }
                 field("Table Position"; Rec."Table Position")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the table position associated with the entry.';
                     Visible = false;
                 }
             }

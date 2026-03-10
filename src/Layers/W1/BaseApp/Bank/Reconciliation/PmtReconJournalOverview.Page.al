@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -34,18 +34,15 @@ page 1291 "Pmt. Recon. Journal Overview"
                 {
                     ApplicationArea = Basic, Suite;
                     Editable = false;
-                    ToolTip = 'Specifies the quality of the automatic payment application on the journal line.';
                     Visible = false;
                 }
                 field("Transaction Date"; Rec."Transaction Date")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the posting date of the bank account or check ledger entry on the reconciliation line when the Suggest Lines function is used.';
                 }
                 field("Transaction Text"; Rec."Transaction Text")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the text that the customer or vendor entered on that payment transaction that is represented by the journal line.';
                     Width = 40;
                 }
                 field("Statement Amount"; Rec."Statement Amount")
@@ -69,14 +66,12 @@ page 1291 "Pmt. Recon. Journal Overview"
                 field("Applied Amount"; Rec."Applied Amount")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the amount of the transaction on the reconciliation line that has been applied to a bank account or check ledger entry.';
                 }
                 field(Difference; Rec.Difference)
                 {
                     ApplicationArea = Basic, Suite;
                     Editable = false;
                     Style = Unfavorable;
-                    ToolTip = 'Specifies the difference between the amount in the Statement Amount field and the amount in the Applied Amount field.';
                 }
                 field(StatementToRemAmtDifference; StatementToRemAmtDifference)
                 {
@@ -99,7 +94,6 @@ page 1291 "Pmt. Recon. Journal Overview"
                 field("Applied Entries"; Rec."Applied Entries")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies whether the transaction on the bank''s statement has been applied to one or more bank account or check ledger entries.';
                     Visible = false;
                 }
                 field(RemainingAmount; RemainingAmountAfterPosting)

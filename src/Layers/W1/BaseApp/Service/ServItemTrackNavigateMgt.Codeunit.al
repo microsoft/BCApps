@@ -25,7 +25,7 @@ codeunit 6473 "Serv. Item Track Navigate Mgt"
         ItemTrackingSetup: Record "Item Tracking Setup";
         RecRef: RecordRef;
 
-    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Item Tracking Navigate Mgt.", 'OnFindTrackingRecordsOnAfterFindSerialNo', '', false, false)]
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Item Tracking Navigate Mgt.", 'OnFindTrackingRecordsOnAfterFindSerialNo', '', true, false)]
     local procedure OnFindTrackingRecordsOnAfterFindSerialNo(var TempRecordBuffer: Record "Record Buffer" temporary; var ItemFilters: Record Item; sender: Codeunit "Item Tracking Navigate Mgt.");
     begin
         FindSerialNoServItemLine(ItemFilters, sender);
@@ -149,7 +149,7 @@ codeunit 6473 "Serv. Item Track Navigate Mgt"
             until FiledContractLine.Next() = 0;
     end;
 
-    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Item Tracking Navigate Mgt.", 'OnSearchValueEntriesOnAfterFindValueEntry', '', false, false)]
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Item Tracking Navigate Mgt.", 'OnSearchValueEntriesOnAfterFindValueEntry', '', true, false)]
     local procedure OnSearchValueEntriesOnAfterFindValueEntry(ValueEntry: Record "Value Entry"; sender: Codeunit "Item Tracking Navigate Mgt.");
     begin
         case ValueEntry."Document Type" of
@@ -186,7 +186,7 @@ codeunit 6473 "Serv. Item Track Navigate Mgt"
         end;
     end;
 
-    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Item Tracking Navigate Mgt.", 'OnFindReservEntryOnBeforeCaseDocumentType', '', false, false)]
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Item Tracking Navigate Mgt.", 'OnFindReservEntryOnBeforeCaseDocumentType', '', true, false)]
     local procedure OnFindReservEntryOnBeforeCaseDocumentType(var ReservationEntry: Record "Reservation Entry"; var sender: Codeunit "Item Tracking Navigate Mgt.");
     begin
         case ReservationEntry."Source Type" of
@@ -208,7 +208,7 @@ codeunit 6473 "Serv. Item Track Navigate Mgt"
         end;
     end;
 
-    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Item Tracking Navigate Mgt.", 'OnFindItemLedgerEntryOnBeforeCaseDocumentType', '', false, false)]
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Item Tracking Navigate Mgt.", 'OnFindItemLedgerEntryOnBeforeCaseDocumentType', '', true, false)]
     local procedure OnFindItemLedgerEntryOnBeforeCaseDocumentType(var ItemLedgerEntry: Record "Item Ledger Entry"; var sender: Codeunit "Item Tracking Navigate Mgt.")
     begin
         case ItemLedgerEntry."Document Type" of
@@ -236,7 +236,7 @@ codeunit 6473 "Serv. Item Track Navigate Mgt"
         end;
     end;
 
-    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Item Tracking Navigate Mgt.", 'OnShowTable', '', false, false)]
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Item Tracking Navigate Mgt.", 'OnShowTable', '', true, false)]
     local procedure OnShowTable(TableNo: Integer; var TempRecordBuffer: Record "Record Buffer" temporary)
     begin
         case TableNo of

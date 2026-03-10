@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -25,29 +25,24 @@ page 297 "Vendor Item Catalog"
                 field("Vendor No."; Rec."Vendor No.")
                 {
                     ApplicationArea = Planning;
-                    ToolTip = 'Specifies the number of the vendor who offers the alternate direct unit cost.';
                     Visible = false;
                 }
                 field("Item No."; Rec."Item No.")
                 {
                     ApplicationArea = Planning;
-                    ToolTip = 'Specifies the number of the item that the alternate direct unit cost is valid for.';
                 }
                 field("Variant Code"; Rec."Variant Code")
                 {
                     ApplicationArea = Planning;
-                    ToolTip = 'Specifies the variant of the item on the line.';
                     Visible = false;
                 }
                 field("Vendor Item No."; Rec."Vendor Item No.")
                 {
                     ApplicationArea = Planning;
-                    ToolTip = 'Specifies the number that the vendor uses for this item.';
                 }
                 field("Lead Time Calculation"; Rec."Lead Time Calculation")
                 {
                     ApplicationArea = Planning;
-                    ToolTip = 'Specifies a date formula for the amount of time it takes to replenish the item.';
                 }
             }
         }

@@ -48,7 +48,6 @@ page 5050 "Contact Card"
                 {
                     ApplicationArea = All;
                     Importance = Standard;
-                    ToolTip = 'Specifies the number of the involved entry or record, according to the specified number series.';
                     Visible = NoFieldVisible;
 
                     trigger OnAssistEdit()
@@ -63,7 +62,6 @@ page 5050 "Contact Card"
                     AssistEdit = true;
                     Importance = Promoted;
                     ShowMandatory = true;
-                    ToolTip = 'Specifies the name of the contact. If the contact is a person, you can click the field to see the Name Details window.';
 
                     trigger OnAssistEdit()
                     var
@@ -97,13 +95,11 @@ page 5050 "Contact Card"
                 {
                     ApplicationArea = All;
                     Importance = Additional;
-                    ToolTip = 'Specifies an additional part of the name.';
                     Visible = false;
                 }
                 field(Type; Rec.Type)
                 {
                     ApplicationArea = All;
-                    ToolTip = 'Specifies the type of contact, either company or person.';
 
                     trigger OnValidate()
                     begin
@@ -117,7 +113,6 @@ page 5050 "Contact Card"
                     {
                         ApplicationArea = All;
                         Importance = Promoted;
-                        ToolTip = 'Specifies the number for the contact''s company.';
                     }
                     field("Company Name"; Rec."Company Name")
                     {
@@ -125,7 +120,6 @@ page 5050 "Contact Card"
                         AssistEdit = true;
                         Enabled = CompanyNameEnable;
                         Importance = Promoted;
-                        ToolTip = 'Specifies the name of the company. If the contact is a person, Specifies the name of the company for which this contact works. This field is not editable.';
 
                         trigger OnAssistEdit()
                         begin
@@ -140,7 +134,6 @@ page 5050 "Contact Card"
                 {
                     ApplicationArea = All;
                     Importance = Additional;
-                    ToolTip = 'Specifies the contact''s job title.';
                     Visible = false;
                 }
                 field("Contact Business Relation"; Rec."Contact Business Relation")
@@ -148,7 +141,6 @@ page 5050 "Contact Card"
                     ApplicationArea = All;
                     Importance = Promoted;
                     Caption = 'Business Relation';
-                    ToolTip = 'Specifies the type of the existing business relation.';
 
                     trigger OnDrillDown()
                     begin
@@ -184,26 +176,22 @@ page 5050 "Contact Card"
                 {
                     ApplicationArea = Basic, Suite;
                     Importance = Additional;
-                    ToolTip = 'Specifies an alternate name that you can use to search for the record in question when you cannot remember the value in the Name field.';
                 }
                 field("Salesperson Code"; Rec."Salesperson Code")
                 {
                     ApplicationArea = RelationshipMgmt;
                     Importance = Promoted;
-                    ToolTip = 'Specifies the code of the salesperson who normally handles this contact.';
                 }
                 field("Salutation Code"; Rec."Salutation Code")
                 {
                     ApplicationArea = Basic, Suite;
                     Importance = Additional;
-                    ToolTip = 'Specifies the salutation code that will be used when you interact with the contact. The salutation code is only used in Word documents. To see a list of the salutation codes already defined, click the field.';
                 }
                 field("Organizational Level Code"; Rec."Organizational Level Code")
                 {
                     ApplicationArea = RelationshipMgmt;
                     Enabled = OrganizationalLevelCodeEnable;
                     Importance = Additional;
-                    ToolTip = 'Specifies the organizational code for the contact, for example, top management. This field is valid for persons only.';
                 }
                 field(LastDateTimeModified; Rec.GetLastDateTimeModified())
                 {
@@ -216,7 +204,6 @@ page 5050 "Contact Card"
                 {
                     ApplicationArea = RelationshipMgmt;
                     Importance = Additional;
-                    ToolTip = 'Specifies the date of the last interaction involving the contact, for example, a received or sent mail, e-mail, or phone call. This field is not editable.';
 
                     trigger OnDrillDown()
                     var
@@ -234,7 +221,6 @@ page 5050 "Contact Card"
                 {
                     ApplicationArea = RelationshipMgmt;
                     Importance = Additional;
-                    ToolTip = 'Specifies the date when the contact was last contacted, for example, when you tried to call the contact, with or without success. This field is not editable.';
 
                     trigger OnDrillDown()
                     var
@@ -252,19 +238,16 @@ page 5050 "Contact Card"
                 {
                     ApplicationArea = RelationshipMgmt;
                     Importance = Additional;
-                    ToolTip = 'Specifies the date of the next task involving the contact.';
                 }
                 field("Exclude from Segment"; Rec."Exclude from Segment")
                 {
                     ApplicationArea = RelationshipMgmt;
                     Importance = Additional;
-                    ToolTip = 'Specifies if the contact should be excluded from segments:';
                 }
                 field("Privacy Blocked"; Rec."Privacy Blocked")
                 {
                     ApplicationArea = Basic, Suite;
                     Importance = Additional;
-                    ToolTip = 'Specifies whether to limit access to data for the data subject during daily operations. This is useful, for example, when protecting data from changes while it is under privacy review.';
                 }
                 field(Minor; Rec.Minor)
                 {
@@ -282,14 +265,12 @@ page 5050 "Contact Card"
                     ApplicationArea = Basic, Suite;
                     Enabled = ParentalConsentReceivedEnable;
                     Importance = Additional;
-                    ToolTip = 'Specifies that a parent or guardian of the minor has provided their consent to allow the minor to use this service. When this check box is selected, data for the minor can be processed.';
                 }
                 field("Registration Number"; Rec."Registration Number")
                 {
                     ApplicationArea = Basic, Suite;
                     Importance = Additional;
                     Enabled = RegistrationNumberEnabled;
-                    ToolTip = 'Specifies the registration number of the contact. You can enter a maximum of 20 characters, both numbers and letters.';
                 }
             }
             part(ContactIntEntriesSubform; "Contact Int. Entries Subform")
@@ -308,17 +289,14 @@ page 5050 "Contact Card"
                     field(Address; Rec.Address)
                     {
                         ApplicationArea = Basic, Suite;
-                        ToolTip = 'Specifies the contact''s address.';
                     }
                     field("Address 2"; Rec."Address 2")
                     {
                         ApplicationArea = Basic, Suite;
-                        ToolTip = 'Specifies additional address information.';
                     }
                     field("Country/Region Code"; Rec."Country/Region Code")
                     {
                         ApplicationArea = Basic, Suite;
-                        ToolTip = 'Specifies the country/region of the address.';
                         trigger OnValidate()
                         begin
                             IsCountyVisible := FormatAddress.UseCounty(Rec."Country/Region Code");
@@ -328,7 +306,6 @@ page 5050 "Contact Card"
                     {
                         ApplicationArea = Basic, Suite;
                         Importance = Promoted;
-                        ToolTip = 'Specifies the postal code.';
                     }
                     group(CountyGroup)
                     {
@@ -337,7 +314,6 @@ page 5050 "Contact Card"
                         field(County; Rec.County)
                         {
                             ApplicationArea = Basic, Suite;
-                            ToolTip = 'Specifies the state, province or county as a part of the address.';
                         }
                     }
                     field(City; Rec.City)
@@ -367,48 +343,40 @@ page 5050 "Contact Card"
                     field("Phone No."; Rec."Phone No.")
                     {
                         ApplicationArea = Basic, Suite;
-                        ToolTip = 'Specifies the contact''s phone number.';
                     }
                     field("Mobile Phone No."; Rec."Mobile Phone No.")
                     {
                         ApplicationArea = Basic, Suite;
-                        ToolTip = 'Specifies the contact''s mobile telephone number.';
                     }
                     field("E-Mail"; Rec."E-Mail")
                     {
                         ApplicationArea = Basic, Suite;
                         ExtendedDatatype = EMail;
                         Importance = Promoted;
-                        ToolTip = 'Specifies the email address of the contact.';
                     }
                     field("Fax No."; Rec."Fax No.")
                     {
                         ApplicationArea = Basic, Suite;
                         Importance = Additional;
-                        ToolTip = 'Specifies the contact''s fax number.';
                     }
                     field("Home Page"; Rec."Home Page")
                     {
                         ApplicationArea = Basic, Suite;
-                        ToolTip = 'Specifies the contact''s web site.';
                     }
                     field("Correspondence Type"; Rec."Correspondence Type")
                     {
                         ApplicationArea = Basic, Suite;
                         Importance = Additional;
-                        ToolTip = 'Specifies the preferred type of correspondence for the interaction.';
                     }
                     field("Language Code"; Rec."Language Code")
                     {
                         ApplicationArea = Basic, Suite;
                         Importance = Promoted;
-                        ToolTip = 'Specifies the language that is used when translating specified text on documents to foreign business partner, such as an item description on an order confirmation.';
                     }
                     field("Format Region"; Rec."Format Region")
                     {
                         ApplicationArea = Basic, Suite;
                         Importance = Promoted;
-                        ToolTip = 'Specifies the format region that is used when formatting dates and numbers on documents to foreign business partner, such as an total amount on an order date.';
                     }
                 }
             }
@@ -420,20 +388,17 @@ page 5050 "Contact Card"
                     ApplicationArea = Suite;
                     Enabled = CurrencyCodeEnable;
                     Importance = Promoted;
-                    ToolTip = 'Specifies the currency code for the contact.';
                 }
                 field("Territory Code"; Rec."Territory Code")
                 {
                     ApplicationArea = RelationshipMgmt;
                     Importance = Additional;
-                    ToolTip = 'Specifies the territory code for the contact.';
                 }
                 field("VAT Registration No."; Rec."VAT Registration No.")
                 {
                     ApplicationArea = VAT;
                     Enabled = VATRegistrationNoEnable;
                     Importance = Additional;
-                    ToolTip = 'Specifies the contact''s VAT registration number. This field is valid for companies only.';
 
                     trigger OnDrillDown()
                     var

@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -20,6 +20,7 @@ table 961 "Alt. Vendor Posting Group"
         field(2; "Alt. Vendor Posting Group"; Code[20])
         {
             Caption = 'Alternative Vendor Posting Group';
+            ToolTip = 'Specifies the vendor group for posting business transactions to general general ledger accounts.';
             TableRelation = "Vendor Posting Group";
 
             trigger OnValidate()

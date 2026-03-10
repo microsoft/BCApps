@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -21,6 +21,8 @@ page 452 "Issued Fin. Charge Memo List"
     ModifyAllowed = false;
     PageType = List;
     SourceTable = "Issued Fin. Charge Memo Header";
+    SourceTableView = sorting("Posting Date")
+                      order(descending);
     UsageCategory = Lists;
 
     layout
@@ -33,63 +35,58 @@ page 452 "Issued Fin. Charge Memo List"
                 field("No."; Rec."No.")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the number of the involved entry or record, according to the specified number series.';
+                }
+                field("Posting Date"; Rec."Posting Date")
+                {
+                    ApplicationArea = Basic, Suite;
+                    Visible = false;
+                    ToolTip = 'Specifies the posting date that the finance charge memo was issued on.';
                 }
                 field("Customer No."; Rec."Customer No.")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the customer number the finance charge memo is for.';
                 }
                 field(Name; Rec.Name)
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the name of the customer the finance charge memo is for.';
                 }
                 field("Currency Code"; Rec."Currency Code")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the code of the currency that the issued finance charge memo is in.';
                 }
                 field("Interest Amount"; Rec."Interest Amount")
                 {
                     ApplicationArea = Basic, Suite;
                     DrillDown = false;
-                    ToolTip = 'Specifies the total of the interest amounts on the finance charge memo lines.';
                 }
                 field("Post Code"; Rec."Post Code")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the postal code.';
                     Visible = false;
                 }
                 field(City; Rec.City)
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the city name of the customer the finance charge memo is for.';
                     Visible = false;
                 }
                 field("No. Printed"; Rec."No. Printed")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies how many times the document has been printed.';
                     Visible = false;
                 }
                 field("Shortcut Dimension 1 Code"; Rec."Shortcut Dimension 1 Code")
                 {
                     ApplicationArea = Dimensions;
-                    ToolTip = 'Specifies the code for Shortcut Dimension 1, which is one of two global dimension codes that you set up in the General Ledger Setup window.';
                     Visible = false;
                 }
                 field("Shortcut Dimension 2 Code"; Rec."Shortcut Dimension 2 Code")
                 {
                     ApplicationArea = Dimensions;
-                    ToolTip = 'Specifies the code for Shortcut Dimension 2, which is one of two global dimension codes that you set up in the General Ledger Setup window.';
                     Visible = false;
                 }
                 field(Canceled; Rec.Canceled)
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies if the issued finance charge memo has been canceled.';
                 }
             }
         }

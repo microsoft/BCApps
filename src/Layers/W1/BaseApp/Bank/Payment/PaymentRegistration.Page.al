@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -43,7 +43,6 @@ page 981 "Payment Registration"
                 {
                     ApplicationArea = Basic, Suite;
                     Editable = false;
-                    ToolTip = 'Specifies the number of the source document that the entry originates from.';
                     Visible = false;
                 }
                 field(Name; Rec.Name)
@@ -51,7 +50,6 @@ page 981 "Payment Registration"
                     ApplicationArea = Basic, Suite;
                     DrillDown = true;
                     Editable = false;
-                    ToolTip = 'Specifies the name of the customer or vendor that the payment relates to.';
 
                     trigger OnDrillDown()
                     var
@@ -65,7 +63,6 @@ page 981 "Payment Registration"
                 {
                     ApplicationArea = Basic, Suite;
                     Editable = false;
-                    ToolTip = 'Specifies the number of the document that the payment relates to.';
                     Visible = false;
 
                     trigger OnDrillDown()
@@ -77,33 +74,28 @@ page 981 "Payment Registration"
                 {
                     ApplicationArea = Basic, Suite;
                     Editable = false;
-                    ToolTip = 'Specifies the type of document that the payment relates to.';
                     Visible = false;
                 }
                 field(Description; Rec.Description)
                 {
                     ApplicationArea = Basic, Suite;
                     Editable = false;
-                    ToolTip = 'Specifies the invoice transaction that the payment relates to.';
                 }
                 field("Due Date"; Rec."Due Date")
                 {
                     ApplicationArea = Basic, Suite;
                     Editable = false;
                     StyleExpr = DueDateStyle;
-                    ToolTip = 'Specifies the payment due date on the related document.';
                 }
                 field("Remaining Amount"; Rec."Remaining Amount")
                 {
                     ApplicationArea = Basic, Suite;
                     Editable = false;
                     StyleExpr = PmtDiscStyle;
-                    ToolTip = 'Specifies the amount that remains to be paid on the document.';
                 }
                 field("Payment Made"; Rec."Payment Made")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies if you have received or made payment for the document.';
 
                     trigger OnValidate()
                     begin
@@ -114,7 +106,6 @@ page 981 "Payment Registration"
                 {
                     ApplicationArea = Basic, Suite;
                     StyleExpr = DueDateStyle;
-                    ToolTip = 'Specifies the date when the payment was made.';
 
                     trigger OnValidate()
                     begin
@@ -124,7 +115,6 @@ page 981 "Payment Registration"
                 field("Amount Received"; Rec."Amount Received")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the amount that is paid in the bank account.';
 
                     trigger OnValidate()
                     begin
@@ -136,7 +126,6 @@ page 981 "Payment Registration"
                     ApplicationArea = Basic, Suite;
                     AutoFormatType = 1;
                     StyleExpr = PmtDiscStyle;
-                    ToolTip = 'Specifies the date on which the amount in the entry must be paid for a payment discount to be granted.';
                     Visible = false;
 
                     trigger OnValidate()
@@ -149,14 +138,12 @@ page 981 "Payment Registration"
                     ApplicationArea = Basic, Suite;
                     Caption = 'Rem Amount Incl. Discount';
                     Editable = false;
-                    ToolTip = 'Specifies the remaining amount after the payment discount is deducted.';
                     Visible = false;
                 }
                 field(ExternalDocumentNo; Rec."External Document No.")
                 {
                     ApplicationArea = Basic, Suite;
                     Caption = 'External Document No.';
-                    ToolTip = 'Specifies a document number that refers to the customer''s or vendor''s numbering system.';
                 }
             }
             grid("Bal. Account Details")

@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -24,42 +24,34 @@ page 5921 "Available Loaners"
                 field("No."; Rec."No.")
                 {
                     ApplicationArea = Service;
-                    ToolTip = 'Specifies the number of the involved entry or record, according to the specified number series.';
                 }
                 field("Serial No."; Rec."Serial No.")
                 {
                     ApplicationArea = ItemTracking;
-                    ToolTip = 'Specifies the serial number for the loaner for the service item.';
                 }
                 field(Description; Rec.Description)
                 {
                     ApplicationArea = Service;
-                    ToolTip = 'Specifies a description of the loaner.';
                 }
                 field(Comment; Rec.Comment)
                 {
                     ApplicationArea = Comments;
-                    ToolTip = 'Specifies that there is a comment for this loaner.';
                 }
                 field(Blocked; Rec.Blocked)
                 {
                     ApplicationArea = Service;
-                    ToolTip = 'Specifies that the related record is blocked from being posted in transactions, for example a customer that is declared insolvent or an item that is placed in quarantine.';
                 }
                 field(Lent; Rec.Lent)
                 {
                     ApplicationArea = Service;
-                    ToolTip = 'Specifies that the loaner has been lent to a customer.';
                 }
                 field("Document Type"; Rec."Document Type")
                 {
                     ApplicationArea = Service;
-                    ToolTip = 'Specifies the document type of the loaner entry.';
                 }
                 field("Document No."; Rec."Document No.")
                 {
                     ApplicationArea = Service;
-                    ToolTip = 'Specifies the number of the service document for the service item that was lent.';
                 }
             }
         }

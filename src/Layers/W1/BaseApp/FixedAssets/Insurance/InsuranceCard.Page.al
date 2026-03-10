@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -25,7 +25,6 @@ page 5644 "Insurance Card"
                 {
                     ApplicationArea = FixedAssets;
                     Importance = Promoted;
-                    ToolTip = 'Specifies the number of the involved entry or record, according to the specified number series.';
 
                     trigger OnAssistEdit()
                     begin
@@ -37,59 +36,48 @@ page 5644 "Insurance Card"
                 {
                     ApplicationArea = FixedAssets;
                     Importance = Promoted;
-                    ToolTip = 'Specifies a description of the insurance policy.';
                 }
                 field("Insurance Vendor No."; Rec."Insurance Vendor No.")
                 {
                     ApplicationArea = FixedAssets;
-                    ToolTip = 'Specifies the number of the vendor from whom you purchased this insurance policy.';
                 }
                 field("Effective Date"; Rec."Effective Date")
                 {
                     ApplicationArea = FixedAssets;
-                    ToolTip = 'Specifies the date from which the insurance policy is valid.';
                 }
                 field("Expiration Date"; Rec."Expiration Date")
                 {
                     ApplicationArea = FixedAssets;
                     Importance = Promoted;
-                    ToolTip = 'Specifies the date to which the insurance policy is valid.';
                 }
                 field("Insurance Type"; Rec."Insurance Type")
                 {
                     ApplicationArea = FixedAssets;
-                    ToolTip = 'Specifies the type of insurance (for example, theft or fire) that is covered by this insurance policy.';
                 }
                 field("Policy No."; Rec."Policy No.")
                 {
                     ApplicationArea = FixedAssets;
                     Importance = Promoted;
-                    ToolTip = 'Specifies the insurance policy number as stated on the actual insurance policy.';
                 }
                 field("Search Description"; Rec."Search Description")
                 {
                     ApplicationArea = Comments;
-                    ToolTip = 'Specifies a search description for the insurance policy.';
                 }
                 field("Annual Premium"; Rec."Annual Premium")
                 {
                     ApplicationArea = FixedAssets;
-                    ToolTip = 'Specifies the amount of the annual insurance premium.';
                 }
                 field("Policy Coverage"; Rec."Policy Coverage")
                 {
                     ApplicationArea = FixedAssets;
-                    ToolTip = 'Specifies the amount of coverage provided by this insurance policy.';
                 }
                 field(Blocked; Rec.Blocked)
                 {
                     ApplicationArea = FixedAssets;
-                    ToolTip = 'Specifies that the related record is blocked from being posted in transactions, for example a customer that is declared insolvent or an item that is placed in quarantine.';
                 }
                 field("Last Date Modified"; Rec."Last Date Modified")
                 {
                     ApplicationArea = FixedAssets;
-                    ToolTip = 'Specifies when the insurance card was last modified.';
                 }
             }
             group(Posting)
@@ -99,19 +87,16 @@ page 5644 "Insurance Card"
                 {
                     ApplicationArea = FixedAssets;
                     Importance = Promoted;
-                    ToolTip = 'Specifies a fixed asset class code to assign to the insurance policy.';
                 }
                 field("FA Subclass Code"; Rec."FA Subclass Code")
                 {
                     ApplicationArea = FixedAssets;
                     Importance = Promoted;
-                    ToolTip = 'Specifies a fixed asset subclass code to assign to the insurance policy.';
                 }
                 field("FA Location Code"; Rec."FA Location Code")
                 {
                     ApplicationArea = Basic, Suite;
                     Importance = Promoted;
-                    ToolTip = 'Specifies the code of the location of the fixed asset(s) linked to the insurance policy.';
                 }
             }
         }

@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -31,25 +31,21 @@ page 5920 "Service Document Log"
                 field("Document Type"; Rec."Document Type")
                 {
                     ApplicationArea = Service;
-                    ToolTip = 'Specifies the type of the service document that underwent changes.';
                     Visible = DocumentTypeVisible;
                 }
                 field("Document No."; Rec."Document No.")
                 {
                     ApplicationArea = Service;
-                    ToolTip = 'Specifies the number of the service document that has undergone changes.';
                     Visible = DocumentNoVisible;
                 }
                 field("Service Item Line No."; Rec."Service Item Line No.")
                 {
                     ApplicationArea = Service;
-                    ToolTip = 'Specifies the number of the service item line, if the event is linked to a service item line.';
                     Visible = false;
                 }
                 field("Entry No."; Rec."Entry No.")
                 {
                     ApplicationArea = Service;
-                    ToolTip = 'Specifies the number of the entry, as assigned from the specified number series when the entry was created.';
                     Visible = false;
                 }
 #pragma warning disable AA0100
@@ -63,27 +59,22 @@ page 5920 "Service Document Log"
                 field(After; Rec.After)
                 {
                     ApplicationArea = Service;
-                    ToolTip = 'Specifies the contents of the modified field after the event takes place.';
                 }
                 field(Before; Rec.Before)
                 {
                     ApplicationArea = Service;
-                    ToolTip = 'Specifies the contents of the modified field before the event takes place.';
                 }
                 field("Change Date"; Rec."Change Date")
                 {
                     ApplicationArea = Service;
-                    ToolTip = 'Specifies the date of the event.';
                 }
                 field("Change Time"; Rec."Change Time")
                 {
                     ApplicationArea = Service;
-                    ToolTip = 'Specifies the time of the event.';
                 }
                 field("User ID"; Rec."User ID")
                 {
                     ApplicationArea = Service;
-                    ToolTip = 'Specifies the ID of the user who posted the entry, to be used, for example, in the change log.';
 
                     trigger OnDrillDown()
                     var

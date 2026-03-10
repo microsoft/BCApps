@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -30,19 +30,16 @@ page 5364 "CRM Unit List"
                     ApplicationArea = Suite;
                     Caption = 'Name';
                     StyleExpr = FirstColumnStyle;
-                    ToolTip = 'Specifies the name of the record.';
                 }
                 field(BaseUoMName; Rec.BaseUoMName)
                 {
                     ApplicationArea = Suite;
                     Caption = 'Base Unit Name';
-                    ToolTip = 'Specifies the base unit of measure of the Dynamics 365 Sales record.';
                 }
                 field(Quantity; Rec.Quantity)
                 {
                     ApplicationArea = Suite;
                     Caption = 'Quantity';
-                    ToolTip = 'Specifies the quantity of the record.';
                 }
                 field(Coupled; Coupled)
                 {

@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -32,22 +32,18 @@ page 427 "Payment Methods"
                 field("Code"; Rec.Code)
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies a code to identify this payment method.';
                 }
                 field(Description; Rec.Description)
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies a text that describes the payment method.';
                 }
                 field("Bal. Account Type"; Rec."Bal. Account Type")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the type of account that a balancing entry is posted to, such as BANK for a cash account.';
                 }
                 field("Bal. Account No."; Rec."Bal. Account No.")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the number of the general ledger, customer, vendor, or bank account that the balancing entry of a posted sales or purchase document is posted to, such as a cash account for cash purchases. Please note Payment Method is not considered when creating document entries through journals.';
                 }
                 field("Free Type"; Rec."Free Type")
                 {
@@ -68,17 +64,14 @@ page 427 "Payment Methods"
                 field("Direct Debit"; Rec."Direct Debit")
                 {
                     ApplicationArea = Suite;
-                    ToolTip = 'Specifies if the payment method is used for direct debit collection.';
                 }
                 field("Direct Debit Pmt. Terms Code"; Rec."Direct Debit Pmt. Terms Code")
                 {
                     ApplicationArea = Suite;
-                    ToolTip = 'Specifies the payment terms that will be used when the payment method is used for direct debit collection.';
                 }
                 field("Pmt. Export Line Definition"; Rec."Pmt. Export Line Definition")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the data exchange definition in the Data Exchange Framework that is used to export payments.';
                 }
                 field("Fattura PA Payment Method"; Rec."Fattura PA Payment Method")
                 {

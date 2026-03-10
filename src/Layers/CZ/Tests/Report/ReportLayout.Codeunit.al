@@ -142,6 +142,7 @@ codeunit 132600 "Report Layout"
         REPORT.Run(REPORT::"FA Posting Group - Net Change");
     end;
 
+#if not CLEAN28
     [Test]
     [HandlerFunctions('RHItemAgeCompositionQty')]
     [Scope('OnPrem')]
@@ -150,6 +151,7 @@ codeunit 132600 "Report Layout"
         Initialize();
         REPORT.Run(REPORT::"Item Age Composition - Qty.");
     end;
+#endif
 
     [Test]
     [HandlerFunctions('RHItemAgeCompositionValue')]
@@ -177,7 +179,7 @@ codeunit 132600 "Report Layout"
         Initialize();
         REPORT.Run(REPORT::"Cost Acctg. Stmt. per Period");
     end;
-
+#if not CLEAN28
     [Test]
     [HandlerFunctions('RHInventoryAvailabilityPlan')]
     [Scope('OnPrem')]
@@ -185,6 +187,16 @@ codeunit 132600 "Report Layout"
     begin
         Initialize();
         REPORT.Run(REPORT::"Inventory - Availability Plan");
+    end;
+#endif
+
+    [Test]
+    [HandlerFunctions('RHInvAvailabilityPlan')]
+    [Scope('OnPrem')]
+    procedure TestInvAvailabilityPlan()
+    begin
+        Initialize();
+        REPORT.Run(REPORT::"Inv. Availability Plan");
     end;
 
     [Test]
@@ -673,6 +685,7 @@ codeunit 132600 "Report Layout"
         FAPostingGroupNetChange.SaveAsPdf(FormatFileName(FAPostingGroupNetChange.Caption));
     end;
 
+#if not CLEAN28
     [RequestPageHandler]
     [Scope('OnPrem')]
     procedure RHItemAgeCompositionQty(var ItemAgeCompositionQty: TestRequestPage "Item Age Composition - Qty.")
@@ -681,6 +694,7 @@ codeunit 132600 "Report Layout"
         ItemAgeCompositionQty.PeriodLength.SetValue('1M');
         ItemAgeCompositionQty.SaveAsPdf(FormatFileName(ItemAgeCompositionQty.Caption));
     end;
+#endif
 
     [RequestPageHandler]
     [Scope('OnPrem')]
@@ -688,7 +702,7 @@ codeunit 132600 "Report Layout"
     begin
         ItemAgeCompositionValue.EndingDate.SetValue(WorkDate());
         ItemAgeCompositionValue.PeriodLength.SetValue('1M');
-        ItemAgeCompositionValue.SaveAsPdf(FormatFileName(ItemAgeCompositionValue.Caption));
+        ItemAgeCompositionValue.SaveAsExcel(FormatFileName(ItemAgeCompositionValue.Caption));
     end;
 
     [RequestPageHandler]
@@ -709,7 +723,7 @@ codeunit 132600 "Report Layout"
         CostAcctgStmtperPeriod.ShowAddCurrency.SetValue(true);
         CostAcctgStmtperPeriod.SaveAsPdf(FormatFileName(CostAcctgStmtperPeriod.Caption));
     end;
-
+#if not CLEAN28
     [RequestPageHandler]
     [Scope('OnPrem')]
     procedure RHInventoryAvailabilityPlan(var InventoryAvailabilityPlan: TestRequestPage "Inventory - Availability Plan")
@@ -718,6 +732,17 @@ codeunit 132600 "Report Layout"
         InventoryAvailabilityPlan.PeriodLength.SetValue('1M');
         InventoryAvailabilityPlan.UseStockkeepUnit.SetValue(true);
         InventoryAvailabilityPlan.SaveAsPdf(FormatFileName(InventoryAvailabilityPlan.Caption));
+    end;
+#endif
+
+    [RequestPageHandler]
+    [Scope('OnPrem')]
+    procedure RHInvAvailabilityPlan(var InvAvailabilityPlan: TestRequestPage "Inv. Availability Plan")
+    begin
+        InvAvailabilityPlan.StartingDate.SetValue(WorkDate());
+        InvAvailabilityPlan.PeriodLength.SetValue('1M');
+        InvAvailabilityPlan.UseStockkeepUnit.SetValue(true);
+        InvAvailabilityPlan.SaveAsExcel(FormatFileName(InvAvailabilityPlan.Caption));
     end;
 
     [RequestPageHandler]
@@ -1110,4 +1135,3 @@ codeunit 132600 "Report Layout"
         ContractPriceUpdateTest.SaveAsPdf(FormatFileName(ContractPriceUpdateTest.Caption));
     end;
 }
-

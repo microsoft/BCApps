@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -53,38 +53,31 @@ page 289 "Recurring Job Jnl."
                 field("Recurring Method"; Rec."Recurring Method")
                 {
                     ApplicationArea = Jobs;
-                    ToolTip = 'Specifies the recurring method. The recurring method determines what happens to the quantity on the journal line after posting. For example, if you use the same quantity each time you post the line, you can reuse the same quantity after posting.';
                 }
                 field("Recurring Frequency"; Rec."Recurring Frequency")
                 {
                     ApplicationArea = Jobs;
-                    ToolTip = 'Specifies a recurring frequency if you have indicated in the Recurring field in the project journal template that the journal is a recurring journal.';
                 }
                 field("Line Type"; Rec."Line Type")
                 {
                     ApplicationArea = Jobs;
-                    ToolTip = 'Specifies the type of planning line to create when a project ledger entry is posted. If the field is empty, no planning lines are created.';
                 }
                 field("Posting Date"; Rec."Posting Date")
                 {
                     ApplicationArea = Jobs;
-                    ToolTip = 'Specifies the posting date you want to assign to each journal line. For more information, see Entering Dates and Times.';
                 }
                 field("Document Date"; Rec."Document Date")
                 {
                     ApplicationArea = Jobs;
-                    ToolTip = 'Specifies the date when the related document was created.';
                     Visible = false;
                 }
                 field("Document No."; Rec."Document No.")
                 {
                     ApplicationArea = Jobs;
-                    ToolTip = 'Specifies a document number for the journal line.';
                 }
                 field("External Document No."; Rec."External Document No.")
                 {
                     ApplicationArea = Jobs;
-                    ToolTip = 'Specifies a document number that refers to the customer''s or vendor''s numbering system.';
                     Visible = false;
                 }
                 field("Job No."; Rec."Job No.")
@@ -101,12 +94,10 @@ page 289 "Recurring Job Jnl."
                 field("Job Task No."; Rec."Job Task No.")
                 {
                     ApplicationArea = Jobs;
-                    ToolTip = 'Specifies the number of the related project task.';
                 }
                 field(Type; Rec.Type)
                 {
                     ApplicationArea = Jobs;
-                    ToolTip = 'Specifies an account type for project usage to be posted in the project journal. You can choose from the following options:';
 
                     trigger OnValidate()
                     begin
@@ -116,7 +107,6 @@ page 289 "Recurring Job Jnl."
                 field("No."; Rec."No.")
                 {
                     ApplicationArea = Jobs;
-                    ToolTip = 'Specifies the number of the involved entry or record, according to the specified number series.';
 
                     trigger OnValidate()
                     begin
@@ -127,36 +117,30 @@ page 289 "Recurring Job Jnl."
                 field(Description; Rec.Description)
                 {
                     ApplicationArea = Jobs;
-                    ToolTip = 'Specifies the name of the resource, item, or general ledger account to which this entry applies. You can change the description.';
                 }
                 field("Gen. Bus. Posting Group"; Rec."Gen. Bus. Posting Group")
                 {
                     ApplicationArea = Suite;
-                    ToolTip = 'Specifies the vendor''s or customer''s trade type to link transactions made for this business partner with the appropriate general ledger account according to the general posting setup.';
                     Visible = false;
                 }
                 field("Gen. Prod. Posting Group"; Rec."Gen. Prod. Posting Group")
                 {
                     ApplicationArea = Suite;
-                    ToolTip = 'Specifies the item''s product type to link transactions made for this item with the appropriate general ledger account according to the general posting setup.';
                     Visible = false;
                 }
                 field("Variant Code"; Rec."Variant Code")
                 {
                     ApplicationArea = Planning;
-                    ToolTip = 'Specifies the variant of the item on the line.';
                     Visible = false;
                 }
                 field("Shortcut Dimension 1 Code"; Rec."Shortcut Dimension 1 Code")
                 {
                     ApplicationArea = Dimensions;
-                    ToolTip = 'Specifies the code for Shortcut Dimension 1, which is one of two global dimension codes that you set up in the General Ledger Setup window.';
                     Visible = false;
                 }
                 field("Shortcut Dimension 2 Code"; Rec."Shortcut Dimension 2 Code")
                 {
                     ApplicationArea = Dimensions;
-                    ToolTip = 'Specifies the code for Shortcut Dimension 2, which is one of two global dimension codes that you set up in the General Ledger Setup window.';
                     Visible = false;
                 }
                 field("ShortcutDimCode[3]"; ShortcutDimCode[3])
@@ -246,7 +230,6 @@ page 289 "Recurring Job Jnl."
                 field("Location Code"; Rec."Location Code")
                 {
                     ApplicationArea = Location;
-                    ToolTip = 'Specifies a location code for an item.';
                     Visible = true;
                 }
                 field("Work Type Code"; Rec."Work Type Code")
@@ -257,12 +240,10 @@ page 289 "Recurring Job Jnl."
                 field("Unit of Measure Code"; Rec."Unit of Measure Code")
                 {
                     ApplicationArea = Suite;
-                    ToolTip = 'Specifies how each unit of the item or resource is measured, such as in pieces or hours. By default, the value in the Base Unit of Measure field on the item or resource card is inserted.';
                 }
                 field(Quantity; Rec.Quantity)
                 {
                     ApplicationArea = Jobs;
-                    ToolTip = 'Specifies the number of units of the project journal''s No. field, that is, either the resource, item, or G/L account number, that applies. If you later change the value in the No. field, the quantity does not change on the journal line.';
                 }
                 field("Direct Unit Cost (LCY)"; Rec."Direct Unit Cost (LCY)")
                 {
@@ -273,7 +254,6 @@ page 289 "Recurring Job Jnl."
                 field("Unit Cost"; Rec."Unit Cost")
                 {
                     ApplicationArea = Jobs;
-                    ToolTip = 'Specifies the unit cost for the selected type and number on the journal line. The unit cost is in the project currency, derived from the Currency Code field on the project card.';
                 }
                 field("Unit Cost (LCY)"; Rec."Unit Cost (LCY)")
                 {
@@ -283,7 +263,6 @@ page 289 "Recurring Job Jnl."
                 field("Total Cost"; Rec."Total Cost")
                 {
                     ApplicationArea = Jobs;
-                    ToolTip = 'Specifies the total cost for the journal line. The total cost is calculated based on the project currency, which comes from the Currency Code field on the project card.';
                 }
                 field("Total Cost (LCY)"; Rec."Total Cost (LCY)")
                 {
@@ -293,27 +272,22 @@ page 289 "Recurring Job Jnl."
                 field("Unit Price"; Rec."Unit Price")
                 {
                     ApplicationArea = Jobs;
-                    ToolTip = 'Specifies the price of one unit of the item or resource. You can enter a price manually or have it entered according to the Price/Profit Calculation field on the related card.';
                 }
                 field("Line Amount"; Rec."Line Amount")
                 {
                     ApplicationArea = Jobs;
-                    ToolTip = 'Specifies the amount that will be posted to the project ledger.';
                 }
                 field("Line Discount %"; Rec."Line Discount %")
                 {
                     ApplicationArea = Jobs;
-                    ToolTip = 'Specifies the discount percentage that is granted for the item on the line.';
                 }
                 field("Line Discount Amount"; Rec."Line Discount Amount")
                 {
                     ApplicationArea = Jobs;
-                    ToolTip = 'Specifies the discount amount that is granted for the item on the line.';
                 }
                 field("Total Price"; Rec."Total Price")
                 {
                     ApplicationArea = Jobs;
-                    ToolTip = 'Specifies the total price in the project currency on the journal line.';
                     Visible = false;
                 }
                 field("Unit Price (LCY)"; Rec."Unit Price (LCY)")
@@ -331,18 +305,15 @@ page 289 "Recurring Job Jnl."
                 field("Applies-to Entry"; Rec."Applies-to Entry")
                 {
                     ApplicationArea = Jobs;
-                    ToolTip = 'Specifies if the quantity on the journal line must be applied to an already-posted entry. In that case, enter the entry number that the quantity will be applied to.';
                 }
                 field("Applies-from Entry"; Rec."Applies-from Entry")
                 {
                     ApplicationArea = Jobs;
-                    ToolTip = 'Specifies the number of the item ledger entry that the journal line costs have been applied from. This should be done when you reverse the usage of an item in a project and you want to return the item to inventory at the same cost as before it was used in the project.';
                     Visible = false;
                 }
                 field("Expiration Date"; Rec."Expiration Date")
                 {
                     ApplicationArea = Jobs;
-                    ToolTip = 'Specifies the last date on which the recurring journal will be posted if you have indicated in the Recurring field of the project journal template that the journal should be a recurring journal.';
                 }
             }
             group(Control73)

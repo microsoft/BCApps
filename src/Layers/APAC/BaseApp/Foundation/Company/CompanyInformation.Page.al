@@ -183,6 +183,10 @@ page 1 "Company Information"
                     ApplicationArea = Basic, Suite;
                     ToolTip = 'Specifies your company''s web site.';
                 }
+                field(DefaultLanguage; Rec."Default Language code")
+                {
+                    ApplicationArea = Basic, Suite;
+                }
             }
             group(Payments)
             {
@@ -453,16 +457,6 @@ page 1 "Company Information"
                         ApplicationAreaMgmtFacade: Codeunit "Application Area Mgmt. Facade";
                     begin
                         ApplicationAreaMgmtFacade.LookupExperienceTier(Experience);
-                    end;
-                }
-                field("Pricing Implementation"; Rec."Pricing Implementation")
-                {
-                    ApplicationArea = All;
-                    Caption = 'Pricing Implementation';
-                    ToolTip = 'Specifies which pricing implementation to use for price calculations, Basic or Extended. The setting applies to all users.';
-
-                    trigger OnValidate()
-                    begin
                     end;
                 }
             }

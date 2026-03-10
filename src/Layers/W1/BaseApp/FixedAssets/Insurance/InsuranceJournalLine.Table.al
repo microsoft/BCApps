@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -34,6 +34,7 @@ table 5635 "Insurance Journal Line"
         field(4; "Insurance No."; Code[20])
         {
             Caption = 'Insurance No.';
+            ToolTip = 'Specifies the insurance number to post an insurance coverage entry to.';
             TableRelation = Insurance;
 
             trigger OnValidate()
@@ -54,6 +55,7 @@ table 5635 "Insurance Journal Line"
         field(6; "FA No."; Code[20])
         {
             Caption = 'FA No.';
+            ToolTip = 'Specifies the number of the related fixed asset.';
             TableRelation = "Fixed Asset";
 
             trigger OnValidate()
@@ -73,14 +75,17 @@ table 5635 "Insurance Journal Line"
         field(7; "FA Description"; Text[100])
         {
             Caption = 'FA Description';
+            ToolTip = 'Specifies a description of the fixed asset.';
         }
         field(8; "Posting Date"; Date)
         {
             Caption = 'Posting Date';
+            ToolTip = 'Specifies the date to use as the posting date on the insurance coverage ledger entry.';
         }
         field(9; "Document Type"; Enum "FA Journal Line Document Type")
         {
             Caption = 'Document Type';
+            ToolTip = 'Specifies the appropriate document type for the amount you want to post.';
         }
         field(10; "Document Date"; Date)
         {
@@ -89,6 +94,7 @@ table 5635 "Insurance Journal Line"
         field(11; "Document No."; Code[20])
         {
             Caption = 'Document No.';
+            ToolTip = 'Specifies a document number for the journal line.';
         }
         field(12; "External Document No."; Code[35])
         {
@@ -99,15 +105,18 @@ table 5635 "Insurance Journal Line"
             AutoFormatType = 1;
             AutoFormatExpression = '';
             Caption = 'Amount';
+            ToolTip = 'Specifies the total amount the journal line consists of. Credit amounts must be entered with a minus sign.';
         }
         field(14; Description; Text[100])
         {
             Caption = 'Description';
+            ToolTip = 'Specifies the description that is entered in the Insurance No. field.';
         }
         field(15; "Shortcut Dimension 1 Code"; Code[20])
         {
             CaptionClass = '1,2,1';
             Caption = 'Shortcut Dimension 1 Code';
+            ToolTip = 'Specifies the code for Shortcut Dimension 1, which is one of two global dimension codes that you set up in the General Ledger Setup window.';
             TableRelation = "Dimension Value".Code where("Global Dimension No." = const(1),
                                                           Blocked = const(false));
 
@@ -121,6 +130,7 @@ table 5635 "Insurance Journal Line"
         {
             CaptionClass = '1,2,2';
             Caption = 'Shortcut Dimension 2 Code';
+            ToolTip = 'Specifies the code for Shortcut Dimension 2, which is one of two global dimension codes that you set up in the General Ledger Setup window.';
             TableRelation = "Dimension Value".Code where("Global Dimension No." = const(2),
                                                           Blocked = const(false));
 
@@ -133,6 +143,7 @@ table 5635 "Insurance Journal Line"
         field(17; "Reason Code"; Code[10])
         {
             Caption = 'Reason Code';
+            ToolTip = 'Specifies the reason code, a supplementary source code that enables you to trace the entry.';
             TableRelation = "Reason Code";
         }
         field(18; "Source Code"; Code[10])
@@ -143,6 +154,7 @@ table 5635 "Insurance Journal Line"
         field(20; "Index Entry"; Boolean)
         {
             Caption = 'Index Entry';
+            ToolTip = 'Specifies whether to post an indexation (that is, to index the total value insured).';
         }
         field(21; "Posting No. Series"; Code[20])
         {

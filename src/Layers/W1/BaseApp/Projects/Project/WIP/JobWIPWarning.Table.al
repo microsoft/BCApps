@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -23,22 +23,26 @@ table 1007 "Job WIP Warning"
         field(2; "Job No."; Code[20])
         {
             Caption = 'Project No.';
+            ToolTip = 'Specifies the number of the related project.';
             TableRelation = Job;
         }
         field(3; "Job Task No."; Code[20])
         {
             Caption = 'Project Task No.';
+            ToolTip = 'Specifies the number of the related project task.';
             TableRelation = "Job Task"."Job Task No.";
         }
         field(4; "Job WIP Total Entry No."; Integer)
         {
             Caption = 'Project WIP Total Entry No.';
+            ToolTip = 'Specifies the entry number from the associated project WIP total.';
             Editable = false;
             TableRelation = "Job WIP Total";
         }
         field(5; "Warning Message"; Text[250])
         {
             Caption = 'Warning Message';
+            ToolTip = 'Specifies a warning message that is related to a project WIP calculation.';
             Editable = false;
         }
     }

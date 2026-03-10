@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -49,7 +49,6 @@ page 7115 "Inventory Analysis Lines"
                 {
                     ApplicationArea = InventoryAnalysis;
                     StyleExpr = 'Strong';
-                    ToolTip = 'Specifies a row reference number for the analysis line.';
 
                     trigger OnValidate()
                     begin
@@ -60,12 +59,10 @@ page 7115 "Inventory Analysis Lines"
                 {
                     ApplicationArea = InventoryAnalysis;
                     StyleExpr = 'Strong';
-                    ToolTip = 'Specifies a description for the analysis line.';
                 }
                 field(Type; Rec.Type)
                 {
                     ApplicationArea = InventoryAnalysis;
-                    ToolTip = 'Specifies the type of totaling for the analysis line. The type determines which items within the totaling range that you specify in the Range field will be totaled.';
 
                     trigger OnValidate()
                     begin
@@ -76,7 +73,6 @@ page 7115 "Inventory Analysis Lines"
                 field(Range; Rec.Range)
                 {
                     ApplicationArea = InventoryAnalysis;
-                    ToolTip = 'Specifies the number or formula of the type to use to calculate the total for this line.';
 
                     trigger OnLookup(var Text: Text): Boolean
                     begin
@@ -86,7 +82,6 @@ page 7115 "Inventory Analysis Lines"
                 field("Dimension 1 Totaling"; Rec."Dimension 1 Totaling")
                 {
                     ApplicationArea = Dimensions;
-                    ToolTip = 'Specifies which dimension value amounts will be totaled on this line.';
 
                     trigger OnLookup(var Text: Text): Boolean
                     begin
@@ -96,7 +91,6 @@ page 7115 "Inventory Analysis Lines"
                 field("Dimension 2 Totaling"; Rec."Dimension 2 Totaling")
                 {
                     ApplicationArea = Dimensions;
-                    ToolTip = 'Specifies which dimension value amounts will be totaled on this line. If the type on the line is Formula, this field must be blank. Also, if you do not want the amounts on the line to be filtered by dimensions, this field must be blank.';
 
                     trigger OnLookup(var Text: Text): Boolean
                     begin
@@ -106,7 +100,6 @@ page 7115 "Inventory Analysis Lines"
                 field("Dimension 3 Totaling"; Rec."Dimension 3 Totaling")
                 {
                     ApplicationArea = Dimensions;
-                    ToolTip = 'Specifies which dimension value amounts will be totaled on this line. If the type on the line is Formula, this field must be blank. Also, if you do not want the amounts on the line to be filtered by dimensions, this field must be blank.';
 
                     trigger OnLookup(var Text: Text): Boolean
                     begin
@@ -116,12 +109,10 @@ page 7115 "Inventory Analysis Lines"
                 field("New Page"; Rec."New Page")
                 {
                     ApplicationArea = InventoryAnalysis;
-                    ToolTip = 'Specifies if you want a page break after the current line when you print the analysis report.';
                 }
                 field(Show; Rec.Show)
                 {
                     ApplicationArea = InventoryAnalysis;
-                    ToolTip = 'Specifies whether you want the analysis line to be included when you print the report.';
                 }
                 field(Bold; Rec.Bold)
                 {
@@ -131,23 +122,19 @@ page 7115 "Inventory Analysis Lines"
                 field(Indentation; Rec.Indentation)
                 {
                     ApplicationArea = InventoryAnalysis;
-                    ToolTip = 'Specifies the indentation of the line.';
                     Visible = false;
                 }
                 field(Italic; Rec.Italic)
                 {
                     ApplicationArea = InventoryAnalysis;
-                    ToolTip = 'Specifies if you want the amounts in this line to be printed in italics.';
                 }
                 field(Underline; Rec.Underline)
                 {
                     ApplicationArea = InventoryAnalysis;
-                    ToolTip = 'Specifies if you want the amounts in this line to be underlined when printed.';
                 }
                 field("Show Opposite Sign"; Rec."Show Opposite Sign")
                 {
                     ApplicationArea = InventoryAnalysis;
-                    ToolTip = 'Specifies if you want sales and negative adjustments to be shown as positive amounts and purchases and positive adjustments to be shown as negative amounts.';
                 }
             }
         }

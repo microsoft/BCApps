@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -22,10 +22,12 @@ table 99000763 "Routing Header"
         field(1; "No."; Code[20])
         {
             Caption = 'No.';
+            ToolTip = 'Specifies the number of the involved entry or record, according to the specified number series.';
         }
         field(2; Description; Text[100])
         {
             Caption = 'Description';
+            ToolTip = 'Specifies a description for the routing header.';
 
             trigger OnValidate()
             begin
@@ -39,10 +41,12 @@ table 99000763 "Routing Header"
         field(4; "Search Description"; Code[100])
         {
             Caption = 'Search Description';
+            ToolTip = 'Specifies a search description.';
         }
         field(10; "Last Date Modified"; Date)
         {
             Caption = 'Last Date Modified';
+            ToolTip = 'Specifies when the routing card was last modified.';
             Editable = false;
         }
         field(12; Comment; Boolean)
@@ -56,6 +60,7 @@ table 99000763 "Routing Header"
         field(20; Status; Enum "Routing Status")
         {
             Caption = 'Status';
+            ToolTip = 'Specifies the status of this routing.';
 
             trigger OnValidate()
             begin
@@ -75,6 +80,7 @@ table 99000763 "Routing Header"
         field(21; Type; Option)
         {
             Caption = 'Type';
+            ToolTip = 'Specifies in which order operations in the routing are performed.';
             OptionCaption = 'Serial,Parallel';
             OptionMembers = Serial,Parallel;
 
@@ -87,6 +93,7 @@ table 99000763 "Routing Header"
         field(50; "Version Nos."; Code[20])
         {
             Caption = 'Version Nos.';
+            ToolTip = 'Specifies the number series you want to use to create a new version of this routing.';
             TableRelation = "No. Series";
         }
         field(51; "No. Series"; Code[20])

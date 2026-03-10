@@ -9,18 +9,18 @@ codeunit 134815 "Item Blocked Test"
     end;
 
     var
+        Assert: Codeunit Assert;
+        LibraryAssembly: Codeunit "Library - Assembly";
         LibraryERM: Codeunit "Library - ERM";
         LibraryInventory: Codeunit "Library - Inventory";
-        LibrarySales: Codeunit "Library - Sales";
-        LibraryRandom: Codeunit "Library - Random";
-        LibraryAssembly: Codeunit "Library - Assembly";
-        LibraryPlanning: Codeunit "Library - Planning";
-        Assert: Codeunit Assert;
-        LibraryPurchase: Codeunit "Library - Purchase";
-        LibraryService: Codeunit "Library - Service";
-        LibraryVariableStorage: Codeunit "Library - Variable Storage";
-        LibraryTestInitialize: Codeunit "Library - Test Initialize";
         LibraryNotificationMgt: Codeunit "Library - Notification Mgt.";
+        LibraryPlanning: Codeunit "Library - Planning";
+        LibraryPurchase: Codeunit "Library - Purchase";
+        LibraryRandom: Codeunit "Library - Random";
+        LibrarySales: Codeunit "Library - Sales";
+        LibraryService: Codeunit "Library - Service";
+        LibraryTestInitialize: Codeunit "Library - Test Initialize";
+        LibraryVariableStorage: Codeunit "Library - Variable Storage";
         IsInitialized: Boolean;
         ServiceContractOperation: Option "Create Contract from Template","Invoice for Period";
         AddingBlockedItemMsg: Label 'Item %1 is blocked, but it is allowed on this type of document.', Comment = '%1 - Item No.';
@@ -1885,6 +1885,72 @@ codeunit 134815 "Item Blocked Test"
         Assert.ExpectedError(StrSubstNo(BlockedTestFieldErr, Item.FieldCaption("Service Blocked"), Format(false)));
     end;
     # endregion Service Blocked
+
+    [Test]
+    [HandlerFunctions('ItemListModalPageHandler')]
+    procedure PurchasingBlockedItem_NotInItemLookupOnPurchaseOrder()
+    var
+        Item: Record Item;
+        PurchaseHeader: Record "Purchase Header";
+        Vendor: Record Vendor;
+        PurchaseOrderPage: TestPage "Purchase Order";
+    begin
+        // [SCENARIO 620423] Purchasing Blocked item does not appear in Item Lookup on Purchase Order
+        Initialize();
+
+        // [GIVEN] An item that is not fully blocked but is purchasing blocked
+        LibraryInventory.CreateItem(Item);
+        Item.Validate(Blocked, false);
+        Item.Validate("Purchasing Blocked", true);
+        Item.Modify(true);
+        LibraryPurchase.CreateVendor(Vendor);
+        LibraryPurchase.CreatePurchHeader(PurchaseHeader, PurchaseHeader."Document Type"::Order, Vendor."No.");
+        PurchaseOrderPage.OpenEdit();
+        PurchaseOrderPage.Filter.SetFilter("No.", PurchaseHeader."No.");
+        PurchaseOrderPage.PurchLines.Type.Value('Item');
+
+        // [WHEN] Lookup in "No." control
+        LibraryVariableStorage.Enqueue(Item."No."); // to ItemListModalPageHandler
+        PurchaseOrderPage.PurchLines."No.".Lookup();
+
+        // [THEN] The item must not be in the list
+        Assert.IsFalse(LibraryVariableStorage.DequeueBoolean(), StrSubstNo(
+            PurchasingBlockedErr, Item.TableCaption(), Item."No.", Item.FieldCaption("Purchasing Blocked")));
+        LibraryVariableStorage.AssertEmpty();
+    end;
+
+    [Test]
+    [HandlerFunctions('ItemListModalPageHandler')]
+    procedure SalesBlockedItem_NotInItemLookupOnSalesOrder()
+    var
+        Customer: Record Customer;
+        Item: Record Item;
+        SalesHeader: Record "Sales Header";
+        SalesOrderPage: TestPage "Sales Order";
+    begin
+        // [SCENARIO 620423] Sales Blocked item does not appear in Item Lookup on Sales Order
+        Initialize();
+
+        // [GIVEN] An item that is not fully blocked but is sales blocked
+        LibraryInventory.CreateItem(Item);
+        Item.Validate(Blocked, false);
+        Item.Validate("Sales Blocked", true);
+        Item.Modify(true);
+        LibrarySales.CreateCustomer(Customer);
+        LibrarySales.CreateSalesHeader(SalesHeader, SalesHeader."Document Type"::Order, Customer."No.");
+        SalesOrderPage.OpenEdit();
+        SalesOrderPage.Filter.SetFilter("No.", SalesHeader."No.");
+        SalesOrderPage.SalesLines.Type.Value('Item');
+
+        // [WHEN] Lookup in "No." control
+        LibraryVariableStorage.Enqueue(Item."No."); // to ItemListModalPageHandler
+        SalesOrderPage.SalesLines."No.".Lookup();
+
+        // [THEN] The item must not be in the list
+        Assert.IsFalse(LibraryVariableStorage.DequeueBoolean(), StrSubstNo(
+            SalesBlockedErr, Item.TableCaption(), Item."No.", Item.FieldCaption("Sales Blocked")));
+        LibraryVariableStorage.AssertEmpty();
+    end;
 
     local procedure Initialize()
     var

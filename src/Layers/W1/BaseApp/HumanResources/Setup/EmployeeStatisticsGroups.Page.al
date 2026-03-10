@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -23,12 +23,10 @@ page 5216 "Employee Statistics Groups"
                 field("Code"; Rec.Code)
                 {
                     ApplicationArea = BasicHR;
-                    ToolTip = 'Specifies a code for the employee statistics group.';
                 }
                 field(Description; Rec.Description)
                 {
                     ApplicationArea = BasicHR;
-                    ToolTip = 'Specifies a description for the employee statistics group.';
                 }
             }
         }

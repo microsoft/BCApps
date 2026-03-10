@@ -29,7 +29,6 @@ page 1402 "Purchase No. Series Setup"
                 field("Blanket Order Nos."; Rec."Blanket Order Nos.")
                 {
                     ApplicationArea = All;
-                    ToolTip = 'Specifies the code for the number series that will be used to assign numbers to blanket purchase orders. To see the number series that have been set up in the No. Series table, click the field.';
                     Visible = BlanketOrderNosVisible;
                 }
                 field("Order Nos."; Rec."Order Nos.")
@@ -41,19 +40,16 @@ page 1402 "Purchase No. Series Setup"
                 field("Return Order Nos."; Rec."Return Order Nos.")
                 {
                     ApplicationArea = PurchReturnOrder;
-                    ToolTip = 'Specifies the number series that is used to assign numbers to new purchase return orders.';
                     Visible = ReturnOrderNosVisible;
                 }
                 field("Invoice Nos."; Rec."Invoice Nos.")
                 {
                     ApplicationArea = All;
-                    ToolTip = 'Specifies the code for the number series that will be used to assign numbers to purchase invoices. To see the number series that have been set up in the No. Series table, click the field.';
                     Visible = InvoiceNosVisible;
                 }
                 field("Credit Memo Nos."; Rec."Credit Memo Nos.")
                 {
                     ApplicationArea = All;
-                    ToolTip = 'Specifies the code for the number series that will be used to assign numbers to purchase credit memos. To see the number series that have been set up in the No. Series table, click the field.';
                     Visible = CreditMemoNosVisible;
                 }
             }

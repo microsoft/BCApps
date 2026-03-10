@@ -24,6 +24,7 @@ table 951 "Time Sheet Line"
         field(1; "Time Sheet No."; Code[20])
         {
             Caption = 'Time Sheet No.';
+            ToolTip = 'Specifies the number of the related document.';
             TableRelation = "Time Sheet Header";
         }
         field(2; "Line No."; Integer)
@@ -33,11 +34,13 @@ table 951 "Time Sheet Line"
         field(3; "Time Sheet Starting Date"; Date)
         {
             Caption = 'Time Sheet Starting Date';
+            ToolTip = 'Specifies the starting date for a time sheet.';
             Editable = false;
         }
         field(5; Type; Enum "Time Sheet Line Type")
         {
             Caption = 'Type';
+            ToolTip = 'Specifies the type of time sheet line.';
 
             trigger OnValidate()
             begin
@@ -67,6 +70,7 @@ table 951 "Time Sheet Line"
         field(6; "Job No."; Code[20])
         {
             Caption = 'Project No.';
+            ToolTip = 'Specifies the number for the project that is associated with the time sheet line.';
             TableRelation = Job where(Status = filter(Open));
 
             trigger OnValidate()
@@ -87,6 +91,7 @@ table 951 "Time Sheet Line"
         field(7; "Job Task No."; Code[20])
         {
             Caption = 'Project Task No.';
+            ToolTip = 'Specifies the number of the related project task.';
             TableRelation = "Job Task"."Job Task No." where("Job No." = field("Job No."), "Job Task Type" = filter(Posting));
 
             trigger OnValidate()
@@ -102,6 +107,7 @@ table 951 "Time Sheet Line"
         field(9; "Cause of Absence Code"; Code[10])
         {
             Caption = 'Cause of Absence Code';
+            ToolTip = 'Specifies a list of standard absence codes, from which you may select one.';
             TableRelation = "Cause of Absence";
 
             trigger OnValidate()
@@ -119,6 +125,7 @@ table 951 "Time Sheet Line"
         field(10; Description; Text[100])
         {
             Caption = 'Description';
+            ToolTip = 'Specifies a description of the time sheet line.';
 
             trigger OnValidate()
             begin
@@ -128,6 +135,7 @@ table 951 "Time Sheet Line"
         field(11; "Work Type Code"; Code[10])
         {
             Caption = 'Work Type Code';
+            ToolTip = 'Specifies which work type the resource applies to. Prices are updated based on this entry.';
             TableRelation = "Work Type";
 
             trigger OnValidate()
@@ -146,6 +154,7 @@ table 951 "Time Sheet Line"
         field(13; "Service Order No."; Code[20])
         {
             Caption = 'Service Order No.';
+            ToolTip = 'Specifies the service order number that is associated with the time sheet line.';
         }
         field(14; "Service Order Line No."; Integer)
         {
@@ -157,17 +166,20 @@ table 951 "Time Sheet Line"
             CalcFormula = sum("Time Sheet Detail".Quantity where("Time Sheet No." = field("Time Sheet No."),
                                                                   "Time Sheet Line No." = field("Line No.")));
             Caption = 'Total Quantity';
+            ToolTip = 'Specifies the total number of hours that have been entered on a time sheet.';
             Editable = false;
             FieldClass = FlowField;
         }
         field(17; Chargeable; Boolean)
         {
             Caption = 'Chargeable';
+            ToolTip = 'Specifies if the usage that you are posting is chargeable.';
             InitValue = true;
         }
         field(18; "Assembly Order No."; Code[20])
         {
             Caption = 'Assembly Order No.';
+            ToolTip = 'Specifies the assembly order number that is associated with the time sheet line.';
             Editable = false;
             TableRelation = if (Posted = const(false)) "Assembly Header"."No." where("Document Type" = const(Order));
         }
@@ -179,6 +191,7 @@ table 951 "Time Sheet Line"
         field(20; Status; Enum "Time Sheet Status")
         {
             Caption = 'Status';
+            ToolTip = 'Specifies information about the status of a time sheet line.';
             Editable = false;
         }
         field(21; "Approved By"; Code[50])
@@ -196,6 +209,7 @@ table 951 "Time Sheet Line"
         field(23; Posted; Boolean)
         {
             Caption = 'Posted';
+            ToolTip = 'Specifies whether a time sheet line has been posted completely.';
             Editable = false;
         }
         field(26; Comment; Boolean)
@@ -203,6 +217,7 @@ table 951 "Time Sheet Line"
             CalcFormula = exist("Time Sheet Comment Line" where("No." = field("Time Sheet No."),
                                                                  "Time Sheet Line No." = field("Line No.")));
             Caption = 'Comment';
+            ToolTip = 'Specifies that a comment about this document has been entered.';
             Editable = false;
             FieldClass = FlowField;
         }

@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -23,12 +23,14 @@ table 5605 "FA Journal Setup"
         field(1; "Depreciation Book Code"; Code[10])
         {
             Caption = 'Depreciation Book Code';
+            ToolTip = 'Specifies the code for the depreciation book to which the line will be posted if you have selected Fixed Asset in the Type field for this line.';
             NotBlank = true;
             TableRelation = "Depreciation Book";
         }
         field(2; "User ID"; Code[50])
         {
             Caption = 'User ID';
+            ToolTip = 'Specifies the ID of the user who posted the entry, to be used, for example, in the change log.';
             DataClassification = EndUserIdentifiableInformation;
             TableRelation = User."User Name";
             ValidateTableRelation = false;
@@ -43,6 +45,7 @@ table 5605 "FA Journal Setup"
         field(3; "FA Jnl. Template Name"; Code[10])
         {
             Caption = 'FA Jnl. Template Name';
+            ToolTip = 'Specifies an FA journal template.';
             Editable = true;
             TableRelation = "FA Journal Template";
 
@@ -54,11 +57,13 @@ table 5605 "FA Journal Setup"
         field(4; "FA Jnl. Batch Name"; Code[10])
         {
             Caption = 'FA Jnl. Batch Name';
+            ToolTip = 'Specifies the relevant FA journal batch name.';
             TableRelation = "FA Journal Batch".Name where("Journal Template Name" = field("FA Jnl. Template Name"));
         }
         field(5; "Gen. Jnl. Template Name"; Code[10])
         {
             Caption = 'Gen. Jnl. Template Name';
+            ToolTip = 'Specifies a general journal template.';
             TableRelation = "Gen. Journal Template";
 
             trigger OnValidate()
@@ -69,11 +74,13 @@ table 5605 "FA Journal Setup"
         field(6; "Gen. Jnl. Batch Name"; Code[10])
         {
             Caption = 'Gen. Jnl. Batch Name';
+            ToolTip = 'Specifies the relevant general journal batch name.';
             TableRelation = "Gen. Journal Batch".Name where("Journal Template Name" = field("Gen. Jnl. Template Name"));
         }
         field(7; "Insurance Jnl. Template Name"; Code[10])
         {
             Caption = 'Insurance Jnl. Template Name';
+            ToolTip = 'Specifies an insurance journal template.';
             TableRelation = "Insurance Journal Template";
 
             trigger OnValidate()
@@ -84,6 +91,7 @@ table 5605 "FA Journal Setup"
         field(8; "Insurance Jnl. Batch Name"; Code[10])
         {
             Caption = 'Insurance Jnl. Batch Name';
+            ToolTip = 'Specifies the relevant insurance journal batch name.';
             TableRelation = "Insurance Journal Batch".Name where("Journal Template Name" = field("Insurance Jnl. Template Name"));
         }
     }

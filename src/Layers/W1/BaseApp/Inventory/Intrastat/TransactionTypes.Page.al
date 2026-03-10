@@ -22,12 +22,10 @@ page 308 "Transaction Types"
                 field("Code"; Rec.Code)
                 {
                     ApplicationArea = BasicEU, BasicNO;
-                    ToolTip = 'Specifies a code for the transaction.';
                 }
                 field(Description; Rec.Description)
                 {
                     ApplicationArea = BasicEU, BasicNO;
-                    ToolTip = 'Specifies a description of the transaction type.';
                 }
             }
         }

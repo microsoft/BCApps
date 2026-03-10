@@ -24,16 +24,19 @@ table 134 "Posted Docs. With No Inc. Buf."
         field(2; "Document No."; Code[20])
         {
             Caption = 'Document No.';
+            ToolTip = 'Specifies the number of the posted purchase and sales document that does not have an incoming document record.';
             DataClassification = SystemMetadata;
         }
         field(3; "Posting Date"; Date)
         {
             Caption = 'Posting Date';
+            ToolTip = 'Specifies the posting date of the posted purchase and sales document that does not have an incoming document record.';
             DataClassification = SystemMetadata;
         }
         field(4; "First Posting Description"; Text[100])
         {
             Caption = 'First Posting Description';
+            ToolTip = 'Specifies the description of the first posting transaction on the posted purchase and sales document that does not have an incoming document record.';
             DataClassification = SystemMetadata;
         }
         field(5; "Incoming Document No."; Integer)
@@ -46,6 +49,7 @@ table 134 "Posted Docs. With No Inc. Buf."
         field(8; "External Document No."; Code[35])
         {
             Caption = 'External Document No.';
+            ToolTip = 'Specifies a document number that refers to the customer''s or vendor''s numbering system.';
             DataClassification = SystemMetadata;
         }
         field(9; "Debit Amount"; Decimal)
@@ -53,6 +57,7 @@ table 134 "Posted Docs. With No Inc. Buf."
             AutoFormatExpression = '';
             AutoFormatType = 1;
             Caption = 'Debit Amount';
+            ToolTip = 'Specifies the total of the ledger entries that represent debits.';
             DataClassification = SystemMetadata;
         }
         field(10; "Credit Amount"; Decimal)
@@ -60,6 +65,7 @@ table 134 "Posted Docs. With No Inc. Buf."
             AutoFormatExpression = '';
             AutoFormatType = 1;
             Caption = 'Credit Amount';
+            ToolTip = 'Specifies the total of the ledger entries that represent credits.';
             DataClassification = SystemMetadata;
         }
         field(11; "G/L Account No. Filter"; Code[20])

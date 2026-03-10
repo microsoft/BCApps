@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -23,6 +23,7 @@ table 5370 "CRM Synch. Job Status Cue"
                                                          Status = const(Error),
                                                          "Last Ready State" = field("Date Filter")));
             Caption = 'Failed Synch. Jobs';
+            ToolTip = 'Specifies the number of failed Dynamics 365 Sales synchronization jobs in the job queue.';
             FieldClass = FlowField;
         }
         field(6; "Date Filter"; DateTime)

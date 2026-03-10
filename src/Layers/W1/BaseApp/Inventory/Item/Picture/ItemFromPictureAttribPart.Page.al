@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -27,7 +27,6 @@ page 7499 "Item From Picture-Attrib Part"
                 {
                     ApplicationArea = Basic, Suite;
                     Caption = 'Attribute';
-                    ToolTip = 'Specifies the item attribute.';
                     TableRelation = "Item Attribute".Name where(Blocked = const(false));
 
                     trigger OnValidate()
@@ -48,7 +47,6 @@ page 7499 "Item From Picture-Attrib Part"
                 {
                     ApplicationArea = Basic, Suite;
                     Caption = 'Value';
-                    ToolTip = 'Specifies the value of the item attribute.';
                     TableRelation = if ("Attribute Type" = const(Option)) "Item Attribute Value".Value where("Attribute ID" = field("Attribute ID"),
                                                                                                             Blocked = const(false));
 
@@ -70,7 +68,6 @@ page 7499 "Item From Picture-Attrib Part"
                 field(UnitOfMeasureField; Rec."Unit of Measure")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the name of the item or resource''s unit of measure, such as piece or hour.';
                     Editable = false;
                 }
             }

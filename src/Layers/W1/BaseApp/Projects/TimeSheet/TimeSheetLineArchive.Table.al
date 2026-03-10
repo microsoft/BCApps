@@ -34,29 +34,35 @@ table 955 "Time Sheet Line Archive"
         field(5; Type; Enum "Time Sheet Line Type")
         {
             Caption = 'Type';
+            ToolTip = 'Specifies information about the type of resource that the time sheet line applies to.';
         }
         field(6; "Job No."; Code[20])
         {
             Caption = 'Project No.';
+            ToolTip = 'Specifies the number for the project that is associated with the time sheet line.';
             TableRelation = Job;
         }
         field(7; "Job Task No."; Code[20])
         {
             Caption = 'Project Task No.';
+            ToolTip = 'Specifies the number of the related project task.';
             TableRelation = "Job Task"."Job Task No." where("Job No." = field("Job No."));
         }
         field(9; "Cause of Absence Code"; Code[10])
         {
             Caption = 'Cause of Absence Code';
+            ToolTip = 'Specifies the codes that you can use to describe the type of absence from work.';
             TableRelation = "Cause of Absence";
         }
         field(10; Description; Text[100])
         {
             Caption = 'Description';
+            ToolTip = 'Specifies a description of the archived time sheet line.';
         }
         field(11; "Work Type Code"; Code[10])
         {
             Caption = 'Work Type Code';
+            ToolTip = 'Specifies which work type the resource applies to. Prices are updated based on this entry.';
             TableRelation = "Work Type";
         }
         field(12; "Approver ID"; Code[50])
@@ -76,17 +82,20 @@ table 955 "Time Sheet Line Archive"
             CalcFormula = sum("Time Sheet Detail Archive".Quantity where("Time Sheet No." = field("Time Sheet No."),
                                                                           "Time Sheet Line No." = field("Line No.")));
             Caption = 'Total Quantity';
+            ToolTip = 'Specifies the total number of hours that have been entered on an archived time sheet.';
             Editable = false;
             FieldClass = FlowField;
         }
         field(17; Chargeable; Boolean)
         {
             Caption = 'Chargeable';
+            ToolTip = 'Specifies whether the time associated with an archived time sheet is chargeable.';
             InitValue = true;
         }
         field(18; "Assembly Order No."; Code[20])
         {
             Caption = 'Assembly Order No.';
+            ToolTip = 'Specifies the assembly order number that is associated with the time sheet line.';
             TableRelation = if (Posted = const(false)) "Assembly Header"."No." where("Document Type" = const(Order));
         }
         field(19; "Assembly Order Line No."; Integer)
@@ -96,6 +105,7 @@ table 955 "Time Sheet Line Archive"
         field(20; Status; Enum "Time Sheet Status")
         {
             Caption = 'Status';
+            ToolTip = 'Specifies information about the status of an archived time sheet.';
             Editable = false;
         }
         field(21; "Approved By"; Code[50])

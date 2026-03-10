@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -25,11 +25,13 @@ table 152 "Resource Group"
         field(1; "No."; Code[20])
         {
             Caption = 'No.';
+            ToolTip = 'Specifies the number of the involved entry or record, according to the specified number series.';
             NotBlank = true;
         }
         field(2; Name; Text[50])
         {
             Caption = 'Name';
+            ToolTip = 'Specifies a short description of the resource group.';
         }
         field(22; "Date Filter"; Date)
         {

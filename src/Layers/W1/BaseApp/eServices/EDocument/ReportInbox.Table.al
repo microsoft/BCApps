@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -21,6 +21,7 @@ table 477 "Report Inbox"
         field(2; "User ID"; Text[65])
         {
             Caption = 'User ID';
+            ToolTip = 'Specifies the ID of the user who posted the entry, to be used, for example, in the change log.';
             DataClassification = EndUserIdentifiableInformation;
             Editable = false;
         }
@@ -31,6 +32,7 @@ table 477 "Report Inbox"
         field(4; "Created Date-Time"; DateTime)
         {
             Caption = 'Created Date-Time';
+            ToolTip = 'Specifies the date and time that the scheduled report was processed from the job queue.';
             Editable = false;
         }
         field(5; "Job Queue Log Entry ID"; Guid)
@@ -41,16 +43,19 @@ table 477 "Report Inbox"
         field(6; "Output Type"; Enum "Report Inbox Output Type")
         {
             Caption = 'Output Type';
+            ToolTip = 'Specifies the output type of the scheduled report.';
             Editable = false;
         }
         field(7; Description; Text[250])
         {
             Caption = 'Description';
+            ToolTip = 'Specifies the description of the report.';
             Editable = false;
         }
         field(8; "Report ID"; Integer)
         {
             Caption = 'Report ID';
+            ToolTip = 'Specifies the object ID of the report.';
             Editable = false;
         }
         field(9; "Report Name"; Text[250])
@@ -58,6 +63,7 @@ table 477 "Report Inbox"
             CalcFormula = lookup(AllObjWithCaption."Object Caption" where("Object Type" = const(Report),
                                                                            "Object ID" = field("Report ID")));
             Caption = 'Report Name';
+            ToolTip = 'Specifies the name of the report.';
             Editable = false;
             FieldClass = FlowField;
         }

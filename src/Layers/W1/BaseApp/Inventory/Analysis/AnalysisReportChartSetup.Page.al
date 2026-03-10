@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -19,7 +19,6 @@ page 775 "Analysis Report Chart Setup"
                 field(Name; Rec.Name)
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the name of the specific chart.';
 
                     trigger OnValidate()
                     begin
@@ -29,7 +28,6 @@ page 775 "Analysis Report Chart Setup"
                 field("Analysis Report Name"; Rec."Analysis Report Name")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the name of the analysis report that is used to generate the specific chart that is shown in, for example, the Sales Performance window.';
 
                     trigger OnValidate()
                     begin
@@ -41,7 +39,6 @@ page 775 "Analysis Report Chart Setup"
                 field("Base X-Axis on"; Rec."Base X-Axis on")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies how the values from the selected analysis report are displayed in the specific chart.';
 
                     trigger OnValidate()
                     begin
@@ -53,12 +50,10 @@ page 775 "Analysis Report Chart Setup"
                 field("Analysis Line Template Name"; Rec."Analysis Line Template Name")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the name of the analysis line template that is used to generate the specific chart that is shown in, for example, the Sales Performance window.';
                 }
                 field("Analysis Column Template Name"; Rec."Analysis Column Template Name")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the name of the analysis column template that is used to generate the chart that is shown in, for example, the Sales Performance window.';
                 }
                 group(Control8)
                 {
@@ -66,24 +61,20 @@ page 775 "Analysis Report Chart Setup"
                     field("Start Date"; Rec."Start Date")
                     {
                         ApplicationArea = Basic, Suite;
-                        ToolTip = 'Specifies the first date on which analysis report values are included in the chart.';
                     }
                     field("End Date"; Rec."End Date")
                     {
                         ApplicationArea = Basic, Suite;
                         Editable = IsEndDateEnabled;
-                        ToolTip = 'Specifies the last date on which analysis report values are included in the chart.';
                     }
                     field("Period Length"; Rec."Period Length")
                     {
                         ApplicationArea = Basic, Suite;
-                        ToolTip = 'Specifies the length of periods in the chart.';
                     }
                     field("No. of Periods"; Rec."No. of Periods")
                     {
                         ApplicationArea = Basic, Suite;
                         Enabled = IsNoOfPeriodsEnabled;
-                        ToolTip = 'Specifies how many periods are shown in the chart.';
                     }
                 }
             }

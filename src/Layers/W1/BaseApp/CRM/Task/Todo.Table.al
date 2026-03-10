@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -39,6 +39,7 @@ table 5080 "To-do"
         field(1; "No."; Code[20])
         {
             Caption = 'No.';
+            ToolTip = 'Specifies the number of the involved entry or record, according to the specified number series.';
 
             trigger OnValidate()
             begin
@@ -56,6 +57,7 @@ table 5080 "To-do"
         field(2; "Team Code"; Code[10])
         {
             Caption = 'Team Code';
+            ToolTip = 'Specifies the code of the team to which the task is assigned.';
             TableRelation = Team;
 
             trigger OnValidate()
@@ -102,6 +104,7 @@ table 5080 "To-do"
         field(3; "Salesperson Code"; Code[20])
         {
             Caption = 'Salesperson Code';
+            ToolTip = 'Specifies the code of the salesperson assigned to the task.';
             TableRelation = "Salesperson/Purchaser" where(Blocked = const(false));
 
             trigger OnValidate()
@@ -152,15 +155,18 @@ table 5080 "To-do"
         field(4; "Campaign No."; Code[20])
         {
             Caption = 'Campaign No.';
+            ToolTip = 'Specifies the number of the campaign to which the task is linked.';
             TableRelation = Campaign;
         }
         field(5; "Contact No."; Code[20])
         {
             Caption = 'Contact No.';
+            ToolTip = 'Specifies the number of the contact linked to the task.';
             TableRelation = Contact;
 
             trigger OnValidate()
             var
+                AttendeeTask: Record "To-do";
                 TempAttendee: Record Attendee temporary;
                 IsHandled: Boolean;
             begin
@@ -181,14 +187,11 @@ table 5080 "To-do"
                 then
                     case true of
                         (xRec."Contact No." = '') and ("Contact No." <> ''):
-                            begin
-                                TempAttendee.CreateAttendee(
-                                  TempAttendee,
-                                  "No.", 10000, TempAttendee."Attendance Type"::Required,
-                                  TempAttendee."Attendee Type"::Contact,
-                                  "Contact No.", false);
-                                CreateSubTask(TempAttendee, Rec);
-                            end;
+                            TempAttendee.CreateAttendee(
+                              TempAttendee,
+                              "No.", 10000, TempAttendee."Attendance Type"::Required,
+                              TempAttendee."Attendee Type"::Contact,
+                              "Contact No.", false);
                         (xRec."Contact No." <> '') and ("Contact No." = ''):
                             begin
                                 TempAttendee.CreateAttendee(
@@ -205,13 +208,10 @@ table 5080 "To-do"
                                   "No.", 10000, TempAttendee."Attendance Type"::Required,
                                   TempAttendee."Attendee Type"::Contact,
                                   xRec."Contact No.", false);
-                                DeleteAttendeeTask(TempAttendee);
-                                TempAttendee.CreateAttendee(
-                                  TempAttendee,
-                                  "No.", 20000, TempAttendee."Attendance Type"::Required,
-                                  TempAttendee."Attendee Type"::Contact,
-                                  "Contact No.", false);
-                                CreateSubTask(TempAttendee, Rec);
+                                if FindAttendeeTask(AttendeeTask, TempAttendee) then begin
+                                    AttendeeTask."Contact No." := "Contact No.";
+                                    AttendeeTask.Modify();
+                                end;
                             end;
                     end;
             end;
@@ -219,6 +219,7 @@ table 5080 "To-do"
         field(6; "Opportunity No."; Code[20])
         {
             Caption = 'Opportunity No.';
+            ToolTip = 'Specifies the number of the opportunity to which the task is linked.';
             TableRelation = Opportunity;
 
             trigger OnValidate()
@@ -243,6 +244,7 @@ table 5080 "To-do"
         field(8; Type; Enum "Task Type")
         {
             Caption = 'Type';
+            ToolTip = 'Specifies the type of the task.';
 
             trigger OnValidate()
             var
@@ -293,6 +295,7 @@ table 5080 "To-do"
         field(9; Date; Date)
         {
             Caption = 'Date';
+            ToolTip = 'Specifies the date when the task should be started. There are certain rules for how dates should be entered found in How to: Enter Dates and Times.';
             NotBlank = true;
 
             trigger OnValidate()
@@ -307,6 +310,7 @@ table 5080 "To-do"
         field(10; Status; Enum "Task Status")
         {
             Caption = 'Status';
+            ToolTip = 'Specifies the status of the task. There are five options: Not Started, In Progress, Completed, Waiting and Postponed.';
 
             trigger OnValidate()
             begin
@@ -319,6 +323,7 @@ table 5080 "To-do"
         field(11; Priority; Option)
         {
             Caption = 'Priority';
+            ToolTip = 'Specifies the priority of the task.';
             InitValue = Normal;
             OptionCaption = 'Low,Normal,High';
             OptionMembers = Low,Normal,High;
@@ -326,10 +331,12 @@ table 5080 "To-do"
         field(12; Description; Text[100])
         {
             Caption = 'Description';
+            ToolTip = 'Specifies the description of the task.';
         }
         field(13; Closed; Boolean)
         {
             Caption = 'Closed';
+            ToolTip = 'Specifies that the task is closed.';
 
             trigger OnValidate()
             var
@@ -371,6 +378,7 @@ table 5080 "To-do"
         field(14; "Date Closed"; Date)
         {
             Caption = 'Date Closed';
+            ToolTip = 'Specifies the date the task was closed.';
             Editable = false;
         }
         field(15; "No. Series"; Code[20])
@@ -385,12 +393,14 @@ table 5080 "To-do"
                                                                   "No." = field("Organizer To-do No."),
                                                                   "Sub No." = const(0)));
             Caption = 'Comment';
+            ToolTip = 'Specifies that a comment has been assigned to the task.';
             Editable = false;
             FieldClass = FlowField;
         }
         field(17; Canceled; Boolean)
         {
             Caption = 'Canceled';
+            ToolTip = 'Specifies that the task has been canceled.';
 
             trigger OnValidate()
             begin
@@ -404,6 +414,7 @@ table 5080 "To-do"
         {
             CalcFormula = lookup(Contact.Name where("No." = field("Contact No.")));
             Caption = 'Contact Name';
+            ToolTip = 'Specifies the name of the contact to which this task has been assigned.';
             Editable = false;
             FieldClass = FlowField;
         }
@@ -426,28 +437,33 @@ table 5080 "To-do"
         {
             CalcFormula = lookup(Campaign.Description where("No." = field("Campaign No.")));
             Caption = 'Campaign Description';
+            ToolTip = 'Specifies the description of the campaign to which the task is linked.';
             Editable = false;
             FieldClass = FlowField;
         }
         field(22; "Contact Company No."; Code[20])
         {
             Caption = 'Contact Company No.';
+            ToolTip = 'Specifies the contact number of the company for which the contact involved in the task works.';
             TableRelation = Contact where(Type = const(Company));
         }
         field(23; "Contact Company Name"; Text[100])
         {
             CalcFormula = lookup(Contact.Name where("No." = field("Contact Company No.")));
             Caption = 'Contact Company Name';
+            ToolTip = 'Specifies the name of the company for which the contact involved in the task works.';
             Editable = false;
             FieldClass = FlowField;
         }
         field(24; Recurring; Boolean)
         {
             Caption = 'Recurring';
+            ToolTip = 'Specifies that the Task occurs periodically.';
         }
         field(25; "Recurring Date Interval"; DateFormula)
         {
             Caption = 'Recurring Date Interval';
+            ToolTip = 'Specifies the date formula to assign automatically a recurring Task to a Salesperson or Team.';
 
             trigger OnValidate()
             begin
@@ -458,6 +474,7 @@ table 5080 "To-do"
         field(26; "Calc. Due Date From"; Option)
         {
             Caption = 'Calc. Due Date From';
+            ToolTip = 'Specifies the date to use to calculate the date on which the next Task should be completed.';
             OptionCaption = ' ,Due Date,Closing Date';
             OptionMembers = " ","Due Date","Closing Date";
 
@@ -471,12 +488,14 @@ table 5080 "To-do"
         {
             CalcFormula = lookup(Opportunity.Description where("No." = field("Opportunity No.")));
             Caption = 'Opportunity Description';
+            ToolTip = 'Specifies a description of the opportunity related to the task. The description is copied from the opportunity card.';
             Editable = false;
             FieldClass = FlowField;
         }
         field(28; "Start Time"; Time)
         {
             Caption = 'Start Time';
+            ToolTip = 'Specifies the time when the Task of the Meeting type should be started.';
 
             trigger OnValidate()
             begin
@@ -487,6 +506,7 @@ table 5080 "To-do"
         field(29; Duration; Duration)
         {
             Caption = 'Duration';
+            ToolTip = 'Specifies the duration of the Task of the Meeting type.';
 
             trigger OnValidate()
             begin
@@ -519,6 +539,7 @@ table 5080 "To-do"
         field(34; "All Day Event"; Boolean)
         {
             Caption = 'All Day Event';
+            ToolTip = 'Specifies that the Task of the Meeting type is an all-day event, which is an activity that lasts 24 hours or longer.';
 
             trigger OnValidate()
             begin
@@ -537,15 +558,18 @@ table 5080 "To-do"
         field(35; Location; Text[100])
         {
             Caption = 'Location';
+            ToolTip = 'Specifies the location where the meeting will take place.';
         }
         field(36; "Organizer To-do No."; Code[20])
         {
             Caption = 'Organizer Task No.';
+            ToolTip = 'Specifies the number of the organizer''s task. The field is not editable.';
             TableRelation = "To-do";
         }
         field(37; "Interaction Template Code"; Code[10])
         {
             Caption = 'Interaction Template Code';
+            ToolTip = 'Specifies the code for the interaction template that you have selected.';
             TableRelation = "Interaction Template";
 
             trigger OnValidate()
@@ -561,6 +585,7 @@ table 5080 "To-do"
         field(38; "Language Code"; Code[10])
         {
             Caption = 'Language Code';
+            ToolTip = 'Specifies the language that is used when translating specified text on documents to foreign business partner, such as an item description on an order confirmation.';
             TableRelation = Language;
 
             trigger OnLookup()
@@ -628,6 +653,7 @@ table 5080 "To-do"
         field(40; Subject; Text[100])
         {
             Caption = 'Subject';
+            ToolTip = 'Specifies the subject of the task. The subject is used for e-mail messages or Outlook meetings that you create.';
 
             trigger OnValidate()
             begin
@@ -664,6 +690,7 @@ table 5080 "To-do"
         {
             CalcFormula = count(Attendee where("To-do No." = field("Organizer To-do No.")));
             Caption = 'No. of Attendees';
+            ToolTip = 'Specifies the number of attendees for the meeting. click the field to view the Attendee Scheduling card.';
             Editable = false;
             FieldClass = FlowField;
         }
@@ -672,6 +699,7 @@ table 5080 "To-do"
             CalcFormula = count(Attendee where("To-do No." = field("Organizer To-do No."),
                                                 "Invitation Response Type" = const(Accepted)));
             Caption = 'Attendees Accepted No.';
+            ToolTip = 'Specifies the number of attendees that have confirmed their participation in the meeting.';
             Editable = false;
             FieldClass = FlowField;
         }
@@ -684,6 +712,7 @@ table 5080 "To-do"
         field(46; "Completed By"; Code[20])
         {
             Caption = 'Completed By';
+            ToolTip = 'Specifies the salesperson who completed this team task.';
             DataClassification = EndUserIdentifiableInformation;
             TableRelation = "Salesperson/Purchaser".Code;
 
@@ -708,6 +737,7 @@ table 5080 "To-do"
         field(47; "Ending Date"; Date)
         {
             Caption = 'Ending Date';
+            ToolTip = 'Specifies the date of when the Task should end. There are certain rules for how dates should be entered. For more information, see How to: Enter Dates and Times.';
 
             trigger OnValidate()
             begin
@@ -718,6 +748,7 @@ table 5080 "To-do"
         field(48; "Ending Time"; Time)
         {
             Caption = 'Ending Time';
+            ToolTip = 'Specifies the time of when the Task of the Meeting type should end.';
 
             trigger OnValidate()
             begin
@@ -735,35 +766,43 @@ table 5080 "To-do"
         field(9504; "Team To-do"; Boolean)
         {
             Caption = 'Team Task';
+            ToolTip = 'Specifies if the Task is meant to be done team-wide. Select the check box to specify that the Task applies to the entire Team.';
         }
         field(9505; "Send on finish"; Boolean)
         {
             Caption = 'Send on finish';
+            ToolTip = 'Specifies if the meeting invitation task will be sent when the Create Task wizard is finished.';
         }
         field(9506; "Segment Description"; Text[100])
         {
             Caption = 'Segment Description';
+            ToolTip = 'Specifies a description of the segment related to the task. The description is copied from the segment card.';
         }
         field(9507; "Team Meeting Organizer"; Code[20])
         {
             Caption = 'Team Meeting Organizer';
+            ToolTip = 'Specifies who on the team is the organizer of the task. You can modify the value in this field with the appropriate name when the to-do is for a team.';
         }
         field(9508; "Activity Code"; Code[10])
         {
             Caption = 'Activity Code';
+            ToolTip = 'Specifies a code for the task activity.';
             TableRelation = Activity.Code;
         }
         field(9509; "Wizard Contact Name"; Text[100])
         {
             Caption = 'Wizard Contact Name';
+            ToolTip = 'Specifies a contact name from the wizard.';
         }
         field(9510; "Wizard Campaign Description"; Text[100])
         {
             Caption = 'Wizard Campaign Description';
+            ToolTip = 'Specifies a description of the campaign that is related to the task. The description is copied from the campaign card.';
         }
         field(9511; "Wizard Opportunity Description"; Text[100])
         {
             Caption = 'Wizard Opportunity Description';
+            ToolTip = 'Specifies a description of the Opportunity that is related to the Task. The description is copied from the Campaign card.';
         }
     }
 
@@ -2363,6 +2402,8 @@ table 5080 "To-do"
     var
         Salesperson: Record "Salesperson/Purchaser";
     begin
+        OnBeforeCheckStatus(Rec);
+
         if Date = 0D then
             ErrorMessage(FieldCaption(Date));
 
@@ -3006,7 +3047,7 @@ table 5080 "To-do"
         if CreateExchangeAppointment then
             InitializeExchangeAppointment(Appointment, ExchangeWebServicesServer);
         repeat
-            if FindAttendeeTask(Task2, Attendee) then
+            if FindAttendeeTask(Task2, Attendee) then begin
                 if Attendee."Attendee Type" = Attendee."Attendee Type"::Salesperson then
                     if Salesperson2.Get(Task2."Salesperson Code") and
                        Salesperson.Get(Task."Salesperson Code")
@@ -3026,6 +3067,8 @@ table 5080 "To-do"
                         LogTaskInteraction(Task, Task2, true);
                         SetAttendeeInvitationSent(Attendee);
                     end;
+                OnProcessAttendeeAppointmentOnAfterFindAttendeeTask(Attendee, Task, Task2, SalesPersonList, CreateExchangeAppointment);
+            end;
         until Attendee.Next() = 0;
         if CreateExchangeAppointment and (SalesPersonList <> '') then begin
             Body := MakeAppointmentBody(Task, SalesPersonList, Salesperson.Name);
@@ -3301,6 +3344,16 @@ table 5080 "To-do"
 
     [IntegrationEvent(false, false)]
     local procedure OnAfterAssignDefaultAttendeeInfo(var Todo: Record "To-do"; var AttendeeLineNo: Integer; var TempAttendee: Record Attendee temporary)
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnProcessAttendeeAppointmentOnAfterFindAttendeeTask(var Attendee: Record Attendee; var Todo: Record "To-do"; var Todo2: Record "To-do"; var SalesPersonList: Text; CreateExchangeAppointment: Boolean)
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnBeforeCheckStatus(var Todo: Record "To-do")
     begin
     end;
 }

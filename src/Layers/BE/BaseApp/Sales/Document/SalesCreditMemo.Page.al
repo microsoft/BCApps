@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -114,13 +114,11 @@ page 44 "Sales Credit Memo"
                     ApplicationArea = VAT;
                     Editable = false;
                     Importance = Additional;
-                    ToolTip = 'Specifies the customer''s registration number.';
                     Visible = false;
                 }
                 field("Posting Description"; Rec."Posting Description")
                 {
                     ApplicationArea = Suite;
-                    ToolTip = 'Specifies additional posting information for the document. After you post the document, the description can add detail to vendor and customer ledger entries.';
                     Visible = false;
                 }
                 group("Sell-to")
@@ -132,7 +130,6 @@ page 44 "Sales Credit Memo"
                         Caption = 'Address';
                         Importance = Additional;
                         QuickEntry = false;
-                        ToolTip = 'Specifies the address where the customer is located.';
                     }
                     field("Sell-to Address 2"; Rec."Sell-to Address 2")
                     {
@@ -140,7 +137,6 @@ page 44 "Sales Credit Memo"
                         Caption = 'Address 2';
                         Importance = Additional;
                         QuickEntry = false;
-                        ToolTip = 'Specifies additional address information.';
                     }
                     field("Sell-to City"; Rec."Sell-to City")
                     {
@@ -148,7 +144,6 @@ page 44 "Sales Credit Memo"
                         Caption = 'City';
                         Importance = Additional;
                         QuickEntry = false;
-                        ToolTip = 'Specifies the city of the customer on the sales document.';
                     }
                     group(Control36)
                     {
@@ -160,7 +155,6 @@ page 44 "Sales Credit Memo"
                             CaptionClass = '5,1,' + Rec."Sell-to Country/Region Code";
                             Importance = Additional;
                             QuickEntry = false;
-                            ToolTip = 'Specifies the state, province or county of the address.';
                         }
                     }
                     field("Sell-to Post Code"; Rec."Sell-to Post Code")
@@ -189,7 +183,6 @@ page 44 "Sales Credit Memo"
                         ApplicationArea = Basic, Suite;
                         Caption = 'Contact No.';
                         Importance = Additional;
-                        ToolTip = 'Specifies the number of the contact person that the sales document will be sent to.';
 
                         trigger OnLookup(var Text: Text): Boolean
                         begin
@@ -254,7 +247,6 @@ page 44 "Sales Credit Memo"
                 {
                     ApplicationArea = Basic, Suite;
                     Importance = Promoted;
-                    ToolTip = 'Specifies the date when the posting of the sales document will be recorded.';
 
                     trigger OnValidate()
                     begin
@@ -267,13 +259,11 @@ page 44 "Sales Credit Memo"
                     Importance = Promoted;
                     Editable = VATDateEnabled;
                     Visible = VATDateEnabled;
-                    ToolTip = 'Specifies the date used to include entries on VAT reports in a VAT period. This is either the date that the document was created or posted, depending on your setting on the General Ledger Setup page.';
                 }
                 field("Document Date"; Rec."Document Date")
                 {
                     ApplicationArea = Basic, Suite;
                     Importance = Additional;
-                    ToolTip = 'Specifies the date when the related document was created.';
                 }
                 field("Due Date"; Rec."Due Date")
                 {
@@ -285,7 +275,6 @@ page 44 "Sales Credit Memo"
                 {
                     ApplicationArea = Basic, Suite;
                     Importance = Additional;
-                    ToolTip = 'Specifies the number of the incoming document that this sales document is created for.';
                     Visible = false;
                 }
                 field("External Document No."; Rec."External Document No.")
@@ -293,13 +282,11 @@ page 44 "Sales Credit Memo"
                     ApplicationArea = Basic, Suite;
                     Importance = Additional;
                     ShowMandatory = ExternalDocNoMandatory;
-                    ToolTip = 'Specifies a document number that refers to the customer''s or vendor''s numbering system.';
                 }
                 field("Salesperson Code"; Rec."Salesperson Code")
                 {
                     ApplicationArea = Suite;
                     Importance = Additional;
-                    ToolTip = 'Specifies the name of the salesperson who is assigned to the customer.';
 
                     trigger OnValidate()
                     begin
@@ -321,13 +308,11 @@ page 44 "Sales Credit Memo"
                 {
                     ApplicationArea = Basic, Suite;
                     Importance = Additional;
-                    ToolTip = 'Specifies the code of the responsibility center, such as a distribution hub, that is associated with the involved user, company, customer, or vendor.';
                 }
                 field("Assigned User ID"; Rec."Assigned User ID")
                 {
                     ApplicationArea = Basic, Suite;
                     Importance = Additional;
-                    ToolTip = 'Specifies the ID of the user who is responsible for the document.';
                 }
                 field("Job Queue Status"; Rec."Job Queue Status")
                 {
@@ -350,25 +335,21 @@ page 44 "Sales Credit Memo"
                     ApplicationArea = Suite;
                     Importance = Promoted;
                     StyleExpr = StatusStyleTxt;
-                    ToolTip = 'Specifies whether the document is open, waiting to be approved, has been invoiced for prepayment, or has been released to the next stage of processing.';
                 }
                 field("Applies-to Doc. Type"; Rec."Applies-to Doc. Type")
                 {
                     ApplicationArea = Basic, Suite;
                     Importance = Additional;
-                    ToolTip = 'Specifies the type of the posted document that this document or journal line will be applied to when you post, for example to register payment.';
                 }
                 field("Applies-to Doc. No."; Rec."Applies-to Doc. No.")
                 {
                     ApplicationArea = Basic, Suite;
                     Importance = Additional;
-                    ToolTip = 'Specifies the number of the posted document that this document or journal line will be applied to when you post, for example to register payment.';
                 }
                 field("Applies-to ID"; Rec."Applies-to ID")
                 {
                     ApplicationArea = Basic, Suite;
                     Importance = Additional;
-                    ToolTip = 'Specifies the ID of entries that will be applied to when you choose the Apply Entries action.';
                 }
                 group("Work Description")
                 {
@@ -390,13 +371,11 @@ page 44 "Sales Credit Memo"
                 field("Language Code"; Rec."Language Code")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the language to be used on printouts for this document.';
                     Visible = false;
                 }
                 field("Format Region"; Rec."Format Region")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the format to be used on printouts for this document.';
                     Visible = false;
                 }
             }
@@ -415,7 +394,6 @@ page 44 "Sales Credit Memo"
                 {
                     ApplicationArea = Suite;
                     Importance = Promoted;
-                    ToolTip = 'Specifies the currency of amounts on the sales document.';
 
                     trigger OnAssistEdit()
                     begin
@@ -440,18 +418,15 @@ page 44 "Sales Credit Memo"
                 {
                     ApplicationArea = Suite;
                     Importance = Promoted;
-                    ToolTip = 'Specifies the bank account to use for bank information when the document is printed.';
                 }
                 field("Shipment Date"; Rec."Shipment Date")
                 {
                     ApplicationArea = Basic, Suite;
                     Importance = Promoted;
-                    ToolTip = 'Specifies when items on the document are shipped or were shipped. A shipment date is usually calculated from a requested delivery date plus lead time.';
                 }
                 field("Prices Including VAT"; Rec."Prices Including VAT")
                 {
                     ApplicationArea = VAT;
-                    ToolTip = 'Specifies if the Unit Price and Line Amount fields on document lines should be shown with or without VAT.';
 
                     trigger OnValidate()
                     begin
@@ -462,13 +437,11 @@ page 44 "Sales Credit Memo"
                 {
                     ApplicationArea = VAT;
                     Importance = Additional;
-                    ToolTip = 'Specifies the country or region code for the VAT.';
                 }
                 field("VAT Registration No."; Rec."VAT Registration No.")
                 {
                     ApplicationArea = VAT;
                     Importance = Additional;
-                    ToolTip = 'Specifies the customer''s VAT registration number for customers.';
                 }
                 field("Enterprise No."; Rec."Enterprise No.")
                 {
@@ -480,12 +453,10 @@ page 44 "Sales Credit Memo"
                 {
                     ApplicationArea = Basic, Suite;
                     Importance = Additional;
-                    ToolTip = 'Specifies the general business posting group that the sales document is linked to. The general business posting group is used to link the sales document to the appropriate general ledger account.';
                 }
                 field("VAT Bus. Posting Group"; Rec."VAT Bus. Posting Group")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the VAT specification of the involved customer or vendor to link transactions made for this record with the appropriate general ledger account according to the VAT posting setup.';
                 }
                 field("Customer Posting Group"; Rec."Customer Posting Group")
                 {
@@ -498,26 +469,22 @@ page 44 "Sales Credit Memo"
                 {
                     ApplicationArea = Basic, Suite;
                     Importance = Promoted;
-                    ToolTip = 'Specifies a formula that calculates the payment due date, payment discount date, and payment discount amount.';
                 }
                 field("Payment Method Code"; Rec."Payment Method Code")
                 {
                     ApplicationArea = Basic, Suite;
                     Importance = Additional;
-                    ToolTip = 'Specifies how to make payment, such as with bank transfer, cash, or check.';
                     Visible = IsPaymentMethodCodeVisible;
                 }
                 field("Reason Code"; Rec."Reason Code")
                 {
                     ApplicationArea = Basic, Suite;
                     Importance = Additional;
-                    ToolTip = 'Specifies the reason code, a supplementary source code that enables you to trace the document.';
                     Visible = false;
                 }
                 field("Shortcut Dimension 1 Code"; Rec."Shortcut Dimension 1 Code")
                 {
                     ApplicationArea = Dimensions;
-                    ToolTip = 'Specifies the code for Shortcut Dimension 1, which is one of two global dimension codes that you set up in the General Ledger Setup window.';
 
                     trigger OnValidate()
                     begin
@@ -527,7 +494,6 @@ page 44 "Sales Credit Memo"
                 field("Shortcut Dimension 2 Code"; Rec."Shortcut Dimension 2 Code")
                 {
                     ApplicationArea = Dimensions;
-                    ToolTip = 'Specifies the code for Shortcut Dimension 2, which is one of two global dimension codes that you set up in the General Ledger Setup window.';
 
                     trigger OnValidate()
                     begin
@@ -543,12 +509,10 @@ page 44 "Sales Credit Memo"
                 {
                     ApplicationArea = Basic, Suite;
                     Importance = Additional;
-                    ToolTip = 'Specifies the date on which the amount in the entry must be paid for a payment discount to be granted.';
                 }
                 field("Journal Templ. Name"; Rec."Journal Templ. Name")
                 {
                     ApplicationArea = BasicBE;
-                    ToolTip = 'Specifies the name of the journal template in which the sales header is to be posted.';
                     Visible = IsJournalTemplNameVisible;
                 }
                 field("Location Code"; Rec."Location Code")
@@ -560,12 +524,10 @@ page 44 "Sales Credit Memo"
                 field("EU 3-Party Trade"; Rec."EU 3-Party Trade")
                 {
                     ApplicationArea = BasicEU;
-                    ToolTip = 'Specifies if the transaction is related to trade with a third party within the EU.';
                 }
                 field(Correction; Rec.Correction)
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the entry as a corrective entry. You can use the field if you need to post a corrective entry to a customer account. If you place a check mark in this field when posting a corrective entry, the system will post a negative debit instead of a credit or a negative credit instead of a debit. Correction flag does not affect how inventory reconciled with general ledger.';
                 }
             }
             group(Billing)
@@ -622,7 +584,6 @@ page 44 "Sales Credit Memo"
                         Caption = 'Address';
                         Importance = Additional;
                         QuickEntry = false;
-                        ToolTip = 'Specifies the address of the customer that you will send the invoice to.';
                     }
                     field("Bill-to Address 2"; Rec."Bill-to Address 2")
                     {
@@ -630,7 +591,6 @@ page 44 "Sales Credit Memo"
                         Caption = 'Address 2';
                         Importance = Additional;
                         QuickEntry = false;
-                        ToolTip = 'Specifies additional address information.';
                     }
                     field("Bill-to City"; Rec."Bill-to City")
                     {
@@ -638,7 +598,6 @@ page 44 "Sales Credit Memo"
                         Caption = 'City';
                         Importance = Additional;
                         QuickEntry = false;
-                        ToolTip = 'Specifies the city of the customer on the sales document.';
                     }
                     group(Control55)
                     {
@@ -650,7 +609,6 @@ page 44 "Sales Credit Memo"
                             CaptionClass = '5,1,' + Rec."Bill-to Country/Region Code";
                             Importance = Additional;
                             QuickEntry = false;
-                            ToolTip = 'Specifies the state, province or county of the address.';
                         }
                     }
                     field("Bill-to Post Code"; Rec."Bill-to Post Code")
@@ -679,7 +637,6 @@ page 44 "Sales Credit Memo"
                         ApplicationArea = Basic, Suite;
                         Caption = 'Contact No';
                         Importance = Additional;
-                        ToolTip = 'Specifies the number of the contact the invoice will be sent to.';
                     }
                     field("Bill-to Contact"; Rec."Bill-to Contact")
                     {
@@ -722,32 +679,26 @@ page 44 "Sales Credit Memo"
                 field("Transaction Specification"; Rec."Transaction Specification")
                 {
                     ApplicationArea = BasicEU;
-                    ToolTip = 'Specifies a specification of the document''s transaction, for the purpose of reporting to INTRASTAT.';
                 }
                 field("Transaction Type"; Rec."Transaction Type")
                 {
                     ApplicationArea = BasicEU;
-                    ToolTip = 'Specifies the type of transaction that the document represents, for the purpose of reporting to INTRASTAT.';
                 }
                 field("Transport Method"; Rec."Transport Method")
                 {
                     ApplicationArea = BasicEU;
-                    ToolTip = 'Specifies the transport method, for the purpose of reporting to INTRASTAT.';
                 }
                 field("Exit Point"; Rec."Exit Point")
                 {
                     ApplicationArea = BasicEU;
-                    ToolTip = 'Specifies the point of exit through which you ship the items out of your country/region, for reporting to Intrastat.';
                 }
                 field("Area"; Rec.Area)
                 {
                     ApplicationArea = BasicEU;
-                    ToolTip = 'Specifies the country or region of origin for the purpose of Intrastat reporting.';
                 }
                 field("Rcvd-from Country/Region Code"; Rec."Rcvd.-from Count./Region Code")
                 {
                     ApplicationArea = BasicEU, BasicCH, BasicNO;
-                    ToolTip = 'Specifies the country or region from which the items are returned for the purpose of Intrastat reporting.';
                 }
             }
         }

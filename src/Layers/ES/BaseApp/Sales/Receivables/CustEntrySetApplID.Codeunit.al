@@ -37,7 +37,7 @@ codeunit 101 "Cust. Entry-SetAppl.ID"
         OnBeforeSetApplId(CustLedgEntry, ApplyingCustLedgEntry, AppliesToID, CustEntryApplID, IsHandled);
         if IsHandled then
             exit;
-        CustLedgEntry.LockTable();
+        CustLedgEntry.ReadIsolation(IsolationLevel::UpdLock);
         if CustLedgEntry.FindSet() then begin
             // Make Applies-to ID
             if CustLedgEntry."Applies-to ID" <> '' then

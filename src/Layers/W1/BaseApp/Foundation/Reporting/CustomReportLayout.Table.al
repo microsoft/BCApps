@@ -15,8 +15,12 @@ table 9650 "Custom Report Layout"
 {
     Caption = 'Custom Report Layout';
     DataPerCompany = false;
+#if not CLEAN28
+#pragma warning disable AL0432
     DrillDownPageID = "Custom Report Layouts";
     LookupPageID = "Custom Report Layouts";
+#pragma warning restore AL0432
+#endif
     Permissions = TableData "Custom Report Layout" = rimd;
     DataClassification = CustomerContent;
 
@@ -193,7 +197,7 @@ table 9650 "Custom Report Layout"
                 end;
             CustomReportLayout.Type::RDLC.AsInteger():
                 if LoadInternalRdlcLayout(ReportID, TempBlob) then
-                        CustomReportLayout.SetLayoutBlob(TempBlob);
+                    CustomReportLayout.SetLayoutBlob(TempBlob);
             else
                 OnInitBuiltInLayout(CustomReportLayout, ReportID, LayoutType);
         end;
@@ -649,6 +653,7 @@ table 9650 "Custom Report Layout"
         RdlcReportManager.ValidateReport("Report ID", RdlcString);
     end;
 
+#if not CLEAN28
     local procedure FilterOnReport(ReportID: Integer)
     begin
         Reset();
@@ -658,12 +663,16 @@ table 9650 "Custom Report Layout"
         SetRange("Built-In", false);
     end;
 
+    [Obsolete('This procedure is obsolete because the lookup page 9650 Custom Report Layouts is obsoleted.', '28.0')]
     procedure LookupLayoutOK(ReportID: Integer): Boolean
     begin
         FilterOnReport(ReportID);
         OnLookupLayoutOKOnBeforePageRun(Rec);
+#pragma warning disable AL0432
         exit(PAGE.RunModal(PAGE::"Custom Report Layouts", Rec) = ACTION::LookupOK);
+#pragma warning restore AL0432
     end;
+#endif
 
     procedure GetDefaultCode(ReportID: Integer): Code[20]
     var
@@ -1079,8 +1088,11 @@ table 9650 "Custom Report Layout"
     begin
     end;
 
+#if not CLEAN28
     [IntegrationEvent(false, false)]
+    [Obsolete('This procedure is obsolete because the procedure LookupLayoutOK is obsoleted.', '28.0')]
     local procedure OnLookupLayoutOKOnBeforePageRun(var CustomReportLayout: Record "Custom Report Layout")
     begin
     end;
+#endif
 }

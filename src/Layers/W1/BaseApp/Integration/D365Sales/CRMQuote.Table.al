@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -98,6 +98,7 @@ table 5351 "CRM Quote"
         field(10; Name; Text[2048])
         {
             Caption = 'Name';
+            ToolTip = 'Specifies the name of the record.';
             Description = 'Type a descriptive name for the quote.';
             ExternalName = 'name';
             ExternalType = 'String';
@@ -141,6 +142,7 @@ table 5351 "CRM Quote"
         {
             AutoFormatType = 0;
             Caption = 'Total Amount';
+            ToolTip = 'Specifies information related to the Dynamics 365 Sales connection.';
             Description = 'Shows the total amount due, calculated as the sum of the products, discounts, freight, and taxes for the quote.';
             ExternalAccess = Modify;
             ExternalName = 'totalamount';
@@ -176,6 +178,7 @@ table 5351 "CRM Quote"
         field(19; EffectiveFrom; Date)
         {
             Caption = 'Effective From';
+            ToolTip = 'Specifies which date the sales quote is valid from.';
             Description = 'Enter the date when the quote pricing is effective or was first communicated to the customer.';
             ExternalName = 'effectivefrom';
             ExternalType = 'DateTime';
@@ -201,6 +204,7 @@ table 5351 "CRM Quote"
         field(22; EffectiveTo; Date)
         {
             Caption = 'Effective To';
+            ToolTip = 'Specifies which date the sales quote is valid to.';
             Description = 'Enter the expiration date or last day the quote pricing is effective for the customer.';
             ExternalName = 'effectiveto';
             ExternalType = 'DateTime';
@@ -215,6 +219,7 @@ table 5351 "CRM Quote"
         field(24; ClosedOn; Date)
         {
             Caption = 'Closed On';
+            ToolTip = 'Specifies the date when quote was closed.';
             Description = 'Enter the date when the quote was closed to indicate the expiration, revision, or cancellation date.';
             ExternalName = 'closedon';
             ExternalType = 'DateTime';
@@ -263,6 +268,7 @@ table 5351 "CRM Quote"
         field(33; StateCode; Option)
         {
             Caption = 'Status';
+            ToolTip = 'Specifies information related to the Dynamics 365 Sales connection.';
             Description = 'Shows whether the quote is draft, active, won, or closed. Only draft quotes can be edited.';
             ExternalAccess = Modify;
             ExternalName = 'statecode';

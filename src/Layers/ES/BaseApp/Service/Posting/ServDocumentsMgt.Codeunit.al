@@ -853,6 +853,8 @@ codeunit 5988 "Serv-Documents Mgt."
             if PassedServLine."Document Type" = PassedServLine."Document Type"::Order then begin
                 ServShptLine."Order No." := PassedServLine."Document No.";
                 ServShptLine."Order Line No." := PassedServLine."Line No.";
+                ServShptLine."External Document No." := ServShptHeader."External Document No.";
+                ServShptLine."Your Reference" := ServShptHeader."Your Reference";
             end;
 
             if (PassedServLine.Type = PassedServLine.Type::Item) and (PassedServLine."Qty. to Ship" <> 0) then
@@ -864,7 +866,7 @@ codeunit 5988 "Serv-Documents Mgt."
             ServShptLine."Service Item Line Description" := PassedServLine."Service Item Line Description";
             OnBeforeServShptLineInsert(ServShptLine, ServLine, ServShptHeader);
             ServShptLine.Insert();
-            OnAfterServShptLineInsert(ServShptLine, ServLine, ServShptHeader, ServInvHeader, PassedServLine);
+            OnAfterServShptLineInsert(ServShptLine, ServLine, ServShptHeader, ServInvHeader, PassedServLine, ServHeader);
             CheckCertificateOfSupplyStatus(ServShptHeader, ServShptLine);
         end;
         // end inserting Service Shipment Line
@@ -2515,7 +2517,7 @@ codeunit 5988 "Serv-Documents Mgt."
     end;
 
     [IntegrationEvent(false, false)]
-    local procedure OnAfterServShptLineInsert(var ServiceShipmentLine: Record "Service Shipment Line"; ServiceLine: Record "Service Line"; ServiceShipmentHeader: Record "Service Shipment Header"; ServiceInvoiceHeader: Record "Service Invoice Header"; PassedServiceLine: Record "Service Line")
+    local procedure OnAfterServShptLineInsert(var ServiceShipmentLine: Record "Service Shipment Line"; ServiceLine: Record "Service Line"; ServiceShipmentHeader: Record "Service Shipment Header"; ServiceInvoiceHeader: Record "Service Invoice Header"; PassedServiceLine: Record "Service Line"; ServiceHeader: Record "Service Header")
     begin
     end;
 

@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -26,6 +26,7 @@ table 5061 "Rlshp. Mgt. Comment Line"
         field(2; "No."; Code[20])
         {
             Caption = 'No.';
+            ToolTip = 'Specifies the number of the involved entry or record, according to the specified number series.';
             TableRelation = if ("Table Name" = const(Contact)) Contact
             else
             if ("Table Name" = const(Campaign)) Campaign
@@ -43,6 +44,7 @@ table 5061 "Rlshp. Mgt. Comment Line"
         field(3; "Sub No."; Integer)
         {
             Caption = 'Sub No.';
+            ToolTip = 'Specifies the number of the stage within the sales cycle.';
             TableRelation = if ("Table Name" = const("Sales Cycle Stage")) "Sales Cycle Stage".Stage where("Sales Cycle Code" = field("No."));
         }
         field(4; "Line No."; Integer)
@@ -52,14 +54,17 @@ table 5061 "Rlshp. Mgt. Comment Line"
         field(5; Date; Date)
         {
             Caption = 'Date';
+            ToolTip = 'Specifies the date the comment was created.';
         }
         field(6; "Code"; Code[10])
         {
             Caption = 'Code';
+            ToolTip = 'Specifies the code for the comment.';
         }
         field(7; Comment; Text[80])
         {
             Caption = 'Comment';
+            ToolTip = 'Specifies the comment itself.';
         }
         field(8; "Last Date Modified"; Date)
         {

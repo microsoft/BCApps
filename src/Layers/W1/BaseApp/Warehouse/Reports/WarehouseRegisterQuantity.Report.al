@@ -128,6 +128,7 @@ report 7303 "Warehouse Register - Quantity"
                 trigger OnPreDataItem()
                 begin
                     SetRange("Entry No.", "Warehouse Register"."From Entry No.", "Warehouse Register"."To Entry No.");
+                    SetFilter("Warehouse Register No.", '0|%1', "Warehouse Register"."No.");
                 end;
             }
         }

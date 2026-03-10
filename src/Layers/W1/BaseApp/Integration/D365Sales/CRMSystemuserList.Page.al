@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -31,7 +31,6 @@ page 5340 "CRM Systemuser List"
                     Caption = 'Name';
                     Editable = false;
                     StyleExpr = FirstColumnStyle;
-                    ToolTip = 'Specifies data from a corresponding field in a Dataverse entity. For more information about Dataverse, see Dataverse Help Center.';
                 }
                 field(InternalEMailAddress; Rec.InternalEMailAddress)
                 {
@@ -39,14 +38,12 @@ page 5340 "CRM Systemuser List"
                     Caption = 'Email Address';
                     Editable = false;
                     ExtendedDatatype = EMail;
-                    ToolTip = 'Specifies the email address.';
                 }
                 field(MobilePhone; Rec.MobilePhone)
                 {
                     ApplicationArea = Suite;
                     Caption = 'Mobile Phone';
                     Editable = false;
-                    ToolTip = 'Specifies data from a corresponding field in a Dataverse entity. For more information about Dataverse, see Dataverse Help Center.';
                 }
                 field(Coupled; Coupled)
                 {

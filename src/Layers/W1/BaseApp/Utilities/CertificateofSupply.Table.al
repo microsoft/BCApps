@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -20,10 +20,12 @@ table 780 "Certificate of Supply"
         field(1; "Document Type"; Enum "Supply Document Type")
         {
             Caption = 'Document Type';
+            ToolTip = 'Specifies the type of the posted document to which the certificate of supply applies.';
         }
         field(2; "Document No."; Code[20])
         {
             Caption = 'Document No.';
+            ToolTip = 'Specifies the document number of the posted shipment document associated with the certificate of supply.';
             TableRelation = if ("Document Type" = filter("Sales Shipment")) "Sales Shipment Header"."No."
             else
             if ("Document Type" = filter("Return Shipment")) "Return Shipment Header"."No.";
@@ -31,6 +33,7 @@ table 780 "Certificate of Supply"
         field(3; Status; Option)
         {
             Caption = 'Status';
+            ToolTip = 'Specifies the status for documents where you must receive a signed certificate of supply from the customer.';
             OptionCaption = 'Not Applicable,Required,Received,Not Received';
             OptionMembers = "Not Applicable",Required,Received,"Not Received";
 
@@ -54,6 +57,7 @@ table 780 "Certificate of Supply"
         field(4; "No."; Code[20])
         {
             Caption = 'No.';
+            ToolTip = 'Specifies the number of the involved entry or record, according to the specified number series.';
 
             trigger OnValidate()
             begin
@@ -68,6 +72,7 @@ table 780 "Certificate of Supply"
         field(5; "Receipt Date"; Date)
         {
             Caption = 'Receipt Date';
+            ToolTip = 'Specifies the receipt date of the signed certificate of supply.';
 
             trigger OnValidate()
             begin
@@ -77,34 +82,41 @@ table 780 "Certificate of Supply"
         field(6; Printed; Boolean)
         {
             Caption = 'Printed';
+            ToolTip = 'Specifies whether the certificate of supply has been printed and sent to the customer.';
         }
         field(7; "Customer/Vendor Name"; Text[100])
         {
             Caption = 'Customer/Vendor Name';
+            ToolTip = 'Specifies the name of the customer or vendor.';
             Editable = false;
         }
         field(8; "Shipment Method Code"; Code[10])
         {
             Caption = 'Shipment Method Code';
+            ToolTip = 'Specifies the delivery conditions of the related shipment, such as free on board (FOB).';
             Editable = false;
         }
         field(9; "Shipment/Posting Date"; Date)
         {
             Caption = 'Shipment/Posting Date';
+            ToolTip = 'Specifies the date that the posted shipment was shipped or posted.';
             Editable = false;
         }
         field(10; "Ship-to Country/Region Code"; Code[10])
         {
             Caption = 'Ship-to Country/Region Code';
+            ToolTip = 'Specifies the country/region code of the address that the items are shipped to.';
             Editable = false;
         }
         field(11; "Customer/Vendor No."; Code[20])
         {
             Caption = 'Customer/Vendor No.';
+            ToolTip = 'Specifies the number of the customer or vendor.';
         }
         field(12; "Vehicle Registration No."; Text[20])
         {
             Caption = 'Vehicle Registration No.';
+            ToolTip = 'Specifies the vehicle registration number associated with the shipment.';
 
             trigger OnValidate()
             begin
@@ -137,10 +149,17 @@ table 780 "Certificate of Supply"
 #pragma warning restore AA0470
 
     procedure Print()
+    var
+        DocumentType: Enum "Supply Document Type";
     begin
-        case "Document Type" of
-            "Document Type"::"Sales Shipment",
-            "Document Type"::"Return Shipment":
+        DocumentType := "Document Type";
+
+        if Rec.GetFilter("Document Type") <> '' then
+            DocumentType := GetRangeMin("Document Type");
+
+        case DocumentType of
+            DocumentType::"Sales Shipment",
+            DocumentType::"Return Shipment":
                 REPORT.RunModal(REPORT::"Certificate of Supply", true, false, Rec);
             else
                 OnPrint(Rec);

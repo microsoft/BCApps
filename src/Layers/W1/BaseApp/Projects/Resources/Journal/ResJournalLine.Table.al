@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -41,14 +41,17 @@ table 207 "Res. Journal Line"
         field(3; "Entry Type"; Enum "Res. Journal Line Entry Type")
         {
             Caption = 'Entry Type';
+            ToolTip = 'Specifies an entry type for each line.';
         }
         field(4; "Document No."; Code[20])
         {
             Caption = 'Document No.';
+            ToolTip = 'Specifies a document number for the journal line.';
         }
         field(5; "Posting Date"; Date)
         {
             Caption = 'Posting Date';
+            ToolTip = 'Specifies the date when you want to assign.';
 
             trigger OnValidate()
             begin
@@ -59,6 +62,7 @@ table 207 "Res. Journal Line"
         field(6; "Resource No."; Code[20])
         {
             Caption = 'Resource No.';
+            ToolTip = 'Specifies the number of the resource that you want to post an entry for.';
             TableRelation = Resource;
 
             trigger OnValidate()
@@ -92,6 +96,7 @@ table 207 "Res. Journal Line"
         field(7; "Resource Group No."; Code[20])
         {
             Caption = 'Resource Group No.';
+            ToolTip = 'Specifies the resource group that this resource is assigned to.';
             Editable = false;
             TableRelation = "Resource Group";
 
@@ -103,10 +108,12 @@ table 207 "Res. Journal Line"
         field(8; Description; Text[100])
         {
             Caption = 'Description';
+            ToolTip = 'Specifies the description or name of the resource you chose in the Resource No. field.';
         }
         field(9; "Work Type Code"; Code[10])
         {
             Caption = 'Work Type Code';
+            ToolTip = 'Specifies which work type the resource applies to. Prices are updated based on this entry.';
             TableRelation = "Work Type";
 
             trigger OnValidate()
@@ -137,6 +144,7 @@ table 207 "Res. Journal Line"
         field(10; "Job No."; Code[20])
         {
             Caption = 'Project No.';
+            ToolTip = 'Specifies the number of the related project.';
             TableRelation = Job;
 
             trigger OnValidate()
@@ -149,6 +157,7 @@ table 207 "Res. Journal Line"
         field(11; "Unit of Measure Code"; Code[10])
         {
             Caption = 'Unit of Measure Code';
+            ToolTip = 'Specifies how each unit of the item or resource is measured, such as in pieces or hours. By default, the value in the Base Unit of Measure field on the item or resource card is inserted.';
             TableRelation = "Resource Unit of Measure".Code where("Resource No." = field("Resource No."));
 
             trigger OnValidate()
@@ -175,6 +184,7 @@ table 207 "Res. Journal Line"
         {
             AutoFormatType = 0;
             Caption = 'Quantity';
+            ToolTip = 'Specifies the number of units of the item or resource specified on the line.';
             DecimalPlaces = 0 : 5;
 
             trigger OnValidate()
@@ -188,6 +198,7 @@ table 207 "Res. Journal Line"
             AutoFormatType = 2;
             AutoFormatExpression = '';
             Caption = 'Direct Unit Cost';
+            ToolTip = 'Specifies the cost of one unit of the selected item or resource.';
             MinValue = 0;
         }
         field(14; "Unit Cost"; Decimal)
@@ -195,6 +206,7 @@ table 207 "Res. Journal Line"
             AutoFormatType = 2;
             AutoFormatExpression = '';
             Caption = 'Unit Cost';
+            ToolTip = 'Specifies the cost of one unit of the item or resource on the line.';
             MinValue = 0;
 
             trigger OnValidate()
@@ -207,6 +219,7 @@ table 207 "Res. Journal Line"
             AutoFormatType = 1;
             AutoFormatExpression = '';
             Caption = 'Total Cost';
+            ToolTip = 'Specifies the total cost for this journal line.';
 
             trigger OnValidate()
             begin
@@ -220,6 +233,7 @@ table 207 "Res. Journal Line"
             AutoFormatType = 2;
             AutoFormatExpression = '';
             Caption = 'Unit Price';
+            ToolTip = 'Specifies the price of one unit of the item or resource. You can enter a price manually or have it entered according to the Price/Profit Calculation field on the related card.';
             MinValue = 0;
 
             trigger OnValidate()
@@ -232,6 +246,7 @@ table 207 "Res. Journal Line"
             AutoFormatType = 1;
             AutoFormatExpression = '';
             Caption = 'Total Price';
+            ToolTip = 'Specifies the total price on the journal line.';
 
             trigger OnValidate()
             begin
@@ -244,6 +259,7 @@ table 207 "Res. Journal Line"
         {
             CaptionClass = '1,2,1';
             Caption = 'Shortcut Dimension 1 Code';
+            ToolTip = 'Specifies the code for Shortcut Dimension 1, which is one of two global dimension codes that you set up in the General Ledger Setup window.';
             TableRelation = "Dimension Value".Code where("Global Dimension No." = const(1),
                                                           Blocked = const(false));
 
@@ -256,6 +272,7 @@ table 207 "Res. Journal Line"
         {
             CaptionClass = '1,2,2';
             Caption = 'Shortcut Dimension 2 Code';
+            ToolTip = 'Specifies the code for Shortcut Dimension 2, which is one of two global dimension codes that you set up in the General Ledger Setup window.';
             TableRelation = "Dimension Value".Code where("Global Dimension No." = const(2),
                                                           Blocked = const(false));
 
@@ -278,40 +295,48 @@ table 207 "Res. Journal Line"
         field(24; "Reason Code"; Code[10])
         {
             Caption = 'Reason Code';
+            ToolTip = 'Specifies the reason code, a supplementary source code that enables you to trace the entry.';
             TableRelation = "Reason Code";
         }
         field(25; "Recurring Method"; Option)
         {
             BlankZero = true;
             Caption = 'Recurring Method';
+            ToolTip = 'Specifies what happens to the quantity on the journal line after posting.';
             OptionCaption = ',Fixed,Variable';
             OptionMembers = ,"Fixed",Variable;
         }
         field(26; "Expiration Date"; Date)
         {
             Caption = 'Expiration Date';
+            ToolTip = 'Specifies the last date when a recurring journal can be posted.';
         }
         field(27; "Recurring Frequency"; DateFormula)
         {
             Caption = 'Recurring Frequency';
+            ToolTip = 'Specifies a recurring frequency if you have indicated in the Recurring field of the Res. Journal Template the journal is recurring.';
         }
         field(28; "Gen. Bus. Posting Group"; Code[20])
         {
             Caption = 'Gen. Bus. Posting Group';
+            ToolTip = 'Specifies the vendor''s or customer''s trade type to link transactions made for this business partner with the appropriate general ledger account according to the general posting setup.';
             TableRelation = "Gen. Business Posting Group";
         }
         field(29; "Gen. Prod. Posting Group"; Code[20])
         {
             Caption = 'Gen. Prod. Posting Group';
+            ToolTip = 'Specifies the item''s product type to link transactions made for this item with the appropriate general ledger account according to the general posting setup.';
             TableRelation = "Gen. Product Posting Group";
         }
         field(30; "Document Date"; Date)
         {
             Caption = 'Document Date';
+            ToolTip = 'Specifies the date when the related document was created.';
         }
         field(31; "External Document No."; Code[35])
         {
             Caption = 'External Document No.';
+            ToolTip = 'Specifies a document number that refers to the customer''s or vendor''s numbering system.';
         }
         field(32; "Posting No. Series"; Code[20])
         {
@@ -366,16 +391,19 @@ table 207 "Res. Journal Line"
         field(950; "Time Sheet No."; Code[20])
         {
             Caption = 'Time Sheet No.';
+            ToolTip = 'Specifies the number of a time sheet.';
             TableRelation = "Time Sheet Header";
         }
         field(951; "Time Sheet Line No."; Integer)
         {
             Caption = 'Time Sheet Line No.';
+            ToolTip = 'Specifies the line number for a time sheet.';
             TableRelation = "Time Sheet Line"."Line No." where("Time Sheet No." = field("Time Sheet No."));
         }
         field(952; "Time Sheet Date"; Date)
         {
             Caption = 'Time Sheet Date';
+            ToolTip = 'Specifies the date when a time sheet is created.';
             TableRelation = "Time Sheet Detail".Date where("Time Sheet No." = field("Time Sheet No."),
                                                             "Time Sheet Line No." = field("Time Sheet Line No."));
         }

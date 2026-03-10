@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -182,7 +182,6 @@ page 7201 "CDS Connection Setup Wizard"
                     {
                         ApplicationArea = Suite;
                         AssistEdit = true;
-                        ToolTip = 'The Dataverse environment URL.';
                         Caption = 'The Dataverse environment URL.';
                         ShowCaption = false;
 

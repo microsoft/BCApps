@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -37,6 +37,7 @@ table 7154 "Item Analysis View Entry"
         field(3; "Item No."; Code[20])
         {
             Caption = 'Item No.';
+            ToolTip = 'Specifies the item number to which the item ledger entry in an analysis view entry was posted.';
             TableRelation = Item;
         }
         field(4; "Source Type"; Enum "Analysis Source Type")
@@ -55,6 +56,7 @@ table 7154 "Item Analysis View Entry"
         field(8; "Location Code"; Code[10])
         {
             Caption = 'Location Code';
+            ToolTip = 'Specifies the code of the location to which the item ledger entry in an analysis view entry was posted.';
             TableRelation = Location;
         }
         field(9; "Dimension 1 Value Code"; Code[20])
@@ -62,22 +64,26 @@ table 7154 "Item Analysis View Entry"
             AccessByPermission = TableData Dimension = R;
             CaptionClass = GetCaptionClass(1);
             Caption = 'Dimension 1 Value Code';
+            ToolTip = 'Specifies the dimension value you selected for the analysis view dimension that you defined as Dimension 1 on the analysis view card.';
         }
         field(10; "Dimension 2 Value Code"; Code[20])
         {
             AccessByPermission = TableData Dimension = R;
             CaptionClass = GetCaptionClass(2);
             Caption = 'Dimension 2 Value Code';
+            ToolTip = 'Specifies the dimension value you selected for the analysis view dimension that you defined as Dimension 2 on the analysis view card.';
         }
         field(11; "Dimension 3 Value Code"; Code[20])
         {
             AccessByPermission = TableData "Dimension Combination" = R;
             CaptionClass = GetCaptionClass(3);
             Caption = 'Dimension 3 Value Code';
+            ToolTip = 'Specifies the dimension value you selected for the analysis view dimension that you defined as Dimension 3 on the analysis view card.';
         }
         field(12; "Posting Date"; Date)
         {
             Caption = 'Posting Date';
+            ToolTip = 'Specifies the date when the item ledger entry in an analysis view entry was posted.';
         }
         field(13; "Entry No."; Integer)
         {
@@ -86,15 +92,18 @@ table 7154 "Item Analysis View Entry"
         field(14; "Item Ledger Entry Type"; Enum "Item Ledger Entry Type")
         {
             Caption = 'Item Ledger Entry Type';
+            ToolTip = 'Specifies which type of transaction that the entry is created from.';
         }
         field(15; "Entry Type"; Enum "Cost Entry Type")
         {
             Caption = 'Entry Type';
+            ToolTip = 'Specifies the value entry type for an analysis view entry.';
         }
         field(21; "Invoiced Quantity"; Decimal)
         {
             AutoFormatType = 0;
             Caption = 'Invoiced Quantity';
+            ToolTip = 'Specifies the sum of the quantity invoiced for the item ledger entries included in the analysis view entry.';
         }
         field(22; "Sales Amount (Actual)"; Decimal)
         {
@@ -120,6 +129,7 @@ table 7154 "Item Analysis View Entry"
             AutoFormatType = 2;
             AutoFormatExpression = '';
             Caption = 'Quantity';
+            ToolTip = 'Specifies the sum of the quantity for the item ledger entries included in the analysis view entry.';
         }
         field(32; "Sales Amount (Expected)"; Decimal)
         {

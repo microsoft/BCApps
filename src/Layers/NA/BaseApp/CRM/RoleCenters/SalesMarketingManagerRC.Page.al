@@ -695,17 +695,25 @@ page 8907 "Sales & Marketing Manager RC"
                         Caption = 'Item Substitutions';
                         RunObject = report "Item Substitutions";
                     }
+#if not CLEAN28
                     action("Availability Projection")
                     {
                         ApplicationArea = Basic, Suite;
                         Caption = 'Availability Projection';
                         RunObject = report "Availability Projection";
+                        ObsoleteReason = 'Prepare for extraction of Manufacturing app';
+                        ObsoleteState = Pending;
+                        ObsoleteTag = '28.0';
                     }
                     action("Availability Status")
                     {
                         Caption = 'Availability Status';
                         RunObject = report "Availability Status";
+                        ObsoleteReason = 'Prepare for extraction of Manufacturing app';
+                        ObsoleteState = Pending;
+                        ObsoleteTag = '28.0';
                     }
+#endif
                     action("Back Order Fill by Customer")
                     {
                         Caption = 'Back Order Fill by Customer';

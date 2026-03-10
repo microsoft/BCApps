@@ -118,6 +118,7 @@ codeunit 144037 "ERM Telebank"
         ExceedsMaximumLimitErr: Label '%1 exceeds the maximum limit, %2 must be entered. The default value is ''goods''.';
         WrongShortcutDimensionErr: Label 'Wrong Shortcut Dimension Code in Proposal Line.';
         ForeignAmountRecalculatedCorrectlyErr: Label 'Foreign Amount should be recalculated correctly.';
+        ForeignAmountZeroForNoCurrencyCodeErr: Label 'Foreign Amount will be 0 when Currency Code is blank.';
         IsInitialized: Boolean;
 
     [Test]
@@ -1421,7 +1422,7 @@ codeunit 144037 "ERM Telebank"
         ProposalLine.Modify(true);
 
         // [THEN] Verify Foreign Amount on Proposal Line shows 0.
-        Assert.AreEqual(ProposalLine."Amount (LCY)", ProposalLine."Foreign Amount", ForeignAmountRecalculatedCorrectlyErr);
+        Assert.AreEqual(ProposalLine."Foreign Amount", 0, ForeignAmountZeroForNoCurrencyCodeErr);
 
         // [WHEN] Change the Foreign Currency in the Proposal Line back to the Vendor Currency.
         ProposalLine.Validate("Foreign Currency", Vendor."Currency Code");
@@ -1466,6 +1467,48 @@ codeunit 144037 "ERM Telebank"
 
         // [THEN] Verify Foreign Amount on Proposal Line is recalculated correctly based on the Exchange Rate.
         Assert.AreEqual(ProposalLine."Foreign Amount", 0, ForeignAmountRecalculatedCorrectlyErr);
+    end;
+
+    [Test]
+    [HandlerFunctions('GetProposalEntriesRequestPageHandlerSetValueDate,MessageHandler')]
+    procedure ForeignAmountIsZeroWhenForeignCurrencySetToBlank()
+    var
+        Currency: Record Currency;
+        ProposalLine: Record "Proposal Line";
+        PurchaseHeader: Record "Purchase Header";
+        Vendor: Record Vendor;
+        i: Integer;
+    begin
+        // [SCENARIO 617967] When Foreign Currency and Currency Code is Blank in Proposal line, the Foreign Amount on the Proposal Line should be 0.
+        Initialize();
+
+        // [GIVEN] Create New Currency with Exchange Rate.
+        Currency.Get(
+            LibraryERM.CreateCurrencyWithExchangeRate(WorkDate(), LibraryRandom.RandDecInRange(2, 100, 2), LibraryRandom.RandInt(3)));
+
+        // [GIVEN] Create Vendor and Vendor Bank Account with the created Currency.
+        CreateVendorAndVendorBankAccount(Vendor, Currency.Code);
+
+        // [GIVEN] Create and Post two Purchase Invoices.
+        for i := 1 to 2 do begin
+            CreatePurchaseInvoiceWithAmountAndCurrency(
+                PurchaseHeader, Vendor."No.", LibraryRandom.RandDecInRange(1000, 2000, 2),
+                LibraryRandom.RandInt(10), LibraryRandom.RandInt(20), Vendor."Currency Code");
+            LibraryPurchase.PostPurchaseDocument(PurchaseHeader, true, true);
+        end;
+
+        // [GIVEN] Run Report Get Proposal Entries.
+        RunReportGetProposalEntries(Vendor."No.");
+
+        // [GIVEN] Find Proposal Line for the Vendor.
+        FindProposalLine(ProposalLine, Vendor."No.");
+
+        // [WHEN] Set the Foreign Currency field in the proposal line to blank.
+        ProposalLine.Validate("Foreign Currency", '');
+        ProposalLine.Modify(true);
+
+        // [THEN] Verify Foreign Amount on Proposal Line shows 0.
+        Assert.AreEqual(ProposalLine."Foreign Amount", 0, ForeignAmountZeroForNoCurrencyCodeErr);
     end;
 
     local procedure Initialize()

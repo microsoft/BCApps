@@ -93,5 +93,95 @@
     "codeunitId": 134096,
     "codeunitName": "ERM VAT Return",
     "method": "TestVATReturnSuggestLinesUpdateLines"
+  },
+  {
+    "codeunitId": 134045,
+    "codeunitName": "ERM VAT Sales/Purchase",
+    "method": "TestVATDateAdjustedOnVATEntryOnPurchCreditMemoInvHeader"
+  },
+  {
+    "codeunitId": 134045,
+    "codeunitName": "ERM VAT Sales/Purchase",
+    "method": "TestVATDateAdjustedOnVATEntryOnPurchInvHeader"
+  },
+  {
+    "codeunitId": 134045,
+    "codeunitName": "ERM VAT Sales/Purchase",
+    "method": "TestVATDateAdjustedOnVATEntryOnSalesCreditMemoInvHeader"
+  },
+  {
+    "codeunitId": 134045,
+    "codeunitName": "ERM VAT Sales/Purchase",
+    "method": "TestVATDateAdjustedOnVATEntryOnSalesInvHeader"
+  },
+  {
+    "codeunitId": 134045,
+    "codeunitName": "ERM VAT Sales/Purchase",
+    "method": "TestVATDateChangesOnFinanceChargeMemo"
+  },
+  {
+    "codeunitId": 134045,
+    "codeunitName": "ERM VAT Sales/Purchase",
+    "method": "TestVATDateChangesOnPurchaseCreditMemo"
+  },
+  {
+    "codeunitId": 134045,
+    "codeunitName": "ERM VAT Sales/Purchase",
+    "method": "TestVATDateChangesOnPurchaseInvoice"
+  },
+  {
+    "codeunitId": 134045,
+    "codeunitName": "ERM VAT Sales/Purchase",
+    "method": "TestVATDateChangesOnPurchaseReturnOrder"
+  },
+  {
+    "codeunitId": 134045,
+    "codeunitName": "ERM VAT Sales/Purchase",
+    "method": "TestVATDateChangesOnRecurringGeneralJournal"
+  },
+  {
+    "codeunitId": 134045,
+    "codeunitName": "ERM VAT Sales/Purchase",
+    "method": "TestVATDateChangesOnReminder"
+  },
+  {
+    "codeunitId": 134045,
+    "codeunitName": "ERM VAT Sales/Purchase",
+    "method": "TestVATDateChangesOnSalesInvoice"
+  },
+  {
+    "codeunitId": 134045,
+    "codeunitName": "ERM VAT Sales/Purchase",
+    "method": "TestVATDateChangesOnSalesOrder"
+  },
+  {
+    "codeunitId": 134045,
+    "codeunitName": "ERM VAT Sales/Purchase",
+    "method": "TestVATDateChangesOnSalesReturnOrder"
+  },
+  {
+    "codeunitId": 134045,
+    "codeunitName": "ERM VAT Sales/Purchase",
+    "method": "TestVATDateChangesOnServiceCreditMemo"
+  },
+  {
+    "codeunitId": 134045,
+    "codeunitName": "ERM VAT Sales/Purchase",
+    "method": "TestVATEntryAdjustDateWithEmptyDocType"
+  },
+  {
+    "codeunitId": 134045,
+    "codeunitName": "ERM VAT Sales/Purchase",
+    "method": "TestVATEntryAdjustDateWithEmptyPostType"
+  },
+  {
+    "codeunitId": 134045,
+    "codeunitName": "ERM VAT Sales/Purchase",
+    "method": "VATDateChangeFromClosedPeriodFailure"
+  },
+  {
+    "codeunitId": 134045,
+    "codeunitName": "ERM VAT Sales/Purchase",
+    "method": "VATPostingDateChangeSuccessful"
   }
 ]

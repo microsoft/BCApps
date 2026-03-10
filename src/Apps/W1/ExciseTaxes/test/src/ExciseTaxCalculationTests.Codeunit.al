@@ -13,6 +13,7 @@ using Microsoft.Inventory.Item;
 using Microsoft.Purchases.Document;
 using Microsoft.Sales.Document;
 using Microsoft.Sustainability.ExciseTax;
+using System.TestLibraries.Utilities;
 
 codeunit 148351 "Excise Tax Calculation Tests"
 {
@@ -26,6 +27,7 @@ codeunit 148351 "Excise Tax Calculation Tests"
         LibraryExciseTax: Codeunit "Library - Excise Tax";
         LibraryPurchase: Codeunit "Library - Purchase";
         LibraryRandom: Codeunit "Library - Random";
+        LibraryVariableStorage: Codeunit "Library - Variable Storage";
         IsInitialized: Boolean;
         TotalTaxAmtMismatchTransLogPurchaseLbl: Label 'Total tax amount mismatch in transaction log for purchase';
         UnexpectedJournalLineCntLbl: Label 'Unexpected number of excise journal lines';
@@ -170,7 +172,7 @@ codeunit 148351 "Excise Tax Calculation Tests"
     end;
 
     [Test]
-    [HandlerFunctions('MessageHandler')]
+    [HandlerFunctions('ExciseTaxReportRequestPageHandler,MessageHandler')]
     procedure ExciseTaxJournalLineGenerationFromPurchase()
     var
         Item: Record Item;
@@ -208,7 +210,7 @@ codeunit 148351 "Excise Tax Calculation Tests"
         CreateAndPostPurchase(Item."No.", Quantity);
 
         // [WHEN] Generate excise journal lines from ILEs within date range; hierarchical rate applied; one journal line per ILE.
-        GenerateExciseJournalLines();
+        GenerateExciseJournalLines(SustExciseJournalBatch);
 
         // [THEN] Verify journal line count for tax type
         SustExciseJnlLine.SetRange("Journal Template Name", SustExciseJournalBatch."Journal Template Name");
@@ -219,7 +221,7 @@ codeunit 148351 "Excise Tax Calculation Tests"
     end;
 
     [Test]
-    [HandlerFunctions('MessageHandler')]
+    [HandlerFunctions('ExciseTaxReportRequestPageHandler,MessageHandler')]
     procedure NoJournalLinesGeneratedWhenEntryTypeNotAllowed()
     var
         Item: Record Item;
@@ -259,7 +261,7 @@ codeunit 148351 "Excise Tax Calculation Tests"
         CreateAndPostPurchase(Item."No.", Quantity);
 
         // [WHEN] Generate excise journal lines from ILEs within date range; hierarchical rate applied; one journal line per ILE.
-        GenerateExciseJournalLines();
+        GenerateExciseJournalLines(SustExciseJournalBatch);
 
         // [THEN] Verify journal line count for tax type
         SustExciseJnlLine.SetRange("Journal Template Name", SustExciseJournalBatch."Journal Template Name");
@@ -269,7 +271,7 @@ codeunit 148351 "Excise Tax Calculation Tests"
     end;
 
     [Test]
-    [HandlerFunctions('MessageHandler')]
+    [HandlerFunctions('ExciseTaxReportRequestPageHandler,MessageHandler')]
     procedure OneExciseJournalLineGeneratedWhenTwoILEPosted()
     var
         Item: Record Item;
@@ -310,7 +312,7 @@ codeunit 148351 "Excise Tax Calculation Tests"
         CreateAndPostSales(Item."No.", Quantity);
 
         // [WHEN] Generate excise journal lines from ILEs within date range; hierarchical rate applied; one journal line per ILE.
-        GenerateExciseJournalLines();
+        GenerateExciseJournalLines(SustExciseJournalBatch);
 
         // [THEN] Verify journal line count for tax type
         SustExciseJnlLine.SetRange("Journal Template Name", SustExciseJournalBatch."Journal Template Name");
@@ -320,10 +322,11 @@ codeunit 148351 "Excise Tax Calculation Tests"
     end;
 
     [Test]
-    [HandlerFunctions('MessageHandler,UIConfirmHandler')]
+    [HandlerFunctions('ExciseTaxReportRequestPageHandler,MessageHandler,UIConfirmHandler')]
     procedure VerifyJournalLinesForPurchaseEntries()
     var
         Item: Record Item;
+        ExciseJournalLine: Record "Sust. Excise Jnl. Line";
         SustExciseJournalBatch: Record "Sust. Excise Journal Batch";
         SustainabilityExciseJournalMgt: Codeunit "Sust. Excise Journal Mgt.";
         ExciseTaxBasis: Enum "Excise Tax Basis";
@@ -362,13 +365,18 @@ codeunit 148351 "Excise Tax Calculation Tests"
         CreateAndPostPurchase(Item."No.", Quantity[3]);
 
         // [WHEN] Generate excise journal lines from ILEs within date range; hierarchical rate applied; one journal line per ILE.
-        GenerateExciseJournalLines();
+        GenerateExciseJournalLines(SustExciseJournalBatch);
 
         // [THEN] Verify journal line count for tax type
         VerifyJournalLineCountForTaxType(TaxTypeCode, 3);
 
         // [GIVEN] Sum journal amounts for tax type
         ExpectedTotal := SumJournalTaxAmountForTaxType(TaxTypeCode);
+
+        // [GIVEN] Update Description in Excise Journal Line.
+        ExciseJournalLine.SetRange("Journal Template Name", SustExciseJournalBatch."Journal Template Name");
+        ExciseJournalLine.SetRange("Journal Batch Name", SustExciseJournalBatch.Name);
+        ExciseJournalLine.ModifyAll(Description, LibraryRandom.RandText(100));
 
         // [WHEN] Register excise journal
         RegisterExciseJournal(SustExciseJournalBatch."Journal Template Name", SustExciseJournalBatch.Name);
@@ -379,12 +387,13 @@ codeunit 148351 "Excise Tax Calculation Tests"
     end;
 
     [Test]
-    [HandlerFunctions('MessageHandler,UIConfirmHandler')]
+    [HandlerFunctions('ExciseTaxReportRequestPageHandler,MessageHandler,UIConfirmHandler')]
     procedure VerifyFAJournalLinesForAcquisitionCost()
     var
         SustExciseJournalBatch: Record "Sust. Excise Journal Batch";
         DepreciationBook: Record "Depreciation Book";
         FixedAsset: Record "Fixed Asset";
+        ExciseJournalLine: Record "Sust. Excise Jnl. Line";
         SustainabilityExciseJournalMgt: Codeunit "Sust. Excise Journal Mgt.";
         ExciseTaxBasis: Enum "Excise Tax Basis";
         TaxTypeCode: Code[20];
@@ -415,13 +424,19 @@ codeunit 148351 "Excise Tax Calculation Tests"
         SustExciseJournalBatch.Modify(true);
 
         // [WHEN] Generate excise journal lines from ILEs within date range; hierarchical rate applied; one journal line per ILE.
-        GenerateExciseJournalLines();
+        GenerateExciseJournalLines(SustExciseJournalBatch);
 
         // [THEN] Verify journal line count for tax type
         VerifyJournalLineCountForTaxType(TaxTypeCode, 1);
 
         // [GIVEN] Sum journal amounts for tax type
         ExpectedTotal := SumJournalTaxAmountForTaxType(TaxTypeCode);
+
+        // [GIVEN] Update Description in Excise Journal Line.
+        ExciseJournalLine.SetRange("Journal Template Name", SustExciseJournalBatch."Journal Template Name");
+        ExciseJournalLine.SetRange("Journal Batch Name", SustExciseJournalBatch.Name);
+        ExciseJournalLine.SetRange("Excise Tax Type", TaxTypeCode);
+        ExciseJournalLine.ModifyAll(Description, LibraryRandom.RandText(100));
 
         // [WHEN] Register excise journal
         RegisterExciseJournal(SustExciseJournalBatch."Journal Template Name", SustExciseJournalBatch.Name);
@@ -456,8 +471,8 @@ codeunit 148351 "Excise Tax Calculation Tests"
     begin
         FixedAsset.Get(FANo);
         Assert.AreEqual(TaxTypeCode, FixedAsset."Excise Tax Type", ExciseTaxBasisMismatchLbl);
-        Assert.IsTrue(FixedAsset."Qty for Excise Tax" <> 0, QtyForExciseTaxMissingLbl);
-        Assert.IsTrue(FixedAsset."Excise Tax UOM" <> '', QtyForExciseTaxMissingLbl);
+        Assert.IsTrue(FixedAsset."Quantity for Excise Tax" <> 0, QtyForExciseTaxMissingLbl);
+        Assert.IsTrue(FixedAsset."Excise Unit of Measure Code" <> '', QtyForExciseTaxMissingLbl);
     end;
 
     local procedure VerifyItemExciseTaxDetail(ItemNo: Code[20]; TaxTypeCode: Code[20])
@@ -466,8 +481,8 @@ codeunit 148351 "Excise Tax Calculation Tests"
     begin
         Item.Get(ItemNo);
         Assert.AreEqual(TaxTypeCode, Item."Excise Tax Type", ExciseTaxBasisMismatchLbl);
-        Assert.IsTrue(Item."Qty for Excise Tax" <> 0, QtyForExciseTaxMissingLbl);
-        Assert.IsTrue(Item."Excise Tax UOM" <> '', QtyForExciseTaxMissingLbl);
+        Assert.IsTrue(Item."Quantity for Excise Tax" <> 0, QtyForExciseTaxMissingLbl);
+        Assert.IsTrue(Item."Excise Unit of Measure Code" <> '', QtyForExciseTaxMissingLbl);
     end;
 
     local procedure VerifyTaxTypeCreated(TaxTypeCode: Code[20]; TaxBasis: Enum "Excise Tax Basis")
@@ -639,13 +654,24 @@ codeunit 148351 "Excise Tax Calculation Tests"
         LibrarySales.PostSalesDocument(SalesHeader, true, true);
     end;
 
-    local procedure GenerateExciseJournalLines()
+    local procedure GenerateExciseJournalLines(SustExciseJournalBatch: Record "Sust. Excise Journal Batch")
     var
-        ExciseTaxReport: Report "Excise Tax Report";
+        ExciseJournalLine: Record "Sust. Excise Jnl. Line";
+        CreateExciseTaxJnlEntries: Report "Create Excise Tax Jnl. Entries";
     begin
-        ExciseTaxReport.SetRequestPageParameters(WorkDate(), CalcDate('<-1M>', WorkDate()), CalcDate('<1M>', WorkDate()), '', '');
-        ExciseTaxReport.UseRequestPage(false);
-        ExciseTaxReport.RunModal();
+        Commit();
+
+        ExciseJournalLine."Journal Template Name" := SustExciseJournalBatch."Journal Template Name";
+        ExciseJournalLine."Journal Batch Name" := SustExciseJournalBatch.Name;
+
+        LibraryVariableStorage.Enqueue(WorkDate());
+        LibraryVariableStorage.Enqueue(CalcDate('<-1M>', WorkDate()));
+        LibraryVariableStorage.Enqueue(CalcDate('<1M>', WorkDate()));
+        LibraryVariableStorage.Enqueue('');
+        LibraryVariableStorage.Enqueue('');
+
+        CreateExciseTaxJnlEntries.SetExciseJournalLine(ExciseJournalLine);
+        CreateExciseTaxJnlEntries.RunModal();
     end;
 
     local procedure RegisterExciseJournal(TemplateName: Code[10]; BatchName: Code[10])
@@ -697,11 +723,14 @@ codeunit 148351 "Excise Tax Calculation Tests"
     end;
 
     [RequestPageHandler]
-    procedure ExciseTaxReportRequestPageHandler(var RequestPage: TestRequestPage "Excise Tax Report")
+    procedure ExciseTaxReportRequestPageHandler(var CreateExciseTaxJnlEntries: TestRequestPage "Create Excise Tax Jnl. Entries")
     begin
-        RequestPage.StartingDate.SetValue(CalcDate('<-1M>', WorkDate()));
-        RequestPage.EndingDate.SetValue(CalcDate('<1M>', WorkDate()));
-        RequestPage.OK().Invoke();
+        CreateExciseTaxJnlEntries."Posting Date".SetValue(LibraryVariableStorage.DequeueDate());
+        CreateExciseTaxJnlEntries."Starting Date".SetValue(LibraryVariableStorage.DequeueDate());
+        CreateExciseTaxJnlEntries."Ending Date".SetValue(LibraryVariableStorage.DequeueDate());
+        CreateExciseTaxJnlEntries."Item Filter".SetValue(LibraryVariableStorage.DequeueText());
+        CreateExciseTaxJnlEntries."Fixed Asset Filter".SetValue(LibraryVariableStorage.DequeueText());
+        CreateExciseTaxJnlEntries.OK().Invoke();
     end;
 
     [MessageHandler]

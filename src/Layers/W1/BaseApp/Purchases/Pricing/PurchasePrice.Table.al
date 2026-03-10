@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -18,6 +18,7 @@ table 7012 "Purchase Price"
         field(1; "Item No."; Code[20])
         {
             Caption = 'Item No.';
+            ToolTip = 'Specifies the number of the item that the purchase price applies to.';
             NotBlank = true;
             TableRelation = Item;
 
@@ -32,6 +33,7 @@ table 7012 "Purchase Price"
         field(2; "Vendor No."; Code[20])
         {
             Caption = 'Vendor No.';
+            ToolTip = 'Specifies the number of the vendor who offers the line discount on the item.';
             NotBlank = true;
             TableRelation = Vendor;
 
@@ -44,11 +46,13 @@ table 7012 "Purchase Price"
         field(3; "Currency Code"; Code[10])
         {
             Caption = 'Currency Code';
+            ToolTip = 'Specifies the currency code of the purchase price.';
             TableRelation = Currency;
         }
         field(4; "Starting Date"; Date)
         {
             Caption = 'Starting Date';
+            ToolTip = 'Specifies the date from which the purchase price is valid.';
 
             trigger OnValidate()
             begin
@@ -61,18 +65,21 @@ table 7012 "Purchase Price"
             AutoFormatExpression = Rec."Currency Code";
             AutoFormatType = 2;
             Caption = 'Direct Unit Cost';
+            ToolTip = 'Specifies the cost of one unit of the selected item or resource.';
             MinValue = 0;
         }
         field(14; "Minimum Quantity"; Decimal)
         {
             AutoFormatType = 0;
             Caption = 'Minimum Quantity';
+            ToolTip = 'Specifies the minimum quantity of the item that you must buy from the vendor in order to get the purchase price.';
             DecimalPlaces = 0 : 5;
             MinValue = 0;
         }
         field(15; "Ending Date"; Date)
         {
             Caption = 'Ending Date';
+            ToolTip = 'Specifies the date to which the purchase price is valid.';
 
             trigger OnValidate()
             begin
@@ -82,11 +89,13 @@ table 7012 "Purchase Price"
         field(5400; "Unit of Measure Code"; Code[10])
         {
             Caption = 'Unit of Measure Code';
+            ToolTip = 'Specifies how each unit of the item or resource is measured, such as in pieces or hours. By default, the value in the Base Unit of Measure field on the item or resource card is inserted.';
             TableRelation = "Item Unit of Measure".Code where("Item No." = field("Item No."));
         }
         field(5700; "Variant Code"; Code[10])
         {
             Caption = 'Variant Code';
+            ToolTip = 'Specifies the variant of the item on the line.';
             TableRelation = "Item Variant".Code where("Item No." = field("Item No."));
         }
     }

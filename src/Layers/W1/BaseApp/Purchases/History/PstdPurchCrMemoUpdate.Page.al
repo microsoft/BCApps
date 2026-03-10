@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -34,7 +34,6 @@ page 1357 "Pstd. Purch. Cr.Memo - Update"
                     ApplicationArea = Basic, Suite;
                     Caption = 'Vendor';
                     Editable = false;
-                    ToolTip = 'Specifies the name of the vendor who shipped the items.';
                 }
                 field("Posting Date"; Rec."Posting Date")
                 {
@@ -50,7 +49,6 @@ page 1357 "Pstd. Purch. Cr.Memo - Update"
                 {
                     ApplicationArea = Basic, Suite;
                     Editable = true;
-                    ToolTip = 'Specifies any text that is entered to accompany the posting, for example for information to auditors.';
                 }
             }
         }

@@ -471,7 +471,7 @@ codeunit 378 "Transfer Extended Text"
         ReminderLine2 := ReminderLine;
         if ReminderLine2.Find('>') then begin
             repeat
-                ReminderLine2.Delete();
+                ReminderLine2.Delete(true);
             until ReminderLine2.Next() = 0;
             exit(true);
         end;
@@ -487,7 +487,7 @@ codeunit 378 "Transfer Extended Text"
         FinChrgMemoLine2 := FinChrgMemoLine;
         if FinChrgMemoLine2.Find('>') then begin
             repeat
-                FinChrgMemoLine2.Delete();
+                FinChrgMemoLine2.Delete(true);
             until FinChrgMemoLine2.Next() = 0;
             exit(true);
         end;

@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -25,20 +25,17 @@ page 6760 "Send Reminders Setup"
                 {
                     ApplicationArea = All;
                     Caption = 'Code';
-                    ToolTip = 'Specifies a code for the reminder setup';
                     Editable = false;
                 }
                 field(Description; Rec.Description)
                 {
                     ApplicationArea = All;
                     Caption = 'Description';
-                    ToolTip = 'Specifies a description for the reminder setup';
                 }
                 field(SendMultipleTimes; Rec."Send Multiple Times Per Level")
                 {
                     ApplicationArea = All;
                     Caption = 'Send multiple times for a level';
-                    ToolTip = 'Specifies whether to send multiple reminders to the same customer';
                 }
                 group(MimimumSendingInterval)
                 {
@@ -49,7 +46,6 @@ page 6760 "Send Reminders Setup"
                     {
                         ApplicationArea = All;
                         Caption = 'Minimum time before sending again';
-                        ToolTip = 'Specifies the minimum number of days between sending reminder to the same customer';
                     }
                 }
             }
@@ -60,13 +56,11 @@ page 6760 "Send Reminders Setup"
                 {
                     ApplicationArea = All;
                     Caption = 'Show amounts not due';
-                    ToolTip = 'Specifies whether to show amounts that are not due on the reminder';
                 }
                 field(ShowMultipleInterestRate; Rec."Show Multiple Interest Rates")
                 {
                     ApplicationArea = All;
                     Caption = 'Show multiple interest rates';
-                    ToolTip = 'Specifies whether to show multiple interest rates on the reminder';
                 }
             }
             group(CommunicationSettings)
@@ -76,13 +70,11 @@ page 6760 "Send Reminders Setup"
                 {
                     ApplicationArea = All;
                     Caption = 'Log interaction';
-                    ToolTip = 'Specifies whether to log an interaction when a reminder is sent';
                 }
                 field(UseDocumentSendingProfile; Rec."Use Document Sending Profile")
                 {
                     ApplicationArea = All;
                     Caption = 'Use document sending profile';
-                    ToolTip = 'Specifies whether to use a document sending profile when sending reminders by email';
                 }
                 group(SendingSetupGroup)
                 {
@@ -92,20 +84,17 @@ page 6760 "Send Reminders Setup"
                     {
                         ApplicationArea = All;
                         Caption = 'Print reminders';
-                        ToolTip = 'Specifies whether to print reminders';
                     }
                     field(SendByEmail; Rec."Send by Email")
                     {
                         ApplicationArea = All;
                         Caption = 'Send by email';
-                        ToolTip = 'Specifies whether to send reminders by email';
                     }
                 }
                 field(AttachInvoiceDocuments; Rec."Attach Invoice Documents")
                 {
                     ApplicationArea = All;
                     Caption = 'Attach invoice documents';
-                    ToolTip = 'Specifies whether to attach all invoice documents to the reminder email';
                 }
             }
             group(Filters)

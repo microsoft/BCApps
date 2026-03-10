@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -70,17 +70,14 @@ page 7324 "Whse. Item Journal"
                 field("Registering Date"; Rec."Registering Date")
                 {
                     ApplicationArea = Warehouse;
-                    ToolTip = 'Specifies the date the line is registered.';
                 }
                 field("Whse. Document No."; Rec."Whse. Document No.")
                 {
                     ApplicationArea = Warehouse;
-                    ToolTip = 'Specifies the warehouse document number of the journal line.';
                 }
                 field("Item No."; Rec."Item No.")
                 {
                     ApplicationArea = Warehouse;
-                    ToolTip = 'Specifies the number of the item on the journal line.';
 
                     trigger OnValidate()
                     begin
@@ -91,7 +88,6 @@ page 7324 "Whse. Item Journal"
                 field("Variant Code"; Rec."Variant Code")
                 {
                     ApplicationArea = Planning;
-                    ToolTip = 'Specifies the variant of the item on the line.';
                     Visible = false;
                     ShowMandatory = VariantCodeMandatory;
 
@@ -103,33 +99,27 @@ page 7324 "Whse. Item Journal"
                 field(Description; Rec.Description)
                 {
                     ApplicationArea = Warehouse;
-                    ToolTip = 'Specifies the description of the item.';
                 }
                 field("Zone Code"; Rec."Zone Code")
                 {
                     ApplicationArea = Warehouse;
-                    ToolTip = 'Specifies the zone code where the bin on this line is located.';
                 }
                 field("Bin Code"; Rec."Bin Code")
                 {
                     ApplicationArea = Warehouse;
-                    ToolTip = 'Specifies the bin where the items are picked or put away.';
                 }
                 field(Quantity; Rec.Quantity)
                 {
                     ApplicationArea = Warehouse;
-                    ToolTip = 'Specifies the number of units of the item in the adjustment (positive or negative) or the reclassification.';
                 }
                 field("Unit of Measure Code"; Rec."Unit of Measure Code")
                 {
                     ApplicationArea = Warehouse;
-                    ToolTip = 'Specifies how each unit of the item or resource is measured, such as in pieces or hours. By default, the value in the Base Unit of Measure field on the item or resource card is inserted.';
                 }
                 field("Reason Code"; Rec."Reason Code")
                 {
                     ApplicationArea = Warehouse;
                     Caption = 'Reason Code';
-                    ToolTip = 'Specifies the reason code for the warehouse journal line.';
                     Visible = false;
                 }
             }

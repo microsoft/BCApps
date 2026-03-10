@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -21,12 +21,10 @@ page 7214 "CDS Companies"
                 field(CompanyId; Rec.CompanyId)
                 {
                     ApplicationArea = All;
-                    ToolTip = 'Specifies the ID of the company.';
                 }
                 field(Name; Rec.Name)
                 {
                     ApplicationArea = All;
-                    ToolTip = 'Specifies the name of the company.';
                 }
                 field(ExternalId; Rec.ExternalId)
                 {

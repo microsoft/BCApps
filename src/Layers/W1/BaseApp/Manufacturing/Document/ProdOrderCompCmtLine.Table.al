@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -30,14 +30,17 @@ table 5416 "Prod. Order Comp. Cmt Line"
         field(10; Date; Date)
         {
             Caption = 'Date';
+            ToolTip = 'Specifies the date.';
         }
         field(12; Comment; Text[80])
         {
             Caption = 'Comment';
+            ToolTip = 'Specifies the actual comment text.';
         }
         field(13; "Code"; Code[10])
         {
             Caption = 'Code';
+            ToolTip = 'Specifies a code for the comments.';
         }
         field(22; Status; Enum "Production Order Status")
         {

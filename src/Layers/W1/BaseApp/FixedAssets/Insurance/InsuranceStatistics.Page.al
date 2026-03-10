@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -22,17 +22,14 @@ page 5646 "Insurance Statistics"
                 field("Annual Premium"; Rec."Annual Premium")
                 {
                     ApplicationArea = FixedAssets;
-                    ToolTip = 'Specifies the amount of the annual insurance premium.';
                 }
                 field("Policy Coverage"; Rec."Policy Coverage")
                 {
                     ApplicationArea = FixedAssets;
-                    ToolTip = 'Specifies the amount of coverage provided by this insurance policy.';
                 }
                 field("Total Value Insured"; Rec."Total Value Insured")
                 {
                     ApplicationArea = FixedAssets;
-                    ToolTip = 'Specifies the total value of fixed assets linked to this insurance policy. This is the value of fixed assets for which insurance is required.';
                 }
 #pragma warning disable AA0100
                 field("""Policy Coverage"" - ""Total Value Insured"""; Rec."Policy Coverage" - Rec."Total Value Insured")

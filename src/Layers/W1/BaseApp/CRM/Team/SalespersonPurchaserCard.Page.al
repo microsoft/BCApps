@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -30,49 +30,40 @@ page 5116 "Salesperson/Purchaser Card"
                 field("Code"; Rec.Code)
                 {
                     ApplicationArea = All;
-                    ToolTip = 'Specifies a code for the salesperson or purchaser.';
                 }
                 field(Name; Rec.Name)
                 {
                     ApplicationArea = All;
-                    ToolTip = 'Specifies the name of the salesperson or purchaser.';
                 }
                 field("Job Title"; Rec."Job Title")
                 {
                     ApplicationArea = RelationshipMgmt;
-                    ToolTip = 'Specifies the salesperson''s job title.';
                 }
                 field("Commission %"; Rec."Commission %")
                 {
                     ApplicationArea = RelationshipMgmt;
-                    ToolTip = 'Specifies the percentage to use to calculate the salesperson''s commission.';
                 }
                 field("Phone No."; Rec."Phone No.")
                 {
                     ApplicationArea = RelationshipMgmt;
-                    ToolTip = 'Specifies the salesperson''s telephone number.';
                 }
                 field("E-Mail"; Rec."E-Mail")
                 {
                     ApplicationArea = RelationshipMgmt;
                     ExtendedDatatype = EMail;
-                    ToolTip = 'Specifies the salesperson''s email address.';
                 }
                 field("Next Task Date"; Rec."Next Task Date")
                 {
                     ApplicationArea = RelationshipMgmt;
-                    ToolTip = 'Specifies the date of the next task assigned to the salesperson.';
                 }
                 field("Privacy Blocked"; Rec."Privacy Blocked")
                 {
                     ApplicationArea = RelationshipMgmt;
                     Importance = Additional;
-                    ToolTip = 'Specifies whether to limit access to data for the data subject during daily operations. This is useful, for example, when protecting data from changes while it is under privacy review.';
                 }
                 field("Blocked"; Rec.Blocked)
                 {
                     ApplicationArea = All;
-                    ToolTip = 'Specifies whether this Salesperson can be assigned for new documents';
                 }
             }
             group(Invoicing)
@@ -81,12 +72,10 @@ page 5116 "Salesperson/Purchaser Card"
                 field("Global Dimension 1 Code"; Rec."Global Dimension 1 Code")
                 {
                     ApplicationArea = Dimensions;
-                    ToolTip = 'Specifies the code for the global dimension that is linked to the record or entry for analysis purposes. Two global dimensions, typically for the company''s most important activities, are available on all cards, documents, reports, and lists.';
                 }
                 field("Global Dimension 2 Code"; Rec."Global Dimension 2 Code")
                 {
                     ApplicationArea = Dimensions;
-                    ToolTip = 'Specifies the code for the global dimension that is linked to the record or entry for analysis purposes. Two global dimensions, typically for the company''s most important activities, are available on all cards, documents, reports, and lists.';
                 }
             }
         }

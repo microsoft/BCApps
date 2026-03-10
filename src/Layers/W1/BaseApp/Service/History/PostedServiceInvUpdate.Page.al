@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -50,19 +50,16 @@ page 1356 "Posted Service Inv. - Update"
                 {
                     ApplicationArea = Basic, Suite;
                     Caption = 'Payment Method Code';
-                    ToolTip = 'Specifies how the customer must pay for products on the service document, such as with bank transfer, cash, or check.';
                 }
                 field("Payment Reference"; Rec."Payment Reference")
                 {
                     ApplicationArea = Basic, Suite;
                     Caption = 'Payment Reference';
-                    ToolTip = 'Specifies the payment of the service invoice.';
                 }
                 field("Company Bank Account Code"; Rec."Company Bank Account Code")
                 {
                     ApplicationArea = Basic, Suite;
                     Caption = 'Company Bank Account Code';
-                    ToolTip = 'Specifies the bank account to use for bank information when the document is printed.';
                 }
             }
         }

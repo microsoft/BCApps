@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -25,7 +25,6 @@ page 167 "Item Ledger Entries Preview"
                 field("Posting Date"; Rec."Posting Date")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the entry''s posting date.';
                 }
                 field("Entry Type"; Rec."Entry Type")
                 {
@@ -35,115 +34,95 @@ page 167 "Item Ledger Entries Preview"
                 field("Document Type"; Rec."Document Type")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies what type of document was posted to create the item ledger entry.';
                 }
                 field("Document No."; Rec."Document No.")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the document number on the entry. The document is the voucher that the entry was based on, for example, a receipt.';
                 }
                 field("Document Line No."; Rec."Document Line No.")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the number of the line on the posted document that corresponds to the item ledger entry.';
                     Visible = false;
                 }
                 field("Item No."; Rec."Item No.")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the number of the item in the entry.';
                 }
                 field("Variant Code"; Rec."Variant Code")
                 {
                     ApplicationArea = Planning;
-                    ToolTip = 'Specifies the variant of the item on the line.';
                     Visible = false;
                 }
                 field(Description; Rec.Description)
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies a description of the entry.';
                 }
                 field("Return Reason Code"; Rec."Return Reason Code")
                 {
                     ApplicationArea = Suite;
-                    ToolTip = 'Specifies the code explaining why the item was returned.';
                     Visible = false;
                 }
                 field("Global Dimension 1 Code"; Rec."Global Dimension 1 Code")
                 {
                     ApplicationArea = Dimensions;
-                    ToolTip = 'Specifies the code for the global dimension that is linked to the record or entry for analysis purposes. Two global dimensions, typically for the company''s most important activities, are available on all cards, documents, reports, and lists.';
                     Visible = Dim1Visible;
                 }
                 field("Global Dimension 2 Code"; Rec."Global Dimension 2 Code")
                 {
                     ApplicationArea = Dimensions;
-                    ToolTip = 'Specifies the code for the global dimension that is linked to the record or entry for analysis purposes. Two global dimensions, typically for the company''s most important activities, are available on all cards, documents, reports, and lists.';
                     Visible = Dim2Visible;
                 }
                 field("Expiration Date"; Rec."Expiration Date")
                 {
                     ApplicationArea = ItemTracking;
-                    ToolTip = 'Specifies the last date that the item on the line can be used.';
                     Visible = false;
                 }
                 field("Serial No."; Rec."Serial No.")
                 {
                     ApplicationArea = ItemTracking;
-                    ToolTip = 'Specifies a serial number if the posted item carries such a number.';
                     Visible = ItemTrackingVisible;
                 }
                 field("Lot No."; Rec."Lot No.")
                 {
                     ApplicationArea = ItemTracking;
-                    ToolTip = 'Specifies a lot number if the posted item carries such a number.';
                     Visible = ItemTrackingVisible;
                 }
                 field("Package No."; Rec."Package No.")
                 {
                     ApplicationArea = ItemTracking;
-                    ToolTip = 'Specifies a package number if the posted item carries such a number.';
                     Visible = ItemTrackingVisible;
                 }
                 field("Location Code"; Rec."Location Code")
                 {
                     ApplicationArea = Location;
-                    ToolTip = 'Specifies the code for the location that the entry is linked to.';
                 }
                 field(Quantity; Rec.Quantity)
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the number of units of the item in the item entry.';
                 }
                 field("Invoiced Quantity"; Rec."Invoiced Quantity")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies how many units of the item on the line have been invoiced.';
                     Visible = true;
                 }
                 field("Remaining Quantity"; Rec."Remaining Quantity")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the quantity in the Quantity field that remains to be processed.';
                     Visible = true;
                 }
                 field("Shipped Qty. Not Returned"; Rec."Shipped Qty. Not Returned")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the quantity for this item ledger entry that was shipped and has not yet been returned.';
                     Visible = false;
                 }
                 field("Reserved Quantity"; Rec."Reserved Quantity")
                 {
                     ApplicationArea = Reservation;
-                    ToolTip = 'Specifies how many units of the item on the line have been reserved.';
                     Visible = false;
                 }
                 field("Qty. per Unit of Measure"; Rec."Qty. per Unit of Measure")
                 {
                     ApplicationArea = Suite;
-                    ToolTip = 'Specifies the quantity per item unit of measure.';
                     Visible = false;
                 }
                 field(SalesAmountExpected; SalesAmountExpected)
@@ -218,7 +197,6 @@ page 167 "Item Ledger Entries Preview"
                 field("Completely Invoiced"; Rec."Completely Invoiced")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies if the entry has been fully invoiced or if more posted invoices are expected. Only completely invoiced entries can be revalued.';
                     Visible = false;
                 }
                 field(Open; Rec.Open)
@@ -229,19 +207,16 @@ page 167 "Item Ledger Entries Preview"
                 field("Drop Shipment"; Rec."Drop Shipment")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies if your vendor ships the items directly to your customer.';
                     Visible = false;
                 }
                 field("Assemble to Order"; Rec."Assemble to Order")
                 {
                     ApplicationArea = Assembly;
-                    ToolTip = 'Specifies if the posting represents an assemble-to-order sale.';
                     Visible = false;
                 }
                 field("Applied Entry to Adjust"; Rec."Applied Entry to Adjust")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies whether there is one or more applied entries, which need to be adjusted.';
                     Visible = false;
                 }
                 field("Order Type"; Rec."Order Type")
@@ -252,79 +227,67 @@ page 167 "Item Ledger Entries Preview"
                 field("Order No."; Rec."Order No.")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the number of the order that created the entry.';
                     Visible = false;
                 }
                 field("Order Line No."; Rec."Order Line No.")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the line number of the order that created the entry.';
                     Visible = false;
                 }
                 field("Prod. Order Comp. Line No."; Rec."Prod. Order Comp. Line No.")
                 {
                     ApplicationArea = Manufacturing;
-                    ToolTip = 'Specifies the line number of the production order component.';
                     Visible = false;
                 }
                 field("Job No."; Rec."Job No.")
                 {
                     ApplicationArea = Jobs;
-                    ToolTip = 'Specifies the number of the related project.';
                     Visible = false;
                 }
                 field("Job Task No."; Rec."Job Task No.")
                 {
                     ApplicationArea = Jobs;
-                    ToolTip = 'Specifies the number of the related project task.';
                     Visible = false;
                 }
                 field("Dimension Set ID"; Rec."Dimension Set ID")
                 {
                     ApplicationArea = Dimensions;
-                    ToolTip = 'Specifies a reference to a combination of dimension values. The actual values are stored in the Dimension Set Entry table.';
                     Visible = false;
                 }
                 field("Shortcut Dimension 3 Code"; Rec."Shortcut Dimension 3 Code")
                 {
                     ApplicationArea = Dimensions;
                     Editable = false;
-                    ToolTip = 'Specifies the code for Shortcut Dimension 3, which is one of dimension codes that you set up in the General Ledger Setup window.';
                     Visible = Dim3Visible;
                 }
                 field("Shortcut Dimension 4 Code"; Rec."Shortcut Dimension 4 Code")
                 {
                     ApplicationArea = Dimensions;
                     Editable = false;
-                    ToolTip = 'Specifies the code for Shortcut Dimension 4, which is one of dimension codes that you set up in the General Ledger Setup window.';
                     Visible = Dim4Visible;
                 }
                 field("Shortcut Dimension 5 Code"; Rec."Shortcut Dimension 5 Code")
                 {
                     ApplicationArea = Dimensions;
                     Editable = false;
-                    ToolTip = 'Specifies the code for Shortcut Dimension 5, which is one of dimension codes that you set up in the General Ledger Setup window.';
                     Visible = Dim5Visible;
                 }
                 field("Shortcut Dimension 6 Code"; Rec."Shortcut Dimension 6 Code")
                 {
                     ApplicationArea = Dimensions;
                     Editable = false;
-                    ToolTip = 'Specifies the code for Shortcut Dimension 6, which is one of dimension codes that you set up in the General Ledger Setup window.';
                     Visible = Dim6Visible;
                 }
                 field("Shortcut Dimension 7 Code"; Rec."Shortcut Dimension 7 Code")
                 {
                     ApplicationArea = Dimensions;
                     Editable = false;
-                    ToolTip = 'Specifies the code for Shortcut Dimension 7, which is one of dimension codes that you set up in the General Ledger Setup window.';
                     Visible = Dim7Visible;
                 }
                 field("Shortcut Dimension 8 Code"; Rec."Shortcut Dimension 8 Code")
                 {
                     ApplicationArea = Dimensions;
                     Editable = false;
-                    ToolTip = 'Specifies the code for Shortcut Dimension 8, which is one of dimension codes that you set up in the General Ledger Setup window.';
                     Visible = Dim8Visible;
                 }
             }

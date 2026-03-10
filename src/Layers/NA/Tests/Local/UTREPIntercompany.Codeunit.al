@@ -531,6 +531,7 @@ codeunit 141010 "UT REP Intercompany"
         LibraryReportDataset.AssertElementWithValueExists(ItemLedgerEntrySourceNoLbl, ItemLedgerEntry."Source No.");
     end;
 
+#if not CLEAN28
     [Test]
     [HandlerFunctions('AvailabilityProjectionRequestPageHandler')]
     [TransactionModel(TransactionModel::AutoRollback)]
@@ -585,6 +586,7 @@ codeunit 141010 "UT REP Intercompany"
         LibraryReportDataset.AssertElementWithValueExists('QtyPurchased_2__Control89', ItemLedgerEntry.Quantity);
         LibraryReportDataset.AssertElementWithValueExists('Item_Variant_Code', ItemLedgerEntry."Variant Code");
     end;
+#endif
 
     [Test]
     [HandlerFunctions('ItemTransactionDetailRequestPageHandler')]
@@ -1204,6 +1206,7 @@ codeunit 141010 "UT REP Intercompany"
         VendorPurchasesByItem.SaveAsXml(LibraryReportDataset.GetParametersFileName(), LibraryReportDataset.GetFileName());
     end;
 
+#if not CLEAN28
     [RequestPageHandler]
     [Scope('OnPrem')]
     procedure AvailabilityProjectionRequestPageHandler(var AvailabilityProjection: TestRequestPage "Availability Projection")
@@ -1220,6 +1223,7 @@ codeunit 141010 "UT REP Intercompany"
         AvailabilityProjection.BreakdownByVariant.SetValue(BreakdownByVariant);
         AvailabilityProjection.SaveAsXml(LibraryReportDataset.GetParametersFileName(), LibraryReportDataset.GetFileName());
     end;
+#endif
 
     [RequestPageHandler]
     [Scope('OnPrem')]

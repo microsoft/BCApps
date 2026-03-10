@@ -26,17 +26,14 @@ page 963 "Time Sheet Arc. Comment Sheet"
                 field(Date; Rec.Date)
                 {
                     ApplicationArea = Comments;
-                    ToolTip = 'Specifies the date when a comment was entered for an archived time sheet.';
                 }
                 field(Comment; Rec.Comment)
                 {
                     ApplicationArea = Comments;
-                    ToolTip = 'Specifies the comment relating to an archived time sheet or time sheet line.';
                 }
                 field("Code"; Rec.Code)
                 {
                     ApplicationArea = Comments;
-                    ToolTip = 'Specifies a code for a comment for an archived time sheet.';
                     Visible = false;
                 }
             }

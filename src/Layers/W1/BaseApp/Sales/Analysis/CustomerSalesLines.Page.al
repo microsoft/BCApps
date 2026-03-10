@@ -34,13 +34,11 @@ page 351 "Customer Sales Lines"
                 {
                     ApplicationArea = Basic, Suite;
                     Caption = 'Period Start';
-                    ToolTip = 'Specifies the starting date of the period that you want to view.';
                 }
                 field("Period Name"; Rec."Period Name")
                 {
                     ApplicationArea = Basic, Suite;
                     Caption = 'Period Name';
-                    ToolTip = 'Specifies the name of the period that you want to view.';
                 }
                 field(BalanceDueLCY; Rec."Balance Due (LCY)")
                 {

@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -21,6 +21,7 @@ table 7301 "Warehouse Employee"
         field(1; "User ID"; Code[50])
         {
             Caption = 'User ID';
+            ToolTip = 'Specifies the ID of the user who posted the entry, to be used, for example, in the change log.';
             DataClassification = EndUserIdentifiableInformation;
             TableRelation = User."User Name";
             ValidateTableRelation = false;
@@ -35,15 +36,18 @@ table 7301 "Warehouse Employee"
         field(2; "Location Code"; Code[10])
         {
             Caption = 'Location Code';
+            ToolTip = 'Specifies the code of the location in which the employee works.';
             TableRelation = Location;
         }
         field(4; Default; Boolean)
         {
             Caption = 'Default';
+            ToolTip = 'Specifies that the location code that is defined as the default location for this employee''s activities.';
         }
         field(7710; "ADCS User"; Code[50])
         {
             Caption = 'ADCS User';
+            ToolTip = 'Specifies the ADCS user name of a warehouse employee.';
             DataClassification = EndUserIdentifiableInformation;
             TableRelation = "ADCS User".Name;
 

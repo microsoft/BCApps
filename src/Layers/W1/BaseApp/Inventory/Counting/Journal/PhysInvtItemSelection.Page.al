@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -25,53 +25,43 @@ page 7380 "Phys. Invt. Item Selection"
                 field("Item No."; Rec."Item No.")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the number of the item for which the cycle counting can be performed.';
                 }
                 field(Description; Rec.Description)
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the description of the item.';
                 }
                 field("Variant Code"; Rec."Variant Code")
                 {
                     ApplicationArea = Planning;
-                    ToolTip = 'Specifies the variant of the item on the line.';
                 }
                 field("Location Code"; Rec."Location Code")
                 {
                     ApplicationArea = Location;
-                    ToolTip = 'Specifies the code of the location where the cycle counting is performed.';
                 }
                 field("Shelf No."; Rec."Shelf No.")
                 {
                     ApplicationArea = Warehouse;
-                    ToolTip = 'Specifies the shelf number of the item for informational use.';
                     Visible = false;
                 }
                 field("Phys Invt Counting Period Code"; Rec."Phys Invt Counting Period Code")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the code of the counting period that indicates how often you want to count the item or stockkeeping unit in a physical inventory.';
                 }
                 field("Last Counting Date"; Rec."Last Counting Date")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the last date when the counting period for the item or stockkeeping unit was updated.';
                 }
                 field("Next Counting Start Date"; Rec."Next Counting Start Date")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the starting date of the next counting period.';
                 }
                 field("Next Counting End Date"; Rec."Next Counting End Date")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the ending date of the next counting period.';
                 }
                 field("Count Frequency per Year"; Rec."Count Frequency per Year")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the number of times you want the item or stockkeeping unit to be counted each year.';
                     Visible = false;
                 }
             }

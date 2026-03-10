@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -24,7 +24,6 @@ page 5658 "Main Asset Components"
                 field("Main Asset No."; Rec."Main Asset No.")
                 {
                     ApplicationArea = FixedAssets;
-                    ToolTip = 'Specifies the number of the main asset. This is the asset for which components can be set up.';
                     Visible = false;
                 }
                 field("FA No."; Rec."FA No.")
@@ -35,7 +34,6 @@ page 5658 "Main Asset Components"
                 field(Description; Rec.Description)
                 {
                     ApplicationArea = FixedAssets;
-                    ToolTip = 'Specifies the description linked to the fixed asset for the fixed asset number you entered in FA No. field.';
                 }
             }
         }

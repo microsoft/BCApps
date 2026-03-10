@@ -17,9 +17,10 @@ codeunit 20452 "Qlty. Disp. Move Item Reclass." implements "Qlty. Disposition"
     var
         ItemJournalLineDescriptionTemplateLbl: Label 'Inspection [%3] changed bin from [%1] to [%2]', Comment = '%1 = From Bin code; %2 = To Bin code; %3 = the inspection';
         MissingBinMoveBatchErr: Label 'There is missing setup on the Quality Management Setup Card defining the movement batches.';
+        OpenSetupActionLbl: Label 'Open Quality Management Setup';
         DocumentTypeLbl: Label 'Item Reclassification';
 
-    procedure PerformDisposition(var QltyInspectionHeader: Record "Qlty. Inspection Header"; var TempInstructionQltyDispositionBuffer: Record "Qlty. Disposition Buffer" temporary) DidSomething: Boolean
+    internal procedure PerformDisposition(var QltyInspectionHeader: Record "Qlty. Inspection Header"; var TempInstructionQltyDispositionBuffer: Record "Qlty. Disposition Buffer" temporary) DidSomething: Boolean
     var
         QltyManagementSetup: Record "Qlty. Management Setup";
         TempQuantityToActQltyDispositionBuffer: Record "Qlty. Disposition Buffer" temporary;
@@ -28,17 +29,17 @@ codeunit 20452 "Qlty. Disp. Move Item Reclass." implements "Qlty. Disposition"
         QltyNotificationMgmt: Codeunit "Qlty. Notification Mgmt.";
         QltyItemJournalManagement: Codeunit "Qlty. Item Journal Management";
         CreatedLineNo: Integer;
-        Handled: Boolean;
+        IsHandled: Boolean;
     begin
         TempInstructionQltyDispositionBuffer."Disposition Action" := TempInstructionQltyDispositionBuffer."Disposition Action"::"Move with Item Reclassification";
 
-        OnBeforeProcessDisposition(QltyInspectionHeader, TempInstructionQltyDispositionBuffer, DidSomething, Handled);
-        if Handled then
+        OnBeforeProcessDisposition(QltyInspectionHeader, TempInstructionQltyDispositionBuffer, DidSomething, IsHandled);
+        if IsHandled then
             exit;
 
         QltyManagementSetup.Get();
         if QltyManagementSetup."Item Reclass. Batch Name" = '' then
-            Error(MissingBinMoveBatchErr);
+            ThrowMissingSetupError();
 
         QltyInventoryAvailability.PopulateQuantityBuffer(QltyInspectionHeader, TempInstructionQltyDispositionBuffer, TempQuantityToActQltyDispositionBuffer);
 
@@ -85,11 +86,11 @@ codeunit 20452 "Qlty. Disp. Move Item Reclass." implements "Qlty. Disposition"
         ItemJournalBatch: Record "Item Journal Batch";
         QltyManagementSetup: Record "Qlty. Management Setup";
         QltyItemJournalManagement: Codeunit "Qlty. Item Journal Management";
-        Handled: Boolean;
+        IsHandled: Boolean;
     begin
         QltyManagementSetup.Get();
-        OnBeforeCreateItemReclassificationLine(QltyInspectionHeader, TempInstructionQltyDispositionBuffer, BatchName, ItemJournalLine, Handled);
-        if Handled then
+        OnBeforeCreateItemReclassificationLine(QltyInspectionHeader, TempInstructionQltyDispositionBuffer, BatchName, ItemJournalLine, IsHandled);
+        if IsHandled then
             exit;
 
         ItemJournalBatch.SetAutoCalcFields("Template Type");
@@ -108,9 +109,9 @@ codeunit 20452 "Qlty. Disp. Move Item Reclass." implements "Qlty. Disposition"
     /// <param name="QltyInspectionHeader"></param>
     /// <param name="BatchName"></param>
     /// <param name="ItemJournalLine"></param>
-    /// <param name="Handled"></param>
+    /// <param name="IsHandled"></param>
     [IntegrationEvent(false, false)]
-    local procedure OnBeforeCreateItemReclassificationLine(QltyInspectionHeader: Record "Qlty. Inspection Header"; var TempInstructionQltyDispositionBuffer: Record "Qlty. Disposition Buffer" temporary; var BatchName: Code[10]; var ItemJournalLine: Record "Item Journal Line"; var Handled: Boolean)
+    local procedure OnBeforeCreateItemReclassificationLine(QltyInspectionHeader: Record "Qlty. Inspection Header"; var TempInstructionQltyDispositionBuffer: Record "Qlty. Disposition Buffer" temporary; var BatchName: Code[10]; var ItemJournalLine: Record "Item Journal Line"; var IsHandled: Boolean)
     begin
     end;
 
@@ -119,10 +120,10 @@ codeunit 20452 "Qlty. Disp. Move Item Reclass." implements "Qlty. Disposition"
     /// </summary>
     /// <param name="QltyInspectionHeader"></param>
     /// <param name="TempInstructionQltyDispositionBuffer"></param>
-    /// <param name="prbChanged"></param>
-    /// <param name="Handled"></param>
+    /// <param name="Changed"></param>
+    /// <param name="IsHandled"></param>
     [IntegrationEvent(false, false)]
-    local procedure OnBeforeProcessDisposition(var QltyInspectionHeader: Record "Qlty. Inspection Header"; var TempInstructionQltyDispositionBuffer: Record "Qlty. Disposition Buffer" temporary; var prbChanged: Boolean; var Handled: Boolean)
+    local procedure OnBeforeProcessDisposition(var QltyInspectionHeader: Record "Qlty. Inspection Header"; var TempInstructionQltyDispositionBuffer: Record "Qlty. Disposition Buffer" temporary; var Changed: Boolean; var IsHandled: Boolean)
     begin
     end;
 
@@ -131,9 +132,28 @@ codeunit 20452 "Qlty. Disp. Move Item Reclass." implements "Qlty. Disposition"
     /// </summary>
     /// <param name="QltyInspectionHeader"></param>
     /// <param name="TempInstructionQltyDispositionBuffer"></param>
-    /// <param name="prbChanged"></param>
+    /// <param name="Changed"></param>
     [IntegrationEvent(false, false)]
-    local procedure OnAfterProcessDisposition(var QltyInspectionHeader: Record "Qlty. Inspection Header"; var TempInstructionQltyDispositionBuffer: Record "Qlty. Disposition Buffer" temporary; var prbChanged: Boolean)
+    local procedure OnAfterProcessDisposition(var QltyInspectionHeader: Record "Qlty. Inspection Header"; var TempInstructionQltyDispositionBuffer: Record "Qlty. Disposition Buffer" temporary; var Changed: Boolean)
     begin
+    end;
+
+    local procedure ThrowMissingSetupError()
+    var
+        ErrorInfo: ErrorInfo;
+    begin
+        ErrorInfo.Message := MissingBinMoveBatchErr;
+        ErrorInfo.PageNo := Page::"Qlty. Management Setup";
+        ErrorInfo.AddAction(OpenSetupActionLbl, Codeunit::"Qlty. Disp. Move Item Reclass.", 'OpenQualityManagementSetup');
+        Error(ErrorInfo);
+    end;
+
+    procedure OpenQualityManagementSetup(ErrorInfo: ErrorInfo)
+    var
+        QltyManagementSetup: Record "Qlty. Management Setup";
+    begin
+        if not QltyManagementSetup.Get() then
+            QltyManagementSetup.Insert(true);
+        Page.Run(Page::"Qlty. Management Setup", QltyManagementSetup);
     end;
 }

@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -20,21 +20,18 @@ page 6533 "Continuous Scanning Line"
                 Editable = false;
                 field("Serial No."; Rec."Serial No.")
                 {
-                    ToolTip = 'Specifies the serial number associated with the entry.';
                     Visible = (SourceItemTrackingEntryType = "Item Tracking Entry Type"::"Serial No.");
                     Editable = false;
                     ExtendedDatatype = Barcode;
                 }
                 field("Lot No."; Rec."Lot No.")
                 {
-                    ToolTip = 'Specifies the lot number of the item being handled for the associated document line.';
                     Visible = (SourceItemTrackingEntryType = "Item Tracking Entry Type"::"Lot No.");
                     Editable = false;
                     ExtendedDatatype = Barcode;
                 }
                 field("Package No."; Rec."Package No.")
                 {
-                    ToolTip = 'Specifies the package number of the item being handled for the associated document line.';
                     Visible = (SourceItemTrackingEntryType = "Item Tracking Entry Type"::"Package No.");
                     Editable = false;
                     ExtendedDatatype = Barcode;

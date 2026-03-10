@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -29,13 +29,11 @@ page 6061 "Contract Trend Lines"
                 {
                     ApplicationArea = Service;
                     Caption = 'Period Start';
-                    ToolTip = 'Specifies the starting date of the period that you want to view.';
                 }
                 field("Period Name"; Rec."Period Name")
                 {
                     ApplicationArea = Service;
                     Caption = 'Period Name';
-                    ToolTip = 'Specifies the name of the period shown in the line.';
                 }
 #pragma warning disable AA0100
                 field("ServContract.""Contract Prepaid Amount"""; Rec."Prepaid Income")
@@ -129,7 +127,6 @@ page 6061 "Contract Trend Lines"
                     ApplicationArea = Service;
                     AutoFormatType = 1;
                     Caption = 'Profit';
-                    ToolTip = 'Specifies the profit (posted incom0e minus posted cost in LCY) for the service contract in the periods specified in the Period Start field.';
                 }
                 field(ProfitPct; Rec."Profit %")
                 {

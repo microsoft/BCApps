@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -31,23 +31,19 @@ page 6701 "Contact Sync. Setup"
                     ApplicationArea = Basic, Suite;
                     Editable = false;
                     Lookup = false;
-                    ToolTip = 'Specifies the ID of the user who posted the entry, to be used, for example, in the change log.';
                 }
                 field("Folder ID"; Rec."Folder ID")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the public folder on the Exchange server that you want to use for your queue and storage folders.';
                 }
                 field("Last Sync Date Time"; Rec."Last Sync Date Time")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the last date/time that the Exchange server was synchronized.';
                 }
                 field(Enabled; Rec.Enabled)
                 {
                     ApplicationArea = Basic, Suite;
                     Caption = 'Enable Background Synchronization';
-                    ToolTip = 'Specifies that data synchronization can occur while users perform related tasks.';
                     Enabled = Rec.Enabled;
                     Editable = Rec.Enabled;
                 }

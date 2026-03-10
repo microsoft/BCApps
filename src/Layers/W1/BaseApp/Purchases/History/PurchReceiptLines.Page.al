@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -26,22 +26,18 @@ page 5806 "Purch. Receipt Lines"
                     ApplicationArea = Basic, Suite;
                     HideValue = DocumentNoHideValue;
                     StyleExpr = 'Strong';
-                    ToolTip = 'Specifies the number of the related document.';
                 }
                 field("Buy-from Vendor No."; Rec."Buy-from Vendor No.")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the name of the vendor who delivered the items.';
                 }
                 field(Type; Rec.Type)
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the line type.';
                 }
                 field("No."; Rec."No.")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the number of the involved entry or record, according to the specified number series.';
                 }
                 field(Description; Rec.Description)
                 {
@@ -52,13 +48,11 @@ page 5806 "Purch. Receipt Lines"
                 {
                     ApplicationArea = Basic, Suite;
                     Importance = Additional;
-                    ToolTip = 'Specifies information in addition to the description.';
                     Visible = false;
                 }
                 field("Location Code"; Rec."Location Code")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies a code for the location where you want the items to be placed when they are received.';
                 }
                 field(Quantity; Rec.Quantity)
                 {
@@ -68,12 +62,10 @@ page 5806 "Purch. Receipt Lines"
                 field("Unit of Measure"; Rec."Unit of Measure")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the name of the item or resource''s unit of measure, such as piece or hour.';
                 }
                 field("Direct Unit Cost"; Rec."Direct Unit Cost")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the cost of one unit of the selected item or resource.';
                     Visible = false;
                 }
                 field("Unit Cost (LCY)"; Rec."Unit Cost (LCY)")
@@ -85,67 +77,56 @@ page 5806 "Purch. Receipt Lines"
                 field("Shortcut Dimension 1 Code"; Rec."Shortcut Dimension 1 Code")
                 {
                     ApplicationArea = Dimensions;
-                    ToolTip = 'Specifies the code for Shortcut Dimension 1, which is one of two global dimension codes that you set up in the General Ledger Setup window.';
                     Visible = false;
                 }
                 field("Shortcut Dimension 2 Code"; Rec."Shortcut Dimension 2 Code")
                 {
                     ApplicationArea = Dimensions;
-                    ToolTip = 'Specifies the code for Shortcut Dimension 2, which is one of two global dimension codes that you set up in the General Ledger Setup window.';
                     Visible = false;
                 }
                 field("Indirect Cost %"; Rec."Indirect Cost %")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the percentage of the item''s last purchase cost that includes indirect costs, such as freight that is associated with the purchase of the item.';
                     Visible = false;
                 }
                 field("Quantity Invoiced"; Rec."Quantity Invoiced")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies how many units of the item on the line have been posted as invoiced.';
                     Visible = false;
                 }
                 field("Order No."; Rec."Order No.")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the line number of the order that created the entry.';
                     Visible = false;
                 }
                 field("Order Line No."; Rec."Order Line No.")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the line number of the order that created the entry.';
                     Visible = false;
                 }
                 field("Vendor Item No."; Rec."Vendor Item No.")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the number that the vendor uses for this item.';
                     Visible = false;
                 }
                 field("Unit Cost"; Rec."Unit Cost")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the cost of one unit of the item or resource on the line.';
                     Visible = false;
                 }
                 field("Variant Code"; Rec."Variant Code")
                 {
                     ApplicationArea = Planning;
-                    ToolTip = 'Specifies the variant of the item on the line.';
                     Visible = false;
                 }
                 field("Qty. per Unit of Measure"; Rec."Qty. per Unit of Measure")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the quantity per unit of measure of the item that was received.';
                     Visible = false;
                 }
                 field("Unit of Measure Code"; Rec."Unit of Measure Code")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies how each unit of the item or resource is measured, such as in pieces or hours. By default, the value in the Base Unit of Measure field on the item or resource card is inserted.';
                     Visible = false;
                 }
             }

@@ -22,6 +22,8 @@ codeunit 136351 "UT T Job Journal Line"
         LibrarySetupStorage: Codeunit "Library - Setup Storage";
         IsInitialized: Boolean;
         RoundingTo0Err: Label 'Rounding of the field';
+        UnitPriceErr: Label 'Unit Price should not be 0';
+        LineDiscountPerErr: Label 'Line Discount % should be 0';
 
     [Test]
     [Scope('OnPrem')]
@@ -631,6 +633,119 @@ codeunit 136351 "UT T Job Journal Line"
           2, NewDocNo);
         VerifyJobJnlLineDocNo(JobJournalLine."Journal Template Name", JobJournalLine2."Journal Batch Name",
           1, NewDocNo);
+    end;
+
+    [Test]
+    [HandlerFunctions('ConfirmHandlerTrue')]
+    [Scope('OnPrem')]
+    procedure WorkTypeChangeWithDifferentUoMRecalculatesPriceCorrectly()
+    var
+        Job: Record Job;
+        JobTask: Record "Job Task";
+        JobJournalLine: Record "Job Journal Line";
+        Resource: Record Resource;
+        WorkType1: Record "Work Type";
+        WorkType2: Record "Work Type";
+        UnitOfMeasure1: Record "Unit of Measure";
+        UnitOfMeasure2: Record "Unit of Measure";
+        ResourceUnitOfMeasure: Record "Resource Unit of Measure";
+        PriceListHeader: Record "Price List Header";
+        PriceListLine: Record "Price List Line";
+        PriceCalculationSetup: Record "Price Calculation Setup";
+        LibraryResource: Codeunit "Library - Resource";
+        LibraryInventory: Codeunit "Library - Inventory";
+        LibraryPriceCalculation: Codeunit "Library - Price Calculation";
+        ExpectedUnitPrice1: Decimal;
+        ExpectedUnitPrice2: Decimal;
+        Qty: Decimal;
+    begin
+        // [SCENARIO 621076] When Work Type changes on Job Journal Line to one with different UoM, price recalculation uses the correct UoM
+        Initialize();
+
+        // Enable extended price calculation and configure setup
+        LibraryPriceCalculation.EnableExtendedPriceCalculation();
+        PriceCalculationSetup.DeleteAll();
+        LibraryPriceCalculation.AddSetup(
+            PriceCalculationSetup, "Price Calculation Method"::"Lowest Price", "Price Type"::Sale,
+            "Price Asset Type"::" ", "Price Calculation Handler"::"Business Central (Version 16.0)", true);
+
+        // [GIVEN] Create Unit of Measure
+        LibraryInventory.CreateUnitOfMeasureCode(UnitOfMeasure1);
+        LibraryInventory.CreateUnitOfMeasureCode(UnitOfMeasure2);
+
+        // [GIVEN] Create Resource "RW1" with Base Unit of Measure = "HOUR", Unit Price = 0
+        LibraryResource.CreateResourceNew(Resource);
+        Resource.Validate("Base Unit of Measure", UnitOfMeasure1.Code);
+        Resource.Validate("Unit Price", 0);
+        Resource.Modify(true);
+
+        // [GIVEN] Resource Unit of Measure for the second UoM (base UoM record is created automatically)
+        LibraryResource.CreateResourceUnitOfMeasure(ResourceUnitOfMeasure, Resource."No.", UnitOfMeasure2.Code, 1);
+
+        // [GIVEN] Create first Work Type with Unit of Measure = "HOUR"
+        LibraryResource.CreateWorkType(WorkType1);
+        WorkType1.Validate("Unit of Measure Code", UnitOfMeasure1.Code);
+        WorkType1.Modify(true);
+
+        // [GIVEN] Create second Work Type  with Unit of Measure = "PCS"
+        LibraryResource.CreateWorkType(WorkType2);
+        WorkType2.Validate("Unit of Measure Code", UnitOfMeasure2.Code);
+        WorkType2.Modify(true);
+
+        // [GIVEN] Random Qty for  Project Journal
+        Qty := LibraryRandom.RandIntInRange(1, 9);
+
+        // [GIVEN] Sales Price List for All Customers with two entries:
+        ExpectedUnitPrice1 := LibraryRandom.RandDec(100, 2);
+        ExpectedUnitPrice2 := LibraryRandom.RandDec(120, 2);
+
+        LibraryPriceCalculation.CreatePriceHeader(
+            PriceListHeader, "Price Type"::Sale, "Price Source Type"::"All Customers", '');
+        PriceListHeader.Validate("Starting Date", WorkDate());
+        PriceListHeader.Modify(true);
+
+        LibraryPriceCalculation.CreatePriceListLine(
+            PriceListLine, PriceListHeader, "Price Amount Type"::Price, "Price Asset Type"::Resource, Resource."No.");
+        PriceListLine.Validate("Work Type Code", WorkType1.Code);
+        PriceListLine.Validate("Unit of Measure Code", UnitOfMeasure1.Code);
+        PriceListLine.Validate("Unit Price", ExpectedUnitPrice1);
+        PriceListLine.Modify(true);
+
+        LibraryPriceCalculation.CreatePriceListLine(
+            PriceListLine, PriceListHeader, "Price Amount Type"::Price, "Price Asset Type"::Resource, Resource."No.");
+        PriceListLine.Validate("Work Type Code", WorkType2.Code);
+        PriceListLine.Validate("Unit of Measure Code", UnitOfMeasure2.Code);
+        PriceListLine.Validate("Unit Price", ExpectedUnitPrice2);
+        PriceListLine.Modify(true);
+
+        PriceListHeader.Validate(Status, "Price Status"::Active);
+        PriceListHeader.Modify(true);
+
+        // [GIVEN] Job with Customer and Job Task
+        LibraryJob.CreateJob(Job, LibrarySales.CreateCustomerNo());
+        LibraryJob.CreateJobTask(Job, JobTask);
+
+        // [GIVEN] Job Journal Line with Type = Resource, No. = "RW1" and assign first Work Type
+        LibraryJob.CreateJobJournalLineForType(
+            JobJournalLine."Line Type"::Billable, JobJournalLine.Type::Resource, JobTask, JobJournalLine);
+        JobJournalLine.Validate("No.", Resource."No.");
+        JobJournalLine.Validate("Work Type Code", WorkType1.Code);
+        JobJournalLine.Validate(Quantity, Qty);
+        JobJournalLine.Modify(true);
+
+        // [THEN]  check Unit Price, Line Discount % 
+        Assert.AreEqual(ExpectedUnitPrice1, JobJournalLine."Unit Price", UnitPriceErr);
+        Assert.AreEqual(0, JobJournalLine."Line Discount %", LineDiscountPerErr);
+
+        // [WHEN] Change Work Type 
+        JobJournalLine.Validate("Work Type Code", WorkType2.Code);
+        JobJournalLine.Modify(true);
+
+        // [THEN] Check Unit Price 
+        Assert.AreEqual(ExpectedUnitPrice2, JobJournalLine."Unit Price", UnitPriceErr);
+
+        // [THEN]  Check Line Discount % = 0
+        Assert.AreEqual(0, JobJournalLine."Line Discount %", LineDiscountPerErr);
     end;
 
     local procedure Initialize()

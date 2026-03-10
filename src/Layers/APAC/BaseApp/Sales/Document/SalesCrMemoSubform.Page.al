@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -103,7 +103,6 @@ page 96 "Sales Cr. Memo Subform"
                     AccessByPermission = tabledata "Item Reference" = R;
                     ApplicationArea = Suite, ItemReferences;
                     QuickEntry = false;
-                    ToolTip = 'Specifies the referenced item number.';
                     Visible = ItemReferenceVisible;
 
                     trigger OnLookup(var Text: Text): Boolean
@@ -131,25 +130,21 @@ page 96 "Sales Cr. Memo Subform"
                 field("IC Partner Code"; Rec."IC Partner Code")
                 {
                     ApplicationArea = Intercompany;
-                    ToolTip = 'Specifies the code of the intercompany partner that the transaction is related to if the entry was created from an intercompany transaction.';
                     Visible = false;
                 }
                 field("IC Partner Ref. Type"; Rec."IC Partner Ref. Type")
                 {
                     ApplicationArea = Intercompany;
-                    ToolTip = 'Specifies the item or account in your IC partner''s company that corresponds to the item or account on the line.';
                     Visible = false;
                 }
                 field("IC Partner Reference"; Rec."IC Partner Reference")
                 {
                     ApplicationArea = Intercompany;
-                    ToolTip = 'Specifies the IC partner. If the line is being sent to one of your intercompany partners, this field is used together with the IC Partner Ref. Type field to indicate the item or account in your partner''s company that corresponds to the line.';
                     Visible = false;
                 }
                 field("Variant Code"; Rec."Variant Code")
                 {
                     ApplicationArea = Planning;
-                    ToolTip = 'Specifies the variant of the item on the line.';
                     Visible = false;
                     ShowMandatory = VariantCodeMandatory;
 
@@ -165,7 +160,6 @@ page 96 "Sales Cr. Memo Subform"
                 field(Nonstock; Rec.Nonstock)
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies that this item is a catalog item.';
                     Visible = false;
                 }
                 field("WHT Business Posting Group"; Rec."WHT Business Posting Group")
@@ -183,7 +177,6 @@ page 96 "Sales Cr. Memo Subform"
                 field("Gen. Bus. Posting Group"; Rec."Gen. Bus. Posting Group")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the vendor''s or customer''s trade type to link transactions made for this business partner with the appropriate general ledger account according to the general posting setup.';
                     Visible = false;
 
                     trigger OnValidate()
@@ -194,7 +187,6 @@ page 96 "Sales Cr. Memo Subform"
                 field("Gen. Prod. Posting Group"; Rec."Gen. Prod. Posting Group")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the item''s product type to link transactions made for this item with the appropriate general ledger account according to the general posting setup.';
                     Visible = false;
 
                     trigger OnValidate()
@@ -205,22 +197,22 @@ page 96 "Sales Cr. Memo Subform"
                 field("VAT Bus. Posting Group"; Rec."VAT Bus. Posting Group")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the vendor''s VAT specification to link transactions made for this vendor with the appropriate general ledger account according to the VAT posting setup.';
                     Visible = false;
 
                     trigger OnValidate()
                     begin
+                        ForceTotalsCalculation();
                         DeltaUpdateTotals();
                     end;
                 }
                 field("VAT Prod. Posting Group"; Rec."VAT Prod. Posting Group")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the VAT product posting group. Links business transactions made for the item, resource, or G/L account with the general ledger, to account for VAT amounts resulting from trade with that record.';
                     Visible = false;
 
                     trigger OnValidate()
                     begin
+                        ForceTotalsCalculation();
                         DeltaUpdateTotals();
                     end;
                 }
@@ -254,13 +246,11 @@ page 96 "Sales Cr. Memo Subform"
                 {
                     ApplicationArea = Basic, Suite;
                     Importance = Additional;
-                    ToolTip = 'Specifies information in addition to the description.';
                     Visible = false;
                 }
                 field("Return Reason Code"; Rec."Return Reason Code")
                 {
                     ApplicationArea = Suite;
-                    ToolTip = 'Specifies the code explaining why the item was returned.';
                     Visible = false;
                 }
                 field("Location Code"; Rec."Location Code")
@@ -268,7 +258,6 @@ page 96 "Sales Cr. Memo Subform"
                     ApplicationArea = Location;
                     Editable = not IsBlankNumber;
                     Enabled = not IsBlankNumber;
-                    ToolTip = 'Specifies the inventory location from which the items sold should be picked and where the inventory decrease is registered.';
 
                     trigger OnValidate()
                     begin
@@ -278,13 +267,11 @@ page 96 "Sales Cr. Memo Subform"
                 field("Bin Code"; Rec."Bin Code")
                 {
                     ApplicationArea = Warehouse;
-                    ToolTip = 'Specifies the bin where the items are picked or put away.';
                     Visible = false;
                 }
                 field(Reserve; Rec.Reserve)
                 {
                     ApplicationArea = Reservation;
-                    ToolTip = 'Specifies whether a reservation can be made for items on this line.';
                     Visible = false;
 
                     trigger OnValidate()
@@ -299,7 +286,6 @@ page 96 "Sales Cr. Memo Subform"
                     Editable = not IsBlankNumber;
                     Enabled = not IsBlankNumber;
                     ShowMandatory = (Rec.Type <> Rec.Type::" ") and (Rec."No." <> '');
-                    ToolTip = 'Specifies how many units are being sold.';
 
                     trigger OnValidate()
                     begin
@@ -312,7 +298,6 @@ page 96 "Sales Cr. Memo Subform"
                 {
                     ApplicationArea = Reservation;
                     BlankZero = true;
-                    ToolTip = 'Specifies how many units of the item on the line have been reserved.';
                     Visible = false;
 
                     trigger OnDrillDown()
@@ -328,7 +313,6 @@ page 96 "Sales Cr. Memo Subform"
                     ApplicationArea = Basic, Suite;
                     Editable = UnitofMeasureCodeIsChangeable;
                     Enabled = UnitofMeasureCodeIsChangeable;
-                    ToolTip = 'Specifies how each unit of the item or resource is measured, such as in pieces or hours. By default, the value in the Base Unit of Measure field on the item or resource card is inserted.';
 
                     trigger OnValidate()
                     begin
@@ -338,7 +322,6 @@ page 96 "Sales Cr. Memo Subform"
                 field("Unit of Measure"; Rec."Unit of Measure")
                 {
                     ApplicationArea = Suite;
-                    ToolTip = 'Specifies the unit of measure for the item or resource on the sales line.';
                     Visible = false;
                 }
                 field("Unit Cost (LCY)"; Rec."Unit Cost (LCY)")
@@ -354,7 +337,6 @@ page 96 "Sales Cr. Memo Subform"
                     Editable = not IsBlankNumber;
                     Enabled = not IsBlankNumber;
                     ShowMandatory = (Rec.Type <> Rec.Type::" ") and (Rec."No." <> '');
-                    ToolTip = 'Specifies the price for one unit on the sales line.';
 
                     trigger OnValidate()
                     begin
@@ -365,13 +347,11 @@ page 96 "Sales Cr. Memo Subform"
                 {
                     ApplicationArea = SalesTax;
                     Editable = false;
-                    ToolTip = 'Specifies if the customer or vendor is liable for sales tax.';
                     Visible = false;
                 }
                 field("Tax Area Code"; Rec."Tax Area Code")
                 {
                     ApplicationArea = SalesTax;
-                    ToolTip = 'Specifies the tax area that is used to calculate and post sales tax.';
                     Visible = false;
 
                     trigger OnValidate()
@@ -385,7 +365,6 @@ page 96 "Sales Cr. Memo Subform"
                     Editable = not IsCommentLine;
                     Enabled = not IsCommentLine;
                     ShowMandatory = Rec."Tax Area Code" <> '';
-                    ToolTip = 'Specifies the tax group that is used to calculate and post sales tax.';
 
                     trigger OnValidate()
                     begin
@@ -399,7 +378,6 @@ page 96 "Sales Cr. Memo Subform"
                     Editable = not IsBlankNumber;
                     Enabled = not IsBlankNumber;
                     ShowMandatory = (Rec.Type <> Rec.Type::" ") and (Rec."No." <> '');
-                    ToolTip = 'Specifies the net amount, excluding any invoice discount amount, that must be paid for products on the line.';
 
                     trigger OnValidate()
                     begin
@@ -412,7 +390,6 @@ page 96 "Sales Cr. Memo Subform"
                     BlankZero = true;
                     Editable = not IsBlankNumber;
                     Enabled = not IsBlankNumber;
-                    ToolTip = 'Specifies the discount percentage that is granted for the item on the line.';
 
                     trigger OnValidate()
                     begin
@@ -422,7 +399,6 @@ page 96 "Sales Cr. Memo Subform"
                 field("Line Discount Amount"; Rec."Line Discount Amount")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the discount amount that is granted for the item on the line.';
                     Visible = false;
 
                     trigger OnValidate()
@@ -433,7 +409,6 @@ page 96 "Sales Cr. Memo Subform"
                 field("Allow Invoice Disc."; Rec."Allow Invoice Disc.")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies if the invoice line is included when the invoice discount is calculated.';
                     Visible = false;
 
                     trigger OnValidate()
@@ -447,7 +422,6 @@ page 96 "Sales Cr. Memo Subform"
                 field("Inv. Discount Amount"; Rec."Inv. Discount Amount")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the invoice discount amount for the line.';
                     Visible = false;
 
                     trigger OnValidate()
@@ -458,14 +432,12 @@ page 96 "Sales Cr. Memo Subform"
                 field("Allow Item Charge Assignment"; Rec."Allow Item Charge Assignment")
                 {
                     ApplicationArea = ItemCharges;
-                    ToolTip = 'Specifies that you can assign item charges to this line.';
                     Visible = false;
                 }
                 field("Qty. to Assign"; Rec."Qty. to Assign")
                 {
                     ApplicationArea = ItemCharges;
                     StyleExpr = ItemChargeStyleExpression;
-                    ToolTip = 'Specifies how many units of the item charge will be assigned to the line.';
 
                     trigger OnDrillDown()
                     begin
@@ -478,7 +450,6 @@ page 96 "Sales Cr. Memo Subform"
                 {
                     ApplicationArea = ItemCharges;
                     BlankZero = true;
-                    ToolTip = 'Specifies the quantity of the item charge that was assigned to a specified item when you posted this sales line.';
 
                     trigger OnDrillDown()
                     begin
@@ -491,7 +462,6 @@ page 96 "Sales Cr. Memo Subform"
                 {
                     ApplicationArea = All;
                     Caption = 'Allocation Account No.';
-                    ToolTip = 'Specifies the allocation account number that will be used to distribute the amounts during the posting process.';
                     Visible = UseAllocationAccountNumber;
                     trigger OnValidate()
                     var
@@ -503,7 +473,6 @@ page 96 "Sales Cr. Memo Subform"
                 field("Job No."; Rec."Job No.")
                 {
                     ApplicationArea = Jobs;
-                    ToolTip = 'Specifies the number of the related project. If you fill in this field and the Project Task No. field, then a project ledger entry will be posted together with the sales line.';
                     Visible = false;
 
                     trigger OnValidate()
@@ -514,49 +483,41 @@ page 96 "Sales Cr. Memo Subform"
                 field("Job Task No."; Rec."Job Task No.")
                 {
                     ApplicationArea = Jobs;
-                    ToolTip = 'Specifies the number of the related project task.';
                     Visible = false;
                 }
                 field("Tax Category"; Rec."Tax Category")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the VAT category in connection with electronic document sending. For example, when you send sales documents through the PEPPOL service, the value in this field is used to populate several fields, such as the ClassifiedTaxCategory element in the Item group. It is also used to populate the TaxCategory element in both the TaxSubtotal and AllowanceCharge group. The number is based on the UNCL5305 standard.';
                     Visible = false;
                 }
                 field("Work Type Code"; Rec."Work Type Code")
                 {
                     ApplicationArea = Jobs;
-                    ToolTip = 'Specifies which work type the resource applies to when the sale is related to a project.';
                     Visible = false;
                 }
                 field("Blanket Order No."; Rec."Blanket Order No.")
                 {
                     ApplicationArea = Suite;
-                    ToolTip = 'Specifies the number of the blanket order that the record originates from.';
                     Visible = false;
                 }
                 field("Blanket Order Line No."; Rec."Blanket Order Line No.")
                 {
                     ApplicationArea = Suite;
-                    ToolTip = 'Specifies the number of the blanket order line that the record originates from.';
                     Visible = false;
                 }
                 field("Appl.-from Item Entry"; Rec."Appl.-from Item Entry")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the number of the item ledger entry that the document or journal line is applied from.';
                     Visible = false;
                 }
                 field("Appl.-to Item Entry"; Rec."Appl.-to Item Entry")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the number of the item ledger entry that the document or journal line is applied -to.';
                     Visible = false;
                 }
                 field("Deferral Code"; Rec."Deferral Code")
                 {
                     ApplicationArea = Suite;
-                    ToolTip = 'Specifies the deferral template that governs how revenue earned with this sales document is deferred to the different accounting periods when the good or service was delivered.';
                     Visible = false;
 
                     trigger OnAssistEdit()
@@ -569,13 +530,11 @@ page 96 "Sales Cr. Memo Subform"
                 field("Shortcut Dimension 1 Code"; Rec."Shortcut Dimension 1 Code")
                 {
                     ApplicationArea = Dimensions;
-                    ToolTip = 'Specifies the code for Shortcut Dimension 1, which is one of two global dimension codes that you set up in the General Ledger Setup window.';
                     Visible = DimVisible1;
                 }
                 field("Shortcut Dimension 2 Code"; Rec."Shortcut Dimension 2 Code")
                 {
                     ApplicationArea = Dimensions;
-                    ToolTip = 'Specifies the code for Shortcut Dimension 2, which is one of two global dimension codes that you set up in the General Ledger Setup window.';
                     Visible = DimVisible2;
                 }
                 field(ShortcutDimCode3; ShortcutDimCode[3])
@@ -678,26 +637,22 @@ page 96 "Sales Cr. Memo Subform"
                 {
                     Caption = 'Unit Gross Weight';
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the gross weight of one unit of the item. In the sales statistics window, the gross weight on the line is included in the total gross weight of all the lines for the particular sales document.';
                     Visible = false;
                 }
                 field("Net Weight"; Rec."Net Weight")
                 {
                     Caption = 'Unit Net Weight';
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the net weight of one unit of the item. In the sales statistics window, the net weight on the line is included in the total net weight of all the lines for the particular sales document.';
                     Visible = false;
                 }
                 field("Unit Volume"; Rec."Unit Volume")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the volume of one unit of the item. In the sales statistics window, the volume of one unit of the item on the line is included in the total volume of all the lines for the particular sales document.';
                     Visible = false;
                 }
                 field("Units per Parcel"; Rec."Units per Parcel")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the number of units per parcel of the item. In the sales statistics window, the number of units per parcel on the line helps to determine the total number of units for all the lines for the particular sales document.';
                     Visible = false;
                 }
             }

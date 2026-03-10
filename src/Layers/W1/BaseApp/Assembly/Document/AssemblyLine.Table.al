@@ -36,6 +36,7 @@ table 901 "Assembly Line"
         field(1; "Document Type"; Enum "Assembly Document Type")
         {
             Caption = 'Document Type';
+            ToolTip = 'Specifies the type of assembly document that the assembly order header represents in assemble-to-order scenarios.';
 
             trigger OnValidate()
             begin
@@ -45,6 +46,7 @@ table 901 "Assembly Line"
         field(2; "Document No."; Code[20])
         {
             Caption = 'Document No.';
+            ToolTip = 'Specifies the number of the assembly order header that the assembly order line refers to.';
             TableRelation = "Assembly Header"."No." where("Document Type" = field("Document Type"));
 
             trigger OnValidate()
@@ -60,6 +62,7 @@ table 901 "Assembly Line"
         field(10; Type; Enum "BOM Component Type")
         {
             Caption = 'Type';
+            ToolTip = 'Specifies if the assembly order line is of type Item or Resource.';
 
             trigger OnValidate()
             begin
@@ -80,6 +83,7 @@ table 901 "Assembly Line"
         field(11; "No."; Code[20])
         {
             Caption = 'No.';
+            ToolTip = 'Specifies the number of the involved entry or record, according to the specified number series.';
             TableRelation = if (Type = const(Item)) Item where(Type = filter(Inventory | "Non-Inventory"))
             else
             if (Type = const(Resource)) Resource;
@@ -123,6 +127,7 @@ table 901 "Assembly Line"
         field(12; "Variant Code"; Code[10])
         {
             Caption = 'Variant Code';
+            ToolTip = 'Specifies the variant of the item on the line.';
             TableRelation = if (Type = const(Item)) "Item Variant".Code where("Item No." = field("No."), Code = field("Variant Code"));
 
             trigger OnValidate()
@@ -160,14 +165,17 @@ table 901 "Assembly Line"
         field(13; Description; Text[100])
         {
             Caption = 'Description';
+            ToolTip = 'Specifies the description of the assembly component.';
         }
         field(14; "Description 2"; Text[50])
         {
             Caption = 'Description 2';
+            ToolTip = 'Specifies the second description of the assembly component.';
         }
         field(18; "Lead-Time Offset"; DateFormula)
         {
             Caption = 'Lead-Time Offset';
+            ToolTip = 'Specifies the lead-time offset that is defined for the assembly component on the assembly BOM.';
 
             trigger OnValidate()
             begin
@@ -178,6 +186,7 @@ table 901 "Assembly Line"
         field(19; "Resource Usage Type"; Option)
         {
             Caption = 'Resource Usage Type';
+            ToolTip = 'Specifies how the cost of the resource on the assembly order line is allocated to the assembly item.';
             OptionCaption = ' ,Direct,Fixed';
             OptionMembers = " ",Direct,"Fixed";
 
@@ -198,6 +207,7 @@ table 901 "Assembly Line"
         field(20; "Location Code"; Code[10])
         {
             Caption = 'Location Code';
+            ToolTip = 'Specifies the location from which you want to post consumption of the assembly component.';
             TableRelation = Location where("Use As In-Transit" = const(false));
 
             trigger OnValidate()
@@ -220,6 +230,7 @@ table 901 "Assembly Line"
         {
             CaptionClass = '1,2,1';
             Caption = 'Shortcut Dimension 1 Code';
+            ToolTip = 'Specifies the code for Shortcut Dimension 1, which is one of two global dimension codes that you set up in the General Ledger Setup window.';
             TableRelation = "Dimension Value".Code where("Global Dimension No." = const(1),
                                                           Blocked = const(false));
 
@@ -232,6 +243,7 @@ table 901 "Assembly Line"
         {
             CaptionClass = '1,2,2';
             Caption = 'Shortcut Dimension 2 Code';
+            ToolTip = 'Specifies the code for Shortcut Dimension 2, which is one of two global dimension codes that you set up in the General Ledger Setup window.';
             TableRelation = "Dimension Value".Code where("Global Dimension No." = const(2),
                                                           Blocked = const(false));
 
@@ -243,6 +255,7 @@ table 901 "Assembly Line"
         field(23; "Bin Code"; Code[20])
         {
             Caption = 'Bin Code';
+            ToolTip = 'Specifies the code of the bin where assembly components must be placed prior to assembly and from where they are posted as consumed.';
             TableRelation = Bin.Code where("Location Code" = field("Location Code"));
 
             trigger OnLookup()
@@ -294,6 +307,7 @@ table 901 "Assembly Line"
         {
             AccessByPermission = TableData Item = R;
             Caption = 'Appl.-to Item Entry';
+            ToolTip = 'Specifies the number of the item ledger entry that the document or journal line is applied to.';
 
             trigger OnLookup()
             begin
@@ -322,6 +336,7 @@ table 901 "Assembly Line"
         {
             AccessByPermission = TableData Item = R;
             Caption = 'Appl.-from Item Entry';
+            ToolTip = 'Specifies the number of the item ledger entry that the document or journal line is applied from.';
             MinValue = 0;
 
             trigger OnLookup()
@@ -333,6 +348,7 @@ table 901 "Assembly Line"
         {
             AutoFormatType = 0;
             Caption = 'Quantity';
+            ToolTip = 'Specifies how many units of the assembly component are expected to be consumed.';
             DecimalPlaces = 0 : 5;
             Editable = false;
             MinValue = 0;
@@ -381,6 +397,7 @@ table 901 "Assembly Line"
         {
             AutoFormatType = 0;
             Caption = 'Remaining Quantity';
+            ToolTip = 'Specifies how many units of the assembly component remain to be consumed during assembly.';
             DecimalPlaces = 0 : 5;
             Editable = false;
         }
@@ -395,6 +412,7 @@ table 901 "Assembly Line"
         {
             AutoFormatType = 0;
             Caption = 'Consumed Quantity';
+            ToolTip = 'Specifies how many units of the assembly component have been posted as consumed during the assembly.';
             DecimalPlaces = 0 : 5;
             Editable = false;
 
@@ -415,6 +433,7 @@ table 901 "Assembly Line"
         {
             AutoFormatType = 0;
             Caption = 'Quantity to Consume';
+            ToolTip = 'Specifies how many units of the assembly component you want to post as consumed when you post the assembly order.';
             DecimalPlaces = 0 : 5;
             MinValue = 0;
 
@@ -461,6 +480,7 @@ table 901 "Assembly Line"
 #pragma warning restore
                                                                    "Reservation Status" = const(Reservation)));
             Caption = 'Reserved Quantity';
+            ToolTip = 'Specifies how many units of the assembly component have been reserved for this assembly order line.';
             DecimalPlaces = 0 : 5;
             Editable = false;
             FieldClass = FlowField;
@@ -483,6 +503,7 @@ table 901 "Assembly Line"
         field(50; "Avail. Warning"; Boolean)
         {
             Caption = 'Avail. Warning';
+            ToolTip = 'Specifies Yes if the assembly component is not available in the quantity and on the due date of the assembly order line.';
             Editable = false;
         }
         field(51; "Substitution Available"; Boolean)
@@ -492,12 +513,14 @@ table 901 "Assembly Line"
                                                            "No." = field("No."),
                                                            "Variant Code" = field("Variant Code")));
             Caption = 'Substitution Available';
+            ToolTip = 'Specifies if a substitute is available for the item on the assembly order line.';
             Editable = false;
             FieldClass = FlowField;
         }
         field(52; "Due Date"; Date)
         {
             Caption = 'Due Date';
+            ToolTip = 'Specifies the date when the assembly component must be available for consumption by the assembly order.';
 
             trigger OnValidate()
             begin
@@ -508,6 +531,7 @@ table 901 "Assembly Line"
         field(53; Reserve; Enum "Reserve Method")
         {
             Caption = 'Reserve';
+            ToolTip = 'Specifies the reserve option for the assembly order line.';
 
             trigger OnValidate()
             begin
@@ -531,6 +555,7 @@ table 901 "Assembly Line"
         {
             AutoFormatType = 0;
             Caption = 'Quantity per';
+            ToolTip = 'Specifies how many units of the assembly component are required to assemble one assembly item.';
             DecimalPlaces = 0 : 5;
             MinValue = 0;
 
@@ -561,6 +586,7 @@ table 901 "Assembly Line"
         {
             AutoFormatType = 0;
             Caption = 'Qty. per Unit of Measure';
+            ToolTip = 'Specifies the quantity per unit of measure of the component item on the assembly order line.';
             DecimalPlaces = 0 : 5;
             Editable = false;
             InitValue = 1;
@@ -568,6 +594,7 @@ table 901 "Assembly Line"
         field(62; "Inventory Posting Group"; Code[20])
         {
             Caption = 'Inventory Posting Group';
+            ToolTip = 'Specifies links between business transactions made for the item and an inventory account in the general ledger, to group amounts for that item type.';
             TableRelation = "Inventory Posting Group";
         }
         field(63; "Gen. Prod. Posting Group"; Code[20])
@@ -583,6 +610,7 @@ table 901 "Assembly Line"
         field(64; "Gen. Bus. Posting Group"; Code[20])
         {
             Caption = 'Gen. Bus. Posting Group';
+            ToolTip = 'Specifies the code for the General Business Posting Group that applies to the entry.';
             TableRelation = "Gen. Business Posting Group";
         }
         field(65; "Unit Cost"; Decimal)
@@ -590,6 +618,7 @@ table 901 "Assembly Line"
             AutoFormatType = 2;
             AutoFormatExpression = '';
             Caption = 'Unit Cost';
+            ToolTip = 'Specifies the cost of one unit of the item or resource on the line.';
             MinValue = 0;
 
             trigger OnValidate()
@@ -615,6 +644,7 @@ table 901 "Assembly Line"
             AutoFormatType = 1;
             AutoFormatExpression = '';
             Caption = 'Cost Amount';
+            ToolTip = 'Specifies the cost of the assembly order line.';
             Editable = false;
         }
         field(72; "Date Filter"; Date)
@@ -625,6 +655,7 @@ table 901 "Assembly Line"
         field(80; "Unit of Measure Code"; Code[10])
         {
             Caption = 'Unit of Measure Code';
+            ToolTip = 'Specifies how each unit of the item or resource is measured, such as in pieces or hours. By default, the value in the Base Unit of Measure field on the item or resource card is inserted.';
             TableRelation = if (Type = const(Item)) "Item Unit of Measure".Code where("Item No." = field("No."))
             else
             if (Type = const(Resource)) "Resource Unit of Measure".Code where("Resource No." = field("No."));
@@ -696,6 +727,7 @@ table 901 "Assembly Line"
                                                                                   "Original Breakbulk" = const(false),
                                                                                   "Breakbulk No." = const(0)));
             Caption = 'Pick Qty.';
+            ToolTip = 'Specifies how many units of the assembly component are currently on warehouse pick lines.';
             DecimalPlaces = 0 : 5;
             Editable = false;
             FieldClass = FlowField;
@@ -724,6 +756,7 @@ table 901 "Assembly Line"
         {
             AutoFormatType = 0;
             Caption = 'Qty. Picked';
+            ToolTip = 'Specifies how many units of the assembly component have been moved or picked for the assembly order line.';
             DecimalPlaces = 0 : 5;
             Editable = false;
 
@@ -831,6 +864,11 @@ table 901 "Assembly Line"
 #pragma warning restore AA0074
         AvailabilityPageTitleLbl: Label 'The available inventory for item %1 is lower than the entered quantity at this location.', Comment = '%1=Item No.';
         ConfirmDeleteQst: Label '%1 = %2 is greater than %3 = %4. If you delete the %5, the items will remain in the operation area until you put them away.\Any related item tracking information defined during the pick process will be deleted.\Do you still want to delete the %5?', Comment = '%1 = FieldCaption("Qty. Picked"), %2 = "Qty. Picked", %3 = FieldCaption(Consumed Quantity), %4 = Consumed Quantity, %5 = TableCaption';
+        CannotAutoReserveErr: Label 'Quantity %1 in line %2 cannot be reserved automatically.', Comment = '%1 - quantity, %2 - line number';
+#pragma warning disable AA0470
+        ProgressMsg: Label 'Reserving inventory...\#1##############\@2@@@@@';
+#pragma warning restore AA0470
+        CountFromTotalLineLbl: Label '%1 of %2', Comment = '%1= Current line number, %2= Total line number';
 
     protected var
         StatusCheckSuspended: Boolean;
@@ -2124,6 +2162,43 @@ table 901 "Assembly Line"
     procedure GetSuspendDeletionCheck(): Boolean
     begin
         exit(CalledFromHeader);
+    end;
+
+    procedure ReserveFromInventory(var AssemblyLine: Record "Assembly Line")
+    var
+        ReservMgt: Codeunit "Reservation Management";
+        SourceRecRef: RecordRef;
+        AutoReserved: Boolean;
+        Window: Dialog;
+        TotalLines: Integer;
+        CurrentLine: Integer;
+    begin
+        AssemblyLine.SetAutoCalcFields("Reserved Quantity", "Reserved Qty. (Base)");
+        if AssemblyLine.FindSet() then begin
+            TotalLines := AssemblyLine.Count();
+            CurrentLine := 0;
+
+            Window.Open(ProgressMsg);
+            repeat
+                CurrentLine += 1;
+
+                Window.Update(1, StrSubstNo(CountFromTotalLineLbl, CurrentLine, TotalLines));
+                Window.Update(2, Round(CurrentLine * 100 / TotalLines, 1));
+                SourceRecRef.GetTable(AssemblyLine);
+                ReservMgt.SetReservSource(SourceRecRef);
+                AssemblyLine.TestField("Due Date");
+                ReservMgt.AutoReserveToShip(
+                  AutoReserved, '', AssemblyLine."Due Date",
+                  AssemblyLine."Quantity to Consume" - AssemblyLine."Reserved Quantity",
+                  AssemblyLine."Quantity to Consume (Base)" - AssemblyLine."Reserved Qty. (Base)");
+
+                if not AutoReserved then begin
+                    Window.Close();
+                    Error(CannotAutoReserveErr, AssemblyLine."Quantity to Consume (Base)", AssemblyLine."Line No.");
+                end;
+            until AssemblyLine.Next() = 0;
+            Window.Close();
+        end;
     end;
 
     local procedure CheckingRoundingPrecision()

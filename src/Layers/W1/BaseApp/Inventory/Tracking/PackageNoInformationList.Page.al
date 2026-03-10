@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -27,44 +27,36 @@ page 6516 "Package No. Information List"
                 ShowCaption = false;
                 field("Item No."; Rec."Item No.")
                 {
-                    ToolTip = 'Specifies the number of the involved entry or record, according to the specified number series.';
                     Visible = false;
                 }
                 field("Variant Code"; Rec."Variant Code")
                 {
-                    ToolTip = 'Specifies the variant of the item on the line.';
                     Visible = false;
                 }
                 field("Package No."; Rec."Package No.")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the customs declaration number.';
                 }
                 field("Country/Region Code"; Rec."Country/Region Code")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the country/region of the address.';
                 }
                 field(Description; Rec.Description)
                 {
                     ApplicationArea = Basic, Suite;
                     Editable = true;
-                    ToolTip = 'Specifies the description associated with this line.';
                 }
                 field(Blocked; Rec.Blocked)
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies that the related record is blocked from being posted in transactions, for example a customer that is declared insolvent or an item that is placed in quarantine.';
                 }
                 field(Control16; Rec.Comment)
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the comment associated with this line.';
                 }
                 field(Inventory; Rec.Inventory)
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the quantity on inventory with this line.';
                     Visible = false;
                 }
             }

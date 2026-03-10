@@ -4,7 +4,6 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.QualityManagement.Integration.Sales.Document;
 
-using Microsoft.QualityManagement.AccessControl;
 using Microsoft.QualityManagement.Document;
 using Microsoft.Sales.Document;
 
@@ -12,83 +11,75 @@ pageextension 20406 "Qlty. Sales Return Order Subf." extends "Sales Return Order
 {
     actions
     {
-        addafter("&Line")
+        addlast("F&unctions")
         {
-            group(Qlty_Management)
+            group(Qlty_QualityManagement)
             {
                 Caption = 'Quality Management';
 
-                action(Qlty_InspectionCreate)
+                action(Qlty_CreateQualityInspection)
                 {
                     ApplicationArea = QualityManagement;
+                    AccessByPermission = tabledata "Qlty. Inspection Header" = I;
                     Image = CreateForm;
                     Caption = 'Create Quality Inspection';
                     ToolTip = 'Creates a quality inspection for this sales return order line.';
                     AboutTitle = 'Create Quality Inspection';
                     AboutText = 'Create a quality inspection for this sales return order line.';
-                    Enabled = QltyShowCreateInspection;
-                    Visible = QltyShowCreateInspection;
 
                     trigger OnAction()
                     var
                         QltyInspectionCreate: Codeunit "Qlty. Inspection - Create";
                     begin
-                        QltyInspectionCreate.CreateInspectionWithVariant(Rec, true);
+                        if CanBeProcessed() then
+                            QltyInspectionCreate.CreateInspectionWithVariant(Rec, true);
                     end;
                 }
-                action(Qlty_InspectionShowInspectionsForItemAndDocument)
+                action(Qlty_ShowQualityInspectionsForItemAndDocument)
                 {
                     ApplicationArea = QualityManagement;
+                    AccessByPermission = tabledata "Qlty. Inspection Header" = R;
                     Image = TaskQualityMeasure;
                     Caption = 'Show Quality Inspections for Item and Document';
                     ToolTip = 'Shows quality inspections for this item and document.';
                     AboutTitle = 'Show Quality Inspections';
                     AboutText = 'Shows quality inspections for this item and document.';
-                    Enabled = QltyReadTestResults;
-                    Visible = QltyReadTestResults;
 
                     trigger OnAction()
                     var
                         QltyInspectionList: Page "Qlty. Inspection List";
                     begin
-                        QltyInspectionList.RunModalSourceItemAndSourceDocumentFilterWithRecord(Rec);
+                        if CanBeProcessed() then
+                            QltyInspectionList.RunModalSourceItemAndSourceDocumentFilterWithRecord(Rec);
                     end;
                 }
-                action(Qlty_InspectionShowInspectionsForItem)
+                action(Qlty_ShowQualityInspectionsForItem)
                 {
                     ApplicationArea = QualityManagement;
+                    AccessByPermission = tabledata "Qlty. Inspection Header" = R;
                     Image = TaskQualityMeasure;
                     Caption = 'Show Quality Inspections for Item';
                     ToolTip = 'Shows Quality Inspections for Item';
                     AboutTitle = 'Show Quality Inspections';
                     AboutText = 'Shows quality inspections for this item.';
-                    Enabled = QltyReadTestResults;
-                    Visible = QltyReadTestResults;
 
                     trigger OnAction()
                     var
                         QltyInspectionList: Page "Qlty. Inspection List";
                     begin
-                        QltyInspectionList.RunModalSourceItemFilterWithRecord(Rec);
+                        if CanBeProcessed() then
+                            QltyInspectionList.RunModalSourceItemFilterWithRecord(Rec);
                     end;
                 }
             }
         }
     }
 
-    var
-        QltyShowCreateInspection: Boolean;
-        QltyReadTestResults: Boolean;
-
-    trigger OnOpenPage()
-    var
-        CheckLicensePermissionQltyInspectionHeader: Record "Qlty. Inspection Header";
-        QltyPermissionMgmt: Codeunit "Qlty. Permission Mgmt.";
+    local procedure CanBeProcessed(): Boolean
     begin
-        if not CheckLicensePermissionQltyInspectionHeader.WritePermission() then
-            exit;
+        if IsNullGuid(Rec.SystemId) then
+            exit(false);
 
-        QltyShowCreateInspection := QltyPermissionMgmt.CanCreateManualInspection();
-        QltyReadTestResults := QltyPermissionMgmt.CanReadInspectionResults();
+        exit((Rec.Type = Rec.Type::Item) and (Rec."No." <> ''));
     end;
 }

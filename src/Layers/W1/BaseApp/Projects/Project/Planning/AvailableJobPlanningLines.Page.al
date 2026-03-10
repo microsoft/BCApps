@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -33,12 +33,10 @@ page 1032 "Available - Job Planning Lines"
                 field(Status; Rec.Status)
                 {
                     ApplicationArea = Jobs;
-                    ToolTip = 'Specifies the status of a project order.';
                 }
                 field("Document No."; Rec."Document No.")
                 {
                     ApplicationArea = Jobs;
-                    ToolTip = 'Specifies a document number for the planning line.';
                 }
                 field("Location Code"; Rec."Location Code")
                 {
@@ -59,7 +57,6 @@ page 1032 "Available - Job Planning Lines"
                 {
                     ApplicationArea = Reservation;
                     Editable = false;
-                    ToolTip = 'Specifies the quantity of the item that is reserved for the project planning line.';
                 }
                 field(QtyToReserveBase; QtyToReserveBase)
                 {
@@ -92,7 +89,6 @@ page 1032 "Available - Job Planning Lines"
                 field("Work Type Code"; Rec."Work Type Code")
                 {
                     ApplicationArea = Jobs;
-                    ToolTip = 'Specifies which work type the resource applies to. Prices are updated based on this entry.';
                     Visible = false;
                 }
             }

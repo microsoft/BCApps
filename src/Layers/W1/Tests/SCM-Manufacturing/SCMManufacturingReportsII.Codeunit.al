@@ -48,6 +48,7 @@ codeunit 137310 "SCM Manufacturing Reports -II"
         LibraryUtility: Codeunit "Library - Utility";
         Assert: Codeunit Assert;
         LibraryTestInitialize: Codeunit "Library - Test Initialize";
+        LibrarySetupStorage: Codeunit "Library - Setup Storage";
         isInitialized: Boolean;
         NoOfLinesError: Label 'Number of Lines must be the same.';
         FinishProductionOrder: Label 'Do you still want to finish the order?';
@@ -386,6 +387,7 @@ codeunit 137310 "SCM Manufacturing Reports -II"
         VerifyProdOrderShortageListReport(ChildItem, ProductionOrder."No.", ProductionOrder.Status::Finished);
     end;
 
+#if not CLEAN28
     [Test]
     [HandlerFunctions('InventoryAvailabilityPlanRequestPageHandler')]
     [Scope('OnPrem')]
@@ -427,6 +429,50 @@ codeunit 137310 "SCM Manufacturing Reports -II"
 
         // Verify: Verify the Item and Item Inventory exist on the Inventory Availability Plan Report.
         VerifyInvtAvailabilityPlanReport(Item, 'LocCode_SKU', Location.Code, 'Inventory1_Item');
+    end;
+#endif
+
+    [Test]
+    [HandlerFunctions('InvAvailabilityPlanRequestPageHandler')]
+    [Scope('OnPrem')]
+    procedure InvAvailabilityPlanReportForItem()
+    var
+        Item: Record Item;
+    begin
+        // [GIVEN] Create Item. Update Item Inventory.
+        Initialize();
+        Item.Get(CreateChildItemWithInventory());
+
+        // [WHEN] Run and save the Inventory Availability Plan Report.
+        Commit();
+        RunAndSaveInvAvailabilityPlanReport(Item, false);
+
+        // [THEN] Verify the Item and Item Inventory exist on the Inventory Availability Plan Report.
+        VerifyInvAvailabilityPlanReportInventoryRow(Item, 'ItemNo', Item."No.", 'CurrentQuantity');
+    end;
+
+    [Test]
+    [HandlerFunctions('InvAvailabilityPlanRequestPageHandler')]
+    [Scope('OnPrem')]
+    procedure InvAvailabilityPlanReportForItemWithStockKeepingUnit()
+    var
+        Item: Record Item;
+        Location: Record Location;
+    begin
+        // [GIVEN] Create Item. Update Item Inventory.
+        Initialize();
+        Item.Get(CreateChildItemWithInventory());
+        LibraryWarehouse.CreateLocationWithInventoryPostingSetup(Location);
+        LibraryInventory.PostPositiveAdjustment(Item, Location.Code, '', '', LibraryRandom.RandDec(100, 2),
+          WorkDate(), LibraryRandom.RandDec(100, 2));
+        LibraryInventory.CreateStockKeepingUnit(Item, "SKU Creation Method"::Location, false, false);
+
+        // [WHEN] Run and save the Inventory Availability Plan Report.
+        Commit();
+        RunAndSaveInvAvailabilityPlanReport(Item, true);
+
+        // [THEN] Verify the Item and Item Inventory exist on the Inventory Availability Plan Report.
+        VerifyInvAvailabilityPlanReportInventoryRow(Item, 'LocationCode', Location.Code, 'CurrentQuantity');
     end;
 
     [Test]
@@ -507,10 +553,48 @@ codeunit 137310 "SCM Manufacturing Reports -II"
         LibraryReportDataset.AssertCurrentRowValueEquals('SourceNo_ProductionOrder', ProductionOrder."Source No.");
         LibraryReportDataset.AssertCurrentRowValueEquals('ValueOfOutput',
           -(ValueEntry."Cost Posted to G/L" + ValueEntry."Expected Cost Posted to G/L"));
+    end;
 
-        // Tear down: Restore the values of Inventory Setup and General Ledger Setup.
-        UpdateInventorySetup(InventorySetup."Automatic Cost Posting", InventorySetup."Expected Cost Posting to G/L",
-          InventorySetup."Automatic Cost Adjustment");
+    [Test]
+    [HandlerFunctions('ExpCostPostingConfirmHandler,ExpCostPostingMsgHandler,InventoryValuationWIPRequestPageHandler')]
+    [Scope('OnPrem')]
+    procedure InventoryValuationWIPReportTotals()
+    var
+        Item: Record Item;
+        ProductionOrder: Record "Production Order";
+        InventorySetup: Record "Inventory Setup";
+        ValueEntry: Record "Value Entry";
+        ProductionOrderNos: Array[2] of Code[20];
+        ValueOfOutput: Array[2] of Decimal;
+    begin
+        // [SCENARIO] Report "Inventory Valuation - WIP" should correctly represent Subtotals and Totals values
+        Initialize();
+
+        // [GIVEN] Update Automatic Cost Setup. Create Item.
+        ExecuteUIHandlers();
+        UpdateInventorySetup(true, true, InventorySetup."Automatic Cost Adjustment"::Never);
+        CreateItem(Item, '', '');
+        // [GIVEN] Create and refresh two Released Production Orders.
+        ProductionOrderNos[1] := CreateAndRefreshProductionOrder(ProductionOrder, Item."No.");
+        ExplodeRoutingAndPostOutputJournal(ProductionOrderNos[1]);  // Explode Routing and Post Output Journal.
+        ProductionOrderNos[2] := CreateAndRefreshProductionOrder(ProductionOrder, Item."No.");
+        ExplodeRoutingAndPostOutputJournal(ProductionOrderNos[2]);  // Explode Routing and Post Output Journal.
+
+        // [WHEN] Run "Inventory Valuation - WIP" Report.
+        ProductionOrder.SetFilter("No.", '%1|%2', ProductionOrderNos[1], ProductionOrderNos[2]);
+        LibraryVariableStorage.Enqueue(WorkDate());
+        LibraryVariableStorage.Enqueue(WorkDate());
+        REPORT.Run(REPORT::"Inventory Valuation - WIP", true, false, ProductionOrder);
+
+        // [THEN] Verify the Cost Posted to GL field and the Total Costs Posted to GL on Inventory Valuation WIP Report.
+        FindValueEntryForOutput(ValueEntry, Item."No.");
+        ValueOfOutput[1] := -(ValueEntry."Cost Posted to G/L" + ValueEntry."Expected Cost Posted to G/L");
+        LibraryReportDataset.LoadDataSetFile();
+        LibraryReportDataset.AssertElementWithValueExists('ValueOfOutput', ValueOfOutput[1]);
+        ValueEntry.Next();
+        ValueOfOutput[2] := -(ValueEntry."Cost Posted to G/L" + ValueEntry."Expected Cost Posted to G/L");
+        LibraryReportDataset.AssertElementWithValueExists('ValueOfOutput', ValueOfOutput[2]);
+        LibraryReportDataset.AssertElementWithValueExists('ValueOfOutputSum', (ValueOfOutput[1] + ValueOfOutput[2]));
     end;
 
     [Test]
@@ -665,6 +749,8 @@ codeunit 137310 "SCM Manufacturing Reports -II"
     begin
         LibraryTestInitialize.OnTestInitialize(CODEUNIT::"SCM Manufacturing Reports -II");
         LibraryVariableStorage.Clear();
+        // Lazy Setup.
+        LibrarySetupStorage.Restore();
 
         if isInitialized then
             exit;
@@ -674,6 +760,7 @@ codeunit 137310 "SCM Manufacturing Reports -II"
         ItemJournalSetup();
         ConsumptionJournalSetup();
         OutputJournalSetup();
+        LibrarySetupStorage.Save(DATABASE::"Inventory Setup");
 
         isInitialized := true;
         Commit();
@@ -888,6 +975,13 @@ codeunit 137310 "SCM Manufacturing Reports -II"
         LibraryManufacturing.RefreshProdOrder(ProductionOrder, false, true, true, true, false);
     end;
 
+    local procedure CreateAndRefreshProductionOrder(var ProductionOrder: Record "Production Order"; SourceNo: Code[20]): Code[20]
+    begin
+        CreateAndRefreshProductionOrder(
+          ProductionOrder, ProductionOrder.Status::Released, SourceNo, LibraryRandom.RandDec(100, 2));
+        exit(ProductionOrder."No.");
+    end;
+
     local procedure FindProductionOrderComponent(var ProdOrderComponent: Record "Prod. Order Component"; ProdOrderNo: Code[20]; Status: Enum "Production Order Status")
     begin
         ProdOrderComponent.SetRange("Prod. Order No.", ProdOrderNo);
@@ -907,6 +1001,7 @@ codeunit 137310 "SCM Manufacturing Reports -II"
         REPORT.Run(REPORT::"Prod. Order - Shortage List", true, false, ProductionOrder);
     end;
 
+#if not CLEAN28
     local procedure RunAndSaveInventoryAvailabilityPlanReport(var Item: Record Item; UseStockkeepingUnit: Boolean)
     var
         PeriodLength: DateFormula;
@@ -917,6 +1012,19 @@ codeunit 137310 "SCM Manufacturing Reports -II"
         LibraryVariableStorage.Enqueue(PeriodLength);
         LibraryVariableStorage.Enqueue(UseStockkeepingUnit);
         REPORT.Run(REPORT::"Inventory - Availability Plan", true, false, Item);
+    end;
+#endif
+
+    local procedure RunAndSaveInvAvailabilityPlanReport(var Item: Record Item; UseStockkeepingUnit: Boolean)
+    var
+        PeriodLength: DateFormula;
+    begin
+        Item.SetRange("No.", Item."No.");
+        Evaluate(PeriodLength, '<' + Format(LibraryRandom.RandInt(10)) + 'D>');
+        LibraryVariableStorage.Enqueue(WorkDate());
+        LibraryVariableStorage.Enqueue(PeriodLength);
+        LibraryVariableStorage.Enqueue(UseStockkeepingUnit);
+        REPORT.Run(REPORT::"Inv. Availability Plan", true, false, Item);
     end;
 
     local procedure UpdateInventorySetup(AutomaticCostPosting: Boolean; ExpectedCostPosting: Boolean; AutomaticCostAdjustment: Enum "Automatic Cost Adjustment Type")
@@ -1092,12 +1200,28 @@ codeunit 137310 "SCM Manufacturing Reports -II"
             LibraryReportDataset.AssertCurrentRowValueEquals('ActCost1', MaterialCost); // Act. Material Cost.
     end;
 
+#if not CLEAN28
     [Normal]
     local procedure VerifyInvtAvailabilityPlanReport(Item: Record Item; KeyElement: Text; KeyValue: Variant; InventoryElement: Text)
     begin
         Item.CalcFields(Inventory);
         LibraryReportDataset.LoadDataSetFile();
         LibraryReportDataset.SetRange(KeyElement, KeyValue);
+        LibraryReportDataset.GetNextRow();
+        LibraryReportDataset.AssertCurrentRowValueEquals(InventoryElement, Item.Inventory);
+    end;
+#endif
+
+    [Normal]
+    local procedure VerifyInvAvailabilityPlanReportInventoryRow(Item: Record Item; KeyElement: Text; KeyValue: Variant; InventoryElement: Text)
+    var
+        CategoryNameLbl: Label 'CategoryName';
+        InventoryLbl: Label 'Inventory';
+    begin
+        Item.CalcFields(Inventory);
+        LibraryReportDataset.LoadDataSetFile();
+        LibraryReportDataset.SetRange(KeyElement, KeyValue);
+        LibraryReportDataset.SetRange(CategoryNameLbl, InventoryLbl);
         LibraryReportDataset.GetNextRow();
         LibraryReportDataset.AssertCurrentRowValueEquals(InventoryElement, Item.Inventory);
     end;
@@ -1199,6 +1323,7 @@ codeunit 137310 "SCM Manufacturing Reports -II"
         ProdOrderShortageList.SaveAsXml(LibraryReportDataset.GetParametersFileName(), LibraryReportDataset.GetFileName());
     end;
 
+#if not CLEAN28
     [RequestPageHandler]
     [Scope('OnPrem')]
     procedure InventoryAvailabilityPlanRequestPageHandler(var InventoryAvailabilityPlan: TestRequestPage "Inventory - Availability Plan")
@@ -1215,6 +1340,25 @@ codeunit 137310 "SCM Manufacturing Reports -II"
         InventoryAvailabilityPlan.PeriodLength.SetValue(PeriodLength);
         InventoryAvailabilityPlan.UseStockkeepUnit.SetValue(UseStockeepingUnit);
         InventoryAvailabilityPlan.SaveAsXml(LibraryReportDataset.GetParametersFileName(), LibraryReportDataset.GetFileName());
+    end;
+#endif
+
+    [RequestPageHandler]
+    [Scope('OnPrem')]
+    procedure InvAvailabilityPlanRequestPageHandler(var InvAvailabilityPlan: TestRequestPage "Inv. Availability Plan")
+    var
+        StartingDate: Variant;
+        PeriodLength: Variant;
+        UseStockeepingUnit: Variant;
+    begin
+        LibraryVariableStorage.Dequeue(StartingDate);
+        LibraryVariableStorage.Dequeue(PeriodLength);
+        LibraryVariableStorage.Dequeue(UseStockeepingUnit);
+
+        InvAvailabilityPlan.StartingDate.SetValue(StartingDate);
+        InvAvailabilityPlan.PeriodLength.SetValue(PeriodLength);
+        InvAvailabilityPlan.UseStockkeepUnit.SetValue(UseStockeepingUnit);
+        InvAvailabilityPlan.SaveAsXml(LibraryReportDataset.GetParametersFileName(), LibraryReportDataset.GetFileName());
     end;
 
     [RequestPageHandler]

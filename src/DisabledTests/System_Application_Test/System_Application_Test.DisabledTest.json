@@ -1823,5 +1823,150 @@
     "codeunitId": 135150,
     "codeunitName": "Data Classification Mgt. Tests",
     "method": "TestPopulateFieldValue"
+  },
+  {
+    "codeunitId": 130043,
+    "codeunitName": "Language Test",
+    "method": "GetUserLanguageCodeRaisesEvent"
+  },
+  {
+    "codeunitId": 130043,
+    "codeunitName": "Language Test",
+    "method": "GetUserLanguageCodeReturnGlobalLanguage"
+  },
+  {
+    "codeunitId": 130043,
+    "codeunitName": "Language Test",
+    "method": "GetLanguageIdOrDefaultEmptyCode"
+  },
+  {
+    "codeunitId": 130043,
+    "codeunitName": "Language Test",
+    "method": "GetLanguageIdOrDefaultInvalidCode"
+  },
+  {
+    "codeunitId": 130043,
+    "codeunitName": "Language Test",
+    "method": "GetLanguageIdOrDefaultValidCode"
+  },
+  {
+    "codeunitId": 130043,
+    "codeunitName": "Language Test",
+    "method": "GetLanguageIdEmptyCode"
+  },
+  {
+    "codeunitId": 130043,
+    "codeunitName": "Language Test",
+    "method": "GetLanguageIdInvalidCode"
+  },
+  {
+    "codeunitId": 130043,
+    "codeunitName": "Language Test",
+    "method": "GetLanguageIdValidCode"
+  },
+  {
+    "codeunitId": 130043,
+    "codeunitName": "Language Test",
+    "method": "GetLanguageCodeZeroIdTest"
+  },
+  {
+    "codeunitId": 130043,
+    "codeunitName": "Language Test",
+    "method": "GetLanguageCodeInvalidId"
+  },
+  {
+    "codeunitId": 130043,
+    "codeunitName": "Language Test",
+    "method": "GetLanguageCodeValidId"
+  },
+  {
+    "codeunitId": 130043,
+    "codeunitName": "Language Test",
+    "method": "GetLanguageNameByLanguageCodeEmptyCode"
+  },
+  {
+    "codeunitId": 130043,
+    "codeunitName": "Language Test",
+    "method": "GetLanguageNameByLanguageCodInvalidCode"
+  },
+  {
+    "codeunitId": 130043,
+    "codeunitName": "Language Test",
+    "method": "GetLanguageNameByLanguageCodValidCode"
+  },
+  {
+    "codeunitId": 130043,
+    "codeunitName": "Language Test",
+    "method": "GetLanguageNameByLanguageIdZeroId"
+  },
+  {
+    "codeunitId": 130043,
+    "codeunitName": "Language Test",
+    "method": "GetLanguageNameByLanguageIdInvalidId"
+  },
+  {
+    "codeunitId": 130043,
+    "codeunitName": "Language Test",
+    "method": "GetLanguageNameByLanguageIdValidId"
+  },
+  {
+    "codeunitId": 130043,
+    "codeunitName": "Language Test",
+    "method": "ValidateApplicationLanguageIdInvalidId"
+  },
+  {
+    "codeunitId": 130043,
+    "codeunitName": "Language Test",
+    "method": "ValidateApplicationLanguageIdValidId"
+  },
+  {
+    "codeunitId": 130043,
+    "codeunitName": "Language Test",
+    "method": "ValidateWindowsLanguageIdInvalidId"
+  },
+  {
+    "codeunitId": 130043,
+    "codeunitName": "Language Test",
+    "method": "ValidateWindowsLanguageIdValidId"
+  },
+  {
+    "codeunitId": 130043,
+    "codeunitName": "Language Test",
+    "method": "LookupApplicationLanguageIdOnCancel"
+  },
+  {
+    "codeunitId": 130043,
+    "codeunitName": "Language Test",
+    "method": "LookupApplicationLanguageIdSelectLanguage"
+  },
+  {
+    "codeunitId": 130444,
+    "codeunitName": "Word Templates Related Test",
+    "method": "TestAddRelatedTable"
+  },
+  {
+    "codeunitId": 130444,
+    "codeunitName": "Word Templates Related Test",
+    "method": "TestAddRelatedTableForExistingCode"
+  },
+  {
+    "codeunitId": 130444,
+    "codeunitName": "Word Templates Related Test",
+    "method": "TestAddRelatedTableForExistingTable"
+  },
+  {
+    "codeunitId": 132605,
+    "codeunitName": "Checklist Banner Test",
+    "method": "TestChecklistBanner"
+  },
+  {
+    "codeunitId": 132619,
+    "codeunitName": "Checklist Banner Facade Test",
+    "method": "TestSkipChecklistBannerWelcomePage"
+  },
+  {
+    "codeunitId": 132985,
+    "codeunitName": "SharePoint Graph Advanced Test",
+    "method": "TestCopyItemByPath"
   }
 ]

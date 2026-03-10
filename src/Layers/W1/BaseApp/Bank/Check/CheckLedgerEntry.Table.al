@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -41,6 +41,7 @@ table 272 "Check Ledger Entry"
         field(1; "Entry No."; Integer)
         {
             Caption = 'Entry No.';
+            ToolTip = 'Specifies the number of the entry, as assigned from the specified number series when the entry was created.';
         }
         /// <summary>
         /// Bank account from which the check was issued or payment was made.
@@ -48,6 +49,7 @@ table 272 "Check Ledger Entry"
         field(2; "Bank Account No."; Code[20])
         {
             Caption = 'Bank Account No.';
+            ToolTip = 'Specifies the number of the bank account used for the check ledger entry.';
             TableRelation = "Bank Account";
         }
         /// <summary>
@@ -56,6 +58,7 @@ table 272 "Check Ledger Entry"
         field(3; "Bank Account Ledger Entry No."; Integer)
         {
             Caption = 'Bank Account Ledger Entry No.';
+            ToolTip = 'Specifies the entry number of the bank account ledger entry from which the check ledger entry was created.';
             TableRelation = "Bank Account Ledger Entry";
         }
         /// <summary>
@@ -64,6 +67,7 @@ table 272 "Check Ledger Entry"
         field(4; "Posting Date"; Date)
         {
             Caption = 'Posting Date';
+            ToolTip = 'Specifies the posting date of the check ledger entry.';
         }
         /// <summary>
         /// Type of document that generated the check (typically Payment or Refund).
@@ -71,6 +75,7 @@ table 272 "Check Ledger Entry"
         field(5; "Document Type"; Enum "Gen. Journal Document Type")
         {
             Caption = 'Document Type';
+            ToolTip = 'Specifies the document type linked to the check ledger entry. For example, Payment.';
         }
         /// <summary>
         /// Document number associated with the check transaction.
@@ -78,6 +83,7 @@ table 272 "Check Ledger Entry"
         field(6; "Document No."; Code[20])
         {
             Caption = 'Document No.';
+            ToolTip = 'Specifies the document number on the check ledger entry.';
         }
         /// <summary>
         /// Descriptive text explaining the purpose or payee of the check.
@@ -85,6 +91,7 @@ table 272 "Check Ledger Entry"
         field(7; Description; Text[100])
         {
             Caption = 'Description';
+            ToolTip = 'Specifies a printing description for the check ledger entry.';
         }
         /// <summary>
         /// Amount of the check in the bank account's currency.
@@ -94,6 +101,7 @@ table 272 "Check Ledger Entry"
             AutoFormatExpression = GetCurrencyCodeFromBank();
             AutoFormatType = 1;
             Caption = 'Amount';
+            ToolTip = 'Specifies the amount on the check ledger entry.';
         }
         /// <summary>
         /// Date printed or written on the physical check.
@@ -101,6 +109,7 @@ table 272 "Check Ledger Entry"
         field(9; "Check Date"; Date)
         {
             Caption = 'Check Date';
+            ToolTip = 'Specifies the check date if a check is printed.';
         }
         /// <summary>
         /// Check number as printed on the physical check or assigned for electronic payments.
@@ -108,6 +117,7 @@ table 272 "Check Ledger Entry"
         field(10; "Check No."; Code[20])
         {
             Caption = 'Check No.';
+            ToolTip = 'Specifies the check number if a check is printed.';
         }
         /// <summary>
         /// Indicates whether this represents a complete check or partial check payment.
@@ -115,6 +125,7 @@ table 272 "Check Ledger Entry"
         field(11; "Check Type"; Option)
         {
             Caption = 'Check Type';
+            ToolTip = 'Specifies the type check, such as Manual.';
             OptionCaption = 'Total Check,Partial Check';
             OptionMembers = "Total Check","Partial Check";
         }
@@ -124,6 +135,7 @@ table 272 "Check Ledger Entry"
         field(12; "Bank Payment Type"; Enum "Bank Payment Type")
         {
             Caption = 'Bank Payment Type';
+            ToolTip = 'Specifies the code for the payment type to be used for the entry on the journal line.';
         }
         /// <summary>
         /// Current lifecycle status of the check from creation through final disposition.
@@ -131,6 +143,7 @@ table 272 "Check Ledger Entry"
         field(13; "Entry Status"; Option)
         {
             Caption = 'Entry Status';
+            ToolTip = 'Specifies the printing (and posting) status of the check ledger entry.';
             OptionCaption = ',Printed,Voided,Posted,Financially Voided,Test Print,Exported,Transmitted';
             OptionMembers = ,Printed,Voided,Posted,"Financially Voided","Test Print",Exported,Transmitted;
         }
@@ -140,6 +153,7 @@ table 272 "Check Ledger Entry"
         field(14; "Original Entry Status"; Option)
         {
             Caption = 'Original Entry Status';
+            ToolTip = 'Specifies the status of the entry before you changed it.';
             OptionCaption = ' ,Printed,Voided,Posted,Financially Voided';
             OptionMembers = " ",Printed,Voided,Posted,"Financially Voided";
         }
@@ -149,6 +163,7 @@ table 272 "Check Ledger Entry"
         field(15; "Bal. Account Type"; Enum "Gen. Journal Account Type")
         {
             Caption = 'Bal. Account Type';
+            ToolTip = 'Specifies the type of account that a balancing entry is posted to, such as BANK for a cash account.';
         }
         /// <summary>
         /// Account number of the payee receiving the check payment.
@@ -156,6 +171,7 @@ table 272 "Check Ledger Entry"
         field(16; "Bal. Account No."; Code[20])
         {
             Caption = 'Bal. Account No.';
+            ToolTip = 'Specifies the number of the general ledger, customer, vendor, or bank account that the balancing entry is posted to, such as a cash account for cash purchases.';
             TableRelation = if ("Bal. Account Type" = const("G/L Account")) "G/L Account"
             else
             if ("Bal. Account Type" = const(Customer)) Customer
@@ -172,6 +188,7 @@ table 272 "Check Ledger Entry"
         field(17; Open; Boolean)
         {
             Caption = 'Open';
+            ToolTip = 'Specifies whether the entry has been fully applied to.';
         }
         /// <summary>
         /// Status of check reconciliation with bank statements.
@@ -179,6 +196,7 @@ table 272 "Check Ledger Entry"
         field(18; "Statement Status"; Option)
         {
             Caption = 'Statement Status';
+            ToolTip = 'Specifies that the structure of the lines is based on the chart of cost types. You define up to seven cost centers and cost objects that appear as columns in the report.';
             OptionCaption = 'Open,Bank Acc. Entry Applied,Check Entry Applied,Closed';
             OptionMembers = Open,"Bank Acc. Entry Applied","Check Entry Applied",Closed;
         }
@@ -188,6 +206,7 @@ table 272 "Check Ledger Entry"
         field(19; "Statement No."; Code[20])
         {
             Caption = 'Statement No.';
+            ToolTip = 'Specifies the bank account statement that the check ledger entry has been applied to, if the Statement Status is Bank Account Ledger Applied or Check Ledger Applied.';
             TableRelation = "Bank Acc. Reconciliation Line"."Statement No." where("Bank Account No." = field("Bank Account No."));
         }
         /// <summary>
@@ -196,6 +215,7 @@ table 272 "Check Ledger Entry"
         field(20; "Statement Line No."; Integer)
         {
             Caption = 'Statement Line No.';
+            ToolTip = 'Specifies the statement line that the check ledger entry has been applied to, if the Statement Status is Bank Account Ledger Applied or Check Ledger Applied.';
             TableRelation = "Bank Acc. Reconciliation Line"."Statement Line No." where("Bank Account No." = field("Bank Account No."),
                                                                                         "Statement No." = field("Statement No."));
         }
@@ -205,6 +225,7 @@ table 272 "Check Ledger Entry"
         field(21; "User ID"; Code[50])
         {
             Caption = 'User ID';
+            ToolTip = 'Specifies the ID of the user who posted the entry, to be used, for example, in the change log.';
             DataClassification = EndUserIdentifiableInformation;
             TableRelation = User."User Name";
         }
@@ -214,6 +235,7 @@ table 272 "Check Ledger Entry"
         field(22; "External Document No."; Code[35])
         {
             Caption = 'External Document No.';
+            ToolTip = 'Specifies a document number that refers to the customer''s or vendor''s numbering system.';
         }
         /// <summary>
         /// Reference to data exchange entry for electronic payment processing.

@@ -897,6 +897,75 @@ codeunit 137200 "SCM Inventory Movement Test"
         WarehouseEntry.TestField("Bin Code", Bin[2].Code);
     end;
 
+    [Test]
+    [HandlerFunctions('ConfirmHandlerYes,MessageHandlerSimple')]
+    procedure InventoryMovementSetsReferenceNoInWarehouseEntries()
+    var
+        Location: Record Location;
+        WhseWorksheetTemplate: Record "Whse. Worksheet Template";
+        WhseWorksheetName: Record "Whse. Worksheet Name";
+        Item: Record Item;
+        ItemJournalLine: Record "Item Journal Line";
+        FromBin: Record Bin;
+        ToBin: Record Bin;
+        WhseWorksheetLine: Record "Whse. Worksheet Line";
+        WarehouseActivityHeader: Record "Warehouse Activity Header";
+        WarehouseActivityLine: Record "Warehouse Activity Line";
+        RegisteredInvtMovementHdr: Record "Registered Invt. Movement Hdr.";
+        WarehouseEntry: Record "Warehouse Entry";
+        CreateInventoryPickMovement: Codeunit "Create Inventory Pick/Movement";
+    begin
+        // [SCENARIO 618540] Warehouse Entries should contain Reference No. from Registered Inventory Movement
+
+        // [GIVEN] Location with 2 bins are created
+        CreateLocationWithWhseEmployeeAndNumberOfBins(Location, LibraryRandom.RandIntInRange(2, 5));
+        LibraryWarehouse.FindBin(FromBin, Location.Code, '', LibraryRandom.RandIntInRange(1, 1));
+        LibraryWarehouse.FindBin(ToBin, Location.Code, '', LibraryRandom.RandIntInRange(2, 2));
+
+        // [GIVEN] Create WorksheetName for the newly created Location
+        LibraryWarehouse.SelectWhseWorksheetTemplate(WhseWorksheetTemplate, WhseWorksheetTemplate.Type::Movement);
+        LibraryWarehouse.CreateWhseWorksheetName(WhseWorksheetName, WhseWorksheetTemplate.Name, Location.Code);
+
+        // [GIVEN] Item has random stock in FromBin
+        LibraryInventory.CreateItem(Item);
+        LibraryInventory.CreateItemJournalLineInItemTemplate(
+          ItemJournalLine, Item."No.", FromBin."Location Code", FromBin.Code, LibraryRandom.RandInt(10));
+        LibraryInventory.PostItemJournalLine(ItemJournalLine."Journal Template Name", ItemJournalLine."Journal Batch Name");
+
+        // [GIVEN] Create Warehouse Worksheet Line to move items from FromBin to ToBin
+        LibraryWarehouse.CreateWhseWorksheetLine(WhseWorksheetLine, WhseWorksheetTemplate.Name, WhseWorksheetName.Name, Location.Code, WhseWorksheetLine."Whse. Document Type"::"Whse. Mov.-Worksheet");
+        WhseWorksheetLine.Validate("Item No.", ItemJournalLine."Item No.");
+        WhseWorksheetLine.Validate("From Bin Code", FromBin.Code);
+        WhseWorksheetLine.Validate("To Bin Code", ToBin.Code);
+        WhseWorksheetLine.Validate(Quantity, ItemJournalLine.Quantity);
+        WhseWorksheetLine.Modify(true);
+
+        // [GIVEN] Create Inventory Movement from Warehouse Worksheet Line
+        CreateInventoryPickMovement.CreateInvtMvntWithoutSource(WhseWorksheetLine);
+
+        // [GIVEN] Find the created Inventory Movement
+        WarehouseActivityLine.SetRange("Activity Type", WarehouseActivityLine."Activity Type"::"Invt. Movement");
+        WarehouseActivityLine.SetRange("Item No.", ItemJournalLine."Item No.");
+        WarehouseActivityLine.FindFirst();
+        WarehouseActivityHeader.Get(WarehouseActivityLine."Activity Type", WarehouseActivityLine."No.");
+
+        // [GIVEN] Autofill the quantity on the movement document
+        LibraryWarehouse.AutoFillQtyHandleWhseActivity(WarehouseActivityHeader);
+
+        // [WHEN] Register Inventory Movement
+        LibraryWarehouse.RegisterWhseActivity(WarehouseActivityHeader);
+
+        // [THEN] Registered Invt. Movement Header is created
+        RegisteredInvtMovementHdr.SetRange("Location Code", Location.Code);
+        RegisteredInvtMovementHdr.FindFirst();
+
+        // [THEN] Warehouse Entries have Reference No. set to Registered Invt. Movement No.
+        WarehouseEntry.SetRange("Entry Type", WarehouseEntry."Entry Type"::Movement);
+        WarehouseEntry.SetRange("Item No.", Item."No.");
+        WarehouseEntry.SetRange("Reference No.", RegisteredInvtMovementHdr."No.");
+        Assert.RecordIsNotEmpty(WarehouseEntry);
+    end;
+
     local procedure CreateLocationWithWhseEmployeeAndNumberOfBins(NumberOfBins: Integer): Code[10]
     var
         WarehouseEmployee: Record "Warehouse Employee";

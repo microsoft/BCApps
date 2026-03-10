@@ -20,22 +20,18 @@ page 7415 "Excise Tax Type Card"
                 Caption = 'General';
                 field("Code"; Rec.Code)
                 {
-                    ApplicationArea = All;
                     ToolTip = 'Specifies the unique tax identifier.';
                 }
                 field(Description; Rec.Description)
                 {
-                    ApplicationArea = All;
                     ToolTip = 'Specifies the tax name for UI display.';
                 }
                 field("Tax Basis"; Rec."Tax Basis")
                 {
-                    ApplicationArea = All;
                     ToolTip = 'Specifies how this tax is calculated (Weight, Sugar Content, THC Content, Volume, Spirit Volume).';
                 }
                 field(Enabled; Rec.Enabled)
                 {
-                    ApplicationArea = All;
                     ToolTip = 'Specifies whether this tax type is active and available for use.';
                 }
             }
@@ -44,7 +40,6 @@ page 7415 "Excise Tax Type Card"
                 Caption = 'Reporting';
                 field("Report Caption"; Rec."Report Caption")
                 {
-                    ApplicationArea = All;
                     ToolTip = 'Specifies additional description for reporting purposes.';
                 }
             }
@@ -55,29 +50,30 @@ page 7415 "Excise Tax Type Card"
     {
         area(Processing)
         {
-            action(ConfigureRates)
+            action("Configure Rates")
             {
-                ApplicationArea = All;
                 Caption = 'Configure Entry Permissions';
                 ToolTip = 'Configure entry type permissions for this tax type.';
                 Image = Setup;
                 RunObject = Page "Excise Tax Entry Permissions";
                 RunPageLink = "Excise Tax Type Code" = field(Code);
-                Promoted = true;
-                PromotedCategory = Process;
-                PromotedOnly = true;
             }
-            action(TaxRates)
+            action("Item/FA Rates")
             {
-                ApplicationArea = All;
-                Caption = 'Tax Rates';
-                ToolTip = 'Configure tax rates for specific items, fixed assets.';
-                Image = ItemAvailability;
+                Caption = 'Item/FA Rates';
+                ToolTip = 'Configure tax rates for specific items and fixed assets.';
+                Image = Setup;
                 RunObject = Page "Excise Tax Item/FA Rates";
                 RunPageLink = "Excise Tax Type Code" = field(Code);
-                Promoted = true;
-                PromotedCategory = Process;
-                PromotedOnly = true;
+            }
+        }
+        area(Promoted)
+        {
+            actionref("Configure Rates_Promoted"; "Configure Rates")
+            {
+            }
+            actionref("Item/FA Rates_Promoted"; "Item/FA Rates")
+            {
             }
         }
     }

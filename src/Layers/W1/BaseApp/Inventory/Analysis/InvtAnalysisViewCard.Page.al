@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -24,17 +24,14 @@ page 7150 "Invt. Analysis View Card"
                 field("Code"; Rec.Code)
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies a code for the analysis view.';
                 }
                 field(Name; Rec.Name)
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the name of the analysis view.';
                 }
                 field("Item Filter"; Rec."Item Filter")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies a filter to specify the items that will be included in an analysis view.';
 
                     trigger OnLookup(var Text: Text): Boolean
                     var
@@ -50,7 +47,6 @@ page 7150 "Invt. Analysis View Card"
                 field("Location Filter"; Rec."Location Filter")
                 {
                     ApplicationArea = Location;
-                    ToolTip = 'Specifies a location filter to specify that only entries posted to a particular location are to be included in an analysis view.';
 
                     trigger OnLookup(var Text: Text): Boolean
                     var
@@ -66,37 +62,30 @@ page 7150 "Invt. Analysis View Card"
                 field("Date Compression"; Rec."Date Compression")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the period that the program will combine entries for, in order to create a single entry for that time period.';
                 }
                 field("Starting Date"; Rec."Starting Date")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the date from which item ledger entries will be included in an analysis view.';
                 }
                 field("Last Date Updated"; Rec."Last Date Updated")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the date on which the analysis view was last updated.';
                 }
                 field("Last Entry No."; Rec."Last Entry No.")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the number of the last item ledger entry you posted, prior to updating the analysis view.';
                 }
                 field("Last Budget Entry No."; Rec."Last Budget Entry No.")
                 {
                     ApplicationArea = ItemBudget;
-                    ToolTip = 'Specifies the number of the last item budget entry you entered prior to updating the analysis view.';
                 }
                 field("Update on Posting"; Rec."Update on Posting")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies if the analysis view is updated every time that you post an item ledger entry, for example from a sales invoice.';
                 }
                 field(Blocked; Rec.Blocked)
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies that the related record is blocked from being posted in transactions, for example a customer that is declared insolvent or an item that is placed in quarantine.';
                 }
             }
             group(Dimensions)
@@ -105,17 +94,14 @@ page 7150 "Invt. Analysis View Card"
                 field("Dimension 1 Code"; Rec."Dimension 1 Code")
                 {
                     ApplicationArea = Dimensions;
-                    ToolTip = 'Specifies one of the four dimensions that you can include in an analysis view.';
                 }
                 field("Dimension 2 Code"; Rec."Dimension 2 Code")
                 {
                     ApplicationArea = Dimensions;
-                    ToolTip = 'Specifies one of the four dimensions that you can include in an analysis view.';
                 }
                 field("Dimension 3 Code"; Rec."Dimension 3 Code")
                 {
                     ApplicationArea = Dimensions;
-                    ToolTip = 'Specifies one of the four dimensions that you can include in an analysis view.';
                 }
             }
         }

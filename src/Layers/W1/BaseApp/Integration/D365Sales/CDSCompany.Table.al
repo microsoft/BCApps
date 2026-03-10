@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -21,6 +21,7 @@ table 5393 "CDS Company"
         field(1; CompanyId; Guid)
         {
             Caption = 'Company';
+            ToolTip = 'Specifies the ID of the company.';
             Description = 'Unique identifier for company or legal entity instances';
             ExternalAccess = Insert;
             ExternalName = 'bcbi_companyid';
@@ -224,6 +225,7 @@ table 5393 "CDS Company"
         field(22; Name; Text[30])
         {
             Caption = 'Name';
+            ToolTip = 'Specifies the name of the company.';
             Description = 'The name of the company or legal entity';
             ExternalName = 'bcbi_name';
             ExternalType = 'String';

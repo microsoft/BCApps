@@ -13,5 +13,15 @@
     "codeunitId": 139960,
     "codeunitName": "Qlty. Tests - Dispositions",
     "method": "PurchaseReturnUntrackedBasicLocation"
+  },
+  {
+    "codeunitId": 139956,
+    "codeunitName": "Qlty. Tests - Result Condition",
+    "method": "PromptUpdateTestsFromResult_UpdateTextCondition_ShouldUpdate"
+  },
+  {
+    "codeunitId": 139956,
+    "codeunitName": "Qlty. Tests - Result Condition",
+    "method": "PromptUpdateTestsFromResult_UpdateTextCondition_ShouldNotUpdate"
   }
 ]

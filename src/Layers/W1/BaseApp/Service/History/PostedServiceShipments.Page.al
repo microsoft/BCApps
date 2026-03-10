@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -36,17 +36,14 @@ page 5974 "Posted Service Shipments"
                 field("No."; Rec."No.")
                 {
                     ApplicationArea = Service;
-                    ToolTip = 'Specifies the number of the involved entry or record, according to the specified number series.';
                 }
                 field("Customer No."; Rec."Customer No.")
                 {
                     ApplicationArea = Service;
-                    ToolTip = 'Specifies the number of the customer who owns the items on the service order.';
                 }
                 field(Name; Rec.Name)
                 {
                     ApplicationArea = Service;
-                    ToolTip = 'Specifies the name of the customer.';
                 }
                 field("External Document No."; Rec."External Document No.")
                 {
@@ -56,186 +53,155 @@ page 5974 "Posted Service Shipments"
                 field("Post Code"; Rec."Post Code")
                 {
                     ApplicationArea = Service;
-                    ToolTip = 'Specifies the postal code.';
                     Visible = false;
                 }
                 field("Country/Region Code"; Rec."Country/Region Code")
                 {
                     ApplicationArea = Service;
-                    ToolTip = 'Specifies the country/region of the address.';
                     Visible = false;
                 }
                 field("Contact Name"; Rec."Contact Name")
                 {
                     ApplicationArea = Service;
-                    ToolTip = 'Specifies the name of the contact person at the customer company.';
                     Visible = false;
                 }
                 field("Bill-to Customer No."; Rec."Bill-to Customer No.")
                 {
                     ApplicationArea = Service;
-                    ToolTip = 'Specifies the number of the customer that you send or sent the invoice or credit memo to.';
                     Visible = false;
                 }
                 field("Bill-to Name"; Rec."Bill-to Name")
                 {
                     ApplicationArea = Service;
-                    ToolTip = 'Specifies the name of the customer that you send or sent the invoice or credit memo to.';
                     Visible = false;
                 }
                 field("Bill-to Post Code"; Rec."Bill-to Post Code")
                 {
                     ApplicationArea = Service;
-                    ToolTip = 'Specifies the postal code of the customer''s billing address.';
                     Visible = false;
                 }
                 field("Bill-to Country/Region Code"; Rec."Bill-to Country/Region Code")
                 {
                     ApplicationArea = Service;
-                    ToolTip = 'Specifies the country/region code of the customer''s billing address.';
                     Visible = false;
                 }
                 field("Bill-to Contact"; Rec."Bill-to Contact")
                 {
                     ApplicationArea = Service;
-                    ToolTip = 'Specifies the name of the contact person at the customer''s billing address.';
                     Visible = false;
                 }
                 field("Ship-to Code"; Rec."Ship-to Code")
                 {
                     ApplicationArea = Service;
-                    ToolTip = 'Specifies a code for an alternate shipment address if you want to ship to another address than the one that has been entered automatically. This field is also used in case of drop shipment.';
                     Visible = false;
                 }
                 field("Ship-to Name"; Rec."Ship-to Name")
                 {
                     ApplicationArea = Service;
-                    ToolTip = 'Specifies the name of the customer at the address that the items are shipped to.';
                     Visible = false;
                 }
                 field("Ship-to Post Code"; Rec."Ship-to Post Code")
                 {
                     ApplicationArea = Service;
-                    ToolTip = 'Specifies the postal code of the address that the items are shipped to.';
                     Visible = false;
                 }
                 field("Ship-to Country/Region Code"; Rec."Ship-to Country/Region Code")
                 {
                     ApplicationArea = Service;
-                    ToolTip = 'Specifies the country/region code of the address that the items are shipped to.';
                     Visible = false;
                 }
                 field("Ship-to Contact"; Rec."Ship-to Contact")
                 {
                     ApplicationArea = Service;
-                    ToolTip = 'Specifies the name of the contact person at the address that the items are shipped to.';
                     Visible = false;
                 }
                 field("Posting Date"; Rec."Posting Date")
                 {
                     ApplicationArea = Service;
-                    ToolTip = 'Specifies the date when the shipment was posted.';
                     Visible = false;
                 }
                 field("Salesperson Code"; Rec."Salesperson Code")
                 {
                     ApplicationArea = Service;
-                    ToolTip = 'Specifies the code of the salesperson assigned to the service order.';
                     Visible = false;
                 }
                 field("Shortcut Dimension 1 Code"; Rec."Shortcut Dimension 1 Code")
                 {
                     ApplicationArea = Dimensions;
-                    ToolTip = 'Specifies the code for Shortcut Dimension 1, which is one of two global dimension codes that you set up in the General Ledger Setup window.';
                     Visible = false;
                 }
                 field("Shortcut Dimension 2 Code"; Rec."Shortcut Dimension 2 Code")
                 {
                     ApplicationArea = Dimensions;
-                    ToolTip = 'Specifies the code for Shortcut Dimension 2, which is one of two global dimension codes that you set up in the General Ledger Setup window.';
                     Visible = false;
                 }
                 field("Currency Code"; Rec."Currency Code")
                 {
                     ApplicationArea = Service;
-                    ToolTip = 'Specifies the currency code for various amounts on the shipment.';
                 }
                 field("Location Code"; Rec."Location Code")
                 {
                     ApplicationArea = Location;
-                    ToolTip = 'Specifies the location, such as warehouse or distribution center, from where the items on the order were shipped.';
                     Visible = true;
                 }
                 field("Notify Customer"; Rec."Notify Customer")
                 {
                     ApplicationArea = Service;
-                    ToolTip = 'Specifies in what way the customer wants to receive notifications about the service completed.';
                     Visible = false;
                 }
                 field("Service Order Type"; Rec."Service Order Type")
                 {
                     ApplicationArea = Service;
-                    ToolTip = 'Specifies the type of the service order from which the shipment was created.';
                     Visible = false;
                 }
                 field("Contract No."; Rec."Contract No.")
                 {
                     ApplicationArea = Service;
-                    ToolTip = 'Specifies the number of the contract associated with the service order.';
                     Visible = false;
                 }
                 field("Response Date"; Rec."Response Date")
                 {
                     ApplicationArea = Service;
-                    ToolTip = 'Specifies the approximate date when work on the service order started.';
                     Visible = false;
                 }
                 field(Priority; Rec.Priority)
                 {
                     ApplicationArea = Service;
-                    ToolTip = 'Specifies the priority of the posted service order.';
                     Visible = false;
                 }
                 field("Document Date"; Rec."Document Date")
                 {
                     ApplicationArea = Service;
-                    ToolTip = 'Specifies the date when the related document was created.';
                     Visible = false;
                 }
                 field("Warning Status"; Rec."Warning Status")
                 {
                     ApplicationArea = Service;
-                    ToolTip = 'Specifies the warning status for the response time on the original service order.';
                     Visible = false;
                 }
                 field("Allocated Hours"; Rec."Allocated Hours")
                 {
                     ApplicationArea = Service;
-                    ToolTip = 'Specifies the number of hours allocated to the items within the posted service order.';
                     Visible = false;
                 }
                 field("Order Date"; Rec."Order Date")
                 {
                     ApplicationArea = Service;
-                    ToolTip = 'Specifies the date when the related order was created.';
                     Visible = false;
                 }
                 field("Expected Finishing Date"; Rec."Expected Finishing Date")
                 {
                     ApplicationArea = Service;
-                    ToolTip = 'Specifies the date when service on the order is expected to be finished.';
                     Visible = false;
                 }
                 field("Starting Date"; Rec."Starting Date")
                 {
                     ApplicationArea = Service;
-                    ToolTip = 'Specifies the starting date of the service on the shipment.';
                     Visible = false;
                 }
                 field("Finishing Date"; Rec."Finishing Date")
                 {
                     ApplicationArea = Service;
-                    ToolTip = 'Specifies the date when the service is finished.';
                     Visible = false;
                 }
                 field("Service Time (Hours)"; Rec."Service Time (Hours)")

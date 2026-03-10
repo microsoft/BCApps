@@ -21,7 +21,7 @@ codeunit 6452 "Serv. Availability Mgt."
 
     // Codeunit AvailabilityManagement
 
-    [EventSubscriber(ObjectType::Codeunit, Codeunit::AvailabilityManagement, 'OnSetSourceRecord', '', false, false)]
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::AvailabilityManagement, 'OnSetSourceRecord', '', true, false)]
     local procedure OnSetSourceRecord(var OrderPromisingLine: Record "Order Promising Line"; var SourceRecordVar: Variant; var CaptionText: Text; TableID: Integer; var sender: Codeunit AvailabilityManagement)
     var
         ServiceHeader: Record "Service Header";
@@ -63,7 +63,7 @@ codeunit 6452 "Serv. Availability Mgt."
             until ServiceLine.Next() = 0;
     end;
 
-    [EventSubscriber(ObjectType::Codeunit, Codeunit::AvailabilityManagement, 'OnCalcCapableToPromiseLine', '', false, false)]
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::AvailabilityManagement, 'OnCalcCapableToPromiseLine', '', true, false)]
     local procedure OnCalcCapableToPromiseLine(var OrderPromisingLine: Record "Order Promising Line"; var CompanyInfo: Record "Company Information"; var OrderPromisingID: Code[20]; var LastValidLine: Integer)
     var
         ServiceLine: Record "Service Line";
@@ -99,7 +99,7 @@ codeunit 6452 "Serv. Availability Mgt."
         end;
     end;
 
-    [EventSubscriber(ObjectType::Codeunit, Codeunit::AvailabilityManagement, 'OnGetRequestedDeliveryDate', '', false, false)]
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::AvailabilityManagement, 'OnGetRequestedDeliveryDate', '', true, false)]
     local procedure OnGetRequestedDeliveryDate(var OrderPromisingLine: Record "Order Promising Line"; var RequestedDeliveryDate: Date)
     var
         ServiceLine: Record "Service Line";
@@ -111,7 +111,7 @@ codeunit 6452 "Serv. Availability Mgt."
         end;
     end;
 
-    [EventSubscriber(ObjectType::Codeunit, Codeunit::AvailabilityManagement, 'OnUpdateSourceLine', '', false, false)]
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::AvailabilityManagement, 'OnUpdateSourceLine', '', true, false)]
     local procedure OnUpdateSourceLine(var OrderPromisingLine: Record "Order Promising Line")
     var
         ServiceLine: Record "Service Line";
@@ -145,7 +145,7 @@ codeunit 6452 "Serv. Availability Mgt."
         end;
     end;
 
-    [EventSubscriber(ObjectType::Codeunit, Codeunit::AvailabilityManagement, 'OnCreateReservationsOnCalcNeededQuantity', '', false, false)]
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::AvailabilityManagement, 'OnCreateReservationsOnCalcNeededQuantity', '', true, false)]
     local procedure OnCreateReservationsOnCalcNeededQuantity(var OrderPromisingLine: Record "Order Promising Line"; var NeededQty: Decimal; var NeededQtyBase: Decimal)
     var
         ServiceLine: Record "Service Line";
@@ -161,7 +161,7 @@ codeunit 6452 "Serv. Availability Mgt."
         end;
     end;
 
-    [EventSubscriber(ObjectType::Codeunit, Codeunit::AvailabilityManagement, 'OnCreateReservationsOnBindToTracking', '', false, false)]
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::AvailabilityManagement, 'OnCreateReservationsOnBindToTracking', '', true, false)]
     local procedure OnCreateReservationsOnBindToTracking(var OrderPromisingLine: Record "Order Promising Line"; ReqLine: Record "Requisition Line"; ReservQty: Decimal; ReservQtyBase: Decimal; var TempRecordBuffer: Record System.IO."Record Buffer" temporary)
     var
         ServiceLine: Record "Service Line";
@@ -187,7 +187,7 @@ codeunit 6452 "Serv. Availability Mgt."
         end;
     end;
 
-    [EventSubscriber(ObjectType::Codeunit, Codeunit::AvailabilityManagement, 'OnCancelReservations', '', false, false)]
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::AvailabilityManagement, 'OnCancelReservations', '', true, false)]
     local procedure OnCancelReservations(var TempRecordBuffer: Record System.IO."Record Buffer" temporary)
     var
         ServiceLine: Record "Service Line";
@@ -216,7 +216,7 @@ codeunit 6452 "Serv. Availability Mgt."
 
     // Page "Demand Overview"
 
-    [EventSubscriber(ObjectType::Page, Page::"Demand Overview", 'OnLookupDemandNo', '', false, false)]
+    [EventSubscriber(ObjectType::Page, Page::"Demand Overview", 'OnLookupDemandNo', '', true, false)]
     local procedure OnLookupDemandNo(var AvailabilityCalcOverview: Record "Availability Calc. Overview"; DemandType: Enum "Demand Order Source Type"; var Result: Boolean; var Text: Text);
     var
         ServiceHeader: Record "Service Header";
@@ -235,7 +235,7 @@ codeunit 6452 "Serv. Availability Mgt."
         end;
     end;
 
-    [EventSubscriber(ObjectType::Page, Page::"Demand Overview", 'OnSourceTypeTextOnFormat', '', false, false)]
+    [EventSubscriber(ObjectType::Page, Page::"Demand Overview", 'OnSourceTypeTextOnFormat', '', true, false)]
     local procedure OnSourceTypeTextOnFormat(var AvailabilityCalcOverview: Record "Availability Calc. Overview"; var Text: Text)
     begin
         if AvailabilityCalcOverview."Source Type" = Database::"Service Line" then
@@ -244,7 +244,7 @@ codeunit 6452 "Serv. Availability Mgt."
 
     // Codeunit "Calc. Availability Overview"
 
-    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Calc. Availability Overview", 'OnGetDemandDates', '', false, false)]
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Calc. Availability Overview", 'OnGetDemandDates', '', true, false)]
     local procedure OnGetDemandDates(var AvailabilityCalcOverview: Record "Availability Calc. Overview"; var Item: Record Item; var sender: Codeunit "Calc. Availability Overview")
     var
         ServiceLine: Record "Service Line";
@@ -267,7 +267,7 @@ codeunit 6452 "Serv. Availability Mgt."
             until ServiceLine.Next() = 0;
     end;
 
-    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Calc. Availability Overview", 'OnGetDemandEntries', '', false, false)]
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Calc. Availability Overview", 'OnGetDemandEntries', '', true, false)]
     local procedure OnGetDemandEntries(var AvailabilityCalcOverview: Record "Availability Calc. Overview"; var Item: Record Item; var sender: Codeunit "Calc. Availability Overview")
     var
         ServiceLine: Record "Service Line";
@@ -286,7 +286,7 @@ codeunit 6452 "Serv. Availability Mgt."
             until ServiceLine.Next() = 0;
     end;
 
-    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Calc. Availability Overview", 'OnCheckItemInRange', '', false, false)]
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Calc. Availability Overview", 'OnCheckItemInRange', '', true, false)]
     local procedure OnCheckItemInRange(var Item: Record Item; DemandType: Enum "Demand Order Source Type"; DemandNo: Code[20]; var Found: Boolean)
     var
         ServiceLine: Record "Service Line";
@@ -300,7 +300,7 @@ codeunit 6452 "Serv. Availability Mgt."
                     Found := true;
     end;
 
-    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Calc. Availability Overview", 'OnDemandExist', '', false, false)]
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Calc. Availability Overview", 'OnDemandExist', '', true, false)]
     local procedure OnDemandExist(var Item: Record Item; var Exists: Boolean)
     var
         ServiceLine: Record "Service Line";
@@ -336,7 +336,7 @@ codeunit 6452 "Serv. Availability Mgt."
     begin
     end;
 
-    [EventSubscriber(ObjectType::Table, Database::"Order Promising Line", 'OnValidateRequestedDeliveryDate', '', false, false)]
+    [EventSubscriber(ObjectType::Table, Database::"Order Promising Line", 'OnValidateRequestedDeliveryDate', '', true, false)]
     local procedure OnValidateRequestedDeliveryDate(var OrderPromisingLine: Record "Order Promising Line")
     var
         ServiceLine: Record "Service Line";
@@ -347,14 +347,14 @@ codeunit 6452 "Serv. Availability Mgt."
         end;
     end;
 
-    [EventSubscriber(ObjectType::Table, Database::"Order Promising Line", 'OnValidatePlannedDeliveryDate', '', false, false)]
+    [EventSubscriber(ObjectType::Table, Database::"Order Promising Line", 'OnValidatePlannedDeliveryDate', '', true, false)]
     local procedure OnValidatePlannedDeliveryDate(var OrderPromisingLine: Record "Order Promising Line")
     begin
         if OrderPromisingLine."Source Type" = OrderPromisingLine."Source Type"::"Service Order" then
             OrderPromisingLine."Earliest Shipment Date" := OrderPromisingLine."Planned Delivery Date";
     end;
 
-    [EventSubscriber(ObjectType::Table, Database::"Order Promising Line", 'OnValidateEarliestDeliveryDate', '', false, false)]
+    [EventSubscriber(ObjectType::Table, Database::"Order Promising Line", 'OnValidateEarliestDeliveryDate', '', true, false)]
     local procedure OnValidateEarliestDeliveryDate(var OrderPromisingLine: Record "Order Promising Line")
     begin
         if OrderPromisingLine."Source Type" = OrderPromisingLine."Source Type"::"Service Order" then
@@ -364,7 +364,7 @@ codeunit 6452 "Serv. Availability Mgt."
 
     // Page "Order Promising Lines"
 
-    [EventSubscriber(ObjectType::Page, Page::"Order Promising Lines", 'OnOpenPageOnSetSource', '', false, false)]
+    [EventSubscriber(ObjectType::Page, Page::"Order Promising Lines", 'OnOpenPageOnSetSource', '', true, false)]
     local procedure OnOpenPageOnSetSource(var OrderPromisingLine: Record "Order Promising Line"; var CrntSourceType: Enum "Order Promising Line Source Type"; var CrntSourceID: Code[20]; var AvailabilityMgt: Codeunit AvailabilityManagement)
     var
         ServiceHeader: Record "Service Header";
@@ -379,7 +379,7 @@ codeunit 6452 "Serv. Availability Mgt."
 
     // Codeunit "Calc. Item Availability"
 
-    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Calc. Item Availability", 'OnAfterGetDocumentEntries', '', false, false)]
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Calc. Item Availability", 'OnAfterGetDocumentEntries', '', true, false)]
     local procedure OnAfterGetDocumentEntries(var InvtEventBuf: Record "Inventory Event Buffer"; var Item: Record Item; var sender: Codeunit "Calc. Item Availability")
     begin
         TryGetServOrderDemandEntries(InvtEventBuf, Item, sender);
@@ -400,7 +400,7 @@ codeunit 6452 "Serv. Availability Mgt."
             until ServiceLine.Next() = 0;
     end;
 
-    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Calc. Item Availability", 'OnAfterGetSourceReferences', '', false, false)]
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Calc. Item Availability", 'OnAfterGetSourceReferences', '', true, false)]
     local procedure OnAfterGetSourceReferences(FromRecordID: RecordId; var SourceType: Integer; var SourceSubtype: Integer; var SourceID: Code[20]; var SourceRefNo: Integer; var IsHandled: Boolean; RecRef: RecordRef)
     var
         ServiceLine: Record "Service Line";
@@ -415,7 +415,7 @@ codeunit 6452 "Serv. Availability Mgt."
         end;
     end;
 
-    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Calc. Item Availability", 'OnAfterShowDocument', '', false, false)]
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Calc. Item Availability", 'OnAfterShowDocument', '', true, false)]
     local procedure OnAfterShowDocument(RecordID: RecordId; RecRef: RecordRef; var IsHandled: Boolean)
     var
         ServShptHeader: Record "Service Shipment Header";
@@ -446,7 +446,7 @@ codeunit 6452 "Serv. Availability Mgt."
 
     // Table "Availability Info. Buffer" 
 
-    [EventSubscriber(ObjectType::Table, Database::"Availability Info. Buffer", 'OnLookupAvailableInventory', '', false, false)]
+    [EventSubscriber(ObjectType::Table, Database::"Availability Info. Buffer", 'OnLookupAvailableInventory', '', true, false)]
     local procedure OnLookupAvailableInventory(var TempReservationEntry: Record "Reservation Entry" temporary; var sender: Record "Availability Info. Buffer")
     begin
         LookupReservationEntryForQtyOnServiceOrder(TempReservationEntry, sender);
@@ -527,7 +527,7 @@ codeunit 6452 "Serv. Availability Mgt."
         Page.Run(0, ServiceLine);
     end;
 
-    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Item Availability Forms Mgt", 'OnAfterCalcItemPlanningFields', '', false, false)]
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Item Availability Forms Mgt", 'OnAfterCalcItemPlanningFields', '', true, false)]
     local procedure OnAfterCalcItemPlanningFields(var Item: Record Item)
     begin
         Item.CalcFields("Qty. on Service Order");
@@ -535,7 +535,7 @@ codeunit 6452 "Serv. Availability Mgt."
 
     // Codeunit "Calc. Inventory Page Data"
 
-    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Calc. Inventory Page Data", 'OnTransferToPeriodDetailsElseCase', '', false, false)]
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Calc. Inventory Page Data", 'OnTransferToPeriodDetailsElseCase', '', true, false)]
     local procedure OnTransferToPeriodDetailsElseCase(var InventoryPageData: Record "Inventory Page Data"; InventoryEventBuffer: Record "Inventory Event Buffer"; SourceType: Integer; SourceSubtype: Integer; SourceID: Code[20]; var IsHandled: Boolean)
     begin
         if SourceType = DATABASE::"Service Line" then begin
@@ -563,7 +563,7 @@ codeunit 6452 "Serv. Availability Mgt."
 
     // Page "Item Availability Line List"
 
-    [EventSubscriber(ObjectType::Page, Page::"Item Availability Line List", 'OnAfterMakeEntries', '', false, false)]
+    [EventSubscriber(ObjectType::Page, Page::"Item Availability Line List", 'OnAfterMakeEntries', '', true, false)]
     local procedure OnAfterMakeEntries(var Item: Record Item; var ItemAvailabilityLine: Record "Item Availability Line"; AvailabilityType: Option "Gross Requirement","Planned Order Receipt","Scheduled Order Receipt","Planned Order Release",All; Sign: Decimal; QtyByUnitOfMeasure: Decimal)
     var
         ServiceLine: Record "Service Line";
@@ -576,7 +576,7 @@ codeunit 6452 "Serv. Availability Mgt."
         end;
     end;
 
-    [EventSubscriber(ObjectType::Page, Page::"Item Availability Line List", 'OnAfterLookupEntries', '', false, false)]
+    [EventSubscriber(ObjectType::Page, Page::"Item Availability Line List", 'OnAfterLookupEntries', '', true, false)]
     local procedure OnAfterLookupEntries(var Item: Record Item; ItemAvailabilityLine: Record "Item Availability Line");
     var
         ServiceLine: Record "Service Line";
@@ -625,7 +625,7 @@ codeunit 6452 "Serv. Availability Mgt."
 
     // Codeunit "Available to Promise"
 
-    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Available to Promise", 'OnAfterCalculateAvailability', '', false, false)]
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Available to Promise", 'OnAfterCalculateAvailability', '', true, false)]
     local procedure OnAfterCalculateAvailability(var AvailabilityAtDate: Record "Availability at Date"; var Item: Record Item; var sender: Codeunit "Available to Promise")
     begin
         UpdateServOrderAvail(AvailabilityAtDate, Item, sender);
@@ -664,7 +664,7 @@ codeunit 6452 "Serv. Availability Mgt."
     begin
     end;
 
-    [EventSubscriber(ObjectType::Table, Database::Item, 'OnCalcQtyOnServiceOrder', '', false, false)]
+    [EventSubscriber(ObjectType::Table, Database::Item, 'OnCalcQtyOnServiceOrder', '', true, false)]
     local procedure OnCalcQtyOnServiceOrder(var Item: Record Item; var Result: Decimal)
     begin
         Item.CalcFields("Qty. on Service Order");

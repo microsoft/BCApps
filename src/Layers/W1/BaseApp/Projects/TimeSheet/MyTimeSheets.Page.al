@@ -21,22 +21,18 @@ page 9155 "My Time Sheets"
                 {
                     ApplicationArea = Basic, Suite;
                     Caption = 'No.';
-                    ToolTip = 'Specifies the number of the time sheet.';
                 }
                 field("Start Date"; Rec."Start Date")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the start date of the assignment.';
                 }
                 field("End Date"; Rec."End Date")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the end date of the assignment.';
                 }
                 field(Comment; Rec.Comment)
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies any comments about the assignment.';
                 }
             }
         }

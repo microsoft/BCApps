@@ -972,10 +972,16 @@ codeunit 7324 "Whse.-Activity-Post"
         OnAfterCreateWhseJnlLine(WhseJnlLine, WhseActivLine, SourceCodeSetup);
     end;
 
-    local procedure ConsumeWarehouseEntryForJobPurchase(var TempWarehouseJournalLine: Record "Warehouse Journal Line" temporary; WarehouseActivityLine: Record "Warehouse Activity Line"): Boolean
+    local procedure ConsumeWarehouseEntryForJobPurchase(var TempWarehouseJournalLine: Record "Warehouse Journal Line" temporary; WarehouseActivityLine: Record "Warehouse Activity Line") Result: Boolean
     var
         Bin: Record Bin;
+        IsHandled: Boolean;
     begin
+        IsHandled := false;
+        OnBeforeConsumeWarehouseEntryForJobPurchase(TempWarehouseJournalLine, WarehouseActivityLine, Result, IsHandled);
+        if IsHandled then
+            exit(Result);
+
         if WarehouseActivityLine."Source Document" <> WarehouseActivityLine."Source Document"::"Purchase Order" then
             exit(false);
 
@@ -1919,6 +1925,11 @@ codeunit 7324 "Whse.-Activity-Post"
 
     [IntegrationEvent(false, false)]
     local procedure OnCreateWhseJnlLineOnSetReferenceDocument(WarehouseActivityLine: Record "Warehouse Activity Line"; var WhseJnlLine: Record "Warehouse Journal Line"; SourceCodeSetup: Record "Source Code Setup")
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnBeforeConsumeWarehouseEntryForJobPurchase(var TempWarehouseJournalLine: Record "Warehouse Journal Line" temporary; WarehouseActivityLine: Record "Warehouse Activity Line"; var Result: Boolean; var IsHandled: Boolean)
     begin
     end;
 }

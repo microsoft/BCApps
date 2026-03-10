@@ -10,14 +10,15 @@ codeunit 137460 "Phys. Invt. Item Tracking"
     end;
 
     var
+        Assert: Codeunit Assert;
         LibraryInventory: Codeunit "Library - Inventory";
         LibraryItemTracking: Codeunit "Library - Item Tracking";
-        LibraryWarehouse: Codeunit "Library - Warehouse";
+        LibraryPurchase: Codeunit "Library - Purchase";
         LibraryRandom: Codeunit "Library - Random";
+        LibraryTestInitialize: Codeunit "Library - Test Initialize";
         LibraryUtility: Codeunit "Library - Utility";
         LibraryVariableStorage: Codeunit "Library - Variable Storage";
-        LibraryTestInitialize: Codeunit "Library - Test Initialize";
-        Assert: Codeunit Assert;
+        LibraryWarehouse: Codeunit "Library - Warehouse";
         isInitialized: Boolean;
         AlreadyExistsErr: Label 'already exists';
         CurrentSaveValuesId: Integer;
@@ -25,6 +26,8 @@ codeunit 137460 "Phys. Invt. Item Tracking"
         RoundingErr: Label 'is of lower precision than expected';
         LinesCreatedMsg: Label '%1 new lines have been created.', Comment = '%1 = counter';
         BlockedItemMsg: Label 'There is at least one blocked item or item variant that was skipped.';//'There is at least one blocked item that was skipped.';
+        OnlyInventoryTypeItemErr: Label 'Only one line can be created for inventory type items';
+        ItemNotBeIncludedErr: Label '%1 item should not be included', Comment = '%1 = Item Type';
 
     [Test]
     [HandlerFunctions('CalcPhysOrderLinesRequestPageHandler,CalculateQuantityExpectedStrMenuHandler,ConfirmHandlerTRUE,MessageHandler')]
@@ -914,6 +917,59 @@ codeunit 137460 "Phys. Invt. Item Tracking"
         Assert.RecordIsEmpty(PhysInvtOrderLine);
     end;
 
+    [Test]
+    [HandlerFunctions('MessageHandler')]
+    procedure CalcPhysInvtOrderLinesFilterServiceAndNonInventoryItems()
+    var
+        InventoryItem, NonInventoryItem, ServiceItem : Record Item;
+        Location: Record Location;
+        PurchaseHeader: Record "Purchase Header";
+        PhysInvtOrderHeader: Record "Phys. Invt. Order Header";
+        PhysInvtOrderLine: Record "Phys. Invt. Order Line";
+        ItemFilter: Text;
+    begin
+        // [SCENARIO 619702] Physical Inventory Order should only calculate lines for Inventory type items, excluding Service and Non-Inventory items.
+        Initialize();
+
+        // [GIVEN] A location without directed put-away and pick
+        LibraryWarehouse.CreateLocationWithInventoryPostingSetup(Location);
+
+        // [GIVEN] Create Three items: Inventory type, Service type, and Non-Inventory type.
+        LibraryInventory.CreateItem(InventoryItem);
+        LibraryInventory.CreateServiceTypeItem(ServiceItem);
+        LibraryInventory.CreateNonInventoryTypeItem(NonInventoryItem);
+        ItemFilter := InventoryItem."No." + '|' + ServiceItem."No." + '|' + NonInventoryItem."No.";
+
+        // [GIVEN] Create a purchase order for all three items to create inventory.
+        CreatePurchaseOrder(PurchaseHeader, Location.Code);
+        CreatePurchaseLineWithUnitCost(PurchaseHeader, InventoryItem."No.");
+        CreatePurchaseLineWithUnitCost(PurchaseHeader, NonInventoryItem."No.");
+        CreatePurchaseLineWithUnitCost(PurchaseHeader, ServiceItem."No.");
+
+        // [GIVEN] Receive the purchase order.
+        LibraryPurchase.PostPurchaseDocument(PurchaseHeader, true, false);
+        Commit();
+
+        // [GIVEN] Create Physical Inventory Order
+        LibraryInventory.CreatePhysInvtOrderHeader(PhysInvtOrderHeader);
+        PhysInvtOrderHeader.Validate("Location Code", Location.Code);
+        PhysInvtOrderHeader.Modify(true);
+
+        // [WHEN] Run Calculate Lines to calculate physical inventory order lines.
+        CalculatePhysInvtOrderLinesForAllItems(PhysInvtOrderHeader, Location.Code, ItemFilter);
+
+        // [THEN] Only the Inventory type item should be included in the Physical Inventory Order lines
+        PhysInvtOrderLine.SetRange("Document No.", PhysInvtOrderHeader."No.");
+        Assert.AreEqual(1, PhysInvtOrderLine.Count, OnlyInventoryTypeItemErr);
+
+        // [THEN] Service and Non-Inventory items should not be included
+        PhysInvtOrderLine.SetRange("Item No.", ServiceItem."No.");
+        Assert.AreEqual(0, PhysInvtOrderLine.Count, StrSubstNo(ItemNotBeIncludedErr, ServiceItem.Type));
+
+        PhysInvtOrderLine.SetRange("Item No.", NonInventoryItem."No.");
+        Assert.AreEqual(0, PhysInvtOrderLine.Count, StrSubstNo(ItemNotBeIncludedErr, NonInventoryItem.Type));
+    end;
+
     local procedure Initialize()
     var
         LibraryERMCountryData: Codeunit "Library - ERM Country Data";
@@ -1497,5 +1553,40 @@ codeunit 137460 "Phys. Invt. Item Tracking"
         else
             Item.Validate("Variant Mandatory if Exists", Item."Variant Mandatory if Exists"::No);
         Item.Modify();
+    end;
+
+    local procedure CreatePurchaseOrder(var PurchaseHeader: Record "Purchase Header"; LocationCode: Code[20])
+    begin
+        LibraryPurchase.CreatePurchHeader(PurchaseHeader, PurchaseHeader."Document Type"::Order, LibraryPurchase.CreateVendorNo());
+        PurchaseHeader.Validate("Location Code", LocationCode);
+        PurchaseHeader.Modify(true);
+    end;
+
+    local procedure CreatePurchaseLineWithUnitCost(PurchaseHeader: Record "Purchase Header"; ItemNo: Code[20])
+    var
+        PurchaseLine: Record "Purchase Line";
+    begin
+        LibraryPurchase.CreatePurchaseLine(
+             PurchaseLine, PurchaseHeader, PurchaseLine.Type::Item, ItemNo,
+             LibraryRandom.RandIntInRange(10, 20));
+        PurchaseLine.Validate("Direct Unit Cost", LibraryRandom.RandIntInRange(1000, 2000));
+        PurchaseLine.Modify(true);
+    end;
+
+    local procedure CalculatePhysInvtOrderLinesForAllItems(PhysInvtOrderHeader: Record "Phys. Invt. Order Header"; LocationFilter: Text; ItemFilter: Text)
+    var
+        Item: Record Item;
+        CalcPhysInvtOrderLines: Report "Calc. Phys. Invt. Order Lines";
+    begin
+        if LocationFilter <> '' then
+            Item.SetFilter("Location Filter", LocationFilter);
+        if ItemFilter <> '' then
+            Item.SetFilter("No.", ItemFilter);
+        Clear(CalcPhysInvtOrderLines);
+        CalcPhysInvtOrderLines.SetPhysInvtOrderHeader(PhysInvtOrderHeader);
+        CalcPhysInvtOrderLines.InitializeRequest(true, false, false);
+        CalcPhysInvtOrderLines.UseRequestPage(false);
+        CalcPhysInvtOrderLines.SetTableView(Item);
+        CalcPhysInvtOrderLines.Run();
     end;
 }

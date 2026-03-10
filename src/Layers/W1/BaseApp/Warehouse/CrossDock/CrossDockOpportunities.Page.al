@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -27,28 +27,23 @@ page 5783 "Cross-Dock Opportunities"
                 {
                     ApplicationArea = Warehouse;
                     Editable = false;
-                    ToolTip = 'Specifies the item number of the items that can be cross-docked.';
                 }
                 field("Variant Code"; Rec."Variant Code")
                 {
                     ApplicationArea = Planning;
                     Editable = false;
-                    ToolTip = 'Specifies the variant of the item on the line.';
                 }
                 field("Location Code"; Rec."Location Code")
                 {
                     ApplicationArea = Location;
-                    ToolTip = 'Specifies the code of the location on the warehouse receipt line related to this cross-dock opportunity.';
                 }
                 field("Unit of Measure Code"; Rec."Unit of Measure Code")
                 {
                     ApplicationArea = Warehouse;
-                    ToolTip = 'Specifies how each unit of the item or resource is measured, such as in pieces or hours. By default, the value in the Base Unit of Measure field on the item or resource card is inserted.';
                 }
                 field("Qty. per Unit of Measure"; Rec."Qty. per Unit of Measure")
                 {
                     ApplicationArea = Warehouse;
-                    ToolTip = 'Specifies the number of base units of measure in which the item has been received.';
                 }
             }
             repeater(Control1)
@@ -58,17 +53,14 @@ page 5783 "Cross-Dock Opportunities"
                 {
                     ApplicationArea = Warehouse;
                     Editable = false;
-                    ToolTip = 'Specifies the type of source document for which the cross-dock opportunity can be used, such as sales order.';
                 }
                 field("To Source No."; Rec."To Source No.")
                 {
                     ApplicationArea = Warehouse;
-                    ToolTip = 'Specifies the number of the source document for which items can be cross-docked.';
                 }
                 field("Qty. Needed"; Rec."Qty. Needed")
                 {
                     ApplicationArea = Warehouse;
-                    ToolTip = 'Specifies the quantity that is still needed on the document for which the items can be cross-docked.';
                     Visible = true;
                 }
                 field("Qty. Needed (Base)"; Rec."Qty. Needed (Base)")
@@ -80,7 +72,6 @@ page 5783 "Cross-Dock Opportunities"
                 field("Pick Qty."; Rec."Pick Qty.")
                 {
                     ApplicationArea = Warehouse;
-                    ToolTip = 'Specifies the quantity of the item that is on pick instructions for the outbound source document, but that has not yet been registered as picked.';
                     Visible = false;
                 }
                 field("Pick Qty. (Base)"; Rec."Pick Qty. (Base)")
@@ -92,7 +83,6 @@ page 5783 "Cross-Dock Opportunities"
                 field("Qty. to Cross-Dock"; Rec."Qty. to Cross-Dock")
                 {
                     ApplicationArea = Warehouse;
-                    ToolTip = 'Specifies the quantity that is ready to cross-dock.';
 
                     trigger OnValidate()
                     begin
@@ -109,19 +99,16 @@ page 5783 "Cross-Dock Opportunities"
                 field("To-Src. Unit of Measure Code"; Rec."To-Src. Unit of Measure Code")
                 {
                     ApplicationArea = Suite;
-                    ToolTip = 'Specifies the unit of measure code on the source document line that needs the cross-dock opportunity item.';
                     Visible = true;
                 }
                 field("To-Src. Qty. per Unit of Meas."; Rec."To-Src. Qty. per Unit of Meas.")
                 {
                     ApplicationArea = Suite;
-                    ToolTip = 'Specifies the quantity of base units of measure, on the source document line, that needs the cross-dock opportunity items.';
                     Visible = false;
                 }
                 field("Due Date"; Rec."Due Date")
                 {
                     ApplicationArea = Warehouse;
-                    ToolTip = 'Specifies the date when the outbound warehouse activity should be started.';
                 }
                 field("Unit of Measure Code2"; Rec."Unit of Measure Code")
                 {
@@ -138,7 +125,6 @@ page 5783 "Cross-Dock Opportunities"
                 field("Reserved Quantity"; Rec."Reserved Quantity")
                 {
                     ApplicationArea = Reservation;
-                    ToolTip = 'Specifies the number of units of the item on the line reserved for the source document line.';
                 }
                 field("Reserved Qty. (Base)"; Rec."Reserved Qty. (Base)")
                 {

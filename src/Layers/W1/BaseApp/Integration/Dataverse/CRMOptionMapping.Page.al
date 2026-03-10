@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -31,12 +31,10 @@ page 5334 "CRM Option Mapping"
                 field("Option Value"; Rec."Option Value")
                 {
                     ApplicationArea = Suite;
-                    ToolTip = 'Specifies the numeric value of the mapped option value in Dataverse.';
                 }
                 field("Option Value Caption"; Rec."Option Value Caption")
                 {
                     ApplicationArea = Suite;
-                    ToolTip = 'Specifies the caption of the mapped option value in Dataverse.';
                 }
             }
         }

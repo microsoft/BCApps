@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -14,12 +14,14 @@ table 7009 "Duplicate Price Line"
         field(1; "Price List Code"; Code[20])
         {
             Caption = 'Price List Code';
+            ToolTip = 'Specifies the unique identifier of the price list.';
             DataClassification = SystemMetadata;
             TableRelation = "Price List Header";
         }
         field(2; "Price List Line No."; Integer)
         {
             Caption = 'Price List Line No.';
+            ToolTip = 'Specifies the number of the price list line.';
             DataClassification = SystemMetadata;
         }
         field(3; "Line No."; Integer)
@@ -35,6 +37,7 @@ table 7009 "Duplicate Price Line"
         field(5; Remove; Boolean)
         {
             Caption = 'Remove';
+            ToolTip = 'Specifies if the price list line should be removed to resolve duplication.';
             DataClassification = SystemMetadata;
 
             trigger OnValidate()

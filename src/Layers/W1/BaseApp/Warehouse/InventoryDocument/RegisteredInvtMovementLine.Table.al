@@ -27,48 +27,58 @@ table 7345 "Registered Invt. Movement Line"
         field(2; "No."; Code[20])
         {
             Caption = 'No.';
+            ToolTip = 'Specifies the number of the involved entry or record, according to the specified number series.';
         }
         field(3; "Line No."; Integer)
         {
             Caption = 'Line No.';
+            ToolTip = 'Specifies the number of the related inventory movement line.';
         }
         field(4; "Source Type"; Integer)
         {
             Caption = 'Source Type';
+            ToolTip = 'Specifies the same as the field with the same name in the Registered Whse. Activity Line table.';
         }
         field(5; "Source Subtype"; Option)
         {
             Caption = 'Source Subtype';
+            ToolTip = 'Specifies the same as the field with the same name in the Registered Whse. Activity Line table.';
             OptionCaption = '0,1,2,3,4,5,6,7,8,9,10';
             OptionMembers = "0","1","2","3","4","5","6","7","8","9","10";
         }
         field(6; "Source No."; Code[20])
         {
             Caption = 'Source No.';
+            ToolTip = 'Specifies the number of the source document that the entry originates from.';
         }
         field(7; "Source Line No."; Integer)
         {
             BlankZero = true;
             Caption = 'Source Line No.';
+            ToolTip = 'Specifies the line number of the source document that the entry originates from.';
         }
         field(8; "Source Subline No."; Integer)
         {
             BlankZero = true;
             Caption = 'Source Subline No.';
+            ToolTip = 'Specifies the number of the subline on the related inventory movement.';
         }
         field(9; "Source Document"; Enum "Warehouse Activity Source Document")
         {
             BlankZero = true;
             Caption = 'Source Document';
+            ToolTip = 'Specifies the type of document that the line relates to.';
         }
         field(11; "Location Code"; Code[10])
         {
             Caption = 'Location Code';
+            ToolTip = 'Specifies the same as the field with the same name in the Registered Whse. Activity Line table.';
             TableRelation = Location;
         }
         field(12; "Shelf No."; Code[10])
         {
             Caption = 'Shelf No.';
+            ToolTip = 'Specifies the shelf number of the item for informational use.';
         }
         field(13; "Sorting Sequence No."; Integer)
         {
@@ -77,37 +87,44 @@ table 7345 "Registered Invt. Movement Line"
         field(14; "Item No."; Code[20])
         {
             Caption = 'Item No.';
+            ToolTip = 'Specifies the same as the field with the same name in the Registered Whse. Activity Line table.';
             TableRelation = Item;
         }
         field(15; "Variant Code"; Code[10])
         {
             Caption = 'Variant Code';
+            ToolTip = 'Specifies the variant of the item on the line.';
             TableRelation = "Item Variant".Code where("Item No." = field("Item No."));
         }
         field(16; "Unit of Measure Code"; Code[10])
         {
             Caption = 'Unit of Measure Code';
+            ToolTip = 'Specifies how each unit of the item or resource is measured, such as in pieces or hours. By default, the value in the Base Unit of Measure field on the item or resource card is inserted.';
             TableRelation = "Item Unit of Measure".Code where("Item No." = field("Item No."));
         }
         field(17; "Qty. per Unit of Measure"; Decimal)
         {
             AutoFormatType = 0;
             Caption = 'Qty. per Unit of Measure';
+            ToolTip = 'Specifies the same as the field with the same name in the Registered Whse. Activity Line table.';
             DecimalPlaces = 0 : 5;
             InitValue = 1;
         }
         field(18; Description; Text[100])
         {
             Caption = 'Description';
+            ToolTip = 'Specifies the same as the field with the same name in the Registered Whse. Activity Line table.';
         }
         field(19; "Description 2"; Text[50])
         {
             Caption = 'Description 2';
+            ToolTip = 'Specifies the second description of the item.';
         }
         field(20; Quantity; Decimal)
         {
             AutoFormatType = 0;
             Caption = 'Quantity';
+            ToolTip = 'Specifies the same as the field with the same name in the Registered Whse. Activity Line table.';
             DecimalPlaces = 0 : 5;
 
             trigger OnValidate()
@@ -125,18 +142,22 @@ table 7345 "Registered Invt. Movement Line"
         field(31; "Shipping Advice"; Enum "Sales Header Shipping Advice")
         {
             Caption = 'Shipping Advice';
+            ToolTip = 'Specifies the shipping advice for the registered inventory movement line.';
         }
         field(34; "Due Date"; Date)
         {
             Caption = 'Due Date';
+            ToolTip = 'Specifies the date when the warehouse activity must be completed.';
         }
         field(39; "Destination Type"; enum "Warehouse Destination Type")
         {
             Caption = 'Destination Type';
+            ToolTip = 'Specifies the type of destination that is associated with the registered inventory movement line.';
         }
         field(40; "Destination No."; Code[20])
         {
             Caption = 'Destination No.';
+            ToolTip = 'Specifies the same as the field with the same name in the Registered Whse. Activity Line table.';
             TableRelation = if ("Destination Type" = const(Vendor)) Vendor
             else
             if ("Destination Type" = const(Customer)) Customer
@@ -170,6 +191,7 @@ table 7345 "Registered Invt. Movement Line"
         field(6500; "Serial No."; Code[50])
         {
             Caption = 'Serial No.';
+            ToolTip = 'Specifies the serial number of the item that was moved.';
 
             trigger OnLookup()
             begin
@@ -179,6 +201,7 @@ table 7345 "Registered Invt. Movement Line"
         field(6501; "Lot No."; Code[50])
         {
             Caption = 'Lot No.';
+            ToolTip = 'Specifies the lot number of the item that was moved.';
 
             trigger OnLookup()
             begin
@@ -192,10 +215,12 @@ table 7345 "Registered Invt. Movement Line"
         field(6503; "Expiration Date"; Date)
         {
             Caption = 'Expiration Date';
+            ToolTip = 'Specifies the expiration date of the serial number or lot number that was moved.';
         }
         field(6515; "Package No."; Code[50])
         {
             Caption = 'Package No.';
+            ToolTip = 'Specifies the package number of the item that was moved.';
 
             trigger OnLookup()
             begin
@@ -205,6 +230,7 @@ table 7345 "Registered Invt. Movement Line"
         field(7300; "Bin Code"; Code[20])
         {
             Caption = 'Bin Code';
+            ToolTip = 'Specifies the bin where the items are picked or put away.';
             TableRelation = if ("Action Type" = filter(<> Take)) Bin.Code where("Location Code" = field("Location Code"),
                                                                               "Zone Code" = field("Zone Code"))
             else
@@ -216,16 +242,19 @@ table 7345 "Registered Invt. Movement Line"
         field(7301; "Zone Code"; Code[10])
         {
             Caption = 'Zone Code';
+            ToolTip = 'Specifies the zone code where the bin on the registered inventory movement is located.';
             TableRelation = Zone.Code where("Location Code" = field("Location Code"));
         }
         field(7305; "Action Type"; Enum "Warehouse Action Type")
         {
             Caption = 'Action Type';
+            ToolTip = 'Specifies the action type for the inventory movement line.';
             Editable = false;
         }
         field(7312; "Special Equipment Code"; Code[10])
         {
             Caption = 'Special Equipment Code';
+            ToolTip = 'Specifies the same as the field with the same name in the Registered Whse. Activity Line table.';
             TableRelation = "Special Equipment";
         }
     }

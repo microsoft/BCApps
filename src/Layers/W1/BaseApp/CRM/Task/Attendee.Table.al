@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -28,6 +28,7 @@ table 5199 Attendee
         field(3; "Attendance Type"; Option)
         {
             Caption = 'Attendance Type';
+            ToolTip = 'Specifies the type of attendance for the meeting. You can select from: Required, Optional and Task Organizer.';
             OptionCaption = 'Required,Optional,To-do Organizer';
             OptionMembers = Required,Optional,"To-do Organizer";
 
@@ -50,6 +51,7 @@ table 5199 Attendee
         field(4; "Attendee Type"; Option)
         {
             Caption = 'Attendee Type';
+            ToolTip = 'Specifies the type of the attendee. You can choose from Contact or Salesperson.';
             OptionCaption = 'Contact,Salesperson';
             OptionMembers = Contact,Salesperson;
 
@@ -67,6 +69,7 @@ table 5199 Attendee
         field(5; "Attendee No."; Code[20])
         {
             Caption = 'Attendee No.';
+            ToolTip = 'Specifies the number of the attendee participating in the task.';
             TableRelation = if ("Attendee Type" = const(Contact)) Contact where("No." = field("Attendee No."))
             else
             if ("Attendee Type" = const(Salesperson)) "Salesperson/Purchaser" where(Code = field("Attendee No."));
@@ -94,11 +97,13 @@ table 5199 Attendee
         field(6; "Attendee Name"; Text[100])
         {
             Caption = 'Attendee Name';
+            ToolTip = 'Specifies the name of the attendee participating in the task.';
             Editable = false;
         }
         field(7; "Send Invitation"; Boolean)
         {
             Caption = 'Send Invitation';
+            ToolTip = 'Specifies that you want to send an invitation to the attendee by e-mail. The Send Invitation option is only available for contacts and salespeople with an e-mail address. The Send Invitation option is not available for the meeting organizer.';
 
             trigger OnValidate()
             var
@@ -125,12 +130,14 @@ table 5199 Attendee
         field(8; "Invitation Response Type"; Option)
         {
             Caption = 'Invitation Response Type';
+            ToolTip = 'Specifies the type of the attendee''s response to a meeting invitation.';
             OptionCaption = 'None,Accepted,Declined,Tentative';
             OptionMembers = "None",Accepted,Declined,Tentative;
         }
         field(9; "Invitation Sent"; Boolean)
         {
             Caption = 'Invitation Sent';
+            ToolTip = 'Specifies that the meeting invitation has been sent to the attendee. The Send Invitation option is not available for the meeting organizer.';
         }
     }
 

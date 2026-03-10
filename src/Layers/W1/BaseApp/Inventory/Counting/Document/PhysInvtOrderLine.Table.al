@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -32,20 +32,24 @@ table 5876 "Phys. Invt. Order Line"
         field(1; "Document No."; Code[20])
         {
             Caption = 'Document No.';
+            ToolTip = 'Specifies the document number.';
             TableRelation = "Phys. Invt. Order Header";
         }
         field(2; "Line No."; Integer)
         {
             Caption = 'Line No.';
+            ToolTip = 'Specifies the number of the line.';
         }
         field(12; "On Recording Lines"; Boolean)
         {
             Caption = 'On Recording Lines';
+            ToolTip = 'Specifies if the item exists on one or more physical inventory recording lines.';
             Editable = false;
         }
         field(20; "Item No."; Code[20])
         {
             Caption = 'Item No.';
+            ToolTip = 'Specifies the number of the item, which should be counted when taking the physical inventory.';
             TableRelation = Item;
 
             trigger OnValidate()
@@ -99,6 +103,7 @@ table 5876 "Phys. Invt. Order Line"
         field(21; "Variant Code"; Code[10])
         {
             Caption = 'Variant Code';
+            ToolTip = 'Specifies the variant of the item on the line.';
             TableRelation = "Item Variant".Code where("Item No." = field("Item No."));
 
             trigger OnValidate()
@@ -129,6 +134,7 @@ table 5876 "Phys. Invt. Order Line"
         field(22; "Location Code"; Code[10])
         {
             Caption = 'Location Code';
+            ToolTip = 'Specifies the location where the item must be counted.';
             TableRelation = Location;
 
             trigger OnValidate()
@@ -146,6 +152,7 @@ table 5876 "Phys. Invt. Order Line"
         field(23; "Bin Code"; Code[20])
         {
             Caption = 'Bin Code';
+            ToolTip = 'Specifies the bin where the item must be counted.';
             TableRelation = Bin.Code where("Location Code" = field("Location Code"));
 
             trigger OnValidate()
@@ -175,18 +182,22 @@ table 5876 "Phys. Invt. Order Line"
         field(30; Description; Text[100])
         {
             Caption = 'Description';
+            ToolTip = 'Specifies the description of the item.';
         }
         field(31; "Description 2"; Text[50])
         {
             Caption = 'Description 2';
+            ToolTip = 'Specifies an additional description of the item.';
         }
         field(32; "Unit of Measure"; Text[50])
         {
             Caption = 'Unit of Measure';
+            ToolTip = 'Specifies the unit of measure, such as bottle or piece, that is currently used for the item.';
         }
         field(40; "Base Unit of Measure Code"; Code[10])
         {
             Caption = 'Base Unit of Measure Code';
+            ToolTip = 'Specifies the unit of measure, such as bottle or piece, that is currently used for the item.';
             Editable = false;
             TableRelation = "Unit of Measure";
         }
@@ -200,11 +211,13 @@ table 5876 "Phys. Invt. Order Line"
         field(51; "Qty. Exp. Calculated"; Boolean)
         {
             Caption = 'Qty. Exp. Calculated';
+            ToolTip = 'Specifies if the Qty. Expected (Base) field has been updated with the Calculate Expected Qty. function.';
             Editable = false;
         }
         field(53; "Use Item Tracking"; Boolean)
         {
             Caption = 'Use Item Tracking';
+            ToolTip = 'Specifies that the counting of the item is done by counting its serial, lot and package numbers.';
 
             trigger OnValidate()
             begin
@@ -235,16 +248,19 @@ table 5876 "Phys. Invt. Order Line"
             AutoFormatType = 2;
             AutoFormatExpression = '';
             Caption = 'Unit Amount';
+            ToolTip = 'Specifies the unit price of the item.';
         }
         field(62; "Unit Cost"; Decimal)
         {
             AutoFormatType = 2;
             AutoFormatExpression = '';
             Caption = 'Unit Cost';
+            ToolTip = 'Specifies the unit costs of the item, which will be used when posting the physical inventory.';
         }
         field(70; "No. Finished Rec.-Lines"; Integer)
         {
             Caption = 'No. Finished Rec.-Lines';
+            ToolTip = 'Specifies how many of the related physical inventory recordings are closed.';
             Editable = false;
         }
         field(71; "Qty. Recorded (Base)"; Decimal)
@@ -264,6 +280,7 @@ table 5876 "Phys. Invt. Order Line"
         field(73; "Entry Type"; Option)
         {
             Caption = 'Entry Type';
+            ToolTip = 'Specifies if the difference in the Quantity (Base) field on the related closed recording is positive or negative.';
             Editable = false;
             OptionCaption = ' ,Positive Adjmt.,Negative Adjmt.';
             OptionMembers = " ","Positive Adjmt.","Negative Adjmt.";
@@ -290,12 +307,14 @@ table 5876 "Phys. Invt. Order Line"
         field(80; "Recorded Without Order"; Boolean)
         {
             Caption = 'Recorded Without Order';
+            ToolTip = 'Specifies whether the Inventory Order Line was automatically created by finishing a Phys. Inventory.';
             Editable = false;
         }
         field(90; "Shortcut Dimension 1 Code"; Code[20])
         {
             CaptionClass = '1,2,1';
             Caption = 'Shortcut Dimension 1 Code';
+            ToolTip = 'Specifies the code for Shortcut Dimension 1, which is one of two global dimension codes that you set up in the General Ledger Setup window.';
             TableRelation = "Dimension Value".Code where("Global Dimension No." = const(1),
                                                           Blocked = const(false));
 
@@ -309,6 +328,7 @@ table 5876 "Phys. Invt. Order Line"
         {
             CaptionClass = '1,2,2';
             Caption = 'Shortcut Dimension 2 Code';
+            ToolTip = 'Specifies the code for Shortcut Dimension 2, which is one of two global dimension codes that you set up in the General Ledger Setup window.';
             TableRelation = "Dimension Value".Code where("Global Dimension No." = const(2),
                                                           Blocked = const(false));
 
@@ -321,6 +341,7 @@ table 5876 "Phys. Invt. Order Line"
         field(100; "Shelf No."; Code[10])
         {
             Caption = 'Shelf No.';
+            ToolTip = 'Specifies the shelf number where the item can be found normally.';
         }
         field(110; "Gen. Bus. Posting Group"; Code[20])
         {
@@ -364,6 +385,7 @@ table 5876 "Phys. Invt. Order Line"
         {
             AccessByPermission = TableData "Item Reference" = R;
             Caption = 'Item Reference No.';
+            ToolTip = 'Specifies a reference to the item number as defined by the item''s barcode.';
             ExtendedDatatype = Barcode;
 
             trigger OnLookup()

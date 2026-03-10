@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -21,37 +21,31 @@ page 777 "Analysis Report Chart Line"
                 field("Analysis Line Template Name"; Rec."Analysis Line Template Name")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the name. This field is intended only for internal use.';
                     Visible = false;
                 }
                 field("Analysis Line Line No."; Rec."Analysis Line Line No.")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the number of the analysis report line that the specific chart is based on.';
                     Visible = false;
                 }
                 field("Analysis Column Template Name"; Rec."Analysis Column Template Name")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the name. This field is intended only for internal use.';
                     Visible = false;
                 }
                 field("Analysis Column Line No."; Rec."Analysis Column Line No.")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the number of the analysis report column that the advanced chart is based on.';
                     Visible = false;
                 }
                 field("Original Measure Name"; Rec."Original Measure Name")
                 {
                     ApplicationArea = Suite;
-                    ToolTip = 'Specifies the analysis report columns or lines that you select to insert in the Analysis Report Chart Setup window.';
                 }
                 field("Chart Type"; Rec."Chart Type")
                 {
                     ApplicationArea = All;
                     Editable = IsMeasure;
-                    ToolTip = 'Specifies how the analysis report values are represented graphically in the specific chart.';
                     Visible = IsMeasure;
                 }
                 field(Show; Show)

@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -27,31 +27,38 @@ table 281 "Phys. Inventory Ledger Entry"
         field(1; "Entry No."; Integer)
         {
             Caption = 'Entry No.';
+            ToolTip = 'Specifies the number of the entry, as assigned from the specified number series when the entry was created.';
         }
         field(2; "Item No."; Code[20])
         {
             Caption = 'Item No.';
+            ToolTip = 'Specifies the number of the item in the ledger entry.';
             TableRelation = Item;
         }
         field(3; "Posting Date"; Date)
         {
             Caption = 'Posting Date';
+            ToolTip = 'Specifies the date on which you posted the Physical Inventory Journal that created this ledger entry.';
         }
         field(4; "Entry Type"; Enum "Item Ledger Entry Type")
         {
             Caption = 'Entry Type';
+            ToolTip = 'Specifies the type of transaction that was posted from the Physical Inventory Journal that created the ledger entry.';
         }
         field(6; "Document No."; Code[20])
         {
             Caption = 'Document No.';
+            ToolTip = 'Specifies the document number on the physical inventory ledger entry.';
         }
         field(7; Description; Text[100])
         {
             Caption = 'Description';
+            ToolTip = 'Specifies a description of the item in the ledger entry.';
         }
         field(8; "Location Code"; Code[10])
         {
             Caption = 'Location Code';
+            ToolTip = 'Specifies the code of the location for the item in the ledger entry.';
             TableRelation = Location;
         }
         field(9; "Inventory Posting Group"; Code[20])
@@ -63,6 +70,7 @@ table 281 "Phys. Inventory Ledger Entry"
         {
             AutoFormatType = 0;
             Caption = 'Quantity';
+            ToolTip = 'Specifies the difference between the quantities in the Quantity (Calculated) field and the Quantity (Physical Inventory) field for ledger entry.';
             DecimalPlaces = 0 : 5;
         }
         field(15; "Unit Amount"; Decimal)
@@ -70,18 +78,21 @@ table 281 "Phys. Inventory Ledger Entry"
             AutoFormatType = 2;
             AutoFormatExpression = '';
             Caption = 'Unit Amount';
+            ToolTip = 'Specifies the amount for one unit of the item in the ledger entry.';
         }
         field(16; "Unit Cost"; Decimal)
         {
             AutoFormatType = 2;
             AutoFormatExpression = '';
             Caption = 'Unit Cost';
+            ToolTip = 'Specifies the cost of one unit of the item or resource on the line.';
         }
         field(17; Amount; Decimal)
         {
             AutoFormatType = 1;
             AutoFormatExpression = '';
             Caption = 'Amount';
+            ToolTip = 'Specifies the total amount for the items in the ledger entry.';
         }
         field(20; "Item Register No."; Integer)
         {
@@ -103,24 +114,28 @@ table 281 "Phys. Inventory Ledger Entry"
         field(24; "User ID"; Code[50])
         {
             Caption = 'User ID';
+            ToolTip = 'Specifies the ID of the user who posted the entry, to be used, for example, in the change log.';
             DataClassification = EndUserIdentifiableInformation;
             TableRelation = User."User Name";
         }
         field(25; "Source Code"; Code[10])
         {
             Caption = 'Source Code';
+            ToolTip = 'Specifies the source code that specifies where the entry was created.';
             TableRelation = "Source Code";
         }
         field(33; "Global Dimension 1 Code"; Code[20])
         {
             CaptionClass = '1,1,1';
             Caption = 'Global Dimension 1 Code';
+            ToolTip = 'Specifies the code for the global dimension that is linked to the record or entry for analysis purposes. Two global dimensions, typically for the company''s most important activities, are available on all cards, documents, reports, and lists.';
             TableRelation = "Dimension Value".Code where("Global Dimension No." = const(1));
         }
         field(34; "Global Dimension 2 Code"; Code[20])
         {
             CaptionClass = '1,1,2';
             Caption = 'Global Dimension 2 Code';
+            ToolTip = 'Specifies the code for the global dimension that is linked to the record or entry for analysis purposes. Two global dimensions, typically for the company''s most important activities, are available on all cards, documents, reports, and lists.';
             TableRelation = "Dimension Value".Code where("Global Dimension No." = const(2));
         }
         field(45; "Journal Batch Name"; Code[10])
@@ -130,6 +145,7 @@ table 281 "Phys. Inventory Ledger Entry"
         field(46; "Reason Code"; Code[10])
         {
             Caption = 'Reason Code';
+            ToolTip = 'Specifies the reason code, a supplementary source code that enables you to trace the entry.';
             TableRelation = "Reason Code";
         }
         field(54; "Qty. (Calculated)"; Decimal)
@@ -147,6 +163,7 @@ table 281 "Phys. Inventory Ledger Entry"
         field(56; "Last Item Ledger Entry No."; Integer)
         {
             Caption = 'Last Item Ledger Entry No.';
+            ToolTip = 'Specifies the number of the last item ledger entry that provided the basis for the physical inventory ledger entry.';
             TableRelation = "Item Ledger Entry";
         }
         field(60; "Document Date"; Date)
@@ -165,6 +182,7 @@ table 281 "Phys. Inventory Ledger Entry"
         field(480; "Dimension Set ID"; Integer)
         {
             Caption = 'Dimension Set ID';
+            ToolTip = 'Specifies a reference to a combination of dimension values. The actual values are stored in the Dimension Set Entry table.';
             Editable = false;
             TableRelation = "Dimension Set Entry";
 
@@ -177,6 +195,7 @@ table 281 "Phys. Inventory Ledger Entry"
         {
             CaptionClass = '1,2,3';
             Caption = 'Shortcut Dimension 3 Code';
+            ToolTip = 'Specifies the code for Shortcut Dimension 3, which is one of dimension codes that you set up in the General Ledger Setup window.';
             Editable = false;
             FieldClass = FlowField;
             CalcFormula = lookup("Dimension Set Entry"."Dimension Value Code" where("Dimension Set ID" = field("Dimension Set ID"),
@@ -186,6 +205,7 @@ table 281 "Phys. Inventory Ledger Entry"
         {
             CaptionClass = '1,2,4';
             Caption = 'Shortcut Dimension 4 Code';
+            ToolTip = 'Specifies the code for Shortcut Dimension 4, which is one of dimension codes that you set up in the General Ledger Setup window.';
             Editable = false;
             FieldClass = FlowField;
             CalcFormula = lookup("Dimension Set Entry"."Dimension Value Code" where("Dimension Set ID" = field("Dimension Set ID"),
@@ -195,6 +215,7 @@ table 281 "Phys. Inventory Ledger Entry"
         {
             CaptionClass = '1,2,5';
             Caption = 'Shortcut Dimension 5 Code';
+            ToolTip = 'Specifies the code for Shortcut Dimension 5, which is one of dimension codes that you set up in the General Ledger Setup window.';
             Editable = false;
             FieldClass = FlowField;
             CalcFormula = lookup("Dimension Set Entry"."Dimension Value Code" where("Dimension Set ID" = field("Dimension Set ID"),
@@ -204,6 +225,7 @@ table 281 "Phys. Inventory Ledger Entry"
         {
             CaptionClass = '1,2,6';
             Caption = 'Shortcut Dimension 6 Code';
+            ToolTip = 'Specifies the code for Shortcut Dimension 6, which is one of dimension codes that you set up in the General Ledger Setup window.';
             Editable = false;
             FieldClass = FlowField;
             CalcFormula = lookup("Dimension Set Entry"."Dimension Value Code" where("Dimension Set ID" = field("Dimension Set ID"),
@@ -213,6 +235,7 @@ table 281 "Phys. Inventory Ledger Entry"
         {
             CaptionClass = '1,2,7';
             Caption = 'Shortcut Dimension 7 Code';
+            ToolTip = 'Specifies the code for Shortcut Dimension 7, which is one of dimension codes that you set up in the General Ledger Setup window.';
             Editable = false;
             FieldClass = FlowField;
             CalcFormula = lookup("Dimension Set Entry"."Dimension Value Code" where("Dimension Set ID" = field("Dimension Set ID"),
@@ -222,6 +245,7 @@ table 281 "Phys. Inventory Ledger Entry"
         {
             CaptionClass = '1,2,8';
             Caption = 'Shortcut Dimension 8 Code';
+            ToolTip = 'Specifies the code for Shortcut Dimension 8, which is one of dimension codes that you set up in the General Ledger Setup window.';
             Editable = false;
             FieldClass = FlowField;
             CalcFormula = lookup("Dimension Set Entry"."Dimension Value Code" where("Dimension Set ID" = field("Dimension Set ID"),
@@ -230,6 +254,7 @@ table 281 "Phys. Inventory Ledger Entry"
         field(5402; "Variant Code"; Code[10])
         {
             Caption = 'Variant Code';
+            ToolTip = 'Specifies the variant of the item on the line.';
             TableRelation = "Item Variant".Code where("Item No." = field("Item No."));
         }
         field(5407; "Unit of Measure Code"; Code[10])

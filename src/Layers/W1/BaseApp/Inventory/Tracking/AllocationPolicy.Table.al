@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -20,10 +20,12 @@ table 387 "Allocation Policy"
         field(2; "Line No."; Integer)
         {
             Caption = 'Line No.';
+            ToolTip = 'Specifies the step number of the allocation policy.';
         }
         field(3; "Allocation Rule"; Enum "Allocation Rules Impl.")
         {
             Caption = 'Allocation Policy';
+            ToolTip = 'Specifies the name of the allocation policy. Click or tap the AssistEdit button to see an example of how the allocation policy will be applied.';
             NotBlank = true;
         }
     }

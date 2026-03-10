@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -132,6 +132,7 @@ table 5353 "CRM Salesorder"
         field(14; OrderNumber; Text[100])
         {
             Caption = 'Order ID';
+            ToolTip = 'Specifies information related to the Dynamics 365 Sales connection.';
             Description = 'Shows the order number for customer reference and to use in search. The number cannot be modified.';
             ExternalAccess = Insert;
             ExternalName = 'ordernumber';
@@ -140,6 +141,7 @@ table 5353 "CRM Salesorder"
         field(15; Name; Text[2048])
         {
             Caption = 'Name';
+            ToolTip = 'Specifies the name of the record.';
             Description = 'Type a descriptive name for the order.';
             ExternalName = 'name';
             ExternalType = 'String';
@@ -167,6 +169,7 @@ table 5353 "CRM Salesorder"
         {
             AutoFormatType = 0;
             Caption = 'Order Discount Amount';
+            ToolTip = 'Specifies information related to the Dynamics 365 Sales connection.';
             Description = 'Type the discount amount for the order if the customer is eligible for special savings.';
             ExternalName = 'discountamount';
             ExternalType = 'Money';
@@ -183,6 +186,7 @@ table 5353 "CRM Salesorder"
         {
             AutoFormatType = 0;
             Caption = 'Total Amount';
+            ToolTip = 'Specifies information related to the Dynamics 365 Sales connection.';
             Description = 'Shows the total amount due, calculated as the sum of the products, discounts, freight, and taxes for the order.';
             ExternalAccess = Modify;
             ExternalName = 'totalamount';
@@ -192,6 +196,7 @@ table 5353 "CRM Salesorder"
         {
             AutoFormatType = 0;
             Caption = 'Total Detail Amount';
+            ToolTip = 'Specifies information related to the Dynamics 365 Sales connection.';
             Description = 'Shows the sum of all existing and write-in products included on the order, based on the specified price list and quantities.';
             ExternalAccess = Modify;
             ExternalName = 'totallineitemamount';
@@ -210,6 +215,7 @@ table 5353 "CRM Salesorder"
         {
             AutoFormatType = 0;
             Caption = 'Total Pre-Freight Amount';
+            ToolTip = 'Specifies data from a corresponding field in a Dynamics 365 Sales entity.';
             Description = 'Shows the total product amount for the order, minus any discounts. This value is added to freight and tax amounts in the calculation for the total amount due for the order.';
             ExternalAccess = Modify;
             ExternalName = 'totalamountlessfreight';
@@ -219,6 +225,7 @@ table 5353 "CRM Salesorder"
         {
             AutoFormatType = 0;
             Caption = 'Total Discount Amount';
+            ToolTip = 'Specifies information related to the Dynamics 365 Sales connection.';
             Description = 'Shows the total discount amount, based on the discount price and rate entered on the order.';
             ExternalAccess = Modify;
             ExternalName = 'totaldiscountamount';
@@ -227,6 +234,7 @@ table 5353 "CRM Salesorder"
         field(25; RequestDeliveryBy; Date)
         {
             Caption = 'Requested Delivery Date';
+            ToolTip = 'Specifies information related to the Dynamics 365 Sales connection.';
             Description = 'Enter the delivery date requested by the customer for all products in the order.';
             ExternalName = 'requestdeliveryby';
             ExternalType = 'DateTime';
@@ -235,6 +243,7 @@ table 5353 "CRM Salesorder"
         {
             AutoFormatType = 0;
             Caption = 'Total Tax';
+            ToolTip = 'Specifies the sum of TAX amounts on all lines in the document.';
             Description = 'Shows the Tax amounts specified on all products included in the order, included in the Total Amount due calculation for the order.';
             ExternalAccess = Modify;
             ExternalName = 'totaltax';
@@ -277,6 +286,7 @@ table 5353 "CRM Salesorder"
         field(34; StateCode; Option)
         {
             Caption = 'Status';
+            ToolTip = 'Specifies information related to the Dynamics 365 Sales connection.';
             Description = 'Shows whether the order is active, submitted, fulfilled, canceled, or invoiced. Only active orders can be edited.';
             ExternalAccess = Modify;
             ExternalName = 'statecode';
@@ -289,6 +299,7 @@ table 5353 "CRM Salesorder"
         field(35; StatusCode; Option)
         {
             Caption = 'Status Reason';
+            ToolTip = 'Specifies information related to the Dynamics 365 Sales connection.';
             Description = 'Select the order''s status.';
             ExternalName = 'statuscode';
             ExternalType = 'Status';
@@ -300,6 +311,7 @@ table 5353 "CRM Salesorder"
         field(36; ShipTo_Name; Text[200])
         {
             Caption = 'Ship To Name';
+            ToolTip = 'Specifies information related to the Dynamics 365 Sales connection.';
             Description = 'Type a name for the customer''s shipping address, such as "Headquarters" or "Field office", to identify the address.';
             ExternalName = 'shipto_name';
             ExternalType = 'String';
@@ -315,6 +327,7 @@ table 5353 "CRM Salesorder"
         field(38; ShipTo_Line1; Text[250])
         {
             Caption = 'Ship To Street 1';
+            ToolTip = 'Specifies information related to the Dynamics 365 Sales connection.';
             Description = 'Type the first line of the customer''s shipping address.';
             ExternalName = 'shipto_line1';
             ExternalType = 'String';
@@ -322,6 +335,7 @@ table 5353 "CRM Salesorder"
         field(39; ShipTo_Line2; Text[250])
         {
             Caption = 'Ship To Street 2';
+            ToolTip = 'Specifies information related to the Dynamics 365 Sales connection.';
             Description = 'Type the second line of the customer''s shipping address.';
             ExternalName = 'shipto_line2';
             ExternalType = 'String';
@@ -329,6 +343,7 @@ table 5353 "CRM Salesorder"
         field(40; ShipTo_Line3; Text[250])
         {
             Caption = 'Ship To Street 3';
+            ToolTip = 'Specifies information related to the Dynamics 365 Sales connection.';
             Description = 'Type the third line of the shipping address.';
             ExternalName = 'shipto_line3';
             ExternalType = 'String';
@@ -336,6 +351,7 @@ table 5353 "CRM Salesorder"
         field(41; ShipTo_City; Text[80])
         {
             Caption = 'Ship To City';
+            ToolTip = 'Specifies information related to the Dynamics 365 Sales connection.';
             Description = 'Type the city for the customer''s shipping address.';
             ExternalName = 'shipto_city';
             ExternalType = 'String';
@@ -343,6 +359,7 @@ table 5353 "CRM Salesorder"
         field(42; ShipTo_StateOrProvince; Text[50])
         {
             Caption = 'Ship To State/Province';
+            ToolTip = 'Specifies information related to the Dynamics 365 Sales connection.';
             Description = 'Type the state or province for the shipping address.';
             ExternalName = 'shipto_stateorprovince';
             ExternalType = 'String';
@@ -350,6 +367,7 @@ table 5353 "CRM Salesorder"
         field(43; ShipTo_Country; Text[80])
         {
             Caption = 'Ship To Country/Region';
+            ToolTip = 'Specifies the country/region of the address.';
             Description = 'Type the country or region for the customer''s shipping address.';
             ExternalName = 'shipto_country';
             ExternalType = 'String';
@@ -357,6 +375,7 @@ table 5353 "CRM Salesorder"
         field(44; ShipTo_PostalCode; Text[20])
         {
             Caption = 'Ship To ZIP/Postal Code';
+            ToolTip = 'Specifies information related to the Dynamics 365 Sales connection.';
             Description = 'Type the ZIP Code or postal code for the shipping address.';
             ExternalName = 'shipto_postalcode';
             ExternalType = 'String';
@@ -364,6 +383,7 @@ table 5353 "CRM Salesorder"
         field(45; WillCall; Boolean)
         {
             Caption = 'Ship To';
+            ToolTip = 'Specifies information related to the Dynamics 365 Sales connection.';
             Description = 'Select whether the products included in the order should be shipped to the specified address or held until the customer calls with further pick-up or delivery instructions.';
             ExternalName = 'willcall';
             ExternalType = 'Boolean';
@@ -371,6 +391,7 @@ table 5353 "CRM Salesorder"
         field(46; ShipTo_Telephone; Text[50])
         {
             Caption = 'Ship To Phone';
+            ToolTip = 'Specifies information related to the Dynamics 365 Sales connection.';
             Description = 'Type the phone number for the customer''s shipping address.';
             ExternalName = 'shipto_telephone';
             ExternalType = 'String';
@@ -378,6 +399,7 @@ table 5353 "CRM Salesorder"
         field(47; BillTo_Name; Text[200])
         {
             Caption = 'Bill To Name';
+            ToolTip = 'Specifies the name at the address that the invoice will be sent to.';
             Description = 'Type a name for the customer''s billing address, such as "Headquarters" or "Field office", to identify the address.';
             ExternalName = 'billto_name';
             ExternalType = 'String';
@@ -385,6 +407,7 @@ table 5353 "CRM Salesorder"
         field(48; ShipTo_FreightTermsCode; Option)
         {
             Caption = 'Ship To Freight Terms';
+            ToolTip = 'Specifies information related to the Dynamics 365 Sales connection.';
             Description = 'Select the freight terms to make sure shipping orders are processed correctly.';
             ExternalName = 'shipto_freighttermscode';
             ExternalType = 'Picklist';
@@ -396,6 +419,7 @@ table 5353 "CRM Salesorder"
         field(49; ShipTo_Fax; Text[50])
         {
             Caption = 'Ship to Fax';
+            ToolTip = 'Specifies information related to the Dynamics 365 Sales connection.';
             Description = 'Type the fax number for the customer''s shipping address.';
             ExternalName = 'shipto_fax';
             ExternalType = 'String';
@@ -403,6 +427,7 @@ table 5353 "CRM Salesorder"
         field(50; BillTo_Line1; Text[250])
         {
             Caption = 'Bill To Street 1';
+            ToolTip = 'Specifies the street of the address that the invoice will be sent to.';
             Description = 'Type the first line of the customer''s billing address.';
             ExternalName = 'billto_line1';
             ExternalType = 'String';
@@ -410,6 +435,7 @@ table 5353 "CRM Salesorder"
         field(51; BillTo_Line2; Text[250])
         {
             Caption = 'Bill To Street 2';
+            ToolTip = 'Specifies the additional street information of the address that the invoice will be sent to.';
             Description = 'Type the second line of the customer''s billing address.';
             ExternalName = 'billto_line2';
             ExternalType = 'String';
@@ -417,6 +443,7 @@ table 5353 "CRM Salesorder"
         field(52; BillTo_Line3; Text[250])
         {
             Caption = 'Bill To Street 3';
+            ToolTip = 'Specifies the additional street information of the address that the invoice will be sent to.';
             Description = 'Type the third line of the billing address.';
             ExternalName = 'billto_line3';
             ExternalType = 'String';
@@ -424,6 +451,7 @@ table 5353 "CRM Salesorder"
         field(53; BillTo_City; Text[80])
         {
             Caption = 'Bill To City';
+            ToolTip = 'Specifies the city of the address that the invoice will be sent to.';
             Description = 'Type the city for the customer''s billing address.';
             ExternalName = 'billto_city';
             ExternalType = 'String';
@@ -431,6 +459,7 @@ table 5353 "CRM Salesorder"
         field(54; BillTo_StateOrProvince; Text[50])
         {
             Caption = 'Bill To State/Province';
+            ToolTip = 'Specifies the state/province of the address that the invoice will be sent to.';
             Description = 'Type the state or province for the billing address.';
             ExternalName = 'billto_stateorprovince';
             ExternalType = 'String';
@@ -438,6 +467,7 @@ table 5353 "CRM Salesorder"
         field(55; BillTo_Country; Text[80])
         {
             Caption = 'Bill To Country/Region';
+            ToolTip = 'Specifies the country/region of the address that the invoice will be sent to.';
             Description = 'Type the country or region for the customer''s billing address.';
             ExternalName = 'billto_country';
             ExternalType = 'String';
@@ -445,6 +475,7 @@ table 5353 "CRM Salesorder"
         field(56; BillTo_PostalCode; Text[20])
         {
             Caption = 'Bill To ZIP/Postal Code';
+            ToolTip = 'Specifies the ZIP/postal code of the address that the invoice will be sent to.';
             Description = 'Type the ZIP Code or postal code for the billing address.';
             ExternalName = 'billto_postalcode';
             ExternalType = 'String';
@@ -452,6 +483,7 @@ table 5353 "CRM Salesorder"
         field(57; BillTo_Telephone; Text[50])
         {
             Caption = 'Bill To Phone';
+            ToolTip = 'Specifies the phone number at the address that the invoice will be sent to.';
             Description = 'Type the phone number for the customer''s billing address.';
             ExternalName = 'billto_telephone';
             ExternalType = 'String';
@@ -459,6 +491,7 @@ table 5353 "CRM Salesorder"
         field(58; BillTo_Fax; Text[50])
         {
             Caption = 'Bill To Fax';
+            ToolTip = 'Specifies the fax number at the address that the invoice will be sent to.';
             Description = 'Type the fax number for the customer''s billing address.';
             ExternalName = 'billto_fax';
             ExternalType = 'String';
@@ -467,6 +500,7 @@ table 5353 "CRM Salesorder"
         {
             AutoFormatType = 0;
             Caption = 'Order Discount (%)';
+            ToolTip = 'Specifies information related to the Dynamics 365 Sales connection.';
             Description = 'Type the discount rate that should be applied to the Detail Amount field to include additional savings for the customer in the order.';
             ExternalName = 'discountpercentage';
             ExternalType = 'Decimal';
@@ -475,6 +509,7 @@ table 5353 "CRM Salesorder"
         {
             CalcFormula = lookup("CRM Contact".FullName where(ContactId = field(ContactId)));
             Caption = 'ContactIdName';
+            ToolTip = 'Specifies the contact person at the customer.';
             ExternalAccess = Read;
             ExternalName = 'contactidname';
             ExternalType = 'String';
@@ -493,6 +528,7 @@ table 5353 "CRM Salesorder"
         {
             CalcFormula = lookup("CRM Opportunity".Name where(OpportunityId = field(OpportunityId)));
             Caption = 'OpportunityIdName';
+            ToolTip = 'Specifies the sales opportunity that is coupled to this Dynamics 365 Sales opportunity.';
             ExternalAccess = Read;
             ExternalName = 'opportunityidname';
             ExternalType = 'String';
@@ -502,6 +538,7 @@ table 5353 "CRM Salesorder"
         {
             CalcFormula = lookup("CRM Quote".Name where(QuoteId = field(QuoteId)));
             Caption = 'QuoteIdName';
+            ToolTip = 'Specifies information related to the Dynamics 365 Sales connection.';
             ExternalAccess = Read;
             ExternalName = 'quoteidname';
             ExternalType = 'String';
@@ -511,6 +548,7 @@ table 5353 "CRM Salesorder"
         {
             CalcFormula = lookup("CRM Pricelevel".Name where(PriceLevelId = field(PriceLevelId)));
             Caption = 'PriceLevelIdName';
+            ToolTip = 'Specifies a list of your items and their prices, for example, to send to customers. You can create the list for specific customers, campaigns, currencies, or other criteria.';
             ExternalAccess = Read;
             ExternalName = 'pricelevelidname';
             ExternalType = 'String';
@@ -573,6 +611,7 @@ table 5353 "CRM Salesorder"
         field(71; BillTo_ContactName; Text[150])
         {
             Caption = 'Bill To Contact Name';
+            ToolTip = 'Specifies the contact person at the address that the invoice will be sent to.';
             Description = 'Type the primary contact name at the customer''s billing address.';
             ExternalName = 'billto_contactname';
             ExternalType = 'String';
@@ -594,6 +633,7 @@ table 5353 "CRM Salesorder"
         field(74; IsPriceLocked; Boolean)
         {
             Caption = 'Prices Locked';
+            ToolTip = 'Specifies information related to the Dynamics 365 Sales connection.';
             Description = 'Select whether prices specified on the invoice are locked from any further updates.';
             ExternalAccess = Modify;
             ExternalName = 'ispricelocked';
@@ -602,6 +642,7 @@ table 5353 "CRM Salesorder"
         field(75; DateFulfilled; Date)
         {
             Caption = 'Date Fulfilled';
+            ToolTip = 'Specifies when the sales order was delivered.';
             Description = 'Enter the date that all or part of the order was shipped to the customer.';
             ExternalName = 'datefulfilled';
             ExternalType = 'DateTime';
@@ -703,6 +744,7 @@ table 5353 "CRM Salesorder"
         {
             CalcFormula = lookup("CRM Transactioncurrency".CurrencyName where(TransactionCurrencyId = field(TransactionCurrencyId)));
             Caption = 'TransactionCurrencyIdName';
+            ToolTip = 'Specifies the currency that amounts are shown in.';
             ExternalAccess = Read;
             ExternalName = 'transactioncurrencyidname';
             ExternalType = 'String';
@@ -792,6 +834,7 @@ table 5353 "CRM Salesorder"
         field(97; BillTo_Composite; BLOB)
         {
             Caption = 'Bill To Address';
+            ToolTip = 'Specifies the address that the invoice will be sent to.';
             Description = 'Shows the complete Bill To address.';
             ExternalAccess = Read;
             ExternalName = 'billto_composite';
@@ -801,6 +844,7 @@ table 5353 "CRM Salesorder"
         field(98; ShipTo_Composite; BLOB)
         {
             Caption = 'Ship To Address';
+            ToolTip = 'Specifies information related to the Dynamics 365 Sales connection.';
             Description = 'Shows the complete Ship To address.';
             ExternalAccess = Read;
             ExternalName = 'shipto_composite';
@@ -847,6 +891,7 @@ table 5353 "CRM Salesorder"
         field(104; PaymentTermsCodeEnum; Enum "CDS Payment Terms Code")
         {
             Caption = 'Payment Terms';
+            ToolTip = 'Specifies the payment terms that you select from on customer cards to define when the customer must pay, such as within 14 days.';
             Description = 'Select the payment terms to indicate when the customer needs to pay the total amount.';
             ExternalName = 'paymenttermscode';
             ExternalType = 'Picklist';
@@ -855,6 +900,7 @@ table 5353 "CRM Salesorder"
         field(105; ShippingMethodCodeEnum; Enum "CDS Shipping Agent Code")
         {
             Caption = 'Shipping Method';
+            ToolTip = 'Specifies information related to the Dynamics 365 Sales connection.';
             Description = 'Select a shipping method for deliveries sent to this address.';
             ExternalName = 'shippingmethodcode';
             ExternalType = 'Picklist';
@@ -863,6 +909,7 @@ table 5353 "CRM Salesorder"
         field(106; FreightTermsCodeEnum; Enum "CDS Shipment Method Code")
         {
             Caption = 'Freight Terms';
+            ToolTip = 'Specifies the shipment method.';
             Description = 'Select the freight terms to make sure shipping charges are processed correctly.';
             ExternalName = 'freighttermscode';
             ExternalType = 'Picklist';

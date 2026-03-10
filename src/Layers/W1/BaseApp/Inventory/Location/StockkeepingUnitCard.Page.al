@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -36,7 +36,6 @@ page 5700 "Stockkeeping Unit Card"
                 {
                     ApplicationArea = Planning;
                     Importance = Promoted;
-                    ToolTip = 'Specifies the item number to which the SKU applies.';
                     trigger OnValidate()
                     begin
                         EnableControls();
@@ -45,13 +44,11 @@ page 5700 "Stockkeeping Unit Card"
                 field(Description; Rec.Description)
                 {
                     ApplicationArea = Planning;
-                    ToolTip = 'Specifies the description from the Item Card.';
                 }
                 field("Location Code"; Rec."Location Code")
                 {
                     ApplicationArea = Location;
                     Importance = Promoted;
-                    ToolTip = 'Specifies the location code (for example, the warehouse or distribution center) to which the SKU applies.';
                     trigger OnValidate()
                     begin
                         if xRec."Location Code" <> Rec."Location Code" then
@@ -62,44 +59,36 @@ page 5700 "Stockkeeping Unit Card"
                 {
                     ApplicationArea = Planning;
                     Importance = Promoted;
-                    ToolTip = 'Specifies the variant of the item on the line.';
                 }
                 field("Assembly BOM"; Rec."Assembly BOM")
                 {
                     ApplicationArea = Assembly;
-                    ToolTip = 'Specifies if the item is an assembly BOM.';
                 }
                 field("Shelf No."; Rec."Shelf No.")
                 {
                     ApplicationArea = Warehouse;
-                    ToolTip = 'Specifies where to find the SKU in the warehouse.';
                 }
                 field("Last Date Modified"; Rec."Last Date Modified")
                 {
                     ApplicationArea = Planning;
-                    ToolTip = 'Specifies when the SKU card was last modified.';
                 }
                 field("Qty. on Purch. Order"; Rec."Qty. on Purch. Order")
                 {
                     ApplicationArea = Planning;
-                    ToolTip = 'Specifies for the SKU, the same as the field does on the item card.';
                 }
                 field("Qty. in Transit"; Rec."Qty. in Transit")
                 {
                     ApplicationArea = Planning;
-                    ToolTip = 'Specifies the quantity of the SKUs in transit. These items have been shipped, but not yet received.';
                 }
                 field("Qty. on Sales Order"; Rec."Qty. on Sales Order")
                 {
                     ApplicationArea = Planning;
-                    ToolTip = 'Specifies for the SKU, the same as the field does on the item card.';
                 }
                 field(Inventory; Rec.Inventory)
                 {
                     ApplicationArea = Planning;
                     Importance = Promoted;
                     HideValue = IsNonInventoriable;
-                    ToolTip = 'Specifies for the SKU, the same as the field does on the item card.';
                 }
                 field("Qty. on Blanket Sales Order"; Rec."Qty. on Blanket Sales Order")
                 {
@@ -114,17 +103,14 @@ page 5700 "Stockkeeping Unit Card"
                 field("Qty. on Job Order"; Rec."Qty. on Job Order")
                 {
                     ApplicationArea = Planning;
-                    ToolTip = 'Specifies how many units of the item are allocated to projects, meaning listed on outstanding project planning lines.';
                 }
                 field("Qty. on Assembly Order"; Rec."Qty. on Assembly Order")
                 {
                     ApplicationArea = Assembly;
-                    ToolTip = 'Specifies how many units of the SKU are allocated to assembly orders, which is how many are listed on outstanding assembly order headers.';
                 }
                 field("Qty. on Asm. Component"; Rec."Qty. on Asm. Component")
                 {
                     ApplicationArea = Assembly;
-                    ToolTip = 'Specifies how many item units are allocated as assembly components, which is how many units are on outstanding assembly order lines.';
                 }
                 field("Trans. Ord. Receipt (Qty.)"; Rec."Trans. Ord. Receipt (Qty.)")
                 {
@@ -146,7 +132,6 @@ page 5700 "Stockkeeping Unit Card"
                 {
                     ApplicationArea = Basic, Suite;
                     Enabled = StandardCostEnable;
-                    ToolTip = 'Specifies the unit cost that is used as an estimation to be adjusted with variances later. It is typically used in assembly and production where costs can vary. Warning: If the SKU is supplied through production, then this field is not used when invoicing and adjusting the actual cost of the produced item. Instead, the Standard Cost field on the underlying item card is used, and any variances are calculated against the cost shares of that item.';
 
                     trigger OnDrillDown()
                     var
@@ -160,7 +145,6 @@ page 5700 "Stockkeeping Unit Card"
                     ApplicationArea = Planning;
                     Enabled = UnitCostEnable;
                     Importance = Promoted;
-                    ToolTip = 'Specifies the cost of one unit of the item or resource on the line.';
 
                     trigger OnDrillDown()
                     var
@@ -172,7 +156,6 @@ page 5700 "Stockkeeping Unit Card"
                 field("Last Direct Cost"; Rec."Last Direct Cost")
                 {
                     ApplicationArea = Planning;
-                    ToolTip = 'Specifies the most recent direct unit cost that was paid for the SKU.';
                 }
             }
             group(Replenishment)
@@ -193,7 +176,6 @@ page 5700 "Stockkeeping Unit Card"
                 field("Lead Time Calculation"; Rec."Lead Time Calculation")
                 {
                     ApplicationArea = Planning;
-                    ToolTip = 'Specifies a date formula for the amount of time it takes to replenish the item.';
                 }
                 group(Purchase)
                 {
@@ -201,12 +183,10 @@ page 5700 "Stockkeeping Unit Card"
                     field("Vendor No."; Rec."Vendor No.")
                     {
                         ApplicationArea = Planning;
-                        ToolTip = 'Specifies for the SKU, the same as the field does on the item card.';
                     }
                     field("Vendor Item No."; Rec."Vendor Item No.")
                     {
                         ApplicationArea = Planning;
-                        ToolTip = 'Specifies the number that the vendor uses for this item.';
                     }
                 }
                 group(Transfer)
@@ -215,7 +195,6 @@ page 5700 "Stockkeeping Unit Card"
                     field("Transfer-from Code"; Rec."Transfer-from Code")
                     {
                         ApplicationArea = Planning;
-                        ToolTip = 'Specifies the code of the location that items are transferred from.';
                     }
                 }
                 group(Production)
@@ -224,22 +203,18 @@ page 5700 "Stockkeeping Unit Card"
                     field("Manufacturing Policy"; Rec."Manufacturing Policy")
                     {
                         ApplicationArea = Manufacturing;
-                        ToolTip = 'Specifies if additional orders for any related components are calculated.';
                     }
                     field("Flushing Method"; Rec."Flushing Method")
                     {
                         ApplicationArea = Manufacturing;
-                        ToolTip = 'Specifies how consumption of the item (component) is calculated and handled in production processes. Manual: Enter and post consumption in the consumption journal manually. Forward: Automatically posts consumption according to the production order component lines when the first operation starts. Backward: Automatically calculates and posts consumption according to the production order component lines when the production order is finished. Pick + Forward / Pick + Backward: Variations with warehousing.';
                     }
                     field("Components at Location"; Rec."Components at Location")
                     {
                         ApplicationArea = Manufacturing;
-                        ToolTip = 'Specifies the inventory location from where the production order components are to be taken when producing this SKU.';
                     }
                     field("Lot Size"; Rec."Lot Size")
                     {
                         ApplicationArea = Manufacturing;
-                        ToolTip = 'Specifies for the SKU, the same as the field does on the item card.';
                     }
                 }
                 group(Assembly)
@@ -248,7 +223,6 @@ page 5700 "Stockkeeping Unit Card"
                     field("Assembly Policy"; Rec."Assembly Policy")
                     {
                         ApplicationArea = Assembly;
-                        ToolTip = 'Specifies which default order flow is used to supply this SKU by assembly.';
                     }
                 }
             }
@@ -260,7 +234,6 @@ page 5700 "Stockkeeping Unit Card"
                 {
                     ApplicationArea = Planning;
                     Importance = Promoted;
-                    ToolTip = 'Specifies for the SKU, the same as the field does on the item card.';
 
                     trigger OnValidate()
                     begin
@@ -271,25 +244,21 @@ page 5700 "Stockkeeping Unit Card"
                 {
                     ApplicationArea = Planning;
                     Enabled = DampenerPeriodEnable;
-                    ToolTip = 'Specifies a period of time during which you do not want the planning system to propose to reschedule existing supply orders forward. The dampener period limits the number of insignificant rescheduling of existing supply to a later date if that new date is within the dampener period. The dampener period function is only initiated if the supply can be rescheduled to a later date and not if the supply can be rescheduled to an earlier date. Accordingly, if the suggested new supply date is after the dampener period, then the rescheduling suggestion is not blocked. If the lot accumulation period is less than the dampener period, then the dampener period is dynamically set to equal the lot accumulation period. This is not shown in the value that you enter in the Dampener Period field. The last demand in the lot accumulation period is used to determine whether a potential supply date is in the dampener period. If this field is empty, then the value in the Default Dampener Period field in the Manufacturing Setup window applies. The value that you enter in the Dampener Period field must be a date formula, and one day (1D) is the shortest allowed period.';
                 }
                 field("Dampener Quantity"; Rec."Dampener Quantity")
                 {
                     ApplicationArea = Planning;
                     Enabled = DampenerQtyEnable;
-                    ToolTip = 'Specifies a dampener quantity to block insignificant change suggestions, if the quantity by which the supply would change is lower than the dampener quantity.';
                 }
                 field("Safety Lead Time"; Rec."Safety Lead Time")
                 {
                     ApplicationArea = Planning;
                     Enabled = SafetyLeadTimeEnable;
-                    ToolTip = 'Specifies for the SKU, the same as the field does on the item card.';
                 }
                 field("Safety Stock Quantity"; Rec."Safety Stock Quantity")
                 {
                     ApplicationArea = Planning;
                     Enabled = SafetyStockQtyEnable;
-                    ToolTip = 'Specifies for the SKU, the same as the field does on the item card.';
                 }
                 group("Lot-for-Lot Parameters")
                 {
@@ -298,7 +267,6 @@ page 5700 "Stockkeeping Unit Card"
                     {
                         ApplicationArea = Planning;
                         Enabled = IncludeInventoryEnable;
-                        ToolTip = 'Specifies for the SKU, the same as the field does on the item card.';
 
                         trigger OnValidate()
                         begin
@@ -309,13 +277,11 @@ page 5700 "Stockkeeping Unit Card"
                     {
                         ApplicationArea = Planning;
                         Enabled = LotAccumulationPeriodEnable;
-                        ToolTip = 'Specifies a period in which multiple demands are accumulated into one supply order when you use the Lot-for-Lot reordering policy.';
                     }
                     field("Rescheduling Period"; Rec."Rescheduling Period")
                     {
                         ApplicationArea = Planning;
                         Enabled = ReschedulingPeriodEnable;
-                        ToolTip = 'Specifies a period within which any suggestion to change a supply date always consists of a Reschedule action and never a Cancel + New action.';
                     }
                 }
                 group("Reorder-Point Parameters")
@@ -332,19 +298,16 @@ page 5700 "Stockkeeping Unit Card"
                             {
                                 ApplicationArea = Planning;
                                 Enabled = ReorderPointEnable;
-                                ToolTip = 'Specifies for the SKU, the same as the field does on the item card.';
                             }
                             field("Reorder Quantity"; Rec."Reorder Quantity")
                             {
                                 ApplicationArea = Planning;
                                 Enabled = ReorderQtyEnable;
-                                ToolTip = 'Specifies for the SKU, the same as the field does on the item card.';
                             }
                             field("Maximum Inventory"; Rec."Maximum Inventory")
                             {
                                 ApplicationArea = Planning;
                                 Enabled = MaximumInventoryEnable;
-                                ToolTip = 'Specifies for the SKU, the same as the field does on the item card.';
                             }
                         }
                     }
@@ -353,14 +316,12 @@ page 5700 "Stockkeeping Unit Card"
                         ApplicationArea = Planning;
                         Enabled = OverflowLevelEnable;
                         Importance = Additional;
-                        ToolTip = 'Specifies a quantity you allow projected inventory to exceed the reorder point before the system suggests to decrease existing supply orders.';
                     }
                     field("Time Bucket"; Rec."Time Bucket")
                     {
                         ApplicationArea = Planning;
                         Enabled = TimeBucketEnable;
                         Importance = Additional;
-                        ToolTip = 'Specifies a time period for the recurring planning horizon of the SKU when you use Fixed Reorder Qty. or Maximum Qty. reordering policies.';
                     }
                 }
                 group("Order Modifiers")
@@ -378,19 +339,16 @@ page 5700 "Stockkeeping Unit Card"
                             {
                                 ApplicationArea = Planning;
                                 Enabled = MinimumOrderQtyEnable;
-                                ToolTip = 'Specifies for the SKU, the same as the field does on the item card.';
                             }
                             field("Maximum Order Quantity"; Rec."Maximum Order Quantity")
                             {
                                 ApplicationArea = Planning;
                                 Enabled = MaximumOrderQtyEnable;
-                                ToolTip = 'Specifies for the SKU, the same as the field does on the item card.';
                             }
                             field("Order Multiple"; Rec."Order Multiple")
                             {
                                 ApplicationArea = Planning;
                                 Enabled = OrderMultipleEnable;
-                                ToolTip = 'Specifies for the SKU, the same as the field does on the item card.';
                             }
                         }
                     }
@@ -403,49 +361,40 @@ page 5700 "Stockkeeping Unit Card"
                 field("Special Equipment Code"; Rec."Special Equipment Code")
                 {
                     ApplicationArea = Planning;
-                    ToolTip = 'Specifies the code of the equipment that you need to use when working with the SKU.';
                 }
                 field("Put-away Template Code"; Rec."Put-away Template Code")
                 {
                     ApplicationArea = Warehouse;
-                    ToolTip = 'Specifies the put-away template that the program uses when it performs a put-away for the SKU.';
                 }
                 field("Put-away Unit of Measure Code"; Rec."Put-away Unit of Measure Code")
                 {
                     ApplicationArea = Warehouse;
                     Importance = Promoted;
-                    ToolTip = 'Specifies the code of the unit of measure that the program uses when it performs a put-away for the SKU.';
                 }
                 field("Phys Invt Counting Period Code"; Rec."Phys Invt Counting Period Code")
                 {
                     ApplicationArea = Warehouse;
                     Importance = Promoted;
-                    ToolTip = 'Specifies the code of the counting period that indicates how often you want to count the SKU in a physical inventory.';
                 }
                 field("Last Phys. Invt. Date"; Rec."Last Phys. Invt. Date")
                 {
                     ApplicationArea = Planning;
-                    ToolTip = 'Specifies the date on which you last posted the results of a physical inventory for the SKU to the item ledger.';
                 }
                 field("Last Counting Period Update"; Rec."Last Counting Period Update")
                 {
                     ApplicationArea = Planning;
-                    ToolTip = 'Specifies the last date on which you calculated the counting period.';
                 }
                 field("Next Counting Start Date"; Rec."Next Counting Start Date")
                 {
                     ApplicationArea = Warehouse;
-                    ToolTip = 'Specifies the starting date of the next counting period.';
                 }
                 field("Next Counting End Date"; Rec."Next Counting End Date")
                 {
                     ApplicationArea = Warehouse;
-                    ToolTip = 'Specifies the ending date of the next counting period.';
                 }
                 field("Use Cross-Docking"; Rec."Use Cross-Docking")
                 {
                     ApplicationArea = Warehouse;
-                    ToolTip = 'Specifies if the SKU can be cross-docked.';
                 }
             }
         }

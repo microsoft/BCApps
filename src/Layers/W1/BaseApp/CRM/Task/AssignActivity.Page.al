@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -32,7 +32,6 @@ page 5146 "Assign Activity"
                     ApplicationArea = RelationshipMgmt;
                     Caption = 'Activity Code';
                     TableRelation = Activity.Code;
-                    ToolTip = 'Specifies a code for the task activity.';
 
                     trigger OnValidate()
                     begin
@@ -50,7 +49,6 @@ page 5146 "Assign Activity"
                 {
                     ApplicationArea = RelationshipMgmt;
                     Caption = 'Activity Start Date';
-                    ToolTip = 'Specifies the date when the task should be started. There are certain rules for how dates should be entered found in How to: Enter Dates and Times.';
                 }
                 field("Wizard Contact Name"; Rec."Wizard Contact Name")
                 {
@@ -59,7 +57,6 @@ page 5146 "Assign Activity"
                     Editable = WizardContactNameEditable;
                     Lookup = false;
                     TableRelation = Contact;
-                    ToolTip = 'Specifies a contact name from the wizard.';
 
                     trigger OnAssistEdit()
                     var
@@ -80,7 +77,6 @@ page 5146 "Assign Activity"
                     ApplicationArea = Suite, RelationshipMgmt;
                     Caption = 'Salesperson Code';
                     Editable = SalespersonCodeEditable;
-                    ToolTip = 'Specifies the code of the salesperson assigned to the task.';
 
                     trigger OnValidate()
                     begin
@@ -101,7 +97,6 @@ page 5146 "Assign Activity"
                     ApplicationArea = RelationshipMgmt;
                     Caption = 'Team Code';
                     Editable = TeamCodeEditable;
-                    ToolTip = 'Specifies the code of the team to which the task is assigned.';
 
                     trigger OnValidate()
                     begin
@@ -121,7 +116,6 @@ page 5146 "Assign Activity"
                     ApplicationArea = RelationshipMgmt;
                     Caption = 'Meeting Organizer';
                     Editable = TeamMeetingOrganizerEditable;
-                    ToolTip = 'Specifies who on the team is the organizer of the task. You can modify the value in this field with the appropriate name when the to-do is for a team.';
 
                     trigger OnLookup(var Text: Text): Boolean
                     var
@@ -150,7 +144,6 @@ page 5146 "Assign Activity"
                     Importance = Additional;
                     Lookup = false;
                     TableRelation = Campaign;
-                    ToolTip = 'Specifies a description of the campaign that is related to the task. The description is copied from the campaign card.';
 
                     trigger OnAssistEdit()
                     var
@@ -173,7 +166,6 @@ page 5146 "Assign Activity"
                     Importance = Additional;
                     Lookup = false;
                     TableRelation = "Segment Header";
-                    ToolTip = 'Specifies a description of the segment related to the task. The description is copied from the segment card.';
 
                     trigger OnAssistEdit()
                     var

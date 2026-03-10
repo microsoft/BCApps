@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -17,18 +17,21 @@ table 1315 "Purch. Price Line Disc. Buff."
         field(3; "Currency Code"; Code[10])
         {
             Caption = 'Currency Code';
+            ToolTip = 'Specifies the currency that must be used on the purchase document line to warrant the purchase price or discount.';
             DataClassification = SystemMetadata;
             TableRelation = Currency;
         }
         field(4; "Starting Date"; Date)
         {
             Caption = 'Starting Date';
+            ToolTip = 'Specifies the date from which the purchase line discount is valid.';
             DataClassification = SystemMetadata;
         }
         field(5; "Line Discount %"; Decimal)
         {
             AutoFormatType = 0;
             Caption = 'Line Discount %';
+            ToolTip = 'Specifies the discount percentage that is granted for the item on the line.';
             DataClassification = SystemMetadata;
             MaxValue = 100;
             MinValue = 0;
@@ -38,6 +41,7 @@ table 1315 "Purch. Price Line Disc. Buff."
             AutoFormatExpression = Rec."Currency Code";
             AutoFormatType = 2;
             Caption = 'Direct Unit Cost';
+            ToolTip = 'Specifies the unit price that is granted on purchase documents if certain criteria are met, such as purchase code, currency code, and date.';
             DataClassification = SystemMetadata;
             MinValue = 0;
         }
@@ -45,17 +49,20 @@ table 1315 "Purch. Price Line Disc. Buff."
         {
             AutoFormatType = 0;
             Caption = 'Minimum Quantity';
+            ToolTip = 'Specifies the quantity that must be entered on the purchase document to warrant the purchase price or discount.';
             DataClassification = SystemMetadata;
             MinValue = 0;
         }
         field(15; "Ending Date"; Date)
         {
             Caption = 'Ending Date';
+            ToolTip = 'Specifies the date to which the purchase line discount is valid.';
             DataClassification = SystemMetadata;
         }
         field(1300; "Line Type"; Option)
         {
             Caption = 'Line Type';
+            ToolTip = 'Specifies if the line is for a purchase price or a purchase line discount.';
             DataClassification = SystemMetadata;
             OptionCaption = ' ,Purchase Line Discount,Purchase Price';
             OptionMembers = " ","Purchase Line Discount","Purchase Price";
@@ -69,18 +76,21 @@ table 1315 "Purch. Price Line Disc. Buff."
         field(1303; "Vendor No."; Code[20])
         {
             Caption = 'Vendor No.';
+            ToolTip = 'Specifies the number of the vendor who offers the line discount on the item.';
             DataClassification = SystemMetadata;
             Editable = false;
         }
         field(5400; "Unit of Measure Code"; Code[20])
         {
             Caption = 'Unit of Measure Code';
+            ToolTip = 'Specifies how each unit of the item or resource is measured, such as in pieces or hours. By default, the value in the Base Unit of Measure field on the item or resource card is inserted.';
             DataClassification = SystemMetadata;
             TableRelation = "Item Unit of Measure";
         }
         field(5700; "Variant Code"; Code[20])
         {
             Caption = 'Variant Code';
+            ToolTip = 'Specifies the variant that must be used on the purchase document line to warrant the purchase price or discount.';
             DataClassification = SystemMetadata;
             TableRelation = "Item Variant";
         }

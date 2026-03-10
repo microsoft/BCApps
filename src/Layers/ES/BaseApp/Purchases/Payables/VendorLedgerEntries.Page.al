@@ -45,19 +45,16 @@ page 29 "Vendor Ledger Entries"
                 {
                     ApplicationArea = Basic, Suite;
                     Editable = false;
-                    ToolTip = 'Specifies the vendor entry''s posting date.';
                 }
                 field("Document Date"; Rec."Document Date")
                 {
                     ApplicationArea = Basic, Suite;
                     Editable = false;
-                    ToolTip = 'Specifies the vendor entry''s document date.';
                 }
                 field("Invoice Received Date"; Rec."Invoice Received Date")
                 {
                     ApplicationArea = Basic, Suite;
                     Editable = false;
-                    ToolTip = 'Specifies the date when the vendor''s invoice was received.';
                     Visible = false;
                 }
                 field("Autodocument No."; Rec."Autodocument No.")
@@ -70,14 +67,12 @@ page 29 "Vendor Ledger Entries"
                     ApplicationArea = Basic, Suite;
                     Editable = false;
                     StyleExpr = StyleTxt;
-                    ToolTip = 'Specifies the document type that the vendor entry belongs to.';
                 }
                 field("Document No."; Rec."Document No.")
                 {
                     ApplicationArea = Basic, Suite;
                     Editable = false;
                     StyleExpr = StyleTxt;
-                    ToolTip = 'Specifies the vendor entry''s document number.';
                 }
                 field("Bill No."; Rec."Bill No.")
                 {
@@ -98,13 +93,11 @@ page 29 "Vendor Ledger Entries"
                 {
                     ApplicationArea = Basic, Suite;
                     Editable = false;
-                    ToolTip = 'Specifies a document number that refers to the customer''s or vendor''s numbering system.';
                 }
                 field("Vendor No."; Rec."Vendor No.")
                 {
                     ApplicationArea = Basic, Suite;
                     Editable = false;
-                    ToolTip = 'Specifies the number of the vendor account that the entry is linked to.';
                 }
                 field("Vendor Name"; Rec."Vendor Name")
                 {
@@ -115,27 +108,23 @@ page 29 "Vendor Ledger Entries"
                 field("Message to Recipient"; Rec."Message to Recipient")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the message exported to the payment file when you use the Export Payments to File function in the Payment Journal window.';
                     Visible = false;
                 }
                 field(Description; Rec.Description)
                 {
                     ApplicationArea = Basic, Suite;
                     Editable = true;
-                    ToolTip = 'Specifies a description of the vendor entry.';
                 }
                 field("Global Dimension 1 Code"; Rec."Global Dimension 1 Code")
                 {
                     ApplicationArea = Dimensions;
                     Editable = false;
-                    ToolTip = 'Specifies the code for the global dimension that is linked to the record or entry for analysis purposes. Two global dimensions, typically for the company''s most important activities, are available on all cards, documents, reports, and lists.';
                     Visible = Dim1Visible;
                 }
                 field("Global Dimension 2 Code"; Rec."Global Dimension 2 Code")
                 {
                     ApplicationArea = Dimensions;
                     Editable = false;
-                    ToolTip = 'Specifies the code for the global dimension that is linked to the record or entry for analysis purposes. Two global dimensions, typically for the company''s most important activities, are available on all cards, documents, reports, and lists.';
                     Visible = Dim2Visible;
                 }
                 field("Vendor Posting Group"; Rec."Vendor Posting Group")
@@ -149,42 +138,35 @@ page 29 "Vendor Ledger Entries"
                 {
                     ApplicationArea = Intercompany;
                     Editable = false;
-                    ToolTip = 'Specifies the code of the intercompany partner that the transaction is related to if the entry was created from an intercompany transaction.';
                     Visible = false;
                 }
                 field("Purchaser Code"; Rec."Purchaser Code")
                 {
                     ApplicationArea = Suite;
                     Editable = false;
-                    ToolTip = 'Specifies which purchaser is assigned to the vendor.';
                     Visible = false;
                 }
                 field("Currency Code"; Rec."Currency Code")
                 {
                     ApplicationArea = Suite;
                     Editable = false;
-                    ToolTip = 'Specifies the currency code for the amount on the line.';
                 }
                 field("Payment Method Code"; Rec."Payment Method Code")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies how to make payment, such as with bank transfer, cash, or check.';
                 }
                 field("Payment Reference"; Rec."Payment Reference")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the payment of the purchase invoice.';
                 }
                 field("Creditor No."; Rec."Creditor No.")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the vendor who sent the purchase invoice.';
                 }
                 field("Original Amount"; Rec."Original Amount")
                 {
                     ApplicationArea = Basic, Suite;
                     Editable = false;
-                    ToolTip = 'Specifies the amount of the original entry.';
                 }
                 field("Original Amt. (LCY)"; Rec."Original Amt. (LCY)")
                 {
@@ -197,7 +179,6 @@ page 29 "Vendor Ledger Entries"
                 {
                     ApplicationArea = Basic, Suite;
                     Editable = false;
-                    ToolTip = 'Specifies the amount of the entry.';
                     Visible = AmountVisible;
                 }
                 field("Amount (LCY)"; Rec."Amount (LCY)")
@@ -210,7 +191,6 @@ page 29 "Vendor Ledger Entries"
                 field("Debit Amount"; Rec."Debit Amount")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the total of the ledger entries that represent debits.';
                     Visible = DebitCreditVisible;
                 }
                 field("Debit Amount (LCY)"; Rec."Debit Amount (LCY)")
@@ -222,7 +202,6 @@ page 29 "Vendor Ledger Entries"
                 field("Credit Amount"; Rec."Credit Amount")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the total of the ledger entries that represent credits.';
                     Visible = DebitCreditVisible;
                 }
                 field("Credit Amount (LCY)"; Rec."Credit Amount (LCY)")
@@ -244,7 +223,6 @@ page 29 "Vendor Ledger Entries"
                 {
                     ApplicationArea = Basic, Suite;
                     Editable = false;
-                    ToolTip = 'Specifies the amount that remains to be applied to before the entry is totally applied to.';
                 }
                 field("Remaining Amt. (LCY)"; Rec."Remaining Amt. (LCY)")
                 {
@@ -256,36 +234,30 @@ page 29 "Vendor Ledger Entries"
                 {
                     ApplicationArea = Basic, Suite;
                     Editable = false;
-                    ToolTip = 'Specifies the type of account that a balancing entry is posted to, such as BANK for a cash account.';
                     Visible = false;
                 }
                 field("Bal. Account No."; Rec."Bal. Account No.")
                 {
                     ApplicationArea = Basic, Suite;
                     Editable = false;
-                    ToolTip = 'Specifies the number of the general ledger, customer, vendor, or bank account that the balancing entry is posted to, such as a cash account for cash purchases.';
                     Visible = false;
                 }
                 field("Due Date"; Rec."Due Date")
                 {
                     ApplicationArea = Basic, Suite;
                     StyleExpr = StyleTxt;
-                    ToolTip = 'Specifies the due date on the entry.';
                 }
                 field("Pmt. Discount Date"; Rec."Pmt. Discount Date")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the date on which the amount in the entry must be paid for a payment discount to be granted.';
                 }
                 field("Pmt. Disc. Tolerance Date"; Rec."Pmt. Disc. Tolerance Date")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the latest date the amount in the entry must be paid in order for payment discount tolerance to be granted.';
                 }
                 field("Original Pmt. Disc. Possible"; Rec."Original Pmt. Disc. Possible")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the discount that you can obtain if the entry is applied to before the payment discount date.';
                     Visible = false;
                 }
                 field("Remaining Pmt. Disc. Possible"; Rec."Remaining Pmt. Disc. Possible")
@@ -302,24 +274,20 @@ page 29 "Vendor Ledger Entries"
                 field("Max. Payment Tolerance"; Rec."Max. Payment Tolerance")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the maximum tolerated amount the entry can differ from the amount on the invoice or credit memo.';
                 }
                 field(Open; Rec.Open)
                 {
                     ApplicationArea = Basic, Suite;
                     Editable = false;
-                    ToolTip = 'Specifies whether the amount on the entry has been fully paid or there is still a remaining amount that must be applied to.';
                 }
                 field("On Hold"; Rec."On Hold")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies that the related entry represents an unpaid invoice for which either a payment suggestion, a reminder, or a finance charge memo exists.';
                 }
                 field("User ID"; Rec."User ID")
                 {
                     ApplicationArea = Basic, Suite;
                     Editable = false;
-                    ToolTip = 'Specifies the ID of the user who posted the entry, to be used, for example, in the change log.';
                     Visible = false;
 
                     trigger OnDrillDown()
@@ -333,48 +301,41 @@ page 29 "Vendor Ledger Entries"
                 {
                     ApplicationArea = Suite;
                     Editable = false;
-                    ToolTip = 'Specifies the source code that specifies where the entry was created.';
                     Visible = false;
                 }
                 field("Reason Code"; Rec."Reason Code")
                 {
                     ApplicationArea = Suite;
                     Editable = false;
-                    ToolTip = 'Specifies the reason code, a supplementary source code that enables you to trace the entry.';
                     Visible = false;
                 }
                 field(Reversed; Rec.Reversed)
                 {
                     ApplicationArea = Basic, Suite;
                     Editable = false;
-                    ToolTip = 'Specifies if the entry has been part of a reverse transaction.';
                     Visible = false;
                 }
                 field("Reversed by Entry No."; Rec."Reversed by Entry No.")
                 {
                     ApplicationArea = Basic, Suite;
                     Editable = false;
-                    ToolTip = 'Specifies the number of the correcting entry that replaced the original entry in the reverse transaction.';
                     Visible = false;
                 }
                 field("Reversed Entry No."; Rec."Reversed Entry No.")
                 {
                     ApplicationArea = Basic, Suite;
                     Editable = false;
-                    ToolTip = 'Specifies the number of the original entry that was undone by the reverse transaction.';
                     Visible = false;
                 }
                 field("Entry No."; Rec."Entry No.")
                 {
                     ApplicationArea = Basic, Suite;
                     Editable = false;
-                    ToolTip = 'Specifies the number of the entry, as assigned from the specified number series when the entry was created.';
                 }
                 field("Exported to Payment File"; Rec."Exported to Payment File")
                 {
                     ApplicationArea = Basic, Suite;
                     Editable = true;
-                    ToolTip = 'Specifies that the entry was created as a result of exporting a payment journal line.';
 
                     trigger OnValidate()
                     var
@@ -387,67 +348,57 @@ page 29 "Vendor Ledger Entries"
                 field("Dimension Set ID"; Rec."Dimension Set ID")
                 {
                     ApplicationArea = Dimensions;
-                    ToolTip = 'Specifies a reference to a combination of dimension values. The actual values are stored in the Dimension Set Entry table.';
                     Visible = false;
                 }
                 field(RecipientBankAcc; Rec."Recipient Bank Account")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the bank account to transfer the amount to.';
                 }
                 field("Shortcut Dimension 3 Code"; Rec."Shortcut Dimension 3 Code")
                 {
                     ApplicationArea = Dimensions;
                     Editable = false;
-                    ToolTip = 'Specifies the code for Shortcut Dimension 3, which is one of dimension codes that you set up in the General Ledger Setup window.';
                     Visible = Dim3Visible;
                 }
                 field("Shortcut Dimension 4 Code"; Rec."Shortcut Dimension 4 Code")
                 {
                     ApplicationArea = Dimensions;
                     Editable = false;
-                    ToolTip = 'Specifies the code for Shortcut Dimension 4, which is one of dimension codes that you set up in the General Ledger Setup window.';
                     Visible = Dim4Visible;
                 }
                 field("Shortcut Dimension 5 Code"; Rec."Shortcut Dimension 5 Code")
                 {
                     ApplicationArea = Dimensions;
                     Editable = false;
-                    ToolTip = 'Specifies the code for Shortcut Dimension 5, which is one of dimension codes that you set up in the General Ledger Setup window.';
                     Visible = Dim5Visible;
                 }
                 field("Shortcut Dimension 6 Code"; Rec."Shortcut Dimension 6 Code")
                 {
                     ApplicationArea = Dimensions;
                     Editable = false;
-                    ToolTip = 'Specifies the code for Shortcut Dimension 6, which is one of dimension codes that you set up in the General Ledger Setup window.';
                     Visible = Dim6Visible;
                 }
                 field("Shortcut Dimension 7 Code"; Rec."Shortcut Dimension 7 Code")
                 {
                     ApplicationArea = Dimensions;
                     Editable = false;
-                    ToolTip = 'Specifies the code for Shortcut Dimension 7, which is one of dimension codes that you set up in the General Ledger Setup window.';
                     Visible = Dim7Visible;
                 }
                 field("Shortcut Dimension 8 Code"; Rec."Shortcut Dimension 8 Code")
                 {
                     ApplicationArea = Dimensions;
                     Editable = false;
-                    ToolTip = 'Specifies the code for Shortcut Dimension 8, which is one of dimension codes that you set up in the General Ledger Setup window.';
                     Visible = Dim8Visible;
                 }
                 field("Closed at Date"; Rec."Closed at Date")
                 {
                     ApplicationArea = Basic, Suite;
                     Editable = false;
-                    ToolTip = 'Specifies the date at which the vendor ledger entry was closed.';
                     Visible = false;
                 }
                 field("Remit-to Code"; Rec."Remit-to Code")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the address for the remit-to code.';
                     Visible = true;
                     TableRelation = "Remit Address".Code where("Vendor No." = field("Vendor No."));
                 }

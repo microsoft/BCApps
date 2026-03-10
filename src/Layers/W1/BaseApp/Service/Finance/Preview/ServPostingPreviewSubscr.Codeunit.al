@@ -14,7 +14,7 @@ codeunit 6498 "Serv. Posting Preview Subscr."
         TempWarrantyLedgerEntry: Record "Warranty Ledger Entry" temporary;
         PostingPreviewEventHandler: Codeunit "Posting Preview Event Handler";
 
-    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Posting Preview Event Handler", 'OnGetEntries', '', false, false)]
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Posting Preview Event Handler", 'OnGetEntries', '', true, false)]
     local procedure GetEntriesOnGetEntries(TableNo: Integer; var RecRef: RecordRef)
     begin
         GetAllTables();
@@ -26,7 +26,7 @@ codeunit 6498 "Serv. Posting Preview Subscr."
         end;
     end;
 
-    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Posting Preview Event Handler", 'OnAfterShowEntries', '', false, false)]
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Posting Preview Event Handler", 'OnAfterShowEntries', '', true, false)]
     local procedure ShowEntriesOnAfterShowEntries(TableNo: Integer)
     begin
         GetAllTables();
@@ -38,7 +38,7 @@ codeunit 6498 "Serv. Posting Preview Subscr."
         end;
     end;
 
-    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Posting Preview Event Handler", 'OnAfterFillDocumentEntry', '', false, false)]
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Posting Preview Event Handler", 'OnAfterFillDocumentEntry', '', true, false)]
     local procedure FillDocumentEntryOnAfterFillDocumentEntry(var DocumentEntry: Record "Document Entry")
     begin
         GetAllTables();

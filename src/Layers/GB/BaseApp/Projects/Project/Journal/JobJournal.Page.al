@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -66,35 +66,29 @@ page 201 "Job Journal"
                 field("Line Type"; Rec."Line Type")
                 {
                     ApplicationArea = Jobs;
-                    ToolTip = 'Specifies the type of planning line to create when a project ledger entry is posted. If the field is empty, no planning lines are created.';
                 }
                 field("Posting Date"; Rec."Posting Date")
                 {
                     ApplicationArea = Jobs;
-                    ToolTip = 'Specifies the posting date you want to assign to each journal line. For more information, see Entering Dates and Times.';
                 }
                 field("Document Date"; Rec."Document Date")
                 {
                     ApplicationArea = Jobs;
-                    ToolTip = 'Specifies the date when the related document was created.';
                     Visible = false;
                 }
                 field("Document No."; Rec."Document No.")
                 {
                     ApplicationArea = Jobs;
-                    ToolTip = 'Specifies a document number for the journal line.';
                     ShowMandatory = true;
                 }
                 field("External Document No."; Rec."External Document No.")
                 {
                     ApplicationArea = Jobs;
-                    ToolTip = 'Specifies a document number that refers to the customer''s or vendor''s numbering system.';
                     Visible = false;
                 }
                 field("Job No."; Rec."Job No.")
                 {
                     ApplicationArea = Jobs;
-                    ToolTip = 'Specifies the number of the project.';
 
                     trigger OnValidate()
                     begin
@@ -105,7 +99,6 @@ page 201 "Job Journal"
                 field("Job Task No."; Rec."Job Task No.")
                 {
                     ApplicationArea = Jobs;
-                    ToolTip = 'Specifies the number of the related project task.';
 
                     trigger OnValidate()
                     begin
@@ -115,7 +108,6 @@ page 201 "Job Journal"
                 field(Type; Rec.Type)
                 {
                     ApplicationArea = Jobs;
-                    ToolTip = 'Specifies an account type for project usage to be posted in the project journal. You can choose from the following options:';
 
                     trigger OnValidate()
                     begin
@@ -126,18 +118,15 @@ page 201 "Job Journal"
                 {
                     Visible = ExtendedPriceEnabled;
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the method that will be used for price calculation in the item journal line.';
                 }
                 field("Cost Calculation Method"; Rec."Cost Calculation Method")
                 {
                     Visible = ExtendedPriceEnabled;
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the method that will be used for cost calculation in the item journal line.';
                 }
                 field("No."; Rec."No.")
                 {
                     ApplicationArea = Jobs;
-                    ToolTip = 'Specifies the number of the involved entry or record, according to the specified number series.';
 
                     trigger OnValidate()
                     begin
@@ -148,57 +137,47 @@ page 201 "Job Journal"
                 field(Description; Rec.Description)
                 {
                     ApplicationArea = Jobs;
-                    ToolTip = 'Specifies the name of the resource, item, or general ledger account to which this entry applies. You can change the description.';
                 }
                 field("Description 2"; Rec."Description 2")
                 {
                     ApplicationArea = Jobs;
-                    ToolTip = 'Specifies information in addition to the description.';
                     Visible = false;
                 }
                 field("Job Planning Line No."; Rec."Job Planning Line No.")
                 {
                     ApplicationArea = Jobs;
-                    ToolTip = 'Specifies the project planning line number that the usage should be linked to when the project journal is posted. You can only link to project planning lines that have the Apply Usage Link option enabled.';
                     Visible = false;
                 }
                 field("Gen. Bus. Posting Group"; Rec."Gen. Bus. Posting Group")
                 {
                     ApplicationArea = Jobs;
-                    ToolTip = 'Specifies the vendor''s or customer''s trade type to link transactions made for this business partner with the appropriate general ledger account according to the general posting setup.';
                     Visible = false;
                 }
                 field("Gen. Prod. Posting Group"; Rec."Gen. Prod. Posting Group")
                 {
                     ApplicationArea = Jobs;
-                    ToolTip = 'Specifies the item''s product type to link transactions made for this item with the appropriate general ledger account according to the general posting setup.';
                     Visible = false;
                 }
                 field("Variant Code"; Rec."Variant Code")
                 {
                     ApplicationArea = Planning;
-                    ToolTip = 'Specifies the variant of the item on the line.';
                     Visible = false;
                 }
                 field("Location Code"; Rec."Location Code")
                 {
                     ApplicationArea = Location;
-                    ToolTip = 'Specifies a location code for an item.';
                 }
                 field("Bin Code"; Rec."Bin Code")
                 {
                     ApplicationArea = Warehouse;
-                    ToolTip = 'Specifies the bin where the items are picked or put away.';
                 }
                 field("Work Type Code"; Rec."Work Type Code")
                 {
                     ApplicationArea = Jobs;
-                    ToolTip = 'Specifies which work type the resource applies to. Prices are updated based on this entry.';
                 }
                 field("Currency Code"; Rec."Currency Code")
                 {
                     ApplicationArea = Jobs;
-                    ToolTip = 'Specifies the project''s currency code that listed in the Currency Code field in the Project Card. You can only create a Project Journal using this currency code.';
                     Visible = false;
 
                     trigger OnAssistEdit()
@@ -215,17 +194,14 @@ page 201 "Job Journal"
                 field("Unit of Measure Code"; Rec."Unit of Measure Code")
                 {
                     ApplicationArea = Jobs;
-                    ToolTip = 'Specifies how each unit of the item or resource is measured, such as in pieces or hours. By default, the value in the Base Unit of Measure field on the item or resource card is inserted.';
                 }
                 field(Quantity; Rec.Quantity)
                 {
                     ApplicationArea = Jobs;
-                    ToolTip = 'Specifies the number of units of the project journal''s No. field, that is, either the resource, item, or G/L account number, that applies. If you later change the value in the No. field, the quantity does not change on the journal line.';
                 }
                 field("Remaining Qty."; Rec."Remaining Qty.")
                 {
                     ApplicationArea = Jobs;
-                    ToolTip = 'Specifies the quantity of the resource or item that remains to complete a project. The remaining quantity is calculated as the difference between Quantity and Qty. Posted. You can modify this field to indicate the quantity you want to remain on the project planning line after you post usage.';
                     Visible = false;
                 }
                 field("Direct Unit Cost (LCY)"; Rec."Direct Unit Cost (LCY)")
@@ -247,7 +223,6 @@ page 201 "Job Journal"
                 field("Total Cost"; Rec."Total Cost")
                 {
                     ApplicationArea = Jobs;
-                    ToolTip = 'Specifies the total cost for the journal line. The total cost is calculated based on the project currency, which comes from the Currency Code field on the Project card.';
                 }
                 field("Total Cost (LCY)"; Rec."Total Cost (LCY)")
                 {
@@ -257,7 +232,6 @@ page 201 "Job Journal"
                 field("Unit Price"; Rec."Unit Price")
                 {
                     ApplicationArea = Jobs;
-                    ToolTip = 'Specifies the price of one unit of the item or resource. You can enter a price manually or have it entered according to the Price/Profit Calculation field on the related card.';
                 }
                 field("Unit Price (LCY)"; Rec."Unit Price (LCY)")
                 {
@@ -268,7 +242,6 @@ page 201 "Job Journal"
                 field("Line Amount"; Rec."Line Amount")
                 {
                     ApplicationArea = Jobs;
-                    ToolTip = 'Specifies the amount that will be posted to the project ledger.';
                 }
                 field("Line Amount (LCY)"; Rec."Line Amount (LCY)")
                 {
@@ -279,7 +252,6 @@ page 201 "Job Journal"
                 field("Line Discount Amount"; Rec."Line Discount Amount")
                 {
                     ApplicationArea = Jobs;
-                    ToolTip = 'Specifies the discount amount that is granted for the item on the line.';
                 }
                 field("Line Discount %"; Rec."Line Discount %")
                 {
@@ -289,7 +261,6 @@ page 201 "Job Journal"
                 field("Total Price"; Rec."Total Price")
                 {
                     ApplicationArea = Jobs;
-                    ToolTip = 'Specifies the total price in the project currency on the journal line.';
                     Visible = false;
                 }
                 field("Total Price (LCY)"; Rec."Total Price (LCY)")
@@ -306,43 +277,36 @@ page 201 "Job Journal"
                 field("Applies-from Entry"; Rec."Applies-from Entry")
                 {
                     ApplicationArea = Jobs;
-                    ToolTip = 'Specifies the number of the item ledger entry that the journal line costs have been applied from. This should be done when you reverse the usage of an item in a project and you want to return the item to inventory at the same cost as before it was used in the project.';
                     Visible = false;
                 }
                 field("Country/Region Code"; Rec."Country/Region Code")
                 {
                     ApplicationArea = Jobs;
-                    ToolTip = 'Specifies the country/region of the address.';
                     Visible = false;
                 }
                 field("Transaction Type"; Rec."Transaction Type")
                 {
                     ApplicationArea = BasicEU, BasicNO;
-                    ToolTip = 'Specifies the type of transaction that the document represents, for the purpose of reporting to INTRASTAT.';
                     Visible = false;
                 }
                 field("Transport Method"; Rec."Transport Method")
                 {
                     ApplicationArea = BasicEU, BasicNO;
-                    ToolTip = 'Specifies the transport method, for the purpose of reporting to INTRASTAT.';
                     Visible = false;
                 }
                 field("Time Sheet No."; Rec."Time Sheet No.")
                 {
                     ApplicationArea = Jobs;
-                    ToolTip = 'Specifies the number of a time sheet. A number is assigned to each time sheet when it is created. You cannot edit the number.';
                     Visible = false;
                 }
                 field("Time Sheet Line No."; Rec."Time Sheet Line No.")
                 {
                     ApplicationArea = Jobs;
-                    ToolTip = 'Specifies the line number for a time sheet.';
                     Visible = false;
                 }
                 field("Time Sheet Date"; Rec."Time Sheet Date")
                 {
                     ApplicationArea = Jobs;
-                    ToolTip = 'Specifies the date that a time sheet is created.';
                     Visible = false;
                 }
 #if not CLEAN28
@@ -359,13 +323,11 @@ page 201 "Job Journal"
                 field("Shortcut Dimension 1 Code"; Rec."Shortcut Dimension 1 Code")
                 {
                     ApplicationArea = Dimensions;
-                    ToolTip = 'Specifies the code for Shortcut Dimension 1, which is one of two global dimension codes that you set up in the General Ledger Setup window.';
                     Visible = DimVisible1;
                 }
                 field("Shortcut Dimension 2 Code"; Rec."Shortcut Dimension 2 Code")
                 {
                     ApplicationArea = Dimensions;
-                    ToolTip = 'Specifies the code for Shortcut Dimension 2, which is one of two global dimension codes that you set up in the General Ledger Setup window.';
                     Visible = DimVisible2;
                 }
                 field(ShortcutDimCode3; ShortcutDimCode[3])

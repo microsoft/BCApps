@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -23,36 +23,42 @@ table 6751 "Reminder Action Group"
         /// </summary>
         field(1; Code; Code[50])
         {
+            ToolTip = 'Specifies a code that identifies a reminder action group.';
         }
         /// <summary>
         /// Specifies a description of the automation group.
         /// </summary>
         field(2; Description; Text[100])
         {
+            ToolTip = 'Specifies a description for the reminder action group.';
         }
         /// <summary>
         /// Specifies the execution schedule type: manual, weekly, monthly, or custom.
         /// </summary>
         field(3; Schedule; Enum "Reminder Action Schedule")
         {
+            ToolTip = 'Specifies the cadence of the automation job. The cadence determines how often the automation job is run.';
         }
         /// <summary>
         /// Specifies the date and time when the automation should first run.
         /// </summary>
         field(4; "Start DateTime"; DateTime)
         {
+            ToolTip = 'Specifies the date and time when the automation job is started for the first time.';
         }
         /// <summary>
         /// Specifies the date formula for calculating the next run date when using custom schedule.
         /// </summary>
         field(6; "Next Run Date Formula"; DateFormula)
         {
+            ToolTip = 'Specifies the formula that is used to calculate the date and time when the automation job is run next time.';
         }
         /// <summary>
         /// Indicates whether this automation group is blocked from execution.
         /// </summary>
         field(7; Blocked; Boolean)
         {
+            ToolTip = 'Specifies whether the reminder action group is blocked. Blocked reminder action groups cannot be used in the system.';
         }
         /// <summary>
         /// Stores the filter string of selected reminder terms codes for this automation group.

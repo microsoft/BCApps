@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -67,10 +67,12 @@ table 6012 "Service Line Archive"
         field(5; Type; Enum "Service Line Type")
         {
             Caption = 'Type';
+            ToolTip = 'Specifies the type of the service line.';
         }
         field(6; "No."; Code[20])
         {
             Caption = 'No.';
+            ToolTip = 'Specifies the number of the involved entry or record, according to the specified number series.';
             TableRelation = if (Type = const(" ")) "Standard Text"
             else
             if (Type = const("G/L Account")) "G/L Account"
@@ -84,21 +86,25 @@ table 6012 "Service Line Archive"
         field(7; "Location Code"; Code[10])
         {
             Caption = 'Location Code';
+            ToolTip = 'Specifies the inventory location from where the items on the line should be taken and where they should be registered.';
             TableRelation = Location;
         }
         field(8; "Posting Group"; Code[20])
         {
             Caption = 'Posting Group';
+            ToolTip = 'Specifies the inventory posting group assigned to the item.';
             Editable = false;
             TableRelation = if (Type = const(Item)) "Inventory Posting Group";
         }
         field(11; Description; Text[100])
         {
             Caption = 'Description';
+            ToolTip = 'Specifies the description of an item, resource, cost, or a standard text on the line.';
         }
         field(12; "Description 2"; Text[50])
         {
             Caption = 'Description 2';
+            ToolTip = 'Specifies an additional description of the item, resource, or cost.';
         }
         field(13; "Unit of Measure"; Text[50])
         {
@@ -108,6 +114,7 @@ table 6012 "Service Line Archive"
         {
             AutoFormatType = 0;
             Caption = 'Quantity';
+            ToolTip = 'Specifies the number of item units, resource hours, cost on the service line.';
             DecimalPlaces = 0 : 5;
         }
         field(16; "Outstanding Quantity"; Decimal)
@@ -136,6 +143,7 @@ table 6012 "Service Line Archive"
             AutoFormatType = 2;
             CaptionClass = GetCaptionClass(FieldNo("Unit Price"));
             Caption = 'Unit Price';
+            ToolTip = 'Specifies the price of one unit of the item or resource. You can enter a price manually or have it entered according to the Price/Profit Calculation field on the related card.';
         }
         field(23; "Unit Cost (LCY)"; Decimal)
         {
@@ -147,6 +155,7 @@ table 6012 "Service Line Archive"
         {
             AutoFormatType = 0;
             Caption = 'VAT %';
+            ToolTip = 'Specifies the VAT percentage used to calculate Amount Including VAT on this line.';
             DecimalPlaces = 0 : 5;
             Editable = false;
         }
@@ -154,6 +163,7 @@ table 6012 "Service Line Archive"
         {
             AutoFormatType = 0;
             Caption = 'Line Discount %';
+            ToolTip = 'Specifies the discount percentage that is granted for the item on the line.';
             DecimalPlaces = 0 : 5;
             MaxValue = 100;
             MinValue = 0;
@@ -163,6 +173,7 @@ table 6012 "Service Line Archive"
             AutoFormatExpression = Rec."Currency Code";
             AutoFormatType = 1;
             Caption = 'Line Discount Amount';
+            ToolTip = 'Specifies the discount amount that is granted for the item on the line.';
         }
         field(29; Amount; Decimal)
         {
@@ -176,11 +187,13 @@ table 6012 "Service Line Archive"
             AutoFormatExpression = Rec."Currency Code";
             AutoFormatType = 1;
             Caption = 'Amount Including VAT';
+            ToolTip = 'Specifies the net amount, including VAT, for this line.';
             Editable = false;
         }
         field(32; "Allow Invoice Disc."; Boolean)
         {
             Caption = 'Allow Invoice Disc.';
+            ToolTip = 'Specifies if the invoice line is included when the invoice discount is calculated.';
             InitValue = true;
         }
         field(34; "Gross Weight"; Decimal)
@@ -247,6 +260,7 @@ table 6012 "Service Line Archive"
         field(52; "Work Type Code"; Code[10])
         {
             Caption = 'Work Type Code';
+            ToolTip = 'Specifies a code for the type of work performed by the resource registered on this line.';
             TableRelation = "Work Type";
         }
         field(57; "Outstanding Amount"; Decimal)
@@ -308,16 +322,19 @@ table 6012 "Service Line Archive"
             AutoFormatExpression = Rec."Currency Code";
             AutoFormatType = 1;
             Caption = 'Inv. Discount Amount';
+            ToolTip = 'Specifies the total calculated invoice discount amount for the line.';
             Editable = false;
         }
         field(74; "Gen. Bus. Posting Group"; Code[20])
         {
             Caption = 'Gen. Bus. Posting Group';
+            ToolTip = 'Specifies the vendor''s or customer''s trade type to link transactions made for this business partner with the appropriate general ledger account according to the general posting setup.';
             TableRelation = "Gen. Business Posting Group";
         }
         field(75; "Gen. Prod. Posting Group"; Code[20])
         {
             Caption = 'Gen. Prod. Posting Group';
+            ToolTip = 'Specifies the item''s product type to link transactions made for this item with the appropriate general ledger account according to the general posting setup.';
             TableRelation = "Gen. Product Posting Group";
         }
         field(77; "VAT Calculation Type"; Enum "Tax Calculation Type")
@@ -417,6 +434,7 @@ table 6012 "Service Line Archive"
             AutoFormatExpression = Rec."Currency Code";
             AutoFormatType = 1;
             Caption = 'VAT Base Amount';
+            ToolTip = 'Specifies the amount that serves as a base for calculating the Amount Including VAT field.';
             Editable = false;
         }
         field(100; "Unit Cost"; Decimal)
@@ -437,6 +455,7 @@ table 6012 "Service Line Archive"
             AutoFormatType = 1;
             CaptionClass = GetCaptionClass(FieldNo("Line Amount"));
             Caption = 'Line Amount';
+            ToolTip = 'Specifies the net amount, excluding any invoice discount amount, that must be paid for products on the line.';
         }
         field(104; "VAT Difference"; Decimal)
         {
@@ -543,6 +562,7 @@ table 6012 "Service Line Archive"
         field(5402; "Variant Code"; Code[10])
         {
             Caption = 'Variant Code';
+            ToolTip = 'Specifies the variant of the item on the line.';
             TableRelation = if (Type = const(Item)) "Item Variant".Code where("Item No." = field("No."));
         }
         field(5403; "Bin Code"; Code[20])
@@ -566,6 +586,7 @@ table 6012 "Service Line Archive"
         field(5407; "Unit of Measure Code"; Code[10])
         {
             Caption = 'Unit of Measure Code';
+            ToolTip = 'Specifies how each unit of the item or resource is measured, such as in pieces or hours. By default, the value in the Base Unit of Measure field on the item or resource card is inserted.';
             TableRelation = if (Type = const(Item)) "Item Unit of Measure".Code where("Item No." = field("No."))
             else
             if (Type = const(Resource)) "Resource Unit of Measure".Code where("Resource No." = field("No."))
@@ -652,6 +673,7 @@ table 6012 "Service Line Archive"
         field(5710; Nonstock; Boolean)
         {
             Caption = 'Catalog';
+            ToolTip = 'Specifies that the item is a catalog item.';
             Editable = false;
         }
         field(5725; "Item Reference No."; Code[50])
@@ -716,6 +738,7 @@ table 6012 "Service Line Archive"
         field(5902; "Service Item No."; Code[20])
         {
             Caption = 'Service Item No.';
+            ToolTip = 'Specifies the service item number linked to this service line.';
             TableRelation = "Service Item"."No.";
         }
         field(5903; "Appl.-to Service Entry"; Integer)
@@ -727,6 +750,7 @@ table 6012 "Service Line Archive"
         field(5904; "Service Item Line No."; Integer)
         {
             Caption = 'Service Item Line No.';
+            ToolTip = 'Specifies the service item line number linked to this service line.';
             TableRelation = "Service Item Line Archive"."Line No." where("Document Type" = field("Document Type"),
                                                                          "Document No." = field("Document No."),
                                                                          "Doc. No. Occurrence" = field("Doc. No. Occurrence"),
@@ -735,21 +759,25 @@ table 6012 "Service Line Archive"
         field(5905; "Service Item Serial No."; Code[50])
         {
             Caption = 'Service Item Serial No.';
+            ToolTip = 'Specifies the service item serial number linked to this line.';
         }
         field(5906; "Service Item Line Description"; Text[100])
         {
             Caption = 'Service Item Line Description';
+            ToolTip = 'Specifies the description of the service item line in the service order.';
             Editable = false;
         }
         field(5907; "Serv. Price Adjmt. Gr. Code"; Code[10])
         {
             Caption = 'Serv. Price Adjmt. Gr. Code';
+            ToolTip = 'Specifies the service price adjustment group code that applies to this line.';
             Editable = false;
             TableRelation = "Service Price Adjustment Group";
         }
         field(5908; "Posting Date"; Date)
         {
             Caption = 'Posting Date';
+            ToolTip = 'Specifies the date when the service line should be posted.';
         }
         field(5909; "Order Date"; Date)
         {
@@ -802,43 +830,51 @@ table 6012 "Service Line Archive"
         field(5929; "Fault Area Code"; Code[10])
         {
             Caption = 'Fault Area Code';
+            ToolTip = 'Specifies the code of the fault area associated with this line.';
             TableRelation = "Fault Area";
         }
         field(5930; "Symptom Code"; Code[10])
         {
             Caption = 'Symptom Code';
+            ToolTip = 'Specifies the code of the symptom associated with this line.';
             TableRelation = "Symptom Code";
         }
         field(5931; "Fault Code"; Code[10])
         {
             Caption = 'Fault Code';
+            ToolTip = 'Specifies the code of the fault associated with this line.';
             TableRelation = "Fault Code".Code where("Fault Area Code" = field("Fault Area Code"),
                                                     "Symptom Code" = field("Symptom Code"));
         }
         field(5932; "Resolution Code"; Code[10])
         {
             Caption = 'Resolution Code';
+            ToolTip = 'Specifies the code of the resolution associated with this line.';
             TableRelation = "Resolution Code";
         }
         field(5933; "Exclude Warranty"; Boolean)
         {
             Caption = 'Exclude Warranty';
+            ToolTip = 'Specifies that the warranty discount is excluded on this line.';
             Editable = true;
         }
         field(5934; Warranty; Boolean)
         {
             Caption = 'Warranty';
+            ToolTip = 'Specifies that a warranty discount is available on this line of type Item or Resource.';
             Editable = false;
         }
         field(5936; "Contract No."; Code[20])
         {
             Caption = 'Contract No.';
+            ToolTip = 'Specifies the number of the contract, if the service quote originated from a service contract.';
             TableRelation = "Service Contract Header"."Contract No." where("Contract Type" = const(Contract));
         }
         field(5938; "Contract Disc. %"; Decimal)
         {
             AutoFormatType = 0;
             Caption = 'Contract Disc. %';
+            ToolTip = 'Specifies the contract discount percentage that is valid for the items, resources, and costs on this line.';
             DecimalPlaces = 0 : 5;
             Editable = false;
             MaxValue = 100;
@@ -848,6 +884,7 @@ table 6012 "Service Line Archive"
         {
             AutoFormatType = 0;
             Caption = 'Warranty Disc. %';
+            ToolTip = 'Specifies the percentage of the warranty discount that is valid for the items or resources on this line.';
             DecimalPlaces = 0 : 5;
             Editable = false;
             MaxValue = 100;
@@ -866,6 +903,7 @@ table 6012 "Service Line Archive"
         field(5967; "Fault Reason Code"; Code[10])
         {
             Caption = 'Fault Reason Code';
+            ToolTip = 'Specifies the code of the fault reason for this service line.';
             TableRelation = "Fault Reason Code";
         }
         field(5968; "Replaced Item No."; Code[20])
@@ -878,6 +916,7 @@ table 6012 "Service Line Archive"
         field(5969; "Exclude Contract Discount"; Boolean)
         {
             Caption = 'Exclude Contract Discount';
+            ToolTip = 'Specifies that the contract discount is excluded for the item, resource, or cost on this line.';
             Editable = true;
         }
         field(5970; "Replaced Item Type"; Enum "Replaced Service Item Component Type")
@@ -894,6 +933,7 @@ table 6012 "Service Line Archive"
         field(5997; "Line Discount Type"; Option)
         {
             Caption = 'Line Discount Type';
+            ToolTip = 'Specifies the type of the line discount assigned to this line.';
             Editable = false;
             OptionCaption = ' ,Warranty Disc.,Contract Disc.,Line Disc.,Manual';
             OptionMembers = " ","Warranty Disc.","Contract Disc.","Line Disc.",Manual;

@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -29,7 +29,6 @@ page 5893 "Phys. Invt. Item Track. List"
                 field("Variant Code"; Rec."Variant Code")
                 {
                     ApplicationArea = ItemTracking;
-                    ToolTip = 'Specifies the variant of the item on the line.';
                 }
                 field("Location Code"; Rec."Location Code")
                 {
@@ -39,7 +38,6 @@ page 5893 "Phys. Invt. Item Track. List"
                 field("Serial No."; Rec."Serial No.")
                 {
                     ApplicationArea = ItemTracking;
-                    ToolTip = 'Specifies the serial number of the item that is being handled on the document line.';
                 }
                 field("Lot No."; Rec."Lot No.")
                 {
@@ -54,22 +52,18 @@ page 5893 "Phys. Invt. Item Track. List"
                 field("Expiration Date"; Rec."Expiration Date")
                 {
                     ApplicationArea = ItemTracking;
-                    ToolTip = 'Specifies the expiration date of the item that is being handled on the document line.';
                 }
                 field(Positive; Rec.Positive)
                 {
                     ApplicationArea = ItemTracking;
-                    ToolTip = 'Specifies that the difference is positive.';
                 }
                 field(Quantity; Rec.Quantity)
                 {
                     ApplicationArea = ItemTracking;
-                    ToolTip = 'Specifies the quantity of the record.';
                 }
                 field("Qty. per Unit of Measure"; Rec."Qty. per Unit of Measure")
                 {
                     ApplicationArea = ItemTracking;
-                    ToolTip = 'Specifies how many of the base unit of measure are contained in one unit of the item.';
                     Visible = false;
                 }
                 field("Quantity (Base)"; Rec."Quantity (Base)")
@@ -93,7 +87,6 @@ page 5893 "Phys. Invt. Item Track. List"
                 field("Shipment Date"; Rec."Shipment Date")
                 {
                     ApplicationArea = ItemTracking;
-                    ToolTip = 'Specifies when items on the document are shipped or were shipped. A shipment date is usually calculated from a requested delivery date plus lead time.';
                 }
                 field("Expected Receipt Date"; Rec."Expected Receipt Date")
                 {
@@ -108,12 +101,10 @@ page 5893 "Phys. Invt. Item Track. List"
                 field("Reservation Status"; Rec."Reservation Status")
                 {
                     ApplicationArea = ItemTracking;
-                    ToolTip = 'Specifies the status of the reservation.';
                 }
                 field("Created By"; Rec."Created By")
                 {
                     ApplicationArea = ItemTracking;
-                    ToolTip = 'Specifies the user who created the traced record.';
                     Visible = false;
 
                     trigger OnDrillDown()

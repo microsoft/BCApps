@@ -168,5 +168,20 @@
     "codeunitId": 137912,
     "codeunitName": "SCM Assembly Availability II",
     "method": "CheckAvailWarning"
+  },
+  {
+    "codeunitId": 137096,
+    "codeunitName": "SCM Kitting - ATO",
+    "method": "AssemblyOrderDueDateNotChangedWhenValidatingUnrelatedSalesOrder"
+  },
+  {
+    "codeunitId": 137096,
+    "codeunitName": "SCM Kitting - ATO",
+    "method": "AssemblyOrderValidateDueDateFailsOnConflictingReservationDate"
+  },
+  {
+    "codeunitId": 137101,
+    "codeunitName": "SCM Kitting",
+    "method": "ModifyPostingDateOnAssemblyOrder"
   }
 ]

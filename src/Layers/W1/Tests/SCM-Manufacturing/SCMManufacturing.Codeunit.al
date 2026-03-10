@@ -4844,53 +4844,102 @@ codeunit 137404 "SCM Manufacturing"
     end;
 
     [Test]
-    procedure PostingConsumptionProdJnlAndItemTracking()
+    [HandlerFunctions('ItemTrackingAssignLotNoPageHandler,ProductionJournalPageHandlerForReservationError,ConfirmHandlerTrue,MessageHandler')]
+    procedure ProductionJournalMultiLevelItemTrackingWorkflow()
     var
-        ItemComponent1: Record Item;
-        ItemComponent2: Record Item;
-        ItemMain: Record Item;
+        ItemFG: Record Item;
+        ItemRM: Record Item;
+        ItemSFG: Record Item;
         ItemTrackingCode: Record "Item Tracking Code";
-        ProductionBOM1: Record "Production BOM Header";
-        ProductionBOM2: Record "Production BOM Header";
-        ProductionOrder: Record "Production Order";
+        ProductionBOMFG: Record "Production BOM Header";
+        ProductionBOMSFG: Record "Production BOM Header";
+        ProductionOrderFG: Record "Production Order";
+        ReleasedProdOrder: TestPage "Released Production Order";
+        LotNoSFG: Code[10];
+        LotNoFG: Code[10];
+        Quantity: Decimal;
     begin
-        // [SCENARIO 615088] Posting consumption in production journal with item tracking.
+        // [SCENARIO 615088] Posting consumption in production journal with item tracking in multi-level manufacturing.
         Initialize();
 
-        // [GIVEN] Create Item Tracking Code with lot tracking enabled.
+        // [GIVEN] Create Item Tracking Code with lot specific tracking.
         LibraryItemTracking.CreateItemTrackingCode(ItemTrackingCode, false, true);
 
-        // [GIVEN] Create Component 1 without item tracking.
-        LibraryInventory.CreateItem(ItemComponent1);
+        // [GIVEN] Create Raw Material (RM) without tracking.
+        LibraryInventory.CreateItem(ItemRM);
 
-        // [GIVEN] Create Production BOM 1 with Component 1 and Quantity per.
-        CreateProductionBOM(ProductionBOM1, ItemComponent1, LibraryRandom.RandInt(10));
+        // [GIVEN] Create Production BOM for SFG using RM.
+        CreateProductionBOM(ProductionBOMSFG, ItemRM, LibraryRandom.RandIntInRange(10, 10));
 
-        // [GIVEN] Create Component 2 with item tracking, Make-to-Order and using BOM 1.
-        CreateProdItemWithTracking(ItemComponent2, ItemTrackingCode.Code, ProductionBOM1."No.");
+        // [GIVEN] Create Semi-Finished Goods (SFG) with lot tracking.  
+        CreateProdItemWithTracking(ItemSFG, ItemTrackingCode.Code, ProductionBOMSFG."No.");
 
-        // [GIVEN] Create Production BOM 2 with Component 2 and Quantity per.
-        CreateProductionBOM(ProductionBOM2, ItemComponent2, LibraryRandom.RandInt(2));
+        // [GIVEN] Create Production BOM for FG using SFG.
+        CreateProductionBOM(ProductionBOMFG, ItemSFG, LibraryRandom.RandIntInRange(2, 2));
 
-        // [GIVEN] Create Main Item with item tracking, Make-to-Order and using BOM 2.
-        CreateProdItemWithTracking(ItemMain, ItemTrackingCode.Code, ProductionBOM2."No.");
+        // [GIVEN] Create Finished Goods (FG) with lot tracking.
+        CreateProdItemWithTracking(ItemFG, ItemTrackingCode.Code, ProductionBOMFG."No.");
 
-        // [GIVEN] Create Positive adjustment for Component 1 with Quantity.
-        CreateAndPostPositiveAdjustment(ItemComponent1."No.", LibraryRandom.RandInt(500));
+        // [GIVEN] Create positive adjustments for Raw Material.
+        CreateAndPostPositiveAdjustment(ItemRM."No.", LibraryRandom.RandIntInRange(500, 600));
 
-        // [GIVEN] Create Released Production Order for Main item and Quantity.
+        // [GIVEN] Generate lot numbers and quantity.
+        LotNoSFG := Format(LibraryRandom.RandText(4));
+        LotNoFG := Format(LibraryRandom.RandText(4));
+        Quantity := LibraryRandom.RandIntInRange(10, 10);
+
+        // [GIVEN] Create Released Production Order for FG.
         LibraryManufacturing.CreateProductionOrder(
-            ProductionOrder,
-            ProductionOrder.Status::Released,
-            ProductionOrder."Source Type"::Item,
-            ItemMain."No.",
-            LibraryRandom.RandInt(10));
-        LibraryManufacturing.RefreshProdOrder(ProductionOrder, false, true, true, true, false);
+            ProductionOrderFG,
+            ProductionOrderFG.Status::Released,
+            ProductionOrderFG."Source Type"::Item,
+            ItemFG."No.",
+            Quantity);
 
-        // [WHEN] Multiple production journals are posted with lot tracking.
-        PostProductionJournalsWithLotTracking(ProductionOrder, ItemComponent1."No.", ItemComponent2."No.", ItemMain."No.");
+        // [GIVEN] Refresh prod order this will bring 2 prod order lines 1st for FG item and 2nd for SFG Item.
+        LibraryManufacturing.RefreshProdOrder(ProductionOrderFG, false, true, true, false, false);
 
-        // [THEN] Verify no error occurs on Posting and Production Journals are posted successfully.
+        // [WHEN] First post Production Journal for SFG with LOTNoSFG.
+        ReleasedProdOrder.OpenEdit();
+        ReleasedProdOrder.GoToRecord(ProductionOrderFG);
+
+        LibraryVariableStorage.Enqueue(Quantity * 2);
+        LibraryVariableStorage.Enqueue(Quantity);
+        LibraryVariableStorage.Enqueue(ItemTrackingMode::"Assign Lot No.");
+        LibraryVariableStorage.Enqueue(LotNoSFG);
+        LibraryVariableStorage.Enqueue(Quantity);
+
+        ReleasedProdOrder.ProdOrderLines.Filter.SetFilter("Item No.", ItemSFG."No.");
+        ReleasedProdOrder.ProdOrderLines.ProductionJournal.Invoke();
+        ReleasedProdOrder.Close();
+
+        // [WHEN] Post second Production Journal with same SFG and same LOTNoSFG.
+        LibraryVariableStorage.Enqueue(Quantity);
+        LibraryVariableStorage.Enqueue(Quantity);
+        LibraryVariableStorage.Enqueue(ItemTrackingMode::"Assign Lot No.");
+        LibraryVariableStorage.Enqueue(LotNoSFG);
+        LibraryVariableStorage.Enqueue(Quantity);
+
+        ReleasedProdOrder.OpenEdit();
+        ReleasedProdOrder.GoToRecord(ProductionOrderFG);
+        ReleasedProdOrder.ProdOrderLines.Filter.SetFilter("Item No.", ItemSFG."No.");
+        ReleasedProdOrder.ProdOrderLines.ProductionJournal.Invoke();
+        ReleasedProdOrder.Close();
+
+        // [WHEN] Post Production Journal with FG and LOTNoFG which will consume SFG.
+        LibraryVariableStorage.Enqueue(0);
+        LibraryVariableStorage.Enqueue(Quantity);
+        LibraryVariableStorage.Enqueue(ItemTrackingMode::"Assign Lot No.");
+        LibraryVariableStorage.Enqueue(LotNoFG);
+        LibraryVariableStorage.Enqueue(Quantity);
+
+        ReleasedProdOrder.OpenEdit();
+        ReleasedProdOrder.GoToRecord(ProductionOrderFG);
+        ReleasedProdOrder.ProdOrderLines.Filter.SetFilter("Item No.", ItemFG."No.");
+        ReleasedProdOrder.ProdOrderLines.ProductionJournal.Invoke();
+        ReleasedProdOrder.Close();
+
+        // [THEN] Verify all production journals must be posted without any error.
     end;
 
     local procedure Initialize()
@@ -7589,6 +7638,28 @@ codeunit 137404 "SCM Manufacturing"
     end;
 
     [ModalPageHandler]
+    procedure ProductionJournalPageHandlerForReservationError(var ProductionJournal: TestPage "Production Journal")
+    var
+        EntryType: Enum "Item Ledger Entry Type";
+        ConsumptionQuantity: Decimal;
+        OutputQuantity: Decimal;
+    begin
+        ConsumptionQuantity := LibraryVariableStorage.DequeueDecimal();
+        OutputQuantity := LibraryVariableStorage.DequeueDecimal();
+
+        if ConsumptionQuantity <> 0 then
+            if ProductionJournal.FindFirstField(ProductionJournal."Entry Type", EntryType::Consumption) then
+                ProductionJournal.Quantity.SetValue(ConsumptionQuantity);
+
+        if ProductionJournal.FindFirstField(ProductionJournal."Entry Type", EntryType::Output) then begin
+            ProductionJournal."Output Quantity".SetValue(OutputQuantity);
+            ProductionJournal.ItemTrackingLines.Invoke();
+        end;
+
+        ProductionJournal.Post.Invoke();
+    end;
+
+    [ModalPageHandler]
     [Scope('OnPrem')]
     procedure ProductionJournalPageHandlerOnlyConsumption(var ProductionJournal: TestPage "Production Journal")
     var
@@ -7793,17 +7864,6 @@ codeunit 137404 "SCM Manufacturing"
         Assert.AreEqual(StartingDate - 1, ProductionBOMLine."Ending Date", 'Ending Date is not correctly set on the Production BOM line.')
     end;
 
-    local procedure CreateProductionJournalLine(var ItemJournalLine: Record "Item Journal Line"; ItemJournalBatch: Record "Item Journal Batch"; EntryType: Enum "Item Ledger Entry Type"; ItemNo: Code[20]; Quantity: Decimal; ProdOrderLine: Record "Prod. Order Line")
-    begin
-        LibraryInventory.CreateItemJournalLine(
-            ItemJournalLine, ItemJournalBatch."Journal Template Name", ItemJournalBatch.Name,
-            EntryType, ItemNo, Quantity);
-        ItemJournalLine.Validate("Source No.", ProdOrderLine."Item No.");
-        ItemJournalLine.Validate("Order No.", ProdOrderLine."Prod. Order No.");
-        ItemJournalLine.Validate("Order Line No.", ProdOrderLine."Line No.");
-        ItemJournalLine.Modify(true);
-    end;
-
     local procedure CreateProdItemWithTracking(var Item: Record Item; ItemTrackingCodeCode: Code[10]; ProductionBOMNo: Code[20])
     begin
         LibraryInventory.CreateItem(Item);
@@ -7848,105 +7908,6 @@ codeunit 137404 "SCM Manufacturing"
         LibraryInventory.PostItemJournalLine(ItemJournalBatch."Journal Template Name", ItemJournalBatch.Name);
     end;
 
-    local procedure PostProductionJournalsWithLotTracking(ProductionOrder: Record "Production Order"; Component1ItemNo: Code[20]; Component2ItemNo: Code[20]; MainItemNo: Code[20])
-    var
-        ItemJournalBatch: Record "Item Journal Batch";
-        ItemJournalLine: Record "Item Journal Line";
-        ItemJournalTemplate: Record "Item Journal Template";
-        ProdOrderLine: Record "Prod. Order Line";
-        LotNo: array[2] of Code[10];
-        Quantity: Decimal;
-    begin
-        // [GIVEN] Generate Lot No. and Output Qty.
-        LotNo[1] := Format(LibraryRandom.RandText(4));
-        LotNo[2] := Format(LibraryRandom.RandText(4));
-        Quantity := LibraryRandom.RandInt(10);
-        LibraryInventory.SelectItemJournalTemplateName(ItemJournalTemplate, ItemJournalTemplate.Type::Output);
-
-        // Post Production Journal for component 2 with lot tracking (first time).
-        FindProdOrderLine(ProdOrderLine, ProductionOrder, Component2ItemNo);
-        LibraryInventory.SelectItemJournalBatchName(ItemJournalBatch, ItemJournalTemplate.Type, ItemJournalTemplate.Name);
-
-        // [GIVEN] Create consumption line for Component 1 with quantity.
-        CreateProductionJournalLine(ItemJournalLine, ItemJournalBatch, ItemJournalLine."Entry Type"::Consumption, Component1ItemNo, LibraryRandom.RandInt(200), ProdOrderLine);
-
-        // [GIVEN] Create output line for Component 2 with LotNo[1] and Output Quantity.
-        CreateProductionJournalLine(ItemJournalLine, ItemJournalBatch, ItemJournalLine."Entry Type"::Output, Component2ItemNo, Quantity, ProdOrderLine);
-        ItemJournalLine.Validate("Output Quantity", Quantity);
-        ItemJournalLine.Modify(true);
-
-        // [GIVEN] Assign LOTNo[1] to output via Item Tracking
-        LibraryVariableStorage.Enqueue(LotNo[1]);
-        LibraryVariableStorage.Enqueue(Quantity);
-        CreateItemTrackingForJournalLine(ItemJournalLine);
-
-        // [GIVEN] Post Journal Line.
-        LibraryInventory.PostItemJournalLine(ItemJournalBatch."Journal Template Name", ItemJournalBatch.Name);
-
-        // [GIVEN] Create again consumption line for Component 1 with quantity.
-        LibraryInventory.ClearItemJournal(ItemJournalTemplate, ItemJournalBatch);
-        CreateProductionJournalLine(ItemJournalLine, ItemJournalBatch, ItemJournalLine."Entry Type"::Consumption, Component1ItemNo, LibraryRandom.RandInt(200), ProdOrderLine);
-
-        // [GIVEN] Create output line for Component 2 with LOTNo[1] and Output Quantity.
-        CreateProductionJournalLine(ItemJournalLine, ItemJournalBatch, ItemJournalLine."Entry Type"::Output, Component2ItemNo, Quantity, ProdOrderLine);
-        ItemJournalLine.Validate("Output Quantity", Quantity);
-        ItemJournalLine.Modify(true);
-
-        // [GIVEN] Assign LOTNo[1] to output via Item Tracking
-        LibraryVariableStorage.Enqueue(LOTNo[1]);
-        LibraryVariableStorage.Enqueue(Quantity);
-        CreateItemTrackingForJournalLine(ItemJournalLine);
-
-        // [GIVEN] Post Journal Line.
-        LibraryInventory.PostItemJournalLine(ItemJournalBatch."Journal Template Name", ItemJournalBatch.Name);
-
-        // [GIVEN] Create Consumption of component 2 with Item Tracking with quantity.
-        FindProdOrderLine(ProdOrderLine, ProductionOrder, MainItemNo);
-        LibraryInventory.ClearItemJournal(ItemJournalTemplate, ItemJournalBatch);
-        CreateProductionJournalLine(ItemJournalLine, ItemJournalBatch, ItemJournalLine."Entry Type"::Consumption, Component2ItemNo, Quantity * 2, ProdOrderLine);
-
-        LibraryVariableStorage.Enqueue(LotNo[1]);
-        LibraryVariableStorage.Enqueue(Quantity * 2);
-        CreateItemTrackingForJournalLine(ItemJournalLine);
-
-        // [GIVEN] Create output line for Main Component with LOTNo[2] and Output Quantity.
-        CreateProductionJournalLine(ItemJournalLine, ItemJournalBatch, ItemJournalLine."Entry Type"::Output, MainItemNo, Quantity, ProdOrderLine);
-        ItemJournalLine.Validate("Output Quantity", Quantity);
-        ItemJournalLine.Modify(true);
-
-        // [GIVEN] Assign LOTNo[2] to output via Item Tracking
-        LibraryVariableStorage.Enqueue(LotNo[2]);
-        LibraryVariableStorage.Enqueue(Quantity);
-        CreateItemTrackingForJournalLine(ItemJournalLine);
-
-        // [WHEN] Post Item Journal Line.
-        LibraryInventory.PostItemJournalLine(ItemJournalBatch."Journal Template Name", ItemJournalBatch.Name);
-
-        // [THEN] Verify no error occurs on Posting.
-    end;
-
-    local procedure CreateItemTrackingForJournalLine(var ItemJournalLine: Record "Item Journal Line")
-    var
-        ReservationEntry: Record "Reservation Entry";
-        LotNo: Code[50];
-        Quantity: Decimal;
-    begin
-        if LibraryVariableStorage.Length() >= 2 then begin
-            LotNo := LibraryVariableStorage.DequeueText();
-            Quantity := LibraryVariableStorage.DequeueDecimal();
-
-            LibraryItemTracking.CreateItemJournalLineItemTracking(
-              ReservationEntry, ItemJournalLine, '', LotNo, Quantity);
-        end;
-    end;
-
-    local procedure FindProdOrderLine(var ProdOrderLine: Record "Prod. Order Line"; ProductionOrder: Record "Production Order"; ItemNo: Code[20])
-    begin
-        ProdOrderLine.SetRange(Status, ProductionOrder.Status);
-        ProdOrderLine.SetRange("Prod. Order No.", ProductionOrder."No.");
-        ProdOrderLine.SetRange("Item No.", ItemNo);
-        ProdOrderLine.FindFirst();
-    end;
 
     [ModalPageHandler]
     [Scope('OnPrem')]

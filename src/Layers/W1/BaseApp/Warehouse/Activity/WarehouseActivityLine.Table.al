@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -47,26 +47,31 @@ table 5767 "Warehouse Activity Line"
         field(1; "Activity Type"; Enum "Warehouse Activity Type")
         {
             Caption = 'Activity Type';
+            ToolTip = 'Specifies the type of warehouse activity for the line.';
             Editable = false;
         }
         field(2; "No."; Code[20])
         {
             Caption = 'No.';
+            ToolTip = 'Specifies the number of the involved entry or record, according to the specified number series.';
             Editable = false;
         }
         field(3; "Line No."; Integer)
         {
             Caption = 'Line No.';
+            ToolTip = 'Specifies the number of the warehouse activity line.';
             Editable = false;
         }
         field(4; "Source Type"; Integer)
         {
             Caption = 'Source Type';
+            ToolTip = 'Specifies the type of source document to which the warehouse activity line relates, such as sales, purchase, and production.';
             Editable = false;
         }
         field(5; "Source Subtype"; Option)
         {
             Caption = 'Source Subtype';
+            ToolTip = 'Specifies the source subtype of the document related to the warehouse request.';
             Editable = false;
             OptionCaption = '0,1,2,3,4,5,6,7,8,9,10';
             OptionMembers = "0","1","2","3","4","5","6","7","8","9","10";
@@ -74,35 +79,41 @@ table 5767 "Warehouse Activity Line"
         field(6; "Source No."; Code[20])
         {
             Caption = 'Source No.';
+            ToolTip = 'Specifies the number of the source document that the entry originates from.';
             Editable = false;
         }
         field(7; "Source Line No."; Integer)
         {
             BlankZero = true;
             Caption = 'Source Line No.';
+            ToolTip = 'Specifies the line number of the source document that the entry originates from.';
             Editable = false;
         }
         field(8; "Source Subline No."; Integer)
         {
             BlankZero = true;
             Caption = 'Source Subline No.';
+            ToolTip = 'Specifies the source subline number.';
             Editable = false;
         }
         field(9; "Source Document"; Enum "Warehouse Activity Source Document")
         {
             BlankZero = true;
             Caption = 'Source Document';
+            ToolTip = 'Specifies the type of document that the line relates to.';
             Editable = false;
         }
         field(11; "Location Code"; Code[10])
         {
             Caption = 'Location Code';
+            ToolTip = 'Specifies the code for the location where the activity occurs.';
             Editable = false;
             TableRelation = Location;
         }
         field(12; "Shelf No."; Code[10])
         {
             Caption = 'Shelf No.';
+            ToolTip = 'Specifies the shelf number of the item for informational use.';
         }
         field(13; "Sorting Sequence No."; Integer)
         {
@@ -112,6 +123,7 @@ table 5767 "Warehouse Activity Line"
         field(14; "Item No."; Code[20])
         {
             Caption = 'Item No.';
+            ToolTip = 'Specifies the item number of the item to be handled, such as picked or put away.';
             Editable = false;
             TableRelation = Item;
 
@@ -137,6 +149,7 @@ table 5767 "Warehouse Activity Line"
         field(15; "Variant Code"; Code[10])
         {
             Caption = 'Variant Code';
+            ToolTip = 'Specifies the variant of the item on the line.';
             Editable = false;
             TableRelation = "Item Variant".Code where("Item No." = field("Item No."));
 
@@ -166,6 +179,7 @@ table 5767 "Warehouse Activity Line"
         field(16; "Unit of Measure Code"; Code[10])
         {
             Caption = 'Unit of Measure Code';
+            ToolTip = 'Specifies how each unit of the item or resource is measured, such as in pieces or hours. By default, the value in the Base Unit of Measure field on the item or resource card is inserted.';
             Editable = false;
             TableRelation = "Item Unit of Measure".Code where("Item No." = field("Item No."));
 
@@ -188,6 +202,7 @@ table 5767 "Warehouse Activity Line"
         {
             AutoFormatType = 0;
             Caption = 'Qty. per Unit of Measure';
+            ToolTip = 'Specifies the quantity per unit of measure of the item on the line.';
             DecimalPlaces = 0 : 5;
             Editable = false;
             InitValue = 1;
@@ -195,17 +210,20 @@ table 5767 "Warehouse Activity Line"
         field(18; Description; Text[100])
         {
             Caption = 'Description';
+            ToolTip = 'Specifies a description of the item on the line.';
             Editable = false;
         }
         field(19; "Description 2"; Text[50])
         {
             Caption = 'Description 2';
+            ToolTip = 'Specifies information in addition to the description.';
             Editable = false;
         }
         field(20; Quantity; Decimal)
         {
             AutoFormatType = 0;
             Caption = 'Quantity';
+            ToolTip = 'Specifies the quantity of the item to be handled, such as received, put-away, or assigned.';
             DecimalPlaces = 0 : 5;
 
             trigger OnValidate()
@@ -244,6 +262,7 @@ table 5767 "Warehouse Activity Line"
         {
             AutoFormatType = 0;
             Caption = 'Qty. Outstanding';
+            ToolTip = 'Specifies the number of items that have not yet been handled for this warehouse activity line.';
             DecimalPlaces = 0 : 5;
             Editable = false;
 
@@ -280,6 +299,7 @@ table 5767 "Warehouse Activity Line"
         {
             AutoFormatType = 0;
             Caption = 'Qty. to Handle';
+            ToolTip = 'Specifies how many units to handle in this warehouse activity.';
             DecimalPlaces = 0 : 5;
             MinValue = 0;
 
@@ -367,6 +387,7 @@ table 5767 "Warehouse Activity Line"
         {
             AutoFormatType = 0;
             Caption = 'Qty. Handled';
+            ToolTip = 'Specifies the number of items on the line that have been handled in this warehouse activity.';
             DecimalPlaces = 0 : 5;
             Editable = false;
 
@@ -387,21 +408,25 @@ table 5767 "Warehouse Activity Line"
         field(31; "Shipping Advice"; Enum "Sales Header Shipping Advice")
         {
             Caption = 'Shipping Advice';
+            ToolTip = 'Specifies the shipping advice, which informs whether partial deliveries are acceptable.';
             Editable = false;
             FieldClass = Normal;
         }
         field(34; "Due Date"; Date)
         {
             Caption = 'Due Date';
+            ToolTip = 'Specifies the date when the warehouse activity must be completed.';
         }
         field(39; "Destination Type"; enum "Warehouse Destination Type")
         {
             Caption = 'Destination Type';
+            ToolTip = 'Specifies information about the type of destination, such as customer or vendor, associated with the warehouse activity line.';
             Editable = false;
         }
         field(40; "Destination No."; Code[20])
         {
             Caption = 'Destination No.';
+            ToolTip = 'Specifies the number or code of the customer, vendor or location related to the activity line.';
             Editable = false;
             TableRelation = if ("Destination Type" = const(Vendor)) Vendor
             else
@@ -416,16 +441,19 @@ table 5767 "Warehouse Activity Line"
         field(42; "Shipping Agent Code"; Code[10])
         {
             Caption = 'Shipping Agent Code';
+            ToolTip = 'Specifies the code for the shipping agent who is transporting the items.';
             TableRelation = "Shipping Agent";
         }
         field(43; "Shipping Agent Service Code"; Code[10])
         {
             Caption = 'Shipping Agent Service Code';
+            ToolTip = 'Specifies the code for the service, such as a one-day delivery, that is offered by the shipping agent.';
             TableRelation = "Shipping Agent Services".Code where("Shipping Agent Code" = field("Shipping Agent Code"));
         }
         field(44; "Shipment Method Code"; Code[10])
         {
             Caption = 'Shipment Method Code';
+            ToolTip = 'Specifies the delivery conditions of the related shipment, such as free on board (FOB).';
             TableRelation = "Shipment Method";
         }
         field(47; "Starting Date"; Date)
@@ -456,6 +484,7 @@ table 5767 "Warehouse Activity Line"
         {
             AccessByPermission = TableData "BOM Component" = R;
             Caption = 'Assemble to Order';
+            ToolTip = 'Specifies that the inventory pick line is for assembly items that are assembled to a sales order before being shipped.';
             Editable = false;
         }
         field(901; "ATO Component"; Boolean)
@@ -466,6 +495,7 @@ table 5767 "Warehouse Activity Line"
         field(6500; "Serial No."; Code[50])
         {
             Caption = 'Serial No.';
+            ToolTip = 'Specifies the serial number to handle in the document.';
             ExtendedDatatype = Barcode;
 
             trigger OnLookup()
@@ -506,6 +536,7 @@ table 5767 "Warehouse Activity Line"
         field(6501; "Lot No."; Code[50])
         {
             Caption = 'Lot No.';
+            ToolTip = 'Specifies the lot number to handle in the document.';
             ExtendedDatatype = Barcode;
 
             trigger OnLookup()
@@ -537,6 +568,7 @@ table 5767 "Warehouse Activity Line"
         field(6503; "Expiration Date"; Date)
         {
             Caption = 'Expiration Date';
+            ToolTip = 'Specifies the expiration date of the serial/lot numbers if you are putting items away.';
 
             trigger OnValidate()
             var
@@ -560,6 +592,7 @@ table 5767 "Warehouse Activity Line"
                                                                         "Variant Code" = field("Variant Code"),
                                                                         "Serial No." = field("Serial No.")));
             Caption = 'Serial No. Blocked';
+            ToolTip = 'Specifies the serial number is blocked, on its information card.';
             Editable = false;
             FieldClass = FlowField;
         }
@@ -569,12 +602,14 @@ table 5767 "Warehouse Activity Line"
                                                                      "Variant Code" = field("Variant Code"),
                                                                      "Lot No." = field("Lot No.")));
             Caption = 'Lot No. Blocked';
+            ToolTip = 'Specifies the lot number is blocked, on its information card.';
             Editable = false;
             FieldClass = FlowField;
         }
         field(6515; "Package No."; Code[50])
         {
             Caption = 'Package No.';
+            ToolTip = 'Specifies the package number to handle in the document.';
             CaptionClass = '6,1';
             ExtendedDatatype = Barcode;
 
@@ -600,6 +635,7 @@ table 5767 "Warehouse Activity Line"
         {
             AccessByPermission = TableData "Warehouse Source Filter" = R;
             Caption = 'Bin Code';
+            ToolTip = 'Specifies the bin where the items are picked or put away.';
             TableRelation = if ("Zone Code" = filter('')) Bin.Code where("Location Code" = field("Location Code"))
             else
             if ("Zone Code" = filter(<> '')) Bin.Code where("Location Code" = field("Location Code"),
@@ -716,6 +752,7 @@ table 5767 "Warehouse Activity Line"
         field(7301; "Zone Code"; Code[10])
         {
             Caption = 'Zone Code';
+            ToolTip = 'Specifies the zone code where the bin on this line is located.';
             TableRelation = Zone.Code where("Location Code" = field("Location Code"));
 
             trigger OnValidate()
@@ -732,16 +769,19 @@ table 5767 "Warehouse Activity Line"
         field(7305; "Action Type"; Enum "Warehouse Action Type")
         {
             Caption = 'Action Type';
+            ToolTip = 'Specifies the action type for the warehouse activity line.';
             Editable = false;
         }
         field(7306; "Whse. Document Type"; Enum "Warehouse Activity Document Type")
         {
             Caption = 'Whse. Document Type';
+            ToolTip = 'Specifies the type of warehouse document from which the line originated.';
             Editable = false;
         }
         field(7307; "Whse. Document No."; Code[20])
         {
             Caption = 'Whse. Document No.';
+            ToolTip = 'Specifies the number of the warehouse document that is the basis for the action on the line.';
             Editable = false;
             TableRelation = if ("Whse. Document Type" = const(Receipt)) "Posted Whse. Receipt Header"."No." where("No." = field("Whse. Document No."))
             else
@@ -760,6 +800,7 @@ table 5767 "Warehouse Activity Line"
         {
             BlankZero = true;
             Caption = 'Whse. Document Line No.';
+            ToolTip = 'Specifies the number of the line in the warehouse document that is the basis for the action on the line.';
             Editable = false;
             TableRelation = if ("Whse. Document Type" = const(Receipt)) "Posted Whse. Receipt Line"."Line No." where("No." = field("Whse. Document No."),
                                                                                                                      "Line No." = field("Whse. Document Line No."))
@@ -789,17 +830,20 @@ table 5767 "Warehouse Activity Line"
         {
             AutoFormatType = 0;
             Caption = 'Cubage';
+            ToolTip = 'Specifies the total cubage of items on the line, calculated based on the Quantity field.';
             DecimalPlaces = 0 : 5;
         }
         field(7311; Weight; Decimal)
         {
             AutoFormatType = 0;
             Caption = 'Weight';
+            ToolTip = 'Specifies the weight of one item unit when measured in the specified unit of measure.';
             DecimalPlaces = 0 : 5;
         }
         field(7312; "Special Equipment Code"; Code[10])
         {
             Caption = 'Special Equipment Code';
+            ToolTip = 'Specifies the code of the equipment required when you perform the action on the line.';
             TableRelation = "Special Equipment";
         }
         field(7313; "Bin Type Code"; Code[10])
@@ -823,6 +867,7 @@ table 5767 "Warehouse Activity Line"
         field(7317; "Cross-Dock Information"; Option)
         {
             Caption = 'Cross-Dock Information';
+            ToolTip = 'Specifies an option for specific information regarding the cross-dock activity.';
             OptionCaption = ' ,Cross-Dock Items,Some Items Cross-Docked';
             OptionMembers = " ","Cross-Dock Items","Some Items Cross-Docked";
         }
@@ -835,6 +880,7 @@ table 5767 "Warehouse Activity Line"
         {
             AutoFormatType = 0;
             Caption = 'Over-Receipt Quantity';
+            ToolTip = 'Specifies over-receipt quantity.';
             DecimalPlaces = 0 : 5;
             BlankZero = false;
             MinValue = 0;
@@ -871,6 +917,7 @@ table 5767 "Warehouse Activity Line"
         field(7320; "Over-Receipt Code"; Code[20])
         {
             Caption = 'Over-Receipt Code';
+            ToolTip = 'Specifies over-receipt code.';
             TableRelation = "Over-Receipt Code";
 
             trigger OnValidate()
@@ -882,6 +929,7 @@ table 5767 "Warehouse Activity Line"
         field(7321; "Warehouse Reason Code"; Code[10])
         {
             Caption = 'Warehouse Reason Code';
+            ToolTip = 'Specifies the reason for the warehouse activity.';
             TableRelation = "Warehouse Reason Code";
         }
     }

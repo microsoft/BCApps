@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -21,10 +21,12 @@ table 7324 "Whse. Put-away Request"
         field(1; "Document Type"; Enum "Warehouse Put-away Request Document Type")
         {
             Caption = 'Document Type';
+            ToolTip = 'Specifies the type of document that created the warehouse put-away request.';
         }
         field(2; "Document No."; Code[20])
         {
             Caption = 'Document No.';
+            ToolTip = 'Specifies the number of the warehouse document that should be put away.';
             TableRelation = if ("Document Type" = const(Receipt)) "Posted Whse. Receipt Header"."No."
             else
             if ("Document Type" = const("Internal Put-away")) "Whse. Internal Put-away Header"."No.";
@@ -52,16 +54,19 @@ table 7324 "Whse. Put-away Request"
         field(3; "Location Code"; Code[10])
         {
             Caption = 'Location Code';
+            ToolTip = 'Specifies the code of the location in which the request is occurring.';
             TableRelation = Location;
         }
         field(4; "Zone Code"; Code[10])
         {
             Caption = 'Zone Code';
+            ToolTip = 'Specifies the zone code where the bin on the request is located.';
             TableRelation = Zone.Code where("Location Code" = field("Location Code"));
         }
         field(5; "Bin Code"; Code[20])
         {
             Caption = 'Bin Code';
+            ToolTip = 'Specifies the bin where the items are picked or put away.';
             TableRelation = if ("Zone Code" = filter('')) Bin.Code where("Location Code" = field("Location Code"))
             else
             if ("Zone Code" = filter(<> '')) Bin.Code where("Location Code" = field("Location Code"),
@@ -70,6 +75,7 @@ table 7324 "Whse. Put-away Request"
         field(7; "Completely Put Away"; Boolean)
         {
             Caption = 'Completely Put Away';
+            ToolTip = 'Specifies that all the items on the warehouse source document have been put away.';
         }
         field(8; Status; Option)
         {

@@ -44,6 +44,7 @@ table 302 "Finance Charge Memo Header"
         field(1; "No."; Code[20])
         {
             Caption = 'No.';
+            ToolTip = 'Specifies the number of the involved entry or record, according to the specified number series.';
 
             trigger OnValidate()
             begin
@@ -60,6 +61,7 @@ table 302 "Finance Charge Memo Header"
         field(2; "Customer No."; Code[20])
         {
             Caption = 'Customer No.';
+            ToolTip = 'Specifies the number of the customer you want to create a finance charge memo for.';
             TableRelation = Customer;
 
             trigger OnValidate()
@@ -109,6 +111,7 @@ table 302 "Finance Charge Memo Header"
         field(3; Name; Text[100])
         {
             Caption = 'Name';
+            ToolTip = 'Specifies the name of the customer the finance charge memo is for.';
         }
         /// <summary>
         /// Specifies additional name information for the customer, typically used for longer company names.
@@ -123,6 +126,7 @@ table 302 "Finance Charge Memo Header"
         field(5; Address; Text[100])
         {
             Caption = 'Address';
+            ToolTip = 'Specifies the address of the customer the finance charge memo is for.';
         }
         /// <summary>
         /// Specifies additional address information for the customer.
@@ -130,6 +134,7 @@ table 302 "Finance Charge Memo Header"
         field(6; "Address 2"; Text[50])
         {
             Caption = 'Address 2';
+            ToolTip = 'Specifies additional address information.';
         }
         /// <summary>
         /// Specifies the postal code of the customer's address.
@@ -137,6 +142,7 @@ table 302 "Finance Charge Memo Header"
         field(7; "Post Code"; Code[20])
         {
             Caption = 'Post Code';
+            ToolTip = 'Specifies the postal code.';
             TableRelation = if ("Country/Region Code" = const('')) "Post Code"
             else
             if ("Country/Region Code" = filter(<> '')) "Post Code" where("Country/Region Code" = field("Country/Region Code"));
@@ -163,6 +169,7 @@ table 302 "Finance Charge Memo Header"
         field(8; City; Text[30])
         {
             Caption = 'City';
+            ToolTip = 'Specifies the city name of the customer the finance charge memo is for.';
             TableRelation = if ("Country/Region Code" = const('')) "Post Code".City
             else
             if ("Country/Region Code" = filter(<> '')) "Post Code".City where("Country/Region Code" = field("Country/Region Code"));
@@ -218,6 +225,7 @@ table 302 "Finance Charge Memo Header"
         field(12; "Currency Code"; Code[10])
         {
             Caption = 'Currency Code';
+            ToolTip = 'Specifies the currency code of the finance charge memo.';
             TableRelation = Currency;
 
             trigger OnValidate()
@@ -236,6 +244,7 @@ table 302 "Finance Charge Memo Header"
         field(13; Contact; Text[100])
         {
             Caption = 'Contact';
+            ToolTip = 'Specifies the name of the person you regularly contact when you communicate with the customer the finance charge memo is for.';
         }
         /// <summary>
         /// Contains the customer's reference information for this finance charge memo.
@@ -243,6 +252,7 @@ table 302 "Finance Charge Memo Header"
         field(14; "Your Reference"; Text[35])
         {
             Caption = 'Your Reference';
+            ToolTip = 'Specifies the customer''s reference. The content will be printed on the related document.';
         }
         /// <summary>
         /// Specifies the first global dimension code used for analysis and reporting.
@@ -251,6 +261,7 @@ table 302 "Finance Charge Memo Header"
         {
             CaptionClass = '1,2,1';
             Caption = 'Shortcut Dimension 1 Code';
+            ToolTip = 'Specifies the code for Shortcut Dimension 1, which is one of two global dimension codes that you set up in the General Ledger Setup window.';
             TableRelation = "Dimension Value".Code where("Global Dimension No." = const(1),
                                                           Blocked = const(false));
 
@@ -266,6 +277,7 @@ table 302 "Finance Charge Memo Header"
         {
             CaptionClass = '1,2,2';
             Caption = 'Shortcut Dimension 2 Code';
+            ToolTip = 'Specifies the code for Shortcut Dimension 2, which is one of two global dimension codes that you set up in the General Ledger Setup window.';
             TableRelation = "Dimension Value".Code where("Global Dimension No." = const(2),
                                                           Blocked = const(false));
 
@@ -280,6 +292,7 @@ table 302 "Finance Charge Memo Header"
         field(17; "Customer Posting Group"; Code[20])
         {
             Caption = 'Customer Posting Group';
+            ToolTip = 'Specifies the customer''s market type to link business transactions to.';
             TableRelation = "Customer Posting Group";
 
             trigger OnValidate()
@@ -324,6 +337,7 @@ table 302 "Finance Charge Memo Header"
         field(21; "Posting Date"; Date)
         {
             Caption = 'Posting Date';
+            ToolTip = 'Specifies the date when the finance charge memo should be issued.';
 
             trigger OnValidate()
             begin
@@ -338,6 +352,7 @@ table 302 "Finance Charge Memo Header"
         field(22; "Document Date"; Date)
         {
             Caption = 'Document Date';
+            ToolTip = 'Specifies the date when the related document was created.';
 
             trigger OnValidate()
             begin
@@ -359,6 +374,7 @@ table 302 "Finance Charge Memo Header"
         field(23; "Due Date"; Date)
         {
             Caption = 'Due Date';
+            ToolTip = 'Specifies when payment of the amount on the finance charge memo is due.';
         }
         /// <summary>
         /// Specifies the finance charge terms code that determines interest rates, fees, and calculation methods.
@@ -366,6 +382,7 @@ table 302 "Finance Charge Memo Header"
         field(25; "Fin. Charge Terms Code"; Code[10])
         {
             Caption = 'Fin. Charge Terms Code';
+            ToolTip = 'Specifies the code for the involved finance charges in case of late payment.';
             TableRelation = "Finance Charge Terms";
 
             trigger OnValidate()
@@ -441,6 +458,7 @@ table 302 "Finance Charge Memo Header"
                                                                        Type = const("Customer Ledger Entry"),
                                                                        "Detailed Interest Rates Entry" = const(false)));
             Caption = 'Interest Amount';
+            ToolTip = 'Specifies the total of the interest amounts on the finance charge memo lines.';
             Editable = false;
             FieldClass = FlowField;
         }
@@ -454,6 +472,7 @@ table 302 "Finance Charge Memo Header"
             CalcFormula = sum("Finance Charge Memo Line".Amount where("Finance Charge Memo No." = field("No."),
                                                                        Type = const("G/L Account")));
             Caption = 'Additional Fee';
+            ToolTip = 'Specifies the total of the additional fee amounts on the finance charge memo lines.';
             Editable = false;
             FieldClass = FlowField;
         }
@@ -541,6 +560,7 @@ table 302 "Finance Charge Memo Header"
         field(44; "VAT Reporting Date"; Date)
         {
             Caption = 'VAT Date';
+            ToolTip = 'Specifies the date used to include entries on VAT reports in a VAT period. This is either the date that the document was created or posted, depending on your setting on the General Ledger Setup page.';
             Editable = false;
 
             trigger OnValidate()
@@ -563,6 +583,7 @@ table 302 "Finance Charge Memo Header"
         field(163; "Company Bank Account Code"; Code[20])
         {
             Caption = 'Company Bank Account Code';
+            ToolTip = 'Specifies the bank account to use for bank information when the document is printed.';
             TableRelation = "Bank Account" where("Currency Code" = field("Currency Code"));
         }
         /// <summary>
@@ -590,6 +611,7 @@ table 302 "Finance Charge Memo Header"
         field(9000; "Assigned User ID"; Code[50])
         {
             Caption = 'Assigned User ID';
+            ToolTip = 'Specifies the ID of the user who is responsible for the document.';
             DataClassification = EndUserIdentifiableInformation;
             TableRelation = "User Setup";
         }

@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -19,6 +19,7 @@ table 7504 "Item Attribute Value Selection"
         field(1; "Attribute Name"; Text[250])
         {
             Caption = 'Attribute Name';
+            ToolTip = 'Specifies the item attribute.';
             NotBlank = true;
 
             trigger OnValidate()
@@ -35,6 +36,7 @@ table 7504 "Item Attribute Value Selection"
         field(2; Value; Text[250])
         {
             Caption = 'Value';
+            ToolTip = 'Specifies the value of the item attribute.';
 
             trigger OnValidate()
             var
@@ -81,6 +83,7 @@ table 7504 "Item Attribute Value Selection"
         field(4; "Unit of Measure"; Text[30])
         {
             Caption = 'Unit of Measure';
+            ToolTip = 'Specifies the name of the item or resource''s unit of measure, such as piece or hour.';
             Editable = false;
         }
         field(6; Blocked; Boolean)
@@ -100,6 +103,7 @@ table 7504 "Item Attribute Value Selection"
         field(9; "Inherited-From Key Value"; Code[20])
         {
             Caption = 'Inherited-From Key Value';
+            ToolTip = 'Specifies the parent item category that the item attributes are inherited from.';
         }
         field(10; "Inheritance Level"; Integer)
         {

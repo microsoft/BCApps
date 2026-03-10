@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -27,17 +27,14 @@ page 5828 "Inventory Periods"
                 field("Ending Date"; Rec."Ending Date")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the ending date of an inventory period is the last day of the inventory period.';
                 }
                 field(Name; Rec.Name)
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies a descriptive name that helps users identify the inventory period.';
                 }
                 field(Closed; Rec.Closed)
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies that an inventory period can be open or closed.';
                 }
             }
         }

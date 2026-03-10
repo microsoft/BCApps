@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -37,6 +37,7 @@ table 1208 "Direct Debit Collection Entry"
         field(2; "Entry No."; Integer)
         {
             Caption = 'Entry No.';
+            ToolTip = 'Specifies the number of the entry, as assigned from the specified number series when the entry was created.';
         }
         /// <summary>
         /// Customer from whom the direct debit amount will be collected.
@@ -44,6 +45,7 @@ table 1208 "Direct Debit Collection Entry"
         field(3; "Customer No."; Code[20])
         {
             Caption = 'Customer No.';
+            ToolTip = 'Specifies the number of the customer that the direct-debit payment is collected from.';
             TableRelation = Customer;
 
             trigger OnValidate()
@@ -58,6 +60,7 @@ table 1208 "Direct Debit Collection Entry"
         field(4; "Applies-to Entry No."; Integer)
         {
             Caption = 'Applies-to Entry No.';
+            ToolTip = 'Specifies the number of the sales invoice that the customer leger entry behind this direct-debit collection entry applies to.';
             TableRelation = "Cust. Ledger Entry" where("Customer No." = field("Customer No."),
                                                         "Document Type" = filter(Invoice | "Finance Charge Memo" | Reminder),
                                                         Open = const(true));
@@ -103,6 +106,7 @@ table 1208 "Direct Debit Collection Entry"
         field(5; "Transfer Date"; Date)
         {
             Caption = 'Transfer Date';
+            ToolTip = 'Specifies the date when the payment will be collected from the customer''s bank account.';
         }
         /// <summary>
         /// Currency code of the transaction, inherited from the customer ledger entry.
@@ -110,6 +114,7 @@ table 1208 "Direct Debit Collection Entry"
         field(6; "Currency Code"; Code[10])
         {
             Caption = 'Currency Code';
+            ToolTip = 'Specifies the currency of the payment amount that is being collected as a direct debit.';
             Editable = false;
             TableRelation = Currency;
         }
@@ -121,6 +126,7 @@ table 1208 "Direct Debit Collection Entry"
             AutoFormatExpression = Rec."Currency Code";
             AutoFormatType = 1;
             Caption = 'Transfer Amount';
+            ToolTip = 'Specifies the amount that will be collected from the customer''s bank account.';
 
             trigger OnValidate()
             var
@@ -147,6 +153,7 @@ table 1208 "Direct Debit Collection Entry"
         field(8; "Transaction ID"; Text[35])
         {
             Caption = 'Transaction ID';
+            ToolTip = 'Specifies the ID of the direct debit collection. It consist of a number in the SEPA direct-debit message number series and the value in the Applies-to Entry No. field.';
             Editable = false;
         }
         /// <summary>
@@ -155,6 +162,7 @@ table 1208 "Direct Debit Collection Entry"
         field(9; "Sequence Type"; Option)
         {
             Caption = 'Sequence Type';
+            ToolTip = 'Specifies if the direct-debit collection entry is the first or the last of a sequence of recurring entries.';
             Editable = false;
             OptionCaption = 'One Off,First,Recurring,Last';
             OptionMembers = "One Off",First,Recurring,Last;
@@ -165,6 +173,7 @@ table 1208 "Direct Debit Collection Entry"
         field(10; Status; Option)
         {
             Caption = 'Status';
+            ToolTip = 'Specifies the status of the direct-debit collection entry.';
             Editable = false;
             OptionCaption = 'New,File Created,Rejected,Posted';
             OptionMembers = New,"File Created",Rejected,Posted;
@@ -175,6 +184,7 @@ table 1208 "Direct Debit Collection Entry"
         field(11; "Mandate ID"; Code[35])
         {
             Caption = 'Mandate ID';
+            ToolTip = 'Specifies the ID of the direct-debit mandate that exists for the direct debit collection in question.';
             TableRelation = "SEPA Direct Debit Mandate".ID where("Customer No." = field("Customer No."));
 
             trigger OnValidate()
@@ -194,6 +204,7 @@ table 1208 "Direct Debit Collection Entry"
         {
             CalcFormula = lookup("SEPA Direct Debit Mandate"."Type of Payment" where(ID = field("Mandate ID")));
             Caption = 'Mandate Type of Payment';
+            ToolTip = 'Specifies if the related direct-debit mandate is created for one or multiple direct debit collections.';
             Editable = false;
             FieldClass = FlowField;
             OptionCaption = 'One Off,Recurrent';
@@ -206,6 +217,7 @@ table 1208 "Direct Debit Collection Entry"
         {
             CalcFormula = lookup(Customer.Name where("No." = field("Customer No.")));
             Caption = 'Customer Name';
+            ToolTip = 'Specifies the name of the customer that the direct-debit payment is collected from.';
             Editable = false;
             FieldClass = FlowField;
         }
@@ -216,6 +228,7 @@ table 1208 "Direct Debit Collection Entry"
         {
             CalcFormula = lookup("Cust. Ledger Entry"."Document No." where("Entry No." = field("Applies-to Entry No.")));
             Caption = 'Applies-to Entry Document No.';
+            ToolTip = 'Specifies the document number on the sales invoice that the customer leger entry behind this direct-debit collection entry applies to.';
             Editable = false;
             FieldClass = FlowField;
         }
@@ -226,6 +239,7 @@ table 1208 "Direct Debit Collection Entry"
         {
             CalcFormula = lookup("Cust. Ledger Entry".Description where("Entry No." = field("Applies-to Entry No.")));
             Caption = 'Applies-to Entry Description';
+            ToolTip = 'Specifies the description of the sales invoice that the customer leger entry behind this direct-debit collection entry applies to.';
             Editable = false;
             FieldClass = FlowField;
         }
@@ -236,6 +250,7 @@ table 1208 "Direct Debit Collection Entry"
         {
             CalcFormula = lookup("Cust. Ledger Entry"."Posting Date" where("Entry No." = field("Applies-to Entry No.")));
             Caption = 'Applies-to Entry Posting Date';
+            ToolTip = 'Specifies when the sales invoice that the customer leger entry behind this direct-debit collection entry applies to was posted.';
             Editable = false;
             FieldClass = FlowField;
         }
@@ -246,6 +261,7 @@ table 1208 "Direct Debit Collection Entry"
         {
             CalcFormula = lookup("Cust. Ledger Entry"."Currency Code" where("Entry No." = field("Applies-to Entry No.")));
             Caption = 'Applies-to Entry Currency Code';
+            ToolTip = 'Specifies the currency of the sales invoice that the customer leger entry behind this direct-debit collection entry applies to.';
             Editable = false;
             FieldClass = FlowField;
             TableRelation = Currency;
@@ -260,6 +276,7 @@ table 1208 "Direct Debit Collection Entry"
             CalcFormula = sum("Detailed Cust. Ledg. Entry".Amount where("Cust. Ledger Entry No." = field("Applies-to Entry No."),
                                                                          "Entry Type" = filter("Initial Entry" | "Unrealized Loss" | "Unrealized Gain" | "Realized Loss" | "Realized Gain" | "Payment Discount" | "Payment Discount (VAT Excl.)" | "Payment Discount (VAT Adjustment)" | "Payment Tolerance" | "Payment Discount Tolerance" | "Payment Tolerance (VAT Excl.)" | "Payment Tolerance (VAT Adjustment)" | "Payment Discount Tolerance (VAT Excl.)" | "Payment Discount Tolerance (VAT Adjustment)")));
             Caption = 'Applies-to Entry Amount';
+            ToolTip = 'Specifies the payment amount on the sales invoice that the customer leger entry behind this direct-debit collection entry applies to.';
             Editable = false;
             FieldClass = FlowField;
         }
@@ -272,6 +289,7 @@ table 1208 "Direct Debit Collection Entry"
             AutoFormatType = 1;
             CalcFormula = sum("Detailed Cust. Ledg. Entry".Amount where("Cust. Ledger Entry No." = field("Applies-to Entry No.")));
             Caption = 'Applies-to Entry Rem. Amount';
+            ToolTip = 'Specifies the amount that remains to be paid on the sales invoice that the customer leger entry behind this direct-debit collection entry applies to.';
             Editable = false;
             FieldClass = FlowField;
         }
@@ -282,6 +300,7 @@ table 1208 "Direct Debit Collection Entry"
         {
             CalcFormula = lookup("Cust. Ledger Entry".Open where("Entry No." = field("Applies-to Entry No.")));
             Caption = 'Applies-to Entry Open';
+            ToolTip = 'Specifies if the sales invoice that the customer leger entry behind this direct-debit collection entry applies to is open.';
             Editable = false;
             FieldClass = FlowField;
         }

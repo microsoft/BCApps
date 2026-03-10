@@ -257,7 +257,7 @@ table 334 "Column Layout"
         field(42; "G/L Account Totaling"; Text[250])
         {
             Caption = 'G/L Account Totaling';
-            ToolTip = 'Specifies which G/L accounts will be totaled in this column.';
+            ToolTip = 'Specifies which G/L accounts will be totalled in this column. Note that this filter will be applied in addition to any G/L account filters from the row definition lines.';
 
             trigger OnLookup()
             var

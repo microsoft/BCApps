@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -26,6 +26,7 @@ table 5404 "Item Unit of Measure"
         field(1; "Item No."; Code[20])
         {
             Caption = 'Item No.';
+            ToolTip = 'Specifies the number of the item card from which you opened the Item Units of Measure window.';
             NotBlank = true;
             TableRelation = Item;
 
@@ -37,6 +38,7 @@ table 5404 "Item Unit of Measure"
         field(2; "Code"; Code[10])
         {
             Caption = 'Code';
+            ToolTip = 'Specifies a code to identify the unit of measure.';
             NotBlank = true;
             TableRelation = "Unit of Measure";
         }
@@ -44,6 +46,7 @@ table 5404 "Item Unit of Measure"
         {
             AutoFormatType = 0;
             Caption = 'Qty. per Unit of Measure';
+            ToolTip = 'Specifies how many of the base unit of measure are contained in one unit of the item.';
             DecimalPlaces = 0 : 5;
             InitValue = 1;
 
@@ -95,6 +98,7 @@ table 5404 "Item Unit of Measure"
         field(721; "Coupled to Dataverse"; Boolean)
         {
             Caption = 'Coupled to Dynamics 365 Sales';
+            ToolTip = 'Specifies that the item unit of measure is coupled to a unit of measure in Dynamics 365 Sales.';
             FieldClass = FlowField;
             CalcFormula = exist("CRM Integration Record" where("Integration ID" = field(SystemId), "Table ID" = const(Database::"Item Unit of Measure")));
         }
@@ -102,6 +106,7 @@ table 5404 "Item Unit of Measure"
         {
             AutoFormatType = 0;
             Caption = 'Length';
+            ToolTip = 'Specifies the length of one item unit when measured in the specified unit of measure.';
             DecimalPlaces = 0 : 5;
             MinValue = 0;
 
@@ -114,6 +119,7 @@ table 5404 "Item Unit of Measure"
         {
             AutoFormatType = 0;
             Caption = 'Width';
+            ToolTip = 'Specifies the width of one item unit when measured in the specified unit of measure.';
             DecimalPlaces = 0 : 5;
             MinValue = 0;
 
@@ -126,6 +132,7 @@ table 5404 "Item Unit of Measure"
         {
             AutoFormatType = 0;
             Caption = 'Height';
+            ToolTip = 'Specifies the height of one item unit when measured in the unit of measure in the Code field.';
             DecimalPlaces = 0 : 5;
             MinValue = 0;
 
@@ -138,6 +145,7 @@ table 5404 "Item Unit of Measure"
         {
             AutoFormatType = 0;
             Caption = 'Cubage';
+            ToolTip = 'Specifies the volume (cubage) of one item unit in the unit of measure in the Code field.';
             DecimalPlaces = 0 : 5;
             MinValue = 0;
         }
@@ -145,6 +153,7 @@ table 5404 "Item Unit of Measure"
         {
             AutoFormatType = 0;
             Caption = 'Weight';
+            ToolTip = 'Specifies the weight of one item unit when measured in the specified unit of measure.';
             DecimalPlaces = 0 : 5;
             MinValue = 0;
         }

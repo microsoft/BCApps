@@ -118,28 +118,23 @@ page 348 "Import Item Pictures"
                 field("Item No."; Rec."Item No.")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the number of the item that the picture is for.';
                 }
                 field("Item Description"; Rec."Item Description")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the description of the item that the picture is for.';
                 }
                 field("Picture Already Exists"; Rec."Picture Already Exists")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies if a picture already exists for the item card.';
                 }
                 field("File Name"; Rec."File Name")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the name of the picture file. It must be the same as the item number.';
                     Width = 20;
                 }
                 field("File Extension"; Rec."File Extension")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the format of the picture file.';
                     Width = 10;
                 }
                 field("File Size (KB)"; Rec."File Size (KB)")
@@ -156,13 +151,11 @@ page 348 "Import Item Pictures"
                 field("Modified Time"; Rec."Modified Time")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies when the picture was last modified.';
                     Visible = false;
                 }
                 field("Import Status"; Rec."Import Status")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies if the last import of the picture was been skipped, is pending, or is completed.';
                 }
             }
         }

@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -30,27 +30,22 @@ page 925 "Available - Assembly Headers"
                 field("Document Type"; Rec."Document Type")
                 {
                     ApplicationArea = Assembly;
-                    ToolTip = 'Specifies the type of assembly document the record represents in assemble-to-order scenarios.';
                 }
                 field("No."; Rec."No.")
                 {
                     ApplicationArea = Assembly;
-                    ToolTip = 'Specifies the number of the involved entry or record, according to the specified number series.';
                 }
                 field("Location Code"; Rec."Location Code")
                 {
                     ApplicationArea = Location;
-                    ToolTip = 'Specifies the location to which you want to post output of the assembly item.';
                 }
                 field("Due Date"; Rec."Due Date")
                 {
                     ApplicationArea = Assembly;
-                    ToolTip = 'Specifies the date when the assembled item is due to be available for use.';
                 }
                 field("Remaining Quantity"; Rec."Remaining Quantity")
                 {
                     ApplicationArea = Assembly;
-                    ToolTip = 'Specifies how many units of the assembly item remain to be posted as assembled output.';
                 }
                 field("Reserved Qty. (Base)"; Rec."Reserved Qty. (Base)")
                 {

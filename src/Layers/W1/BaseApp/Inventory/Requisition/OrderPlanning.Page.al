@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -52,7 +52,6 @@ page 5522 "Order Planning"
                 field("Demand Date"; Rec."Demand Date")
                 {
                     ApplicationArea = Planning;
-                    ToolTip = 'Specifies the demanded date of the demand that the planning line represents.';
                 }
                 field(StatusText; StatusText)
                 {
@@ -85,12 +84,10 @@ page 5522 "Order Planning"
                     HideValue = DemandOrderNoHideValue;
                     Style = Strong;
                     StyleExpr = DemandOrderNoEmphasize;
-                    ToolTip = 'Specifies the number of the demanded order that represents the planning line.';
                 }
                 field("Demand Line No."; Rec."Demand Line No.")
                 {
                     ApplicationArea = Planning;
-                    ToolTip = 'Specifies the line number of the demand, such as a sales order line.';
                     Visible = false;
                 }
                 field("No."; Rec."No.")
@@ -104,20 +101,17 @@ page 5522 "Order Planning"
                 {
                     ApplicationArea = Planning;
                     Editable = false;
-                    ToolTip = 'Specifies the variant of the item on the line.';
                     Visible = false;
                 }
                 field("Bin Code"; Rec."Bin Code")
                 {
                     ApplicationArea = Planning;
-                    ToolTip = 'Specifies the bin of the item on the line.';
                     Visible = false;
                 }
                 field("Location Code"; Rec."Location Code")
                 {
                     ApplicationArea = Location;
                     Editable = false;
-                    ToolTip = 'Specifies a code for an inventory location where the items that are being ordered will be registered.';
                     Visible = false;
                 }
                 field(Description; Rec.Description)
@@ -126,33 +120,28 @@ page 5522 "Order Planning"
                     Editable = false;
                     Style = Strong;
                     StyleExpr = DescriptionEmphasize;
-                    ToolTip = 'Specifies text that describes the entry.';
                 }
                 field("Demand Quantity"; Rec."Demand Quantity")
                 {
                     ApplicationArea = Planning;
                     HideValue = DemandQuantityHideValue;
-                    ToolTip = 'Specifies the quantity on the demand that the planning line represents.';
                     Visible = false;
                 }
                 field("Demand Qty. Available"; Rec."Demand Qty. Available")
                 {
                     ApplicationArea = Planning;
                     HideValue = DemandQtyAvailableHideValue;
-                    ToolTip = 'Specifies how many of the demand quantity are available.';
                     Visible = false;
                 }
                 field("Needed Quantity"; Rec."Needed Quantity")
                 {
                     ApplicationArea = Planning;
-                    ToolTip = 'Specifies the demand quantity that is not available and must be ordered to meet the demand represented on the planning line.';
                     Visible = true;
                 }
                 field("Replenishment System"; Rec."Replenishment System")
                 {
                     ApplicationArea = Planning;
                     HideValue = ReplenishmentSystemHideValue;
-                    ToolTip = 'Specifies which kind of order to use to create replenishment orders and order proposals.';
 
                     trigger OnValidate()
                     begin
@@ -163,13 +152,11 @@ page 5522 "Order Planning"
                 {
                     ApplicationArea = Planning;
                     Editable = SupplyFromEditable;
-                    ToolTip = 'Specifies a value, according to the selected replenishment system, before a supply order can be created for the line.';
                 }
                 field(Reserve; Rec.Reserve)
                 {
                     ApplicationArea = Reservation;
                     Editable = ReserveEditable;
-                    ToolTip = 'Specifies whether the item on the planning line has a setting of Always in the Reserve field on its item card.';
                 }
                 field(Quantity; Rec.Quantity)
                 {
@@ -181,59 +168,49 @@ page 5522 "Order Planning"
                 field("Unit of Measure Code"; Rec."Unit of Measure Code")
                 {
                     ApplicationArea = Planning;
-                    ToolTip = 'Specifies how each unit of the item or resource is measured, such as in pieces or hours. By default, the value in the Base Unit of Measure field on the item or resource card is inserted.';
                     Visible = false;
                 }
                 field("Order Date"; Rec."Order Date")
                 {
                     ApplicationArea = Planning;
-                    ToolTip = 'Specifies the date when the related order was created.';
                 }
                 field("Starting Date"; Rec."Starting Date")
                 {
                     ApplicationArea = Planning;
-                    ToolTip = 'Specifies the starting date of the manufacturing process, if the planned supply is a production order.';
                     Visible = false;
                 }
                 field("Due Date"; Rec."Due Date")
                 {
                     ApplicationArea = Planning;
-                    ToolTip = 'Specifies the date when you can expect to receive the items.';
                 }
                 field("Unit Cost"; Rec."Unit Cost")
                 {
                     ApplicationArea = Planning;
-                    ToolTip = 'Specifies the cost of one unit of the item or resource on the line.';
                     Visible = false;
                 }
                 field("Direct Unit Cost"; Rec."Direct Unit Cost")
                 {
                     ApplicationArea = Planning;
-                    ToolTip = 'Specifies the cost of one unit of the selected item or resource.';
                     Visible = false;
                 }
                 field("Currency Code"; Rec."Currency Code")
                 {
                     ApplicationArea = Planning;
-                    ToolTip = 'Specifies the currency code for the requisition lines.';
                     Visible = false;
                 }
                 field("Purchasing Code"; Rec."Purchasing Code")
                 {
                     ApplicationArea = Planning;
-                    ToolTip = 'Specifies the code for a special procurement method, such as drop shipment.';
                     Visible = false;
                 }
                 field("Shortcut Dimension 1 Code"; Rec."Shortcut Dimension 1 Code")
                 {
                     ApplicationArea = Dimensions;
-                    ToolTip = 'Specifies the code for Shortcut Dimension 1, which is one of two global dimension codes that you set up in the General Ledger Setup window.';
                     Visible = false;
                 }
                 field("Shortcut Dimension 2 Code"; Rec."Shortcut Dimension 2 Code")
                 {
                     ApplicationArea = Dimensions;
-                    ToolTip = 'Specifies the code for Shortcut Dimension 2, which is one of two global dimension codes that you set up in the General Ledger Setup window.';
                     Visible = false;
                 }
             }

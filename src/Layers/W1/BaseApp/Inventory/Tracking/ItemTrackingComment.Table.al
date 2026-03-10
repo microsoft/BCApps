@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -40,10 +40,12 @@ table 6506 "Item Tracking Comment"
         field(11; Date; Date)
         {
             Caption = 'Date';
+            ToolTip = 'Specifies a date to reference the comment.';
         }
         field(13; Comment; Text[80])
         {
             Caption = 'Comment';
+            ToolTip = 'Specifies the item tracking comment.';
         }
     }
 

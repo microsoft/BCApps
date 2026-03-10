@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -23,48 +23,39 @@ page 5121 "Sales Cycle Stages"
                 field(Stage; Rec.Stage)
                 {
                     ApplicationArea = All;
-                    ToolTip = 'Specifies the number of the stage within the sales cycle.';
                 }
                 field(Description; Rec.Description)
                 {
                     ApplicationArea = All;
-                    ToolTip = 'Specifies the description of the sales cycle stage.';
                 }
                 field("Completed %"; Rec."Completed %")
                 {
                     ApplicationArea = RelationshipMgmt;
-                    ToolTip = 'Specifies the percentage of the sales cycle that has been completed when the opportunity reaches this stage.';
                 }
                 field("Chances of Success %"; Rec."Chances of Success %")
                 {
                     ApplicationArea = RelationshipMgmt;
                     DecimalPlaces = 0 : 0;
-                    ToolTip = 'Specifies the percentage of success that has been achieved when the opportunity reaches this stage.';
                 }
                 field("Activity Code"; Rec."Activity Code")
                 {
                     ApplicationArea = RelationshipMgmt;
-                    ToolTip = 'Specifies the code of the activity linked to this sales cycle stage (if there is one).';
                 }
                 field("Quote Required"; Rec."Quote Required")
                 {
                     ApplicationArea = RelationshipMgmt;
-                    ToolTip = 'Specifies that a quote is required at this stage before the opportunity can move to the next stage in the sales cycle.';
                 }
                 field("Allow Skip"; Rec."Allow Skip")
                 {
                     ApplicationArea = RelationshipMgmt;
-                    ToolTip = 'Specifies that it is possible to skip this stage and move the opportunity to the next stage.';
                 }
                 field("Date Formula"; Rec."Date Formula")
                 {
                     ApplicationArea = RelationshipMgmt;
-                    ToolTip = 'Specifies how dates for planned activities are calculated when you run the Opportunity - Details report.';
                 }
                 field(Comment; Rec.Comment)
                 {
                     ApplicationArea = Comments;
-                    ToolTip = 'Specifies that comments exist for this sales cycle stage.';
                 }
             }
         }

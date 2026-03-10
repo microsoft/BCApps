@@ -1,4 +1,4 @@
-namespace Microsoft.CRM.Outlook;
+﻿namespace Microsoft.CRM.Outlook;
 
 table 7101 "Contact Sync Folder"
 {
@@ -22,10 +22,16 @@ table 7101 "Contact Sync Folder"
         field(3; "Display Name"; Text[250])
         {
             Caption = 'Display Name';
+            ToolTip = 'Select this folder';
             DataClassification = CustomerContent;
         }
-    }
 
+        field(4; "Parent Id"; Text[2048])
+        {
+            Caption = 'Parent Id';
+            DataClassification = SystemMetadata;
+        }
+    }
     keys
     {
         key(PK; "Entry No.")

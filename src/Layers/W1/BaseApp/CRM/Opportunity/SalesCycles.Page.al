@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -24,27 +24,22 @@ page 5119 "Sales Cycles"
                 field("Code"; Rec.Code)
                 {
                     ApplicationArea = All;
-                    ToolTip = 'Specifies the code of the sales cycle.';
                 }
                 field(Description; Rec.Description)
                 {
                     ApplicationArea = All;
-                    ToolTip = 'Specifies the description of the sales cycle.';
                 }
                 field("Probability Calculation"; Rec."Probability Calculation")
                 {
                     ApplicationArea = RelationshipMgmt;
-                    ToolTip = 'Specifies the method to use to calculate the probability of opportunities completing the sales cycle. There are four options:';
                 }
                 field(Blocked; Rec.Blocked)
                 {
                     ApplicationArea = RelationshipMgmt;
-                    ToolTip = 'Specifies that the related record is blocked from being posted in transactions, for example a customer that is declared insolvent or an item that is placed in quarantine.';
                 }
                 field(Comment; Rec.Comment)
                 {
                     ApplicationArea = Comments;
-                    ToolTip = 'Specifies that you have assigned comments to the sales cycle.';
                 }
             }
         }

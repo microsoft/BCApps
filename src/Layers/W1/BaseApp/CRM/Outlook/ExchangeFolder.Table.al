@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -18,10 +18,12 @@ table 5320 "Exchange Folder"
         field(2; Name; Text[250])
         {
             Caption = 'Name';
+            ToolTip = 'Specifies the name of the public folder that is specified for use with email logging.';
         }
         field(3; FullPath; Text[250])
         {
             Caption = 'FullPath';
+            ToolTip = 'Specifies the complete path to the public folder that is specified for use with email logging.';
         }
         field(4; Depth; Integer)
         {

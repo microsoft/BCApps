@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -34,10 +34,12 @@ table 5972 "Contract/Service Discount"
         field(4; Type; Enum "Service Contract Discount Type")
         {
             Caption = 'Type';
+            ToolTip = 'Specifies the type of the contract/service discount.';
         }
         field(5; "No."; Code[20])
         {
             Caption = 'No.';
+            ToolTip = 'Specifies the number of the involved entry or record, according to the specified number series.';
             TableRelation = if (Type = const("Service Item Group")) "Service Item Group".Code
             else
             if (Type = const("Resource Group")) "Resource Group"."No."
@@ -49,11 +51,13 @@ table 5972 "Contract/Service Discount"
         field(6; "Starting Date"; Date)
         {
             Caption = 'Starting Date';
+            ToolTip = 'Specifies the date when the discount becomes applicable to the contract or quote.';
         }
         field(7; "Discount %"; Decimal)
         {
             AutoFormatType = 0;
             Caption = 'Discount %';
+            ToolTip = 'Specifies the discount percentage.';
             DecimalPlaces = 0 : 5;
             MaxValue = 100;
             MinValue = 0;

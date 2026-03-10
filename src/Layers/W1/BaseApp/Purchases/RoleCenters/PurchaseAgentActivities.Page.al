@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -26,13 +26,11 @@ page 9063 "Purchase Agent Activities"
                 {
                     ApplicationArea = Basic, Suite;
                     DrillDownPageID = "Purchase Order List";
-                    ToolTip = 'Specifies the number of documents to send or confirm that are displayed in the Purchase Cue on the Role Center. The documents are filtered by today''s date.';
                 }
                 field("Upcoming Orders"; Rec."Upcoming Orders")
                 {
                     ApplicationArea = Suite;
                     DrillDownPageID = "Purchase Order List";
-                    ToolTip = 'Specifies the number of upcoming orders that are displayed in the Purchase Cue on the Role Center. The documents are filtered by today''s date.';
                 }
 
                 actions
@@ -70,7 +68,6 @@ page 9063 "Purchase Agent Activities"
                     ApplicationArea = Basic, Suite;
                     Caption = 'Outstanding Purchase Orders';
                     DrillDownPageID = "Purchase Order List";
-                    ToolTip = 'Specifies the number of outstanding purchase orders that are displayed in the Purchase Cue on the Role Center. The documents are filtered by today''s date.';
 
                     trigger OnDrillDown()
                     begin
@@ -81,7 +78,6 @@ page 9063 "Purchase Agent Activities"
                 {
                     ApplicationArea = PurchReturnOrder;
                     DrillDownPageID = "Purchase Return Order List";
-                    ToolTip = 'Specifies the number of purchase return orders that are displayed in the Purchase Cue on the Role Center. The documents are filtered by today''s date.';
                 }
 
                 actions
@@ -112,7 +108,6 @@ page 9063 "Purchase Agent Activities"
                     ApplicationArea = Suite;
                     Caption = 'Received, Not Invoiced';
                     DrillDownPageID = "Purchase Order List";
-                    ToolTip = 'Specifies received orders that are not invoiced. The orders are displayed in the Purchase Cue on the Purchasing Agent role center, and filtered by today''s date.';
 
                     trigger OnDrillDown()
                     begin
@@ -124,7 +119,6 @@ page 9063 "Purchase Agent Activities"
                     ApplicationArea = Suite;
                     Caption = 'Partially Invoiced';
                     DrillDownPageID = "Purchase Order List";
-                    ToolTip = 'Specifies the number of partially invoiced orders that are displayed in the Purchase Cue on the Role Center. The documents are filtered by today''s date.';
 
                     trigger OnDrillDown()
                     begin

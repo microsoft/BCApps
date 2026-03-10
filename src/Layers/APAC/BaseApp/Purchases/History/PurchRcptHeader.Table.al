@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -56,6 +56,7 @@ table 120 "Purch. Rcpt. Header"
         field(3; "No."; Code[20])
         {
             Caption = 'No.';
+            ToolTip = 'Specifies the number of a general ledger account, item, additional cost, or fixed asset, depending on what you selected in the Type field.';
         }
         field(4; "Pay-to Vendor No."; Code[20])
         {
@@ -67,6 +68,7 @@ table 120 "Purch. Rcpt. Header"
         field(5; "Pay-to Name"; Text[100])
         {
             Caption = 'Pay-to Name';
+            ToolTip = 'Specifies the name of the vendor who you received the invoice from.';
         }
         field(6; "Pay-to Name 2"; Text[50])
         {
@@ -76,20 +78,24 @@ table 120 "Purch. Rcpt. Header"
         field(7; "Pay-to Address"; Text[100])
         {
             Caption = 'Pay-to Address';
+            ToolTip = 'Specifies the address of the vendor that you received the invoice from.';
         }
         field(8; "Pay-to Address 2"; Text[50])
         {
             Caption = 'Pay-to Address 2';
+            ToolTip = 'Specifies an additional part of the address of the vendor that the invoice was received from.';
         }
         field(9; "Pay-to City"; Text[30])
         {
             Caption = 'Pay-to City';
+            ToolTip = 'Specifies the city of the vendor that you received the invoice from.';
             TableRelation = "Post Code".City;
             ValidateTableRelation = false;
         }
         field(10; "Pay-to Contact"; Text[100])
         {
             Caption = 'Pay-to Contact';
+            ToolTip = 'Specifies the name of the person to contact about an invoice from this vendor.';
         }
         field(11; "Your Reference"; Text[35])
         {
@@ -98,33 +104,40 @@ table 120 "Purch. Rcpt. Header"
         field(12; "Ship-to Code"; Code[10])
         {
             Caption = 'Ship-to Code';
+            ToolTip = 'Specifies a code for an alternate shipment address if you want to ship to another address than the one that has been entered automatically. This field is also used in case of drop shipment.';
             TableRelation = "Ship-to Address".Code where("Customer No." = field("Sell-to Customer No."));
         }
         field(13; "Ship-to Name"; Text[100])
         {
             Caption = 'Ship-to Name';
+            ToolTip = 'Specifies the name of the customer that items on the purchase order were shipped to, as a drop shipment.';
         }
         field(14; "Ship-to Name 2"; Text[50])
         {
             Caption = 'Ship-to Name 2';
+            ToolTip = 'Specifies an additional part of the name of the customer that items on the purchase order were shipped to, as a drop shipment.';
         }
         field(15; "Ship-to Address"; Text[100])
         {
             Caption = 'Ship-to Address';
+            ToolTip = 'Specifies the address that items on the purchase order were shipped to, as a drop shipment..';
         }
         field(16; "Ship-to Address 2"; Text[50])
         {
             Caption = 'Ship-to Address 2';
+            ToolTip = 'Specifies an additional part of the ship-to address, in case it is a long address.';
         }
         field(17; "Ship-to City"; Text[30])
         {
             Caption = 'Ship-to City';
+            ToolTip = 'Specifies the city of the address that the items are shipped to.';
             TableRelation = "Post Code".City;
             ValidateTableRelation = false;
         }
         field(18; "Ship-to Contact"; Text[100])
         {
             Caption = 'Ship-to Contact';
+            ToolTip = 'Specifies the contact person at the customer that items on the purchase order were shipped to, as a drop shipment.';
         }
         field(19; "Order Date"; Date)
         {
@@ -133,10 +146,12 @@ table 120 "Purch. Rcpt. Header"
         field(20; "Posting Date"; Date)
         {
             Caption = 'Posting Date';
+            ToolTip = 'Specifies the date the purchase header was posted.';
         }
         field(21; "Expected Receipt Date"; Date)
         {
             Caption = 'Expected Receipt Date';
+            ToolTip = 'Specifies the date you expect the items to be available in your warehouse. If you leave the field blank, it will be calculated as follows: Planned Receipt Date + Safety Lead Time + Inbound Warehouse Handling Time = Expected Receipt Date.';
         }
         field(22; "Posting Description"; Text[100])
         {
@@ -166,23 +181,27 @@ table 120 "Purch. Rcpt. Header"
         field(27; "Shipment Method Code"; Code[10])
         {
             Caption = 'Shipment Method Code';
+            ToolTip = 'Specifies the delivery conditions of the related shipment, such as free on board (FOB).';
             TableRelation = "Shipment Method";
         }
         field(28; "Location Code"; Code[10])
         {
             Caption = 'Location Code';
+            ToolTip = 'Specifies a code for the location where you want the items to be placed when they are received.';
             TableRelation = Location where("Use As In-Transit" = const(false));
         }
         field(29; "Shortcut Dimension 1 Code"; Code[20])
         {
             CaptionClass = '1,2,1';
             Caption = 'Shortcut Dimension 1 Code';
+            ToolTip = 'Specifies the code for Shortcut Dimension 1, which is one of two global dimension codes that you set up in the General Ledger Setup window.';
             TableRelation = "Dimension Value".Code where("Global Dimension No." = const(1));
         }
         field(30; "Shortcut Dimension 2 Code"; Code[20])
         {
             CaptionClass = '1,2,2';
             Caption = 'Shortcut Dimension 2 Code';
+            ToolTip = 'Specifies the code for Shortcut Dimension 2, which is one of two global dimension codes that you set up in the General Ledger Setup window.';
             TableRelation = "Dimension Value".Code where("Global Dimension No." = const(2));
         }
         field(31; "Vendor Posting Group"; Code[20])
@@ -221,12 +240,14 @@ table 120 "Purch. Rcpt. Header"
         field(43; "Purchaser Code"; Code[20])
         {
             Caption = 'Purchaser Code';
+            ToolTip = 'Specifies which purchaser is assigned to the vendor.';
             TableRelation = "Salesperson/Purchaser";
         }
         field(44; "Order No."; Code[20])
         {
             AccessByPermission = TableData "Purch. Rcpt. Header" = R;
             Caption = 'Order No.';
+            ToolTip = 'Specifies the line number of the order that created the entry.';
         }
         field(46; Comment; Boolean)
         {
@@ -240,6 +261,7 @@ table 120 "Purch. Rcpt. Header"
         field(47; "No. Printed"; Integer)
         {
             Caption = 'No. Printed';
+            ToolTip = 'Specifies how many times the document has been printed.';
             Editable = false;
         }
         field(51; "On Hold"; Code[3])
@@ -275,10 +297,12 @@ table 120 "Purch. Rcpt. Header"
         field(66; "Vendor Order No."; Code[35])
         {
             Caption = 'Vendor Order No.';
+            ToolTip = 'Specifies the vendor''s order number.';
         }
         field(67; "Vendor Shipment No."; Code[35])
         {
             Caption = 'Vendor Shipment No.';
+            ToolTip = 'Specifies the vendor''s shipment number. It is inserted in the corresponding field on the source document during posting.';
         }
         field(70; "VAT Registration No."; Text[20])
         {
@@ -317,6 +341,7 @@ table 120 "Purch. Rcpt. Header"
         field(79; "Buy-from Vendor Name"; Text[100])
         {
             Caption = 'Buy-from Vendor Name';
+            ToolTip = 'Specifies the name of the vendor who delivered the items.';
         }
         field(80; "Buy-from Vendor Name 2"; Text[50])
         {
@@ -326,24 +351,29 @@ table 120 "Purch. Rcpt. Header"
         field(81; "Buy-from Address"; Text[100])
         {
             Caption = 'Buy-from Address';
+            ToolTip = 'Specifies the address of the vendor who delivered the items.';
         }
         field(82; "Buy-from Address 2"; Text[50])
         {
             Caption = 'Buy-from Address 2';
+            ToolTip = 'Specifies an additional part of the address of the vendor who delivered the items.';
         }
         field(83; "Buy-from City"; Text[30])
         {
             Caption = 'Buy-from City';
+            ToolTip = 'Specifies the city of the vendor who delivered the items.';
             TableRelation = "Post Code".City;
             ValidateTableRelation = false;
         }
         field(84; "Buy-from Contact"; Text[100])
         {
             Caption = 'Buy-from Contact';
+            ToolTip = 'Specifies the name of the contact person at the vendor who delivered the items.';
         }
         field(85; "Pay-to Post Code"; Code[20])
         {
             Caption = 'Pay-to Post Code';
+            ToolTip = 'Specifies the post code of the vendor that you received the invoice from.';
             TableRelation = "Post Code";
             ValidateTableRelation = false;
         }
@@ -351,15 +381,18 @@ table 120 "Purch. Rcpt. Header"
         {
             CaptionClass = '5,6,' + "Pay-to Country/Region Code";
             Caption = 'Pay-to County';
+            ToolTip = 'Specifies the state, province or county related to the posted purchase order.';
         }
         field(87; "Pay-to Country/Region Code"; Code[10])
         {
             Caption = 'Pay-to Country/Region Code';
+            ToolTip = 'Specifies the country or region of the vendor on the purchase document.';
             TableRelation = "Country/Region";
         }
         field(88; "Buy-from Post Code"; Code[20])
         {
             Caption = 'Buy-from Post Code';
+            ToolTip = 'Specifies the post code of the vendor who delivered the items.';
             TableRelation = "Post Code";
             ValidateTableRelation = false;
         }
@@ -367,15 +400,18 @@ table 120 "Purch. Rcpt. Header"
         {
             CaptionClass = '5,5,' + "Buy-from Country/Region Code";
             Caption = 'Buy-from County';
+            ToolTip = 'Specifies the state, province or county related to the posted purchase order.';
         }
         field(90; "Buy-from Country/Region Code"; Code[10])
         {
             Caption = 'Buy-from Country/Region Code';
+            ToolTip = 'Specifies the country or region of the address.';
             TableRelation = "Country/Region";
         }
         field(91; "Ship-to Post Code"; Code[20])
         {
             Caption = 'Ship-to Post Code';
+            ToolTip = 'Specifies the post code that items on the purchase order were shipped to, as a drop shipment.';
             TableRelation = "Post Code";
             ValidateTableRelation = false;
         }
@@ -383,10 +419,12 @@ table 120 "Purch. Rcpt. Header"
         {
             CaptionClass = '5,4,' + "Ship-to Country/Region Code";
             Caption = 'Ship-to County';
+            ToolTip = 'Specifies the state, province or county related to the posted purchase order.';
         }
         field(93; "Ship-to Country/Region Code"; Code[10])
         {
             Caption = 'Ship-to Country/Region Code';
+            ToolTip = 'Specifies the country or region of the ship-to address.';
             TableRelation = "Country/Region";
         }
         field(94; "Bal. Account Type"; enum "Payment Balance Account Type")
@@ -396,6 +434,7 @@ table 120 "Purch. Rcpt. Header"
         field(95; "Order Address Code"; Code[10])
         {
             Caption = 'Order Address Code';
+            ToolTip = 'Specifies the order address of the related vendor.';
             TableRelation = "Order Address".Code where("Vendor No." = field("Buy-from Vendor No."));
         }
         field(97; "Entry Point"; Code[10])
@@ -410,6 +449,7 @@ table 120 "Purch. Rcpt. Header"
         field(99; "Document Date"; Date)
         {
             Caption = 'Document Date';
+            ToolTip = 'Specifies the date when the related document was created.';
         }
         field(101; "Area"; Code[10])
         {
@@ -473,11 +513,13 @@ table 120 "Purch. Rcpt. Header"
         field(151; "Quote No."; Code[20])
         {
             Caption = 'Quote No.';
+            ToolTip = 'Specifies the quote number for the posted purchase receipt.';
             Editable = false;
         }
         field(210; "Ship-to Phone No."; Text[30])
         {
             Caption = 'Ship-to Phone No.';
+            ToolTip = 'Specifies the telephone number of the company''s shipping address.';
             ExtendedDatatype = PhoneNo;
         }
         field(480; "Dimension Set ID"; Integer)
@@ -499,38 +541,45 @@ table 120 "Purch. Rcpt. Header"
         field(5052; "Buy-from Contact No."; Code[20])
         {
             Caption = 'Buy-from Contact No.';
+            ToolTip = 'Specifies the number of the contact person at the vendor who delivered the items.';
             TableRelation = Contact;
         }
         field(5053; "Pay-to Contact no."; Code[20])
         {
             Caption = 'Pay-to Contact no.';
+            ToolTip = 'Specifies the number of the person to contact about an invoice from this vendor.';
             TableRelation = Contact;
         }
         field(5700; "Responsibility Center"; Code[10])
         {
             Caption = 'Responsibility Center';
+            ToolTip = 'Specifies the responsibility center code that is linked to this posted return receipt.';
             TableRelation = "Responsibility Center";
         }
         field(5790; "Requested Receipt Date"; Date)
         {
             Caption = 'Requested Receipt Date';
+            ToolTip = 'Specifies the date that you want the vendor to deliver to the ship-to address. The value in the field is used to calculate the latest date you can order the items to have them delivered on the requested receipt date. If you do not need delivery on a specific date, you can leave the field blank.';
             Editable = false;
         }
         field(5791; "Promised Receipt Date"; Date)
         {
             Caption = 'Promised Receipt Date';
+            ToolTip = 'Specifies the date that the vendor has promised to deliver the order.';
             Editable = false;
         }
         field(5792; "Lead Time Calculation"; DateFormula)
         {
             AccessByPermission = TableData "Purch. Rcpt. Header" = R;
             Caption = 'Lead Time Calculation';
+            ToolTip = 'Specifies a date formula for the amount of time it takes to replenish the item.';
             Editable = false;
         }
         field(5793; "Inbound Whse. Handling Time"; DateFormula)
         {
             AccessByPermission = TableData Location = R;
             Caption = 'Inbound Whse. Handling Time';
+            ToolTip = 'Specifies the time it takes to make items part of available inventory, after the items have been posted as received.';
             Editable = false;
         }
         field(7000; "Price Calculation Method"; Enum "Price Calculation Method")

@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -31,7 +31,6 @@ page 909 "Assembly Line Avail."
                 field("No."; Rec."No.")
                 {
                     ApplicationArea = Assembly;
-                    ToolTip = 'Specifies the number of the involved entry or record, according to the specified number series.';
                 }
                 field(Inventory; Inventory)
                 {
@@ -76,13 +75,11 @@ page 909 "Assembly Line Avail."
                 field("Quantity per"; Rec."Quantity per")
                 {
                     ApplicationArea = Assembly;
-                    ToolTip = 'Specifies how many units of the assembly component are required to assemble one assembly item.';
                 }
                 field("Reserved Quantity"; Rec."Reserved Quantity")
                 {
                     ApplicationArea = Reservation;
                     Caption = 'Current Reserved Quantity';
-                    ToolTip = 'Specifies how many units of the assembly component have been reserved for this assembly order line.';
                     Visible = false;
                 }
                 field(EarliestAvailableDate; EarliestDate)
@@ -102,27 +99,22 @@ page 909 "Assembly Line Avail."
                 field("Lead-Time Offset"; Rec."Lead-Time Offset")
                 {
                     ApplicationArea = Assembly;
-                    ToolTip = 'Specifies the lead-time offset that is defined for the assembly component on the assembly BOM.';
                 }
                 field("Unit of Measure Code"; Rec."Unit of Measure Code")
                 {
                     ApplicationArea = Assembly;
-                    ToolTip = 'Specifies how each unit of the item or resource is measured, such as in pieces or hours. By default, the value in the Base Unit of Measure field on the item or resource card is inserted.';
                 }
                 field("Location Code"; Rec."Location Code")
                 {
                     ApplicationArea = Location;
-                    ToolTip = 'Specifies the location from which you want to post consumption of the assembly component.';
                 }
                 field("Variant Code"; Rec."Variant Code")
                 {
                     ApplicationArea = Planning;
-                    ToolTip = 'Specifies the variant of the item on the line.';
                 }
                 field("Substitution Available"; Rec."Substitution Available")
                 {
                     ApplicationArea = Assembly;
-                    ToolTip = 'Specifies if a substitute is available for the item on the assembly order line.';
                 }
             }
         }

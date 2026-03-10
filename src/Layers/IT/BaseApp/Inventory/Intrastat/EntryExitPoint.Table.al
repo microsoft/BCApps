@@ -16,11 +16,13 @@ table 282 "Entry/Exit Point"
         field(1; "Code"; Code[10])
         {
             Caption = 'Code';
+            ToolTip = 'Specifies the code for the shipping location (Entry/Exit Point).';
             NotBlank = true;
         }
         field(2; Description; Text[100])
         {
             Caption = 'Description';
+            ToolTip = 'Specifies a description of the shipping location (Entry/Exit Point).';
         }
         field(12100; "Group Code"; Code[10])
         {

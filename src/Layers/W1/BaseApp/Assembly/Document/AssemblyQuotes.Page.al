@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -32,68 +32,55 @@ page 932 "Assembly Quotes"
                 field("No."; Rec."No.")
                 {
                     ApplicationArea = Assembly;
-                    ToolTip = 'Specifies the number of the involved entry or record, according to the specified number series.';
                 }
                 field(Description; Rec.Description)
                 {
                     ApplicationArea = Assembly;
-                    ToolTip = 'Specifies the description of the assembly item.';
                 }
                 field("Description 2"; Rec."Description 2")
                 {
                     ApplicationArea = Assembly;
-                    ToolTip = 'Specifies information in addition to the description.';
                     Visible = false;
                 }
                 field("Due Date"; Rec."Due Date")
                 {
                     ApplicationArea = Assembly;
-                    ToolTip = 'Specifies the date when the assembled item is due to be available for use.';
                 }
                 field("Starting Date"; Rec."Starting Date")
                 {
                     ApplicationArea = Assembly;
-                    ToolTip = 'Specifies the date when the assembly order is expected to start.';
                 }
                 field("Ending Date"; Rec."Ending Date")
                 {
                     ApplicationArea = Assembly;
-                    ToolTip = 'Specifies the date when the assembly order is expected to finish.';
                 }
                 field("Assemble to Order"; Rec."Assemble to Order")
                 {
                     ApplicationArea = Assembly;
-                    ToolTip = 'Specifies if the assembly order is linked to a sales order, which indicates that the item is assembled to order.';
                 }
                 field("Item No."; Rec."Item No.")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the number of the item that is being assembled with the assembly order.';
                 }
                 field(Quantity; Rec.Quantity)
                 {
                     ApplicationArea = Assembly;
-                    ToolTip = 'Specifies how many units of the assembly item that you expect to assemble with the assembly order.';
                 }
                 field("Unit Cost"; Rec."Unit Cost")
                 {
                     ApplicationArea = Assembly;
-                    ToolTip = 'Specifies the cost of one unit of the item or resource on the line.';
                 }
                 field("Location Code"; Rec."Location Code")
                 {
                     ApplicationArea = Location;
-                    ToolTip = 'Specifies the location to which you want to post output of the assembly item.';
                 }
                 field("Variant Code"; Rec."Variant Code")
                 {
                     ApplicationArea = Planning;
-                    ToolTip = 'Specifies the variant of the item on the line.';
                 }
                 field("Bin Code"; Rec."Bin Code")
                 {
                     ApplicationArea = Warehouse;
-                    ToolTip = 'Specifies the bin the assembly item is posted to as output and from where it is taken to storage or shipped if it is assembled to a sales order.';
                 }
             }
         }

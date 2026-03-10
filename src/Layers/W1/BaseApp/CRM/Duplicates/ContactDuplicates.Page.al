@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -27,30 +27,25 @@ page 5134 "Contact Duplicates"
                 field("Contact No."; Rec."Contact No.")
                 {
                     ApplicationArea = All;
-                    ToolTip = 'Specifies the number of the contact for which a duplicate has been found.';
                 }
                 field("Contact Name"; Rec."Contact Name")
                 {
                     ApplicationArea = RelationshipMgmt;
                     DrillDown = false;
-                    ToolTip = 'Specifies the name of the contact for which a duplicate has been found.';
                 }
                 field("Duplicate Contact No."; Rec."Duplicate Contact No.")
                 {
                     ApplicationArea = All;
-                    ToolTip = 'Specifies the contact number of the duplicate that was found.';
                 }
                 field("Duplicate Contact Name"; Rec."Duplicate Contact Name")
                 {
                     ApplicationArea = RelationshipMgmt;
                     DrillDown = false;
                     DrillDownPageID = "Contact Card";
-                    ToolTip = 'Specifies the name of the contact that has been identified as a possible duplicate.';
                 }
                 field("Separate Contacts"; Rec."Separate Contacts")
                 {
                     ApplicationArea = RelationshipMgmt;
-                    ToolTip = 'Specifies that the two contacts are not true duplicates, but separate contacts.';
 
                     trigger OnValidate()
                     begin

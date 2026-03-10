@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -96,13 +96,11 @@ page 99000852 "Planning Worksheet"
                 field(Type; Rec.Type)
                 {
                     ApplicationArea = Planning;
-                    ToolTip = 'Specifies the type of requisition worksheet line you are creating.';
                     Visible = false;
                 }
                 field("No."; Rec."No.")
                 {
                     ApplicationArea = Planning;
-                    ToolTip = 'Specifies the number of the involved entry or record, according to the specified number series.';
 
                     trigger OnValidate()
                     var
@@ -116,7 +114,6 @@ page 99000852 "Planning Worksheet"
                 field("Variant Code"; Rec."Variant Code")
                 {
                     ApplicationArea = Planning;
-                    ToolTip = 'Specifies the variant of the item on the line.';
                     Visible = false;
                     ShowMandatory = VariantCodeMandatory;
 
@@ -131,108 +128,89 @@ page 99000852 "Planning Worksheet"
                 field("Planning Level"; Rec."Planning Level")
                 {
                     ApplicationArea = Planning;
-                    ToolTip = 'Indicates the planning level of the item in multi-level production orders. The planning level is calculated only for items that have Make-to-Order specified in the Manufacturing Policy field.';
                     Visible = false;
                 }
                 field("Bin Code"; Rec."Bin Code")
                 {
                     ApplicationArea = Planning;
-                    ToolTip = 'Specifies the bin of the item on the line.';
                     Visible = false;
                 }
                 field("Action Message"; Rec."Action Message")
                 {
                     ApplicationArea = Planning;
-                    ToolTip = 'Specifies an action to take to rebalance the demand-supply situation.';
                 }
                 field("Accept Action Message"; Rec."Accept Action Message")
                 {
                     ApplicationArea = Planning;
-                    ToolTip = 'Specifies whether to accept the action message proposed for the line.';
                 }
                 field("Original Due Date"; Rec."Original Due Date")
                 {
                     ApplicationArea = Planning;
-                    ToolTip = 'Specifies the due date stated on the production or purchase order, when an action message proposes to reschedule an order.';
                 }
                 field("Order Date"; Rec."Order Date")
                 {
                     ApplicationArea = Planning;
-                    ToolTip = 'Specifies the date when the related order was created.';
                     Visible = false;
                 }
                 field("Due Date"; Rec."Due Date")
                 {
                     ApplicationArea = Planning;
-                    ToolTip = 'Specifies the date when you can expect to receive the items.';
                 }
                 field("Transfer Shipment Date"; Rec."Transfer Shipment Date")
                 {
                     ApplicationArea = Location;
-                    ToolTip = 'Specifies the shipment date of the transfer order proposal.';
                     Visible = false;
                 }
                 field("Starting Date-Time"; Rec."Starting Date-Time")
                 {
                     ApplicationArea = Planning;
-                    ToolTip = 'Specifies the starting date and the starting time, which are combined in a format called "starting date-time".';
                 }
                 field("Starting Time"; Rec."Starting Time")
                 {
                     ApplicationArea = Planning;
-                    ToolTip = 'Specifies the starting time of the manufacturing process.';
                     Visible = false;
                 }
                 field("Starting Date"; Rec."Starting Date")
                 {
                     ApplicationArea = Planning;
-                    ToolTip = 'Specifies the starting date of the manufacturing process, if the planned supply is a production order.';
                     Visible = false;
                 }
                 field("Ending Date-Time"; Rec."Ending Date-Time")
                 {
                     ApplicationArea = Planning;
-                    ToolTip = 'Specifies the ending date and the ending time, which are combined in a format called "ending date-time".';
                 }
                 field("Ending Time"; Rec."Ending Time")
                 {
                     ApplicationArea = Planning;
-                    ToolTip = 'Specifies the ending time for the manufacturing process.';
                     Visible = false;
                 }
                 field("Ending Date"; Rec."Ending Date")
                 {
                     ApplicationArea = Planning;
-                    ToolTip = 'Specifies the ending date of the manufacturing process, if the planned supply is a production order.';
                     Visible = false;
                 }
                 field("Low-Level Code"; Rec."Low-Level Code")
                 {
                     ApplicationArea = Planning;
-                    ToolTip = 'Specifies the planning level of this item entry in the planning worksheet.';
                     Visible = false;
                 }
                 field(Description; Rec.Description)
                 {
                     ApplicationArea = Planning;
-                    ToolTip = 'Specifies text that describes the entry.';
                 }
                 field("Description 2"; Rec."Description 2")
                 {
                     ApplicationArea = Planning;
-                    ToolTip = 'Specifies additional text describing the entry, or a remark about the requisition worksheet line.';
                     Visible = false;
                 }
                 field("Shortcut Dimension 1 Code"; Rec."Shortcut Dimension 1 Code")
                 {
                     ApplicationArea = Dimensions;
-                    ToolTip = 'Specifies the code for Shortcut Dimension 1, which is one of two global dimension codes that you set up in the General Ledger Setup window.';
                     Visible = false;
                 }
                 field("Shortcut Dimension 2 Code"; Rec."Shortcut Dimension 2 Code")
                 {
                     ApplicationArea = Dimensions;
-                    ToolTip = 'Specifies the code for Shortcut Dimension 2, which is one of two global dimension codes that you set up in the General Ledger Setup window.';
                     Visible = false;
                 }
                 field("ShortcutDimCode[3]"; ShortcutDimCode[3])
@@ -328,67 +306,55 @@ page 99000852 "Planning Worksheet"
                 field("Transfer-from Code"; Rec."Transfer-from Code")
                 {
                     ApplicationArea = Location;
-                    ToolTip = 'Specifies the code of the location that items are transferred from.';
                     Visible = false;
                 }
                 field("Location Code"; Rec."Location Code")
                 {
                     ApplicationArea = Location;
-                    ToolTip = 'Specifies a code for an inventory location where the items that are being ordered will be registered.';
                     Visible = false;
                 }
                 field("Original Quantity"; Rec."Original Quantity")
                 {
                     ApplicationArea = Planning;
-                    ToolTip = 'Specifies the quantity stated on the production or purchase order, when an action message proposes to change the quantity on an order.';
                 }
                 field("MPS Order"; Rec."MPS Order")
                 {
                     ApplicationArea = Planning;
-                    ToolTip = 'Specifies whether the requisition worksheet line is an MPS order, that is, whether it is linked to a demand forecast or a sales order.';
                 }
                 field(Quantity; Rec.Quantity)
                 {
                     ApplicationArea = Planning;
-                    ToolTip = 'Specifies the number of units of the item.';
                 }
                 field("Unit of Measure Code"; Rec."Unit of Measure Code")
                 {
                     ApplicationArea = Planning;
-                    ToolTip = 'Specifies how each unit of the item or resource is measured, such as in pieces or hours. By default, the value in the Base Unit of Measure field on the item or resource card is inserted.';
                     Visible = false;
                 }
                 field("Replenishment System"; Rec."Replenishment System")
                 {
                     ApplicationArea = Planning;
-                    ToolTip = 'Specifies which kind of order to use to create replenishment orders and order proposals.';
                     Visible = false;
                 }
                 field("Supply From"; Rec."Supply From")
                 {
                     ApplicationArea = Planning;
                     Visible = false;
-                    ToolTip = 'Specifies a value, according to the selected replenishment system, before a supply order can be created for the line.';
                 }
                 field("Ref. Order Type"; Rec."Ref. Order Type")
                 {
                     ApplicationArea = Planning;
-                    ToolTip = 'Specifies whether the order is a purchase order, a production order, or a transfer order.';
                 }
                 field("Ref. Order No."; Rec."Ref. Order No.")
                 {
                     ApplicationArea = Planning;
-                    ToolTip = 'Specifies the number of the relevant production or purchase order.';
                 }
                 field("Ref. Order Status"; Rec."Ref. Order Status")
                 {
                     ApplicationArea = Planning;
-                    ToolTip = 'Specifies the status of the production order.';
                 }
                 field("Ref. Line No."; Rec."Ref. Line No.")
                 {
                     ApplicationArea = Planning;
-                    ToolTip = 'Specifies the number of the purchase or production order line.';
                     Visible = false;
                 }
                 field("Planning Flexibility"; Rec."Planning Flexibility")
@@ -401,13 +367,11 @@ page 99000852 "Planning Worksheet"
                 {
                     ApplicationArea = Planning;
                     BlankZero = true;
-                    ToolTip = 'Specifies if a blanket purchase order exists for the item on the requisition line.';
                     Visible = false;
                 }
                 field("Reserved Quantity"; Rec."Reserved Quantity")
                 {
                     ApplicationArea = Reservation;
-                    ToolTip = 'Specifies how many units of this item have been reserved.';
                     Visible = false;
 
                     trigger OnDrillDown()
@@ -418,31 +382,26 @@ page 99000852 "Planning Worksheet"
                 field("Gen. Prod. Posting Group"; Rec."Gen. Prod. Posting Group")
                 {
                     ApplicationArea = Planning;
-                    ToolTip = 'Specifies the item''s product type to link transactions made for this item with the appropriate general ledger account according to the general posting setup.';
                     Visible = false;
                 }
                 field("Unit Cost"; Rec."Unit Cost")
                 {
                     ApplicationArea = Planning;
-                    ToolTip = 'Specifies the cost of one unit of the item or resource on the line.';
                     Visible = false;
                 }
                 field("Gen. Business Posting Group"; Rec."Gen. Business Posting Group")
                 {
                     ApplicationArea = Planning;
-                    ToolTip = 'Specifies the code of the general business posting group to be used for the item when you post the planning worksheet.';
                     Visible = false;
                 }
                 field("Cost Amount"; Rec."Cost Amount")
                 {
                     ApplicationArea = Planning;
-                    ToolTip = 'Specifies the total costs for the requisition worksheet line.';
                     Visible = false;
                 }
                 field("Vendor No."; Rec."Vendor No.")
                 {
                     ApplicationArea = Planning;
-                    ToolTip = 'Specifies the number of the vendor who will ship the items in the purchase order.';
                     Visible = false;
                 }
             }

@@ -2,57 +2,57 @@
   "id": "3f63a3de-6597-4097-9f34-b0ff7f92e6b0",
   "name": "DemoTool",
   "publisher": "Microsoft",
-  "version": "28.0.0.0",
-  "platform": "28.0.0.0",
+  "version": "29.0.0.0",
+  "platform": "29.0.0.0",
   "target": "OnPrem",
   "dependencies": [
     {
       "id": "267b59d3-7302-44c5-ba77-c87000380514",
       "name": "Core Localization Pack for Czech",
       "publisher": "Microsoft",
-      "version": "28.0.0.0"
+      "version": "29.0.0.0"
     },
     {
       "id": "bc0899d1-2cc9-4091-93f8-032538dbb70f",
       "name": "Cash Desk Localization for Czech",
       "publisher": "Microsoft",
-      "version": "28.0.0.0"
+      "version": "29.0.0.0"
     },
     {
       "id": "2078250c-40a0-40da-812a-8d635104dc80",
       "name": "Compensation Localization for Czech",
       "publisher": "Microsoft",
-      "version": "28.0.0.0"
+      "version": "29.0.0.0"
     },
     {
       "id": "f12846ee-be97-4316-a5b3-ba789471687a",
       "name": "Advanced Localization Pack for Czech",
       "publisher": "Microsoft",
-      "version": "28.0.0.0"
+      "version": "29.0.0.0"
     },
     {
       "id": "8730dafb-13cd-42c9-987c-decb6354269d",
       "name": "Banking Documents Localization for Czech",
       "publisher": "Microsoft",
-      "version": "28.0.0.0"
+      "version": "29.0.0.0"
     },
     {
       "id": "ef5dfe8c-ba1c-4271-8a86-95d5abdc6fe9",
       "name": "Fixed Asset Localization for Czech",
       "publisher": "Microsoft",
-      "version": "28.0.0.0"
+      "version": "29.0.0.0"
     },
     {
       "id": "d6636d6f-155e-4490-9979-ec323a6b7c81",
       "name": "Advance Payments Localization for Czech",
       "publisher": "Microsoft",
-      "version": "28.0.0.0"
+      "version": "29.0.0.0"
     },
     {
       "id": "0a9a9ce1-6f98-4cf0-82e2-0b3e7cabb32a",
       "name": "EU 3-Party Trade Purchase",
       "publisher": "Microsoft",
-      "version": "28.0.0.0"
+      "version": "29.0.0.0"
     }
   ],
   "resourceExposurePolicy": {
@@ -60,5 +60,5 @@
     "allowDownloadingSource": true,
     "includeSourceInSymbolFile": true
   },
-  "application": "28.0.0.0"
+  "application": "29.0.0.0"
 }

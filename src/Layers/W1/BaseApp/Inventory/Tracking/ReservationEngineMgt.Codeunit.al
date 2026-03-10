@@ -1066,6 +1066,14 @@ codeunit 99000831 "Reservation Engine Mgt."
 
             ShouldRaiseError := TempReservEntry2.Positive and not TempReservEntry2.HasSameTrackingWithSpec(TrackingSpecification2);
             OnSetItemTracking2OnBeforeShouldRaiseCannotStateItemTrackingError(TempReservEntry2, TrackingSpecification2, ShouldRaiseError);
+
+            // Do Not Raise Error If Reserved from Inventory Without Item Tracking
+            if ShouldRaiseError then
+                if (TempReservEntry2."Source Type" = Database::"Item Ledger Entry") and TempReservEntry2.HasNoTrackingWithSpec() then begin
+                    TrackingSpecification2.CopyTrackingFromReservEntry(TempReservEntry2);
+                    ShouldRaiseError := false;
+                end;
+
             if ShouldRaiseError then
                 Error(CannotStateItemTrackingErr, TempReservEntry2.FieldCaption(Binding), TempReservEntry2.Binding);
         end else

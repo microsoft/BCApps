@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -36,7 +36,6 @@ page 140 "Posted Purchase Credit Memo"
                     ApplicationArea = All;
                     Editable = false;
                     Importance = Promoted;
-                    ToolTip = 'Specifies the posted credit memo number.';
                 }
                 field("Buy-from Vendor No."; Rec."Buy-from Vendor No.")
                 {
@@ -52,7 +51,6 @@ page 140 "Posted Purchase Credit Memo"
                     Editable = false;
                     Importance = Promoted;
                     TableRelation = Vendor.Name;
-                    ToolTip = 'Specifies the name of the vendor who shipped the items.';
                 }
                 field("Buy-from Vendor Name 2"; Rec."Buy-from Vendor Name 2")
                 {
@@ -71,7 +69,6 @@ page 140 "Posted Purchase Credit Memo"
                         Caption = 'Address';
                         Editable = false;
                         Importance = Additional;
-                        ToolTip = 'Specifies the address of the vendor who shipped the items.';
                     }
                     field("Buy-from Address 2"; Rec."Buy-from Address 2")
                     {
@@ -79,7 +76,6 @@ page 140 "Posted Purchase Credit Memo"
                         Caption = 'Address 2';
                         Editable = false;
                         Importance = Additional;
-                        ToolTip = 'Specifies additional address information.';
                     }
                     field("Buy-from City"; Rec."Buy-from City")
                     {
@@ -87,7 +83,6 @@ page 140 "Posted Purchase Credit Memo"
                         Caption = 'City';
                         Editable = false;
                         Importance = Additional;
-                        ToolTip = 'Specifies the city of the vendor on the purchase document.';
                     }
                     group(Control37)
                     {
@@ -99,7 +94,6 @@ page 140 "Posted Purchase Credit Memo"
                             CaptionClass = '5,1,' + Rec."Buy-from Country/Region Code";
                             Editable = false;
                             Importance = Additional;
-                            ToolTip = 'Specifies the state, province or county as a part of the address.';
                         }
                     }
                     field("Buy-from Post Code"; Rec."Buy-from Post Code")
@@ -116,7 +110,6 @@ page 140 "Posted Purchase Credit Memo"
                         Caption = 'Country/Region';
                         Editable = false;
                         Importance = Additional;
-                        ToolTip = 'Specifies the country or region of the ship-to address.';
                     }
                     field("Buy-from Contact No."; Rec."Buy-from Contact No.")
                     {
@@ -124,7 +117,6 @@ page 140 "Posted Purchase Credit Memo"
                         Caption = 'Contact No.';
                         Editable = false;
                         Importance = Additional;
-                        ToolTip = 'Specifies the number of the contact who you sent the purchase credit memo to.';
                     }
                     field(BuyFromContactPhoneNo; BuyFromContact."Phone No.")
                     {
@@ -166,7 +158,6 @@ page 140 "Posted Purchase Credit Memo"
                     ApplicationArea = Basic, Suite;
                     Editable = false;
                     Importance = Promoted;
-                    ToolTip = 'Specifies the date the credit memo was posted.';
                 }
                 field("VAT Reporting Date"; Rec."VAT Reporting Date")
                 {
@@ -174,47 +165,40 @@ page 140 "Posted Purchase Credit Memo"
                     Importance = Promoted;
                     Editable = false;
                     Visible = VATDateEnabled;
-                    ToolTip = 'Specifies the VAT date on the invoice.';
                 }
                 field("Document Date"; Rec."Document Date")
                 {
                     ApplicationArea = Basic, Suite;
                     Editable = false;
-                    ToolTip = 'Specifies the date on which the purchase document was created.';
                 }
                 field("Pre-Assigned No."; Rec."Pre-Assigned No.")
                 {
                     ApplicationArea = Basic, Suite;
                     Editable = false;
                     Importance = Additional;
-                    ToolTip = 'Specifies the number of the credit memo that the posted credit memo was created from.';
                 }
                 field("Vendor Cr. Memo No."; Rec."Vendor Cr. Memo No.")
                 {
                     ApplicationArea = Basic, Suite;
                     Editable = false;
                     Importance = Promoted;
-                    ToolTip = 'Specifies the vendor''s number for this credit memo.';
                 }
                 field("Order Address Code"; Rec."Order Address Code")
                 {
                     ApplicationArea = Basic, Suite;
                     Editable = false;
-                    ToolTip = 'Specifies the order address of the related vendor.';
                 }
                 field("Purchaser Code"; Rec."Purchaser Code")
                 {
                     ApplicationArea = Suite;
                     Editable = false;
                     Importance = Additional;
-                    ToolTip = 'Specifies which purchaser is assigned to the vendor.';
                 }
                 field("Responsibility Center"; Rec."Responsibility Center")
                 {
                     ApplicationArea = Suite;
                     Editable = false;
                     Importance = Additional;
-                    ToolTip = 'Specifies the code for the responsibility center that serves the vendor on this purchase document.';
                 }
                 field(Cancelled; Rec.Cancelled)
                 {
@@ -222,7 +206,6 @@ page 140 "Posted Purchase Credit Memo"
                     Importance = Additional;
                     Style = Unfavorable;
                     StyleExpr = Rec.Cancelled;
-                    ToolTip = 'Specifies if the posted purchase invoice that relates to this purchase credit memo has been either corrected or canceled.';
 
                     trigger OnDrillDown()
                     begin
@@ -235,7 +218,6 @@ page 140 "Posted Purchase Credit Memo"
                     Importance = Additional;
                     Style = Unfavorable;
                     StyleExpr = Rec.Corrective;
-                    ToolTip = 'Specifies if the posted purchase invoice has been either corrected or canceled by this purchase credit memo .';
 
                     trigger OnDrillDown()
                     begin
@@ -247,7 +229,6 @@ page 140 "Posted Purchase Credit Memo"
                     ApplicationArea = Basic, Suite;
                     Editable = false;
                     Importance = Additional;
-                    ToolTip = 'Specifies how many times the document has been printed.';
                 }
                 field("Corrected Invoice No."; Rec."Corrected Invoice No.")
                 {
@@ -268,7 +249,6 @@ page 140 "Posted Purchase Credit Memo"
                 {
                     ApplicationArea = Suite;
                     Importance = Promoted;
-                    ToolTip = 'Specifies the currency code used to calculate the amounts on the credit memo.';
 
                     trigger OnAssistEdit()
                     var
@@ -293,14 +273,12 @@ page 140 "Posted Purchase Credit Memo"
                     ApplicationArea = Dimensions;
                     Editable = false;
                     Importance = Additional;
-                    ToolTip = 'Specifies the code for Shortcut Dimension 1, which is one of two global dimension codes that you set up in the General Ledger Setup window.';
                 }
                 field("Shortcut Dimension 2 Code"; Rec."Shortcut Dimension 2 Code")
                 {
                     ApplicationArea = Dimensions;
                     Editable = false;
                     Importance = Additional;
-                    ToolTip = 'Specifies the code for Shortcut Dimension 2, which is one of two global dimension codes that you set up in the General Ledger Setup window.';
                 }
                 field("Payment Discount %"; Rec."Payment Discount %")
                 {
@@ -312,13 +290,11 @@ page 140 "Posted Purchase Credit Memo"
                 {
                     ApplicationArea = Location;
                     Editable = false;
-                    ToolTip = 'Specifies the code for the location used when you posted the credit memo.';
                 }
                 field("Vendor Posting Group"; Rec."Vendor Posting Group")
                 {
                     ApplicationArea = Basic, Suite;
                     Editable = false;
-                    ToolTip = 'Specifies the vendor''s market type to link business transactions made for the vendor with the appropriate account in the general ledger.';
                     Visible = false;
                 }
                 group("SII Information")
@@ -418,19 +394,16 @@ page 140 "Posted Purchase Credit Memo"
                 {
                     ApplicationArea = Basic, Suite;
                     Editable = false;
-                    ToolTip = 'Specifies the type of the posted document that this document or journal line will be applied to when you post, for example to register payment.';
                 }
                 field("Applies-to Doc. No."; Rec."Applies-to Doc. No.")
                 {
                     ApplicationArea = Basic, Suite;
                     Editable = false;
-                    ToolTip = 'Specifies the number of the posted document that this document or journal line will be applied to when you post, for example to register payment.';
                 }
                 field(Correction; Rec.Correction)
                 {
                     ApplicationArea = Basic, Suite;
                     Editable = false;
-                    ToolTip = 'Specifies the entry was posted as a corrective entry.';
                 }
             }
             group("Shipping and Payment")
@@ -451,21 +424,18 @@ page 140 "Posted Purchase Credit Memo"
                         ApplicationArea = Basic, Suite;
                         Caption = 'Address';
                         Editable = false;
-                        ToolTip = 'Specifies the address that the items in the purchase order were shipped to.';
                     }
                     field("Ship-to Address 2"; Rec."Ship-to Address 2")
                     {
                         ApplicationArea = Basic, Suite;
                         Caption = 'Address 2';
                         Editable = false;
-                        ToolTip = 'Specifies additional address information.';
                     }
                     field("Ship-to City"; Rec."Ship-to City")
                     {
                         ApplicationArea = Basic, Suite;
                         Caption = 'City';
                         Editable = false;
-                        ToolTip = 'Specifies the city of the vendor on the purchase document.';
                     }
                     group(Control43)
                     {
@@ -476,7 +446,6 @@ page 140 "Posted Purchase Credit Memo"
                             ApplicationArea = Basic, Suite;
                             CaptionClass = '5,1,' + Rec."Ship-to Country/Region Code";
                             Editable = false;
-                            ToolTip = 'Specifies the state, province or county as a part of the address.';
                         }
                     }
                     field("Ship-to Post Code"; Rec."Ship-to Post Code")
@@ -491,21 +460,18 @@ page 140 "Posted Purchase Credit Memo"
                         ApplicationArea = Basic, Suite;
                         Caption = 'Country/Region';
                         Editable = false;
-                        ToolTip = 'Specifies the country or region of the ship-to address.';
                     }
                     field("Ship-to Phone No."; Rec."Ship-to Phone No.")
                     {
                         ApplicationArea = Basic, Suite;
                         Caption = 'Phone No.';
                         Editable = false;
-                        ToolTip = 'Specifies the telephone number of the company''s shipping address.';
                     }
                     field("Ship-to Contact"; Rec."Ship-to Contact")
                     {
                         ApplicationArea = Basic, Suite;
                         Caption = 'Contact';
                         Editable = false;
-                        ToolTip = 'Specifies the name of a contact person at the address that the items were shipped to.';
                     }
                 }
                 group("Pay-to")
@@ -517,7 +483,6 @@ page 140 "Posted Purchase Credit Memo"
                         Caption = 'Name';
                         Editable = false;
                         Importance = Promoted;
-                        ToolTip = 'Specifies the name of the vendor that you received the credit memo from.';
                     }
                     field("Pay-to Name 2"; Rec."Pay-to Name 2")
                     {
@@ -533,7 +498,6 @@ page 140 "Posted Purchase Credit Memo"
                         Caption = 'Address';
                         Editable = false;
                         Importance = Additional;
-                        ToolTip = 'Specifies the address of the vendor that you received the credit memo from.';
                     }
                     field("Pay-to Address 2"; Rec."Pay-to Address 2")
                     {
@@ -541,7 +505,6 @@ page 140 "Posted Purchase Credit Memo"
                         Caption = 'Address 2';
                         Editable = false;
                         Importance = Additional;
-                        ToolTip = 'Specifies additional address information.';
                     }
                     field("Pay-to City"; Rec."Pay-to City")
                     {
@@ -549,7 +512,6 @@ page 140 "Posted Purchase Credit Memo"
                         Caption = 'City';
                         Editable = false;
                         Importance = Additional;
-                        ToolTip = 'Specifies the city of the vendor on the purchase document.';
                     }
                     group(Control46)
                     {
@@ -561,7 +523,6 @@ page 140 "Posted Purchase Credit Memo"
                             CaptionClass = '5,1,' + Rec."Pay-to Country/Region Code";
                             Editable = false;
                             Importance = Additional;
-                            ToolTip = 'Specifies the state, province or county as a part of the address.';
                         }
                     }
                     field("Pay-to Post Code"; Rec."Pay-to Post Code")
@@ -578,7 +539,6 @@ page 140 "Posted Purchase Credit Memo"
                         Caption = 'Country/Region';
                         Editable = false;
                         Importance = Additional;
-                        ToolTip = 'Specifies the country or region of the ship-to address.';
                     }
                     field("Pay-to Contact No."; Rec."Pay-to Contact No.")
                     {
@@ -586,7 +546,6 @@ page 140 "Posted Purchase Credit Memo"
                         Caption = 'Contact No.';
                         Editable = false;
                         Importance = Additional;
-                        ToolTip = 'Specifies the number of the contact at the vendor who handles the credit memo.';
                     }
                     field(PayToContactPhoneNo; PayToContact."Phone No.")
                     {
@@ -620,7 +579,6 @@ page 140 "Posted Purchase Credit Memo"
                         ApplicationArea = Basic, Suite;
                         Caption = 'Contact';
                         Editable = false;
-                        ToolTip = 'Specifies the name of the person you should contact at the vendor who you received the credit memo from.';
                     }
                 }
             }

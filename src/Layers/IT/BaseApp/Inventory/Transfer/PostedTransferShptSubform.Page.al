@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -24,29 +24,24 @@ page 5744 "Posted Transfer Shpt. Subform"
                 field("Item No."; Rec."Item No.")
                 {
                     ApplicationArea = Location;
-                    ToolTip = 'Specifies the number of the item that will be transferred.';
                 }
                 field("Variant Code"; Rec."Variant Code")
                 {
                     ApplicationArea = Planning;
-                    ToolTip = 'Specifies the variant of the item on the line.';
                     Visible = false;
                 }
                 field(Description; Rec.Description)
                 {
                     ApplicationArea = Location;
-                    ToolTip = 'Specifies a description of the item.';
                 }
                 field("Description 2"; Rec."Description 2")
                 {
                     ApplicationArea = All;
-                    ToolTip = 'Specifies information in addition to the description of the item being transferred.';
                     Visible = false;
                 }
                 field("Transfer-from Bin Code"; Rec."Transfer-from Bin Code")
                 {
                     ApplicationArea = Warehouse;
-                    ToolTip = 'Specifies the code for the bin that the items are transferred from.';
                     Visible = false;
                 }
                 field("WIP Item"; Rec."WIP Item")
@@ -58,34 +53,28 @@ page 5744 "Posted Transfer Shpt. Subform"
                 {
                     ApplicationArea = Location;
                     BlankZero = true;
-                    ToolTip = 'Specifies the quantity of the item that is transferred.';
                 }
                 field("Unit of Measure Code"; Rec."Unit of Measure Code")
                 {
                     ApplicationArea = Location;
-                    ToolTip = 'Specifies how each unit of the item or resource is measured, such as in pieces or hours. By default, the value in the Base Unit of Measure field on the item or resource card is inserted.';
                 }
                 field("Unit of Measure"; Rec."Unit of Measure")
                 {
                     ApplicationArea = Location;
-                    ToolTip = 'Specifies the name of the item or resource''s unit of measure, such as piece or hour.';
                     Visible = false;
                 }
                 field("Shipping Time"; Rec."Shipping Time")
                 {
                     ApplicationArea = Location;
-                    ToolTip = 'Specifies how long it takes from when the items are shipped from the warehouse to when they are delivered.';
                 }
                 field("Shortcut Dimension 1 Code"; Rec."Shortcut Dimension 1 Code")
                 {
                     ApplicationArea = Dimensions;
-                    ToolTip = 'Specifies the code for Shortcut Dimension 1, which is one of two global dimension codes that you set up in the General Ledger Setup window.';
                     Visible = false;
                 }
                 field("Shortcut Dimension 2 Code"; Rec."Shortcut Dimension 2 Code")
                 {
                     ApplicationArea = Dimensions;
-                    ToolTip = 'Specifies the code for Shortcut Dimension 2, which is one of two global dimension codes that you set up in the General Ledger Setup window.';
                     Visible = false;
                 }
                 field(ShortcutDimCode3; ShortcutDimCode[3])

@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -42,6 +42,7 @@ table 981 "Payment Registration Buffer"
         field(2; "Source No."; Code[20])
         {
             Caption = 'Source No.';
+            ToolTip = 'Specifies the number of the source document that the entry originates from.';
         }
         /// <summary>
         /// Document type of the customer ledger entry.
@@ -49,6 +50,7 @@ table 981 "Payment Registration Buffer"
         field(3; "Document Type"; Enum "Gen. Journal Document Type")
         {
             Caption = 'Document Type';
+            ToolTip = 'Specifies the type of document that the payment relates to.';
         }
         /// <summary>
         /// Document number of the customer ledger entry.
@@ -56,6 +58,7 @@ table 981 "Payment Registration Buffer"
         field(4; "Document No."; Code[20])
         {
             Caption = 'Document No.';
+            ToolTip = 'Specifies the number of the document that the payment relates to.';
         }
         /// <summary>
         /// Description of the customer ledger entry.
@@ -63,6 +66,7 @@ table 981 "Payment Registration Buffer"
         field(5; Description; Text[100])
         {
             Caption = 'Description';
+            ToolTip = 'Specifies the invoice transaction that the payment relates to.';
         }
         /// <summary>
         /// Due date of the customer ledger entry.
@@ -70,6 +74,7 @@ table 981 "Payment Registration Buffer"
         field(6; "Due Date"; Date)
         {
             Caption = 'Due Date';
+            ToolTip = 'Specifies the payment due date on the related document.';
         }
         /// <summary>
         /// Customer name associated with the payment.
@@ -77,6 +82,7 @@ table 981 "Payment Registration Buffer"
         field(7; Name; Text[100])
         {
             Caption = 'Name';
+            ToolTip = 'Specifies the name of the customer or vendor that the payment relates to.';
         }
         /// <summary>
         /// Remaining amount to be paid on the customer ledger entry.
@@ -85,6 +91,7 @@ table 981 "Payment Registration Buffer"
         {
             AutoFormatType = 0;
             Caption = 'Remaining Amount';
+            ToolTip = 'Specifies the amount that remains to be paid on the document.';
         }
         /// <summary>
         /// Indicates whether a payment has been made for this entry.
@@ -92,6 +99,7 @@ table 981 "Payment Registration Buffer"
         field(9; "Payment Made"; Boolean)
         {
             Caption = 'Payment Made';
+            ToolTip = 'Specifies if you have received or made payment for the document.';
 
             trigger OnValidate()
             begin
@@ -115,6 +123,7 @@ table 981 "Payment Registration Buffer"
         field(10; "Date Received"; Date)
         {
             Caption = 'Date Received';
+            ToolTip = 'Specifies the date when the payment was made.';
 
             trigger OnValidate()
             begin
@@ -129,6 +138,7 @@ table 981 "Payment Registration Buffer"
         {
             AutoFormatType = 0;
             Caption = 'Amount Received';
+            ToolTip = 'Specifies the amount that is paid in the bank account.';
 
             trigger OnValidate()
             var
@@ -160,6 +170,7 @@ table 981 "Payment Registration Buffer"
         {
             AutoFormatType = 0;
             Caption = 'Rem. Amt. after Discount';
+            ToolTip = 'Specifies the remaining amount after the payment discount is deducted.';
         }
         /// <summary>
         /// Payment discount date for this customer ledger entry.
@@ -167,6 +178,7 @@ table 981 "Payment Registration Buffer"
         field(14; "Pmt. Discount Date"; Date)
         {
             Caption = 'Pmt. Discount Date';
+            ToolTip = 'Specifies the date on which the amount in the entry must be paid for a payment discount to be granted.';
 
             trigger OnValidate()
             begin
@@ -211,6 +223,7 @@ table 981 "Payment Registration Buffer"
         field(19; "External Document No."; Code[35])
         {
             Caption = 'External Document No.';
+            ToolTip = 'Specifies a document number that refers to the customer''s or vendor''s numbering system.';
         }
     }
 

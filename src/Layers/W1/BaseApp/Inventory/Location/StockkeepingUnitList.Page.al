@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -40,56 +40,46 @@ page 5701 "Stockkeeping Unit List"
                 field("Item No."; Rec."Item No.")
                 {
                     ApplicationArea = Planning;
-                    ToolTip = 'Specifies the item number to which the SKU applies.';
                 }
                 field("Variant Code"; Rec."Variant Code")
                 {
                     ApplicationArea = Planning;
-                    ToolTip = 'Specifies the variant of the item on the line.';
                 }
                 field("Location Code"; Rec."Location Code")
                 {
                     ApplicationArea = Planning;
-                    ToolTip = 'Specifies the location code (for example, the warehouse or distribution center) to which the SKU applies.';
                 }
                 field("Replenishment System"; Rec."Replenishment System")
                 {
                     ApplicationArea = Planning;
-                    ToolTip = 'Specifies the type of supply order that is created by the planning system when the SKU needs to be replenished.';
                 }
                 field(Description; Rec.Description)
                 {
                     ApplicationArea = Planning;
-                    ToolTip = 'Specifies the description from the Item Card.';
                 }
                 field(Inventory; Rec.Inventory)
                 {
                     ApplicationArea = Planning;
                     HideValue = IsNonInventoriable;
-                    ToolTip = 'Specifies for the SKU, the same as the field does on the item card.';
                 }
                 field("Reorder Point"; Rec."Reorder Point")
                 {
                     ApplicationArea = Planning;
-                    ToolTip = 'Specifies for the SKU, the same as the field does on the item card.';
                     Visible = false;
                 }
                 field("Reorder Quantity"; Rec."Reorder Quantity")
                 {
                     ApplicationArea = Planning;
-                    ToolTip = 'Specifies for the SKU, the same as the field does on the item card.';
                     Visible = false;
                 }
                 field("Maximum Inventory"; Rec."Maximum Inventory")
                 {
                     ApplicationArea = Planning;
-                    ToolTip = 'Specifies for the SKU, the same as the field does on the item card.';
                     Visible = false;
                 }
                 field("Assembly Policy"; Rec."Assembly Policy")
                 {
                     ApplicationArea = Assembly;
-                    ToolTip = 'Specifies which default order flow is used to supply this SKU by assembly.';
                     Visible = false;
                 }
             }
@@ -430,12 +420,25 @@ page 5701 "Stockkeeping Unit List"
                 RunObject = Report "Inventory Availability";
                 ToolTip = 'View, print, or save a summary of historical inventory transactions with selected items, for example, to decide when to purchase the items. The report specifies quantity on sales order, quantity on purchase order, back orders from vendors, minimum inventory, and whether there are reorders.';
             }
+#if not CLEAN28
             action("Inventory - Availability Plan")
             {
                 ApplicationArea = Planning;
-                Caption = 'Inventory - Availability Plan';
+                Caption = 'Inventory - Availability Plan (Obsolete)';
                 Image = ItemAvailability;
                 RunObject = Report "Inventory - Availability Plan";
+                ToolTip = 'View a list of the quantity of each item in customer, purchase, and transfer orders and the quantity available in inventory. The list is divided into columns that cover six periods with starting and ending dates as well as the periods before and after those periods. The list is useful when you are planning your inventory purchases.';
+                ObsoleteState = Pending;
+                ObsoleteReason = 'This report has been replaced by the report Inventory - Availability Plan (Excel). This report will be removed in a future release.';
+                ObsoleteTag = '28.0';
+            }
+#endif
+            action("Inventory - Availability Plan Excel")
+            {
+                ApplicationArea = Planning;
+                Caption = 'Inventory - Availability Plan (Excel)';
+                Image = ItemAvailability;
+                RunObject = Report "Inv. Availability Plan";
                 ToolTip = 'View a list of the quantity of each item in customer, purchase, and transfer orders and the quantity available in inventory. The list is divided into columns that cover six periods with starting and ending dates as well as the periods before and after those periods. The list is useful when you are planning your inventory purchases.';
             }
             action("Item/Vendor Catalog")
@@ -529,7 +532,15 @@ page 5701 "Stockkeeping Unit List"
                 actionref("Inventory Availability_Promoted"; "Inventory Availability")
                 {
                 }
+#if not CLEAN28
                 actionref("Inventory - Availability Plan_Promoted"; "Inventory - Availability Plan")
+                {
+                    ObsoleteState = Pending;
+                    ObsoleteReason = 'This report has been replaced by the report Inventory - Availability Plan (Excel). This report will be removed in a future release.';
+                    ObsoleteTag = '28.0';
+                }
+#endif
+                actionref("Inventory - Availability Plan Excel_Promoted"; "Inventory - Availability Plan Excel")
                 {
                 }
                 actionref("Item/Vendor Catalog_Promoted"; "Item/Vendor Catalog")
@@ -538,6 +549,16 @@ page 5701 "Stockkeeping Unit List"
             }
         }
     }
+
+    views
+    {
+        view(ItemsWithNegativeInventory)
+        {
+            Caption = 'Stockkeeping Units with negative Inventory';
+            Filters = where(Inventory = filter(< 0));
+        }
+    }
+
     trigger OnAfterGetRecord()
     begin
         EnableControls();

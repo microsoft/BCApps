@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -72,6 +72,7 @@ table 110 "Sales Shipment Header"
         field(3; "No."; Code[20])
         {
             Caption = 'No.';
+            ToolTip = 'Specifies the number of the record.';
         }
         /// <summary>
         /// Specifies the customer number to whom the invoice will be sent.
@@ -93,6 +94,7 @@ table 110 "Sales Shipment Header"
         field(5; "Bill-to Name"; Text[100])
         {
             Caption = 'Bill-to Name';
+            ToolTip = 'Specifies the name of the customer that you send or sent the invoice or credit memo to.';
         }
         /// <summary>
         /// Specifies additional name information for the bill-to customer.
@@ -108,6 +110,7 @@ table 110 "Sales Shipment Header"
         field(7; "Bill-to Address"; Text[100])
         {
             Caption = 'Bill-to Address';
+            ToolTip = 'Specifies the address that you sent the invoice to.';
         }
         /// <summary>
         /// Specifies additional street address information for the bill-to customer.
@@ -115,6 +118,7 @@ table 110 "Sales Shipment Header"
         field(8; "Bill-to Address 2"; Text[50])
         {
             Caption = 'Bill-to Address 2';
+            ToolTip = 'Specifies the extended address that you sent the invoice to.';
         }
         /// <summary>
         /// Specifies the city of the customer receiving the invoice.
@@ -122,6 +126,7 @@ table 110 "Sales Shipment Header"
         field(9; "Bill-to City"; Text[30])
         {
             Caption = 'Bill-to City';
+            ToolTip = 'Specifies the city of the customer on the sales document.';
             TableRelation = "Post Code".City;
             ValidateTableRelation = false;
         }
@@ -131,6 +136,7 @@ table 110 "Sales Shipment Header"
         field(10; "Bill-to Contact"; Text[100])
         {
             Caption = 'Bill-to Contact';
+            ToolTip = 'Specifies the name of the contact person at the customer''s billing address.';
         }
         /// <summary>
         /// Specifies the customer's own reference number for this document.
@@ -145,6 +151,7 @@ table 110 "Sales Shipment Header"
         field(12; "Ship-to Code"; Code[10])
         {
             Caption = 'Ship-to Code';
+            ToolTip = 'Specifies the code for the customer''s additional shipment address.';
             TableRelation = "Ship-to Address".Code where("Customer No." = field("Sell-to Customer No."));
         }
         /// <summary>
@@ -153,6 +160,7 @@ table 110 "Sales Shipment Header"
         field(13; "Ship-to Name"; Text[100])
         {
             Caption = 'Ship-to Name';
+            ToolTip = 'Specifies the name of the customer at the address that the items are shipped to.';
         }
         /// <summary>
         /// Specifies additional name information for the ship-to address.
@@ -160,6 +168,7 @@ table 110 "Sales Shipment Header"
         field(14; "Ship-to Name 2"; Text[50])
         {
             Caption = 'Ship-to Name 2';
+            ToolTip = 'Specifies an additional part of the the name of the customer that you delivered the items to.';
         }
         /// <summary>
         /// Specifies the street address where items were shipped.
@@ -167,6 +176,7 @@ table 110 "Sales Shipment Header"
         field(15; "Ship-to Address"; Text[100])
         {
             Caption = 'Ship-to Address';
+            ToolTip = 'Specifies the address that you delivered the items to.';
         }
         /// <summary>
         /// Specifies additional street address information for the ship-to address.
@@ -174,6 +184,7 @@ table 110 "Sales Shipment Header"
         field(16; "Ship-to Address 2"; Text[50])
         {
             Caption = 'Ship-to Address 2';
+            ToolTip = 'Specifies the extended address that you delivered the items to.';
         }
         /// <summary>
         /// Specifies the city of the ship-to address.
@@ -181,6 +192,7 @@ table 110 "Sales Shipment Header"
         field(17; "Ship-to City"; Text[30])
         {
             Caption = 'Ship-to City';
+            ToolTip = 'Specifies the city of the customer on the sales document.';
             TableRelation = "Post Code".City;
             ValidateTableRelation = false;
         }
@@ -190,6 +202,7 @@ table 110 "Sales Shipment Header"
         field(18; "Ship-to Contact"; Text[100])
         {
             Caption = 'Ship-to Contact';
+            ToolTip = 'Specifies the name of the person you regularly contact at the address that the items were shipped to.';
         }
         /// <summary>
         /// Specifies the date when the sales order was created.
@@ -204,6 +217,7 @@ table 110 "Sales Shipment Header"
         field(20; "Posting Date"; Date)
         {
             Caption = 'Posting Date';
+            ToolTip = 'Specifies the posting date for the entry.';
         }
         /// <summary>
         /// Specifies the date when the items were shipped.
@@ -211,6 +225,7 @@ table 110 "Sales Shipment Header"
         field(21; "Shipment Date"; Date)
         {
             Caption = 'Shipment Date';
+            ToolTip = 'Specifies when items on the document are shipped or were shipped. A shipment date is usually calculated from a requested delivery date plus lead time.';
         }
         /// <summary>
         /// Specifies a description of the posting.
@@ -258,6 +273,7 @@ table 110 "Sales Shipment Header"
         field(27; "Shipment Method Code"; Code[10])
         {
             Caption = 'Shipment Method Code';
+            ToolTip = 'Specifies the delivery conditions of the related shipment, such as free on board (FOB).';
             TableRelation = "Shipment Method";
         }
         /// <summary>
@@ -266,6 +282,7 @@ table 110 "Sales Shipment Header"
         field(28; "Location Code"; Code[10])
         {
             Caption = 'Location Code';
+            ToolTip = 'Specifies the location from which the items were shipped.';
             TableRelation = Location where("Use As In-Transit" = const(false));
         }
         /// <summary>
@@ -275,6 +292,7 @@ table 110 "Sales Shipment Header"
         {
             CaptionClass = '1,2,1';
             Caption = 'Shortcut Dimension 1 Code';
+            ToolTip = 'Specifies the code for Shortcut Dimension 1, which is one of two global dimension codes that you set up in the General Ledger Setup window.';
             TableRelation = "Dimension Value".Code where("Global Dimension No." = const(1));
         }
         /// <summary>
@@ -284,6 +302,7 @@ table 110 "Sales Shipment Header"
         {
             CaptionClass = '1,2,2';
             Caption = 'Shortcut Dimension 2 Code';
+            ToolTip = 'Specifies the code for Shortcut Dimension 2, which is one of two global dimension codes that you set up in the General Ledger Setup window.';
             TableRelation = "Dimension Value".Code where("Global Dimension No." = const(2));
         }
         /// <summary>
@@ -301,6 +320,7 @@ table 110 "Sales Shipment Header"
         field(32; "Currency Code"; Code[10])
         {
             Caption = 'Currency Code';
+            ToolTip = 'Specifies the currency code of the shipment.';
             Editable = false;
             TableRelation = Currency;
         }
@@ -366,6 +386,7 @@ table 110 "Sales Shipment Header"
         field(43; "Salesperson Code"; Code[20])
         {
             Caption = 'Salesperson Code';
+            ToolTip = 'Specifies a code for the salesperson who normally handles this customer''s account.';
             TableRelation = "Salesperson/Purchaser";
         }
         /// <summary>
@@ -374,6 +395,7 @@ table 110 "Sales Shipment Header"
         field(44; "Order No."; Code[20])
         {
             Caption = 'Order No.';
+            ToolTip = 'Specifies the number of the sales order that this invoice was posted from.';
         }
         /// <summary>
         /// Indicates whether comments exist for this shipment.
@@ -393,6 +415,7 @@ table 110 "Sales Shipment Header"
         field(47; "No. Printed"; Integer)
         {
             Caption = 'No. Printed';
+            ToolTip = 'Specifies how many times the document has been printed.';
             Editable = false;
         }
         /// <summary>
@@ -498,6 +521,7 @@ table 110 "Sales Shipment Header"
         field(79; "Sell-to Customer Name"; Text[100])
         {
             Caption = 'Sell-to Customer Name';
+            ToolTip = 'Specifies the name of customer at the sell-to address.';
         }
         /// <summary>
         /// Specifies additional name information for the sell-to customer.
@@ -513,6 +537,7 @@ table 110 "Sales Shipment Header"
         field(81; "Sell-to Address"; Text[100])
         {
             Caption = 'Sell-to Address';
+            ToolTip = 'Specifies the customer''s sell-to address.';
         }
         /// <summary>
         /// Specifies additional street address information for the sell-to customer.
@@ -520,6 +545,7 @@ table 110 "Sales Shipment Header"
         field(82; "Sell-to Address 2"; Text[50])
         {
             Caption = 'Sell-to Address 2';
+            ToolTip = 'Specifies the customer''s extended sell-to address.';
         }
         /// <summary>
         /// Specifies the city of the sell-to customer.
@@ -527,6 +553,7 @@ table 110 "Sales Shipment Header"
         field(83; "Sell-to City"; Text[30])
         {
             Caption = 'Sell-to City';
+            ToolTip = 'Specifies the city of the customer on the sales document.';
             TableRelation = "Post Code".City;
             ValidateTableRelation = false;
         }
@@ -536,6 +563,7 @@ table 110 "Sales Shipment Header"
         field(84; "Sell-to Contact"; Text[100])
         {
             Caption = 'Sell-to Contact';
+            ToolTip = 'Specifies the name of the contact person at the customer''s main address.';
         }
         /// <summary>
         /// Specifies the postal code of the bill-to customer.
@@ -543,6 +571,7 @@ table 110 "Sales Shipment Header"
         field(85; "Bill-to Post Code"; Code[20])
         {
             Caption = 'Bill-to Post Code';
+            ToolTip = 'Specifies the postal code of the customer''s billing address.';
             TableRelation = "Post Code";
             ValidateTableRelation = false;
         }
@@ -553,6 +582,7 @@ table 110 "Sales Shipment Header"
         {
             CaptionClass = '5,3,' + "Bill-to Country/Region Code";
             Caption = 'Bill-to County';
+            ToolTip = 'Specifies the state, province or county as a part of the address.';
         }
         /// <summary>
         /// Specifies the country or region of the bill-to customer.
@@ -560,6 +590,7 @@ table 110 "Sales Shipment Header"
         field(87; "Bill-to Country/Region Code"; Code[10])
         {
             Caption = 'Bill-to Country/Region Code';
+            ToolTip = 'Specifies the country or region of the address.';
             TableRelation = "Country/Region";
         }
         /// <summary>
@@ -568,6 +599,7 @@ table 110 "Sales Shipment Header"
         field(88; "Sell-to Post Code"; Code[20])
         {
             Caption = 'Sell-to Post Code';
+            ToolTip = 'Specifies the post code of the customer''s sell-to address.';
             TableRelation = "Post Code";
             ValidateTableRelation = false;
         }
@@ -578,6 +610,7 @@ table 110 "Sales Shipment Header"
         {
             CaptionClass = '5,2,' + "Sell-to Country/Region Code";
             Caption = 'Sell-to County';
+            ToolTip = 'Specifies the state, province or county as a part of the address.';
         }
         /// <summary>
         /// Specifies the country or region of the sell-to customer.
@@ -585,6 +618,7 @@ table 110 "Sales Shipment Header"
         field(90; "Sell-to Country/Region Code"; Code[10])
         {
             Caption = 'Sell-to Country/Region Code';
+            ToolTip = 'Specifies the country/region code of the customer''s main address.';
             TableRelation = "Country/Region";
         }
         /// <summary>
@@ -593,6 +627,7 @@ table 110 "Sales Shipment Header"
         field(91; "Ship-to Post Code"; Code[20])
         {
             Caption = 'Ship-to Post Code';
+            ToolTip = 'Specifies the postal code of the address that the items are shipped to.';
             TableRelation = "Post Code";
             ValidateTableRelation = false;
         }
@@ -603,6 +638,7 @@ table 110 "Sales Shipment Header"
         {
             CaptionClass = '5,4,' + "Ship-to Country/Region Code";
             Caption = 'Ship-to County';
+            ToolTip = 'Specifies the state, province or county as a part of the address.';
         }
         /// <summary>
         /// Specifies the country or region of the ship-to address.
@@ -610,6 +646,7 @@ table 110 "Sales Shipment Header"
         field(93; "Ship-to Country/Region Code"; Code[10])
         {
             Caption = 'Ship-to Country/Region Code';
+            ToolTip = 'Specifies the customer''s country/region.';
             TableRelation = "Country/Region";
         }
         /// <summary>
@@ -640,6 +677,7 @@ table 110 "Sales Shipment Header"
         field(99; "Document Date"; Date)
         {
             Caption = 'Document Date';
+            ToolTip = 'Specifies the date when the related document was created.';
         }
         /// <summary>
         /// Specifies an external document number such as the customer's purchase order number.
@@ -647,6 +685,7 @@ table 110 "Sales Shipment Header"
         field(100; "External Document No."; Code[35])
         {
             Caption = 'External Document No.';
+            ToolTip = 'Specifies the number that the customer uses in their own system to refer to this sales document.';
         }
         /// <summary>
         /// Specifies the geographic area for Intrastat reporting.
@@ -679,6 +718,7 @@ table 110 "Sales Shipment Header"
         {
             AccessByPermission = TableData "Shipping Agent Services" = R;
             Caption = 'Shipping Agent Code';
+            ToolTip = 'Specifies which shipping agent is used to transport the items on the sales document to the customer.';
             TableRelation = "Shipping Agent";
 
             trigger OnValidate()
@@ -699,6 +739,7 @@ table 110 "Sales Shipment Header"
 #endif
         {
             Caption = 'Package Tracking No.';
+            ToolTip = 'Specifies the shipping agent''s package number.';
         }
         /// <summary>
         /// Specifies the number series used for the posted shipment.
@@ -774,6 +815,7 @@ table 110 "Sales Shipment Header"
         field(151; "Quote No."; Code[20])
         {
             Caption = 'Quote No.';
+            ToolTip = 'Specifies the number of the sales quote document if a quote was used to start the sales process.';
             Editable = false;
         }
         /// <summary>
@@ -814,6 +856,7 @@ table 110 "Sales Shipment Header"
         field(210; "Ship-to Phone No."; Text[30])
         {
             Caption = 'Ship-to Phone No.';
+            ToolTip = 'Specifies the telephone number of the company''s shipping address.';
             ExtendedDatatype = PhoneNo;
         }
         /// <summary>
@@ -844,6 +887,7 @@ table 110 "Sales Shipment Header"
         field(5052; "Sell-to Contact No."; Code[20])
         {
             Caption = 'Sell-to Contact No.';
+            ToolTip = 'Specifies the contact number.';
             TableRelation = Contact;
         }
         /// <summary>
@@ -852,6 +896,7 @@ table 110 "Sales Shipment Header"
         field(5053; "Bill-to Contact No."; Code[20])
         {
             Caption = 'Bill-to Contact No.';
+            ToolTip = 'Specifies the number of the contact person at the customer''s bill-to address.';
             TableRelation = Contact;
         }
         /// <summary>
@@ -868,6 +913,7 @@ table 110 "Sales Shipment Header"
         field(5700; "Responsibility Center"; Code[10])
         {
             Caption = 'Responsibility Center';
+            ToolTip = 'Specifies the code for the responsibility center that serves the customer on this sales document.';
             TableRelation = "Responsibility Center";
         }
         /// <summary>
@@ -876,6 +922,7 @@ table 110 "Sales Shipment Header"
         field(5790; "Requested Delivery Date"; Date)
         {
             Caption = 'Requested Delivery Date';
+            ToolTip = 'Specifies the date that the customer has asked for the order to be delivered.';
         }
         /// <summary>
         /// Specifies the date that was promised for delivery.
@@ -883,6 +930,7 @@ table 110 "Sales Shipment Header"
         field(5791; "Promised Delivery Date"; Date)
         {
             Caption = 'Promised Delivery Date';
+            ToolTip = 'Specifies the date that you have promised to deliver the order, as a result of the Order Promising function.';
         }
         /// <summary>
         /// Specifies the time required for shipping from the shipping agent.
@@ -891,6 +939,7 @@ table 110 "Sales Shipment Header"
         {
             AccessByPermission = TableData "Shipping Agent Services" = R;
             Caption = 'Shipping Time';
+            ToolTip = 'Specifies how long it takes from when the items are shipped from the warehouse to when they are delivered.';
         }
         /// <summary>
         /// Specifies the time required for outbound warehouse handling.
@@ -899,6 +948,7 @@ table 110 "Sales Shipment Header"
         {
             AccessByPermission = TableData Location = R;
             Caption = 'Outbound Whse. Handling Time';
+            ToolTip = 'Specifies a date formula for the time it takes to get items ready to ship from this location. The time element is used in the calculation of the delivery date as follows: Shipment Date + Outbound Warehouse Handling Time = Planned Shipment Date + Shipping Time = Planned Delivery Date.';
         }
         /// <summary>
         /// Specifies the shipping agent service level used for delivery.
@@ -906,6 +956,7 @@ table 110 "Sales Shipment Header"
         field(5794; "Shipping Agent Service Code"; Code[10])
         {
             Caption = 'Shipping Agent Service Code';
+            ToolTip = 'Specifies which shipping agent service is used to transport the items on the sales document to the customer.';
             TableRelation = "Shipping Agent Services".Code where("Shipping Agent Code" = field("Shipping Agent Code"));
         }
         /// <summary>

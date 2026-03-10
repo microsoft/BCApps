@@ -15,11 +15,13 @@ table 284 "Area"
         field(1; "Code"; Code[10])
         {
             Caption = 'Code';
+            ToolTip = 'Specifies a code for the area.';
             NotBlank = true;
         }
         field(2; Text; Text[50])
         {
             Caption = 'Text';
+            ToolTip = 'Specifies a description of the area.';
         }
     }
 

@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -19,6 +19,7 @@ table 7300 Zone
         field(1; "Location Code"; Code[10])
         {
             Caption = 'Location Code';
+            ToolTip = 'Specifies the location code of the zone.';
             Editable = false;
             NotBlank = true;
             TableRelation = Location;
@@ -26,15 +27,18 @@ table 7300 Zone
         field(2; "Code"; Code[10])
         {
             Caption = 'Code';
+            ToolTip = 'Specifies the code of the zone.';
             NotBlank = true;
         }
         field(5; Description; Text[100])
         {
             Caption = 'Description';
+            ToolTip = 'Specifies a description of the zone.';
         }
         field(10; "Bin Type Code"; Code[10])
         {
             Caption = 'Bin Type Code';
+            ToolTip = 'Specifies the bin type code for the zone. The bin type determines the inbound and outbound flow of items.';
             TableRelation = "Bin Type";
 
             trigger OnValidate()
@@ -51,20 +55,24 @@ table 7300 Zone
         field(11; "Warehouse Class Code"; Code[10])
         {
             Caption = 'Warehouse Class Code';
+            ToolTip = 'Specifies the warehouse class code of the zone. You can store items with the same warehouse class code in this zone.';
             TableRelation = "Warehouse Class";
         }
         field(20; "Special Equipment Code"; Code[10])
         {
             Caption = 'Special Equipment Code';
+            ToolTip = 'Specifies the code of the special equipment to be used when you work in this zone.';
             TableRelation = "Special Equipment";
         }
         field(21; "Zone Ranking"; Integer)
         {
             Caption = 'Zone Ranking';
+            ToolTip = 'Specifies the ranking of the zone, which is copied to all bins created within the zone.';
         }
         field(40; "Cross-Dock Bin Zone"; Boolean)
         {
             Caption = 'Cross-Dock Bin Zone';
+            ToolTip = 'Specifies if this is a cross-dock zone.';
         }
     }
 

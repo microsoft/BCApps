@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -36,7 +36,6 @@ page 7010 "Get Price Line"
                     AccessByPermission = tabledata "Sales Discount Access" = R;
                     Visible = DiscountVisible and IsSalesPrice;
                     ApplicationArea = All;
-                    ToolTip = 'Specifies the line discount percentage for the product.';
                 }
                 field(PurchLineDiscountPct; Rec."Line Discount %")
                 {
@@ -55,18 +54,15 @@ page 7010 "Get Price Line"
                 field("Price List Code"; Rec."Price List Code")
                 {
                     ApplicationArea = All;
-                    ToolTip = 'Specifies the unique identifier of the price list.';
                 }
                 field("Amount Type"; Rec."Amount Type")
                 {
                     Visible = false;
                     ApplicationArea = All;
-                    ToolTip = 'Specifies whether the price list line defines prices, discounts, or both.';
                 }
                 field("Source Type"; Rec."Source Type")
                 {
                     ApplicationArea = All;
-                    ToolTip = 'Specifies the type of the entity that offers the price or the line discount on the product.';
                 }
                 field("Source No."; Rec."Source No.")
                 {
@@ -100,7 +96,6 @@ page 7010 "Get Price Line"
                 field("Work Type Code"; Rec."Work Type Code")
                 {
                     ApplicationArea = All;
-                    ToolTip = 'Specifies the work type code for the resource.';
                     Visible = WorkTypeCodeVisible;
                 }
                 field("Unit of Measure Code"; Rec."Unit of Measure Code")
@@ -117,13 +112,11 @@ page 7010 "Get Price Line"
                 {
                     Visible = PriceVisible;
                     ApplicationArea = All;
-                    ToolTip = 'Specifies if a line discount will be calculated when the price is offered.';
                 }
                 field("Allow Invoice Disc."; Rec."Allow Invoice Disc.")
                 {
                     Visible = PriceVisible;
                     ApplicationArea = All;
-                    ToolTip = 'Specifies if an invoice discount will be calculated when the price is offered.';
                 }
                 field("Starting Date"; Rec."Starting Date")
                 {

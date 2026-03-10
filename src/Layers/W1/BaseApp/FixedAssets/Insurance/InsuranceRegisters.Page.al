@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -25,22 +25,18 @@ page 5656 "Insurance Registers"
                 field("No."; Rec."No.")
                 {
                     ApplicationArea = FixedAssets;
-                    ToolTip = 'Specifies the number of the involved entry or record, according to the specified number series.';
                 }
                 field("Creation Date"; Rec."Creation Date")
                 {
                     ApplicationArea = FixedAssets;
-                    ToolTip = 'Specifies the date when the entries in the register were posted.';
                 }
                 field("Creation Time"; Rec."Creation Time")
                 {
                     ApplicationArea = FixedAssets;
-                    ToolTip = 'Specifies the time when the entries in the register were posted.';
                 }
                 field("User ID"; Rec."User ID")
                 {
                     ApplicationArea = FixedAssets;
-                    ToolTip = 'Specifies the ID of the user who posted the entry, to be used, for example, in the change log.';
 
                     trigger OnDrillDown()
                     var
@@ -52,22 +48,18 @@ page 5656 "Insurance Registers"
                 field("Source Code"; Rec."Source Code")
                 {
                     ApplicationArea = FixedAssets;
-                    ToolTip = 'Specifies the source code that specifies where the entry was created.';
                 }
                 field("Journal Batch Name"; Rec."Journal Batch Name")
                 {
                     ApplicationArea = FixedAssets;
-                    ToolTip = 'Specifies the name of the journal batch, a personalized journal layout, that the entries were posted from.';
                 }
                 field("From Entry No."; Rec."From Entry No.")
                 {
                     ApplicationArea = FixedAssets;
-                    ToolTip = 'Specifies the first item entry number in the register.';
                 }
                 field("To Entry No."; Rec."To Entry No.")
                 {
                     ApplicationArea = FixedAssets;
-                    ToolTip = 'Specifies the last insurance entry number in the register.';
                 }
             }
         }

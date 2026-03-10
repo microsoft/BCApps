@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -21,20 +21,24 @@ table 7112 "Analysis Line Template"
         field(2; Name; Code[10])
         {
             Caption = 'Name';
+            ToolTip = 'Specifies the name of the analysis line template.';
             NotBlank = true;
         }
         field(3; Description; Text[80])
         {
             Caption = 'Description';
+            ToolTip = 'Specifies a description of the analysis line template.';
         }
         field(4; "Default Column Template Name"; Code[10])
         {
             Caption = 'Default Column Template Name';
+            ToolTip = 'Specifies the column template name that you have set up for this analysis report.';
             TableRelation = "Analysis Column Template".Name where("Analysis Area" = field("Analysis Area"));
         }
         field(5; "Item Analysis View Code"; Code[10])
         {
             Caption = 'Item Analysis View Code';
+            ToolTip = 'Specifies the name of the analysis view that the analysis report is based on.';
             TableRelation = "Item Analysis View".Code where("Analysis Area" = field("Analysis Area"));
         }
     }

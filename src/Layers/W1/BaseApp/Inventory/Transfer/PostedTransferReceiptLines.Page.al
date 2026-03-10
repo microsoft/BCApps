@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -26,7 +26,6 @@ page 5759 "Posted Transfer Receipt Lines"
                     ApplicationArea = Location;
                     HideValue = DocumentNoHideValue;
                     StyleExpr = 'Strong';
-                    ToolTip = 'Specifies the document number associated with this transfer line.';
                 }
                 field("Item No."; Rec."Item No.")
                 {
@@ -36,12 +35,10 @@ page 5759 "Posted Transfer Receipt Lines"
                 field(Description; Rec.Description)
                 {
                     ApplicationArea = Location;
-                    ToolTip = 'Specifies the description of the item being transferred.';
                 }
                 field("Description 2"; Rec."Description 2")
                 {
                     ApplicationArea = All;
-                    ToolTip = 'Specifies information in addition to the description of the item being transferred.';
                     Visible = false;
                 }
                 field(Quantity; Rec.Quantity)
@@ -52,12 +49,10 @@ page 5759 "Posted Transfer Receipt Lines"
                 field("Unit of Measure"; Rec."Unit of Measure")
                 {
                     ApplicationArea = Location;
-                    ToolTip = 'Specifies the name of the item or resource''s unit of measure, such as piece or hour.';
                 }
                 field("Receipt Date"; Rec."Receipt Date")
                 {
                     ApplicationArea = Location;
-                    ToolTip = 'Specifies the receipt date of the transfer receipt line.';
                 }
             }
         }

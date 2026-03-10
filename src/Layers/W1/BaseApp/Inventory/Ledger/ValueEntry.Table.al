@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -42,23 +42,28 @@ table 5802 "Value Entry"
         field(1; "Entry No."; Integer)
         {
             Caption = 'Entry No.';
+            ToolTip = 'Specifies the number of the entry, as assigned from the specified number series when the entry was created.';
         }
         field(2; "Item No."; Code[20])
         {
             Caption = 'Item No.';
+            ToolTip = 'Specifies the number of the item that this value entry is linked to.';
             TableRelation = Item;
         }
         field(3; "Posting Date"; Date)
         {
             Caption = 'Posting Date';
+            ToolTip = 'Specifies the posting date of this entry.';
         }
         field(4; "Item Ledger Entry Type"; Enum "Item Ledger Entry Type")
         {
             Caption = 'Item Ledger Entry Type';
+            ToolTip = 'Specifies the type of item ledger entry that caused this value entry.';
         }
         field(5; "Source No."; Code[20])
         {
             Caption = 'Source No.';
+            ToolTip = 'Specifies the number of the source document that the entry originates from.';
             TableRelation = if ("Source Type" = const(Customer)) Customer
             else
             if ("Source Type" = const(Vendor)) Vendor
@@ -68,14 +73,17 @@ table 5802 "Value Entry"
         field(6; "Document No."; Code[20])
         {
             Caption = 'Document No.';
+            ToolTip = 'Specifies the document number of the entry.';
         }
         field(7; Description; Text[100])
         {
             Caption = 'Description';
+            ToolTip = 'Specifies a description of the entry.';
         }
         field(8; "Location Code"; Code[10])
         {
             Caption = 'Location Code';
+            ToolTip = 'Specifies the code for the location of the item that the entry is linked to.';
             TableRelation = Location;
         }
         field(9; "Inventory Posting Group"; Code[20])
@@ -86,6 +94,7 @@ table 5802 "Value Entry"
         field(10; "Source Posting Group"; Code[20])
         {
             Caption = 'Source Posting Group';
+            ToolTip = 'Specifies the posting group for the item, customer, or vendor for the item entry that this value entry is linked to.';
             TableRelation = if ("Source Type" = const(Customer)) "Customer Posting Group"
             else
             if ("Source Type" = const(Vendor)) "Vendor Posting Group"
@@ -95,24 +104,28 @@ table 5802 "Value Entry"
         field(11; "Item Ledger Entry No."; Integer)
         {
             Caption = 'Item Ledger Entry No.';
+            ToolTip = 'Specifies the number of the item ledger entry that this value entry is linked to.';
             TableRelation = "Item Ledger Entry";
         }
         field(12; "Valued Quantity"; Decimal)
         {
             AutoFormatType = 0;
             Caption = 'Valued Quantity';
+            ToolTip = 'Specifies the quantity that the adjusted cost and the amount of the entry belongs to.';
             DecimalPlaces = 0 : 5;
         }
         field(13; "Item Ledger Entry Quantity"; Decimal)
         {
             AutoFormatType = 0;
             Caption = 'Item Ledger Entry Quantity';
+            ToolTip = 'Specifies the average cost calculation.';
             DecimalPlaces = 0 : 5;
         }
         field(14; "Invoiced Quantity"; Decimal)
         {
             AutoFormatType = 0;
             Caption = 'Invoiced Quantity';
+            ToolTip = 'Specifies how many units of the item are invoiced by the posting that the value entry line represents.';
             DecimalPlaces = 0 : 5;
         }
         field(15; "Cost per Unit"; Decimal)
@@ -120,6 +133,7 @@ table 5802 "Value Entry"
             AutoFormatType = 2;
             AutoFormatExpression = '';
             Caption = 'Cost per Unit';
+            ToolTip = 'Specifies the cost for one base unit of the item in the entry.';
         }
         field(17; "Sales Amount (Actual)"; Decimal)
         {
@@ -142,6 +156,7 @@ table 5802 "Value Entry"
         field(22; "Salespers./Purch. Code"; Code[20])
         {
             Caption = 'Salespers./Purch. Code';
+            ToolTip = 'Specifies which salesperson or purchaser is linked to the entry.';
             TableRelation = "Salesperson/Purchaser";
         }
         field(23; "Discount Amount"; Decimal)
@@ -149,16 +164,19 @@ table 5802 "Value Entry"
             AutoFormatType = 1;
             AutoFormatExpression = '';
             Caption = 'Discount Amount';
+            ToolTip = 'Specifies the total discount amount of this value entry.';
         }
         field(24; "User ID"; Code[50])
         {
             Caption = 'User ID';
+            ToolTip = 'Specifies the ID of the user who posted the entry, to be used, for example, in the change log.';
             DataClassification = EndUserIdentifiableInformation;
             TableRelation = User."User Name";
         }
         field(25; "Source Code"; Code[10])
         {
             Caption = 'Source Code';
+            ToolTip = 'Specifies the source code that specifies where the entry was created.';
             TableRelation = "Source Code";
         }
         field(28; "Applies-to Entry"; Integer)
@@ -169,17 +187,20 @@ table 5802 "Value Entry"
         {
             CaptionClass = '1,1,1';
             Caption = 'Global Dimension 1 Code';
+            ToolTip = 'Specifies the code for the global dimension that is linked to the record or entry for analysis purposes. Two global dimensions, typically for the company''s most important activities, are available on all cards, documents, reports, and lists.';
             TableRelation = "Dimension Value".Code where("Global Dimension No." = const(1));
         }
         field(34; "Global Dimension 2 Code"; Code[20])
         {
             CaptionClass = '1,1,2';
             Caption = 'Global Dimension 2 Code';
+            ToolTip = 'Specifies the code for the global dimension that is linked to the record or entry for analysis purposes. Two global dimensions, typically for the company''s most important activities, are available on all cards, documents, reports, and lists.';
             TableRelation = "Dimension Value".Code where("Global Dimension No." = const(2));
         }
         field(41; "Source Type"; Enum "Analysis Source Type")
         {
             Caption = 'Source Type';
+            ToolTip = 'Specifies the source type that applies to the source number that is shown in the Source No. field.';
         }
         field(43; "Cost Amount (Actual)"; Decimal)
         {
@@ -192,6 +213,7 @@ table 5802 "Value Entry"
             AutoFormatType = 1;
             AutoFormatExpression = '';
             Caption = 'Cost Posted to G/L';
+            ToolTip = 'Specifies the amount that has been posted to the general ledger.';
         }
         field(46; "Reason Code"; Code[10])
         {
@@ -210,20 +232,24 @@ table 5802 "Value Entry"
         field(57; "Gen. Bus. Posting Group"; Code[20])
         {
             Caption = 'Gen. Bus. Posting Group';
+            ToolTip = 'Specifies the vendor''s or customer''s trade type to link transactions made for this business partner with the appropriate general ledger account according to the general posting setup.';
             TableRelation = "Gen. Business Posting Group";
         }
         field(58; "Gen. Prod. Posting Group"; Code[20])
         {
             Caption = 'Gen. Prod. Posting Group';
+            ToolTip = 'Specifies the item''s product type to link transactions made for this item with the appropriate general ledger account according to the general posting setup.';
             TableRelation = "Gen. Product Posting Group";
         }
         field(60; "Document Date"; Date)
         {
             Caption = 'Document Date';
+            ToolTip = 'Specifies the date when the related document was created.';
         }
         field(61; "External Document No."; Code[35])
         {
             Caption = 'External Document No.';
+            ToolTip = 'Specifies a document number that refers to the customer''s or vendor''s numbering system.';
         }
         field(68; "Cost Amount (Actual) (ACY)"; Decimal)
         {
@@ -248,10 +274,12 @@ table 5802 "Value Entry"
         field(79; "Document Type"; Enum "Item Ledger Document Type")
         {
             Caption = 'Document Type';
+            ToolTip = 'Specifies what type of document was posted to create the value entry.';
         }
         field(80; "Document Line No."; Integer)
         {
             Caption = 'Document Line No.';
+            ToolTip = 'Specifies the line number of the line on the posted document that corresponds to the value entry.';
         }
         field(86; "VAT Reporting Date"; Date)
         {
@@ -260,11 +288,13 @@ table 5802 "Value Entry"
         field(90; "Order Type"; Enum "Inventory Order Type")
         {
             Caption = 'Order Type';
+            ToolTip = 'Specifies which type of order that the entry was created in.';
             Editable = false;
         }
         field(91; "Order No."; Code[20])
         {
             Caption = 'Order No.';
+            ToolTip = 'Specifies the number of the order that created the entry.';
             Editable = false;
         }
         field(92; "Order Line No."; Integer)
@@ -279,11 +309,13 @@ table 5802 "Value Entry"
         field(99; "Item Charge No."; Code[20])
         {
             Caption = 'Item Charge No.';
+            ToolTip = 'Specifies the item charge number of the value entry.';
             TableRelation = "Item Charge";
         }
         field(100; "Valued By Average Cost"; Boolean)
         {
             Caption = 'Valued By Average Cost';
+            ToolTip = 'Specifies if the adjusted cost for the inventory decrease is calculated by the average cost of the item at the valuation date.';
         }
         field(102; "Partial Revaluation"; Boolean)
         {
@@ -296,15 +328,18 @@ table 5802 "Value Entry"
         field(104; "Valuation Date"; Date)
         {
             Caption = 'Valuation Date';
+            ToolTip = 'Specifies the valuation date from which the entry is included in the average cost calculation.';
         }
         field(105; "Entry Type"; Enum "Cost Entry Type")
         {
             Caption = 'Entry Type';
+            ToolTip = 'Specifies the type of value described in this entry.';
             Editable = false;
         }
         field(106; "Variance Type"; Enum "Cost Variance Type")
         {
             Caption = 'Variance Type';
+            ToolTip = 'Specifies the type of variance described in this entry.';
             Editable = false;
         }
         field(148; "Purchase Amount (Actual)"; Decimal)
@@ -358,6 +393,7 @@ table 5802 "Value Entry"
             AutoFormatType = 1;
             AutoFormatExpression = '';
             Caption = 'Expected Cost Posted to G/L';
+            ToolTip = 'Specifies the expected cost amount that has been posted to the interim account in the general ledger.';
         }
         field(159; "Exp. Cost Posted to G/L (ACY)"; Decimal)
         {
@@ -368,6 +404,7 @@ table 5802 "Value Entry"
         field(480; "Dimension Set ID"; Integer)
         {
             Caption = 'Dimension Set ID';
+            ToolTip = 'Specifies a reference to a combination of dimension values. The actual values are stored in the Dimension Set Entry table.';
             Editable = false;
             TableRelation = "Dimension Set Entry";
 
@@ -380,6 +417,7 @@ table 5802 "Value Entry"
         {
             CaptionClass = '1,2,3';
             Caption = 'Shortcut Dimension 3 Code';
+            ToolTip = 'Specifies the code for Shortcut Dimension 3, which is one of dimension codes that you set up in the General Ledger Setup window.';
             Editable = false;
             FieldClass = FlowField;
             CalcFormula = lookup("Dimension Set Entry"."Dimension Value Code" where("Dimension Set ID" = field("Dimension Set ID"),
@@ -389,6 +427,7 @@ table 5802 "Value Entry"
         {
             CaptionClass = '1,2,4';
             Caption = 'Shortcut Dimension 4 Code';
+            ToolTip = 'Specifies the code for Shortcut Dimension 4, which is one of dimension codes that you set up in the General Ledger Setup window.';
             Editable = false;
             FieldClass = FlowField;
             CalcFormula = lookup("Dimension Set Entry"."Dimension Value Code" where("Dimension Set ID" = field("Dimension Set ID"),
@@ -398,6 +437,7 @@ table 5802 "Value Entry"
         {
             CaptionClass = '1,2,5';
             Caption = 'Shortcut Dimension 5 Code';
+            ToolTip = 'Specifies the code for Shortcut Dimension 5, which is one of dimension codes that you set up in the General Ledger Setup window.';
             Editable = false;
             FieldClass = FlowField;
             CalcFormula = lookup("Dimension Set Entry"."Dimension Value Code" where("Dimension Set ID" = field("Dimension Set ID"),
@@ -407,6 +447,7 @@ table 5802 "Value Entry"
         {
             CaptionClass = '1,2,6';
             Caption = 'Shortcut Dimension 6 Code';
+            ToolTip = 'Specifies the code for Shortcut Dimension 6, which is one of dimension codes that you set up in the General Ledger Setup window.';
             Editable = false;
             FieldClass = FlowField;
             CalcFormula = lookup("Dimension Set Entry"."Dimension Value Code" where("Dimension Set ID" = field("Dimension Set ID"),
@@ -416,6 +457,7 @@ table 5802 "Value Entry"
         {
             CaptionClass = '1,2,7';
             Caption = 'Shortcut Dimension 7 Code';
+            ToolTip = 'Specifies the code for Shortcut Dimension 7, which is one of dimension codes that you set up in the General Ledger Setup window.';
             Editable = false;
             FieldClass = FlowField;
             CalcFormula = lookup("Dimension Set Entry"."Dimension Value Code" where("Dimension Set ID" = field("Dimension Set ID"),
@@ -425,6 +467,7 @@ table 5802 "Value Entry"
         {
             CaptionClass = '1,2,8';
             Caption = 'Shortcut Dimension 8 Code';
+            ToolTip = 'Specifies the code for Shortcut Dimension 8, which is one of dimension codes that you set up in the General Ledger Setup window.';
             Editable = false;
             FieldClass = FlowField;
             CalcFormula = lookup("Dimension Set Entry"."Dimension Value Code" where("Dimension Set ID" = field("Dimension Set ID"),
@@ -433,17 +476,20 @@ table 5802 "Value Entry"
         field(1000; "Job No."; Code[20])
         {
             Caption = 'Project No.';
+            ToolTip = 'Specifies the number of the project that the value entry relates to.';
             TableRelation = Job."No.";
         }
         field(1001; "Job Task No."; Code[20])
         {
             Caption = 'Project Task No.';
+            ToolTip = 'Specifies the number of the related project task.';
             TableRelation = "Job Task"."Job Task No." where("Job No." = field("Job No."));
         }
         field(1002; "Job Ledger Entry No."; Integer)
         {
             BlankZero = true;
             Caption = 'Project Ledger Entry No.';
+            ToolTip = 'Specifies the number of the project ledger entry that the value entry relates to.';
             TableRelation = "Job Ledger Entry"."Entry No.";
         }
         field(5402; "Variant Code"; Code[10])
@@ -454,6 +500,7 @@ table 5802 "Value Entry"
         field(5818; Adjustment; Boolean)
         {
             Caption = 'Adjustment';
+            ToolTip = 'Specifies if this entry has been cost adjusted.';
             Editable = false;
         }
         field(5819; "Average Cost Exception"; Boolean)
@@ -463,26 +510,31 @@ table 5802 "Value Entry"
         field(5831; "Capacity Ledger Entry No."; Integer)
         {
             Caption = 'Capacity Ledger Entry No.';
+            ToolTip = 'Specifies the entry number of the item ledger entry that this value entry is linked to.';
             TableRelation = Microsoft.Manufacturing.Capacity."Capacity Ledger Entry";
         }
         field(5832; Type; Enum Microsoft.Manufacturing.Capacity."Capacity Type Journal")
         {
             Caption = 'Type';
+            ToolTip = 'Specifies the type of value entry when it relates to a capacity entry.';
         }
         field(5834; "No."; Code[20])
         {
             Caption = 'No.';
+            ToolTip = 'Specifies the number of the involved entry or record, according to the specified number series.';
             TableRelation = if (Type = const(Resource)) Resource;
         }
         field(6602; "Return Reason Code"; Code[10])
         {
             Caption = 'Return Reason Code';
+            ToolTip = 'Specifies the code explaining why the item was returned.';
             TableRelation = "Return Reason";
         }
         field(6603; "Item Description"; Text[100])
         {
             CalcFormula = lookup(Item.Description where("No." = field("Item No.")));
             Caption = 'Item Description';
+            ToolTip = 'Specifies the description of the item that this value entry is linked to.  Analysis mode must be used for sorting and filtering on this field.';
             Editable = false;
             FieldClass = FlowField;
         }

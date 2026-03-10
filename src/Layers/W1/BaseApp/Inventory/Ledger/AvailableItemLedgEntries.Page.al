@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -33,50 +33,41 @@ page 504 "Available - Item Ledg. Entries"
                 field("Entry Type"; Rec."Entry Type")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies which type of transaction that the entry is created from.';
                 }
                 field("Document No."; Rec."Document No.")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the document number on the entry. The document is the voucher that the entry was based on, for example, a receipt.';
                 }
                 field("Serial No."; Rec."Serial No.")
                 {
                     ApplicationArea = ItemTracking;
-                    ToolTip = 'Specifies a serial number if the posted item carries such a number.';
                     Visible = false;
                 }
                 field("Lot No."; Rec."Lot No.")
                 {
                     ApplicationArea = ItemTracking;
-                    ToolTip = 'Specifies a lot number if the posted item carries such a number.';
                     Visible = false;
                 }
                 field("Package No."; Rec."Package No.")
                 {
                     ApplicationArea = ItemTracking;
-                    ToolTip = 'Specifies a package number if the posted item carries such a number.';
                 }
                 field("Location Code"; Rec."Location Code")
                 {
                     ApplicationArea = Location;
-                    ToolTip = 'Specifies the code for the location that the entry is linked to.';
                 }
                 field("Posting Date"; Rec."Posting Date")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the entry''s posting date.';
                 }
                 field("Remaining Quantity"; Rec."Remaining Quantity")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the quantity in the Quantity field that remains to be processed.';
                 }
                 field("Reserved Quantity"; Rec."Reserved Quantity")
                 {
                     ApplicationArea = Reservation;
                     Editable = false;
-                    ToolTip = 'Specifies how many units of the item on the line have been reserved.';
                 }
                 field(QtyToReserve; QtyToReserve)
                 {

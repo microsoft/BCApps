@@ -24,7 +24,7 @@ codeunit 7003 "Price Calculation - V15" implements "Price Calculation"
     var
         PriceCalculationSetup: Record "Price Calculation Setup";
     begin
-        PriceCalculationSetup.SetRange(Implementation, PriceCalculationSetup.Implementation::"Not Defined");
+        PriceCalculationSetup.SetRange(Implementation, PriceCalculationSetup.Implementation::"Business Central (Version 15.0)");
         PriceCalculationSetup.DeleteAll();
         AddSupportedSetup(PriceCalculationSetup);
         PriceCalculationSetup.ModifyAll(Default, true);

@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -26,6 +26,7 @@ table 5883 "Phys. Invt. Comment Line"
         field(2; "Order No."; Code[20])
         {
             Caption = 'Order No.';
+            ToolTip = 'Specifies the document number of the physical inventory order to which the comment applies.';
             TableRelation = if ("Document Type" = const(Order)) "Phys. Invt. Order Header"
             else
             if ("Document Type" = const(Recording)) "Phys. Invt. Record Header"."Order No."
@@ -37,6 +38,7 @@ table 5883 "Phys. Invt. Comment Line"
         field(3; "Recording No."; Integer)
         {
             Caption = 'Recording No.';
+            ToolTip = 'Specifies the document number of the physical inventory recording to which the comment applies.';
             TableRelation = if ("Document Type" = const(Recording)) "Phys. Invt. Record Header"."Recording No." where("Order No." = field("Order No."))
             else
             if ("Document Type" = const("Posted Recording")) "Pstd. Phys. Invt. Record Hdr"."Recording No." where("Order No." = field("Order No."));
@@ -48,14 +50,17 @@ table 5883 "Phys. Invt. Comment Line"
         field(10; Date; Date)
         {
             Caption = 'Date';
+            ToolTip = 'Specifies the date when the comment was created.';
         }
         field(11; "Code"; Code[10])
         {
             Caption = 'Code';
+            ToolTip = 'Specifies a code for the comment.';
         }
         field(12; Comment; Text[80])
         {
             Caption = 'Comment';
+            ToolTip = 'Specifies the comment itself.';
         }
     }
 

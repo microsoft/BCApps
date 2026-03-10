@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -23,6 +23,7 @@ table 6504 "Serial No. Information"
         field(1; "Item No."; Code[20])
         {
             Caption = 'Item No.';
+            ToolTip = 'Specifies the number that is copied from the Tracking Specification table, when a serial number information record is created.';
             OptimizeForTextSearch = true;
             NotBlank = true;
             TableRelation = Item;
@@ -30,11 +31,13 @@ table 6504 "Serial No. Information"
         field(2; "Variant Code"; Code[10])
         {
             Caption = 'Variant Code';
+            ToolTip = 'Specifies the variant of the item on the line.';
             TableRelation = "Item Variant".Code where("Item No." = field("Item No."));
         }
         field(3; "Serial No."; Code[50])
         {
             Caption = 'Serial No.';
+            ToolTip = 'Specifies this number from the Tracking Specification table when a serial number information record is created.';
             OptimizeForTextSearch = true;
             ExtendedDatatype = Barcode;
             NotBlank = true;
@@ -42,11 +45,13 @@ table 6504 "Serial No. Information"
         field(10; Description; Text[100])
         {
             Caption = 'Description';
+            ToolTip = 'Specifies a description of the serial no. information record.';
             OptimizeForTextSearch = true;
         }
         field(13; Blocked; Boolean)
         {
             Caption = 'Blocked';
+            ToolTip = 'Specifies that the related record is blocked from being posted in transactions, for example a customer that is declared insolvent or an item that is placed in quarantine.';
         }
         field(14; Comment; Boolean)
         {
@@ -55,6 +60,7 @@ table 6504 "Serial No. Information"
                                                                "Variant Code" = field("Variant Code"),
                                                                "Serial/Lot No." = field("Serial No.")));
             Caption = 'Comment';
+            ToolTip = 'Specifies that a comment has been recorded for the serial number.';
             Editable = false;
             FieldClass = FlowField;
         }
@@ -66,6 +72,7 @@ table 6504 "Serial No. Information"
                                                                   "Serial No." = field("Serial No."),
                                                                   "Location Code" = field("Location Filter")));
             Caption = 'Inventory';
+            ToolTip = 'Specifies the inventory quantity of the specified serial number.';
             DecimalPlaces = 0 : 5;
             Editable = false;
             FieldClass = FlowField;
@@ -98,6 +105,7 @@ table 6504 "Serial No. Information"
                                                                               Open = const(true),
                                                                               Positive = const(true)));
             Caption = 'Expired Inventory';
+            ToolTip = 'Specifies the inventory of the serial number with an expiration date before the posting date on the associated document.';
             DecimalPlaces = 0 : 5;
             Editable = false;
             FieldClass = FlowField;

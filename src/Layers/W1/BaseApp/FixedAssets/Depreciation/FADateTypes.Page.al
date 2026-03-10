@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -21,7 +21,6 @@ page 5661 "FA Date Types"
                 field("FA Date Type Name"; Rec."FA Date Type Name")
                 {
                     ApplicationArea = FixedAssets;
-                    ToolTip = 'Specifies the name of the fixed asset data type.';
                 }
             }
         }

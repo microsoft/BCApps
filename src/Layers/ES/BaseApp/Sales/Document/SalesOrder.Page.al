@@ -144,13 +144,11 @@ page 42 "Sales Order"
                     field("Quote No."; Rec."Quote No.")
                     {
                         ApplicationArea = All;
-                        ToolTip = 'Specifies the number of the sales quote that the sales order was created from. You can track the number to sales quote documents that you have printed, saved, or emailed.';
                     }
                 }
                 field("Posting Description"; Rec."Posting Description")
                 {
                     ApplicationArea = Suite;
-                    ToolTip = 'Specifies additional posting information for the document. After you post the document, the description can add detail to vendor and customer ledger entries.';
                     Visible = false;
                 }
                 group("Sell-to")
@@ -162,7 +160,6 @@ page 42 "Sales Order"
                         Caption = 'Address';
                         Importance = Additional;
                         QuickEntry = false;
-                        ToolTip = 'Specifies the address where the customer is located.';
                     }
                     field("Sell-to Address 2"; Rec."Sell-to Address 2")
                     {
@@ -170,7 +167,6 @@ page 42 "Sales Order"
                         Caption = 'Address 2';
                         Importance = Additional;
                         QuickEntry = false;
-                        ToolTip = 'Specifies additional address information.';
                     }
                     field("Sell-to City"; Rec."Sell-to City")
                     {
@@ -178,7 +174,6 @@ page 42 "Sales Order"
                         Caption = 'City';
                         Importance = Additional;
                         QuickEntry = false;
-                        ToolTip = 'Specifies the city of the customer on the sales document.';
                     }
                     group(Control123)
                     {
@@ -190,7 +185,6 @@ page 42 "Sales Order"
                             CaptionClass = '5,1,' + Rec."Sell-to Country/Region Code";
                             Importance = Additional;
                             QuickEntry = false;
-                            ToolTip = 'Specifies the state, province or county of the address.';
                         }
                     }
                     field("Sell-to Post Code"; Rec."Sell-to Post Code")
@@ -219,7 +213,6 @@ page 42 "Sales Order"
                         ApplicationArea = Basic, Suite;
                         Caption = 'Contact No.';
                         Importance = Additional;
-                        ToolTip = 'Specifies the number of the contact person that the sales document will be sent to.';
 
                         trigger OnLookup(var Text: Text): Boolean
                         begin
@@ -244,7 +237,6 @@ page 42 "Sales Order"
                         ApplicationArea = Basic, Suite;
                         Caption = 'Phone No.';
                         Importance = Additional;
-                        ToolTip = 'Specifies the telephone number of the contact person that the sales document will be sent to.';
                     }
                     field(SellToMobilePhoneNo; SellToContact."Mobile Phone No.")
                     {
@@ -260,7 +252,6 @@ page 42 "Sales Order"
                         ApplicationArea = Basic, Suite;
                         Caption = 'Email';
                         Importance = Additional;
-                        ToolTip = 'Specifies the email address of the contact person that the sales document will be sent to.';
                     }
                 }
                 field("Sell-to Contact"; Rec."Sell-to Contact")
@@ -291,19 +282,16 @@ page 42 "Sales Order"
                 {
                     ApplicationArea = Basic, Suite;
                     Importance = Additional;
-                    ToolTip = 'Specifies the number of archived versions for this document.';
                 }
                 field("Document Date"; Rec."Document Date")
                 {
                     ApplicationArea = Basic, Suite;
                     Importance = Promoted;
-                    ToolTip = 'Specifies the date when the related document was created.';
                 }
                 field("Posting Date"; Rec."Posting Date")
                 {
                     ApplicationArea = Basic, Suite;
                     Importance = Promoted;
-                    ToolTip = 'Specifies the date when the posting of the sales document will be recorded.';
 
                     trigger OnValidate()
                     begin
@@ -316,7 +304,6 @@ page 42 "Sales Order"
                     Importance = Promoted;
                     Editable = VATDateEnabled;
                     Visible = VATDateEnabled;
-                    ToolTip = 'Specifies the date used to include entries on VAT reports in a VAT period. This is either the date that the document was created or posted, depending on your setting on the General Ledger Setup page.';
                 }
                 field("Order Date"; Rec."Order Date")
                 {
@@ -337,7 +324,6 @@ page 42 "Sales Order"
                 field("Requested Delivery Date"; Rec."Requested Delivery Date")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the date that the customer has asked for the order to be delivered.';
 
                     trigger OnValidate()
                     begin
@@ -348,27 +334,23 @@ page 42 "Sales Order"
                 {
                     ApplicationArea = OrderPromising;
                     Importance = Additional;
-                    ToolTip = 'Specifies the date that you have promised to deliver the order, as a result of the Order Promising function.';
                 }
                 field("External Document No."; Rec."External Document No.")
                 {
                     ApplicationArea = Basic, Suite;
                     Importance = Promoted;
                     ShowMandatory = ExternalDocNoMandatory;
-                    ToolTip = 'Specifies a document number that refers to the customer''s or vendor''s numbering system.';
                 }
                 field("Your Reference"; Rec."Your Reference")
                 {
                     ApplicationArea = Basic, Suite;
                     Importance = Additional;
-                    ToolTip = 'Specifies the customer''s reference. The content will be printed on sales documents.';
                 }
                 field("Salesperson Code"; Rec."Salesperson Code")
                 {
                     ApplicationArea = Suite;
                     Importance = Additional;
                     QuickEntry = false;
-                    ToolTip = 'Specifies the name of the salesperson who is assigned to the customer.';
 
                     trigger OnValidate()
                     begin
@@ -390,26 +372,22 @@ page 42 "Sales Order"
                 {
                     ApplicationArea = RelationshipMgmt;
                     Importance = Additional;
-                    ToolTip = 'Specifies the number of the opportunity that the sales quote is assigned to.';
                 }
                 field("Responsibility Center"; Rec."Responsibility Center")
                 {
                     AccessByPermission = TableData "Responsibility Center" = R;
                     ApplicationArea = Basic, Suite;
                     Importance = Additional;
-                    ToolTip = 'Specifies the code of the responsibility center, such as a distribution hub, that is associated with the involved user, company, customer, or vendor.';
                 }
                 field("Assigned User ID"; Rec."Assigned User ID")
                 {
                     ApplicationArea = Basic, Suite;
                     Importance = Additional;
-                    ToolTip = 'Specifies the ID of the user who is responsible for the document.';
                 }
                 field("Job Queue Status"; Rec."Job Queue Status")
                 {
                     ApplicationArea = All;
                     Importance = Additional;
-                    ToolTip = 'Specifies the status of a job queue entry or task that handles the posting of sales orders.';
                     Visible = JobQueuesUsed;
 
                     trigger OnDrillDown()
@@ -427,7 +405,6 @@ page 42 "Sales Order"
                     Importance = Promoted;
                     StyleExpr = StatusStyleTxt;
                     QuickEntry = false;
-                    ToolTip = 'Specifies whether the document is open, waiting to be approved, has been invoiced for prepayment, or has been released to the next stage of processing.';
                 }
                 group("Work Description")
                 {
@@ -462,7 +439,6 @@ page 42 "Sales Order"
                 {
                     ApplicationArea = Suite;
                     Importance = Promoted;
-                    ToolTip = 'Specifies the currency of amounts on the sales document.';
 
                     trigger OnAssistEdit()
                     begin
@@ -487,12 +463,10 @@ page 42 "Sales Order"
                 {
                     ApplicationArea = Suite;
                     Importance = Promoted;
-                    ToolTip = 'Specifies the bank account to use for bank information when the document is printed.';
                 }
                 field("Prices Including VAT"; Rec."Prices Including VAT")
                 {
                     ApplicationArea = VAT;
-                    ToolTip = 'Specifies if the Unit Price and Line Amount fields on document lines should be shown with or without VAT.';
 
                     trigger OnValidate()
                     begin
@@ -503,7 +477,6 @@ page 42 "Sales Order"
                 {
                     ApplicationArea = VAT;
                     Importance = Additional;
-                    ToolTip = 'Specifies the country or region code for the VAT.';
                 }
                 field("VAT Registration No."; Rec."VAT Registration No.")
                 {
@@ -515,12 +488,10 @@ page 42 "Sales Order"
                 {
                     ApplicationArea = Basic, Suite;
                     Importance = Additional;
-                    ToolTip = 'Specifies the general business posting group that the sales document is linked to. The general business posting group is used to link the sales document to the appropriate general ledger account.';
                 }
                 field("VAT Bus. Posting Group"; Rec."VAT Bus. Posting Group")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the VAT specification of the involved customer or vendor to link transactions made for this record with the appropriate general ledger account according to the VAT posting setup.';
 
                     trigger OnValidate()
                     begin
@@ -532,21 +503,18 @@ page 42 "Sales Order"
                     ApplicationArea = Basic, Suite;
                     Editable = IsPostingGroupEditable;
                     Importance = Additional;
-                    ToolTip = 'Specifies the customer''s market type to link business transactions to.';
                 }
                 field("Payment Terms Code"; Rec."Payment Terms Code")
                 {
                     ApplicationArea = Basic, Suite;
                     Importance = Promoted;
                     ShowMandatory = true;
-                    ToolTip = 'Specifies a formula that calculates the payment due date, payment discount date, and payment discount amount.';
                 }
                 field("Payment Method Code"; Rec."Payment Method Code")
                 {
                     ApplicationArea = Basic, Suite;
                     Importance = Promoted;
                     ShowMandatory = true;
-                    ToolTip = 'Specifies how to make payment, such as with bank transfer, cash, or check.';
                     Visible = IsPaymentMethodCodeVisible;
 
                     trigger OnValidate()
@@ -557,7 +525,6 @@ page 42 "Sales Order"
                 field("EU 3-Party Trade"; Rec."EU 3-Party Trade")
                 {
                     ApplicationArea = BasicEU;
-                    ToolTip = 'Specifies if the transaction is related to trade with a third party within the EU.';
                 }
                 group(Control76)
                 {
@@ -581,7 +548,6 @@ page 42 "Sales Order"
                 field("Shortcut Dimension 1 Code"; Rec."Shortcut Dimension 1 Code")
                 {
                     ApplicationArea = Dimensions;
-                    ToolTip = 'Specifies the code for Shortcut Dimension 1, which is one of two global dimension codes that you set up in the General Ledger Setup window.';
 
                     trigger OnValidate()
                     begin
@@ -591,7 +557,6 @@ page 42 "Sales Order"
                 field("Shortcut Dimension 2 Code"; Rec."Shortcut Dimension 2 Code")
                 {
                     ApplicationArea = Dimensions;
-                    ToolTip = 'Specifies the code for Shortcut Dimension 2, which is one of two global dimension codes that you set up in the General Ledger Setup window.';
 
                     trigger OnValidate()
                     begin
@@ -607,18 +572,15 @@ page 42 "Sales Order"
                 {
                     ApplicationArea = Basic, Suite;
                     Importance = Additional;
-                    ToolTip = 'Specifies the date on which the amount in the entry must be paid for a payment discount to be granted.';
                 }
                 field("Journal Templ. Name"; Rec."Journal Templ. Name")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the name of the journal template in which the sales header is to be posted.';
                     Visible = IsJournalTemplNameVisible;
                 }
                 field("Direct Debit Mandate ID"; Rec."Direct Debit Mandate ID")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the direct-debit mandate that the customer has signed to allow direct debit collection of payments.';
                 }
                 group("SII Information")
                 {
@@ -791,7 +753,6 @@ page 42 "Sales Order"
                                 Caption = 'Name 2';
                                 Editable = ShipToOptions = ShipToOptions::"Custom Address";
                                 Importance = Additional;
-                                ToolTip = 'Specifies an additional part of the name that products on the sales document will be shipped to.';
                                 QuickEntry = false;
                                 Visible = false;
                             }
@@ -801,7 +762,6 @@ page 42 "Sales Order"
                                 Caption = 'Address';
                                 Editable = ShipToOptions = ShipToOptions::"Custom Address";
                                 QuickEntry = false;
-                                ToolTip = 'Specifies the address that products on the sales document will be shipped to.';
                             }
                             field("Ship-to Address 2"; Rec."Ship-to Address 2")
                             {
@@ -809,7 +769,6 @@ page 42 "Sales Order"
                                 Caption = 'Address 2';
                                 Editable = ShipToOptions = ShipToOptions::"Custom Address";
                                 QuickEntry = false;
-                                ToolTip = 'Specifies additional address information.';
                             }
                             field("Ship-to City"; Rec."Ship-to City")
                             {
@@ -817,7 +776,6 @@ page 42 "Sales Order"
                                 Caption = 'City';
                                 Editable = ShipToOptions = ShipToOptions::"Custom Address";
                                 QuickEntry = false;
-                                ToolTip = 'Specifies the city of the customer on the sales document.';
                             }
                             group(Control297)
                             {
@@ -829,7 +787,6 @@ page 42 "Sales Order"
                                     CaptionClass = '5,1,' + Rec."Ship-to Country/Region Code";
                                     Editable = ShipToOptions = ShipToOptions::"Custom Address";
                                     QuickEntry = false;
-                                    ToolTip = 'Specifies the state, province or county of the address.';
                                 }
                             }
                             field("Ship-to Post Code"; Rec."Ship-to Post Code")
@@ -859,7 +816,6 @@ page 42 "Sales Order"
                         {
                             ApplicationArea = Basic, Suite;
                             Caption = 'Phone No.';
-                            ToolTip = 'Specifies the telephone number of the company''s shipping address.';
                         }
                         field("Ship-to Contact"; Rec."Ship-to Contact")
                         {
@@ -896,7 +852,6 @@ page 42 "Sales Order"
                         {
                             ApplicationArea = Suite;
                             Importance = Additional;
-                            ToolTip = 'Specifies the shipping agent''s package number.';
                         }
                     }
                 }
@@ -970,7 +925,6 @@ page 42 "Sales Order"
                             Enabled = (BillToOptions = BillToOptions::"Custom Address") or (Rec."Bill-to Customer No." <> Rec."Sell-to Customer No.");
                             Importance = Additional;
                             QuickEntry = false;
-                            ToolTip = 'Specifies the address of the customer that you will send the invoice to.';
                         }
                         field("Bill-to Address 2"; Rec."Bill-to Address 2")
                         {
@@ -980,7 +934,6 @@ page 42 "Sales Order"
                             Enabled = (BillToOptions = BillToOptions::"Custom Address") or (Rec."Bill-to Customer No." <> Rec."Sell-to Customer No.");
                             Importance = Additional;
                             QuickEntry = false;
-                            ToolTip = 'Specifies additional address information.';
                         }
                         field("Bill-to City"; Rec."Bill-to City")
                         {
@@ -990,7 +943,6 @@ page 42 "Sales Order"
                             Enabled = (BillToOptions = BillToOptions::"Custom Address") or (Rec."Bill-to Customer No." <> Rec."Sell-to Customer No.");
                             Importance = Additional;
                             QuickEntry = false;
-                            ToolTip = 'Specifies the city of the customer on the sales document.';
                         }
                         group(Control130)
                         {
@@ -1004,7 +956,6 @@ page 42 "Sales Order"
                                 Enabled = (BillToOptions = BillToOptions::"Custom Address") or (Rec."Bill-to Customer No." <> Rec."Sell-to Customer No.");
                                 Importance = Additional;
                                 QuickEntry = false;
-                                ToolTip = 'Specifies the state, province or county of the address.';
                             }
                         }
                         field("Bill-to Post Code"; Rec."Bill-to Post Code")
@@ -1039,7 +990,6 @@ page 42 "Sales Order"
                             Editable = (BillToOptions = BillToOptions::"Custom Address") or (Rec."Bill-to Customer No." <> Rec."Sell-to Customer No.");
                             Enabled = (BillToOptions = BillToOptions::"Custom Address") or (Rec."Bill-to Customer No." <> Rec."Sell-to Customer No.");
                             Importance = Additional;
-                            ToolTip = 'Specifies the number of the contact the invoice will be sent to.';
                         }
                         field("Bill-to Contact"; Rec."Bill-to Contact")
                         {
@@ -1081,19 +1031,16 @@ page 42 "Sales Order"
                 field("Location Code"; Rec."Location Code")
                 {
                     ApplicationArea = Location;
-                    ToolTip = 'Specifies the location from where items are to be shipped. This field acts as the default location for new lines. You can update the location code for individual lines as needed.';
                 }
                 field("Shipment Date"; Rec."Shipment Date")
                 {
                     ApplicationArea = Basic, Suite;
                     Importance = Promoted;
-                    ToolTip = 'Specifies when items on the document are shipped or were shipped. A shipment date is usually calculated from a requested delivery date plus lead time.';
                 }
                 field("Shipping Advice"; Rec."Shipping Advice")
                 {
                     ApplicationArea = Basic, Suite;
                     Importance = Additional;
-                    ToolTip = 'Specifies if the customer accepts partial shipment of orders.';
 
                     trigger OnValidate()
                     var
@@ -1108,31 +1055,26 @@ page 42 "Sales Order"
                 {
                     ApplicationArea = Warehouse;
                     Importance = Additional;
-                    ToolTip = 'Specifies a date formula for the time it takes to get items ready to ship from this location. The time element is used in the calculation of the delivery date as follows: Shipment Date + Outbound Warehouse Handling Time = Planned Shipment Date + Shipping Time = Planned Delivery Date.';
                 }
                 field("Shipping Time"; Rec."Shipping Time")
                 {
                     ApplicationArea = Basic, Suite;
                     Importance = Additional;
-                    ToolTip = 'Specifies how long it takes from when the items are shipped from the warehouse to when they are delivered.';
                 }
                 field("Late Order Shipping"; Rec."Late Order Shipping")
                 {
                     ApplicationArea = Basic, Suite;
                     Importance = Additional;
-                    ToolTip = 'Indicates a delay in the shipment of one or more lines, or that the shipment date is either the same as or earlier than the work date.';
                 }
                 field("Combine Shipments"; Rec."Combine Shipments")
                 {
                     ApplicationArea = Basic, Suite;
                     Importance = Additional;
-                    ToolTip = 'Specifies whether the order will be included when you use the Combine Shipments function.';
                 }
                 field("Completely Shipped"; Rec."Completely Shipped")
                 {
                     ApplicationArea = Basic, Suite;
                     Importance = Additional;
-                    ToolTip = 'Specifies whether all the items on the order have been shipped or, in the case of inbound items, completely received.';
                 }
             }
             group("Foreign Trade")
@@ -1143,38 +1085,31 @@ page 42 "Sales Order"
                 field("Transaction Specification"; Rec."Transaction Specification")
                 {
                     ApplicationArea = BasicEU;
-                    ToolTip = 'Specifies a specification of the document''s transaction, for the purpose of reporting to INTRASTAT.';
                 }
                 field("Transaction Type"; Rec."Transaction Type")
                 {
                     ApplicationArea = BasicEU;
-                    ToolTip = 'Specifies the type of transaction that the document represents, for the purpose of reporting to INTRASTAT.';
                 }
                 field("Transport Method"; Rec."Transport Method")
                 {
                     ApplicationArea = BasicEU;
-                    ToolTip = 'Specifies the transport method, for the purpose of reporting to INTRASTAT.';
                 }
                 field("Exit Point"; Rec."Exit Point")
                 {
                     ApplicationArea = BasicEU;
-                    ToolTip = 'Specifies the point of exit through which you ship the items out of your country/region, for reporting to Intrastat.';
                 }
                 field("Area"; Rec.Area)
                 {
                     ApplicationArea = BasicEU;
-                    ToolTip = 'Specifies the country or region of origin for the purpose of Intrastat reporting.';
                 }
                 field("Language Code"; Rec."Language Code")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the language to be used on printouts for this document.';
                     Visible = false;
                 }
                 field("Format Region"; Rec."Format Region")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the format to be used on printouts for this document.';
                     Visible = false;
                 }
             }
@@ -1185,7 +1120,6 @@ page 42 "Sales Order"
                 {
                     ApplicationArea = Prepayments;
                     Importance = Promoted;
-                    ToolTip = 'Specifies the prepayment percentage to use to calculate the prepayment for sales.';
 
                     trigger OnValidate()
                     begin
@@ -1195,28 +1129,23 @@ page 42 "Sales Order"
                 field("Compress Prepayment"; Rec."Compress Prepayment")
                 {
                     ApplicationArea = Prepayments;
-                    ToolTip = 'Specifies that prepayments on the sales order are combined if they have the same general ledger account for prepayments or the same dimensions.';
                 }
                 field("Prepmt. Payment Terms Code"; Rec."Prepmt. Payment Terms Code")
                 {
                     ApplicationArea = Prepayments;
-                    ToolTip = 'Specifies the code that represents the payment terms for prepayment invoices related to the sales document.';
                 }
                 field("Prepayment Due Date"; Rec."Prepayment Due Date")
                 {
                     ApplicationArea = Prepayments;
                     Importance = Promoted;
-                    ToolTip = 'Specifies when the prepayment invoice for this sales order is due.';
                 }
                 field("Prepmt. Payment Discount %"; Rec."Prepmt. Payment Discount %")
                 {
                     ApplicationArea = Prepayments;
-                    ToolTip = 'Specifies the payment discount percent granted on the prepayment if the customer pays on or before the date entered in the Prepmt. Pmt. Discount Date field.';
                 }
                 field("Prepmt. Pmt. Discount Date"; Rec."Prepmt. Pmt. Discount Date")
                 {
                     ApplicationArea = Prepayments;
-                    ToolTip = 'Specifies the last date the customer can pay the prepayment invoice and still receive a payment discount on the prepayment amount.';
                 }
             }
         }

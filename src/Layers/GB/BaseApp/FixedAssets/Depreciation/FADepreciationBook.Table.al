@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -21,18 +21,21 @@ table 5612 "FA Depreciation Book"
         field(1; "FA No."; Code[20])
         {
             Caption = 'FA No.';
+            ToolTip = 'Specifies the number of the related fixed asset.';
             NotBlank = true;
             TableRelation = "Fixed Asset";
         }
         field(2; "Depreciation Book Code"; Code[10])
         {
             Caption = 'Depreciation Book Code';
+            ToolTip = 'Specifies the code for the depreciation book to which the line will be posted if you have selected Fixed Asset in the Type field for this line.';
             NotBlank = true;
             TableRelation = "Depreciation Book";
         }
         field(3; "Depreciation Method"; Enum "FA Depreciation Method")
         {
             Caption = 'Depreciation Method';
+            ToolTip = 'Specifies how depreciation is calculated for the depreciation book.';
 
             trigger OnValidate()
             begin
@@ -99,6 +102,7 @@ table 5612 "FA Depreciation Book"
         field(4; "Depreciation Starting Date"; Date)
         {
             Caption = 'Depreciation Starting Date';
+            ToolTip = 'Specifies the date on which depreciation of the fixed asset starts.';
             Editable = true;
 
             trigger OnValidate()
@@ -111,6 +115,7 @@ table 5612 "FA Depreciation Book"
         {
             AutoFormatType = 0;
             Caption = 'Straight-Line %';
+            ToolTip = 'Specifies the percentage to depreciate the fixed asset by the straight-line principle, but with a fixed yearly percentage.';
             DecimalPlaces = 2 : 8;
             MinValue = 0;
 
@@ -127,6 +132,7 @@ table 5612 "FA Depreciation Book"
             AutoFormatType = 0;
             BlankZero = true;
             Caption = 'No. of Depreciation Years';
+            ToolTip = 'Specifies the length of the depreciation period, expressed in years.';
             DecimalPlaces = 2 : 8;
             MinValue = 0;
 
@@ -162,6 +168,7 @@ table 5612 "FA Depreciation Book"
             AutoFormatType = 0;
             BlankZero = true;
             Caption = 'No. of Depreciation Months';
+            ToolTip = 'Specifies the length of the depreciation period, expressed in months.';
             DecimalPlaces = 2 : 8;
             MinValue = 0;
 
@@ -197,6 +204,7 @@ table 5612 "FA Depreciation Book"
             AutoFormatType = 1;
             AutoFormatExpression = GetCurrencyCode();
             Caption = 'Fixed Depr. Amount';
+            ToolTip = 'Specifies an amount to depreciate the fixed asset, by a fixed yearly amount.';
             MinValue = 0;
 
             trigger OnValidate()
@@ -211,6 +219,7 @@ table 5612 "FA Depreciation Book"
         {
             AutoFormatType = 0;
             Caption = 'Declining-Balance %';
+            ToolTip = 'Specifies the percentage to depreciate the fixed asset by the declining-balance principle, but with a fixed yearly percentage.';
             DecimalPlaces = 2 : 8;
             MaxValue = 100;
             MinValue = 0;
@@ -227,6 +236,7 @@ table 5612 "FA Depreciation Book"
         field(10; "Depreciation Table Code"; Code[10])
         {
             Caption = 'Depreciation Table Code';
+            ToolTip = 'Specifies the code of the depreciation table to use if you have selected the User-Defined option in the Depreciation Method field.';
             TableRelation = "Depreciation Table Header";
 
             trigger OnValidate()
@@ -241,6 +251,7 @@ table 5612 "FA Depreciation Book"
             AutoFormatType = 1;
             AutoFormatExpression = GetCurrencyCode();
             Caption = 'Final Rounding Amount';
+            ToolTip = 'Specifies the final rounding amount to use.';
             MinValue = 0;
 
             trigger OnValidate()
@@ -253,6 +264,7 @@ table 5612 "FA Depreciation Book"
             AutoFormatType = 1;
             AutoFormatExpression = GetCurrencyCode();
             Caption = 'Ending Book Value';
+            ToolTip = 'Specifies the amount to use as the ending book value.';
             MinValue = 0;
 
             trigger OnValidate()
@@ -263,6 +275,7 @@ table 5612 "FA Depreciation Book"
         field(13; "FA Posting Group"; Code[20])
         {
             Caption = 'FA Posting Group';
+            ToolTip = 'Specifies which posting group is used for the depreciation book when posting fixed asset transactions.';
             TableRelation = "FA Posting Group";
 
             trigger OnValidate()
@@ -273,6 +286,7 @@ table 5612 "FA Depreciation Book"
         field(14; "Depreciation Ending Date"; Date)
         {
             Caption = 'Depreciation Ending Date';
+            ToolTip = 'Specifies the date on which depreciation of the fixed asset ends.';
 
             trigger OnValidate()
             var
@@ -303,6 +317,7 @@ table 5612 "FA Depreciation Book"
                                                               "FA Posting Type" = const("Acquisition Cost"),
                                                               "FA Posting Date" = field("FA Posting Date Filter")));
             Caption = 'Acquisition Cost';
+            ToolTip = 'Specifies the total acquisition cost for the fixed asset.';
             Editable = false;
             FieldClass = FlowField;
         }
@@ -316,6 +331,7 @@ table 5612 "FA Depreciation Book"
                                                               "FA Posting Type" = const(Depreciation),
                                                               "FA Posting Date" = field("FA Posting Date Filter")));
             Caption = 'Depreciation';
+            ToolTip = 'Specifies the total depreciation for the fixed asset.';
             Editable = false;
             FieldClass = FlowField;
         }
@@ -328,6 +344,7 @@ table 5612 "FA Depreciation Book"
                                                               "Part of Book Value" = const(true),
                                                               "FA Posting Date" = field("FA Posting Date Filter")));
             Caption = 'Book Value';
+            ToolTip = 'Specifies the book value for the fixed asset.';
             Editable = false;
             FieldClass = FlowField;
         }
@@ -341,6 +358,7 @@ table 5612 "FA Depreciation Book"
                                                               "FA Posting Type" = const("Proceeds on Disposal"),
                                                               "FA Posting Date" = field("FA Posting Date Filter")));
             Caption = 'Proceeds on Disposal';
+            ToolTip = 'Specifies the total proceeds on disposal for the fixed asset.';
             Editable = false;
             FieldClass = FlowField;
         }
@@ -354,6 +372,7 @@ table 5612 "FA Depreciation Book"
                                                               "FA Posting Type" = const("Gain/Loss"),
                                                               "FA Posting Date" = field("FA Posting Date Filter")));
             Caption = 'Gain/Loss';
+            ToolTip = 'Specifies the total gain (credit) or loss (debit) for the fixed asset.';
             Editable = false;
             FieldClass = FlowField;
         }
@@ -367,6 +386,7 @@ table 5612 "FA Depreciation Book"
                                                               "FA Posting Type" = const("Write-Down"),
                                                               "FA Posting Date" = field("FA Posting Date Filter")));
             Caption = 'Write-Down';
+            ToolTip = 'Specifies the total LCY amount of write-down entries for the fixed asset.';
             Editable = false;
             FieldClass = FlowField;
         }
@@ -380,6 +400,7 @@ table 5612 "FA Depreciation Book"
                                                               "FA Posting Type" = const(Appreciation),
                                                               "FA Posting Date" = field("FA Posting Date Filter")));
             Caption = 'Appreciation';
+            ToolTip = 'Specifies the total appreciation for the fixed asset.';
             Editable = false;
             FieldClass = FlowField;
         }
@@ -393,6 +414,7 @@ table 5612 "FA Depreciation Book"
                                                               "FA Posting Type" = const("Custom 1"),
                                                               "FA Posting Date" = field("FA Posting Date Filter")));
             Caption = 'Custom 1';
+            ToolTip = 'Specifies the total LCY amount for custom 1 entries for the fixed asset.';
             Editable = false;
             FieldClass = FlowField;
         }
@@ -406,6 +428,7 @@ table 5612 "FA Depreciation Book"
                                                               "FA Posting Type" = const("Custom 2"),
                                                               "FA Posting Date" = field("FA Posting Date Filter")));
             Caption = 'Custom 2';
+            ToolTip = 'Specifies the total LCY amount for custom 2 entries for the fixed asset.';
             Editable = false;
             FieldClass = FlowField;
         }
@@ -418,6 +441,7 @@ table 5612 "FA Depreciation Book"
                                                               "Part of Depreciable Basis" = const(true),
                                                               "FA Posting Date" = field("FA Posting Date Filter")));
             Caption = 'Depreciable Basis';
+            ToolTip = 'Specifies the depreciable basis amount for the fixed asset.';
             Editable = false;
             FieldClass = FlowField;
         }
@@ -431,6 +455,7 @@ table 5612 "FA Depreciation Book"
                                                               "FA Posting Type" = const("Salvage Value"),
                                                               "FA Posting Date" = field("FA Posting Date Filter")));
             Caption = 'Salvage Value';
+            ToolTip = 'Specifies the estimated residual value of a fixed asset when it can no longer be used.';
             Editable = false;
             FieldClass = FlowField;
         }
@@ -444,6 +469,7 @@ table 5612 "FA Depreciation Book"
                                                               "FA Posting Type" = const("Book Value on Disposal"),
                                                               "FA Posting Date" = field("FA Posting Date Filter")));
             Caption = 'Book Value on Disposal';
+            ToolTip = 'Specifies the total LCY amount of entries posted with the Book Value on Disposal posting type. Entries of this kind are created when you post disposal of a fixed asset to a depreciation book where the Gross method has been selected in the Disposal Calculation Method field.';
             Editable = false;
             FieldClass = FlowField;
         }
@@ -456,6 +482,7 @@ table 5612 "FA Depreciation Book"
                                                                        "Maintenance Code" = field("Maintenance Code Filter"),
                                                                        "FA Posting Date" = field("FA Posting Date Filter")));
             Caption = 'Maintenance';
+            ToolTip = 'Specifies the total maintenance cost for the fixed asset.';
             Editable = false;
             FieldClass = FlowField;
         }
@@ -473,57 +500,68 @@ table 5612 "FA Depreciation Book"
         field(30; "Acquisition Date"; Date)
         {
             Caption = 'Acquisition Date';
+            ToolTip = 'Specifies the FA posting date of the first posted acquisition cost.';
             Editable = false;
         }
         field(31; "G/L Acquisition Date"; Date)
         {
             Caption = 'G/L Acquisition Date';
+            ToolTip = 'Specifies the G/L posting date of the first posted acquisition cost.';
             Editable = false;
         }
         field(32; "Disposal Date"; Date)
         {
             Caption = 'Disposal Date';
+            ToolTip = 'Specifies the FA posting date of the first posted disposal amount.';
             Editable = false;
         }
         field(33; "Last Acquisition Cost Date"; Date)
         {
             Caption = 'Last Acquisition Cost Date';
+            ToolTip = 'Specifies the total percentage of acquisition cost that can be allocated when acquisition cost is posted.';
             Editable = false;
         }
         field(34; "Last Depreciation Date"; Date)
         {
             Caption = 'Last Depreciation Date';
+            ToolTip = 'Specifies the FA posting date of the last posted depreciation.';
             Editable = false;
         }
         field(35; "Last Write-Down Date"; Date)
         {
             Caption = 'Last Write-Down Date';
+            ToolTip = 'Specifies the FA posting date of the last posted write-down.';
             Editable = false;
         }
         field(36; "Last Appreciation Date"; Date)
         {
             Caption = 'Last Appreciation Date';
+            ToolTip = 'Specifies the sum that applies to appreciations.';
             Editable = false;
         }
         field(37; "Last Custom 1 Date"; Date)
         {
             Caption = 'Last Custom 1 Date';
+            ToolTip = 'Specifies the FA posting date of the last posted custom 1 entry.';
             Editable = false;
         }
         field(38; "Last Custom 2 Date"; Date)
         {
             Caption = 'Last Custom 2 Date';
+            ToolTip = 'Specifies the FA posting date of the last posted custom 2 entry.';
             Editable = false;
         }
         field(39; "Last Salvage Value Date"; Date)
         {
             Caption = 'Last Salvage Value Date';
+            ToolTip = 'Specifies if related salvage value entries are included in the batch job .';
             Editable = false;
         }
         field(40; "FA Exchange Rate"; Decimal)
         {
             AutoFormatType = 0;
             Caption = 'FA Exchange Rate';
+            ToolTip = 'Specifies a decimal number, which will be used as an exchange rate when duplicating journal lines to this depreciation book.';
             DecimalPlaces = 4 : 4;
             MinValue = 0;
 
@@ -538,6 +576,7 @@ table 5612 "FA Depreciation Book"
             AutoFormatExpression = GetCurrencyCode();
             BlankZero = true;
             Caption = 'Fixed Depr. Amount below Zero';
+            ToolTip = 'Specifies a positive amount if you have selected the Allow Depr. below Zero field in the depreciation book.';
             MinValue = 0;
 
             trigger OnValidate()
@@ -559,6 +598,7 @@ table 5612 "FA Depreciation Book"
         field(43; "First User-Defined Depr. Date"; Date)
         {
             Caption = 'First User-Defined Depr. Date';
+            ToolTip = 'Specifies the starting date for the user-defined depreciation table if you have entered a code in the Depreciation Table Code field.';
 
             trigger OnValidate()
             begin
@@ -570,6 +610,7 @@ table 5612 "FA Depreciation Book"
         field(44; "Use FA Ledger Check"; Boolean)
         {
             Caption = 'Use FA Ledger Check';
+            ToolTip = 'Specifies which checks to perform before posting a journal line.';
             InitValue = true;
 
             trigger OnValidate()
@@ -593,6 +634,7 @@ table 5612 "FA Depreciation Book"
             AutoFormatType = 0;
             BlankZero = true;
             Caption = 'Depr. below Zero %';
+            ToolTip = 'Specifies a percentage if you have selected the Allow Depr. below Zero field in the depreciation book.';
             DecimalPlaces = 2 : 8;
             MinValue = 0;
 
@@ -610,6 +652,7 @@ table 5612 "FA Depreciation Book"
         field(47; "Projected Disposal Date"; Date)
         {
             Caption = 'Projected Disposal Date';
+            ToolTip = 'Specifies the date on which you want to dispose of the fixed asset.';
         }
         field(48; "Projected Proceeds on Disposal"; Decimal)
         {
@@ -617,6 +660,7 @@ table 5612 "FA Depreciation Book"
             AutoFormatExpression = GetCurrencyCode();
             BlankZero = true;
             Caption = 'Projected Proceeds on Disposal';
+            ToolTip = 'Specifies the expected proceeds from disposal of the fixed asset.';
             MinValue = 0;
         }
         field(50; "Depr. Starting Date (Custom 1)"; Date)
@@ -674,6 +718,7 @@ table 5612 "FA Depreciation Book"
         field(55; Description; Text[100])
         {
             Caption = 'Description';
+            ToolTip = 'Specifies the value in the Description field on the fixed asset card.';
             Editable = false;
         }
         field(56; "Main Asset/Component"; Enum "FA Component Type")
@@ -697,6 +742,7 @@ table 5612 "FA Depreciation Book"
         field(59; "Use Half-Year Convention"; Boolean)
         {
             Caption = 'Use Half-Year Convention';
+            ToolTip = 'Specifies that the Half-Year Convention is to be applied to the selected depreciation method.';
 
             trigger OnValidate()
             begin
@@ -707,6 +753,7 @@ table 5612 "FA Depreciation Book"
         field(60; "Use DB% First Fiscal Year"; Boolean)
         {
             Caption = 'Use DB% First Fiscal Year';
+            ToolTip = 'Specifies that the depreciation methods DB1/SL and DB2/SL use the declining balance depreciation amount in the first fiscal year.';
 
             trigger OnValidate()
             begin
@@ -720,16 +767,19 @@ table 5612 "FA Depreciation Book"
         field(61; "Temp. Ending Date"; Date)
         {
             Caption = 'Temp. Ending Date';
+            ToolTip = 'Specifies the ending date of the period during which a temporary fixed depreciation amount will be used.';
         }
         field(62; "Temp. Fixed Depr. Amount"; Decimal)
         {
             AutoFormatType = 1;
             AutoFormatExpression = GetCurrencyCode();
             Caption = 'Temp. Fixed Depr. Amount';
+            ToolTip = 'Specifies a temporary fixed depreciation amount.';
         }
         field(63; "Ignore Def. Ending Book Value"; Boolean)
         {
             Caption = 'Ignore Def. Ending Book Value';
+            ToolTip = 'Specifies that the default ending book value is ignored, and the value in the Ending Book Value is used.';
 
             trigger OnValidate()
             begin
@@ -739,6 +789,7 @@ table 5612 "FA Depreciation Book"
         field(70; "Default FA Depreciation Book"; Boolean)
         {
             Caption = 'Default FA Depreciation Book';
+            ToolTip = 'Specifies the depreciation book that is used by default on documents and journals when a fixed asset has more than one depreciation book. A fixed asset can have only one default depreciation book. If a depreciation book is not specified for a fixed asset, the default depreciation book from the fixed asset setup is used.';
 
             trigger OnValidate()
             var

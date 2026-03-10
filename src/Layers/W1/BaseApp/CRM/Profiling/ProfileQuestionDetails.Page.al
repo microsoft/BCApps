@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -22,12 +22,10 @@ page 5112 "Profile Question Details"
                 field(Description; Rec.Description)
                 {
                     ApplicationArea = All;
-                    ToolTip = 'Specifies the profile question or answer.';
                 }
                 field("Multiple Answers"; Rec."Multiple Answers")
                 {
                     ApplicationArea = RelationshipMgmt;
-                    ToolTip = 'Specifies that the question has more than one possible answer.';
                 }
             }
             group(Classification)
@@ -36,7 +34,6 @@ page 5112 "Profile Question Details"
                 field("Auto Contact Classification"; Rec."Auto Contact Classification")
                 {
                     ApplicationArea = RelationshipMgmt;
-                    ToolTip = 'Specifies that the question is automatically answered when you run the Update Contact Classification batch job.';
 
                     trigger OnValidate()
                     begin
@@ -47,7 +44,6 @@ page 5112 "Profile Question Details"
                 {
                     ApplicationArea = RelationshipMgmt;
                     Editable = CustomerClassFieldEditable;
-                    ToolTip = 'Specifies the customer information that the automatic classification is based on. There are seven options: Blank, Sales (LCY), Profit (LCY), Sales Frequency (Invoices/Year), Avg. Invoice Amount (LCY), Discount (%), and Avg. Overdue (Day).';
 
                     trigger OnValidate()
                     begin
@@ -58,7 +54,6 @@ page 5112 "Profile Question Details"
                 {
                     ApplicationArea = RelationshipMgmt;
                     Editable = VendorClassFieldEditable;
-                    ToolTip = 'Specifies the vendor information that the automatic classification is based on. There are six options:';
 
                     trigger OnValidate()
                     begin
@@ -69,7 +64,6 @@ page 5112 "Profile Question Details"
                 {
                     ApplicationArea = RelationshipMgmt;
                     Editable = ContactClassFieldEditable;
-                    ToolTip = 'Specifies the contact information on which the automatic classification is based. There are seven options:';
 
                     trigger OnValidate()
                     begin
@@ -81,25 +75,21 @@ page 5112 "Profile Question Details"
                     ApplicationArea = RelationshipMgmt;
                     Editable = MinPctQuestionsAnsweredEditable;
                     HideValue = MinPctQuestionsAnsweredHideValue;
-                    ToolTip = 'Specifies the number of questions in percentage that must be answered for this rating to be calculated.';
                 }
                 field("Starting Date Formula"; Rec."Starting Date Formula")
                 {
                     ApplicationArea = RelationshipMgmt;
                     Editable = StartingDateFormulaEditable;
-                    ToolTip = 'Specifies the date to start the automatic classification of your contacts.';
                 }
                 field("Ending Date Formula"; Rec."Ending Date Formula")
                 {
                     ApplicationArea = RelationshipMgmt;
                     Editable = EndingDateFormulaEditable;
-                    ToolTip = 'Specifies the date to stop the automatic classification of your contacts.';
                 }
                 field("Classification Method"; Rec."Classification Method")
                 {
                     ApplicationArea = RelationshipMgmt;
                     Editable = ClassificationMethodEditable;
-                    ToolTip = 'Specifies the method you can use to classify contacts. There are four options: Blank, Defined Value, Percentage of Value and Percentage of Contacts.';
 
                     trigger OnValidate()
                     begin
@@ -110,14 +100,12 @@ page 5112 "Profile Question Details"
                 {
                     ApplicationArea = RelationshipMgmt;
                     Editable = SortingMethodEditable;
-                    ToolTip = 'Specifies the sorting method for the automatic classification on which the question is based. This field is only valid when you select Percentage of Value or Percentage of Contacts in the Classification Method field. It indicates the direction of the percentage. There are two options:';
                 }
                 field("No. of Decimals"; Rec."No. of Decimals")
                 {
                     ApplicationArea = RelationshipMgmt;
                     Editable = NoOfDecimalsEditable;
                     HideValue = NoOfDecimalsHideValue;
-                    ToolTip = 'Specifies the number of decimal places to use when entering values in the From Value and To Value fields.';
                 }
             }
         }

@@ -24,68 +24,55 @@ page 173 "Standard Customer Sales Codes"
                 field("Customer No."; Rec."Customer No.")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the customer number of the customer to which the standard sales code is assigned.';
                     Visible = false;
                 }
                 field("Code"; Rec.Code)
                 {
                     ApplicationArea = Suite;
-                    ToolTip = 'Specifies a standard sales code from the Standard Sales Code table.';
                 }
                 field(Description; Rec.Description)
                 {
                     ApplicationArea = Suite;
-                    ToolTip = 'Specifies a description of the standard sales code.';
                 }
                 field("Valid From Date"; Rec."Valid From Date")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the first day when the Create Recurring Sales Inv. batch job can be used to create sales invoices.';
                 }
                 field("Valid To date"; Rec."Valid To date")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the last day when the Create Recurring Sales Inv. batch job can be used to create sales invoices.';
                 }
                 field("Payment Method Code"; Rec."Payment Method Code")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies how to make payment, such as with bank transfer, cash, or check.';
                 }
                 field("Payment Terms Code"; Rec."Payment Terms Code")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies a formula that calculates the payment due date, payment discount date, and payment discount amount.';
                 }
                 field("Direct Debit Mandate ID"; Rec."Direct Debit Mandate ID")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the ID of the direct-debit mandate that this standard customer sales code uses to create sales invoices for direct debit collection.';
                 }
                 field(Blocked; Rec.Blocked)
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies that the related record is blocked from being posted in transactions, for example a customer that is declared insolvent or an item that is placed in quarantine.';
                 }
                 field("Insert Rec. Lines On Quotes"; Rec."Insert Rec. Lines On Quotes")
                 {
                     ApplicationArea = Suite;
-                    ToolTip = 'Specifies how you want to use standard sales codes on sales quotes.';
                 }
                 field("Insert Rec. Lines On Orders"; Rec."Insert Rec. Lines On Orders")
                 {
                     ApplicationArea = Suite;
-                    ToolTip = 'Specifies how you want to use standard sales codes on sales orders.';
                 }
                 field("Insert Rec. Lines On Invoices"; Rec."Insert Rec. Lines On Invoices")
                 {
                     ApplicationArea = Suite;
-                    ToolTip = 'Specifies how you want to use standard sales codes on sales invoices.';
                 }
                 field("Insert Rec. Lines On Cr. Memos"; Rec."Insert Rec. Lines On Cr. Memos")
                 {
                     ApplicationArea = Suite;
-                    ToolTip = 'Specifies how you want to use standard sales codes on sales credit memos.';
                 }
             }
         }

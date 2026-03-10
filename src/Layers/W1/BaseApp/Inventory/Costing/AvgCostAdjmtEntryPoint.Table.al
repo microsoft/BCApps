@@ -23,25 +23,30 @@ table 5804 "Avg. Cost Adjmt. Entry Point"
         field(1; "Item No."; Code[20])
         {
             Caption = 'Item No.';
+            ToolTip = 'Specifies the item number.';
             TableRelation = Item;
         }
         field(2; "Variant Code"; Code[10])
         {
             Caption = 'Variant Code';
+            ToolTip = 'Specifies the variant code.';
             TableRelation = "Item Variant".Code where("Item No." = field("Item No."));
         }
         field(3; "Location Code"; Code[10])
         {
             Caption = 'Location Code';
+            ToolTip = 'Specifies the location code.';
             TableRelation = Location;
         }
         field(4; "Valuation Date"; Date)
         {
             Caption = 'Valuation Date';
+            ToolTip = 'Specifies the valuation date from which the entry is included in the average cost calculation.';
         }
         field(5; "Cost Is Adjusted"; Boolean)
         {
             Caption = 'Cost Is Adjusted';
+            ToolTip = 'Specifies whether the cost is adjusted on the valuation date';
         }
     }
 

@@ -19,7 +19,7 @@ codeunit 99000866 "Mfg. Requisition Line"
         NoProductionOrderErr: Label 'There is no Production. Order for this line.';
 
     [EventSubscriber(ObjectType::Table, Database::"Requisition Line", 'OnGetDimFromRefOrderLineElseCase', '', true, false)]
-    local procedure OnGetDimFromRefOrderLineElseCase(var RequisitionLine: Record "Requisition Line"; DimSetIDArr: array[10] of Integer; i: Integer)
+    local procedure OnGetDimFromRefOrderLineElseCase(var RequisitionLine: Record "Requisition Line"; var DimSetIDArr: array[10] of Integer; i: Integer)
     var
         ProdOrderLine: Record "Prod. Order Line";
     begin

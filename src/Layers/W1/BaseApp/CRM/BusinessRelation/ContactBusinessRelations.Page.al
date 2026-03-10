@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -24,25 +24,21 @@ page 5061 "Contact Business Relations"
                 field("Business Relation Code"; Rec."Business Relation Code")
                 {
                     ApplicationArea = All;
-                    ToolTip = 'Specifies the business relation code.';
                 }
                 field("Business Relation Description"; Rec."Business Relation Description")
                 {
                     ApplicationArea = RelationshipMgmt;
                     DrillDown = false;
-                    ToolTip = 'Specifies the description for the business relation you have assigned to the contact. This field is not editable.';
                 }
                 field("Contact Name"; Rec."Contact Name")
                 {
                     ApplicationArea = RelationshipMgmt;
                     Visible = not FilteredContact;
-                    ToolTip = 'Specifies the name of the contact.';
                 }
                 field("Link to Table"; Rec."Link to Table")
                 {
                     ApplicationArea = RelationshipMgmt;
                     Visible = not FilteredLinkToTable;
-                    ToolTip = 'Specifies the name of the table to which the contact is linked. There are four possible options: &lt;blank&gt;, Vendor, Customer, and Bank Account.';
                 }
                 field("No."; Rec."No.")
                 {

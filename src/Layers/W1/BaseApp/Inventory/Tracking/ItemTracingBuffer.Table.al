@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -28,6 +28,7 @@ table 6520 "Item Tracing Buffer"
         field(2; "Parent Item Ledger Entry No."; Integer)
         {
             Caption = 'Parent Item Ledger Entry No.';
+            ToolTip = 'Specifies the parent of the traced item ledger entry.';
             DataClassification = SystemMetadata;
             Editable = false;
         }
@@ -40,6 +41,7 @@ table 6520 "Item Tracing Buffer"
         field(4; "Item No."; Code[20])
         {
             Caption = 'Item No.';
+            ToolTip = 'Specifies the number of the traced item.';
             DataClassification = SystemMetadata;
             Editable = false;
             TableRelation = Item;
@@ -47,24 +49,28 @@ table 6520 "Item Tracing Buffer"
         field(5; "Posting Date"; Date)
         {
             Caption = 'Posting Date';
+            ToolTip = 'Specifies the date when the traced item was posted.';
             DataClassification = SystemMetadata;
             Editable = false;
         }
         field(6; "Entry Type"; Enum "Item Ledger Entry Type")
         {
             Caption = 'Entry Type';
+            ToolTip = 'Specifies the type of the traced entry.';
             DataClassification = SystemMetadata;
             Editable = false;
         }
         field(7; "Source Type"; Enum "Analysis Source Type")
         {
             Caption = 'Source Type';
+            ToolTip = 'Specifies the type of record, such as Sales Header, that the item is traced from.';
             DataClassification = SystemMetadata;
             Editable = false;
         }
         field(8; "Source No."; Code[20])
         {
             Caption = 'Source No.';
+            ToolTip = 'Specifies the number of the source document that the entry originates from.';
             DataClassification = SystemMetadata;
             Editable = false;
             TableRelation = if ("Source Type" = const(Customer)) Customer
@@ -76,18 +82,21 @@ table 6520 "Item Tracing Buffer"
         field(9; "Source Name"; Text[100])
         {
             Caption = 'Source Name';
+            ToolTip = 'Specifies the name of the record that the item is traced from.';
             DataClassification = SystemMetadata;
             Editable = false;
         }
         field(10; "Document No."; Code[20])
         {
             Caption = 'Document No.';
+            ToolTip = 'Specifies the number of the traced document.';
             DataClassification = SystemMetadata;
             Editable = false;
         }
         field(11; Description; Text[100])
         {
             Caption = 'Description';
+            ToolTip = 'Specifies a description of the traced item.';
             DataClassification = SystemMetadata;
             Editable = false;
 
@@ -99,6 +108,7 @@ table 6520 "Item Tracing Buffer"
         field(12; "Location Code"; Code[10])
         {
             Caption = 'Location Code';
+            ToolTip = 'Specifies the location of the traced item.';
             DataClassification = SystemMetadata;
             Editable = false;
             TableRelation = Location;
@@ -107,6 +117,7 @@ table 6520 "Item Tracing Buffer"
         {
             AutoFormatType = 0;
             Caption = 'Quantity';
+            ToolTip = 'Specifies the quantity of the traced item in the line.';
             DataClassification = SystemMetadata;
             DecimalPlaces = 0 : 5;
             Editable = false;
@@ -115,6 +126,7 @@ table 6520 "Item Tracing Buffer"
         {
             AutoFormatType = 0;
             Caption = 'Remaining Quantity';
+            ToolTip = 'Specifies the quantity in the Quantity field that remains to be processed.';
             DataClassification = SystemMetadata;
             DecimalPlaces = 0 : 5;
             Editable = false;
@@ -134,6 +146,7 @@ table 6520 "Item Tracing Buffer"
         field(18; "Variant Code"; Code[10])
         {
             Caption = 'Variant Code';
+            ToolTip = 'Specifies the variant of the item on the line.';
             DataClassification = SystemMetadata;
             Editable = false;
             TableRelation = "Item Variant".Code where("Item No." = field("Item No."));
@@ -141,6 +154,7 @@ table 6520 "Item Tracing Buffer"
         field(19; "Serial No."; Code[50])
         {
             Caption = 'Serial No.';
+            ToolTip = 'Specifies the serial number to be traced.';
             DataClassification = SystemMetadata;
             Editable = false;
 
@@ -152,6 +166,7 @@ table 6520 "Item Tracing Buffer"
         field(20; "Lot No."; Code[50])
         {
             Caption = 'Lot No.';
+            ToolTip = 'Specifies the traced lot number.';
             DataClassification = SystemMetadata;
             Editable = false;
 
@@ -163,6 +178,7 @@ table 6520 "Item Tracing Buffer"
         field(21; "Item Ledger Entry No."; Integer)
         {
             Caption = 'Item Ledger Entry No.';
+            ToolTip = 'Specifies the number of the traced item ledger entry.';
             DataClassification = SystemMetadata;
             Editable = false;
             TableRelation = "Item Ledger Entry";
@@ -170,6 +186,7 @@ table 6520 "Item Tracing Buffer"
         field(22; "Created by"; Code[50])
         {
             Caption = 'Created by';
+            ToolTip = 'Specifies the user who created the traced record.';
             DataClassification = SystemMetadata;
             Editable = false;
             TableRelation = User."User Name";
@@ -177,6 +194,7 @@ table 6520 "Item Tracing Buffer"
         field(23; "Created on"; Date)
         {
             Caption = 'Created on';
+            ToolTip = 'Specifies the date when the traced record was created.';
             DataClassification = SystemMetadata;
             Editable = false;
         }
@@ -189,17 +207,20 @@ table 6520 "Item Tracing Buffer"
         field(25; "Item Description"; Text[100])
         {
             Caption = 'Item Description';
+            ToolTip = 'Specifies a description of the item.';
             DataClassification = SystemMetadata;
         }
         field(26; "Already Traced"; Boolean)
         {
             Caption = 'Already Traced';
+            ToolTip = 'Specifies if additional transaction history under this line has already been traced by other lines above it.';
             DataClassification = SystemMetadata;
             Editable = false;
         }
         field(6515; "Package No."; Code[50])
         {
             Caption = 'Package No.';
+            ToolTip = 'Specifies the traced package number.';
             CaptionClass = '6,1';
             DataClassification = SystemMetadata;
             Editable = false;

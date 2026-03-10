@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -22,12 +22,10 @@ page 99000759 "Calendar Entries"
                 field("Capacity Type"; Rec."Capacity Type")
                 {
                     ApplicationArea = Manufacturing;
-                    ToolTip = 'Specifies the type of capacity for the calendar entry.';
                 }
                 field("No."; Rec."No.")
                 {
                     ApplicationArea = Manufacturing;
-                    ToolTip = 'Specifies the number of the involved entry or record, according to the specified number series.';
                 }
                 field(Date; CurrDate)
                 {
@@ -45,12 +43,10 @@ page 99000759 "Calendar Entries"
                 field("Work Shift Code"; Rec."Work Shift Code")
                 {
                     ApplicationArea = Manufacturing;
-                    ToolTip = 'Specifies code for the work shift that the capacity refers to.';
                 }
                 field("Starting Date-Time"; Rec."Starting Date-Time")
                 {
                     ApplicationArea = Manufacturing;
-                    ToolTip = 'Specifies the date and the starting time, which are combined in a format called "starting date-time".';
 
                     trigger OnValidate()
                     begin
@@ -75,7 +71,6 @@ page 99000759 "Calendar Entries"
                 field("Ending Date-Time"; Rec."Ending Date-Time")
                 {
                     ApplicationArea = Manufacturing;
-                    ToolTip = 'Specifies the date and the ending time, which are combined in a format called "ending date-time".';
 
                     trigger OnValidate()
                     begin
@@ -100,12 +95,10 @@ page 99000759 "Calendar Entries"
                 field(Efficiency; Rec.Efficiency)
                 {
                     ApplicationArea = Manufacturing;
-                    ToolTip = 'Specifies the efficiency of this calendar entry.';
                 }
                 field(Capacity; Rec.Capacity)
                 {
                     ApplicationArea = Manufacturing;
-                    ToolTip = 'Specifies the capacity of this calendar entry.';
                 }
                 field("Capacity (Total)"; Rec."Capacity (Total)")
                 {

@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -33,15 +33,18 @@ table 337 "Reservation Entry"
         {
             AutoIncrement = true;
             Caption = 'Entry No.';
+            ToolTip = 'Specifies the number of the entry, as assigned from the specified number series when the entry was created.';
         }
         field(2; "Item No."; Code[20])
         {
             Caption = 'Item No.';
+            ToolTip = 'Specifies the number of the item that has been reserved in this entry.';
             TableRelation = Item;
         }
         field(3; "Location Code"; Code[10])
         {
             Caption = 'Location Code';
+            ToolTip = 'Specifies the Location of the items that have been reserved in the entry.';
             TableRelation = Location;
         }
         field(4; "Quantity (Base)"; Decimal)
@@ -60,37 +63,45 @@ table 337 "Reservation Entry"
         field(5; "Reservation Status"; Enum "Reservation Status")
         {
             Caption = 'Reservation Status';
+            ToolTip = 'Specifies the status of the reservation.';
         }
         field(7; Description; Text[100])
         {
             Caption = 'Description';
+            ToolTip = 'Specifies a description of the reservation entry.';
         }
         field(8; "Creation Date"; Date)
         {
             Caption = 'Creation Date';
+            ToolTip = 'Specifies the date on which the entry was created.';
         }
         field(9; "Transferred from Entry No."; Integer)
         {
             Caption = 'Transferred from Entry No.';
+            ToolTip = 'Specifies a value when the order tracking entry is for the quantity that remains on a document line after a partial posting.';
             TableRelation = "Reservation Entry";
         }
         field(10; "Source Type"; Integer)
         {
             Caption = 'Source Type';
+            ToolTip = 'Specifies for which source type the reservation entry is related to.';
         }
         field(11; "Source Subtype"; Option)
         {
             Caption = 'Source Subtype';
+            ToolTip = 'Specifies which source subtype the reservation entry is related to.';
             OptionCaption = '0,1,2,3,4,5,6,7,8,9,10';
             OptionMembers = "0","1","2","3","4","5","6","7","8","9","10";
         }
         field(12; "Source ID"; Code[20])
         {
             Caption = 'Source ID';
+            ToolTip = 'Specifies which source ID the reservation entry is related to.';
         }
         field(13; "Source Batch Name"; Code[10])
         {
             Caption = 'Source Batch Name';
+            ToolTip = 'Specifies the journal batch name if the reservation entry is related to a journal or requisition line.';
         }
         field(14; "Source Prod. Order Line"; Integer)
         {
@@ -99,6 +110,7 @@ table 337 "Reservation Entry"
         field(15; "Source Ref. No."; Integer)
         {
             Caption = 'Source Ref. No.';
+            ToolTip = 'Specifies a reference number for the line, which the reservation entry is related to.';
         }
         field(16; "Item Ledger Entry No."; Integer)
         {
@@ -109,18 +121,22 @@ table 337 "Reservation Entry"
         field(22; "Expected Receipt Date"; Date)
         {
             Caption = 'Expected Receipt Date';
+            ToolTip = 'Specifies the date on which the reserved items are expected to enter inventory.';
         }
         field(23; "Shipment Date"; Date)
         {
             Caption = 'Shipment Date';
+            ToolTip = 'Specifies when items on the document are shipped or were shipped. A shipment date is usually calculated from a requested delivery date plus lead time.';
         }
         field(24; "Serial No."; Code[50])
         {
             Caption = 'Serial No.';
+            ToolTip = 'Specifies the serial number of the item that is being handled on the document line.';
         }
         field(25; "Created By"; Code[50])
         {
             Caption = 'Created By';
+            ToolTip = 'Specifies the user who created the traced record.';
             DataClassification = EndUserIdentifiableInformation;
             TableRelation = User."User Name";
         }
@@ -133,12 +149,14 @@ table 337 "Reservation Entry"
         field(28; Positive; Boolean)
         {
             Caption = 'Positive';
+            ToolTip = 'Specifies that the difference is positive.';
             Editable = false;
         }
         field(29; "Qty. per Unit of Measure"; Decimal)
         {
             AutoFormatType = 0;
             Caption = 'Qty. per Unit of Measure';
+            ToolTip = 'Specifies how many of the base unit of measure are contained in one unit of the item.';
             DecimalPlaces = 0 : 5;
             Editable = false;
             InitValue = 1;
@@ -152,6 +170,7 @@ table 337 "Reservation Entry"
         {
             AutoFormatType = 0;
             Caption = 'Quantity';
+            ToolTip = 'Specifies the quantity of the record.';
             DecimalPlaces = 0 : 5;
         }
         field(31; "Action Message Adjustment"; Decimal)
@@ -184,11 +203,13 @@ table 337 "Reservation Entry"
         field(40; "Warranty Date"; Date)
         {
             Caption = 'Warranty Date';
+            ToolTip = 'Specifies the last day of the serial/lot number''s warranty.';
             Editable = false;
         }
         field(41; "Expiration Date"; Date)
         {
             Caption = 'Expiration Date';
+            ToolTip = 'Specifies the expiration date of the item that is being handled on the document line.';
             Editable = false;
         }
         field(50; "Qty. to Handle (Base)"; Decimal)
@@ -226,10 +247,12 @@ table 337 "Reservation Entry"
         field(5400; "Lot No."; Code[50])
         {
             Caption = 'Lot No.';
+            ToolTip = 'Specifies the lot number of the item that is being handled with the associated document line.';
         }
         field(5401; "Variant Code"; Code[10])
         {
             Caption = 'Variant Code';
+            ToolTip = 'Specifies the variant of the item on the line.';
             TableRelation = "Item Variant".Code where("Item No." = field("Item No."));
         }
         field(5811; "Appl.-from Item Entry"; Integer)
@@ -258,6 +281,7 @@ table 337 "Reservation Entry"
         field(6515; "Package No."; Code[50])
         {
             Caption = 'Package No.';
+            ToolTip = 'Specifies the package number of the item that is being handled with the associated document line.';
             CaptionClass = '6,1';
             Editable = false;
         }
@@ -1147,6 +1171,11 @@ table 337 "Reservation Entry"
             NewReservationEntry."Reservation Status" := NewReservationEntry."Reservation Status"::Surplus;
             NewReservationEntry.Modify(true);
         end;
+    end;
+
+    procedure HasNoTrackingWithSpec() IsNoTracking: Boolean
+    begin
+        IsNoTracking := ("Serial No." = '') and ("Lot No." = '') and ("Package No." = '');
     end;
 
     [IntegrationEvent(false, false)]

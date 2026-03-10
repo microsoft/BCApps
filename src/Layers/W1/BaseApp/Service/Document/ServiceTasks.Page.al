@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -213,47 +213,38 @@ page 5915 "Service Tasks"
                 field("Response Date"; Rec."Response Date")
                 {
                     ApplicationArea = Service;
-                    ToolTip = 'Specifies the estimated date when service should start on this service item line.';
                 }
                 field("Response Time"; Rec."Response Time")
                 {
                     ApplicationArea = Service;
-                    ToolTip = 'Specifies the estimated time when service should start on this service item.';
                 }
                 field(Priority; Rec.Priority)
                 {
                     ApplicationArea = Service;
-                    ToolTip = 'Specifies the service priority for this item.';
                 }
                 field("Document Type"; Rec."Document Type")
                 {
                     ApplicationArea = Service;
-                    ToolTip = 'Specifies whether the service document is a service order or service quote.';
                 }
                 field("Document No."; Rec."Document No.")
                 {
                     ApplicationArea = Service;
-                    ToolTip = 'Specifies the number of the service order linked to this service item line.';
                 }
                 field("Repair Status Code"; Rec."Repair Status Code")
                 {
                     ApplicationArea = Service;
-                    ToolTip = 'Specifies the repair status of this service item.';
                 }
                 field("Service Item No."; Rec."Service Item No.")
                 {
                     ApplicationArea = Service;
-                    ToolTip = 'Specifies the service item number registered in the Service Item table.';
                 }
                 field("Customer No."; Rec."Customer No.")
                 {
                     ApplicationArea = Service;
-                    ToolTip = 'Specifies the customer number associated with the service contract.';
                 }
                 field("Ship-to Code"; Rec."Ship-to Code")
                 {
                     ApplicationArea = Service;
-                    ToolTip = 'Specifies a code for an alternate shipment address if you want to ship to another address than the one that has been entered automatically. This field is also used in case of drop shipment.';
                     Visible = false;
                 }
                 field("Cust.Name"; Cust.Name)
@@ -266,28 +257,23 @@ page 5915 "Service Tasks"
                 field("Service Shelf No."; Rec."Service Shelf No.")
                 {
                     ApplicationArea = Service;
-                    ToolTip = 'Specifies the number of the service shelf this item is stored on.';
                 }
                 field("Item No."; Rec."Item No.")
                 {
                     ApplicationArea = Service;
-                    ToolTip = 'Specifies the item number linked to this service item.';
                 }
                 field("Service Item Group Code"; Rec."Service Item Group Code")
                 {
                     ApplicationArea = Service;
-                    ToolTip = 'Specifies the code of the service item group for this item.';
                 }
                 field("Variant Code"; Rec."Variant Code")
                 {
                     ApplicationArea = Planning;
-                    ToolTip = 'Specifies the variant of the item on the line.';
                     Visible = false;
                 }
                 field("Serial No."; Rec."Serial No.")
                 {
                     ApplicationArea = ItemTracking;
-                    ToolTip = 'Specifies the serial number of this item.';
 
                     trigger OnAssistEdit()
                     begin
@@ -301,23 +287,19 @@ page 5915 "Service Tasks"
                 field(Description; Rec.Description)
                 {
                     ApplicationArea = Service;
-                    ToolTip = 'Specifies a description of this service item.';
                     Visible = false;
                 }
                 field(Warranty; Rec.Warranty)
                 {
                     ApplicationArea = Service;
-                    ToolTip = 'Specifies that warranty on either parts or labor exists for this item.';
                 }
                 field("Contract No."; Rec."Contract No.")
                 {
                     ApplicationArea = Service;
-                    ToolTip = 'Specifies the number of the service contract associated with the item or service on the line.';
                 }
                 field("No. of Allocations"; Rec."No. of Allocations")
                 {
                     ApplicationArea = Service;
-                    ToolTip = 'Specifies the number of resource allocations with the allocation status specified in the Allocation Status Filter field.';
                 }
             }
             group(Control44)

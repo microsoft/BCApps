@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -21,22 +21,18 @@ page 6029 "Invt. Order Tracking Lines"
                 field("Serial No."; Rec."Serial No.")
                 {
                     ApplicationArea = ItemTracking;
-                    ToolTip = 'Specifies the serial number.';
                 }
                 field("Lot No."; Rec."Lot No.")
                 {
                     ApplicationArea = ItemTracking;
-                    ToolTip = 'Specifies the lot number.';
                 }
                 field("Package No."; Rec."Package No.")
                 {
                     ApplicationArea = ItemTracking;
-                    ToolTip = 'Specifies the lot number.';
                 }
                 field("Expiration Date"; Rec."Expiration Date")
                 {
                     ApplicationArea = ItemTracking;
-                    ToolTip = 'Specifies the expiration date.';
                 }
                 field("Qty. Expected (Base)"; Rec."Qty. Expected (Base)")
                 {

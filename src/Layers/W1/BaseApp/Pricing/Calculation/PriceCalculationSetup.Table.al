@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -19,24 +19,29 @@ table 7006 "Price Calculation Setup"
     {
         field(1; Code; Code[100])
         {
+            ToolTip = 'Specifies a code that you can select.';
             DataClassification = SystemMetadata;
         }
         field(2; Method; Enum "Price Calculation Method")
         {
+            ToolTip = 'Specifies the name of the price calculation method.';
             DataClassification = CustomerContent;
         }
         field(3; Type; Enum "Price Type")
         {
+            ToolTip = 'Specifies what type of amount to calculate - price or cost.';
             DataClassification = CustomerContent;
         }
         field(4; "Asset Type"; Enum "Price Asset Type")
         {
             Caption = 'Product Type';
+            ToolTip = 'Specifies the type of the product for price calculation.';
             DataClassification = CustomerContent;
         }
         field(5; Details; Integer)
         {
             Caption = 'Exceptions';
+            ToolTip = 'Specifies the count of detailed price calculation setup records.';
             FieldClass = FlowField;
             CalcFormula = count("Dtld. Price Calculation Setup" where("Setup Code" = field(Code)));
             Editable = false;
@@ -47,6 +52,7 @@ table 7006 "Price Calculation Setup"
         }
         field(10; Implementation; Enum "Price Calculation Handler")
         {
+            ToolTip = 'Specifies a codeunit that can implement the calculation method.';
             DataClassification = CustomerContent;
 
             trigger OnValidate()
@@ -58,10 +64,12 @@ table 7006 "Price Calculation Setup"
         }
         field(12; Enabled; Boolean)
         {
+            ToolTip = 'Specifies whether the implementation codeunit is enabled.';
             DataClassification = CustomerContent;
         }
         field(13; Default; Boolean)
         {
+            ToolTip = 'Specifies if this is the default implementation. You cannot remove the Default check mark, instead pick another record for the same calculation method to become the default implementation.';
             DataClassification = CustomerContent;
 
             trigger OnValidate()

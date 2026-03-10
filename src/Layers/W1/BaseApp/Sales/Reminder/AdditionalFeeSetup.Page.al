@@ -26,52 +26,43 @@ page 1050 "Additional Fee Setup"
                 field("Charge Per Line"; Rec."Charge Per Line")
                 {
                     ApplicationArea = Suite;
-                    ToolTip = 'Specifies that additional fees are calculated per document line.';
                     Visible = false;
                 }
                 field("Reminder Terms Code"; Rec."Reminder Terms Code")
                 {
                     ApplicationArea = Suite;
-                    ToolTip = 'Specifies the reminder terms code for the reminder.';
                     Visible = false;
                 }
                 field("Reminder Level No."; Rec."Reminder Level No.")
                 {
                     ApplicationArea = Suite;
-                    ToolTip = 'Specifies the total of the additional fee amounts on the reminder lines.';
                     Visible = false;
                 }
                 field("Currency Code"; Rec."Currency Code")
                 {
                     ApplicationArea = Suite;
-                    ToolTip = 'Specifies the currency that is used on the entry.';
                 }
                 field("Threshold Remaining Amount"; Rec."Threshold Remaining Amount")
                 {
                     ApplicationArea = Suite;
-                    ToolTip = 'Specifies the amount that remains before the additional fee is incurred.';
                 }
                 field("Additional Fee Amount"; Rec."Additional Fee Amount")
                 {
                     ApplicationArea = Suite;
                     CaptionClass = AddFeeCaptionExpression;
-                    ToolTip = 'Specifies the line amount of the additional fee.';
                 }
                 field("Additional Fee %"; Rec."Additional Fee %")
                 {
                     ApplicationArea = Suite;
                     CaptionClass = AddFeePercCaptionExpression;
-                    ToolTip = 'Specifies the percentage of the total amount that makes up the additional fee.';
                 }
                 field("Min. Additional Fee Amount"; Rec."Min. Additional Fee Amount")
                 {
                     ApplicationArea = Suite;
-                    ToolTip = 'Specifies the lowest amount that a fee can be.';
                 }
                 field("Max. Additional Fee Amount"; Rec."Max. Additional Fee Amount")
                 {
                     ApplicationArea = Suite;
-                    ToolTip = 'Specifies the highest amount that a fee can be.';
                 }
             }
             part(Chart; "Additional Fee Chart")

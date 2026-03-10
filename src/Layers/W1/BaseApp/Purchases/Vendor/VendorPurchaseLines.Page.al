@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -30,13 +30,11 @@ page 352 "Vendor Purchase Lines"
                 {
                     ApplicationArea = Basic, Suite;
                     Caption = 'Period Start';
-                    ToolTip = 'Specifies purchase statistics for each vendor for a period of time, starting on the date that you specify.';
                 }
                 field("Period Name"; Rec."Period Name")
                 {
                     ApplicationArea = Basic, Suite;
                     Caption = 'Period Name';
-                    ToolTip = 'Specifies the name of the period that you want to view.';
                 }
                 field(BalanceDueLCY; Rec."Balance Due (LCY)")
                 {

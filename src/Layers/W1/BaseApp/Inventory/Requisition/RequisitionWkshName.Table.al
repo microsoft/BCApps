@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -25,11 +25,13 @@ table 245 "Requisition Wksh. Name"
         field(2; Name; Code[10])
         {
             Caption = 'Name';
+            ToolTip = 'Specifies the name of the requisition worksheet you are creating.';
             NotBlank = true;
         }
         field(3; Description; Text[100])
         {
             Caption = 'Description';
+            ToolTip = 'Specifies a brief description of the requisition worksheet name you are creating.';
         }
         field(21; "Template Type"; Enum "Req. Worksheet Template Type")
         {
@@ -44,6 +46,14 @@ table 245 "Requisition Wksh. Name"
             Caption = 'Recurring';
             Editable = false;
             FieldClass = FlowField;
+        }
+        field(40; "No. of Lines"; Integer)
+        {
+            CalcFormula = count("Requisition Line" where("Worksheet Template Name" = field("Worksheet Template Name"), "Journal Batch Name" = field(Name)));
+            Caption = 'No. of Lines';
+            Editable = false;
+            FieldClass = FlowField;
+            ToolTip = 'Specifies the number of lines in this worksheet.';
         }
     }
 

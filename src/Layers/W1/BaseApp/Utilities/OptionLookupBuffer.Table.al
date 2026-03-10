@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -28,6 +28,7 @@ table 1670 "Option Lookup Buffer"
         field(2; "Option Caption"; Text[30])
         {
             Caption = 'Option Values';
+            ToolTip = 'Specifies the type of transaction you want to make. The value in this field determines what you can select in the No. field.';
             DataClassification = SystemMetadata;
             Editable = false;
         }

@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -24,22 +24,18 @@ page 5659 "Depreciation Table Card"
                     ApplicationArea = FixedAssets;
                     AboutTitle = 'For Depreciation Table creation';
                     AboutText = 'Specify the unique code and description to create a depreciation table with period length and total number of units the asset is expected to produce in its lifetime.';
-                    ToolTip = 'Specifies a code for the depreciation table.';
                 }
                 field(Description; Rec.Description)
                 {
                     ApplicationArea = FixedAssets;
-                    ToolTip = 'Specifies a description of the depreciation table.';
                 }
                 field("Period Length"; Rec."Period Length")
                 {
                     ApplicationArea = FixedAssets;
-                    ToolTip = 'Specifies the length of period that each of the depreciation table lines will apply to.';
                 }
                 field("Total No. of Units"; Rec."Total No. of Units")
                 {
                     ApplicationArea = FixedAssets;
-                    ToolTip = 'Specifies the total number of units the asset is expected to produce in its lifetime.';
                 }
             }
             part(Control9; "Depreciation Table Lines")

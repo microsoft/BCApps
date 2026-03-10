@@ -14,7 +14,7 @@ codeunit 6469 "Serv. Payment Registration"
         ServiceInvoiceTxt: Label 'Service Invoice';
         ServiceCreditMemoTxt: Label 'Service Credit Memo';
 
-    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Payment Registration Mgt.", 'OnAfterFindRecords', '', false, false)]
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Payment Registration Mgt.", 'OnAfterFindRecords', '', true, false)]
     local procedure OnAfterFindRecords(var TempDocumentSearchResult: Record "Document Search Result" temporary; DocNoFilter: Code[20]; AmountFilter: Decimal; AmountTolerancePerc: Decimal; sender: Codeunit "Payment Registration Mgt.")
     var
         ServiceHeader: Record "Service Header";
@@ -53,7 +53,7 @@ codeunit 6469 "Serv. Payment Registration"
         end;
     end;
 
-    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Payment Registration Mgt.", 'OnShowRecords', '', false, false)]
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Payment Registration Mgt.", 'OnShowRecords', '', true, false)]
     local procedure OnShowRecords(var TempDocumentSearchResult: Record "Document Search Result" temporary)
     begin
         case TempDocumentSearchResult."Table ID" of

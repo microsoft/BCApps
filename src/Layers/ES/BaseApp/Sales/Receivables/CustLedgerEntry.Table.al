@@ -1169,7 +1169,7 @@ table 21 "Cust. Ledger Entry"
         {
             Clustered = true;
         }
-        key(Key2; "Customer No.", "Posting Date", "Currency Code")
+        key(Key2; "Customer No.", "Currency Code")
         {
             SumIndexFields = "Sales (LCY)", "Profit (LCY)", "Inv. Discount (LCY)";
         }
@@ -1185,9 +1185,9 @@ table 21 "Cust. Ledger Entry"
         key(Key7; Open, "Due Date")
         {
         }
-        key(Key8; "Document Type", "Customer No.", "Posting Date", "Currency Code")
+        key(Key8; "Customer No.", "Document Type", "Posting Date", "Currency Code")
         {
-            SumIndexFields = "Sales (LCY)", "Profit (LCY)", "Inv. Discount (LCY)", "Pmt. Disc. Given (LCY)";
+            IncludedFields = "Sales (LCY)", "Profit (LCY)", "Inv. Discount (LCY)", "Pmt. Disc. Given (LCY)";
         }
         key(Key9; "Salesperson Code", "Posting Date")
         {
@@ -1198,45 +1198,26 @@ table 21 "Cust. Ledger Entry"
         key(Key11; "Transaction No.")
         {
         }
-        key(Key17; "Customer No.", "Applies-to ID", Open, Positive, "Due Date", "Document Type")
+        key(Key17; "Customer No.", "Applies-to ID", Open, Positive, "Due Date")
         {
         }
-        key(Key18; "Customer No.", Open, Positive, "Applies-to ID", "Due Date")
-        {
-        }
-        key(Key19; "Customer No.", "Document Type", "Document Situation", "Document Status")
-        {
-            SumIndexFields = "Remaining Amount (LCY) stats.", "Amount (LCY) stats.";
-        }
-        key(Key20; "Document No.", "Bill No.")
-        {
-        }
-        key(Key21; "Document No.", "Document Type", "Customer No.")
-        {
-        }
-        key(Key22; "Applies-to ID", "Document Type", "Document Situation", "Document Status")
-        {
-        }
-        key(Key23; "Document Type", "Customer No.", "Document Date", "Currency Code")
-        {
-        }
-        key(Key24; "Document Type", "Posting Date")
+        key(Key18; "Document Type", "Posting Date")
         {
             SumIndexFields = "Sales (LCY)";
         }
-        key(Key25; "Document Type", "Customer No.", Open, "Due Date")
+        key(Key19; "Document Type", "Customer No.", Open, "Due Date")
         {
         }
-        key(Key26; "Customer Posting Group")
+        key(Key20; "Customer Posting Group")
         {
         }
-        key(Key27; "Document Type", Open, "Posting Date", "Closed at Date")
+        key(Key21; "Document Type", Open, "Posting Date", "Closed at Date")
         {
         }
-        key(Key28; "Salesperson Code")
+        key(Key22; "Salesperson Code")
         {
         }
-        key(Key29; SystemModifiedAt)
+        key(Key23; SystemModifiedAt)
         {
         }
         key(Key35; "Customer No.", "Posting Date", "Applies-to ID")
@@ -1250,6 +1231,16 @@ table 21 "Cust. Ledger Entry"
         key(Key37; "Applies-to ID")
         {
             IncludedFields = "Accepted Payment Tolerance";
+        }
+        key(Key7000000; "Document No.", "Bill No.")
+        {
+        }
+        key(Key7000001; "Customer No.", "Document Type", "Document Situation", "Document Status")
+        {
+            SumIndexFields = "Remaining Amount (LCY) stats.", "Amount (LCY) stats.";
+        }
+        key(Key7000002; "Applies-to ID", "Document Type", "Document Situation", "Document Status")
+        {
         }
     }
 

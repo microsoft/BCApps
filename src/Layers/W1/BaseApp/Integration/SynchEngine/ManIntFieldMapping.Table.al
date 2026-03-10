@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -27,6 +27,7 @@ table 5384 "Man. Int. Field Mapping"
         field(20; "Table Field Caption"; Text[80])
         {
             Caption = 'Table Field Caption';
+            ToolTip = 'Specifies the name of the field in Business Central.';
             DataClassification = SystemMetadata;
         }
         field(30; "Integration Table Field No."; Integer)
@@ -37,6 +38,7 @@ table 5384 "Man. Int. Field Mapping"
         field(40; "Int. Table Field Caption"; Text[80])
         {
             Caption = 'Integration Table Field Caption';
+            ToolTip = 'Specifies the name of the integration field to map to the Business Central field.';
             DataClassification = SystemMetadata;
         }
         field(41; "Integration Table Field Name"; Text[80])
@@ -47,6 +49,7 @@ table 5384 "Man. Int. Field Mapping"
         field(50; "Direction"; Option)
         {
             Caption = 'Direction';
+            ToolTip = 'Specifies the synchronization direction.';
             DataClassification = SystemMetadata;
             OptionCaption = 'Bidirectional,ToIntegrationTable,FromIntegrationTable';
             OptionMembers = Bidirectional,ToIntegrationTable,FromIntegrationTable;
@@ -54,21 +57,25 @@ table 5384 "Man. Int. Field Mapping"
         field(60; "Const Value"; Text[50])
         {
             Caption = 'Const Value';
+            ToolTip = 'Specifies the constant value that the mapped field will be set to.';
             DataClassification = SystemMetadata;
         }
         field(70; "Validate Field"; Boolean)
         {
             Caption = 'Validate Field';
+            ToolTip = 'Specifies if the field should be validated during assignment.';
             DataClassification = SystemMetadata;
         }
         field(80; "Validate Integr. Table Field"; Boolean)
         {
             Caption = 'Validate Integration Table Field';
+            ToolTip = 'Specifies if the field should be validated during assignment in the integration table.';
             DataClassification = SystemMetadata;
         }
         field(90; "Transformation Rule"; Code[20])
         {
             Caption = 'Transformation Rule';
+            ToolTip = 'Specifies a rule for transforming imported text to a supported value before it can be mapped to a specified field in Microsoft Dynamics 365.';
             DataClassification = SystemMetadata;
             TableRelation = "Transformation Rule";
         }

@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -41,7 +41,6 @@ page 5935 "Service Credit Memo"
                 {
                     ApplicationArea = Service;
                     Visible = DocNoVisible;
-                    ToolTip = 'Specifies the number of the involved entry or record, according to the specified number series.';
 
                     trigger OnAssistEdit()
                     begin
@@ -52,7 +51,6 @@ page 5935 "Service Credit Memo"
                 field("Customer No."; Rec."Customer No.")
                 {
                     ApplicationArea = Service;
-                    ToolTip = 'Specifies the number of the customer who owns the items in the service document.';
 
                     trigger OnValidate()
                     begin
@@ -62,7 +60,6 @@ page 5935 "Service Credit Memo"
                 field("Contact No."; Rec."Contact No.")
                 {
                     ApplicationArea = Service;
-                    ToolTip = 'Specifies the number of the contact to whom you will deliver the service.';
 
                     trigger OnValidate()
                     begin
@@ -77,7 +74,6 @@ page 5935 "Service Credit Memo"
                     field(Name; Rec.Name)
                     {
                         ApplicationArea = Service;
-                        ToolTip = 'Specifies the name of the customer to whom the items on the document will be shipped.';
                     }
                     field("Name 2"; Rec."Name 2")
                     {
@@ -89,19 +85,16 @@ page 5935 "Service Credit Memo"
                     {
                         ApplicationArea = Service;
                         QuickEntry = false;
-                        ToolTip = 'Specifies the address of the customer to whom the service will be shipped.';
                     }
                     field("Address 2"; Rec."Address 2")
                     {
                         ApplicationArea = Service;
                         QuickEntry = false;
-                        ToolTip = 'Specifies additional address information.';
                     }
                     field(City; Rec.City)
                     {
                         ApplicationArea = Service;
                         QuickEntry = false;
-                        ToolTip = 'Specifies the city of the address.';
                     }
                     group(Control13)
                     {
@@ -111,20 +104,17 @@ page 5935 "Service Credit Memo"
                         {
                             ApplicationArea = Service;
                             QuickEntry = false;
-                            ToolTip = 'Specifies the county in the customer''s address.';
                         }
                     }
                     field("Post Code"; Rec."Post Code")
                     {
                         ApplicationArea = Service;
                         QuickEntry = false;
-                        ToolTip = 'Specifies the postal code.';
                     }
                     field("Country/Region Code"; Rec."Country/Region Code")
                     {
                         ApplicationArea = Service;
                         QuickEntry = false;
-                        ToolTip = 'Specifies the country/region of the address.';
 
                         trigger OnValidate()
                         begin
@@ -167,31 +157,26 @@ page 5935 "Service Credit Memo"
                 field("Posting Date"; Rec."Posting Date")
                 {
                     ApplicationArea = Service;
-                    ToolTip = 'Specifies the date when the service document should be posted.';
                 }
                 field("VAT Reporting Date"; Rec."VAT Reporting Date")
                 {
                     ApplicationArea = VAT;
                     Editable = VATDateEnabled;
                     Visible = VATDateEnabled;
-                    ToolTip = 'Specifies the date used to include entries on VAT reports in a VAT period. This is either the date that the document was created or posted, depending on your setting on the General Ledger Setup page.';
                 }
                 field("Document Date"; Rec."Document Date")
                 {
                     ApplicationArea = Service;
-                    ToolTip = 'Specifies the date when the related document was created.';
                 }
                 field("External Document No."; Rec."External Document No.")
                 {
                     ApplicationArea = Service;
                     Importance = Promoted;
                     ShowMandatory = ExternalDocNoMandatory;
-                    ToolTip = 'Specifies a document number that refers to the customer''s or vendor''s numbering system.';
                 }
                 field("Salesperson Code"; Rec."Salesperson Code")
                 {
                     ApplicationArea = Service;
-                    ToolTip = 'Specifies the code of the salesperson assigned to this service document.';
 
                     trigger OnValidate()
                     begin
@@ -201,7 +186,6 @@ page 5935 "Service Credit Memo"
                 field("Responsibility Center"; Rec."Responsibility Center")
                 {
                     ApplicationArea = Suite;
-                    ToolTip = 'Specifies the code of the responsibility center, such as a distribution hub, that is associated with the involved user, company, customer, or vendor.';
 
                     trigger OnValidate()
                     begin
@@ -211,7 +195,6 @@ page 5935 "Service Credit Memo"
                 field("Assigned User ID"; Rec."Assigned User ID")
                 {
                     ApplicationArea = Service;
-                    ToolTip = 'Specifies the ID of the user who is responsible for the document.';
                 }
                 field("Your Reference"; Rec."Your Reference")
                 {
@@ -249,7 +232,6 @@ page 5935 "Service Credit Memo"
                 field("Bill-to Customer No."; Rec."Bill-to Customer No.")
                 {
                     ApplicationArea = Service;
-                    ToolTip = 'Specifies the number of the customer that you send or sent the invoice or credit memo to.';
 
                     trigger OnValidate()
                     begin
@@ -259,7 +241,6 @@ page 5935 "Service Credit Memo"
                 field("Bill-to Contact No."; Rec."Bill-to Contact No.")
                 {
                     ApplicationArea = Service;
-                    ToolTip = 'Specifies the number of the contact person at the customer''s billing address.';
                 }
                 group("Bill-to")
                 {
@@ -268,7 +249,6 @@ page 5935 "Service Credit Memo"
                     {
                         ApplicationArea = Service;
                         Caption = 'Name';
-                        ToolTip = 'Specifies the name of the customer that you send or sent the invoice or credit memo to.';
                     }
                     field("Bill-to Name 2"; Rec."Bill-to Name 2")
                     {
@@ -290,14 +270,12 @@ page 5935 "Service Credit Memo"
                         ApplicationArea = Service;
                         Caption = 'Address 2';
                         QuickEntry = false;
-                        ToolTip = 'Specifies an additional line of the address.';
                     }
                     field("Bill-to City"; Rec."Bill-to City")
                     {
                         ApplicationArea = Service;
                         Caption = 'City';
                         QuickEntry = false;
-                        ToolTip = 'Specifies the city of the address.';
                     }
                     group(Control21)
                     {
@@ -308,7 +286,6 @@ page 5935 "Service Credit Memo"
                             ApplicationArea = Service;
                             CaptionClass = '5,1,' + Rec."Bill-to Country/Region Code";
                             QuickEntry = false;
-                            ToolTip = 'Specifies the county in the customer''s address.';
                         }
                     }
                     field("Bill-to Post Code"; Rec."Bill-to Post Code")
@@ -316,14 +293,12 @@ page 5935 "Service Credit Memo"
                         ApplicationArea = Service;
                         Caption = 'Post Code';
                         QuickEntry = false;
-                        ToolTip = 'Specifies the postal code of the customer''s billing address.';
                     }
                     field("Bill-to Country/Region Code"; Rec."Bill-to Country/Region Code")
                     {
                         ApplicationArea = Service;
                         Caption = 'Country/Region';
                         QuickEntry = false;
-                        ToolTip = 'Specifies the country/region in the customer''s address.';
 
                         trigger OnValidate()
                         begin
@@ -334,7 +309,6 @@ page 5935 "Service Credit Memo"
                     {
                         ApplicationArea = Service;
                         Caption = 'Contact';
-                        ToolTip = 'Specifies the name of the contact person at the customer''s billing address.';
                     }
                     field(BillToContactPhoneNo; BillToContact."Phone No.")
                     {
@@ -367,7 +341,6 @@ page 5935 "Service Credit Memo"
                 field("Shortcut Dimension 1 Code"; Rec."Shortcut Dimension 1 Code")
                 {
                     ApplicationArea = Dimensions;
-                    ToolTip = 'Specifies the code for Shortcut Dimension 1, which is one of two global dimension codes that you set up in the General Ledger Setup window.';
 
                     trigger OnValidate()
                     begin
@@ -377,7 +350,6 @@ page 5935 "Service Credit Memo"
                 field("Shortcut Dimension 2 Code"; Rec."Shortcut Dimension 2 Code")
                 {
                     ApplicationArea = Dimensions;
-                    ToolTip = 'Specifies the code for Shortcut Dimension 2, which is one of two global dimension codes that you set up in the General Ledger Setup window.';
 
                     trigger OnValidate()
                     begin
@@ -389,29 +361,24 @@ page 5935 "Service Credit Memo"
                     ApplicationArea = Basic, Suite;
                     Editable = IsPostingGroupEditable;
                     Importance = Additional;
-                    ToolTip = 'Specifies the customer''s market type to link business transactions to.';
                 }
                 field("Payment Terms Code"; Rec."Payment Terms Code")
                 {
                     ApplicationArea = Service;
-                    ToolTip = 'Specifies a formula that calculates the payment due date, payment discount date, and payment discount amount.';
                 }
                 field("EU 3-Party Trade"; Rec."EU 3-Party Trade")
                 {
                     ApplicationArea = Service;
-                    ToolTip = 'Specifies if the transaction is related to trade with a third party within the EU.';
                 }
                 field("Payment Method Code"; Rec."Payment Method Code")
                 {
                     ApplicationArea = Basic, Suite;
                     Importance = Additional;
-                    ToolTip = 'Specifies how to make payment, such as with bank transfer, cash, or check.';
                 }
                 field("Currency Code"; Rec."Currency Code")
                 {
                     ApplicationArea = Suite;
                     Importance = Promoted;
-                    ToolTip = 'Specifies the currency code for various amounts on the service lines.';
 
                     trigger OnAssistEdit()
                     begin
@@ -428,7 +395,6 @@ page 5935 "Service Credit Memo"
                 {
                     ApplicationArea = Suite;
                     Importance = Promoted;
-                    ToolTip = 'Specifies the bank account to use for bank information when the document is printed.';
                 }
                 field("Due Date"; Rec."Due Date")
                 {
@@ -438,17 +404,14 @@ page 5935 "Service Credit Memo"
                 field("Payment Discount %"; Rec."Payment Discount %")
                 {
                     ApplicationArea = Service;
-                    ToolTip = 'Specifies the percentage of payment discount given, if the customer pays by the date entered in the Pmt. Discount Date field.';
                 }
                 field("Pmt. Discount Date"; Rec."Pmt. Discount Date")
                 {
                     ApplicationArea = Service;
-                    ToolTip = 'Specifies the date on which the amount in the entry must be paid for a payment discount to be granted.';
                 }
                 field("Prices Including VAT"; Rec."Prices Including VAT")
                 {
                     ApplicationArea = VAT;
-                    ToolTip = 'Specifies if the Unit Price and Line Amount fields on document lines should be shown with or without VAT.';
 
                     trigger OnValidate()
                     begin
@@ -466,14 +429,12 @@ page 5935 "Service Credit Memo"
                     {
                         ApplicationArea = Service;
                         Caption = 'Name';
-                        ToolTip = 'Specifies the name of the customer at the address that the items are shipped to.';
                     }
                     field("Ship-to Name 2"; Rec."Ship-to Name 2")
                     {
                         ApplicationArea = Service;
                         Caption = 'Name 2';
                         Importance = Additional;
-                        ToolTip = 'Specifies an additional part of thethe name of the customer at the address that the items are shipped to.';
                         Visible = false;
                     }
                     field("Ship-to Address"; Rec."Ship-to Address")
@@ -481,21 +442,18 @@ page 5935 "Service Credit Memo"
                         ApplicationArea = Service;
                         Caption = 'Address';
                         QuickEntry = false;
-                        ToolTip = 'Specifies the address that the items are shipped to.';
                     }
                     field("Ship-to Address 2"; Rec."Ship-to Address 2")
                     {
                         ApplicationArea = Service;
                         Caption = 'Address 2';
                         QuickEntry = false;
-                        ToolTip = 'Specifies an additional part of the ship-to address, in case it is a long address.';
                     }
                     field("Ship-to City"; Rec."Ship-to City")
                     {
                         ApplicationArea = Service;
                         Caption = 'City';
                         QuickEntry = false;
-                        ToolTip = 'Specifies the city of the address that the items are shipped to.';
                     }
                     group(Control29)
                     {
@@ -506,7 +464,6 @@ page 5935 "Service Credit Memo"
                             ApplicationArea = Service;
                             CaptionClass = '5,1,' + Rec."Ship-to Country/Region Code";
                             QuickEntry = false;
-                            ToolTip = 'Specifies the county in the customer''s address.';
                         }
                     }
                     field("Ship-to Post Code"; Rec."Ship-to Post Code")
@@ -514,14 +471,12 @@ page 5935 "Service Credit Memo"
                         ApplicationArea = Service;
                         Caption = 'Post Code';
                         QuickEntry = false;
-                        ToolTip = 'Specifies the postal code of the address that the items are shipped to.';
                     }
                     field("Ship-to Country/Region Code"; Rec."Ship-to Country/Region Code")
                     {
                         ApplicationArea = Service;
                         Caption = 'Country/Region';
                         QuickEntry = false;
-                        ToolTip = 'Specifies the country/region in the customer''s address.';
 
                         trigger OnValidate()
                         begin
@@ -532,19 +487,16 @@ page 5935 "Service Credit Memo"
                     {
                         ApplicationArea = Service;
                         Caption = 'Phone No.';
-                        ToolTip = 'Specifies the telephone number of the company''s shipping address.';
                     }
                     field("Ship-to Contact"; Rec."Ship-to Contact")
                     {
                         ApplicationArea = Service;
                         Caption = 'Contact';
-                        ToolTip = 'Specifies the name of the contact person at the address that the items are shipped to.';
                     }
                 }
                 field("Location Code"; Rec."Location Code")
                 {
                     ApplicationArea = Location;
-                    ToolTip = 'Specifies the code of the location (for example, warehouse or distribution center) of the items specified on the service item lines.';
                 }
             }
             group("Foreign Trade")
@@ -553,27 +505,22 @@ page 5935 "Service Credit Memo"
                 field("Transaction Type"; Rec."Transaction Type")
                 {
                     ApplicationArea = BasicEU;
-                    ToolTip = 'Specifies the type of transaction that the document represents, for the purpose of reporting to INTRASTAT.';
                 }
                 field("Transaction Specification"; Rec."Transaction Specification")
                 {
                     ApplicationArea = BasicEU;
-                    ToolTip = 'Specifies a specification of the document''s transaction, for the purpose of reporting to INTRASTAT.';
                 }
                 field("Transport Method"; Rec."Transport Method")
                 {
                     ApplicationArea = BasicEU;
-                    ToolTip = 'Specifies the transport method, for the purpose of reporting to INTRASTAT.';
                 }
                 field("Exit Point"; Rec."Exit Point")
                 {
                     ApplicationArea = BasicEU;
-                    ToolTip = 'Specifies the point of exit through which you ship the items out of your country/region, for reporting to Intrastat.';
                 }
                 field("Area"; Rec.Area)
                 {
                     ApplicationArea = BasicEU;
-                    ToolTip = 'Specifies the area of the customer or vendor, for the purpose of reporting to INTRASTAT.';
                 }
             }
             group(Application)
@@ -582,17 +529,14 @@ page 5935 "Service Credit Memo"
                 field("Applies-to Doc. Type"; Rec."Applies-to Doc. Type")
                 {
                     ApplicationArea = Service;
-                    ToolTip = 'Specifies the type of the posted document that this document or journal line will be applied to when you post, for example to register payment.';
                 }
                 field("Applies-to Doc. No."; Rec."Applies-to Doc. No.")
                 {
                     ApplicationArea = Service;
-                    ToolTip = 'Specifies the number of the posted document that this document or journal line will be applied to when you post, for example to register payment.';
                 }
                 field("Applies-to ID"; Rec."Applies-to ID")
                 {
                     ApplicationArea = Service;
-                    ToolTip = 'Specifies the ID of entries that will be applied to when you choose the Apply Entries action.';
                 }
             }
         }

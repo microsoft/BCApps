@@ -641,7 +641,6 @@ report 10077 "Sales Shipment NA"
         CompanyInformation: Record "Company Information";
         CompanyInfo: Record "Company Information";
         SalesSetup: Record "Sales & Receivables Setup";
-        TempSalesShipmentLine: Record "Sales Shipment Line" temporary;
         TempSalesShipmentLineAsm: Record "Sales Shipment Line" temporary;
         RespCenter: Record "Responsibility Center";
         TaxArea: Record "Tax Area";
@@ -706,6 +705,7 @@ report 10077 "Sales Shipment NA"
         CompanyInfo1: Record "Company Information";
         CompanyInfo2: Record "Company Information";
         CompanyInfo3: Record "Company Information";
+        TempSalesShipmentLine: Record "Sales Shipment Line" temporary;
 
     procedure InitLogInteraction()
     begin

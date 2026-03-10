@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -20,6 +20,7 @@ table 99000866 "Capacity Constrained Resource"
         field(1; "Capacity No."; Code[20])
         {
             Caption = 'Capacity No.';
+            ToolTip = 'Specifies the number of an existing machine center or work center to assign finite loading to.';
             TableRelation = if ("Capacity Type" = const("Work Center")) "Work Center"
             else
             if ("Capacity Type" = const("Machine Center")) "Machine Center";
@@ -53,6 +54,7 @@ table 99000866 "Capacity Constrained Resource"
         field(2; "Capacity Type"; Enum "Capacity Type")
         {
             Caption = 'Capacity Type';
+            ToolTip = 'Specifies the capacity type to apply finite loading to.';
 
             trigger OnValidate()
             begin
@@ -62,11 +64,13 @@ table 99000866 "Capacity Constrained Resource"
         field(3; Name; Text[100])
         {
             Caption = 'Name';
+            ToolTip = 'Specifies the name of the work center or machine center associated with the capacity number on this line.';
         }
         field(10; "Critical Load %"; Decimal)
         {
             AutoFormatType = 0;
             Caption = 'Critical Load %';
+            ToolTip = 'Specifies the percentage of the available capacity of a work center or machine center to apply load to. Operations on work centers or machine centers that are set up as constrained resources will always be planned serially. This means that if a constrained resource has multiple capacities, then those capacities can only be planned in sequence, not in parallel as they would be if the work or machine center was not set up as a constrained resource. In a constrained resource, the Capacity field on the work center or machine center is greater than 1.';
             DecimalPlaces = 1 : 1;
 
             trigger OnValidate()

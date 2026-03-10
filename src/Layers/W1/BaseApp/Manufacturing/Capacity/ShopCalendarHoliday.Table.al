@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -20,6 +20,7 @@ table 99000753 "Shop Calendar Holiday"
         field(2; Date; Date)
         {
             Caption = 'Date';
+            ToolTip = 'Specifies the date to set up as a shop calendar holiday.';
             NotBlank = true;
 
             trigger OnValidate()
@@ -32,6 +33,7 @@ table 99000753 "Shop Calendar Holiday"
         field(3; "Starting Time"; Time)
         {
             Caption = 'Starting Time';
+            ToolTip = 'Specifies the starting time of the shop calendar holiday.';
 
             trigger OnValidate()
             begin
@@ -46,6 +48,7 @@ table 99000753 "Shop Calendar Holiday"
         field(4; "Ending Time"; Time)
         {
             Caption = 'Ending Time';
+            ToolTip = 'Specifies the ending time of the shop calendar holiday.';
 
             trigger OnValidate()
             begin
@@ -58,6 +61,7 @@ table 99000753 "Shop Calendar Holiday"
         field(5; "Starting Date-Time"; DateTime)
         {
             Caption = 'Starting Date-Time';
+            ToolTip = 'Specifies the date and the starting time, which are combined in a format called "starting date-time".';
 
             trigger OnValidate()
             begin
@@ -69,6 +73,7 @@ table 99000753 "Shop Calendar Holiday"
         field(6; "Ending Date-Time"; DateTime)
         {
             Caption = 'Ending Date-Time';
+            ToolTip = 'Specifies the date and the ending time, which are combined in a format called "ending date-time".';
 
             trigger OnValidate()
             begin
@@ -80,6 +85,7 @@ table 99000753 "Shop Calendar Holiday"
         field(10; Description; Text[100])
         {
             Caption = 'Description';
+            ToolTip = 'Specifies the description of the shop calendar holiday.';
         }
     }
 

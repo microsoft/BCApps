@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -17,6 +17,7 @@ table 5089 "Contact Profile Answer"
         field(1; "Contact No."; Code[20])
         {
             Caption = 'Contact No.';
+            ToolTip = 'Specifies the number of the contact to which you have assigned this questionnaire.';
             NotBlank = true;
             TableRelation = Contact;
 
@@ -69,6 +70,7 @@ table 5089 "Contact Profile Answer"
             CalcFormula = lookup("Profile Questionnaire Line".Description where("Profile Questionnaire Code" = field("Profile Questionnaire Code"),
                                                                                  "Line No." = field("Line No.")));
             Caption = 'Answer';
+            ToolTip = 'Specifies your contact''s answer to the question.';
             Editable = false;
             FieldClass = FlowField;
         }
@@ -76,6 +78,7 @@ table 5089 "Contact Profile Answer"
         {
             CalcFormula = lookup(Contact."Company Name" where("No." = field("Contact No.")));
             Caption = 'Contact Company Name';
+            ToolTip = 'Specifies the name of the company for which the contact works, if the contact is a person.';
             Editable = false;
             FieldClass = FlowField;
         }
@@ -83,21 +86,25 @@ table 5089 "Contact Profile Answer"
         {
             CalcFormula = lookup(Contact.Name where("No." = field("Contact No.")));
             Caption = 'Contact Name';
+            ToolTip = 'Specifies the name of the contact to which you have assigned the questionnaire.';
             Editable = false;
             FieldClass = FlowField;
         }
         field(8; "Profile Questionnaire Priority"; Enum "Profile Questionnaire Priority")
         {
             Caption = 'Profile Questionnaire Priority';
+            ToolTip = 'Specifies the priority of the questionnaire that the profile answer is linked to. There are five options: Very Low, Low, Normal, High, and Very High.';
             Editable = false;
         }
         field(9; "Answer Priority"; Enum "Profile Answer Priority")
         {
             Caption = 'Answer Priority';
+            ToolTip = 'Specifies the priority of the profile answer. There are five options:';
         }
         field(10; "Last Date Updated"; Date)
         {
             Caption = 'Last Date Updated';
+            ToolTip = 'Specifies the date when the contact profile answer was last updated. This field shows the first date when the questions used to rate this contact has been given points.';
         }
         field(11; "Questions Answered (%)"; Decimal)
         {

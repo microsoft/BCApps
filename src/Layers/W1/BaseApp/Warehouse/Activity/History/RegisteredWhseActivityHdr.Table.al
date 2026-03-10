@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -23,42 +23,51 @@ table 5772 "Registered Whse. Activity Hdr."
         field(1; Type; Enum "Warehouse Activity Type")
         {
             Caption = 'Type';
+            ToolTip = 'Specifies the type of activity that the warehouse performed on the lines attached to the header, such as put-away, pick or movement.';
         }
         field(2; "No."; Code[20])
         {
             Caption = 'No.';
+            ToolTip = 'Specifies the number of the involved entry or record, according to the specified number series.';
         }
         field(3; "Location Code"; Code[10])
         {
             Caption = 'Location Code';
+            ToolTip = 'Specifies the code of the location in which the registered warehouse activity occurred.';
             NotBlank = true;
             TableRelation = Location;
         }
         field(4; "Assigned User ID"; Code[50])
         {
             Caption = 'Assigned User ID';
+            ToolTip = 'Specifies the ID of the user who is responsible for the document.';
             DataClassification = EndUserIdentifiableInformation;
             TableRelation = "Warehouse Employee" where("Location Code" = field("Location Code"));
         }
         field(5; "Assignment Date"; Date)
         {
             Caption = 'Assignment Date';
+            ToolTip = 'Specifies the date when the user was assigned the activity.';
         }
         field(6; "Assignment Time"; Time)
         {
             Caption = 'Assignment Time';
+            ToolTip = 'Specifies the time when the user was assigned the activity.';
         }
         field(7; "Sorting Method"; Enum "Whse. Activity Sorting Method")
         {
             Caption = 'Sorting Method';
+            ToolTip = 'Specifies the method by which the lines were sorted on the warehouse header, such as by item, or bin code.';
         }
         field(8; "Registering Date"; Date)
         {
             Caption = 'Registering Date';
+            ToolTip = 'Specifies the date the line is registered.';
         }
         field(9; "No. Series"; Code[20])
         {
             Caption = 'No. Series';
+            ToolTip = 'Specifies the number series from which entry or record numbers are assigned to new entries or records.';
             Editable = false;
             TableRelation = "No. Series";
         }
@@ -74,10 +83,12 @@ table 5772 "Registered Whse. Activity Hdr."
         field(11; "Whse. Activity No."; Code[20])
         {
             Caption = 'Whse. Activity No.';
+            ToolTip = 'Specifies the warehouse activity number from which the activity was registered.';
         }
         field(12; "No. Printed"; Integer)
         {
             Caption = 'No. Printed';
+            ToolTip = 'Specifies how many times the document has been printed.';
             Editable = false;
         }
     }

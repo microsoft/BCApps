@@ -30,6 +30,7 @@ table 6670 "Returns-Related Document"
         field(2; "Document Type"; Enum "Returns Related Document Type")
         {
             Caption = 'Document Type';
+            ToolTip = 'Specifies the type of the related document.';
         }
         /// <summary>
         /// Specifies the document number of the related sales or purchase document.
@@ -37,6 +38,7 @@ table 6670 "Returns-Related Document"
         field(3; "No."; Code[20])
         {
             Caption = 'No.';
+            ToolTip = 'Specifies the number of the involved entry or record, according to the specified number series.';
         }
     }
 

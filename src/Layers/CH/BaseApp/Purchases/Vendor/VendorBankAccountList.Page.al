@@ -30,7 +30,6 @@ page 426 "Vendor Bank Account List"
                 field("Code"; Rec.Code)
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies a code to identify this vendor bank account.';
                 }
                 field("Vendor.Name"; Vendor.Name)
                 {

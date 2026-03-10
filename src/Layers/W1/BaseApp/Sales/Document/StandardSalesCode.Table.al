@@ -25,6 +25,7 @@ table 170 "Standard Sales Code"
         field(1; "Code"; Code[10])
         {
             Caption = 'Code';
+            ToolTip = 'Specifies a code which identifies this standard sales code.';
             NotBlank = true;
         }
         /// <summary>
@@ -33,6 +34,7 @@ table 170 "Standard Sales Code"
         field(2; Description; Text[100])
         {
             Caption = 'Description';
+            ToolTip = 'Specifies a description of the standard sales code.';
         }
         /// <summary>
         /// Specifies the currency code for amounts in the standard sales code lines.
@@ -40,6 +42,7 @@ table 170 "Standard Sales Code"
         field(3; "Currency Code"; Code[10])
         {
             Caption = 'Currency Code';
+            ToolTip = 'Specifies the currency code for the amounts on the standard sales lines.';
             TableRelation = Currency;
 
             trigger OnValidate()

@@ -35,7 +35,6 @@ page 6662 "Posted Return Receipts"
                 field("No."; Rec."No.")
                 {
                     ApplicationArea = SalesReturnOrder;
-                    ToolTip = 'Specifies the number of the involved entry or record, according to the specified number series.';
                 }
                 field("Sell-to Customer No."; Rec."Sell-to Customer No.")
                 {
@@ -44,24 +43,20 @@ page 6662 "Posted Return Receipts"
                 field("Sell-to Customer Name"; Rec."Sell-to Customer Name")
                 {
                     ApplicationArea = SalesReturnOrder;
-                    ToolTip = 'Specifies the name of the customer.';
                 }
                 field("Sell-to Post Code"; Rec."Sell-to Post Code")
                 {
                     ApplicationArea = SalesReturnOrder;
-                    ToolTip = 'Specifies the postal code of the customer''s main address.';
                     Visible = false;
                 }
                 field("Sell-to Country/Region Code"; Rec."Sell-to Country/Region Code")
                 {
                     ApplicationArea = SalesReturnOrder;
-                    ToolTip = 'Specifies the country/region code of the customer''s main address.';
                     Visible = false;
                 }
                 field("Sell-to Contact"; Rec."Sell-to Contact")
                 {
                     ApplicationArea = SalesReturnOrder;
-                    ToolTip = 'Specifies the name of the contact person at the customer''s main address.';
                     Visible = false;
                 }
                 field("Bill-to Customer No."; Rec."Bill-to Customer No.")
@@ -72,61 +67,51 @@ page 6662 "Posted Return Receipts"
                 field("Bill-to Name"; Rec."Bill-to Name")
                 {
                     ApplicationArea = SalesReturnOrder;
-                    ToolTip = 'Specifies the name of the customer that you send or sent the invoice or credit memo to.';
                     Visible = false;
                 }
                 field("Bill-to Post Code"; Rec."Bill-to Post Code")
                 {
                     ApplicationArea = SalesReturnOrder;
-                    ToolTip = 'Specifies the postal code of the customer''s billing address.';
                     Visible = false;
                 }
                 field("Bill-to Country/Region Code"; Rec."Bill-to Country/Region Code")
                 {
                     ApplicationArea = SalesReturnOrder;
-                    ToolTip = 'Specifies the country/region code of the customer''s billing address.';
                     Visible = false;
                 }
                 field("Bill-to Contact"; Rec."Bill-to Contact")
                 {
                     ApplicationArea = SalesReturnOrder;
-                    ToolTip = 'Specifies the name of the contact person at the customer''s billing address.';
                     Visible = false;
                 }
                 field("Ship-to Code"; Rec."Ship-to Code")
                 {
                     ApplicationArea = SalesReturnOrder;
-                    ToolTip = 'Specifies a code for an alternate shipment address if you want to ship to another address than the one that has been entered automatically. This field is also used in case of drop shipment.';
                     Visible = false;
                 }
                 field("Ship-to Name"; Rec."Ship-to Name")
                 {
                     ApplicationArea = SalesReturnOrder;
-                    ToolTip = 'Specifies the name of the customer at the address that the items are shipped to.';
                     Visible = false;
                 }
                 field("Ship-to Post Code"; Rec."Ship-to Post Code")
                 {
                     ApplicationArea = SalesReturnOrder;
-                    ToolTip = 'Specifies the postal code of the address that the items are shipped to.';
                     Visible = false;
                 }
                 field("Ship-to Country/Region Code"; Rec."Ship-to Country/Region Code")
                 {
                     ApplicationArea = SalesReturnOrder;
-                    ToolTip = 'Specifies the country/region code of the address that the items are shipped to.';
                     Visible = false;
                 }
                 field("Ship-to Contact"; Rec."Ship-to Contact")
                 {
                     ApplicationArea = SalesReturnOrder;
-                    ToolTip = 'Specifies the name of the contact person at the address that the items are shipped to.';
                     Visible = false;
                 }
                 field("Posting Date"; Rec."Posting Date")
                 {
                     ApplicationArea = SalesReturnOrder;
-                    ToolTip = 'Specifies the entry''s posting date.';
                     Visible = false;
                 }
                 field("Salesperson Code"; Rec."Salesperson Code")
@@ -138,19 +123,16 @@ page 6662 "Posted Return Receipts"
                 field("Shortcut Dimension 1 Code"; Rec."Shortcut Dimension 1 Code")
                 {
                     ApplicationArea = Dimensions;
-                    ToolTip = 'Specifies the code for Shortcut Dimension 1, which is one of two global dimension codes that you set up in the General Ledger Setup window.';
                     Visible = false;
                 }
                 field("Shortcut Dimension 2 Code"; Rec."Shortcut Dimension 2 Code")
                 {
                     ApplicationArea = Dimensions;
-                    ToolTip = 'Specifies the code for Shortcut Dimension 2, which is one of two global dimension codes that you set up in the General Ledger Setup window.';
                     Visible = false;
                 }
                 field("Currency Code"; Rec."Currency Code")
                 {
                     ApplicationArea = SalesReturnOrder;
-                    ToolTip = 'Specifies the currency that is used on the entry.';
                 }
                 field("Location Code"; Rec."Location Code")
                 {
@@ -160,18 +142,15 @@ page 6662 "Posted Return Receipts"
                 field("No. Printed"; Rec."No. Printed")
                 {
                     ApplicationArea = SalesReturnOrder;
-                    ToolTip = 'Specifies how many times the document has been printed.';
                 }
                 field("Document Date"; Rec."Document Date")
                 {
                     ApplicationArea = SalesReturnOrder;
-                    ToolTip = 'Specifies the date when the related document was created.';
                     Visible = false;
                 }
                 field("Shipment Method Code"; Rec."Shipment Method Code")
                 {
                     ApplicationArea = SalesReturnOrder;
-                    ToolTip = 'Specifies the delivery conditions of the related shipment, such as free on board (FOB).';
                     Visible = false;
                 }
                 field("Shipping Agent Code"; Rec."Shipping Agent Code")
@@ -183,13 +162,11 @@ page 6662 "Posted Return Receipts"
                 field("Package Tracking No."; Rec."Package Tracking No.")
                 {
                     ApplicationArea = SalesReturnOrder;
-                    ToolTip = 'Specifies the shipping agent''s package number.';
                     Visible = false;
                 }
                 field("Shipment Date"; Rec."Shipment Date")
                 {
                     ApplicationArea = SalesReturnOrder;
-                    ToolTip = 'Specifies when items on the document are shipped or were shipped. A shipment date is usually calculated from a requested delivery date plus lead time.';
                     Visible = false;
                 }
             }

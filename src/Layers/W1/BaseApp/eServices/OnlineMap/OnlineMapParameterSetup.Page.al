@@ -20,48 +20,39 @@ page 804 "Online Map Parameter Setup"
                 field("Code"; Rec.Code)
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies a descriptive code for the map that you set up, for example, BING.';
                 }
                 field(Name; Rec.Name)
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the name of the country/region. If you have selected the country/region code, the name is automatically inserted into this field.';
                 }
                 field("Map Service"; Rec."Map Service")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the URL for the online map.';
                 }
                 field("Directions Service"; Rec."Directions Service")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the URL for directions an on online map.';
                 }
                 field("Directions from Location Serv."; Rec."Directions from Location Serv.")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the URL for directions from your location an on online map.';
                 }
                 field("URL Encode Non-ASCII Chars"; Rec."URL Encode Non-ASCII Chars")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies whether the URL is Non-ASCII encoded.';
                 }
                 field("Miles/Kilometers Option List"; Rec."Miles/Kilometers Option List")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the options that measure the route distance.';
                 }
                 field("Quickest/Shortest Option List"; Rec."Quickest/Shortest Option List")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the option for calculating the quickest or the shortest route.';
                 }
                 field(Comment; Rec.Comment)
                 {
                     ApplicationArea = Comments;
                     ExtendedDatatype = URL;
-                    ToolTip = 'Specifies a comment. The field is optional, and you can enter a maximum of 30 characters, both numbers and letters.';
                 }
             }
         }

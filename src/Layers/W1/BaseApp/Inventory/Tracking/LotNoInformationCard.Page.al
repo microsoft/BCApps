@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -24,37 +24,30 @@ page 6505 "Lot No. Information Card"
                 field("Item No."; Rec."Item No.")
                 {
                     ApplicationArea = ItemTracking;
-                    ToolTip = 'Specifies this number from the Tracking Specification table when a lot number information record is created.';
                 }
                 field("Variant Code"; Rec."Variant Code")
                 {
                     ApplicationArea = Planning;
-                    ToolTip = 'Specifies the variant of the item on the line.';
                 }
                 field("Lot No."; Rec."Lot No.")
                 {
                     ApplicationArea = ItemTracking;
-                    ToolTip = 'Specifies this number from the Tracking Specification table when a lot number information record is created.';
                 }
                 field(Description; Rec.Description)
                 {
                     ApplicationArea = ItemTracking;
-                    ToolTip = 'Specifies a description of the lot no. information record.';
                 }
                 field("Test Quality"; Rec."Test Quality")
                 {
                     ApplicationArea = ItemTracking;
-                    ToolTip = 'Specifies the quality of a given lot if you have inspected the items.';
                 }
                 field("Certificate Number"; Rec."Certificate Number")
                 {
                     ApplicationArea = ItemTracking;
-                    ToolTip = 'Specifies the number provided by the supplier to indicate that the batch or lot meets the specified requirements.';
                 }
                 field(Blocked; Rec.Blocked)
                 {
                     ApplicationArea = ItemTracking;
-                    ToolTip = 'Specifies that the related record is blocked from being posted in transactions, for example a customer that is declared insolvent or an item that is placed in quarantine.';
                 }
             }
             group(Inventory)
@@ -63,12 +56,10 @@ page 6505 "Lot No. Information Card"
                 field(InventoryField; Rec.Inventory)
                 {
                     ApplicationArea = ItemTracking;
-                    ToolTip = 'Specifies the inventory quantity of the specified lot number.';
                 }
                 field("Expired Inventory"; Rec."Expired Inventory")
                 {
                     ApplicationArea = ItemTracking;
-                    ToolTip = 'Specifies the inventory of the lot number with an expiration date before the posting date on the associated document.';
                 }
             }
         }

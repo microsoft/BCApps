@@ -12,7 +12,7 @@ using Microsoft.Foundation.Enums;
 
 codeunit 6493 "Serv. CashFlow Subscribers"
 {
-    [EventSubscriber(ObjectType::Page, Page::"Cash Flow Availability Lines", 'OnAfterCalcLine', '', false, false)]
+    [EventSubscriber(ObjectType::Page, Page::"Cash Flow Availability Lines", 'OnAfterCalcLine', '', true, false)]
     local procedure OnAfterCalcLine(var CashFlowAvailabilityBuffer: Record "Cash Flow Availability Buffer"; var CashFlowForecast: Record "Cash Flow Forecast"; RoundingFactor: Option)
     var
         MatrixMgt: Codeunit "Matrix Management";
@@ -23,7 +23,7 @@ codeunit 6493 "Serv. CashFlow Subscribers"
                 "Analysis Rounding Factor".FromInteger(RoundingFactor));
     end;
 
-    [EventSubscriber(ObjectType::Table, Database::"Cash Flow Worksheet Line", 'OnCalculateCFAmountAndCFDateOnAfterAssignApplyCFPaymentTerm', '', false, false)]
+    [EventSubscriber(ObjectType::Table, Database::"Cash Flow Worksheet Line", 'OnCalculateCFAmountAndCFDateOnAfterAssignApplyCFPaymentTerm', '', true, false)]
     local procedure OnCalculateCFAmountAndCFDateOnAfterAssignApplyCFPaymentTerm(CashFlowWorksheetLine: Record "Cash Flow Worksheet Line"; var ApplyCFPaymentTerm: Boolean)
     begin
         if CashFlowWorksheetLine."Source Type" = CashFlowWorksheetLine."Source Type"::"Service Orders" then

@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -29,6 +29,7 @@ table 1231 "Positive Pay Entry"
         field(1; "Bank Account No."; Code[20])
         {
             Caption = 'Bank Account No.';
+            ToolTip = 'Specifies the bank account number. If you select Balance at Date, the balance as of the last day in the relevant time interval is displayed.';
             NotBlank = false;
             TableRelation = "Bank Account"."No.";
 
@@ -46,6 +47,7 @@ table 1231 "Positive Pay Entry"
         field(2; "Upload Date-Time"; DateTime)
         {
             Caption = 'Upload Date-Time';
+            ToolTip = 'Specifies when the Positive Pay file was uploaded.';
             Editable = false;
         }
         /// <summary>
@@ -54,6 +56,7 @@ table 1231 "Positive Pay Entry"
         field(5; "Last Upload Date"; Date)
         {
             Caption = 'Last Upload Date';
+            ToolTip = 'Specifies the last date that you exported a Positive Pay file.';
         }
         /// <summary>
         /// Time component of the last upload operation for this bank account.
@@ -61,6 +64,7 @@ table 1231 "Positive Pay Entry"
         field(6; "Last Upload Time"; Time)
         {
             Caption = 'Last Upload Time';
+            ToolTip = 'Specifies the last time that you exported a Positive Pay file.';
         }
         /// <summary>
         /// Total number of positive pay uploads performed for this bank account.
@@ -68,6 +72,7 @@ table 1231 "Positive Pay Entry"
         field(7; "Number of Uploads"; Integer)
         {
             Caption = 'Number of Uploads';
+            ToolTip = 'Specifies how many times the related Positive Pay file was uploaded.';
         }
         /// <summary>
         /// Total number of checks included in this positive pay export.
@@ -75,6 +80,7 @@ table 1231 "Positive Pay Entry"
         field(8; "Number of Checks"; Integer)
         {
             Caption = 'Number of Checks';
+            ToolTip = 'Specifies how many checks were processed with the Positive Pay entry.';
         }
         /// <summary>
         /// Total number of voided checks included in this positive pay export.
@@ -82,6 +88,7 @@ table 1231 "Positive Pay Entry"
         field(9; "Number of Voids"; Integer)
         {
             Caption = 'Number of Voids';
+            ToolTip = 'Specifies how many of the related checks were voided.';
         }
         /// <summary>
         /// Total amount of all checks included in this positive pay export.
@@ -91,6 +98,7 @@ table 1231 "Positive Pay Entry"
             AutoFormatExpression = GetCurrencyCodeFromBank();
             AutoFormatType = 1;
             Caption = 'Check Amount';
+            ToolTip = 'Specifies the amount on the check.';
         }
         /// <summary>
         /// Total amount of all voided checks included in this positive pay export.
@@ -100,6 +108,7 @@ table 1231 "Positive Pay Entry"
             AutoFormatExpression = GetCurrencyCodeFromBank();
             AutoFormatType = 1;
             Caption = 'Void Amount';
+            ToolTip = 'Specifies the amount in the Positive Pay file that is related to voided checks.';
         }
         /// <summary>
         /// Confirmation number received from the bank after successful positive pay file upload.
@@ -107,6 +116,7 @@ table 1231 "Positive Pay Entry"
         field(12; "Confirmation Number"; Text[20])
         {
             Caption = 'Confirmation Number';
+            ToolTip = 'Specifies the confirmation number that you receive when the file upload to the bank is successful.';
         }
         /// <summary>
         /// Binary content of the exported positive pay file for re-export purposes.

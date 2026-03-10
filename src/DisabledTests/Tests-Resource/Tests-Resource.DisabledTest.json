@@ -43,5 +43,15 @@
     "codeunitId": 136907,
     "codeunitName": "Resource",
     "method": "UpdateItemAnalysisViewAfterPostSalesOrder"
+  },
+  {
+    "codeunitId": 136404,
+    "codeunitName": "Resource Matrix Management",
+    "method": "ResourceAllocatedPerServiceOrder"
+  },
+  {
+    "codeunitId": 136404,
+    "codeunitName": "Resource Matrix Management",
+    "method": "ResourceGroupAllocatedPerServiceOrder"
   }
 ]

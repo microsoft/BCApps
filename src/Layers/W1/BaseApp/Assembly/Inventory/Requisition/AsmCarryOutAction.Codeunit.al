@@ -108,7 +108,8 @@ codeunit 945 "Asm. Carry Out Action"
 #if not CLEAN27
         CarryOutAction.RunOnAfterInsertAsmHeader(RequisitionLine, AssemblyHeader);
 #endif
-        CollectAsmOrderForPrinting(AssemblyHeader);
+        if PrintOrder then
+            CollectAsmOrderForPrinting(AssemblyHeader);
 
         TempDocumentEntry.Init();
         TempDocumentEntry."Table ID" := Database::Microsoft.Assembly.Document."Assembly Header";

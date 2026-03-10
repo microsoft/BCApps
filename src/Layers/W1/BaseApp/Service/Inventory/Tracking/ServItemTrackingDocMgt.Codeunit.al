@@ -11,7 +11,7 @@ using Microsoft.Service.History;
 codeunit 6482 "Serv. Item Tracking Doc. Mgt."
 {
 
-    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Item Tracking Doc. Management", 'OnRetrieveDocumentItemTracking', '', false, false)]
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Item Tracking Doc. Management", 'OnRetrieveDocumentItemTracking', '', true, false)]
     local procedure OnRetrieveDocumentItemTracking(var TempTrackingSpecBuffer: Record "Tracking Specification" temporary; SourceType: Integer; SourceSubType: Option; SourceID: Code[20]; var sender: Codeunit "Item Tracking Doc. Management"; var Found: Boolean)
     begin
         case SourceType of
@@ -107,7 +107,7 @@ codeunit 6482 "Serv. Item Tracking Doc. Mgt."
         end;
     end;
 
-    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Item Tracking Doc. Management", 'OnAfterTableSignFactor', '', false, false)]
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Item Tracking Doc. Management", 'OnAfterTableSignFactor', '', true, false)]
     local procedure OnAfterTableSignFactor(TableNo: Integer; var Sign: Integer)
     begin
         if TableNo in [
@@ -118,7 +118,7 @@ codeunit 6482 "Serv. Item Tracking Doc. Mgt."
             Sign := -1;
     end;
 
-    [EventSubscriber(ObjectType::Page, Page::"Item Tracking Lines", 'OnAfterGetInvoiceSource', '', false, false)]
+    [EventSubscriber(ObjectType::Page, Page::"Item Tracking Lines", 'OnAfterGetInvoiceSource', '', true, false)]
     local procedure OnAfterGetInvoiceSource(TrackingSpecification: Record "Tracking Specification"; var QtyToInvoiceColumnIsHidden: Boolean)
     begin
         if not QtyToInvoiceColumnIsHidden then
@@ -127,7 +127,7 @@ codeunit 6482 "Serv. Item Tracking Doc. Mgt."
                 (TrackingSpecification."Source Subtype" in [0, 2, 3, 4]));
     end;
 
-    [EventSubscriber(ObjectType::Page, Page::"Item Tracking Lines", 'OnAfterGetHandleSource', '', false, false)]
+    [EventSubscriber(ObjectType::Page, Page::"Item Tracking Lines", 'OnAfterGetHandleSource', '', true, false)]
     local procedure OnAferGetHandleSource(TrackingSpecification: Record "Tracking Specification"; var QtyToHandleColumnIsHidden: Boolean)
     begin
         if not QtyToHandleColumnIsHidden then

@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -16,6 +16,7 @@ table 5640 "Main Asset Component"
         field(1; "Main Asset No."; Code[20])
         {
             Caption = 'Main Asset No.';
+            ToolTip = 'Specifies the number of the main asset. This is the asset for which components can be set up.';
             Editable = false;
             NotBlank = true;
             TableRelation = "Fixed Asset";
@@ -23,6 +24,7 @@ table 5640 "Main Asset Component"
         field(3; "FA No."; Code[20])
         {
             Caption = 'FA No.';
+            ToolTip = 'Specifies the number of the related fixed asset.';
             NotBlank = true;
             TableRelation = "Fixed Asset";
 
@@ -66,6 +68,7 @@ table 5640 "Main Asset Component"
         field(4; Description; Text[100])
         {
             Caption = 'Description';
+            ToolTip = 'Specifies the description linked to the fixed asset for the fixed asset number you entered in FA No. field.';
         }
     }
 

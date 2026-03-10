@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -57,13 +57,11 @@ page 142 "Posted Sales Shipments"
                 field("Sell-to Country/Region Code"; Rec."Sell-to Country/Region Code")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the country/region code of the customer''s main address.';
                     Visible = false;
                 }
                 field("Sell-to Contact"; Rec."Sell-to Contact")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the name of the contact person at the customer''s main address.';
                     Visible = false;
                 }
                 field("Bill-to Customer No."; Rec."Bill-to Customer No.")
@@ -74,13 +72,11 @@ page 142 "Posted Sales Shipments"
                 field("Bill-to Name"; Rec."Bill-to Name")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the name of the customer that you send or sent the invoice or credit memo to.';
                     Visible = false;
                 }
                 field("Bill-to Post Code"; Rec."Bill-to Post Code")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the postal code of the customer''s billing address.';
                     Visible = false;
                 }
                 field("Bill-to Country/Region Code"; Rec."Bill-to Country/Region Code")
@@ -92,7 +88,6 @@ page 142 "Posted Sales Shipments"
                 field("Bill-to Contact"; Rec."Bill-to Contact")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the name of the contact person at the customer''s billing address.';
                     Visible = false;
                 }
                 field("Ship-to Code"; Rec."Ship-to Code")
@@ -104,13 +99,11 @@ page 142 "Posted Sales Shipments"
                 field("Ship-to Name"; Rec."Ship-to Name")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the name of the customer at the address that the items are shipped to.';
                     Visible = false;
                 }
                 field("Ship-to Post Code"; Rec."Ship-to Post Code")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the postal code of the address that the items are shipped to.';
                     Visible = false;
                 }
                 field("Ship-to Country/Region Code"; Rec."Ship-to Country/Region Code")
@@ -140,47 +133,39 @@ page 142 "Posted Sales Shipments"
                 field("Shortcut Dimension 1 Code"; Rec."Shortcut Dimension 1 Code")
                 {
                     ApplicationArea = Dimensions;
-                    ToolTip = 'Specifies the code for Shortcut Dimension 1, which is one of two global dimension codes that you set up in the General Ledger Setup window.';
                     Visible = false;
                 }
                 field("Shortcut Dimension 2 Code"; Rec."Shortcut Dimension 2 Code")
                 {
                     ApplicationArea = Dimensions;
-                    ToolTip = 'Specifies the code for Shortcut Dimension 2, which is one of two global dimension codes that you set up in the General Ledger Setup window.';
                     Visible = false;
                 }
                 field("Currency Code"; Rec."Currency Code")
                 {
                     ApplicationArea = Suite;
-                    ToolTip = 'Specifies the currency code of the shipment.';
                 }
                 field("Location Code"; Rec."Location Code")
                 {
                     ApplicationArea = Location;
-                    ToolTip = 'Specifies the location from which the items were shipped.';
                     Visible = true;
                 }
                 field("No. Printed"; Rec."No. Printed")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies how many times the document has been printed.';
                 }
                 field("Document Date"; Rec."Document Date")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the date when the related document was created.';
                     Visible = false;
                 }
                 field("Requested Delivery Date"; Rec."Requested Delivery Date")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the date that the customer has asked for the order to be delivered.';
                     Visible = false;
                 }
                 field("Shipment Method Code"; Rec."Shipment Method Code")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the delivery conditions of the related shipment, such as free on board (FOB).';
                     Visible = false;
                 }
                 field("Shipping Agent Code"; Rec."Shipping Agent Code")
@@ -198,19 +183,16 @@ page 142 "Posted Sales Shipments"
                 field("Package Tracking No."; Rec."Package Tracking No.")
                 {
                     ApplicationArea = Suite;
-                    ToolTip = 'Specifies the shipping agent''s package number.';
                     Visible = false;
                 }
                 field("Shipment Date"; Rec."Shipment Date")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies when items on the document are shipped or were shipped. A shipment date is usually calculated from a requested delivery date plus lead time.';
                     Visible = false;
                 }
                 field("External Document No."; Rec."External Document No.")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the number that the customer uses in their own system to refer to this sales document.';
                     Visible = false;
                 }
             }

@@ -53,5 +53,10 @@
     "codeunitId": 137462,
     "codeunitName": "Phys. Invt. Order Subform UT",
     "method": "ShowDimensionPhysInventoryOrderSubform"
+  },
+  {
+    "codeunitId": 137456,
+    "codeunitName": "Phys. Invt. Recording UT REP",
+    "method": "PhysInvtRecordingNotThrowAnyErrorWhenImportingTxtFile"
   }
 ]

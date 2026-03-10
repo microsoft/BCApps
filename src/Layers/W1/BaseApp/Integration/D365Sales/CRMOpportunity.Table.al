@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -35,6 +35,7 @@ table 5343 "CRM Opportunity"
         field(3; OpportunityRatingCode; Option)
         {
             Caption = 'Rating';
+            ToolTip = 'Specifies data from a corresponding field in a Dynamics 365 Sales entity. For more information about Dynamics 365 Sales, see Dynamics 365 Sales Help Center.';
             Description = 'Select the expected value or priority of the opportunity based on revenue, customer status, or closing probability.';
             ExternalName = 'opportunityratingcode';
             ExternalType = 'Picklist';
@@ -75,6 +76,7 @@ table 5343 "CRM Opportunity"
         field(7; Name; Text[2048])
         {
             Caption = 'Topic';
+            ToolTip = 'Specifies data from a corresponding field in a Dynamics 365 Sales entity. For more information about Dynamics 365 Sales, see Dynamics 365 Sales Help Center.';
             Description = 'Type a subject or descriptive name, such as the expected order or company name, for the opportunity.';
             ExternalName = 'name';
             ExternalType = 'String';
@@ -98,6 +100,7 @@ table 5343 "CRM Opportunity"
         {
             AutoFormatType = 0;
             Caption = 'Est. Revenue';
+            ToolTip = 'Specifies data from a corresponding field in a Dynamics 365 Sales entity. For more information about Dynamics 365 Sales, see Dynamics 365 Sales Help Center.';
             Description = 'Type the estimated revenue amount to indicate the potential sale or value of the opportunity for revenue forecasting. This field can be either system-populated or editable based on the selection in the Revenue field.';
             ExternalName = 'estimatedvalue';
             ExternalType = 'Money';
@@ -141,6 +144,7 @@ table 5343 "CRM Opportunity"
         field(15; EstimatedCloseDate; Date)
         {
             Caption = 'Est. Close Date';
+            ToolTip = 'Specifies data from a corresponding field in a Dynamics 365 Sales entity. For more information about Dynamics 365 Sales, see Dynamics 365 Sales Help Center.';
             Description = 'Enter the expected closing date of the opportunity to help make accurate revenue forecasts.';
             ExternalName = 'estimatedclosedate';
             ExternalType = 'DateTime';
@@ -148,6 +152,7 @@ table 5343 "CRM Opportunity"
         field(16; CloseProbability; Integer)
         {
             Caption = 'Probability';
+            ToolTip = 'Specifies data from a corresponding field in a Dynamics 365 Sales entity. For more information about Dynamics 365 Sales, see Dynamics 365 Sales Help Center.';
             Description = 'Type a number from 0 to 100 that represents the likelihood of closing the opportunity. This can aid the sales team in their efforts to convert the opportunity in a sale.';
             ExternalName = 'closeprobability';
             ExternalType = 'Integer';
@@ -232,6 +237,7 @@ table 5343 "CRM Opportunity"
         field(26; StateCode; Option)
         {
             Caption = 'Status';
+            ToolTip = 'Specifies data from a corresponding field in a Dynamics 365 Sales entity. For more information about Dynamics 365 Sales, see Dynamics 365 Sales Help Center.';
             Description = 'Shows whether the opportunity is open, won, or lost. Won and lost opportunities are read-only and can''t be edited until they are reactivated.';
             ExternalAccess = Modify;
             ExternalName = 'statecode';
@@ -244,6 +250,7 @@ table 5343 "CRM Opportunity"
         field(27; StatusCode; Option)
         {
             Caption = 'Status Reason';
+            ToolTip = 'Specifies data from a corresponding field in a Dynamics 365 Sales entity. For more information about Dynamics 365 Sales, see Dynamics 365 Sales Help Center.';
             Description = 'Select the opportunity''s status.';
             ExternalName = 'statuscode';
             ExternalType = 'Status';
@@ -437,6 +444,7 @@ table 5343 "CRM Opportunity"
         {
             AutoFormatType = 0;
             Caption = 'Total Amount';
+            ToolTip = 'Specifies data from a corresponding field in a Dynamics 365 Sales entity. For more information about Dynamics 365 Sales, see Dynamics 365 Sales Help Center.';
             Description = 'Shows the total amount due, calculated as the sum of the products, discounts, freight, and taxes for the opportunity.';
             ExternalAccess = Modify;
             ExternalName = 'totalamount';
@@ -632,6 +640,7 @@ table 5343 "CRM Opportunity"
         field(71; Need; Option)
         {
             Caption = 'Need';
+            ToolTip = 'Specifies data from a corresponding field in a Dynamics 365 Sales entity. For more information about Dynamics 365 Sales, see Dynamics 365 Sales Help Center.';
             Description = 'Choose how high the level of need is for the lead''s company.';
             ExternalName = 'need';
             ExternalType = 'Picklist';
@@ -680,6 +689,7 @@ table 5343 "CRM Opportunity"
         {
             CalcFormula = lookup("CRM Account".Name where(AccountId = field(ParentAccountId)));
             Caption = 'ParentAccountIdName';
+            ToolTip = 'Specifies data from a corresponding field in a Dynamics 365 Sales entity. For more information about Dynamics 365 Sales, see Dynamics 365 Sales Help Center.';
             ExternalAccess = Read;
             ExternalName = 'parentaccountidname';
             ExternalType = 'String';
@@ -697,6 +707,7 @@ table 5343 "CRM Opportunity"
         {
             CalcFormula = lookup("CRM Contact".FullName where(ContactId = field(ParentContactId)));
             Caption = 'ParentContactIdName';
+            ToolTip = 'Specifies data from a corresponding field in a Dynamics 365 Sales entity. For more information about Dynamics 365 Sales, see Dynamics 365 Sales Help Center.';
             ExternalAccess = Read;
             ExternalName = 'parentcontactidname';
             ExternalType = 'String';

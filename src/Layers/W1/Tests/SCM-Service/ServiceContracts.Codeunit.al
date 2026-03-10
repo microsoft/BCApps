@@ -3652,6 +3652,67 @@ codeunit 136102 "Service Contracts"
         ServiceContractHeader.TestField("Contact No.", Contact."No.");
     end;
 
+    [Test]
+    [HandlerFunctions('ServContrctTemplateListHandler,InvoiceConfirmHandler')]
+    [Scope('OnPrem')]
+    procedure DeletePostedInvoiceWithMultipleContractsRevertsAllContractDates()
+    var
+        ServiceContractHeader1: Record "Service Contract Header";
+        ServiceContractHeader3: Record "Service Contract Header";
+        ServiceContractLine1: Record "Service Contract Line";
+        ServiceContractLine2: Record "Service Contract Line";
+        ServiceHeader: Record "Service Header";
+        PostingDate: Date;
+        InvoiceToDate: Date;
+        NextInvoiceDate1: Date;
+        NextInvoiceDate2: Date;
+        LastInvoiceDate1: Date;
+        LastInvoiceDate2: Date;
+        InvoiceNo: Code[20];
+    begin
+        // [SCENARIO 619191] When deleting a posted service invoice with multiple service contracts,
+        // all service contract invoice details should be reverted, not just the first one.
+
+        // [GIVEN] Two service contracts with "Combine Invoices" enabled for the same customer
+        Initialize();
+        CreateTwoSignedServiceContractsWithCombineInvoices(
+            ServiceContractHeader1, ServiceContractLine1, ServiceContractHeader3, ServiceContractLine2);
+        SignServContractDoc.SignContract(ServiceContractHeader1);
+        SignServContractDoc.SignContract(ServiceContractHeader3);
+        // [GIVEN] A combined posted service invoice for both contracts
+        PostingDate := ServiceContractHeader1."Next Invoice Date";
+        InvoiceToDate := CalcDate('<1M>', ServiceContractHeader1."Next Invoice Date") - 1;
+        CreateAndPostCombinedContractInvoice(ServiceContractHeader1, PostingDate, InvoiceToDate, InvoiceNo);
+
+        // [GIVEN] Both contracts have updated invoice details
+        ServiceContractHeader1.Find();
+        ServiceContractHeader3.Find();
+        NextInvoiceDate1 := ServiceContractHeader1."Next Invoice Date";
+        NextInvoiceDate2 := ServiceContractHeader3."Next Invoice Date";
+        LastInvoiceDate1 := ServiceContractHeader1."Last Invoice Date";
+        LastInvoiceDate2 := ServiceContractHeader3."Last Invoice Date";
+
+        Assert.AreNotEqual(0D, NextInvoiceDate1, 'Next Invoice Date should be set for Contract 1');
+        Assert.AreNotEqual(0D, NextInvoiceDate2, 'Next Invoice Date should be set for Contract 2');
+        Assert.AreNotEqual(0D, LastInvoiceDate1, 'Last Invoice Date should be set for Contract 1');
+        Assert.AreNotEqual(0D, LastInvoiceDate2, 'Last Invoice Date should be set for Contract 2');
+
+        // [WHEN] The service invoice is deleted
+        ServiceHeader.SetRange("Customer No.", ServiceContractHeader1."Customer No.");
+        LibraryVariableStorage.Enqueue(true); // Confirm deletion of the service invoice.
+        ServiceHeader.FindFirst();
+        ServiceHeader.Delete(true);
+
+        // [THEN] Both service contracts have their invoice details reverted
+        ServiceContractHeader1.Find();
+        ServiceContractHeader3.Find();
+
+        Assert.AreNotEqual(NextInvoiceDate1, ServiceContractHeader1."Next Invoice Date",
+            'Next Invoice Date should be reverted for Contract 1');
+        Assert.AreNotEqual(NextInvoiceDate2, ServiceContractHeader3."Next Invoice Date",
+            'Next Invoice Date should be reverted for Contract 2');
+    end;
+
     local procedure Initialize()
     var
         LibraryERMCountryData: Codeunit "Library - ERM Country Data";
@@ -5361,6 +5422,67 @@ codeunit 136102 "Service Contracts"
 
         LibraryVariableStorage.Enqueue(true); // Confirm to create a new service invoice.
         ServiceContract.CreateServiceInvoice.Invoke();
+    end;
+
+    local procedure CreateTwoSignedServiceContractsWithCombineInvoices(var ServiceContractHeader1: Record "Service Contract Header"; var ServiceContractLine1: Record "Service Contract Line";
+    var ServiceContractHeader3: Record "Service Contract Header"; var ServiceContractLine2: Record "Service Contract Line")
+    var
+        ServiceContractTemplate: Record "Service Contract Template";
+        ShipToAddress: Record "Ship-to Address";
+        CustomerNo: Code[20];
+    begin
+        CreatePrepaidServiceContractTemplate(ServiceContractTemplate);
+        CustomerNo := LibrarySales.CreateCustomerNo();
+        LibrarySales.CreateShipToAddress(ShipToAddress, CustomerNo);
+
+        CreateServiceContractwithCustomer(ServiceContractHeader1, ServiceContractLine1,
+        ServiceContractHeader1."Contract Type"::Contract, CustomerNo, ShipToAddress.Code);
+        ServiceContractHeader1.Validate("Combine Invoices", true);
+        ServiceContractHeader1.Validate("Contract Lines on Invoice", true);
+        ServiceContractHeader1.Validate("Starting Date", ServiceContractHeader1."Starting Date");
+        ServiceContractHeader1.Modify(true);
+        ModifyServiceContractHeader(ServiceContractHeader1, ServiceContractHeader1."Service Period");
+
+        // Create second service contract for same customer
+        CreateServiceContractwithCustomer(ServiceContractHeader3, ServiceContractLine2,
+        ServiceContractHeader3."Contract Type"::Contract, CustomerNo, ShipToAddress.Code);
+        ServiceContractHeader3.Validate("Combine Invoices", true);
+        ServiceContractHeader3.Validate("Contract Lines on Invoice", true);
+        ServiceContractHeader3.Validate("Starting Date", ServiceContractHeader3."Starting Date");
+        ServiceContractHeader3.Modify(true);
+        ModifyServiceContractHeader(ServiceContractHeader3, ServiceContractHeader3."Service Period");
+    end;
+
+    local procedure CreateAndPostCombinedContractInvoice(var ServiceContractHeader: Record "Service Contract Header"; PostingDate: Date; InvoiceToDate: Date; var InvoiceNo: Code[20])
+    var
+        ServiceHeader: Record "Service Header";
+        CreateContractInvoicesRep: Report "Create Contract Invoices";
+        CreateInvoice: Option;
+    begin
+        // Create combined invoice using the report
+        ServiceContractHeader.SetRange("Customer No.", ServiceContractHeader."Customer No.");
+        CreateContractInvoicesRep.SetTableView(ServiceContractHeader);
+        CreateContractInvoicesRep.SetOptions(PostingDate, InvoiceToDate, CreateInvoice);
+        CreateContractInvoicesRep.SetHideDialog(true);
+        CreateContractInvoicesRep.UseRequestPage(false);
+        CreateContractInvoicesRep.Run();
+
+        // Post the invoice
+        ServiceHeader.SetRange("Contract No.", ServiceContractHeader."Contract No.");
+        ServiceHeader.SetRange("Document Type", ServiceHeader."Document Type"::Invoice);
+        if ServiceHeader.FindLast() then
+            InvoiceNo := ServiceHeader."No.";
+
+    end;
+
+    local procedure CreateServiceContractwithCustomer(var ServiceContractHeader: Record "Service Contract Header";
+    var ServiceContractLine: Record "Service Contract Line"; ContractType: Enum "Service Contract Type"; CustomerNo: Code[20]; ShipToAddressCode: Code[20])
+    begin
+        LibraryService.CreateServiceContractHeader(ServiceContractHeader, ContractType, CustomerNo);
+        ServiceContractHeader.Validate("Ship-to Code", ShipToAddressCode);
+        ServiceContractHeader.Modify(true);
+
+        CreateServiceContractLine(ServiceContractLine, ServiceContractHeader);
     end;
 
     [ConfirmHandler]

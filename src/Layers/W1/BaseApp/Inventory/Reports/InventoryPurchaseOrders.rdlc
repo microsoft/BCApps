@@ -721,7 +721,6 @@
                             <PaddingBottom>2pt</PaddingBottom>
                           </Style>
                         </Textbox>
-                        <rd:Selected>true</rd:Selected>
                       </CellContents>
                     </TablixCell>
                     <TablixCell>
@@ -2730,6 +2729,9 @@
                           <TablixMembers>
                             <TablixMember />
                           </TablixMembers>
+                          <Visibility>
+                            <Hidden>=IIf(Fields!DocumentNo_PurchaseLine.Value = "", true, false)</Hidden>
+                          </Visibility>
                           <DataElementName>Detail_Collection</DataElementName>
                           <DataElementOutput>Output</DataElementOutput>
                           <KeepTogether>true</KeepTogether>
@@ -2765,8 +2767,8 @@
             </TablixRowHierarchy>
             <DataSetName>DataSet_Result</DataSetName>
             <Top>1.26984cm</Top>
-            <Height>3.98755cm</Height>
-            <Width>18.075cm</Width>
+            <Height>3.98754cm</Height>
+            <Width>18.07501cm</Width>
             <Style />
           </Tablix>
           <Textbox Name="STRSUBSTNOText000PurchLineFilter">
@@ -2996,6 +2998,186 @@
     </ReportSection>
   </ReportSections>
   <ReportParameters>
+    <ReportParameter Name="InventoryPurchOrdersLbl">
+      <DataType>String</DataType>
+      <DefaultValue>
+        <Values>
+          <Value>InventoryPurchOrdersLbl</Value>
+        </Values>
+      </DefaultValue>
+      <Prompt>InventoryPurchOrdersLbl</Prompt>
+    </ReportParameter>
+    <ReportParameter Name="InventoryPurchOrdersPrintLbl">
+      <DataType>String</DataType>
+      <DefaultValue>
+        <Values>
+          <Value>InventoryPurchOrdersPrintLbl</Value>
+        </Values>
+      </DefaultValue>
+      <Prompt>InventoryPurchOrdersPrintLbl</Prompt>
+    </ReportParameter>
+    <ReportParameter Name="InvPurchOrdersAnalysisLbl">
+      <DataType>String</DataType>
+      <DefaultValue>
+        <Values>
+          <Value>InvPurchOrdersAnalysisLbl</Value>
+        </Values>
+      </DefaultValue>
+      <Prompt>InvPurchOrdersAnalysisLbl</Prompt>
+    </ReportParameter>
+    <ReportParameter Name="DataRetrieved">
+      <DataType>String</DataType>
+      <DefaultValue>
+        <Values>
+          <Value>DataRetrieved</Value>
+        </Values>
+      </DefaultValue>
+      <Prompt>DataRetrieved</Prompt>
+    </ReportParameter>
+    <ReportParameter Name="ItemNoLbl">
+      <DataType>String</DataType>
+      <DefaultValue>
+        <Values>
+          <Value>ItemNoLbl</Value>
+        </Values>
+      </DefaultValue>
+      <Prompt>ItemNoLbl</Prompt>
+    </ReportParameter>
+    <ReportParameter Name="ItemDescLbl">
+      <DataType>String</DataType>
+      <DefaultValue>
+        <Values>
+          <Value>ItemDescLbl</Value>
+        </Values>
+      </DefaultValue>
+      <Prompt>ItemDescLbl</Prompt>
+    </ReportParameter>
+    <ReportParameter Name="VendorLbl">
+      <DataType>String</DataType>
+      <DefaultValue>
+        <Values>
+          <Value>VendorLbl</Value>
+        </Values>
+      </DefaultValue>
+      <Prompt>VendorLbl</Prompt>
+    </ReportParameter>
+    <ReportParameter Name="ExpectedReceiptDateLbl">
+      <DataType>String</DataType>
+      <DefaultValue>
+        <Values>
+          <Value>ExpectedReceiptDateLbl</Value>
+        </Values>
+      </DefaultValue>
+      <Prompt>ExpectedReceiptDateLbl</Prompt>
+    </ReportParameter>
+    <ReportParameter Name="QtyOnBackOrderLbl">
+      <DataType>String</DataType>
+      <DefaultValue>
+        <Values>
+          <Value>QtyOnBackOrderLbl</Value>
+        </Values>
+      </DefaultValue>
+      <Prompt>QtyOnBackOrderLbl</Prompt>
+    </ReportParameter>
+    <ReportParameter Name="LineDiscountLbl">
+      <DataType>String</DataType>
+      <DefaultValue>
+        <Values>
+          <Value>LineDiscountLbl</Value>
+        </Values>
+      </DefaultValue>
+      <Prompt>LineDiscountLbl</Prompt>
+    </ReportParameter>
+    <ReportParameter Name="InvDiscountAmountLbl">
+      <DataType>String</DataType>
+      <DefaultValue>
+        <Values>
+          <Value>InvDiscountAmountLbl</Value>
+        </Values>
+      </DefaultValue>
+      <Prompt>InvDiscountAmountLbl</Prompt>
+    </ReportParameter>
+    <ReportParameter Name="AmtOnOrderInclVATLbl">
+      <DataType>String</DataType>
+      <DefaultValue>
+        <Values>
+          <Value>AmtOnOrderInclVATLbl</Value>
+        </Values>
+      </DefaultValue>
+      <Prompt>AmtOnOrderInclVATLbl</Prompt>
+    </ReportParameter>
+    <ReportParameter Name="TotalsLbl">
+      <DataType>String</DataType>
+      <DefaultValue>
+        <Values>
+          <Value>TotalsLbl</Value>
+        </Values>
+      </DefaultValue>
+      <Prompt>TotalsLbl</Prompt>
+    </ReportParameter>
+    <ReportParameter Name="AboutTheReportLbl">
+      <DataType>String</DataType>
+      <DefaultValue>
+        <Values>
+          <Value>AboutTheReportLbl</Value>
+        </Values>
+      </DefaultValue>
+      <Prompt>AboutTheReportLbl</Prompt>
+    </ReportParameter>
+    <ReportParameter Name="EnvironmentLbl">
+      <DataType>String</DataType>
+      <DefaultValue>
+        <Values>
+          <Value>EnvironmentLbl</Value>
+        </Values>
+      </DefaultValue>
+      <Prompt>EnvironmentLbl</Prompt>
+    </ReportParameter>
+    <ReportParameter Name="CompanyLbl">
+      <DataType>String</DataType>
+      <DefaultValue>
+        <Values>
+          <Value>CompanyLbl</Value>
+        </Values>
+      </DefaultValue>
+      <Prompt>CompanyLbl</Prompt>
+    </ReportParameter>
+    <ReportParameter Name="UserLbl">
+      <DataType>String</DataType>
+      <DefaultValue>
+        <Values>
+          <Value>UserLbl</Value>
+        </Values>
+      </DefaultValue>
+      <Prompt>UserLbl</Prompt>
+    </ReportParameter>
+    <ReportParameter Name="RunOnLbl">
+      <DataType>String</DataType>
+      <DefaultValue>
+        <Values>
+          <Value>RunOnLbl</Value>
+        </Values>
+      </DefaultValue>
+      <Prompt>RunOnLbl</Prompt>
+    </ReportParameter>
+    <ReportParameter Name="ReportNameLbl">
+      <DataType>String</DataType>
+      <DefaultValue>
+        <Values>
+          <Value>ReportNameLbl</Value>
+        </Values>
+      </DefaultValue>
+      <Prompt>ReportNameLbl</Prompt>
+    </ReportParameter>
+    <ReportParameter Name="DocumentationLbl">
+      <DataType>String</DataType>
+      <DefaultValue>
+        <Values>
+          <Value>DocumentationLbl</Value>
+        </Values>
+      </DefaultValue>
+      <Prompt>DocumentationLbl</Prompt>
+    </ReportParameter>
     <ReportParameter Name="DocumentNo_PurchaseLineCaption">
       <DataType>String</DataType>
       <DefaultValue>
@@ -3036,26 +3218,126 @@
   <ReportParametersLayout>
     <GridLayoutDefinition>
       <NumberOfColumns>1</NumberOfColumns>
-      <NumberOfRows>4</NumberOfRows>
+      <NumberOfRows>24</NumberOfRows>
       <CellDefinitions>
         <CellDefinition>
           <ColumnIndex>0</ColumnIndex>
           <RowIndex>0</RowIndex>
-          <ParameterName>DocumentNo_PurchaseLineCaption</ParameterName>
+          <ParameterName>InventoryPurchOrdersLbl</ParameterName>
         </CellDefinition>
         <CellDefinition>
           <ColumnIndex>0</ColumnIndex>
           <RowIndex>1</RowIndex>
-          <ParameterName>Quantity_PurchaseLineCaption</ParameterName>
+          <ParameterName>InventoryPurchOrdersPrintLbl</ParameterName>
         </CellDefinition>
         <CellDefinition>
           <ColumnIndex>0</ColumnIndex>
           <RowIndex>2</RowIndex>
-          <ParameterName>OutStandingQty_PurchLineCaption</ParameterName>
+          <ParameterName>InvPurchOrdersAnalysisLbl</ParameterName>
         </CellDefinition>
         <CellDefinition>
           <ColumnIndex>0</ColumnIndex>
           <RowIndex>3</RowIndex>
+          <ParameterName>DataRetrieved</ParameterName>
+        </CellDefinition>
+        <CellDefinition>
+          <ColumnIndex>0</ColumnIndex>
+          <RowIndex>4</RowIndex>
+          <ParameterName>ItemNoLbl</ParameterName>
+        </CellDefinition>
+        <CellDefinition>
+          <ColumnIndex>0</ColumnIndex>
+          <RowIndex>5</RowIndex>
+          <ParameterName>ItemDescLbl</ParameterName>
+        </CellDefinition>
+        <CellDefinition>
+          <ColumnIndex>0</ColumnIndex>
+          <RowIndex>6</RowIndex>
+          <ParameterName>VendorLbl</ParameterName>
+        </CellDefinition>
+        <CellDefinition>
+          <ColumnIndex>0</ColumnIndex>
+          <RowIndex>7</RowIndex>
+          <ParameterName>ExpectedReceiptDateLbl</ParameterName>
+        </CellDefinition>
+        <CellDefinition>
+          <ColumnIndex>0</ColumnIndex>
+          <RowIndex>8</RowIndex>
+          <ParameterName>QtyOnBackOrderLbl</ParameterName>
+        </CellDefinition>
+        <CellDefinition>
+          <ColumnIndex>0</ColumnIndex>
+          <RowIndex>9</RowIndex>
+          <ParameterName>LineDiscountLbl</ParameterName>
+        </CellDefinition>
+        <CellDefinition>
+          <ColumnIndex>0</ColumnIndex>
+          <RowIndex>10</RowIndex>
+          <ParameterName>InvDiscountAmountLbl</ParameterName>
+        </CellDefinition>
+        <CellDefinition>
+          <ColumnIndex>0</ColumnIndex>
+          <RowIndex>11</RowIndex>
+          <ParameterName>AmtOnOrderInclVATLbl</ParameterName>
+        </CellDefinition>
+        <CellDefinition>
+          <ColumnIndex>0</ColumnIndex>
+          <RowIndex>12</RowIndex>
+          <ParameterName>TotalsLbl</ParameterName>
+        </CellDefinition>
+        <CellDefinition>
+          <ColumnIndex>0</ColumnIndex>
+          <RowIndex>13</RowIndex>
+          <ParameterName>AboutTheReportLbl</ParameterName>
+        </CellDefinition>
+        <CellDefinition>
+          <ColumnIndex>0</ColumnIndex>
+          <RowIndex>14</RowIndex>
+          <ParameterName>EnvironmentLbl</ParameterName>
+        </CellDefinition>
+        <CellDefinition>
+          <ColumnIndex>0</ColumnIndex>
+          <RowIndex>15</RowIndex>
+          <ParameterName>CompanyLbl</ParameterName>
+        </CellDefinition>
+        <CellDefinition>
+          <ColumnIndex>0</ColumnIndex>
+          <RowIndex>16</RowIndex>
+          <ParameterName>UserLbl</ParameterName>
+        </CellDefinition>
+        <CellDefinition>
+          <ColumnIndex>0</ColumnIndex>
+          <RowIndex>17</RowIndex>
+          <ParameterName>RunOnLbl</ParameterName>
+        </CellDefinition>
+        <CellDefinition>
+          <ColumnIndex>0</ColumnIndex>
+          <RowIndex>18</RowIndex>
+          <ParameterName>ReportNameLbl</ParameterName>
+        </CellDefinition>
+        <CellDefinition>
+          <ColumnIndex>0</ColumnIndex>
+          <RowIndex>19</RowIndex>
+          <ParameterName>DocumentationLbl</ParameterName>
+        </CellDefinition>
+        <CellDefinition>
+          <ColumnIndex>0</ColumnIndex>
+          <RowIndex>20</RowIndex>
+          <ParameterName>DocumentNo_PurchaseLineCaption</ParameterName>
+        </CellDefinition>
+        <CellDefinition>
+          <ColumnIndex>0</ColumnIndex>
+          <RowIndex>21</RowIndex>
+          <ParameterName>Quantity_PurchaseLineCaption</ParameterName>
+        </CellDefinition>
+        <CellDefinition>
+          <ColumnIndex>0</ColumnIndex>
+          <RowIndex>22</RowIndex>
+          <ParameterName>OutStandingQty_PurchLineCaption</ParameterName>
+        </CellDefinition>
+        <CellDefinition>
+          <ColumnIndex>0</ColumnIndex>
+          <RowIndex>23</RowIndex>
           <ParameterName>DirectUnitCost_PurchLineCaption</ParameterName>
         </CellDefinition>
       </CellDefinitions>
@@ -3109,14 +3391,8 @@ End Function
         <Field Name="ItemTableCaptItemFilter">
           <DataField>ItemTableCaptItemFilter</DataField>
         </Field>
-        <Field Name="ItemFilter">
-          <DataField>ItemFilter</DataField>
-        </Field>
-        <Field Name="PurchOrdLnPurchLnFilter">
-          <DataField>PurchOrdLnPurchLnFilter</DataField>
-        </Field>
-        <Field Name="PurchLineFilter">
-          <DataField>PurchLineFilter</DataField>
+        <Field Name="PurchaseLineFilter">
+          <DataField>PurchaseLineFilter</DataField>
         </Field>
         <Field Name="ItemNo">
           <DataField>ItemNo</DataField>
@@ -3144,6 +3420,15 @@ End Function
         </Field>
         <Field Name="ItemBinFilter">
           <DataField>ItemBinFilter</DataField>
+        </Field>
+        <Field Name="PurchOrdLnPurchLnFilter">
+          <DataField>PurchOrdLnPurchLnFilter</DataField>
+        </Field>
+        <Field Name="ItemFilter">
+          <DataField>ItemFilter</DataField>
+        </Field>
+        <Field Name="PurchLineFilter">
+          <DataField>PurchLineFilter</DataField>
         </Field>
         <Field Name="InventoryPurchaseOrdersCaption">
           <DataField>InventoryPurchaseOrdersCaption</DataField>
@@ -3225,6 +3510,30 @@ End Function
         </Field>
         <Field Name="Description1_Item">
           <DataField>Description1_Item</DataField>
+        </Field>
+        <Field Name="Subtotals_OutstandingQuantity">
+          <DataField>Subtotals_OutstandingQuantity</DataField>
+        </Field>
+        <Field Name="Subtotals_OutstandingQuantityFormat">
+          <DataField>Subtotals_OutstandingQuantityFormat</DataField>
+        </Field>
+        <Field Name="Subtotals_QtyOnBackOrder">
+          <DataField>Subtotals_QtyOnBackOrder</DataField>
+        </Field>
+        <Field Name="Subtotals_QtyOnBackOrderFormat">
+          <DataField>Subtotals_QtyOnBackOrderFormat</DataField>
+        </Field>
+        <Field Name="Subtotals_AmountOnOrder">
+          <DataField>Subtotals_AmountOnOrder</DataField>
+        </Field>
+        <Field Name="Subtotals_AmountOnOrderFormat">
+          <DataField>Subtotals_AmountOnOrderFormat</DataField>
+        </Field>
+        <Field Name="Totals_OutstandingAmount">
+          <DataField>Totals_OutstandingAmount</DataField>
+        </Field>
+        <Field Name="Totals_OutstandingAmountFormat">
+          <DataField>Totals_OutstandingAmountFormat</DataField>
         </Field>
       </Fields>
       <Query>

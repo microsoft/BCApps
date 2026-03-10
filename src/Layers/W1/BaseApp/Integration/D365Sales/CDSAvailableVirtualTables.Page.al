@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -28,27 +28,22 @@ page 5372 "CDS Available Virtual Tables"
                 field(Name; Rec."Phsyical Name")
                 {
                     ApplicationArea = All;
-                    ToolTip = 'Specifies the physical name of the virtual table.';
                 }
                 field("Display Name"; Rec."Display Name")
                 {
                     ApplicationArea = All;
-                    ToolTip = 'Specifies the display name of the virtual table.';
                 }
                 field("API Route"; Rec."API Route")
                 {
                     ApplicationArea = All;
-                    ToolTip = 'Specifies the API route of the virtual table.';
                 }
                 field(Visible; Rec.Visible)
                 {
                     ApplicationArea = All;
-                    ToolTip = 'Specifies the visibility of the virtual table.';
                 }
                 field("In Process"; Rec."In Process")
                 {
                     ApplicationArea = All;
-                    ToolTip = 'Specifies whether the enabling of virtual table is in process.';
                 }
             }
         }

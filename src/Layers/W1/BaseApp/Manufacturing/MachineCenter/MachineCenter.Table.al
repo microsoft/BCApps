@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -32,10 +32,12 @@ table 99000758 "Machine Center"
         field(1; "No."; Code[20])
         {
             Caption = 'No.';
+            ToolTip = 'Specifies the number of the involved entry or record, according to the specified number series.';
         }
         field(3; Name; Text[100])
         {
             Caption = 'Name';
+            ToolTip = 'Specifies a name for the machine center.';
 
             trigger OnValidate()
             begin
@@ -45,6 +47,7 @@ table 99000758 "Machine Center"
         field(4; "Search Name"; Code[100])
         {
             Caption = 'Search Name';
+            ToolTip = 'Specifies an alternate name that you can use to search for the record in question when you cannot remember the value in the Name field.';
         }
         field(5; "Name 2"; Text[50])
         {
@@ -107,6 +110,7 @@ table 99000758 "Machine Center"
         field(14; "Work Center No."; Code[20])
         {
             Caption = 'Work Center No.';
+            ToolTip = 'Specifies the number of the work center to assign this machine center to.';
             TableRelation = "Work Center";
 
             trigger OnValidate()
@@ -230,6 +234,7 @@ table 99000758 "Machine Center"
             AutoFormatType = 2;
             AutoFormatExpression = '';
             Caption = 'Direct Unit Cost';
+            ToolTip = 'Specifies the direct unit cost of the machine center at one unit of measure. The basis of the direct unit cost is the usage quantity per time interval set in the Unit of Measure Code field in the assigned Work Center. The calculation is based on the amount of time used.';
             MinValue = 0;
 
             trigger OnValidate()
@@ -241,6 +246,7 @@ table 99000758 "Machine Center"
         {
             AutoFormatType = 0;
             Caption = 'Indirect Cost %';
+            ToolTip = 'Specifies the percentage of the center''s cost that includes indirect costs, such as machine maintenance.';
             DecimalPlaces = 0 : 5;
             MinValue = 0;
 
@@ -258,6 +264,7 @@ table 99000758 "Machine Center"
             AutoFormatType = 2;
             AutoFormatExpression = '';
             Caption = 'Unit Cost';
+            ToolTip = 'Specifies the cost of one unit of the item or resource on the line.';
             DecimalPlaces = 2 : 5;
             MinValue = 0;
 
@@ -273,17 +280,20 @@ table 99000758 "Machine Center"
         {
             AutoFormatType = 0;
             Caption = 'Queue Time';
+            ToolTip = 'Specifies the queue time of the machine center.';
             DecimalPlaces = 0 : 5;
             MinValue = 0;
         }
         field(23; "Queue Time Unit of Meas. Code"; Code[10])
         {
             Caption = 'Queue Time Unit of Meas. Code';
+            ToolTip = 'Specifies the queue time unit of measure code.';
             TableRelation = "Capacity Unit of Measure";
         }
         field(26; "Last Date Modified"; Date)
         {
             Caption = 'Last Date Modified';
+            ToolTip = 'Specifies when the machine center card was last modified.';
             Editable = false;
         }
         field(27; Comment; Boolean)
@@ -298,6 +308,7 @@ table 99000758 "Machine Center"
         {
             AutoFormatType = 0;
             Caption = 'Capacity';
+            ToolTip = 'Specifies the capacity of the machine center.';
             DecimalPlaces = 0 : 5;
             MinValue = 0;
         }
@@ -305,6 +316,7 @@ table 99000758 "Machine Center"
         {
             AutoFormatType = 0;
             Caption = 'Efficiency';
+            ToolTip = 'Specifies the efficiency factor as a percentage of the machine center.';
             DecimalPlaces = 0 : 5;
             InitValue = 100;
             MinValue = 0;
@@ -313,6 +325,7 @@ table 99000758 "Machine Center"
         {
             AutoFormatType = 0;
             Caption = 'Maximum Efficiency';
+            ToolTip = 'Specifies the maximum efficiency of this machine center.';
             DecimalPlaces = 0 : 5;
             MinValue = 0;
         }
@@ -320,6 +333,7 @@ table 99000758 "Machine Center"
         {
             AutoFormatType = 0;
             Caption = 'Minimum Efficiency';
+            ToolTip = 'Specifies the minimum efficiency of this machine center.';
             DecimalPlaces = 0 : 5;
             MinValue = 0;
         }
@@ -396,6 +410,7 @@ table 99000758 "Machine Center"
         {
             AutoFormatType = 0;
             Caption = 'Setup Time';
+            ToolTip = 'Specifies how long it takes to set up the machine.';
             DecimalPlaces = 0 : 5;
             MinValue = 0;
         }
@@ -403,6 +418,7 @@ table 99000758 "Machine Center"
         {
             AutoFormatType = 0;
             Caption = 'Wait Time';
+            ToolTip = 'Specifies the time a job remains at the machine center after an operation is completed, until it is moved to the next operation.';
             DecimalPlaces = 0 : 5;
             MinValue = 0;
         }
@@ -410,6 +426,7 @@ table 99000758 "Machine Center"
         {
             AutoFormatType = 0;
             Caption = 'Move Time';
+            ToolTip = 'Specifies the move time required for a production lot on this machine.';
             DecimalPlaces = 0 : 5;
             MinValue = 0;
         }
@@ -417,6 +434,7 @@ table 99000758 "Machine Center"
         {
             AutoFormatType = 0;
             Caption = 'Fixed Scrap Quantity';
+            ToolTip = 'Specifies the fixed scrap quantity.';
             DecimalPlaces = 0 : 5;
             MinValue = 0;
         }
@@ -424,6 +442,7 @@ table 99000758 "Machine Center"
         {
             AutoFormatType = 0;
             Caption = 'Scrap %';
+            ToolTip = 'Specifies the scrap in percent.';
             DecimalPlaces = 0 : 5;
             MinValue = 0;
         }
@@ -441,6 +460,7 @@ table 99000758 "Machine Center"
         {
             AutoFormatType = 0;
             Caption = 'Send-Ahead Quantity';
+            ToolTip = 'Specifies the send-ahead quantity.';
             DecimalPlaces = 0 : 5;
             MinValue = 0;
         }
@@ -458,6 +478,7 @@ table 99000758 "Machine Center"
         {
             AutoFormatType = 0;
             Caption = 'Minimum Process Time';
+            ToolTip = 'Specifies the minimum process time of the machine center.';
             DecimalPlaces = 0 : 5;
             MinValue = 0;
         }
@@ -465,6 +486,7 @@ table 99000758 "Machine Center"
         {
             AutoFormatType = 0;
             Caption = 'Maximum Process Time';
+            ToolTip = 'Specifies the maximum process time of the machine center.';
             DecimalPlaces = 0 : 5;
             MinValue = 0;
         }
@@ -472,6 +494,7 @@ table 99000758 "Machine Center"
         {
             AutoFormatType = 0;
             Caption = 'Concurrent Capacities';
+            ToolTip = 'Specifies how much available capacity must be concurrently planned for one operation at this machine center.';
             DecimalPlaces = 0 : 5;
             MinValue = 0;
         }
@@ -503,6 +526,7 @@ table 99000758 "Machine Center"
         {
             AutoFormatType = 0;
             Caption = 'Overhead Rate';
+            ToolTip = 'Specifies the overhead rate of this machine center.';
 
             trigger OnValidate()
             begin
@@ -512,6 +536,7 @@ table 99000758 "Machine Center"
         field(82; "Gen. Prod. Posting Group"; Code[20])
         {
             Caption = 'Gen. Prod. Posting Group';
+            ToolTip = 'Specifies the item''s product type to link transactions made for this item with the appropriate general ledger account according to the general posting setup.';
             TableRelation = "Gen. Product Posting Group";
         }
         field(83; County; Text[30])
@@ -532,6 +557,7 @@ table 99000758 "Machine Center"
         field(7300; "Location Code"; Code[10])
         {
             Caption = 'Location Code';
+            ToolTip = 'Specifies the location where the machine center operates by default.';
             Editable = false;
             TableRelation = Location.Code where("Use As In-Transit" = const(false),
                                                  "Bin Mandatory" = const(true));
@@ -566,6 +592,7 @@ table 99000758 "Machine Center"
         field(7301; "Open Shop Floor Bin Code"; Code[20])
         {
             Caption = 'Open Shop Floor Bin Code';
+            ToolTip = 'Specifies the bin that functions as the default open shop floor bin at the work center.';
             TableRelation = Bin.Code where("Location Code" = field("Location Code"));
 
             trigger OnValidate()
@@ -576,6 +603,7 @@ table 99000758 "Machine Center"
         field(7302; "To-Production Bin Code"; Code[20])
         {
             Caption = 'To-Production Bin Code';
+            ToolTip = 'Specifies the bin where components picked for production are placed by default before they can be consumed.';
             TableRelation = Bin.Code where("Location Code" = field("Location Code"));
 
             trigger OnValidate()
@@ -586,6 +614,7 @@ table 99000758 "Machine Center"
         field(7303; "From-Production Bin Code"; Code[20])
         {
             Caption = 'From-Production Bin Code';
+            ToolTip = 'Specifies the bin where finished end items are taken from by default when the process involves warehouse activity.';
             TableRelation = Bin.Code where("Location Code" = field("Location Code"));
 
             trigger OnValidate()

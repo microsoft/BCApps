@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -31,7 +31,6 @@ page 1061 "Select Payment Service"
                 field(Available; Rec.Available)
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies that the icon and link to the payment service will be inserted on the outgoing sales document.';
 
                     trigger OnValidate()
                     begin
@@ -43,13 +42,11 @@ page 1061 "Select Payment Service"
                 {
                     ApplicationArea = Basic, Suite;
                     Editable = false;
-                    ToolTip = 'Specifies the name of the payment service.';
                 }
                 field(Description; Rec.Description)
                 {
                     ApplicationArea = Basic, Suite;
                     Editable = false;
-                    ToolTip = 'Specifies the description of the payment service.';
                 }
             }
             field(SetupPaymentServices; SetupPaymentServicesLbl)

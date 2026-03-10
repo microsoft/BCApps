@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -35,13 +35,11 @@ page 5320 "Exchange Folders"
                 {
                     ApplicationArea = Basic, Suite;
                     Caption = 'Folder Name';
-                    ToolTip = 'Specifies the name of the public folder that is specified for use with email logging.';
                 }
                 field(FullPath; Rec.FullPath)
                 {
                     ApplicationArea = Basic, Suite;
                     Caption = 'Folder Path';
-                    ToolTip = 'Specifies the complete path to the public folder that is specified for use with email logging.';
                 }
             }
         }

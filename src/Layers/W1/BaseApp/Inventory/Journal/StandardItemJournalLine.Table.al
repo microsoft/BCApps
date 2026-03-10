@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -47,6 +47,7 @@ table 753 "Standard Item Journal Line"
         field(3; "Item No."; Code[20])
         {
             Caption = 'Item No.';
+            ToolTip = 'Specifies the number of the item on the journal line.';
             TableRelation = Item where(Blocked = const(false));
 
             trigger OnLookup()
@@ -145,6 +146,7 @@ table 753 "Standard Item Journal Line"
         field(5; "Entry Type"; Enum "Item Ledger Entry Type")
         {
             Caption = 'Entry Type';
+            ToolTip = 'Specifies which type of transaction that the entry is created from.';
 
             trigger OnValidate()
             begin
@@ -168,10 +170,12 @@ table 753 "Standard Item Journal Line"
         field(8; Description; Text[100])
         {
             Caption = 'Description';
+            ToolTip = 'Specifies the description of the item on the line.';
         }
         field(9; "Location Code"; Code[10])
         {
             Caption = 'Location Code';
+            ToolTip = 'Specifies the location code for the item on the line.';
             TableRelation = Location;
 
             trigger OnValidate()
@@ -199,6 +203,7 @@ table 753 "Standard Item Journal Line"
         {
             AutoFormatType = 0;
             Caption = 'Quantity';
+            ToolTip = 'Specifies the quantity of the item in the journal line.';
             DecimalPlaces = 0 : 5;
 
             trigger OnValidate()
@@ -223,6 +228,7 @@ table 753 "Standard Item Journal Line"
             AutoFormatType = 0;
             AutoFormatExpression = '';
             Caption = 'Unit Amount';
+            ToolTip = 'Specifies the amount of the unit in the line of the journal line.';
 
             trigger OnValidate()
             begin
@@ -281,6 +287,7 @@ table 753 "Standard Item Journal Line"
             AutoFormatType = 2;
             AutoFormatExpression = '';
             Caption = 'Unit Cost';
+            ToolTip = 'Specifies the cost of one unit of the item or resource on the line.';
 
             trigger OnValidate()
             begin
@@ -330,6 +337,7 @@ table 753 "Standard Item Journal Line"
             AutoFormatType = 1;
             AutoFormatExpression = '';
             Caption = 'Amount';
+            ToolTip = 'Specifies the amount of the unit in the line of the journal line.';
 
             trigger OnValidate()
             begin
@@ -343,6 +351,7 @@ table 753 "Standard Item Journal Line"
         field(23; "Salespers./Purch. Code"; Code[20])
         {
             Caption = 'Salespers./Purch. Code';
+            ToolTip = 'Specifies the code for the salesperson or purchaser who is linked to the sale or purchase on the journal line.';
             TableRelation = "Salesperson/Purchaser" where(Blocked = const(false));
 
             trigger OnValidate()
@@ -360,6 +369,7 @@ table 753 "Standard Item Journal Line"
         {
             CaptionClass = '1,2,1';
             Caption = 'Shortcut Dimension 1 Code';
+            ToolTip = 'Specifies the code for Shortcut Dimension 1, which is one of two global dimension codes that you set up in the General Ledger Setup window.';
             TableRelation = "Dimension Value".Code where("Global Dimension No." = const(1),
                                                           Blocked = const(false));
 
@@ -372,6 +382,7 @@ table 753 "Standard Item Journal Line"
         {
             CaptionClass = '1,2,2';
             Caption = 'Shortcut Dimension 2 Code';
+            ToolTip = 'Specifies the code for Shortcut Dimension 2, which is one of two global dimension codes that you set up in the General Ledger Setup window.';
             TableRelation = "Dimension Value".Code where("Global Dimension No." = const(2),
                                                           Blocked = const(false));
 
@@ -384,6 +395,7 @@ table 753 "Standard Item Journal Line"
         {
             AutoFormatType = 0;
             Caption = 'Indirect Cost %';
+            ToolTip = 'Specifies the percentage of the item''s last purchase cost that includes indirect costs, such as freight that is associated with the purchase of the item.';
             DecimalPlaces = 0 : 5;
             MinValue = 0;
 
@@ -417,21 +429,25 @@ table 753 "Standard Item Journal Line"
         field(42; "Reason Code"; Code[10])
         {
             Caption = 'Reason Code';
+            ToolTip = 'Specifies the reason code, a supplementary source code that enables you to trace the entry.';
             TableRelation = "Reason Code";
         }
         field(47; "Transaction Type"; Code[10])
         {
             Caption = 'Transaction Type';
+            ToolTip = 'Specifies the type of transaction that the document represents, for the purpose of reporting to INTRASTAT.';
             TableRelation = "Transaction Type";
         }
         field(48; "Transport Method"; Code[10])
         {
             Caption = 'Transport Method';
+            ToolTip = 'Specifies the transport method, for the purpose of reporting to INTRASTAT.';
             TableRelation = "Transport Method";
         }
         field(49; "Country/Region Code"; Code[10])
         {
             Caption = 'Country/Region Code';
+            ToolTip = 'Specifies the country/region of the address.';
             TableRelation = "Country/Region";
         }
         field(53; "Qty. (Calculated)"; Decimal)
@@ -476,11 +492,13 @@ table 753 "Standard Item Journal Line"
         field(57; "Gen. Bus. Posting Group"; Code[20])
         {
             Caption = 'Gen. Bus. Posting Group';
+            ToolTip = 'Specifies the vendor''s or customer''s trade type to link transactions made for this business partner with the appropriate general ledger account according to the general posting setup.';
             TableRelation = "Gen. Business Posting Group";
         }
         field(58; "Gen. Prod. Posting Group"; Code[20])
         {
             Caption = 'Gen. Prod. Posting Group';
+            ToolTip = 'Specifies the item''s product type to link transactions made for this item with the appropriate general ledger account according to the general posting setup.';
             TableRelation = "Gen. Product Posting Group";
         }
         field(59; "Entry/Exit Point"; Code[10])
@@ -522,6 +540,7 @@ table 753 "Standard Item Journal Line"
         field(5402; "Variant Code"; Code[10])
         {
             Caption = 'Variant Code';
+            ToolTip = 'Specifies the variant of the item on the line.';
             TableRelation = "Item Variant".Code where("Item No." = field("Item No."), Blocked = const(false));
 
             trigger OnValidate()
@@ -561,6 +580,7 @@ table 753 "Standard Item Journal Line"
         field(5403; "Bin Code"; Code[20])
         {
             Caption = 'Bin Code';
+            ToolTip = 'Specifies the bin where the items are picked or put away.';
             TableRelation = if ("Entry Type" = filter(Purchase | "Positive Adjmt." | Output),
                                 Quantity = filter(>= 0)) Bin.Code where("Location Code" = field("Location Code"),
                                                                       "Item Filter" = field("Item No."),
@@ -606,6 +626,7 @@ table 753 "Standard Item Journal Line"
         field(5407; "Unit of Measure Code"; Code[10])
         {
             Caption = 'Unit of Measure Code';
+            ToolTip = 'Specifies how each unit of the item or resource is measured, such as in pieces or hours. By default, the value in the Base Unit of Measure field on the item or resource card is inserted.';
             TableRelation = "Item Unit of Measure".Code where("Item No." = field("Item No."));
 
             trigger OnValidate()
@@ -700,6 +721,7 @@ table 753 "Standard Item Journal Line"
         field(7000; "Price Calculation Method"; Enum "Price Calculation Method")
         {
             Caption = 'Price Calculation Method';
+            ToolTip = 'Specifies the method that will be used for price calculation in the journal line.';
         }
         field(99000755; "Overhead Rate"; Decimal)
         {

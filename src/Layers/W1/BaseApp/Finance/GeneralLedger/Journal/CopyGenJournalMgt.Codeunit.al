@@ -28,6 +28,7 @@ codeunit 181 "Copy Gen. Journal Mgt."
     var
         CopiedLinesTxt: Label '%1 posted general journal lines was copied to General Journal.\\Do you want to open target general journal?', Comment = '%1 - number of lines';
         CanBeCopiedErr: Label 'You cannot copy the posted general journal lines with G/L register number %1 because they contain customer, vendor, or employee ledger entries that were posted and applied in the same G/L register.', Comment = '%1 = "G/L Register" number';
+        SkipValidationConfirmQst: Label 'No GL Register found with no. %1, do you still want to copy and skip validation?', Comment = 'Confirmation message when no GL Register is found for the posted lines being copied.';
 
     /// <summary>
     /// Copies posted general journal lines to an active general journal batch for reprocessing or correction.
@@ -150,13 +151,29 @@ codeunit 181 "Copy Gen. Journal Mgt."
     local procedure CheckIfCanBeCopied(var PostedGenJournalLine: Record "Posted Gen. Journal Line")
     var
         GLRegister: Record "G/L Register";
+        ConfirmManagement: Codeunit "Confirm Management";
+        ConfirmHandled: Boolean;
+        ConfirmResponse: Boolean;
     begin
-        if PostedGenJournalLine.FindSet() then
-            repeat
-                GLRegister.Get(PostedGenJournalLine."G/L Register No.");
+        if not PostedGenJournalLine.FindSet() then
+            exit;
+
+        repeat
+            if GLRegister.Get(PostedGenJournalLine."G/L Register No.") then begin
                 CheckCustomerEntries(GLRegister);
                 CheckVendorEntries(GLRegister);
-            until PostedGenJournalLine.Next() = 0;
+            end else begin
+                ConfirmHandled := false;
+                ConfirmResponse := false;
+                OnCheckIfCanBeCopiedOnBeforeSkipValidationOrError(PostedGenJournalLine, ConfirmHandled, ConfirmResponse);
+                if ConfirmHandled then begin
+                    if not ConfirmResponse then
+                        Error('');
+                end else
+                    if not ConfirmManagement.GetResponseOrDefault(StrSubstNo(SkipValidationConfirmQst, PostedGenJournalLine."G/L Register No."), false) then
+                        Error('');
+            end;
+        until PostedGenJournalLine.Next() = 0;
 
         OnAfterCheckIfCanBeCopied(PostedGenJournalLine);
     end;
@@ -252,6 +269,18 @@ codeunit 181 "Copy Gen. Journal Mgt."
     /// <param name="Result">Boolean result indicating whether copy parameters were successfully obtained</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterGetCopyParameters(var CopyGenJournalParameters: Record "Copy Gen. Journal Parameters"; var Result: Boolean)
+    begin
+    end;
+
+    /// <summary>
+    /// Integration event raised before confirming whether to skip validation when no G/L Register is found.
+    /// Provides extensibility for handling the confirmation or overriding the default behavior.
+    /// </summary>
+    /// <param name="PostedGenJournalLine">Posted journal line being evaluated for copy eligibility</param>
+    /// <param name="ConfirmHandled">Boolean flag indicating whether the confirmation was handled by the event subscriber</param>
+    /// <param name="ConfirmResponse">Boolean response to return as the confirm action if confirm dialog is skipped</param>
+    [IntegrationEvent(false, false)]
+    local procedure OnCheckIfCanBeCopiedOnBeforeSkipValidationOrError(PostedGenJournalLine: Record "Posted Gen. Journal Line"; var ConfirmHandled: Boolean; var ConfirmResponse: Boolean)
     begin
     end;
 }

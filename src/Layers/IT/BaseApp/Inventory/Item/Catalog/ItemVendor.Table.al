@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -25,12 +25,14 @@ table 99 "Item Vendor"
         field(1; "Item No."; Code[20])
         {
             Caption = 'Item No.';
+            ToolTip = 'Specifies the number of the item that the alternate direct unit cost is valid for.';
             NotBlank = true;
             TableRelation = Item;
         }
         field(2; "Vendor No."; Code[20])
         {
             Caption = 'Vendor No.';
+            ToolTip = 'Specifies the number of the vendor who offers the alternate direct unit cost.';
             NotBlank = true;
             TableRelation = Vendor;
 
@@ -43,6 +45,7 @@ table 99 "Item Vendor"
         field(6; "Lead Time Calculation"; DateFormula)
         {
             Caption = 'Lead Time Calculation';
+            ToolTip = 'Specifies a date formula for the amount of time it takes to replenish the item.';
 
             trigger OnValidate()
             begin
@@ -52,10 +55,12 @@ table 99 "Item Vendor"
         field(7; "Vendor Item No."; Text[50])
         {
             Caption = 'Vendor Item No.';
+            ToolTip = 'Specifies the number that the vendor uses for this item.';
         }
         field(5700; "Variant Code"; Code[10])
         {
             Caption = 'Variant Code';
+            ToolTip = 'Specifies the variant of the item on the line.';
             TableRelation = "Item Variant".Code where("Item No." = field("Item No."));
         }
         field(12100; "Country/Region of Origin Code"; Code[10])

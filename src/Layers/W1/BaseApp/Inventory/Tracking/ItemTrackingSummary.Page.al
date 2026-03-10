@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -27,32 +27,27 @@ page 6500 "Item Tracking Summary"
                 {
                     ApplicationArea = ItemTracking;
                     Editable = false;
-                    ToolTip = 'Specifies the lot number for which availability is presented in the Item Tracking Summary window.';
                 }
                 field("Serial No."; Rec."Serial No.")
                 {
                     ApplicationArea = ItemTracking;
                     Editable = false;
-                    ToolTip = 'Specifies the serial number for which availability is presented in the Item Tracking Summary window.';
                 }
                 field("Package No."; Rec."Package No.")
                 {
                     ApplicationArea = ItemTracking;
                     Editable = false;
-                    ToolTip = 'Specifies the package number for which availability is presented in the Item Tracking Summary window.';
                 }
                 field("Warranty Date"; Rec."Warranty Date")
                 {
                     ApplicationArea = ItemTracking;
                     Editable = false;
-                    ToolTip = 'Specifies the warranty expiration date, if any, of the item carrying the item tracking number.';
                     Visible = false;
                 }
                 field("Expiration Date"; Rec."Expiration Date")
                 {
                     ApplicationArea = ItemTracking;
                     Editable = false;
-                    ToolTip = 'Specifies the expiration date, if any, of the item carrying the item tracking number.';
                     Visible = false;
                 }
                 field("Total Quantity"; Rec."Total Quantity")
@@ -60,7 +55,6 @@ page 6500 "Item Tracking Summary"
                     ApplicationArea = ItemTracking;
                     DrillDown = true;
                     Editable = false;
-                    ToolTip = 'Specifies the total quantity of the item in inventory.';
 
                     trigger OnDrillDown()
                     begin
@@ -72,7 +66,6 @@ page 6500 "Item Tracking Summary"
                     ApplicationArea = ItemTracking;
                     DrillDown = true;
                     Editable = false;
-                    ToolTip = 'Specifies the total quantity of the serial, lot or package number that is requested in all documents.';
 
                     trigger OnDrillDown()
                     begin
@@ -83,32 +76,27 @@ page 6500 "Item Tracking Summary"
                 {
                     ApplicationArea = ItemTracking;
                     Editable = false;
-                    ToolTip = 'Specifies the quantity from the item tracking line that is selected on the document but not yet committed to the database.';
                 }
                 field("Total Available Quantity"; Rec."Total Available Quantity")
                 {
                     ApplicationArea = ItemTracking;
                     Editable = false;
-                    ToolTip = 'Specifies the quantity available for the user to request, in entries of the type on the line.';
                 }
                 field("Current Reserved Quantity"; Rec."Current Reserved Quantity")
                 {
                     ApplicationArea = Reservation;
                     Editable = false;
-                    ToolTip = 'Specifies the quantity of items in the entry that are reserved for the line that the Reservation window is opened from.';
                     Visible = false;
                 }
                 field("Total Reserved Quantity"; Rec."Total Reserved Quantity")
                 {
                     ApplicationArea = Reservation;
                     Editable = false;
-                    ToolTip = 'Specifies the total quantity of the relevant item that is reserved on documents or entries of the type on the line.';
                     Visible = false;
                 }
                 field("Bin Content"; Rec."Bin Content")
                 {
                     ApplicationArea = Warehouse;
-                    ToolTip = 'Specifies the quantity of the item in the bin specified in the document line.';
                     Visible = BinContentVisible;
 
                     trigger OnDrillDown()
@@ -123,7 +111,6 @@ page 6500 "Item Tracking Summary"
                     Editable = SelectedQuantityEditable;
                     Style = Strong;
                     StyleExpr = true;
-                    ToolTip = 'Specifies the quantity of each serial, lot or package number that you want to use to fulfill the demand for the transaction.';
                     Visible = SelectedQuantityVisible;
 
                     trigger OnValidate()

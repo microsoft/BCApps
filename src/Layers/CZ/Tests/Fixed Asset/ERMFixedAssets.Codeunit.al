@@ -53,6 +53,7 @@ codeunit 134451 "ERM Fixed Assets"
         FixedAssetCountError: Label 'New fixed assets were not created.';
         DimValueError: Label 'Dimension values are not equal on the copied Fixed Asset.';
         NoSeriesNotConsumedErr: Label 'Number series should not be consumed during preview posting';
+        PurchaseInvoicePostedLbl: Label 'Purchase Invoice was posted successfully.';
 
     [Test]
     [Scope('OnPrem')]
@@ -3395,6 +3396,42 @@ codeunit 134451 "ERM Fixed Assets"
 
         // [THEN] Verify that the fixed asset is created with a consecutive number from the No. Series.
         VerifyFixedAssetCreatedWithConsecutiveNoSeries(NoOfFACard, LastNoUsedBeforePreview);
+    end;
+
+    [Test]
+    procedure PurchaseInvoiceWithMixedFAAndNonFALinesMultipleFACards()
+    var
+        FixedAsset: Record "Fixed Asset";
+        PurchaseHeader: Record "Purchase Header";
+        PurchaseLine: Record "Purchase Line";
+        PurchInvHeader: Record "Purch. Inv. Header";
+        DocumentNo: Code[20];
+        NoOfFACard: Integer;
+    begin
+        // [SCENARIO 619700] Purchase invoice with FA line having "No. of Fixed Asset Cards" > 0 and non-FA lines can be posted successfully
+        Initialize();
+
+        // [GIVEN] Fixed Asset with depreciation book.
+        LibraryFixedAsset.CreateFAWithPostingGroup(FixedAsset);
+        CreateFADepreciationBook(FixedAsset."No.", GetDefaultDepreciationBook(), FixedAsset."FA Posting Group");
+
+        // [GIVEN] Create Purchase invoice with two lines.
+        // [GIVEN] Create Purchase Line with Type = Fixed Asset and "No. of Fixed Asset Cards" > 1.
+        NoOfFACard := LibraryRandom.RandIntInRange(5, 10);
+        CreatePurchaseInvoiceWithNoOfFixedAssetCards(PurchaseHeader, LibraryPurchase.CreateVendorNo(), FixedAsset."No.", NoOfFACard);
+
+        // [GIVEN] Create 2nd Purchase Line with Type = G/L Account.
+        LibraryPurchase.CreatePurchaseLine(
+            PurchaseLine, PurchaseHeader, PurchaseLine.Type::"G/L Account",
+            LibraryERM.CreateGLAccountWithPurchSetup(), LibraryRandom.RandInt(10));
+        PurchaseLine.Validate("Direct Unit Cost", LibraryRandom.RandIntInRange(100, 500));
+        PurchaseLine.Modify(true);
+
+        // [WHEN] Post the purchase invoice and no error occurs.
+        DocumentNo := LibraryPurchase.PostPurchaseDocument(PurchaseHeader, true, true);
+
+        // [THEN] Invoice is posted successfully without error
+        Assert.IsTrue(PurchInvHeader.Get(DocumentNo), PurchaseInvoicePostedLbl);
     end;
 
     local procedure Initialize()

@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -24,7 +24,6 @@ page 5382 "Man. Int. Table Mapping List"
                 field(Name; Rec.Name)
                 {
                     ApplicationArea = Suite;
-                    ToolTip = 'Specifies the name of the integration table.';
                 }
                 field(TableCaptionValue; TableCaptionValue)
                 {

@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -24,42 +24,34 @@ page 7153 "Item Analysis View Entries"
                 field("Item Ledger Entry Type"; Rec."Item Ledger Entry Type")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies which type of transaction that the entry is created from.';
                 }
                 field("Entry Type"; Rec."Entry Type")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the value entry type for an analysis view entry.';
                 }
                 field("Item No."; Rec."Item No.")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the item number to which the item ledger entry in an analysis view entry was posted.';
                 }
                 field("Location Code"; Rec."Location Code")
                 {
                     ApplicationArea = Location;
-                    ToolTip = 'Specifies the code of the location to which the item ledger entry in an analysis view entry was posted.';
                 }
                 field("Dimension 1 Value Code"; Rec."Dimension 1 Value Code")
                 {
                     ApplicationArea = Dimensions;
-                    ToolTip = 'Specifies the dimension value you selected for the analysis view dimension that you defined as Dimension 1 on the analysis view card.';
                 }
                 field("Dimension 2 Value Code"; Rec."Dimension 2 Value Code")
                 {
                     ApplicationArea = Dimensions;
-                    ToolTip = 'Specifies the dimension value you selected for the analysis view dimension that you defined as Dimension 2 on the analysis view card.';
                 }
                 field("Dimension 3 Value Code"; Rec."Dimension 3 Value Code")
                 {
                     ApplicationArea = Dimensions;
-                    ToolTip = 'Specifies the dimension value you selected for the analysis view dimension that you defined as Dimension 3 on the analysis view card.';
                 }
                 field("Posting Date"; Rec."Posting Date")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the date when the item ledger entry in an analysis view entry was posted.';
                 }
                 field("Sales Amount (Actual)"; Rec."Sales Amount (Actual)")
                 {
@@ -114,7 +106,6 @@ page 7153 "Item Analysis View Entries"
                 field(Quantity; Rec.Quantity)
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the sum of the quantity for the item ledger entries included in the analysis view entry.';
 
                     trigger OnDrillDown()
                     begin
@@ -124,7 +115,6 @@ page 7153 "Item Analysis View Entries"
                 field("Invoiced Quantity"; Rec."Invoiced Quantity")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the sum of the quantity invoiced for the item ledger entries included in the analysis view entry.';
 
                     trigger OnDrillDown()
                     begin

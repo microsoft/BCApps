@@ -83,5 +83,75 @@
     "codeunitId": 135401,
     "codeunitName": "Fixed Assets Plan-based E2E",
     "method": "FixedAssetJourneyAsTeamMemberISVEmb"
+  },
+  {
+    "codeunitId": 134450,
+    "codeunitName": "ERM Fixed Assets Journal",
+    "method": "AcquireFixedAssetUsingAcquisitionWizardAutoPostBankAccount"
+  },
+  {
+    "codeunitId": 134450,
+    "codeunitName": "ERM Fixed Assets Journal",
+    "method": "AcquireFixedAssetUsingAcquisitionWizardAutoPostGLAccount"
+  },
+  {
+    "codeunitId": 134450,
+    "codeunitName": "ERM Fixed Assets Journal",
+    "method": "AcquireFixedAssetUsingAcquisitionWizardAutoPostVendorAccount"
+  },
+  {
+    "codeunitId": 134450,
+    "codeunitName": "ERM Fixed Assets Journal",
+    "method": "FAAcquisitionWizardHandleCurrency"
+  },
+  {
+    "codeunitId": 134450,
+    "codeunitName": "ERM Fixed Assets Journal",
+    "method": "FAAcquisitionWizardUseJournalNameFromFAJOurnalNameByDepBookCode"
+  },
+  {
+    "codeunitId": 134450,
+    "codeunitName": "ERM Fixed Assets Journal",
+    "method": "FAAcquisitionWizardUseJournalNameFromFAJOurnalNameByDepBookCodeAndUserId"
+  },
+  {
+    "codeunitId": 134450,
+    "codeunitName": "ERM Fixed Assets Journal",
+    "method": "GetGenJournalBatchNameReturnsAutogenName"
+  },
+  {
+    "codeunitId": 134450,
+    "codeunitName": "ERM Fixed Assets Journal",
+    "method": "OpenFAGLJournalOptionWhenGenJnlLineWithSameBatchAndTemplate"
+  },
+  {
+    "codeunitId": 134450,
+    "codeunitName": "ERM Fixed Assets Journal",
+    "method": "OpenFAGLJournalOptionWhenGenJnlLineWithSameBatchDifferentTemplate"
+  },
+  {
+    "codeunitId": 134450,
+    "codeunitName": "ERM Fixed Assets Journal",
+    "method": "OpenFAGLJournalOptionWhenNoGenJnlLinesWithSameBatch"
+  },
+  {
+    "codeunitId": 134450,
+    "codeunitName": "ERM Fixed Assets Journal",
+    "method": "RunAcquireWizardForBankAccountWhenAcquisitionAllocationExists"
+  },
+  {
+    "codeunitId": 134450,
+    "codeunitName": "ERM Fixed Assets Journal",
+    "method": "RunAcquireWizardForGLAccountWhenAcquisitionAllocationExists"
+  },
+  {
+    "codeunitId": 134450,
+    "codeunitName": "ERM Fixed Assets Journal",
+    "method": "RunAcquireWizardForVendorWhenAcquisitionAllocationExists"
+  },
+  {
+    "codeunitId": 134451,
+    "codeunitName": "ERM Fixed Assets",
+    "method": "MaintenanceVendorNoIsPreserved"
   }
 ]

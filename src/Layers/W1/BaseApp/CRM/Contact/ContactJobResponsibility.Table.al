@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -17,12 +17,14 @@ table 5067 "Contact Job Responsibility"
         field(1; "Contact No."; Code[20])
         {
             Caption = 'Contact No.';
+            ToolTip = 'Specifies the number of the contact you assign the job responsibility.';
             NotBlank = true;
             TableRelation = Contact where(Type = const(Person));
         }
         field(2; "Job Responsibility Code"; Code[10])
         {
             Caption = 'Job Responsibility Code';
+            ToolTip = 'Specifies the job responsibility code.';
             NotBlank = true;
             TableRelation = "Job Responsibility";
         }
@@ -30,6 +32,7 @@ table 5067 "Contact Job Responsibility"
         {
             CalcFormula = lookup("Job Responsibility".Description where(Code = field("Job Responsibility Code")));
             Caption = 'Job Responsibility Description';
+            ToolTip = 'Specifies the description for the job responsibility you have assigned to the contact.';
             Editable = false;
             FieldClass = FlowField;
         }
@@ -37,6 +40,7 @@ table 5067 "Contact Job Responsibility"
         {
             CalcFormula = lookup(Contact.Name where("No." = field("Contact No.")));
             Caption = 'Contact Name';
+            ToolTip = 'Specifies the name of the contact person to whom you are assigning job responsibilities.';
             Editable = false;
             FieldClass = FlowField;
         }
@@ -44,6 +48,7 @@ table 5067 "Contact Job Responsibility"
         {
             CalcFormula = lookup(Contact."Company Name" where("No." = field("Contact No.")));
             Caption = 'Contact Company Name';
+            ToolTip = 'Specifies the name of the company for which the contact person works.';
             Editable = false;
             FieldClass = FlowField;
         }

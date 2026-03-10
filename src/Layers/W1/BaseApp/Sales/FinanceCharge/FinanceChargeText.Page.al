@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -28,19 +28,16 @@ page 445 "Finance Charge Text"
                 field("Fin. Charge Terms Code"; Rec."Fin. Charge Terms Code")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the code for the involved finance charges in case of late payment.';
                     Visible = false;
                 }
                 field(Position; Rec.Position)
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies whether the text will appear at the beginning or the end of the finance charge memo.';
                     Visible = false;
                 }
                 field(Text; Rec.Text)
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the text that you want to insert in the finance charge memo.';
                 }
             }
         }

@@ -119,7 +119,6 @@ page 41 "Sales Quote"
                 field("External Document No."; Rec."External Document No.")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies a document number that refers to the customer''s or vendor''s numbering system.';
                 }
                 group("Sell-to")
                 {
@@ -130,7 +129,6 @@ page 41 "Sales Quote"
                         Caption = 'Address';
                         Importance = Additional;
                         QuickEntry = false;
-                        ToolTip = 'Specifies the address where the customer is located.';
                     }
                     field("Sell-to Address 2"; Rec."Sell-to Address 2")
                     {
@@ -138,7 +136,6 @@ page 41 "Sales Quote"
                         Caption = 'Address 2';
                         Importance = Additional;
                         QuickEntry = false;
-                        ToolTip = 'Specifies additional address information.';
                     }
                     field("Sell-to City"; Rec."Sell-to City")
                     {
@@ -146,7 +143,6 @@ page 41 "Sales Quote"
                         Caption = 'City';
                         Importance = Additional;
                         QuickEntry = false;
-                        ToolTip = 'Specifies the city of the customer on the sales document.';
                     }
                     group(Control105)
                     {
@@ -187,7 +183,6 @@ page 41 "Sales Quote"
                         ApplicationArea = Basic, Suite;
                         Caption = 'Contact No.';
                         Importance = Additional;
-                        ToolTip = 'Specifies the number of the contact person that the sales document will be sent to.';
 
                         trigger OnLookup(var Text: Text): Boolean
                         begin
@@ -263,7 +258,6 @@ page 41 "Sales Quote"
                     Caption = 'Customer Template Code';
                     Enabled = EnableNewSellToCustomerTemplateCode;
                     Importance = Additional;
-                    ToolTip = 'Specifies the code for the template to create a new customer';
 
                     trigger OnValidate()
                     begin
@@ -275,7 +269,6 @@ page 41 "Sales Quote"
                 {
                     ApplicationArea = Basic, Suite;
                     Importance = Additional;
-                    ToolTip = 'Specifies the number of archived versions for this document.';
 
                     trigger OnDrillDown()
                     begin
@@ -300,22 +293,18 @@ page 41 "Sales Quote"
                 {
                     ApplicationArea = Basic, Suite;
                     Importance = Promoted;
-                    ToolTip = 'Specifies the date when the related document was created.';
                 }
                 field("Quote Valid Until Date"; Rec."Quote Valid Until Date")
                 {
                     ApplicationArea = Suite;
-                    ToolTip = 'Specifies how long the quote is valid.';
                 }
                 field("Quote Accepted"; Rec."Quote Accepted")
                 {
                     ApplicationArea = Suite;
-                    ToolTip = 'Specifies that the quote was accepted by the customer.';
                 }
                 field("Quote Accepted Date"; Rec."Quote Accepted Date")
                 {
                     ApplicationArea = Suite;
-                    ToolTip = 'Specifies when the quote was accepted by the customer.';
                 }
                 field("Due Date"; Rec."Due Date")
                 {
@@ -326,19 +315,16 @@ page 41 "Sales Quote"
                 field("Requested Delivery Date"; Rec."Requested Delivery Date")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the date that the customer has asked for the order to be delivered.';
                 }
                 field("Your Reference"; Rec."Your Reference")
                 {
                     ApplicationArea = Suite;
                     Importance = Additional;
-                    ToolTip = 'Specifies the customer''s reference. The content will be printed on sales documents.';
                 }
                 field("Salesperson Code"; Rec."Salesperson Code")
                 {
                     ApplicationArea = Suite;
                     Importance = Additional;
-                    ToolTip = 'Specifies the name of the salesperson who is assigned to the customer.';
 
                     trigger OnValidate()
                     begin
@@ -362,27 +348,23 @@ page 41 "Sales Quote"
                     ApplicationArea = RelationshipMgmt;
                     Importance = Additional;
                     QuickEntry = false;
-                    ToolTip = 'Specifies the number of the opportunity that the sales quote is assigned to.';
                 }
                 field("Responsibility Center"; Rec."Responsibility Center")
                 {
                     AccessByPermission = TableData "Responsibility Center" = R;
                     ApplicationArea = Suite;
                     Importance = Additional;
-                    ToolTip = 'Specifies the code of the responsibility center, such as a distribution hub, that is associated with the involved user, company, customer, or vendor.';
                 }
                 field("Assigned User ID"; Rec."Assigned User ID")
                 {
                     ApplicationArea = Basic, Suite;
                     Importance = Additional;
-                    ToolTip = 'Specifies the ID of the user who is responsible for the document.';
                 }
                 field(Status; Rec.Status)
                 {
                     ApplicationArea = Suite;
                     Importance = Promoted;
                     StyleExpr = StatusStyleTxt;
-                    ToolTip = 'Specifies whether the document is open, waiting to be approved, has been invoiced for prepayment, or has been released to the next stage of processing.';
 
                     AboutTitle = 'Check the quote status';
                     AboutText = 'While preparing a quote it''s status is *Open*. When it''s ready, you can change the status to *Released* to reserve the items or services you''re selling. To change a released quote you''ll need to reopen it.';
@@ -420,7 +402,6 @@ page 41 "Sales Quote"
                 {
                     ApplicationArea = Suite;
                     Importance = Promoted;
-                    ToolTip = 'Specifies the currency of amounts on the sales document.';
 
                     trigger OnAssistEdit()
                     begin
@@ -442,12 +423,10 @@ page 41 "Sales Quote"
                 {
                     ApplicationArea = Suite;
                     Importance = Promoted;
-                    ToolTip = 'Specifies the bank account to use for bank information when the document is printed.';
                 }
                 field("Prices Including VAT"; Rec."Prices Including VAT")
                 {
                     ApplicationArea = VAT;
-                    ToolTip = 'Specifies if the Unit Price and Line Amount fields on document lines should be shown with or without VAT.';
 
                     trigger OnValidate()
                     begin
@@ -458,7 +437,6 @@ page 41 "Sales Quote"
                 field("VAT Bus. Posting Group"; Rec."VAT Bus. Posting Group")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the VAT specification of the involved customer or vendor to link transactions made for this record with the appropriate general ledger account according to the VAT posting setup.';
 
                     trigger OnValidate()
                     begin
@@ -469,19 +447,16 @@ page 41 "Sales Quote"
                 {
                     ApplicationArea = Basic, Suite;
                     Importance = Promoted;
-                    ToolTip = 'Specifies a formula that calculates the payment due date, payment discount date, and payment discount amount.';
                 }
                 field("Payment Method Code"; Rec."Payment Method Code")
                 {
                     ApplicationArea = Basic, Suite;
                     Importance = Additional;
-                    ToolTip = 'Specifies how to make payment, such as with bank transfer, cash, or check.';
                     Visible = IsPaymentMethodCodeVisible;
                 }
                 field("Tax Liable"; Rec."Tax Liable")
                 {
                     ApplicationArea = SalesTax;
-                    ToolTip = 'Specifies if the customer or vendor is liable for sales tax.';
 
                     trigger OnValidate()
                     begin
@@ -491,7 +466,6 @@ page 41 "Sales Quote"
                 field("Tax Area Code"; Rec."Tax Area Code")
                 {
                     ApplicationArea = SalesTax;
-                    ToolTip = 'Specifies the tax area that is used to calculate and post sales tax.';
 
                     trigger OnValidate()
                     var
@@ -523,12 +497,10 @@ page 41 "Sales Quote"
                 field("Transaction Type"; Rec."Transaction Type")
                 {
                     ApplicationArea = BasicEU, BasicNO;
-                    ToolTip = 'Specifies the type of transaction that the document represents, for the purpose of reporting to INTRASTAT.';
                 }
                 field("Shortcut Dimension 1 Code"; Rec."Shortcut Dimension 1 Code")
                 {
                     ApplicationArea = Dimensions;
-                    ToolTip = 'Specifies the code for Shortcut Dimension 1, which is one of two global dimension codes that you set up in the General Ledger Setup window.';
 
                     trigger OnValidate()
                     begin
@@ -538,7 +510,6 @@ page 41 "Sales Quote"
                 field("Shortcut Dimension 2 Code"; Rec."Shortcut Dimension 2 Code")
                 {
                     ApplicationArea = Dimensions;
-                    ToolTip = 'Specifies the code for Shortcut Dimension 2, which is one of two global dimension codes that you set up in the General Ledger Setup window.';
 
                     trigger OnValidate()
                     begin
@@ -548,25 +519,21 @@ page 41 "Sales Quote"
                 field("Payment Discount %"; Rec."Payment Discount %")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the payment discount percentage that is granted if the customer pays on or before the date entered in the Pmt. Discount Date field. The discount percentage is specified in the Payment Terms Code field.';
                 }
                 field("Pmt. Discount Date"; Rec."Pmt. Discount Date")
                 {
                     ApplicationArea = Basic, Suite;
                     Importance = Additional;
-                    ToolTip = 'Specifies the date on which the amount in the entry must be paid for a payment discount to be granted.';
                 }
                 field("Journal Templ. Name"; Rec."Journal Templ. Name")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the name of the journal template in which the sales header is to be posted.';
                     Visible = IsJournalTemplNameVisible;
                 }
                 field("Location Code"; Rec."Location Code")
                 {
                     ApplicationArea = Location;
                     Importance = Additional;
-                    ToolTip = 'Specifies the location from where items are to be shipped. This field acts as the default location for new lines. You can update the location code for individual lines as needed.';
                 }
             }
             group("Shipping and Billing")
@@ -662,7 +629,6 @@ page 41 "Sales Quote"
                                 Caption = 'Name 2';
                                 Editable = ShipToOptions = ShipToOptions::"Custom Address";
                                 Importance = Additional;
-                                ToolTip = 'Specifies an additional part of the name that products on the sales document will be shipped to.';
                                 QuickEntry = false;
                                 Visible = false;
                             }
@@ -680,7 +646,6 @@ page 41 "Sales Quote"
                                 Caption = 'Address 2';
                                 Editable = ShipToOptions = ShipToOptions::"Custom Address";
                                 QuickEntry = false;
-                                ToolTip = 'Specifies additional address information.';
                             }
                             field("Ship-to City"; Rec."Ship-to City")
                             {
@@ -688,7 +653,6 @@ page 41 "Sales Quote"
                                 Caption = 'City';
                                 Editable = ShipToOptions = ShipToOptions::"Custom Address";
                                 QuickEntry = false;
-                                ToolTip = 'Specifies the city of the customer on the sales document.';
                             }
                             group(Control107)
                             {
@@ -730,7 +694,6 @@ page 41 "Sales Quote"
                         {
                             ApplicationArea = Basic, Suite;
                             Caption = 'Phone No.';
-                            ToolTip = 'Specifies the telephone number of the company''s shipping address.';
                         }
                         field("Ship-to Contact"; Rec."Ship-to Contact")
                         {
@@ -742,7 +705,6 @@ page 41 "Sales Quote"
                         {
                             ApplicationArea = Basic, Suite;
                             Importance = Promoted;
-                            ToolTip = 'Specifies when items on the document are shipped or were shipped. A shipment date is usually calculated from a requested delivery date plus lead time.';
                         }
                     }
                     group("Shipment Method")
@@ -773,7 +735,6 @@ page 41 "Sales Quote"
                         {
                             ApplicationArea = Suite;
                             Importance = Additional;
-                            ToolTip = 'Specifies the shipping agent''s package number.';
                         }
                     }
                 }
@@ -856,7 +817,6 @@ page 41 "Sales Quote"
                             Enabled = (BillToOptions = BillToOptions::"Custom Address") or (Rec."Bill-to Customer No." <> Rec."Sell-to Customer No.");
                             Importance = Additional;
                             QuickEntry = false;
-                            ToolTip = 'Specifies the address of the customer that you will send the invoice to.';
                         }
                         field("Bill-to Address 2"; Rec."Bill-to Address 2")
                         {
@@ -866,7 +826,6 @@ page 41 "Sales Quote"
                             Enabled = (BillToOptions = BillToOptions::"Custom Address") or (Rec."Bill-to Customer No." <> Rec."Sell-to Customer No.");
                             Importance = Additional;
                             QuickEntry = false;
-                            ToolTip = 'Specifies additional address information.';
                         }
                         field("Bill-to City"; Rec."Bill-to City")
                         {
@@ -876,7 +835,6 @@ page 41 "Sales Quote"
                             Enabled = (BillToOptions = BillToOptions::"Custom Address") or (Rec."Bill-to Customer No." <> Rec."Sell-to Customer No.");
                             Importance = Additional;
                             QuickEntry = false;
-                            ToolTip = 'Specifies the city of the customer on the sales document.';
                         }
                         group(Control109)
                         {
@@ -924,7 +882,6 @@ page 41 "Sales Quote"
                             Editable = (BillToOptions = BillToOptions::"Custom Address") or (Rec."Bill-to Customer No." <> Rec."Sell-to Customer No.");
                             Enabled = (BillToOptions = BillToOptions::"Custom Address") or (Rec."Bill-to Customer No." <> Rec."Sell-to Customer No.");
                             Importance = Additional;
-                            ToolTip = 'Specifies the number of the contact the invoice will be sent to.';
                         }
                         field("Bill-to Contact"; Rec."Bill-to Contact")
                         {
@@ -970,38 +927,31 @@ page 41 "Sales Quote"
                 field("EU 3-Party Trade"; Rec."EU 3-Party Trade")
                 {
                     ApplicationArea = BasicEU, BasicNO;
-                    ToolTip = 'Specifies if the transaction is related to trade with a third party within the EU.';
                 }
                 field("Transaction Specification"; Rec."Transaction Specification")
                 {
                     ApplicationArea = BasicEU, BasicNO;
-                    ToolTip = 'Specifies a specification of the document''s transaction, for the purpose of reporting to INTRASTAT.';
                 }
                 field("Transport Method"; Rec."Transport Method")
                 {
                     ApplicationArea = BasicEU, BasicNO;
-                    ToolTip = 'Specifies the transport method, for the purpose of reporting to INTRASTAT.';
                 }
                 field("Exit Point"; Rec."Exit Point")
                 {
                     ApplicationArea = BasicEU, BasicNO;
-                    ToolTip = 'Specifies the point of exit through which you ship the items out of your country/region, for reporting to Intrastat.';
                 }
                 field("Area"; Rec.Area)
                 {
                     ApplicationArea = BasicEU, BasicNO;
-                    ToolTip = 'Specifies the country or region of origin for the purpose of Intrastat reporting.';
                 }
                 field("Language Code"; Rec."Language Code")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the language to be used on printouts for this document.';
                     Visible = false;
                 }
                 field("Format Region"; Rec."Format Region")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the format to be used on printouts for this document.';
                     Visible = false;
                 }
             }

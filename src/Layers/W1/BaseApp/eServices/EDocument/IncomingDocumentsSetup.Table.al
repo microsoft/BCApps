@@ -23,6 +23,7 @@ table 131 "Incoming Documents Setup"
         field(2; "General Journal Template Name"; Code[10])
         {
             Caption = 'General Journal Template Name';
+            ToolTip = 'Specifies the type of the general journal that new journal lines are created in when you choose the Journal Line button in the Incoming Documents window.';
             TableRelation = "Gen. Journal Template";
 
             trigger OnValidate()
@@ -52,6 +53,7 @@ table 131 "Incoming Documents Setup"
         field(3; "General Journal Batch Name"; Code[10])
         {
             Caption = 'General Journal Batch Name';
+            ToolTip = 'Specifies the subtype of the general journal that new journal lines are created in when you choose the Journal Line button in the Incoming Documents window.';
             TableRelation = "Gen. Journal Batch".Name where("Journal Template Name" = field("General Journal Template Name"));
 
             trigger OnValidate()
@@ -67,6 +69,7 @@ table 131 "Incoming Documents Setup"
         field(5; "Require Approval To Create"; Boolean)
         {
             Caption = 'Require Approval To Create';
+            ToolTip = 'Specifies whether the incoming document line must be approved before a document or journal line can be created from the Incoming Documents window.';
         }
         field(6; "Require Approval To Post"; Boolean)
         {

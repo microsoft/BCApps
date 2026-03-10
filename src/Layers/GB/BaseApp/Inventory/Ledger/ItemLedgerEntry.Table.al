@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -39,23 +39,28 @@ table 32 "Item Ledger Entry"
         field(1; "Entry No."; Integer)
         {
             Caption = 'Entry No.';
+            ToolTip = 'Specifies the number of the entry, as assigned from the specified number series when the entry was created.';
         }
         field(2; "Item No."; Code[20])
         {
             Caption = 'Item No.';
+            ToolTip = 'Specifies the number of the item in the entry.';
             TableRelation = Item;
         }
         field(3; "Posting Date"; Date)
         {
             Caption = 'Posting Date';
+            ToolTip = 'Specifies the entry''s posting date.';
         }
         field(4; "Entry Type"; Enum "Item Ledger Entry Type")
         {
             Caption = 'Entry Type';
+            ToolTip = 'Specifies which type of transaction that the entry is created from.';
         }
         field(5; "Source No."; Code[20])
         {
             Caption = 'Source No.';
+            ToolTip = 'Specifies where the entry originated.';
             TableRelation = if ("Source Type" = const(Customer)) Customer
             else
             if ("Source Type" = const(Vendor)) Vendor
@@ -65,32 +70,38 @@ table 32 "Item Ledger Entry"
         field(6; "Document No."; Code[20])
         {
             Caption = 'Document No.';
+            ToolTip = 'Specifies the document number on the entry. The document is the voucher that the entry was based on, for example, a receipt.';
         }
         field(7; Description; Text[100])
         {
             Caption = 'Description';
+            ToolTip = 'Specifies a description of the entry.';
         }
         field(8; "Location Code"; Code[10])
         {
             Caption = 'Location Code';
+            ToolTip = 'Specifies the code for the location that the entry is linked to.';
             TableRelation = Location;
         }
         field(12; Quantity; Decimal)
         {
             AutoFormatType = 0;
             Caption = 'Quantity';
+            ToolTip = 'Specifies the number of units of the item in the item entry.';
             DecimalPlaces = 0 : 5;
         }
         field(13; "Remaining Quantity"; Decimal)
         {
             AutoFormatType = 0;
             Caption = 'Remaining Quantity';
+            ToolTip = 'Specifies the quantity in the Quantity field that remains to be processed.';
             DecimalPlaces = 0 : 5;
         }
         field(14; "Invoiced Quantity"; Decimal)
         {
             AutoFormatType = 0;
             Caption = 'Invoiced Quantity';
+            ToolTip = 'Specifies how many units of the item on the line have been invoiced.';
             DecimalPlaces = 0 : 5;
         }
         field(20; "Item Register No."; Integer)
@@ -108,26 +119,31 @@ table 32 "Item Ledger Entry"
         field(28; "Applies-to Entry"; Integer)
         {
             Caption = 'Applies-to Entry';
+            ToolTip = 'Specifies if the quantity on the journal line must be applied to an already-posted entry. In that case, enter the entry number that the quantity will be applied to.';
         }
         field(29; Open; Boolean)
         {
             Caption = 'Open';
+            ToolTip = 'Specifies whether the entry has been fully applied to.';
         }
         field(33; "Global Dimension 1 Code"; Code[20])
         {
             CaptionClass = '1,1,1';
             Caption = 'Global Dimension 1 Code';
+            ToolTip = 'Specifies the code for the global dimension that is linked to the record or entry for analysis purposes. Two global dimensions, typically for the company''s most important activities, are available on all cards, documents, reports, and lists.';
             TableRelation = "Dimension Value".Code where("Global Dimension No." = const(1));
         }
         field(34; "Global Dimension 2 Code"; Code[20])
         {
             CaptionClass = '1,1,2';
             Caption = 'Global Dimension 2 Code';
+            ToolTip = 'Specifies the code for the global dimension that is linked to the record or entry for analysis purposes. Two global dimensions, typically for the company''s most important activities, are available on all cards, documents, reports, and lists.';
             TableRelation = "Dimension Value".Code where("Global Dimension No." = const(2));
         }
         field(36; Positive; Boolean)
         {
             Caption = 'Positive';
+            ToolTip = 'Specifies whether the item in the item ledge entry is positive.';
         }
         field(40; "Shpt. Method Code"; Code[10])
         {
@@ -137,11 +153,13 @@ table 32 "Item Ledger Entry"
         field(41; "Source Type"; Enum "Analysis Source Type")
         {
             Caption = 'Source Type';
+            ToolTip = 'Specifies the source type that applies to the source number, shown in the Source No. field.';
         }
         field(47; "Drop Shipment"; Boolean)
         {
             AccessByPermission = TableData "Drop Shpt. Post. Buffer" = R;
             Caption = 'Drop Shipment';
+            ToolTip = 'Specifies if your vendor ships the items directly to your customer.';
         }
         field(50; "Transaction Type"; Code[10])
         {
@@ -198,6 +216,7 @@ table 32 "Item Ledger Entry"
                                                                            "Source Prod. Order Line" = const(0),
                                                                            "Reservation Status" = const(Reservation)));
             Caption = 'Reserved Quantity';
+            ToolTip = 'Specifies how many units of the item on the line have been reserved.';
             DecimalPlaces = 0 : 5;
             Editable = false;
             FieldClass = FlowField;
@@ -205,29 +224,35 @@ table 32 "Item Ledger Entry"
         field(79; "Document Type"; Enum "Item Ledger Document Type")
         {
             Caption = 'Document Type';
+            ToolTip = 'Specifies what type of document was posted to create the item ledger entry.';
         }
         field(80; "Document Line No."; Integer)
         {
             Caption = 'Document Line No.';
+            ToolTip = 'Specifies the number of the line on the posted document that corresponds to the item ledger entry.';
         }
         field(90; "Order Type"; Enum "Inventory Order Type")
         {
             Caption = 'Order Type';
+            ToolTip = 'Specifies which type of order that the entry was created in.';
             Editable = false;
         }
         field(91; "Order No."; Code[20])
         {
             Caption = 'Order No.';
+            ToolTip = 'Specifies the number of the order that created the entry.';
             Editable = false;
         }
         field(92; "Order Line No."; Integer)
         {
             Caption = 'Order Line No.';
+            ToolTip = 'Specifies the line number of the order that created the entry.';
             Editable = false;
         }
         field(480; "Dimension Set ID"; Integer)
         {
             Caption = 'Dimension Set ID';
+            ToolTip = 'Specifies a reference to a combination of dimension values. The actual values are stored in the Dimension Set Entry table.';
             Editable = false;
             TableRelation = "Dimension Set Entry";
 
@@ -240,6 +265,7 @@ table 32 "Item Ledger Entry"
         {
             CaptionClass = '1,2,3';
             Caption = 'Shortcut Dimension 3 Code';
+            ToolTip = 'Specifies the code for Shortcut Dimension 3, which is one of dimension codes that you set up in the General Ledger Setup window.';
             Editable = false;
             FieldClass = FlowField;
             CalcFormula = lookup("Dimension Set Entry"."Dimension Value Code" where("Dimension Set ID" = field("Dimension Set ID"),
@@ -249,6 +275,7 @@ table 32 "Item Ledger Entry"
         {
             CaptionClass = '1,2,4';
             Caption = 'Shortcut Dimension 4 Code';
+            ToolTip = 'Specifies the code for Shortcut Dimension 4, which is one of dimension codes that you set up in the General Ledger Setup window.';
             Editable = false;
             FieldClass = FlowField;
             CalcFormula = lookup("Dimension Set Entry"."Dimension Value Code" where("Dimension Set ID" = field("Dimension Set ID"),
@@ -258,6 +285,7 @@ table 32 "Item Ledger Entry"
         {
             CaptionClass = '1,2,5';
             Caption = 'Shortcut Dimension 5 Code';
+            ToolTip = 'Specifies the code for Shortcut Dimension 5, which is one of dimension codes that you set up in the General Ledger Setup window.';
             Editable = false;
             FieldClass = FlowField;
             CalcFormula = lookup("Dimension Set Entry"."Dimension Value Code" where("Dimension Set ID" = field("Dimension Set ID"),
@@ -267,6 +295,7 @@ table 32 "Item Ledger Entry"
         {
             CaptionClass = '1,2,6';
             Caption = 'Shortcut Dimension 6 Code';
+            ToolTip = 'Specifies the code for Shortcut Dimension 6, which is one of dimension codes that you set up in the General Ledger Setup window.';
             Editable = false;
             FieldClass = FlowField;
             CalcFormula = lookup("Dimension Set Entry"."Dimension Value Code" where("Dimension Set ID" = field("Dimension Set ID"),
@@ -276,6 +305,7 @@ table 32 "Item Ledger Entry"
         {
             CaptionClass = '1,2,7';
             Caption = 'Shortcut Dimension 7 Code';
+            ToolTip = 'Specifies the code for Shortcut Dimension 7, which is one of dimension codes that you set up in the General Ledger Setup window.';
             Editable = false;
             FieldClass = FlowField;
             CalcFormula = lookup("Dimension Set Entry"."Dimension Value Code" where("Dimension Set ID" = field("Dimension Set ID"),
@@ -285,6 +315,7 @@ table 32 "Item Ledger Entry"
         {
             CaptionClass = '1,2,8';
             Caption = 'Shortcut Dimension 8 Code';
+            ToolTip = 'Specifies the code for Shortcut Dimension 8, which is one of dimension codes that you set up in the General Ledger Setup window.';
             Editable = false;
             FieldClass = FlowField;
             CalcFormula = lookup("Dimension Set Entry"."Dimension Value Code" where("Dimension Set ID" = field("Dimension Set ID"),
@@ -294,15 +325,18 @@ table 32 "Item Ledger Entry"
         {
             AccessByPermission = TableData "BOM Component" = R;
             Caption = 'Assemble to Order';
+            ToolTip = 'Specifies if the posting represents an assemble-to-order sale.';
         }
         field(1000; "Job No."; Code[20])
         {
             Caption = 'Project No.';
+            ToolTip = 'Specifies the number of the related project.';
             TableRelation = Job."No.";
         }
         field(1001; "Job Task No."; Code[20])
         {
             Caption = 'Project Task No.';
+            ToolTip = 'Specifies the number of the related project task.';
             TableRelation = "Job Task"."Job Task No." where("Job No." = field("Job No."));
         }
         field(1002; "Job Purchase"; Boolean)
@@ -312,17 +346,20 @@ table 32 "Item Ledger Entry"
         field(5402; "Variant Code"; Code[10])
         {
             Caption = 'Variant Code';
+            ToolTip = 'Specifies the variant of the item on the line.';
             TableRelation = "Item Variant".Code where("Item No." = field("Item No."));
         }
         field(5404; "Qty. per Unit of Measure"; Decimal)
         {
             AutoFormatType = 0;
             Caption = 'Qty. per Unit of Measure';
+            ToolTip = 'Specifies the quantity per item unit of measure.';
             DecimalPlaces = 0 : 5;
         }
         field(5407; "Unit of Measure Code"; Code[10])
         {
             Caption = 'Unit of Measure Code';
+            ToolTip = 'Specifies how each unit of the item or resource is measured, such as in pieces or hours. By default, the value in the Base Unit of Measure field on the item or resource card is inserted.';
             TableRelation = "Item Unit of Measure".Code where("Item No." = field("Item No."));
         }
         field(5408; "Derived from Blanket Order"; Boolean)
@@ -366,6 +403,7 @@ table 32 "Item Ledger Entry"
         field(5800; "Completely Invoiced"; Boolean)
         {
             Caption = 'Completely Invoiced';
+            ToolTip = 'Specifies if the entry has been fully invoiced or if more posted invoices are expected. Only completely invoiced entries can be revalued.';
         }
         field(5801; "Last Invoice Date"; Date)
         {
@@ -374,6 +412,7 @@ table 32 "Item Ledger Entry"
         field(5802; "Applied Entry to Adjust"; Boolean)
         {
             Caption = 'Applied Entry to Adjust';
+            ToolTip = 'Specifies whether there is one or more applied entries, which need to be adjusted.';
         }
         field(5803; "Cost Amount (Expected)"; Decimal)
         {
@@ -474,6 +513,7 @@ table 32 "Item Ledger Entry"
             AutoFormatType = 0;
             AccessByPermission = TableData "Sales Header" = R;
             Caption = 'Shipped Qty. Not Returned';
+            ToolTip = 'Specifies the quantity for this item ledger entry that was shipped and has not yet been returned.';
             DecimalPlaces = 0 : 5;
         }
         field(5819; "Item Ledger Entry Quantity"; Decimal)
@@ -490,6 +530,7 @@ table 32 "Item Ledger Entry"
             AutoFormatType = 0;
             CalcFormula = sum("Item Application Entry".Quantity where("Inbound Item Entry No." = field("Entry No."), "Posting Date" = field("Date Filter")));
             Caption = 'Remaining Quantity by Date';
+            ToolTip = 'Specifies the remaining quantity for the item ledger entry as of the date specified in the Date Filter field.';
             DecimalPlaces = 0 : 5;
             Editable = false;
             FieldClass = FlowField;
@@ -502,10 +543,12 @@ table 32 "Item Ledger Entry"
         field(5833; "Prod. Order Comp. Line No."; Integer)
         {
             Caption = 'Prod. Order Comp. Line No.';
+            ToolTip = 'Specifies the line number of the production order component.';
         }
         field(6500; "Serial No."; Code[50])
         {
             Caption = 'Serial No.';
+            ToolTip = 'Specifies a serial number if the posted item carries such a number.';
 
             trigger OnLookup()
             begin
@@ -515,6 +558,7 @@ table 32 "Item Ledger Entry"
         field(6501; "Lot No."; Code[50])
         {
             Caption = 'Lot No.';
+            ToolTip = 'Specifies a lot number if the posted item carries such a number.';
 
             trigger OnLookup()
             begin
@@ -524,10 +568,12 @@ table 32 "Item Ledger Entry"
         field(6502; "Warranty Date"; Date)
         {
             Caption = 'Warranty Date';
+            ToolTip = 'Specifies the last day of warranty for the item on the line.';
         }
         field(6503; "Expiration Date"; Date)
         {
             Caption = 'Expiration Date';
+            ToolTip = 'Specifies the last date that the item on the line can be used.';
         }
         field(6510; "Item Tracking"; Enum "Item Tracking Entry Type")
         {
@@ -537,6 +583,7 @@ table 32 "Item Ledger Entry"
         field(6515; "Package No."; Code[50])
         {
             Caption = 'Package No.';
+            ToolTip = 'Specifies a package number if the posted item carries such a number.';
             CaptionClass = '6,1';
 
             trigger OnLookup()
@@ -547,12 +594,14 @@ table 32 "Item Ledger Entry"
         field(6602; "Return Reason Code"; Code[10])
         {
             Caption = 'Return Reason Code';
+            ToolTip = 'Specifies the code explaining why the item was returned.';
             TableRelation = "Return Reason";
         }
         field(6603; "Item Description"; Text[100])
         {
             CalcFormula = lookup(Item.Description where("No." = field("Item No.")));
             Caption = 'Item Description';
+            ToolTip = 'Specifies the description of the item in the entry. Analysis mode must be used for sorting and filtering on this field.';
             Editable = false;
             FieldClass = FlowField;
         }
@@ -593,9 +642,9 @@ table 32 "Item Ledger Entry"
         {
             IncludedFields = "Job No.", "Job Task No.", "Document Type", "Document No.", "Order Type", "Order No.", "Serial No.", "Lot No.", "Package No.", Quantity, "Remaining Quantity";
         }
-        key(Key7; "Location Code", "Item No.", "Variant Code", Open, Positive, "SIFT Bucket No.")
+        key(Key7; "Location Code", "Item No.", "Variant Code", Open, Positive)
         {
-            SumIndexFields = Quantity, "Remaining Quantity";
+            IncludedFields = Quantity, "Remaining Quantity";
         }
         key(Key8; "Country/Region Code", "Entry Type", "Posting Date")
         {

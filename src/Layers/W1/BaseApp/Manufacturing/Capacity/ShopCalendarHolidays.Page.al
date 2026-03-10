@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -22,35 +22,29 @@ page 99000753 "Shop Calendar Holidays"
                 field(Date; Rec.Date)
                 {
                     ApplicationArea = Manufacturing;
-                    ToolTip = 'Specifies the date to set up as a shop calendar holiday.';
                     Visible = false;
                 }
                 field("Starting Date-Time"; Rec."Starting Date-Time")
                 {
                     ApplicationArea = Manufacturing;
-                    ToolTip = 'Specifies the date and the starting time, which are combined in a format called "starting date-time".';
                 }
                 field("Starting Time"; Rec."Starting Time")
                 {
                     ApplicationArea = Manufacturing;
-                    ToolTip = 'Specifies the starting time of the shop calendar holiday.';
                     Visible = false;
                 }
                 field("Ending Date-Time"; Rec."Ending Date-Time")
                 {
                     ApplicationArea = Manufacturing;
-                    ToolTip = 'Specifies the date and the ending time, which are combined in a format called "ending date-time".';
                     Visible = false;
                 }
                 field("Ending Time"; Rec."Ending Time")
                 {
                     ApplicationArea = Manufacturing;
-                    ToolTip = 'Specifies the ending time of the shop calendar holiday.';
                 }
                 field(Description; Rec.Description)
                 {
                     ApplicationArea = Manufacturing;
-                    ToolTip = 'Specifies the description of the shop calendar holiday.';
                 }
             }
         }

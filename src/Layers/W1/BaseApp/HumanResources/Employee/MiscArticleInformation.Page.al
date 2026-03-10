@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -23,43 +23,35 @@ page 5219 "Misc. Article Information"
                 field("Employee No."; Rec."Employee No.")
                 {
                     ApplicationArea = BasicHR;
-                    ToolTip = 'Specifies a number for the employee.';
                     Visible = false;
                 }
                 field("Misc. Article Code"; Rec."Misc. Article Code")
                 {
                     ApplicationArea = BasicHR;
-                    ToolTip = 'Specifies a code to define the type of miscellaneous article.';
                 }
                 field(Description; Rec.Description)
                 {
                     ApplicationArea = BasicHR;
-                    ToolTip = 'Specifies a description of the miscellaneous article.';
                 }
                 field("Serial No."; Rec."Serial No.")
                 {
                     ApplicationArea = ItemTracking;
-                    ToolTip = 'Specifies the serial number of the miscellaneous article.';
                 }
                 field("From Date"; Rec."From Date")
                 {
                     ApplicationArea = BasicHR;
-                    ToolTip = 'Specifies the date when the employee first received the miscellaneous article.';
                 }
                 field("To Date"; Rec."To Date")
                 {
                     ApplicationArea = BasicHR;
-                    ToolTip = 'Specifies the date when the employee no longer possesses the miscellaneous article.';
                 }
                 field("In Use"; Rec."In Use")
                 {
                     ApplicationArea = BasicHR;
-                    ToolTip = 'Specifies that the miscellaneous article is in use.';
                 }
                 field(Comment; Rec.Comment)
                 {
                     ApplicationArea = Comments;
-                    ToolTip = 'Specifies if a comment is associated with this entry.';
                 }
             }
         }

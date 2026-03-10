@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -30,88 +30,73 @@ page 6652 "Posted Return Shipments"
                 field("No."; Rec."No.")
                 {
                     ApplicationArea = PurchReturnOrder;
-                    ToolTip = 'Specifies the number of the involved entry or record, according to the specified number series.';
                 }
                 field("Buy-from Vendor No."; Rec."Buy-from Vendor No.")
                 {
                     ApplicationArea = PurchReturnOrder;
-                    ToolTip = 'Specifies the name of the vendor who delivered the items.';
                 }
                 field("Order Address Code"; Rec."Order Address Code")
                 {
                     ApplicationArea = PurchReturnOrder;
-                    ToolTip = 'Specifies the order address of the related customer.';
                     Visible = false;
                 }
                 field("Buy-from Vendor Name"; Rec."Buy-from Vendor Name")
                 {
                     ApplicationArea = PurchReturnOrder;
-                    ToolTip = 'Specifies the name of the vendor who delivered the items.';
                 }
                 field("Currency Code"; Rec."Currency Code")
                 {
                     ApplicationArea = PurchReturnOrder;
-                    ToolTip = 'Specifies the currency that is used on the entry.';
                     Visible = false;
                 }
                 field("Buy-from Post Code"; Rec."Buy-from Post Code")
                 {
                     ApplicationArea = PurchReturnOrder;
-                    ToolTip = 'Specifies the post code of the vendor who delivered the items.';
                     Visible = false;
                 }
                 field("Buy-from Country/Region Code"; Rec."Buy-from Country/Region Code")
                 {
                     ApplicationArea = PurchReturnOrder;
-                    ToolTip = 'Specifies the city of the vendor who delivered the items.';
                     Visible = false;
                 }
                 field("Buy-from Contact"; Rec."Buy-from Contact")
                 {
                     ApplicationArea = PurchReturnOrder;
-                    ToolTip = 'Specifies the name of the contact person at the vendor who delivered the items.';
                     Visible = false;
                 }
                 field("Pay-to Vendor No."; Rec."Pay-to Vendor No.")
                 {
                     ApplicationArea = PurchReturnOrder;
-                    ToolTip = 'Specifies the number of the vendor that you received the invoice from.';
                     Visible = false;
                 }
                 field("Pay-to Name"; Rec."Pay-to Name")
                 {
                     ApplicationArea = PurchReturnOrder;
-                    ToolTip = 'Specifies the name of the customer who you received the invoice from.';
                     Visible = false;
                 }
                 field("Pay-to Post Code"; Rec."Pay-to Post Code")
                 {
                     ApplicationArea = PurchReturnOrder;
-                    ToolTip = 'Specifies the post code of the customer that you received the invoice from.';
                     Visible = false;
                 }
                 field("Pay-to Country/Region Code"; Rec."Pay-to Country/Region Code")
                 {
                     ApplicationArea = PurchReturnOrder;
-                    ToolTip = 'Specifies the country/region code of the address.';
                     Visible = false;
                 }
                 field("Pay-to Contact"; Rec."Pay-to Contact")
                 {
                     ApplicationArea = PurchReturnOrder;
-                    ToolTip = 'Specifies the name of the person to contact about an invoice from this customer.';
                     Visible = false;
                 }
                 field("Ship-to Code"; Rec."Ship-to Code")
                 {
                     ApplicationArea = PurchReturnOrder;
-                    ToolTip = 'Specifies a code for an alternate shipment address if you want to ship to another address than the one that has been entered automatically. This field is also used in case of drop shipment.';
                     Visible = false;
                 }
                 field("Ship-to Name"; Rec."Ship-to Name")
                 {
                     ApplicationArea = PurchReturnOrder;
-                    ToolTip = 'Specifies the name of the customer at the address that the items are shipped to.';
                     Visible = false;
                 }
                 field("Ship-to Name 2"; Rec."Ship-to Name 2")
@@ -126,7 +111,6 @@ page 6652 "Posted Return Shipments"
                 field("Ship-to Post Code"; Rec."Ship-to Post Code")
                 {
                     ApplicationArea = PurchReturnOrder;
-                    ToolTip = 'Specifies the postal code of the address that the items are shipped to.';
                     Visible = false;
                 }
                 field("Ship-to Country/Region Code"; Rec."Ship-to Country/Region Code")
@@ -138,54 +122,45 @@ page 6652 "Posted Return Shipments"
                 field("Ship-to Contact"; Rec."Ship-to Contact")
                 {
                     ApplicationArea = PurchReturnOrder;
-                    ToolTip = 'Specifies the name of the contact person at the address that the items are shipped to.';
                     Visible = false;
                 }
                 field("Posting Date"; Rec."Posting Date")
                 {
                     ApplicationArea = PurchReturnOrder;
-                    ToolTip = 'Specifies the entry''s posting date.';
                     Visible = false;
                 }
                 field("Purchaser Code"; Rec."Purchaser Code")
                 {
                     ApplicationArea = PurchReturnOrder;
-                    ToolTip = 'Specifies which purchaser is assigned to the vendor.';
                     Visible = false;
                 }
                 field("Shortcut Dimension 1 Code"; Rec."Shortcut Dimension 1 Code")
                 {
                     ApplicationArea = Dimensions;
-                    ToolTip = 'Specifies the code for Shortcut Dimension 1, which is one of two global dimension codes that you set up in the General Ledger Setup window.';
                     Visible = false;
                 }
                 field("Shortcut Dimension 2 Code"; Rec."Shortcut Dimension 2 Code")
                 {
                     ApplicationArea = Dimensions;
-                    ToolTip = 'Specifies the code for Shortcut Dimension 2, which is one of two global dimension codes that you set up in the General Ledger Setup window.';
                     Visible = false;
                 }
                 field("Location Code"; Rec."Location Code")
                 {
                     ApplicationArea = PurchReturnOrder;
-                    ToolTip = 'Specifies the location from where inventory items to the customer on the sales document are to be shipped by default.';
                     Visible = true;
                 }
                 field("No. Printed"; Rec."No. Printed")
                 {
                     ApplicationArea = PurchReturnOrder;
-                    ToolTip = 'Specifies how many times the document has been printed.';
                 }
                 field("Document Date"; Rec."Document Date")
                 {
                     ApplicationArea = PurchReturnOrder;
-                    ToolTip = 'Specifies the date when the related document was created.';
                     Visible = false;
                 }
                 field("Applies-to Doc. Type"; Rec."Applies-to Doc. Type")
                 {
                     ApplicationArea = PurchReturnOrder;
-                    ToolTip = 'Specifies the type of the posted document that this document or journal line will be applied to when you post, for example to register payment.';
                     Visible = false;
                 }
             }

@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -29,7 +29,6 @@ page 1208 "Direct Debit Collect. Entries"
                 field("Entry No."; Rec."Entry No.")
                 {
                     ApplicationArea = Suite;
-                    ToolTip = 'Specifies the number of the entry, as assigned from the specified number series when the entry was created.';
                     Visible = false;
                 }
                 field("Customer No."; Rec."Customer No.")
@@ -37,97 +36,79 @@ page 1208 "Direct Debit Collect. Entries"
                     ApplicationArea = Suite;
                     Style = Attention;
                     StyleExpr = HasLineErrors;
-                    ToolTip = 'Specifies the number of the customer that the direct-debit payment is collected from.';
                 }
                 field("Customer Name"; Rec."Customer Name")
                 {
                     ApplicationArea = Suite;
                     Style = Attention;
                     StyleExpr = HasLineErrors;
-                    ToolTip = 'Specifies the name of the customer that the direct-debit payment is collected from.';
                 }
                 field("Applies-to Entry No."; Rec."Applies-to Entry No.")
                 {
                     ApplicationArea = Suite;
-                    ToolTip = 'Specifies the number of the sales invoice that the customer leger entry behind this direct-debit collection entry applies to.';
                 }
                 field("Applies-to Entry Document No."; Rec."Applies-to Entry Document No.")
                 {
                     ApplicationArea = Suite;
-                    ToolTip = 'Specifies the document number on the sales invoice that the customer leger entry behind this direct-debit collection entry applies to.';
                 }
                 field("Transfer Date"; Rec."Transfer Date")
                 {
                     ApplicationArea = Suite;
-                    ToolTip = 'Specifies the date when the payment will be collected from the customer''s bank account.';
                 }
                 field("Currency Code"; Rec."Currency Code")
                 {
                     ApplicationArea = Suite;
-                    ToolTip = 'Specifies the currency of the payment amount that is being collected as a direct debit.';
                 }
                 field("Transfer Amount"; Rec."Transfer Amount")
                 {
                     ApplicationArea = Suite;
-                    ToolTip = 'Specifies the amount that will be collected from the customer''s bank account.';
                 }
                 field("Transaction ID"; Rec."Transaction ID")
                 {
                     ApplicationArea = Suite;
                     Editable = false;
-                    ToolTip = 'Specifies the ID of the direct debit collection. It consist of a number in the SEPA direct-debit message number series and the value in the Applies-to Entry No. field.';
                 }
                 field("Mandate ID"; Rec."Mandate ID")
                 {
                     ApplicationArea = Suite;
-                    ToolTip = 'Specifies the ID of the direct-debit mandate that exists for the direct debit collection in question.';
                 }
                 field("Sequence Type"; Rec."Sequence Type")
                 {
                     ApplicationArea = Suite;
-                    ToolTip = 'Specifies if the direct-debit collection entry is the first or the last of a sequence of recurring entries.';
                 }
                 field(Status; Rec.Status)
                 {
                     ApplicationArea = Suite;
                     Editable = false;
-                    ToolTip = 'Specifies the status of the direct-debit collection entry.';
                 }
                 field("Mandate Type of Payment"; Rec."Mandate Type of Payment")
                 {
                     ApplicationArea = Suite;
-                    ToolTip = 'Specifies if the related direct-debit mandate is created for one or multiple direct debit collections.';
                     Visible = false;
                 }
                 field("Applies-to Entry Description"; Rec."Applies-to Entry Description")
                 {
                     ApplicationArea = Suite;
-                    ToolTip = 'Specifies the description of the sales invoice that the customer leger entry behind this direct-debit collection entry applies to.';
                 }
                 field("Applies-to Entry Posting Date"; Rec."Applies-to Entry Posting Date")
                 {
                     ApplicationArea = Suite;
-                    ToolTip = 'Specifies when the sales invoice that the customer leger entry behind this direct-debit collection entry applies to was posted.';
                 }
                 field("Applies-to Entry Currency Code"; Rec."Applies-to Entry Currency Code")
                 {
                     ApplicationArea = Suite;
-                    ToolTip = 'Specifies the currency of the sales invoice that the customer leger entry behind this direct-debit collection entry applies to.';
                 }
                 field("Applies-to Entry Amount"; Rec."Applies-to Entry Amount")
                 {
                     ApplicationArea = Suite;
-                    ToolTip = 'Specifies the payment amount on the sales invoice that the customer leger entry behind this direct-debit collection entry applies to.';
                 }
                 field("Applies-to Entry Rem. Amount"; Rec."Applies-to Entry Rem. Amount")
                 {
                     ApplicationArea = Suite;
-                    ToolTip = 'Specifies the amount that remains to be paid on the sales invoice that the customer leger entry behind this direct-debit collection entry applies to.';
                 }
                 field("Applies-to Entry Open"; Rec."Applies-to Entry Open")
                 {
                     ApplicationArea = Suite;
-                    ToolTip = 'Specifies if the sales invoice that the customer leger entry behind this direct-debit collection entry applies to is open.';
                 }
             }
         }

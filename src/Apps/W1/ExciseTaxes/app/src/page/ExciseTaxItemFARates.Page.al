@@ -8,7 +8,6 @@ page 7412 "Excise Tax Item/FA Rates"
 {
     PageType = List;
     ApplicationArea = All;
-    UsageCategory = Lists;
     SourceTable = "Excise Tax Item/FA Rate";
     DataCaptionExpression = GetCaption();
     Caption = 'Excise Tax Item/FA Rates';
@@ -22,30 +21,25 @@ page 7412 "Excise Tax Item/FA Rates"
             {
                 field("Excise Tax Type Code"; Rec."Excise Tax Type Code")
                 {
-                    ApplicationArea = All;
                     ToolTip = 'Specifies the excise tax type code.';
                     Editable = false;
                     Visible = false;
                 }
                 field("Source Type"; Rec."Source Type")
                 {
-                    ApplicationArea = All;
                     ToolTip = 'Specifies whether this rate applies to an Item or Fixed Asset.';
                 }
                 field("Source No."; Rec."Source No.")
                 {
-                    ApplicationArea = All;
                     ToolTip = 'Specifies the Item or Fixed Asset number.';
                 }
-                field("Tax Rate %"; Rec."Tax Rate %")
+                field("Excise Duty"; Rec."Excise Duty")
                 {
-                    ApplicationArea = All;
-                    ToolTip = 'Specifies the tax rate percentage.';
+                    ToolTip = 'Specifies the excise duty.';
                 }
                 field("Effective From Date"; Rec."Effective From Date")
                 {
-                    ApplicationArea = All;
-                    ToolTip = 'Specifies when this tax rate becomes effective.';
+                    ToolTip = 'Specifies when this excise duty becomes effective.';
                 }
             }
         }

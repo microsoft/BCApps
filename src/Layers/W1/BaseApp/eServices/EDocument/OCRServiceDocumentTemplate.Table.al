@@ -18,11 +18,13 @@ table 1271 "OCR Service Document Template"
         field(1; "Code"; Code[20])
         {
             Caption = 'Code';
+            ToolTip = 'Specifies the OCR document template.';
             NotBlank = true;
         }
         field(2; Name; Text[50])
         {
             Caption = 'Name';
+            ToolTip = 'Specifies the name of the OCR document template.';
         }
     }
 

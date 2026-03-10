@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -23,24 +23,20 @@ page 5927 "Fault Codes"
                 field("Fault Area Code"; Rec."Fault Area Code")
                 {
                     ApplicationArea = Service;
-                    ToolTip = 'Specifies the code of the fault area associated with the fault code.';
                     Visible = FaultAreaCodeVisible;
                 }
                 field("Symptom Code"; Rec."Symptom Code")
                 {
                     ApplicationArea = Service;
-                    ToolTip = 'Specifies the code of the symptom linked to the fault code.';
                     Visible = SymptomCodeVisible;
                 }
                 field("Code"; Rec.Code)
                 {
                     ApplicationArea = Service;
-                    ToolTip = 'Specifies a code for the fault.';
                 }
                 field(Description; Rec.Description)
                 {
                     ApplicationArea = Service;
-                    ToolTip = 'Specifies a description of the fault code.';
                 }
             }
         }

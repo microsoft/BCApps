@@ -16,7 +16,7 @@ using Microsoft.QualityManagement.Utilities;
 codeunit 20405 "Qlty. Inspec. Gen. Rule Mgmt."
 {
     var
-        QltyMiscHelpers: Codeunit "Qlty. Misc Helpers";
+        QltyConfigurationHelpers: Codeunit "Qlty. Configuration Helpers";
         QltyTraversal: Codeunit "Qlty. Traversal";
         UnexpectedAndNoDetailsErr: Label 'Something unexpected went wrong trying to find a matching quality inspection generation rule. Please review your Quality Inspection source table configuration.';
         CouldNotFindGenerationRuleErr: Label 'Could not find any compatible inspection generation rules for the template %1. Navigate to Quality Inspection Generation Rules and create a generation rule for the template %1', Comment = '%1=the template';
@@ -91,6 +91,7 @@ codeunit 20405 "Qlty. Inspec. Gen. Rule Mgmt."
         KnownTableIds: List of [Integer];
     begin
         Filter := '0';
+        AvailableQltyInspectSourceConfig.SetLoadFields("From Table No.", "To Table No.");
         if AvailableQltyInspectSourceConfig.FindSet() then
             repeat
                 if not KnownTableIds.Contains(AvailableQltyInspectSourceConfig."From Table No.") then begin
@@ -116,7 +117,7 @@ codeunit 20405 "Qlty. Inspec. Gen. Rule Mgmt."
     /// <param name="OptionalSpecificTemplate">Optional template to filter rules search</param>
     /// <param name="TempQltyInspectionGenRule">Returned Generation Rule</param>
     /// <returns>true if a matching Generation Rule was found</returns>
-    procedure FindMatchingGenerationRule(RaiseErrorIfNoRuleIsFound: Boolean; var TargetRecordRef: RecordRef; var OptionalItem: Record Item; OptionalSpecificTemplate: Code[20]; var TempQltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule" temporary) Found: Boolean
+    internal procedure FindMatchingGenerationRule(RaiseErrorIfNoRuleIsFound: Boolean; var TargetRecordRef: RecordRef; var OptionalItem: Record Item; OptionalSpecificTemplate: Code[20]; var TempQltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule" temporary) Found: Boolean
     var
         TempAvailableQltyInspectSourceConfig: Record "Qlty. Inspect. Source Config." temporary;
         TempAlreadyConsideredsWhileSearchingQltyInspectSourceConfig: Record "Qlty. Inspect. Source Config." temporary;
@@ -126,7 +127,7 @@ codeunit 20405 "Qlty. Inspec. Gen. Rule Mgmt."
                 Error(UnexpectedUnableWithADetailErr, Format(TargetRecordRef.RecordId()));
 
         Found := FindFirstGenerationRuleAndRecordBasedOnRecursive(
-            QltyMiscHelpers.GetArbitraryMaximumRecursion(),
+            QltyConfigurationHelpers.GetArbitraryMaximumRecursion(),
                 false,
                 RaiseErrorIfNoRuleIsFound,
                 TargetRecordRef,
@@ -147,7 +148,7 @@ codeunit 20405 "Qlty. Inspec. Gen. Rule Mgmt."
     /// <param name="OptionalSpecificTemplate">Optional template to filter rules search</param>
     /// <param name="TempQltyInspectionGenRule">Returned Generation Rule</param>
     /// <returns>true if a matching Generation Rule was found</returns>
-    procedure FindMatchingGenerationRule(RaiseErrorIfNoRuleIsFound: Boolean; IsManualCreation: Boolean; var TargetRecordRef: RecordRef; var OptionalItem: Record Item; OptionalSpecificTemplate: Code[20]; var TempQltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule" temporary) Found: Boolean
+    internal procedure FindMatchingGenerationRule(RaiseErrorIfNoRuleIsFound: Boolean; IsManualCreation: Boolean; var TargetRecordRef: RecordRef; var OptionalItem: Record Item; OptionalSpecificTemplate: Code[20]; var TempQltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule" temporary) Found: Boolean
     var
         TempAvailableQltyInspectSourceConfig: Record "Qlty. Inspect. Source Config." temporary;
         TempAlreadyConsideredsWhileSearchingQltyInspectSourceConfig: Record "Qlty. Inspect. Source Config." temporary;
@@ -157,7 +158,7 @@ codeunit 20405 "Qlty. Inspec. Gen. Rule Mgmt."
                 Error(NoGenRuleErr, Format(TargetRecordRef.RecordId()));
 
         Found := FindFirstGenerationRuleAndRecordBasedOnRecursive(
-            QltyMiscHelpers.GetArbitraryMaximumRecursion(),
+            QltyConfigurationHelpers.GetArbitraryMaximumRecursion(),
             true,
             IsManualCreation,
             TargetRecordRef,

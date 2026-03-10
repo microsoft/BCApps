@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -24,17 +24,14 @@ page 5958 "Standard Service Codes"
                 field("Code"; Rec.Code)
                 {
                     ApplicationArea = Service;
-                    ToolTip = 'Specifies a standard service code.';
                 }
                 field(Description; Rec.Description)
                 {
                     ApplicationArea = Service;
-                    ToolTip = 'Specifies a description of the service the standard service code represents.';
                 }
                 field("Currency Code"; Rec."Currency Code")
                 {
                     ApplicationArea = Service;
-                    ToolTip = 'Specifies the currency on the standard service lines linked to the standard service code.';
                     Visible = false;
                 }
             }

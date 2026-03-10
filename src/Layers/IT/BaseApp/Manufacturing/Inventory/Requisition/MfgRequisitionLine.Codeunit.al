@@ -21,8 +21,8 @@ codeunit 99000866 "Mfg. Requisition Line"
     var
         NoProductionOrderErr: Label 'There is no Production. Order for this line.';
 
-    [EventSubscriber(ObjectType::Table, Database::"Requisition Line", 'OnGetDimFromRefOrderLineElseCase', '', true, true)]
-    local procedure OnGetDimFromRefOrderLineElseCase(var RequisitionLine: Record "Requisition Line"; DimSetIDArr: array[10] of Integer; i: Integer)
+    [EventSubscriber(ObjectType::Table, Database::"Requisition Line", 'OnGetDimFromRefOrderLineElseCase', '', true, false)]
+    local procedure OnGetDimFromRefOrderLineElseCase(var RequisitionLine: Record "Requisition Line"; var DimSetIDArr: array[10] of Integer; i: Integer)
     var
         ProdOrderLine: Record "Prod. Order Line";
     begin
@@ -33,7 +33,7 @@ codeunit 99000866 "Mfg. Requisition Line"
         end;
     end;
 
-    [EventSubscriber(ObjectType::Table, Database::"Requisition Line", 'OnLookupRefOrderNoElseCase', '', true, true)]
+    [EventSubscriber(ObjectType::Table, Database::"Requisition Line", 'OnLookupRefOrderNoElseCase', '', true, false)]
     local procedure OnLookupRefOrderNoElseCase(var RequisitionLine: Record "Requisition Line"; var IsHandled: Boolean)
     var
         ProdOrder: Record "Production Order";
@@ -57,32 +57,32 @@ codeunit 99000866 "Mfg. Requisition Line"
         end;
     end;
 
-    [EventSubscriber(ObjectType::Table, Database::"Requisition Line", 'OnCleanProdBOMNo', '', true, true)]
+    [EventSubscriber(ObjectType::Table, Database::"Requisition Line", 'OnCleanProdBOMNo', '', true, false)]
     local procedure OnCleanProdBOMNo(var RequisitionLine: Record "Requisition Line")
     begin
         RequisitionLine.Validate("Production BOM No.", '');
         RequisitionLine.Validate("Routing No.", '');
     end;
 
-    [EventSubscriber(ObjectType::Table, Database::"Requisition Line", 'OnCleanProdOrderNo', '', true, true)]
+    [EventSubscriber(ObjectType::Table, Database::"Requisition Line", 'OnCleanProdOrderNo', '', true, false)]
     local procedure OnCleanProdOrderNo(var RequisitionLine: Record "Requisition Line")
     begin
         RequisitionLine."Prod. Order No." := '';
     end;
 
-    [EventSubscriber(ObjectType::Table, Database::"Requisition Line", 'OnIsProdOrder', '', true, true)]
+    [EventSubscriber(ObjectType::Table, Database::"Requisition Line", 'OnIsProdOrder', '', true, false)]
     local procedure OnIsProdOrder(var RequisitionLine: Record "Requisition Line"; var Result: Boolean)
     begin
         Result := RequisitionLine."Prod. Order No." <> '';
     end;
 
-    [EventSubscriber(ObjectType::Table, Database::"Requisition Line", 'OnIsProductionBOM', '', true, true)]
+    [EventSubscriber(ObjectType::Table, Database::"Requisition Line", 'OnIsProductionBOM', '', true, false)]
     local procedure OnIsProductionBOM(var RequisitionLine: Record "Requisition Line"; var Result: Boolean)
     begin
         Result := RequisitionLine."Production BOM No." <> '';
     end;
 
-    [EventSubscriber(ObjectType::Table, Database::"Requisition Line", 'OnIsProdDemand', '', true, true)]
+    [EventSubscriber(ObjectType::Table, Database::"Requisition Line", 'OnIsProdDemand', '', true, false)]
     local procedure OnIsProdDemand(var RequisitionLine: Record "Requisition Line"; var Result: Boolean)
     begin
         Result :=
@@ -90,26 +90,26 @@ codeunit 99000866 "Mfg. Requisition Line"
             (RequisitionLine."Demand Subtype" = "Production Order Status"::Planned.AsInteger());
     end;
 
-    [EventSubscriber(ObjectType::Table, Database::"Requisition Line", 'OnTestProdOrderNo', '', true, true)]
+    [EventSubscriber(ObjectType::Table, Database::"Requisition Line", 'OnTestProdOrderNo', '', true, false)]
     local procedure OnTestProdOrderNo(var RequisitionLine: Record "Requisition Line")
     begin
         RequisitionLine.TestField("Prod. Order No.", '');
     end;
 
-    [EventSubscriber(ObjectType::Table, Database::"Requisition Line", 'OnAfterCopyFromItem', '', true, true)]
+    [EventSubscriber(ObjectType::Table, Database::"Requisition Line", 'OnAfterCopyFromItem', '', true, false)]
     local procedure OnAfterCopyFromItem(var RequisitionLine: Record "Requisition Line"; Item: Record Item; CurrentFieldNo: Integer)
     begin
         RequisitionLine."Scrap %" := Item."Scrap %";
     end;
 
-    [EventSubscriber(ObjectType::Table, Database::"Requisition Line", 'OnAfterTransferFromPurchaseLine', '', true, true)]
+    [EventSubscriber(ObjectType::Table, Database::"Requisition Line", 'OnAfterTransferFromPurchaseLine', '', true, false)]
     local procedure OnAfterTransferFromPurchaseLine(var ReqLine: Record "Requisition Line"; PurchLine: Record "Purchase Line")
     begin
         ReqLine."Routing No." := PurchLine."Routing No.";
     end;
 
     [InherentPermissions(PermissionObjectType::TableData, Database::"Prod. Order Capacity Need", 'rimd')]
-    [EventSubscriber(ObjectType::Table, Database::"Requisition Line", 'OnAfterDeleteRelations', '', true, true)]
+    [EventSubscriber(ObjectType::Table, Database::"Requisition Line", 'OnAfterDeleteRelations', '', true, false)]
     local procedure OnAfterDeleteRelations(var RequisitionLine: Record "Requisition Line"; DeleteAllLines: Boolean)
     var
         PlanningRtngLine: Record "Planning Routing Line";
@@ -135,7 +135,7 @@ codeunit 99000866 "Mfg. Requisition Line"
             ReactivateProdOrderCapacityNeed(RequisitionLine);
     end;
 
-    [EventSubscriber(ObjectType::Table, Database::"Requisition Line", 'OnClearPlanningWorksheetOnBeforeRequisitionLineDelete', '', true, true)]
+    [EventSubscriber(ObjectType::Table, Database::"Requisition Line", 'OnClearPlanningWorksheetOnBeforeRequisitionLineDelete', '', true, false)]
     local procedure OnClearPlanningWorksheetOnBeforeRequisitionLineDelete(var RequisitionLine: Record "Requisition Line")
     begin
         ReactivateProdOrderCapacityNeed(RequisitionLine);
@@ -153,13 +153,13 @@ codeunit 99000866 "Mfg. Requisition Line"
             ProdOrderCapNeed.ModifyAll(Active, true);
     end;
 
-    [EventSubscriber(ObjectType::Table, Database::"Requisition Line", 'OnRoutingLineExists', '', true, true)]
+    [EventSubscriber(ObjectType::Table, Database::"Requisition Line", 'OnRoutingLineExists', '', true, false)]
     local procedure OnRoutingLineExists(var RequisitionLine: Record "Requisition Line"; var RoutingExists: Boolean)
     begin
         RoutingExists := RequisitionLine.RoutingLineExists();
     end;
 
-    [EventSubscriber(ObjectType::Table, Database::"Requisition Line", 'OnValidateStartingDate', '', true, true)]
+    [EventSubscriber(ObjectType::Table, Database::"Requisition Line", 'OnValidateStartingDate', '', true, false)]
     local procedure OnValidateStartingDate(var RequisitionLine: Record "Requisition Line")
     begin
         RequisitionLine.GetWorkCenter();
@@ -169,7 +169,7 @@ codeunit 99000866 "Mfg. Requisition Line"
         end;
     end;
 
-    [EventSubscriber(ObjectType::Table, Database::"Requisition Line", 'OnValidateEndingDate', '', true, true)]
+    [EventSubscriber(ObjectType::Table, Database::"Requisition Line", 'OnValidateEndingDate', '', true, false)]
     local procedure OnValidateEndingDate(var RequisitionLine: Record "Requisition Line")
     begin
         RequisitionLine.GetWorkCenter();
@@ -179,7 +179,7 @@ codeunit 99000866 "Mfg. Requisition Line"
         end;
     end;
 
-    [EventSubscriber(ObjectType::Table, Database::"Requisition Line", 'OnValidateStartingTimeOnBeforeUpdateDateTime', '', true, true)]
+    [EventSubscriber(ObjectType::Table, Database::"Requisition Line", 'OnValidateStartingTimeOnBeforeUpdateDateTime', '', true, false)]
     local procedure OnValidateStartingTimeOnBeforeUpdateDateTime(var RequisitionLine: Record "Requisition Line")
     var
         ManufacturingSetup: Record "Manufacturing Setup";
@@ -190,7 +190,7 @@ codeunit 99000866 "Mfg. Requisition Line"
         end;
     end;
 
-    [EventSubscriber(ObjectType::Table, Database::"Requisition Line", 'OnValidateEndingTimeOnBeforeUpdateDateTime', '', true, true)]
+    [EventSubscriber(ObjectType::Table, Database::"Requisition Line", 'OnValidateEndingTimeOnBeforeUpdateDateTime', '', true, false)]
     local procedure OnValidateEndingTimeOnBeforeUpdateDateTime(var RequisitionLine: Record "Requisition Line")
     var
         ManufacturingSetup: Record "Manufacturing Setup";
@@ -201,13 +201,13 @@ codeunit 99000866 "Mfg. Requisition Line"
         end;
     end;
 
-    [EventSubscriber(ObjectType::Table, Database::"Requisition Line", 'OnBeforeGetDirectCost', '', true, true)]
+    [EventSubscriber(ObjectType::Table, Database::"Requisition Line", 'OnBeforeGetDirectCost', '', true, false)]
     local procedure OnBeforeGetDirectCost(var ReqLine: Record "Requisition Line")
     begin
         ReqLine.GetWorkCenter();
     end;
 
-    [EventSubscriber(ObjectType::Table, Database::"Requisition Line", 'OnSetFromBinCodeOnSetBinCode', '', true, true)]
+    [EventSubscriber(ObjectType::Table, Database::"Requisition Line", 'OnSetFromBinCodeOnSetBinCode', '', true, false)]
     local procedure OnSetFromBinCodeOnSetBinCode(var RequisitionLine: Record "Requisition Line"; Location: Record Location)
     var
         ProdOrderWarehouseMgt: Codeunit "Prod. Order Warehouse Mgt.";
@@ -225,7 +225,7 @@ codeunit 99000866 "Mfg. Requisition Line"
         end;
     end;
 
-    [EventSubscriber(ObjectType::Table, Database::"Requisition Line", 'OnAfterShouldCheckNewActionMessage', '', true, true)]
+    [EventSubscriber(ObjectType::Table, Database::"Requisition Line", 'OnAfterShouldCheckNewActionMessage', '', true, false)]
     local procedure OnAfterShouldCheckNewActionMessage(var RequisitionLine: Record "Requisition Line"; CurrentFieldNo: Integer; var ShouldCheck: Boolean)
     begin
         ShouldCheck := ShouldCheck or
@@ -235,13 +235,13 @@ codeunit 99000866 "Mfg. Requisition Line"
                                 RequisitionLine.FieldNo("Routing No.")];
     end;
 
-    [EventSubscriber(ObjectType::Table, Database::"Requisition Line", 'OnUpdateWorkCenterDescription', '', true, true)]
+    [EventSubscriber(ObjectType::Table, Database::"Requisition Line", 'OnUpdateWorkCenterDescription', '', true, false)]
     local procedure OnUpdateWorkCenterDescription(var RequisitionLine: Record "Requisition Line"; var IsHandled: Boolean)
     begin
         IsHandled := RequisitionLine.UpdateWorkCenterDescription();
     end;
 
-    [EventSubscriber(ObjectType::Table, Database::"Requisition Line", 'OnValidateReplenishmentSystemCaseElse', '', true, true)]
+    [EventSubscriber(ObjectType::Table, Database::"Requisition Line", 'OnValidateReplenishmentSystemCaseElse', '', true, false)]
     local procedure OnValidateReplenishmentSystemCaseElse(var RequisitionLine: Record "Requisition Line"; var StockkeepingUnit: Record "Stockkeeping Unit")
     begin
         case RequisitionLine."Replenishment System" of
@@ -250,20 +250,20 @@ codeunit 99000866 "Mfg. Requisition Line"
         end;
     end;
 
-    [EventSubscriber(ObjectType::Table, Database::"Requisition Line", 'OnValidateReplenishmentSystemOnAfterSetStockkeepingUnit', '', true, true)]
+    [EventSubscriber(ObjectType::Table, Database::"Requisition Line", 'OnValidateReplenishmentSystemOnAfterSetStockkeepingUnit', '', true, false)]
     local procedure OnValidateReplenishmentSystemOnAfterSetStockkeepingUnit(var RequisitionLine: Record "Requisition Line"; var StockkeepingUnit: Record "Stockkeeping Unit")
     begin
         if RequisitionLine.IsSubcontracting() then
             StockkeepingUnit."Replenishment System" := StockkeepingUnit."Replenishment System"::"Prod. Order";
     end;
 
-    [EventSubscriber(ObjectType::Table, Database::"Requisition Line", 'OnAfterShouldUpdateEndingDateForSourceType', '', true, true)]
+    [EventSubscriber(ObjectType::Table, Database::"Requisition Line", 'OnAfterShouldUpdateEndingDateForSourceType', '', true, false)]
     local procedure OnAfterShouldUpdateEndingDateForSourceType(SourceType: Integer; var ShouldUpdate: Boolean)
     begin
         ShouldUpdate := ShouldUpdate or (SourceType = Database::"Prod. Order Line");
     end;
 
-    [EventSubscriber(ObjectType::Table, Database::"Requisition Line", 'OnSetSupplyDatesOnAfterValidateEndingDate', '', true, true)]
+    [EventSubscriber(ObjectType::Table, Database::"Requisition Line", 'OnSetSupplyDatesOnAfterValidateEndingDate', '', true, false)]
     local procedure OnSetSupplyDatesOnAfterValidateEndingDate(var RequisitionLine: Record "Requisition Line")
     var
         ManufacturingSetup: Record "Manufacturing Setup";
@@ -275,7 +275,7 @@ codeunit 99000866 "Mfg. Requisition Line"
     end;
 
 #if not CLEAN27
-    [EventSubscriber(ObjectType::Table, Database::"Requisition Line", 'OnValidateVendorNoOnBeforeLookupVendor', '', true, true)]
+    [EventSubscriber(ObjectType::Table, Database::"Requisition Line", 'OnValidateVendorNoOnBeforeLookupVendor', '', true, false)]
     local procedure OnValidateVendorNoOnBeforeLookupVendor(var RequisitionLine: Record "Requisition Line"; var IsHandled: Boolean)
     var
         SubcontrPrices: Record "Subcontractor Prices";
@@ -293,7 +293,7 @@ codeunit 99000866 "Mfg. Requisition Line"
         end;
     end;
 
-    [EventSubscriber(ObjectType::Table, Database::"Requisition Line", 'OnValidateVendorNoOnAfterCheckVendor', '', true, true)]
+    [EventSubscriber(ObjectType::Table, Database::"Requisition Line", 'OnValidateVendorNoOnAfterCheckVendor', '', true, false)]
     local procedure OnValidateVendorNoOnAfterCheckVendor(var RequisitionLine: Record "Requisition Line"; Vend: Record Vendor; CurrentFieldNo: Integer)
     var
         SubcontractingManagement: Codeunit SubcontractingManagement;
@@ -307,7 +307,7 @@ codeunit 99000866 "Mfg. Requisition Line"
         end;
     end;
 
-    [EventSubscriber(ObjectType::Table, Database::"Requisition Line", 'OnValidateVendorNoOnAfterSetSupplyFrom', '', true, true)]
+    [EventSubscriber(ObjectType::Table, Database::"Requisition Line", 'OnValidateVendorNoOnAfterSetSupplyFrom', '', true, false)]
     local procedure OnValidateVendorNoOnAfterSetSupplyFrom(var RequisitionLine: Record "Requisition Line")
     begin
         if (RequisitionLine.Type = RequisitionLine.Type::Item) and (RequisitionLine."No." <> '') and RequisitionLine.IsProdOrder() then
@@ -315,7 +315,7 @@ codeunit 99000866 "Mfg. Requisition Line"
     end;
 #endif
 
-    [EventSubscriber(ObjectType::Table, Database::"Req. Wksh. Template", 'OnAfterValidateEvent', 'Recurring', true, true)]
+    [EventSubscriber(ObjectType::Table, Database::"Req. Wksh. Template", 'OnAfterValidateEvent', 'Recurring', true, false)]
     local procedure ReqWkshTemplateOnAfterValidateRecurring(var Rec: Record "Req. Wksh. Template")
     begin
         if not Rec.Recurring then
@@ -325,7 +325,7 @@ codeunit 99000866 "Mfg. Requisition Line"
             end;
     end;
 
-    [EventSubscriber(ObjectType::Codeunit, Codeunit::PlanningWkshManagement, 'OnGetRoutingDescription', '', true, true)]
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::PlanningWkshManagement, 'OnGetRoutingDescription', '', true, false)]
     local procedure OnGetRoutingDescription(var ReqLine: Record "Requisition Line"; var RoutingDescription: Text[100])
     var
         RoutingHeader: Record "Routing Header";
@@ -339,7 +339,7 @@ codeunit 99000866 "Mfg. Requisition Line"
                 RoutingDescription := '';
     end;
 
-    [EventSubscriber(ObjectType::Report, Report::"Get Action Messages", 'OnInitReqFromSourceBySource', '', true, true)]
+    [EventSubscriber(ObjectType::Report, Report::"Get Action Messages", 'OnInitReqFromSourceBySource', '', true, false)]
     local procedure OnInitReqFromSourceBySource(var ReqLine: Record "Requisition Line"; ActionMessageEntry: Record "Action Message Entry"; var IsHandled: Boolean; var ShouldExit: Boolean)
     var
         ProdOrderLine: Record "Prod. Order Line";
@@ -356,7 +356,7 @@ codeunit 99000866 "Mfg. Requisition Line"
         end;
     end;
 
-    [EventSubscriber(ObjectType::Table, Database::"Requisition Line", 'OnResetReqLineFields', '', true, true)]
+    [EventSubscriber(ObjectType::Table, Database::"Requisition Line", 'OnResetReqLineFields', '', true, false)]
     local procedure OnResetReqLineFields(var RequisitionLine: Record "Requisition Line")
     begin
         ResetReqLineFields(RequisitionLine);
@@ -378,13 +378,13 @@ codeunit 99000866 "Mfg. Requisition Line"
     begin
     end;
 
-    [EventSubscriber(ObjectType::Table, Database::"Requisition Line", 'OnResetReqLineFields', '', true, true)]
+    [EventSubscriber(ObjectType::Table, Database::"Requisition Line", 'OnResetReqLineFields', '', true, false)]
     local procedure OnSetOperationNoFilterToBlank(var RequisitionLine: Record "Requisition Line")
     begin
         RequisitionLine.SetRange("Operation No.", '');
     end;
 
-    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Req. Wksh.-Make Order", 'OnTransferFromReqLineToPurchLine', '', true, true)]
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Req. Wksh.-Make Order", 'OnTransferFromReqLineToPurchLine', '', true, false)]
     local procedure OnTransferFromReqLineToPurchLine(var PurchOrderLine: Record "Purchase Line"; RequisitionLine: Record "Requisition Line")
     begin
         PurchOrderLine.TransferFromReqLineToPurchLine(PurchOrderLine, RequisitionLine);

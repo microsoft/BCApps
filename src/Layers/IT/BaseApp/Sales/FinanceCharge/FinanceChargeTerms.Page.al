@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -28,27 +28,22 @@ page 6 "Finance Charge Terms"
                 field("Code"; Rec.Code)
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies a code for the finance charge terms.';
                 }
                 field(Description; Rec.Description)
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies a description of the finance charge terms.';
                 }
                 field("Interest Calculation"; Rec."Interest Calculation")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies which entries should be used in interest calculation on finance charge memos.';
                 }
                 field("Interest Calculation Method"; Rec."Interest Calculation Method")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the interest calculation method for this set of finance charge terms.';
                 }
                 field("Interest Rate"; Rec."Interest Rate")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the percentage to use to calculate interest for this finance charge code.';
                 }
                 field("Interest Period (Days)"; Rec."Interest Period (Days)")
                 {
@@ -68,37 +63,30 @@ page 6 "Finance Charge Terms"
                 field("Grace Period"; Rec."Grace Period")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the grace period length for this set of finance charge terms.';
                 }
                 field("Due Date Calculation"; Rec."Due Date Calculation")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies a formula that determines how to calculate the due date of the finance charge memo.';
                 }
                 field("Line Description"; Rec."Line Description")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies a description to be used in the Description field on the finance charge memo lines.';
                 }
                 field("Detailed Lines Description"; Rec."Detailed Lines Description")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies a description to be used in the Description field on the finance charge memo lines if multiple interest rates are set up for different payment delay periods and the description must show the sum of these.';
                 }
                 field("Post Interest"; Rec."Post Interest")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies whether or not interest listed on the finance charge memo should be posted to the general ledger and customer accounts when the finance charge memo is issued.';
                 }
                 field("Post Additional Fee"; Rec."Post Additional Fee")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies whether or not any additional fee listed on the finance charge memo should be posted to the general ledger and customer accounts when the memo is issued.';
                 }
                 field("Add. Line Fee in Interest"; Rec."Add. Line Fee in Interest")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies that any additional fees are included in the interest calculation for the finance charge.';
                 }
             }
         }

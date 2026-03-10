@@ -13,7 +13,7 @@ codeunit 6497 "Serv. Planning Availability"
     ObsoleteReason = 'The referenced report "Planning Availability" has been deprecated and will be removed in a future release.';
     ObsoleteTag = '27.0';
 
-    [EventSubscriber(ObjectType::Report, Report::Microsoft.Manufacturing.Reports."Planning Availability", 'OnCollectData', '', false, false)]
+    [EventSubscriber(ObjectType::Report, Report::Microsoft.Manufacturing.Reports."Planning Availability", 'OnCollectData', '', true, false)]
     local procedure OnCollectData(var TempPlanningBuffer: Record "Planning Buffer" temporary; Selection: Boolean; var sender: Report Microsoft.Manufacturing.Reports."Planning Availability")
     var
         ServiceLine: Record "Service Line";

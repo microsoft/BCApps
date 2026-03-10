@@ -88,27 +88,22 @@ page 665 "Purchase Prepmt. Percentages"
                 field("Vendor No."; Rec."Vendor No.")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the number of the vendor that the prepayment percentage for this item is valid for.';
                 }
                 field("Item No."; Rec."Item No.")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the number of the item for which the prepayment percentage is valid.';
                 }
                 field("Starting Date"; Rec."Starting Date")
                 {
                     ApplicationArea = Prepayments;
-                    ToolTip = 'Specifies the date from which the purchase prepayment percentage is valid.';
                 }
                 field("Ending Date"; Rec."Ending Date")
                 {
                     ApplicationArea = Prepayments;
-                    ToolTip = 'Specifies the date to which the purchase prepayment percentage is valid.';
                 }
                 field("Prepayment %"; Rec."Prepayment %")
                 {
                     ApplicationArea = Prepayments;
-                    ToolTip = 'Specifies the prepayment percentage to use to calculate the prepayment for purchases.';
                 }
             }
         }

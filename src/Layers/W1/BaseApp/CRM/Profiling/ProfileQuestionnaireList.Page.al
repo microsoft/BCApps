@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -21,22 +21,18 @@ page 5111 "Profile Questionnaire List"
                 field("Code"; Rec.Code)
                 {
                     ApplicationArea = All;
-                    ToolTip = 'Specifies the code of the profile questionnaire.';
                 }
                 field(Description; Rec.Description)
                 {
                     ApplicationArea = All;
-                    ToolTip = 'Specifies the description of the profile questionnaire.';
                 }
                 field("Contact Type"; Rec."Contact Type")
                 {
                     ApplicationArea = RelationshipMgmt;
-                    ToolTip = 'Specifies the type of contact you want to use this profile questionnaire for.';
                 }
                 field("Business Relation Code"; Rec."Business Relation Code")
                 {
                     ApplicationArea = RelationshipMgmt;
-                    ToolTip = 'Specifies the code of the business relation to which the profile questionnaire applies.';
                 }
             }
         }

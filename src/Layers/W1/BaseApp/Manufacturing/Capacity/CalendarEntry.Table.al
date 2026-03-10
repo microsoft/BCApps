@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -20,6 +20,7 @@ table 99000757 "Calendar Entry"
         field(1; "Capacity Type"; Enum "Capacity Type")
         {
             Caption = 'Capacity Type';
+            ToolTip = 'Specifies the type of capacity for the calendar entry.';
 
             trigger OnValidate()
             begin
@@ -31,6 +32,7 @@ table 99000757 "Calendar Entry"
         field(2; "No."; Code[20])
         {
             Caption = 'No.';
+            ToolTip = 'Specifies the number of the involved entry or record, according to the specified number series.';
             NotBlank = true;
             TableRelation = if ("Capacity Type" = const("Work Center")) "Work Center"
             else
@@ -81,6 +83,7 @@ table 99000757 "Calendar Entry"
         field(5; "Work Shift Code"; Code[10])
         {
             Caption = 'Work Shift Code';
+            ToolTip = 'Specifies code for the work shift that the capacity refers to.';
             NotBlank = true;
             TableRelation = "Work Shift";
 
@@ -161,6 +164,7 @@ table 99000757 "Calendar Entry"
         {
             AutoFormatType = 0;
             Caption = 'Efficiency';
+            ToolTip = 'Specifies the efficiency of this calendar entry.';
             DecimalPlaces = 0 : 5;
             MinValue = 0;
 
@@ -173,6 +177,7 @@ table 99000757 "Calendar Entry"
         {
             AutoFormatType = 0;
             Caption = 'Capacity';
+            ToolTip = 'Specifies the capacity of this calendar entry.';
             DecimalPlaces = 0 : 5;
             MinValue = 0;
 
@@ -210,6 +215,7 @@ table 99000757 "Calendar Entry"
         field(24; "Starting Date-Time"; DateTime)
         {
             Caption = 'Starting Date-Time';
+            ToolTip = 'Specifies the date and the starting time, which are combined in a format called "starting date-time".';
 
             trigger OnValidate()
             begin
@@ -220,6 +226,7 @@ table 99000757 "Calendar Entry"
         field(25; "Ending Date-Time"; DateTime)
         {
             Caption = 'Ending Date-Time';
+            ToolTip = 'Specifies the date and the ending time, which are combined in a format called "ending date-time".';
 
             trigger OnValidate()
             begin

@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -25,14 +25,12 @@ page 7710 "ADCS Users"
                 {
                     ApplicationArea = ADCS;
                     Caption = 'Name';
-                    ToolTip = 'Specifies the name of an ADCS user.';
                 }
                 field(Password; Rec.Password)
                 {
                     ApplicationArea = ADCS;
                     Caption = 'Password';
                     ExtendedDatatype = Masked;
-                    ToolTip = 'Specifies the password of an ADCS user.';
                 }
             }
         }

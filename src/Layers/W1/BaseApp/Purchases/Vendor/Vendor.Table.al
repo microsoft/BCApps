@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -79,6 +79,7 @@ table 23 Vendor
         field(1; "No."; Code[20])
         {
             Caption = 'No.';
+            ToolTip = 'Specifies the number of the vendor. The field is either filled automatically from a defined number series, or you enter the number manually because you have enabled manual number entry in the number-series setup.';
             OptimizeForTextSearch = true;
 
             trigger OnValidate()
@@ -96,6 +97,7 @@ table 23 Vendor
         field(2; Name; Text[100])
         {
             Caption = 'Name';
+            ToolTip = 'Specifies the vendor''s name. You can enter a maximum of 30 characters, both numbers and letters.';
             OptimizeForTextSearch = true;
 
             trigger OnValidate()
@@ -109,26 +111,31 @@ table 23 Vendor
         field(3; "Search Name"; Code[100])
         {
             Caption = 'Search Name';
+            ToolTip = 'Specifies an alternate name that you can use to search for the record in question when you cannot remember the value in the Name field.';
             OptimizeForTextSearch = true;
         }
         field(4; "Name 2"; Text[50])
         {
             Caption = 'Name 2';
+            ToolTip = 'Specifies an additional part of the name.';
             OptimizeForTextSearch = true;
         }
         field(5; Address; Text[100])
         {
             Caption = 'Address';
+            ToolTip = 'Specifies the vendor street address.';
             OptimizeForTextSearch = true;
         }
         field(6; "Address 2"; Text[50])
         {
             Caption = 'Address 2';
+            ToolTip = 'Specifies additional address information.';
             OptimizeForTextSearch = true;
         }
         field(7; City; Text[30])
         {
             Caption = 'City';
+            ToolTip = 'Specifies the vendor''s city.';
             OptimizeForTextSearch = true;
             TableRelation = if ("Country/Region Code" = const('')) "Post Code".City
             else
@@ -159,6 +166,7 @@ table 23 Vendor
         field(8; Contact; Text[100])
         {
             Caption = 'Contact';
+            ToolTip = 'Specifies the name of the person you regularly contact when you do business with this vendor.';
             OptimizeForTextSearch = true;
 
             trigger OnLookup()
@@ -199,6 +207,7 @@ table 23 Vendor
         field(9; "Phone No."; Text[30])
         {
             Caption = 'Phone No.';
+            ToolTip = 'Specifies the vendor''s telephone number.';
             OptimizeForTextSearch = true;
             ExtendedDatatype = PhoneNo;
 
@@ -222,6 +231,7 @@ table 23 Vendor
         field(14; "Our Account No."; Text[20])
         {
             Caption = 'Our Account No.';
+            ToolTip = 'Specifies your account number with the vendor, if you have one.';
             OptimizeForTextSearch = true;
         }
         field(15; "Territory Code"; Code[10])
@@ -262,11 +272,13 @@ table 23 Vendor
         field(21; "Vendor Posting Group"; Code[20])
         {
             Caption = 'Vendor Posting Group';
+            ToolTip = 'Specifies the vendor''s market type to link business transactions made for the vendor with the appropriate account in the general ledger.';
             TableRelation = "Vendor Posting Group";
         }
         field(22; "Currency Code"; Code[10])
         {
             Caption = 'Currency Code';
+            ToolTip = 'Specifies the currency code that is inserted by default when you create purchase documents or journal lines for the vendor.';
             TableRelation = Currency;
 
             trigger OnValidate()
@@ -277,6 +289,7 @@ table 23 Vendor
         field(24; "Language Code"; Code[10])
         {
             Caption = 'Language Code';
+            ToolTip = 'Specifies the language that is used when translating specified text on documents to foreign business partner, such as an item description on an order confirmation.';
             TableRelation = Language;
 
             trigger OnValidate()
@@ -287,6 +300,7 @@ table 23 Vendor
         field(25; "Registration Number"; Text[50])
         {
             Caption = 'Registration No.';
+            ToolTip = 'Specifies the registration number of the vendor. You can enter a maximum of 20 characters, both numbers and letters.';
             OptimizeForTextSearch = true;
 
             trigger OnValidate()
@@ -309,6 +323,7 @@ table 23 Vendor
         field(27; "Payment Terms Code"; Code[10])
         {
             Caption = 'Payment Terms Code';
+            ToolTip = 'Specifies a formula that calculates the payment due date, payment discount date, and payment discount amount.';
             TableRelation = "Payment Terms";
 
             trigger OnValidate()
@@ -319,11 +334,13 @@ table 23 Vendor
         field(28; "Fin. Charge Terms Code"; Code[10])
         {
             Caption = 'Fin. Charge Terms Code';
+            ToolTip = 'Specifies the code for the involved finance charges in case of late payment.';
             TableRelation = "Finance Charge Terms";
         }
         field(29; "Purchaser Code"; Code[20])
         {
             Caption = 'Purchaser Code';
+            ToolTip = 'Specifies which purchaser is assigned to the vendor.';
             TableRelation = "Salesperson/Purchaser" where(Blocked = const(false));
 
             trigger OnValidate()
@@ -334,6 +351,7 @@ table 23 Vendor
         field(30; "Shipment Method Code"; Code[10])
         {
             Caption = 'Shipment Method Code';
+            ToolTip = 'Specifies the delivery conditions of the related shipment, such as free on board (FOB).';
             TableRelation = "Shipment Method";
         }
         field(31; "Shipping Agent Code"; Code[10])
@@ -344,12 +362,14 @@ table 23 Vendor
         field(33; "Invoice Disc. Code"; Code[20])
         {
             Caption = 'Invoice Disc. Code';
+            ToolTip = 'Specifies the vendor''s invoice discount code. When you set up a new vendor card, the number you have entered in the No. field is automatically inserted.';
             TableRelation = Vendor;
             ValidateTableRelation = false;
         }
         field(35; "Country/Region Code"; Code[10])
         {
             Caption = 'Country/Region Code';
+            ToolTip = 'Specifies the country/region of the address.';
             TableRelation = "Country/Region";
 
             trigger OnValidate()
@@ -371,6 +391,7 @@ table 23 Vendor
         field(39; Blocked; Enum "Vendor Blocked")
         {
             Caption = 'Blocked';
+            ToolTip = 'Specifies whether transactions with this vendor are restricted. Use this field to control vendor activity, such as temporarily halting payments or fully blocking a vendor due to compliance or business decisions. The field can have one of the following values: (blank) - No restrictions, all transactions are allowed. All - All transactions with this vendor are blocked. You cannot create or post any documents or journals with the vendor. Payment - Only payment transactions are blocked. You can still create and post purchase documents, but you cannot make payments to the vendor.';
 
             trigger OnValidate()
             begin
@@ -387,16 +408,19 @@ table 23 Vendor
         field(45; "Pay-to Vendor No."; Code[20])
         {
             Caption = 'Pay-to Vendor No.';
+            ToolTip = 'Specifies the number of a different vendor whom you pay for products delivered by the vendor on the vendor card.';
             TableRelation = Vendor;
             OptimizeForTextSearch = true;
         }
         field(46; Priority; Integer)
         {
             Caption = 'Priority';
+            ToolTip = 'Specifies the importance of the vendor when suggesting payments using the Suggest Vendor Payments function.';
         }
         field(47; "Payment Method Code"; Code[10])
         {
             Caption = 'Payment Method Code';
+            ToolTip = 'Specifies how to make payment, such as with bank transfer, cash, or check.';
             TableRelation = "Payment Method";
 
             trigger OnValidate()
@@ -407,6 +431,7 @@ table 23 Vendor
         field(48; "Format Region"; Text[80])
         {
             Caption = 'Format Region';
+            ToolTip = 'Specifies the region format to be used on printouts for this vendor.';
             OptimizeForTextSearch = true;
             TableRelation = "Language Selection"."Language Tag";
         }
@@ -427,6 +452,7 @@ table 23 Vendor
         field(54; "Last Date Modified"; Date)
         {
             Caption = 'Last Date Modified';
+            ToolTip = 'Specifies when the vendor card was last modified.';
             Editable = false;
         }
         field(55; "Date Filter"; Date)
@@ -715,14 +741,17 @@ table 23 Vendor
         field(80; "Application Method"; Enum "Application Method")
         {
             Caption = 'Application Method';
+            ToolTip = 'Specifies how to apply payments to entries for this vendor.';
         }
         field(82; "Prices Including VAT"; Boolean)
         {
             Caption = 'Prices Including VAT';
+            ToolTip = 'Specifies if the Unit Price and Line Amount fields on document lines should be shown with or without VAT.';
         }
         field(84; "Fax No."; Text[30])
         {
             Caption = 'Fax No.';
+            ToolTip = 'Specifies the vendor''s fax number.';
             OptimizeForTextSearch = true;
         }
         field(85; "Telex Answer Back"; Text[20])
@@ -733,6 +762,7 @@ table 23 Vendor
         field(86; "VAT Registration No."; Text[20])
         {
             Caption = 'VAT Registration No.';
+            ToolTip = 'Specifies the vendor''s VAT registration number.';
             OptimizeForTextSearch = true;
 
             trigger OnValidate()
@@ -751,6 +781,7 @@ table 23 Vendor
         field(88; "Gen. Bus. Posting Group"; Code[20])
         {
             Caption = 'Gen. Bus. Posting Group';
+            ToolTip = 'Specifies the vendor''s trade type to link transactions made for this vendor with the appropriate general ledger account according to the general posting setup.';
             TableRelation = "Gen. Business Posting Group";
 
             trigger OnValidate()
@@ -763,6 +794,7 @@ table 23 Vendor
         field(90; GLN; Code[13])
         {
             Caption = 'GLN';
+            ToolTip = 'Specifies the vendor in connection with electronic document receiving.';
             Numeric = true;
 
             trigger OnValidate()
@@ -776,6 +808,7 @@ table 23 Vendor
         field(91; "Post Code"; Code[20])
         {
             Caption = 'Post Code';
+            ToolTip = 'Specifies the postal code.';
             TableRelation = if ("Country/Region Code" = const('')) "Post Code"
             else
             if ("Country/Region Code" = filter(<> '')) "Post Code" where("Country/Region Code" = field("Country/Region Code"));
@@ -806,11 +839,13 @@ table 23 Vendor
         {
             CaptionClass = '5,1,' + "Country/Region Code";
             Caption = 'County';
+            ToolTip = 'Specifies the state, province or county as a part of the address.';
             OptimizeForTextSearch = true;
         }
         field(93; "EORI Number"; Text[40])
         {
             Caption = 'EORI Number';
+            ToolTip = 'Specifies the Economic Operators Registration and Identification number that is used when you exchange information with the customs authorities due to trade into or out of the European Union.';
             OptimizeForTextSearch = true;
         }
         field(97; "Debit Amount"; Decimal)
@@ -876,6 +911,7 @@ table 23 Vendor
         field(102; "E-Mail"; Text[80])
         {
             Caption = 'Email';
+            ToolTip = 'Specifies the vendor''s email address.';
             OptimizeForTextSearch = true;
             ExtendedDatatype = EMail;
 
@@ -897,6 +933,7 @@ table 23 Vendor
 #endif
         {
             Caption = 'Home Page';
+            ToolTip = 'Specifies the vendor''s web site.';
             OptimizeForTextSearch = true;
             ExtendedDatatype = URL;
         }
@@ -939,15 +976,18 @@ table 23 Vendor
         field(108; "Tax Area Code"; Code[20])
         {
             Caption = 'Tax Area Code';
+            ToolTip = 'Specifies a tax area code for the company.';
             TableRelation = "Tax Area";
         }
         field(109; "Tax Liable"; Boolean)
         {
             Caption = 'Tax Liable';
+            ToolTip = 'Specifies if the customer is liable for sales tax.';
         }
         field(110; "VAT Bus. Posting Group"; Code[20])
         {
             Caption = 'VAT Bus. Posting Group';
+            ToolTip = 'Specifies the VAT specification of the involved customer or vendor to link transactions made for this record with the appropriate general ledger account according to the VAT posting setup.';
             TableRelation = "VAT Business Posting Group";
         }
         field(111; "Currency Filter"; Code[10])
@@ -987,6 +1027,7 @@ table 23 Vendor
         field(116; "Block Payment Tolerance"; Boolean)
         {
             Caption = 'Block Payment Tolerance';
+            ToolTip = 'Specifies if the vendor allows payment tolerance.';
         }
         field(117; "Pmt. Disc. Tolerance (LCY)"; Decimal)
         {
@@ -1019,6 +1060,7 @@ table 23 Vendor
         field(119; "IC Partner Code"; Code[20])
         {
             Caption = 'IC Partner Code';
+            ToolTip = 'Specifies the vendor''s intercompany partner code.';
             TableRelation = "IC Partner";
 
             trigger OnValidate()
@@ -1122,6 +1164,7 @@ table 23 Vendor
         {
             AutoFormatType = 0;
             Caption = 'Prepayment %';
+            ToolTip = 'Specifies a prepayment percentage that applies to all orders for this vendor, regardless of the items or services on the order lines.';
             DecimalPlaces = 0 : 5;
             MaxValue = 100;
             MinValue = 0;
@@ -1171,28 +1214,34 @@ table 23 Vendor
         field(132; "Partner Type"; Enum "Partner Type")
         {
             Caption = 'Partner Type';
+            ToolTip = 'Specifies if the vendor is a person or a company.';
         }
         field(133; "Intrastat Partner Type"; Enum "Partner Type")
         {
             Caption = 'Intrastat Partner Type';
+            ToolTip = 'Specifies for Intrastat reporting if the vendor is a person or a company.';
         }
         field(134; "Exclude from Pmt. Practices"; Boolean)
         {
             Caption = 'Exclude from Payment Practices';
+            ToolTip = 'Specifies that the vendor must be excluded from Payment Practices calculations.';
         }
         field(135; "Company Size Code"; Code[20])
         {
             Caption = 'Company Size Code';
+            ToolTip = 'Specifies the size of the vendor''s company.';
             TableRelation = "Company Size";
         }
         field(140; Image; Media)
         {
             Caption = 'Image';
+            ToolTip = 'Specifies the picture of the vendor, for example, a logo.';
             ExtendedDatatype = Person;
         }
         field(150; "Privacy Blocked"; Boolean)
         {
             Caption = 'Privacy Blocked';
+            ToolTip = 'Specifies whether to limit access to data for the data subject during daily operations. This is useful, for example, when protecting data from changes while it is under privacy review.';
 
             trigger OnValidate()
             begin
@@ -1205,24 +1254,29 @@ table 23 Vendor
         field(160; "Disable Search by Name"; Boolean)
         {
             Caption = 'Disable Search by Name';
+            ToolTip = 'Specifies that you can change the vendor name on open purchase documents. The change applies only to the documents.';
             DataClassification = SystemMetadata;
         }
         field(170; "Creditor No."; Code[20])
         {
             Caption = 'Creditor No.';
+            ToolTip = 'Specifies the number of the vendor.';
         }
         field(175; "Allow Multiple Posting Groups"; Boolean)
         {
             Caption = 'Allow Multiple Posting Groups';
+            ToolTip = 'Specifies if multiple posting groups can be used for posting business transactions for this vendor.';
             DataClassification = SystemMetadata;
         }
         field(180; "Self-Billing Agreement"; Boolean)
         {
             Caption = 'Self-Billing Agreement';
+            ToolTip = 'Specifies the value of the Self-Billing Agreement field.';
         }
         field(288; "Preferred Bank Account Code"; Code[20])
         {
             Caption = 'Preferred Bank Account Code';
+            ToolTip = 'Specifies the vendor bank account that will be used by default on payment journal lines for export to a payment bank file.';
             TableRelation = "Vendor Bank Account".Code where("Vendor No." = field("No."));
         }
 #if not CLEANSCHEMA26
@@ -1239,17 +1293,20 @@ table 23 Vendor
         {
             FieldClass = FlowField;
             Caption = 'Coupled to Dataverse';
+            ToolTip = 'Specifies that the vendor is coupled to an account in Dataverse.';
             Editable = false;
             CalcFormula = exist("CRM Integration Record" where("Integration ID" = field(SystemId), "Table ID" = const(Database::Vendor)));
         }
         field(840; "Cash Flow Payment Terms Code"; Code[10])
         {
             Caption = 'Cash Flow Payment Terms Code';
+            ToolTip = 'Specifies a payment term that will be used for calculating cash flow.';
             TableRelation = "Payment Terms";
         }
         field(5049; "Primary Contact No."; Code[20])
         {
             Caption = 'Primary Contact No.';
+            ToolTip = 'Specifies the primary contact number for the vendor.';
             TableRelation = Contact;
 
             trigger OnLookup()
@@ -1308,6 +1365,7 @@ table 23 Vendor
         field(5061; "Mobile Phone No."; Text[30])
         {
             Caption = 'Mobile Phone No.';
+            ToolTip = 'Specifies the vendor''s mobile telephone number.';
             OptimizeForTextSearch = true;
             ExtendedDatatype = PhoneNo;
 
@@ -1325,17 +1383,20 @@ table 23 Vendor
         field(5700; "Responsibility Center"; Code[10])
         {
             Caption = 'Responsibility Center';
+            ToolTip = 'Specifies the code of the responsibility center, such as a distribution hub, that is associated with the involved user, company, customer, or vendor.';
             TableRelation = "Responsibility Center";
         }
         field(5701; "Location Code"; Code[10])
         {
             Caption = 'Location Code';
+            ToolTip = 'Specifies the warehouse location where items from the vendor must be received by default.';
             TableRelation = Location where("Use As In-Transit" = const(false));
         }
         field(5790; "Lead Time Calculation"; DateFormula)
         {
             AccessByPermission = TableData "Purch. Rcpt. Header" = R;
             Caption = 'Lead Time Calculation';
+            ToolTip = 'Specifies a date formula for the amount of time it takes to replenish the item.';
 
             trigger OnValidate()
             begin
@@ -1345,6 +1406,7 @@ table 23 Vendor
         field(7000; "Price Calculation Method"; Enum "Price Calculation Method")
         {
             Caption = 'Price Calculation Method';
+            ToolTip = 'Specifies the default price calculation method.';
 
             trigger OnValidate()
             var
@@ -1359,6 +1421,7 @@ table 23 Vendor
         {
             CalcFormula = count("Purch. Rcpt. Header" where("Buy-from Vendor No." = field("No.")));
             Caption = 'No. of Pstd. Receipts';
+            ToolTip = 'Specifies the number of posted purchase receipts that exist for the vendor.';
             Editable = false;
             FieldClass = FlowField;
         }
@@ -1366,6 +1429,7 @@ table 23 Vendor
         {
             CalcFormula = count("Purch. Inv. Header" where("Buy-from Vendor No." = field("No.")));
             Caption = 'No. of Pstd. Invoices';
+            ToolTip = 'Specifies the number of posted purchase invoices that exist for the vendor.';
             Editable = false;
             FieldClass = FlowField;
         }
@@ -1373,6 +1437,7 @@ table 23 Vendor
         {
             CalcFormula = count("Return Shipment Header" where("Buy-from Vendor No." = field("No.")));
             Caption = 'No. of Pstd. Return Shipments';
+            ToolTip = 'Specifies the number of posted return shipments that exist for the vendor.';
             Editable = false;
             FieldClass = FlowField;
         }
@@ -1380,6 +1445,7 @@ table 23 Vendor
         {
             CalcFormula = count("Purch. Cr. Memo Hdr." where("Buy-from Vendor No." = field("No.")));
             Caption = 'No. of Pstd. Credit Memos';
+            ToolTip = 'Specifies the number of posted purchase credit memos that exist for the vendor.';
             Editable = false;
             FieldClass = FlowField;
         }
@@ -1389,6 +1455,7 @@ table 23 Vendor
             CalcFormula = count("Purchase Header" where("Document Type" = const(Order),
                                                          "Pay-to Vendor No." = field("No.")));
             Caption = 'Pay-to No. of Orders';
+            ToolTip = 'Specifies the number of posted orders that exist for the customer.';
             Editable = false;
             FieldClass = FlowField;
         }
@@ -1397,6 +1464,7 @@ table 23 Vendor
             CalcFormula = count("Purchase Header" where("Document Type" = const(Invoice),
                                                          "Pay-to Vendor No." = field("No.")));
             Caption = 'Pay-to No. of Invoices';
+            ToolTip = 'Specifies the amount that relates to invoices.';
             Editable = false;
             FieldClass = FlowField;
         }
@@ -1406,6 +1474,7 @@ table 23 Vendor
             CalcFormula = count("Purchase Header" where("Document Type" = const("Return Order"),
                                                          "Pay-to Vendor No." = field("No.")));
             Caption = 'Pay-to No. of Return Orders';
+            ToolTip = 'Specifies how many return orders have been registered for the customer when the customer acts as the pay-to customer.';
             Editable = false;
             FieldClass = FlowField;
         }
@@ -1414,6 +1483,7 @@ table 23 Vendor
             CalcFormula = count("Purchase Header" where("Document Type" = const("Credit Memo"),
                                                          "Pay-to Vendor No." = field("No.")));
             Caption = 'Pay-to No. of Credit Memos';
+            ToolTip = 'Specifies the amount that relates to credit memos.';
             Editable = false;
             FieldClass = FlowField;
         }
@@ -1421,6 +1491,7 @@ table 23 Vendor
         {
             CalcFormula = count("Purch. Rcpt. Header" where("Pay-to Vendor No." = field("No.")));
             Caption = 'Pay-to No. of Pstd. Receipts';
+            ToolTip = 'Specifies the number of posted receipts that exist for the vendor.';
             Editable = false;
             FieldClass = FlowField;
         }
@@ -1428,6 +1499,7 @@ table 23 Vendor
         {
             CalcFormula = count("Purch. Inv. Header" where("Pay-to Vendor No." = field("No.")));
             Caption = 'Pay-to No. of Pstd. Invoices';
+            ToolTip = 'Specifies the amount that relates to posted invoices.';
             Editable = false;
             FieldClass = FlowField;
         }
@@ -1435,6 +1507,7 @@ table 23 Vendor
         {
             CalcFormula = count("Return Shipment Header" where("Pay-to Vendor No." = field("No.")));
             Caption = 'Pay-to No. of Pstd. Return S.';
+            ToolTip = 'Specifies the number of posted return shipments that exist for the vendor.';
             Editable = false;
             FieldClass = FlowField;
         }
@@ -1442,6 +1515,7 @@ table 23 Vendor
         {
             CalcFormula = count("Purch. Cr. Memo Hdr." where("Pay-to Vendor No." = field("No.")));
             Caption = 'Pay-to No. of Pstd. Cr. Memos';
+            ToolTip = 'Specifies the amount that relates to credit memos.';
             Editable = false;
             FieldClass = FlowField;
         }
@@ -1450,6 +1524,7 @@ table 23 Vendor
             CalcFormula = count("Purchase Header" where("Document Type" = const(Quote),
                                                          "Buy-from Vendor No." = field("No.")));
             Caption = 'No. of Quotes';
+            ToolTip = 'Specifies the number of purchase quotes that exist for the vendor.';
             Editable = false;
             FieldClass = FlowField;
         }
@@ -1459,6 +1534,7 @@ table 23 Vendor
             CalcFormula = count("Purchase Header" where("Document Type" = const("Blanket Order"),
                                                          "Buy-from Vendor No." = field("No.")));
             Caption = 'No. of Blanket Orders';
+            ToolTip = 'Specifies the number of purchase blanket orders that exist for the vendor.';
             Editable = false;
             FieldClass = FlowField;
         }
@@ -1468,6 +1544,7 @@ table 23 Vendor
             CalcFormula = count("Purchase Header" where("Document Type" = const(Order),
                                                          "Buy-from Vendor No." = field("No.")));
             Caption = 'No. of Orders';
+            ToolTip = 'Specifies the number of purchase orders that exist for the vendor.';
             FieldClass = FlowField;
         }
         field(7192; "No. of Invoices"; Integer)
@@ -1475,6 +1552,7 @@ table 23 Vendor
             CalcFormula = count("Purchase Header" where("Document Type" = const(Invoice),
                                                          "Buy-from Vendor No." = field("No.")));
             Caption = 'No. of Invoices';
+            ToolTip = 'Specifies the number of unposted purchase invoices that exist for the vendor.';
             Editable = false;
             FieldClass = FlowField;
         }
@@ -1484,6 +1562,7 @@ table 23 Vendor
             CalcFormula = count("Purchase Header" where("Document Type" = const("Return Order"),
                                                          "Buy-from Vendor No." = field("No.")));
             Caption = 'No. of Return Orders';
+            ToolTip = 'Specifies the number of purchase return orders that exist for the vendor.';
             Editable = false;
             FieldClass = FlowField;
         }
@@ -1492,6 +1571,7 @@ table 23 Vendor
             CalcFormula = count("Purchase Header" where("Document Type" = const("Credit Memo"),
                                                          "Buy-from Vendor No." = field("No.")));
             Caption = 'No. of Credit Memos';
+            ToolTip = 'Specifies the number of unposted purchase credit memos that exist for the vendor.';
             Editable = false;
             FieldClass = FlowField;
         }
@@ -1507,6 +1587,7 @@ table 23 Vendor
             CalcFormula = count("Purchase Header" where("Document Type" = const(Quote),
                                                          "Pay-to Vendor No." = field("No.")));
             Caption = 'Pay-to No. of Quotes';
+            ToolTip = 'Specifies the number of quotes that exist for the vendor.';
             Editable = false;
             FieldClass = FlowField;
         }
@@ -1516,23 +1597,27 @@ table 23 Vendor
             CalcFormula = count("Purchase Header" where("Document Type" = const("Blanket Order"),
                                                          "Pay-to Vendor No." = field("No.")));
             Caption = 'Pay-to No. of Blanket Orders';
+            ToolTip = 'Specifies the number of blanket orders.';
             FieldClass = FlowField;
         }
         field(7198; "No. of Incoming Documents"; Integer)
         {
             CalcFormula = count("Incoming Document" where("Vendor No." = field("No.")));
             Caption = 'No. of Incoming Documents';
+            ToolTip = 'Specifies incoming documents, such as vendor invoices in PDF or as image files, that you can manually or automatically convert to document records, such as purchase invoices. The external files that represent incoming documents can be attached at any process stage, including to posted documents and to the resulting vendor, customer, and general ledger entries.';
             Editable = false;
             FieldClass = FlowField;
         }
         field(7600; "Base Calendar Code"; Code[10])
         {
             Caption = 'Base Calendar Code';
+            ToolTip = 'Specifies a customizable calendar for delivery planning that holds the vendor''s working days and holidays.';
             TableRelation = "Base Calendar";
         }
         field(7601; "Document Sending Profile"; Code[20])
         {
             Caption = 'Document Sending Profile';
+            ToolTip = 'Specifies the preferred method of sending documents to this vendor, so that you do not have to select a sending option every time that you post and send a document to the vendor. Documents to this vendor will be sent using the specified sending profile and will override the default document sending profile.';
             TableRelation = "Document Sending Profile".Code;
         }
         field(7602; "Validate EU Vat Reg. No."; Boolean)
@@ -1578,6 +1663,7 @@ table 23 Vendor
         field(8510; "Over-Receipt Code"; Code[20])
         {
             Caption = 'Over-Receipt Code';
+            ToolTip = 'Specifies the policy that will be used for the vendor if more items than ordered are received.';
             TableRelation = "Over-Receipt Code";
         }
     }
@@ -1637,7 +1723,7 @@ table 23 Vendor
 
     fieldgroups
     {
-        fieldgroup(DropDown; "No.", Name, Address, City, "Post Code", "Phone No.", Contact, "E-Mail", "Pay-to Vendor No.", "Registration Number")
+        fieldgroup(DropDown; "No.", Name, Address, City, "Post Code", "Phone No.", Contact, "E-Mail", "Pay-to Vendor No.", "Registration Number", "VAT Registration No.")
         {
         }
         fieldgroup(Brick; "No.", Name, "Balance (LCY)", Contact, "Balance Due (LCY)", Image)
@@ -2702,6 +2788,22 @@ table 23 Vendor
         end;
     end;
 
+    procedure FormatVATRegistrationNo(VATRegistrationNo: Text; CountryCode: Code[10]): Text
+    var
+        CountryRegion: Record "Country/Region";
+    begin
+        if VATRegistrationNo = '' then
+            exit;
+
+        VATRegistrationNo := DelChr(VATRegistrationNo);
+
+        if CountryRegion.Get(CountryCode) and (CountryRegion."ISO Code" <> '') then
+            if StrPos(VATRegistrationNo, CountryRegion."ISO Code") <> 1 then
+                VATRegistrationNo := CountryRegion."ISO Code" + VATRegistrationNo;
+
+        exit(VATRegistrationNo);
+    end;
+
     [IntegrationEvent(false, false)]
     local procedure OnAfterHasAddress(Vendor: Record Vendor; var Result: Boolean)
     begin
@@ -2932,4 +3034,5 @@ table 23 Vendor
     local procedure OnOpenVendorLedgerEntriesOnBeforeDrillDownEntries(var DetailedVendorLedgEntry: Record "Detailed Vendor Ledg. Entry"; FilterOnDueEntries: Boolean; var IsHandled: Boolean)
     begin
     end;
+
 }

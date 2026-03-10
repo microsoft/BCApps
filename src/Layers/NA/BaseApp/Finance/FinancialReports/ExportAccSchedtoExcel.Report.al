@@ -107,11 +107,14 @@ report 29 "Export Acc. Sched. to Excel"
     trigger OnPreReport()
     var
         Company: Record Company;
+        FinancialReportAuditing: Codeunit "Financial Report Auditing";
     begin
         Company.Get(CompanyName());
         CompanyDisplayName := Company."Display Name";
         if CompanyDisplayName = '' then
             CompanyDisplayName := Company.Name;
+
+        FinancialReportAuditing.LogReportUsage(FinancialReport.Name, Enum::"Financial Report Format"::Excel, RunForExport);
     end;
 
     var
@@ -139,6 +142,7 @@ report 29 "Export Acc. Sched. to Excel"
         SaveToStream: Boolean;
         TestMode: Boolean;
         Window: Dialog;
+        RunForExport: Boolean;
 
 #pragma warning disable AA0074
         Text000: Label 'Analyzing Data...\\';
@@ -533,6 +537,11 @@ report 29 "Export Acc. Sched. to Excel"
             exit(HasNonZeroColumn);
         end;
         exit(true);
+    end;
+
+    procedure SetRunForExport()
+    begin
+        RunForExport := true;
     end;
 
     /// <summary>

@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -69,25 +69,30 @@ table 5902 "Service Line"
         field(1; "Document Type"; Enum "Service Document Type")
         {
             Caption = 'Document Type';
+            ToolTip = 'Specifies the type of the service document associated with this line.';
         }
         field(2; "Customer No."; Code[20])
         {
             Caption = 'Customer No.';
+            ToolTip = 'Specifies the number of the customer who owns the items to be serviced under the service order.';
             Editable = false;
             TableRelation = Customer;
         }
         field(3; "Document No."; Code[20])
         {
             Caption = 'Document No.';
+            ToolTip = 'Specifies the service order number associated with this line.';
             TableRelation = "Service Header"."No." where("Document Type" = field("Document Type"));
         }
         field(4; "Line No."; Integer)
         {
             Caption = 'Line No.';
+            ToolTip = 'Specifies the number of the line.';
         }
         field(5; Type; Enum "Service Line Type")
         {
             Caption = 'Type';
+            ToolTip = 'Specifies the type of the service line.';
 
             trigger OnValidate()
             begin
@@ -129,6 +134,7 @@ table 5902 "Service Line"
         field(6; "No."; Code[20])
         {
             Caption = 'No.';
+            ToolTip = 'Specifies the number of the involved entry or record, according to the specified number series.';
             TableRelation = if (Type = const(" ")) "Standard Text"
             else
             if (Type = const("G/L Account")) "G/L Account"
@@ -245,6 +251,7 @@ table 5902 "Service Line"
         field(7; "Location Code"; Code[10])
         {
             Caption = 'Location Code';
+            ToolTip = 'Specifies the inventory location from where the items on the line should be taken and where they should be registered.';
             TableRelation = Location;
 
             trigger OnValidate()
@@ -271,25 +278,30 @@ table 5902 "Service Line"
         field(8; "Posting Group"; Code[20])
         {
             Caption = 'Posting Group';
+            ToolTip = 'Specifies the inventory posting group assigned to the item.';
             Editable = false;
             TableRelation = if (Type = const(Item)) "Inventory Posting Group";
         }
         field(11; Description; Text[100])
         {
             Caption = 'Description';
+            ToolTip = 'Specifies the description of an item, resource, cost, or a standard text on the line.';
         }
         field(12; "Description 2"; Text[50])
         {
             Caption = 'Description 2';
+            ToolTip = 'Specifies information in addition to the description.';
         }
         field(13; "Unit of Measure"; Text[50])
         {
             Caption = 'Unit of Measure';
+            ToolTip = 'Specifies the name of the item or resource''s unit of measure, such as piece or hour.';
         }
         field(15; Quantity; Decimal)
         {
             AutoFormatType = 0;
             Caption = 'Quantity';
+            ToolTip = 'Specifies the number of item units, resource hours, cost on the service line.';
             DecimalPlaces = 0 : 5;
 
             trigger OnValidate()
@@ -393,6 +405,7 @@ table 5902 "Service Line"
         {
             AutoFormatType = 0;
             Caption = 'Qty. to Invoice';
+            ToolTip = 'Specifies the quantity of the items, resources, costs, or general ledger account payments, which should be invoiced.';
             DecimalPlaces = 0 : 5;
 
             trigger OnValidate()
@@ -438,6 +451,7 @@ table 5902 "Service Line"
         {
             AutoFormatType = 0;
             Caption = 'Qty. to Ship';
+            ToolTip = 'Specifies the quantity of items that remain to be shipped.';
             DecimalPlaces = 0 : 5;
 
             trigger OnValidate()
@@ -490,6 +504,7 @@ table 5902 "Service Line"
             AutoFormatType = 2;
             CaptionClass = GetCaptionClass(FieldNo("Unit Price"));
             Caption = 'Unit Price';
+            ToolTip = 'Specifies the price of one unit of the item or resource. You can enter a price manually or have it entered according to the Price/Profit Calculation field on the related card.';
 
             trigger OnValidate()
             begin
@@ -556,6 +571,7 @@ table 5902 "Service Line"
         {
             AutoFormatType = 0;
             Caption = 'VAT %';
+            ToolTip = 'Specifies the VAT percentage used to calculate Amount Including VAT on this line.';
             DecimalPlaces = 0 : 5;
             Editable = false;
         }
@@ -563,6 +579,7 @@ table 5902 "Service Line"
         {
             AutoFormatType = 0;
             Caption = 'Line Discount %';
+            ToolTip = 'Specifies the discount percentage that is granted for the item on the line.';
             DecimalPlaces = 0 : 5;
             MaxValue = 100;
             MinValue = 0;
@@ -597,6 +614,7 @@ table 5902 "Service Line"
             AutoFormatExpression = Rec."Currency Code";
             AutoFormatType = 1;
             Caption = 'Line Discount Amount';
+            ToolTip = 'Specifies the discount amount that is granted for the item on the line.';
 
             trigger OnValidate()
             begin
@@ -663,6 +681,7 @@ table 5902 "Service Line"
             AutoFormatExpression = Rec."Currency Code";
             AutoFormatType = 1;
             Caption = 'Amount Including VAT';
+            ToolTip = 'Specifies the net amount, including VAT, for this line.';
             Editable = false;
 
             trigger OnValidate()
@@ -709,6 +728,7 @@ table 5902 "Service Line"
         field(32; "Allow Invoice Disc."; Boolean)
         {
             Caption = 'Allow Invoice Disc.';
+            ToolTip = 'Specifies if the invoice line is included when the invoice discount is calculated.';
             InitValue = true;
 
             trigger OnValidate()
@@ -752,6 +772,7 @@ table 5902 "Service Line"
         {
             AccessByPermission = TableData Item = R;
             Caption = 'Appl.-to Item Entry';
+            ToolTip = 'Specifies the number of the item ledger entry that the document or journal line is applied to.';
 
             trigger OnLookup()
             begin
@@ -780,6 +801,7 @@ table 5902 "Service Line"
         {
             CaptionClass = '1,2,1';
             Caption = 'Shortcut Dimension 1 Code';
+            ToolTip = 'Specifies the code for Shortcut Dimension 1, which is one of two global dimension codes that you set up in the General Ledger Setup window.';
             TableRelation = "Dimension Value".Code where("Global Dimension No." = const(1),
                                                           Blocked = const(false));
 
@@ -792,6 +814,7 @@ table 5902 "Service Line"
         {
             CaptionClass = '1,2,2';
             Caption = 'Shortcut Dimension 2 Code';
+            ToolTip = 'Specifies the code for Shortcut Dimension 2, which is one of two global dimension codes that you set up in the General Ledger Setup window.';
             TableRelation = "Dimension Value".Code where("Global Dimension No." = const(2),
                                                           Blocked = const(false));
 
@@ -818,6 +841,7 @@ table 5902 "Service Line"
         field(45; "Job No."; Code[20])
         {
             Caption = 'Project No.';
+            ToolTip = 'Specifies the number of the related project.';
             TableRelation = Job."No." where("Bill-to Customer No." = field("Bill-to Customer No."));
 
             trigger OnValidate()
@@ -844,6 +868,7 @@ table 5902 "Service Line"
         field(46; "Job Task No."; Code[20])
         {
             Caption = 'Project Task No.';
+            ToolTip = 'Specifies the number of the related project task.';
             TableRelation = "Job Task"."Job Task No." where("Job No." = field("Job No."));
 
             trigger OnValidate()
@@ -866,6 +891,7 @@ table 5902 "Service Line"
         field(47; "Job Line Type"; Enum "Job Line Type")
         {
             Caption = 'Project Line Type';
+            ToolTip = 'Specifies the type of journal line that is created in the Project Planning Line table from this line.';
 
             trigger OnValidate()
             begin
@@ -879,6 +905,7 @@ table 5902 "Service Line"
         field(52; "Work Type Code"; Code[10])
         {
             Caption = 'Work Type Code';
+            ToolTip = 'Specifies a code for the type of work performed by the resource registered on this line.';
             TableRelation = "Work Type";
 
             trigger OnValidate()
@@ -958,6 +985,7 @@ table 5902 "Service Line"
         {
             AutoFormatType = 0;
             Caption = 'Quantity Shipped';
+            ToolTip = 'Specifies how many units of the item on the line have been posted as shipped.';
             DecimalPlaces = 0 : 5;
             Editable = false;
         }
@@ -965,12 +993,14 @@ table 5902 "Service Line"
         {
             AutoFormatType = 0;
             Caption = 'Quantity Invoiced';
+            ToolTip = 'Specifies how many units of the item on the line have been posted as invoiced.';
             DecimalPlaces = 0 : 5;
             Editable = false;
         }
         field(63; "Shipment No."; Code[20])
         {
             Caption = 'Shipment No.';
+            ToolTip = 'Specifies the number of the correspondent shipment in the posted shipment list.';
 
             trigger OnLookup()
             var
@@ -1032,6 +1062,7 @@ table 5902 "Service Line"
         field(68; "Bill-to Customer No."; Code[20])
         {
             Caption = 'Bill-to Customer No.';
+            ToolTip = 'Specifies the number of the customer that you send or sent the invoice or credit memo to.';
             Editable = false;
             TableRelation = Customer;
         }
@@ -1040,6 +1071,7 @@ table 5902 "Service Line"
             AutoFormatExpression = Rec."Currency Code";
             AutoFormatType = 1;
             Caption = 'Inv. Discount Amount';
+            ToolTip = 'Specifies the total calculated invoice discount amount for the line.';
             Editable = false;
 
             trigger OnValidate()
@@ -1052,6 +1084,7 @@ table 5902 "Service Line"
         field(74; "Gen. Bus. Posting Group"; Code[20])
         {
             Caption = 'Gen. Bus. Posting Group';
+            ToolTip = 'Specifies the vendor''s or customer''s trade type to link transactions made for this business partner with the appropriate general ledger account according to the general posting setup.';
             TableRelation = "Gen. Business Posting Group";
 
             trigger OnValidate()
@@ -1066,6 +1099,7 @@ table 5902 "Service Line"
         field(75; "Gen. Prod. Posting Group"; Code[20])
         {
             Caption = 'Gen. Prod. Posting Group';
+            ToolTip = 'Specifies the item''s product type to link transactions made for this item with the appropriate general ledger account according to the general posting setup.';
             TableRelation = "Gen. Product Posting Group";
 
             trigger OnValidate()
@@ -1118,6 +1152,7 @@ table 5902 "Service Line"
         field(85; "Tax Area Code"; Code[20])
         {
             Caption = 'Tax Area Code';
+            ToolTip = 'Specifies the tax area that is used to calculate and post sales tax.';
             TableRelation = "Tax Area";
 
             trigger OnValidate()
@@ -1128,6 +1163,7 @@ table 5902 "Service Line"
         field(86; "Tax Liable"; Boolean)
         {
             Caption = 'Tax Liable';
+            ToolTip = 'Specifies if the customer or vendor is liable for sales tax.';
 
             trigger OnValidate()
             begin
@@ -1137,6 +1173,7 @@ table 5902 "Service Line"
         field(87; "Tax Group Code"; Code[20])
         {
             Caption = 'Tax Group Code';
+            ToolTip = 'Specifies the tax group that is used to calculate and post sales tax.';
             TableRelation = "Tax Group";
 
             trigger OnValidate()
@@ -1153,6 +1190,7 @@ table 5902 "Service Line"
         field(89; "VAT Bus. Posting Group"; Code[20])
         {
             Caption = 'VAT Bus. Posting Group';
+            ToolTip = 'Specifies the VAT specification of the involved customer or vendor to link transactions made for this record with the appropriate general ledger account according to the VAT posting setup.';
             TableRelation = "VAT Business Posting Group";
 
             trigger OnValidate()
@@ -1163,6 +1201,7 @@ table 5902 "Service Line"
         field(90; "VAT Prod. Posting Group"; Code[20])
         {
             Caption = 'VAT Prod. Posting Group';
+            ToolTip = 'Specifies the VAT specification of the involved item or resource to link transactions made for this record with the appropriate general ledger account according to the VAT posting setup.';
             TableRelation = "VAT Product Posting Group";
 
             trigger OnValidate()
@@ -1189,6 +1228,7 @@ table 5902 "Service Line"
         field(91; "Currency Code"; Code[10])
         {
             Caption = 'Currency Code';
+            ToolTip = 'Specifies the currency code for the amounts on this line.';
             Editable = false;
             TableRelation = Currency;
         }
@@ -1217,6 +1257,7 @@ table 5902 "Service Line"
 #pragma warning restore
                                                                    "Reservation Status" = const(Reservation)));
             Caption = 'Reserved Quantity';
+            ToolTip = 'Specifies how many item units on this line have been reserved.';
             DecimalPlaces = 0 : 5;
             Editable = false;
             FieldClass = FlowField;
@@ -1224,6 +1265,7 @@ table 5902 "Service Line"
         field(96; Reserve; Enum "Reserve Method")
         {
             Caption = 'Reserve';
+            ToolTip = 'Specifies whether a reservation can be made for items on this line.';
 
             trigger OnValidate()
             var
@@ -1249,6 +1291,7 @@ table 5902 "Service Line"
             AutoFormatExpression = Rec."Currency Code";
             AutoFormatType = 1;
             Caption = 'VAT Base Amount';
+            ToolTip = 'Specifies the amount that serves as a base for calculating the Amount Including VAT field.';
             Editable = false;
         }
         field(100; "Unit Cost"; Decimal)
@@ -1269,6 +1312,7 @@ table 5902 "Service Line"
             AutoFormatType = 1;
             CaptionClass = GetCaptionClass(FieldNo("Line Amount"));
             Caption = 'Line Amount';
+            ToolTip = 'Specifies the net amount, excluding any invoice discount amount, that must be paid for products on the line.';
 
             trigger OnValidate()
             var
@@ -1362,6 +1406,7 @@ table 5902 "Service Line"
             AccessByPermission = TableData Job = R;
             BlankZero = true;
             Caption = 'Project Planning Line No.';
+            ToolTip = 'Specifies the project planning line number associated with this line. This establishes a link that can be used to calculate actual usage.';
 
             trigger OnLookup()
             var
@@ -1413,6 +1458,7 @@ table 5902 "Service Line"
             AccessByPermission = TableData Job = R;
             AutoFormatType = 0;
             Caption = 'Project Remaining Qty.';
+            ToolTip = 'Specifies the quantity that remains to complete a project.';
             DecimalPlaces = 0 : 5;
 
             trigger OnValidate()
@@ -1446,6 +1492,7 @@ table 5902 "Service Line"
             AutoFormatExpression = Rec."Currency Code";
             AutoFormatType = 1;
             Caption = 'Project Remaining Total Cost';
+            ToolTip = 'Specifies the remaining total cost, as the sum of costs from project planning lines associated with the order.';
             Editable = false;
         }
         field(1033; "Job Remaining Total Cost (LCY)"; Decimal)
@@ -1462,11 +1509,13 @@ table 5902 "Service Line"
             AutoFormatExpression = Rec."Currency Code";
             AutoFormatType = 1;
             Caption = 'Project Remaining Line Amount';
+            ToolTip = 'Specifies the net amount of the project planning line.';
             Editable = false;
         }
         field(5402; "Variant Code"; Code[10])
         {
             Caption = 'Variant Code';
+            ToolTip = 'Specifies the variant of the item on the line.';
             TableRelation = if (Type = const(Item), "Document Type" = filter(<> "Credit Memo")) "Item Variant".Code where("Item No." = field("No."), Blocked = const(false), "Service Blocked" = const(false))
             else
             if (Type = const(Item), "Document Type" = filter("Credit Memo")) "Item Variant".Code where("Item No." = field("No."), Blocked = const(false));
@@ -1532,6 +1581,7 @@ table 5902 "Service Line"
         field(5403; "Bin Code"; Code[20])
         {
             Caption = 'Bin Code';
+            ToolTip = 'Specifies the bin where the items are picked or put away.';
             TableRelation = if ("Document Type" = filter(Order | Invoice),
                                 "Location Code" = filter(<> ''),
                                 Type = const(Item)) "Bin Content"."Bin Code" where("Location Code" = field("Location Code"),
@@ -1605,6 +1655,7 @@ table 5902 "Service Line"
         field(5407; "Unit of Measure Code"; Code[10])
         {
             Caption = 'Unit of Measure Code';
+            ToolTip = 'Specifies how each unit of the item or resource is measured, such as in pieces or hours. By default, the value in the Base Unit of Measure field on the item or resource card is inserted.';
             TableRelation = if (Type = const(Item)) "Item Unit of Measure".Code where("Item No." = field("No."))
             else
             if (Type = const(Resource)) "Resource Unit of Measure".Code where("Resource No." = field("No."))
@@ -1841,6 +1892,7 @@ table 5902 "Service Line"
                                                            "No." = field("No."),
                                                            "Substitute Type" = const(Item)));
             Caption = 'Substitution Available';
+            ToolTip = 'Specifies whether a substitute is available for the item.';
             Editable = false;
             FieldClass = FlowField;
         }
@@ -1852,6 +1904,7 @@ table 5902 "Service Line"
         field(5710; Nonstock; Boolean)
         {
             Caption = 'Catalog';
+            ToolTip = 'Specifies that the item is a catalog item.';
             Editable = false;
         }
         field(5750; "Whse. Outstanding Qty. (Base)"; Decimal)
@@ -1872,6 +1925,7 @@ table 5902 "Service Line"
         {
             AccessByPermission = TableData "Item Reference" = R;
             Caption = 'Item Reference No.';
+            ToolTip = 'Specifies the referenced item number. If you enter a cross reference between yours and your vendor''s or customer''s item number, then this number will override the standard item number when you enter the reference number on a service document.';
             ExtendedDatatype = Barcode;
 
             trigger OnLookup()
@@ -1953,6 +2007,7 @@ table 5902 "Service Line"
         field(5794; "Planned Delivery Date"; Date)
         {
             Caption = 'Planned Delivery Date';
+            ToolTip = 'Specifies the planned date that the shipment will be delivered at the customer''s address. If the customer requests a delivery date, the program calculates whether the items will be available for delivery on this date. If the items are available, the planned delivery date will be the same as the requested delivery date. If not, the program calculates the date that the items are available for delivery and enters this date in the Planned Delivery Date field.';
 
             trigger OnValidate()
             begin
@@ -2000,6 +2055,7 @@ table 5902 "Service Line"
         {
             AccessByPermission = TableData Item = R;
             Caption = 'Appl.-from Item Entry';
+            ToolTip = 'Specifies the number of the item ledger entry that the document or journal line is applied from.';
             MinValue = 0;
 
             trigger OnLookup()
@@ -2020,6 +2076,7 @@ table 5902 "Service Line"
         field(5902; "Service Item No."; Code[20])
         {
             Caption = 'Service Item No.';
+            ToolTip = 'Specifies the service item number linked to this service line.';
             TableRelation = if ("Document Type" = filter(<> "Credit Memo")) "Service Item"."No." where(Blocked = filter(<> All))
             else
             if ("Document Type" = filter("Credit Memo")) "Service Item"."No.";
@@ -2085,11 +2142,13 @@ table 5902 "Service Line"
         {
             AccessByPermission = TableData Item = R;
             Caption = 'Appl.-to Service Entry';
+            ToolTip = 'Specifies the service ledger entry number this line is applied to.';
             Editable = false;
         }
         field(5904; "Service Item Line No."; Integer)
         {
             Caption = 'Service Item Line No.';
+            ToolTip = 'Specifies the service item line number linked to this service line.';
             TableRelation = "Service Item Line"."Line No." where("Document Type" = field("Document Type"),
                                                                   "Document No." = field("Document No."));
 
@@ -2122,6 +2181,7 @@ table 5902 "Service Line"
         field(5905; "Service Item Serial No."; Code[50])
         {
             Caption = 'Service Item Serial No.';
+            ToolTip = 'Specifies the service item serial number linked to this line.';
 
             trigger OnLookup()
             begin
@@ -2151,18 +2211,21 @@ table 5902 "Service Line"
                                                                         "Document No." = field("Document No."),
                                                                         "Line No." = field("Service Item Line No.")));
             Caption = 'Service Item Line Description';
+            ToolTip = 'Specifies the description of the service item line in the service order.';
             Editable = false;
             FieldClass = FlowField;
         }
         field(5907; "Serv. Price Adjmt. Gr. Code"; Code[10])
         {
             Caption = 'Serv. Price Adjmt. Gr. Code';
+            ToolTip = 'Specifies the service price adjustment group code that applies to this line.';
             Editable = false;
             TableRelation = "Service Price Adjustment Group";
         }
         field(5908; "Posting Date"; Date)
         {
             Caption = 'Posting Date';
+            ToolTip = 'Specifies the date when the service line should be posted.';
         }
         field(5909; "Order Date"; Date)
         {
@@ -2172,6 +2235,7 @@ table 5902 "Service Line"
         field(5910; "Needed by Date"; Date)
         {
             Caption = 'Needed by Date';
+            ToolTip = 'Specifies the date when you require the item to be available for a service order.';
 
             trigger OnValidate()
             begin
@@ -2191,6 +2255,7 @@ table 5902 "Service Line"
         field(5916; "Ship-to Code"; Code[10])
         {
             Caption = 'Ship-to Code';
+            ToolTip = 'Specifies a code for an alternate shipment address if you want to ship to another address than the one that has been entered automatically. This field is also used in case of drop shipment.';
             Editable = false;
             TableRelation = "Ship-to Address".Code where("Customer No." = field("Customer No."));
         }
@@ -2199,6 +2264,7 @@ table 5902 "Service Line"
             AutoFormatType = 0;
             BlankZero = true;
             Caption = 'Qty. to Consume';
+            ToolTip = 'Specifies the quantity of items, resource hours, costs, or G/L account payments that should be consumed.';
             DecimalPlaces = 0 : 5;
 
             trigger OnValidate()
@@ -2253,6 +2319,7 @@ table 5902 "Service Line"
         {
             AutoFormatType = 0;
             Caption = 'Quantity Consumed';
+            ToolTip = 'Specifies the quantity of items, resource hours, costs, or general ledger account payments on this line, which have been posted as consumed.';
             DecimalPlaces = 0 : 5;
             Editable = false;
         }
@@ -2296,6 +2363,7 @@ table 5902 "Service Line"
         field(5929; "Fault Area Code"; Code[10])
         {
             Caption = 'Fault Area Code';
+            ToolTip = 'Specifies the code of the fault area associated with this line.';
             TableRelation = "Fault Area";
 
             trigger OnValidate()
@@ -2307,6 +2375,7 @@ table 5902 "Service Line"
         field(5930; "Symptom Code"; Code[10])
         {
             Caption = 'Symptom Code';
+            ToolTip = 'Specifies the code of the symptom associated with this line.';
             TableRelation = "Symptom Code";
 
             trigger OnValidate()
@@ -2318,17 +2387,20 @@ table 5902 "Service Line"
         field(5931; "Fault Code"; Code[10])
         {
             Caption = 'Fault Code';
+            ToolTip = 'Specifies the code of the fault associated with this line.';
             TableRelation = "Fault Code".Code where("Fault Area Code" = field("Fault Area Code"),
                                                      "Symptom Code" = field("Symptom Code"));
         }
         field(5932; "Resolution Code"; Code[10])
         {
             Caption = 'Resolution Code';
+            ToolTip = 'Specifies the code of the resolution associated with this line.';
             TableRelation = "Resolution Code";
         }
         field(5933; "Exclude Warranty"; Boolean)
         {
             Caption = 'Exclude Warranty';
+            ToolTip = 'Specifies that the warranty discount is excluded on this line.';
             Editable = true;
 
             trigger OnValidate()
@@ -2384,6 +2456,7 @@ table 5902 "Service Line"
         field(5934; Warranty; Boolean)
         {
             Caption = 'Warranty';
+            ToolTip = 'Specifies that a warranty discount is available on this line of type Item or Resource.';
             Editable = false;
 
             trigger OnValidate()
@@ -2395,6 +2468,7 @@ table 5902 "Service Line"
         field(5936; "Contract No."; Code[20])
         {
             Caption = 'Contract No.';
+            ToolTip = 'Specifies the number of the contract, if the service order originated from a service contract.';
             TableRelation = "Service Contract Header"."Contract No." where("Contract Type" = const(Contract));
 
             trigger OnLookup()
@@ -2521,6 +2595,7 @@ table 5902 "Service Line"
         {
             AutoFormatType = 0;
             Caption = 'Contract Disc. %';
+            ToolTip = 'Specifies the contract discount percentage that is valid for the items, resources, and costs on this line.';
             DecimalPlaces = 0 : 5;
             Editable = false;
             MaxValue = 100;
@@ -2535,6 +2610,7 @@ table 5902 "Service Line"
         {
             AutoFormatType = 0;
             Caption = 'Warranty Disc. %';
+            ToolTip = 'Specifies the percentage of the warranty discount that is valid for the items or resources on this line.';
             DecimalPlaces = 0 : 5;
             Editable = false;
             MaxValue = 100;
@@ -2555,12 +2631,14 @@ table 5902 "Service Line"
         field(5966; "Spare Part Action"; Option)
         {
             Caption = 'Spare Part Action';
+            ToolTip = 'Specifies whether the item was used to replace the whole service item, one of the service item components, installed as a new component, or used as a supplementary tool.';
             OptionCaption = ' ,Permanent,Temporary,Component Replaced,Component Installed';
             OptionMembers = " ",Permanent,"Temporary","Component Replaced","Component Installed";
         }
         field(5967; "Fault Reason Code"; Code[10])
         {
             Caption = 'Fault Reason Code';
+            ToolTip = 'Specifies the code of the fault reason for this service line.';
             TableRelation = "Fault Reason Code";
 
             trigger OnValidate()
@@ -2616,6 +2694,7 @@ table 5902 "Service Line"
         field(5969; "Exclude Contract Discount"; Boolean)
         {
             Caption = 'Exclude Contract Discount';
+            ToolTip = 'Specifies that the contract discount is excluded for the item, resource, or cost on this line.';
             Editable = true;
 
             trigger OnValidate()
@@ -2664,6 +2743,7 @@ table 5902 "Service Line"
         field(5997; "Line Discount Type"; Enum "Service Line Discount Type")
         {
             Caption = 'Line Discount Type';
+            ToolTip = 'Specifies the type of the line discount assigned to this line.';
             Editable = false;
         }
         field(5999; "Copy Components From"; Option)
@@ -2675,6 +2755,7 @@ table 5902 "Service Line"
         field(6608; "Return Reason Code"; Code[10])
         {
             Caption = 'Return Reason Code';
+            ToolTip = 'Specifies the code explaining why the item was returned.';
             TableRelation = "Return Reason";
 
             trigger OnValidate()

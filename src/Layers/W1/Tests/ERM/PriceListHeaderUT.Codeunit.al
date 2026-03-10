@@ -2352,12 +2352,18 @@ codeunit 134118 "Price List Header UT"
         JobJournalLine: Record "Job Journal Line";
         Job: Record Job;
         JobTask: Record "Job Task";
+        FeatureDataUpdateStatus: Record "Feature Data Update Status";
+        ScheduleFeatureDataUpdate: Page "Schedule Feature Data Update";
+        TestScheduleFeatureDataUpdate: TestPage "Schedule Feature Data Update";
     begin
         // [SCENARIO 450229] Purchase price list doesn't work in job journal
         Initialize();
 
         // [GIVEN] Enable the new sales pricing in feature management
-        LibraryPriceCalculation.EnableExtendedPriceCalculation();
+        FeatureDataUpdateStatus."Feature Key" := 'SalesPrices';
+        ScheduleFeatureDataUpdate.Set(FeatureDataUpdateStatus);
+        TestScheduleFeatureDataUpdate.Trap();
+        ScheduleFeatureDataUpdate.Run();
 
         // [GIVEN] Create Price List Header
         PriceListHeader.Code := LibraryUtility.GenerateGUID();

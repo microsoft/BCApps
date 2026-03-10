@@ -15,21 +15,21 @@ codeunit 6451 "Serv. Time Sheet Mgt."
         CannotReopenLineErr: Label 'Time sheet line cannot be reopened because there are linked service lines.';
         CannotBeGreaterErr: Label 'cannot be greater than %1 %2.', Comment = '%1 - Quantity, %2 - Unit of measure. Example: Quantity cannot be greater than 8 HOUR.';
 
-    [EventSubscriber(ObjectType::Table, Database::"Time Sheet Detail", 'OnAfterCopyFromTimeSheetLine', '', false, false)]
+    [EventSubscriber(ObjectType::Table, Database::"Time Sheet Detail", 'OnAfterCopyFromTimeSheetLine', '', true, false)]
     local procedure OnAfterCopyFromTimeSheetLine(var TimeSheetDetail: Record "Time Sheet Detail"; TimeSheetLine: Record "Time Sheet Line")
     begin
         TimeSheetDetail."Service Order No." := TimeSheetLine."Service Order No.";
         TimeSheetDetail."Service Order Line No." := TimeSheetLine."Service Order Line No.";
     end;
 
-    [EventSubscriber(ObjectType::Table, Database::"Time Sheet Line", 'OnValidateTypeOnAfterClearFields', '', false, false)]
+    [EventSubscriber(ObjectType::Table, Database::"Time Sheet Line", 'OnValidateTypeOnAfterClearFields', '', true, false)]
     local procedure OnValidateTypeOnAfterClearFields(var TimeSheetLine: Record "Time Sheet Line")
     begin
         TimeSheetLine."Service Order No." := '';
         TimeSheetLine."Service Order Line No." := 0;
     end;
 
-    [EventSubscriber(ObjectType::Page, Page::"Activity Details FactBox", 'OnLookupActivity', '', false, false)]
+    [EventSubscriber(ObjectType::Page, Page::"Activity Details FactBox", 'OnLookupActivity', '', true, false)]
     local procedure OnLookupActivity(var TimeSheetLine: Record "Time Sheet Line")
     var
         ServiceHeader: Record "Service Header";
@@ -47,7 +47,7 @@ codeunit 6451 "Serv. Time Sheet Mgt."
         end;
     end;
 
-    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Time Sheet Approval Management", 'OnReopenApprovedOnBeforeCheckLinkedDoc', '', false, false)]
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Time Sheet Approval Management", 'OnReopenApprovedOnBeforeCheckLinkedDoc', '', true, false)]
     local procedure OnReopenApprovedOnBeforeCheckLinkedDoc(var TimeSheetLine: Record "Time Sheet Line")
     begin
         CheckLinkedServiceDoc(TimeSheetLine);
@@ -68,7 +68,7 @@ codeunit 6451 "Serv. Time Sheet Mgt."
             Error(CannotReopenLineErr);
     end;
 
-    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Time Sheet Approval Management", 'OnAfterApprove', '', false, false)]
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Time Sheet Approval Management", 'OnAfterApprove', '', true, false)]
     local procedure OnAfterApprove(var TimeSheetLine: Record "Time Sheet Line")
     begin
         ApproveServiceOrderTimeSheetEntries(TimeSheetLine);
@@ -90,7 +90,7 @@ codeunit 6451 "Serv. Time Sheet Mgt."
 
     // codeunit Time Sheet Management
 
-    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Time Sheet Management", 'OnBeforeCheckTimeSheetLineFieldsVisible', '', false, false)]
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Time Sheet Management", 'OnBeforeCheckTimeSheetLineFieldsVisible', '', true, false)]
     local procedure OnBeforeCheckTimeSheetLineFieldsVisible(var ServiceOrderNoVisible: Boolean)
     var
         ServiceHeader: Record "Service Header";
@@ -150,7 +150,7 @@ codeunit 6451 "Serv. Time Sheet Mgt."
               ServiceShipmentLine."Work Type Code", true, ServiceShipmentLine.Description, -ServiceShipmentLine."Qty. Shipped Not Invoiced");
     end;
 
-    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Time Sheet Management", 'OnCreateTSLineFromDocLineOnBeforeTimeSheetLineInsert', '', false, false)]
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Time Sheet Management", 'OnCreateTSLineFromDocLineOnBeforeTimeSheetLineInsert', '', true, false)]
     local procedure OnCreateTSLineFromDocLineOnBeforeTimeSheetLineInsert(var TimeSheetLine: Record "Time Sheet Line"; TableID: Integer; OrderNo: Code[20]; OrderLineNo: Integer)
     begin
         case TableID of
@@ -164,7 +164,7 @@ codeunit 6451 "Serv. Time Sheet Mgt."
         end;
     end;
 
-    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Time Sheet Management", 'OnGetActivityInfoCaseTypeElse', '', false, false)]
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Time Sheet Management", 'OnGetActivityInfoCaseTypeElse', '', true, false)]
     local procedure OnGetActivityInfoCaseTypeElse(var TimeSheetLine: Record "Time Sheet Line"; var ActivityCaption: Text[30]; var ActivityID: Code[20])
     begin
         case TimeSheetLine.Type of
@@ -299,7 +299,7 @@ codeunit 6451 "Serv. Time Sheet Mgt."
     begin
     end;
 
-    [EventSubscriber(ObjectType::Table, Database::"Time Sheet Line", 'OnBeforeShowLineDetails', '', false, false)]
+    [EventSubscriber(ObjectType::Table, Database::"Time Sheet Line", 'OnBeforeShowLineDetails', '', true, false)]
     local procedure OnBeforeShowLineDetails(var TimeSheetLine: Record "Time Sheet Line"; var IsHandled: Boolean; ManagerRole: Boolean)
     var
         TimeSheetLineServiceDetail: Page "Time Sheet Line Service Detail";
@@ -315,7 +315,7 @@ codeunit 6451 "Serv. Time Sheet Mgt."
         end;
     end;
 
-    [EventSubscriber(ObjectType::Table, Database::"Time Sheet Line", 'OnAfterSetExclusionTypeFilter', '', false, false)]
+    [EventSubscriber(ObjectType::Table, Database::"Time Sheet Line", 'OnAfterSetExclusionTypeFilter', '', true, false)]
     local procedure TimeSheetLineOnAfterSetExclusionTypeFilter(var TimeSheetLine: Record "Time Sheet Line")
     var
         FilterString: Text;
@@ -328,7 +328,7 @@ codeunit 6451 "Serv. Time Sheet Mgt."
             TimeSheetLine.SetFilter(Type, '&<>%1', TimeSheetLine.Type::Service);
     end;
 
-    [EventSubscriber(ObjectType::Table, Database::"Time Sheet Line Archive", 'OnAfterSetExclusionTypeFilter', '', false, false)]
+    [EventSubscriber(ObjectType::Table, Database::"Time Sheet Line Archive", 'OnAfterSetExclusionTypeFilter', '', true, false)]
     local procedure TimeSheetLineArchiveOnAfterSetExclusionTypeFilter(var TimeSheetLineArchive: Record "Time Sheet Line Archive")
     var
         FilterString: Text;
@@ -341,7 +341,7 @@ codeunit 6451 "Serv. Time Sheet Mgt."
             TimeSheetLineArchive.SetFilter(Type, '&<>%1', TimeSheetLineArchive.Type::Service);
     end;
 
-    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Time Sheet Approval Management", 'OnSubmitOnAfterCheck', '', false, false)]
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Time Sheet Approval Management", 'OnSubmitOnAfterCheck', '', true, false)]
     local procedure OnSubmitOnAfterCheck(var TimeSheetLine: Record "Time Sheet Line")
     begin
         case TimeSheetLine.Type of

@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -45,7 +45,6 @@ page 5147 "Make Phone Call"
                         ExtendedDatatype = PhoneNo;
                         Importance = Promoted;
                         ShowMandatory = true;
-                        ToolTip = 'Specifies the telephone number you used when calling the contact, or the email address you used when sending an email to the contact.';
 
                         trigger OnAssistEdit()
                         var
@@ -62,7 +61,6 @@ page 5147 "Make Phone Call"
                         Caption = 'Phone Call Description';
                         Importance = Promoted;
                         ShowMandatory = true;
-                        ToolTip = 'Specifies the description of the segment line.';
                     }
                     field(ShowMoreLess1; GetShowMoreLessLbl(ShowLessStep1))
                     {
@@ -86,14 +84,12 @@ page 5147 "Make Phone Call"
                             Caption = 'Salesperson Code';
                             Importance = Additional;
                             ShowMandatory = true;
-                            ToolTip = 'Specifies the code of the salesperson responsible for this segment line and/or interaction.';
                         }
                         field("Initiated By"; Rec."Initiated By")
                         {
                             ApplicationArea = RelationshipMgmt;
                             Caption = 'Initiated By';
                             Importance = Additional;
-                            ToolTip = 'Specifies whether the interaction recorded for this segment line was initiated by your company or by one of your contacts. The Us option indicates that your company was the initiator; the Them option indicates that a contact was the initiator.';
                         }
                         field(Date; Rec.Date)
                         {
@@ -128,7 +124,6 @@ page 5147 "Make Phone Call"
                     {
                         ApplicationArea = RelationshipMgmt;
                         Caption = 'Phone Call Evaluation';
-                        ToolTip = 'Specifies the evaluation of the interaction involving the contact in the segment.';
                     }
                     field(ShowMoreLess2; GetShowMoreLessLbl(ShowLessStep2))
                     {
@@ -163,7 +158,6 @@ page 5147 "Make Phone Call"
                         {
                             ApplicationArea = RelationshipMgmt;
                             Caption = 'Successful Attempt';
-                            ToolTip = 'Specifies if the interaction was successful. Clear this check box to indicate that the interaction was not a success.';
                         }
                     }
                 }
@@ -202,7 +196,6 @@ page 5147 "Make Phone Call"
                         Caption = 'Campaign Target';
                         Editable = CampaignTargetEditable;
                         Importance = Additional;
-                        ToolTip = 'Specifies that the segment involved in this interaction is the target of a campaign. This is used to measure the response rate of a campaign.';
                     }
                     field("Campaign Response"; Rec."Campaign Response")
                     {
@@ -210,7 +203,6 @@ page 5147 "Make Phone Call"
                         Caption = 'Campaign Response';
                         Editable = CampaignResponseEditable;
                         Importance = Additional;
-                        ToolTip = 'Specifies that the interaction created for the segment is the response to a campaign. For example, coupons that are sent as a response to a campaign.';
                     }
                     field("Opportunity Description"; Rec."Opportunity Description")
                     {
@@ -220,7 +212,6 @@ page 5147 "Make Phone Call"
                         Importance = Promoted;
                         Lookup = false;
                         TableRelation = Opportunity;
-                        ToolTip = 'Specifies a description of the opportunity that is related to the segment. The description is copied from the opportunity card.';
 
                         trigger OnAssistEdit()
                         var

@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -26,7 +26,6 @@ page 5129 "Update Opportunity"
             field("Action type"; Rec."Action Type")
             {
                 ApplicationArea = RelationshipMgmt;
-                ToolTip = 'Specifies options that you can take when you reenter an opportunity to update it in the Update Opportunity window. Certain options are not available, depending on what stage you are in for your opportunity. For example, if you are in stage 1, you cannot select the Previous option.';
                 ValuesAllowed = First, Next, Previous, Skip, Jump, Update;
 
                 trigger OnValidate()
@@ -52,7 +51,6 @@ page 5129 "Update Opportunity"
             {
                 ApplicationArea = RelationshipMgmt;
                 Editable = SalesCycleStageEditable;
-                ToolTip = 'Specifies the sales cycle stage currently of the opportunity.';
 
                 trigger OnLookup(var Text: Text): Boolean
                 begin
@@ -75,7 +73,6 @@ page 5129 "Update Opportunity"
             field("Date of Change"; Rec."Date of Change")
             {
                 ApplicationArea = RelationshipMgmt;
-                ToolTip = 'Specifies the date this opportunity entry was last changed.';
             }
             field("Estimated Value (LCY)"; Rec."Estimated Value (LCY)")
             {
@@ -87,20 +84,17 @@ page 5129 "Update Opportunity"
             {
                 ApplicationArea = RelationshipMgmt;
                 Caption = 'Chances of Success (%)';
-                ToolTip = 'Specifies the chances of success of the opportunity entry.';
             }
             field("Estimated Close Date"; Rec."Estimated Close Date")
             {
                 ApplicationArea = RelationshipMgmt;
                 Caption = 'Estimated Closing Date';
-                ToolTip = 'Specifies the estimated date when the opportunity entry will be closed.';
             }
             field("Cancel Old To Do"; Rec."Cancel Old To Do")
             {
                 ApplicationArea = RelationshipMgmt;
                 Caption = 'Cancel Existing Open Tasks';
                 Enabled = CancelOldTaskEnable;
-                ToolTip = 'Specifies a task is to be cancelled from the opportunity.';
             }
         }
     }

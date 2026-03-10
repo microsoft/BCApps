@@ -32,12 +32,10 @@ page 9243 "Res. Group Capacity Matrix"
                 field("No."; Rec."No.")
                 {
                     ApplicationArea = Jobs;
-                    ToolTip = 'Specifies the number of the involved entry or record, according to the specified number series.';
                 }
                 field(Name; Rec.Name)
                 {
                     ApplicationArea = Jobs;
-                    ToolTip = 'Specifies a short description of the resource group.';
                 }
                 field(Field1; MATRIX_CellData[1])
                 {

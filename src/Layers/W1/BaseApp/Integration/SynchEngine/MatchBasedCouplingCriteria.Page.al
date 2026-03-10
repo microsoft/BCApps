@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -73,7 +73,6 @@ page 5363 "Match Based Coupling Criteria"
                     BlankZero = true;
                     Editable = false;
                     Visible = false;
-                    ToolTip = 'Specifies the number of the field in Business Central.';
                 }
                 field(FieldName; NAVFieldName)
                 {
@@ -88,7 +87,6 @@ page 5363 "Match Based Coupling Criteria"
                     BlankZero = true;
                     Editable = false;
                     Visible = false;
-                    ToolTip = 'Specifies the number of the field in Dynamics 365 Sales.';
                 }
                 field(IntegrationFieldName; CRMFieldName)
                 {
@@ -101,19 +99,16 @@ page 5363 "Match Based Coupling Criteria"
                 {
                     ApplicationArea = Suite;
                     Caption = 'Match on this Field';
-                    ToolTip = 'Specifies whether to match on this field when looking for the entity to couple to.';
                 }
                 field("Case-Sensitive Matching"; Rec."Case-Sensitive Matching")
                 {
                     ApplicationArea = Suite;
                     Caption = 'Case-sensitive Matching';
-                    ToolTip = 'Specifies whether the matching on this field should be case-sensitive.';
                 }
                 field("Match Priority"; Rec."Match Priority")
                 {
                     ApplicationArea = Suite;
                     Caption = 'Match Priority';
-                    ToolTip = 'Specifies in which priority order will the groups of matching fields be used to find a match.';
                 }
             }
 

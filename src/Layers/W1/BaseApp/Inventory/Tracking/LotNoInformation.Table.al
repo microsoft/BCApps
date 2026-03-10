@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -23,6 +23,7 @@ table 6505 "Lot No. Information"
         field(1; "Item No."; Code[20])
         {
             Caption = 'Item No.';
+            ToolTip = 'Specifies this number from the Tracking Specification table when a lot number information record is created.';
             OptimizeForTextSearch = true;
             NotBlank = true;
             TableRelation = Item;
@@ -30,11 +31,13 @@ table 6505 "Lot No. Information"
         field(2; "Variant Code"; Code[10])
         {
             Caption = 'Variant Code';
+            ToolTip = 'Specifies the variant of the item on the line.';
             TableRelation = "Item Variant".Code where("Item No." = field("Item No."));
         }
         field(3; "Lot No."; Code[50])
         {
             Caption = 'Lot No.';
+            ToolTip = 'Specifies this number from the Tracking Specification table when a lot number information record is created.';
             OptimizeForTextSearch = true;
             ExtendedDatatype = Barcode;
             NotBlank = true;
@@ -42,21 +45,25 @@ table 6505 "Lot No. Information"
         field(10; Description; Text[100])
         {
             Caption = 'Description';
+            ToolTip = 'Specifies a description of the lot no. information record.';
             OptimizeForTextSearch = true;
         }
         field(11; "Test Quality"; Option)
         {
             Caption = 'Test Quality';
+            ToolTip = 'Specifies the quality of a given lot if you have inspected the items.';
             OptionCaption = ' ,Good,Average,Bad';
             OptionMembers = " ",Good,"Average",Bad;
         }
         field(12; "Certificate Number"; Code[20])
         {
             Caption = 'Certificate Number';
+            ToolTip = 'Specifies the number provided by the supplier to indicate that the batch or lot meets the specified requirements.';
         }
         field(13; Blocked; Boolean)
         {
             Caption = 'Blocked';
+            ToolTip = 'Specifies that the related record is blocked from being posted in transactions, for example a customer that is declared insolvent or an item that is placed in quarantine.';
         }
         field(14; Comment; Boolean)
         {
@@ -65,6 +72,7 @@ table 6505 "Lot No. Information"
                                                                "Variant Code" = field("Variant Code"),
                                                                "Serial/Lot No." = field("Lot No.")));
             Caption = 'Comment';
+            ToolTip = 'Specifies that a comment has been recorded for the lot number.';
             Editable = false;
             FieldClass = FlowField;
         }
@@ -76,6 +84,7 @@ table 6505 "Lot No. Information"
                                                                   "Lot No." = field("Lot No."),
                                                                   "Location Code" = field("Location Filter")));
             Caption = 'Inventory';
+            ToolTip = 'Specifies the inventory quantity of the specified lot number.';
             DecimalPlaces = 0 : 5;
             Editable = false;
             FieldClass = FlowField;
@@ -108,6 +117,7 @@ table 6505 "Lot No. Information"
                                                                               Open = const(true),
                                                                               Positive = const(true)));
             Caption = 'Expired Inventory';
+            ToolTip = 'Specifies the inventory of the lot number with an expiration date before the posting date on the associated document.';
             DecimalPlaces = 0 : 5;
             Editable = false;
             FieldClass = FlowField;

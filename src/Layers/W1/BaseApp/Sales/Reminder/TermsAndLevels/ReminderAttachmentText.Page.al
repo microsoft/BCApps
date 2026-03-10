@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -28,19 +28,16 @@ page 833 "Reminder Attachment Text"
                     ApplicationArea = All;
                     Importance = Promoted;
                     Caption = 'File Name';
-                    ToolTip = 'Specifies the file name of the attachment.';
                 }
                 field("Inline Fee Description"; Rec."Inline Fee Description")
                 {
                     ApplicationArea = All;
                     Caption = 'Inline Fee Description';
-                    ToolTip = 'Specifies the description line that will appear in the attachment along side the fee.';
                 }
                 field("Beginning Line"; Rec."Beginning Lines")
                 {
                     ApplicationArea = All;
                     Caption = 'Beginning Line';
-                    ToolTip = 'Shows if there are beginning lines for the current language.';
                     Editable = false;
                     Enabled = false;
                 }
@@ -48,7 +45,6 @@ page 833 "Reminder Attachment Text"
                 {
                     ApplicationArea = All;
                     Caption = 'Ending Line';
-                    ToolTip = 'Shows if there are ending lines for the current language.';
                     Editable = false;
                     Enabled = false;
                 }

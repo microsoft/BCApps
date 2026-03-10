@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -24,10 +24,12 @@ table 99000781 "Standard Task Tool"
         field(4; "No."; Code[20])
         {
             Caption = 'No.';
+            ToolTip = 'Specifies the number of the involved entry or record, according to the specified number series.';
         }
         field(5; Description; Text[100])
         {
             Caption = 'Description';
+            ToolTip = 'Specifies the description for the tool, such as the name or type of the tool.';
         }
     }
 

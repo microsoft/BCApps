@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -27,10 +27,12 @@ table 5964 "Service Contract Line"
         field(1; "Contract Type"; Enum "Service Contract Type")
         {
             Caption = 'Contract Type';
+            ToolTip = 'Specifies the type of the contract.';
         }
         field(2; "Contract No."; Code[20])
         {
             Caption = 'Contract No.';
+            ToolTip = 'Specifies the number of the service contract or service contract quote associated with the service contract line.';
             TableRelation = "Service Contract Header"."Contract No." where("Contract Type" = field("Contract Type"));
         }
         field(3; "Line No."; Integer)
@@ -40,10 +42,12 @@ table 5964 "Service Contract Line"
         field(4; "Contract Status"; Enum "Service Contract Status")
         {
             Caption = 'Contract Status';
+            ToolTip = 'Specifies the status of the contract.';
         }
         field(5; "Service Item No."; Code[20])
         {
             Caption = 'Service Item No.';
+            ToolTip = 'Specifies the number of the service item that is subject to the service contract.';
             TableRelation = "Service Item" where(Blocked = filter(" "));
 
             trigger OnValidate()
@@ -195,6 +199,7 @@ table 5964 "Service Contract Line"
         field(6; Description; Text[100])
         {
             Caption = 'Description';
+            ToolTip = 'Specifies the description of the service item that is subject to the contract.';
 
             trigger OnValidate()
             begin
@@ -204,6 +209,7 @@ table 5964 "Service Contract Line"
         field(7; "Serial No."; Code[50])
         {
             Caption = 'Serial No.';
+            ToolTip = 'Specifies the serial number of the service item that is subject to the contract.';
 
             trigger OnValidate()
             begin
@@ -225,17 +231,20 @@ table 5964 "Service Contract Line"
         field(9; "Customer No."; Code[20])
         {
             Caption = 'Customer No.';
+            ToolTip = 'Specifies the number of the customer associated with the service contract.';
             TableRelation = Customer;
         }
         field(10; "Ship-to Code"; Code[10])
         {
             Caption = 'Ship-to Code';
+            ToolTip = 'Specifies a code for an alternate shipment address if you want to ship to another address than the one that has been entered automatically. This field is also used in case of drop shipment.';
             Editable = false;
             TableRelation = "Ship-to Address".Code where("Customer No." = field("Customer No."));
         }
         field(11; "Item No."; Code[20])
         {
             Caption = 'Item No.';
+            ToolTip = 'Specifies the number of the item linked to the service item in the service contract.';
             TableRelation = Item where(Type = const(Inventory), Blocked = const(false), "Service Blocked" = const(false));
 
             trigger OnValidate()
@@ -277,6 +286,7 @@ table 5964 "Service Contract Line"
         field(12; "Unit of Measure Code"; Code[10])
         {
             Caption = 'Unit of Measure Code';
+            ToolTip = 'Specifies how each unit of the item or resource is measured, such as in pieces or hours. By default, the value in the Base Unit of Measure field on the item or resource card is inserted.';
             TableRelation = if ("Item No." = filter(<> '')) "Item Unit of Measure".Code where("Item No." = field("Item No."))
             else
             "Unit of Measure";
@@ -306,11 +316,13 @@ table 5964 "Service Contract Line"
         field(14; "Last Planned Service Date"; Date)
         {
             Caption = 'Last Planned Service Date';
+            ToolTip = 'Specifies the date of the last planned service on this item.';
             Editable = false;
         }
         field(15; "Next Planned Service Date"; Date)
         {
             Caption = 'Next Planned Service Date';
+            ToolTip = 'Specifies the date of the next planned service on the item included in the contract.';
 
             trigger OnValidate()
             begin
@@ -324,10 +336,12 @@ table 5964 "Service Contract Line"
         field(16; "Last Service Date"; Date)
         {
             Caption = 'Last Service Date';
+            ToolTip = 'Specifies the date when the service item on the line was last serviced.';
         }
         field(17; "Last Preventive Maint. Date"; Date)
         {
             Caption = 'Last Preventive Maint. Date';
+            ToolTip = 'Specifies the date when the last time preventative service was performed on this item.';
             Editable = false;
         }
         field(18; "Invoiced to Date"; Date)
@@ -338,6 +352,7 @@ table 5964 "Service Contract Line"
         field(19; "Credit Memo Date"; Date)
         {
             Caption = 'Credit Memo Date';
+            ToolTip = 'Specifies the date when you can create a credit memo for the service item that needs to be removed from the service contract.';
 
             trigger OnValidate()
             begin
@@ -351,6 +366,7 @@ table 5964 "Service Contract Line"
         field(20; "Contract Expiration Date"; Date)
         {
             Caption = 'Contract Expiration Date';
+            ToolTip = 'Specifies the date when an item should be removed from the contract.';
 
             trigger OnValidate()
             var
@@ -421,6 +437,7 @@ table 5964 "Service Contract Line"
         field(21; "Service Period"; DateFormula)
         {
             Caption = 'Service Period';
+            ToolTip = 'Specifies the period of time that must pass between each servicing of an item.';
 
             trigger OnValidate()
             begin
@@ -433,6 +450,7 @@ table 5964 "Service Contract Line"
             AutoFormatType = 1;
             BlankZero = true;
             Caption = 'Line Value';
+            ToolTip = 'Specifies the value of the service item line in the contract or contract quote.';
 
             trigger OnValidate()
             begin
@@ -447,6 +465,7 @@ table 5964 "Service Contract Line"
             AutoFormatType = 0;
             BlankZero = true;
             Caption = 'Line Discount %';
+            ToolTip = 'Specifies the discount percentage that is granted for the item on the line.';
             DecimalPlaces = 0 : 5;
             MaxValue = 100;
             MinValue = 0;
@@ -478,6 +497,7 @@ table 5964 "Service Contract Line"
             AutoFormatType = 1;
             BlankZero = true;
             Caption = 'Line Amount';
+            ToolTip = 'Specifies the net amount, excluding any invoice discount amount, that must be paid for products on the line.';
 
             trigger OnValidate()
             var
@@ -499,6 +519,7 @@ table 5964 "Service Contract Line"
         field(28; "Variant Code"; Code[10])
         {
             Caption = 'Variant Code';
+            ToolTip = 'Specifies the variant of the item on the line.';
             TableRelation = "Item Variant".Code where("Item No." = field("Item No."), Blocked = const(false), "Service Blocked" = const(false));
 
             trigger OnValidate()
@@ -509,17 +530,20 @@ table 5964 "Service Contract Line"
         field(29; "Starting Date"; Date)
         {
             Caption = 'Starting Date';
+            ToolTip = 'Specifies the starting date of the service contract.';
             Editable = false;
         }
         field(30; "New Line"; Boolean)
         {
             Caption = 'New Line';
+            ToolTip = 'Specifies whether the service contract line is new or existing.';
             Editable = false;
             InitValue = true;
         }
         field(31; Credited; Boolean)
         {
             Caption = 'Credited';
+            ToolTip = 'Specifies if the service contract line has been credited.';
 
             trigger OnValidate()
             begin
@@ -533,6 +557,7 @@ table 5964 "Service Contract Line"
             AutoFormatType = 1;
             BlankZero = true;
             Caption = 'Line Cost';
+            ToolTip = 'Specifies the calculated cost of the service item line in the service contract or contract quote.';
 
             trigger OnValidate()
             begin
@@ -547,6 +572,7 @@ table 5964 "Service Contract Line"
             AutoFormatType = 1;
             BlankZero = true;
             Caption = 'Line Discount Amount';
+            ToolTip = 'Specifies the discount amount that is granted for the item on the line.';
 
             trigger OnValidate()
             begin
@@ -567,6 +593,7 @@ table 5964 "Service Contract Line"
             AutoFormatType = 1;
             BlankZero = true;
             Caption = 'Profit';
+            ToolTip = 'Specifies the profit, expressed as the difference between the Line Amount and Line Cost fields on the service contract line.';
 
             trigger OnValidate()
             begin

@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -19,22 +19,26 @@ table 5777 "Item Reference"
         field(1; "Item No."; Code[20])
         {
             Caption = 'Item No.';
+            ToolTip = 'Specifies the number on the item card from which you opened the Item Reference Entries window.';
             OptimizeForTextSearch = true;
             TableRelation = Item;
         }
         field(2; "Variant Code"; Code[10])
         {
             Caption = 'Variant Code';
+            ToolTip = 'Specifies the variant of the item on the line.';
             TableRelation = "Item Variant".Code where("Item No." = field("Item No."));
         }
         field(3; "Unit of Measure"; Code[10])
         {
             Caption = 'Unit of Measure';
+            ToolTip = 'Specifies the name of the item or resource''s unit of measure, such as piece or hour.';
             TableRelation = "Item Unit of Measure".Code where("Item No." = field("Item No."));
         }
         field(4; "Reference Type"; Enum "Item Reference Type")
         {
             Caption = 'Reference Type';
+            ToolTip = 'Specifies the type of the reference entry.';
 
             trigger OnValidate()
             var
@@ -50,6 +54,7 @@ table 5777 "Item Reference"
         field(5; "Reference Type No."; Code[20])
         {
             Caption = 'Reference Type No.';
+            ToolTip = 'Specifies a customer number, a vendor number, or a bar code, depending on what you have selected in the Type field.';
             OptimizeForTextSearch = true;
             TableRelation = if ("Reference Type" = const(Customer)) Customer."No."
             else
@@ -58,6 +63,7 @@ table 5777 "Item Reference"
         field(6; "Reference No."; Code[50])
         {
             Caption = 'Reference No.';
+            ToolTip = 'Specifies the referenced item number. If you enter a reference between yours and your vendor''s or customer''s item number, then this number will override the standard item number when you enter the reference number on a sales or purchase document.';
             OptimizeForTextSearch = true;
             ExtendedDatatype = Barcode;
             NotBlank = true;
@@ -65,16 +71,19 @@ table 5777 "Item Reference"
         field(7; Description; Text[100])
         {
             Caption = 'Description';
+            ToolTip = 'Specifies a description of the item that is linked to this reference.';
             OptimizeForTextSearch = true;
         }
         field(9; "Description 2"; Text[50])
         {
             Caption = 'Description 2';
+            ToolTip = 'Specifies an additional description of the item that is linked to this reference.';
             OptimizeForTextSearch = true;
         }
         field(10; "Starting Date"; Date)
         {
             Caption = 'Starting Date';
+            ToolTip = 'Specifies the first day from when the item reference is valid.';
             DataClassification = CustomerContent;
 
             trigger OnValidate()
@@ -85,6 +94,7 @@ table 5777 "Item Reference"
         field(11; "Ending Date"; Date)
         {
             Caption = 'Ending Date';
+            ToolTip = 'Specifies the last day from when the item reference is valid.';
             DataClassification = CustomerContent;
 
             trigger OnValidate()

@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -18,17 +18,20 @@ table 5701 "Stockkeeping Unit Comment Line"
         field(1; "Item No."; Code[20])
         {
             Caption = 'Item No.';
+            ToolTip = 'Specifies the item number to which the SKU refers to.';
             NotBlank = true;
             TableRelation = Item;
         }
         field(2; "Variant Code"; Code[10])
         {
             Caption = 'Variant Code';
+            ToolTip = 'Specifies the variant of the item on the line.';
             TableRelation = "Item Variant".Code where("Item No." = field("Item No."));
         }
         field(3; "Location Code"; Code[10])
         {
             Caption = 'Location Code';
+            ToolTip = 'Specifies the location code (for example, warehouse of distribution center) to which the SKU applies.';
             TableRelation = Location where("Use As In-Transit" = const(false));
         }
         field(4; "Line No."; Integer)
@@ -39,14 +42,17 @@ table 5701 "Stockkeeping Unit Comment Line"
         field(5; Date; Date)
         {
             Caption = 'Date';
+            ToolTip = 'Specifies the date the comment was created.';
         }
         field(6; "Code"; Code[10])
         {
             Caption = 'Code';
+            ToolTip = 'Specifies a code for the comment.';
         }
         field(7; Comment; Text[80])
         {
             Caption = 'Comment';
+            ToolTip = 'Specifies the comment itself.';
         }
     }
 

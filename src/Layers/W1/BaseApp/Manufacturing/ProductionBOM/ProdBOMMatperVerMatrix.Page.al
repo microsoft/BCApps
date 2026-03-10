@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -29,23 +29,19 @@ page 9287 "Prod. BOM Mat. per Ver. Matrix"
                 field("Item No."; Rec."Item No.")
                 {
                     ApplicationArea = Manufacturing;
-                    ToolTip = 'Specifies the number of the item included in one ore more of the production BOM versions.';
                 }
                 field("Variant Code"; Rec."Variant Code")
                 {
                     ApplicationArea = Manufacturing;
-                    ToolTip = 'Specifies the variant of the item on the line.';
                     Visible = false;
                 }
                 field(Description; Rec.Description)
                 {
                     ApplicationArea = Manufacturing;
-                    ToolTip = 'Specifies a description of the entry.';
                 }
                 field("Description 2"; Rec."Description 2")
                 {
                     ApplicationArea = Manufacturing;
-                    ToolTip = 'Specifies additional description text.';
                     Visible = false;
                 }
                 field(Field1; MATRIX_CellData[1])

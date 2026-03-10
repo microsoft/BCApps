@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -24,17 +24,14 @@ page 1388 "Employee Templ. Card"
                 field(Code; Rec.Code)
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the code of the template.';
                 }
                 field(Description; Rec.Description)
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the description of the template.';
                 }
                 field("No. Series"; Rec."No. Series")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the number series that will be used to assign numbers to employees.';
                 }
             }
             group(General)
@@ -43,7 +40,6 @@ page 1388 "Employee Templ. Card"
                 field(Gender; Rec.Gender)
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the employee''s gender.';
                 }
             }
             group("Address & Contact")
@@ -55,7 +51,6 @@ page 1388 "Employee Templ. Card"
                     field(City; Rec.City)
                     {
                         ApplicationArea = BasicHR;
-                        ToolTip = 'Specifies the city of the address.';
                     }
                     group(Control31)
                     {
@@ -64,18 +59,15 @@ page 1388 "Employee Templ. Card"
                         field(County; Rec.County)
                         {
                             ApplicationArea = BasicHR;
-                            ToolTip = 'Specifies the county of the employee.';
                         }
                     }
                     field("Post Code"; Rec."Post Code")
                     {
                         ApplicationArea = BasicHR;
-                        ToolTip = 'Specifies the postal code.';
                     }
                     field("Country/Region Code"; Rec."Country/Region Code")
                     {
                         ApplicationArea = BasicHR;
-                        ToolTip = 'Specifies the country/region of the address.';
 
                         trigger OnValidate()
                         begin
@@ -90,7 +82,6 @@ page 1388 "Employee Templ. Card"
                 field("Statistics Group Code"; Rec."Statistics Group Code")
                 {
                     ApplicationArea = Suite;
-                    ToolTip = 'Specifies a statistics group code to assign to the employee for statistical purposes.';
                 }
             }
             group(Payments)
@@ -100,7 +91,6 @@ page 1388 "Employee Templ. Card"
                 {
                     ApplicationArea = BasicHR;
                     LookupPageID = "Employee Posting Groups";
-                    ToolTip = 'Specifies the employee''s type to link business transactions made for the employee with the appropriate account in the general ledger.';
                 }
                 field("Allow Multiple Posting Groups"; Rec."Allow Multiple Posting Groups")
                 {
@@ -111,7 +101,6 @@ page 1388 "Employee Templ. Card"
                 field("Application Method"; Rec."Application Method")
                 {
                     ApplicationArea = BasicHR;
-                    ToolTip = 'Specifies how to apply payments to entries for this employee.';
                 }
             }
         }

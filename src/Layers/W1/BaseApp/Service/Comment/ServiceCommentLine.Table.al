@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -46,10 +46,12 @@ table 5906 "Service Comment Line"
         field(6; Comment; Text[80])
         {
             Caption = 'Comment';
+            ToolTip = 'Specifies the service comment.';
         }
         field(7; Date; Date)
         {
             Caption = 'Date';
+            ToolTip = 'Specifies the date you entered the service comment.';
         }
         field(8; "Table Subtype"; Enum "Service Comment Table Subtype")
         {

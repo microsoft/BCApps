@@ -223,5 +223,10 @@
     "codeunitId": 139157,
     "codeunitName": "Invoice Premapping Tests",
     "method": "TestUnsupportedDocumentTypeInDataExchangeDefinition"
+  },
+  {
+    "codeunitId": 139157,
+    "codeunitName": "Invoice Premapping Tests",
+    "method": "TestSuccessfulInvoicePremappingWithVendorDataFromIncomingDocument"
   }
 ]

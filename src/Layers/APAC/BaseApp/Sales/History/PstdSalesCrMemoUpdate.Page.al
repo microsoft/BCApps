@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -30,7 +30,6 @@ page 1354 "Pstd. Sales Cr. Memo - Update"
                 {
                     ApplicationArea = Basic, Suite;
                     Editable = false;
-                    ToolTip = 'Specifies the posted credit memo number. You cannot change the number because the document has already been posted.';
                 }
                 field("Sell-to Customer Name"; Rec."Sell-to Customer Name")
                 {
@@ -43,7 +42,6 @@ page 1354 "Pstd. Sales Cr. Memo - Update"
                 {
                     ApplicationArea = Basic, Suite;
                     Editable = false;
-                    ToolTip = 'Specifies the date when the credit memo was posted.';
                 }
             }
             group(Shipping)
@@ -54,20 +52,17 @@ page 1354 "Pstd. Sales Cr. Memo - Update"
                     ApplicationArea = Suite;
                     Caption = 'Agent';
                     Editable = true;
-                    ToolTip = 'Specifies which shipping agent is used to transport the items on the sales document to the customer.';
                 }
                 field("Shipping Agent Service Code"; Rec."Shipping Agent Service Code")
                 {
                     ApplicationArea = Suite;
                     Caption = 'Agent Service';
                     Editable = true;
-                    ToolTip = 'Specifies which shipping agent service is used to transport the items on the sales document to the customer.';
                 }
                 field("Package Tracking No."; Rec."Package Tracking No.")
                 {
                     ApplicationArea = Suite;
                     Editable = true;
-                    ToolTip = 'Specifies the shipping agent''s package number.';
                 }
             }
             group("Cr. Memo Details")
@@ -77,7 +72,6 @@ page 1354 "Pstd. Sales Cr. Memo - Update"
                 {
                     ApplicationArea = Basic, Suite;
                     Editable = true;
-                    ToolTip = 'Specifies any text that is entered to accompany the posting, for example for information to auditors.';
                 }
             }
             group(Payment)
@@ -86,7 +80,6 @@ page 1354 "Pstd. Sales Cr. Memo - Update"
                 field("Company Bank Account Code"; Rec."Company Bank Account Code")
                 {
                     ApplicationArea = Suite;
-                    ToolTip = 'Specifies the bank account to use for bank information when the document is printed.';
                 }
             }
             group("Adjustment Details")

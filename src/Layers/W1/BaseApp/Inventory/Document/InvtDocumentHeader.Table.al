@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -32,6 +32,7 @@ table 5850 "Invt. Document Header"
         field(2; "No."; Code[20])
         {
             Caption = 'No.';
+            ToolTip = 'Specifies the number of the involved entry or record, according to the specified number series.';
 
             trigger OnValidate()
             begin
@@ -44,10 +45,12 @@ table 5850 "Invt. Document Header"
         field(3; "Posting Description"; Text[100])
         {
             Caption = 'Posting Description';
+            ToolTip = 'Specifies any text that is entered to accompany the posting, for example for information to auditors.';
         }
         field(5; "Document Date"; Date)
         {
             Caption = 'Document Date';
+            ToolTip = 'Specifies the date when the related document was created.';
 
             trigger OnValidate()
             begin
@@ -57,6 +60,7 @@ table 5850 "Invt. Document Header"
         field(6; "Posting Date"; Date)
         {
             Caption = 'Posting Date';
+            ToolTip = 'Specifies the entry''s posting date.';
 
             trigger OnValidate()
             begin
@@ -66,6 +70,7 @@ table 5850 "Invt. Document Header"
         field(7; "Location Code"; Code[10])
         {
             Caption = 'Location Code';
+            ToolTip = 'Specifies the warehouse or other place where the involved items are handled or stored.';
             TableRelation = Location.Code where("Use As In-Transit" = const(false));
 
             trigger OnValidate()
@@ -81,6 +86,7 @@ table 5850 "Invt. Document Header"
         {
             CaptionClass = '1,2,1';
             Caption = 'Shortcut Dimension 1 Code';
+            ToolTip = 'Specifies the code for Shortcut Dimension 1, which is one of two global dimension codes that you set up in the General Ledger Setup window.';
             TableRelation = "Dimension Value".Code where("Global Dimension No." = const(1),
                                                           Blocked = const(false));
 
@@ -93,6 +99,7 @@ table 5850 "Invt. Document Header"
         {
             CaptionClass = '1,2,2';
             Caption = 'Shortcut Dimension 2 Code';
+            ToolTip = 'Specifies the code for Shortcut Dimension 2, which is one of two global dimension codes that you set up in the General Ledger Setup window.';
             TableRelation = "Dimension Value".Code where("Global Dimension No." = const(2),
                                                           Blocked = const(false));
 
@@ -109,6 +116,7 @@ table 5850 "Invt. Document Header"
         field(11; "Salesperson/Purchaser Code"; Code[20])
         {
             Caption = 'Salesperson/Purchaser Code';
+            ToolTip = 'Specifies the employee purchaser code or salesperson code associated with this document.';
             TableRelation = "Salesperson/Purchaser" where(Blocked = const(false));
 
             trigger OnValidate()
@@ -165,6 +173,7 @@ table 5850 "Invt. Document Header"
         field(16; "External Document No."; Code[35])
         {
             Caption = 'External Document No.';
+            ToolTip = 'Specifies a document number that refers to the customer''s or vendor''s numbering system.';
         }
         field(17; "Whse. Adj. Bin Code"; Code[20])
         {
@@ -178,12 +187,14 @@ table 5850 "Invt. Document Header"
         field(21; Status; Option)
         {
             Caption = 'Status';
+            ToolTip = 'Specifies the status of the item document.';
             OptionCaption = 'Open,Released';
             OptionMembers = Open,Released;
         }
         field(23; "Gen. Bus. Posting Group"; Code[20])
         {
             Caption = 'Gen. Bus. Posting Group';
+            ToolTip = 'Specifies the vendor''s or customer''s trade type to link transactions made for this business partner with the appropriate general ledger account according to the general posting setup.';
             TableRelation = "Gen. Business Posting Group";
 
             trigger OnValidate()
@@ -199,6 +210,7 @@ table 5850 "Invt. Document Header"
         field(30; Correction; Boolean)
         {
             Caption = 'Correction';
+            ToolTip = 'Specifies the entry as a corrective entry. You can use the field if you need to post a corrective entry to an account.';
 
             trigger OnValidate()
             begin

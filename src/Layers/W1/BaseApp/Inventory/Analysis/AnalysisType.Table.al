@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -19,15 +19,18 @@ table 7113 "Analysis Type"
         field(1; "Code"; Code[10])
         {
             Caption = 'Code';
+            ToolTip = 'Specifies the code of the analysis type.';
             NotBlank = true;
         }
         field(2; Name; Text[50])
         {
             Caption = 'Name';
+            ToolTip = 'Specifies a description of the analysis type.';
         }
         field(3; "Value Type"; Enum "Analysis Value Type")
         {
             Caption = 'Value Type';
+            ToolTip = 'Specifies the value type that the analysis type is based on.';
 
             trigger OnValidate()
             begin
@@ -40,6 +43,7 @@ table 7113 "Analysis Type"
         field(4; "Item Ledger Entry Type Filter"; Text[250])
         {
             Caption = 'Item Ledger Entry Type Filter';
+            ToolTip = 'Specifies a filter on the type of item ledger entry.';
 
             trigger OnValidate()
             begin
@@ -54,6 +58,7 @@ table 7113 "Analysis Type"
         field(5; "Value Entry Type Filter"; Text[250])
         {
             Caption = 'Value Entry Type Filter';
+            ToolTip = 'Specifies a filter on the type of item value entry.';
 
             trigger OnValidate()
             begin

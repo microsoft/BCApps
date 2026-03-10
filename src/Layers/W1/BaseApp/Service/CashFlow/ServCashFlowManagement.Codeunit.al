@@ -12,7 +12,7 @@ codeunit 891 "Serv. Cash Flow Management"
     var
         SourceDataDoesNotExistErr: Label 'Source data does not exist for %1: %2.', Comment = '%1 - G/L Account, %2 - account number';
 
-    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Cash Flow Management", 'OnShowSourceLocalSourceTypeCase', '', false, false)]
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Cash Flow Management", 'OnShowSourceLocalSourceTypeCase', '', true, false)]
     local procedure OnShowSourceLocalSourceTypeCase(SourceType: Enum "Cash Flow Source Type"; SourceNo: Code[20]; var IsHandled: Boolean)
     begin
         if SourceType = SourceType::"Service Orders" then begin
@@ -35,13 +35,13 @@ codeunit 891 "Serv. Cash Flow Management"
         ServiceOrder.Run();
     end;
 
-    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Cash Flow Management", 'OnAfterCreateCashFlowAccounts', '', false, false)]
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Cash Flow Management", 'OnAfterCreateCashFlowAccounts', '', true, false)]
     local procedure OnAfterCreateCashFlowAccounts(var sender: Codeunit "Cash Flow Management")
     begin
         sender.CreateCashFlowAccount("Cash Flow Source Type"::"Service Orders", '');
     end;
 
-    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Cash Flow Management", 'OnBeforeInsertOnCreateCashFlowSetup', '', false, false)]
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Cash Flow Management", 'OnBeforeInsertOnCreateCashFlowSetup', '', true, false)]
     local procedure OnBeforeInsertOnCreateCashFlowSetup(var CashFlowSetup: Record "Cash Flow Setup"; sender: Codeunit "Cash Flow Management")
     begin
         CashFlowSetup.Validate("Service CF Account No.", sender.GetNoFromSourceType("Cash Flow Source Type"::"Service Orders".AsInteger()));

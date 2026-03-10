@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -32,71 +32,60 @@ page 5343 "CRM Opportunity List"
                     ApplicationArea = Suite;
                     Caption = 'Status';
                     OptionCaption = 'Open,Won,Lost';
-                    ToolTip = 'Specifies data from a corresponding field in a Dynamics 365 Sales entity. For more information about Dynamics 365 Sales, see Dynamics 365 Sales Help Center.';
                 }
                 field(StatusCode; Rec.StatusCode)
                 {
                     ApplicationArea = Suite;
                     Caption = 'Status Reason';
                     OptionCaption = ' ,In Progress,On Hold,Won,Canceled,Out-Sold';
-                    ToolTip = 'Specifies data from a corresponding field in a Dynamics 365 Sales entity. For more information about Dynamics 365 Sales, see Dynamics 365 Sales Help Center.';
                 }
                 field(Name; Rec.Name)
                 {
                     ApplicationArea = Suite;
                     Caption = 'Topic';
                     StyleExpr = FirstColumnStyle;
-                    ToolTip = 'Specifies data from a corresponding field in a Dynamics 365 Sales entity. For more information about Dynamics 365 Sales, see Dynamics 365 Sales Help Center.';
                 }
                 field(EstimatedCloseDate; Rec.EstimatedCloseDate)
                 {
                     ApplicationArea = Suite;
                     Caption = 'Est. Close Date';
-                    ToolTip = 'Specifies data from a corresponding field in a Dynamics 365 Sales entity. For more information about Dynamics 365 Sales, see Dynamics 365 Sales Help Center.';
                 }
                 field(EstimatedValue; Rec.EstimatedValue)
                 {
                     ApplicationArea = Suite;
                     Caption = 'Est. Revenue';
-                    ToolTip = 'Specifies data from a corresponding field in a Dynamics 365 Sales entity. For more information about Dynamics 365 Sales, see Dynamics 365 Sales Help Center.';
                 }
                 field(TotalAmount; Rec.TotalAmount)
                 {
                     ApplicationArea = Suite;
                     Caption = 'Total Amount';
-                    ToolTip = 'Specifies data from a corresponding field in a Dynamics 365 Sales entity. For more information about Dynamics 365 Sales, see Dynamics 365 Sales Help Center.';
                 }
                 field(ParentContactIdName; Rec.ParentContactIdName)
                 {
                     ApplicationArea = Suite;
                     Caption = 'Contact Name';
-                    ToolTip = 'Specifies data from a corresponding field in a Dynamics 365 Sales entity. For more information about Dynamics 365 Sales, see Dynamics 365 Sales Help Center.';
                 }
                 field(ParentAccountIdName; Rec.ParentAccountIdName)
                 {
                     ApplicationArea = Suite;
                     Caption = 'Account Name';
-                    ToolTip = 'Specifies data from a corresponding field in a Dynamics 365 Sales entity. For more information about Dynamics 365 Sales, see Dynamics 365 Sales Help Center.';
                 }
                 field(CloseProbability; Rec.CloseProbability)
                 {
                     ApplicationArea = Suite;
                     Caption = 'Probability';
-                    ToolTip = 'Specifies data from a corresponding field in a Dynamics 365 Sales entity. For more information about Dynamics 365 Sales, see Dynamics 365 Sales Help Center.';
                 }
                 field(OpportunityRatingCode; Rec.OpportunityRatingCode)
                 {
                     ApplicationArea = Suite;
                     Caption = 'Rating';
                     OptionCaption = 'Hot,Warm,Cold';
-                    ToolTip = 'Specifies data from a corresponding field in a Dynamics 365 Sales entity. For more information about Dynamics 365 Sales, see Dynamics 365 Sales Help Center.';
                 }
                 field(Need; Rec.Need)
                 {
                     ApplicationArea = Suite;
                     Caption = 'Need';
                     OptionCaption = ' ,Must have,Should have,Good to have,No need';
-                    ToolTip = 'Specifies data from a corresponding field in a Dynamics 365 Sales entity. For more information about Dynamics 365 Sales, see Dynamics 365 Sales Help Center.';
                 }
                 field(Coupled; Coupled)
                 {

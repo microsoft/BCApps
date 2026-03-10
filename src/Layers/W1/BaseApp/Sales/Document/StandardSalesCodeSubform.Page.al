@@ -31,7 +31,6 @@ page 171 "Standard Sales Code Subform"
                 field(Type; Rec.Type)
                 {
                     ApplicationArea = Advanced;
-                    ToolTip = 'Specifies whether the line is for a general ledger account, item, resource, fixed asset or item charge.';
 
                     trigger OnValidate()
                     begin
@@ -62,7 +61,6 @@ page 171 "Standard Sales Code Subform"
                 field("No."; Rec."No.")
                 {
                     ApplicationArea = Suite;
-                    ToolTip = 'Specifies the number of a general ledger account, item, resource, additional cost, or fixed asset, depending on the contents of the Type field.';
 
                     trigger OnValidate()
                     begin
@@ -78,13 +76,11 @@ page 171 "Standard Sales Code Subform"
                 field("Variant Code"; Rec."Variant Code")
                 {
                     ApplicationArea = Planning;
-                    ToolTip = 'Specifies the variant of the item on the line.';
                     Visible = false;
                 }
                 field(Description; Rec.Description)
                 {
                     ApplicationArea = Suite;
-                    ToolTip = 'Specifies a description of the entry, which is based on the contents of the Type and No. fields.';
 
                     trigger OnValidate()
                     var
@@ -106,30 +102,25 @@ page 171 "Standard Sales Code Subform"
                 field(Quantity; Rec.Quantity)
                 {
                     ApplicationArea = Suite;
-                    ToolTip = 'Specifies the number of units of the item on the line.';
                 }
                 field("Unit of Measure Code"; Rec."Unit of Measure Code")
                 {
                     ApplicationArea = Suite;
-                    ToolTip = 'Specifies how each unit of the item or resource is measured, such as in pieces or hours. By default, the value in the Base Unit of Measure field on the item or resource card is inserted.';
                     Visible = false;
                 }
                 field("Amount Excl. VAT"; Rec."Amount Excl. VAT")
                 {
                     ApplicationArea = Suite;
-                    ToolTip = 'Specifies the net amount for the standard sales line. This field only applies to lines of type G/L Account and Charge (Item).';
                     Visible = false;
                 }
                 field("Shortcut Dimension 1 Code"; Rec."Shortcut Dimension 1 Code")
                 {
                     ApplicationArea = Dimensions;
-                    ToolTip = 'Specifies the code for Shortcut Dimension 1, which is one of two global dimension codes that you set up in the General Ledger Setup window.';
                     Visible = DimVisible1;
                 }
                 field("Shortcut Dimension 2 Code"; Rec."Shortcut Dimension 2 Code")
                 {
                     ApplicationArea = Dimensions;
-                    ToolTip = 'Specifies the code for Shortcut Dimension 2, which is one of two global dimension codes that you set up in the General Ledger Setup window.';
                     Visible = DimVisible2;
                 }
                 field("ShortcutDimCode[3]"; ShortcutDimCode[3])

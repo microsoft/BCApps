@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -36,7 +36,6 @@ page 6053 "Service Contract Quote"
                     ApplicationArea = Service;
                     Importance = Promoted;
                     Visible = DocNoVisible;
-                    ToolTip = 'Specifies the number of the service contract or service contract quote.';
 
                     trigger OnAssistEdit()
                     begin
@@ -47,13 +46,11 @@ page 6053 "Service Contract Quote"
                 field(Description; Rec.Description)
                 {
                     ApplicationArea = Service;
-                    ToolTip = 'Specifies a description of the service contract.';
                 }
                 field("Customer No."; Rec."Customer No.")
                 {
                     ApplicationArea = Service;
                     Importance = Promoted;
-                    ToolTip = 'Specifies the number of the customer who owns the service items in the service contract/contract quote.';
 
                     trigger OnValidate()
                     begin
@@ -63,7 +60,6 @@ page 6053 "Service Contract Quote"
                 field("Contact No."; Rec."Contact No.")
                 {
                     ApplicationArea = Service;
-                    ToolTip = 'Specifies the number of the contact who will receive the service delivery.';
                 }
                 group("Sell-to")
                 {
@@ -72,28 +68,24 @@ page 6053 "Service Contract Quote"
                     {
                         ApplicationArea = Service;
                         DrillDown = false;
-                        ToolTip = 'Specifies the name of the customer in the service contract.';
                     }
                     field(Address; Rec.Address)
                     {
                         ApplicationArea = Service;
                         DrillDown = false;
                         QuickEntry = false;
-                        ToolTip = 'Specifies the customer''s address.';
                     }
                     field("Address 2"; Rec."Address 2")
                     {
                         ApplicationArea = Service;
                         DrillDown = false;
                         QuickEntry = false;
-                        ToolTip = 'Specifies additional address information.';
                     }
                     field(City; Rec.City)
                     {
                         ApplicationArea = Service;
                         DrillDown = false;
                         QuickEntry = false;
-                        ToolTip = 'Specifies the name of the city in where the customer is located.';
                     }
                     group(Control13)
                     {
@@ -110,13 +102,11 @@ page 6053 "Service Contract Quote"
                         ApplicationArea = Service;
                         DrillDown = false;
                         QuickEntry = false;
-                        ToolTip = 'Specifies the postal code.';
                     }
                     field("Country/Region Code"; Rec."Country/Region Code")
                     {
                         ApplicationArea = Service;
                         QuickEntry = false;
-                        ToolTip = 'Specifies the country/region of the address.';
 
                         trigger OnValidate()
                         begin
@@ -126,7 +116,6 @@ page 6053 "Service Contract Quote"
                     field("Contact Name"; Rec."Contact Name")
                     {
                         ApplicationArea = Service;
-                        ToolTip = 'Specifies the name of the person you regularly contact when you do business with the customer in this service contract.';
                     }
                 }
                 field("Phone No."; Rec."Phone No.")
@@ -147,28 +136,23 @@ page 6053 "Service Contract Quote"
                 {
                     ApplicationArea = Service;
                     ExtendedDatatype = EMail;
-                    ToolTip = 'Specifies the customer''s email address.';
                 }
                 field("Contract Group Code"; Rec."Contract Group Code")
                 {
                     ApplicationArea = Service;
-                    ToolTip = 'Specifies the contract group code assigned to the service contract.';
                 }
                 field("Salesperson Code"; Rec."Salesperson Code")
                 {
                     ApplicationArea = Service;
-                    ToolTip = 'Specifies the code of the salesperson assigned to this service contract.';
                 }
                 field("Quote Type"; Rec."Quote Type")
                 {
                     ApplicationArea = Service;
-                    ToolTip = 'Specifies the type of the service contract quote.';
                 }
                 field("Starting Date"; Rec."Starting Date")
                 {
                     ApplicationArea = Service;
                     Importance = Promoted;
-                    ToolTip = 'Specifies the starting date of the service contract.';
 
                     trigger OnValidate()
                     begin
@@ -183,7 +167,6 @@ page 6053 "Service Contract Quote"
 #pragma warning disable AL0600
                     OptionCaption = ' ,,Canceled';
 #pragma warning restore AL0600
-                    ToolTip = 'Specifies the status of the service contract or contract quote.';
 
                     trigger OnValidate()
                     begin
@@ -193,12 +176,10 @@ page 6053 "Service Contract Quote"
                 field("Responsibility Center"; Rec."Responsibility Center")
                 {
                     ApplicationArea = Suite;
-                    ToolTip = 'Specifies the code of the responsibility center, such as a distribution hub, that is associated with the involved user, company, customer, or vendor.';
                 }
                 field("Change Status"; Rec."Change Status")
                 {
                     ApplicationArea = Service;
-                    ToolTip = 'Specifies if a service contract or contract quote is locked or open for changes.';
                 }
             }
             part(ServContractLines; "Service Contract Quote Subform")
@@ -213,7 +194,6 @@ page 6053 "Service Contract Quote"
                 {
                     ApplicationArea = Service;
                     Importance = Promoted;
-                    ToolTip = 'Specifies the number of the customer that you send or sent the invoice or credit memo to.';
 
                     trigger OnValidate()
                     begin
@@ -223,7 +203,6 @@ page 6053 "Service Contract Quote"
                 field("Bill-to Contact No."; Rec."Bill-to Contact No.")
                 {
                     ApplicationArea = Service;
-                    ToolTip = 'Specifies the number of the contact person at the customer''s billing address.';
                 }
                 group(Control14)
                 {
@@ -232,7 +211,6 @@ page 6053 "Service Contract Quote"
                     {
                         ApplicationArea = Service;
                         DrillDown = false;
-                        ToolTip = 'Specifies the name of the customer that you send or sent the invoice or credit memo to.';
                     }
                     field("Bill-to Address"; Rec."Bill-to Address")
                     {
@@ -246,14 +224,12 @@ page 6053 "Service Contract Quote"
                         ApplicationArea = Service;
                         DrillDown = false;
                         QuickEntry = false;
-                        ToolTip = 'Specifies an additional line of the address.';
                     }
                     field("Bill-to City"; Rec."Bill-to City")
                     {
                         ApplicationArea = Service;
                         DrillDown = false;
                         QuickEntry = false;
-                        ToolTip = 'Specifies the city of the address.';
                     }
                     group(Control23)
                     {
@@ -264,7 +240,6 @@ page 6053 "Service Contract Quote"
                             ApplicationArea = Service;
                             CaptionClass = '5,1,' + Rec."Bill-to Country/Region Code";
                             QuickEntry = false;
-                            ToolTip = 'Specifies the county code of the customer''s billing address.';
                         }
                     }
                     field("Bill-to Post Code"; Rec."Bill-to Post Code")
@@ -272,13 +247,11 @@ page 6053 "Service Contract Quote"
                         ApplicationArea = Service;
                         DrillDown = false;
                         QuickEntry = false;
-                        ToolTip = 'Specifies the postal code of the customer''s billing address.';
                     }
                     field("Bill-to Country/Region Code"; Rec."Bill-to Country/Region Code")
                     {
                         ApplicationArea = Service;
                         QuickEntry = false;
-                        ToolTip = 'Specifies the country/region code of the customer''s billing address.';
 
                         trigger OnValidate()
                         begin
@@ -288,7 +261,6 @@ page 6053 "Service Contract Quote"
                     field("Bill-to Contact"; Rec."Bill-to Contact")
                     {
                         ApplicationArea = Service;
-                        ToolTip = 'Specifies the name of the contact person at the customer''s billing address.';
                     }
                     field(BillToContactPhoneNo; BillToContact."Phone No.")
                     {
@@ -321,34 +293,28 @@ page 6053 "Service Contract Quote"
                 field("Your Reference"; Rec."Your Reference")
                 {
                     ApplicationArea = Service;
-                    ToolTip = 'Specifies the customer''s reference number.';
                 }
                 field("Serv. Contract Acc. Gr. Code"; Rec."Serv. Contract Acc. Gr. Code")
                 {
                     ApplicationArea = Service;
-                    ToolTip = 'Specifies the code associated with the service contract account group.';
                 }
                 field("Shortcut Dimension 1 Code"; Rec."Shortcut Dimension 1 Code")
                 {
                     ApplicationArea = Dimensions;
-                    ToolTip = 'Specifies the code for Shortcut Dimension 1, which is one of two global dimension codes that you set up in the General Ledger Setup window.';
                 }
                 field("Shortcut Dimension 2 Code"; Rec."Shortcut Dimension 2 Code")
                 {
                     ApplicationArea = Dimensions;
-                    ToolTip = 'Specifies the code for Shortcut Dimension 2, which is one of two global dimension codes that you set up in the General Ledger Setup window.';
                 }
                 field("Payment Terms Code"; Rec."Payment Terms Code")
                 {
                     ApplicationArea = Service;
                     Importance = Promoted;
-                    ToolTip = 'Specifies a formula that calculates the payment due date, payment discount date, and payment discount amount.';
                 }
                 field("Currency Code"; Rec."Currency Code")
                 {
                     ApplicationArea = Service;
                     Importance = Promoted;
-                    ToolTip = 'Specifies the currency used to calculate the amounts in the documents related to this contract.';
                 }
             }
             group(Shipping)
@@ -358,7 +324,6 @@ page 6053 "Service Contract Quote"
                 {
                     ApplicationArea = Service;
                     Importance = Promoted;
-                    ToolTip = 'Specifies a code for an alternate shipment address if you want to ship to another address than the one that has been entered automatically. This field is also used in case of drop shipment.';
 
                     trigger OnValidate()
                     begin
@@ -373,32 +338,27 @@ page 6053 "Service Contract Quote"
                 {
                     ApplicationArea = Service;
                     DrillDown = false;
-                    ToolTip = 'Specifies the name of the customer at the address that the items are shipped to.';
                 }
                 field("Ship-to Name 2"; Rec."Ship-to Name 2")
                 {
                     ApplicationArea = Service;
                     Importance = Additional;
-                    ToolTip = 'Specifies an additional part of the name of the customer that the items are shipped to.';
                     Visible = false;
                 }
                 field("Ship-to Address"; Rec."Ship-to Address")
                 {
                     ApplicationArea = Service;
                     DrillDown = false;
-                    ToolTip = 'Specifies the address that the items are shipped to.';
                 }
                 field("Ship-to Address 2"; Rec."Ship-to Address 2")
                 {
                     ApplicationArea = Service;
                     DrillDown = false;
-                    ToolTip = 'Specifies an additional part of the ship-to address, in case it is a long address.';
                 }
                 field("Ship-to City"; Rec."Ship-to City")
                 {
                     ApplicationArea = Service;
                     DrillDown = false;
-                    ToolTip = 'Specifies the city of the address that the items are shipped to.';
                 }
                 group(Control33)
                 {
@@ -408,7 +368,6 @@ page 6053 "Service Contract Quote"
                     {
                         ApplicationArea = Service;
                         CaptionClass = '5,1,' + Rec."Ship-to Country/Region Code";
-                        ToolTip = 'Specifies the county of the address.';
                     }
                 }
                 field("Ship-to Post Code"; Rec."Ship-to Post Code")
@@ -416,17 +375,14 @@ page 6053 "Service Contract Quote"
                     ApplicationArea = Service;
                     DrillDown = false;
                     Importance = Promoted;
-                    ToolTip = 'Specifies the postal code of the address that the items are shipped to.';
                 }
                 field("Ship-to Country/Region Code"; Rec."Ship-to Country/Region Code")
                 {
                     ApplicationArea = Service;
-                    ToolTip = 'Specifies the country/region code of the address.';
                 }
                 field("Ship-to Phone No."; Rec."Ship-to Phone No.")
                 {
                     ApplicationArea = Service;
-                    ToolTip = 'Specifies the telephone number of the company''s shipping address.';
                 }
             }
             group(Service)
@@ -436,13 +392,11 @@ page 6053 "Service Contract Quote"
                 {
                     ApplicationArea = Service;
                     Importance = Promoted;
-                    ToolTip = 'Specifies the code of the service zone of the customer ship-to address.';
                 }
                 field("Service Period"; Rec."Service Period")
                 {
                     ApplicationArea = Service;
                     Importance = Promoted;
-                    ToolTip = 'Specifies a default service period for the items in the contract.';
 
                     trigger OnValidate()
                     begin
@@ -453,7 +407,6 @@ page 6053 "Service Contract Quote"
                 {
                     ApplicationArea = Service;
                     Importance = Promoted;
-                    ToolTip = 'Specifies the date of the first expected service for the service items in the contract.';
                 }
                 field("Response Time (Hours)"; Rec."Response Time (Hours)")
                 {
@@ -468,7 +421,6 @@ page 6053 "Service Contract Quote"
                 field("Service Order Type"; Rec."Service Order Type")
                 {
                     ApplicationArea = Service;
-                    ToolTip = 'Specifies the service order type assigned to service orders linked to this contract.';
                 }
             }
             group("Invoice Details")
@@ -477,7 +429,6 @@ page 6053 "Service Contract Quote"
                 field("Annual Amount"; Rec."Annual Amount")
                 {
                     ApplicationArea = Service;
-                    ToolTip = 'Specifies the amount that will be invoiced annually for the service contract or contract quote.';
 
                     trigger OnValidate()
                     begin
@@ -487,7 +438,6 @@ page 6053 "Service Contract Quote"
                 field("Allow Unbalanced Amounts"; Rec."Allow Unbalanced Amounts")
                 {
                     ApplicationArea = Service;
-                    ToolTip = 'Specifies if the contents of the Calcd. Annual Amount field are copied into the Annual Amount field in the service contract or contract quote.';
 
                     trigger OnValidate()
                     begin
@@ -497,24 +447,20 @@ page 6053 "Service Contract Quote"
                 field("Calcd. Annual Amount"; Rec."Calcd. Annual Amount")
                 {
                     ApplicationArea = Service;
-                    ToolTip = 'Specifies the sum of the Line Amount field values on all contract lines associated with the service contract or contract quote.';
                 }
                 field("Invoice Period"; Rec."Invoice Period")
                 {
                     ApplicationArea = Service;
                     Importance = Promoted;
-                    ToolTip = 'Specifies the invoice period for the service contract.';
                 }
                 field("Next Invoice Date"; Rec."Next Invoice Date")
                 {
                     ApplicationArea = Service;
                     Importance = Promoted;
-                    ToolTip = 'Specifies the date of the next invoice for this service contract.';
                 }
                 field("Amount per Period"; Rec."Amount per Period")
                 {
                     ApplicationArea = Service;
-                    ToolTip = 'Specifies the amount that will be invoiced for each invoice period for the service contract.';
                 }
                 field(NextInvoicePeriod; Rec.NextInvoicePeriod())
                 {
@@ -526,7 +472,6 @@ page 6053 "Service Contract Quote"
                 {
                     ApplicationArea = Service;
                     Enabled = PrepaidEnable;
-                    ToolTip = 'Specifies that this service contract is prepaid.';
 
                     trigger OnValidate()
                     begin
@@ -536,13 +481,11 @@ page 6053 "Service Contract Quote"
                 field("Automatic Credit Memos"; Rec."Automatic Credit Memos")
                 {
                     ApplicationArea = Service;
-                    ToolTip = 'Specifies that a credit memo is created when you remove a contract line.';
                 }
                 field("Invoice after Service"; Rec."Invoice after Service")
                 {
                     ApplicationArea = Service;
                     Enabled = InvoiceAfterServiceEnable;
-                    ToolTip = 'Specifies that you can only invoice the contract if you have posted a service order since last time you invoiced the contract.';
 
                     trigger OnValidate()
                     begin
@@ -552,12 +495,10 @@ page 6053 "Service Contract Quote"
                 field("Combine Invoices"; Rec."Combine Invoices")
                 {
                     ApplicationArea = Service;
-                    ToolTip = 'Specifies you want to combine invoices for this service contract with invoices for other service contracts with the same bill-to customer.';
                 }
                 field("Contract Lines on Invoice"; Rec."Contract Lines on Invoice")
                 {
                     ApplicationArea = Service;
-                    ToolTip = 'Specifies that you want the lines for this contract to appear as text on the invoice.';
                 }
             }
             group("Price Update")
@@ -567,18 +508,15 @@ page 6053 "Service Contract Quote"
                 {
                     ApplicationArea = Service;
                     Importance = Promoted;
-                    ToolTip = 'Specifies the price update period for this service contract.';
                 }
                 field("Next Price Update Date"; Rec."Next Price Update Date")
                 {
                     ApplicationArea = Service;
                     Importance = Promoted;
-                    ToolTip = 'Specifies the next date you want contract prices to be updated.';
                 }
                 field("Price Inv. Increase Code"; Rec."Price Inv. Increase Code")
                 {
                     ApplicationArea = Service;
-                    ToolTip = 'Specifies the standard text code printed on service invoices, informing the customer which prices have been updated since the last invoice.';
                 }
             }
             group(Details)
@@ -587,7 +525,6 @@ page 6053 "Service Contract Quote"
                 field("Expiration Date"; Rec."Expiration Date")
                 {
                     ApplicationArea = Service;
-                    ToolTip = 'Specifies the date when the service contract expires.';
 
                     trigger OnValidate()
                     begin
@@ -597,17 +534,14 @@ page 6053 "Service Contract Quote"
                 field("Max. Labor Unit Price"; Rec."Max. Labor Unit Price")
                 {
                     ApplicationArea = Service;
-                    ToolTip = 'Specifies the maximum unit price that can be set for a resource on all service orders and lines for the service contract.';
                 }
                 field("Accept Before"; Rec."Accept Before")
                 {
                     ApplicationArea = Service;
-                    ToolTip = 'Specifies the date before which the customer must accept this contract quote.';
                 }
                 field(Probability; Rec.Probability)
                 {
                     ApplicationArea = Service;
-                    ToolTip = 'Specifies the probability of the customer approving the service contract quote.';
                 }
             }
         }

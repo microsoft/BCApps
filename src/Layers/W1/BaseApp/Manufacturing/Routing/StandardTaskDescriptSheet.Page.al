@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -23,7 +23,6 @@ page 99000807 "Standard Task Descript. Sheet"
                 field(Text; Rec.Text)
                 {
                     ApplicationArea = RelationshipMgmt;
-                    ToolTip = 'Specifies the text for the standard task description.';
                 }
             }
         }

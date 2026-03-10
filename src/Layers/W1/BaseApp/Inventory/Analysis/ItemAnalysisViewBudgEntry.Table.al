@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -34,11 +34,13 @@ table 7156 "Item Analysis View Budg. Entry"
         field(3; "Budget Name"; Code[10])
         {
             Caption = 'Budget Name';
+            ToolTip = 'Specifies the name of the budget that the analysis view budget entries are linked to.';
             TableRelation = "Item Budget Name".Name where("Analysis Area" = field("Analysis Area"));
         }
         field(4; "Item No."; Code[20])
         {
             Caption = 'Item No.';
+            ToolTip = 'Specifies the number of the item that the analysis view budget entry is linked to.';
             TableRelation = Item;
         }
         field(5; "Source Type"; Enum "Analysis Source Type")
@@ -57,6 +59,7 @@ table 7156 "Item Analysis View Budg. Entry"
         field(8; "Location Code"; Code[10])
         {
             Caption = 'Location Code';
+            ToolTip = 'Specifies the code of the location to which the analysis view budget entry was posted.';
             TableRelation = Location;
         }
         field(9; "Dimension 1 Value Code"; Code[20])
@@ -64,22 +67,26 @@ table 7156 "Item Analysis View Budg. Entry"
             AccessByPermission = TableData Dimension = R;
             CaptionClass = GetCaptionClass(1);
             Caption = 'Dimension 1 Value Code';
+            ToolTip = 'Specifies the dimension value you selected for the analysis view dimension that you defined as Dimension 1 on the analysis view card.';
         }
         field(10; "Dimension 2 Value Code"; Code[20])
         {
             AccessByPermission = TableData Dimension = R;
             CaptionClass = GetCaptionClass(2);
             Caption = 'Dimension 2 Value Code';
+            ToolTip = 'Specifies which dimension value you have selected for the analysis view dimension that you defined as Dimension 2 on the analysis view card.';
         }
         field(11; "Dimension 3 Value Code"; Code[20])
         {
             AccessByPermission = TableData "Dimension Combination" = R;
             CaptionClass = GetCaptionClass(3);
             Caption = 'Dimension 3 Value Code';
+            ToolTip = 'Specifies which dimension value you have selected for the analysis view dimension that you defined as Dimension 1 on the analysis view card.';
         }
         field(12; "Posting Date"; Date)
         {
             Caption = 'Posting Date';
+            ToolTip = 'Specifies the date on which the item budget entries in an analysis view budget entry were posted.';
         }
         field(13; "Entry No."; Integer)
         {
@@ -89,6 +96,7 @@ table 7156 "Item Analysis View Budg. Entry"
         {
             AutoFormatType = 0;
             Caption = 'Quantity';
+            ToolTip = 'Specifies the item budget entry quantity included in an analysis view budget entry.';
             DecimalPlaces = 0 : 5;
         }
         field(22; "Sales Amount"; Decimal)
@@ -96,12 +104,14 @@ table 7156 "Item Analysis View Budg. Entry"
             AutoFormatType = 1;
             AutoFormatExpression = '';
             Caption = 'Sales Amount';
+            ToolTip = 'Specifies the item budget entry sales amount included in an analysis view budget entry.';
         }
         field(23; "Cost Amount"; Decimal)
         {
             AutoFormatType = 1;
             AutoFormatExpression = '';
             Caption = 'Cost Amount';
+            ToolTip = 'Specifies the item budget entry cost amount included in an analysis view budget entry.';
         }
     }
 

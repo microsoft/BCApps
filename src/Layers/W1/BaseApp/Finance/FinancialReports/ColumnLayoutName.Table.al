@@ -5,6 +5,7 @@
 namespace Microsoft.Finance.FinancialReports;
 
 using Microsoft.Finance.Analysis;
+using Microsoft.Finance.GeneralLedger.Setup;
 using System.Environment;
 using System.IO;
 using System.Telemetry;
@@ -67,6 +68,21 @@ table 333 "Column Layout Name"
             Caption = 'Internal Description';
             ToolTip = 'Specifies the internal description of the column definition. The internal description is not shown on the final report but is used to provide more context when using the definition.';
         }
+        field(6; Status; Code[10])
+        {
+            Caption = 'Status';
+            DataClassification = CustomerContent;
+            TableRelation = "Financial Report Status";
+            ToolTip = 'Specifies the status code for the column definition. The status code helps you organize the lifecycle of your column definitions.';
+        }
+        field(7; "Status Blocked"; Boolean)
+        {
+            CalcFormula = exist("Financial Report Status" where("Code" = field(Status), "Blocked" = const(true)));
+            Caption = 'Status Blocked';
+            Editable = false;
+            FieldClass = FlowField;
+            ToolTip = 'Specifies the status code is a blocked status.';
+        }
     }
 
     keys
@@ -83,6 +99,29 @@ table 333 "Column Layout Name"
         {
         }
     }
+
+    trigger OnRename()
+    var
+        GLSetup: Record "General Ledger Setup";
+        FinancialReportUserFilters: Record "Financial Report User Filters";
+        GLSetupModified: Boolean;
+    begin
+        if GLSetup.Get() then begin
+            if GLSetup."Fin. Rep. Bal. Sheet Column" = xRec.Name then begin
+                GLSetup."Fin. Rep. Bal. Sheet Column" := Rec.Name;
+                GLSetupModified := true;
+            end;
+            if GLSetup."Fin. Rep. Net Change Column" = xRec.Name then begin
+                GLSetup."Fin. Rep. Net Change Column" := Rec.Name;
+                GLSetupModified := true;
+            end;
+            if GLSetupModified then
+                GLSetup.Modify();
+        end;
+
+        FinancialReportUserFilters.SetRange("Column Definition", xRec.Name);
+        FinancialReportUserFilters.ModifyAll("Column Definition", Rec.Name);
+    end;
 
     trigger OnDelete()
     begin

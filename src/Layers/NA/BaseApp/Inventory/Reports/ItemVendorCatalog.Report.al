@@ -320,4 +320,3 @@ report 10164 "Item/Vendor Catalog"
           "Item Vendor".FieldCaption("Vendor No."));
     end;
 }
-

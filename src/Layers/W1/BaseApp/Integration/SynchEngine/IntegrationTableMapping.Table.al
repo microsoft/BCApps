@@ -25,6 +25,7 @@ table 5335 "Integration Table Mapping"
         field(1; Name; Code[20])
         {
             Caption = 'Name';
+            ToolTip = 'Specifies the name of the integration table mapping entry.';
             NotBlank = true;
         }
         field(2; "Table ID"; Integer)
@@ -84,6 +85,7 @@ table 5335 "Integration Table Mapping"
         field(10; Direction; Option)
         {
             Caption = 'Direction';
+            ToolTip = 'Specifies the synchronization direction.';
             OptionCaption = 'Bidirectional,ToIntegrationTable,FromIntegrationTable';
             OptionMembers = Bidirectional,ToIntegrationTable,FromIntegrationTable;
 
@@ -141,15 +143,18 @@ table 5335 "Integration Table Mapping"
         field(11; "Int. Tbl. Caption Prefix"; Text[30])
         {
             Caption = 'Int. Tbl. Caption Prefix';
+            ToolTip = 'Specifies text that appears before the caption of the integration table wherever the caption is used.';
         }
         field(12; "Synch. Int. Tbl. Mod. On Fltr."; DateTime)
         {
             Caption = 'Synch. Int. Tbl. Mod. On Fltr.';
+            ToolTip = 'Specifies a date/time filter that uses the date on which records were modified to determine which records to synchronize to the integration system. The filter is based on the SystemModifiedAt field on the Business Central table records.';
             Description = 'Scheduled synch. Integration Table Modified On Filter';
         }
         field(13; "Synch. Modified On Filter"; DateTime)
         {
             Caption = 'Synch. Modified On Filter';
+            ToolTip = 'Specifies a date/time filter that uses the date on which records were modified to determine which records to synchronize from the system you are integrating with. The filter is based on the Modified On field on the integration table records.';
             Description = 'Scheduled synch. Modified On Filter';
         }
         field(14; "Table Filter"; BLOB)
@@ -163,6 +168,7 @@ table 5335 "Integration Table Mapping"
         field(16; "Synch. Only Coupled Records"; Boolean)
         {
             Caption = 'Synch. Only Coupled Records';
+            ToolTip = 'Specifies if the synchronization engine will process only currently coupled records or couple the newly created records as well.';
             InitValue = true;
 
             trigger OnValidate()
@@ -205,6 +211,7 @@ table 5335 "Integration Table Mapping"
         field(25; "Deletion-Conflict Resolution"; Enum "Integration Deletion Conflict Resolution")
         {
             Caption = 'Resolve Deletion Conflicts';
+            ToolTip = 'Specifies the action to take when a coupled record is deleted in one of the connected applications.';
 
             trigger OnValidate()
             begin
@@ -214,6 +221,7 @@ table 5335 "Integration Table Mapping"
         field(26; "Update-Conflict Resolution"; Enum "Integration Update Conflict Resolution")
         {
             Caption = 'Resolve Update Conflicts';
+            ToolTip = 'Specifies the action to take when a coupled record is updated in both of the connected applications.';
         }
         field(27; "Uncouple Codeunit ID"; Integer)
         {
@@ -244,6 +252,7 @@ table 5335 "Integration Table Mapping"
         field(33; "Disable Event Job Resch."; Boolean)
         {
             Caption = 'Disable Event-driven Synch. Job Rescheduling';
+            ToolTip = 'Specifies if event-based rescheduling of synchronization jobs should be turned off for this table mapping.';
 
             trigger OnValidate()
             begin
@@ -261,6 +270,7 @@ table 5335 "Integration Table Mapping"
         field(34; "Multi Company Synch. Enabled"; Boolean)
         {
             Caption = 'Multi-Company Synchronization Enabled';
+            ToolTip = 'Specifies if the multi-company synchronization is enabled for this mapping.';
 
             trigger OnValidate()
             var
@@ -281,12 +291,14 @@ table 5335 "Integration Table Mapping"
         field(98; "No. of Errors"; Integer)
         {
             Caption = 'Number of Errors';
+            ToolTip = 'Specifies the number of errors for this mapping.';
             FieldClass = FlowField;
             CalcFormula = sum("Integration Synch. Job".Failed where("Integration Table Mapping Name" = field(Name)));
         }
         field(99; "No. of Skipped"; Integer)
         {
             Caption = 'Number of Skipped Records';
+            ToolTip = 'Specifies the number of records that are excluded from the synchronization because of repetitive errors.';
             FieldClass = FlowField;
             CalcFormula = count("CRM Integration Record" where("Table ID" = field("Table ID"), Skipped = const(true)));
         }
@@ -319,6 +331,7 @@ table 5335 "Integration Table Mapping"
         field(103; "User Defined"; Boolean)
         {
             Caption = 'User Defined';
+            ToolTip = 'Specifies if the field is generated manually through the integration table mapping wizard.';
             Description = 'Indicates whether the table mapping was defined manually by the user or by the system.';
         }
     }

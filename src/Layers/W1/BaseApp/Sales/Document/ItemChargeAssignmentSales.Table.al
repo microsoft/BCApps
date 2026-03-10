@@ -65,6 +65,7 @@ table 5809 "Item Charge Assignment (Sales)"
         field(6; "Item No."; Code[20])
         {
             Caption = 'Item No.';
+            ToolTip = 'Specifies the item number on the document line that this item charge is assigned to.';
             TableRelation = Item;
         }
         /// <summary>
@@ -73,6 +74,7 @@ table 5809 "Item Charge Assignment (Sales)"
         field(7; Description; Text[100])
         {
             Caption = 'Description';
+            ToolTip = 'Specifies a description of the item on the document line that this item charge is assigned to.';
         }
         /// <summary>
         /// Specifies the quantity of the item charge to be assigned to the target document line.
@@ -82,6 +84,7 @@ table 5809 "Item Charge Assignment (Sales)"
             AutoFormatType = 0;
             BlankZero = true;
             Caption = 'Qty. to Assign';
+            ToolTip = 'Specifies how many units of the item charge will be assigned to the document line. If the document has more than one line of type Item, then this quantity reflects the distribution that you selected when you chose the Suggest Item Charge Assignment action.';
             DecimalPlaces = 0 : 5;
 
             trigger OnValidate()
@@ -110,6 +113,7 @@ table 5809 "Item Charge Assignment (Sales)"
             AutoFormatType = 0;
             BlankZero = true;
             Caption = 'Qty. Assigned';
+            ToolTip = 'Specifies the number of units of the item charge will be assigned to the document line.';
             DecimalPlaces = 0 : 5;
             Editable = false;
         }
@@ -135,6 +139,7 @@ table 5809 "Item Charge Assignment (Sales)"
             AutoFormatExpression = GetCurrencyCode();
             AutoFormatType = 1;
             Caption = 'Amount to Assign';
+            ToolTip = 'Specifies the value of the item charge that is going to be assigned to the document line.';
 
             trigger OnValidate()
             var
@@ -151,6 +156,7 @@ table 5809 "Item Charge Assignment (Sales)"
         field(12; "Applies-to Doc. Type"; Enum "Sales Applies-to Document Type")
         {
             Caption = 'Applies-to Doc. Type';
+            ToolTip = 'Specifies the type of the document that this document or journal line will be applied to when you post, for example to register payment.';
         }
         /// <summary>
         /// Specifies the document number to which this item charge is applied.
@@ -158,6 +164,7 @@ table 5809 "Item Charge Assignment (Sales)"
         field(13; "Applies-to Doc. No."; Code[20])
         {
             Caption = 'Applies-to Doc. No.';
+            ToolTip = 'Specifies the number of the document that this document or journal line will be applied to when you post, for example to register payment.';
             TableRelation = if ("Applies-to Doc. Type" = const(Order)) "Sales Header"."No." where("Document Type" = const(Order))
             else
             if ("Applies-to Doc. Type" = const(Invoice)) "Sales Header"."No." where("Document Type" = const(Invoice))
@@ -176,6 +183,7 @@ table 5809 "Item Charge Assignment (Sales)"
         field(14; "Applies-to Doc. Line No."; Integer)
         {
             Caption = 'Applies-to Doc. Line No.';
+            ToolTip = 'Specifies the number of the line on the document that this document or journal line will be applied to when you post, for example to register payment.';
             TableRelation = if ("Applies-to Doc. Type" = const(Order)) "Sales Line"."Line No." where("Document Type" = const(Order),
                                                                                                     "Document No." = field("Applies-to Doc. No."))
             else
@@ -209,6 +217,7 @@ table 5809 "Item Charge Assignment (Sales)"
             AutoFormatType = 0;
             BlankZero = true;
             Caption = 'Qty. to Handle';
+            ToolTip = 'Specifies how many items the item charge will be assigned to on the line. It can be either equal to Qty. to Assign or to zero. If it is zero, the item charge will not be assigned to the line.';
             DecimalPlaces = 0 : 5;
 
             trigger OnValidate()
@@ -226,6 +235,7 @@ table 5809 "Item Charge Assignment (Sales)"
             AutoFormatExpression = GetCurrencyCode();
             AutoFormatType = 1;
             Caption = 'Amount to Handle';
+            ToolTip = 'Specifies the value of the item charge that will be actually assigned to the document line.';
 
             trigger OnValidate()
             begin

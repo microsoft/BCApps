@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -7,6 +7,7 @@ namespace Microsoft.Pricing.PriceList;
 using Microsoft.Pricing.Source;
 using Microsoft.Projects.Project.Pricing;
 using Microsoft.Sales.Pricing;
+using System.Environment;
 using System.Environment.Configuration;
 using System.Integration.Excel;
 
@@ -58,7 +59,6 @@ page 7001 "Price List Lines"
                     Importance = Promoted;
                     Editable = IsParentAllowed;
                     Visible = ParentSourceNoVisible;
-                    ToolTip = 'Specifies the project to which the prices are assigned. If you choose an entity, the price list will be used only for that entity.';
                 }
                 field(AssignToParentNo; Rec."Assign-to Parent No.")
                 {
@@ -68,7 +68,6 @@ page 7001 "Price List Lines"
                     Editable = IsParentAllowed;
                     ShowMandatory = IsParentAllowed;
                     Visible = AssignToParentNoVisible;
-                    ToolTip = 'Specifies the project to which the prices are assigned. If you choose an entity, the price list will be used only for that entity.';
                 }
                 field(SourceNo; Rec."Source No.")
                 {
@@ -77,7 +76,6 @@ page 7001 "Price List Lines"
                     Enabled = SourceNoEnabled;
                     ShowMandatory = SourceNoEnabled;
                     Visible = SourceNoVisible;
-                    ToolTip = 'Specifies the entity to which the prices are assigned. The options depend on the selection in the Assign-to Type field. If you choose an entity, the price list will be used only for that entity.';
                 }
                 field(AssignToNo; Rec."Assign-to No.")
                 {
@@ -86,30 +84,25 @@ page 7001 "Price List Lines"
                     Enabled = SourceNoEnabled;
                     ShowMandatory = SourceNoEnabled;
                     Visible = AssignToNoVisible;
-                    ToolTip = 'Specifies the entity to which the prices are assigned. The options depend on the selection in the Assign-to Type field. If you choose an entity, the price list will be used only for that entity.';
                 }
                 field(CurrencyCode; Rec."Currency Code")
                 {
                     ApplicationArea = All;
                     Visible = AllowUpdatingDefaults;
-                    ToolTip = 'Specifies the currency that is used for the prices on the price list. The currency can be the same for all prices on the price list, or you can specify a currency for individual lines.';
                 }
                 field(StartingDate; Rec."Starting Date")
                 {
                     ApplicationArea = All;
                     Visible = AllowUpdatingDefaults;
-                    ToolTip = 'Specifies the date from which the price is valid.';
                 }
                 field(EndingDate; Rec."Ending Date")
                 {
                     ApplicationArea = All;
                     Visible = AllowUpdatingDefaults;
-                    ToolTip = 'Specifies the last date that the price is valid.';
                 }
                 field("Asset Type"; Rec."Asset Type")
                 {
                     ApplicationArea = All;
-                    ToolTip = 'Specifies the type of the product.';
 
                     trigger OnValidate()
                     begin
@@ -119,7 +112,6 @@ page 7001 "Price List Lines"
                 field("Asset No."; Rec."Asset No.")
                 {
                     ApplicationArea = All;
-                    ToolTip = 'Specifies the identifier of the product. If no product is selected, the price and discount values will apply to all products of the selected product type for which those values are not specified. For example, if you choose Item as the product type but do not specify a specific item, the price will apply to all items for which a price is not specified.';
                     Style = Attention;
                     StyleExpr = LineToVerify;
                     Visible = UseCustomLookup;
@@ -133,7 +125,6 @@ page 7001 "Price List Lines"
                 field("Product No."; Rec."Product No.")
                 {
                     ApplicationArea = All;
-                    ToolTip = 'Specifies the identifier of the product. If no product is selected, the price and discount values will apply to all products of the selected product type for which those values are not specified. For example, if you choose Item as the product type but do not specify a specific item, the price will apply to all items for which a price is not specified.';
                     Style = Attention;
                     StyleExpr = LineToVerify;
                     Visible = not UseCustomLookup;
@@ -147,7 +138,6 @@ page 7001 "Price List Lines"
                 field(Description; Rec.Description)
                 {
                     ApplicationArea = All;
-                    ToolTip = 'Specifies the description of the product.';
                     Style = Attention;
                     StyleExpr = LineToVerify;
                 }
@@ -157,7 +147,6 @@ page 7001 "Price List Lines"
                     Enabled = ItemAsset;
                     Editable = ItemAsset;
                     Visible = UseCustomLookup;
-                    ToolTip = 'Specifies the item variant.';
                 }
                 field("Variant Code Lookup"; Rec."Variant Code Lookup")
                 {
@@ -165,14 +154,12 @@ page 7001 "Price List Lines"
                     Enabled = ItemAsset;
                     Editable = ItemAsset;
                     Visible = not UseCustomLookup;
-                    ToolTip = 'Specifies the item variant.';
                 }
                 field("Work Type Code"; Rec."Work Type Code")
                 {
                     ApplicationArea = All;
                     Enabled = ResourceAsset;
                     Editable = ResourceAsset;
-                    ToolTip = 'Specifies the work type code for the resource.';
                 }
                 field("Unit of Measure Code"; Rec."Unit of Measure Code")
                 {
@@ -180,7 +167,6 @@ page 7001 "Price List Lines"
                     Enabled = UOMEditable;
                     Editable = UOMEditable;
                     Visible = UseCustomLookup;
-                    ToolTip = 'Specifies the unit of measure for the product.';
                 }
                 field("Unit of Measure Code Lookup"; Rec."Unit of Measure Code Lookup")
                 {
@@ -188,12 +174,10 @@ page 7001 "Price List Lines"
                     Enabled = UOMEditable;
                     Editable = UOMEditable;
                     Visible = not UseCustomLookup;
-                    ToolTip = 'Specifies the unit of measure for the product.';
                 }
                 field("Minimum Quantity"; Rec."Minimum Quantity")
                 {
                     ApplicationArea = All;
-                    ToolTip = 'Specifies the minimum quantity of the product.';
                 }
                 field("Amount Type"; Rec."Amount Type")
                 {
@@ -201,7 +185,6 @@ page 7001 "Price List Lines"
                     Importance = Standard;
                     Visible = AmountTypeIsVisible;
                     Editable = AmountTypeIsEditable;
-                    ToolTip = 'Specifies whether the price list line defines prices, discounts, or both.';
                     trigger OnValidate()
                     begin
                         SetMandatoryAmount();
@@ -215,7 +198,6 @@ page 7001 "Price List Lines"
                     Enabled = PriceMandatory;
                     Visible = PriceVisible;
                     StyleExpr = PriceStyle;
-                    ToolTip = 'Specifies the unit price of the product.';
                 }
                 field("Cost Factor"; Rec."Cost Factor")
                 {
@@ -225,7 +207,6 @@ page 7001 "Price List Lines"
                     Enabled = PriceMandatory;
                     Visible = CostFactorVisible;
                     StyleExpr = PriceStyle;
-                    ToolTip = 'Specifies the unit cost factor for project-related prices, if you have agreed with your customer that he should pay certain item usage by cost value plus a certain percent value to cover your overhead expenses.';
                 }
                 field("Allow Line Disc."; Rec."Allow Line Disc.")
                 {
@@ -233,7 +214,6 @@ page 7001 "Price List Lines"
                     Visible = PriceVisible;
                     Enabled = PriceMandatory;
                     Editable = PriceMandatory;
-                    ToolTip = 'Specifies if a line discount will be calculated when the price is offered.';
                 }
                 field("Line Discount %"; Rec."Line Discount %")
                 {
@@ -243,7 +223,6 @@ page 7001 "Price List Lines"
                     Enabled = DiscountMandatory;
                     Editable = DiscountMandatory;
                     StyleExpr = DiscountStyle;
-                    ToolTip = 'Specifies the line discount percentage for the product.';
                 }
                 field("Allow Invoice Disc."; Rec."Allow Invoice Disc.")
                 {
@@ -251,13 +230,11 @@ page 7001 "Price List Lines"
                     Visible = PriceVisible;
                     Enabled = PriceMandatory;
                     Editable = PriceMandatory;
-                    ToolTip = 'Specifies if an invoice discount will be calculated when the price is offered.';
                 }
                 field(PriceIncludesVAT; Rec."Price Includes VAT")
                 {
                     ApplicationArea = All;
                     Visible = AllowUpdatingDefaults;
-                    ToolTip = 'Specifies the if prices include VAT.';
                 }
                 field(VATBusPostingGrPrice; Rec."VAT Bus. Posting Gr. (Price)")
                 {
@@ -335,6 +312,7 @@ page 7001 "Price List Lines"
         Rec.SetNewRecord(true);
         Rec.Validate("Asset Type", xRec."Asset Type");
         UpdateSourceType();
+        SetFieldEditableForClientTypeOdata();
     end;
 
     protected procedure GetHeader(): Boolean
@@ -484,6 +462,17 @@ page 7001 "Price List Lines"
         Rec.Validate("Source Type", SourceType);
         SetSourceNoEnabled();
         CurrPage.Update(true);
+    end;
+
+    local procedure SetFieldEditableForClientTypeOdata()
+    var
+        ClientTypeManagement: Codeunit "Client Type Management";
+    begin
+        if not (ClientTypeManagement.GetCurrentClientType() in [CLIENTTYPE::OData, CLIENTTYPE::ODataV4]) then
+            exit;
+
+        SetEditable();
+        SetMandatoryAmount();
     end;
 
     [IntegrationEvent(true, false)]

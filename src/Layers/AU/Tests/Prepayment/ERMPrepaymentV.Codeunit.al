@@ -4019,6 +4019,60 @@
 
     [Test]
     [Scope('OnPrem')]
+    procedure CompressedPrepaymentShouldNotHaveUnitOfMeasureCode()
+    var
+        Customer: Record Customer;
+        SalesHeader: Record "Sales Header";
+        SalesLine: Record "Sales Line";
+        SalesInvoiceLine: Record "Sales Invoice Line";
+        VATPostingSetup: Record "VAT Posting Setup";
+        PostedInvNo: Code[20];
+    begin
+        // [SCENARIO 622424] Compressed prepayment invoice line should not have Unit of Measure Code from sales line
+        Initialize();
+
+        // [GIVEN] Customer "C" with VAT posting setup
+        LibraryERM.FindVATPostingSetup(VATPostingSetup, VATPostingSetup."VAT Calculation Type"::"Normal VAT");
+        LibrarySales.CreateCustomer(Customer);
+        Customer.Validate("VAT Bus. Posting Group", VATPostingSetup."VAT Bus. Posting Group");
+        Customer.Modify(true);
+
+        // [GIVEN] Sales order "SO" with Compress Prepayment enabled and prepayment percentage
+        LibrarySales.CreateSalesHeader(SalesHeader, SalesHeader."Document Type"::Order, Customer."No.");
+        SalesHeader.Validate("Compress Prepayment", true);
+        SalesHeader.Validate("Prepayment %", LibraryRandom.RandIntInRange(30, 70));
+        SalesHeader.Modify(true);
+
+        // [GIVEN] Two item sales lines with Unit of Measure Code on "SO"
+        LibrarySales.CreateSalesLine(
+            SalesLine, SalesHeader, SalesLine.Type::Item,
+            LibraryInventory.CreateItemNo(), LibraryRandom.RandIntInRange(10, 15));
+        SalesLine.Validate("Unit Price", LibraryRandom.RandDec(100, 2));
+        SalesLine.Modify(true);
+
+        LibrarySales.CreateSalesLine(
+            SalesLine, SalesHeader, SalesLine.Type::Item,
+            LibraryInventory.CreateItemNo(), LibraryRandom.RandIntInRange(10, 15));
+        SalesLine.Validate("Unit Price", LibraryRandom.RandDec(100, 2));
+        SalesLine.Modify(true);
+
+        LibraryERM.UpdateSalesPrepmtAccountVATGroup(
+            SalesLine."Gen. Bus. Posting Group",
+            SalesLine."Gen. Prod. Posting Group",
+            SalesLine."VAT Prod. Posting Group");
+
+        // [WHEN] Sales prepayment invoice is posted
+        PostedInvNo := LibrarySales.PostSalesPrepaymentInvoice(SalesHeader);
+
+        // [THEN] Compressed G/L prepayment line "SIL" has blank Unit of Measure Code
+        SalesInvoiceLine.SetRange("Document No.", PostedInvNo);
+        SalesInvoiceLine.SetRange(Type, SalesInvoiceLine.Type::"G/L Account");
+        SalesInvoiceLine.FindFirst();
+        Assert.AreEqual('', SalesInvoiceLine."Unit of Measure Code", 'Unit of Measure Code should be blank on compressed prepayment line');
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
     procedure PurchasePrepmtInvLineVATPctWithDifferentVARates()
     var
         PrepmtVATPostingSetup: Record "VAT Posting Setup";

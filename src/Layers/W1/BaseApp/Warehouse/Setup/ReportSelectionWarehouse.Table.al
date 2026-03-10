@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -24,11 +24,13 @@ table 7355 "Report Selection Warehouse"
         field(2; Sequence; Code[10])
         {
             Caption = 'Sequence';
+            ToolTip = 'Specifies a number that indicates where this report is in the printing order.';
             Numeric = true;
         }
         field(3; "Report ID"; Integer)
         {
             Caption = 'Report ID';
+            ToolTip = 'Specifies the object ID of the report.';
             TableRelation = AllObjWithCaption."Object ID" where("Object Type" = const(Report));
             trigger OnValidate()
             begin
@@ -40,6 +42,7 @@ table 7355 "Report Selection Warehouse"
             CalcFormula = lookup(AllObjWithCaption."Object Caption" where("Object Type" = const(Report),
                                                                            "Object ID" = field("Report ID")));
             Caption = 'Report Caption';
+            ToolTip = 'Specifies the display name of the report.';
             Editable = false;
             FieldClass = FlowField;
         }

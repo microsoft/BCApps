@@ -168,16 +168,22 @@ page 9652 "Report Layout Selection"
                     RestoreDefaultSelection();
                 end;
             }
-
+#if not CLEAN28
             action(Customizations)
             {
                 ApplicationArea = Basic, Suite;
                 Caption = 'Custom Layouts';
                 Image = "Report";
+                ObsoleteState = Pending;
+                ObsoleteReason = 'Replaced by system page "Report Layouts". This action will be removed in a future version.';
+                ObsoleteTag = '28.0';
+#pragma warning disable AL0432
                 RunObject = Page "Custom Report Layouts";
+#pragma warning restore AL0432
                 RunPageLink = "Report ID" = field("Report ID");
                 ToolTip = 'View or edit the custom layouts that are available for a report.';
             }
+#endif
             action(RunReport)
             {
                 ApplicationArea = Basic, Suite;
@@ -234,9 +240,14 @@ page 9652 "Report Layout Selection"
                 actionref(RunReport_Promoted; RunReport)
                 {
                 }
+#if not CLEAN28
                 actionref(Customizations_Promoted; Customizations)
                 {
+                    ObsoleteState = Pending;
+                    ObsoleteReason = 'Replaced by system page "Report Layouts". This action will be removed in a future version.';
+                    ObsoleteTag = '28.0';
                 }
+#endif
             }
         }
     }
@@ -266,7 +277,9 @@ page 9652 "Report Layout Selection"
     var
         ReportLayoutSelection: Record "Report Layout Selection";
         SelectedCompany: Text[30];
+#if not CLEAN28    
         WrongCompanyErr: Label 'You cannot select a layout that is specific to another company.';
+#endif        
         DefaultLbl: Label '(Default)';
         CustomLayoutDescription: Text;
         IsInitialized: Boolean;
@@ -334,6 +347,8 @@ page 9652 "Report Layout Selection"
 
     local procedure LookupLayout()
     begin
+#if not CLEAN28
+#pragma warning disable AL0432
         case Rec.Type of
             Rec.Type::"Custom Layout":
                 if not SelectReportLayout() then
@@ -342,6 +357,11 @@ page 9652 "Report Layout Selection"
                 if not SelectBuiltInReportLayout() then
                     exit;
         end;
+#pragma warning restore AL0432
+#else
+        if not SelectBuiltInReportLayout() then
+            exit;
+#endif
 
         GetRec();
         if (Rec.Type = Rec.Type::"Custom Layout") and
@@ -442,6 +462,7 @@ page 9652 "Report Layout Selection"
         UpdateRec();
     end;
 
+#if not CLEAN28
     local procedure SelectReportLayout(): Boolean
     var
         CustomReportLayout: Record "Custom Report Layout";
@@ -451,7 +472,9 @@ page 9652 "Report Layout Selection"
         CustomReportLayout.SetRange("Report ID", Rec."Report ID");
         CustomReportLayout.FilterGroup(0);
         CustomReportLayout.SetFilter("Company Name", '%1|%2', SelectedCompany, '');
+#pragma warning disable AL0432
         OK := PAGE.RunModal(PAGE::"Custom Report Layouts", CustomReportLayout) = ACTION::LookupOK;
+#pragma warning restore AL0432
         if OK then begin
             if not (CustomReportLayout."Company Name" in [SelectedCompany, '']) then
                 Error(WrongCompanyErr);
@@ -465,6 +488,7 @@ page 9652 "Report Layout Selection"
             end;
         exit(OK);
     end;
+#endif
 
     local procedure InitializeData()
     var

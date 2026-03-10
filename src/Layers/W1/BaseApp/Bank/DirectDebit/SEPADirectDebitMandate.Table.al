@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -28,6 +28,7 @@ table 1230 "SEPA Direct Debit Mandate"
         field(1; ID; Code[35])
         {
             Caption = 'ID';
+            ToolTip = 'Specifies the ID of the direct-debit mandate.';
 
             trigger OnValidate()
             var
@@ -47,6 +48,7 @@ table 1230 "SEPA Direct Debit Mandate"
         field(2; "Customer No."; Code[20])
         {
             Caption = 'Customer No.';
+            ToolTip = 'Specifies the customer that the direct-debit mandate is activated for.';
             NotBlank = true;
             TableRelation = Customer;
 
@@ -65,6 +67,7 @@ table 1230 "SEPA Direct Debit Mandate"
         field(3; "Customer Bank Account Code"; Code[20])
         {
             Caption = 'Customer Bank Account Code';
+            ToolTip = 'Specifies customer bank account that the direct-debit mandate is activated for.';
             NotBlank = true;
             TableRelation = "Customer Bank Account".Code where("Customer No." = field("Customer No."));
         }
@@ -74,6 +77,7 @@ table 1230 "SEPA Direct Debit Mandate"
         field(4; "Valid From"; Date)
         {
             Caption = 'Valid From';
+            ToolTip = 'Specifies the date when the direct-debit mandate starts.';
 
             trigger OnValidate()
             begin
@@ -86,6 +90,7 @@ table 1230 "SEPA Direct Debit Mandate"
         field(5; "Valid To"; Date)
         {
             Caption = 'Valid To';
+            ToolTip = 'Specifies the date when the direct-debit mandate ends.';
 
             trigger OnValidate()
             begin
@@ -98,6 +103,7 @@ table 1230 "SEPA Direct Debit Mandate"
         field(6; "Date of Signature"; Date)
         {
             Caption = 'Date of Signature';
+            ToolTip = 'Specifies when the direct-debit mandate was signed by the customer.';
             NotBlank = true;
         }
         /// <summary>
@@ -106,6 +112,7 @@ table 1230 "SEPA Direct Debit Mandate"
         field(7; "Type of Payment"; Option)
         {
             Caption = 'Type of Payment';
+            ToolTip = 'Specifies if the direct-debit transaction is the first or the last according to the expected number of direct-debit transactions that you entered in the Expected Number of Debits field.';
             OptionCaption = 'OneOff,Recurrent';
             OptionMembers = OneOff,Recurrent;
 
@@ -125,6 +132,7 @@ table 1230 "SEPA Direct Debit Mandate"
         field(8; Blocked; Boolean)
         {
             Caption = 'Blocked';
+            ToolTip = 'Specifies that the related record is blocked from being posted in transactions, for example a customer that is declared insolvent or an item that is placed in quarantine.';
         }
         /// <summary>
         /// Expected total number of debits to be processed under this mandate.
@@ -132,6 +140,7 @@ table 1230 "SEPA Direct Debit Mandate"
         field(9; "Expected Number of Debits"; Integer)
         {
             Caption = 'Expected Number of Debits';
+            ToolTip = 'Specifies how many direct-debit transactions you expect to perform using the direct-debit mandate. This field is used to calculate when to enter First or Last in the Sequence Type field in the Direct Debit Collect. Entries window.';
             InitValue = 1;
             MinValue = 1;
 
@@ -150,6 +159,7 @@ table 1230 "SEPA Direct Debit Mandate"
         field(10; "Debit Counter"; Integer)
         {
             Caption = 'Debit Counter';
+            ToolTip = 'Specifies how many direct-debit transactions have been performed using the direct-debit mandate.';
             Editable = false;
 
             trigger OnValidate()
@@ -174,6 +184,7 @@ table 1230 "SEPA Direct Debit Mandate"
         field(12; Closed; Boolean)
         {
             Caption = 'Closed';
+            ToolTip = 'Specifies that the direct-debit mandate is closed, for example because the date in the Valid To field has been exceeded.';
             Editable = false;
         }
         /// <summary>
@@ -182,6 +193,7 @@ table 1230 "SEPA Direct Debit Mandate"
         field(13; "Ignore Exp. Number of Debits"; Boolean)
         {
             Caption = 'Ignore Expected Number of Debits';
+            ToolTip = 'Specifies that the direct-debit mandate will not be closed automatically when the debit counter reaches the expected number of debits.';
             DataClassification = CustomerContent;
 
             trigger OnValidate()

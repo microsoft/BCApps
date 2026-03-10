@@ -20,12 +20,10 @@ page 7312 "Put-away Template"
                 field("Code"; Rec.Code)
                 {
                     ApplicationArea = Warehouse;
-                    ToolTip = 'Specifies the code of the put-away template header.';
                 }
                 field(Description; Rec.Description)
                 {
                     ApplicationArea = Warehouse;
-                    ToolTip = 'Specifies the description of the put-away template header.';
                 }
             }
             part(Control8; "Put-away Template Subform")

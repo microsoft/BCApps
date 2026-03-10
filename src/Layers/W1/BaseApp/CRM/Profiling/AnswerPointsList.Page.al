@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -22,7 +22,6 @@ page 5173 "Answer Points List"
                 field("Rating Profile Quest. Code"; Rec."Rating Profile Quest. Code")
                 {
                     ApplicationArea = All;
-                    ToolTip = 'Specifies the code for the profile questionnaire that contains the answer you use to create your rating.';
                 }
                 field("ProfileQuestionnaireLine.Question"; ProfileQuestionnaireLine.Question())
                 {
@@ -40,7 +39,6 @@ page 5173 "Answer Points List"
                 field(Points; Rec.Points)
                 {
                     ApplicationArea = RelationshipMgmt;
-                    ToolTip = 'Specifies the number of points you have assigned to this answer.';
                 }
             }
         }

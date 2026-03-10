@@ -1929,6 +1929,7 @@ codeunit 134761 "Test Custom Reports"
         VerifyStdSalesInvoiceReportTotalsLine(Row, SubtotalTxt, SubTotalAmt);
     end;
 
+#if not CLEAN28
     [ModalPageHandler]
     [Scope('OnPrem')]
     procedure CustomReportLayoutHandler(var CustomReportLayouts: TestPage "Custom Report Layouts")
@@ -1953,6 +1954,7 @@ codeunit 134761 "Test Custom Reports"
         Assert.IsTrue(RowFound, StrSubstNo('Could not find %1 on Custom Report Layouts page', ExpectedCustomLayoutDescription));
         CustomReportLayouts.OK().Invoke();
     end;
+#endif
 
     [RequestPageHandler]
     [Scope('OnPrem')]

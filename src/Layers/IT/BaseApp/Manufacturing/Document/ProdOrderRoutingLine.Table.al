@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -36,16 +36,19 @@ table 5409 "Prod. Order Routing Line"
         field(1; "Routing No."; Code[20])
         {
             Caption = 'Routing No.';
+            ToolTip = 'Specifies the routing number.';
             TableRelation = "Routing Header";
         }
         field(3; "Routing Reference No."; Integer)
         {
             Caption = 'Routing Reference No.';
+            ToolTip = 'Specifies that the routing reference number.';
             Editable = false;
         }
         field(4; "Operation No."; Code[10])
         {
             Caption = 'Operation No.';
+            ToolTip = 'Specifies the operation number.';
             NotBlank = true;
 
             trigger OnValidate()
@@ -62,6 +65,7 @@ table 5409 "Prod. Order Routing Line"
         field(5; "Next Operation No."; Code[30])
         {
             Caption = 'Next Operation No.';
+            ToolTip = 'Specifies the next operation number.';
 
             trigger OnValidate()
             var
@@ -79,6 +83,7 @@ table 5409 "Prod. Order Routing Line"
         field(6; "Previous Operation No."; Code[30])
         {
             Caption = 'Previous Operation No.';
+            ToolTip = 'Specifies the previous operation number.';
 
             trigger OnValidate()
             begin
@@ -88,6 +93,7 @@ table 5409 "Prod. Order Routing Line"
         field(7; Type; Enum "Capacity Type")
         {
             Caption = 'Type';
+            ToolTip = 'Specifies the type of operation.';
 
             trigger OnValidate()
             begin
@@ -103,6 +109,7 @@ table 5409 "Prod. Order Routing Line"
         field(8; "No."; Code[20])
         {
             Caption = 'No.';
+            ToolTip = 'Specifies the number of the involved entry or record, according to the specified number series.';
             TableRelation = if (Type = const("Work Center")) "Work Center"
             else
             if (Type = const("Machine Center")) "Machine Center";
@@ -179,11 +186,13 @@ table 5409 "Prod. Order Routing Line"
         field(11; Description; Text[100])
         {
             Caption = 'Description';
+            ToolTip = 'Specifies the description of the operation.';
         }
         field(12; "Setup Time"; Decimal)
         {
             AutoFormatType = 0;
             Caption = 'Setup Time';
+            ToolTip = 'Specifies the setup time of the operation.';
             DecimalPlaces = 0 : 5;
             MinValue = 0;
 
@@ -196,6 +205,7 @@ table 5409 "Prod. Order Routing Line"
         {
             AutoFormatType = 0;
             Caption = 'Run Time';
+            ToolTip = 'Specifies the run time of the operation.';
             DecimalPlaces = 0 : 5;
             MinValue = 0;
 
@@ -208,6 +218,7 @@ table 5409 "Prod. Order Routing Line"
         {
             AutoFormatType = 0;
             Caption = 'Wait Time';
+            ToolTip = 'Specifies the wait time after processing.';
             DecimalPlaces = 0 : 5;
             MinValue = 0;
 
@@ -220,6 +231,7 @@ table 5409 "Prod. Order Routing Line"
         {
             AutoFormatType = 0;
             Caption = 'Move Time';
+            ToolTip = 'Specifies the move time.';
             DecimalPlaces = 0 : 5;
             MinValue = 0;
 
@@ -232,6 +244,7 @@ table 5409 "Prod. Order Routing Line"
         {
             AutoFormatType = 0;
             Caption = 'Fixed Scrap Quantity';
+            ToolTip = 'Specifies the fixed scrap quantity.';
             DecimalPlaces = 0 : 5;
             MinValue = 0;
 
@@ -244,6 +257,7 @@ table 5409 "Prod. Order Routing Line"
         {
             AutoFormatType = 0;
             Caption = 'Lot Size';
+            ToolTip = 'Specifies the lot size.';
             DecimalPlaces = 0 : 5;
 
             trigger OnValidate()
@@ -255,6 +269,7 @@ table 5409 "Prod. Order Routing Line"
         {
             AutoFormatType = 0;
             Caption = 'Scrap Factor %';
+            ToolTip = 'Specifies the scrap factor in percent.';
             DecimalPlaces = 0 : 5;
             MinValue = 0;
 
@@ -266,6 +281,7 @@ table 5409 "Prod. Order Routing Line"
         field(19; "Setup Time Unit of Meas. Code"; Code[10])
         {
             Caption = 'Setup Time Unit of Meas. Code';
+            ToolTip = 'Specifies the setup time unit of measure.';
             TableRelation = "Capacity Unit of Measure";
 
             trigger OnValidate()
@@ -276,6 +292,7 @@ table 5409 "Prod. Order Routing Line"
         field(20; "Run Time Unit of Meas. Code"; Code[10])
         {
             Caption = 'Run Time Unit of Meas. Code';
+            ToolTip = 'Specifies the run time unit of measure.';
             TableRelation = "Capacity Unit of Measure";
 
             trigger OnValidate()
@@ -286,6 +303,7 @@ table 5409 "Prod. Order Routing Line"
         field(21; "Wait Time Unit of Meas. Code"; Code[10])
         {
             Caption = 'Wait Time Unit of Meas. Code';
+            ToolTip = 'Specifies the unit of measure code that applies to the wait time.';
             TableRelation = "Capacity Unit of Measure";
 
             trigger OnValidate()
@@ -296,6 +314,7 @@ table 5409 "Prod. Order Routing Line"
         field(22; "Move Time Unit of Meas. Code"; Code[10])
         {
             Caption = 'Move Time Unit of Meas. Code';
+            ToolTip = 'Specifies the unit of measure code that applies to the move time.';
             TableRelation = "Capacity Unit of Measure";
 
             trigger OnValidate()
@@ -327,6 +346,7 @@ table 5409 "Prod. Order Routing Line"
         {
             AutoFormatType = 0;
             Caption = 'Concurrent Capacities';
+            ToolTip = 'Specifies the concurrent capacity of the operation.';
             DecimalPlaces = 0 : 5;
             InitValue = 1;
             MinValue = 0;
@@ -340,6 +360,7 @@ table 5409 "Prod. Order Routing Line"
         {
             AutoFormatType = 0;
             Caption = 'Send-Ahead Quantity';
+            ToolTip = 'Specifies the send-ahead quantity of the operation.';
             DecimalPlaces = 0 : 5;
             MinValue = 0;
 
@@ -351,6 +372,7 @@ table 5409 "Prod. Order Routing Line"
         field(34; "Routing Link Code"; Code[10])
         {
             Caption = 'Routing Link Code';
+            ToolTip = 'Specifies a routing link code.';
             TableRelation = "Routing Link";
 
             trigger OnValidate()
@@ -388,6 +410,7 @@ table 5409 "Prod. Order Routing Line"
         field(35; "Standard Task Code"; Code[10])
         {
             Caption = 'Standard Task Code';
+            ToolTip = 'Specifies the standard task code that applies to the operation.';
             TableRelation = "Standard Task";
 
             trigger OnValidate()
@@ -487,6 +510,7 @@ table 5409 "Prod. Order Routing Line"
             AutoFormatType = 2;
             AutoFormatExpression = '';
             Caption = 'Unit Cost per';
+            ToolTip = 'Specifies the unit cost for this operation if it is different than the unit cost on the work center card.';
             MinValue = 0;
 
             trigger OnValidate()
@@ -575,6 +599,7 @@ table 5409 "Prod. Order Routing Line"
         field(70; "Starting Time"; Time)
         {
             Caption = 'Starting Time';
+            ToolTip = 'Specifies the starting time of the routing line (operation).';
 
             trigger OnValidate()
             begin
@@ -584,6 +609,7 @@ table 5409 "Prod. Order Routing Line"
         field(71; "Starting Date"; Date)
         {
             Caption = 'Starting Date';
+            ToolTip = 'Specifies the starting date of the routing line (operation).';
 
             trigger OnValidate()
             begin
@@ -593,6 +619,7 @@ table 5409 "Prod. Order Routing Line"
         field(72; "Ending Time"; Time)
         {
             Caption = 'Ending Time';
+            ToolTip = 'Specifies the ending time of the routing line (operation).';
 
             trigger OnValidate()
             begin
@@ -602,6 +629,7 @@ table 5409 "Prod. Order Routing Line"
         field(73; "Ending Date"; Date)
         {
             Caption = 'Ending Date';
+            ToolTip = 'Specifies the ending date of the routing line (operation).';
 
             trigger OnValidate()
             begin
@@ -611,10 +639,12 @@ table 5409 "Prod. Order Routing Line"
         field(74; Status; Enum "Production Order Status")
         {
             Caption = 'Status';
+            ToolTip = 'Specifies the status of the routing line.';
         }
         field(75; "Prod. Order No."; Code[20])
         {
             Caption = 'Prod. Order No.';
+            ToolTip = 'Specifies the number of the related production order.';
             Editable = false;
             NotBlank = true;
             TableRelation = "Production Order"."No." where(Status = field(Status));
@@ -637,6 +667,7 @@ table 5409 "Prod. Order Routing Line"
         field(79; "Routing Status"; Enum "Prod. Order Routing Status")
         {
             Caption = 'Routing Status';
+            ToolTip = 'Specifies the status of the routing line, such as Planned, In Progress, or Finished.';
 
             trigger OnValidate()
             var
@@ -678,6 +709,7 @@ table 5409 "Prod. Order Routing Line"
             AutoFormatType = 1;
             AutoFormatExpression = '';
             Caption = 'Expected Operation Cost Amt.';
+            ToolTip = 'Specifies the total cost of operations. It is automatically calculated from the capacity need, when a production order is refreshed or replanned.';
             Editable = false;
         }
         field(91; "Expected Capacity Need"; Decimal)
@@ -693,11 +725,13 @@ table 5409 "Prod. Order Routing Line"
             AutoFormatType = 1;
             AutoFormatExpression = '';
             Caption = 'Expected Capacity Ovhd. Cost';
+            ToolTip = 'Specifies the capacity overhead. It is automatically calculated from the capacity need, when a production order is refreshed or replanned.';
             Editable = false;
         }
         field(98; "Starting Date-Time"; DateTime)
         {
             Caption = 'Starting Date-Time';
+            ToolTip = 'Specifies the starting date and the starting time, which are combined in a format called "starting date-time".';
 
             trigger OnValidate()
             begin
@@ -709,6 +743,7 @@ table 5409 "Prod. Order Routing Line"
         field(99; "Ending Date-Time"; DateTime)
         {
             Caption = 'Ending Date-Time';
+            ToolTip = 'Specifies the ending date and the ending time, which are combined in a format called "ending date-time".';
 
             trigger OnValidate()
             begin
@@ -720,29 +755,34 @@ table 5409 "Prod. Order Routing Line"
         field(100; "Schedule Manually"; Boolean)
         {
             Caption = 'Schedule Manually';
+            ToolTip = 'Specifies that the underlying capacity need is recalculated each time a change is made in the schedule of the routing.';
         }
         field(101; "Location Code"; Code[10])
         {
             AccessByPermission = TableData Location = R;
             Caption = 'Location Code';
+            ToolTip = 'Specifies the location where the machine or work center on the production order routing line operates.';
             Editable = false;
         }
         field(7301; "Open Shop Floor Bin Code"; Code[20])
         {
             AccessByPermission = TableData "Warehouse Source Filter" = R;
             Caption = 'Open Shop Floor Bin Code';
+            ToolTip = 'Specifies the corresponding bin at the machine or work center, if the location code matches the setup of that machine or work center.';
             Editable = false;
         }
         field(7302; "To-Production Bin Code"; Code[20])
         {
             AccessByPermission = TableData "Warehouse Source Filter" = R;
             Caption = 'To-Production Bin Code';
+            ToolTip = 'Specifies the bin that holds components with a flushing method, that involves a warehouse activity to bring the items to the bin.';
             Editable = false;
         }
         field(7303; "From-Production Bin Code"; Code[20])
         {
             AccessByPermission = TableData "Warehouse Source Filter" = R;
             Caption = 'From-Production Bin Code';
+            ToolTip = 'Specifies the corresponding bin at the machine or work center if the location code matches the setup of that machine or work center.';
             Editable = false;
         }
 #if not CLEANSCHEMA30

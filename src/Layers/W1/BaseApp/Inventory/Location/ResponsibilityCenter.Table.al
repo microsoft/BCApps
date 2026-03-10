@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -20,23 +20,28 @@ table 5714 "Responsibility Center"
         field(1; "Code"; Code[10])
         {
             Caption = 'Code';
+            ToolTip = 'Specifies the responsibility center code.';
             NotBlank = true;
         }
         field(2; Name; Text[100])
         {
             Caption = 'Name';
+            ToolTip = 'Specifies the name.';
         }
         field(3; Address; Text[100])
         {
             Caption = 'Address';
+            ToolTip = 'Specifies the address associated with the responsibility center.';
         }
         field(4; "Address 2"; Text[50])
         {
             Caption = 'Address 2';
+            ToolTip = 'Specifies additional address information.';
         }
         field(5; City; Text[30])
         {
             Caption = 'City';
+            ToolTip = 'Specifies the city where the responsibility center is located.';
             TableRelation = if ("Country/Region Code" = const('')) "Post Code".City
             else
             if ("Country/Region Code" = filter(<> '')) "Post Code".City where("Country/Region Code" = field("Country/Region Code"));
@@ -60,6 +65,7 @@ table 5714 "Responsibility Center"
         field(6; "Post Code"; Code[20])
         {
             Caption = 'Post Code';
+            ToolTip = 'Specifies the postal code.';
             TableRelation = if ("Country/Region Code" = const('')) "Post Code"
             else
             if ("Country/Region Code" = filter(<> '')) "Post Code" where("Country/Region Code" = field("Country/Region Code"));
@@ -83,6 +89,7 @@ table 5714 "Responsibility Center"
         field(7; "Country/Region Code"; Code[10])
         {
             Caption = 'Country/Region Code';
+            ToolTip = 'Specifies the country/region of the address.';
             TableRelation = "Country/Region";
 
             trigger OnValidate()
@@ -93,11 +100,13 @@ table 5714 "Responsibility Center"
         field(8; "Phone No."; Text[30])
         {
             Caption = 'Phone No.';
+            ToolTip = 'Specifies the responsibility center''s phone number.';
             ExtendedDatatype = PhoneNo;
         }
         field(9; "Fax No."; Text[30])
         {
             Caption = 'Fax No.';
+            ToolTip = 'Specifies the fax number of the responsibility center.';
         }
         field(10; "Name 2"; Text[50])
         {
@@ -106,11 +115,13 @@ table 5714 "Responsibility Center"
         field(11; Contact; Text[100])
         {
             Caption = 'Contact';
+            ToolTip = 'Specifies the name of the person you regularly contact.';
         }
         field(12; "Global Dimension 1 Code"; Code[20])
         {
             CaptionClass = '1,1,1';
             Caption = 'Global Dimension 1 Code';
+            ToolTip = 'Specifies the code for the global dimension that is linked to the record or entry for analysis purposes. Two global dimensions, typically for the company''s most important activities, are available on all cards, documents, reports, and lists.';
             TableRelation = "Dimension Value".Code where("Global Dimension No." = const(1),
                                                           Blocked = const(false));
 
@@ -123,6 +134,7 @@ table 5714 "Responsibility Center"
         {
             CaptionClass = '1,1,2';
             Caption = 'Global Dimension 2 Code';
+            ToolTip = 'Specifies the code for the global dimension that is linked to the record or entry for analysis purposes. Two global dimensions, typically for the company''s most important activities, are available on all cards, documents, reports, and lists.';
             TableRelation = "Dimension Value".Code where("Global Dimension No." = const(2),
                                                           Blocked = const(false));
 
@@ -134,6 +146,7 @@ table 5714 "Responsibility Center"
         field(14; "Location Code"; Code[10])
         {
             Caption = 'Location Code';
+            ToolTip = 'Specifies the location of the responsibility center.';
             TableRelation = Location where("Use As In-Transit" = const(false));
         }
         field(15; County; Text[30])
@@ -144,6 +157,7 @@ table 5714 "Responsibility Center"
         field(102; "E-Mail"; Text[80])
         {
             Caption = 'Email';
+            ToolTip = 'Specifies the email address of the responsibility center.';
             ExtendedDatatype = EMail;
 
             trigger OnValidate()
@@ -162,6 +176,7 @@ table 5714 "Responsibility Center"
 #endif
         {
             Caption = 'Home Page';
+            ToolTip = 'Specifies the responsibility center''s web site.';
             ExtendedDatatype = URL;
         }
         field(5900; "Date Filter"; Date)

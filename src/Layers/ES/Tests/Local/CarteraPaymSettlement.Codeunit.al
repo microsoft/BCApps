@@ -260,6 +260,52 @@ codeunit 147501 "Cartera Paym. Settlement"
     end;
 
     [Test]
+    [HandlerFunctions('ConfirmHandlerYes,MessageHandler,BatchSettlementRequestPageHandler')]
+    [Scope('OnPrem')]
+    procedure BatchSettlementTransfersReasonCodeToBankAccLedgEntry()
+    var
+        BankAccount: Record "Bank Account";
+        BankAccountLedgerEntry: Record "Bank Account Ledger Entry";
+        CarteraDoc: Record "Cartera Doc.";
+        PaymentOrder: Record "Payment Order";
+        PostedPaymentOrder: Record "Posted Payment Order";
+        ReasonCode: Record "Reason Code";
+        Vendor: Record Vendor;
+        PostedPaymentOrdersTestPage: TestPage "Posted Payment Orders Select.";
+    begin
+        // [SCENARIO 617927] Reason Code from Payment Order should be transferred to Bank Account Ledger Entry when using Batch Settlement
+        Initialize();
+
+        // [GIVEN] A Reason Code exists
+        LibraryERM.CreateReasonCode(ReasonCode);
+
+        // [GIVEN] A Payment Order with Reason Code is created and posted
+        PreparePaymentOrder(Vendor, BankAccount, CarteraDoc, PaymentOrder, LocalCurrencyCode);
+        PaymentOrder.Validate("Reason Code", ReasonCode.Code);
+        PaymentOrder.Modify(true);
+        PostPaymentOrderLCY(PaymentOrder);
+
+        // [GIVEN] Posted Payment Orders page is opened
+        PostedPaymentOrdersTestPage.OpenView();
+        PostedPaymentOrder.Get(PaymentOrder."No.");
+        PostedPaymentOrdersTestPage.GotoRecord(PostedPaymentOrder);
+
+        LibraryVariableStorage.Enqueue(StrSubstNo(BatchSettlementPOMsg, 1, 1, CarteraDoc."Remaining Amt. (LCY)"));
+
+        // [WHEN] Batch Settlement is invoked
+        PostedPaymentOrdersTestPage.BatchSettlement.Invoke();
+
+        // [THEN] Bank Account Ledger Entry contains the Reason Code from the Payment Order
+        BankAccountLedgerEntry.SetRange("Bank Account No.", BankAccount."No.");
+        BankAccountLedgerEntry.SetRange("Document No.", PaymentOrder."No.");
+        BankAccountLedgerEntry.FindFirst();
+        Assert.AreEqual(ReasonCode.Code, BankAccountLedgerEntry."Reason Code",
+            'Reason Code should be transferred to Bank Account Ledger Entry during Batch Settlement');
+
+        LibraryVariableStorage.AssertEmpty();
+    end;
+
+    [Test]
     [HandlerFunctions('CurrenciesPageHandler,BankAccountListPageHandler,ConfirmHandlerYes,MessageHandler,BatchSettlementRequestPageHandler')]
     [Scope('OnPrem')]
     procedure PostedPOBatchSettlementNonLCY()

@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -6,7 +6,11 @@ namespace Microsoft.Inventory.Location;
 
 using Microsoft.Finance.Dimension;
 using Microsoft.Finance.SalesTax;
+#if not CLEAN28
 using Microsoft.Inventory.Reports;
+#else
+using Microsoft.Inventory.Item;
+#endif
 using Microsoft.Inventory.Transfer;
 using Microsoft.Warehouse.Structure;
 using System.Text;
@@ -34,12 +38,10 @@ page 15 "Location List"
                 field("Code"; Rec.Code)
                 {
                     ApplicationArea = Location;
-                    ToolTip = 'Specifies a location code for the warehouse or distribution center where your items are handled and stored before being sold.';
                 }
                 field(Name; Rec.Name)
                 {
                     ApplicationArea = Location;
-                    ToolTip = 'Specifies the name or address of the location.';
                 }
             }
         }
@@ -150,6 +152,15 @@ page 15 "Location List"
                 RunObject = Report "Assign Tax Area to Location";
                 ToolTip = 'Assign a tax area to the location.';
             }
+            action(CopyLocation)
+            {
+                AccessByPermission = TableData Location = I;
+                ApplicationArea = Location;
+                Caption = 'Copy Location';
+                Image = Copy;
+                ToolTip = 'Create a copy of the current location with all related information.';
+                RunObject = Codeunit "Copy Location";
+            }
         }
         area(reporting)
         {
@@ -189,12 +200,15 @@ page 15 "Location List"
                 RunObject = Report "Transfer Receipt";
                 ToolTip = 'View the list of posted inbound transfers to the location.';
             }
+#if not CLEAN28
             action("Items with Negative Inventory")
             {
                 ApplicationArea = Location;
-                Caption = 'Items with Negative Inventory';
+                Caption = 'Items with Negative Inventory (Obsolete)';
                 Image = "Report";
-
+                ObsoleteState = Pending;
+                ObsoleteReason = 'This report has been replaced by a filter view on the Item List page. This report will be removed in a future release.';
+                ObsoleteTag = '28.0';
                 ToolTip = 'View a list of items with negative inventory.';
 
                 trigger OnAction()
@@ -205,6 +219,26 @@ page 15 "Location List"
                     ItemsWithNegativeInventory.Run();
                 end;
             }
+#else
+            action("Items with Negative Inventory")
+            {
+                ApplicationArea = Location;
+                Caption = 'Items with Negative Inventory';
+                Image = "Report";
+                ToolTip = 'View a list of items with negative inventory.';
+
+                trigger OnAction()
+                var
+                    Item: Record Item;
+                begin
+                    Item.FilterGroup(2);
+                    Item.SetRange("Location Filter", Rec.Code);
+                    Item.SetFilter(Inventory, '<%1', 0);
+                    Item.FilterGroup(0);
+                    Page.Run(Page::"Item List", Item);
+                end;
+            }
+#endif
         }
         area(Promoted)
         {
@@ -220,6 +254,9 @@ page 15 "Location List"
                 {
                 }
                 actionref(AssignTaxArea_Promoted; AssignTaxArea)
+                {
+                }
+                actionref(CopyLocation_Promoted; CopyLocation)
                 {
                 }
             }
@@ -253,10 +290,15 @@ page 15 "Location List"
             group(Category_Report)
             {
                 Caption = 'Report', Comment = 'Generated from the PromotedActionCategories property index 2.';
-
+#if not CLEAN28
                 actionref("Items with Negative Inventory_Promoted"; "Items with Negative Inventory")
                 {
+                    ObsoleteState = Pending;
+                    ObsoleteReason = 'This report has been replaced by a filter view on the Item List page. This report will be removed in a future release.';
+                    ObsoleteTag = '28.0';
                 }
+#endif
+
                 actionref("Inventory - Inbound Transfer_Promoted"; "Inventory - Inbound Transfer")
                 {
                 }

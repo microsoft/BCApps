@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -30,17 +30,14 @@ page 99000896 "Available - Transfer Lines"
                 field("Transfer-from Code"; Rec."Transfer-from Code")
                 {
                     ApplicationArea = Location;
-                    ToolTip = 'Specifies the code of the location that items are transferred from.';
                 }
                 field("Transfer-to Code"; Rec."Transfer-to Code")
                 {
                     ApplicationArea = Location;
-                    ToolTip = 'Specifies the code of the location that the items are transferred to.';
                 }
                 field("Shipment Date"; Rec."Shipment Date")
                 {
                     ApplicationArea = Location;
-                    ToolTip = 'Specifies when items on the document are shipped or were shipped. A shipment date is usually calculated from a requested delivery date plus lead time.';
                 }
                 field("Receipt Date"; Rec."Receipt Date")
                 {

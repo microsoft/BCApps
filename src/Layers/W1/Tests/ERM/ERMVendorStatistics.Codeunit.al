@@ -735,22 +735,6 @@ codeunit 134334 "ERM Vendor Statistics"
 
     [Test]
     [Scope('OnPrem')]
-    procedure MaintainSIFTIndexForVendorPaymentLCYEnagled()
-    var
-        "Key": Record "Key";
-    begin
-        // [FEATURE] [UT]
-        // [SCENARIO 292660] MaintainSIFTIndex should be enabled for Detailed Vendor Ledg. Entry key responsible for calculation Vendor.Payments (LCY)
-        Key.SetRange(TableNo, DATABASE::"Detailed Vendor Ledg. Entry");
-        Key.SetFilter(
-          Key,
-          'Vendor No.,Currency Code,Initial Entry Global Dim. 1,Initial Entry Global Dim. 2,Initial Entry Due Date,*');
-        Key.FindFirst();
-        Key.TestField(MaintainSIFTIndex, true);
-    end;
-
-    [Test]
-    [Scope('OnPrem')]
     procedure VendorStatisticsNoPlaceholderText()
     var
         Vendor: Record Vendor;

@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -26,37 +26,30 @@ page 5239 "Empl. Ledger Entries Preview"
                 field("Posting Date"; Rec."Posting Date")
                 {
                     ApplicationArea = BasicHR;
-                    ToolTip = 'Specifies the employee entry''s posting date.';
                 }
                 field("Document Type"; Rec."Document Type")
                 {
                     ApplicationArea = BasicHR;
-                    ToolTip = 'Specifies the document type that the employee entry belongs to.';
                 }
                 field("Document No."; Rec."Document No.")
                 {
                     ApplicationArea = BasicHR;
-                    ToolTip = 'Specifies the employee entry''s document number.';
                 }
                 field("Employee No."; Rec."Employee No.")
                 {
                     ApplicationArea = BasicHR;
-                    ToolTip = 'Specifies the number of the employee that the entry is linked to.';
                 }
                 field("Message to Recipient"; Rec."Message to Recipient")
                 {
                     ApplicationArea = BasicHR;
-                    ToolTip = 'Specifies the message exported to the payment file when you use the Export Payments to File function in the Payment Journal window.';
                 }
                 field(Description; Rec.Description)
                 {
                     ApplicationArea = BasicHR;
-                    ToolTip = 'Specifies a description of the employee entry.';
                 }
                 field("Payment Method Code"; Rec."Payment Method Code")
                 {
                     ApplicationArea = BasicHR;
-                    ToolTip = 'Specifies the payment method that was used to make the payment that resulted in the entry.';
                 }
                 field(OriginalAmountFCY; OriginalAmountFCY)
                 {
@@ -149,78 +142,66 @@ page 5239 "Empl. Ledger Entries Preview"
                 {
                     ApplicationArea = BasicHR;
                     Editable = false;
-                    ToolTip = 'Specifies the type of balancing account that is used for the entry.';
                     Visible = false;
                 }
                 field("Bal. Account No."; Rec."Bal. Account No.")
                 {
                     ApplicationArea = BasicHR;
                     Editable = false;
-                    ToolTip = 'Specifies the number of the balancing account that is used for the entry.';
                     Visible = false;
                 }
                 field(Open; Rec.Open)
                 {
                     ApplicationArea = BasicHR;
-                    ToolTip = 'Specifies whether the amount on the entry has been fully paid or there is still a remaining amount that must be applied to.';
                 }
                 field("Entry No."; Rec."Entry No.")
                 {
                     ApplicationArea = BasicHR;
-                    ToolTip = 'Specifies the entry number that is assigned to the entry.';
                 }
                 field("Global Dimension 1 Code"; Rec."Global Dimension 1 Code")
                 {
                     ApplicationArea = Dimensions;
-                    ToolTip = 'Specifies the code for the global dimension that is linked to the record or entry for analysis purposes. Two global dimensions, typically for the company''s most important activities, are available on all cards, documents, reports, and lists.';
                     Visible = Dim1Visible;
                 }
                 field("Global Dimension 2 Code"; Rec."Global Dimension 2 Code")
                 {
                     ApplicationArea = Dimensions;
-                    ToolTip = 'Specifies the code for the global dimension that is linked to the record or entry for analysis purposes. Two global dimensions, typically for the company''s most important activities, are available on all cards, documents, reports, and lists.';
                     Visible = Dim2Visible;
                 }
                 field("Shortcut Dimension 3 Code"; Rec."Shortcut Dimension 3 Code")
                 {
                     ApplicationArea = Dimensions;
                     Editable = false;
-                    ToolTip = 'Specifies the code for Shortcut Dimension 3, which is one of dimension codes that you set up in the General Ledger Setup window.';
                     Visible = Dim3Visible;
                 }
                 field("Shortcut Dimension 4 Code"; Rec."Shortcut Dimension 4 Code")
                 {
                     ApplicationArea = Dimensions;
                     Editable = false;
-                    ToolTip = 'Specifies the code for Shortcut Dimension 4, which is one of dimension codes that you set up in the General Ledger Setup window.';
                     Visible = Dim4Visible;
                 }
                 field("Shortcut Dimension 5 Code"; Rec."Shortcut Dimension 5 Code")
                 {
                     ApplicationArea = Dimensions;
                     Editable = false;
-                    ToolTip = 'Specifies the code for Shortcut Dimension 5, which is one of dimension codes that you set up in the General Ledger Setup window.';
                     Visible = Dim5Visible;
                 }
                 field("Shortcut Dimension 6 Code"; Rec."Shortcut Dimension 6 Code")
                 {
                     ApplicationArea = Dimensions;
                     Editable = false;
-                    ToolTip = 'Specifies the code for Shortcut Dimension 6, which is one of dimension codes that you set up in the General Ledger Setup window.';
                     Visible = Dim6Visible;
                 }
                 field("Shortcut Dimension 7 Code"; Rec."Shortcut Dimension 7 Code")
                 {
                     ApplicationArea = Dimensions;
                     Editable = false;
-                    ToolTip = 'Specifies the code for Shortcut Dimension 7, which is one of dimension codes that you set up in the General Ledger Setup window.';
                     Visible = Dim7Visible;
                 }
                 field("Shortcut Dimension 8 Code"; Rec."Shortcut Dimension 8 Code")
                 {
                     ApplicationArea = Dimensions;
                     Editable = false;
-                    ToolTip = 'Specifies the code for Shortcut Dimension 8, which is one of dimension codes that you set up in the General Ledger Setup window.';
                     Visible = Dim8Visible;
                 }
             }

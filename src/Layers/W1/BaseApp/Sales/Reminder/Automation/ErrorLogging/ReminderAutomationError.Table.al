@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -28,6 +28,7 @@ table 6754 "Reminder Automation Error"
         /// </summary>
         field(2; ReminderActionId; Code[50])
         {
+            ToolTip = 'Specifies the id of the reminder action that caused the error.';
         }
         /// <summary>
         /// Contains the full error message text.
@@ -46,12 +47,14 @@ table 6754 "Reminder Automation Error"
         /// </summary>
         field(5; "Error Text Short"; Text[1024])
         {
+            ToolTip = 'Specifies the error message. Invoke the error message to see the full error message.';
         }
         /// <summary>
         /// Specifies the automation run ID during which this error occurred.
         /// </summary>
         field(6; "Run Id"; Integer)
         {
+            ToolTip = 'Specifies the id of the reminder action job that caused the error.';
         }
         /// <summary>
         /// Specifies the type of error that occurred during automation processing.

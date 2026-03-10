@@ -4,12 +4,12 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Pricing.Calculation;
 
-using Microsoft.Foundation.Company;
 using Microsoft.Pricing.Asset;
 using Microsoft.Pricing.PriceList;
 using Microsoft.Sales.Pricing;
 using Microsoft.Sales.Setup;
 using System.Environment;
+using System.Environment.Configuration;
 using System.Telemetry;
 
 codeunit 7001 "Price Calculation Mgt."
@@ -29,7 +29,6 @@ codeunit 7001 "Price Calculation Mgt."
         ExtendedPriceFeatureTelemetryNameLbl: Label 'New Sales Pricing', Locked = true;
         UsedCustomLookupTxt: Label 'Used custom lookup in table %1.', Comment = '%1 = table id', Locked = true;
         NotImplementedMethodErr: Label 'Method %1 does not have active implementations for %2 price type.', Comment = '%1 - method name, %2 - price type name';
-        FeatureIsOffErr: Label 'Extended price calculation feature is not enabled.';
 
     procedure RefreshSetup() Updated: Boolean;
     var
@@ -109,11 +108,15 @@ codeunit 7001 "Price Calculation Mgt."
         DtldPriceCalcSetup: Record "Dtld. Price Calculation Setup";
         PriceCalculationDtldSetup: Codeunit "Price Calculation Dtld. Setup";
     begin
-        PriceCalculationSetup.Method := PriceCalculationSetup.Method::"Lowest Price";
-        if not IsExtendedPriceCalculationEnabled() then
-            PriceCalculationSetup.Implementation := PriceCalculationSetup.Implementation::"Business Central (Version 15.0)"
-        else
+        if not IsExtendedPriceCalculationEnabled() then begin
+            PriceCalculationSetup.Method := PriceCalculationSetup.Method::"Lowest Price";
+#if not CLEAN27
+            PriceCalculationSetup.Implementation := PriceCalculationSetup.Implementation::"Business Central (Version 15.0)";
+#else
             PriceCalculationSetup.Implementation := PriceCalculationSetup.Implementation::"Business Central (Version 16.0)";
+#endif
+            exit(true);
+        end;
 
         if not LineWithPrice.SetAssetSourceForSetup(DtldPriceCalcSetup) then
             exit(false);
@@ -143,10 +146,9 @@ codeunit 7001 "Price Calculation Mgt."
 
     procedure IsExtendedPriceCalculationEnabled() FeatureEnabled: Boolean;
     var
-        CompanyInfo: Record "Company Information";
+        FeatureManagementFacade: Codeunit "Feature Management Facade";
     begin
-        CompanyInfo.Get();
-        FeatureEnabled := CompanyInfo."Pricing Implementation" = CompanyInfo."Pricing Implementation"::"Extended Pricing";
+        FeatureEnabled := FeatureManagementFacade.IsEnabled(ExtendedPriceFeatureIdTok);
         OnIsExtendedPriceCalculationEnabled(FeatureEnabled);
     end;
 
@@ -158,12 +160,6 @@ codeunit 7001 "Price Calculation Mgt."
     procedure GetFeatureTelemetryName(): Text[50]
     begin
         exit(ExtendedPriceFeatureTelemetryNameLbl);
-    end;
-
-    procedure TestIsEnabled()
-    begin
-        if not IsExtendedPriceCalculationEnabled() then
-            Error(FeatureIsOffErr);
     end;
 
     internal procedure FeatureCustomizedLookupUsage(TableId: Integer)

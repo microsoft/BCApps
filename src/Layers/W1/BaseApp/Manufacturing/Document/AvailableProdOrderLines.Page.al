@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -30,22 +30,18 @@ page 99000897 "Available - Prod. Order Lines"
                 field("Prod. Order No."; Rec."Prod. Order No.")
                 {
                     ApplicationArea = Manufacturing;
-                    ToolTip = 'Specifies the number of the related production order.';
                 }
                 field(Status; Rec.Status)
                 {
                     ApplicationArea = Manufacturing;
-                    ToolTip = 'Specifies a value that is copied from the corresponding field on the production order header.';
                 }
                 field("Location Code"; Rec."Location Code")
                 {
                     ApplicationArea = Location;
-                    ToolTip = 'Specifies the location code, if the produced items should be stored in a specific location.';
                 }
                 field("Due Date"; Rec."Due Date")
                 {
                     ApplicationArea = Manufacturing;
-                    ToolTip = 'Specifies the date when the produced item must be available. The date is copied from the header of the production order.';
                 }
                 field("Quantity (Base)"; Rec."Quantity (Base)")
                 {

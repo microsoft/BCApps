@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -22,7 +22,6 @@ page 5719 "Sub. Conditions"
                 field(Condition; Rec.Condition)
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the condition for item substitution.';
                 }
             }
         }

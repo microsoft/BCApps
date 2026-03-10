@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -48,12 +48,14 @@ table 5995 "Service Cr.Memo Line"
         field(2; "Customer No."; Code[20])
         {
             Caption = 'Customer No.';
+            ToolTip = 'Specifies the number of the customer to receive the service on the credit memo.';
             Editable = false;
             TableRelation = Customer;
         }
         field(3; "Document No."; Code[20])
         {
             Caption = 'Document No.';
+            ToolTip = 'Specifies the number of the credit memo.';
             TableRelation = "Service Cr.Memo Header"."No.";
         }
         field(4; "Line No."; Integer)
@@ -63,10 +65,12 @@ table 5995 "Service Cr.Memo Line"
         field(5; Type; Enum "Service Line Type")
         {
             Caption = 'Type';
+            ToolTip = 'Specifies the type of the credit memo line.';
         }
         field(6; "No."; Code[20])
         {
             Caption = 'No.';
+            ToolTip = 'Specifies the number of the involved entry or record, according to the specified number series.';
             TableRelation = if (Type = const(" ")) "Standard Text"
             else
             if (Type = const(Item)) Item
@@ -80,6 +84,7 @@ table 5995 "Service Cr.Memo Line"
         field(7; "Location Code"; Code[10])
         {
             Caption = 'Location Code';
+            ToolTip = 'Specifies the location, such as warehouse or distribution center, in which the credit memo line was registered.';
             TableRelation = Location;
         }
         field(8; "Posting Group"; Code[20])
@@ -90,19 +95,23 @@ table 5995 "Service Cr.Memo Line"
         field(11; Description; Text[100])
         {
             Caption = 'Description';
+            ToolTip = 'Specifies the name of an item, resource, cost, general ledger account, or some descriptive text on the service credit memo line.';
         }
         field(12; "Description 2"; Text[50])
         {
             Caption = 'Description 2';
+            ToolTip = 'Specifies information in addition to the description.';
         }
         field(13; "Unit of Measure"; Text[50])
         {
             Caption = 'Unit of Measure';
+            ToolTip = 'Specifies the name of the item or resource''s unit of measure, such as piece or hour.';
         }
         field(15; Quantity; Decimal)
         {
             AutoFormatType = 0;
             Caption = 'Quantity';
+            ToolTip = 'Specifies the number of item units, resource hours, general ledger account payments, or cost specified on the credit memo line.';
             DecimalPlaces = 0 : 5;
         }
         field(22; "Unit Price"; Decimal)
@@ -111,6 +120,7 @@ table 5995 "Service Cr.Memo Line"
             AutoFormatType = 2;
             CaptionClass = GetCaptionClass(FieldNo("Unit Price"));
             Caption = 'Unit Price';
+            ToolTip = 'Specifies the price of one unit of the item or resource. You can enter a price manually or have it entered according to the Price/Profit Calculation field on the related card.';
             Editable = true;
         }
         field(23; "Unit Cost (LCY)"; Decimal)
@@ -130,6 +140,7 @@ table 5995 "Service Cr.Memo Line"
         {
             AutoFormatType = 0;
             Caption = 'Line Discount %';
+            ToolTip = 'Specifies the discount percentage that is granted for the item on the line.';
             DecimalPlaces = 0 : 5;
             MaxValue = 100;
             MinValue = 0;
@@ -139,6 +150,7 @@ table 5995 "Service Cr.Memo Line"
             AutoFormatExpression = GetCurrencyCode();
             AutoFormatType = 1;
             Caption = 'Line Discount Amount';
+            ToolTip = 'Specifies the discount amount that is granted for the item on the line.';
             Editable = false;
         }
         field(29; Amount; Decimal)
@@ -146,6 +158,7 @@ table 5995 "Service Cr.Memo Line"
             AutoFormatExpression = GetCurrencyCode();
             AutoFormatType = 1;
             Caption = 'Amount';
+            ToolTip = 'Specifies the total net amount on the service line.';
             Editable = false;
         }
         field(30; "Amount Including VAT"; Decimal)
@@ -153,11 +166,13 @@ table 5995 "Service Cr.Memo Line"
             AutoFormatExpression = GetCurrencyCode();
             AutoFormatType = 1;
             Caption = 'Amount Including VAT';
+            ToolTip = 'Specifies the net amount, including VAT, for this line.';
             Editable = false;
         }
         field(32; "Allow Invoice Disc."; Boolean)
         {
             Caption = 'Allow Invoice Disc.';
+            ToolTip = 'Specifies if the invoice line is included when the invoice discount is calculated.';
             InitValue = true;
         }
         field(34; "Gross Weight"; Decimal)
@@ -188,12 +203,14 @@ table 5995 "Service Cr.Memo Line"
         {
             CaptionClass = '1,2,1';
             Caption = 'Shortcut Dimension 1 Code';
+            ToolTip = 'Specifies the code for Shortcut Dimension 1, which is one of two global dimension codes that you set up in the General Ledger Setup window.';
             TableRelation = "Dimension Value".Code where("Global Dimension No." = const(1));
         }
         field(41; "Shortcut Dimension 2 Code"; Code[20])
         {
             CaptionClass = '1,2,2';
             Caption = 'Shortcut Dimension 2 Code';
+            ToolTip = 'Specifies the code for Shortcut Dimension 2, which is one of two global dimension codes that you set up in the General Ledger Setup window.';
             TableRelation = "Dimension Value".Code where("Global Dimension No." = const(2));
         }
         field(42; "Customer Price Group"; Code[10])
@@ -220,11 +237,13 @@ table 5995 "Service Cr.Memo Line"
         field(63; "Shipment No."; Code[20])
         {
             Caption = 'Shipment No.';
+            ToolTip = 'Specifies the number of the posted shipment for this credit memo line.';
             Editable = false;
         }
         field(68; "Bill-to Customer No."; Code[20])
         {
             Caption = 'Bill-to Customer No.';
+            ToolTip = 'Specifies the number of the customer that you send or sent the invoice or credit memo to.';
             Editable = false;
             TableRelation = Customer;
         }
@@ -233,15 +252,18 @@ table 5995 "Service Cr.Memo Line"
             AutoFormatExpression = GetCurrencyCode();
             AutoFormatType = 1;
             Caption = 'Inv. Discount Amount';
+            ToolTip = 'Specifies the total calculated invoice discount amount for the line.';
         }
         field(74; "Gen. Bus. Posting Group"; Code[20])
         {
             Caption = 'Gen. Bus. Posting Group';
+            ToolTip = 'Specifies the vendor''s or customer''s trade type to link transactions made for this business partner with the appropriate general ledger account according to the general posting setup.';
             TableRelation = "Gen. Business Posting Group";
         }
         field(75; "Gen. Prod. Posting Group"; Code[20])
         {
             Caption = 'Gen. Prod. Posting Group';
+            ToolTip = 'Specifies the item''s product type to link transactions made for this item with the appropriate general ledger account according to the general posting setup.';
             TableRelation = "Gen. Product Posting Group";
         }
         field(77; "VAT Calculation Type"; Enum "Tax Calculation Type")
@@ -283,15 +305,18 @@ table 5995 "Service Cr.Memo Line"
         field(85; "Tax Area Code"; Code[20])
         {
             Caption = 'Tax Area Code';
+            ToolTip = 'Specifies the tax area that is used to calculate and post sales tax.';
             TableRelation = "Tax Area";
         }
         field(86; "Tax Liable"; Boolean)
         {
             Caption = 'Tax Liable';
+            ToolTip = 'Specifies that items, resources, or costs on the current credit memo line are liable to sales tax.';
         }
         field(87; "Tax Group Code"; Code[20])
         {
             Caption = 'Tax Group Code';
+            ToolTip = 'Specifies the tax group that is used to calculate and post sales tax.';
             TableRelation = "Tax Group";
         }
         field(88; "VAT Clause Code"; Code[20])
@@ -302,11 +327,13 @@ table 5995 "Service Cr.Memo Line"
         field(89; "VAT Bus. Posting Group"; Code[20])
         {
             Caption = 'VAT Bus. Posting Group';
+            ToolTip = 'Specifies the VAT specification of the involved customer or vendor to link transactions made for this record with the appropriate general ledger account according to the VAT posting setup.';
             TableRelation = "VAT Business Posting Group";
         }
         field(90; "VAT Prod. Posting Group"; Code[20])
         {
             Caption = 'VAT Prod. Posting Group';
+            ToolTip = 'Specifies the VAT specification of the involved item or resource to link transactions made for this record with the appropriate general ledger account according to the VAT posting setup.';
             TableRelation = "VAT Product Posting Group";
         }
         field(99; "VAT Base Amount"; Decimal)
@@ -332,6 +359,7 @@ table 5995 "Service Cr.Memo Line"
             AutoFormatType = 1;
             CaptionClass = GetCaptionClass(FieldNo("Line Amount"));
             Caption = 'Line Amount';
+            ToolTip = 'Specifies the net amount, excluding any invoice discount amount, that must be paid for products on the line.';
         }
         field(104; "VAT Difference"; Decimal)
         {
@@ -371,11 +399,13 @@ table 5995 "Service Cr.Memo Line"
         field(5402; "Variant Code"; Code[10])
         {
             Caption = 'Variant Code';
+            ToolTip = 'Specifies the variant of the item on the line.';
             TableRelation = if (Type = const(Item)) "Item Variant".Code where("Item No." = field("No."));
         }
         field(5403; "Bin Code"; Code[20])
         {
             Caption = 'Bin Code';
+            ToolTip = 'Specifies the bin where the items are picked or put away.';
             TableRelation = Bin.Code where("Location Code" = field("Location Code"));
         }
         field(5404; "Qty. per Unit of Measure"; Decimal)
@@ -389,6 +419,7 @@ table 5995 "Service Cr.Memo Line"
         field(5407; "Unit of Measure Code"; Code[10])
         {
             Caption = 'Unit of Measure Code';
+            ToolTip = 'Specifies how each unit of the item or resource is measured, such as in pieces or hours. By default, the value in the Base Unit of Measure field on the item or resource card is inserted.';
             TableRelation = if (Type = const(Item)) "Item Unit of Measure".Code where("Item No." = field("No."))
             else
             "Unit of Measure";
@@ -413,12 +444,14 @@ table 5995 "Service Cr.Memo Line"
         field(5710; Nonstock; Boolean)
         {
             Caption = 'Catalog';
+            ToolTip = 'Specifies that the item on the credit memo line is a catalog item.';
             Editable = false;
         }
         field(5725; "Item Reference No."; Code[50])
         {
             AccessByPermission = TableData "Item Reference" = R;
             Caption = 'Item Reference No.';
+            ToolTip = 'Specifies the referenced item number.';
         }
         field(5726; "Item Reference Unit of Measure"; Code[10])
         {
@@ -437,16 +470,19 @@ table 5995 "Service Cr.Memo Line"
         {
             AccessByPermission = TableData Item = R;
             Caption = 'Appl.-from Item Entry';
+            ToolTip = 'Specifies the number of the item ledger entry that the document or journal line is applied from.';
         }
         field(5902; "Service Item No."; Code[20])
         {
             Caption = 'Service Item No.';
+            ToolTip = 'Specifies the number of the service item linked to this credit memo line.';
             TableRelation = "Service Item"."No.";
         }
         field(5903; "Appl.-to Service Entry"; Integer)
         {
             AccessByPermission = TableData Item = R;
             Caption = 'Appl.-to Service Entry';
+            ToolTip = 'Specifies the number of the service ledger entry applied to this service credit memo.';
             Editable = false;
         }
         field(5905; "Service Item Serial No."; Code[50])
@@ -511,6 +547,7 @@ table 5995 "Service Cr.Memo Line"
         field(5936; "Contract No."; Code[20])
         {
             Caption = 'Contract No.';
+            ToolTip = 'Specifies the number of the contract associated with the posted service credit memo.';
             Editable = false;
             TableRelation = "Service Contract Header"."Contract No." where("Contract Type" = const(Contract));
         }
@@ -580,6 +617,7 @@ table 5995 "Service Cr.Memo Line"
         field(6608; "Return Reason Code"; Code[10])
         {
             Caption = 'Return Reason Code';
+            ToolTip = 'Specifies the code explaining why the item was returned.';
             TableRelation = "Return Reason";
         }
         field(7000; "Price Calculation Method"; Enum "Price Calculation Method")

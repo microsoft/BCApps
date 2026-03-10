@@ -25,7 +25,7 @@ codeunit 6471 "Serv. VAT Rate Change Conv."
 #pragma warning restore AA0074
 #pragma warning restore AA0470
 
-    [EventSubscriber(ObjectType::Codeunit, Codeunit::"VAT Rate Change Conversion", 'OnBeforeFinishConvert', '', false, false)]
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"VAT Rate Change Conversion", 'OnBeforeFinishConvert', '', true, false)]
     local procedure OnBeforeFinishConvert(var VATRateChangeSetup: Record "VAT Rate Change Setup"; var ProgressWindow: Dialog; var sender: Codeunit "VAT Rate Change Conversion")
     begin
         VATRateChangeConversionMgt := sender;
@@ -406,7 +406,7 @@ codeunit 6471 "Serv. VAT Rate Change Conv."
 
     // Page "VAT Rate Change Log Entries"
 
-    [EventSubscriber(ObjectType::Page, Page::"VAT Rate Change Log Entries", 'OnAfterShow', '', false, false)]
+    [EventSubscriber(ObjectType::Page, Page::"VAT Rate Change Log Entries", 'OnAfterShow', '', true, false)]
     local procedure OnAfterShow(VATRateChangeLogEntry: Record "VAT Rate Change Log Entry"; var IsHandled: Boolean; RecRef: RecordRef)
     var
         ServiceHeader: Record "Service Header";
@@ -421,7 +421,7 @@ codeunit 6471 "Serv. VAT Rate Change Conv."
         end;
     end;
 
-    [EventSubscriber(ObjectType::Codeunit, Codeunit::"VAT Rate Change Conversion", 'OnAfterAreTablesSelected', '', false, false)]
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"VAT Rate Change Conversion", 'OnAfterAreTablesSelected', '', true, false)]
     local procedure OnAfterAreTablesSelected(var VATRateChangeSetup: Record "VAT Rate Change Setup"; var Result: Boolean)
     begin
         if (VATRateChangeSetup."Update Service Docs." <> VATRateChangeSetup."Update Service Docs."::No) or

@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -30,74 +30,62 @@ page 5342 "CRM Contact List"
                     ApplicationArea = Suite;
                     Caption = 'Name';
                     StyleExpr = FirstColumnStyle;
-                    ToolTip = 'Specifies data from a corresponding field in a Dataverse entity. For more information about Dataverse, see Dataverse Help Center.';
                 }
                 field(Address1_Line1; Rec.Address1_Line1)
                 {
                     ApplicationArea = Suite;
                     Caption = 'Street 1';
-                    ToolTip = 'Specifies data from a corresponding field in a Dataverse entity. For more information about Dataverse, see Dataverse Help Center.';
                 }
                 field(Address1_Line2; Rec.Address1_Line2)
                 {
                     ApplicationArea = Suite;
                     Caption = 'Street 2';
-                    ToolTip = 'Specifies data from a corresponding field in a Dataverse entity. For more information about Dataverse, see Dataverse Help Center.';
                 }
                 field(Address1_PostalCode; Rec.Address1_PostalCode)
                 {
                     ApplicationArea = Suite;
                     Caption = 'ZIP/Postal Code';
-                    ToolTip = 'Specifies data from a corresponding field in a Dataverse entity. For more information about Dataverse, see Dataverse Help Center.';
                 }
                 field(Address1_City; Rec.Address1_City)
                 {
                     ApplicationArea = Suite;
                     Caption = 'City';
-                    ToolTip = 'Specifies data from a corresponding field in a Dataverse entity. For more information about Dataverse, see Dataverse Help Center.';
                 }
                 field(Address1_Country; Rec.Address1_Country)
                 {
                     ApplicationArea = Suite;
                     Caption = 'Country/Region';
-                    ToolTip = 'Specifies data from a corresponding field in a Dataverse entity. For more information about Dataverse, see Dataverse Help Center.';
                 }
                 field(EMailAddress1; Rec.EMailAddress1)
                 {
                     ApplicationArea = Suite;
                     Caption = 'Email Address';
                     ExtendedDatatype = EMail;
-                    ToolTip = 'Specifies the email address.';
                 }
                 field(Fax; Rec.Fax)
                 {
                     ApplicationArea = Suite;
                     Caption = 'Fax';
-                    ToolTip = 'Specifies data from a corresponding field in a Dataverse entity. For more information about Dataverse, see Dataverse Help Center.';
                 }
                 field(WebSiteUrl; Rec.WebSiteUrl)
                 {
                     ApplicationArea = Suite;
                     Caption = 'Website URL';
-                    ToolTip = 'Specifies data from a corresponding field in a Dataverse entity. For more information about Dataverse, see Dataverse Help Center.';
                 }
                 field(MobilePhone; Rec.MobilePhone)
                 {
                     ApplicationArea = Suite;
                     Caption = 'Mobile Phone';
-                    ToolTip = 'Specifies data from a corresponding field in a Dataverse entity. For more information about Dataverse, see Dataverse Help Center.';
                 }
                 field(Pager; Rec.Pager)
                 {
                     ApplicationArea = Suite;
                     Caption = 'Pager';
-                    ToolTip = 'Specifies data from a corresponding field in a Dataverse entity. For more information about Dataverse, see Dataverse Help Center.';
                 }
                 field(Telephone1; Rec.Telephone1)
                 {
                     ApplicationArea = Suite;
                     Caption = 'Telephone';
-                    ToolTip = 'Specifies data from a corresponding field in a Dataverse entity. For more information about Dataverse, see Dataverse Help Center.';
                 }
                 field(Coupled; Coupled)
                 {

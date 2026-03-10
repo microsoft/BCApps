@@ -784,7 +784,7 @@ codeunit 134909 "ERM Reminder/Fin.Charge Memo"
         // [WHEN] Confirm "see a list" question
         // [THEN] Page Issued Reminders List" opened with filtered reminders "1" and "5" only
         Assert.AreEqual(
-          StrSubstNo('%1|%2', FirstIssuedReminderNo, LastIssuedReminderNo),
+          StrSubstNo('%1|%2', LastIssuedReminderNo, FirstIssuedReminderNo),
           LibraryVariableStorage.DequeueText(),
           'Unexpected issued reminders');
 
@@ -1092,7 +1092,7 @@ codeunit 134909 "ERM Reminder/Fin.Charge Memo"
         // [WHEN] Confirm "see a list" question
         // [THEN] Page Issued Reminders List" opened with filtered fin. charge memos "1" and "5" only
         Assert.AreEqual(
-          StrSubstNo('%1|%2', FirstIssuedFinChMemoNo, LastIssuedFinChMemoNo),
+          StrSubstNo('%1|%2', LastIssuedFinChMemoNo, FirstIssuedFinChMemoNo),
           LibraryVariableStorage.DequeueText(),
           'Unexpected issued reminders');
 

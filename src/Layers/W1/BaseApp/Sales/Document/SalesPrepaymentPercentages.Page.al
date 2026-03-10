@@ -123,7 +123,6 @@ page 664 "Sales Prepayment Percentages"
                 field("Sales Type"; Rec."Sales Type")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the sales type of the prepayment percentage.';
 
                     trigger OnValidate()
                     begin
@@ -134,27 +133,22 @@ page 664 "Sales Prepayment Percentages"
                 {
                     ApplicationArea = Basic, Suite;
                     Editable = SalesCodeEditable;
-                    ToolTip = 'Specifies the code that belongs to the sales type.';
                 }
                 field("Item No."; Rec."Item No.")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the number of the item for which the prepayment percentage is valid.';
                 }
                 field("Starting Date"; Rec."Starting Date")
                 {
                     ApplicationArea = Prepayments;
-                    ToolTip = 'Specifies the date from which the prepayment percentage is valid.';
                 }
                 field("Ending Date"; Rec."Ending Date")
                 {
                     ApplicationArea = Prepayments;
-                    ToolTip = 'Specifies the date to which the prepayment percentage is valid.';
                 }
                 field("Prepayment %"; Rec."Prepayment %")
                 {
                     ApplicationArea = Prepayments;
-                    ToolTip = 'Specifies the prepayment percentage to use to calculate the prepayment for sales.';
                 }
             }
         }

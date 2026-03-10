@@ -29,7 +29,6 @@ table 7412 "Excise Tax Type"
         field(4; Enabled; Boolean)
         {
             Caption = 'Enabled';
-            InitValue = true;
         }
         field(5; "Report Caption"; Text[50])
         {
@@ -52,14 +51,13 @@ table 7412 "Excise Tax Type"
     begin
         ExciseTaxEntryPermission.SetRange("Excise Tax Type Code", Code);
         if not ExciseTaxEntryPermission.IsEmpty() then
-            Error(CannotDeleteTaxTypeWithRateConfigurationsErr, Code, ExciseTaxEntryPermission.TableCaption);
+            Error(CannotDeleteTaxTypeWithRateConfigurationsErr, Code, ExciseTaxEntryPermission.TableCaption());
 
         ExciseTaxItemFARate.SetRange("Excise Tax Type Code", Code);
         if not ExciseTaxItemFARate.IsEmpty() then
-            Error(CannotDeleteTaxTypeWithRateConfigurationsErr, Code, ExciseTaxItemFARate.TableCaption);
+            Error(CannotDeleteTaxTypeWithRateConfigurationsErr, Code, ExciseTaxItemFARate.TableCaption());
     end;
 
     var
         CannotDeleteTaxTypeWithRateConfigurationsErr: Label 'Cannot delete tax type %1 because it has rate %2 entries.', Comment = '%1 = Excise Tax Type Code, %2 = Table Caption';
-
 }

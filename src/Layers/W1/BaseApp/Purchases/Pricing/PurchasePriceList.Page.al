@@ -146,7 +146,6 @@ page 7018 "Purchase Price List"
                             ApplicationArea = All;
                             Importance = Additional;
                             Editable = PriceListIsEditable;
-                            ToolTip = 'Specifies the if prices include VAT.';
 
                             trigger OnValidate()
                             begin

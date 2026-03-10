@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -16,11 +16,13 @@ table 5063 "Interaction Group"
         field(1; "Code"; Code[10])
         {
             Caption = 'Code';
+            ToolTip = 'Specifies the code for the interaction group.';
             NotBlank = true;
         }
         field(2; Description; Text[100])
         {
             Caption = 'Description';
+            ToolTip = 'Specifies the description of the interaction group.';
         }
         field(3; "Date Filter"; Date)
         {
@@ -34,6 +36,7 @@ table 5063 "Interaction Group"
                                                                Date = field("Date Filter"),
                                                                Postponed = const(false)));
             Caption = 'No. of Interactions';
+            ToolTip = 'Specifies the number of interactions that have been created using this interaction group. This field is not editable.';
             Editable = false;
             FieldClass = FlowField;
         }

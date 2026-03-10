@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -19,22 +19,27 @@ table 1610 "Office Add-in"
         field(1; "Application ID"; Guid)
         {
             Caption = 'Application ID';
+            ToolTip = 'Specifies the application that is being added.';
         }
         field(2; Name; Text[50])
         {
             Caption = 'Name';
+            ToolTip = 'Specifies the name of the add-in.';
         }
         field(3; Description; Text[250])
         {
             Caption = 'Description';
+            ToolTip = 'Specifies a description of the record.';
         }
         field(5; Version; Text[20])
         {
             Caption = 'Version';
+            ToolTip = 'Specifies the version of the record.';
         }
         field(6; "Manifest Codeunit"; Integer)
         {
             Caption = 'Manifest Codeunit';
+            ToolTip = 'Specifies the codeunit where the Office add-in is defined for deployment.';
         }
         field(10; "Deployment Date"; Date)
         {
@@ -55,6 +60,7 @@ table 1610 "Office Add-in"
         field(15; Deploy; Boolean)
         {
             Caption = 'Deploy';
+            ToolTip = 'Specifies whether the add-in will be deployed.';
             Description = 'Specifies whether to deploy this add-in.';
             InitValue = true;
         }

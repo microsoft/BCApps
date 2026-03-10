@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -24,22 +24,18 @@ page 5929 "Fault Reason Codes"
                 field("Code"; Rec.Code)
                 {
                     ApplicationArea = Service;
-                    ToolTip = 'Specifies a code for the fault reason.';
                 }
                 field(Description; Rec.Description)
                 {
                     ApplicationArea = Service;
-                    ToolTip = 'Specifies a description of the fault reason code.';
                 }
                 field("Exclude Warranty Discount"; Rec."Exclude Warranty Discount")
                 {
                     ApplicationArea = Service;
-                    ToolTip = 'Specifies that you want to exclude a warranty discount for the service item assigned this fault reason code.';
                 }
                 field("Exclude Contract Discount"; Rec."Exclude Contract Discount")
                 {
                     ApplicationArea = Service;
-                    ToolTip = 'Specifies that you want to exclude a contract/service discount for the service item assigned this fault reason code.';
                 }
             }
         }

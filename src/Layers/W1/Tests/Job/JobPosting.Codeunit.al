@@ -17,6 +17,7 @@ codeunit 136309 "Job Posting"
         LibraryERM: Codeunit "Library - ERM";
         LibraryInventory: Codeunit "Library - Inventory";
         LibraryItemTracking: Codeunit "Library - Item Tracking";
+        LibraryPriceCalculation: Codeunit "Library - Price Calculation";
         LibraryPurchase: Codeunit "Library - Purchase";
         LibraryResource: Codeunit "Library - Resource";
         LibrarySales: Codeunit "Library - Sales";
@@ -2380,47 +2381,67 @@ codeunit 136309 "Job Posting"
     procedure DirectUnitCostFromResourceInJobJnlLineWhenQuantityChanged()
     var
         Currency: Record Currency;
+        PriceCalculationSetup: Record "Price Calculation Setup";
+        PriceListLine: Record "Price List Line";
         Resource: Record Resource;
         Job: Record Job;
         JobTask: Record "Job Task";
         JobJournalLine: Record "Job Journal Line";
-        CurrExchRate: Record "Currency Exchange Rate";
         ExchRate: Decimal;
         UnitCostLCY: Decimal;
+        UnitCostFCY: Decimal;
         DirectUnitCostLCY: Decimal;
     begin
         // [SCENARIO 608945] Direct Unit Cost (LCY) field in Project Journal displays the Value Converted to Foreign Currency if Project has Foreign Currency.
         Initialize();
 
-        // [GIVEN] Initilize Exchange Rate and Unit Cost values.
         ExchRate := LibraryRandom.RandIntInRange(2, 5);
         UnitCostLCY := LibraryRandom.RandDec(100, 2);
+        UnitCostFCY := UnitCostLCY * ExchRate;
 
-        // [GIVEN] Create Currency and set exchange rate.
+        // [GIVEN] Enable new prices expirience.
+        LibraryPriceCalculation.EnableExtendedPriceCalculation();
+        PriceCalculationSetup.DeleteAll();
+        LibraryPriceCalculation.AddSetup(
+            PriceCalculationSetup,
+            "Price Calculation Method"::"Lowest Price",
+            "Price Type"::Purchase,
+            "Price Asset Type"::" ",
+            "Price Calculation Handler"::"Business Central (Version 16.0)",
+            true);
+
+        // [GIVEN] Currency "FCY", set exchange rate 1 "LCY" = 1.5 "FCY".
         Currency.Get(LibraryERM.CreateCurrencyWithExchangeRate(WorkDate(), ExchRate, ExchRate));
 
         // [GIVEN] Job with Currency Code = "FCY".
         LibraryJob.CreateJob(Job);
         Job.Validate("Currency Code", Currency.Code);
         Job.Modify(true);
-
-        // [GIVEN] Create Job Task.
         LibraryJob.CreateJobTask(Job, JobTask);
 
-        // [GIVEN] Resource "R", set "Unit Cost", "Direct Unit Cost".
+        // [GIVEN] Create Resource.
         Resource.Get(LibraryJob.CreateConsumable("Job Planning Line Type"::Resource));
-        Resource.Validate("Unit Cost", UnitCostLCY);
-        Resource.Validate("Direct Unit Cost", UnitCostLCY);
-        Resource.Modify(true);
+
+        // [GIVEN] Create purchase price for the job and resource:
+        LibraryPriceCalculation.CreatePurchPriceLine(
+             PriceListLine,
+             '',
+             "Price Source Type"::Job,
+             Job."No.",
+             "Price Asset Type"::Resource,
+             Resource."No.");
+        PriceListLine.Validate("Currency Code", Currency.Code);
+        PriceListLine.Validate("Direct Unit Cost", UnitCostFCY);
+        PriceListLine.Validate("Unit Cost", UnitCostFCY);
+        PriceListLine.Status := PriceListLine.Status::Active;
+        PriceListLine.Modify();
 
         // [WHEN] Create job journal line, select the job and resource "R".
         LibraryJob.CreateJobJournalLineForType("Job Line Type"::" ", JobJournalLine.Type::Resource, JobTask, JobJournalLine);
         JobJournalLine.Validate("No.", Resource."No.");
-        JobJournalLine.Validate(Quantity, LibraryRandom.RandInt(5));
+        DirectUnitCostLCY := JobJournalLine."Direct Unit Cost (LCY)";
+        JobJournalLine.Validate(Quantity, LibraryRandom.RandIntInRange(2, 5));
         JobJournalLine.Modify(true);
-
-        // [THEN] Direct Unit Cost (LCY) is converted to FCY.
-        DirectUnitCostLCY := CurrExchRate.ExchangeAmtFCYToLCY(JobJournalLine."Posting Date", JobJournalLine."Currency Code", UnitCostLCY, JobJournalLine."Currency Factor");
 
         // [THEN] Direct Unit Cost (LCY) should not be changed when quantity is changed.
         Assert.AreEqual(

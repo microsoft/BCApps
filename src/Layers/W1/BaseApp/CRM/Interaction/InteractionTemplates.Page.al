@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -27,22 +27,18 @@ page 5075 "Interaction Templates"
                 field("Code"; Rec.Code)
                 {
                     ApplicationArea = All;
-                    ToolTip = 'Specifies the code for the interaction template.';
                 }
                 field("Interaction Group Code"; Rec."Interaction Group Code")
                 {
                     ApplicationArea = All;
-                    ToolTip = 'Specifies the code for the interaction group to which the interaction template belongs.';
                 }
                 field(Description; Rec.Description)
                 {
                     ApplicationArea = All;
-                    ToolTip = 'Specifies a description of the interaction template.';
                 }
                 field("Word Template Code"; Rec."Word Template Code")
                 {
                     ApplicationArea = All;
-                    ToolTip = 'Specifies the Word template to use when you create communications for an interaction. The Word template will create either a document or be used as the body text in an email.';
 
                     trigger OnValidate()
                     begin
@@ -52,7 +48,6 @@ page 5075 "Interaction Templates"
                 field("Wizard Action"; Rec."Wizard Action")
                 {
                     ApplicationArea = RelationshipMgmt;
-                    ToolTip = 'Specifies the action to perform when you click Next in the first page of the Create Interaction guide. Blank results in no action. Open will fill out the template and open the email editor where you can edit the text if needed. Merge will fill out the template and send it immediately.';
                 }
                 field("Correspondence Type (Default)"; Rec."Correspondence Type (Default)")
                 {
@@ -96,7 +91,6 @@ page 5075 "Interaction Templates"
                 field("Ignore Contact Corres. Type"; Rec."Ignore Contact Corres. Type")
                 {
                     ApplicationArea = RelationshipMgmt;
-                    ToolTip = 'Specifies that the correspondence type that you select in the Correspondence Type (Default) field should be used.';
                 }
                 field("Unit Cost (LCY)"; Rec."Unit Cost (LCY)")
                 {
@@ -111,27 +105,22 @@ page 5075 "Interaction Templates"
                 field("Information Flow"; Rec."Information Flow")
                 {
                     ApplicationArea = RelationshipMgmt;
-                    ToolTip = 'Specifies the direction of the information flow for the interaction template. There are two options: Outbound and Inbound. Select Outbound if the information is usually sent by your company. Select Inbound if the information is usually received by your company.';
                 }
                 field("Initiated By"; Rec."Initiated By")
                 {
                     ApplicationArea = RelationshipMgmt;
-                    ToolTip = 'Specifies who usually initiates interactions created using the interaction template. There are two options: Us and Them. Select Us if the interaction is usually initiated by your company. Select Them if the information is usually initiated by your contacts.';
                 }
                 field("Campaign No."; Rec."Campaign No.")
                 {
                     ApplicationArea = RelationshipMgmt;
-                    ToolTip = 'Specifies the number of the campaign for which the interaction template has been created.';
                 }
                 field("Campaign Target"; Rec."Campaign Target")
                 {
                     ApplicationArea = RelationshipMgmt;
-                    ToolTip = 'Specifies that the contact who is involved in the interaction is the target of a campaign. This is used to measure the response rate of a campaign.';
                 }
                 field("Campaign Response"; Rec."Campaign Response")
                 {
                     ApplicationArea = RelationshipMgmt;
-                    ToolTip = 'Specifies that the interaction template is being used to record interactions that are a response to a campaign. For example, coupons that are sent in as a response to a campaign.';
                 }
             }
         }

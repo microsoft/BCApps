@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -35,48 +35,38 @@ page 5772 "Warehouse Pick Summary"
                 {
                     field("Source Document"; Rec."Source Document")
                     {
-                        ToolTip = 'Specifies the type of document that the line relates to.';
                     }
                     field("Source Type"; Rec."Source Type")
                     {
-                        ToolTip = 'Specifies the type of source document to which the warehouse activity line relates, such as sales, purchase, and production.';
                         Visible = false;
                     }
                     field("Source No."; Rec."Source No.")
                     {
-                        ToolTip = 'Specifies the number of the source document that the entry originates from.';
                     }
                     field("Source Line No."; Rec."Source Line No.")
                     {
-                        ToolTip = 'Specifies the line number of the source document';
                     }
                     field("Source Subline No."; Rec."Source Subline No.")
                     {
-                        ToolTip = 'Specifies the subline number of the source document';
                         Visible = false;
                     }
                     field("Location Code"; Rec."Location Code")
                     {
-                        ToolTip = 'Specifies the code for the location where the pick activity occurs.';
                         Visible = false;
                     }
                     field("Item No."; Rec."Item No.")
                     {
-                        ToolTip = 'Specifies the item number of the item to be picked.';
                     }
                     field("Variant Code"; Rec."Variant Code")
                     {
-                        ToolTip = 'Specifies the variant of the item on the line.';
                         Visible = false;
                     }
                     field("Unit of Measure Code"; Rec."Unit of Measure Code")
                     {
-                        ToolTip = 'Specifies how each unit of the item or resource is measured, such as in pieces or hours. By default, the value in the Base Unit of Measure field on the item or resource card is inserted.';
                         Visible = false;
                     }
                     field("Qty. to Handle"; Rec."Qty. to Handle")
                     {
-                        ToolTip = 'Specifies how many units to handle in this warehouse activity.';
                         Visible = false;
                     }
                     field("Qty. to Handle (Base)"; Rec."Qty. to Handle (Base)")
@@ -85,7 +75,6 @@ page 5772 "Warehouse Pick Summary"
                     }
                     field("Qty. Handled"; Rec."Qty. Handled")
                     {
-                        ToolTip = 'Specifies the number of items on the line that have been handled in this warehouse activity.';
                         Visible = false;
                     }
                     field("Qty. Handled (Base)"; Rec."Qty. Handled (Base)")

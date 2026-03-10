@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -36,27 +36,22 @@ page 1060 "Payment Services"
                     ApplicationArea = Basic, Suite;
                     AssistEdit = false;
                     Editable = false;
-                    ToolTip = 'Specifies the name of the payment service.';
                 }
                 field(Description; Rec.Description)
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the description of the payment service.';
                 }
                 field(Enabled; Rec.Enabled)
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies that the payment service is enabled.';
                 }
                 field("Always Include on Documents"; Rec."Always Include on Documents")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies that the payment service is always available in the Payment Service field on outgoing sales documents.';
                 }
                 field("Terms of Service"; Rec."Terms of Service")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies a link to the Terms of Service page for the payment service.';
 
                     trigger OnDrillDown()
                     begin

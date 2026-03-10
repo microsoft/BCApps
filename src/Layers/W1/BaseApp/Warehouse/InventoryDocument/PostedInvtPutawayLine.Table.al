@@ -28,10 +28,12 @@ table 7341 "Posted Invt. Put-away Line"
         field(2; "No."; Code[20])
         {
             Caption = 'No.';
+            ToolTip = 'Specifies the number of the involved entry or record, according to the specified number series.';
         }
         field(3; "Line No."; Integer)
         {
             Caption = 'Line No.';
+            ToolTip = 'Specifies the number of the posted inventory put-away line.';
         }
         field(4; "Source Type"; Integer)
         {
@@ -46,6 +48,7 @@ table 7341 "Posted Invt. Put-away Line"
         field(6; "Source No."; Code[20])
         {
             Caption = 'Source No.';
+            ToolTip = 'Specifies the number of the source document that the entry originates from.';
         }
         field(7; "Source Line No."; Integer)
         {
@@ -61,15 +64,18 @@ table 7341 "Posted Invt. Put-away Line"
         {
             BlankZero = true;
             Caption = 'Source Document';
+            ToolTip = 'Specifies the type of document that the line relates to.';
         }
         field(11; "Location Code"; Code[10])
         {
             Caption = 'Location Code';
+            ToolTip = 'Specifies the code for the location where the items were put away.';
             TableRelation = Location;
         }
         field(12; "Shelf No."; Code[10])
         {
             Caption = 'Shelf No.';
+            ToolTip = 'Specifies the shelf number of the item for informational use.';
         }
         field(13; "Sorting Sequence No."; Integer)
         {
@@ -78,37 +84,44 @@ table 7341 "Posted Invt. Put-away Line"
         field(14; "Item No."; Code[20])
         {
             Caption = 'Item No.';
+            ToolTip = 'Specifies the number of the item that was put away.';
             TableRelation = Item;
         }
         field(15; "Variant Code"; Code[10])
         {
             Caption = 'Variant Code';
+            ToolTip = 'Specifies the variant of the item on the line.';
             TableRelation = "Item Variant".Code where("Item No." = field("Item No."));
         }
         field(16; "Unit of Measure Code"; Code[10])
         {
             Caption = 'Unit of Measure Code';
+            ToolTip = 'Specifies how each unit of the item or resource is measured, such as in pieces or hours. By default, the value in the Base Unit of Measure field on the item or resource card is inserted.';
             TableRelation = "Item Unit of Measure".Code where("Item No." = field("Item No."));
         }
         field(17; "Qty. per Unit of Measure"; Decimal)
         {
             AutoFormatType = 0;
             Caption = 'Qty. per Unit of Measure';
+            ToolTip = 'Specifies the quantity per unit of measure of the item that was put away.';
             DecimalPlaces = 0 : 5;
             InitValue = 1;
         }
         field(18; Description; Text[100])
         {
             Caption = 'Description';
+            ToolTip = 'Specifies a description of the item that was put away.';
         }
         field(19; "Description 2"; Text[50])
         {
             Caption = 'Description 2';
+            ToolTip = 'Specifies information in addition to the description.';
         }
         field(20; Quantity; Decimal)
         {
             AutoFormatType = 0;
             Caption = 'Quantity';
+            ToolTip = 'Specifies the quantity of the item that was put away.';
             DecimalPlaces = 0 : 5;
 
             trigger OnValidate()
@@ -130,14 +143,17 @@ table 7341 "Posted Invt. Put-away Line"
         field(34; "Due Date"; Date)
         {
             Caption = 'Due Date';
+            ToolTip = 'Specifies the date when the warehouse activity must be completed.';
         }
         field(39; "Destination Type"; enum "Warehouse Destination Type")
         {
             Caption = 'Destination Type';
+            ToolTip = 'Specifies the type of destination associated with the posted inventory put-away line.';
         }
         field(40; "Destination No."; Code[20])
         {
             Caption = 'Destination No.';
+            ToolTip = 'Specifies the number or code of the customer or vendor that the line is linked to.';
             TableRelation = if ("Destination Type" = const(Vendor)) Vendor
             else
             if ("Destination Type" = const(Customer)) Customer
@@ -171,6 +187,7 @@ table 7341 "Posted Invt. Put-away Line"
         field(6500; "Serial No."; Code[50])
         {
             Caption = 'Serial No.';
+            ToolTip = 'Specifies the serial number for the item that was put away.';
 
             trigger OnLookup()
             begin
@@ -180,6 +197,7 @@ table 7341 "Posted Invt. Put-away Line"
         field(6501; "Lot No."; Code[50])
         {
             Caption = 'Lot No.';
+            ToolTip = 'Specifies the lot number for the item that was put away.';
 
             trigger OnLookup()
             begin
@@ -193,10 +211,12 @@ table 7341 "Posted Invt. Put-away Line"
         field(6503; "Expiration Date"; Date)
         {
             Caption = 'Expiration Date';
+            ToolTip = 'Specifies the expiration date for the item that was put away.';
         }
         field(6515; "Package No."; Code[50])
         {
             Caption = 'Package No.';
+            ToolTip = 'Specifies the package number for the item that was put away.';
             CaptionClass = '6,1';
 
             trigger OnLookup()
@@ -207,6 +227,7 @@ table 7341 "Posted Invt. Put-away Line"
         field(7300; "Bin Code"; Code[20])
         {
             Caption = 'Bin Code';
+            ToolTip = 'Specifies the bin where the items are picked or put away.';
             TableRelation = if ("Action Type" = filter(<> Take)) Bin.Code where("Location Code" = field("Location Code"),
                                                                               "Zone Code" = field("Zone Code"))
             else
@@ -227,11 +248,13 @@ table 7341 "Posted Invt. Put-away Line"
         field(7305; "Action Type"; Enum "Warehouse Action Type")
         {
             Caption = 'Action Type';
+            ToolTip = 'Specifies the action type for the inventory put-away line.';
             Editable = false;
         }
         field(7312; "Special Equipment Code"; Code[10])
         {
             Caption = 'Special Equipment Code';
+            ToolTip = 'Specifies the special equipment code for the item that was put away.';
             TableRelation = "Special Equipment";
         }
     }

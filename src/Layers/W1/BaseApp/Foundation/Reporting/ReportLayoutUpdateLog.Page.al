@@ -62,12 +62,16 @@ page 9656 "Report Layout Update Log"
     {
         area(processing)
         {
+#if not CLEAN28
             action(Edit)
             {
                 ApplicationArea = Basic, Suite;
                 Caption = 'Edit';
                 Image = Edit;
                 ToolTip = 'Edit a report layout.';
+                ObsoleteState = Pending;
+                ObsoleteReason = 'Replaced by system page "Report Layouts". This action will be removed in a future version.';
+                ObsoleteTag = '28.0';
 
                 trigger OnAction()
                 var
@@ -76,19 +80,26 @@ page 9656 "Report Layout Update Log"
                     CustomReportLayout.SetFilter("Report ID", Format(Rec."Report ID"));
                     CustomReportLayout.SetFilter(Description, Rec."Layout Description");
                     if CustomReportLayout.FindFirst() then
+#pragma warning disable AL0432
                         PAGE.Run(PAGE::"Custom Report Layouts", CustomReportLayout);
+#pragma warning restore AL0432
                 end;
             }
+#endif
         }
         area(Promoted)
         {
             group(Category_Process)
             {
                 Caption = 'Process';
-
+#if not CLEAN28
                 actionref(Edit_Promoted; Edit)
                 {
+                    ObsoleteState = Pending;
+                    ObsoleteReason = 'Replaced by system page "Report Layouts". This action will be removed in a future version.';
+                    ObsoleteTag = '28.0';
                 }
+#endif
             }
         }
     }

@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -26,17 +26,20 @@ table 5091 "Sales Cycle Stage"
         {
             BlankZero = true;
             Caption = 'Stage';
+            ToolTip = 'Specifies the number of the stage within the sales cycle.';
             MinValue = 1;
             NotBlank = true;
         }
         field(3; Description; Text[100])
         {
             Caption = 'Description';
+            ToolTip = 'Specifies the description of the sales cycle stage.';
         }
         field(4; "Completed %"; Decimal)
         {
             AutoFormatType = 0;
             Caption = 'Completed %';
+            ToolTip = 'Specifies the percentage of the sales cycle that has been completed when the opportunity reaches this stage.';
             DecimalPlaces = 0 : 0;
             MaxValue = 100;
             MinValue = 0;
@@ -44,15 +47,18 @@ table 5091 "Sales Cycle Stage"
         field(5; "Activity Code"; Code[10])
         {
             Caption = 'Activity Code';
+            ToolTip = 'Specifies the code of the activity linked to this sales cycle stage (if there is one).';
             TableRelation = Activity;
         }
         field(6; "Quote Required"; Boolean)
         {
             Caption = 'Quote Required';
+            ToolTip = 'Specifies that a quote is required at this stage before the opportunity can move to the next stage in the sales cycle.';
         }
         field(7; "Allow Skip"; Boolean)
         {
             Caption = 'Allow Skip';
+            ToolTip = 'Specifies that it is possible to skip this stage and move the opportunity to the next stage.';
         }
         field(8; Comment; Boolean)
         {
@@ -60,6 +66,7 @@ table 5091 "Sales Cycle Stage"
                                                                   "No." = field("Sales Cycle Code"),
                                                                   "Sub No." = field(Stage)));
             Caption = 'Comment';
+            ToolTip = 'Specifies that comments exist for this sales cycle stage.';
             Editable = false;
             FieldClass = FlowField;
         }
@@ -70,6 +77,7 @@ table 5091 "Sales Cycle Stage"
                                                            "Sales Cycle Stage" = field(Stage),
                                                            "Estimated Close Date" = field("Date Filter")));
             Caption = 'No. of Opportunities';
+            ToolTip = 'Specifies the number of opportunities that are currently at this stage in the sales cycle. This field is not editable.';
             Editable = false;
             FieldClass = FlowField;
         }
@@ -105,6 +113,7 @@ table 5091 "Sales Cycle Stage"
                                                                          "Sales Cycle Stage" = field(Stage),
                                                                          "Estimated Close Date" = field("Date Filter")));
             Caption = 'Average No. of Days';
+            ToolTip = 'Specifies the average number of days the opportunities have remained at this stage of the sales cycle. This field is not editable.';
             DecimalPlaces = 0 : 2;
             Editable = false;
             FieldClass = FlowField;
@@ -117,11 +126,13 @@ table 5091 "Sales Cycle Stage"
         field(14; "Date Formula"; DateFormula)
         {
             Caption = 'Date Formula';
+            ToolTip = 'Specifies how dates for planned activities are calculated when you run the Opportunity - Details report.';
         }
         field(15; "Chances of Success %"; Decimal)
         {
             AutoFormatType = 0;
             Caption = 'Chances of Success %';
+            ToolTip = 'Specifies the percentage of success that has been achieved when the opportunity reaches this stage.';
             MaxValue = 100;
             MinValue = 0;
         }

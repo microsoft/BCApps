@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -26,17 +26,14 @@ page 5333 "CRM Skipped Records"
                 field("Table ID"; Rec."Table ID")
                 {
                     ApplicationArea = Suite;
-                    ToolTip = 'Specifies the ID of the table that holds the record.';
                 }
                 field("Table Name"; Rec."Table Name")
                 {
                     ApplicationArea = Suite;
-                    ToolTip = 'Specifies the name of the table that holds the record.';
                 }
                 field(Description; Rec.Description)
                 {
                     ApplicationArea = Suite;
-                    ToolTip = 'Specifies the description of the table that holds the record.';
 
                     trigger OnDrillDown()
                     begin
@@ -46,7 +43,6 @@ page 5333 "CRM Skipped Records"
                 field("Record Exists"; Rec."Record Exists")
                 {
                     ApplicationArea = Suite;
-                    ToolTip = 'Specifies if the coupled record exists in Business Central.';
                 }
                 field("Int. Description"; Rec."Int. Description")
                 {
@@ -63,17 +59,14 @@ page 5333 "CRM Skipped Records"
                 {
                     ApplicationArea = Suite;
                     Caption = 'Coupled Record Exists';
-                    ToolTip = 'Specifies if a coupled entity exists in Dynamics 365 Sales';
                 }
                 field("Error Message"; Rec."Error Message")
                 {
                     ApplicationArea = Suite;
-                    ToolTip = 'Specifies why the record was could not be synchronized.';
                 }
                 field("Failed On"; Rec."Failed On")
                 {
                     ApplicationArea = Suite;
-                    ToolTip = 'Specifies when the synchronization failed.';
                 }
             }
         }

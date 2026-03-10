@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -24,27 +24,22 @@ page 5328 "CRM Coupling Fields"
                 field("Field Name"; Rec."Field Name")
                 {
                     ApplicationArea = Suite;
-                    ToolTip = 'Specifies the field''s name in Dynamics 365 Sales.';
                 }
                 field(Value; Rec.Value)
                 {
                     ApplicationArea = Suite;
-                    ToolTip = 'Specifies the field''s name in Dynamics 365 Sales.';
                 }
                 field("Integration Value"; Rec."Integration Value")
                 {
                     ApplicationArea = Suite;
-                    ToolTip = 'Specifies the field''s value in Dynamics 365 Sales.';
                 }
                 field(Direction; Rec.Direction)
                 {
                     ApplicationArea = Suite;
-                    ToolTip = 'Specifies the direction of data integration.';
                 }
                 field("Validate Field"; Rec."Validate Field")
                 {
                     ApplicationArea = Suite;
-                    ToolTip = 'Specifies whether to validate the field''s value in Business Central.';
                 }
             }
         }

@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -25,34 +25,28 @@ page 6501 "Item Tracking Entries"
                 field(Positive; Rec.Positive)
                 {
                     ApplicationArea = ItemTracking;
-                    ToolTip = 'Specifies whether the item in the item ledge entry is positive.';
                 }
                 field("Document No."; Rec."Document No.")
                 {
                     ApplicationArea = ItemTracking;
-                    ToolTip = 'Specifies the document number on the entry. The document is the voucher that the entry was based on, for example, a receipt.';
                 }
                 field("Item No."; Rec."Item No.")
                 {
                     ApplicationArea = ItemTracking;
-                    ToolTip = 'Specifies the number of the item in the entry.';
                 }
                 field("Variant Code"; Rec."Variant Code")
                 {
                     ApplicationArea = Planning;
-                    ToolTip = 'Specifies the variant of the item on the line.';
                     Visible = false;
                 }
                 field(Description; Rec.Description)
                 {
                     ApplicationArea = ItemTracking;
-                    ToolTip = 'Specifies a description of the entry.';
                     Visible = false;
                 }
                 field("Serial No."; Rec."Serial No.")
                 {
                     ApplicationArea = ItemTracking;
-                    ToolTip = 'Specifies a serial number if the posted item carries such a number.';
 
                     trigger OnDrillDown()
                     var
@@ -65,7 +59,6 @@ page 6501 "Item Tracking Entries"
                 field("Lot No."; Rec."Lot No.")
                 {
                     ApplicationArea = ItemTracking;
-                    ToolTip = 'Specifies a lot number if the posted item carries such a number.';
 
                     trigger OnDrillDown()
                     var
@@ -78,7 +71,6 @@ page 6501 "Item Tracking Entries"
                 field("Package No."; Rec."Package No.")
                 {
                     ApplicationArea = ItemTracking;
-                    ToolTip = 'Specifies a package number if the posted item carries such a number.';
 
                     trigger OnDrillDown()
                     var
@@ -91,38 +83,31 @@ page 6501 "Item Tracking Entries"
                 field("Location Code"; Rec."Location Code")
                 {
                     ApplicationArea = ItemTracking;
-                    ToolTip = 'Specifies the code for the location that the entry is linked to.';
                 }
                 field(Quantity; Rec.Quantity)
                 {
                     ApplicationArea = ItemTracking;
-                    ToolTip = 'Specifies the number of units of the item in the item entry.';
                 }
                 field("Remaining Quantity"; Rec."Remaining Quantity")
                 {
                     ApplicationArea = ItemTracking;
-                    ToolTip = 'Specifies the quantity in the Quantity field that remains to be processed.';
                 }
                 field("Source Type"; Rec."Source Type")
                 {
                     ApplicationArea = ItemTracking;
-                    ToolTip = 'Specifies the source type that applies to the source number, shown in the Source No. field.';
                     Visible = false;
                 }
                 field("Warranty Date"; Rec."Warranty Date")
                 {
                     ApplicationArea = ItemTracking;
-                    ToolTip = 'Specifies the last day of warranty for the item on the line.';
                 }
                 field("Expiration Date"; Rec."Expiration Date")
                 {
                     ApplicationArea = ItemTracking;
-                    ToolTip = 'Specifies the last date that the item on the line can be used.';
                 }
                 field("Entry No."; Rec."Entry No.")
                 {
                     ApplicationArea = ItemTracking;
-                    ToolTip = 'Specifies the number of the entry, as assigned from the specified number series when the entry was created.';
                 }
             }
         }

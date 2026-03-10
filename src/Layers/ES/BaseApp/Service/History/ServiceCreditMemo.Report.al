@@ -476,7 +476,7 @@ report 5912 "Service - Credit Memo"
                                 MoreLines := Next(-1) <> 0;
                             if not MoreLines then
                                 CurrReport.Break();
-                            SetRange("Line No.", 0, "Line No.");
+                            SetFilter("Line No.", '<=%1', "Line No.");
 
                             TotalAmount := 0;
                             TotalAmountInclVAT := 0;

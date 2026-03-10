@@ -83,5 +83,40 @@
     "codeunitId": 139315,
     "codeunitName": "CF Forecast Wizard Tests",
     "method": "VerifyWizardNotExitedWhenConfirmIsNo"
+  },
+  {
+    "codeunitId": 134557,
+    "codeunitName": "ERM Cash Flow UnitTests",
+    "method": "CashFlowForecastCardGLBudgetToDateEarlierThanFromDate"
+  },
+  {
+    "codeunitId": 134557,
+    "codeunitName": "ERM Cash Flow UnitTests",
+    "method": "CashFlowForecastCardManualPaymentsToDateEarlierThanFromDate"
+  },
+  {
+    "codeunitId": 134558,
+    "codeunitName": "ERM Cash Flow Pages",
+    "method": "CashFlowJournalScenario"
+  },
+  {
+    "codeunitId": 134559,
+    "codeunitName": "ERM Cash Flow Navigate",
+    "method": "InsertNewCashFlowManualExpenses"
+  },
+  {
+    "codeunitId": 134559,
+    "codeunitName": "ERM Cash Flow Navigate",
+    "method": "InsertNewCashFlowManualExpensesWithoutAccount"
+  },
+  {
+    "codeunitId": 134559,
+    "codeunitName": "ERM Cash Flow Navigate",
+    "method": "InsertNewCashFlowManualRevenues"
+  },
+  {
+    "codeunitId": 134559,
+    "codeunitName": "ERM Cash Flow Navigate",
+    "method": "InsertNewCashFlowManualRevenuesWithoutAccount"
   }
 ]

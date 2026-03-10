@@ -1,4 +1,5 @@
 namespace Microsoft.CRM.Outlook;
+using Microsoft.CRM.Contact;
 
 codeunit 130481 "Contact Sync Test"
 {
@@ -6,483 +7,638 @@ codeunit 130481 "Contact Sync Test"
     TestPermissions = Disabled;
 
     var
-        TempSyncQueue: Record "Contact Sync Queue" temporary;
-        Assert: Codeunit Assert;
-    // Sync Direction Constants
-    procedure SyncDirectionToBC(): Integer
-    begin
-        exit(1);
-    end;
+        IsInitialized: Boolean;
+        ExpectedMessageText: Text;
+        ActualMessageText: Text;
+        MessageHandlerCalled: Boolean;
+        ContactsSyncedMsg: Label '%1 contacts have been synchronized successfully.', Comment = '%1 = Number of synced contacts';
 
-    procedure SyncDirectionToM365(): Integer
+    [Test]
+    [HandlerFunctions('SyncSuccessMessageHandler')]
+    procedure TestProcessBidirectionalSync_SyncToBCWithValidContacts()
+    var
+        TempSyncQueue: Record "Contact Sync Queue" temporary;
+        ContactSyncProcessor: Codeunit "Contact Sync Processor";
+        AccessToken: SecretText;
+        FolderId: Text;
+        SyncDirection: Enum "ContactSyncDirection";
     begin
-        exit(0);
+        // [SCENARIO] Process bidirectional sync with valid contacts to sync to Business Central
+        Initialize();
+
+        // [GIVEN] A temporary sync queue with contacts to sync to BC
+        CreateSampleSyncQueueForBC(TempSyncQueue, 3);
+        FolderId := 'TestFolder123';
+        SyncDirection := SyncDirection::"Full Sync";
+        ExpectedMessageText := StrSubstNo(ContactsSyncedMsg, 3);
+
+        // [WHEN] ProcessBidirectionalSync is called
+        ContactSyncProcessor.ProcessBidirectionalSync(TempSyncQueue, AccessToken, FolderId, SyncDirection);
+
+        // [THEN] The message handler should have been called
+        AssertIsTrue(MessageHandlerCalled, 'Message handler should have been called');
+
+        // [THEN] Contacts should be processed
+        TempSyncQueue.Reset();
+        TempSyncQueue.SetRange("Sync Status", TempSyncQueue."Sync Status"::Processed);
+        AssertAreEqual(3, TempSyncQueue.Count(), 'All 3 contacts should be processed');
     end;
 
     [Test]
-    procedure TestProcessBidirectionalSyncWithEmptyQueue()
+    procedure TestProcessBidirectionalSync_SuppressedUI_SyncToBCWithValidContacts()
     var
-        contactSyncProcessor: Codeunit "Contact Sync Processor";
-        accessToken: SecretText;
+        TempSyncQueue: Record "Contact Sync Queue" temporary;
+        ContactSyncProcessor: Codeunit "Contact Sync Processor";
+        AccessToken: SecretText;
+        FolderId: Text;
+        SyncDirection: Enum "ContactSyncDirection";
     begin
-        // [GIVEN] Empty sync queue
+        // [SCENARIO] Process bidirectional sync with UI suppressed - no message handlers needed
+        Initialize();
+
+        // [GIVEN] A temporary sync queue with contacts to sync to BC
+        CreateSampleSyncQueueForBC(TempSyncQueue, 3);
+        FolderId := 'TestFolder123';
+        SyncDirection := SyncDirection::"Full Sync";
+
+        // [GIVEN] UI is suppressed
+        ContactSyncProcessor.SetSuppressUI(true);
+
+        // [WHEN] ProcessBidirectionalSync is called
+        ContactSyncProcessor.ProcessBidirectionalSync(TempSyncQueue, AccessToken, FolderId, SyncDirection);
+
+        // [THEN] Contacts should be processed without UI prompts
+        TempSyncQueue.Reset();
+        TempSyncQueue.SetRange("Sync Status", TempSyncQueue."Sync Status"::Processed);
+        AssertAreEqual(3, TempSyncQueue.Count(), 'All 3 contacts should be processed');
+    end;
+
+    [Test]
+    procedure TestProcessBidirectionalSync_SuppressedUI_EmptyQueue()
+    var
+        TempSyncQueue: Record "Contact Sync Queue" temporary;
+        ContactSyncProcessor: Codeunit "Contact Sync Processor";
+        AccessToken: SecretText;
+        FolderId: Text;
+        SyncDirection: Enum "ContactSyncDirection";
+    begin
+        // [SCENARIO] Process bidirectional sync with an empty queue and UI suppressed
+        Initialize();
+
+        // [GIVEN] An empty temporary sync queue
+        TempSyncQueue.DeleteAll();
+        FolderId := 'TestFolder123';
+        SyncDirection := SyncDirection::"Full Sync";
+
+        // [GIVEN] UI is suppressed
+        ContactSyncProcessor.SetSuppressUI(true);
+
+        // [WHEN] ProcessBidirectionalSync is called
+        ContactSyncProcessor.ProcessBidirectionalSync(TempSyncQueue, AccessToken, FolderId, SyncDirection);
+
+        // [THEN] No contacts should be in the queue
+        AssertAreEqual(0, TempSyncQueue.Count(), 'Queue should be empty');
+    end;
+
+    [Test]
+    [HandlerFunctions('NoContactsMessageHandler')]
+    procedure TestProcessBidirectionalSync_EmptyQueue()
+    var
+        TempSyncQueue: Record "Contact Sync Queue" temporary;
+        ContactSyncProcessor: Codeunit "Contact Sync Processor";
+        AccessToken: SecretText;
+        FolderId: Text;
+        SyncDirection: Enum "ContactSyncDirection";
+    begin
+        // [SCENARIO] Process bidirectional sync with an empty queue
+        Initialize();
+
+        // [GIVEN] An empty temporary sync queue
+        TempSyncQueue.DeleteAll();
+        FolderId := 'TestFolder123';
+        SyncDirection := SyncDirection::"Full Sync";
+
+        // [WHEN] ProcessBidirectionalSync is called
+        ContactSyncProcessor.ProcessBidirectionalSync(TempSyncQueue, AccessToken, FolderId, SyncDirection);
+
+        // [THEN] No contacts should be in the queue
+        AssertAreEqual(0, TempSyncQueue.Count(), 'Queue should be empty');
+    end;
+
+    [Test]
+    procedure TestProcessBidirectionalSync_SuppressedUI_SyncToM365OnlyDirection()
+    var
+        TempSyncQueue: Record "Contact Sync Queue" temporary;
+        ContactSyncProcessor: Codeunit "Contact Sync Processor";
+        AccessToken: SecretText;
+        FolderId: Text;
+        SyncDirection: Enum "ContactSyncDirection";
+    begin
+        // [SCENARIO] Process sync with BC to M365 direction only - BC contacts should not be processed
+        Initialize();
+
+        // [GIVEN] A temporary sync queue with contacts marked for BC sync
+        CreateSampleSyncQueueForBC(TempSyncQueue, 2);
+        FolderId := 'TestFolder123';
+        SyncDirection := SyncDirection::"Sync from BC to M365"; // Only M365 direction
+
+        // [GIVEN] UI is suppressed
+        ContactSyncProcessor.SetSuppressUI(true);
+
+        // [WHEN] ProcessBidirectionalSync is called with M365 only direction
+        ContactSyncProcessor.ProcessBidirectionalSync(TempSyncQueue, AccessToken, FolderId, SyncDirection);
+
+        // [THEN] Contacts should remain pending as they are marked for BC sync but direction is M365 only
+        TempSyncQueue.Reset();
+        TempSyncQueue.SetRange("Sync Status", TempSyncQueue."Sync Status"::Pending);
+        AssertAreEqual(2, TempSyncQueue.Count(), 'Contacts should remain pending');
+    end;
+
+    [Test]
+    procedure TestProcessBidirectionalSync_SuppressedUI_DuplicateEmailSkipped()
+    var
+        TempSyncQueue: Record "Contact Sync Queue" temporary;
+        Contact: Record Contact;
+        ContactSyncProcessor: Codeunit "Contact Sync Processor";
+        AccessToken: SecretText;
+        FolderId: Text;
+        SyncDirection: Enum "ContactSyncDirection";
+    begin
+        // [SCENARIO] Contacts with duplicate email addresses should be skipped
+        Initialize();
+
+        // [GIVEN] An existing contact in BC with the same email
+        CreateSampleBCContact(Contact, 'duplicate@test.com');
+
+        // [GIVEN] A sync queue entry with the same email
+        CreateSingleSyncQueueEntry(TempSyncQueue, 'duplicate@test.com', 'To BC');
+        FolderId := 'TestFolder123';
+        SyncDirection := SyncDirection::"Full Sync";
+
+        // [GIVEN] UI is suppressed
+        ContactSyncProcessor.SetSuppressUI(true);
+
+        // [WHEN] ProcessBidirectionalSync is called
+        ContactSyncProcessor.ProcessBidirectionalSync(TempSyncQueue, AccessToken, FolderId, SyncDirection);
+
+        // [THEN] The contact should have error status (duplicate)
+        TempSyncQueue.Reset();
+        TempSyncQueue.SetRange("Sync Status", TempSyncQueue."Sync Status"::Error);
+        AssertAreEqual(1, TempSyncQueue.Count(), 'Duplicate contact should have error status');
+
+        // Cleanup
+        Contact.Delete(true);
+    end;
+
+    [Test]
+    procedure TestProcessBidirectionalSync_SuppressedUI_MixedDirections()
+    var
+        TempSyncQueue: Record "Contact Sync Queue" temporary;
+        ContactSyncProcessor: Codeunit "Contact Sync Processor";
+        AccessToken: SecretText;
+        FolderId: Text;
+        SyncDirection: Enum "ContactSyncDirection";
+        EntryNo: Integer;
+    begin
+        // [SCENARIO] Process sync with mixed direction contacts in Full Sync mode
+        Initialize();
+
+        // [GIVEN] A sync queue with contacts for both directions
+        EntryNo := 1;
+
+        // Add contacts to sync to BC
+        AddSyncQueueEntry(TempSyncQueue, EntryNo, 'John', 'Doe', 'john.doe@test.com', 'To BC');
+        EntryNo += 1;
+        AddSyncQueueEntry(TempSyncQueue, EntryNo, 'Jane', 'Smith', 'jane.smith@test.com', 'To BC');
+        EntryNo += 1;
+
+        // Add contacts to sync to M365 (these won't actually sync without real API)
+        AddSyncQueueEntry(TempSyncQueue, EntryNo, 'Bob', 'Wilson', 'bob.wilson@test.com', 'To M365');
+
+        FolderId := 'TestFolder123';
+        SyncDirection := SyncDirection::"Full Sync";
+
+        // [GIVEN] UI is suppressed
+        ContactSyncProcessor.SetSuppressUI(true);
+
+        // [WHEN] ProcessBidirectionalSync is called
+        ContactSyncProcessor.ProcessBidirectionalSync(TempSyncQueue, AccessToken, FolderId, SyncDirection);
+
+        // [THEN] BC contacts should be processed
+        TempSyncQueue.Reset();
+        TempSyncQueue.SetRange("Sync Direction", TempSyncQueue."Sync Direction"::"To BC");
+        TempSyncQueue.SetRange("Sync Status", TempSyncQueue."Sync Status"::Processed);
+        AssertAreEqual(2, TempSyncQueue.Count(), '2 BC contacts should be processed');
+    end;
+
+    [Test]
+    procedure TestProcessBidirectionalSync_SuppressedUI_LargeBatch()
+    var
+        TempSyncQueue: Record "Contact Sync Queue" temporary;
+        ContactSyncProcessor: Codeunit "Contact Sync Processor";
+        AccessToken: SecretText;
+        FolderId: Text;
+        SyncDirection: Enum "ContactSyncDirection";
+    begin
+        // [SCENARIO] Process sync with more than batch size (20) contacts
+        Initialize();
+
+        // [GIVEN] A sync queue with 25 contacts to sync to BC (exceeds batch size of 20)
+        CreateSampleSyncQueueForBC(TempSyncQueue, 25);
+        FolderId := 'TestFolder123';
+        SyncDirection := SyncDirection::"Full Sync";
+
+        // [GIVEN] UI is suppressed
+        ContactSyncProcessor.SetSuppressUI(true);
+
+        // [WHEN] ProcessBidirectionalSync is called
+        ContactSyncProcessor.ProcessBidirectionalSync(TempSyncQueue, AccessToken, FolderId, SyncDirection);
+
+        // [THEN] All 25 contacts should be processed
+        TempSyncQueue.Reset();
+        TempSyncQueue.SetRange("Sync Status", TempSyncQueue."Sync Status"::Processed);
+        AssertAreEqual(25, TempSyncQueue.Count(), 'All 25 contacts should be processed');
+    end;
+
+    [Test]
+    procedure TestSetSuppressUI()
+    var
+        ContactSyncProcessor: Codeunit "Contact Sync Processor";
+    begin
+        // [SCENARIO] Test SetSuppressUI and IsSuppressUI methods
+        Initialize();
+
+        // [GIVEN] A new Contact Sync Processor instance
+        // [WHEN] Initially created
+        // [THEN] SuppressUI should be false
+        AssertIsFalse(ContactSyncProcessor.IsSuppressUI(), 'SuppressUI should be false by default');
+
+        // [WHEN] SetSuppressUI is called with true
+        ContactSyncProcessor.SetSuppressUI(true);
+
+        // [THEN] IsSuppressUI should return true
+        AssertIsTrue(ContactSyncProcessor.IsSuppressUI(), 'SuppressUI should be true after setting');
+
+        // [WHEN] SetSuppressUI is called with false
+        ContactSyncProcessor.SetSuppressUI(false);
+
+        // [THEN] IsSuppressUI should return false
+        AssertIsFalse(ContactSyncProcessor.IsSuppressUI(), 'SuppressUI should be false after resetting');
+    end;
+
+    [Test]
+    procedure TestSyncQueueCopyFromO365Contact()
+    var
+        TempSyncQueue: Record "Contact Sync Queue" temporary;
+        O365Contact: Record "Outlook Contacts";
+    begin
+        // [SCENARIO] Test copying data from O365 Contact to Sync Queue
+        Initialize();
+
+        // [GIVEN] An O365 Contact with sample data
+        CreateSampleO365Contact(O365Contact);
+
+        // [WHEN] CopyFromO365Contact is called
+        TempSyncQueue.Init();
+        TempSyncQueue."Entry No." := 1;
+        TempSyncQueue.CopyFromO365Contact(O365Contact, TempSyncQueue."Sync Direction"::"To BC");
+        TempSyncQueue.Insert(false);
+
+        // [THEN] All fields should be copied correctly
+        AssertAreEqual('Test Display', TempSyncQueue."Display Name", 'Display Name should match');
+        AssertAreEqual('TestFirst', TempSyncQueue."Given Name", 'Given Name should match');
+        AssertAreEqual('TestLast', TempSyncQueue.Surname, 'Surname should match');
+        AssertAreEqual('test@example.com', TempSyncQueue."Email Address", 'Email should match');
+        AssertAreEqual('Manager', TempSyncQueue."Job Title", 'Job Title should match');
+        AssertAreEqual('Test Company', TempSyncQueue."Company Name", 'Company Name should match');
+        AssertAreEqual(TempSyncQueue."Sync Direction"::"To BC", TempSyncQueue."Sync Direction", 'Direction should be To BC');
+        AssertAreEqual(TempSyncQueue."Sync Status"::Pending, TempSyncQueue."Sync Status", 'Status should be Pending');
+
+        // Cleanup
+        O365Contact.Delete();
+    end;
+
+    [Test]
+    procedure TestSyncQueueCopyFromBCContact()
+    var
+        TempSyncQueue: Record "Contact Sync Queue" temporary;
+        Contact: Record Contact;
+    begin
+        // [SCENARIO] Test copying data from BC Contact to Sync Queue
+        Initialize();
+
+        // [GIVEN] A BC Contact with sample data
+        CreateSampleBCContact(Contact, 'bccontact@example.com');
+
+        // [WHEN] CopyFromBCContact is called
+        TempSyncQueue.Init();
+        TempSyncQueue."Entry No." := 1;
+        TempSyncQueue.CopyFromBCContact(Contact, TempSyncQueue."Sync Direction"::"To M365");
+        TempSyncQueue.Insert(false);
+
+        // [THEN] All fields should be copied correctly
+        AssertAreEqual(Contact."No.", TempSyncQueue."BC Contact No.", 'BC Contact No. should match');
+        AssertAreEqual(Contact.Name, TempSyncQueue."Display Name", 'Display Name should match');
+        AssertAreEqual(Contact."First Name", TempSyncQueue."Given Name", 'Given Name should match');
+        AssertAreEqual(Contact.Surname, TempSyncQueue.Surname, 'Surname should match');
+        AssertAreEqual(Contact."E-Mail", TempSyncQueue."Email Address", 'Email should match');
+        AssertAreEqual(TempSyncQueue."Sync Direction"::"To M365", TempSyncQueue."Sync Direction", 'Direction should be To M365');
+        AssertAreEqual(TempSyncQueue."Sync Status"::Pending, TempSyncQueue."Sync Status", 'Status should be Pending');
+
+        // Cleanup
+        Contact.Delete(true);
+    end;
+
+    [Test]
+    procedure TestContactSyncFolderTable()
+    var
+        TempFolder: Record "Contact Sync Folder" temporary;
+    begin
+        // [SCENARIO] Test Contact Sync Folder table operations
+        Initialize();
+
+        // [GIVEN] Sample folder data
+        // [WHEN] Folders are inserted
+        TempFolder.Init();
+        TempFolder."Entry No." := 1;
+        TempFolder."Folder ID" := 'folder-id-123';
+        TempFolder."Display Name" := 'Business Central Contacts';
+        TempFolder."Parent Id" := 'parent-id-456';
+        TempFolder.Insert(false);
+
+        TempFolder.Init();
+        TempFolder."Entry No." := 2;
+        TempFolder."Folder ID" := 'folder-id-789';
+        TempFolder."Display Name" := 'Personal Contacts';
+        TempFolder."Parent Id" := 'parent-id-456';
+        TempFolder.Insert(false);
+
+        // [THEN] Folders should be retrievable
+        AssertAreEqual(2, TempFolder.Count(), 'Should have 2 folders');
+
+        TempFolder.Get(1);
+        AssertAreEqual('Business Central Contacts', TempFolder."Display Name", 'First folder name should match');
+
+        TempFolder.Get(2);
+        AssertAreEqual('Personal Contacts', TempFolder."Display Name", 'Second folder name should match');
+    end;
+
+    [Test]
+    procedure TestContactSyncDirectionEnum()
+    var
+        SyncDirection: Enum "ContactSyncDirection";
+    begin
+        // [SCENARIO] Test Contact Sync Direction enum values
+        Initialize();
+
+        // [GIVEN] ContactSyncDirection enum
+        // [WHEN] Accessing enum values
+        // [THEN] Values should be correct
+        SyncDirection := SyncDirection::"Sync from BC to M365";
+        AssertAreEqual(0, SyncDirection.AsInteger(), 'Sync from BC to M365 should be 0');
+
+        SyncDirection := SyncDirection::"Full Sync";
+        AssertAreEqual(1, SyncDirection.AsInteger(), 'Full Sync should be 1');
+    end;
+
+    [Test]
+    procedure TestO365ContactTableOperations()
+    var
+        O365Contact: Record "Outlook Contacts";
+    begin
+        // [SCENARIO] Test O365 Contact table CRUD operations
+        Initialize();
+
+        // [GIVEN] Sample O365 Contact data
+        // [WHEN] Contact is inserted
+        CreateSampleO365Contact(O365Contact);
+
+        // [THEN] Contact should exist
+        AssertIsTrue(O365Contact.Get(O365Contact."Outlook Id"), 'Contact should be retrievable by Outlook Id');
+
+        // [WHEN] Contact is modified
+        O365Contact."Display Name" := 'Updated Display Name';
+        O365Contact.Modify(false);
+
+        // [THEN] Changes should persist
+        O365Contact.Get(O365Contact."Outlook Id");
+        AssertAreEqual('Updated Display Name', O365Contact."Display Name", 'Display Name should be updated');
+
+        // [WHEN] Contact is deleted
+        O365Contact.Delete();
+
+        // [THEN] Contact should not exist
+        AssertIsFalse(O365Contact.Get(O365Contact."Outlook Id"), 'Contact should be deleted');
+    end;
+
+    [Test]
+    procedure TestSyncQueueWithAddressFields()
+    var
+        TempSyncQueue: Record "Contact Sync Queue" temporary;
+        EntryNo: Integer;
+    begin
+        // [SCENARIO] Test sync queue with complete address fields
+        Initialize();
+
+        // [GIVEN] A sync queue entry with all address fields populated
+        EntryNo := 1;
+        TempSyncQueue.Init();
+        TempSyncQueue."Entry No." := EntryNo;
+        TempSyncQueue."Given Name" := 'Address';
+        TempSyncQueue.Surname := 'Test';
+        TempSyncQueue."Display Name" := 'Address Test';
+        TempSyncQueue."Email Address" := 'address.test@example.com';
+        TempSyncQueue.Address := '123 Main Street, Suite 400';
+        TempSyncQueue.City := 'Seattle';
+        TempSyncQueue.County := 'King County';
+        TempSyncQueue."Post Code" := '98101';
+        TempSyncQueue."Country/Region Code" := 'US';
+        TempSyncQueue."Sync Direction" := TempSyncQueue."Sync Direction"::"To BC";
+        TempSyncQueue."Sync Status" := TempSyncQueue."Sync Status"::Pending;
+        TempSyncQueue.Insert(false);
+
+        // [THEN] All address fields should be stored correctly
+        TempSyncQueue.Get(EntryNo);
+        AssertAreEqual('123 Main Street, Suite 400', TempSyncQueue.Address, 'Address should match');
+        AssertAreEqual('Seattle', TempSyncQueue.City, 'City should match');
+        AssertAreEqual('King County', TempSyncQueue.County, 'County should match');
+        AssertAreEqual('98101', TempSyncQueue."Post Code", 'Post Code should match');
+        AssertAreEqual('US', TempSyncQueue."Country/Region Code", 'Country/Region Code should match');
+    end;
+
+    [Test]
+    procedure TestSyncQueueWithPhoneFields()
+    var
+        TempSyncQueue: Record "Contact Sync Queue" temporary;
+        EntryNo: Integer;
+    begin
+        // [SCENARIO] Test sync queue with all phone fields populated
+        Initialize();
+
+        // [GIVEN] A sync queue entry with all phone fields
+        EntryNo := 1;
+        TempSyncQueue.Init();
+        TempSyncQueue."Entry No." := EntryNo;
+        TempSyncQueue."Given Name" := 'Phone';
+        TempSyncQueue.Surname := 'Test';
+        TempSyncQueue."Display Name" := 'Phone Test';
+        TempSyncQueue."Email Address" := 'phone.test@example.com';
+        TempSyncQueue."Business Phone" := '+1-555-0100';
+        TempSyncQueue."Mobile Phone" := '+1-555-0101';
+        TempSyncQueue."Home Phone" := '+1-555-0102';
+        TempSyncQueue."Sync Direction" := TempSyncQueue."Sync Direction"::"To M365";
+        TempSyncQueue."Sync Status" := TempSyncQueue."Sync Status"::Pending;
+        TempSyncQueue.Insert(false);
+
+        // [THEN] All phone fields should be stored correctly
+        TempSyncQueue.Get(EntryNo);
+        AssertAreEqual('+1-555-0100', TempSyncQueue."Business Phone", 'Business Phone should match');
+        AssertAreEqual('+1-555-0101', TempSyncQueue."Mobile Phone", 'Mobile Phone should match');
+        AssertAreEqual('+1-555-0102', TempSyncQueue."Home Phone", 'Home Phone should match');
+    end;
+
+    local procedure Initialize()
+    begin
+        if IsInitialized then
+            exit;
+
+        MessageHandlerCalled := false;
+        ExpectedMessageText := '';
+        ActualMessageText := '';
+
+        IsInitialized := true;
+    end;
+
+    local procedure CreateSampleSyncQueueForBC(var TempSyncQueue: Record "Contact Sync Queue" temporary; Count: Integer)
+    var
+        i: Integer;
+    begin
         TempSyncQueue.DeleteAll();
 
-        // [WHEN] ProcessBidirectionalSync is called
-        contactSyncProcessor.ProcessBidirectionalSync(TempSyncQueue, accessToken);
-
-        // [THEN] No error occurs
-        Assert.IsTrue(true, 'Empty queue handled successfully');
+        for i := 1 to Count do
+            AddSyncQueueEntry(
+                TempSyncQueue,
+                i,
+                'FirstName' + Format(i),
+                'LastName' + Format(i),
+                'contact' + Format(i) + '@test.com',
+                'To BC'
+            );
     end;
 
-    [Test]
-    procedure TestProcessBidirectionalSyncToBCDirection()
-    var
-        contactSyncProcessor: Codeunit "Contact Sync Processor";
-        accessToken: SecretText;
+    local procedure CreateSingleSyncQueueEntry(var TempSyncQueue: Record "Contact Sync Queue" temporary; Email: Text; Direction: Text)
     begin
-        // [GIVEN] Sync queue with contact to sync to BC
-        CreateTempSyncQueueEntry(TempSyncQueue, 'Test Contact', 'test@example.com', SyncDirectionToBC());
-
-        // [WHEN] ProcessBidirectionalSync is called
-        contactSyncProcessor.ProcessBidirectionalSync(TempSyncQueue, accessToken);
-
-        // [THEN] Contact should be created or sync attempted
-        Assert.IsTrue(true, 'BC sync processed');
+        TempSyncQueue.DeleteAll();
+        AddSyncQueueEntry(TempSyncQueue, 1, 'Test', 'User', Email, Direction);
     end;
 
-    [Test]
-    procedure TestProcessBidirectionalSyncToM365Direction()
-    var
-        contactSyncProcessor: Codeunit "Contact Sync Processor";
-        accessToken: SecretText;
+    local procedure AddSyncQueueEntry(var TempSyncQueue: Record "Contact Sync Queue" temporary; EntryNo: Integer; GivenName: Text; Surname: Text; Email: Text; Direction: Text)
     begin
-        // [GIVEN] Sync queue with contact to sync to M365
-        CreateTempSyncQueueEntry(TempSyncQueue, 'Test Contact M365', 'test2@example.com', SyncDirectionToM365());
+        TempSyncQueue.Init();
+        TempSyncQueue."Entry No." := EntryNo;
+        TempSyncQueue."Given Name" := CopyStr(GivenName, 1, MaxStrLen(TempSyncQueue."Given Name"));
+        TempSyncQueue.Surname := CopyStr(Surname, 1, MaxStrLen(TempSyncQueue.Surname));
+        TempSyncQueue."Display Name" := CopyStr(GivenName + ' ' + Surname, 1, MaxStrLen(TempSyncQueue."Display Name"));
+        TempSyncQueue."Email Address" := CopyStr(Email, 1, MaxStrLen(TempSyncQueue."Email Address"));
+        TempSyncQueue."Job Title" := 'Software Developer';
+        TempSyncQueue."Company Name" := 'Contoso Ltd.';
+        TempSyncQueue."Mobile Phone" := '+1-555-0100';
+        TempSyncQueue."Business Phone" := '+1-555-0101';
+        TempSyncQueue.Address := '123 Main Street';
+        TempSyncQueue.City := 'Seattle';
+        TempSyncQueue.County := 'WA';
+        TempSyncQueue."Post Code" := '98101';
+        TempSyncQueue."Country/Region Code" := 'US';
+        TempSyncQueue.Initials := CopyStr(CopyStr(GivenName, 1, 1) + CopyStr(Surname, 1, 1), 1, MaxStrLen(TempSyncQueue.Initials));
+        TempSyncQueue."Sync Status" := TempSyncQueue."Sync Status"::Pending;
 
-        // [WHEN] ProcessBidirectionalSync is called
-        contactSyncProcessor.ProcessBidirectionalSync(TempSyncQueue, accessToken);
+        if Direction = 'To BC' then
+            TempSyncQueue."Sync Direction" := TempSyncQueue."Sync Direction"::"To BC"
+        else
+            TempSyncQueue."Sync Direction" := TempSyncQueue."Sync Direction"::"To M365";
 
-        // [THEN] No error occurs
-        Assert.IsTrue(true, 'M365 sync processed');
+        TempSyncQueue.Insert(false);
     end;
 
-    [Test]
-    procedure TestSyncQueueEntryCreation()
-    var
-        tempSyncQueue2: Record "Contact Sync Queue" temporary;
+    local procedure CreateSampleO365Contact(var O365Contact: Record "Outlook Contacts")
     begin
-        // [GIVEN] Empty sync queue
-        tempSyncQueue2.DeleteAll();
-
-        // [WHEN] Creating a sync queue entry
-        tempSyncQueue2.Init();
-        tempSyncQueue2."Entry No." := 1;
-        tempSyncQueue2."Display Name" := 'John Doe';
-        tempSyncQueue2."Given Name" := 'John';
-        tempSyncQueue2.Surname := 'Doe';
-        tempSyncQueue2."Email Address" := 'john@example.com';
-        tempSyncQueue2."Sync Direction" := SyncDirectionToBC();
-        tempSyncQueue2."Sync Status" := tempSyncQueue2."Sync Status"::Pending;
-        tempSyncQueue2.Insert();
-
-        // [THEN] Entry is created successfully
-        Assert.IsTrue(tempSyncQueue2.FindFirst(), 'Sync queue entry created');
-        Assert.AreEqual('John Doe', tempSyncQueue2."Display Name", 'Display name matches');
-        Assert.AreEqual('john@example.com', tempSyncQueue2."Email Address", 'Email address matches');
-    end;
-
-    [Test]
-    procedure TestContactSyncStatusUpdate()
-    var
-        tempSyncQueue2: Record "Contact Sync Queue" temporary;
-    begin
-        // [GIVEN] Sync queue entry with pending status
-        CreateTempSyncQueueEntry(tempSyncQueue2, 'Status Test Contact', 'status@example.com', SyncDirectionToBC());
-        tempSyncQueue2.FindFirst();
-
-        // [WHEN] Updating sync status to processed
-        tempSyncQueue2."Sync Status" := tempSyncQueue2."Sync Status"::Processed;
-        tempSyncQueue2.Modify();
-
-        // [THEN] Status is updated
-        Assert.AreEqual(tempSyncQueue2."Sync Status"::Processed, tempSyncQueue2."Sync Status", 'Status updated to Processed');
-    end;
-
-    [Test]
-    procedure TestMultipleContactsInSyncQueue()
-    var
-        tempSyncQueue2: Record "Contact Sync Queue" temporary;
-        entryNo: Integer;
-    begin
-        // [GIVEN] Multiple contacts in sync queue
-        for entryNo := 1 to 5 do begin
-            tempSyncQueue2.Init();
-            tempSyncQueue2."Entry No." := entryNo;
-            tempSyncQueue2."Display Name" := 'Contact ' + Format(entryNo);
-            tempSyncQueue2."Given Name" := 'First' + Format(entryNo);
-            tempSyncQueue2.Surname := 'Last' + Format(entryNo);
-            tempSyncQueue2."Email Address" := 'contact' + Format(entryNo) + '@example.com';
-            if entryNo mod 2 = 0 then
-                tempSyncQueue2."Sync Direction" := SyncDirectionToBC()
-            else
-                tempSyncQueue2."Sync Direction" := SyncDirectionToM365();
-            tempSyncQueue2."Sync Status" := tempSyncQueue2."Sync Status"::Pending;
-            tempSyncQueue2.Insert();
-        end;
-
-        // [WHEN] Counting sync queue entries
-        tempSyncQueue2.Reset();
-        // [THEN] Count should be 5
-        Assert.AreEqual(5, tempSyncQueue2.Count(), 'Five contacts in sync queue');
-    end;
-
-    [Test]
-    procedure TestSyncQueueFilterByDirection()
-    var
-        tempSyncQueue2: Record "Contact Sync Queue" temporary;
-        bcCount: Integer;
-        m365Count: Integer;
-    begin
-        // [GIVEN] Multiple contacts with different sync directions
-        CreateTempSyncQueueEntry(tempSyncQueue2, 'BC Contact 1', 'bc1@example.com', SyncDirectionToBC());
-        CreateTempSyncQueueEntry(tempSyncQueue2, 'M365 Contact 1', 'm365_1@example.com', SyncDirectionToM365());
-        CreateTempSyncQueueEntry(tempSyncQueue2, 'BC Contact 2', 'bc2@example.com', SyncDirectionToBC());
-
-        // [WHEN] Filtering by sync direction
-        tempSyncQueue2.SetRange("Sync Direction", SyncDirectionToBC());
-        bcCount := tempSyncQueue2.Count();
-
-        tempSyncQueue2.SetRange("Sync Direction", SyncDirectionToM365());
-        m365Count := tempSyncQueue2.Count();
-
-        // [THEN] Counts match expected values
-        Assert.AreEqual(2, bcCount, 'Two contacts to sync to BC');
-        Assert.AreEqual(1, m365Count, 'One contact to sync to M365');
-    end;
-
-    [Test]
-    procedure TestSyncQueueErrorHandling()
-    var
-        tempSyncQueue2: Record "Contact Sync Queue" temporary;
-    begin
-        // [GIVEN] Sync queue entry with error
-        CreateTempSyncQueueEntry(tempSyncQueue2, 'Error Contact', 'error@example.com', SyncDirectionToBC());
-        tempSyncQueue2.FindFirst();
-
-        // [WHEN] Setting error status and message
-        tempSyncQueue2."Sync Status" := tempSyncQueue2."Sync Status"::Error;
-        tempSyncQueue2."Error Message" := 'Test error message';
-        tempSyncQueue2.Modify();
-
-        // [THEN] Error information is stored
-        Assert.AreEqual(tempSyncQueue2."Sync Status"::Error, tempSyncQueue2."Sync Status", 'Status is Error');
-        Assert.AreEqual('Test error message', tempSyncQueue2."Error Message", 'Error message is stored');
-    end;
-
-    [Test]
-    procedure TestContactSyncFolderCreation()
-    var
-        TempSyncFolder: Record "Contact Sync Folder" temporary;
-    begin
-        // [GIVEN] Empty sync folder
-        TempSyncFolder.DeleteAll();
-
-        // [WHEN] Creating a sync folder entry
-        TempSyncFolder.Init();
-        TempSyncFolder."Entry No." := 1;
-        TempSyncFolder."Folder ID" := 'folder-123-456';
-        TempSyncFolder."Display Name" := 'Business Central';
-        TempSyncFolder.Insert();
-
-        // [THEN] Folder is created successfully
-        Assert.IsTrue(TempSyncFolder.FindFirst(), 'Sync folder entry created');
-        Assert.AreEqual('Business Central', TempSyncFolder."Display Name", 'Folder display name matches');
-    end;
-
-    [Test]
-    procedure TestO365ContactCreation()
-    var
-        O365Contact: Record "O365 Contact";
-    begin
-        // [GIVEN] Empty O365 contact
         O365Contact.Init();
-
-        // [WHEN] Populating O365 contact fields
-        O365Contact."Contact ID" := 'contact-xyz-789';
-        O365Contact."Display Name" := 'Jane Smith';
-        O365Contact."Given Name" := 'Jane';
-        O365Contact.Surname := 'Smith';
-        O365Contact."Email Address" := 'jane@example.com';
-        O365Contact."Business Phone" := '+1-555-0123';
-        O365Contact."Mobile Phone" := '+1-555-0124';
-        O365Contact."Company Name" := 'Contoso';
-        O365Contact.City := 'Seattle';
+        O365Contact."Outlook Id" := 'outlook-id-' + Format(Random(9999));
+        O365Contact."Display Name" := 'Test Display';
+        O365Contact."Given Name" := 'TestFirst';
+        O365Contact.Surname := 'TestLast';
+        O365Contact."Email Address" := 'test@example.com';
+        O365Contact."Job Title" := 'Manager';
+        O365Contact."Company Name" := 'Test Company';
+        O365Contact."Mobile Phone" := '+1-555-1234';
+        O365Contact."Business Phone" := '+1-555-5678';
+        O365Contact.Address := '456 Test Ave';
+        O365Contact.City := 'Redmond';
+        O365Contact.County := 'WA';
+        O365Contact."Post Code" := '98052';
         O365Contact."Country/Region Code" := 'US';
-
-        // [THEN] All fields are set correctly
-        Assert.AreEqual('Jane Smith', O365Contact."Display Name", 'Display name set');
-        Assert.AreEqual('jane@example.com', O365Contact."Email Address", 'Email set');
-        Assert.AreEqual('Contoso', O365Contact."Company Name", 'Company name set');
+        O365Contact."Middle Name" := 'M';
+        O365Contact.Initials := 'TT';
+        O365Contact."Created DateTime" := CurrentDateTime();
+        O365Contact."Last Modified DateTime" := CurrentDateTime();
+        O365Contact.Insert(false);
     end;
 
-    [Test]
-    procedure TestSyncQueueDataIntegrity()
-    var
-        tempSyncQueue2: Record "Contact Sync Queue" temporary;
-        originalName: Text[100];
+    local procedure CreateSampleBCContact(var Contact: Record Contact; Email: Text)
     begin
-        // [GIVEN] Sync queue entry
-        CreateTempSyncQueueEntry(tempSyncQueue2, 'Integrity Test', 'integrity@example.com', SyncDirectionToBC());
-        tempSyncQueue2.FindFirst();
-        originalName := tempSyncQueue2."Display Name";
-
-        // [WHEN] Modifying and then reverting
-        tempSyncQueue2."Display Name" := 'Modified Name';
-        tempSyncQueue2.Modify();
-        tempSyncQueue2."Display Name" := originalName;
-        tempSyncQueue2.Modify();
-
-        // [THEN] Data integrity is maintained
-        Assert.AreEqual(originalName, tempSyncQueue2."Display Name", 'Data integrity maintained');
+        Contact.Init();
+        Contact."No." := '';
+        Contact.Type := Contact.Type::Person;
+        Contact.Name := 'BC Test Contact';
+        Contact."First Name" := 'BCFirst';
+        Contact.Surname := 'BCLast';
+        Contact."E-Mail" := CopyStr(Email, 1, MaxStrLen(Contact."E-Mail"));
+        Contact."Job Title" := 'Developer';
+        Contact."Company Name" := 'BC Company';
+        Contact."Mobile Phone No." := '+1-555-9999';
+        Contact."Phone No." := '+1-555-8888';
+        Contact.Address := '789 BC Street';
+        Contact.City := 'Bellevue';
+        Contact.County := 'WA';
+        Contact."Post Code" := '98004';
+        Contact."Country/Region Code" := 'US';
+        Contact."Middle Name" := 'C';
+        Contact.Initials := 'BC';
+        Contact.Insert(true);
     end;
 
-    [Test]
-    procedure TestBCContactNumberAssignment()
-    var
-        tempSyncQueue2: Record "Contact Sync Queue" temporary;
+    // Assert helper procedures - replace external Assert codeunit
+    local procedure AssertIsTrue(Condition: Boolean; ErrorMessage: Text)
     begin
-        // [GIVEN] Sync queue entry without BC contact number
-        CreateTempSyncQueueEntry(tempSyncQueue2, 'BC Number Test', 'bcnum@example.com', SyncDirectionToBC());
-        tempSyncQueue2.FindFirst();
-
-        // [WHEN] Assigning BC contact number
-        tempSyncQueue2."BC Contact No." := 'C-001';
-        tempSyncQueue2.Modify();
-
-        // [THEN] BC contact number is stored
-        Assert.AreEqual('C-001', tempSyncQueue2."BC Contact No.", 'BC contact number assigned');
+        if not Condition then
+            Error(ErrorMessage);
     end;
 
-    [Test]
-    procedure TestContactFilterByCompanyName()
-    var
-        tempSyncQueue2: Record "Contact Sync Queue" temporary;
-        filteredCount: Integer;
+    local procedure AssertIsFalse(Condition: Boolean; ErrorMessage: Text)
     begin
-        // [GIVEN] Multiple contacts with different company names
-        CreateTempSyncQueueEntryWithCompany(tempSyncQueue2, 'Contact 1', 'contact1@example.com', SyncDirectionToBC(), 'Contoso');
-        CreateTempSyncQueueEntryWithCompany(tempSyncQueue2, 'Contact 2', 'contact2@example.com', SyncDirectionToBC(), 'Fabrikam');
-        CreateTempSyncQueueEntryWithCompany(tempSyncQueue2, 'Contact 3', 'contact3@example.com', SyncDirectionToBC(), 'Contoso');
-
-        // [WHEN] Filtering by company name
-        tempSyncQueue2.SetRange("Company Name", 'Contoso');
-        filteredCount := tempSyncQueue2.Count();
-
-        // [THEN] Only Contoso contacts are returned
-        Assert.AreEqual(2, filteredCount, 'Two Contoso contacts found');
+        if Condition then
+            Error(ErrorMessage);
     end;
 
-    [Test]
-    procedure TestContactFilterByCity()
-    var
-        tempSyncQueue2: Record "Contact Sync Queue" temporary;
-        seattleCount: Integer;
+    local procedure AssertAreEqual(Expected: Variant; Actual: Variant; ErrorMessage: Text)
     begin
-        // [GIVEN] Multiple contacts with different cities
-        CreateTempSyncQueueEntryWithCity(tempSyncQueue2, 'Seattle Contact 1', 'seattle1@example.com', SyncDirectionToBC(), 'Seattle');
-        CreateTempSyncQueueEntryWithCity(tempSyncQueue2, 'New York Contact', 'newyork@example.com', SyncDirectionToBC(), 'New York');
-        CreateTempSyncQueueEntryWithCity(tempSyncQueue2, 'Seattle Contact 2', 'seattle2@example.com', SyncDirectionToBC(), 'Seattle');
-
-        // [WHEN] Filtering by city
-        tempSyncQueue2.SetRange(City, 'Seattle');
-        seattleCount := tempSyncQueue2.Count();
-
-        // [THEN] Only Seattle contacts are returned
-        Assert.AreEqual(2, seattleCount, 'Two Seattle contacts found');
+        if Format(Expected) <> Format(Actual) then
+            Error('Expected: %1, Actual: %2. %3', Expected, Actual, ErrorMessage);
     end;
 
-    [Test]
-    procedure TestContactFilterByCountry()
-    var
-        tempSyncQueue2: Record "Contact Sync Queue" temporary;
-        usCount: Integer;
-        ukCount: Integer;
+    [MessageHandler]
+    procedure SyncSuccessMessageHandler(Message: Text[1024])
     begin
-        // [GIVEN] Multiple contacts from different countries
-        CreateTempSyncQueueEntryWithCountry(tempSyncQueue2, 'US Contact 1', 'us1@example.com', SyncDirectionToBC(), 'US');
-        CreateTempSyncQueueEntryWithCountry(tempSyncQueue2, 'UK Contact', 'uk@example.com', SyncDirectionToBC(), 'GB');
-        CreateTempSyncQueueEntryWithCountry(tempSyncQueue2, 'US Contact 2', 'us2@example.com', SyncDirectionToBC(), 'US');
-        CreateTempSyncQueueEntryWithCountry(tempSyncQueue2, 'Canada Contact', 'canada@example.com', SyncDirectionToBC(), 'CA');
-
-        // [WHEN] Filtering by country
-        tempSyncQueue2.SetRange("Country/Region Code", 'US');
-        usCount := tempSyncQueue2.Count();
-
-        tempSyncQueue2.SetRange("Country/Region Code", 'GB');
-        ukCount := tempSyncQueue2.Count();
-
-        // [THEN] Only matching country contacts are returned
-        Assert.AreEqual(2, usCount, 'Two US contacts found');
-        Assert.AreEqual(1, ukCount, 'One UK contact found');
+        MessageHandlerCalled := true;
+        ActualMessageText := Message;
+        // Accept the message - in tests we just verify it was called
     end;
 
-    [Test]
-    procedure TestContactFilterByEmail()
-    var
-        tempSyncQueue2: Record "Contact Sync Queue" temporary;
+    [MessageHandler]
+    procedure NoContactsMessageHandler(Message: Text[1024])
     begin
-        // [GIVEN] Multiple contacts
-        CreateTempSyncQueueEntry(tempSyncQueue2, 'Contact A', 'contacta@example.com', SyncDirectionToBC());
-        CreateTempSyncQueueEntry(tempSyncQueue2, 'Contact B', 'contactb@example.com', SyncDirectionToBC());
-        CreateTempSyncQueueEntry(tempSyncQueue2, 'Contact C', 'contactc@example.com', SyncDirectionToBC());
-
-        // [WHEN] Filtering by specific email
-        tempSyncQueue2.SetRange("Email Address", 'contactb@example.com');
-
-        // [THEN] Only matching email contact is returned
-        Assert.AreEqual(1, tempSyncQueue2.Count(), 'One contact with matching email found');
-        Assert.IsTrue(tempSyncQueue2.FindFirst(), 'Contact found');
-        Assert.AreEqual('Contact B', tempSyncQueue2."Display Name", 'Correct contact retrieved');
+        MessageHandlerCalled := true;
+        ActualMessageText := Message;
+        // Accept the message for no contacts synced scenario
     end;
-
-    [Test]
-    procedure TestContactFilterMultipleCriteria()
-    var
-        tempSyncQueue2: Record "Contact Sync Queue" temporary;
-        filteredCount: Integer;
-    begin
-        // [GIVEN] Multiple contacts with varying attributes
-        CreateTempSyncQueueEntryWithAllDetails(tempSyncQueue2, 'Contact 1', 'contact1@example.com', SyncDirectionToBC(), 'Contoso', 'Seattle', 'US');
-        CreateTempSyncQueueEntryWithAllDetails(tempSyncQueue2, 'Contact 2', 'contact2@example.com', SyncDirectionToBC(), 'Fabrikam', 'Seattle', 'US');
-        CreateTempSyncQueueEntryWithAllDetails(tempSyncQueue2, 'Contact 3', 'contact3@example.com', SyncDirectionToBC(), 'Contoso', 'New York', 'US');
-        CreateTempSyncQueueEntryWithAllDetails(tempSyncQueue2, 'Contact 4', 'contact4@example.com', SyncDirectionToBC(), 'Contoso', 'Seattle', 'CA');
-
-        // [WHEN] Filtering by multiple criteria (Contoso in Seattle in US)
-        tempSyncQueue2.SetRange("Company Name", 'Contoso');
-        tempSyncQueue2.SetRange(City, 'Seattle');
-        tempSyncQueue2.SetRange("Country/Region Code", 'US');
-        filteredCount := tempSyncQueue2.Count();
-
-        // [THEN] Only contact matching all criteria is returned
-        Assert.AreEqual(1, filteredCount, 'One contact matches all filter criteria');
-    end;
-
-    [Test]
-    procedure TestContactFilterClearFilter()
-    var
-        tempSyncQueue2: Record "Contact Sync Queue" temporary;
-        allCount: Integer;
-    begin
-        // [GIVEN] Multiple contacts with filters applied
-        CreateTempSyncQueueEntryWithCompany(tempSyncQueue2, 'Contact 1', 'contact1@example.com', SyncDirectionToBC(), 'Contoso');
-        CreateTempSyncQueueEntryWithCompany(tempSyncQueue2, 'Contact 2', 'contact2@example.com', SyncDirectionToBC(), 'Fabrikam');
-        CreateTempSyncQueueEntryWithCompany(tempSyncQueue2, 'Contact 3', 'contact3@example.com', SyncDirectionToBC(), 'Contoso');
-
-        // [WHEN] Applying filter and then clearing it
-        tempSyncQueue2.SetRange("Company Name", 'Contoso');
-        tempSyncQueue2.Reset();
-        allCount := tempSyncQueue2.Count();
-
-        // [THEN] All contacts are returned after filter is cleared
-        Assert.AreEqual(3, allCount, 'All contacts returned after filter cleared');
-    end;
-
-    // Helper procedure to create temporary sync queue entries
-    local procedure CreateTempSyncQueueEntry(var TempSyncQueue2: Record "Contact Sync Queue" temporary; displayName: Text; emailAddress: Text; syncDirection: Integer)
-    begin
-        CreateTempSyncQueueEntryWithCompany(TempSyncQueue2, displayName, emailAddress, syncDirection, '');
-    end;
-
-    local procedure CreateTempSyncQueueEntryWithCompany(var TempSyncQueue2: Record "Contact Sync Queue" temporary; displayName: Text; emailAddress: Text; syncDirection: Integer; companyName: Code[30])
-    var
-        entryNo: Integer;
-    begin
-        TempSyncQueue2.Reset();
-        if TempSyncQueue2.FindLast() then
-            entryNo := TempSyncQueue2."Entry No." + 1
-        else
-            entryNo := 1;
-
-        TempSyncQueue2.Init();
-        TempSyncQueue2."Entry No." := entryNo;
-        TempSyncQueue2."Display Name" := CopyStr(displayName, 1, MaxStrLen(TempSyncQueue2."Display Name"));
-        TempSyncQueue2."Email Address" := CopyStr(emailAddress, 1, MaxStrLen(TempSyncQueue2."Email Address"));
-        TempSyncQueue2."Given Name" := 'Test';
-        TempSyncQueue2.Surname := 'User';
-        TempSyncQueue2."Company Name" := CopyStr(companyName, 1, MaxStrLen(TempSyncQueue2."Company Name"));
-        TempSyncQueue2."Sync Direction" := syncDirection;
-        TempSyncQueue2."Sync Status" := TempSyncQueue2."Sync Status"::Pending;
-        TempSyncQueue2.Insert();
-    end;
-
-    local procedure CreateTempSyncQueueEntryWithCity(var TempSyncQueue2: Record "Contact Sync Queue" temporary; displayName: Text; emailAddress: Text; syncDirection: Integer; cityName: Text)
-    var
-        entryNo: Integer;
-    begin
-        TempSyncQueue2.Reset();
-        if TempSyncQueue2.FindLast() then
-            entryNo := TempSyncQueue2."Entry No." + 1
-        else
-            entryNo := 1;
-
-        TempSyncQueue2.Init();
-        TempSyncQueue2."Entry No." := entryNo;
-        TempSyncQueue2."Display Name" := CopyStr(displayName, 1, MaxStrLen(TempSyncQueue2."Display Name"));
-        TempSyncQueue2."Email Address" := CopyStr(emailAddress, 1, MaxStrLen(TempSyncQueue2."Email Address"));
-        TempSyncQueue2."Given Name" := 'Test';
-        TempSyncQueue2.Surname := 'User';
-        TempSyncQueue2.City := CopyStr(cityName, 1, MaxStrLen(TempSyncQueue2.City));
-        TempSyncQueue2."Sync Direction" := syncDirection;
-        TempSyncQueue2."Sync Status" := TempSyncQueue2."Sync Status"::Pending;
-        TempSyncQueue2.Insert();
-    end;
-
-    local procedure CreateTempSyncQueueEntryWithCountry(var TempSyncQueue2: Record "Contact Sync Queue" temporary; displayName: Text; emailAddress: Text; syncDirection: Integer; countryCode: Code[10])
-    var
-        entryNo: Integer;
-    begin
-        TempSyncQueue2.Reset();
-        if TempSyncQueue2.FindLast() then
-            entryNo := TempSyncQueue2."Entry No." + 1
-        else
-            entryNo := 1;
-
-        TempSyncQueue2.Init();
-        TempSyncQueue2."Entry No." := entryNo;
-        TempSyncQueue2."Display Name" := CopyStr(displayName, 1, MaxStrLen(TempSyncQueue2."Display Name"));
-        TempSyncQueue2."Email Address" := CopyStr(emailAddress, 1, MaxStrLen(TempSyncQueue2."Email Address"));
-        TempSyncQueue2."Given Name" := 'Test';
-        TempSyncQueue2.Surname := 'User';
-        TempSyncQueue2."Country/Region Code" := countryCode;
-        TempSyncQueue2."Sync Direction" := syncDirection;
-        TempSyncQueue2."Sync Status" := TempSyncQueue2."Sync Status"::Pending;
-        TempSyncQueue2.Insert();
-    end;
-
-    local procedure CreateTempSyncQueueEntryWithAllDetails(var TempSyncQueue2: Record "Contact Sync Queue" temporary; displayName: Text; emailAddress: Text; syncDirection: Integer; companyName: Code[30]; cityName: Text; countryCode: Code[10])
-    var
-        entryNo: Integer;
-    begin
-        TempSyncQueue2.Reset();
-        if TempSyncQueue2.FindLast() then
-            entryNo := TempSyncQueue2."Entry No." + 1
-        else
-            entryNo := 1;
-
-        TempSyncQueue2.Init();
-        TempSyncQueue2."Entry No." := entryNo;
-        TempSyncQueue2."Display Name" := CopyStr(displayName, 1, MaxStrLen(TempSyncQueue2."Display Name"));
-        TempSyncQueue2."Email Address" := CopyStr(emailAddress, 1, MaxStrLen(TempSyncQueue2."Email Address"));
-        TempSyncQueue2."Given Name" := 'Test';
-        TempSyncQueue2.Surname := 'User';
-        TempSyncQueue2."Company Name" := CopyStr(companyName, 1, MaxStrLen(TempSyncQueue2."Company Name"));
-        TempSyncQueue2.City := CopyStr(cityName, 1, MaxStrLen(TempSyncQueue2.City));
-        TempSyncQueue2."Country/Region Code" := countryCode;
-        TempSyncQueue2."Sync Direction" := syncDirection;
-        TempSyncQueue2."Sync Status" := TempSyncQueue2."Sync Status"::Pending;
-        TempSyncQueue2.Insert();
-    end;
-
 }
-

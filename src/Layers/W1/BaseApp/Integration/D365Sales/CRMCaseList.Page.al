@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -28,26 +28,22 @@ page 5349 "CRM Case List"
                 {
                     ApplicationArea = Suite;
                     Caption = 'Case Title';
-                    ToolTip = 'Specifies the name of the case.';
                 }
                 field(StateCode; Rec.StateCode)
                 {
                     ApplicationArea = Suite;
                     Caption = 'Status';
                     OptionCaption = 'Active,Resolved,Canceled';
-                    ToolTip = 'Specifies the status of the case.';
                 }
                 field(TicketNumber; Rec.TicketNumber)
                 {
                     ApplicationArea = Suite;
                     Caption = 'Case Number';
-                    ToolTip = 'Specifies the number of the case.';
                 }
                 field(CreatedOn; Rec.CreatedOn)
                 {
                     ApplicationArea = Suite;
                     Caption = 'Created On';
-                    ToolTip = 'Specifies when the sales order was created.';
                 }
             }
         }

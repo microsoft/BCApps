@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -31,7 +31,6 @@ page 5741 "Transfer Order Subform"
                 field("Item No."; Rec."Item No.")
                 {
                     ApplicationArea = Location;
-                    ToolTip = 'Specifies the number of the item that will be transferred.';
 
                     trigger OnValidate()
                     begin
@@ -41,13 +40,11 @@ page 5741 "Transfer Order Subform"
                 field("Variant Code"; Rec."Variant Code")
                 {
                     ApplicationArea = Planning;
-                    ToolTip = 'Specifies the variant of the item on the line.';
                     Visible = false;
                 }
                 field("Planning Flexibility"; Rec."Planning Flexibility")
                 {
                     ApplicationArea = Planning;
-                    ToolTip = 'Specifies whether the supply represented by this line is considered by the planning system when calculating action messages.';
                     Visible = false;
                 }
                 field(Description; Rec.Description)
@@ -58,67 +55,56 @@ page 5741 "Transfer Order Subform"
                 field("Description 2"; Rec."Description 2")
                 {
                     ApplicationArea = All;
-                    ToolTip = 'Specifies information in addition to the description of the item being transferred.';
                     Visible = false;
                 }
                 field("Transfer-from Bin Code"; Rec."Transfer-from Bin Code")
                 {
                     ApplicationArea = Warehouse;
-                    ToolTip = 'Specifies the code for the bin that the items are transferred from.';
                     Visible = false;
                 }
                 field("Transfer-To Bin Code"; Rec."Transfer-To Bin Code")
                 {
                     ApplicationArea = Warehouse;
-                    ToolTip = 'Specifies the code for the bin that the items are transferred to.';
                     Visible = false;
                 }
                 field(Quantity; Rec.Quantity)
                 {
                     ApplicationArea = Location;
                     BlankZero = true;
-                    ToolTip = 'Specifies the quantity of the item that will be processed as the document stipulates.';
                 }
                 field("Reserved Quantity Inbnd."; Rec."Reserved Quantity Inbnd.")
                 {
                     ApplicationArea = Reservation;
                     BlankZero = true;
-                    ToolTip = 'Specifies the quantity of the item reserved at the transfer-to location.';
                 }
                 field("Reserved Quantity Shipped"; Rec."Reserved Quantity Shipped")
                 {
                     ApplicationArea = Reservation;
                     BlankZero = true;
-                    ToolTip = 'Specifies how many units on the shipped transfer order are reserved.';
                 }
                 field("Reserved Quantity Outbnd."; Rec."Reserved Quantity Outbnd.")
                 {
                     ApplicationArea = Reservation;
                     BlankZero = true;
-                    ToolTip = 'Specifies the quantity of the item reserved at the transfer-from location.';
                 }
                 field("Unit of Measure Code"; Rec."Unit of Measure Code")
                 {
                     ApplicationArea = Location;
-                    ToolTip = 'Specifies how each unit of the item or resource is measured, such as in pieces or hours. By default, the value in the Base Unit of Measure field on the item or resource card is inserted.';
                 }
                 field("Unit of Measure"; Rec."Unit of Measure")
                 {
                     ApplicationArea = Location;
-                    ToolTip = 'Specifies the name of the item or resource''s unit of measure, such as piece or hour.';
                     Visible = false;
                 }
                 field("Qty. to Ship"; Rec."Qty. to Ship")
                 {
                     ApplicationArea = Location;
                     BlankZero = true;
-                    ToolTip = 'Specifies the quantity of items that remain to be shipped.';
                 }
                 field("Quantity Shipped"; Rec."Quantity Shipped")
                 {
                     ApplicationArea = Location;
                     BlankZero = true;
-                    ToolTip = 'Specifies how many units of the item on the line have been posted as shipped.';
 
                     trigger OnDrillDown()
                     var
@@ -137,13 +123,11 @@ page 5741 "Transfer Order Subform"
                     ApplicationArea = Location;
                     BlankZero = true;
                     Editable = not Rec."Direct Transfer";
-                    ToolTip = 'Specifies the quantity of items that remains to be received.';
                 }
                 field("Quantity Received"; Rec."Quantity Received")
                 {
                     ApplicationArea = Location;
                     BlankZero = true;
-                    ToolTip = 'Specifies how many units of the item on the line have been posted as received.';
 
                     trigger OnDrillDown()
                     var
@@ -160,59 +144,49 @@ page 5741 "Transfer Order Subform"
                 field("Shipment Date"; Rec."Shipment Date")
                 {
                     ApplicationArea = Location;
-                    ToolTip = 'Specifies when items on the document are shipped or were shipped. A shipment date is usually calculated from a requested delivery date plus lead time.';
                 }
                 field("Receipt Date"; Rec."Receipt Date")
                 {
                     ApplicationArea = Location;
-                    ToolTip = 'Specifies the date that you expect the transfer-to location to receive the shipment.';
                 }
                 field("Shipping Agent Code"; Rec."Shipping Agent Code")
                 {
                     ApplicationArea = Location;
-                    ToolTip = 'Specifies the code for the shipping agent who is transporting the items.';
                     Visible = false;
                 }
                 field("Shipping Agent Service Code"; Rec."Shipping Agent Service Code")
                 {
                     ApplicationArea = Location;
-                    ToolTip = 'Specifies the code for the service, such as a one-day delivery, that is offered by the shipping agent.';
                     Visible = false;
                 }
                 field("Shipping Time"; Rec."Shipping Time")
                 {
                     ApplicationArea = Location;
-                    ToolTip = 'Specifies how long it takes from when the items are shipped from the warehouse to when they are delivered.';
                     Visible = false;
                 }
                 field("Outbound Whse. Handling Time"; Rec."Outbound Whse. Handling Time")
                 {
                     ApplicationArea = Warehouse;
-                    ToolTip = 'Specifies a date formula for the time it takes to get items ready to ship from this location. The time element is used in the calculation of the delivery date as follows: Shipment Date + Outbound Warehouse Handling Time = Planned Shipment Date + Shipping Time = Planned Delivery Date.';
                     Visible = false;
                 }
                 field("Inbound Whse. Handling Time"; Rec."Inbound Whse. Handling Time")
                 {
                     ApplicationArea = Warehouse;
-                    ToolTip = 'Specifies the time it takes to make items part of available inventory, after the items have been posted as received.';
                     Visible = false;
                 }
                 field("Appl.-to Item Entry"; Rec."Appl.-to Item Entry")
                 {
                     ApplicationArea = Location;
-                    ToolTip = 'Specifies the number of the item ledger entry that the document or journal line is applied to.';
                     Visible = false;
                 }
                 field("Shortcut Dimension 1 Code"; Rec."Shortcut Dimension 1 Code")
                 {
                     ApplicationArea = Dimensions;
-                    ToolTip = 'Specifies the code for Shortcut Dimension 1, which is one of two global dimension codes that you set up in the General Ledger Setup window.';
                     Visible = false;
                 }
                 field("Shortcut Dimension 2 Code"; Rec."Shortcut Dimension 2 Code")
                 {
                     ApplicationArea = Dimensions;
-                    ToolTip = 'Specifies the code for Shortcut Dimension 2, which is one of two global dimension codes that you set up in the General Ledger Setup window.';
                     Visible = false;
                 }
                 field("ShortcutDimCode[3]"; ShortcutDimCode[3])

@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -1973,6 +1973,7 @@ table 18 Customer
             CalcFormula = count("Sales Header" where("Document Type" = const(Quote),
                                                       "Sell-to Customer No." = field("No.")));
             Caption = 'No. of Quotes';
+            ToolTip = 'Specifies the number of sales quotes that have been registered for the customer.';
             Editable = false;
             FieldClass = FlowField;
         }
@@ -1985,6 +1986,7 @@ table 18 Customer
             CalcFormula = count("Sales Header" where("Document Type" = const("Blanket Order"),
                                                       "Sell-to Customer No." = field("No.")));
             Caption = 'No. of Blanket Orders';
+            ToolTip = 'Specifies the number of sales blanket orders that have been registered for the customer.';
             Editable = false;
             FieldClass = FlowField;
         }
@@ -1997,6 +1999,7 @@ table 18 Customer
             CalcFormula = count("Sales Header" where("Document Type" = const(Order),
                                                       "Sell-to Customer No." = field("No.")));
             Caption = 'No. of Orders';
+            ToolTip = 'Specifies the number of sales orders that have been registered for the customer.';
             Editable = false;
             FieldClass = FlowField;
         }
@@ -2008,6 +2011,7 @@ table 18 Customer
             CalcFormula = count("Sales Header" where("Document Type" = const(Invoice),
                                                       "Sell-to Customer No." = field("No.")));
             Caption = 'No. of Invoices';
+            ToolTip = 'Specifies the number of unposted sales invoices that have been registered for the customer.';
             Editable = false;
             FieldClass = FlowField;
         }
@@ -2020,6 +2024,7 @@ table 18 Customer
             CalcFormula = count("Sales Header" where("Document Type" = const("Return Order"),
                                                       "Sell-to Customer No." = field("No.")));
             Caption = 'No. of Return Orders';
+            ToolTip = 'Specifies the number of sales return orders that have been registered for the customer.';
             Editable = false;
             FieldClass = FlowField;
         }
@@ -2031,6 +2036,7 @@ table 18 Customer
             CalcFormula = count("Sales Header" where("Document Type" = const("Credit Memo"),
                                                       "Sell-to Customer No." = field("No.")));
             Caption = 'No. of Credit Memos';
+            ToolTip = 'Specifies the number of unposted sales credit memos that have been registered for the customer.';
             Editable = false;
             FieldClass = FlowField;
         }
@@ -2041,6 +2047,7 @@ table 18 Customer
         {
             CalcFormula = count("Sales Shipment Header" where("Sell-to Customer No." = field("No.")));
             Caption = 'No. of Pstd. Shipments';
+            ToolTip = 'Specifies the number of posted sales shipments that have been registered for the customer.';
             Editable = false;
             FieldClass = FlowField;
         }
@@ -2051,6 +2058,7 @@ table 18 Customer
         {
             CalcFormula = count("Sales Invoice Header" where("Sell-to Customer No." = field("No.")));
             Caption = 'No. of Pstd. Invoices';
+            ToolTip = 'Specifies the number of posted sales invoices that have been registered for the customer.';
             Editable = false;
             FieldClass = FlowField;
         }
@@ -2061,6 +2069,7 @@ table 18 Customer
         {
             CalcFormula = count("Return Receipt Header" where("Sell-to Customer No." = field("No.")));
             Caption = 'No. of Pstd. Return Receipts';
+            ToolTip = 'Specifies the number of posted sales return receipts that have been registered for the customer.';
             Editable = false;
             FieldClass = FlowField;
         }
@@ -2071,6 +2080,7 @@ table 18 Customer
         {
             CalcFormula = count("Sales Cr.Memo Header" where("Sell-to Customer No." = field("No.")));
             Caption = 'No. of Pstd. Credit Memos';
+            ToolTip = 'Specifies the number of posted sales credit memos that have been registered for the customer.';
             Editable = false;
             FieldClass = FlowField;
         }
@@ -2092,6 +2102,7 @@ table 18 Customer
             CalcFormula = count("Sales Header" where("Document Type" = const(Quote),
                                                       "Bill-to Customer No." = field("No.")));
             Caption = 'Bill-To No. of Quotes';
+            ToolTip = 'Specifies how many quotes have been registered for the customer when the customer acts as the bill-to customer.';
             Editable = false;
             FieldClass = FlowField;
         }
@@ -2104,6 +2115,7 @@ table 18 Customer
             CalcFormula = count("Sales Header" where("Document Type" = const("Blanket Order"),
                                                       "Bill-to Customer No." = field("No.")));
             Caption = 'Bill-To No. of Blanket Orders';
+            ToolTip = 'Specifies how many blanket orders have been registered for the customer when the customer acts as the bill-to customer.';
             Editable = false;
             FieldClass = FlowField;
         }
@@ -2116,6 +2128,7 @@ table 18 Customer
             CalcFormula = count("Sales Header" where("Document Type" = const(Order),
                                                       "Bill-to Customer No." = field("No.")));
             Caption = 'Bill-To No. of Orders';
+            ToolTip = 'Specifies how many sales orders have been registered for the customer when the customer acts as the bill-to customer.';
             Editable = false;
             FieldClass = FlowField;
         }
@@ -2127,6 +2140,7 @@ table 18 Customer
             CalcFormula = count("Sales Header" where("Document Type" = const(Invoice),
                                                       "Bill-to Customer No." = field("No.")));
             Caption = 'Bill-To No. of Invoices';
+            ToolTip = 'Specifies how many invoices have been registered for the customer when the customer acts as the bill-to customer.';
             Editable = false;
             FieldClass = FlowField;
         }
@@ -2139,6 +2153,7 @@ table 18 Customer
             CalcFormula = count("Sales Header" where("Document Type" = const("Return Order"),
                                                       "Bill-to Customer No." = field("No.")));
             Caption = 'Bill-To No. of Return Orders';
+            ToolTip = 'Specifies how many return orders have been registered for the customer when the customer acts as the bill-to customer.';
             Editable = false;
             FieldClass = FlowField;
         }
@@ -2150,6 +2165,7 @@ table 18 Customer
             CalcFormula = count("Sales Header" where("Document Type" = const("Credit Memo"),
                                                       "Bill-to Customer No." = field("No.")));
             Caption = 'Bill-To No. of Credit Memos';
+            ToolTip = 'Specifies how many credit memos have been registered for the customer when the customer acts as the bill-to customer.';
             Editable = false;
             FieldClass = FlowField;
         }
@@ -2160,6 +2176,7 @@ table 18 Customer
         {
             CalcFormula = count("Sales Shipment Header" where("Bill-to Customer No." = field("No.")));
             Caption = 'Bill-To No. of Pstd. Shipments';
+            ToolTip = 'Specifies how many posted shipments have been registered for the customer when the customer acts as the bill-to customer.';
             Editable = false;
             FieldClass = FlowField;
         }
@@ -2170,6 +2187,7 @@ table 18 Customer
         {
             CalcFormula = count("Sales Invoice Header" where("Bill-to Customer No." = field("No.")));
             Caption = 'Bill-To No. of Pstd. Invoices';
+            ToolTip = 'Specifies how many posted invoices have been registered for the customer when the customer acts as the bill-to customer.';
             Editable = false;
             FieldClass = FlowField;
         }
@@ -2180,6 +2198,7 @@ table 18 Customer
         {
             CalcFormula = count("Return Receipt Header" where("Bill-to Customer No." = field("No.")));
             Caption = 'Bill-To No. of Pstd. Return R.';
+            ToolTip = 'Specifies how many posted return receipts have been registered for the customer when the customer acts as the bill-to customer.';
             Editable = false;
             FieldClass = FlowField;
         }
@@ -2190,6 +2209,7 @@ table 18 Customer
         {
             CalcFormula = count("Sales Cr.Memo Header" where("Bill-to Customer No." = field("No.")));
             Caption = 'Bill-To No. of Pstd. Cr. Memos';
+            ToolTip = 'Specifies how many posted credit memos have been registered for the customer when the customer acts as the bill-to customer.';
             Editable = false;
             FieldClass = FlowField;
         }
@@ -2368,7 +2388,7 @@ table 18 Customer
 
     fieldgroups
     {
-        fieldgroup(DropDown; "No.", Name, Address, City, "Post Code", "Phone No.", Contact, "E-Mail", "Bill-to Customer No.", "Registration Number")
+        fieldgroup(DropDown; "No.", Name, Address, City, "Post Code", "Phone No.", Contact, "E-Mail", "Bill-to Customer No.", "Registration Number", "VAT Registration No.")
         {
         }
         fieldgroup(Brick; "No.", Name, "Balance (LCY)", Contact, "Balance Due (LCY)", Image)
@@ -4360,6 +4380,22 @@ table 18 Customer
         end;
     end;
 
+    procedure FormatVATRegistrationNo(VATRegistrationNo: Text; CountryCode: Code[10]): Text
+    var
+        CountryRegion: Record "Country/Region";
+    begin
+        if VATRegistrationNo = '' then
+            exit;
+
+        VATRegistrationNo := DelChr(VATRegistrationNo);
+
+        if CountryRegion.Get(CountryCode) and (CountryRegion."ISO Code" <> '') then
+            if StrPos(VATRegistrationNo, CountryRegion."ISO Code") <> 1 then
+                VATRegistrationNo := CountryRegion."ISO Code" + VATRegistrationNo;
+
+        exit(VATRegistrationNo);
+    end;
+
     /// <summary>
     /// Raised before determining if the associated contact needs to be updated.
     /// </summary>
@@ -5003,4 +5039,5 @@ table 18 Customer
     local procedure OnAfterGetVATRegistrationNo(var Customer: Record Customer; var VATRegNo: Text[20]);
     begin
     end;
+
 }

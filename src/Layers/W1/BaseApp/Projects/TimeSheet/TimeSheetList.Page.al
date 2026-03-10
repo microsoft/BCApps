@@ -32,39 +32,32 @@ page 951 "Time Sheet List"
                 field("No."; Rec."No.")
                 {
                     ApplicationArea = Jobs;
-                    ToolTip = 'Specifies the number of the involved entry or record, according to the specified number series.';
                 }
                 field("Starting Date"; Rec."Starting Date")
                 {
                     ApplicationArea = Jobs;
-                    ToolTip = 'Specifies the starting date for a time sheet.';
                 }
                 field("Ending Date"; Rec."Ending Date")
                 {
                     ApplicationArea = Jobs;
-                    ToolTip = 'Specifies the ending date for a time sheet.';
                 }
                 field(Description; Rec.Description)
                 {
                     ApplicationArea = Jobs;
-                    ToolTip = 'Specifies the description for a time sheet.';
                 }
                 field("Resource No."; Rec."Resource No.")
                 {
                     ApplicationArea = Jobs;
-                    ToolTip = 'Specifies the number of the resource for the time sheet.';
                 }
                 field("Resource Name"; Rec."Resource Name")
                 {
                     ApplicationArea = Jobs;
-                    ToolTip = 'Specifies the name of the resource for the time sheet.';
                     Visible = false;
                 }
                 field("Quantity"; Rec."Quantity")
                 {
                     ApplicationArea = Jobs;
                     Caption = 'Total';
-                    ToolTip = 'Specifies the total number of hours that are registered on the time sheet.';
                 }
                 field("Quantity Open"; Rec."Quantity Open")
                 {
@@ -93,7 +86,6 @@ page 951 "Time Sheet List"
                 field(Comment; Rec.Comment)
                 {
                     ApplicationArea = Comments;
-                    ToolTip = 'Specifies that a comment about this document has been entered.';
                 }
             }
         }

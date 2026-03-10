@@ -177,6 +177,7 @@ codeunit 134600 "Report Layout Test"
         Assert.IsFalse(CustomReportLayout.ValidateLayout(false, false), '');
     end;
 
+#if not CLEAN28
     [Test]
     [HandlerFunctions('Report134600HandlerCancel')]
     [Scope('OnPrem')]
@@ -201,6 +202,7 @@ codeunit 134600 "Report Layout Test"
 
         CustomReportLayout.Delete();
     end;
+#endif
 
     [Test]
     [Scope('OnPrem')]
@@ -372,6 +374,7 @@ codeunit 134600 "Report Layout Test"
         DesignTimeReportSelection.SetSelectedLayout('');
     end;
 
+#if not CLEAN28
     [Test]
     [HandlerFunctions('ReportLookupHandler')]
     [Scope('OnPrem')]
@@ -393,6 +396,7 @@ codeunit 134600 "Report Layout Test"
         // Verify
         Assert.AreNotEqual(0, CustomReportLayout.Count, '');
     end;
+#endif
 
     [Test]
     [Scope('OnPrem')]

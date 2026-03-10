@@ -84,35 +84,29 @@ page 188 "Posted Docs. With No Inc. Doc."
                 {
                     ApplicationArea = Basic, Suite;
                     Editable = false;
-                    ToolTip = 'Specifies the number of the posted purchase and sales document that does not have an incoming document record.';
                 }
                 field("Posting Date"; Rec."Posting Date")
                 {
                     ApplicationArea = Basic, Suite;
                     Editable = false;
-                    ToolTip = 'Specifies the posting date of the posted purchase and sales document that does not have an incoming document record.';
                 }
                 field("External Document No."; Rec."External Document No.")
                 {
                     ApplicationArea = Basic, Suite;
                     Editable = false;
-                    ToolTip = 'Specifies a document number that refers to the customer''s or vendor''s numbering system.';
                 }
                 field("First Posting Description"; Rec."First Posting Description")
                 {
                     ApplicationArea = Basic, Suite;
                     Editable = false;
-                    ToolTip = 'Specifies the description of the first posting transaction on the posted purchase and sales document that does not have an incoming document record.';
                 }
                 field("Debit Amount"; Rec."Debit Amount")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the total of the ledger entries that represent debits.';
                 }
                 field("Credit Amount"; Rec."Credit Amount")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the total of the ledger entries that represent credits.';
                 }
             }
         }

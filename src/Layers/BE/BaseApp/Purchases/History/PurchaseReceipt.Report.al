@@ -361,7 +361,7 @@ report 408 "Purchase - Receipt"
                                 MoreLines := Next(-1) <> 0;
                             if not MoreLines then
                                 CurrReport.Break();
-                            SetRange("Line No.", 0, "Line No.");
+                            SetFilter("Line No.", '<=%1', "Line No.");
 
                             FirstLineHasBeenOutput := false;
                             DummyCompanyInfo.Picture := CompanyInfo.Picture;

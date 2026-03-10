@@ -47,6 +47,10 @@ table 91 "User Setup"
 #if not CLEAN28
                 GLSetup.CheckPostingDateRange("Allow Posting From", FieldCaption("Allow Posting From"));
 #endif
+
+                if xRec."Allow Posting From" <> Rec."Allow Posting From" then
+                    if Rec."Allow Posting From" <> 0D then
+                        Evaluate(Rec."Allow Posting From DateFormula", '');
             end;
         }
         field(3; "Allow Posting To"; Date)
@@ -59,6 +63,10 @@ table 91 "User Setup"
 #if not CLEAN28
                 GLSetup.CheckPostingDateRange("Allow Posting From", FieldCaption("Allow Posting To"));
 #endif
+
+                if xRec."Allow Posting To" <> Rec."Allow Posting To" then
+                    if Rec."Allow Posting To" <> 0D then
+                        Evaluate(Rec."Allow Posting To DateFormula", '');
             end;
         }
         field(4; "Register Time"; Boolean)
@@ -327,6 +335,28 @@ table 91 "User Setup"
         {
             Caption = 'Service Invoice Posting Policy';
         }
+        field(5991; "Allow Posting From DateFormula"; DateFormula)
+        {
+            Caption = 'Allow Posting From DateFormula';
+
+            trigger OnValidate()
+            begin
+                if xRec."Allow Posting From DateFormula" <> Rec."Allow Posting From DateFormula" then
+                    if Format(Rec."Allow Posting From DateFormula") <> '' then
+                        Rec.Validate("Allow Posting From", 0D);
+            end;
+        }
+        field(5992; "Allow Posting To DateFormula"; DateFormula)
+        {
+            Caption = 'Allow Posting To DateFormula';
+
+            trigger OnValidate()
+            begin
+                if xRec."Allow Posting To DateFormula" <> Rec."Allow Posting To DateFormula" then
+                    if Format(Rec."Allow Posting To DateFormula") <> '' then
+                        Rec.Validate("Allow Posting To", 0D);
+            end;
+        }
     }
 
     keys
@@ -524,9 +554,20 @@ table 91 "User Setup"
     end;
 
     procedure CheckAllowedPostingDates(NotificationType: Option Error,Notification)
+    var
+        AllowedFrom: Date;
+        AllowedTo: Date;
     begin
+        AllowedFrom := Rec."Allow Posting From";
+        AllowedTo := Rec."Allow Posting To";
+
+        UserSetupManagement.GetDateRange(
+            AllowedFrom, AllowedTo,
+            Rec."Allow Posting From DateFormula", Rec."Allow Posting To DateFormula",
+            Rec.RecordId());
+
         UserSetupManagement.CheckAllowedPostingDatesRange(
-          "Allow Posting From", "Allow Posting To", NotificationType, DATABASE::"User Setup");
+          AllowedFrom, AllowedTo, NotificationType, DATABASE::"User Setup");
     end;
 
     procedure CheckAllowedDeferralPostingDates(NotificationType: Option Error,Notification)

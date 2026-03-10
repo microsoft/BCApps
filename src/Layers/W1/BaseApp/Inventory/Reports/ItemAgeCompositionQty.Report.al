@@ -1,3 +1,4 @@
+#if not CLEAN28
 // ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
@@ -12,7 +13,10 @@ report 5807 "Item Age Composition - Qty."
     DefaultLayout = RDLC;
     RDLCLayout = './Inventory/Reports/ItemAgeCompositionQty.rdlc';
     ApplicationArea = Basic, Suite;
-    Caption = 'Item Age Composition - Quantity';
+    Caption = 'Item Age Composition - Quantity (Obsolete)';
+    ObsoleteState = Pending;
+    ObsoleteReason = 'This report has been deprecated and will be merged into the Item Age Composition - (Value and Quantity) report in a future release.';
+    ObsoleteTag = '28.0';
     UsageCategory = ReportsAndAnalysis;
 
     dataset
@@ -131,8 +135,8 @@ report 5807 "Item Age Composition - Qty."
 
     requestpage
     {
-        AboutTitle = 'About Item Age Composition – Quantity';
-        AboutText = 'Review the age of stock in your warehouse by quantity to determine obsolescence and identify slow moving inventory. View your open inventory value split across 5 aging buckets based on the period length and ending date. Filter the report by Location to determine the age of Inventory by warehouse.';
+        AboutTitle = 'About Item Age Composition - Quantity (Obsolete)';
+        AboutText = 'Review the age of stock in your warehouse by quantity to determine obsolescence and identify slow moving inventory. View your open inventory value split across 5 aging buckets based on the period length and ending date. Filter the report by Location to determine the age of Inventory by warehouse.** This report is obsolete and will be removed in a future release.** Please refer to the report documentation for alternative ways to retrieve this information.';
         SaveValues = true;
 
         layout
@@ -226,3 +230,4 @@ report 5807 "Item Age Composition - Qty."
     end;
 }
 
+#endif

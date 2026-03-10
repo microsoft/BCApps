@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -28,55 +28,45 @@ page 99000916 "Machine Center Task List"
                 field(Status; Rec.Status)
                 {
                     ApplicationArea = Manufacturing;
-                    ToolTip = 'Specifies the status of the routing line.';
                 }
                 field("Prod. Order No."; Rec."Prod. Order No.")
                 {
                     ApplicationArea = Manufacturing;
-                    ToolTip = 'Specifies the number of the related production order.';
                 }
                 field("Operation No."; Rec."Operation No.")
                 {
                     ApplicationArea = Manufacturing;
-                    ToolTip = 'Specifies the operation number.';
                 }
                 field(Description; Rec.Description)
                 {
                     ApplicationArea = Manufacturing;
-                    ToolTip = 'Specifies the description of the operation.';
                 }
                 field("Description 2"; Rec."Description 2")
                 {
                     ApplicationArea = Manufacturing;
-                    ToolTip = 'Specifies additional description text.';
                     Visible = false;
                 }
                 field("Setup Time"; Rec."Setup Time")
                 {
                     ApplicationArea = Manufacturing;
-                    ToolTip = 'Specifies the setup time of the operation.';
                 }
                 field("Setup Time Unit of Meas. Code"; Rec."Setup Time Unit of Meas. Code")
                 {
                     ApplicationArea = Manufacturing;
-                    ToolTip = 'Specifies the setup time unit of measure.';
                     Visible = false;
                 }
                 field("Run Time"; Rec."Run Time")
                 {
                     ApplicationArea = Manufacturing;
-                    ToolTip = 'Specifies the run time of the operation.';
                 }
                 field("Run Time Unit of Meas. Code"; Rec."Run Time Unit of Meas. Code")
                 {
                     ApplicationArea = Manufacturing;
-                    ToolTip = 'Specifies the run time unit of measure.';
                     Visible = false;
                 }
                 field("Wait Time"; Rec."Wait Time")
                 {
                     ApplicationArea = Manufacturing;
-                    ToolTip = 'Specifies the wait time after processing.';
                 }
                 field("Wait Time Unit of Meas. Code"; Rec."Wait Time Unit of Meas. Code")
                 {
@@ -87,7 +77,6 @@ page 99000916 "Machine Center Task List"
                 field("Move Time"; Rec."Move Time")
                 {
                     ApplicationArea = Manufacturing;
-                    ToolTip = 'Specifies the move time.';
                 }
                 field("Move Time Unit of Meas. Code"; Rec."Move Time Unit of Meas. Code")
                 {
@@ -98,56 +87,46 @@ page 99000916 "Machine Center Task List"
                 field("Starting Time"; Rec."Starting Time")
                 {
                     ApplicationArea = Manufacturing;
-                    ToolTip = 'Specifies the starting time of the routing line (operation).';
                 }
                 field("Starting Date"; Rec."Starting Date")
                 {
                     ApplicationArea = Manufacturing;
-                    ToolTip = 'Specifies the starting date of the routing line (operation).';
                 }
                 field("Ending Time"; Rec."Ending Time")
                 {
                     ApplicationArea = Manufacturing;
-                    ToolTip = 'Specifies the ending time of the routing line (operation).';
                 }
                 field("Ending Date"; Rec."Ending Date")
                 {
                     ApplicationArea = Manufacturing;
-                    ToolTip = 'Specifies the ending date of the routing line (operation).';
                 }
                 field("Fixed Scrap Quantity"; Rec."Fixed Scrap Quantity")
                 {
                     ApplicationArea = Manufacturing;
-                    ToolTip = 'Specifies the fixed scrap quantity.';
                     Visible = false;
                 }
                 field("Lot Size"; Rec."Lot Size")
                 {
                     ApplicationArea = Manufacturing;
-                    ToolTip = 'Specifies the lot size.';
                     Visible = false;
                 }
                 field("Scrap Factor %"; Rec."Scrap Factor %")
                 {
                     ApplicationArea = Manufacturing;
-                    ToolTip = 'Specifies the scrap factor in percent.';
                     Visible = false;
                 }
                 field("Concurrent Capacities"; Rec."Concurrent Capacities")
                 {
                     ApplicationArea = Manufacturing;
-                    ToolTip = 'Specifies the concurrent capacity of the operation.';
                 }
                 field("Send-Ahead Quantity"; Rec."Send-Ahead Quantity")
                 {
                     ApplicationArea = Manufacturing;
-                    ToolTip = 'Specifies the send-ahead quantity of the operation.';
                     Visible = false;
                 }
                 field("Routing Link Code"; Rec."Routing Link Code")
                 {
                     ApplicationArea = Manufacturing;
-                    ToolTip = 'Specifies a routing link code.';
                     Visible = false;
                 }
                 field("Unit Cost per"; Rec."Unit Cost per")

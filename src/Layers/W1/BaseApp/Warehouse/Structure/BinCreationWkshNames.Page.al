@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -22,17 +22,20 @@ page 7369 "Bin Creation Wksh. Names"
                 field(Name; Rec.Name)
                 {
                     ApplicationArea = Warehouse;
-                    ToolTip = 'Specifies a name for the worksheet.';
                 }
                 field(Description; Rec.Description)
                 {
                     ApplicationArea = Warehouse;
-                    ToolTip = 'Specifies a description for the worksheet.';
                 }
                 field("Location Code"; Rec."Location Code")
                 {
                     ApplicationArea = Location;
-                    ToolTip = 'Specifies the location code for which the worksheet should be used.';
+                }
+                field("No. of Lines"; Rec."No. of Lines")
+                {
+                    ApplicationArea = Warehouse;
+                    ToolTip = 'Specifies the number of lines in this worksheet.';
+                    Visible = false;
                 }
             }
         }

@@ -22,13 +22,11 @@ page 969 "Time Sheet Line Absence Detail"
                 {
                     ApplicationArea = Jobs, BasicHR;
                     Editable = AllowEdit;
-                    ToolTip = 'Specifies a list of standard absence codes, from which you may select one.';
                 }
                 field(Description; Rec.Description)
                 {
                     ApplicationArea = Jobs;
                     Editable = AllowEdit;
-                    ToolTip = 'Specifies a description of the time sheet line.';
                 }
             }
         }

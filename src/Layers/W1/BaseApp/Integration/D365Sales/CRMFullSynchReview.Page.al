@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -26,19 +26,16 @@ page 5331 "CRM Full Synch. Review"
                 field(Name; Rec.Name)
                 {
                     ApplicationArea = Suite;
-                    ToolTip = 'Specifies the name.';
                 }
                 field("Dependency Filter"; Rec."Dependency Filter")
                 {
                     ApplicationArea = Suite;
-                    ToolTip = 'Specifies a dependency to the synchronization of another record, such as a customer that must be synchronized before a contact can be synchronized.';
                     Visible = false;
                 }
                 field("Job Queue Entry Status"; Rec."Job Queue Entry Status")
                 {
                     ApplicationArea = Suite;
                     StyleExpr = JobQueueEntryStatusStyle;
-                    ToolTip = 'Specifies the status of the job queue entry.';
 
                     trigger OnDrillDown()
                     begin
@@ -54,7 +51,6 @@ page 5331 "CRM Full Synch. Review"
                 field(Direction; Rec.Direction)
                 {
                     ApplicationArea = Suite;
-                    ToolTip = 'Specifies the synchronization direction.';
                 }
                 field("To Int. Table Job Status"; Rec."To Int. Table Job Status")
                 {
@@ -106,7 +102,6 @@ page 5331 "CRM Full Synch. Review"
                 {
                     ApplicationArea = Suite;
                     Visible = MultiCompanyCheckboxEnabled;
-                    ToolTip = 'Specifies if the multi-company synchronization should be enabled for the corresponding integration table mapping.';
 
                     trigger OnValidate()
                     begin

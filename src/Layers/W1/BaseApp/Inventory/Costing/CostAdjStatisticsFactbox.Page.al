@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -35,7 +35,6 @@ page 5812 "Cost Adj. Statistics Factbox"
             field("Description 2"; Rec."Description 2")
             {
                 Caption = 'Description 2';
-                ToolTip = 'Specifies information in addition to the description.';
                 Visible = false;
             }
             group("No. of Entries")

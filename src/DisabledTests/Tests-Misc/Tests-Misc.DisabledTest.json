@@ -1513,5 +1513,15 @@
     "method": "AllAppTablesAreInPermissionSet",
     "codeunitId": 132532,
     "codeunitName": "Test Granules"
+  },
+  {
+    "codeunitId": 134281,
+    "codeunitName": "VAT Return Period UT",
+    "method": "UI_ManualInsert_BlankedManualReceiveCU"
+  },
+  {
+    "codeunitId": 134281,
+    "codeunitName": "VAT Return Period UT",
+    "method": "UI_ManualInsert_TypedManualReceiveCU"
   }
 ]

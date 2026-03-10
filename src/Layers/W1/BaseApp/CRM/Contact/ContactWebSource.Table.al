@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -23,17 +23,20 @@ table 5060 "Contact Web Source"
         field(2; "Web Source Code"; Code[10])
         {
             Caption = 'Web Source Code';
+            ToolTip = 'Specifies the Web source code. This field is not editable.';
             NotBlank = true;
             TableRelation = "Web Source";
         }
         field(3; "Search Word"; Text[30])
         {
             Caption = 'Search Word';
+            ToolTip = 'Specifies the search word to search for information about the contact on the Internet.';
         }
         field(4; "Web Source Description"; Text[100])
         {
             CalcFormula = lookup("Web Source".Description where(Code = field("Web Source Code")));
             Caption = 'Web Source Description';
+            ToolTip = 'Specifies the description of the Web source you have assigned to the contact.';
             Editable = false;
             FieldClass = FlowField;
         }

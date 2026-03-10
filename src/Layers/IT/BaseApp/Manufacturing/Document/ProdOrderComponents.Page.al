@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -34,7 +34,6 @@ page 99000818 "Prod. Order Components"
                 field("Item No."; Rec."Item No.")
                 {
                     ApplicationArea = Manufacturing;
-                    ToolTip = 'Specifies the number of the item that is a component in the production order component list.';
 
                     trigger OnValidate()
                     var
@@ -48,7 +47,6 @@ page 99000818 "Prod. Order Components"
                 field("Variant Code"; Rec."Variant Code")
                 {
                     ApplicationArea = Planning;
-                    ToolTip = 'Specifies the variant of the item on the line.';
                     Visible = false;
                     ShowMandatory = VariantCodeMandatory;
 
@@ -63,29 +61,24 @@ page 99000818 "Prod. Order Components"
                 field("Due Date-Time"; Rec."Due Date-Time")
                 {
                     ApplicationArea = Manufacturing;
-                    ToolTip = 'Specifies the due date and the due time, which are combined in a format called "due date-time".';
                     Visible = false;
                 }
                 field("Due Date"; Rec."Due Date")
                 {
                     ApplicationArea = Manufacturing;
-                    ToolTip = 'Specifies the date when the produced item must be available. The date is copied from the header of the production order.';
                 }
                 field(Description; Rec.Description)
                 {
                     ApplicationArea = Manufacturing;
-                    ToolTip = 'Specifies a description of the item on the line.';
                 }
                 field("Description 2"; Rec."Description 2")
                 {
                     ApplicationArea = Manufacturing;
-                    ToolTip = 'Specifies additional description text.';
                     Visible = false;
                 }
                 field("Scrap %"; Rec."Scrap %")
                 {
                     ApplicationArea = Manufacturing;
-                    ToolTip = 'Specifies the percentage of the item that you expect to be scrapped in the production process.';
                     Visible = false;
 
                     trigger OnValidate()
@@ -96,7 +89,6 @@ page 99000818 "Prod. Order Components"
                 field("Calculation Formula"; Rec."Calculation Formula")
                 {
                     ApplicationArea = Manufacturing;
-                    ToolTip = 'Specifies how to calculate the Quantity field.';
                     Visible = false;
 
                     trigger OnValidate()
@@ -107,7 +99,6 @@ page 99000818 "Prod. Order Components"
                 field(Length; Rec.Length)
                 {
                     ApplicationArea = Manufacturing;
-                    ToolTip = 'Specifies the length of one item unit when measured in the specified unit of measure.';
                     Visible = false;
 
                     trigger OnValidate()
@@ -118,7 +109,6 @@ page 99000818 "Prod. Order Components"
                 field(Width; Rec.Width)
                 {
                     ApplicationArea = Manufacturing;
-                    ToolTip = 'Specifies the width of one item unit when measured in the specified unit of measure.';
                     Visible = false;
 
                     trigger OnValidate()
@@ -129,7 +119,6 @@ page 99000818 "Prod. Order Components"
                 field(Weight; Rec.Weight)
                 {
                     ApplicationArea = Manufacturing;
-                    ToolTip = 'Specifies the weight of one item unit when measured in the specified unit of measure.';
                     Visible = false;
 
                     trigger OnValidate()
@@ -140,7 +129,6 @@ page 99000818 "Prod. Order Components"
                 field(Depth; Rec.Depth)
                 {
                     ApplicationArea = Manufacturing;
-                    ToolTip = 'Specifies the depth of one item unit when measured in the specified unit of measure.';
                     Visible = false;
 
                     trigger OnValidate()
@@ -151,7 +139,6 @@ page 99000818 "Prod. Order Components"
                 field("Quantity per"; Rec."Quantity per")
                 {
                     ApplicationArea = Manufacturing;
-                    ToolTip = 'Specifies how many units of the component are required to produce the parent item.';
 
                     trigger OnValidate()
                     begin
@@ -161,7 +148,6 @@ page 99000818 "Prod. Order Components"
                 field("Reserved Quantity"; Rec."Reserved Quantity")
                 {
                     ApplicationArea = Reservation;
-                    ToolTip = 'Specifies how many units of this item have been reserved.';
                     Visible = false;
 
                     trigger OnDrillDown()
@@ -173,7 +159,6 @@ page 99000818 "Prod. Order Components"
                 field("Unit of Measure Code"; Rec."Unit of Measure Code")
                 {
                     ApplicationArea = Manufacturing;
-                    ToolTip = 'Specifies how each unit of the item or resource is measured, such as in pieces or hours. By default, the value in the Base Unit of Measure field on the item or resource card is inserted.';
 
                     trigger OnValidate()
                     begin
@@ -183,17 +168,14 @@ page 99000818 "Prod. Order Components"
                 field("Flushing Method"; Rec."Flushing Method")
                 {
                     ApplicationArea = Manufacturing;
-                    ToolTip = 'Specifies how consumption of the item (component) is calculated and handled in production processes. Manual: Enter and post consumption in the consumption journal manually. Forward: Automatically posts consumption according to the production order component lines when the first operation starts. Backward: Automatically calculates and posts consumption according to the production order component lines when the production order is finished. Pick + Forward / Pick + Backward: Variations with warehousing.';
                 }
                 field("Expected Quantity"; Rec."Expected Quantity")
                 {
                     ApplicationArea = Manufacturing;
-                    ToolTip = 'Specifies the quantity of the component expected to be consumed during the production of the quantity on this line.';
                 }
                 field("Remaining Quantity"; Rec."Remaining Quantity")
                 {
                     ApplicationArea = Manufacturing;
-                    ToolTip = 'Specifies the difference between the finished and planned quantities, or zero if the finished quantity is greater than the remaining quantity.';
                 }
 #if not CLEAN27
                 field("Qty. on Transfer Order (Base)"; Rec."Qty. on Transfer Order (Base)")
@@ -224,13 +206,11 @@ page 99000818 "Prod. Order Components"
                 field("Shortcut Dimension 1 Code"; Rec."Shortcut Dimension 1 Code")
                 {
                     ApplicationArea = Dimensions;
-                    ToolTip = 'Specifies the code for Shortcut Dimension 1, which is one of two global dimension codes that you set up in the General Ledger Setup window.';
                     Visible = false;
                 }
                 field("Shortcut Dimension 2 Code"; Rec."Shortcut Dimension 2 Code")
                 {
                     ApplicationArea = Dimensions;
-                    ToolTip = 'Specifies the code for Shortcut Dimension 2, which is one of two global dimension codes that you set up in the General Ledger Setup window.';
                     Visible = false;
                 }
                 field("ShortcutDimCode[3]"; ShortcutDimCode[3])
@@ -320,12 +300,10 @@ page 99000818 "Prod. Order Components"
                 field("Routing Link Code"; Rec."Routing Link Code")
                 {
                     ApplicationArea = Manufacturing;
-                    ToolTip = 'Specifies the routing link code when you calculate the production order.';
                 }
                 field("Location Code"; Rec."Location Code")
                 {
                     ApplicationArea = Location;
-                    ToolTip = 'Specifies the location where the component is stored. Copies the location code from the corresponding field on the production order line.';
 
                     trigger OnValidate()
                     begin
@@ -335,48 +313,40 @@ page 99000818 "Prod. Order Components"
                 field("Bin Code"; Rec."Bin Code")
                 {
                     ApplicationArea = Warehouse;
-                    ToolTip = 'Specifies the bin in which the component is to be placed before it is consumed.';
                 }
                 field("Unit Cost"; Rec."Unit Cost")
                 {
                     ApplicationArea = Manufacturing;
-                    ToolTip = 'Specifies the cost of one unit of the item or resource on the line.';
                     Visible = false;
                 }
                 field("Cost Amount"; Rec."Cost Amount")
                 {
                     ApplicationArea = Manufacturing;
-                    ToolTip = 'Specifies the total cost on the line by multiplying the unit cost by the quantity.';
                     Visible = false;
                 }
                 field(Position; Rec.Position)
                 {
                     ApplicationArea = Manufacturing;
-                    ToolTip = 'Specifies the position of the component on the bill of material.';
                     Visible = false;
                 }
                 field("Position 2"; Rec."Position 2")
                 {
                     ApplicationArea = Manufacturing;
-                    ToolTip = 'Specifies the components position in the BOM. It is copied from the production BOM when you calculate the production order.';
                     Visible = false;
                 }
                 field("Position 3"; Rec."Position 3")
                 {
                     ApplicationArea = Manufacturing;
-                    ToolTip = 'Specifies the third reference number for the component position on a bill of material, such as the alternate position number of a component on a print card.';
                     Visible = false;
                 }
                 field("Lead-Time Offset"; Rec."Lead-Time Offset")
                 {
                     ApplicationArea = Manufacturing;
-                    ToolTip = 'Specifies the lead-time offset for the component line. It is copied from the corresponding field in the production BOM when you calculate the production order.';
                     Visible = false;
                 }
                 field("Qty. Picked"; Rec."Qty. Picked")
                 {
                     ApplicationArea = Manufacturing;
-                    ToolTip = 'Specifies the quantity of the item you have picked for the component line.';
                     Visible = false;
                 }
                 field("Qty. Picked (Base)"; Rec."Qty. Picked (Base)")
@@ -388,7 +358,6 @@ page 99000818 "Prod. Order Components"
                 field("Substitution Available"; Rec."Substitution Available")
                 {
                     ApplicationArea = Manufacturing;
-                    ToolTip = 'Specifies if an item substitute is available for the production order component.';
                 }
             }
         }
@@ -620,6 +589,21 @@ page 99000818 "Prod. Order Components"
 
                         CurrPage.SaveRecord();
                         Rec.ShowReservation();
+                    end;
+                }
+                action(ReserveFromInventory)
+                {
+                    ApplicationArea = Reservation;
+                    Caption = 'Reserve from Inventory';
+                    Image = LineReserve;
+                    ToolTip = 'Reserve items for the selected line from inventory.';
+
+                    trigger OnAction()
+                    var
+                        ProdOrderComponent: Record "Prod. Order Component";
+                    begin
+                        CurrPage.SetSelectionFilter(ProdOrderComponent);
+                        Rec.ReserveFromInventory(ProdOrderComponent);
                     end;
                 }
                 action(OrderTracking)

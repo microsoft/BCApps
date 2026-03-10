@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -36,14 +36,12 @@ page 5972 "Posted Service Credit Memo"
                     ApplicationArea = Service;
                     Editable = false;
                     Importance = Promoted;
-                    ToolTip = 'Specifies the number of the involved entry or record, according to the specified number series.';
                 }
                 field("Customer No."; Rec."Customer No.")
                 {
                     ApplicationArea = Service;
                     Editable = false;
                     Importance = Promoted;
-                    ToolTip = 'Specifies the number of the customer associated with the credit memo.';
                 }
                 group("Sell-to")
                 {
@@ -52,7 +50,6 @@ page 5972 "Posted Service Credit Memo"
                     {
                         ApplicationArea = Service;
                         Editable = false;
-                        ToolTip = 'Specifies the name of the customer to whom you shipped the service on the credit memo.';
                     }
                     field("Name 2"; Rec."Name 2")
                     {
@@ -64,19 +61,16 @@ page 5972 "Posted Service Credit Memo"
                     {
                         ApplicationArea = Service;
                         Editable = false;
-                        ToolTip = 'Specifies the address of the customer on the credit memo.';
                     }
                     field("Address 2"; Rec."Address 2")
                     {
                         ApplicationArea = Service;
                         Editable = false;
-                        ToolTip = 'Specifies additional address information.';
                     }
                     field(City; Rec.City)
                     {
                         ApplicationArea = Service;
                         Editable = false;
-                        ToolTip = 'Specifies the city of the address.';
                     }
                     group(Control18)
                     {
@@ -86,26 +80,22 @@ page 5972 "Posted Service Credit Memo"
                         {
                             ApplicationArea = Service;
                             Editable = false;
-                            ToolTip = 'Specifies state, province or county.';
                         }
                     }
                     field("Post Code"; Rec."Post Code")
                     {
                         ApplicationArea = Service;
                         Editable = false;
-                        ToolTip = 'Specifies the postal code.';
                     }
                     field("Country/Region Code"; Rec."Country/Region Code")
                     {
                         ApplicationArea = Service;
                         Editable = false;
-                        ToolTip = 'Specifies the country/region of the address.';
                     }
                     field("Contact Name"; Rec."Contact Name")
                     {
                         ApplicationArea = Service;
                         Editable = false;
-                        ToolTip = 'Specifies the name of the contact person at the customer company.';
                     }
                     field(SellToPhoneNo; SellToContact."Phone No.")
                     {
@@ -140,7 +130,6 @@ page 5972 "Posted Service Credit Memo"
                     ApplicationArea = Service;
                     Editable = false;
                     Importance = Promoted;
-                    ToolTip = 'Specifies the date when the credit memo was posted.';
                 }
                 field("VAT Reporting Date"; Rec."VAT Reporting Date")
                 {
@@ -148,13 +137,11 @@ page 5972 "Posted Service Credit Memo"
                     Importance = Promoted;
                     Editable = VATDateEnabled;
                     Visible = VATDateEnabled;
-                    ToolTip = 'Specifies the VAT date on the invoice.';
                 }
                 field("Document Date"; Rec."Document Date")
                 {
                     ApplicationArea = Service;
                     Editable = false;
-                    ToolTip = 'Specifies the date when the related document was created.';
                 }
                 group(Control11)
                 {
@@ -165,7 +152,6 @@ page 5972 "Posted Service Credit Memo"
                         ApplicationArea = Service;
                         Editable = false;
                         StyleExpr = DocExchStatusStyle;
-                        ToolTip = 'Specifies the status of the document if you are using a document exchange service to send it as an electronic document. The status values are reported by the document exchange service.';
 
                         trigger OnDrillDown()
                         var
@@ -179,38 +165,32 @@ page 5972 "Posted Service Credit Memo"
                 {
                     ApplicationArea = Service;
                     Editable = false;
-                    ToolTip = 'Specifies the number of the credit memo from which the posted credit memo was created.';
                 }
                 field("External Document No."; Rec."External Document No.")
                 {
                     ApplicationArea = Service;
                     Editable = false;
                     Importance = Additional;
-                    ToolTip = 'Specifies the external document number that is entered on the service header that this line was posted from.';
                 }
                 field("Salesperson Code"; Rec."Salesperson Code")
                 {
                     ApplicationArea = Service;
                     Editable = false;
-                    ToolTip = 'Specifies the code of the salesperson associated with the credit memo.';
                 }
                 field("Responsibility Center"; Rec."Responsibility Center")
                 {
                     ApplicationArea = Service;
                     Editable = false;
-                    ToolTip = 'Specifies the code of the responsibility center, such as a distribution hub, that is associated with the involved user, company, customer, or vendor.';
                 }
                 field("No. Printed"; Rec."No. Printed")
                 {
                     ApplicationArea = Service;
                     Editable = false;
-                    ToolTip = 'Specifies how many times the document has been printed.';
                 }
                 field("Your Reference"; Rec."Your Reference")
                 {
                     ApplicationArea = Service;
                     Editable = false;
-                    ToolTip = 'Specifies the customer''s reference. The content will be printed on the related document.';
                 }
                 group("Work Description")
                 {
@@ -239,7 +219,6 @@ page 5972 "Posted Service Credit Memo"
                     ApplicationArea = Service;
                     Editable = false;
                     Importance = Promoted;
-                    ToolTip = 'Specifies the number of the customer that you send or sent the invoice or credit memo to.';
                 }
                 group("Bill-to")
                 {
@@ -249,7 +228,6 @@ page 5972 "Posted Service Credit Memo"
                         ApplicationArea = Service;
                         Caption = 'Name';
                         Editable = false;
-                        ToolTip = 'Specifies the name of the customer that you send or sent the invoice or credit memo to.';
                     }
                     field("Bill-to Name 2"; Rec."Bill-to Name 2")
                     {
@@ -263,21 +241,18 @@ page 5972 "Posted Service Credit Memo"
                         ApplicationArea = Service;
                         Caption = 'Address';
                         Editable = false;
-                        ToolTip = 'Specifies the address of the customer to whom you sent the credit memo.';
                     }
                     field("Bill-to Address 2"; Rec."Bill-to Address 2")
                     {
                         ApplicationArea = Service;
                         Caption = 'Address 2';
                         Editable = false;
-                        ToolTip = 'Specifies an additional line of the address.';
                     }
                     field("Bill-to City"; Rec."Bill-to City")
                     {
                         ApplicationArea = Service;
                         Caption = 'City';
                         Editable = false;
-                        ToolTip = 'Specifies the city of the address.';
                     }
                     group(Control25)
                     {
@@ -288,7 +263,6 @@ page 5972 "Posted Service Credit Memo"
                             ApplicationArea = Service;
                             CaptionClass = '5,1,' + Rec."Bill-to Country/Region Code";
                             Editable = false;
-                            ToolTip = 'Specifies the state, province or county of the address.';
                         }
                     }
                     field("Bill-to Post Code"; Rec."Bill-to Post Code")
@@ -296,7 +270,6 @@ page 5972 "Posted Service Credit Memo"
                         ApplicationArea = Service;
                         Caption = 'Post Code';
                         Editable = false;
-                        ToolTip = 'Specifies the postal code of the customer''s billing address.';
                     }
                     field("Bill-to Country/Region Code"; Rec."Bill-to Country/Region Code")
                     {
@@ -310,7 +283,6 @@ page 5972 "Posted Service Credit Memo"
                         ApplicationArea = Service;
                         Caption = 'Contact';
                         Editable = false;
-                        ToolTip = 'Specifies the name of the contact person at the customer''s billing address.';
                     }
                     field(BillToContactPhoneNo; BillToContact."Phone No.")
                     {
@@ -344,32 +316,27 @@ page 5972 "Posted Service Credit Memo"
                 {
                     ApplicationArea = Dimensions;
                     Editable = false;
-                    ToolTip = 'Specifies the code for Shortcut Dimension 1, which is one of two global dimension codes that you set up in the General Ledger Setup window.';
                 }
                 field("Shortcut Dimension 2 Code"; Rec."Shortcut Dimension 2 Code")
                 {
                     ApplicationArea = Dimensions;
                     Editable = false;
-                    ToolTip = 'Specifies the code for Shortcut Dimension 2, which is one of two global dimension codes that you set up in the General Ledger Setup window.';
                 }
                 field("Customer Posting Group"; Rec."Customer Posting Group")
                 {
                     ApplicationArea = Service;
                     Editable = false;
-                    ToolTip = 'Specifies the customer''s market type to link business transactions to.';
                     Visible = false;
                 }
                 field("Tax Liable"; Rec."Tax Liable")
                 {
                     ApplicationArea = SalesTax;
                     Editable = false;
-                    ToolTip = 'Specifies that items, resources, or costs on the current credit memo line are liable to sales tax.';
                 }
                 field("Tax Area Code"; Rec."Tax Area Code")
                 {
                     ApplicationArea = SalesTax;
                     Editable = false;
-                    ToolTip = 'Specifies the tax area that is used to calculate and post sales tax.';
                 }
             }
             group(Shipping)
@@ -379,7 +346,6 @@ page 5972 "Posted Service Credit Memo"
                 {
                     ApplicationArea = Service;
                     Editable = false;
-                    ToolTip = 'Specifies a code for an alternate shipment address if you want to ship to another address than the one that has been entered automatically. This field is also used in case of drop shipment.';
                 }
                 group("Ship-to")
                 {
@@ -389,7 +355,6 @@ page 5972 "Posted Service Credit Memo"
                         ApplicationArea = Service;
                         Caption = 'Name';
                         Editable = false;
-                        ToolTip = 'Specifies the name of the customer at the address that the items are shipped to.';
                     }
                     field("Ship-to Name 2"; Rec."Ship-to Name 2")
                     {
@@ -397,7 +362,6 @@ page 5972 "Posted Service Credit Memo"
                         Caption = 'Name 2';
                         Editable = false;
                         Importance = Additional;
-                        ToolTip = 'Specifies an additional part of thethe name of the customer at the address that the items are shipped to.';
                         Visible = false;
                     }
                     field("Ship-to Address"; Rec."Ship-to Address")
@@ -405,21 +369,18 @@ page 5972 "Posted Service Credit Memo"
                         ApplicationArea = Service;
                         Caption = 'Address';
                         Editable = false;
-                        ToolTip = 'Specifies the address that the items are shipped to.';
                     }
                     field("Ship-to Address 2"; Rec."Ship-to Address 2")
                     {
                         ApplicationArea = Service;
                         Caption = 'Address 2';
                         Editable = false;
-                        ToolTip = 'Specifies an additional part of the ship-to address, in case it is a long address.';
                     }
                     field("Ship-to City"; Rec."Ship-to City")
                     {
                         ApplicationArea = Service;
                         Caption = 'City';
                         Editable = false;
-                        ToolTip = 'Specifies the city of the address that the items are shipped to.';
                     }
                     group(Control27)
                     {
@@ -430,7 +391,6 @@ page 5972 "Posted Service Credit Memo"
                             ApplicationArea = Service;
                             CaptionClass = '5,1,' + Rec."Ship-to Country/Region Code";
                             Editable = false;
-                            ToolTip = 'Specifies the state, province or county of the address that the items are shipped to.';
                         }
                     }
                     field("Ship-to Post Code"; Rec."Ship-to Post Code")
@@ -438,27 +398,23 @@ page 5972 "Posted Service Credit Memo"
                         ApplicationArea = Service;
                         Caption = 'Post Code';
                         Editable = false;
-                        ToolTip = 'Specifies the postal code of the address that the items are shipped to.';
                     }
                     field("Ship-to Country/Region Code"; Rec."Ship-to Country/Region Code")
                     {
                         ApplicationArea = Service;
                         Caption = 'Country/Region';
                         Editable = false;
-                        ToolTip = 'Specifies the country/region in the customer''s address.';
                     }
                     field("Ship-to Phone"; Rec."Ship-to Phone")
                     {
                         ApplicationArea = Service;
                         Caption = 'Phone No.';
-                        ToolTip = 'Specifies the telephone number of the company''s shipping address.';
                     }
                     field("Ship-to Contact"; Rec."Ship-to Contact")
                     {
                         ApplicationArea = Service;
                         Caption = 'Contact';
                         Editable = false;
-                        ToolTip = 'Specifies the name of the contact person at the address that the items are shipped to.';
                     }
                 }
                 field("Location Code"; Rec."Location Code")
@@ -466,7 +422,6 @@ page 5972 "Posted Service Credit Memo"
                     ApplicationArea = Location;
                     Editable = false;
                     Importance = Promoted;
-                    ToolTip = 'Specifies the location, such as warehouse or distribution center, where the credit memo was registered.';
                 }
                 group("Shipment Method")
                 {
@@ -476,7 +431,6 @@ page 5972 "Posted Service Credit Memo"
                         ApplicationArea = Service;
                         Caption = 'Code';
                         Editable = false;
-                        ToolTip = 'Specifies the shipment method for the shipment.';
                     }
                     field("Shipping Agent Code"; Rec."Shipping Agent Code")
                     {
@@ -484,7 +438,6 @@ page 5972 "Posted Service Credit Memo"
                         Caption = 'Agent';
                         Editable = false;
                         Importance = Additional;
-                        ToolTip = 'Specifies which shipping agent is used to transport the items on the service document to the customer.';
                     }
                     field("Shipping Agent Service Code"; Rec."Shipping Agent Service Code")
                     {
@@ -492,7 +445,6 @@ page 5972 "Posted Service Credit Memo"
                         Caption = 'Agent Service';
                         Editable = false;
                         Importance = Additional;
-                        ToolTip = 'Specifies which shipping agent service is used to transport the items on the service document to the customer.';
                     }
                 }
             }
@@ -503,7 +455,6 @@ page 5972 "Posted Service Credit Memo"
                 {
                     ApplicationArea = Service;
                     Importance = Promoted;
-                    ToolTip = 'Specifies the currency code for the amounts on the credit memo.';
 
                     trigger OnAssistEdit()
                     begin
@@ -521,13 +472,11 @@ page 5972 "Posted Service Credit Memo"
                     ApplicationArea = Service;
                     Editable = false;
                     Importance = Promoted;
-                    ToolTip = 'Specifies the bank account to use for bank information when the document is printed.';
                 }
                 field("EU 3-Party Trade"; Rec."EU 3-Party Trade")
                 {
                     ApplicationArea = Service;
                     Editable = false;
-                    ToolTip = 'Specifies if the transaction is related to trade with a third party within the EU.';
                 }
             }
         }

@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -30,7 +30,6 @@ page 447 "Finance Charge Memo Lines"
                 {
                     ApplicationArea = Basic, Suite;
                     ShowMandatory = true;
-                    ToolTip = 'Specifies the line type.';
 
                     trigger OnValidate()
                     begin
@@ -42,7 +41,6 @@ page 447 "Finance Charge Memo Lines"
                 {
                     ApplicationArea = Basic, Suite;
                     ShowMandatory = Rec.Type = Rec.Type::"G/L Account";
-                    ToolTip = 'Specifies the number of the involved entry or record, according to the specified number series.';
 
                     trigger OnValidate()
                     begin
@@ -52,20 +50,17 @@ page 447 "Finance Charge Memo Lines"
                 field("Posting Date"; Rec."Posting Date")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the posting date of the customer ledger entry that this finance charge memo line is for.';
                     Visible = false;
                 }
                 field("Document Date"; Rec."Document Date")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the date when the related document was created.';
                     Visible = false;
                 }
                 field("Document Type"; Rec."Document Type")
                 {
                     ApplicationArea = Basic, Suite;
                     ShowMandatory = Rec.Type = Rec.Type::"Customer Ledger Entry";
-                    ToolTip = 'Specifies the document type of the customer ledger entry this finance charge memo line is for.';
 
                     trigger OnValidate()
                     begin
@@ -76,7 +71,6 @@ page 447 "Finance Charge Memo Lines"
                 {
                     ApplicationArea = Basic, Suite;
                     ShowMandatory = Rec.Type = Rec.Type::"Customer Ledger Entry";
-                    ToolTip = 'Specifies the document number of the customer ledger entry this finance charge memo line is for.';
 
                     trigger OnLookup(var Text: Text): Boolean
                     begin
@@ -92,19 +86,16 @@ page 447 "Finance Charge Memo Lines"
                 field("Due Date"; Rec."Due Date")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the due date of the customer ledger entry this finance charge memo line is for.';
                 }
                 field(Description; Rec.Description)
                 {
                     ApplicationArea = Basic, Suite;
                     Style = Strong;
                     StyleExpr = DescriptionEmphasize;
-                    ToolTip = 'Specifies an entry description, based on the contents of the Type field.';
                 }
                 field("Original Amount"; Rec."Original Amount")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the original amount of the customer ledger entry that this finance charge memo line is for.';
                     Visible = false;
                 }
                 field("Remaining Amount"; Rec."Remaining Amount")
@@ -112,14 +103,12 @@ page 447 "Finance Charge Memo Lines"
                     ApplicationArea = Basic, Suite;
                     Style = Strong;
                     StyleExpr = RemainingAmountEmphasize;
-                    ToolTip = 'Specifies the remaining amount of the customer ledger entry this finance charge memo line is for.';
                 }
                 field(Amount; Rec.Amount)
                 {
                     ApplicationArea = Basic, Suite;
                     Style = Strong;
                     StyleExpr = AmountEmphasize;
-                    ToolTip = 'Specifies the amount in the currency that is represented by the currency code on the finance charge memo header.';
                 }
                 field("Account Code"; Rec."Account Code")
                 {

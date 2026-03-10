@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -21,6 +21,7 @@ table 1637 "Office Suggested Line Item"
         field(2; Add; Boolean)
         {
             Caption = 'Add';
+            ToolTip = 'Specifies whether to add this item to the document';
             Description = 'Specifies whether to add this item to the document.';
             InitValue = false;
         }

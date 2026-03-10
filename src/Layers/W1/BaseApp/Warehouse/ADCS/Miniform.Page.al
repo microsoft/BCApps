@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -23,38 +23,31 @@ page 7700 Miniform
                 field("Code"; Rec.Code)
                 {
                     ApplicationArea = ADCS;
-                    ToolTip = 'Specifies a unique code for a specific miniform.';
                 }
                 field(Description; Rec.Description)
                 {
                     ApplicationArea = ADCS;
-                    ToolTip = 'Specifies your description of the miniform with the code on the header.';
                 }
                 field("Form Type"; Rec."Form Type")
                 {
                     ApplicationArea = ADCS;
-                    ToolTip = 'Specifies the form type of the miniform.';
                 }
                 field("No. of Records in List"; Rec."No. of Records in List")
                 {
                     ApplicationArea = ADCS;
-                    ToolTip = 'Specifies the number of records that will be sent to the handheld if the miniform on the header is either Selection List or Data List.';
                 }
                 field("Handling Codeunit"; Rec."Handling Codeunit")
                 {
                     ApplicationArea = ADCS;
                     LookupPageID = Objects;
-                    ToolTip = 'Specifies the number of the codeunit containing the code that handles this miniform.';
                 }
                 field("Next Miniform"; Rec."Next Miniform")
                 {
                     ApplicationArea = ADCS;
-                    ToolTip = 'Specifies which form will be shown next when a selection is made in a Data List form or when the last field is entered on a Card form.';
                 }
                 field("Start Miniform"; Rec."Start Miniform")
                 {
                     ApplicationArea = ADCS;
-                    ToolTip = 'Specifies that this field is the first miniform that will be shown to the user when starting up a handheld.';
                 }
             }
             part(Control9; "Miniform Subform")

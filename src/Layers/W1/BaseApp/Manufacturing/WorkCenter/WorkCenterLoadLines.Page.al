@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -39,7 +39,6 @@ page 99000888 "Work Center Load Lines"
                 {
                     ApplicationArea = Manufacturing;
                     Caption = 'Period Name';
-                    ToolTip = 'Specifies the name of the period shown in the line.';
                 }
                 field(Capacity; Rec.Capacity)
                 {
@@ -90,7 +89,6 @@ page 99000888 "Work Center Load Lines"
                     ApplicationArea = Manufacturing;
                     Caption = 'Load';
                     DecimalPlaces = 0 : 5;
-                    ToolTip = 'Specifies the sum of the required number of times that all the planned and actual orders are run on the work center in a specified period.';
                 }
             }
         }

@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -28,17 +28,14 @@ page 454 "Fin. Charge Comment Sheet"
                 field(Date; Rec.Date)
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the date the comment was created.';
                 }
                 field(Comment; Rec.Comment)
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the comment itself.';
                 }
                 field("Code"; Rec.Code)
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies a code for the comment.';
                     Visible = false;
                 }
             }

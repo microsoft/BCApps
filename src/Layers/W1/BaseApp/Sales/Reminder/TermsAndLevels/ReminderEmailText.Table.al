@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -32,6 +32,7 @@ table 503 "Reminder Email Text"
         field(2; "Language Code"; Code[10])
         {
             Caption = 'Language Code';
+            ToolTip = 'Specifies the language code for the text communications.';
             NotBlank = true;
             TableRelation = Language;
             DataClassification = SystemMetadata;
@@ -50,6 +51,7 @@ table 503 "Reminder Email Text"
         field(4; Subject; Text[128])
         {
             Caption = 'Subject';
+            ToolTip = 'Specifies the subject of the generated email.';
             DataClassification = CustomerContent;
         }
         /// <summary>
@@ -58,6 +60,7 @@ table 503 "Reminder Email Text"
         field(5; Greeting; Text[128])
         {
             Caption = 'Greeting';
+            ToolTip = 'Specifies the first lines at the beginning of the email';
             DataClassification = CustomerContent;
         }
         /// <summary>
@@ -74,6 +77,7 @@ table 503 "Reminder Email Text"
         field(7; Closing; Text[128])
         {
             Caption = 'Closing';
+            ToolTip = 'Specifies the last lines at the end of the email.';
             DataClassification = CustomerContent;
         }
     }

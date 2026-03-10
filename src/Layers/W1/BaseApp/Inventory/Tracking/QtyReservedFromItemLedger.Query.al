@@ -42,6 +42,9 @@ query 522 "Qty. Reserved From Item Ledger"
                 DataItemTableFilter = Positive = const(true),
                                       "Source Type" = const(Database::"Item Ledger Entry"),
                                       "Reservation Status" = const(Reservation);
+                filter(From_Serial_No_; "Serial No.") { }
+                filter(From_Lot_No_; "Lot No.") { }
+                filter(From_Package_No_; "Package No.") { }
             }
         }
     }
@@ -70,5 +73,12 @@ query 522 "Qty. Reserved From Item Ledger"
         SetRange(Serial_No_, ItemTrackingSetup."Serial No.");
         SetRange(Lot_No_, ItemTrackingSetup."Lot No.");
         SetRange(Package_No_, ItemTrackingSetup."Package No.");
+    end;
+
+    procedure SetSupplySideTrackingFilters(ItemTrackingSetup: Record "Item Tracking Setup")
+    begin
+        SetRange(From_Serial_No_, ItemTrackingSetup."Serial No.");
+        SetRange(From_Lot_No_, ItemTrackingSetup."Lot No.");
+        SetRange(From_Package_No_, ItemTrackingSetup."Package No.");
     end;
 }

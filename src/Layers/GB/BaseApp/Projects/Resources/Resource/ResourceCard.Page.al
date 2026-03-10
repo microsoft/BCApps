@@ -38,7 +38,6 @@ page 76 "Resource Card"
                 {
                     ApplicationArea = All;
                     Importance = Standard;
-                    ToolTip = 'Specifies the number of the involved entry or record, according to the specified number series.';
                     Visible = NoFieldVisible;
 
                     trigger OnAssistEdit()
@@ -50,53 +49,44 @@ page 76 "Resource Card"
                 field(Name; Rec.Name)
                 {
                     ApplicationArea = Jobs;
-                    ToolTip = 'Specifies a description of the resource.';
                 }
                 field("Name 2"; Rec."Name 2")
                 {
                     ApplicationArea = Jobs;
                     Importance = Additional;
-                    ToolTip = 'Specifies information in addition to the description.';
                     Visible = false;
                 }
                 field(Type; Rec.Type)
                 {
                     ApplicationArea = Jobs;
                     Importance = Promoted;
-                    ToolTip = 'Specifies whether the resource is a person or a machine.';
                 }
                 field("Base Unit of Measure"; Rec."Base Unit of Measure")
                 {
                     ApplicationArea = Jobs;
                     Importance = Promoted;
-                    ToolTip = 'Specifies the base unit used to measure the resource, such as hour, piece, or kilometer.';
                 }
                 field("Search Name"; Rec."Search Name")
                 {
                     ApplicationArea = Jobs;
-                    ToolTip = 'Specifies an alternate name that you can use to search for the record in question when you cannot remember the value in the Name field.';
                 }
                 field("Resource Group No."; Rec."Resource Group No.")
                 {
                     ApplicationArea = Jobs;
                     Importance = Promoted;
-                    ToolTip = 'Specifies the resource group that this resource is assigned to.';
                 }
                 field(Blocked; Rec.Blocked)
                 {
                     ApplicationArea = Jobs;
-                    ToolTip = 'Specifies that the related record is blocked from being posted in transactions, for example a customer that is declared insolvent or an item that is placed in quarantine.';
                 }
                 field("Privacy Blocked"; Rec."Privacy Blocked")
                 {
                     ApplicationArea = Jobs;
                     Importance = Additional;
-                    ToolTip = 'Specifies whether to limit access to data for the data subject during daily operations. This is useful, for example, when protecting data from changes while it is under privacy review.';
                 }
                 field("Last Date Modified"; Rec."Last Date Modified")
                 {
                     ApplicationArea = Jobs;
-                    ToolTip = 'Specifies the date of the most recent change of information in the Resource Card window.';
                 }
                 field("Use Time Sheet"; Rec."Use Time Sheet")
                 {
@@ -106,12 +96,10 @@ page 76 "Resource Card"
                 field("Time Sheet Owner User ID"; Rec."Time Sheet Owner User ID")
                 {
                     ApplicationArea = Jobs;
-                    ToolTip = 'Specifies the name of the owner of the time sheet.';
                 }
                 field("Time Sheet Approver User ID"; Rec."Time Sheet Approver User ID")
                 {
                     ApplicationArea = Jobs;
-                    ToolTip = 'Specifies the ID of the approver of the time sheet.';
                 }
             }
             group(Invoicing)
@@ -120,60 +108,49 @@ page 76 "Resource Card"
                 field("Direct Unit Cost"; Rec."Direct Unit Cost")
                 {
                     ApplicationArea = Jobs;
-                    ToolTip = 'Specifies the cost of one unit of the selected item or resource.';
                 }
                 field("Indirect Cost %"; Rec."Indirect Cost %")
                 {
                     ApplicationArea = Jobs;
-                    ToolTip = 'Specifies the percentage of the item''s last purchase cost that includes indirect costs, such as freight that is associated with the purchase of the item.';
                 }
                 field("Unit Cost"; Rec."Unit Cost")
                 {
                     ApplicationArea = Jobs;
-                    ToolTip = 'Specifies the cost of one unit of the item or resource on the line.';
                 }
                 field("Price/Profit Calculation"; Rec."Price/Profit Calculation")
                 {
                     ApplicationArea = Jobs;
-                    ToolTip = 'Specifies the relationship between the Unit Cost, Unit Price, and Profit Percentage fields associated with this resource.';
                 }
                 field("Profit %"; Rec."Profit %")
                 {
                     ApplicationArea = Jobs;
-                    ToolTip = 'Specifies the profit margin that you want to sell the resource at. You can enter a profit percentage manually or have it entered according to the Price/Profit Calculation field';
                 }
                 field("Unit Price"; Rec."Unit Price")
                 {
                     ApplicationArea = Jobs;
-                    ToolTip = 'Specifies the price of one unit of the item or resource. You can enter a price manually or have it entered according to the Price/Profit Calculation field on the related card.';
                 }
                 field("Gen. Prod. Posting Group"; Rec."Gen. Prod. Posting Group")
                 {
                     ApplicationArea = Jobs;
                     Importance = Promoted;
-                    ToolTip = 'Specifies the item''s product type to link transactions made for this item with the appropriate general ledger account according to the general posting setup.';
                 }
                 field("VAT Prod. Posting Group"; Rec."VAT Prod. Posting Group")
                 {
                     ApplicationArea = Basic, Suite;
                     Importance = Promoted;
-                    ToolTip = 'Specifies the VAT specification of the involved item or resource to link transactions made for this record with the appropriate general ledger account according to the VAT posting setup.';
                 }
                 field("Default Deferral Template Code"; Rec."Default Deferral Template Code")
                 {
                     ApplicationArea = Jobs;
                     Caption = 'Default Deferral Template';
-                    ToolTip = 'Specifies the default template that governs how to defer revenues and expenses to the periods when they occurred.';
                 }
                 field("Automatic Ext. Texts"; Rec."Automatic Ext. Texts")
                 {
                     ApplicationArea = Jobs;
-                    ToolTip = 'Specifies that an Extended Text Header will be added on sales or purchase documents for this resource.';
                 }
                 field("IC Partner Purch. G/L Acc. No."; Rec."IC Partner Purch. G/L Acc. No.")
                 {
                     ApplicationArea = Jobs;
-                    ToolTip = 'Specifies the intercompany g/l account number in your partner''s company that the amount for this resource is posted to.';
                 }
             }
             group("Personal Data")
@@ -206,12 +183,10 @@ page 76 "Resource Card"
                 field("Job Title"; Rec."Job Title")
                 {
                     ApplicationArea = Jobs;
-                    ToolTip = 'Specifies the person''s job title.';
                 }
                 field(Address; Rec.Address)
                 {
                     ApplicationArea = Jobs;
-                    ToolTip = 'Specifies the address or location of the resource, if applicable.';
 #if not CLEAN27
                     trigger OnValidate()
                     var
@@ -224,12 +199,10 @@ page 76 "Resource Card"
                 field("Address 2"; Rec."Address 2")
                 {
                     ApplicationArea = Jobs;
-                    ToolTip = 'Specifies additional address information.';
                 }
                 field(City; Rec.City)
                 {
                     ApplicationArea = Jobs;
-                    ToolTip = 'Specifies the city of the resource''s address.';
                 }
                 group(Control47)
                 {
@@ -238,14 +211,12 @@ page 76 "Resource Card"
                     field(County; Rec.County)
                     {
                         ApplicationArea = Jobs;
-                        ToolTip = 'Specifies a special region, to which the resource belongs.';
                     }
                 }
                 field("Post Code"; Rec."Post Code")
                 {
                     ApplicationArea = Jobs;
                     Importance = Promoted;
-                    ToolTip = 'Specifies the postal code.';
 #if not CLEAN27
                     trigger OnValidate()
                     var
@@ -259,7 +230,6 @@ page 76 "Resource Card"
                 field("Country/Region Code"; Rec."Country/Region Code")
                 {
                     ApplicationArea = Jobs;
-                    ToolTip = 'Specifies the country/region of the address.';
 
                     trigger OnValidate()
                     begin
@@ -269,23 +239,19 @@ page 76 "Resource Card"
                 field("Social Security No."; Rec."Social Security No.")
                 {
                     ApplicationArea = Jobs;
-                    ToolTip = 'Specifies the person''s social security number or the machine''s serial number.';
                     MaskType = Concealed;
                 }
                 field(Education; Rec.Education)
                 {
                     ApplicationArea = Jobs;
-                    ToolTip = 'Specifies the training, education, or certification level of the person.';
                 }
                 field("Contract Class"; Rec."Contract Class")
                 {
                     ApplicationArea = Jobs;
-                    ToolTip = 'Specifies the contract class for the person.';
                 }
                 field("Employment Date"; Rec."Employment Date")
                 {
                     ApplicationArea = Jobs;
-                    ToolTip = 'Specifies the date when the person began working for you or the date when the machine was placed in service.';
                 }
             }
         }

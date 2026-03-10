@@ -813,6 +813,22 @@ page 25 "Customer Ledger Entries"
         }
     }
 
+    analysisviews
+    {
+        analysisview("Aged accounts by month")
+        {
+            Caption = 'Aged accounts by month';
+            DefinitionFile = './Sales/Receivables/Aged accounts by month.analysis.json';
+            ToolTip = 'See what your customers owe you, for example, broken down into time intervals for when amounts are due.';
+        }
+        analysisview("Customer sales by volume")
+        {
+            Caption = 'Customer sales by volume';
+            DefinitionFile = './Sales/Receivables/Customer sales by volume.analysis.json';
+            ToolTip = 'Get an overview of the customers that purchase the most, or that owe the most.';
+        }
+    }
+
     trigger OnAfterGetCurrRecord()
     var
         IncomingDocument: Record "Incoming Document";

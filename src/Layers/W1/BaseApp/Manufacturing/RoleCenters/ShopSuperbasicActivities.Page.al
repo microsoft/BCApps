@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -28,19 +28,16 @@ page 9044 "Shop Super. basic Activities"
                 {
                     ApplicationArea = Manufacturing;
                     DrillDownPageID = "Planned Production Orders";
-                    ToolTip = 'Specifies the number of planned production orders that are displayed in the Manufacturing Cue on the Role Center. The documents are filtered by today''s date.';
                 }
                 field("Firm Plan. Prod. Orders - All"; Rec."Firm Plan. Prod. Orders - All")
                 {
                     ApplicationArea = Manufacturing;
                     DrillDownPageID = "Firm Planned Prod. Orders";
-                    ToolTip = 'Specifies the number of firm planned production orders that are displayed in the Manufacturing Cue on the Role Center. The documents are filtered by today''s date.';
                 }
                 field("Released Prod. Orders - All"; Rec."Released Prod. Orders - All")
                 {
                     ApplicationArea = Manufacturing;
                     DrillDownPageID = "Released Production Orders";
-                    ToolTip = 'Specifies the number of released production orders that are displayed in the Manufacturing Cue on the Role Center. The documents are filtered by today''s date.';
                 }
 
                 actions
@@ -76,13 +73,11 @@ page 9044 "Shop Super. basic Activities"
                 {
                     ApplicationArea = Manufacturing;
                     DrillDownPageID = "Prod. Order Routing";
-                    ToolTip = 'Specifies the number of production order routings in queue that are displayed in the Manufacturing Cue on the Role Center. The documents are filtered by today''s date.';
                 }
                 field("Prod. Orders Routings-in Prog."; Rec."Prod. Orders Routings-in Prog.")
                 {
                     ApplicationArea = Manufacturing;
                     DrillDownPageID = "Prod. Order Routing";
-                    ToolTip = 'Specifies the number of inactive service orders that are displayed in the Service Cue on the Role Center. The documents are filtered by today''s date.';
                 }
 
                 actions
@@ -117,13 +112,11 @@ page 9044 "Shop Super. basic Activities"
                 {
                     ApplicationArea = Manufacturing;
                     DrillDownPageID = "Inventory Picks";
-                    ToolTip = 'Specifies the number of inventory picks that are displayed in the Manufacturing Cue on the Role Center. The documents are filtered by today''s date.';
                 }
                 field("Invt. Put-aways from Prod."; Rec."Invt. Put-aways from Prod.")
                 {
                     ApplicationArea = Manufacturing;
                     DrillDownPageID = "Inventory Put-aways";
-                    ToolTip = 'Specifies the number of inventory put-always from production that are displayed in the Manufacturing Cue on the Role Center. The documents are filtered by today''s date.';
                 }
             }
         }

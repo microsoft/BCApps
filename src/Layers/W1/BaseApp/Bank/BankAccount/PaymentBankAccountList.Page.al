@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -29,22 +29,18 @@ page 1282 "Payment Bank Account List"
                 field("No."; Rec."No.")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the number of the involved entry or record, according to the specified number series.';
                 }
                 field(Name; Rec.Name)
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the name of the bank where you have the bank account.';
                 }
                 field("Currency Code"; Rec."Currency Code")
                 {
                     ApplicationArea = Suite;
-                    ToolTip = 'Specifies the relevant currency code for the bank account.';
                 }
                 field(Balance; Rec.Balance)
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the bank account''s current balance denominated in the applicable foreign currency.';
                 }
                 field(Linked; Linked)
                 {

@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -31,80 +31,66 @@ page 1345 "Sales Price and Line Discounts"
                 field("Line Type"; Rec."Line Type")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies if the line is for a sales price or a sales line discount.';
                 }
                 field("Sales Type"; Rec."Sales Type")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the sales type of the price or discount. The sales type defines whether the sales price or discount is for an individual customer, a customer discount group, or for all customers.';
                 }
                 field("Sales Code"; Rec."Sales Code")
                 {
                     ApplicationArea = All;
                     Enabled = SalesCodeIsVisible;
-                    ToolTip = 'Specifies the sales code of the price or discount. The sales code depends on the value in the Sales Type field. The code can represent an individual customer, a customer discount group, or for all customers.';
                     Visible = SalesCodeIsVisible;
                 }
                 field(Type; Rec.Type)
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies if the discount is valid for an item or for an item discount group.';
                 }
                 field("Code"; Rec.Code)
                 {
                     ApplicationArea = All;
                     Enabled = CodeIsVisible;
-                    ToolTip = 'Specifies a code for the sales line price or discount.';
                     Visible = CodeIsVisible;
                 }
                 field("Unit of Measure Code"; Rec."Unit of Measure Code")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies how each unit of the item or resource is measured, such as in pieces or hours. By default, the value in the Base Unit of Measure field on the item or resource card is inserted.';
                 }
                 field("Minimum Quantity"; Rec."Minimum Quantity")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the quantity that must be entered on the sales document to warrant the sales price or discount.';
                 }
                 field("Line Discount %"; Rec."Line Discount %")
                 {
                     ApplicationArea = Basic, Suite;
                     Enabled = Rec."Line Type" = 1;
-                    ToolTip = 'Specifies the discount percentage that is granted for the item on the line.';
                 }
                 field("Unit Price"; Rec."Unit Price")
                 {
                     ApplicationArea = Basic, Suite;
                     Enabled = Rec."Line Type" = 2;
-                    ToolTip = 'Specifies the price of one unit of the item or resource. You can enter a price manually or have it entered according to the Price/Profit Calculation field on the related card.';
                 }
                 field("Starting Date"; Rec."Starting Date")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the date from which the sales line discount is valid.';
                 }
                 field("Ending Date"; Rec."Ending Date")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the date to which the sales line discount is valid.';
                 }
                 field("Currency Code"; Rec."Currency Code")
                 {
                     ApplicationArea = Suite;
-                    ToolTip = 'Specifies the currency that must be used on the sales document line to warrant the sales price or discount.';
                     Visible = false;
                 }
                 field("Price Includes VAT"; Rec."Price Includes VAT")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies if the price that is granted includes VAT.';
                     Visible = false;
                 }
                 field("Allow Invoice Disc."; Rec."Allow Invoice Disc.")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies if an invoice discount will be calculated when the sales price is offered.';
                     Visible = false;
                 }
                 field("VAT Bus. Posting Gr. (Price)"; Rec."VAT Bus. Posting Gr. (Price)")
@@ -116,13 +102,11 @@ page 1345 "Sales Price and Line Discounts"
                 field("Variant Code"; Rec."Variant Code")
                 {
                     ApplicationArea = Suite;
-                    ToolTip = 'Specifies the variant that must be used on the sales document line to warrant the sales price or discount.';
                     Visible = false;
                 }
                 field("Allow Line Disc."; Rec."Allow Line Disc.")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies if line discounts are allowed.';
                     Visible = false;
                 }
             }

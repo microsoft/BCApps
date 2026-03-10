@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -29,7 +29,6 @@ page 5128 "Close Opportunity"
                 {
                     ApplicationArea = RelationshipMgmt;
                     Caption = 'Opportunity Status';
-                    ToolTip = 'Specifies the action that was taken when the entry was last updated. There are six options:';
                     ValuesAllowed = Won, Lost;
 
                     trigger OnValidate()
@@ -80,13 +79,11 @@ page 5128 "Close Opportunity"
                 {
                     ApplicationArea = RelationshipMgmt;
                     Caption = 'Close Opportunity Code';
-                    ToolTip = 'Specifies the code for closing the opportunity.';
                 }
                 field("Date of Change"; Rec."Date of Change")
                 {
                     ApplicationArea = RelationshipMgmt;
                     Caption = 'Closing Date';
-                    ToolTip = 'Specifies the date this opportunity entry was last changed.';
                 }
                 field("Calcd. Current Value (LCY)"; Rec."Calcd. Current Value (LCY)")
                 {
@@ -99,7 +96,6 @@ page 5128 "Close Opportunity"
                 {
                     ApplicationArea = RelationshipMgmt;
                     Caption = 'Cancel Old Tasks';
-                    ToolTip = 'Specifies a task is to be cancelled from the opportunity.';
                 }
             }
         }

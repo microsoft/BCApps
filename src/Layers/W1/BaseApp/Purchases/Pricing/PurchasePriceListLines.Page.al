@@ -7,6 +7,7 @@ namespace Microsoft.Purchases.Pricing;
 using Microsoft.Pricing.PriceList;
 using Microsoft.Pricing.Source;
 using Microsoft.Projects.Project.Pricing;
+using System.Environment;
 using System.Environment.Configuration;
 using System.Integration.Excel;
 
@@ -258,7 +259,6 @@ page 7011 "Purchase Price List Lines"
                 {
                     ApplicationArea = All;
                     Visible = AllowUpdatingDefaults;
-                    ToolTip = 'Specifies the if prices include VAT.';
                 }
                 field(VATBusPostingGrPrice; Rec."VAT Bus. Posting Gr. (Price)")
                 {
@@ -337,6 +337,7 @@ page 7011 "Purchase Price List Lines"
         Rec.SetNewRecord(true);
         Rec.Validate("Asset Type", xRec."Asset Type");
         UpdateSourceType();
+        SetFieldEditableForClientTypeOdata();
     end;
 
     local procedure GetHeader(): Boolean
@@ -488,6 +489,17 @@ page 7011 "Purchase Price List Lines"
         Rec.Validate("Source Type", SourceType);
         SetSourceNoEnabled();
         CurrPage.Update(true);
+    end;
+
+    local procedure SetFieldEditableForClientTypeOdata()
+    var
+        ClientTypeManagement: Codeunit "Client Type Management";
+    begin
+        if not (ClientTypeManagement.GetCurrentClientType() in [CLIENTTYPE::OData, CLIENTTYPE::ODataV4]) then
+            exit;
+
+        SetEditable();
+        SetMandatoryAmount();
     end;
 
     [IntegrationEvent(true, false)]

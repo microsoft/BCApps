@@ -18,5 +18,5 @@ permissionset 7450 "ExciseTaxes - Objects"
         page "Excise Tax Type Card" = X,
         page "Excise Tax Item/FA Rates" = X,
         page "Excise Tax Entry Permissions" = X,
-        report "Excise Tax Report" = X;
+        report "Create Excise Tax Jnl. Entries" = X;
 }

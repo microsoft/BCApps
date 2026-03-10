@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -32,12 +32,10 @@ page 5338 "Integration Synch. Job List"
                 field("Start Date/Time"; Rec."Start Date/Time")
                 {
                     ApplicationArea = Suite;
-                    ToolTip = 'Specifies the data and time that the integration synchronization job started.';
                 }
                 field("Finish Date/Time"; Rec."Finish Date/Time")
                 {
                     ApplicationArea = Suite;
-                    ToolTip = 'Specifies the date and time that the integration synchronization job completed.';
                 }
                 field(Duration; Duration)
                 {
@@ -49,25 +47,21 @@ page 5338 "Integration Synch. Job List"
                 field("Integration Table Mapping Name"; Rec."Integration Table Mapping Name")
                 {
                     ApplicationArea = Suite;
-                    ToolTip = 'Specifies the name of the table mapping that was used for the integration synchronization job.';
                     Visible = false;
                 }
                 field(Uncoupled; Rec.Uncoupled)
                 {
                     ApplicationArea = Suite;
-                    ToolTip = 'Specifies the number of records that were uncoupled during the integration synchronization job.';
                     Visible = UncouplingSpecificColumnsVisible;
                 }
                 field(Coupled; Rec.Coupled)
                 {
                     ApplicationArea = Suite;
-                    ToolTip = 'Specifies the number of records that were coupled by matching an existing entity during the integration synchronization job.';
                     Visible = CouplingSpecificColumnsVisible;
                 }
                 field(Inserted; Rec.Inserted)
                 {
                     ApplicationArea = Suite;
-                    ToolTip = 'Specifies the number of new records that were created in the destination database table (such as the Dynamics 365 Sales Account entity or Business Central Customer table) by the integration synchronization job.';
                     Visible = SynchSpecificColumnsVisible;
 
                     trigger OnDrillDown()
@@ -100,24 +94,20 @@ page 5338 "Integration Synch. Job List"
                 field(Modified; Rec.Modified)
                 {
                     ApplicationArea = Suite;
-                    ToolTip = 'Specifies the number of records that were modified in the destination database table (such as the Dynamics 365 Sales Account entity or Dynamics 365 Customer table) by the integration synchronization job.';
                 }
                 field(Deleted; Rec.Deleted)
                 {
                     ApplicationArea = Suite;
-                    ToolTip = 'Specifies entries that were deleted when synchronizing Dynamics 365 Sales data and Dynamics 365 data.';
                     Visible = SynchSpecificColumnsVisible;
                 }
                 field(Unchanged; Rec.Unchanged)
                 {
                     ApplicationArea = Suite;
-                    ToolTip = 'Specifies the number of records that were not changed in the destination database table (such as the Dynamics 365 Sales Account entity or Dynamics 365 Customer table) by the integration synchronization job.';
                     Visible = SynchSpecificColumnsVisible;
                 }
                 field(Failed; Rec.Failed)
                 {
                     ApplicationArea = Suite;
-                    ToolTip = 'Specifies the number of errors that occurred during the integration synchronization job.';
 
                     trigger OnDrillDown()
                     var
@@ -137,7 +127,6 @@ page 5338 "Integration Synch. Job List"
                 field(Skipped; Rec.Skipped)
                 {
                     ApplicationArea = Suite;
-                    ToolTip = 'Specifies the number of records that were skipped during the integration synchronization job.';
 
                     trigger OnDrillDown()
                     var
@@ -159,7 +148,6 @@ page 5338 "Integration Synch. Job List"
                 {
                     ApplicationArea = Suite;
                     Caption = 'Synch. Direction';
-                    ToolTip = 'Specifies in which direction data is synchronized.';
                     Visible = false;
                 }
                 field(Direction; SynchDirection)
@@ -173,13 +161,11 @@ page 5338 "Integration Synch. Job List"
                 {
                     ApplicationArea = Suite;
                     Caption = 'Type';
-                    ToolTip = 'Specifies the type of the integration synchronization job.';
                     Visible = SynchSpecificColumnsVisible and UncouplingSpecificColumnsVisible and CouplingSpecificColumnsVisible;
                 }
                 field(Message; Rec.Message)
                 {
                     ApplicationArea = Suite;
-                    ToolTip = 'Specifies a message that occurred as a result of the integration synchronization job.';
                 }
             }
         }

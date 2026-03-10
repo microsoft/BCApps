@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -26,13 +26,11 @@ page 5887 "Posted Phys. Invt. Recording"
                 {
                     ApplicationArea = Warehouse;
                     Editable = false;
-                    ToolTip = 'Specifies the number of the related physical inventory order.';
                 }
                 field("Recording No."; Rec."Recording No.")
                 {
                     ApplicationArea = Warehouse;
                     Editable = false;
-                    ToolTip = 'Specifies the number of the related physical inventory recording.';
                 }
                 field(Description; Rec.Description)
                 {
@@ -45,7 +43,6 @@ page 5887 "Posted Phys. Invt. Recording"
                     ApplicationArea = Warehouse;
                     Editable = false;
                     Importance = Promoted;
-                    ToolTip = 'Specifies the location where the recording was performed.';
                 }
                 field("Person Responsible"; Rec."Person Responsible")
                 {
@@ -58,13 +55,11 @@ page 5887 "Posted Phys. Invt. Recording"
                     ApplicationArea = Warehouse;
                     Editable = false;
                     Importance = Promoted;
-                    ToolTip = 'Specifies if the recording is Open or Finished';
                 }
                 field("Person Recorded"; Rec."Person Recorded")
                 {
                     ApplicationArea = Warehouse;
                     Editable = false;
-                    ToolTip = 'Specifies the person who performed the recording.';
                 }
                 field("Date Recorded"; Rec."Date Recorded")
                 {
@@ -76,13 +71,11 @@ page 5887 "Posted Phys. Invt. Recording"
                 {
                     ApplicationArea = Warehouse;
                     Editable = false;
-                    ToolTip = 'Specifies the time when the recording was performed.';
                 }
                 field("Allow Recording Without Order"; Rec."Allow Recording Without Order")
                 {
                     ApplicationArea = Warehouse;
                     Editable = false;
-                    ToolTip = 'Specifies that recording lines were automatically created for items that did not exist on the physical inventory order. This can only happen if none of the values in these four fields exist for an item on the order: Item No., Variant Code, Location Code, and Bin Code.';
                 }
             }
             part(Control24; "Posted Phys. Invt. Rec. Subf.")

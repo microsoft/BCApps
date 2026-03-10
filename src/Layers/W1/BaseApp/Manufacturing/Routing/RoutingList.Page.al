@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -32,34 +32,28 @@ page 99000764 "Routing List"
                 field("No."; Rec."No.")
                 {
                     ApplicationArea = Manufacturing;
-                    ToolTip = 'Specifies the number of the involved entry or record, according to the specified number series.';
                 }
                 field(Description; Rec.Description)
                 {
                     ApplicationArea = Manufacturing;
-                    ToolTip = 'Specifies a description for the routing header.';
                 }
                 field(Type; Rec.Type)
                 {
                     ApplicationArea = Manufacturing;
-                    ToolTip = 'Specifies in which order operations in the routing are performed.';
                     Visible = false;
                 }
                 field(Status; Rec.Status)
                 {
                     ApplicationArea = Manufacturing;
-                    ToolTip = 'Specifies the status of this routing.';
                 }
                 field("Version Nos."; Rec."Version Nos.")
                 {
                     ApplicationArea = Manufacturing;
-                    ToolTip = 'Specifies the number series you want to use to create a new version of this routing.';
                     Visible = false;
                 }
                 field("Last Date Modified"; Rec."Last Date Modified")
                 {
                     ApplicationArea = Manufacturing;
-                    ToolTip = 'Specifies when the routing card was last modified.';
                     Visible = false;
                 }
             }

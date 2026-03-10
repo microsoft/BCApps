@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -28,6 +28,7 @@ table 923 "Customer Sales Buffer"
         field(6; "Period Name"; Text[50])
         {
             Caption = 'Period Name';
+            ToolTip = 'Specifies the name of the period that you want to view.';
             DataClassification = SystemMetadata;
         }
         /// <summary>
@@ -36,6 +37,7 @@ table 923 "Customer Sales Buffer"
         field(7; "Period Start"; Date)
         {
             Caption = 'Period Start';
+            ToolTip = 'Specifies the starting date of the period that you want to view.';
             DataClassification = SystemMetadata;
         }
         /// <summary>

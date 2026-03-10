@@ -979,6 +979,7 @@ codeunit 137305 "SCM Warehouse Reports"
         LibraryReportDataset.AssertElementWithValueExists('Comment_SalesCommentLine', SalesCommentLine.Comment);
     end;
 
+#if not CLEAN28
     [Test]
     [HandlerFunctions('InventoryAvailabilityPlanRequestPageHandler')]
     [Scope('OnPrem')]
@@ -1007,6 +1008,39 @@ codeunit 137305 "SCM Warehouse Reports"
         // Regardless of the period length, last period always includes the prod. order
         // in the projected available balance.
         LibraryReportDataset.AssertCurrentRowValueEquals('ProjAvBalance8', ProductionOrder.Quantity);
+    end;
+#endif
+
+    [Test]
+    [HandlerFunctions('InvAvailabilityPlanRequestPageHandler')]
+    [Scope('OnPrem')]
+    procedure InvAvailabilityPlanReport()
+    var
+        Item: Record Item;
+        ProductionOrder: Record "Production Order";
+        PeriodLength: DateFormula;
+        InventoryLbl: Label 'Inventory';
+    begin
+        // [GIVEN] Create and refresh Planned Production Order.
+        Initialize();
+        CreateAndRefreshPlannedProductionOrder(ProductionOrder);
+        Evaluate(PeriodLength, '<' + Format(LibraryRandom.RandInt(5)) + 'D>');
+
+        // [WHEN] Run Inv. Availability Plan report
+        Commit();
+        Item.SetRange("No.", ProductionOrder."Source No.");
+        LibraryVariableStorage.Enqueue(WorkDate());
+        LibraryVariableStorage.Enqueue(PeriodLength);
+        LibraryVariableStorage.Enqueue(false);
+        REPORT.Run(REPORT::"Inv. Availability Plan", true, false, Item);
+
+        // [THEN] Regardless of the period length, last period always includes the prod. order
+        // in the projected available balance.
+        LibraryReportDataset.LoadDataSetFile();
+        LibraryReportDataset.SetRange('ItemNo', ProductionOrder."Source No.");
+        LibraryReportDataset.SetRange('CategoryName', InventoryLbl);
+        LibraryReportDataset.GetNextRow();
+        LibraryReportDataset.AssertCurrentRowValueEquals('Quantity8', ProductionOrder.Quantity);
     end;
 
     [Test]
@@ -3665,6 +3699,7 @@ codeunit 137305 "SCM Warehouse Reports"
         WorkOrder.SaveAsXml(LibraryReportDataset.GetParametersFileName(), LibraryReportDataset.GetFileName());
     end;
 
+#if not CLEAN28
     [RequestPageHandler]
     [Scope('OnPrem')]
     procedure InventoryAvailabilityPlanRequestPageHandler(var InventoryAvailabilityPlan: TestRequestPage "Inventory - Availability Plan")
@@ -3681,6 +3716,25 @@ codeunit 137305 "SCM Warehouse Reports"
         InventoryAvailabilityPlan.PeriodLength.SetValue(PeriodLength);
         InventoryAvailabilityPlan.UseStockkeepUnit.SetValue(UseStockkeepingUnit);
         InventoryAvailabilityPlan.SaveAsXml(LibraryReportDataset.GetParametersFileName(), LibraryReportDataset.GetFileName());
+    end;
+#endif
+
+    [RequestPageHandler]
+    [Scope('OnPrem')]
+    procedure InvAvailabilityPlanRequestPageHandler(var InvAvailabilityPlan: TestRequestPage "Inv. Availability Plan")
+    var
+        StartingDate: Variant;
+        PeriodLength: Variant;
+        UseStockkeepingUnit: Variant;
+    begin
+        LibraryVariableStorage.Dequeue(StartingDate);
+        LibraryVariableStorage.Dequeue(PeriodLength);
+        LibraryVariableStorage.Dequeue(UseStockkeepingUnit);
+
+        InvAvailabilityPlan.StartingDate.SetValue(StartingDate);
+        InvAvailabilityPlan.PeriodLength.SetValue(PeriodLength);
+        InvAvailabilityPlan.UseStockkeepUnit.SetValue(UseStockkeepingUnit);
+        InvAvailabilityPlan.SaveAsXml(LibraryReportDataset.GetParametersFileName(), LibraryReportDataset.GetFileName());
     end;
 
     [RequestPageHandler]

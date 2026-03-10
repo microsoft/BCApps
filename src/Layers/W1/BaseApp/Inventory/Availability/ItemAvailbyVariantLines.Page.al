@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -31,12 +31,10 @@ page 5415 "Item Avail. by Variant Lines"
                 field("Code"; Rec.Code)
                 {
                     ApplicationArea = Planning;
-                    ToolTip = 'Specifies a code to identify the variant.';
                 }
                 field(Description; Rec.Description)
                 {
                     ApplicationArea = Planning;
-                    ToolTip = 'Specifies text that describes the item variant.';
                 }
                 field(GrossRequirement; GrossRequirement)
                 {

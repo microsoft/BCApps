@@ -15,15 +15,18 @@ table 260 "Tariff Number"
         field(1; "No."; Code[20])
         {
             Caption = 'No.';
+            ToolTip = 'Specifies the number of the involved entry or record, according to the specified number series.';
             NotBlank = true;
         }
         field(2; Description; Text[100])
         {
             Caption = 'Description';
+            ToolTip = 'Specifies a description of the item.';
         }
         field(3; "Supplementary Units"; Boolean)
         {
             Caption = 'Supplementary Units';
+            ToolTip = 'Specifies whether the customs and tax authorities require information about quantity and unit of measure for this item.';
 
             trigger OnValidate()
             begin

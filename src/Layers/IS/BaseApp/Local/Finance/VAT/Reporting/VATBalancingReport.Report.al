@@ -1,3 +1,4 @@
+#if not CLEAN28
 // ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
@@ -15,8 +16,9 @@ report 10941 "VAT Balancing Report"
     RDLCLayout = './Local/Finance/VAT/Reporting/VATBalancingReport.rdlc';
     ApplicationArea = Basic, Suite;
     Caption = 'VAT Balancing Report';
-    UsageCategory = ReportsAndAnalysis;
-
+    ObsoleteReason = 'Use 14600 IS VAT Balancing Report instead.';
+    ObsoleteState = Pending;
+    ObsoleteTag = '28.0';
     dataset
     {
         dataitem("VAT Posting Setup"; "VAT Posting Setup")
@@ -463,3 +465,4 @@ report 10941 "VAT Balancing Report"
         exit(0);
     end;
 }
+#endif

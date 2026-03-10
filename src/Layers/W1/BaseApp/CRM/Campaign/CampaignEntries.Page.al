@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -26,22 +26,18 @@ page 5089 "Campaign Entries"
                 field("Entry No."; Rec."Entry No.")
                 {
                     ApplicationArea = RelationshipMgmt;
-                    ToolTip = 'Specifies the number of the entry, as assigned from the specified number series when the entry was created.';
                 }
                 field(Canceled; Rec.Canceled)
                 {
                     ApplicationArea = RelationshipMgmt;
-                    ToolTip = 'Specifies that the entry has been canceled.';
                 }
                 field(Date; Rec.Date)
                 {
                     ApplicationArea = RelationshipMgmt;
-                    ToolTip = 'Specifies the date the campaign entry was recorded. The field is not editable.';
                 }
                 field(Description; Rec.Description)
                 {
                     ApplicationArea = RelationshipMgmt;
-                    ToolTip = 'Specifies the description of the campaign entry.';
                 }
                 field("Cost (LCY)"; Rec."Cost (LCY)")
                 {
@@ -56,7 +52,6 @@ page 5089 "Campaign Entries"
                 field("No. of Interactions"; Rec."No. of Interactions")
                 {
                     ApplicationArea = RelationshipMgmt;
-                    ToolTip = 'Specifies the number of interactions created as part of the campaign entry. The field is not editable.';
                 }
             }
         }

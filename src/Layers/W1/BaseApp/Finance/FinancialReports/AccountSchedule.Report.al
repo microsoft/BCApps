@@ -852,12 +852,16 @@ report 25 "Account Schedule"
     trigger OnPreReport()
     var
         FinancialReportMgt: Codeunit "Financial Report Mgt.";
+        FinancialReportAuditing: Codeunit "Financial Report Auditing";
     begin
         FinancialReportMgt.Initialize();
         TransferValues();
         UpdateFilters();
         InitAccSched();
-        LogUsageTelemetry();
+        if not FilteredByDimPerspective then begin
+            LogUsageTelemetry();
+            FinancialReportAuditing.LogReportUsage(FinancialReportName, Enum::"Financial Report Format"::PDF, RunForExport);
+        end;
     end;
 
     trigger OnPreRendering(var RenderingPayload: JsonObject)

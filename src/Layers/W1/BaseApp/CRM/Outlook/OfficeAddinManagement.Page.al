@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -38,7 +38,6 @@ page 1610 "Office Add-in Management"
                 field(Description; Rec.Description)
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies a description of the record.';
                 }
                 field(Version; Rec.Version)
                 {
@@ -49,7 +48,6 @@ page 1610 "Office Add-in Management"
                 field("Manifest Codeunit"; Rec."Manifest Codeunit")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the codeunit where the Office add-in is defined for deployment.';
                 }
             }
         }

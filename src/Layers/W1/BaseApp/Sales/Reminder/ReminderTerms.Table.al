@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -24,6 +24,7 @@ table 292 "Reminder Terms"
         field(1; "Code"; Code[10])
         {
             Caption = 'Code';
+            ToolTip = 'Specifies a code to identify this set of reminder terms.';
             NotBlank = true;
         }
         /// <summary>
@@ -32,6 +33,7 @@ table 292 "Reminder Terms"
         field(2; Description; Text[100])
         {
             Caption = 'Description';
+            ToolTip = 'Specifies a description of the reminder terms.';
         }
         /// <summary>
         /// Indicates whether interest charges are posted when reminders using these terms are issued.
@@ -39,6 +41,7 @@ table 292 "Reminder Terms"
         field(3; "Post Interest"; Boolean)
         {
             Caption = 'Post Interest';
+            ToolTip = 'Specifies whether to post any interest listed on the reminder to the general ledger and customer accounts.';
         }
         /// <summary>
         /// Indicates whether additional fees are posted when reminders using these terms are issued.
@@ -46,6 +49,7 @@ table 292 "Reminder Terms"
         field(4; "Post Additional Fee"; Boolean)
         {
             Caption = 'Post Additional Fee';
+            ToolTip = 'Specifies whether to post any additional fee listed on the reminder to the general ledger and customer accounts';
         }
         /// <summary>
         /// Specifies the maximum number of reminders that can be sent for an overdue entry before escalation stops.
@@ -53,6 +57,7 @@ table 292 "Reminder Terms"
         field(5; "Max. No. of Reminders"; Integer)
         {
             Caption = 'Max. No. of Reminders';
+            ToolTip = 'Specifies the maximum number of reminders that can be created for an invoice.';
             MinValue = 0;
         }
         /// <summary>
@@ -71,6 +76,7 @@ table 292 "Reminder Terms"
         field(7; "Post Add. Fee per Line"; Boolean)
         {
             Caption = 'Post Add. Fee per Line';
+            ToolTip = 'Specifies whether to post any additional fee listed on the finance charge memo to the general ledger and customer accounts when the memo is issued.';
         }
         /// <summary>
         /// Specifies a note about line fees that will appear on printed reminder reports.
@@ -78,6 +84,7 @@ table 292 "Reminder Terms"
         field(8; "Note About Line Fee on Report"; Text[150])
         {
             Caption = 'Note About Line Fee on Report';
+            ToolTip = 'Specifies that any notes about line fees will be added to the reminder.';
         }
         /// <summary>
         /// Links to the reminder attachment text configuration for PDF documents.

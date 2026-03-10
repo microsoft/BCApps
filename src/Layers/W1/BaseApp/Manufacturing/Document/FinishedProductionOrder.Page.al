@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -38,14 +38,12 @@ page 99000867 "Finished Production Order"
                     Editable = false;
                     Importance = Promoted;
                     Lookup = false;
-                    ToolTip = 'Specifies the number of the involved entry or record, according to the specified number series.';
                 }
                 field(Description; Rec.Description)
                 {
                     ApplicationArea = Manufacturing;
                     Editable = false;
                     Importance = Promoted;
-                    ToolTip = 'Specifies the description of the production order.';
                 }
                 field("Description 2"; Rec."Description 2")
                 {
@@ -57,7 +55,6 @@ page 99000867 "Finished Production Order"
                 {
                     ApplicationArea = Manufacturing;
                     Editable = false;
-                    ToolTip = 'Specifies the source type of the production order.';
                 }
                 field("Source No."; Rec."Source No.")
                 {
@@ -69,39 +66,33 @@ page 99000867 "Finished Production Order"
                 {
                     ApplicationArea = Manufacturing;
                     Editable = false;
-                    ToolTip = 'Specifies the variant code for production order item.';
                     Visible = false;
                 }
                 field("Search Description"; Rec."Search Description")
                 {
                     ApplicationArea = Manufacturing;
                     Editable = false;
-                    ToolTip = 'Specifies the search description.';
                 }
                 field(Quantity; Rec.Quantity)
                 {
                     ApplicationArea = Manufacturing;
                     Editable = false;
                     Importance = Promoted;
-                    ToolTip = 'Specifies how many units of the item or the family to produce (production quantity).';
                 }
                 field("Due Date"; Rec."Due Date")
                 {
                     ApplicationArea = Manufacturing;
                     Editable = false;
-                    ToolTip = 'Specifies the due date of the production order.';
                 }
                 field("Last Date Modified"; Rec."Last Date Modified")
                 {
                     ApplicationArea = Manufacturing;
                     Editable = false;
-                    ToolTip = 'Specifies when the production order card was last modified.';
                 }
                 field(Reopened; Rec."Reopened")
                 {
                     ApplicationArea = Manufacturing;
                     Editable = false;
-                    ToolTip = 'Specifies if the production order is reopened.';
                 }
                 field("Manual Scheduling"; Rec."Manual Scheduling")
                 {
@@ -123,14 +114,12 @@ page 99000867 "Finished Production Order"
                     ApplicationArea = Manufacturing;
                     Editable = false;
                     Importance = Promoted;
-                    ToolTip = 'Specifies the starting date and starting time of the production order.';
                 }
                 field("Ending Date-Time"; Rec."Ending Date-Time")
                 {
                     ApplicationArea = Manufacturing;
                     Editable = false;
                     Importance = Promoted;
-                    ToolTip = 'Specifies the ending date and ending time of the production order.';
                 }
             }
             group(Posting)
@@ -141,44 +130,37 @@ page 99000867 "Finished Production Order"
                     ApplicationArea = Manufacturing;
                     Editable = false;
                     Importance = Promoted;
-                    ToolTip = 'Specifies links between business transactions made for the item and an inventory account in the general ledger, to group amounts for that item type.';
                 }
                 field("Gen. Prod. Posting Group"; Rec."Gen. Prod. Posting Group")
                 {
                     ApplicationArea = Manufacturing;
                     Editable = false;
-                    ToolTip = 'Specifies the item''s product type to link transactions made for this item with the appropriate general ledger account according to the general posting setup.';
                 }
                 field("Gen. Bus. Posting Group"; Rec."Gen. Bus. Posting Group")
                 {
                     ApplicationArea = Manufacturing;
                     Editable = false;
-                    ToolTip = 'Specifies the vendor''s or customer''s trade type to link transactions made for this business partner with the appropriate general ledger account according to the general posting setup.';
                 }
                 field("Shortcut Dimension 1 Code"; Rec."Shortcut Dimension 1 Code")
                 {
                     ApplicationArea = Dimensions;
                     Editable = false;
-                    ToolTip = 'Specifies the code for Shortcut Dimension 1, which is one of two global dimension codes that you set up in the General Ledger Setup window.';
                 }
                 field("Shortcut Dimension 2 Code"; Rec."Shortcut Dimension 2 Code")
                 {
                     ApplicationArea = Dimensions;
                     Editable = false;
-                    ToolTip = 'Specifies the code for Shortcut Dimension 2, which is one of two global dimension codes that you set up in the General Ledger Setup window.';
                 }
                 field("Location Code"; Rec."Location Code")
                 {
                     ApplicationArea = Location;
                     Editable = false;
                     Importance = Promoted;
-                    ToolTip = 'Specifies the location code to which you want to post the finished product from this production order.';
                 }
                 field("Document Put-away Status"; Rec."Document Put-away Status")
                 {
                     ApplicationArea = Warehouse;
                     Visible = false;
-                    ToolTip = 'Specifies the status of the warehouse put-away.';
                 }
             }
         }

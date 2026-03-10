@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -53,6 +53,7 @@ table 298 "Issued Reminder Line"
         field(4; Type; Enum "Reminder Source Type")
         {
             Caption = 'Type';
+            ToolTip = 'Specifies the line type.';
         }
         /// <summary>
         /// Specifies the customer ledger entry number that this line references.
@@ -74,6 +75,7 @@ table 298 "Issued Reminder Line"
         field(6; "No. of Reminders"; Integer)
         {
             Caption = 'No. of Reminders';
+            ToolTip = 'Specifies a number that indicates the reminder level.';
         }
         /// <summary>
         /// Specifies the posting date of the original document that was reminded.
@@ -81,6 +83,7 @@ table 298 "Issued Reminder Line"
         field(7; "Posting Date"; Date)
         {
             Caption = 'Posting Date';
+            ToolTip = 'Specifies the posting date of the customer ledger entry that this reminder line is for.';
         }
         /// <summary>
         /// Specifies the document date of the original document that was reminded.
@@ -88,6 +91,7 @@ table 298 "Issued Reminder Line"
         field(8; "Document Date"; Date)
         {
             Caption = 'Document Date';
+            ToolTip = 'Specifies the date when the related document was created.';
         }
         /// <summary>
         /// Specifies the due date of the original document that was reminded.
@@ -95,6 +99,7 @@ table 298 "Issued Reminder Line"
         field(9; "Due Date"; Date)
         {
             Caption = 'Due Date';
+            ToolTip = 'Specifies the due date of the customer ledger entry this reminder line is for.';
         }
         /// <summary>
         /// Specifies the document type of the original entry, such as invoice or credit memo.
@@ -102,6 +107,7 @@ table 298 "Issued Reminder Line"
         field(10; "Document Type"; Enum "Gen. Journal Document Type")
         {
             Caption = 'Document Type';
+            ToolTip = 'Specifies the document type of the customer ledger entry this reminder line is for.';
         }
         /// <summary>
         /// Specifies the document number of the original entry that was reminded.
@@ -109,6 +115,7 @@ table 298 "Issued Reminder Line"
         field(11; "Document No."; Code[20])
         {
             Caption = 'Document No.';
+            ToolTip = 'Specifies the document number of the customer ledger entry this reminder line is for.';
 
             trigger OnLookup()
             begin
@@ -121,6 +128,7 @@ table 298 "Issued Reminder Line"
         field(12; Description; Text[100])
         {
             Caption = 'Description';
+            ToolTip = 'Specifies an entry description, based on the contents of the Type field.';
         }
         /// <summary>
         /// Specifies the original amount of the document that was reminded.
@@ -131,6 +139,7 @@ table 298 "Issued Reminder Line"
             AutoFormatType = 1;
             BlankZero = true;
             Caption = 'Original Amount';
+            ToolTip = 'Specifies the original amount of the customer ledger entry that this reminder line is for.';
         }
         /// <summary>
         /// Specifies the amount that was still owed on the document when the reminder was issued.
@@ -141,6 +150,7 @@ table 298 "Issued Reminder Line"
             AutoFormatType = 1;
             BlankZero = true;
             Caption = 'Remaining Amount';
+            ToolTip = 'Specifies the remaining amount of the customer ledger entry this reminder line is for.';
         }
         /// <summary>
         /// Specifies the number of the G/L account, standard text, or fee account for this line.
@@ -148,6 +158,7 @@ table 298 "Issued Reminder Line"
         field(15; "No."; Code[20])
         {
             Caption = 'No.';
+            ToolTip = 'Specifies the number of the involved entry or record, according to the specified number series.';
             TableRelation = if (Type = const(" ")) "Standard Text"
             else
             if (Type = const("G/L Account")) "G/L Account"
@@ -163,6 +174,7 @@ table 298 "Issued Reminder Line"
             AutoFormatType = 1;
             BlankZero = true;
             Caption = 'Amount';
+            ToolTip = 'Specifies the amount in the currency of the reminder.';
         }
         /// <summary>
         /// Specifies the interest rate percentage that was used to calculate finance charges.
@@ -206,6 +218,7 @@ table 298 "Issued Reminder Line"
             AutoFormatExpression = GetCurrencyCodeFromHeader();
             AutoFormatType = 1;
             Caption = 'VAT Amount';
+            ToolTip = 'Specifies the VAT amount in the currency of the reminder.';
         }
         /// <summary>
         /// Specifies the tax group code for sales tax calculation.
@@ -252,6 +265,7 @@ table 298 "Issued Reminder Line"
         field(27; "Applies-To Document Type"; Enum "Gen. Journal Document Type")
         {
             Caption = 'Applies-To Document Type';
+            ToolTip = 'Specifies the type of the posted document that this document or journal line will be applied to when you post, for example to register payment.';
         }
         /// <summary>
         /// Specifies the document number that the line fee applied to.
@@ -259,6 +273,7 @@ table 298 "Issued Reminder Line"
         field(28; "Applies-To Document No."; Code[20])
         {
             Caption = 'Applies-To Document No.';
+            ToolTip = 'Specifies the number of the posted document that this document or journal line will be applied to when you post, for example to register payment.';
 
             trigger OnLookup()
             begin

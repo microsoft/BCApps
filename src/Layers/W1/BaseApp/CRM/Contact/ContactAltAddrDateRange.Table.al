@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -20,11 +20,13 @@ table 5052 "Contact Alt. Addr. Date Range"
         field(2; "Contact Alt. Address Code"; Code[10])
         {
             Caption = 'Contact Alt. Address Code';
+            ToolTip = 'Specifies the code of the contact alternate address to which the date range applies.';
             TableRelation = "Contact Alt. Address".Code where("Contact No." = field("Contact No."));
         }
         field(3; "Starting Date"; Date)
         {
             Caption = 'Starting Date';
+            ToolTip = 'Specifies the date from which the alternate address is valid. There are certain rules for how dates should be entered.';
             NotBlank = true;
 
             trigger OnValidate()
@@ -41,6 +43,7 @@ table 5052 "Contact Alt. Addr. Date Range"
         field(4; "Ending Date"; Date)
         {
             Caption = 'Ending Date';
+            ToolTip = 'Specifies the last day on which the alternate address is valid. There are certain rules for how dates should be entered.';
 
             trigger OnValidate()
             begin

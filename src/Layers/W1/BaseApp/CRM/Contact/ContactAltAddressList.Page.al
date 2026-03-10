@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -23,70 +23,58 @@ page 5057 "Contact Alt. Address List"
                 field("Code"; Rec.Code)
                 {
                     ApplicationArea = All;
-                    ToolTip = 'Specifies the code for the alternate address.';
                 }
                 field("Company Name"; Rec."Company Name")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the name of the company for the alternate address.';
                 }
                 field("Company Name 2"; Rec."Company Name 2")
                 {
                     ApplicationArea = RelationshipMgmt;
-                    ToolTip = 'Specifies the additional part of the company name for the alternate address.';
                     Visible = false;
                 }
                 field(Address; Rec.Address)
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the alternate address of the contact.';
                 }
                 field("Address 2"; Rec."Address 2")
                 {
                     ApplicationArea = RelationshipMgmt;
-                    ToolTip = 'Specifies additional address information.';
                     Visible = false;
                 }
                 field(City; Rec.City)
                 {
                     ApplicationArea = RelationshipMgmt;
-                    ToolTip = 'Specifies the city of the contact''s alternate address.';
                     Visible = false;
                 }
                 field("Post Code"; Rec."Post Code")
                 {
                     ApplicationArea = RelationshipMgmt;
-                    ToolTip = 'Specifies the postal code.';
                     Visible = false;
                 }
                 field(County; Rec.County)
                 {
                     ApplicationArea = RelationshipMgmt;
-                    ToolTip = 'Specifies the county for the contact''s alternate address.';
                     Visible = false;
                 }
                 field("Country/Region Code"; Rec."Country/Region Code")
                 {
                     ApplicationArea = RelationshipMgmt;
-                    ToolTip = 'Specifies the country/region of the address.';
                     Visible = false;
                 }
                 field("Phone No."; Rec."Phone No.")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the telephone number for the alternate address.';
                 }
                 field("Fax No."; Rec."Fax No.")
                 {
                     ApplicationArea = RelationshipMgmt;
-                    ToolTip = 'Specifies the fax number for the alternate address.';
                     Visible = false;
                 }
                 field("E-Mail"; Rec."E-Mail")
                 {
                     ApplicationArea = RelationshipMgmt;
                     ExtendedDatatype = EMail;
-                    ToolTip = 'Specifies the e-mail address for the contact at the alternate address.';
                     Visible = false;
                 }
             }

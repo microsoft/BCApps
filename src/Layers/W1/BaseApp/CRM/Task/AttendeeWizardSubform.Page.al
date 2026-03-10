@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -28,34 +28,29 @@ page 5198 "Attendee Wizard Subform"
                     ApplicationArea = RelationshipMgmt;
                     Style = Strong;
                     StyleExpr = StyleIsStrong;
-                    ToolTip = 'Specifies the type of attendance for the meeting. You can select from: Required, Optional and Task Organizer.';
                 }
                 field("Attendee Type"; Rec."Attendee Type")
                 {
                     ApplicationArea = RelationshipMgmt;
                     Style = Strong;
                     StyleExpr = StyleIsStrong;
-                    ToolTip = 'Specifies the type of the attendee. You can choose from Contact or Salesperson.';
                 }
                 field("Attendee No."; Rec."Attendee No.")
                 {
                     ApplicationArea = RelationshipMgmt;
                     Style = Strong;
                     StyleExpr = StyleIsStrong;
-                    ToolTip = 'Specifies the number of the attendee participating in the task.';
                 }
                 field("Attendee Name"; Rec."Attendee Name")
                 {
                     ApplicationArea = RelationshipMgmt;
                     Style = Strong;
                     StyleExpr = StyleIsStrong;
-                    ToolTip = 'Specifies the name of the attendee participating in the task.';
                 }
                 field("Send Invitation"; Rec."Send Invitation")
                 {
                     ApplicationArea = RelationshipMgmt;
                     Editable = SendInvitationEditable;
-                    ToolTip = 'Specifies that you want to send an invitation to the attendee by e-mail. The Send Invitation option is only available for contacts and salespeople with an e-mail address. The Send Invitation option is not available for the meeting organizer.';
                 }
             }
         }

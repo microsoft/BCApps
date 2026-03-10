@@ -534,7 +534,7 @@ report 5911 "Service - Invoice"
                             FirstValueEntryNo := 0;
                             if not FindLastMeaningfulLine("Service Invoice Line") then
                                 CurrReport.Break();
-                            SetRange("Line No.", 0, "Line No.");
+                            SetFilter("Line No.", '<=%1', "Line No.");
 
                             TotalLineAmount := 0;
                             TotalAmount := 0;

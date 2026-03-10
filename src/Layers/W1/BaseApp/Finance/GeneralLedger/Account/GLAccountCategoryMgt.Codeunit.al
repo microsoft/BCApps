@@ -28,25 +28,21 @@ codeunit 570 "G/L Account Category Mgt."
     var
         BalanceColumnNameTxt: Label 'M-BALANCE', Comment = 'Max 10 char';
         BalanceColumnDescTxt: Label 'Balance', Comment = 'Max 10 char';
-        BalanceColumnInternalDescTxt: Label 'Single-column layout showing the net balance of general ledger entries as of a specific date using Balance at Date and Net Amount. Useful for presenting financial position snapshots, supporting balance sheet reporting, and providing point-in-time views for period-end analysis. Generated from G/L Account Categories.', MaxLength = 500;
+        BalanceColumnInternalDescTxt: Label 'Single-column layout showing balance-at-date using ledger net amounts. Useful for point-in-time balances, financial position, reconciliations, and snapshot reporting of assets, liabilities, or equity.', MaxLength = 210;
         NetChangeColumnNameTxt: Label 'M-NETCHANG', Comment = 'Max 10 char';
         NetChangeColumnDescTxt: Label 'Net Change', Comment = 'Max 10 char';
-        NetChangeColumnInternalDescTxt: Label 'Single-column layout displaying the net change in general ledger entries for a specific period using net change and net amount. This layout provides a clear view of transactional movement within the selected timeframe, helping identify revenue and expense fluctuations. Useful for income statement reporting, short-term performance analysis, and monitoring financial activity trends to support decision-making and ensure accurate period-end reporting. Generated from G/L Account Categories.', MaxLength = 500;
+        NetChangeColumnInternalDescTxt: Label 'Single-column layout showing period net change from ledger entries (Net Amount). Useful for reporting activity, income statement movements, variance analysis, and tracking transaction-driven account changes.', MaxLength = 210;
         BalanceSheetCodeTxt: Label 'M-BALANCE', Comment = 'Max 10 char';
         BalanceSheetDescTxt: Label 'Balance Sheet', Comment = 'Max 80 chars';
-        BalanceSheetInternalDescTxt: Label 'A comprehensive row layout organizing financial position into structured sections for current assets, fixed assets, liabilities, and equity. Includes detailed rows for cash, receivables, inventory, prepaid expenses, equipment, accumulated depreciation, payroll liabilities, and shareholder distributions, with formulas for totals and balancing checks. Useful for financial position analysis, compliance reporting, and management review. Generated from G/L Account Categories.', MaxLength = 500;
         BalanceSheetFinReportInternalDescTxt: Label 'Presents a balance sheet layout based on account categories, covering current and fixed assets, liabilities, and equity. Includes subrows for cash, receivables, inventory, prepaid expenses, equipment, depreciation, payroll liabilities, and shareholder distributions, with totals and balancing checks. Shows a single-column balance as of a specific date. Generated from G/L Account Categories.', MaxLength = 500;
         IncomeStmdCodeTxt: Label 'M-INCOME', Comment = 'Max 10 chars';
         IncomeStmdDescTxt: Label 'Income Statement', Comment = 'Max 80 chars';
-        IncomeStmdInternalDescTxt: Label 'A detailed row layout structured based on account categories, including income, cost of goods sold, expenses, and calculated totals for gross profit and net income. It organizes revenue streams, direct costs, and operating expenses with formulas to derive profitability metrics. This format provides a clear breakdown of financial performance across categories and periods. Useful for profit analysis, budgeting, and evaluating operational efficiency. Generated from G/L Account Categories.', MaxLength = 500;
         IncomeStmdFinReportInternalDescTxt: Label 'Displays a simple income statement layout structured into income, cost of goods sold, and expenses, with formulas for gross profit and net income to deliver clear profitability metrics. Organizes revenue streams, direct costs, and operating expenses for accurate performance tracking. Uses a single column showing net change for the selected period. Useful for profit analysis, budgeting, and evaluating operational efficiency across reporting periods. Generated from G/L Account Categories.', MaxLength = 500;
         CashFlowCodeTxt: Label 'M-CASHFLOW', Comment = 'Max 10 chars';
         CashFlowDescTxt: Label 'Cash Flow Statement', Comment = 'Max 80 chars';
-        CashFlowInternalDescTxt: Label 'A comprehensive row layout organized into operating, investing, and financing sections with detailed account groupings and calculated formulas for net cash flows. It reconciles net income with cash movements, tracks changes in receivables, liabilities, and equity, and calculates period-end cash position for liquidity analysis. Useful for cash flow reporting, forecasting, and evaluating operational efficiency. Generated from G/L Account Categories.', MaxLength = 500;
         CashFlowFinReportInternalDescTxt: Label 'Structures a cash flow statement with operating, investing, and financing sections, including detailed groupings and formulas for net cash flows. Reconciles net income with cash movements, tracks changes in receivables, liabilities, and equity, and calculates period-end cash for liquidity analysis. Shows net change in a single column for the selected period. Generated from G/L Account Categories.', MaxLength = 500;
         RetainedEarnCodeTxt: Label 'M-RETAIND', Comment = 'Max 10 char.';
         RetainedEarnDescTxt: Label 'Retained Earnings', Comment = 'Max 80 chars';
-        RetainedEarnInternalDescTxt: Label 'Seven-row layout designed to track retained earnings from period start to period end, using formulas that combine beginning balance, net income, and shareholder distributions. This layout calculates equity changes over time, providing a precise view of accumulated profits after dividends. Useful for equity reconciliation, assessing financial position, and preparing statements of changes in equity. Generated from G/L Account Categories.', MaxLength = 500;
         RetainedEarnFinReportInternalDescTxt: Label 'Tracks retained earnings across periods with a seven-row layout, using formulas to combine beginning balance, net income, and shareholder distributions for accurate equity movement. Calculates changes over time to show accumulated profits after dividends. Uses a single column showing net change for the selected period. Useful for equity reconciliation, assessing financial position, and preparing statements of changes in equity. Generated from G/L Account Categories.', MaxLength = 500;
         MissingSetupErr: Label 'You must define a %1 in %2 before performing this function.', Comment = '%1 = field name, %2 = table name.';
         CurrentAssetsTxt: Label 'Current Assets';
@@ -91,6 +87,55 @@ codeunit 570 "G/L Account Category Mgt."
         JobSalesContraTxt: Label 'Job Sales Contra';
         OverwriteConfirmationQst: Label 'How do you want to generate standard financial reports?';
         GenerateAccountSchedulesOptionsTxt: Label 'Keep existing financial reports with their row definitions and create new ones.,Overwrite existing financial reports and row defintions.';
+        DraftCodeTxt: Label 'DRAFT', Locked = true, MaxLength = 10;
+        DraftNameTxt: Label 'Draft', MaxLength = 50;
+        DraftDescTxt: Label 'Report is under development and not available to users', MaxLength = 100;
+        ActiveCodeTxt: Label 'ACTIVE', Locked = true, MaxLength = 10;
+        ActiveNameTxt: Label 'Active', MaxLength = 50;
+        ActiveDescTxt: Label 'Report has been tested and is available to users', MaxLength = 100;
+        RetiredCodeTxt: Label 'RETIRED', Locked = true, MaxLength = 10;
+        RetiredNameTxt: Label 'Retired', MaxLength = 50;
+        RetiredDescTxt: Label 'Report is phased out and no longer available', MaxLength = 100;
+        GeneratedFromGLAccountCategoriesPageTxt: Label 'Generated from G/L Account Categories.', MaxLength = 40;
+        ProfitabilityCatCodeTxt: Label 'PROFITABILITY', MaxLength = 20;
+        ProfitabilityCatNameTxt: Label 'Profitability', MaxLength = 100;
+        ProfitabilityCatDescTxt: Label 'Reports that measure income, margins, and overall profitability. Example reports could be Income Statement, Gross Margin Analysis', MaxLength = 250;
+        BalanceSheetCatCodeTxt: Label 'BALANCE SHEET', MaxLength = 20;
+        BalanceSheetCatNameTxt: Label 'Balance Sheet & Position', MaxLength = 100;
+        BalanceSheetCatDescTxt: Label 'Shows financial position at a specific point in time. Example reports could be Balance Sheet, Working Capital Analysis', MaxLength = 250;
+        CashFlowCatCodeTxt: Label 'CASHFLOW', MaxLength = 20;
+        CashFlowCatNameTxt: Label 'Cash Flow', MaxLength = 100;
+        CashFlowCatDescTxt: Label 'Reports tracking cash inflows and outflows for liquidity management. Example reports could be Cash Flow Statement, Liquidity Analysis', MaxLength = 250;
+        BudgetingCatCodeTxt: Label 'BUDGET & FORECAST', MaxLength = 20;
+        BudgetingCatNameTxt: Label 'Budgeting & Forecasting', MaxLength = 100;
+        BudgetingCatDescTxt: Label 'Compares actuals to budgets and projects future performance. Example reports could be Budget vs Actual, Variance Analysis', MaxLength = 250;
+        RevenueAnalysisCatCodeTxt: Label 'REVENUE ANALYSIS', MaxLength = 20;
+        RevenueAnalysisCatNameTxt: Label 'Revenue Analysis', MaxLength = 100;
+        RevenueAnalysisCatDescTxt: Label 'Analyzes revenue streams by product, region, or customer. Example reports could be Sales by Dimension, Deferred Revenue Schedule', MaxLength = 250;
+        ExpenseAnalysisCatCodeTxt: Label 'EXPENSE ANALYSIS', MaxLength = 20;
+        ExpenseAnalysisCatNameTxt: Label 'Expense Analysis', MaxLength = 100;
+        ExpenseAnalysisCatDescTxt: Label 'Breaks down operating expenses and departmental spending. Example reports could be Departmental Spend, Operating Expense Breakdown', MaxLength = 250;
+        AssetsLiabilitiesCatCodeTxt: Label 'ASSETS & LIABLE', MaxLength = 20;
+        AssetsLiabilitiesCatNameTxt: Label 'Assets & Liabilities', MaxLength = 100;
+        AssetsLiabilitiesCatDescTxt: Label 'Tracks fixed assets, depreciation, loans, and obligations. Example reports could be Fixed Asset Depreciation, Loan & Debt Report', MaxLength = 250;
+        EquityCapitalCatCodeTxt: Label 'EQUITY & CAPITAL', MaxLength = 20;
+        EquityCapitalCatNameTxt: Label 'Equity & Capital', MaxLength = 100;
+        EquityCapitalCatDescTxt: Label 'Reports on shareholder equity and capital structure changes. Example reports could be Retained Earnings Movement, Capital Structure Analysis', MaxLength = 250;
+        ComplianceAuditCatCodeTxt: Label 'COMPLIANCE & AUDIT', MaxLength = 20;
+        ComplianceAuditCatNameTxt: Label 'Compliance & Audit', MaxLength = 100;
+        ComplianceAuditCatDescTxt: Label 'Ensures regulatory compliance and provides audit trails. Example reports could be Audit Trail, SOX Compliance Snapshot', MaxLength = 250;
+        InventoryCostingCatCodeTxt: Label 'INVENTORY & COSTING', MaxLength = 20;
+        InventoryCostingCatNameTxt: Label 'Inventory & Costing', MaxLength = 100;
+        InventoryCostingCatDescTxt: Label 'Valuates inventory and analyzes cost of goods sold. Example reports could be Inventory Valuation, COGS Analysis', MaxLength = 250;
+        ProjectJobCostingCatCodeTxt: Label 'PROJECTS & COSTING', MaxLength = 20;
+        ProjectJobCostingCatNameTxt: Label 'Project & Job Costing', MaxLength = 100;
+        ProjectJobCostingCatDescTxt: Label 'Measures profitability and costs for projects and jobs. Example reports could be Project Profitability, WIP Report', MaxLength = 250;
+        PerformanceMetricsCatCodeTxt: Label 'PERFORMANCE', MaxLength = 20;
+        PerformanceMetricsCatNameTxt: Label 'Performance Metrics', MaxLength = 100;
+        PerformanceMetricsCatDescTxt: Label 'Provides KPIs and financial ratios for performance tracking. Example reports could be KPI Dashboard, Financial Ratios', MaxLength = 250;
+        PeriodEndClosingCatCodeTxt: Label 'PERIOD-END & CLOSING', MaxLength = 20;
+        PeriodEndClosingCatNameTxt: Label 'Period-End & Closing', MaxLength = 100;
+        PeriodEndClosingCatDescTxt: Label 'Summarizes trial balances and closing entries for period-end. Example reports could be Trial Balance, Closing Entries Summary', MaxLength = 250;
         CreateAccountScheduleForBalanceSheet: Boolean;
         CreateAccountScheduleForIncomeStatement: Boolean;
         CreateAccountScheduleForCashFlowStatement: Boolean;
@@ -271,6 +316,7 @@ codeunit 570 "G/L Account Category Mgt."
     procedure InitializeStandardAccountSchedules()
     var
         GeneralLedgerSetup: Record "General Ledger Setup";
+        FinancialReportStatus: Record "Financial Report Status";
     begin
         if not GeneralLedgerSetup.Get() then
             exit;
@@ -331,50 +377,79 @@ codeunit 570 "G/L Account Category Mgt."
             CreateAccountScheduleForRetainedEarnings := true;
         end;
 
+        if FinancialReportStatus.IsEmpty() and (GeneralLedgerSetup.DefaultFinancialReportStatus = '') then
+            GeneralLedgerSetup.DefaultFinancialReportStatus := DraftCodeTxt;
+
         GeneralLedgerSetup.Modify();
-        AddColumnLayout(GeneralLedgerSetup."Fin. Rep. Bal. Sheet Column", BalanceColumnDescTxt, true, BalanceColumnInternalDescTxt);
-        AddColumnLayout(GeneralLedgerSetup."Fin. Rep. Net Change Column", NetChangeColumnDescTxt, false, NetChangeColumnInternalDescTxt);
 
-        AddAccountSchedule(GeneralLedgerSetup."Fin. Rep. Bal. Sheet Row", BalanceSheetDescTxt, BalanceSheetInternalDescTxt);
-        AddAccountSchedule(GeneralLedgerSetup."Fin. Rep. Income Stmt. Row", IncomeStmdDescTxt, IncomeStmdInternalDescTxt);
-        AddAccountSchedule(GeneralLedgerSetup."Fin. Rep. Cash Flow Stmt. Row", CashFlowDescTxt, CashFlowInternalDescTxt);
-        AddAccountSchedule(GeneralLedgerSetup."Fin. Rep. Retained Earn. Row", RetainedEarnDescTxt, RetainedEarnInternalDescTxt);
+        AddFinancialReportStatus(DraftCodeTxt, DraftNameTxt, DraftDescTxt, true);
+        AddFinancialReportStatus(ActiveCodeTxt, ActiveNameTxt, ActiveDescTxt, false);
+        AddFinancialReportStatus(RetiredCodeTxt, RetiredNameTxt, RetiredDescTxt, true);
 
-        AddFinancialReport(GeneralLedgerSetup."Fin. Rep. for Balance Sheet", BalanceSheetDescTxt, GeneralLedgerSetup."Fin. Rep. Bal. Sheet Row", GeneralLedgerSetup."Fin. Rep. Bal. Sheet Column", BalanceSheetFinReportInternalDescTxt);
-        AddFinancialReport(GeneralLedgerSetup."Fin. Rep. for Income Stmt.", IncomeStmdDescTxt, GeneralLedgerSetup."Fin. Rep. Income Stmt. Row", GeneralLedgerSetup."Fin. Rep. Net Change Column", IncomeStmdFinReportInternalDescTxt);
-        AddFinancialReport(GeneralLedgerSetup."Fin. Rep. for Cash Flow Stmt", CashFlowDescTxt, GeneralLedgerSetup."Fin. Rep. Cash Flow Stmt. Row", GeneralLedgerSetup."Fin. Rep. Net Change Column", CashFlowFinReportInternalDescTxt);
-        AddFinancialReport(GeneralLedgerSetup."Fin. Rep. for Retained Earn.", RetainedEarnDescTxt, GeneralLedgerSetup."Fin. Rep. Retained Earn. Row", GeneralLedgerSetup."Fin. Rep. Net Change Column", RetainedEarnFinReportInternalDescTxt);
+        AddColumnLayout(GeneralLedgerSetup."Fin. Rep. Bal. Sheet Column", BalanceColumnDescTxt, true, StrSubstNo('%1 %2', GeneratedFromGLAccountCategoriesPageTxt, BalanceColumnInternalDescTxt));
+        AddColumnLayout(GeneralLedgerSetup."Fin. Rep. Net Change Column", NetChangeColumnDescTxt, false, StrSubstNo('%1 %2', GeneratedFromGLAccountCategoriesPageTxt, NetChangeColumnInternalDescTxt));
+
+        AddAccountSchedule(GeneralLedgerSetup."Fin. Rep. Bal. Sheet Row", BalanceSheetDescTxt);
+        AddAccountSchedule(GeneralLedgerSetup."Fin. Rep. Income Stmt. Row", IncomeStmdDescTxt);
+        AddAccountSchedule(GeneralLedgerSetup."Fin. Rep. Cash Flow Stmt. Row", CashFlowDescTxt);
+        AddAccountSchedule(GeneralLedgerSetup."Fin. Rep. Retained Earn. Row", RetainedEarnDescTxt);
+
+        AddFinancialReportCategory(ProfitabilityCatCodeTxt, ProfitabilityCatNameTxt, ProfitabilityCatDescTxt);
+        AddFinancialReportCategory(BalanceSheetCatCodeTxt, BalanceSheetCatNameTxt, BalanceSheetCatDescTxt);
+        AddFinancialReportCategory(CashFlowCatCodeTxt, CashFlowCatNameTxt, CashFlowCatDescTxt);
+        AddFinancialReportCategory(BudgetingCatCodeTxt, BudgetingCatNameTxt, BudgetingCatDescTxt);
+        AddFinancialReportCategory(RevenueAnalysisCatCodeTxt, RevenueAnalysisCatNameTxt, RevenueAnalysisCatDescTxt);
+        AddFinancialReportCategory(ExpenseAnalysisCatCodeTxt, ExpenseAnalysisCatNameTxt, ExpenseAnalysisCatDescTxt);
+        AddFinancialReportCategory(AssetsLiabilitiesCatCodeTxt, AssetsLiabilitiesCatNameTxt, AssetsLiabilitiesCatDescTxt);
+        AddFinancialReportCategory(EquityCapitalCatCodeTxt, EquityCapitalCatNameTxt, EquityCapitalCatDescTxt);
+        AddFinancialReportCategory(ComplianceAuditCatCodeTxt, ComplianceAuditCatNameTxt, ComplianceAuditCatDescTxt);
+        AddFinancialReportCategory(InventoryCostingCatCodeTxt, InventoryCostingCatNameTxt, InventoryCostingCatDescTxt);
+        AddFinancialReportCategory(ProjectJobCostingCatCodeTxt, ProjectJobCostingCatNameTxt, ProjectJobCostingCatDescTxt);
+        AddFinancialReportCategory(PerformanceMetricsCatCodeTxt, PerformanceMetricsCatNameTxt, PerformanceMetricsCatDescTxt);
+        AddFinancialReportCategory(PeriodEndClosingCatCodeTxt, PeriodEndClosingCatNameTxt, PeriodEndClosingCatDescTxt);
+
+        AddFinancialReport(GeneralLedgerSetup."Fin. Rep. for Balance Sheet", BalanceSheetDescTxt, GeneralLedgerSetup."Fin. Rep. Bal. Sheet Row", GeneralLedgerSetup."Fin. Rep. Bal. Sheet Column", BalanceSheetFinReportInternalDescTxt, BalanceSheetCatCodeTxt, DraftCodeTxt);
+        AddFinancialReport(GeneralLedgerSetup."Fin. Rep. for Income Stmt.", IncomeStmdDescTxt, GeneralLedgerSetup."Fin. Rep. Income Stmt. Row", GeneralLedgerSetup."Fin. Rep. Net Change Column", IncomeStmdFinReportInternalDescTxt, ProfitabilityCatCodeTxt, DraftCodeTxt);
+        AddFinancialReport(GeneralLedgerSetup."Fin. Rep. for Cash Flow Stmt", CashFlowDescTxt, GeneralLedgerSetup."Fin. Rep. Cash Flow Stmt. Row", GeneralLedgerSetup."Fin. Rep. Net Change Column", CashFlowFinReportInternalDescTxt, CashFlowCatCodeTxt, DraftCodeTxt);
+        AddFinancialReport(GeneralLedgerSetup."Fin. Rep. for Retained Earn.", RetainedEarnDescTxt, GeneralLedgerSetup."Fin. Rep. Retained Earn. Row", GeneralLedgerSetup."Fin. Rep. Net Change Column", RetainedEarnFinReportInternalDescTxt, EquityCapitalCatCodeTxt, DraftCodeTxt);
     end;
 
-    local procedure AddFinancialReport(Name: Code[10]; Description: Text[80]; RowGroupCode: Code[10]; ColumnGroupCode: Code[10]; NewInternalDescription: Text[500])
+    local procedure AddFinancialReport(Name: Code[10]; Description: Text[80]; RowGroupCode: Code[10]; ColumnGroupCode: Code[10]; NewInternalDescription: Text[500]; CategoryCode: Code[20]; StatusCode: Code[10])
     var
         FinancialReport: Record "Financial Report";
     begin
         if FinancialReport.Get(Name) then
-            UpdateFinancialReport(FinancialReport, RowGroupCode, ColumnGroupCode, NewInternalDescription)
+            UpdateFinancialReport(FinancialReport, RowGroupCode, ColumnGroupCode, NewInternalDescription, CategoryCode)
         else begin
             FinancialReport.Init();
             FinancialReport.Name := Name;
             FinancialReport.Description := Description;
+            FinancialReport."Internal Description" := NewInternalDescription;
             FinancialReport."Financial Report Row Group" := RowGroupCode;
             FinancialReport."Financial Report Column Group" := ColumnGroupCode;
             FinancialReport."Internal Description" := NewInternalDescription;
+            FinancialReport.CategoryCode := CategoryCode;
+            FinancialReport.Status := StatusCode;
             FinancialReport.Insert();
         end;
     end;
 
-    local procedure UpdateFinancialReport(var FinancialReport: Record "Financial Report"; RowGroupCode: Code[10]; ColumnGroupCode: Code[10]; InternalDescription: Text[500])
+    local procedure UpdateFinancialReport(var FinancialReport: Record "Financial Report"; RowGroupCode: Code[10]; ColumnGroupCode: Code[10]; InternalDescription: Text[500]; CategoryCode: Code[20])
     begin
         if ForceCreateAccountSchedule then
-            if (FinancialReport."Financial Report Row Group" <> RowGroupCode) or (FinancialReport."Financial Report Column Group" <> ColumnGroupCode) then begin
+            if (FinancialReport."Financial Report Row Group" <> RowGroupCode) or
+                (FinancialReport."Financial Report Column Group" <> ColumnGroupCode) or
+                (FinancialReport.CategoryCode <> CategoryCode)
+            then begin
                 FinancialReport."Internal Description" := InternalDescription;
                 FinancialReport."Financial Report Row Group" := RowGroupCode;
                 FinancialReport."Financial Report Column Group" := ColumnGroupCode;
+                FinancialReport.CategoryCode := CategoryCode;
                 FinancialReport.Modify();
             end;
     end;
 
-    local procedure AddAccountSchedule(NewName: Code[10]; NewDescription: Text[80]; NewInternalDescription: Text[500])
+    local procedure AddAccountSchedule(NewName: Code[10]; NewDescription: Text[80])
     var
         AccScheduleName: Record "Acc. Schedule Name";
     begin
@@ -383,11 +458,11 @@ codeunit 570 "G/L Account Category Mgt."
         AccScheduleName.Init();
         AccScheduleName.Name := NewName;
         AccScheduleName.Description := NewDescription;
-        AccScheduleName."Internal Description" := NewInternalDescription;
+        AccScheduleName."Internal Description" := GeneratedFromGLAccountCategoriesPageTxt;
         AccScheduleName.Insert();
     end;
 
-    local procedure AddColumnLayout(NewName: Code[10]; NewDescription: Text[80]; IsBalance: Boolean; NewInternalDescription: Text[500])
+    local procedure AddColumnLayout(NewName: Code[10]; NewDescription: Text[80]; IsBalance: Boolean; NewInternalDescription: Text[250])
     var
         ColumnLayoutName: Record "Column Layout Name";
         ColumnLayout: Record "Column Layout";
@@ -409,6 +484,33 @@ codeunit 570 "G/L Account Category Mgt."
         else
             ColumnLayout."Column Type" := ColumnLayout."Column Type"::"Net Change";
         ColumnLayout.Insert();
+    end;
+
+    local procedure AddFinancialReportCategory(Code: Code[20]; Name: Text[100]; Description: Text[250])
+    var
+        FinRepCategory: Record "Financial Report Category";
+    begin
+        if FinRepCategory.Get(Code) then
+            exit;
+        FinRepCategory.Init();
+        FinRepCategory.Code := Code;
+        FinRepCategory.Name := Name;
+        FinRepCategory.Description := Description;
+        FinRepCategory.Insert();
+    end;
+
+    local procedure AddFinancialReportStatus(Code: Code[10]; Name: Text[50]; Description: Text[100]; Blocked: Boolean)
+    var
+        FinancialReportStatus: Record "Financial Report Status";
+    begin
+        if FinancialReportStatus.Get(Code) then
+            exit;
+        FinancialReportStatus.Init();
+        FinancialReportStatus.Code := Code;
+        FinancialReportStatus.Name := Name;
+        FinancialReportStatus.Description := Description;
+        FinancialReportStatus.Blocked := Blocked;
+        FinancialReportStatus.Insert();
     end;
 
     /// <summary>

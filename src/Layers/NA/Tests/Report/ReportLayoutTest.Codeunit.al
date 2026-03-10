@@ -29,7 +29,9 @@ codeunit 134600 "Report Layout Test"
         LibrarySetupStorage: Codeunit "Library - Setup Storage";
         Usage: Option "Order Confirmation","Work Order","Pick Instruction";
         IsInitialized: Boolean;
+#if not CLEAN28
         LayoutCodeShouldNotChangedErr: Label 'Layout code should not change.';
+#endif
 
     local procedure Initialize()
     begin
@@ -178,6 +180,7 @@ codeunit 134600 "Report Layout Test"
         Assert.IsFalse(CustomReportLayout.ValidateLayout(false, false), '');
     end;
 
+#if not CLEAN28
     [Test]
     [HandlerFunctions('Report134600HandlerCancel')]
     [Scope('OnPrem')]
@@ -202,6 +205,7 @@ codeunit 134600 "Report Layout Test"
 
         CustomReportLayout.Delete();
     end;
+#endif
 
     [Test]
     [Scope('OnPrem')]
@@ -373,6 +377,7 @@ codeunit 134600 "Report Layout Test"
         DesignTimeReportSelection.SetSelectedLayout('');
     end;
 
+#if not CLEAN28
     [Test]
     [HandlerFunctions('ReportLookupHandler')]
     [Scope('OnPrem')]
@@ -394,6 +399,7 @@ codeunit 134600 "Report Layout Test"
         // Verify
         Assert.AreNotEqual(0, CustomReportLayout.Count, '');
     end;
+#endif
 
     [Test]
     [Scope('OnPrem')]
@@ -911,6 +917,7 @@ codeunit 134600 "Report Layout Test"
         Assert.ExpectedMessage(Format(SalesHeader.RecordId()), LibraryVariableStorage.DequeueText()); // message from MessageHandler
     end;
 
+#if not CLEAN28
     [Test]
     [HandlerFunctions('CustomReportLayoutsHandlerCancel')]
     [Scope('OnPrem')]
@@ -951,6 +958,7 @@ codeunit 134600 "Report Layout Test"
         ReportLayoutSelection.Get(CheckStubReportID(), CompanyName);
         Assert.AreEqual(LayoutCode, ReportLayoutSelection."Custom Report Layout Code", LayoutCodeShouldNotChangedErr);
     end;
+#endif
 
     local procedure InitCustomReportLayout(var CustomReportLayout: Record "Custom Report Layout"; LayoutType: Enum "Custom Report Layout Type"; WithCompanyName: Boolean)
     var
@@ -1113,12 +1121,14 @@ codeunit 134600 "Report Layout Test"
         ScheduleaReport.Cancel().Invoke();
     end;
 
+#if not CLEAN28
     [ModalPageHandler]
     [Scope('OnPrem')]
     procedure CustomReportLayoutsHandlerCancel(var CustomReportLayouts: TestPage "Custom Report Layouts")
     begin
         CustomReportLayouts.Cancel().Invoke();
     end;
+#endif
 
     [RequestPageHandler]
     [Scope('OnPrem')]
@@ -1316,10 +1326,12 @@ codeunit 134600 "Report Layout Test"
         exit(REPORT::"Detail Trial Balance");
     end;
 
+#if not CLEAN28
     local procedure CheckStubReportID(): Integer
     begin
         exit(Report::"Check (Stub/Check/Stub)");
     end;
+#endif
 
     [RequestPageHandler]
     [Scope('OnPrem')]

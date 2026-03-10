@@ -1,3 +1,4 @@
+#if not CLEAN28
 // ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
@@ -25,6 +26,9 @@ tableextension 10027 "Mfg. Item NA" extends Item
             DecimalPlaces = 0 : 5;
             Editable = false;
             FieldClass = FlowField;
+            ObsoleteReason = 'Prepare for extraction of Manufacturing app';
+            ObsoleteState = Pending;
+            ObsoleteTag = '28.0';
         }
         field(10014; "Rel. Scheduled Need (Qty.)"; Decimal)
         {
@@ -41,6 +45,10 @@ tableextension 10027 "Mfg. Item NA" extends Item
             DecimalPlaces = 0 : 5;
             Editable = false;
             FieldClass = FlowField;
+            ObsoleteReason = 'Prepare for extraction of Manufacturing app';
+            ObsoleteState = Pending;
+            ObsoleteTag = '28.0';
         }
     }
 }
+#endif

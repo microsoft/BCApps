@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -24,7 +24,6 @@ page 417 "Post Pmts and Rec. Bank Acc."
             {
                 ApplicationArea = Basic, Suite;
                 Caption = 'Balance Last Statement';
-                ToolTip = 'Specifies the ending balance shown on the last bank statement, which was used in the last posted bank reconciliation for this bank account.';
                 trigger OnValidate()
                 var
                     BankAccReconciliationLine: Record "Bank Acc. Reconciliation Line";
@@ -40,7 +39,6 @@ page 417 "Post Pmts and Rec. Bank Acc."
             {
                 ApplicationArea = Basic, Suite;
                 Caption = 'Statement Ending Balance';
-                ToolTip = 'Specifies the ending balance shown on the bank''s statement that you want to reconcile with the bank account.';
                 trigger OnValidate()
                 begin
                     Rec.Modify();
@@ -60,7 +58,6 @@ page 417 "Post Pmts and Rec. Bank Acc."
             {
                 ApplicationArea = Basic, Suite;
                 Caption = 'Statement Date';
-                ToolTip = 'Specifies the date on the bank account statement.';
             }
         }
     }

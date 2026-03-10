@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -24,7 +24,6 @@ page 99000786 "Production BOM"
                 field("No."; Rec."No.")
                 {
                     ApplicationArea = Manufacturing;
-                    ToolTip = 'Specifies the number of the involved entry or record, according to the specified number series.';
 
                     trigger OnAssistEdit()
                     begin
@@ -35,18 +34,15 @@ page 99000786 "Production BOM"
                 field(Description; Rec.Description)
                 {
                     ApplicationArea = Manufacturing;
-                    ToolTip = 'Specifies a description for the production BOM.';
                 }
                 field("Unit of Measure Code"; Rec."Unit of Measure Code")
                 {
                     ApplicationArea = Manufacturing;
-                    ToolTip = 'Specifies the manufacturing batch unit of measure.';
                     ShowMandatory = true;
                 }
                 field(Status; Rec.Status)
                 {
                     ApplicationArea = Manufacturing;
-                    ToolTip = 'Specifies the status of the production BOM.';
 
                     trigger OnValidate()
                     begin
@@ -56,13 +52,11 @@ page 99000786 "Production BOM"
                 field("Search Name"; Rec."Search Name")
                 {
                     ApplicationArea = Manufacturing;
-                    ToolTip = 'Specifies an alternate name that you can use to search for the record in question when you cannot remember the value in the Name field.';
                     Importance = Additional;
                 }
                 field("Version Nos."; Rec."Version Nos.")
                 {
                     ApplicationArea = Manufacturing;
-                    ToolTip = 'Specifies the version number series that the production BOM versions refer to.';
                 }
                 field(ActiveVersionCode; ActiveVersionCode)
                 {
@@ -89,7 +83,6 @@ page 99000786 "Production BOM"
                 field("Last Date Modified"; Rec."Last Date Modified")
                 {
                     ApplicationArea = Manufacturing;
-                    ToolTip = 'Specifies the last date that was modified.';
                 }
             }
             part(ProdBOMLine; "Production BOM Lines")

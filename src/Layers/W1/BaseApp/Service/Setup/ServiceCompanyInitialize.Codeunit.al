@@ -19,7 +19,7 @@ codeunit 6475 "Service Company Initialize"
         PEPPOLBIS3_ElectronicFormatTxt: Label 'PEPPOL BIS3', Locked = true;
         PEPPOLBIS3_ElectronicFormatDescriptionTxt: Label 'PEPPOL BIS3 Format (Pan-European Public Procurement Online)';
 
-    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Company-Initialize", 'OnAfterInitSetupTables', '', false, false)]
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Company-Initialize", 'OnAfterInitSetupTables', '', true, false)]
     local procedure OnAfterInitSetupTables()
     var
         ServiceMgtSetup: Record "Service Mgt. Setup";
@@ -30,13 +30,13 @@ codeunit 6475 "Service Company Initialize"
         end;
     end;
 
-    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Company-Initialize", 'OnBeforeSourceCodeSetupInsert', '', false, false)]
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Company-Initialize", 'OnBeforeSourceCodeSetupInsert', '', true, false)]
     local procedure OnBeforeSourceCodeSetupInsert(var SourceCodeSetup: Record "Source Code Setup"; sender: Codeunit "Company-Initialize")
     begin
         sender.InsertSourceCode(SourceCodeSetup."Service Management", ServiceTxt, ServiceManagementTxt);
     end;
 
-    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Company-Initialize", 'OnAfterInitElectronicFormats', '', false, false)]
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Company-Initialize", 'OnAfterInitElectronicFormats', '', true, false)]
     local procedure OnAfterInitElectronicFormats()
     var
         ElectronicDocumentFormat: Record "Electronic Document Format";

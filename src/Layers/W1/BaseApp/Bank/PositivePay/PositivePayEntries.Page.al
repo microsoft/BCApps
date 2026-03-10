@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -33,7 +33,6 @@ page 1231 "Positive Pay Entries"
                 {
                     ApplicationArea = Suite;
                     Editable = false;
-                    ToolTip = 'Specifies the bank account number. If you select Balance at Date, the balance as of the last day in the relevant time interval is displayed.';
                 }
                 field("Upload Date"; DT2Date(Rec."Upload Date-Time"))
                 {
@@ -53,53 +52,44 @@ page 1231 "Positive Pay Entries"
                 {
                     ApplicationArea = Suite;
                     Editable = false;
-                    ToolTip = 'Specifies the last date that you exported a Positive Pay file.';
                 }
                 field("Last Upload Time"; Rec."Last Upload Time")
                 {
                     ApplicationArea = Suite;
                     Editable = false;
-                    ToolTip = 'Specifies the last time that you exported a Positive Pay file.';
                 }
                 field("Number of Uploads"; Rec."Number of Uploads")
                 {
                     ApplicationArea = Suite;
                     Editable = false;
-                    ToolTip = 'Specifies how many times the related Positive Pay file was uploaded.';
                 }
                 field("Number of Checks"; Rec."Number of Checks")
                 {
                     ApplicationArea = Suite;
                     Editable = false;
-                    ToolTip = 'Specifies how many checks were processed with the Positive Pay entry.';
                 }
                 field("Number of Voids"; Rec."Number of Voids")
                 {
                     ApplicationArea = Suite;
                     Editable = false;
-                    ToolTip = 'Specifies how many of the related checks were voided.';
                 }
                 field("Check Amount"; Rec."Check Amount")
                 {
                     ApplicationArea = Suite;
                     Editable = false;
-                    ToolTip = 'Specifies the amount on the check.';
                 }
                 field("Void Amount"; Rec."Void Amount")
                 {
                     ApplicationArea = Suite;
                     Editable = false;
-                    ToolTip = 'Specifies the amount in the Positive Pay file that is related to voided checks.';
                 }
                 field("Confirmation Number"; Rec."Confirmation Number")
                 {
                     ApplicationArea = Suite;
-                    ToolTip = 'Specifies the confirmation number that you receive when the file upload to the bank is successful.';
                 }
                 field("Upload Date-Time"; Rec."Upload Date-Time")
                 {
                     ApplicationArea = Suite;
-                    ToolTip = 'Specifies when the Positive Pay file was uploaded.';
                     Visible = false;
                 }
             }

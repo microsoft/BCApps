@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -39,6 +39,7 @@ table 5700 "Stockkeeping Unit"
         field(1; "Item No."; Code[20])
         {
             Caption = 'Item No.';
+            ToolTip = 'Specifies the item number to which the SKU applies.';
             OptimizeForTextSearch = true;
             NotBlank = true;
             TableRelation = Item where(Type = const(Inventory));
@@ -59,6 +60,7 @@ table 5700 "Stockkeeping Unit"
         field(2; "Variant Code"; Code[10])
         {
             Caption = 'Variant Code';
+            ToolTip = 'Specifies the variant of the item on the line.';
             TableRelation = "Item Variant".Code where("Item No." = field("Item No."));
 
             trigger OnValidate()
@@ -72,10 +74,12 @@ table 5700 "Stockkeeping Unit"
         field(3; "Location Code"; Code[10])
         {
             Caption = 'Location Code';
+            ToolTip = 'Specifies the location code (for example, the warehouse or distribution center) to which the SKU applies.';
             TableRelation = Location where("Use As In-Transit" = const(false));
 
             trigger OnValidate()
             begin
+                CheckSKUCreationPolicy();
                 if "Location Code" = '' then
                     Validate("Replenishment System");
                 CheckTransferRoute();
@@ -89,6 +93,7 @@ table 5700 "Stockkeeping Unit"
         {
             CalcFormula = lookup(Item.Description where("No." = field("Item No.")));
             Caption = 'Description';
+            ToolTip = 'Specifies the description from the Item Card.';
             Editable = false;
             FieldClass = FlowField;
         }
@@ -103,18 +108,21 @@ table 5700 "Stockkeeping Unit"
         {
             CalcFormula = exist("BOM Component" where("Parent Item No." = field("Item No.")));
             Caption = 'Assembly BOM';
+            ToolTip = 'Specifies if the item is an assembly BOM.';
             Editable = false;
             FieldClass = FlowField;
         }
         field(12; "Shelf No."; Code[10])
         {
             Caption = 'Shelf No.';
+            ToolTip = 'Specifies where to find the SKU in the warehouse.';
         }
         field(22; "Unit Cost"; Decimal)
         {
             AutoFormatType = 2;
             AutoFormatExpression = '';
             Caption = 'Unit Cost';
+            ToolTip = 'Specifies the cost of one unit of the item or resource on the line.';
             MinValue = 0;
 
             trigger OnValidate()
@@ -135,6 +143,7 @@ table 5700 "Stockkeeping Unit"
             AutoFormatType = 2;
             AutoFormatExpression = '';
             Caption = 'Standard Cost';
+            ToolTip = 'Specifies the unit cost that is used as an estimation to be adjusted with variances later. It is typically used in assembly and production where costs can vary. Warning: If the SKU is supplied through production, then this field is not used when invoicing and adjusting the actual cost of the produced item. Instead, the Standard Cost field on the underlying item card is used, and any variances are calculated against the cost shares of that item.';
             MinValue = 0;
 
             trigger OnValidate()
@@ -167,11 +176,13 @@ table 5700 "Stockkeeping Unit"
             AutoFormatType = 2;
             AutoFormatExpression = '';
             Caption = 'Last Direct Cost';
+            ToolTip = 'Specifies the most recent direct unit cost that was paid for the SKU.';
             MinValue = 0;
         }
         field(31; "Vendor No."; Code[20])
         {
             Caption = 'Vendor No.';
+            ToolTip = 'Specifies for the SKU, the same as the field does on the item card.';
             TableRelation = Vendor;
 
             trigger OnValidate()
@@ -186,11 +197,13 @@ table 5700 "Stockkeeping Unit"
         field(32; "Vendor Item No."; Text[50])
         {
             Caption = 'Vendor Item No.';
+            ToolTip = 'Specifies the number that the vendor uses for this item.';
             OptimizeForTextSearch = true;
         }
         field(33; "Lead Time Calculation"; DateFormula)
         {
             Caption = 'Lead Time Calculation';
+            ToolTip = 'Specifies a date formula for the amount of time it takes to replenish the item.';
 
             trigger OnValidate()
             begin
@@ -201,6 +214,7 @@ table 5700 "Stockkeeping Unit"
         {
             AutoFormatType = 0;
             Caption = 'Reorder Point';
+            ToolTip = 'Specifies for the SKU, the same as the field does on the item card.';
             DecimalPlaces = 0 : 5;
         }
         field(35; "Maximum Inventory"; Decimal)
@@ -208,12 +222,14 @@ table 5700 "Stockkeeping Unit"
             AutoFormatType = 0;
             AccessByPermission = TableData "Req. Wksh. Template" = R;
             Caption = 'Maximum Inventory';
+            ToolTip = 'Specifies for the SKU, the same as the field does on the item card.';
             DecimalPlaces = 0 : 5;
         }
         field(36; "Reorder Quantity"; Decimal)
         {
             AutoFormatType = 0;
             Caption = 'Reorder Quantity';
+            ToolTip = 'Specifies for the SKU, the same as the field does on the item card.';
             DecimalPlaces = 0 : 5;
         }
         field(53; Comment; Boolean)
@@ -228,6 +244,7 @@ table 5700 "Stockkeeping Unit"
         field(62; "Last Date Modified"; Date)
         {
             Caption = 'Last Date Modified';
+            ToolTip = 'Specifies when the SKU card was last modified.';
             Editable = false;
         }
         field(64; "Date Filter"; Date)
@@ -257,6 +274,7 @@ table 5700 "Stockkeeping Unit"
                                                                   "Drop Shipment" = field("Drop Shipment Filter"),
                                                                   "Variant Code" = field("Variant Code")));
             Caption = 'Inventory';
+            ToolTip = 'Specifies for the SKU, the same as the field does on the item card.';
             DecimalPlaces = 0 : 5;
             Editable = false;
             FieldClass = FlowField;
@@ -275,6 +293,7 @@ table 5700 "Stockkeeping Unit"
                                                                                "Variant Code" = field("Variant Code"),
                                                                                "Expected Receipt Date" = field("Date Filter")));
             Caption = 'Qty. on Purch. Order';
+            ToolTip = 'Specifies for the SKU, the same as the field does on the item card.';
             DecimalPlaces = 0 : 5;
             Editable = false;
             FieldClass = FlowField;
@@ -293,6 +312,7 @@ table 5700 "Stockkeeping Unit"
                                                                             "Variant Code" = field("Variant Code"),
                                                                             "Shipment Date" = field("Date Filter")));
             Caption = 'Qty. on Sales Order';
+            ToolTip = 'Specifies for the SKU, the same as the field does on the item card.';
             DecimalPlaces = 0 : 5;
             Editable = false;
             FieldClass = FlowField;
@@ -306,6 +326,7 @@ table 5700 "Stockkeeping Unit"
         {
             AccessByPermission = TableData "BOM Component" = R;
             Caption = 'Assembly Policy';
+            ToolTip = 'Specifies which default order flow is used to supply this SKU by assembly.';
 
             trigger OnValidate()
             begin
@@ -324,6 +345,7 @@ table 5700 "Stockkeeping Unit"
                                                                                    "Variant Code" = field("Variant Code"),
                                                                                    "Due Date" = field("Date Filter")));
             Caption = 'Qty. on Assembly Order';
+            ToolTip = 'Specifies how many units of the SKU are allocated to assembly orders, which is how many are listed on outstanding assembly order headers.';
             DecimalPlaces = 0 : 5;
             Editable = false;
             FieldClass = FlowField;
@@ -340,6 +362,7 @@ table 5700 "Stockkeeping Unit"
                                                                                  "Variant Code" = field("Variant Code"),
                                                                                  "Due Date" = field("Date Filter")));
             Caption = 'Qty. on Asm. Component';
+            ToolTip = 'Specifies how many item units are allocated as assembly components, which is how many units are on outstanding assembly order lines.';
             DecimalPlaces = 0 : 5;
             Editable = false;
             FieldClass = FlowField;
@@ -354,6 +377,7 @@ table 5700 "Stockkeeping Unit"
                                                                                  "Variant Code" = field("Variant Code"),
                                                                                  "Planning Date" = field("Date Filter")));
             Caption = 'Qty. on Project Order';
+            ToolTip = 'Specifies how many units of the item are allocated to projects, meaning listed on outstanding project planning lines.';
             DecimalPlaces = 0 : 5;
             Editable = false;
             FieldClass = FlowField;
@@ -367,6 +391,7 @@ table 5700 "Stockkeeping Unit"
         {
             AutoFormatType = 0;
             Caption = 'Lot Size';
+            ToolTip = 'Specifies for the SKU, the same as the field does on the item card.';
             DecimalPlaces = 0 : 5;
             MinValue = 0;
         }
@@ -379,6 +404,7 @@ table 5700 "Stockkeeping Unit"
         {
             AutoFormatType = 0;
             Caption = 'Minimum Order Quantity';
+            ToolTip = 'Specifies for the SKU, the same as the field does on the item card.';
             DecimalPlaces = 0 : 5;
             MinValue = 0;
         }
@@ -387,6 +413,7 @@ table 5700 "Stockkeeping Unit"
             AutoFormatType = 0;
             AccessByPermission = TableData "Req. Wksh. Template" = R;
             Caption = 'Maximum Order Quantity';
+            ToolTip = 'Specifies for the SKU, the same as the field does on the item card.';
             DecimalPlaces = 0 : 5;
             MinValue = 0;
         }
@@ -395,6 +422,7 @@ table 5700 "Stockkeeping Unit"
             AutoFormatType = 0;
             AccessByPermission = TableData "Req. Wksh. Template" = R;
             Caption = 'Safety Stock Quantity';
+            ToolTip = 'Specifies for the SKU, the same as the field does on the item card.';
             DecimalPlaces = 0 : 5;
             MinValue = 0;
         }
@@ -403,6 +431,7 @@ table 5700 "Stockkeeping Unit"
             AutoFormatType = 0;
             AccessByPermission = TableData "Req. Wksh. Template" = R;
             Caption = 'Order Multiple';
+            ToolTip = 'Specifies for the SKU, the same as the field does on the item card.';
             DecimalPlaces = 0 : 5;
             MinValue = 0;
         }
@@ -410,6 +439,7 @@ table 5700 "Stockkeeping Unit"
         {
             AccessByPermission = TableData "Req. Wksh. Template" = R;
             Caption = 'Safety Lead Time';
+            ToolTip = 'Specifies for the SKU, the same as the field does on the item card.';
 
             trigger OnValidate()
             begin
@@ -419,16 +449,19 @@ table 5700 "Stockkeeping Unit"
         field(5416; "Components at Location"; Code[10])
         {
             Caption = 'Components at Location';
+            ToolTip = 'Specifies the inventory location from where the production order components are to be taken when producing this SKU.';
             TableRelation = Location;
         }
         field(5417; "Flushing Method"; Enum Microsoft.Manufacturing.Setup."Flushing Method")
         {
             Caption = 'Flushing Method';
+            ToolTip = 'Specifies how consumption of the item (component) is calculated and handled in production processes. Manual: Enter and post consumption in the consumption journal manually. Forward: Automatically posts consumption according to the production order component lines when the first operation starts. Backward: Automatically calculates and posts consumption according to the production order component lines when the production order is finished. Pick + Forward / Pick + Backward: Variations with warehousing.';
             DataClassification = CustomerContent;
         }
         field(5419; "Replenishment System"; Enum "Replenishment System")
         {
             Caption = 'Replenishment System';
+            ToolTip = 'Specifies the type of supply order that is created by the planning system when the SKU needs to be replenished.';
 
             trigger OnValidate()
             begin
@@ -468,6 +501,7 @@ table 5700 "Stockkeeping Unit"
         field(5428; "Time Bucket"; DateFormula)
         {
             Caption = 'Time Bucket';
+            ToolTip = 'Specifies a time period for the recurring planning horizon of the SKU when you use Fixed Reorder Qty. or Maximum Qty. reordering policies.';
 
             trigger OnValidate()
             begin
@@ -477,6 +511,7 @@ table 5700 "Stockkeeping Unit"
         field(5440; "Reordering Policy"; Enum "Reordering Policy")
         {
             Caption = 'Reordering Policy';
+            ToolTip = 'Specifies for the SKU, the same as the field does on the item card.';
 
             trigger OnValidate()
             begin
@@ -489,14 +524,17 @@ table 5700 "Stockkeeping Unit"
         field(5441; "Include Inventory"; Boolean)
         {
             Caption = 'Include Inventory';
+            ToolTip = 'Specifies for the SKU, the same as the field does on the item card.';
         }
         field(5442; "Manufacturing Policy"; Enum Microsoft.Manufacturing.Setup."Manufacturing Policy")
         {
             Caption = 'Manufacturing Policy';
+            ToolTip = 'Specifies if additional orders for any related components are calculated.';
         }
         field(5443; "Rescheduling Period"; DateFormula)
         {
             Caption = 'Rescheduling Period';
+            ToolTip = 'Specifies a period within which any suggestion to change a supply date always consists of a Reschedule action and never a Cancel + New action.';
 
             trigger OnValidate()
             begin
@@ -506,6 +544,7 @@ table 5700 "Stockkeeping Unit"
         field(5444; "Lot Accumulation Period"; DateFormula)
         {
             Caption = 'Lot Accumulation Period';
+            ToolTip = 'Specifies a period in which multiple demands are accumulated into one supply order when you use the Lot-for-Lot reordering policy.';
 
             trigger OnValidate()
             begin
@@ -515,6 +554,7 @@ table 5700 "Stockkeeping Unit"
         field(5445; "Dampener Period"; DateFormula)
         {
             Caption = 'Dampener Period';
+            ToolTip = 'Specifies a period of time during which you do not want the planning system to propose to reschedule existing supply orders forward. The dampener period limits the number of insignificant rescheduling of existing supply to a later date if that new date is within the dampener period. The dampener period function is only initiated if the supply can be rescheduled to a later date and not if the supply can be rescheduled to an earlier date. Accordingly, if the suggested new supply date is after the dampener period, then the rescheduling suggestion is not blocked. If the lot accumulation period is less than the dampener period, then the dampener period is dynamically set to equal the lot accumulation period. This is not shown in the value that you enter in the Dampener Period field. The last demand in the lot accumulation period is used to determine whether a potential supply date is in the dampener period. If this field is empty, then the value in the Default Dampener Period field in the Manufacturing Setup window applies. The value that you enter in the Dampener Period field must be a date formula, and one day (1D) is the shortest allowed period.';
 
             trigger OnValidate()
             begin
@@ -525,6 +565,7 @@ table 5700 "Stockkeeping Unit"
         {
             AutoFormatType = 0;
             Caption = 'Dampener Quantity';
+            ToolTip = 'Specifies a dampener quantity to block insignificant change suggestions, if the quantity by which the supply would change is lower than the dampener quantity.';
             DecimalPlaces = 0 : 5;
             MinValue = 0;
         }
@@ -532,6 +573,7 @@ table 5700 "Stockkeeping Unit"
         {
             AutoFormatType = 0;
             Caption = 'Overflow Level';
+            ToolTip = 'Specifies a quantity you allow projected inventory to exceed the reorder point before the system suggests to decrease existing supply orders.';
             DecimalPlaces = 0 : 5;
             MinValue = 0;
         }
@@ -542,6 +584,7 @@ table 5700 "Stockkeeping Unit"
         field(5700; "Transfer-from Code"; Code[10])
         {
             Caption = 'Transfer-from Code';
+            ToolTip = 'Specifies the code of the location that items are transferred from.';
             TableRelation = Location where("Use As In-Transit" = const(false));
 
             trigger OnValidate()
@@ -576,6 +619,7 @@ table 5700 "Stockkeeping Unit"
                                                                               "Shortcut Dimension 2 Code" = field("Global Dimension 2 Filter"),
                                                                               "Receipt Date" = field("Date Filter")));
             Caption = 'Qty. in Transit';
+            ToolTip = 'Specifies the quantity of the SKUs in transit. These items have been shipped, but not yet received.';
             DecimalPlaces = 0 : 5;
             Editable = false;
             FieldClass = FlowField;
@@ -613,21 +657,25 @@ table 5700 "Stockkeeping Unit"
         field(7301; "Special Equipment Code"; Code[10])
         {
             Caption = 'Special Equipment Code';
+            ToolTip = 'Specifies the code of the equipment that you need to use when working with the SKU.';
             TableRelation = "Special Equipment";
         }
         field(7302; "Put-away Template Code"; Code[10])
         {
             Caption = 'Put-away Template Code';
+            ToolTip = 'Specifies the put-away template that the program uses when it performs a put-away for the SKU.';
             TableRelation = "Put-away Template Header";
         }
         field(7307; "Put-away Unit of Measure Code"; Code[10])
         {
             Caption = 'Put-away Unit of Measure Code';
+            ToolTip = 'Specifies the code of the unit of measure that the program uses when it performs a put-away for the SKU.';
             TableRelation = "Item Unit of Measure".Code where("Item No." = field("Item No."));
         }
         field(7380; "Phys Invt Counting Period Code"; Code[10])
         {
             Caption = 'Phys Invt Counting Period Code';
+            ToolTip = 'Specifies the code of the counting period that indicates how often you want to count the SKU in a physical inventory.';
             TableRelation = "Phys. Invt. Counting Period";
 
             trigger OnValidate()
@@ -669,6 +717,7 @@ table 5700 "Stockkeeping Unit"
         field(7381; "Last Counting Period Update"; Date)
         {
             Caption = 'Last Counting Period Update';
+            ToolTip = 'Specifies the last date on which you calculated the counting period.';
             Editable = false;
         }
         field(7383; "Last Phys. Invt. Date"; Date)
@@ -678,6 +727,7 @@ table 5700 "Stockkeeping Unit"
                                                                                    "Variant Code" = field("Variant Code"),
                                                                                    "Phys Invt Counting Period Type" = filter(" " | SKU)));
             Caption = 'Last Phys. Invt. Date';
+            ToolTip = 'Specifies the date on which you last posted the results of a physical inventory for the SKU to the item ledger.';
             Editable = false;
             FieldClass = FlowField;
         }
@@ -685,15 +735,18 @@ table 5700 "Stockkeeping Unit"
         {
             AccessByPermission = TableData "Bin Content" = R;
             Caption = 'Use Cross-Docking';
+            ToolTip = 'Specifies if the SKU can be cross-docked.';
             InitValue = true;
         }
         field(7385; "Next Counting Start Date"; Date)
         {
             Caption = 'Next Counting Start Date';
+            ToolTip = 'Specifies the starting date of the next counting period.';
         }
         field(7386; "Next Counting End Date"; Date)
         {
             Caption = 'Next Counting End Date';
+            ToolTip = 'Specifies the ending date of the next counting period.';
         }
         field(9110; "Qty. on Blanket Sales Order"; Decimal)
         {
@@ -1137,6 +1190,14 @@ table 5700 "Stockkeeping Unit"
         "Rolled-up Mfg. Ovhd Cost" := Item."Rolled-up Mfg. Ovhd Cost";
         "Rolled-up Cap. Overhead Cost" := Item."Rolled-up Cap. Overhead Cost";
         "Rolled-up Mat. Non-Invt. Cost" := Item."Rolled-up Mat. Non-Invt. Cost";
+    end;
+
+    local procedure CheckSKUCreationPolicy()
+    var
+        Location: Record Location;
+    begin
+        if Location.Get("Location Code") then
+            Location.TestField("SKU Creation Policy", Location."SKU Creation Policy"::Allowed);
     end;
 
     [IntegrationEvent(false, false)]

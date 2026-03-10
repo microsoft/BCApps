@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -20,7 +20,6 @@ page 9154 "My Jobs"
                 field("Job No."; Rec."Job No.")
                 {
                     ApplicationArea = Jobs;
-                    ToolTip = 'Specifies the project numbers that are displayed in the My Project Cue on the Role Center.';
 
                     trigger OnValidate()
                     begin
@@ -31,35 +30,29 @@ page 9154 "My Jobs"
                 {
                     ApplicationArea = Jobs;
                     Enabled = false;
-                    ToolTip = 'Specifies a description of the project.';
                 }
                 field(Status; Rec.Status)
                 {
                     ApplicationArea = Jobs;
                     Editable = false;
-                    ToolTip = 'Specifies the project''s status.';
                 }
                 field("Bill-to Name"; Rec."Bill-to Name")
                 {
                     ApplicationArea = Jobs;
-                    ToolTip = 'Specifies the name of the customer that you send or sent the invoice or credit memo to.';
                 }
                 field("Percent Completed"; Rec."Percent Completed")
                 {
                     ApplicationArea = Jobs;
                     Editable = false;
-                    ToolTip = 'Specifies the completion rate of the project.';
                 }
                 field("Percent Invoiced"; Rec."Percent Invoiced")
                 {
                     ApplicationArea = Jobs;
                     Editable = false;
-                    ToolTip = 'Specifies how much of the project has been invoiced.';
                 }
                 field("Exclude from Business Chart"; Rec."Exclude from Business Chart")
                 {
                     ApplicationArea = Jobs;
-                    ToolTip = 'Specifies if this project should appear in the business charts for this role center.';
                 }
             }
         }

@@ -4,6 +4,7 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Projects.Project.Journal;
 
+using Microsoft.Finance.Currency;
 using Microsoft.Inventory.Item;
 using Microsoft.Inventory.Location;
 using Microsoft.Pricing.Asset;
@@ -225,6 +226,7 @@ codeunit 7023 "Job Journal Line - Price" implements "Line With Price"
 
     procedure SetPrice(AmountType: Enum "Price Amount Type"; PriceListLine: Record "Price List Line")
     var
+        CurrencyExchRate: Record "Currency Exchange Rate";
         IsHandled: Boolean;
     begin
         IsHandled := false;
@@ -251,7 +253,14 @@ codeunit 7023 "Job Journal Line - Price" implements "Line With Price"
                         JobJournalLine.Type::Resource:
                             begin
                                 JobJournalLine."Unit Cost" := PriceListLine."Unit Cost";
-                                JobJournalLine."Direct Unit Cost (LCY)" := PriceListLine."Direct Unit Cost";
+                                if JobJournalLine."Currency Code" = '' then
+                                    JobJournalLine."Direct Unit Cost (LCY)" := PriceListLine."Direct Unit Cost"
+                                else
+                                    JobJournalLine."Direct Unit Cost (LCY)" := CurrencyExchRate.ExchangeAmtFCYToLCY(
+                                        JobJournalLine."Posting Date",
+                                        JobJournalLine."Currency Code",
+                                        PriceListLine."Direct Unit Cost",
+                                        JobJournalLine."Currency Factor");
                             end;
                         JobJournalLine.Type::"G/L Account":
                             if PriceListLine."Unit Cost" <> 0 then

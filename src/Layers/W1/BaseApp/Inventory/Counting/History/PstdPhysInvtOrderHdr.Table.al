@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -27,10 +27,12 @@ table 5879 "Pstd. Phys. Invt. Order Hdr"
         field(1; "No."; Code[20])
         {
             Caption = 'No.';
+            ToolTip = 'Specifies the No. of the table physical inventory order header.';
         }
         field(10; Description; Text[100])
         {
             Caption = 'Description';
+            ToolTip = 'Specifies the Description of the table physical inventory order header.';
         }
         field(11; Status; Option)
         {
@@ -41,10 +43,12 @@ table 5879 "Pstd. Phys. Invt. Order Hdr"
         field(20; "Order Date"; Date)
         {
             Caption = 'Order Date';
+            ToolTip = 'Specifies the Order Date of the table physical inventory order header.';
         }
         field(21; "Posting Date"; Date)
         {
             Caption = 'Posting Date';
+            ToolTip = 'Specifies the Posting Date of the table physical inventory order header.';
         }
         field(30; Comment; Boolean)
         {
@@ -58,6 +62,7 @@ table 5879 "Pstd. Phys. Invt. Order Hdr"
         field(31; "Person Responsible"; Code[20])
         {
             Caption = 'Person Responsible';
+            ToolTip = 'Specifies the Person Responsible of the table physical inventory order header.';
             TableRelation = Employee;
             ValidateTableRelation = false;
         }
@@ -75,12 +80,14 @@ table 5879 "Pstd. Phys. Invt. Order Hdr"
         {
             CaptionClass = '1,2,1';
             Caption = 'Shortcut Dimension 1 Code';
+            ToolTip = 'Specifies the code for Shortcut Dimension 1, which is one of two global dimension codes that you set up in the General Ledger Setup window.';
             TableRelation = "Dimension Value".Code where("Global Dimension No." = const(1));
         }
         field(51; "Shortcut Dimension 2 Code"; Code[20])
         {
             CaptionClass = '1,2,2';
             Caption = 'Shortcut Dimension 2 Code';
+            ToolTip = 'Specifies the code for Shortcut Dimension 2, which is one of two global dimension codes that you set up in the General Ledger Setup window.';
             TableRelation = "Dimension Value".Code where("Global Dimension No." = const(2));
         }
         field(60; "Pre-Assigned No. Series"; Code[20])
@@ -97,6 +104,7 @@ table 5879 "Pstd. Phys. Invt. Order Hdr"
         field(62; "Pre-Assigned No."; Code[20])
         {
             Caption = 'Pre-Assigned No.';
+            ToolTip = 'Specifies the number of the physical inventory header, from which the posted physical inventory order was posted.';
         }
         field(63; "User ID"; Code[50])
         {
@@ -113,12 +121,14 @@ table 5879 "Pstd. Phys. Invt. Order Hdr"
             CalcFormula = count("Pstd. Phys. Invt. Record Hdr" where("Order No." = field("No."),
                                                                    Status = const(Finished)));
             Caption = 'No. Finished Recordings';
+            ToolTip = 'Specifies the No. Finished Recordings.';
             Editable = false;
             FieldClass = FlowField;
         }
         field(110; "Location Code"; Code[10])
         {
             Caption = 'Location Code';
+            ToolTip = 'Specifies the Location Code of the table physical inventory order header.';
             TableRelation = Location;
         }
         field(111; "Bin Code"; Code[20])

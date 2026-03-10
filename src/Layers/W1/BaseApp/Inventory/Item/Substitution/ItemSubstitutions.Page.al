@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -23,22 +23,18 @@ page 5720 "Item Substitutions"
                 field("Substitute No."; Rec."Substitute No.")
                 {
                     ApplicationArea = Suite;
-                    ToolTip = 'Specifies the number of the item that can be used as a substitute in case the original item is unavailable.';
                 }
                 field(Description; Rec.Description)
                 {
                     ApplicationArea = Suite;
-                    ToolTip = 'Specifies the description of the substitute item.';
                 }
                 field(Interchangeable; Rec.Interchangeable)
                 {
                     ApplicationArea = Suite;
-                    ToolTip = 'Specifies that the item and the substitute item are interchangeable.';
                 }
                 field(Condition; Rec.Condition)
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies that a condition exists for this substitution.';
                 }
             }
         }

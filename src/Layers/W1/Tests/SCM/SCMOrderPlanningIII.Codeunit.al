@@ -47,6 +47,8 @@ codeunit 137088 "SCM Order Planning - III"
         BOMFixedQtyCalcFormulaErr: Label 'BOM Fixed Quantity Calculation Formula should be used to calculate the values.';
         RelesedProdOrderComponentQtyPerRoundingErr: Label 'Relesed Production Order Item Component Quantity per %1 Not Match With Expected Result %2';
         RelesedProdOrderComponentExpQtyRoundingErr: Label 'Relesed Production Order Item Component Expected Quantity %1 Not Match With Expected Result %2';
+        RequisitionLineQuantityMismatchErr: Label 'Mismatch in Requisition Line Quantity';
+        RequisitionLinesShouldBeEmptyErr: Label 'Requisition lines should be empty.';
 
     [Test]
     [HandlerFunctions('MakeSupplyOrdersPageHandler')]
@@ -3090,6 +3092,297 @@ codeunit 137088 "SCM Order Planning - III"
         Assert.AreEqual(ExpectedQty, ProdOrderComp."Expected Quantity", StrSubstNo(RelesedProdOrderComponentExpQtyRoundingErr, ProdOrderComp."Expected Quantity", ExpectedQty));
     end;
 
+    [Test]
+    procedure VerifyPlanningWorksheetWithMinimalPolicySameAsComponentLocation()
+    var
+        Location: Record Location;
+        Item: Record Item;
+        SalesHeader: Record "Sales Header";
+        ReqLine: Record "Requisition Line";
+    begin
+        // [SCENARIO ] Verify that when "Missing SKU Planning Policy" = [Minimal] and "Manufacturing Setup"."Components at Location" = Location
+        Initialize();
+
+        // [GIVEN] Created Location.
+        LibraryWarehouse.CreateLocation(Location);
+
+        // [GIVEN] Set "Components at Location" in Manufacturing Setup to above Location.
+        LibraryManufacturing.SetComponentsAtLocation(Location.Code);
+
+        // [GIVEN] Created Items with Reordering Policy Maximum Qty., Reorder Point as 100 and Maximum Inventory as 350.
+        LibraryInventory.CreateItem(Item);
+        Item.Validate("Reordering Policy", Item."Reordering Policy"::"Maximum Qty.");
+        Item.Validate("Reorder Point", LibraryRandom.RandIntInRange(100, 100));
+        Item.Validate("Maximum Inventory", LibraryRandom.RandIntInRange(350, 350));
+        Item.Modify(true);
+
+        // [GIVEN] Created New Sales Order with New Item with 120 Qty
+        CreateSalesOrder(SalesHeader, Item."No.", Location.Code, 120, 120);
+
+        // [WHEN] Calculate regenerative plan in planning worksheet update Planning Worksheet.
+        CalculateRegenerativePlanningWorksheet(Item, WorkDate(), WorkDate(), true, false);
+
+        // [WHEN] Running Carry Out Action Message For Requisition lines "Action Message"::New.
+        ReqLine.SetRange("Action Message", ReqLine."Action Message"::New);
+        ReqLine.SetRange("No.", Item."No.");
+        ReqLine.FindFirst();
+        ReqLine.TestField(Quantity, 350);
+    end;
+
+    [Test]
+    procedure VerifyPlanningWorksheetWithMinimalPolicyDifferentAsComponentLocation()
+    var
+        Location: array[2] of Record Location;
+        Item: Record Item;
+        SalesHeader: Record "Sales Header";
+        ReqLine: Record "Requisition Line";
+    begin
+        // [SCENARIO ] Verify that when "Missing SKU Planning Policy" = [Minimal] and "Manufacturing Setup"."Components at Location" = Location
+        Initialize();
+
+        // [GIVEN] Created Location.
+        LibraryWarehouse.CreateLocation(Location[1]);
+        LibraryWarehouse.CreateLocation(Location[2]);
+
+        // [GIVEN] Set "Components at Location" in Manufacturing Setup to above Location.
+        LibraryManufacturing.SetComponentsAtLocation(Location[1].Code);
+
+        // [GIVEN] Created Items with Reordering Policy as Quantity.
+        LibraryInventory.CreateItem(Item);
+        Item.Validate("Reordering Policy", Item."Reordering Policy"::Order);
+        Item.Modify(true);
+
+        // [GIVEN] Created New Sales Order with New Item with 60 Qty
+        CreateSalesOrder(SalesHeader, Item."No.", Location[2].Code, 60, 60);
+
+        // [WHEN] Calculate regenerative plan in planning worksheet update Planning Worksheet.
+        CalculateRegenerativePlanningWorksheet(Item, WorkDate(), WorkDate(), true, false);
+
+        // [WHEN] Running Carry Out Action Message For Requisition lines "Action Message"::New.
+        ReqLine.SetRange("Action Message", ReqLine."Action Message"::New);
+        ReqLine.SetRange("No.", Item."No.");
+        ReqLine.FindFirst();
+        ReqLine.TestField(Quantity, 60);
+    end;
+
+    [Test]
+    procedure VerifyPlanningWorksheetWithMinimalPolicyDifferentAsComponentLocationItemAsFixedReorderQty()
+    var
+        Location: array[2] of Record Location;
+        Item: Record Item;
+        SalesHeader: Record "Sales Header";
+        ReqLine: Record "Requisition Line";
+    begin
+        // [SCENARIO ] Verify that when "Missing SKU Planning Policy" = [Minimal] and "Manufacturing Setup"."Components at Location" = Location
+        Initialize();
+
+        // [GIVEN] Created Location.
+        LibraryWarehouse.CreateLocation(Location[1]);
+        LibraryWarehouse.CreateLocation(Location[2]);
+
+        // [GIVEN] Set "Components at Location" in Manufacturing Setup to above Location.
+        LibraryManufacturing.SetComponentsAtLocation(Location[1].Code);
+
+        // [GIVEN] Created Items with Reordering Policy as Fixed Reorder Qty.
+        LibraryInventory.CreateItem(Item);
+        Item.Validate("Reordering Policy", Item."Reordering Policy"::"Fixed Reorder Qty.");
+        Item.Validate("Reorder Point", LibraryRandom.RandIntInRange(100, 100));
+        Item.Validate("Reorder Quantity", LibraryRandom.RandIntInRange(190, 190));
+        Item.Modify(true);
+
+        // [GIVEN] Created New Sales Order with New Item with 80 Qty
+        CreateSalesOrder(SalesHeader, Item."No.", Location[2].Code, 80, 80);
+
+        // [WHEN] Calculate regenerative plan in planning worksheet update Planning Worksheet.
+        CalculateRegenerativePlanningWorksheet(Item, WorkDate(), WorkDate(), true, false);
+
+        // [WHEN] Running Carry Out Action Message For Requisition lines "Action Message"::New.
+        ReqLine.SetRange("Action Message", ReqLine."Action Message"::New);
+        ReqLine.SetRange("No.", Item."No.");
+        ReqLine.SetRange("Location Code", Location[1].Code);
+        ReqLine.FindFirst();
+        ReqLine.TestField(Quantity, 190);
+
+        ReqLine.SetRange("Location Code", Location[2].Code);
+        ReqLine.FindFirst();
+        ReqLine.TestField(Quantity, 80);
+    end;
+
+    [Test]
+    procedure VerifyPlanningWorksheetWithDontPlanPolicyDifferentAsComponentLocationWithSKUExist()
+    var
+        Location: array[2] of Record Location;
+        Item: Record Item;
+        StockkeepingUnit: Record "Stockkeeping Unit";
+        SalesHeader: Record "Sales Header";
+        ReqLine: Record "Requisition Line";
+    begin
+        // [SCENARIO ] Verify that when "Missing SKU Planning Policy" = [Minimal] and "Manufacturing Setup"."Components at Location" = Location
+        Initialize();
+
+        // [GIVEN] Created Location.
+        LibraryWarehouse.CreateLocation(Location[1]);
+        LibraryWarehouse.CreateLocation(Location[2]);
+
+        // [GIVEN] Update Demand Location Missing SKU Planning Policy to "Dont Plan"
+        Location[2].Validate("Missing SKU Planning Policy", Location[2]."Missing SKU Planning Policy"::"Dont Plan");
+        Location[2].Modify(true);
+
+        // [GIVEN] Set "Components at Location" in Manufacturing Setup to above Location.
+        LibraryManufacturing.SetComponentsAtLocation(Location[1].Code);
+
+        // [GIVEN] Created Items with Reordering Policy as Fixed Reorder Qty.
+        LibraryInventory.CreateItem(Item);
+        Item.Validate("Reordering Policy", Item."Reordering Policy"::"Lot-for-Lot");
+        Item.Modify(true);
+
+        // [GIVEN] Created SKU for Item at Demand Location
+        LibraryInventory.CreateStockkeepingUnitForLocationAndVariant(StockkeepingUnit, Location[2].Code, Item."No.", '');
+
+        // [GIVEN] Created New Sales Order with New Item with 100 Qty
+        CreateSalesOrder(SalesHeader, Item."No.", Location[2].Code, 100, 100);
+
+        // [WHEN] Calculate regenerative plan in planning worksheet update Planning Worksheet.
+        CalculateRegenerativePlanningWorksheet(Item, WorkDate(), WorkDate(), true, false);
+
+        // [WHEN] Running Carry Out Action Message For Requisition lines "Action Message"::New.
+        ReqLine.SetRange("Action Message", ReqLine."Action Message"::New);
+        ReqLine.SetRange("No.", Item."No.");
+        ReqLine.SetRange("Location Code", Location[2].Code);
+        ReqLine.FindFirst();
+        ReqLine.TestField(Quantity, 100);
+    end;
+
+    [Test]
+    [HandlerFunctions('PlanningErrorLogModalPageHandler,ErrorMessageHandler')]
+    procedure VerifyPlanningWorksheetWithDontPlanPolicyDifferentAsComponentLocationWithSKUDontExist()
+    var
+        Location: array[2] of Record Location;
+        Item: Record Item;
+        SalesHeader: Record "Sales Header";
+        ReqLine: Record "Requisition Line";
+    begin
+        // [SCENARIO ] Verify that when "Missing SKU Planning Policy" = [Minimal] and "Manufacturing Setup"."Components at Location" = Location
+        Initialize();
+
+        // [GIVEN] Created Location.
+        LibraryWarehouse.CreateLocation(Location[1]);
+        LibraryWarehouse.CreateLocation(Location[2]);
+
+        // [GIVEN] Update Demand Location Missing SKU Planning Policy to "Dont Plan"
+        Location[2].Validate("Missing SKU Planning Policy", Location[2]."Missing SKU Planning Policy"::"Dont Plan");
+        Location[2].Modify(true);
+
+        // [GIVEN] Set "Components at Location" in Manufacturing Setup to above Location.
+        LibraryManufacturing.SetComponentsAtLocation(Location[1].Code);
+
+        // [GIVEN] Created Items with Reordering Policy as Fixed Reorder Qty.
+        LibraryInventory.CreateItem(Item);
+        Item.Validate("Reordering Policy", Item."Reordering Policy"::"Lot-for-Lot");
+        Item.Modify(true);
+
+        // [GIVEN] Created New Sales Order with New Item with 100 Qty
+        CreateSalesOrder(SalesHeader, Item."No.", Location[2].Code, 100, 100);
+
+        // [WHEN] Calculate regenerative plan in planning worksheet update Planning Worksheet.
+        CalculateRegenerativePlanningWorksheet(Item, WorkDate(), WorkDate(), true, false);
+
+        // [WHEN] Running Carry Out Action Message For Requisition lines "Action Message"::New.
+        ReqLine.SetRange("Action Message", ReqLine."Action Message"::New);
+        ReqLine.SetRange("No.", Item."No.");
+        ReqLine.SetRange("Location Code", Location[2].Code);
+        Assert.IsTrue(ReqLine.IsEmpty(), RequisitionLinesShouldBeEmptyErr);
+    end;
+
+    [Test]
+    procedure VerifyPlanningWorksheetWithItemCardPolicyDifferentAsComponentLocationWithSKUExist()
+    var
+        Location: Record Location;
+        StockkeepingUnit: Record "Stockkeeping Unit";
+        Item: Record Item;
+        SalesHeader: Record "Sales Header";
+        ReqLine: Record "Requisition Line";
+    begin
+        // [SCENARIO ] Verify that when "Missing SKU Planning Policy" = [Minimal] and "Manufacturing Setup"."Components at Location" = Location
+        Initialize();
+
+        // [GIVEN] Created Location.
+        LibraryWarehouse.CreateLocation(Location);
+
+        // [GIVEN] Update Demand and SKU Location Missing SKU Planning Policy to "Item Card"
+        Location.Validate("Missing SKU Planning Policy", Location."Missing SKU Planning Policy"::"Item Card");
+        Location.Modify(true);
+
+        // [GIVEN] Set "Components at Location" in Manufacturing Setup to above Location.
+        LibraryManufacturing.SetComponentsAtLocation(Location.Code);
+
+        // [GIVEN] Created Items with Reordering Policy as Fixed Reorder Qty.
+        LibraryInventory.CreateItem(Item);
+        Item.Validate("Reordering Policy", Item."Reordering Policy"::"Lot-for-Lot");
+        Item.Modify(true);
+
+        // [GIVEN] Created SKU for Item at Demand Location
+        LibraryInventory.CreateStockkeepingUnitForLocationAndVariant(StockkeepingUnit, Location.Code, Item."No.", '');
+        StockkeepingUnit.Validate("Reordering Policy", StockkeepingUnit."Reordering Policy"::"Fixed Reorder Qty.");
+        StockkeepingUnit.Validate("Reorder Point", LibraryRandom.RandIntInRange(100, 100));
+        StockkeepingUnit.Validate("Reorder Quantity", LibraryRandom.RandIntInRange(175, 175));
+        StockkeepingUnit.Modify(true);
+
+        // [GIVEN] Created New Sales Order with New Item with 300 Qty
+        CreateSalesOrder(SalesHeader, Item."No.", Location.Code, 300, 300);
+
+        // [WHEN] Calculate regenerative plan in planning worksheet update Planning Worksheet.
+        CalculateRegenerativePlanningWorksheet(Item, WorkDate(), WorkDate(), false, false);
+
+        // [WHEN] Running Carry Out Action Message For Requisition lines "Action Message"::New.
+        ReqLine.SetRange("Action Message", ReqLine."Action Message"::New);
+        ReqLine.SetRange("No.", Item."No.");
+        ReqLine.SetRange("Location Code", Location.Code);
+        ReqLine.CalcSums(Quantity);
+        Assert.AreEqual(475, ReqLine.Quantity, RequisitionLineQuantityMismatchErr);
+    end;
+
+    [Test]
+    [HandlerFunctions('PlanningErrorLogModalPageHandler,ErrorMessageHandler')]
+    procedure VerifyPlanningWorksheetWithItemCardPolicyDifferentAsComponentLocationWithSKUDontExist()
+    var
+        Location: array[2] of Record Location;
+        Item: Record Item;
+        SalesHeader: Record "Sales Header";
+        ReqLine: Record "Requisition Line";
+    begin
+        // [SCENARIO ] Verify that when "Missing SKU Planning Policy" = [Item Card] and "Manufacturing Setup"."Components at Location" = Location
+        Initialize();
+
+        // [GIVEN] Created Location.
+        LibraryWarehouse.CreateLocation(Location[1]);
+        LibraryWarehouse.CreateLocation(Location[2]);
+
+        // [GIVEN] Update Demand Location Missing SKU Planning Policy to "Item Card"
+        Location[2].Validate("Missing SKU Planning Policy", Location[2]."Missing SKU Planning Policy"::"Item Card");
+        Location[2].Modify(true);
+
+        // [GIVEN] Set "Components at Location" in Manufacturing Setup to above Location.
+        LibraryManufacturing.SetComponentsAtLocation(Location[1].Code);
+
+        // [GIVEN] Created Items with Reordering Policy as Fixed Reorder Qty.
+        LibraryInventory.CreateItem(Item);
+        Item.Validate("Reordering Policy", Item."Reordering Policy"::"Lot-for-Lot");
+        Item.Modify(true);
+
+        // [GIVEN] Created New Sales Order with New Item with 300 Qty
+        CreateSalesOrder(SalesHeader, Item."No.", Location[2].Code, 300, 300);
+
+        // [WHEN] Calculate regenerative plan in planning worksheet update Planning Worksheet.
+        CalculateRegenerativePlanningWorksheet(Item, WorkDate(), WorkDate(), true, false);
+
+        // [WHEN] Running Carry Out Action Message For Requisition lines "Action Message"::New.
+        ReqLine.SetRange("Action Message", ReqLine."Action Message"::New);
+        ReqLine.SetRange("No.", Item."No.");
+        ReqLine.SetRange("Location Code", Location[2].Code);
+        Assert.IsTrue(ReqLine.IsEmpty(), RequisitionLinesShouldBeEmptyErr);
+    end;
+
     local procedure Initialize()
     var
         LibraryERMCountryData: Codeunit "Library - ERM Country Data";
@@ -3915,6 +4208,27 @@ codeunit 137088 "SCM Order Planning - III"
         ProdOrderLine.FindFirst();
     end;
 
+    local procedure CalculateRegenerativePlanningWorksheet(var ItemRec: Record Item; OrderDate: Date; ToDate: Date; RespectPlanningParameters: Boolean; Regenerative: Boolean)
+    var
+        TmpItemRec: Record Item;
+        RequisitionWkshName: Record "Requisition Wksh. Name";
+        CalculatePlanPlanWksh: Report "Calculate Plan - Plan. Wksh.";
+    begin
+        LibraryPlanning.SelectRequisitionWkshName(RequisitionWkshName, RequisitionWkshName."Template Type"::Planning);  // Find Requisition Worksheet Name to Calculate Plan.
+        Commit();
+        CalculatePlanPlanWksh.InitializeRequest(OrderDate, ToDate, RespectPlanningParameters, true, true, '', 0D, false);
+        CalculatePlanPlanWksh.SetTemplAndWorksheet(RequisitionWkshName."Worksheet Template Name", RequisitionWkshName.Name, Regenerative);
+        if ItemRec.HasFilter then
+            TmpItemRec.CopyFilters(ItemRec)
+        else begin
+            ItemRec.Get(ItemRec."No.");
+            TmpItemRec.SetRange("No.", ItemRec."No.");
+        end;
+        CalculatePlanPlanWksh.SetTableView(TmpItemRec);
+        CalculatePlanPlanWksh.UseRequestPage(false);
+        CalculatePlanPlanWksh.RunModal();
+    end;
+
     [ModalPageHandler]
     [Scope('OnPrem')]
     procedure MakeSupplyOrdersPageHandler(var MakeSupplyOrders: Page "Make Supply Orders"; var Response: Action)
@@ -4031,6 +4345,12 @@ codeunit 137088 "SCM Order Planning - III"
     [MessageHandler]
     procedure ErrorMessageHandler(Message: Text[1024])
     begin
+    end;
+
+    [ModalPageHandler]
+    procedure PlanningErrorLogModalPageHandler(var PlanningErrorLog: TestPage "Planning Error Log")
+    begin
+        PlanningErrorLog.OK().Invoke();
     end;
 }
 

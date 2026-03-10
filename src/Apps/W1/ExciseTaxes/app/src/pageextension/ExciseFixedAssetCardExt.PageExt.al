@@ -20,12 +20,12 @@ pageextension 7412 "Excise Fixed Asset Card Ext" extends "Fixed Asset Card"
                     ApplicationArea = All;
                     ToolTip = 'Specifies which excise tax type applies to this fixed asset.';
                 }
-                field("Qty for Excise Tax"; Rec."Qty for Excise Tax")
+                field("Quantity for Excise Tax"; Rec."Quantity for Excise Tax")
                 {
                     ApplicationArea = All;
                     ToolTip = 'Specifies the amount per unit based on tax basis';
                 }
-                field("Excise Tax UOM"; Rec."Excise Tax UOM")
+                field("Excise Unit of Measure Code"; Rec."Excise Unit of Measure Code")
                 {
                     ApplicationArea = All;
                     ToolTip = 'Specifies the unit of measure for tax basis.';

@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -22,7 +22,6 @@ page 99000810 "Routing Version"
                 field("Version Code"; Rec."Version Code")
                 {
                     ApplicationArea = Manufacturing;
-                    ToolTip = 'Specifies the version code of the routing.';
 
                     trigger OnAssistEdit()
                     begin
@@ -33,22 +32,18 @@ page 99000810 "Routing Version"
                 field(Description; Rec.Description)
                 {
                     ApplicationArea = Manufacturing;
-                    ToolTip = 'Specifies a description for the routing version.';
                 }
                 field(Type; Rec.Type)
                 {
                     ApplicationArea = Manufacturing;
-                    ToolTip = 'Specifies in which order operations in the routing are performed.';
                 }
                 field(Status; Rec.Status)
                 {
                     ApplicationArea = Manufacturing;
-                    ToolTip = 'Specifies the status of this routing version.';
                 }
                 field("Starting Date"; Rec."Starting Date")
                 {
                     ApplicationArea = Manufacturing;
-                    ToolTip = 'Specifies the starting date for this routing version.';
                 }
             }
             part(RoutingLine; "Routing Version Lines")

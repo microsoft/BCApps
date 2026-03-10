@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -28,7 +28,6 @@ page 1637 "Office Suggested Line Items"
                     field(Add; Rec.Add)
                     {
                         ApplicationArea = Basic, Suite;
-                        ToolTip = 'Specifies whether to add this item to the document';
                         trigger OnValidate()
                         begin
                             if Rec.Add and (Rec.Matches > 1) then
