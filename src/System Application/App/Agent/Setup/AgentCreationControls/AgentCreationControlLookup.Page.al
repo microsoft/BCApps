@@ -31,12 +31,12 @@ page 4331 "Agent Creation Control Lookup"
         }
     }
 
-    procedure SetCaption(NewCaption: Text)
+    procedure Initialize(PageCaption: Text)
     begin
-        CurrPage.Caption := NewCaption;
+        CurrPage.Caption := PageCaption;
     end;
 
-    procedure AddItem(ItemName: Text[250]; ItemValue: Text[2048])
+    procedure AddEntry(EntryKey: Text[250]; EntryValue: Text[2048])
     var
         NextID: Integer;
     begin
@@ -48,8 +48,8 @@ page 4331 "Agent Creation Control Lookup"
 
         Rec.Init();
         Rec.ID := NextID;
-        Rec."Key" := ItemName;
-        Rec.Value := ItemValue;
+        Rec."Key" := EntryKey;
+        Rec.Value := EntryValue;
         Rec.Insert();
     end;
 }
