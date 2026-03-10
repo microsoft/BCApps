@@ -102,8 +102,6 @@ codeunit 30190 "Shpfy Export Shipments"
             TempFulfillmentOrderLine.Reset();
             TempFulfillmentOrderLine.SetCurrentKey("Shopify Location Id", "Shopify Fulfillment Order Id");
             if TempFulfillmentOrderLine.FindSet() then begin
-                GraphQueryStart := BuildFulfillmentQueryStart(Shop, SalesShipmentHeader, TempFulfillmentOrderLine."Shopify Location Id");
-                GraphQuery.Append(GraphQueryStart);
                 EmptyFulfillment := true;
                 repeat
                     // Skip fulfillment orders that are assigned and not accepted
@@ -113,8 +111,8 @@ codeunit 30190 "Shpfy Export Shipments"
                     if not CanFulfillOrder(TempFulfillmentOrderLine, Shop, UnfulfillableOrders) then
                         continue;
 
-                    // When location changes, finalize the current mutation and start a new one
-                    if (PrevLocationId <> 0) and (PrevLocationId <> TempFulfillmentOrderLine."Shopify Location Id") then begin
+                    // When location changes (or first non-skipped record), finalize the current mutation and start a new one
+                    if PrevLocationId <> TempFulfillmentOrderLine."Shopify Location Id" then begin
                         if not EmptyFulfillment then begin
                             FinalizeFulfillmentQuery(GraphQuery);
                             GraphQueries.Add(GraphQuery.ToText());
