@@ -79,6 +79,7 @@ codeunit 30190 "Shpfy Export Shipments"
         TempFulfillmentOrderLine: Record "Shpfy FulFillment Order Line" temporary;
         PrevFulfillmentOrderId: BigInteger;
         PrevLocationId: BigInteger;
+        IsFirstLocation: Boolean;
         EmptyFulfillment: Boolean;
         GraphQueryStart: Text;
         GraphQuery: TextBuilder;
@@ -87,7 +88,7 @@ codeunit 30190 "Shpfy Export Shipments"
         UnfulfillableOrders: List of [BigInteger];
     begin
         Clear(PrevFulfillmentOrderId);
-        Clear(PrevLocationId);
+        IsFirstLocation := true;
 
         SalesShipmentLine.Reset();
         SalesShipmentLine.SetRange("Document No.", SalesShipmentHeader."No.");
@@ -112,7 +113,8 @@ codeunit 30190 "Shpfy Export Shipments"
                         continue;
 
                     // When location changes (or first non-skipped record), finalize the current mutation and start a new one
-                    if PrevLocationId <> TempFulfillmentOrderLine."Shopify Location Id" then begin
+                    if IsFirstLocation or (PrevLocationId <> TempFulfillmentOrderLine."Shopify Location Id") then begin
+                        IsFirstLocation := false;
                         if not EmptyFulfillment then begin
                             FinalizeFulfillmentQuery(GraphQuery);
                             GraphQueries.Add(GraphQuery.ToText());
