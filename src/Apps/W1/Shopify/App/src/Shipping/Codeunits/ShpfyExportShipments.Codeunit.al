@@ -88,6 +88,7 @@ codeunit 30190 "Shpfy Export Shipments"
         UnfulfillableOrders: List of [BigInteger];
     begin
         Clear(PrevFulfillmentOrderId);
+        Clear(PrevLocationId);
         IsFirstLocation := true;
 
         SalesShipmentLine.Reset();
