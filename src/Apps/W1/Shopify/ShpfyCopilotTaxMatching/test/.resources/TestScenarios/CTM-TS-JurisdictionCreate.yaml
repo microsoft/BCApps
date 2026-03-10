@@ -1,0 +1,107 @@
+test_setup: CTM-Setup.yaml
+
+tests:
+  - name: JC1-CountryRegion
+    description: New jurisdiction gets Country/Region from order Ship-to
+    setup:
+      shopSettings:
+        autoCreateTaxJurisdictions: true
+      taxJurisdictions: []
+      orderAddress:
+        countryRegionCode: US
+        county: NY
+        city: New York
+      orderLines:
+        - lineId: 10001
+          itemNo: ITEM001
+          taxGroupCode: TAXABLE
+          taxLines:
+            - lineNo: 1
+              title: NEW YORK STATE TAX
+              ratePct: 4.0
+              channelLiable: false
+    expected:
+      allTaxLinesMatched: true
+      createdJurisdictionCountryRegion: US
+      matchResult: true
+
+  - name: JC2-ReportToMultiple
+    description: 3 jurisdictions created; all get Report-to = first (state-level)
+    setup:
+      shopSettings:
+        autoCreateTaxJurisdictions: true
+      taxJurisdictions: []
+      orderAddress:
+        countryRegionCode: US
+        county: NY
+        city: New York
+      orderLines:
+        - lineId: 10001
+          itemNo: ITEM001
+          taxGroupCode: TAXABLE
+          taxLines:
+            - lineNo: 1
+              title: NEW YORK STATE TAX
+              ratePct: 4.0
+              channelLiable: false
+            - lineNo: 2
+              title: NEW YORK CITY TAX
+              ratePct: 4.5
+              channelLiable: false
+            - lineNo: 3
+              title: MTA SURCHARGE
+              ratePct: 0.375
+              channelLiable: false
+    expected:
+      allTaxLinesMatched: true
+      reportToAllSame: true
+      matchResult: true
+
+  - name: JC3-ReportToSingle
+    description: Only 1 jurisdiction matched — FixReportToJurisdictions not called (guard Count > 1)
+    setup:
+      shopSettings:
+        autoCreateTaxJurisdictions: true
+      taxJurisdictions: []
+      orderAddress:
+        countryRegionCode: US
+        county: NY
+        city: New York
+      orderLines:
+        - lineId: 10001
+          itemNo: ITEM001
+          taxGroupCode: TAXABLE
+          taxLines:
+            - lineNo: 1
+              title: NEW YORK STATE TAX
+              ratePct: 4.0
+              channelLiable: false
+    expected:
+      allTaxLinesMatched: true
+      matchResult: true
+
+  - name: JC4-JurisdictionAlreadyExists
+    description: Jurisdiction already exists — LLM should match to it, not create new
+    setup:
+      shopSettings:
+        autoCreateTaxJurisdictions: true
+      taxJurisdictions:
+        - Code: NYSTAX
+          Description: New York State Tax
+      orderAddress:
+        countryRegionCode: US
+        county: NY
+        city: New York
+      orderLines:
+        - lineId: 10001
+          taxLines:
+            - lineNo: 1
+              title: NEW YORK STATE TAX
+              ratePct: 4.0
+              channelLiable: false
+    expected:
+      taxLineJurisdictions:
+        - parentId: 10001
+          lineNo: 1
+          jurisdictionCode: NYSTAX
+      matchResult: true

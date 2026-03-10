@@ -1,0 +1,26 @@
+{
+  "type": "function",
+  "function": {
+    "name": "match_tax_jurisdictions",
+    "description": "Submit the matched tax jurisdictions for each Shopify tax line.",
+    "parameters": {
+      "type": "object",
+      "properties": {
+        "matches": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "tax_line_id": { "type": "string", "description": "The tax line identifier (ParentId-LineNo)" },
+              "jurisdiction_code": { "type": "string", "description": "The matched BC Tax Jurisdiction Code, or empty string if no confident match" },
+              "confidence": { "type": "string", "enum": ["high", "medium", "low"], "description": "Confidence level of the match" },
+              "reason": { "type": "string", "description": "Brief explanation of why this match was chosen" }
+            },
+            "required": ["tax_line_id", "jurisdiction_code", "confidence", "reason"]
+          }
+        }
+      },
+      "required": ["matches"]
+    }
+  }
+}
