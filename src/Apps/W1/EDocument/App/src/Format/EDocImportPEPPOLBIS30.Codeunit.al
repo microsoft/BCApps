@@ -28,9 +28,9 @@ codeunit 6166 "EDoc Import PEPPOL BIS 3.0"
         EDocument.Direction := EDocument.Direction::Incoming;
 
         case UpperCase(GetDocumentType(TempXMLBuffer)) of
-            'INVOICE':
+            InvoiceTok:
                 ParseInvoiceBasicInfo(EDocument, TempXMLBuffer);
-            'CREDITNOTE':
+            CreditNoteTok:
                 ParseCreditMemoBasicInfo(EDocument, TempXMLBuffer);
         end;
     end;
@@ -48,9 +48,9 @@ codeunit 6166 "EDoc Import PEPPOL BIS 3.0"
         PurchaseHeader."Currency Code" := EDocument."Currency Code";
 
         case UpperCase(GetDocumentType(TempXMLBuffer)) of
-            'INVOICE':
+            InvoiceTok:
                 CreateInvoice(EDocument, PurchaseHeader, PurchaseLine, TempXMLBuffer);
-            'CREDITNOTE':
+            CreditNoteTok:
                 CreateCreditMemo(EDocument, PurchaseHeader, PurchaseLine, TempXMLBuffer);
         end;
     end;
@@ -570,13 +570,14 @@ codeunit 6166 "EDoc Import PEPPOL BIS 3.0"
 
     local procedure GetDocumentType(var TempXMLBuffer: Record "XML Buffer" temporary): Text
     var
+        InvalidXMLFileErr: Label 'Invalid XML file';
     begin
         TempXMLBuffer.Reset();
         TempXMLBuffer.SetRange(Type, TempXMLBuffer.Type::Element);
         TempXMLBuffer.SetRange("Parent Entry No.", 0);
 
         if not TempXMLBuffer.FindFirst() then
-            Error('Invalid XML file');
+            Error(InvalidXMLFileErr);
 
         RootPath := TempXMLBuffer.Path;
         TempXMLBuffer.Reset();
@@ -585,15 +586,19 @@ codeunit 6166 "EDoc Import PEPPOL BIS 3.0"
 
     local procedure SetLineType(var PurchaseLine: record "Purchase Line" temporary; Value: Text): Text
     var
+        ItemTok: Label 'ITEM', Locked = true;
+        ChargeItemTok: Label 'CHARGE (ITEM)', Locked = true;
+        ResourceTok: Label 'RESOURCE', Locked = true;
+        GLAccountTok: Label 'G/L ACCOUNT', Locked = true;
     begin
         case UpperCase(Value) of
-            'ITEM':
+            ItemTok:
                 PurchaseLine.Type := PurchaseLine.Type::Item;
-            'CHARGE (ITEM)':
+            ChargeItemTok:
                 PurchaseLine.Type := PurchaseLine.Type::"Charge (Item)";
-            'RESOURCE':
+            ResourceTok:
                 PurchaseLine.Type := PurchaseLine.Type::Resource;
-            'G/L ACCOUNT':
+            GLAccountTok:
                 PurchaseLine.Type := PurchaseLine.Type::"G/L Account";
         end;
     end;
@@ -607,6 +612,8 @@ codeunit 6166 "EDoc Import PEPPOL BIS 3.0"
     var
         EDocumentAttachmentGen: Codeunit "E-Doc. Attachment Processor";
         EDocumentImportHelper: Codeunit "E-Document Import Helper";
+        InvoiceTok: Label 'INVOICE', Locked = true;
+        CreditNoteTok: Label 'CREDITNOTE', Locked = true;
         LCYCode: Code[10];
         RootPath: Text;
 
