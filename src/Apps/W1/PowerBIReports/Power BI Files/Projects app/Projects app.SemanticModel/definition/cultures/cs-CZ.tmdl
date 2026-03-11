@@ -1,0 +1,599 @@
+cultureInfo cs-CZ
+	translations
+		model Model
+			table 'Project Ledger Entry'
+				caption: Položka projektu
+				column 'No. & Description'
+					caption: Číslo a popis
+				column 'Project No.'
+					caption: Č. projektu
+				column 'Task No.'
+					caption: Č. úlohy
+				column 'Posting Date'
+					caption: Zúčtovací datum
+				column 'Entry Type'
+					caption: Typ položky
+				column Type
+					caption: Typ
+				column 'No.'
+					caption: Číslo
+				column Description
+					caption: Popis
+				column Location
+					caption: Lokace
+				column 'Unit of Measure Code'
+					caption: Kód měrné jednotky
+				column 'Unit Cost (LCY)'
+					caption: Pořizovací cena (LM)
+				column 'Unit Price (LCY)'
+					caption: Jednotková cena (LM)
+				measure 'Project Ledger Entry Quantity'
+					caption: Množství
+				measure 'Invoiced (Total Cost)'
+					caption: Fakturováno (celkové náklady)
+				measure 'Total Price'
+					caption: Celková cena
+				measure 'Actual (Total Price)'
+					caption: Skutečná (celková cena)
+				measure 'Billable (Invoiced Price)'
+					caption: Fakturovatelné (fakturovaná cena)
+				measure 'Actual (Total Cost)'
+					caption: Skutečné (celkové náklady)
+				measure 'Gen. Journal Usage (Total Cost)'
+					caption: Využití finančního deníku (celkové náklady)
+				measure 'Labour Usage (Total Cost)'
+					caption: Využití práce (celkové náklady)
+				measure 'Material Usage (Total Cost)'
+					caption: Využití materiálu (celkové náklady)
+				measure 'Invoiced (Total Price)'
+					caption: Fakturováno (celková cena)
+			table Project
+				caption: Projekt
+				column 'Project No.'
+					caption: Č. projektu
+				column 'Project Description'
+					caption: Popis projektu
+				column 'Project Bill to Customer No.'
+					caption: Číslo plátce projektu
+				column 'Project Creation Date'
+					caption: Datum vytvoření projektu
+				column 'Project Starting Date'
+					caption: Počáteční datum projektu
+				column 'Project Ending Date'
+					caption: Koncové datum projektu
+				column 'Project Status'
+					caption: Stav projektu
+				column 'Project Posting Group'
+					caption: Účto skupina projektu
+				column 'Project Blocked'
+					caption: Produkt zablokován
+				column 'Project Project Manager'
+					caption: Projektový manažer projektu
+				column 'Project Complete'
+					caption: Projekt dokončen
+				column 'Project No. & Description'
+					caption: Číslo a popis projektu
+				measure 'Project Count'
+					caption: Počet projektů
+				measure 'Actual Profit'
+					caption: Skutečný zisk
+				measure 'Actual Profit Margin (%)'
+					caption: Skutečná zisková marže (%)
+				measure 'Project Duration (Days)'
+					caption: Doba trvání (dny)
+				measure 'Budget Profit'
+					caption: Rozpočet (zisk)
+				measure 'Budget Profit Margin (%)'
+					caption: Zisková marže rozpočtu (%)
+				measure 'Completed (%)'
+					caption: Dokončeno (%)
+				measure 'Invoiced (%)'
+					caption: Fakturováno (%)
+				measure 'Tasks Count'
+					caption: Počet úloh
+				measure 'Realization (%)'
+					caption: Realizace (%)
+				measure 'Realization Variance'
+					caption: Odchylka realizace
+				measure 'Base Link'
+					caption: Základní odkaz
+				measure 'Project Planning Lines Back Link'
+					caption: Řádky plánování projektu – zpětný odkaz
+			table 'Project Planning Line'
+				caption: Plánování řádku projektu
+				column 'Project No.'
+					caption: Č. projektu
+				column 'Task No.'
+					caption: Č. úlohy
+				column 'Line No.'
+					caption: Číslo řádku
+				column Type
+					caption: Typ
+				column 'Line Type'
+					caption: Typ řádku
+				column 'No.'
+					caption: Číslo
+				column Description
+					caption: Popis
+				column 'Unit Cost (LCY)'
+					caption: Pořizovací cena (LM)
+				column 'Unit Price (LCY)'
+					caption: Jednotková cena (LM)
+				column 'Planning Date'
+					caption: Datum plánování
+				measure 'Planning Line Quantity'
+					caption: Množství plán. řádku
+				measure 'Planning Line Total Cost (LCY)'
+					caption: Celkové náklady plán. řádku (LM)
+				measure 'Planning Line Total Price (LCY)'
+					caption: Celková cena plán. řádku (LM)
+				measure 'Budget (Total Cost)'
+					caption: Rozpočet (celkové náklady)
+				measure 'Billable (Total Price)'
+					caption: Fakturovatelné (celková cena)
+				measure 'Total Cost Variance to Budget'
+					caption: Odchylka celkových nákladů na rozpočet
+				measure 'Total Cost Variance to Budget %'
+					caption: Odchylka celkových nákladů na rozpočet (%)
+				measure 'Billable (Total Cost)'
+					caption: Fakturovatelné (celkové náklady)
+				measure 'Budget (Total Price)'
+					caption: Rozpočet (celková cena)
+			table Customer
+				caption: Zákazník
+				column 'Customer No. & Name'
+					caption: Číslo a jméno zákazníka
+				column 'Customer No.'
+					caption: Číslo zákazníka
+				column 'Customer Name'
+					caption: Jméno zákazníka
+				column 'Customer Address'
+					caption: Adresa zákazníka
+				column 'Customer Address 2'
+					caption: Adresa zákazníka 2
+				column 'Customer City'
+					caption: Město zákazníka
+				column 'Customer Post Code'
+					caption: Poštovní směrovací číslo zákazníka
+				column 'Customer State'
+					caption: Stát zákazníka
+				column 'Customer Country/Region Code'
+					caption: Kód země/oblasti zákazníka
+				column 'Customer Posting Group'
+					caption: Účto skupina zákazníka
+				column 'Customer Price Group'
+					caption: Cenová skupina zákazníka
+				column 'Customer Discount Group'
+					caption: Skupina slev zákazníka
+			table Tasks
+				caption: Úlohy
+				column 'Task Project No.'
+					caption: Č. úlohy projektu
+				column 'Task No.'
+					caption: Č. úlohy
+				column 'Task Description'
+					caption: Popis úlohy
+				column 'Task Type'
+					caption: Typ úlohy
+				column 'Task Project No. & Task No.'
+					caption: Č. úlohy a č. projektu
+				column 'Task Project Task & Description'
+					caption: Popis úlohy projektu
+				column 'Project Task Starting Date'
+					caption: Počáteční datum úlohy projektu
+				column 'Project Task Ending Date'
+					caption: Koncové datum úlohy projektu
+			table 'Dimension Sets'
+				caption: Sady dimenzí
+				column 'Global Dimension 1'
+					caption: Globální dimenze 1
+				column 'Global Dimension 2'
+					caption: Globální dimenze 2
+				column 'Shortcut Dimension 3'
+					caption: Zkratka dimenze 3
+				column 'Shortcut Dimension 4'
+					caption: Zkratka dimenze 4
+				column 'Shortcut Dimension 5'
+					caption: Zkratka dimenze 5
+				column 'Shortcut Dimension 6'
+					caption: Zkratka dimenze 6
+				column 'Shortcut Dimension 7'
+					caption: Zkratka dimenze 7
+				column 'Shortcut Dimension 8'
+					caption: Zkratka dimenze 8
+				column id
+					caption: ID
+			table Date
+				caption: Datum
+				column Date
+					caption: Zúčtovací datum
+				column 'Week Day'
+					caption: Den v týdnu
+				column 'Relative Day'
+					caption: Relativní den
+				column 'Calendar YearNumber'
+					caption: Číslo kalendářního roku
+				column 'Calendar Year'
+					caption: Kalendářní rok
+				column 'Calendar QuarterNumber'
+					caption: Číslo kalendářního kvartálu
+				column 'Calendar Quarter'
+					caption: Kalendářní kvartál
+				column 'Calendar YearQuarterNumber'
+					caption: Číslo kvartálu v kalendářním roce
+				column 'Calendar Quarter Year'
+					caption: Rok kalendářního kvartálu
+				column 'Calendar MonthNumber'
+					caption: Číslo kalendářního měsíce
+				column 'Calendar Month'
+					caption: Kalendářní měsíc
+				column 'Calendar YearMonthNumber'
+					caption: Číslo kalendářního měsíce roku
+				column 'Calendar Month Year'
+					caption: Kalendářní měsíc v roce
+				column 'Calendar WeekNumber'
+					caption: Číslo kalendářního týdne
+				column 'Calendar Week'
+					caption: Kalendářní týden
+				column 'Calendar YearWeekNumber'
+					caption: Číslo kalendářního týdne roku
+				column 'Calendar Week Year'
+					caption: Kalendářní týden a rok
+				column 'Calendar WeekYearOrder'
+					caption: Pořadí kalendářního týdne a roku
+				column 'Calendar RelativeWeekPos'
+					caption: Relativní pozice kalendářního týdne
+				column 'Calendar RelativeMonthPos'
+					caption: Relativní pozice kalendářního měsíce
+				column 'Calendar RelativeQuarterPos'
+					caption: Relativní pozice kalendářního kvartálu
+				column 'Calendar RelativeYearPos'
+					caption: Relativní pozice kalendářního roku
+				column 'Calendar StartOfMonth'
+					caption: Začátek kalendářního měsíce
+				column 'Calendar EndOfMonth'
+					caption: Konec kalendářního měsíce
+				column 'Calendar StartOfQuarter'
+					caption: Začátek kalendářního kvartálu
+				column 'Calendar EndOfQuarter'
+					caption: Konec kalendářního kvartálu
+				column 'Calendar StartOfYear'
+					caption: Začátek kalendářního roku
+				column 'Calendar EndOfYear'
+					caption: Konec kalendářního roku
+				column 'Calendar MonthDays'
+					caption: Kalendářní dny v měsíci
+				column 'Calendar QuarterDays'
+					caption: Dny kalendářního kvartálu
+				column 'Calendar YearDays'
+					caption: Dny kalendářního roku
+				column 'Calendar DayOfMonthNumber'
+					caption: Číslo dne v kalendářním měsíci
+				column 'Calendar DayOfQuarterNumber'
+					caption: Číslo dne v kalendářním kvartálu
+				column 'Calendar DayOfYearNumber'
+					caption: Číslo dne v kalendářním roce
+				column 'Calendar DatePreviousWeek'
+					caption: Datum v předchozím kalendářním týdnu
+				column 'Calendar DatePreviousMonth'
+					caption: Datum v předchozím kalendářním měsíci
+				column 'Calendar DatePreviousQuarter'
+					caption: Datum v předchozím kalendářním kvartálu
+				column 'Calendar DatePreviousYear'
+					caption: Datum v předchozím kalendářním roce
+				column 'Fiscal Year'
+					caption: Fiskální rok
+				column 'Fiscal YearNumber'
+					caption: Číslo fiskálního roku
+				column 'Fiscal QuarterNumber'
+					caption: Číslo fiskálního kvartálu
+				column 'Fiscal Quarter'
+					caption: Fiskální kvartál
+				column 'Fiscal YearQuarterNumber'
+					caption: Číslo fiskálního kvartálu roku
+				column 'Fiscal Quarter Year'
+					caption: FIskální rok kvartálu
+				column 'Fiscal MonthNumber'
+					caption: Číslo fiskálního měsíce
+				column 'Fiscal MonthInQuarterNumber'
+					caption: Číslo fiskálního měsíce v kvartálu
+				column 'Fiscal Month'
+					caption: Fiskální měsíc
+				column 'Fiscal YearMonthNumber'
+					caption: Číslo fiskálního měsíce roku
+				column 'Fiscal Month Year'
+					caption: FIskální rok měsíce
+				column 'Fiscal WeekNumber'
+					caption: Číslo fiskálního týdne
+				column 'Fiscal Week'
+					caption: Fiskální týden
+				column 'Fiscal YearWeekNumber'
+					caption: Číslo fiskálního týdne a roku
+				column 'Fiscal Week Year'
+					caption: Fiskální týden a rok
+				column 'Fiscal WeekYearOrder'
+					caption: Pořadí fiskálního týdne a roku
+				column 'Fiscal RelativeWeekPos'
+					caption: Relativní pozice fiskálního týdne
+				column 'Fiscal RelativeMonthPos'
+					caption: Relativní pozice fiskálního měsíce
+				column 'Fiscal RelativeQuarterPos'
+					caption: Relativní pozice fiskálního kvartálu
+				column 'Fiscal RelativeYearPos'
+					caption: Relativní pozice fiskálního roku
+				column 'Fiscal StartOfMonth'
+					caption: Začátek fiskálního měsíce
+				column 'Fiscal EndOfMonth'
+					caption: Konec fiskálního měsíce
+				column 'Fiscal StartOfQuarter'
+					caption: Začátek fiskálního kvartálu
+				column 'Fiscal EndOfQuarter'
+					caption: Konec fiskálního kvartálu
+				column 'Fiscal StartOfYear'
+					caption: Začátek fiskálního roku
+				column 'Fiscal EndOfYear'
+					caption: Konec fiskálního roku
+				column 'Fiscal MonthDays'
+					caption: Dny fiskálního měsíce
+				column 'Fiscal QuarterDays'
+					caption: Dny fiskálního kvartálu
+				column 'Fiscal YearDays'
+					caption: Dny fiskálního roku
+				column 'Fiscal DayOfMonthNumber'
+					caption: Číslo dne ve fiskálním měsíci
+				column 'Fiscal DayOfQuarterNumber'
+					caption: Číslo dne ve fiskálním kvartálu
+				column 'Fiscal DayOfYearNumber'
+					caption: Číslo dne ve fiskálním roce
+				column 'Fiscal DatePreviousWeek'
+					caption: Datum v předchozím fiskálním týdnu
+				column 'Fiscal DatePreviousMonth'
+					caption: Datum v předchozím fiskálním měsíci
+				column 'Fiscal DatePreviousQuarter'
+					caption: Datum v předchozím fiskálním kvartálu
+				column 'Fiscal DatePreviousYear'
+					caption: Datum v předchozím fiskálním roce
+				column 'FW YearNumber'
+					caption: Číslo roku FT
+				column 'FW Year'
+					caption: Rok FT
+				column 'FW QuarterNumber'
+					caption: Číslo kvartálu FT
+				column 'FW Quarter'
+					caption: Kvartál FT
+				column 'FW YearQuarterNumber'
+					caption: Číslo kvartálu roku FT
+				column 'FW Quarter Year'
+					caption: Rok kvartálu FT
+				column 'FW MonthNumber'
+					caption: Číslo měsíce FT
+				column 'FW Month'
+					caption: Měsíc FT
+				column 'FW YearMonthNumber'
+					caption: Číslo měsíce roku FT
+				column 'FW Month Year'
+					caption: Rok měsíce FT
+				column 'FW WeekNumber'
+					caption: Číslo týdne FT
+				column 'FW Week'
+					caption: Týden FT
+				column 'FW PeriodNumber'
+					caption: Číslo období FT
+				column 'FW Period'
+					caption: Období FT
+				column 'FW YearWeekNumber'
+					caption: Číslo týdne roku FT
+				column 'FW Week Year'
+					caption: Týden a rok FT
+				column 'FW StartOfWeek'
+					caption: Začátek týdne FT
+				column 'FW EndOfWeek'
+					caption: Konec týdne FT
+				column 'FW RelativeWeekPos'
+					caption: Relativní pozice týdne FT
+				column 'FW RelativeMonthPos'
+					caption: Relativní pozice měsíce FT
+				column 'FW RelativeQuarterPos'
+					caption: Relativní pozice kvartálu FT
+				column 'FW RelativeYearPos'
+					caption: Relativní pozice roku FT
+				column 'FW StartOfMonth'
+					caption: Začátek měsíce FT
+				column 'FW EndOfMonth'
+					caption: Konec měsíce FT
+				column 'FW StartOfQuarter'
+					caption: Začátek kvartálu FT
+				column 'FW EndOfQuarter'
+					caption: Konec kvartálu FT
+				column 'FW StartOfYear'
+					caption: Začátek roku FT
+				column 'FW EndOfYear'
+					caption: Konec roku FT
+				column 'FW MonthDays'
+					caption: Dny v měsíci FT
+				column 'FW QuarterDays'
+					caption: Dny kvartálu FT
+				column 'FW YearDays'
+					caption: Dny roku FT
+				column 'FW DayOfMonthNumber'
+					caption: Číslo dne v měsíci FT
+				column 'FW DayOfQuarterNumber'
+					caption: Číslo dne v kvartálu FT
+				column 'FW DayOfYearNumber'
+					caption: Číslo dne v roce FT
+				column 'FW DatePreviousWeek'
+					caption: Datum v předchozím týdnu FT
+				column 'FW DatePreviousMonth'
+					caption: Datum v předchozím měsíci FT
+				column 'FW DatePreviousQuarter'
+					caption: Datum v předchozím kvartálu FT
+				column 'FW DatePreviousYear'
+					caption: Datum v předchozím roce FT
+				column 'Day Type'
+					caption: Typ dne
+			table Purchases
+				caption: Nákupy
+				column 'Quantity (Base)'
+					caption: Množství (základ)
+				column 'Amount (LCY)'
+					caption: Zůstatek (LM)
+				column 'Expected Receipt Date'
+					caption: Očekávané datum příjmu
+				column 'Source Type'
+					caption: Typ původu
+				column 'Document Type'
+					caption: Typ dokladu
+				column 'Line No.'
+					caption: Číslo řádku
+				column 'Document No.'
+					caption: Číslo dokladu
+				column 'No.'
+					caption: Číslo
+				column Type
+					caption: Typ
+				column Description
+					caption: Popis
+				column 'Project No'
+					caption: Č. projektu
+				column 'Task No'
+					caption: Č. úlohy
+				column 'Project No Task No'
+					caption: Č. úlohy č. projektu
+				measure 'Quantity on PO'
+					caption: Množství na NO
+				measure 'Amount on PO'
+					caption: Částka na NO
+				measure 'Amount Rcvd. Not Invoiced'
+					caption: Dosud nefakturovaná přijatá částka
+				measure 'Outstanding Amt. on PO'
+					caption: Zůstatek na NO
+				measure 'Purchase Order Count'
+					caption: Počet nákupních objednávek
+			table 'Localized Labels'
+				measure 'My Report Title'
+					caption: Můj nadpis sestavy
+				measure 'My Button Caption'
+					caption: Popisek mého tlačítka
+				measure 'My Visual Title'
+					caption: Název mého vizuálu
+				measure 'Projects Overview'
+					caption: Přehled projektů
+				measure 'Project Tasks'
+					caption: Úlohy projektu
+				measure 'Project Profitability'
+					caption: Ziskovost projektu
+				measure 'Project Realization'
+					caption: Realizace projektu
+				measure 'Project Performance to Budget'
+					caption: Výkon projektu k rozpočtu
+				measure 'Project Invoiced Sales by Type'
+					caption: Fakturovaný prodej projektu podle typu
+				measure 'Project Invoiced Sales by Customer'
+					caption: Fakturovaný prodej projektu podle zákazníka
+				measure 'Project Ledger Entry Drill Through'
+					caption: Podrobné procházení položek projektu
+				measure 'Purchase Order Drill Through'
+					caption: Podrobné procházení nákupních objednávek
+				measure 'Project Planning Line Drill Through'
+					caption: Podrobné procházení řádku plánování projektu
+				measure 'Project KPIs'
+					caption: KPI projektu
+				measure 'Actual Costs (Total Cost) vs. Budget (Total Cost)'
+					caption: Skutečné náklady (celkové náklady) vs. rozpočet (celkové náklady)
+				measure 'Actual Profit by Project'
+					caption: Skutečný zisk podle projektu
+				measure 'Projects by Project Manager'
+					caption: Projekty podle projektového manažera
+				measure 'Realization by Projects'
+					caption: Realizace podle projektů
+				measure 'Actual Profit vs. Initial Profit'
+					caption: Skutečný zisk vs. počáteční zisk
+				measure Actuals
+					caption: Skutečnost
+				measure Budgeted
+					caption: Rozpočtováno
+				measure 'Realization KPIs'
+					caption: Realizační KPI
+				measure 'Realization by Project Manager'
+					caption: Realizace podle projektového manažera
+				measure 'Actual Total Cost to Budget'
+					caption: Skutečné celkové náklady na rozpočet
+				measure 'Performance KPIs'
+					caption: Výkonnostní KPI
+				measure 'Invoiced Sales KPIs'
+					caption: KPI fakturovaného prodeje
+				measure Projects
+					caption: Projekty
+				measure 'for Business Central'
+					caption: pro Business Central
+				measure 'CONNECT YOUR DATA'
+					caption: PŘIPOJENÍ DAT
+				measure '1. Download the Projects Connector for Power BI'
+					caption: 1. Stažení řešení Projects Connector for Power BI
+				measure '2. Configure Dynamics 365 Business Central'
+					caption: 2. Konfigurace Dynamics 365 Business Central
+				measure 'USE, EDIT AND BUILD YOUR OWN REPORTS'
+					caption: POUŽÍVÁNÍ, ÚPRAVA A TVORBA VLASTNÍCH SESTAV
+				measure 'Projects includes a variety of pre-built reports to help you see your data immediately.'
+					caption: Projekty obsahují řadu předpřipravených sestav, které vám pomohou okamžitě zobrazit vaše data.
+				measure 'You are able to edit these reports or build your own report from scratch'
+					caption: Tyto sestavy můžete upravovat nebo si vytvořit vlastní sestavu od základu.
+				measure 'HELP AND SUPPORT'
+					caption: POMOC A PODPORA
+				measure 'For help and support with your new report please visit the Analytics overview documentation.'
+					caption: Nápovědu a podporu k nové sestavě naleznete v dokumentaci k přehledu Analytics.
+				measure 'OTHER POWER BI REPORTS'
+					caption: DALŠÍ SESTAVY POWER BI
+				measure PURCHASE
+					caption: NÁKUP
+				measure FINANCE
+					caption: FINANCE
+				measure INVENTORY
+					caption: ZÁSOBY
+				measure SALES
+					caption: PRODEJ
+				measure MANUFACTURING
+					caption: VÝROBA
+				measure 'The project tasks shows project number and description, budget (total cost), actual cost (total cost), billable (total price), billable (invoiced price), actual (total price), realization percentage, actual profit, and actual profit margin percentage.'
+					caption: Úlohy projektu zobrazují číslo a popis projektu, rozpočet (celkové náklady), skutečné náklady (celkové náklady), fakturovatelné náklady (celková cena), fakturovatelné náklady (fakturovaná cena), skutečné náklady (celková cena), procento realizace, skutečný zisk a skutečné procento ziskové marže.
+				measure 'The project profitability shows project number, type, number and description, actual (total cost), billable (invoiced price), actual profit margin percentage, and actual profit.'
+					caption: Ziskovost projektu zobrazuje číslo projektu, typ, číslo a popis, skutečné náklady (celkové náklady), fakturovatelná cena (fakturovaná cena), skutečné procento ziskové marže a skutečný zisk.
+				measure 'The project realization shows project number, type, number and description, billable (invoiced price), actual (total price), and realization percentage.'
+					caption: Realizace projektu zobrazuje číslo projektu, typ, číslo a popis, fakturovatelnou cenu (fakturovanou cenu), skutečnou cenu (celkovou cenu) a procento realizace.
+				measure 'The project performance to budget shows project number and description, status, budget (total cost), actual (total cost), total cost variance to budget, and total cost variance to budget percentage.'
+					caption: Výkon projektu k rozpočtu zobrazuje číslo a popis projektu, stav, rozpočet (celkové náklady), skutečné náklady (celkové náklady), odchylku celkových nákladů od rozpočtu a odchylku celkových nákladů od rozpočtu v procentech.
+				measure 'The project invoiced sales by type shows type, number and description, project number, unit of measure, quantity, unit price (local currency), and billable (invoiced price).'
+					caption: Fakturovaný prodej projektu podle typu zobrazuje typ, číslo a popis, číslo projektu, měrnou jednotku, množství, jednotkovou cenu (v místní měně) a fakturovatelnou cenu (fakturovanou cenu).
+				measure 'The project invoiced sales by customer shows customer number and name, project number, type, number and description, quantity, unit price (local currency), and billable (invoiced price).'
+					caption: Fakturovaný prodej projektu podle zákazníka zobrazuje číslo a název zákazníka, číslo projektu, typ, číslo a popis, množství, jednotkovou cenu (v místní měně) a fakturovatelnou cenu (fakturovanou cenu).
+				measure 'The project ledger entry drill through shows posting date, project number, task number, task entry type, type, number, description, unit of measure, quantity, unit cost, unit price, total cost, and total price.'
+					caption: Podrobné procházení položek projektu zobrazuje zúčtovací datum, číslo projektu, číslo úlohy, typ položky úkolu, typ, číslo, popis, měrnou jednotku, množství, pořizovací cenu, jednotkovou cenu, celkové náklady a celkovou cenu.
+				measure 'The project order drill through shows project number, task number, source type,entry type, type, number, description, document number, quantity (base), amount (local currency), expected receipt date, outstanding amount on purchase order, amount received not invoiced, and document type.'
+					caption: Podrobné procházení objednávky projektu zobrazuje číslo projektu, číslo úlohy, typ původu, typ položky, typ, číslo, popis, číslo dokladu, množství (základ), částku (v místní měně), očekávané datum příjmu, zůstatek na nákupní objednávce, přijatou nevyfakturovanou částku a typ dokladu.
+				measure 'The project planning drill through shows project number, task number, line number, type, number, description, line type, planning line quantity, unit cost, unit price, planning line total cost, and planning line total price.'
+					caption: Podrobné procházení řádku plánování projektu zobrazuje číslo projektu, číslo úlohy, číslo řádku, typ, číslo, popis, typ řádku, množství plánovacího řádku, pořizovací cenu, jednotkovou cenu, celkové náklady plánovacího řádku a celkovou cenu plánovacího řádku.
+				measure 'Company Name'
+					caption: Název společnosti
+				measure 'Last Refreshed'
+					caption: Naposledy aktualizováno
+				measure 'Actual Profit Margin % vs Budget Profit Margin %'
+					caption: Skutečná zisková marže (%) vs. zisková marže rozpočtu (%)
+				measure 'Billable (Invoiced Price) and Actual (Total Price) by Project No. & Description'
+					caption: Fakturovatelná cena (fakturovaná cena) a skutečná cena (celková cena) podle čísla a popisu projektu
+				measure 'Billable (Invoiced Price) by Type'
+					caption: Fakturovatelné (fakturovaná cena) podle typu
+				measure 'Profit Margin vs Budget Profit Margin'
+					caption: Zisková marže vs. zisková marže rozpočtu
+				measure 'Project Tasks by Project'
+					caption: Projektové úkoly podle projektu
+				measure 'Project Timeline'
+					caption: Časová osa projektu
+				measure 'Project Tasks Duration'
+					caption: Doba trvání úlohy projektu
+				measure 'Project Task Details'
+					caption: Podrobnosti úlohy projektu
+			table COMPANY
+				caption: SPOLEČNOST
+				measure 'Company Label'
+					caption: Popisek společnosti
+

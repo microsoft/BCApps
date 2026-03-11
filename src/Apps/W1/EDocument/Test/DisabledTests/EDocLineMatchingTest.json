@@ -1,0 +1,50 @@
+[
+    {
+        "bug": "613698",
+        "codeunitId": 139659,
+        "codeunitName": "E-Doc. Line Matching Test",
+        "method": "MatchOneImportLineToOnePOLineSuccess"
+    },
+    {
+        "bug": "613698",
+        "codeunitId": 139659,
+        "codeunitName": "E-Doc. Line Matching Test",
+        "method": "MatchOneImportLineToOnePOLineThroughCreatePOLineSuccessItem"
+    },
+    {
+        "bug": "613698",
+        "codeunitId": 139659,
+        "codeunitName": "E-Doc. Line Matching Test",
+        "method": "MatchOneImportLineToOnePOLineThroughCreatePOLineSuccessGLAccount"
+    },
+    {
+        "bug": "613698",
+        "codeunitId": 139659,
+        "codeunitName": "E-Doc. Line Matching Test",
+        "method": "MatchTwoImportLineToOnePOLineSuccess"
+    },
+    {
+        "bug": "613698",
+        "codeunitId": 139659,
+        "codeunitName": "E-Doc. Line Matching Test",
+        "method": "MatchTwoImportLineToOnePOLineFailure"
+    },
+    {
+        "bug": "613698",
+        "codeunitId": 139659,
+        "codeunitName": "E-Doc. Line Matching Test",
+        "method": "CreateMatchingRulesFromCopilotScenario"
+    },
+    {
+        "bug": "613698",
+        "codeunitId": 139659,
+        "codeunitName": "E-Doc. Line Matching Test",
+        "method": "MatchOneImportLineToOnePOLineSuccess26"
+    },
+    {
+        "bug": "613698",
+        "codeunitId": 139659,
+        "codeunitName": "E-Doc. Line Matching Test",
+        "method": "MatchDecimalQuantitySuccess"
+    }
+]

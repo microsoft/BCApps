@@ -1,0 +1,284 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.4.0/schema.json",
+  "name": "e1cbf5e1d0df553445cb",
+  "position": {
+    "x": 26,
+    "y": 64,
+    "z": 0,
+    "height": 630,
+    "width": 1228,
+    "tabOrder": 0
+  },
+  "visual": {
+    "visualType": "tableEx",
+    "query": {
+      "queryState": {
+        "Values": {
+          "projections": [
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Date"
+                    }
+                  },
+                  "Property": "Date"
+                }
+              },
+              "queryRef": "Posting Date.Posting Date",
+              "nativeQueryRef": "Posting Date"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Project Ledger Entry"
+                    }
+                  },
+                  "Property": "Project No."
+                }
+              },
+              "queryRef": "Job Ledger Entry.Job No.",
+              "nativeQueryRef": "Job No."
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Project Ledger Entry"
+                    }
+                  },
+                  "Property": "Task No."
+                }
+              },
+              "queryRef": "Job Ledger Entry.Job Task No.",
+              "nativeQueryRef": "Job Task No."
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Project Ledger Entry"
+                    }
+                  },
+                  "Property": "Entry Type"
+                }
+              },
+              "queryRef": "Job Ledger Entry.Entry Type",
+              "nativeQueryRef": "Entry Type"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Project Ledger Entry"
+                    }
+                  },
+                  "Property": "Type"
+                }
+              },
+              "queryRef": "Project Ledger Entry.Type",
+              "nativeQueryRef": "Type"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Project Ledger Entry"
+                    }
+                  },
+                  "Property": "No."
+                }
+              },
+              "queryRef": "Job Ledger Entry.No.",
+              "nativeQueryRef": "No."
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Project Ledger Entry"
+                    }
+                  },
+                  "Property": "Description"
+                }
+              },
+              "queryRef": "Job Ledger Entry.description",
+              "nativeQueryRef": "description"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Project Ledger Entry"
+                    }
+                  },
+                  "Property": "Unit of Measure Code"
+                }
+              },
+              "queryRef": "Job Ledger Entry.Unit of Measure Code",
+              "nativeQueryRef": "UOM",
+              "displayName": "UOM"
+            },
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Project Ledger Entry"
+                    }
+                  },
+                  "Property": "Project Ledger Entry Quantity"
+                }
+              },
+              "queryRef": "Job Ledger Entry.Invoiced Quantity",
+              "nativeQueryRef": "Invoiced Quantity"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Project Ledger Entry"
+                    }
+                  },
+                  "Property": "Unit Cost (LCY)"
+                }
+              },
+              "queryRef": "Job Ledger Entry.Unit Cost (LCY)",
+              "nativeQueryRef": "Unit Cost (LCY)"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Project Ledger Entry"
+                    }
+                  },
+                  "Property": "Unit Price (LCY)"
+                }
+              },
+              "queryRef": "Job Ledger Entry.Unit Price (LCY)",
+              "nativeQueryRef": "Unit Price (LCY)"
+            },
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Project Ledger Entry"
+                    }
+                  },
+                  "Property": "Total Invoiced Costs"
+                }
+              },
+              "queryRef": "Project Ledger Entry.Total Invoiced Costs",
+              "nativeQueryRef": "Total Invoiced Costs",
+              "format": "#,0.00"
+            },
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Project Ledger Entry"
+                    }
+                  },
+                  "Property": "Total Price"
+                }
+              },
+              "queryRef": "Project Ledger Entry.Total Price",
+              "nativeQueryRef": "Total Price"
+            }
+          ]
+        }
+      }
+    },
+    "objects": {
+      "columnWidth": [
+        {
+          "properties": {
+            "value": {
+              "expr": {
+                "Literal": {
+                  "Value": "77D"
+                }
+              }
+            }
+          },
+          "selector": {
+            "metadata": "Job Ledger Entry.Unit of Measure Code"
+          }
+        }
+      ],
+      "values": [
+        {
+          "properties": {
+            "urlIcon": {
+              "expr": {
+                "Literal": {
+                  "Value": "true"
+                }
+              }
+            }
+          }
+        },
+        {
+          "properties": {
+            "webURL": {
+              "expr": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Project"
+                    }
+                  },
+                  "Property": "Project Ledger Entry Details Back Link"
+                }
+              }
+            }
+          },
+          "selector": {
+            "data": [
+              {
+                "dataViewWildcard": {
+                  "matchingOption": 1
+                }
+              }
+            ],
+            "metadata": "Project Ledger Entry.Total Price"
+          }
+        }
+      ]
+    },
+    "visualContainerObjects": {
+      "title": [
+        {
+          "properties": {
+            "text": {
+              "expr": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Translated Localized Labels"
+                    }
+                  },
+                  "Property": "Project Ledger Entry Drill Through Label"
+                }
+              }
+            }
+          }
+        }
+      ]
+    }
+  }
+}

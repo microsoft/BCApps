@@ -1,0 +1,138 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.4.0/schema.json",
+  "name": "e07a76e34dbb59b21ee2",
+  "position": {
+    "x": 25,
+    "y": 145.93047034764825,
+    "z": 1000,
+    "height": 548.38445807770961,
+    "width": 602.04498977505114,
+    "tabOrder": 1000
+  },
+  "visual": {
+    "visualType": "areaChart",
+    "query": {
+      "queryState": {
+        "Category": {
+          "projections": [
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Date"
+                    }
+                  },
+                  "Property": "Fiscal Year"
+                }
+              },
+              "queryRef": "Date.Fiscal Year",
+              "nativeQueryRef": "Fiscal Year",
+              "active": true
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Date"
+                    }
+                  },
+                  "Property": "Fiscal Month Year"
+                }
+              },
+              "queryRef": "Date.Fiscal Month Year",
+              "nativeQueryRef": "Fiscal Month Year",
+              "active": true
+            }
+          ]
+        },
+        "Tooltips": {
+          "projections": [
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Value Entries"
+                    }
+                  },
+                  "Property": "Variance Cost Posted to G/L"
+                }
+              },
+              "queryRef": "Value Entries.Variance",
+              "nativeQueryRef": "Variance Cost Posted to G/L"
+            }
+          ]
+        },
+        "Y": {
+          "projections": [
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Value Entries"
+                    }
+                  },
+                  "Property": "Ending Balance Cost Amount (Actual)"
+                }
+              },
+              "queryRef": "Value Entries.Ending Balance Value",
+              "nativeQueryRef": "Ending Balance Value"
+            },
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Value Entries"
+                    }
+                  },
+                  "Property": "Ending Balance Cost Posted to G/L"
+                }
+              },
+              "queryRef": "Value Entries.Ending Balance Posted to G/L",
+              "nativeQueryRef": "Ending Balance Posted to G/L1"
+            }
+          ]
+        }
+      }
+    },
+    "objects": {
+      "categoryAxis": [
+        {
+          "properties": {
+            "concatenateLabels": {
+              "expr": {
+                "Literal": {
+                  "Value": "false"
+                }
+              }
+            }
+          }
+        }
+      ]
+    },
+    "visualContainerObjects": {
+      "title": [
+        {
+          "properties": {
+            "text": {
+              "expr": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Translated Localized Labels"
+                    }
+                  },
+                  "Property": "Ending Balance Value, Ending Balance Posted to G/L and Variance by Month Label"
+                }
+              }
+            }
+          }
+        }
+      ]
+    }
+  }
+}

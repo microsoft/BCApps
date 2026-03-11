@@ -1,0 +1,41 @@
+table 'Sales Budget Name'
+	lineageTag: a86afb9d-95d3-4252-a0c4-dec98d7136d8
+
+	column 'Sales Budget Name'
+		dataType: string
+		lineageTag: 6475d8de-8d12-40dc-8ac6-9ec8af529c21
+		summarizeBy: none
+		sourceColumn: Sales Budget Name
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Sales Budget Description'
+		dataType: string
+		lineageTag: bece3a6a-5eb1-46ad-b1c3-7be3b5ba14f8
+		summarizeBy: none
+		sourceColumn: Sales Budget Description
+
+		annotation SummarizationSetBy = Automatic
+
+	partition 'Sales Budget Name' = m
+		mode: import
+		queryGroup: 'Dimension Tables'
+		source =
+				let
+				    Source = Dynamics365BusinessCentral.ApiContentsWithOptions(ENVIRONMENT, COMPANY,API_ENDPOINT, []),
+				    TableData = Source{[Name="itemBudgets",Signature="table"]}[Data],
+				    #"Filtered Rows" = Table.SelectRows(TableData, each ([analysisArea] = "Sales")),
+				    #"Changed Type" = Table.TransformColumnTypes(
+				        #"Filtered Rows", {{"budgetName", type text}, {"budgetDescription", type text}}
+				    ),
+				    #"Removed Columns" = Table.RemoveColumns(#"Changed Type",{"analysisArea", "ETag"}),
+				    #"Renamed Columns" = Table.RenameColumns(
+				        #"Removed Columns", {{"budgetName", "Sales Budget Name"}, {"budgetDescription", "Sales Budget Description"}}
+				    )
+				in
+				    #"Renamed Columns"
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Table
+

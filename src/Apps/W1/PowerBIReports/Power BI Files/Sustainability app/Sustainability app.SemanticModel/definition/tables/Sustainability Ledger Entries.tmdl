@@ -1,0 +1,830 @@
+table 'Sustainability Ledger Entries'
+	lineageTag: 2a0cf939-2176-4b5a-970c-8d0ef8334663
+
+	measure 'CO2 Emissions' =
+			
+			SUM ( 'Sustainability Ledger Entries'[Emission CO2] )
+		displayFolder: _Sustainability Measures\CO2 Measures
+		lineageTag: 770ba9f8-c49b-44c6-aad5-2dd17aeb06b0
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'CH4 Emissions' =
+			
+			CALCULATE ( SUM ( 'Sustainability Ledger Entries'[Emission CH4] ) )
+		displayFolder: _Sustainability Measures\CH4 Measures
+		lineageTag: d5316adc-5aa1-4184-8ce8-5747c2834a88
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'CO2 Emissions Balance' =
+			
+			CALCULATE ( [CO2 Emissions], ALL ( 'Date' ) )
+		displayFolder: _Sustainability Measures\CO2 Measures
+		lineageTag: d62bb2c9-c112-498a-8afe-ded1c2faef7e
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'CO2 Emissions Balance at Date' =
+			
+			CALCULATE (
+			    [CO2 Emissions],
+			    FILTER ( ALL ( 'Date'[Date] ), 'Date'[Date] <= MAX ( 'Date'[Date] ) )
+			)
+		displayFolder: _Sustainability Measures\CO2 Measures
+		lineageTag: 4bcc8b7a-27cb-4914-a832-c87a2644c275
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'N2O Emissions' =
+			
+			SUM ( 'Sustainability Ledger Entries'[Emission N2O] )
+		displayFolder: _Sustainability Measures\N2O Measures
+		lineageTag: b387d55c-6f71-4448-ac41-731e2e1c0f79
+
+	measure 'CO2e Emissions' =
+			
+			SUM ( 'Sustainability Ledger Entries'[Emission CO2e] )
+		displayFolder: _Sustainability Measures\CO2e Measures
+		lineageTag: 88d60675-3900-4161-9565-c30601162b92
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'CH4 Emissions Balance at Date' =
+			
+			CALCULATE (
+			    [CH4 Emissions],
+			    FILTER ( ALL ( 'Date'[Date] ), 'Date'[Date] <= MAX ( 'Date'[Date] ) )
+			)
+		displayFolder: _Sustainability Measures\CH4 Measures
+		lineageTag: 6ce5a382-915f-498e-844c-3187beb27d8d
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'CH4 Emissions Balance' =
+			
+			CALCULATE ( [CH4 Emissions], ALL ( 'Date' ) )
+		displayFolder: _Sustainability Measures\CH4 Measures
+		lineageTag: 3b1cb8b3-dfdc-477f-9128-f0c2d111d980
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Water Intensity' =
+			
+			SUM ( 'Sustainability Ledger Entries'[Wat. Intensity] )
+		displayFolder: _Sustainability Measures\Water Intensity Measures
+		lineageTag: 08405276-cfe4-4c4e-bb1f-ccf744ee4cb8
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Waste Intensity' =
+			
+			CALCULATE ( SUM ( 'Sustainability Ledger Entries'[Wast. Intensity] ) )
+		displayFolder: _Sustainability Measures\Waste Intensity Measures
+		lineageTag: 0e31eb23-69c3-442d-a2e5-a7be11945246
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Discharged Into Water' =
+			
+			SUM ( 'Sustainability Ledger Entries'[Dish. Into Water] )
+		displayFolder: _Sustainability Measures\Discharged Into Water Measures
+		lineageTag: ac161858-ae68-4289-b316-d4fde3f01a69
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'CO2e Emissions Balance' =
+			
+			CALCULATE ( [CO2e Emissions], ALL ( 'Date' ) )
+		displayFolder: _Sustainability Measures\CO2e Measures
+		lineageTag: d8cf0bf3-eb02-4da7-9b5d-137550445e7c
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'CO2e Emissions Balance at Date' =
+			
+			CALCULATE (
+			    [CO2e Emissions],
+			    FILTER ( ALL ( 'Date'[Date] ), 'Date'[Date] <= MAX ( 'Date'[Date] ) )
+			)
+		displayFolder: _Sustainability Measures\CO2e Measures
+		lineageTag: 2b53dd5a-8c62-40c0-9487-6d7f07dec99d
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Discharged Into Water Balance at Date' =
+			
+			CALCULATE (
+			    [Discharged Into Water],
+			    FILTER ( ALL ( 'Date'[Date] ), 'Date'[Date] <= MAX ( 'Date'[Date] ) )
+			)
+		displayFolder: _Sustainability Measures\Discharged Into Water Measures
+		lineageTag: 9f6fa36d-f530-4492-9f9d-edcc57d2cf0b
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Discharged Into Water Balance' =
+			
+			CALCULATE ( [Discharged Into Water], ALL ( 'Date' ) )
+		displayFolder: _Sustainability Measures\Discharged Into Water Measures
+		lineageTag: 1f11cd59-61b0-4113-879c-d9e23f4e61d7
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'N2O Emissions Balance' =
+			
+			CALCULATE ( [N2O Emissions], ALL ( 'Date' ) )
+		displayFolder: _Sustainability Measures\N2O Measures
+		lineageTag: fd7b9d88-cef7-4446-ad56-0fa3cef0bf0b
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'N2O Emissions Balance at Date' =
+			
+			CALCULATE (
+			    [N2O Emissions],
+			    FILTER ( ALL ( 'Date'[Date] ), 'Date'[Date] <= MAX ( 'Date'[Date] ) )
+			)
+		displayFolder: _Sustainability Measures\N2O Measures
+		lineageTag: 9426944e-ac09-4626-baaf-70242ecfaa99
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Waste Intensity Balance at Date' =
+			
+			CALCULATE (
+			    [Waste Intensity],
+			    FILTER ( ALL ( 'Date'[Date] ), 'Date'[Date] <= MAX ( 'Date'[Date] ) )
+			)
+		displayFolder: _Sustainability Measures\Waste Intensity Measures
+		lineageTag: 77726021-8550-43b1-8a8a-93413f66fdd0
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Waste Intensity Balance' =
+			
+			CALCULATE ( [Waste Intensity], ALL ( 'Date' ) )
+		displayFolder: _Sustainability Measures\Waste Intensity Measures
+		lineageTag: 38d01131-cd14-49c0-a583-23d3f35c1d6f
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Water Intensity Balance' =
+			
+			CALCULATE ( [Water Intensity], ALL ( 'Date' ) )
+		displayFolder: _Sustainability Measures\Water Intensity Measures
+		lineageTag: b5097795-4a11-4281-af9f-249febc43f4f
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Water Intensity Balance at Date' =
+			
+			CALCULATE (
+			    [Water Intensity],
+			    FILTER ( ALL ( 'Date'[Date] ), 'Date'[Date] <= MAX ( 'Date'[Date] ) )
+			)
+		displayFolder: _Sustainability Measures\Water Intensity Measures
+		lineageTag: d6fbfd5b-566d-4689-8ebb-3ec5fbc42ead
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'CO2 Baseline' =
+			
+			VAR SustainabilityGoalsTable =
+			    SUMMARIZECOLUMNS (
+			        'Sustainability Goals'[Score Card No.],
+			        "CO2 Emissions",
+			            CALCULATE (
+			                SUM ( 'Sustainability Ledger Entries'[Emission CO2] ),
+			                ALL ( 'Date' ),
+			                DATESBETWEEN (
+			                    'Date'[Date],
+			                    MIN ( 'Sustainability Goals'[Baseline Start Date] ),
+			                    MAX ( 'Sustainability Goals'[Baseline End Date] )
+			                )
+			            )
+			    )
+			RETURN
+			    SUMX ( SustainabilityGoalsTable, [CO2 Emissions] )
+		displayFolder: _Sustainability Measures\Baseline Measures
+		lineageTag: 382b3caf-4192-4c59-bd8e-61271f8fe259
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'CH4 Baseline' =
+			
+			VAR SustainabilityGoalsTable =
+			    SUMMARIZECOLUMNS (
+			        'Sustainability Goals'[Score Card No.],
+			        "CH4 Emissions",
+			            CALCULATE (
+			                SUM ( 'Sustainability Ledger Entries'[Emission CH4] ),
+			                ALL ( 'Date' ),
+			                DATESBETWEEN (
+			                    'Date'[Date],
+			                    MIN ( 'Sustainability Goals'[Baseline Start Date] ),
+			                    MAX ( 'Sustainability Goals'[Baseline End Date] )
+			                )
+			            )
+			    )
+			RETURN
+			    SUMX ( SustainabilityGoalsTable, [CH4 Emissions] )
+		displayFolder: _Sustainability Measures\Baseline Measures
+		lineageTag: aa34a845-69a9-4911-80ab-a626c447bee8
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'CH4 vs Baseline (%)' =
+			
+			DIVIDE ( [CH4 Current Value], [CH4 Baseline] )
+		formatString: #,0.00%;-#,0.00%;#,0.00%
+		displayFolder: _Sustainability Measures\Baseline Measures
+		lineageTag: 9d154b5a-d5ea-4529-940a-a5f4dec274f7
+
+	measure 'N2O Baseline' =
+			
+			VAR SustainabilityGoalsTable =
+			    SUMMARIZECOLUMNS (
+			        'Sustainability Goals'[Score Card No.],
+			        "N2O Emissions",
+			            CALCULATE (
+			                SUM ( 'Sustainability Ledger Entries'[Emission N2O] ),
+			                ALL ( 'Date' ),
+			                DATESBETWEEN (
+			                    'Date'[Date],
+			                    MIN ( 'Sustainability Goals'[Baseline Start Date] ),
+			                    MAX ( 'Sustainability Goals'[Baseline End Date] )
+			                )
+			            )
+			    )
+			RETURN
+			    SUMX ( SustainabilityGoalsTable, [N2O Emissions] )
+		displayFolder: _Sustainability Measures\Baseline Measures
+		lineageTag: 176c24f7-23b8-4d71-b7f5-7a34896c049f
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'N2O vs Baseline (%)' =
+			
+			DIVIDE ( [N2O Current Value], [N2O Baseline] )
+		formatString: #,0.00%;-#,0.00%;#,0.00%
+		displayFolder: _Sustainability Measures\Baseline Measures
+		lineageTag: f71aa40a-1fcd-4d8c-9e2f-9c011013989a
+
+	measure 'CO2 vs Baseline (%)' =
+			
+			DIVIDE ( [CO2 Current Value], [CO2 Baseline] )
+		formatString: #,0.00%;-#,0.00%;#,0.00%
+		displayFolder: _Sustainability Measures\Baseline Measures
+		lineageTag: 36ae0168-06ba-4880-98bb-59bb35399af8
+
+	measure 'Water Baseline' =
+			
+			CALCULATE (
+			    SUM ( 'Sustainability Ledger Entries'[Wat. Intensity] ),
+			    ALL ( 'Date' ),
+			    DATESBETWEEN (
+			        'Date'[Date],
+			        MIN ( 'Sustainability Goals'[Baseline Start Date] ),
+			        MAX ( 'Sustainability Goals'[Baseline End Date] )
+			    )
+			)
+		displayFolder: _Sustainability Measures\Baseline Measures
+		lineageTag: 577402bf-28bc-4551-8efb-8098222b95bc
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Waste Baseline' =
+			
+			CALCULATE (
+			    SUM ( 'Sustainability Ledger Entries'[Wast. Intensity] ),
+			    ALL ( 'Date' ),
+			    DATESBETWEEN (
+			        'Date'[Date],
+			        MIN ( 'Sustainability Goals'[Baseline Start Date] ),
+			        MAX ( 'Sustainability Goals'[Baseline End Date] )
+			    )
+			)
+		displayFolder: _Sustainability Measures\Baseline Measures
+		lineageTag: 2b24ae24-9469-40a3-9ccd-8614d3936298
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Water vs Baseline (%)' =
+			
+			DIVIDE ( [Water Intensity], [Water Baseline] )
+		formatString: 0.00%;-0.00%;0.00%
+		displayFolder: _Sustainability Measures\Baseline Measures
+		lineageTag: 8fe0587c-04fd-4a0c-83dc-a4b7f8ad8b27
+
+	measure 'Waste vs Baseline (%)' =
+			
+			DIVIDE ( [Waste Intensity], [Waste Baseline] )
+		formatString: #,0.00%;-#,0.00%;#,0.00%
+		displayFolder: _Sustainability Measures\Baseline Measures
+		lineageTag: 73e2e1da-1650-4ed2-aeb7-5fee5e823416
+
+	measure 'CO2e Baseline' =
+			
+			VAR SustainabilityGoalsTable =
+			    SUMMARIZECOLUMNS (
+			        'Sustainability Goals'[Score Card No.],
+			        "CO2e Emissions",
+			            CALCULATE (
+			                SUM ( 'Sustainability Ledger Entries'[Emission CO2e] ),
+			                ALL ( 'Date' ),
+			                DATESBETWEEN (
+			                    'Date'[Date],
+			                    MIN ( 'Sustainability Goals'[Baseline Start Date] ),
+			                    MAX ( 'Sustainability Goals'[Baseline End Date] )
+			                )
+			            )
+			    )
+			RETURN
+			    SUMX ( SustainabilityGoalsTable, [CO2e Emissions] )
+		displayFolder: _Sustainability Measures\Baseline Measures
+		lineageTag: 007410d5-f576-4caa-8e68-0df15bc234a1
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'CO2e vs Baseline (%)' =
+			
+			DIVIDE ( [CO2e Current Value], [CO2e Baseline] )
+		formatString: #,0.00%;-#,0.00%;#,0.00%
+		displayFolder: _Sustainability Measures\Baseline Measures
+		lineageTag: 9f4a9531-9f03-4896-b099-2342b9c1b9f7
+
+	measure 'Purchased Carbon Credits' =
+			
+			CALCULATE (
+			    [CO2e Emissions],
+			    'Sustainability Ledger Entries'[Document Type] = "GHG Credit"
+			)
+		displayFolder: _Sustainability Measures
+		lineageTag: 95d2cc4b-fe13-4c2f-a018-f19e639bb92a
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Discharged Into Water Baseline' =
+			
+			CALCULATE (
+			    SUM ( 'Sustainability Ledger Entries'[Dish. Into Water] ),
+			    ALL ( 'Date' ),
+			    DATESBETWEEN (
+			        'Date'[Date],
+			        MIN ( 'Sustainability Goals'[Baseline Start Date] ),
+			        MAX ( 'Sustainability Goals'[Baseline End Date] )
+			    )
+			)
+		displayFolder: _Sustainability Measures\Baseline Measures
+		lineageTag: 50b14d49-6c4d-4abb-b983-aca23232a8f0
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Discharged Into Water vs Baseline (%)' =
+			
+			DIVIDE ( [Discharged Into Water], [Discharged Into Water Baseline] )
+		formatString: #,0.00%;-#,0.00%;#,0.00%
+		displayFolder: _Sustainability Measures\Baseline Measures
+		lineageTag: 1e6b7c40-0119-4028-b946-2c436ca62dd1
+
+	measure 'CO2e Emissions (Excl Credits)' =
+			
+			CALCULATE (
+			    SUM ( 'Sustainability Ledger Entries'[Emission CO2e] ),
+			    'Sustainability Ledger Entries'[Document Type] <> "GHG Credit"
+			)
+		displayFolder: _Sustainability Measures\CO2e Measures
+		lineageTag: 36836214-b579-41f9-91d1-008ddb5970b1
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Water Intensity PY' =
+			
+			IF (
+			    [ShowValueForDates],
+			    CALCULATE (
+			        [Water Intensity],
+			        CALCULATETABLE (
+			            DATEADD ( 'Date'[Date], -1, YEAR ),
+			            'Date'[DatesWithTransactions] = TRUE
+			        )
+			    )
+			)
+		displayFolder: _Sustainability Measures\Water Intensity Measures
+		lineageTag: 223d8ff9-fe11-4f5f-90ba-3629d0f27087
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Water Intensity YOY' =
+			
+			VAR WaterChange = [Water Intensity PY] - [Water Intensity]
+			RETURN
+			    - ( DIVIDE ( WaterChange, [Water Intensity PY] ) )
+		formatString: 0.00%;-0.00%;0.00%
+		displayFolder: _Sustainability Measures\Water Intensity Measures
+		lineageTag: f4f0bfab-f650-4b05-aa74-6f903ad2e4a1
+
+	measure 'Waste Intensity PY' =
+			
+			IF (
+			    [ShowValueForDates],
+			    CALCULATE (
+			        [Waste Intensity],
+			        CALCULATETABLE (
+			            DATEADD ( 'Date'[Date], -1, YEAR ),
+			            'Date'[DatesWithTransactions] = TRUE
+			        )
+			    )
+			)
+		displayFolder: _Sustainability Measures\Waste Intensity Measures
+		lineageTag: 4e103d90-531d-4ebc-bcdf-4424628b28f0
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Waste Intensity YOY' =
+			
+			VAR WasteChange = [Waste Intensity PY] - [Waste Intensity]
+			RETURN
+			    - ( DIVIDE ( WasteChange, [Waste Intensity PY] ) )
+		formatString: 0.00%;-0.00%;0.00%
+		displayFolder: _Sustainability Measures\Waste Intensity Measures
+		lineageTag: ee6c4d62-1729-4fb6-b666-c42d4d1a9ae2
+
+	measure 'Discharged Into Water PY' =
+			
+			IF (
+			    [ShowValueForDates],
+			    CALCULATE (
+			        [Discharged Into Water],
+			        CALCULATETABLE (
+			            DATEADD ( 'Date'[Date], -1, YEAR ),
+			            'Date'[DatesWithTransactions] = TRUE
+			        )
+			    )
+			)
+		displayFolder: _Sustainability Measures\Discharged Into Water Measures
+		lineageTag: d8bcec7e-3837-4c36-855e-e08b010dc678
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Discharged Into Water YOY' =
+			
+			VAR DischargeIntoWaterChange = [Discharged Into Water PY] - [Discharged Into Water]
+			RETURN
+			    - ( DIVIDE ( DischargeIntoWaterChange, [Discharged Into Water PY] ) )
+		formatString: 0.00%;-0.00%;0.00%
+		displayFolder: _Sustainability Measures\Discharged Into Water Measures
+		lineageTag: f93aae63-4ce3-4146-a037-c2bf583ec759
+
+	measure 'Discharged Into Water PD' =
+			
+			IF (
+			    [ShowValueForDates],
+			    CALCULATE (
+			        [Discharged Into Water],
+			        CALCULATETABLE (
+			            DATEADD ( 'Date'[Date], -1, DAY ),
+			            'Date'[DatesWithTransactions] = TRUE
+			        )
+			    )
+			)
+		displayFolder: _Sustainability Measures\Discharged Into Water Measures
+		lineageTag: 1f436360-692b-4ad6-8415-ddb471f080b1
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Waste Intensity PD' =
+			
+			IF (
+			    [ShowValueForDates],
+			    CALCULATE (
+			        [Waste Intensity],
+			        CALCULATETABLE (
+			            DATEADD ( 'Date'[Date], -1, DAY ),
+			            'Date'[DatesWithTransactions] = TRUE
+			        )
+			    )
+			)
+		displayFolder: _Sustainability Measures\Waste Intensity Measures
+		lineageTag: e3918949-dfe7-42e7-8443-c157aa994d3d
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Water Intensity PD' =
+			
+			IF (
+			    [ShowValueForDates],
+			    CALCULATE (
+			        [Water Intensity],
+			        CALCULATETABLE (
+			            DATEADD ( 'Date'[Date], -1, DAY ),
+			            'Date'[DatesWithTransactions] = TRUE
+			        )
+			    )
+			)
+		displayFolder: _Sustainability Measures\Water Intensity Measures
+		lineageTag: 81689940-d831-4d39-acb4-181435d15ada
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Water Intensity DOD' =
+			
+			VAR WaterChange = [Water Intensity PD] - [Water Intensity]
+			RETURN
+			    - ( DIVIDE ( WaterChange, [Water Intensity PD] ) )
+		formatString: 0.00%;-0.00%;0.00%
+		displayFolder: _Sustainability Measures\Water Intensity Measures
+		lineageTag: 0067f1fd-987f-4327-8e2f-3db6e5762ae4
+
+	measure 'Waste Intensity DOD' =
+			
+			VAR WasteChange = [Waste Intensity PD] - [Waste Intensity]
+			RETURN
+			    - ( DIVIDE ( WasteChange, [Waste Intensity PD] ) )
+		formatString: 0.00%;-0.00%;0.00%
+		displayFolder: _Sustainability Measures\Waste Intensity Measures
+		lineageTag: 3331f55f-3ace-49fa-a547-1bb0df0e64c6
+
+	measure 'Discharged Into Water DOD' =
+			
+			VAR DischargeIntoWaterChange = [Discharged Into Water PD] - [Discharged Into Water]
+			RETURN
+			    - ( DIVIDE ( DischargeIntoWaterChange, [Discharged Into Water PD] ) )
+		formatString: 0.00%;-0.00%;0.00%
+		displayFolder: _Sustainability Measures\Discharged Into Water Measures
+		lineageTag: 9508c68d-3a6b-4d9b-862d-dc739d2cc99c
+
+	measure 'Base Link' =
+			
+			VAR BusinessCentral = "https://businesscentral.dynamics.com/"
+			VAR TenantID =
+			    VALUES ( 'Date Table Setup'[tenantID] ) //VAR TenantID = VALUES('Date Table Setup'[tenantID])
+			VAR Environment =
+			    VALUES ( ENVIRONMENT[ENVIRONMENT] )
+			VAR Company =
+			    "?company=" & VALUES ( COMPANY[COMPANY] )
+			RETURN
+			    BusinessCentral & TenantID & "/" & Environment & "/" & Company
+		displayFolder: _Back Links
+		lineageTag: df2ffa0c-4e05-4257-8483-d124377814f9
+
+	measure 'Sustainability Ledger Entries Link' =
+			
+			VAR Endpoint = "&page=6220&"
+			VAR BaseLink = [Base Link] & Endpoint // Filter Context
+			VAR AccountNo =
+			    CONCATENATEX (
+			        VALUES ( 'Sustainability Ledger Entries'[Sustainability Account No.] ),
+			        'Sustainability Ledger Entries'[Sustainability Account No.],
+			        "|"
+			    )
+			VAR DimensionSetIDs =
+			    CONCATENATEX (
+			        VALUES ( 'Sustainability Ledger Entries'[Dimension Set ID] ),
+			        'Sustainability Ledger Entries'[Dimension Set ID],
+			        "|"
+			    )
+			VAR AccountNoFilter = "filter='Sustainability Ledger Entry'.'Account No.' IS '" & AccountNo & "'"
+			VAR DateFilter = " AND 'Sustainability Ledger Entry'.'Posting Date' IS '" & [Ranged] & "'"
+			VAR DimensionFilter = " AND 'Sustainability Ledger Entry'.'Dimension Set ID' IS '" & DimensionSetIDs & "'"
+			RETURN
+			    BaseLink & AccountNoFilter & DimensionFilter & DateFilter
+		displayFolder: _Back Links
+		lineageTag: f24f87a5-4019-4ed5-ae4b-67285d98d57a
+
+	measure 'Months in Context' =
+			
+			DATESINPERIOD ( 'Date'[Date], MAX ( 'Date'[Date] ), -1, MONTH )
+		formatString: General Date
+		isHidden
+		displayFolder: _Sustainability Measures\Water Intensity Measures
+		lineageTag: 36386e28-448e-4563-84fa-e85b618e4854
+
+		changedProperty = IsHidden
+
+	measure 'Water Available' = [Facility Capacity] - [Water Intensity]
+		displayFolder: _Sustainability Measures\Water Intensity Measures
+		lineageTag: a4076b8c-7262-417f-b534-f0712a788efa
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column 'Sustainability Account No.'
+		dataType: string
+		isHidden
+		lineageTag: dd444b4d-5759-48d6-9890-04c1784fa3fe
+		summarizeBy: none
+		sourceColumn: Sustainability Account No.
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Entry No.'
+		dataType: int64
+		isKey
+		formatString: 0
+		lineageTag: 56c87b66-607f-4c15-977a-005985b5e581
+		summarizeBy: sum
+		sourceColumn: Entry No.
+
+		annotation SummarizationSetBy = Automatic
+
+	column Date
+		dataType: dateTime
+		isHidden
+		formatString: Short Date
+		lineageTag: 952887d6-19e8-487b-8996-d522274d9bc3
+		summarizeBy: none
+		sourceColumn: Date
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	column 'Emission CH4'
+		dataType: double
+		isHidden
+		lineageTag: fa53ff57-2c55-4b4d-b0f2-a89a2c021742
+		summarizeBy: sum
+		sourceColumn: Emission CH4
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column 'Emission CO2'
+		dataType: double
+		isHidden
+		lineageTag: c24b6826-6647-45d8-a2e5-7c42abac4179
+		summarizeBy: sum
+		sourceColumn: Emission CO2
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column 'Dimension Set ID'
+		dataType: int64
+		isHidden
+		formatString: 0
+		lineageTag: 6d27933b-51a4-48d0-bf3b-1375fc16eed7
+		summarizeBy: none
+		sourceColumn: Dimension Set ID
+
+		annotation SummarizationSetBy = Automatic
+
+	column Description
+		dataType: string
+		lineageTag: 2a630679-72e8-4b7c-802f-e6776d8354b2
+		summarizeBy: none
+		sourceColumn: Description
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Emission N2O'
+		dataType: double
+		isHidden
+		lineageTag: c062188a-d994-4989-82c0-01d25a60d541
+		summarizeBy: sum
+		sourceColumn: Emission N2O
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column 'Emission CO2e'
+		dataType: double
+		isHidden
+		lineageTag: e6d7c5c4-7221-40a6-8486-4cfc9b390f25
+		summarizeBy: sum
+		sourceColumn: Emission CO2e
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column 'Carbon Fee'
+		dataType: double
+		isHidden
+		lineageTag: e0341c05-ac7e-4d09-b754-23a9960d4c30
+		summarizeBy: sum
+		sourceColumn: Carbon Fee
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column 'Wat. Intensity'
+		dataType: double
+		isHidden
+		lineageTag: 310487fb-c048-412b-9643-19aa492dd72c
+		summarizeBy: sum
+		sourceColumn: Wat. Intensity
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column 'Dish. Into Water'
+		dataType: double
+		isHidden
+		lineageTag: 6ca716dc-44ae-4ad8-a3ac-0880ca6ab940
+		summarizeBy: sum
+		sourceColumn: Dish. Into Water
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column 'Wast. Intensity'
+		dataType: double
+		isHidden
+		lineageTag: 9369a292-3806-40bb-a43d-c54ca41aa598
+		summarizeBy: sum
+		sourceColumn: Wast. Intensity
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column 'Responsibility Centre'
+		dataType: string
+		isHidden
+		lineageTag: 6478b59a-b67e-490e-949e-848ad2276fca
+		summarizeBy: none
+		sourceColumn: Responsibility Centre
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Country/Region Code'
+		dataType: string
+		isHidden
+		lineageTag: a8333572-537a-410e-8fe2-a0a6ea0a495d
+		summarizeBy: none
+		sourceColumn: Country/Region Code
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Water Type'
+		dataType: string
+		lineageTag: c28fbbcf-d677-41d7-9d48-f3f7d45e1f1b
+		summarizeBy: none
+		sourceColumn: Water Type
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Wate/Waste Intensity Type'
+		dataType: string
+		lineageTag: 27772ee5-4bdd-445a-a702-6b6ff73bad27
+		summarizeBy: none
+		sourceColumn: Wate/Waste Intensity Type
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Document Type'
+		dataType: string
+		lineageTag: 1973a70e-ce74-4dc5-9b79-03296b9c1a3c
+		summarizeBy: none
+		sourceColumn: Document Type
+
+		annotation SummarizationSetBy = Automatic
+
+	partition 'Sustainability Ledger Entries' = m
+		mode: import
+		queryGroup: 'Fact Tables'
+		source =
+				let
+				    Source = Dynamics365BusinessCentral.ApiContentsWithOptions(ENVIRONMENT, COMPANY,API_ENDPOINT, []),
+				    TableData = Source{[Name="pbiSustainabilityLedgerEntries",Signature="table"]}[Data],
+				    #"Renamed Columns" = Table.RenameColumns(TableData,{{"sustainAccountNo", "Sustainability Account No."}, {"entryNo", "Entry No."}, {"postingDate", "Date"}, {"emissionco2", "Emission CO2"}, {"emissionch4", "Emission CH4"}, {"emissionN2O", "Emission N2O"}, {"emissionCo2e", "Emission CO2e"}, {"carbonFee", "Carbon Fee"}, {"waterIntensity", "Wat. Intensity"}, {"dischargedIntoWater", "Dish. Into Water"}, {"wasteIntensity", "Wast. Intensity"}, {"dimensionSetID", "Dimension Set ID"}, {"responsibilityCenter", "Responsibility Centre"}, {"countryRegionCode", "Country/Region Code"}, {"description", "Description"}, {"documentType", "Document Type"}, {"waterType", "Water Type"}, {"waterWasteIntensityType", "Wate/Waste Intensity Type"}}),
+				    #"Removed Columns1" = Table.RemoveColumns(#"Renamed Columns",{"ETag"})
+				in
+				    #"Removed Columns1"
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Table
+

@@ -1,0 +1,127 @@
+table 'Employee Ledger Entries'
+	lineageTag: efc44628-dbc3-4b0a-a873-6e698c2b747f
+
+	measure 'Employee Amount' =
+			
+			SUM ( 'Employee Ledger Entries'[Amt] )
+		displayFolder: _Employee Ledger Entry Measures
+		lineageTag: 5bc7caaa-0565-4c52-a7e5-7c116086f802
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Employee Ledger Entries Link' =
+			
+			VAR Endpoint = "&page=5237&"
+			VAR BaseLink = [Base Link] & Endpoint // Filter Context
+			VAR EmployeeNo =
+			    CONCATENATEX (
+			        VALUES ( 'Employee Ledger Entries'[Employee No.] ),
+			        'Employee Ledger Entries'[Employee No.],
+			        "|"
+			    )
+			VAR DimensionSetIDs =
+			    CONCATENATEX (
+			        VALUES ( 'Employee Ledger Entries'[Dimension Set ID] ),
+			        'Employee Ledger Entries'[Dimension Set ID],
+			        "|"
+			    )
+			VAR EmployeeNoFilter = "filter='Employee Ledger Entry'.'Employee No.' IS '" & EmployeeNo & "'"
+			VAR DateFilter = " AND 'Employee Ledger Entry'.'Posting Date' IS '" & [Ranged] & "'"
+			VAR DimensionFilter = " AND 'Employee Ledger Entry'.'Dimension Set ID' IS '" & DimensionSetIDs & "'"
+			RETURN
+			    BaseLink & EmployeeNoFilter & DimensionFilter & DateFilter
+		displayFolder: _Back Link
+		lineageTag: 702abf4b-9e8a-40cd-b20d-080b777d0343
+
+	column 'Employee No.'
+		dataType: string
+		isHidden
+		lineageTag: d1dc1772-aa14-49a5-a13b-01b8fda7f8ac
+		summarizeBy: none
+		sourceColumn: Employee No.
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Entry No.'
+		dataType: int64
+		isKey
+		formatString: 0
+		lineageTag: c6d5f659-403b-4e66-9dae-89412439602e
+		summarizeBy: sum
+		sourceColumn: Entry No.
+
+		annotation SummarizationSetBy = Automatic
+
+	column Date
+		dataType: dateTime
+		isHidden
+		formatString: Long Date
+		lineageTag: 1719e795-ec57-4ddf-bbbe-31ca8c0d074d
+		summarizeBy: none
+		sourceColumn: Date
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	column 'Document Type'
+		dataType: string
+		lineageTag: e0a99c44-aeb1-473f-bdd5-6432db8db55a
+		summarizeBy: none
+		sourceColumn: Document Type
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Document No.'
+		dataType: string
+		lineageTag: 332d015a-ba58-49af-b8ef-3e9b76c8b178
+		summarizeBy: none
+		sourceColumn: Document No.
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Dimension Set ID'
+		dataType: int64
+		isHidden
+		formatString: 0
+		lineageTag: 0f1bd37f-6671-45f0-b079-8154bc1d19ab
+		summarizeBy: none
+		sourceColumn: Dimension Set ID
+
+		annotation SummarizationSetBy = Automatic
+
+	column Description
+		dataType: string
+		lineageTag: c93cd236-7354-4c07-9a80-0088dde8e277
+		summarizeBy: none
+		sourceColumn: Description
+
+		annotation SummarizationSetBy = Automatic
+
+	column Amt
+		dataType: double
+		isHidden
+		lineageTag: b0a7cd66-1013-432a-8de3-810832e03d3d
+		summarizeBy: sum
+		sourceColumn: Amt
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	partition 'Employee Ledger Entries' = m
+		mode: import
+		queryGroup: 'Fact Tables'
+		source =
+				let
+				    Source = Dynamics365BusinessCentral.ApiContentsWithOptions(ENVIRONMENT, COMPANY,API_ENDPOINT, []),
+				    TableData = Source{[Name="pbiEmployeeLedgerEntries",Signature="table"]}[Data],
+				    #"Renamed Columns" = Table.RenameColumns(TableData,{{"employeeNo", "Employee No."}, {"entryNo", "Entry No."}, {"postingDate", "Date"}, {"documentType", "Document Type"}, {"documentNo", "Document No."}, {"dimensionSetID", "Dimension Set ID"}, {"description", "Description"}, {"amount", "Amt"}}),
+				    #"Removed Columns" = Table.RemoveColumns(#"Renamed Columns",{"ETag"})
+				in
+				    #"Removed Columns"
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Table
+

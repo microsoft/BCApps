@@ -1,0 +1,1406 @@
+table Date
+	lineageTag: 43a65c75-84cf-4e19-b893-90aa5fbee72b
+	dataCategory: Time
+
+	measure 'No. of Days' = ```
+			
+			COUNTROWS ( 
+			    DATESBETWEEN ( 
+			        'Date'[Date],
+			        MIN('Date'[Date]),
+			        MAX('Date'[Date])
+			    )
+			)
+			```
+		formatString: 0
+		lineageTag: 1a4368d8-993e-48df-ba27-a8c23154722a
+
+		changedProperty = IsHidden
+
+	column Date
+		isKey
+		formatString: Short Date
+		lineageTag: de457cc0-85dc-480a-94be-35b6a6b818d0
+		summarizeBy: none
+		isNameInferred
+		sourceColumn: Date Ref[Date]
+		sortByColumn: DateKey
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	column DateKey
+		isHidden
+		formatString: 0
+		lineageTag: a8e1fec3-f094-43aa-b68a-1204a15e3fed
+		summarizeBy: count
+		isNameInferred
+		sourceColumn: Date Ref[DateKey]
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Day of Month'
+		isHidden
+		formatString: 0
+		lineageTag: fb640852-0a87-4db3-924f-91271646d948
+		summarizeBy: sum
+		isNameInferred
+		sourceColumn: Date Ref[Day of Month]
+
+		annotation SummarizationSetBy = Automatic
+
+	column WeekDayNumber
+		isHidden
+		formatString: 0
+		lineageTag: 4d53cb31-8efa-4e34-ad8c-f0e387a56a2b
+		summarizeBy: sum
+		isNameInferred
+		sourceColumn: Date Ref[WeekDayNumber]
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Week Day'
+		lineageTag: 87d986f6-8d0a-4af1-bf9d-2748b7ba57dc
+		summarizeBy: none
+		isNameInferred
+		sourceColumn: Date Ref[Week Day]
+		sortByColumn: WeekDayNumber
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Holiday Name'
+		isHidden
+		lineageTag: 44c6940b-52cb-4c9f-a4f9-00590fd0a22e
+		summarizeBy: none
+		isNameInferred
+		sourceColumn: Date Ref[Holiday Name]
+
+		annotation SummarizationSetBy = Automatic
+
+	column IsWorkingDay
+		isHidden
+		formatString: """TRUE"";""TRUE"";""FALSE"""
+		lineageTag: 7d4283ba-58dd-4c57-abec-3945999ba321
+		summarizeBy: none
+		isNameInferred
+		sourceColumn: Date Ref[IsWorkingDay]
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Day Type'
+		lineageTag: a92edf57-7150-40d0-98b0-670245650ac0
+		summarizeBy: none
+		isNameInferred
+		sourceColumn: Date Ref[Day Type]
+
+		annotation SummarizationSetBy = Automatic
+
+	column DatesWithTransactions
+		isHidden
+		formatString: """TRUE"";""TRUE"";""FALSE"""
+		lineageTag: 29288877-7601-49ac-89f6-b9bbd9dd065f
+		summarizeBy: none
+		isNameInferred
+		sourceColumn: Date Ref[DatesWithTransactions]
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Calendar YearNumber'
+		isHidden
+		formatString: 0
+		lineageTag: 3776f4bf-9971-4135-ae3d-5eeff20d9b67
+		summarizeBy: sum
+		isNameInferred
+		sourceColumn: Date Ref[Calendar YearNumber]
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Calendar Year'
+		displayFolder: _Standard Calendar
+		lineageTag: eafb2700-d9bf-40ef-b2a6-d97476b09f5e
+		summarizeBy: none
+		isNameInferred
+		sourceColumn: Date Ref[Calendar Year]
+		sortByColumn: 'Calendar YearNumber'
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Calendar QuarterNumber'
+		isHidden
+		lineageTag: c8784f24-f4a6-4663-a2d2-f1cf8cab19aa
+		summarizeBy: sum
+		isNameInferred
+		sourceColumn: Date Ref[Calendar QuarterNumber]
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column 'Calendar Quarter'
+		displayFolder: _Standard Calendar
+		lineageTag: 906fcdf7-6285-4922-8968-362fc571dd84
+		summarizeBy: none
+		isNameInferred
+		sourceColumn: Date Ref[Calendar Quarter]
+		sortByColumn: 'Calendar QuarterNumber'
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Calendar YearQuarterNumber'
+		isHidden
+		lineageTag: 0bb5b664-4cce-44d0-854e-fdb6a35905a5
+		summarizeBy: sum
+		isNameInferred
+		sourceColumn: Date Ref[Calendar YearQuarterNumber]
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column 'Calendar Quarter Year'
+		displayFolder: _Standard Calendar
+		lineageTag: 2c5ea502-608c-4500-beb1-042ffb003d68
+		summarizeBy: none
+		isNameInferred
+		sourceColumn: Date Ref[Calendar Quarter Year]
+		sortByColumn: 'Calendar YearQuarterNumber'
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Calendar MonthNumber'
+		isHidden
+		formatString: 0
+		lineageTag: 28353b66-7741-4868-9f92-840f4b4710ec
+		summarizeBy: sum
+		isNameInferred
+		sourceColumn: Date Ref[Calendar MonthNumber]
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Calendar Month'
+		displayFolder: _Standard Calendar
+		lineageTag: 6e1a2bd3-8529-433c-a4ea-a6a3d3611046
+		summarizeBy: none
+		isNameInferred
+		sourceColumn: Date Ref[Calendar Month]
+		sortByColumn: 'Calendar MonthNumber'
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Calendar YearMonthNumber'
+		isHidden
+		formatString: 0
+		lineageTag: 549dd6c7-9e3f-4dfd-8bab-67548032517f
+		summarizeBy: sum
+		isNameInferred
+		sourceColumn: Date Ref[Calendar YearMonthNumber]
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Calendar Month Year'
+		displayFolder: _Standard Calendar
+		lineageTag: 46388357-c60d-4744-a628-f9ccff2c0687
+		summarizeBy: none
+		isNameInferred
+		sourceColumn: Date Ref[Calendar Month Year]
+		sortByColumn: 'Calendar YearMonthNumber'
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Calendar WeekNumber'
+		isHidden
+		formatString: 0
+		lineageTag: 1e84e68f-60ef-4164-b0ee-9c93f764a851
+		summarizeBy: sum
+		isNameInferred
+		sourceColumn: Date Ref[Calendar WeekNumber]
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Calendar Week'
+		displayFolder: _Standard Calendar
+		lineageTag: fa556103-ff03-4954-af2d-8e70b22bcfb7
+		summarizeBy: none
+		isNameInferred
+		sourceColumn: Date Ref[Calendar Week]
+		sortByColumn: 'Calendar WeekNumber'
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Calendar YearWeekNumber'
+		isHidden
+		formatString: 0
+		lineageTag: bde602a6-67d7-4d1a-9669-98fc28358fcb
+		summarizeBy: sum
+		isNameInferred
+		sourceColumn: Date Ref[Calendar YearWeekNumber]
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Calendar Week Year'
+		displayFolder: _Standard Calendar
+		lineageTag: 43f804c2-759c-4fe1-97d9-0dc74f83630c
+		summarizeBy: none
+		isNameInferred
+		sourceColumn: Date Ref[Calendar Week Year]
+		sortByColumn: 'Calendar YearWeekNumber'
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Calendar WeekYearOrder'
+		isHidden
+		formatString: 0
+		displayFolder: _Standard Calendar
+		lineageTag: 37b44620-7711-492f-8cb9-0077e01d64eb
+		summarizeBy: sum
+		isNameInferred
+		sourceColumn: Date Ref[Calendar WeekYearOrder]
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Calendar RelativeWeekPos'
+		displayFolder: _Standard Calendar
+		lineageTag: 3c121010-847d-4661-86b0-d3306993d1fc
+		summarizeBy: sum
+		isNameInferred
+		sourceColumn: Date Ref[Calendar RelativeWeekPos]
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column 'Calendar RelativeMonthPos'
+		displayFolder: _Standard Calendar
+		lineageTag: 72d7ff37-a6f6-45ac-9bd1-cb3050da78f3
+		summarizeBy: sum
+		isNameInferred
+		sourceColumn: Date Ref[Calendar RelativeMonthPos]
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column 'Calendar RelativeQuarterPos'
+		displayFolder: _Standard Calendar
+		lineageTag: b9bbb6c1-a863-42b0-9be0-4c067880aecf
+		summarizeBy: sum
+		isNameInferred
+		sourceColumn: Date Ref[Calendar RelativeQuarterPos]
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column 'Calendar RelativeYearPos'
+		displayFolder: _Standard Calendar
+		lineageTag: 0389f321-8c3e-4094-9937-a72690d006ce
+		summarizeBy: sum
+		isNameInferred
+		sourceColumn: Date Ref[Calendar RelativeYearPos]
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column 'Calendar StartOfMonth'
+		formatString: Short Date
+		displayFolder: _Standard Calendar
+		lineageTag: 86e6859f-ddf3-4905-b792-58c9b97c6e44
+		summarizeBy: none
+		isNameInferred
+		sourceColumn: Date Ref[Calendar StartOfMonth]
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Calendar EndOfMonth'
+		formatString: Short Date
+		displayFolder: _Standard Calendar
+		lineageTag: cacb2e9f-f673-4700-af72-7afbee746739
+		summarizeBy: none
+		isNameInferred
+		sourceColumn: Date Ref[Calendar EndOfMonth]
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Calendar StartOfQuarter'
+		formatString: Short Date
+		displayFolder: _Standard Calendar
+		lineageTag: fe44207b-b823-4d13-a311-0c96e70b987c
+		summarizeBy: none
+		isNameInferred
+		sourceColumn: Date Ref[Calendar StartOfQuarter]
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Calendar EndOfQuarter'
+		formatString: Short Date
+		displayFolder: _Standard Calendar
+		lineageTag: 3291fc3a-8587-4dca-b01d-2ab523ce7101
+		summarizeBy: none
+		isNameInferred
+		sourceColumn: Date Ref[Calendar EndOfQuarter]
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Calendar StartOfYear'
+		formatString: Short Date
+		displayFolder: _Standard Calendar
+		lineageTag: c33c2def-e542-47d1-b431-11fa3ec39720
+		summarizeBy: none
+		isNameInferred
+		sourceColumn: Date Ref[Calendar StartOfYear]
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Calendar EndOfYear'
+		formatString: Short Date
+		displayFolder: _Standard Calendar
+		lineageTag: ef673c14-ae3c-4f69-bb8a-f63db9617875
+		summarizeBy: none
+		isNameInferred
+		sourceColumn: Date Ref[Calendar EndOfYear]
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Calendar MonthDays'
+		formatString: 0
+		displayFolder: _Standard Calendar
+		lineageTag: c7b6991d-1e93-4a53-b0bf-bb4d9728240b
+		summarizeBy: sum
+		isNameInferred
+		sourceColumn: Date Ref[Calendar MonthDays]
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Calendar QuarterDays'
+		formatString: 0
+		displayFolder: _Standard Calendar
+		lineageTag: 7e1c85c4-20ce-49a5-a788-b44eff618ef3
+		summarizeBy: sum
+		isNameInferred
+		sourceColumn: Date Ref[Calendar QuarterDays]
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Calendar YearDays'
+		formatString: 0
+		displayFolder: _Standard Calendar
+		lineageTag: 4891dfee-1f75-4c3a-9bea-861d3612b2a5
+		summarizeBy: sum
+		isNameInferred
+		sourceColumn: Date Ref[Calendar YearDays]
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Calendar DayOfMonthNumber'
+		formatString: 0
+		displayFolder: _Standard Calendar
+		lineageTag: 34806fca-07c1-4024-a936-9161e13a8c7b
+		summarizeBy: sum
+		isNameInferred
+		sourceColumn: Date Ref[Calendar DayOfMonthNumber]
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Calendar DayOfQuarterNumber'
+		formatString: 0
+		displayFolder: _Standard Calendar
+		lineageTag: 9bddb3d9-8f84-44de-9e0c-30aacc4fe3db
+		summarizeBy: sum
+		isNameInferred
+		sourceColumn: Date Ref[Calendar DayOfQuarterNumber]
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Calendar DayOfYearNumber'
+		formatString: 0
+		displayFolder: _Standard Calendar
+		lineageTag: 5e77a5c0-44bc-493f-9fd1-3c3c3845fc32
+		summarizeBy: sum
+		isNameInferred
+		sourceColumn: Date Ref[Calendar DayOfYearNumber]
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Calendar DatePreviousWeek'
+		formatString: Short Date
+		displayFolder: _Standard Calendar
+		lineageTag: 9412edbb-aa3e-440a-b28b-b815200206c1
+		summarizeBy: none
+		isNameInferred
+		sourceColumn: Date Ref[Calendar DatePreviousWeek]
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Calendar DatePreviousMonth'
+		formatString: Short Date
+		displayFolder: _Standard Calendar
+		lineageTag: c0ff8f0c-5607-440d-beb7-be720f02c21c
+		summarizeBy: none
+		isNameInferred
+		sourceColumn: Date Ref[Calendar DatePreviousMonth]
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Calendar DatePreviousQuarter'
+		formatString: Short Date
+		displayFolder: _Standard Calendar
+		lineageTag: b1cd39c6-820f-4eec-b95b-eca9e4fb2f3f
+		summarizeBy: none
+		isNameInferred
+		sourceColumn: Date Ref[Calendar DatePreviousQuarter]
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Calendar DatePreviousYear'
+		formatString: Short Date
+		displayFolder: _Standard Calendar
+		lineageTag: 3836d147-36d2-4b0c-be3a-02013f871121
+		summarizeBy: none
+		isNameInferred
+		sourceColumn: Date Ref[Calendar DatePreviousYear]
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Fiscal Year'
+		displayFolder: _Fiscal Calendar
+		lineageTag: 4309f1b1-5303-4bbe-a033-3ae569481cb4
+		summarizeBy: none
+		isNameInferred
+		sourceColumn: Date Ref[Fiscal Year]
+		sortByColumn: 'Fiscal YearNumber'
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Fiscal YearNumber'
+		isHidden
+		formatString: 0
+		lineageTag: 9be61963-a572-4d0e-aac5-59229b25c86a
+		summarizeBy: sum
+		isNameInferred
+		sourceColumn: Date Ref[Fiscal YearNumber]
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Fiscal QuarterNumber'
+		isHidden
+		lineageTag: f01a737d-316e-41b5-879c-74a492e01e89
+		summarizeBy: sum
+		isNameInferred
+		sourceColumn: Date Ref[Fiscal QuarterNumber]
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column 'Fiscal Quarter'
+		displayFolder: _Fiscal Calendar
+		lineageTag: a3fdb947-7ec9-4f75-a830-9e008027f5be
+		summarizeBy: none
+		isNameInferred
+		sourceColumn: Date Ref[Fiscal Quarter]
+		sortByColumn: 'Fiscal QuarterNumber'
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Fiscal YearQuarterNumber'
+		isHidden
+		lineageTag: 91dbdef6-b76d-494a-8b66-dc10f7e03b45
+		summarizeBy: sum
+		isNameInferred
+		sourceColumn: Date Ref[Fiscal YearQuarterNumber]
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column 'Fiscal Quarter Year'
+		displayFolder: _Fiscal Calendar
+		lineageTag: 55062367-69e1-4f9a-b4a6-ea8e527caec4
+		summarizeBy: none
+		isNameInferred
+		sourceColumn: Date Ref[Fiscal Quarter Year]
+		sortByColumn: 'Fiscal YearQuarterNumber'
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Fiscal MonthNumber'
+		isHidden
+		formatString: 0
+		lineageTag: c080d6c2-37fd-4243-a69b-ae601a5ee927
+		summarizeBy: sum
+		isNameInferred
+		sourceColumn: Date Ref[Fiscal MonthNumber]
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Fiscal MonthInQuarterNumber'
+		isHidden
+		formatString: 0
+		displayFolder: _Fiscal Calendar
+		lineageTag: eeb15ac4-273e-411a-b2c6-bd6ef69d3ad9
+		summarizeBy: sum
+		isNameInferred
+		sourceColumn: Date Ref[Fiscal MonthInQuarterNumber]
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Fiscal Month'
+		displayFolder: _Fiscal Calendar
+		lineageTag: 8a49071b-afae-41c5-b463-81bce1e24c65
+		summarizeBy: none
+		isNameInferred
+		sourceColumn: Date Ref[Fiscal Month]
+		sortByColumn: 'Fiscal MonthNumber'
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Fiscal YearMonthNumber'
+		isHidden
+		formatString: 0
+		lineageTag: 8254bc5a-ce6f-4b87-bccf-33998052ec7e
+		summarizeBy: sum
+		isNameInferred
+		sourceColumn: Date Ref[Fiscal YearMonthNumber]
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Fiscal Month Year'
+		displayFolder: _Fiscal Calendar
+		lineageTag: a6c93316-93e2-4fc2-aebb-21781fcbf7d5
+		summarizeBy: none
+		isNameInferred
+		sourceColumn: Date Ref[Fiscal Month Year]
+		sortByColumn: 'Fiscal YearMonthNumber'
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Fiscal WeekNumber'
+		isHidden
+		formatString: 0
+		lineageTag: 72c2ff47-4995-4360-9f14-9c170925dfae
+		summarizeBy: sum
+		isNameInferred
+		sourceColumn: Date Ref[Fiscal WeekNumber]
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Fiscal Week'
+		displayFolder: _Fiscal Calendar
+		lineageTag: 3ee8444b-9959-446c-909b-67ccacc04ec1
+		summarizeBy: none
+		isNameInferred
+		sourceColumn: Date Ref[Fiscal Week]
+		sortByColumn: 'Fiscal WeekNumber'
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Fiscal YearWeekNumber'
+		isHidden
+		formatString: 0
+		lineageTag: 3f1d7ad9-7131-4869-ae4d-1e4861378737
+		summarizeBy: sum
+		isNameInferred
+		sourceColumn: Date Ref[Fiscal YearWeekNumber]
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Fiscal Week Year'
+		displayFolder: _Fiscal Calendar
+		lineageTag: b09e6e42-954d-401d-901e-73a4908a36eb
+		summarizeBy: none
+		isNameInferred
+		sourceColumn: Date Ref[Fiscal Week Year]
+		sortByColumn: 'FW YearWeekNumber'
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Fiscal WeekYearOrder'
+		isHidden
+		formatString: 0
+		displayFolder: _Fiscal Calendar
+		lineageTag: 10b9bda4-f167-4bd3-a6f7-a9ebf4f38a36
+		summarizeBy: sum
+		isNameInferred
+		sourceColumn: Date Ref[Fiscal WeekYearOrder]
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Fiscal RelativeWeekPos'
+		displayFolder: _Fiscal Calendar
+		lineageTag: a7092406-c70e-47ce-bb5c-8f8c9eb85e1f
+		summarizeBy: sum
+		isNameInferred
+		sourceColumn: Date Ref[Fiscal RelativeWeekPos]
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column 'Fiscal RelativeMonthPos'
+		displayFolder: _Fiscal Calendar
+		lineageTag: e4c65d43-bc58-4c60-a2e6-ca42f109abab
+		summarizeBy: sum
+		isNameInferred
+		sourceColumn: Date Ref[Fiscal RelativeMonthPos]
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column 'Fiscal RelativeQuarterPos'
+		displayFolder: _Fiscal Calendar
+		lineageTag: 8db19a91-3741-4dfe-832d-0b08d51a578a
+		summarizeBy: sum
+		isNameInferred
+		sourceColumn: Date Ref[Fiscal RelativeQuarterPos]
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column 'Fiscal RelativeYearPos'
+		displayFolder: _Fiscal Calendar
+		lineageTag: 405ce0df-cdba-447e-abb8-2f7fda806b0b
+		summarizeBy: sum
+		isNameInferred
+		sourceColumn: Date Ref[Fiscal RelativeYearPos]
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column 'Fiscal StartOfMonth'
+		formatString: Short Date
+		displayFolder: _Fiscal Calendar
+		lineageTag: 96ec7ed1-cf0f-444d-86bc-2cf7fd378db1
+		summarizeBy: none
+		isNameInferred
+		sourceColumn: Date Ref[Fiscal StartOfMonth]
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Fiscal EndOfMonth'
+		formatString: Short Date
+		displayFolder: _Fiscal Calendar
+		lineageTag: d4ee5d8b-8ac7-4319-a7a6-0ec65331f465
+		summarizeBy: none
+		isNameInferred
+		sourceColumn: Date Ref[Fiscal EndOfMonth]
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Fiscal StartOfQuarter'
+		formatString: Short Date
+		displayFolder: _Fiscal Calendar
+		lineageTag: 268275df-62fb-49db-987d-5e4e1b08a39c
+		summarizeBy: none
+		isNameInferred
+		sourceColumn: Date Ref[Fiscal StartOfQuarter]
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Fiscal EndOfQuarter'
+		formatString: Short Date
+		displayFolder: _Fiscal Calendar
+		lineageTag: bc4ac4d0-6d23-43e0-9c0f-bd2039e21980
+		summarizeBy: none
+		isNameInferred
+		sourceColumn: Date Ref[Fiscal EndOfQuarter]
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Fiscal StartOfYear'
+		formatString: Short Date
+		displayFolder: _Fiscal Calendar
+		lineageTag: cfa797dd-4fe9-4af8-9aaf-543956efd413
+		summarizeBy: none
+		isNameInferred
+		sourceColumn: Date Ref[Fiscal StartOfYear]
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Fiscal EndOfYear'
+		formatString: Short Date
+		displayFolder: _Fiscal Calendar
+		lineageTag: 3d9bdb34-e70a-44ec-b296-d13266432f70
+		summarizeBy: none
+		isNameInferred
+		sourceColumn: Date Ref[Fiscal EndOfYear]
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Fiscal MonthDays'
+		formatString: 0
+		displayFolder: _Fiscal Calendar
+		lineageTag: 5d912c0d-fcf0-4259-b2f2-1b8f21666e05
+		summarizeBy: sum
+		isNameInferred
+		sourceColumn: Date Ref[Fiscal MonthDays]
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Fiscal QuarterDays'
+		formatString: 0
+		displayFolder: _Fiscal Calendar
+		lineageTag: dce72481-e786-4ed9-9776-584f5732d133
+		summarizeBy: sum
+		isNameInferred
+		sourceColumn: Date Ref[Fiscal QuarterDays]
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Fiscal YearDays'
+		formatString: 0
+		displayFolder: _Fiscal Calendar
+		lineageTag: b2e1d2c0-aa54-4100-a7f2-a4e018e0bce0
+		summarizeBy: sum
+		isNameInferred
+		sourceColumn: Date Ref[Fiscal YearDays]
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Fiscal DayOfMonthNumber'
+		formatString: 0
+		displayFolder: _Fiscal Calendar
+		lineageTag: 9005eda0-cd3d-40ac-800b-72f704c571f2
+		summarizeBy: sum
+		isNameInferred
+		sourceColumn: Date Ref[Fiscal DayOfMonthNumber]
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Fiscal DayOfQuarterNumber'
+		formatString: 0
+		displayFolder: _Fiscal Calendar
+		lineageTag: 90be3b35-e218-47e3-91fd-707bfc7c7a2a
+		summarizeBy: sum
+		isNameInferred
+		sourceColumn: Date Ref[Fiscal DayOfQuarterNumber]
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Fiscal DayOfYearNumber'
+		formatString: 0
+		displayFolder: _Fiscal Calendar
+		lineageTag: 51f8869a-eae7-44e0-aaa3-a8219657d14c
+		summarizeBy: sum
+		isNameInferred
+		sourceColumn: Date Ref[Fiscal DayOfYearNumber]
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Fiscal DatePreviousWeek'
+		formatString: Short Date
+		displayFolder: _Fiscal Calendar
+		lineageTag: f3d6591f-f7e3-4909-a849-6ac956f6e4b5
+		summarizeBy: none
+		isNameInferred
+		sourceColumn: Date Ref[Fiscal DatePreviousWeek]
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Fiscal DatePreviousMonth'
+		formatString: Short Date
+		displayFolder: _Fiscal Calendar
+		lineageTag: cca225dd-90da-4aa5-8907-aff394845eee
+		summarizeBy: none
+		isNameInferred
+		sourceColumn: Date Ref[Fiscal DatePreviousMonth]
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Fiscal DatePreviousQuarter'
+		formatString: Short Date
+		displayFolder: _Fiscal Calendar
+		lineageTag: 09daf6ef-268b-4d0d-b5c8-413ce37c6186
+		summarizeBy: none
+		isNameInferred
+		sourceColumn: Date Ref[Fiscal DatePreviousQuarter]
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Fiscal DatePreviousYear'
+		formatString: Short Date
+		displayFolder: _Fiscal Calendar
+		lineageTag: 239ad661-3781-4f71-a474-045ee230e220
+		summarizeBy: none
+		isNameInferred
+		sourceColumn: Date Ref[Fiscal DatePreviousYear]
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'FW YearNumber'
+		isHidden
+		formatString: 0
+		lineageTag: 4a945aab-e20f-4631-aea9-c68d8879113e
+		summarizeBy: sum
+		isNameInferred
+		sourceColumn: Date Ref[FW YearNumber]
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'FW Year'
+		displayFolder: _Weekly Calendar
+		lineageTag: ac826f1e-e350-4f10-a088-7cdd9d921d22
+		summarizeBy: none
+		isNameInferred
+		sourceColumn: Date Ref[FW Year]
+		sortByColumn: 'FW YearNumber'
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'FW QuarterNumber'
+		isHidden
+		lineageTag: 1e73dd82-3efb-4a8c-8682-b64d5d5ebf12
+		summarizeBy: sum
+		isNameInferred
+		sourceColumn: Date Ref[FW QuarterNumber]
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column 'FW Quarter'
+		displayFolder: _Weekly Calendar
+		lineageTag: ea488855-48b0-4a2d-a99c-cfeb1c841c00
+		summarizeBy: none
+		isNameInferred
+		sourceColumn: Date Ref[FW Quarter]
+		sortByColumn: 'FW QuarterNumber'
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'FW YearQuarterNumber'
+		isHidden
+		lineageTag: 9f02774d-9843-422a-b215-e1d6a739825f
+		summarizeBy: sum
+		isNameInferred
+		sourceColumn: Date Ref[FW YearQuarterNumber]
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column 'FW Quarter Year'
+		displayFolder: _Weekly Calendar
+		lineageTag: 61e1ae08-6194-4c3c-b8d6-b7b3a8548e3f
+		summarizeBy: none
+		isNameInferred
+		sourceColumn: Date Ref[FW Quarter Year]
+		sortByColumn: 'FW YearQuarterNumber'
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'FW MonthNumber'
+		isHidden
+		lineageTag: 838c85c2-dc3c-4072-b0fe-21061bb62085
+		summarizeBy: sum
+		isNameInferred
+		sourceColumn: Date Ref[FW MonthNumber]
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column 'FW Month'
+		displayFolder: _Weekly Calendar
+		lineageTag: 3b27db1b-5184-48e7-a64f-8713263bbcde
+		summarizeBy: none
+		isNameInferred
+		sourceColumn: Date Ref[FW Month]
+		sortByColumn: 'FW MonthNumber'
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'FW YearMonthNumber'
+		isHidden
+		lineageTag: f794c90d-e274-43d4-b0fe-e70babcb82e5
+		summarizeBy: sum
+		isNameInferred
+		sourceColumn: Date Ref[FW YearMonthNumber]
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column 'FW Month Year'
+		displayFolder: _Weekly Calendar
+		lineageTag: b4fc566a-9fa1-4d4c-b593-b9e688465df8
+		summarizeBy: none
+		isNameInferred
+		sourceColumn: Date Ref[FW Month Year]
+		sortByColumn: 'FW YearMonthNumber'
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'FW WeekNumber'
+		isHidden
+		formatString: 0
+		lineageTag: 14b75dde-362c-45e2-b8fa-8b4846b97d92
+		summarizeBy: sum
+		isNameInferred
+		sourceColumn: Date Ref[FW WeekNumber]
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'FW Week'
+		displayFolder: _Weekly Calendar
+		lineageTag: 94ccf79f-75e4-4e53-85e5-d7ba2e318383
+		summarizeBy: none
+		isNameInferred
+		sourceColumn: Date Ref[FW Week]
+		sortByColumn: 'FW WeekNumber'
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'FW PeriodNumber'
+		isHidden
+		lineageTag: ff1b8388-ed99-4f9e-b20b-9fa56541d3c7
+		summarizeBy: sum
+		isNameInferred
+		sourceColumn: Date Ref[FW PeriodNumber]
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column 'FW Period'
+		displayFolder: _Weekly Calendar
+		lineageTag: 1ea40e86-d134-40b0-a117-957e0fcb5c94
+		summarizeBy: none
+		isNameInferred
+		sourceColumn: Date Ref[FW Period]
+		sortByColumn: 'FW PeriodNumber'
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'FW YearWeekNumber'
+		isHidden
+		formatString: 0
+		lineageTag: ff50a726-b889-4a2b-90e5-50dd2be2de83
+		summarizeBy: sum
+		isNameInferred
+		sourceColumn: Date Ref[FW YearWeekNumber]
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'FW Week Year'
+		displayFolder: _Weekly Calendar
+		lineageTag: e215dcb4-1cb2-40be-9dbe-972862b3baa2
+		summarizeBy: none
+		isNameInferred
+		sourceColumn: Date Ref[FW Week Year]
+		sortByColumn: 'FW YearWeekNumber'
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'FW StartOfWeek'
+		formatString: Short Date
+		displayFolder: _Weekly Calendar
+		lineageTag: 13c0c728-c94e-4602-a213-81fdf9318fdd
+		summarizeBy: none
+		isNameInferred
+		sourceColumn: Date Ref[FW StartOfWeek]
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'FW EndOfWeek'
+		formatString: Short Date
+		displayFolder: _Weekly Calendar
+		lineageTag: ba4d5cae-592d-4aa1-bb4f-80d480ac0e32
+		summarizeBy: none
+		isNameInferred
+		sourceColumn: Date Ref[FW EndOfWeek]
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'FW RelativeWeekPos'
+		displayFolder: _Weekly Calendar
+		lineageTag: 90865798-3ed2-48db-970d-407a69f604a1
+		summarizeBy: sum
+		isNameInferred
+		sourceColumn: Date Ref[FW RelativeWeekPos]
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column 'FW RelativeMonthPos'
+		displayFolder: _Weekly Calendar
+		lineageTag: 15cab468-7f86-4a20-81b2-ef7a1108ed10
+		summarizeBy: sum
+		isNameInferred
+		sourceColumn: Date Ref[FW RelativeMonthPos]
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column 'FW RelativeQuarterPos'
+		displayFolder: _Weekly Calendar
+		lineageTag: 7c457684-360a-4ede-a38a-41c46bc88d7c
+		summarizeBy: sum
+		isNameInferred
+		sourceColumn: Date Ref[FW RelativeQuarterPos]
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column 'FW RelativeYearPos'
+		displayFolder: _Weekly Calendar
+		lineageTag: 9ba55f9b-2226-4985-a3a5-def688fc151c
+		summarizeBy: sum
+		isNameInferred
+		sourceColumn: Date Ref[FW RelativeYearPos]
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column 'FW StartOfMonth'
+		formatString: Short Date
+		displayFolder: _Weekly Calendar
+		lineageTag: a46d4152-42a0-44af-9ea8-16d4e9a15ecb
+		summarizeBy: none
+		isNameInferred
+		sourceColumn: Date Ref[FW StartOfMonth]
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'FW EndOfMonth'
+		formatString: Short Date
+		displayFolder: _Weekly Calendar
+		lineageTag: 6293aed1-d7fa-41a1-a62d-fa2d8e89f045
+		summarizeBy: none
+		isNameInferred
+		sourceColumn: Date Ref[FW EndOfMonth]
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'FW StartOfQuarter'
+		formatString: Short Date
+		displayFolder: _Weekly Calendar
+		lineageTag: 8483ae63-3171-4889-8dcb-bb706a0cfc45
+		summarizeBy: none
+		isNameInferred
+		sourceColumn: Date Ref[FW StartOfQuarter]
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'FW EndOfQuarter'
+		formatString: Short Date
+		displayFolder: _Weekly Calendar
+		lineageTag: b249ccc8-36bd-4e18-b574-1fc55d8fc9a8
+		summarizeBy: none
+		isNameInferred
+		sourceColumn: Date Ref[FW EndOfQuarter]
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'FW StartOfYear'
+		formatString: Short Date
+		displayFolder: _Weekly Calendar
+		lineageTag: 4e147ce6-585a-4b5a-bf49-1e96a65022f6
+		summarizeBy: none
+		isNameInferred
+		sourceColumn: Date Ref[FW StartOfYear]
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'FW EndOfYear'
+		formatString: Short Date
+		displayFolder: _Weekly Calendar
+		lineageTag: 60b08900-3f6c-4855-bc00-789ccb4ca8c2
+		summarizeBy: none
+		isNameInferred
+		sourceColumn: Date Ref[FW EndOfYear]
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'FW MonthDays'
+		formatString: 0
+		displayFolder: _Weekly Calendar
+		lineageTag: df984e82-e421-48fc-8a00-59826303e58f
+		summarizeBy: sum
+		isNameInferred
+		sourceColumn: Date Ref[FW MonthDays]
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'FW QuarterDays'
+		formatString: 0
+		displayFolder: _Weekly Calendar
+		lineageTag: 4b23d5be-1bef-4bee-be02-a48c680a91ed
+		summarizeBy: sum
+		isNameInferred
+		sourceColumn: Date Ref[FW QuarterDays]
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'FW YearDays'
+		formatString: 0
+		displayFolder: _Weekly Calendar
+		lineageTag: f94d98c8-b581-4c1d-be31-23d2e0f57fba
+		summarizeBy: sum
+		isNameInferred
+		sourceColumn: Date Ref[FW YearDays]
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'FW DayOfMonthNumber'
+		formatString: 0
+		displayFolder: _Weekly Calendar
+		lineageTag: 8d833c34-a69f-487a-a198-52eb7ae8fa48
+		summarizeBy: sum
+		isNameInferred
+		sourceColumn: Date Ref[FW DayOfMonthNumber]
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'FW DayOfQuarterNumber'
+		formatString: 0
+		displayFolder: _Weekly Calendar
+		lineageTag: 13d04d86-e5fa-48e4-a680-4ca569b43bfd
+		summarizeBy: sum
+		isNameInferred
+		sourceColumn: Date Ref[FW DayOfQuarterNumber]
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'FW DayOfYearNumber'
+		formatString: 0
+		displayFolder: _Weekly Calendar
+		lineageTag: 17054897-fac4-4cab-89a0-88049f3b8b3b
+		summarizeBy: sum
+		isNameInferred
+		sourceColumn: Date Ref[FW DayOfYearNumber]
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'FW DatePreviousWeek'
+		formatString: Short Date
+		displayFolder: _Weekly Calendar
+		lineageTag: 12add804-bcd9-449c-9034-623015558a9e
+		summarizeBy: none
+		isNameInferred
+		sourceColumn: Date Ref[FW DatePreviousWeek]
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'FW DatePreviousMonth'
+		formatString: Short Date
+		displayFolder: _Weekly Calendar
+		lineageTag: 81345b13-f5f8-4a2e-a9fa-2aa7a0cded00
+		summarizeBy: none
+		isNameInferred
+		sourceColumn: Date Ref[FW DatePreviousMonth]
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'FW DatePreviousQuarter'
+		formatString: Short Date
+		displayFolder: _Weekly Calendar
+		lineageTag: 326717ad-741d-4f97-86fa-864673193d21
+		summarizeBy: none
+		isNameInferred
+		sourceColumn: Date Ref[FW DatePreviousQuarter]
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'FW DatePreviousYear'
+		formatString: Short Date
+		displayFolder: _Weekly Calendar
+		lineageTag: eccf8b73-0631-422c-a03b-44fdf591c2a4
+		summarizeBy: none
+		isNameInferred
+		sourceColumn: Date Ref[FW DatePreviousYear]
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Relative Day'
+		formatString: 0
+		lineageTag: 065c76e8-8ede-45f4-b15b-f30f6d127e3e
+		summarizeBy: none
+		isNameInferred
+		sourceColumn: Date Ref[Relative Day]
+
+		annotation SummarizationSetBy = User
+
+	column Sequential365DayNumber
+		isHidden
+		lineageTag: bbd3cd48-1922-4293-8cd0-c69a7528ca56
+		summarizeBy: sum
+		isNameInferred
+		sourceColumn: Date Ref[Sequential365DayNumber]
+
+		annotation SummarizationSetBy = Automatic
+
+	hierarchy 'Fiscal Year-Quarter-Month-Week'
+		displayFolder: _Fiscal Calendar
+		lineageTag: 3d809386-699f-419e-b16d-f49c19b12b29
+
+		level 'Fiscal Year'
+			lineageTag: 40f0b909-9e82-4ba3-92df-a8b50b00a40b
+			column: 'Fiscal Year'
+
+		level 'Fiscal Quarter Year'
+			lineageTag: b110c9b3-ebdb-4ed1-8427-abbb882e1d58
+			column: 'Fiscal Quarter Year'
+
+		level 'Fiscal Month Year'
+			lineageTag: 9bd26d03-671d-4cea-9e25-5aafb1c7d21f
+			column: 'Fiscal Month Year'
+
+		level 'Fiscal Week Year'
+			lineageTag: 50478d23-8e70-467a-8801-ce96d8e29c35
+			column: 'Fiscal Week Year'
+
+	hierarchy 'Calendar Year-Quarter-Month-Week'
+		displayFolder: _Standard Calendar
+		lineageTag: 1e1ffcb8-b7cd-4858-91d0-5a8526a6a135
+
+		level 'Calendar Year'
+			lineageTag: d82e0fe4-49e2-4df6-a525-9a4f6108743b
+			column: 'Calendar Year'
+
+		level 'Calendar Quarter Year'
+			lineageTag: 875d1c42-f9de-4373-9dec-a1409f1e179d
+			column: 'Calendar Quarter Year'
+
+		level 'Calendar Month Year'
+			lineageTag: 86bf3301-883d-4e52-be22-7585cc62296d
+			column: 'Calendar Month Year'
+
+		level 'Calendar Week Year'
+			lineageTag: 82ff4fc4-5640-43be-96e1-1ccb6533253e
+			column: 'Calendar Week Year'
+
+	hierarchy 'FW Year-Quarter-Month-Week'
+		displayFolder: _Weekly Calendar
+		lineageTag: d82a685d-84a6-48dc-9d56-aba3a6d35852
+
+		level 'FW Year'
+			lineageTag: e5cd94ed-0d1a-4e41-89ad-82cf77688b47
+			column: 'FW Year'
+
+		level 'FW Quarter Year'
+			lineageTag: 9adb622b-d68e-41eb-92d3-f0d3ea6d363f
+			column: 'FW Quarter Year'
+
+		level 'FW Month Year'
+			lineageTag: 80aae42c-b9ec-42c5-ae09-13c65d700732
+			column: 'FW Month Year'
+
+		level 'FW Week Year'
+			lineageTag: 01c4eb82-c283-4300-8765-3e61e813fec9
+			column: 'FW Week Year'
+
+	hierarchy 'Fiscal Year-Month'
+		displayFolder: _Fiscal Calendar
+		lineageTag: b91345f2-a64b-4476-bcdd-bc62e8eddf8c
+
+		level 'Fiscal Year'
+			lineageTag: 54b6013d-cd41-43ea-adde-7461b8f56250
+			column: 'Fiscal Year'
+
+		level 'Fiscal Month Year'
+			lineageTag: 0e94c815-23fc-4ac6-9863-dd02e6f69315
+			column: 'Fiscal Month Year'
+
+	hierarchy 'Fiscal Year-Month-Week'
+		displayFolder: _Fiscal Calendar
+		lineageTag: 298a8eb2-1115-42f8-9b24-319c1f464fce
+
+		level 'Fiscal Year'
+			lineageTag: e8fd0bf8-66c7-4df2-8526-1bb27177f912
+			column: 'Fiscal Year'
+
+		level 'Fiscal Month Year'
+			lineageTag: edd3142f-d60d-494b-85fc-dcadaaa5b8a4
+			column: 'Fiscal Month Year'
+
+		level 'Fiscal Week Year'
+			lineageTag: c88b8774-fc79-4567-9b79-2849dedd4657
+			column: 'Fiscal Week Year'
+
+	hierarchy 'Calendar Year-Month'
+		displayFolder: _Standard Calendar
+		lineageTag: b1438c41-8116-4575-9e46-a0c98f675559
+
+		level 'Calendar Year'
+			lineageTag: 7bfba93e-5d86-41fa-a428-152ab854a070
+			column: 'Calendar Year'
+
+		level 'Calendar Month Year'
+			lineageTag: a923bc3f-1bdd-4926-b538-a0bf17d0b2d5
+			column: 'Calendar Month Year'
+
+	hierarchy 'Calendar Year-Month-Week'
+		displayFolder: _Standard Calendar
+		lineageTag: 14bbd8ca-3b08-45dd-a221-5fde94bf8dc6
+
+		level 'Calendar Year'
+			lineageTag: b4693f04-e15f-42f1-afce-641aa9bd8386
+			column: 'Calendar Year'
+
+		level 'Calendar Month Year'
+			lineageTag: ad1f4929-9815-47ae-ae38-e76760467433
+			column: 'Calendar Month Year'
+
+		level 'Calendar Week Year'
+			lineageTag: 8c1e598f-68d9-4ec8-8e8b-94bc0f325e6d
+			column: 'Calendar Week Year'
+
+	hierarchy 'FW Year-Month-Week'
+		displayFolder: _Weekly Calendar
+		lineageTag: 6aaeeccb-1242-43fb-9099-223d53bf7246
+
+		level 'FW Year'
+			lineageTag: 37704c7b-a221-40d3-a104-a5e5c16746f0
+			column: 'FW Year'
+
+		level 'FW Month Year'
+			lineageTag: 1d9a9430-6bed-465f-afbf-c367b9f5edf6
+			column: 'FW Month Year'
+
+		level 'FW Week Year'
+			lineageTag: da024fdc-e22a-4d6e-8355-fbe50de4695c
+			column: 'FW Week Year'
+
+	hierarchy 'FW Year-Quarter-Week'
+		displayFolder: _Weekly Calendar
+		lineageTag: 5dc02715-2940-4e60-8501-f9850f5b89a0
+
+		level 'FW Year'
+			lineageTag: c4f66205-6c99-4eed-9ea9-0fd4bf9fa72b
+			column: 'FW Year'
+
+		level 'FW Quarter Year'
+			lineageTag: d9c3188f-b8fa-45bc-9e08-880f6c98db91
+			column: 'FW Quarter Year'
+
+		level 'FW Week Year'
+			lineageTag: a100ef88-63c6-46b8-88c7-7d5d4ba25929
+			column: 'FW Week Year'
+
+	hierarchy 'FW Year-Week'
+		displayFolder: _Weekly Calendar
+		lineageTag: 41126b6f-8505-4d19-a3e8-7452ae3cefaa
+
+		level 'FW Year'
+			lineageTag: 0e86a949-ac84-4345-a88e-352ea19afe07
+			column: 'FW Year'
+
+		level 'FW Week Year'
+			lineageTag: 7fb1d3c0-186f-4de8-a7be-dec117b3c3fd
+			column: 'FW Week Year'
+
+	partition Date-fb762a96-1dbb-42f0-9ece-2145aa3ae786 = calculated
+		mode: import
+		source = 'Date Ref'
+
+	annotation PBI_Id = f76c5b5ef8b847dd831e9ca060731a1c
+

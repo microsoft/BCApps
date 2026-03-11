@@ -1,0 +1,1207 @@
+cultureInfo fi-FI
+	translations
+		model Model
+			table Item
+				caption: Nimike
+				column 'Item No. & Description'
+					caption: Nimikkeen nro ja kuvaus
+				column 'Item No.'
+					caption: Nimikkeen numero
+				column 'Item Description'
+					caption: Nimikkeen kuvaus
+				column 'Item Unit Cost (LCY)'
+					caption: Nimikkeen yksikkökustannus (PVA)
+				column 'Item Inventory Posting Group'
+					caption: Nimikkeen varaston kirjausryhmä
+				column 'Item Category Code'
+					caption: Nimikeluokan koodi
+				column 'Item Category Description'
+					caption: Nimikeluokan kuvaus
+				column 'Item Routing No.'
+					caption: Nimikkeen reititysnro
+				column 'Item Production BOM No.'
+					caption: Nimikkeen tuotannon tuoterak. nro
+				column 'Item Replenishment System'
+					caption: Nimikkeen täydennysjärjestelmä
+				column 'Item Single-Level Cap. Ovhd Cost'
+					caption: Nimikkeen yksitasoinen kap. yleiskust.
+				column 'Item Single-Level Capacity Cost'
+					caption: Nimikkeen yksitasoinen kapasiteettikust.
+				column 'Item Single-Level Material Cost'
+					caption: Nimikkeen yksitasoinen materiaalikust.
+				column 'Item Single-Level Mfg. Ovhd Cost'
+					caption: Nimikkeen yksitasoinen tuotannon yleisk.
+				column 'Item Single-Level Subcontrd. Cost'
+					caption: Nimikkeen yksitasoinen alihank. kust.
+				column 'Item Base Unit of Measure'
+					caption: Nimikkeen perusmittayksikkö
+				column 'Item Rolled-up Cap. Overhead Cost'
+					caption: Nimikkeen vyörytetty kapasit. yl.kust.
+				column 'Item Rolled-up Capacity Cost'
+					caption: Nimikkeen vyörytetty kapasiteettikust.
+				column 'Item Rolled-up Material Cost'
+					caption: Nimikkeen vyörytetty materia.kust.
+				column 'Item Rolled-up Mfg. Ovhd Cost'
+					caption: Nimikkeen vyöryt. tuot. yleiskust.
+				column 'Item Rolled-up Subcontracted Cost'
+					caption: Nimikkeen vyörytetty alihankkijakust.
+				column 'Item Scrap %'
+					caption: Nimikkeen hukka-%
+				column 'Item Single-Lvl Mat. Non-Invt. Cost'
+					caption: Nimikkeen yksitas. mat. ei-varast. kust.
+				column 'Item Rolled-up Mat. Non-Invt. Cost'
+					caption: Nimikkeen vyörytetty mat. ei-varast. kust.
+			table Date
+				caption: Pvm
+				column DateKey
+					caption: DateKey
+				column 'Day of Month'
+					caption: Kuukauden päivä
+				column WeekDayNumber
+					caption: WeekDayNumber
+				column 'Week Day'
+					caption: Viikonpäivä
+				column 'Holiday Name'
+					caption: Loman nimi
+				column IsWorkingDay
+					caption: IsWorkingDay
+				column 'Day Type'
+					caption: Päivän tyyppi
+				column DatesWithTransactions
+					caption: DatesWithTransactions
+				column 'Calendar YearNumber'
+					caption: Kalenteri – VuodenNumero
+				column 'Calendar Year'
+					caption: Kalenterivuosi
+				column 'Calendar QuarterNumber'
+					caption: Kalenteri – VuosineljänneksenNumero
+				column 'Calendar Quarter'
+					caption: Kalenterin vuosineljännes
+				column 'Calendar YearQuarterNumber'
+					caption: Kalenteri – VuodenVuosineljänneksenNumero
+				column 'Calendar Quarter Year'
+					caption: Kalenterin vuosineljännes, vuosi
+				column 'Calendar MonthNumber'
+					caption: Kalenteri – KuukaudenNumero
+				column 'Calendar Month'
+					caption: Kalenterikuukausi
+				column 'Calendar YearMonthNumber'
+					caption: Kalenteri – VuodenKuukaudenNumero
+				column 'Calendar Month Year'
+					caption: Kalenterikuukausi, vuosi
+				column 'Calendar WeekNumber'
+					caption: Kalenteri – ViikonNumero
+				column 'Calendar Week'
+					caption: Kalenteriviikko
+				column 'Calendar YearWeekNumber'
+					caption: Kalenteri – VuodenViikonNumero
+				column 'Calendar Week Year'
+					caption: Kalenteriviikko, vuosi
+				column 'Calendar WeekYearOrder'
+					caption: Kalenteri – ViikonVuodenJärjestys
+				column 'Calendar RelativeWeekPos'
+					caption: Kalenteri – SuhteellisenViikonOstotilaukset
+				column 'Calendar RelativeMonthPos'
+					caption: Kalenteri – SuhteellisenKuukaudenOstotilaukset
+				column 'Calendar RelativeQuarterPos'
+					caption: Kalenteri – SuhteellisenVuosineljänneksenOstotilaukset
+				column 'Calendar RelativeYearPos'
+					caption: Kalenteri – SuhteellisenVuodenOstotilaukset
+				column 'Calendar StartOfMonth'
+					caption: Kalenteri – KuukausiAlkaa
+				column 'Calendar EndOfMonth'
+					caption: Kalenteri – KuukausiPäättyy
+				column 'Calendar StartOfQuarter'
+					caption: Kalenteri – VuosineljännesAlkaa
+				column 'Calendar EndOfQuarter'
+					caption: Kalenteri – VuosineljännesPäättyy
+				column 'Calendar StartOfYear'
+					caption: Kalenteri – VuosiAlkaa
+				column 'Calendar EndOfYear'
+					caption: Kalenteri – VuosiPäättyy
+				column 'Calendar MonthDays'
+					caption: Kalenteri – KuukaudenPäivät
+				column 'Calendar QuarterDays'
+					caption: Kalenteri – VuosineljänneksenPäivät
+				column 'Calendar YearDays'
+					caption: Kalenteri – VuodenPäivät
+				column 'Calendar DayOfMonthNumber'
+					caption: Kalenteri – KuukaudenPäivänNumero
+				column 'Calendar DayOfQuarterNumber'
+					caption: Kalenteri – VuosineljänneksenPäivänNumero
+				column 'Calendar DayOfYearNumber'
+					caption: Kalenteri – VuodenPäivänNumero
+				column 'Calendar DatePreviousWeek'
+					caption: Kalenteri – PäivämääräEdellinenViikko
+				column 'Calendar DatePreviousMonth'
+					caption: Kalenteri – PäivämääräEdellinenKuukausi
+				column 'Calendar DatePreviousQuarter'
+					caption: Kalenteri – PäivämääräEdellinenVuosineljännes
+				column 'Calendar DatePreviousYear'
+					caption: Kalenteri – PäivämääräEdellinenVuosi
+				column 'Fiscal Year'
+					caption: Tilikausi
+				column 'Fiscal YearNumber'
+					caption: Kirjanpito – VuodenNumero
+				column 'Fiscal QuarterNumber'
+					caption: Kirjanpito – VuosineljänneksenNumero
+				column 'Fiscal Quarter'
+					caption: Kirjanpidon vuosineljännes
+				column 'Fiscal YearQuarterNumber'
+					caption: Kirjanpito – VuodenVuosineljänneksenNumero
+				column 'Fiscal Quarter Year'
+					caption: Kirjanpidon vuosineljännes, vuosi
+				column 'Fiscal MonthNumber'
+					caption: Kirjanpito – KuukaudenNumero
+				column 'Fiscal MonthInQuarterNumber'
+					caption: Kirjanpito – KuukaudenNumeroVuosineljänneksessä
+				column 'Fiscal Month'
+					caption: Kirjanpitokuukausi
+				column 'Fiscal YearMonthNumber'
+					caption: Kirjanpito – VuodenKuukaudenNumero
+				column 'Fiscal Month Year'
+					caption: Kirjanpidon kuukausi, vuosi
+				column 'Fiscal WeekNumber'
+					caption: Kirjanpito – ViikonNumero
+				column 'Fiscal Week'
+					caption: Kirjanpitoviikko
+				column 'Fiscal YearWeekNumber'
+					caption: Kirjanpito – VuodenViikonNumero
+				column 'Fiscal Week Year'
+					caption: Kirjanpitoviikko, vuosi
+				column 'Fiscal WeekYearOrder'
+					caption: Kirjanpito – ViikonVuodenJärjestys
+				column 'Fiscal RelativeWeekPos'
+					caption: Kirjanpito – SuhteellisenViikonOstotilaukset
+				column 'Fiscal RelativeMonthPos'
+					caption: Kirjanpito – SuhteellisenKuukaudenOstotilaukset
+				column 'Fiscal RelativeQuarterPos'
+					caption: Kirjanpito – SuhteellisenVuosineljänneksenOstotilaukset
+				column 'Fiscal RelativeYearPos'
+					caption: Kirjanpito – SuhteellisenVuodenOstotilaukset
+				column 'Fiscal StartOfMonth'
+					caption: Kirjanpito – KuukausiAlkaa
+				column 'Fiscal EndOfMonth'
+					caption: Kirjanpito – KuukausiPäättyy
+				column 'Fiscal StartOfQuarter'
+					caption: Kirjanpito – VuosineljännesAlkaa
+				column 'Fiscal EndOfQuarter'
+					caption: Kirjanpito – VuosineljännesPäättyy
+				column 'Fiscal StartOfYear'
+					caption: Kirjanpito – VuosiAlkaa
+				column 'Fiscal EndOfYear'
+					caption: Kirjanpito – VuosiPäättyy
+				column 'Fiscal MonthDays'
+					caption: Kirjanpito – KuukaudenPäivät
+				column 'Fiscal QuarterDays'
+					caption: Kirjanpito – VuosineljänneksenPäivät
+				column 'Fiscal YearDays'
+					caption: Kirjanpito – VuodenPäivät
+				column 'Fiscal DayOfMonthNumber'
+					caption: Kirjanpito – KuukaudenPäivänNumero
+				column 'Fiscal DayOfQuarterNumber'
+					caption: Kirjanpito – VuosineljänneksenPäivänNumero
+				column 'Fiscal DayOfYearNumber'
+					caption: Kirjanpito – VuodenPäivänNumero
+				column 'Fiscal DatePreviousWeek'
+					caption: Kirjanpito – PäivämääräEdellinenViikko
+				column 'Fiscal DatePreviousMonth'
+					caption: Kirjanpito – PäivämääräEdellinenKuukausi
+				column 'Fiscal DatePreviousQuarter'
+					caption: Kirjanpito – PäivämääräEdellinenVuosineljännes
+				column 'Fiscal DatePreviousYear'
+					caption: Kirjanpito – PäivämääräEdellinenVuosi
+				column 'FW YearNumber'
+					caption: KV – VuodenNumero
+				column 'FW Year'
+					caption: KV – Vuosi
+				column 'FW QuarterNumber'
+					caption: KV – VuosineljänneksenNumero
+				column 'FW Quarter'
+					caption: KV – Vuosineljännes
+				column 'FW YearQuarterNumber'
+					caption: KV – VuodenVuosineljänneksenNumero
+				column 'FW Quarter Year'
+					caption: KV – Vuosineljännes, vuosi
+				column 'FW MonthNumber'
+					caption: KV – KuukaudenNumero
+				column 'FW Month'
+					caption: KV – Kuukausi
+				column 'FW YearMonthNumber'
+					caption: KV – VuodenKuukaudenNumero
+				column 'FW Month Year'
+					caption: KV – Kuukausi, vuosi
+				column 'FW WeekNumber'
+					caption: KV – ViikonNumero
+				column 'FW Week'
+					caption: KV – Viikko
+				column 'FW PeriodNumber'
+					caption: KV – KaudenNumero
+				column 'FW Period'
+					caption: KV – Kausi
+				column 'FW YearWeekNumber'
+					caption: KV – VuodenViikonNumero
+				column 'FW Week Year'
+					caption: KV – Viikko, vuosi
+				column 'FW StartOfWeek'
+					caption: KV – ViikkoAlkaa
+				column 'FW EndOfWeek'
+					caption: KV – ViikkoPäättyy
+				column 'FW RelativeWeekPos'
+					caption: KV – SuhteellisenViikonOstotilaukset
+				column 'FW RelativeMonthPos'
+					caption: KV – SuhteellisenKuukaudenOstotilaukset
+				column 'FW RelativeQuarterPos'
+					caption: KV – SuhteellisenVuosineljänneksenOstotilaukset
+				column 'FW RelativeYearPos'
+					caption: KV – SuhteellisenVuodenOstotilaukset
+				column 'FW StartOfMonth'
+					caption: KV – KuukausiAlkaa
+				column 'FW EndOfMonth'
+					caption: KV – KuukausiPäättyy
+				column 'FW StartOfQuarter'
+					caption: KV – VuosineljännesAlkaa
+				column 'FW EndOfQuarter'
+					caption: KV – VuosineljännesPäättyy
+				column 'FW StartOfYear'
+					caption: KV – VuosiAlkaa
+				column 'FW EndOfYear'
+					caption: KV – VuosiPäättyy
+				column 'FW MonthDays'
+					caption: KV – KuukaudenPäivät
+				column 'FW QuarterDays'
+					caption: KV – VuosineljänneksenPäivät
+				column 'FW YearDays'
+					caption: KV – VuodenPäivät
+				column 'FW DayOfMonthNumber'
+					caption: KV – KuukaudenPäivänNumero
+				column 'FW DayOfQuarterNumber'
+					caption: KV – VuosineljänneksenPäivänNumero
+				column 'FW DayOfYearNumber'
+					caption: KV – VuodenPäivänNumero
+				column 'FW DatePreviousWeek'
+					caption: KV – PäivämääräEdellinenViikko
+				column 'FW DatePreviousMonth'
+					caption: KV – PäivämääräEdellinenKuukausi
+				column 'FW DatePreviousQuarter'
+					caption: KV – PäivämääräEdellinenVuosineljännes
+				column 'FW DatePreviousYear'
+					caption: KV – PäivämääräEdellinenVuosi
+				column 'Relative Day'
+					caption: Suhteellinen päivämäärä
+				column Sequential365DayNumber
+					caption: Sequential365DayNumber
+				hierarchy 'Fiscal Year-Month'
+					caption: Kirjanpito – Vuosi-Kuukausi
+					level 'Fiscal Year'
+						caption: Tilikausi
+					level 'Fiscal Month Year'
+						caption: Kirjanpidon kuukausi, vuosi
+				hierarchy 'Fiscal Year-Month-Week'
+					caption: Kirjanpito – Vuosi-Kuukausi-Viikko
+					level 'Fiscal Year'
+						caption: Tilikausi
+					level 'Fiscal Month Year'
+						caption: Kirjanpidon kuukausi, vuosi
+					level 'Fiscal Week Year'
+						caption: Kirjanpitoviikko, vuosi
+				hierarchy 'Fiscal Year-Quarter-Month-Week'
+					caption: Kirjanpito – Vuosi-Vuosineljännes-Kuukausi-Viikko
+					level 'Fiscal Year'
+						caption: Tilikausi
+					level 'Fiscal Quarter Year'
+						caption: Kirjanpidon vuosineljännes, vuosi
+					level 'Fiscal Month Year'
+						caption: Kirjanpidon kuukausi, vuosi
+					level 'Fiscal Week Year'
+						caption: Kirjanpitoviikko, vuosi
+				hierarchy 'Calendar Year-Month'
+					caption: Kalenteri – Vuosi-Kuukausi
+					level 'Calendar Year'
+						caption: Kalenterivuosi
+					level 'Calendar Month Year'
+						caption: Kalenterikuukausi, vuosi
+				hierarchy 'Calendar Year-Month-Week'
+					caption: Kalenteri – Vuosi-Kuukausi-Viikko
+					level 'Calendar Year'
+						caption: Kalenterivuosi
+					level 'Calendar Month Year'
+						caption: Kalenterikuukausi, vuosi
+					level 'Calendar Week Year'
+						caption: Kalenteriviikko, vuosi
+				hierarchy 'Calendar Year-Quarter-Month-Week'
+					caption: Kalenteri – Vuosi-Vuosineljännes-Kuukausi-Viikko
+					level 'Calendar Year'
+						caption: Kalenterivuosi
+					level 'Calendar Quarter Year'
+						caption: Kalenterin vuosineljännes, vuosi
+					level 'Calendar Month Year'
+						caption: Kalenterikuukausi, vuosi
+					level 'Calendar Week Year'
+						caption: Kalenteriviikko, vuosi
+				hierarchy 'FW Year-Month-Week'
+					caption: KV – Vuosi-Kuukausi-Viikko
+					level 'FW Year'
+						caption: KV – Vuosi
+					level 'FW Month Year'
+						caption: KV – Kuukausi, vuosi
+					level 'FW Week Year'
+						caption: KV – Viikko, vuosi
+				hierarchy 'FW Year-Quarter-Month-Week'
+					caption: KV – Vuosi-Vuosineljännes-Kuukausi-Viikko
+					level 'FW Year'
+						caption: KV – Vuosi
+					level 'FW Quarter Year'
+						caption: KV – Vuosineljännes, vuosi
+					level 'FW Month Year'
+						caption: KV – Kuukausi, vuosi
+					level 'FW Week Year'
+						caption: KV – Viikko, vuosi
+				hierarchy 'FW Year-Quarter-Week'
+					caption: KV – Vuosi-Vuosineljännes-Viikko
+					level 'FW Year'
+						caption: KV – Vuosi
+					level 'FW Quarter Year'
+						caption: KV – Vuosineljännes, vuosi
+					level 'FW Week Year'
+						caption: KV – Viikko, vuosi
+				hierarchy 'FW Year-Week'
+					caption: KV – Vuosi-Viikko
+					level 'FW Year'
+						caption: KV – Vuosi
+					level 'FW Week Year'
+						caption: KV – Viikko, vuosi
+			table 'Work Center'
+				caption: Tuotantosolu
+				column 'Work Center Name'
+					caption: Tuotantosolun nimi
+				column 'Work Center Group Code'
+					caption: Tuotantosoluryhmän koodi
+				column 'Work Center Group Name'
+					caption: Tuotantosoluryhmän nimi
+				column 'Work Center No.'
+					caption: Tuotantosolun nro
+				column 'Work Center Subcontractor No.'
+					caption: Tuotantosolun alihankkijan nro
+				column 'Work Center Unit of Measure Code'
+					caption: Tuotantosolun mittayksikön koodi
+				measure 'Work Center Availability After Orders'
+					caption: Tuotantosolun saatavuus tilausten jälkeen
+				measure 'Work Center Capacity (Effective)'
+					caption: Tuotantosolun kapasiteetti (varsinainen)
+				measure 'Work Center Load'
+					caption: Tuotantosolun kuormitus
+				measure 'Work Center Allocated Time'
+					caption: Tuotantosolun kohdistettu aika
+				measure 'Work Center Capacity (Total)'
+					caption: Tuotantosolun kapasiteetti (yhteensä)
+				measure 'Work Center Expected Efficiency %'
+					caption: Tuotantosolun oletettu tehokkuus-%
+				measure 'Work Center Actual Total Cost'
+					caption: Tuotantosolun todellinen kokonaiskustannus
+				measure 'Work Center Actual Efficiency %'
+					caption: Tuotantosolun todellinen tehokkuus-%
+				measure 'Work Center Actual Need'
+					caption: Tuotantosolun todellinen tarve
+				measure 'Work Center Scrap %'
+					caption: Tuotantosolun hukka-%
+				measure 'Work Center Scrap'
+					caption: Tuotantosolun hukka
+				measure 'Work Center Output'
+					caption: Tuotantosolun tuotos
+			table 'Working Days'
+				caption: Työpäivät
+				column FSG_PBI_Day_Number
+					caption: FSG_PBI_Day_Number
+				column id
+					caption: tunnus
+			table COMPANY
+				caption: YRITYS
+				measure 'Company Label'
+					caption: Yrityksen selite
+			table 'Localized Labels'
+				measure 'My Report Title'
+					caption: Oman raportin otsikko
+				measure 'My Button Caption'
+					caption: Oma painikkeen otsikko
+				measure 'My Visual Title'
+					caption: Oma visuaalinen otsikko
+				measure 'Current Utilization'
+					caption: Nykyinen käyttöaste
+				measure 'Utilization %, Capacity Used (Hours) and Capacity Available (Hours) by Day'
+					caption: Käyttö-%, Käytetty kapasiteetti (tunteina) ja Käytettävissä oleva kapasiteetti (tunteina) päivän mukaan
+				measure 'Utilization % and Expected Capacity Need % (Today)'
+					caption: Käyttö-% ja Oletettu kapasiteettitarve-% (tänään)
+				measure 'Utilization % and Expected Capacity Need % (Current Week)'
+					caption: Käyttö-% ja Oletettu kapasiteettitarve-% (kuluva viikko)
+				measure 'Utilization % and Expected Capacity Need % (Current Year)'
+					caption: Käyttö-% ja Oletettu kapasiteettitarve-% (kuluva vuosi)
+				measure 'Historical Utilization'
+					caption: Historiallinen käyttöaste
+				measure 'Load %, Allocated Time (Hours) and Capacity Available (Hours) by Work Center Group Name'
+					caption: Kuormitus-%, Kohdistettu aika (tunteina) ja Käytettävissä oleva kapasiteetti (tunteina) tuotantosoluryhmän nimen mukaan
+				measure 'Load % (Today)'
+					caption: Kuormitus-% (tänään)
+				measure 'Load % (Current Week)'
+					caption: Kuormitus-% (kuluva viikko)
+				measure 'Load % (Current Year)'
+					caption: Kuormitus-% (kuluva vuosi)
+				measure 'Allocated Hours'
+					caption: Kohdistetut tunnit
+				measure 'Allocated Time (Hours) and Load % by Work Center Group Name and Name'
+					caption: Kohdistettu aika (tunteina) ja Kuormitus-% tuotantosoluryhmän nimen ja nimen mukaan
+				measure 'Allocated Time in Hours (Today)'
+					caption: Kohdistettu aika tunteina (tänään)
+				measure 'Allocated Time in Hours (Current Week)'
+					caption: Kohdistettu aika tunteina (kuluva viikko)
+				measure 'Allocated Time in Hours (Current Year)'
+					caption: Kohdistettu aika tunteina (kuluva vuosi)
+				measure 'Expected Capacity Need'
+					caption: Oletettu kapasiteettitarve
+				measure 'Expected Capacity Need (Hours) by Work Centre Group Code and Production Order Status'
+					caption: Oletettu kapasiteettitarve (tunteina) tuotantosoluryhmän koodin ja tuotantotilauksen tilan mukaan
+				measure 'Finished Production Order Breakdown'
+					caption: Valmiin tuotantotilauksen erittely
+				measure 'Expected Quantity (Base) and Finished Quantity (Base) by Month'
+					caption: Oletettu määrä (perus) ja Valmis määrä (perus) kuukauden mukaan
+				measure 'Consumption Variance'
+					caption: Kulutusvaihtelu
+				measure 'Expected Consumption Cost Amount and Consumed Cost Amount (Actual) by Month'
+					caption: Oletettu kulutuksen kustannussumma ja Kulutettu kustannussumma (toteuma) kuukauden mukaan
+				measure 'Capacity Variance'
+					caption: Kapasiteettivaihtelu
+				measure 'Expected Capacity Cost Amount and Capacity Cost Amount (Actual) by Month'
+					caption: Oletettu kapasiteettikustannussumma ja Kapasiteettikustannussumma (toteuma) kuukauden mukaan
+				measure 'Average Production Times'
+					caption: Keskimääräiset tuotantoajat
+				measure 'Released Production Orders'
+					caption: Vapautetut tuotantotilaukset
+				measure 'Production Scrap'
+					caption: Tuotannon hukkatavara
+				measure 'Capacity Scrap Quantity by Month'
+					caption: Kapasiteetin hukkatavaramäärä kuukauden mukaan
+				measure 'Capacity Scrap Quantity by Scrap Code'
+					caption: Kapasiteetin hukkatavaramäärä hukkatavarakoodin mukaan
+				measure 'Capacity Scrap Quantity by Location Code'
+					caption: Kapasiteetin hukkatavaramäärä sijaintikoodin mukaan
+				measure Manufacturing
+					caption: Tuotanto
+				measure 'for Business Central'
+					caption: Business Centralille
+				measure 'CONNECT YOUR DATA'
+					caption: YHDISTÄ TIETOSI
+				measure '2. Configure Dynamics 365 Business Central'
+					caption: 2. Määritä Dynamics 365 Business Central
+				measure 'USE, EDIT AND BUILD YOUR OWN REPORTS'
+					caption: KÄYTÄ, MUOKKAA JA LUO OMIA RAPORTTEJA
+				measure 'HELP AND SUPPORT'
+					caption: OHJE JA TUKI
+				measure 'For help and support with your new report please visit the Analytics overview documentation.'
+					caption: Lisätietoja ja tukea uudelle raportillesi löydät analytiikan yleiskuvauksesta.
+				measure 'OTHER POWER BI REPORTS'
+					caption: MUUT POWER BI -RAPORTIT
+				measure PURCHASE
+					caption: OSTO
+				measure FINANCE
+					caption: TALOUSHALLINTO
+				measure INVENTORY
+					caption: VARASTO
+				measure SALES
+					caption: MYYNTI
+				measure 'Last Refreshed'
+					caption: Päivitetty viimeksi
+				measure 'Company Name'
+					caption: Yrityksen nimi
+				measure 'Capacity Scrap Quantity by Item Category Code'
+					caption: Kapasiteetin hukkatavaramäärä nimikeluokan koodin mukaan
+				measure '1. Download the Manufacturing Connector for Power BI'
+					caption: 1. Lataa ostojen Power BI -liitin
+				measure 'Manufacturing includes a variety of pre-built reports to help you see your data immediately.'
+					caption: Tuotanto sisältää erilaisia etukäteen luotuja raportteja, joiden avulla voit tarkastella tietoja heti.
+				measure 'You are able to edit these reports or build your own report from scratch.'
+					caption: Voit muokata näitä raportteja tai luoda oman raportin alusta alkaen.
+				measure PROJECTS
+					caption: PROJEKTIT
+				measure 'Capacity Used (Hours), Capacity Available (Hours) and Utilization % by Date'
+					caption: Käytetty kapasiteetti (tunteina), Käytettävissä oleva kapasiteetti (tunteina) ja Käyttö-% päivämäärän mukaan
+				measure 'Actual Cost by Source No.'
+					caption: Todelliset kustannukset lähdenumeroittain
+				measure 'Production Order Overview'
+					caption: Tuotantotilaus – Yleiskatsaus
+				measure 'No. of Production Orders by Status'
+					caption: Tuotantotilausten määrä tiloittain
+				measure 'Completion Ratios by Source No.'
+					caption: Valmistumisasteet lähdenumeron mukaan
+				measure 'Total Actual Cost Breakdown'
+					caption: Todellinen kustannus yhteensä – Erittely
+				measure 'Current Production Orders'
+					caption: Nykyiset tuotantotilaukset
+				measure 'Current Work Center Utilization by Year, Month, Week and Day'
+					caption: Nykyinen tuotantosolun käyttöaste vuoden, kuukauden, viikon ja päivän mukaan
+				measure 'Work Center Load Over Time'
+					caption: Tuotantosolun kuormitus ajan kuluessa
+				measure 'Work Center Load Details'
+					caption: Tuotantosalon kuormitus – Tiedot
+				measure 'Work Center Load '
+					caption: "Tuotantosolun kuormitus "
+				measure 'Allocated Time '
+					caption: "Kohdistettu aika "
+				measure 'Allocated Time by Work Center Name'
+					caption: Kohdistettu aika tuotantosolun nimen mukaan
+				measure 'Allocated Time by Source No.'
+					caption: Kohdistettu aika lähdenumeroittain
+				measure 'Allocated Time by Type'
+					caption: Kohdistettu aika tyypeittäin
+				measure 'Allocated Time Details'
+					caption: Kohdistettu aika – Tiedot
+				measure 'Allocated Time by Production Order Status'
+					caption: Kohdistettu aika tuotantotilauksen tilan mukaan
+				measure 'Expected Capacity Need by Work Center'
+					caption: Oletettu kapasiteettitarve tuotantosoluittain
+				measure 'Expected Capacity Need by Machine Center'
+					caption: Oletettu kapasiteettitarve kuormitusryhmittäin
+				measure 'Expected Capacity Need Details'
+					caption: Oletettu kapasiteettitarve – Tiedot
+				measure 'Expected Capacity Need by Source No.'
+					caption: Oletettu kapasiteettitarve lähdenumeroittain
+				measure 'Expected Material Dev % by Source No.'
+					caption: Oletettu materiaalin poikkeama-% lähdenumeroittain
+				measure 'Expected Material Dev % by Production Order'
+					caption: Oletettu materiaalin poikkeama-% tuotantotilauksittain
+				measure 'Consumption Variance Details'
+					caption: Kulutusvaihtelu – Tiedot
+				measure 'Expected Capacity Dev % by Source No.'
+					caption: Oletettu kapasiteetin poikkeama-% lähdenumeroittain
+				measure 'Expected Capacity Dev % by Production Order|'
+					caption: Oletettu kapasiteetin poikkeama-% tuotantotilauksittain|
+				measure 'Capacity Variance Details'
+					caption: Kapasiteettivaihtelu – Tiedot
+				measure 'Average Time Per Finished Quantity by Work Center'
+					caption: Keskimääräinen aika valmista määrää kohti tuotantosoluittain
+				measure 'Average Time Per Finished Quantity by Source No.'
+					caption: Keskimääräinen aika valmista määrää kohti lähdenumeroittain
+				measure 'Average Production Time Details'
+					caption: Keskimääräinen tuotantoaika – Tiedot
+				measure 'No. of Production Orders by Source No.'
+					caption: Tuotantotilausten määrä lähdenumeroittain
+				measure 'Released Production Order Details'
+					caption: Vapautettu tuotantotilaus – Tiedot
+				measure 'Scrap Quantity by Work Center'
+					caption: Hukkamäärä tuotantosoluittain
+				measure 'Work Center Statistics'
+					caption: Tuotantosolun tilastot
+				measure 'Statistic Details'
+					caption: Tilastotiedot
+				measure 'Machine Center Statistics'
+					caption: Kuormitusryhmän tilastot
+				measure 'Machine Center Load '
+					caption: "Kuormitusryhmän kuormitus "
+				measure 'Machine Center Load Details'
+					caption: Kuormitusryhmän kuormitus – Tiedot
+				measure 'Prod. Order List'
+					caption: Tuotantotilausluettelo
+				measure 'Prod. Order List Details'
+					caption: Tuotantotilausluettelo – Tiedot
+				measure 'Production Order Routing Lines Gantt'
+					caption: Tuotantotilauksen reititysrivit – Gantt
+				measure 'Routing Line Operation Duration'
+					caption: Reititysrivitoiminnon kesto
+				measure 'Routing Line Details'
+					caption: Reititysrivi – Tiedot
+				measure 'Production Order WIP'
+					caption: Tuotantotilaus – KET
+				measure 'Inventory Valuation - WIP'
+					caption: Varaston arvostus – KET
+				measure 'Task List Drill Through'
+					caption: Tehtäväluetteloon porautuminen
+				measure 'Task List Details'
+					caption: Tehtäväluettelo – Tiedot
+				measure 'Expected Capacity Need Variance'
+					caption: Oletetun kapasiteettitarpeen vaihtelu
+				measure 'Expected Capacity Cost Dev % by Source No.'
+					caption: Oletettujen kapasiteettikustannusten poikkeama-% lähdenumeroittain
+				measure 'Average Production Time Per Unit by Work Center'
+					caption: Keskimääräinen tuotantoaika yksikköä kohti tuotantosoluittain
+				measure 'Average Production Time Per Unit by Source No.'
+					caption: Keskimääräinen tuotantoaika yksikköä kohti lähdenumeroittain
+				measure 'Scrap Quantity Over Time'
+					caption: Hukkatavaramäärä ajan kuluessa
+				measure 'Scrap % by Production Order'
+					caption: Hukka-% tuotantotilauksittain
+				measure 'Scrap Quantity by Scrap Code'
+					caption: Hukkatavaramäärä hukkakoodeittain
+				measure 'Scrap Quantity vs. Expected Scrap Quantity'
+					caption: Hukkatavaramäärä vrt. oletettu hukkatavaramäärä
+				measure 'Production Order Time Line'
+					caption: Tuotantotilauksen aikarivi
+				measure 'Production Time Line'
+					caption: Tuotannon aikarivi
+			table 'Machine Center'
+				caption: Kuormitusryhmä
+				column 'Machine Center No.'
+					caption: Kuormitusryhmänro
+				column 'Machine Center Name'
+					caption: Kuormitusryhmän nimi
+				column 'Work Center No.'
+					caption: Tuotantosolun nro
+				column 'Work Center Unit of Measure'
+					caption: Tuotantosolun mittayksikkö
+				measure 'Machine Center Capacity (Effective)'
+					caption: Kuormitusryhmän kapasiteetti (varsinainen)
+				measure 'Machine Center Capacity (Total)'
+					caption: Kuormitusryhmän kapasiteetti (yhteensä)
+				measure 'Machine Center Expected Efficiency %'
+					caption: Kuormitusryhmän oletettu tehokkuus-%
+				measure 'Machine Center Actual Total Cost'
+					caption: Kuormitusryhmän todellinen kokonaiskustannus
+				measure 'Machine Center Actual Efficiency %'
+					caption: Kuormitusryhmän todellinen tehokkuus-%
+				measure 'Machine Center Actual Need'
+					caption: Kuormitusryhmän todellinen tarve
+				measure 'Machine Center Allocated Time'
+					caption: Kuormitusryhmän kohdistettu aika
+				measure 'Machine Center Output'
+					caption: Kuormitusryhmän tuotos
+				measure 'Machine Center Scrap'
+					caption: Kuormitusryhmän hukkatavara
+				measure 'Machine Center Scrap %'
+					caption: Kuormitusryhmän hukka-%
+				measure 'Machine Center Run Time'
+					caption: Kuormitusryhmän ajoaika
+				measure 'Machine Center Stop Time'
+					caption: Kuormitusryhmän pysähdysaika
+				measure 'Machine Center Stop %'
+					caption: Kuormitusryhmän pysähdys-%
+				measure 'Machine Center Availability After Orders'
+					caption: Kuormitusryhmän saatavuus tilausten jälkeen
+				measure 'Machine Center Load'
+					caption: Kuormitusryhmän kuormitus
+			table 'Production Order Lines'
+				caption: Tuotantotilausrivit
+				column quantityBase
+					caption: Määrä (perus)
+				column remainingQtyBase
+					caption: Jäljellä oleva määrä (perus)
+				column dimensionSetID
+					caption: Dimensioyhdistelmän tunnus
+				column 'Prod. Order Line No.'
+					caption: Tuot.til. rivinro
+				column 'Routing No.'
+					caption: Reititysnro
+				column 'Routing Reference No.'
+					caption: Reitityksen viitenro
+				column finishedQtyBase
+					caption: finishedQtyBase
+				column ShareOfTotalCapCost
+					caption: ShareOfTotalCapCost
+				column 'Routing Type'
+					caption: Reitityksen tyyppi
+				column indirectCostPercent
+					caption: indirectCostPercent
+				column overheadRate
+					caption: overheadRate
+				column 'Scrap Percent'
+					caption: Hävikkiprosentti
+				column 'Planning Level Code'
+					caption: Suunnittelun tason koodi
+			table 'Prod Order Components'
+				caption: Tuot.til. komponentit
+				column expectedQtyBase
+					caption: Oletettu määrä (perus)
+				column remainingQtyBase
+					caption: Jäljellä oleva määrä (perus)
+				column 'Routing Link Code'
+					caption: Reitityslinkin koodi
+				column costAmount
+					caption: costAmount
+				column 'Prod Order Components Line No.'
+					caption: Tuot.tilauksen komponenttien rivinro
+			table 'Prod Order Capacity Need'
+				caption: Tuot.til. kapasiteettitarve
+				column 'Routing No.'
+					caption: Reititysnro
+				column 'Routing Reference No.'
+					caption: Reitityksen viitenro
+				column 'Operation No.'
+					caption: Toiminnon nro
+				column 'Requested Only'
+					caption: Vain pyydetyt
+				column workCenterNo
+					caption: workCenterNo
+				column workCenterGroupCode
+					caption: workCenterGroupCode
+				column no
+					caption: nro
+				column Type
+					caption: Tyyppi
+				column neededTimeMs
+					caption: neededTimeMs
+				column neededTime
+					caption: neededTime
+				column 'Prod Order Capacity Need Line No.'
+					caption: Tuot.til. kapasiteettitarpeen rivinro
+				measure 'Needed Time'
+					caption: Tarvittu aika
+				measure 'Needed Time (MS)'
+					caption: Tarvittu aika (ms)
+				measure 'Allocated Time'
+					caption: Kohdistettu aika
+			table 'Prod Order Routing Lines'
+				caption: Tuot.til. reititysrivit
+				column 'No.'
+					caption: Nro
+				column 'Expected Capacity Need'
+					caption: Oletettu kapasiteettitarve
+				column 'Expected Capacity Ovhd. Cost'
+					caption: Oletettu kapasiteettiyleiskust
+				column 'Routing Link Code'
+					caption: Reitityslinkin koodi
+				column Description
+					caption: Kuvaus
+				column 'Expected Operation Cost Amt.'
+					caption: Oletettu operaatiokust. summa
+				column 'Routing No.'
+					caption: Reititysnro
+				column 'Routing Reference No.'
+					caption: Reitityksen viitenro
+				column 'Operation No.'
+					caption: Toiminnon nro
+				column locationName
+					caption: locationName
+				column 'Setup Time'
+					caption: Määritysaika
+				column 'Run Time'
+					caption: Ajoaika
+				column 'Wait Time'
+					caption: Odotusaika
+				column 'Move Time'
+					caption: Siirtoaika
+				column 'Routing Status'
+					caption: Reitityksen tila
+				column 'Duration Total Hours'
+					caption: Kokonaiskesto tunteina
+				column 'Duration Total Days'
+					caption: Kokonaiskesto päivinä
+				column 'Work/Machine Center Name'
+					caption: Tuotantosalon/kuormitusryhmän nimi
+				column workCenterNo
+					caption: workCenterNo
+				column 'Ending Date Time'
+					caption: Lopetuspvm-aika
+				column 'Starting Date Time'
+					caption: Aloituspvm-aika
+				measure 'Operation Run Time'
+					caption: Toiminnon ajoaika
+				measure 'Operation Setup Time'
+					caption: Toiminnon määritysaika
+				measure 'Operation Wait Time'
+					caption: Toiminnon odotusaika
+				measure 'Operation Move Time'
+					caption: Toiminnon siirtoaika
+				measure 'Total Duration Hours'
+					caption: Kokonaiskesto tunteina
+			table 'Item Ledger Entries'
+				caption: Nimiketapahtumat
+				column 'Serial No.'
+					caption: Sarjanumero
+				column 'Lot No.'
+					caption: Eränro
+				column qty
+					caption: Määrä
+				column costAmountActual
+					caption: Kustannussumman toteuma
+				column 'Entry Type'
+					caption: Tapahtumatyyppi
+				column 'Order Type'
+					caption: Tilaustyyppi
+				column 'Order Line No.'
+					caption: Tilausrivinro
+				column Positive
+					caption: Positiivinen
+				measure 'Output Quantity'
+					caption: Tuotoksen määrä
+				measure 'Consumption Quantity'
+					caption: Kulutusmäärä
+			table 'Capacity Ledger Entries'
+				caption: Kapasiteettitapahtumat
+				column 'Order Type'
+					caption: Tilaustyyppi
+				column 'Order Line No.'
+					caption: Tilausrivinro
+				column Type
+					caption: Tyyppi
+				column 'No.'
+					caption: Nro
+				column Description
+					caption: Kuvaus
+				column scrapQuantity
+					caption: scrapQuantity
+				column 'Routing No.'
+					caption: Reititysnro
+				column 'Routing Reference No.'
+					caption: Reitityksen viitenro
+				column 'Operation No.'
+					caption: Toiminnon nro
+				column 'Scrap Code'
+					caption: Hukkatavarakoodi
+				column directCost
+					caption: directCost
+				column overheadCost
+					caption: overheadCost
+				column 'Entry No.'
+					caption: Tapahtumanro
+				column workCenterNo
+					caption: workCenterNo
+				column 'Work Shift Code'
+					caption: Työvuoron koodi
+				column Subcontracting
+					caption: Alihankinta
+				column 'Capacity Unit of Measure'
+					caption: Kapasiteetin mittayksikkö
+				column 'Qty. Per Unit of Measure'
+					caption: Määrä mittayksikköä kohti
+				column 'Qty. Per Capacity Unit of Measure'
+					caption: Määrä kapasiteetin mittayksikön mukaan
+				measure 'Direct Cost'
+					caption: Välitön kustannus
+				measure 'Overhead Cost'
+					caption: Yleiskustannus
+				measure 'Run Time'
+					caption: Ajoaika
+				measure 'Setup Time'
+					caption: Määritysaika
+				measure 'Stop Time'
+					caption: Pysähdysaika
+				measure 'Scrap Quantity'
+					caption: Hukkatavaramäärä
+				measure 'Scrap %'
+					caption: Hukka-%
+				measure 'Capacity Ledger Output Quantity'
+					caption: Kapasiteettitapahtumien tuotoksen määrä
+				measure 'Capacity Ledger Quantity'
+					caption: Kapasiteettitapahtumien määrä
+			table 'Calendar Entries'
+				caption: Kalenteritapahtumat
+				column 'Capacity Type'
+					caption: Kapasiteettityyppi
+				measure 'Capacity (Effective)'
+					caption: Kapasiteetti (varsinainen)
+				measure 'Capacity (Total)'
+					caption: Kapasiteetti (yhteensä)
+			table Location
+				caption: Sijainti
+				column 'Location Code'
+					caption: Sijaintikoodi
+				column 'Location Name'
+					caption: Sijainnin nimi
+			table 'Routing Link'
+				caption: Reitityslinkki
+				column 'Routing Link Code'
+					caption: Reitityslinkin koodi
+				column 'Routing Link Description'
+					caption: Reitityslinkin kuvaus
+			table Routing
+				caption: Reititys
+				column 'Routing No.'
+					caption: Reititysnro
+				column 'Routing Type'
+					caption: Reitityksen tyyppi
+				column 'Routing Status'
+					caption: Reitityksen tila
+				column 'Routing Description'
+					caption: Reitityksen kuvaus
+			table 'Work Center Group'
+				caption: Tuotantosoluryhmä
+				column 'Work Center Group Code'
+					caption: Tuotantosoluryhmän koodi
+				column 'Work Center Group Name'
+					caption: Tuotantosoluryhmän nimi
+			table 'Value Entries'
+				caption: Arvotapahtumat
+				column 'Entry No.'
+					caption: Tapahtumanro
+				column 'Valuation Date'
+					caption: Arvostuspvm
+				column costAmountActual
+					caption: costAmountActual
+				column 'Cost Per Unit'
+					caption: costPerUnit
+				column itemLedgerEntryQuantity
+					caption: itemLedgerEntryQuantity
+				column valuedQuantity
+					caption: valuedQuantity
+				column 'Item Ledger Entry Type'
+					caption: Nimiketapahtuman tyyppi
+				column Type
+					caption: Tyyppi
+				column 'No.'
+					caption: Nro
+				column 'Capacity Ledger Entry No.'
+					caption: capacityLedgerEntryNo
+				column 'Entry Type'
+					caption: entryType
+				column costPostedtoGL
+					caption: costPostedtoGL
+				column costAmountExpected
+					caption: costAmountExpected
+				column 'Order Type'
+					caption: orderType
+				column 'Order No.'
+					caption: orderNo
+				column expectedCostPostedtoGL
+					caption: expectedCostPostedtoGL
+				column 'Is Expected Cost'
+					caption: expectedCost
+				measure 'Beginning Balance Value'
+					caption: Alkusaldon arvo
+				measure 'Consumption Value'
+					caption: Kulutusarvo
+				measure 'Capacity Value'
+					caption: Kapasiteetin arvo
+				measure 'Output Value'
+					caption: Tuotoksen arvo
+				measure 'Ending Balance Value'
+					caption: Loppusaldon arvo
+				measure 'Cost Posted to G/L'
+					caption: Kustannus kirjattu KP:oon
+			table 'Production Orders'
+				caption: Tuotantotilaukset
+				column 'Prod Order Status'
+					caption: Tuot.tilauksen tila
+				column 'Prod Order No.'
+					caption: Tuotantotilauksen nro
+				column 'Prod Order Source No.'
+					caption: Tuot.tilauksen lähdenro
+				column 'Prod Order Routing No.'
+					caption: Tuot.tilauksen reititysnro
+				column 'Prod Order Starting Date'
+					caption: Tuot.tilauksen aloituspäivä
+				column 'Prod Order Ending Date'
+					caption: Tuot.tilauksen lopetuspäivä
+				column 'Prod Order Due Date'
+					caption: Tuot.tilauksen eräpäivä
+				column quantity
+					caption: määrä
+				column 'Prod Order Description'
+					caption: Tuot.tilauksen kuvaus
+				column 'Prod Order Source Type'
+					caption: Tuot.tilauksen lähdetyyppi
+				column 'Production Order'
+					caption: Tuotantotilaus
+				measure 'Planned Quantity'
+					caption: Suunniteltu määrä
+				measure 'Expected Material Cost'
+					caption: Oletettu materiaalikustannus
+				measure 'Expected Capacity Cost'
+					caption: Oletettu kapasiteettikustannus
+				measure 'Expected Subcontracted Cost'
+					caption: Oletettu alihankintakustannus
+				measure 'Expected Capacity Overhead Cost'
+					caption: Oletettu kapasiteetin yleiskustannus
+				measure 'Total Standard Cost'
+					caption: Vakiokustannus yhteensä
+				measure 'Expected Manufacturing Overhead Cost'
+					caption: Oletettu tuotannon yleiskustannus
+				measure 'Total Expected Cost'
+					caption: Oletettu kustannus yhteensä
+				measure 'Standard Capacity Cost'
+					caption: Kapasiteetin vakiokustannus
+				measure 'Standard Material Cost'
+					caption: Materiaalin vakiokustannus
+				measure 'Standard Subcontracted Cost'
+					caption: Vakioalihankintakustannus
+				measure 'Standard Capacity Overhead Cost'
+					caption: Kapasiteetin vakioyleiskustannus
+				measure 'Standard Manufacturing Overhead Cost'
+					caption: Tuotannon vakioyleiskustannus
+				measure 'Actual Material Cost'
+					caption: Todelliset materiaalikustannukset
+				measure 'Actual Capacity Cost'
+					caption: Todellinen kapasiteettikustannus
+				measure 'Actual Subcontracted Cost'
+					caption: Todellinen alihankintakustannus
+				measure 'Actual Capacity Overhead Cost'
+					caption: Todellinen kapasiteetin yleiskustannus
+				measure 'Actual Manufacturing Overhead Cost'
+					caption: Todellinen tuotannon yleiskustannus
+				measure 'Total Actual Cost'
+					caption: Todellinen kustannus yhteensä
+				measure 'Standard Material Cost Variance'
+					caption: Materiaalin vakiokustannusten vaihtelu
+				measure 'Standard Capacity Cost Variance'
+					caption: Kapasiteetin vakiokustannusten vaihtelu
+				measure 'Standard Subcontracted Cost Variance'
+					caption: Vakioalihankintakustannuksen vaihtelu
+				measure 'Standard Capacity Overhead Cost Variance'
+					caption: Kapasiteetin vakioyleiskustannusten vaihtelu
+				measure 'Standard Manufacturing Overhead Cost Variance'
+					caption: Tuotannon vakioyleiskustannuksen vaihtelu
+				measure 'Total Standard Cost Variance'
+					caption: Vakiokustannusten vaihtelu yhteensä
+				measure 'Standard Material Cost Dev %'
+					caption: Materiaalin vakiokustannuspoikkeama-%
+				measure 'Standard Capacity Cost Dev %'
+					caption: Kapasiteetin vakiokustannuksen poikkeama-%
+				measure 'Standard Subcontracted Cost Dev %'
+					caption: Vakioalihankintakustannuspoikkeama-%
+				measure 'Standard Capacity Overhead Cost Dev %'
+					caption: Kapasiteetin vakioyleiskustannuspoikkeama-%
+				measure 'Standard Manufacturing Overhead Cost Dev %'
+					caption: Tuotannon vakioyleiskustannuspoikkeama-%
+				measure 'Total Standard Cost Dev %'
+					caption: Kokonaisvakiokustannuksen poikkeama-%
+				measure 'Prod Order Expected Capacity Need (Finished)'
+					caption: Tuot.til. oletettu kapasiteettitarve (valmis)
+				measure 'Prod Order Actual Capacity Need'
+					caption: Tuot.til. todellinen kapasiteettitarve
+				measure 'Prod Order Expected Capacity Need (Non Finished)'
+					caption: Tuot.til. oletettu kapasiteettitarve (ei valmis)
+				measure 'Prod Order Expected Capacity Need'
+					caption: Tuot.til. oletettu kapasiteettitarve
+				measure 'Finished Quantity'
+					caption: Valmis määrä
+				measure 'Actual Time Used'
+					caption: Tod. käytetty aika
+				measure 'Finished %'
+					caption: Valmiina %
+				measure 'Remaining %'
+					caption: Jäljellä %
+				measure 'Variance Quantity'
+					caption: Vaihtelun määrä
+				measure 'Expected Capacity Cost Dev %'
+					caption: Oletettujen kapasiteettikustannusten poikkeama-%
+				measure 'Expected Capacity Overhead Cost Dev %'
+					caption: Oletettujen kapasiteetin yleiskustannusten poikkeama-%
+				measure 'Expected Manufacturing Overhead Cost Dev %'
+					caption: Oletettujen tuotannon yleiskustannusten poikkeama-%
+				measure 'Expected Material Cost Dev %'
+					caption: Oletettujen materiaalikustannusten poikkeama-%
+				measure 'Expected Subcontracted Cost Dev %'
+					caption: Oletettujen alihankintakustannusten poikkeama-%
+				measure 'Total Expected Cost Dev %'
+					caption: Oletettujen kokonaiskustannusten poikkeama-%
+				measure 'Expected Capacity Cost Variance'
+					caption: Oletettujen kapasiteettikustannusten vaihtelu
+				measure 'Expected Capacity Overhead Cost Variance'
+					caption: Oletettujen kapasiteetin yleiskustannusten vaihtelu
+				measure 'Expected Manufacturing Overhead Cost Variance'
+					caption: Oletettujen tuotannon yleiskustannusten vaihtelu
+				measure 'Expected Material Cost Variance'
+					caption: Oletettujen materiaalikustannusten vaihtelu
+				measure 'Expected Subcontracted Cost Variance'
+					caption: Oletettujen alihankintakustannusten vaihtelu
+				measure 'Total Expected Cost Variance'
+					caption: Oletettujen kustannusten vaihtelu yhteensä
+				measure 'No. of Production Orders'
+					caption: Tuotantotilausten määrä
+				measure 'Average Production Time Per Finished Quantity'
+					caption: Keskimääräinen tuotantoaika valmista määrää kohti
+				measure 'Prod Order Capacity Need Variance'
+					caption: Tuot.til. kapasiteettitarpeen vaihtelu
+				measure 'Prod Order Capacity Need Dev %'
+					caption: Tuot.til. kapasiteettitarpeen poikkeama-%
+				measure 'Production Order Scrap %'
+					caption: Tuotantotilauksen hukka-%
+				measure 'Expected Production Order Scrap Quantity'
+					caption: Oletettu tuotantotilauksen hukkamäärä
+			table 'Dimension Sets'
+				caption: Dimensioyhdistelmät
+				column id
+					caption: tunnus
+				column dimensionSetID
+					caption: dimensionSetID
+				column valueCount
+					caption: valueCount
+				column 'Global Dimension 1'
+					caption: Yleinen dimensio 1
+				column dimension1ValueName
+					caption: dimension1ValueName
+				column 'Global Dimension 2'
+					caption: Yleinen dimensio 2
+				column dimension2ValueName
+					caption: dimension2ValueName
+				column 'Shortcut Dimension 3'
+					caption: Pikadimensio 3
+				column dimension3ValueName
+					caption: dimension3ValueName
+				column 'Shortcut Dimension 4'
+					caption: Pikadimensio 4
+				column dimension4ValueName
+					caption: dimension4ValueName
+				column 'Shortcut Dimension 5'
+					caption: Pikadimensio 5
+				column dimension5ValueName
+					caption: dimension5ValueName
+				column 'Shortcut Dimension 6'
+					caption: Pikadimensio 6
+				column dimension6ValueName
+					caption: dimension6ValueName
+				column 'Shortcut Dimension 7'
+					caption: Pikadimensio 7
+				column dimension7ValueName
+					caption: dimension7ValueName
+				column 'Shortcut Dimension 8'
+					caption: Pikadimensio 8
+				column dimension8ValueName
+					caption: dimension8ValueName
+			table 'Inventory Adjustment Entry Order Line'
+				caption: Varastonmuutostapahtuman tilausrivi
+				column itemNo
+					caption: itemNo
+				column orderLineNo
+					caption: orderLineNo
+				column orderNo
+					caption: orderNo
+				column singleLevelMaterialCost
+					caption: singleLevelMaterialCost
+				column iSFinished
+					caption: iSFinished
+				column auxiliaryIndex1
+					caption: auxiliaryIndex1
+				column ETag
+					caption: ETag
+				column 'Adjustment Order Key'
+					caption: Muutostilauksen avain
+				column singleLevelCapacityCost
+					caption: singleLevelCapacityCost
+				column singleLevelSubcontrdCost
+					caption: singleLevelSubcontrdCost
+				column singleLevelCapOvhdCost
+					caption: singleLevelCapOvhdCost
+				column singleLevelMfgOvhdCost
+					caption: singleLevelMfgOvhdCost
+				column completelyInvoiced
+					caption: completelyInvoiced
+				column indirectCostPercent
+					caption: indirectCostPercent
+				column overheadRate
+					caption: overheadRate
+			table ENVIRONMENT
+				caption: YMPÄRISTÖ
+			table 'Back Links'
+				caption: Takaisin-linkit
+				measure 'Base Link'
+					caption: Perus, linkki
+				measure 'Calendar Entries Back Link'
+					caption: Kalenteritapahtumat – Takaisin-linkki
+				measure Ranged
+					caption: Järjestetty
+				measure 'Prod. Order Capacity Need Back Link'
+					caption: Tuot.til. kapasiteettitarve – Takaisin-linkki
+				measure 'Work Center Need Qty Back Link'
+					caption: Tuotantosolun tarvemäärä – Takaisin-linkki
+			table 'Item Category'
+				caption: Nimikeluokka
+				column 'Item Category Code'
+					caption: Nimikeluokan koodi
+				column 'Item Category Description'
+					caption: Nimikeluokan kuvaus
+				hierarchy 'Item Category Code Hierarchy'
+					caption: Nimikeluokan koodihierarkia
+					level 'Item Category Code Level 1'
+						caption: Nimikeluokan kooditaso 1
+					level 'Item Category Code Level 2'
+						caption: Nimikeluokan kooditaso 2
+					level 'Item Category Code Level 3'
+						caption: Nimikeluokan kooditaso 3
+

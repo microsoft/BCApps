@@ -1,0 +1,2255 @@
+cultureInfo nb-NO
+	translations
+		model Model
+			table Item
+				caption: Vare
+				column 'Item No. & Description'
+					caption: Varenr. og -beskrivelse
+				column 'Item No.'
+					caption: Varenr.
+				column 'Item Description'
+					caption: Varebeskrivelse
+				column 'Item Base Unit of Measure'
+					caption: Varelagerenhet
+				column 'Item Unit Cost (LCY)'
+					caption: Enhetskost for vare (lokal valuta)
+				column 'Item Inventory Posting Group'
+					caption: Bokføringsgruppe for varebeholdning
+				column 'Item Category Code'
+					caption: Varekategorikode
+				column 'Item Category Description'
+					caption: Beskrivelse av varekategori
+				column 'Item Routing No.'
+					caption: routingNo
+				column 'Item Production BOM No.'
+					caption: productionBomNo
+				column 'Item Replenishment System'
+					caption: replenishmentSystem
+				column 'Item Single-Level Cap. Ovhd Cost'
+					caption: singleLevelCapOvhdCost
+				column 'Item Single-Level Capacity Cost'
+					caption: singleLevelCapacityCost
+				column 'Item Single-Level Material Cost'
+					caption: singleLevelMaterialCost
+				column 'Item Single-Level Mfg. Ovhd Cost'
+					caption: singleLevelMfgOvhdCost
+				column 'Item Single-Level Subcontrd. Cost'
+					caption: singleLevelSubcontrdCost
+				column 'Item Single-Lvl Mat. Non-Invt. Cost'
+					caption: singleLvlMatNonInvtCost
+				column 'Item Rolled-up Cap. Overhead Cost'
+					caption: rolledUpCapOverheadCost
+				column 'Item Rolled-up Capacity Cost'
+					caption: rolledUpCapacityCost
+				column 'Item Rolled-up Mat. Non-Invt. Cost'
+					caption: rolledUpMatNonInvtCost
+				column 'Item Rolled-up Material Cost'
+					caption: rolledUpMaterialCost
+				column 'Item Rolled-up Mfg. Ovhd Cost'
+					caption: rolledUpMfgOvhdCost
+				column 'Item Rolled-up Subcontracted Cost'
+					caption: rolledUpSubcontractedCost
+				column 'Item Scrap %'
+					caption: scrapPrc
+			table Location
+				caption: Lokasjon
+				column 'Location Code'
+					caption: Lokasjonskode
+				column 'Location Name'
+					caption: Lokasjonsnavn
+			table Customer
+				caption: Kunde
+				column 'Customer No. & Name'
+					caption: Kundenr. og -navn
+				column 'Customer No.'
+					caption: Kundenr.
+				column 'Customer Name'
+					caption: Kundenavn
+				column 'Customer Address'
+					caption: Kundeadresse
+				column 'Customer Address 2'
+					caption: Kundens adresse 2
+				column 'Customer City'
+					caption: Kundens poststed
+				column 'Customer County'
+					caption: Kundens fylke/delstat
+				column 'Customer Country/Region Code'
+					caption: Kundens kode for land/område
+				column 'Customer Posting Group'
+					caption: Kundebokføringsgruppe
+				column 'Customer Price Group'
+					caption: Kundeprisgruppe
+				column 'Customer Discount Group'
+					caption: Kunderabattgruppe
+				column 'Customer Post Code'
+					caption: Kundens postnummer
+				measure 'No. of New Customers'
+					caption: Antall nye kunder
+				measure 'No. of Lost Customers'
+					caption: Antall kunder mistet
+				measure 'Sales New Customers'
+					caption: Nye salgskunder
+				measure 'No. of Returning Customers'
+					caption: Antall tilbakevendende kunder
+				measure 'Sales Returning Customers'
+					caption: Tilbakevendende salgskunder
+				measure 'No. of Recovered Customers'
+					caption: Antall gjenopprettede kunder
+				measure 'Sales Recovered Customers'
+					caption: Gjenopprettede salgskunder
+				measure 'Sales Lost Customers (12M)'
+					caption: Mistede salgskunder (12 md.)
+				measure 'No. of Customers'
+					caption: Antall kunder
+			table Salesperson
+				caption: Selger
+				column 'Salesperson Code'
+					caption: Selgerkode
+				column 'Salesperson Name'
+					caption: Selgernavn
+			table 'Standard Calendar Time Intelligence'
+				caption: Standard tidsintelligens for regnskapskalender
+				measure 'Sales Amount YTD'
+					caption: Salgsbeløp hittil i år
+				measure 'Sales Amount PY'
+					caption: Salgsbeløp PY
+				measure 'Sales Amount PYTD'
+					caption: Salgsbeløp PYTD
+				measure 'Sales Amount PQTD'
+					caption: Salgsbeløp PQTD
+				measure 'Sales Amount QTD'
+					caption: Salgsbeløp QTD
+				measure 'Sales Amount MTD'
+					caption: Salgsbeløp MTD
+				measure 'Sales Amount YOY %'
+					caption: Salgsbeløp YOY i prosent
+				measure 'Sales Amount YOY'
+					caption: Salgsbeløp YOY
+				measure 'Sales Amount PQ'
+					caption: Salgsbeløp PQ
+				measure 'Sales Amount QOQ'
+					caption: Salgsbeløp QOQ
+				measure 'Sales Amount PM'
+					caption: Salgsbeløp PM
+				measure 'Sales Amount QOQ %'
+					caption: Salgsbeløp QOQ i prosent
+				measure 'Sales Amount MOM'
+					caption: Salgsbeløp MOM
+				measure 'Sales Amount MOM %'
+					caption: Salgsbeløp MOM i prosent
+				measure 'Sales Amount MAT'
+					caption: Salgsbeløp MAT
+				measure 'Sales Amount PYMAT'
+					caption: Salgsbeløp PYMAT
+				measure 'Sales Amount YOYTD'
+					caption: Salgsbeløp YOYTD
+				measure 'Sales Amount YOYTD %'
+					caption: Salgsbeløp YOYTD i prosent
+				measure 'Sales Amount PYC'
+					caption: Salgsbeløp PYC
+				measure 'Sales Amount YTDOPY'
+					caption: Salgsbeløp YTDOPY
+				measure 'Sales Amount YTDOPY %'
+					caption: Salgsbeløp YTDOPY i prosent
+				measure 'Sales Amount QOQTD'
+					caption: Salgsbeløp QOQTD
+				measure 'Sales Amount QOQTD %'
+					caption: Salgsbeløp QOQTD i prosent
+				measure 'Sales Amount PQC'
+					caption: Salgsbeløp PQC
+				measure 'Sales Amount QTDOPQ'
+					caption: Salgsbeløp QTDOPQ
+				measure 'Sales Amount QTDOPQ %'
+					caption: Salgsbeløp QTDOPQ i prosent
+				measure 'Sales Amount PMTD'
+					caption: Salgsbeløp PMTD
+				measure 'Sales Amount MOMTD'
+					caption: Salgsbeløp MOMTD
+				measure 'Sales Amount MOMTD %'
+					caption: Salgsbeløp MOMTD i prosent
+				measure 'Sales Amount PMC'
+					caption: Salgsbeløp PMC
+				measure 'Sales Amount MTDOPM'
+					caption: Salgsbeløp MTDOPM
+				measure 'Sales Amount MTDOPM %'
+					caption: Salgsbeløp MTDOPM i prosent
+				measure 'Sales Amount AVG 30D'
+					caption: Salgsbeløp, snitt 30 dg.
+				measure 'Sales Amount AVG 3M'
+					caption: Salgsbeløp, snitt 3 md.
+				measure 'Sales Amount AVG 1Y'
+					caption: Salgsbeløp snitt 1 år
+				measure 'Sales Amount MATG'
+					caption: Salgsbeløp MATG
+				measure 'Sales Amount MATG %'
+					caption: Salgsbeløp MATG i prosent
+				measure 'Sales Amount PP'
+					caption: Salgsbeløp PP
+				measure 'Sales Amount POP'
+					caption: Salgsbeløp POP
+				measure 'Sales Amount POP %'
+					caption: Salgsbeløp POP i prosent
+				measure 'Sales Quantity YTD'
+					caption: Salgantall hittil i år
+				measure 'Sales Quantity PY'
+					caption: Salgsantall PY
+				measure 'Sales Quantity PYTD'
+					caption: Salgantall PYTD
+				measure 'Sales Quantity PQTD'
+					caption: Salgantall PQTD
+				measure 'Sales Quantity QTD'
+					caption: Salgantall QTD
+				measure 'Sales Quantity MTD'
+					caption: Salgantall MTD
+				measure 'Sales Quantity YOY %'
+					caption: Salgantall YOY i prosent
+				measure 'Sales Quantity YOY'
+					caption: Salgantall YOY
+				measure 'Sales Quantity PQ'
+					caption: Salgsantall PQ
+				measure 'Sales Quantity QOQ'
+					caption: Salgantall QOQ
+				measure 'Sales Quantity PM'
+					caption: Salgsantall PM
+				measure 'Sales Quantity QOQ %'
+					caption: Salgantall QOQ i prosent
+				measure 'Sales Quantity MOM'
+					caption: Salgantall MOM
+				measure 'Sales Quantity MOM %'
+					caption: Salgantall MOM i prosent
+				measure 'Sales Quantity MAT'
+					caption: Salgantall MAT
+				measure 'Sales Quantity PYMAT'
+					caption: Salgsantall PYMAT
+				measure 'Sales Quantity YOYTD'
+					caption: Salgsantall YOYTD
+				measure 'Sales Quantity YOYTD %'
+					caption: Salgsantall YOYTD i prosent
+				measure 'Sales Quantity PYC'
+					caption: Salgantall PYC
+				measure 'Sales Quantity YTDOPY'
+					caption: Salgsantall YTDOPY
+				measure 'Sales Quantity YTDOPY %'
+					caption: Salgsantall YTDOPY i prosent
+				measure 'Sales Quantity QOQTD'
+					caption: Salgsantall QOQTD
+				measure 'Sales Quantity QOQTD %'
+					caption: Salgsantall QOQTD i prosent
+				measure 'Sales Quantity PQC'
+					caption: Salgantall PQC
+				measure 'Sales Quantity QTDOPQ'
+					caption: Salgsantall QTDOPQ
+				measure 'Sales Quantity QTDOPQ %'
+					caption: Salgsantall QTDOPQ i prosent
+				measure 'Sales Quantity PMTD'
+					caption: Salgantall PMTD
+				measure 'Sales Quantity MOMTD'
+					caption: Salgsantall MOMTD
+				measure 'Sales Quantity MOMTD %'
+					caption: Salgsantall MOMTD i prosent
+				measure 'Sales Quantity PMC'
+					caption: Salgantall PMC
+				measure 'Sales Quantity MTDOPM'
+					caption: Salgsantall MTDOPM
+				measure 'Sales Quantity MTDOPM %'
+					caption: Salgsantall MTDOPM i prosent
+				measure 'Sales Quantity AVG 30D'
+					caption: Salgsantall, snitt 30 dg.
+				measure 'Sales Quantity AVG 3M'
+					caption: Salgsantall, snitt 3 md.
+				measure 'Sales Quantity AVG 1Y'
+					caption: Salgsantall, snitt 1 år
+				measure 'Sales Quantity MATG'
+					caption: Salgantall MATG
+				measure 'Sales Quantity MATG %'
+					caption: Salgantall MATG i prosent
+				measure 'Sales Quantity PP'
+					caption: Salgsantall PP
+				measure 'Sales Quantity POP'
+					caption: Salgantall POP
+				measure 'Sales Quantity POP %'
+					caption: Salgantall POP i prosent
+				measure 'Gross Profit YTD'
+					caption: Bruttofortjeneste hittil i år
+				measure 'Gross Profit PY'
+					caption: Bruttofortjeneste PY
+				measure 'Gross Profit PYTD'
+					caption: Bruttofortjeneste PYTD
+				measure 'Gross Profit PQTD'
+					caption: Bruttofortjeneste PQTD
+				measure 'Gross Profit QTD'
+					caption: Bruttofortjeneste QTD
+				measure 'Gross Profit MTD'
+					caption: Bruttofortjeneste MTD
+				measure 'Gross Profit YOY %'
+					caption: Bruttofortjeneste YOY i prosent
+				measure 'Gross Profit YOY'
+					caption: Bruttofortjeneste YOY
+				measure 'Gross Profit PQ'
+					caption: Bruttofortjeneste PQ
+				measure 'Gross Profit QOQ'
+					caption: Bruttofortjeneste QOQ
+				measure 'Gross Profit PM'
+					caption: Bruttofortjeneste PM
+				measure 'Gross Profit QOQ %'
+					caption: Bruttofortjeneste QOQ i prosent
+				measure 'Gross Profit MOM'
+					caption: Bruttofortjeneste MOM
+				measure 'Gross Profit MOM %'
+					caption: Bruttofortjeneste MOM i prosent
+				measure 'Gross Profit MAT'
+					caption: Bruttofortjeneste MAT
+				measure 'Gross Profit PYMAT'
+					caption: Bruttofortjeneste PYMAT
+				measure 'Gross Profit YOYTD'
+					caption: Bruttofortjeneste YOYTD
+				measure 'Gross Profit YOYTD %'
+					caption: Bruttofortjeneste YOYTD i prosent
+				measure 'Gross Profit PYC'
+					caption: Bruttofortjeneste PYC
+				measure 'Gross Profit YTDOPY'
+					caption: Bruttofortjeneste YTDOPY
+				measure 'Gross Profit YTDOPY %'
+					caption: Bruttofortjeneste YTDOPY i prosent
+				measure 'Gross Profit QOQTD'
+					caption: Bruttofortjeneste QOQTD
+				measure 'Gross Profit QOQTD %'
+					caption: Bruttofortjeneste QOQTD i prosent
+				measure 'Gross Profit PQC'
+					caption: Bruttofortjeneste PQC
+				measure 'Gross Profit QTDOPQ'
+					caption: Bruttofortjeneste QTDOPQ
+				measure 'Gross Profit QTDOPQ %'
+					caption: Bruttofortjeneste QTDOPQ i prosent
+				measure 'Gross Profit PMTD'
+					caption: Bruttofortjeneste PMTD
+				measure 'Gross Profit MOMTD'
+					caption: Bruttofortjeneste MOMTD
+				measure 'Gross Profit MOMTD %'
+					caption: Bruttofortjeneste MOMTD i prosent
+				measure 'Gross Profit PMC'
+					caption: Bruttofortjeneste PMC
+				measure 'Gross Profit MTDOPM'
+					caption: Bruttofortjeneste MTDOPM
+				measure 'Gross Profit MTDOPM %'
+					caption: Bruttofortjeneste MTDOPM i prosent
+				measure 'Gross Profit AVG 30D'
+					caption: Bruttofortjeneste, snitt 30 dg.
+				measure 'Gross Profit AVG 3M'
+					caption: Bruttofortjeneste, snitt 3 md.
+				measure 'Gross Profit AVG 1Y'
+					caption: Bruttofortjeneste, snitt 1 år
+				measure 'Gross Profit MATG'
+					caption: Bruttofortjeneste MATG
+				measure 'Gross Profit MATG %'
+					caption: Bruttofortjeneste MATG i prosent
+				measure 'Gross Profit PP'
+					caption: Bruttofortjeneste PP
+				measure 'Gross Profit POP'
+					caption: Bruttofortjeneste POP
+				measure 'Gross Profit POP %'
+					caption: Bruttofortjeneste POP i prosent
+				measure 'Gross Profit Margin YTD'
+					caption: Brutto fortj.margin hittil i år
+				measure 'Gross Profit Margin PY'
+					caption: Brutto fortj.margin PY
+				measure 'Gross Profit Margin PYTD'
+					caption: Brutto fortj.margin PYTD
+				measure 'Gross Profit Margin PQTD'
+					caption: Brutto fortj.margin PQTD
+				measure 'Gross Profit Margin QTD'
+					caption: Brutto fortj.margin QTD
+				measure 'Gross Profit Margin MTD'
+					caption: Brutto fortj.margin MTD
+				measure 'Gross Profit Margin YOY %'
+					caption: Brutto fortj.margin YOY i prosent
+				measure 'Gross Profit Margin YOY'
+					caption: Brutto fortj.margin YOY
+				measure 'Gross Profit Margin PQ'
+					caption: Brutto fortj.margin PQ
+				measure 'Gross Profit Margin QOQ'
+					caption: Brutto fortj.margin QOQ
+				measure 'Gross Profit Margin PM'
+					caption: Brutto fortj.margin PM
+				measure 'Gross Profit Margin QOQ %'
+					caption: Brutto fortj.margin QOQ i prosent
+				measure 'Gross Profit Margin MOM'
+					caption: Brutto fortj.margin MOM
+				measure 'Gross Profit Margin MOM %'
+					caption: Brutto fortj.margin MOM i prosent
+				measure 'Gross Profit Margin MAT'
+					caption: Brutto fortj.margin MAT
+				measure 'Gross Profit Margin PYMAT'
+					caption: Brutto fortj.margin PYMAT
+				measure 'Gross Profit Margin YOYTD'
+					caption: Brutto fortj.margin YOYTD
+				measure 'Gross Profit Margin YOYTD %'
+					caption: Brutto fortj.margin YOYTD i prosent
+				measure 'Gross Profit Margin PYC'
+					caption: Brutto fortj.margin PYC
+				measure 'Gross Profit Margin YTDOPY'
+					caption: Brutto fortj.margin YTDOPY
+				measure 'Gross Profit Margin YTDOPY %'
+					caption: Brutto fortj.margin YTDOPY i prosent
+				measure 'Gross Profit Margin QOQTD'
+					caption: Brutto fortj.margin QOQTD
+				measure 'Gross Profit Margin QOQTD %'
+					caption: Brutto fortj.margin QOQTD i prosent
+				measure 'Gross Profit Margin PQC'
+					caption: Brutto fortj.margin PQC
+				measure 'Gross Profit Margin QTDOPQ'
+					caption: Brutto fortj.margin QTDOPQ
+				measure 'Gross Profit Margin QTDOPQ %'
+					caption: Brutto fortj.margin QTDOPQ i prosent
+				measure 'Gross Profit Margin PMTD'
+					caption: Brutto fortj.margin PMTD
+				measure 'Gross Profit Margin MOMTD'
+					caption: Brutto fortj.margin MOMTD
+				measure 'Gross Profit Margin MOMTD %'
+					caption: Brutto fortj.margin MOMTD i prosent
+				measure 'Gross Profit Margin PMC'
+					caption: Brutto fortj.margin PMC
+				measure 'Gross Profit Margin MTDOPM'
+					caption: Brutto fortj.margin MTDOPM
+				measure 'Gross Profit Margin MTDOPM %'
+					caption: Brutto fortj.margin MTDOPM i prosent
+				measure 'Gross Profit Margin AVG 30D'
+					caption: Brutto fortj.margin, snitt 30 dg.
+				measure 'Gross Profit Margin AVG 3M'
+					caption: Brutto fortj.margin, snitt 3 md.
+				measure 'Gross Profit Margin AVG 1Y'
+					caption: Brutto fortj.margin, snitt 1 år
+				measure 'Gross Profit Margin MATG'
+					caption: Brutto fortj.margin MATG
+				measure 'Gross Profit Margin MATG %'
+					caption: Brutto fortj.margin MATG i prosent
+				measure 'Gross Profit Margin PP'
+					caption: Brutto fortj.margin PP
+				measure 'Gross Profit Margin POP'
+					caption: Brutto fortj.margin POP
+				measure 'Gross Profit Margin POP %'
+					caption: Brutto fortj.margin POP i prosent
+				measure 'Cost Amount YTD'
+					caption: Kostbeløp hittil i år
+				measure 'Cost Amount PY'
+					caption: Kostbeløp PY
+				measure 'Cost Amount PYTD'
+					caption: Kostbeløp PYTD
+				measure 'Cost Amount PQTD'
+					caption: Kostbeløp PQTD
+				measure 'Cost Amount QTD'
+					caption: Kostbeløp QTD
+				measure 'Cost Amount MTD'
+					caption: Kostbeløp MTD
+				measure 'Cost Amount YOY %'
+					caption: Kostbeløp YOY i prosent
+				measure 'Cost Amount YOY'
+					caption: Kostbeløp YOY
+				measure 'Cost Amount PQ'
+					caption: Kostbeløp PQ
+				measure 'Cost Amount QOQ'
+					caption: Kostbeløp QOQ
+				measure 'Cost Amount PM'
+					caption: Kostbeløp PM
+				measure 'Cost Amount QOQ %'
+					caption: Kostbeløp QOQ i prosent
+				measure 'Cost Amount MOM'
+					caption: Kostbeløp MOM
+				measure 'Cost Amount MOM %'
+					caption: Kostbeløp MOM i prosent
+				measure 'Cost Amount MAT'
+					caption: Kostbeløp MAT
+				measure 'Cost Amount PYMAT'
+					caption: Kostbeløp PYMAT
+				measure 'Cost Amount YOYTD'
+					caption: Kostbeløp YOYTD
+				measure 'Cost Amount YOYTD %'
+					caption: Kostbeløp YOYTD i prosent
+				measure 'Cost Amount PYC'
+					caption: Kostbeløp PYC
+				measure 'Cost Amount YTDOPY'
+					caption: Kostbeløp YTDOPY
+				measure 'Cost Amount YTDOPY %'
+					caption: Kostbeløp YTDOPY i prosent
+				measure 'Cost Amount QOQTD'
+					caption: Kostbeløp QOQTD
+				measure 'Cost Amount QOQTD %'
+					caption: Kostbeløp QOQTD i prosent
+				measure 'Cost Amount PQC'
+					caption: Kostbeløp PQC
+				measure 'Cost Amount QTDOPQ'
+					caption: Kostbeløp QTDOPQ
+				measure 'Cost Amount QTDOPQ %'
+					caption: Kostbeløp QTDOPQ i prosent
+				measure 'Cost Amount PMTD'
+					caption: Kostbeløp PMTD
+				measure 'Cost Amount MOMTD'
+					caption: Kostbeløp MOMTD
+				measure 'Cost Amount MOMTD %'
+					caption: Kostbeløp MOMTD i prosent
+				measure 'Cost Amount PMC'
+					caption: Kostbeløp PMC
+				measure 'Cost Amount MTDOPM'
+					caption: Kostbeløp MTDOPM
+				measure 'Cost Amount MTDOPM %'
+					caption: Kostbeløp MTDOPM i prosent
+				measure 'Cost Amount AVG 30D'
+					caption: Kostbeløp, snitt 30 dg.
+				measure 'Cost Amount AVG 3M'
+					caption: Kostbeløp, snitt 3 md.
+				measure 'Cost Amount AVG 1Y'
+					caption: Kostbeløp, snitt 1 år
+				measure 'Cost Amount MATG'
+					caption: Kostbeløp MATG
+				measure 'Cost Amount MATG %'
+					caption: Kostbeløp MATG i prosent
+				measure 'Cost Amount PP'
+					caption: Kostbeløp PP
+				measure 'Cost Amount POP'
+					caption: Kostbeløp POP
+				measure 'Cost Amount POP %'
+					caption: Kostbeløp POP i prosent
+				measure 'Cost Amount Non-Inv YTD'
+					caption: Kostbeløp, ikke lagerført hittil i år
+				measure 'Cost Amount Non-Inv PY'
+					caption: Kostbeløp, ikke lagerført PY
+				measure 'Cost Amount Non-Inv PYTD'
+					caption: Kostbeløp, ikke lagerført PYTD
+				measure 'Cost Amount Non-Inv PQTD'
+					caption: Kostbeløp, ikke lagerført PQTD
+				measure 'Cost Amount Non-Inv QTD'
+					caption: Kostbeløp, ikke lagerført QTD
+				measure 'Cost Amount Non-Inv MTD'
+					caption: Kostbeløp, ikke lagerført MTD
+				measure 'Cost Amount Non-Inv YOY %'
+					caption: Kostbeløp, ikke lagerført YOY i prosent
+				measure 'Cost Amount Non-Inv YOY'
+					caption: Kostbeløp, ikke lagerført YOY
+				measure 'Cost Amount Non-Inv PQ'
+					caption: Kostbeløp, ikke lagerført PQ
+				measure 'Cost Amount Non-Inv QOQ'
+					caption: Kostbeløp, ikke lagerført QOQ
+				measure 'Cost Amount Non-Inv PM'
+					caption: Kostbeløp, ikke lagerført PM
+				measure 'Cost Amount Non-Inv QOQ %'
+					caption: Kostbeløp, ikke lagerført QOQ i prosent
+				measure 'Cost Amount Non-Inv MOM'
+					caption: Kostbeløp, ikke lagerført MOM
+				measure 'Cost Amount Non-Inv MOM %'
+					caption: Kostbeløp, ikke lagerført MOM i prosent
+				measure 'Cost Amount Non-Inv MAT'
+					caption: Kostbeløp, ikke lagerført MAT
+				measure 'Cost Amount Non-Inv PYMAT'
+					caption: Kostbeløp, ikke lagerført PYMAT
+				measure 'Cost Amount Non-Inv YOYTD'
+					caption: Kostbeløp, ikke lagerført YOYTD
+				measure 'Cost Amount Non-Inv YOYTD %'
+					caption: Kostbeløp, ikke lagerført YOYTD i prosent
+				measure 'Cost Amount Non-Inv PYC'
+					caption: Kostbeløp, ikke lagerført PYC
+				measure 'Cost Amount Non-Inv YTDOPY'
+					caption: Kostbeløp, ikke lagerført YTDOPY
+				measure 'Cost Amount Non-Inv YTDOPY %'
+					caption: Kostbeløp, ikke lagerført YTDOPY i prosent
+				measure 'Cost Amount Non-Inv QOQTD'
+					caption: Kostbeløp, ikke lagerført QOQTD
+				measure 'Cost Amount Non-Inv QOQTD %'
+					caption: Kostbeløp, ikke lagerført QOQTD i prosent
+				measure 'Cost Amount Non-Inv PQC'
+					caption: Kostbeløp, ikke lagerført PQC
+				measure 'Cost Amount Non-Inv QTDOPQ'
+					caption: Kostbeløp, ikke lagerført QTDOPQ
+				measure 'Cost Amount Non-Inv QTDOPQ %'
+					caption: Kostbeløp, ikke lagerført QTDOPQ i prosent
+				measure 'Cost Amount Non-Inv PMTD'
+					caption: Kostbeløp, ikke lagerført PMTD
+				measure 'Cost Amount Non-Inv MOMTD'
+					caption: Kostbeløp, ikke lagerført MOMTD
+				measure 'Cost Amount Non-Inv MOMTD %'
+					caption: Kostbeløp, ikke lagerført MOMTD i prosent
+				measure 'Cost Amount Non-Inv PMC'
+					caption: Kostbeløp, ikke lagerført PMC
+				measure 'Cost Amount Non-Inv MTDOPM'
+					caption: Kostbeløp, ikke lagerført MTDOPM
+				measure 'Cost Amount Non-Inv MTDOPM %'
+					caption: Kostbeløp, ikke lagerført MTDOPM i prosent
+				measure 'Cost Amount Non-Inv AVG 30D'
+					caption: Kostbeløp, ikke lagerført, snitt 30 dg.
+				measure 'Cost Amount Non-Inv AVG 3M'
+					caption: Kostbeløp, ikke lagerført, snitt 3 md.
+				measure 'Cost Amount Non-Inv AVG 1Y'
+					caption: Kostbeløp, ikke lagerført, snitt 1 år
+				measure 'Cost Amount Non-Inv MATG'
+					caption: Kostbeløp, ikke lagerført MATG
+				measure 'Cost Amount Non-Inv MATG %'
+					caption: Kostbeløp, ikke lagerført MATG i prosent
+				measure 'Cost Amount Non-Inv PP'
+					caption: Kostbeløp, ikke lagerført PP
+				measure 'Cost Amount Non-Inv POP'
+					caption: Kostbeløp, ikke lagerført POP
+				measure 'Cost Amount Non-Inv POP %'
+					caption: Kostbeløp, ikke lagerført POP i prosent
+			table 'Dimension Sets'
+				caption: Dimensjonssett
+				column 'Global Dimension 1'
+					caption: Global dimensjon 1
+				column 'Global Dimension 2'
+					caption: Global dimensjon 2
+				column 'Shortcut Dimension 3'
+					caption: Snarveisdimensjon 3
+				column 'Shortcut Dimension 4'
+					caption: Snarveisdimensjon 4
+				column 'Shortcut Dimension 5'
+					caption: Snarveisdimensjon 5
+				column 'Shortcut Dimension 6'
+					caption: Snarveisdimensjon 6
+				column 'Shortcut Dimension 7'
+					caption: Snarveisdimensjon 7
+				column 'Shortcut Dimension 8'
+					caption: Snarveisdimensjon 8
+				column id
+					caption: ID
+			table 'Sales Budget'
+				caption: Salgsbudsjett
+				column 'Entry No.'
+					caption: Oppføringsnr.
+				column 'Budget Name'
+					caption: Budsjettnavn
+				column 'Item No.'
+					caption: Varenr.
+				column 'Location Code'
+					caption: Lokasjonskode
+				measure 'Budget Amount'
+					caption: Budsjettbeløp
+				measure 'Budget Amount Variance'
+					caption: Avvik i budsjettbeløp
+				measure 'Budget Quantity'
+					caption: Budsjettantall
+				measure 'Budget Quantity Variance'
+					caption: Avvik i budsjettantall
+				measure 'Budget Amount Variance %'
+					caption: Avviksprosent i budsjettbeløp
+				measure 'Budget Quantity Variance %'
+					caption: Avviksprosent i budsjettantall
+				measure 'Budget Back Link'
+					caption: Tilbakekobling for budsjett
+			table Date
+				caption: Dato
+				column 'Week Day'
+					caption: Ukedag
+				column 'Calendar Year'
+					caption: Kalenderår
+				column 'Calendar Quarter'
+					caption: Kalenderkvartal
+				column 'Calendar Quarter Year'
+					caption: Kalender Kvartal År
+				column 'Calendar Month'
+					caption: Kalendermåned
+				column 'Calendar Month Year'
+					caption: Kalender Måned År
+				column 'Calendar Week'
+					caption: Kalenderuke
+				column 'Calendar Week Year'
+					caption: Kalender Uke År
+				column 'Calendar RelativeWeekPos'
+					caption: Kalender RelativUkePos
+				column 'Calendar RelativeMonthPos'
+					caption: Kalender RelativMånedPos
+				column 'Calendar RelativeQuarterPos'
+					caption: Kalender relativt kvartal positivt
+				column 'Calendar RelativeYearPos'
+					caption: Kalender RelativtÅrPos
+				column 'Calendar StartOfMonth'
+					caption: Kalender StartPåMåned
+				column 'Calendar EndOfMonth'
+					caption: Kalendermånedsslutt
+				column 'Calendar StartOfQuarter'
+					caption: KalenderStartPåKvartal
+				column 'Calendar EndOfQuarter'
+					caption: KalenderSluttPåKvartal
+				column 'Calendar StartOfYear'
+					caption: KalenderStartPåÅr
+				column 'Calendar EndOfYear'
+					caption: KalenderSluttPåÅr
+				column 'Calendar MonthDays'
+					caption: Kalender MånedDager
+				column 'Calendar QuarterDays'
+					caption: Kalender KvartalDager
+				column 'Calendar YearDays'
+					caption: Kalender ÅrDager
+				column 'Calendar DayOfMonthNumber'
+					caption: Kalender DagIMånedNummer
+				column 'Calendar DayOfQuarterNumber'
+					caption: Kalender DagIKvartalNummer
+				column 'Calendar DayOfYearNumber'
+					caption: Kalender DagIÅretNummer
+				column 'Calendar DatePreviousWeek'
+					caption: Kalender DatoForrigeUke
+				column 'Calendar DatePreviousMonth'
+					caption: Kalender DatoForrigeMåned
+				column 'Calendar DatePreviousQuarter'
+					caption: Kalender DatoForrigeKvartal
+				column 'Calendar DatePreviousYear'
+					caption: Kalender DatoForrigeÅr
+				column 'Fiscal Year'
+					caption: Regnskapsår
+				column 'Fiscal Quarter'
+					caption: Regnskapskvartal
+				column 'Fiscal Quarter Year'
+					caption: Regnskap Kvartal År
+				column 'Fiscal Month'
+					caption: Regnskapsmåned
+				column 'Fiscal Month Year'
+					caption: Regnskap Måned År
+				column 'Fiscal Week'
+					caption: Regnskapsuke
+				column 'Fiscal Week Year'
+					caption: Regnskap Uke År
+				column 'Fiscal RelativeWeekPos'
+					caption: Regnskap RelativUkePos
+				column 'Fiscal RelativeMonthPos'
+					caption: Regnskap RelativMånedPos
+				column 'Fiscal RelativeQuarterPos'
+					caption: Regnskap relativt kvartal positivt
+				column 'Fiscal RelativeYearPos'
+					caption: Regnskap RelativtÅrPos
+				column 'Fiscal StartOfMonth'
+					caption: Regnskap StartPåMåned
+				column 'Fiscal EndOfMonth'
+					caption: Regnskap SluttPåMåned
+				column 'Fiscal StartOfQuarter'
+					caption: Regnskap StartPåKvartal
+				column 'Fiscal EndOfQuarter'
+					caption: Regnskap SluttPåKvartal
+				column 'Fiscal StartOfYear'
+					caption: Regnskap StartPåÅr
+				column 'Fiscal EndOfYear'
+					caption: Regnskap SluttPåÅr
+				column 'Fiscal MonthDays'
+					caption: Regnskap MånedDager
+				column 'Fiscal QuarterDays'
+					caption: Regnskap KvartalDager
+				column 'Fiscal YearDays'
+					caption: Regnskap ÅrDager
+				column 'Fiscal DayOfMonthNumber'
+					caption: Regnskap DagIMånedNummer
+				column 'Fiscal DayOfQuarterNumber'
+					caption: Regnskap DagIKvartalNummer
+				column 'Fiscal DayOfYearNumber'
+					caption: Regnskap DagIÅretNummer
+				column 'Fiscal DatePreviousWeek'
+					caption: Regnskap DatoForrigeUke
+				column 'Fiscal DatePreviousMonth'
+					caption: Regnskap DatoForrigeMåned
+				column 'Fiscal DatePreviousQuarter'
+					caption: Regnskap DatoForrigeKvartal
+				column 'Fiscal DatePreviousYear'
+					caption: Regnskap DatoForrigeÅr
+				column 'FW Year'
+					caption: Regnskapsuke år
+				column 'FW Quarter'
+					caption: Regnskapsuke kvartal
+				column 'FW Quarter Year'
+					caption: Regnskapsuke Kvartal År
+				column 'FW Month'
+					caption: Regnskapsuke måned
+				column 'FW Month Year'
+					caption: Regnskapsuke Måned År
+				column 'FW Week'
+					caption: Regnskapsuke Uke
+				column 'FW Period'
+					caption: Regnskapsukeperiode
+				column 'FW Week Year'
+					caption: Regnskapsuke Uke År
+				column 'FW StartOfWeek'
+					caption: Regnskapsuke StartPåUke
+				column 'FW EndOfWeek'
+					caption: Regnskapsuke ukeslutt
+				column 'FW RelativeWeekPos'
+					caption: Regnskapsuke RelativUkePos
+				column 'FW RelativeMonthPos'
+					caption: Regnskapsuke RelativMånedPos
+				column 'FW RelativeQuarterPos'
+					caption: Regnskapsuke relativt kvartal positivt
+				column 'FW RelativeYearPos'
+					caption: Regnskapsuke RelativtÅrPos
+				column 'FW StartOfMonth'
+					caption: Regnskapsuke StartPåMåned
+				column 'FW EndOfMonth'
+					caption: Regnskapsuke månedsslutt
+				column 'FW StartOfQuarter'
+					caption: Regnskapsuke StartPåKvartal
+				column 'FW EndOfQuarter'
+					caption: Regnskapsuke SluttPåKvartal
+				column 'FW StartOfYear'
+					caption: Regnskapsuke StartPåÅr
+				column 'FW EndOfYear'
+					caption: Regnskapsuke SluttPåÅr
+				column 'FW MonthDays'
+					caption: Regnskapsuke MånedDager
+				column 'FW QuarterDays'
+					caption: Regnskapsuke KvartalDager
+				column 'FW YearDays'
+					caption: Regnskapsuke ÅrDager
+				column 'FW DatePreviousWeek'
+					caption: Regnskapsuke DatoForrigeUke
+				column 'FW DatePreviousMonth'
+					caption: Regnskapsuke DatoForrigeMåned
+				column 'FW DatePreviousQuarter'
+					caption: Regnskapsuke DatoForrigeKvartal
+				column 'FW DatePreviousYear'
+					caption: Regnskapsuke DatoForrigeÅr
+				column 'Holiday Name'
+					caption: Navn på ferie
+				column IsWorkingDay
+					caption: IsWorkingDay
+				column 'Day Type'
+					caption: Type dag
+				column 'Relative Day'
+					caption: Relativ dag
+				hierarchy 'Fiscal Year-Quarter-Month-Week'
+					caption: Regnskap år-kvartal-måned-uke
+					level 'Fiscal Year'
+						caption: Regnskapsår
+					level 'Fiscal Quarter Year'
+						caption: Regnskap Kvartal År
+					level 'Fiscal Month Year'
+						caption: Regnskap Måned År
+					level 'Fiscal Week Year'
+						caption: Regnskap Uke År
+				hierarchy 'Calendar Year-Quarter-Month-Week'
+					caption: Kalender år-kvartal-måned-uke
+					level 'Calendar Year'
+						caption: Kalenderår
+					level 'Calendar Quarter Year'
+						caption: Kalender Kvartal År
+					level 'Calendar Month Year'
+						caption: Kalender Måned År
+					level 'Calendar Week Year'
+						caption: Kalender Uke År
+				hierarchy 'FW Year-Quarter-Month-Week'
+					caption: Regnskapsuke år-kvartal-måned-uke
+					level 'FW Year'
+						caption: Regnskapsuke År
+					level 'FW Quarter Year'
+						caption: Regnskapsuke Kvartal År
+					level 'FW Month Year'
+						caption: Regnskapsuke Måned År
+					level 'FW Week Year'
+						caption: Regnskapsuke Uke År
+				hierarchy 'FW Year-Week'
+					caption: Regnskapsuke år-uke
+					level 'FW Year'
+						caption: Regnskapsuke År
+					level 'FW Week Year'
+						caption: Regnskapsuke Uke År
+				hierarchy 'FW Year-Month-Week'
+					caption: Regnskapsuke år-måned-uke
+					level 'FW Year'
+						caption: Regnskapsuke År
+					level 'FW Month Year'
+						caption: Regnskapsuke Måned År
+					level 'FW Week Year'
+						caption: Regnskapsuke Uke År
+				hierarchy 'FW Year-Quarter-Week'
+					caption: Regnskapsuke år-kvartal-uke
+					level 'FW Year'
+						caption: Regnskapsuke År
+					level 'FW Quarter Year'
+						caption: Regnskapsuke Kvartal År
+					level 'FW Week Year'
+						caption: Regnskapsuke Uke År
+				hierarchy 'Calendar Year-Month-Week'
+					caption: Kalender År-Måned-Uke
+					level 'Calendar Year'
+						caption: Kalenderår
+					level 'Calendar Month Year'
+						caption: Kalender Måned År
+					level 'Calendar Week Year'
+						caption: Kalender Uke År
+				hierarchy 'Calendar Year-Month'
+					caption: Kalender år-måned
+					level 'Calendar Year'
+						caption: Kalenderår
+					level 'Calendar Month Year'
+						caption: Kalender Måned År
+				hierarchy 'Fiscal Year-Month'
+					caption: Regnskap år-måned
+					level 'Fiscal Year'
+						caption: Regnskapsår
+					level 'Fiscal Month Year'
+						caption: Regnskap Måned År
+				hierarchy 'Fiscal Year-Month-Week'
+					caption: Regnskap År-Måned-Uke
+					level 'Fiscal Year'
+						caption: Regnskapsår
+					level 'Fiscal Month Year'
+						caption: Regnskap Måned År
+					level 'Fiscal Week Year'
+						caption: Regnskap Uke År
+			table 'Fiscal Calendar Time Intelligence'
+				caption: Tidsintelligens for regnskapskalender
+				measure 'Sales Amount YTD (Fiscal)'
+					caption: Salgsbeløp hittil i år (regnskap)
+				measure 'Sales Amount PY (Fiscal)'
+					caption: Salgsbeløp PY (regnskap)
+				measure 'Sales Amount PYTD (Fiscal)'
+					caption: Salgsbeløp PYTD (regnskap)
+				measure 'Sales Amount PQTD (Fiscal)'
+					caption: Salgsbeløp PQTD (regnskap)
+				measure 'Sales Amount QTD (Fiscal)'
+					caption: Salgsbeløp QTD (regnskap)
+				measure 'Sales Amount MTD (Fiscal)'
+					caption: Salgsbeløp MTD (regnskap)
+				measure 'Sales Amount YOY % (Fiscal)'
+					caption: Salgsbeløp YOY i prosent (regnskap)
+				measure 'Sales Amount YOY (Fiscal)'
+					caption: Salgsbeløp YOY (regnskap)
+				measure 'Sales Amount PQ (Fiscal)'
+					caption: Salgsbeløp PQ (regnskap)
+				measure 'Sales Amount QOQ (Fiscal)'
+					caption: Salgsbeløp QOQ (regnskap)
+				measure 'Sales Amount QOQ % (Fiscal)'
+					caption: Salgsbeløp QOQ i prosent (regnskap)
+				measure 'Sales Amount PM (Fiscal)'
+					caption: Salgsbeløp PM (regnskap)
+				measure 'Sales Amount MOM (Fiscal)'
+					caption: Salgsbeløp MOM (regnskap)
+				measure 'Sales Amount MOM % (Fiscal)'
+					caption: Salgsbeløp MOM i prosent (regnskap)
+				measure 'Sales Amount MAT (Fiscal)'
+					caption: Salgsbeløp MAT (regnskap)
+				measure 'Sales Amount PYMAT (Fiscal)'
+					caption: Salgsbeløp PYMAT (regnskap)
+				measure 'Sales Amount YOYTD (Fiscal)'
+					caption: Salgsbeløp YOYTD (regnskap)
+				measure 'Sales Amount YOYTD % (Fiscal)'
+					caption: Salgsbeløp YOYTD i prosent (regnskap)
+				measure 'Sales Amount PYC (Fiscal)'
+					caption: Salgsbeløp PYC (regnskap)
+				measure 'Sales Amount YTDOPY (Fiscal)'
+					caption: Salgsbeløp YTDOPY (regnskap)
+				measure 'Sales Amount YTDOPY % (Fiscal)'
+					caption: Salgsbeløp YTDOPY i prosent (regnskap)
+				measure 'Sales Amount QOQTD (Fiscal)'
+					caption: Salgsbeløp QOQTD (regnskap)
+				measure 'Sales Amount QOQTD % (Fiscal)'
+					caption: Salgsbeløp QOQTD i prosent (regnskap)
+				measure 'Sales Amount PQC (Fiscal)'
+					caption: Salgsbeløp PQC (regnskap)
+				measure 'Sales Amount QTDOPQ (Fiscal)'
+					caption: Salgsbeløp QTDOPQ (regnskap)
+				measure 'Sales Amount QTDOPQ % (Fiscal)'
+					caption: Salgsbeløp QTDOPQ i prosent (regnskap)
+				measure 'Sales Amount PMTD (Fiscal)'
+					caption: Salgsbeløp PMTD (regnskap)
+				measure 'Sales Amount MOMTD % (Fiscal)'
+					caption: Salgsbeløp MOMTD i prosent (regnskap)
+				measure 'Sales Amount MOMTD (Fiscal)'
+					caption: Salgsbeløp MOMTD (regnskap)
+				measure 'Sales Amount PMC (Fiscal)'
+					caption: Salgsbeløp PMC (regnskap)
+				measure 'Sales Amount MTDOPM (Fiscal)'
+					caption: Salgsbeløp MTDOPM (regnskap)
+				measure 'Sales Amount MTDOPM % (Fiscal)'
+					caption: Salgsbeløp MTDOPM i prosent (regnskap)
+				measure 'Sales Amount AVG 30D (Fiscal)'
+					caption: Salgsbeløp, snitt 30 dg. (regnskap)
+				measure 'Sales Amount AVG 3M (Fiscal)'
+					caption: Salgsbeløp, snitt 3 md. (regnskap)
+				measure 'Sales Amount AVG 1Y (Fiscal)'
+					caption: Salgsbeløp, snitt 1 år (regnskap)
+				measure 'Sales Amount MATG (Fiscal)'
+					caption: Salgsbeløp MATG (regnskap)
+				measure 'Sales Amount MATG % (Fiscal)'
+					caption: Salgsbeløp MATG i prosent (regnskap)
+				measure 'Sales Amount PP (Fiscal)'
+					caption: Salgsbeløp PP (regnskap)
+				measure 'Sales Amount POP (Fiscal)'
+					caption: Salgsbeløp POP (regnskap)
+				measure 'Sales Amount POP % (Fiscal)'
+					caption: Salgsbeløp POP i prosent (regnskap)
+				measure 'Sales Amount MAT (364) (Fiscal)'
+					caption: Salgsbeløp MAT (364) (regnskap)
+				measure 'Sales PYMAT (364) (Fiscal)'
+					caption: Salg PYMAT (364) (regnskap)
+				measure 'Sales Quantity YTD (Fiscal)'
+					caption: Salgsantall hittil i år (regnskap)
+				measure 'Sales Quantity PY (Fiscal)'
+					caption: Salgsantall PY (regnskap)
+				measure 'Sales Quantity PYTD (Fiscal)'
+					caption: Salgsantall PYTD (regnskap)
+				measure 'Sales Quantity PQTD (Fiscal)'
+					caption: Salgsantall PQTD (regnskap)
+				measure 'Sales Quantity QTD (Fiscal)'
+					caption: Salgsantall QTD (regnskap)
+				measure 'Sales Quantity MTD (Fiscal)'
+					caption: Salgsantall MTD (regnskap)
+				measure 'Sales Quantity YOY % (Fiscal)'
+					caption: Salgsantall YOY i prosent (regnskap)
+				measure 'Sales Quantity YOY (Fiscal)'
+					caption: Salgsantall YOY (regnskap)
+				measure 'Sales Quantity PQ (Fiscal)'
+					caption: Salgsantall PQ (regnskap)
+				measure 'Sales Quantity QOQ (Fiscal)'
+					caption: Salgsantall QOQ (regnskap)
+				measure 'Sales Quantity QOQ % (Fiscal)'
+					caption: Salgsantall QOQ i prosent (regnskap)
+				measure 'Sales Quantity PM (Fiscal)'
+					caption: Salgsantall PM (regnskap)
+				measure 'Sales Quantity MOM (Fiscal)'
+					caption: Salgsantall MOM (regnskap)
+				measure 'Sales Quantity MOM % (Fiscal)'
+					caption: Salgsantall MOM i prosent (regnskap)
+				measure 'Sales Quantity MAT (Fiscal)'
+					caption: Salgsantall MAT (regnskap)
+				measure 'Sales Quantity PYMAT (Fiscal)'
+					caption: Salgsantall PYMAT (regnskap)
+				measure 'Sales Quantity YOYTD (Fiscal)'
+					caption: Salgsantall YOYTD (regnskap)
+				measure 'Sales Quantity YOYTD % (Fiscal)'
+					caption: Salgsantall YOYTD i prosent (regnskap)
+				measure 'Sales Quantity PYC (Fiscal)'
+					caption: Salgsantall PYC (regnskap)
+				measure 'Sales Quantity YTDOPY (Fiscal)'
+					caption: Salgsantall YTDOPY (regnskap)
+				measure 'Sales Quantity YTDOPY % (Fiscal)'
+					caption: Salgsantall YTDOPY i prosent (regnskap)
+				measure 'Sales Quantity QOQTD (Fiscal)'
+					caption: Salgsantall QOQTD (regnskap)
+				measure 'Sales Quantity QOQTD % (Fiscal)'
+					caption: Salgsantall QOQTD i prosent (regnskap)
+				measure 'Sales Quantity PQC (Fiscal)'
+					caption: Salgsantall PQC (regnskap)
+				measure 'Sales Quantity QTDOPQ (Fiscal)'
+					caption: Salgsantall QTDOPQ (regnskap)
+				measure 'Sales Quantity QTDOPQ % (Fiscal)'
+					caption: Salgsantall QTDOPQ i prosent (regnskap)
+				measure 'Sales Quantity PMTD (Fiscal)'
+					caption: Salgsantall PMTD (regnskap)
+				measure 'Sales Quantity MOMTD % (Fiscal)'
+					caption: Salgsantall MOMTD i prosent (regnskap)
+				measure 'Sales Quantity MOMTD (Fiscal)'
+					caption: Salgsantall MOMTD (regnskap)
+				measure 'Sales Quantity PMC (Fiscal)'
+					caption: Salgsantall PMC (regnskap)
+				measure 'Sales Quantity MTDOPM (Fiscal)'
+					caption: Salgsantall MTDOPM (regnskap)
+				measure 'Sales Quantity MTDOPM % (Fiscal)'
+					caption: Salgsantall MTDOPM i prosent (regnskap)
+				measure 'Sales Quantity AVG 30D (Fiscal)'
+					caption: Salgsantall, snitt 30 dg. (regnskap)
+				measure 'Sales Quantity AVG 3M (Fiscal)'
+					caption: Salgsantall, snitt 3 md. (regnskap)
+				measure 'Sales Quantity AVG 1Y (Fiscal)'
+					caption: Salgsantall, snitt 1 år (regnskap)
+				measure 'Sales Quantity MATG (Fiscal)'
+					caption: Salgsantall MATG (regnskap)
+				measure 'Sales Quantity MATG % (Fiscal)'
+					caption: Salgsantall MATG i prosent (regnskap)
+				measure 'Sales Quantity PP (Fiscal)'
+					caption: Salgsantall PP (regnskap)
+				measure 'Sales Quantity POP (Fiscal)'
+					caption: Salgsantall POP (regnskap)
+				measure 'Sales Quantity POP % (Fiscal)'
+					caption: Salgsantall POP i prosent (regnskap)
+				measure 'Cost Amount YTD (Fiscal)'
+					caption: Kostbeløp hittil i år (regnskap)
+				measure 'Cost Amount PY (Fiscal)'
+					caption: Kostbeløp PY (regnskap)
+				measure 'Cost Amount QTD (Fiscal)'
+					caption: Kostbeløp QTD (regnskap)
+				measure 'Cost Amount MTD (Fiscal)'
+					caption: Kostbeløp MTD (regnskap)
+				measure 'Cost Amount YOY % (Fiscal)'
+					caption: Kostbeløp YOY i prosent (regnskap)
+				measure 'Cost Amount YOY (Fiscal)'
+					caption: Kostbeløp YOY (regnskap)
+				measure 'Cost Amount PQ (Fiscal)'
+					caption: Kostbeløp PQ (regnskap)
+				measure 'Cost Amount QOQ (Fiscal)'
+					caption: Kostbeløp QOQ (regnskap)
+				measure 'Cost Amount QOQ % (Fiscal)'
+					caption: Kostbeløp QOQ i prosent (regnskap)
+				measure 'Cost Amount PM (Fiscal)'
+					caption: Kostbeløp PM (regnskap)
+				measure 'Cost Amount MOM (Fiscal)'
+					caption: Kostbeløp MOM (regnskap)
+				measure 'Cost Amount MOM % (Fiscal)'
+					caption: Kostbeløp MOM i prosent (regnskap)
+				measure 'Cost Amount PP (Fiscal)'
+					caption: Kostbeløp PP (regnskap)
+				measure 'Cost Amount POP (Fiscal)'
+					caption: Kostbeløp POP (regnskap)
+				measure 'Cost Amount POP % (Fiscal)'
+					caption: Kostbeløp POP i prosent (regnskap)
+				measure 'Cost Amount PYTD (Fiscal)'
+					caption: Kostbeløp PYTD (regnskap)
+				measure 'Cost Amount PQTD (Fiscal)'
+					caption: Kostbeløp PQTD (regnskap)
+				measure 'Cost Amount YOYTD (Fiscal)'
+					caption: Kostbeløp YOYTD (regnskap)
+				measure 'Cost Amount YOYTD % (Fiscal)'
+					caption: Kostbeløp YOYTD i prosent (regnskap)
+				measure 'Cost Amount QOQTD (Fiscal)'
+					caption: Kostbeløp QOQTD (regnskap)
+				measure 'Cost Amount QOQTD % (Fiscal)'
+					caption: Kostbeløp QOQTD i prosent (regnskap)
+				measure 'Cost Amount PMTD (Fiscal)'
+					caption: Kostbeløp PMTD (regnskap)
+				measure 'Cost Amount MOMTD % (Fiscal)'
+					caption: Kostbeløp MOMTD i prosent (regnskap)
+				measure 'Cost Amount MOMTD (Fiscal)'
+					caption: Kostbeløp MOMTD (regnskap)
+				measure 'Cost Amount MAT (Fiscal)'
+					caption: Kostbeløp MAT (regnskap)
+				measure 'Cost Amount PYMAT (Fiscal)'
+					caption: Kostbeløp PYMAT (regnskap)
+				measure 'Cost Amount MATG (Fiscal)'
+					caption: Kostbeløp MATG (regnskap)
+				measure 'Cost Amount MATG % (Fiscal)'
+					caption: Kostbeløp MATG i prosent (regnskap)
+				measure 'Cost Amount MAT (364) (Fiscal)'
+					caption: Kostbeløp MAT (364) (regnskap)
+				measure 'Cost PYMAT (364) (Fiscal)'
+					caption: Kost PYMAT (364) (regnskap)
+				measure 'Cost Amount PYC (Fiscal)'
+					caption: Kostbeløp PYC (regnskap)
+				measure 'Cost Amount YTDOPY (Fiscal)'
+					caption: Kostbeløp YTDOPY (regnskap)
+				measure 'Cost Amount YTDOPY % (Fiscal)'
+					caption: Kostbeløp YTDOPY i prosent (regnskap)
+				measure 'Cost Amount PQC (Fiscal)'
+					caption: Kostbeløp PQC (regnskap)
+				measure 'Cost Amount QTDOPQ (Fiscal)'
+					caption: Kostbeløp QTDOPQ (regnskap)
+				measure 'Cost Amount QTDOPQ % (Fiscal)'
+					caption: Kostbeløp QTDOPQ i prosent (regnskap)
+				measure 'Cost Amount PMC (Fiscal)'
+					caption: Kostbeløp PMC (regnskap)
+				measure 'Cost Amount MTDOPM (Fiscal)'
+					caption: Kostbeløp MTDOPM (regnskap)
+				measure 'Cost Amount MTDOPM % (Fiscal)'
+					caption: Kostbeløp MTDOPM i prosent (regnskap)
+				measure 'Cost Amount AVG 30D (Fiscal)'
+					caption: Kostbeløp, snitt 30 dg. (regnskap)
+				measure 'Cost Amount AVG 3M (Fiscal)'
+					caption: Kostbeløp, snitt 3 md. (regnskap)
+				measure 'Cost Amount AVG 1Y (Fiscal)'
+					caption: Kostbeløp, snitt 1 år (regnskap)
+				measure 'Cost Amount Non-Inv YTD (Fiscal)'
+					caption: Kostbeløp, ikke lagerført hittil i år (regnskap)
+				measure 'Cost Amount Non-Inv QTD (Fiscal)'
+					caption: Kostbeløp, ikke lagerført QTD (regnskap)
+				measure 'Cost Amount Non-Inv MTD (Fiscal)'
+					caption: Kostbeløp, ikke lagerført MTD (regnskap)
+				measure 'Cost Amount Non-Inv PY (Fiscal)'
+					caption: Kostbeløp, ikke lagerført PY (regnskap)
+				measure 'Cost Amount Non-Inv YOY % (Fiscal)'
+					caption: Kostbeløp, ikke lagerført YOY i prosent (regnskap)
+				measure 'Cost Amount Non-Inv YOY (Fiscal)'
+					caption: Kostbeløp, ikke lagerført YOY (regnskap)
+				measure 'Cost Amount Non-Inv PQ (Fiscal)'
+					caption: Kostbeløp, ikke lagerført PQ (regnskap)
+				measure 'Cost Amount Non-Inv QOQ (Fiscal)'
+					caption: Kostbeløp, ikke lagerført QOQ (regnskap)
+				measure 'Cost Amount Non-Inv QOQ % (Fiscal)'
+					caption: Kostbeløp, ikke lagerført QOQ i prosent (regnskap)
+				measure 'Cost Amount Non-Inv PM (Fiscal)'
+					caption: Kostbeløp, ikke lagerført PM (regnskap)
+				measure 'Cost Amount Non-Inv MOM (Fiscal)'
+					caption: Kostbeløp, ikke lagerført MOM (regnskap)
+				measure 'Cost Amount Non-Inv MOM % (Fiscal)'
+					caption: Kostbeløp, ikke lagerført MOM i prosent (regnskap)
+				measure 'Cost Amount Non-Inv PP (Fiscal)'
+					caption: Kostbeløp, ikke lagerført PP (regnskap)
+				measure 'Cost Amount Non-Inv POP (Fiscal)'
+					caption: Kostbeløp, ikke lagerført POP (regnskap)
+				measure 'Cost Amount Non-Inv POP % (Fiscal)'
+					caption: Kostbeløp, ikke lagerført POP i prosent (regnskap)
+				measure 'Cost Amount Non-Inv PYTD (Fiscal)'
+					caption: Kostbeløp, ikke lagerført PYTD (regnskap)
+				measure 'Cost Amount Non-Inv PQTD (Fiscal)'
+					caption: Kostbeløp, ikke lagerført PQTD (regnskap)
+				measure 'Cost Amount Non-Inv YOYTD (Fiscal)'
+					caption: Kostbeløp, ikke lagerført YOYTD (regnskap)
+				measure 'Cost Amount Non-Inv YOYTD % (Fiscal)'
+					caption: Kostbeløp, ikke lagerført YOYTD i prosent (regnskap)
+				measure 'Cost Amount Non-Inv QOQTD (Fiscal)'
+					caption: Kostbeløp, ikke lagerført QOQTD (regnskap)
+				measure 'Cost Amount Non-Inv QOQTD % (Fiscal)'
+					caption: Kostbeløp, ikke lagerført QOQTD i prosent (regnskap)
+				measure 'Cost Amount Non-Inv PMTD (Fiscal)'
+					caption: Kostbeløp, ikke lagerført PMTD (regnskap)
+				measure 'Cost Amount Non-Inv MOMTD % (Fiscal)'
+					caption: Kostbeløp, ikke lagerført MOMTD i prosent (regnskap)
+				measure 'Cost Amount Non-Inv MOMTD (Fiscal)'
+					caption: Kostbeløp, ikke lagerført MOMTD (regnskap)
+				measure 'Cost Amount Non-Inv MAT (Fiscal)'
+					caption: Kostbeløp, ikke lagerført MAT (regnskap)
+				measure 'Cost Amount Non-Inv PYMAT (Fiscal)'
+					caption: Kostbeløp, ikke lagerført PYMAT (regnskap)
+				measure 'Cost Amount Non-Inv MATG (Fiscal)'
+					caption: Kostbeløp, ikke lagerført MATG (regnskap)
+				measure 'Cost Amount Non-Inv MATG % (Fiscal)'
+					caption: Kostbeløp, ikke lagerført MATG i prosent (regnskap)
+				measure 'Cost Amount Non-Inv PYC (Fiscal)'
+					caption: Kostbeløp, ikke lagerført PYC (regnskap)
+				measure 'Cost Amount Non-Inv YTDOPY (Fiscal)'
+					caption: Kostbeløp, ikke lagerført YTDOPY (regnskap)
+				measure 'Cost Amount Non-Inv YTDOPY % (Fiscal)'
+					caption: Kostbeløp, ikke lagerført YTDOPY i prosent (regnskap)
+				measure 'Cost Amount Non-Inv PQC (Fiscal)'
+					caption: Kostbeløp, ikke lagerført PQC (regnskap)
+				measure 'Cost Amount Non-Inv QTDOPQ (Fiscal)'
+					caption: Kostbeløp, ikke lagerført QTDOPQ (regnskap)
+				measure 'Cost Amount Non-Inv QTDOPQ % (Fiscal)'
+					caption: Kostbeløp, ikke lagerført QTDOPQ i prosent (regnskap)
+				measure 'Cost Amount Non-Inv PMC (Fiscal)'
+					caption: Kostbeløp, ikke lagerført PMC (regnskap)
+				measure 'Cost Amount Non-Inv MTDOPM (Fiscal)'
+					caption: Kostbeløp, ikke lagerført MTDOPM (regnskap)
+				measure 'Cost Amount Non-Inv MTDOPM % (Fiscal)'
+					caption: Kostbeløp, ikke lagerført MTDOPM i prosent (regnskap)
+				measure 'Cost Amount Non-Inv AVG 30D (Fiscal)'
+					caption: Kostbeløp, ikke lagerført, snitt 30 dg. (regnskap)
+				measure 'Cost Amount Non-Inv AVG 3M (Fiscal)'
+					caption: Kostbeløp, ikke lagerført, snitt 3 md. (regnskap)
+				measure 'Cost Amount Non-Inv AVG 1Y (Fiscal)'
+					caption: Kostbeløp, ikke lagerført, snitt 1 år (regnskap)
+				measure 'Gross Profit YTD (Fiscal)'
+					caption: Bruttofortjeneste hittil i år (regnskap)
+				measure 'Gross Profit QTD (Fiscal)'
+					caption: Bruttofortjeneste QTD (regnskap)
+				measure 'Gross Profit MTD (Fiscal)'
+					caption: Bruttofortjeneste MTD (regnskap)
+				measure 'Gross Profit PY (Fiscal)'
+					caption: Bruttofortjeneste PY (regnskap)
+				measure 'Gross Profit YOY % (Fiscal)'
+					caption: Bruttofortjeneste YOY i prosent (regnskap)
+				measure 'Gross Profit YOY (Fiscal)'
+					caption: Bruttofortjeneste YOY (regnskap)
+				measure 'Gross Profit PQ (Fiscal)'
+					caption: Bruttofortjeneste PQ (regnskap)
+				measure 'Gross Profit QOQ (Fiscal)'
+					caption: Bruttofortjeneste QOQ (regnskap)
+				measure 'Gross Profit QOQ % (Fiscal)'
+					caption: Bruttofortjeneste QOQ i prosent (regnskap)
+				measure 'Gross Profit PM (Fiscal)'
+					caption: Bruttofortjeneste PM (regnskap)
+				measure 'Gross Profit MOM (Fiscal)'
+					caption: Bruttofortjeneste MOM (regnskap)
+				measure 'Gross Profit MOM % (Fiscal)'
+					caption: Bruttofortjeneste MOM i prosent (regnskap)
+				measure 'Gross Profit PP (Fiscal)'
+					caption: Bruttofortjeneste PP (regnskap)
+				measure 'Gross Profit POP (Fiscal)'
+					caption: Bruttofortjeneste POP (regnskap)
+				measure 'Gross Profit POP % (Fiscal)'
+					caption: Bruttofortjeneste POP i prosent (regnskap)
+				measure 'Gross Profit PYTD (Fiscal)'
+					caption: Bruttofortjeneste PYTD (regnskap)
+				measure 'Gross Profit PQTD (Fiscal)'
+					caption: Bruttofortjeneste PQTD (regnskap)
+				measure 'Gross Profit YOYTD (Fiscal)'
+					caption: Bruttofortjeneste YOYTD (regnskap)
+				measure 'Gross Profit YOYTD % (Fiscal)'
+					caption: Bruttofortjeneste YOYTD i prosent (regnskap)
+				measure 'Gross Profit QOQTD (Fiscal)'
+					caption: Bruttofortjeneste QOQTD (regnskap)
+				measure 'Gross Profit  QOQTD % (Fiscal)'
+					caption: Bruttofortjeneste QOQTD i prosent (regnskap)
+				measure 'Gross Profit PMTD (Fiscal)'
+					caption: Bruttofortjeneste PMTD (regnskap)
+				measure 'Gross Profit MOMTD % (Fiscal)'
+					caption: Bruttofortjeneste MOMTD i prosent (regnskap)
+				measure 'Gross Profit MOMTD (Fiscal)'
+					caption: Bruttofortjeneste MOMTD (regnskap)
+				measure 'Gross Profit MAT (Fiscal)'
+					caption: Bruttofortjeneste MAT (regnskap)
+				measure 'Gross Profit PYMAT (Fiscal)'
+					caption: Bruttofortjeneste PYMAT (regnskap)
+				measure 'Gross Profit MATG (Fiscal)'
+					caption: Bruttofortjeneste MATG (regnskap)
+				measure 'Gross Profit MATG % (Fiscal)'
+					caption: Bruttofortjeneste MATG i prosent (regnskap)
+				measure 'Gross Profit MAT (364) (Fiscal)'
+					caption: Bruttofortjeneste MAT (364) (regnskap)
+				measure 'Gross Profit PYMAT (364) (Fiscal)'
+					caption: Bruttofortjeneste PYMAT (364) (regnskap)
+				measure 'Gross Profit PYC (Fiscal)'
+					caption: Bruttofortjeneste PYC (regnskap)
+				measure 'Gross Profit YTDOPY (Fiscal)'
+					caption: Bruttofortjeneste YTDOPY (regnskap)
+				measure 'Gross Profit YTDOPY % (Fiscal)'
+					caption: Bruttofortjeneste YTDOPY i prosent (regnskap)
+				measure 'Gross Profit PQC (Fiscal)'
+					caption: Bruttofortjeneste PQC (regnskap)
+				measure 'Gross Profit QTDOPQ (Fiscal)'
+					caption: Bruttofortjeneste QTDOPQ (regnskap)
+				measure 'Gross Profit QTDOPQ % (Fiscal)'
+					caption: Bruttofortjeneste QTDOPQ i prosent (regnskap)
+				measure 'Gross Profit PMC (Fiscal)'
+					caption: Bruttofortjeneste PMC (regnskap)
+				measure 'Gross Profit MTDOPM (Fiscal)'
+					caption: Bruttofortjeneste MTDOPM (regnskap)
+				measure 'Gross Profit MTDOPM % (Fiscal)'
+					caption: Bruttofortjeneste MTDOPM i prosent (regnskap)
+				measure 'Gross Profit AVG 30D (Fiscal)'
+					caption: Bruttofortjeneste, snitt 30 dg. (regnskap)
+				measure 'Gross Profit AVG 3M (Fiscal)'
+					caption: Bruttofortjeneste, snitt 3 md. (regnskap)
+				measure 'Gross Profit AVG 1Y (Fiscal)'
+					caption: Bruttofortjeneste, snitt 1 år (regnskap)
+				measure 'Gross Profit Margin AVG 30D (Fiscal)'
+					caption: Brutto fortj.margin, snitt 30 dg. (regnskap)
+				measure 'Gross Profit Margin AVG 3M (Fiscal)'
+					caption: Brutto fortj.margin snitt 3 md. (regnskap)
+				measure 'Gross Profit Margin AVG 1Y (Fiscal)'
+					caption: Brutto fortj.margin snitt 1 år (regnskap)
+				measure 'Gross Profit Margin PYC (Fiscal)'
+					caption: Brutto fortj.margin PYC (regnskap)
+				measure 'Gross Profit Margin YTDOPY (Fiscal)'
+					caption: Brutto fortj.margin YTDOPY (regnskap)
+				measure 'Gross Profit Margin YTDOPY % (Fiscal)'
+					caption: Brutto fortj.margin YTDOPY i prosent (regnskap)
+				measure 'Gross Profit Margin PQC (Fiscal)'
+					caption: Brutto fortj.margin PQC (regnskap)
+				measure 'Gross Profit Margin QTDOPQ (Fiscal)'
+					caption: Brutto fortj.margin QTDOPQ (regnskap)
+				measure 'Gross Profit Margin QTDOPQ % (Fiscal)'
+					caption: Brutto fortj.margin QTDOPQ i prosent (regnskap)
+				measure 'Gross Profit Margin PMC (Fiscal)'
+					caption: Brutto fortj.margin PMC (regnskap)
+				measure 'Gross Profit Margin MTDOPM (Fiscal)'
+					caption: Brutto fortj.margin MTDOPM (regnskap)
+				measure 'Gross Profit Margin MTDOPM % (Fiscal)'
+					caption: Brutto fortj.margin MTDOPM i prosent (regnskap)
+				measure 'Gross Profit Margin MAT (Fiscal)'
+					caption: Brutto fortj.margin MAT (regnskap)
+				measure 'Gross Profit Margin PYMAT (Fiscal)'
+					caption: Brutto fortj.margin PYMAT (regnskap)
+				measure 'Gross Profit Margin MATG (Fiscal)'
+					caption: Brutto fortj.margin MATG (regnskap)
+				measure 'Gross Profit Margin MATG % (Fiscal)'
+					caption: Brutto fortj.margin MATG i prosent (regnskap)
+				measure 'Gross Profit Margin MAT (364) (Fiscal)'
+					caption: Brutto fortj.margin MAT (364) (regnskap)
+				measure 'Gross Profit Margin PYMAT (364) (Fiscal)'
+					caption: Brutto fortj.margin PYMAT (364) (regnskap)
+				measure 'Gross Profit Margin PYTD (Fiscal)'
+					caption: Brutto fortj.margin PYTD (regnskap)
+				measure 'Gross Profit Margin PQTD (Fiscal)'
+					caption: Brutto fortj.margin PQTD (regnskap)
+				measure 'Gross Profit Margin YOYTD (Fiscal)'
+					caption: Brutto fortj.margin YOYTD (regnskap)
+				measure 'Gross Profit Margin YOYTD % (Fiscal)'
+					caption: Brutto fortj.margin YOYTD i prosent (regnskap)
+				measure 'Gross Profit Margin QOQTD (Fiscal)'
+					caption: Brutto fortj.margin QOQTD (regnskap)
+				measure 'Gross Profit Margin QOQTD % (Fiscal)'
+					caption: Brutto fortj.margin QOQTD i prosent (regnskap)
+				measure 'Gross Profit Margin PMTD (Fiscal)'
+					caption: Brutto fortj.margin PMTD (regnskap)
+				measure 'Gross Profit Margin MOMTD % (Fiscal)'
+					caption: Brutto fortj.margin MOMTD i prosent (regnskap)
+				measure 'Gross Profit Margin MOMTD (Fiscal)'
+					caption: Brutto fortj.margin MOMTD (regnskap)
+				measure 'Gross Profit Margin PY (Fiscal)'
+					caption: Brutto fortj.margin PY (regnskap)
+				measure 'Gross Profit Margin YOY % (Fiscal)'
+					caption: Brutto fortj.margin YOY i prosent (regnskap)
+				measure 'Gross Profit Margin YOY (Fiscal)'
+					caption: Brutto fortj.margin YOY (regnskap)
+				measure 'Gross Profit Margin PQ (Fiscal)'
+					caption: Brutto fortj.margin PQ (regnskap)
+				measure 'Gross Profit Margin QOQ (Fiscal)'
+					caption: Brutto fortj.margin QOQ (regnskap)
+				measure 'Gross Profit Margin QOQ % (Fiscal)'
+					caption: Brutto fortj.margin QOQ i prosent (regnskap)
+				measure 'Gross Profit Margin PM (Fiscal)'
+					caption: Brutto fortj.margin PM (regnskap)
+				measure 'Gross Profit Margin MOM (Fiscal)'
+					caption: Brutto fortj.margin MOM (regnskap)
+				measure 'Gross Profit Margin MOM % (Fiscal)'
+					caption: Brutto fortj.margin MOM i prosent (regnskap)
+				measure 'Gross Profit Margin PP (Fiscal)'
+					caption: Brutto fortj.margin PP (regnskap)
+				measure 'Gross Profit Margin POP (Fiscal)'
+					caption: Brutto fortj.margin POP (regnskap)
+				measure 'Gross Profit Margin POP % (Fiscal)'
+					caption: Brutto fortj.margin POP i prosent (regnskap)
+				measure 'Gross Profit Margin YTD (Fiscal)'
+					caption: Brutto fortj.margin hittil i år (regnskap)
+				measure 'Gross Profit Margin QTD (Fiscal)'
+					caption: Brutto fortj.margin QTD (regnskap)
+				measure 'Gross Profit Margin MTD (Fiscal)'
+					caption: Brutto fortj.margin MTD (regnskap)
+			table 'Weekly Calendar Time Intelligence'
+				caption: Tidsintelligens for ukekalender
+				measure 'Sales Amount YTD (Weekly)'
+					caption: Salgsbeløp hittil i år (ukentlig)
+				measure 'Sales Amount PY (Weekly)'
+					caption: Salgsbeløp PY (ukentlig)
+				measure 'Sales Amount PYTD (Weekly)'
+					caption: Salgsbeløp PYTD (ukentlig)
+				measure 'Sales Amount PQTD (Weekly)'
+					caption: Salgsbeløp PQTD (ukentlig)
+				measure 'Sales Amount QTD (Weekly)'
+					caption: Salgsbeløp QTD (ukentlig)
+				measure 'Sales Amount MTD (Weekly)'
+					caption: Salgsbeløp MTD (ukentlig)
+				measure 'Sales Amount YOY % (Weekly)'
+					caption: Salgsbeløp YOY i prosent (ukentlig)
+				measure 'Sales Amount YOY (Weekly)'
+					caption: Salgsbeløp YOY (ukentlig)
+				measure 'Sales Amount PQ (Weekly)'
+					caption: Salgsbeløp PQ (ukentlig)
+				measure 'Sales Amount QOQ (Weekly)'
+					caption: Salgsbeløp QOQ (ukentlig)
+				measure 'Sales Amount QOQ % (Weekly)'
+					caption: Salgsbeløp QOQ i prosent (ukentlig)
+				measure 'Sales Amount PW (Weekly)'
+					caption: Salgsbeløp PW (ukentlig)
+				measure 'Sales Amount WOW (Weekly)'
+					caption: Salgsbeløp WOW (ukentlig)
+				measure 'Sales Amount WOW % (Weekly)'
+					caption: Salgsbeløp WOW i prosent (ukentlig)
+				measure 'Sales Amount MAT (364) (Weekly)'
+					caption: Salgsbeløp MAT (364) (ukentlig)
+				measure 'Sales Amount PYMAT (364) (Weekly)'
+					caption: Salgsbeløp PYMAT (364) (ukentlig)
+				measure 'Sales Amount YOYTD (Weekly)'
+					caption: Salgsbeløp YOYTD (ukentlig)
+				measure 'Sales Amount YOYTD % (Weekly)'
+					caption: Salgsbeløp YOYTD i prosent (ukentlig)
+				measure 'Sales Amount PYC (Weekly)'
+					caption: Salgsbeløp PYC (ukentlig)
+				measure 'Sales Amount YTDOPY (Weekly)'
+					caption: Salgsbeløp YTDOPY (ukentlig)
+				measure 'Sales Amount YTDOPY % (Weekly)'
+					caption: Salgsbeløp YTDOPY i prosent (ukentlig)
+				measure 'Sales Amount QOQTD (Weekly)'
+					caption: Salgsbeløp QOQTD (ukentlig)
+				measure 'Sales Amount QOQTD % (Weekly)'
+					caption: Salgsbeløp QOQTD i prosent (ukentlig)
+				measure 'Sales Amount PQC (Weekly)'
+					caption: Salgsbeløp PQC (ukentlig)
+				measure 'Sales Amount QTDOPQ (Weekly)'
+					caption: Salgsbeløp QTDOPQ (ukentlig)
+				measure 'Sales Amount QTDOPQ % (Weekly)'
+					caption: Salgsbeløp QTDOPQ i prosent (ukentlig)
+				measure 'Sales Amount PWTD (Weekly)'
+					caption: Salgsbeløp PWTD (ukentlig)
+				measure 'Sales Amount WOWTD (Weekly)'
+					caption: Salgsbeløp WOWTD (ukentlig)
+				measure 'Sales Amount WOWTD % (Weekly)'
+					caption: Salgsbeløp WOWTD i prosent (ukentlig)
+				measure 'Sales Amount PWC (Weekly)'
+					caption: Salgsbeløp PWC (ukentlig)
+				measure 'Sales Amount WTDOPW (Weekly)'
+					caption: Salgsbeløp WTDOPW (ukentlig)
+				measure 'Sales Amount WTDOPW % (Weekly)'
+					caption: Salgsbeløp WTDOPW i prosent (ukentlig)
+				measure 'Sales Amount AVG 4W (Weekly)'
+					caption: Salgsbeløp snitt 4 uker (ukentlig)
+				measure 'Sales Amount AVG 1Q (Weekly)'
+					caption: Salgsbeløp snitt 1Q (ukentlig)
+				measure 'Sales Amount AVG 1Y (Weekly)'
+					caption: Salgsbeløp snitt 1 år (ukentlig)
+				measure 'Sales Amount MATG (Weekly)'
+					caption: Salgsbeløp MATG (ukentlig)
+				measure 'Sales Amount MATG % (Weekly)'
+					caption: Salgsbeløp MATG i prosent (ukentlig)
+				measure 'Sales Amount PP (Weekly)'
+					caption: Salgsbeløp PP (ukentlig)
+				measure 'Sales Amount POP (Weekly)'
+					caption: Salgsbeløp POP (ukentlig)
+				measure 'Sales Amount POP % (Weekly)'
+					caption: Salgsbeløp POP i prosent (ukentlig)
+				measure 'Sales Amount WTD (Weekly)'
+					caption: Salgsbeløp WTD (ukentlig)
+				measure 'Sales Quantity YTD (Weekly)'
+					caption: Salgsantall hittil i år (ukentlig)
+				measure 'Sales Quantity PY (Weekly)'
+					caption: Salgsantall PY (ukentlig)
+				measure 'Sales Quantity PYTD (Weekly)'
+					caption: Salgsantall PYTD (ukentlig)
+				measure 'Sales Quantity QTD (Weekly)'
+					caption: Salgsantall QTD (ukentlig)
+				measure 'Sales Quantity PQTD (Weekly)'
+					caption: Salgsantall PQTD (ukentlig)
+				measure 'Sales Quantity MTD (Weekly)'
+					caption: Salgsantall MTD (ukentlig)
+				measure 'Sales Quantity YOY % (Weekly)'
+					caption: Salgsantall YOY i prosent (ukentlig)
+				measure 'Sales Quantity YOY (Weekly)'
+					caption: Salgsantall YOY (ukentlig)
+				measure 'Sales Quantity PQ (Weekly)'
+					caption: Salgsantall PQ (ukentlig)
+				measure 'Sales Quantity QOQ (Weekly)'
+					caption: Salgsantall QOQ (ukentlig)
+				measure 'Sales Quantity QOQ % (Weekly)'
+					caption: Salgsantall QOQ i prosent (ukentlig)
+				measure 'Sales Quantity PW (Weekly)'
+					caption: Salgsantall PW (ukentlig)
+				measure 'Sales Quantity WOW (Weekly)'
+					caption: Salgsantall WOW (ukentlig)
+				measure 'Sales Quantity WOW % (Weekly)'
+					caption: Salgsantall WOW i prosent (ukentlig)
+				measure 'Sales Quantity MAT (364) (Weekly)'
+					caption: Salgsantall MAT (364) (ukentlig)
+				measure 'Sales Quantity PYMAT (364) (Weekly)'
+					caption: Salgsantall PYMAT (364) (ukentlig)
+				measure 'Sales Quantity YOYTD (Weekly)'
+					caption: Salgsantall YOYTD (ukentlig)
+				measure 'Sales Quantity YOYTD % (Weekly)'
+					caption: Salgsantall YOYTD i prosent (ukentlig)
+				measure 'Sales Quantity PYC (Weekly)'
+					caption: Salgsantall PYC (ukentlig)
+				measure 'Sales Quantity YTDOPY (Weekly)'
+					caption: Salgsantall YTDOPY (ukentlig)
+				measure 'Sales Quantity YTDOPY  % (Weekly)'
+					caption: Salgsantall YTDOPY i prosent (ukentlig)
+				measure 'Sales Quantity QOQTD (Weekly)'
+					caption: Salgsantall QOQTD (ukentlig)
+				measure 'Sales Quantity QOQTD % (Weekly)'
+					caption: Salgsantall QOQTD i prosent (ukentlig)
+				measure 'Sales Quantity PQC (Weekly)'
+					caption: Salgsantall PQC (ukentlig)
+				measure 'Sales Quantity QTDOPQ (Weekly)'
+					caption: Salgsantall QTDOPQ (ukentlig)
+				measure 'Sales Quantity QTDOPQ % (Weekly)'
+					caption: Salgsantall QTDOPQ i prosent (ukentlig)
+				measure 'Sales Quantity PWTD (Weekly)'
+					caption: Salgsantall PWTD (ukentlig)
+				measure 'Sales Quantity WOWTD (Weekly)'
+					caption: Salgsantall WOWTD (ukentlig)
+				measure 'Sales Quantity WOWTD % (Weekly)'
+					caption: Salgsantall WOWTD i prosent (ukentlig)
+				measure 'Sales Quantity PWC (Weekly)'
+					caption: Salgsantall PWC (ukentlig)
+				measure 'Sales Quantity WTDOPW (Weekly)'
+					caption: Salgsantall WTDOPW (ukentlig)
+				measure 'Sales Quantity WTDOPW % (Weekly)'
+					caption: Salgsantall WTDOPW i prosent (ukentlig)
+				measure 'Sales Quantity AVG 4W (Weekly)'
+					caption: Salgsantall snitt 4 uker (ukentlig)
+				measure 'Sales Quantity AVG 1Q (Weekly)'
+					caption: Salgsantall snitt 1Q (ukentlig)
+				measure 'Sales Quantity AVG 1Y (Weekly)'
+					caption: Salgsantall snitt 1 år (ukentlig)
+				measure 'Sales Quantity MATG (Weekly)'
+					caption: Salgsantall MATG (ukentlig)
+				measure 'Sales Quantity MATG % (Weekly)'
+					caption: Salgsantall MATG i prosent (ukentlig)
+				measure 'Sales Quantity PP (Weekly)'
+					caption: Salgsantall PP (ukentlig)
+				measure 'Sales Quantity POP (Weekly)'
+					caption: Salgsantall POP (ukentlig)
+				measure 'Sales Quantity POP % (Weekly)'
+					caption: Salgsantall POP i prosent (ukentlig)
+				measure 'Sales Quantity WTD (Weekly)'
+					caption: Salgsantall WTD (ukentlig)
+				measure 'Gross Profit YTD (Weekly)'
+					caption: Bruttofortjeneste hittil i år (ukentlig)
+				measure 'Gross Profit PY (Weekly)'
+					caption: Bruttofortjeneste PY (ukentlig)
+				measure 'Gross Profit PYTD (Weekly)'
+					caption: Bruttofortjeneste PYTD (ukentlig)
+				measure 'Gross Profit QTD (Weekly)'
+					caption: Bruttofortjeneste QTD (ukentlig)
+				measure 'Gross Profit PQTD (Weekly)'
+					caption: Bruttofortjeneste PQTD (ukentlig)
+				measure 'Gross Profit MTD (Weekly)'
+					caption: Bruttofortjeneste MTD (ukentlig)
+				measure 'Gross Profit YOY % (Weekly)'
+					caption: Bruttofortjeneste YOY i prosent (ukentlig)
+				measure 'Gross Profit YOY (Weekly)'
+					caption: Bruttofortjeneste YOY (ukentlig)
+				measure 'Gross Profit PQ (Weekly)'
+					caption: Bruttofortjeneste PQ (ukentlig)
+				measure 'Gross Profit QOQ (Weekly)'
+					caption: Bruttofortjeneste QOQ (ukentlig)
+				measure 'Gross Profit QOQ % (Weekly)'
+					caption: Bruttofortjeneste QOQ i prosent (ukentlig)
+				measure 'Gross Profit PW (Weekly)'
+					caption: Bruttofortjeneste PW (ukentlig)
+				measure 'Gross Profit WOW (Weekly)'
+					caption: Bruttofortjeneste WOW (ukentlig)
+				measure 'Gross Profit WOW % (Weekly)'
+					caption: Bruttofortjeneste WOW i prosent (ukentlig)
+				measure 'Gross Profit MAT (364) (Weekly)'
+					caption: Bruttofortjeneste MAT (364) (ukentlig)
+				measure 'Gross Profit PYMAT (364) (Weekly)'
+					caption: Bruttofortjeneste PYMAT (364) (ukentlig)
+				measure 'Gross Profit YOYTD (Weekly)'
+					caption: Bruttofortjeneste YOYTD (ukentlig)
+				measure 'Gross Profit YOYTD % (Weekly)'
+					caption: Bruttofortjeneste YOYTD i prosent (ukentlig)
+				measure 'Gross Profit PYC (Weekly)'
+					caption: Bruttofortjeneste PYC (ukentlig)
+				measure 'Gross Profit YTDOPY (Weekly)'
+					caption: Bruttofortjeneste YTDOPY (ukentlig)
+				measure 'Gross Profit YTDOPY % (Weekly)'
+					caption: Bruttofortjeneste YTDOPY i prosent (ukentlig)
+				measure 'Gross Profit QOQTD (Weekly)'
+					caption: Bruttofortjeneste QOQTD (ukentlig)
+				measure 'Gross Profit QOQTD % (Weekly)'
+					caption: Bruttofortjeneste QOQTD i prosent (ukentlig)
+				measure 'Gross Profit PQC (Weekly)'
+					caption: Bruttofortjeneste PQC (ukentlig)
+				measure 'Gross Profit QTDOPQ (Weekly)'
+					caption: Bruttofortjeneste QTDOPQ (ukentlig)
+				measure 'Gross Profit QTDOPQ % (Weekly)'
+					caption: Bruttofortjeneste QTDOPQ i prosent (ukentlig)
+				measure 'Gross Profit PWTD (Weekly)'
+					caption: Bruttofortjeneste PWTD (ukentlig)
+				measure 'Gross Profit WOWTD (Weekly)'
+					caption: Bruttofortjeneste WOWTD (ukentlig)
+				measure 'Gross Profit WOWTD % (Weekly)'
+					caption: Bruttofortjeneste WOWTD i prosent (ukentlig)
+				measure 'Gross Profit PWC (Weekly)'
+					caption: Bruttofortjeneste PWC (ukentlig)
+				measure 'Gross Profit WTDOPW (Weekly)'
+					caption: Bruttofortjeneste WTDOPW (ukentlig)
+				measure 'Gross Profit WTDOPW % (Weekly)'
+					caption: Bruttofortjeneste WTDOPW i prosent (ukentlig)
+				measure 'Gross Profit AVG 4W (Weekly)'
+					caption: Bruttofortjeneste snitt 4 uker (ukentlig)
+				measure 'Gross Profit AVG 1Q (Weekly)'
+					caption: Bruttofortjeneste snitt 1Q (ukentlig)
+				measure 'Gross Profit AVG 1Y (Weekly)'
+					caption: Bruttofortjeneste snitt 1 år (ukentlig)
+				measure 'Gross Profit MATG (Weekly)'
+					caption: Bruttofortjeneste MATG (ukentlig)
+				measure 'Gross Profit MATG % (Weekly)'
+					caption: Bruttofortjeneste MATG i prosent (ukentlig)
+				measure 'Gross Profit PP (Weekly)'
+					caption: Bruttofortjeneste PP (ukentlig)
+				measure 'Gross Profit POP (Weekly)'
+					caption: Bruttofortjeneste POP (ukentlig)
+				measure 'Gross Profit POP % (Weekly)'
+					caption: Bruttofortjeneste POP i prosent (ukentlig)
+				measure 'Gross Profit WTD (Weekly)'
+					caption: Bruttofortjeneste WTD (ukentlig)
+				measure 'Gross Profit Margin YTD (Weekly)'
+					caption: Brutto fortj.margin hittil i år (ukentlig)
+				measure 'Gross Profit Margin QTD (Weekly)'
+					caption: Brutto fortj.margin QTD (ukentlig)
+				measure 'Gross Profit Margin MTD (Weekly)'
+					caption: Brutto fortj.margin MTD (ukentlig)
+				measure 'Gross Profit Margin WTD (Weekly)'
+					caption: Brutto fortj.margin WTD (ukentlig)
+				measure 'Gross Profit Margin PY (Weekly)'
+					caption: Brutto fortj.margin PY (ukentlig)
+				measure 'Gross Profit Margin YOY % (Weekly)'
+					caption: Brutto fortj.margin YOY i prosent (ukentlig)
+				measure 'Gross Profit Margin YOY (Weekly)'
+					caption: Brutto fortj.margin YOY (ukentlig)
+				measure 'Gross Profit Margin PQ (Weekly)'
+					caption: Brutto fortj.margin PQ (ukentlig)
+				measure 'Gross Profit Margin QOQ (Weekly)'
+					caption: Brutto fortj.margin QOQ (ukentlig)
+				measure 'Gross Profit Margin QOQ % (Weekly)'
+					caption: Brutto fortj.margin QOQ i prosent (ukentlig)
+				measure 'Gross Profit Margin PW (Weekly)'
+					caption: Brutto fortj.margin PW (ukentlig)
+				measure 'Gross Profit Margin WOW (Weekly)'
+					caption: Brutto fortj.margin WOW (ukentlig)
+				measure 'Gross Profit Margin WOW % (Weekly)'
+					caption: Brutto fortj.margin WOW i prosent (ukentlig)
+				measure 'Gross Profit Margin PP (Weekly)'
+					caption: Brutto fortj.margin PP (ukentlig)
+				measure 'Gross Profit Margin POP (Weekly)'
+					caption: Brutto fortj.margin POP (ukentlig)
+				measure 'Gross Profit Margin POP % (Weekly)'
+					caption: Brutto fortj.margin POP i prosent (ukentlig)
+				measure 'Gross Profit Margin PYTD (Weekly)'
+					caption: Brutto fortj.margin PYTD (ukentlig)
+				measure 'Gross Profit Margin PQTD (Weekly)'
+					caption: Brutto fortj.margin PQTD (ukentlig)
+				measure 'Gross Profit Margin YOYTD (Weekly)'
+					caption: Brutto fortj.margin YOYTD (ukentlig)
+				measure 'Gross Profit Margin YOYTD % (Weekly)'
+					caption: Brutto fortj.margin YOYTD i prosent (ukentlig)
+				measure 'Gross Profit Margin QOQTD (Weekly)'
+					caption: Brutto fortj.margin QOQTD (ukentlig)
+				measure 'Gross Profit Margin QOQTD % (Weekly)'
+					caption: Brutto fortj.margin QOQTD i prosent (ukentlig)
+				measure 'Gross Profit Margin PWTD (Weekly)'
+					caption: Brutto fortj.margin PWTD (ukentlig)
+				measure 'Gross Profit Margin WOWTD (Weekly)'
+					caption: Brutto fortj.margin WOWTD (ukentlig)
+				measure 'Gross Profit Margin WOWTD % (Weekly)'
+					caption: Brutto fortj.margin WOWTD i prosent (ukentlig)
+				measure 'Gross Profit Margin MAT (364) (Weekly)'
+					caption: Brutto fortj.margin MAT (364) (ukentlig)
+				measure 'Gross Profit Margin PYMAT (364) (Weekly)'
+					caption: Brutto fortj.margin PYMAT (364) (ukentlig)
+				measure 'Gross Profit Margin MATG (Weekly)'
+					caption: Brutto fortj.margin MATG (ukentlig)
+				measure 'Gross Profit Margin MATG % (Weekly)'
+					caption: Brutto fortj.margin MATG i prosent (ukentlig)
+				measure 'Gross Profit Margin PYC (Weekly)'
+					caption: Brutto fortj.margin PYC (ukentlig)
+				measure 'Gross Profit Margin YTDOPY (Weekly)'
+					caption: Brutto fortj.margin YTDOPY (ukentlig)
+				measure 'Gross Profit Margin YTDOPY % (Weekly)'
+					caption: Brutto fortj.margin YTDOPY i prosent (ukentlig)
+				measure 'Gross Profit Margin PQC (Weekly)'
+					caption: Brutto fortj.margin PQC (ukentlig)
+				measure 'Gross Profit Margin QTDOPQ (Weekly)'
+					caption: Brutto fortj.margin QTDOPQ (ukentlig)
+				measure 'Gross Profit Margin QTDOPQ % (Weekly)'
+					caption: Brutto fortj.margin QTDOPQ i prosent (ukentlig)
+				measure 'Gross Profit Margin PWC (Weekly)'
+					caption: Brutto fortj.margin PWC (ukentlig)
+				measure 'Gross Profit Margin WTDOPW (Weekly)'
+					caption: Brutto fortj.margin WTDOPW (ukentlig)
+				measure 'Gross Profit Margin WTDOPW % (Weekly)'
+					caption: Brutto fortj.margin WTDOPW i prosent (ukentlig)
+				measure 'Gross Profit Margin AVG 4W (Weekly'
+					caption: Brutto fortj.margin snitt 4 uker (ukentlig)
+				measure 'Gross Profit Margin AVG 1Q (Weekly)'
+					caption: Brutto fortj.margin snitt 1Q (ukentlig)
+				measure 'Gross Profit Margin AVG 1Y (Weekly)'
+					caption: Brutto fortj.margin snitt 1 år (ukentlig)
+				measure 'Cost Amount YTD (Weekly)'
+					caption: Kostbeløp hittil i år (ukentlig)
+				measure 'Cost Amount QTD (Weekly)'
+					caption: Kostbeløp QTD (ukentlig)
+				measure 'Cost Amount MTD (Weekly)'
+					caption: Kostbeløp MTD (ukentlig)
+				measure 'Cost Amount WTD (Weekly)'
+					caption: Kostbeløp WTD (ukentlig)
+				measure 'Cost Amount PY (Weekly)'
+					caption: Kostbeløp PY (ukentlig)
+				measure 'Cost Amount YOY % (Weekly)'
+					caption: Kostbeløp YOY i prosent (ukentlig)
+				measure 'Cost Amount YOY (Weekly)'
+					caption: Kostbeløp YOY (ukentlig)
+				measure 'Cost Amount PQ (Weekly)'
+					caption: Kostbeløp PQ (ukentlig)
+				measure 'Cost Amount QOQ (Weekly)'
+					caption: Kostbeløp QOQ (ukentlig)
+				measure 'Cost Amount QOQ % (Weekly)'
+					caption: Kostbeløp QOQ i prosent (ukentlig)
+				measure 'Cost Amount PW (Weekly)'
+					caption: Kostbeløp PW (ukentlig)
+				measure 'Cost Amount WOW (Weekly)'
+					caption: Kostbeløp WOW (ukentlig)
+				measure 'Cost Amount WOW % (Weekly)'
+					caption: Kostbeløp WOW i prosent (ukentlig)
+				measure 'Cost Amount PP (Weekly)'
+					caption: Kostbeløp PP (ukentlig)
+				measure 'Cost Amount POP (Weekly)'
+					caption: Kostbeløp POP (ukentlig)
+				measure 'Cost Amount POP % (Weekly)'
+					caption: Kostbeløp POP i prosent (ukentlig)
+				measure 'Cost Amount PYTD (Weekly)'
+					caption: Kostbeløp PYTD (ukentlig)
+				measure 'Cost Amount PQTD (Weekly)'
+					caption: Kostbeløp PQTD (ukentlig)
+				measure 'Cost Amount YOYTD (Weekly)'
+					caption: Kostbeløp YOYTD (ukentlig)
+				measure 'Cost Amount YOYTD % (Weekly)'
+					caption: Kostbeløp YOYTD i prosent (ukentlig)
+				measure 'Cost Amount QOQTD (Weekly)'
+					caption: Kostbeløp QOQTD (ukentlig)
+				measure 'Cost Amount QOQTD % (Weekly)'
+					caption: Kostbeløp QOQTD i prosent (ukentlig)
+				measure 'Cost Amount PWTD (Weekly)'
+					caption: Kostbeløp PWTD (ukentlig)
+				measure 'Cost Amount WOWTD (Weekly)'
+					caption: Kostbeløp WOWTD (ukentlig)
+				measure 'Cost Amount WOWTD % (Weekly)'
+					caption: Kostbeløp WOWTD i prosent (ukentlig)
+				measure 'Cost Amount MAT (364) (Weekly)'
+					caption: Kostbeløp MAT (364) (ukentlig)
+				measure 'Cost Amount PYMAT (364) (Weekly)'
+					caption: Kostbeløp PYMAT (364) (ukentlig)
+				measure 'Cost Amount MATG (Weekly)'
+					caption: Kostbeløp MATG (ukentlig)
+				measure 'Cost Amount MATG % (Weekly)'
+					caption: Kostbeløp MATG i prosent (ukentlig)
+				measure 'Cost Amount PYC (Weekly)'
+					caption: Kostbeløp PYC (ukentlig)
+				measure 'Cost Amount YTDOPY (Weekly)'
+					caption: Kostbeløp YTDOPY (ukentlig)
+				measure 'Cost Amount YTDOPY % (Weekly)'
+					caption: Kostbeløp YTDOPY i prosent (ukentlig)
+				measure 'Cost Amount PQC (Weekly)'
+					caption: Kostbeløp PQC (ukentlig)
+				measure 'Cost Amount QTDOPQ (Weekly)'
+					caption: Kostbeløp QTDOPQ (ukentlig)
+				measure 'Cost Amount QTDOPQ % (Weekly)'
+					caption: Kostbeløp QTDOPQ i prosent (ukentlig)
+				measure 'Cost Amount PWC (Weekly)'
+					caption: Kostbeløp PWC (ukentlig)
+				measure 'Cost Amount WTDOPW (Weekly)'
+					caption: Kostbeløp WTDOPW (ukentlig)
+				measure 'Cost Amount WTDOPW % (Weekly)'
+					caption: Kostbeløp WTDOPW i prosent (ukentlig)
+				measure 'Cost Amount AVG 4W (Weekly)'
+					caption: Kostbeløp snitt 4 uker (ukentlig)
+				measure 'Cost Amount AVG 1Q (Weekly)'
+					caption: Kostbeløp snitt 1Q (ukentlig)
+				measure 'Cost Amount AVG 1Y (Weekly)'
+					caption: Kostbeløp snitt 1 år (ukentlig)
+				measure 'Cost Amount Non-Inv PY (Weekly)'
+					caption: Kostbeløp, ikke lagerført PY (ukentlig)
+				measure 'Cost Amount Non-Inv YOY % (Weekly)'
+					caption: Kostbeløp, ikke lagerført YOY i prosent (ukentlig)
+				measure 'Cost Amount Non-Inv YOY (Weekly)'
+					caption: Kostbeløp, ikke lagerført YOY (ukentlig)
+				measure 'Cost Amount Non-Inv PQ (Weekly)'
+					caption: Kostbeløp, ikke lagerført PQ (ukentlig)
+				measure 'Cost Amount Non-Inv QOQ (Weekly)'
+					caption: Kostbeløp, ikke lagerført QOQ (ukentlig)
+				measure 'Cost Amount Non-Inv QOQ % (Weekly)'
+					caption: Kostbeløp, ikke lagerført QOQ i prosent (ukentlig)
+				measure 'Cost Amount Non-Inv PW (Weekly)'
+					caption: Kostbeløp, ikke lagerført PW (ukentlig)
+				measure 'Cost Amount Non-Inv WOW (Weekly)'
+					caption: Kostbeløp, ikke lagerført WOW (ukentlig)
+				measure 'Cost Amount Non-Inv WOW % (Weekly)'
+					caption: Kostbeløp, ikke lagerført WOW i prosent (ukentlig)
+				measure 'Cost Amount Non-Inv PP (Weekly)'
+					caption: Kostbeløp, ikke lagerført PP (ukentlig)
+				measure 'Cost Amount Non-Inv POP (Weekly)'
+					caption: Kostbeløp, ikke lagerført POP (ukentlig)
+				measure 'Cost Amount Non-Inv POP % (Weekly)'
+					caption: Kostbeløp, ikke lagerført POP i prosent (ukentlig)
+				measure 'Cost Amount Non-Inv PYTD (Weekly)'
+					caption: Kostbeløp, ikke lagerført PYTD (ukentlig)
+				measure 'Cost Amount Non-Inv PQTD (Weekly)'
+					caption: Kostbeløp, ikke lagerført PQTD (ukentlig)
+				measure 'Cost Amount Non-Inv YOYTD (Weekly)'
+					caption: Kostbeløp, ikke lagerført YOYTD (ukentlig)
+				measure 'Cost Amount Non-Inv YOYTD % (Weekly)'
+					caption: Kostbeløp, ikke lagerført YOYTD i prosent (ukentlig)
+				measure 'Cost Amount Non-Inv QOQTD (Weekly)'
+					caption: Kostbeløp, ikke lagerført QOQTD (ukentlig)
+				measure 'Cost Amount Non-Inv QOQTD % (Weekly)'
+					caption: Kostbeløp, ikke lagerført QOQTD i prosent (ukentlig)
+				measure 'Cost Amount Non-Inv PWTD (Weekly)'
+					caption: Kostbeløp, ikke lagerført PWTD (ukentlig)
+				measure 'Cost Amount Non-Inv WOWTD (Weekly)'
+					caption: Kostbeløp, ikke lagerført WOWTD (ukentlig)
+				measure 'Cost Amount Non-Inv WOWTD % (Weekly)'
+					caption: Kostbeløp, ikke lagerført WOWTD i prosent (ukentlig)
+				measure 'Cost Amount Non-Inv MAT (364) (Weekly)'
+					caption: Kostbeløp, ikke lagerført MAT (364) (ukentlig)
+				measure 'Cost Amount Non-Inv PYMAT (364) (Weekly)'
+					caption: Kostbeløp, ikke lagerført PYMAT (364) (ukentlig)
+				measure 'Cost Amount Non-Inv MATG (Weekly)'
+					caption: Kostbeløp, ikke lagerført MATG (ukentlig)
+				measure 'Cost Amount Non-Inv MATG % (Weekly)'
+					caption: Kostbeløp, ikke lagerført MATG i prosent (ukentlig)
+				measure 'Cost Amount Non-Inv PYC (Weekly)'
+					caption: Kostbeløp, ikke lagerført PYC (ukentlig)
+				measure 'Cost Amount Non-Inv YTDOPY (Weekly)'
+					caption: Kostbeløp, ikke lagerført YTDOPY (ukentlig)
+				measure 'Cost Amount Non-Inv YTDOPY % (Weekly)'
+					caption: Kostbeløp, ikke lagerført YTDOPY i prosent (ukentlig)
+				measure 'Cost Amount Non-Inv PQC (Weekly)'
+					caption: Kostbeløp, ikke lagerført PQC (ukentlig)
+				measure 'Cost Amount Non-Inv QTDOPQ (Weekly)'
+					caption: Kostbeløp, ikke lagerført QTDOPQ (ukentlig)
+				measure 'Cost Amount Non-Inv QTDOPQ % (Weekly)'
+					caption: Kostbeløp, ikke lagerført QTDOPQ i prosent (ukentlig)
+				measure 'Cost Amount Non-Inv PWC (Weekly)'
+					caption: Kostbeløp, ikke lagerført PWC (ukentlig)
+				measure 'Cost Amount Non-Inv WTDOPW (Weekly)'
+					caption: Kostbeløp, ikke lagerført WTDOPW (ukentlig)
+				measure 'Cost Amount Non-Inv WTDOPW % (Weekly)'
+					caption: Kostbeløp, ikke lagerført WTDOPW i prosent (ukentlig)
+				measure 'Cost Amount Non-Inv AVG 4W (Weekly)'
+					caption: Kostbeløp, ikke lagerført snitt 4 uker (ukentlig)
+				measure 'Cost Amount Non-Inv AVG 1Q (Weekly)'
+					caption: Kostbeløp, ikke lagerført snitt 1Q (ukentlig)
+				measure 'Cost Amount Non-Inv AVG 1Y (Weekly)'
+					caption: Kostbeløp, ikke lagerført snitt 1 år (ukentlig)
+				measure 'Cost Amount Non-Inv YTD (Weekly)'
+					caption: Kostbeløp, ikke lagerført hittil i år (ukentlig)
+				measure 'Cost Amount Non-Inv QTD (Weekly)'
+					caption: Kostbeløp, ikke lagerført QTD (ukentlig)
+				measure 'Cost Amount Non-Inv MTD (Weekly)'
+					caption: Kostbeløp, ikke lagerført MTD (ukentlig)
+				measure 'Cost Amount Non-Inv WTD (Weekly)'
+					caption: Kostbeløp, ikke lagerført WTD (ukentlig)
+			table 'Localized Labels'
+				measure 'My Report Title'
+					caption: Min rapporttittel
+				measure 'My Button Caption'
+					caption: Min knappetittel
+				measure 'My Visual Title'
+					caption: Min visuelle tittel
+				measure 'Top 5 Items Gross Profit'
+					caption: Topp fem varer etter bruttofortjeneste
+				measure 'Top 5 Salesperson'
+					caption: Topp fem selgere
+				measure 'Top 5 Customers'
+					caption: Topp fem kunder
+				measure 'Document Value'
+					caption: Dokumentverdi
+				measure 'Document Count'
+					caption: Dokumentantall
+				measure 'Sales Amount and Sales Amount AVG 30D (Fiscal) by Fiscal Month Year'
+					caption: Salgsbeløp og salgsbeløpgjennomsnitt 30 dager (regnskap) etter Regnskap Måned År
+				measure 'Sales Overview'
+					caption: Oversikt over salg
+				measure 'Daily Sales'
+					caption: Daglig salg
+				measure 'Moving Averages'
+					caption: Glidende gjennomsnitt
+				measure 'Moving Annual Total'
+					caption: Glidende årssum
+				measure 'Previous Year MAT and MAT by Fiscal Month Year'
+					caption: Forrige år MAT og MAT etter Regnskap Måned År
+				measure 'Period-Over-Period Growth'
+					caption: Vekst periode for periode
+				measure Month-To-Date
+					caption: Måned hittil
+				measure '% Share of Sales'
+					caption: Prosentandel av salg
+				measure 'Sales Amount, Sales Quantity and Gross Profit by Item Category Code'
+					caption: Salgsbeløp, salgsantall og bruttofortjeneste etter varekategorikode
+				measure 'Sales by Item'
+					caption: Salg etter vare
+				measure 'Sales by Customer'
+					caption: Salg etter kunde
+				measure 'Sales Amount, Sales Quantity and Gross Profit by Customer Name'
+					caption: Salgsbeløp, salgsantall og bruttofortjeneste etter kundenavn
+				measure 'Sales by Salesperson'
+					caption: Salg etter selger
+				measure 'Sales Amount, Sales Quantity and Gross Profit by Salesperson Code'
+					caption: Salgsbeløp, salgsantall og bruttofortjeneste etter selgerkode
+				measure 'Actual vs Budget Quantity'
+					caption: Faktisk antall kontra budsjettantall
+				measure 'Actual vs Budget Amount'
+					caption: Faktisk beløp kontra budsjettbeløp
+				measure Sales
+					caption: Salg
+				measure 'for Business Central'
+					caption: for Business Central
+				measure 'USE, EDIT AND BUILD YOUR OWN REPORTS'
+					caption: BRUK, REDIGER OG BYGG DINE EGNE RAPPORTER
+				measure 'Sales includes a variety of pre-built reports to help you see your data immediately. You are able to edit these reports or build your own report from scratch.'
+					caption: Salg inneholder en rekke forhåndsbygde rapporter som hjelper deg med å se dataene umiddelbart. Du kan redigere disse rapportene eller lage din egen rapport fra bunnen av.
+				measure 'CONNECT YOUR DATA'
+					caption: KOBLE TIL DATAENE
+				measure '1. Download the Sales Connector for Power BI'
+					caption: 1. Last ned Sales Connector for Power BI
+				measure '2. Configure Dynamics 365 Business Central'
+					caption: 2. Konfigurer Dynamics 365 Business Central
+				measure 'HELP AND SUPPORT'
+					caption: HJELP OG KUNDESTØTTE
+				measure 'For help and support with your new report please visit the Analytics overview documentation.'
+					caption: Hvis du vil ha hjelp og støtte med den nye rapporten, kan du gå til dokumentasjonen for analyseoversikten.
+				measure 'OTHER POWER BI REPORTS'
+					caption: ANDRE POWER BI-RAPPORTER
+				measure PURCHASE
+					caption: INNKJØP
+				measure FINANCE
+					caption: FINANS
+				measure REBATES
+					caption: RABATTER
+				measure INVENTORY
+					caption: BEHOLDNING
+				measure JOBS
+					caption: PROSJEKTER
+				measure 'SALES '
+					caption: "SALG "
+				measure 'Sales Amount '
+					caption: "Salgsbeløp "
+				measure 'Sales Amount and Sales Amount Average 30 Days (Fiscal) by Fiscal Month Year'
+					caption: Salgsbeløp og salgsbeløpgjennomsnitt 30 dager (regnskap) etter Regnskap Måned År
+				measure 'Previous Year and Current Moving Annual Total by Fiscal Month Year'
+					caption: Forrige år og inneværende glidende årssum etter Regnskap Måned År
+				measure 'Sales Amount Period-over-Period (Fiscal) and Sales Amount by Fiscal Month Year'
+					caption: Salgsbeløp periode for periode (regnskap) og salgsbeløp etter Regnskap Måned År
+				measure 'Sales Amount Month-to-Date (Fiscal) by Date'
+					caption: Salgsbeløp hittil i måneden (regnskap) etter dato
+				measure 'Last Refreshed'
+					caption: Sist oppdatert
+				measure 'Company Name'
+					caption: Selskapsnavn
+				measure 'Sales Amount by Salesperson'
+					caption: Salgsbeløp etter selger
+				measure 'Gross Profit by Item'
+					caption: Bruttofortjeneste etter vare
+				measure 'Sales Amount by Customer'
+					caption: Salgsbeløp etter kunde
+				measure 'Sales Amount and Sales Amount Average 30 Days (Fiscal) by Fiscal Year'
+					caption: Salgsbeløp og salgsbeløpgjennomsnitt 30 dager (regnskap) etter regnskapsår
+				measure 'Monthly Comparison of Previous Year and Current Year Moving Annual Totals'
+					caption: Månedlig sammenligning av glidende årssum for forrige år og inneværende år
+				measure 'Sales Amount Period-over-Period (Fiscal) and Sales Amount by Fiscal Year'
+					caption: Salgsbeløp periode for periode (regnskap) og salgsbeløp etter regnskapsår
+				measure 'Sales Amount by Item Category'
+					caption: Salgsbeløp etter varekategori
+				measure 'Sales Metrics by Salesperson'
+					caption: Salgsmåleverdier etter selger
+				measure 'Sales by Location'
+					caption: Salg etter lokasjon
+				measure 'Sales Amount by Location'
+					caption: Salgsbeløp etter lokasjon
+				measure 'Actual vs Budget'
+					caption: Faktisk i forhold til budsjett
+				measure 'Actual vs Budget Purchase Analysis by Item Category'
+					caption: Kjøpsanalyse av faktisk i forhold til budsjett etter varekategori
+				measure 'Sales Drillthrough'
+					caption: Gjennomgang av salg
+				measure 'Detailed Sales Ledger'
+					caption: Detaljerte salgsposter
+				measure 'Sales Amount by Month'
+					caption: Salgsbeløp etter måned
+				measure PROJECTS
+					caption: PROSJEKTER
+				measure MANUFACTURING
+					caption: PRODUKSJON
+				measure 'Month-To-Date Sales Performance'
+					caption: Salgsresultater hittil denne måneden
+				measure 'Top Customer Sales Contributions'
+					caption: Beste kundesalgsbidrag
+				measure 'Daily Sales by Date'
+					caption: Daglig salg etter dato
+				measure 'Daily Sales by Entry No'
+					caption: Daglig salg etter oppføringsnr.
+				measure 'Daily Sales Details'
+					caption: Daglige salgsdetaljer
+				measure 'Moving Annual Total Details'
+					caption: Detaljer om glidende årssum
+				measure 'Period-Over-Period Growth Details'
+					caption: Detaljer om vekst periode for periode
+				measure 'Month-To-Date Details'
+					caption: Detaljer om hittil denne måneden
+				measure 'Sales by Item Category Over Time'
+					caption: Salg etter varekategori over tid
+				measure 'Sales by Item Details'
+					caption: Detaljer om salg etter vare
+				measure 'Profitability by Item Category'
+					caption: Lønnsomhet etter varekategori
+				measure 'Gross Profit Pareto Analysis by Customer'
+					caption: Bruttofortjeneste – Pareto-analyse etter kunde
+				measure 'Sales by Customer Details'
+					caption: Detaljer om salg etter kunde
+				measure 'Estimated Opportunity Value'
+					caption: Anslått verdi på salgsmulighet
+				measure 'Sales by Salesperson Details'
+					caption: Detaljer om salg etter selger
+				measure 'Profitability by Salesperson'
+					caption: Lønnsomhet etter selger
+				measure 'Sales Amount by Customer Location'
+					caption: Salgsbeløp etter kundelokasjon
+				measure 'Sales by Location Details'
+					caption: Detaljer om salg etter lokasjon
+				measure 'Sales Demographics'
+					caption: Salgsdemografi
+				measure 'Sales Metrics by Item Category'
+					caption: Salgsmåleverdier etter varekategori
+				measure 'Sales by Customer Posting Group'
+					caption: Salg etter kundebokføringsgruppe
+				measure 'Sales by Document Type'
+					caption: Salg etter dokumenttype
+				measure 'No. of Customers by Location'
+					caption: Antall kunder etter lokasjon
+				measure 'Sales Decomposition'
+					caption: Nedbryting av salg
+				measure 'Sales Amount by Item Category Description'
+					caption: Beskrivelse av salgsbeløp etter varekategori
+				measure 'Sales Quantity by Salesperson Name'
+					caption: Salgsantall etter selgernavn
+				measure 'Key Sales Influencers'
+					caption: Viktige salgspåvirkere
+				measure 'Sales Amount by Item Category Code'
+					caption: Salgsbeløp etter varekategorikode
+				measure 'Opportunity Overview'
+					caption: Oversikt over salgsmulighet
+				measure 'Opportunity Value by Status'
+					caption: Salgsmulighetsverdi etter status
+				measure 'Open Opportunities by Sales Cycle'
+					caption: Åpne salgsmuligheter etter salgssyklus
+				measure 'Open Opportunities by Sales Cycle Stage'
+					caption: Åpne salgsmuligheter etter salgssyklusfase
+				measure 'Estimated Value by Salesperson'
+					caption: Anslått verdi etter selger
+				measure 'Estimated Value by Contact Location'
+					caption: Anslått verdi etter kontaktlokasjon
+				measure 'Sales Quote Overview'
+					caption: Oversikt over tilbud
+				measure 'Sales Quotes by Customer Details'
+					caption: Detaljer om tilbud etter kunde
+				measure 'Sales Quote Amount by Salesperson'
+					caption: Tilbudsbeløp etter selger
+				measure 'Sales Quote Amount Over Time'
+					caption: Tilbudsbeløp over tid
+				measure 'Sales Quote Amount by Item Category Code'
+					caption: Tilbudsbeløp etter varekategorikode
+				measure 'Sales Returns Overview'
+					caption: Oversikt over salgsreturer
+				measure 'Sales Returns by Customer'
+					caption: Salgsreturer etter kunde
+				measure 'Sales Return Amount by Reason Code'
+					caption: Salgsreturbeløp etter årsaksspor
+				measure 'Sales Return Amount Over Time'
+					caption: Salgsreturbeløp over tid
+				measure 'Sales Return Amount by Item Category Code'
+					caption: Salgsreturbeløp etter varekategorikode
+				measure 'Sales Opportunity Analysis'
+					caption: Salgsmulighetsanalyse
+				measure 'Estimated Value by Opportunity'
+					caption: Anslått verdi etter salgsmulighet
+				measure 'Opportunities by Closed Opportunity Code'
+					caption: Salgsmuligheter etter lukket salgsmulighetskode
+				measure 'Opportunities by Salesperson Details'
+					caption: Detaljer om salgsmuligheter etter selger
+				measure 'Opportunities by Closed Status'
+					caption: Salgsmuligheter etter lukket status
+				measure 'Sales Drillthrough Details'
+					caption: Detaljer om gjennomgang av salg
+			table COMPANY
+				caption: SELSKAP
+				measure 'Company Label'
+					caption: Selskapsetikett
+			table 'Sales Budget Name'
+				caption: Navn på salgsbudsjett
+				column 'Sales Budget Description'
+					caption: Salgsbudsjettbeskrivelse
+			table Opportunities
+				caption: Salgsmuligheter
+				column 'Opportunity No.'
+					caption: Salgsmulighetsnr.
+				column 'Opportunity Description'
+					caption: Beskrivelse
+				column 'Opportunity Creation Date'
+					caption: Opprettingsdato for salgsmulighet.
+				column 'Opportunity Status'
+					caption: Status
+				column 'Opportunity Closed'
+					caption: Lukket
+				column 'Opportunity Sales Document No.'
+					caption: Salgsdokumentnr.
+				column 'Opportunity Sales Document Type'
+					caption: Salgsdokumenttype
+				measure 'Opportunity Sales Quote Amount'
+					caption: Tilbudsbeløp for salgsmulighet
+			table 'Opportunity Entries'
+				caption: Salgsmulighetsposter
+				column 'Opportunity No.'
+					caption: Salgsmulighetsnr.
+				column 'Opportunity Entry No.'
+					caption: Oppføringsnr. for salgsmulighet
+				column Active
+					caption: Aktiv
+				column 'Action Taken'
+					caption: Tiltak
+				column 'Date of Change'
+					caption: Endret den
+				column 'Estimated Close Date'
+					caption: Anslått avslutningsdato
+				column 'Completed (%)'
+					caption: Fullført (%)
+				column 'Chances of Success (%)'
+					caption: Salgsutsiktsprosent
+				column 'Probability (%)'
+					caption: Sannsynlighet (%)
+				column 'Contact No.'
+					caption: Kontaktnr.
+				measure 'Calculated Current Value'
+					caption: Beregnet nåverdi
+				measure 'Estimated Value'
+					caption: Anslått verdi
+				measure 'No. of Opportunities'
+					caption: Antall salgsmuligheter
+				measure 'Active Calculated Current Value'
+					caption: Aktiv beregnet nåverdi
+				measure 'Active Estimated Value'
+					caption: Aktiv anslått verdi
+				measure 'Average Chance of Success %'
+					caption: Gjennomsnittlig salgsutsiktsprosent
+				measure 'Average Completed %'
+					caption: Gjennomsnittlig fullført i prosent
+				measure 'Average Probability %'
+					caption: Gjennomsnittlig sannsynlighetsprosent
+				measure 'Opportunity Entries Back Link'
+					caption: Tilbakekobling for salgsmulighetsposter
+				measure 'No. of Won Opportunities'
+					caption: Antall salgsmuligheter vunnet
+				measure 'No. of Lost Opportunities'
+					caption: Antall salgsmuligheter mistet
+				measure 'Win/Loss %'
+					caption: Vunnet/tapt i prosent
+				measure 'Active Chance of Success %'
+					caption: Aktiv salgsutsiktsprosent
+			table Contacts
+				caption: Kontakter
+				column 'Contact No.'
+					caption: Kontaktnr.
+				column 'Contact Name'
+					caption: Kontaktnavn
+				column 'Contact Company No.'
+					caption: Selskapsnr.
+				column 'Contact Company Name'
+					caption: Selskapsnavn
+				column 'Contact Address'
+					caption: Kontaktens adresse
+				column 'Contact Address 2'
+					caption: Kontaktens adresse 2
+				column 'Contact City'
+					caption: Kontaktens poststed
+				column 'Contact Post Code'
+					caption: Kontaktens postnummer
+				column 'Contact County'
+					caption: Kontaktens land
+				column 'Contact Country/Region Code'
+					caption: Kontaktens kode for land/område
+				column 'Contact No. & Name'
+					caption: Kontaktnr. og -navn
+				column 'Contact Type'
+					caption: Kontakttype
+			table 'Reason Codes'
+				caption: Årsaksspor
+				column 'Return Reason Code'
+					caption: Returårsakskode
+				column 'Return Reason Description'
+					caption: Beskrivelse av returårsak
+			table 'Item Category'
+				caption: Varekategori
+				column 'Item Category Code'
+					caption: Varekategorikode
+				column 'Item Category Description'
+					caption: Beskrivelse av varekategori
+				hierarchy 'Item Category Code Hierarchy'
+					caption: Hierarki for varekategorikode
+					level 'Item Category Code Level 1'
+						caption: Varekategorikode nivå 1
+					level 'Item Category Code Level 2'
+						caption: Varekategorikode nivå 2
+					level 'Item Category Code Level 3'
+						caption: Varekategorikode nivå 3
+					level 'Item Category Code'
+						caption: Varekategorikode
+			table 'Pareto Scale'
+				caption: Pareto-skala
+				column Value
+					caption: Verdi
+			table 'Sales Cycle Stages'
+				caption: Salgssyklusfaser
+				column 'Sales Cycle Code'
+					caption: Salgssykluskode
+				column 'Sales Cycle Stage'
+					caption: Salgssyklusfase
+				column 'Sales Cycle Stage Description'
+					caption: Beskrivelse av salgssyklusfase
+			table 'Close Opportunity Codes'
+				caption: Koder for lukking av salgsmulighet
+				column 'Close Opportunity Code'
+					caption: Kode for lukking av salgsmulighet
+				column 'Close Opportunity Type'
+					caption: Lukk salgsmulighetstype
+				column 'Close Opportunity Description'
+					caption: Lukk beskrivelse av salgsmulighet
+

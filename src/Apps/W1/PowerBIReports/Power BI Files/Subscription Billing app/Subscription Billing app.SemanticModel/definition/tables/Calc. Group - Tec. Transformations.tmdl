@@ -1,0 +1,50 @@
+table 'Calc. Group - Tec. Transformations'
+	isHidden
+	lineageTag: b4013165-d40f-4a15-b723-412a6d9170e6
+
+	calculationGroup
+
+		calculationItem 'Customer Contract by Analysis Date' = ```
+				
+				calculate(
+				    Calculate(SELECTEDMEASURE(),
+				    'Analysis Date'[Analysis Date] = max('Analysis Date'[Analysis Date])
+				    )
+				,USERELATIONSHIP('Dimension Sets'[dimensionSetID],'Customer Contract Line'[Dimension Set Id])
+				,USERELATIONSHIP('Date'[Date],'Analysis Date'[Analysis Date])
+				,crossfilter('Subscription'[Subscription Package Key],'Vendor Contract Line'[Subscription Package Key],both)  )
+				
+				```
+
+		calculationItem 'Vendor Contract by Analysis Date' = ```
+				
+				calculate(
+				    Calculate(SELECTEDMEASURE(),
+				    'Analysis Date'[Analysis Date] = max('Analysis Date'[Analysis Date])
+				    )
+				,USERELATIONSHIP('Dimension Sets'[dimensionSetID],'Customer Contract Line'[Dimension Set Id])
+				,USERELATIONSHIP('Date'[Date],'Analysis Date'[Analysis Date])
+				,crossfilter('Subscription'[Subscription Package Key],'Customer Contract Line'[Subscription Package Key],both)  )
+				
+				```
+
+	column 'calculation Type'
+		dataType: string
+		isHidden
+		lineageTag: f54085a1-6d5f-4204-b399-6d2515d9ba24
+		summarizeBy: none
+		sourceColumn: Name
+		sortByColumn: Ordinal
+
+		annotation SummarizationSetBy = Automatic
+
+	column Ordinal
+		dataType: int64
+		isHidden
+		formatString: 0
+		lineageTag: cef47836-f11a-48e0-ba81-2320c58b2a0e
+		summarizeBy: sum
+		sourceColumn: Ordinal
+
+		annotation SummarizationSetBy = Automatic
+

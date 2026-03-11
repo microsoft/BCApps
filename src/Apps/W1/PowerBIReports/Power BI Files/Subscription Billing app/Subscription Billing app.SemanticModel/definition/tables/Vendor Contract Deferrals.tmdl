@@ -1,0 +1,195 @@
+table 'Vendor Contract Deferrals'
+	lineageTag: 8c73f9a0-1ebd-4482-9add-657beddf981d
+
+	column 'Contract No.'
+		dataType: string
+		isHidden
+		lineageTag: e1072267-b363-4837-967f-53257735cb7f
+		summarizeBy: none
+		sourceColumn: Contract No.
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Document Type'
+		dataType: string
+		lineageTag: 9759c5e8-c5d3-4116-bf44-5c0d8347748a
+		summarizeBy: none
+		sourceColumn: Document Type
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Document No.'
+		dataType: string
+		lineageTag: 4b5cd17a-3699-44f7-8d01-e200ddc57c7b
+		summarizeBy: none
+		sourceColumn: Document No.
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Is Released Key'
+		dataType: boolean
+		isHidden
+		formatString: """TRUE"";""TRUE"";""FALSE"""
+		lineageTag: 70949c7b-32b9-4b12-8bd4-34fdaa11235c
+		summarizeBy: none
+		sourceColumn: Is Released Key
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Posting Date'
+		dataType: dateTime
+		formatString: Short Date
+		lineageTag: 26b50f2c-060a-4c86-9f3f-5e4664a9269b
+		summarizeBy: none
+		sourceColumn: Posting Date
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	column Amount
+		dataType: decimal
+		isHidden
+		lineageTag: fd3b8702-2937-4298-a67d-b74d2c809f62
+		summarizeBy: sum
+		sourceColumn: Amount
+
+		changedProperty = DataType
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column 'Document Posting Date'
+		dataType: dateTime
+		formatString: Short Date
+		lineageTag: cc18dd01-6dff-4139-be98-3185ce5f2daf
+		summarizeBy: none
+		sourceColumn: Document Posting Date
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	column 'Release Posting Date'
+		dataType: dateTime
+		formatString: Short Date
+		lineageTag: bdfabe80-a9c1-4ab6-aa69-4e913815317d
+		summarizeBy: none
+		sourceColumn: Release Posting Date
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	column 'G LEntry No.'
+		dataType: int64
+		formatString: 0
+		lineageTag: 29e69ab9-ffc0-4759-8213-ff8a3775b650
+		summarizeBy: none
+		sourceColumn: G LEntry No.
+
+		annotation SummarizationSetBy = Automatic
+
+	column Discount
+		dataType: boolean
+		formatString: """TRUE"";""TRUE"";""FALSE"""
+		lineageTag: c9e48fa6-3640-4c64-9531-eea988cfa81e
+		summarizeBy: none
+		sourceColumn: Discount
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Dimension Set ID'
+		dataType: int64
+		isHidden
+		formatString: 0
+		lineageTag: 62e8d7be-dc13-477d-b787-f99949fd6480
+		summarizeBy: none
+		sourceColumn: Dimension Set ID
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Contract Line No.'
+		dataType: int64
+		isHidden
+		formatString: 0
+		lineageTag: 67b9aca6-d2f5-48cc-8cba-53387940e737
+		summarizeBy: sum
+		sourceColumn: Contract Line No.
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Vendor Contract Line Key' =
+			
+			VAR contractNo = 'Vendor Contract Deferrals'[Contract No.]
+			VAR LIneNo = 'Vendor Contract Deferrals'[Contract Line No.]
+			RETURN
+			    LOOKUPVALUE (
+			        'Vendor Contract Line'[Vendor Contract Line Key],
+			        'Vendor Contract Line'[Vendor Contract No.], contractNo,
+			        'Vendor Contract Line'[Vendor Contract Line No.], LIneNo,
+			        'Vendor Contract Line'[Is Latest Version], TRUE
+			    )
+		isHidden
+		lineageTag: 501e69db-d751-4a62-8f35-2e83d54ec24e
+		summarizeBy: none
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Document Line No.'
+		dataType: int64
+		formatString: 0
+		lineageTag: 22b53288-ad11-48a2-80b8-005ae86f3cad
+		summarizeBy: none
+		sourceColumn: Document Line No.
+
+		annotation SummarizationSetBy = Automatic
+
+	partition 'Vendor Contract Deferrals' = m
+		mode: import
+		queryGroup: 'Fact Tables'
+		source = ```
+				let
+				  Source = BCConnectionSubscriptionBilling,
+				  TableData = Source{[Name = "vendorContractDeferrals", Signature = "table"]}[Data], 
+				  #"Date Filter" = Table.SelectRows(TableData, each [postingDate] >= MinReportingDate), 
+				  #"Changed Type" = Table.TransformColumnTypes(#"Date Filter", {{"documentType", type text}}), 
+				  #"Removed Other Columns" = Table.SelectColumns(
+				    #"Changed Type", 
+				    {
+				      "contractNo", 
+				      "documentType", 
+				      "documentNo", 
+				      "released", 
+				      "postingDate", 
+				      "amount", 
+				      "documentLineNo", 
+				      "documentPostingDate", 
+				      "releasePostingDate", 
+				      "gLEntryNo", 
+				      "contractLineNo", 
+				      "discount", 
+				      "dimensionSetID"
+				    }
+				  ), 
+				  ConvertColumnNames = Table.TransformColumnNames(#"Removed Other Columns", fctImproveColumnNames), 
+				  #"Renamed Columns" = Table.RenameColumns(ConvertColumnNames, {{"Released", "Is Released Key"}})
+				in
+				  #"Renamed Columns"
+				```
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Table
+

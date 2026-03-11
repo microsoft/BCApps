@@ -1,0 +1,549 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.4.0/schema.json",
+  "name": "cde53f20307da1555d0e",
+  "position": {
+    "x": 26,
+    "y": 309,
+    "z": 0,
+    "height": 384,
+    "width": 1229.639344262295,
+    "tabOrder": 0
+  },
+  "visual": {
+    "visualType": "pivotTable",
+    "query": {
+      "queryState": {
+        "Rows": {
+          "projections": [
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Type"
+                    }
+                  },
+                  "Property": "Type"
+                }
+              },
+              "queryRef": "Type.Type",
+              "nativeQueryRef": "Type",
+              "active": true
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Type"
+                    }
+                  },
+                  "Property": "No."
+                }
+              },
+              "queryRef": "Type.No.",
+              "nativeQueryRef": "No.",
+              "active": true
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Tasks"
+                    }
+                  },
+                  "Property": "Task Project Task & Description"
+                }
+              },
+              "queryRef": "Tasks.Task Project Task & Description",
+              "nativeQueryRef": "Task Project Task & Description",
+              "active": true
+            }
+          ]
+        },
+        "Values": {
+          "projections": [
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Project Ledger Entry"
+                    }
+                  },
+                  "Property": "Project Ledger Entry Quantity"
+                }
+              },
+              "queryRef": "Project Ledger Entry.Project Ledger Entry Quantity",
+              "nativeQueryRef": "Project Ledger Entry Quantity"
+            },
+            {
+              "field": {
+                "NativeVisualCalculation": {
+                  "Language": "dax",
+                  "Expression": "IF (ISINSCOPE([No.]),DIVIDE( [Total Invoiced Costs], [Project Ledger Entry Quantity]), BLANK())",
+                  "Name": "Unit Cost"
+                }
+              },
+              "queryRef": "select",
+              "nativeQueryRef": "Unit Cost"
+            },
+            {
+              "field": {
+                "NativeVisualCalculation": {
+                  "Language": "dax",
+                  "Expression": "IF (ISINSCOPE([No.]),DIVIDE( [Total Invoiced Price], [Project Ledger Entry Quantity]), BLANK())",
+                  "Name": "Unit Price"
+                }
+              },
+              "queryRef": "select1",
+              "nativeQueryRef": "Unit Price"
+            },
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Project Ledger Entry"
+                    }
+                  },
+                  "Property": "Total Invoiced Costs"
+                }
+              },
+              "queryRef": "Project Ledger Entry.Total Invoiced Costs",
+              "nativeQueryRef": "Total Invoiced Costs"
+            },
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Project Ledger Entry"
+                    }
+                  },
+                  "Property": "Total Invoiced Price"
+                }
+              },
+              "queryRef": "Project Ledger Entry.Total Invoiced Price",
+              "nativeQueryRef": "Total Invoiced Price",
+              "format": "#,0.00"
+            },
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Project Ledger Entry"
+                    }
+                  },
+                  "Property": "Total Invoiced Profit"
+                }
+              },
+              "queryRef": "Project Ledger Entry.Total Invoiced Profit",
+              "nativeQueryRef": "Total Invoiced Profit"
+            },
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Project Ledger Entry"
+                    }
+                  },
+                  "Property": "Total Invoiced Profit Margin %"
+                }
+              },
+              "queryRef": "Project Ledger Entry.Total Invoiced Profit Margin %",
+              "nativeQueryRef": "Total Invoiced Profit Margin %"
+            }
+          ]
+        }
+      }
+    },
+    "expansionStates": [
+      {
+        "roles": [
+          "Rows"
+        ],
+        "levels": [
+          {
+            "queryRefs": [
+              "Type.Type"
+            ],
+            "identityKeys": [
+              {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Type"
+                    }
+                  },
+                  "Property": "Type"
+                }
+              }
+            ],
+            "isPinned": true
+          },
+          {
+            "queryRefs": [
+              "Type.No."
+            ],
+            "isCollapsed": true,
+            "identityKeys": [
+              {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Type"
+                    }
+                  },
+                  "Property": "No."
+                }
+              }
+            ],
+            "isPinned": true
+          },
+          {
+            "queryRefs": [
+              "Tasks.Task Project Task & Description"
+            ],
+            "isCollapsed": true,
+            "identityKeys": [
+              {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Tasks"
+                    }
+                  },
+                  "Property": "Task Project Task & Description"
+                }
+              }
+            ],
+            "isPinned": true
+          }
+        ],
+        "root": {
+          "children": [
+            {
+              "identityValues": [
+                {
+                  "Literal": {
+                    "Value": "'G/L Account'"
+                  }
+                }
+              ],
+              "children": [
+                {
+                  "identityValues": [
+                    {
+                      "Literal": {
+                        "Value": "'40255'"
+                      }
+                    }
+                  ],
+                  "isToggled": true
+                },
+                {
+                  "identityValues": [
+                    {
+                      "Literal": {
+                        "Value": "'6245'"
+                      }
+                    }
+                  ],
+                  "isToggled": true
+                }
+              ]
+            },
+            {
+              "identityValues": [
+                {
+                  "Literal": {
+                    "Value": "'Resource'"
+                  }
+                }
+              ],
+              "isToggled": true
+            },
+            {
+              "identityValues": [
+                {
+                  "Literal": {
+                    "Value": "'Item'"
+                  }
+                }
+              ],
+              "children": [
+                {
+                  "identityValues": [
+                    {
+                      "Literal": {
+                        "Value": "'1896-S'"
+                      }
+                    }
+                  ],
+                  "isToggled": true
+                }
+              ]
+            }
+          ]
+        }
+      }
+    ],
+    "objects": {
+      "columnWidth": [
+        {
+          "properties": {
+            "value": {
+              "expr": {
+                "Literal": {
+                  "Value": "113D"
+                }
+              }
+            }
+          },
+          "selector": {
+            "metadata": "Sales Measures.Average Sales Amount per Month"
+          }
+        },
+        {
+          "properties": {
+            "value": {
+              "expr": {
+                "Literal": {
+                  "Value": "95D"
+                }
+              }
+            }
+          },
+          "selector": {
+            "metadata": "Sales Measures.Average Sales Amount per Day"
+          }
+        },
+        {
+          "properties": {
+            "value": {
+              "expr": {
+                "Literal": {
+                  "Value": "103.49997643864512D"
+                }
+              }
+            }
+          },
+          "selector": {
+            "data": [
+              {
+                "scopeId": {
+                  "Comparison": {
+                    "ComparisonKind": 0,
+                    "Left": {
+                      "Column": {
+                        "Expression": {
+                          "SourceRef": {
+                            "Entity": "Location"
+                          }
+                        },
+                        "Property": "Location Name"
+                      }
+                    },
+                    "Right": {
+                      "Literal": {
+                        "Value": "null"
+                      }
+                    }
+                  }
+                }
+              }
+            ]
+          }
+        },
+        {
+          "properties": {},
+          "selector": {
+            "metadata": "Job Ledger Entry.Unit of Measure Code"
+          }
+        },
+        {
+          "properties": {
+            "value": {
+              "expr": {
+                "Literal": {
+                  "Value": "468.51991924444917D"
+                }
+              }
+            }
+          },
+          "selector": {
+            "metadata": "Jobs Measures.Billable (Invoiced Price)"
+          }
+        },
+        {
+          "properties": {},
+          "selector": {
+            "metadata": "Job.Job No."
+          }
+        },
+        {
+          "properties": {},
+          "selector": {
+            "metadata": "Job Ledger Entry.Invoiced Quantity"
+          }
+        },
+        {
+          "properties": {},
+          "selector": {
+            "metadata": "Job Ledger Entry.Unit Price (LCY)"
+          }
+        }
+      ],
+      "columnHeaders": [
+        {
+          "properties": {
+            "autoSizeColumnWidth": {
+              "expr": {
+                "Literal": {
+                  "Value": "true"
+                }
+              }
+            }
+          }
+        }
+      ],
+      "values": [
+        {
+          "properties": {
+            "webURL": {
+              "expr": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Project"
+                    }
+                  },
+                  "Property": "Project Ledger Entries Back Link"
+                }
+              }
+            }
+          },
+          "selector": {
+            "data": [
+              {
+                "dataViewWildcard": {
+                  "matchingOption": 1
+                }
+              }
+            ],
+            "metadata": "Project Ledger Entry.Total Invoiced Price"
+          }
+        },
+        {
+          "properties": {
+            "webURL": {
+              "expr": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Project"
+                    }
+                  },
+                  "Property": "Project Ledger Entries Back Link"
+                }
+              }
+            }
+          },
+          "selector": {
+            "data": [
+              {
+                "dataViewWildcard": {
+                  "matchingOption": 1
+                }
+              }
+            ],
+            "metadata": "Project Ledger Entry.Total Invoiced Costs"
+          }
+        },
+        {
+          "properties": {
+            "webURL": {
+              "expr": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Project"
+                    }
+                  },
+                  "Property": "Project Ledger Entries Back Link"
+                }
+              }
+            }
+          },
+          "selector": {
+            "data": [
+              {
+                "dataViewWildcard": {
+                  "matchingOption": 1
+                }
+              }
+            ],
+            "metadata": "Project Ledger Entry.Total Invoiced Profit"
+          }
+        }
+      ]
+    },
+    "visualContainerObjects": {
+      "title": [
+        {
+          "properties": {
+            "text": {
+              "expr": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Translated Localized Labels"
+                    }
+                  },
+                  "Property": "Project Invoiced Sales by Type Label"
+                }
+              }
+            }
+          }
+        }
+      ],
+      "visualTooltip": [
+        {
+          "properties": {
+            "show": {
+              "expr": {
+                "Literal": {
+                  "Value": "true"
+                }
+              }
+            }
+          }
+        }
+      ]
+    }
+  },
+  "filterConfig": {
+    "filters": [
+      {
+        "name": "Filter081ea4e43a4b212a5fbb",
+        "field": {
+          "Column": {
+            "Expression": {
+              "SourceRef": {
+                "Entity": "Project Ledger Entry"
+              }
+            },
+            "Property": "Entry Type"
+          }
+        },
+        "type": "Categorical",
+        "howCreated": "User",
+        "isLockedInViewMode": true
+      }
+    ]
+  }
+}

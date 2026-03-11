@@ -1,0 +1,225 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.4.0/schema.json",
+  "name": "e5c6f06509aacda02acf",
+  "position": {
+    "x": 25.714285714285715,
+    "y": 63.571428571428577,
+    "z": 0,
+    "height": 630.71428571428578,
+    "width": 1227.1428571428571,
+    "tabOrder": 0
+  },
+  "visual": {
+    "visualType": "tableEx",
+    "query": {
+      "queryState": {
+        "Values": {
+          "projections": [
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Item"
+                    }
+                  },
+                  "Property": "Item No."
+                }
+              },
+              "queryRef": "Item.Item No.",
+              "nativeQueryRef": "Item No."
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Item"
+                    }
+                  },
+                  "Property": "Item Description"
+                }
+              },
+              "queryRef": "Item.Item Description",
+              "nativeQueryRef": "Item Description"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Transfer Lines"
+                    }
+                  },
+                  "Property": "Document No."
+                }
+              },
+              "queryRef": "Transfer Lines.documentNo",
+              "nativeQueryRef": "documentNo"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Transfer Lines"
+                    }
+                  },
+                  "Property": "Transfer From Location Code"
+                }
+              },
+              "queryRef": "Transfer Lines.transferFromLocationCode",
+              "nativeQueryRef": "transferFromLocationCode"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Transfer Lines"
+                    }
+                  },
+                  "Property": "Shipment Date"
+                }
+              },
+              "queryRef": "Transfer Lines.shipmentDate",
+              "nativeQueryRef": "Shipment Date"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Transfer Lines"
+                    }
+                  },
+                  "Property": "Transfer To Location Code"
+                }
+              },
+              "queryRef": "Transfer Lines.transferToLocationCode",
+              "nativeQueryRef": "Transfer To Location Code"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Transfer Lines"
+                    }
+                  },
+                  "Property": "Receipt Date"
+                }
+              },
+              "queryRef": "Transfer Lines.Receipt Date",
+              "nativeQueryRef": "Receipt Date"
+            },
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Transfer Lines"
+                    }
+                  },
+                  "Property": "Qty. in Transit"
+                }
+              },
+              "queryRef": "Transfer Lines.Qty. in Transit",
+              "nativeQueryRef": "Qty. in Transit"
+            },
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Transfer Lines"
+                    }
+                  },
+                  "Property": "Trans. Order Outstanding Qty."
+                }
+              },
+              "queryRef": "Transfer Lines.Trans. Order Outstanding Qty.",
+              "nativeQueryRef": "Trans. Order Outstanding Qty."
+            }
+          ]
+        }
+      }
+    },
+    "objects": {
+      "values": [
+        {
+          "properties": {
+            "webURL": {
+              "expr": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Transfer Lines"
+                    }
+                  },
+                  "Property": "Transfer Lines Quantity Link"
+                }
+              }
+            }
+          },
+          "selector": {
+            "data": [
+              {
+                "dataViewWildcard": {
+                  "matchingOption": 0
+                }
+              }
+            ],
+            "metadata": "Transfer Lines.Qty. in Transit"
+          }
+        },
+        {
+          "properties": {
+            "webURL": {
+              "expr": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Transfer Lines"
+                    }
+                  },
+                  "Property": "Transfer Lines Quantity Link"
+                }
+              }
+            }
+          },
+          "selector": {
+            "data": [
+              {
+                "dataViewWildcard": {
+                  "matchingOption": 0
+                }
+              }
+            ],
+            "metadata": "Transfer Lines.Trans. Order Outstanding Qty."
+          }
+        }
+      ]
+    },
+    "visualContainerObjects": {
+      "title": [
+        {
+          "properties": {
+            "text": {
+              "expr": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Translated Localized Labels"
+                    }
+                  },
+                  "Property": "Transfer Order Drill Through Label"
+                }
+              }
+            }
+          }
+        }
+      ]
+    }
+  }
+}

@@ -1,0 +1,1533 @@
+cultureInfo es-MX
+	translations
+		model Model
+			table 'G/L Account Category'
+				caption: Categoría de cuenta
+				column 'G/L Acc. Category Description'
+					caption: Descripción de la categoría de cuenta
+				column siblingSequenceNo
+					caption: siblingSequenceNo
+				column indentation
+					caption: sangría
+				column accountCategory
+					caption: accountCategory
+				column incomeBalance
+					caption: incomeBalance
+				column additionalReportDefinition
+					caption: additionalReportDefinition
+				column systemGenerated
+					caption: systemGenerated
+				column hasChildren
+					caption: hasChildren
+				measure GLAccCategoryBrowseDepth
+					caption: GLAccCategoryBrowseDepth
+				measure GLAccCategoryMaxNodeDepth
+					caption: GLAccCategoryMaxNodeDepth
+				measure 'G/L Acc. Category Balance at Date'
+					caption: Saldo a la fecha categoría cuenta C/G
+				measure 'G/L Acc. Category Net Change'
+					caption: Saldo periodo categoría cuenta
+				measure 'G/L Acc. Category Budget Balance at Date'
+					caption: Saldo a la fecha ppto. categoría cuenta
+				measure 'G/L Acc. Category Budget Amount'
+					caption: Importe ppto. categoría cuenta
+				hierarchy 'G/L Account Category Hierarchy'
+					caption: Jerarquía de categoría de cuenta
+					level 'G/L Account Category (Level 1)'
+						caption: Categoría de cuenta (nivel 1)
+					level 'G/L Account Category (Level 2)'
+						caption: Categoría de cuenta (nivel 2)
+					level 'G/L Account Category (Level 3)'
+						caption: Categoría de cuenta (nivel 3)
+			table 'Balance Sheet Measures'
+				caption: Medidas de balance
+				measure 'Current Assets'
+					caption: Activo circulante
+				measure 'Current Liabilities'
+					caption: Pasivos corrientes
+				measure Inventory
+					caption: Inventario
+				measure 'Working Capital'
+					caption: Capital circulante
+				measure 'Shareholders'' Equity'
+					caption: Fondos propios
+				measure Liabilities
+					caption: Pasivo
+				measure Assets
+					caption: Activos
+				measure Equity
+					caption: Neto
+				measure 'Liabilities & Equity'
+					caption: Pasivo y recursos propios
+				measure 'Accounts Payable'
+					caption: Cuentas por pagar
+				measure 'Accounts Receivable'
+					caption: Cobros
+				measure 'Accounts Receivable (Beginning Balance)'
+					caption: Cobros (saldo inicial)
+				measure 'Accounts Receivable (Average)'
+					caption: Cobros (promedio)
+				measure 'Inventory (Beginning Balance)'
+					caption: Inventario (saldo inicial)
+				measure 'Inventory (Average)'
+					caption: Inventario (promedio)
+				measure 'Purchase Prepayments'
+					caption: Anticipos de compras
+				measure 'Liquid Assets'
+					caption: Activos corrientes
+				measure 'Fixed Assets'
+					caption: Activos fijos
+				measure 'Capital Employed'
+					caption: Capital empleado
+				measure 'Liabilities (Neg)'
+					caption: Pasivo (neg.)
+				measure 'Accounts Payable (Neg)'
+					caption: Cuentas por pagar (neg.)
+				measure 'Payroll Liabilites'
+					caption: Pasivo de nómina
+				measure 'Longterm Liabilities'
+					caption: Pasivos a largo plazo
+			table 'Income Statement Measures'
+				caption: Medidas de balance de ingresos
+				measure Revenue
+					caption: Ingresos
+				measure 'Cost of Goods Sold'
+					caption: Costo de mercancías vendidas
+				measure Expense
+					caption: Gasto
+				measure 'Interest Expense'
+					caption: Gastos por intereses
+				measure 'Tax Expense'
+					caption: Gastos por impuestos
+				measure 'Extraordinary Expense'
+					caption: Gastos excepcionales
+				measure 'Operating Expense - OPEX'
+					caption: Gastos de explotación: OPEX
+				measure Purchases
+					caption: Compras
+				measure 'FX Losses Expense'
+					caption: Gasto dif. neg. cambio
+				measure 'Depreciation and Amortization'
+					caption: Amortización
+				measure 'Revenue (Balance at Date)'
+					caption: Ingresos (saldo a la fecha)
+				measure 'Revenue (Beginning Balance)'
+					caption: Ingresos (saldo inicial)
+				measure 'Interest Revenue'
+					caption: Ingresos por intereses
+				measure 'FX Gains Revenue'
+					caption: Ingresos dif. pos. cambio
+				measure 'Extraordinary Revenue'
+					caption: Ingresos extraordinarios
+				measure 'Operating Revenue'
+					caption: Ingresos de explotación
+				measure 'Expense (Balance at Date)'
+					caption: Gasto (saldo a la fecha)
+				measure 'Expense (Beginning Balance)'
+					caption: Gasto (saldo inicial)
+				measure 'Interest Expense (Balance at Date)'
+					caption: Gasto por intereses (saldo a la fecha)
+				measure 'Interest Expense (Beginning Balance)'
+					caption: Gasto por intereses (saldo inicial)
+				measure 'FX Losses Expense (Balance at Date)'
+					caption: Gasto dif. neg. cambio (saldo a la fecha)
+				measure 'FX Losses Expense (Beginning Balance)'
+					caption: Gasto dif. neg. cambio (saldo inicial)
+				measure 'Tax Expense (Balance at Date)'
+					caption: Gastos por impuestos (saldo a la fecha)
+				measure 'Tax Expense (Beginning Balance)'
+					caption: Gastos por impuestos (saldo inicial)
+				measure 'Extraordinary Expense (Balance at Date)'
+					caption: Gastos excepcionales (saldo a la fecha)
+				measure 'Extraordinary Expense (Beginning Balance)'
+					caption: Gastos excepcionales (saldo inicial)
+				measure 'Interest Revenue (Balance at Date)'
+					caption: Ingresos por intereses (saldo a la fecha)
+				measure 'Interest Revenue (Beginning Balance)'
+					caption: Ingresos por intereses (saldo inicial)
+				measure 'FX Gains Revenue (Balance at Date)'
+					caption: Ingresos dif. pos. cambio (saldo a la fecha)
+				measure 'FX Gains Revenue (Beginning Balance)'
+					caption: Ingresos dif. pos. cambio (saldo inicial)
+				measure 'Extraordinary Revenue (Balance at Date)'
+					caption: Ingresos extraordinarios (saldo a la fecha)
+				measure 'Extraordinary Revenue (Beginning Balance)'
+					caption: Ingresos extraordinarios (saldo inicial)
+				measure 'Operating Expense - OPEX (Balance at Date)'
+					caption: Gastos de explotación: OPEX (saldo a la fecha)
+				measure 'Operating Expense - OPEX (Beginning Balance)'
+					caption: Gastos de explotación: OPEX (saldo inicial)
+				measure 'Operating Revenue (Balance at Date)'
+					caption: Ingresos de explotación (saldo a la fecha)
+				measure 'Operating Revenue (Beginning Balance)'
+					caption: Ingresos de explotación (saldo inicial)
+			table 'G/L Account'
+				caption: Cuenta C/G
+				column 'G/L Account No./Name'
+					caption: Nombre/n.º cuenta C/G
+				column 'G/L Account No./Name Indented'
+					caption: Nombre/n.º cuenta con sangría
+				column 'Parent G/L Account No.'
+					caption: N.º de cuenta C/G primario
+				column 'G/L Account No.'
+					caption: N.º cuenta C/G
+				column 'G/L Account Name'
+					caption: Nombre cuenta C/G
+				column 'Account Type'
+					caption: Tipo de cuenta
+				column Income/Balance
+					caption: Ingresos/Saldo
+				column 'Account Subcategory Entry No.'
+					caption: N.º mov. subcategoría de cuenta
+				measure 'G/L Acc. Balance at Date'
+					caption: Saldo a la fecha cuenta C/G
+				measure 'G/L Acc. Net Change'
+					caption: Saldo periodo cuenta
+				measure 'G/L Acc. Budget Balance at Date'
+					caption: Saldo a la fecha ppto. cuenta
+				measure 'G/L Acc. Budget Amount'
+					caption: Importe ppto. cuenta
+				hierarchy 'G/L Account Hierarchy'
+					caption: Jerarquía cuenta C/G
+					level 'G/L Account (Level 1)'
+						caption: Cuenta C/G (nivel 1)
+					level 'G/L Account (Level 2)'
+						caption: Cuenta C/G (nivel 2)
+					level 'G/L Account (Level 3)'
+						caption: Cuenta C/G (nivel 3)
+					level 'G/L Account (Level 4)'
+						caption: Cuenta C/G (nivel 4)
+					level 'G/L Account (Level 5)'
+						caption: Cuenta C/G (nivel 5)
+			table 'Activity KPIs'
+				caption: KPI de actividad
+				measure 'Average Collection Period (Days)'
+					caption: Periodo de pago medio (días)
+				measure '% Change in Revenue'
+					caption: % de cambio en ingresos
+				measure '% Change in Operating Profit - EBIT'
+					caption: % cambio en benef. de explotación: EBIT
+				measure 'Days Sales Outstanding - DSO'
+					caption: Ventas diarias pendientes: PDP
+				measure 'Days Payable Outstanding - DPO'
+					caption: Pagos del día pend.: PDP
+				measure 'Days Sales Of Inventory - DSI'
+					caption: Días de ventas de inventario: PDP
+				measure 'Cash Conversion Cycle - CCC'
+					caption: Ciclo de conversión de efectivo: CCE
+				measure 'Degree Of Operating Leverage - DOL'
+					caption: Grado de apalancamiento operativo: GAO
+				measure 'Asset Turnover Ratio'
+					caption: Ratio de rotación de activos
+				measure 'Inventory Turnover'
+					caption: Análisis de inven.
+			table 'Liquidity KPIs'
+				caption: KPI de liquidez
+				measure 'Current Ratio'
+					caption: Índice actual
+				measure 'Quick Ratio'
+					caption: Coeficiente de liquidez inmediata
+				measure 'Cash Ratio'
+					caption: Ratio de efectivo
+			table 'Profitability KPIs'
+				caption: KPI de rentabilidad
+				measure 'Gross Profit Margin'
+					caption: Marg. benef. bruto
+				measure 'Net Profit Margin'
+					caption: Margen de ganancias netas
+				measure 'Gross Profit'
+					caption: Beneficios brutos
+				measure 'Net Profit'
+					caption: Ganancias netas
+				measure 'Operating Profit - EBIT (Beginning Balance)'
+					caption: Benef. de explotación: EBIT (saldo inicial)
+				measure 'Operating Profit - EBIT'
+					caption: Benef. de explotación: EBIT
+				measure 'Operating Profit - EBIT (Balance at Date)'
+					caption: Benef. de explotación: EBIT (saldo a la fecha)
+				measure 'Operating Profit Margin'
+					caption: Marg. benef. de explotación
+				measure EBITDA
+					caption: EBITDA
+				measure 'Return On Assets - ROA'
+					caption: Rentabilidad de los activos: RA
+				measure 'Return On Equity - ROE'
+					caption: Rentabilidad de los recursos propios: RRP
+				measure 'Return On Net Assets - RONA'
+					caption: Rentabilidad de los activos fiijos: RAF
+				measure 'Return On Capital Employed - ROCE'
+					caption: Rentabilidad del capital empleado: RCE
+				measure 'Debt/Equity Ratio'
+					caption: Proporción de deuda/patrimonio
+				measure 'Shareholder Equity Ratio'
+					caption: Proporción de patrimonio de accionistas
+				measure 'Debt Ratio'
+					caption: Proporción de deuda
+			table 'G/L Budget Entries'
+				caption: Movs. pptos. contabilidad
+				column 'Budget Name'
+					caption: Nombre ppto.
+				column 'Budget Date'
+					caption: Fecha del presupuesto
+				column 'Entry No.'
+					caption: N.º de movimiento
+				measure 'Budget Balance at Date'
+					caption: Saldo presupuesto a la fecha
+				measure 'Budget Amount'
+					caption: Importe presupuesto
+				measure 'Budget Entry Back Link'
+					caption: Vínculo de retroceso de movimiento de presupuesto
+			table 'Dimension Sets'
+				caption: Grupos de dimensiones
+				column 'Global Dimension 1'
+					caption: Dimensión global 1
+				column 'Global Dimension 2'
+					caption: Dimensión global 2
+				column 'Shortcut Dimension 3'
+					caption: Dim. acceso dir. 3
+				column 'Shortcut Dimension 4'
+					caption: Dim. acceso dir. 4
+				column 'Shortcut Dimension 5'
+					caption: Dim. acceso dir. 5
+				column 'Shortcut Dimension 6'
+					caption: Dim. acceso dir. 6
+				column 'Shortcut Dimension 7'
+					caption: Dim. acceso dir. 7
+				column 'Shortcut Dimension 8'
+					caption: Dim. acceso dir. 8
+				column id
+					caption: id.
+			table 'G/L Entries'
+				caption: Movimientos de contabilidad
+				column 'Posting Date'
+					caption: Fecha reg.
+				column 'Closing Entry'
+					caption: Mov. regularización
+				column 'Source Code'
+					caption: Cód. origen
+				column 'Source Type'
+					caption: Tipo procedencia mov.
+				column 'Source No.'
+					caption: Cód. procedencia mov.
+				column 'Entry No.'
+					caption: N.º de movimiento
+				column Description
+					caption: Descripción
+				measure 'Net Change'
+					caption: Saldo periodo
+				measure 'Net Change (Neg)'
+					caption: Saldo periodo (neg.)
+				measure 'Balance at Date'
+					caption: Saldo a la fecha
+				measure Amount
+					caption: Importe
+				measure Balance
+					caption: Saldo
+				measure 'Variance to Budget'
+					caption: Desviación del presupuesto
+				measure 'Variance to Budget %'
+					caption: % desviación del presupuesto
+				measure 'Balance at Date (Neg)'
+					caption: Saldo a la fecha (neg.)
+				measure 'Net Change Back Link'
+					caption: Vínculo de retroceso de saldo periodo
+				measure 'Balance At Date Back Link'
+					caption: Vínculo de retroceso de saldo a la fecha
+				measure 'Base Link'
+					caption: Vínculo base
+			table 'Standard Calendar Time Intelligence'
+				caption: Inteligencia de tiempo del calendario estándar
+				measure 'Net Change AVG 1Y'
+					caption: Saldo periodo AVG 1A
+				measure 'Net Change AVG 3M'
+					caption: Saldo periodo AVG 3M
+				measure 'Net Change AVG 30D'
+					caption: Saldo periodo AVG 30D
+				measure 'Net Change MTDOPM %'
+					caption: % saldo periodo MHFTMA
+				measure 'Net Change MTDOPM'
+					caption: Saldo periodo MHFTMA
+				measure 'Net Change PMC'
+					caption: Saldo período MAC
+				measure 'Net Change QTDOPQ %'
+					caption: % saldo periodo THFRTA
+				measure 'Net Change QTDOPQ'
+					caption: Saldo periodo THFRTA
+				measure 'Net Change PQC'
+					caption: Saldo período TAC
+				measure 'Net Change YTDOPY %'
+					caption: % saldo periodo AHFRAA
+				measure 'Net Change YTDOPY'
+					caption: Saldo periodo AHFRAA
+				measure 'Net Change PYC'
+					caption: Saldo período AAC
+				measure 'Net Change MATG %'
+					caption: % saldo periodo CTAM
+				measure 'Net Change MATG'
+					caption: Saldo periodo CTAM
+				measure 'Net Change PYMAT'
+					caption: Saldo periodo AATAM
+				measure 'Net Change MAT'
+					caption: Saldo periodo TAM
+				measure 'Net Change MOMTD %'
+					caption: % saldo período MAMHLF
+				measure 'Net Change MOMTD'
+					caption: Saldo período MAMHLF
+				measure 'Net Change PMTD'
+					caption: Saldo periodo MAHF
+				measure 'Net Change QOQTD %'
+					caption: % saldo período TATHLF
+				measure 'Net Change QOQTD'
+					caption: Saldo período TATHLF
+				measure 'Net Change YOYTD %'
+					caption: % saldo período AAAHLF
+				measure 'Net Change YOYTD'
+					caption: Saldo período AAAHLF
+				measure 'Net Change PQTD'
+					caption: Saldo periodo TAHF
+				measure 'Net Change PYTD'
+					caption: Saldo periodo AAHF
+				measure 'Net Change POP %'
+					caption: % saldo periodo PTP
+				measure 'Net Change POP'
+					caption: Saldo periodo PTP
+				measure 'Net Change PP'
+					caption: Saldo periodo PA
+				measure 'Net Change MOM %'
+					caption: % saldo periodo MTM
+				measure 'Net Change MOM'
+					caption: Saldo periodo MTM
+				measure 'Net Change QOQ %'
+					caption: % saldo periodo TTT
+				measure 'Net Change PM'
+					caption: Saldo periodo MA
+				measure 'Net Change QOQ'
+					caption: Saldo periodo TTT
+				measure 'Net Change PQ'
+					caption: Saldo periodo TA
+				measure 'Net Change YOY'
+					caption: Saldo periodo ATA
+				measure 'Net Change YOY %'
+					caption: % saldo periodo ATA
+				measure 'Net Change PY'
+					caption: Saldo periodo AA
+				measure 'Net Change MTD'
+					caption: Saldo periodo MHF
+				measure 'Net Change QTD'
+					caption: Saldo periodo THF
+				measure 'Net Change YTD'
+					caption: Saldo periodo AHF
+				measure 'Balance at Date AVG 1Y'
+					caption: Saldo a la fecha AVG 1A
+				measure 'Balance at Date AVG 3M'
+					caption: Saldo a la fecha AVG 3M
+				measure 'Balance at Date AVG 30D'
+					caption: Saldo a la fecha AVG 30D
+				measure 'Balance at Date MTDOPM %'
+					caption: % saldo a la fecha MHFTMA
+				measure 'Balance at Date MTDOPM'
+					caption: Saldo a la fecha MHFTMA
+				measure 'Balance at Date PMC'
+					caption: Saldo a la fecha MAC
+				measure 'Balance at Date QTDOPQ %'
+					caption: % saldo a la fecha THFRTA
+				measure 'Balance at Date QTDOPQ'
+					caption: Saldo a la fecha THFRTA
+				measure 'Balance at Date PQC'
+					caption: Saldo a la fecha TAC
+				measure 'Balance at Date YTDOPY %'
+					caption: % saldo a la fecha AHFRAA
+				measure 'Balance at Date YTDOPY'
+					caption: Saldo a la fecha AHFRAA
+				measure 'Balance at Date PYC'
+					caption: Saldo a la fecha AAC
+				measure 'Balance at Date MATG %'
+					caption: % saldo a la fecha CTAM
+				measure 'Balance at Date MATG'
+					caption: Saldo a la fecha CTAM
+				measure 'Balance at Date PYMAT'
+					caption: Saldo a la fecha AATAM
+				measure 'Balance at Date MAT'
+					caption: Saldo a la fecha TAM
+				measure 'Balance at Date MOMTD %'
+					caption: % saldo a la fecha MAMHLF
+				measure 'Balance at Date MOMTD'
+					caption: Saldo a la fecha MAMHLF
+				measure 'Balance at Date PMTD'
+					caption: Saldo a la fecha MAHF
+				measure 'Balance at Date QOQTD %'
+					caption: % saldo a la fecha TATHLF
+				measure 'Balance at Date QOQTD'
+					caption: Saldo a la fecha TATHLF
+				measure 'Balance at Date YOYTD %'
+					caption: % saldo a la fecha AAAHLF
+				measure 'Balance at Date YOYTD'
+					caption: Saldo a la fecha AAAHLF
+				measure 'Balance at Date PQTD'
+					caption: Saldo a la fecha TAHF
+				measure 'Balance at Date PYTD'
+					caption: Saldo a la fecha AAHF
+				measure 'Balance at Date POP %'
+					caption: % saldo a la fecha PTP
+				measure 'Balance at Date POP'
+					caption: Saldo a la fecha PTP
+				measure 'Balance at Date PP'
+					caption: Saldo a la fecha PA
+				measure 'Balance at Date MOM %'
+					caption: % saldo a la fecha MTM
+				measure 'Balance at Date MOM'
+					caption: Saldo a la fecha MTM
+				measure 'Balance at Date QOQ %'
+					caption: % saldo a la fecha TTT
+				measure 'Balance at Date PM'
+					caption: Saldo a la fecha MA
+				measure 'Balance at Date QOQ'
+					caption: Saldo a la fecha TTT
+				measure 'Balance at Date PQ'
+					caption: Saldo a la fecha TA
+				measure 'Balance at Date YOY'
+					caption: Saldo a la fecha ATA
+				measure 'Balance at Date YOY %'
+					caption: % saldo a la fecha ATA
+				measure 'Balance at Date PY'
+					caption: Saldo a la fecha AA
+				measure 'Balance at Date MTD'
+					caption: Saldo a la fecha MHF
+				measure 'Balance at Date QTD'
+					caption: Saldo a la fecha THF
+				measure 'Balance at Date YTD'
+					caption: Saldo a la fecha AHF
+			table 'Fiscal Calendar Time Intelligence'
+				caption: Inteligencia de tiempo del calendario fiscal
+				measure 'Net Change YTD (Fiscal)'
+					caption: Saldo periodo AHF (fiscal)
+				measure 'Net Change QTD (Fiscal)'
+					caption: Saldo periodo THF (fiscal)
+				measure 'Net Change MTD (Fiscal)'
+					caption: Saldo periodo MHF (fiscal)
+				measure 'Net Change PY (Fiscal)'
+					caption: Saldo periodo AA (fiscal)
+				measure 'Net Change YOY % (Fiscal)'
+					caption: % saldo periodo ATA (fiscal)
+				measure 'Net Change YOY (Fiscal)'
+					caption: Saldo periodo ATA (fiscal)
+				measure 'Net Change PQ (Fiscal)'
+					caption: Saldo periodo TA (fiscal)
+				measure 'Net Change QOQ (Fiscal)'
+					caption: Saldo periodo TTT (fiscal)
+				measure 'Net Change QOQ % (Fiscal)'
+					caption: % saldo periodo TTT (fiscal)
+				measure 'Net Change PM (Fiscal)'
+					caption: Saldo periodo MA (fiscal)
+				measure 'Net Change MOM (Fiscal)'
+					caption: Saldo periodo MTM (fiscal)
+				measure 'Net Change MOM % (Fiscal)'
+					caption: % saldo periodo MTM (fiscal)
+				measure 'Net Change PP (Fiscal)'
+					caption: Saldo periodo PA (fiscal)
+				measure 'Net Change POP (Fiscal)'
+					caption: Saldo periodo PTP (fiscal)
+				measure 'Net Change POP % (Fiscal)'
+					caption: % saldo periodo PTP (fiscal)
+				measure 'Net Change PYTD (Fiscal)'
+					caption: Saldo periodo AAHF (fiscal)
+				measure 'Net Change PQTD (Fiscal)'
+					caption: Saldo periodo THFTTT (fiscal)
+				measure 'Net Change YOYTD (Fiscal)'
+					caption: Saldo período AAAHLF (fiscal)
+				measure 'Net Change YOYTD % (Fiscal)'
+					caption: % saldo período AAAHLF (fiscal)
+				measure 'Net Change QOQTD (Fiscal)'
+					caption: Saldo período TATHLF (fiscal)
+				measure 'Net Change QOQTD % (Fiscal)'
+					caption: % saldo período TATHLF (fiscal)
+				measure 'Net Change PMTD (Fiscal)'
+					caption: Saldo periodo MAHF (fiscal)
+				measure 'Net Change MOMTD % (Fiscal)'
+					caption: % saldo período MAMHLF (fiscal)
+				measure 'Net Change MOMTD (Fiscal)'
+					caption: Saldo período MAMHLF (fiscal)
+				measure 'Net Change MAT (Fiscal)'
+					caption: Saldo periodo TAM (fiscal)
+				measure 'Net Change PYMAT (Fiscal)'
+					caption: Saldo periodo AATAM (fiscal)
+				measure 'Net Change MATG (Fiscal)'
+					caption: Saldo periodo CTAM (fiscal)
+				measure 'Net Change MATG % (Fiscal)'
+					caption: % saldo periodo CTAM (fiscal)
+				measure 'Net Change MAT (364) (Fiscal)'
+					caption: Saldo periodo TAM (364) (fiscal)
+				measure 'Net Change PYMAT (364) (Fiscal)'
+					caption: Saldo periodo AATAM (364) (fiscal)
+				measure 'Net Change PYC (Fiscal)'
+					caption: Saldo período AAC (fiscal)
+				measure 'Net Change YTDOPY (Fiscal)'
+					caption: Saldo periodo AHFRAA (fiscal)
+				measure 'Net Change YTDOPY % (Fiscal)'
+					caption: % saldo periodo AHFRAA (fiscal)
+				measure 'Net Change PQC (Fiscal)'
+					caption: Saldo período TAC (fiscal)
+				measure 'Net Change QTDOPQ (Fiscal)'
+					caption: Saldo periodo THFRTA (fiscal)
+				measure 'Net Change QTDOPQ % (Fiscal)'
+					caption: % saldo periodo THFRTA (fiscal)
+				measure 'Net Change PMC (Fiscal)'
+					caption: Saldo período MAC (fiscal)
+				measure 'Net Change MTDOPM (Fiscal)'
+					caption: Saldo periodo MHFTMA (fiscal)
+				measure 'Net Change MTDOPM % (Fiscal)'
+					caption: % saldo periodo MHFTMA (fiscal)
+				measure 'Net Change AVG 30D (Fiscal)'
+					caption: Saldo periodo AVG 30D (fiscal)
+				measure 'Net Change AVG 3M (Fiscal)'
+					caption: Saldo periodo AVG 3M (fiscal)
+				measure 'Net Change AVG 1Y (Fiscal)'
+					caption: Saldo periodo AVG 1A (fiscal)
+				measure 'Balance at Date YTD (Fiscal)'
+					caption: Saldo a la fecha AHF (fiscal)
+				measure 'Balance at Date QTD (Fiscal)'
+					caption: Saldo a la fecha THF (fiscal)
+				measure 'Balance at Date MTD (Fiscal)'
+					caption: Saldo a la fecha MHF (fiscal)
+				measure 'Balance at Date PY (Fiscal)'
+					caption: Saldo a la fecha AA (fiscal)
+				measure 'Balance at Date YOY % (Fiscal)'
+					caption: % saldo a la fecha ATA (fiscal)
+				measure 'Balance at Date YOY (Fiscal)'
+					caption: Saldo a la fecha ATA (fiscal)
+				measure 'Balance at Date PQ (Fiscal)'
+					caption: Saldo a la fecha TA (fiscal)
+				measure 'Balance at Date QOQ (Fiscal)'
+					caption: Saldo a la fecha TTT (fiscal)
+				measure 'Balance at Date QOQ % (Fiscal)'
+					caption: % saldo a la fecha TTT (fiscal)
+				measure 'Balance at Date PM (Fiscal)'
+					caption: Saldo a la fecha MA (fiscal)
+				measure 'Balance at Date MOM (Fiscal)'
+					caption: Saldo a la fecha MTM (fiscal)
+				measure 'Balance at Date MOM % (Fiscal)'
+					caption: % saldo a la fecha MTM (fiscal)
+				measure 'Balance at Date PP (Fiscal)'
+					caption: Saldo a la fecha PA (fiscal)
+				measure 'Balance at Date POP (Fiscal)'
+					caption: Saldo a la fecha PTP (fiscal)
+				measure 'Balance at Date POP % (Fiscal)'
+					caption: % saldo a la fecha PTP (fiscal)
+				measure 'Balance at Date PYTD (Fiscal)'
+					caption: Saldo a la fecha AAHF (fiscal)
+				measure 'Balance at Date PQTD (Fiscal)'
+					caption: Saldo a la fecha TAHF (fiscal)
+				measure 'Balance at Date YOYTD (Fiscal)'
+					caption: Saldo a la fecha AAAHLF (fiscal)
+				measure 'Balance at Date YOYTD % (Fiscal)'
+					caption: % saldo a la fecha AAAHLF (fiscal)
+				measure 'Balance at Date QOQTD (Fiscal)'
+					caption: Saldo a la fecha TATHLF (fiscal)
+				measure 'Balance at Date QOQTD % (Fiscal)'
+					caption: % saldo a la fecha TATHLF (fiscal)
+				measure 'Balance at Date PMTD (Fiscal)'
+					caption: Saldo a la fecha MAHF (fiscal)
+				measure 'Balance at Date MOMTD % (Fiscal)'
+					caption: % saldo a la fecha MAMHLF (fiscal)
+				measure 'Balance at Date MOMTD (Fiscal)'
+					caption: Saldo a la fecha MAMHLF (fiscal)
+				measure 'Balance at Date MAT (Fiscal)'
+					caption: Saldo a la fecha TAM (fiscal)
+				measure 'Balance at Date PYMAT (Fiscal)'
+					caption: Saldo a la fecha AATAM (fiscal)
+				measure 'Balance at Date MATG (Fiscal)'
+					caption: Saldo a la fecha CTAM (fiscal)
+				measure 'Balance at Date MATG % (Fiscal)'
+					caption: % saldo a la fecha CTAM (fiscal)
+				measure 'Balance at Date MAT (364) (Fiscal)'
+					caption: Saldo a la fecha TAM (364) (fiscal)
+				measure 'Balance at Date PYMAT (364) (Fiscal)'
+					caption: Saldo a la fecha AATAM (364) (fiscal)
+				measure 'Balance at Date PYC (Fiscal)'
+					caption: Saldo a la fecha AAC (fiscal)
+				measure 'Balance at Date YTDOPY (Fiscal)'
+					caption: Saldo a la fecha AHFRAA (fiscal)
+				measure 'Balance at Date YTDOPY % (Fiscal)'
+					caption: % saldo a la fecha AHFRAA (fiscal)
+				measure 'Balance at Date PQC (Fiscal)'
+					caption: Saldo a la fecha TAC (fiscal)
+				measure 'Balance at Date QTDOPQ (Fiscal)'
+					caption: Saldo a la fecha THFRTA (fiscal)
+				measure 'Balance at Date QTDOPQ % (Fiscal)'
+					caption: % saldo a la fecha THFRTA (fiscal)
+				measure 'Balance at Date PMC (Fiscal)'
+					caption: Saldo a la fecha MAC (fiscal)
+				measure 'Balance at Date MTDOPM (Fiscal)'
+					caption: Saldo a la fecha MHFTMA (fiscal)
+				measure 'Balance at Date MTDOPM % (Fiscal)'
+					caption: % saldo a la fecha MHFTMA (fiscal)
+				measure 'Balance at Date AVG 30D (Fiscal)'
+					caption: Saldo a la fecha AVG 30D (fiscal)
+				measure 'Balance at Date AVG 3M (Fiscal)'
+					caption: Saldo a la fecha AVG 3M (fiscal)
+				measure 'Balance at Date AVG 1Y (Fiscal)'
+					caption: Saldo a la fecha AVG 1A (fiscal)
+			table 'Weekly Calendar Time Intelligence'
+				caption: Inteligencia de tiempo del calendario semanal
+				measure 'Net Change YTD (Weekly)'
+					caption: Saldo periodo AHF (semanal)
+				measure 'Net Change QTD (Weekly)'
+					caption: Saldo periodo THF (semanal)
+				measure 'Net Change MTD (Weekly)'
+					caption: Saldo periodo MHF (semanal)
+				measure 'Net Change WTD (Weekly)'
+					caption: Saldo periodo SHF (semanal)
+				measure 'Net Change PY (Weekly)'
+					caption: Saldo periodo AA (semanal)
+				measure 'Net Change YOY % (Weekly)'
+					caption: % saldo periodo ATA (semanal)
+				measure 'Net Change YOY (Weekly)'
+					caption: Saldo periodo ATA (semanal)
+				measure 'Net Change PQ (Weekly)'
+					caption: Saldo periodo TA (semanal)
+				measure 'Net Change QOQ (Weekly)'
+					caption: Saldo periodo TTT (semanal)
+				measure 'Net Change QOQ % (Weekly)'
+					caption: % saldo periodo TTT (semanal)
+				measure 'Net Change PW (Weekly)'
+					caption: Saldo periodo SA (semanal)
+				measure 'Net Change WOW (Weekly)'
+					caption: Saldo periodo STS (semanal)
+				measure 'Net Change WOW % (Weekly)'
+					caption: % saldo periodo STS (semanal)
+				measure 'Net Change PP (Weekly)'
+					caption: Saldo periodo PA (semanal)
+				measure 'Net Change POP (Weekly)'
+					caption: Saldo periodo PTP (semanal)
+				measure 'Net Change POP % (Weekly)'
+					caption: % saldo periodo PTP (semanal)
+				measure 'Net Change PYTD (Weekly)'
+					caption: Saldo periodo AAHF (semanal)
+				measure 'Net Change PQTD (Weekly)'
+					caption: Saldo periodo TAHF (semanal)
+				measure 'Net Change YOYTD (Weekly)'
+					caption: Saldo período AAAHLF (semanal)
+				measure 'Net Change YOYTD % (Weekly)'
+					caption: % saldo período AAAHLF (semanal)
+				measure 'Net Change QOQTD (Weekly)'
+					caption: Saldo período TATHLF (semanal)
+				measure 'Sales Amount QOQTD % (Weekly)'
+					caption: % importe ventas TATHLF (semanal)
+				measure 'Net Change PWTD (Weekly)'
+					caption: Saldo periodo SAHF (semanal)
+				measure 'Net Change WOWTD (Weekly)'
+					caption: Saldo período SASHLF (semanal)
+				measure 'Net Change WOWTD % (Weekly)'
+					caption: % saldo período SASHLF (semanal)
+				measure 'Net Change MAT (364) (Weekly)'
+					caption: Saldo periodo TAM (364) (semanal)
+				measure 'Net Change PYMAT (364) (Weekly)'
+					caption: Saldo periodo AATAM (364) (semanal)
+				measure 'Net Change MATG (Weekly)'
+					caption: Saldo periodo CTAM (semanal)
+				measure 'Net Change MATG % (Weekly)'
+					caption: % saldo periodo CTAM (semanal)
+				measure 'Net Change PYC (Weekly)'
+					caption: Saldo período AAC (semanal)
+				measure 'Net Change YTDOPY (Weekly)'
+					caption: Saldo periodo AHFRAA (semanal)
+				measure 'Net Change YTDOPY % (Weekly)'
+					caption: % saldo periodo AHFRAA (semanal)
+				measure 'Net Change PQC (Weekly)'
+					caption: Saldo período TAC (semanal)
+				measure 'Net Change QTDOPQ (Weekly)'
+					caption: Saldo periodo THFRTA (semanal)
+				measure 'Net Change QTDOPQ % (Weekly)'
+					caption: % saldo periodo THFRTA (semanal)
+				measure 'Net Change PWC (Weekly)'
+					caption: Saldo período SAC (semanal)
+				measure 'Net Change WTDOPW (Weekly)'
+					caption: Saldo periodo SHFRSA (semanal)
+				measure 'Net Change WTDOPW % (Weekly)'
+					caption: % saldo periodo SHFRSA (semanal)
+				measure 'Net Change AVG 4W (Weekly)'
+					caption: Saldo periodo AVG 4S (semanal)
+				measure 'Net Change AVG 1Q (Weekly)'
+					caption: Saldo periodo AVG 1T (semanal)
+				measure 'Net Change AVG 1Y (Weekly)'
+					caption: Saldo periodo AVG 1A (semanal)
+				measure 'Balance at Date YTD (Weekly)'
+					caption: Saldo a la fecha AHF (semanal)
+				measure 'Balance at Date QTD (Weekly)'
+					caption: Saldo a la fecha THF (semanal)
+				measure 'Balance at Date MTD (Weekly)'
+					caption: Saldo a la fecha MHF (semanal)
+				measure 'Balance at Date WTD (Weekly)'
+					caption: Saldo a la fecha SHF (semanal)
+				measure 'Balance at Date PY (Weekly)'
+					caption: Saldo a la fecha AA (semanal)
+				measure 'Balance at Date YOY % (Weekly)'
+					caption: % saldo a la fecha ATA (semanal)
+				measure 'Balance at Date YOY (Weekly)'
+					caption: Saldo a la fecha ATA (semanal)
+				measure 'Balance at Date PQ (Weekly)'
+					caption: Saldo a la fecha TA (semanal)
+				measure 'Balance at Date QOQ (Weekly)'
+					caption: Saldo a la fecha TTT (semanal)
+				measure 'Balance at Date QOQ % (Weekly)'
+					caption: % saldo a la fecha TTT (semanal)
+				measure 'Balance at Date PW (Weekly)'
+					caption: Saldo a la fecha SA (semanal)
+				measure 'Balance at Date WOW (Weekly)'
+					caption: Saldo a la fecha STS (semanal)
+				measure 'Balance at Date WOW % (Weekly)'
+					caption: % saldo a la fecha STS (semanal)
+				measure 'Balance at Date PP (Weekly)'
+					caption: Saldo a la fecha PA (semanal)
+				measure 'Balance at Date POP (Weekly)'
+					caption: Saldo a la fecha PTP (semanal)
+				measure 'Balance at Date POP % (Weekly)'
+					caption: % saldo a la fecha PTP (semanal)
+				measure 'Balance at Date PYTD (Weekly)'
+					caption: Saldo a la fecha AAHF (semanal)
+				measure 'Balance at Date PQTD (Weekly)'
+					caption: Saldo a la fecha TAHF (semanal)
+				measure 'Balance at Date YOYTD (Weekly)'
+					caption: Saldo a la fecha AAAHLF (semanal)
+				measure 'Balance at Date YOYTD % (Weekly)'
+					caption: % saldo a la fecha AAAHLF (semanal)
+				measure 'Balance at Date QOQTD (Weekly)'
+					caption: Saldo a la fecha TATHLF (semanal)
+				measure 'Balance at Date QOQTD % (Weekly)'
+					caption: % saldo a la fecha TATHLF (semanal)
+				measure 'Balance at Date PWTD (Weekly)'
+					caption: Saldo a la fecha SAHF (semanal)
+				measure 'Balance at Date WOWTD (Weekly)'
+					caption: Saldo a la fecha SASHLF (semanal)
+				measure 'Balance at Date WOWTD % (Weekly)'
+					caption: % saldo a la fecha SASHLF (semanal)
+				measure 'Balance at Date MAT (364) (Weekly)'
+					caption: Saldo a la fecha TAM (364) (semanal)
+				measure 'Balance at Date PYMAT (364) (Weekly)'
+					caption: Saldo a la fecha AATAM (364) (semanal)
+				measure 'Balance at Date MATG (Weekly)'
+					caption: Saldo a la fecha CTAM (semanal)
+				measure 'Balance at Date MATG % (Weekly)'
+					caption: % saldo a la fecha CTAM (semanal)
+				measure 'Balance at Date PYC (Weekly)'
+					caption: Saldo a la fecha AAC (semanal)
+				measure 'Balance at Date YTDOPY (Weekly)'
+					caption: Saldo a la fecha AHFRAA (semanal)
+				measure 'Balance at Date YTDOPY % (Weekly)'
+					caption: % saldo a la fecha AHFRAA (semanal)
+				measure 'Balance at Date PQC (Weekly)'
+					caption: Saldo a la fecha TAC (semanal)
+				measure 'Balance at Date QTDOPQ (Weekly)'
+					caption: Saldo a la fecha THFRTA (semanal)
+				measure 'Balance at Date QTDOPQ % (Weekly)'
+					caption: % saldo a la fecha THFRTA (semanal)
+				measure 'Balance at Date PWC (Weekly)'
+					caption: Saldo a la fecha SAC (semanal)
+				measure 'Balance at Date WTDOPW (Weekly)'
+					caption: Saldo a la fecha SHFRSA (semanal)
+				measure 'Balance at Date WTDOPW % (Weekly)'
+					caption: % saldo a la fecha SHFRSA (semanal)
+				measure 'Balance at Date AVG 4W (Weekly)'
+					caption: Saldo a la fecha AVG 4S (semanal)
+				measure 'Balance at Date AVG 1Q (Weekly)'
+					caption: Saldo a la fecha AVG 1T (semanal)
+				measure 'Balance at Date AVG 1Y (Weekly)'
+					caption: Saldo a la fecha AVG 1A (semanal)
+			table 'Customer Ledger Entries'
+				caption: Movs. contables clientes
+				column 'CLE Entry No.'
+					caption: N.º movimiento MC
+				column 'CLE Due Date'
+					caption: Fecha de vencimiento MC
+				column 'CLE Open'
+					caption: Abrir MC
+				column 'CLE Posting Date'
+					caption: Fecha registro MC
+				column 'CLE Document Date'
+					caption: Fecha de documento MC
+				column 'DCLE Entry No.'
+					caption: N.º movimiento MCV
+				column 'DCLE Posting Date'
+					caption: Fecha registro MCV
+				column 'Ledger Entry Amount'
+					caption: Importe mov. cont.
+				column 'Entry Type'
+					caption: Tipo mov.
+				column 'Document Type'
+					caption: Tipo de documento
+				column 'Document No.'
+					caption: N.º de documento
+				column 'DCLE Initial Entry Due Date'
+					caption: Fecha vto. mov. inicial MCV
+				column 'Customer No.'
+					caption: N.º de cliente
+				column 'Application No.'
+					caption: N.º liquidación
+				column 'Applied Customer Ledger Entry No.'
+					caption: N.º mov. de cliente liquidado
+				column 'Sales Invoice Header Document No.'
+					caption: N.º de documento de encabezado de factura de venta
+				column 'Payment Terms Code'
+					caption: Cód. términos pago
+				column 'Payment Discount Date'
+					caption: Fecha descuento pronto pago
+				measure 'Original Amount (LCY)'
+					caption: Importe original ($)
+				measure 'Amount Receivable (LCY)'
+					caption: Importe por cobrar ($)
+				measure 'Balance (Accounts Receivable)'
+					caption: Saldo (cobros)
+				measure 'Bucket 1 (Receivables)'
+					caption: Periodo 1 (cobros)
+				measure 'Bucket 2 (Receivables)'
+					caption: Periodo 2 (cobros)
+				measure 'Bucket 3 (Receivables)'
+					caption: Periodo 3 (cobros)
+				measure 'Bucket 4 (Receivables)'
+					caption: Periodo 4 (cobros)
+				measure 'Current (Receivables)'
+					caption: Actual (cobros)
+				measure 'CLE Bucket 1 Back Link'
+					caption: Vínculo de retroceso de cubo 1 MC
+				measure 'CLE Bucket 2 Back Link'
+					caption: Vínculo de retroceso de cubo 2 MC
+				measure 'CLE Bucket 3 Back Link'
+					caption: Vínculo de retroceso de cubo 3 MC
+				measure 'CLE Bucket 4 Back Link'
+					caption: Vínculo de retroceso de cubo 4 MC
+				measure 'CLE Current Back Link'
+					caption: Vínculo de retroceso actual MC
+				measure 'CLE Balance Back Link'
+					caption: Vínculo de retroceso de saldo MC
+			table 'Vendor Ledger Entries'
+				caption: Movs. proveedores
+				column 'VLE Entry No.'
+					caption: N.º movimiento MP
+				column 'VLE Due Date'
+					caption: Fecha de vencimiento MP
+				column 'VLE Open'
+					caption: Abrir MP
+				column 'VLE Posting Date'
+					caption: Fecha registro MP
+				column 'VLE Document Date'
+					caption: Fecha de documento MP
+				column 'DVLE Entry No.'
+					caption: N.º movimiento MPV
+				column 'DVLE Posting Date'
+					caption: Fecha registro MPV
+				column 'DVLE Ledger Entry Amount'
+					caption: Importe mov. cont. MPV
+				column 'Entry Type'
+					caption: Tipo mov.
+				column 'Document Type'
+					caption: Tipo de documento
+				column 'Document No.'
+					caption: N.º de documento
+				column 'DVLE Initial Entry Due Date'
+					caption: Fecha vto. mov. inicial MPV
+				column 'Vendor No.'
+					caption: N.º proveedor
+				column 'Application No.'
+					caption: N.º liquidación
+				column 'Applied Vendor Ledger Entry No.'
+					caption: N.º mov. de proveedor liquidado
+				column 'PIH Document No.'
+					caption: N.º documento PIH
+				column 'Payment Terms Code'
+					caption: Cód. términos pago
+				column 'Payment Discount Date'
+					caption: Fecha descuento pronto pago
+				measure 'Amount Payable (LCY)'
+					caption: Importe a pagar ($)
+				measure 'Bucket 2 (Payables)'
+					caption: Periodo 2 (cuentas por pagar)
+				measure 'Bucket 1 (Payables)'
+					caption: Periodo 1 (cuentas por pagar)
+				measure 'Bucket 3 (Payables)'
+					caption: Periodo 3 (cuentas por pagar)
+				measure 'Bucket 4 (Payables)'
+					caption: Periodo 4 (cuentas por pagar)
+				measure 'Current (Payables)'
+					caption: Actual (cuentas por pagar)
+				measure 'Balance (Accounts Payable)'
+					caption: Saldo (cuentas por pagar)
+				measure 'Original Amount'
+					caption: Importe original
+				measure 'VLE Bucket 1 Back Link'
+					caption: Vínculo de retroceso de cubo 1 MP
+				measure 'VLE Bucket 2 Back Link'
+					caption: Vínculo de retroceso de cubo 2 MP
+				measure 'VLE Bucket 3 Back Link'
+					caption: Vínculo de retroceso de cubo 3 MP
+				measure 'VLE Bucket 4 Back Link'
+					caption: Vínculo de retroceso de cubo 4 MP
+				measure 'VLE Current Back Link'
+					caption: Vínculo de retroceso actual MP
+				measure 'VLE Balance Back Link'
+					caption: Vínculo de retroceso de saldo MP
+			table Vendors
+				caption: Proveedores
+				column 'Vendor No.'
+					caption: N.º proveedor
+				column 'Vendor Name'
+					caption: Nombre del proveedor
+				column 'Vendor Address'
+					caption: Dirección
+				column 'Vendor Address 2'
+					caption: Dirección 2
+				column 'Vendor City'
+					caption: Municipio/Ciudad
+				column 'Vendor Post Code'
+					caption: Código postal
+				column 'Vendor State'
+					caption: Provincia
+				column 'Vendor Country/Region Code'
+					caption: Código de país o región
+				column 'Vendor Posting Group'
+					caption: Grupo contable proveedor
+				column 'Vendor No. & Name'
+					caption: N.º y nombre del proveedor
+			table 'Calc. Group - Time Intelligence for Calendar (Standard)'
+				caption: Grupo de calc.: inteligencia de tiempo para calendario (estándar)
+				column 'Selected Measure'
+					caption: Medida seleccionada
+				column Type
+					caption: Tipo
+				column 'Sub Type'
+					caption: Subtipo
+				hierarchy 'Calc. Group Hierarchy (Standard)'
+					caption: Jerarquía de grupos calc. (estándar)
+					level Type
+						caption: Tipo
+					level 'Sub Type'
+						caption: Subtipo
+					level 'Selected Measure'
+						caption: Medida seleccionada
+			table 'Aging Date Parameter'
+				caption: Parámetro de fecha de vencimiento
+				column 'AGING PARAMETER'
+					caption: PARÁMETRO DE VENCIMIENTO
+			table 'Aging Bucket Period'
+				caption: Periodo de ciclo de antigüedad
+				measure 'Aging Bucket Period Value'
+					caption: Valor de periodo de ciclo de antigüedad
+				measure 'Bucket 1 Range'
+					caption: Intervalo de periodo 1
+				measure 'Bucket 2 Range'
+					caption: Intervalo de periodo 2
+				measure 'Bucket 3 Range'
+					caption: Intervalo de periodo 3
+				measure 'Bucket 4 Range'
+					caption: Intervalo de periodo 4
+				measure 'Bucket 1 Date Range'
+					caption: Intervalo de fechas de periodo 1
+				measure 'Bucket 2 Date Range'
+					caption: Intervalo de fechas de presupuesto 2
+				measure 'Bucket 3 Date Range'
+					caption: Intervalo de fechas de periodo 3
+				measure 'Bucket 4 Date Range'
+					caption: Intervalo de fechas de periodo 4
+			table Customers
+				caption: Clientes
+				column 'Customer No.'
+					caption: N.º de cliente
+				column 'Customer Name'
+					caption: Nombre del cliente
+				column 'Customer Address'
+					caption: Dirección
+				column 'Customer Address 2'
+					caption: Dirección 2
+				column 'Customer City'
+					caption: Municipio/Ciudad
+				column 'CustomerPost Code'
+					caption: Código postal
+				column 'Customer State'
+					caption: Provincia
+				column 'Country/Region Code'
+					caption: Código de país o región
+				column 'Customer Posting Group'
+					caption: Grupo contable cliente
+				column 'Customer Price Group'
+					caption: Grupo de precio de cliente
+				column 'Customer Discount Group'
+					caption: Grupo de descuento de cliente
+				column 'Customer No. & Name'
+					caption: Nombre y n.º de cliente
+			table 'Calc. Group - Time Intelligence for Calendar (Fiscal)'
+				caption: Grupo de calc.: inteligencia de tiempo para calendario (fiscal)
+				column 'Selected Measure'
+					caption: Medida seleccionada
+				column Type
+					caption: Tipo
+				column 'Sub Type'
+					caption: Subtipo
+				hierarchy 'Calc. Group Hierarchy (Fiscal)'
+					caption: Jerarquía de grupos calc. (fiscal)
+					level Type
+						caption: Tipo
+					level 'Sub Type'
+						caption: Subtipo
+					level 'Selected Measure'
+						caption: Medida seleccionada
+			table 'Calc. Group - Time Intelligence for Calenday (Weekly)'
+				caption: Grupo de calc.: inteligencia de tiempo para calendario (semanal)
+				column 'Selected Measure'
+					caption: Medida seleccionada
+				column Type
+					caption: Tipo
+				column 'Sub Type'
+					caption: Subtipo
+				hierarchy 'Calc. Group Hierarchy (Weekly)'
+					caption: Jerarquía de grupos calc. (semanal)
+					level Type
+						caption: Tipo
+					level 'Sub Type'
+						caption: Subtipo
+					level 'Selected Measure'
+						caption: Medida seleccionada
+			table Date
+				caption: Fecha
+				column 'Week Day'
+					caption: Día de la semana
+				column 'Day Type'
+					caption: Tipo de pago
+				column 'Calendar Year'
+					caption: Año natural
+				column 'Calendar Quarter'
+					caption: Trimestre natural
+				column 'Calendar Quarter Year'
+					caption: Trimestre año natural
+				column 'Calendar Month'
+					caption: Mes natural
+				column 'Calendar Month Year'
+					caption: Mes año natural
+				column 'Calendar Week'
+					caption: Semana natural
+				column 'Calendar Week Year'
+					caption: Semana año natural
+				column 'Calendar RelativeWeekPos'
+					caption: PosSemanaRelativa natural
+				column 'Calendar RelativeMonthPos'
+					caption: PosMesRelativa natural
+				column 'Calendar RelativeQuarterPos'
+					caption: PosTrimestreRelativa natural
+				column 'Calendar RelativeYearPos'
+					caption: PosAñoRelativa natural
+				column 'Calendar StartOfMonth'
+					caption: InicioDeMes natural
+				column 'Calendar EndOfMonth'
+					caption: FinDeMes natural
+				column 'Calendar StartOfQuarter'
+					caption: InicioDeTrimestre natural
+				column 'Calendar EndOfQuarter'
+					caption: FinDeTrimestre natural
+				column 'Calendar StartOfYear'
+					caption: InicioDeAño natural
+				column 'Calendar EndOfYear'
+					caption: FinDeAño natural
+				column 'Calendar MonthDays'
+					caption: DíasMes natural
+				column 'Calendar QuarterDays'
+					caption: TrimestreDías natural
+				column 'Calendar YearDays'
+					caption: AñoDías natural
+				column 'Calendar DayOfMonthNumber'
+					caption: NúmeroDeDíaDeMes natural
+				column 'Calendar DayOfQuarterNumber'
+					caption: NúmeroDeDíaDeTrimestre natural
+				column 'Calendar DayOfYearNumber'
+					caption: NúmeroDeDíaDeAño natural
+				column 'Calendar DatePreviousWeek'
+					caption: FechaSemanaAnterior natural
+				column 'Calendar DatePreviousMonth'
+					caption: FechaMesAnterior natural
+				column 'Calendar DatePreviousQuarter'
+					caption: FechaTrimestreAnterior natural
+				column 'Calendar DatePreviousYear'
+					caption: FechaAñoAnterior natural
+				column 'Fiscal Year'
+					caption: Ejercicio
+				column 'Fiscal Quarter'
+					caption: Trimestre fiscal
+				column 'Fiscal Quarter Year'
+					caption: Año trimestre fiscal
+				column 'Fiscal Month'
+					caption: Mes fiscal
+				column 'Fiscal Month Year'
+					caption: Mes año fiscal
+				column 'Fiscal Week'
+					caption: Semana fiscal
+				column 'Fiscal Week Year'
+					caption: Semana año fiscal
+				column 'Fiscal RelativeWeekPos'
+					caption: PosSemanaRelativa fiscal
+				column 'Fiscal RelativeMonthPos'
+					caption: PosMesRelativa fiscal
+				column 'Fiscal RelativeQuarterPos'
+					caption: PosTrimestreRelativa fiscal
+				column 'Fiscal RelativeYearPos'
+					caption: PosAñoRelativa fiscal
+				column 'Fiscal StartOfMonth'
+					caption: InicioDeMes fiscal
+				column 'Fiscal EndOfMonth'
+					caption: FinDeMes fiscal
+				column 'Fiscal StartOfQuarter'
+					caption: InicioDeTrimestre fiscal
+				column 'Fiscal EndOfQuarter'
+					caption: FinDeTrimestre fiscal
+				column 'Fiscal StartOfYear'
+					caption: InicioDeAño fiscal
+				column 'Fiscal EndOfYear'
+					caption: FinDeAño fiscal
+				column 'Fiscal MonthDays'
+					caption: MesDías fiscal
+				column 'Fiscal QuarterDays'
+					caption: DíasTrimestre fiscal
+				column 'Fiscal YearDays'
+					caption: AñoDías fiscal
+				column 'Fiscal DayOfMonthNumber'
+					caption: NúmeroDeDíaDeMes fiscal
+				column 'Fiscal DayOfQuarterNumber'
+					caption: NúmeroDeDíaDeTrimestre fiscal
+				column 'Fiscal DayOfYearNumber'
+					caption: NúmerDeDíaDeAño fiscal
+				column 'Fiscal DatePreviousWeek'
+					caption: FechaSemanaAnterior fiscal
+				column 'Fiscal DatePreviousMonth'
+					caption: FechaMesAnterior fiscal
+				column 'Fiscal DatePreviousQuarter'
+					caption: FechaTrimestreAnterior fiscal
+				column 'Fiscal DatePreviousYear'
+					caption: FechaAñoAnterior fiscal
+				column 'FW Year'
+					caption: Año SF
+				column 'FW Quarter'
+					caption: Trimestre SF
+				column 'FW Quarter Year'
+					caption: Trimestre año SF
+				column 'FW Month'
+					caption: Mes SF
+				column 'FW Month Year'
+					caption: Mes año SF
+				column 'FW Week'
+					caption: Semana SF
+				column 'FW Period'
+					caption: Periodo SF
+				column 'FW Week Year'
+					caption: Semana año SF
+				column 'FW StartOfWeek'
+					caption: InicioDeSemana SF
+				column 'FW EndOfWeek'
+					caption: FinDeSemana SF
+				column 'FW RelativeWeekPos'
+					caption: PosSemanaRelativa SF
+				column 'FW RelativeMonthPos'
+					caption: PosMesRelativa SF
+				column 'FW RelativeQuarterPos'
+					caption: PosTrimestreRelativa SF
+				column 'FW RelativeYearPos'
+					caption: PosAñoRelativa SF
+				column 'FW StartOfMonth'
+					caption: InicioDeMes SF
+				column 'FW EndOfMonth'
+					caption: FinDeMes SF
+				column 'FW StartOfQuarter'
+					caption: InicioDeTrimestre SF
+				column 'FW EndOfQuarter'
+					caption: FinDeTrimestre SF
+				column 'FW StartOfYear'
+					caption: InicioDeAño SF
+				column 'FW EndOfYear'
+					caption: FinDeAño SF
+				column 'FW MonthDays'
+					caption: MesDías FS
+				column 'FW QuarterDays'
+					caption: DíasTrimestre SF
+				column 'FW YearDays'
+					caption: DíasAño SF
+				column 'FW DayOfMonthNumber'
+					caption: NúmeroDeDíaDeMes SF
+				column 'FW DayOfQuarterNumber'
+					caption: NúmeroDeDíaDeTrimestre SF
+				column 'FW DayOfYearNumber'
+					caption: NúmerDeDíaDeAño SF
+				column 'FW DatePreviousWeek'
+					caption: FechaSemanaAnterior SF
+				column 'FW DatePreviousMonth'
+					caption: FechaMesAnterior SF
+				column 'FW DatePreviousQuarter'
+					caption: FechaTrimestreAnterior SF
+				column 'FW DatePreviousYear'
+					caption: Fecha AñoAnterior SF
+				column 'Relative Day'
+					caption: Día relativo
+				column Sequential365DayNumber
+					caption: NúmeroDía 365 secuencial
+				measure 'No. of Days'
+					caption: N.º días
+				hierarchy 'Fiscal Year-Quarter-Month-Week'
+					caption: Año-Trimestre-Mes-Semana fiscal
+					level 'Fiscal Year'
+						caption: Ejercicio
+					level 'Fiscal Quarter Year'
+						caption: Año trimestre fiscal
+					level 'Fiscal Month Year'
+						caption: Mes año fiscal
+					level 'Fiscal Week Year'
+						caption: Semana año fiscal
+				hierarchy 'Calendar Year-Quarter-Month-Week'
+					caption: Año-Trimestre-Mes-Semana natural
+					level 'Calendar Year'
+						caption: Año natural
+					level 'Calendar Quarter Year'
+						caption: Trimestre año natural
+					level 'Calendar Month Year'
+						caption: Mes año natural
+					level 'Calendar Week Year'
+						caption: Semana año natural
+				hierarchy 'FW Year-Quarter-Month-Week'
+					caption: Año-Trimestre-Mes-Semana SF
+					level 'FW Year'
+						caption: Año SF
+					level 'FW Quarter Year'
+						caption: Trimestre año SF
+					level 'FW Month Year'
+						caption: Mes año SF
+					level 'FW Week Year'
+						caption: Semana año SF
+				hierarchy 'Fiscal Year-Month'
+					caption: Año-mes fiscal
+					level 'Fiscal Year'
+						caption: Ejercicio
+					level 'Fiscal Month Year'
+						caption: Mes año fiscal
+				hierarchy 'Fiscal Year-Month-Week'
+					caption: Año-Mes-Semana fiscal
+					level 'Fiscal Year'
+						caption: Ejercicio
+					level 'Fiscal Month Year'
+						caption: Mes año fiscal
+					level 'Fiscal Week Year'
+						caption: Semana año fiscal
+				hierarchy 'Calendar Year-Month'
+					caption: Año-mes natural
+					level 'Calendar Year'
+						caption: Año natural
+					level 'Calendar Month Year'
+						caption: Mes año natural
+				hierarchy 'Calendar Year-Month-Week'
+					caption: Año-Mes-Semana natural
+					level 'Calendar Year'
+						caption: Año natural
+					level 'Calendar Month Year'
+						caption: Mes año natural
+					level 'Calendar Week Year'
+						caption: Semana año natural
+				hierarchy 'FW Year-Month-Week'
+					caption: Año-Mes-Semana SF
+					level 'FW Year'
+						caption: Año SF
+					level 'FW Month Year'
+						caption: Mes año SF
+					level 'FW Week Year'
+						caption: Semana año SF
+				hierarchy 'FW Year-Quarter-Week'
+					caption: Año-Trimestre-Semana SF
+					level 'FW Year'
+						caption: Año SF
+					level 'FW Quarter Year'
+						caption: Trimestre año SF
+					level 'FW Week Year'
+						caption: Semana año SF
+				hierarchy 'FW Year-Week'
+					caption: Semana-Año SF
+					level 'FW Year'
+						caption: Año SF
+					level 'FW Week Year'
+						caption: Semana año SF
+			table 'Localized Labels'
+				measure 'My Report Title'
+					caption: Título del informe
+				measure 'My Button Caption'
+					caption: Título de botón
+				measure 'My Visual Title'
+					caption: Título visual
+				measure 'Financial Overview'
+					caption: Información general financiera
+				measure 'Income Statement by Month'
+					caption: Balance de ingresos por mes
+				measure 'Balance Sheet by Month'
+					caption: Balance por mes
+				measure 'Budget Comparison'
+					caption: Comparación de presupuestos
+				measure 'Liquidity KPIs'
+					caption: KPI de liquidez
+				measure Profitability
+					caption: Rentabilidad
+				measure 'Liabilities '
+					caption: "Pasivo "
+				measure 'Average Collection Period '
+					caption: Promedio de periodo de cobro
+				measure 'Aged Receivables (Back Dating)'
+					caption: Antigüedad de cuentas por cobrar (fecha atrasada)
+				measure 'Aged Payables (Back Dating)'
+					caption: Antigüedad de cuentas por pagar (fecha atrasada)
+				measure 'G/L Entries'
+					caption: Movimientos de contabilidad
+				measure 'Detailed Vendor Ledger Entries'
+					caption: Movs. proveedor detallados
+				measure 'Detailed Customer Ledger Entries'
+					caption: Movimientos detallados de cliente
+				measure 'Income Statement Drill Through'
+					caption: Análisis detallado de balance de ingresos
+				measure 'Balance Sheet Drill Through'
+					caption: Análisis detallado del balance
+				measure 'Vendor Ledger Entries Drill Through'
+					caption: Análisis detallado de los movimientos de proveedor
+				measure 'Customer Ledger Entries Drill Through'
+					caption: Análisis detallado de los movimientos de cliente
+				measure 'Liabilities Drill Through'
+					caption: Análisis detallado de pasivos
+				measure 'Finance App Change Log'
+					caption: Registro de cambios de la aplicación Finance
+				measure 'As At Date'
+					caption: En la fecha
+				measure 'Aging Bucket Length'
+					caption: Duración del periodo de antigüedad
+				measure 'Use Aging Date'
+					caption: Usar fecha de vencimiento
+				measure 'Cost of Goods Sold '
+					caption: "Costo de mercancías vendidas "
+				measure 'Net Profit '
+					caption: "Ganancias netas "
+				measure 'Current Assets / Current Liabilities'
+					caption: Activo circulante/Pasivos corrientes
+				measure '(Current Assets - Inventory - Purch. Prepayments) /  Current Liabilities'
+					caption: (Activos corrientes - Inventario - Anticipos de compras) / Pasivos corrientes
+				measure 'Liquid Assets / Current Liabilities'
+					caption: Activos corrientes/Pasivos corrientes
+				measure 'Revenue - Cost of Goods Sold - Expenses'
+					caption: Ingresos - Costo de mercancías vendidas - Gastos
+				measure 'Net Profit / Revenue'
+					caption: Ingresos/ganancias netas
+				measure 'Revenue - Cost of Goods Sold'
+					caption: Ingresos - Costo de mercancías vendidas
+				measure 'Gross Profit / Revenue'
+					caption: Ingresos/benef. bruto
+				measure 'Liabilities by Month'
+					caption: Pasivo por mes
+				measure 'Revenue & Accounts Receivable (Average) by Month'
+					caption: Ingresos y cuentas por cobrar (promedio) por mes
+				measure 'Average Collection Period (Days) by Month'
+					caption: Periodo de pago medio (días) por mes
+				measure 'Operating Revenue '
+					caption: "Ingresos de explotación "
+				measure 'Operating Expenses '
+					caption: "Gastos de explotación "
+				measure 'AGED AR / AP'
+					caption: ANTIGÜEDAD DE AR/AP
+				measure 'Finance Analytics'
+					caption: Análisis financiero
+				measure for
+					caption: para
+				measure 'CONNECT YOUR DATA'
+					caption: CONECTAR LOS DATOS
+				measure '1. Download the Finance Connector for Power BI'
+					caption: 1. Descargar Finance Connector for Power BI
+				measure '2. Configure Dynamics 365 Business Central'
+					caption: 2. Configurar Dynamics 365 Business Central
+				measure 'USE, EDIT AND BUILD YOUR OWN REPORTS'
+					caption: USAR, EDITAR Y CREAR SUS PROPIOS INFORMES
+				measure 'Finance includes a variety of pre-built reports to help you see your data immediately. You are able to edit these reports or build your own report from scratch.'
+					caption: Finanzas incluye una variedad de informes prediseñados para ayudarlo a ver sus datos de inmediato. Puede editar estos informes o crear el suyo propio desde cero.
+				measure 'HELP AND SUPPORT'
+					caption: AYUDA Y SOPORTE
+				measure 'For help and support with your new report please visit the Analytics overview documentation.'
+					caption: Para obtener ayuda y soporte técnico con su nuevo informe, visite la documentación de información general de Analytics.
+				measure 'OTHER POWER BI REPORTS'
+					caption: OTROS INFORMES DE POWER BI
+				measure PURCHASE
+					caption: COMPRA
+				measure SALES
+					caption: VENTAS
+				measure 'INVENTORY '
+					caption: "INVENTARIO "
+				measure MANUFACTURING
+					caption: FABRICACIÓN
+				measure JOBS
+					caption: PROYECTOS
+				measure 'for Business Central'
+					caption: para Business Central
+				measure 'Aged Accounts Receivable (AR) & Accounts Payable (AP)'
+					caption: Antigüedad de cobros (AR) y cuentas por pagar (AP)
+				measure 'Aged Accounts Receivable & Accounts Payable'
+					caption: Antigüedad de cobros y cuentas por pagar
+				measure 'Aged Accounts'
+					caption: Cuentas vencidas
+				measure 'General Ledger (G/L) Entries'
+					caption: Movs. contabilidad (CG)
+				measure 'General Ledger Entries'
+					caption: Movs. contabilidad
+				measure 'Return On Assets - ROA by Month'
+					caption: Rentabilidad de los activos: RA por mes
+				measure 'Top 5 Customers by Balance'
+					caption: Los 5 clientes principales por saldo
+				measure 'Top 5 Vendors by Balance'
+					caption: Los 5 proveedores principales por saldo
+				measure 'Net Profit Margin by Month'
+					caption: Margen de ganancias netas por mes
+				measure 'Asset Turnover Ratio by Month'
+					caption: Índice de rotación de activos por mes
+				measure 'Last Refreshed'
+					caption: Última actualización
+				measure 'Company Name'
+					caption: Nombre empresa
+				measure 'Liquidity Line Chart'
+					caption: Gráfico línea liquidez
+				measure 'Net Profit by Month'
+					caption: Beneficio neto por mes
+				measure 'Gross Profit by Month'
+					caption: Beneficio bruto por mes
+				measure 'Operating Profit - EBIT and EBITDA by Month'
+					caption: Beneficio de explotación: EBIT y EBITDA por mes
+				measure 'EBITDA '
+					caption: "EBITDA "
+				measure 'Revenue, Accounts Receivable (Average), No. of Days and Average Collection Period (Days) by Month'
+					caption: Ingresos, Cobros (promedio), N.º de días y periodo medio de cobro (días) por mes
+				measure 'Revenue, Net Profit, Net Profit Margin, Assets, Days Sales Outstanding, Days Sales of Inventory, Days Payable Outstanding.'
+					caption: Ingresos, beneficio neto, margen de beneficio neto, activos, días de ventas pendientes, días de ventas de inventario, días a pagar pendientes.
+				measure 'Current Ratio, Current Assets, Current Liabilities.'
+					caption: Índice actual, activos actuales, pasivos actuales.
+				measure 'Quick Ratio, Current Assets, Inventory.'
+					caption: Coeficiente de liquidez inmediata, activos circulantes, inventario.
+				measure 'Cash Ratio, Liquid Assets, Current Liabilities.'
+					caption: Ratio de efectivo, activos corrientes, pasivos corrientes.
+				measure 'Net Profit, Revenue, Cost of Goods Sold.'
+					caption: Beneficio neto, ingresos, costo de mercancías vendidas.
+				measure 'Net Profit Margin, Net Profit, Revenue.'
+					caption: Margen de beneficio neto, beneficio neto, ingresos.
+				measure 'Gross Profit, Revenue, Cost of Goods Sold.'
+					caption: Beneficio bruto, ingresos, costo de mercancías vendidas.
+				measure 'Gross Profit Marging, Gross Profit, Revenue.'
+					caption: Margen de beneficio bruto, beneficio bruto, ingresos.
+				measure 'Liabilities, Current Liabilities, Payrol Liabilities, Debt Ratio, Debt/Equity Ratio, Assets, Longterm Liabilities.'
+					caption: Pasivos, pasivos corrientes, pasivos por nómina, proporción de deuda, proporción de deuda/patrimonio, activos, pasivos a largo plazo.
+				measure 'Gross Profit Margin, Gross Profit, Revenue.'
+					caption: Margen de beneficio bruto, beneficio bruto, ingresos.
+				measure 'Net Profit Margin by Fiscal Year and Month'
+					caption: Margen de beneficio neto por ejercicio y mes
+				measure 'Asset Turnover Ratio by Fiscal Year and Month'
+					caption: Ratio de rotación de activos por ejercicio y mes
+				measure 'Balance at Date (Neg) by Fiscal Year, Month and G/L Account No./Name'
+					caption: Saldo a la fecha (Neg) por ejercicio, mes y n.º/nombre de cuenta de contabilidad general
+			table COMPANY
+				caption: EMPRESA
+				measure 'Company Label'
+					caption: Etiqueta de empresa
+			table 'Closing Entry Filter Table'
+				caption: Tabla de filtros de movimiento de cierre
+				column CloseIncomeSourceCodeFilter
+					caption: CloseIncomeSourceCodeFilter
+			table 'Back Links'
+				caption: Volver a vínculos
+

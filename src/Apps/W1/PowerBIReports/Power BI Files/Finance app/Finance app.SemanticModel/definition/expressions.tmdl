@@ -1,0 +1,495 @@
+expression 'Balance Sheet G/L Entries' = ```
+		let
+		    Source = Dynamics365BusinessCentral.ApiContentsWithOptions(ENVIRONMENT, COMPANY,API_ENDPOINT, []),
+		    TableData = Source{[Name="balanceSheetGeneralLedgerEntries",Signature="table"]}[Data],
+		    #"Changed Type" = Table.TransformColumnTypes(
+		        TableData,
+		        {
+		            {"incomeBalance", type text},
+		            {"glAccountNo", type text},
+		            {"postingDate", type date},
+		            {"amount", Currency.Type},
+		            {"dimensionSetID", Int64.Type},
+		            {"sourceCode", type text},
+		            {"entryNo", Int64.Type},
+		            {"systemModifiedAt", type datetime},
+		            {"description", type text},
+		            {"sourceType", type text},
+		            {"sourceNo", type text}
+		        }
+		    ),
+		    #"Renamed Columns" = Table.RenameColumns(
+		        #"Changed Type",
+		        {
+		            {"glAccountNo", "G/L Account No."},
+		            {"postingDate", "Posting Date"},
+		            {"amount", "Amt."},
+		            {"sourceCode", "Source Code"},
+		            {"sourceNo", "Source No."},
+		            {"sourceType", "Source Type"},
+		            {"entryNo", "Entry No."},
+		            {"description", "Description"}
+		        }
+		    ),
+		    // Add Closing Entry flag
+		    #"Added Closing Entry column" = 
+		        if  CheckUpgradeQuery("closeIncomeStmtSourceCodes") 
+		        then 
+		            // Set Closing Entry to True or False if the record's source code exists in the mappping table
+		            Table.AddColumn(#"Renamed Columns", "Closing Entry", each List.Contains( Table.ToList(#"Close Income Statement Codes") ,[Source Code]), type logical)
+		        else 
+		            let 
+		                #"Added Custom" = Table.AddColumn(#"Renamed Columns", "Closing Entry", each false, type logical),
+		                #"Filtered Rows" = Table.SelectRows(#"Added Custom", each [Source Code] <> "CLSINCOME")
+		            in #"Filtered Rows",
+		    
+		    #"Removed Columns" = Table.RemoveColumns(#"Added Closing Entry column", {"ETag"})
+		in
+		    #"Removed Columns"
+		```
+	lineageTag: da0312d9-3a15-4651-a8f5-f0ab58a120d0
+	queryGroup: 'Fact Tables'
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Table
+
+expression 'Income Statement G/L Entries' = ```
+		let
+		    Source = Dynamics365BusinessCentral.ApiContentsWithOptions(ENVIRONMENT, COMPANY,API_ENDPOINT, []),
+		    TableData = 
+		        if  CheckUpgradeQuery("closeIncomeStmtSourceCodes")
+		        then 
+		            Source{[Name="incomeStmtGeneralLedgerEntries",Signature="table"]}[Data]
+		        else 
+		            Source{[Name="incomeStatementGeneralLedgerEntries",Signature="table"]}[Data],
+		    #"Changed Type" = Table.TransformColumnTypes(
+		        TableData,
+		        {
+		            {"incomeBalance", type text},
+		            {"accountNo", type text},
+		            {"postingDate", type date},
+		            {"amount", Currency.Type},
+		            {"dimensionSetID", Int64.Type},
+		            {"sourceCode", type text},
+		            {"entryNo", Int64.Type},
+		            {"systemModifiedAt", type datetime},
+		            {"description", type text},
+		            {"sourceType", type text},
+		            {"sourceNo", type text}
+		        }
+		    ),
+		    #"Renamed Columns" = Table.RenameColumns(#"Changed Type",{{"accountNo", "G/L Account No."}, {"postingDate", "Posting Date"}, {"amount", "Amt."},{"sourceCode","Source Code"},{"sourceNo","Source No."},{"sourceType","Source Type"},{"entryNo","Entry No."},{"description","Description"}}),
+		    // Add Closing Entry flag
+		    #"Added Closing Entry column" = 
+		        if  CheckUpgradeQuery("closeIncomeStmtSourceCodes")
+		        then 
+		            Table.AddColumn(#"Renamed Columns", "Closing Entry", each List.Contains( Table.ToList(#"Close Income Statement Codes") ,[Source Code]), type logical)
+		        else 
+		            Table.AddColumn(#"Renamed Columns", "Closing Entry", each false, type logical),
+		    #"Removed Columns" = Table.RemoveColumns(#"Added Closing Entry column",{"ETag"})
+		in
+		    #"Removed Columns"
+		```
+	lineageTag: d468e93d-1a64-4da9-9abb-bf32172066ef
+	queryGroup: 'Fact Tables'
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Table
+
+expression 'Close Income Statement G/L Entries' =
+		let
+		    Source = Dynamics365BusinessCentral.ApiContentsWithOptions(ENVIRONMENT, COMPANY, API_ENDPOINT, []),
+		    TableData = Source{[Name = "closingGeneralLedgerEntries", Signature = "table"]}[Data],
+		    #"Changed Type" = Table.TransformColumnTypes(
+		        TableData,
+		        {
+		            {"incomeBalance", type text},
+		            {"glAccountNo", type text},
+		            {"postingDate", type date},
+		            {"amount", Currency.Type},
+		            {"dimensionSetID", Int64.Type},
+		            {"sourceCode", type text},
+		            {"entryNo", Int64.Type},
+		            {"systemModifiedAt", type datetime},
+		            {"description", type text},
+		            {"sourceType", type text},
+		            {"sourceNo", type text}
+		        }
+		    ),
+		    #"Renamed Columns" = Table.RenameColumns(
+		        #"Changed Type",
+		        {
+		            {"glAccountNo", "G/L Account No."},
+		            {"postingDate", "Posting Date"},
+		            {"amount", "Amt."},
+		            {"sourceCode", "Source Code"},
+		            {"sourceNo", "Source No."},
+		            {"sourceType", "Source Type"},
+		            {"entryNo", "Entry No."},
+		            {"description", "Description"}
+		        }
+		    ),
+		    #"Added Custom" = Table.AddColumn(#"Renamed Columns", "Closing Entry", each true, type logical),
+		    #"Removed Columns" = Table.RemoveColumns(#"Added Custom", {"ETag"})
+		in
+		    #"Removed Columns"
+	lineageTag: 840e03c7-1c84-4caa-81ed-9b6a9c7c882f
+	queryGroup: 'Fact Tables'
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Table
+
+expression Dimensions =
+		let
+		    Source = Dynamics365BusinessCentral.ApiContentsWithOptions(ENVIRONMENT, COMPANY,API_ENDPOINT, []),
+		    TableData = Source{[Name="dimensions",Signature="table"]}[Data],
+		    #"Changed Type" = Table.TransformColumnTypes(
+		        TableData,
+		        {
+		            {"dim1Code", type text},
+		            {"dim1Name", type text},
+		            {"dim1Caption", type text},
+		            {"dim2Code", type text},
+		            {"dim2Name", type text},
+		            {"dim2Caption", type text},
+		            {"dim3Code", type text},
+		            {"dim3Name", type text},
+		            {"dim3Caption", type text},
+		            {"dim4Code", type text},
+		            {"dim4Name", type text},
+		            {"dim4Caption", type text},
+		            {"dim5Code", type text},
+		            {"dim5Name", type text},
+		            {"dim5Caption", type text},
+		            {"dim6Code", type text},
+		            {"dim6Name", type text},
+		            {"dim6Caption", type text},
+		            {"dim7Code", type text},
+		            {"dim7Name", type text},
+		            {"dim7Caption", type text},
+		            {"dim8Code", type text},
+		            {"dim8Name", type text},
+		            {"dim8Caption", type text}
+		        }
+		    ),
+		    #"Removed Columns" = Table.RemoveColumns(#"Changed Type",{"ETag"})
+		in
+		    #"Removed Columns"
+	lineageTag: 0e7242e1-6de4-4458-b6aa-e47397d3c6c0
+
+	annotation PBI_ResultType = Table
+
+	annotation PBI_NavigationStepName = Navigation
+
+expression DimensionSet_Blank =
+		let
+		    Source = Table.FromRows(Json.Document(Binary.Decompress(Binary.FromText("i45WMlDSUTIEYtJQbCwA", BinaryEncoding.Base64), Compression.Deflate)), let _t = ((type nullable text) meta [Serialized.Text = true]) in type table [dimensionSetID = _t, valueCount = _t, dimension1ValueCode = _t, dimension1ValueName = _t, dimension2ValueCode = _t, dimension2ValueName = _t, dimension3ValueCode = _t, dimension3ValueName = _t, dimension4ValueCode = _t, dimension4ValueName = _t, dimension5ValueCode = _t, dimension5ValueName = _t, dimension6ValueCode = _t, dimension6ValueName = _t, dimension7ValueCode = _t, dimension7ValueName = _t, dimension8ValueCode = _t, dimension8ValueName = _t]),
+		    #"Changed Type" = Table.TransformColumnTypes(Source,{{"dimensionSetID", Int64.Type}, {"valueCount", Int64.Type}, {"dimension1ValueCode", type text}, {"dimension1ValueName", type text}, {"dimension2ValueCode", type text}, {"dimension2ValueName", type text}, {"dimension3ValueCode", type text}, {"dimension3ValueName", type text}, {"dimension4ValueCode", type text}, {"dimension4ValueName", type text}, {"dimension5ValueCode", type text}, {"dimension5ValueName", type text}, {"dimension6ValueCode", type text}, {"dimension6ValueName", type text}, {"dimension7ValueCode", type text}, {"dimension7ValueName", type text}, {"dimension8ValueCode", type text}, {"dimension8ValueName", type text}})
+		in
+		    #"Changed Type"
+	lineageTag: b4247344-244a-48dc-9215-b6ea1325f879
+
+	annotation PBI_ResultType = Table
+
+	annotation PBI_NavigationStepName = Navigation
+
+expression DimensionSets_DataSource =
+		let
+		    Source = Dynamics365BusinessCentral.ApiContentsWithOptions(ENVIRONMENT, COMPANY,API_ENDPOINT, []),
+		    TableData = Source{[Name="dimensionSetEntries",Signature="table"]}[Data],
+		    #"Changed Type" = Table.TransformColumnTypes(
+		        TableData,
+		        {
+		            {"dimensionSetID", Int64.Type},
+		            {"valueCount", Int64.Type},
+		            {"dimension1ValueCode", type text},
+		            {"dimension1ValueName", type text},
+		            {"dimension2ValueCode", type text},
+		            {"dimension2ValueName", type text},
+		            {"dimension3ValueCode", type any},
+		            {"dimension3ValueName", type any},
+		            {"dimension4ValueCode", type any},
+		            {"dimension4ValueName", type any},
+		            {"dimension5ValueCode", type any},
+		            {"dimension5ValueName", type any},
+		            {"dimension6ValueCode", type any},
+		            {"dimension6ValueName", type any},
+		            {"dimension7ValueCode", type any},
+		            {"dimension7ValueName", type any},
+		            {"dimension8ValueCode", type any},
+		            {"dimension8ValueName", type any}
+		        }
+		    ),
+		    #"Removed Columns" = Table.RemoveColumns(#"Changed Type",{"ETag"}),
+		    #"Appended Query" = Table.Combine({#"Removed Columns", DimensionSet_Blank}),
+		    #"Filtered Rows" = Table.SelectRows(#"Appended Query", each ([dimensionSetID] <> 0))
+		in
+		    #"Filtered Rows"
+	lineageTag: 946e1eeb-d5fb-44ad-a36f-17324489be24
+
+	annotation PBI_ResultType = Table
+
+	annotation PBI_NavigationStepName = Navigation
+
+expression GetDimCode = ```
+		let
+		    Source = (DimNo as number) => let 
+		    Source = Dimensions,
+		    Rec = Table.First(Source),
+		    DimCaption = if
+		    DimNo = 1 then Record.Field(Rec,"Dim1Code") else if
+		    DimNo = 2 then Record.Field(Rec,"Dim2Code") else if
+		    DimNo = 3 then Record.Field(Rec,"Dim3Code") else if
+		    DimNo = 4 then Record.Field(Rec,"Dim4Code") else if
+		    DimNo = 5 then Record.Field(Rec,"Dim5Code") else if
+		    DimNo = 6 then Record.Field(Rec,"Dim6Code") else if
+		    DimNo = 7 then Record.Field(Rec,"Dim7Code") else if
+		    DimNo = 8 then Record.Field(Rec,"Dim8Code") else ""
+		in
+		    DimCaption
+		in
+		    Source
+		```
+	lineageTag: 510862c7-c25e-42da-9d78-6001e7156983
+	queryGroup: 'Parameters and Functions\Functions'
+
+	annotation PBI_ResultType = Function
+
+expression GetDimCodeCaption = ```
+		let
+		    Source = (DimNo as number) => let 
+		    Source = Dimensions,
+		    Rec = Table.First(Source),
+		    DimCaption = if
+		    DimNo = 1 then Record.Field(Rec,"Dim1Caption") else if
+		    DimNo = 2 then Record.Field(Rec,"Dim2Caption") else if
+		    DimNo = 3 then Record.Field(Rec,"Dim3Caption") else if
+		    DimNo = 4 then Record.Field(Rec,"Dim4Caption") else if
+		    DimNo = 5 then Record.Field(Rec,"Dim5Caption") else if
+		    DimNo = 6 then Record.Field(Rec,"Dim6Caption") else if
+		    DimNo = 7 then Record.Field(Rec,"Dim7Caption") else if
+		    DimNo = 8 then Record.Field(Rec,"Dim8Caption") else "N/A Code",
+		    DimCaption2 = if DimCaption="" then "N/A Code" else DimCaption,
+		    DimCaption3 = DimCaption2&" (Dim "& Number.ToText(DimNo) & ")"
+		in
+		    DimCaption3
+		in
+		    Source
+		```
+	lineageTag: bb9e9440-7a6e-4528-b25f-c8df576b848f
+	queryGroup: 'Parameters and Functions\Functions'
+
+	annotation PBI_ResultType = Function
+
+expression GetDimNameCaption = ```
+		let
+		    Source = (DimNo as number) => let 
+		    Source = Dimensions,
+		    Rec = Table.First(Source),
+		    DimCaption = if
+		    DimNo = 1 then Record.Field(Rec,"Dim1Name") else if
+		    DimNo = 2 then Record.Field(Rec,"Dim2Name") else if
+		    DimNo = 3 then Record.Field(Rec,"Dim3Name") else if
+		    DimNo = 4 then Record.Field(Rec,"Dim4Name") else if
+		    DimNo = 5 then Record.Field(Rec,"Dim5Name") else if
+		    DimNo = 6 then Record.Field(Rec,"Dim6Name") else if
+		    DimNo = 7 then Record.Field(Rec,"Dim7Name") else if
+		    DimNo = 8 then Record.Field(Rec,"Dim8Name") else "N/A Name",
+		    DimCaption2 = if DimCaption="" then "N/A Name" else DimCaption&" Name",
+		    DimCaption3 = DimCaption2&" (Dim "& Number.ToText(DimNo) & ")"
+		in
+		    DimCaption3
+		in
+		    Source
+		```
+	lineageTag: 7a06943c-0bd7-4fbb-8eb0-f507f5438d06
+	queryGroup: 'Parameters and Functions\Functions'
+
+	annotation PBI_ResultType = Function
+
+expression GetParentGLAccountNo = ```
+		let
+		    Source = (GLAccNo as text) => let 
+		    Source = Table.Buffer(GLAccountEndTotal),
+		    Source2 = Table.SelectRows(Source, each GLAccNo >= [GLAccountFrom] and GLAccNo <= [GLAccountTo] and [accountNo] <> GLAccNo),
+		    Source3 = if Table.IsEmpty(Source2) then [accountNo = null] else Table.First(Source2),
+		    ParentGLAccountNo = Record.Field(Source3,"accountNo")
+		in
+		    ParentGLAccountNo
+		in
+		    Source
+		```
+	lineageTag: d7eddcb7-28ec-4420-a7f3-5c6661cb2fbd
+	queryGroup: 'Parameters and Functions\Functions'
+
+	annotation PBI_ResultType = Function
+
+	annotation PBI_NavigationStepName = Navigation
+
+expression GLAccountPosting =
+		let
+		    Source = Dynamics365BusinessCentral.ApiContentsWithOptions(ENVIRONMENT, COMPANY,API_ENDPOINT, []),
+		    TableData = Source{[Name="generalLedgerAccounts",Signature="table"]}[Data],
+		    #"Changed Type" = Table.TransformColumnTypes(
+		        TableData,
+		        {
+		            {"accountNo", type text},
+		            {"accountName", type text},
+		            {"accountType", type text},
+		            {"incomeBalance", type text},
+		            {"accountSubcategoryEntryNo", Int64.Type},
+		            {"indentation", Int64.Type},
+		            {"totaling", type text}
+		        }
+		    ),
+		    #"Filtered Rows" = Table.SelectRows(#"Changed Type", each ([accountType] = "Posting")),
+		    #"Removed Columns" = Table.RemoveColumns(#"Filtered Rows", {"ETag"})
+		in
+		    #"Removed Columns"
+	lineageTag: d67b7d1f-f651-41cd-a9f9-e8d1c6f8ba6a
+	queryGroup: 'Dimension Tables'
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Table
+
+expression GLAccountEndTotal =
+		let
+		    Source = Dynamics365BusinessCentral.ApiContentsWithOptions(ENVIRONMENT, COMPANY,API_ENDPOINT, []),
+		    TableData = Source{[Name="generalLedgerAccounts",Signature="table"]}[Data],
+		    #"Changed Type" = Table.TransformColumnTypes(
+		        TableData,
+		        {
+		            {"accountNo", Int64.Type},
+		            {"accountName", type text},
+		            {"accountType", type text},
+		            {"incomeBalance", type text},
+		            {"accountSubcategoryEntryNo", Int64.Type},
+		            {"indentation", Int64.Type},
+		            {"totaling", type text}
+		        }
+		    ),
+		    #"Filtered Rows" = Table.SelectRows(#"Changed Type", each ([accountType] = "End-Total")),
+		    #"Removed Columns" = Table.RemoveColumns(#"Filtered Rows", {"ETag"}),
+		    #"Inserted Text Before Delimiter" = Table.AddColumn(#"Removed Columns", "GLAccountFrom", each Text.BeforeDelimiter([totaling], "..", 0), type text),
+		    #"Inserted Text After Delimiter" = Table.AddColumn(#"Inserted Text Before Delimiter", "GLAccountTo", each Text.AfterDelimiter([totaling], "..", 0), type text),
+		    #"Replaced Value" = Table.ReplaceValue(#"Inserted Text After Delimiter","Total, ","",Replacer.ReplaceText,{"accountName"}),
+		    #"Replaced Value1" = Table.ReplaceValue(#"Replaced Value","Total ","",Replacer.ReplaceText,{"accountName"}),
+		    #"Removed Columns2" = Table.RemoveColumns(#"Replaced Value1",{"accountNo"}),
+		    #"Added Custom" = Table.AddColumn(#"Removed Columns2", "accountNo", each [GLAccountFrom], type text)
+		in
+		    #"Added Custom"
+	lineageTag: f7677521-0065-4ae0-b2a5-8e4735b82c7c
+	queryGroup: 'Dimension Tables'
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Table
+
+expression API_ENDPOINT = "microsoft/analytics/v1.0" meta [IsParameterQuery=true, Type="Text", IsParameterQueryRequired=true]
+	lineageTag: 0750104b-0db0-49f8-9dd1-0d6053b4b02b
+	queryGroup: 'Parameters and Functions\Connection Parameters'
+
+	annotation PBI_ResultType = Text
+
+	annotation PBI_NavigationStepName = Navigation
+
+expression 'Close Income Statement Codes' =
+		let
+		    Source = Dynamics365BusinessCentral.ApiContentsWithOptions(ENVIRONMENT, COMPANY, API_ENDPOINT, []),
+		    TableData =
+		        try
+		            Source{[Name = "closeIncomeStmtSourceCodes", Signature = "table"]}[Data]
+		        otherwise
+		            #table(
+		                type table [sourceCode = text, ETag = text],
+		                {{"", null}}
+		            ),
+		    #"Removed Columns" = Table.RemoveColumns(TableData, {"ETag"})
+		in
+		    #"Removed Columns"
+	lineageTag: d655bc9b-4271-4a5b-94dc-c4a8b89b2878
+	queryGroup: 'Dimension Tables'
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Table
+
+expression ConvertUTC =
+		let
+		    Source = (dateTableSetup as table) =>
+		        let
+		            #"Added UTC Now" = Table.AddColumn(dateTableSetup, "UTC Now", each DateTimeZone.UtcNow()),
+		            #"Extract UTC Value" = Table.AddColumn(
+		                #"Added UTC Now", "Extract UTC", each Text.BetweenDelimiters([timeZoneDisplayName], "(", ")")
+		            ),
+		            #"Remove UTC prefix" = Table.AddColumn(
+		                #"Extract UTC Value", "Remove UTC prefix", each Text.AfterDelimiter([Extract UTC], "UTC")
+		            ),
+		            #"Extract Hour and Minutes" = Table.SplitColumn(#"Remove UTC prefix", "Remove UTC prefix", Splitter.SplitTextByDelimiter(":", QuoteStyle.None), {"UTC Hours", "UTC Minutes"}),
+		            #"Changed Type" = Table.TransformColumnTypes(#"Extract Hour and Minutes",{{"UTC Hours", Int64.Type}, {"UTC Minutes", Int64.Type}},"en-us"),
+		            #"Switch Zone" = Table.AddColumn(
+		                #"Changed Type",
+		                "UTC Offset",
+		                each if [UTC Hours] = null then [UTC Now] else DateTimeZone.SwitchZone([UTC Now], [UTC Hours], [UTC Minutes])
+		            ),
+		            #"Set Date" = Table.AddColumn(
+		                #"Switch Zone", "Today", each Date.From(DateTimeZone.RemoveZone([UTC Offset])), type date
+		            ),
+		            #"Set Last Refresh Time" = Table.AddColumn(
+		                #"Set Date", "Last Refresh Time", each Time.From(DateTimeZone.RemoveZone([UTC Offset])), type time
+		            ),
+		            #"Remove unnecessary" = Table.RemoveColumns(
+		                #"Set Last Refresh Time", {"UTC Now", "Extract UTC", "UTC Offset"}
+		            )
+		        in
+		            #"Remove unnecessary"
+		in
+		    Source
+	lineageTag: 14f22cb3-1218-4200-864c-bc744354969d
+	queryGroup: 'Parameters and Functions\Functions'
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Function
+
+expression 'Build Closing Entry Filter' =
+		let
+		    ConcatenateWithDelimiter = () as text =>
+		        let
+		            SourceCodes = Table.Column(#"Close Income Statement Codes", "sourceCode"),
+		            WrappedSourceCodes = List.Transform(SourceCodes, each "<>" & _),
+		            ConcatenatedString = Text.Combine(WrappedSourceCodes, "|")
+		        in
+		            ConcatenatedString
+		in
+		    ConcatenateWithDelimiter
+	lineageTag: 48dfbe80-b12f-448b-8686-527397d3a832
+	queryGroup: 'Parameters and Functions\Functions'
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Function
+
+expression CheckUpgradeQuery =
+		let
+		    IsQueryValid = (upgradeQuery as text) as logical =>
+		    let
+		        Source = Dynamics365BusinessCentral.ApiContentsWithOptions(ENVIRONMENT, COMPANY,API_ENDPOINT, []),
+		        upgradeQuerySource = Source{[Name=upgradeQuery,Signature="table"]}[Data],
+		        result = try upgradeQuerySource otherwise null,
+		        isValid = result <> null
+		    in
+		        isValid
+		in
+		    IsQueryValid
+	lineageTag: 2c1614f9-b893-40fa-8fc5-7646ff11f549
+	queryGroup: 'Parameters and Functions\Functions'
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Function
+

@@ -1,0 +1,1 @@
+{ "data": { "productVariantsBulkUpdate": { "userErrors": [], "productVariants": [ { "media": { "edges": [ { "node": { "id": "gid://shopify/MediaImage/1234567891011" } } ] } } ] } }, "extensions": { "cost": { "requestedQueryCost": 13, "actualQueryCost": 12, "throttleStatus": { "maximumAvailable": 2000, "currentlyAvailable": 1988, "restoreRate": 100 } } } }

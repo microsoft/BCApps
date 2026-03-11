@@ -1,0 +1,20 @@
+h1 {
+    margin: auto;
+    color: #777;
+    font-family: "Segoe UI Light",device-segoe-light,"Segoe WP","Segoe UI",Segoe,Tahoma,Helvetica,Arial,sans-serif;
+    font-weight: lighter;
+    font-size: 2.3em;
+  }
+  
+  h2 {
+    margin: auto;
+    font-family: "Segoe UI Semilight","Segoe WP SemiLight",device-segoe-semilight,"Segoe UI",Segoe,device-segoe-light,Tahoma,Helvetica,Arial,sans-serif;
+    font-weight: 300;
+    color: #262626;
+    font-size: 1.46em
+  }
+  
+  #spinner {
+    margin: auto;
+    width: 36px;
+  }

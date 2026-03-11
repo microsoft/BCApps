@@ -1,0 +1,31 @@
+table 'Tec Dummy Values'
+	isHidden
+	lineageTag: a0ac206e-2d81-4a6a-83ab-3bb415a478cc
+
+	column Total
+		isHidden
+		lineageTag: ae28aa76-ec86-4111-a83f-a69c7aec44d8
+		summarizeBy: none
+		sourceColumn: [Value1]
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Filter dummy'
+		isHidden
+		lineageTag: aa1c65e3-e3a1-41cd-b32b-1755ef102183
+		summarizeBy: none
+		sourceColumn: [Value2]
+
+		annotation SummarizationSetBy = Automatic
+
+	partition 'Tec Dummy Values' = calculated
+		mode: import
+		source = ```
+				
+				   {
+				    ("Total","select Attribute")}
+				  
+				```
+
+	annotation PBI_Id = 29c877ddfdae48a2b484a4f878b268d0
+

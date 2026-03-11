@@ -1,0 +1,31 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.4.0/schema.json",
+  "name": "e122112c0ac41861dd03",
+  "position": {
+    "x": 445.15555555555557,
+    "y": 61.155555555555559,
+    "z": 3000,
+    "height": 230.4,
+    "width": 389.68888888888887,
+    "tabOrder": 2000
+  },
+  "visualGroup": {
+    "displayName": "Project Invoiced Group",
+    "groupMode": "ScaleMode",
+    "objects": {
+      "general": [
+        {
+          "properties": {
+            "altText": {
+              "expr": {
+                "Literal": {
+                  "Value": "'Invoiced Percentage, Billable (Invoiced Price), Billable (Total Price)'"
+                }
+              }
+            }
+          }
+        }
+      ]
+    }
+  }
+}

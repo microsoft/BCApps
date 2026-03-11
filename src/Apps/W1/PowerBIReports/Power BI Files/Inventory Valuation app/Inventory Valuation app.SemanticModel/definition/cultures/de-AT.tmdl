@@ -1,0 +1,409 @@
+cultureInfo de-AT
+	translations
+		model Model
+			table Item
+				caption: Artikel
+				column 'Item No. & Description'
+					caption: Artikelnr. und -Beschreibung
+				column 'Item No.'
+					caption: Artikelnr.
+				column 'Item Description'
+					caption: Artikelbeschreibung
+				column 'Item Base Unit of Measure'
+					caption: Artikel Basiseinheit
+				column 'Item Unit Cost (LCY)'
+					caption: Einstandspreis (LW)
+				column 'Item Inventory Posting Group'
+					caption: Artikellager-Buchungsgruppe
+				column 'Item Category Code'
+					caption: Artikelkategoriencode
+				column 'Item Category Description'
+					caption: Beschreibung der Artikelkategorie
+			table Location
+				caption: Lagerort
+				column 'Location Code'
+					caption: Lagerortcode
+				column 'Location Name'
+					caption: Lagerortname
+				column 'Location Adjustment Bin Code'
+					caption: Lagerortausgleichs-Lagerplatzcode
+			table 'Value Entries'
+				caption: Wertposten
+				column 'Entry No.'
+					caption: Lfd. Nr.
+				column 'Valuation Date'
+					caption: Bewertungsdatum
+				column 'Item Ledger Entry Type'
+					caption: Artikelpostenart
+				column 'Document Type'
+					caption: Belegtyp
+				column Type
+					caption: Typ
+				measure 'As of Beg. Date Label'
+					caption: Beschriftung ab Anfangsdatum
+				measure 'As of End Date Label'
+					caption: Beschriftung ab Enddatum
+				measure 'Beginning Balance Cost Posted to G/L'
+					caption: Gebuchte Anfangsbilanzkosten in Finanzbuchhaltung
+				measure 'Beginning Balance Expected Cost Posted to G/L'
+					caption: Anfangsbilanz erwartete Kosten in Finanzbuchhaltung gebucht
+				measure 'Beginning Balance Qty'
+					caption: Menge Anfangssaldo
+				measure 'Beginning Balance Cost Amount (Actual)'
+					caption: Anfangsbilanz-Einstandsbetrag (Ist)
+				measure 'Beginning Balance Cost Amount (Expected)'
+					caption: Anfangsbilanz-Einstandsbetrag (erwartet)
+				measure 'Beginning Balance Cost Amount (Incl. Exp Cost)'
+					caption: Anfangsbilanz-Einstandsbetrag (inkl. erw. Kosten)
+				measure 'Cost Amount (Actual)'
+					caption: Einstandsbetrag (tatsächl.)
+				measure 'Cost Amount (Expected)'
+					caption: Einstandsbetrag (erwartet)
+				measure 'Cost Posted to G/L'
+					caption: Auf Sachkonto. geb. Soll-K.
+				measure 'Expected Cost Posted to G/L'
+					caption: Auf Sachkonto geb. Soll-Kosten
+				measure 'Decrease Qty.'
+					caption: Minderungsmenge
+				measure 'Decrease Value'
+					caption: Wertminderung
+				measure 'Decrease Value (Expected)'
+					caption: Wertminderung (erwartet)
+				measure 'Decrease Value Expected Cost Included'
+					caption: Wertminderung inklusive Soll-Kosten
+				measure 'Ending Balance Cost Amount (Incl. Exp Cost)'
+					caption: Endbilanz-Einstandsbetrag (inkl. erw. Kosten)
+				measure 'Ending Balance Cost Posted to G/L'
+					caption: Gebuchte Endbilanzkosten in Finanzbuchhaltung
+				measure 'Ending Balance Qty.'
+					caption: Endsaldo Menge
+				measure 'Ending Balance Cost Amount (Actual)'
+					caption: Endbilanz-Einstandsbetrag (Ist)
+				measure 'Ending Balance Cost Amount (Expected)'
+					caption: Endbilanz-Einstandsbetrag (erwartet)
+				measure 'Ending Balance Expected Cost Posted to G/L'
+					caption: Endbilanz erwartete Kosten in Finanzbuchhaltung
+				measure 'Increase Value Expected Cost Included'
+					caption: Wertsteigerung inklusive Soll-Kosten
+				measure 'Increases Qty.'
+					caption: Zugänge Menge
+				measure 'Increases Value'
+					caption: Wertsteigerung
+				measure 'Increases Value (Expected)'
+					caption: Wertsteigerung (erwartet)
+				measure 'Invoiced Quantity'
+					caption: Fakturierte Menge
+				measure 'Cost Amount (Incl. Exp Cost)'
+					caption: Einstandsbetrag (inkl. erw. Kosten)
+				measure 'Variance Cost Posted to G/L'
+					caption: Gebuchte Varianzkosten in Finanzbuchhaltung
+				measure 'Base Link'
+					caption: Basislink
+				measure 'Value Entry Back Link'
+					caption: Wertposten – Zurück-Link
+			table 'Dimension Sets'
+				caption: Dimensionssätze
+				column 'Global Dimension 1'
+					caption: Globale Dimension 1
+				column 'Global Dimension 2'
+					caption: Globale Dimension 2
+				column 'Shortcut Dimension 3'
+					caption: Shortcutdimension 3
+				column 'Shortcut Dimension 4'
+					caption: Shortcutdimension 4
+				column 'Shortcut Dimension 5'
+					caption: Shortcutdimension 5
+				column 'Shortcut Dimension 6'
+					caption: Shortcutdimension 6
+				column 'Shortcut Dimension 7'
+					caption: Shortcutdimension 7
+				column 'Shortcut Dimension 8'
+					caption: Shortcutdimension 8
+			table Date
+				caption: Datum
+				column 'Week Day'
+					caption: Woche Tag
+				column 'Relative Day'
+					caption: Relativ Tag
+				column 'Calendar Year'
+					caption: Kalender Jahr
+				column 'Calendar Quarter'
+					caption: Kalenderquartal
+				column 'Calendar Quarter Year'
+					caption: Kalender Quartal Jahr
+				column 'Calendar Month'
+					caption: Kalendermonat
+				column 'Calendar Month Year'
+					caption: Kalender Monat Jahr
+				column 'Calendar Week'
+					caption: Kalender Woche
+				column 'Calendar Week Year'
+					caption: Kalender Woche Jahr
+				column 'Calendar WeekYearOrder'
+					caption: Kalender WocheJahrReihenfolge
+				column 'Calendar RelativeWeekPos'
+					caption: Kalender RelativeWochenPos
+				column 'Calendar RelativeMonthPos'
+					caption: Kalender RelativeMonatsPos
+				column 'Calendar RelativeQuarterPos'
+					caption: Kalender RelativeQuartalsPos
+				column 'Calendar RelativeYearPos'
+					caption: Kalender RelativeJahresPos
+				column 'Calendar StartOfMonth'
+					caption: Kalender BeginnDesMonats
+				column 'Calendar EndOfMonth'
+					caption: Kalender EndeDesMonats
+				column 'Calendar StartOfQuarter'
+					caption: Kalender BeginnDesQuartals
+				column 'Calendar EndOfQuarter'
+					caption: Kalender EndeDesQuartals
+				column 'Calendar StartOfYear'
+					caption: Kalender BeginnDesJahres
+				column 'Calendar EndOfYear'
+					caption: Kalender EndeDesJahres
+				column 'Calendar MonthDays'
+					caption: Kalender MonatTage
+				column 'Calendar QuarterDays'
+					caption: Kalender QuartalTage
+				column 'Calendar YearDays'
+					caption: Kalender JahrTage
+				column 'Calendar DayOfMonthNumber'
+					caption: Kalender TagDesMonatsZahl
+				column 'Calendar DayOfQuarterNumber'
+					caption: Kalender TagDesQuartalsZahl
+				column 'Calendar DayOfYearNumber'
+					caption: Kalender TagDesJahresZahl
+				column 'Calendar DatePreviousWeek'
+					caption: Kalender DatumVorigeWoche
+				column 'Calendar DatePreviousMonth'
+					caption: Kalender DatumVorigerMonat
+				column 'Calendar DatePreviousQuarter'
+					caption: Kalender DatumVorigesQuartal
+				column 'Calendar DatePreviousYear'
+					caption: Kalender DatumVorigesJahr
+				column 'Fiscal Year'
+					caption: Geschäftlich Jahr
+				column 'Fiscal QuarterNumber'
+					caption: Geschäftlich QuartalNummer
+				column 'Fiscal Quarter'
+					caption: Geschäftsquartal
+				column 'Fiscal Quarter Year'
+					caption: Geschäftlich Quartal Jahr
+				column 'Fiscal MonthInQuarterNumber'
+					caption: Geschäftlich MonatInQuartalNummer
+				column 'Fiscal Month'
+					caption: Geschäftlich Monat
+				column 'Fiscal Month Year'
+					caption: Geschäftlich Monat Jahr
+				column 'Fiscal WeekNumber'
+					caption: Geschäftlich WocheNummer
+				column 'Fiscal Week'
+					caption: Geschäftswoche
+				column 'Fiscal Week Year'
+					caption: Geschäftlich Woche Jahr
+				column 'Fiscal WeekYearOrder'
+					caption: Geschäftlich WocheJahrReihenfolge
+				column 'Fiscal RelativeWeekPos'
+					caption: Geschäftlich RelativeWochenPos
+				column 'Fiscal RelativeMonthPos'
+					caption: Geschäftlich RelativeMonatsPos
+				column 'Fiscal RelativeQuarterPos'
+					caption: Geschäftlich RelativeQuartalsPos
+				column 'Fiscal RelativeYearPos'
+					caption: Geschäftlich RelativeJahresPos
+				column 'Fiscal StartOfMonth'
+					caption: Geschäftlich BeginnDesMonats
+				column 'Fiscal EndOfMonth'
+					caption: Geschäftlich EndeDesMonats
+				column 'Fiscal StartOfQuarter'
+					caption: Geschäftlich BeginnDesQuartals
+				column 'Fiscal EndOfQuarter'
+					caption: Geschäftlich EndeDesQuartals
+				column 'Fiscal StartOfYear'
+					caption: Geschäftlich BeginnDesJahres
+				column 'Fiscal EndOfYear'
+					caption: Geschäftlich EndeDesJahres
+				column 'Fiscal MonthDays'
+					caption: Geschäftlich MonatTage
+				column 'Fiscal QuarterDays'
+					caption: Geschäftlich QuartalTage
+				column 'Fiscal YearDays'
+					caption: Geschäftlich JahrTage
+				column 'Fiscal DayOfMonthNumber'
+					caption: Geschäftlich TagDesMonatsZahl
+				column 'Fiscal DayOfQuarterNumber'
+					caption: Geschäftlich TagDesQuartalsZahl
+				column 'Fiscal DayOfYearNumber'
+					caption: Geschäftlich TagDesJahresZahl
+				column 'Fiscal DatePreviousWeek'
+					caption: Geschäftlich DatumVorigeWoche
+				column 'Fiscal DatePreviousMonth'
+					caption: Geschäftlich DatumVorigerMonat
+				column 'Fiscal DatePreviousQuarter'
+					caption: Geschäftlich DatumVorigesQuartal
+				column 'Fiscal DatePreviousYear'
+					caption: Geschäftlich DatumVorigesJahr
+				column 'FW Year'
+					caption: GW Jahr
+				column 'FW Quarter'
+					caption: GW Quartal
+				column 'FW Quarter Year'
+					caption: GW Quartal Jahr
+				column 'FW Month'
+					caption: GW Monat
+				column 'FW Month Year'
+					caption: GW Monat Jahr
+				column 'FW Week'
+					caption: GW Woche
+				column 'FW Period'
+					caption: GW Periode
+				column 'FW Week Year'
+					caption: GW Woche Jahr
+				column 'FW StartOfWeek'
+					caption: GW BeginnDerWoche
+				column 'FW EndOfWeek'
+					caption: GW EndeDerWoche
+				column 'FW RelativeWeekPos'
+					caption: GW RelativeWochenPos
+				column 'FW RelativeMonthPos'
+					caption: GW RelativeMonatsPos
+				column 'FW RelativeQuarterPos'
+					caption: GW RelativeQuartalsPos
+				column 'FW RelativeYearPos'
+					caption: GW RelativeJahresPos
+				column 'FW StartOfMonth'
+					caption: GW BeginnDesMonats
+				column 'FW EndOfMonth'
+					caption: GW EndeDesMonats
+				column 'FW StartOfQuarter'
+					caption: GW BeginnDesQuartals
+				column 'FW EndOfQuarter'
+					caption: GW EndeDesQuartals
+				column 'FW StartOfYear'
+					caption: GW BeginnDesJahres
+				column 'FW EndOfYear'
+					caption: GW EndeDesJahres
+				column 'FW MonthDays'
+					caption: GW MonatTage
+				column 'FW QuarterDays'
+					caption: GW QuartalTage
+				column 'FW YearDays'
+					caption: GW JahrTage
+				column 'FW DayOfMonthNumber'
+					caption: GW TagDesMonatsZahl
+				column 'FW DayOfQuarterNumber'
+					caption: GW TagDesQuartalsZahl
+				column 'FW DayOfYearNumber'
+					caption: GW TagDesJahresZahl
+				column 'FW DatePreviousWeek'
+					caption: GW DatumVorigeWoche
+				column 'FW DatePreviousMonth'
+					caption: GW DatumVorigerMonat
+				column 'FW DatePreviousQuarter'
+					caption: GW DatumVorigesQuartal
+				column 'FW DatePreviousYear'
+					caption: GW DatumVorigesJahr
+				column 'Holiday Name'
+					caption: Name des Feiertags
+				column IsWorkingDay
+					caption: IsWorkingDay
+				column 'Day Type'
+					caption: Tagestyp
+			table 'Localized Labels'
+				measure 'My Report Title'
+					caption: Titel meines Berichts
+				measure 'My Button Caption'
+					caption: Beschriftung Meine Schaltfläche
+				measure 'My Visual Title'
+					caption: Titel meines Visuals
+				measure 'Inventory Valuation'
+					caption: Lagerbestandsbewertung
+				measure 'for Business Central'
+					caption: für Business Central
+				measure 'CONNECT YOUR DATA'
+					caption: MIT EIGENEN DATEN VERBINDEN
+				measure '1. Download the Inventory Connector for Power BI'
+					caption: 1. Inventory Connector for Power BI herunterladen
+				measure '2. Configure Dynamics 365 Business Central'
+					caption: 2. Dynamics 365 Business Central konfigurieren
+				measure 'USE, EDIT AND BUILD YOUR OWN REPORTS'
+					caption: EIGENE BERICHTE VERWENDEN, BEARBEITEN UND ERSTELLEN
+				measure 'Inventory Valuation includes a variety of pre-built reports to help you see your data immediately.'
+					caption: Die Bestandsbewertung enthält eine Vielzahl vordefinierter Berichte, mit denen Sie Ihre Daten unmittelbar ansehen können.
+				measure 'You are able to edit these reports or build your own report from scratch.'
+					caption: Sie können diese Berichte bearbeiten oder Ihren eigenen Bericht von Grund auf neu erstellen.
+				measure 'HELP AND SUPPORT'
+					caption: HILFE UND SUPPORT
+				measure 'For help and support with your new report please visit the Analytics overview documentation.'
+					caption: Hilfe und Unterstützung für Ihren neuen Bericht finden Sie in der Dokumentation Analysen – Übersicht.
+				measure 'OTHER POWER BI REPORTS'
+					caption: SONSTIGE POWER BI-BERICHTE
+				measure PURCHASE
+					caption: EINKAUF
+				measure FINANCE
+					caption: FINANZEN
+				measure PROJECTS
+					caption: PROJEKTE
+				measure INVENTORY
+					caption: LAGERBESTAND
+				measure SALES
+					caption: VERKAUF
+				measure 'Inventory Valuation Overview'
+					caption: Übersicht über Bestandsbewertung
+				measure 'Inventory Value & Cost Posted to G/L by Month Year'
+					caption: Nach Monat Jahr in der Finanzbuchhaltung gebuchter Bestandswert und Einstandspreis
+				measure 'Inventory Value by Location'
+					caption: Bestandswert nach Lagerort
+				measure 'Inventory Quantity'
+					caption: Lagerbestandsmenge
+				measure 'Inventory Valuation by Item'
+					caption: Bestandswert nach Artikel
+				measure 'Inventory Valuation by Location'
+					caption: Bestandsbewertung nach Lagerort
+				measure 'Detailed Inventory Valuation'
+					caption: Detaillierte Bestandsbewertung
+				measure 'The inventory valuation by item shows item number, beginning balance value, increase value, decrease value, and ending balance value.'
+					caption: Die Lagerbestandsbewertung nach Artikel zeigt die Artikelnummer, den Anfangssaldowert, den Mehrwert, den Abnahmewert und den Endsaldowert an.
+				measure 'The inventory valuation by location shows location code, beginning balance value, increase value, decrease value, and ending balance value.'
+					caption: Die Lagerbestandsbewertung nach Lagerort zeigt den Lagerortcode, den Anfangssaldowert, den Mehrwert, den Abnahmewert und den Endsaldowert an.
+				measure 'The detailed inventory valuation shows date, item number and description, location code, document type, entry number, invoiced quantity, cost amount (actual), cost amount (expected), cost posted to G/L (actual), and cost posted to G/L (expected).'
+					caption: Die detaillierte Lagerbestandsbewertung zeigt Datum, Artikelnummer und Beschreibung, Lagerortcode, Belegart, Postennummer, fakturierte Menge, Einstandsbetrag (Ist), Einstandsbetrag (erwartet), in der Finanzbuchhaltung gebuchte Kosten (Ist) und in der Finanzbuchhaltung gebuchte Kosten (erwartet) an.
+				measure 'The inventory valuation by location shows location and ending balance value.'
+					caption: Die Lagerbewertung nach Lagerort zeigt den Lagerort und den Endsaldowert an.
+				measure 'The inventory valuation by item shows item category and ending balance quantity.'
+					caption: Die Lagerbewertung nach Artikel zeigt die Artikelkategorie und die Endsaldomenge an.
+				measure 'Last Refreshed'
+					caption: Zuletzt aktualisiert
+				measure 'Company Name'
+					caption: Mandantenname
+				measure 'Inventory value as of '
+					caption: "Lagerbestandswert zum "
+				measure 'Ending Balance Value and Invoiced Quantity by Location Code'
+					caption: Endsaldowert und fakturierte Menge nach Lagerortcode
+				measure 'Ending Balance Value, Ending Balance Posted to G/L and Variance by Month'
+					caption: Endsaldowert, am Ende in der Finanzbuchhaltung geb. Saldo und Varianz nach Monat
+				measure 'Ending Balance Quantity by Item Category Code'
+					caption: Endsaldomenge nach Artikelkategoriencode
+				measure 'Ending Balance Value by Location Name'
+					caption: Endsaldowert nach Lagerortname
+			table COMPANY
+				caption: MANDANT
+				measure 'Company Label'
+					caption: Mandantenbeschriftung
+			table 'Item Category'
+				caption: Artikelkategorie
+				column 'Item Category Code'
+					caption: Artikelkategoriencode
+				column 'Item Category Description'
+					caption: Beschreibung der Artikelkategorie
+				hierarchy 'Item Category Code Hierarchy'
+					caption: Artikelkategoriencode-Hierarchie
+					level 'Item Category Code Level 1'
+						caption: Artikelkategoriencode – Ebene 1
+					level 'Item Category Code Level 2'
+						caption: Artikelkategoriencode – Ebene 2
+					level 'Item Category Code Level 3'
+						caption: Artikelkategoriencode – Ebene 3
+					level 'Item Category Code'
+						caption: Artikelkategoriencode
+

@@ -1,0 +1,267 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/bookmark/1.4.0/schema.json",
+  "displayName": "Budget Comparison Link",
+  "name": "Bookmarkcddf9bad46110d655e76",
+  "options": {
+    "targetVisualNames": [],
+    "suppressData": true
+  },
+  "explorationState": {
+    "version": "1.3",
+    "activeSection": "ReportSection0ce933af4354cb85391d",
+    "sections": {
+      "ReportSection0ce933af4354cb85391d": {
+        "visualContainers": {
+          "cf335ca8c786d7675098": {
+            "filters": {
+              "byExpr": [
+                {
+                  "name": "4848c89ea76125c51de9",
+                  "type": "Categorical",
+                  "expression": {
+                    "HierarchyLevel": {
+                      "Expression": {
+                        "Hierarchy": {
+                          "Expression": {
+                            "SourceRef": {
+                              "Entity": "G/L Account"
+                            }
+                          },
+                          "Hierarchy": "G/L Account Hierarchy"
+                        }
+                      },
+                      "Level": "G/L Account (Level 1)"
+                    }
+                  },
+                  "howCreated": 0
+                },
+                {
+                  "name": "7d3baf3a39e2b6a6e342",
+                  "type": "Categorical",
+                  "expression": {
+                    "HierarchyLevel": {
+                      "Expression": {
+                        "Hierarchy": {
+                          "Expression": {
+                            "SourceRef": {
+                              "Entity": "G/L Account"
+                            }
+                          },
+                          "Hierarchy": "G/L Account Hierarchy"
+                        }
+                      },
+                      "Level": "G/L Account (Level 2)"
+                    }
+                  },
+                  "howCreated": 0
+                },
+                {
+                  "name": "b392f4e6cb10a059b29c",
+                  "type": "Categorical",
+                  "expression": {
+                    "HierarchyLevel": {
+                      "Expression": {
+                        "Hierarchy": {
+                          "Expression": {
+                            "SourceRef": {
+                              "Entity": "G/L Account"
+                            }
+                          },
+                          "Hierarchy": "G/L Account Hierarchy"
+                        }
+                      },
+                      "Level": "G/L Account (Level 3)"
+                    }
+                  },
+                  "howCreated": 0
+                },
+                {
+                  "name": "583f9721d97824eb5f51",
+                  "type": "Categorical",
+                  "expression": {
+                    "HierarchyLevel": {
+                      "Expression": {
+                        "Hierarchy": {
+                          "Expression": {
+                            "SourceRef": {
+                              "Entity": "G/L Account"
+                            }
+                          },
+                          "Hierarchy": "G/L Account Hierarchy"
+                        }
+                      },
+                      "Level": "G/L Account (Level 4)"
+                    }
+                  },
+                  "howCreated": 0
+                },
+                {
+                  "name": "43169d8192d222aacd63",
+                  "type": "Categorical",
+                  "expression": {
+                    "HierarchyLevel": {
+                      "Expression": {
+                        "Hierarchy": {
+                          "Expression": {
+                            "SourceRef": {
+                              "Entity": "G/L Account"
+                            }
+                          },
+                          "Hierarchy": "G/L Account Hierarchy"
+                        }
+                      },
+                      "Level": "G/L Account (Level 5)"
+                    }
+                  },
+                  "howCreated": 0
+                },
+                {
+                  "name": "c0102624c0942b88c410",
+                  "type": "Advanced",
+                  "expression": {
+                    "Measure": {
+                      "Expression": {
+                        "SourceRef": {
+                          "Entity": "G/L Entries"
+                        }
+                      },
+                      "Property": "Net Change (000's)"
+                    }
+                  },
+                  "howCreated": 0
+                },
+                {
+                  "name": "238479fc074577de1cef",
+                  "type": "Categorical",
+                  "expression": {
+                    "HierarchyLevel": {
+                      "Expression": {
+                        "Hierarchy": {
+                          "Expression": {
+                            "SourceRef": {
+                              "Entity": "Date"
+                            }
+                          },
+                          "Hierarchy": "Fiscal Year Quarter Hierarchy"
+                        }
+                      },
+                      "Level": "Fiscal Year Quarter"
+                    }
+                  },
+                  "howCreated": 0
+                },
+                {
+                  "name": "212e6779c159e5dbc8ca",
+                  "type": "Categorical",
+                  "expression": {
+                    "HierarchyLevel": {
+                      "Expression": {
+                        "Hierarchy": {
+                          "Expression": {
+                            "SourceRef": {
+                              "Entity": "Date"
+                            }
+                          },
+                          "Hierarchy": "Fiscal Year Quarter Hierarchy"
+                        }
+                      },
+                      "Level": "Year Month"
+                    }
+                  },
+                  "howCreated": 0
+                },
+                {
+                  "name": "4af04e4a2f7dab7f19d0",
+                  "type": "Advanced",
+                  "expression": {
+                    "Measure": {
+                      "Expression": {
+                        "SourceRef": {
+                          "Entity": "G/L Entries"
+                        }
+                      },
+                      "Property": "Budget Net Change (000's)"
+                    }
+                  },
+                  "howCreated": 0
+                },
+                {
+                  "name": "413be0cc8b5d7f677953",
+                  "type": "Advanced",
+                  "expression": {
+                    "Measure": {
+                      "Expression": {
+                        "SourceRef": {
+                          "Entity": "G/L Entries"
+                        }
+                      },
+                      "Property": "Variance (000's)"
+                    }
+                  },
+                  "howCreated": 0
+                }
+              ]
+            },
+            "singleVisual": {
+              "visualType": "pivotTable",
+              "objects": {},
+              "activeProjections": {
+                "Rows": [
+                  {
+                    "HierarchyLevel": {
+                      "Expression": {
+                        "Hierarchy": {
+                          "Expression": {
+                            "SourceRef": {
+                              "Entity": "G/L Account"
+                            }
+                          },
+                          "Hierarchy": "G/L Account Hierarchy"
+                        }
+                      },
+                      "Level": "G/L Account (Level 1)"
+                    }
+                  }
+                ],
+                "Columns": [
+                  {
+                    "HierarchyLevel": {
+                      "Expression": {
+                        "Hierarchy": {
+                          "Expression": {
+                            "SourceRef": {
+                              "Entity": "Date"
+                            }
+                          },
+                          "Hierarchy": "Fiscal Year Quarter Hierarchy"
+                        }
+                      },
+                      "Level": "Fiscal Year Quarter"
+                    }
+                  }
+                ]
+              }
+            }
+          }
+        }
+      }
+    },
+    "objects": {
+      "merge": {
+        "outspacePane": [
+          {
+            "properties": {
+              "expanded": {
+                "expr": {
+                  "Literal": {
+                    "Value": "false"
+                  }
+                }
+              }
+            }
+          }
+        ]
+      }
+    }
+  }
+}

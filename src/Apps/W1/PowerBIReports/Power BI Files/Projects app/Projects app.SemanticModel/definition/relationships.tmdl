@@ -1,0 +1,84 @@
+relationship ecf5fd62-ed5c-42c8-a02b-c2054be39aba
+	fromColumn: Tasks.'Task Project No.'
+	toColumn: Project.'Project No.'
+
+relationship 2eb3c652-bfee-4ca9-a749-d5d6f142ee5d
+	fromColumn: 'Project Ledger Entry'.'Dimension Set ID.'
+	toColumn: 'Dimension Sets'.dimensionSetID
+
+relationship a2e86a21-2e37-45b0-8f62-1998b21792e6
+	fromColumn: Project.'Project Bill to Customer No.'
+	toColumn: Customer.'Customer No.'
+
+relationship d38f1875-803e-cae4-5711-e7a6328194b5
+	fromColumn: Purchases.'Dimension Set ID'
+	toColumn: 'Dimension Sets'.dimensionSetID
+
+relationship 7a1cc894-b232-ac8b-6042-691a70979e2a
+	fromColumn: 'Project Planning Line'.'Project No. Task No.'
+	toColumn: Tasks.'Task Project No. & Task No.'
+
+relationship 1876dbff-7bee-45bf-d59c-d290453fad3b
+	fromColumn: 'Project Ledger Entry'.'Project No. Task No.'
+	toColumn: Tasks.'Task Project No. & Task No.'
+
+relationship 05449e01-0dd1-b36f-78a2-4596ec0ca53d
+	fromColumn: Purchases.'Project No Task No'
+	toColumn: Tasks.'Task Project No. & Task No.'
+
+relationship dc614018-ebfa-ab6b-7d83-1565c87ec24d
+	fromColumn: 'Project Ledger Entry'.'Posting Date'
+	toColumn: Date.Date
+
+relationship 4a2be7bd-342f-16f0-efbd-5dfe44215331
+	fromColumn: 'Project Planning Line'.'Planning Date'
+	toColumn: Date.Date
+
+relationship AutoDetected_08d9d29b-74ca-4a56-bd84-bd1cd8ee1ec6
+	fromColumn: 'Project Ledger Entry'.'Type Key'
+	toColumn: Type.'Type Key'
+
+relationship AutoDetected_a1056d1e-1b3c-4771-bea7-920a0a6e16a5
+	fromColumn: 'Project Planning Line'.'Type Key'
+	toColumn: Type.'Type Key'
+
+relationship AutoDetected_14eabc34-65b9-42a0-a257-c5ddb2802157
+	fromColumn: Purchases.'Type Key'
+	toColumn: Type.'Type Key'
+
+relationship fc38bcaf-2dd7-3913-6a68-fa4a4a7fec11
+	fromColumn: 'Project Ledger Entry'.'Type Key'
+	toColumn: Items.'Type Key'
+
+relationship 972cbcf0-3c31-dff2-ac37-be35c3f2fb25
+	fromColumn: 'Project Ledger Entry'.'Type Key'
+	toColumn: Resources.'Type Key'
+
+relationship a59d2646-42dc-9388-a2f1-ce6dc57c04cc
+	fromColumn: 'Project Ledger Entry'.'Type Key'
+	toColumn: 'G/L Accounts'.'Type Key'
+
+relationship 6100015d-b1f0-77b5-f364-e3a058dc3abf
+	fromColumn: Purchases.'Type Key'
+	toColumn: Items.'Type Key'
+
+relationship 34aca5a7-d793-1a8a-4c74-4567589573d0
+	fromColumn: Purchases.'Type Key'
+	toColumn: 'G/L Accounts'.'Type Key'
+
+relationship ce15e66e-a965-18b7-29e0-46e9a09e8c2d
+	fromColumn: Purchases.'Type Key'
+	toColumn: Resources.'Type Key'
+
+relationship 2b71f08f-4775-f1df-7b6b-7d132018085f
+	fromColumn: 'Project Planning Line'.'Type Key'
+	toColumn: Items.'Type Key'
+
+relationship ec13398d-94c2-c9ec-8bb8-43800cdad969
+	fromColumn: 'Project Planning Line'.'Type Key'
+	toColumn: 'G/L Accounts'.'Type Key'
+
+relationship 35ea3178-fdf8-a575-4d98-ad9c9bc5fbf7
+	fromColumn: 'Project Planning Line'.'Type Key'
+	toColumn: Resources.'Type Key'
+

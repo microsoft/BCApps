@@ -1,0 +1,859 @@
+table 'Customer Ledger Entries'
+	lineageTag: f8aa17cd-8145-4225-bfbe-318e8a6f2401
+
+	measure 'Original Amount (LCY)' =
+			CALCULATE(
+			    SUM('Customer Ledger Entries'[Amount (LCY)]),
+			    'Customer Ledger Entries'[Entry Type] = "Initial Entry"
+			)
+		formatString: #,0.00
+		displayFolder: _Customer Ledger Measures
+		lineageTag: ef07122f-7f8c-4750-9a11-9601f8dda67c
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Amount Receivable (LCY)' = SUM('Customer Ledger Entries'[Amount (LCY)])
+		formatString: #,0.00
+		displayFolder: _Customer Ledger Measures
+		lineageTag: 87336c35-6652-44b1-a1e4-4b63170a43d0
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Balance (Accounts Receivable)' =
+			
+			CALCULATE (
+			    [Amount Receivable (LCY)],
+			    FILTER ( ALL ( 'Date'[Date] ), 'Date'[Date] <= MAX ( 'Date'[Date] ) )
+			)
+		formatString: #,0.00
+		displayFolder: _Customer Ledger Measures
+		lineageTag: 81c9a563-a8d6-469a-9532-987654aaa398
+
+		changedProperty = FormatString
+
+		annotation PBI_FormatHint = {"currencyCulture":"en-US"}
+
+	measure 'Bucket 1 (Receivables)' = ```
+			
+			VAR AGINGBUCKETLENGTH = 'Aging Bucket Period'[Aging Bucket Period Value] - 1
+			VAR STARTAGINGVALUE = AGINGBUCKETLENGTH * -1
+			
+			VAR ASATDATE = DATEADD(LASTDATE('Date'[Date]),-1,DAY)
+			VAR STARTDATE = DATEADD(ASATDATE,STARTAGINGVALUE,DAY)
+			
+			VAR USEDUEDATE = CALCULATE(
+			    [Amount Receivable (LCY)],
+			    DATESBETWEEN('Customer Ledger Entries'[CLE Due Date],STARTDATE,ASATDATE))
+			
+			VAR USEPOSTINGDATE = CALCULATE(
+			    [Amount Receivable (LCY)],
+			    DATESBETWEEN('Customer Ledger Entries'[Posting Date (Calculated)],STARTDATE,ASATDATE))
+			    
+			VAR USEDOCUMENTDATE = CALCULATE(
+			    [Amount Receivable (LCY)],
+			    DATESBETWEEN('Customer Ledger Entries'[Document Date (Calculated)],STARTDATE,ASATDATE))
+			
+			VAR RESULT = SWITCH(
+			                VALUES('Aging Date Parameter'[AGING PARAMETER]),
+			                "Due Date", USEDUEDATE,
+			                "Posting Date",USEPOSTINGDATE,
+			                "Document Date",USEDOCUMENTDATE
+			                )
+			
+			RETURN RESULT
+			```
+		formatString: #,0.00
+		displayFolder: _Customer Ledger Measures\_Aging Buckets
+		lineageTag: 33ccb13f-b328-46c2-80dc-e7a6c1311736
+
+		changedProperty = FormatString
+
+		annotation PBI_FormatHint = {"currencyCulture":"en-US"}
+
+	measure 'Bucket 2 (Receivables)' = ```
+			
+			VAR AGINGBUCKETLENGTH = 'Aging Bucket Period'[Aging Bucket Period Value] * -1
+			VAR AGINGENDDATEVALUE = AGINGBUCKETLENGTH
+			VAR AGINGSTARTDATEVALUE = (AGINGBUCKETLENGTH * 2) + 1
+			
+			VAR ASATDATE = DATEADD(LASTDATE('Date'[Date]),-1,DAY)
+			VAR ENDDATE = DATEADD(ASATDATE,AGINGENDDATEVALUE,DAY)
+			VAR STARTDATE = DATEADD(ASATDATE,AGINGSTARTDATEVALUE,DAY)
+			
+			VAR USEDUEDATE = CALCULATE(
+			    [Amount Receivable (LCY)],
+			    DATESBETWEEN('Customer Ledger Entries'[CLE Due Date],STARTDATE,ENDDATE))
+			
+			VAR USEPOSTINGDATE = CALCULATE(
+			    [Amount Receivable (LCY)],
+			    DATESBETWEEN('Customer Ledger Entries'[Posting Date (Calculated)],STARTDATE,ENDDATE))
+			    
+			VAR USEDOCUMENTDATE = CALCULATE(
+			    [Amount Receivable (LCY)],
+			    DATESBETWEEN('Customer Ledger Entries'[Document Date (Calculated)],STARTDATE,ENDDATE))
+			
+			VAR RESULT = SWITCH(
+			                VALUES('Aging Date Parameter'[AGING PARAMETER]),
+			                "Due Date", USEDUEDATE,
+			                "Posting Date",USEPOSTINGDATE,
+			                "Document Date",USEDOCUMENTDATE
+			                )
+			
+			RETURN RESULT
+			```
+		formatString: #,0.00
+		displayFolder: _Customer Ledger Measures\_Aging Buckets
+		lineageTag: 1a56ed23-b19e-45a7-9f76-44014c5e2d40
+
+		changedProperty = FormatString
+
+		annotation PBI_FormatHint = {"currencyCulture":"en-US"}
+
+	measure 'Bucket 3 (Receivables)' = ```
+			
+			VAR AGINGBUCKETLENGTH = 'Aging Bucket Period'[Aging Bucket Period Value] * -1
+			VAR AGINGENDDATEVALUE =  AGINGBUCKETLENGTH * 2
+			VAR AGINGSTARTDATEVALUE = (AGINGBUCKETLENGTH * 3) + 1
+			
+			VAR ASATDATE = DATEADD(LASTDATE('Date'[Date]),-1,DAY)
+			VAR ENDDATE = DATEADD(ASATDATE,AGINGENDDATEVALUE,DAY)
+			VAR STARTDATE = DATEADD(ASATDATE,AGINGSTARTDATEVALUE,DAY)
+			
+			VAR USEDUEDATE = CALCULATE(
+			    [Amount Receivable (LCY)],
+			    DATESBETWEEN('Customer Ledger Entries'[CLE Due Date],STARTDATE,ENDDATE))
+			
+			VAR USEPOSTINGDATE = CALCULATE(
+			    [Amount Receivable (LCY)],
+			    DATESBETWEEN('Customer Ledger Entries'[Posting Date (Calculated)],STARTDATE,ENDDATE))
+			    
+			VAR USEDOCUMENTDATE = CALCULATE(
+			    [Amount Receivable (LCY)],
+			    DATESBETWEEN('Customer Ledger Entries'[Document Date (Calculated)],STARTDATE,ENDDATE))
+			
+			VAR RESULT = SWITCH(
+			                VALUES('Aging Date Parameter'[AGING PARAMETER]),
+			                "Due Date", USEDUEDATE,
+			                "Posting Date",USEPOSTINGDATE,
+			                "Document Date",USEDOCUMENTDATE
+			                )
+			
+			RETURN RESULT
+			```
+		formatString: #,0.00
+		displayFolder: _Customer Ledger Measures\_Aging Buckets
+		lineageTag: 56c925c2-f6f1-4276-934b-1e1c81c0e744
+
+		changedProperty = FormatString
+
+		annotation PBI_FormatHint = {"currencyCulture":"en-US"}
+
+	measure 'Bucket 4 (Receivables)' =
+			
+			VAR AGINGBUCKETLENGTH = 'Aging Bucket Period'[Aging Bucket Period Value] * -1
+			VAR AGINGENDDATEVALUE = (AGINGBUCKETLENGTH * 3) + 1
+			
+			VAR ASATDATE = DATEADD(LASTDATE('Date'[Date]),-1,DAY)
+			VAR ENDDATE = DATEADD(ASATDATE,AGINGENDDATEVALUE,DAY)
+			
+			VAR USEDUEDATE = CALCULATE(
+			    [Amount Receivable (LCY)],
+			    'Customer Ledger Entries'[CLE Due Date] < ENDDATE)
+			
+			 VAR USEPOSTINGDATE = CALCULATE(
+			    [Amount Receivable (LCY)],
+			    'Customer Ledger Entries'[Posting Date (Calculated)] < ENDDATE)
+			
+			VAR USEDOCUMENTDATE = CALCULATE(
+			    [Amount Receivable (LCY)],
+			    'Customer Ledger Entries'[Document Date (Calculated)] < ENDDATE)
+			
+			VAR RESULT = SWITCH(
+			                VALUES('Aging Date Parameter'[AGING PARAMETER]),
+			                "Due Date", USEDUEDATE,
+			                "Posting Date",USEPOSTINGDATE,
+			                "Document Date",USEDOCUMENTDATE
+			                )
+			
+			RETURN RESULT
+		formatString: #,0.00
+		displayFolder: _Customer Ledger Measures\_Aging Buckets
+		lineageTag: 6f4a1174-1928-43b3-8988-efad08315f44
+
+		changedProperty = FormatString
+
+		annotation PBI_FormatHint = {"currencyCulture":"en-US"}
+
+	measure 'Current (Receivables)' = ```
+			
+			VAR STARTDATE = LASTDATE('Date'[Date])
+			
+			VAR USEDUEDATE = CALCULATE(
+			    [Amount Receivable (LCY)],
+			    'Customer Ledger Entries'[CLE Due Date] >= STARTDATE )
+			
+			 VAR USEPOSTINGDATE = CALCULATE(
+			    [Amount Receivable (LCY)],
+			    'Customer Ledger Entries'[Posting Date (Calculated)] >= STARTDATE )
+			
+			 VAR USEDOCUMENTDATE = CALCULATE(
+			    [Amount Receivable (LCY)],
+			    'Customer Ledger Entries'[Document Date (Calculated)] >= STARTDATE )    
+			
+			VAR RESULT = SWITCH(
+			                VALUES('Aging Date Parameter'[AGING PARAMETER]),
+			                "Due Date", USEDUEDATE,
+			                "Posting Date",USEPOSTINGDATE,
+			                "Document Date",USEDOCUMENTDATE
+			                )
+			    
+			RETURN RESULT
+			```
+		formatString: #,0.00
+		displayFolder: _Customer Ledger Measures\_Aging Buckets
+		lineageTag: 38e25de4-c93e-488f-b1fc-4334bc1c68b5
+
+		changedProperty = FormatString
+
+		annotation PBI_FormatHint = {"currencyCulture":"en-US"}
+
+	measure 'CLE Bucket 1 Back Link' = ```
+			
+			
+			VAR AGINGBUCKETLENGTH = 'Aging Bucket Period'[Aging Bucket Period Value] - 1
+			VAR STARTAGINGVALUE = AGINGBUCKETLENGTH * -1
+			
+			VAR ASATDATE = DATEADD(LASTDATE('Date'[Date]),-1,DAY)
+			VAR STARTDATE = DATEADD(ASATDATE,STARTAGINGVALUE,DAY)
+			
+			VAR USEDUEDATE = CALCULATE(
+			    CONCATENATEX(VALUES('Customer Ledger Entries'[Document No.]), 'Customer Ledger Entries'[Document No.], "|"),
+			    DATESBETWEEN('Customer Ledger Entries'[CLE Due Date],STARTDATE,ASATDATE))
+			
+			VAR USEPOSTINGDATE = CALCULATE(
+			    CONCATENATEX(VALUES('Customer Ledger Entries'[Document No.]), 'Customer Ledger Entries'[Document No.], "|"),
+			    DATESBETWEEN('Customer Ledger Entries'[Posting Date (Calculated)],STARTDATE,ASATDATE))
+			    
+			VAR USEDOCUMENTDATE = CALCULATE(
+			    CONCATENATEX(VALUES('Customer Ledger Entries'[Document No.]), 'Customer Ledger Entries'[Document No.], "|"),
+			    DATESBETWEEN('Customer Ledger Entries'[Document Date (Calculated)],STARTDATE,ASATDATE))
+			
+			RETURN
+			    [Base Link] & "&page=25&filter='Cust. Ledger Entry'.'Document Type' IS '"
+			                    & CONCATENATEX(VALUES('Customer Ledger Entries'[Document Type]), 'Customer Ledger Entries'[Document Type], "|") & "' 
+			                AND 'Document No.' IS '"
+			                    & SWITCH(
+			                        VALUES('Aging Date Parameter'[AGING PARAMETER]),
+			                        "Due Date", USEDUEDATE,
+			                        "Posting Date",USEPOSTINGDATE,
+			                        "Document Date",USEDOCUMENTDATE
+			                    ) & "'"
+			```
+		displayFolder: _Customer Ledger Measures\_Customer Ledger Back Links
+		lineageTag: e12e614f-24d7-4361-9aab-d726e93ca806
+		dataCategory: WebUrl
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'CLE Bucket 2 Back Link' = ```
+			
+			VAR AGINGBUCKETLENGTH = 'Aging Bucket Period'[Aging Bucket Period Value] * -1
+			VAR AGINGENDDATEVALUE = AGINGBUCKETLENGTH
+			VAR AGINGSTARTDATEVALUE = (AGINGBUCKETLENGTH * 2) + 1
+			
+			VAR ASATDATE = DATEADD(LASTDATE('Date'[Date]),-1,DAY)
+			VAR ENDDATE = DATEADD(ASATDATE,AGINGENDDATEVALUE,DAY)
+			VAR STARTDATE = DATEADD(ASATDATE,AGINGSTARTDATEVALUE,DAY)
+			
+			VAR USEDUEDATE = CALCULATE(
+			    CONCATENATEX(VALUES('Customer Ledger Entries'[Document No.]), 'Customer Ledger Entries'[Document No.], "|"),
+			    DATESBETWEEN('Customer Ledger Entries'[CLE Due Date],STARTDATE,ENDDATE))
+			
+			VAR USEPOSTINGDATE = CALCULATE(
+			    CONCATENATEX(VALUES('Customer Ledger Entries'[Document No.]), 'Customer Ledger Entries'[Document No.], "|"),
+			    DATESBETWEEN('Customer Ledger Entries'[Posting Date (Calculated)],STARTDATE,ENDDATE))
+			    
+			VAR USEDOCUMENTDATE = CALCULATE(
+			    CONCATENATEX(VALUES('Customer Ledger Entries'[Document No.]), 'Customer Ledger Entries'[Document No.], "|"),
+			    DATESBETWEEN('Customer Ledger Entries'[Document Date (Calculated)],STARTDATE,ENDDATE))
+			
+			VAR RESULT = [Base Link] & "&page=25&filter='Cust. Ledger Entry'.'Document Type' IS '"
+			                    & CONCATENATEX(VALUES('Customer Ledger Entries'[Document Type]), 'Customer Ledger Entries'[Document Type], "|") & "' 
+			                AND 'Document No.' IS '"
+			                    & SWITCH(
+			                        VALUES('Aging Date Parameter'[AGING PARAMETER]),
+			                        "Due Date", USEDUEDATE,
+			                        "Posting Date",USEPOSTINGDATE,
+			                        "Document Date",USEDOCUMENTDATE
+			                    ) & "'"
+			
+			RETURN RESULT
+			```
+		displayFolder: _Customer Ledger Measures\_Customer Ledger Back Links
+		lineageTag: 4ccffb1b-2e9c-4908-a8ac-c51a8f43c1eb
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'CLE Bucket 3 Back Link' = ```
+			
+			VAR AGINGBUCKETLENGTH = 'Aging Bucket Period'[Aging Bucket Period Value] * -1
+			VAR AGINGENDDATEVALUE =  AGINGBUCKETLENGTH * 2
+			VAR AGINGSTARTDATEVALUE = (AGINGBUCKETLENGTH * 3) + 1
+			
+			VAR ASATDATE = DATEADD(LASTDATE('Date'[Date]),-1,DAY)
+			VAR ENDDATE = DATEADD(ASATDATE,AGINGENDDATEVALUE,DAY)
+			VAR STARTDATE = DATEADD(ASATDATE,AGINGSTARTDATEVALUE,DAY)
+			
+			VAR USEDUEDATE = CALCULATE(
+			    CONCATENATEX(VALUES('Customer Ledger Entries'[Document No.]), 'Customer Ledger Entries'[Document No.], "|"),
+			    DATESBETWEEN('Customer Ledger Entries'[CLE Due Date],STARTDATE,ENDDATE))
+			
+			VAR USEPOSTINGDATE = CALCULATE(
+			    CONCATENATEX(VALUES('Customer Ledger Entries'[Document No.]), 'Customer Ledger Entries'[Document No.], "|"),
+			    DATESBETWEEN('Customer Ledger Entries'[Posting Date (Calculated)],STARTDATE,ENDDATE))
+			    
+			VAR USEDOCUMENTDATE = CALCULATE(
+			    CONCATENATEX(VALUES('Customer Ledger Entries'[Document No.]), 'Customer Ledger Entries'[Document No.], "|"),
+			    DATESBETWEEN('Customer Ledger Entries'[Document Date (Calculated)],STARTDATE,ENDDATE))
+			
+			VAR RESULT =  [Base Link] & "&page=25&filter='Cust. Ledger Entry'.'Document Type' IS '"
+			                    & CONCATENATEX(VALUES('Customer Ledger Entries'[Document Type]), 'Customer Ledger Entries'[Document Type], "|") & "' 
+			                AND 'Document No.' IS '"
+			                    & SWITCH(
+			                        VALUES('Aging Date Parameter'[AGING PARAMETER]),
+			                        "Due Date", USEDUEDATE,
+			                        "Posting Date",USEPOSTINGDATE,
+			                        "Document Date",USEDOCUMENTDATE
+			                    ) & "'"
+			
+			RETURN RESULT
+			```
+		displayFolder: _Customer Ledger Measures\_Customer Ledger Back Links
+		lineageTag: 7df05800-f60d-4e79-8d8a-c0c631a8a6bc
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'CLE Bucket 4 Back Link' = ```
+			
+			VAR AGINGBUCKETLENGTH = 'Aging Bucket Period'[Aging Bucket Period Value] * -1
+			VAR AGINGENDDATEVALUE = (AGINGBUCKETLENGTH * 3) + 1
+			
+			VAR ASATDATE = DATEADD(LASTDATE('Date'[Date]),-1,DAY)
+			VAR ENDDATE = DATEADD(ASATDATE,AGINGENDDATEVALUE,DAY)
+			
+			VAR USEDUEDATE = CALCULATE(
+			    CONCATENATEX(VALUES('Customer Ledger Entries'[Document No.]), 'Customer Ledger Entries'[Document No.], "|"),
+			    'Customer Ledger Entries'[CLE Due Date] < ENDDATE)
+			
+			 VAR USEPOSTINGDATE = CALCULATE(
+			    CONCATENATEX(VALUES('Customer Ledger Entries'[Document No.]), 'Customer Ledger Entries'[Document No.], "|"),
+			    'Customer Ledger Entries'[Posting Date (Calculated)] < ENDDATE)
+			
+			VAR USEDOCUMENTDATE = CALCULATE(
+			    CONCATENATEX(VALUES('Customer Ledger Entries'[Document No.]), 'Customer Ledger Entries'[Document No.], "|"),
+			    'Customer Ledger Entries'[Document Date (Calculated)] < ENDDATE)
+			
+			VAR RESULT =     [Base Link] & "&page=25&filter='Cust. Ledger Entry'.'Document Type' IS '"
+			                    & CONCATENATEX(VALUES('Customer Ledger Entries'[Document Type]), 'Customer Ledger Entries'[Document Type], "|") & "' 
+			                AND 'Document No.' IS '"
+			                    & SWITCH(
+			                        VALUES('Aging Date Parameter'[AGING PARAMETER]),
+			                        "Due Date", USEDUEDATE,
+			                        "Posting Date",USEPOSTINGDATE,
+			                        "Document Date",USEDOCUMENTDATE
+			                    ) & "'"
+			
+			RETURN RESULT
+			```
+		displayFolder: _Customer Ledger Measures\_Customer Ledger Back Links
+		lineageTag: dc890c9e-fd68-484e-9680-218a516a053b
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'CLE Current Back Link' = ```
+			
+			VAR STARTDATE = LASTDATE('Date'[Date])
+			
+			VAR USEDUEDATE = CALCULATE(
+			    CONCATENATEX(VALUES('Customer Ledger Entries'[Document No.]), 'Customer Ledger Entries'[Document No.], "|"),
+			    'Customer Ledger Entries'[CLE Due Date] >= STARTDATE )
+			
+			 VAR USEPOSTINGDATE = CALCULATE(
+			    CONCATENATEX(VALUES('Customer Ledger Entries'[Document No.]), 'Customer Ledger Entries'[Document No.], "|"),
+			    'Customer Ledger Entries'[Posting Date (Calculated)] >= STARTDATE )
+			
+			 VAR USEDOCUMENTDATE = CALCULATE(
+			    CONCATENATEX(VALUES('Customer Ledger Entries'[Document No.]), 'Customer Ledger Entries'[Document No.], "|"),
+			    'Customer Ledger Entries'[Document Date (Calculated)] >= STARTDATE )    
+			
+			VAR RESULT =  [Base Link] & "&page=25&filter='Cust. Ledger Entry'.'Document Type' IS '"
+			                    & CONCATENATEX(VALUES('Customer Ledger Entries'[Document Type]), 'Customer Ledger Entries'[Document Type], "|") & "' 
+			                AND 'Document No.' IS '"
+			                    & SWITCH(
+			                        VALUES('Aging Date Parameter'[AGING PARAMETER]),
+			                        "Due Date", USEDUEDATE,
+			                        "Posting Date",USEPOSTINGDATE,
+			                        "Document Date",USEDOCUMENTDATE
+			                    ) & "'"
+			    
+			RETURN RESULT
+			```
+		displayFolder: _Customer Ledger Measures\_Customer Ledger Back Links
+		lineageTag: 5833c2e9-c725-4221-86e5-d53ff08d9e13
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'CLE Balance Back Link' = ```
+			
+			VAR DocumentsInContext =
+			    CALCULATE (
+			        CONCATENATEX (
+			            VALUES ( 'Customer Ledger Entries'[Document No.] ),
+			            'Customer Ledger Entries'[Document No.],
+			            "|"
+			        ),
+			        FILTER (
+			            ALL ( 'Date'[Date] ),
+			            'Date'[Date] <= MAX ( 'Date'[Date] )
+			        )
+			    )
+			VAR RESULT =
+			    [Base Link] & "&page=25&filter='Cust. Ledger Entry'.'Document Type' IS '"
+			        & CONCATENATEX (
+			            VALUES ( 'Customer Ledger Entries'[Document Type] ),
+			            'Customer Ledger Entries'[Document Type],
+			            "|"
+			        ) & "' 
+			                AND 'Document No.' IS '" & DocumentsInContext & "'"
+			RETURN
+			    RESULT
+			
+			```
+		displayFolder: _Customer Ledger Measures\_Customer Ledger Back Links
+		lineageTag: 90e0d4f3-b8d1-4ae2-b431-3e2e6c872230
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'No. of Late Payments' =
+			
+			COUNTROWS(CALCULATETABLE( 'Customer Ledger Entries', 'Customer Ledger Entries'[Document Type] = "Payment", 'Customer Ledger Entries'[Late Payment] = TRUE))
+		formatString: #,0
+		displayFolder: _Customer Ledger Measures\_Counters
+		lineageTag: c90123f9-f4f6-462d-b643-7cffbb0a583e
+
+	measure 'No. of Payments' = ```
+			
+			CALCULATE (
+			    DISTINCTCOUNT ( 'Customer Ledger Entries'[Document No.] ),
+			    'Customer Ledger Entries'[Document Type] = "Payment",
+			    REMOVEFILTERS ( 'Customer Ledger Entries'[Late Payment] )
+			)
+			
+			```
+		formatString: #,0
+		displayFolder: _Customer Ledger Measures\_Counters
+		lineageTag: 23b154f2-f3e0-49b3-a7e5-5fc9ffc76e8f
+
+	measure 'Late Payment %' = ```
+			
+			VAR TotalCLEPayments =
+			    CALCULATE (
+			        [No. of Payments],
+			        //REMOVEFILTERS ( 'Customer Ledger Entries'[CLE Late Payment] ),
+			        ALLSELECTED('Customer Ledger Entries'[Late Payment])
+			        
+			    )
+			RETURN
+			    DIVIDE ( [No. of Late Payments], TotalCLEPayments )
+			```
+		formatString: 0.00%;-0.00%;0.00%
+		displayFolder: _Customer Ledger Measures\_Late Payments
+		lineageTag: aab5b243-01f6-4862-81a0-5d9676cc8985
+
+	measure 'Average Days Late' =
+			
+			-CALCULATE (
+			    AVERAGEX (
+			        'Customer Ledger Entries',
+			        'Customer Ledger Entries'[CLE Due Date] - 'Customer Ledger Entries'[DCLE Posting Date]
+			    ),
+			    'Customer Ledger Entries'[Late Payment] = TRUE(),
+			    'Customer Ledger Entries'[Document Type] = "Payment"
+			)
+		displayFolder: _Customer Ledger Measures\_Late Payments
+		lineageTag: 3451118e-3f89-4414-9761-636bfde2aa59
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Late Payment Amount' =
+			-CALCULATE(
+			    SUM('Customer Ledger Entries'[Amount (LCY)]),
+			    REMOVEFILTERS('Customer Ledger Entries'[Document Type]),
+			    'Customer Ledger Entries'[Document Type] = "Payment", 'Customer Ledger Entries'[Late Payment] = TRUE())
+		formatString: #,0.00
+		displayFolder: _Customer Ledger Measures\_Late Payments
+		lineageTag: dc186bb9-9373-4324-9ff1-aea5f5040471
+
+	column 'Posting Date (Calculated)' = ```
+			
+			 IF(
+			    'Customer Ledger Entries'[Entry Type] = "Application" && 'Customer Ledger Entries'[Applied Customer Ledger Entry No.] <> 0,
+			    'Customer Ledger Entries'[CLE Posting Date],
+			    'Customer Ledger Entries'[DCLE Posting Date]
+			    )
+			```
+		isHidden
+		formatString: Short Date
+		lineageTag: 78c3b0b5-8745-4d79-9113-dcb6c23fca33
+		summarizeBy: none
+
+		changedProperty = DataType
+
+		changedProperty = FormatString
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	column 'Document Date (Calculated)' =
+			'Customer Ledger Entries'[CLE Document Date]
+			//  IF(
+			//     'Customer Ledger Entries'[Entry Type] = "Application" && 'Customer Ledger Entries'[Applied Customer Ledger Entry No.] <> 0,
+			//     'Customer Ledger Entries'[CLE Document Date],
+			//     'Customer Ledger Entries'[DCLE Document Date]
+			//     )
+		isHidden
+		formatString: Short Date
+		lineageTag: 23eb368c-38a4-4ccf-a8a8-221b9285772a
+		summarizeBy: none
+
+		changedProperty = FormatString
+
+		changedProperty = DataType
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	column 'CLE Entry No.'
+		dataType: int64
+		formatString: 0
+		lineageTag: 79fa1dfe-a75f-479a-98d9-f8b1814c82e3
+		summarizeBy: sum
+		sourceColumn: CLE Entry No.
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'CLE Due Date'
+		dataType: dateTime
+		formatString: Short Date
+		lineageTag: 7a260df3-790a-4005-8792-43363bd20ce3
+		summarizeBy: none
+		sourceColumn: CLE Due Date
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	column 'CLE Open'
+		dataType: boolean
+		formatString: """TRUE"";""TRUE"";""FALSE"""
+		lineageTag: ef53385f-8029-4e4a-867e-bf9a7258c9f1
+		summarizeBy: none
+		sourceColumn: CLE Open
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'CLE Posting Date'
+		dataType: dateTime
+		formatString: Short Date
+		lineageTag: 7dc9c888-1827-4d1c-b97d-56cbfa9de438
+		summarizeBy: none
+		sourceColumn: CLE Posting Date
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	column 'CLE Document Date'
+		dataType: dateTime
+		formatString: Short Date
+		lineageTag: bd5a490e-abc3-499e-b6db-73df5b55cd42
+		summarizeBy: none
+		sourceColumn: CLE Document Date
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	column cleDimensionSetID
+		dataType: int64
+		isHidden
+		formatString: 0
+		lineageTag: 0bba362f-fe6b-4649-8fb0-cf17f34eb355
+		summarizeBy: none
+		sourceColumn: cleDimensionSetID
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'DCLE Entry No.'
+		dataType: int64
+		formatString: 0
+		lineageTag: 19e4e390-1009-4261-9096-42fefa5c7122
+		summarizeBy: sum
+		sourceColumn: DCLE Entry No.
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'DCLE Posting Date'
+		dataType: dateTime
+		isHidden
+		formatString: Short Date
+		lineageTag: 00aeda32-8c87-4f60-b111-ee2f0e1f460a
+		summarizeBy: none
+		sourceColumn: DCLE Posting Date
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	column 'Ledger Entry Amount'
+		dataType: boolean
+		formatString: """TRUE"";""TRUE"";""FALSE"""
+		lineageTag: be601fc0-0faa-4031-b982-31f58ada7722
+		summarizeBy: none
+		sourceColumn: Ledger Entry Amount
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Entry Type'
+		dataType: string
+		lineageTag: 91c091fa-527c-4ef4-a4f3-ba6bd4de5723
+		summarizeBy: none
+		sourceColumn: Entry Type
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Document Type'
+		dataType: string
+		lineageTag: fc03154c-20b0-4659-af55-28aa084cc6b3
+		summarizeBy: none
+		sourceColumn: Document Type
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Document No.'
+		dataType: string
+		lineageTag: c673d761-bc06-4c12-a0ea-1ef2fa83af75
+		summarizeBy: none
+		sourceColumn: Document No.
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'DCLE Initial Entry Due Date'
+		dataType: dateTime
+		formatString: Short Date
+		lineageTag: c583ee7d-4b55-4ef6-92e5-38d444a58a0e
+		summarizeBy: none
+		sourceColumn: DCLE Initial Entry Due Date
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	column 'Amount (LCY)'
+		dataType: decimal
+		isHidden
+		formatString: #,0.00
+		lineageTag: f7971336-ea2a-4cb9-af85-c7f62deaffa4
+		summarizeBy: sum
+		sourceColumn: Amount (LCY)
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Customer No.'
+		dataType: string
+		lineageTag: e4af91da-0f77-4cf9-ac38-c2c71cadc107
+		summarizeBy: none
+		sourceColumn: Customer No.
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Application No.'
+		dataType: int64
+		formatString: 0
+		lineageTag: 7909c4da-30ca-4f16-a911-ae0ed5523b85
+		summarizeBy: sum
+		sourceColumn: Application No.
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Applied Customer Ledger Entry No.'
+		dataType: int64
+		formatString: 0
+		lineageTag: 176ab67d-74d3-429f-87f0-5b3c85607959
+		summarizeBy: sum
+		sourceColumn: Applied Customer Ledger Entry No.
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Sales Invoice Header Document No.'
+		dataType: string
+		lineageTag: 2b79c586-eef7-4724-9245-77d8b5036ef2
+		summarizeBy: none
+		sourceColumn: Sales Invoice Header Document No.
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Payment Terms Code'
+		dataType: string
+		lineageTag: 8e640b18-cecf-40ee-a6e9-80b525e51961
+		summarizeBy: none
+		sourceColumn: Payment Terms Code
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Payment Discount Date'
+		dataType: dateTime
+		formatString: Short Date
+		lineageTag: d6e6924a-267c-4e97-9601-953189442293
+		summarizeBy: none
+		sourceColumn: Payment Discount Date
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	column cleReasonCode
+		dataType: string
+		isHidden
+		lineageTag: e4d0a777-fb3f-4932-866f-1b3018d72520
+		summarizeBy: none
+		sourceColumn: cleReasonCode
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'CLE Closed At Date'
+		dataType: dateTime
+		formatString: Short Date
+		lineageTag: 758bbba8-ac94-4887-b358-2e45d48029ed
+		summarizeBy: none
+		sourceColumn: CLE Closed At Date
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	column 'Late Payment' = ```
+			
+			IF (
+			    'Customer Ledger Entries'[Document Type] = "Payment"
+			        && 'Customer Ledger Entries'[DCLE Posting Date] > 'Customer Ledger Entries'[CLE Due Date],
+			    TRUE (),
+			    FALSE ()
+			)
+			
+			```
+		formatString: """TRUE"";""TRUE"";""FALSE"""
+		lineageTag: 828b4e91-1e86-44d4-9f89-6f623631e114
+		summarizeBy: none
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Late Payment Invoice No.' = ```
+			
+			IF (
+			    'Customer Ledger Entries'[Document Type] = "Payment" 
+			        && 'Customer Ledger Entries'[Late Payment] = TRUE(),
+			    LOOKUPVALUE (
+			        'Customer Ledger Entries'[Document No.],
+			        'Customer Ledger Entries'[CLE Entry No.], 'Customer Ledger Entries'[CLE Entry No.],
+			        'Customer Ledger Entries'[Document Type], "Invoice",
+			        'Customer Ledger Entries'[Entry Type], "Initial Entry"
+			    ),
+			    BLANK ()
+			)
+			
+			```
+		lineageTag: 0245a195-8094-4b49-a15c-61f5b7a38743
+		summarizeBy: none
+
+		annotation SummarizationSetBy = Automatic
+
+	partition 'Customer Ledger Entries-7066d760-4ea7-4390-a261-f0828fd3edc3' = m
+		mode: import
+		queryGroup: 'Fact Tables'
+		source =
+				let
+				    Source = Dynamics365BusinessCentral.ApiContentsWithOptions(
+				        ENVIRONMENT, COMPANY,API_ENDPOINT, []
+				    ),
+				    TableData = Source{[Name = "customerLedgerEntries", Signature = "table"]}[Data],
+				    #"Changed Type" = Table.TransformColumnTypes(
+				        TableData,
+				        {
+				            {"cleEntryNo", Int64.Type},
+				            {"cleDueDate", type date},
+				            {"cleOpen", type logical},
+				            {"clePostingDate", type date},
+				            {"cleDocumentDate", type date},
+				            {"cleDimensionSetID", Int64.Type},
+				            {"dcleEntryNo", Int64.Type},
+				            {"dclePostingDate", type date},
+				            {"dcleLedgerEntryAmount", type logical},
+				            {"dcleEntryType", type text},
+				            {"dcleDocumentType", type text},
+				            {"dcleDocumentNo", type text},
+				            {"dcleInitialEntryDueDate", type date},
+				            {"dcleAmountLCY", Currency.Type},
+				            {"dcleCustomerNo", type text},
+				            {"dcleApplicationNo", Int64.Type},
+				            {"dcleAppliedCustLedgerEntryNo", Int64.Type},
+				            {"salesInvHeaderDocumentNo", type text},
+				            {"salesInvHeaderPaymentTermsCode", type text},
+				            {"salesInvHeaderPmtDiscountDate", type date}
+				        }
+				    ),
+				    #"Renamed Columns" = Table.RenameColumns(
+				        #"Changed Type",
+				        {
+				            {"cleEntryNo", "CLE Entry No."},
+				            {"cleDueDate", "CLE Due Date"},
+				            {"cleOpen", "CLE Open"},
+				            {"clePostingDate", "CLE Posting Date"},
+				            {"cleDocumentDate", "CLE Document Date"},
+				            {"cleClosedAtDate", "CLE Closed At Date"},
+				            {"dcleEntryNo", "DCLE Entry No."},
+				            {"dclePostingDate", "DCLE Posting Date"},
+				            {"dcleLedgerEntryAmount", "Ledger Entry Amount"},
+				            {"dcleEntryType", "Entry Type"},
+				            {"dcleDocumentType", "Document Type"},
+				            {"dcleDocumentNo", "Document No."},
+				            {"dcleInitialEntryDueDate", "DCLE Initial Entry Due Date"},
+				            {"dcleAmountLCY", "Amount (LCY)"},
+				            {"dcleCustomerNo", "Customer No."},
+				            {"dcleApplicationNo", "Application No."},
+				            {"dcleAppliedCustLedgerEntryNo", "Applied Customer Ledger Entry No."},
+				            {"salesInvHeaderDocumentNo", "Sales Invoice Header Document No."},
+				            {"salesInvHeaderPaymentTermsCode", "Payment Terms Code"},
+				            {"salesInvHeaderPmtDiscountDate", "Payment Discount Date"}
+				        }
+				    ),
+				    #"Removed Columns" = Table.RemoveColumns(#"Renamed Columns", {"ETag"})
+				in
+				    #"Removed Columns"
+
+	annotation PBI_ResultType = Table
+
+	annotation PBI_NavigationStepName = Navigation
+

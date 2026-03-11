@@ -1,0 +1,232 @@
+table 'Back Links'
+	isHidden
+	lineageTag: 3e1e429b-5a8a-4753-81a6-7104a1063929
+
+	measure 'Base Link' =
+			
+			VAR BusinessCentral = "https://businesscentral.dynamics.com/"
+			VAR TenantID = VALUES('Date Table Setup'[tenantID])
+			VAR Environment = VALUES(ENVIRONMENT[ENVIRONMENT])
+			VAR Company = "?company=" & VALUES(COMPANY[COMPANY])
+			RETURN BusinessCentral & TenantID & "/" & Environment & "/" & Company
+		isHidden
+		lineageTag: d4610d12-08d0-4e03-93f0-369ded9c2630
+
+		changedProperty = IsHidden
+
+	measure 'Calendar Entries Back Link' = ```
+			
+			VAR Endpoint = "&page=99000759&"
+			VAR baseLink = [Base Link] & Endpoint
+			
+			// Build filter context
+			VAR WorkCenters =
+			    CONCATENATEX(VALUES ( 'Calendar Entries'[No.] ), 'Calendar Entries'[No.], "|" )
+			VAR CapacityTypePrep =
+			    CONCATENATEX(VALUES ( 'Calendar Entries'[Capacity Type] ), 'Calendar Entries'[Capacity Type], "|" )
+			VAR CapacityType = 
+			    SUBSTITUTE(SUBSTITUTE(CapacityTypePrep, "Work Center", "0"), "Machine Center","1")
+			
+			// Build URL string components
+			VAR CapacityTypeFilter = "filter='Calendar Entry'.'Capacity Type' IS " & "'" & CapacityType & "'"
+			VAR WorkCenterFilter = " AND 'Calendar Entry'.'No.' IS " & WorkCenters
+			VAR CalednarEntryPostingDateFilter = " AND 'Calendar Entry'.'Date' IS " & [Ranged]
+			
+			RETURN
+			    baseLink & CapacityTypeFilter & WorkCenterFilter & CalednarEntryPostingDateFilter
+			```
+		isHidden
+		lineageTag: 08219a66-0acd-42a9-8e13-5380f953c9a2
+
+		changedProperty = IsHidden
+
+	measure Ranged = ```
+			
+			VAR _FilterTable = VALUES('Date'[Date])
+			VAR IndexedDates = 
+			    ADDCOLUMNS(
+			        _FilterTable,
+			        "@Index", RANKX(
+			            SUMMARIZECOLUMNS(
+			                'Date'[Date], _FilterTable
+			            ),
+			            'Date'[Date],
+			            ,
+			            ASC,
+			            DENSE
+			        )
+			    )
+			VAR PreviousIndexedDate = 
+				ADDCOLUMNS(
+					IndexedDates,
+					"@Previous Date", 
+						VAR PrevIndex = [@Index] - 1
+						RETURN SELECTCOLUMNS(
+							FILTER(IndexedDates, [@Index] = PrevIndex),
+							[Date])
+				)
+			
+			VAR CalculateBreakPoint = 
+				ADDCOLUMNS(
+					PreviousIndexedDate,
+					"@Break Point", 
+					IF( NOT DATEDIFF([@Previous Date],'Date'[Date],DAY) = 1, TRUE(), FALSE() )
+				)
+			VAR BreakPointTable = FILTER(CalculateBreakPoint, [@Break Point] = TRUE())
+			
+			VAR MaxDate = CALCULATE(MAX('Date'[Date]),_FilterTable)
+			
+			var NextIndex = 
+				ADDCOLUMNS(
+					BreakPointTable,
+					"@NextIndex", 
+					SELECTCOLUMNS(
+						OFFSET( +1, BreakPointTable ),
+						[@Index]
+					) - 1
+				)
+			
+			VAR NextDate = 
+				ADDCOLUMNS(
+					NextIndex,
+					"@NextDate", 
+						VAR PrevIndex = [@Index] - 1
+						RETURN SELECTCOLUMNS(
+							FILTER(IndexedDates, [@Index] = [@NextIndex]),
+							[Date])
+				)
+			
+			VAR Ranged = 
+			ADDCOLUMNS(
+				NextDate,
+				"@Range",
+				IF( ISBLANK([@NextDate]), 
+				FORMAT ( 'Date'[Date], "yyyy-mm-dd" ) & ".." & FORMAT ( MaxDate ,"yyyy-mm-dd"),
+				FORMAT ( 'Date'[Date], "yyyy-mm-dd" ) & ".." & FORMAT ( [@NextDate] ,"yyyy-mm-dd")
+				)
+			)
+			
+			Return CONCATENATEX(Ranged, [@Range], "|")
+			```
+		isHidden
+		lineageTag: 7764e004-d0c4-4ea9-ae7c-0fd5c4f23610
+
+		changedProperty = IsHidden
+
+	measure 'Prod. Order Capacity Need Back Link' = ```
+			
+			VAR Endpoint = "&page=99000820&"
+			VAR baseLink = [Base Link] & Endpoint
+			
+			// Build filter context
+			VAR WorkCenters =
+			    CONCATENATEX(VALUES ( 'Prod Order Capacity Need'[workCenterNo] ), 'Prod Order Capacity Need'[workCenterNo], "|" )
+			VAR Nos = 
+			    CONCATENATEX(VALUES ( 'Prod Order Capacity Need'[no] ), 'Prod Order Capacity Need'[no], "|" )
+			VAR Types = 
+			    CONCATENATEX(VALUES ( 'Prod Order Capacity Need'[Type] ), 'Prod Order Capacity Need'[Type], "|" )
+			
+			VAR ProdOrderStatus =
+			    CONCATENATEX(VALUES( 'Production Orders'[Prod Order Status]),  'Production Orders'[Prod Order Status], "|" )
+			
+			VAR ProdOrders = 
+			    CONCATENATEX(VALUES ( 'Prod Order Capacity Need'[Prod. Order No.] ), 'Prod Order Capacity Need'[Prod. Order No.], "|" )
+			
+			VAR RequestedOnlyInput = 
+			    CONCATENATEX(VALUES ( 'Prod Order Capacity Need'[Requested Only] ), 'Prod Order Capacity Need'[Requested Only], "|" )
+			VAR RequestedOnly = 
+			    SUBSTITUTE(SUBSTITUTE(RequestedOnlyInput, "FALSE", "0"), "TRUE","1")
+			
+			// Build URL string components
+			VAR WorkCenterFilter = "filter='Prod. Order Capacity Need'.'Work Center No.' IS " & "'" & WorkCenters & "'"
+			VAR ProdOrderFilter = " AND 'Prod. Order Capacity Need'.'Prod. Order No.' IS " & "'" & ProdOrders  & "'"
+			VAR ProdOrderStatusFilter = " AND 'Prod. Order Capacity Need'.'Status' IS " & "'" & ProdOrderStatus & "'"
+			VAR NoFilter = " AND 'Prod. Order Capacity Need'.'No.' IS " & "'" & Nos & "'"
+			VAR TypesFilter = " AND 'Prod. Order Capacity Need'.'Type' IS " & "'" & Types & "'"
+			VAR DateFilter = " AND 'Prod. Order Capacity Need'.'Date' IS " & [Ranged]
+			VAR RequestedOnlyFilter =  " AND 'Prod. Order Capacity Need'.'Requested Only' IS " & "'" & RequestedOnly & "'"
+			
+			RETURN
+			    baseLink & WorkCenterFilter & NoFilter & TypesFilter & DateFilter & ProdOrderFilter & ProdOrderStatusFilter & RequestedOnlyFilter
+			```
+		isHidden
+		lineageTag: ebbde43d-0b1a-4736-8c3c-71e9a3180437
+
+		changedProperty = IsHidden
+
+	measure 'Work Center Need Qty Back Link' = ```
+			
+			VAR Endpoint = "&page=99000820&"
+			VAR baseLink = [Base Link] & Endpoint
+			
+			// Build filter context
+			VAR WorkCenters =
+			    CONCATENATEX(VALUES ( 'Prod Order Capacity Need'[workCenterNo] ), 'Prod Order Capacity Need'[workCenterNo], "|" )
+			VAR Nos = 
+			    CONCATENATEX(VALUES ( 'Prod Order Capacity Need'[no] ), 'Prod Order Capacity Need'[no], "|" )
+			VAR Types = 
+			    CONCATENATEX(VALUES ( 'Prod Order Capacity Need'[Type] ), 'Prod Order Capacity Need'[Type], "|" )
+			    
+			
+			// Build URL string components
+			VAR WorkCenterFilter = "filter='Prod. Order Capacity Need'.'Work Center No.' IS " & "'" & WorkCenters & "'"
+			VAR NoFilter = " AND 'Prod. Order Capacity Need'.'No.' IS " & "'" & Nos & "'"
+			VAR TypesFilter = " AND 'Prod. Order Capacity Need'.'Type' IS " & "'" & Types & "'"
+			VAR DateFilter = " AND 'Prod. Order Capacity Need'.'Date' IS " & [Ranged]
+			VAR RequestedOnlyFilter =  " AND 'Prod. Order Capacity Need'.'Requested Only' IS 'No'"
+			
+			RETURN
+			    baseLink & WorkCenterFilter & NoFilter & TypesFilter & DateFilter & RequestedOnlyFilter
+			```
+		isHidden
+		lineageTag: 260ab712-b2d0-481a-b1d1-9ddf9ed984a1
+
+		changedProperty = IsHidden
+
+	measure 'Capacity Ledger Entries Back Link' = ```
+			
+			VAR Endpoint = "&page=5832&"
+			VAR baseLink = [Base Link] & Endpoint
+			
+			// Build filter context
+			VAR ProdOrders = 
+			    CONCATENATEX(VALUES ( 'Prod Order Capacity Need'[Prod. Order No.] ), 'Prod Order Capacity Need'[Prod. Order No.], "|" )
+			
+			// Build URL string components
+			VAR CapacityTypeFilter = "filter='Capacity Ledger Entry'.'Order No.' IS " & "'" & ProdOrders & "'"
+			
+			RETURN
+			    baseLink & CapacityTypeFilter
+			```
+		isHidden
+		lineageTag: 5b769c7e-3d21-40ae-922e-ffbc42a4bc3a
+
+		changedProperty = IsHidden
+
+	column Column1
+		dataType: string
+		isHidden
+		lineageTag: 87207e88-c30e-4ed7-8a04-50591e53b160
+		summarizeBy: none
+		sourceColumn: Column1
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	partition 'Back Links' = m
+		mode: import
+		queryGroup: 'Parameters and Functions'
+		source =
+				let
+				    Source = Table.FromRows(Json.Document(Binary.Decompress(Binary.FromText("i44FAA==", BinaryEncoding.Base64), Compression.Deflate)), let _t = ((type text) meta [Serialized.Text = true]) in type table [Column1 = _t]),
+				    #"Changed Type" = Table.TransformColumnTypes(Source,{{"Column1", type text}})
+				in
+				    #"Changed Type"
+
+	changedProperty = IsHidden
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Table
+

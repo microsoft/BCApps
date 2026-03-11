@@ -1,0 +1,599 @@
+cultureInfo nl-NL
+	translations
+		model Model
+			table 'Project Ledger Entry'
+				caption: Projectpost
+				column 'No. & Description'
+					caption: Nr. en beschrijving
+				column 'Project No.'
+					caption: Projectnr.
+				column 'Task No.'
+					caption: Taaknr.
+				column 'Posting Date'
+					caption: Boekingsdatum
+				column 'Entry Type'
+					caption: Boekingssoort
+				column Type
+					caption: Type
+				column 'No.'
+					caption: Nr.
+				column Description
+					caption: Beschrijving
+				column Location
+					caption: Locatie
+				column 'Unit of Measure Code'
+					caption: Code van maateenheid
+				column 'Unit Cost (LCY)'
+					caption: Kostprijs per eenheid (LV)
+				column 'Unit Price (LCY)'
+					caption: Eenheidsprijs (LV)
+				measure 'Project Ledger Entry Quantity'
+					caption: Hoeveelheid
+				measure 'Invoiced (Total Cost)'
+					caption: Gefactureerd (totale kostprijs)
+				measure 'Total Price'
+					caption: Totale prijs
+				measure 'Actual (Total Price)'
+					caption: Werkelijk (totale prijs)
+				measure 'Billable (Invoiced Price)'
+					caption: Factureerbaar (gefactureerde prijs)
+				measure 'Actual (Total Cost)'
+					caption: Werkelijk (totale kosten)
+				measure 'Gen. Journal Usage (Total Cost)'
+					caption: Fin. dagboekgebruik (totale kosten)
+				measure 'Labour Usage (Total Cost)'
+					caption: Arbeidsgebruik (totale kosten)
+				measure 'Material Usage (Total Cost)'
+					caption: Materiaalgebruik (totale kosten)
+				measure 'Invoiced (Total Price)'
+					caption: Gefactureerd (totale prijs)
+			table Project
+				caption: Project
+				column 'Project No.'
+					caption: Projectnr.
+				column 'Project Description'
+					caption: Projectbeschrijving
+				column 'Project Bill to Customer No.'
+					caption: Factuurklantnr. project
+				column 'Project Creation Date'
+					caption: Project gemaakt op
+				column 'Project Starting Date'
+					caption: Begindatum project
+				column 'Project Ending Date'
+					caption: Einddatum van project
+				column 'Project Status'
+					caption: Projectstatus
+				column 'Project Posting Group'
+					caption: Projectboekingsgroep
+				column 'Project Blocked'
+					caption: Project geblokkeerd
+				column 'Project Project Manager'
+					caption: Projectmanager project
+				column 'Project Complete'
+					caption: Project voltooid
+				column 'Project No. & Description'
+					caption: Projectnr. en -omschrijving
+				measure 'Project Count'
+					caption: Aantal projecten
+				measure 'Actual Profit'
+					caption: Werkelijke winst
+				measure 'Actual Profit Margin (%)'
+					caption: Werkelijke winstmarge (%)
+				measure 'Project Duration (Days)'
+					caption: Duur (dagen)
+				measure 'Budget Profit'
+					caption: Budgetwinst
+				measure 'Budget Profit Margin (%)'
+					caption: Budgetwinstmarge (%)
+				measure 'Completed (%)'
+					caption: Voltooid (%)
+				measure 'Invoiced (%)'
+					caption: Gefactureerd (%)
+				measure 'Tasks Count'
+					caption: Aantal taken
+				measure 'Realization (%)'
+					caption: Realisatie (%)
+				measure 'Realization Variance'
+					caption: Realisatieverschil
+				measure 'Base Link'
+					caption: Basiskoppeling
+				measure 'Project Planning Lines Back Link'
+					caption: Terugkoppeling Projectplanningsregels
+			table 'Project Planning Line'
+				caption: Projectplanningsregel
+				column 'Project No.'
+					caption: Projectnr.
+				column 'Task No.'
+					caption: Taaknr.
+				column 'Line No.'
+					caption: Regelnr.
+				column Type
+					caption: Type
+				column 'Line Type'
+					caption: Regeltype
+				column 'No.'
+					caption: Nr.
+				column Description
+					caption: Beschrijving
+				column 'Unit Cost (LCY)'
+					caption: Kostprijs per eenheid (LV)
+				column 'Unit Price (LCY)'
+					caption: Eenheidsprijs (LV)
+				column 'Planning Date'
+					caption: Planningsdatum
+				measure 'Planning Line Quantity'
+					caption: Planningsregelaantal
+				measure 'Planning Line Total Cost (LCY)'
+					caption: Totale kosten planningsregel (LV)
+				measure 'Planning Line Total Price (LCY)'
+					caption: Totale prijs planningsregel (LV)
+				measure 'Budget (Total Cost)'
+					caption: Budget (totale kosten)
+				measure 'Billable (Total Price)'
+					caption: Factureerbaar (totale prijs)
+				measure 'Total Cost Variance to Budget'
+					caption: Verschil totale kosten met budget
+				measure 'Total Cost Variance to Budget %'
+					caption: Verschil totale kosten met budget (%)
+				measure 'Billable (Total Cost)'
+					caption: Factureerbaar (totale kosten)
+				measure 'Budget (Total Price)'
+					caption: Budget (totale prijs)
+			table Customer
+				caption: Klant
+				column 'Customer No. & Name'
+					caption: Klantnr. en -naam
+				column 'Customer No.'
+					caption: Klantnr.
+				column 'Customer Name'
+					caption: Klantnaam
+				column 'Customer Address'
+					caption: Klantadres
+				column 'Customer Address 2'
+					caption: Klantadres 2
+				column 'Customer City'
+					caption: Plaats van klant
+				column 'Customer Post Code'
+					caption: Postcode klant
+				column 'Customer State'
+					caption: Staat klant
+				column 'Customer Country/Region Code'
+					caption: Land-/regiocode klant
+				column 'Customer Posting Group'
+					caption: Klantboekingsgroep
+				column 'Customer Price Group'
+					caption: Klantenprijsgroep
+				column 'Customer Discount Group'
+					caption: Klantenkortingsgroep
+			table Tasks
+				caption: Taken
+				column 'Task Project No.'
+					caption: Taakprojectnr.
+				column 'Task No.'
+					caption: Taaknr.
+				column 'Task Description'
+					caption: Taakbeschrijving
+				column 'Task Type'
+					caption: Taaktype
+				column 'Task Project No. & Task No.'
+					caption: Taakprojectnr. en taaknr.
+				column 'Task Project Task & Description'
+					caption: Taakprojecttaak en -omschrijving
+				column 'Project Task Starting Date'
+					caption: Begindatum projecttaak
+				column 'Project Task Ending Date'
+					caption: Einddatum projecttaak
+			table 'Dimension Sets'
+				caption: Dimensiesets
+				column 'Global Dimension 1'
+					caption: Globale dimensie 1
+				column 'Global Dimension 2'
+					caption: Globale dimensie 2
+				column 'Shortcut Dimension 3'
+					caption: Shortcutdimensie 3
+				column 'Shortcut Dimension 4'
+					caption: Shortcutdimensie 4
+				column 'Shortcut Dimension 5'
+					caption: Shortcutdimensie 5
+				column 'Shortcut Dimension 6'
+					caption: Shortcutdimensie 6
+				column 'Shortcut Dimension 7'
+					caption: Shortcutdimensie 7
+				column 'Shortcut Dimension 8'
+					caption: Shortcutdimensie 8
+				column id
+					caption: id
+			table Date
+				caption: Datum
+				column Date
+					caption: Boekingsdatum
+				column 'Week Day'
+					caption: Week Dag
+				column 'Relative Day'
+					caption: Relatieve Dag
+				column 'Calendar YearNumber'
+					caption: Kalender JaarNummer
+				column 'Calendar Year'
+					caption: Kalender Jaar
+				column 'Calendar QuarterNumber'
+					caption: Kalender KwartaalNummer
+				column 'Calendar Quarter'
+					caption: Kalender Kwartaal
+				column 'Calendar YearQuarterNumber'
+					caption: Kalender JaarKwartaalNummer
+				column 'Calendar Quarter Year'
+					caption: Kalender Kwartaal Jaar
+				column 'Calendar MonthNumber'
+					caption: Kalender MaandNummer
+				column 'Calendar Month'
+					caption: Kalender Maand
+				column 'Calendar YearMonthNumber'
+					caption: Kalender JaarMaandNummer
+				column 'Calendar Month Year'
+					caption: Kalender Maand Jaar
+				column 'Calendar WeekNumber'
+					caption: Kalender WeekNummer
+				column 'Calendar Week'
+					caption: Kalender Week
+				column 'Calendar YearWeekNumber'
+					caption: Kalender JaarWeekNummer
+				column 'Calendar Week Year'
+					caption: Kalender Week Jaar
+				column 'Calendar WeekYearOrder'
+					caption: Kalender WeekJaarVolgorde
+				column 'Calendar RelativeWeekPos'
+					caption: Kalender RelatieveWeekPos
+				column 'Calendar RelativeMonthPos'
+					caption: Kalender RelatieveMaandPos
+				column 'Calendar RelativeQuarterPos'
+					caption: Kalender RelatieveKwartaalPos
+				column 'Calendar RelativeYearPos'
+					caption: Kalender RelatieveJaarPos
+				column 'Calendar StartOfMonth'
+					caption: Kalender BeginVanMaand
+				column 'Calendar EndOfMonth'
+					caption: Kalender EindVanMaand
+				column 'Calendar StartOfQuarter'
+					caption: Kalender BeginVanKwartaal
+				column 'Calendar EndOfQuarter'
+					caption: Kalender EindVanKwartaal
+				column 'Calendar StartOfYear'
+					caption: Kalender BeginVanJaar
+				column 'Calendar EndOfYear'
+					caption: Kalender EindVanJaar
+				column 'Calendar MonthDays'
+					caption: Kalender MaandDagen
+				column 'Calendar QuarterDays'
+					caption: Kalender KwartaalDagen
+				column 'Calendar YearDays'
+					caption: Kalender JaarDagen
+				column 'Calendar DayOfMonthNumber'
+					caption: Kalender DagVanMaandNummer
+				column 'Calendar DayOfQuarterNumber'
+					caption: Kalender DagVanKwartaalNummer
+				column 'Calendar DayOfYearNumber'
+					caption: Kalender DagVanJaarNummer
+				column 'Calendar DatePreviousWeek'
+					caption: Kalender DatumVorigeWeek
+				column 'Calendar DatePreviousMonth'
+					caption: Kalender DatumVorigeMaand
+				column 'Calendar DatePreviousQuarter'
+					caption: Kalender DatumVorigKwartaal
+				column 'Calendar DatePreviousYear'
+					caption: Kalender DatumVorigJaar
+				column 'Fiscal Year'
+					caption: Fiscaal Jaar
+				column 'Fiscal YearNumber'
+					caption: Fiscaal JaarNummer
+				column 'Fiscal QuarterNumber'
+					caption: Fiscaal KwartaalNummer
+				column 'Fiscal Quarter'
+					caption: Fiscaal Kwartaal
+				column 'Fiscal YearQuarterNumber'
+					caption: Fiscaal JaarKwartaalNummer
+				column 'Fiscal Quarter Year'
+					caption: Fiscaal Kwartaal Jaar
+				column 'Fiscal MonthNumber'
+					caption: Fiscaal MaandNummer
+				column 'Fiscal MonthInQuarterNumber'
+					caption: Fiscaal MaandInKwartaalNummer
+				column 'Fiscal Month'
+					caption: Fiscaal Maand
+				column 'Fiscal YearMonthNumber'
+					caption: Fiscaal JaarMaandNummer
+				column 'Fiscal Month Year'
+					caption: Fiscaal Maand Jaar
+				column 'Fiscal WeekNumber'
+					caption: Fiscaal WeekNummer
+				column 'Fiscal Week'
+					caption: Fiscaal Week
+				column 'Fiscal YearWeekNumber'
+					caption: Fiscaal JaarWeekNummer
+				column 'Fiscal Week Year'
+					caption: Fiscaal Week Jaar
+				column 'Fiscal WeekYearOrder'
+					caption: Fiscaal WeekJaarVolgorde
+				column 'Fiscal RelativeWeekPos'
+					caption: Fiscaal RelatieveWeekPos
+				column 'Fiscal RelativeMonthPos'
+					caption: Fiscaal RelatieveMaandPos
+				column 'Fiscal RelativeQuarterPos'
+					caption: Fiscaal RelatieveKwartaalPos
+				column 'Fiscal RelativeYearPos'
+					caption: Fiscaal RelatieveJaarPos
+				column 'Fiscal StartOfMonth'
+					caption: Fiscaal BeginVanMaand
+				column 'Fiscal EndOfMonth'
+					caption: Fiscaal EindVanMaand
+				column 'Fiscal StartOfQuarter'
+					caption: Fiscaal BeginVanKwartaal
+				column 'Fiscal EndOfQuarter'
+					caption: Fiscaal EindVanKwartaal
+				column 'Fiscal StartOfYear'
+					caption: Fiscaal BeginVanJaar
+				column 'Fiscal EndOfYear'
+					caption: Fiscaal EindVanJaar
+				column 'Fiscal MonthDays'
+					caption: Fiscaal MaandDagen
+				column 'Fiscal QuarterDays'
+					caption: Fiscaal KwartaalDagen
+				column 'Fiscal YearDays'
+					caption: Fiscaal JaarDagen
+				column 'Fiscal DayOfMonthNumber'
+					caption: Fiscaal DagVanMaandNummer
+				column 'Fiscal DayOfQuarterNumber'
+					caption: Fiscaal DagVanKwartaalNummer
+				column 'Fiscal DayOfYearNumber'
+					caption: Fiscaal DagVanJaarNummer
+				column 'Fiscal DatePreviousWeek'
+					caption: Fiscaal DatumVorigeWeek
+				column 'Fiscal DatePreviousMonth'
+					caption: Fiscaal DatumVorigeMaand
+				column 'Fiscal DatePreviousQuarter'
+					caption: Fiscaal DatumVorigKwartaal
+				column 'Fiscal DatePreviousYear'
+					caption: Fiscaal DatumVorigJaar
+				column 'FW YearNumber'
+					caption: FW JaarNummer
+				column 'FW Year'
+					caption: FW Jaar
+				column 'FW QuarterNumber'
+					caption: FW KwartaalNummer
+				column 'FW Quarter'
+					caption: FW Kwartaal
+				column 'FW YearQuarterNumber'
+					caption: FW JaarKwartaalNummer
+				column 'FW Quarter Year'
+					caption: FW Kwartaal Jaar
+				column 'FW MonthNumber'
+					caption: FW MaandNummer
+				column 'FW Month'
+					caption: FW Maand
+				column 'FW YearMonthNumber'
+					caption: FW JaarMaandNummer
+				column 'FW Month Year'
+					caption: FW Maand Jaar
+				column 'FW WeekNumber'
+					caption: FW WeekNummer
+				column 'FW Week'
+					caption: FW Week
+				column 'FW PeriodNumber'
+					caption: FW PeriodeNummer
+				column 'FW Period'
+					caption: FW Periode
+				column 'FW YearWeekNumber'
+					caption: FW JaarWeekNummer
+				column 'FW Week Year'
+					caption: FW Week Jaar
+				column 'FW StartOfWeek'
+					caption: FW BeginVanWeek
+				column 'FW EndOfWeek'
+					caption: FW EindVanWeek
+				column 'FW RelativeWeekPos'
+					caption: FW RelatieveWeekPos
+				column 'FW RelativeMonthPos'
+					caption: FW RelatieveMaandPos
+				column 'FW RelativeQuarterPos'
+					caption: FW RelatieveKwartaalPos
+				column 'FW RelativeYearPos'
+					caption: FW RelatieveJaarPos
+				column 'FW StartOfMonth'
+					caption: FW BeginVanMaand
+				column 'FW EndOfMonth'
+					caption: FW EindVanMaand
+				column 'FW StartOfQuarter'
+					caption: FW BeginVanKwartaal
+				column 'FW EndOfQuarter'
+					caption: FW EindVanKwartaal
+				column 'FW StartOfYear'
+					caption: FW BeginVanJaar
+				column 'FW EndOfYear'
+					caption: FW EindVanJaar
+				column 'FW MonthDays'
+					caption: FW MaandDagen
+				column 'FW QuarterDays'
+					caption: FW KwartaalDagen
+				column 'FW YearDays'
+					caption: FW JaarDagen
+				column 'FW DayOfMonthNumber'
+					caption: FW DagVanMaandNummer
+				column 'FW DayOfQuarterNumber'
+					caption: FW DagVanKwartaalNummer
+				column 'FW DayOfYearNumber'
+					caption: FW DagVanJaarNummer
+				column 'FW DatePreviousWeek'
+					caption: FW DatumVorigeWeek
+				column 'FW DatePreviousMonth'
+					caption: FW DatumVorigeMaand
+				column 'FW DatePreviousQuarter'
+					caption: FW DatumVorigKwartaal
+				column 'FW DatePreviousYear'
+					caption: FW DatumVorigJaar
+				column 'Day Type'
+					caption: Dagsoort
+			table Purchases
+				caption: Inkopen
+				column 'Quantity (Base)'
+					caption: Aantal (basis)
+				column 'Amount (LCY)'
+					caption: Bedrag (LV)
+				column 'Expected Receipt Date'
+					caption: Verwachte ontvangstdatum
+				column 'Source Type'
+					caption: Bronsoort
+				column 'Document Type'
+					caption: Documenttype
+				column 'Line No.'
+					caption: Regelnr.
+				column 'Document No.'
+					caption: Documentnr.
+				column 'No.'
+					caption: Nr.
+				column Type
+					caption: Type
+				column Description
+					caption: Beschrijving
+				column 'Project No'
+					caption: Projectnr.
+				column 'Task No'
+					caption: Taaknr.
+				column 'Project No Task No'
+					caption: Projectnr. taaknr.
+				measure 'Quantity on PO'
+					caption: Aantal op inkooporder
+				measure 'Amount on PO'
+					caption: Bedrag op inkooporder
+				measure 'Amount Rcvd. Not Invoiced'
+					caption: Ontvangen, niet gefactureerd bedrag
+				measure 'Outstanding Amt. on PO'
+					caption: Uitstaand bedrag op inkooporder
+				measure 'Purchase Order Count'
+					caption: Aantal inkooporders
+			table 'Localized Labels'
+				measure 'My Report Title'
+					caption: Mijn rapporttitel
+				measure 'My Button Caption'
+					caption: Bijschrift van mijn knop
+				measure 'My Visual Title'
+					caption: Mijn visuele titel
+				measure 'Projects Overview'
+					caption: Projectoverzicht
+				measure 'Project Tasks'
+					caption: Projecttaken
+				measure 'Project Profitability'
+					caption: Winstgevendheid van project
+				measure 'Project Realization'
+					caption: Projectrealisatie
+				measure 'Project Performance to Budget'
+					caption: Projectprestaties versus budget
+				measure 'Project Invoiced Sales by Type'
+					caption: Gefactureerde verkopen van project per type
+				measure 'Project Invoiced Sales by Customer'
+					caption: Gefactureerde verkopen van project per klant
+				measure 'Project Ledger Entry Drill Through'
+					caption: Detailanalyse projectpost
+				measure 'Purchase Order Drill Through'
+					caption: Detailanalyse inkooporder
+				measure 'Project Planning Line Drill Through'
+					caption: Detailanalyse projectplanningsregel
+				measure 'Project KPIs'
+					caption: Project-KPI's
+				measure 'Actual Costs (Total Cost) vs. Budget (Total Cost)'
+					caption: Werkelijke kosten (totale kosten) versus budget (totale kosten)
+				measure 'Actual Profit by Project'
+					caption: Werkelijke winst per project
+				measure 'Projects by Project Manager'
+					caption: Projecten per projectmanager
+				measure 'Realization by Projects'
+					caption: Realisatie per project
+				measure 'Actual Profit vs. Initial Profit'
+					caption: Werkelijke winst versus initiële winst
+				measure Actuals
+					caption: Werkelijke waarden
+				measure Budgeted
+					caption: Gebudgetteerd
+				measure 'Realization KPIs'
+					caption: Realisatie-KPI's
+				measure 'Realization by Project Manager'
+					caption: Realisatie per projectmanager
+				measure 'Actual Total Cost to Budget'
+					caption: Werkelijke totale kostprijs versus budget
+				measure 'Performance KPIs'
+					caption: Prestatie-KPI's
+				measure 'Invoiced Sales KPIs'
+					caption: KPI's van gefactureerde verkopen
+				measure Projects
+					caption: Projecten
+				measure 'for Business Central'
+					caption: voor Business Central
+				measure 'CONNECT YOUR DATA'
+					caption: UW GEGEVENS VERBINDEN
+				measure '1. Download the Projects Connector for Power BI'
+					caption: 1. Download de Projects Connector for Power BI
+				measure '2. Configure Dynamics 365 Business Central'
+					caption: 2. Dynamics 365 Business Central configureren
+				measure 'USE, EDIT AND BUILD YOUR OWN REPORTS'
+					caption: UW EIGEN RAPPORTEN GEBRUIKEN, BEWERKEN EN MAKEN
+				measure 'Projects includes a variety of pre-built reports to help you see your data immediately.'
+					caption: Projecten bevat een verscheidenheid aan vooraf gemaakte rapporten om u te helpen uw gegevens direct te bekijken.
+				measure 'You are able to edit these reports or build your own report from scratch'
+					caption: U kunt deze rapporten bewerken of uw eigen rapport helemaal opnieuw maken
+				measure 'HELP AND SUPPORT'
+					caption: HELP EN ONDERSTEUNING
+				measure 'For help and support with your new report please visit the Analytics overview documentation.'
+					caption: Ga voor hulp en ondersteuning met uw nieuwe rapport naar de Analytics-overzichtsdocumentatie.
+				measure 'OTHER POWER BI REPORTS'
+					caption: OVERIGE POWER BI-RAPPORTEN
+				measure PURCHASE
+					caption: INKOOP
+				measure FINANCE
+					caption: FINANCIËN
+				measure INVENTORY
+					caption: VOORRAAD
+				measure SALES
+					caption: VERKOPEN
+				measure MANUFACTURING
+					caption: PRODUCTIE
+				measure 'The project tasks shows project number and description, budget (total cost), actual cost (total cost), billable (total price), billable (invoiced price), actual (total price), realization percentage, actual profit, and actual profit margin percentage.'
+					caption: De projecttaken tonen projectnummer en -beschrijving, budget (totale kosten), werkelijke kosten (totale kosten), factureerbaar (totale prijs), factureerbaar (gefactureerde prijs), werkelijk (totale prijs), realisatiepercentage, werkelijke winst en werkelijk winstmargepercentage.
+				measure 'The project profitability shows project number, type, number and description, actual (total cost), billable (invoiced price), actual profit margin percentage, and actual profit.'
+					caption: Winstgevendheid van project bevat projectnummer, -type, -nummer en -beschrijving, werkelijk (totale kosten), factureerbaar (gefactureerde prijs), werkelijke winstmarge % en werkelijke winst.
+				measure 'The project realization shows project number, type, number and description, billable (invoiced price), actual (total price), and realization percentage.'
+					caption: Projectrealisatie bevat projectnummer, -type, -nummer en -beschrijving, factureerbaar (gefactureerde prijs), werkelijk (totale prijs) en realisatiepercentage.
+				measure 'The project performance to budget shows project number and description, status, budget (total cost), actual (total cost), total cost variance to budget, and total cost variance to budget percentage.'
+					caption: Projectprestaties versus budget bevat projectnummer en -beschrijving, de status, budget (totale kosten), werkelijk (totale) kosten, verschil totale kosten met budget en verschil totale kosten met budget %.
+				measure 'The project invoiced sales by type shows type, number and description, project number, unit of measure, quantity, unit price (local currency), and billable (invoiced price).'
+					caption: Gefactureerde verkopen van project per type bevat type, nummer en beschrijving, projectnummer, eenheid, aantal, eenheidsprijs (lokale valuta) en factureerbaar (gefactureerde prijs).
+				measure 'The project invoiced sales by customer shows customer number and name, project number, type, number and description, quantity, unit price (local currency), and billable (invoiced price).'
+					caption: Gefactureerde verkopen van project per klant bevat klantnummer en -naam, projectnummer, -type, -nummer en -beschrijving, aantal, eenheidsprijs (lokale valuta) en factureerbaar (gefactureerde prijs).
+				measure 'The project ledger entry drill through shows posting date, project number, task number, task entry type, type, number, description, unit of measure, quantity, unit cost, unit price, total cost, and total price.'
+					caption: Detailanalyse projectpost bevat boekingsdatum, projectnummer, taaknummer, taakboekingssoort, type, nummer, beschrijving, maateenheid, aantal, kostprijs per eenheid, eenheidsprijs, totale kosten en totale prijs.
+				measure 'The project order drill through shows project number, task number, source type,entry type, type, number, description, document number, quantity (base), amount (local currency), expected receipt date, outstanding amount on purchase order, amount received not invoiced, and document type.'
+					caption: Detailanalyse projectorder bevat projectnummer, taaknummer, bronsoort, boekingssoort, type, nummer, beschrijving, documentnummer, aantal (basis), bedrag (lokale valuta), verwachte ontvangstdatum, openstaand bedrag op inkooporder, ontvangen niet gefactureerd bedrag en documenttype.
+				measure 'The project planning drill through shows project number, task number, line number, type, number, description, line type, planning line quantity, unit cost, unit price, planning line total cost, and planning line total price.'
+					caption: Detailanalyse projectplanning bevat projectnummer, taaknummer, regelnummer, type, nummer, beschrijving, regeltype, planningsregelaantal, kostprijs per eenheid, eenheidsprijs, totale kosten planningsregel en totale prijs planningsregel.
+				measure 'Company Name'
+					caption: Bedrijfsnaam
+				measure 'Last Refreshed'
+					caption: Laatst vernieuwd
+				measure 'Actual Profit Margin % vs Budget Profit Margin %'
+					caption: Werkelijke winstmarge % versus budgetwinstmarge %
+				measure 'Billable (Invoiced Price) and Actual (Total Price) by Project No. & Description'
+					caption: Factureerbaar (gefactureerde prijs) en werkelijk (totale prijs) op projectnummer en beschrijving
+				measure 'Billable (Invoiced Price) by Type'
+					caption: Factureerbaar (gefactureerde prijs) per type
+				measure 'Profit Margin vs Budget Profit Margin'
+					caption: Winstmarge versus budgetwinstmarge
+				measure 'Project Tasks by Project'
+					caption: Projecttaken per project
+				measure 'Project Timeline'
+					caption: Projecttijdlijn
+				measure 'Project Tasks Duration'
+					caption: Duur van projecttaken
+				measure 'Project Task Details'
+					caption: Projecttaakdetails
+			table COMPANY
+				caption: BEDRIJF
+				measure 'Company Label'
+					caption: Bedrijfslabel
+

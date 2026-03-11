@@ -1,0 +1,721 @@
+cultureInfo nl-NL
+	translations
+		model Model
+			table 'Sustainability Account Category'
+				caption: GB-rekeningcategorie
+				column 'Sustainability Account Category Description'
+					caption: Omschrijving van grootboekrekeningcategorie
+				column 'Sustainability Account Category Code'
+					caption: Code categorie duurzaamheidsrekening
+				column 'Sustainability Account Category  Emission Scope'
+					caption: Uitstootbereik categorie duurzaamheidsrekening
+			table 'Dimension Sets'
+				caption: Dimensiesets
+				column 'Global Dimension 1'
+					caption: Globale dimensie 1
+				column 'Global Dimension 2'
+					caption: Globale dimensie 2
+				column 'Shortcut Dimension 3'
+					caption: Shortcutdimensie 3
+				column 'Shortcut Dimension 4'
+					caption: Shortcutdimensie 4
+				column 'Shortcut Dimension 5'
+					caption: Shortcutdimensie 5
+				column 'Shortcut Dimension 6'
+					caption: Shortcutdimensie 6
+				column 'Shortcut Dimension 7'
+					caption: Shortcutdimensie 7
+				column 'Shortcut Dimension 8'
+					caption: Shortcutdimensie 8
+				column id
+					caption: id
+			table Date
+				caption: Datum
+				column 'Week Day'
+					caption: Week Dag
+				column 'Day Type'
+					caption: Dagsoort
+				column 'Calendar Year'
+					caption: Kalender Jaar
+				column 'Calendar Quarter'
+					caption: Kalender Kwartaal
+				column 'Calendar Quarter Year'
+					caption: Kalender Kwartaal Jaar
+				column 'Calendar Month'
+					caption: Kalender Maand
+				column 'Calendar Month Year'
+					caption: Kalender Maand Jaar
+				column 'Calendar Week'
+					caption: Kalender Week
+				column 'Calendar Week Year'
+					caption: Kalender Week Jaar
+				column 'Calendar RelativeWeekPos'
+					caption: Kalender RelatieveWeekPos
+				column 'Calendar RelativeMonthPos'
+					caption: Kalender RelatieveMaandPos
+				column 'Calendar RelativeQuarterPos'
+					caption: Kalender RelatieveKwartaalPos
+				column 'Calendar RelativeYearPos'
+					caption: Kalender RelatieveJaarPos
+				column 'Calendar StartOfMonth'
+					caption: Kalender BeginVanMaand
+				column 'Calendar EndOfMonth'
+					caption: Kalender EindVanMaand
+				column 'Calendar StartOfQuarter'
+					caption: Kalender BeginVanKwartaal
+				column 'Calendar EndOfQuarter'
+					caption: Kalender EindVanKwartaal
+				column 'Calendar StartOfYear'
+					caption: Kalender BeginVanJaar
+				column 'Calendar EndOfYear'
+					caption: Kalender EindVanJaar
+				column 'Calendar MonthDays'
+					caption: Kalender MaandDagen
+				column 'Calendar QuarterDays'
+					caption: Kalender KwartaalDagen
+				column 'Calendar YearDays'
+					caption: Kalender JaarDagen
+				column 'Calendar DayOfMonthNumber'
+					caption: Kalender DagVanMaandNummer
+				column 'Calendar DayOfQuarterNumber'
+					caption: Kalender DagVanKwartaalNummer
+				column 'Calendar DayOfYearNumber'
+					caption: Kalender DagVanJaarNummer
+				column 'Calendar DatePreviousWeek'
+					caption: Kalender DatumVorigeWeek
+				column 'Calendar DatePreviousMonth'
+					caption: Kalender DatumVorigeMaand
+				column 'Calendar DatePreviousQuarter'
+					caption: Kalender DatumVorigKwartaal
+				column 'Calendar DatePreviousYear'
+					caption: Kalender DatumVorigJaar
+				column 'Fiscal Year'
+					caption: Fiscaal Jaar
+				column 'Fiscal Quarter'
+					caption: Fiscaal Kwartaal
+				column 'Fiscal Quarter Year'
+					caption: Fiscaal Kwartaal Jaar
+				column 'Fiscal Month'
+					caption: Fiscaal Maand
+				column 'Fiscal Month Year'
+					caption: Fiscaal Maand Jaar
+				column 'Fiscal Week'
+					caption: Fiscaal Week
+				column 'Fiscal Week Year'
+					caption: Fiscaal Week Jaar
+				column 'Fiscal RelativeWeekPos'
+					caption: Fiscaal RelatieveWeekPos
+				column 'Fiscal RelativeMonthPos'
+					caption: Fiscaal RelatieveMaandPos
+				column 'Fiscal RelativeQuarterPos'
+					caption: Fiscaal RelatieveKwartaalPos
+				column 'Fiscal RelativeYearPos'
+					caption: Fiscaal RelatieveJaarPos
+				column 'Fiscal StartOfMonth'
+					caption: Fiscaal BeginVanMaand
+				column 'Fiscal EndOfMonth'
+					caption: Fiscaal EindVanMaand
+				column 'Fiscal StartOfQuarter'
+					caption: Fiscaal BeginVanKwartaal
+				column 'Fiscal EndOfQuarter'
+					caption: Fiscaal EindVanKwartaal
+				column 'Fiscal StartOfYear'
+					caption: Fiscaal BeginVanJaar
+				column 'Fiscal EndOfYear'
+					caption: Fiscaal EindVanJaar
+				column 'Fiscal MonthDays'
+					caption: Fiscaal MaandDagen
+				column 'Fiscal QuarterDays'
+					caption: Fiscaal KwartaalDagen
+				column 'Fiscal YearDays'
+					caption: Fiscaal JaarDagen
+				column 'Fiscal DayOfMonthNumber'
+					caption: Fiscaal DagVanMaandNummer
+				column 'Fiscal DayOfQuarterNumber'
+					caption: Fiscaal DagVanKwartaalNummer
+				column 'Fiscal DayOfYearNumber'
+					caption: Fiscaal DagVanJaarNummer
+				column 'Fiscal DatePreviousWeek'
+					caption: Fiscaal DatumVorigeWeek
+				column 'Fiscal DatePreviousMonth'
+					caption: Fiscaal DatumVorigeMaand
+				column 'Fiscal DatePreviousQuarter'
+					caption: Fiscaal DatumVorigKwartaal
+				column 'Fiscal DatePreviousYear'
+					caption: Fiscaal DatumVorigJaar
+				column 'FW Year'
+					caption: FW Jaar
+				column 'FW Quarter'
+					caption: FW Kwartaal
+				column 'FW Quarter Year'
+					caption: FW Kwartaal Jaar
+				column 'FW Month'
+					caption: FW Maand
+				column 'FW Month Year'
+					caption: FW Maand Jaar
+				column 'FW Week'
+					caption: FW Week
+				column 'FW Period'
+					caption: FW Periode
+				column 'FW Week Year'
+					caption: FW Week Jaar
+				column 'FW StartOfWeek'
+					caption: FW BeginVanWeek
+				column 'FW EndOfWeek'
+					caption: FW EindVanWeek
+				column 'FW RelativeWeekPos'
+					caption: FW RelatieveWeekPos
+				column 'FW RelativeMonthPos'
+					caption: FW RelatieveMaandPos
+				column 'FW RelativeQuarterPos'
+					caption: FW RelatieveKwartaalPos
+				column 'FW RelativeYearPos'
+					caption: FW RelatieveJaarPos
+				column 'FW StartOfMonth'
+					caption: FW BeginVanMaand
+				column 'FW EndOfMonth'
+					caption: FW EindVanMaand
+				column 'FW StartOfQuarter'
+					caption: FW BeginVanKwartaal
+				column 'FW EndOfQuarter'
+					caption: FW EindVanKwartaal
+				column 'FW StartOfYear'
+					caption: FW BeginVanJaar
+				column 'FW EndOfYear'
+					caption: FW EindVanJaar
+				column 'FW MonthDays'
+					caption: FW MaandDagen
+				column 'FW QuarterDays'
+					caption: FW KwartaalDagen
+				column 'FW YearDays'
+					caption: FW JaarDagen
+				column 'FW DayOfMonthNumber'
+					caption: FW DagVanMaandNummer
+				column 'FW DayOfQuarterNumber'
+					caption: FW DagVanKwartaalNummer
+				column 'FW DayOfYearNumber'
+					caption: FW DagVanJaarNummer
+				column 'FW DatePreviousWeek'
+					caption: FW DatumVorigeWeek
+				column 'FW DatePreviousMonth'
+					caption: FW DatumVorigeMaand
+				column 'FW DatePreviousQuarter'
+					caption: FW DatumVorigKwartaal
+				column 'FW DatePreviousYear'
+					caption: FW DatumVorigJaar
+				column 'Relative Day'
+					caption: Relatieve Dag
+				column Sequential365DayNumber
+					caption: Sequentieel 365 DagNummer
+				measure 'No. of Days'
+					caption: Aantal dagen
+				measure 'Working Days'
+					caption: Werkdagen
+				measure Ranged
+					caption: Bereik
+				hierarchy 'Fiscal Year-Quarter-Month-Week'
+					caption: Fiscaal Jaar-Kwartaal-Maand-Week
+					level 'Fiscal Year'
+						caption: Fiscaal Jaar
+					level 'Fiscal Quarter Year'
+						caption: Fiscaal Kwartaal Jaar
+					level 'Fiscal Month Year'
+						caption: Fiscaal Maand Jaar
+					level 'Fiscal Week Year'
+						caption: Fiscaal Week Jaar
+				hierarchy 'Calendar Year-Quarter-Month-Week'
+					caption: Kalender Jaar-Kwartaal-Maand-Week
+					level 'Calendar Year'
+						caption: Kalender Jaar
+					level 'Calendar Quarter Year'
+						caption: Kalender Kwartaal Jaar
+					level 'Calendar Month Year'
+						caption: Kalender Maand Jaar
+					level 'Calendar Week Year'
+						caption: Kalender Week Jaar
+				hierarchy 'FW Year-Quarter-Month-Week'
+					caption: FW Jaar-Kwartaal-Maand-Week
+					level 'FW Year'
+						caption: FW Jaar
+					level 'FW Quarter Year'
+						caption: FW Kwartaal Jaar
+					level 'FW Month Year'
+						caption: FW Maand Jaar
+					level 'FW Week Year'
+						caption: FW Week Jaar
+				hierarchy 'Fiscal Year-Month'
+					caption: Fiscaal Jaar-Maand
+					level 'Fiscal Year'
+						caption: Fiscaal Jaar
+					level 'Fiscal Month Year'
+						caption: Fiscaal Maand Jaar
+				hierarchy 'Fiscal Year-Month-Week'
+					caption: Fiscaal Jaar-Maand-Week
+					level 'Fiscal Year'
+						caption: Fiscaal Jaar
+					level 'Fiscal Month Year'
+						caption: Fiscaal Maand Jaar
+					level 'Fiscal Week Year'
+						caption: Fiscaal Week Jaar
+				hierarchy 'Calendar Year-Month'
+					caption: Kalender Jaar-Maand
+					level 'Calendar Year'
+						caption: Kalender Jaar
+					level 'Calendar Month Year'
+						caption: Kalender Maand Jaar
+				hierarchy 'Calendar Year-Month-Week'
+					caption: Kalender Jaar-Maand-Week
+					level 'Calendar Year'
+						caption: Kalender Jaar
+					level 'Calendar Month Year'
+						caption: Kalender Maand Jaar
+					level 'Calendar Week Year'
+						caption: Kalender Week Jaar
+				hierarchy 'FW Year-Month-Week'
+					caption: FW Jaar-Maand-Week
+					level 'FW Year'
+						caption: FW Jaar
+					level 'FW Month Year'
+						caption: FW Maand Jaar
+					level 'FW Week Year'
+						caption: FW Week Jaar
+				hierarchy 'FW Year-Quarter-Week'
+					caption: FW Jaar-Kwartaal-Week
+					level 'FW Year'
+						caption: FW Jaar
+					level 'FW Quarter Year'
+						caption: FW Kwartaal Jaar
+					level 'FW Week Year'
+						caption: FW Week Jaar
+				hierarchy 'FW Year-Week'
+					caption: FW Jaar-Week
+					level 'FW Year'
+						caption: FW Jaar
+					level 'FW Week Year'
+						caption: FW Week Jaar
+			table 'Localized Labels'
+				measure 'My Report Title'
+					caption: Mijn rapporttitel
+				measure 'My Button Caption'
+					caption: Bijschrift van mijn knop
+				measure 'My Visual Title'
+					caption: Mijn visuele titel
+				measure 'Inactive Employees'
+					caption: Inactieve werknemers
+				measure 'Terminated Employees'
+					caption: Ontslagen werknemers
+				measure 'Employees in Unions'
+					caption: Werknemers in vakbonden
+				measure 'Social Analysis'
+					caption: Sociale analyse
+				measure 'Gender Distribution'
+					caption: Geslachtsdistributie
+				measure 'Age Distribution'
+					caption: Leeftijdsdistributie
+				measure 'Employees Qualifications'
+					caption: Werknemerskwalificaties
+				measure 'Realized Emissions vs Target'
+					caption: Gerealiseerde uitstoot versus doel
+				measure 'CO2e Emissions by Scope'
+					caption: CO2e-uitstoot per bereik
+				measure 'Gas Emissions by Category'
+					caption: Gasuitstoot per categorie
+				measure 'Realized Emissions vs Baseline'
+					caption: Gerealiseerde uitstoot versus basislijn
+				measure 'CO2e Emissions vs Baseline'
+					caption: CO2e-uitstoot versus basislijn
+				measure 'CO2e Emissions by Account'
+					caption: CO2e-uitstoot per rekening
+				measure 'Water and Waste Analysis'
+					caption: Water- en afvalanalyse
+				measure 'Water by Facility Location'
+					caption: Water per faciliteitslocatie
+				measure 'Water by Facility Capacity'
+					caption: Water per faciliteitscapaciteit
+				measure 'Water and Waste by Type'
+					caption: Water en afval per type
+				measure 'Water and Waste Intensity by Type'
+					caption: Water- en afvalintensiteit per type
+				measure 'Water and Waste Intensity by Facility'
+					caption: Water- en afvalintensiteit per faciliteit
+				measure 'Emissions by Category and Scope'
+					caption: Uitstoot per categorie en bereik
+				measure 'Emissions by Category'
+					caption: Uitstoot per categorie
+				measure 'Emissions by Scope'
+					caption: Uitstoot per bereik
+				measure 'CO2e Analysis'
+					caption: CO2e-analyse
+				measure 'CO2e Emissions by Category'
+					caption: CO2e-uitstoot per categorie
+				measure 'Carbon Credit by Month'
+					caption: Koolstofkrediet per maand
+				measure 'CO2e Equivalent Emission by Month and Revenue'
+					caption: CO2e-equivalente uitstoot per maand en opbrengst
+				measure 'Employee Entries Drillthrough'
+					caption: Detailanalyse van werknemersposten
+				measure 'Employee Ledger Entries'
+					caption: Werknemersposten
+				measure 'Sustainability Ledger Entries'
+					caption: Duurzaamheidsposten
+				measure 'Sustainability Ledger Entries Drillthrough'
+					caption: Detailanalyse duurzaamheidsposten
+				measure 'Employee Ledger Entries Drillthrough'
+					caption: Detailanalyse werknemersposten
+				measure 'Sustainability Overview'
+					caption: Duurzaamheidsoverzicht
+				measure 'Sustainability Analytics'
+					caption: Duurzaamheidsanalyses
+				measure 'CO2e Emissions by Month'
+					caption: CO2e-uitstoot per maand
+				measure 'Scopes 1 and 2 Analysis by Categories Per Year'
+					caption: Analyse per categorie per jaar bereik 1 en 2
+				measure 'CO2e Emissions by Department'
+					caption: CO2e-uitstoot per afdeling
+				measure 'Journey to Net-Zero Carbon'
+					caption: Reis naar Netto-Nul-Koolstof
+				measure 'CO2e Emissions by Business Group'
+					caption: CO2e-uitstoot per bedrijfsgroep
+				measure 'Renewable Energy Usage'
+					caption: Gebruik hernieuwbare energie
+				measure 'CO2e Emissions Over Time'
+					caption: CO2e-uitstoot in loop van tijd
+				measure 'CO2e Smart Review'
+					caption: Slimme beoordeling CO2e
+				measure 'CO2e Emissions by Global Dimension One'
+					caption: CO2e-uitstoot per globale dimensie één
+				measure 'CO2e Emissions by Global Dimension Two'
+					caption: CO2e-uitstoot per globale dimensie twee
+				measure 'CO2e Equivalent Emissions by Month'
+					caption: CO2e-equivalente uitstoot per maand
+				measure 'Company Name'
+					caption: Bedrijfsnaam
+				measure 'Last Refreshed'
+					caption: Laatst vernieuwd
+				measure 'Released Employees'
+					caption: Vertrokken werknemers
+				measure 'CO2e Decomposition Tree'
+					caption: Ontledingsstructuur CO2e
+				measure 'CO2e Key Influences'
+					caption: Belangrijke invloeden CO2e
+				measure 'Water and Waste Yearly and Daily Change'
+					caption: Jaarlijkse en dagelijkse wijziging van water en afval
+			table COMPANY
+				caption: BEDRIJF
+				measure 'Company Label'
+					caption: Bedrijfslabel
+			table 'Sustainability Ledger Entries'
+				caption: Duurzaamheidsposten
+				column 'Entry No.'
+					caption: Postnr.
+				column Description
+					caption: Omschrijving
+				column 'Wat. Intensity'
+					caption: Waterintensiteit
+				column 'Water Type'
+					caption: Type water
+				column 'Wate/Waste Intensity Type'
+					caption: Type intensiteit water/afval
+				column 'Document Type'
+					caption: Documenttype
+				measure 'CO2 Emissions'
+					caption: CO2-uitstoot
+				measure 'CH4 Emissions'
+					caption: CH4-uitstoot
+				measure 'CO2 Emissions Balance'
+					caption: Saldo CO2-uitstoot
+				measure 'CO2 Emissions Balance at Date'
+					caption: Saldo op datum CO2-uitstoot
+				measure 'N2O Emissions'
+					caption: N2O-uitstoot
+				measure 'CO2e Emissions'
+					caption: CO2e-uitstoot
+				measure 'CH4 Emissions Balance at Date'
+					caption: Saldo op datum CH4-uitstoot
+				measure 'CH4 Emissions Balance'
+					caption: Saldo CH4-uitstoot
+				measure 'Water Intensity'
+					caption: Waterintensiteit
+				measure 'Waste Intensity'
+					caption: Afvalintensiteit
+				measure 'Discharged Into Water'
+					caption: Geloosd in water
+				measure 'CO2e Emissions Balance'
+					caption: Saldo CO2e-uitstoot
+				measure 'CO2e Emissions Balance at Date'
+					caption: Saldo op datum CO2e-uitstoot
+				measure 'Discharged Into Water Balance at Date'
+					caption: Saldo op datum geloosd in water
+				measure 'Discharged Into Water Balance'
+					caption: Saldo geloosd in water
+				measure 'N2O Emissions Balance'
+					caption: Saldo N2O-uitstoot
+				measure 'N2O Emissions Balance at Date'
+					caption: Saldo op datum N2O-uitstoot
+				measure 'Waste Intensity Balance at Date'
+					caption: Saldo op datum afvalintensiteit
+				measure 'Waste Intensity Balance'
+					caption: Saldo afvalintensiteit
+				measure 'Water Intensity Balance'
+					caption: Saldo waterintensiteit
+				measure 'Water Intensity Balance at Date'
+					caption: Saldo op datum waterintensiteit
+				measure 'CO2 Baseline'
+					caption: CO2-basislijn
+				measure 'CH4 Baseline'
+					caption: CH4-basislijn
+				measure 'CH4 vs Baseline (%)'
+					caption: CH4 versus basislijn (%)
+				measure 'N2O Baseline'
+					caption: N2O-basislijn
+				measure 'N2O vs Baseline (%)'
+					caption: N2O versus basislijn (%)
+				measure 'CO2 vs Baseline (%)'
+					caption: CO2 versus basislijn (%)
+				measure 'Water Baseline'
+					caption: Basislijn water
+				measure 'Waste Baseline'
+					caption: Basislijn afval
+				measure 'Water vs Baseline (%)'
+					caption: Water versus basislijn (%)
+				measure 'Waste vs Baseline (%)'
+					caption: Afval versus basislijn (%)
+				measure 'CO2e Baseline'
+					caption: CO2e-basislijn
+				measure 'CO2e vs Baseline (%)'
+					caption: CO2e versus basislijn (%)
+				measure 'Purchased Carbon Credits'
+					caption: Ingekochte koolstofkredieten
+				measure 'Discharged Into Water Baseline'
+					caption: Basislijn geloosd water
+				measure 'Discharged Into Water vs Baseline (%)'
+					caption: Waterlozing versus basislijn (%)
+				measure 'CO2e Emissions (Excl Credits)'
+					caption: CO2e-uitstoot (excl. kredieten)
+				measure 'Water Intensity PY'
+					caption: Waterintensiteit VJ
+				measure 'Water Intensity YOY'
+					caption: Watermutatie JTJ
+				measure 'Waste Intensity PY'
+					caption: Afval VJ
+				measure 'Waste Intensity YOY'
+					caption: Afvalmutatie JTJ
+				measure 'Discharged Into Water PY'
+					caption: Geloosd in water VJ
+				measure 'Discharged Into Water YOY'
+					caption: Geloosd in water JTJ
+				measure 'Discharged Into Water PD'
+					caption: PG geloosd in water
+				measure 'Waste Intensity PD'
+					caption: PG afval
+				measure 'Water Intensity PD'
+					caption: PG waterintensiteit
+				measure 'Water Intensity DOD'
+					caption: Watermutatie dag-over-dag
+				measure 'Waste Intensity DOD'
+					caption: Afvalmutatie dag-voor-dag
+				measure 'Discharged Into Water DOD'
+					caption: Geloosd in water dag-voor-dag
+				measure 'Base Link'
+					caption: Basiskoppeling
+				measure 'Sustainability Ledger Entries Link'
+					caption: Koppeling Duurzaamheidsposten
+				measure 'Months in Context'
+					caption: Maanden in context
+			table 'Sustainability Accounts'
+				caption: Duurzaamheidsrekeningen
+				column 'Sustainability Account No.'
+					caption: Nr. van duurzaamheidsrekening
+				column 'Sustainability Account Name'
+					caption: Naam van duurzaamheidsrekening
+				column 'Sustainability Account Category'
+					caption: Categorie van duurzaamheidsrekening
+				column 'Sustainability Account Sub-Category'
+					caption: Subcategorie van duurzaamheidsrekening
+			table Country/Region
+				caption: Land/regio
+				column 'Country Region Code'
+					caption: Land/regio-code
+				column 'Country Region Name'
+					caption: Land/regio-naam
+			table 'Responsibility Centre'
+				caption: Divisie
+				column 'Responsibility Centre Code'
+					caption: Divisiecode
+				column 'Responsibility Centre Name'
+					caption: Divisienaam
+				measure 'Facility Capacity'
+					caption: Faciliteitscapaciteit
+			table 'Sustainability Goals'
+				caption: Duurzaamheidsdoelen
+				column 'Score Card No.'
+					caption: Scorekaartnr.
+				column 'No.'
+					caption: Nr.
+				column Name
+					caption: Naam
+				column Owner
+					caption: Eigenaar
+				column 'Target Value For CO2'
+					caption: Doelwaarde voor CO2
+				column 'Target Value For CH4'
+					caption: Doelwaarde voor CH4
+				column 'Target Value For N2O'
+					caption: Doelwaarde voor N2O
+				column 'Target Value For Water Intensity'
+					caption: Doelwaarde voor waterintensiteit
+				column 'Target Value For Waste Intensity'
+					caption: Doelwaarde voor afvalintensiteit
+				column 'Main Goal'
+					caption: Hoofddoel
+				column 'Start Date'
+					caption: Begindatum
+				column 'End Date'
+					caption: Einddatum
+				column 'Baseline Start Date'
+					caption: Begindatum basislijn
+				column 'Baseline End Date'
+					caption: Einddatum basislijn
+				measure 'CO2 Target'
+					caption: CO2-doel
+				measure 'CO2 Realized (%)'
+					caption: Gerealiseerde CO2 (%)
+				measure 'CH4 Target'
+					caption: CH4-doel
+				measure 'N2O Target'
+					caption: N2O-doel
+				measure 'CH4 Realized (%)'
+					caption: Gerealiseerde CH4 (%)
+				measure 'N2O Realized (%)'
+					caption: Gerealiseerde N2O (%)
+				measure 'Water Target'
+					caption: Waterdoel
+				measure 'Waste Target'
+					caption: Afvaldoel
+				measure 'Water Realized (%)'
+					caption: Gerealiseerd water (%)
+				measure 'Waste Realized (%)'
+					caption: Gerealiseerd afval (%)
+				measure 'CO2e Realized (%)'
+					caption: Gerealiseerde CO2e (%)
+				measure 'CO2 Current Value'
+					caption: Huidige CO2-waarde
+				measure 'CH4 Current Value'
+					caption: Huidige CH4-waarde
+				measure 'N2O Current Value'
+					caption: Huidige N2O-waarde
+				measure 'CO2e Current Value'
+					caption: Huidige CO2e-waarde
+			table 'Employee Ledger Entries'
+				caption: Werknemersposten
+				column 'Entry No.'
+					caption: Postnr.
+				column 'Document Type'
+					caption: Documenttype
+				column 'Document No.'
+					caption: Documentnr.
+				column Description
+					caption: Omschrijving
+				measure 'Employee Amount'
+					caption: Bedrag
+				measure 'Employee Ledger Entries Link'
+					caption: Koppeling Werknemersposten
+			table 'Employee Qualifications'
+				caption: Werknemerskwalificaties
+				column 'Employee Qualification Codes'
+					caption: Werknemerskwalificatiecodes
+				measure 'Employee Qualifications'
+					caption: Aantal werknemerskwalificaties
+			table 'Emission Fees'
+				caption: Uitstootkosten
+				column 'Emission Type'
+					caption: Type uitstoot
+				column 'Scope Type'
+					caption: Type bereik
+				column 'Starting Date'
+					caption: Begindatum
+				column 'Ending Date'
+					caption: Einddatum
+				column 'Country Region Code'
+					caption: Land/regio-code
+				column 'Responsibility Centre'
+					caption: Divisie
+				column 'Carbon Fee'
+					caption: CO2-tarief
+				column 'Carbon Equivalent Factor'
+					caption: Koolstofequivalente factor
+				measure 'CO2e Target'
+					caption: CO2e-doel
+				measure 'CO2 Carbon Equivalent'
+					caption: CO2-koolstofequivalent
+				measure 'CH4 Carbon Equivalent'
+					caption: CH4-koolstofequivalent
+				measure 'N2O Carbon Equivalent'
+					caption: N2O-koolstofequivalent
+			table 'Employee Absences'
+				caption: Werknemersafwezigheid
+				column 'Entry No'
+					caption: Postnr.
+				column 'From Date'
+					caption: Begindatum
+				column 'To Date'
+					caption: Einddatum
+				column 'Cause of Absence'
+					caption: Afwezigheidsreden
+				column Description
+					caption: Omschrijving
+				measure 'Employee Absences'
+					caption: Hoeveelheid
+				measure 'Absence Hours (%)'
+					caption: Afwezigheidsuren (%)
+			table 'Sustainability Sub-Account Categories'
+				caption: Categorieën duurzaamheidssubrekeningen
+				column 'Sub-Category Description'
+					caption: Omschrijving van subcategorie
+				column 'Renewable Energy'
+					caption: Hernieuwbare energie
+			table Employees
+				caption: Werknemers
+				column 'Employee No.'
+					caption: Werknemersnr.
+				column 'Employee Full Name'
+					caption: Volledige naam werknemer
+				column 'Employee First Name'
+					caption: Voornaam werknemer
+				column 'Employee Last Name'
+					caption: Achternaam werknemer
+				column 'Employee Gender'
+					caption: Geslacht werknemer
+				column 'Employee Union Code'
+					caption: Vakbondscode werknemer
+				column 'Employee Status'
+					caption: Werknemersstatus
+				column 'Employee Cause of Inactivity'
+					caption: Reden van inactiviteit werknemer
+				column 'Employee Inactive Date'
+					caption: Werknemer inactief sinds
+				column 'Employee Grounds for Termination'
+					caption: Ontslagredenen werknemer
+				column 'Employee Date of Birth'
+					caption: Geboortedatum werknemer
+				column Age
+					caption: Leeftijd
+				column 'Age Distribution'
+					caption: Leeftijdsdistributie
+				measure 'No. of Employees'
+					caption: Aantal werknemers
+				measure 'No. of Male Employees'
+					caption: Aantal mannelijke werknemers
+				measure 'No. of Female Employees'
+					caption: Aantal vrouwelijke werknemers
+				measure 'No. of Other Employees'
+					caption: Aantal overige werknemers
+				measure 'Male Employees (%)'
+					caption: Mannelijke werknemers (%)
+				measure 'Female Employees (%)'
+					caption: Vrouwelijke werknemers (%)
+				measure 'Other Employees (%)'
+					caption: Overige werknemers (%)
+			table ENVIRONMENT
+				caption: OMGEVING
+

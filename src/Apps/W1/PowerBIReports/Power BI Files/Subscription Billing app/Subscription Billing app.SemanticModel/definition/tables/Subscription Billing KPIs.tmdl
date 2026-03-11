@@ -1,0 +1,930 @@
+table 'Subscription Billing KPIs'
+	lineageTag: e346f0a9-0b2f-43c1-a6d1-92d16991e765
+
+	measure 'Mon. Recurring Revenue' =
+			
+			CALCULATE (
+			    [Base KPI MRR],
+			    'Customer Contract Line'[Line Active],
+			    'Calc. Group - Tec. Transformations'[calculation Type] = "Customer Contract by Analysis Date"
+			)
+		formatString: #,0.00
+		displayFolder: Recurring Revenue
+		lineageTag: efa16235-29ec-4359-b767-4a1a45c5f4e9
+
+	measure 'Mon. Recurring Cost' =
+			
+			CALCULATE (
+			    [Base KPI MRC],
+			    'Vendor Contract Line'[Line Active],
+			    'Calc. Group - Tec. Transformations'[calculation Type] = "Vendor Contract by Analysis Date"
+			)
+		formatString: #,0.00
+		displayFolder: Recurring Cost
+		lineageTag: d67d9f11-460a-4c86-8b8a-f45107b68634
+
+		annotation PBI_FormatHint = {"isDecimal":true}
+
+	measure 'Customer Deferrals' =
+			
+			- CALCULATE (
+			    SUM ( 'Customer Contract Deferrals'[Amount] ),
+			    CROSSFILTER ( 'Subscription'[Subscription Package Key], 'Vendor Contract Line'[Subscription Package Key], BOTH )
+			)
+		formatString: #,0.00
+		displayFolder: Deferrals
+		lineageTag: 8e3a6640-ba6c-4e85-bca9-1b3f173b953b
+
+		annotation PBI_FormatHint = {"isDecimal":true}
+
+	measure 'Vendor Deferrals' =
+			
+			CALCULATE (
+			    SUM ( 'Vendor Contract Deferrals'[Amount] ),
+			    CROSSFILTER ( 'Subscription'[Subscription Package Key], 'Customer Contract Line'[Subscription Package Key], BOTH )
+			)
+		formatString: #,0.00
+		displayFolder: Deferrals
+		lineageTag: ff5e3370-233c-4ce8-a15f-5f36821380bb
+
+		annotation PBI_FormatHint = {"isDecimal":true}
+
+	measure 'Annual Recurring Revenue' =
+			
+			CALCULATE (
+			    [Base KPI ARR UBB handling],
+			    'Customer Contract Line'[Line Active],
+			    'Calc. Group - Tec. Transformations'[calculation Type] = "Customer Contract by Analysis Date"
+			)
+		formatString: #,0.00
+		displayFolder: Recurring Revenue
+		lineageTag: 95b4f787-d728-4f46-968c-e7650bacd0d5
+
+	measure 'Total Contract Value' =
+			
+			CALCULATE (
+			    [Base KPI TCV UBB handling],
+			    'Calc. Group - Tec. Transformations'[calculation Type] = "Customer Contract by Analysis Date"
+			)
+		formatString: #,0.00
+		displayFolder: Total Contract Value
+		lineageTag: d28aa5fe-b07c-437f-9674-b3e2e749092c
+
+		annotation PBI_FormatHint = {"isDecimal":true}
+
+	measure 'Base KPI TCV' = sum('Customer Contract Line'[Total Contract Value LCY])
+		formatString: #,0.00
+		isHidden
+		displayFolder: Technical
+		lineageTag: 4bda026e-5e8c-4597-9fba-2b7dd55416d6
+
+		annotation PBI_FormatHint = {"isDecimal":true}
+
+	measure 'Base KPI MRC' = sum('Vendor Contract Line'[Monthly Recurring Cost LCY])
+		formatString: #,0.00
+		isHidden
+		displayFolder: Technical
+		lineageTag: 17973827-de01-496c-94df-7cae87d2366f
+
+		annotation PBI_FormatHint = {"isDecimal":true}
+
+	measure 'Base KPI MRR' = sum('Customer Contract Line'[Monthly Recurring Revenue LCY])
+		formatString: #,0.00
+		isHidden
+		displayFolder: Technical
+		lineageTag: b86c47d0-314e-4d94-b901-13c3c5b2157c
+
+		annotation PBI_FormatHint = {"isDecimal":true}
+
+	measure 'Base KPI ARR' = ```
+			sum('Customer Contract Line'[Annual Recurring Revenue LCY])
+			
+			
+			```
+		formatString: #,0.00
+		isHidden
+		displayFolder: Technical
+		lineageTag: 6f221f36-6ccc-44a4-9070-91bd51409b1a
+
+		annotation PBI_FormatHint = {"isDecimal":true}
+
+	measure 'Count Cust. Deferrals' = countrows('Customer Contract Deferrals')
+		formatString: 0
+		isHidden
+		displayFolder: Technical
+		lineageTag: 1f5eb7f9-2c47-439c-a335-950b3aa751e7
+
+	measure 'Count Vend. Deferrals' = countrows('Vendor Contract Deferrals')
+		formatString: 0
+		isHidden
+		displayFolder: Technical
+		lineageTag: 0ebbdc3a-6024-49f4-b6c4-6d7dd3f447a7
+
+	measure 'Forecast Sales' =
+			
+			VAR handleUBBasConstant =
+			    SELECTEDVALUE ( 'UBB handling'[Treat Usage Based Billing as constant], true )
+			VAR forecastPeriods =
+			    CALCULATETABLE (
+			        VALUES ( 'Date'[Calendar Month Year] ),
+			        'Date'[Is Forecast Period] = true
+			    )
+			RETURN
+			    SUMX (
+			        forecastPeriods,
+			        VAR firstOfMonth =
+			            CALCULATE ( MIN ( 'Date'[Date] ) )
+			        RETURN
+			            CALCULATE (
+			                IF (
+			                    handleUBBasConstant =true,
+			                    [Base KPI MRR],
+			                    CALCULATE (
+			                        [Base KPI MRR],
+			                        KEEPFILTERS ( 'Customer Contract Line'[Is Usage Based Billing] = false )
+			                    )
+			                ),
+			                USERELATIONSHIP ( 'Dimension Sets'[dimensionSetID], 'Vendor Contract Line'[Dimension Set ID] ),
+			                CROSSFILTER ( 'Subscription'[Subscription Package Key], 'Vendor Contract Line'[Subscription Package Key], BOTH ),
+			                'Analysis Date'[is current Version],
+			                'Customer Contract Line'[Forecast Until] >= firstOfMonth,
+			                'Customer Contract Line'[Duration Start Date] <= firstOfMonth
+			            )
+			    )
+			        + IF (
+			            handleUBBasConstant = false,
+			            // in this case usageBasedbilling is not included above and should be counted for the current month only which matches MRR
+			            CALCULATE (
+			                [Mon. Recurring Revenue],
+			                'Analysis Date'[is current Version],
+			                KEEPFILTERS ( 'Customer Contract Line'[Is Usage Based Billing] = true)
+			            )
+			        )
+		formatString: #,0.00
+		displayFolder: Forecast
+		lineageTag: fab3b270-bd2c-44ed-a3a6-ab77aa69f945
+
+		annotation PBI_FormatHint = {"isDecimal":true}
+
+	measure 'Mon. Recurring Revenue Churn (-)' = CALCULATE ( [Change in Mon. Recurring Revenue], 'Customer Contract Changes'[Change Type] = "Churn" )
+		formatString: #,0.00
+		isHidden
+		displayFolder: Churn & New
+		lineageTag: 7c9977a8-9dff-42b1-9829-834424b1f1ee
+
+		annotation PBI_FormatHint = {"isDecimal":true}
+
+	measure 'Mon. Recurring Cost PY' =
+			CALCULATE (
+			    CALCULATE ( [Mon. Recurring Cost], SAMEPERIODLASTYEAR ( 'Date'[Date] ) ),
+			    KEEPFILTERS ( 'Date'[Data Range Analysis] )
+			)
+		formatString: #,0.00
+		displayFolder: Recurring Cost
+		lineageTag: d2cb18bd-0e6c-4489-a3cd-a4a5cbd6ba41
+
+		annotation PBI_FormatHint = {"isDecimal":true}
+
+	measure 'Mon. Recurring Cost Δ vs. PY' = [Mon. Recurring Cost] - [Mon. Recurring Cost PY]
+		formatString: #,0.00
+		displayFolder: Recurring Cost
+		lineageTag: d3037065-0a3b-4819-b021-e6a732ce8670
+
+		annotation PBI_FormatHint = {"isCustom":true}
+
+	measure 'Mon. Recurring Revenue Churn' = [Mon. Recurring Revenue Churn (-)] * -1
+		formatString: #,0.00
+		displayFolder: Churn & New
+		lineageTag: 72940ea8-c027-427e-8310-46864947d133
+
+	measure 'Mon. Recurring Revenue PY' =
+			CALCULATE (
+			    CALCULATE ( [Mon. Recurring Revenue], SAMEPERIODLASTYEAR ( 'Date'[Date] ) ),
+			    KEEPFILTERS ( 'Date'[Data Range Analysis] )
+			)
+		formatString: #,0.00
+		displayFolder: Recurring Revenue
+		lineageTag: 7d1bb0d4-ffd8-4611-b01b-acc089d04451
+
+		annotation PBI_FormatHint = {"isDecimal":true}
+
+	measure 'Mon. Recurring Revenue New' = CALCULATE ( [Change in Mon. Recurring Revenue], 'Customer Contract Changes'[Change Type] = "New" )
+		formatString: #,0.00
+		displayFolder: Churn & New
+		lineageTag: 8b529b8b-89d2-41b2-8d69-f0cf8d59851c
+
+		annotation PBI_FormatHint = {"isDecimal":true}
+
+	measure 'Mon. Recurring Revenue Δ vs. PY' = [Mon. Recurring Revenue] - [Mon. Recurring Revenue PY]
+		formatString: #,0.00
+		displayFolder: Recurring Revenue
+		lineageTag: 47de3afc-2f67-49d2-84f9-988fef51d00b
+
+		annotation PBI_FormatHint = {"isCustom":true}
+
+	measure 'Mon. Net Profit Amount' = [Mon. Recurring Revenue] - [Mon. Recurring Cost]
+		formatString: #,0.00
+		displayFolder: Recurring Profit
+		lineageTag: 1dd703f4-3a19-4c3a-8664-f08c9e914937
+
+		annotation PBI_FormatHint = {"isDecimal":true}
+
+	measure 'Mon. Net Profit %' = DIVIDE([Mon. Net Profit Amount],[Mon. Recurring Revenue])
+		formatString: #,0.0\ %;-#,0.0\ %;#,0.0\ %
+		displayFolder: Recurring Profit
+		lineageTag: a73a8e79-eaed-4806-8630-1b4b8a4d5bb5
+
+	measure 'Mon. Net Profit PY' =
+			CALCULATE (
+			    CALCULATE ( [Mon. Net Profit Amount], SAMEPERIODLASTYEAR ( 'Date'[Date] ) ),
+			    KEEPFILTERS ( 'Date'[Data Range Analysis] )
+			)
+		formatString: #,0.00
+		displayFolder: Recurring Profit
+		lineageTag: 9487fe20-d413-4a48-9d21-c7241abdaeac
+
+		annotation PBI_FormatHint = {"isDecimal":true}
+
+	measure 'Mon. Net Profit Δ vs. PY' = [Mon. Net Profit Amount] - [Mon. Net Profit PY]
+		formatString: #,0.00
+		displayFolder: Recurring Profit
+		lineageTag: ef21c24d-5a63-416e-8df1-b83d74fa8de6
+
+		annotation PBI_FormatHint = {"isCustom":true}
+
+	measure 'Change in Mon. Recurring Revenue' = ```
+			
+			CALCULATE (
+			    [Base KPI MRR Change],
+			    USERELATIONSHIP ( 'Dimension Sets'[dimensionSetID], 'Customer Contract Line'[Dimension Set Id] ),
+			    CROSSFILTER ( 'Subscription'[Subscription Package Key], 'Vendor Contract Line'[Subscription Package Key], BOTH )
+			)
+			
+			```
+		formatString: #,0.00
+		displayFolder: Churn & New
+		lineageTag: 374c5d52-f0dd-479d-a912-98f2c6db0b05
+
+	measure 'Total Contract Value PY' =
+			CALCULATE (
+			    CALCULATE ([Total Contract Value], SAMEPERIODLASTYEAR ( 'Date'[Date] ) ),
+			    KEEPFILTERS ( 'Date'[Data Range Analysis] )
+			)
+		formatString: #,0.00
+		displayFolder: Total Contract Value
+		lineageTag: d1e4f767-4d2e-4701-bd7f-a33587ada0fe
+
+		annotation PBI_FormatHint = {"isDecimal":true}
+
+	measure 'Total Contract Value Δ vs. PY' = [Total Contract Value] - [Total Contract Value PY]
+		formatString: #,0.00
+		displayFolder: Total Contract Value
+		lineageTag: eeecc9d3-4aee-4cd7-80fa-af595bf90f04
+
+		annotation PBI_FormatHint = {"isCustom":true}
+
+	measure 'Last Update Analysis Entries' = CALCULATE(max('Analysis Date'[Analysis Date]), all('Analysis Date'))
+		formatString: Short Date
+		displayFolder: Meta Information
+		lineageTag: ab1f34d8-7a54-4395-9910-13b1db61857a
+
+	measure 'Last Update Semantic Model' = SELECTEDVALUE('Date Table Setup'[Last Refresh Time])
+		formatString: Short Date
+		displayFolder: Meta Information
+		lineageTag: 4746be26-684e-418e-a5bb-26b345b3ff0f
+
+	measure 'Param Environment' = SELECTEDVALUE('Meta Information'[Environment])
+		displayFolder: Meta Information
+		lineageTag: 61ee2d80-29c7-4831-87a5-ea6031175dc9
+
+	measure 'Param Company' = SELECTEDVALUE('Meta Information'[COMPANY])
+		displayFolder: Meta Information
+		lineageTag: f8228d8b-fb7e-4fe1-aeb0-8724079f0434
+
+	measure 'Base KPI MRR Change' = sum('Customer Contract Changes'[MRR Delta])
+		formatString: #,0.00
+		isHidden
+		displayFolder: Technical
+		lineageTag: fc105b8a-e3ec-4931-a9b3-009e3b89499b
+
+		annotation PBI_FormatHint = {"isDecimal":true}
+
+	measure 'Mon. Recurring Revenue Upgrade' = CALCULATE ( [Change in Mon. Recurring Revenue], 'Customer Contract Changes'[Change Type] = "Upgrade" )
+		formatString: #,0.00
+		displayFolder: Churn & New
+		lineageTag: dff3b741-89d6-4ce1-a52b-1e3903b4fea7
+
+		annotation PBI_FormatHint = {"isDecimal":true}
+
+	measure 'Mon. Recurring Revenue Change UBB' = CALCULATE ( [Change in Mon. Recurring Revenue], 'Customer Contract Changes'[Change Type] = "UBB" )
+		formatString: #,0.00
+		displayFolder: Churn & New
+		lineageTag: 47f61488-d665-4dc8-877d-40e8d5d3e3b3
+
+		annotation PBI_FormatHint = {"isDecimal":true}
+
+	measure 'Mon. Recurring Revenue Downgrade (-)' = CALCULATE ( [Change in Mon. Recurring Revenue], 'Customer Contract Changes'[Change Type] = "Downgrade" )
+		formatString: #,0.00
+		isHidden
+		displayFolder: Churn & New
+		lineageTag: 71465441-8d49-4012-a658-8fa0b613c02a
+
+		annotation PBI_FormatHint = {"isDecimal":true}
+
+	measure 'Reporting Currency' = SELECTEDVALUE('Meta Information'[Currency Code])
+		displayFolder: Meta Information
+		lineageTag: c3d6f1e4-281f-4a8b-b012-f3f376b759fb
+
+	measure 'Base KPI TCV UBB' = ```
+			
+			    SUM ( 'Customer Contract Line'[Total Contract Value UBB LCY] )
+			```
+		formatString: #,0.00
+		isHidden
+		displayFolder: Technical
+		lineageTag: 4508bfbd-efa8-4f89-b535-1281ab2fd6c4
+
+		annotation PBI_FormatHint = {"isDecimal":true}
+
+	measure 'Base KPI ARR UBB' = ```
+			
+			    SUM ( 'Customer Contract Line'[Annual Recurring Revenue UBB LCY] )
+			```
+		formatString: #,0.00
+		isHidden
+		displayFolder: Technical
+		lineageTag: 8bb6ea96-4ebc-4423-80bb-a3ba6e8a9a66
+
+		annotation PBI_FormatHint = {"isDecimal":true}
+
+	measure 'Active Customers' = COUNTROWS ( FILTER ( 'Customers', [Mon. Recurring Revenue] > 0 ) )
+		formatString: #,0
+		displayFolder: Active Costomers
+		lineageTag: fe66cb5b-96ae-4d9a-b313-c3bd58b9ff3b
+
+	measure 'Active Customers PY' =
+			CALCULATE (
+			    CALCULATE ( [Active Customers], SAMEPERIODLASTYEAR ( 'Date'[Date] ) ),
+			    KEEPFILTERS ( 'Date'[Data Range Analysis] )
+			)
+		formatString: #,0
+		displayFolder: Active Costomers
+		lineageTag: 7dce4c20-b81e-4300-b18d-a08795754ee7
+
+	measure 'Active Customers Δ vs. PY' = [Active Customers]-[Active Customers PY]
+		formatString: " +#,0;-#,0;#,0"
+		displayFolder: Active Costomers
+		lineageTag: c23d2ed4-2b55-4fbf-b861-c00111345b0c
+
+		annotation PBI_FormatHint = {"isCustom":true}
+
+	measure 'Base KPI Customer Billing Forecast' = ```
+			sum('Customer Billing Forecast'[Billing Amount LCY])
+			
+			```
+		formatString: #,0.00
+		isHidden
+		displayFolder: Technical
+		lineageTag: b9da2bf3-a304-4b6e-8d3a-74da5c517eff
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Base KPI Customer Billing Forecast UBB' =
+			
+			SUM ( 'Customer Billing Forecast'[Billing Amount UBB LCY] )
+		formatString: #,0.00
+		isHidden
+		displayFolder: Technical
+		lineageTag: d3d54a5e-34d5-428b-9ec2-cfd868a0469e
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Customer Billing Forecast' =
+			
+			CALCULATE (
+			    [Base KPI Customer Billing Forecast UBB handling],
+			    CROSSFILTER ( 'Subscription'[Subscription Package Key], 'Vendor Contract Line'[Subscription Package Key], BOTH )
+			)
+		formatString: #,0.00
+		displayFolder: Forecast
+		lineageTag: 5ce8bb92-74cf-496a-aa24-7f785e7434d3
+
+		annotation PBI_FormatHint = {"isDecimal":true}
+
+	measure 'Base KPI ARR UBB handling' =
+			
+			VAR handleUBBasConstant =
+			    SELECTEDVALUE ( 'UBB handling'[Treat Usage Based Billing as constant], true)
+			RETURN
+			    IF.EAGER (
+			        handleUBBasConstant,
+			        [Base KPI ARR],
+			        [Base KPI ARR UBB]
+			            + CALCULATE ( [Base KPI ARR], 'Customer Contract Line'[Is Usage Based Billing] = false )
+			    )
+		formatString: #,0.00
+		isHidden
+		displayFolder: Technical
+		lineageTag: dad3da13-cae6-46c5-a3d0-43ca2ea28af9
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Base KPI TCV UBB handling' =
+			
+			VAR handleUBBasConstant =
+			    SELECTEDVALUE ( 'UBB handling'[Treat Usage Based Billing as constant],true )
+			RETURN
+			    IF.EAGER (
+			        handleUBBasConstant ,
+			        [Base KPI TCV],
+			        [Base KPI TCV UBB]
+			            + CALCULATE ( [Base KPI TCV], 'Customer Contract Line'[Is Usage Based Billing] = false )
+			    )
+		formatString: #,0.00
+		isHidden
+		displayFolder: Technical
+		lineageTag: cacb70ae-62ec-4567-9948-8ceb66850644
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Base KPI Customer Billing Forecast UBB handling' =
+			
+			VAR handleUBBasConstant =
+			    SELECTEDVALUE ( 'UBB handling'[Treat Usage Based Billing as constant], true)
+			RETURN
+			    IF.EAGER (
+			        handleUBBasConstant,
+			        [Base KPI Customer Billing Forecast],
+			        [Base KPI Customer Billing Forecast UBB]
+			            + CALCULATE (
+			                [Base KPI Customer Billing Forecast],
+			                'Customer Contract Line'[Is Usage Based Billing] = false
+			            )
+			    )
+		formatString: #,0.00
+		isHidden
+		displayFolder: Technical
+		lineageTag: 5fbc253d-d97c-498d-bf53-319e005f96b7
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Base KPI Vendor Billing Forecast' = ```
+			sum('Vendor Billing Forecast'[Billing Amount LCY])
+			
+			```
+		formatString: #,0.00
+		isHidden
+		displayFolder: Technical
+		lineageTag: 66d90490-f1b7-4257-98d0-6682f7602dc8
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Base KPI Vendor Billing Forecast UBB' = ```
+			
+			sum('Vendor Billing Forecast'[Billing Amount UBB LCY])
+			
+			```
+		formatString: #,0.00
+		isHidden
+		displayFolder: Technical
+		lineageTag: 66c7037c-9dee-48a3-93af-04a6e1963aa5
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Base KPI Vendor Billing Forecast UBB handling' =
+			
+			VAR handleUBBasConstant =
+			    SELECTEDVALUE ( 'UBB handling'[Treat Usage Based Billing as constant], true )
+			RETURN
+			    IF.EAGER (
+			        handleUBBasConstant ,
+			        [Base KPI Vendor Billing Forecast],
+			        [Base KPI Vendor Billing Forecast UBB]
+			            + CALCULATE (
+			                [Base KPI Vendor Billing Forecast],
+			                'Vendor Contract Line'[Is Usage Based Billing] = false
+			            )
+			    )
+		formatString: #,0.00
+		isHidden
+		displayFolder: Technical
+		lineageTag: 0355068b-00ca-40b0-87d9-fc2aed435341
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Vendor Billing Forecast' =
+			
+			CALCULATE (
+			    [Base KPI Vendor Billing Forecast UBB handling],
+			    CROSSFILTER ( 'Subscription'[Subscription Package Key], 'Customer Contract Line'[Subscription Package Key], BOTH )
+			)
+		formatString: #,0.00
+		displayFolder: Forecast
+		lineageTag: f5b5dc10-de04-43b4-8c67-8f4d94424af7
+
+		annotation PBI_FormatHint = {"isDecimal":true}
+
+	measure 'Forecast Costs' =
+			
+			VAR handleUBBasConstant =
+			    SELECTEDVALUE ( 'UBB handling'[Treat Usage Based Billing as constant], true)
+			VAR forecastPeriods =
+			    CALCULATETABLE (
+			        VALUES ( 'Date'[Fiscal Month Year] ),
+			        'Date'[Is Forecast Period] = true
+			    )
+			RETURN
+			    SUMX (
+			        forecastPeriods,
+			        VAR firstOfMonth =
+			            CALCULATE ( MIN ( 'Date'[Date] ) )
+			        RETURN
+			            CALCULATE (
+			                IF (
+			                    handleUBBasConstant = true,
+			                    [Base KPI MRC],
+			                    CALCULATE (
+			                        [Base KPI MRC],
+			                        KEEPFILTERS ( 'Vendor Contract Line'[Is Usage Based Billing] = false )
+			                    )
+			                ),
+			                USERELATIONSHIP ( 'Dimension Sets'[dimensionSetID], 'Vendor Contract Line'[Dimension Set ID] ),
+			                CROSSFILTER ( 'Subscription'[Subscription Package Key], 'Customer Contract Line'[Subscription Package Key], BOTH ),
+			                'Analysis Date'[is current Version],
+			                'Vendor Contract Line'[Forecast Until] >= firstOfMonth,
+			                'Vendor Contract Line'[Duration Start Date] <= firstOfMonth
+			            )
+			    )
+			        + IF (
+			            handleUBBasConstant= false,
+			            // in this case usageBasedbilling is not included above and should be counted for the current month only which matches MRR
+			            CALCULATE (
+			                [Mon. Recurring Revenue],
+			                'Analysis Date'[is current Version],
+			                KEEPFILTERS ( 'Customer Contract Line'[Is Usage Based Billing] = true)
+			            )
+			        )
+		formatString: #,0.00
+		displayFolder: Forecast
+		lineageTag: c7bae864-f679-439c-af87-d78742926bc7
+
+		annotation PBI_FormatHint = {"isDecimal":true}
+
+	measure 'Mon. Recurring Revenue Downgrade' = [Mon. Recurring Revenue Downgrade (-)] * -1
+		formatString: #,0.00
+		displayFolder: Churn & New
+		lineageTag: d6fb72a4-ec41-4faa-8abe-795abc243e22
+
+		annotation PBI_FormatHint = {"isDecimal":true}
+
+	measure 'Churn (-)' = [Mon. Recurring Revenue Churn (-)]
+		formatString: #,0.00
+		displayFolder: Page Specific Naming\Revenue Development
+		lineageTag: 97d97364-1e94-42dd-a0a1-50f8c741dab9
+
+	measure 'Downgrade (-)' = [Mon. Recurring Revenue Downgrade (-)]
+		formatString: #,0.00
+		displayFolder: Page Specific Naming\Revenue Development
+		lineageTag: 682b0afe-72bd-417b-81b6-b62616a1f9c0
+
+	measure 'Usage Based Billing Change' = [Mon. Recurring Revenue Change UBB]
+		formatString: #,0.00
+		displayFolder: Page Specific Naming\Revenue Development
+		lineageTag: 1b353d3a-e1a9-4b93-ab99-0317060f1aab
+
+	measure Upgrade = [Mon. Recurring Revenue Upgrade]
+		formatString: #,0.00
+		displayFolder: Page Specific Naming\Revenue Development
+		lineageTag: 04040d7e-b3a4-4069-92cb-e4fb9478ec9f
+
+	measure New = [Mon. Recurring Revenue New]
+		formatString: #,0.00
+		displayFolder: Page Specific Naming\Revenue Development
+		lineageTag: ca15d892-5102-4d5e-8467-41ef46bb0a4b
+
+	measure 'Total Change' = [Change in Mon. Recurring Revenue]
+		formatString: #,0.00
+		displayFolder: Page Specific Naming\Revenue Development
+		lineageTag: 0fbe1130-cb6d-4208-93d3-8d15206728ab
+
+	measure 'Selected Date Range' =
+			
+			FORMAT(Min('Date'[Date]),"Short Date") & " - " & FORMAT(Max('Date'[Date]),"Short Date")
+		displayFolder: Meta Information
+		lineageTag: 1f3c3882-eb8b-45ff-9df5-a24d6d0bb80c
+
+	measure Churn = [Mon. Recurring Revenue Churn]
+		formatString: #,0.00
+		displayFolder: Page Specific Naming\Churn
+		lineageTag: 995319bd-3056-41a9-aca0-17142d85fb8d
+
+	measure Downgrade = [Mon. Recurring Revenue Downgrade]
+		formatString: #,0.00
+		displayFolder: Page Specific Naming\Churn
+		lineageTag: fe462ca3-cb8f-4aa2-8444-acfdd1e4755a
+
+	measure 'MRR End of Period' = [Mon. Recurring Revenue]
+		formatString: #,0.00
+		displayFolder: Page Specific Naming\Churn
+		lineageTag: ac440820-dbc1-4014-9753-dcafa6618075
+
+	measure 'Avg. Mon. Churn Rate %' =
+			
+			VAR __months = CALCULATETABLE(DISTINCT ( 'Date'[Calendar Month Year] ),'Date'[Data Range Analysis])
+			RETURN
+			    DIVIDE (
+			        SUMX (
+			            __months,
+			            DIVIDE (
+			                [Mon. Recurring Revenue Churn],
+			                CALCULATE ( [Mon. Recurring Revenue], PREVIOUSMONTH ( 'Date'[Date] ) )
+			            )
+			        ),
+			        COUNTROWS ( __months )
+			    )
+		formatString: 0.00\ %;-0.00\ %;0.00\ %
+		displayFolder: Churn & New
+		lineageTag: 3180f6bf-8dd2-4555-aee9-0423d81808c1
+
+	measure 'Mon. Avg. Downgrade Rate %' =
+			
+			VAR __months = CALCULATETABLE(DISTINCT ( 'Date'[Calendar Month Year] ),'Date'[Data Range Analysis])
+			RETURN
+			    DIVIDE (
+			        SUMX (
+			            __months,
+			            DIVIDE (
+			                [Mon. Recurring Revenue Downgrade],
+			                CALCULATE ( [Mon. Recurring Revenue], PREVIOUSMONTH ( 'Date'[Date] ) )
+			            )
+			        ),
+			        COUNTROWS ( __months )
+			    )
+		formatString: 0.00\ %;-0.00\ %;0.00\ %
+		displayFolder: Churn & New
+		lineageTag: 6fe53dcc-1f21-4ae4-bc6f-0a0339fd5264
+
+	measure 'Mon. Recurring Revenue Downgrade & Churn' = - CALCULATE ( [Change in Mon. Recurring Revenue], keepfilters('Customer Contract Changes'[Change Type] IN { "Downgrade","Churn"} ))
+		formatString: #,0.00
+		displayFolder: Churn & New
+		lineageTag: 71625eeb-a549-4225-80d0-592eb747e5f3
+
+	measure 'Base Link' =
+			
+			VAR BusinessCentral = "https://businesscentral.dynamics.com/"
+			VAR TenantID = VALUES('Date Table Setup'[tenantID])
+			VAR Environment = VALUES(ENVIRONMENT[ENVIRONMENT])
+			VAR Company = "?company=" & VALUES(COMPANY[COMPANY])
+			RETURN BusinessCentral & TenantID & "/" & Environment & "/" & Company
+		isHidden
+		displayFolder: Back Links
+		lineageTag: 0db7c63f-41da-4f6b-9bd4-64cdf8db75e8
+
+	measure Ranged = ```
+			
+			VAR _FilterTable = VALUES('Date'[Date])
+			VAR IndexedDates =
+			    ADDCOLUMNS(
+			        _FilterTable,
+			        "@Index", RANKX(
+			            SUMMARIZECOLUMNS(
+			                'Date'[Date], _FilterTable
+			            ),
+			            'Date'[Date],
+			            ,
+			            ASC,
+			            DENSE
+			        )
+			    )
+			VAR PreviousIndexedDate =
+			    ADDCOLUMNS(
+			        IndexedDates,
+			        "@Previous Date",
+			            VAR PrevIndex = [@Index] - 1
+			            RETURN SELECTCOLUMNS(
+			                FILTER(IndexedDates, [@Index] = PrevIndex),
+			                [Date])
+			    )
+			 
+			VAR CalculateBreakPoint =
+			    ADDCOLUMNS(
+			        PreviousIndexedDate,
+			        "@Break Point",
+			        IF( NOT DATEDIFF([@Previous Date],'Date'[Date],DAY) = 1, TRUE(), FALSE() )
+			    )
+			VAR BreakPointTable = FILTER(CalculateBreakPoint, [@Break Point] = TRUE())
+			 
+			VAR MaxDate = CALCULATE(MAX('Date'[Date]),_FilterTable)
+			 
+			var NextIndex =
+			    ADDCOLUMNS(
+			        BreakPointTable,
+			        "@NextIndex",
+			        SELECTCOLUMNS(
+			            OFFSET( +1, BreakPointTable ),
+			            [@Index]
+			        ) - 1
+			    )
+			 
+			VAR NextDate =
+			    ADDCOLUMNS(
+			        NextIndex,
+			        "@NextDate",
+			            VAR PrevIndex = [@Index] - 1
+			            RETURN SELECTCOLUMNS(
+			                FILTER(IndexedDates, [@Index] = [@NextIndex]),
+			                [Date])
+			    )
+			 
+			VAR Ranged =
+			ADDCOLUMNS(
+			    NextDate,
+			    "@Range",
+			    IF( ISBLANK([@NextDate]),
+			    FORMAT ( 'Date'[Date], "yyyy-mm-dd" ) & ".." & FORMAT ( MaxDate ,"yyyy-mm-dd"),
+			    FORMAT ( 'Date'[Date], "yyyy-mm-dd" ) & ".." & FORMAT ( [@NextDate] ,"yyyy-mm-dd")
+			    )
+			)
+			 
+			Return CONCATENATEX(Ranged, [@Range], "|")
+			```
+		isHidden
+		displayFolder: Back Links
+		lineageTag: 1c3ee447-cd2c-4624-9406-dacab0992e6b
+
+	measure 'Ranged Dimensions' = ```
+			
+			VAR _FilterTable = VALUES('Dimension Sets'[dimensionSetID])
+			VAR IndexedDimSetID =
+			    ADDCOLUMNS(
+			        _FilterTable,
+			        "@Index", RANKX(
+			            SUMMARIZECOLUMNS(
+			                'Dimension Sets'[dimensionSetID], _FilterTable
+			            ),
+			            'Dimension Sets'[dimensionSetID],
+			            ,
+			            ASC,
+			            DENSE
+			        )
+			    )
+			 
+			VAR PreviousIndexedDimSetID =
+			    ADDCOLUMNS(
+			        IndexedDimSetID,
+			        "@Previous Date",
+			            VAR PrevIndex = [@Index] - 1
+			            RETURN SELECTCOLUMNS(
+			                FILTER(IndexedDimSetID, [@Index] = PrevIndex),
+			                [dimensionSetID])
+			    )
+			 
+			VAR CalculateBreakPoint =
+			    ADDCOLUMNS(
+			        PreviousIndexedDimSetID,
+			        "@Break Point",
+			        IF( NOT 'Dimension Sets'[dimensionSetID] - [@Previous Date] = 1, TRUE(), FALSE()
+			        )
+			    )
+			 
+			VAR BreakPointTable = FILTER(CalculateBreakPoint, [@Break Point] = TRUE())
+			 
+			VAR MaxDimension = CALCULATE(MAX('Dimension Sets'[dimensionSetID]),_FilterTable)
+			 
+			var NextIndex =
+			    ADDCOLUMNS(
+			        BreakPointTable,
+			        "@NextIndex",
+			        SELECTCOLUMNS(
+			            OFFSET( +1, BreakPointTable ),
+			            [@Index]
+			        ) - 1
+			    )
+			 
+			VAR NextDimension =
+			    ADDCOLUMNS(
+			        NextIndex,
+			        "@NextDimension",
+			            VAR PrevIndex = [@Index] - 1
+			            RETURN SELECTCOLUMNS(
+			                FILTER(IndexedDimSetID, [@Index] = [@NextIndex]),
+			                'Dimension Sets'[dimensionSetID])
+			    )
+			 
+			VAR Ranged =
+			ADDCOLUMNS(
+			    NextDimension,
+			    "@Range",
+			    IF( ISBLANK([@NextDimension]),
+			    'Dimension Sets'[dimensionSetID] & ".." & MaxDimension ,
+			    'Dimension Sets'[dimensionSetID] & ".." & [@NextDimension]
+			    )
+			)
+			
+			Return
+			    IF(COUNTROWS(NextDimension) = 1, MaxDimension, CONCATENATEX(Ranged, [@Range], "|"))
+			```
+		isHidden
+		displayFolder: Back Links
+		lineageTag: 6c0d4a0f-cb28-4c3f-a0a0-ebb15fbffb8b
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Customer Deferrals Back Link' = ```
+			
+			VAR CustomerContractDeferralDocumentNos = 
+			        CONCATENATEX(VALUES('Customer Contract Deferrals'[Document No.]), 'Customer Contract Deferrals'[Document No.], "|")
+			VAR CustomerContractDeferralSubscriptionNos = 
+			        CONCATENATEX(VALUES('Customer Contract Deferrals'[Contract No.]), 'Customer Contract Deferrals'[Contract No.], "|")
+			VAR CustomerContractDeferralReleasedStatus = 
+			        CONCATENATEX(VALUES('Is Released'[Is Released Value]), 'Is Released'[Is Released Value], "|")
+			RETURN
+			    [Base Link] 
+			            & "&page=8079&filter='Cust. Sub. Contract Deferral'.'Subscription Contract No.' IS '" & CustomerContractDeferralSubscriptionNos & "'"
+			            & " AND 'Cust. Sub. Contract Deferral'.'Document No.' IS '" & CustomerContractDeferralDocumentNos & "'"
+			            & " AND 'Cust. Sub. Contract Deferral'.'Posting Date' IS " & [Ranged]
+			            & " AND 'Cust. Sub. Contract Deferral'.'Dimension Set ID' IS '" & [Ranged Dimensions] & "'"
+			            & " AND 'Cust. Sub. Contract Deferral'.'Released' IS '" & CustomerContractDeferralReleasedStatus & "'"
+			```
+		displayFolder: Back Links
+		lineageTag: b0e9cd9b-c824-482b-93b8-946fe797d20c
+
+	measure 'Vendor Deferrals Back Link' = ```
+			
+			VAR VendorContractDeferralDocumentNos = 
+			        CONCATENATEX(VALUES('Vendor Contract Deferrals'[Document No.]), 'Vendor Contract Deferrals'[Document No.], "|")
+			VAR VendorContractDeferralSubscriptionNos = 
+			        CONCATENATEX(VALUES('Vendor Contract Deferrals'[Contract No.]), 'Vendor Contract Deferrals'[Contract No.], "|")
+			VAR VendorContractDeferralReleasedStatus = 
+			        CONCATENATEX(VALUES('Is Released'[Is Released Value]), 'Is Released'[Is Released Value], "|")
+			
+			RETURN
+			    [Base Link] 
+			            & "&page=8081&filter='Vend. Sub. Contract Deferral'.'Subscription Contract No.' IS '" & VendorContractDeferralSubscriptionNos & "'"
+			            & " AND 'Vend. Sub. Contract Deferral'.'Document No.' IS '" & VendorContractDeferralDocumentNos & "'"
+			            & " AND 'Vend. Sub. Contract Deferral'.'Posting Date' IS " & [Ranged]
+			            & " AND 'Vend. Sub. Contract Deferral'.'Dimension Set ID' IS '" & [Ranged Dimensions] & "'"
+			            & " AND 'Vend. Sub. Contract Deferral'.'Released' IS '" & VendorContractDeferralReleasedStatus & "'"
+			```
+		displayFolder: Back Links
+		lineageTag: fb40ded3-6eb4-4595-a359-ef320241ce65
+
+	measure 'Customer Contract Line Back Link' = ```
+			
+			VAR ContractLineCustContNos = 
+			        CONCATENATEX(VALUES('Customer Contract Line'[Customer Contract No.]), 'Customer Contract Line'[Customer Contract No.], "|")
+			VAR ContractLineCustContLineNos = 
+			        CONCATENATEX(VALUES('Customer Contract Line'[Customer Contract Line No.]), 'Customer Contract Line'[Customer Contract Line No.], "|")
+			
+			RETURN
+			    [Base Link] 
+			            & "&page=8090&filter='Sub. Contr. Analysis Entry'.'Partner' IS '" & "Customer" & "'"
+			            & " AND 'Sub. Contr. Analysis Entry'.'Subscription Contract No.' IS '" & ContractLineCustContNos & "'"
+			            & " AND 'Sub. Contr. Analysis Entry'.'Subscription Contract Line No.' IS '" & ContractLineCustContLineNos & "'"
+			            & " AND 'Sub. Contr. Analysis Entry'.'Dimension Set ID' IS '" & [Ranged Dimensions] & "'"
+			            & " AND 'Sub. Contr. Analysis Entry'.'Analysis Date' IS '" & [Ranged] & "'"
+			
+			```
+		displayFolder: Back Links
+		lineageTag: fe25274f-9ebf-477c-97a4-790b677123a4
+
+	measure 'Vendor Contract Line Back Link' = ```
+			
+			VAR ContractLineVendContNos = 
+			        CONCATENATEX(VALUES('Vendor Contract Line'[Vendor Contract No.]), 'Vendor Contract Line'[Vendor Contract No.], "|")
+			VAR ContractLineVendContLineNos = 
+			        CONCATENATEX(VALUES('Vendor Contract Line'[Vendor Contract Line No.]), 'Vendor Contract Line'[Vendor Contract Line No.], "|")
+			    
+			RETURN
+			    [Base Link] 
+			            & "&page=8090&filter='Sub. Contr. Analysis Entry'.'Partner' IS '" & "Vendor" & "'"
+			            & " AND 'Sub. Contr. Analysis Entry'.'Subscription Contract No.' IS '" & ContractLineVendContNos & "'"
+			            & " AND 'Sub. Contr. Analysis Entry'.'Subscription Contract Line No.' IS '" & ContractLineVendContLineNos & "'"
+			            & " AND 'Sub. Contr. Analysis Entry'.'Dimension Set ID' IS '" & [Ranged Dimensions] & "'"
+			            & " AND 'Sub. Contr. Analysis Entry'.'Analysis Date' IS '" & [Ranged] & "'"
+			
+			```
+		displayFolder: Back Links
+		lineageTag: 39f6703a-1ae0-4b23-b3e6-88e885731623
+
+	column Value
+		isHidden
+		isAvailableInMdx: false
+		lineageTag: b932f45e-11d1-4f20-82b0-03f6036d51c3
+		summarizeBy: none
+		isNameInferred
+		sourceColumn: [Value]
+
+		annotation SummarizationSetBy = Automatic
+
+	partition 'Subscription Billing KPIs' = calculated
+		mode: import
+		source = ```
+				
+				   {
+				    ("dummy")}
+				  
+				```
+
+	annotation PBI_Id = 1ae73ee762ce4f51baa47a5d16969c61
+

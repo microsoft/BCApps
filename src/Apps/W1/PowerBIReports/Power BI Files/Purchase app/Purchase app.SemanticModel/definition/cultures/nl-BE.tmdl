@@ -1,0 +1,1501 @@
+cultureInfo nl-BE
+	translations
+		model Model
+			table Item
+				caption: Artikel
+				column 'Item No. & Description'
+					caption: Artikelnr. en -beschrijving
+				column 'Item No.'
+					caption: Artikelnr.
+				column 'Item Description'
+					caption: Artikelbeschrijving
+				column 'Item Base Unit of Measure'
+					caption: Basismaateenheid
+				column 'Item Unit Cost (LCY)'
+					caption: Kostprijs per eenheid artikel (LV)
+				column 'Item Inventory Posting Group'
+					caption: Voorraadboekingsgroep
+				column 'Item Category Code'
+					caption: Artikelcategoriecode
+				column 'Item Category Description'
+					caption: Beschrijving van artikelcategorie
+			table Location
+				caption: Locatie
+				column 'Location Code'
+					caption: Locatiecode
+				column 'Location Name'
+					caption: Locatienaam
+				column 'Location Adjustment Bin Code'
+					caption: Opslaglocatiecode locatieherwaardering
+			table Vendor
+				caption: Leverancier
+				column 'Vendor No. & Name'
+					caption: Nr. en naam van leverancier
+				column 'Vendor No.'
+					caption: Leveranciersnr.
+				column 'Vendor Name'
+					caption: Leveranciersnaam
+				column 'Vendor Address'
+					caption: Leveranciersadres
+				column 'Vendor Address 2'
+					caption: Leveranciersadres 2
+				column 'Vendor City'
+					caption: Plaats leverancier
+				column 'Vendor Post Code'
+					caption: Postcode leverancier
+				column 'Vendor State'
+					caption: Staat leverancier
+				column 'Vendor Country/Region Code'
+					caption: Land-/regiocode van leverancier
+				column 'Vendor Posting Group'
+					caption: Leveranciersboekingsgroep
+			table Purchaser
+				caption: Inkoper
+				column 'Purchaser Code'
+					caption: Inkoperscode
+				column 'Purchaser Name'
+					caption: Naam van inkoper
+			table 'Dimension Sets'
+				caption: Dimensiecombinaties
+				column 'Global Dimension 1'
+					caption: Globale dimensie 1
+				column 'Global Dimension 2'
+					caption: Globale dimensie 2
+				column 'Shortcut Dimension 3'
+					caption: Shortcutdimensie 3
+				column 'Shortcut Dimension 4'
+					caption: Shortcutdimensie 4
+				column 'Shortcut Dimension 5'
+					caption: Shortcutdimensie 5
+				column 'Shortcut Dimension 6'
+					caption: Shortcutdimensie 6
+				column 'Shortcut Dimension 7'
+					caption: Shortcutdimensie 7
+				column 'Shortcut Dimension 8'
+					caption: Shortcutdimensie 8
+				column id
+					caption: id
+			table 'Purchase Budget'
+				caption: Inkoopbudget
+				column 'Entry No.'
+					caption: Postnr.
+				column 'Budget Name'
+					caption: Budget
+				column Date
+					caption: Datum
+				measure 'Budget Amount'
+					caption: Budgetbedrag
+				measure 'Budget Quantity'
+					caption: Budgetaantal
+				measure 'Budget Quantity Variance'
+					caption: Verschil budgetaantal
+				measure 'Budget Amount Variance'
+					caption: Verschil budgetbedrag
+				measure 'Budget Amount Variance %'
+					caption: Verschil budgetbedrag %
+				measure 'Budget Quantity Variance %'
+					caption: Verschil budgetaantal %
+			table Date
+				caption: Datum
+				column 'Week Day'
+					caption: Week Dag
+				column 'Calendar Year'
+					caption: Kalender Jaar
+				column 'Calendar Quarter'
+					caption: Kalender Kwartaal
+				column 'Calendar Quarter Year'
+					caption: Kalender Kwartaal Jaar
+				column 'Calendar Month'
+					caption: Kalender Maand
+				column 'Calendar Month Year'
+					caption: Kalender Maand Jaar
+				column 'Calendar Week'
+					caption: Kalender Week
+				column 'Calendar Week Year'
+					caption: Kalender Week Jaar
+				column 'Calendar RelativeWeekPos'
+					caption: Kalender RelatieveWeekPos
+				column 'Calendar RelativeMonthPos'
+					caption: Kalender RelatieveMaandPos
+				column 'Calendar RelativeQuarterPos'
+					caption: Kalender RelatieveKwartaalPos
+				column 'Calendar RelativeYearPos'
+					caption: Kalender RelatieveJaarPos
+				column 'Calendar StartOfMonth'
+					caption: Kalender BeginVanMaand
+				column 'Calendar EndOfMonth'
+					caption: Kalender EindVanMaand
+				column 'Calendar StartOfQuarter'
+					caption: Kalender BeginVanKwartaal
+				column 'Calendar EndOfQuarter'
+					caption: Kalender EindVanKwartaal
+				column 'Calendar StartOfYear'
+					caption: Kalender BeginVanJaar
+				column 'Calendar EndOfYear'
+					caption: Kalender EindVanJaar
+				column 'Calendar MonthDays'
+					caption: Kalender MaandDagen
+				column 'Calendar QuarterDays'
+					caption: Kalender KwartaalDagen
+				column 'Calendar YearDays'
+					caption: Kalender JaarDagen
+				column 'Calendar DayOfMonthNumber'
+					caption: Kalender DagVanMaandNummer
+				column 'Calendar DayOfQuarterNumber'
+					caption: Kalender DagVanKwartaalNummer
+				column 'Calendar DayOfYearNumber'
+					caption: Kalender DagVanJaarNummer
+				column 'Calendar DatePreviousWeek'
+					caption: Kalender DatumVorigeWeek
+				column 'Calendar DatePreviousMonth'
+					caption: Kalender DatumVorigeMaand
+				column 'Calendar DatePreviousQuarter'
+					caption: Kalender DatumVorigKwartaal
+				column 'Calendar DatePreviousYear'
+					caption: Kalender DatumVorigJaar
+				column 'Fiscal Year'
+					caption: Fiscaal Jaar
+				column 'Fiscal Quarter'
+					caption: Fiscaal Kwartaal
+				column 'Fiscal Quarter Year'
+					caption: Fiscaal Kwartaal Jaar
+				column 'Fiscal Month'
+					caption: Fiscaal Maand
+				column 'Fiscal Month Year'
+					caption: Fiscaal Maand Jaar
+				column 'Fiscal Week'
+					caption: Fiscaal Week
+				column 'Fiscal Week Year'
+					caption: Fiscaal Week Jaar
+				column 'Fiscal RelativeWeekPos'
+					caption: Fiscaal RelatieveWeekPos
+				column 'Fiscal RelativeMonthPos'
+					caption: Fiscaal RelatieveMaandPos
+				column 'Fiscal RelativeQuarterPos'
+					caption: Fiscaal RelatieveKwartaalPos
+				column 'Fiscal RelativeYearPos'
+					caption: Fiscaal RelatieveJaarPos
+				column 'Fiscal StartOfMonth'
+					caption: Fiscaal BeginVanMaand
+				column 'Fiscal EndOfMonth'
+					caption: Fiscaal EindVanMaand
+				column 'Fiscal StartOfQuarter'
+					caption: Fiscaal BeginVanKwartaal
+				column 'Fiscal EndOfQuarter'
+					caption: Fiscaal EindVanKwartaal
+				column 'Fiscal StartOfYear'
+					caption: Fiscaal BeginVanJaar
+				column 'Fiscal EndOfYear'
+					caption: Fiscaal EindVanJaar
+				column 'Fiscal MonthDays'
+					caption: Fiscaal MaandDagen
+				column 'Fiscal QuarterDays'
+					caption: Fiscaal KwartaalDagen
+				column 'Fiscal YearDays'
+					caption: Fiscaal JaarDagen
+				column 'Fiscal DayOfMonthNumber'
+					caption: Fiscaal DagVanMaandNummer
+				column 'Fiscal DayOfQuarterNumber'
+					caption: Fiscaal DagVanKwartaalNummer
+				column 'Fiscal DayOfYearNumber'
+					caption: Fiscaal DagVanJaarNummer
+				column 'Fiscal DatePreviousWeek'
+					caption: Fiscaal DatumVorigeWeek
+				column 'Fiscal DatePreviousMonth'
+					caption: Fiscaal DatumVorigeMaand
+				column 'Fiscal DatePreviousQuarter'
+					caption: Fiscaal DatumVorigKwartaal
+				column 'Fiscal DatePreviousYear'
+					caption: Fiscaal DatumVorigJaar
+				column 'FW Year'
+					caption: FW Jaar
+				column 'FW Quarter'
+					caption: FW Kwartaal
+				column 'FW Quarter Year'
+					caption: FW Kwartaal Jaar
+				column 'FW Month'
+					caption: FW Maand
+				column 'FW Month Year'
+					caption: FW Maand Jaar
+				column 'FW Week'
+					caption: FW Week
+				column 'FW Period'
+					caption: FW Periode
+				column 'FW Week Year'
+					caption: FW Week Jaar
+				column 'FW StartOfWeek'
+					caption: FW BeginVanWeek
+				column 'FW EndOfWeek'
+					caption: FW EindVanWeek
+				column 'FW RelativeWeekPos'
+					caption: FW RelatieveWeekPos
+				column 'FW RelativeMonthPos'
+					caption: FW RelatieveMaandPos
+				column 'FW RelativeQuarterPos'
+					caption: FW RelatieveKwartaalPos
+				column 'FW RelativeYearPos'
+					caption: FW RelatieveJaarPos
+				column 'FW StartOfMonth'
+					caption: FW BeginVanMaand
+				column 'FW EndOfMonth'
+					caption: FW EindVanMaand
+				column 'FW StartOfQuarter'
+					caption: FW BeginVanKwartaal
+				column 'FW EndOfQuarter'
+					caption: FW EindVanKwartaal
+				column 'FW StartOfYear'
+					caption: FW BeginVanJaar
+				column 'FW EndOfYear'
+					caption: FW EindVanJaar
+				column 'FW MonthDays'
+					caption: FW MaandDagen
+				column 'FW QuarterDays'
+					caption: FW KwartaalDagen
+				column 'FW YearDays'
+					caption: FW JaarDagen
+				column 'FW DatePreviousWeek'
+					caption: FW DatumVorigeWeek
+				column 'FW DatePreviousMonth'
+					caption: FW DatumVorigeMaand
+				column 'FW DatePreviousQuarter'
+					caption: FW DatumVorigKwartaal
+				column 'FW DatePreviousYear'
+					caption: FW DatumVorigJaar
+				column 'Holiday Name'
+					caption: Vakantienaam
+				column IsWorkingDay
+					caption: IsWorkingDay
+				column 'Day Type'
+					caption: Dagsoort
+				column 'Relative Day'
+					caption: Relatieve Dag
+				hierarchy 'Fiscal Year-Month'
+					caption: Fiscaal Jaar-Maand
+					level 'Fiscal Year'
+						caption: Fiscaal Jaar
+					level 'Fiscal Month Year'
+						caption: Fiscaal Maand Jaar
+				hierarchy 'Fiscal Year-Quarter-Month-Week'
+					caption: Fiscaal Jaar-Kwartaal-Maand-Week
+					level 'Fiscal Year'
+						caption: Fiscaal Jaar
+					level 'Fiscal Quarter Year'
+						caption: Fiscaal Kwartaal Jaar
+					level 'Fiscal Month Year'
+						caption: Fiscaal Maand Jaar
+					level 'Fiscal Week Year'
+						caption: Fiscaal Week Jaar
+				hierarchy 'Fiscal Year-Month-Week'
+					caption: Fiscaal Jaar-Maand-Week
+					level 'Fiscal Year'
+						caption: Fiscaal Jaar
+					level 'Fiscal Month Year'
+						caption: Fiscaal Maand Jaar
+					level 'Fiscal Week Year'
+						caption: Fiscaal Week Jaar
+				hierarchy 'Calendar Year-Month'
+					caption: Kalender Jaar-Maand
+					level 'Calendar Year'
+						caption: Kalender Jaar
+					level 'Calendar Month Year'
+						caption: Kalender Maand Jaar
+				hierarchy 'Calendar Year-Quarter-Month-Week'
+					caption: Kalender Jaar-Kwartaal-Maand-Week
+					level 'Calendar Year'
+						caption: Kalender Jaar
+					level 'Calendar Quarter Year'
+						caption: Kalender Kwartaal Jaar
+					level 'Calendar Month Year'
+						caption: Kalender Maand Jaar
+					level 'Calendar Week Year'
+						caption: Kalender Week Jaar
+				hierarchy 'Calendar Year-Month-Week'
+					caption: Kalender Jaar-Maand-Week
+					level 'Calendar Year'
+						caption: Kalender Jaar
+					level 'Calendar Month Year'
+						caption: Kalender Maand Jaar
+					level 'Calendar Week Year'
+						caption: Kalender Week Jaar
+				hierarchy 'FW Year-Month-Week'
+					caption: FW Jaar-Maand-Week
+					level 'FW Year'
+						caption: FW Jaar
+					level 'FW Month Year'
+						caption: FW Maand Jaar
+					level 'FW Week Year'
+						caption: FW Week Jaar
+				hierarchy 'FW Year-Quarter-Month-Week'
+					caption: FW Jaar-Kwartaal-Maand-Week
+					level 'FW Year'
+						caption: FW Jaar
+					level 'FW Quarter Year'
+						caption: FW Kwartaal Jaar
+					level 'FW Month Year'
+						caption: FW Maand Jaar
+					level 'FW Week Year'
+						caption: FW Week Jaar
+				hierarchy 'FW Year-Week'
+					caption: FW Jaar-Week
+					level 'FW Year'
+						caption: FW Jaar
+					level 'FW Week Year'
+						caption: FW Week Jaar
+				hierarchy 'FW Year-Quarter-Week'
+					caption: FW Jaar-Kwartaal-Week
+					level 'FW Year'
+						caption: FW Jaar
+					level 'FW Quarter Year'
+						caption: FW Kwartaal Jaar
+					level 'FW Week Year'
+						caption: FW Week Jaar
+			table 'Standard Calendar Time Intelligence'
+				caption: Tijdinformatie standaardkalender
+				measure 'Purchase Amount YTD'
+					caption: Inkoopbedrag JTH
+				measure 'Purchase Amount PY'
+					caption: Inkoopbedrag VJ
+				measure 'Purchase Amount PYTD'
+					caption: Inkoopbedrag VJTH
+				measure 'Purchase Amount PQTD'
+					caption: Inkoopbedrag VKTH
+				measure 'Purchase Amount QTD'
+					caption: Inkoopbedrag KTH
+				measure 'Purchase Amount MTD'
+					caption: Inkoopbedrag MTH
+				measure 'Purchase Amount YOY %'
+					caption: Inkoopbedrag JTJ %
+				measure 'Purchase Amount YOY'
+					caption: Inkoopbedrag JTJ
+				measure 'Purchase Amount PQ'
+					caption: Inkoopbedrag VK
+				measure 'Purchase Amount QOQ'
+					caption: Inkoopbedrag KTK
+				measure 'Purchase Amount PM'
+					caption: Inkoopbedrag VM
+				measure 'Purchase Amount QOQ %'
+					caption: Inkoopbedrag KTK %
+				measure 'Purchase Amount MOM'
+					caption: Inkoopbedrag MTM
+				measure 'Purchase Amount MOM %'
+					caption: Inkoopbedrag MTM %
+				measure 'Purchase Amount MAT'
+					caption: Inkoopbedrag VJT
+				measure 'Purchase Amount PYMAT'
+					caption: Inkoopbedrag VJVJT
+				measure 'Purchase Amount YOYTD'
+					caption: Inkoopbedrag JOJTH
+				measure 'Purchase Amount YOYTD %'
+					caption: Inkoopbedrag JOJTH %
+				measure 'Purchase Amount PYC'
+					caption: Inkoopbedrag VJA
+				measure 'Purchase Amount YTDOPY'
+					caption: Inkoopbedrag JTHVJ
+				measure 'Purchase Amount YTDOPY %'
+					caption: Inkoopbedrag JTHVJ %
+				measure 'Purchase Amount QOQTD'
+					caption: Inkoopbedrag KOKTH
+				measure 'Purchase Amount QOQTD %'
+					caption: Inkoopbedrag KOKTH %
+				measure 'Purchase Amount PQC'
+					caption: Inkoopbedrag VKA
+				measure 'Purchase Amount QTDOPQ'
+					caption: Inkoopbedrag KTHTVK
+				measure 'Purchase Amount QTDOPQ %'
+					caption: Inkoopbedrag KTHTVK %
+				measure 'Purchase Amount PMTD'
+					caption: Inkoopbedrag VMTH
+				measure 'Purchase Amount MOMTD'
+					caption: Inkoopbedrag MOMTH
+				measure 'Purchase Amount MOMTD %'
+					caption: Inkoopbedrag MOMTH %
+				measure 'Purchase Amount PMC'
+					caption: Inkoopbedrag VMA
+				measure 'Purchase Amount MTDOPM'
+					caption: Inkoopbedrag MTHTVM
+				measure 'Purchase Amount MTDOPM %'
+					caption: Inkoopbedrag MTHTVM %
+				measure 'Purchase Amount AVG 30D'
+					caption: Inkoopbedrag GEM 30D
+				measure 'Purchase Amount AVG 3M'
+					caption: Inkoopbedrag GEM 3M
+				measure 'Purchase Amount AVG 1Y'
+					caption: Inkoopbedrag GEM 1J
+				measure 'Purchase Amount MATG'
+					caption: Inkoopbedrag VJTG
+				measure 'Purchase Amount MATG %'
+					caption: Inkoopbedrag VJTG %
+				measure 'Purchase Amount PP'
+					caption: Inkoopbedrag VP
+				measure 'Purchase Amount POP'
+					caption: Inkoopbedrag PTP
+				measure 'Purchase Amount POP %'
+					caption: Inkoopbedrag PTP %
+				measure 'Purchase Quantity YTD'
+					caption: Inkoopaantal JTH
+				measure 'Purchase Quantity PY'
+					caption: Inkoopaantal VJ
+				measure 'Purchase Quantity PYTD'
+					caption: Inkoopaantal VJTH
+				measure 'Purchase Quantity PQTD'
+					caption: Inkoopaantal VKTH
+				measure 'Purchase Quantity QTD'
+					caption: Inkoopaantal KTH
+				measure 'Purchase Quantity MTD'
+					caption: Inkoopaantal MTH
+				measure 'Purchase Quantity YOY %'
+					caption: Inkoopaantal JTJ %
+				measure 'Purchase Quantity YOY'
+					caption: Inkoopaantal JTJ
+				measure 'Purchase Quantity PQ'
+					caption: Inkoopaantal VK
+				measure 'Purchase Quantity QOQ'
+					caption: Inkoopaantal KTK
+				measure 'Purchase Quantity PM'
+					caption: Inkoopaantal VM
+				measure 'Purchase Quantity QOQ %'
+					caption: Inkoopaantal KTK %
+				measure 'Purchase Quantity MOM'
+					caption: Inkoopaantal MTM
+				measure 'Purchase Quantity MOM %'
+					caption: Inkoopaantal MTM %
+				measure 'Purchase Quantity MAT'
+					caption: Inkoopaantal VJT
+				measure 'Purchase Quantity PYMAT'
+					caption: Inkoopaantal VJVJT
+				measure 'Purchase Quantity YOYTD'
+					caption: Inkoopaantal JOJTH
+				measure 'Purchase Quantity YOYTD %'
+					caption: Inkoopaantal JOJTH %
+				measure 'Purchase Quantity PYC'
+					caption: Inkoopaantal VJA
+				measure 'Purchase Quantity YTDOPY'
+					caption: Inkoopaantal JTHTVJ
+				measure 'Purchase Quantity YTDOPY %'
+					caption: Inkoopaantal JTHTVJ %
+				measure 'Purchase Quantity QOQTD'
+					caption: Inkoopaantal KOKTH
+				measure 'Purchase Quantity QOQTD %'
+					caption: Inkoopaantal KOKTH %
+				measure 'Purchase Quantity PQC'
+					caption: Inkoopaantal VKA
+				measure 'Purchase Quantity QTDOPQ'
+					caption: Inkoopaantal KTHTVK
+				measure 'Purchase Quantity QTDOPQ %'
+					caption: Inkoopaantal KTHTVK %
+				measure 'Purchase Quantity PMTD'
+					caption: Inkoopaantal VMTH
+				measure 'Purchase Quantity MOMTD'
+					caption: Inkoopaantal MOMTH
+				measure 'Purchase Quantity MOMTD %'
+					caption: Inkoopaantal MOMTH %
+				measure 'Purchase Quantity PMC'
+					caption: Inkoopaantal VMA
+				measure 'Purchase Quantity MTDOPM'
+					caption: Inkoopaantal MTHTVM
+				measure 'Purchase Quantity MTDOPM %'
+					caption: Inkoopaantal MTHTVM %
+				measure 'Purchase Quantity AVG 30D'
+					caption: Inkoopaantal GEM 30D
+				measure 'Purchase Quantity AVG 3M'
+					caption: Inkoopaantal GEM 3M
+				measure 'Purchase Quantity AVG 1Y'
+					caption: Inkoopaantal GEM 1J
+				measure 'Purchase Quantity MATG'
+					caption: Inkoopaantal VJTG
+				measure 'Purchase Quantity MATG %'
+					caption: Inkoopaantal VJTG %
+				measure 'Purchase Quantity PP'
+					caption: Inkoopaantal VP
+				measure 'Purchase Quantity POP'
+					caption: Inkoopaantal PTP
+				measure 'Purchase Quantity POP %'
+					caption: Inkoopaantal PTP %
+				measure 'Budget Amount YTD'
+					caption: Budgetbedrag JTH
+				measure 'Budget Amount QTD'
+					caption: Budgetbedrag KTH
+				measure 'Budget Amount MTD'
+					caption: Budgetbedrag MTH
+				measure 'Budget Amount PY'
+					caption: Budgetbedrag VJ
+				measure 'Budget Amount YOY %'
+					caption: Budgetbedrag JTJ %
+				measure 'Budget Amount YOY'
+					caption: Budgetbedrag JTJ
+				measure 'Budget Amount PQ'
+					caption: Budgetbedrag VK
+				measure 'Budget Amount QOQ'
+					caption: Budgetbedrag KTK
+				measure 'Budget Amount PM'
+					caption: Budgetbedrag VM
+				measure 'Budget Amount QOQ %'
+					caption: Budgetbedrag KTK %
+				measure 'Budget Amount MOM'
+					caption: Budgetbedrag MTM
+				measure 'Budget Amount MOM %'
+					caption: Budgetbedrag MTM %
+				measure 'Budget Amount PP'
+					caption: Budgetbedrag VP
+				measure 'Budget Amount POP'
+					caption: Budgetbedrag PTP
+				measure 'Budget Amount POP %'
+					caption: Budgetbedrag PTP %
+				measure 'Budget Amount PYTD'
+					caption: Budgetbedrag VJTH
+				measure 'Budget Amount PQTD'
+					caption: Budgetbedrag VKTH
+				measure 'Budget Amount YOYTD'
+					caption: Budgetbedrag JOJTH
+				measure 'Budget Amount YOYTD %'
+					caption: Budgetbedrag JOJTH %
+				measure 'Budget Amount QOQTD'
+					caption: Budgetbedrag KOKTH
+				measure 'Budget Amount QOQTD %'
+					caption: Budgetbedrag KOKTH %
+				measure 'Budget Amount PMTD'
+					caption: Budgetbedrag VMTH
+				measure 'Budget Amount MOMTD'
+					caption: Budgetbedrag MOMTH
+				measure 'Budget Amount MOMTD %'
+					caption: Budgetbedrag MOMTH %
+				measure 'Budget Amount MAT'
+					caption: Budgetbedrag VJT
+				measure 'Budget Amount PYMAT'
+					caption: Budgetbedrag VJVJT
+				measure 'Budget Amount MATG'
+					caption: Budgetbedrag VJTG
+				measure 'Budget Amount MATG %'
+					caption: Budgetbedrag VJTG %
+				measure 'Budget Amount PYC'
+					caption: Budgetbedrag VJA
+				measure 'Budget Amount YTDOPY'
+					caption: Budgetbedrag JTHTVJ
+				measure 'Budget Amount YTDOPY %'
+					caption: Budgetbedrag JTHTVJ %
+				measure 'Budget Amount PQC'
+					caption: Budgetbedrag VKA
+				measure 'Budget Amount QTDOPQ'
+					caption: Budgetbedrag KTHTVK
+				measure 'Budget Amount QTDOPQ %'
+					caption: Budgetbedrag KTHTVK %
+				measure 'Budget Amount PMC'
+					caption: Budgetbedrag VMA
+				measure 'Budget Amount MTDOPM'
+					caption: Budgetbedrag MTHTVM
+				measure 'Budget Amount MTDOPM %'
+					caption: Budgetbedrag MTHTVM %
+				measure 'Budget Amount AVG 30D'
+					caption: Budgetbedrag GEM 30D
+				measure 'Budget Amount AVG 3M'
+					caption: Budgetbedrag GEM 3M
+				measure 'Budget Amount AVG 1Y'
+					caption: Budgetbedrag GEM 1J
+				measure 'Budget Quantity YTD'
+					caption: Budgetaantal JTH
+				measure 'Budget Quantity QTD'
+					caption: Budgetaantal KTH
+				measure 'Budget Quantity MTD'
+					caption: Budgetaantal MTH
+				measure 'Budget Quantity PY'
+					caption: Budgetaantal VJ
+				measure 'Budget Quantity YOY %'
+					caption: Budgetaantal JTJ %
+				measure 'Budget Quantity YOY'
+					caption: Budgetaantal JTJ
+				measure 'Budget Quantity PQ'
+					caption: Budgetaantal VK
+				measure 'Budget Quantity QOQ'
+					caption: Budgetaantal KTK
+				measure 'Budget Quantity PM'
+					caption: Budgetaantal VM
+				measure 'Budget Quantity QOQ %'
+					caption: Budgetaantal KTK %
+				measure 'Budget Quantity MOM'
+					caption: Budgetaantal MTM
+				measure 'Budget Quantity MOM %'
+					caption: Budgetaantal MTM %
+				measure 'Budget Quantity PP'
+					caption: Budgetaantal VP
+				measure 'Budget Quantity POP'
+					caption: Budgetaantal PTP
+				measure 'Budget Quantity POP %'
+					caption: Budgetaantal PTP %
+				measure 'Budget Quantity PYTD'
+					caption: Budgetaantal VJTH
+				measure 'Budget Quantity PQTD'
+					caption: Budgetaantal VKTH
+				measure 'Budget Quantity YOYTD'
+					caption: Budgetaantal JOJTH
+				measure 'Budget Quantity YOYTD %'
+					caption: Budgetaantal JOJTH %
+				measure 'Budget Quantity QOQTD'
+					caption: Budgetaantal KOKTH
+				measure 'Budget Quantity QOQTD %'
+					caption: Budgetaantal KOKTH %
+				measure 'Budget Quantity PMTD'
+					caption: Budgetaantal VMTH
+				measure 'Budget Quantity MOMTD'
+					caption: Budgetaantal MOMTH
+				measure 'Budget Quantity MOMTD %'
+					caption: Budgetaantal MOMTH %
+				measure 'Budget Quantity MAT'
+					caption: Budgetaantal VJT
+				measure 'Budget Quantity PYMAT'
+					caption: Budgetaantal VJVJT
+				measure 'Budget Quantity MATG'
+					caption: Budgetaantal VJTG
+				measure 'Budget Quantity MATG %'
+					caption: Budgetaantal VJTG %
+				measure 'Budget Quantity PYC'
+					caption: Budgetaantal VJA
+				measure 'Budget Quantity YTDOPY'
+					caption: Budgetaantal JTHTVJ
+				measure 'Budget Quantity YTDOPY %'
+					caption: Budgetaantal JTHTVJ %
+				measure 'Budget Quantity PQC'
+					caption: Budgetaantal VKA
+				measure 'Budget Quantity QTDOPQ'
+					caption: Budgetaantal KTHTVK
+				measure 'Budget Quantity QTDOPQ %'
+					caption: Budgetaantal KTHTVK %
+				measure 'Budget Quantity PMC'
+					caption: Budgetaantal VMA
+				measure 'Budget Quantity MTDOPM'
+					caption: Budgetaantal MTHTVM
+				measure 'Budget Quantity MTDOPM %'
+					caption: Budgetaantal MTHTVM %
+				measure 'Budget Quantity AVG 30D'
+					caption: Budgetaantal GEM 30D
+				measure 'Budget Quantity AVG 3M'
+					caption: Budgetaantal GEM 3M
+				measure 'Budget Quantity AVG 1Y'
+					caption: Budgetaantal GEM 1J
+			table 'Fiscal Calendar Time Intelligence'
+				caption: Fiscaal Kalender Tijdinformatie
+				measure 'Purchase Amount YTD (Fiscal)'
+					caption: Inkoopbedrag JTH (fiscaal)
+				measure 'Purchase Amount QTD (Fiscal)'
+					caption: Inkoopbedrag KTH (fiscaal)
+				measure 'Purchase Amount MTD (Fiscal)'
+					caption: Inkoopbedrag MTH (fiscaal)
+				measure 'Purchase Amount PY (Fiscal)'
+					caption: Inkoopbedrag VJ (fiscaal)
+				measure 'Purchase Amount YOY % (Fiscal)'
+					caption: Inkoopbedrag JTJ % (fiscaal)
+				measure 'Purchase Amount YOY (Fiscal)'
+					caption: Inkoopbedrag JTJ (fiscaal)
+				measure 'Purchase Amount PQ (Fiscal)'
+					caption: Inkoopbedrag VK (fiscaal)
+				measure 'Purchase Amount QOQ (Fiscal)'
+					caption: Inkoopbedrag KTK (fiscaal)
+				measure 'Purchase Amount QOQ % (Fiscal)'
+					caption: Inkoopbedrag KTK % (fiscaal)
+				measure 'Purchase Amount PM (Fiscal)'
+					caption: Inkoopbedrag VM (fiscaal)
+				measure 'Purchase Amount MOM (Fiscal)'
+					caption: Inkoopbedrag MTM (fiscaal)
+				measure 'Purchase Amount MOM % (Fiscal)'
+					caption: Inkoopbedrag MTM % (fiscaal)
+				measure 'Purchase Amount PP (Fiscal)'
+					caption: Inkoopbedrag VP (fiscaal)
+				measure 'Purchase Amount POP (Fiscal)'
+					caption: Inkoopbedrag PTP (fiscaal)
+				measure 'Purchase Amount POP % (Fiscal)'
+					caption: Inkoopbedrag PTP % (fiscaal)
+				measure 'Purchase Amount PYTD (Fiscal)'
+					caption: Inkoopbedrag VJTH (fiscaal)
+				measure 'Purchase Amount PQTD (Fiscal)'
+					caption: Inkoopbedrag VKTH (fiscaal)
+				measure 'Purchase Amount YOYTD (Fiscal)'
+					caption: Inkoopbedrag JOJTH (fiscaal)
+				measure 'Purchase Amount YOYTD % (Fiscal)'
+					caption: Inkoopbedrag JOJTH % (fiscaal)
+				measure 'Purchase Amount QOQTD (Fiscal)'
+					caption: Inkoopbedrag KOKTH (fiscaal)
+				measure 'Purchase Amount QOQTD % (Fiscal)'
+					caption: Inkoopbedrag KOKTH % (fiscaal)
+				measure 'Purchase Amount PMTD (Fiscal)'
+					caption: Inkoopbedrag VMTH (fiscaal)
+				measure 'Purchase Amount MOMTD % (Fiscal)'
+					caption: Inkoopbedrag MOMTH % (fiscaal)
+				measure 'Purchase Amount MOMTD (Fiscal)'
+					caption: Inkoopbedrag MOMTH (fiscaal)
+				measure 'Purchase Amount MAT (Fiscal)'
+					caption: Inkoopbedrag VJT (fiscaal)
+				measure 'Purchase Amount PYMAT (Fiscal)'
+					caption: Inkoopbedrag VJVJT (fiscaal)
+				measure 'Purchase Amount MATG (Fiscal)'
+					caption: Inkoopbedrag VJTG (fiscaal)
+				measure 'Purchase Amount MATG % (Fiscal)'
+					caption: Inkoopbedrag VJTG % (fiscaal)
+				measure 'Purchase Amount MAT (364) (Fiscal)'
+					caption: Inkoopbedrag VJT (364) (fiscaal)
+				measure 'Purchase PYMAT (364) (Fiscal)'
+					caption: Inkoop VJVJT (364) (Fiscaal)
+				measure 'Purchase Amount PYC (Fiscal)'
+					caption: Inkoopbedrag VJA (fiscaal)
+				measure 'Purchase Amount YTDOPY (Fiscal)'
+					caption: Inkoopbedrag JTHTVJ (fiscaal)
+				measure 'Purchase Amount YTDOPY % (Fiscal)'
+					caption: Inkoopbedrag JTHTVJ % (fiscaal)
+				measure 'Purchase Amount PQC (Fiscal)'
+					caption: Inkoopbedrag VKA (fiscaal)
+				measure 'Purchase Amount QTDOPQ (Fiscal)'
+					caption: Inkoopbedrag KTHTVK (fiscaal)
+				measure 'Purchase Amount QTDOPQ % (Fiscal)'
+					caption: Inkoopbedrag KTHTVK % (fiscaal)
+				measure 'Purchase Amount PMC (Fiscal)'
+					caption: Inkoopbedrag VMA (fiscaal)
+				measure 'Purchase Amount MTDOPM (Fiscal)'
+					caption: Inkoopbedrag MTHTVM (fiscaal)
+				measure 'Purchase Amount MTDOPM % (Fiscal)'
+					caption: Inkoopbedrag MTHTVM % (fiscaal)
+				measure 'Purchase Amount AVG 30D (Fiscal)'
+					caption: Inkoopbedrag GEM 30D (fiscaal)
+				measure 'Purchase Amount AVG 3M (Fiscal)'
+					caption: Inkoopbedrag GEM 3M (fiscaal)
+				measure 'Purchase Amount AVG 1Y (Fiscal)'
+					caption: Inkoopbedrag GEM 1J (fiscaal)
+				measure 'Purchases Quantity YTD (Fiscal)'
+					caption: Inkoopaantal JTH (fiscaal)
+				measure 'Purchases Quantity QTD (Fiscal)'
+					caption: Inkoopaantal KTH (fiscaal)
+				measure 'Purchases Quantity MTD (Fiscal)'
+					caption: Inkoopaantal MTH (fiscaal)
+				measure 'Purchase Quantity PY (Fiscal)'
+					caption: Inkoopaantal VJ (fiscaal)
+				measure 'Purchase Quantity YOY % (Fiscal)'
+					caption: Inkoopaantal JTJ % (fiscaal)
+				measure 'Purchase Quantity YOY (Fiscal)'
+					caption: Inkoopaantal JTJ (fiscaal)
+				measure 'Purchase Quantity PQ (Fiscal)'
+					caption: Inkoopaantal VK (fiscaal)
+				measure 'Purchase Quantity QOQ (Fiscal)'
+					caption: Inkoopaantal KTK (fiscaal)
+				measure 'Purchase Quantity QOQ % (Fiscal)'
+					caption: Inkoopaantal KTK % (fiscaal)
+				measure 'Purchase Quantity PM (Fiscal)'
+					caption: Inkoopaantal VM (fiscaal)
+				measure 'Purchase Quantity MOM (Fiscal)'
+					caption: Inkoopaantal MTM (fiscaal)
+				measure 'Purchase Quantity MOM % (Fiscal)'
+					caption: Inkoopaantal MTM % (fiscaal)
+				measure 'Purchase Quantity PP (Fiscal)'
+					caption: Inkoopaantal VP (fiscaal)
+				measure 'Purchase Quantity POP (Fiscal)'
+					caption: Inkoopaantal PTP (fiscaal)
+				measure 'Purchase Quantity POP % (Fiscal)'
+					caption: Inkoopaantal PTP % (fiscaal)
+				measure 'Purchase Quantity PYTD (Fiscal)'
+					caption: Inkoopaantal VJTH (fiscaal)
+				measure 'Purchase Quantity PQTD (Fiscal)'
+					caption: Inkoopaantal VKTH (fiscaal)
+				measure 'Purchase Quantity YOYTD (Fiscal)'
+					caption: Inkoopaantal JOJTH (fiscaal)
+				measure 'Purchase Quantity YOYTD % (Fiscal)'
+					caption: Inkoopaantal JOJTH % (fiscaal)
+				measure 'Purchase Quantity QOQTD (Fiscal)'
+					caption: Inkoopaantal KOKTH (fiscaal)
+				measure 'Purchase Quantity QOQTD % (Fiscal)'
+					caption: Inkoopaantal KOKTH % (fiscaal)
+				measure 'Purchase Quantity PMTD (Fiscal)'
+					caption: Inkoopaantal VMTH (fiscaal)
+				measure 'Purchase Quantity MOMTD % (Fiscal)'
+					caption: Inkoopaantal MOMTH % (fiscaal)
+				measure 'Purchase Quantity MOMTD (Fiscal)'
+					caption: Inkoopaantal MOMTH (fiscaal)
+				measure 'Purchase Quantity MAT (Fiscal)'
+					caption: Inkoopaantal VJT (fiscaal)
+				measure 'Purchase Quantity PYMAT (Fiscal)'
+					caption: Inkoopaantal VJVJT (fiscaal)
+				measure 'Purchase Quantity MATG (Fiscal)'
+					caption: Inkoopaantal VJTG (fiscaal)
+				measure 'Purchase Quantity MATG % (Fiscal)'
+					caption: Inkoopaantal VJTG % (fiscaal)
+				measure 'Purchase Quantity PYC (Fiscal)'
+					caption: Inkoopaantal VJA (fiscaal)
+				measure 'Purchase Quantity YTDOPY (Fiscal)'
+					caption: Inkoopaantal JTHTVJ (fiscaal)
+				measure 'Purchase Quantity YTDOPY % (Fiscal)'
+					caption: Inkoopaantal JTHTVJ % (fiscaal)
+				measure 'Purchase Quantity PQC (Fiscal)'
+					caption: Inkoopaantal VKA (fiscaal)
+				measure 'Purchase Quantity QTDOPQ (Fiscal)'
+					caption: Inkoopaantal KTHTVK (fiscaal)
+				measure 'Purchase Quantity QTDOPQ % (Fiscal)'
+					caption: Inkoopaantal KTHTVK % (fiscaal)
+				measure 'Purchase Quantity PMC (Fiscal)'
+					caption: Inkoopaantal VMA (fiscaal)
+				measure 'Purchase Quantity MTDOPM (Fiscal)'
+					caption: Inkoopaantal MTHTVM (fiscaal)
+				measure 'Purchase Quantity MTDOPM % (Fiscal)'
+					caption: Inkoopaantal MTHTVM % (fiscaal)
+				measure 'Purchase Quantity AVG 30D (Fiscal)'
+					caption: Inkoopaantal GEM 30D (fiscaal)
+				measure 'Purchase Quantity AVG 3M (Fiscal)'
+					caption: Inkoopaantal GEM 3M (fiscaal)
+				measure 'Purchase Quantity AVG 1Y (Fiscal)'
+					caption: Inkoopaantal GEM 1J (fiscaal)
+				measure 'Budget Amount YTD (Fiscal)'
+					caption: Budgetbedrag JTH (fiscaal)
+				measure 'Budget Amount QTD (Fiscal)'
+					caption: Budgetbedrag KTH (fiscaal)
+				measure 'Budget Amount MTD (Fiscal)'
+					caption: Budgetbedrag MTH (fiscaal)
+				measure 'Budget Amount PY (Fiscal)'
+					caption: Budgetbedrag VJ (fiscaal)
+				measure 'Budget Amount YOY % (Fiscal)'
+					caption: Budgetbedrag JTJ % (fiscaal)
+				measure 'Budget Amount YOY (Fiscal)'
+					caption: Budgetbedrag JTJ (fiscaal)
+				measure 'Budget Amount PQ (Fiscal)'
+					caption: Budgetbedrag VK (fiscaal)
+				measure 'Budget Amount QOQ (Fiscal)'
+					caption: Budgetbedrag KTK (fiscaal)
+				measure 'Budget Amount QOQ % (Fiscal)'
+					caption: Budgetbedrag KTK % (fiscaal)
+				measure 'Budget Amount PM (Fiscal)'
+					caption: Budgetbedrag VM (fiscaal)
+				measure 'Budget Amount MOM (Fiscal)'
+					caption: Budgetbedrag MTM (fiscaal)
+				measure 'Budget Amount MOM % (Fiscal)'
+					caption: Budgetbedrag MTM % (fiscaal)
+				measure 'Budget Amount PP (Fiscal)'
+					caption: Budgetbedrag VP (fiscaal)
+				measure 'Budget Amount POP (Fiscal)'
+					caption: Budgetbedrag PTP (fiscaal)
+				measure 'Budget Amount POP % (Fiscal)'
+					caption: Budgetbedrag PTP % (fiscaal)
+				measure 'Budget Amount PYTD (Fiscal)'
+					caption: Budgetbedrag VJTH (fiscaal)
+				measure 'Budget Amount PQTD (Fiscal)'
+					caption: Budgetbedrag VKTH (fiscaal)
+				measure 'Budget Amount YOYTD (Fiscal)'
+					caption: Budgetbedrag JOJTH (fiscaal)
+				measure 'Budget Amount YOYTD % (Fiscal)'
+					caption: Budgetbedrag JOJTH % (fiscaal)
+				measure 'Budget Amount QOQTD (Fiscal)'
+					caption: Budgetbedrag KOKTH (fiscaal)
+				measure 'Budget Amount QOQTD % (Fiscal)'
+					caption: Budgetbedrag KOKTH % (fiscaal)
+				measure 'Budget Amount PMTD (Fiscal)'
+					caption: Budgetbedrag VMTH (fiscaal)
+				measure 'Budget Amount MOMTD % (Fiscal)'
+					caption: Budgetbedrag MOMTH % (fiscaal)
+				measure 'Budget Amount MOMTD (Fiscal)'
+					caption: Budgetbedrag MOMTH (fiscaal)
+				measure 'Budget Amount MAT (Fiscal)'
+					caption: Budgetbedrag VJT (fiscaal)
+				measure 'Budget Amount PYMAT (Fiscal)'
+					caption: Budgetbedrag VJVJT (fiscaal)
+				measure 'Budget Amount MATG (Fiscal)'
+					caption: Budgetbedrag VJTG (fiscaal)
+				measure 'Budget Amount MATG % (Fiscal)'
+					caption: Budgetbedrag VJTG % (fiscaal)
+				measure 'Budget Amount MAT (364) (Fiscal)'
+					caption: Budgetbedrag VJT (364) (fiscaal)
+				measure 'Budget PYMAT (364) (Fiscal)'
+					caption: Budgetbedrag VJVJT (364) (fiscaal)
+				measure 'Budget Amount PYC (Fiscal)'
+					caption: Budgetbedrag VJA (fiscaal)
+				measure 'Budget Amount YTDOPY (Fiscal)'
+					caption: Budgetbedrag JTHTVJ (fiscaal)
+				measure 'Budget Amount YTDOPY % (Fiscal)'
+					caption: Budgetbedrag JTHTVJ % (fiscaal)
+				measure 'Budget Amount PQC (Fiscal)'
+					caption: Budgetbedrag VKA (fiscaal)
+				measure 'Budget Amount QTDOPQ (Fiscal)'
+					caption: Budgetbedrag KTHTVK (fiscaal)
+				measure 'Budget Amount QTDOPQ % (Fiscal)'
+					caption: Budgetbedrag KTHTVK % (fiscaal)
+				measure 'Budget Amount PMC (Fiscal)'
+					caption: Budgetbedrag VMA (fiscaal)
+				measure 'Budget Amount MTDOPM (Fiscal)'
+					caption: Budgetbedrag MTHTVM (fiscaal)
+				measure 'Budget Amount MTDOPM % (Fiscal)'
+					caption: Budgetbedrag MTHTVM % (fiscaal)
+				measure 'Budget Amount AVG 30D (Fiscal)'
+					caption: Budgetbedrag GEM 30D (fiscaal)
+				measure 'Budget Amount AVG 3M (Fiscal)'
+					caption: Budgetbedrag GEM 3M (fiscaal)
+				measure 'Budget Amount AVG 1Y (Fiscal)'
+					caption: Budgetbedrag GEM 1J (fiscaal)
+				measure 'Budget Quantity YTD (Fiscal)'
+					caption: Budgetaantal JTH (fiscaal)
+				measure 'Budget Quantity QTD (Fiscal)'
+					caption: Budgetaantal KTH (fiscaal)
+				measure 'Budget Quantity MTD (Fiscal)'
+					caption: Budgetaantal MTH (fiscaal)
+				measure 'Budget Quantity PY (Fiscal)'
+					caption: Budgetaantal VJ (fiscaal)
+				measure 'Budget Quantity YOY % (Fiscal)'
+					caption: Budgetaantal JTJ % (fiscaal)
+				measure 'Budget Quantity YOY (Fiscal)'
+					caption: Budgetaantal JTJ (fiscaal)
+				measure 'Budget Quantity PQ (Fiscal)'
+					caption: Budgetaantal VK (fiscaal)
+				measure 'Budget Quantity QOQ (Fiscal)'
+					caption: Budgetaantal KTK (fiscaal)
+				measure 'Budget Quantity QOQ % (Fiscal)'
+					caption: Budgetaantal KTK % (fiscaal)
+				measure 'Budget Quantity PM (Fiscal)'
+					caption: Budgetaantal VM (fiscaal)
+				measure 'Budget Quantity MOM (Fiscal)'
+					caption: Budgetaantal MTM (fiscaal)
+				measure 'Budget Quantity MOM % (Fiscal)'
+					caption: Budgetaantal MTM % (fiscaal)
+				measure 'Budget Quantity PP (Fiscal)'
+					caption: Budgetaantal VP (fiscaal)
+				measure 'Budget Quantity POP (Fiscal)'
+					caption: Budgetaantal PTP (fiscaal)
+				measure 'Budget Quantity POP % (Fiscal)'
+					caption: Budgetaantal PTP % (fiscaal)
+				measure 'Budget Quantity PYTD (Fiscal)'
+					caption: Budgetaantal VJTH (fiscaal)
+				measure 'Budget Quantity PQTD (Fiscal)'
+					caption: Budgetaantal VKTH (fiscaal)
+				measure 'Budget Quantity YOYTD (Fiscal)'
+					caption: Budgetaantal JOJTH (fiscaal)
+				measure 'Budget Quantity YOYTD % (Fiscal)'
+					caption: Budgetaantal JOJTH % (fiscaal)
+				measure 'Budget Quantity QOQTD (Fiscal)'
+					caption: Budgetaantal KOKTH (fiscaal)
+				measure 'Budget Quantity QOQTD % (Fiscal)'
+					caption: Budgetaantal KOKTH % (fiscaal)
+				measure 'Budget Quantity PMTD (Fiscal)'
+					caption: Budgetaantal VMTH (fiscaal)
+				measure 'Budget Quantity MOMTD % (Fiscal)'
+					caption: Budgetaantal MOMTH % (fiscaal)
+				measure 'Budget Quantity MOMTD (Fiscal)'
+					caption: Budgetaantal MOMTH (fiscaal)
+				measure 'Budget Quantity MAT (Fiscal)'
+					caption: Budgetaantal VJT (fiscaal)
+				measure 'Budget Quantity PYMAT (Fiscal)'
+					caption: Budgetaantal VJVJT (fiscaal)
+				measure 'Budget Quantity MATG (Fiscal)'
+					caption: Budgetaantal VJTG (fiscaal)
+				measure 'Budget Quantity MATG % (Fiscal)'
+					caption: Budgetaantal VJTG % (fiscaal)
+				measure 'Budget Quantity PYC (Fiscal)'
+					caption: Budgetaantal VJA (fiscaal)
+				measure 'Budget Quantity YTDOPY (Fiscal)'
+					caption: Budgetaantal JTHTVJ (fiscaal)
+				measure 'Budget Quantity YTDOPY % (Fiscal)'
+					caption: Budgetaantal JTHTVJ % (fiscaal)
+				measure 'Budget Quantity PQC (Fiscal)'
+					caption: Budgetaantal VKA (fiscaal)
+				measure 'Budget Quantity QTDOPQ (Fiscal)'
+					caption: Budgetaantal KTHTVK (fiscaal)
+				measure 'Budget Quantity QTDOPQ % (Fiscal)'
+					caption: Budgetaantal KTHTVK % (fiscaal)
+				measure 'Budget Quantity PMC (Fiscal)'
+					caption: Budgetaantal VMA (fiscaal)
+				measure 'Budget Quantity MTDOPM (Fiscal)'
+					caption: Budgetaantal MTHTVM (fiscaal)
+				measure 'Budget Quantity MTDOPM % (Fiscal)'
+					caption: Budgetaantal MTHTVM % (fiscaal)
+				measure 'Budget Quantity AVG 30D (Fiscal)'
+					caption: Budgetaantal GEM 30D (fiscaal)
+				measure 'Budget Quantity AVG 3M (Fiscal)'
+					caption: Budgetaantal GEM 3M (fiscaal)
+				measure 'Budget Quantity AVG 1Y (Fiscal)'
+					caption: Budgetaantal GEM 1J (fiscaal)
+			table 'Weekly Calendar Time Intelligence'
+				caption: Wekelijks Kalender Tijdinformatie
+				measure 'Purchase Amount YTD (Weekly)'
+					caption: Inkoopbedrag JTH (wekelijks)
+				measure 'Purchase Amount QTD (Weekly)'
+					caption: Inkoopbedrag KTH (wekelijks)
+				measure 'Purchase Amount MTD (Weekly)'
+					caption: Inkoopbedrag MTH (wekelijks)
+				measure 'Purchase Amount WTD (Weekly)'
+					caption: Inkoopbedrag WTH (wekelijks)
+				measure 'Purchase Amount PY (Weekly)'
+					caption: Inkoopbedrag VJ (wekelijks)
+				measure 'Purchase Amount YOY % (Weekly)'
+					caption: Inkoopbedrag JTJ % (wekelijks)
+				measure 'Purchase Amount YOY (Weekly)'
+					caption: Inkoopbedrag JTJ (wekelijks)
+				measure 'Purchase Amount PQ (Weekly)'
+					caption: Inkoopbedrag VK (wekelijks)
+				measure 'Purchase Amount QOQ (Weekly)'
+					caption: Inkoopbedrag KTK (wekelijks)
+				measure 'Purchase Amount QOQ % (Weekly)'
+					caption: Inkoopbedrag KTK % (wekelijks)
+				measure 'Purchase Amount PW (Weekly)'
+					caption: Inkoopbedrag VW (wekelijks)
+				measure 'Purchase Amount WOW (Weekly)'
+					caption: Inkoopbedrag WTW (wekelijks)
+				measure 'Purchase Amount WOW % (Weekly)'
+					caption: Inkoopbedrag WTW % (wekelijks)
+				measure 'Purchase Amount PP (Weekly)'
+					caption: Inkoopbedrag VP (wekelijks)
+				measure 'Purchase Amount POP (Weekly)'
+					caption: Inkoopbedrag PTP (wekelijks)
+				measure 'Purchase Amount POP % (Weekly)'
+					caption: Inkoopbedrag PTP % (wekelijks)
+				measure 'Purchase Amount PYTD (Weekly)'
+					caption: Inkoopbedrag VJTH (wekelijks)
+				measure 'Purchase Amount PQTD (Weekly)'
+					caption: Inkoopbedrag VKTH (wekelijks)
+				measure 'Purchase Amount YOYTD (Weekly)'
+					caption: Inkoopbedrag JOJTH (wekelijks)
+				measure 'Purchase Amount YOYTD % (Weekly)'
+					caption: Inkoopbedrag JOJTH % (wekelijks)
+				measure 'Purchase Amount QOQTD (Weekly)'
+					caption: Inkoopbedrag KOKTH (wekelijks)
+				measure 'Purchase Amount QOQTD % (Weekly)'
+					caption: Inkoopbedrag KOKTH % (wekelijks)
+				measure 'Purchase Amount PWTD (Weekly)'
+					caption: Inkoopbedrag VWTH (wekelijks)
+				measure 'Purchase Amount WOWTD (Weekly)'
+					caption: Inkoopbedrag WOWTH (wekelijks)
+				measure 'Purchase Amount WOWTD % (Weekly)'
+					caption: Inkoopbedrag WOWTH % (wekelijks)
+				measure 'Purchase Amount MAT (364) (Weekly)'
+					caption: Inkoopbedrag MAT (364) (wekelijks)
+				measure 'Purchase Amount PYMAT (364) (Weekly)'
+					caption: Inkoopbedrag VJVJT (364) (wekelijks)
+				measure 'Purchase Amount MATG (Weekly)'
+					caption: Inkoopbedrag VJTG (wekelijks)
+				measure 'Purchase Amount MATG % (Weekly)'
+					caption: Inkoopbedrag VJTG % (wekelijks)
+				measure 'Purchase Amount PYC (Weekly)'
+					caption: Inkoopbedrag VJA (wekelijks)
+				measure 'Purchase Amount YTDOPY (Weekly)'
+					caption: Inkoopbedrag JTHTVJ (wekelijks)
+				measure 'Purchase Amount YTDOPY % (Weekly)'
+					caption: Inkoopbedrag JTHTVJ % (wekelijks)
+				measure 'Purchase Amount PQC (Weekly)'
+					caption: Inkoopbedrag VKA (wekelijks)
+				measure 'Purchase Amount QTDOPQ (Weekly)'
+					caption: Inkoopbedrag KTHTVK (wekelijks)
+				measure 'Purchase Amount QTDOPQ % (Weekly)'
+					caption: Inkoopbedrag KTHTVK % (wekelijks)
+				measure 'Purchase Amount PWC (Weekly)'
+					caption: Inkoopbedrag VWA (wekelijks)
+				measure 'Purchase Amount WTDOPW (Weekly)'
+					caption: Inkoopbedrag WTHTVW (wekelijks)
+				measure 'Purchase Amount WTDOPW % (Weekly)'
+					caption: Inkoopbedrag WTHTVW % (wekelijks)
+				measure 'Purchase Amount AVG 4W (Weekly)'
+					caption: Inkoopbedrag GEM 4W (wekelijks)
+				measure 'Purchase Amount AVG 1Q (Weekly)'
+					caption: Inkoopbedrag GEM 1K (wekelijks)
+				measure 'Purchase Amount AVG 1Y (Weekly)'
+					caption: Inkoopbedrag GEM 1J (wekelijks)
+				measure 'Purchase Quantity YTD (Weekly)'
+					caption: Inkoopaantal JTH (wekelijks)
+				measure 'Purchase Quantity QTD (Weekly)'
+					caption: Inkoopaantal KTH (wekelijks)
+				measure 'Purchase Quantity MTD (Weekly)'
+					caption: Inkoopaantal MTH (wekelijks)
+				measure 'Purchase Quantity WTD (Weekly)'
+					caption: Inkoopaantal WTH (wekelijks)
+				measure 'Purchase Quantity PY (Weekly)'
+					caption: Inkoopaantal VJ (wekelijks)
+				measure 'Purchase Quantity YOY % (Weekly)'
+					caption: Inkoopaantal JTJ % (wekelijks)
+				measure 'Purchase Quantity YOY (Weekly)'
+					caption: Inkoopaantal JTJ (wekelijks)
+				measure 'Purchase Quantity PQ (Weekly)'
+					caption: Inkoopaantal VK (wekelijks)
+				measure 'Purchase Quantity QOQ (Weekly)'
+					caption: Inkoopaantal KTK (wekelijks)
+				measure 'Purchase Quantity QOQ % (Weekly)'
+					caption: Inkoopaantal KTK % (wekelijks)
+				measure 'Purchase Quantity PW (Weekly)'
+					caption: Inkoopaantal VW (wekelijks)
+				measure 'Purchase Quantity WOW (Weekly)'
+					caption: Inkoopaantal WTW (wekelijks)
+				measure 'Purchase Quantity WOW % (Weekly)'
+					caption: Inkoopaantal WTW % (wekelijks)
+				measure 'Purchase Quantity PP (Weekly)'
+					caption: Inkoopaantal VP (wekelijks)
+				measure 'Purchase Quantity POP (Weekly)'
+					caption: Inkoopaantal PTP (wekelijks)
+				measure 'Purchase Quantity POP % (Weekly)'
+					caption: Inkoopaantal PTP % (wekelijks)
+				measure 'Purchase Quantity PYTD (Weekly)'
+					caption: Inkoopaantal VJTH (wekelijks)
+				measure 'Purchase Quantity PQTD (Weekly)'
+					caption: Inkoopaantal VKTH (wekelijks)
+				measure 'Purchase Quantity YOYTD (Weekly)'
+					caption: Inkoopaantal JOJTH (wekelijks)
+				measure 'Purchase Quantity YOYTD % (Weekly)'
+					caption: Inkoopaantal JOJTH % (wekelijks)
+				measure 'Purchase Quantity QOQTD (Weekly)'
+					caption: Inkoopaantal KOKTH (wekelijks)
+				measure 'Purchase Quantity QOQTD % (Weekly)'
+					caption: Inkoopaantal KOKTH % (wekelijks)
+				measure 'Purchase Quantity PWTD (Weekly)'
+					caption: Inkoopaantal VWTH (wekelijks)
+				measure 'Purchase Quantity WOWTD (Weekly)'
+					caption: Inkoopaantal WOWTH (wekelijks)
+				measure 'Purchase Quantity WOWTD % (Weekly)'
+					caption: Inkoopaantal WOWTH % (wekelijks)
+				measure 'Purchase Quantity MAT (364) (Weekly)'
+					caption: Inkoopaantal VJT (364) (wekelijks)
+				measure 'Purchase Quantity PYMAT (364) (Weekly)'
+					caption: Inkoopaantal VJVJT (364) (wekelijks)
+				measure 'Purchase Quantity MATG (Weekly)'
+					caption: Inkoopaantal VJTG (wekelijks)
+				measure 'Purchase Quantity MATG % (Weekly)'
+					caption: Inkoopaantal VJTG % (wekelijks)
+				measure 'Purchase Quantity PYC (Weekly)'
+					caption: Inkoopaantal VJA (wekelijks)
+				measure 'Purchase Quantity YTDOPY (Weekly)'
+					caption: Inkoopaantal JTHTVJ (wekelijks)
+				measure 'Purchase Quantity YTDOPY  % (Weekly)'
+					caption: Inkoopaantal JTHTVJ % (wekelijks)
+				measure 'Purchase Quantity PQC (Weekly)'
+					caption: Inkoopaantal VKA (wekelijks)
+				measure 'Purchase Quantity QTDOPQ (Weekly)'
+					caption: Inkoopaantal KTHTVK (wekelijks)
+				measure 'Purchase Quantity QTDOPQ % (Weekly)'
+					caption: Inkoopaantal KTHTVK % (wekelijks)
+				measure 'Purchase Quantity PWC (Weekly)'
+					caption: Inkoopaantal VWA (wekelijks)
+				measure 'Purchase Quantity WTDOPW (Weekly)'
+					caption: Inkoopaantal WTHTVW (wekelijks)
+				measure 'Purchase Quantity WTDOPW % (Weekly)'
+					caption: Inkoopaantal WTHTVW % (wekelijks)
+				measure 'Purchase Quantity AVG 4W (Weekly)'
+					caption: Inkoopaantal GEM 4W (wekelijks)
+				measure 'Purchase Quantity AVG 1Q (Weekly)'
+					caption: Inkoopaantal GEM 1K (wekelijks)
+				measure 'Purchase Quantity AVG 1Y (Weekly)'
+					caption: Inkoopaantal GEM 1J (wekelijks)
+				measure 'Budget Quantity YTD (Weekly)'
+					caption: Budgetaantal JTH (wekelijks)
+				measure 'Budget Quantity QTD (Weekly)'
+					caption: Budgetaantal KTH (wekelijks)
+				measure 'Budget Quantity MTD (Weekly)'
+					caption: Budgetaantal MTH (wekelijks)
+				measure 'Budget Quantity WTD (Weekly)'
+					caption: Budgetaantal WTH (wekelijks)
+				measure 'Budget Quantity PY (Weekly)'
+					caption: Budgetaantal VJ (wekelijks)
+				measure 'Budget Quantity YOY % (Weekly)'
+					caption: Budgetaantal JTJ % (wekelijks)
+				measure 'Budget Quantity YOY (Weekly)'
+					caption: Budgetaantal JTJ (wekelijks)
+				measure 'Budget Quantity PQ (Weekly)'
+					caption: Budgetaantal VK (wekelijks)
+				measure 'Budget Quantity QOQ (Weekly)'
+					caption: Budgetaantal KTK (wekelijks)
+				measure 'Budget Quantity QOQ % (Weekly)'
+					caption: Budgetaantal KTK % (wekelijks)
+				measure 'Budget Quantity PW (Weekly)'
+					caption: Budgetaantal VW (wekelijks)
+				measure 'Budget Quantity WOW (Weekly)'
+					caption: Budgetaantal WTW (wekelijks)
+				measure 'Budget Quantity WOW % (Weekly)'
+					caption: Budgetaantal WTW % (wekelijks)
+				measure 'Budget Quantity PP (Weekly)'
+					caption: Budgetaantal VP (wekelijks)
+				measure 'Budget Quantity POP (Weekly)'
+					caption: Budgetaantal PTP (wekelijks)
+				measure 'Budget Quantity POP % (Weekly)'
+					caption: Budgetaantal PTP % (wekelijks)
+				measure 'Budget Quantity PYTD (Weekly)'
+					caption: Budgetaantal VJTH (wekelijks)
+				measure 'Budget Quantity PQTD (Weekly)'
+					caption: Budgetaantal VKTH (wekelijks)
+				measure 'Budget Quantity YOYTD (Weekly)'
+					caption: Budgetaantal JOJTH (wekelijks)
+				measure 'Budget Quantity YOYTD % (Weekly)'
+					caption: Budgetaantal JOJTH % (wekelijks)
+				measure 'Budget Quantity QOQTD (Weekly)'
+					caption: Budgetaantal KOKTH (wekelijks)
+				measure 'Budget Quantity QOQTD % (Weekly)'
+					caption: Budgetaantal KOKTH % (wekelijks)
+				measure 'Budget Quantity PWTD (Weekly)'
+					caption: Budgetaantal VWTH (wekelijks)
+				measure 'Budget Quantity WOWTD (Weekly)'
+					caption: Budgetaantal WOWTH (wekelijks)
+				measure 'Budget Quantity WOWTD % (Weekly)'
+					caption: Budgetaantal WOWTH % (wekelijks)
+				measure 'Budget Quantity MAT (364) (Weekly)'
+					caption: Budgetaantal VJT (364) (wekelijks)
+				measure 'Budget Quantity PYMAT (364) (Weekly)'
+					caption: Budgetaantal VJVJT (364) (wekelijks)
+				measure 'Budget Quantity MATG (Weekly)'
+					caption: Budgetaantal VJTG (wekelijks)
+				measure 'Budget Quantity MATG % (Weekly)'
+					caption: Budgetaantal VJTG % (wekelijks)
+				measure 'Budget Quantity PYC (Weekly)'
+					caption: Budgetaantal VJA (wekelijks)
+				measure 'Budget Quantity YTDOPY (Weekly)'
+					caption: Budgetaantal JTHTVJ (wekelijks)
+				measure 'Budget Quantity YTDOPY  % (Weekly)'
+					caption: Budgetaantal JTHTVJ % (wekelijks)
+				measure 'Budget Quantity PQC (Weekly)'
+					caption: Budgetaantal VKA (wekelijks)
+				measure 'Budget Quantity QTDOPQ (Weekly)'
+					caption: Budgetaantal KTHTVK (wekelijks)
+				measure 'Budget Quantity QTDOPQ % (Weekly)'
+					caption: Budgetaantal KTHTVK % (wekelijks)
+				measure 'Budget Quantity PWC (Weekly)'
+					caption: Budgetaantal VWA (wekelijks)
+				measure 'Budget Quantity WTDOPW (Weekly)'
+					caption: Budgetaantal WTHTVW (wekelijks)
+				measure 'Budget Quantity WTDOPW % (Weekly)'
+					caption: Budgetaantal WTHTVW % (wekelijks)
+				measure 'Budget Quantity AVG 4W (Weekly)'
+					caption: Budgetaantal AVG 4W (wekelijks)
+				measure 'Budget Quantity AVG 1Q (Weekly)'
+					caption: Budgetaantal AVG 1K (wekelijks)
+				measure 'Budget Quantity AVG 1Y (Weekly)'
+					caption: Budgetaantal GEM 1J (wekelijks)
+				measure 'Budget Amount YTD (Weekly)'
+					caption: Budgetbedrag JTH (wekelijks)
+				measure 'Budget Amount QTD (Weekly)'
+					caption: Budgetbedrag KTH (wekelijks)
+				measure 'Budget Amount MTD (Weekly)'
+					caption: Budgetbedrag MTH (wekelijks)
+				measure 'Budget Amount WTD (Weekly)'
+					caption: Budgetbedrag WTH (wekelijks)
+				measure 'Budget Amount PY (Weekly)'
+					caption: Budgetbedrag VJ (wekelijks)
+				measure 'Budget Amount YOY % (Weekly)'
+					caption: Budgetbedrag JTJ % (wekelijks)
+				measure 'Budget Amount YOY (Weekly)'
+					caption: Budgetbedrag JTJ (wekelijks)
+				measure 'Budget Amount PQ (Weekly)'
+					caption: Budgetbedrag VK (wekelijks)
+				measure 'Budget Amount QOQ (Weekly)'
+					caption: Budgetbedrag KTK (wekelijks)
+				measure 'Budget Amount QOQ % (Weekly)'
+					caption: Budgetbedrag KTK % (wekelijks)
+				measure 'Budget Amount PW (Weekly)'
+					caption: Budgetbedrag VW (wekelijks)
+				measure 'Budget Amount WOW (Weekly)'
+					caption: Budgetbedrag WTW (wekelijks)
+				measure 'Budget Amount WOW % (Weekly)'
+					caption: Budgetbedrag WTW % (wekelijks)
+				measure 'Budget Amount PP (Weekly)'
+					caption: Budgetbedrag VP (wekelijks)
+				measure 'Budget Amount POP (Weekly)'
+					caption: Budgetbedrag PTP (wekelijks)
+				measure 'Budget Amount POP % (Weekly)'
+					caption: Budgetbedrag PTP % (wekelijks)
+				measure 'Budget Amount PYTD (Weekly)'
+					caption: Budgetbedrag VJTH (wekelijks)
+				measure 'Budget Amount PQTD (Weekly)'
+					caption: Budgetbedrag VKTH (wekelijks)
+				measure 'Budget Amount YOYTD (Weekly)'
+					caption: Budgetbedrag JOJTH (wekelijks)
+				measure 'Budget Amount YOYTD % (Weekly)'
+					caption: Budgetbedrag JOJTH % (wekelijks)
+				measure 'Budget Amount QOQTD (Weekly)'
+					caption: Budgetbedrag KOKTH (wekelijks)
+				measure 'Budget Amount QOQTD % (Weekly)'
+					caption: Budgetbedrag KOKTH % (wekelijks)
+				measure 'Budget Amount PWTD (Weekly)'
+					caption: Budgetbedrag VWTH (wekelijks)
+				measure 'Budget Amount WOWTD (Weekly)'
+					caption: Budgetbedrag WOWTH (wekelijks)
+				measure 'Budget Amount WOWTD % (Weekly)'
+					caption: Budgetbedrag WOWTH % (wekelijks)
+				measure 'Budget Amount MAT (364) (Weekly)'
+					caption: Budgetbedrag VJT (364) (wekelijks)
+				measure 'Budget Amount PYMAT (364) (Weekly)'
+					caption: Budgetbedrag VJVJT (364) (wekelijks)
+				measure 'Budget Amount MATG (Weekly)'
+					caption: Budgetbedrag VJTG (wekelijks)
+				measure 'Budget Amount MATG % (Weekly)'
+					caption: Budgetbedrag VJTG % (wekelijks)
+				measure 'Budget Amount PYC (Weekly)'
+					caption: Budgetbedrag VJA (wekelijks)
+				measure 'Budget Amount YTDOPY (Weekly)'
+					caption: Budgetbedrag JTHTVJ (wekelijks)
+				measure 'Budget Amount YTDOPY % (Weekly)'
+					caption: Budgetbedrag JTHTVJ % (wekelijks)
+				measure 'Budget Amount PQC (Weekly)'
+					caption: Budgetbedrag VKA (wekelijks)
+				measure 'Budget Amount QTDOPQ (Weekly)'
+					caption: Budgetbedrag KTHTVK (wekelijks)
+				measure 'Budget Amount QTDOPQ % (Weekly)'
+					caption: Budgetbedrag KTHTVK % (wekelijks)
+				measure 'Budget Amount PWC (Weekly)'
+					caption: Budgetbedrag VWA (wekelijks)
+				measure 'Budget Amount WTDOPW (Weekly)'
+					caption: Budgetbedrag WTHTVW (wekelijks)
+				measure 'Budget Amount WTDOPW % (Weekly)'
+					caption: Budgetbedrag WTHTVW % (wekelijks)
+				measure 'Budget Amount AVG 4W (Weekly)'
+					caption: Budgetbedrag GEM 4W (wekelijks)
+				measure 'Budget Amount AVG 1Q (Weekly)'
+					caption: Budgetbedrag GEM 1K (wekelijks)
+				measure 'Budget Amount AVG 1Y (Weekly)'
+					caption: Budgetbedrag GEM 1J (wekelijks)
+			table 'Localized Labels'
+				measure 'My Report Title'
+					caption: Mijn rapporttitel
+				measure 'My Button Caption'
+					caption: Bijschrift van mijn knop
+				measure 'My Visual Title'
+					caption: Mijn visuele titel
+				measure 'Purchases Overview'
+					caption: Inkoopoverzicht
+				measure 'Purchases Decomposition'
+					caption: Uitsplitsing inkopen
+				measure 'Daily Purchases'
+					caption: Dagelijkse inkopen
+				measure 'Moving Averages'
+					caption: Voortschrijdende gemiddelden
+				measure 'Moving Annual Total (MAT)'
+					caption: Voortschrijdend jaarlijks totaal (VJT)
+				measure 'Period-Over-Period (POP)'
+					caption: Periode-tot-periode (PTP)
+				measure 'Year-Over-Year (YOY)'
+					caption: Jaar-tot-jaar (JTJ)
+				measure 'Purchases by Item'
+					caption: Inkopen per artikel
+				measure 'Purchases by Purchaser'
+					caption: Inkopen per inkoper
+				measure 'Purchases by Vendor'
+					caption: Inkopen per leverancier
+				measure 'Purchases by Location'
+					caption: Inkopen per locatie
+				measure 'Actual vs. Budget Quantity'
+					caption: Werkelijk versus budgetaantal
+				measure 'Actual vs. Budget Amount'
+					caption: Werkelijk versus budgetbedrag
+				measure 'Item Drillthrough'
+					caption: Detailanalyse artikel
+				measure 'Vendor Drillthrough'
+					caption: Detailanalyse leverancier
+				measure 'Location Drillthrough'
+					caption: Detailanalyse locatie
+				measure 'Purchaser Drillthrough'
+					caption: Detailanalyse inkoper
+				measure Purchase
+					caption: Inkoop
+				measure 'for Business Central'
+					caption: voor Business Central
+				measure 'CONNECT YOUR DATA'
+					caption: UW GEGEVENS VERBINDEN
+				measure '1. Download the Purchasing Connector for Power BI'
+					caption: 1. Download de Purchasing Connector for Power BI
+				measure '2. Configure Dynamics 365 Business Central'
+					caption: 2. Dynamics 365 Business Central configureren
+				measure 'USE, EDIT AND BUILD YOUR OWN REPORTS'
+					caption: UW EIGEN RAPPORTEN GEBRUIKEN, BEWERKEN EN MAKEN
+				measure 'Purchasing includes a variety of pre-built reports to help you see your data immediately.'
+					caption: Inkoop bevat een verscheidenheid aan vooraf gemaakte rapporten om u te helpen uw gegevens direct te bekijken.
+				measure 'You are able to edit these reports or build your own report from scratch'
+					caption: U kunt deze rapporten bewerken of uw eigen rapport helemaal opnieuw maken
+				measure 'HELP AND SUPPORT'
+					caption: HELP EN ONDERSTEUNING
+				measure 'For help and support with your new report please visit the Analytics overview documentation.'
+					caption: Ga voor hulp en ondersteuning met uw nieuwe rapport naar de Analytics-overzichtsdocumentatie.
+				measure 'OTHER POWER BI REPORTS'
+					caption: OVERIGE POWER BI-RAPPORTEN
+				measure SALES
+					caption: VERKOPEN
+				measure FINANCE
+					caption: FINANCIËN
+				measure REBATES
+					caption: KORTINGEN
+				measure INVENTORY
+					caption: VOORRAAD
+				measure JOBS
+					caption: PROJECTEN
+				measure 'Purchase Amounts'
+					caption: Inkoopbedragen
+				measure 'Purchase Quantity by Item Category'
+					caption: Inkoopaantal per artikelcategorie
+				measure 'Top 5 Vendors by Amount by Source Type'
+					caption: Top 5 leveranciers per bedrag per bronsoort
+				measure 'Locations by Quantity'
+					caption: Locaties per aantal
+				measure 'Document Count'
+					caption: Aantal documenten
+				measure 'Purchase Quantities'
+					caption: Inkoopaantallen
+				measure 'Decomposition by Amount'
+					caption: Uitsplitsing per bedrag
+				measure 'Purchase Amount and Purchase Amount 30 Days Average (Fiscal) by Fiscal Month Year'
+					caption: Inkoopbedrag en inkoopbedrag gemiddeld 30 dagen (fiscaal) op fiscale maand/jaar
+				measure 'Previous Year & Current Year Moving Annual Total by Fiscal Month Year'
+					caption: Vorig jaar en huidig jaar voortschrijdend jaarlijks totaal op fiscale maand/jaar
+				measure 'Purchase Amount Period-over-Period (Fiscal) and Purchase Amount by Fiscal Month Year'
+					caption: Inkoopbedrag periode tot periode (fiscaal) en inkoopbedrag op fiscale maand/jaar
+				measure 'Current Year and Previous Year (Fiscal) Purchase Amount by Fiscal Month Year'
+					caption: Inkoopbedrag huidig jaar en vorig jaar (fiscaal) op fiscale maand/jaar
+				measure 'Last Refreshed'
+					caption: Laatst vernieuwd
+				measure 'Company Name'
+					caption: Bedrijfsnaam
+				measure 'Purchase Quantity by Location'
+					caption: Inkoopaantal per locatie
+				measure 'Purchase Amounts of Top 5 Vendors'
+					caption: Inkoopbedragen van top 5 leveranciers
+				measure 'Purchase Distribution by Item Category'
+					caption: Inkoopverdeling per artikelcategorie
+				measure 'Purchases by Item Category'
+					caption: Inkopen per artikelcategorie
+				measure 'Purchase Amount by Item Category'
+					caption: Inkoopbedrag per artikelcategorie
+				measure 'Actual vs Budget'
+					caption: Werkelijk vs. budget
+				measure 'Actual vs Budget Purchase Analysis by Item Category'
+					caption: Analyse van werkelijke inkoop versus budgetinkoop per artikelcategorie
+				measure 'Purchases Drillthrough'
+					caption: Detailanalyse inkopen
+				measure 'Detailed Purchase Ledger'
+					caption: Gedetailleerd inkoopboek
+				measure 'Total Purchase Amount by Fiscal Year'
+					caption: Totaal inkoopbedrag per boekjaar
+				measure PROJECTS
+					caption: PROJECTEN
+				measure MANUFACTURING
+					caption: PRODUCTIE
+				measure 'This card displays key metrics for business analysis. The card shows total purchase amount, document count, number of outstanding purchase orders, number of purchase invoices, outstanding amount, and invoiced amount.'
+					caption: Op deze kaart worden belangrijke metrische gegevens voor bedrijfsanalyse weergegeven. De kaart bevat totaal inkoopbedrag, aantal documenten, aantal openstaande inkooporders, aantal inkoopfacturen, openstaand bedrag en gefactureerd bedrag.
+				measure 'The card displays key metrics for business analysis, including total purchase amount, document count, number of outstanding purchase orders, number of purchase invoices, outstanding amount excluding VAT, and invoiced amount.'
+					caption: Op de kaart worden belangrijke metrische gegevens voor bedrijfsanalyse weergegeven, inclusief totaal inkoopbedrag, aantal documenten, aantal openstaande inkooporders, aantal inkoopfacturen, openstaand bedrag exclusief btw en gefactureerd bedrag.
+				measure 'Daily Purchases Details'
+					caption: Details van dagelijkse inkopen
+				measure 'Moving Annual Total (MAT) Details'
+					caption: Details van voortschrijdend jaarlijks totaal (VJT)
+				measure 'Period-Over-Period (POP) Details'
+					caption: Details van periode-tot-periode (PTP)
+				measure 'Year-Over-Year (YOY) Details'
+					caption: Details van jaar-tot-jaar (JTJ)
+				measure 'Purchases by Item Details'
+					caption: Details van inkopen per artikel
+				measure 'Purchases by Vendor Details'
+					caption: Details van inkopen per leverancier
+				measure 'Purchases by Purchaser Details'
+					caption: Details van inkopen per inkoper
+				measure 'Purchases by Location Details'
+					caption: Details van inkopen per locatie
+				measure 'Purchases Drillthrough Details'
+					caption: Details van detailanalyse inkopen
+			table COMPANY
+				caption: BEDRIJF
+				measure 'Company Label'
+					caption: Bedrijfslabel
+			table 'Purchase Budget Name'
+				caption: Naam van inkoopbudget
+				column 'Purchase Budget Description'
+					caption: Omschrijving van inkoopbudget
+			table 'Item Category'
+				caption: Artikelcategorie
+				column 'Item Category Code'
+					caption: Artikelcategoriecode
+				column 'Item Category Description'
+					caption: Omschrijving van artikelcategorie
+				column 'Item Category Parent Category'
+					caption: Hoofdcategorie van artikelcategorie
+				column 'Item Category Code Level 1'
+					caption: Artikelcategoriecode niveau 1
+				column 'Item Category Code Level 2'
+					caption: Artikelcategoriecode niveau 2
+				column 'Item Category Code Level 3'
+					caption: Artikelcategoriecode niveau 3
+

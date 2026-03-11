@@ -1,0 +1,125 @@
+.ms-Dropdown {
+    display: inline-block;
+    font-size: 16px;
+    font-family: "Segoe UI",Tahoma,Helvetica,Arial,sans-serif;
+    color: #333333;
+    top: 0px;
+    text-align: left;
+    width: 300px;
+    margin-bottom: 0px;
+}
+
+.tableDiv{
+    height: 600px;
+    overflow: auto;
+}
+.tableheader {
+    font-family: "Segoe UI",Tahoma,Helvetica,Arial,sans-serif;
+    font-size: 14px;
+    color: #666666;
+}
+
+.header .ms-Label {
+    padding-right: 12px;
+    display: inline-block;
+    font-family: "Segoe UI",Tahoma,Helvetica,Arial,sans-serif;
+    font-size: 14px;
+    color: #666666;
+}
+
+.header{
+    text-align: center;
+    margin-bottom: 10px;
+    height: 42px;
+}
+
+.ms-Table thead th {
+    font-size: 14px;
+    color: #666666;
+    font-family: "Segoe UI",Tahoma,Helvetica,Arial,sans-serif;
+    font-weight: bold;
+}
+
+.ms-Table thead tr{
+    line-height: 1.5;
+}
+
+.ms-Table{
+    margin-top: 10px;
+    margin-bottom: 30px;
+}
+
+.ms-Table tr{    
+    line-height: 45px;
+    border-bottom: 5px solid white;
+}
+
+.ms-Table .type1{
+    background: #007883;
+}
+
+.ms-Table .type2{
+    background: #00b7C3;
+    line-height:1.5;
+}
+
+.ms-Table .type2:hover {
+    background: #007883;
+}
+
+.ms-Table tbody td {
+    border-left: 10px solid white;
+    color: white;
+    font-size: 12px;
+    font-family: "Segoe UI",Tahoma,Helvetica,Arial,sans-serif;
+    padding-top: 5px;
+    padding-bottom: 5px;
+}
+
+.ms-Callout-header{
+    padding-top: 10px;
+    padding-bottom: 10px;
+}
+
+.subtitle {
+    font-family: "Segoe UI",Tahoma,Helvetica,Arial,sans-serif;
+    font-size: 20px;
+    color: #666666;
+}
+
+.footer .ms-Label {
+    display: inline-block;
+    font-family: "Segoe UI",Tahoma,Helvetica,Arial,sans-serif;
+    font-size: 13px;
+    width: 80vw;
+}
+
+.footer{
+     text-align: center;
+     position: fixed;
+     width: 100%;
+     bottom:0;
+     height: 90px;
+}
+
+.ms-Button{
+    float: right;
+    width: 13vw;
+    height: 5vh;    
+    background-color:#007883;
+    margin-bottom: 10px;
+}
+
+.ms-Button-label {
+    font-family: "Segoe UI",Tahoma,Helvetica,Arial,sans-serif;
+    font-size: 14px;
+    color: white;
+}
+
+.ms-MessageBar{
+    width: 100%;
+}
+
+.ms-screenReaderOnly{
+    display:none;
+}

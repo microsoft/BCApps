@@ -1,0 +1,54 @@
+#if not CLEANSCHEMA31
+// ------------------------------------------------------------------------------------------------
+// Copyright (c) Microsoft Corporation. All rights reserved.
+// Licensed under the MIT License. See License.txt in the project root for license information.
+// ------------------------------------------------------------------------------------------------
+
+namespace System.Feedback;
+
+table 1432 "Net Promoter Score Setup"
+{
+    Access = Internal;
+    InherentEntitlements = X;
+    InherentPermissions = X;
+    DataPerCompany = false;
+    ReplicateData = false;
+    ObsoleteReason = 'This module is no longer used.';
+#if not CLEAN28
+    ObsoleteState = Pending;
+    ObsoleteTag = '28.0';
+#else
+    ObsoleteState = Removed;
+    ObsoleteTag = '31.0';
+#endif
+
+    fields
+    {
+        field(1; "Primary Key"; Code[10])
+        {
+            DataClassification = SystemMetadata;
+        }
+        field(2; "API URL"; Blob)
+        {
+            DataClassification = SystemMetadata;
+        }
+        field(3; "Expire Time"; DateTime)
+        {
+            DataClassification = SystemMetadata;
+        }
+        field(5; "Request Timeout"; Integer)
+        {
+            DataClassification = SystemMetadata;
+        }
+    }
+
+    keys
+    {
+        key(Key1; "Primary Key")
+        {
+            Clustered = true;
+        }
+    }
+
+}
+#endif

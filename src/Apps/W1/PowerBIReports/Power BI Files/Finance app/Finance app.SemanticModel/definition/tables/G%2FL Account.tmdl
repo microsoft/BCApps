@@ -1,0 +1,337 @@
+table 'G/L Account'
+	lineageTag: 3c497fc9-ea73-408d-9753-186653d55d12
+
+	measure GLAccBrowseDepth = ```
+			
+			    ISFILTERED ( 'G/L Account'[G/L Account (Level 1)] )
+			    + ISFILTERED ( 'G/L Account'[G/L Account (Level 2)] )
+			    + ISFILTERED ( 'G/L Account'[G/L Account (Level 3)] )
+			    + ISFILTERED ( 'G/L Account'[G/L Account (Level 4)] )
+			    + ISFILTERED ( 'G/L Account'[G/L Account (Level 5)] )
+			```
+		formatString: 0
+		isHidden
+		lineageTag: eb764593-8c5f-479e-a5d8-25b08f98187e
+
+	measure GLAccMaxNodeDepth = MAX ('G/L Account'[GLAccNodeDepth])
+		formatString: 0
+		isHidden
+		lineageTag: 3361b0b1-e59d-4413-b5be-93e3fa01af27
+
+	measure 'G/L Acc. Balance at Date' =
+			
+			IF (
+			    [GLAccMaxNodeDepth] + 1 >= [GLAccBrowseDepth],
+			    IF (
+			        [GLAccMaxNodeDepth] + 1 = [GLAccBrowseDepth],
+			        IF (
+			            VALUES ( 'G/L Account'[GLAccHasChildren] ) = TRUE && [Balance at Date] <> 0,
+			            [Balance at Date]
+			        ),
+			        [Balance at Date]
+			    )
+			)
+		formatString: #,0.00
+		displayFolder: _G/L Account Measures
+		lineageTag: ff8c1ce0-8975-470e-b6b0-8cfbc68a4e87
+
+		changedProperty = FormatString
+
+		annotation PBI_FormatHint = {"currencyCulture":"en-AU"}
+
+	measure 'G/L Acc. Net Change' =
+			
+			IF (
+			    [GLAccMaxNodeDepth] + 1 >= [GLAccBrowseDepth],
+			    IF (
+			        [GLAccMaxNodeDepth] + 1 = [GLAccBrowseDepth],
+			        IF (
+			            VALUES ( 'G/L Account'[GLAccHasChildren] ) = TRUE && [Net Change] <> 0,
+			            [Net Change]
+			        ),
+			        [Net Change]
+			    )
+			)
+		formatString: #,0.00
+		displayFolder: _G/L Account Measures
+		lineageTag: db09a6ac-762e-46a4-88c0-e46342391de7
+
+		changedProperty = FormatString
+
+		annotation PBI_FormatHint = {"currencyCulture":"en-AU"}
+
+	measure 'G/L Acc. Budget Balance at Date' =
+			
+			IF (
+			    [GLAccMaxNodeDepth] + 1 >= [GLAccBrowseDepth],
+			    IF (
+			        [GLAccMaxNodeDepth] + 1 = [GLAccBrowseDepth],
+			        IF (
+			            VALUES ( 'G/L Account'[GLAccHasChildren] ) = TRUE && [Budget Balance at Date] <> 0,
+			            [Budget Balance at Date]
+			        ),
+			        [Budget Balance at Date]
+			    )
+			)
+		formatString: #,0.00
+		displayFolder: _G/L Account Measures
+		lineageTag: 0dbf1f67-efe8-418e-943f-7c973e7945fd
+
+		annotation PBI_FormatHint = {"currencyCulture":"en-AU"}
+
+	measure 'G/L Acc. Budget Amount' =
+			
+			IF (
+			    [GLAccMaxNodeDepth] + 1 >= [GLAccBrowseDepth],
+			    IF (
+			        [GLAccMaxNodeDepth] + 1 = [GLAccBrowseDepth],
+			        IF (
+			            VALUES ( 'G/L Account'[GLAccHasChildren] ) = TRUE && [Budget Amount] <> 0,
+			            [Budget Amount]
+			        ),
+			        [Budget Amount]
+			    )
+			)
+		formatString: #,0.00
+		displayFolder: _G/L Account Measures
+		lineageTag: e8f078f3-14ef-45ab-b93d-7253de59bdd6
+
+		annotation PBI_FormatHint = {"currencyCulture":"en-AU"}
+
+	column 'G/L Account No./Name'
+		dataType: string
+		lineageTag: d2e799e6-a095-40fe-a5a5-469faba0df55
+		summarizeBy: none
+		sourceColumn: G/L Account No./Name
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'G/L Account No./Name Indented'
+		dataType: string
+		isHidden
+		lineageTag: 76a6007b-ef2c-4d57-8e72-93eb8d722b78
+		summarizeBy: none
+		sourceColumn: G/L Account No./Name Indented
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Parent G/L Account No.'
+		dataType: string
+		isHidden
+		lineageTag: 7c6d9ee8-70f4-4453-bd76-c8ecbad1715f
+		summarizeBy: none
+		sourceColumn: Parent G/L Account No.
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column GLAccPath = PATH ( 'G/L Account'[G/L Account No.], 'G/L Account'[Parent G/L Account No.] )
+		isHidden
+		lineageTag: 35e2fa51-1a54-4490-8ff5-12593bc20c3f
+		summarizeBy: none
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'G/L Account (Level 1)' =
+			
+			LOOKUPVALUE (
+			    'G/L Account'[G/L Account No./Name],
+			    'G/L Account'[G/L Account No.], PATHITEM ( 'G/L Account'[GLAccPath], 1, TEXT )
+			)
+		isHidden
+		lineageTag: ed5e27a0-4b85-4e2e-bc9b-9d6b35e8c91e
+		summarizeBy: none
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'G/L Account (Level 2)' =
+			
+			IF (
+			    PATHLENGTH ( 'G/L Account'[GLAccPath] ) > 1,
+			    LOOKUPVALUE (
+			        'G/L Account'[G/L Account No./Name],
+			        'G/L Account'[G/L Account No.], PATHITEM ( 'G/L Account'[GLAccPath], 2, TEXT )
+			    ),
+			    'G/L Account'[G/L Account (Level 1)]
+			)
+		isHidden
+		lineageTag: 82c1852a-9779-4631-ad57-864c951c8dac
+		summarizeBy: none
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'G/L Account (Level 3)' =
+			
+			IF (
+			    PATHLENGTH ( 'G/L Account'[GLAccPath] ) > 2,
+			    LOOKUPVALUE (
+			        'G/L Account'[G/L Account No./Name],
+			        'G/L Account'[G/L Account No.], PATHITEM ( 'G/L Account'[GLAccPath], 3, TEXT )
+			    ),
+			    'G/L Account'[G/L Account (Level 2)]
+			)
+		isHidden
+		lineageTag: 2c8e8482-5921-409c-9b5f-1503c586abfe
+		summarizeBy: none
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'G/L Account (Level 4)' =
+			
+			IF (
+			    PATHLENGTH ( 'G/L Account'[GLAccPath] ) > 3,
+			    LOOKUPVALUE (
+			        'G/L Account'[G/L Account No./Name],
+			        'G/L Account'[G/L Account No.], PATHITEM ( 'G/L Account'[GLAccPath], 4, TEXT )
+			    ),
+			    'G/L Account'[G/L Account (Level 3)]
+			)
+		isHidden
+		lineageTag: be03056c-1584-4b27-a4e5-e802134464b0
+		summarizeBy: none
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'G/L Account (Level 5)' =
+			
+			IF (
+			    PATHLENGTH ( 'G/L Account'[GLAccPath] ) > 4,
+			    LOOKUPVALUE (
+			        'G/L Account'[G/L Account No./Name],
+			        'G/L Account'[G/L Account No.], PATHITEM ( 'G/L Account'[GLAccPath], 5, TEXT )
+			    ),
+			    'G/L Account'[G/L Account (Level 4)]
+			)
+		isHidden
+		lineageTag: 0ccc0ccb-9f31-4a64-b623-842a0c1e6032
+		summarizeBy: none
+
+		annotation SummarizationSetBy = Automatic
+
+	column GLAccNodeDepth = PATHLENGTH ( [GLAccPath] )
+		isHidden
+		formatString: 0
+		lineageTag: 230edf85-44c4-4779-8090-6ba5f58b2069
+		summarizeBy: sum
+
+		annotation SummarizationSetBy = Automatic
+
+	column GLAccHasChildren =
+			
+			CALCULATE (
+			    COUNTROWS ( 'G/L Account' ),
+			    ALL ( 'G/L Account' ),
+			    'G/L Account'[Parent G/L Account No.] = EARLIER ( 'G/L Account'[G/L Account No.] )
+			) > 0
+		isHidden
+		formatString: """TRUE"";""TRUE"";""FALSE"""
+		lineageTag: 1aae5160-f5f6-4cb5-a507-87ce90951f12
+		summarizeBy: none
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'G/L Account No./Name (Hierarchy)'
+		dataType: string
+		isHidden
+		lineageTag: c4a4df75-4912-4636-8e2e-ac1f0f4caea1
+		summarizeBy: none
+		sourceColumn: G/L Account No./Name (Hierarchy)
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'G/L Account No.'
+		dataType: string
+		isKey
+		lineageTag: 1a07b76a-7c4c-4807-a4b5-297c9b0af8bf
+		summarizeBy: none
+		sourceColumn: G/L Account No.
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'G/L Account Name'
+		dataType: string
+		lineageTag: fd18e2c7-764b-45b9-8676-34dfed00cd39
+		summarizeBy: none
+		sourceColumn: G/L Account Name
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Account Type'
+		dataType: string
+		isHidden
+		lineageTag: a83e9a7b-c7fd-43d9-b513-8fffcda403e1
+		summarizeBy: none
+		sourceColumn: Account Type
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column Income/Balance
+		dataType: string
+		lineageTag: 46f152e4-5fab-48ae-b0da-6dd69121b76c
+		summarizeBy: none
+		sourceColumn: Income/Balance
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Account Subcategory Entry No.'
+		dataType: int64
+		isHidden
+		formatString: 0
+		lineageTag: 977db53c-c03a-452f-9ccc-7986f60f7e78
+		summarizeBy: none
+		sourceColumn: Account Subcategory Entry No.
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	hierarchy 'G/L Account Hierarchy'
+		lineageTag: 1b2168f5-cfc7-4cfe-971f-e2e1745e1ea0
+
+		level 'G/L Account (Level 1)'
+			lineageTag: f6ac198b-b0cd-43e7-8134-44eb9303f02e
+			column: 'G/L Account (Level 1)'
+
+		level 'G/L Account (Level 2)'
+			lineageTag: 5dd8dcde-02ef-410b-a886-4061cfa406d3
+			column: 'G/L Account (Level 2)'
+
+		level 'G/L Account (Level 3)'
+			lineageTag: 740dd954-8076-4f17-8c4c-d154137a9a82
+			column: 'G/L Account (Level 3)'
+
+		level 'G/L Account (Level 4)'
+			lineageTag: d5a9559f-0812-439e-b0e8-939a28c771c9
+			column: 'G/L Account (Level 4)'
+
+		level 'G/L Account (Level 5)'
+			lineageTag: 1b4d2e2c-908b-4993-9c76-35054d881a20
+			column: 'G/L Account (Level 5)'
+
+	partition 'G/L Account-71694464-4ed8-4e72-96d5-c06641f736cb' = m
+		mode: import
+		queryGroup: 'Dimension Tables'
+		source =
+				let
+				    Source = Table.Combine({GLAccountPosting, GLAccountEndTotal}),
+				    #"Replaced Value" = Table.ReplaceValue(Source,0,null,Replacer.ReplaceValue,{"accountSubcategoryEntryNo"}),
+				    #"Added Custom" = Table.AddColumn(#"Replaced Value", "G/L Account No./Name", each [accountNo] & " " & [accountName], type text),
+				    #"Added Custom1" = Table.AddColumn(#"Added Custom", "G/L Account No./Name Indented", each if [indentation] = 0 then [#"G/L Account No./Name"] else if [indentation] = 1 then "   " & [#"G/L Account No./Name"] else if [indentation] = 2 then "      " & [#"G/L Account No./Name"] else if [indentation] = 3 then "         " & [#"G/L Account No./Name"] else if [indentation] = 4 then "            " & [#"G/L Account No./Name"] else "               " & [#"G/L Account No./Name"], type text),
+				    #"Added Custom2" = Table.AddColumn(#"Added Custom1", "Parent G/L Account No.", each GetParentGLAccountNo([accountNo]), type text),
+				    #"Added Custom3" = Table.AddColumn(#"Added Custom2", "G/L Account No./Name (Hierarchy)", each if [accountType] = "Posting" then [accountNo] & " " & [accountName] else [accountName], type text),
+				    #"Removed Columns" = Table.RemoveColumns(#"Added Custom3",{"GLAccountFrom", "GLAccountTo", "totaling", "indentation"}),
+				    #"Renamed Columns" = Table.RenameColumns(#"Removed Columns",{{"accountNo", "G/L Account No."}, {"accountName", "G/L Account Name"}, {"accountType", "Account Type"}, {"incomeBalance", "Income/Balance"}, {"accountSubcategoryEntryNo", "Account Subcategory Entry No."}})
+				in
+				    #"Renamed Columns"
+
+	annotation PBI_ResultType = Table
+
+	annotation PBI_NavigationStepName = Navigation
+

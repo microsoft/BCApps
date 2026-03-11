@@ -1,0 +1,572 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.4.0/schema.json",
+  "name": "81c92b60a707e9b92096",
+  "position": {
+    "x": 26,
+    "y": 383.33333333333337,
+    "z": 1000,
+    "height": 310.83333333333337,
+    "width": 1228.3333333333335,
+    "tabOrder": 0
+  },
+  "visual": {
+    "visualType": "pivotTable",
+    "query": {
+      "queryState": {
+        "Rows": {
+          "projections": [
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Item"
+                    }
+                  },
+                  "Property": "Item Category Code"
+                }
+              },
+              "queryRef": "Item.Item Category Code",
+              "nativeQueryRef": "Item Category Code",
+              "active": true
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Item"
+                    }
+                  },
+                  "Property": "Item No. & Description"
+                }
+              },
+              "queryRef": "Item.Item No. & Description",
+              "nativeQueryRef": "Item No. & Description",
+              "active": false
+            }
+          ]
+        },
+        "Values": {
+          "projections": [
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Item"
+                    }
+                  },
+                  "Property": "Scheduled Receipt"
+                }
+              },
+              "queryRef": "Item.Scheduled Receipt",
+              "nativeQueryRef": "Scheduled Receipt"
+            },
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Item"
+                    }
+                  },
+                  "Property": "Projected Available Balance"
+                }
+              },
+              "queryRef": "Item.Projected Available Balance",
+              "nativeQueryRef": "Projected Available Balance"
+            },
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Production Order Lines"
+                    }
+                  },
+                  "Property": "FP Order Receipt (Qty.)"
+                }
+              },
+              "queryRef": "Production Order Lines.FP Order Receipt (Qty.)",
+              "nativeQueryRef": "FP Order Receipt (Qty.)"
+            },
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Production Order Lines"
+                    }
+                  },
+                  "Property": "Rel. Order Receipt (Qty.)"
+                }
+              },
+              "queryRef": "Production Order Lines.Rel. Order Receipt (Qty.)",
+              "nativeQueryRef": "Rel. Order Receipt (Qty.)"
+            },
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Purchase Lines"
+                    }
+                  },
+                  "Property": "Qty. on Purch. Order"
+                }
+              },
+              "queryRef": "Purchase Lines.Qty. on Purch. Order",
+              "nativeQueryRef": "Qty. on Purch. Order"
+            },
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Transfer Lines"
+                    }
+                  },
+                  "Property": "Qty. in Transit"
+                }
+              },
+              "queryRef": "Transfer Lines.Qty. in Transit",
+              "nativeQueryRef": "Qty. in Transit"
+            },
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Transfer Lines"
+                    }
+                  },
+                  "Property": "Trans. Order Receipt (Qty.)"
+                }
+              },
+              "queryRef": "Transfer Lines.Trans. Order Receipt (Qty.)",
+              "nativeQueryRef": "Trans. Order Receipt (Qty.)"
+            },
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Assembly Headers"
+                    }
+                  },
+                  "Property": "Qty. on Assembly Order"
+                }
+              },
+              "queryRef": "Assembly Headers.Qty. on Assembly Order",
+              "nativeQueryRef": "Qty. on Assembly Order"
+            },
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Sales Lines"
+                    }
+                  },
+                  "Property": "Qty. on Sales Return Order"
+                }
+              },
+              "queryRef": "Sales Lines.Qty. on Sales Return Order",
+              "nativeQueryRef": "Qty. on Sales Return Order"
+            }
+          ]
+        }
+      },
+      "sortDefinition": {
+        "sort": [
+          {
+            "field": {
+              "Measure": {
+                "Expression": {
+                  "SourceRef": {
+                    "Entity": "Item"
+                  }
+                },
+                "Property": "Projected Available Balance"
+              }
+            },
+            "direction": "Descending"
+          }
+        ]
+      }
+    },
+    "expansionStates": [
+      {
+        "roles": [
+          "Rows"
+        ],
+        "levels": [
+          {
+            "queryRefs": [
+              "Item.Item Category Code"
+            ],
+            "isCollapsed": true,
+            "isPinned": true
+          },
+          {
+            "queryRefs": [
+              "Item.Item No. & Description"
+            ],
+            "isCollapsed": true,
+            "isPinned": true
+          }
+        ],
+        "root": {}
+      }
+    ],
+    "objects": {
+      "columnWidth": [
+        {
+          "properties": {
+            "value": {
+              "expr": {
+                "Literal": {
+                  "Value": "113D"
+                }
+              }
+            }
+          },
+          "selector": {
+            "metadata": "Sales Measures.Average Sales Amount per Month"
+          }
+        },
+        {
+          "properties": {
+            "value": {
+              "expr": {
+                "Literal": {
+                  "Value": "95D"
+                }
+              }
+            }
+          },
+          "selector": {
+            "metadata": "Sales Measures.Average Sales Amount per Day"
+          }
+        }
+      ],
+      "values": [
+        {
+          "properties": {
+            "webURL": {
+              "expr": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Purchase Lines"
+                    }
+                  },
+                  "Property": "Purchase Order Quantity Link"
+                }
+              }
+            }
+          },
+          "selector": {
+            "data": [
+              {
+                "dataViewWildcard": {
+                  "matchingOption": 0
+                }
+              }
+            ],
+            "metadata": "Purchase Lines.Qty. on Purch. Order"
+          }
+        },
+        {
+          "properties": {
+            "webURL": {
+              "expr": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Transfer Lines"
+                    }
+                  },
+                  "Property": "Transfer Lines Quantity Link"
+                }
+              }
+            }
+          },
+          "selector": {
+            "data": [
+              {
+                "dataViewWildcard": {
+                  "matchingOption": 0
+                }
+              }
+            ],
+            "metadata": "Transfer Lines.Qty. in Transit"
+          }
+        },
+        {
+          "properties": {
+            "webURL": {
+              "expr": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Assembly Lines"
+                    }
+                  },
+                  "Property": "Assembly Line Quantity Link"
+                }
+              }
+            }
+          },
+          "selector": {
+            "data": [
+              {
+                "dataViewWildcard": {
+                  "matchingOption": 0
+                }
+              }
+            ],
+            "metadata": "Assembly Headers.Qty. on Assembly Order"
+          }
+        },
+        {
+          "properties": {
+            "webURL": {
+              "expr": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Sales Lines"
+                    }
+                  },
+                  "Property": "Sales Return Order Line Link"
+                }
+              }
+            }
+          },
+          "selector": {
+            "data": [
+              {
+                "dataViewWildcard": {
+                  "matchingOption": 0
+                }
+              }
+            ],
+            "metadata": "Sales Lines.Qty. on Sales Return Order"
+          }
+        }
+      ]
+    },
+    "visualContainerObjects": {
+      "title": [
+        {
+          "properties": {
+            "text": {
+              "expr": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Translated Localized Labels"
+                    }
+                  },
+                  "Property": "Scheduled Receipt Details Label"
+                }
+              }
+            }
+          }
+        }
+      ],
+      "visualTooltip": [
+        {
+          "properties": {
+            "show": {
+              "expr": {
+                "Literal": {
+                  "Value": "true"
+                }
+              }
+            },
+            "section": {
+              "expr": {
+                "Literal": {
+                  "Value": "'ReportSection497a0733e5e90ba900a1'"
+                }
+              }
+            }
+          }
+        }
+      ]
+    }
+  },
+  "filterConfig": {
+    "filters": [
+      {
+        "name": "6340c63e45c50cd009d4",
+        "ordinal": 0,
+        "field": {
+          "Measure": {
+            "Expression": {
+              "SourceRef": {
+                "Entity": "Production Order Lines"
+              }
+            },
+            "Property": "FP Order Receipt (Qty.)"
+          }
+        },
+        "type": "Advanced"
+      },
+      {
+        "name": "d26fd797ee987995c882",
+        "ordinal": 1,
+        "field": {
+          "Column": {
+            "Expression": {
+              "SourceRef": {
+                "Entity": "Item"
+              }
+            },
+            "Property": "Item No. & Description"
+          }
+        },
+        "type": "Categorical"
+      },
+      {
+        "name": "200b32883065ab3a0b07",
+        "ordinal": 2,
+        "field": {
+          "Measure": {
+            "Expression": {
+              "SourceRef": {
+                "Entity": "Item"
+              }
+            },
+            "Property": "Projected Available Balance"
+          }
+        },
+        "type": "Advanced"
+      },
+      {
+        "name": "34f6cb98d7819e450523",
+        "ordinal": 3,
+        "field": {
+          "Measure": {
+            "Expression": {
+              "SourceRef": {
+                "Entity": "Transfer Lines"
+              }
+            },
+            "Property": "Qty. in Transit"
+          }
+        },
+        "type": "Advanced"
+      },
+      {
+        "name": "17b67e78640180572004",
+        "ordinal": 4,
+        "field": {
+          "Measure": {
+            "Expression": {
+              "SourceRef": {
+                "Entity": "Assembly Headers"
+              }
+            },
+            "Property": "Qty. on Assembly Order"
+          }
+        },
+        "type": "Advanced"
+      },
+      {
+        "name": "edf2a286d450769de4db",
+        "ordinal": 5,
+        "field": {
+          "Measure": {
+            "Expression": {
+              "SourceRef": {
+                "Entity": "Purchase Lines"
+              }
+            },
+            "Property": "Qty. on Purch. Order"
+          }
+        },
+        "type": "Advanced"
+      },
+      {
+        "name": "55773002e76e3c773e76",
+        "ordinal": 6,
+        "field": {
+          "Measure": {
+            "Expression": {
+              "SourceRef": {
+                "Entity": "Sales Lines"
+              }
+            },
+            "Property": "Qty. on Sales Return Order"
+          }
+        },
+        "type": "Advanced"
+      },
+      {
+        "name": "81dedf54a6aa590c185c",
+        "ordinal": 7,
+        "field": {
+          "Measure": {
+            "Expression": {
+              "SourceRef": {
+                "Entity": "Production Order Lines"
+              }
+            },
+            "Property": "Rel. Order Receipt (Qty.)"
+          }
+        },
+        "type": "Advanced"
+      },
+      {
+        "name": "7283d379eb08ce2aed97",
+        "ordinal": 8,
+        "field": {
+          "Measure": {
+            "Expression": {
+              "SourceRef": {
+                "Entity": "Item"
+              }
+            },
+            "Property": "Scheduled Receipt"
+          }
+        },
+        "type": "Advanced"
+      },
+      {
+        "name": "38a3519f29d0015e4d43",
+        "ordinal": 9,
+        "field": {
+          "Measure": {
+            "Expression": {
+              "SourceRef": {
+                "Entity": "Transfer Lines"
+              }
+            },
+            "Property": "Trans. Order Receipt (Qty.)"
+          }
+        },
+        "type": "Advanced"
+      },
+      {
+        "name": "336c48f33aa6eee6321c",
+        "ordinal": 10,
+        "field": {
+          "Column": {
+            "Expression": {
+              "SourceRef": {
+                "Entity": "Item"
+              }
+            },
+            "Property": "Item Category Code"
+          }
+        },
+        "type": "Categorical"
+      }
+    ],
+    "filterSortOrder": "Custom"
+  }
+}

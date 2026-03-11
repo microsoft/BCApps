@@ -1,0 +1,31 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.4.0/schema.json",
+  "name": "14355411b2a810eca798",
+  "position": {
+    "x": 339,
+    "y": 62,
+    "z": 3000,
+    "height": 230,
+    "width": 291,
+    "tabOrder": 4000
+  },
+  "visualGroup": {
+    "displayName": "Net Profit Margin Group",
+    "groupMode": "ScaleMode",
+    "objects": {
+      "general": [
+        {
+          "properties": {
+            "altText": {
+              "expr": {
+                "Literal": {
+                  "Value": "'Net Profit Margin, Net Profit, Revenue.'"
+                }
+              }
+            }
+          }
+        }
+      ]
+    }
+  }
+}

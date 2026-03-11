@@ -1,0 +1,302 @@
+table 'Requisition Line'
+	isHidden
+	lineageTag: bab6c4ad-db1b-4a06-a02f-b02064dce068
+
+	measure 'Planning Transfer Ship. (Qty).' =
+			
+			CALCULATE(
+			    SUM('Requisition Line'[quantityBase]),
+			    'Requisition Line'[worksheetTemplateName] <> BLANK(),
+			    'Requisition Line'[journalBatchName] <> BLANK(),
+			    'Requisition Line'[replenishmentSystem] = "Transfer",
+			    USERELATIONSHIP('Requisition Line'[transferFromCode],Location[Location Code]),
+			    USERELATIONSHIP('Requisition Line'[transferShipmentDate],'Date'[Date])
+			    )
+		isHidden
+		lineageTag: 5fe764c3-393c-4fc3-987e-4f60d86add91
+
+		changedProperty = IsHidden
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Planning Worksheet (Qty.)' =
+			
+			CALCULATE(
+			    SUM('Requisition Line'[quantityBase]),
+			    'Requisition Line'[planningLineOrigin] = "Planning",
+			    USERELATIONSHIP('Requisition Line'[locationCode],Location[Location Code])
+			)
+		isHidden
+		lineageTag: 748c3e47-5d80-43be-a22a-59086447da4b
+
+		changedProperty = IsHidden
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Planning Receipt (Qty.)' = ```
+			SUM('Requisition Line'[quantityBase])
+			
+			```
+		isHidden
+		lineageTag: 843e2784-8502-4eeb-841a-24e4dc37c25f
+
+		changedProperty = IsHidden
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Planning Release (Qty.)' =
+			
+			CALCULATE(
+			    SUM('Requisition Line'[quantityBase]),
+			    USERELATIONSHIP('Requisition Line'[startingDate],'Date'[Date])
+			)
+		formatString: 0
+		isHidden
+		lineageTag: cdfcaf20-445c-4b0e-9f04-5785b1385ca1
+
+		changedProperty = IsHidden
+
+	measure 'Purch. Req. Receipt (Qty.)' =
+			
+			CALCULATE(
+			    SUM('Requisition Line'[quantityBase]),
+			    'Requisition Line'[planningLineOrigin] = BLANK()
+			)
+		isHidden
+		lineageTag: c3863c86-db2d-4942-8ce6-88e675a793aa
+
+		changedProperty = IsHidden
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Purch. Req. Release (Qty.)' =
+			
+			CALCULATE(
+			    SUM('Requisition Line'[quantityBase]),
+			    USERELATIONSHIP('Requisition Line'[orderDate],'Date'[Date])
+			)
+		isHidden
+		lineageTag: 012f5ba3-3289-4498-af2c-76ba0cddc865
+
+		changedProperty = IsHidden
+
+	column journalBatchName
+		dataType: string
+		isHidden
+		lineageTag: 0bd1f9c6-1e2f-40f3-8f2d-64842318f585
+		summarizeBy: none
+		sourceColumn: journalBatchName
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column planningLineOrigin
+		dataType: string
+		isHidden
+		lineageTag: c15dbe8b-b119-4a7e-a0f8-9a6bf204d3da
+		summarizeBy: none
+		sourceColumn: planningLineOrigin
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column replenishmentSystem
+		dataType: string
+		isHidden
+		lineageTag: c95082ef-eb6d-4c3c-b8df-0936e358196e
+		summarizeBy: none
+		sourceColumn: replenishmentSystem
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column itemNo
+		dataType: string
+		isHidden
+		lineageTag: 2f800f54-64fb-4e86-8834-01357dcf63d8
+		summarizeBy: none
+		sourceColumn: itemNo
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column transferFromCode
+		dataType: string
+		isHidden
+		lineageTag: f9e60185-6141-4aca-8f52-9401812c0b13
+		summarizeBy: none
+		sourceColumn: transferFromCode
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column locationCode
+		dataType: string
+		isHidden
+		lineageTag: 84cf0818-7687-45b4-988c-0ae0211144c9
+		summarizeBy: none
+		sourceColumn: locationCode
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column dueDate
+		dataType: dateTime
+		isHidden
+		formatString: Long Date
+		lineageTag: ce6857f9-dc59-4259-bd92-3349bc20ce8e
+		summarizeBy: none
+		sourceColumn: dueDate
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	column startingDate
+		dataType: dateTime
+		isHidden
+		formatString: Long Date
+		lineageTag: ec4b19ae-11ba-42da-a343-2fe9539a07e0
+		summarizeBy: none
+		sourceColumn: startingDate
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	column transferShipmentDate
+		dataType: dateTime
+		isHidden
+		formatString: Long Date
+		lineageTag: 32348a6d-880e-4bdb-b1a0-ea419907b645
+		summarizeBy: none
+		sourceColumn: transferShipmentDate
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	column quantityBase
+		dataType: double
+		isHidden
+		lineageTag: 50d6c0a5-d106-4ff5-aa81-0a267f360a26
+		summarizeBy: sum
+		sourceColumn: quantityBase
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column worksheetTemplateName
+		dataType: string
+		isHidden
+		lineageTag: 59c09b35-d388-4df6-af8c-172d3f64f942
+		summarizeBy: none
+		sourceColumn: worksheetTemplateName
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column orderDate
+		dataType: dateTime
+		isHidden
+		formatString: Long Date
+		lineageTag: ffc3e9b1-4157-41bd-a5d1-82229bc10d6f
+		summarizeBy: none
+		sourceColumn: orderDate
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	column dimensionSetID
+		dataType: int64
+		isHidden
+		formatString: 0
+		lineageTag: 10c44d73-66a8-4e73-819d-1f6f50a7efd5
+		summarizeBy: none
+		sourceColumn: dimensionSetID
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column qtyPerUnitOfMeasure
+		dataType: double
+		lineageTag: 910fe435-a28f-435c-b8eb-155c2e008f8c
+		summarizeBy: sum
+		sourceColumn: qtyPerUnitOfMeasure
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column unitOfMeasureCode
+		dataType: string
+		lineageTag: 225dee55-fde1-40b7-9f66-982bd95b3036
+		summarizeBy: none
+		sourceColumn: unitOfMeasureCode
+
+		annotation SummarizationSetBy = Automatic
+
+	column auxiliaryIndex1
+		dataType: int64
+		formatString: 0
+		lineageTag: 8f806b3b-573f-422b-b666-3f7a7f8c7fa7
+		summarizeBy: sum
+		sourceColumn: auxiliaryIndex1
+
+		annotation SummarizationSetBy = Automatic
+
+	partition 'Requisition Line' = m
+		mode: import
+		queryGroup: 'Fact Tables'
+		source =
+				let
+				    Source = Dynamics365BusinessCentral.ApiContentsWithOptions(ENVIRONMENT, COMPANY,API_ENDPOINT, []),
+				    TableData = Source{[Name="requisitionLines",Signature="table"]}[Data],
+				    #"Removed Columns" = Table.RemoveColumns(TableData, {"ETag"}),
+				    #"Changed Type" = Table.TransformColumnTypes(
+				        #"Removed Columns",
+				        {
+				            {"worksheetTemplateName", type text},
+				            {"journalBatchName", type text},
+				            {"planningLineOrigin", type text},
+				            {"replenishmentSystem", type text},
+				            {"itemNo", type text},
+				            {"transferFromCode", type text},
+				            {"locationCode", type text},
+				            {"dueDate", type date},
+				            {"startingDate", type date},
+				            {"orderDate", type date},
+				            {"transferShipmentDate", type date},
+				            {"quantityBase", type number},
+				            {"dimensionSetID", Int64.Type},
+				            {"qtyPerUnitOfMeasure", type number},
+				            {"unitOfMeasureCode", type text}
+				        }
+				    )
+				in
+				    #"Changed Type"
+
+	annotation PBI_ResultType = Table
+
+	annotation PBI_NavigationStepName = Navigation
+

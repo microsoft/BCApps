@@ -1,0 +1,106 @@
+model Model
+	culture: en-US
+	defaultPowerBIDataSourceVersion: powerBI_V3
+	discourageImplicitMeasures
+	sourceQueryCulture: en-AU
+	dataAccessOptions
+		legacyRedirects
+		returnErrorValuesAsNull
+
+queryGroup 'Parameters and Functions'
+
+	annotation PBI_QueryGroupOrder = 0
+
+queryGroup 'Dimension Tables'
+
+	annotation PBI_QueryGroupOrder = 1
+
+queryGroup 'Fact Tables'
+
+	annotation PBI_QueryGroupOrder = 2
+
+queryGroup 'Date Tables'
+
+	annotation PBI_QueryGroupOrder = 3
+
+queryGroup 'Parameters and Functions\Functions'
+
+	annotation PBI_QueryGroupOrder = 0
+
+annotation __PBI_TimeIntelligenceEnabled = 0
+
+annotation PBI_QueryOrder = ["Item Ledger Entries","Warehouse Entries","Item","Location","Customer","Vendor","Dimensions","DimensionSet_Blank","DimensionSets_DataSource","Working Days","Date Table Setup","Purchase Lines","Zone","Bin","Dimension Sets","Sales Lines","Assembly Lines","Assembly Headers","Project Planning Lines","Warehouse Journal Lines (To Bin)","Warehouse Journal Lines (From Bin)","Warehouse Activity Lines","Production Order Lines","Prod Order Component Lines","Service Lines","Transfer Lines","Requisition Line","Planning Component Lines","Lot No","Serial No","ENVIRONMENT","COMPANY","API_ENDPOINT","ConvertUTC","Item Category","ABC Classes"]
+
+annotation __TEdtr = 1
+
+annotation PBI_ProTooling = ["DevMode","CalcGroup","DaxQueryView_Desktop","TMDL-Extension"]
+
+annotation TranslationsBuilder = Version:2.2-Updated:2026-01-07
+
+ref table Item
+ref table Location
+ref table Customer
+ref table Date
+ref table Vendor
+ref table 'Item Ledger Entries'
+ref table 'Dimension Sets'
+ref table 'Working Days'
+ref table 'Date Table Setup'
+ref table 'Date Ref'
+ref table 'Purchase Lines'
+ref table 'Warehouse Entries'
+ref table Zone
+ref table Bin
+ref table 'Sales Lines'
+ref table 'Assembly Lines'
+ref table 'Assembly Headers'
+ref table 'Project Planning Lines'
+ref table 'Warehouse Activity Lines'
+ref table 'Warehouse Journal Lines (To Bin)'
+ref table 'Warehouse Journal Lines (From Bin)'
+ref table 'Production Order Lines'
+ref table 'Prod Order Component Lines'
+ref table 'Service Lines'
+ref table 'Transfer Lines'
+ref table 'Requisition Line'
+ref table 'Planning Component Lines'
+ref table 'Item Availability Filter'
+ref table 'Lot No'
+ref table 'Serial No'
+ref table 'Localized Labels'
+ref table COMPANY
+ref table ENVIRONMENT
+ref table 'Item Category'
+ref table 'ABC Classes'
+ref table 'ABC Classification'
+ref table 'Translated Localized Labels'
+
+ref perspective 'Fiscal Calendar'
+ref perspective 'Standard Calendar'
+ref perspective 'Weekly Calendar'
+
+ref cultureInfo en-US
+ref cultureInfo cs-CZ
+ref cultureInfo da-DK
+ref cultureInfo de-AT
+ref cultureInfo de-CH
+ref cultureInfo de-DE
+ref cultureInfo en-AU
+ref cultureInfo en-CA
+ref cultureInfo en-GB
+ref cultureInfo en-NZ
+ref cultureInfo es-ES
+ref cultureInfo es-MX
+ref cultureInfo fi-FI
+ref cultureInfo fr-BE
+ref cultureInfo fr-CA
+ref cultureInfo fr-CH
+ref cultureInfo fr-FR
+ref cultureInfo is-IS
+ref cultureInfo it-CH
+ref cultureInfo it-IT
+ref cultureInfo nb-NO
+ref cultureInfo nl-BE
+ref cultureInfo nl-NL
+ref cultureInfo sv-SE
+

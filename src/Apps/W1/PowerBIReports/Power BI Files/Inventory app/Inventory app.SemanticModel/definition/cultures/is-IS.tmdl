@@ -1,0 +1,912 @@
+cultureInfo is-IS
+	translations
+		model Model
+			table Item
+				caption: Vara
+				column 'Item No. & Description'
+					caption: Vörunr. og lýsing
+				column 'Item No.'
+					caption: Vörunr.
+				column 'Item Description'
+					caption: Vörulýsing
+				column 'Item Base Unit of Measure'
+					caption: Grunnmælieining vöru
+				column 'Item Unit Cost (LCY)'
+					caption: Kostn.verð vöru (SGM)
+				column 'Item Inventory Posting Group'
+					caption: Bókunarflokkur vörubirgða
+				column 'Item Category Code'
+					caption: Kóði yfirflokks vöru
+				column 'Item Category Description'
+					caption: Lýsing vöruflokks
+				measure 'Scheduled Receipt'
+					caption: Tímasett móttaka
+				measure 'Planned Order Releases'
+					caption: Útgáfur áætlaðra pantana
+				measure 'Gross Requirement'
+					caption: Heildarþörf
+				measure 'Projected Available Balance'
+					caption: Áætluð staða til ráðstöfunar
+				measure 'Planned Order Receipt'
+					caption: Áætluð móttaka pöntunar
+			table Location
+				caption: Birgðageymsla
+				column 'Location Code'
+					caption: Kóði birgðageymslu
+				column 'Location Name'
+					caption: Heiti staðsetningar
+				column 'Location Adjustment Bin Code'
+					caption: Hólfakóði staðsetningarleiðréttingar
+			table Customer
+				caption: Viðskiptamaður
+				column 'Customer No. & Name'
+					caption: Númer og nafn viðskiptamanns
+				column 'Customer No.'
+					caption: Númer viðskiptamanns
+				column 'Customer Name'
+					caption: Nafn viðskiptamanns
+				column 'Customer Address'
+					caption: Aðsetur viðskiptavinar
+				column 'Customer Address 2'
+					caption: Utanáskrift 2
+				column 'Customer City'
+					caption: Bær viðskiptamanns
+				column 'Customer Post Code'
+					caption: Póstnúmer viðskiptamanns
+				column 'Customer State'
+					caption: Staða viðskiptavinar
+				column 'Customer Country/Region Code'
+					caption: Lands-/svæðiskóði viðskiptamanns
+				column 'Customer Posting Group'
+					caption: Bókunarflokkur viðskiptamanns
+				column 'Customer Price Group'
+					caption: Verðflokkur viðskiptamanns
+				column 'Customer Discount Group'
+					caption: Afsláttarflokkur viðskm.
+			table Date
+				caption: Dagsetning
+				column DateKey
+					caption: DateKey
+				column 'Day of Month'
+					caption: Mánaðardagur
+				column WeekDayNumber
+					caption: WeekDayNumber
+				column 'Week Day'
+					caption: Vika Dagur
+				column Sequential365DayNumber
+					caption: Sequential365DayNumber
+				column 'Relative Day'
+					caption: Samsvarandi dagur
+				column 'Calendar YearNumber'
+					caption: Dagatal Númer árs
+				column 'Calendar Year'
+					caption: Almanaksár
+				column 'Calendar QuarterNumber'
+					caption: Dagatal Númer ársfjórðungs
+				column 'Calendar Quarter'
+					caption: Dagatal Ársfjórðungur
+				column 'Calendar YearQuarterNumber'
+					caption: Dagatal Númer árs og ársfjórðungs
+				column 'Calendar Quarter Year'
+					caption: Dagatal Ársfjórðungur Ár
+				column 'Calendar MonthNumber'
+					caption: Dagatal Númer mánaðar
+				column 'Calendar Month'
+					caption: Almanaksmánuður
+				column 'Calendar YearMonthNumber'
+					caption: Dagatal Númer árs og mánaðar
+				column 'Calendar Month Year'
+					caption: Dagatal Mánuður Ár
+				column 'Calendar WeekNumber'
+					caption: Dagatal Númer viku
+				column 'Calendar Week'
+					caption: Almanaksvika
+				column 'Calendar YearWeekNumber'
+					caption: Fjárhagsár Númer viku
+				column 'Calendar Week Year'
+					caption: Dagatal Vika Ár
+				column 'Calendar WeekYearOrder'
+					caption: Dagatal Vika ár pöntun
+				column 'Calendar RelativeWeekPos'
+					caption: Dagatal Staða samsvarandi viku
+				column 'Calendar RelativeMonthPos'
+					caption: Dagatal Staða samsvarandi mánaðar
+				column 'Calendar RelativeQuarterPos'
+					caption: Dagatal Staða samsvarandi ársfjórðungs
+				column 'Calendar RelativeYearPos'
+					caption: Dagatal Staða samsvarandi árs
+				column 'Calendar StartOfMonth'
+					caption: Dagatal Upphaf mánaðar
+				column 'Calendar EndOfMonth'
+					caption: Dagatal Mánaðarlok
+				column 'Calendar StartOfQuarter'
+					caption: Dagatal Upphaf ársfjórðungs
+				column 'Calendar EndOfQuarter'
+					caption: Dagatal Ársfjórðungslok
+				column 'Calendar StartOfYear'
+					caption: Dagatal Upphaf árs
+				column 'Calendar EndOfYear'
+					caption: Dagatal Árslok
+				column 'Calendar MonthDays'
+					caption: Dagatal Dagar mánaðar
+				column 'Calendar QuarterDays'
+					caption: Dagatal Dagar ársfjórðungs
+				column 'Calendar YearDays'
+					caption: Dagatal Dagar árs
+				column 'Calendar DayOfMonthNumber'
+					caption: Dagatal Númer mánaðardags
+				column 'Calendar DayOfQuarterNumber'
+					caption: Dagatal Númer dags innan ársfjórðungs
+				column 'Calendar DayOfYearNumber'
+					caption: Dagatal Númer dags innan árs
+				column 'Calendar DatePreviousWeek'
+					caption: Dagatal Dagsetning fyrri viku
+				column 'Calendar DatePreviousMonth'
+					caption: Dagatal Dagsetning fyrri mánaðar
+				column 'Calendar DatePreviousQuarter'
+					caption: Dagatal Dagsetning fyrri ársfjórðungs
+				column 'Calendar DatePreviousYear'
+					caption: Dagatal Dagsetning fyrra árs
+				column 'Fiscal Year'
+					caption: Fjárhagur Ár
+				column 'Fiscal YearNumber'
+					caption: Fjárhagur Númer árs
+				column 'Fiscal QuarterNumber'
+					caption: Fjárhagur Númer ársfjórðungs
+				column 'Fiscal Quarter'
+					caption: Fjórðungur Ársfjórðungur
+				column 'Fiscal YearQuarterNumber'
+					caption: Fjárhagur Númer árs og ársfjórðungs
+				column 'Fiscal Quarter Year'
+					caption: Fjárhagur Ársfjórðungur Ár
+				column 'Fiscal MonthNumber'
+					caption: Fjárhagur Númer mánaðar
+				column 'Fiscal MonthInQuarterNumber'
+					caption: Fjárhagur Númer mánaðar í ársfjórðungi
+				column 'Fiscal Month'
+					caption: Fjárhagur Mánuður
+				column 'Fiscal YearMonthNumber'
+					caption: Fjárhagur Númer árs og mánaðar
+				column 'Fiscal Month Year'
+					caption: Fjárhagur Mánuður Ár
+				column 'Fiscal WeekNumber'
+					caption: Fjárhagur Númer viku
+				column 'Fiscal Week'
+					caption: Vika fjárhagsárs
+				column 'Fiscal YearWeekNumber'
+					caption: Fjárhagur Númer árs og viku
+				column 'Fiscal Week Year'
+					caption: Fjárhagur Vika Ár
+				column 'Fiscal WeekYearOrder'
+					caption: Fjárhagur Pöntun viku árs
+				column 'Fiscal RelativeWeekPos'
+					caption: Fjárhagur Staða samsvarandi viku
+				column 'Fiscal RelativeMonthPos'
+					caption: Fjárhagur Staða samsvarandi mánaðar
+				column 'Fiscal RelativeQuarterPos'
+					caption: Fjárhagur Staða samsvarandi ársfjórðungs
+				column 'Fiscal RelativeYearPos'
+					caption: Fjárhagur Staða samsvarandi árs
+				column 'Fiscal StartOfMonth'
+					caption: Fjárhagur Upphaf mánaðar
+				column 'Fiscal EndOfMonth'
+					caption: Fjárhagur Mánaðarlok
+				column 'Fiscal StartOfQuarter'
+					caption: Fjárhagur Upphaf Ársfjórðungs
+				column 'Fiscal EndOfQuarter'
+					caption: Fjárhagur Ársfjórðungslok
+				column 'Fiscal StartOfYear'
+					caption: Fjárhagur Upphaf árs
+				column 'Fiscal EndOfYear'
+					caption: Fjárhagur Árslok
+				column 'Fiscal MonthDays'
+					caption: Fjárhagur Dagar mánaðar
+				column 'Fiscal QuarterDays'
+					caption: Fjárhagur Dagar ársfjórðungs
+				column 'Fiscal YearDays'
+					caption: Fjárhagur Dagar árs
+				column 'Fiscal DayOfMonthNumber'
+					caption: Fjárhagur Númer mánaðardags
+				column 'Fiscal DayOfQuarterNumber'
+					caption: Fjárhagur Númer dags innan ársfjórðungs
+				column 'Fiscal DayOfYearNumber'
+					caption: Fjárhagur Númer dags innan árs
+				column 'Fiscal DatePreviousWeek'
+					caption: Fjárhagur Dagsetning fyrri viku
+				column 'Fiscal DatePreviousMonth'
+					caption: Fjárhagur Dagsetning fyrri mánaðar
+				column 'Fiscal DatePreviousQuarter'
+					caption: Fjárhagur Dagsetning fyrri ársfjórðungs
+				column 'Fiscal DatePreviousYear'
+					caption: Fjárhagur Dagsetning fyrra árs
+				column 'FW YearNumber'
+					caption: Fjárhagsvika Númer árs
+				column 'FW Year'
+					caption: Fjárhagsvika Ár
+				column 'FW QuarterNumber'
+					caption: Fjárhagsvika Númer ársfjórðungs
+				column 'FW Quarter'
+					caption: Fjárhagsvika Ársfjórðungur
+				column 'FW YearQuarterNumber'
+					caption: Fjárhagsvika Númer árs og ársfjórðungs
+				column 'FW Quarter Year'
+					caption: Fjárhagsvika Ársfjórðungur Ár
+				column 'FW MonthNumber'
+					caption: Fjárhagsvika Númer mánaðar
+				column 'FW Month'
+					caption: Fjárhagsvika Mánuður
+				column 'FW YearMonthNumber'
+					caption: Fjárhagsvika Númer árs og mánaðar
+				column 'FW Month Year'
+					caption: Fjárhagsvika Mánuður Ár
+				column 'FW WeekNumber'
+					caption: Fjárhagsvika Númer viku
+				column 'FW Week'
+					caption: Fjárhagsvika Vika
+				column 'FW PeriodNumber'
+					caption: Fjárhagsvika Númer tímabils
+				column 'FW Period'
+					caption: Fjárhagsvika Tímabil
+				column 'FW YearWeekNumber'
+					caption: Fjárhagsvika Númer árs og viku
+				column 'FW Week Year'
+					caption: Fjárhagsvika Vika Ár
+				column 'FW StartOfWeek'
+					caption: Fjárhagsvika Upphaf viku
+				column 'FW EndOfWeek'
+					caption: Fjárhagsvika Vikulok
+				column 'FW RelativeWeekPos'
+					caption: Fjárhagsvika Staða samsvarandi viku
+				column 'FW RelativeMonthPos'
+					caption: Fjárhagsvika Staða samsvarandi mánaðar
+				column 'FW RelativeQuarterPos'
+					caption: Fjárhagsvika Staða samsvarandi ársfjórðungs
+				column 'FW RelativeYearPos'
+					caption: Fjárhagsvika Staða samsvarandi árs
+				column 'FW StartOfMonth'
+					caption: Fjárhagsvika Upphaf mánaðar
+				column 'FW EndOfMonth'
+					caption: Fjárhagsvika Mánaðarlok
+				column 'FW StartOfQuarter'
+					caption: Fjárhagsvika Upphaf ársfjórðungs
+				column 'FW EndOfQuarter'
+					caption: Fjárhagsvika Ársfjórðungslok
+				column 'FW StartOfYear'
+					caption: Fjárhagsvika Upphaf árs
+				column 'FW EndOfYear'
+					caption: Fjárhagsvika Árslok
+				column 'FW MonthDays'
+					caption: Fjárhagsvika Dagar mánaðar
+				column 'FW QuarterDays'
+					caption: Fjárhagsvika Dagar ársfjórðungs
+				column 'FW YearDays'
+					caption: Fjárhagsvika Dagar árs
+				column 'FW DayOfMonthNumber'
+					caption: Fjárhagsvika Númer mánaðardags
+				column 'FW DayOfQuarterNumber'
+					caption: Fjárhagsvika Númer dags innan ársfjórðungs
+				column 'FW DayOfYearNumber'
+					caption: Fjárhagsvika Númer dags innan árs
+				column 'FW DatePreviousWeek'
+					caption: Fjárhagsvika Dagsetning fyrri viku
+				column 'FW DatePreviousMonth'
+					caption: Fjárhagsvika Dagsetning fyrri mánaðar
+				column 'FW DatePreviousQuarter'
+					caption: Fjárhagsvika Dagsetning fyrri ársfjórðungs
+				column 'FW DatePreviousYear'
+					caption: Fjárhagsvika Dagsetning fyrra árs
+				column 'Holiday Name'
+					caption: Heiti frídags
+				column IsWorkingDay
+					caption: IsWorkingDay
+				column 'Day Type'
+					caption: Dagsgerð
+				column DatesWithTransactions
+					caption: DatesWithTransactions
+				measure Ranged
+					caption: Bil
+				hierarchy 'Fiscal Year-Month'
+					caption: Fjárhagur Ár-Mánuður
+					level 'Fiscal Year'
+						caption: Fjárhagur Ár
+					level 'Fiscal Month Year'
+						caption: Fjárhagur Mánuður Ár
+				hierarchy 'Fiscal Year-Month-Week'
+					caption: Fjárhagur Ár-Mánuður-Vika
+					level 'Fiscal Year'
+						caption: Fjárhagur Ár
+					level 'Fiscal Month Year'
+						caption: Fjárhagur Mánuður Ár
+					level 'Fiscal Week Year'
+						caption: Fjárhagur Vika Ár
+				hierarchy 'Fiscal Year-Quarter-Month-Week'
+					caption: Fjárhagur Ár-Ársfjórðungur-Mánuður-Vika
+					level 'Fiscal Year'
+						caption: Fjárhagur Ár
+					level 'Fiscal Quarter Year'
+						caption: Fjárhagur Ársfjórðungur Ár
+					level 'Fiscal Month Year'
+						caption: Fjárhagur Mánuður Ár
+					level 'Fiscal Week Year'
+						caption: Fjárhagur Vika Ár
+				hierarchy 'Calendar Year-Month'
+					caption: Dagatal Ár-Mánuður
+					level 'Calendar Year'
+						caption: Almanaksár
+					level 'Calendar Month Year'
+						caption: Dagatal Mánuður Ár
+				hierarchy 'Calendar Year-Month-Week'
+					caption: Dagatal Ár-Mánuður-Vika
+					level 'Calendar Year'
+						caption: Almanaksár
+					level 'Calendar Month Year'
+						caption: Dagatal Mánuður Ár
+					level 'Calendar Week Year'
+						caption: Dagatal Vika Ár
+				hierarchy 'Calendar Year-Quarter-Month-Week'
+					caption: Dagatal Ár-Ársfjórðungur-Mánuður-Vika
+					level 'Calendar Year'
+						caption: Almanaksár
+					level 'Calendar Quarter Year'
+						caption: Dagatal Ársfjórðungur Ár
+					level 'Calendar Month Year'
+						caption: Dagatal Mánuður Ár
+					level 'Calendar Week Year'
+						caption: Dagatal Vika Ár
+				hierarchy 'FW Year-Week'
+					caption: Fjárhagsvika Ár-Vika
+					level 'FW Year'
+						caption: Fjárhagsvika Ár
+					level 'FW Week Year'
+						caption: Fjárhagsvika Vika Ár
+				hierarchy 'FW Year-Month-Week'
+					caption: Fjárhagsvika Ár-Mánuður-Vika
+					level 'FW Year'
+						caption: Fjárhagsvika Ár
+					level 'FW Month Year'
+						caption: Fjárhagsvika Mánuður Ár
+					level 'FW Week Year'
+						caption: Fjárhagsvika Vika Ár
+				hierarchy 'FW Year-Quarter-Week'
+					caption: Fjárhagsvika Ár-Ársfjórðungur-Vika
+					level 'FW Year'
+						caption: Fjárhagsvika Ár
+					level 'FW Quarter Year'
+						caption: Fjárhagsvika Ársfjórðungur Ár
+					level 'FW Week Year'
+						caption: Fjárhagsvika Vika Ár
+				hierarchy 'FW Year-Quarter-Month-Week'
+					caption: Fjárhagsvika Ár-Ársfjórðungur-Mánuður-Vika
+					level 'FW Year'
+						caption: Fjárhagsvika Ár
+					level 'FW Quarter Year'
+						caption: Fjárhagsvika Ársfjórðungur Ár
+					level 'FW Month Year'
+						caption: Fjárhagsvika Mánuður Ár
+					level 'FW Week Year'
+						caption: Fjárhagsvika Vika Ár
+			table Vendor
+				caption: Lánardrottinn
+				column 'Vendor No. & Name'
+					caption: Númer og nafn lánardrottins
+				column 'Vendor No.'
+					caption: Nr. lánardrottins
+				column 'Vendor Name'
+					caption: Heiti lánardrottins
+				column 'Vendor Address'
+					caption: Heimilisfang lánardrottins
+				column 'Vendor Address 2'
+					caption: Annað aðsetur lánardr.
+				column 'Vendor City'
+					caption: Borg lánardr.
+				column 'Vendor Post Code'
+					caption: Póstnúmer lánardr.
+				column 'Vendor State'
+					caption: Staða lánardrottins
+				column 'Vendor Country/Region Code'
+					caption: Lands-/svæðiskóði lánardr.
+				column 'Vendor Posting Group'
+					caption: Bókunarflokkur lánardrottins
+			table 'Item Ledger Entries'
+				caption: Birgðahöfuðbókarfæslur
+				column 'Entry No.'
+					caption: Færslunr.
+				column 'Entry Type'
+					caption: Færslugerð
+				column 'Expiration Date'
+					caption: Lokadagur
+				column Open
+					caption: Opið
+				column 'Document No.'
+					caption: Númer fylgiskjals
+				column 'Quantity Per Unit of Measure'
+					caption: Magn á hverja mælieiningu
+				column 'Unit of Measure Code'
+					caption: Mælieiningarkóði
+				column 'Document Type'
+					caption: Tegund fylgiskjals
+				measure 'Inventory (Quantity)'
+					caption: Birgðir (magn)
+				measure 'Remaining Quantity'
+					caption: Eftirstöðvar
+				measure Quantity
+					caption: Magn
+				measure 'Expired Inventory'
+					caption: Útrunnar birgðir
+				measure 'Net Qty. Sold'
+					caption: Nettó magn sölu
+				measure 'Net Qty. Purchased'
+					caption: Nettó magn innkaupa
+				measure 'Invoiced Quantity'
+					caption: Reikningsfært magn
+				measure 'Base Link'
+					caption: Grunntengill
+				measure 'Item Ledger Entries Link (Location Context)'
+					caption: Tengill fyrir birgðahöfuðbókarfærslur (staðsetningarsamhengi)
+				measure 'Item Ledger Entries Link'
+					caption: Tengill birgðahöfuðbókarfærsla
+				measure 'Item Ledger Entries Lot No Link'
+					caption: Lotunúmerstengill birgðahöfuðbókarfærslna
+				measure 'Item Ledger Entries Serial No Link'
+					caption: Raðnúmeratengill birgðahöfuðbókarfærsla
+			table 'Dimension Sets'
+				caption: Víddasamstæður
+				column 'Global Dimension 1'
+					caption: Altæk vídd 1
+				column 'Global Dimension 2'
+					caption: Altæk vídd 2
+				column 'Shortcut Dimension 3'
+					caption: Flýtivídd 3
+				column 'Shortcut Dimension 4'
+					caption: Flýtivídd 4
+				column 'Shortcut Dimension 5'
+					caption: Flýtivídd 5
+				column 'Shortcut Dimension 6'
+					caption: Flýtivídd 6
+				column 'Shortcut Dimension 7'
+					caption: Flýtivídd 7
+				column 'Shortcut Dimension 8'
+					caption: Flýtivídd 8
+				column id
+					caption: auðkenni
+			table 'Purchase Lines'
+				caption: Innkaupalínur
+				column 'Document No.'
+					caption: Númer fylgiskjals
+				column 'Expected Receipt Date'
+					caption: Væntanleg dagsetning innhreyfingar
+				column 'Document Type'
+					caption: Tegund fylgiskjals
+				column 'Quantity Per Unit of Measure'
+					caption: Magn á hverja mælieiningu
+				column 'Unit of Measure Code'
+					caption: Mælieiningarkóði
+				measure 'Qty. on Purch. Order'
+					caption: Magn í innk.pöntun
+				measure 'Qty. on Purch. Return'
+					caption: Magn í innkaupaskilum
+				measure 'Purchase Return - Earliest Expected Receipt Date'
+					caption: Innkaupaskil – fyrsta mögulega áætlaða dagsetning innhreyfingar
+				measure 'Purchase Order - Earliest Expected Receipt Date'
+					caption: Innkaupapöntun – fyrsta mögulega áætlaða dagsetning innhreyfingar
+				measure 'Purchase Order Quantity Link'
+					caption: Tengill í magn innkaupapöntunar
+				measure 'Purchase Return Order Quantity Link'
+					caption: Tengill í magn innkaupaskilapöntunar
+			table Zone
+				caption: Svæði
+				column 'Zone Description'
+					caption: Lýsing á svæði
+				column 'Zone Bin Type Code'
+					caption: Gerðarkóði staðarhólfs
+				column 'Zone Code'
+					caption: Svæðiskóði
+			table Bin
+				caption: Hólf
+				column 'Bin Description'
+					caption: Lýsing hólfs
+				column 'Bin Type Code'
+					caption: Kóði hólfategundar
+				column 'Bin Code'
+					caption: Hólfakóði
+				column 'Adjustment Bin'
+					caption: Leiðréttingarhólf
+				column 'Bin Zone Code'
+					caption: Svæðiskóði hólfs
+				measure 'Available Qty. to Take'
+					caption: Tiltækt magn til að taka
+				measure 'Quantity in Adjustment Bin'
+					caption: Magn í leiðréttingarhólfi
+				measure 'Positive Adjmt. Qty. (Base)'
+					caption: Aukning magns (stofn)
+				measure 'Negative Adjmt. Qty. (Base)'
+					caption: Magn minnkunar (stofn)
+				measure 'Warehouse Quantity'
+					caption: Vöruhúsamagn
+				measure 'ATO Components Pick Qty.'
+					caption: Tínslumagn STP-efnisþáttar
+				measure 'Put-away Quantity (Base)'
+					caption: Frágangsmagn (stofn)
+				measure 'Pick Quantity (Base)'
+					caption: Tínslumagn (stofn)
+				measure 'Warehouse Entries Link'
+					caption: Tengill vöruhúsafærsla
+				measure 'Pick Quantity Link'
+					caption: Tengill tiltektarmagns
+				measure 'Warehouse Journal Link'
+					caption: Tengill vöruhúsabóka
+			table 'Sales Lines'
+				caption: Sölulínur
+				column 'Document No.'
+					caption: Númer fylgiskjals
+				column 'Shipment Date'
+					caption: Afhendingardagur
+				column 'Document Type'
+					caption: Tegund fylgiskjals
+				column 'Quantity Per Unit of Measure'
+					caption: Magn á hverja mælieiningu
+				column 'Unit of Measure Code'
+					caption: Mælieiningarkóði
+				measure 'Qty. on Sales Order'
+					caption: Magn á sölupöntun
+				measure 'Qty. on Sales Return Order'
+					caption: Magn á söluvöruskilapöntun
+				measure 'Sales Order - Earliest Shipment Date'
+					caption: Sölupöntun – fyrsti mögulegi afhendingardagur
+				measure 'Sales Retrun Order - Earliest Shipment Date'
+					caption: Söluvöruskilapöntun – fyrsti mögulegi afhendingardagur
+				measure 'Sales Order Line Link'
+					caption: Tengill sölupöntunarlínu
+				measure 'Sales Return Order Line Link'
+					caption: Tengill vöruskilapöntunarlína
+			table 'Assembly Lines'
+				caption: Samsetningarlínur
+				column 'Due Date'
+					caption: Eindagi
+				column 'Document No.'
+					caption: Númer fylgiskjals
+				column 'Quantity Per Unit of Measure'
+					caption: Magn á hverja mælieiningu
+				column 'Unit of Measure Code'
+					caption: Mælieiningarkóði
+				measure 'Qty. on Asm. Component'
+					caption: Magn í sams.íhlut
+				measure 'Assembly Lines - Earliest Due Date'
+					caption: Samsetningarlínur – fyrsti mögulegi skiladagur
+				measure 'Assembly Line Quantity Link'
+					caption: Tengill á samsetningarlínumagn
+			table 'Assembly Headers'
+				caption: Yfirskriftir samsetningar
+				column 'Document No.'
+					caption: Númer fylgiskjals
+				column 'Due Date'
+					caption: Eindagi
+				column Status
+					caption: Staða
+				column 'Quantity Per Unit of Measure'
+					caption: Magn á hverja mælieiningu
+				column 'Unit of Measure Code'
+					caption: Mælieiningarkóði
+				measure 'Qty. on Assembly Order'
+					caption: Magn í samsetningarpöntun
+				measure 'Assembly Order - Earliest Due Date'
+					caption: Samsetningarpöntun – fyrsti mögulegi skiladagur
+				measure 'Assembly Order Quantity Link'
+					caption: Tengill á samsetningarpöntunarlínu
+			table 'Project Planning Lines'
+				caption: Áætlunarlínur verkefnis
+				column 'Document No.'
+					caption: Númer fylgiskjals
+				column 'Quantity Per Unit of Measure'
+					caption: Magn á hverja mælieiningu
+				column 'Unit of Measure Code'
+					caption: Mælieiningarkóði
+				measure 'Qty. on Projects'
+					caption: Magn í verkefnum
+				measure 'Project Planning - Earliest Planning Date'
+					caption: Verkáætlun – fyrsta mögulega áætlunardagsetning
+				measure 'Planning Line Link'
+					caption: Tengill áætlunarlínu
+			table 'Production Order Lines'
+				caption: Framleiðslupantanalínur
+				column Status
+					caption: Staða
+				column 'Document No.'
+					caption: Númer fylgiskjals
+				column 'Due Date'
+					caption: Eindagi
+				column 'Starting Date'
+					caption: Upphafsdagur
+				column 'Quantity Per Unit of Measure'
+					caption: Magn á hverja mælieiningu
+				column 'Unit of Measure Code'
+					caption: Mælieiningarkóði
+				measure 'Qty. on Prod. Order'
+					caption: Magn í framl.pöntun
+				measure 'FP Order Receipt (Qty.)'
+					caption: Mótt. afgr. framl.pönt. (magn)
+				measure 'Rel. Order Receipt (Qty.)'
+					caption: Mótt. útg. pöntunar (magn)
+				measure 'Scheduled Receipt (Qty.)'
+					caption: Tímasett móttaka (magn)
+				measure 'FP Order - Earliest Due Date'
+					caption: Pöntun fyrir tilbúna vöru – fyrsti mögulegi skiladagur
+				measure 'Rel. Order - Earliest Due Date'
+					caption: Losuð pöntun – fyrsti mögulegi skiladagur
+				measure 'Production Order Link'
+					caption: Tengill framleiðslupantana
+			table 'Prod Order Component Lines'
+				caption: Línur framleiðslupöntunaríhlutar
+				column Status
+					caption: Staða
+				column 'Document No.'
+					caption: Númer fylgiskjals
+				column 'Due Date'
+					caption: Eindagi
+				column 'Quantity Per Unit of Measure'
+					caption: Magn á hverja mælieiningu
+				column 'Unit of Measure Code'
+					caption: Mælieiningarkóði
+				measure 'Qty. on Prod. Order Comp. Lines'
+					caption: Magn á línum framleiðslupöntunaríhlutar
+				measure 'Prod. Order Comp. Lines - Earliest Due Date'
+					caption: Línur framleiðslupöntunaríhlutar – fyrsti mögulegi skiladagur
+				measure 'Prod. Order Components Link'
+					caption: Tengill framl.pöntunaríhlutar
+			table 'Service Lines'
+				caption: Þjónustulínur
+				column 'Document No.'
+					caption: Númer fylgiskjals
+				column 'Needed By Date'
+					caption: Dagsetning áætlaðrar notkunar
+				column 'Quantity Per Unit of Measure'
+					caption: Magn á hverja mælieiningu
+				column 'Unit of Measure Code'
+					caption: Mælieiningarkóði
+				measure 'Qty. on Service Order'
+					caption: Magn á þjónustupöntun
+				measure 'Service Lines - Earliest Needed by Date'
+					caption: Þjónustulínur – fyrsta mögulega dagsetning áætlaðrar notkunar
+				measure 'Service Order Link'
+					caption: Þjónustupöntunartengill
+			table 'Transfer Lines'
+				caption: Millifærslulínur
+				description: Tilgreinir vörumagn sem á eftir að móttaka en hefur ekki verið afgreitt sem mismuninn á milli reitanna „Magn“ og „Afgreitt magn“.
+				column 'Document No.'
+					caption: Númer fylgiskjals
+				column 'Receipt Date'
+					caption: Dagsetning innhreyfingar
+				column 'Transfer To Location Code'
+					caption: Staðsetningarkóði flutnings til
+				column 'Transfer From Location Code'
+					caption: Staðsetningarkóði flutnings frá
+				column 'Shipment Date'
+					caption: Afhendingardagur
+				column 'In Transit Location Code'
+					caption: Staðsetningarkóði í flutningi
+				column 'Quantity Per Unit of Measure'
+					caption: Magn á hverja mælieiningu
+				column 'Unit of Measure Code'
+					caption: Mælieiningarkóði
+				measure 'Qty. in Transit'
+					caption: Magn í flutningi
+				measure 'Trans. Order Shipment (Qty.)'
+					caption: Flutningur millifærslupöntunar (magn)
+				measure 'Trans. Order Receipt (Qty.)'
+					caption: Móttaka millifærslupöntunar (magn)
+				measure 'Trans. Order Outstanding Qty.'
+					caption: Útstandandi magn millifærslupöntunar
+				measure 'Trans. Order Shipment - Earliest Shipment Date'
+					caption: Flutningur millifærslupöntunar – fyrsti mögulegi afhendingardagur
+				measure 'Trans. Order Receipt - Earliest Receipt Date'
+					caption: Móttaka millifærslupöntunar – fyrsta mögulega dagsetning innhreyfingar
+				measure 'Transfer Lines Quantity Link'
+					caption: Baktengill flutningslínumagns
+			table 'Planning Component Lines'
+				caption: Áætlunaríhlutarlínur
+				column 'Due Date'
+					caption: Eindagi
+				column 'Quantity Per Unit of Measure'
+					caption: Magn á hverja mælieiningu
+				column 'Unit of Measure Code'
+					caption: Mælieiningarkóði
+				measure 'Planning Issues (Qty.)'
+					caption: Útgáfur áætlana (magn)
+				measure 'Planning Issues - Earliest Due Date'
+					caption: Útgáfur áætlana – fyrsti mögulegi skiladagur
+			table 'Item Availability Filter'
+				caption: Afmörkun vöru til ráðstöfunar
+				column 'View As'
+					caption: Sýna sem
+				column Ordinal
+					caption: Raðtala
+			table 'Lot No'
+				caption: Lotunr.
+				column 'Lot No.'
+					caption: Lotunr.
+			table 'Serial No'
+				caption: Raðnúmer
+				column 'Serial No.'
+					caption: Raðnúmer
+			table 'Localized Labels'
+				measure 'My Report Title'
+					caption: Skýrslutitill notanda
+				measure 'My Button Caption'
+					caption: Texti hnapps notanda
+				measure 'My Visual Title'
+					caption: Sjónrænn titill notanda
+				measure 'Inventory Overview'
+					caption: Birgðayfirlit
+				measure 'Inventory and Projected Available Balance'
+					caption: Birgðir og áætluð staða til ráðstöfunar
+				measure 'Availability Outlook'
+					caption: Framboðshorfur
+				measure 'Inventory by Item'
+					caption: Birgðir eftir vöru
+				measure 'Inventory by Location'
+					caption: Birgðir eftir birgðageymslu
+				measure 'Inventory on Hand by Location'
+					caption: Birgðir á lager eftir birgðageymslu
+				measure 'Purchase and Sales Quantity'
+					caption: Innkaupa- og sölumagn
+				measure 'Item Availability'
+					caption: Vara til ráðstöfunar
+				measure 'Projected Available Balance vs. Quantity on Hand'
+					caption: Áætluð staða til ráðstöfunar á móti magni á lager
+				measure 'Gross Requirements vs. Projected Available Balance'
+					caption: Brúttóþörf á móti áætlaðri stöðu til ráðstöfunar
+				measure 'Gross Requirements Earliest Dates'
+					caption: Fyrstu mögulegu dagsetningar brúttóþarfa
+				measure 'Scheduled Receipt Earliest Dates'
+					caption: Fyrstu mögulegu dagsetningar áætlaðrar móttöku
+				measure 'Purchase Order Drill Through'
+					caption: Köfun í innkaupapöntun
+				measure 'Purchase Return Order Drill Through'
+					caption: Köfun í vöruskilapöntun innkaupa
+				measure 'Item Ledger Entry Drill through'
+					caption: Köfun í birgðahöfuðbókarfærslu
+				measure 'Production Order Drill Through'
+					caption: Köfun í framleiðslupöntun
+				measure 'Prod. Order Components Drill Through'
+					caption: Köfun í framleiðslupöntunaríhluti
+				measure 'Sales Order Drill Through'
+					caption: Köfun í sölupöntun
+				measure 'Sales Return Order Drill Through'
+					caption: Köfun í söluvöruskilapöntun
+				measure 'Transfer Order Drill Through'
+					caption: Köfun í millifærslupöntun
+				measure 'Assembly Order Drill Through'
+					caption: Köfun í samsetningarpöntun
+				measure 'Assembly Lines Drill Through'
+					caption: Köfun í samsetningarlínur
+				measure 'Service Lines Drill Through'
+					caption: Köfun í þjónustulínur
+				measure 'Gross Requirement '
+					caption: "Brúttóþörf "
+				measure 'Scheduled Receipt '
+					caption: "Tímasett innhreyfing "
+				measure 'Inventory by Lot '
+					caption: "Birgðir eftir lotu "
+				measure 'Inventory by Serial No.'
+					caption: Birgðir eftir raðnúmeri
+				measure 'Bin Contents'
+					caption: Innihald hólfs
+				measure 'Bin Contents by Item Tracking'
+					caption: Innihald hólfs eftir vörurakningu
+				measure 'Expired Inventory '
+					caption: "Útrunnar birgðir "
+				measure 'Gross Requirements'
+					caption: Brúttóþörf
+				measure 'Scheduled Receipts'
+					caption: Tímasettar innhreyfingar
+				measure 'for Business Central'
+					caption: fyrir Business Central
+				measure 'CONNECT YOUR DATA'
+					caption: TENGIÐ GÖGN
+				measure '1. Download the Inventory Connector for Power BI'
+					caption: 1. Sækið birgðatengilinn fyrir Power BI
+				measure '2. Configure Dynamics 365 Business Central'
+					caption: 2. Grunnstillið Dynamics 365 Business Central
+				measure 'USE, EDIT AND BUILD YOUR OWN REPORTS'
+					caption: NOTIÐ, BREYTIÐ OG BÚIÐ TIL EIGIN SKÝRSLUR
+				measure 'Inventory includes a variety of pre-built reports to help you see your data immediately.'
+					caption: Birgðir bjóða upp á innbyggðar skýrslur af ólíkum toga til að skoða gögn samstundis.
+				measure 'You are able to edit these reports or build your own report from scratch.'
+					caption: Hægt er að breyta þessum skýrslum eða búa til nýja skýrslu frá grunni.
+				measure 'HELP AND SUPPORT'
+					caption: HJÁLP OG STUÐNINGUR
+				measure 'For help and support with your new report please visit the Analytics overview documentation.'
+					caption: Lesið fylgigögn greiningaryfirlitsins til að fá hjálp og aðstoð við nýju skýrsluna.
+				measure 'OTHER POWER BI REPORTS'
+					caption: AÐRAR POWER BI-SKÝRSLUR
+				measure PURCHASE
+					caption: KAUP
+				measure FINANCE
+					caption: FJÁRMÁL
+				measure REBATES
+					caption: EFTIRÁGREIDDIR AFSLÆTTIR
+				measure SALES
+					caption: SALA
+				measure 'INVENTORY '
+					caption: "BIRGÐIR "
+				measure 'Inventory  '
+					caption: "Birgðir  "
+				measure 'The inventory by item shows item category code, inventory, and the quantity on various documents.'
+					caption: „Birgðir eftir vöru“ sýnir flokkakóða vöru, birgðir og magn í mismunandi fylgiskjölum.
+				measure 'The inventory by location shows item number and description, and quantity on hand per location.'
+					caption: „Birgðir eftir staðsetningu“ sýnir vörunúmer, lýsingu og magn á lager á hverjum stað.
+				measure 'The purchases and sales quantity shows item category code, purchase and sales quantities, and the quantity net change by deducting purchases to sales.'
+					caption: „Magn innkaupa og sölu“ sýnir flokkakóða vöru, magn innkaupa og sölu og upphæð nettóbreytingar með því að draga innkaup frá sölu.
+				measure 'The item availiblity shows item number, inventory, projected available balance, gross requirement, scheduled receipt, planned order receipt, and planned order releases.'
+					caption: „Framboð vöru“ sýnir vörunúmer, birgðir, áætlaða stöðu til ráðstöfunar, brúttóþörf, tímasetta innhreyfingu, innhreyfingu áætlaðrar pöntunar og áætlaðar útgáfur pöntunar.
+				measure 'The gross requirement and projected available balance shows item number and description, and the quantity on various documents.'
+					caption: „Brúttóþörf“ og „Áætluð staða til ráðstöfunar“ sýna vörunúmer, lýsingu og magn í mismunandi fylgiskjölum.
+				measure 'The bin contents shows available quantity to take for each location and bin.'
+					caption: „Innihald hólfs“ sýnir tiltækt magn fyrir hverja staðsetningu og hólf.
+				measure 'The bin contents by item tracking shows item tracking details for each location and bin.'
+					caption: „Innihald hólfs eftir vörurakningu“ sýnir upplýsingar um vörurakningu fyrir hverja staðsetningu og hólf.
+				measure 'The scheduled receipt and projected available balance shows item number and description, and the quantity on various documents.'
+					caption: „Tímasett innhreyfing“ og „Áætluð staða til ráðstöfunar“ sýna vörunúmer, lýsingu og magn í mismunandi fylgiskjölum.
+				measure 'Last Refreshed'
+					caption: Síðast uppfært
+				measure 'Company Name'
+					caption: Heiti fyrirtækis
+				measure 'Inventory (Quantity) by Location Code'
+					caption: Birgðir (magn) eftir staðsetningarkóða
+				measure 'Scheduled Receipt and Projected Available Balance by Fiscal Year and Month'
+					caption: Tímasett innhreyfing og áætluð staða til ráðstöfunar eftir fjárhagsári og mánuði
+				measure 'Inventory (Quantity) by Lot No.'
+					caption: Birgðir (magn) eftir lotunúmeri
+				measure 'Inventory (Quantity) by Serial No.'
+					caption: Birgðir (magn) eftir raðnúmeri
+				measure MANUFACTURING
+					caption: FRAMLEIÐSLA
+				measure 'INVENTORY VALUATION'
+					caption: BIRGÐAVIRÐI
+				measure 'Available Quantity to Take by Bin Code'
+					caption: Tiltækt magn eftir hólfakóða
+				measure 'Projected Available Balance vs. Current Inventory'
+					caption: Áætluð staða til ráðstöfunar samanborið við núverandi birgðir
+				measure 'Purchase vs. Sales Quantity Across Time'
+					caption: Innkaup samanborið við sölumagn á tilteknu tímabili
+				measure 'Inventory by Item Details'
+					caption: Upplýsingar um birgðir eftir vöru
+				measure 'Inventory by Location Details'
+					caption: Upplýsingar um birgðir eftir staðsetningu
+				measure 'Purchase and Sales Quantity Details'
+					caption: Upplýsingar um innkaupa- og sölumagn
+				measure 'Item Availability Details'
+					caption: Upplýsingar um vöru til ráðstöfunar
+				measure 'Gross Requirement Details'
+					caption: Upplýsingar um brúttóþörf
+				measure 'Scheduled Receipt Details'
+					caption: Upplýsingar um tímasetta innhreyfingu
+				measure 'Inventory by Lot Details'
+					caption: Upplýsingar um birgðir eftir lotu
+				measure 'Inventory by Serial No Details'
+					caption: Upplýsingar um birgðir eftir raðnúmeri
+				measure 'Bin Contents Details'
+					caption: Upplýsingar um innihald hólfs
+				measure 'Bin Contents by Item Tracking Details'
+					caption: Upplýsingar um innihald hólfs eftir vörurakningu
+			table COMPANY
+				caption: FYRIRTÆKI
+				measure 'Company Label'
+					caption: Merki fyrirtækis
+			table ENVIRONMENT
+				caption: UMHVERFIÐ
+			table 'Item Category'
+				caption: Vöruflokkur
+				column 'Item Category Code'
+					caption: Kóði yfirflokks vöru
+				column 'Item Category Description'
+					caption: Lýsing vöruflokks
+				hierarchy 'Item Category Code Hierarchy'
+					caption: Stigveldi vöruflokkskóða
+					level 'Item Category Code Level 1'
+						caption: Vöruflokkakóði af stigi 1
+					level 'Item Category Code Level 2'
+						caption: Vöruflokkakóði af stigi 2
+					level 'Item Category Code Level 3'
+						caption: Vöruflokkakóði af stigi 3
+

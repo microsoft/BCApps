@@ -1,0 +1,178 @@
+table 'Pareto Scale'
+	lineageTag: 28e4c956-a3c4-4f11-b6c1-696539df1e2b
+
+	measure 'Pareto Value' = SELECTEDVALUE('Pareto Scale'[Value], 0.8)
+		formatString: 0.00%;-0.00%;0.00%
+		isHidden
+		lineageTag: f592a786-8435-46c1-94be-78a29ceec45b
+
+	/// The Color Cutoff where Pareto Customer Rank by Adjusted Profit (LCY) exceeds the Pareto Customer Rank by Adjusted Profit (LCY).
+	measure 'Pareto Color Cutoff' =
+			
+			IF( [Pareto Customer Rank by Adjusted Profit (LCY)] > [Pareto Customer Cutoff Rank], "#ededed", " #429EAA")
+		displayFolder: _Pareto Measures
+		lineageTag: 5c50c925-3d07-47bc-affd-0b2824360802
+
+		changedProperty = IsHidden
+
+	/// The Cumulative Adjusted Profit (LCY) divided by the Total Adjusted Profit (LCY).
+	measure 'Pareto Cumulative Adjusted Profit %' = DIVIDE([Pareto Cumulative Adjusted Profit (LCY)],[Pareto Total Adjusted Profit (LCY)])
+		formatString: 0.00%;-0.00%;0.00%
+		displayFolder: _Pareto Measures
+		lineageTag: 5d5bb05b-dde5-4351-946c-f842a3217f4b
+
+	/// The Cumulative Adjusted Profit (LCY) based on the Pareto Customer Rank by Adjusted Profit (LCY)
+	measure 'Pareto Cumulative Adjusted Profit (LCY)' =
+			
+			IF(
+			    ISINSCOPE(Customer[Customer Name]),
+			    CALCULATE(
+			        [Adjusted Profit (LCY)],
+			        TOPN([Pareto Customer Rank by Adjusted Profit (LCY)],
+			        ALLSELECTED(Customer[Customer Name]),
+			        [Adjusted Profit (LCY)])
+			    ),
+			    [Pareto Total Adjusted Profit (LCY)])
+		formatString: #,0.00
+		displayFolder: _Pareto Measures
+		lineageTag: 3438fd99-1d49-41eb-907c-8130f10fbeac
+
+	/// The Pareto Customer Rank ordered by the Adjusted Profit (LCY) on the Sales table.
+	measure 'Pareto Customer Rank by Adjusted Profit (LCY)' = ```
+			
+			
+			IF (
+			    ISINSCOPE ( Customer[Customer Name] ),
+			    VAR AdjustedProfitCurrentCustomer = [Adjusted Profit (LCY)]
+			    VAR CustomerRank =
+			        RANKX (
+			            ALLSELECTED ( 'Customer' ),
+			            [Adjusted Profit (LCY)]
+			        )
+			    VAR Result =
+			        IF (
+			            NOT ISBLANK ( AdjustedProfitCurrentCustomer ),
+			CustomerRank        )
+			    RETURN
+			        Result
+			) 
+			
+			```
+		formatString: 0
+		isHidden
+		displayFolder: _Pareto Measures
+		lineageTag: 2296bc2f-6ab4-4230-b6b2-f78886183472
+
+	/// The Pareto Cumulative Adjusted Profit (LCY) for the Pareto Cutoff Customer.
+	measure 'Pareto Cutoff Adjusted Profit %' =
+			
+			VAR ClosestCustomer = [Pareto Cutoff Customer]
+			RETURN
+			IF(
+			    SELECTEDVALUE(Customer[Customer Name]) = ClosestCustomer,
+			    [Pareto Cumulative Adjusted Profit %],
+			    BLANK()
+			)
+		formatString: 0.00%;-0.00%;0.00%
+		isHidden
+		displayFolder: _Pareto Measures
+		lineageTag: 93bb510d-ddd5-46aa-86ab-0add35f08d47
+
+	/// The Cumulative Adjusted Profit (LCY) for the Pareto
+	/// Cutoff Customer.
+	measure 'Pareto Cutoff Cumulative Adjusted Profit (LCY)' =
+			
+			VAR ClosestCustomer = [Pareto Cutoff Customer]
+			RETURN
+			IF(
+			    SELECTEDVALUE(Customer[Customer Name])=ClosestCustomer,
+			    [Pareto Cumulative Adjusted Profit (LCY)],
+			    BLANK()
+			)
+		formatString: #,0.00
+		isHidden
+		displayFolder: _Pareto Measures
+		lineageTag: 8ade62d6-7bcc-4c49-a0c6-86414751230b
+
+	/// The Customer with the maximum difference  of the Pareto Cumulative Adjusted Profit (LCY) minus the Pareto Value.
+	measure 'Pareto Cutoff Customer' = ```
+			
+			VAR TargetPercentage = [Pareto Value] 
+			VAR ClosestCustomer =
+			    TOPN(
+			        1,
+			        ADDCOLUMNS(
+			            SUMMARIZE(
+			                ALLSELECTED(Customer),
+			                Customer[Customer Name]
+			                ),
+			                "CumulativeAdjustedProfitPercent", [Pareto Cumulative Adjusted Profit %],
+			                "Difference", ABS([Pareto Cumulative Adjusted Profit %] - TargetPercentage)
+			            ),
+			            [Difference], ASC
+			        )
+			RETURN 
+			    MAXX(
+			        ClosestCustomer,
+			        Customer[Customer Name]
+			    )
+			    
+			```
+		isHidden
+		displayFolder: _Pareto Measures
+		lineageTag: b2c17464-db33-432a-b786-45dc72b88c17
+
+	/// The Pareto Customer Rank by Adjusted Profit (LCY) for the Pareto Cutoff Customer.
+	measure 'Pareto Cutoff Customer Rank' = ```
+			
+			VAR ClosestCustomer = [Pareto Cutoff Customer]
+			RETURN
+			IF(
+			    SELECTEDVALUE(Customer[Customer Name]) = ClosestCustomer,
+			    [Pareto Customer Rank by Adjusted Profit (LCY)],
+			    BLANK()
+			)
+			
+			```
+		isHidden
+		displayFolder: _Pareto Measures
+		lineageTag: be25adc3-79c8-4f6d-96f6-fe377a54d568
+
+	/// The Total Adjusted Profit (LCY) from the Sales Table for all Sales.
+	measure 'Pareto Total Adjusted Profit (LCY)' = CALCULATE(Documents[Adjusted Profit (LCY)],ALLSELECTED('Sales Value Entries'),ALLSELECTED('Sales Credit Lines'),ALLSELECTED('Sales Invoice Lines'))
+		displayFolder: _Pareto Measures
+		lineageTag: ba9828bd-76c4-454f-b3ef-2a1e14539605
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	/// The maximum Pareto Customer Rank based on the Pareto Cutoff Customer Rank.
+	measure 'Pareto Customer Cutoff Rank' =
+			
+			CALCULATE(
+			    MAXX (VALUES(Customer[Customer Name]), [Pareto Cutoff Customer Rank]),
+			    ALLSELECTED(Customer)
+			)
+		formatString: 0
+		isHidden
+		displayFolder: _Pareto Measures
+		lineageTag: c349b934-105c-4c67-bc1f-88cbc8136413
+
+	column Value
+		formatString: 0%;-0%;0%
+		lineageTag: 845c36bd-262d-48a6-820a-c939ff0d96aa
+		summarizeBy: none
+		sourceColumn: [Value]
+
+		extendedProperty ParameterMetadata =
+				{
+				  "version": 0
+				}
+
+		annotation SummarizationSetBy = User
+
+	partition 'Pareto Scale' = calculated
+		mode: import
+		source = GENERATESERIES(0.1, 1, 0.1)
+
+	annotation PBI_Id = 3916c229c3a64b31abc9a7e47195c1f7
+

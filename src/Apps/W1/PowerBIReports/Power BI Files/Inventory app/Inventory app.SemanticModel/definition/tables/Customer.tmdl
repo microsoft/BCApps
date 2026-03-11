@@ -1,0 +1,143 @@
+table Customer
+	lineageTag: 688f772f-e047-4704-9b59-178678e97b54
+
+	column 'Customer No. & Name'
+		dataType: string
+		lineageTag: a8077d1c-7353-4046-83a2-08ac2c7cf7e0
+		summarizeBy: none
+		sourceColumn: Customer No. & Name
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Customer No.'
+		dataType: string
+		isKey
+		lineageTag: 4fbca207-3cd9-425b-b5de-bb6ee53ffe6e
+		summarizeBy: none
+		sourceColumn: Customer No.
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Customer Name'
+		dataType: string
+		lineageTag: 8b463f00-db4b-4d2c-b4e4-5cf0e0b83d37
+		summarizeBy: none
+		sourceColumn: Customer Name
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Customer Address'
+		dataType: string
+		lineageTag: 9e454523-5387-479b-acd7-f1c5069489c5
+		dataCategory: Address
+		summarizeBy: none
+		sourceColumn: Customer Address
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Customer Address 2'
+		dataType: string
+		lineageTag: c8b19481-4c8a-4be2-9ec7-8645fe509987
+		dataCategory: Address
+		summarizeBy: none
+		sourceColumn: Customer Address 2
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Customer City'
+		dataType: string
+		lineageTag: af5f1801-9637-473b-80d5-74558450add9
+		dataCategory: City
+		summarizeBy: none
+		sourceColumn: Customer City
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Customer Post Code'
+		dataType: string
+		lineageTag: 53c9d135-544a-4d28-b648-91c2eb31939f
+		dataCategory: PostalCode
+		summarizeBy: none
+		sourceColumn: Customer Post Code
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Customer State'
+		dataType: string
+		lineageTag: 9bdcdf3d-eca5-48ae-b04d-6f7048495b90
+		dataCategory: StateOrProvince
+		summarizeBy: none
+		sourceColumn: Customer State
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Customer Country/Region Code'
+		dataType: string
+		lineageTag: 5a3b6402-dc29-45f5-b7fd-ab1cc9e9c3d1
+		dataCategory: Country
+		summarizeBy: none
+		sourceColumn: Customer Country/Region Code
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Customer Posting Group'
+		dataType: string
+		lineageTag: 8abff202-2219-438d-be82-9d44d72bfea2
+		summarizeBy: none
+		sourceColumn: Customer Posting Group
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Customer Price Group'
+		dataType: string
+		lineageTag: 0d198c3d-893a-4d8b-98ae-32b4ebaae844
+		summarizeBy: none
+		sourceColumn: Customer Price Group
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Customer Discount Group'
+		dataType: string
+		lineageTag: 4ad1148d-602b-4231-9744-22ddeb2f640f
+		summarizeBy: none
+		sourceColumn: Customer Discount Group
+
+		annotation SummarizationSetBy = Automatic
+
+	partition Customer-6b492668-52df-4b9d-b3b8-65a63247bc80 = m
+		mode: import
+		queryGroup: 'Dimension Tables'
+		source =
+				let
+				    Source = Dynamics365BusinessCentral.ApiContentsWithOptions(
+				        ENVIRONMENT, COMPANY,API_ENDPOINT, []
+				    ),
+				    TableData = Source{[Name = "customers", Signature = "table"]}[Data],
+				    #"Changed Type" = Table.TransformColumnTypes(
+				        TableData,
+				        {
+				            {"customerNo", type text},
+				            {"customerName", type text},
+				            {"address", type text},
+				            {"address2", type text},
+				            {"city", type text},
+				            {"postCode", type text},
+				            {"county", type text},
+				            {"countryRegionCode", type text},
+				            {"customerPostingGroup", type text},
+				            {"customerPriceGroup", type text},
+				            {"customerDiscGroup", type text}
+				        }
+				    ),
+				    #"Renamed Columns" = Table.RenameColumns(#"Changed Type",{{"customerNo", "Customer No."}, {"customerName", "Customer Name"}, {"address", "Customer Address"}, {"address2", "Customer Address 2"}, {"postCode", "Customer Post Code"}, {"city", "Customer City"}, {"countryRegionCode", "Customer Country/Region Code"}, {"county", "Customer State"}, {"customerPostingGroup", "Customer Posting Group"}, {"customerPriceGroup", "Customer Price Group"}, {"customerDiscGroup", "Customer Discount Group"}}),
+				    #"Added Custom" = Table.AddColumn(
+				        #"Renamed Columns", "Customer No. & Name", each [#"Customer No."] & " " & [Customer Name], type text
+				    ),
+				    #"Removed Columns" = Table.RemoveColumns(#"Added Custom", {"ETag"})
+				in
+				    #"Removed Columns"
+
+	annotation PBI_ResultType = Table
+
+	annotation PBI_NavigationStepName = Navigation
+

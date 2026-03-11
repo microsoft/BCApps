@@ -1,0 +1,222 @@
+// ------------------------------------------------------------------------------------------------
+// Copyright (c) Microsoft Corporation. All rights reserved.
+// Licensed under the MIT License. See License.txt in the project root for license information.
+// ------------------------------------------------------------------------------------------------
+
+namespace System.Azure.Storage;
+
+using System.Reflection;
+
+codeunit 9043 "ABS Helper Library"
+{
+    Access = Internal;
+    InherentEntitlements = X;
+    InherentPermissions = X;
+    Permissions = tabledata Field = r;
+
+    // #region Container-specific Helper
+    procedure ContainerNodeListTotempRecord(NodeList: XmlNodeList; var ABSContainer: Record "ABS Container")
+    begin
+        NodeListToTempRecord(NodeList, './/Name', ABSContainer);
+    end;
+
+    procedure CreateContainerNodeListFromResponse(ResponseAsText: Text): XmlNodeList
+    begin
+        exit(CreateXPathNodeListFromResponse(ResponseAsText, '/*/Containers/Container'));
+    end;
+    // #endregion
+
+    procedure PageRangesResultToDictionairy(Document: XmlDocument; var PageRanges: Dictionary of [Integer, Integer])
+    var
+        NodeList: XmlNodeList;
+        Node: XmlNode;
+        StartRange: Integer;
+        EndRange: Integer;
+    begin
+        NodeList := CreatePageRangesNodeListFromResponse(Document);
+
+        if NodeList.Count = 0 then
+            exit;
+        foreach Node in NodeList do begin
+            Evaluate(StartRange, GetValueFromNode(Node, 'Start'));
+            Evaluate(EndRange, GetValueFromNode(Node, 'End'));
+            PageRanges.Add(StartRange, EndRange);
+        end;
+    end;
+
+    procedure CreatePageRangesNodeListFromResponse(Document: XmlDocument): XmlNodeList
+    begin
+        exit(CreateXPathNodeListFromResponse(Document, '/*/PageRange'));
+    end;
+
+    procedure BlockListResultToDictionary(Document: XmlDocument; var CommitedBlocks: Dictionary of [Text, Integer]; var UncommitedBlocks: Dictionary of [Text, Integer])
+    var
+        NodeList: XmlNodeList;
+        Node: XmlNode;
+        NameValue: Text;
+        SizeValue: Integer;
+    begin
+        NodeList := CreateBlockListCommitedNodeListFromResponse(Document);
+
+        if NodeList.Count > 0 then
+            foreach Node in NodeList do begin
+                Evaluate(NameValue, GetValueFromNode(Node, 'Name'));
+                Evaluate(SizeValue, GetValueFromNode(Node, 'Size'));
+                CommitedBlocks.Add(NameValue, SizeValue);
+            end;
+
+        NodeList := CreateBlockListUncommitedNodeListFromResponse(Document);
+
+        if NodeList.Count > 0 then
+            foreach Node in NodeList do begin
+                Evaluate(NameValue, GetValueFromNode(Node, 'Name'));
+                Evaluate(SizeValue, GetValueFromNode(Node, 'Size'));
+                UncommitedBlocks.Add(NameValue, SizeValue);
+            end;
+    end;
+
+    procedure CreateBlockListCommitedNodeListFromResponse(Document: XmlDocument): XmlNodeList
+    begin
+        exit(CreateXPathNodeListFromResponse(Document, '/*/CommittedBlocks/Block'));
+    end;
+
+    procedure CreateBlockListUncommitedNodeListFromResponse(Document: XmlDocument): XmlNodeList
+    begin
+        exit(CreateXPathNodeListFromResponse(Document, '/*/UncommittedBlocks/Block'));
+    end;
+
+    // #region Blob-specific Helper
+    procedure CreateBlobNodeListFromResponse(ResponseAsText: Text; var NextMarker: Text; var BlobPrefixNodeList: XmlNodeList; var BlobNodeList: XmlNodeList)
+    var
+        XmlDoc: XmlDocument;
+        Node: XmlNode;
+    begin
+        Clear(NextMarker);
+        GetXmlDocumentFromResponse(XmlDoc, ResponseAsText);
+        if XmlDoc.SelectSingleNode('//NextMarker', Node) then
+            NextMarker := Node.AsXmlElement().InnerText;
+        XmlDoc.SelectNodes('//Blobs/BlobPrefix', BlobPrefixNodeList);
+        XmlDoc.SelectNodes('//Blobs/Blob', BlobNodeList);
+    end;
+
+    procedure BlobNodeListToTempRecord(BlobPrefixNodeList: XmlNodeList; BlobNodeList: XmlNodeList; var ABSContainerContent: Record "ABS Container Content")
+    var
+        EntryNo: Integer;
+    begin
+        ABSContainerContent.Reset();
+        ABSContainerContent.DeleteAll();
+
+        BlobPrefixNodeListToTempRecord(BlobPrefixNodeList, './/Name', EntryNo, ABSContainerContent);
+        BlobNodeListToTempRecord(BlobNodeList, './/Name', EntryNo, ABSContainerContent);
+    end;
+
+    procedure BlobNodeListToBlobList(BlobPrefixNodeList: XmlNodeList; BlobNodeList: XmlNodeList; var BlobList: Dictionary of [Text, XmlNode])
+    var
+        Name, Node : XmlNode;
+    begin
+        foreach Node in BlobPrefixNodeList do begin
+            Node.SelectSingleNode('Name', Name);
+            BlobList.Add(Name.AsXmlElement().InnerText, Node);
+        end;
+
+        foreach Node in BlobNodeList do begin
+            Node.SelectSingleNode('Name', Name);
+            BlobList.Add(Name.AsXmlElement().InnerText, Node);
+        end;
+    end;
+    // #endregion
+
+    // #region XML Helper
+    local procedure GetXmlDocumentFromResponse(var Document: XmlDocument; ResponseAsText: Text)
+    var
+        ReadingAsXmlErr: Label 'Error reading Response as XML.';
+    begin
+        if not XmlDocument.ReadFrom(ResponseAsText, Document) then
+            Error(ReadingAsXmlErr);
+    end;
+
+    local procedure CreateXPathNodeListFromResponse(ResponseAsText: Text; XPath: Text): XmlNodeList
+    var
+        Document: XmlDocument;
+        RootNode: XmlElement;
+        NodeList: XmlNodeList;
+    begin
+        GetXmlDocumentFromResponse(Document, ResponseAsText);
+        Document.GetRoot(RootNode);
+        RootNode.SelectNodes(XPath, NodeList);
+        exit(NodeList);
+    end;
+
+    local procedure CreateXPathNodeListFromResponse(Document: XmlDocument; XPath: Text): XmlNodeList
+    var
+        RootNode: XmlElement;
+        NodeList: XmlNodeList;
+    begin
+        Document.GetRoot(RootNode);
+        RootNode.SelectNodes(XPath, NodeList);
+        exit(NodeList);
+    end;
+
+    procedure GetValueFromNode(Node: XmlNode; XPath: Text): Text
+    var
+        Node2: XmlNode;
+        Value: Text;
+    begin
+        Node.SelectSingleNode(XPath, Node2);
+        Value := Node2.AsXmlElement().InnerText();
+        exit(Value);
+    end;
+
+    local procedure BlobPrefixNodeListToTempRecord(NodeList: XmlNodeList; XPathName: Text; var EntryNo: Integer; var ABSContainerContent: Record "ABS Container Content")
+    var
+        ABSContainerContentHelper: Codeunit "ABS Container Content Helper";
+        Node: XmlNode;
+    begin
+        if NodeList.Count = 0 then
+            exit;
+
+        foreach Node in NodeList do
+            ABSContainerContentHelper.AddNewEntryFromPrefixNode(ABSContainerContent, Node, XPathName, EntryNo);
+    end;
+
+    local procedure BlobNodeListToTempRecord(NodeList: XmlNodeList; XPathName: Text; var EntryNo: Integer; var ABSContainerContent: Record "ABS Container Content")
+    var
+        ABSContainerContentHelper: Codeunit "ABS Container Content Helper";
+        Node: XmlNode;
+    begin
+        if NodeList.Count = 0 then
+            exit;
+
+        foreach Node in NodeList do
+            ABSContainerContentHelper.AddNewEntryFromNode(ABSContainerContent, Node, XPathName, EntryNo);
+    end;
+
+    local procedure NodeListToTempRecord(NodeList: XmlNodeList; XPathName: Text; var ABSContainer: Record "ABS Container")
+    var
+        ContainerHelper: Codeunit "ABS Container Helper";
+        Node: XmlNode;
+    begin
+        ABSContainer.DeleteAll();
+
+        if NodeList.Count = 0 then
+            exit;
+        foreach Node in NodeList do
+            ContainerHelper.AddNewEntryFromNode(ABSContainer, Node, XPathName);
+    end;
+    // #endregion
+
+    // #region Format Helper
+    procedure GetFieldByName(TableNo: Integer; FieldCaption: Text; var FieldNo: Integer): Boolean
+    var
+        Field: Record Field;
+    begin
+        Clear(FieldNo);
+        Field.Reset();
+        Field.SetRange(TableNo, TableNo);
+        Field.SetRange("Field Caption", CopyStr(FieldCaption, 1, MaxStrLen(Field.FieldName)));
+        if Field.FindFirst() then
+            FieldNo := Field."No.";
+        exit(FieldNo <> 0);
+    end;
+    // #endregion
+}

@@ -1,0 +1,1501 @@
+cultureInfo it-IT
+	translations
+		model Model
+			table Item
+				caption: Articolo
+				column 'Item No. & Description'
+					caption: Nr. e descrizione articolo
+				column 'Item No.'
+					caption: Nr. articolo
+				column 'Item Description'
+					caption: Descrizione articolo
+				column 'Item Base Unit of Measure'
+					caption: Unità di misura di base
+				column 'Item Unit Cost (LCY)'
+					caption: Costo unitario articolo (VL)
+				column 'Item Inventory Posting Group'
+					caption: Categoria di registrazione magazzino
+				column 'Item Category Code'
+					caption: Codice categoria articolo
+				column 'Item Category Description'
+					caption: Descrizione categoria articolo
+			table Location
+				caption: Ubicazione
+				column 'Location Code'
+					caption: Codice ubicazione
+				column 'Location Name'
+					caption: Nome ubicazione
+				column 'Location Adjustment Bin Code'
+					caption: Codice collocazione rettifica ubicazione
+			table Vendor
+				caption: Fornitore
+				column 'Vendor No. & Name'
+					caption: Nome e nr. fornitore
+				column 'Vendor No.'
+					caption: Nr. fornitore
+				column 'Vendor Name'
+					caption: Nome fornitore
+				column 'Vendor Address'
+					caption: Indirizzo fornitore
+				column 'Vendor Address 2'
+					caption: Indirizzo fornitore 2
+				column 'Vendor City'
+					caption: Città fornitore
+				column 'Vendor Post Code'
+					caption: Codice postale fornitore
+				column 'Vendor State'
+					caption: Stato fornitore
+				column 'Vendor Country/Region Code'
+					caption: Codice paese/area geografica fornitore
+				column 'Vendor Posting Group'
+					caption: Categoria registrazione fornitore
+			table Purchaser
+				caption: Addetto acquisti
+				column 'Purchaser Code'
+					caption: Codice addetto acquisti
+				column 'Purchaser Name'
+					caption: Nome addetto acquisti
+			table 'Dimension Sets'
+				caption: Set di dimensioni
+				column 'Global Dimension 1'
+					caption: Dimensione globale 1
+				column 'Global Dimension 2'
+					caption: Dimensione globale 2
+				column 'Shortcut Dimension 3'
+					caption: Collegamento dimensione 3
+				column 'Shortcut Dimension 4'
+					caption: Collegamento dimensione 4
+				column 'Shortcut Dimension 5'
+					caption: Collegamento dimensione 5
+				column 'Shortcut Dimension 6'
+					caption: Collegamento dimensione 6
+				column 'Shortcut Dimension 7'
+					caption: Collegamento dimensione 7
+				column 'Shortcut Dimension 8'
+					caption: Collegamento dimensione 8
+				column id
+					caption: ID
+			table 'Purchase Budget'
+				caption: Budget acquisti
+				column 'Entry No.'
+					caption: Nr. movimento
+				column 'Budget Name'
+					caption: Nome budget
+				column Date
+					caption: Data
+				measure 'Budget Amount'
+					caption: Importo budget
+				measure 'Budget Quantity'
+					caption: Quantità a budget
+				measure 'Budget Quantity Variance'
+					caption: Scostamento quantità a budget
+				measure 'Budget Amount Variance'
+					caption: Scostamento importo budget
+				measure 'Budget Amount Variance %'
+					caption: % scostamento importo budget
+				measure 'Budget Quantity Variance %'
+					caption: % scostamento quantità a budget
+			table Date
+				caption: Data
+				column 'Week Day'
+					caption: Giorno della settimana
+				column 'Calendar Year'
+					caption: Anno di calendario
+				column 'Calendar Quarter'
+					caption: Trimestre di calendario
+				column 'Calendar Quarter Year'
+					caption: Trimestre anno di calendario
+				column 'Calendar Month'
+					caption: Mese di calendario
+				column 'Calendar Month Year'
+					caption: Mese anno di calendario
+				column 'Calendar Week'
+					caption: Settimana di calendario
+				column 'Calendar Week Year'
+					caption: Settimana anno di calendario
+				column 'Calendar RelativeWeekPos'
+					caption: SettimanaRelativaPos di calendario
+				column 'Calendar RelativeMonthPos'
+					caption: MeseRelativoPos di calendario
+				column 'Calendar RelativeQuarterPos'
+					caption: TrimestreRelativoPos di calendario
+				column 'Calendar RelativeYearPos'
+					caption: AnnoRelativoPos di calendario
+				column 'Calendar StartOfMonth'
+					caption: InizioMese di calendario
+				column 'Calendar EndOfMonth'
+					caption: FineMese di calendario
+				column 'Calendar StartOfQuarter'
+					caption: InizioTrimestre di calendario
+				column 'Calendar EndOfQuarter'
+					caption: FineTrimestre di calendario
+				column 'Calendar StartOfYear'
+					caption: InizioAnno di calendario
+				column 'Calendar EndOfYear'
+					caption: FineAnno di calendario
+				column 'Calendar MonthDays'
+					caption: GiorniMese di calendario
+				column 'Calendar QuarterDays'
+					caption: GiorniTrimestre di calendario
+				column 'Calendar YearDays'
+					caption: GiorniAnno di calendario
+				column 'Calendar DayOfMonthNumber'
+					caption: NumeroGiornoMese di calendario
+				column 'Calendar DayOfQuarterNumber'
+					caption: NumeroGiornoTrimestre di calendario
+				column 'Calendar DayOfYearNumber'
+					caption: NumeroGiornoAnno di calendario
+				column 'Calendar DatePreviousWeek'
+					caption: DataSettimanaPrecedente di calendario
+				column 'Calendar DatePreviousMonth'
+					caption: DataMesePrecedente di calendario
+				column 'Calendar DatePreviousQuarter'
+					caption: DataTrimestrePrecedente di calendario
+				column 'Calendar DatePreviousYear'
+					caption: DataAnnoPrecedente di calendario
+				column 'Fiscal Year'
+					caption: Anno fiscale
+				column 'Fiscal Quarter'
+					caption: Trimestre fiscale
+				column 'Fiscal Quarter Year'
+					caption: Trimestre anno fiscale
+				column 'Fiscal Month'
+					caption: Mese fiscale
+				column 'Fiscal Month Year'
+					caption: Mese anno fiscale
+				column 'Fiscal Week'
+					caption: Settimana fiscale
+				column 'Fiscal Week Year'
+					caption: Settimana anno fiscale
+				column 'Fiscal RelativeWeekPos'
+					caption: SettimanaRelativaPos fiscale
+				column 'Fiscal RelativeMonthPos'
+					caption: MeseRelativoPos fiscale
+				column 'Fiscal RelativeQuarterPos'
+					caption: TrimestreRelativoPos fiscale
+				column 'Fiscal RelativeYearPos'
+					caption: AnnoRelativoPos fiscale
+				column 'Fiscal StartOfMonth'
+					caption: InizioMese fiscale
+				column 'Fiscal EndOfMonth'
+					caption: FineMese fiscale
+				column 'Fiscal StartOfQuarter'
+					caption: InizioTrimestre fiscale
+				column 'Fiscal EndOfQuarter'
+					caption: FineTrimestre fiscale
+				column 'Fiscal StartOfYear'
+					caption: InizioAnno fiscale
+				column 'Fiscal EndOfYear'
+					caption: FineAnno fiscale
+				column 'Fiscal MonthDays'
+					caption: GiorniMese fiscale
+				column 'Fiscal QuarterDays'
+					caption: GiorniTrimestre fiscale
+				column 'Fiscal YearDays'
+					caption: GiorniAnno fiscale
+				column 'Fiscal DayOfMonthNumber'
+					caption: NumeroGiornoMese fiscale
+				column 'Fiscal DayOfQuarterNumber'
+					caption: NumeroGiornoTrimestre fiscale
+				column 'Fiscal DayOfYearNumber'
+					caption: NumeroGiornoAnno fiscale
+				column 'Fiscal DatePreviousWeek'
+					caption: DataSettimanaPrecedente fiscale
+				column 'Fiscal DatePreviousMonth'
+					caption: DataMesePrecedente fiscale
+				column 'Fiscal DatePreviousQuarter'
+					caption: DataTrimestrePrecedente fiscale
+				column 'Fiscal DatePreviousYear'
+					caption: DataAnnoPrecedente fiscale
+				column 'FW Year'
+					caption: Anno FW
+				column 'FW Quarter'
+					caption: Trimestre FW
+				column 'FW Quarter Year'
+					caption: Trimestre anno FW
+				column 'FW Month'
+					caption: Mese FW
+				column 'FW Month Year'
+					caption: Mese anno FW
+				column 'FW Week'
+					caption: Settimana FW
+				column 'FW Period'
+					caption: Periodo FW
+				column 'FW Week Year'
+					caption: Settimana anno FW
+				column 'FW StartOfWeek'
+					caption: InizioSettimana FW
+				column 'FW EndOfWeek'
+					caption: FineSettimana FW
+				column 'FW RelativeWeekPos'
+					caption: SettimanaRelativaPos FW
+				column 'FW RelativeMonthPos'
+					caption: MeseRelativoPos FW
+				column 'FW RelativeQuarterPos'
+					caption: TrimestreRelativoPos FW
+				column 'FW RelativeYearPos'
+					caption: AnnoRelativoPos FW
+				column 'FW StartOfMonth'
+					caption: InizioMese FW
+				column 'FW EndOfMonth'
+					caption: FineMese FW
+				column 'FW StartOfQuarter'
+					caption: InizioTrimestre FW
+				column 'FW EndOfQuarter'
+					caption: FineTrimestre FW
+				column 'FW StartOfYear'
+					caption: InizioAnno FW
+				column 'FW EndOfYear'
+					caption: FineAnno fiscale
+				column 'FW MonthDays'
+					caption: GiorniMese FW
+				column 'FW QuarterDays'
+					caption: GiorniTrimestre FW
+				column 'FW YearDays'
+					caption: GiorniAnno FW
+				column 'FW DatePreviousWeek'
+					caption: DataSettimanaPrecedente FW
+				column 'FW DatePreviousMonth'
+					caption: DataMesePrecedente FW
+				column 'FW DatePreviousQuarter'
+					caption: DataTrimestrePrecedente FW
+				column 'FW DatePreviousYear'
+					caption: DataAnnoPrecedente FW
+				column 'Holiday Name'
+					caption: Nome festività
+				column IsWorkingDay
+					caption: IsWorkingDay
+				column 'Day Type'
+					caption: Tipo di giorno
+				column 'Relative Day'
+					caption: Giorno relativo
+				hierarchy 'Fiscal Year-Month'
+					caption: Anno-Mese fiscale
+					level 'Fiscal Year'
+						caption: Anno fiscale
+					level 'Fiscal Month Year'
+						caption: Mese anno fiscale
+				hierarchy 'Fiscal Year-Quarter-Month-Week'
+					caption: Anno-Trimestre-Mese-Settimana fiscale
+					level 'Fiscal Year'
+						caption: Anno fiscale
+					level 'Fiscal Quarter Year'
+						caption: Trimestre anno fiscale
+					level 'Fiscal Month Year'
+						caption: Mese anno fiscale
+					level 'Fiscal Week Year'
+						caption: Settimana anno fiscale
+				hierarchy 'Fiscal Year-Month-Week'
+					caption: Anno-Mese-Settimana fiscale
+					level 'Fiscal Year'
+						caption: Anno fiscale
+					level 'Fiscal Month Year'
+						caption: Mese anno fiscale
+					level 'Fiscal Week Year'
+						caption: Settimana anno fiscale
+				hierarchy 'Calendar Year-Month'
+					caption: Anno-Mese di calendario
+					level 'Calendar Year'
+						caption: Anno di calendario
+					level 'Calendar Month Year'
+						caption: Mese anno di calendario
+				hierarchy 'Calendar Year-Quarter-Month-Week'
+					caption: Anno-Trimestre-Mese-Settimana di calendario
+					level 'Calendar Year'
+						caption: Anno di calendario
+					level 'Calendar Quarter Year'
+						caption: Trimestre anno di calendario
+					level 'Calendar Month Year'
+						caption: Mese anno di calendario
+					level 'Calendar Week Year'
+						caption: Settimana anno di calendario
+				hierarchy 'Calendar Year-Month-Week'
+					caption: Anno-Mese-Settimana di calendario
+					level 'Calendar Year'
+						caption: Anno di calendario
+					level 'Calendar Month Year'
+						caption: Mese anno di calendario
+					level 'Calendar Week Year'
+						caption: Settimana anno di calendario
+				hierarchy 'FW Year-Month-Week'
+					caption: Anno-Mese-Settimana FW
+					level 'FW Year'
+						caption: Anno FW
+					level 'FW Month Year'
+						caption: Mese anno FW
+					level 'FW Week Year'
+						caption: Settimana anno FW
+				hierarchy 'FW Year-Quarter-Month-Week'
+					caption: Anno-Trimestre-Mese-Settimana FW
+					level 'FW Year'
+						caption: Anno FW
+					level 'FW Quarter Year'
+						caption: Trimestre anno FW
+					level 'FW Month Year'
+						caption: Mese anno FW
+					level 'FW Week Year'
+						caption: Settimana anno FW
+				hierarchy 'FW Year-Week'
+					caption: Anno-Settimana FW
+					level 'FW Year'
+						caption: Anno FW
+					level 'FW Week Year'
+						caption: Settimana anno FW
+				hierarchy 'FW Year-Quarter-Week'
+					caption: Anno-Trimestre-Settimana FW
+					level 'FW Year'
+						caption: Anno FW
+					level 'FW Quarter Year'
+						caption: Trimestre anno FW
+					level 'FW Week Year'
+						caption: Settimana anno FW
+			table 'Standard Calendar Time Intelligence'
+				caption: Funzionalità di Business Intelligence per le gerarchie temporali in calendario standard
+				measure 'Purchase Amount YTD'
+					caption: Importo acquisti YTD
+				measure 'Purchase Amount PY'
+					caption: Importo acquisti PY
+				measure 'Purchase Amount PYTD'
+					caption: Importo acquisti PYTD
+				measure 'Purchase Amount PQTD'
+					caption: Importo acquisti PQTD
+				measure 'Purchase Amount QTD'
+					caption: Importo acquisti QTD
+				measure 'Purchase Amount MTD'
+					caption: Importo acquisti MTD
+				measure 'Purchase Amount YOY %'
+					caption: % importo acquisti YOY
+				measure 'Purchase Amount YOY'
+					caption: Importo acquisti YOY
+				measure 'Purchase Amount PQ'
+					caption: Importo acquisti PQ
+				measure 'Purchase Amount QOQ'
+					caption: Importo acquisti QOQ
+				measure 'Purchase Amount PM'
+					caption: Importo acquisti PM
+				measure 'Purchase Amount QOQ %'
+					caption: % importo acquisti QOQ
+				measure 'Purchase Amount MOM'
+					caption: Importo acquisti MOM
+				measure 'Purchase Amount MOM %'
+					caption: % importo acquisti MOM
+				measure 'Purchase Amount MAT'
+					caption: Importo acquisti MAT
+				measure 'Purchase Amount PYMAT'
+					caption: Importo acquisti PYMAT
+				measure 'Purchase Amount YOYTD'
+					caption: Importo acquisti YOYTD
+				measure 'Purchase Amount YOYTD %'
+					caption: % importo acquisti YOYTD
+				measure 'Purchase Amount PYC'
+					caption: Importo acquisti PYC
+				measure 'Purchase Amount YTDOPY'
+					caption: Importo acquisti YTDOPY
+				measure 'Purchase Amount YTDOPY %'
+					caption: % importo acquisti YTDOPY
+				measure 'Purchase Amount QOQTD'
+					caption: Importo acquisti QOQTD
+				measure 'Purchase Amount QOQTD %'
+					caption: % importo acquisti QOQTD
+				measure 'Purchase Amount PQC'
+					caption: Importo acquisti PQC
+				measure 'Purchase Amount QTDOPQ'
+					caption: Importo acquisti QTDOPQ
+				measure 'Purchase Amount QTDOPQ %'
+					caption: % importo acquisti QTDOPQ
+				measure 'Purchase Amount PMTD'
+					caption: Importo acquisti PMTD
+				measure 'Purchase Amount MOMTD'
+					caption: Importo acquisti MOMTD
+				measure 'Purchase Amount MOMTD %'
+					caption: % importo acquisti MOMTD
+				measure 'Purchase Amount PMC'
+					caption: Importo acquisti PMC
+				measure 'Purchase Amount MTDOPM'
+					caption: Importo acquisti MTDOPM
+				measure 'Purchase Amount MTDOPM %'
+					caption: % importo acquisti MTDOPM
+				measure 'Purchase Amount AVG 30D'
+					caption: Media importo acquisti 30G
+				measure 'Purchase Amount AVG 3M'
+					caption: Media importo acquisti 3M
+				measure 'Purchase Amount AVG 1Y'
+					caption: Media importo acquisti 1A
+				measure 'Purchase Amount MATG'
+					caption: Importo acquisti MATG
+				measure 'Purchase Amount MATG %'
+					caption: % importo acquisti MATG
+				measure 'Purchase Amount PP'
+					caption: Importo acquisti PP
+				measure 'Purchase Amount POP'
+					caption: Importo acquisti POP
+				measure 'Purchase Amount POP %'
+					caption: % importo acquisti POP
+				measure 'Purchase Quantity YTD'
+					caption: Quantità acquisti YTD
+				measure 'Purchase Quantity PY'
+					caption: Quantità acquisti PY
+				measure 'Purchase Quantity PYTD'
+					caption: Quantità acquisti PYTD
+				measure 'Purchase Quantity PQTD'
+					caption: Quantità acquisti PQTD
+				measure 'Purchase Quantity QTD'
+					caption: Quantità acquisti QTD
+				measure 'Purchase Quantity MTD'
+					caption: Quantità acquisti MTD
+				measure 'Purchase Quantity YOY %'
+					caption: % quantità acquisti YOY
+				measure 'Purchase Quantity YOY'
+					caption: Quantità acquisti YOY
+				measure 'Purchase Quantity PQ'
+					caption: Quantità acquisti PQ
+				measure 'Purchase Quantity QOQ'
+					caption: Quantità acquisti QOQ
+				measure 'Purchase Quantity PM'
+					caption: Quantità acquisti PM
+				measure 'Purchase Quantity QOQ %'
+					caption: % quantità acquisti QOQ
+				measure 'Purchase Quantity MOM'
+					caption: Quantità acquisti MOM
+				measure 'Purchase Quantity MOM %'
+					caption: % quantità acquisti MOM
+				measure 'Purchase Quantity MAT'
+					caption: Quantità acquisti MAT
+				measure 'Purchase Quantity PYMAT'
+					caption: Quantità acquisti PYMAT
+				measure 'Purchase Quantity YOYTD'
+					caption: Quantità acquisti YOYTD
+				measure 'Purchase Quantity YOYTD %'
+					caption: % quantità acquisti YOYTD
+				measure 'Purchase Quantity PYC'
+					caption: Quantità acquisti PYC
+				measure 'Purchase Quantity YTDOPY'
+					caption: Quantità acquisti YTDOPY
+				measure 'Purchase Quantity YTDOPY %'
+					caption: % quantità acquisti YTDOPY
+				measure 'Purchase Quantity QOQTD'
+					caption: Quantità acquisti QOQTD
+				measure 'Purchase Quantity QOQTD %'
+					caption: % quantità acquisti QOQTD
+				measure 'Purchase Quantity PQC'
+					caption: Quantità acquisti PQC
+				measure 'Purchase Quantity QTDOPQ'
+					caption: Quantità acquisti QTDOPQ
+				measure 'Purchase Quantity QTDOPQ %'
+					caption: % quantità acquisti QTDOPQ
+				measure 'Purchase Quantity PMTD'
+					caption: Quantità acquisti PMTD
+				measure 'Purchase Quantity MOMTD'
+					caption: Quantità acquisti MOMTD
+				measure 'Purchase Quantity MOMTD %'
+					caption: % quantità acquisti MOMTD
+				measure 'Purchase Quantity PMC'
+					caption: Quantità acquisti PMC
+				measure 'Purchase Quantity MTDOPM'
+					caption: Quantità acquisti MTDOPM
+				measure 'Purchase Quantity MTDOPM %'
+					caption: % quantità acquisti MTDOPM
+				measure 'Purchase Quantity AVG 30D'
+					caption: Media quantità acquisti 30G
+				measure 'Purchase Quantity AVG 3M'
+					caption: Media quantità acquisti 3M
+				measure 'Purchase Quantity AVG 1Y'
+					caption: Media quantità acquisti 1A
+				measure 'Purchase Quantity MATG'
+					caption: Quantità acquisti MATG
+				measure 'Purchase Quantity MATG %'
+					caption: % quantità acquisti MATG
+				measure 'Purchase Quantity PP'
+					caption: Quantità acquisti PP
+				measure 'Purchase Quantity POP'
+					caption: Quantità acquisti POP
+				measure 'Purchase Quantity POP %'
+					caption: % quantità acquisti POP
+				measure 'Budget Amount YTD'
+					caption: Importo budget YTD
+				measure 'Budget Amount QTD'
+					caption: Importo budget QTD
+				measure 'Budget Amount MTD'
+					caption: Importo budget MTD
+				measure 'Budget Amount PY'
+					caption: Importo budget PY
+				measure 'Budget Amount YOY %'
+					caption: % importo budget YOY
+				measure 'Budget Amount YOY'
+					caption: Importo budget YOY
+				measure 'Budget Amount PQ'
+					caption: Importo budget PQ
+				measure 'Budget Amount QOQ'
+					caption: Importo budget QOQ
+				measure 'Budget Amount PM'
+					caption: Importo budget PM
+				measure 'Budget Amount QOQ %'
+					caption: % importo budget QOQ
+				measure 'Budget Amount MOM'
+					caption: Importo budget MOM
+				measure 'Budget Amount MOM %'
+					caption: % importo budget MOM
+				measure 'Budget Amount PP'
+					caption: Importo budget PP
+				measure 'Budget Amount POP'
+					caption: Importo budget POP
+				measure 'Budget Amount POP %'
+					caption: % importo budget POP
+				measure 'Budget Amount PYTD'
+					caption: Importo budget PYTD
+				measure 'Budget Amount PQTD'
+					caption: Importo budget PQTD
+				measure 'Budget Amount YOYTD'
+					caption: Importo budget YOYTD
+				measure 'Budget Amount YOYTD %'
+					caption: % importo budget YOYTD
+				measure 'Budget Amount QOQTD'
+					caption: Importo budget QOQTD
+				measure 'Budget Amount QOQTD %'
+					caption: % importo budget QOQTD
+				measure 'Budget Amount PMTD'
+					caption: Importo budget PMTD
+				measure 'Budget Amount MOMTD'
+					caption: Importo budget MOMTD
+				measure 'Budget Amount MOMTD %'
+					caption: % importo budget MOMTD
+				measure 'Budget Amount MAT'
+					caption: Importo budget MAT
+				measure 'Budget Amount PYMAT'
+					caption: Importo budget PYMAT
+				measure 'Budget Amount MATG'
+					caption: Importo budget MATG
+				measure 'Budget Amount MATG %'
+					caption: % importo budget MATG
+				measure 'Budget Amount PYC'
+					caption: Importo budget PYC
+				measure 'Budget Amount YTDOPY'
+					caption: Importo budget YTDOPY
+				measure 'Budget Amount YTDOPY %'
+					caption: % importo budget YTDOPY
+				measure 'Budget Amount PQC'
+					caption: Importo budget PQC
+				measure 'Budget Amount QTDOPQ'
+					caption: Importo budget QTDOPQ
+				measure 'Budget Amount QTDOPQ %'
+					caption: % importo budget QTDOPQ
+				measure 'Budget Amount PMC'
+					caption: Importo budget PMC
+				measure 'Budget Amount MTDOPM'
+					caption: Importo budget MTDOPM
+				measure 'Budget Amount MTDOPM %'
+					caption: % importo budget MTDOPM
+				measure 'Budget Amount AVG 30D'
+					caption: Media importo budget 30G
+				measure 'Budget Amount AVG 3M'
+					caption: Media importo budget 3M
+				measure 'Budget Amount AVG 1Y'
+					caption: Media importo budget 1A
+				measure 'Budget Quantity YTD'
+					caption: Quantità a budget YTD
+				measure 'Budget Quantity QTD'
+					caption: Quantità a budget QTD
+				measure 'Budget Quantity MTD'
+					caption: Quantità a budget MTD
+				measure 'Budget Quantity PY'
+					caption: Quantità a budget PY
+				measure 'Budget Quantity YOY %'
+					caption: % quantità a budget YOY
+				measure 'Budget Quantity YOY'
+					caption: Quantità a budget YOY
+				measure 'Budget Quantity PQ'
+					caption: Quantità a budget PQ
+				measure 'Budget Quantity QOQ'
+					caption: Quantità a budget QOQ
+				measure 'Budget Quantity PM'
+					caption: Quantità a budget PM
+				measure 'Budget Quantity QOQ %'
+					caption: % quantità a budget QOQ
+				measure 'Budget Quantity MOM'
+					caption: Quantità a budget MOM
+				measure 'Budget Quantity MOM %'
+					caption: % quantità a budget MOM
+				measure 'Budget Quantity PP'
+					caption: Quantità a budget PP
+				measure 'Budget Quantity POP'
+					caption: Quantità a budget POP
+				measure 'Budget Quantity POP %'
+					caption: % quantità a budget POP
+				measure 'Budget Quantity PYTD'
+					caption: Quantità a budget PYTD
+				measure 'Budget Quantity PQTD'
+					caption: Quantità a budget PQTD
+				measure 'Budget Quantity YOYTD'
+					caption: Quantità a budget YOYTD
+				measure 'Budget Quantity YOYTD %'
+					caption: % quantità a budget YOYTD
+				measure 'Budget Quantity QOQTD'
+					caption: Quantità a budget QOQTD
+				measure 'Budget Quantity QOQTD %'
+					caption: % quantità a budget QOQTD
+				measure 'Budget Quantity PMTD'
+					caption: Quantità a budget PMTD
+				measure 'Budget Quantity MOMTD'
+					caption: Quantità a budget MOMTD
+				measure 'Budget Quantity MOMTD %'
+					caption: % quantità a budget MOMTD
+				measure 'Budget Quantity MAT'
+					caption: Quantità a budget MAT
+				measure 'Budget Quantity PYMAT'
+					caption: Quantità a budget PYMAT
+				measure 'Budget Quantity MATG'
+					caption: Quantità a budget MATG
+				measure 'Budget Quantity MATG %'
+					caption: % quantità a budget MATG
+				measure 'Budget Quantity PYC'
+					caption: Quantità a budget PYC
+				measure 'Budget Quantity YTDOPY'
+					caption: Quantità a budget YTDOPY
+				measure 'Budget Quantity YTDOPY %'
+					caption: % quantità a budget YTDOPY
+				measure 'Budget Quantity PQC'
+					caption: Quantità a budget PQC
+				measure 'Budget Quantity QTDOPQ'
+					caption: Quantità a budget QTDOPQ
+				measure 'Budget Quantity QTDOPQ %'
+					caption: % quantità a budget QTDOPQ
+				measure 'Budget Quantity PMC'
+					caption: Quantità a budget PMC
+				measure 'Budget Quantity MTDOPM'
+					caption: Quantità a budget MTDOPM
+				measure 'Budget Quantity MTDOPM %'
+					caption: % quantità a budget MTDOPM
+				measure 'Budget Quantity AVG 30D'
+					caption: Media quantità a budget 30G
+				measure 'Budget Quantity AVG 3M'
+					caption: Media quantità a budget 3M
+				measure 'Budget Quantity AVG 1Y'
+					caption: Media quantità a budget 1A
+			table 'Fiscal Calendar Time Intelligence'
+				caption: Funzionalità di Business Intelligence per le gerarchie temporali in calendario fiscale
+				measure 'Purchase Amount YTD (Fiscal)'
+					caption: Importo acquisti YTD (fiscale)
+				measure 'Purchase Amount QTD (Fiscal)'
+					caption: Importo acquisti QTD (fiscale)
+				measure 'Purchase Amount MTD (Fiscal)'
+					caption: Importo acquisti MTD (fiscale)
+				measure 'Purchase Amount PY (Fiscal)'
+					caption: Importo acquisti PY (fiscale)
+				measure 'Purchase Amount YOY % (Fiscal)'
+					caption: % importo acquisti YOY (fiscale)
+				measure 'Purchase Amount YOY (Fiscal)'
+					caption: Importo acquisti YOY (fiscale)
+				measure 'Purchase Amount PQ (Fiscal)'
+					caption: Importo acquisti PQ (fiscale)
+				measure 'Purchase Amount QOQ (Fiscal)'
+					caption: Importo acquisti QOQ (fiscale)
+				measure 'Purchase Amount QOQ % (Fiscal)'
+					caption: % importo acquisti QOQ (fiscale)
+				measure 'Purchase Amount PM (Fiscal)'
+					caption: Importo acquisti PM (fiscale)
+				measure 'Purchase Amount MOM (Fiscal)'
+					caption: Importo acquisti MOM (fiscale)
+				measure 'Purchase Amount MOM % (Fiscal)'
+					caption: % importo acquisti MOM (fiscale)
+				measure 'Purchase Amount PP (Fiscal)'
+					caption: Importo acquisti PP (fiscale)
+				measure 'Purchase Amount POP (Fiscal)'
+					caption: Importo acquisti POP (fiscale)
+				measure 'Purchase Amount POP % (Fiscal)'
+					caption: % importo acquisti POP (fiscale)
+				measure 'Purchase Amount PYTD (Fiscal)'
+					caption: Importo acquisti PYTD (fiscale)
+				measure 'Purchase Amount PQTD (Fiscal)'
+					caption: Importo acquisti PQTD (fiscale)
+				measure 'Purchase Amount YOYTD (Fiscal)'
+					caption: Importo acquisti YOYTD (fiscale)
+				measure 'Purchase Amount YOYTD % (Fiscal)'
+					caption: % importo acquisti YOYTD (fiscale)
+				measure 'Purchase Amount QOQTD (Fiscal)'
+					caption: Importo acquisti QOQTD (fiscale)
+				measure 'Purchase Amount QOQTD % (Fiscal)'
+					caption: % importo acquisti QOQTD (fiscale)
+				measure 'Purchase Amount PMTD (Fiscal)'
+					caption: Importo acquisti PMTD (fiscale)
+				measure 'Purchase Amount MOMTD % (Fiscal)'
+					caption: % importo acquisti MOMTD (fiscale)
+				measure 'Purchase Amount MOMTD (Fiscal)'
+					caption: Importo acquisti MOMTD (fiscale)
+				measure 'Purchase Amount MAT (Fiscal)'
+					caption: Importo acquisti MAT (fiscale)
+				measure 'Purchase Amount PYMAT (Fiscal)'
+					caption: Importo acquisti PYMAT (fiscale)
+				measure 'Purchase Amount MATG (Fiscal)'
+					caption: Importo acquisti MATG (fiscale)
+				measure 'Purchase Amount MATG % (Fiscal)'
+					caption: % importo acquisti MATG (fiscale)
+				measure 'Purchase Amount MAT (364) (Fiscal)'
+					caption: Importo acquisti MAT (364) (fiscale)
+				measure 'Purchase PYMAT (364) (Fiscal)'
+					caption: Acquisti PYMAT (364) (fiscale)
+				measure 'Purchase Amount PYC (Fiscal)'
+					caption: Importo acquisti PYC (fiscale)
+				measure 'Purchase Amount YTDOPY (Fiscal)'
+					caption: Importo acquisti YTDOPY (fiscale)
+				measure 'Purchase Amount YTDOPY % (Fiscal)'
+					caption: % importo acquisti YTDOPY (fiscale)
+				measure 'Purchase Amount PQC (Fiscal)'
+					caption: Importo acquisti PQC (fiscale)
+				measure 'Purchase Amount QTDOPQ (Fiscal)'
+					caption: Importo acquisti QTDOPQ (fiscale)
+				measure 'Purchase Amount QTDOPQ % (Fiscal)'
+					caption: % importo acquisti QTDOPQ (fiscale)
+				measure 'Purchase Amount PMC (Fiscal)'
+					caption: Importo acquisti PMC (fiscale)
+				measure 'Purchase Amount MTDOPM (Fiscal)'
+					caption: Importo acquisti MTDOPM (fiscale)
+				measure 'Purchase Amount MTDOPM % (Fiscal)'
+					caption: % importo acquisti MTDOPM (fiscale)
+				measure 'Purchase Amount AVG 30D (Fiscal)'
+					caption: Media importo acquisti 30G (fiscale)
+				measure 'Purchase Amount AVG 3M (Fiscal)'
+					caption: Media importo acquisti 3M (fiscale)
+				measure 'Purchase Amount AVG 1Y (Fiscal)'
+					caption: Media importo acquisti 1A (fiscale)
+				measure 'Purchases Quantity YTD (Fiscal)'
+					caption: Quantità acquisti YTD (fiscale)
+				measure 'Purchases Quantity QTD (Fiscal)'
+					caption: Quantità acquisti QTD (fiscale)
+				measure 'Purchases Quantity MTD (Fiscal)'
+					caption: Quantità acquisti MTD (fiscale)
+				measure 'Purchase Quantity PY (Fiscal)'
+					caption: Quantità acquisti PY (fiscale)
+				measure 'Purchase Quantity YOY % (Fiscal)'
+					caption: % quantità acquisti YOY (fiscale)
+				measure 'Purchase Quantity YOY (Fiscal)'
+					caption: Quantità acquisti YOY (fiscale)
+				measure 'Purchase Quantity PQ (Fiscal)'
+					caption: Quantità acquisti PQ (fiscale)
+				measure 'Purchase Quantity QOQ (Fiscal)'
+					caption: Quantità acquisti QOQ (fiscale)
+				measure 'Purchase Quantity QOQ % (Fiscal)'
+					caption: % quantità acquisti QOQ (fiscale)
+				measure 'Purchase Quantity PM (Fiscal)'
+					caption: Quantità acquisti PM (fiscale)
+				measure 'Purchase Quantity MOM (Fiscal)'
+					caption: Quantità acquisti MOM (fiscale)
+				measure 'Purchase Quantity MOM % (Fiscal)'
+					caption: % quantità acquisti MOM (fiscale)
+				measure 'Purchase Quantity PP (Fiscal)'
+					caption: Quantità acquisti PP (fiscale)
+				measure 'Purchase Quantity POP (Fiscal)'
+					caption: Quantità acquisti POP (fiscale)
+				measure 'Purchase Quantity POP % (Fiscal)'
+					caption: % quantità acquisti POP (fiscale)
+				measure 'Purchase Quantity PYTD (Fiscal)'
+					caption: Quantità acquisti PYTD (fiscale)
+				measure 'Purchase Quantity PQTD (Fiscal)'
+					caption: Quantità acquisti PQTD (fiscale)
+				measure 'Purchase Quantity YOYTD (Fiscal)'
+					caption: Quantità acquisti YOYTD (fiscale)
+				measure 'Purchase Quantity YOYTD % (Fiscal)'
+					caption: % quantità acquisti YOYTD (fiscale)
+				measure 'Purchase Quantity QOQTD (Fiscal)'
+					caption: Quantità acquisti QOQTD (fiscale)
+				measure 'Purchase Quantity QOQTD % (Fiscal)'
+					caption: % quantità acquisti QOQTD (fiscale)
+				measure 'Purchase Quantity PMTD (Fiscal)'
+					caption: Quantità acquisti PMTD (fiscale)
+				measure 'Purchase Quantity MOMTD % (Fiscal)'
+					caption: % quantità acquisti MOMTD (fiscale)
+				measure 'Purchase Quantity MOMTD (Fiscal)'
+					caption: Quantità acquisti MOMTD (fiscale)
+				measure 'Purchase Quantity MAT (Fiscal)'
+					caption: Quantità acquisti MAT (fiscale)
+				measure 'Purchase Quantity PYMAT (Fiscal)'
+					caption: Quantità acquisti PYMAT (fiscale)
+				measure 'Purchase Quantity MATG (Fiscal)'
+					caption: Quantità acquisti MATG (fiscale)
+				measure 'Purchase Quantity MATG % (Fiscal)'
+					caption: % quantità acquisti MATG (fiscale)
+				measure 'Purchase Quantity PYC (Fiscal)'
+					caption: Quantità acquisti PYC (fiscale)
+				measure 'Purchase Quantity YTDOPY (Fiscal)'
+					caption: Quantità acquisti YTDOPY (fiscale)
+				measure 'Purchase Quantity YTDOPY % (Fiscal)'
+					caption: % quantità acquisti YTDOPY (fiscale)
+				measure 'Purchase Quantity PQC (Fiscal)'
+					caption: Quantità acquisti PQC (fiscale)
+				measure 'Purchase Quantity QTDOPQ (Fiscal)'
+					caption: Quantità acquisti QTDOPQ (fiscale)
+				measure 'Purchase Quantity QTDOPQ % (Fiscal)'
+					caption: % quantità acquisti QTDOPQ (fiscale)
+				measure 'Purchase Quantity PMC (Fiscal)'
+					caption: Quantità acquisti PMC (fiscale)
+				measure 'Purchase Quantity MTDOPM (Fiscal)'
+					caption: Quantità acquisti MTDOPM (fiscale)
+				measure 'Purchase Quantity MTDOPM % (Fiscal)'
+					caption: % quantità acquisti MTDOPM (fiscale)
+				measure 'Purchase Quantity AVG 30D (Fiscal)'
+					caption: Media quantità acquisti 30G (fiscale)
+				measure 'Purchase Quantity AVG 3M (Fiscal)'
+					caption: Media quantità acquisti 3M (fiscale)
+				measure 'Purchase Quantity AVG 1Y (Fiscal)'
+					caption: Media quantità acquisti 1A (fiscale)
+				measure 'Budget Amount YTD (Fiscal)'
+					caption: Importo budget YTD (fiscale)
+				measure 'Budget Amount QTD (Fiscal)'
+					caption: Importo budget QTD (fiscale)
+				measure 'Budget Amount MTD (Fiscal)'
+					caption: Importo budget MTD (fiscale)
+				measure 'Budget Amount PY (Fiscal)'
+					caption: Importo budget PY (fiscale)
+				measure 'Budget Amount YOY % (Fiscal)'
+					caption: % importo budget YOY (fiscale)
+				measure 'Budget Amount YOY (Fiscal)'
+					caption: Importo budget YOY (fiscale)
+				measure 'Budget Amount PQ (Fiscal)'
+					caption: Importo budget PQ (fiscale)
+				measure 'Budget Amount QOQ (Fiscal)'
+					caption: Importo budget QOQ (fiscale)
+				measure 'Budget Amount QOQ % (Fiscal)'
+					caption: % importo budget QOQ (fiscale)
+				measure 'Budget Amount PM (Fiscal)'
+					caption: Importo budget PM (fiscale)
+				measure 'Budget Amount MOM (Fiscal)'
+					caption: Importo budget MOM (fiscale)
+				measure 'Budget Amount MOM % (Fiscal)'
+					caption: % importo budget MOM (fiscale)
+				measure 'Budget Amount PP (Fiscal)'
+					caption: Importo budget PP (fiscale)
+				measure 'Budget Amount POP (Fiscal)'
+					caption: Importo budget POP (fiscale)
+				measure 'Budget Amount POP % (Fiscal)'
+					caption: % importo budget POP (fiscale)
+				measure 'Budget Amount PYTD (Fiscal)'
+					caption: Importo budget PYTD (fiscale)
+				measure 'Budget Amount PQTD (Fiscal)'
+					caption: Importo budget PQTD (fiscale)
+				measure 'Budget Amount YOYTD (Fiscal)'
+					caption: Importo budget YOYTD (fiscale)
+				measure 'Budget Amount YOYTD % (Fiscal)'
+					caption: % importo budget YOYTD (fiscale)
+				measure 'Budget Amount QOQTD (Fiscal)'
+					caption: Importo budget QOQTD (fiscale)
+				measure 'Budget Amount QOQTD % (Fiscal)'
+					caption: % importo budget QOQTD (fiscale)
+				measure 'Budget Amount PMTD (Fiscal)'
+					caption: Importo budget PMTD (fiscale)
+				measure 'Budget Amount MOMTD % (Fiscal)'
+					caption: % importo budget MOMTD (fiscale)
+				measure 'Budget Amount MOMTD (Fiscal)'
+					caption: Importo budget MOMTD (fiscale)
+				measure 'Budget Amount MAT (Fiscal)'
+					caption: Importo budget MAT (fiscale)
+				measure 'Budget Amount PYMAT (Fiscal)'
+					caption: Importo budget PYMAT (fiscale)
+				measure 'Budget Amount MATG (Fiscal)'
+					caption: Importo budget MATG (fiscale)
+				measure 'Budget Amount MATG % (Fiscal)'
+					caption: % importo budget MATG (fiscale)
+				measure 'Budget Amount MAT (364) (Fiscal)'
+					caption: Importo budget MAT (364) (fiscale)
+				measure 'Budget PYMAT (364) (Fiscal)'
+					caption: Budget PYMAT (364) (fiscale)
+				measure 'Budget Amount PYC (Fiscal)'
+					caption: Importo budget PYC (fiscale)
+				measure 'Budget Amount YTDOPY (Fiscal)'
+					caption: Importo budget YTDOPY (fiscale)
+				measure 'Budget Amount YTDOPY % (Fiscal)'
+					caption: % importo budget YTDOPY (fiscale)
+				measure 'Budget Amount PQC (Fiscal)'
+					caption: Importo budget PQC (fiscale)
+				measure 'Budget Amount QTDOPQ (Fiscal)'
+					caption: Importo budget QTDOPQ (fiscale)
+				measure 'Budget Amount QTDOPQ % (Fiscal)'
+					caption: % importo budget QTDOPQ (fiscale)
+				measure 'Budget Amount PMC (Fiscal)'
+					caption: Importo budget PMC (fiscale)
+				measure 'Budget Amount MTDOPM (Fiscal)'
+					caption: Importo budget MTDOPM (fiscale)
+				measure 'Budget Amount MTDOPM % (Fiscal)'
+					caption: % importo budget MTDOPM (fiscale)
+				measure 'Budget Amount AVG 30D (Fiscal)'
+					caption: Media importo budget 30G (fiscale)
+				measure 'Budget Amount AVG 3M (Fiscal)'
+					caption: Media importo budget 3M (fiscale)
+				measure 'Budget Amount AVG 1Y (Fiscal)'
+					caption: Media importo budget 1A (fiscale)
+				measure 'Budget Quantity YTD (Fiscal)'
+					caption: Quantità a budget YTD (fiscale)
+				measure 'Budget Quantity QTD (Fiscal)'
+					caption: Quantità a budget QTD (fiscale)
+				measure 'Budget Quantity MTD (Fiscal)'
+					caption: Quantità a budget MTD (fiscale)
+				measure 'Budget Quantity PY (Fiscal)'
+					caption: Quantità a budget PY (fiscale)
+				measure 'Budget Quantity YOY % (Fiscal)'
+					caption: % quantità a budget YOY (fiscale)
+				measure 'Budget Quantity YOY (Fiscal)'
+					caption: Quantità a budget YOY (fiscale)
+				measure 'Budget Quantity PQ (Fiscal)'
+					caption: Quantità a budget PQ (fiscale)
+				measure 'Budget Quantity QOQ (Fiscal)'
+					caption: Quantità a budget QOQ (fiscale)
+				measure 'Budget Quantity QOQ % (Fiscal)'
+					caption: % quantità a budget QOQ (fiscale)
+				measure 'Budget Quantity PM (Fiscal)'
+					caption: Quantità a budget PM (fiscale)
+				measure 'Budget Quantity MOM (Fiscal)'
+					caption: Quantità a budget MOM (fiscale)
+				measure 'Budget Quantity MOM % (Fiscal)'
+					caption: % quantità a budget MOM (fiscale)
+				measure 'Budget Quantity PP (Fiscal)'
+					caption: Quantità a budget PP (fiscale)
+				measure 'Budget Quantity POP (Fiscal)'
+					caption: Quantità a budget POP (fiscale)
+				measure 'Budget Quantity POP % (Fiscal)'
+					caption: % quantità a budget POP (fiscale)
+				measure 'Budget Quantity PYTD (Fiscal)'
+					caption: Quantità a budget PYTD (fiscale)
+				measure 'Budget Quantity PQTD (Fiscal)'
+					caption: Quantità a budget PQTD (fiscale)
+				measure 'Budget Quantity YOYTD (Fiscal)'
+					caption: Quantità a budget YOYTD (fiscale)
+				measure 'Budget Quantity YOYTD % (Fiscal)'
+					caption: % quantità a budget YOYTD (fiscale)
+				measure 'Budget Quantity QOQTD (Fiscal)'
+					caption: Quantità a budget QOQTD (fiscale)
+				measure 'Budget Quantity QOQTD % (Fiscal)'
+					caption: % quantità a budget QOQTD (fiscale)
+				measure 'Budget Quantity PMTD (Fiscal)'
+					caption: Quantità a budget PMTD (fiscale)
+				measure 'Budget Quantity MOMTD % (Fiscal)'
+					caption: % quantità a budget MOMTD (fiscale)
+				measure 'Budget Quantity MOMTD (Fiscal)'
+					caption: Quantità a budget MOMTD (fiscale)
+				measure 'Budget Quantity MAT (Fiscal)'
+					caption: Quantità a budget MAT (fiscale)
+				measure 'Budget Quantity PYMAT (Fiscal)'
+					caption: Quantità a budget PYMAT (fiscale)
+				measure 'Budget Quantity MATG (Fiscal)'
+					caption: Quantità a budget MATG (fiscale)
+				measure 'Budget Quantity MATG % (Fiscal)'
+					caption: % quantità a budget MATG (fiscale)
+				measure 'Budget Quantity PYC (Fiscal)'
+					caption: Quantità a budget PYC (fiscale)
+				measure 'Budget Quantity YTDOPY (Fiscal)'
+					caption: Quantità a budget YTDOPY (fiscale)
+				measure 'Budget Quantity YTDOPY % (Fiscal)'
+					caption: % quantità a budget YTDOPY (fiscale)
+				measure 'Budget Quantity PQC (Fiscal)'
+					caption: Quantità a budget PQC (fiscale)
+				measure 'Budget Quantity QTDOPQ (Fiscal)'
+					caption: Quantità a budget QTDOPQ (fiscale)
+				measure 'Budget Quantity QTDOPQ % (Fiscal)'
+					caption: % quantità a budget QTDOPQ (fiscale)
+				measure 'Budget Quantity PMC (Fiscal)'
+					caption: Quantità a budget PMC (fiscale)
+				measure 'Budget Quantity MTDOPM (Fiscal)'
+					caption: Quantità a budget MTDOPM (fiscale)
+				measure 'Budget Quantity MTDOPM % (Fiscal)'
+					caption: % quantità a budget MTDOPM (fiscale)
+				measure 'Budget Quantity AVG 30D (Fiscal)'
+					caption: Media quantità a budget 30G (fiscale)
+				measure 'Budget Quantity AVG 3M (Fiscal)'
+					caption: Media quantità a budget 3M (fiscale)
+				measure 'Budget Quantity AVG 1Y (Fiscal)'
+					caption: Media quantità a budget 1A (fiscale)
+			table 'Weekly Calendar Time Intelligence'
+				caption: Funzionalità di Business Intelligence per le gerarchie temporali in calendario settimanale
+				measure 'Purchase Amount YTD (Weekly)'
+					caption: Importo acquisti YTD (settimanale)
+				measure 'Purchase Amount QTD (Weekly)'
+					caption: Importo acquisti QTD (settimanale)
+				measure 'Purchase Amount MTD (Weekly)'
+					caption: Importo acquisti MTD (settimanale)
+				measure 'Purchase Amount WTD (Weekly)'
+					caption: Importo acquisti WTD (settimanale)
+				measure 'Purchase Amount PY (Weekly)'
+					caption: Importo acquisti PY (settimanale)
+				measure 'Purchase Amount YOY % (Weekly)'
+					caption: % importo acquisti YOY (settimanale)
+				measure 'Purchase Amount YOY (Weekly)'
+					caption: Importo acquisti YOY (settimanale)
+				measure 'Purchase Amount PQ (Weekly)'
+					caption: Importo acquisti PQ (settimanale)
+				measure 'Purchase Amount QOQ (Weekly)'
+					caption: Importo acquisti QOQ (settimanale)
+				measure 'Purchase Amount QOQ % (Weekly)'
+					caption: % importo acquisti QOQ (settimanale)
+				measure 'Purchase Amount PW (Weekly)'
+					caption: Importo acquisti PW (settimanale)
+				measure 'Purchase Amount WOW (Weekly)'
+					caption: Importo acquisti WOW (settimanale)
+				measure 'Purchase Amount WOW % (Weekly)'
+					caption: % importo acquisti WOW (settimanale)
+				measure 'Purchase Amount PP (Weekly)'
+					caption: Importo acquisti PP (settimanale)
+				measure 'Purchase Amount POP (Weekly)'
+					caption: Importo acquisti POP (settimanale)
+				measure 'Purchase Amount POP % (Weekly)'
+					caption: % importo acquisti POP (settimanale)
+				measure 'Purchase Amount PYTD (Weekly)'
+					caption: Importo acquisti PYTD (settimanale)
+				measure 'Purchase Amount PQTD (Weekly)'
+					caption: Importo acquisti PQTD (settimanale)
+				measure 'Purchase Amount YOYTD (Weekly)'
+					caption: Importo acquisti YOYTD (settimanale)
+				measure 'Purchase Amount YOYTD % (Weekly)'
+					caption: % importo acquisti YOYTD (settimanale)
+				measure 'Purchase Amount QOQTD (Weekly)'
+					caption: Importo acquisti QOQTD (settimanale)
+				measure 'Purchase Amount QOQTD % (Weekly)'
+					caption: % importo acquisti QOQTD (settimanale)
+				measure 'Purchase Amount PWTD (Weekly)'
+					caption: Importo acquisti PWTD (settimanale)
+				measure 'Purchase Amount WOWTD (Weekly)'
+					caption: Importo acquisti WOWTD (settimanale)
+				measure 'Purchase Amount WOWTD % (Weekly)'
+					caption: % importo acquisti WOWTD (settimanale)
+				measure 'Purchase Amount MAT (364) (Weekly)'
+					caption: Importo acquisti MAT (364) (settimanale)
+				measure 'Purchase Amount PYMAT (364) (Weekly)'
+					caption: Importo acquisti PYMAT (364) (settimanale)
+				measure 'Purchase Amount MATG (Weekly)'
+					caption: Importo acquisti MATG (settimanale)
+				measure 'Purchase Amount MATG % (Weekly)'
+					caption: % importo acquisti MATG (settimanale)
+				measure 'Purchase Amount PYC (Weekly)'
+					caption: Importo acquisti PYC (settimanale)
+				measure 'Purchase Amount YTDOPY (Weekly)'
+					caption: Importo acquisti YTDOPY (settimanale)
+				measure 'Purchase Amount YTDOPY % (Weekly)'
+					caption: % importo acquisti YTDOPY (settimanale)
+				measure 'Purchase Amount PQC (Weekly)'
+					caption: Importo acquisti PQC (settimanale)
+				measure 'Purchase Amount QTDOPQ (Weekly)'
+					caption: Importo acquisti QTDOPQ (settimanale)
+				measure 'Purchase Amount QTDOPQ % (Weekly)'
+					caption: % importo acquisti QTDOPQ (settimanale)
+				measure 'Purchase Amount PWC (Weekly)'
+					caption: Importo acquisti PWC (settimanale)
+				measure 'Purchase Amount WTDOPW (Weekly)'
+					caption: Importo acquisti WTDOPW (settimanale)
+				measure 'Purchase Amount WTDOPW % (Weekly)'
+					caption: % importo acquisti WTDOPW (settimanale)
+				measure 'Purchase Amount AVG 4W (Weekly)'
+					caption: Media importo acquisti 4S (settimanale)
+				measure 'Purchase Amount AVG 1Q (Weekly)'
+					caption: Media importo acquisti 1T (settimanale)
+				measure 'Purchase Amount AVG 1Y (Weekly)'
+					caption: Media importo acquisti 1A (settimanale)
+				measure 'Purchase Quantity YTD (Weekly)'
+					caption: Quantità acquisti YTD (settimanale)
+				measure 'Purchase Quantity QTD (Weekly)'
+					caption: Quantità acquisti QTD (settimanale)
+				measure 'Purchase Quantity MTD (Weekly)'
+					caption: Quantità acquisti MTD (settimanale)
+				measure 'Purchase Quantity WTD (Weekly)'
+					caption: Quantità acquisti WTD (settimanale)
+				measure 'Purchase Quantity PY (Weekly)'
+					caption: Quantità acquisti PY (settimanale)
+				measure 'Purchase Quantity YOY % (Weekly)'
+					caption: % quantità acquisti YOY (settimanale)
+				measure 'Purchase Quantity YOY (Weekly)'
+					caption: Quantità acquisti YOY (settimanale)
+				measure 'Purchase Quantity PQ (Weekly)'
+					caption: Quantità acquisti PQ (settimanale)
+				measure 'Purchase Quantity QOQ (Weekly)'
+					caption: Quantità acquisti QOQ (settimanale)
+				measure 'Purchase Quantity QOQ % (Weekly)'
+					caption: % quantità acquisti QOQ (settimanale)
+				measure 'Purchase Quantity PW (Weekly)'
+					caption: Quantità acquisti PW (settimanale)
+				measure 'Purchase Quantity WOW (Weekly)'
+					caption: Quantità acquisti WOW (settimanale)
+				measure 'Purchase Quantity WOW % (Weekly)'
+					caption: % quantità acquisti WOW (settimanale)
+				measure 'Purchase Quantity PP (Weekly)'
+					caption: Quantità acquisti PP (settimanale)
+				measure 'Purchase Quantity POP (Weekly)'
+					caption: Quantità acquisti POP (settimanale)
+				measure 'Purchase Quantity POP % (Weekly)'
+					caption: % quantità acquisti POP (settimanale)
+				measure 'Purchase Quantity PYTD (Weekly)'
+					caption: Quantità acquisti PYTD (settimanale)
+				measure 'Purchase Quantity PQTD (Weekly)'
+					caption: Quantità acquisti PQTD (settimanale)
+				measure 'Purchase Quantity YOYTD (Weekly)'
+					caption: Quantità acquisti YOYTD (settimanale)
+				measure 'Purchase Quantity YOYTD % (Weekly)'
+					caption: % quantità acquisti YOYTD (settimanale)
+				measure 'Purchase Quantity QOQTD (Weekly)'
+					caption: Quantità acquisti QOQTD (settimanale)
+				measure 'Purchase Quantity QOQTD % (Weekly)'
+					caption: % quantità acquisti QOQTD (settimanale)
+				measure 'Purchase Quantity PWTD (Weekly)'
+					caption: Quantità acquisti PWTD (settimanale)
+				measure 'Purchase Quantity WOWTD (Weekly)'
+					caption: Quantità acquisti WOWTD (settimanale)
+				measure 'Purchase Quantity WOWTD % (Weekly)'
+					caption: % quantità acquisti WOWTD (settimanale)
+				measure 'Purchase Quantity MAT (364) (Weekly)'
+					caption: Quantità acquisti MAT (364) (settimanale)
+				measure 'Purchase Quantity PYMAT (364) (Weekly)'
+					caption: Quantità acquisti PYMAT (364) (settimanale)
+				measure 'Purchase Quantity MATG (Weekly)'
+					caption: Quantità acquisti MATG (settimanale)
+				measure 'Purchase Quantity MATG % (Weekly)'
+					caption: % quantità acquisti MATG (settimanale)
+				measure 'Purchase Quantity PYC (Weekly)'
+					caption: Quantità acquisti PYC (settimanale)
+				measure 'Purchase Quantity YTDOPY (Weekly)'
+					caption: Quantità acquisti YTDOPY (settimanale)
+				measure 'Purchase Quantity YTDOPY  % (Weekly)'
+					caption: % quantità acquisti YTDOPY (settimanale)
+				measure 'Purchase Quantity PQC (Weekly)'
+					caption: Quantità acquisti PQC (settimanale)
+				measure 'Purchase Quantity QTDOPQ (Weekly)'
+					caption: Quantità acquisti QTDOPQ (settimanale)
+				measure 'Purchase Quantity QTDOPQ % (Weekly)'
+					caption: % quantità acquisti QTDOPQ (settimanale)
+				measure 'Purchase Quantity PWC (Weekly)'
+					caption: Quantità acquisti PWC (settimanale)
+				measure 'Purchase Quantity WTDOPW (Weekly)'
+					caption: Quantità acquisti WTDOPW (settimanale)
+				measure 'Purchase Quantity WTDOPW % (Weekly)'
+					caption: % quantità acquisti WTDOPW (settimanale)
+				measure 'Purchase Quantity AVG 4W (Weekly)'
+					caption: Media quantità acquisti 4S (settimanale)
+				measure 'Purchase Quantity AVG 1Q (Weekly)'
+					caption: Media quantità acquisti 1T (settimanale)
+				measure 'Purchase Quantity AVG 1Y (Weekly)'
+					caption: Media quantità acquisti 1A (settimanale)
+				measure 'Budget Quantity YTD (Weekly)'
+					caption: Quantità a budget YTD (settimanale)
+				measure 'Budget Quantity QTD (Weekly)'
+					caption: Quantità a budget QTD (settimanale)
+				measure 'Budget Quantity MTD (Weekly)'
+					caption: Quantità a budget MTD (settimanale)
+				measure 'Budget Quantity WTD (Weekly)'
+					caption: Quantità a budget WTD (settimanale)
+				measure 'Budget Quantity PY (Weekly)'
+					caption: Quantità a budget PY (settimanale)
+				measure 'Budget Quantity YOY % (Weekly)'
+					caption: % quantità a budget YOY (settimanale)
+				measure 'Budget Quantity YOY (Weekly)'
+					caption: Quantità a budget YOY (settimanale)
+				measure 'Budget Quantity PQ (Weekly)'
+					caption: Quantità a budget PQ (settimanale)
+				measure 'Budget Quantity QOQ (Weekly)'
+					caption: Quantità a budget QOQ (settimanale)
+				measure 'Budget Quantity QOQ % (Weekly)'
+					caption: % quantità a budget QOQ (settimanale)
+				measure 'Budget Quantity PW (Weekly)'
+					caption: Quantità a budget PW (settimanale)
+				measure 'Budget Quantity WOW (Weekly)'
+					caption: Quantità a budget WOW (settimanale)
+				measure 'Budget Quantity WOW % (Weekly)'
+					caption: % quantità a budget WOW (settimanale)
+				measure 'Budget Quantity PP (Weekly)'
+					caption: Quantità a budget PP (settimanale)
+				measure 'Budget Quantity POP (Weekly)'
+					caption: Quantità a budget POP (settimanale)
+				measure 'Budget Quantity POP % (Weekly)'
+					caption: % quantità a budget POP (settimanale)
+				measure 'Budget Quantity PYTD (Weekly)'
+					caption: Quantità a budget PYTD (settimanale)
+				measure 'Budget Quantity PQTD (Weekly)'
+					caption: Quantità a budget PQTD (settimanale)
+				measure 'Budget Quantity YOYTD (Weekly)'
+					caption: Quantità a budget YOYTD (settimanale)
+				measure 'Budget Quantity YOYTD % (Weekly)'
+					caption: % quantità a budget YOYTD (settimanale)
+				measure 'Budget Quantity QOQTD (Weekly)'
+					caption: Quantità a budget QOQTD (settimanale)
+				measure 'Budget Quantity QOQTD % (Weekly)'
+					caption: % quantità a budget QOQTD (settimanale)
+				measure 'Budget Quantity PWTD (Weekly)'
+					caption: Quantità a budget PWTD (settimanale)
+				measure 'Budget Quantity WOWTD (Weekly)'
+					caption: Quantità a budget WOWTD (settimanale)
+				measure 'Budget Quantity WOWTD % (Weekly)'
+					caption: % quantità a budget WOWTD (settimanale)
+				measure 'Budget Quantity MAT (364) (Weekly)'
+					caption: Quantità a budget MAT (364) (settimanale)
+				measure 'Budget Quantity PYMAT (364) (Weekly)'
+					caption: Quantità a budget PYMAT (364) (settimanale)
+				measure 'Budget Quantity MATG (Weekly)'
+					caption: Quantità a budget MATG (settimanale)
+				measure 'Budget Quantity MATG % (Weekly)'
+					caption: % quantità a budget MATG (settimanale)
+				measure 'Budget Quantity PYC (Weekly)'
+					caption: Quantità a budget PYC (settimanale)
+				measure 'Budget Quantity YTDOPY (Weekly)'
+					caption: Quantità a budget YTDOPY (settimanale)
+				measure 'Budget Quantity YTDOPY  % (Weekly)'
+					caption: % quantità a budget YTDOPY (settimanale)
+				measure 'Budget Quantity PQC (Weekly)'
+					caption: Quantità a budget PQC (settimanale)
+				measure 'Budget Quantity QTDOPQ (Weekly)'
+					caption: Quantità a budget QTDOPQ (settimanale)
+				measure 'Budget Quantity QTDOPQ % (Weekly)'
+					caption: % quantità a budget QTDOPQ (settimanale)
+				measure 'Budget Quantity PWC (Weekly)'
+					caption: Quantità a budget PWC (settimanale)
+				measure 'Budget Quantity WTDOPW (Weekly)'
+					caption: Quantità a budget WTDOPW (settimanale)
+				measure 'Budget Quantity WTDOPW % (Weekly)'
+					caption: % quantità a budget WTDOPW (settimanale)
+				measure 'Budget Quantity AVG 4W (Weekly)'
+					caption: Media quantità a budget 4S (settimanale)
+				measure 'Budget Quantity AVG 1Q (Weekly)'
+					caption: Media quantità a budget 1T (settimanale)
+				measure 'Budget Quantity AVG 1Y (Weekly)'
+					caption: Media quantità a budget 1A (settimanale)
+				measure 'Budget Amount YTD (Weekly)'
+					caption: Importo budget YTD (settimanale)
+				measure 'Budget Amount QTD (Weekly)'
+					caption: Importo budget QTD (settimanale)
+				measure 'Budget Amount MTD (Weekly)'
+					caption: Importo budget MTD (settimanale)
+				measure 'Budget Amount WTD (Weekly)'
+					caption: Importo budget WTD (settimanale)
+				measure 'Budget Amount PY (Weekly)'
+					caption: Importo budget PY (settimanale)
+				measure 'Budget Amount YOY % (Weekly)'
+					caption: % importo budget YOY (settimanale)
+				measure 'Budget Amount YOY (Weekly)'
+					caption: Importo budget YOY (settimanale)
+				measure 'Budget Amount PQ (Weekly)'
+					caption: Importo budget PQ (settimanale)
+				measure 'Budget Amount QOQ (Weekly)'
+					caption: Importo budget QOQ (settimanale)
+				measure 'Budget Amount QOQ % (Weekly)'
+					caption: % importo budget QOQ (settimanale)
+				measure 'Budget Amount PW (Weekly)'
+					caption: Importo budget PW (settimanale)
+				measure 'Budget Amount WOW (Weekly)'
+					caption: Importo budget WOW (settimanale)
+				measure 'Budget Amount WOW % (Weekly)'
+					caption: % importo budget WOW (settimanale)
+				measure 'Budget Amount PP (Weekly)'
+					caption: Importo budget PP (settimanale)
+				measure 'Budget Amount POP (Weekly)'
+					caption: Importo budget POP (settimanale)
+				measure 'Budget Amount POP % (Weekly)'
+					caption: % importo budget POP (settimanale)
+				measure 'Budget Amount PYTD (Weekly)'
+					caption: Importo budget PYTD (settimanale)
+				measure 'Budget Amount PQTD (Weekly)'
+					caption: Importo budget PQTD (settimanale)
+				measure 'Budget Amount YOYTD (Weekly)'
+					caption: Importo budget YOYTD (settimanale)
+				measure 'Budget Amount YOYTD % (Weekly)'
+					caption: % importo budget YOYTD (settimanale)
+				measure 'Budget Amount QOQTD (Weekly)'
+					caption: Importo budget QOQTD (settimanale)
+				measure 'Budget Amount QOQTD % (Weekly)'
+					caption: % importo budget QOQTD (settimanale)
+				measure 'Budget Amount PWTD (Weekly)'
+					caption: Importo budget PWTD (settimanale)
+				measure 'Budget Amount WOWTD (Weekly)'
+					caption: Importo budget WOWTD (settimanale)
+				measure 'Budget Amount WOWTD % (Weekly)'
+					caption: % importo budget WOWTD (settimanale)
+				measure 'Budget Amount MAT (364) (Weekly)'
+					caption: Importo budget MAT (364) (settimanale)
+				measure 'Budget Amount PYMAT (364) (Weekly)'
+					caption: Importo budget PYMAT (364) (settimanale)
+				measure 'Budget Amount MATG (Weekly)'
+					caption: Importo budget MATG (settimanale)
+				measure 'Budget Amount MATG % (Weekly)'
+					caption: % importo budget MATG (settimanale)
+				measure 'Budget Amount PYC (Weekly)'
+					caption: Importo budget PYC (settimanale)
+				measure 'Budget Amount YTDOPY (Weekly)'
+					caption: Importo budget YTDOPY (settimanale)
+				measure 'Budget Amount YTDOPY % (Weekly)'
+					caption: % importo budget YTDOPY (settimanale)
+				measure 'Budget Amount PQC (Weekly)'
+					caption: Importo budget PQC (settimanale)
+				measure 'Budget Amount QTDOPQ (Weekly)'
+					caption: Importo budget QTDOPQ (settimanale)
+				measure 'Budget Amount QTDOPQ % (Weekly)'
+					caption: % importo budget QTDOPQ (settimanale)
+				measure 'Budget Amount PWC (Weekly)'
+					caption: Importo budget PWC (settimanale)
+				measure 'Budget Amount WTDOPW (Weekly)'
+					caption: Importo budget WTDOPW (settimanale)
+				measure 'Budget Amount WTDOPW % (Weekly)'
+					caption: % importo budget WTDOPW (settimanale)
+				measure 'Budget Amount AVG 4W (Weekly)'
+					caption: Media importo budget 4S (settimanale)
+				measure 'Budget Amount AVG 1Q (Weekly)'
+					caption: Media importo budget 1T (settimanale)
+				measure 'Budget Amount AVG 1Y (Weekly)'
+					caption: Media importo budget 1A (settimanale)
+			table 'Localized Labels'
+				measure 'My Report Title'
+					caption: Titolo report personale
+				measure 'My Button Caption'
+					caption: Didascalia pulsante personale
+				measure 'My Visual Title'
+					caption: Titolo visivo personale
+				measure 'Purchases Overview'
+					caption: Panoramica acquisti
+				measure 'Purchases Decomposition'
+					caption: Scomposizione acquisti
+				measure 'Daily Purchases'
+					caption: Acquisti giornalieri
+				measure 'Moving Averages'
+					caption: Medie mobili
+				measure 'Moving Annual Total (MAT)'
+					caption: Totale annuo mobile (MAT)
+				measure 'Period-Over-Period (POP)'
+					caption: Periodo su periodo (POP)
+				measure 'Year-Over-Year (YOY)'
+					caption: Anno su anno (YOY)
+				measure 'Purchases by Item'
+					caption: Acquisti per articolo
+				measure 'Purchases by Purchaser'
+					caption: Acquisti per addetto acquisti
+				measure 'Purchases by Vendor'
+					caption: Acquisti per fornitore
+				measure 'Purchases by Location'
+					caption: Acquisti per ubicazione
+				measure 'Actual vs. Budget Quantity'
+					caption: Quantità - Effettiva/in budget
+				measure 'Actual vs. Budget Amount'
+					caption: Importo - Effettivo/in budget
+				measure 'Item Drillthrough'
+					caption: Drill-through articolo
+				measure 'Vendor Drillthrough'
+					caption: Drill-through fornitore
+				measure 'Location Drillthrough'
+					caption: Drill-through ubicazione
+				measure 'Purchaser Drillthrough'
+					caption: Drill-through addetto acquisti
+				measure Purchase
+					caption: Acquisti
+				measure 'for Business Central'
+					caption: per Business Central
+				measure 'CONNECT YOUR DATA'
+					caption: CONNETTI I DATI
+				measure '1. Download the Purchasing Connector for Power BI'
+					caption: 1. Scaricare Purchasing Connector for Power BI
+				measure '2. Configure Dynamics 365 Business Central'
+					caption: 2. Configurare Dynamics 365 Business Central
+				measure 'USE, EDIT AND BUILD YOUR OWN REPORTS'
+					caption: USA, MODIFICA E CREA I TUOI REPORT
+				measure 'Purchasing includes a variety of pre-built reports to help you see your data immediately.'
+					caption: Gli acquisti includono una serie di report predefiniti che consentono di visualizzare immediatamente i dati.
+				measure 'You are able to edit these reports or build your own report from scratch'
+					caption: È possibile modificare questi report o creare il proprio report da zero
+				measure 'HELP AND SUPPORT'
+					caption: GUIDA E SUPPORTO
+				measure 'For help and support with your new report please visit the Analytics overview documentation.'
+					caption: Per assistenza e supporto per il nuovo report, vedere la documentazione generale di analisi.
+				measure 'OTHER POWER BI REPORTS'
+					caption: ALTRI REPORT DI POWER BI
+				measure SALES
+					caption: VENDITE
+				measure FINANCE
+					caption: DATI FINANZIARI
+				measure REBATES
+					caption: SCONTI
+				measure INVENTORY
+					caption: INVENTARIO
+				measure JOBS
+					caption: COMMESSE
+				measure 'Purchase Amounts'
+					caption: Importi acquisti
+				measure 'Purchase Quantity by Item Category'
+					caption: Quantità acquisti per categoria articolo
+				measure 'Top 5 Vendors by Amount by Source Type'
+					caption: Primi 5 fornitori per importo per tipo di origine
+				measure 'Locations by Quantity'
+					caption: Ubicazioni per quantità
+				measure 'Document Count'
+					caption: Numero documenti
+				measure 'Purchase Quantities'
+					caption: Quantità acquisti
+				measure 'Decomposition by Amount'
+					caption: Scomposizione per importo
+				measure 'Purchase Amount and Purchase Amount 30 Days Average (Fiscal) by Fiscal Month Year'
+					caption: Importo acquisti e media importo acquisti 30 giorni (fiscale) per mese e anno fiscale
+				measure 'Previous Year & Current Year Moving Annual Total by Fiscal Month Year'
+					caption: Totale annuo mobile anno precedente e corrente per mese e anno fiscale
+				measure 'Purchase Amount Period-over-Period (Fiscal) and Purchase Amount by Fiscal Month Year'
+					caption: Confronto importo acquisti su periodi (fiscale) e importo acquisti per mese e anno fiscale
+				measure 'Current Year and Previous Year (Fiscal) Purchase Amount by Fiscal Month Year'
+					caption: Importo acquisti anno corrente e anno precedente (fiscale) per mese e anno fiscale
+				measure 'Last Refreshed'
+					caption: Ultimo aggiornamento
+				measure 'Company Name'
+					caption: Nome società
+				measure 'Purchase Quantity by Location'
+					caption: Quantità acquisti per ubicazione
+				measure 'Purchase Amounts of Top 5 Vendors'
+					caption: Importi acquisti dei primi 5 fornitori
+				measure 'Purchase Distribution by Item Category'
+					caption: Distribuzione acquisti per categoria articolo
+				measure 'Purchases by Item Category'
+					caption: Acquisti per categoria articolo
+				measure 'Purchase Amount by Item Category'
+					caption: Importo acquisti per categoria articolo
+				measure 'Actual vs Budget'
+					caption: Effettivo rispetto al budget
+				measure 'Actual vs Budget Purchase Analysis by Item Category'
+					caption: Analisi degli acquisti effettivi rispetto al budget per categoria articolo
+				measure 'Purchases Drillthrough'
+					caption: Drill-through acquisti
+				measure 'Detailed Purchase Ledger'
+					caption: Movimenti contabili acquisti dettagliati
+				measure 'Total Purchase Amount by Fiscal Year'
+					caption: Importo totale acquisti per anno fiscale
+				measure PROJECTS
+					caption: PROGETTI
+				measure MANUFACTURING
+					caption: PRODUZIONE
+				measure 'This card displays key metrics for business analysis. The card shows total purchase amount, document count, number of outstanding purchase orders, number of purchase invoices, outstanding amount, and invoiced amount.'
+					caption: Questa scheda visualizza le metriche chiave per l'analisi aziendale. La scheda mostra l'importo totale di acquisto, il numero di documenti, di ordini di acquisto inevasi e di fatture di acquisto nonché l'importo inevaso e quello fatturato.
+				measure 'The card displays key metrics for business analysis, including total purchase amount, document count, number of outstanding purchase orders, number of purchase invoices, outstanding amount excluding VAT, and invoiced amount.'
+					caption: Questa scheda visualizza le metriche chiave per l'analisi aziendale, ad esempio l'importo totale di acquisto, il numero di documenti, di ordini di acquisto inevasi e di fatture di acquisto nonché l'importo inevaso, IVA esclusa, e quello fatturato.
+				measure 'Daily Purchases Details'
+					caption: Dettagli acquisti giornalieri
+				measure 'Moving Annual Total (MAT) Details'
+					caption: Dettagli totale annuo mobile (MAT)
+				measure 'Period-Over-Period (POP) Details'
+					caption: Dettagli crescita su periodi (POP)
+				measure 'Year-Over-Year (YOY) Details'
+					caption: Dettagli anno su anno (YOY)
+				measure 'Purchases by Item Details'
+					caption: Dettagli acquisti per articolo
+				measure 'Purchases by Vendor Details'
+					caption: Dettagli acquisti per fornitore
+				measure 'Purchases by Purchaser Details'
+					caption: Dettagli acquisti per addetto acquisti
+				measure 'Purchases by Location Details'
+					caption: Dettagli acquisti per ubicazione
+				measure 'Purchases Drillthrough Details'
+					caption: Dettagli drill-through acquisti
+			table COMPANY
+				caption: SOCIETÀ
+				measure 'Company Label'
+					caption: Etichetta società
+			table 'Purchase Budget Name'
+				caption: Nome budget acquisti
+				column 'Purchase Budget Description'
+					caption: Descrizione budget acquisti
+			table 'Item Category'
+				caption: Categoria articolo
+				column 'Item Category Code'
+					caption: Codice categoria articolo
+				column 'Item Category Description'
+					caption: Descrizione categoria articolo
+				column 'Item Category Parent Category'
+					caption: Categoria padre di categoria articolo
+				column 'Item Category Code Level 1'
+					caption: Codice categoria articolo livello 1
+				column 'Item Category Code Level 2'
+					caption: Codice categoria articolo livello 2
+				column 'Item Category Code Level 3'
+					caption: Codice categoria articolo livello 3
+

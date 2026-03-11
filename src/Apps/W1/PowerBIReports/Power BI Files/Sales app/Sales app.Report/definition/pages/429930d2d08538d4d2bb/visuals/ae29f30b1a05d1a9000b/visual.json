@@ -1,0 +1,288 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.4.0/schema.json",
+  "name": "ae29f30b1a05d1a9000b",
+  "position": {
+    "x": 25.952780804281588,
+    "y": 61.66225516146109,
+    "z": 2000,
+    "height": 303.56802541026997,
+    "width": 1227.1466384330333,
+    "tabOrder": 2000
+  },
+  "visual": {
+    "visualType": "tableEx",
+    "query": {
+      "queryState": {
+        "Values": {
+          "projections": [
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Date"
+                    }
+                  },
+                  "Property": "Date"
+                }
+              },
+              "queryRef": "Date.Date",
+              "nativeQueryRef": "Date"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Documents"
+                    }
+                  },
+                  "Property": "Source Table"
+                }
+              },
+              "queryRef": "Sales Documents.Source Table",
+              "nativeQueryRef": "Source Table"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Documents"
+                    }
+                  },
+                  "Property": "Document Type"
+                }
+              },
+              "queryRef": "Sales Documents.Document Type",
+              "nativeQueryRef": "Document Type"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Documents"
+                    }
+                  },
+                  "Property": "Document No."
+                }
+              },
+              "queryRef": "Sales Documents.Document No.",
+              "nativeQueryRef": "Document No."
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Customer"
+                    }
+                  },
+                  "Property": "Customer Name"
+                }
+              },
+              "queryRef": "Customer.Customer Name",
+              "nativeQueryRef": "Customer Name"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Salesperson"
+                    }
+                  },
+                  "Property": "Salesperson Name"
+                }
+              },
+              "queryRef": "Salesperson.Salesperson Name",
+              "nativeQueryRef": "Salesperson Name"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Type"
+                    }
+                  },
+                  "Property": "Type Key"
+                }
+              },
+              "queryRef": "Type.Type Key",
+              "nativeQueryRef": "Type Key"
+            },
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Documents"
+                    }
+                  },
+                  "Property": "Sales Quantity"
+                }
+              },
+              "queryRef": "Sales Documents.Sales Quantity",
+              "nativeQueryRef": "Sales Quantity"
+            },
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Documents"
+                    }
+                  },
+                  "Property": "Sales (LCY)"
+                }
+              },
+              "queryRef": "Sales Documents.Sales Amount",
+              "nativeQueryRef": "Sales Amount"
+            },
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Documents"
+                    }
+                  },
+                  "Property": "Adjusted Cost (LCY)"
+                }
+              },
+              "queryRef": "Sales Documents.Cost Amount",
+              "nativeQueryRef": "Cost Amount"
+            },
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Documents"
+                    }
+                  },
+                  "Property": "Adjusted Profit (LCY)"
+                }
+              },
+              "queryRef": "Sales Documents.Gross Profit",
+              "nativeQueryRef": "Gross Profit"
+            },
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Documents"
+                    }
+                  },
+                  "Property": "Adjusted Profit Margin"
+                }
+              },
+              "queryRef": "Sales Documents.Gross Profit Margin",
+              "nativeQueryRef": "Gross Profit Margin"
+            }
+          ]
+        }
+      }
+    },
+    "objects": {
+      "columnWidth": [
+        {
+          "properties": {
+            "value": {
+              "expr": {
+                "Literal": {
+                  "Value": "80.91062002955873D"
+                }
+              }
+            }
+          },
+          "selector": {
+            "metadata": "Item.Item No."
+          }
+        },
+        {
+          "properties": {
+            "value": {
+              "expr": {
+                "Literal": {
+                  "Value": "145.72500845605788D"
+                }
+              }
+            }
+          },
+          "selector": {
+            "metadata": "Item.Base Unit of Measure"
+          }
+        },
+        {
+          "properties": {},
+          "selector": {
+            "metadata": "Customer.Customer Name"
+          }
+        },
+        {
+          "properties": {},
+          "selector": {
+            "metadata": "Salesperson.Salesperson Name"
+          }
+        }
+      ],
+      "columnHeaders": [
+        {
+          "properties": {
+            "autoSizeColumnWidth": {
+              "expr": {
+                "Literal": {
+                  "Value": "true"
+                }
+              }
+            }
+          }
+        }
+      ]
+    },
+    "visualContainerObjects": {
+      "background": [
+        {
+          "properties": {
+            "show": {
+              "expr": {
+                "Literal": {
+                  "Value": "true"
+                }
+              }
+            },
+            "transparency": {
+              "expr": {
+                "Literal": {
+                  "Value": "0D"
+                }
+              }
+            }
+          }
+        }
+      ],
+      "title": [
+        {
+          "properties": {
+            "text": {
+              "expr": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Translated Localized Labels"
+                    }
+                  },
+                  "Property": "Sales Drillthrough Details Label"
+                }
+              }
+            }
+          }
+        }
+      ]
+    }
+  }
+}

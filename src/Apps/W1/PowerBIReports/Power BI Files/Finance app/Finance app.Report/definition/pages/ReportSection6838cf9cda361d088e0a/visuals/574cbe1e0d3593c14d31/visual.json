@@ -1,0 +1,31 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.4.0/schema.json",
+  "name": "574cbe1e0d3593c14d31",
+  "position": {
+    "x": 25.541059094397543,
+    "y": 61.887950882578657,
+    "z": 1000,
+    "height": 230,
+    "width": 395.88641596316188,
+    "tabOrder": 3000
+  },
+  "visualGroup": {
+    "displayName": "Current Ratio Group",
+    "groupMode": "ScaleMode",
+    "objects": {
+      "general": [
+        {
+          "properties": {
+            "altText": {
+              "expr": {
+                "Literal": {
+                  "Value": "'Current Ratio, Current Assets, Current Liabilities.'"
+                }
+              }
+            }
+          }
+        }
+      ]
+    }
+  }
+}

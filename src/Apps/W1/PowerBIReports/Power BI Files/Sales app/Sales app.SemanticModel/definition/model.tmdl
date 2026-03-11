@@ -1,0 +1,110 @@
+model Model
+	culture: en-US
+	defaultPowerBIDataSourceVersion: powerBI_V3
+	discourageImplicitMeasures
+	sourceQueryCulture: en-AU
+	dataAccessOptions
+		legacyRedirects
+		returnErrorValuesAsNull
+
+queryGroup 'Parameters and Functions'
+
+	annotation PBI_QueryGroupOrder = 0
+
+queryGroup 'Dimension Tables'
+
+	annotation PBI_QueryGroupOrder = 1
+
+queryGroup 'Fact Tables'
+
+	annotation PBI_QueryGroupOrder = 2
+
+queryGroup 'Date Table'
+
+	annotation PBI_QueryGroupOrder = 3
+
+queryGroup 'Fact Tables\Project Ledger Entries'
+
+	annotation PBI_QueryGroupOrder = 0
+
+queryGroup 'Document and Line Type Enums'
+
+	annotation PBI_QueryGroupOrder = 5
+
+annotation __PBI_TimeIntelligenceEnabled = 0
+
+annotation PBI_QueryOrder = ["Sales Lines","Sales Value Entries","Sales Budget","Item","Location","Customer","Salesperson","Sales Budget Name","Dimension Sets","ENVIRONMENT","COMPANY","API_ENDPOINT","ConvertUTC","Dimensions","DimensionSet_Blank","DimensionSets_DataSource","GetDimCode","GetDimCodeCaption","GetDimNameCaption","InvertSignsSalesLines","InvertSignsResourceLedgerEntries","InvertSignsGeneralLedgerEntries","Standard Calendar Time Intelligence","Fiscal Calendar Time Intelligence","Weekly Calendar Time Intelligence","Date Table Setup","Working Days","Opportunity Entries","Contacts","Reason Codes","Item Category","Opportunities","Sales Cycle Stages","Close Opportunity Codes","Resources","G/L Accounts","Documents","Sales Invoice Lines","Sales Credit Lines","Type","Sales Invoice Project Ledger Entries","Sales Credit Project Ledger Entries","Project Ledger Entries","Project","Sales Line Type","Sales Document Type","Project Journal Line Type","Item Ledger Document Type"]
+
+annotation __TEdtr = 1
+
+annotation PBI_ProTooling = ["DevMode","DaxQueryView_Desktop","TMDL-Extension"]
+
+annotation TranslationsBuilder = Version:2.2-Updated:2026-01-07
+
+ref table Item
+ref table Location
+ref table Customer
+ref table Salesperson
+ref table 'Standard Calendar Time Intelligence'
+ref table 'Dimension Sets'
+ref table 'Sales Budget'
+ref table 'Date Ref'
+ref table 'Date Table Setup'
+ref table 'Working Days'
+ref table Date
+ref table 'Fiscal Calendar Time Intelligence'
+ref table 'Weekly Calendar Time Intelligence'
+ref table 'Localized Labels'
+ref table COMPANY
+ref table 'Sales Budget Name'
+ref table Opportunities
+ref table 'Opportunity Entries'
+ref table Contacts
+ref table 'Reason Codes'
+ref table 'Item Category'
+ref table 'Pareto Scale'
+ref table ENVIRONMENT
+ref table 'Sales Cycle Stages'
+ref table 'Close Opportunity Codes'
+ref table 'Translated Localized Labels'
+ref table Resources
+ref table 'G/L Accounts'
+ref table 'Sales Lines'
+ref table 'Sales Value Entries'
+ref table Documents
+ref table 'Sales Invoice Lines'
+ref table 'Sales Credit Lines'
+ref table Type
+ref table 'Project Ledger Entries'
+ref table Project
+ref table 'Sales Line Type'
+ref table 'Sales Document Type'
+ref table 'Project Journal Line Type'
+ref table 'Item Ledger Document Type'
+ref table 'Lost Customer Month Range'
+
+ref cultureInfo en-US
+ref cultureInfo es-ES
+ref cultureInfo de-DE
+ref cultureInfo fr-FR
+ref cultureInfo cs-CZ
+ref cultureInfo da-DK
+ref cultureInfo de-AT
+ref cultureInfo de-CH
+ref cultureInfo en-AU
+ref cultureInfo en-CA
+ref cultureInfo en-GB
+ref cultureInfo en-NZ
+ref cultureInfo es-MX
+ref cultureInfo fi-FI
+ref cultureInfo fr-BE
+ref cultureInfo fr-CA
+ref cultureInfo fr-CH
+ref cultureInfo is-IS
+ref cultureInfo it-CH
+ref cultureInfo it-IT
+ref cultureInfo nb-NO
+ref cultureInfo nl-BE
+ref cultureInfo nl-NL
+ref cultureInfo sv-SE
+

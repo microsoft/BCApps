@@ -1,0 +1,818 @@
+table 'Sales Lines'
+	lineageTag: babb05ac-05b9-40cf-b2e6-434e9d36b778
+
+	/// The count of the Document No. column from the Sales table where the Document Type is Order and the Source Type is Sales Order Outstanding.
+	measure 'No. of Outstanding Sales Orders' =
+			
+			CALCULATE
+			    (
+			        DISTINCTCOUNT('Sales Lines'[Document No.]),
+			        'Sales Lines'[Document Type] = "Order",
+			        'Sales Lines'[outstandingQtyBase] <> 0
+			        )
+		formatString: #,0
+		displayFolder: _Sales Line Measures\_Counters
+		lineageTag: ee2642b3-7b3d-45cb-9de6-ad46485197f0
+
+		changedProperty = IsHidden
+
+	/// The count of the Document No. column from the Sales table where the Document Type is Order and the Source Type is Return Order.
+	measure 'No. of Outstanding Return Orders' =
+			
+			CALCULATE(
+			    DISTINCTCOUNT('Sales Lines'[Document No.]),
+			    REMOVEFILTERS('Documents'[Document Type]),
+			    'Sales Lines'[Document Type] = "Return Order",
+			    'Sales Lines'[outstandingQtyBase] <> 0
+			)
+		formatString: #,0
+		displayFolder: _Sales Line Measures\_Counters
+		lineageTag: 8a8d7883-80c5-44f0-8322-a6f321b2c5bc
+
+	/// The count of the Document No. column from the Sales table where the Document Type is Quote.
+	measure 'No. of Sales Quotes' =
+			
+			CALCULATE(
+			    DISTINCTCOUNT('Sales Lines'[Document No.]),
+			    'Sales Lines'[Document Type] = "Quote"
+			    )
+		formatString: #,0
+		displayFolder: _Sales Line Measures\_Counters
+		lineageTag: 98dbf40b-8fc9-478f-b140-66a534a54723
+
+	/// The count of the Document No. column from the Sales table where the Document Type is Order and the Source Type is Sales Order Shipped Not Invoiced.
+	measure 'No. of Shipped Not Invoiced Sales Orders' =
+			
+			CALCULATE(
+			        DISTINCTCOUNT('Sales Lines'[Document No.]),
+			        'Sales Lines'[Document Type] = "Order",
+			        'Sales Lines'[shippedNotInvoiced] <> 0)
+		formatString: #,0
+		displayFolder: _Sales Line Measures\_Counters
+		lineageTag: 31647d69-a580-46d1-b6f4-89880005e341
+
+		changedProperty = IsHidden
+
+	measure 'Outstanding Orders (LCY)' = CALCULATE(SUM('Sales Lines'[outstandingAmountLCY]), 'Sales Lines'[Document Type] = "Order")
+		formatString: #,0.00
+		displayFolder: _Sales Line Measures\_Outstanding
+		lineageTag: 1ef02361-1791-4968-9329-cce9f6c28e35
+
+		annotation PBI_FormatHint = {"currencyCulture":"en-AU"}
+
+	/// The sum of the Sales Qty. (Base) column from the Sales table where the Source Type is Sales Order Outstanding.
+	measure 'Outstanding Quantity' =
+			
+			CALCULATE(
+			    SUM('Sales Lines'[outstandingQtyBase]),
+			    'Sales Lines'[Document Type] = "Order")
+		formatString: #,0.00
+		displayFolder: _Sales Line Measures\_Outstanding
+		lineageTag: b0828e75-52c2-4f9f-98c4-71111d4bf8ac
+
+		changedProperty = IsHidden
+
+		annotation PBI_FormatHint = {"isDecimal":true}
+
+	/// The sum of the Sales Qty. (Base) column from the Sales table where the Source Type Sales Order Shipped Not Invoiced.
+	measure 'Shipped Not Invoiced Quantity' = SUM('Sales Lines'[qtyShippedNotInvdBase])
+		formatString: #,0.00
+		displayFolder: _Sales Line Measures\_Shipped Not Invoiced
+		lineageTag: a3cd0b83-8aaf-4e37-97d8-691706585e74
+
+		changedProperty = IsHidden
+
+		annotation PBI_FormatHint = {"isDecimal":true}
+
+	measure 'Sales Line Cost Amount' = ```
+			
+			SUMX (
+			    'Sales Lines',
+			    IF (
+			        AND(
+			
+			        'Sales Lines'[Type]
+			            IN {
+			                "G/L Account",
+			                "Resource"
+			            },
+			                'Sales Lines'[Document Type]
+			            IN {
+			                "CR/Adj Note",
+			                "Return Order",
+			                "Posted CR/Adj Note",
+			                "Posted Return Receipt"
+			            }),
+			        BLANK(),
+			        ( 'Sales Lines'[outstandingQuantity] * 'Sales Lines'[unitCostLCY] )
+			    )
+			)
+			
+			```
+		formatString: #,0.00
+		displayFolder: _Sales Line Measures
+		lineageTag: 99cb42f0-417a-4065-8ab4-18368aeda1aa
+
+		annotation PBI_FormatHint = {"currencyCulture":"en-AU"}
+
+	measure 'Sales Line Gross Profit' = [Outstanding Orders (LCY)] - [Sales Line Cost Amount]
+		formatString: #,0.00
+		displayFolder: _Sales Line Measures
+		lineageTag: adde821f-661c-4d13-b713-a581ad873669
+
+		annotation PBI_FormatHint = {"currencyCulture":"en-AU"}
+
+	measure 'Shipped Not Invoiced (LCY)' = CALCULATE(SUM('Sales Lines'[shippedNotInvoiced]), 'Sales Lines'[Document Type] = "Order")
+		formatString: #,0.00
+		displayFolder: _Sales Line Measures\_Shipped Not Invoiced
+		lineageTag: cbbd3a02-cdf7-4885-844e-72eb488e0740
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Received Not Invd. Amount' = SUM('Sales Lines'[returnRcdNotInvdLCY])
+		formatString: #,0.00
+		displayFolder: _Sales Line Measures\_Received Not Invoiced
+		lineageTag: 6c268e9c-9023-49ff-8a68-38cf853c6a3b
+
+	measure 'Received Not Invd. Amount Excl. Tax' = SUMX( 'Sales Lines', DIVIDE('Sales Lines'[amount] * 'Sales Lines'[returnQtyRcdNotInvd] , 'Sales Lines'[quantityBase] ) )
+		formatString: #,0.00
+		displayFolder: _Sales Line Measures\_Received Not Invoiced
+		lineageTag: 1d886d08-6113-44bb-881b-d8db64a762f0
+
+		annotation PBI_FormatHint = {"currencyCulture":"en-AU"}
+
+	measure 'Outstanding Invoices (LCY)' =
+			
+			CALCULATE(
+			    SUM('Sales Lines'[outstandingAmountLCY]),
+			    'Sales Lines'[Document Type] = "Invoice"
+			)
+		formatString: #,0.00
+		displayFolder: _Sales Line Measures\_Outstanding
+		lineageTag: 9dff4825-871c-4178-a53e-488ced957102
+
+	measure 'No. of Outstanding Invoices' =
+			
+			CALCULATE
+			    (
+			        DISTINCTCOUNT('Sales Lines'[Document No.]),
+			        'Sales Lines'[Document Type] = "Invoice",
+			        'Sales Lines'[outstandingAmountLCY] <> 0
+			        )
+		formatString: #,0
+		displayFolder: _Sales Line Measures\_Counters
+		lineageTag: a958878c-e04e-4a5d-9118-46aeec5d5905
+
+	measure 'Sales Quote Sales (LCY)' = CALCULATE(SUM('Sales Lines'[outstandingAmountLCY]), 'Sales Lines'[Document Type] = "Quote")
+		formatString: #,0.00
+		displayFolder: _Sales Line Measures\_Quote
+		lineageTag: 95d081ef-71d9-45bb-8688-3559bfc50f64
+
+	measure 'Sales Quote Quantity' =
+			
+			CALCULATE(
+			    SUM('Sales Lines'[outstandingQtyBase]),
+			    'Sales Lines'[Document Type] = "Quote")
+		formatString: 0.00
+		displayFolder: _Sales Line Measures\_Quote
+		lineageTag: 70e971b4-4157-4512-adba-141d8d65f158
+
+	measure 'Sales Quote Adjusted Cost (LCY)' = ```
+			
+			CALCULATE(
+			SUMX (
+			    'Sales Lines',
+			    IF (
+			        AND(
+			
+			        'Sales Lines'[Type]
+			            IN {
+			                "G/L Account",
+			                "Resource"
+			            },
+			                'Sales Lines'[Document Type] = "Quote"),
+			        BLANK(),
+			        ( 'Sales Lines'[outstandingQuantity] * 'Sales Lines'[unitCostLCY] )
+			    )
+			) 
+			,'Sales Lines'[Document Type] = "Quote"
+			)
+			
+			```
+		displayFolder: _Sales Line Measures\_Quote
+		lineageTag: 40cb371f-ac01-41af-9dbc-be0c36050381
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Sales Quote Adjusted Profit (LCY)' = [Sales Quote Sales (LCY)] - [Sales Quote Adjusted Cost (LCY)]
+		displayFolder: _Sales Line Measures\_Quote
+		lineageTag: 333a4040-2368-4fa2-af41-583970f4c5f9
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Sales Quote Adjusted Profit Margin' = DIVIDE([Sales Quote Adjusted Profit (LCY)], [Sales Quote Sales (LCY)])
+		formatString: 0.00%;-0.00%;0.00%
+		displayFolder: _Sales Line Measures\_Quote
+		lineageTag: cc0260f8-c44e-40c4-aa5c-938147c6e160
+
+	measure 'No. of Outstanding Cr/Adj Notes' =
+			
+			CALCULATE(
+			    DISTINCTCOUNT('Sales Lines'[Document No.]),
+			    REMOVEFILTERS(Documents),
+			    'Sales Lines'[Document Type] = "Cr/Adj Note",
+			    'Sales Lines'[outstandingQtyBase] <> 0
+			)
+		formatString: #,0
+		displayFolder: _Sales Line Measures\_Counters
+		lineageTag: fd30a648-3399-45b2-9dc1-02c6f63e9f14
+
+	measure 'Outstanding Return Order (LCY)' =
+			
+			CALCULATE(
+			    SUM('Sales Lines'[outstandingAmountLCY]),
+			    'Sales Lines'[Document Type] IN { "Return Order", "Cr/Adj Note" }
+			)
+		formatString: #,0.00
+		displayFolder: _Sales Line Measures\_Return Order
+		lineageTag: d0b6af3e-3452-47a9-8a3c-14cf1ec1b139
+
+	measure 'Return Qty. to Ship' =
+			
+			CALCULATE(
+			    SUM('Sales Lines'[outstandingQtyBase]),
+			    'Sales Lines'[Document Type] IN { "Return Order", "Cr/Adj Note" })
+		displayFolder: _Sales Line Measures\_Return Order
+		lineageTag: b8a7a384-1016-43b8-a030-100259d7d2bf
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Return Quantity' =
+			
+			CALCULATE(
+			    SUM('Sales Lines'[quantityBase]),
+			    'Sales Lines'[Document Type] IN { "Return Order", "Cr/Adj Note" }
+			)
+		displayFolder: _Sales Line Measures\_Return Order
+		lineageTag: 10c72a22-46a9-43b2-9a5d-19f7ee698b19
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Return Amount' =
+			
+			CALCULATE(
+			    SUM('Sales Lines'[amount]),
+			    'Sales Lines'[Document Type] IN { "Return Order", "Cr/Adj Note" }
+			)
+		displayFolder: _Sales Line Measures\_Return Order
+		lineageTag: 0818e8fb-0310-40ce-a78d-44251eecad29
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Return Qty. Shipped' = [Return Quantity] - [Return Qty. to Ship]
+		displayFolder: _Sales Line Measures\_Return Order
+		lineageTag: 352e1fce-9798-43c5-9ee2-7e1bc1a4bd50
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Return Qty. Invoiced' =
+			
+			-CALCULATE(
+			    SUM('Sales Lines'[quantityInvoiced]),
+			    'Sales Lines'[Document Type] IN { "Return Order", "Cr/Adj Note" })
+		formatString: 0.00
+		displayFolder: _Sales Line Measures\_Return Order
+		lineageTag: d0ccee63-86b6-458c-86a7-1a2eb79b4e0c
+
+	column billToCustomerNo
+		dataType: string
+		isHidden
+		lineageTag: 853dbdc1-227f-49fc-b17c-46c6c95c35aa
+		summarizeBy: none
+		sourceColumn: billToCustomerNo
+
+		annotation SummarizationSetBy = Automatic
+
+	column salespersonCode
+		dataType: string
+		isHidden
+		lineageTag: 06727f11-adc4-4d76-ab43-aa74f66cb78b
+		summarizeBy: none
+		sourceColumn: salespersonCode
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Opportunity No.'
+		dataType: string
+		isHidden
+		lineageTag: b835a67e-4f17-47d8-ae9e-305529ec6761
+		summarizeBy: none
+		sourceColumn: Opportunity No.
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Quote No.'
+		dataType: string
+		lineageTag: abc52cc2-d930-4fdb-99c7-0d2c17a38b4c
+		summarizeBy: none
+		sourceColumn: Quote No.
+
+		annotation SummarizationSetBy = Automatic
+
+	column quoteValidUntilDate
+		dataType: dateTime
+		isHidden
+		formatString: Long Date
+		lineageTag: 57bcb3c4-eca2-4fb0-9e4b-93e710241a96
+		summarizeBy: none
+		sourceColumn: quoteValidUntilDate
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	column 'Order Date'
+		dataType: dateTime
+		formatString: Long Date
+		lineageTag: d4a7ed5f-9083-4d3a-8d0a-846433a74b03
+		summarizeBy: none
+		sourceColumn: Order Date
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	column 'Document Date'
+		dataType: dateTime
+		formatString: Long Date
+		lineageTag: 6e85f289-0da2-48fd-8e90-9cf7baf7bb61
+		summarizeBy: none
+		sourceColumn: Document Date
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	column 'Due Date'
+		dataType: dateTime
+		formatString: Long Date
+		lineageTag: 7e3a7e6c-c33c-4cbc-a58f-2459b3d5ace3
+		summarizeBy: none
+		sourceColumn: Due Date
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	column 'Campaign No.'
+		dataType: string
+		lineageTag: af660e1c-e82b-4c6b-9a8c-391000c12e43
+		summarizeBy: none
+		sourceColumn: Campaign No.
+
+		annotation SummarizationSetBy = Automatic
+
+	column Type
+		dataType: string
+		isHidden
+		lineageTag: c6e7a5a1-e6dc-4532-9cd9-8c303f408bae
+		summarizeBy: none
+		sourceColumn: Type
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column Description
+		dataType: string
+		lineageTag: 05647f3d-5e04-4255-b265-4506bf41ff93
+		summarizeBy: none
+		sourceColumn: Description
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Document No.'
+		dataType: string
+		isHidden
+		lineageTag: 7aaf9641-af7a-4294-9b4a-ec81d85b1236
+		summarizeBy: none
+		sourceColumn: Document No.
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Sales Line No.'
+		dataType: int64
+		formatString: 0
+		lineageTag: ea77ac9b-d586-40a4-b7a3-fa82cbf2e0b6
+		summarizeBy: sum
+		sourceColumn: Sales Line No.
+
+		annotation SummarizationSetBy = Automatic
+
+	column itemNo
+		dataType: string
+		isHidden
+		lineageTag: 62f2aa9c-cc30-4adc-bca4-1a961ba79784
+		summarizeBy: none
+		sourceColumn: itemNo
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Location Code'
+		dataType: string
+		isHidden
+		lineageTag: 9d2c8411-4f1b-4d90-bf6b-512dade405f3
+		summarizeBy: none
+		sourceColumn: Location Code
+
+		annotation SummarizationSetBy = Automatic
+
+	column outstandingQtyBase
+		dataType: double
+		isHidden
+		lineageTag: a21b0bb4-971d-4594-aae1-46bca4b259dc
+		summarizeBy: sum
+		sourceColumn: outstandingQtyBase
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column outstandingAmountLCY
+		dataType: decimal
+		isHidden
+		formatString: \$#,0.###############;-\$#,0.###############;\$#,0.###############
+		lineageTag: a6435dd3-caf6-4f88-935d-138140911a22
+		summarizeBy: sum
+		sourceColumn: outstandingAmountLCY
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"currencyCulture":"en-AU"}
+
+	column amount
+		dataType: decimal
+		isHidden
+		formatString: \$#,0.###############;-\$#,0.###############;\$#,0.###############
+		lineageTag: 65c4efc1-08d7-43d3-8241-8a4e1253a4d5
+		summarizeBy: sum
+		sourceColumn: amount
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"currencyCulture":"en-AU"}
+
+	column returnReasonCode
+		dataType: string
+		isHidden
+		lineageTag: a4538616-a202-449a-bfca-323b42d1b0a8
+		summarizeBy: none
+		sourceColumn: returnReasonCode
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Shipment Date'
+		dataType: dateTime
+		isHidden
+		formatString: Long Date
+		lineageTag: dc66637b-17c2-438e-b04b-699c8593b2b6
+		summarizeBy: none
+		sourceColumn: Shipment Date
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	column 'Planned Shipment Date'
+		dataType: dateTime
+		formatString: Long Date
+		lineageTag: 15efe0b3-11e8-40f5-9235-2522ace640b2
+		summarizeBy: none
+		sourceColumn: Planned Shipment Date
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	column 'Planned Delivery Date'
+		dataType: dateTime
+		formatString: Long Date
+		lineageTag: de2a535b-a79d-4f44-a061-885896a54aaa
+		summarizeBy: none
+		sourceColumn: Planned Delivery Date
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	column 'Requested Delivery Date'
+		dataType: dateTime
+		formatString: Long Date
+		lineageTag: a684a0bf-d590-483b-972a-56a7ed523439
+		summarizeBy: none
+		sourceColumn: Requested Delivery Date
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	column 'Promised Delivery Date'
+		dataType: dateTime
+		formatString: Long Date
+		lineageTag: 8ef7b8f6-0b41-46af-9e86-99b2d3803b34
+		summarizeBy: none
+		sourceColumn: Promised Delivery Date
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	column dimensionSetID
+		dataType: int64
+		isHidden
+		formatString: 0
+		lineageTag: ad5e500e-45a6-4165-aef2-b5491088e344
+		summarizeBy: none
+		sourceColumn: dimensionSetID
+
+		annotation SummarizationSetBy = Automatic
+
+	column returnQtyRcdNotInvd
+		dataType: double
+		isHidden
+		lineageTag: b00bc351-e04e-4358-8502-907bd124698e
+		summarizeBy: sum
+		sourceColumn: returnQtyRcdNotInvd
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column returnQtyReceivedBase
+		dataType: double
+		isHidden
+		lineageTag: 3bb17743-4ba7-4719-8d25-f8c956c9d4d7
+		summarizeBy: sum
+		sourceColumn: returnQtyReceivedBase
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column returnQtyToReceiveBase
+		dataType: double
+		isHidden
+		lineageTag: dea16169-122a-4802-9603-2ec4bf7f2e5f
+		summarizeBy: sum
+		sourceColumn: returnQtyToReceiveBase
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column returnRcdNotInvdLCY
+		dataType: decimal
+		isHidden
+		formatString: \$#,0.###############;-\$#,0.###############;\$#,0.###############
+		lineageTag: 6c51251b-e19b-47c2-acb3-b31ab7a8fd14
+		summarizeBy: sum
+		sourceColumn: returnRcdNotInvdLCY
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"currencyCulture":"en-AU"}
+
+	column quantityShippedBase
+		dataType: double
+		isHidden
+		lineageTag: ede0dddb-a96d-4463-a3d7-2c34b8f80f97
+		summarizeBy: sum
+		sourceColumn: quantityShippedBase
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column quantityToShipBase
+		dataType: double
+		isHidden
+		lineageTag: bb9a6d5c-80d3-4732-96cc-7857f61113a1
+		summarizeBy: sum
+		sourceColumn: quantityToShipBase
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column shippedNotInvoiced
+		dataType: double
+		isHidden
+		lineageTag: 3614d0dc-66f1-40ad-a39a-6f0ad4588dc6
+		summarizeBy: sum
+		sourceColumn: shippedNotInvoiced
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column quantityInvoiced
+		dataType: double
+		isHidden
+		lineageTag: 6399f0b7-0d15-4634-bf4f-31d21e8e6230
+		summarizeBy: sum
+		sourceColumn: quantityInvoiced
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column 'Posting Date'
+		dataType: dateTime
+		formatString: Long Date
+		lineageTag: c768ff7f-29f3-4c55-979a-16715b318bf2
+		summarizeBy: none
+		sourceColumn: Posting Date
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	column 'Source Table'
+		dataType: string
+		isHidden
+		lineageTag: 9027b94a-1f3e-4b54-b5fa-17d90c29f55f
+		summarizeBy: none
+		sourceColumn: Source Table
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Sales Key'
+		dataType: string
+		isHidden
+		lineageTag: 847a4f21-d9dd-4698-9000-6aee53c04cb9
+		summarizeBy: none
+		sourceColumn: Sales Key
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column quantityBase
+		dataType: string
+		isHidden
+		lineageTag: e5bde358-e540-440f-b768-baeb44e0d43f
+		summarizeBy: none
+		sourceColumn: quantityBase
+
+		annotation SummarizationSetBy = Automatic
+
+	column shippedNotInvoicedLCYNoVAT
+		dataType: double
+		isHidden
+		formatString: \$#,0.###############;-\$#,0.###############;\$#,0.###############
+		lineageTag: 375e7f95-1f5a-4c61-af45-aeeb391a35fb
+		summarizeBy: sum
+		sourceColumn: shippedNotInvoicedLCYNoVAT
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"currencyCulture":"en-AU"}
+
+	column orderNo
+		dataType: string
+		isHidden
+		lineageTag: 152ccf4b-f9a6-4388-8dad-e037a3abd1b1
+		summarizeBy: none
+		sourceColumn: orderNo
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Document Type'
+		dataType: string
+		isHidden
+		lineageTag: 8ec0d628-2eb1-48c2-9728-9da243bb9209
+		summarizeBy: none
+		sourceColumn: Document Type
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column sellToCustomerNo
+		dataType: string
+		isHidden
+		lineageTag: a65580fd-d130-4496-ac8c-51f078e4ee27
+		summarizeBy: none
+		sourceColumn: sellToCustomerNo
+
+		annotation SummarizationSetBy = Automatic
+
+	column unitCostLCY
+		dataType: double
+		isHidden
+		lineageTag: 4bd2150b-e7f9-4ad1-b6c3-1edcdac552ad
+		summarizeBy: sum
+		sourceColumn: unitCostLCY
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column outstandingQuantity
+		dataType: double
+		isHidden
+		lineageTag: 7a5810d9-6966-42b2-a81f-99b4928d2395
+		summarizeBy: sum
+		sourceColumn: outstandingQuantity
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column qtyShippedNotInvdBase
+		dataType: double
+		isHidden
+		formatString: \$#,0.###############;-\$#,0.###############;\$#,0.###############
+		lineageTag: e2474682-cfda-4a5f-9336-778eb4a9e06d
+		summarizeBy: sum
+		sourceColumn: qtyShippedNotInvdBase
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"currencyCulture":"en-AU"}
+
+	column projectNo
+		dataType: string
+		isHidden
+		lineageTag: 31c9271a-2c1a-43df-b081-6e93e810883f
+		summarizeBy: none
+		sourceColumn: projectNo
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Type Key'
+		dataType: string
+		isHidden
+		lineageTag: 66786a93-c5db-4c2f-a660-d5b7f7809ce7
+		summarizeBy: none
+		sourceColumn: Type Key
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	partition 'Sales Lines' = m
+		mode: import
+		queryGroup: 'Fact Tables'
+		source =
+				let
+				    Source = Dynamics365BusinessCentral.ApiContentsWithOptions(ENVIRONMENT, COMPANY, API_ENDPOINT , []),
+				    TableData = Source{[Name = "salesLines", Signature = "table"]}[Data],
+				    #"Changed Type" = Table.TransformColumnTypes(
+				        TableData,
+				        {
+				            {"orderNo", type text},
+				            {"billToCustomerNo", type text},
+				            {"sellToCustomerNo", type text},
+				            {"itemNo", type text},
+				            {"locationCode", type text},
+				            {"orderDate", type date},
+				            {"salespersonCode", type text},
+				            {"dimensionSetID", Int64.Type},
+				            {"opportunityNo", type text},
+				            {"returnReasonCode", type text},
+				            {"quoteNo", type text}
+				        }
+				    ),
+				    #"Replaced Value" = Table.ReplaceValue(#"Changed Type","Credit Memo","CR/Adj Note",Replacer.ReplaceText,{"documentType"}),
+				    #"Added Table Name" = Table.AddColumn(#"Replaced Value", "Source Table", each "Sales Line", type text),
+				    #"Removed Columns" = Table.RemoveColumns(
+				        #"Added Table Name",
+				        {
+				            "ETag",
+				            "salesLineDocumentType"
+				        }
+				    ),
+				    #"Renamed Columns" = Table.RenameColumns(#"Removed Columns",{{"orderDate", "Order Date"}, {"shipmentDate", "Shipment Date"}, {"locationCode", "Location Code"}, {"documentNo", "Document No."}, {"documentType", "Document Type"}, {"opportunityNo", "Opportunity No."}, {"campaignNo", "Campaign No."}, {"quoteNo", "Quote No."}, {"type", "Type"}, {"description", "Description"}, {"lineNo", "Sales Line No."}, {"documentDate", "Document Date"}, {"dueDate", "Due Date"}, {"plannedShipmentDate", "Planned Shipment Date"}, {"plannedDeliveryDate", "Planned Delivery Date"}, {"requestedDeliveryDate", "Requested Delivery Date"}, {"promisedDeliveryDate", "Promised Delivery Date"}, {"postingDate", "Posting Date"}}),
+				    #"Added Sales Key" = Table.AddColumn(
+				        #"Renamed Columns", "Sales Key", each [Document Type] & " " & [#"Document No."] & " " & [#"Source Table"], type text
+				    ),
+				    #"Inverted Signs" = InvertSignsSalesLines(#"Added Sales Key"),
+				    #"Added Type Key" = Table.AddColumn(#"Inverted Signs", "Type Key", each [Type] & " " & [itemNo], type text)
+				in
+				    #"Added Type Key"
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Table
+

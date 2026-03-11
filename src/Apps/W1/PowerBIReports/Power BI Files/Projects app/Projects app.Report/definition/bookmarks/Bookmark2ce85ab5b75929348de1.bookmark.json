@@ -1,0 +1,157 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/bookmark/1.4.0/schema.json",
+  "displayName": "Jobs Overview",
+  "name": "Bookmark2ce85ab5b75929348de1",
+  "options": {
+    "targetVisualNames": [],
+    "suppressData": true
+  },
+  "explorationState": {
+    "version": "1.3",
+    "activeSection": "ReportSectionf22cc27c0600033d5e26",
+    "sections": {
+      "ReportSectionf22cc27c0600033d5e26": {
+        "visualContainers": {
+          "5f39bd163cf0bb18ae0e": {
+            "filters": {
+              "byExpr": [
+                {
+                  "name": "4684f24510c14594341f",
+                  "type": "Categorical",
+                  "expression": {
+                    "Column": {
+                      "Expression": {
+                        "SourceRef": {
+                          "Entity": "Job"
+                        }
+                      },
+                      "Property": "Job No. & Description"
+                    }
+                  },
+                  "howCreated": 0
+                },
+                {
+                  "name": "e86c020e658e42277555",
+                  "type": "Advanced",
+                  "expression": {
+                    "Measure": {
+                      "Expression": {
+                        "SourceRef": {
+                          "Entity": "Jobs Measures"
+                        }
+                      },
+                      "Property": "Budget (Total Cost)"
+                    }
+                  },
+                  "howCreated": 0
+                },
+                {
+                  "name": "e78fe63fab18a47b77d6",
+                  "type": "Advanced",
+                  "expression": {
+                    "Measure": {
+                      "Expression": {
+                        "SourceRef": {
+                          "Entity": "Jobs Measures"
+                        }
+                      },
+                      "Property": "Actual (Total Cost)"
+                    }
+                  },
+                  "howCreated": 0
+                },
+                {
+                  "name": "fb8bbf22a8ee24892fc1",
+                  "type": "Advanced",
+                  "expression": {
+                    "Measure": {
+                      "Expression": {
+                        "SourceRef": {
+                          "Entity": "Jobs Measures"
+                        }
+                      },
+                      "Property": "Billable (Total Price)"
+                    }
+                  },
+                  "howCreated": 0
+                },
+                {
+                  "name": "2964ba225a4827d59ae2",
+                  "type": "Advanced",
+                  "expression": {
+                    "Measure": {
+                      "Expression": {
+                        "SourceRef": {
+                          "Entity": "Jobs Measures"
+                        }
+                      },
+                      "Property": "Billable (Invoiced Price)"
+                    }
+                  },
+                  "howCreated": 0
+                }
+              ]
+            },
+            "singleVisual": {
+              "visualType": "pivotTable",
+              "objects": {},
+              "orderBy": [
+                {
+                  "Direction": 2,
+                  "Expression": {
+                    "Measure": {
+                      "Expression": {
+                        "SourceRef": {
+                          "Entity": "Jobs Measures"
+                        }
+                      },
+                      "Property": "Actual (Total Cost)"
+                    }
+                  }
+                }
+              ],
+              "activeProjections": {
+                "Rows": [
+                  {
+                    "Column": {
+                      "Expression": {
+                        "SourceRef": {
+                          "Entity": "Job"
+                        }
+                      },
+                      "Property": "Job No. & Description"
+                    }
+                  }
+                ]
+              }
+            }
+          }
+        }
+      }
+    },
+    "objects": {
+      "merge": {
+        "outspacePane": [
+          {
+            "properties": {
+              "expanded": {
+                "expr": {
+                  "Literal": {
+                    "Value": "false"
+                  }
+                }
+              },
+              "visible": {
+                "expr": {
+                  "Literal": {
+                    "Value": "true"
+                  }
+                }
+              }
+            }
+          }
+        ]
+      }
+    }
+  }
+}

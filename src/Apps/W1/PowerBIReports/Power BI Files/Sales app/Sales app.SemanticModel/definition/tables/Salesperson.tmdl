@@ -1,0 +1,42 @@
+table Salesperson
+	lineageTag: 24dc6fa6-871a-492b-9724-536b3a735e0a
+
+	column 'Salesperson Code'
+		dataType: string
+		isKey
+		lineageTag: c6b56f67-94c6-40eb-8e94-a533063d6f3b
+		summarizeBy: none
+		sourceColumn: Salesperson Code
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Salesperson Name'
+		dataType: string
+		lineageTag: 39fb48c7-a44c-44f7-80d9-ed10d4bec3c7
+		summarizeBy: none
+		sourceColumn: Salesperson Name
+
+		annotation SummarizationSetBy = Automatic
+
+	partition Salesperson-924c0fc5-8cc8-4341-bd75-d91c21c40359 = m
+		mode: import
+		queryGroup: 'Dimension Tables'
+		source =
+				let
+				    Source = Dynamics365BusinessCentral.ApiContentsWithOptions(ENVIRONMENT, COMPANY,API_ENDPOINT, []),
+				    TableData = Source{[Name="salespersonPurchasers",Signature="table"]}[Data],
+				    #"Changed Type" = Table.TransformColumnTypes(
+				        TableData, {{"salespersonPurchaserCode", type text}, {"salespersonPurchaserName", type text}}
+				    ),
+				    #"Renamed Columns" = Table.RenameColumns(
+				        #"Changed Type",
+				        {{"salespersonPurchaserCode", "Salesperson Code"}, {"salespersonPurchaserName", "Salesperson Name"}}
+				    ),
+				    #"Removed Columns" = Table.RemoveColumns(#"Renamed Columns",{"ETag"})
+				in
+				    #"Removed Columns"
+
+	annotation PBI_ResultType = Table
+
+	annotation PBI_NavigationStepName = Navigation
+

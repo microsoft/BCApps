@@ -1,0 +1,16 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.4.0/schema.json",
+  "name": "0b3da90db84ddd85f95d",
+  "position": {
+    "x": 29.09090909090914,
+    "y": 242.85714285714286,
+    "z": 2000,
+    "height": 77.4025974025974,
+    "width": 588.66419294990726,
+    "tabOrder": 7500
+  },
+  "visualGroup": {
+    "displayName": "Connect Your Data Group",
+    "groupMode": "ScaleMode"
+  }
+}

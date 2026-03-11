@@ -1,0 +1,836 @@
+table 'Income Statement Measures'
+	lineageTag: 835b042f-3a8e-48ab-b53f-9d3e789df204
+
+	measure Revenue =
+			VAR EntryNumber =
+			    LOOKUPVALUE (
+			        'Power BI Account Categories'[glAccCategoryEntryNo],
+			        'Power BI Account Categories'[powerBIAccCategory], "Revenue (Level 1 Category)"
+			    )
+			RETURN
+			    CALCULATE (
+			        [Net Change],
+			        FILTER (
+			            ALL ( 'G/L Account Category'[GLAccCategoryPath] ),
+			            PATHCONTAINS (
+			                'G/L Account Category'[GLAccCategoryPath],
+			                EntryNumber
+			            )
+			        )
+			    ) * ( -1 )
+		formatString: #,0.00
+		displayFolder: INCOME
+		lineageTag: b16a89bb-770a-431e-a8a8-5e560603f78f
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Cost of Goods Sold' =
+			VAR EntryNumber =
+			    LOOKUPVALUE (
+			        'Power BI Account Categories'[glAccCategoryEntryNo],
+			        'Power BI Account Categories'[powerBIAccCategory], "Cost of Goods Sold (Level 1 Category)"
+			    )
+			RETURN
+			    CALCULATE (
+			        [Net Change],
+			        FILTER (
+			            ALL ( 'G/L Account Category'[GLAccCategoryPath] ),
+			            PATHCONTAINS (
+			                'G/L Account Category'[GLAccCategoryPath],
+			                EntryNumber
+			            )
+			        )
+			    )
+		formatString: #,0.00
+		displayFolder: COGS
+		lineageTag: b55dea07-6fdf-4cd7-998b-3796eb522b26
+
+		annotation PBI_FormatHint = {"currencyCulture":"en-AU"}
+
+	measure Expense =
+			VAR EntryNumber =
+			    LOOKUPVALUE (
+			        'Power BI Account Categories'[glAccCategoryEntryNo],
+			        'Power BI Account Categories'[powerBIAccCategory], "Expense (Level 1 Category)"
+			    )
+			RETURN
+			    CALCULATE (
+			        [Net Change],
+			        FILTER (
+			            ALL ( 'G/L Account Category'[GLAccCategoryPath] ),
+			            PATHCONTAINS (
+			                'G/L Account Category'[GLAccCategoryPath],
+			                EntryNumber
+			            )
+			        )
+			    )
+		formatString: #,0.00
+		displayFolder: EXPENSE
+		lineageTag: 041a4afd-521c-4f7c-bba3-f364df099ce1
+
+		annotation PBI_FormatHint = {"currencyCulture":"en-AU"}
+
+	measure 'Interest Expense' =
+			VAR EntryNumber =
+			    LOOKUPVALUE (
+			        'Power BI Account Categories'[glAccCategoryEntryNo],
+			        'Power BI Account Categories'[powerBIAccCategory], "Interest Expense (Level 2 Category)"
+			    )
+			RETURN
+			    CALCULATE (
+			        [Net Change],
+			        FILTER (
+			            ALL ( 'G/L Account Category'[GLAccCategoryPath] ),
+			            PATHCONTAINS (
+			                'G/L Account Category'[GLAccCategoryPath],
+			                EntryNumber
+			            )
+			        )
+			    )
+		formatString: #,0.00
+		displayFolder: EXPENSE
+		lineageTag: 8807884c-e2e5-4750-9515-fd0d22afc2d5
+
+		annotation PBI_FormatHint = {"currencyCulture":"en-AU"}
+
+	measure 'Tax Expense' =
+			VAR EntryNumber =
+			    LOOKUPVALUE (
+			        'Power BI Account Categories'[glAccCategoryEntryNo],
+			        'Power BI Account Categories'[powerBIAccCategory], "Tax Expense (Level 2 Category)"
+			    )
+			RETURN
+			    CALCULATE (
+			        [Net Change],
+			        FILTER (
+			            ALL ( 'G/L Account Category'[GLAccCategoryPath] ),
+			            PATHCONTAINS (
+			                'G/L Account Category'[GLAccCategoryPath],
+			                EntryNumber
+			            )
+			        )
+			    )
+		formatString: #,0.00
+		displayFolder: EXPENSE
+		lineageTag: 79a0e131-df34-4668-85a8-25d0a5e51c2f
+
+		annotation PBI_FormatHint = {"currencyCulture":"en-AU"}
+
+	measure 'Extraordinary Expense' =
+			VAR EntryNumber =
+			    LOOKUPVALUE (
+			        'Power BI Account Categories'[glAccCategoryEntryNo],
+			        'Power BI Account Categories'[powerBIAccCategory], "Extraordinary Expense (Level 2 Category)"
+			    )
+			RETURN
+			    CALCULATE (
+			        [Net Change],
+			        FILTER (
+			            ALL ( 'G/L Account Category'[GLAccCategoryPath] ),
+			            PATHCONTAINS (
+			                'G/L Account Category'[GLAccCategoryPath],
+			                EntryNumber
+			            )
+			        )
+			    )
+		formatString: #,0.00
+		displayFolder: EXPENSE
+		lineageTag: dc8b6044-5190-4b1d-b906-d677fe215341
+
+		annotation PBI_FormatHint = {"currencyCulture":"en-AU"}
+
+	measure 'Operating Expense - OPEX' = ```
+			
+			[Expense] - 
+			[Interest Expense] - 
+			[FX Losses Expense] - 
+			[Tax Expense] - 
+			[Extraordinary Expense]
+			```
+		formatString: #,0.00
+		displayFolder: EXPENSE
+		lineageTag: 8553926d-f2d1-4bd2-9c54-f8092aa6e437
+
+		annotation PBI_FormatHint = {"currencyCulture":"en-AU"}
+
+	measure Purchases =
+			VAR EntryNumber =
+			    LOOKUPVALUE (
+			        'Power BI Account Categories'[glAccCategoryEntryNo],
+			        'Power BI Account Categories'[powerBIAccCategory], "Purchases (Level 3 Category)"
+			    )
+			RETURN
+			    CALCULATE (
+			        [Net Change],
+			        FILTER (
+			            ALL ( 'G/L Account Category'[GLAccCategoryPath] ),
+			            PATHCONTAINS (
+			                'G/L Account Category'[GLAccCategoryPath],
+			                EntryNumber
+			            )
+			        )
+			    )
+		formatString: #,0.00
+		displayFolder: EXPENSE
+		lineageTag: cde3e206-9adb-4124-b55a-19e8ebea02aa
+
+		annotation PBI_FormatHint = {"currencyCulture":"en-AU"}
+
+	measure 'FX Losses Expense' =
+			VAR EntryNumber =
+			    LOOKUPVALUE (
+			        'Power BI Account Categories'[glAccCategoryEntryNo],
+			        'Power BI Account Categories'[powerBIAccCategory], "FX Losses Expense (Level 2 Category)"
+			    )
+			RETURN
+			    CALCULATE (
+			        [Net Change],
+			        FILTER (
+			            ALL ( 'G/L Account Category'[GLAccCategoryPath] ),
+			            PATHCONTAINS (
+			                'G/L Account Category'[GLAccCategoryPath],
+			                EntryNumber
+			            )
+			        )
+			    )
+		formatString: #,0.00
+		displayFolder: EXPENSE
+		lineageTag: 091a8d09-c54b-4939-b693-6ceea5cef7ba
+
+		annotation PBI_FormatHint = {"currencyCulture":"en-AU"}
+
+	measure 'Depreciation and Amortization' = ```
+			VAR EntryNumber =
+			    LOOKUPVALUE (
+			        'Power BI Account Categories'[glAccCategoryEntryNo],
+			        'Power BI Account Categories'[powerBIAccCategory], "Depreciation and Amortization Expense (Level 2 Category)"
+			    )
+			
+			RETURN
+			    CALCULATE (
+			        [Net Change],
+			        FILTER (
+			            ALL ( 'G/L Account Category'[GLAccCategoryPath] ),
+			            PATHCONTAINS (
+			                'G/L Account Category'[GLAccCategoryPath],
+			                EntryNumber
+			            )
+			        )
+			    )
+			
+			```
+		formatString: #,0.00
+		displayFolder: EXPENSE
+		lineageTag: ca57a5d2-268c-41c5-a31f-5e1ab75b67b1
+
+		annotation PBI_FormatHint = {"currencyCulture":"en-AU"}
+
+	measure 'Revenue (Balance at Date)' =
+			VAR EntryNumber =
+			    LOOKUPVALUE (
+			        'Power BI Account Categories'[glAccCategoryEntryNo],
+			        'Power BI Account Categories'[powerBIAccCategory], "Revenue (Level 1 Category)"
+			    )
+			RETURN
+			    CALCULATE (
+			        [Balance at Date],
+			        FILTER (
+			            ALL ( 'G/L Account Category'[GLAccCategoryPath] ),
+			            PATHCONTAINS (
+			                'G/L Account Category'[GLAccCategoryPath],
+			                EntryNumber
+			            )
+			        )
+			    ) * ( -1 )
+		formatString: #,0.00
+		displayFolder: INCOME
+		lineageTag: 4f7f406e-7166-42fd-8791-d2de4173c31c
+
+		annotation PBI_FormatHint = {"currencyCulture":"en-AU"}
+
+	measure 'Revenue (Beginning Balance)' =
+			VAR EntryNumber =
+			    LOOKUPVALUE (
+			        'Power BI Account Categories'[glAccCategoryEntryNo],
+			        'Power BI Account Categories'[powerBIAccCategory], "Revenue (Level 1 Category)"
+			    )
+			RETURN
+			    CALCULATE (
+			        [Balance at Date],
+			        FILTER (
+			            ALL ( 'G/L Account Category'[GLAccCategoryPath] ),
+			            PATHCONTAINS (
+			                'G/L Account Category'[GLAccCategoryPath],
+			                EntryNumber
+			            )
+			        ),
+			        FILTER (
+			            ALL ( 'Date'[Date] ),
+			            'Date'[Date] < MIN ( 'Date'[Date] )
+			        )
+			    ) * ( -1 )
+		formatString: #,0.00
+		displayFolder: INCOME
+		lineageTag: 55dd5e28-e28f-4f4d-9ca2-28563e0a5dc7
+
+		annotation PBI_FormatHint = {"currencyCulture":"en-AU"}
+
+	measure 'Interest Revenue' =
+			VAR EntryNumber =
+			    LOOKUPVALUE (
+			        'Power BI Account Categories'[glAccCategoryEntryNo],
+			        'Power BI Account Categories'[powerBIAccCategory], "Interest Revenue (Level 2 Category)"
+			    )
+			RETURN
+			    CALCULATE (
+			        [Net Change],
+			        FILTER (
+			            ALL ( 'G/L Account Category'[GLAccCategoryPath] ),
+			            PATHCONTAINS (
+			                'G/L Account Category'[GLAccCategoryPath],
+			                EntryNumber
+			            )
+			        )
+			    ) * ( -1 )
+		formatString: #,0.00
+		displayFolder: INCOME
+		lineageTag: cfd0b7e2-bd3c-486e-b93b-c4695ee28cf2
+
+		annotation PBI_FormatHint = {"currencyCulture":"en-AU"}
+
+	measure 'FX Gains Revenue' =
+			VAR EntryNumber =
+			    LOOKUPVALUE (
+			        'Power BI Account Categories'[glAccCategoryEntryNo],
+			        'Power BI Account Categories'[powerBIAccCategory], "FX Gains Revenue (Level 2 Category)"
+			    )
+			RETURN
+			    CALCULATE (
+			        [Net Change],
+			        FILTER (
+			            ALL ( 'G/L Account Category'[GLAccCategoryPath] ),
+			            PATHCONTAINS (
+			                'G/L Account Category'[GLAccCategoryPath],
+			                EntryNumber
+			            )
+			        )
+			    ) * ( -1 )
+		formatString: #,0.00
+		displayFolder: INCOME
+		lineageTag: c0e89f63-b8ad-439f-9bfd-13a9a54e785d
+
+		annotation PBI_FormatHint = {"currencyCulture":"en-AU"}
+
+	measure 'Extraordinary Revenue' =
+			VAR EntryNumber =
+			    LOOKUPVALUE (
+			        'Power BI Account Categories'[glAccCategoryEntryNo],
+			        'Power BI Account Categories'[powerBIAccCategory], "Extraordinary Revenue (Level 2 Category)"
+			    )
+			RETURN
+			    CALCULATE (
+			        [Net Change],
+			        FILTER (
+			            ALL ( 'G/L Account Category'[GLAccCategoryPath] ),
+			            PATHCONTAINS (
+			                'G/L Account Category'[GLAccCategoryPath],
+			                EntryNumber
+			            )
+			        )
+			    ) * ( -1 )
+		formatString: #,0.00
+		displayFolder: INCOME
+		lineageTag: cb5ac1fa-08c3-488b-a30c-eee77b9518dc
+
+		annotation PBI_FormatHint = {"currencyCulture":"en-AU"}
+
+	measure 'Operating Revenue' = ```
+			
+			[Revenue] - 
+			[Interest Revenue] - 
+			[FX Gains Revenue] - 
+			[Extraordinary Revenue]
+			```
+		formatString: #,0.00
+		displayFolder: INCOME
+		lineageTag: 5f38e1da-e2bf-4361-87bd-759a0e169565
+
+		annotation PBI_FormatHint = {"currencyCulture":"en-AU"}
+
+	measure 'Expense (Balance at Date)' =
+			VAR EntryNumber =
+			    LOOKUPVALUE (
+			        'Power BI Account Categories'[glAccCategoryEntryNo],
+			        'Power BI Account Categories'[powerBIAccCategory], "Expense (Level 1 Category)"
+			    )
+			RETURN
+			    CALCULATE (
+			        [Balance at Date],
+			        FILTER (
+			            ALL ( 'G/L Account Category'[GLAccCategoryPath] ),
+			            PATHCONTAINS (
+			                'G/L Account Category'[GLAccCategoryPath],
+			                EntryNumber
+			            )
+			        )
+			    )
+		formatString: #,0.00
+		displayFolder: EXPENSE
+		lineageTag: 940cdaea-69f6-4ccd-8a5d-896b70fed01e
+
+		annotation PBI_FormatHint = {"currencyCulture":"en-AU"}
+
+	measure 'Expense (Beginning Balance)' =
+			VAR EntryNumber =
+			    LOOKUPVALUE (
+			        'Power BI Account Categories'[glAccCategoryEntryNo],
+			        'Power BI Account Categories'[powerBIAccCategory], "Expense (Level 1 Category)"
+			    )
+			RETURN
+			    CALCULATE (
+			        [Balance at Date],
+			        FILTER (
+			            ALL ( 'G/L Account Category'[GLAccCategoryPath] ),
+			            PATHCONTAINS (
+			                'G/L Account Category'[GLAccCategoryPath],
+			                EntryNumber
+			            )
+			        ),
+			        FILTER (
+			            ALL ( 'Date'[Date] ),
+			            'Date'[Date] < MIN ( 'Date'[Date] )
+			        )
+			    )
+		formatString: #,0.00
+		displayFolder: EXPENSE
+		lineageTag: 54ea44fc-3190-4fa1-a115-b5e77f594e0b
+
+		annotation PBI_FormatHint = {"currencyCulture":"en-AU"}
+
+	measure 'Interest Expense (Balance at Date)' =
+			VAR EntryNumber =
+			    LOOKUPVALUE (
+			        'Power BI Account Categories'[glAccCategoryEntryNo],
+			        'Power BI Account Categories'[powerBIAccCategory], "Interest Expense (Level 2 Category)"
+			    )
+			RETURN
+			    CALCULATE (
+			        [Balance at Date],
+			        FILTER (
+			            ALL ( 'G/L Account Category'[GLAccCategoryPath] ),
+			            PATHCONTAINS (
+			                'G/L Account Category'[GLAccCategoryPath],
+			                EntryNumber
+			            )
+			        )
+			    )
+		formatString: #,0.00
+		displayFolder: EXPENSE
+		lineageTag: c9204ddb-0571-41fe-93c5-245081a05a83
+
+		annotation PBI_FormatHint = {"currencyCulture":"en-AU"}
+
+	measure 'Interest Expense (Beginning Balance)' =
+			VAR EntryNumber =
+			    LOOKUPVALUE (
+			        'Power BI Account Categories'[glAccCategoryEntryNo],
+			        'Power BI Account Categories'[powerBIAccCategory], "Interest Expense (Level 2 Category)"
+			    )
+			RETURN
+			    CALCULATE (
+			        [Balance at Date],
+			        FILTER (
+			            ALL ( 'G/L Account Category'[GLAccCategoryPath] ),
+			            PATHCONTAINS (
+			                'G/L Account Category'[GLAccCategoryPath],
+			                EntryNumber
+			            )
+			        ),
+			        FILTER (
+			            ALL ( 'Date'[Date] ),
+			            'Date'[Date] < MIN ( 'Date'[Date] )
+			        )
+			    )
+		formatString: #,0.00
+		displayFolder: EXPENSE
+		lineageTag: 04d7aa06-82b1-429d-8496-8b43b1405cdf
+
+		annotation PBI_FormatHint = {"currencyCulture":"en-AU"}
+
+	measure 'FX Losses Expense (Balance at Date)' =
+			VAR EntryNumber =
+			    LOOKUPVALUE (
+			        'Power BI Account Categories'[glAccCategoryEntryNo],
+			        'Power BI Account Categories'[powerBIAccCategory], "FX Losses Expense (Level 2 Category)"
+			    )
+			RETURN
+			    CALCULATE (
+			        [Balance at Date],
+			        FILTER (
+			            ALL ( 'G/L Account Category'[GLAccCategoryPath] ),
+			            PATHCONTAINS (
+			                'G/L Account Category'[GLAccCategoryPath],
+			                EntryNumber
+			            )
+			        )
+			    )
+		formatString: #,0.00
+		displayFolder: EXPENSE
+		lineageTag: 972c6e67-bdf3-49b4-8723-52b37f4fb73f
+
+		annotation PBI_FormatHint = {"currencyCulture":"en-AU"}
+
+	measure 'FX Losses Expense (Beginning Balance)' =
+			VAR EntryNumber =
+			    LOOKUPVALUE (
+			        'Power BI Account Categories'[glAccCategoryEntryNo],
+			        'Power BI Account Categories'[powerBIAccCategory], "FX Losses Expense (Level 2 Category)"
+			    )
+			RETURN
+			    CALCULATE (
+			        [Balance at Date],
+			        FILTER (
+			            ALL ( 'G/L Account Category'[GLAccCategoryPath] ),
+			            PATHCONTAINS (
+			                'G/L Account Category'[GLAccCategoryPath],
+			                EntryNumber
+			            )
+			        ),
+			        FILTER (
+			            ALL ( 'Date'[Date] ),
+			            'Date'[Date] < MIN ( 'Date'[Date] )
+			        )
+			    )
+		formatString: #,0.00
+		displayFolder: EXPENSE
+		lineageTag: 3e581b79-71d1-46af-8955-7830d1e25ad5
+
+		annotation PBI_FormatHint = {"currencyCulture":"en-AU"}
+
+	measure 'Tax Expense (Balance at Date)' =
+			VAR EntryNumber =
+			    LOOKUPVALUE (
+			        'Power BI Account Categories'[glAccCategoryEntryNo],
+			        'Power BI Account Categories'[powerBIAccCategory], "Tax Expense (Level 2 Category)"
+			    )
+			RETURN
+			    CALCULATE (
+			        [Balance at Date],
+			        FILTER (
+			            ALL ( 'G/L Account Category'[GLAccCategoryPath] ),
+			            PATHCONTAINS (
+			                'G/L Account Category'[GLAccCategoryPath],
+			                EntryNumber
+			            )
+			        )
+			    )
+		formatString: #,0.00
+		displayFolder: EXPENSE
+		lineageTag: d9e89d24-44b8-4951-a41f-8b06660d718f
+
+		annotation PBI_FormatHint = {"currencyCulture":"en-AU"}
+
+	measure 'Tax Expense (Beginning Balance)' =
+			VAR EntryNumber =
+			    LOOKUPVALUE (
+			        'Power BI Account Categories'[glAccCategoryEntryNo],
+			        'Power BI Account Categories'[powerBIAccCategory], "Tax Expense (Level 2 Category)"
+			    )
+			RETURN
+			    CALCULATE (
+			        [Balance at Date],
+			        FILTER (
+			            ALL ( 'G/L Account Category'[GLAccCategoryPath] ),
+			            PATHCONTAINS (
+			                'G/L Account Category'[GLAccCategoryPath],
+			                EntryNumber
+			            )
+			        ),
+			        FILTER (
+			            ALL ( 'Date'[Date] ),
+			            'Date'[Date] < MIN ( 'Date'[Date] )
+			        )
+			    )
+		formatString: #,0.00
+		displayFolder: EXPENSE
+		lineageTag: dcfb4c12-58b9-478e-9cd0-b31ff375451f
+
+		annotation PBI_FormatHint = {"currencyCulture":"en-AU"}
+
+	measure 'Extraordinary Expense (Balance at Date)' =
+			VAR EntryNumber =
+			    LOOKUPVALUE (
+			        'Power BI Account Categories'[glAccCategoryEntryNo],
+			        'Power BI Account Categories'[powerBIAccCategory], "Extraordinary Expense (Level 2 Category)"
+			    )
+			RETURN
+			    CALCULATE (
+			        [Balance at Date],
+			        FILTER (
+			            ALL ( 'G/L Account Category'[GLAccCategoryPath] ),
+			            PATHCONTAINS (
+			                'G/L Account Category'[GLAccCategoryPath],
+			                EntryNumber
+			            )
+			        )
+			    )
+		formatString: #,0.00
+		displayFolder: EXPENSE
+		lineageTag: 615e2bbe-c5f6-463b-b6ce-cd411cf2a0d6
+
+		annotation PBI_FormatHint = {"currencyCulture":"en-AU"}
+
+	measure 'Extraordinary Expense (Beginning Balance)' =
+			VAR EntryNumber =
+			    LOOKUPVALUE (
+			        'Power BI Account Categories'[glAccCategoryEntryNo],
+			        'Power BI Account Categories'[powerBIAccCategory], "Extraordinary Expense (Level 2 Category)"
+			    )
+			RETURN
+			    CALCULATE (
+			        [Balance at Date],
+			        FILTER (
+			            ALL ( 'G/L Account Category'[GLAccCategoryPath] ),
+			            PATHCONTAINS (
+			                'G/L Account Category'[GLAccCategoryPath],
+			                EntryNumber
+			            )
+			        ),
+			        FILTER (
+			            ALL ( 'Date'[Date] ),
+			            'Date'[Date] < MIN ( 'Date'[Date] )
+			        )
+			    )
+		formatString: #,0.00
+		displayFolder: EXPENSE
+		lineageTag: b0c67221-1fcb-4add-9057-48987759cdee
+
+		annotation PBI_FormatHint = {"currencyCulture":"en-AU"}
+
+	measure 'Interest Revenue (Balance at Date)' =
+			VAR EntryNumber =
+			    LOOKUPVALUE (
+			        'Power BI Account Categories'[glAccCategoryEntryNo],
+			        'Power BI Account Categories'[powerBIAccCategory], "Interest Revenue (Level 2 Category)"
+			    )
+			RETURN
+			    CALCULATE (
+			        [Balance at Date],
+			        FILTER (
+			            ALL ( 'G/L Account Category'[GLAccCategoryPath] ),
+			            PATHCONTAINS (
+			                'G/L Account Category'[GLAccCategoryPath],
+			                EntryNumber
+			            )
+			        )
+			    ) * ( -1 )
+		formatString: #,0.00
+		displayFolder: INCOME
+		lineageTag: 041f3cf5-1df1-4383-9272-e411fa0115ba
+
+		annotation PBI_FormatHint = {"currencyCulture":"en-AU"}
+
+	measure 'Interest Revenue (Beginning Balance)' =
+			VAR EntryNumber =
+			    LOOKUPVALUE (
+			        'Power BI Account Categories'[glAccCategoryEntryNo],
+			        'Power BI Account Categories'[powerBIAccCategory], "Interest Revenue (Level 2 Category)"
+			    )
+			RETURN
+			    CALCULATE (
+			        [Balance at Date],
+			        FILTER (
+			            ALL ( 'G/L Account Category'[GLAccCategoryPath] ),
+			            PATHCONTAINS (
+			                'G/L Account Category'[GLAccCategoryPath],
+			                EntryNumber
+			            )
+			        ),
+			        FILTER (
+			            ALL ( 'Date'[Date] ),
+			            'Date'[Date] < MIN ( 'Date'[Date] )
+			        )
+			    ) * ( -1 )
+		formatString: #,0.00
+		displayFolder: INCOME
+		lineageTag: 26069255-52a8-442f-994f-2d81f9143828
+
+		annotation PBI_FormatHint = {"currencyCulture":"en-AU"}
+
+	measure 'FX Gains Revenue (Balance at Date)' =
+			VAR EntryNumber =
+			    LOOKUPVALUE (
+			        'Power BI Account Categories'[glAccCategoryEntryNo],
+			        'Power BI Account Categories'[powerBIAccCategory], "FX Gains Revenue (Level 2 Category)"
+			    )
+			RETURN
+			    CALCULATE (
+			        [Balance at Date],
+			        FILTER (
+			            ALL ( 'G/L Account Category'[GLAccCategoryPath] ),
+			            PATHCONTAINS (
+			                'G/L Account Category'[GLAccCategoryPath],
+			                EntryNumber
+			            )
+			        )
+			    ) * ( -1 )
+		formatString: #,0.00
+		displayFolder: INCOME
+		lineageTag: af06fa1a-84ff-48c5-a0c7-25aa6e0edc95
+
+		annotation PBI_FormatHint = {"currencyCulture":"en-AU"}
+
+	measure 'FX Gains Revenue (Beginning Balance)' =
+			VAR EntryNumber =
+			    LOOKUPVALUE (
+			        'Power BI Account Categories'[glAccCategoryEntryNo],
+			        'Power BI Account Categories'[powerBIAccCategory], "FX Gains Revenue (Level 2 Category)"
+			    )
+			RETURN
+			    CALCULATE (
+			        [Balance at Date],
+			        FILTER (
+			            ALL ( 'G/L Account Category'[GLAccCategoryPath] ),
+			            PATHCONTAINS (
+			                'G/L Account Category'[GLAccCategoryPath],
+			                EntryNumber
+			            )
+			        ),
+			        FILTER (
+			            ALL ( 'Date'[Date] ),
+			            'Date'[Date] < MIN ( 'Date'[Date] )
+			        )
+			    ) * ( -1 )
+		formatString: #,0.00
+		displayFolder: INCOME
+		lineageTag: f26352ec-74ce-4fcd-b6d4-6322f1a1031b
+
+		annotation PBI_FormatHint = {"currencyCulture":"en-AU"}
+
+	measure 'Extraordinary Revenue (Balance at Date)' =
+			VAR EntryNumber =
+			    LOOKUPVALUE (
+			        'Power BI Account Categories'[glAccCategoryEntryNo],
+			        'Power BI Account Categories'[powerBIAccCategory], "Extraordinary Revenue (Level 2 Category)"
+			    )
+			RETURN
+			    CALCULATE (
+			        [Balance at Date],
+			        FILTER (
+			            ALL ( 'G/L Account Category'[GLAccCategoryPath] ),
+			            PATHCONTAINS (
+			                'G/L Account Category'[GLAccCategoryPath],
+			                EntryNumber
+			            )
+			        )
+			    ) * ( -1 )
+		formatString: #,0.00
+		displayFolder: INCOME
+		lineageTag: 2d125d97-b729-4e63-a0d4-ef57c5041286
+
+		annotation PBI_FormatHint = {"currencyCulture":"en-AU"}
+
+	measure 'Extraordinary Revenue (Beginning Balance)' =
+			VAR EntryNumber =
+			    LOOKUPVALUE (
+			        'Power BI Account Categories'[glAccCategoryEntryNo],
+			        'Power BI Account Categories'[powerBIAccCategory], "Extraordinary Revenue (Level 2 Category)"
+			    )
+			RETURN
+			    CALCULATE (
+			        [Balance at Date],
+			        FILTER (
+			            ALL ( 'G/L Account Category'[GLAccCategoryPath] ),
+			            PATHCONTAINS (
+			                'G/L Account Category'[GLAccCategoryPath],
+			                EntryNumber
+			            )
+			        ),
+			        FILTER (
+			            ALL ( 'Date'[Date] ),
+			            'Date'[Date] < MIN ( 'Date'[Date] )
+			        )
+			    ) * ( -1 )
+		formatString: #,0.00
+		displayFolder: INCOME
+		lineageTag: a3331758-6045-4c04-a901-422489051f73
+
+		annotation PBI_FormatHint = {"currencyCulture":"en-AU"}
+
+	measure 'Operating Expense - OPEX (Balance at Date)' = ```
+			
+			[Expense (Balance at Date)] - 
+			[Interest Expense (Balance at Date)] - 
+			[FX Losses Expense (Balance at Date)] - 
+			[Tax Expense (Balance at Date)] - 
+			[Extraordinary Expense (Balance at Date)]
+			```
+		formatString: #,0.00
+		displayFolder: EXPENSE
+		lineageTag: b5687d1c-251a-4f79-b36f-4a7e18cea32c
+
+		annotation PBI_FormatHint = {"currencyCulture":"en-AU"}
+
+	measure 'Operating Expense - OPEX (Beginning Balance)' = ```
+			
+			[Expense (Beginning Balance)] - 
+			[Interest Expense (Beginning Balance)] - 
+			[FX Losses Expense (Beginning Balance)] - 
+			[Tax Expense (Beginning Balance)] - 
+			[Extraordinary Expense (Beginning Balance)]
+			```
+		formatString: #,0.00
+		displayFolder: EXPENSE
+		lineageTag: 9911b4f4-a47f-494e-9e35-7fe6abcdb93d
+
+		annotation PBI_FormatHint = {"currencyCulture":"en-AU"}
+
+	measure 'Operating Revenue (Balance at Date)' = ```
+			
+			[Revenue (Balance at Date)] - 
+			[Interest Revenue (Balance at Date)] - 
+			[FX Gains Revenue (Balance at Date)] - 
+			[Extraordinary Revenue (Balance at Date)]
+			```
+		formatString: #,0.00
+		displayFolder: INCOME
+		lineageTag: 27e9b07f-5e09-4771-b061-695c8d3bb43c
+
+		annotation PBI_FormatHint = {"currencyCulture":"en-AU"}
+
+	measure 'Operating Revenue (Beginning Balance)' = ```
+			
+			[Revenue (Beginning Balance)] - 
+			[Interest Revenue (Beginning Balance)] - 
+			[FX Gains Revenue (Beginning Balance)] - 
+			[Extraordinary Revenue (Beginning Balance)]
+			```
+		formatString: #,0.00
+		displayFolder: INCOME
+		lineageTag: 2411ba3e-2a64-4e8c-af1f-4ba787aa14f1
+
+		annotation PBI_FormatHint = {"currencyCulture":"en-AU"}
+
+	column Column1
+		dataType: string
+		isHidden
+		lineageTag: 721baffa-9c74-4b03-85b2-8ccba022bb80
+		summarizeBy: none
+		sourceColumn: Column1
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	partition 'Income Statement Measures-fa48bb4b-0479-4595-a0d0-5916df3c8fc0' = m
+		mode: import
+		queryGroup: 'Parameters and Functions'
+		source =
+				let
+				    Source = Table.FromRows(Json.Document(Binary.Decompress(Binary.FromText("i44FAA==", BinaryEncoding.Base64), Compression.Deflate)), let _t = ((type text) meta [Serialized.Text = true]) in type table [Column1 = _t]),
+				    #"Changed Type" = Table.TransformColumnTypes(Source,{{"Column1", type text}})
+				in
+				    #"Changed Type"
+
+	annotation PBI_ResultType = Table
+

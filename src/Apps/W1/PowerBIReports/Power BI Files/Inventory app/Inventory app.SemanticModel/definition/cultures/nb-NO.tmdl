@@ -1,0 +1,912 @@
+cultureInfo nb-NO
+	translations
+		model Model
+			table Item
+				caption: Vare
+				column 'Item No. & Description'
+					caption: Varenr. og -beskrivelse
+				column 'Item No.'
+					caption: Varenr.
+				column 'Item Description'
+					caption: Varebeskrivelse
+				column 'Item Base Unit of Measure'
+					caption: Varelagerenhet
+				column 'Item Unit Cost (LCY)'
+					caption: Enhetskost for vare (lokal valuta)
+				column 'Item Inventory Posting Group'
+					caption: Bokføringsgruppe for varebeholdning
+				column 'Item Category Code'
+					caption: Varekategorikode
+				column 'Item Category Description'
+					caption: Beskrivelse av varekategori
+				measure 'Scheduled Receipt'
+					caption: Tidsplanlagt mottak
+				measure 'Planned Order Releases'
+					caption: Planlagte ordrefrigivelser
+				measure 'Gross Requirement'
+					caption: Bruttobehov
+				measure 'Projected Available Balance'
+					caption: Beregnet disponibel saldo
+				measure 'Planned Order Receipt'
+					caption: Planlagt ordremottak
+			table Location
+				caption: Lokasjon
+				column 'Location Code'
+					caption: Lokasjonskode
+				column 'Location Name'
+					caption: Lokasjonsnavn
+				column 'Location Adjustment Bin Code'
+					caption: Hyllekode for lokasjonsjustering
+			table Customer
+				caption: Kunde
+				column 'Customer No. & Name'
+					caption: Kundenr. og -navn
+				column 'Customer No.'
+					caption: Kundenr.
+				column 'Customer Name'
+					caption: Kundenavn
+				column 'Customer Address'
+					caption: Kundeadresse
+				column 'Customer Address 2'
+					caption: Kundens adresse 2
+				column 'Customer City'
+					caption: Kundens poststed
+				column 'Customer Post Code'
+					caption: Kundens postnummer
+				column 'Customer State'
+					caption: Kundens delstat
+				column 'Customer Country/Region Code'
+					caption: Kundens kode for land/område
+				column 'Customer Posting Group'
+					caption: Kundebokføringsgruppe
+				column 'Customer Price Group'
+					caption: Kundeprisgruppe
+				column 'Customer Discount Group'
+					caption: Kunderabattgruppe
+			table Date
+				caption: Dato
+				column DateKey
+					caption: DateKey
+				column 'Day of Month'
+					caption: Dag i måneden
+				column WeekDayNumber
+					caption: WeekDayNumber
+				column 'Week Day'
+					caption: Ukedag
+				column Sequential365DayNumber
+					caption: Sequential365DayNumber
+				column 'Relative Day'
+					caption: Relativ dag
+				column 'Calendar YearNumber'
+					caption: Kalender ÅrNummer
+				column 'Calendar Year'
+					caption: Kalenderår
+				column 'Calendar QuarterNumber'
+					caption: Kalender KvartalNummer
+				column 'Calendar Quarter'
+					caption: Kalenderkvartal
+				column 'Calendar YearQuarterNumber'
+					caption: Kalender ÅrKvartalNummer
+				column 'Calendar Quarter Year'
+					caption: Kalender Kvartal År
+				column 'Calendar MonthNumber'
+					caption: Kalender MånedNummer
+				column 'Calendar Month'
+					caption: Kalendermåned
+				column 'Calendar YearMonthNumber'
+					caption: Kalender ÅrMånedNummer
+				column 'Calendar Month Year'
+					caption: Kalender Måned År
+				column 'Calendar WeekNumber'
+					caption: Kalender UkeNummer
+				column 'Calendar Week'
+					caption: Kalenderuke
+				column 'Calendar YearWeekNumber'
+					caption: Kalender ÅrUkeNummer
+				column 'Calendar Week Year'
+					caption: Kalender Uke År
+				column 'Calendar WeekYearOrder'
+					caption: Kalender UkeÅrRekkefølge
+				column 'Calendar RelativeWeekPos'
+					caption: Kalender RelativUkePos
+				column 'Calendar RelativeMonthPos'
+					caption: Kalender RelativMånedPos
+				column 'Calendar RelativeQuarterPos'
+					caption: Kalender RelativtKvartalPos
+				column 'Calendar RelativeYearPos'
+					caption: Kalender RelativtÅrPos
+				column 'Calendar StartOfMonth'
+					caption: Kalender StartPåMåned
+				column 'Calendar EndOfMonth'
+					caption: Kalender SluttPåMåned
+				column 'Calendar StartOfQuarter'
+					caption: KalenderStartPåKvartal
+				column 'Calendar EndOfQuarter'
+					caption: KalenderSluttPåKvartal
+				column 'Calendar StartOfYear'
+					caption: KalenderStartPåÅr
+				column 'Calendar EndOfYear'
+					caption: KalenderSluttPåÅr
+				column 'Calendar MonthDays'
+					caption: Kalender MånedDager
+				column 'Calendar QuarterDays'
+					caption: Kalender KvartalDager
+				column 'Calendar YearDays'
+					caption: Kalender ÅrDager
+				column 'Calendar DayOfMonthNumber'
+					caption: Kalender DagIMånedNummer
+				column 'Calendar DayOfQuarterNumber'
+					caption: Kalender DagIKvartalNummer
+				column 'Calendar DayOfYearNumber'
+					caption: Kalender DagIÅretNummer
+				column 'Calendar DatePreviousWeek'
+					caption: Kalender DatoForrigeUke
+				column 'Calendar DatePreviousMonth'
+					caption: Kalender DatoForrigeMåned
+				column 'Calendar DatePreviousQuarter'
+					caption: Kalender DatoForrigeKvartal
+				column 'Calendar DatePreviousYear'
+					caption: Kalender DatoForrigeÅr
+				column 'Fiscal Year'
+					caption: Regnskapsår
+				column 'Fiscal YearNumber'
+					caption: Regnskap ÅrNummer
+				column 'Fiscal QuarterNumber'
+					caption: Regnskap KvartalNummer
+				column 'Fiscal Quarter'
+					caption: Regnskapskvartal
+				column 'Fiscal YearQuarterNumber'
+					caption: Regnskap ÅrKvartalNummer
+				column 'Fiscal Quarter Year'
+					caption: Regnskap Kvartal År
+				column 'Fiscal MonthNumber'
+					caption: Regnskap MånedNummer
+				column 'Fiscal MonthInQuarterNumber'
+					caption: Regnskap MånedIKvartalNummer
+				column 'Fiscal Month'
+					caption: Regnskapsmåned
+				column 'Fiscal YearMonthNumber'
+					caption: Regnskap ÅrMånedNummer
+				column 'Fiscal Month Year'
+					caption: Regnskap Måned År
+				column 'Fiscal WeekNumber'
+					caption: Regnskap Ukenummer
+				column 'Fiscal Week'
+					caption: Regnskapsuke
+				column 'Fiscal YearWeekNumber'
+					caption: RegnskapsårUkenummer
+				column 'Fiscal Week Year'
+					caption: Regnskap Uke År
+				column 'Fiscal WeekYearOrder'
+					caption: Regnskap UkeÅrRekkefølge
+				column 'Fiscal RelativeWeekPos'
+					caption: Regnskap RelativUkePos
+				column 'Fiscal RelativeMonthPos'
+					caption: Regnskap RelativMånedPos
+				column 'Fiscal RelativeQuarterPos'
+					caption: Regnskap RelativtKvartalPos
+				column 'Fiscal RelativeYearPos'
+					caption: Regnskap RelativtÅrPos
+				column 'Fiscal StartOfMonth'
+					caption: Regnskap StartPåMåned
+				column 'Fiscal EndOfMonth'
+					caption: Regnskap SluttPåMåned
+				column 'Fiscal StartOfQuarter'
+					caption: Regnskap StartPåKvartal
+				column 'Fiscal EndOfQuarter'
+					caption: Regnskap SluttPåKvartal
+				column 'Fiscal StartOfYear'
+					caption: Regnskap StartPåÅr
+				column 'Fiscal EndOfYear'
+					caption: Regnskap SluttPåÅr
+				column 'Fiscal MonthDays'
+					caption: Regnskap MånedDager
+				column 'Fiscal QuarterDays'
+					caption: Regnskap KvartalDager
+				column 'Fiscal YearDays'
+					caption: Regnskap ÅrDager
+				column 'Fiscal DayOfMonthNumber'
+					caption: Regnskap DagIMånedNummer
+				column 'Fiscal DayOfQuarterNumber'
+					caption: Regnskap DagIKvartalNummer
+				column 'Fiscal DayOfYearNumber'
+					caption: Regnskap DagIÅretNummer
+				column 'Fiscal DatePreviousWeek'
+					caption: Regnskap DatoForrigeUke
+				column 'Fiscal DatePreviousMonth'
+					caption: Regnskap DatoForrigeMåned
+				column 'Fiscal DatePreviousQuarter'
+					caption: Regnskap DatoForrigeKvartal
+				column 'Fiscal DatePreviousYear'
+					caption: Regnskap DatoForrigeÅr
+				column 'FW YearNumber'
+					caption: Regnskapsuke ÅrNummer
+				column 'FW Year'
+					caption: Regnskapsuke år
+				column 'FW QuarterNumber'
+					caption: Regnskapsuke KvartalNummer
+				column 'FW Quarter'
+					caption: Regnskapsuke kvartal
+				column 'FW YearQuarterNumber'
+					caption: Regnskapsuke ÅrKvartalNummer
+				column 'FW Quarter Year'
+					caption: Regnskapsuke Kvartal År
+				column 'FW MonthNumber'
+					caption: Regnskapsuke MånedNummer
+				column 'FW Month'
+					caption: Regnskapsuke måned
+				column 'FW YearMonthNumber'
+					caption: Regnskapsuke ÅrMånedNummer
+				column 'FW Month Year'
+					caption: Regnskapsuke Måned År
+				column 'FW WeekNumber'
+					caption: Regnskapsuke UkeNummer
+				column 'FW Week'
+					caption: Regnskapsuke Uke
+				column 'FW PeriodNumber'
+					caption: Regnskapsuke PeriodeNummer
+				column 'FW Period'
+					caption: Regnskapsukeperiode
+				column 'FW YearWeekNumber'
+					caption: Regnskapsuke ÅrUkeNummer
+				column 'FW Week Year'
+					caption: Regnskapsuke Uke År
+				column 'FW StartOfWeek'
+					caption: Regnskapsuke StartPåUke
+				column 'FW EndOfWeek'
+					caption: Regnskapsuke SluttPåUke
+				column 'FW RelativeWeekPos'
+					caption: Regnskapsuke RelativUkePos
+				column 'FW RelativeMonthPos'
+					caption: Regnskapsuke RelativMånedPos
+				column 'FW RelativeQuarterPos'
+					caption: Regnskapsuke RelativtKvartalPos
+				column 'FW RelativeYearPos'
+					caption: Regnskapsuke RelativtÅrPos
+				column 'FW StartOfMonth'
+					caption: Regnskapsuke StartPåMåned
+				column 'FW EndOfMonth'
+					caption: Regnskapsuke SluttPåMåned
+				column 'FW StartOfQuarter'
+					caption: Regnskapsuke StartPåKvartal
+				column 'FW EndOfQuarter'
+					caption: Regnskapsuke SluttPåKvartal
+				column 'FW StartOfYear'
+					caption: Regnskapsuke StartPåÅr
+				column 'FW EndOfYear'
+					caption: Regnskapsuke SluttPåÅr
+				column 'FW MonthDays'
+					caption: Regnskapsuke MånedDager
+				column 'FW QuarterDays'
+					caption: Regnskapsuke KvartalDager
+				column 'FW YearDays'
+					caption: Regnskapsuke ÅrDager
+				column 'FW DayOfMonthNumber'
+					caption: Regnskapsuke DagIMånedNummer
+				column 'FW DayOfQuarterNumber'
+					caption: Regnskapsuke DagIKvartalNummer
+				column 'FW DayOfYearNumber'
+					caption: Regnskapsuke DagIÅretNummer
+				column 'FW DatePreviousWeek'
+					caption: Regnskapsuke DatoForrigeUke
+				column 'FW DatePreviousMonth'
+					caption: Regnskapsuke DatoForrigeMåned
+				column 'FW DatePreviousQuarter'
+					caption: Regnskapsuke DatoForrigeKvartal
+				column 'FW DatePreviousYear'
+					caption: Regnskapsuke DatoForrigeÅr
+				column 'Holiday Name'
+					caption: Navn på ferie
+				column IsWorkingDay
+					caption: IsWorkingDay
+				column 'Day Type'
+					caption: Type dag
+				column DatesWithTransactions
+					caption: DatesWithTransactions
+				measure Ranged
+					caption: Fra/til
+				hierarchy 'Fiscal Year-Month'
+					caption: Regnskap år-måned
+					level 'Fiscal Year'
+						caption: Regnskapsår
+					level 'Fiscal Month Year'
+						caption: Regnskap Måned År
+				hierarchy 'Fiscal Year-Month-Week'
+					caption: Regnskap År-Måned-Uke
+					level 'Fiscal Year'
+						caption: Regnskapsår
+					level 'Fiscal Month Year'
+						caption: Regnskap Måned År
+					level 'Fiscal Week Year'
+						caption: Regnskap Uke År
+				hierarchy 'Fiscal Year-Quarter-Month-Week'
+					caption: Regnskap år-kvartal-måned-uke
+					level 'Fiscal Year'
+						caption: Regnskapsår
+					level 'Fiscal Quarter Year'
+						caption: Regnskap Kvartal År
+					level 'Fiscal Month Year'
+						caption: Regnskap Måned År
+					level 'Fiscal Week Year'
+						caption: Regnskap Uke År
+				hierarchy 'Calendar Year-Month'
+					caption: Kalender år-måned
+					level 'Calendar Year'
+						caption: Kalenderår
+					level 'Calendar Month Year'
+						caption: Kalender Måned År
+				hierarchy 'Calendar Year-Month-Week'
+					caption: Kalender år-måned-uke
+					level 'Calendar Year'
+						caption: Kalenderår
+					level 'Calendar Month Year'
+						caption: Kalender Måned År
+					level 'Calendar Week Year'
+						caption: Kalender Uke År
+				hierarchy 'Calendar Year-Quarter-Month-Week'
+					caption: Kalender år-kvartal-måned-uke
+					level 'Calendar Year'
+						caption: Kalenderår
+					level 'Calendar Quarter Year'
+						caption: Kalender Kvartal År
+					level 'Calendar Month Year'
+						caption: Kalender Måned År
+					level 'Calendar Week Year'
+						caption: Kalender Uke År
+				hierarchy 'FW Year-Week'
+					caption: Regnskapsuke år-uke
+					level 'FW Year'
+						caption: Regnskapsuke år
+					level 'FW Week Year'
+						caption: Regnskapsuke Uke År
+				hierarchy 'FW Year-Month-Week'
+					caption: Regnskapsuke år-måned-uke
+					level 'FW Year'
+						caption: Regnskapsuke år
+					level 'FW Month Year'
+						caption: Regnskapsuke Måned År
+					level 'FW Week Year'
+						caption: Regnskapsuke Uke År
+				hierarchy 'FW Year-Quarter-Week'
+					caption: Regnskapsuke år-kvartal-uke
+					level 'FW Year'
+						caption: Regnskapsuke år
+					level 'FW Quarter Year'
+						caption: Regnskapsuke Kvartal År
+					level 'FW Week Year'
+						caption: Regnskapsuke Uke År
+				hierarchy 'FW Year-Quarter-Month-Week'
+					caption: Regnskapsuke år-kvartal-måned-uke
+					level 'FW Year'
+						caption: Regnskapsuke år
+					level 'FW Quarter Year'
+						caption: Regnskapsuke Kvartal År
+					level 'FW Month Year'
+						caption: Regnskapsuke Måned År
+					level 'FW Week Year'
+						caption: Regnskapsuke Uke År
+			table Vendor
+				caption: Leverandør
+				column 'Vendor No. & Name'
+					caption: Leverandørnr. og -navn
+				column 'Vendor No.'
+					caption: Leverandørnr.
+				column 'Vendor Name'
+					caption: Leverandørnavn
+				column 'Vendor Address'
+					caption: Leverandøradresse
+				column 'Vendor Address 2'
+					caption: Leverandørens adresse 2
+				column 'Vendor City'
+					caption: Leverandørens poststed
+				column 'Vendor Post Code'
+					caption: Leverandørens postnummer
+				column 'Vendor State'
+					caption: Leverandørens delstat
+				column 'Vendor Country/Region Code'
+					caption: Leverandørens kode for land/område
+				column 'Vendor Posting Group'
+					caption: Leverandørbokføringsgruppe
+			table 'Item Ledger Entries'
+				caption: Vareposter
+				column 'Entry No.'
+					caption: Oppføringsnr.
+				column 'Entry Type'
+					caption: Oppføringstype
+				column 'Expiration Date'
+					caption: Utløpsdato
+				column Open
+					caption: Åpne
+				column 'Document No.'
+					caption: Dokumentnr.
+				column 'Quantity Per Unit of Measure'
+					caption: Antall per enhet
+				column 'Unit of Measure Code'
+					caption: Enhetskode
+				column 'Document Type'
+					caption: Dokumenttype
+				measure 'Inventory (Quantity)'
+					caption: Beholdning (antall)
+				measure 'Remaining Quantity'
+					caption: Restantall
+				measure Quantity
+					caption: Antall
+				measure 'Expired Inventory'
+					caption: Utgått beholdning
+				measure 'Net Qty. Sold'
+					caption: Netto antall solgt
+				measure 'Net Qty. Purchased'
+					caption: Netto antall kjøpt
+				measure 'Invoiced Quantity'
+					caption: Fakturert antall
+				measure 'Base Link'
+					caption: Grunnkobling
+				measure 'Item Ledger Entries Link (Location Context)'
+					caption: Kobling for vareposter (lokasjonskontekst)
+				measure 'Item Ledger Entries Link'
+					caption: Kobling for vareposter
+				measure 'Item Ledger Entries Lot No Link'
+					caption: Kobling for varepostpartinummer
+				measure 'Item Ledger Entries Serial No Link'
+					caption: Kobling for varepostserienummer
+			table 'Dimension Sets'
+				caption: Dimensjonssett
+				column 'Global Dimension 1'
+					caption: Global dimensjon 1
+				column 'Global Dimension 2'
+					caption: Global dimensjon 2
+				column 'Shortcut Dimension 3'
+					caption: Snarveisdimensjon 3
+				column 'Shortcut Dimension 4'
+					caption: Snarveisdimensjon 4
+				column 'Shortcut Dimension 5'
+					caption: Snarveisdimensjon 5
+				column 'Shortcut Dimension 6'
+					caption: Snarveisdimensjon 6
+				column 'Shortcut Dimension 7'
+					caption: Snarveisdimensjon 7
+				column 'Shortcut Dimension 8'
+					caption: Snarveisdimensjon 8
+				column id
+					caption: ID
+			table 'Purchase Lines'
+				caption: Bestillingslinjer
+				column 'Document No.'
+					caption: Dokumentnr.
+				column 'Expected Receipt Date'
+					caption: Forventet mottaksdato
+				column 'Document Type'
+					caption: Dokumenttype
+				column 'Quantity Per Unit of Measure'
+					caption: Antall per enhet
+				column 'Unit of Measure Code'
+					caption: Enhetskode
+				measure 'Qty. on Purch. Order'
+					caption: Antall i bestilling
+				measure 'Qty. on Purch. Return'
+					caption: Antall i bestillingsretur
+				measure 'Purchase Return - Earliest Expected Receipt Date'
+					caption: Bestillingsretur – tidligste forventede mottaksdato
+				measure 'Purchase Order - Earliest Expected Receipt Date'
+					caption: Bestilling – tidligste forventede mottaksdato
+				measure 'Purchase Order Quantity Link'
+					caption: Kobling for bestillingsantall
+				measure 'Purchase Return Order Quantity Link'
+					caption: Kobling for bestillingsreturantall
+			table Zone
+				caption: Sone
+				column 'Zone Description'
+					caption: Sonebeskrivelse
+				column 'Zone Bin Type Code'
+					caption: Kode for sonehylletype
+				column 'Zone Code'
+					caption: Sonekode
+			table Bin
+				caption: Hylle
+				column 'Bin Description'
+					caption: Hyllebeskrivelse
+				column 'Bin Type Code'
+					caption: Hylletypekode
+				column 'Bin Code'
+					caption: Hyllekode
+				column 'Adjustment Bin'
+					caption: Justeringshylle
+				column 'Bin Zone Code'
+					caption: Hyllesonekode
+				measure 'Available Qty. to Take'
+					caption: Disp. antall som skal hentes
+				measure 'Quantity in Adjustment Bin'
+					caption: Antall i justeringshylle
+				measure 'Positive Adjmt. Qty. (Base)'
+					caption: Oppjusteringsant. (lageren.)
+				measure 'Negative Adjmt. Qty. (Base)'
+					caption: Nedjusteringsant. (lageren.)
+				measure 'Warehouse Quantity'
+					caption: Lagerantall
+				measure 'ATO Components Pick Qty.'
+					caption: Plukkantall for monter-til-ordre-komponenter
+				measure 'Put-away Quantity (Base)'
+					caption: Plasseringsantall (lageren.)
+				measure 'Pick Quantity (Base)'
+					caption: Plukkant. (lageren.)
+				measure 'Warehouse Entries Link'
+					caption: Kobling for lagerposter
+				measure 'Pick Quantity Link'
+					caption: Kobling for plukkantall
+				measure 'Warehouse Journal Link'
+					caption: Kobling for lagerkladd
+			table 'Sales Lines'
+				caption: Salgslinjer
+				column 'Document No.'
+					caption: Dokumentnr.
+				column 'Shipment Date'
+					caption: Forsendelsesdato
+				column 'Document Type'
+					caption: Dokumenttype
+				column 'Quantity Per Unit of Measure'
+					caption: Antall per enhet
+				column 'Unit of Measure Code'
+					caption: Enhetskode
+				measure 'Qty. on Sales Order'
+					caption: Antall i ordre
+				measure 'Qty. on Sales Return Order'
+					caption: Antall i ordretur
+				measure 'Sales Order - Earliest Shipment Date'
+					caption: Ordre – tidligste forsendelsesdato
+				measure 'Sales Retrun Order - Earliest Shipment Date'
+					caption: Ordreretur – tidligste forsendelsesdato
+				measure 'Sales Order Line Link'
+					caption: Tilbakekobling for ordrelinje
+				measure 'Sales Return Order Line Link'
+					caption: Tilbakekobling for ordrereturlinje
+			table 'Assembly Lines'
+				caption: Monteringslinjer
+				column 'Due Date'
+					caption: Forfallsdato
+				column 'Document No.'
+					caption: Dokumentnr.
+				column 'Quantity Per Unit of Measure'
+					caption: Antall per enhet
+				column 'Unit of Measure Code'
+					caption: Enhetskode
+				measure 'Qty. on Asm. Component'
+					caption: Ant. på monteringskomponent
+				measure 'Assembly Lines - Earliest Due Date'
+					caption: Monteringslinjer – tidligste forfallsdato
+				measure 'Assembly Line Quantity Link'
+					caption: Kobling for monteringslinjeantall
+			table 'Assembly Headers'
+				caption: Monteringshoder
+				column 'Document No.'
+					caption: Dokumentnr.
+				column 'Due Date'
+					caption: Forfallsdato
+				column Status
+					caption: Status
+				column 'Quantity Per Unit of Measure'
+					caption: Antall per enhet
+				column 'Unit of Measure Code'
+					caption: Enhetskode
+				measure 'Qty. on Assembly Order'
+					caption: Ant. på monteringsordre
+				measure 'Assembly Order - Earliest Due Date'
+					caption: Monteringsordre – tidligste forfallsdato
+				measure 'Assembly Order Quantity Link'
+					caption: Kobling for monteringsordreantall
+			table 'Project Planning Lines'
+				caption: Prosjektplanleggingslinjer
+				column 'Document No.'
+					caption: Dokumentnr.
+				column 'Quantity Per Unit of Measure'
+					caption: Antall per enhet
+				column 'Unit of Measure Code'
+					caption: Enhetskode
+				measure 'Qty. on Projects'
+					caption: Antall i prosjekter
+				measure 'Project Planning - Earliest Planning Date'
+					caption: Prosjektplanlegging – tidligste planleggingsdato
+				measure 'Planning Line Link'
+					caption: Kobling for planleggingslinje
+			table 'Production Order Lines'
+				caption: Produksjonsordrelinjer
+				column Status
+					caption: Status
+				column 'Document No.'
+					caption: Dokumentnr.
+				column 'Due Date'
+					caption: Forfallsdato
+				column 'Starting Date'
+					caption: Startdato
+				column 'Quantity Per Unit of Measure'
+					caption: Antall per enhet
+				column 'Unit of Measure Code'
+					caption: Enhetskode
+				measure 'Qty. on Prod. Order'
+					caption: Antall i prod.ordre
+				measure 'FP Order Receipt (Qty.)'
+					caption: Ferdig produktordremott. (ant.)
+				measure 'Rel. Order Receipt (Qty.)'
+					caption: Frigitt ordremottak (ant.)
+				measure 'Scheduled Receipt (Qty.)'
+					caption: Planlagt mottak (ant.)
+				measure 'FP Order - Earliest Due Date'
+					caption: Ferdig produktordre – tidligste forfallsdato
+				measure 'Rel. Order - Earliest Due Date'
+					caption: Frigitt ordre – tidligste forfallsdato
+				measure 'Production Order Link'
+					caption: Kobling for produksjonsordre
+			table 'Prod Order Component Lines'
+				caption: Prod.ordrekomponentlinjer
+				column Status
+					caption: Status
+				column 'Document No.'
+					caption: Dokumentnr.
+				column 'Due Date'
+					caption: Forfallsdato
+				column 'Quantity Per Unit of Measure'
+					caption: Antall per enhet
+				column 'Unit of Measure Code'
+					caption: Enhetskode
+				measure 'Qty. on Prod. Order Comp. Lines'
+					caption: Antall i prod.ordrekomp.linjer
+				measure 'Prod. Order Comp. Lines - Earliest Due Date'
+					caption: Prod.ordrekomp.linjer – tidligste forfallsdato
+				measure 'Prod. Order Components Link'
+					caption: Kobling for prod.ordrekomponenter
+			table 'Service Lines'
+				caption: Servicelinjer
+				column 'Document No.'
+					caption: Dokumentnr.
+				column 'Needed By Date'
+					caption: Trengs innen-dato
+				column 'Quantity Per Unit of Measure'
+					caption: Antall per enhet
+				column 'Unit of Measure Code'
+					caption: Enhetskode
+				measure 'Qty. on Service Order'
+					caption: Ant. i serviceordre
+				measure 'Service Lines - Earliest Needed by Date'
+					caption: Servicelinjer – tidligste Trengs innen-dato
+				measure 'Service Order Link'
+					caption: Kobling for serviceordre
+			table 'Transfer Lines'
+				caption: Overføringslinjer
+				description: Angir hvor mange varer som fortsatt ikke er mottatt og ikke er sendt, som differansen mellom innholdet i feltene Antall og Levert (antall).
+				column 'Document No.'
+					caption: Dokumentnr.
+				column 'Receipt Date'
+					caption: Mottaksdato
+				column 'Transfer To Location Code'
+					caption: Overfør til-lokasjonskode
+				column 'Transfer From Location Code'
+					caption: Overfør fra-lokasjonskode
+				column 'Shipment Date'
+					caption: Forsendelsesdato
+				column 'In Transit Location Code'
+					caption: I transitt-lokasjonskode
+				column 'Quantity Per Unit of Measure'
+					caption: Antall per enhet
+				column 'Unit of Measure Code'
+					caption: Enhetskode
+				measure 'Qty. in Transit'
+					caption: Antall i transitt
+				measure 'Trans. Order Shipment (Qty.)'
+					caption: Overf.ordrelevering (ant.)
+				measure 'Trans. Order Receipt (Qty.)'
+					caption: Overf.ordremottak (ant.)
+				measure 'Trans. Order Outstanding Qty.'
+					caption: Utestående antall i overføringsordre
+				measure 'Trans. Order Shipment - Earliest Shipment Date'
+					caption: Overf.ordrelevering – tidligste forsendelsesdato
+				measure 'Trans. Order Receipt - Earliest Receipt Date'
+					caption: Overføringsordremottak – tidligste mottaksdato
+				measure 'Transfer Lines Quantity Link'
+					caption: Kobling for overføringslinjeantall
+			table 'Planning Component Lines'
+				caption: Planleggingskomponentlinjer
+				column 'Due Date'
+					caption: Forfallsdato
+				column 'Quantity Per Unit of Measure'
+					caption: Antall per enhet
+				column 'Unit of Measure Code'
+					caption: Enhetskode
+				measure 'Planning Issues (Qty.)'
+					caption: Planl. utstedelser (ant.)
+				measure 'Planning Issues - Earliest Due Date'
+					caption: Planleggingsutstedelser – tidligste forfallsdato
+			table 'Item Availability Filter'
+				caption: Varedisposisjonsfilter
+				column 'View As'
+					caption: Vis som
+				column Ordinal
+					caption: Ordenstall
+			table 'Lot No'
+				caption: Partinr.
+				column 'Lot No.'
+					caption: Partinr.
+			table 'Serial No'
+				caption: Serienr.
+				column 'Serial No.'
+					caption: Serienr.
+			table 'Localized Labels'
+				measure 'My Report Title'
+					caption: Min rapporttittel
+				measure 'My Button Caption'
+					caption: Min knappetittel
+				measure 'My Visual Title'
+					caption: Min visuelle tittel
+				measure 'Inventory Overview'
+					caption: Oversikt over beholdning
+				measure 'Inventory and Projected Available Balance'
+					caption: Beholdning og forventet disponibel saldo
+				measure 'Availability Outlook'
+					caption: Tilgjengelighet Outlook
+				measure 'Inventory by Item'
+					caption: Beholdning etter vare
+				measure 'Inventory by Location'
+					caption: Beholdning etter lokasjon
+				measure 'Inventory on Hand by Location'
+					caption: Disponibel beholdning etter lokasjon
+				measure 'Purchase and Sales Quantity'
+					caption: Kjøps- og salgsantall
+				measure 'Item Availability'
+					caption: Varedisposisjon
+				measure 'Projected Available Balance vs. Quantity on Hand'
+					caption: Forventet disponibel saldo kontra beholdning
+				measure 'Gross Requirements vs. Projected Available Balance'
+					caption: Bruttobehov kontra forventet disponibel saldo
+				measure 'Gross Requirements Earliest Dates'
+					caption: Bruttobehov tidligste datoer
+				measure 'Scheduled Receipt Earliest Dates'
+					caption: Tidsplanlagt mottak tidligste datoer
+				measure 'Purchase Order Drill Through'
+					caption: Gjennomgang av bestilling
+				measure 'Purchase Return Order Drill Through'
+					caption: Gjennomgang av bestillingsretur
+				measure 'Item Ledger Entry Drill through'
+					caption: Gjennomgang av varepost
+				measure 'Production Order Drill Through'
+					caption: Gjennomgang av produksjonsordre
+				measure 'Prod. Order Components Drill Through'
+					caption: Gjennomgang av prod.ordrekomponenter
+				measure 'Sales Order Drill Through'
+					caption: Gjennomgang av ordre
+				measure 'Sales Return Order Drill Through'
+					caption: Gjennomgang av ordreretur
+				measure 'Transfer Order Drill Through'
+					caption: Gjennomgang av overføringsordre
+				measure 'Assembly Order Drill Through'
+					caption: Gjennomgang av monteringsordre
+				measure 'Assembly Lines Drill Through'
+					caption: Gjennomgang av monteringslinjer
+				measure 'Service Lines Drill Through'
+					caption: Gjennomgang av servicelinjer
+				measure 'Gross Requirement '
+					caption: "Bruttobehov "
+				measure 'Scheduled Receipt '
+					caption: "Tidsplanlagt mottak "
+				measure 'Inventory by Lot '
+					caption: "Beholdning etter parti "
+				measure 'Inventory by Serial No.'
+					caption: Beholdning etter serienr.
+				measure 'Bin Contents'
+					caption: Hylleinnhold
+				measure 'Bin Contents by Item Tracking'
+					caption: Hylleinnhold etter varesporing
+				measure 'Expired Inventory '
+					caption: "Utgått beholdning "
+				measure 'Gross Requirements'
+					caption: Bruttobehov
+				measure 'Scheduled Receipts'
+					caption: Tidsplanlagte mottak
+				measure 'for Business Central'
+					caption: for Business Central
+				measure 'CONNECT YOUR DATA'
+					caption: KOBLE TIL DATAENE
+				measure '1. Download the Inventory Connector for Power BI'
+					caption: 1. Last ned beholdningskoblingen for Power BI
+				measure '2. Configure Dynamics 365 Business Central'
+					caption: 2. Konfigurer Dynamics 365 Business Central
+				measure 'USE, EDIT AND BUILD YOUR OWN REPORTS'
+					caption: BRUK, REDIGER OG BYGG DINE EGNE RAPPORTER
+				measure 'Inventory includes a variety of pre-built reports to help you see your data immediately.'
+					caption: Beholdning inkluderer en rekke forhåndsbygde rapporter for å hjelpe deg med å se dataene umiddelbart.
+				measure 'You are able to edit these reports or build your own report from scratch.'
+					caption: Du kan redigere disse rapportene eller lage din egen rapport fra bunnen av.
+				measure 'HELP AND SUPPORT'
+					caption: HJELP OG KUNDESTØTTE
+				measure 'For help and support with your new report please visit the Analytics overview documentation.'
+					caption: Hvis du vil ha hjelp og støtte med den nye rapporten, kan du gå til dokumentasjonen for analyseoversikten.
+				measure 'OTHER POWER BI REPORTS'
+					caption: ANDRE POWER BI-RAPPORTER
+				measure PURCHASE
+					caption: KJØP
+				measure FINANCE
+					caption: FINANS
+				measure REBATES
+					caption: RABATTER
+				measure SALES
+					caption: SALG
+				measure 'INVENTORY '
+					caption: "BEHOLDNING "
+				measure 'Inventory  '
+					caption: "Beholdning  "
+				measure 'The inventory by item shows item category code, inventory, and the quantity on various documents.'
+					caption: Beholdning etter vare viser varekategorikode, beholdning og antallet i ulike dokumenter.
+				measure 'The inventory by location shows item number and description, and quantity on hand per location.'
+					caption: Beholdning etter lokasjon viser varenummer og beskrivelse og disponibel beholdning per lokasjon.
+				measure 'The purchases and sales quantity shows item category code, purchase and sales quantities, and the quantity net change by deducting purchases to sales.'
+					caption: Kjøps- og salgsantallet viser varekategorikode, kjøps- og salgsantall og bevegelse i antall ved å trekke kjøp fra salg.
+				measure 'The item availiblity shows item number, inventory, projected available balance, gross requirement, scheduled receipt, planned order receipt, and planned order releases.'
+					caption: Varedisposisjon viser varenummer, beholdning, forventet disponibel saldo, bruttobehov, planlagt mottak, planlagt ordremottak og planlagte ordrefrigivelser.
+				measure 'The gross requirement and projected available balance shows item number and description, and the quantity on various documents.'
+					caption: Bruttobehovet og forventet disponibel saldo viser varenummer og beskrivelse, samt antallet på ulike dokumenter.
+				measure 'The bin contents shows available quantity to take for each location and bin.'
+					caption: Hylleinnholdet viser tilgjengelig antall som skal tas for hver lokasjon og hylle.
+				measure 'The bin contents by item tracking shows item tracking details for each location and bin.'
+					caption: Hylleinnholdet etter varesporing viser varesporingsdetaljer for hver lokasjon og hylle.
+				measure 'The scheduled receipt and projected available balance shows item number and description, and the quantity on various documents.'
+					caption: Planlagt mottak og forventet disponibel saldo viser varenummer og beskrivelse, samt antallet på ulike dokumenter.
+				measure 'Last Refreshed'
+					caption: Sist oppdatert
+				measure 'Company Name'
+					caption: Selskapsnavn
+				measure 'Inventory (Quantity) by Location Code'
+					caption: Beholdning (antall) etter lokasjonskode
+				measure 'Scheduled Receipt and Projected Available Balance by Fiscal Year and Month'
+					caption: Planlagt mottak og forventet disponibel saldo etter regnskapsår og måned
+				measure 'Inventory (Quantity) by Lot No.'
+					caption: Beholdning (antall) etter partinr.
+				measure 'Inventory (Quantity) by Serial No.'
+					caption: Beholdning (antall) etter serienr.
+				measure MANUFACTURING
+					caption: PRODUKSJON
+				measure 'INVENTORY VALUATION'
+					caption: BEHOLDNINGSVERDISETTING
+				measure 'Available Quantity to Take by Bin Code'
+					caption: Disponibelt antall som skal tas etter hyllekode
+				measure 'Projected Available Balance vs. Current Inventory'
+					caption: Forventet disponibel saldo kontra nåværende beholdning
+				measure 'Purchase vs. Sales Quantity Across Time'
+					caption: Kjøpsantall kontra salgsantall over tid
+				measure 'Inventory by Item Details'
+					caption: Detaljer om beholdning etter vare
+				measure 'Inventory by Location Details'
+					caption: Detaljer om beholdning etter lokasjon
+				measure 'Purchase and Sales Quantity Details'
+					caption: Detaljer om kjøps- og salgsantall
+				measure 'Item Availability Details'
+					caption: Detaljer om varedisposisjon
+				measure 'Gross Requirement Details'
+					caption: Detaljer om bruttobehov
+				measure 'Scheduled Receipt Details'
+					caption: Detaljer om tidsplanlagt mottak
+				measure 'Inventory by Lot Details'
+					caption: Detaljer om beholdning etter parti
+				measure 'Inventory by Serial No Details'
+					caption: Detaljer om beholdning etter serienr.
+				measure 'Bin Contents Details'
+					caption: Detaljer om hylleinnhold
+				measure 'Bin Contents by Item Tracking Details'
+					caption: Detaljer om hylleinnhold etter varesporing
+			table COMPANY
+				caption: SELSKAP
+				measure 'Company Label'
+					caption: Selskapsetikett
+			table ENVIRONMENT
+				caption: MILJØ
+			table 'Item Category'
+				caption: Varekategori
+				column 'Item Category Code'
+					caption: Varekategorikode
+				column 'Item Category Description'
+					caption: Beskrivelse av varekategori
+				hierarchy 'Item Category Code Hierarchy'
+					caption: Hierarki for varekategorikode
+					level 'Item Category Code Level 1'
+						caption: Varekategorikode nivå 1
+					level 'Item Category Code Level 2'
+						caption: Varekategorikode nivå 2
+					level 'Item Category Code Level 3'
+						caption: Varekategorikode nivå 3
+

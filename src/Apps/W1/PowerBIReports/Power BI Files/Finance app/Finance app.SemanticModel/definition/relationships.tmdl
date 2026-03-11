@@ -1,0 +1,69 @@
+relationship 6f75e82f-2b1b-4d44-bb29-46bce1c4a76f
+	fromColumn: 'G/L Entries'.'Posting Date'
+	toColumn: Date.Date
+
+relationship d3dfb362-3d05-4f74-a614-fc391eb9f71c
+	fromColumn: 'Customer Ledger Entries'.'DCLE Posting Date'
+	toColumn: Date.Date
+
+relationship 67462f8a-aed0-4b47-a908-24194df06ce2
+	fromColumn: 'Vendor Ledger Entries'.'DVLE Posting Date'
+	toColumn: Date.Date
+
+relationship b461e8d0-c151-4483-9894-26bf7be920f1
+	fromColumn: 'G/L Budget Entries'.'Budget Date'
+	toColumn: Date.Date
+
+relationship 987b9f9f-1d5b-4434-a162-95eb72a7b06d
+	fromColumn: 'Customer Ledger Entries'.'Customer No.'
+	toColumn: Customers.'Customer No.'
+
+relationship 6e79e796-358a-49d2-92fd-4f75b0519ce0
+	fromColumn: 'Customer Ledger Entries'.cleDimensionSetID
+	toColumn: 'Dimension Sets'.dimensionSetID
+
+relationship 0f56607e-7045-4b3e-ac57-09239dc4cb74
+	fromColumn: 'Vendor Ledger Entries'.'Vendor No.'
+	toColumn: Vendors.'Vendor No.'
+
+relationship 275927b7-c6df-4864-aa80-10fd41609b2a
+	fromColumn: 'Vendor Ledger Entries'.vleDimensionSetID
+	toColumn: 'Dimension Sets'.dimensionSetID
+
+relationship 23a6626a-4484-41a9-a1d7-9269531cd3c8
+	fromColumn: 'G/L Entries'.'Source No.'
+	toColumn: Vendors.'Vendor No.'
+
+relationship 443d8b65-a648-4999-8a17-7980adb32fc2
+	fromColumn: 'G/L Entries'.'Source No.'
+	toColumn: Customers.'Customer No.'
+
+relationship c9900d06-a380-49a0-80ed-3afb6b4cd1e1
+	fromColumn: 'G/L Entries'.'G/L Account No.'
+	toColumn: 'G/L Account'.'G/L Account No.'
+
+relationship e9d375e2-31ff-4734-81c5-5dc3321fceb8
+	fromColumn: 'G/L Budget Entries'.'G/L Account No.'
+	toColumn: 'G/L Account'.'G/L Account No.'
+
+relationship b3d35d1e-d4a9-4e96-9cb6-befef5711c59
+	fromColumn: 'G/L Account'.'Account Subcategory Entry No.'
+	toColumn: 'G/L Account Category'.'Entry No.'
+
+relationship 00dc6a63-b8fb-4c62-ad58-67973add488e
+	fromColumn: 'G/L Budget Entries'.'Budget Name'
+	toColumn: 'G/L Budget'.'G/L Budget Name'
+
+relationship 0fee7164-eb1f-3e8c-3c30-c12bc8ea8acc
+	crossFilteringBehavior: bothDirections
+	fromColumn: 'Power BI Account Categories'.glAccCategoryEntryNo
+	toColumn: 'G/L Account Category'.'Entry No.'
+
+relationship 9ee27133-5671-761d-dbd4-774403a893cc
+	fromColumn: 'G/L Budget Entries'.dimensionSetID
+	toColumn: 'Dimension Sets'.dimensionSetID
+
+relationship 810bafe6-5835-4e7b-9434-9abb1508b222
+	fromColumn: 'G/L Entries'.dimensionSetID
+	toColumn: 'Dimension Sets'.dimensionSetID
+

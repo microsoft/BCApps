@@ -1,0 +1,358 @@
+table 'Value Entries'
+	lineageTag: 8973d907-1a71-4e19-835f-993978526a6e
+
+	measure 'Beginning Balance Value' = ```
+			
+			 
+			 var WipConsumption = 
+			 CALCULATE(
+			    [Consumption Value],
+			    FILTER ( ALL ( 'Date'[Date] ), 'Date'[Date] < MIN ( 'Date'[Date] ) )
+			 )
+			
+			VAR WipCapacity = 
+			 CALCULATE(
+			    [Capacity Value],
+			    FILTER ( ALL ( 'Date'[Date] ), 'Date'[Date] < MIN ( 'Date'[Date] ) )
+			 )
+			
+			 VAR WipOutput = 
+			 CALCULATE(
+			    [Output Value],
+			    FILTER ( ALL ( 'Date'[Date] ), 'Date'[Date] < MIN ( 'Date'[Date] ) )
+			 )
+			
+			RETURN WipConsumption + WipCapacity + WipOutput
+			```
+		formatString: #,0.00
+		displayFolder: _Production Order - WIP
+		lineageTag: e788f057-719a-4438-9aba-912ddc1e8063
+
+	measure 'Consumption Value' =
+			
+			CALCULATE(
+			    -SUM('Value Entries'[costAmountActual]),
+			    'Value Entries'[Item Ledger Entry Type] = "Consumption",
+			    'Value Entries'[Entry Type] <> "Revaluation"
+			)
+		formatString: #,0.00
+		displayFolder: _Production Order - WIP
+		lineageTag: 2a6ec0f6-3ce3-4b85-b051-d7d70c349800
+
+	measure 'Capacity Value' =
+			
+			CALCULATE(
+			    SUM('Value Entries'[costAmountActual]),
+			    'Value Entries'[Item Ledger Entry Type] = BLANK()
+			)
+		formatString: #,0.00
+		displayFolder: _Production Order - WIP
+		lineageTag: f2289ac8-1716-4f31-91ab-0d33b9a5c670
+
+	measure 'Output Value' = ```
+			
+			CALCULATE(
+			-SUMX(
+			    'Value Entries',
+			    'Value Entries'[costAmountActual] + 'Value Entries'[costAmountExpected]
+			),
+			'Value Entries'[Item Ledger Entry Type] = "Output",
+			'Value Entries'[Entry Type] = "Direct Cost"
+			)
+			
+			```
+		formatString: #,0.00
+		displayFolder: _Production Order - WIP
+		lineageTag: 8b58d9b8-d0cb-47d9-a1c9-2d42a6738275
+
+	measure 'Ending Balance Value' =
+			
+			ROUND([Beginning Balance Value] + [Consumption Value] + [Capacity Value] + [Output Value],5)
+		formatString: #,0.00
+		displayFolder: _Production Order - WIP
+		lineageTag: a88fda8a-3303-4475-ae8a-fe31cbaed66b
+
+	measure 'Cost Posted to G/L' = SUM('Value Entries'[costPostedtoGL])
+		formatString: #,0.00
+		displayFolder: _Value Entry Measures
+		lineageTag: b6151fd9-4546-4dac-8b42-deb089f98e80
+
+	measure 'Cost Amount Actual' = SUM('Value Entries'[costAmountActual])
+		formatString: #,0.00
+		displayFolder: _Value Entry Measures
+		lineageTag: 60e650cc-4dde-4e9c-8b1a-1324245e394d
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Cost Amount Expected' = SUM('Value Entries'[costAmountExpected])
+		formatString: #,0.00
+		displayFolder: _Value Entry Measures
+		lineageTag: 8f054a7e-6063-4b5f-a6c0-d1b14d0686cb
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Expected Cost Posted to G/L' = SUM('Value Entries'[expectedCostPostedtoGL])
+		formatString: #,0.00
+		displayFolder: _Value Entry Measures
+		lineageTag: ae235350-c7ad-4697-a0db-a0395304cd6b
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Valued Quantity' = SUM('Value Entries'[valuedQuantity])
+		formatString: #,0.00
+		displayFolder: _Value Entry Measures
+		lineageTag: 10f33e6a-e6d3-47e9-8548-a361e312365e
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Item Ledger Entry Quantity' = SUM('Value Entries'[itemLedgerEntryQuantity])
+		formatString: #,0.00
+		displayFolder: _Value Entry Measures
+		lineageTag: d2d82236-5b35-440b-8d20-7ec13ed6d643
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column 'Entry No.'
+		dataType: int64
+		lineageTag: 37cba9d3-8085-4a63-bea4-7934a356ba32
+		summarizeBy: none
+		sourceColumn: Entry No.
+
+		annotation SummarizationSetBy = User
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column 'Valuation Date'
+		dataType: dateTime
+		formatString: Long Date
+		lineageTag: e5377b30-0ddf-464a-8543-995aa3a25049
+		summarizeBy: none
+		sourceColumn: Valuation Date
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	column itemNo
+		dataType: string
+		isHidden
+		lineageTag: fbe8e64a-c5f6-4a6a-8ef6-53551b435d87
+		summarizeBy: none
+		sourceColumn: itemNo
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column costAmountActual
+		dataType: double
+		isHidden
+		formatString: 0.00
+		lineageTag: 5219bca3-eeb3-4f5a-b768-03990cc5176a
+		summarizeBy: sum
+		sourceColumn: costAmountActual
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Cost Per Unit'
+		dataType: double
+		formatString: #,0.00
+		lineageTag: eb254965-3c8f-41d3-8ab3-de422773ac1d
+		summarizeBy: sum
+		sourceColumn: Cost Per Unit
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column itemLedgerEntryQuantity
+		dataType: double
+		isHidden
+		lineageTag: 9f7e7f34-b748-4261-a0ea-c363a537494b
+		summarizeBy: sum
+		sourceColumn: itemLedgerEntryQuantity
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column valuedQuantity
+		dataType: double
+		isHidden
+		lineageTag: 9bc23248-6c59-4cab-8e92-092543a831a6
+		summarizeBy: sum
+		sourceColumn: valuedQuantity
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column locationCode
+		dataType: string
+		isHidden
+		lineageTag: e02c0fef-2682-4570-9ad9-1c0dc1d99e0c
+		summarizeBy: none
+		sourceColumn: locationCode
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Item Ledger Entry Type'
+		dataType: string
+		lineageTag: 20531b2a-8b32-444e-bfb7-51b05ab782eb
+		summarizeBy: none
+		sourceColumn: Item Ledger Entry Type
+
+		annotation SummarizationSetBy = Automatic
+
+	column postingDate
+		dataType: dateTime
+		isHidden
+		formatString: Long Date
+		lineageTag: b4e7bf27-aa48-430f-ad27-b528e7cd943b
+		summarizeBy: none
+		sourceColumn: postingDate
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	column Type
+		dataType: string
+		lineageTag: 66fd1620-6bce-449d-8c36-11b574ab16b1
+		summarizeBy: none
+		sourceColumn: Type
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'No.'
+		dataType: string
+		lineageTag: b4ca18ec-f929-49a2-8e3f-c5f3c4ee0c26
+		summarizeBy: none
+		sourceColumn: No.
+
+		annotation SummarizationSetBy = Automatic
+
+	column dimensionSetID
+		dataType: double
+		isHidden
+		lineageTag: c150161b-003b-4a2a-bbaa-abe14b776369
+		summarizeBy: none
+		sourceColumn: dimensionSetID
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = User
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column 'Capacity Ledger Entry No.'
+		dataType: int64
+		formatString: 0
+		lineageTag: a834b80a-7c85-4700-a72b-986756cf2b05
+		summarizeBy: none
+		sourceColumn: Capacity Ledger Entry No.
+
+		annotation SummarizationSetBy = User
+
+	column 'Entry Type'
+		dataType: string
+		lineageTag: 7b089224-4635-4122-8a30-24ba10e557e7
+		summarizeBy: none
+		sourceColumn: Entry Type
+
+		annotation SummarizationSetBy = Automatic
+
+	column costPostedtoGL
+		dataType: double
+		isHidden
+		lineageTag: 0d1b1ad9-bbe2-4dbc-ad3e-5e0b470a3510
+		summarizeBy: sum
+		sourceColumn: costPostedtoGL
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column costAmountExpected
+		dataType: double
+		isHidden
+		formatString: 0.00
+		lineageTag: 94490ffd-55b8-4f3d-8b64-002d14e8cfc9
+		summarizeBy: sum
+		sourceColumn: costAmountExpected
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Order Type'
+		dataType: string
+		lineageTag: fddc8ed7-62ac-47d0-837e-af2ffe6ed90b
+		summarizeBy: none
+		sourceColumn: Order Type
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Order No.'
+		dataType: string
+		lineageTag: 31fa62a6-790c-4a77-9823-7e1f0e77367e
+		summarizeBy: none
+		sourceColumn: Order No.
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Production Order'
+		dataType: string
+		isHidden
+		lineageTag: 95be9576-30ba-4824-8549-260e0c0a049e
+		summarizeBy: none
+		sourceColumn: Production Order
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column expectedCostPostedtoGL
+		dataType: double
+		isHidden
+		lineageTag: a6140124-9748-4c2e-8899-4f0cf6062ee7
+		summarizeBy: sum
+		sourceColumn: expectedCostPostedtoGL
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column 'Is Expected Cost'
+		dataType: boolean
+		isHidden
+		formatString: """TRUE"";""TRUE"";""FALSE"""
+		lineageTag: 3f31ce52-91dd-4aa1-9e7c-4cbf92586c51
+		summarizeBy: none
+		sourceColumn: Is Expected Cost
+
+		annotation SummarizationSetBy = Automatic
+
+	partition 'Value Entries' = m
+		mode: import
+		queryGroup: 'Fact Tables'
+		source =
+				let
+				    Source = Dynamics365BusinessCentral.ApiContentsWithOptions(
+				        ENVIRONMENT, COMPANY,API_ENDPOINT, []
+				    ),
+				    TableData = Source{[Name = "manufacturingValueEntries", Signature = "table"]}[Data],
+				    #"Changed Type" = Table.TransformColumnTypes(TableData,{{"entryNo", Int64.Type}, {"valuationDate", type date}, {"itemNo", type text}, {"locationCode", type text}, {"itemLedgerEntryType", type text}, {"postingDate", type date}, {"type", type text}, {"no", type text}, {"dimensionSetID", type number}}),
+				    #"Renamed Columns" = Table.RenameColumns(#"Changed Type",{{"entryNo", "Entry No."}, {"valuationDate", "Valuation Date"}, {"itemLedgerEntryType", "Item Ledger Entry Type"}, {"type", "Type"}, {"no", "No."}, {"entryType", "Entry Type"}, {"capacityLedgerEntryNo", "Capacity Ledger Entry No."}, {"orderType", "Order Type"}, {"orderNo", "Order No."}, {"expectedCost", "Is Expected Cost"}, {"costPerUnit", "Cost Per Unit"}}),
+				    #"Removed Columns" = Table.RemoveColumns(#"Renamed Columns" ,{"ETag"}),
+				    #"Merged Queries" = Table.NestedJoin(#"Removed Columns", {"Order No."}, #"Production Orders (Released or Finished)", {"Prod Order No."}, "Production Orders (Released or Finished)", JoinKind.LeftOuter),
+				    #"Expanded Production Orders (Released or Finished)" = Table.ExpandTableColumn(#"Merged Queries", "Production Orders (Released or Finished)", {"Production Order"}, {"Production Order"})
+				in
+				    #"Expanded Production Orders (Released or Finished)"
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Table
+

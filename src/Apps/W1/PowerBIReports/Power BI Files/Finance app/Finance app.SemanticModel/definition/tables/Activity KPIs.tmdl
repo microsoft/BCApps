@@ -1,0 +1,71 @@
+table 'Activity KPIs'
+	lineageTag: d85999e8-4f8d-48c2-9b60-04c69092ec98
+
+	measure 'Average Collection Period (Days)' = DIVIDE([No. of Days] * [Accounts Receivable (Net Change)],[Revenue])
+		formatString: 0.00
+		lineageTag: 4e531563-815e-4caa-baf1-91d1d900141d
+
+	measure '% Change in Revenue' = DIVIDE([Revenue (Balance at Date)] - [Revenue (Beginning Balance)],[Revenue (Beginning Balance)])
+		formatString: 0.00%;-0.00%;0.00%
+		lineageTag: fd31cdc6-3250-4c23-8626-9fe940da6366
+
+	measure '% Change in Operating Profit - EBIT' = DIVIDE([Operating Profit - EBIT (Balance at Date)] - [Operating Profit - EBIT (Beginning Balance)],[Operating Profit - EBIT (Beginning Balance)])
+		formatString: 0.00%;-0.00%;0.00%
+		lineageTag: 8a4ab459-9a3b-4dce-86d7-b88c2d08defe
+
+	measure 'Days Sales Outstanding - DSO' = DIVIDE([Accounts Receivable],[Revenue]) * [No. of Days]
+		formatString: 0.0
+		lineageTag: c05e96c6-716f-49cb-8eb4-d5911e895e81
+
+	/// Days payable outstanding (DPO) computes the average number of days a company needs to pay its bills and obligations.
+	/// Companies that have a high DPO can delay making payments and use the available cash for short-term investments as well as to increase their working capital and free cash flow.
+	/// However, higher values of DPO, though desirable, may not always be a positive for the business as it may signal a cash shortfall and inability to pay.
+	measure 'Days Payable Outstanding - DPO' = DIVIDE([Accounts Payable],[Cost of Goods Sold]) * [No. of Days]
+		formatString: 0.0
+		lineageTag: 628f8b4e-c31f-43f8-a764-e19736084479
+
+	measure 'Days Sales Of Inventory - DSI' = DIVIDE([Inventory],[Cost of Goods Sold]) * [No. of Days]
+		formatString: 0.0
+		lineageTag: ccf70313-ff24-42ef-95c8-3970afb5ecf7
+
+	measure 'Cash Conversion Cycle - CCC' = [Days Sales Of Inventory - DSI] + [Days Sales Outstanding - DSO] - [Days Payable Outstanding - DPO]
+		formatString: 0.00
+		lineageTag: eb5c4897-2874-4598-9a1b-d9de344ed480
+
+	measure 'Degree Of Operating Leverage - DOL' = DIVIDE([% Change in Operating Profit - EBIT],[% Change in Revenue])
+		formatString: 0.0
+		lineageTag: 916898bd-ba1c-476d-8c9e-4ac36c122819
+
+	measure 'Asset Turnover Ratio' = DIVIDE([Revenue],[Assets])
+		formatString: 0.00
+		lineageTag: b9c50e36-1e75-4480-8f35-31253df7069d
+
+	measure 'Inventory Turnover' = DIVIDE([Cost of Goods Sold],[Inventory (Average)])
+		formatString: 0.0
+		lineageTag: 61ff79b1-633e-4203-8301-c3443f79a5e6
+
+	column Column1
+		dataType: string
+		isHidden
+		lineageTag: a9f9bf29-62f5-4fd7-8235-2ff9790e4f14
+		summarizeBy: none
+		sourceColumn: Column1
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	partition 'Activity KPIs-51a7937d-5dd2-4eb5-8f84-a37b578988ca' = m
+		mode: import
+		queryGroup: 'Parameters and Functions'
+		source =
+				let
+				    Source = Table.FromRows(Json.Document(Binary.Decompress(Binary.FromText("i44FAA==", BinaryEncoding.Base64), Compression.Deflate)), let _t = ((type text) meta [Serialized.Text = true]) in type table [Column1 = _t]),
+				    #"Changed Type" = Table.TransformColumnTypes(Source,{{"Column1", type text}})
+				in
+				    #"Changed Type"
+
+	annotation PBI_ResultType = Table
+
+	annotation PBI_NavigationStepName = Navigation
+

@@ -1,0 +1,1034 @@
+table 'Production Orders'
+	lineageTag: 71868c65-77d4-4c54-921e-130d2f685a53
+
+	measure 'Planned Quantity' = SUM('Production Order Lines'[quantityBase])
+		formatString: #,0.00
+		displayFolder: _Production Order Measures
+		lineageTag: 764eb1e7-91e0-4c23-98cf-3b78d7c8f2ed
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Expected Material Cost' = SUM('Prod Order Components'[costAmount])
+		formatString: #,0.00
+		displayFolder: _Production Order Statistics\_Expected Costs
+		lineageTag: f73676f3-75ee-465b-8e9b-541ca81ef45f
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Expected Capacity Cost' = [Expected Operation Cost] + -[Expected Subcontracted Cost]
+		formatString: #,0.00
+		displayFolder: _Production Order Statistics\_Expected Costs
+		lineageTag: 37a7e305-539f-492d-b55a-72d48d4f78ca
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Expected Subcontracted Cost' =
+			
+			VAR SubcontractingWorkCenters = CALCULATETABLE(
+			    'Work Center',
+			    'Work Center'[Work Center Subcontractor No.] <> BLANK()
+			)
+			VAR ExpCapDirCostRtng =
+			    CALCULATE (
+			        [Expected Operation Cost],
+			        SubcontractingWorkCenters
+			    )
+			VAR ShareOfTotalCapCost =
+			    CALCULATE (
+			        SUM ( 'Production Order Lines'[ShareOfTotalCapCost] ),
+			        'Production Order Lines'[Prod. Order Key]
+			            = SELECTEDVALUE( 'Production Orders'[Production Order] )
+			    )
+			
+			RETURN ShareOfTotalCapCost * ExpCapDirCostRtng
+		formatString: #,0.00
+		displayFolder: _Production Order Statistics\_Expected Costs
+		lineageTag: 72d589c2-e4ba-4361-abff-c3653826e561
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Expected Capacity Overhead Cost' = CALCULATE( SUM('Prod Order Routing Lines'[Expected Capacity Ovhd. Cost]))
+		formatString: #,0.00
+		displayFolder: _Production Order Statistics\_Expected Costs
+		lineageTag: a12f34b2-cc47-4e22-be22-c4a4cea027fd
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Total Standard Cost' = ```
+			
+			[Standard Material Cost] 
+			+ [Standard Capacity Cost] 
+			+ [Standard Capacity Overhead Cost] 
+			+ [Standard Manufacturing Overhead Cost] 
+			+ [Standard Subcontracted Cost]
+			```
+		formatString: #,0.00
+		displayFolder: _Production Order Statistics\_Standard Costs
+		lineageTag: 8d81fc78-44fb-4137-8d14-abcbb2be2baa
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Expected Manufacturing Overhead Cost' = ```
+			
+			VAR ExpMfgDirCost = [ExpMfgDirCost]
+			RETURN 
+			    SUMX(
+			    'Production Order Lines',
+			    [ExpOvhdCost] + DIVIDE('Production Order Lines'[indirectCostPercent] * ExpMfgDirCost, 100) 
+			)
+			```
+		formatString: #,0.00
+		displayFolder: _Production Order Statistics\_Expected Costs
+		lineageTag: d834009f-40bd-49e9-a7d6-6125efbb4e1a
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure ExpOvhdCost = ```
+			SUMX('Production Order Lines', 
+			'Production Order Lines'[overheadRate] * 'Production Order Lines'[quantityBase]
+			)
+			```
+		formatString: #,0.00
+		isHidden
+		displayFolder: _Production Order Statistics\_Expected Costs
+		lineageTag: c9837bf2-d700-42a5-91b4-cc282bb6899d
+
+	measure ExpMfgDirCost = [Expected Material Cost] + [Expected Capacity Cost] + [Expected Subcontracted Cost] + [Expected Capacity Overhead Cost]
+		formatString: #,0.00
+		isHidden
+		displayFolder: _Production Order Statistics\_Expected Costs
+		lineageTag: 4deca787-767a-405f-909a-ef0da19be4a1
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Total Expected Cost' = [Expected Material Cost] + [Expected Capacity Cost] + [Expected Subcontracted Cost] + [Expected Capacity Overhead Cost] + [Expected Manufacturing Overhead Cost]
+		formatString: #,0.00
+		displayFolder: _Production Order Statistics\_Expected Costs
+		lineageTag: 49957676-ae14-42d1-8761-056ad0e3c3d3
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Standard Capacity Cost' =
+			
+			SUMX (
+			    'Production Order Lines',
+			    VAR ProdOrderNo = 'Production Order Lines'[Prod. Order No.]
+			    VAR ProdOrderLineNo = 'Production Order Lines'[Prod. Order Line No.]
+			    VAR InvtAdjmtEntryOrder =
+			        CALCULATETABLE (
+			            'Inventory Adjustment Entry Order Line',
+			            'Inventory Adjustment Entry Order Line'[orderNo] = ProdOrderNo,
+			            'Inventory Adjustment Entry Order Line'[orderLineNo] = ProdOrderLineNo,
+			            'Inventory Adjustment Entry Order Line'[completelyInvoiced] = TRUE ()
+			        )
+			    VAR CostFromInvAdjTable =
+			        SUMX (
+			            InvtAdjmtEntryOrder,
+			            [finishedQtyBase] * 'Inventory Adjustment Entry Order Line'[singleLevelCapacityCost]
+			        )
+			    VAR TestInvtAdjmtEntryOrderTable =
+			        ISEMPTY ( InvtAdjmtEntryOrder )
+			    RETURN
+			        IF (
+			            TestInvtAdjmtEntryOrderTable,
+			            'Production Order Lines'[quantityBase]
+			                * RELATED ( 'Item'[Item Single-Level Capacity Cost] ),
+			            CostFromInvAdjTable
+			        )
+			)
+		formatString: #,0.00
+		displayFolder: _Production Order Statistics\_Standard Costs
+		lineageTag: 49848d57-310a-43af-979e-9815c5c91b9d
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Standard Material Cost' =
+			
+			SUMX (
+			    'Production Order Lines',
+			    VAR ProdOrderNo = 'Production Order Lines'[Prod. Order No.]
+			    VAR ProdOrderLineNo = 'Production Order Lines'[Prod. Order Line No.]
+			    VAR InvtAdjmtEntryOrder =
+			        CALCULATETABLE (
+			            'Inventory Adjustment Entry Order Line',
+			            'Inventory Adjustment Entry Order Line'[orderNo] = ProdOrderNo,
+			            'Inventory Adjustment Entry Order Line'[orderLineNo] = ProdOrderLineNo,
+			            'Inventory Adjustment Entry Order Line'[completelyInvoiced] = TRUE ()
+			        )
+			    VAR CostFromInvAdjTable =
+			        SUMX (
+			            InvtAdjmtEntryOrder,
+			            [finishedQtyBase] * 'Inventory Adjustment Entry Order Line'[singleLevelMaterialCost]
+			        )
+			    VAR TestInvtAdjmtEntryOrderTable =
+			        ISEMPTY ( InvtAdjmtEntryOrder )
+			    RETURN
+			        IF (
+			            TestInvtAdjmtEntryOrderTable,
+			            'Production Order Lines'[quantityBase]
+			                * RELATED ( 'Item'[Item Single-Level Material Cost] ),
+			            CostFromInvAdjTable
+			        )
+			)
+		formatString: #,0.00
+		displayFolder: _Production Order Statistics\_Standard Costs
+		lineageTag: 49063f18-c0fa-4cac-b908-5ea2861ba7cf
+
+	measure 'Standard Subcontracted Cost' =
+			
+			SUMX (
+			    'Production Order Lines',
+			    VAR ProdOrderNo = 'Production Order Lines'[Prod. Order No.]
+			    VAR ProdOrderLineNo = 'Production Order Lines'[Prod. Order Line No.]
+			    VAR InvtAdjmtEntryOrder =
+			        CALCULATETABLE (
+			            'Inventory Adjustment Entry Order Line',
+			            'Inventory Adjustment Entry Order Line'[orderNo] = ProdOrderNo,
+			            'Inventory Adjustment Entry Order Line'[orderLineNo] = ProdOrderLineNo,
+			            'Inventory Adjustment Entry Order Line'[completelyInvoiced] = TRUE ()
+			        )
+			    VAR CostFromInvAdjTable =
+			        SUMX (
+			            InvtAdjmtEntryOrder,
+			            [finishedQtyBase] * 'Inventory Adjustment Entry Order Line'[singleLevelSubcontrdCost]
+			        )
+			    VAR TestInvtAdjmtEntryOrderTable =
+			        ISEMPTY ( InvtAdjmtEntryOrder )
+			    RETURN
+			        IF (
+			            TestInvtAdjmtEntryOrderTable,
+			            'Production Order Lines'[quantityBase]
+			                * RELATED ( 'Item'[Item Single-Level Subcontrd. Cost] ),
+			            CostFromInvAdjTable
+			        )
+			)
+		formatString: #,0.00
+		displayFolder: _Production Order Statistics\_Standard Costs
+		lineageTag: c332686e-635a-4afa-92f9-1fc06cf0effe
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Standard Capacity Overhead Cost' =
+			
+			SUMX (
+			    'Production Order Lines',
+			    VAR ProdOrderNo = 'Production Order Lines'[Prod. Order No.]
+			    VAR ProdOrderLineNo = 'Production Order Lines'[Prod. Order Line No.]
+			    VAR InvtAdjmtEntryOrder =
+			        CALCULATETABLE (
+			            'Inventory Adjustment Entry Order Line',
+			            'Inventory Adjustment Entry Order Line'[orderNo] = ProdOrderNo,
+			            'Inventory Adjustment Entry Order Line'[orderLineNo] = ProdOrderLineNo,
+			            'Inventory Adjustment Entry Order Line'[completelyInvoiced] = TRUE ()
+			        )
+			    VAR CostFromInvAdjTable =
+			        SUMX (
+			            InvtAdjmtEntryOrder,
+			            [finishedQtyBase] * 'Inventory Adjustment Entry Order Line'[singleLevelCapOvhdCost]
+			        )
+			    VAR TestInvtAdjmtEntryOrderTable =
+			        ISEMPTY ( InvtAdjmtEntryOrder )
+			    RETURN
+			        IF (
+			            TestInvtAdjmtEntryOrderTable,
+			            'Production Order Lines'[quantityBase]
+			                * RELATED ( 'Item'[Item Single-Level Cap. Ovhd Cost] ),
+			            CostFromInvAdjTable
+			        )
+			)
+		formatString: #,0.00
+		displayFolder: _Production Order Statistics\_Standard Costs
+		lineageTag: b3328b80-4fb8-4ada-8bc4-76aef3f1c9f9
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Standard Manufacturing Overhead Cost' =
+			
+			SUMX (
+			    'Production Order Lines',
+			    VAR ProdOrderNo = 'Production Order Lines'[Prod. Order No.]
+			    VAR ProdOrderLineNo = 'Production Order Lines'[Prod. Order Line No.]
+			    VAR InvtAdjmtEntryOrder =
+			        CALCULATETABLE (
+			            'Inventory Adjustment Entry Order Line',
+			            'Inventory Adjustment Entry Order Line'[orderNo] = ProdOrderNo,
+			            'Inventory Adjustment Entry Order Line'[orderLineNo] = ProdOrderLineNo,
+			            'Inventory Adjustment Entry Order Line'[completelyInvoiced] = TRUE ()
+			        )
+			    VAR CostFromInvAdjTable =
+			        SUMX (
+			            InvtAdjmtEntryOrder,
+			            [finishedQtyBase] * 'Inventory Adjustment Entry Order Line'[singleLevelMfgOvhdCost]
+			        )
+			    VAR TestInvtAdjmtEntryOrderTable =
+			        ISEMPTY ( InvtAdjmtEntryOrder )
+			    RETURN
+			        IF (
+			            TestInvtAdjmtEntryOrderTable,
+			            'Production Order Lines'[quantityBase]
+			                * RELATED ( 'Item'[Item Single-Level Mfg. Ovhd Cost] ),
+			            CostFromInvAdjTable
+			        )
+			)
+		formatString: #,0.00
+		displayFolder: _Production Order Statistics\_Standard Costs
+		lineageTag: 96c1a589-5133-4144-84ac-3c63a6818e4b
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Actual Material Cost' = ```
+			
+			- CALCULATE (
+			    SUM ( 'Value Entries'[costAmountActual] ),
+			    NOT 'Value Entries'[Entry Type] = "Rounding",
+			    'Value Entries'[Item Ledger Entry Type] = "Consumption"
+			)
+			
+			```
+		formatString: #,0.00
+		displayFolder: _Production Order Statistics\_Actual Costs
+		lineageTag: 70275e43-1c71-4bf6-8193-3b9dda99d2a3
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Actual Capacity Cost' = ```
+			
+			SUMX(
+			    'Production Order Lines',
+			    
+			    VAR ProdOrderNo = 'Production Order Lines'[Prod. Order No.]
+			    VAR ProdOrderLineNo = 'Production Order Lines'[Prod. Order Line No.]
+			    VAR ProdOrderItem= 'Production Order Lines'[Item No.]
+			    VAR ProdOrderStatus = 'Production Order Lines'[Prod. Order Status]
+			    VAR InventoryAdjustmentLines = 
+			        CALCULATETABLE( 'Inventory Adjustment Entry Order Line', 
+			        'Inventory Adjustment Entry Order Line'[orderNo] = ProdOrderNo,
+			        'Inventory Adjustment Entry Order Line'[orderLineNo] = ProdOrderLineNo,
+			        'Inventory Adjustment Entry Order Line'[itemNo] = ProdOrderItem,
+			        'Inventory Adjustment Entry Order Line'[iSFinished] = IF( ProdOrderStatus = "Finished", TRUE() , FALSE() )
+			        )
+			
+			    VAR InvAdjOrderNo =  SELECTCOLUMNS(InventoryAdjustmentLines, 'Inventory Adjustment Entry Order Line'[orderNo])
+			    VAR InvAdjItemNo = SELECTCOLUMNS(InventoryAdjustmentLines, 'Inventory Adjustment Entry Order Line'[itemNo])
+			    var InvAdjOrderLineNo = SELECTCOLUMNS(InventoryAdjustmentLines, 'Inventory Adjustment Entry Order Line'[orderLineNo])
+			    VAR CapacityLedgerEntries = 
+			            CALCULATETABLE('Capacity Ledger Entries', 
+			            REMOVEFILTERS('Capacity Ledger Entries'),
+			                'Capacity Ledger Entries'[Order No.] = InvAdjOrderNo,
+			                'Capacity Ledger Entries'[Order Line No.] = InvAdjOrderLineNo,
+			                'Capacity Ledger Entries'[Item No.] = InvAdjItemNo,
+			                'Capacity Ledger Entries'[Subcontracting] = FALSE())
+			                
+			    RETURN
+			       DIVIDE( CALCULATE(
+			            SUM('Capacity Ledger Entries'[directCost]),
+			            CapacityLedgerEntries
+			        ), [ShareOfCapCost])
+			)
+			```
+		formatString: #,0.00
+		displayFolder: _Production Order Statistics\_Actual Costs
+		lineageTag: dd073f59-0bc3-4669-bc04-ab52e363d870
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure ShareOfCapCost = ```
+			
+			 SUMX(
+			    'Production Order Lines',
+			    
+			    VAR ProdOrderNo = 'Production Order Lines'[Prod. Order No.]
+			    VAR ProdOrderLineNo = 'Production Order Lines'[Prod. Order Line No.]
+			    VAR ProdOrderItem= 'Production Order Lines'[Item No.]
+			    VAR ProdOrderStatus = 'Production Order Lines'[Prod. Order Status]
+			    VAR InventoryAdjustmentLines = 
+			        CALCULATETABLE( 'Inventory Adjustment Entry Order Line', 
+			        'Inventory Adjustment Entry Order Line'[orderNo] = ProdOrderNo,
+			        'Inventory Adjustment Entry Order Line'[orderLineNo] = ProdOrderLineNo,
+			        'Inventory Adjustment Entry Order Line'[itemNo] = ProdOrderItem,
+			        'Inventory Adjustment Entry Order Line'[iSFinished] = IF( ProdOrderStatus = "Finished", TRUE() , FALSE() )
+			        )
+			
+					VAR InvAdjOrderNo =  SELECTCOLUMNS(InventoryAdjustmentLines, 'Inventory Adjustment Entry Order Line'[orderNo])
+				    VAR InvAdjItemNo = SELECTCOLUMNS(InventoryAdjustmentLines, 'Inventory Adjustment Entry Order Line'[itemNo])
+			        var InvAdjOrderLineNo = SELECTCOLUMNS(InventoryAdjustmentLines, 'Inventory Adjustment Entry Order Line'[orderLineNo])
+			
+			    VAR CapacityLedgerEntries = 
+			            CALCULATETABLE('Capacity Ledger Entries', 
+			            REMOVEFILTERS('Capacity Ledger Entries'),
+			                'Capacity Ledger Entries'[Order No.] = InvAdjOrderNo,
+			                'Capacity Ledger Entries'[Order Line No.] = InvAdjOrderLineNo,
+			                'Capacity Ledger Entries'[Item No.] = InvAdjItemNo )
+			                
+			    VAR ShareOfCapCostPerLine = CALCULATE(
+			            SUM('Capacity Ledger Entries'[outputQuantity]),
+			            ALL('Capacity Ledger Entries'),
+			            CapacityLedgerEntries
+			            )
+			    VAR ShareOfCapCostAllLines = CALCULATE(
+			            SUM('Capacity Ledger Entries'[outputQuantity]),
+			            REMOVEFILTERS('Capacity Ledger Entries'[Order Line No.]),
+			            CapacityLedgerEntries
+			            )
+			    VAR ShareOfCapCost = DIVIDE(ShareOfCapCostPerLine, ShareOfCapCostAllLines)
+			  
+			    RETURN ShareOfCapCost
+			
+			)
+			```
+		isHidden
+		lineageTag: b07aea21-928b-40cd-b9a1-1fa2f28e3d91
+
+		changedProperty = IsHidden
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Actual Subcontracted Cost' = ```
+			
+			SUMX(
+			    'Production Order Lines',
+			    
+			    VAR ProdOrderNo = 'Production Order Lines'[Prod. Order No.]
+			    VAR ProdOrderLineNo = 'Production Order Lines'[Prod. Order Line No.]
+			    VAR ProdOrderItem= 'Production Order Lines'[Item No.]
+			    VAR ProdOrderStatus = 'Production Order Lines'[Prod. Order Status]
+			    VAR InventoryAdjustmentLines = 
+			        CALCULATETABLE( 'Inventory Adjustment Entry Order Line', 
+			        'Inventory Adjustment Entry Order Line'[orderNo] = ProdOrderNo,
+			        'Inventory Adjustment Entry Order Line'[orderLineNo] = ProdOrderLineNo,
+			        'Inventory Adjustment Entry Order Line'[itemNo] = ProdOrderItem,
+			        'Inventory Adjustment Entry Order Line'[iSFinished] = IF( ProdOrderStatus = "Finished", TRUE() , FALSE() )
+			        )
+			
+			    VAR InvAdjOrderNo =  SELECTCOLUMNS(InventoryAdjustmentLines, 'Inventory Adjustment Entry Order Line'[orderNo])
+			    VAR InvAdjItemNo = SELECTCOLUMNS(InventoryAdjustmentLines, 'Inventory Adjustment Entry Order Line'[itemNo])
+			    var InvAdjOrderLineNo = SELECTCOLUMNS(InventoryAdjustmentLines, 'Inventory Adjustment Entry Order Line'[orderLineNo])
+			    VAR CapacityLedgerEntries = 
+			            CALCULATETABLE('Capacity Ledger Entries', 
+			            REMOVEFILTERS('Capacity Ledger Entries'),
+			                'Capacity Ledger Entries'[Order No.] = InvAdjOrderNo,
+			                'Capacity Ledger Entries'[Order Line No.] = InvAdjOrderLineNo,
+			                'Capacity Ledger Entries'[Item No.] = InvAdjItemNo,
+			                 'Capacity Ledger Entries'[Subcontracting] = TRUE())
+			                
+			    RETURN
+			       DIVIDE( CALCULATE(
+			            SUM('Capacity Ledger Entries'[directCost]),
+			            CapacityLedgerEntries
+			        ), [ShareOfCapCost])
+			)
+			
+			```
+		formatString: #,0.00
+		displayFolder: _Production Order Statistics\_Actual Costs
+		lineageTag: aebf6a09-4416-4ffb-a71d-3ed65f2707c3
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Actual Capacity Overhead Cost' = ```
+			SUM('Capacity Ledger Entries'[overheadCost])
+			
+			
+			```
+		formatString: #,0.00
+		displayFolder: _Production Order Statistics\_Actual Costs
+		lineageTag: bd79db78-7ef3-470e-bed3-e908f833263c
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Actual Manufacturing Overhead Cost' = ```
+			
+			VAR IndirectCost = SUMX(
+			    'Production Order Lines',
+			    'Production Order Lines'[indirectCostPercent]
+			)
+			VAR OverheadRate = SUMX(
+			    'Production Order Lines',
+			    'Production Order Lines'[overheadRate]
+			)
+			
+			VAR OutputQty = 
+			    var selectedProdOrder = SELECTEDVALUE('Item Ledger Entries'[Production Order])
+			    var filteredILE = CALCULATETABLE(
+			        'Item Ledger Entries',
+			        'Item Ledger Entries'[Entry Type] = "Output"
+			        )
+			    RETURN CALCULATE( SUM('Item Ledger Entries'[qty]), filteredILE)
+			
+			
+			RETURN 
+			    ([Actual Material Cost] + [Actual Capacity Cost] + [Actual Subcontracted Cost] + [Actual Capacity Overhead Cost]) * DIVIDE(IndirectCost,100) + (OutputQty * OverheadRate)
+			```
+		formatString: #,0.00
+		displayFolder: _Production Order Statistics\_Actual Costs
+		lineageTag: d59a3c8b-3aba-43e0-b794-42ba7000d6b4
+
+	measure 'Total Actual Cost' = [Actual Material Cost] + [Actual Capacity Cost] + [Actual Subcontracted Cost] + [Actual Capacity Overhead Cost] + [Actual Manufacturing Overhead Cost]
+		formatString: #,0.00
+		displayFolder: _Production Order Statistics\_Actual Costs
+		lineageTag: 1850b0b9-61c4-4001-8c5a-4ae9be7bdb9d
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Standard Material Cost Variance' = [Actual Material Cost] - [Standard Material Cost]
+		formatString: #,0.00
+		displayFolder: _Production Order Statistics\_Standard Costs\_Variance to Standard Costs
+		lineageTag: 82866bf6-5f7f-483e-8512-a7055bbe9732
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Standard Capacity Cost Variance' = [Actual Capacity Cost] - [Standard Capacity Cost]
+		formatString: #,0.00
+		displayFolder: _Production Order Statistics\_Standard Costs\_Variance to Standard Costs
+		lineageTag: 80d0febd-065b-49a7-ba43-2051351dd08a
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Standard Subcontracted Cost Variance' = [Actual Subcontracted Cost] - [Standard Subcontracted Cost]
+		formatString: #,0.00
+		displayFolder: _Production Order Statistics\_Standard Costs\_Variance to Standard Costs
+		lineageTag: cf976487-aeda-4ed1-a187-e2b9bf43ee31
+
+	measure 'Standard Capacity Overhead Cost Variance' = [Actual Capacity Overhead Cost] - [Standard Capacity Overhead Cost]
+		formatString: #,0.00
+		displayFolder: _Production Order Statistics\_Standard Costs\_Variance to Standard Costs
+		lineageTag: 5f7cd91e-9c45-4c66-9c56-4a94eb7a6c97
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Standard Manufacturing Overhead Cost Variance' = [Actual Manufacturing Overhead Cost] - [Standard Manufacturing Overhead Cost]
+		formatString: #,0.00
+		displayFolder: _Production Order Statistics\_Standard Costs\_Variance to Standard Costs
+		lineageTag: ed539b8e-5299-4289-99cd-74bbb3ec4d10
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Total Standard Cost Variance' = [Standard Material Cost Variance] + [Standard Capacity Cost Variance] + [Standard Subcontracted Cost Variance] + [Standard Capacity Overhead Cost Variance] + [Standard Manufacturing Overhead Cost Variance]
+		formatString: #,0.00
+		displayFolder: _Production Order Statistics\_Standard Costs\_Variance to Standard Costs
+		lineageTag: 868cf74f-8841-48b2-b0bb-2a8c1f779986
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Standard Material Cost Dev %' = DIVIDE([Standard Material Cost Variance], [Standard Material Cost])
+		formatString: #,0%;-#,0%;#,0%
+		displayFolder: _Production Order Statistics\_Standard Costs\_Variance to Standard Costs Deviation %
+		lineageTag: c26b751b-91f3-482c-891e-2dce4d8cb5d0
+
+	measure 'Standard Capacity Cost Dev %' = DIVIDE([Standard Capacity Cost Variance], [Standard Capacity Cost])
+		formatString: #,0%;-#,0%;#,0%
+		displayFolder: _Production Order Statistics\_Standard Costs\_Variance to Standard Costs Deviation %
+		lineageTag: 14e7f854-fc05-4f24-a99a-8cb23f08d7ab
+
+	measure 'Standard Subcontracted Cost Dev %' = DIVIDE([Standard Subcontracted Cost Variance],[Standard Subcontracted Cost])
+		formatString: #,0%;-#,0%;#,0%
+		displayFolder: _Production Order Statistics\_Standard Costs\_Variance to Standard Costs Deviation %
+		lineageTag: eade82d5-268f-470b-95bf-8849775eaf99
+
+	measure 'Standard Capacity Overhead Cost Dev %' = DIVIDE([Standard Capacity Overhead Cost Variance],[Standard Capacity Overhead Cost])
+		formatString: #,0%;-#,0%;#,0%
+		displayFolder: _Production Order Statistics\_Standard Costs\_Variance to Standard Costs Deviation %
+		lineageTag: a969bddd-19d7-49d1-8df0-6b5453574a9f
+
+	measure 'Standard Manufacturing Overhead Cost Dev %' = DIVIDE([Standard Manufacturing Overhead Cost Variance],[Standard Manufacturing Overhead Cost])
+		formatString: #,0%;-#,0%;#,0%
+		displayFolder: _Production Order Statistics\_Standard Costs\_Variance to Standard Costs Deviation %
+		lineageTag: c791fd43-0223-48e4-865a-40b4a8b85c20
+
+	measure 'Total Standard Cost Dev %' = DIVIDE([Total Standard Cost Variance], [Total Standard Cost])
+		formatString: #,0%;-#,0%;#,0%
+		displayFolder: _Production Order Statistics\_Standard Costs\_Variance to Standard Costs Deviation %
+		lineageTag: 9fd8c852-774f-45a1-b803-6d8ce366f38f
+
+	/// Specifies the total capacity need of all the lines in the production order.
+	measure 'Prod Order Expected Capacity Need (Finished)' = ```
+			
+			VAR TimeFactor =
+			    LOOKUPVALUE (
+			        'Time Factors'[Time Factor],
+			        'Time Factors'[Cap Unit of Measure Type], VALUES ( 'Manufacturing Setup'[Show Capacity In] )
+			    )
+			RETURN
+			    DIVIDE (
+			        CALCULATE (
+			            SUM ( 'Prod Order Routing Lines'[Expected Capacity Need] ),
+			            'Production Orders'[Prod Order Status] = "Finished",
+			            'Work Center'[Work Center Subcontractor No.] = BLANK ()
+			        ),
+			        TimeFactor
+			    )
+			
+			```
+		formatString: #,0.00
+		displayFolder: _Production Order Statistics\_Capacity Need
+		lineageTag: 3f6aeffb-4a3c-40fa-8855-c17bfc76e24c
+
+		changedProperty = IsHidden
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Prod Order Actual Capacity Need' = ```
+			
+			VAR ManufacutringSetupTimeFactor = LOOKUPVALUE (
+			                                    'Time Factors'[Time Factor],
+			                                    'Time Factors'[Cap Unit of Measure Type], VALUES ( 'Manufacturing Setup'[Show Capacity In] )
+			                                )
+			VAR Qty =  
+			        SUMX (
+			            CALCULATETABLE (
+			                ADDCOLUMNS (
+			                    'Capacity Ledger Entries',
+			                    "Qty",
+			                        VAR QtyPerCapUnitOfMeasure =
+			                            IF (
+			                                'Capacity Ledger Entries'[Qty. Per Capacity Unit of Measure] = 0,
+			                                1,
+			                                'Capacity Ledger Entries'[Qty. Per Capacity Unit of Measure]
+			                            )
+			                        VAR TimeFactor =
+			                            IF (
+			                                'Capacity Ledger Entries'[Qty. Per Capacity Unit of Measure] = 0,
+			                                // Calcualte the Time Factor based on the work center UOM 
+			                                VAR WorkCenterUOM =
+			                                    LOOKUPVALUE (
+			                                        'Work Center'[Work Center Unit of Measure Code],
+			                                        'Work Center'[Work Center No.],
+			                                        'Capacity Ledger Entries'[workCenterNo]
+			                                    )
+			                                VAR WorkCenterUOMTimeFactor =
+			                                    LOOKUPVALUE (
+			                                        'Time Factors'[Time Factor],
+			                                        'Time Factors'[Cap Unit of Measure Type],
+			                                        WorkCenterUOM
+			                                    )
+			                                RETURN
+			                                    WorkCenterUOMTimeFactor,
+			                                // Otherwise, calculate the Time Factor based on the Capacity Ledger Entry Cap Unit of Measure Code
+			                                LOOKUPVALUE (
+			                                    'Time Factors'[Time Factor],
+			                                    'Time Factors'[Cap Unit of Measure Type],
+			                                    'Capacity Ledger Entries'[Capacity Unit of Measure]
+			                                )
+			                            )
+			                        RETURN
+			                            DIVIDE ( 'Capacity Ledger Entries'[quantity], QtyPerCapUnitOfMeasure ) * TimeFactor
+			                ),
+			                'Capacity Ledger Entries'[Subcontracting] = FALSE ()
+			            ),
+			            DIVIDE([Qty],ManufacutringSetupTimeFactor  )
+			        )
+			RETURN Qty
+			
+			```
+		formatString: #,0.00
+		displayFolder: _Production Order Statistics\_Capacity Need
+		lineageTag: c7725ac0-ab82-457f-9394-08bec4602dd8
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Prod Order Expected Capacity Need (Non Finished)' =
+			
+			VAR TimeFactor =
+			    LOOKUPVALUE (
+			        'Time Factors'[Time Factor],
+			        'Time Factors'[Cap Unit of Measure Type], VALUES ( 'Manufacturing Setup'[Show Capacity In] )
+			    )
+			RETURN
+			    CALCULATE (
+			        DIVIDE(SUM ( 'Prod Order Capacity Need'[neededTimeMs] ), TimeFactor),
+			        'Prod Order Capacity Need'[Status] <> "Finished",
+			        'Work Center'[Work Center Subcontractor No.] = BLANK()
+			    )
+		formatString: #,0.00
+		displayFolder: _Production Order Statistics\_Capacity Need
+		lineageTag: 6fcbc19b-00f6-4419-8e1d-8d6f9f1af0ff
+
+		changedProperty = IsHidden
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Prod Order Expected Capacity Need' =
+			
+			SWITCH(
+			    SELECTEDVALUE('Production Orders'[Prod Order Status]),
+			    "Finished", [Prod Order Expected Capacity Need (Finished)],
+			    [Prod Order Expected Capacity Need (Non Finished)]
+			)
+		formatString: #,0.00
+		displayFolder: _Production Order Statistics\_Capacity Need
+		lineageTag: e360f817-e6fe-456a-9441-333b29ef071e
+
+	measure 'Finished Quantity' = ```
+			
+			CALCULATE (
+			    SUM ( 'Item Ledger Entries'[qty] ),
+			    TREATAS (
+			        VALUES ( 'Item Ledger Entries'[Production Order] ),
+			        'Production Order Lines'[Prod. Order Key]
+			    ),
+			    TREATAS (
+			        VALUES ( 'Item Ledger Entries'[Order Line No.] ),
+			        'Production Order Lines'[Prod. Order Line No.]
+			    ),
+			    'Item Ledger Entries'[Entry Type] = "Output",
+			    'Production Order Lines'[Planning Level Code] = "0"
+			)
+			
+			```
+		displayFolder: _Production Order Measures
+		lineageTag: 9f90ea59-9b84-423b-a806-98232e7600eb
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Actual Time Used' = ```
+			
+			VAR TargetUOM =
+			    SELECTEDVALUE ( 'Manufacturing Setup'[Show Capacity In] )
+			VAR TargetTimeFactor =
+			    LOOKUPVALUE (
+			        'Time Factors'[Time Factor],
+			        'Time Factors'[Cap Unit of Measure Type], TargetUOM
+			    )
+			VAR ProductionOrders =
+			    SUMMARIZECOLUMNS (
+			        'Production Orders'[Production Order],
+			        "Actual Time",
+			            IF (
+			                [Finished Quantity],
+			                SUMX (
+			                    'Capacity Ledger Entries',
+			                    // Inherently exclude subcontracted capacity
+			                    VAR SourceUOM = 'Capacity Ledger Entries'[Capacity Unit of Measure]
+			                    VAR ConversionFactor =
+			                        LOOKUPVALUE (
+			                            'Time Factors'[Time Factor],
+			                            'Time Factors'[Cap Unit of Measure Type], SourceUOM
+			                        )
+			                    RETURN
+			                        DIVIDE (
+			                            'Capacity Ledger Entries'[quantity] * ConversionFactor,
+			                            TargetTimeFactor
+			                        )
+			                ),
+			                BLANK ()
+			            )
+			    )
+			VAR Result =
+			    SUMX (
+			        ProductionOrders,
+			        [Actual Time]
+			    )
+			RETURN
+			    IF (
+			        Result = 0,
+			        BLANK (),
+			        Result
+			    )
+			
+			```
+		formatString: 0.00
+		displayFolder: _Production Order Measures
+		lineageTag: b7bbb076-e333-462a-aa15-b5d03c62b74c
+
+	measure 'Finished %' = DIVIDE([Finished Quantity], [Planned Quantity])
+		formatString: 0.00%;-0.00%;0.00%
+		displayFolder: _Production Order Measures
+		lineageTag: 33f4e18d-5482-433f-9362-18d4cba22680
+
+	measure 'Remaining %' =
+			
+			IF (
+			    [Finished Quantity] < [Planned Quantity],
+			    - DIVIDE ( [Variance Quantity], [Planned Quantity] ),
+			    BLANK ()
+			)
+		formatString: 0.00%;-0.00%;0.00%
+		displayFolder: _Production Order Measures
+		lineageTag: 54647529-a8c3-4458-b255-13963003e4f0
+
+	measure 'Variance Quantity' =
+			
+			VAR VarianceQty = [Finished Quantity] - [Planned Quantity]
+			RETURN
+			    IF ( VarianceQty = 0, BLANK (), VarianceQty )
+		displayFolder: _Production Order Measures
+		lineageTag: 812c152b-8242-4e32-bf31-45e9aebb3b6a
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Expected Capacity Cost Dev %' = DIVIDE([Expected Capacity Cost Variance], [Expected Capacity Cost])
+		formatString: #,0%;-#,0%;#,0%
+		displayFolder: _Production Order Statistics\_Expected Costs\_Variance to Expected Cost Deviation %
+		lineageTag: ef38c1a3-5577-476e-856f-88d7a898fcab
+
+	measure 'Expected Capacity Overhead Cost Dev %' = DIVIDE([Expected Capacity Overhead Cost Variance],[Expected Capacity Overhead Cost])
+		formatString: #,0%;-#,0%;#,0%
+		displayFolder: _Production Order Statistics\_Expected Costs\_Variance to Expected Cost Deviation %
+		lineageTag: 8c77c21f-bdf3-452a-b219-f04a11b644d1
+
+	measure 'Expected Manufacturing Overhead Cost Dev %' = DIVIDE([Expected Manufacturing Overhead Cost Variance],[Expected Manufacturing Overhead Cost])
+		formatString: #,0%;-#,0%;#,0%
+		displayFolder: _Production Order Statistics\_Expected Costs\_Variance to Expected Cost Deviation %
+		lineageTag: d2526de6-c8a3-4628-82fa-e3a1ac0fd4f5
+
+	measure 'Expected Material Cost Dev %' = DIVIDE([Expected Material Cost Variance], [Expected Material Cost])
+		formatString: #,0%;-#,0%;#,0%
+		displayFolder: _Production Order Statistics\_Expected Costs\_Variance to Expected Cost Deviation %
+		lineageTag: 71d32c8e-b36a-4c0c-bcaf-84da64d2f14b
+
+	measure 'Expected Subcontracted Cost Dev %' = DIVIDE([Expected Subcontracted Cost Variance],[Expected Subcontracted Cost])
+		formatString: #,0%;-#,0%;#,0%
+		displayFolder: _Production Order Statistics\_Expected Costs\_Variance to Expected Cost Deviation %
+		lineageTag: ef29f6c4-f6b5-4bf2-a730-9c46e4528927
+
+	measure 'Total Expected Cost Dev %' = DIVIDE([Total Expected Cost Variance], [Total Expected Cost])
+		formatString: #,0%;-#,0%;#,0%
+		displayFolder: _Production Order Statistics\_Expected Costs\_Variance to Expected Cost Deviation %
+		lineageTag: 71efe47f-e9d6-4258-945b-7087ec3c952c
+
+	measure 'Expected Capacity Cost Variance' = [Actual Capacity Cost] - [Expected Capacity Cost]
+		formatString: #,0.00
+		displayFolder: _Production Order Statistics\_Expected Costs\_Variance to Expected Cost
+		lineageTag: 6b701ca6-f88f-4474-bd21-dfa7c62b8462
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Expected Capacity Overhead Cost Variance' = [Actual Capacity Overhead Cost] - [Expected Capacity Overhead Cost]
+		formatString: #,0.00
+		displayFolder: _Production Order Statistics\_Expected Costs\_Variance to Expected Cost
+		lineageTag: 41767e53-9cc2-4a0b-b8b5-4ed8733f2307
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Expected Manufacturing Overhead Cost Variance' = [Actual Manufacturing Overhead Cost] - [Expected Manufacturing Overhead Cost]
+		formatString: #,0.00
+		displayFolder: _Production Order Statistics\_Expected Costs\_Variance to Expected Cost
+		lineageTag: 3f436ab4-55a8-493a-8ba0-24073c3a3a5e
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Expected Material Cost Variance' = [Actual Material Cost] - [Expected Material Cost]
+		formatString: #,0.00
+		displayFolder: _Production Order Statistics\_Expected Costs\_Variance to Expected Cost
+		lineageTag: 398e4330-fe2c-470a-ad3e-10d470dd24e5
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Expected Subcontracted Cost Variance' = [Actual Subcontracted Cost] - [Expected Subcontracted Cost]
+		formatString: #,0.00
+		displayFolder: _Production Order Statistics\_Expected Costs\_Variance to Expected Cost
+		lineageTag: da3de50d-d095-43de-8956-0263c41dfe69
+
+	measure 'Total Expected Cost Variance' = [Expected Material Cost Variance] + [Expected Capacity Cost Variance] + [Expected Subcontracted Cost Variance] + [Expected Capacity Overhead Cost Variance] + [Expected Manufacturing Overhead Cost Variance]
+		formatString: #,0.00
+		displayFolder: _Production Order Statistics\_Expected Costs\_Variance to Expected Cost
+		lineageTag: 703dae26-9c40-4e7b-95cf-668bc35da2d8
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'No. of Production Orders' = COUNT('Production Orders'[Production Order])
+		formatString: #,0
+		displayFolder: _Production Order Measures
+		lineageTag: 1c116b82-68a8-492d-9c41-5d200a102941
+
+	measure 'Average Production Time Per Finished Quantity' =
+			
+			DIVIDE([Actual Time Used], [Finished Quantity])
+		formatString: 0.00
+		displayFolder: _Production Order Measures
+		lineageTag: f30b0cde-0af2-481c-bc05-6501c987f77d
+
+	measure 'Prod Order Capacity Need Variance' = ```
+			[Prod Order Actual Capacity Need] - [Prod Order Expected Capacity Need] 
+			```
+		formatString: #,0.00
+		displayFolder: _Production Order Statistics\_Capacity Need
+		lineageTag: 328f6222-31dd-469b-8558-7b2a341ee41c
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Prod Order Capacity Need Dev %' = DIVIDE([Prod Order Capacity Need Variance], [Prod Order Expected Capacity Need])
+		formatString: 0%;-0%;0%
+		displayFolder: _Production Order Statistics\_Capacity Need
+		lineageTag: fb8fd9f0-0be7-4e6c-9d4b-6a0dc035872f
+
+	measure 'Production Order Scrap %' = DIVIDE([Production Order Scrap Quantity], [Finished Quantity])
+		formatString: 0.00%;-0.00%;0.00%
+		displayFolder: _Production Order Measures
+		lineageTag: 83fab2f6-f0fe-4c2e-bc46-dcd786a86722
+
+	measure 'Expected Production Order Scrap Quantity' = [Finished Quantity] * SELECTEDVALUE('Production Orders'[Prod Order Source No. Scrap %])
+		formatString: 0.00
+		displayFolder: _Production Order Measures
+		lineageTag: 2456252e-72f1-4163-a6b1-ce9edfae2631
+
+	measure 'Production Order Scrap Quantity' =
+			
+			CALCULATE (
+			    SUM ( 'Capacity Ledger Entries'[scrapQuantity] ),
+			    TREATAS (
+			        VALUES ( 'Capacity Ledger Entries'[Production Order] ),
+			        'Production Order Lines'[Prod. Order Key]
+			    ),
+			    TREATAS (
+			        VALUES ( 'Capacity Ledger Entries'[Order Line No.] ),
+			        'Production Order Lines'[Prod. Order Line No.]
+			    ),
+			    'Production Order Lines'[Planning Level Code] = "0"
+			)
+		displayFolder: _Production Order Measures
+		lineageTag: d93db101-be1f-47c5-be37-23ec908f9644
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column 'Prod Order Status'
+		dataType: string
+		lineageTag: 5c09da77-2fd4-4b2c-a25e-eafe5b16f2e9
+		summarizeBy: none
+		sourceColumn: Prod Order Status
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Prod Order No.'
+		dataType: string
+		lineageTag: 83b0a079-538e-4133-bbf2-6d368224b369
+		summarizeBy: none
+		sourceColumn: Prod Order No.
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Prod Order Source No.'
+		dataType: string
+		lineageTag: adcf8db5-67d4-4377-bd38-f0f9971a31cf
+		summarizeBy: none
+		sourceColumn: Prod Order Source No.
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Prod Order Routing No.'
+		dataType: string
+		lineageTag: da4ac8fe-1c5e-443a-bb94-48203ee73486
+		summarizeBy: none
+		sourceColumn: Prod Order Routing No.
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Prod Order Starting Date'
+		dataType: dateTime
+		formatString: Short Date
+		lineageTag: b92a24cf-c53c-42d6-9f9b-35950078bdde
+		summarizeBy: none
+		sourceColumn: Prod Order Starting Date
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	column 'Prod Order Ending Date'
+		dataType: dateTime
+		formatString: Short Date
+		lineageTag: d980c18e-369b-43ee-a9b9-8036d61b6db4
+		summarizeBy: none
+		sourceColumn: Prod Order Ending Date
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	column 'Prod Order Due Date'
+		dataType: dateTime
+		formatString: Short Date
+		lineageTag: 08774d8a-bffb-4df3-ba00-24cdb53fa2fd
+		summarizeBy: none
+		sourceColumn: Prod Order Due Date
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	column quantity
+		dataType: double
+		isHidden
+		lineageTag: 0e2cb3b6-aee3-433f-9934-ab84e36775d8
+		summarizeBy: sum
+		sourceColumn: quantity
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column 'Prod Order Description'
+		dataType: string
+		lineageTag: ab2be024-4770-4abb-bb68-deb317a606df
+		summarizeBy: none
+		sourceColumn: Prod Order Description
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Prod Order Source Type'
+		dataType: string
+		lineageTag: 18a122d6-e127-4283-9ef7-36f4a221aa8e
+		summarizeBy: none
+		sourceColumn: Prod Order Source Type
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Production Order'
+		dataType: string
+		lineageTag: 4df3d036-adb4-451f-a2f3-a7d1363f8441
+		summarizeBy: none
+		sourceColumn: Production Order
+
+		annotation SummarizationSetBy = User
+
+	column 'Prod Order Source No. Scrap %'
+		dataType: double
+		lineageTag: 97570be3-9695-47b4-a85c-4fbde8732500
+		summarizeBy: sum
+		sourceColumn: Prod Order Source No. Scrap %
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	partition 'Production Orders' = m
+		mode: import
+		queryGroup: 'Dimension Tables'
+		source =
+				let
+				    Source = Dynamics365BusinessCentral.ApiContentsWithOptions(ENVIRONMENT, COMPANY, API_ENDPOINT, []),
+				    TableData = Source{[Name = "manufacturingProductionOrders", Signature = "table"]}[Data],
+				    #"Changed Type" = Table.TransformColumnTypes(TableData, {{"status", type text}, {"no", type text}}),
+				    #"Renamed Columns" = Table.RenameColumns(
+				        #"Changed Type",
+				        {
+				            {"status", "Prod Order Status"},
+				            {"no", "Prod Order No."},
+				            {"sourceNo", "Prod Order Source No."},
+				            {"startingDate", "Prod Order Starting Date"},
+				            {"endingDate", "Prod Order Ending Date"},
+				            {"dueDate", "Prod Order Due Date"},
+				            {"description", "Prod Order Description"},
+				            {"sourceType", "Prod Order Source Type"},
+				            {"routingNo", "Prod Order Routing No."}
+				        }
+				    ),
+				    #"Added Column" = Table.AddColumn(
+				        #"Renamed Columns", "Production Order", each [Prod Order Status] & " " & [#"Prod Order No."], type text
+				    ),
+				    #"Removed Columns" = Table.RemoveColumns(#"Added Column", {"ETag"}),
+				    #"Merged Queries" = Table.NestedJoin(
+				        #"Removed Columns", {"Prod Order Source No."}, Item, {"Item No."}, "Item", JoinKind.LeftOuter
+				    ),
+				    #"Expanded Item" = Table.ExpandTableColumn(#"Merged Queries", "Item", {"Item Scrap %"}, {"Item Scrap %"}),
+				    #"Divided Column" = Table.TransformColumns(#"Expanded Item", {{"Item Scrap %", each _ / 100, type number}}),
+				    #"Renamed Columns1" = Table.RenameColumns(#"Divided Column",{{"Item Scrap %", "Prod Order Source No. Scrap %"}})
+				in
+				    #"Renamed Columns1"
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Table
+

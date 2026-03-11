@@ -1,0 +1,1114 @@
+table Customer
+	lineageTag: cd4698ab-c592-4ce7-9bf8-661142385bf6
+
+	/// Counts customers whose very first posted sales invoice date falls inside the currently selected date period (e.g., this month/quarter/slicer range). It’s essentially, first-time buyers acquired in this period.
+	measure 'No. of New Customers' = ```
+			
+			VAR CustomersWithNewDateSalesValueEntries =
+			    CALCULATETABLE (
+			        -- Prepares a table that
+			        ADDCOLUMNS (
+			            -- for each customer contains
+			            VALUES ( 'Sales Value Entries'[customerNo] ),
+			            -- the date of their first puchase
+			            "@NewCustomerDate",
+			                CALCULATE (
+			                    -- The first sale is
+			                    MIN ( 'Sales Value Entries'[postingDate] ),
+			                    -- the MIN of the order date
+			                    ALLEXCEPT (
+			                        'Sales Value Entries',
+			                        -- ignoring any filter
+			                        'Sales Value Entries'[customerNo],
+			                        -- other than the customer
+			                        Customer
+			                    ),
+			                    KEEPFILTERS ( 'Sales Value Entries'[Document Type] = "Posted Sales Invoice" )
+			                )
+			        ),
+			        ALLEXCEPT ( 'Sales Value Entries', Customer )
+			    )
+			VAR CustomersWithNewDateSalesInvoiceLines =
+			    CALCULATETABLE (
+			        -- Prepares a table that
+			        ADDCOLUMNS (
+			            -- for each customer contains
+			            VALUES ( 'Sales Invoice Lines'[billToCustomerNo] ),
+			            -- the date of their first puchase
+			            "@NewCustomerDate",
+			                CALCULATE (
+			                    MIN ( 'Sales Invoice Lines'[postingDate] ),
+			                    ALLEXCEPT (
+			                        'Sales Invoice Lines',
+			                        'Sales Invoice Lines'[billToCustomerNo],
+			                        Customer
+			                    ),
+			                    KEEPFILTERS ( 'Sales Invoice Lines'[Document Type] = "Posted Sales Invoice" )
+			                )
+			        ),
+			        ALLEXCEPT ( 'Sales Invoice Lines', Customer )
+			    )
+			VAR CustomersWithNewDateProjectLedgerEntries =
+			    CALCULATETABLE (
+			        -- Prepares a table that
+			        ADDCOLUMNS (
+			            -- for each customer contains
+			            VALUES ( 'Project Ledger Entries'[billToCustomerNo] ),
+			            -- the date of their first puchase
+			            "@NewCustomerDate",
+			                CALCULATE (
+			                    MIN ( 'Project Ledger Entries'[postingDate] ),
+			                    ALLEXCEPT (
+			                        'Project Ledger Entries',
+			                        'Project Ledger Entries'[billtoCustomerNo],
+			                        Customer
+			                    ),
+			                    KEEPFILTERS ( 'Project Ledger Entries'[Document Type] = "Posted Sales Invoice" )
+			                )
+			        ),
+			        ALLEXCEPT ( 'Project Ledger Entries', Customer )
+			    )
+			VAR Combine =
+			    UNION (
+			        CustomersWithNewDateSalesValueEntries,
+			        CustomersWithNewDateProjectLedgerEntries,
+			        CustomersWithNewDateSalesInvoiceLines
+			    )
+			VAR DedupMinPerCustomer =
+			    GROUPBY (
+			        Combine,
+			        [customerNo],
+			        "First Purchase Date", MINX ( CURRENTGROUP (), [@NewCustomerDate] )
+			    )
+			VAR NewCustomers =
+			    FILTER (
+			        DedupMinPerCustomer,
+			        -- Filters the customers
+			        [First Purchase Date]
+			            -- whose new customer date
+			            IN VALUES ( 'Date'[Date] ) -- falls within the current period
+			    )
+			VAR Result =
+			    -- The count of the new customers
+			    COUNTROWS ( NewCustomers ) -- does not use the Sales table
+			RETURN
+			    Result
+			
+			```
+		formatString: #,0
+		displayFolder: _Customer Measures
+		lineageTag: edf4331b-d034-440d-bed3-ee851b7d2b49
+
+	/// Counts customers who “become lost” during the currently selected date range, where “lost” is defined by an inactivity threshold in months since their last purchase. The inactivity threshold is managed by setting the Lost Customer Month Range filter. This is not; customers who didn’t buy this period. It’s customers who officially became lost this period according to the rule: no purchases for X months since last purchase.
+	measure 'No. of Lost Customers' = ```
+			
+			VAR PeriodStart = MIN ( 'Date'[Date] )
+			VAR PeriodEnd   = MAX ( 'Date'[Date] )
+			
+			RETURN
+			COUNTROWS (
+			    FILTER (
+			        VALUES ( Customer[Customer No.] ),
+			        VAR LastPurchaseDate  = 
+			                    MAXX (
+			                {
+			                    -- Sales Value Entries
+			                    CALCULATE (
+			                        MAX ( 'Sales Value Entries'[postingDate] ),
+			                        REMOVEFILTERS ( 'Date' ),                                  -- look across all dates
+			                        'Sales Value Entries'[Document Type] = "Posted Sales Invoice"
+			                    ),
+			
+			                    -- Sales Invoice Lines
+			                    CALCULATE (
+			                        MAX ( 'Sales Invoice Lines'[postingDate] ),
+			                        REMOVEFILTERS ( 'Date' ),
+			                        'Sales Invoice Lines'[Document Type] = "Posted Sales Invoice"
+			                    ),
+			
+			                    -- Project Ledger Entries
+			                    CALCULATE (
+			                        MAX ( 'Project Ledger Entries'[postingDate] ),
+			                        REMOVEFILTERS ( 'Date' ),
+			                        'Project Ledger Entries'[Document Type] = "Posted Sales Invoice"
+			                    )
+			                },
+			                [Value]
+			            )
+			        VAR LostDate = IF ( NOT ISBLANK ( LastPurchaseDate ), EDATE ( LastPurchaseDate, 'Lost Customer Month Range'[Lost Customer Month Range Value] ) )
+			        RETURN NOT ISBLANK ( LostDate ) && LostDate >= PeriodStart && LostDate <= PeriodEnd
+			    )
+			)
+			
+			```
+		formatString: #,0
+		displayFolder: _Customer Measures
+		lineageTag: 61494da7-7bfd-4b73-98cc-3e5c33a6a57b
+
+	/// This measure calculates the total sales from customers who made their first purchase within the current date range. It identifies each customer's first purchase date, filters out customers whose first purchase occurred during the selected period, and then sums the sales amount from those new customers.
+	measure 'Sales New Customers' = ```
+			
+			VAR CustomersWithNewDateSalesValueEntries =
+			    CALCULATETABLE (
+			        -- Prepares a table that
+			        ADDCOLUMNS (
+			            -- for each customer contains
+			            VALUES ( 'Sales Value Entries'[customerNo] ),
+			            -- the date of their first puchase
+			            "@NewCustomerDate",
+			                CALCULATE (
+			                    -- The first sale is
+			                    MIN ( 'Sales Value Entries'[postingDate] ),
+			                    -- the MIN of the order date
+			                    ALLEXCEPT (
+			                        'Sales Value Entries',
+			                        -- ignoring any filter
+			                        'Sales Value Entries'[customerNo],
+			                        -- other than the customer
+			                        Customer
+			                    ),
+			                    KEEPFILTERS ( 'Sales Value Entries'[Document Type] = "Posted Sales Invoice" )
+			                )
+			        ),
+			        ALLEXCEPT ( 'Sales Value Entries', Customer )
+			    )
+			VAR CustomersWithNewDateSalesInvoiceLines =
+			    CALCULATETABLE (
+			        -- Prepares a table that
+			        ADDCOLUMNS (
+			            -- for each customer contains
+			            VALUES ( 'Sales Invoice Lines'[billToCustomerNo] ),
+			            -- the date of their first puchase
+			            "@NewCustomerDate",
+			                CALCULATE (
+			                    MIN ( 'Sales Invoice Lines'[postingDate] ),
+			                    ALLEXCEPT (
+			                        'Sales Invoice Lines',
+			                        'Sales Invoice Lines'[billToCustomerNo],
+			                        Customer
+			                    ),
+			                    KEEPFILTERS ( 'Sales Invoice Lines'[Document Type] = "Posted Sales Invoice" )
+			                )
+			        ),
+			        ALLEXCEPT ( 'Sales Invoice Lines', Customer )
+			    )
+			VAR CustomersWithNewDateProjectLedgerEntries =
+			    CALCULATETABLE (
+			        -- Prepares a table that
+			        ADDCOLUMNS (
+			            -- for each customer contains
+			            VALUES ( 'Project Ledger Entries'[billToCustomerNo] ),
+			            -- the date of their first puchase
+			            "@NewCustomerDate",
+			                CALCULATE (
+			                    MIN ( 'Project Ledger Entries'[postingDate] ),
+			                    ALLEXCEPT (
+			                        'Project Ledger Entries',
+			                        'Project Ledger Entries'[billtoCustomerNo],
+			                        Customer
+			                    ),
+			                    KEEPFILTERS ( 'Project Ledger Entries'[Document Type] = "Posted Sales Invoice" )
+			                )
+			        ),
+			        ALLEXCEPT ( 'Project Ledger Entries', Customer )
+			    )
+			VAR Combine =
+			    UNION(
+			        CustomersWithNewDateSalesValueEntries,
+			        CustomersWithNewDateProjectLedgerEntries,
+			        CustomersWithNewDateSalesInvoiceLines
+			    )
+			VAR DedupMinPerCustomer =
+			    GROUPBY(
+			        Combine,
+			        [customerNo],
+			        "First Purchase Date", MINX ( CURRENTGROUP(), [@NewCustomerDate] )
+			    )
+			VAR NewCustomers =
+			    FILTER(
+			        DedupMinPerCustomer,
+			        [First Purchase Date] IN VALUES ( 'Date'[Date] )
+			    )
+			RETURN
+			CALCULATE(
+			    [Sales (LCY)],
+			    KEEPFILTERS(
+			        TREATAS(
+			            SELECTCOLUMNS( NewCustomers, "customerNo", [customerNo] ),
+			            Customer[Customer No.]
+			        )
+			    )
+			)
+			
+			```
+		formatString: #,0.00
+		displayFolder: _Customer Measures
+		lineageTag: 701ac977-2998-4fdc-bef1-db21908461c7
+
+		changedProperty = FormatString
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	/// Counts customers who have at least one posted sales invoice before the current period AND at least one posted sales invoice during the current period. So it’s basically, existing customers who purchased again in this period. It is not “recovered” (lapsed then came back).
+	measure 'No. of Returning Customers' = ```
+			
+			VAR PeriodStart = MIN ( 'Date'[Date] )
+			VAR PeriodEnd   = MAX ( 'Date'[Date] )
+			
+			-- Customers with a transaction BEFORE the period
+			VAR Prior_SVE =
+			    SELECTCOLUMNS (
+			        CALCULATETABLE (
+			            VALUES ( 'Sales Value Entries'[customerNo] ),
+			            REMOVEFILTERS ( 'Sales Value Entries' ),
+			            'Date'[Date] < PeriodStart,
+			            -- USERELATIONSHIP ( 'Date'[Date], 'Sales Value Entries'[postingDate] ),  -- uncomment if needed
+			            KEEPFILTERS ( 'Sales Value Entries'[Document Type] = "Posted Sales Invoice" )
+			            -- (leave KEEPFILTERS out if your SVE table already stores posted-only rows)
+			        ),
+			        "customerNo", 'Sales Value Entries'[customerNo]
+			    )
+			
+			VAR Prior_SIL =
+			    SELECTCOLUMNS (
+			        CALCULATETABLE (
+			            VALUES ( 'Sales Invoice Lines'[billToCustomerNo] ),
+			            REMOVEFILTERS ( 'Sales Invoice Lines' ),
+			            'Date'[Date] < PeriodStart,
+			            -- USERELATIONSHIP ( 'Date'[Date], 'Sales Invoice Lines'[postingDate] ),
+			            KEEPFILTERS ( 'Sales Invoice Lines'[Document Type] = "Posted Sales Invoice" )
+			        ),
+			        "customerNo", 'Sales Invoice Lines'[billToCustomerNo]
+			    )
+			
+			VAR Prior_PLE =
+			    SELECTCOLUMNS (
+			        CALCULATETABLE (
+			            VALUES ( 'Project Ledger Entries'[billToCustomerNo] ),
+			            REMOVEFILTERS ( 'Project Ledger Entries' ),
+			            'Date'[Date] < PeriodStart,
+			            -- USERELATIONSHIP ( 'Date'[Date], 'Project Ledger Entries'[postingDate] ),
+			            KEEPFILTERS ( 'Project Ledger Entries'[Document Type] = "Posted Sales Invoice" )
+			        ),
+			        "customerNo", 'Project Ledger Entries'[billToCustomerNo]
+			    )
+			
+			VAR PriorAll =
+			    DISTINCT ( UNION ( Prior_SVE, Prior_SIL, Prior_PLE ) )
+			
+			-- Customers with a transaction INSIDE the period
+			VAR Curr_SVE =
+			    SELECTCOLUMNS (
+			        CALCULATETABLE (
+			            VALUES ( 'Sales Value Entries'[customerNo] ),
+			            REMOVEFILTERS ( 'Sales Value Entries' ),
+			            'Date'[Date] >= PeriodStart,
+			            'Date'[Date] <= PeriodEnd
+			            -- , USERELATIONSHIP ( 'Date'[Date], 'Sales Value Entries'[postingDate] )
+			            , KEEPFILTERS ( 'Sales Value Entries'[Document Type] = "Posted Sales Invoice" )
+			        ),
+			        "customerNo", 'Sales Value Entries'[customerNo]
+			    )
+			
+			VAR Curr_SIL =
+			    SELECTCOLUMNS (
+			        CALCULATETABLE (
+			            VALUES ( 'Sales Invoice Lines'[billToCustomerNo] ),
+			            REMOVEFILTERS ( 'Sales Invoice Lines' ),
+			            'Date'[Date] >= PeriodStart,
+			            'Date'[Date] <= PeriodEnd
+			            -- , USERELATIONSHIP ( 'Date'[Date], 'Sales Invoice Lines'[postingDate] )
+			            , KEEPFILTERS ( 'Sales Invoice Lines'[Document Type] = "Posted Sales Invoice" )
+			        ),
+			        "customerNo", 'Sales Invoice Lines'[billToCustomerNo]
+			    )
+			
+			VAR Curr_PLE =
+			    SELECTCOLUMNS (
+			        CALCULATETABLE (
+			            VALUES ( 'Project Ledger Entries'[billToCustomerNo] ),
+			            REMOVEFILTERS ( 'Project Ledger Entries' ),
+			            'Date'[Date] >= PeriodStart,
+			            'Date'[Date] <= PeriodEnd
+			            -- , USERELATIONSHIP ( 'Date'[Date], 'Project Ledger Entries'[postingDate] )
+			            , KEEPFILTERS ( 'Project Ledger Entries'[Document Type] = "Posted Sales Invoice" )
+			        ),
+			        "customerNo", 'Project Ledger Entries'[billToCustomerNo]
+			    )
+			
+			VAR CurrAll =
+			    DISTINCT ( UNION ( Curr_SVE, Curr_SIL, Curr_PLE ) )
+			
+			-- Returning = seen before AND during the period
+			VAR Returning =
+			    INTERSECT ( PriorAll, CurrAll )
+			
+			RETURN 
+			COUNTROWS ( Returning )
+			
+			```
+		formatString: #,0
+		displayFolder: _Customer Measures
+		lineageTag: 7278d54c-b1cc-4176-b466-c14f7b4f39aa
+
+		changedProperty = IsHidden
+
+	/// This measure calculates the total sales generated by returning customers. Returning customers are customers who made their first purchase before the current period and made more purchases in the current period. It identifies returning customers by finding the intersection of active customers and customers who purchased previously, and then sums the sales from these returning customers.
+	measure 'Sales Returning Customers' = ```
+			
+			VAR PeriodStart = MIN ( 'Date'[Date] )
+			VAR PeriodEnd   = MAX ( 'Date'[Date] )
+			
+			-- Customers with a transaction BEFORE the period
+			VAR Prior_SVE =
+			    SELECTCOLUMNS (
+			        CALCULATETABLE (
+			            VALUES ( 'Sales Value Entries'[customerNo] ),
+			            REMOVEFILTERS ( 'Sales Value Entries' ),
+			            'Date'[Date] < PeriodStart,
+			            KEEPFILTERS ( 'Sales Value Entries'[Document Type] = "Posted Sales Invoice" )
+			        ),
+			        "customerNo", 'Sales Value Entries'[customerNo]
+			    )
+			VAR Prior_SIL =
+			    SELECTCOLUMNS (
+			        CALCULATETABLE (
+			            VALUES ( 'Sales Invoice Lines'[billToCustomerNo] ),
+			            REMOVEFILTERS ( 'Sales Invoice Lines' ),
+			            'Date'[Date] < PeriodStart,
+			            KEEPFILTERS ( 'Sales Invoice Lines'[Document Type] = "Posted Sales Invoice" )
+			        ),
+			        "customerNo", 'Sales Invoice Lines'[billToCustomerNo]
+			    )
+			VAR Prior_PLE =
+			    SELECTCOLUMNS (
+			        CALCULATETABLE (
+			            VALUES ( 'Project Ledger Entries'[billToCustomerNo] ),
+			            REMOVEFILTERS ( 'Project Ledger Entries' ),
+			            'Date'[Date] < PeriodStart,
+			            KEEPFILTERS ( 'Project Ledger Entries'[Document Type] = "Posted Sales Invoice" )
+			        ),
+			        "customerNo", 'Project Ledger Entries'[billToCustomerNo]
+			    )
+			VAR PriorAll = DISTINCT ( UNION ( Prior_SVE, Prior_SIL, Prior_PLE ) )
+			
+			-- Customers with a transaction INSIDE the period
+			VAR Curr_SVE =
+			    SELECTCOLUMNS (
+			        CALCULATETABLE (
+			            VALUES ( 'Sales Value Entries'[customerNo] ),
+			            REMOVEFILTERS ( 'Sales Value Entries' ),
+			            'Date'[Date] >= PeriodStart, 'Date'[Date] <= PeriodEnd,
+			            KEEPFILTERS ( 'Sales Value Entries'[Document Type] = "Posted Sales Invoice" )
+			        ),
+			        "customerNo", 'Sales Value Entries'[customerNo]
+			    )
+			VAR Curr_SIL =
+			    SELECTCOLUMNS (
+			        CALCULATETABLE (
+			            VALUES ( 'Sales Invoice Lines'[billToCustomerNo] ),
+			            REMOVEFILTERS ( 'Sales Invoice Lines' ),
+			            'Date'[Date] >= PeriodStart, 'Date'[Date] <= PeriodEnd,
+			            KEEPFILTERS ( 'Sales Invoice Lines'[Document Type] = "Posted Sales Invoice" )
+			        ),
+			        "customerNo", 'Sales Invoice Lines'[billToCustomerNo]
+			    )
+			VAR Curr_PLE =
+			    SELECTCOLUMNS (
+			        CALCULATETABLE (
+			            VALUES ( 'Project Ledger Entries'[billToCustomerNo] ),
+			            REMOVEFILTERS ( 'Project Ledger Entries' ),
+			            'Date'[Date] >= PeriodStart, 'Date'[Date] <= PeriodEnd,
+			            KEEPFILTERS ( 'Project Ledger Entries'[Document Type] = "Posted Sales Invoice" )
+			        ),
+			        "customerNo", 'Project Ledger Entries'[billToCustomerNo]
+			    )
+			VAR CurrAll = DISTINCT ( UNION ( Curr_SVE, Curr_SIL, Curr_PLE ) )
+			
+			-- Returning = seen before AND during the period
+			VAR Returning = INTERSECT ( PriorAll, CurrAll )
+			
+			-- Apply the customer set to your base sales measure
+			VAR CustSet = SELECTCOLUMNS ( Returning, "customerNo", [customerNo] )
+			RETURN
+			CALCULATE (
+			    [Sales (LCY)],  -- your existing sales amount measure
+			    KEEPFILTERS ( TREATAS ( CustSet, Customer[Customer No.] ) )
+			)
+			
+			```
+		formatString: #,0.00
+		displayFolder: _Customer Measures
+		lineageTag: 7fd61ca9-8350-44be-90cc-b34da7da5ed3
+
+		changedProperty = FormatString
+
+	/// Counts customers who were inactive in the previous period but returned with a purchase in the current period. For example: Bought in October > no purchase in November > bought in December > Recovered.
+	measure 'No. of Recovered Customers' =
+			
+			VAR PeriodStart = MIN ( 'Date'[Date] )
+			VAR PeriodEnd   = MAX ( 'Date'[Date] )
+			VAR DurationDays = 1 + DATEDIFF ( PeriodStart, PeriodEnd, DAY )
+			
+			-- Previous period window (same length, immediately before current)
+			VAR PrevPeriod =
+			    DATESINPERIOD ( 'Date'[Date], PeriodStart, -DurationDays, DAY )
+			VAR PrevStart = MINX ( PrevPeriod, 'Date'[Date] )
+			VAR PrevEnd   = MAXX ( PrevPeriod, 'Date'[Date] )
+			
+			/* --------------------------
+			   Helper sets (per window)
+			   -------------------------- */
+			
+			-- Customers active BEFORE the previous period (established customers)
+			VAR PriorToPrev_SVE =
+			    SELECTCOLUMNS (
+			        CALCULATETABLE (
+			            VALUES ( 'Sales Value Entries'[customerNo] ),
+			            REMOVEFILTERS ( 'Sales Value Entries' ),
+			            'Date'[Date] < PrevStart
+			            -- , USERELATIONSHIP ( 'Date'[Date], 'Sales Value Entries'[postingDate] )
+			            , KEEPFILTERS ( 'Sales Value Entries'[Document Type] = "Posted Sales Invoice" )
+			        ),
+			        "customerNo", 'Sales Value Entries'[customerNo]
+			    )
+			VAR PriorToPrev_SIL =
+			    SELECTCOLUMNS (
+			        CALCULATETABLE (
+			            VALUES ( 'Sales Invoice Lines'[billToCustomerNo] ),
+			            REMOVEFILTERS ( 'Sales Invoice Lines' ),
+			            'Date'[Date] < PrevStart
+			            -- , USERELATIONSHIP ( 'Date'[Date], 'Sales Invoice Lines'[postingDate] )
+			            , KEEPFILTERS ( 'Sales Invoice Lines'[Document Type] = "Posted Sales Invoice" )
+			        ),
+			        "customerNo", 'Sales Invoice Lines'[billToCustomerNo]
+			    )
+			VAR PriorToPrev_PLE =
+			    SELECTCOLUMNS (
+			        CALCULATETABLE (
+			            VALUES ( 'Project Ledger Entries'[billToCustomerNo] ),
+			            REMOVEFILTERS ( 'Project Ledger Entries' ),
+			            'Date'[Date] < PrevStart
+			            -- , USERELATIONSHIP ( 'Date'[Date], 'Project Ledger Entries'[postingDate] )
+			            , KEEPFILTERS ( 'Project Ledger Entries'[Document Type] = "Posted Sales Invoice" )
+			        ),
+			        "customerNo", 'Project Ledger Entries'[billToCustomerNo]
+			    )
+			VAR PriorToPrevAll =
+			    DISTINCT ( UNION ( PriorToPrev_SVE, PriorToPrev_SIL, PriorToPrev_PLE ) )
+			
+			-- Customers active IN the previous period
+			VAR Prev_SVE =
+			    SELECTCOLUMNS (
+			        CALCULATETABLE (
+			            VALUES ( 'Sales Value Entries'[customerNo] ),
+			            REMOVEFILTERS ( 'Sales Value Entries' ),
+			            'Date'[Date] >= PrevStart, 'Date'[Date] <= PrevEnd
+			            -- , USERELATIONSHIP ( 'Date'[Date], 'Sales Value Entries'[postingDate] )
+			        ),
+			        "customerNo", 'Sales Value Entries'[customerNo]
+			    )
+			VAR Prev_SIL =
+			    SELECTCOLUMNS (
+			        CALCULATETABLE (
+			            VALUES ( 'Sales Invoice Lines'[billToCustomerNo] ),
+			            REMOVEFILTERS ( 'Sales Invoice Lines' ),
+			            'Date'[Date] >= PrevStart, 'Date'[Date] <= PrevEnd
+			            -- , USERELATIONSHIP ( 'Date'[Date], 'Sales Invoice Lines'[postingDate] )
+			        ),
+			        "customerNo", 'Sales Invoice Lines'[billToCustomerNo]
+			    )
+			VAR Prev_PLE =
+			    SELECTCOLUMNS (
+			        CALCULATETABLE (
+			            VALUES ( 'Project Ledger Entries'[billToCustomerNo] ),
+			            REMOVEFILTERS ( 'Project Ledger Entries' ),
+			            'Date'[Date] >= PrevStart, 'Date'[Date] <= PrevEnd
+			            -- , USERELATIONSHIP ( 'Date'[Date], 'Project Ledger Entries'[postingDate] )
+			        ),
+			        "customerNo", 'Project Ledger Entries'[billToCustomerNo]
+			    )
+			VAR PrevAll =
+			    DISTINCT ( UNION ( Prev_SVE, Prev_SIL, Prev_PLE ) )
+			
+			-- Customers active IN the current period
+			VAR Curr_SVE =
+			    SELECTCOLUMNS (
+			        CALCULATETABLE (
+			            VALUES ( 'Sales Value Entries'[customerNo] ),
+			            REMOVEFILTERS ( 'Sales Value Entries' ),
+			            'Date'[Date] >= PeriodStart, 'Date'[Date] <= PeriodEnd
+			            -- , USERELATIONSHIP ( 'Date'[Date], 'Sales Value Entries'[postingDate] )
+			        ),
+			        "customerNo", 'Sales Value Entries'[customerNo]
+			    )
+			VAR Curr_SIL =
+			    SELECTCOLUMNS (
+			        CALCULATETABLE (
+			            VALUES ( 'Sales Invoice Lines'[billToCustomerNo] ),
+			            REMOVEFILTERS ( 'Sales Invoice Lines' ),
+			            'Date'[Date] >= PeriodStart, 'Date'[Date] <= PeriodEnd
+			            -- , USERELATIONSHIP ( 'Date'[Date], 'Sales Invoice Lines'[postingDate] )
+			        ),
+			        "customerNo", 'Sales Invoice Lines'[billToCustomerNo]
+			    )
+			VAR Curr_PLE =
+			    SELECTCOLUMNS (
+			        CALCULATETABLE (
+			            VALUES ( 'Project Ledger Entries'[billToCustomerNo] ),
+			            REMOVEFILTERS ( 'Project Ledger Entries' ),
+			            'Date'[Date] >= PeriodStart, 'Date'[Date] <= PeriodEnd
+			            -- , USERELATIONSHIP ( 'Date'[Date], 'Project Ledger Entries'[postingDate] )
+			        ),
+			        "customerNo", 'Project Ledger Entries'[billToCustomerNo]
+			    )
+			VAR CurrAll =
+			    DISTINCT ( UNION ( Curr_SVE, Curr_SIL, Curr_PLE ) )
+			
+			/* --------------------------
+			   Set logic
+			   -------------------------- */
+			
+			-- Lost in previous period = had history before prev period, but no activity during prev period
+			VAR LostPrev = EXCEPT ( PriorToPrevAll, PrevAll )
+			
+			-- Recovered this period = were lost in prev period AND have activity in current period
+			VAR Recovered = INTERSECT ( LostPrev, CurrAll )
+			
+			RETURN COUNTROWS ( Recovered )
+		formatString: #,0
+		displayFolder: _Customer Measures
+		lineageTag: 5d514859-59f1-4dc6-8921-1128f843fa2e
+
+	/// Count of customers who purchased in the previous period but did not purchase in the current period. So it answers how many were active last period, but went quiet this period.
+	measure 'No. of Temporarily Lost Customers' = ```
+			
+			VAR PeriodStart = MIN ( 'Date'[Date] )
+			VAR PeriodEnd   = MAX ( 'Date'[Date] )
+			VAR DurationDays = 1 + DATEDIFF ( PeriodStart, PeriodEnd, DAY )
+			
+			-- Previous window = same length, immediately before current
+			VAR PrevPeriod = DATESINPERIOD ( 'Date'[Date], PeriodStart, -DurationDays, DAY )
+			VAR PrevStart  = MINX ( PrevPeriod, 'Date'[Date] )
+			VAR PrevEnd    = MAXX ( PrevPeriod, 'Date'[Date] )
+			
+			/* --------------------------
+			   Customers active IN previous period
+			   -------------------------- */
+			VAR Prev_SVE =
+			    SELECTCOLUMNS (
+			        CALCULATETABLE (
+			            VALUES ( 'Sales Value Entries'[customerNo] ),
+			            REMOVEFILTERS ( 'Sales Value Entries' ),
+			            'Date'[Date] >= PrevStart, 'Date'[Date] <= PrevEnd,
+			            KEEPFILTERS ( 'Sales Value Entries'[Document Type] = "Posted Sales Invoice" )
+			            -- , USERELATIONSHIP ( 'Date'[Date], 'Sales Value Entries'[postingDate] )
+			        ),
+			        "customerNo", 'Sales Value Entries'[customerNo]
+			    )
+			VAR Prev_SIL =
+			    SELECTCOLUMNS (
+			        CALCULATETABLE (
+			            VALUES ( 'Sales Invoice Lines'[billToCustomerNo] ),
+			            REMOVEFILTERS ( 'Sales Invoice Lines' ),
+			            'Date'[Date] >= PrevStart, 'Date'[Date] <= PrevEnd,
+			            KEEPFILTERS ( 'Sales Invoice Lines'[Document Type] = "Posted Sales Invoice" )
+			            -- , USERELATIONSHIP ( 'Date'[Date], 'Sales Invoice Lines'[postingDate] )
+			        ),
+			        "customerNo", 'Sales Invoice Lines'[billToCustomerNo]
+			    )
+			VAR Prev_PLE =
+			    SELECTCOLUMNS (
+			        CALCULATETABLE (
+			            VALUES ( 'Project Ledger Entries'[billToCustomerNo] ),
+			            REMOVEFILTERS ( 'Project Ledger Entries' ),
+			            'Date'[Date] >= PrevStart, 'Date'[Date] <= PrevEnd,
+			            KEEPFILTERS ( 'Project Ledger Entries'[Document Type] = "Posted Sales Invoice" )
+			            -- , USERELATIONSHIP ( 'Date'[Date], 'Project Ledger Entries'[postingDate] )
+			        ),
+			        "customerNo", 'Project Ledger Entries'[billToCustomerNo]
+			    )
+			VAR PrevAll = DISTINCT ( UNION ( Prev_SVE, Prev_SIL, Prev_PLE ) )
+			
+			/* --------------------------
+			   Customers active IN current period
+			   -------------------------- */
+			VAR Curr_SVE =
+			    SELECTCOLUMNS (
+			        CALCULATETABLE (
+			            VALUES ( 'Sales Value Entries'[customerNo] ),
+			            REMOVEFILTERS ( 'Sales Value Entries' ),
+			            'Date'[Date] >= PeriodStart, 'Date'[Date] <= PeriodEnd,
+			            KEEPFILTERS ( 'Sales Value Entries'[Document Type] = "Posted Sales Invoice" )
+			            -- , USERELATIONSHIP ( 'Date'[Date], 'Sales Value Entries'[postingDate] )
+			        ),
+			        "customerNo", 'Sales Value Entries'[customerNo]
+			    )
+			VAR Curr_SIL =
+			    SELECTCOLUMNS (
+			        CALCULATETABLE (
+			            VALUES ( 'Sales Invoice Lines'[billToCustomerNo] ),
+			            REMOVEFILTERS ( 'Sales Invoice Lines' ),
+			            'Date'[Date] >= PeriodStart, 'Date'[Date] <= PeriodEnd,
+			            KEEPFILTERS ( 'Sales Invoice Lines'[Document Type] = "Posted Sales Invoice" )
+			            -- , USERELATIONSHIP ( 'Date'[Date], 'Sales Invoice Lines'[postingDate] )
+			        ),
+			        "customerNo", 'Sales Invoice Lines'[billToCustomerNo]
+			    )
+			VAR Curr_PLE =
+			    SELECTCOLUMNS (
+			        CALCULATETABLE (
+			            VALUES ( 'Project Ledger Entries'[billToCustomerNo] ),
+			            REMOVEFILTERS ( 'Project Ledger Entries' ),
+			            'Date'[Date] >= PeriodStart, 'Date'[Date] <= PeriodEnd,
+			            KEEPFILTERS ( 'Project Ledger Entries'[Document Type] = "Posted Sales Invoice" )
+			            -- , USERELATIONSHIP ( 'Date'[Date], 'Project Ledger Entries'[postingDate] )
+			        ),
+			        "customerNo", 'Project Ledger Entries'[billToCustomerNo]
+			    )
+			VAR CurrAll = DISTINCT ( UNION ( Curr_SVE, Curr_SIL, Curr_PLE ) )
+			
+			/* --------------------------
+			   Newly lost THIS period = active in prev, NOT active now
+			   -------------------------- */
+			VAR NewlyLost = EXCEPT ( PrevAll, CurrAll )
+			
+			RETURN
+			COUNTROWS ( NewlyLost )
+			
+			```
+		formatString: #,0
+		displayFolder: _Customer Measures
+		lineageTag: 4414f0e0-807f-4e09-a270-4526a0b60955
+
+		changedProperty = IsHidden
+
+	/// This measure calculates the total sales generated by recovered customers. Recovered customers were previously lost but made a purchase afterward. It identifies temporarily lost customers, checks whether they made a new purchase in the current period, and then sums the sales figures for them.
+	measure 'Sales Recovered Customers' = ```
+			
+			VAR PeriodStart = MIN ( 'Date'[Date] )
+			VAR PeriodEnd   = MAX ( 'Date'[Date] )
+			VAR DurationDays = 1 + DATEDIFF ( PeriodStart, PeriodEnd, DAY )
+			
+			-- Previous window (same length, immediately before current)
+			VAR PrevPeriod = DATESINPERIOD ( 'Date'[Date], PeriodStart, -DurationDays, DAY )
+			VAR PrevStart  = MINX ( PrevPeriod, 'Date'[Date] )
+			VAR PrevEnd    = MAXX ( PrevPeriod, 'Date'[Date] )
+			
+			/* ---------- Helper sets ---------- */
+			
+			-- Active BEFORE the previous period
+			VAR PriorToPrev_SVE =
+			    SELECTCOLUMNS (
+			        CALCULATETABLE (
+			            VALUES ( 'Sales Value Entries'[customerNo] ),
+			            REMOVEFILTERS ( 'Sales Value Entries' ),
+			            'Date'[Date] < PrevStart,
+			            KEEPFILTERS ( 'Sales Value Entries'[Document Type] = "Posted Sales Invoice" )
+			        ),
+			        "customerNo", 'Sales Value Entries'[customerNo]
+			    )
+			VAR PriorToPrev_SIL =
+			    SELECTCOLUMNS (
+			        CALCULATETABLE (
+			            VALUES ( 'Sales Invoice Lines'[billToCustomerNo] ),
+			            REMOVEFILTERS ( 'Sales Invoice Lines' ),
+			            'Date'[Date] < PrevStart,
+			            KEEPFILTERS ( 'Sales Invoice Lines'[Document Type] = "Posted Sales Invoice" )
+			        ),
+			        "customerNo", 'Sales Invoice Lines'[billToCustomerNo]
+			    )
+			VAR PriorToPrev_PLE =
+			    SELECTCOLUMNS (
+			        CALCULATETABLE (
+			            VALUES ( 'Project Ledger Entries'[billToCustomerNo] ),
+			            REMOVEFILTERS ( 'Project Ledger Entries' ),
+			            'Date'[Date] < PrevStart,
+			            KEEPFILTERS ( 'Project Ledger Entries'[Document Type] = "Posted Sales Invoice" )
+			        ),
+			        "customerNo", 'Project Ledger Entries'[billToCustomerNo]
+			    )
+			VAR PriorToPrevAll = DISTINCT ( UNION ( PriorToPrev_SVE, PriorToPrev_SIL, PriorToPrev_PLE ) )
+			
+			-- Active IN the previous period
+			VAR Prev_SVE =
+			    SELECTCOLUMNS (
+			        CALCULATETABLE (
+			            VALUES ( 'Sales Value Entries'[customerNo] ),
+			            REMOVEFILTERS ( 'Sales Value Entries' ),
+			            'Date'[Date] >= PrevStart, 'Date'[Date] <= PrevEnd,
+			            KEEPFILTERS ( 'Sales Value Entries'[Document Type] = "Posted Sales Invoice" )
+			        ),
+			        "customerNo", 'Sales Value Entries'[customerNo]
+			    )
+			VAR Prev_SIL =
+			    SELECTCOLUMNS (
+			        CALCULATETABLE (
+			            VALUES ( 'Sales Invoice Lines'[billToCustomerNo] ),
+			            REMOVEFILTERS ( 'Sales Invoice Lines' ),
+			            'Date'[Date] >= PrevStart, 'Date'[Date] <= PrevEnd,
+			            KEEPFILTERS ( 'Sales Invoice Lines'[Document Type] = "Posted Sales Invoice" )
+			        ),
+			        "customerNo", 'Sales Invoice Lines'[billToCustomerNo]
+			    )
+			VAR Prev_PLE =
+			    SELECTCOLUMNS (
+			        CALCULATETABLE (
+			            VALUES ( 'Project Ledger Entries'[billToCustomerNo] ),
+			            REMOVEFILTERS ( 'Project Ledger Entries' ),
+			            'Date'[Date] >= PrevStart, 'Date'[Date] <= PrevEnd,
+			            KEEPFILTERS ( 'Project Ledger Entries'[Document Type] = "Posted Sales Invoice" )
+			        ),
+			        "customerNo", 'Project Ledger Entries'[billToCustomerNo]
+			    )
+			VAR PrevAll = DISTINCT ( UNION ( Prev_SVE, Prev_SIL, Prev_PLE ) )
+			
+			-- Active IN the current period
+			VAR Curr_SVE =
+			    SELECTCOLUMNS (
+			        CALCULATETABLE (
+			            VALUES ( 'Sales Value Entries'[customerNo] ),
+			            REMOVEFILTERS ( 'Sales Value Entries' ),
+			            'Date'[Date] >= PeriodStart, 'Date'[Date] <= PeriodEnd,
+			            KEEPFILTERS ( 'Sales Value Entries'[Document Type] = "Posted Sales Invoice" )
+			        ),
+			        "customerNo", 'Sales Value Entries'[customerNo]
+			    )
+			VAR Curr_SIL =
+			    SELECTCOLUMNS (
+			        CALCULATETABLE (
+			            VALUES ( 'Sales Invoice Lines'[billToCustomerNo] ),
+			            REMOVEFILTERS ( 'Sales Invoice Lines' ),
+			            'Date'[Date] >= PeriodStart, 'Date'[Date] <= PeriodEnd,
+			            KEEPFILTERS ( 'Sales Invoice Lines'[Document Type] = "Posted Sales Invoice" )
+			        ),
+			        "customerNo", 'Sales Invoice Lines'[billToCustomerNo]
+			    )
+			VAR Curr_PLE =
+			    SELECTCOLUMNS (
+			        CALCULATETABLE (
+			            VALUES ( 'Project Ledger Entries'[billToCustomerNo] ),
+			            REMOVEFILTERS ( 'Project Ledger Entries' ),
+			            'Date'[Date] >= PeriodStart, 'Date'[Date] <= PeriodEnd,
+			            KEEPFILTERS ( 'Project Ledger Entries'[Document Type] = "Posted Sales Invoice" )
+			        ),
+			        "customerNo", 'Project Ledger Entries'[billToCustomerNo]
+			    )
+			VAR CurrAll = DISTINCT ( UNION ( Curr_SVE, Curr_SIL, Curr_PLE ) )
+			
+			/* ---------- Set logic ---------- */
+			
+			VAR LostPrev   = EXCEPT ( PriorToPrevAll, PrevAll )
+			VAR Recovered  = INTERSECT ( LostPrev, CurrAll )
+			
+			/* ---------- Apply to Sales ---------- */
+			VAR CustSet =
+			    SELECTCOLUMNS ( Recovered, "customerNo", [customerNo] )
+			RETURN
+			CALCULATE (
+			    [Sales (LCY)],
+			    KEEPFILTERS ( TREATAS ( CustSet, Customer[Customer No.] ) )
+			)
+			
+			```
+		formatString: #,0.00
+		displayFolder: _Customer Measures
+		lineageTag: e17a7974-3691-4df8-9ed3-874455500239
+
+		changedProperty = FormatString
+
+	/// This measure calculates the total sales lost over the past 12 months due to customers who stopped purchasing ("lost" customers). It first identifies the most recent "lost" date, then filters customers who were lost before that date. It gets the sales from the previous 12 months for these lost customers and calculates the total revenue they generated before they stopped purchasing.
+	measure 'Sales Lost Customers (12M)' = ```
+			
+			VAR PeriodStart = MIN ( 'Date'[Date] )
+			VAR PeriodEnd   = MAX ( 'Date'[Date] )
+			
+			-- Identify the customers whose LostDate falls within the selected period
+			VAR LostCustomersInPeriod =
+			    FILTER (
+			        VALUES ( Customer[Customer No.] ),
+			        VAR LastPurchaseDate =
+			            MAXX (
+			                {
+			                    -- Sales Value Entries
+			                    CALCULATE (
+			                        MAX ( 'Sales Value Entries'[postingDate] ),
+			                        REMOVEFILTERS ( 'Date' ),
+			                        'Sales Value Entries'[Document Type] = "Posted Sales Invoice"
+			                    ),
+			                    -- Sales Invoice Lines
+			                    CALCULATE (
+			                        MAX ( 'Sales Invoice Lines'[postingDate] ),
+			                        REMOVEFILTERS ( 'Date' ),
+			                        'Sales Invoice Lines'[Document Type] = "Posted Sales Invoice"
+			                    ),
+			                    -- Project Ledger Entries
+			                    CALCULATE (
+			                        MAX ( 'Project Ledger Entries'[postingDate] ),
+			                        REMOVEFILTERS ( 'Date' ),
+			                        'Project Ledger Entries'[Document Type] = "Posted Sales Invoice"
+			                    )
+			                },
+			                [Value]
+			            )
+			        VAR LostDate =
+			            IF (
+			                NOT ISBLANK ( LastPurchaseDate ),
+			                EDATE ( LastPurchaseDate, 'Lost Customer Month Range'[Lost Customer Month Range Value] )
+			            )
+			        RETURN NOT ISBLANK ( LostDate ) && LostDate >= PeriodStart && LostDate <= PeriodEnd
+			    )
+			
+			-- 12 months prior to the start of the selected period (exclusive of current period)
+			VAR WindowStart = EDATE ( PeriodStart, -12 )
+			VAR WindowEnd   = PeriodStart - 1
+			
+			RETURN
+			CALCULATE (
+			    [Sales (LCY)],   -- your base sales amount measure
+			    DATESBETWEEN ( 'Date'[Date], WindowStart, WindowEnd ),
+			    KEEPFILTERS ( TREATAS ( LostCustomersInPeriod, Customer[Customer No.] ) )
+			)
+			
+			```
+		formatString: #,0.00
+		isHidden
+		displayFolder: _Customer Measures
+		lineageTag: 7dbe219b-90ac-4775-bd18-5e1d8e2c3920
+
+		changedProperty = FormatString
+
+		changedProperty = IsHidden
+
+	/// Counts unique customers who had at least one posted sales invoice in the selected period, across all sales sources. It counts “customers with activity”, not “customers in the Customer table”. If you have customers with no invoices in the period, they will not be counted.
+	measure 'No. of Customers' = ```
+			
+			VAR Cust_SVE =
+			    SELECTCOLUMNS (
+			        CALCULATETABLE (
+			            VALUES ( 'Sales Value Entries'[customerNo] ),
+			            KEEPFILTERS ( 'Sales Value Entries'[Document Type] = "Posted Sales Invoice" )
+			        ),
+			        "customerNo", 'Sales Value Entries'[customerNo]
+			    )
+			VAR Cust_SIL =
+			    SELECTCOLUMNS (
+			        CALCULATETABLE (
+			            VALUES ( 'Sales Invoice Lines'[billToCustomerNo] ),
+			            KEEPFILTERS ( 'Sales Invoice Lines'[Document Type] = "Posted Sales Invoice" )
+			        ),
+			        "customerNo", 'Sales Invoice Lines'[billToCustomerNo]
+			    )
+			VAR Cust_PLE =
+			    SELECTCOLUMNS (
+			        CALCULATETABLE (
+			            VALUES ( 'Project Ledger Entries'[billToCustomerNo] ),
+			            KEEPFILTERS ( 'Project Ledger Entries'[Document Type] = "Posted Sales Invoice" )
+			        ),
+			        "customerNo", 'Project Ledger Entries'[billToCustomerNo]
+			    )
+			VAR Combined =
+			    DISTINCT ( UNION ( Cust_SVE, Cust_SIL, Cust_PLE ) )
+			RETURN
+			    COUNTROWS ( FILTER ( Combined, NOT ISBLANK ( [customerNo] ) ) )
+			
+			
+			```
+		formatString: #,0
+		displayFolder: _Customer Measures
+		lineageTag: 31585bf3-8301-4088-b857-2e4e689dc218
+
+	/// This measure calculates the total sales lost over the past 12 months due to customers who stopped purchasing ("lost" customers). “Lost” is defined by an inactivity threshold in months since their last purchase, this inactivity threshold is managed by setting the Lost Customer Month Range filter. It first identifies the most recent "lost" date, then filters customers who were lost before that date. It gets the sales from the previous 12 months for these lost customers and calculates the total revenue they generated before they stopped purchasing.
+	measure 'Sales Lost Customers' = ```
+			
+			VAR PeriodStart = MIN ( 'Date'[Date] )
+			VAR PeriodEnd   = MAX ( 'Date'[Date] )
+			
+			-- Identify the customers whose LostDate falls within the selected period
+			VAR LostCustomersInPeriod =
+			    FILTER (
+			        VALUES ( Customer[Customer No.] ),
+			        VAR LastPurchaseDate =
+			            MAXX (
+			                {
+			                    -- Sales Value Entries
+			                    CALCULATE (
+			                        MAX ( 'Sales Value Entries'[postingDate] ),
+			                        REMOVEFILTERS ( 'Date' ),
+			                        'Sales Value Entries'[Document Type] = "Posted Sales Invoice"
+			                    ),
+			                    -- Sales Invoice Lines
+			                    CALCULATE (
+			                        MAX ( 'Sales Invoice Lines'[postingDate] ),
+			                        REMOVEFILTERS ( 'Date' ),
+			                        'Sales Invoice Lines'[Document Type] = "Posted Sales Invoice"
+			                    ),
+			                    -- Project Ledger Entries
+			                    CALCULATE (
+			                        MAX ( 'Project Ledger Entries'[postingDate] ),
+			                        REMOVEFILTERS ( 'Date' ),
+			                        'Project Ledger Entries'[Document Type] = "Posted Sales Invoice"
+			                    )
+			                },
+			                [Value]
+			            )
+			        VAR LostDate =
+			            IF (
+			                NOT ISBLANK ( LastPurchaseDate ),
+			                EDATE ( LastPurchaseDate, 'Lost Customer Month Range'[Lost Customer Month Range Value] )
+			            )
+			        RETURN NOT ISBLANK ( LostDate ) && LostDate >= PeriodStart && LostDate <= PeriodEnd
+			    )
+			
+			-- 12 months prior to the start of the selected period (exclusive of current period)
+			VAR WindowStart = EDATE ( PeriodStart, -12 )
+			VAR WindowEnd   = PeriodStart - 1
+			
+			RETURN
+			CALCULATE (
+			    [Sales (LCY)],   -- your base sales amount measure
+			    DATESBETWEEN ( 'Date'[Date], WindowStart, WindowEnd ),
+			    KEEPFILTERS ( TREATAS ( LostCustomersInPeriod, Customer[Customer No.] ) )
+			)
+			
+			```
+		displayFolder: _Customer Measures
+		lineageTag: 451f2bb2-89b8-47d1-8827-337416603e10
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column 'Customer No. & Name'
+		dataType: string
+		lineageTag: d18a63d3-0d8f-4b0c-89a2-8fbcc8f1ff85
+		summarizeBy: none
+		sourceColumn: Customer No. & Name
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Customer No.'
+		dataType: string
+		isKey
+		lineageTag: b87e0cb0-a95d-45a6-90a3-c5ac11b1d27a
+		summarizeBy: none
+		sourceColumn: Customer No.
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Customer Name'
+		dataType: string
+		lineageTag: 51eb06cc-3222-4459-b4d8-87b023aa2ada
+		summarizeBy: none
+		sourceColumn: Customer Name
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Customer Address'
+		dataType: string
+		lineageTag: 5a2ef4f3-ff55-48a4-abcb-039ef9c5a408
+		dataCategory: Address
+		summarizeBy: none
+		sourceColumn: Customer Address
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Customer Address 2'
+		dataType: string
+		lineageTag: 1c4444ff-3a57-4071-9459-621eef2309ad
+		dataCategory: Address
+		summarizeBy: none
+		sourceColumn: Customer Address 2
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Customer City'
+		dataType: string
+		lineageTag: 5ca107a3-8456-4f0c-a743-abb29c28525f
+		dataCategory: City
+		summarizeBy: none
+		sourceColumn: Customer City
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Customer County'
+		dataType: string
+		lineageTag: 93268d50-ff23-4f74-8a07-2f5c9a02e0f0
+		dataCategory: StateOrProvince
+		summarizeBy: none
+		sourceColumn: Customer County
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Customer Country/Region Code'
+		dataType: string
+		lineageTag: c6d0f1f9-adae-46ea-8b36-b388af0458e3
+		dataCategory: Country
+		summarizeBy: none
+		sourceColumn: Customer Country/Region Code
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Customer Posting Group'
+		dataType: string
+		lineageTag: 28778fdf-b904-45e1-b98f-ccb276bd40f8
+		summarizeBy: none
+		sourceColumn: Customer Posting Group
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Customer Price Group'
+		dataType: string
+		lineageTag: 4a123c2a-68b4-4cd6-8644-5c3cf30e0750
+		summarizeBy: none
+		sourceColumn: Customer Price Group
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Customer Discount Group'
+		dataType: string
+		lineageTag: 5c4bc6b8-a870-4ff6-9f85-b3c53468068e
+		summarizeBy: none
+		sourceColumn: Customer Discount Group
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Customer Post Code'
+		dataType: string
+		lineageTag: 41258f58-6c76-46d9-878f-687816f9c6fb
+		dataCategory: PostalCode
+		summarizeBy: none
+		sourceColumn: Customer Post Code
+
+		annotation SummarizationSetBy = Automatic
+
+	partition Customer-6b492668-52df-4b9d-b3b8-65a63247bc80 = m
+		mode: import
+		queryGroup: 'Dimension Tables'
+		source =
+				let
+				    Source = Dynamics365BusinessCentral.ApiContentsWithOptions(ENVIRONMENT, COMPANY,API_ENDPOINT, []),
+				    TableData = Source{[Name="customers",Signature="table"]}[Data],
+				    #"Changed Type" = Table.TransformColumnTypes(
+				        TableData,
+				        {
+				            {"customerNo", type text},
+				            {"customerName", type text},
+				            {"address", type text},
+				            {"address2", type text},
+				            {"city", type text},
+				            {"postCode", type text},
+				            {"county", type text},
+				            {"countryRegionCode", type text}
+				        }
+				    ),
+				    #"Renamed Columns" = Table.RenameColumns(#"Changed Type",{{"customerNo", "Customer No."}, {"customerName", "Customer Name"}, {"address2", "Customer Address 2"}, {"postCode", "Customer Post Code"}, {"countryRegionCode", "Customer Country/Region Code"}, {"address", "Customer Address"}, {"city", "Customer City"}, {"county", "Customer County"}, {"customerPostingGroup", "Customer Posting Group"}, {"customerPriceGroup", "Customer Price Group"}, {"customerDiscGroup", "Customer Discount Group"}}),
+				    #"Added Custom" = Table.AddColumn(
+				        #"Renamed Columns", "Customer No. & Name", each [#"Customer No."] & " " & [Customer Name], type text
+				    ),
+				    #"Removed Columns" = Table.RemoveColumns(#"Added Custom",{"ETag"})
+				in
+				    #"Removed Columns"
+
+	annotation PBI_ResultType = Table
+
+	annotation PBI_NavigationStepName = Navigation
+

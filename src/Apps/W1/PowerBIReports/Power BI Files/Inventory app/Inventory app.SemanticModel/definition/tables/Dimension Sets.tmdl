@@ -1,0 +1,211 @@
+table 'Dimension Sets'
+	lineageTag: e95872d5-245d-43e9-8030-241257885b47
+
+	column dimensionSetID
+		dataType: int64
+		isHidden
+		isKey
+		formatString: 0
+		lineageTag: b09f3f4c-654c-4e18-8f0f-8c861e6253d8
+		summarizeBy: none
+		sourceColumn: dimensionSetID
+
+		annotation SummarizationSetBy = Automatic
+
+	column valueCount
+		dataType: int64
+		isHidden
+		formatString: 0
+		lineageTag: 581b3275-dbe4-4e7d-8292-ec79701141bc
+		summarizeBy: sum
+		sourceColumn: valueCount
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Global Dimension 1'
+		dataType: string
+		lineageTag: fd55b0eb-caeb-49f8-b293-d6101b977722
+		summarizeBy: none
+		sourceColumn: Global Dimension 1
+
+		annotation SummarizationSetBy = Automatic
+
+	column dimension1ValueName
+		dataType: string
+		isHidden
+		lineageTag: 9178f191-dae8-4d3a-8611-989dfe2f742b
+		summarizeBy: none
+		sourceColumn: dimension1ValueName
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Global Dimension 2'
+		dataType: string
+		lineageTag: ccb6555f-772a-4185-beea-2392f5f97d3f
+		summarizeBy: none
+		sourceColumn: Global Dimension 2
+
+		annotation SummarizationSetBy = Automatic
+
+	column dimension2ValueName
+		dataType: string
+		isHidden
+		lineageTag: 18f10144-2488-4c5b-b510-3feea89f33d0
+		summarizeBy: none
+		sourceColumn: dimension2ValueName
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Shortcut Dimension 3'
+		dataType: string
+		lineageTag: 5f74d805-b246-453c-ae1c-92c81adc1fac
+		summarizeBy: none
+		sourceColumn: Shortcut Dimension 3
+
+		annotation SummarizationSetBy = Automatic
+
+	column dimension3ValueName
+		dataType: string
+		isHidden
+		lineageTag: 97cc807b-c3b3-4347-b65d-e68898368d01
+		summarizeBy: none
+		sourceColumn: dimension3ValueName
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Shortcut Dimension 4'
+		dataType: string
+		lineageTag: 79f9944c-ed14-4230-8fd4-da9854a073ef
+		summarizeBy: none
+		sourceColumn: Shortcut Dimension 4
+
+		annotation SummarizationSetBy = Automatic
+
+	column dimension4ValueName
+		dataType: string
+		isHidden
+		lineageTag: 3258b55a-b296-4af0-8d5a-177b8d5ba9b8
+		summarizeBy: none
+		sourceColumn: dimension4ValueName
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Shortcut Dimension 5'
+		dataType: string
+		lineageTag: 7c37f522-7835-4e37-9f32-fa0fab647cc0
+		summarizeBy: none
+		sourceColumn: Shortcut Dimension 5
+
+		annotation SummarizationSetBy = Automatic
+
+	column dimension5ValueName
+		dataType: string
+		isHidden
+		lineageTag: ce26e594-7331-4be3-bf5f-a2bf3906fd90
+		summarizeBy: none
+		sourceColumn: dimension5ValueName
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Shortcut Dimension 6'
+		dataType: string
+		lineageTag: a2a2f41f-c32e-4425-bedb-feb122933a58
+		summarizeBy: none
+		sourceColumn: Shortcut Dimension 6
+
+		annotation SummarizationSetBy = Automatic
+
+	column dimension6ValueName
+		dataType: string
+		isHidden
+		lineageTag: 352df0f4-e806-4827-942d-b5590a1a9a94
+		summarizeBy: none
+		sourceColumn: dimension6ValueName
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Shortcut Dimension 7'
+		dataType: string
+		lineageTag: 65d8cdc2-4a58-4dfa-a073-2d0056e1f15e
+		summarizeBy: none
+		sourceColumn: Shortcut Dimension 7
+
+		annotation SummarizationSetBy = Automatic
+
+	column dimension7ValueName
+		dataType: string
+		isHidden
+		lineageTag: 8f8ee6a2-2aad-4535-9045-3c03aacd2ff8
+		summarizeBy: none
+		sourceColumn: dimension7ValueName
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Shortcut Dimension 8'
+		dataType: string
+		lineageTag: c97f3179-f6ba-4765-9c07-ab267495c309
+		summarizeBy: none
+		sourceColumn: Shortcut Dimension 8
+
+		annotation SummarizationSetBy = Automatic
+
+	column dimension8ValueName
+		dataType: string
+		isHidden
+		lineageTag: 0a95e840-6ec7-465b-a7e3-80299fa92658
+		summarizeBy: none
+		sourceColumn: dimension8ValueName
+
+		annotation SummarizationSetBy = Automatic
+
+	column id
+		dataType: string
+		isHidden
+		lineageTag: 517fd074-0409-4276-9ead-767d272522d9
+		summarizeBy: none
+		sourceColumn: id
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	partition 'Dimension Sets-54d53aff-4eb2-4989-96d2-409153943549' = m
+		mode: import
+		queryGroup: 'Dimension Tables'
+		source =
+				let
+				    Source = DimensionSets_DataSource,
+				    #"Changed Type" = Table.TransformColumnTypes(
+				        Source,
+				        {
+				            {"dimensionSetID", Int64.Type},
+				            {"dimension1ValueCode", type text},
+				            {"dimension2ValueCode", type text},
+				            {"dimension3ValueCode", type text},
+				            {"dimension4ValueCode", type text},
+				            {"dimension5ValueCode", type text},
+				            {"dimension6ValueCode", type text},
+				            {"dimension7ValueCode", type text},
+				            {"dimension8ValueCode", type text}
+				        }
+				    ),
+				    #"Renamed Columns" = Table.RenameColumns(
+				        #"Changed Type",
+				        {
+				            {"dimension1ValueCode", "Global Dimension 1"},
+				            {"dimension2ValueCode", "Global Dimension 2"},
+				            {"dimension3ValueCode", "Shortcut Dimension 3"},
+				            {"dimension4ValueCode", "Shortcut Dimension 4"},
+				            {"dimension5ValueCode", "Shortcut Dimension 5"},
+				            {"dimension6ValueCode", "Shortcut Dimension 6"},
+				            {"dimension7ValueCode", "Shortcut Dimension 7"},
+				            {"dimension8ValueCode", "Shortcut Dimension 8"}
+				        }
+				    )
+				in
+				    #"Renamed Columns"
+
+	annotation PBI_ResultType = Table
+
+	annotation PBI_NavigationStepName = Navigation
+

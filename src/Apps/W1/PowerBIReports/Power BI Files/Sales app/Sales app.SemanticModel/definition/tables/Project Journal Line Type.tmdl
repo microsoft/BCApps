@@ -1,0 +1,35 @@
+table 'Project Journal Line Type'
+	isHidden
+	lineageTag: fd71720f-551f-49f9-a65d-46b57de4e210
+
+	column Value
+		dataType: int64
+		formatString: 0
+		lineageTag: ac77d0c4-7e6f-4003-ba8c-5c6add261d78
+		summarizeBy: sum
+		sourceColumn: Value
+
+		annotation SummarizationSetBy = Automatic
+
+	column Caption
+		dataType: string
+		lineageTag: 7763d4e6-92c6-4014-aef9-d92907a59114
+		summarizeBy: none
+		sourceColumn: Caption
+
+		annotation SummarizationSetBy = Automatic
+
+	partition 'Project Journal Line Type' = m
+		mode: import
+		queryGroup: 'Document and Line Type Enums'
+		source =
+				let
+				    Source = Table.FromRows(Json.Document(Binary.Decompress(Binary.FromText("i45WMlDSUQpKLc4vLUpOVYrViVYyBAp4lqTmgjlGQI67vo+CY3JyfmleiVJsLAA=", BinaryEncoding.Base64), Compression.Deflate)), let _t = ((type nullable text) meta [Serialized.Text = true]) in type table [Value = _t, Caption = _t]),
+				    #"Changed Type" = Table.TransformColumnTypes(Source,{{"Value", Int64.Type}, {"Caption", type text}})
+				in
+				    #"Changed Type"
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Table
+

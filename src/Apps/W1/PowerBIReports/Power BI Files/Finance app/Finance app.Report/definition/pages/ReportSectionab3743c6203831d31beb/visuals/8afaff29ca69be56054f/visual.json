@@ -1,0 +1,31 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.4.0/schema.json",
+  "name": "8afaff29ca69be56054f",
+  "position": {
+    "x": 26.453042829608723,
+    "y": 463.63636363636357,
+    "z": 2000,
+    "height": 230.13054220085479,
+    "width": 809.2447075580983,
+    "tabOrder": 0
+  },
+  "visualGroup": {
+    "displayName": "EBIT Group",
+    "groupMode": "ScaleMode",
+    "objects": {
+      "general": [
+        {
+          "properties": {
+            "altText": {
+              "expr": {
+                "Literal": {
+                  "Value": "'Operating Profit - EBIT, Operating Revenue, Operating Expenses, Revenue, Interest Revenue, Extraordinary Revenue, FX Gains Revenue. Expense, Interest Expense, FX Losses Expense, Tax Expense.'"
+                }
+              }
+            }
+          }
+        }
+      ]
+    }
+  }
+}

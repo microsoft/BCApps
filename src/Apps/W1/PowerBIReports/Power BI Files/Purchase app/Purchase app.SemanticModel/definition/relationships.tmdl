@@ -1,0 +1,220 @@
+relationship 4f31ae57-1ff5-4621-80ac-4265e3001c32
+	fromColumn: 'Purchase Budget'.'Location Code'
+	toColumn: Location.'Location Code'
+
+relationship 48bece02-dac5-447b-9c35-5e138ab42f5b
+	fromColumn: 'Purchase Budget'.'Vendor No.'
+	toColumn: Vendor.'Vendor No.'
+
+relationship 9d7d71ec-f54a-406a-974e-e23fd0a151cf
+	fromColumn: 'Purchase Budget'.'Dimension Set ID'
+	toColumn: 'Dimension Sets'.dimensionSetID
+
+relationship 58db297a-b5fd-4401-a743-06998cfed360
+	fromColumn: 'Purchase Budget'.'Item No.'
+	toColumn: Item.'Item No.'
+
+relationship 5fd51ac5-b078-fcd3-fa79-907eda39fb00
+	fromColumn: 'Purchase Budget'.'Budget Name'
+	toColumn: 'Purchase Budget Name'.'Purchase Budget Name'
+
+relationship 024688b4-1445-c118-cecf-0026f30040fe
+	fromColumn: Item.'Item Category Code'
+	toColumn: 'Item Category'.'Item Category Code'
+
+relationship AutoDetected_1140fd21-a1d7-4179-8d10-0e59e7b88f4f
+	fromColumn: 'Purchase Value Entries'.'Vendor No.'
+	toColumn: Vendor.'Vendor No.'
+
+relationship AutoDetected_5ac0890f-ddc5-4596-a49b-81e34b3bce03
+	fromColumn: 'Purchase Value Entries'.dimensionSetID
+	toColumn: 'Dimension Sets'.dimensionSetID
+
+relationship 43bf677a-2bba-e30a-8804-329a846c75c9
+	fromColumn: 'Purchase Value Entries'.salespersonPurchaserCode
+	toColumn: Purchaser.'Purchaser Code'
+
+relationship 3be81597-e6c3-0df6-4cd8-5eb7e063155b
+	fromColumn: 'Purchase Value Entries'.locationCode
+	toColumn: Location.'Location Code'
+
+relationship 085f2052-fb00-b969-b84b-3dc789e62b9a
+	fromColumn: 'Purchase Lines'.purchaserCode
+	toColumn: Purchaser.'Purchaser Code'
+
+relationship fd6986d2-0d0a-3378-f5a7-91b63a8cc992
+	fromColumn: 'Purchase Lines'.'Purchase Key'
+	toColumn: Documents.'Purchase Key'
+
+relationship c48da773-2339-41fc-5c3a-2ad6674301c5
+	fromColumn: 'Purchase Lines'.payToVendorNo
+	toColumn: Vendor.'Vendor No.'
+
+relationship 6031553f-2451-1740-c875-713d82b0d488
+	fromColumn: 'Purchase Value Entries'.'Purchase Key'
+	toColumn: Documents.'Purchase Key'
+
+relationship 604a73f8-2f74-25d1-a060-ed871f65bd3d
+	fromColumn: 'Purchase Lines'.locationCode
+	toColumn: Location.'Location Code'
+
+relationship ccb10963-9af4-67c5-2063-f799e7c5699e
+	fromColumn: 'Purchase Invoice Lines'.payToVendorNo
+	toColumn: Vendor.'Vendor No.'
+
+relationship 14c0782e-c256-6595-8996-c68a87e092f6
+	fromColumn: 'Purchase Invoice Lines'.dimensionSetID
+	toColumn: 'Dimension Sets'.dimensionSetID
+
+relationship 2bc08d94-3a2f-98c1-d861-ebb11a64519a
+	fromColumn: 'Purchase Invoice Lines'.purchaserCode
+	toColumn: Purchaser.'Purchaser Code'
+
+relationship 7dec4c85-096b-f4e9-90ba-0e03643ebbd3
+	fromColumn: 'Purchase Invoice Lines'.locationCode
+	toColumn: Location.'Location Code'
+
+relationship 269b4e6b-14c9-1f50-f86b-46b69dbd7fc0
+	fromColumn: 'Purchase Invoice Lines'.'Purchase Key'
+	toColumn: Documents.'Purchase Key'
+
+relationship ed8eb60e-d3c8-8502-d1e7-7b62f4e93428
+	fromColumn: 'Purchase Credit Lines'.'Purchase Key'
+	toColumn: Documents.'Purchase Key'
+
+relationship 70868b7d-ae3a-90aa-706b-7f59927203f0
+	fromColumn: 'Purchase Credit Lines'.payToVendorNo
+	toColumn: Vendor.'Vendor No.'
+
+relationship cdc564cf-3b02-ab6b-32ca-f8ae91d143e7
+	fromColumn: 'Purchase Credit Lines'.purchaserCode
+	toColumn: Purchaser.'Purchaser Code'
+
+relationship c3d67cb7-6922-f990-c4f1-1cad38fc2fc9
+	fromColumn: 'Purchase Credit Lines'.locationCode
+	toColumn: Location.'Location Code'
+
+relationship d6323032-0c85-3e44-9794-f25733c4eab4
+	fromColumn: 'Purchase Credit Lines'.dimensionSetID
+	toColumn: 'Dimension Sets'.dimensionSetID
+
+relationship 25b0617c-9007-b416-d462-ac0723c167e9
+	fromColumn: 'Purchase Value Entries'.projectNo
+	toColumn: Project.'Project No.'
+
+relationship fa04c883-8d99-aa6b-5149-a4529b81ea8e
+	fromColumn: 'Purchase Invoice Lines'.projectNo
+	toColumn: Project.'Project No.'
+
+relationship 07ddc777-f170-1fdc-ae0e-6e257f97d4c5
+	fromColumn: 'Purchase Credit Lines'.projectNo
+	toColumn: Project.'Project No.'
+
+relationship d914ed33-3a95-1771-26d4-aeb1fa35a865
+	fromColumn: 'Purchase Lines'.projectNo
+	toColumn: Project.'Project No.'
+
+relationship 5affc1fb-2531-4407-840e-ac5a174d132b
+	fromColumn: 'Purchase Budget'.Date
+	toColumn: Date.Date
+
+relationship a1f156ea-e975-9521-e86d-270209fb74c0
+	fromColumn: 'Purchase Value Entries'.Date
+	toColumn: Date.Date
+
+relationship b6a3cd2a-bf1e-6d72-c635-193536066a70
+	fromColumn: 'Purchase Lines'.'Document Date'
+	toColumn: Date.Date
+
+relationship 47dc0648-f81d-bd21-a388-25a4f7d0b3cb
+	fromColumn: 'Purchase Invoice Lines'.postingDate
+	toColumn: Date.Date
+
+relationship 9877851c-2635-437a-b38c-55ba5a4e4517
+	fromColumn: 'Purchase Credit Lines'.postingDate
+	toColumn: Date.Date
+
+relationship c3e6513b-819e-20c2-0669-735704c10b31
+	fromColumn: 'Purchase Lines'.dimensionSetID
+	toColumn: 'Dimension Sets'.dimensionSetID
+
+relationship 1f89bdff-171a-2b98-0c08-d785aa09a415
+	fromColumn: 'Purchase Lines'.returnReasonCode
+	toColumn: 'Reason Codes'.'Return Reason Code'
+
+relationship 450ef06e-590f-2015-1227-f63a2869b48f
+	fromColumn: 'Purchase Value Entries'.returnReasonCode
+	toColumn: 'Reason Codes'.'Return Reason Code'
+
+relationship 6b52f52e-7f0e-75a1-70a1-4df8cf265162
+	fromColumn: 'Purchase Invoice Lines'.returnReasonCode
+	toColumn: 'Reason Codes'.'Return Reason Code'
+
+relationship 6d1de5e4-0d0a-2088-d6ae-d4f4c6acd985
+	fromColumn: 'Purchase Credit Lines'.returnReasonCode
+	toColumn: 'Reason Codes'.'Return Reason Code'
+
+relationship 4d9cbe27-d17d-4424-41e9-a073e04d66f5
+	fromColumn: 'Purchase Value Entries'.'Type Key'
+	toColumn: Type.'Type Key'
+
+relationship 43bf3985-c63f-18c1-ab6c-b7a9662a4e11
+	fromColumn: 'Purchase Lines'.'Type Key'
+	toColumn: Type.'Type Key'
+
+relationship bc51ff04-a18c-bf53-e194-cb3cf7abbdbc
+	fromColumn: 'Purchase Invoice Lines'.'Type Key'
+	toColumn: Type.'Type Key'
+
+relationship 7573fea7-2dfb-948e-b191-f4bec136e44d
+	fromColumn: 'Purchase Credit Lines'.'Type Key'
+	toColumn: Type.'Type Key'
+
+relationship 5c8cd49f-bb2d-13b1-c99e-2d8d47be45e1
+	fromColumn: 'Purchase Lines'.'Type Key'
+	toColumn: Item.'Type Key'
+
+relationship 0733df74-866a-2a73-78d7-4e0d9ba628f9
+	fromColumn: 'Purchase Value Entries'.'Type Key'
+	toColumn: Item.'Type Key'
+
+relationship ec93b5e0-f239-5da1-103a-92396fdad4e4
+	fromColumn: 'Purchase Lines'.'Type Key'
+	toColumn: 'G/L Accounts'.'Type Key'
+
+relationship 7216c5ec-8539-0643-44d1-2f3fafd02488
+	fromColumn: 'Purchase Lines'.'Type Key'
+	toColumn: Resources.'Type Key'
+
+relationship 82bbebbb-7f72-2184-0717-d41f6f4bb7e7
+	fromColumn: 'Purchase Value Entries'.'Type Key'
+	toColumn: 'G/L Accounts'.'Type Key'
+
+relationship 6110d0d1-618a-6f6d-9db7-25ed0949df0f
+	fromColumn: 'Purchase Value Entries'.'Type Key'
+	toColumn: Resources.'Type Key'
+
+relationship 18745f39-8b2b-8fc3-3546-4d109c002223
+	fromColumn: 'Purchase Invoice Lines'.'Type Key'
+	toColumn: 'G/L Accounts'.'Type Key'
+
+relationship e6da0ce4-fd0d-5307-7aab-7b1a303a5fdf
+	fromColumn: 'Purchase Invoice Lines'.'Type Key'
+	toColumn: Resources.'Type Key'
+
+relationship 50bed365-3447-a40e-0455-87cb98cb9c84
+	fromColumn: 'Purchase Invoice Lines'.'Type Key'
+	toColumn: Item.'Type Key'
+
+relationship f7d8a62f-f998-1c99-0deb-531ca96f339e
+	fromColumn: 'Purchase Credit Lines'.'Type Key'
+	toColumn: 'G/L Accounts'.'Type Key'
+
+relationship 66f1afb0-9d3b-3de1-b144-81cbf19bf966
+	fromColumn: 'Purchase Credit Lines'.'Type Key'
+	toColumn: Resources.'Type Key'
+
+relationship 847eb45d-7a55-0526-355a-6b0085c6858b
+	fromColumn: 'Purchase Credit Lines'.'Type Key'
+	toColumn: Item.'Type Key'
+

@@ -1,0 +1,53 @@
+{
+  "name": "Ruleset for shipped apps",
+  "description": "This ruleset applies to shipped apps.",
+  "generalAction": "Error",
+  "includedRuleSets": [
+    {
+      "action": "Error",
+      "path": "./Analyzer.ruleset.json"
+    },
+    {
+      "action": "Error",
+      "path": "./AppSourceCop.ruleset.json"
+    },
+    {
+      "action": "Error",
+      "path": "./CodeCop.ruleset.json"
+    },
+    {
+      "action": "Error",
+      "path": "./Compiler.ruleset.json"
+    },
+    {
+      "action": "Error",
+      "path": "./PTECop.ruleset.json"
+    },
+    {
+      "action": "Error",
+      "path": "./UICop.ruleset.json"
+    }
+  ],
+  "rules": [
+    {
+      "id": "AS0077",
+      "action": "None",
+      "justification": "Adding a var modifier in events should be allowed in main, as it only will break the runtime behavior of extensions subscribing to it when used in hotfix scenarios."
+    },
+    {
+        "id":  "AS0138",
+        "action":  "None",
+        "justification": "TODO(#572306) - (see PTE0026) This will require a multi-release effort."
+    },
+    {
+        "id":  "AS0139",
+        "action":  "None",
+        "justification": "TODO(#595767) - This will be enabled after branching to BC 27."
+    },
+    {
+        "id":  "PTE0026",
+        "action":  "None",
+        "justification": "TODO(#572306) - (see AS0138) This will require a multi-release effort."
+    }
+  ]
+}

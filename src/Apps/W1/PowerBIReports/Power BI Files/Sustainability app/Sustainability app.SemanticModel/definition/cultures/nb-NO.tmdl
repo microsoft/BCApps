@@ -1,0 +1,721 @@
+cultureInfo nb-NO
+	translations
+		model Model
+			table 'Sustainability Account Category'
+				caption: Finanskontokategori
+				column 'Sustainability Account Category Description'
+					caption: Beskrivelse av finanskontokategori
+				column 'Sustainability Account Category Code'
+					caption: Kategorikode for bærekraftskonto
+				column 'Sustainability Account Category  Emission Scope'
+					caption: Utslippsområde for bærekraftskontokategori
+			table 'Dimension Sets'
+				caption: Dimensjonssett
+				column 'Global Dimension 1'
+					caption: Global dimensjon 1
+				column 'Global Dimension 2'
+					caption: Global dimensjon 2
+				column 'Shortcut Dimension 3'
+					caption: Snarveisdimensjon 3
+				column 'Shortcut Dimension 4'
+					caption: Snarveisdimensjon 4
+				column 'Shortcut Dimension 5'
+					caption: Snarveisdimensjon 5
+				column 'Shortcut Dimension 6'
+					caption: Snarveisdimensjon 6
+				column 'Shortcut Dimension 7'
+					caption: Snarveisdimensjon 7
+				column 'Shortcut Dimension 8'
+					caption: Snarveisdimensjon 8
+				column id
+					caption: ID
+			table Date
+				caption: Dato
+				column 'Week Day'
+					caption: Ukedag
+				column 'Day Type'
+					caption: Type dag
+				column 'Calendar Year'
+					caption: Kalenderår
+				column 'Calendar Quarter'
+					caption: Kalenderkvartal
+				column 'Calendar Quarter Year'
+					caption: Kalender Kvartal År
+				column 'Calendar Month'
+					caption: Kalendermåned
+				column 'Calendar Month Year'
+					caption: Kalender Måned År
+				column 'Calendar Week'
+					caption: Kalenderuke
+				column 'Calendar Week Year'
+					caption: Kalender Uke År
+				column 'Calendar RelativeWeekPos'
+					caption: Kalender RelativUkePos
+				column 'Calendar RelativeMonthPos'
+					caption: Kalender RelativMånedPos
+				column 'Calendar RelativeQuarterPos'
+					caption: Kalender RelativtKvartalPos
+				column 'Calendar RelativeYearPos'
+					caption: Kalender RelativtÅrPos
+				column 'Calendar StartOfMonth'
+					caption: Kalender StartPåMåned
+				column 'Calendar EndOfMonth'
+					caption: Kalender SluttPåMåned
+				column 'Calendar StartOfQuarter'
+					caption: Kalender StartPåKvartal
+				column 'Calendar EndOfQuarter'
+					caption: KalenderSluttPåKvartal
+				column 'Calendar StartOfYear'
+					caption: Kalender StartPåÅr
+				column 'Calendar EndOfYear'
+					caption: Kalender SluttPåÅr
+				column 'Calendar MonthDays'
+					caption: Kalender MånedDager
+				column 'Calendar QuarterDays'
+					caption: Kalender KvartalDager
+				column 'Calendar YearDays'
+					caption: Kalender ÅrDager
+				column 'Calendar DayOfMonthNumber'
+					caption: Kalender DagIMånedNummer
+				column 'Calendar DayOfQuarterNumber'
+					caption: Kalender DagIKvartalNummer
+				column 'Calendar DayOfYearNumber'
+					caption: Kalender DagIÅretNummer
+				column 'Calendar DatePreviousWeek'
+					caption: Kalender DatoForrigeUke
+				column 'Calendar DatePreviousMonth'
+					caption: Kalender DatoForrigeMåned
+				column 'Calendar DatePreviousQuarter'
+					caption: Kalender DatoForrigeKvartal
+				column 'Calendar DatePreviousYear'
+					caption: Kalender DatoForrigeÅr
+				column 'Fiscal Year'
+					caption: Regnskapsår
+				column 'Fiscal Quarter'
+					caption: Regnskapskvartal
+				column 'Fiscal Quarter Year'
+					caption: Regnskap Kvartal År
+				column 'Fiscal Month'
+					caption: Regnskapsmåned
+				column 'Fiscal Month Year'
+					caption: Regnskap Måned År
+				column 'Fiscal Week'
+					caption: Regnskapsuke
+				column 'Fiscal Week Year'
+					caption: Regnskap Uke År
+				column 'Fiscal RelativeWeekPos'
+					caption: Regnskap RelativUkePos
+				column 'Fiscal RelativeMonthPos'
+					caption: Regnskap RelativMånedPos
+				column 'Fiscal RelativeQuarterPos'
+					caption: Regnskap RelativtKvartalPos
+				column 'Fiscal RelativeYearPos'
+					caption: Regnskap RelativtÅrPos
+				column 'Fiscal StartOfMonth'
+					caption: Regnskap StartPåMåned
+				column 'Fiscal EndOfMonth'
+					caption: Regnskap SluttPåMåned
+				column 'Fiscal StartOfQuarter'
+					caption: Regnskap StartPåKvartal
+				column 'Fiscal EndOfQuarter'
+					caption: Regnskap SluttPåKvartal
+				column 'Fiscal StartOfYear'
+					caption: Regnskap StartPåÅr
+				column 'Fiscal EndOfYear'
+					caption: Regnskap SluttPåÅr
+				column 'Fiscal MonthDays'
+					caption: Regnskap MånedDager
+				column 'Fiscal QuarterDays'
+					caption: Regnskap KvartalDager
+				column 'Fiscal YearDays'
+					caption: Regnskap ÅrDager
+				column 'Fiscal DayOfMonthNumber'
+					caption: Regnskap DagIMånedNummer
+				column 'Fiscal DayOfQuarterNumber'
+					caption: Regnskap DagIKvartalNummer
+				column 'Fiscal DayOfYearNumber'
+					caption: Regnskap DagIÅretNummer
+				column 'Fiscal DatePreviousWeek'
+					caption: Regnskap DatoForrigeUke
+				column 'Fiscal DatePreviousMonth'
+					caption: Regnskap DatoForrigeMåned
+				column 'Fiscal DatePreviousQuarter'
+					caption: Regnskap DatoForrigeKvartal
+				column 'Fiscal DatePreviousYear'
+					caption: Regnskap DatoForrigeÅr
+				column 'FW Year'
+					caption: Regnskapsuke år
+				column 'FW Quarter'
+					caption: Regnskapsuke kvartal
+				column 'FW Quarter Year'
+					caption: Regnskapsuke Kvartal År
+				column 'FW Month'
+					caption: Regnskapsuke måned
+				column 'FW Month Year'
+					caption: Regnskapsuke Måned År
+				column 'FW Week'
+					caption: Regnskapsuke Uke
+				column 'FW Period'
+					caption: Regnskapsukeperiode
+				column 'FW Week Year'
+					caption: Regnskapsuke Uke År
+				column 'FW StartOfWeek'
+					caption: Regnskapsuke StartPåUke
+				column 'FW EndOfWeek'
+					caption: Regnskapsuke SluttPåUke
+				column 'FW RelativeWeekPos'
+					caption: Regnskapsuke RelativUkePos
+				column 'FW RelativeMonthPos'
+					caption: Regnskapsuke RelativMånedPos
+				column 'FW RelativeQuarterPos'
+					caption: Regnskapsuke RelativtKvartalPos
+				column 'FW RelativeYearPos'
+					caption: Regnskapsuke RelativtÅrPos
+				column 'FW StartOfMonth'
+					caption: Regnskapsuke StartPåMåned
+				column 'FW EndOfMonth'
+					caption: Regnskapsuke SluttPåMåned
+				column 'FW StartOfQuarter'
+					caption: Regnskapsuke StartPåKvartal
+				column 'FW EndOfQuarter'
+					caption: Regnskapsuke SluttPåKvartal
+				column 'FW StartOfYear'
+					caption: Regnskapsuke StartPåÅr
+				column 'FW EndOfYear'
+					caption: Regnskapsuke SluttPåÅr
+				column 'FW MonthDays'
+					caption: Regnskapsuke MånedDager
+				column 'FW QuarterDays'
+					caption: Regnskapsuke KvartalDager
+				column 'FW YearDays'
+					caption: Regnskapsuke ÅrDager
+				column 'FW DayOfMonthNumber'
+					caption: Regnskapsuke DagIMånedNummer
+				column 'FW DayOfQuarterNumber'
+					caption: Regnskapsuke DagIKvartalNummer
+				column 'FW DayOfYearNumber'
+					caption: Regnskapsuke DagIÅretNummer
+				column 'FW DatePreviousWeek'
+					caption: Regnskapsuke DatoForrigeUke
+				column 'FW DatePreviousMonth'
+					caption: Regnskapsuke DatoForrigeMåned
+				column 'FW DatePreviousQuarter'
+					caption: Regnskapsuke DatoForrigeKvartal
+				column 'FW DatePreviousYear'
+					caption: Regnskapsuke DatoForrigeÅr
+				column 'Relative Day'
+					caption: Relativ dag
+				column Sequential365DayNumber
+					caption: Sekvensiell 365 DagNummer
+				measure 'No. of Days'
+					caption: Antall dager
+				measure 'Working Days'
+					caption: Virkedager
+				measure Ranged
+					caption: Fra/til
+				hierarchy 'Fiscal Year-Quarter-Month-Week'
+					caption: Regnskap år-kvartal-måned-uke
+					level 'Fiscal Year'
+						caption: Regnskapsår
+					level 'Fiscal Quarter Year'
+						caption: Regnskap Kvartal År
+					level 'Fiscal Month Year'
+						caption: Regnskap Måned År
+					level 'Fiscal Week Year'
+						caption: Regnskap Uke År
+				hierarchy 'Calendar Year-Quarter-Month-Week'
+					caption: Kalender år-kvartal-måned-uke
+					level 'Calendar Year'
+						caption: Kalenderår
+					level 'Calendar Quarter Year'
+						caption: Kalender Kvartal År
+					level 'Calendar Month Year'
+						caption: Kalender Måned År
+					level 'Calendar Week Year'
+						caption: Kalender Uke År
+				hierarchy 'FW Year-Quarter-Month-Week'
+					caption: Regnskapsuke år-kvartal-måned-uke
+					level 'FW Year'
+						caption: Regnskapsuke år
+					level 'FW Quarter Year'
+						caption: Regnskapsuke Kvartal År
+					level 'FW Month Year'
+						caption: Regnskapsuke Måned År
+					level 'FW Week Year'
+						caption: Regnskapsuke Uke År
+				hierarchy 'Fiscal Year-Month'
+					caption: Regnskap år-måned
+					level 'Fiscal Year'
+						caption: Regnskapsår
+					level 'Fiscal Month Year'
+						caption: Regnskap Måned År
+				hierarchy 'Fiscal Year-Month-Week'
+					caption: Regnskap år-måned-uke
+					level 'Fiscal Year'
+						caption: Regnskapsår
+					level 'Fiscal Month Year'
+						caption: Regnskap Måned År
+					level 'Fiscal Week Year'
+						caption: Regnskap Uke År
+				hierarchy 'Calendar Year-Month'
+					caption: Kalender år-måned
+					level 'Calendar Year'
+						caption: Kalenderår
+					level 'Calendar Month Year'
+						caption: Kalender Måned År
+				hierarchy 'Calendar Year-Month-Week'
+					caption: Kalender år-måned-uke
+					level 'Calendar Year'
+						caption: Kalenderår
+					level 'Calendar Month Year'
+						caption: Kalender Måned År
+					level 'Calendar Week Year'
+						caption: Kalender Uke År
+				hierarchy 'FW Year-Month-Week'
+					caption: Regnskapsuke år-måned-uke
+					level 'FW Year'
+						caption: Regnskapsuke år
+					level 'FW Month Year'
+						caption: Regnskapsuke Måned År
+					level 'FW Week Year'
+						caption: Regnskapsuke Uke År
+				hierarchy 'FW Year-Quarter-Week'
+					caption: Regnskapsuke år-kvartal-uke
+					level 'FW Year'
+						caption: Regnskapsuke år
+					level 'FW Quarter Year'
+						caption: Regnskapsuke Kvartal År
+					level 'FW Week Year'
+						caption: Regnskapsuke Uke År
+				hierarchy 'FW Year-Week'
+					caption: Regnskapsuke år-uke
+					level 'FW Year'
+						caption: Regnskapsuke år
+					level 'FW Week Year'
+						caption: Regnskapsuke Uke År
+			table 'Localized Labels'
+				measure 'My Report Title'
+					caption: Min rapporttittel
+				measure 'My Button Caption'
+					caption: Min knappetittel
+				measure 'My Visual Title'
+					caption: Min visuelle tittel
+				measure 'Inactive Employees'
+					caption: Inaktive ansatte
+				measure 'Terminated Employees'
+					caption: Oppsagte ansatte
+				measure 'Employees in Unions'
+					caption: Ansatte i fagforening
+				measure 'Social Analysis'
+					caption: Samfunnsanalyse
+				measure 'Gender Distribution'
+					caption: Kjønnsdistribusjon
+				measure 'Age Distribution'
+					caption: Aldersfordeling
+				measure 'Employees Qualifications'
+					caption: Ansattes kvalifikasjoner
+				measure 'Realized Emissions vs Target'
+					caption: Realiserte utslipp kontra mål
+				measure 'CO2e Emissions by Scope'
+					caption: CO2e-utslipp etter område
+				measure 'Gas Emissions by Category'
+					caption: Gassutslipp etter kategori
+				measure 'Realized Emissions vs Baseline'
+					caption: Realiserte utslipp kontra grunnlinje
+				measure 'CO2e Emissions vs Baseline'
+					caption: CO2e-utslipp kontra grunnlinje
+				measure 'CO2e Emissions by Account'
+					caption: CO2e-utslipp etter konto
+				measure 'Water and Waste Analysis'
+					caption: Vann- og avfallsanalyse
+				measure 'Water by Facility Location'
+					caption: Vann etter anleggslokasjon
+				measure 'Water by Facility Capacity'
+					caption: Vann etter anleggskapasitet
+				measure 'Water and Waste by Type'
+					caption: Vann og avfall etter type
+				measure 'Water and Waste Intensity by Type'
+					caption: Vann- og avfallsintensitet etter type
+				measure 'Water and Waste Intensity by Facility'
+					caption: Vann- og avfallsintensitet etter anlegg
+				measure 'Emissions by Category and Scope'
+					caption: Utslipp etter kategori og område
+				measure 'Emissions by Category'
+					caption: Utslipp etter kategori
+				measure 'Emissions by Scope'
+					caption: Utslipp etter område
+				measure 'CO2e Analysis'
+					caption: CO2e-analyse
+				measure 'CO2e Emissions by Category'
+					caption: CO2e-utslipp etter kategori
+				measure 'Carbon Credit by Month'
+					caption: Karbonkredit etter måned
+				measure 'CO2e Equivalent Emission by Month and Revenue'
+					caption: CO2e-ekvivalentutslipp etter måned og inntekt
+				measure 'Employee Entries Drillthrough'
+					caption: Gjennomgang av ansattposter
+				measure 'Employee Ledger Entries'
+					caption: Ansattposter
+				measure 'Sustainability Ledger Entries'
+					caption: Bærekraftposter
+				measure 'Sustainability Ledger Entries Drillthrough'
+					caption: Gjennomgang av bærekraftposter
+				measure 'Employee Ledger Entries Drillthrough'
+					caption: Gjennomgang av ansattposter
+				measure 'Sustainability Overview'
+					caption: Oversikt over bærekraft
+				measure 'Sustainability Analytics'
+					caption: Bærekraftsanalyse
+				measure 'CO2e Emissions by Month'
+					caption: CO2e-utslipp etter måned
+				measure 'Scopes 1 and 2 Analysis by Categories Per Year'
+					caption: Analyse av område 1 og 2 etter kategorier per år
+				measure 'CO2e Emissions by Department'
+					caption: CO2e-utslipp etter avdeling
+				measure 'Journey to Net-Zero Carbon'
+					caption: Reisen til nettonull karbon
+				measure 'CO2e Emissions by Business Group'
+					caption: CO2e-utslipp etter forretningsgruppe
+				measure 'Renewable Energy Usage'
+					caption: Bruk av fornybar energi
+				measure 'CO2e Emissions Over Time'
+					caption: CO2e-utslipp over tid
+				measure 'CO2e Smart Review'
+					caption: Smart gjennomgang av CO2e
+				measure 'CO2e Emissions by Global Dimension One'
+					caption: CO2e-utslipp etter global dimensjon én
+				measure 'CO2e Emissions by Global Dimension Two'
+					caption: CO2e-utslipp etter global dimensjon to
+				measure 'CO2e Equivalent Emissions by Month'
+					caption: CO2e-ekvivalentutslipp etter måned
+				measure 'Company Name'
+					caption: Selskapsnavn
+				measure 'Last Refreshed'
+					caption: Sist oppdatert
+				measure 'Released Employees'
+					caption: Frigitte ansatte
+				measure 'CO2e Decomposition Tree'
+					caption: CO2e-nedbrytingstre
+				measure 'CO2e Key Influences'
+					caption: CO2e-nøkkelpåvirkninger
+				measure 'Water and Waste Yearly and Daily Change'
+					caption: Vann og avfall, årlig og daglig endring
+			table COMPANY
+				caption: SELSKAP
+				measure 'Company Label'
+					caption: Selskapsetikett
+			table 'Sustainability Ledger Entries'
+				caption: Bærekraftposter
+				column 'Entry No.'
+					caption: Oppføringsnr.
+				column Description
+					caption: Beskrivelse
+				column 'Wat. Intensity'
+					caption: Vannintensitet
+				column 'Water Type'
+					caption: Vanntype
+				column 'Wate/Waste Intensity Type'
+					caption: Type vann-/avfallsintensitet
+				column 'Document Type'
+					caption: Dokumenttype
+				measure 'CO2 Emissions'
+					caption: CO2-utslipp
+				measure 'CH4 Emissions'
+					caption: CH4-utslipp
+				measure 'CO2 Emissions Balance'
+					caption: Saldo for CO2-utslipp
+				measure 'CO2 Emissions Balance at Date'
+					caption: Saldo for CO2-utslipp per dato
+				measure 'N2O Emissions'
+					caption: N2O-utslipp
+				measure 'CO2e Emissions'
+					caption: CO2e-utslipp
+				measure 'CH4 Emissions Balance at Date'
+					caption: Saldo for CH4-utslipp per dato
+				measure 'CH4 Emissions Balance'
+					caption: Saldo for CH4-utslipp
+				measure 'Water Intensity'
+					caption: Vannintensitet
+				measure 'Waste Intensity'
+					caption: Avfallsintensitet
+				measure 'Discharged Into Water'
+					caption: Utsluppet i vann
+				measure 'CO2e Emissions Balance'
+					caption: Saldo for CO2e-utslipp
+				measure 'CO2e Emissions Balance at Date'
+					caption: Saldo for CO2e-utslipp per dato
+				measure 'Discharged Into Water Balance at Date'
+					caption: Saldo per dato for utsluppet i vann
+				measure 'Discharged Into Water Balance'
+					caption: Saldo for utsluppet i vann
+				measure 'N2O Emissions Balance'
+					caption: Saldo for N2O-utslipp
+				measure 'N2O Emissions Balance at Date'
+					caption: Saldo for N2O-utslipp per dato
+				measure 'Waste Intensity Balance at Date'
+					caption: Avfallsintensitet for saldo per dato
+				measure 'Waste Intensity Balance'
+					caption: Saldo avfallsintensitet
+				measure 'Water Intensity Balance'
+					caption: Vannintensitetssaldo
+				measure 'Water Intensity Balance at Date'
+					caption: Saldo per dato for vannintensitet
+				measure 'CO2 Baseline'
+					caption: CO2-grunnlinje
+				measure 'CH4 Baseline'
+					caption: CH4-grunnlinje
+				measure 'CH4 vs Baseline (%)'
+					caption: CH4 kontra grunnlinje (%)
+				measure 'N2O Baseline'
+					caption: N2O-grunnlinje
+				measure 'N2O vs Baseline (%)'
+					caption: N2O kontra grunnlinje (%)
+				measure 'CO2 vs Baseline (%)'
+					caption: CO2 kontra grunnlinje (%)
+				measure 'Water Baseline'
+					caption: Vanngrunnlinje
+				measure 'Waste Baseline'
+					caption: Avfallsgrunnlinje
+				measure 'Water vs Baseline (%)'
+					caption: Vann kontra grunnlinje (%)
+				measure 'Waste vs Baseline (%)'
+					caption: Avfall kontra grunnlinje (%)
+				measure 'CO2e Baseline'
+					caption: CO2e-grunnlinje
+				measure 'CO2e vs Baseline (%)'
+					caption: CO2e kontra grunnlinje (%)
+				measure 'Purchased Carbon Credits'
+					caption: Kjøpte karbonkreditter
+				measure 'Discharged Into Water Baseline'
+					caption: Grunnlinje for vann utsluppet
+				measure 'Discharged Into Water vs Baseline (%)'
+					caption: Vannutsl. kontra grunnlinje (%)
+				measure 'CO2e Emissions (Excl Credits)'
+					caption: CO2e-utslipp (ekskl. krediter)
+				measure 'Water Intensity PY'
+					caption: Vannintensitet PÅ
+				measure 'Water Intensity YOY'
+					caption: Vannbevegelse ÅFÅ
+				measure 'Waste Intensity PY'
+					caption: Avfall PÅ
+				measure 'Waste Intensity YOY'
+					caption: Avfallsbevegelse ÅFÅ
+				measure 'Discharged Into Water PY'
+					caption: Utsluppet i vann PÅ
+				measure 'Discharged Into Water YOY'
+					caption: Utsluppet i vann ÅFÅ
+				measure 'Discharged Into Water PD'
+					caption: Utsluppet i vann PD
+				measure 'Waste Intensity PD'
+					caption: Avfall PD
+				measure 'Water Intensity PD'
+					caption: Vannintensitet PD
+				measure 'Water Intensity DOD'
+					caption: Vannbevegelse DFD
+				measure 'Waste Intensity DOD'
+					caption: Avfallsbevegelse DFD
+				measure 'Discharged Into Water DOD'
+					caption: Utsluppet i vann DFD
+				measure 'Base Link'
+					caption: Grunnkobling
+				measure 'Sustainability Ledger Entries Link'
+					caption: Kobling for bærekraftposter
+				measure 'Months in Context'
+					caption: Måneder i kontekst
+			table 'Sustainability Accounts'
+				caption: Bærekraftskontoer
+				column 'Sustainability Account No.'
+					caption: Bærekraftskontonr.
+				column 'Sustainability Account Name'
+					caption: Navn på bærekraftskonto
+				column 'Sustainability Account Category'
+					caption: Kategori for bærekraftskonto
+				column 'Sustainability Account Sub-Category'
+					caption: Underkategori for bærekraftskonto
+			table Country/Region
+				caption: Land/område
+				column 'Country Region Code'
+					caption: Kode for land/område
+				column 'Country Region Name'
+					caption: Navn på land/område
+			table 'Responsibility Centre'
+				caption: Ansvarssenter
+				column 'Responsibility Centre Code'
+					caption: Ansvarssenterkode
+				column 'Responsibility Centre Name'
+					caption: Navn på ansvarssenter
+				measure 'Facility Capacity'
+					caption: Anleggskapasitet
+			table 'Sustainability Goals'
+				caption: Bærekraftsmål
+				column 'Score Card No.'
+					caption: Målstyringsnr.
+				column 'No.'
+					caption: Nr.
+				column Name
+					caption: Navn
+				column Owner
+					caption: Eier
+				column 'Target Value For CO2'
+					caption: Målverdi for CO2
+				column 'Target Value For CH4'
+					caption: Målverdi for CH4
+				column 'Target Value For N2O'
+					caption: Målverdi for N2O
+				column 'Target Value For Water Intensity'
+					caption: Målverdi for vannintensitet
+				column 'Target Value For Waste Intensity'
+					caption: Målverdi for avfallsintensitet
+				column 'Main Goal'
+					caption: Hovedmål
+				column 'Start Date'
+					caption: Startdato
+				column 'End Date'
+					caption: Sluttdato
+				column 'Baseline Start Date'
+					caption: Startdato for grunnlinje
+				column 'Baseline End Date'
+					caption: Sluttdato for grunnlinje
+				measure 'CO2 Target'
+					caption: CO2-mål
+				measure 'CO2 Realized (%)'
+					caption: Realisert CO2 (%)
+				measure 'CH4 Target'
+					caption: CH4-mål
+				measure 'N2O Target'
+					caption: N2O-mål
+				measure 'CH4 Realized (%)'
+					caption: Realisert CH4 (%)
+				measure 'N2O Realized (%)'
+					caption: Realisert N2O (%)
+				measure 'Water Target'
+					caption: Vannmål
+				measure 'Waste Target'
+					caption: Avfallsmål
+				measure 'Water Realized (%)'
+					caption: Realisert vann (%)
+				measure 'Waste Realized (%)'
+					caption: Realisert avfall (%)
+				measure 'CO2e Realized (%)'
+					caption: Realisert CO2e (%)
+				measure 'CO2 Current Value'
+					caption: Nåværende verdi for CO2
+				measure 'CH4 Current Value'
+					caption: Nåværende verdi for CH4
+				measure 'N2O Current Value'
+					caption: Nåværende verdi for N2O
+				measure 'CO2e Current Value'
+					caption: Nåværende verdi for CO2e
+			table 'Employee Ledger Entries'
+				caption: Ansattposter
+				column 'Entry No.'
+					caption: Oppføringsnr.
+				column 'Document Type'
+					caption: Dokumenttype
+				column 'Document No.'
+					caption: Dokumentnr.
+				column Description
+					caption: Beskrivelse
+				measure 'Employee Amount'
+					caption: Beløp
+				measure 'Employee Ledger Entries Link'
+					caption: Kobling for ansattposter
+			table 'Employee Qualifications'
+				caption: Ansattes kvalifikasjoner
+				column 'Employee Qualification Codes'
+					caption: Koder for ansattes kvalifikasjoner
+				measure 'Employee Qualifications'
+					caption: Antall ansattes kvalifikasjoner
+			table 'Emission Fees'
+				caption: Utslippsavgifter
+				column 'Emission Type'
+					caption: Utslippstype
+				column 'Scope Type'
+					caption: Områdetype
+				column 'Starting Date'
+					caption: Startdato
+				column 'Ending Date'
+					caption: Sluttdato
+				column 'Country Region Code'
+					caption: Kode for land/område
+				column 'Responsibility Centre'
+					caption: Ansvarssenter
+				column 'Carbon Fee'
+					caption: Karbonavgift
+				column 'Carbon Equivalent Factor'
+					caption: Karbonekvivalentfaktor
+				measure 'CO2e Target'
+					caption: CO2e-mål
+				measure 'CO2 Carbon Equivalent'
+					caption: CO2-karbonekvivalent
+				measure 'CH4 Carbon Equivalent'
+					caption: CH4-karbonekvivalent
+				measure 'N2O Carbon Equivalent'
+					caption: N2O-karbonekvivalent
+			table 'Employee Absences'
+				caption: Ansattes fravær
+				column 'Entry No'
+					caption: Oppføringsnr.
+				column 'From Date'
+					caption: Fra dato
+				column 'To Date'
+					caption: Til dato
+				column 'Cause of Absence'
+					caption: Fraværsårsak
+				column Description
+					caption: Beskrivelse
+				measure 'Employee Absences'
+					caption: Antall
+				measure 'Absence Hours (%)'
+					caption: Fraværstimer (%)
+			table 'Sustainability Sub-Account Categories'
+				caption: Underkontokategorier for bærekraft
+				column 'Sub-Category Description'
+					caption: Beskrivelse av underkategori
+				column 'Renewable Energy'
+					caption: Fornybar energi
+			table Employees
+				caption: Ansatte
+				column 'Employee No.'
+					caption: Ansattnr.
+				column 'Employee Full Name'
+					caption: Ansattes fulle navn
+				column 'Employee First Name'
+					caption: Ansattes fornavn
+				column 'Employee Last Name'
+					caption: Ansattes etternavn
+				column 'Employee Gender'
+					caption: Ansattes kjønn
+				column 'Employee Union Code'
+					caption: Ansattes fagforeningskode
+				column 'Employee Status'
+					caption: Ansattes status
+				column 'Employee Cause of Inactivity'
+					caption: Ansattes inaktivitetsårsak
+				column 'Employee Inactive Date'
+					caption: Ansattes inaktivitetsdato
+				column 'Employee Grounds for Termination'
+					caption: Ansattes sluttårsaker
+				column 'Employee Date of Birth'
+					caption: Ansattes fødselsdato
+				column Age
+					caption: Alder
+				column 'Age Distribution'
+					caption: Aldersfordeling
+				measure 'No. of Employees'
+					caption: Antall ansatte
+				measure 'No. of Male Employees'
+					caption: Antall mannlige ansatte
+				measure 'No. of Female Employees'
+					caption: Antall kvinnelige ansatte
+				measure 'No. of Other Employees'
+					caption: Antall andre ansatte
+				measure 'Male Employees (%)'
+					caption: Mannlige ansatte (%)
+				measure 'Female Employees (%)'
+					caption: Kvinnelige ansatte (%)
+				measure 'Other Employees (%)'
+					caption: Andre ansatte (%)
+			table ENVIRONMENT
+				caption: MILJØ
+

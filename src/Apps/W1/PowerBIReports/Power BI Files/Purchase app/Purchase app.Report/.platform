@@ -1,0 +1,11 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/gitIntegration/platformProperties/2.0.0/schema.json",
+  "metadata": {
+    "type": "Report",
+    "displayName": "Purchase app"
+  },
+  "config": {
+    "version": "2.0",
+    "logicalId": "d79a6c13-0a3b-478f-b2ae-1a2e849b9d85"
+  }
+}

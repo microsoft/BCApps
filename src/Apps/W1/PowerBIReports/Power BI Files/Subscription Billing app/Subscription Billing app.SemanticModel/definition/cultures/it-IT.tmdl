@@ -1,0 +1,731 @@
+cultureInfo it-IT
+	translations
+		model Model
+			table 'Dimension Sets'
+				caption: Set di dimensioni
+				column 'Global Dimension 1'
+					caption: Dimensione globale 1
+				column 'Global Dimension 2'
+					caption: Dimensione globale 2
+				column 'Shortcut Dimension 3'
+					caption: Collegamento dimensione 3
+				column 'Shortcut Dimension 4'
+					caption: Collegamento dimensione 4
+				column 'Shortcut Dimension 5'
+					caption: Collegamento dimensione 5
+				column 'Shortcut Dimension 6'
+					caption: Collegamento dimensione 6
+				column 'Shortcut Dimension 7'
+					caption: Collegamento dimensione 7
+				column 'Shortcut Dimension 8'
+					caption: Collegamento dimensione 8
+				column id
+					caption: ID
+			table Vendors
+				caption: Fornitori
+				column 'Vendor No.'
+					caption: Nr. fornitore
+				column 'Vendor Name'
+					caption: Nome fornitore
+				column Address
+					caption: Indirizzo
+				column 'Address 2'
+					caption: Indirizzo 2
+				column City
+					caption: Città
+				column 'Post Code'
+					caption: Codice postale
+				column State
+					caption: Stato
+				column 'Country/Region Code'
+					caption: Codice paese/area geografica
+				column 'Vendor Posting Group'
+					caption: Categoria registrazione fornitore
+				column 'Vendor No. & Name'
+					caption: Nome e nr. fornitore
+			table Customers
+				caption: Clienti
+				column 'Customer No.'
+					caption: Nr. cliente
+				column 'Customer Name'
+					caption: Nome cliente
+				column Address
+					caption: Indirizzo
+				column 'Address 2'
+					caption: Indirizzo 2
+				column City
+					caption: Città
+				column 'Post Code'
+					caption: Codice postale
+				column State
+					caption: Stato
+				column 'Country/Region Code'
+					caption: Codice paese/area geografica
+				column 'Customer Posting Group'
+					caption: Categoria registrazione cliente
+				column 'Customer Price Group'
+					caption: Gruppo prezzi cliente
+				column 'Customer Discount Group'
+					caption: Categoria sconto cliente
+				column 'Customer No. & Name'
+					caption: Nr. e nome cliente
+			table Date
+				caption: Data
+				column 'Week Day'
+					caption: Giorno della settimana
+				column 'Day Type'
+					caption: Tipo di giorno
+				column 'Calendar Year'
+					caption: Anno di calendario
+				column 'Calendar Quarter'
+					caption: Trimestre di calendario
+				column 'Calendar Quarter Year'
+					caption: Trimestre anno di calendario
+				column 'Calendar Month'
+					caption: Mese di calendario
+				column 'Calendar Month Year'
+					caption: Mese anno di calendario
+				column 'Calendar Week'
+					caption: Settimana di calendario
+				column 'Calendar Week Year'
+					caption: Settimana anno di calendario
+				column 'Calendar RelativeWeekPos'
+					caption: PosSettimanaRelativa di calendario
+				column 'Calendar RelativeMonthPos'
+					caption: PosMeseRelativo di calendario
+				column 'Calendar RelativeQuarterPos'
+					caption: PosTrimestreRelativo di calendario
+				column 'Calendar RelativeYearPos'
+					caption: PosAnnoRelativo di calendario
+				column 'Calendar StartOfMonth'
+					caption: PrimoGiornoMese di calendario
+				column 'Calendar EndOfMonth'
+					caption: UltimoGiornoMese di calendario
+				column 'Calendar StartOfQuarter'
+					caption: PrimoGiornoTrimestre di calendario
+				column 'Calendar EndOfQuarter'
+					caption: UltimoGiornoTrimestre di calendario
+				column 'Calendar StartOfYear'
+					caption: PrimoGiornoAnno di calendario
+				column 'Calendar EndOfYear'
+					caption: UltimoGiornoAnno di calendario
+				column 'Calendar MonthDays'
+					caption: GiorniMese di calendario
+				column 'Calendar QuarterDays'
+					caption: GiorniTrimestre di calendario
+				column 'Calendar YearDays'
+					caption: GiorniAnno di calendario
+				column 'Calendar DayOfMonthNumber'
+					caption: NumeroGiornoMese di calendario
+				column 'Calendar DayOfQuarterNumber'
+					caption: NumeroGiornoTrimestre di calendario
+				column 'Calendar DayOfYearNumber'
+					caption: NumeroGiornoAnno di calendario
+				column 'Calendar DatePreviousWeek'
+					caption: DataSettimanaPrecedente di calendario
+				column 'Calendar DatePreviousMonth'
+					caption: DataMesePrecedente di calendario
+				column 'Calendar DatePreviousQuarter'
+					caption: DataTrimestrePrecedente di calendario
+				column 'Calendar DatePreviousYear'
+					caption: DataAnnoPrecedente di calendario
+				column 'Fiscal Year'
+					caption: Anno fiscale
+				column 'Fiscal Quarter'
+					caption: Trimestre fiscale
+				column 'Fiscal Quarter Year'
+					caption: Trimestre anno fiscale
+				column 'Fiscal Month'
+					caption: Mese fiscale
+				column 'Fiscal Month Year'
+					caption: Mese anno fiscale
+				column 'Fiscal Week'
+					caption: Settimana fiscale
+				column 'Fiscal Week Year'
+					caption: Settimana anno fiscale
+				column 'Fiscal RelativeWeekPos'
+					caption: PosSettimanaRelativa fiscale
+				column 'Fiscal RelativeMonthPos'
+					caption: PosMeseRelativo fiscale
+				column 'Fiscal RelativeQuarterPos'
+					caption: PosTrimestreRelativo fiscale
+				column 'Fiscal RelativeYearPos'
+					caption: PosAnnoRelativo fiscale
+				column 'Fiscal StartOfMonth'
+					caption: PrimoGiornoMese fiscale
+				column 'Fiscal EndOfMonth'
+					caption: UltimoGiornoMese fiscale
+				column 'Fiscal StartOfQuarter'
+					caption: PrimoGiornoTrimestre fiscale
+				column 'Fiscal EndOfQuarter'
+					caption: UltimoGiornoTrimestre fiscale
+				column 'Fiscal StartOfYear'
+					caption: PrimoGiornoAnno fiscale
+				column 'Fiscal EndOfYear'
+					caption: UltimoGiornoAnno fiscale
+				column 'Fiscal MonthDays'
+					caption: GiorniMese fiscale
+				column 'Fiscal QuarterDays'
+					caption: GiorniTrimestre fiscale
+				column 'Fiscal YearDays'
+					caption: GiorniAnno fiscale
+				column 'Fiscal DayOfMonthNumber'
+					caption: NumeroGiornoMese fiscale
+				column 'Fiscal DayOfQuarterNumber'
+					caption: NumeroGiornoTrimestre fiscale
+				column 'Fiscal DayOfYearNumber'
+					caption: NumeroGiornoAnno fiscale
+				column 'Fiscal DatePreviousWeek'
+					caption: DataSettimanaPrecedente fiscale
+				column 'Fiscal DatePreviousMonth'
+					caption: DataMesePrecedente fiscale
+				column 'Fiscal DatePreviousQuarter'
+					caption: DataTrimestrePrecedente fiscale
+				column 'Fiscal DatePreviousYear'
+					caption: DataAnnoPrecedente fiscale
+				column 'FW Year'
+					caption: Anno SF
+				column 'FW Quarter'
+					caption: Trimestre SF
+				column 'FW Quarter Year'
+					caption: Trimestre anno SF
+				column 'FW Month'
+					caption: Mese SF
+				column 'FW Month Year'
+					caption: Mese anno SF
+				column 'FW Week'
+					caption: Settimana SF
+				column 'FW Period'
+					caption: Periodo SF
+				column 'FW Week Year'
+					caption: Settimana anno SF
+				column 'FW StartOfWeek'
+					caption: PrimoGiornoSettimana SF
+				column 'FW EndOfWeek'
+					caption: UltimoGiornoSettimana SF
+				column 'FW RelativeWeekPos'
+					caption: PosSettimanaRelativa SF
+				column 'FW RelativeMonthPos'
+					caption: PosMeseRelativo SF
+				column 'FW RelativeQuarterPos'
+					caption: PosTrimestreRelativo SF
+				column 'FW RelativeYearPos'
+					caption: PosAnnoRelativo SF
+				column 'FW StartOfMonth'
+					caption: PrimoGiornoMese SF
+				column 'FW EndOfMonth'
+					caption: UltimoGiornoMese SF
+				column 'FW StartOfQuarter'
+					caption: PrimoGiornoTrimestre SF
+				column 'FW EndOfQuarter'
+					caption: UltimoGiornoTrimestre SF
+				column 'FW StartOfYear'
+					caption: PrimoGiornoAnno SF
+				column 'FW EndOfYear'
+					caption: UltimoGiornoAnno SF
+				column 'FW MonthDays'
+					caption: GiorniMese SF
+				column 'FW QuarterDays'
+					caption: GiorniTrimestre SF
+				column 'FW YearDays'
+					caption: GiorniAnno SF
+				column 'FW DayOfMonthNumber'
+					caption: NumeroGiornoMese SF
+				column 'FW DayOfQuarterNumber'
+					caption: NumeroGiornoTrimestre SF
+				column 'FW DayOfYearNumber'
+					caption: NumeroGiornoAnno SF
+				column 'FW DatePreviousWeek'
+					caption: DataSettimanaPrecedente SF
+				column 'FW DatePreviousMonth'
+					caption: DataMesePrecedente SF
+				column 'FW DatePreviousQuarter'
+					caption: DataTrimestrePrecedente SF
+				column 'FW DatePreviousYear'
+					caption: DataAnnoPrecedente SF
+				column 'Relative Day'
+					caption: Giorno relativo
+				column Sequential365DayNumber
+					caption: NumeroGiorno sequenziale da 1 a 365
+				column 'Data Range Deferrals'
+					caption: Differimenti intervallo dati
+				measure 'No. of Days'
+					caption: Nr. di giorni
+				hierarchy 'Fiscal Year-Quarter-Month-Week'
+					caption: Anno-Trimestre-Mese-Settimana fiscale
+					level 'Fiscal Year'
+						caption: Anno fiscale
+					level 'Fiscal Quarter Year'
+						caption: Trimestre anno fiscale
+					level 'Fiscal Month Year'
+						caption: Mese anno fiscale
+					level 'Fiscal Week Year'
+						caption: Settimana anno fiscale
+				hierarchy 'Calendar Year-Quarter-Month-Week'
+					caption: Anno-Trimestre-Mese-Settimana di calendario
+					level 'Calendar Year'
+						caption: Anno di calendario
+					level 'Calendar Quarter Year'
+						caption: Trimestre anno di calendario
+					level 'Calendar Month Year'
+						caption: Mese anno di calendario
+					level 'Calendar Week Year'
+						caption: Settimana anno di calendario
+				hierarchy 'FW Year-Quarter-Month-Week'
+					caption: Anno-Trimestre-Mese-Settimana SF
+					level 'FW Year'
+						caption: Anno SF
+					level 'FW Quarter Year'
+						caption: Trimestre anno SF
+					level 'FW Month Year'
+						caption: Mese anno SF
+					level 'FW Week Year'
+						caption: Settimana anno SF
+				hierarchy 'Fiscal Year-Month'
+					caption: Anno-Mese fiscale
+					level 'Fiscal Year'
+						caption: Anno fiscale
+					level 'Fiscal Month Year'
+						caption: Mese anno fiscale
+				hierarchy 'Fiscal Year-Month-Week'
+					caption: Anno-Mese-Settimana fiscale
+					level 'Fiscal Year'
+						caption: Anno fiscale
+					level 'Fiscal Month Year'
+						caption: Mese anno fiscale
+					level 'Fiscal Week Year'
+						caption: Settimana anno fiscale
+				hierarchy 'Calendar Year-Month'
+					caption: Anno-Mese di calendario
+					level 'Calendar Year'
+						caption: Anno di calendario
+					level 'Calendar Month Year'
+						caption: Mese anno di calendario
+				hierarchy 'Calendar Year-Month-Week'
+					caption: Anno-Mese-Settimana di calendario
+					level 'Calendar Year'
+						caption: Anno di calendario
+					level 'Calendar Month Year'
+						caption: Mese anno di calendario
+					level 'Calendar Week Year'
+						caption: Settimana anno di calendario
+				hierarchy 'FW Year-Month-Week'
+					caption: Anno-Mese-Settimana SF
+					level 'FW Year'
+						caption: Anno SF
+					level 'FW Month Year'
+						caption: Mese anno SF
+					level 'FW Week Year'
+						caption: Settimana anno SF
+				hierarchy 'FW Year-Quarter-Week'
+					caption: Anno-Trimestre-Settimana SF
+					level 'FW Year'
+						caption: Anno SF
+					level 'FW Quarter Year'
+						caption: Trimestre anno SF
+					level 'FW Week Year'
+						caption: Settimana anno SF
+				hierarchy 'FW Year-Week'
+					caption: Anno-Settimana SF
+					level 'FW Year'
+						caption: Anno SF
+					level 'FW Week Year'
+						caption: Settimana anno SF
+			table 'Localized Labels'
+				measure 'CONNECT YOUR DATA'
+					caption: CONNETTI I DATI
+				measure '1. Download the Finance Connector for Power BI'
+					caption: 1. Scaricare Finance Connector for Power BI
+				measure '2. Configure Dynamics 365 Business Central'
+					caption: 2. Configurare Dynamics 365 Business Central
+				measure 'USE, EDIT AND BUILD YOUR OWN REPORTS'
+					caption: USA, MODIFICA E CREA I TUOI REPORT
+				measure 'Finance includes a variety of pre-built reports to help you see your data immediately. You are able to edit these reports or build your own report from scratch.'
+					caption: I dati finanziari includono una serie di report predefiniti che consentono di visualizzare immediatamente i dati. È possibile modificare questi report o creare il proprio report da zero.
+				measure 'HELP AND SUPPORT'
+					caption: GUIDA E SUPPORTO
+				measure 'For help and support with your new report please visit the Analytics overview documentation.'
+					caption: Per assistenza e supporto per il nuovo report, vedere la documentazione generale di analisi.
+				measure 'for Business Central'
+					caption: per Business Central
+				measure 'Last Refreshed'
+					caption: Ultimo aggiornamento
+				measure 'Company Name'
+					caption: Nome società
+				measure 'Analysis Entries as of'
+					caption: Movimenti analisi a partire da
+				measure 'Billing Forecast by Billing Period, Customer and Contract No.'
+					caption: Previsione di fatturazione per periodo di fatturazione, cliente e nr. contratto
+				measure 'Billing Forecast by Year and Month'
+					caption: Previsione fatturazione per anno e mese di calendario
+				measure 'Billing Schedule'
+					caption: Programmazione fatturazione
+				measure 'Change of Mon. Recurring Revenue by Year and Month'
+					caption: Modifica dei ricavi periodici mensili per anno e mese
+				measure 'Current Date Range:'
+					caption: Intervallo di date corrente:
+				measure 'Customer Contract Deferrals'
+					caption: Differimenti contratto del cliente
+				measure 'Customer Contract Lines'
+					caption: Righe contratto del cliente
+				measure 'Customer Deferrals (Caption)'
+					caption: Differimenti cliente
+				measure 'Mon. Recurring Revenue Analysis'
+					caption: Analisi ricavi periodici mensili
+				measure 'Mon. Recurring Revenue and Mon. Recurring Revenue PY by Month'
+					caption: Ricavi periodici mensili e ricavi periodici mensili PY per mese di calendario
+				measure 'Mon. Recurring Revenue and Year-Over-Year Growth by Year and Month'
+					caption: Ricavi periodici mensili e crescita anno su anno per anno e mese di calendario
+				measure 'Mon. Recurring Revenue by Customer'
+					caption: Ricavi periodici mensili per cliente
+				measure 'Mon. Recurring Revenue by Salesperson'
+					caption: Ricavi periodici mensili per venditore
+				measure 'Mon. Recurring Revenue by Year and Month'
+					caption: Ricavi periodici mensili per anno e mese di calendario
+				measure 'Mon. Recurring Revenue by Item'
+					caption: Ricavi periodici mensili per articolo
+				measure 'Mon. Recurring Revenue by Item Category'
+					caption: Ricavi periodici mensili per categoria articolo
+				measure 'Mon. Recurring Revenue Churn and Downgrade by Customer Contract'
+					caption: Abbandono e downgrade ricavi periodici mensili per contratto cliente
+				measure 'Mon. Recurring Revenue New and Upgrade by Customer Contract'
+					caption: Novità e aggiornamento ricavi periodici mensili per contratto cliente
+				measure 'Monthly Sales and Cost Forecast by Year and Month'
+					caption: Previsioni mensili di ricavi e costi per anno e mese di calendario
+				measure 'Monthly Sales and Cost Forecast by Salesperson, Customer and Contract No.'
+					caption: Previsione mensile dei ricavi e dei costi per venditore, cliente e nr. contratto
+				measure 'Released and Deferred Amount by Year and Month'
+					caption: Importo rilasciato e differito per anno e mese di calendario
+				measure 'Revenue Analysis'
+					caption: Analisi ricavi
+				measure 'Revenue by Customer'
+					caption: Ricavi per cliente
+				measure 'Revenue by Item'
+					caption: Ricavi per articolo
+				measure 'Revenue by Salesperson'
+					caption: Ricavi per venditore
+				measure 'Revenue Development'
+					caption: Sviluppo ricavi
+				measure 'Sales and Cost Forecast'
+					caption: Previsione ricavi
+				measure 'Revenue Year-Over-Year Growth'
+					caption: Crescita ricavi anno su anno
+				measure 'Subscription Billing Analysis'
+					caption: Analisi Subscription Billing
+				measure 'Subscription Billing Overview'
+					caption: Panoramica di Subscription Billing
+				measure 'Top 5 Customers by Mon. Recurring Revenue'
+					caption: Primi 5 clienti per ricavi periodici mensili
+				measure 'Top 5 Vendors by Mon. Recurring Cost'
+					caption: Primi 5 fornitori per costo periodico mensile
+				measure 'Total Contract Value Analysis'
+					caption: Analisi valore totale del contratto
+				measure 'Total Contract Value and Total Contract Value PY by Month'
+					caption: Valore totale dei contratti e valore totale dei contratti PY per mese di calendario
+				measure 'Total Contract Value and Year-Over-Year Growth by Year and Month'
+					caption: Valore totale del contratto e crescita anno su anno per anno e mese di calendario
+				measure 'Total Contract Value by Year and Month'
+					caption: Valore totale del contratto per anno e mese di calendario
+				measure 'Total Contract Value Year-Over-Year Growth'
+					caption: Crescita anno su anno del valore totale dei contratti
+				measure 'Vendor Contract Deferrals'
+					caption: Differimenti contratto del fornitore
+				measure 'Vendor Deferrals (Caption)'
+					caption: Differimenti fornitore
+				measure 'Back button'
+					caption: Pulsante Indietro
+				measure 'Monthly Recurring Revenue, Monthly Recurring Cost, Monthly Net Profit, Active Customers, Total Contract Value, Change in Monthly Recurring Revenue'
+					caption: Ricavi periodici mensili, costo periodico mensile, profitto netto mensile, clienti attivi, Valore totale contratto, variazione ricavi periodici mensili
+				measure 'Churn Analysis'
+					caption: Analisi abbandono
+				measure 'Avg. Mon. Churn Rate % by Year and Month'
+					caption: % tasso medio di abbandono mensile per anno e mese
+			table 'Meta Information'
+				caption: SOCIETÀ
+			table Subscription
+				caption: Oggetto di assistenza
+				column 'Subscription No.'
+					caption: Nr. oggetto di assistenza
+				column 'Package Code'
+					caption: Codice pacchetto
+				column 'Subscription Desc.'
+					caption: Descrizione oggetto di assistenza
+				column 'Analysis Date'
+					caption: Data di analisi
+				column 'Subscription No. Desc.'
+					caption: Descrizione nr. Subscription
+			table 'Vendor Contract Deferrals'
+				caption: Differimenti contratto del fornitore
+				column 'Document Type'
+					caption: Tipo di documento
+				column 'Document No.'
+					caption: Nr. documento
+				column 'Posting Date'
+					caption: Data di registrazione
+				column 'Document Posting Date'
+					caption: Data di registrazione documento
+				column 'Release Posting Date'
+					caption: Data di registrazione rilascio
+				column 'G LEntry No.'
+					caption: Nr. movimento C/G
+				column Discount
+					caption: Sconto
+				column 'Document Line No.'
+					caption: Nr. riga documento
+			table 'Customer Contract Line'
+				caption: Riga contratto del cliente
+				column 'Subscription Line No.'
+					caption: Nr. riga impegno
+				column Template
+					caption: Modello
+				column 'Customer Contract Line Desc.'
+					caption: Descrizione riga contratto del cliente
+				column 'Subscription Start Date'
+					caption: Data di inizio assistenza
+				column 'Subscription End Date'
+					caption: Data di fine assistenza
+				column 'Next Billing Date'
+					caption: Data fatturazione successiva
+				column 'Billing Base Period'
+					caption: Periodo di base di fatturazione
+				column 'Invoicing Item No.'
+					caption: Nr. articolo fatturazione
+				column 'Customer Contract Line No.'
+					caption: Nr. riga contratto del cliente
+				column 'Notice Period'
+					caption: Periodo di avviso
+				column 'Initial Term'
+					caption: Periodo iniziale
+				column 'Extension Term'
+					caption: Periodo di estensione
+				column 'Billing Rhythm'
+					caption: Ritmo di fatturazione
+				column 'Cancellation Possible Until'
+					caption: Annullamento possibile fino alla data
+				column 'Term Until'
+					caption: Periodo fino alla data
+				column 'Renewal Term'
+					caption: Termine di rinnovo
+				column 'Line Active'
+					caption: Attività riga
+				column 'Remaining Term'
+					caption: Periodo rimanente
+				column 'Billing Rhythm Months'
+					caption: Mesi frequenza fatturazione
+				column 'Customer Contract No.'
+					caption: Nr. contratto del cliente
+				column 'Is Usage Based Billing'
+					caption: Fatturazione basata sull'utilizzo
+				column 'Source Type'
+					caption: Tipo di origine
+				column 'Source No.'
+					caption: Nr. origine
+			table 'Vendor Contract Line'
+				caption: Riga contratto del fornitore
+				column 'Subscription Line No.'
+					caption: Nr. riga impegno
+				column Template
+					caption: Modello
+				column 'Vendor Contract Line Desc.'
+					caption: Descrizione riga contratto del fornitore
+				column 'Subscription Start Date'
+					caption: Data di inizio assistenza
+				column 'Subscription End Date'
+					caption: Data di fine assistenza
+				column 'Next Billing Date'
+					caption: Data fatturazione successiva
+				column 'Vendor Contract Line No.'
+					caption: Nr. riga contratto del fornitore
+				column 'Notice Period'
+					caption: Periodo di avviso
+				column 'Initial Term'
+					caption: Periodo iniziale
+				column 'Extension Term'
+					caption: Periodo di estensione
+				column 'Billing Rhythm'
+					caption: Ritmo di fatturazione
+				column 'Cancellation Possible Until'
+					caption: Annullamento possibile fino alla data
+				column 'Term Until'
+					caption: Periodo fino alla data
+				column 'Renewal Term'
+					caption: Termine di rinnovo
+				column 'Line Active'
+					caption: Attività riga
+				column 'Remaining Term'
+					caption: Periodo rimanente
+				column 'Billing Rhythm Months'
+					caption: Mesi frequenza fatturazione
+				column 'Vendor Contract No.'
+					caption: Nr. contratto del fornitore
+				column 'Is Latest Version'
+					caption: Ultima versione
+				column 'Is Usage Based Billing'
+					caption: Fatturazione basata sull'utilizzo
+				column 'Source Type'
+					caption: Tipo di origine
+				column 'Source No.'
+					caption: Nr. origine
+			table 'Customer Contract Deferrals'
+				caption: Differimenti contratto del cliente
+				column 'Document Type'
+					caption: Tipo di documento
+				column 'Document No.'
+					caption: Nr. documento
+				column 'Posting Date'
+					caption: Data di registrazione
+				column 'Document Line No.'
+					caption: Nr. riga documento
+				column 'Document Posting Date'
+					caption: Data di registrazione documento
+				column 'Release Posting Date'
+					caption: Data di registrazione rilascio
+				column 'G LEntry No.'
+					caption: Nr. movimento C/G
+			table 'Customer Contract'
+				caption: Contratto del cliente
+				column 'Customer Contract No.'
+					caption: Nr. contratto del cliente
+				column 'Customer Contract Type'
+					caption: Tipo di contratto del cliente
+				column 'Customer Contract Description'
+					caption: Descrizione contratto del cliente
+				column 'Customer Contract No. Desc.'
+					caption: Descrizione nr. contratto del cliente
+			table 'Vendor Contract'
+				caption: Contratto del fornitore
+				column 'Vendor Contract No.'
+					caption: Nr. contratto del fornitore
+				column 'Vendor Contract Type'
+					caption: Tipo di contratto del fornitore
+				column 'Vendor Contract Description'
+					caption: Descrizione contratto del fornitore
+				column 'Vendor Contract No. Desc.'
+					caption: Descrizione nr. contratto del fornitore
+			table 'UBB handling'
+				caption: Movimentazione UBB
+				column 'Treat Usage Based Billing as constant'
+					caption: Considera UBB come costante
+			table 'Is Released'
+				caption: Rilasciato
+			table Item
+				caption: Articolo
+				column 'Item No.'
+					caption: Nr. articolo
+				column 'Item Name'
+					caption: Nome articolo
+				column 'Item Category Code'
+					caption: Codice categoria articolo
+				column 'Item Category Description'
+					caption: Descrizione categoria articolo
+				column 'Inventory Posting Group'
+					caption: Categoria registrazione inventario
+				column 'Base Unit of Measure'
+					caption: Unità di misura di base
+				column 'Item No. & Description'
+					caption: Nr. e descrizione articolo
+			table 'Analysis Date'
+				caption: Data di analisi
+				column 'Is Initial Version'
+					caption: Versione iniziale
+				column 'Is Current Version'
+					caption: Versione corrente
+			table 'Calc. Group - Time Intelligence for Calendar (Fiscal)'
+				caption: Gruppo calcolato - Funzionalità di Business Intelligence per le gerarchie temporali per calendario (fiscale)
+				column Perspective
+					caption: Prospettiva
+			table 'Subscription Billing KPIs'
+				caption: KPI Subscription Billing
+				measure 'Mon. Recurring Revenue'
+					caption: MRR
+				measure 'Mon. Recurring Cost'
+					caption: MRC
+				measure 'Customer Deferrals'
+					caption: Differimenti cliente
+				measure 'Vendor Deferrals'
+					caption: Differimenti fornitore
+				measure 'Annual Recurring Revenue'
+					caption: ARR
+				measure 'Total Contract Value'
+					caption: TCV
+				measure 'Forecast Sales'
+					caption: Vendite previste
+				measure 'Mon. Recurring Cost PY'
+					caption: MRC PY
+				measure 'Mon. Recurring Cost Δ vs. PY'
+					caption: Δ MRC rispetto a PY
+				measure 'Mon. Recurring Revenue Churn'
+					caption: Abbandono ricavi periodici mensili
+				measure 'Mon. Recurring Revenue PY'
+					caption: MRR PY
+				measure 'Mon. Recurring Revenue New'
+					caption: Nuovi ricavi periodici mensili
+				measure 'Mon. Recurring Revenue Δ vs. PY'
+					caption: Δ analisi ricavi periodici mensili rispetto PY
+				measure 'Mon. Net Profit Amount'
+					caption: NMRP
+				measure 'Mon. Net Profit %'
+					caption: % NMRP di MRR
+				measure 'Mon. Net Profit PY'
+					caption: NMRP PY
+				measure 'Mon. Net Profit Δ vs. PY'
+					caption: Δ NMRP rispetto a PY
+				measure 'Change in Mon. Recurring Revenue'
+					caption: Variazione complessiva MRR
+				measure 'Total Contract Value PY'
+					caption: TCV PY
+				measure 'Total Contract Value Δ vs. PY'
+					caption: Δ TCV rispetto a PY
+				measure 'Last Update Analysis Entries'
+					caption: Ultimo aggiornamento movimenti analisi
+				measure 'Last Update Semantic Model'
+					caption: Ultimo aggiornamento modello semantico
+				measure 'Param Environment'
+					caption: Parametri ambiente
+				measure 'Param Company'
+					caption: Parametri società
+				measure 'Mon. Recurring Revenue Upgrade'
+					caption: Aggiornamento ricavi periodici mensili
+				measure 'Mon. Recurring Revenue Change UBB'
+					caption: UBB variazione ricavi periodici mensili
+				measure 'Reporting Currency'
+					caption: Valuta di dichiarazione
+				measure 'Active Customers'
+					caption: Clienti attivi
+				measure 'Active Customers PY'
+					caption: Clienti attivi PY
+				measure 'Active Customers Δ vs. PY'
+					caption: Δ clienti attivi rispetto a PY
+				measure 'Customer Billing Forecast'
+					caption: Previsione fatturazione cliente
+				measure 'Vendor Billing Forecast'
+					caption: Previsione fatturazione fornitore
+				measure 'Forecast Costs'
+					caption: Costi previsione
+				measure 'Mon. Recurring Revenue Downgrade'
+					caption: Downgrade ricavi periodici mensili
+				measure 'Selected Date Range'
+					caption: Intervallo di date selezionato
+				measure 'Avg. Mon. Churn Rate %'
+					caption: % tasso medio di abbandono mensile
+				measure 'Mon. Avg. Downgrade Rate %'
+					caption: % tasso medio di downgrade mensile
+				measure 'Mon. Recurring Revenue Downgrade & Churn'
+					caption: Downgrade e abbandono ricavi periodici mensili
+			table Salesperson
+				caption: Venditore
+				column 'Salesperson Code'
+					caption: Codice venditore
+				column 'Salesperson Name'
+					caption: Nome venditore
+			table 'Customer Contract Changes'
+				caption: Modifiche contratto del cliente
+				column 'Customer Contract Line Key'
+					caption: Chiave riga contratto del cliente
+				column Date
+					caption: Data
+				column 'Change Type'
+					caption: Tipo di modifica
+				column 'MRR Delta'
+					caption: Delta MRR
+

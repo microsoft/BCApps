@@ -1,0 +1,599 @@
+cultureInfo is-IS
+	translations
+		model Model
+			table 'Project Ledger Entry'
+				caption: Fjárhagsfærsla verks
+				column 'No. & Description'
+					caption: Númer & lýsing
+				column 'Project No.'
+					caption: Verkefni nr.
+				column 'Task No.'
+					caption: Verk nr.
+				column 'Posting Date'
+					caption: Bókunardagsetning
+				column 'Entry Type'
+					caption: Tegund færslu
+				column Type
+					caption: Gerð
+				column 'No.'
+					caption: Nr.
+				column Description
+					caption: Lýsing
+				column Location
+					caption: Staðsetning
+				column 'Unit of Measure Code'
+					caption: Mælieiningarkóði
+				column 'Unit Cost (LCY)'
+					caption: Kostn.verð (SGM)
+				column 'Unit Price (LCY)'
+					caption: Einingaverð (SGM)
+				measure 'Project Ledger Entry Quantity'
+					caption: Magn
+				measure 'Invoiced (Total Cost)'
+					caption: Reikningsfært (heildarkostnaður)
+				measure 'Total Price'
+					caption: Heildarverð
+				measure 'Actual (Total Price)'
+					caption: Raun (Heildarverð)
+				measure 'Billable (Invoiced Price)'
+					caption: Reikningshæft (Reikningsfært verð)
+				measure 'Actual (Total Cost)'
+					caption: Raunverulegt (heildarkostnaður)
+				measure 'Gen. Journal Usage (Total Cost)'
+					caption: Notkun færslubókar (Heildarkostnaður)
+				measure 'Labour Usage (Total Cost)'
+					caption: Notkun vinnuafls (Heildarkostnaður)
+				measure 'Material Usage (Total Cost)'
+					caption: Efnisnotkun (Heildarkostnaður)
+				measure 'Invoiced (Total Price)'
+					caption: Reikningsfært (heildarverð)
+			table Project
+				caption: Verkefni
+				column 'Project No.'
+					caption: Verkefni nr.
+				column 'Project Description'
+					caption: Lýsing á verkefni
+				column 'Project Bill to Customer No.'
+					caption: Verk reikningsfæra á nr. viðskiptamanns
+				column 'Project Creation Date'
+					caption: Stofndagur verks
+				column 'Project Starting Date'
+					caption: Upphafsdagur verks
+				column 'Project Ending Date'
+					caption: Lokadagur verkefnis
+				column 'Project Status'
+					caption: Staða verks
+				column 'Project Posting Group'
+					caption: Bókunarflokkur verkefnis
+				column 'Project Blocked'
+					caption: Verkefni útilokað
+				column 'Project Project Manager'
+					caption: Verkefnastjóri verks
+				column 'Project Complete'
+					caption: Verkefni lokið
+				column 'Project No. & Description'
+					caption: Nr. og lýsing verkefnis
+				measure 'Project Count'
+					caption: Verkefnatalning
+				measure 'Actual Profit'
+					caption: Raunhagnaður
+				measure 'Actual Profit Margin (%)'
+					caption: Raunhagnaður hlutfall (%)
+				measure 'Project Duration (Days)'
+					caption: Tímalengd (dagar)
+				measure 'Budget Profit'
+					caption: Áætluð framlegð
+				measure 'Budget Profit Margin (%)'
+					caption: Hagnaðarhlutfalls fjárhagsáætlunar (%)
+				measure 'Completed (%)'
+					caption: Lokið (%)
+				measure 'Invoiced (%)'
+					caption: Reikningsfært (%)
+				measure 'Tasks Count'
+					caption: Verkefnafjöldi
+				measure 'Realization (%)'
+					caption: Uppfylling (%)
+				measure 'Realization Variance'
+					caption: Frávik uppfyllingar
+				measure 'Base Link'
+					caption: Grunntengill
+				measure 'Project Planning Lines Back Link'
+					caption: Baktengill verkáætlunarlína
+			table 'Project Planning Line'
+				caption: Verkáætlunarlína
+				column 'Project No.'
+					caption: Verkefni nr.
+				column 'Task No.'
+					caption: Verk nr.
+				column 'Line No.'
+					caption: Línunr.
+				column Type
+					caption: Gerð
+				column 'Line Type'
+					caption: Línugerð
+				column 'No.'
+					caption: Nr.
+				column Description
+					caption: Lýsing
+				column 'Unit Cost (LCY)'
+					caption: Kostn.verð (SGM)
+				column 'Unit Price (LCY)'
+					caption: Einingaverð (SGM)
+				column 'Planning Date'
+					caption: Áætlunardagsetning
+				measure 'Planning Line Quantity'
+					caption: Magn áætlunarlínu
+				measure 'Planning Line Total Cost (LCY)'
+					caption: Heildarkostnaður áætlunarlínu (SGM)
+				measure 'Planning Line Total Price (LCY)'
+					caption: Heildarverð áætlunarlínu (SGM)
+				measure 'Budget (Total Cost)'
+					caption: Fjárhagsáætlun (Heildarkostnaður)
+				measure 'Billable (Total Price)'
+					caption: Reikningshæft (Heildarverð)
+				measure 'Total Cost Variance to Budget'
+					caption: Heildarkostnaðarfrávik í fjárhagsáætlun
+				measure 'Total Cost Variance to Budget %'
+					caption: Heildarkostnaðarfrávik í fjárhagsáætlun (%)
+				measure 'Billable (Total Cost)'
+					caption: Reikningshæft (heildarkostnaður)
+				measure 'Budget (Total Price)'
+					caption: Fjárhagsáætlun (heildarverð)
+			table Customer
+				caption: Viðskiptavinur
+				column 'Customer No. & Name'
+					caption: Nr. og nafn viðskiptavinar
+				column 'Customer No.'
+					caption: Nr. viðskiptamanns
+				column 'Customer Name'
+					caption: Nafn viðskiptamanns
+				column 'Customer Address'
+					caption: Aðsetur viðskiptavinar
+				column 'Customer Address 2'
+					caption: Utanáskrift 2
+				column 'Customer City'
+					caption: Bær viðskiptamanns
+				column 'Customer Post Code'
+					caption: Póstnúmer viðskiptamanns
+				column 'Customer State'
+					caption: Staða viðskiptavinar
+				column 'Customer Country/Region Code'
+					caption: Lands-/svæðiskóði viðskiptamanns
+				column 'Customer Posting Group'
+					caption: Bókunarflokkur viðskiptavinar
+				column 'Customer Price Group'
+					caption: Verðflokkur viðskiptamanns
+				column 'Customer Discount Group'
+					caption: Afsláttarflokkur viðskm.
+			table Tasks
+				caption: Verk
+				column 'Task Project No.'
+					caption: Verkefnisnr.
+				column 'Task No.'
+					caption: Verk nr.
+				column 'Task Description'
+					caption: Lýsing verkefnis
+				column 'Task Type'
+					caption: Tegund verkefnis
+				column 'Task Project No. & Task No.'
+					caption: Verkhlutanr. & Verknr.
+				column 'Task Project Task & Description'
+					caption: Verkhluti verkefnis og lýsing
+				column 'Project Task Starting Date'
+					caption: Upphafsdagur verkhluta verkefnis
+				column 'Project Task Ending Date'
+					caption: Lokadagur verkhluta verkefnis
+			table 'Dimension Sets'
+				caption: Víddasamstæður
+				column 'Global Dimension 1'
+					caption: Altæk vídd 1
+				column 'Global Dimension 2'
+					caption: Altæk vídd 2
+				column 'Shortcut Dimension 3'
+					caption: Flýtivídd 3
+				column 'Shortcut Dimension 4'
+					caption: Flýtivídd 4
+				column 'Shortcut Dimension 5'
+					caption: Flýtivídd 5
+				column 'Shortcut Dimension 6'
+					caption: Flýtivídd 6
+				column 'Shortcut Dimension 7'
+					caption: Flýtivídd 7
+				column 'Shortcut Dimension 8'
+					caption: Flýtivídd 8
+				column id
+					caption: auðkenni
+			table Date
+				caption: Dagsetning
+				column Date
+					caption: Bókunardagsetning
+				column 'Week Day'
+					caption: Vika Dagur
+				column 'Relative Day'
+					caption: Samsvarandi dagur
+				column 'Calendar YearNumber'
+					caption: Dagatal Númer árs
+				column 'Calendar Year'
+					caption: Almanaksár
+				column 'Calendar QuarterNumber'
+					caption: Dagatal Númer ársfjórðungs
+				column 'Calendar Quarter'
+					caption: Dagatal Ársfjórðungur
+				column 'Calendar YearQuarterNumber'
+					caption: Dagatal Númer árs og ársfjórðungs
+				column 'Calendar Quarter Year'
+					caption: Dagatal Ársfjórðungur Ár
+				column 'Calendar MonthNumber'
+					caption: Dagatal Númer mánaðar
+				column 'Calendar Month'
+					caption: Almanaksmánuður
+				column 'Calendar YearMonthNumber'
+					caption: Dagatal Númer árs og mánaðar
+				column 'Calendar Month Year'
+					caption: Dagatal Mánuður Ár
+				column 'Calendar WeekNumber'
+					caption: Dagatal Númer viku
+				column 'Calendar Week'
+					caption: Almanaksvika
+				column 'Calendar YearWeekNumber'
+					caption: Fjárhagsár Númer viku
+				column 'Calendar Week Year'
+					caption: Dagatal Vika Ár
+				column 'Calendar WeekYearOrder'
+					caption: Dagatal VikaÁrPöntun
+				column 'Calendar RelativeWeekPos'
+					caption: Dagatal Staða samsvarandi viku
+				column 'Calendar RelativeMonthPos'
+					caption: Dagatal Staða samsvarandi mánaðar
+				column 'Calendar RelativeQuarterPos'
+					caption: Dagatal Staða samsvarandi ársfjórðungs
+				column 'Calendar RelativeYearPos'
+					caption: Dagatal Staða samsvarandi árs
+				column 'Calendar StartOfMonth'
+					caption: Dagatal Upphaf mánaðar
+				column 'Calendar EndOfMonth'
+					caption: Dagatal Mánaðarlok
+				column 'Calendar StartOfQuarter'
+					caption: Dagatal Upphaf ársfjórðungs
+				column 'Calendar EndOfQuarter'
+					caption: Dagatal Ársfjórðungslok
+				column 'Calendar StartOfYear'
+					caption: Dagatal Upphaf árs
+				column 'Calendar EndOfYear'
+					caption: Dagatal Árslok
+				column 'Calendar MonthDays'
+					caption: Dagatal Dagar mánaðar
+				column 'Calendar QuarterDays'
+					caption: Dagatal Dagar ársfjórðungs
+				column 'Calendar YearDays'
+					caption: Dagatal Dagar árs
+				column 'Calendar DayOfMonthNumber'
+					caption: Dagatal Númer mánaðardags
+				column 'Calendar DayOfQuarterNumber'
+					caption: Dagatal Númer dags innan ársfjórðungs
+				column 'Calendar DayOfYearNumber'
+					caption: Dagatal Númer dags innan árs
+				column 'Calendar DatePreviousWeek'
+					caption: Dagatal Dagsetning fyrri viku
+				column 'Calendar DatePreviousMonth'
+					caption: Dagatal Dagsetning fyrri mánaðar
+				column 'Calendar DatePreviousQuarter'
+					caption: Dagatal Dagsetning fyrri ársfjórðungs
+				column 'Calendar DatePreviousYear'
+					caption: Dagatal Dagsetning fyrra árs
+				column 'Fiscal Year'
+					caption: Fjárhagur Ár
+				column 'Fiscal YearNumber'
+					caption: Fjárhagur Númer árs
+				column 'Fiscal QuarterNumber'
+					caption: Fjárhagur Númer ársfjórðungs
+				column 'Fiscal Quarter'
+					caption: Fjórðungur Ársfjórðungur
+				column 'Fiscal YearQuarterNumber'
+					caption: Fjárhagur Númer árs og ársfjórðungs
+				column 'Fiscal Quarter Year'
+					caption: Fjárhagur Ársfjórðungur Ár
+				column 'Fiscal MonthNumber'
+					caption: Fjárhagur Númer mánaðar
+				column 'Fiscal MonthInQuarterNumber'
+					caption: Fjárhagur Númer mánaðar í ársfjórðungi
+				column 'Fiscal Month'
+					caption: Fjárhagur Mánuður
+				column 'Fiscal YearMonthNumber'
+					caption: Fjárhagur Númer árs og mánaðar
+				column 'Fiscal Month Year'
+					caption: Fjárhagur Mánuður Ár
+				column 'Fiscal WeekNumber'
+					caption: Fjárhagur Númer viku
+				column 'Fiscal Week'
+					caption: Fjárhagur Vika
+				column 'Fiscal YearWeekNumber'
+					caption: Fjárhagur Númer árs og viku
+				column 'Fiscal Week Year'
+					caption: Fjárhagur Vika Ár
+				column 'Fiscal WeekYearOrder'
+					caption: Fjárhagur Pöntun viku árs
+				column 'Fiscal RelativeWeekPos'
+					caption: Fjárhagur Staða samsvarandi viku
+				column 'Fiscal RelativeMonthPos'
+					caption: Fjárhagur Staða samsvarandi mánaðar
+				column 'Fiscal RelativeQuarterPos'
+					caption: Fjárhagur Staða samsvarandi ársfjórðungs
+				column 'Fiscal RelativeYearPos'
+					caption: Fjárhagur Staða samsvarandi árs
+				column 'Fiscal StartOfMonth'
+					caption: Fjárhagur Upphaf mánaðar
+				column 'Fiscal EndOfMonth'
+					caption: Fjárhagur Mánaðarlok
+				column 'Fiscal StartOfQuarter'
+					caption: Fjárhagur Upphaf Ársfjórðungs
+				column 'Fiscal EndOfQuarter'
+					caption: Fjárhagur Ársfjórðungslok
+				column 'Fiscal StartOfYear'
+					caption: Fjárhagur Upphaf árs
+				column 'Fiscal EndOfYear'
+					caption: Fjárhagur Árslok
+				column 'Fiscal MonthDays'
+					caption: Fjárhagur Dagar mánaðar
+				column 'Fiscal QuarterDays'
+					caption: Fjárhagur Dagar ársfjórðungs
+				column 'Fiscal YearDays'
+					caption: Fjárhagur Dagar árs
+				column 'Fiscal DayOfMonthNumber'
+					caption: Fjárhagur Númer mánaðardags
+				column 'Fiscal DayOfQuarterNumber'
+					caption: Fjárhagur Númer dags innan ársfjórðungs
+				column 'Fiscal DayOfYearNumber'
+					caption: Fjárhagur Númer dags innan árs
+				column 'Fiscal DatePreviousWeek'
+					caption: Fjárhagur Dagsetning fyrri viku
+				column 'Fiscal DatePreviousMonth'
+					caption: Fjárhagur Dagsetning fyrri mánaðar
+				column 'Fiscal DatePreviousQuarter'
+					caption: Fjárhagur Dagsetning fyrri ársfjórðungs
+				column 'Fiscal DatePreviousYear'
+					caption: Fjárhagur Dagsetning fyrra árs
+				column 'FW YearNumber'
+					caption: Fjárhagsvika Númer árs
+				column 'FW Year'
+					caption: Fjárhagsvika Ár
+				column 'FW QuarterNumber'
+					caption: Fjárhagsvika Númer ársfjórðungs
+				column 'FW Quarter'
+					caption: Fjárhagsvika Ársfjórðungur
+				column 'FW YearQuarterNumber'
+					caption: Fjárhagsvika Númer árs og ársfjórðungs
+				column 'FW Quarter Year'
+					caption: Fjárhagsvika Ársfjórðungur Ár
+				column 'FW MonthNumber'
+					caption: Fjárhagsvika Númer mánaðar
+				column 'FW Month'
+					caption: Fjárhagsvika Mánuður
+				column 'FW YearMonthNumber'
+					caption: Fjárhagsvika Númer árs og mánaðar
+				column 'FW Month Year'
+					caption: Fjárhagsvika Mánuður Ár
+				column 'FW WeekNumber'
+					caption: Fjárhagsvika Númer viku
+				column 'FW Week'
+					caption: Fjárhagsvika Vika
+				column 'FW PeriodNumber'
+					caption: Fjárhagsvika Númer tímabils
+				column 'FW Period'
+					caption: Fjárhagsvika Tímabil
+				column 'FW YearWeekNumber'
+					caption: Fjárhagsvika Númer árs og viku
+				column 'FW Week Year'
+					caption: Fjárhagsvika Vika Ár
+				column 'FW StartOfWeek'
+					caption: Fjárhagsvika Upphaf viku
+				column 'FW EndOfWeek'
+					caption: Fjárhagsvika Vikulok
+				column 'FW RelativeWeekPos'
+					caption: Fjárhagsvika Staða samsvarandi viku
+				column 'FW RelativeMonthPos'
+					caption: Fjárhagsvika Staða samsvarandi mánaðar
+				column 'FW RelativeQuarterPos'
+					caption: Fjárhagsvika Staða samsvarandi ársfjórðungs
+				column 'FW RelativeYearPos'
+					caption: Fjárhagsvika Staða samsvarandi árs
+				column 'FW StartOfMonth'
+					caption: Fjárhagsvika Upphaf mánaðar
+				column 'FW EndOfMonth'
+					caption: Fjárhagsvika Mánaðarlok
+				column 'FW StartOfQuarter'
+					caption: Fjárhagsvika Upphaf ársfjórðungs
+				column 'FW EndOfQuarter'
+					caption: Fjárhagsvika Ársfjórðungslok
+				column 'FW StartOfYear'
+					caption: Fjárhagsvika Upphaf árs
+				column 'FW EndOfYear'
+					caption: Fjárhagsvika Árslok
+				column 'FW MonthDays'
+					caption: Fjárhagsvika Dagar mánaðar
+				column 'FW QuarterDays'
+					caption: Fjárhagsvika Dagar ársfjórðungs
+				column 'FW YearDays'
+					caption: Fjárhagsvika Dagar árs
+				column 'FW DayOfMonthNumber'
+					caption: Fjárhagsvika Númer mánaðardags
+				column 'FW DayOfQuarterNumber'
+					caption: Fjárhagsvika Númer dags innan ársfjórðungs
+				column 'FW DayOfYearNumber'
+					caption: Fjárhagsvika Númer dags innan árs
+				column 'FW DatePreviousWeek'
+					caption: Fjárhagsvika Dagsetning fyrri viku
+				column 'FW DatePreviousMonth'
+					caption: Fjárhagsvika Dagsetning fyrri mánaðar
+				column 'FW DatePreviousQuarter'
+					caption: Fjárhagsvika Dagsetning fyrri ársfjórðungs
+				column 'FW DatePreviousYear'
+					caption: Fjárhagsvika Dagsetning fyrra árs
+				column 'Day Type'
+					caption: Dagsgerð
+			table Purchases
+				caption: Innkaup
+				column 'Quantity (Base)'
+					caption: Magn (grunnur)
+				column 'Amount (LCY)'
+					caption: Upphæð (SGM)
+				column 'Expected Receipt Date'
+					caption: Væntanleg móttökudagsetning
+				column 'Source Type'
+					caption: Tegund uppruna
+				column 'Document Type'
+					caption: Tegund fylgiskjals
+				column 'Line No.'
+					caption: Línunr.
+				column 'Document No.'
+					caption: Númer fylgiskjals
+				column 'No.'
+					caption: Nr.
+				column Type
+					caption: Gerð
+				column Description
+					caption: Lýsing
+				column 'Project No'
+					caption: Verkefni nr.
+				column 'Task No'
+					caption: Verk nr
+				column 'Project No Task No'
+					caption: Nr. Verkefnis nr. verks
+				measure 'Quantity on PO'
+					caption: Magn á innkaupapöntun
+				measure 'Amount on PO'
+					caption: Upphæð á innkaupapöntun
+				measure 'Amount Rcvd. Not Invoiced'
+					caption: Móttekin upphæð ekki reikningsfærð
+				measure 'Outstanding Amt. on PO'
+					caption: Útistandandi upphæð á innkaupapöntun
+				measure 'Purchase Order Count'
+					caption: Talning innkaupapöntunar
+			table 'Localized Labels'
+				measure 'My Report Title'
+					caption: Skýrslutitill notanda
+				measure 'My Button Caption'
+					caption: Texti hnapps notanda
+				measure 'My Visual Title'
+					caption: Sjónrænn titill notanda
+				measure 'Projects Overview'
+					caption: Verkyfirlit
+				measure 'Project Tasks'
+					caption: Verkhlutar verks
+				measure 'Project Profitability'
+					caption: Arðsemi verks
+				measure 'Project Realization'
+					caption: Framkvæmd verks
+				measure 'Project Performance to Budget'
+					caption: Afköst verks miðað við fjárhagsáætlun
+				measure 'Project Invoiced Sales by Type'
+					caption: Reikningsfærð sala verks eftir gerð
+				measure 'Project Invoiced Sales by Customer'
+					caption: Reikningsfærð sala verks eftir viðskiptamanni
+				measure 'Project Ledger Entry Drill Through'
+					caption: Köfun í fjárhagsfærslu verks
+				measure 'Purchase Order Drill Through'
+					caption: Köfun í innkaupapöntun
+				measure 'Project Planning Line Drill Through'
+					caption: Köfun í verkáætlunarlínu
+				measure 'Project KPIs'
+					caption: Afkastavísar verks
+				measure 'Actual Costs (Total Cost) vs. Budget (Total Cost)'
+					caption: Raunkostnaður (heildarkostnaður) samanborinn við fjárhagsáætlun (heildarkostnaður)
+				measure 'Actual Profit by Project'
+					caption: Raunhagnaður eftir verki
+				measure 'Projects by Project Manager'
+					caption: Verk eftir verkefnastjóra
+				measure 'Realization by Projects'
+					caption: Uppfylling eftir verkefni
+				measure 'Actual Profit vs. Initial Profit'
+					caption: Raunhagnaður samanborinn við upphaflegan hagnað
+				measure Actuals
+					caption: Rauntölur
+				measure Budgeted
+					caption: Áætlanir
+				measure 'Realization KPIs'
+					caption: Afkastavísar uppfyllingar
+				measure 'Realization by Project Manager'
+					caption: Uppfylling eftir verkefnastjóra
+				measure 'Actual Total Cost to Budget'
+					caption: Raunverulegur heildarkostnaður miðað við fjárhagsáætlun
+				measure 'Performance KPIs'
+					caption: Afkastavísar
+				measure 'Invoiced Sales KPIs'
+					caption: Afkastavísar reikningsfærðrar sölu
+				measure Projects
+					caption: Verkefni
+				measure 'for Business Central'
+					caption: fyrir Business Central
+				measure 'CONNECT YOUR DATA'
+					caption: TENGIÐ GÖGN
+				measure '1. Download the Projects Connector for Power BI'
+					caption: 1. Sæktu verkefnatengilinn fyrir Power BI
+				measure '2. Configure Dynamics 365 Business Central'
+					caption: 2. Grunnstillið Dynamics 365 Business Central
+				measure 'USE, EDIT AND BUILD YOUR OWN REPORTS'
+					caption: NOTIÐ, BREYTIÐ OG BÚIÐ TIL EIGIN SKÝRSLUR
+				measure 'Projects includes a variety of pre-built reports to help you see your data immediately.'
+					caption: Verkefni bjóða upp á innbyggðar skýrslur af ólíkum toga til að skoða gögn samstundis.
+				measure 'You are able to edit these reports or build your own report from scratch'
+					caption: Hægt er að breyta þessum skýrslum eða búa til nýja skýrslu frá grunni.
+				measure 'HELP AND SUPPORT'
+					caption: HJÁLP OG STUÐNINGUR
+				measure 'For help and support with your new report please visit the Analytics overview documentation.'
+					caption: Lesið fylgigögn greiningaryfirlitsins til að fá hjálp og aðstoð við nýju skýrsluna.
+				measure 'OTHER POWER BI REPORTS'
+					caption: AÐRAR POWER BI-SKÝRSLUR
+				measure PURCHASE
+					caption: KAUP
+				measure FINANCE
+					caption: FJÁRMÁL
+				measure INVENTORY
+					caption: BIRGÐIR
+				measure SALES
+					caption: SALA
+				measure MANUFACTURING
+					caption: FRAMLEIÐSLA
+				measure 'The project tasks shows project number and description, budget (total cost), actual cost (total cost), billable (total price), billable (invoiced price), actual (total price), realization percentage, actual profit, and actual profit margin percentage.'
+					caption: „Verkhlutar verkefnis“ sýna númer og lýsingu verks, fjárhagsáætlun (heildarkostnaður), raunkostnað (heildarkostnaður), reikningshæfa upphæð (reikningsfært verð), raunverð (heildarverð), prósentu uppfyllingar, raunhagnað og prósentu raunverulegs hagnaðarhlutfalls.
+				measure 'The project profitability shows project number, type, number and description, actual (total cost), billable (invoiced price), actual profit margin percentage, and actual profit.'
+					caption: „Arðsemi verks“ sýnir númer, tegund og lýsingu verks, raunkostnað (heildarkostnaður), reikningshæfa upphæð (reikningsfært verð), prósentu raunverulegs hagnaðarhlutfalls og raunverulegan hagnað.
+				measure 'The project realization shows project number, type, number and description, billable (invoiced price), actual (total price), and realization percentage.'
+					caption: „Uppfylling verks“ sýnir númer, tegund og lýsingu verks, reikningshæfa upphæð (reikningsfært verð), raunverð (heildarverð) og prósentu uppfyllingar.
+				measure 'The project performance to budget shows project number and description, status, budget (total cost), actual (total cost), total cost variance to budget, and total cost variance to budget percentage.'
+					caption: „Afköst verkefnis miðað við fjárhagsáætlun“ sýnir númer og lýsingu verks, stöðu, fjárhagsáætlun (heildarkostnaður), raunkostnað (heildarkostnaður), heildarkostnaðarfrávik í fjárhagsáætlun og prósentu heildarkostnaðarfrávika í fjárhagsáætlun.
+				measure 'The project invoiced sales by type shows type, number and description, project number, unit of measure, quantity, unit price (local currency), and billable (invoiced price).'
+					caption: „Reikningsfærð sala verks eftir tegund“ sýnir tegund, númer, lýsingu, verknúmer, mælieiningu, magn, einingarverð (staðbundinn gjaldmiðill) og reikningshæfa upphæð (reikningsfært verð).
+				measure 'The project invoiced sales by customer shows customer number and name, project number, type, number and description, quantity, unit price (local currency), and billable (invoiced price).'
+					caption: „Reikningsfærð sala verks eftir viðskiptamanni“ sýnir númer og nafn viðskiptavinar, númer, tegund og lýsingu verks, magn, einingarverð (staðbundinn gjaldmiðill) og reikningshæfa upphæð (reikningsfært verð).
+				measure 'The project ledger entry drill through shows posting date, project number, task number, task entry type, type, number, description, unit of measure, quantity, unit cost, unit price, total cost, and total price.'
+					caption: „Köfun í fjárhagsfærslu verks“ sýnir bókunardagsetningu, verknúmer, verkhlutanúmer, tegund færslu verks, tegund, númer, lýsingu, mælieiningu, magn, einingarkostnað, einingarverð, heildarkostnað og heildarverð.
+				measure 'The project order drill through shows project number, task number, source type,entry type, type, number, description, document number, quantity (base), amount (local currency), expected receipt date, outstanding amount on purchase order, amount received not invoiced, and document type.'
+					caption: „Köfun í verkpöntun“ sýnir verknúmer, verkhlutanúmer, tegund uppruna, tegund færslu, tegund, númer, lýsingu, fylgiskjalsnúmer, magn (grunnur), upphæð (staðbundinn gjaldmiðill), áætlaða dagsetningu innhreyfingar, útistandandi upphæð innkaupapöntunar, óreikningsfærða upphæð innhreyfingar og tegund fylgiskjals.
+				measure 'The project planning drill through shows project number, task number, line number, type, number, description, line type, planning line quantity, unit cost, unit price, planning line total cost, and planning line total price.'
+					caption: „Köfun í verkáætlun“ sýnir verknúmer, verkhlutanúmer, númer, línunúmer, tegund, númer, lýsingu, tegund línu, magn áætlunarlínu, einingarkostnað, einingarverð, heildarkostnað áætlunarlínu og heildarverð áætlunarlínu.
+				measure 'Company Name'
+					caption: Heiti fyrirtækis
+				measure 'Last Refreshed'
+					caption: Síðast uppfært
+				measure 'Actual Profit Margin % vs Budget Profit Margin %'
+					caption: % raunverulegs hagnaðarhlutfalls samanborin við % hagnaðarhlutfalls fjárhagsáætlunar
+				measure 'Billable (Invoiced Price) and Actual (Total Price) by Project No. & Description'
+					caption: Reikningshæf upphæð (reikningsfært verð) og raunverð (heildarverð) eftir númeri og lýsingu verks
+				measure 'Billable (Invoiced Price) by Type'
+					caption: Reikningshæf upphæð (reikningsfært verð) eftir tegund
+				measure 'Profit Margin vs Budget Profit Margin'
+					caption: Hagnaðarhlutfall samanborið við hagnaðarhlutfalls fjárhagsáætlunar
+				measure 'Project Tasks by Project'
+					caption: Verkhluti verkefnis eftir verkefni
+				measure 'Project Timeline'
+					caption: Tímalína verkefnis
+				measure 'Project Tasks Duration'
+					caption: Lengd verkhluta verkefnis
+				measure 'Project Task Details'
+					caption: Upplýsingar um verkhluta verkefnis
+			table COMPANY
+				caption: FYRIRTÆKI
+				measure 'Company Label'
+					caption: Merki fyrirtækis
+

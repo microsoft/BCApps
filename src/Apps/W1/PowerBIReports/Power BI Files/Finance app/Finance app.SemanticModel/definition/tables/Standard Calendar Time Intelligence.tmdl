@@ -1,0 +1,1407 @@
+table 'Standard Calendar Time Intelligence'
+	lineageTag: 8f15b5bd-2be9-4f39-bc40-9b10f8d09136
+
+	measure 'Net Change AVG 1Y' = ```
+			
+			VAR Period1Y =
+			    CALCULATETABLE (
+			        DATESINPERIOD (
+			            'Date'[Date],
+			            MAX ( 'Date'[Date] ),
+			            -1,
+			            YEAR
+			        ),
+			        'Date'[DatesWithTransactions] = TRUE
+			    )
+			VAR FirstDayWithData =
+			    CALCULATE (
+			        MIN ( 'G/L Entries'[Posting Date] ),
+			        REMOVEFILTERS ()
+			    )
+			VAR FirstDayInPeriod =
+			    MINX ( Period1Y, 'Date'[Date] )
+			VAR Result =
+			    IF ( 
+			        FirstDayWithData <= FirstDayInPeriod,
+			        AVERAGEX (
+			            Period1Y,
+			            [Net Change]
+			        )
+			    )
+			RETURN
+			    Result
+			
+			```
+		formatString: #,0.00
+		displayFolder: Net Change\Moving averages
+		lineageTag: d9025aa8-2da1-4db9-8a0c-19294d8981d8
+
+	measure 'Net Change AVG 3M' = ```
+			
+			VAR Period3M =
+			    CALCULATETABLE (
+			        DATESINPERIOD (
+			            'Date'[Date],
+			            MAX ( 'Date'[Date] ),
+			            -3,
+			            MONTH
+			        ),
+			        'Date'[DatesWithTransactions] = TRUE
+			    )
+			VAR FirstDayWithData =
+			    CALCULATE (
+			        MIN ( 'G/L Entries'[Posting Date] ),
+			        REMOVEFILTERS ()
+			    )
+			VAR FirstDayInPeriod =
+			    MINX ( Period3M, 'Date'[Date] )
+			VAR Result =
+			    IF ( 
+			        FirstDayWithData <= FirstDayInPeriod,
+			        AVERAGEX (
+			            Period3M,
+			            [Net Change]
+			        )
+			    )
+			RETURN
+			    Result
+			
+			```
+		formatString: #,0.00
+		displayFolder: Net Change\Moving averages
+		lineageTag: 7c9693e3-0d1b-441f-910b-34c3018c8b64
+
+	measure 'Net Change AVG 30D' = ```
+			
+			VAR Period30D =
+			    CALCULATETABLE (
+			        DATESINPERIOD (
+			            'Date'[Date],
+			            MAX ( 'Date'[Date] ),
+			            -30,
+			            DAY
+			        ),
+			        'Date'[DatesWithTransactions] = TRUE
+			    )
+			VAR FirstDayWithData =
+			    CALCULATE (
+			        MIN ( 'G/L Entries'[Posting Date] ),
+			        REMOVEFILTERS ()
+			    )
+			VAR FirstDayInPeriod =
+			    MINX ( Period30D, 'Date'[Date] )
+			VAR Result =
+			    IF ( 
+			        FirstDayWithData <= FirstDayInPeriod,
+			        AVERAGEX (
+			            Period30D,
+			            [Net Change]
+			        )
+			    )
+			RETURN
+			    Result
+			
+			```
+		formatString: #,0.00
+		displayFolder: Net Change\Moving averages
+		lineageTag: dbbf824e-b1e3-47c6-90e6-97e2b28702a4
+
+	measure 'Net Change MTDOPM %' = ```
+			
+			DIVIDE ( 
+			    [Net Change MTDOPM],
+			    [Net Change PMC]
+			)
+			
+			```
+		formatString: 0.00%;-0.00%;0.00%
+		displayFolder: Net Change\Period-to-date over full previous period
+		lineageTag: d39c1c5d-7ced-49de-b38e-60821149c1f4
+
+	measure 'Net Change MTDOPM' = ```
+			
+			VAR ValueCurrentPeriod = [Net Change MTD]
+			VAR ValuePreviousPeriod = [Net Change PMC]
+			VAR Result =
+			    IF (
+			        NOT ISBLANK ( ValueCurrentPeriod ) 
+			            && NOT ISBLANK ( ValuePreviousPeriod ),
+			        ValueCurrentPeriod - ValuePreviousPeriod
+			    )
+			RETURN
+			    Result
+			
+			```
+		formatString: #,0.00
+		displayFolder: Net Change\Period-to-date over full previous period
+		lineageTag: f7b6a10b-b025-4c15-977f-c39a35895422
+
+	measure 'Net Change PMC' = ```
+			
+			IF (
+			    [ShowValueForDates] && HASONEVALUE ( 'Date'[Calendar Month Year] ),
+			    CALCULATE (
+			        [Net Change],
+			        PARALLELPERIOD ( 'Date'[Date], -1, MONTH )
+			    )
+			)
+			
+			```
+		formatString: #,0.00
+		displayFolder: Net Change\Period-to-date over full previous period
+		lineageTag: 300b5732-ca96-4a19-9eff-b95f24e5908e
+
+	measure 'Net Change QTDOPQ %' = ```
+			
+			DIVIDE ( 
+			    [Net Change QTDOPQ],
+			    [Net Change PQC]
+			)
+			
+			```
+		formatString: 0.00%;-0.00%;0.00%
+		displayFolder: Net Change\Period-to-date over full previous period
+		lineageTag: a7dc8e7b-0307-49c7-af3d-0c120642b60d
+
+	measure 'Net Change QTDOPQ' = ```
+			
+			VAR ValueCurrentPeriod = [Net Change QTD]
+			VAR ValuePreviousPeriod = [Net Change PQC]
+			VAR Result =
+			    IF (
+			        NOT ISBLANK ( ValueCurrentPeriod ) 
+			            && NOT ISBLANK ( ValuePreviousPeriod ),
+			        ValueCurrentPeriod - ValuePreviousPeriod
+			    )
+			RETURN
+			    Result
+			
+			```
+		formatString: #,0.00
+		displayFolder: Net Change\Period-to-date over full previous period
+		lineageTag: d42b92e7-690d-460f-9d62-5aab461fc064
+
+	measure 'Net Change PQC' = ```
+			
+			IF (
+			    [ShowValueForDates] && HASONEVALUE ( 'Date'[Calendar Quarter Year] ),
+			    CALCULATE (
+			        [Net Change],
+			        PARALLELPERIOD ( 'Date'[Date], -1, QUARTER )
+			    )
+			)
+			
+			```
+		formatString: #,0.00
+		displayFolder: Net Change\Period-to-date over full previous period
+		lineageTag: 59acf42f-7746-4c80-9a40-9b912fa4f1bf
+
+	measure 'Net Change YTDOPY %' = ```
+			
+			DIVIDE ( 
+			    [Net Change YTDOPY],
+			    [Net Change PYC]
+			)
+			
+			```
+		formatString: 0.00%;-0.00%;0.00%
+		displayFolder: Net Change\Period-to-date over full previous period
+		lineageTag: 812458a0-9de0-4cee-899e-736e3be5f0ce
+
+	measure 'Net Change YTDOPY' = ```
+			
+			VAR ValueCurrentPeriod = [Net Change YTD]
+			VAR ValuePreviousPeriod = [Net Change PYC]
+			VAR Result =
+			    IF (
+			        NOT ISBLANK ( ValueCurrentPeriod ) 
+			            && NOT ISBLANK ( ValuePreviousPeriod ),
+			        ValueCurrentPeriod - ValuePreviousPeriod
+			    )
+			RETURN
+			    Result
+			
+			```
+		formatString: #,0.00
+		displayFolder: Net Change\Period-to-date over full previous period
+		lineageTag: 2c5e4f5b-eda3-4d1a-b474-cc6d6b25975b
+
+	measure 'Net Change PYC' = ```
+			
+			IF (
+			    [ShowValueForDates] && HASONEVALUE ( 'Date'[Calendar Year] ),
+			    CALCULATE (
+			        [Net Change],
+			        PARALLELPERIOD ( 'Date'[Date], -1, YEAR )
+			    )
+			)
+			
+			```
+		formatString: #,0.00
+		displayFolder: Net Change\Period-to-date over full previous period
+		lineageTag: 6a4fda02-2201-4cbb-b9e3-0df014396326
+
+	measure 'Net Change MATG %' = ```
+			
+			DIVIDE ( 
+			    [Net Change MATG],
+			    [Net Change PYMAT]
+			)
+			
+			```
+		formatString: 0.00%;-0.00%;0.00%
+		displayFolder: Net Change\Moving annual total growth
+		lineageTag: c5b5df9f-c047-422b-8b04-1ba71513837f
+
+	measure 'Net Change MATG' = ```
+			
+			VAR ValueCurrentPeriod = [Net Change MAT]
+			VAR ValuePreviousPeriod = [Net Change PYMAT]
+			VAR Result =
+			    IF (
+			        NOT ISBLANK ( ValueCurrentPeriod ) 
+			            && NOT ISBLANK ( ValuePreviousPeriod ),
+			        ValueCurrentPeriod - ValuePreviousPeriod
+			    )
+			RETURN
+			    Result
+			
+			```
+		formatString: #,0.00
+		displayFolder: Net Change\Moving annual total growth
+		lineageTag: 0d0d2454-d4f0-42ea-b208-b9fcc6ba77e8
+
+	measure 'Net Change PYMAT' =
+			
+			IF (
+			    [ShowValueForDates],
+			    CALCULATE (
+			        [Net Change MAT],
+			        DATEADD ( 'Date'[Date], -1, YEAR )
+			    )
+			)
+		formatString: #,0.00
+		displayFolder: Net Change\Moving annual total growth
+		lineageTag: 7ed94b3a-d932-40a4-adcb-f339a899f67b
+
+	measure 'Net Change MAT' = ```
+			
+			IF ( 
+			    [ShowValueForDates], 
+			    CALCULATE ( 
+			        [Net Change], 
+			        DATESINPERIOD (
+			            'Date'[Date],
+			            MAX ( 'Date'[Date] ),
+			            -1,
+			            YEAR
+			        )
+			    ) 
+			)
+			
+			```
+		formatString: #,0.00
+		displayFolder: Net Change\Moving annual total growth
+		lineageTag: a29e9889-455d-4cea-a957-132660d8de54
+
+	measure 'Net Change MOMTD %' = ```
+			
+			DIVIDE ( 
+			    [Net Change MOMTD],
+			    [Net Change PMTD]
+			)
+			
+			```
+		formatString: 0.00%;-0.00%;0.00%
+		displayFolder: Net Change\Period-to-date growth
+		lineageTag: 8111194d-34bb-4565-b6ce-8b7d93a650dd
+
+	measure 'Net Change MOMTD' = ```
+			
+			VAR ValueCurrentPeriod = [Net Change MTD]
+			VAR ValuePreviousPeriod = [Net Change PMTD]
+			VAR Result =
+			    IF (
+			        NOT ISBLANK ( ValueCurrentPeriod ) 
+			            && NOT ISBLANK ( ValuePreviousPeriod ),
+			        ValueCurrentPeriod - ValuePreviousPeriod
+			    )
+			RETURN
+			    Result
+			
+			```
+		formatString: #,0.00
+		displayFolder: Net Change\Period-to-date growth
+		lineageTag: 94077ea9-593a-49db-af9d-8c7268c96b12
+
+	measure 'Net Change PMTD' = ```
+			
+			IF (
+			    [ShowValueForDates],
+			    CALCULATE (
+			        [Net Change MTD],
+			        CALCULATETABLE ( 
+			            DATEADD ( 'Date'[Date], -1, MONTH ),
+			            'Date'[DatesWithTransactions] = TRUE
+			        )
+			    )
+			)
+			
+			```
+		formatString: #,0.00
+		displayFolder: Net Change\Period-to-date growth
+		lineageTag: 760b33d3-7953-41e7-97a1-f735e9cd819d
+
+	measure 'Net Change QOQTD %' = ```
+			
+			DIVIDE ( 
+			    [Net Change QOQTD],
+			    [Net Change PQTD]
+			)
+			
+			```
+		formatString: 0.00%;-0.00%;0.00%
+		displayFolder: Net Change\Period-to-date growth
+		lineageTag: cfadbdf7-a1e4-4fed-954e-7d672e11797a
+
+	measure 'Net Change QOQTD' = ```
+			
+			VAR ValueCurrentPeriod = [Net Change QTD]
+			VAR ValuePreviousPeriod = [Net Change PQTD]
+			VAR Result =
+			    IF (
+			        NOT ISBLANK ( ValueCurrentPeriod ) 
+			            && NOT ISBLANK ( ValuePreviousPeriod ),
+			        ValueCurrentPeriod - ValuePreviousPeriod
+			    )
+			RETURN
+			    Result
+			
+			```
+		formatString: #,0.00
+		displayFolder: Net Change\Period-to-date growth
+		lineageTag: 27c5b0e2-a4b1-4d9c-b552-e0cde20b79bc
+
+	measure 'Net Change YOYTD %' = ```
+			
+			DIVIDE ( 
+			    [Net Change YOYTD],
+			    [Net Change PYTD]
+			)
+			
+			```
+		formatString: 0.00%;-0.00%;0.00%
+		displayFolder: Net Change\Period-to-date growth
+		lineageTag: 278b9b8c-6b0b-494f-8576-eadfdc974c29
+
+	measure 'Net Change YOYTD' = ```
+			
+			VAR ValueCurrentPeriod = [Net Change YTD]
+			VAR ValuePreviousPeriod = [Net Change PYTD]
+			VAR Result =
+			    IF (
+			        NOT ISBLANK ( ValueCurrentPeriod ) 
+			            && NOT ISBLANK ( ValuePreviousPeriod ),
+			        ValueCurrentPeriod - ValuePreviousPeriod
+			    )
+			RETURN
+			    Result
+			
+			```
+		formatString: #,0.00
+		displayFolder: Net Change\Period-to-date growth
+		lineageTag: af89549d-7843-4259-8636-06b60c491487
+
+	measure 'Net Change PQTD' = ```
+			
+			IF (
+			    [ShowValueForDates],
+			    CALCULATE (
+			        [Net Change QTD],
+			        CALCULATETABLE ( 
+			            DATEADD ( 'Date'[Date], -1, QUARTER ),
+			            'Date'[DatesWithTransactions] = TRUE
+			        )
+			    )
+			)
+			```
+		formatString: #,0.00
+		displayFolder: Net Change\Period-to-date growth
+		lineageTag: 20c27430-1bdf-4017-a100-1e78bca95537
+
+	measure 'Net Change PYTD' = ```
+			
+			IF (
+			    [ShowValueForDates],
+			    CALCULATE (
+			        [Net Change YTD],
+			        CALCULATETABLE ( 
+			            DATEADD ( 'Date'[Date], -1, YEAR ),
+			            'Date'[DatesWithTransactions] = TRUE
+			        )
+			    )
+			)
+			
+			```
+		formatString: #,0.00
+		displayFolder: Net Change\Period-to-date growth
+		lineageTag: 37cd3370-e27c-404d-9ea9-0271ba10173d
+
+	measure 'Net Change POP %' = ```
+			
+			SWITCH ( 
+			    TRUE,
+			    ISINSCOPE ( 'Date'[Calendar Month Year] ), [Net Change MOM %],
+			    ISINSCOPE ( 'Date'[Calendar Quarter Year] ), [Net Change QOQ %],
+			    ISINSCOPE ( 'Date'[Calendar Year] ), [Net Change YOY %]
+			)
+			
+			```
+		formatString: 0.00%;-0.00%;0.00%
+		displayFolder: Net Change\Period-over-period growth
+		lineageTag: 2cfc5d7d-1a8a-4855-90ed-01af52278983
+
+	measure 'Net Change POP' = ```
+			
+			SWITCH ( 
+			    TRUE,
+			    ISINSCOPE ( 'Date'[Calendar Month Year] ), [Net Change MOM],
+			    ISINSCOPE ( 'Date'[Calendar Quarter Year] ), [Net Change QOQ],
+			    ISINSCOPE ( 'Date'[Calendar Year] ), [Net Change YOY]
+			)
+			
+			```
+		formatString: #,0.00
+		displayFolder: Net Change\Period-over-period growth
+		lineageTag: ce926f74-44e2-4dd0-a929-0227f3571424
+
+	measure 'Net Change PP' = ```
+			
+			SWITCH ( 
+			    TRUE,
+			    ISINSCOPE ( 'Date'[Calendar Month Year] ), [Net Change PM],
+			    ISINSCOPE ( 'Date'[Calendar Quarter Year] ), [Net Change PQ],
+			    ISINSCOPE ( 'Date'[Calendar Year] ), [Net Change PY]
+			)
+			
+			```
+		formatString: #,0.00
+		displayFolder: Net Change\Period-over-period growth
+		lineageTag: b0dccfae-9544-4ad6-9c7e-149bebb8f712
+
+	measure 'Net Change MOM %' = ```
+			
+			DIVIDE ( 
+			    [Net Change MOM],
+			    [Net Change PM]
+			)
+			
+			```
+		formatString: 0.00%;-0.00%;0.00%
+		displayFolder: Net Change\Period-over-period growth
+		lineageTag: f3628900-3497-4bf6-83cb-e5f7c15fae97
+
+	measure 'Net Change MOM' = ```
+			
+			VAR ValueCurrentPeriod = [Net Change]
+			VAR ValuePreviousPeriod = [Net Change PM]
+			VAR Result =
+			    IF (
+			        NOT ISBLANK ( ValueCurrentPeriod ) 
+			            && NOT ISBLANK ( ValuePreviousPeriod ),
+			        ValueCurrentPeriod - ValuePreviousPeriod
+			    )
+			RETURN
+			    Result
+			
+			```
+		formatString: #,0.00
+		displayFolder: Net Change\Period-over-period growth
+		lineageTag: 4baee0df-7b5b-4d9c-88a3-a38a5ddee371
+
+	measure 'Net Change QOQ %' = ```
+			
+			DIVIDE ( 
+			    [Net Change QOQ],
+			    [Net Change PQ]
+			)
+			
+			```
+		formatString: 0.00%;-0.00%;0.00%
+		displayFolder: Net Change\Period-over-period growth
+		lineageTag: 921959f9-743f-40c3-9088-2f3e5ff1355a
+
+	measure 'Net Change PM' = ```
+			
+			IF (
+			    [ShowValueForDates],
+			    CALCULATE (
+			        [Net Change],
+			        CALCULATETABLE ( 
+			            DATEADD ( 'Date'[Date], -1, MONTH ),
+			            'Date'[DatesWithTransactions] = TRUE
+			        )
+			    )
+			)
+			
+			```
+		formatString: #,0.00
+		displayFolder: Net Change\Period-over-period growth
+		lineageTag: 2b4dfbc6-0be7-40a4-847f-ce488fb7c1b4
+
+	measure 'Net Change QOQ' = ```
+			
+			VAR ValueCurrentPeriod = [Net Change]
+			VAR ValuePreviousPeriod = [Net Change PQ]
+			VAR Result =
+			    IF (
+			        NOT ISBLANK ( ValueCurrentPeriod ) 
+			            && NOT ISBLANK ( ValuePreviousPeriod ),
+			        ValueCurrentPeriod - ValuePreviousPeriod
+			    )
+			RETURN
+			    Result
+			
+			```
+		formatString: #,0.00
+		displayFolder: Net Change\Period-over-period growth
+		lineageTag: 05000268-f913-4bd1-b569-4cf77f7a6665
+
+	measure 'Net Change PQ' = ```
+			
+			IF (
+			    [ShowValueForDates],
+			    CALCULATE (
+			        [Net Change],
+			        CALCULATETABLE ( 
+			            DATEADD ( 'Date'[Date], -1, QUARTER ),
+			            'Date'[DatesWithTransactions] = TRUE
+			        )
+			    )
+			)
+			
+			```
+		formatString: #,0.00
+		displayFolder: Net Change\Period-over-period growth
+		lineageTag: 47abb4af-e61f-4163-8300-7a5f7a29a5c1
+
+	measure 'Net Change YOY' = ```
+			
+			VAR ValueCurrentPeriod = [Net Change]
+			VAR ValuePreviousPeriod = [Net Change PY]
+			VAR Result =
+			    IF (
+			        NOT ISBLANK ( ValueCurrentPeriod ) 
+			            && NOT ISBLANK ( ValuePreviousPeriod ),
+			        ValueCurrentPeriod - ValuePreviousPeriod
+			    )
+			RETURN
+			    Result
+			
+			```
+		formatString: #,0.00
+		displayFolder: Net Change\Period-over-period growth
+		lineageTag: 3fd93b99-20ae-4769-83c0-31120a67beac
+
+	measure 'Net Change YOY %' = ```
+			
+			DIVIDE ( 
+			    [Net Change YOY],
+			    [Net Change PY]
+			)
+			```
+		formatString: 0.00%;-0.00%;0.00%
+		displayFolder: Net Change\Period-over-period growth
+		lineageTag: 6492f342-8ed5-42f4-82ee-9d9e26bc9447
+
+	measure 'Net Change PY' = ```
+			
+			IF (
+			    [ShowValueForDates],
+			    CALCULATE (
+			        [Net Change],
+			        CALCULATETABLE ( 
+			            DATEADD ( 'Date'[Date], -1, YEAR ),
+			            'Date'[DatesWithTransactions] = TRUE
+			        )
+			    )
+			)
+			```
+		formatString: #,0.00
+		displayFolder: Net Change\Period-over-period growth
+		lineageTag: a877fc4b-5b64-4c0f-beea-d5d545f00006
+
+	measure 'Net Change MTD' = ```
+			
+			IF ( 
+			    [ShowValueForDates], 
+			    CALCULATE ( 
+			        [Net Change], 
+			        DATESMTD ( 'Date'[Date] ) 
+			    ) 
+			)
+			```
+		formatString: #,0.00
+		displayFolder: Net Change\Period-to-date total
+		lineageTag: 0daa3ecb-73f8-4a29-b3ed-9953f05dac44
+
+	measure 'Net Change QTD' = ```
+			
+			IF (
+			    [ShowValueForDates],
+			    CALCULATE ( 
+			        [Net Change], 
+			        DATESQTD ( 'Date'[Date] )
+			    )
+			)
+			```
+		formatString: #,0.00
+		displayFolder: Net Change\Period-to-date total
+		lineageTag: 48dfa4f7-816a-4b72-ba86-c02e166e12c8
+
+	measure 'Net Change YTD' = ```
+			
+			IF ( 
+			    [ShowValueForDates], 
+			    CALCULATE ( 
+			        [Net Change], 
+			        DATESYTD ( 'Date'[Date] ) 
+			    ) 
+			)
+			```
+		formatString: #,0.00
+		displayFolder: Net Change\Period-to-date total
+		lineageTag: 2fa77d77-9aaa-402d-bf44-57271f88cbc4
+
+	measure 'Balance at Date AVG 1Y' = ```
+			
+			VAR Period1Y =
+			    CALCULATETABLE (
+			        DATESINPERIOD (
+			            'Date'[Date],
+			            MAX ( 'Date'[Date] ),
+			            -1,
+			            YEAR
+			        ),
+			        'Date'[DatesWithTransactions] = TRUE
+			    )
+			VAR FirstDayWithData =
+			    CALCULATE (
+			        MIN ( 'G/L Entries'[Posting Date] ),
+			        REMOVEFILTERS ()
+			    )
+			VAR FirstDayInPeriod =
+			    MINX ( Period1Y, 'Date'[Date] )
+			VAR Result =
+			    IF ( 
+			        FirstDayWithData <= FirstDayInPeriod,
+			        AVERAGEX (
+			            Period1Y,
+			            [Balance at Date]
+			        )
+			    )
+			RETURN
+			    Result
+			
+			```
+		formatString: #,0.00
+		displayFolder: Balance at Date\Moving averages
+		lineageTag: 39e8afad-93c0-4139-bed8-d2d347695551
+
+	measure 'Balance at Date AVG 3M' = ```
+			
+			VAR Period3M =
+			    CALCULATETABLE (
+			        DATESINPERIOD (
+			            'Date'[Date],
+			            MAX ( 'Date'[Date] ),
+			            -3,
+			            MONTH
+			        ),
+			        'Date'[DatesWithTransactions] = TRUE
+			    )
+			VAR FirstDayWithData =
+			    CALCULATE (
+			        MIN ( 'G/L Entries'[Posting Date] ),
+			        REMOVEFILTERS ()
+			    )
+			VAR FirstDayInPeriod =
+			    MINX ( Period3M, 'Date'[Date] )
+			VAR Result =
+			    IF ( 
+			        FirstDayWithData <= FirstDayInPeriod,
+			        AVERAGEX (
+			            Period3M,
+			            [Balance at Date]
+			        )
+			    )
+			RETURN
+			    Result
+			
+			```
+		formatString: #,0.00
+		displayFolder: Balance at Date\Moving averages
+		lineageTag: 78c59dd6-c133-4249-89e2-a552d24071cb
+
+	measure 'Balance at Date AVG 30D' = ```
+			
+			VAR Period30D =
+			    CALCULATETABLE (
+			        DATESINPERIOD (
+			            'Date'[Date],
+			            MAX ( 'Date'[Date] ),
+			            -30,
+			            DAY
+			        ),
+			        'Date'[DatesWithTransactions] = TRUE
+			    )
+			VAR FirstDayWithData =
+			    CALCULATE (
+			        MIN ( 'G/L Entries'[Posting Date] ),
+			        REMOVEFILTERS ()
+			    )
+			VAR FirstDayInPeriod =
+			    MINX ( Period30D, 'Date'[Date] )
+			VAR Result =
+			    IF ( 
+			        FirstDayWithData <= FirstDayInPeriod,
+			        AVERAGEX (
+			            Period30D,
+			            [Balance at Date]
+			        )
+			    )
+			RETURN
+			    Result
+			
+			```
+		formatString: #,0.00
+		displayFolder: Balance at Date\Moving averages
+		lineageTag: 51a851ea-c698-4d2c-b37e-f0c426edb245
+
+	measure 'Balance at Date MTDOPM %' = ```
+			
+			DIVIDE ( 
+			    [Balance at Date MTDOPM],
+			    [Balance at Date PMC]
+			)
+			
+			```
+		formatString: 0.00%;-0.00%;0.00%
+		displayFolder: Balance at Date\Period-to-date over full previous period
+		lineageTag: 173ff633-58ed-4a4b-b1eb-f1c3a9be5cf4
+
+	measure 'Balance at Date MTDOPM' = ```
+			
+			VAR ValueCurrentPeriod = [Balance at Date MTD]
+			VAR ValuePreviousPeriod = [Balance at Date PMC]
+			VAR Result =
+			    IF (
+			        NOT ISBLANK ( ValueCurrentPeriod ) 
+			            && NOT ISBLANK ( ValuePreviousPeriod ),
+			        ValueCurrentPeriod - ValuePreviousPeriod
+			    )
+			RETURN
+			    Result
+			
+			```
+		formatString: #,0.00
+		displayFolder: Balance at Date\Period-to-date over full previous period
+		lineageTag: 1e873ac0-4f04-43c3-9888-4c5c682fd14b
+
+	measure 'Balance at Date PMC' = ```
+			
+			IF (
+			    [ShowValueForDates] && HASONEVALUE ( 'Date'[Calendar Month Year] ),
+			    CALCULATE (
+			        [Balance at Date],
+			        PARALLELPERIOD ( 'Date'[Date], -1, MONTH )
+			    )
+			)
+			
+			```
+		formatString: #,0.00
+		displayFolder: Balance at Date\Period-to-date over full previous period
+		lineageTag: 99c9d4e3-5bf7-472d-adad-4cd51eeaf0db
+
+	measure 'Balance at Date QTDOPQ %' = ```
+			
+			DIVIDE ( 
+			    [Balance at Date QTDOPQ],
+			    [Balance at Date PQC]
+			)
+			
+			```
+		formatString: 0.00%;-0.00%;0.00%
+		displayFolder: Balance at Date\Period-to-date over full previous period
+		lineageTag: 440ecebe-2bf9-403f-a2d4-e9d5cc5d0b07
+
+	measure 'Balance at Date QTDOPQ' = ```
+			
+			VAR ValueCurrentPeriod = [Balance at Date QTD]
+			VAR ValuePreviousPeriod = [Balance at Date PQC]
+			VAR Result =
+			    IF (
+			        NOT ISBLANK ( ValueCurrentPeriod ) 
+			            && NOT ISBLANK ( ValuePreviousPeriod ),
+			        ValueCurrentPeriod - ValuePreviousPeriod
+			    )
+			RETURN
+			    Result
+			
+			```
+		formatString: #,0.00
+		displayFolder: Balance at Date\Period-to-date over full previous period
+		lineageTag: d36f6727-0c91-46c0-bc4f-2aa92141500c
+
+	measure 'Balance at Date PQC' = ```
+			
+			IF (
+			    [ShowValueForDates] && HASONEVALUE ( 'Date'[Calendar Quarter Year] ),
+			    CALCULATE (
+			        [Balance at Date],
+			        PARALLELPERIOD ( 'Date'[Date], -1, QUARTER )
+			    )
+			)
+			
+			```
+		formatString: #,0.00
+		displayFolder: Balance at Date\Period-to-date over full previous period
+		lineageTag: c5d30ec1-56a3-41bb-b6fd-8ddfd23d1db2
+
+	measure 'Balance at Date YTDOPY %' = ```
+			
+			DIVIDE ( 
+			    [Balance at Date YTDOPY],
+			    [Balance at Date PYC]
+			)
+			
+			```
+		formatString: 0.00%;-0.00%;0.00%
+		displayFolder: Balance at Date\Period-to-date over full previous period
+		lineageTag: 5017c6ea-ebd1-4b7b-8309-b2136d112465
+
+	measure 'Balance at Date YTDOPY' = ```
+			
+			VAR ValueCurrentPeriod = [Balance at Date YTD]
+			VAR ValuePreviousPeriod = [Balance at Date PYC]
+			VAR Result =
+			    IF (
+			        NOT ISBLANK ( ValueCurrentPeriod ) 
+			            && NOT ISBLANK ( ValuePreviousPeriod ),
+			        ValueCurrentPeriod - ValuePreviousPeriod
+			    )
+			RETURN
+			    Result
+			
+			```
+		formatString: #,0.00
+		displayFolder: Balance at Date\Period-to-date over full previous period
+		lineageTag: b9cb9d40-2223-44f7-bf00-96c3568455ab
+
+	measure 'Balance at Date PYC' = ```
+			
+			IF (
+			    [ShowValueForDates] && HASONEVALUE ( 'Date'[Calendar Year] ),
+			    CALCULATE (
+			        [Balance at Date],
+			        PARALLELPERIOD ( 'Date'[Date], -1, YEAR )
+			    )
+			)
+			
+			```
+		formatString: #,0.00
+		displayFolder: Balance at Date\Period-to-date over full previous period
+		lineageTag: f2ce8cef-8ddc-4344-a27b-a9ec74f193a3
+
+	measure 'Balance at Date MATG %' = ```
+			
+			DIVIDE ( 
+			    [Balance at Date MATG],
+			    [Balance at Date PYMAT]
+			)
+			
+			```
+		formatString: 0.00%;-0.00%;0.00%
+		displayFolder: Balance at Date\Moving annual total growth
+		lineageTag: 6be69e35-b3e5-4f05-acf4-7ed6c5ca78b0
+
+	measure 'Balance at Date MATG' = ```
+			
+			VAR ValueCurrentPeriod = [Balance at Date MAT]
+			VAR ValuePreviousPeriod = [Balance at Date PYMAT]
+			VAR Result =
+			    IF (
+			        NOT ISBLANK ( ValueCurrentPeriod ) 
+			            && NOT ISBLANK ( ValuePreviousPeriod ),
+			        ValueCurrentPeriod - ValuePreviousPeriod
+			    )
+			RETURN
+			    Result
+			
+			```
+		formatString: #,0.00
+		displayFolder: Balance at Date\Moving annual total growth
+		lineageTag: 4c037067-13d0-470b-8217-37828e90ca7b
+
+	measure 'Balance at Date PYMAT' =
+			
+			IF (
+			    [ShowValueForDates],
+			    CALCULATE (
+			        [Balance at Date MAT],
+			        DATEADD ( 'Date'[Date], -1, YEAR )
+			    )
+			)
+		formatString: #,0.00
+		displayFolder: Balance at Date\Moving annual total growth
+		lineageTag: 04b049b4-76e1-45dc-9784-50cb712cee97
+
+	measure 'Balance at Date MAT' = ```
+			
+			IF ( 
+			    [ShowValueForDates], 
+			    CALCULATE ( 
+			        [Balance at Date], 
+			        DATESINPERIOD (
+			            'Date'[Date],
+			            MAX ( 'Date'[Date] ),
+			            -1,
+			            YEAR
+			        )
+			    ) 
+			)
+			
+			```
+		formatString: #,0.00
+		displayFolder: Balance at Date\Moving annual total growth
+		lineageTag: 7ae73b89-38c1-4999-be20-d204bb230377
+
+	measure 'Balance at Date MOMTD %' = ```
+			
+			DIVIDE ( 
+			    [Balance at Date MOMTD],
+			    [Balance at Date PMTD]
+			)
+			
+			```
+		formatString: 0.00%;-0.00%;0.00%
+		displayFolder: Balance at Date\Period-to-date growth
+		lineageTag: 9c54f949-17b8-4fd6-82fd-fd28c6dd8eb3
+
+	measure 'Balance at Date MOMTD' = ```
+			
+			VAR ValueCurrentPeriod = [Balance at Date MTD]
+			VAR ValuePreviousPeriod = [Balance at Date PMTD]
+			VAR Result =
+			    IF (
+			        NOT ISBLANK ( ValueCurrentPeriod ) 
+			            && NOT ISBLANK ( ValuePreviousPeriod ),
+			        ValueCurrentPeriod - ValuePreviousPeriod
+			    )
+			RETURN
+			    Result
+			
+			```
+		formatString: #,0.00
+		displayFolder: Balance at Date\Period-to-date growth
+		lineageTag: 3462eba0-91df-4d6f-b2f7-027a9fdb6661
+
+	measure 'Balance at Date PMTD' = ```
+			
+			IF (
+			    [ShowValueForDates],
+			    CALCULATE (
+			        [Balance at Date MTD],
+			        CALCULATETABLE ( 
+			            DATEADD ( 'Date'[Date], -1, MONTH ),
+			            'Date'[DatesWithTransactions] = TRUE
+			        )
+			    )
+			)
+			
+			```
+		formatString: #,0.00
+		displayFolder: Balance at Date\Period-to-date growth
+		lineageTag: bce23f29-c0b4-4874-83f8-49c992c87ed4
+
+	measure 'Balance at Date QOQTD %' = ```
+			
+			DIVIDE ( 
+			    [Balance at Date QOQTD],
+			    [Balance at Date PQTD]
+			)
+			
+			```
+		formatString: 0.00%;-0.00%;0.00%
+		displayFolder: Balance at Date\Period-to-date growth
+		lineageTag: 381b925b-cd0f-428f-8501-b80db90f0970
+
+	measure 'Balance at Date QOQTD' = ```
+			
+			VAR ValueCurrentPeriod = [Balance at Date QTD]
+			VAR ValuePreviousPeriod = [Balance at Date PQTD]
+			VAR Result =
+			    IF (
+			        NOT ISBLANK ( ValueCurrentPeriod ) 
+			            && NOT ISBLANK ( ValuePreviousPeriod ),
+			        ValueCurrentPeriod - ValuePreviousPeriod
+			    )
+			RETURN
+			    Result
+			
+			```
+		formatString: #,0.00
+		displayFolder: Balance at Date\Period-to-date growth
+		lineageTag: 6b6a746f-985d-483a-804c-a197184b3e6b
+
+	measure 'Balance at Date YOYTD %' = ```
+			
+			DIVIDE ( 
+			    [Balance at Date YOYTD],
+			    [Balance at Date PYTD]
+			)
+			
+			```
+		formatString: 0.00%;-0.00%;0.00%
+		displayFolder: Balance at Date\Period-to-date growth
+		lineageTag: 98853db3-2a92-47a8-bb00-bc667920970a
+
+	measure 'Balance at Date YOYTD' = ```
+			
+			VAR ValueCurrentPeriod = [Balance at Date YTD]
+			VAR ValuePreviousPeriod = [Balance at Date PYTD]
+			VAR Result =
+			    IF (
+			        NOT ISBLANK ( ValueCurrentPeriod ) 
+			            && NOT ISBLANK ( ValuePreviousPeriod ),
+			        ValueCurrentPeriod - ValuePreviousPeriod
+			    )
+			RETURN
+			    Result
+			
+			```
+		formatString: #,0.00
+		displayFolder: Balance at Date\Period-to-date growth
+		lineageTag: 6c702089-908b-4ccf-9510-ee2af99c47f0
+
+	measure 'Balance at Date PQTD' = ```
+			
+			IF (
+			    [ShowValueForDates],
+			    CALCULATE (
+			        [Balance at Date QTD],
+			        CALCULATETABLE ( 
+			            DATEADD ( 'Date'[Date], -1, QUARTER ),
+			            'Date'[DatesWithTransactions] = TRUE
+			        )
+			    )
+			)
+			```
+		formatString: #,0.00
+		displayFolder: Balance at Date\Period-to-date growth
+		lineageTag: 9713aedb-372f-4573-87e5-063be73fad50
+
+	measure 'Balance at Date PYTD' = ```
+			
+			IF (
+			    [ShowValueForDates],
+			    CALCULATE (
+			        [Balance at Date YTD],
+			        CALCULATETABLE ( 
+			            DATEADD ( 'Date'[Date], -1, YEAR ),
+			            'Date'[DatesWithTransactions] = TRUE
+			        )
+			    )
+			)
+			
+			```
+		formatString: #,0.00
+		displayFolder: Balance at Date\Period-to-date growth
+		lineageTag: bb2b391f-10b5-4432-ac98-3febb7279ce5
+
+	measure 'Balance at Date POP %' = ```
+			
+			SWITCH ( 
+			    TRUE,
+			    ISINSCOPE ( 'Date'[Calendar Month Year] ), [Balance at Date MOM %],
+			    ISINSCOPE ( 'Date'[Calendar Quarter Year] ), [Balance at Date QOQ %],
+			    ISINSCOPE ( 'Date'[Calendar Year] ), [Balance at Date YOY %]
+			)
+			
+			```
+		formatString: 0.00%;-0.00%;0.00%
+		displayFolder: Balance at Date\Period-over-period growth
+		lineageTag: 8dd906b0-f1f8-4671-b8a0-b8a0266015a0
+
+	measure 'Balance at Date POP' = ```
+			
+			SWITCH ( 
+			    TRUE,
+			    ISINSCOPE ( 'Date'[Calendar Month Year] ), [Balance at Date MOM],
+			    ISINSCOPE ( 'Date'[Calendar Quarter Year] ), [Balance at Date QOQ],
+			    ISINSCOPE ( 'Date'[Calendar Year] ), [Balance at Date YOY]
+			)
+			
+			```
+		formatString: #,0.00
+		displayFolder: Balance at Date\Period-over-period growth
+		lineageTag: 5d7be04b-63e0-409b-9694-2820913c448e
+
+	measure 'Balance at Date PP' = ```
+			
+			SWITCH ( 
+			    TRUE,
+			    ISINSCOPE ( 'Date'[Calendar Month Year] ), [Balance at Date PM],
+			    ISINSCOPE ( 'Date'[Calendar Quarter Year] ), [Balance at Date PQ],
+			    ISINSCOPE ( 'Date'[Calendar Year] ), [Balance at Date PY]
+			)
+			
+			```
+		formatString: #,0.00
+		displayFolder: Balance at Date\Period-over-period growth
+		lineageTag: 884fcb54-9183-4ddd-b3f6-ee8bb9d1938f
+
+	measure 'Balance at Date MOM %' = ```
+			
+			DIVIDE ( 
+			    [Balance at Date MOM],
+			    [Balance at Date PM]
+			)
+			
+			```
+		formatString: 0.00%;-0.00%;0.00%
+		displayFolder: Balance at Date\Period-over-period growth
+		lineageTag: 8902e77e-648b-4a8c-95df-da37c14e4d42
+
+	measure 'Balance at Date MOM' = ```
+			
+			VAR ValueCurrentPeriod = [Balance at Date]
+			VAR ValuePreviousPeriod = [Balance at Date PM]
+			VAR Result =
+			    IF (
+			        NOT ISBLANK ( ValueCurrentPeriod ) 
+			            && NOT ISBLANK ( ValuePreviousPeriod ),
+			        ValueCurrentPeriod - ValuePreviousPeriod
+			    )
+			RETURN
+			    Result
+			
+			```
+		formatString: #,0.00
+		displayFolder: Balance at Date\Period-over-period growth
+		lineageTag: 6f47769d-7d21-42b1-a90d-80f3eff1ccc7
+
+	measure 'Balance at Date QOQ %' = ```
+			
+			DIVIDE ( 
+			    [Balance at Date QOQ],
+			    [Balance at Date PQ]
+			)
+			
+			```
+		formatString: 0.00%;-0.00%;0.00%
+		displayFolder: Balance at Date\Period-over-period growth
+		lineageTag: e1a8c7a2-3f34-4faf-b5e8-9419223ca51d
+
+	measure 'Balance at Date PM' = ```
+			
+			IF (
+			    [ShowValueForDates],
+			    CALCULATE (
+			        [Balance at Date],
+			        CALCULATETABLE ( 
+			            DATEADD ( 'Date'[Date], -1, MONTH ),
+			            'Date'[DatesWithTransactions] = TRUE
+			        )
+			    )
+			)
+			
+			```
+		formatString: #,0.00
+		displayFolder: Balance at Date\Period-over-period growth
+		lineageTag: a4501f9b-7939-4e88-a9ac-540a63e38c8d
+
+	measure 'Balance at Date QOQ' = ```
+			
+			VAR ValueCurrentPeriod = [Balance at Date]
+			VAR ValuePreviousPeriod = [Balance at Date PQ]
+			VAR Result =
+			    IF (
+			        NOT ISBLANK ( ValueCurrentPeriod ) 
+			            && NOT ISBLANK ( ValuePreviousPeriod ),
+			        ValueCurrentPeriod - ValuePreviousPeriod
+			    )
+			RETURN
+			    Result
+			
+			```
+		formatString: #,0.00
+		displayFolder: Balance at Date\Period-over-period growth
+		lineageTag: 387a41f9-2d9e-4d7e-825e-15e350c20b99
+
+	measure 'Balance at Date PQ' = ```
+			
+			IF (
+			    [ShowValueForDates],
+			    CALCULATE (
+			        [Balance at Date],
+			        CALCULATETABLE ( 
+			            DATEADD ( 'Date'[Date], -1, QUARTER ),
+			            'Date'[DatesWithTransactions] = TRUE
+			        )
+			    )
+			)
+			
+			```
+		formatString: #,0.00
+		displayFolder: Balance at Date\Period-over-period growth
+		lineageTag: 423c12da-da36-4188-a145-19a09a71746f
+
+	measure 'Balance at Date YOY' = ```
+			
+			VAR ValueCurrentPeriod = [Balance at Date]
+			VAR ValuePreviousPeriod = [Balance at Date PY]
+			VAR Result =
+			    IF (
+			        NOT ISBLANK ( ValueCurrentPeriod ) 
+			            && NOT ISBLANK ( ValuePreviousPeriod ),
+			        ValueCurrentPeriod - ValuePreviousPeriod
+			    )
+			RETURN
+			    Result
+			
+			```
+		formatString: #,0.00
+		displayFolder: Balance at Date\Period-over-period growth
+		lineageTag: 799d96ab-daee-49f6-9573-acb4ecddbd7d
+
+	measure 'Balance at Date YOY %' = ```
+			
+			DIVIDE ( 
+			    [Balance at Date YOY],
+			    [Balance at Date PY]
+			)
+			```
+		formatString: 0.00%;-0.00%;0.00%
+		displayFolder: Balance at Date\Period-over-period growth
+		lineageTag: d041ca66-a202-460f-ba6a-3df9b20529cc
+
+	measure 'Balance at Date PY' = ```
+			
+			IF (
+			    [ShowValueForDates],
+			    CALCULATE (
+			        [Balance at Date],
+			        CALCULATETABLE ( 
+			            DATEADD ( 'Date'[Date], -1, YEAR ),
+			            'Date'[DatesWithTransactions] = TRUE
+			        )
+			    )
+			)
+			```
+		formatString: #,0.00
+		displayFolder: Balance at Date\Period-over-period growth
+		lineageTag: 0bb220ee-4b9b-44c6-aab7-0cccfd702131
+
+	measure 'Balance at Date MTD' = ```
+			
+			IF ( 
+			    [ShowValueForDates], 
+			    CALCULATE ( 
+			        [Balance at Date], 
+			        DATESMTD ( 'Date'[Date] ) 
+			    ) 
+			)
+			```
+		formatString: #,0.00
+		displayFolder: Balance at Date\Period-to-date total
+		lineageTag: 1eb1acb4-27e5-468c-82a9-1b2586c042d2
+
+	measure 'Balance at Date QTD' = ```
+			
+			IF (
+			    [ShowValueForDates],
+			    CALCULATE ( 
+			        [Balance at Date], 
+			        DATESQTD ( 'Date'[Date] )
+			    )
+			)
+			```
+		formatString: #,0.00
+		displayFolder: Balance at Date\Period-to-date total
+		lineageTag: 1ec583bd-0944-44c2-9246-216ad58df3a2
+
+	measure 'Balance at Date YTD' = ```
+			
+			IF ( 
+			    [ShowValueForDates], 
+			    CALCULATE ( 
+			        [Balance at Date], 
+			        DATESYTD ( 'Date'[Date] ) 
+			    ) 
+			)
+			```
+		formatString: #,0.00
+		displayFolder: Balance at Date\Period-to-date total
+		lineageTag: 8cb638ec-c72b-4091-be55-6d1e44caa60b
+
+	measure 'Average Collection Period AVG 1Y' = ```
+			
+			VAR Period1Y =
+			    CALCULATETABLE (
+			        DATESINPERIOD (
+			            'Date'[Date],
+			            MAX ( 'Date'[Date] ),
+			            -1,
+			            YEAR
+			        ),
+			        'Date'[DatesWithTransactions] = TRUE
+			    )
+			VAR FirstDayWithData =
+			    CALCULATE (
+			        MIN ( 'G/L Entries'[Posting Date] ),
+			        REMOVEFILTERS ()
+			    )
+			VAR FirstDayInPeriod =
+			    MINX ( Period1Y, 'Date'[Date] )
+			VAR Result =
+			    IF ( 
+			        FirstDayWithData <= FirstDayInPeriod,
+			          CALCULATE(
+			                    [Average Collection Period (Days)],
+			                    Period1Y
+			                 )
+			    )
+			RETURN
+			    Result
+			
+			```
+		formatString: #,0.00
+		displayFolder: Net Change\Moving averages
+		lineageTag: ad24bfa7-366d-400c-b695-be5c18558762
+
+	column Column1
+		dataType: string
+		isHidden
+		lineageTag: 430de051-e5f0-4393-b5fd-7c717e98917e
+		summarizeBy: none
+		sourceColumn: Column1
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	partition 'Standard Calendar Time Intelligence-797916bf-6e0e-47ed-a335-546067b5a909' = m
+		mode: import
+		queryGroup: Measures
+		source =
+				let
+				    Source = Table.FromRows(Json.Document(Binary.Decompress(Binary.FromText("i44FAA==", BinaryEncoding.Base64), Compression.Deflate)), let _t = ((type nullable text) meta [Serialized.Text = true]) in type table [Column1 = _t]),
+				    #"Changed Type" = Table.TransformColumnTypes(Source,{{"Column1", type text}})
+				in
+				    #"Changed Type"
+
+	annotation PBI_ResultType = Table
+
+	annotation PBI_NavigationStepName = Navigation
+

@@ -1,0 +1,1 @@
+Check the reference documentation at [https://microsoft.github.io/BCApps](https://microsoft.github.io/BCApps/reference/prevent-metadata-updates-library/Module/Prevent-Metadata-Updates-Library.html).

@@ -1,0 +1,61 @@
+exceptions:
+  # Finance app
+  ## Drill-through pages
+  - ReportSection1636f46ab3cad0c163a4 
+  - ReportSection191ca6bc71c7ec7b1450
+  - ReportSection56ffc74955826011c00d
+  - ReportSectione41781b904ee19d0b943
+  - ReportSectionf81eac120b0121499b0b
+  # Inventory app
+  ## Drill-through pages
+  - ReportSection58e1ccc4c983326cd9e5
+  - ReportSection73cdbea804d31fffbea7
+  - ReportSection7a453ed80b4a52692b44
+  - ReportSection83efd78c5625e0b0a650
+  - ReportSection87a3736490abeda3244f
+  - ReportSection9dfdc8a0eb1e8309d861
+  - ReportSectionca1408a32a2e9a9d4225
+  - ReportSectiond8e975a633160b0491e0
+  - ReportSectione4987dcc2e0842a30b01
+  - ReportSectioneec094838d892a02e39b
+  - ReportSectionf32e623e68a6282b1dc5
+  ## Tooltips
+  - ReportSection497a0733e5e90ba900a1
+  - ReportSectionb3a412070059b10a5bb4
+  - ReportSectionb9621105306a4dc988c7
+  # Inventory Valuation app
+  ## Drill-through pages
+  - ReportSection46eb1a0421029b780408
+  # Manufacturing app
+  ## Drill-through pages
+  - 7471b800c5bc6e707c91
+  ## Obsoleted
+  - ReportSection1cb4eb25650060b6dbd0
+  - ReportSectionf9d212728e1d71a00044
+  # Projects app
+  ## Drill-through pages
+  - 0e40c80342a2c735f496
+  - 2d0cb2bcdd89b4f97c9e
+  - c6f8461589c4aae51685
+  # Purchasing app
+  ## Drill-through pages
+  - ReportSection8b95261eeb4a596956c1
+  # Sales app
+  ## Drill-through pages
+  - 429930d2d08538d4d2bb
+  - 9be72c5d82d0c030a1d6
+  # Subscription Billing app
+  ## Drill-through pages
+  - 500cc4cc7e93a1014a89
+  - b0629e90d266c40d537d
+  - d280b52ee16d2a2b727d
+  # Sustainability app
+  ## Drill-through pages
+  - 282ec7e112a110c2addb
+  - 73714a8f07753d4a87c6
+  # Help & support pages across reports
+  - ReportSection617fae23c8d7b50d6d0a
+  - ReportSection03dcadb7525d51900472
+  - ReportSectionf4561a9ce097a4ce2275
+  - ReportSection31df4b90dc8e996715ce
+  - ReportSection3581fe0d3c3b5dda5f11

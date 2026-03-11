@@ -1,0 +1,1501 @@
+cultureInfo nb-NO
+	translations
+		model Model
+			table Item
+				caption: Vare
+				column 'Item No. & Description'
+					caption: Varenr. og -beskrivelse
+				column 'Item No.'
+					caption: Varenr.
+				column 'Item Description'
+					caption: Varebeskrivelse
+				column 'Item Base Unit of Measure'
+					caption: Lagerenhet
+				column 'Item Unit Cost (LCY)'
+					caption: Enhetskost for vare (lokal valuta)
+				column 'Item Inventory Posting Group'
+					caption: Lagerbokføringsgruppe
+				column 'Item Category Code'
+					caption: Varekategorikode
+				column 'Item Category Description'
+					caption: Beskrivelse av varekategori
+			table Location
+				caption: Lokasjon
+				column 'Location Code'
+					caption: Lokasjonskode
+				column 'Location Name'
+					caption: Lokasjonsnavn
+				column 'Location Adjustment Bin Code'
+					caption: Hyllekode for lokasjonsjustering
+			table Vendor
+				caption: Leverandør
+				column 'Vendor No. & Name'
+					caption: Leverandørnr. og -navn
+				column 'Vendor No.'
+					caption: Leverandørnr.
+				column 'Vendor Name'
+					caption: Leverandørnavn
+				column 'Vendor Address'
+					caption: Leverandøradresse
+				column 'Vendor Address 2'
+					caption: Leverandørens adresse 2
+				column 'Vendor City'
+					caption: Leverandørens poststed
+				column 'Vendor Post Code'
+					caption: Leverandørens postnummer
+				column 'Vendor State'
+					caption: Leverandørens delstat
+				column 'Vendor Country/Region Code'
+					caption: Leverandørens kode for land/område
+				column 'Vendor Posting Group'
+					caption: Leverandørbokføringsgruppe
+			table Purchaser
+				caption: Innkjøper
+				column 'Purchaser Code'
+					caption: Innkjøperkode
+				column 'Purchaser Name'
+					caption: Innkjøpernavn
+			table 'Dimension Sets'
+				caption: Dimensjonssett
+				column 'Global Dimension 1'
+					caption: Global dimensjon 1
+				column 'Global Dimension 2'
+					caption: Global dimensjon 2
+				column 'Shortcut Dimension 3'
+					caption: Snarveisdimensjon 3
+				column 'Shortcut Dimension 4'
+					caption: Snarveisdimensjon 4
+				column 'Shortcut Dimension 5'
+					caption: Snarveisdimensjon 5
+				column 'Shortcut Dimension 6'
+					caption: Snarveisdimensjon 6
+				column 'Shortcut Dimension 7'
+					caption: Snarveisdimensjon 7
+				column 'Shortcut Dimension 8'
+					caption: Snarveisdimensjon 8
+				column id
+					caption: ID
+			table 'Purchase Budget'
+				caption: Kjøpsbudsjett
+				column 'Entry No.'
+					caption: Oppføringsnr.
+				column 'Budget Name'
+					caption: Budsjettnavn
+				column Date
+					caption: Dato
+				measure 'Budget Amount'
+					caption: Budsjettbeløp
+				measure 'Budget Quantity'
+					caption: Budsjettantall
+				measure 'Budget Quantity Variance'
+					caption: Avvik i budsjettantall
+				measure 'Budget Amount Variance'
+					caption: Avvik i budsjettbeløp
+				measure 'Budget Amount Variance %'
+					caption: Avviksprosent i budsjettbeløp
+				measure 'Budget Quantity Variance %'
+					caption: Avviksprosent i budsjettantall
+			table Date
+				caption: Dato
+				column 'Week Day'
+					caption: Ukedag
+				column 'Calendar Year'
+					caption: Kalenderår
+				column 'Calendar Quarter'
+					caption: Kalenderkvartal
+				column 'Calendar Quarter Year'
+					caption: Kalender Kvartal År
+				column 'Calendar Month'
+					caption: Kalendermåned
+				column 'Calendar Month Year'
+					caption: Kalender Måned År
+				column 'Calendar Week'
+					caption: Kalenderuke
+				column 'Calendar Week Year'
+					caption: Kalender Uke År
+				column 'Calendar RelativeWeekPos'
+					caption: Kalender RelativUkePos
+				column 'Calendar RelativeMonthPos'
+					caption: Kalender RelativMånedPos
+				column 'Calendar RelativeQuarterPos'
+					caption: Kalender RelativtKvartalPos
+				column 'Calendar RelativeYearPos'
+					caption: Kalender RelativtÅrPos
+				column 'Calendar StartOfMonth'
+					caption: Kalender StartPåMåned
+				column 'Calendar EndOfMonth'
+					caption: Kalender SluttPåMåned
+				column 'Calendar StartOfQuarter'
+					caption: Kalender StartPåKvartal
+				column 'Calendar EndOfQuarter'
+					caption: Kalender SluttPåKvartal
+				column 'Calendar StartOfYear'
+					caption: Kalender StartPåÅr
+				column 'Calendar EndOfYear'
+					caption: Kalender SluttPåÅr
+				column 'Calendar MonthDays'
+					caption: Kalender MånedDager
+				column 'Calendar QuarterDays'
+					caption: Kalender KvartalDager
+				column 'Calendar YearDays'
+					caption: Kalender ÅrDager
+				column 'Calendar DayOfMonthNumber'
+					caption: Kalender DagIMånedNummer
+				column 'Calendar DayOfQuarterNumber'
+					caption: Kalender DagIKvartalNummer
+				column 'Calendar DayOfYearNumber'
+					caption: Kalender DagIÅretNummer
+				column 'Calendar DatePreviousWeek'
+					caption: Kalender DatoForrigeUke
+				column 'Calendar DatePreviousMonth'
+					caption: Kalender DatoForrigeMåned
+				column 'Calendar DatePreviousQuarter'
+					caption: Kalender DatoForrigeKvartal
+				column 'Calendar DatePreviousYear'
+					caption: Kalender DatoForrigeÅr
+				column 'Fiscal Year'
+					caption: Regnskapsår
+				column 'Fiscal Quarter'
+					caption: Regnskapskvartal
+				column 'Fiscal Quarter Year'
+					caption: Regnskap Kvartal År
+				column 'Fiscal Month'
+					caption: Regnskapsmåned
+				column 'Fiscal Month Year'
+					caption: Regnskap Måned År
+				column 'Fiscal Week'
+					caption: Regnskapsuke
+				column 'Fiscal Week Year'
+					caption: Regnskap Uke År
+				column 'Fiscal RelativeWeekPos'
+					caption: Regnskap RelativUkePos
+				column 'Fiscal RelativeMonthPos'
+					caption: Regnskap RelativMånedPos
+				column 'Fiscal RelativeQuarterPos'
+					caption: Regnskap RelativtKvartalPos
+				column 'Fiscal RelativeYearPos'
+					caption: Regnskap RelativtÅrPos
+				column 'Fiscal StartOfMonth'
+					caption: Regnskap StartPåMåned
+				column 'Fiscal EndOfMonth'
+					caption: Regnskap SluttPåMåned
+				column 'Fiscal StartOfQuarter'
+					caption: Regnskap StartPåKvartal
+				column 'Fiscal EndOfQuarter'
+					caption: Regnskap SluttPåKvartal
+				column 'Fiscal StartOfYear'
+					caption: Regnskap StartPåÅr
+				column 'Fiscal EndOfYear'
+					caption: Regnskap SluttPåÅr
+				column 'Fiscal MonthDays'
+					caption: Regnskap MånedDager
+				column 'Fiscal QuarterDays'
+					caption: Regnskap KvartalDager
+				column 'Fiscal YearDays'
+					caption: Regnskap ÅrDager
+				column 'Fiscal DayOfMonthNumber'
+					caption: Regnskap DagIMånedNummer
+				column 'Fiscal DayOfQuarterNumber'
+					caption: Regnskap DagIKvartalNummer
+				column 'Fiscal DayOfYearNumber'
+					caption: Regnskap DagIÅretNummer
+				column 'Fiscal DatePreviousWeek'
+					caption: Regnskap DatoForrigeUke
+				column 'Fiscal DatePreviousMonth'
+					caption: Regnskap DatoForrigeMåned
+				column 'Fiscal DatePreviousQuarter'
+					caption: Regnskap DatoForrigeKvartal
+				column 'Fiscal DatePreviousYear'
+					caption: Regnskap DatoForrigeÅr
+				column 'FW Year'
+					caption: Regnskapsuke år
+				column 'FW Quarter'
+					caption: Regnskapsuke kvartal
+				column 'FW Quarter Year'
+					caption: Regnskapsuke Kvartal År
+				column 'FW Month'
+					caption: Regnskapsuke måned
+				column 'FW Month Year'
+					caption: Regnskapsuke Måned År
+				column 'FW Week'
+					caption: Regnskapsuke Uke
+				column 'FW Period'
+					caption: Regnskapsukeperiode
+				column 'FW Week Year'
+					caption: Regnskapsuke Uke År
+				column 'FW StartOfWeek'
+					caption: Regnskapsuke StartPåUke
+				column 'FW EndOfWeek'
+					caption: Regnskapsuke SluttPåUke
+				column 'FW RelativeWeekPos'
+					caption: Regnskapsuke RelativUkePos
+				column 'FW RelativeMonthPos'
+					caption: Regnskapsuke RelativMånedPos
+				column 'FW RelativeQuarterPos'
+					caption: Regnskapsuke RelativtKvartalPos
+				column 'FW RelativeYearPos'
+					caption: Regnskapsuke RelativtÅrPos
+				column 'FW StartOfMonth'
+					caption: Regnskapsuke StartPåMåned
+				column 'FW EndOfMonth'
+					caption: Regnskapsuke SluttPåMåned
+				column 'FW StartOfQuarter'
+					caption: Regnskapsuke StartPåKvartal
+				column 'FW EndOfQuarter'
+					caption: Regnskapsuke SluttPåKvartal
+				column 'FW StartOfYear'
+					caption: Regnskapsuke StartPåÅr
+				column 'FW EndOfYear'
+					caption: Regnskapsuke SluttPåÅr
+				column 'FW MonthDays'
+					caption: Regnskapsuke MånedDager
+				column 'FW QuarterDays'
+					caption: Regnskapsuke KvartalDager
+				column 'FW YearDays'
+					caption: Regnskapsuke ÅrDager
+				column 'FW DatePreviousWeek'
+					caption: Regnskapsuke DatoForrigeUke
+				column 'FW DatePreviousMonth'
+					caption: Regnskapsuke DatoForrigeMåned
+				column 'FW DatePreviousQuarter'
+					caption: Regnskapsuke DatoForrigeKvartal
+				column 'FW DatePreviousYear'
+					caption: Regnskapsuke DatoForrigeÅr
+				column 'Holiday Name'
+					caption: Navn på ferie
+				column IsWorkingDay
+					caption: IsWorkingDay
+				column 'Day Type'
+					caption: Type dag
+				column 'Relative Day'
+					caption: Relativ dag
+				hierarchy 'Fiscal Year-Month'
+					caption: Regnskap år-måned
+					level 'Fiscal Year'
+						caption: Regnskapsår
+					level 'Fiscal Month Year'
+						caption: Regnskap Måned År
+				hierarchy 'Fiscal Year-Quarter-Month-Week'
+					caption: Regnskap år-kvartal-måned-uke
+					level 'Fiscal Year'
+						caption: Regnskapsår
+					level 'Fiscal Quarter Year'
+						caption: Regnskap Kvartal År
+					level 'Fiscal Month Year'
+						caption: Regnskap Måned År
+					level 'Fiscal Week Year'
+						caption: Regnskap Uke År
+				hierarchy 'Fiscal Year-Month-Week'
+					caption: Regnskap år-måned-uke
+					level 'Fiscal Year'
+						caption: Regnskapsår
+					level 'Fiscal Month Year'
+						caption: Regnskap Måned År
+					level 'Fiscal Week Year'
+						caption: Regnskap Uke År
+				hierarchy 'Calendar Year-Month'
+					caption: Kalender år-måned
+					level 'Calendar Year'
+						caption: Kalenderår
+					level 'Calendar Month Year'
+						caption: Kalender Måned År
+				hierarchy 'Calendar Year-Quarter-Month-Week'
+					caption: Kalender år-kvartal-måned-uke
+					level 'Calendar Year'
+						caption: Kalenderår
+					level 'Calendar Quarter Year'
+						caption: Kalender Kvartal År
+					level 'Calendar Month Year'
+						caption: Kalender Måned År
+					level 'Calendar Week Year'
+						caption: Kalender Uke År
+				hierarchy 'Calendar Year-Month-Week'
+					caption: Kalender år-måned-uke
+					level 'Calendar Year'
+						caption: Kalenderår
+					level 'Calendar Month Year'
+						caption: Kalender Måned År
+					level 'Calendar Week Year'
+						caption: Kalender Uke År
+				hierarchy 'FW Year-Month-Week'
+					caption: Regnskapsuke år-måned-uke
+					level 'FW Year'
+						caption: Regnskapsuke år
+					level 'FW Month Year'
+						caption: Regnskapsuke Måned År
+					level 'FW Week Year'
+						caption: Regnskapsuke Uke År
+				hierarchy 'FW Year-Quarter-Month-Week'
+					caption: Regnskapsuke år-kvartal-måned-uke
+					level 'FW Year'
+						caption: Regnskapsuke år
+					level 'FW Quarter Year'
+						caption: Regnskapsuke Kvartal År
+					level 'FW Month Year'
+						caption: Regnskapsuke Måned År
+					level 'FW Week Year'
+						caption: Regnskapsuke Uke År
+				hierarchy 'FW Year-Week'
+					caption: Regnskapsuke år-uke
+					level 'FW Year'
+						caption: Regnskapsuke år
+					level 'FW Week Year'
+						caption: Regnskapsuke Uke År
+				hierarchy 'FW Year-Quarter-Week'
+					caption: Regnskapsuke år-kvartal-uke
+					level 'FW Year'
+						caption: Regnskapsuke år
+					level 'FW Quarter Year'
+						caption: Regnskapsuke Kvartal År
+					level 'FW Week Year'
+						caption: Regnskapsuke Uke År
+			table 'Standard Calendar Time Intelligence'
+				caption: Standard tidsintelligens for regnskapskalender
+				measure 'Purchase Amount YTD'
+					caption: Kjøpsbeløp hittil i år
+				measure 'Purchase Amount PY'
+					caption: Kjøpsbeløp PY
+				measure 'Purchase Amount PYTD'
+					caption: Kjøpsbeløp PYTD
+				measure 'Purchase Amount PQTD'
+					caption: Kjøpsbeløp PQTD
+				measure 'Purchase Amount QTD'
+					caption: Kjøpsbeløp QTD
+				measure 'Purchase Amount MTD'
+					caption: Kjøpsbeløp MTD
+				measure 'Purchase Amount YOY %'
+					caption: Kjøpsbeløp YOY i prosent
+				measure 'Purchase Amount YOY'
+					caption: Kjøpsbeløp YOY
+				measure 'Purchase Amount PQ'
+					caption: Kjøpsbeløp PQ
+				measure 'Purchase Amount QOQ'
+					caption: Kjøpsbeløp QOQ
+				measure 'Purchase Amount PM'
+					caption: Kjøpsbeløp PM
+				measure 'Purchase Amount QOQ %'
+					caption: Kjøpsbeløp QOQ i prosent
+				measure 'Purchase Amount MOM'
+					caption: Kjøpsbeløp MOM
+				measure 'Purchase Amount MOM %'
+					caption: Kjøpsbeløp MOM i prosent
+				measure 'Purchase Amount MAT'
+					caption: Kjøpsbeløp MAT
+				measure 'Purchase Amount PYMAT'
+					caption: Kjøpsbeløp PYMAT
+				measure 'Purchase Amount YOYTD'
+					caption: Kjøpsbeløp YOYTD
+				measure 'Purchase Amount YOYTD %'
+					caption: Kjøpsbeløp YOYTD i prosent
+				measure 'Purchase Amount PYC'
+					caption: Kjøpsbeløp PYC
+				measure 'Purchase Amount YTDOPY'
+					caption: Kjøpsbeløp YTDOPY
+				measure 'Purchase Amount YTDOPY %'
+					caption: Kjøpsbeløp YTDOPY i prosent
+				measure 'Purchase Amount QOQTD'
+					caption: Kjøpsbeløp QOQTD
+				measure 'Purchase Amount QOQTD %'
+					caption: Kjøpsbeløp QOQTD i prosent
+				measure 'Purchase Amount PQC'
+					caption: Kjøpsbeløp PQC
+				measure 'Purchase Amount QTDOPQ'
+					caption: Kjøpsbeløp QTDOPQ
+				measure 'Purchase Amount QTDOPQ %'
+					caption: Kjøpsbeløp QTDOPQ i prosent
+				measure 'Purchase Amount PMTD'
+					caption: Kjøpsbeløp PMTD
+				measure 'Purchase Amount MOMTD'
+					caption: Kjøpsbeløp MOMTD
+				measure 'Purchase Amount MOMTD %'
+					caption: Kjøpsbeløp MOMTD i prosent
+				measure 'Purchase Amount PMC'
+					caption: Kjøpsbeløp PMC
+				measure 'Purchase Amount MTDOPM'
+					caption: Kjøpsbeløp MTDOPM
+				measure 'Purchase Amount MTDOPM %'
+					caption: Kjøpsbeløp MTDOPM i prosent
+				measure 'Purchase Amount AVG 30D'
+					caption: Kjøpsbeløp, snitt 30 dager
+				measure 'Purchase Amount AVG 3M'
+					caption: Kjøpsbeløp, snitt 3 md.
+				measure 'Purchase Amount AVG 1Y'
+					caption: Kjøpsbeløp, snitt 1 år
+				measure 'Purchase Amount MATG'
+					caption: Kjøpsbeløp MATG
+				measure 'Purchase Amount MATG %'
+					caption: Kjøpsbeløp MATG i prosent
+				measure 'Purchase Amount PP'
+					caption: Kjøpsbeløp PP
+				measure 'Purchase Amount POP'
+					caption: Kjøpsbeløp POP
+				measure 'Purchase Amount POP %'
+					caption: Kjøpsbeløp POP i prosent
+				measure 'Purchase Quantity YTD'
+					caption: Kjøpsantall hittil i år
+				measure 'Purchase Quantity PY'
+					caption: Kjøpsantall PY
+				measure 'Purchase Quantity PYTD'
+					caption: Kjøpsantall PYTD
+				measure 'Purchase Quantity PQTD'
+					caption: Kjøpsantall PQTD
+				measure 'Purchase Quantity QTD'
+					caption: Kjøpsantall QTD
+				measure 'Purchase Quantity MTD'
+					caption: Kjøpsantall MTD
+				measure 'Purchase Quantity YOY %'
+					caption: Kjøpsantall YOY i prosent
+				measure 'Purchase Quantity YOY'
+					caption: Kjøpsantall YOY
+				measure 'Purchase Quantity PQ'
+					caption: Kjøpsantall PQ
+				measure 'Purchase Quantity QOQ'
+					caption: Kjøpsantall QOQ
+				measure 'Purchase Quantity PM'
+					caption: Kjøpsantall PM
+				measure 'Purchase Quantity QOQ %'
+					caption: Kjøpsantall QOQ i prosent
+				measure 'Purchase Quantity MOM'
+					caption: Kjøpsantall MOM
+				measure 'Purchase Quantity MOM %'
+					caption: Kjøpsantall MOM i prosent
+				measure 'Purchase Quantity MAT'
+					caption: Kjøpsantall MAT
+				measure 'Purchase Quantity PYMAT'
+					caption: Kjøpsantall PYMAT
+				measure 'Purchase Quantity YOYTD'
+					caption: Kjøpsantall YOYTD
+				measure 'Purchase Quantity YOYTD %'
+					caption: Kjøpsantall YOYTD i prosent
+				measure 'Purchase Quantity PYC'
+					caption: Kjøpsantall PYC
+				measure 'Purchase Quantity YTDOPY'
+					caption: Kjøpsantall YTDOPY
+				measure 'Purchase Quantity YTDOPY %'
+					caption: Kjøpsantall YTDOPY i prosent
+				measure 'Purchase Quantity QOQTD'
+					caption: Kjøpsantall QOQTD
+				measure 'Purchase Quantity QOQTD %'
+					caption: Kjøpsantall QOQTD i prosent
+				measure 'Purchase Quantity PQC'
+					caption: Kjøpsantall PQC
+				measure 'Purchase Quantity QTDOPQ'
+					caption: Kjøpsantall QTDOPQ
+				measure 'Purchase Quantity QTDOPQ %'
+					caption: Kjøpsantall QTDOPQ i prosent
+				measure 'Purchase Quantity PMTD'
+					caption: Kjøpsantall PMTD
+				measure 'Purchase Quantity MOMTD'
+					caption: Kjøpsantall MOMTD
+				measure 'Purchase Quantity MOMTD %'
+					caption: Kjøpsantall MOMTD i prosent
+				measure 'Purchase Quantity PMC'
+					caption: Kjøpsantall PMC
+				measure 'Purchase Quantity MTDOPM'
+					caption: Kjøpsantall MTDOPM
+				measure 'Purchase Quantity MTDOPM %'
+					caption: Kjøpsantall MTDOPM i prosent
+				measure 'Purchase Quantity AVG 30D'
+					caption: Kjøpsantall, snitt 30 dager
+				measure 'Purchase Quantity AVG 3M'
+					caption: Kjøpsantall, snitt 3 md.
+				measure 'Purchase Quantity AVG 1Y'
+					caption: Kjøpsantall, snitt 1 år
+				measure 'Purchase Quantity MATG'
+					caption: Kjøpsantall MATG
+				measure 'Purchase Quantity MATG %'
+					caption: Kjøpsantall MATG i prosent
+				measure 'Purchase Quantity PP'
+					caption: Kjøpsantall PP
+				measure 'Purchase Quantity POP'
+					caption: Kjøpsantall POP
+				measure 'Purchase Quantity POP %'
+					caption: Kjøpsantall POP i prosent
+				measure 'Budget Amount YTD'
+					caption: Budsjettbeløp hittil i år
+				measure 'Budget Amount QTD'
+					caption: Budsjettbeløp QTD
+				measure 'Budget Amount MTD'
+					caption: Budsjettbeløp MTD
+				measure 'Budget Amount PY'
+					caption: Budsjettbeløp PY
+				measure 'Budget Amount YOY %'
+					caption: Budsjettbeløp YOY i prosent
+				measure 'Budget Amount YOY'
+					caption: Budsjettbeløp YOY
+				measure 'Budget Amount PQ'
+					caption: Budsjettbeløp PQ
+				measure 'Budget Amount QOQ'
+					caption: Budsjettbeløp QOQ
+				measure 'Budget Amount PM'
+					caption: Budsjettbeløp PM
+				measure 'Budget Amount QOQ %'
+					caption: Budsjettbeløp QOQ i prosent
+				measure 'Budget Amount MOM'
+					caption: Budsjettbeløp MOM
+				measure 'Budget Amount MOM %'
+					caption: Budsjettbeløp MOM i prosent
+				measure 'Budget Amount PP'
+					caption: Budsjettbeløp PP
+				measure 'Budget Amount POP'
+					caption: Budsjettbeløp POP
+				measure 'Budget Amount POP %'
+					caption: Budsjettbeløp POP i prosent
+				measure 'Budget Amount PYTD'
+					caption: Budsjettbeløp PYTD
+				measure 'Budget Amount PQTD'
+					caption: Budsjettbeløp PQTD
+				measure 'Budget Amount YOYTD'
+					caption: Budsjettbeløp YOYTD
+				measure 'Budget Amount YOYTD %'
+					caption: Budsjettbeløp YOYTD i prosent
+				measure 'Budget Amount QOQTD'
+					caption: Budsjettbeløp QOQTD
+				measure 'Budget Amount QOQTD %'
+					caption: Budsjettbeløp QOQTD i prosent
+				measure 'Budget Amount PMTD'
+					caption: Budsjettbeløp PMTD
+				measure 'Budget Amount MOMTD'
+					caption: Budsjettbeløp MOMTD
+				measure 'Budget Amount MOMTD %'
+					caption: Budsjettbeløp MOMTD i prosent
+				measure 'Budget Amount MAT'
+					caption: Budsjettbeløp MAT
+				measure 'Budget Amount PYMAT'
+					caption: Budsjettbeløp PYMAT
+				measure 'Budget Amount MATG'
+					caption: Budsjettbeløp MATG
+				measure 'Budget Amount MATG %'
+					caption: Budsjettbeløp MATG i prosent
+				measure 'Budget Amount PYC'
+					caption: Budsjettbeløp PYC
+				measure 'Budget Amount YTDOPY'
+					caption: Budsjettbeløp YTDOPY
+				measure 'Budget Amount YTDOPY %'
+					caption: Budsjettbeløp YTDOPY i prosent
+				measure 'Budget Amount PQC'
+					caption: Budsjettbeløp PQC
+				measure 'Budget Amount QTDOPQ'
+					caption: Budsjettbeløp QTDOPQ
+				measure 'Budget Amount QTDOPQ %'
+					caption: Budsjettbeløp QTDOPQ i prosent
+				measure 'Budget Amount PMC'
+					caption: Budsjettbeløp PMC
+				measure 'Budget Amount MTDOPM'
+					caption: Budsjettbeløp MTDOPM
+				measure 'Budget Amount MTDOPM %'
+					caption: Budsjettbeløp MTDOPM i prosent
+				measure 'Budget Amount AVG 30D'
+					caption: Budsjettbeløp, snitt 30 dager
+				measure 'Budget Amount AVG 3M'
+					caption: Budsjettbeløp, snitt 3 md.
+				measure 'Budget Amount AVG 1Y'
+					caption: Budsjettbeløp, snitt 1 år
+				measure 'Budget Quantity YTD'
+					caption: Budsjettantall hittil i år
+				measure 'Budget Quantity QTD'
+					caption: Budsjettantall QTD
+				measure 'Budget Quantity MTD'
+					caption: Budsjettantall MTD
+				measure 'Budget Quantity PY'
+					caption: Budsjettantall PY
+				measure 'Budget Quantity YOY %'
+					caption: Budsjettantall YOY i prosent
+				measure 'Budget Quantity YOY'
+					caption: Budsjettantall YOY
+				measure 'Budget Quantity PQ'
+					caption: Budsjettantall PQ
+				measure 'Budget Quantity QOQ'
+					caption: Budsjettantall QOQ
+				measure 'Budget Quantity PM'
+					caption: Budsjettantall PM
+				measure 'Budget Quantity QOQ %'
+					caption: Budsjettantall QOQ i prosent
+				measure 'Budget Quantity MOM'
+					caption: Budsjettantall MOM
+				measure 'Budget Quantity MOM %'
+					caption: Budsjettantall MOM i prosent
+				measure 'Budget Quantity PP'
+					caption: Budsjettantall PP
+				measure 'Budget Quantity POP'
+					caption: Budsjettantall POP
+				measure 'Budget Quantity POP %'
+					caption: Budsjettantall POP i prosent
+				measure 'Budget Quantity PYTD'
+					caption: Budsjettantall PYTD
+				measure 'Budget Quantity PQTD'
+					caption: Budsjettantall PQTD
+				measure 'Budget Quantity YOYTD'
+					caption: Budsjettantall YOYTD
+				measure 'Budget Quantity YOYTD %'
+					caption: Budsjettantall YOYTD i prosent
+				measure 'Budget Quantity QOQTD'
+					caption: Budsjettantall QOQTD
+				measure 'Budget Quantity QOQTD %'
+					caption: Budsjettantall QOQTD i prosent
+				measure 'Budget Quantity PMTD'
+					caption: Budsjettantall PMTD
+				measure 'Budget Quantity MOMTD'
+					caption: Budsjettantall MOMTD
+				measure 'Budget Quantity MOMTD %'
+					caption: Budsjettantall MOMTD i prosent
+				measure 'Budget Quantity MAT'
+					caption: Budsjettantall MAT
+				measure 'Budget Quantity PYMAT'
+					caption: Budsjettantall PYMAT
+				measure 'Budget Quantity MATG'
+					caption: Budsjettantall MATG
+				measure 'Budget Quantity MATG %'
+					caption: Budsjettantall MATG i prosent
+				measure 'Budget Quantity PYC'
+					caption: Budsjettantall PYC
+				measure 'Budget Quantity YTDOPY'
+					caption: Budsjettantall YTDOPY
+				measure 'Budget Quantity YTDOPY %'
+					caption: Budsjettantall YTDOPY i prosent
+				measure 'Budget Quantity PQC'
+					caption: Budsjettantall PQC
+				measure 'Budget Quantity QTDOPQ'
+					caption: Budsjettantall QTDOPQ
+				measure 'Budget Quantity QTDOPQ %'
+					caption: Budsjettantall QTDOPQ i prosent
+				measure 'Budget Quantity PMC'
+					caption: Budsjettantall PMC
+				measure 'Budget Quantity MTDOPM'
+					caption: Budsjettantall MTDOPM
+				measure 'Budget Quantity MTDOPM %'
+					caption: Budsjettantall MTDOPM i prosent
+				measure 'Budget Quantity AVG 30D'
+					caption: Budsjettantall, snitt 30 dager
+				measure 'Budget Quantity AVG 3M'
+					caption: Budsjettantall, snitt 3 md.
+				measure 'Budget Quantity AVG 1Y'
+					caption: Budsjettantall, snitt 1 år
+			table 'Fiscal Calendar Time Intelligence'
+				caption: Tidsintelligens for regnskapskalender
+				measure 'Purchase Amount YTD (Fiscal)'
+					caption: Kjøpsbeløp hittil i år (regnskap)
+				measure 'Purchase Amount QTD (Fiscal)'
+					caption: Kjøpsbeløp QTD (regnskap)
+				measure 'Purchase Amount MTD (Fiscal)'
+					caption: Kjøpsbeløp MTD (regnskap)
+				measure 'Purchase Amount PY (Fiscal)'
+					caption: Kjøpsbeløp PY (regnskap)
+				measure 'Purchase Amount YOY % (Fiscal)'
+					caption: Kjøpsbeløp YOY i prosent (regnskap)
+				measure 'Purchase Amount YOY (Fiscal)'
+					caption: Kjøpsbeløp YOY (regnskap)
+				measure 'Purchase Amount PQ (Fiscal)'
+					caption: Kjøpsbeløp PQ (regnskap)
+				measure 'Purchase Amount QOQ (Fiscal)'
+					caption: Kjøpsbeløp QOQ (regnskap)
+				measure 'Purchase Amount QOQ % (Fiscal)'
+					caption: Kjøpsbeløp QOQ i prosent (regnskap)
+				measure 'Purchase Amount PM (Fiscal)'
+					caption: Kjøpsbeløp PM (regnskap)
+				measure 'Purchase Amount MOM (Fiscal)'
+					caption: Kjøpsbeløp MOM (regnskap)
+				measure 'Purchase Amount MOM % (Fiscal)'
+					caption: Kjøpsbeløp MOM i prosent (regnskap)
+				measure 'Purchase Amount PP (Fiscal)'
+					caption: Kjøpsbeløp PP (regnskap)
+				measure 'Purchase Amount POP (Fiscal)'
+					caption: Kjøpsbeløp POP (regnskap)
+				measure 'Purchase Amount POP % (Fiscal)'
+					caption: Kjøpsbeløp POP i prosent (regnskap)
+				measure 'Purchase Amount PYTD (Fiscal)'
+					caption: Kjøpsbeløp PYTD (regnskap)
+				measure 'Purchase Amount PQTD (Fiscal)'
+					caption: Kjøpsbeløp PQTD (regnskap)
+				measure 'Purchase Amount YOYTD (Fiscal)'
+					caption: Kjøpsbeløp YOYTD (regnskap)
+				measure 'Purchase Amount YOYTD % (Fiscal)'
+					caption: Kjøpsbeløp YOYTD i prosent (regnskap)
+				measure 'Purchase Amount QOQTD (Fiscal)'
+					caption: Kjøpsbeløp QOQTD (regnskap)
+				measure 'Purchase Amount QOQTD % (Fiscal)'
+					caption: Kjøpsbeløp QOQTD i prosent (regnskap)
+				measure 'Purchase Amount PMTD (Fiscal)'
+					caption: Kjøpsbeløp PMTD (regnskap)
+				measure 'Purchase Amount MOMTD % (Fiscal)'
+					caption: Kjøpsbeløp MOMTD i prosent (regnskap)
+				measure 'Purchase Amount MOMTD (Fiscal)'
+					caption: Kjøpsbeløp MOMTD (regnskap)
+				measure 'Purchase Amount MAT (Fiscal)'
+					caption: Kjøpsbeløp MAT (regnskap)
+				measure 'Purchase Amount PYMAT (Fiscal)'
+					caption: Kjøpsbeløp PYMAT (regnskap)
+				measure 'Purchase Amount MATG (Fiscal)'
+					caption: Kjøpsbeløp MATG (regnskap)
+				measure 'Purchase Amount MATG % (Fiscal)'
+					caption: Kjøpsbeløp MATG i prosent (regnskap)
+				measure 'Purchase Amount MAT (364) (Fiscal)'
+					caption: Kjøpsbeløp MAT (364) (regnskap)
+				measure 'Purchase PYMAT (364) (Fiscal)'
+					caption: Kjøp PYMAT (364) (regnskap)
+				measure 'Purchase Amount PYC (Fiscal)'
+					caption: Kjøpsbeløp PYC (regnskap)
+				measure 'Purchase Amount YTDOPY (Fiscal)'
+					caption: Kjøpsbeløp YTDOPY (regnskap)
+				measure 'Purchase Amount YTDOPY % (Fiscal)'
+					caption: Kjøpsbeløp YTDOPY i prosent (regnskap)
+				measure 'Purchase Amount PQC (Fiscal)'
+					caption: Kjøpsbeløp PQC (regnskap)
+				measure 'Purchase Amount QTDOPQ (Fiscal)'
+					caption: Kjøpsbeløp QTDOPQ (regnskap)
+				measure 'Purchase Amount QTDOPQ % (Fiscal)'
+					caption: Kjøpsbeløp QTDOPQ i prosent (regnskap)
+				measure 'Purchase Amount PMC (Fiscal)'
+					caption: Kjøpsbeløp PMC (regnskap)
+				measure 'Purchase Amount MTDOPM (Fiscal)'
+					caption: Kjøpsbeløp MTDOPM (regnskap)
+				measure 'Purchase Amount MTDOPM % (Fiscal)'
+					caption: Kjøpsbeløp MTDOPM i prosent (regnskap)
+				measure 'Purchase Amount AVG 30D (Fiscal)'
+					caption: Kjøpsbeløp, snitt 30 dager (regnskap)
+				measure 'Purchase Amount AVG 3M (Fiscal)'
+					caption: Kjøpsbeløp, snitt 3 md. (regnskap)
+				measure 'Purchase Amount AVG 1Y (Fiscal)'
+					caption: Kjøpsbeløp, snitt 1 år (regnskap)
+				measure 'Purchases Quantity YTD (Fiscal)'
+					caption: Kjøpsantall hittil i år (regnskap)
+				measure 'Purchases Quantity QTD (Fiscal)'
+					caption: Kjøpsantall QTD (regnskap)
+				measure 'Purchases Quantity MTD (Fiscal)'
+					caption: Kjøpsantall MTD (regnskap)
+				measure 'Purchase Quantity PY (Fiscal)'
+					caption: Kjøpsantall PY (regnskap)
+				measure 'Purchase Quantity YOY % (Fiscal)'
+					caption: Kjøpsantall YOY i prosent (regnskap)
+				measure 'Purchase Quantity YOY (Fiscal)'
+					caption: Kjøpsantall YOY (regnskap)
+				measure 'Purchase Quantity PQ (Fiscal)'
+					caption: Kjøpsantall PQ (regnskap)
+				measure 'Purchase Quantity QOQ (Fiscal)'
+					caption: Kjøpsantall QOQ (regnskap)
+				measure 'Purchase Quantity QOQ % (Fiscal)'
+					caption: Kjøpsantall QOQ i prosent (regnskap)
+				measure 'Purchase Quantity PM (Fiscal)'
+					caption: Kjøpsantall PM (regnskap)
+				measure 'Purchase Quantity MOM (Fiscal)'
+					caption: Kjøpsantall MOM (regnskap)
+				measure 'Purchase Quantity MOM % (Fiscal)'
+					caption: Kjøpsantall MOM i prosent (regnskap)
+				measure 'Purchase Quantity PP (Fiscal)'
+					caption: Kjøpsantall PP (regnskap)
+				measure 'Purchase Quantity POP (Fiscal)'
+					caption: Kjøpsantall POP (regnskap)
+				measure 'Purchase Quantity POP % (Fiscal)'
+					caption: Kjøpsantall POP i prosent (regnskap)
+				measure 'Purchase Quantity PYTD (Fiscal)'
+					caption: Kjøpsantall PYTD (regnskap)
+				measure 'Purchase Quantity PQTD (Fiscal)'
+					caption: Kjøpsantall PQTD (regnskap)
+				measure 'Purchase Quantity YOYTD (Fiscal)'
+					caption: Kjøpsantall YOYTD i prosent (regnskap)
+				measure 'Purchase Quantity YOYTD % (Fiscal)'
+					caption: Kjøpsantall YOYTD i prosent (regnskap)
+				measure 'Purchase Quantity QOQTD (Fiscal)'
+					caption: Kjøpsantall QOQTD (regnskap)
+				measure 'Purchase Quantity QOQTD % (Fiscal)'
+					caption: Kjøpsantall QOQTD i prosent (regnskap)
+				measure 'Purchase Quantity PMTD (Fiscal)'
+					caption: Kjøpsantall PMTD (regnskap)
+				measure 'Purchase Quantity MOMTD % (Fiscal)'
+					caption: Kjøpsantall MOMTD i prosent (regnskap)
+				measure 'Purchase Quantity MOMTD (Fiscal)'
+					caption: Kjøpsantall MOMTD (regnskap)
+				measure 'Purchase Quantity MAT (Fiscal)'
+					caption: Kjøpsantall MAT (regnskap)
+				measure 'Purchase Quantity PYMAT (Fiscal)'
+					caption: Kjøpsantall PYMAT (regnskap)
+				measure 'Purchase Quantity MATG (Fiscal)'
+					caption: Kjøpsantall MATG (regnskap)
+				measure 'Purchase Quantity MATG % (Fiscal)'
+					caption: Kjøpsantall MATG i prosent (regnskap)
+				measure 'Purchase Quantity PYC (Fiscal)'
+					caption: Kjøpsantall PYC (regnskap)
+				measure 'Purchase Quantity YTDOPY (Fiscal)'
+					caption: Kjøpsantall YTDOPY (regnskap)
+				measure 'Purchase Quantity YTDOPY % (Fiscal)'
+					caption: Kjøpsantall YTDOPY i prosent (regnskap)
+				measure 'Purchase Quantity PQC (Fiscal)'
+					caption: Kjøpsantall PQC (regnskap)
+				measure 'Purchase Quantity QTDOPQ (Fiscal)'
+					caption: Kjøpsantall QTDOPQ (regnskap)
+				measure 'Purchase Quantity QTDOPQ % (Fiscal)'
+					caption: Kjøpsantall QTDOPQ i prosent (regnskap)
+				measure 'Purchase Quantity PMC (Fiscal)'
+					caption: Kjøpsantall PMC (regnskap)
+				measure 'Purchase Quantity MTDOPM (Fiscal)'
+					caption: Kjøpsantall MTDOPM (regnskap)
+				measure 'Purchase Quantity MTDOPM % (Fiscal)'
+					caption: Kjøpsantall MTDOPM i prosent (regnskap)
+				measure 'Purchase Quantity AVG 30D (Fiscal)'
+					caption: Kjøpsantall, snitt 30 dager (regnskap)
+				measure 'Purchase Quantity AVG 3M (Fiscal)'
+					caption: Kjøpsantall, snitt 3 md. (regnskap)
+				measure 'Purchase Quantity AVG 1Y (Fiscal)'
+					caption: Kjøpsantall, snitt 1 år (regnskap)
+				measure 'Budget Amount YTD (Fiscal)'
+					caption: Budsjettbeløp hittil i år (regnskap)
+				measure 'Budget Amount QTD (Fiscal)'
+					caption: Budsjettbeløp QTD (regnskap)
+				measure 'Budget Amount MTD (Fiscal)'
+					caption: Budsjettbeløp MTD (regnskap)
+				measure 'Budget Amount PY (Fiscal)'
+					caption: Budsjettbeløp PY (regnskap)
+				measure 'Budget Amount YOY % (Fiscal)'
+					caption: Budsjettbeløp YOY i prosent (regnskap)
+				measure 'Budget Amount YOY (Fiscal)'
+					caption: Budsjettbeløp YOY (regnskap)
+				measure 'Budget Amount PQ (Fiscal)'
+					caption: Budsjettbeløp PQ (regnskap)
+				measure 'Budget Amount QOQ (Fiscal)'
+					caption: Budsjettbeløp QOQ (regnskap)
+				measure 'Budget Amount QOQ % (Fiscal)'
+					caption: Budsjettbeløp QOQ i prosent (regnskap)
+				measure 'Budget Amount PM (Fiscal)'
+					caption: Budsjettbeløp PM (regnskap)
+				measure 'Budget Amount MOM (Fiscal)'
+					caption: Budsjettbeløp MOM (regnskap)
+				measure 'Budget Amount MOM % (Fiscal)'
+					caption: Budsjettbeløp MOM i prosent (regnskap)
+				measure 'Budget Amount PP (Fiscal)'
+					caption: Budsjettbeløp PP (regnskap)
+				measure 'Budget Amount POP (Fiscal)'
+					caption: Budsjettbeløp POP (regnskap)
+				measure 'Budget Amount POP % (Fiscal)'
+					caption: Budsjettbeløp POP i prosent (regnskap)
+				measure 'Budget Amount PYTD (Fiscal)'
+					caption: Budsjettbeløp PYTD (regnskap)
+				measure 'Budget Amount PQTD (Fiscal)'
+					caption: Budsjettbeløp PQTD (regnskap)
+				measure 'Budget Amount YOYTD (Fiscal)'
+					caption: Budsjettbeløp YOYTD (regnskap)
+				measure 'Budget Amount YOYTD % (Fiscal)'
+					caption: Budsjettbeløp YOYTD i prosent (regnskap)
+				measure 'Budget Amount QOQTD (Fiscal)'
+					caption: Budsjettbeløp QOQTD (regnskap)
+				measure 'Budget Amount QOQTD % (Fiscal)'
+					caption: Budsjettbeløp QOQTD i prosent (regnskap)
+				measure 'Budget Amount PMTD (Fiscal)'
+					caption: Budsjettbeløp PMTD (regnskap)
+				measure 'Budget Amount MOMTD % (Fiscal)'
+					caption: Budsjettbeløp MOMTD i prosent (regnskap)
+				measure 'Budget Amount MOMTD (Fiscal)'
+					caption: Budsjettbeløp MOMTD (regnskap)
+				measure 'Budget Amount MAT (Fiscal)'
+					caption: Budsjettbeløp MAT (regnskap)
+				measure 'Budget Amount PYMAT (Fiscal)'
+					caption: Budsjettbeløp PYMAT (regnskap)
+				measure 'Budget Amount MATG (Fiscal)'
+					caption: Budsjettbeløp MATG (regnskap)
+				measure 'Budget Amount MATG % (Fiscal)'
+					caption: Budsjettbeløp MATG i prosent (regnskap)
+				measure 'Budget Amount MAT (364) (Fiscal)'
+					caption: Budsjettbeløp MAT (364) (regnskap)
+				measure 'Budget PYMAT (364) (Fiscal)'
+					caption: Budsjett PYMAT (364) (regnskap)
+				measure 'Budget Amount PYC (Fiscal)'
+					caption: Budsjettbeløp PYC (regnskap)
+				measure 'Budget Amount YTDOPY (Fiscal)'
+					caption: Budsjettbeløp YTDOPY (regnskap)
+				measure 'Budget Amount YTDOPY % (Fiscal)'
+					caption: Budsjettbeløp YTDOPY i prosent (regnskap)
+				measure 'Budget Amount PQC (Fiscal)'
+					caption: Budsjettbeløp PQC (regnskap)
+				measure 'Budget Amount QTDOPQ (Fiscal)'
+					caption: Budsjettbeløp QTDOPQ (regnskap)
+				measure 'Budget Amount QTDOPQ % (Fiscal)'
+					caption: Budsjettbeløp QTDOPQ i prosent (regnskap)
+				measure 'Budget Amount PMC (Fiscal)'
+					caption: Budsjettbeløp PMC (regnskap)
+				measure 'Budget Amount MTDOPM (Fiscal)'
+					caption: Budsjettbeløp MTDOPM (regnskap)
+				measure 'Budget Amount MTDOPM % (Fiscal)'
+					caption: Budsjettbeløp MTDOPM i prosent (regnskap)
+				measure 'Budget Amount AVG 30D (Fiscal)'
+					caption: Budsjettbeløp, snitt 30 dager (regnskap)
+				measure 'Budget Amount AVG 3M (Fiscal)'
+					caption: Budsjettbeløp, snitt 3 md. (regnskap)
+				measure 'Budget Amount AVG 1Y (Fiscal)'
+					caption: Budsjettbeløp, snitt 1 år (regnskap)
+				measure 'Budget Quantity YTD (Fiscal)'
+					caption: Budsjettantall hittil i år (regnskap)
+				measure 'Budget Quantity QTD (Fiscal)'
+					caption: Budsjettantall QTD (regnskap)
+				measure 'Budget Quantity MTD (Fiscal)'
+					caption: Budsjettantall MTD (regnskap)
+				measure 'Budget Quantity PY (Fiscal)'
+					caption: Budsjettantall PY (regnskap)
+				measure 'Budget Quantity YOY % (Fiscal)'
+					caption: Budsjettantall YOY i prosent (regnskap)
+				measure 'Budget Quantity YOY (Fiscal)'
+					caption: Budsjettantall YOY (regnskap)
+				measure 'Budget Quantity PQ (Fiscal)'
+					caption: Budsjettantall PQ (regnskap)
+				measure 'Budget Quantity QOQ (Fiscal)'
+					caption: Budsjettantall QOQ (regnskap)
+				measure 'Budget Quantity QOQ % (Fiscal)'
+					caption: Budsjettantall QOQ i prosent (regnskap)
+				measure 'Budget Quantity PM (Fiscal)'
+					caption: Budsjettantall PM (regnskap)
+				measure 'Budget Quantity MOM (Fiscal)'
+					caption: Budsjettantall MOM (regnskap)
+				measure 'Budget Quantity MOM % (Fiscal)'
+					caption: Budsjettantall MOM i prosent (regnskap)
+				measure 'Budget Quantity PP (Fiscal)'
+					caption: Budsjettantall PP (regnskap)
+				measure 'Budget Quantity POP (Fiscal)'
+					caption: Budsjettantall POP (regnskap)
+				measure 'Budget Quantity POP % (Fiscal)'
+					caption: Budsjettantall POP i prosent (regnskap)
+				measure 'Budget Quantity PYTD (Fiscal)'
+					caption: Budsjettantall PYTD (regnskap)
+				measure 'Budget Quantity PQTD (Fiscal)'
+					caption: Budsjettantall PQTD (regnskap)
+				measure 'Budget Quantity YOYTD (Fiscal)'
+					caption: Budsjettantall YOYTD (regnskap)
+				measure 'Budget Quantity YOYTD % (Fiscal)'
+					caption: Budsjettantall YOYTD i prosent (regnskap)
+				measure 'Budget Quantity QOQTD (Fiscal)'
+					caption: Budsjettantall QOQTD (regnskap)
+				measure 'Budget Quantity QOQTD % (Fiscal)'
+					caption: Budsjettantall QOQTD i prosent (regnskap)
+				measure 'Budget Quantity PMTD (Fiscal)'
+					caption: Budsjettantall PMTD (regnskap)
+				measure 'Budget Quantity MOMTD % (Fiscal)'
+					caption: Budsjettantall MOMTD i prosent (regnskap)
+				measure 'Budget Quantity MOMTD (Fiscal)'
+					caption: Budsjettantall MOMTD (regnskap)
+				measure 'Budget Quantity MAT (Fiscal)'
+					caption: Budsjettantall MAT (regnskap)
+				measure 'Budget Quantity PYMAT (Fiscal)'
+					caption: Budsjettantall PYMAT (regnskap)
+				measure 'Budget Quantity MATG (Fiscal)'
+					caption: Budsjettantall MATG (regnskap)
+				measure 'Budget Quantity MATG % (Fiscal)'
+					caption: Budsjettantall MATG i prosent (regnskap)
+				measure 'Budget Quantity PYC (Fiscal)'
+					caption: Budsjettantall PYC (regnskap)
+				measure 'Budget Quantity YTDOPY (Fiscal)'
+					caption: Budsjettantall YTDOPY (regnskap)
+				measure 'Budget Quantity YTDOPY % (Fiscal)'
+					caption: Budsjettantall YTDOPY i prosent (regnskap)
+				measure 'Budget Quantity PQC (Fiscal)'
+					caption: Budsjettantall PQC (regnskap)
+				measure 'Budget Quantity QTDOPQ (Fiscal)'
+					caption: Budsjettantall QTDOPQ (regnskap)
+				measure 'Budget Quantity QTDOPQ % (Fiscal)'
+					caption: Budsjettantall QTDOPQ i prosent (regnskap)
+				measure 'Budget Quantity PMC (Fiscal)'
+					caption: Budsjettantall PMC (regnskap)
+				measure 'Budget Quantity MTDOPM (Fiscal)'
+					caption: Budsjettantall MTDOPM (regnskap)
+				measure 'Budget Quantity MTDOPM % (Fiscal)'
+					caption: Budsjettantall MTDOPM i prosent (regnskap)
+				measure 'Budget Quantity AVG 30D (Fiscal)'
+					caption: Budsjettantall, snitt 30 dager (regnskap)
+				measure 'Budget Quantity AVG 3M (Fiscal)'
+					caption: Budsjettantall, snitt 3 mnd. (regnskap)
+				measure 'Budget Quantity AVG 1Y (Fiscal)'
+					caption: Budsjettantall, snitt 1 år (regnskap)
+			table 'Weekly Calendar Time Intelligence'
+				caption: Tidsintelligens for ukekalender
+				measure 'Purchase Amount YTD (Weekly)'
+					caption: Kjøpsbeløp hittil i år (ukentlig)
+				measure 'Purchase Amount QTD (Weekly)'
+					caption: Kjøpsbeløp QTD (ukentlig)
+				measure 'Purchase Amount MTD (Weekly)'
+					caption: Kjøpsbeløp MTD (ukentlig)
+				measure 'Purchase Amount WTD (Weekly)'
+					caption: Kjøpsbeløp WTD (ukentlig)
+				measure 'Purchase Amount PY (Weekly)'
+					caption: Kjøpsbeløp PY (ukentlig)
+				measure 'Purchase Amount YOY % (Weekly)'
+					caption: Kjøpsbeløp YOY i prosent (ukentlig)
+				measure 'Purchase Amount YOY (Weekly)'
+					caption: Kjøpsbeløp YOY (ukentlig)
+				measure 'Purchase Amount PQ (Weekly)'
+					caption: Kjøpsbeløp PQ (ukentlig)
+				measure 'Purchase Amount QOQ (Weekly)'
+					caption: Kjøpsbeløp QOQ (ukentlig)
+				measure 'Purchase Amount QOQ % (Weekly)'
+					caption: Kjøpsbeløp QOQ i prosent (ukentlig)
+				measure 'Purchase Amount PW (Weekly)'
+					caption: Kjøpsbeløp PW (ukentlig)
+				measure 'Purchase Amount WOW (Weekly)'
+					caption: Kjøpsbeløp WOW (ukentlig)
+				measure 'Purchase Amount WOW % (Weekly)'
+					caption: Kjøpsbeløp WOW i prosent (ukentlig)
+				measure 'Purchase Amount PP (Weekly)'
+					caption: Kjøpsbeløp PP (ukentlig)
+				measure 'Purchase Amount POP (Weekly)'
+					caption: Kjøpsbeløp POP (ukentlig)
+				measure 'Purchase Amount POP % (Weekly)'
+					caption: Kjøpsbeløp POP i prosent (ukentlig)
+				measure 'Purchase Amount PYTD (Weekly)'
+					caption: Kjøpsbeløp PYTD (ukentlig)
+				measure 'Purchase Amount PQTD (Weekly)'
+					caption: Kjøpsbeløp PQTD (ukentlig)
+				measure 'Purchase Amount YOYTD (Weekly)'
+					caption: Kjøpsbeløp YOYTD (ukentlig)
+				measure 'Purchase Amount YOYTD % (Weekly)'
+					caption: Kjøpsbeløp YOYTD i prosent (ukentlig)
+				measure 'Purchase Amount QOQTD (Weekly)'
+					caption: Kjøpsbeløp QOQTD (ukentlig)
+				measure 'Purchase Amount QOQTD % (Weekly)'
+					caption: Kjøpsbeløp QOQTD i prosent (ukentlig)
+				measure 'Purchase Amount PWTD (Weekly)'
+					caption: Kjøpsbeløp PWTD (ukentlig)
+				measure 'Purchase Amount WOWTD (Weekly)'
+					caption: Kjøpsbeløp WOWTD (ukentlig)
+				measure 'Purchase Amount WOWTD % (Weekly)'
+					caption: Kjøpsbeløp WOWTD i prosent (ukentlig)
+				measure 'Purchase Amount MAT (364) (Weekly)'
+					caption: Kjøpsbeløp MAT (364) (ukentlig)
+				measure 'Purchase Amount PYMAT (364) (Weekly)'
+					caption: Kjøpsbeløp PYMAT (364) (ukentlig)
+				measure 'Purchase Amount MATG (Weekly)'
+					caption: Kjøpsbeløp MATG (ukentlig)
+				measure 'Purchase Amount MATG % (Weekly)'
+					caption: Kjøpsbeløp MATG i prosent (ukentlig)
+				measure 'Purchase Amount PYC (Weekly)'
+					caption: Kjøpsbeløp PYC (ukentlig)
+				measure 'Purchase Amount YTDOPY (Weekly)'
+					caption: Kjøpsbeløp YTDOPY (ukentlig)
+				measure 'Purchase Amount YTDOPY % (Weekly)'
+					caption: Kjøpsbeløp YTDOPY i prosent (ukentlig)
+				measure 'Purchase Amount PQC (Weekly)'
+					caption: Kjøpsbeløp PQC (ukentlig)
+				measure 'Purchase Amount QTDOPQ (Weekly)'
+					caption: Kjøpsbeløp QTDOPQ (ukentlig)
+				measure 'Purchase Amount QTDOPQ % (Weekly)'
+					caption: Kjøpsbeløp QTDOPQ i prosent (ukentlig)
+				measure 'Purchase Amount PWC (Weekly)'
+					caption: Kjøpsbeløp PWC (ukentlig)
+				measure 'Purchase Amount WTDOPW (Weekly)'
+					caption: Kjøpsbeløp WTDOPW (ukentlig)
+				measure 'Purchase Amount WTDOPW % (Weekly)'
+					caption: Kjøpsbeløp WTDOPW i prosent (ukentlig)
+				measure 'Purchase Amount AVG 4W (Weekly)'
+					caption: Kjøpsbeløp, snitt 4 uker (ukentlig)
+				measure 'Purchase Amount AVG 1Q (Weekly)'
+					caption: Kjøpsbeløp, snitt 1. kv. (ukentlig)
+				measure 'Purchase Amount AVG 1Y (Weekly)'
+					caption: Kjøpsbeløp, snitt 1 år (ukentlig)
+				measure 'Purchase Quantity YTD (Weekly)'
+					caption: Kjøpsantall hittil i år (ukentlig)
+				measure 'Purchase Quantity QTD (Weekly)'
+					caption: Kjøpsantall QTD (ukentlig)
+				measure 'Purchase Quantity MTD (Weekly)'
+					caption: Kjøpsantall MTD (ukentlig)
+				measure 'Purchase Quantity WTD (Weekly)'
+					caption: Kjøpsantall WTD (ukentlig)
+				measure 'Purchase Quantity PY (Weekly)'
+					caption: Kjøpsantall PY (ukentlig)
+				measure 'Purchase Quantity YOY % (Weekly)'
+					caption: Kjøpsantall YOY i prosent (ukentlig)
+				measure 'Purchase Quantity YOY (Weekly)'
+					caption: Kjøpsantall YOY (ukentlig)
+				measure 'Purchase Quantity PQ (Weekly)'
+					caption: Kjøpsantall PQ (ukentlig)
+				measure 'Purchase Quantity QOQ (Weekly)'
+					caption: Kjøpsantall QOQ (ukentlig)
+				measure 'Purchase Quantity QOQ % (Weekly)'
+					caption: Kjøpsantall QOQ i prosent (ukentlig)
+				measure 'Purchase Quantity PW (Weekly)'
+					caption: Kjøpsantall PW (ukentlig)
+				measure 'Purchase Quantity WOW (Weekly)'
+					caption: Kjøpsantall WOW (ukentlig)
+				measure 'Purchase Quantity WOW % (Weekly)'
+					caption: Kjøpsantall WOW i prosent (ukentlig)
+				measure 'Purchase Quantity PP (Weekly)'
+					caption: Kjøpsantall PP (ukentlig)
+				measure 'Purchase Quantity POP (Weekly)'
+					caption: Kjøpsantall POP (ukentlig)
+				measure 'Purchase Quantity POP % (Weekly)'
+					caption: Kjøpsantall POP i prosent (ukentlig)
+				measure 'Purchase Quantity PYTD (Weekly)'
+					caption: Kjøpsantall PYTD (ukentlig)
+				measure 'Purchase Quantity PQTD (Weekly)'
+					caption: Kjøpsantall PQTD (ukentlig)
+				measure 'Purchase Quantity YOYTD (Weekly)'
+					caption: Kjøpsantall YOYTD (ukentlig)
+				measure 'Purchase Quantity YOYTD % (Weekly)'
+					caption: Kjøpsantall YOYTD i prosent (ukentlig)
+				measure 'Purchase Quantity QOQTD (Weekly)'
+					caption: Kjøpsantall QOQTD (ukentlig)
+				measure 'Purchase Quantity QOQTD % (Weekly)'
+					caption: Kjøpsantall QOQTD i prosent (ukentlig)
+				measure 'Purchase Quantity PWTD (Weekly)'
+					caption: Kjøpsantall PWTD (ukentlig)
+				measure 'Purchase Quantity WOWTD (Weekly)'
+					caption: Kjøpsantall WOWTD (ukentlig)
+				measure 'Purchase Quantity WOWTD % (Weekly)'
+					caption: Kjøpsantall WOWTD i prosent (ukentlig)
+				measure 'Purchase Quantity MAT (364) (Weekly)'
+					caption: Kjøpsantall MAT (364) (ukentlig)
+				measure 'Purchase Quantity PYMAT (364) (Weekly)'
+					caption: Kjøpsantall PYMAT (364) (ukentlig)
+				measure 'Purchase Quantity MATG (Weekly)'
+					caption: Kjøpsantall MATG (ukentlig)
+				measure 'Purchase Quantity MATG % (Weekly)'
+					caption: Kjøpsantall MATG i prosent (ukentlig)
+				measure 'Purchase Quantity PYC (Weekly)'
+					caption: Kjøpsantall PYC (ukentlig)
+				measure 'Purchase Quantity YTDOPY (Weekly)'
+					caption: Kjøpsantall YTDOPY (ukentlig)
+				measure 'Purchase Quantity YTDOPY  % (Weekly)'
+					caption: Kjøpsantall YTDOPY i prosent (ukentlig)
+				measure 'Purchase Quantity PQC (Weekly)'
+					caption: Kjøpsantall PQC (ukentlig)
+				measure 'Purchase Quantity QTDOPQ (Weekly)'
+					caption: Kjøpsantall QTDOPQ (ukentlig)
+				measure 'Purchase Quantity QTDOPQ % (Weekly)'
+					caption: Kjøpsantall QTDOPQ i prosent (ukentlig)
+				measure 'Purchase Quantity PWC (Weekly)'
+					caption: Kjøpsantall PWC (ukentlig)
+				measure 'Purchase Quantity WTDOPW (Weekly)'
+					caption: Kjøpsantall WTDOPW (ukentlig)
+				measure 'Purchase Quantity WTDOPW % (Weekly)'
+					caption: Kjøpsantall WTDOPW i prosent (ukentlig)
+				measure 'Purchase Quantity AVG 4W (Weekly)'
+					caption: Kjøpsantall, snitt 4 uker (ukentlig)
+				measure 'Purchase Quantity AVG 1Q (Weekly)'
+					caption: Kjøpsantall, snitt 1. kv. (ukentlig)
+				measure 'Purchase Quantity AVG 1Y (Weekly)'
+					caption: Kjøpsantall, snitt 1 år (ukentlig)
+				measure 'Budget Quantity YTD (Weekly)'
+					caption: Budsjettantall hittil i år (ukentlig)
+				measure 'Budget Quantity QTD (Weekly)'
+					caption: Budsjettantall QTD (ukentlig)
+				measure 'Budget Quantity MTD (Weekly)'
+					caption: Budsjettantall MTD (ukentlig)
+				measure 'Budget Quantity WTD (Weekly)'
+					caption: Budsjettantall WTD (ukentlig)
+				measure 'Budget Quantity PY (Weekly)'
+					caption: Budsjettantall PY (ukentlig)
+				measure 'Budget Quantity YOY % (Weekly)'
+					caption: Budsjettantall YOY i prosent (ukentlig)
+				measure 'Budget Quantity YOY (Weekly)'
+					caption: Budsjettantall YOY (ukentlig)
+				measure 'Budget Quantity PQ (Weekly)'
+					caption: Budsjettantall PQ (ukentlig)
+				measure 'Budget Quantity QOQ (Weekly)'
+					caption: Budsjettantall QOQ (ukentlig)
+				measure 'Budget Quantity QOQ % (Weekly)'
+					caption: Budsjettantall QOQ i prosent (ukentlig)
+				measure 'Budget Quantity PW (Weekly)'
+					caption: Budsjettantall PW (ukentlig)
+				measure 'Budget Quantity WOW (Weekly)'
+					caption: Budsjettantall WOW (ukentlig)
+				measure 'Budget Quantity WOW % (Weekly)'
+					caption: Budsjettantall WOW i prosent (ukentlig)
+				measure 'Budget Quantity PP (Weekly)'
+					caption: Budsjettantall PP (ukentlig)
+				measure 'Budget Quantity POP (Weekly)'
+					caption: Budsjettantall POP (ukentlig)
+				measure 'Budget Quantity POP % (Weekly)'
+					caption: Budsjettantall POP i prosent (ukentlig)
+				measure 'Budget Quantity PYTD (Weekly)'
+					caption: Budsjettantall PYTD (ukentlig)
+				measure 'Budget Quantity PQTD (Weekly)'
+					caption: Budsjettantall PQTD (ukentlig)
+				measure 'Budget Quantity YOYTD (Weekly)'
+					caption: Budsjettantall YOYTD (ukentlig)
+				measure 'Budget Quantity YOYTD % (Weekly)'
+					caption: Budsjettantall YOYTD i prosent (ukentlig)
+				measure 'Budget Quantity QOQTD (Weekly)'
+					caption: Budsjettantall QOQTD (ukentlig)
+				measure 'Budget Quantity QOQTD % (Weekly)'
+					caption: Budsjettantall QOQTD i prosent (ukentlig)
+				measure 'Budget Quantity PWTD (Weekly)'
+					caption: Budsjettantall PWTD (ukentlig)
+				measure 'Budget Quantity WOWTD (Weekly)'
+					caption: Budsjettantall WOWTD (ukentlig)
+				measure 'Budget Quantity WOWTD % (Weekly)'
+					caption: Budsjettantall WOWTD i prosent (ukentlig)
+				measure 'Budget Quantity MAT (364) (Weekly)'
+					caption: Budsjettantall MAT (364) (ukentlig)
+				measure 'Budget Quantity PYMAT (364) (Weekly)'
+					caption: Budsjettantall PYMAT (364) (ukentlig)
+				measure 'Budget Quantity MATG (Weekly)'
+					caption: Budsjettantall MATG (ukentlig)
+				measure 'Budget Quantity MATG % (Weekly)'
+					caption: Budsjettantall MATG i prosent (ukentlig)
+				measure 'Budget Quantity PYC (Weekly)'
+					caption: Budsjettantall PYC (ukentlig)
+				measure 'Budget Quantity YTDOPY (Weekly)'
+					caption: Budsjettantall YTDOPY (ukentlig)
+				measure 'Budget Quantity YTDOPY  % (Weekly)'
+					caption: Budsjettantall YTDOPY i prosent (ukentlig)
+				measure 'Budget Quantity PQC (Weekly)'
+					caption: Budsjettantall PQC (ukentlig)
+				measure 'Budget Quantity QTDOPQ (Weekly)'
+					caption: Budsjettantall QTDOPQ (ukentlig)
+				measure 'Budget Quantity QTDOPQ % (Weekly)'
+					caption: Budsjettantall QTDOPQ i prosent (ukentlig)
+				measure 'Budget Quantity PWC (Weekly)'
+					caption: Budsjettantall PWC (ukentlig)
+				measure 'Budget Quantity WTDOPW (Weekly)'
+					caption: Budsjettantall WTDOPW (ukentlig)
+				measure 'Budget Quantity WTDOPW % (Weekly)'
+					caption: Budsjettantall WTDOPW i prosent (ukentlig)
+				measure 'Budget Quantity AVG 4W (Weekly)'
+					caption: Budsjettantall, snitt 4 uker (ukentlig)
+				measure 'Budget Quantity AVG 1Q (Weekly)'
+					caption: Budsjettantall, snitt 1. kv. (ukentlig)
+				measure 'Budget Quantity AVG 1Y (Weekly)'
+					caption: Budsjettantall, snitt 1 år (ukentlig)
+				measure 'Budget Amount YTD (Weekly)'
+					caption: Budsjettbeløp hittil i år (ukentlig)
+				measure 'Budget Amount QTD (Weekly)'
+					caption: Budsjettbeløp QTD (ukentlig)
+				measure 'Budget Amount MTD (Weekly)'
+					caption: Budsjettbeløp MTD (ukentlig)
+				measure 'Budget Amount WTD (Weekly)'
+					caption: Budsjettbeløp WTD (ukentlig)
+				measure 'Budget Amount PY (Weekly)'
+					caption: Budsjettbeløp PY (ukentlig)
+				measure 'Budget Amount YOY % (Weekly)'
+					caption: Budsjettbeløp YOY i prosent (ukentlig)
+				measure 'Budget Amount YOY (Weekly)'
+					caption: Budsjettbeløp YOY (ukentlig)
+				measure 'Budget Amount PQ (Weekly)'
+					caption: Budsjettbeløp PQ (ukentlig)
+				measure 'Budget Amount QOQ (Weekly)'
+					caption: Budsjettbeløp QOQ (ukentlig)
+				measure 'Budget Amount QOQ % (Weekly)'
+					caption: Budsjettbeløp QOQ i prosent (ukentlig)
+				measure 'Budget Amount PW (Weekly)'
+					caption: Budsjettbeløp PW (ukentlig)
+				measure 'Budget Amount WOW (Weekly)'
+					caption: Budsjettbeløp WOW (ukentlig)
+				measure 'Budget Amount WOW % (Weekly)'
+					caption: Budsjettbeløp WOW i prosent (ukentlig)
+				measure 'Budget Amount PP (Weekly)'
+					caption: Budsjettbeløp PP (ukentlig)
+				measure 'Budget Amount POP (Weekly)'
+					caption: Budsjettbeløp POP (ukentlig)
+				measure 'Budget Amount POP % (Weekly)'
+					caption: Budsjettbeløp POP i prosent (ukentlig)
+				measure 'Budget Amount PYTD (Weekly)'
+					caption: Budsjettbeløp PYTD (ukentlig)
+				measure 'Budget Amount PQTD (Weekly)'
+					caption: Budsjettbeløp PQTD (ukentlig)
+				measure 'Budget Amount YOYTD (Weekly)'
+					caption: Budsjettbeløp YOYTD (ukentlig)
+				measure 'Budget Amount YOYTD % (Weekly)'
+					caption: Budsjettbeløp YOYTD i prosent (ukentlig)
+				measure 'Budget Amount QOQTD (Weekly)'
+					caption: Budsjettbeløp QOQTD (ukentlig)
+				measure 'Budget Amount QOQTD % (Weekly)'
+					caption: Budsjettbeløp QOQTD i prosent (ukentlig)
+				measure 'Budget Amount PWTD (Weekly)'
+					caption: Budsjettbeløp PWTD (ukentlig)
+				measure 'Budget Amount WOWTD (Weekly)'
+					caption: Budsjettbeløp WOWTD (ukentlig)
+				measure 'Budget Amount WOWTD % (Weekly)'
+					caption: Budsjettbeløp WOWTD i prosent (ukentlig)
+				measure 'Budget Amount MAT (364) (Weekly)'
+					caption: Budsjettbeløp MAT (364) (ukentlig)
+				measure 'Budget Amount PYMAT (364) (Weekly)'
+					caption: Budsjettbeløp PYMAT (364) (ukentlig)
+				measure 'Budget Amount MATG (Weekly)'
+					caption: Budsjettbeløp MATG (ukentlig)
+				measure 'Budget Amount MATG % (Weekly)'
+					caption: Budsjettbeløp MATG i prosent (ukentlig)
+				measure 'Budget Amount PYC (Weekly)'
+					caption: Budsjettbeløp PYC (ukentlig)
+				measure 'Budget Amount YTDOPY (Weekly)'
+					caption: Budsjettbeløp YTDOPY (ukentlig)
+				measure 'Budget Amount YTDOPY % (Weekly)'
+					caption: Budsjettbeløp YTDOPY i prosent (ukentlig)
+				measure 'Budget Amount PQC (Weekly)'
+					caption: Budsjettbeløp PQC (ukentlig)
+				measure 'Budget Amount QTDOPQ (Weekly)'
+					caption: Budsjettbeløp QTDOPQ (ukentlig)
+				measure 'Budget Amount QTDOPQ % (Weekly)'
+					caption: Budsjettbeløp QTDOPQ i prosent (ukentlig)
+				measure 'Budget Amount PWC (Weekly)'
+					caption: Budsjettbeløp PWC (ukentlig)
+				measure 'Budget Amount WTDOPW (Weekly)'
+					caption: Budsjettbeløp WTDOPW (ukentlig)
+				measure 'Budget Amount WTDOPW % (Weekly)'
+					caption: Budsjettbeløp WTDOPW i prosent (ukentlig)
+				measure 'Budget Amount AVG 4W (Weekly)'
+					caption: Budsjettbeløp, snitt 4 uker (ukentlig)
+				measure 'Budget Amount AVG 1Q (Weekly)'
+					caption: Budsjettbeløp, snitt 1. kv. (ukentlig)
+				measure 'Budget Amount AVG 1Y (Weekly)'
+					caption: Budsjettbeløp, snitt 1 år (ukentlig)
+			table 'Localized Labels'
+				measure 'My Report Title'
+					caption: Min rapporttittel
+				measure 'My Button Caption'
+					caption: Min knappetittel
+				measure 'My Visual Title'
+					caption: Min visuelle tittel
+				measure 'Purchases Overview'
+					caption: Oversikt over kjøp
+				measure 'Purchases Decomposition'
+					caption: Nedbryting av kjøp
+				measure 'Daily Purchases'
+					caption: Daglige kjøp
+				measure 'Moving Averages'
+					caption: Glidende gjennomsnitt
+				measure 'Moving Annual Total (MAT)'
+					caption: Glidende årssum (MAT)
+				measure 'Period-Over-Period (POP)'
+					caption: Periode for periode (POP)
+				measure 'Year-Over-Year (YOY)'
+					caption: År til år (YOY)
+				measure 'Purchases by Item'
+					caption: Kjøp etter vare
+				measure 'Purchases by Purchaser'
+					caption: Kjøp etter innkjøper
+				measure 'Purchases by Vendor'
+					caption: Kjøp etter leverandør
+				measure 'Purchases by Location'
+					caption: Kjøp etter lokasjon
+				measure 'Actual vs. Budget Quantity'
+					caption: Faktisk antall kontra budsjettantall
+				measure 'Actual vs. Budget Amount'
+					caption: Faktisk beløp kontra budsjettbeløp
+				measure 'Item Drillthrough'
+					caption: Gjennomgang av vare
+				measure 'Vendor Drillthrough'
+					caption: Gjennomgang av leverandør
+				measure 'Location Drillthrough'
+					caption: Gjennomgang av lokasjon
+				measure 'Purchaser Drillthrough'
+					caption: Gjennomgang av innkjøper
+				measure Purchase
+					caption: Kjøp
+				measure 'for Business Central'
+					caption: for Business Central
+				measure 'CONNECT YOUR DATA'
+					caption: KOBLE TIL DATAENE
+				measure '1. Download the Purchasing Connector for Power BI'
+					caption: 1. Last ned Purchasing Connector for Power BI
+				measure '2. Configure Dynamics 365 Business Central'
+					caption: 2. Konfigurer Dynamics 365 Business Central
+				measure 'USE, EDIT AND BUILD YOUR OWN REPORTS'
+					caption: BRUK, REDIGER OG BYGG DINE EGNE RAPPORTER
+				measure 'Purchasing includes a variety of pre-built reports to help you see your data immediately.'
+					caption: Innkjøp inkluderer en rekke forhåndsbygde rapporter for å hjelpe deg med å se dataene umiddelbart.
+				measure 'You are able to edit these reports or build your own report from scratch'
+					caption: Du kan redigere disse rapportene eller lage din egen rapport fra bunnen av
+				measure 'HELP AND SUPPORT'
+					caption: HJELP OG KUNDESTØTTE
+				measure 'For help and support with your new report please visit the Analytics overview documentation.'
+					caption: Hvis du vil ha hjelp og støtte med den nye rapporten, kan du gå til dokumentasjonen for analyseoversikten.
+				measure 'OTHER POWER BI REPORTS'
+					caption: ANDRE POWER BI-RAPPORTER
+				measure SALES
+					caption: SALG
+				measure FINANCE
+					caption: FINANS
+				measure REBATES
+					caption: RABATTER
+				measure INVENTORY
+					caption: BEHOLDNING
+				measure JOBS
+					caption: PROSJEKTER
+				measure 'Purchase Amounts'
+					caption: Kjøpsbeløp
+				measure 'Purchase Quantity by Item Category'
+					caption: Kjøpsantall etter varekategori
+				measure 'Top 5 Vendors by Amount by Source Type'
+					caption: Topp fem leverandører etter beløp etter kildetype
+				measure 'Locations by Quantity'
+					caption: Lokasjoner etter antall
+				measure 'Document Count'
+					caption: Dokumentantall
+				measure 'Purchase Quantities'
+					caption: Kjøpsantall
+				measure 'Decomposition by Amount'
+					caption: Nedbryting etter beløp
+				measure 'Purchase Amount and Purchase Amount 30 Days Average (Fiscal) by Fiscal Month Year'
+					caption: Kjøpsbeløp og kjøpsbeløp, 30 dagers gjennomsnitt (regnskap) etter Regnskap Måned År
+				measure 'Previous Year & Current Year Moving Annual Total by Fiscal Month Year'
+					caption: Forrige år og inneværende år, glidende årssum etter Regnskap Måned År
+				measure 'Purchase Amount Period-over-Period (Fiscal) and Purchase Amount by Fiscal Month Year'
+					caption: Kjøpsbeløp periode for periode (regnskap) og kjøpsbeløp etter Regnskap Måned År
+				measure 'Current Year and Previous Year (Fiscal) Purchase Amount by Fiscal Month Year'
+					caption: Kjøpsbeløp for inneværende år og forrige år (regnskap) etter Regnskap Måned År
+				measure 'Last Refreshed'
+					caption: Sist oppdatert
+				measure 'Company Name'
+					caption: Selskapsnavn
+				measure 'Purchase Quantity by Location'
+					caption: Kjøpsantall etter lokasjon
+				measure 'Purchase Amounts of Top 5 Vendors'
+					caption: Kjøpsbeløp for de fem beste leverandørene
+				measure 'Purchase Distribution by Item Category'
+					caption: Kjøpsdistribusjon etter varekategori
+				measure 'Purchases by Item Category'
+					caption: Kjøp etter varekategori
+				measure 'Purchase Amount by Item Category'
+					caption: Kjøpsbeløp etter varekategori
+				measure 'Actual vs Budget'
+					caption: Faktisk i forhold til budsjett
+				measure 'Actual vs Budget Purchase Analysis by Item Category'
+					caption: Kjøpsanalyse av faktisk i forhold til budsjett etter varekategori
+				measure 'Purchases Drillthrough'
+					caption: Gjennomgang av kjøp
+				measure 'Detailed Purchase Ledger'
+					caption: Detaljert kjøpspost
+				measure 'Total Purchase Amount by Fiscal Year'
+					caption: Totalt kjøpsbeløp etter regnskapsår
+				measure PROJECTS
+					caption: PROSJEKTER
+				measure MANUFACTURING
+					caption: PRODUKSJON
+				measure 'This card displays key metrics for business analysis. The card shows total purchase amount, document count, number of outstanding purchase orders, number of purchase invoices, outstanding amount, and invoiced amount.'
+					caption: Dette kortet viser viktige måleverdier for forretningsanalyse. Kortet viser totalt kjøpsbeløp, dokumentantall, antall utestående bestillinger, antall kjøpsfakturaer, utestående beløp og fakturert beløp.
+				measure 'The card displays key metrics for business analysis, including total purchase amount, document count, number of outstanding purchase orders, number of purchase invoices, outstanding amount excluding VAT, and invoiced amount.'
+					caption: Kortet viser viktige måleverdier for forretningsanalyse, inkludert totalt kjøpsbeløp, dokumentantall, antall utestående bestillinger, antall kjøpsfakturaer, utestående beløp ekskludert mva. og fakturert beløp.
+				measure 'Daily Purchases Details'
+					caption: Detaljer om daglige kjøp
+				measure 'Moving Annual Total (MAT) Details'
+					caption: Detaljer om glidende årssum (MAT)
+				measure 'Period-Over-Period (POP) Details'
+					caption: Detaljer om periode for periode (POP)
+				measure 'Year-Over-Year (YOY) Details'
+					caption: Detaljer om år for år (YOY)
+				measure 'Purchases by Item Details'
+					caption: Detaljer om kjøp etter vare
+				measure 'Purchases by Vendor Details'
+					caption: Detaljer om kjøp etter leverandør
+				measure 'Purchases by Purchaser Details'
+					caption: Detaljer om kjøp etter innkjøper
+				measure 'Purchases by Location Details'
+					caption: Detaljer om kjøp etter lokasjon
+				measure 'Purchases Drillthrough Details'
+					caption: Detaljer om gjennomgang av kjøp
+			table COMPANY
+				caption: SELSKAP
+				measure 'Company Label'
+					caption: Selskapsetikett
+			table 'Purchase Budget Name'
+				caption: Navn på kjøpsbudsjett
+				column 'Purchase Budget Description'
+					caption: Beskrivelse av kjøpsbudsjett
+			table 'Item Category'
+				caption: Varekategori
+				column 'Item Category Code'
+					caption: Varekategorikode
+				column 'Item Category Description'
+					caption: Beskrivelse av varekategori
+				column 'Item Category Parent Category'
+					caption: Overordnet kategori for varekategori
+				column 'Item Category Code Level 1'
+					caption: Varekategorikode nivå 1
+				column 'Item Category Code Level 2'
+					caption: Varekategorikode nivå 2
+				column 'Item Category Code Level 3'
+					caption: Varekategorikode nivå 3
+

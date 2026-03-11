@@ -1,0 +1,235 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.4.0/schema.json",
+  "name": "08064ffd53f358dda809",
+  "position": {
+    "x": 27.487684729064039,
+    "y": 311.23152709359607,
+    "z": 4000,
+    "height": 383.94088669950742,
+    "width": 604.72906403940885,
+    "tabOrder": 4000
+  },
+  "visual": {
+    "visualType": "tableEx",
+    "query": {
+      "queryState": {
+        "Values": {
+          "projections": [
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Customers"
+                    }
+                  },
+                  "Property": "Customer Name"
+                }
+              },
+              "queryRef": "Customers.Customer Name",
+              "nativeQueryRef": "Customer Name"
+            },
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Customer Ledger Entries"
+                    }
+                  },
+                  "Property": "Average Days Late"
+                }
+              },
+              "queryRef": "Customer Ledger Entries.Average Days Late",
+              "nativeQueryRef": "Average Days Late"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Customer Ledger Entries"
+                    }
+                  },
+                  "Property": "Late Payment Invoice No."
+                }
+              },
+              "queryRef": "Customer Ledger Entries.Late Payment Invoice No.",
+              "nativeQueryRef": "Late Payment Invoice No."
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Customer Ledger Entries"
+                    }
+                  },
+                  "Property": "CLE Due Date"
+                }
+              },
+              "queryRef": "Customer Ledger Entries.CLE Due Date",
+              "nativeQueryRef": "Due Date",
+              "displayName": "Due Date"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Customer Ledger Entries"
+                    }
+                  },
+                  "Property": "Document No."
+                }
+              },
+              "queryRef": "Customer Ledger Entries.Document No.",
+              "nativeQueryRef": "Payment Document No.",
+              "displayName": "Payment Document No."
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Date"
+                    }
+                  },
+                  "Property": "Date"
+                }
+              },
+              "queryRef": "Date.Date",
+              "nativeQueryRef": "Posting Date",
+              "displayName": "Posting Date"
+            },
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Customer Ledger Entries"
+                    }
+                  },
+                  "Property": "Late Payment Amount"
+                }
+              },
+              "queryRef": "Customer Ledger Entries.Payment Amount",
+              "nativeQueryRef": "Late Payment Amount"
+            }
+          ]
+        }
+      },
+      "sortDefinition": {
+        "sort": [
+          {
+            "field": {
+              "Measure": {
+                "Expression": {
+                  "SourceRef": {
+                    "Entity": "Customer Ledger Entries"
+                  }
+                },
+                "Property": "Average Days Late"
+              }
+            },
+            "direction": "Descending"
+          }
+        ]
+      }
+    },
+    "objects": {
+      "columnWidth": [
+        {
+          "properties": {
+            "value": {
+              "expr": {
+                "Literal": {
+                  "Value": "65.6459655999428D"
+                }
+              }
+            }
+          },
+          "selector": {
+            "metadata": "Customer Ledger Entries.Document No."
+          }
+        },
+        {
+          "properties": {
+            "value": {
+              "expr": {
+                "Literal": {
+                  "Value": "81.67105064805706D"
+                }
+              }
+            }
+          },
+          "selector": {
+            "metadata": "Customer Ledger Entries.Late Payment Invoice No."
+          }
+        },
+        {
+          "properties": {
+            "value": {
+              "expr": {
+                "Literal": {
+                  "Value": "103.97080561058371D"
+                }
+              }
+            }
+          },
+          "selector": {
+            "metadata": "Customers.Customer Name"
+          }
+        },
+        {
+          "properties": {
+            "value": {
+              "expr": {
+                "Literal": {
+                  "Value": "72.89456239499947D"
+                }
+              }
+            }
+          },
+          "selector": {
+            "metadata": "Customer Ledger Entries.Payment Amount"
+          }
+        },
+        {
+          "properties": {
+            "value": {
+              "expr": {
+                "Literal": {
+                  "Value": "63.959006724623535D"
+                }
+              }
+            }
+          },
+          "selector": {
+            "metadata": "Customer Ledger Entries.Average Days Late"
+          }
+        }
+      ]
+    },
+    "visualContainerObjects": {
+      "title": [
+        {
+          "properties": {
+            "text": {
+              "expr": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Translated Localized Labels"
+                    }
+                  },
+                  "Property": "Late Payment Details Label"
+                }
+              }
+            }
+          }
+        }
+      ]
+    }
+  }
+}

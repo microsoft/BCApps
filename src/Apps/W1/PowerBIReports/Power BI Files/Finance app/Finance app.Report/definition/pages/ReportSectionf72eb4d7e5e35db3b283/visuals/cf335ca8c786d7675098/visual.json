@@ -1,0 +1,477 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.4.0/schema.json",
+  "name": "cf335ca8c786d7675098",
+  "position": {
+    "x": 25.288753799392097,
+    "y": 65.167173252279639,
+    "z": 0,
+    "height": 630.27355623100311,
+    "width": 1228,
+    "tabOrder": 0
+  },
+  "visual": {
+    "visualType": "pivotTable",
+    "query": {
+      "queryState": {
+        "Columns": {
+          "projections": [
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Date"
+                    }
+                  },
+                  "Property": "Fiscal Year"
+                }
+              },
+              "queryRef": "Date.Fiscal Year",
+              "nativeQueryRef": "Fiscal Year",
+              "active": true
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Date"
+                    }
+                  },
+                  "Property": "Fiscal Month Year"
+                }
+              },
+              "queryRef": "Date.Fiscal Month Year",
+              "nativeQueryRef": "Fiscal Month Year",
+              "active": false
+            }
+          ]
+        },
+        "Rows": {
+          "projections": [
+            {
+              "field": {
+                "HierarchyLevel": {
+                  "Expression": {
+                    "Hierarchy": {
+                      "Expression": {
+                        "SourceRef": {
+                          "Entity": "G/L Account"
+                        }
+                      },
+                      "Hierarchy": "G/L Account Hierarchy"
+                    }
+                  },
+                  "Level": "G/L Account (Level 1)"
+                }
+              },
+              "queryRef": "G/L Account.G/L Account Hierarchy.G/L Account (Level 1)",
+              "active": true
+            },
+            {
+              "field": {
+                "HierarchyLevel": {
+                  "Expression": {
+                    "Hierarchy": {
+                      "Expression": {
+                        "SourceRef": {
+                          "Entity": "G/L Account"
+                        }
+                      },
+                      "Hierarchy": "G/L Account Hierarchy"
+                    }
+                  },
+                  "Level": "G/L Account (Level 2)"
+                }
+              },
+              "queryRef": "G/L Account.G/L Account Hierarchy.G/L Account (Level 2)",
+              "active": true
+            },
+            {
+              "field": {
+                "HierarchyLevel": {
+                  "Expression": {
+                    "Hierarchy": {
+                      "Expression": {
+                        "SourceRef": {
+                          "Entity": "G/L Account"
+                        }
+                      },
+                      "Hierarchy": "G/L Account Hierarchy"
+                    }
+                  },
+                  "Level": "G/L Account (Level 3)"
+                }
+              },
+              "queryRef": "G/L Account.G/L Account Hierarchy.G/L Account (Level 3)",
+              "active": false
+            },
+            {
+              "field": {
+                "HierarchyLevel": {
+                  "Expression": {
+                    "Hierarchy": {
+                      "Expression": {
+                        "SourceRef": {
+                          "Entity": "G/L Account"
+                        }
+                      },
+                      "Hierarchy": "G/L Account Hierarchy"
+                    }
+                  },
+                  "Level": "G/L Account (Level 4)"
+                }
+              },
+              "queryRef": "G/L Account.G/L Account Hierarchy.G/L Account (Level 4)",
+              "active": false
+            },
+            {
+              "field": {
+                "HierarchyLevel": {
+                  "Expression": {
+                    "Hierarchy": {
+                      "Expression": {
+                        "SourceRef": {
+                          "Entity": "G/L Account"
+                        }
+                      },
+                      "Hierarchy": "G/L Account Hierarchy"
+                    }
+                  },
+                  "Level": "G/L Account (Level 5)"
+                }
+              },
+              "queryRef": "G/L Account.G/L Account Hierarchy.G/L Account (Level 5)",
+              "active": false
+            }
+          ]
+        },
+        "Values": {
+          "projections": [
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "G/L Entries"
+                    }
+                  },
+                  "Property": "Net Change"
+                }
+              },
+              "queryRef": "G/L Entries.Net Change",
+              "nativeQueryRef": "Net Change"
+            }
+          ]
+        }
+      },
+      "sortDefinition": {
+        "sort": [
+          {
+            "field": {
+              "HierarchyLevel": {
+                "Expression": {
+                  "Hierarchy": {
+                    "Expression": {
+                      "SourceRef": {
+                        "Entity": "G/L Account"
+                      }
+                    },
+                    "Hierarchy": "G/L Account Hierarchy"
+                  }
+                },
+                "Level": "G/L Account (Level 1)"
+              }
+            },
+            "direction": "Descending"
+          },
+          {
+            "field": {
+              "HierarchyLevel": {
+                "Expression": {
+                  "Hierarchy": {
+                    "Expression": {
+                      "SourceRef": {
+                        "Entity": "G/L Account"
+                      }
+                    },
+                    "Hierarchy": "G/L Account Hierarchy"
+                  }
+                },
+                "Level": "G/L Account (Level 2)"
+              }
+            },
+            "direction": "Descending"
+          }
+        ]
+      }
+    },
+    "expansionStates": [
+      {
+        "roles": [
+          "Rows"
+        ],
+        "levels": [
+          {
+            "queryRefs": [
+              "G/L Account.G/L Account Hierarchy.G/L Account (Level 1)"
+            ],
+            "identityKeys": [
+              {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "G/L Account"
+                    }
+                  },
+                  "Property": "G/L Account (Level 1)"
+                }
+              }
+            ],
+            "isPinned": true
+          },
+          {
+            "queryRefs": [
+              "G/L Account.G/L Account Hierarchy.G/L Account (Level 2)"
+            ],
+            "isCollapsed": true,
+            "identityKeys": [
+              {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "G/L Account"
+                    }
+                  },
+                  "Property": "G/L Account (Level 2)"
+                }
+              }
+            ],
+            "isPinned": true
+          },
+          {
+            "queryRefs": [
+              "G/L Account.G/L Account Hierarchy.G/L Account (Level 3)"
+            ],
+            "isCollapsed": true,
+            "identityKeys": [
+              {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "G/L Account"
+                    }
+                  },
+                  "Property": "G/L Account (Level 3)"
+                }
+              }
+            ],
+            "isPinned": true
+          },
+          {
+            "queryRefs": [
+              "G/L Account.G/L Account Hierarchy.G/L Account (Level 4)"
+            ],
+            "isCollapsed": true,
+            "identityKeys": [
+              {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "G/L Account"
+                    }
+                  },
+                  "Property": "G/L Account (Level 4)"
+                }
+              }
+            ],
+            "isPinned": true
+          },
+          {
+            "queryRefs": [
+              "G/L Account.G/L Account Hierarchy.G/L Account (Level 5)"
+            ],
+            "isCollapsed": true,
+            "identityKeys": [
+              {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "G/L Account"
+                    }
+                  },
+                  "Property": "G/L Account (Level 5)"
+                }
+              }
+            ],
+            "isPinned": true
+          }
+        ],
+        "root": {}
+      }
+    ],
+    "objects": {
+      "columnWidth": [
+        {
+          "properties": {
+            "value": {
+              "expr": {
+                "Literal": {
+                  "Value": "102D"
+                }
+              }
+            }
+          },
+          "selector": {
+            "metadata": "G/L Budget Entries.Budget Net Change"
+          }
+        },
+        {
+          "properties": {
+            "value": {
+              "expr": {
+                "Literal": {
+                  "Value": "315.4736842105263D"
+                }
+              }
+            }
+          },
+          "selector": {
+            "metadata": "G/L Account.G/L Account Hierarchy.G/L Account (Level 1)"
+          }
+        }
+      ],
+      "values": [
+        {
+          "properties": {},
+          "selector": {
+            "data": [
+              {
+                "dataViewWildcard": {
+                  "matchingOption": 1
+                }
+              }
+            ],
+            "metadata": "G/L Entries.Net Change"
+          }
+        },
+        {
+          "properties": {
+            "webURL": {
+              "expr": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "G/L Entries"
+                    }
+                  },
+                  "Property": "Net Change Back Link"
+                }
+              }
+            }
+          },
+          "selector": {
+            "data": [
+              {
+                "dataViewWildcard": {
+                  "matchingOption": 0
+                }
+              }
+            ],
+            "metadata": "G/L Entries.Net Change"
+          }
+        },
+        {
+          "properties": {
+            "urlIcon": {
+              "expr": {
+                "Literal": {
+                  "Value": "true"
+                }
+              }
+            }
+          }
+        }
+      ],
+      "columnHeaders": [
+        {
+          "properties": {
+            "urlIcon": {
+              "expr": {
+                "Literal": {
+                  "Value": "false"
+                }
+              }
+            }
+          }
+        }
+      ],
+      "rowHeaders": [
+        {
+          "properties": {
+            "urlIcon": {
+              "expr": {
+                "Literal": {
+                  "Value": "false"
+                }
+              }
+            }
+          }
+        }
+      ]
+    },
+    "visualContainerObjects": {
+      "visualTooltip": [
+        {
+          "properties": {
+            "transparency": {
+              "expr": {
+                "Literal": {
+                  "Value": "0D"
+                }
+              }
+            }
+          }
+        }
+      ],
+      "title": [
+        {
+          "properties": {
+            "text": {
+              "expr": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Translated Localized Labels"
+                    }
+                  },
+                  "Property": "Income Statement by Month Label"
+                }
+              }
+            }
+          }
+        }
+      ]
+    }
+  },
+  "filterConfig": {
+    "filters": [
+      {
+        "name": "Filter7d7d61e1c789faf42138",
+        "field": {
+          "Measure": {
+            "Expression": {
+              "SourceRef": {
+                "Entity": "G/L Entries"
+              }
+            },
+            "Property": "Amount"
+          }
+        },
+        "type": "Advanced",
+        "howCreated": "User",
+        "isHiddenInViewMode": true
+      }
+    ]
+  }
+}
