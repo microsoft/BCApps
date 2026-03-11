@@ -18,19 +18,24 @@ pageextension 6165 "E-Doc. Company Information" extends "Company Information"
     {
         addafter(GLN)
         {
-            field("E-Document Service Participation Ids"; ParticipantIdCount)
+            group(ElectronicDocumentServiceGroup)
             {
-                ApplicationArea = All;
-                Caption = 'E-Document Service Participation';
-                DrillDown = true;
-                Editable = false;
-                ToolTip = 'Specifies the company participation for the E-Document services.';
+                ShowCaption = false;
                 Visible = EDocumentServiceExists;
 
-                trigger OnDrillDown()
-                begin
-                    ServiceParticipant.RunServiceParticipantPage(Enum::"E-Document Source Type"::Company, '');
-                end;
+                field("E-Document Service Participation Ids"; ParticipantIdCount)
+                {
+                    ApplicationArea = All;
+                    Caption = 'E-Document Service Participation';
+                    DrillDown = true;
+                    Editable = false;
+                    ToolTip = 'Specifies the company participation for the E-Document services.';
+
+                    trigger OnDrillDown()
+                    begin
+                        ServiceParticipant.RunServiceParticipantPage(Enum::"E-Document Source Type"::Company, '');
+                    end;
+                }
             }
         }
     }
