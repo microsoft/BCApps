@@ -1,0 +1,2538 @@
+table 'Calc. Group - Time Intelligence for Calendar (Fiscal)'
+	lineageTag: 7f8c5169-0731-42f6-adcc-66724a6e0bce
+
+	calculationGroup
+		precedence: 3
+
+		calculationItem MTD = ```
+				IF ( 
+				    [ShowValueForDates],
+				    VAR LastDayAvailable =  MAX ( 'Date'[Fiscal DayOfMonthNumber] )
+				    VAR LastFiscalYearMonthAvailable = MAX ( 'Date'[Fiscal YearMonthNumber] )
+				    VAR Result =
+				        CALCULATE (
+				            SELECTEDMEASURE(),
+				            ALLEXCEPT ( 'Date', 'Date'[IsWorkingDay], 'Date'[Week Day] ),
+				            'Date'[Fiscal DayOfMonthNumber] <= LastDayAvailable,
+				            'Date'[Fiscal YearMonthNumber] = LastFiscalYearMonthAvailable
+				        )
+				    RETURN
+				        Result
+				)
+				```
+
+		calculationItem POP = ```
+				VAR ValueCurrentPeriod = SELECTEDMEASURE()
+				VAR MOMMonthsOffset = 1
+				VAR MOMValuePreviousPeriod = IF (
+				    [ShowValueForDates],
+				    SUMX (
+				        SUMMARIZE ( 'Date', 'Date'[Fiscal YearMonthNumber] ),
+				        VAR CurrentYearMonthNumber = 'Date'[Fiscal YearMonthNumber]
+				        VAR PreviousYearMonthNumber = CurrentYearMonthNumber - MOMMonthsOffset
+				        VAR DaysOnMonth = 
+				            CALCULATE (
+				                COUNTROWS ( 'Date' ),
+				                ALLEXCEPT ( 'Date', 'Date'[Fiscal YearMonthNumber], 'Date'[IsWorkingDay], 'Date'[Week Day] )
+				            )
+				        VAR DaysSelected = 
+				            CALCULATE ( 
+				                COUNTROWS ( 'Date' ), 
+				                'Date'[DatesWithTransactions] = TRUE 
+				            )
+				        RETURN IF (
+				            DaysOnMonth = DaysSelected,
+				
+				            -- Selection of all days in the month
+				            CALCULATE (
+				                SELECTEDMEASURE(),
+				                ALLEXCEPT ( 'Date', 'Date'[IsWorkingDay], 'Date'[Week Day] ),
+				                'Date'[Fiscal YearMonthNumber] = PreviousYearMonthNumber
+				            ),
+				            
+				            -- Partial selection of days in a month
+				            CALCULATE (
+				                SELECTEDMEASURE(),
+				                ALLEXCEPT ( 'Date', 'Date'[IsWorkingDay], 'Date'[Week Day] ),
+				                'Date'[Fiscal YearMonthNumber] = PreviousYearMonthNumber,
+				                CALCULATETABLE ( 
+				                    VALUES ( 'Date'[Fiscal DayOfMonthNumber] ),
+				                    ALLEXCEPT ( 'Date', 'Date'[Fiscal DayOfMonthNumber], 'Date'[Date] ),
+				                    'Date'[Fiscal YearMonthNumber] = CurrentYearMonthNumber,
+				                    'Date'[DatesWithTransactions] = TRUE 
+				                )
+				            )
+				        )
+				    )
+				)
+				VAR _MOM = IF (
+				        NOT ISBLANK ( ValueCurrentPeriod ) 
+				            && NOT ISBLANK ( MOMValuePreviousPeriod ),
+				        ValueCurrentPeriod - MOMValuePreviousPeriod
+				    )
+				// --------- QOQ 
+				
+				VAR QOQMonthsOffset = 3
+				VAR QOQValuePreviousPeriod = IF (
+				    [ShowValueForDates],
+				    SUMX (
+				        SUMMARIZE ( 'Date', 'Date'[Fiscal YearMonthNumber] ),
+				        VAR CurrentYearMonthNumber = 'Date'[Fiscal YearMonthNumber]
+				        VAR PreviousYearMonthNumber = CurrentYearMonthNumber - QOQMonthsOffset
+				        VAR DaysOnMonth = 
+				            CALCULATE (
+				                COUNTROWS ( 'Date' ),
+				                ALLEXCEPT ( 'Date', 'Date'[Fiscal YearMonthNumber], 'Date'[IsWorkingDay], 'Date'[Week Day] )
+				            )
+				        VAR DaysSelected = 
+				            CALCULATE ( 
+				                COUNTROWS ( 'Date' ), 
+				                'Date'[DatesWithTransactions] = TRUE 
+				            )
+				        RETURN IF (
+				            DaysOnMonth = DaysSelected,
+				
+				            -- Selection of all days in the month
+				            CALCULATE (
+				                SELECTEDMEASURE(),
+				                ALLEXCEPT ( 'Date', 'Date'[IsWorkingDay], 'Date'[Week Day] ),
+				                'Date'[Fiscal YearMonthNumber] = PreviousYearMonthNumber
+				            ),
+				            
+				            -- Partial selection of days in a month
+				            CALCULATE (
+				                SELECTEDMEASURE(),
+				                ALLEXCEPT ( 'Date', 'Date'[IsWorkingDay], 'Date'[Week Day] ),
+				                'Date'[Fiscal YearMonthNumber] = PreviousYearMonthNumber,
+				                CALCULATETABLE ( 
+				                    VALUES ( 'Date'[Fiscal DayOfMonthNumber] ),
+				                    ALLEXCEPT ( 'Date', 'Date'[Fiscal DayOfMonthNumber], 'Date'[Date] ),
+				                    'Date'[Fiscal YearMonthNumber] = CurrentYearMonthNumber,
+				                    'Date'[DatesWithTransactions] = TRUE 
+				                )
+				            )
+				        )
+				    )
+				)
+				VAR _QOQ = IF (
+				        NOT ISBLANK ( ValueCurrentPeriod ) 
+				            && NOT ISBLANK ( QOQValuePreviousPeriod ),
+				        ValueCurrentPeriod - QOQValuePreviousPeriod
+				    )
+				// --------- YOY
+				VAR YOYMonthsOffset = 12
+				VAR YOYValuePreviousPeriod = IF (
+				    [ShowValueForDates],
+				    SUMX (
+				        SUMMARIZE ( 'Date', 'Date'[Fiscal YearMonthNumber] ),
+				        VAR CurrentYearMonthNumber = 'Date'[Fiscal YearMonthNumber]
+				        VAR PreviousYearMonthNumber = CurrentYearMonthNumber - YOYMonthsOffset
+				        VAR DaysOnMonth = 
+				            CALCULATE (
+				                COUNTROWS ( 'Date' ),
+				                ALLEXCEPT ( 
+				                    'Date', 
+				                    'Date'[Fiscal YearMonthNumber],  -- Year Month granularity
+				                    'Date'[IsWorkingDay],        -- Filter-safe Date column
+				                    'Date'[Week Day]         -- Filter-safe Date column
+				                )
+				            )
+				        VAR DaysSelected = 
+				            CALCULATE ( 
+				                COUNTROWS ( 'Date' ), 
+				                'Date'[DatesWithTransactions] = TRUE 
+				            )
+				        RETURN IF (
+				            DaysOnMonth = DaysSelected,
+				
+				            -- Selection of all days in the month
+				            CALCULATE (
+				                SELECTEDMEASURE(),
+				                ALLEXCEPT ( 'Date', 'Date'[IsWorkingDay], 'Date'[Week Day] ),
+				                'Date'[Fiscal YearMonthNumber] = PreviousYearMonthNumber
+				            ),
+				            
+				            -- Partial selection of days in a month
+				            CALCULATE (
+				                SELECTEDMEASURE(),
+				                ALLEXCEPT ( 'Date', 'Date'[IsWorkingDay], 'Date'[Week Day] ),
+				                'Date'[Fiscal YearMonthNumber] = PreviousYearMonthNumber,
+				                CALCULATETABLE ( 
+				                    VALUES ( 'Date'[Fiscal DayOfMonthNumber] ),
+				                    ALLEXCEPT ( 'Date', 'Date'[Fiscal DayOfMonthNumber], 'Date'[Date] ),
+				                    'Date'[Fiscal YearMonthNumber] = CurrentYearMonthNumber,
+				                    'Date'[DatesWithTransactions] = TRUE 
+				                )
+				            )
+				        )
+				    )
+				)
+				VAR _YOY = IF (
+				        NOT ISBLANK ( ValueCurrentPeriod ) 
+				            && NOT ISBLANK ( YOYValuePreviousPeriod ),
+				        ValueCurrentPeriod - YOYValuePreviousPeriod
+				    )
+				
+				
+				// --------- RETURN 
+				RETURN SWITCH ( 
+				    TRUE,
+				    ISINSCOPE ( 'Date'[Fiscal Month Year] ), _MOM,
+				    ISINSCOPE ( 'Date'[Fiscal Quarter Year] ), _QOQ,
+				    ISINSCOPE ( 'Date'[Fiscal Year] ), _YOY
+				)
+				
+				```
+
+		calculationItem 'POP %' = ```
+				VAR ValueCurrentPeriod = SELECTEDMEASURE()
+				//--------- MOM
+				VAR MOMMonthsOffset = 1
+				VAR _PM = IF (
+				    [ShowValueForDates],
+				    SUMX (
+				        SUMMARIZE ( 'Date', 'Date'[Fiscal YearMonthNumber] ),
+				        VAR CurrentYearMonthNumber = 'Date'[Fiscal YearMonthNumber]
+				        VAR PreviousYearMonthNumber = CurrentYearMonthNumber - MOMMonthsOffset
+				        VAR DaysOnMonth = 
+				            CALCULATE (
+				                COUNTROWS ( 'Date' ),
+				                ALLEXCEPT ( 'Date', 'Date'[Fiscal YearMonthNumber], 'Date'[IsWorkingDay], 'Date'[Week Day] )
+				            )
+				        VAR DaysSelected = 
+				            CALCULATE ( 
+				                COUNTROWS ( 'Date' ), 
+				                'Date'[DatesWithTransactions] = TRUE 
+				            )
+				        RETURN IF (
+				            DaysOnMonth = DaysSelected,
+				
+				            -- Selection of all days in the month
+				            CALCULATE (
+				                SELECTEDMEASURE(),
+				                ALLEXCEPT ( 'Date', 'Date'[IsWorkingDay], 'Date'[Week Day] ),
+				                'Date'[Fiscal YearMonthNumber] = PreviousYearMonthNumber
+				            ),
+				            
+				            -- Partial selection of days in a month
+				            CALCULATE (
+				                SELECTEDMEASURE(),
+				                ALLEXCEPT ( 'Date', 'Date'[IsWorkingDay], 'Date'[Week Day] ),
+				                'Date'[Fiscal YearMonthNumber] = PreviousYearMonthNumber,
+				                CALCULATETABLE ( 
+				                    VALUES ( 'Date'[Fiscal DayOfMonthNumber] ),
+				                    ALLEXCEPT ( 'Date', 'Date'[Fiscal DayOfMonthNumber], 'Date'[Date] ),
+				                    'Date'[Fiscal YearMonthNumber] = CurrentYearMonthNumber,
+				                    'Date'[DatesWithTransactions] = TRUE 
+				                )
+				            )
+				        )
+				    )
+				)
+				VAR _MOM = IF (
+				        NOT ISBLANK ( ValueCurrentPeriod ) 
+				            && NOT ISBLANK ( _PM ),
+				        ValueCurrentPeriod - _PM
+				    )
+				VAR _MOM_PERCENTAGE = DIVIDE ( 
+				    _MOM,
+				    _PM
+				)
+				//-------- QOQ
+				VAR QOQMonthsOffset = 3
+				VAR QOQValuePreviousPeriod = IF (
+				    [ShowValueForDates],
+				    SUMX (
+				        SUMMARIZE ( 'Date', 'Date'[Fiscal YearMonthNumber] ),
+				        VAR CurrentYearMonthNumber = 'Date'[Fiscal YearMonthNumber]
+				        VAR PreviousYearMonthNumber = CurrentYearMonthNumber - QOQMonthsOffset
+				        VAR DaysOnMonth = 
+				            CALCULATE (
+				                COUNTROWS ( 'Date' ),
+				                ALLEXCEPT ( 'Date', 'Date'[Fiscal YearMonthNumber], 'Date'[IsWorkingDay], 'Date'[Week Day] )
+				            )
+				        VAR DaysSelected = 
+				            CALCULATE ( 
+				                COUNTROWS ( 'Date' ), 
+				                'Date'[DatesWithTransactions] = TRUE 
+				            )
+				        RETURN IF (
+				            DaysOnMonth = DaysSelected,
+				
+				            -- Selection of all days in the month
+				            CALCULATE (
+				                SELECTEDMEASURE(),
+				                ALLEXCEPT ( 'Date', 'Date'[IsWorkingDay], 'Date'[Week Day] ),
+				                'Date'[Fiscal YearMonthNumber] = PreviousYearMonthNumber
+				            ),
+				            
+				            -- Partial selection of days in a month
+				            CALCULATE (
+				                SELECTEDMEASURE(),
+				                ALLEXCEPT ( 'Date', 'Date'[IsWorkingDay], 'Date'[Week Day] ),
+				                'Date'[Fiscal YearMonthNumber] = PreviousYearMonthNumber,
+				                CALCULATETABLE ( 
+				                    VALUES ( 'Date'[Fiscal DayOfMonthNumber] ),
+				                    ALLEXCEPT ( 'Date', 'Date'[Fiscal DayOfMonthNumber], 'Date'[Date] ),
+				                    'Date'[Fiscal YearMonthNumber] = CurrentYearMonthNumber,
+				                    'Date'[DatesWithTransactions] = TRUE 
+				                )
+				            )
+				        )
+				    )
+				)
+				VAR QOQ_PERCENTAGE = IF (
+				        NOT ISBLANK ( ValueCurrentPeriod ) 
+				            && NOT ISBLANK ( QOQValuePreviousPeriod ),
+				        ValueCurrentPeriod - QOQValuePreviousPeriod
+				    )
+				//-------- YOY
+				VAR YOYMonthsOffset = 12
+				VAR _PY = IF (
+				    [ShowValueForDates],
+				    SUMX (
+				        SUMMARIZE ( 'Date', 'Date'[Fiscal YearMonthNumber] ),
+				        VAR CurrentYearMonthNumber = 'Date'[Fiscal YearMonthNumber]
+				        VAR PreviousYearMonthNumber = CurrentYearMonthNumber - YOYMonthsOffset
+				        VAR DaysOnMonth = 
+				            CALCULATE (
+				                COUNTROWS ( 'Date' ),
+				                ALLEXCEPT ( 
+				                    'Date', 
+				                    'Date'[Fiscal YearMonthNumber],  -- Year Month granularity
+				                    'Date'[IsWorkingDay],        -- Filter-safe Date column
+				                    'Date'[Week Day]         -- Filter-safe Date column
+				                )
+				            )
+				        VAR DaysSelected = 
+				            CALCULATE ( 
+				                COUNTROWS ( 'Date' ), 
+				                'Date'[DatesWithTransactions] = TRUE 
+				            )
+				        RETURN IF (
+				            DaysOnMonth = DaysSelected,
+				
+				            -- Selection of all days in the month
+				            CALCULATE (
+				                SELECTEDMEASURE(),
+				                ALLEXCEPT ( 'Date', 'Date'[IsWorkingDay], 'Date'[Week Day] ),
+				                'Date'[Fiscal YearMonthNumber] = PreviousYearMonthNumber
+				            ),
+				            
+				            -- Partial selection of days in a month
+				            CALCULATE (
+				                SELECTEDMEASURE(),
+				                ALLEXCEPT ( 'Date', 'Date'[IsWorkingDay], 'Date'[Week Day] ),
+				                'Date'[Fiscal YearMonthNumber] = PreviousYearMonthNumber,
+				                CALCULATETABLE ( 
+				                    VALUES ( 'Date'[Fiscal DayOfMonthNumber] ),
+				                    ALLEXCEPT ( 'Date', 'Date'[Fiscal DayOfMonthNumber], 'Date'[Date] ),
+				                    'Date'[Fiscal YearMonthNumber] = CurrentYearMonthNumber,
+				                    'Date'[DatesWithTransactions] = TRUE 
+				                )
+				            )
+				        )
+				    )
+				)
+				
+				VAR YOYValuePreviousPeriod = IF (
+				    [ShowValueForDates],
+				    SUMX (
+				        SUMMARIZE ( 'Date', 'Date'[Fiscal YearMonthNumber] ),
+				        VAR CurrentYearMonthNumber = 'Date'[Fiscal YearMonthNumber]
+				        VAR PreviousYearMonthNumber = CurrentYearMonthNumber - YOYMonthsOffset
+				        VAR DaysOnMonth = 
+				            CALCULATE (
+				                COUNTROWS ( 'Date' ),
+				                ALLEXCEPT ( 
+				                    'Date', 
+				                    'Date'[Fiscal YearMonthNumber],  -- Year Month granularity
+				                    'Date'[IsWorkingDay],        -- Filter-safe Date column
+				                    'Date'[Week Day]         -- Filter-safe Date column
+				                )
+				            )
+				        VAR DaysSelected = 
+				            CALCULATE ( 
+				                COUNTROWS ( 'Date' ), 
+				                'Date'[DatesWithTransactions] = TRUE 
+				            )
+				        RETURN IF (
+				            DaysOnMonth = DaysSelected,
+				
+				            -- Selection of all days in the month
+				            CALCULATE (
+				                SELECTEDMEASURE(),
+				                ALLEXCEPT ( 'Date', 'Date'[IsWorkingDay], 'Date'[Week Day] ),
+				                'Date'[Fiscal YearMonthNumber] = PreviousYearMonthNumber
+				            ),
+				            
+				            -- Partial selection of days in a month
+				            CALCULATE (
+				                SELECTEDMEASURE(),
+				                ALLEXCEPT ( 'Date', 'Date'[IsWorkingDay], 'Date'[Week Day] ),
+				                'Date'[Fiscal YearMonthNumber] = PreviousYearMonthNumber,
+				                CALCULATETABLE ( 
+				                    VALUES ( 'Date'[Fiscal DayOfMonthNumber] ),
+				                    ALLEXCEPT ( 'Date', 'Date'[Fiscal DayOfMonthNumber], 'Date'[Date] ),
+				                    'Date'[Fiscal YearMonthNumber] = CurrentYearMonthNumber,
+				                    'Date'[DatesWithTransactions] = TRUE 
+				                )
+				            )
+				        )
+				    )
+				)
+				VAR _YOY = IF (
+				        NOT ISBLANK ( ValueCurrentPeriod ) 
+				            && NOT ISBLANK ( YOYValuePreviousPeriod ),
+				        ValueCurrentPeriod - YOYValuePreviousPeriod
+				    )
+				
+				
+				VAR YOY_PERCENTANGE = DIVIDE ( 
+				    _YOY,
+				    _PY
+				)
+				
+				//--------- RETURN
+				RETURN SWITCH ( 
+				    TRUE,
+				    ISINSCOPE ( 'Date'[Fiscal Month Year] ), _MOM_PERCENTAGE,
+				    ISINSCOPE ( 'Date'[Fiscal Quarter Year] ), QOQ_PERCENTAGE,
+				    ISINSCOPE ( 'Date'[Fiscal Year] ), YOY_PERCENTANGE
+				)
+				```
+
+		calculationItem PMC =
+				IF (
+				    [ShowValueForDates] && HASONEVALUE ( 'Date'[Fiscal YearMonthNumber] ),
+				    VAR PreviousFiscalYearMonth = MAX ( 'Date'[Fiscal YearMonthNumber] ) - 1
+				    VAR Result =
+				        CALCULATE (
+				            SELECTEDMEASURE(),
+				            ALLEXCEPT ( 'Date', 'Date'[IsWorkingDay], 'Date'[Week Day] ),
+				            'Date'[Fiscal YearMonthNumber] = PreviousFiscalYearMonth
+				        )
+				    RETURN
+				        Result
+				)
+
+		calculationItem MTDOPM = ```
+				VAR ValueCurrentPeriod = IF ( 
+				    [ShowValueForDates],
+				    VAR LastDayAvailable =  MAX ( 'Date'[Fiscal DayOfMonthNumber] )
+				    VAR LastFiscalYearMonthAvailable = MAX ( 'Date'[Fiscal YearMonthNumber] )
+				    VAR Result =
+				        CALCULATE (
+				            SELECTEDMEASURE(),
+				            ALLEXCEPT ( 'Date', 'Date'[IsWorkingDay], 'Date'[Week Day] ),
+				            'Date'[Fiscal DayOfMonthNumber] <= LastDayAvailable,
+				            'Date'[Fiscal YearMonthNumber] = LastFiscalYearMonthAvailable
+				        )
+				    RETURN
+				        Result
+				)
+				VAR ValuePreviousPeriod = IF (
+				    [ShowValueForDates] && HASONEVALUE ( 'Date'[Fiscal YearMonthNumber] ),
+				    VAR PreviousFiscalYearMonth = MAX ( 'Date'[Fiscal YearMonthNumber] ) - 1
+				    VAR Result =
+				        CALCULATE (
+				            SELECTEDMEASURE(),
+				            ALLEXCEPT ( 'Date', 'Date'[IsWorkingDay], 'Date'[Week Day] ),
+				            'Date'[Fiscal YearMonthNumber] = PreviousFiscalYearMonth
+				        )
+				    RETURN
+				        Result
+				)
+				
+				//------- RETURN
+				RETURN IF (
+				        NOT ISBLANK ( ValueCurrentPeriod ) 
+				            && NOT ISBLANK ( ValuePreviousPeriod ),
+				        ValueCurrentPeriod - ValuePreviousPeriod
+				    )
+				
+				```
+
+		calculationItem 'MTDOPM %' = ```
+				VAR MTDOPMValueCurrentPeriod = IF ( 
+				    [ShowValueForDates],
+				    VAR LastDayAvailable =  MAX ( 'Date'[Fiscal DayOfMonthNumber] )
+				    VAR LastFiscalYearMonthAvailable = MAX ( 'Date'[Fiscal YearMonthNumber] )
+				    VAR Result =
+				        CALCULATE (
+				            SELECTEDMEASURE(),
+				            ALLEXCEPT ( 'Date', 'Date'[IsWorkingDay], 'Date'[Week Day] ),
+				            'Date'[Fiscal DayOfMonthNumber] <= LastDayAvailable,
+				            'Date'[Fiscal YearMonthNumber] = LastFiscalYearMonthAvailable
+				        )
+				    RETURN
+				        Result
+				)
+				VAR MTDOPMValuePreviousPeriod = IF (
+				    [ShowValueForDates] && HASONEVALUE ( 'Date'[Fiscal YearMonthNumber] ),
+				    VAR PreviousFiscalYearMonth = MAX ( 'Date'[Fiscal YearMonthNumber] ) - 1
+				    VAR Result =
+				        CALCULATE (
+				            SELECTEDMEASURE(),
+				            ALLEXCEPT ( 'Date', 'Date'[IsWorkingDay], 'Date'[Week Day] ),
+				            'Date'[Fiscal YearMonthNumber] = PreviousFiscalYearMonth
+				        )
+				    RETURN
+				        Result
+				)
+				
+				//------- MTDOPM
+				VAR _MTDOPM = IF (
+				        NOT ISBLANK ( MTDOPMValueCurrentPeriod ) 
+				            && NOT ISBLANK ( MTDOPMValuePreviousPeriod ),
+				        MTDOPMValueCurrentPeriod - MTDOPMValuePreviousPeriod
+				    )
+				//------- PMC
+				VAR _PMC = IF (
+				    [ShowValueForDates] && HASONEVALUE ( 'Date'[Fiscal YearMonthNumber] ),
+				    VAR PreviousFiscalYearMonth = MAX ( 'Date'[Fiscal YearMonthNumber] ) - 1
+				    VAR Result =
+				        CALCULATE (
+				            SELECTEDMEASURE(),
+				            ALLEXCEPT ( 'Date', 'Date'[IsWorkingDay], 'Date'[Week Day] ),
+				            'Date'[Fiscal YearMonthNumber] = PreviousFiscalYearMonth
+				        )
+				    RETURN
+				        Result
+				)
+				
+				//------- RETURN
+				RETURN DIVIDE ( 
+				    _MTDOPM,
+				    _PMC
+				) 
+				```
+
+		calculationItem PQC =
+				IF (
+				    [ShowValueForDates] && HASONEVALUE ( 'Date'[Fiscal YearQuarterNumber] ),
+				    VAR PreviousFiscalYearQuarter = MAX ( 'Date'[Fiscal YearQuarterNumber] ) - 1
+				    VAR Result =
+				        CALCULATE (
+				            SELECTEDMEASURE(),
+				            ALLEXCEPT ( 'Date', 'Date'[IsWorkingDay], 'Date'[Week Day] ),
+				            'Date'[Fiscal YearQuarterNumber] = PreviousFiscalYearQuarter
+				        )
+				    RETURN
+				        Result
+				)
+
+		calculationItem QTDOPQ = ```
+				
+				VAR ValueCurrentPeriod = IF ( 
+				    [ShowValueForDates],
+				    VAR LastDayAvailable =  MAX ( 'Date'[Fiscal DayOfYearNumber] )
+				    VAR LastFiscalYearQuarterAvailable = MAX ( 'Date'[Fiscal YearQuarterNumber] )
+				    VAR Result =
+				        CALCULATE (
+				            SELECTEDMEASURE(),
+				            ALLEXCEPT ( 'Date', 'Date'[IsWorkingDay], 'Date'[Week Day] ),
+				            'Date'[Fiscal DayOfYearNumber] <= LastDayAvailable,
+				            'Date'[Fiscal YearQuarterNumber] = LastFiscalYearQuarterAvailable
+				        )
+				    RETURN
+				        Result
+				)
+				VAR ValuePreviousPeriod = IF (
+				    [ShowValueForDates] && HASONEVALUE ( 'Date'[Fiscal YearQuarterNumber] ),
+				    VAR PreviousFiscalYearQuarter = MAX ( 'Date'[Fiscal YearQuarterNumber] ) - 1
+				    VAR Result =
+				        CALCULATE (
+				            SELECTEDMEASURE(),
+				            ALLEXCEPT ( 'Date', 'Date'[IsWorkingDay], 'Date'[Week Day] ),
+				            'Date'[Fiscal YearQuarterNumber] = PreviousFiscalYearQuarter
+				        )
+				    RETURN
+				        Result
+				)
+				//--------- RETURN
+				RETURN IF (
+				        NOT ISBLANK ( ValueCurrentPeriod ) 
+				            && NOT ISBLANK ( ValuePreviousPeriod ),
+				        ValueCurrentPeriod - ValuePreviousPeriod
+				    )
+				
+				```
+
+		calculationItem PP = ```
+				VAR PMMonthsOffset = 1
+				VAR _PM = IF (
+				    [ShowValueForDates],
+				    SUMX (
+				        SUMMARIZE ( 'Date', 'Date'[Fiscal YearMonthNumber] ),
+				        VAR CurrentYearMonthNumber = 'Date'[Fiscal YearMonthNumber]
+				        VAR PreviousYearMonthNumber = CurrentYearMonthNumber - PMMonthsOffset
+				        VAR DaysOnMonth = 
+				            CALCULATE (
+				                COUNTROWS ( 'Date' ),
+				                ALLEXCEPT ( 'Date', 'Date'[Fiscal YearMonthNumber], 'Date'[IsWorkingDay], 'Date'[Week Day] )
+				            )
+				        VAR DaysSelected = 
+				            CALCULATE ( 
+				                COUNTROWS ( 'Date' ), 
+				                'Date'[DatesWithTransactions] = TRUE 
+				            )
+				        RETURN IF (
+				            DaysOnMonth = DaysSelected,
+				
+				            -- Selection of all days in the month
+				            CALCULATE (
+				                SELECTEDMEASURE(),
+				                ALLEXCEPT ( 'Date', 'Date'[IsWorkingDay], 'Date'[Week Day] ),
+				                'Date'[Fiscal YearMonthNumber] = PreviousYearMonthNumber
+				            ),
+				            
+				            -- Partial selection of days in a month
+				            CALCULATE (
+				                SELECTEDMEASURE(),
+				                ALLEXCEPT ( 'Date', 'Date'[IsWorkingDay], 'Date'[Week Day] ),
+				                'Date'[Fiscal YearMonthNumber] = PreviousYearMonthNumber,
+				                CALCULATETABLE ( 
+				                    VALUES ( 'Date'[Fiscal DayOfMonthNumber] ),
+				                    ALLEXCEPT ( 'Date', 'Date'[Fiscal DayOfMonthNumber], 'Date'[Date] ),
+				                    'Date'[Fiscal YearMonthNumber] = CurrentYearMonthNumber,
+				                    'Date'[DatesWithTransactions] = TRUE 
+				                )
+				            )
+				        )
+				    )
+				)
+				// ---------- PQ
+				VAR PQMonthsOffset = 3
+				VAR _PQ = IF (
+				    [ShowValueForDates],
+				    SUMX (
+				        SUMMARIZE ( 'Date', 'Date'[Fiscal YearMonthNumber] ),
+				        VAR CurrentYearMonthNumber = 'Date'[Fiscal YearMonthNumber]
+				        VAR PreviousYearMonthNumber = CurrentYearMonthNumber - PQMonthsOffset
+				        VAR DaysOnMonth = 
+				            CALCULATE (
+				                COUNTROWS ( 'Date' ),
+				                ALLEXCEPT ( 'Date', 'Date'[Fiscal YearMonthNumber], 'Date'[IsWorkingDay], 'Date'[Week Day] )
+				            )
+				        VAR DaysSelected = 
+				            CALCULATE ( 
+				                COUNTROWS ( 'Date' ), 
+				                'Date'[DatesWithTransactions] = TRUE 
+				            )
+				        RETURN IF (
+				            DaysOnMonth = DaysSelected,
+				
+				            -- Selection of all days in the month
+				            CALCULATE (
+				                SELECTEDMEASURE(),
+				                ALLEXCEPT ( 'Date', 'Date'[IsWorkingDay], 'Date'[Week Day] ),
+				                'Date'[Fiscal YearMonthNumber] = PreviousYearMonthNumber
+				            ),
+				            
+				            -- Partial selection of days in a month
+				            CALCULATE (
+				                SELECTEDMEASURE(),
+				                ALLEXCEPT ( 'Date', 'Date'[IsWorkingDay], 'Date'[Week Day] ),
+				                'Date'[Fiscal YearMonthNumber] = PreviousYearMonthNumber,
+				                CALCULATETABLE ( 
+				                    VALUES ( 'Date'[Fiscal DayOfMonthNumber] ),
+				                    ALLEXCEPT ( 'Date', 'Date'[Fiscal DayOfMonthNumber], 'Date'[Date] ),
+				                    'Date'[Fiscal YearMonthNumber] = CurrentYearMonthNumber,
+				                    'Date'[DatesWithTransactions] = TRUE 
+				                )
+				            )
+				        )
+				    )
+				)
+				// ---------- PY
+				VAR PYMonthsOffset = 12
+				VAR _PY = IF (
+				    [ShowValueForDates],
+				    SUMX (
+				        SUMMARIZE ( 'Date', 'Date'[Fiscal YearMonthNumber] ),
+				        VAR CurrentYearMonthNumber = 'Date'[Fiscal YearMonthNumber]
+				        VAR PreviousYearMonthNumber = CurrentYearMonthNumber - PYMonthsOffset
+				        VAR DaysOnMonth = 
+				            CALCULATE (
+				                COUNTROWS ( 'Date' ),
+				                ALLEXCEPT ( 
+				                    'Date', 
+				                    'Date'[Fiscal YearMonthNumber],  -- Year Month granularity
+				                    'Date'[IsWorkingDay],        -- Filter-safe Date column
+				                    'Date'[Week Day]         -- Filter-safe Date column
+				                )
+				            )
+				        VAR DaysSelected = 
+				            CALCULATE ( 
+				                COUNTROWS ( 'Date' ), 
+				                'Date'[DatesWithTransactions] = TRUE 
+				            )
+				        RETURN IF (
+				            DaysOnMonth = DaysSelected,
+				
+				            -- Selection of all days in the month
+				            CALCULATE (
+				                SELECTEDMEASURE(),
+				                ALLEXCEPT ( 'Date', 'Date'[IsWorkingDay], 'Date'[Week Day] ),
+				                'Date'[Fiscal YearMonthNumber] = PreviousYearMonthNumber
+				            ),
+				            
+				            -- Partial selection of days in a month
+				            CALCULATE (
+				                SELECTEDMEASURE(),
+				                ALLEXCEPT ( 'Date', 'Date'[IsWorkingDay], 'Date'[Week Day] ),
+				                'Date'[Fiscal YearMonthNumber] = PreviousYearMonthNumber,
+				                CALCULATETABLE ( 
+				                    VALUES ( 'Date'[Fiscal DayOfMonthNumber] ),
+				                    ALLEXCEPT ( 'Date', 'Date'[Fiscal DayOfMonthNumber], 'Date'[Date] ),
+				                    'Date'[Fiscal YearMonthNumber] = CurrentYearMonthNumber,
+				                    'Date'[DatesWithTransactions] = TRUE 
+				                )
+				            )
+				        )
+				    )
+				)
+				// ---------- RETURN
+				RETURN SWITCH ( 
+				    TRUE,
+				    ISINSCOPE ( 'Date'[Fiscal Month Year] ), _PM,
+				    ISINSCOPE ( 'Date'[Fiscal Quarter Year] ), _PQ,
+				    ISINSCOPE ( 'Date'[Fiscal Year] ), _PY
+				)
+				```
+
+		calculationItem 'QTDOPQ %' = ```
+				//--------- QTDOPQ
+				VAR ValueCurrentPeriod = IF ( 
+				    [ShowValueForDates],
+				    VAR LastDayAvailable =  MAX ( 'Date'[Fiscal DayOfYearNumber] )
+				    VAR LastFiscalYearQuarterAvailable = MAX ( 'Date'[Fiscal YearQuarterNumber] )
+				    VAR Result =
+				        CALCULATE (
+				            SELECTEDMEASURE(),
+				            ALLEXCEPT ( 'Date', 'Date'[IsWorkingDay], 'Date'[Week Day] ),
+				            'Date'[Fiscal DayOfYearNumber] <= LastDayAvailable,
+				            'Date'[Fiscal YearQuarterNumber] = LastFiscalYearQuarterAvailable
+				        )
+				    RETURN
+				        Result
+				)
+				VAR ValuePreviousPeriod = IF (
+				    [ShowValueForDates] && HASONEVALUE ( 'Date'[Fiscal YearQuarterNumber] ),
+				    VAR PreviousFiscalYearQuarter = MAX ( 'Date'[Fiscal YearQuarterNumber] ) - 1
+				    VAR Result =
+				        CALCULATE (
+				            SELECTEDMEASURE(),
+				            ALLEXCEPT ( 'Date', 'Date'[IsWorkingDay], 'Date'[Week Day] ),
+				            'Date'[Fiscal YearQuarterNumber] = PreviousFiscalYearQuarter
+				        )
+				    RETURN
+				        Result
+				)
+				VAR _QTDOPQ = IF (
+				        NOT ISBLANK ( ValueCurrentPeriod ) 
+				            && NOT ISBLANK ( ValuePreviousPeriod ),
+				        ValueCurrentPeriod - ValuePreviousPeriod
+				    )
+				//--------- PQC
+				VAR _PQC = IF (
+				    [ShowValueForDates] && HASONEVALUE ( 'Date'[Fiscal YearQuarterNumber] ),
+				    VAR PreviousFiscalYearQuarter = MAX ( 'Date'[Fiscal YearQuarterNumber] ) - 1
+				    VAR Result =
+				        CALCULATE (
+				            SELECTEDMEASURE(),
+				            ALLEXCEPT ( 'Date', 'Date'[IsWorkingDay], 'Date'[Week Day] ),
+				            'Date'[Fiscal YearQuarterNumber] = PreviousFiscalYearQuarter
+				        )
+				    RETURN
+				        Result
+				)
+				//--------- RETURN
+				RETURN DIVIDE ( 
+				    _QTDOPQ,
+				    _PQC
+				)
+				```
+
+		calculationItem YTDOPY = ```
+				VAR ValueCurrentPeriod = IF ( 
+				    [ShowValueForDates],
+				    VAR LastDayAvailable = MAX ( 'Date'[Fiscal DayOfYearNumber] )
+				    VAR LastFiscalYearAvailable = MAX ( 'Date'[Fiscal YearNumber] )
+				    VAR Result =
+				        CALCULATE (
+				            SELECTEDMEASURE(),
+				            ALLEXCEPT ( 'Date', 'Date'[IsWorkingDay], 'Date'[Week Day] ),
+				            'Date'[Fiscal DayOfYearNumber] <= LastDayAvailable,
+				            'Date'[Fiscal YearNumber] = LastFiscalYearAvailable
+				        )
+				    RETURN
+				        Result
+				)
+				VAR ValuePreviousPeriod = IF (
+				    [ShowValueForDates] && HASONEVALUE ( 'Date'[Fiscal YearNumber] ),
+				    VAR PreviousFiscalYear = MAX ( 'Date'[Fiscal YearNumber] ) - 1
+				    VAR Result =
+				        CALCULATE (
+				            SELECTEDMEASURE(),
+				            ALLEXCEPT ( 'Date', 'Date'[IsWorkingDay], 'Date'[Week Day] ),
+				            'Date'[Fiscal YearNumber] = PreviousFiscalYear
+				        )
+				    RETURN
+				        Result
+				)
+				//----------- RETURN
+				RETURN IF (
+				        NOT ISBLANK ( ValueCurrentPeriod ) 
+				            && NOT ISBLANK ( ValuePreviousPeriod ),
+				        ValueCurrentPeriod - ValuePreviousPeriod
+				    )
+				
+				```
+
+		calculationItem 'YTDOPY %' = ```
+				//----------- YTDOPY
+				VAR ValueCurrentPeriod = IF ( 
+				    [ShowValueForDates],
+				    VAR LastDayAvailable = MAX ( 'Date'[Fiscal DayOfYearNumber] )
+				    VAR LastFiscalYearAvailable = MAX ( 'Date'[Fiscal YearNumber] )
+				    VAR Result =
+				        CALCULATE (
+				            SELECTEDMEASURE(),
+				            ALLEXCEPT ( 'Date', 'Date'[IsWorkingDay], 'Date'[Week Day] ),
+				            'Date'[Fiscal DayOfYearNumber] <= LastDayAvailable,
+				            'Date'[Fiscal YearNumber] = LastFiscalYearAvailable
+				        )
+				    RETURN
+				        Result
+				)
+				VAR ValuePreviousPeriod = IF (
+				    [ShowValueForDates] && HASONEVALUE ( 'Date'[Fiscal YearNumber] ),
+				    VAR PreviousFiscalYear = MAX ( 'Date'[Fiscal YearNumber] ) - 1
+				    VAR Result =
+				        CALCULATE (
+				            SELECTEDMEASURE(),
+				            ALLEXCEPT ( 'Date', 'Date'[IsWorkingDay], 'Date'[Week Day] ),
+				            'Date'[Fiscal YearNumber] = PreviousFiscalYear
+				        )
+				    RETURN
+				        Result
+				)
+				
+				VAR _YTDOPY = IF (
+				        NOT ISBLANK ( ValueCurrentPeriod ) 
+				            && NOT ISBLANK ( ValuePreviousPeriod ),
+				        ValueCurrentPeriod - ValuePreviousPeriod
+				    )
+				//---------- PYC
+				VAR _PYC = IF (
+				    [ShowValueForDates] && HASONEVALUE ( 'Date'[Fiscal YearNumber] ),
+				    VAR PreviousFiscalYear = MAX ( 'Date'[Fiscal YearNumber] ) - 1
+				    VAR Result =
+				        CALCULATE (
+				            SELECTEDMEASURE(),
+				            ALLEXCEPT ( 'Date', 'Date'[IsWorkingDay], 'Date'[Week Day] ),
+				            'Date'[Fiscal YearNumber] = PreviousFiscalYear
+				        )
+				    RETURN
+				        Result
+				)
+				//----------- RETURN
+				RETURN DIVIDE ( 
+				    _YTDOPY,
+				    _PYC
+				)
+				```
+
+		calculationItem 'AVG 1Y' =
+				IF (
+				    [ShowValueForDates],
+				    VAR LastDayMAT =
+				        MAX ( 'Date'[Sequential365DayNumber] )
+				    VAR FirstDayMAT =
+				        INT ( EDATE ( LastDayMAT + 1, -12 ) )
+				    VAR Period1Y =
+				        CALCULATETABLE (
+				            VALUES ( 'Date'[Sequential365DayNumber] ),
+				            ALLEXCEPT (
+				                'Date',
+				                'Date'[IsWorkingDay],
+				                'Date'[Week Day]
+				            ),
+				            'Date'[Sequential365DayNumber] >= FirstDayMAT
+				                && 'Date'[Sequential365DayNumber] <= LastDayMAT,
+				            'Date'[DatesWithTransactions] = TRUE
+				        )
+				    VAR FirstDayWithData =
+				        CALCULATE (
+				            INT ( MIN ( 'G/L Entries'[Posting Date] ) ),
+				            REMOVEFILTERS ()
+				        )
+				    VAR FirstDayInPeriod =
+				        MINX (
+				            Period1Y,
+				            'Date'[Sequential365DayNumber]
+				        )
+				    VAR Result =
+				        IF (
+				            FirstDayWithData <= FirstDayInPeriod,
+				            CALCULATE (
+				                AVERAGEX ( Period1Y, SELECTEDMEASURE() ),
+				                REMOVEFILTERS ( 'Date' )
+				            )
+				        )
+				    RETURN
+				        Result
+				)
+
+		calculationItem 'AVG 30D' = ```
+				IF (
+				    [ShowValueForDates],
+				    VAR LastDayMAT =
+				        MAX ( 'Date'[Sequential365DayNumber] )
+				    VAR FirstDayMAT = LastDayMAT - 29
+				    VAR Period30D =
+				        CALCULATETABLE (
+				            VALUES ( 'Date'[Sequential365DayNumber] ),
+				            ALLEXCEPT (
+				                'Date',
+				                'Date'[IsWorkingDay],
+				                'Date'[Week Day]
+				            ),
+				            'Date'[Sequential365DayNumber] >= FirstDayMAT
+				                && 'Date'[Sequential365DayNumber] <= LastDayMAT,
+				            'Date'[DatesWithTransactions] = TRUE
+				        )
+				    VAR FirstDayWithData =
+				        CALCULATE (
+				            INT ( MIN ( 'G/L Entries'[Posting Date] ) ),
+				            REMOVEFILTERS ()
+				        )
+				    VAR FirstDayInPeriod =
+				        MINX (
+				            Period30D,
+				            'Date'[Sequential365DayNumber]
+				        )
+				    VAR Result =
+				        IF (
+				            FirstDayWithData <= FirstDayInPeriod,
+				            CALCULATE (
+				                AVERAGEX ( Period30D, SELECTEDMEASURE() ),
+				                REMOVEFILTERS ( 'Date' )
+				            )
+				        )
+				    RETURN
+				        Result
+				)
+				
+				
+				```
+
+		calculationItem 'AVG 3M' =
+				IF (
+				    [ShowValueForDates],
+				    VAR LastDayMAT =
+				        MAX ( 'Date'[Sequential365DayNumber] )
+				    VAR FirstDayMAT =
+				        INT ( EDATE ( LastDayMAT + 1, -3 ) )
+				    VAR Period3M =
+				       CALCULATETABLE (
+				            VALUES ( 'Date'[Sequential365DayNumber] ),
+				            ALLEXCEPT (
+				                'Date',
+				                'Date'[IsWorkingDay],
+				                'Date'[Week Day]
+				            ),
+				            'Date'[Sequential365DayNumber] >= FirstDayMAT
+				                && 'Date'[Sequential365DayNumber] <= LastDayMAT,
+				            'Date'[DatesWithTransactions] = TRUE
+				        )
+				    VAR FirstDayWithData =
+				        CALCULATE (
+				            INT ( MIN ( 'G/L Entries'[Posting Date] ) ),
+				            REMOVEFILTERS ()
+				        )
+				    VAR FirstDayInPeriod =
+				        MINX (
+				            Period3M,
+				            'Date'[Sequential365DayNumber]
+				        )
+				    VAR Result =
+				        IF (
+				            FirstDayWithData <= FirstDayInPeriod,
+				            CALCULATE (
+				                AVERAGEX ( Period3M, SELECTEDMEASURE() ),
+				                REMOVEFILTERS ( 'Date' )
+				            )
+				        )
+				    RETURN
+				        Result
+				)
+
+		calculationItem MAT = ```
+				IF ( 
+				    [ShowValueForDates], 
+				    VAR LastDayMAT =  MAX ( 'Date'[Sequential365DayNumber] )
+				    VAR FirstDayMAT = INT ( EDATE ( LastDayMAT + 1, -12 ) )
+				    VAR Result = 
+				        CALCULATE ( 
+				            SELECTEDMEASURE(), 
+				            ALLEXCEPT ( 'Date', 'Date'[IsWorkingDay], 'Date'[Week Day] ),
+				            'Date'[Sequential365DayNumber] >= FirstDayMAT 
+				                && 'Date'[Sequential365DayNumber] <= LastDayMAT
+				        ) 
+				    RETURN
+				        Result
+				)
+				
+				```
+
+		calculationItem MATG = ```
+				VAR ValueCurrentPeriod = IF ( 
+				    [ShowValueForDates], 
+				    VAR LastDayMAT =  MAX ( 'Date'[Sequential365DayNumber] )
+				    VAR FirstDayMAT = INT ( EDATE ( LastDayMAT + 1, -12 ) )
+				    VAR Result = 
+				        CALCULATE ( 
+				            SELECTEDMEASURE(), 
+				            ALLEXCEPT ( 'Date', 'Date'[IsWorkingDay], 'Date'[Week Day] ),
+				            'Date'[Sequential365DayNumber] >= FirstDayMAT 
+				                && 'Date'[Sequential365DayNumber] <= LastDayMAT
+				        ) 
+				    RETURN
+				        Result
+				)
+				VAR ValuePreviousPeriod = IF ( 
+				    [ShowValueForDates], 
+				    VAR LastDayAvailable = MAX ( 'Date'[Sequential365DayNumber] )
+				    VAR LastDayMAT =  INT ( EDATE ( LastDayAvailable, -12 ) )
+				    VAR FirstDayMAT = INT ( EDATE ( LastDayAvailable + 1, -24 ) )
+				    VAR Result = 
+				        CALCULATE ( 
+				             SELECTEDMEASURE(), 
+				            ALLEXCEPT ( 'Date', 'Date'[IsWorkingDay], 'Date'[Week Day] ),
+				            'Date'[Sequential365DayNumber] >= FirstDayMAT 
+				                && 'Date'[Sequential365DayNumber] <= LastDayMAT
+				        ) 
+				    RETURN 
+				        Result
+				)
+				RETURN IF (
+				        NOT ISBLANK ( ValueCurrentPeriod ) 
+				            && NOT ISBLANK ( ValuePreviousPeriod ),
+				        ValueCurrentPeriod - ValuePreviousPeriod
+				    )
+				```
+
+		calculationItem PYC =
+				IF (
+				    [ShowValueForDates] && HASONEVALUE ( 'Date'[Fiscal YearNumber] ),
+				    VAR PreviousFiscalYear = MAX ( 'Date'[Fiscal YearNumber] ) - 1
+				    VAR Result =
+				        CALCULATE (
+				            SELECTEDMEASURE(),
+				            ALLEXCEPT ( 'Date', 'Date'[IsWorkingDay], 'Date'[Week Day] ),
+				            'Date'[Fiscal YearNumber] = PreviousFiscalYear
+				        )
+				    RETURN
+				        Result
+				)
+
+		calculationItem 'YOY %' = ```
+				VAR MonthsOffset = 12
+				VAR _PY = IF (
+				    [ShowValueForDates],
+				    SUMX (
+				        SUMMARIZE ( 'Date', 'Date'[Fiscal YearMonthNumber] ),
+				        VAR CurrentYearMonthNumber = 'Date'[Fiscal YearMonthNumber]
+				        VAR PreviousYearMonthNumber = CurrentYearMonthNumber - MonthsOffset
+				        VAR DaysOnMonth = 
+				            CALCULATE (
+				                COUNTROWS ( 'Date' ),
+				                ALLEXCEPT ( 
+				                    'Date', 
+				                    'Date'[Fiscal YearMonthNumber],  -- Year Month granularity
+				                    'Date'[IsWorkingDay],        -- Filter-safe Date column
+				                    'Date'[Week Day]         -- Filter-safe Date column
+				                )
+				            )
+				        VAR DaysSelected = 
+				            CALCULATE ( 
+				                COUNTROWS ( 'Date' ), 
+				                'Date'[DatesWithTransactions] = TRUE 
+				            )
+				        RETURN IF (
+				            DaysOnMonth = DaysSelected,
+				
+				            -- Selection of all days in the month
+				            CALCULATE (
+				                SELECTEDMEASURE(),
+				                ALLEXCEPT ( 'Date', 'Date'[IsWorkingDay], 'Date'[Week Day] ),
+				                'Date'[Fiscal YearMonthNumber] = PreviousYearMonthNumber
+				            ),
+				            
+				            -- Partial selection of days in a month
+				            CALCULATE (
+				                SELECTEDMEASURE(),
+				                ALLEXCEPT ( 'Date', 'Date'[IsWorkingDay], 'Date'[Week Day] ),
+				                'Date'[Fiscal YearMonthNumber] = PreviousYearMonthNumber,
+				                CALCULATETABLE ( 
+				                    VALUES ( 'Date'[Fiscal DayOfMonthNumber] ),
+				                    ALLEXCEPT ( 'Date', 'Date'[Fiscal DayOfMonthNumber], 'Date'[Date] ),
+				                    'Date'[Fiscal YearMonthNumber] = CurrentYearMonthNumber,
+				                    'Date'[DatesWithTransactions] = TRUE 
+				                )
+				            )
+				        )
+				    )
+				)
+				
+				VAR ValueCurrentPeriod = SELECTEDMEASURE()
+				VAR ValuePreviousPeriod = IF (
+				    [ShowValueForDates],
+				    SUMX (
+				        SUMMARIZE ( 'Date', 'Date'[Fiscal YearMonthNumber] ),
+				        VAR CurrentYearMonthNumber = 'Date'[Fiscal YearMonthNumber]
+				        VAR PreviousYearMonthNumber = CurrentYearMonthNumber - MonthsOffset
+				        VAR DaysOnMonth = 
+				            CALCULATE (
+				                COUNTROWS ( 'Date' ),
+				                ALLEXCEPT ( 
+				                    'Date', 
+				                    'Date'[Fiscal YearMonthNumber],  -- Year Month granularity
+				                    'Date'[IsWorkingDay],        -- Filter-safe Date column
+				                    'Date'[Week Day]         -- Filter-safe Date column
+				                )
+				            )
+				        VAR DaysSelected = 
+				            CALCULATE ( 
+				                COUNTROWS ( 'Date' ), 
+				                'Date'[DatesWithTransactions] = TRUE 
+				            )
+				        RETURN IF (
+				            DaysOnMonth = DaysSelected,
+				
+				            -- Selection of all days in the month
+				            CALCULATE (
+				                SELECTEDMEASURE(),
+				                ALLEXCEPT ( 'Date', 'Date'[IsWorkingDay], 'Date'[Week Day] ),
+				                'Date'[Fiscal YearMonthNumber] = PreviousYearMonthNumber
+				            ),
+				            
+				            -- Partial selection of days in a month
+				            CALCULATE (
+				                SELECTEDMEASURE(),
+				                ALLEXCEPT ( 'Date', 'Date'[IsWorkingDay], 'Date'[Week Day] ),
+				                'Date'[Fiscal YearMonthNumber] = PreviousYearMonthNumber,
+				                CALCULATETABLE ( 
+				                    VALUES ( 'Date'[Fiscal DayOfMonthNumber] ),
+				                    ALLEXCEPT ( 'Date', 'Date'[Fiscal DayOfMonthNumber], 'Date'[Date] ),
+				                    'Date'[Fiscal YearMonthNumber] = CurrentYearMonthNumber,
+				                    'Date'[DatesWithTransactions] = TRUE 
+				                )
+				            )
+				        )
+				    )
+				)
+				VAR _YOY = IF (
+				        NOT ISBLANK ( ValueCurrentPeriod ) 
+				            && NOT ISBLANK ( ValuePreviousPeriod ),
+				        ValueCurrentPeriod - ValuePreviousPeriod
+				    )
+				
+				
+				RETURN DIVIDE ( 
+				    _YOY,
+				    _PY
+				)
+				```
+
+		calculationItem YOY = ```
+				VAR ValueCurrentPeriod = SELECTEDMEASURE()
+				VAR MonthsOffset = 12
+				VAR ValuePreviousPeriod = IF (
+				    [ShowValueForDates],
+				    SUMX (
+				        SUMMARIZE ( 'Date', 'Date'[Fiscal YearMonthNumber] ),
+				        VAR CurrentYearMonthNumber = 'Date'[Fiscal YearMonthNumber]
+				        VAR PreviousYearMonthNumber = CurrentYearMonthNumber - MonthsOffset
+				        VAR DaysOnMonth = 
+				            CALCULATE (
+				                COUNTROWS ( 'Date' ),
+				                ALLEXCEPT ( 
+				                    'Date', 
+				                    'Date'[Fiscal YearMonthNumber],  -- Year Month granularity
+				                    'Date'[IsWorkingDay],        -- Filter-safe Date column
+				                    'Date'[Week Day]         -- Filter-safe Date column
+				                )
+				            )
+				        VAR DaysSelected = 
+				            CALCULATE ( 
+				                COUNTROWS ( 'Date' ), 
+				                'Date'[DatesWithTransactions] = TRUE 
+				            )
+				        RETURN IF (
+				            DaysOnMonth = DaysSelected,
+				
+				            -- Selection of all days in the month
+				            CALCULATE (
+				                SELECTEDMEASURE(),
+				                ALLEXCEPT ( 'Date', 'Date'[IsWorkingDay], 'Date'[Week Day] ),
+				                'Date'[Fiscal YearMonthNumber] = PreviousYearMonthNumber
+				            ),
+				            
+				            -- Partial selection of days in a month
+				            CALCULATE (
+				                SELECTEDMEASURE(),
+				                ALLEXCEPT ( 'Date', 'Date'[IsWorkingDay], 'Date'[Week Day] ),
+				                'Date'[Fiscal YearMonthNumber] = PreviousYearMonthNumber,
+				                CALCULATETABLE ( 
+				                    VALUES ( 'Date'[Fiscal DayOfMonthNumber] ),
+				                    ALLEXCEPT ( 'Date', 'Date'[Fiscal DayOfMonthNumber], 'Date'[Date] ),
+				                    'Date'[Fiscal YearMonthNumber] = CurrentYearMonthNumber,
+				                    'Date'[DatesWithTransactions] = TRUE 
+				                )
+				            )
+				        )
+				    )
+				)
+				RETURN IF (
+				        NOT ISBLANK ( ValueCurrentPeriod ) 
+				            && NOT ISBLANK ( ValuePreviousPeriod ),
+				        ValueCurrentPeriod - ValuePreviousPeriod
+				    )
+				
+				```
+
+		calculationItem PY = ```
+				VAR MonthsOffset = 12
+				RETURN IF (
+				    [ShowValueForDates],
+				    SUMX (
+				        SUMMARIZE ( 'Date', 'Date'[Fiscal YearMonthNumber] ),
+				        VAR CurrentYearMonthNumber = 'Date'[Fiscal YearMonthNumber]
+				        VAR PreviousYearMonthNumber = CurrentYearMonthNumber - MonthsOffset
+				        VAR DaysOnMonth = 
+				            CALCULATE (
+				                COUNTROWS ( 'Date' ),
+				                ALLEXCEPT ( 
+				                    'Date', 
+				                    'Date'[Fiscal YearMonthNumber],  -- Year Month granularity
+				                    'Date'[IsWorkingDay],        -- Filter-safe Date column
+				                    'Date'[Week Day]         -- Filter-safe Date column
+				                )
+				            )
+				        VAR DaysSelected = 
+				            CALCULATE ( 
+				                COUNTROWS ( 'Date' ), 
+				                'Date'[DatesWithTransactions] = TRUE 
+				            )
+				        RETURN IF (
+				            DaysOnMonth = DaysSelected,
+				
+				            -- Selection of all days in the month
+				            CALCULATE (
+				                SELECTEDMEASURE(),
+				                ALLEXCEPT ( 'Date', 'Date'[IsWorkingDay], 'Date'[Week Day] ),
+				                'Date'[Fiscal YearMonthNumber] = PreviousYearMonthNumber
+				            ),
+				            
+				            -- Partial selection of days in a month
+				            CALCULATE (
+				                SELECTEDMEASURE(),
+				                ALLEXCEPT ( 'Date', 'Date'[IsWorkingDay], 'Date'[Week Day] ),
+				                'Date'[Fiscal YearMonthNumber] = PreviousYearMonthNumber,
+				                CALCULATETABLE ( 
+				                    VALUES ( 'Date'[Fiscal DayOfMonthNumber] ),
+				                    ALLEXCEPT ( 'Date', 'Date'[Fiscal DayOfMonthNumber], 'Date'[Date] ),
+				                    'Date'[Fiscal YearMonthNumber] = CurrentYearMonthNumber,
+				                    'Date'[DatesWithTransactions] = TRUE 
+				                )
+				            )
+				        )
+				    )
+				)
+				```
+
+		calculationItem QTD = ```
+				IF ( 
+				    [ShowValueForDates],
+				    VAR LastDayAvailable =  MAX ( 'Date'[Fiscal DayOfYearNumber] )
+				    VAR LastFiscalYearQuarterAvailable = MAX ( 'Date'[Fiscal YearQuarterNumber] )
+				    VAR Result =
+				        CALCULATE (
+				            SELECTEDMEASURE(),
+				            ALLEXCEPT ( 'Date', 'Date'[IsWorkingDay], 'Date'[Week Day] ),
+				            'Date'[Fiscal DayOfYearNumber] <= LastDayAvailable,
+				            'Date'[Fiscal YearQuarterNumber] = LastFiscalYearQuarterAvailable
+				        )
+				    RETURN
+				        Result
+				)
+				```
+
+		calculationItem YTD = ```
+				IF ( 
+				    [ShowValueForDates],
+				    VAR LastDayAvailable = MAX ( 'Date'[Fiscal DayOfYearNumber] )
+				    VAR LastFiscalYearAvailable = MAX ( 'Date'[Fiscal YearNumber] )
+				    VAR Result =
+				        CALCULATE (
+				            SELECTEDMEASURE(),
+				            ALLEXCEPT ( 'Date', 'Date'[IsWorkingDay], 'Date'[Week Day] ),
+				            'Date'[Fiscal DayOfYearNumber] <= LastDayAvailable,
+				            'Date'[Fiscal YearNumber] = LastFiscalYearAvailable
+				        )
+				    RETURN
+				        Result
+				)
+				```
+
+		calculationItem PMTD = ```
+				IF ( 
+				    [ShowValueForDates],
+				    VAR LastMonthSelected = 
+				        MAX ( 'Date'[Fiscal YearMonthNumber] )
+				    VAR DaysOnLastMonth = 
+				        CALCULATE (
+				            COUNTROWS ( 'Date' ),
+				            ALLEXCEPT ( 'Date', 'Date'[IsWorkingDay], 'Date'[Week Day] ),
+				            'Date'[Fiscal YearMonthNumber] = LastMonthSelected
+				        )
+				    VAR DaysLastMonthSelected = 
+				        CALCULATE ( 
+				            COUNTROWS ( 'Date' ), 
+				            'Date'[DatesWithTransactions] = TRUE,
+				            'Date'[Fiscal YearMonthNumber] = LastMonthSelected
+				        )
+				    VAR LastDayOfMonthWithSales =  
+				        MAX ( 
+				            -- End of month of any month
+				            31 * (DaysOnLastMonth = DaysLastMonthSelected),  
+				            -- or last day selected with data 
+				            CALCULATE ( 
+				                MAX ( 'Date'[Fiscal DayOfMonthNumber] ),
+				                REMOVEFILTERS (                -- Remove filters from all of the
+				                    'Date'[IsWorkingDay],       -- filter-safe columns
+				                    'Date'[Week Day],       -- to get the last day with data
+				                    'Date'[WeekDayNumber] -- selected in the report
+				                ),
+				                'Date'[Fiscal YearMonthNumber] = LastMonthSelected,
+				                'Date'[DatesWithTransactions] = TRUE 
+				            )
+				        )
+				    VAR PreviousYearMonth = 
+				        LastMonthSelected - 1
+				    VAR Result = 
+				        CALCULATE (
+				            SELECTEDMEASURE(),
+				            ALLEXCEPT ( 'Date', 'Date'[IsWorkingDay], 'Date'[Week Day] ),
+				            'Date'[Fiscal YearMonthNumber] = PreviousYearMonth,
+				            'Date'[Fiscal DayOfMonthNumber] <= LastDayOfMonthWithSales
+				        )
+				    RETURN 
+				        Result
+				)
+				```
+
+		calculationItem MOMTD = ```
+				VAR ValueCurrentPeriod = IF ( 
+				    [ShowValueForDates],
+				    VAR LastDayAvailable =  MAX ( 'Date'[Fiscal DayOfMonthNumber] )
+				    VAR LastFiscalYearMonthAvailable = MAX ( 'Date'[Fiscal YearMonthNumber] )
+				    VAR Result =
+				        CALCULATE (
+				            SELECTEDMEASURE(),
+				            ALLEXCEPT ( 'Date', 'Date'[IsWorkingDay], 'Date'[Week Day] ),
+				            'Date'[Fiscal DayOfMonthNumber] <= LastDayAvailable,
+				            'Date'[Fiscal YearMonthNumber] = LastFiscalYearMonthAvailable
+				        )
+				    RETURN
+				        Result
+				)
+				VAR ValuePreviousPeriod = IF ( 
+				    [ShowValueForDates],
+				    VAR LastMonthSelected = 
+				        MAX ( 'Date'[Fiscal YearMonthNumber] )
+				    VAR DaysOnLastMonth = 
+				        CALCULATE (
+				            COUNTROWS ( 'Date' ),
+				            ALLEXCEPT ( 'Date', 'Date'[IsWorkingDay], 'Date'[Week Day] ),
+				            'Date'[Fiscal YearMonthNumber] = LastMonthSelected
+				        )
+				    VAR DaysLastMonthSelected = 
+				        CALCULATE ( 
+				            COUNTROWS ( 'Date' ), 
+				            'Date'[DatesWithTransactions] = TRUE,
+				            'Date'[Fiscal YearMonthNumber] = LastMonthSelected
+				        )
+				    VAR LastDayOfMonthWithSales =  
+				        MAX ( 
+				            -- End of month of any month
+				            31 * (DaysOnLastMonth = DaysLastMonthSelected),  
+				            -- or last day selected with data 
+				            CALCULATE ( 
+				                MAX ( 'Date'[Fiscal DayOfMonthNumber] ),
+				                REMOVEFILTERS (                -- Remove filters from all of the
+				                    'Date'[IsWorkingDay],       -- filter-safe columns
+				                    'Date'[Week Day],       -- to get the last day with data
+				                    'Date'[WeekDayNumber] -- selected in the report
+				                ),
+				                'Date'[Fiscal YearMonthNumber] = LastMonthSelected,
+				                'Date'[DatesWithTransactions] = TRUE 
+				            )
+				        )
+				    VAR PreviousYearMonth = 
+				        LastMonthSelected - 1
+				    VAR Result = 
+				        CALCULATE (
+				            SELECTEDMEASURE(),
+				            ALLEXCEPT ( 'Date', 'Date'[IsWorkingDay], 'Date'[Week Day] ),
+				            'Date'[Fiscal YearMonthNumber] = PreviousYearMonth,
+				            'Date'[Fiscal DayOfMonthNumber] <= LastDayOfMonthWithSales
+				        )
+				    RETURN 
+				        Result
+				)
+				RETURN IF (
+				        NOT ISBLANK ( ValueCurrentPeriod ) 
+				            && NOT ISBLANK ( ValuePreviousPeriod ),
+				        ValueCurrentPeriod - ValuePreviousPeriod
+				    )
+				
+				```
+
+		calculationItem 'MOMTD %' = ```
+				VAR ValueCurrentPeriod = IF ( 
+				    [ShowValueForDates],
+				    VAR LastDayAvailable =  MAX ( 'Date'[Fiscal DayOfMonthNumber] )
+				    VAR LastFiscalYearMonthAvailable = MAX ( 'Date'[Fiscal YearMonthNumber] )
+				    VAR Result =
+				        CALCULATE (
+				            SELECTEDMEASURE(),
+				            ALLEXCEPT ( 'Date', 'Date'[IsWorkingDay], 'Date'[Week Day] ),
+				            'Date'[Fiscal DayOfMonthNumber] <= LastDayAvailable,
+				            'Date'[Fiscal YearMonthNumber] = LastFiscalYearMonthAvailable
+				        )
+				    RETURN
+				        Result
+				)
+				VAR ValuePreviousPeriod = IF ( 
+				    [ShowValueForDates],
+				    VAR LastMonthSelected = 
+				        MAX ( 'Date'[Fiscal YearMonthNumber] )
+				    VAR DaysOnLastMonth = 
+				        CALCULATE (
+				            COUNTROWS ( 'Date' ),
+				            ALLEXCEPT ( 'Date', 'Date'[IsWorkingDay], 'Date'[Week Day] ),
+				            'Date'[Fiscal YearMonthNumber] = LastMonthSelected
+				        )
+				    VAR DaysLastMonthSelected = 
+				        CALCULATE ( 
+				            COUNTROWS ( 'Date' ), 
+				            'Date'[DatesWithTransactions] = TRUE,
+				            'Date'[Fiscal YearMonthNumber] = LastMonthSelected
+				        )
+				    VAR LastDayOfMonthWithSales =  
+				        MAX ( 
+				            -- End of month of any month
+				            31 * (DaysOnLastMonth = DaysLastMonthSelected),  
+				            -- or last day selected with data 
+				            CALCULATE ( 
+				                MAX ( 'Date'[Fiscal DayOfMonthNumber] ),
+				                REMOVEFILTERS (                -- Remove filters from all of the
+				                    'Date'[IsWorkingDay],       -- filter-safe columns
+				                    'Date'[Week Day],       -- to get the last day with data
+				                    'Date'[WeekDayNumber] -- selected in the report
+				                ),
+				                'Date'[Fiscal YearMonthNumber] = LastMonthSelected,
+				                'Date'[DatesWithTransactions] = TRUE 
+				            )
+				        )
+				    VAR PreviousYearMonth = 
+				        LastMonthSelected - 1
+				    VAR Result = 
+				        CALCULATE (
+				            SELECTEDMEASURE(),
+				            ALLEXCEPT ( 'Date', 'Date'[IsWorkingDay], 'Date'[Week Day] ),
+				            'Date'[Fiscal YearMonthNumber] = PreviousYearMonth,
+				            'Date'[Fiscal DayOfMonthNumber] <= LastDayOfMonthWithSales
+				        )
+				    RETURN 
+				        Result
+				)
+				VAR _MOMTD = IF (
+				        NOT ISBLANK ( ValueCurrentPeriod ) 
+				            && NOT ISBLANK ( ValuePreviousPeriod ),
+				        ValueCurrentPeriod - ValuePreviousPeriod
+				    )
+				// --------------PMTD 
+				
+				VAR _PMTD = IF ( 
+				    [ShowValueForDates],
+				    VAR LastMonthSelected = 
+				        MAX ( 'Date'[Fiscal YearMonthNumber] )
+				    VAR DaysOnLastMonth = 
+				        CALCULATE (
+				            COUNTROWS ( 'Date' ),
+				            ALLEXCEPT ( 'Date', 'Date'[IsWorkingDay], 'Date'[Week Day] ),
+				            'Date'[Fiscal YearMonthNumber] = LastMonthSelected
+				        )
+				    VAR DaysLastMonthSelected = 
+				        CALCULATE ( 
+				            COUNTROWS ( 'Date' ), 
+				            'Date'[DatesWithTransactions] = TRUE,
+				            'Date'[Fiscal YearMonthNumber] = LastMonthSelected
+				        )
+				    VAR LastDayOfMonthWithSales =  
+				        MAX ( 
+				            -- End of month of any month
+				            31 * (DaysOnLastMonth = DaysLastMonthSelected),  
+				            -- or last day selected with data 
+				            CALCULATE ( 
+				                MAX ( 'Date'[Fiscal DayOfMonthNumber] ),
+				                REMOVEFILTERS (                -- Remove filters from all of the
+				                    'Date'[IsWorkingDay],       -- filter-safe columns
+				                    'Date'[Week Day],       -- to get the last day with data
+				                    'Date'[WeekDayNumber] -- selected in the report
+				                ),
+				                'Date'[Fiscal YearMonthNumber] = LastMonthSelected,
+				                'Date'[DatesWithTransactions] = TRUE 
+				            )
+				        )
+				    VAR PreviousYearMonth = 
+				        LastMonthSelected - 1
+				    VAR Result = 
+				        CALCULATE (
+				            SELECTEDMEASURE(),
+				            ALLEXCEPT ( 'Date', 'Date'[IsWorkingDay], 'Date'[Week Day] ),
+				            'Date'[Fiscal YearMonthNumber] = PreviousYearMonth,
+				            'Date'[Fiscal DayOfMonthNumber] <= LastDayOfMonthWithSales
+				        )
+				    RETURN 
+				        Result
+				)
+				
+				// --------------RETURN    
+				RETURN DIVIDE ( 
+				    _MOMTD,
+				    _PMTD
+				)
+				```
+
+		calculationItem PQTD = ```
+				IF ( 
+				    [ShowValueForDates],
+				    VAR LastMonthSelected = 
+				        MAX ( 'Date'[Fiscal YearMonthNumber] )
+				    VAR DaysOnLastMonth = 
+				        CALCULATE (
+				            COUNTROWS ( 'Date' ),
+				            ALLEXCEPT ( 'Date', 'Date'[IsWorkingDay], 'Date'[Week Day] ),
+				            'Date'[Fiscal YearMonthNumber] = LastMonthSelected
+				        )
+				    VAR DaysLastMonthSelected = 
+				        CALCULATE ( 
+				            COUNTROWS ( 'Date' ), 
+				            'Date'[DatesWithTransactions] = TRUE,
+				            'Date'[Fiscal YearMonthNumber] = LastMonthSelected
+				        )
+				    VAR LastDayOfMonthWithSales =  
+				        MAX ( 
+				            -- End of month of any month
+				            31 * (DaysOnLastMonth = DaysLastMonthSelected),  
+				            -- or last day selected with data 
+				            CALCULATE ( 
+				                MAX ( 'Date'[Fiscal DayOfMonthNumber] ),
+				                REMOVEFILTERS (                -- Remove filters from all of the
+				                    'Date'[IsWorkingDay],       -- filter-safe columns
+				                    'Date'[Week Day],       -- to get the last day with data
+				                    'Date'[WeekDayNumber] -- selected in the report
+				                ),
+				                'Date'[Fiscal YearMonthNumber] = LastMonthSelected,
+				                'Date'[DatesWithTransactions] = TRUE 
+				            )
+				        )
+				    VAR LastMonthInQuarterWithSales = 
+				        CALCULATE ( 
+				            MAX ( 'Date'[Fiscal MonthInQuarterNumber] ),
+				            REMOVEFILTERS (                -- Remove filters from all of the
+				                'Date'[IsWorkingDay],       -- filter-safe columns
+				                'Date'[Week Day],       -- to get the last day with data
+				                'Date'[WeekDayNumber] -- selected in the report
+				            ),
+				            'Date'[DatesWithTransactions] = TRUE 
+				        )
+				    VAR PreviousFiscalYearQuarter = 
+				        MAX ( 'Date'[Fiscal YearQuarterNumber] ) - 1
+				    VAR FilterQTD = 
+				        FILTER (
+				            ALL ( 'Date'[Fiscal MonthInQuarterNumber], 'Date'[Fiscal DayOfMonthNumber] ),
+				            ISONORAFTER ( 
+				                'Date'[Fiscal MonthInQuarterNumber], LastMonthInQuarterWithSales, DESC,
+				                'Date'[Fiscal DayOfMonthNumber], LastDayOfMonthWithSales, DESC
+				            )
+				        )
+				    VAR Result =
+				        CALCULATE (
+				            SELECTEDMEASURE(),
+				            ALLEXCEPT ( 'Date', 'Date'[IsWorkingDay], 'Date'[Week Day] ),
+				            'Date'[Fiscal YearQuarterNumber] = PreviousFiscalYearQuarter,
+				            FilterQTD
+				        )
+				    RETURN
+				        Result
+				)
+				```
+
+		calculationItem QOQTD = ```
+				VAR ValueCurrentPeriod = IF ( 
+				    [ShowValueForDates],
+				    VAR LastDayAvailable =  MAX ( 'Date'[Fiscal DayOfYearNumber] )
+				    VAR LastFiscalYearQuarterAvailable = MAX ( 'Date'[Fiscal YearQuarterNumber] )
+				    VAR Result =
+				        CALCULATE (
+				            SELECTEDMEASURE(),
+				            ALLEXCEPT ( 'Date', 'Date'[IsWorkingDay], 'Date'[Week Day] ),
+				            'Date'[Fiscal DayOfYearNumber] <= LastDayAvailable,
+				            'Date'[Fiscal YearQuarterNumber] = LastFiscalYearQuarterAvailable
+				        )
+				    RETURN
+				        Result
+				)
+				VAR ValuePreviousPeriod = IF ( 
+				    [ShowValueForDates],
+				    VAR LastMonthSelected = 
+				        MAX ( 'Date'[Fiscal YearMonthNumber] )
+				    VAR DaysOnLastMonth = 
+				        CALCULATE (
+				            COUNTROWS ( 'Date' ),
+				            ALLEXCEPT ( 'Date', 'Date'[IsWorkingDay], 'Date'[Week Day] ),
+				            'Date'[Fiscal YearMonthNumber] = LastMonthSelected
+				        )
+				    VAR DaysLastMonthSelected = 
+				        CALCULATE ( 
+				            COUNTROWS ( 'Date' ), 
+				            'Date'[DatesWithTransactions] = TRUE,
+				            'Date'[Fiscal YearMonthNumber] = LastMonthSelected
+				        )
+				    VAR LastDayOfMonthWithSales =  
+				        MAX ( 
+				            -- End of month of any month
+				            31 * (DaysOnLastMonth = DaysLastMonthSelected),  
+				            -- or last day selected with data 
+				            CALCULATE ( 
+				                MAX ( 'Date'[Fiscal DayOfMonthNumber] ),
+				                REMOVEFILTERS (                -- Remove filters from all of the
+				                    'Date'[IsWorkingDay],       -- filter-safe columns
+				                    'Date'[Week Day],       -- to get the last day with data
+				                    'Date'[WeekDayNumber] -- selected in the report
+				                ),
+				                'Date'[Fiscal YearMonthNumber] = LastMonthSelected,
+				                'Date'[DatesWithTransactions] = TRUE 
+				            )
+				        )
+				    VAR LastMonthInQuarterWithSales = 
+				        CALCULATE ( 
+				            MAX ( 'Date'[Fiscal MonthInQuarterNumber] ),
+				            REMOVEFILTERS (                -- Remove filters from all of the
+				                'Date'[IsWorkingDay],       -- filter-safe columns
+				                'Date'[Week Day],       -- to get the last day with data
+				                'Date'[WeekDayNumber] -- selected in the report
+				            ),
+				            'Date'[DatesWithTransactions] = TRUE 
+				        )
+				    VAR PreviousFiscalYearQuarter = 
+				        MAX ( 'Date'[Fiscal YearQuarterNumber] ) - 1
+				    VAR FilterQTD = 
+				        FILTER (
+				            ALL ( 'Date'[Fiscal MonthInQuarterNumber], 'Date'[Fiscal DayOfMonthNumber] ),
+				            ISONORAFTER ( 
+				                'Date'[Fiscal MonthInQuarterNumber], LastMonthInQuarterWithSales, DESC,
+				                'Date'[Fiscal DayOfMonthNumber], LastDayOfMonthWithSales, DESC
+				            )
+				        )
+				    VAR Result =
+				        CALCULATE (
+				            SELECTEDMEASURE(),
+				            ALLEXCEPT ( 'Date', 'Date'[IsWorkingDay], 'Date'[Week Day] ),
+				            'Date'[Fiscal YearQuarterNumber] = PreviousFiscalYearQuarter,
+				            FilterQTD
+				        )
+				    RETURN
+				        Result
+				)
+				RETURN IF (
+				        NOT ISBLANK ( ValueCurrentPeriod ) 
+				            && NOT ISBLANK ( ValuePreviousPeriod ),
+				        ValueCurrentPeriod - ValuePreviousPeriod
+				    )
+				```
+
+		calculationItem 'QOQTD %' = ```
+				VAR ValueCurrentPeriod = IF ( 
+				    [ShowValueForDates],
+				    VAR LastDayAvailable =  MAX ( 'Date'[Fiscal DayOfYearNumber] )
+				    VAR LastFiscalYearQuarterAvailable = MAX ( 'Date'[Fiscal YearQuarterNumber] )
+				    VAR Result =
+				        CALCULATE (
+				            SELECTEDMEASURE(),
+				            ALLEXCEPT ( 'Date', 'Date'[IsWorkingDay], 'Date'[Week Day] ),
+				            'Date'[Fiscal DayOfYearNumber] <= LastDayAvailable,
+				            'Date'[Fiscal YearQuarterNumber] = LastFiscalYearQuarterAvailable
+				        )
+				    RETURN
+				        Result
+				)
+				VAR ValuePreviousPeriod = IF ( 
+				    [ShowValueForDates],
+				    VAR LastMonthSelected = 
+				        MAX ( 'Date'[Fiscal YearMonthNumber] )
+				    VAR DaysOnLastMonth = 
+				        CALCULATE (
+				            COUNTROWS ( 'Date' ),
+				            ALLEXCEPT ( 'Date', 'Date'[IsWorkingDay], 'Date'[Week Day] ),
+				            'Date'[Fiscal YearMonthNumber] = LastMonthSelected
+				        )
+				    VAR DaysLastMonthSelected = 
+				        CALCULATE ( 
+				            COUNTROWS ( 'Date' ), 
+				            'Date'[DatesWithTransactions] = TRUE,
+				            'Date'[Fiscal YearMonthNumber] = LastMonthSelected
+				        )
+				    VAR LastDayOfMonthWithSales =  
+				        MAX ( 
+				            -- End of month of any month
+				            31 * (DaysOnLastMonth = DaysLastMonthSelected),  
+				            -- or last day selected with data 
+				            CALCULATE ( 
+				                MAX ( 'Date'[Fiscal DayOfMonthNumber] ),
+				                REMOVEFILTERS (                -- Remove filters from all of the
+				                    'Date'[IsWorkingDay],       -- filter-safe columns
+				                    'Date'[Week Day],       -- to get the last day with data
+				                    'Date'[WeekDayNumber] -- selected in the report
+				                ),
+				                'Date'[Fiscal YearMonthNumber] = LastMonthSelected,
+				                'Date'[DatesWithTransactions] = TRUE 
+				            )
+				        )
+				    VAR LastMonthInQuarterWithSales = 
+				        CALCULATE ( 
+				            MAX ( 'Date'[Fiscal MonthInQuarterNumber] ),
+				            REMOVEFILTERS (                -- Remove filters from all of the
+				                'Date'[IsWorkingDay],       -- filter-safe columns
+				                'Date'[Week Day],       -- to get the last day with data
+				                'Date'[WeekDayNumber] -- selected in the report
+				            ),
+				            'Date'[DatesWithTransactions] = TRUE 
+				        )
+				    VAR PreviousFiscalYearQuarter = 
+				        MAX ( 'Date'[Fiscal YearQuarterNumber] ) - 1
+				    VAR FilterQTD = 
+				        FILTER (
+				            ALL ( 'Date'[Fiscal MonthInQuarterNumber], 'Date'[Fiscal DayOfMonthNumber] ),
+				            ISONORAFTER ( 
+				                'Date'[Fiscal MonthInQuarterNumber], LastMonthInQuarterWithSales, DESC,
+				                'Date'[Fiscal DayOfMonthNumber], LastDayOfMonthWithSales, DESC
+				            )
+				        )
+				    VAR Result =
+				        CALCULATE (
+				            SELECTEDMEASURE(),
+				            ALLEXCEPT ( 'Date', 'Date'[IsWorkingDay], 'Date'[Week Day] ),
+				            'Date'[Fiscal YearQuarterNumber] = PreviousFiscalYearQuarter,
+				            FilterQTD
+				        )
+				    RETURN
+				        Result
+				)
+				VAR _QOQTD = IF (
+				        NOT ISBLANK ( ValueCurrentPeriod ) 
+				            && NOT ISBLANK ( ValuePreviousPeriod ),
+				        ValueCurrentPeriod - ValuePreviousPeriod
+				    )
+				// ----------- PQTD
+				VAR _PQTD = IF ( 
+				    [ShowValueForDates],
+				    VAR LastMonthSelected = 
+				        MAX ( 'Date'[Fiscal YearMonthNumber] )
+				    VAR DaysOnLastMonth = 
+				        CALCULATE (
+				            COUNTROWS ( 'Date' ),
+				            ALLEXCEPT ( 'Date', 'Date'[IsWorkingDay], 'Date'[Week Day] ),
+				            'Date'[Fiscal YearMonthNumber] = LastMonthSelected
+				        )
+				    VAR DaysLastMonthSelected = 
+				        CALCULATE ( 
+				            COUNTROWS ( 'Date' ), 
+				            'Date'[DatesWithTransactions] = TRUE,
+				            'Date'[Fiscal YearMonthNumber] = LastMonthSelected
+				        )
+				    VAR LastDayOfMonthWithSales =  
+				        MAX ( 
+				            -- End of month of any month
+				            31 * (DaysOnLastMonth = DaysLastMonthSelected),  
+				            -- or last day selected with data 
+				            CALCULATE ( 
+				                MAX ( 'Date'[Fiscal DayOfMonthNumber] ),
+				                REMOVEFILTERS (                -- Remove filters from all of the
+				                    'Date'[IsWorkingDay],       -- filter-safe columns
+				                    'Date'[Week Day],       -- to get the last day with data
+				                    'Date'[WeekDayNumber] -- selected in the report
+				                ),
+				                'Date'[Fiscal YearMonthNumber] = LastMonthSelected,
+				                'Date'[DatesWithTransactions] = TRUE 
+				            )
+				        )
+				    VAR LastMonthInQuarterWithSales = 
+				        CALCULATE ( 
+				            MAX ( 'Date'[Fiscal MonthInQuarterNumber] ),
+				            REMOVEFILTERS (                -- Remove filters from all of the
+				                'Date'[IsWorkingDay],       -- filter-safe columns
+				                'Date'[Week Day],       -- to get the last day with data
+				                'Date'[WeekDayNumber] -- selected in the report
+				            ),
+				            'Date'[DatesWithTransactions] = TRUE 
+				        )
+				    VAR PreviousFiscalYearQuarter = 
+				        MAX ( 'Date'[Fiscal YearQuarterNumber] ) - 1
+				    VAR FilterQTD = 
+				        FILTER (
+				            ALL ( 'Date'[Fiscal MonthInQuarterNumber], 'Date'[Fiscal DayOfMonthNumber] ),
+				            ISONORAFTER ( 
+				                'Date'[Fiscal MonthInQuarterNumber], LastMonthInQuarterWithSales, DESC,
+				                'Date'[Fiscal DayOfMonthNumber], LastDayOfMonthWithSales, DESC
+				            )
+				        )
+				    VAR Result =
+				        CALCULATE (
+				            SELECTEDMEASURE(),
+				            ALLEXCEPT ( 'Date', 'Date'[IsWorkingDay], 'Date'[Week Day] ),
+				            'Date'[Fiscal YearQuarterNumber] = PreviousFiscalYearQuarter,
+				            FilterQTD
+				        )
+				    RETURN
+				        Result
+				) 
+				// ----- RETURN
+				RETURN DIVIDE ( 
+				    _QOQTD,
+				    _PQTD
+				)
+				```
+
+		calculationItem PYTD = ```
+				IF ( 
+				    [ShowValueForDates],
+				    VAR PreviousFiscalYear = MAX ( 'Date'[Fiscal YearNumber] ) - 1
+				    VAR LastDayOfFiscalYearAvailable = 
+				        CALCULATE ( 
+				            MAX ( 'Date'[Fiscal DayOfYearNumber] ),
+				            REMOVEFILTERS (                -- Remove filters from
+				                'Date'[IsWorkingDay],       -- filter-safe columns
+				                'Date'[Week Day],       -- to get the last day with data
+				                'Date'[WeekDayNumber] -- selected in the report
+				            ),
+				            'Date'[DatesWithTransactions] = TRUE 
+				        )
+				    VAR Result =
+				        CALCULATE (
+				            SELECTEDMEASURE(),
+				            ALLEXCEPT ( 'Date', 'Date'[IsWorkingDay], 'Date'[Week Day] ),
+				            'Date'[Fiscal YearNumber] = PreviousFiscalYear,
+				            'Date'[Fiscal DayOfYearNumber] <= LastDayOfFiscalYearAvailable,
+				            'Date'[DatesWithTransactions] = TRUE 
+				        )
+				    RETURN
+				        Result
+				)
+				```
+
+		calculationItem YOYTD = ```
+				VAR ValueCurrentPeriod = IF ( 
+				    [ShowValueForDates],
+				    VAR LastDayAvailable = MAX ( 'Date'[Fiscal DayOfYearNumber] )
+				    VAR LastFiscalYearAvailable = MAX ( 'Date'[Fiscal YearNumber] )
+				    VAR Result =
+				        CALCULATE (
+				            SELECTEDMEASURE(),
+				            ALLEXCEPT ( 'Date', 'Date'[IsWorkingDay], 'Date'[Week Day] ),
+				            'Date'[Fiscal DayOfYearNumber] <= LastDayAvailable,
+				            'Date'[Fiscal YearNumber] = LastFiscalYearAvailable
+				        )
+				    RETURN
+				        Result
+				)
+				VAR ValuePreviousPeriod = IF ( 
+				    [ShowValueForDates],
+				    VAR PreviousFiscalYear = MAX ( 'Date'[Fiscal YearNumber] ) - 1
+				    VAR LastDayOfFiscalYearAvailable = 
+				        CALCULATE ( 
+				            MAX ( 'Date'[Fiscal DayOfYearNumber] ),
+				            REMOVEFILTERS (                -- Remove filters from
+				                'Date'[IsWorkingDay],       -- filter-safe columns
+				                'Date'[Week Day],       -- to get the last day with data
+				                'Date'[WeekDayNumber] -- selected in the report
+				            ),
+				            'Date'[DatesWithTransactions] = TRUE 
+				        )
+				    VAR Result =
+				        CALCULATE (
+				            SELECTEDMEASURE(),
+				            ALLEXCEPT ( 'Date', 'Date'[IsWorkingDay], 'Date'[Week Day] ),
+				            'Date'[Fiscal YearNumber] = PreviousFiscalYear,
+				            'Date'[Fiscal DayOfYearNumber] <= LastDayOfFiscalYearAvailable,
+				            'Date'[DatesWithTransactions] = TRUE 
+				        )
+				    RETURN
+				        Result
+				)
+				RETURN IF (
+				        NOT ISBLANK ( ValueCurrentPeriod ) 
+				            && NOT ISBLANK ( ValuePreviousPeriod ),
+				        ValueCurrentPeriod - ValuePreviousPeriod
+				    )
+				```
+
+		calculationItem 'YOYTD %' = ```
+				VAR _PYTD = IF ( 
+				    [ShowValueForDates],
+				    VAR PreviousFiscalYear = MAX ( 'Date'[Fiscal YearNumber] ) - 1
+				    VAR LastDayOfFiscalYearAvailable = 
+				        CALCULATE ( 
+				            MAX ( 'Date'[Fiscal DayOfYearNumber] ),
+				            REMOVEFILTERS (                -- Remove filters from
+				                'Date'[IsWorkingDay],       -- filter-safe columns
+				                'Date'[Week Day],       -- to get the last day with data
+				                'Date'[WeekDayNumber] -- selected in the report
+				            ),
+				            'Date'[DatesWithTransactions] = TRUE 
+				        )
+				    VAR Result =
+				        CALCULATE (
+				            SELECTEDMEASURE(),
+				            ALLEXCEPT ( 'Date', 'Date'[IsWorkingDay], 'Date'[Week Day] ),
+				            'Date'[Fiscal YearNumber] = PreviousFiscalYear,
+				            'Date'[Fiscal DayOfYearNumber] <= LastDayOfFiscalYearAvailable,
+				            'Date'[DatesWithTransactions] = TRUE 
+				        )
+				    RETURN
+				        Result
+				)
+				// -------- YOYTD
+				
+				VAR ValueCurrentPeriod = IF ( 
+				    [ShowValueForDates],
+				    VAR LastDayAvailable = MAX ( 'Date'[Fiscal DayOfYearNumber] )
+				    VAR LastFiscalYearAvailable = MAX ( 'Date'[Fiscal YearNumber] )
+				    VAR Result =
+				        CALCULATE (
+				            SELECTEDMEASURE(),
+				            ALLEXCEPT ( 'Date', 'Date'[IsWorkingDay], 'Date'[Week Day] ),
+				            'Date'[Fiscal DayOfYearNumber] <= LastDayAvailable,
+				            'Date'[Fiscal YearNumber] = LastFiscalYearAvailable
+				        )
+				    RETURN
+				        Result
+				)
+				VAR ValuePreviousPeriod = IF ( 
+				    [ShowValueForDates],
+				    VAR PreviousFiscalYear = MAX ( 'Date'[Fiscal YearNumber] ) - 1
+				    VAR LastDayOfFiscalYearAvailable = 
+				        CALCULATE ( 
+				            MAX ( 'Date'[Fiscal DayOfYearNumber] ),
+				            REMOVEFILTERS (                -- Remove filters from
+				                'Date'[IsWorkingDay],       -- filter-safe columns
+				                'Date'[Week Day],       -- to get the last day with data
+				                'Date'[WeekDayNumber] -- selected in the report
+				            ),
+				            'Date'[DatesWithTransactions] = TRUE 
+				        )
+				    VAR Result =
+				        CALCULATE (
+				            SELECTEDMEASURE(),
+				            ALLEXCEPT ( 'Date', 'Date'[IsWorkingDay], 'Date'[Week Day] ),
+				            'Date'[Fiscal YearNumber] = PreviousFiscalYear,
+				            'Date'[Fiscal DayOfYearNumber] <= LastDayOfFiscalYearAvailable,
+				            'Date'[DatesWithTransactions] = TRUE 
+				        )
+				    RETURN
+				        Result
+				)
+				VAR _YOYTD = IF (
+				        NOT ISBLANK ( ValueCurrentPeriod ) 
+				            && NOT ISBLANK ( ValuePreviousPeriod ),
+				        ValueCurrentPeriod - ValuePreviousPeriod
+				    )
+				
+				// -------- RETURN
+				RETURN DIVIDE ( 
+				    _YOYTD,
+				    _PYTD
+				)
+				```
+
+		calculationItem PM = ```
+				VAR MonthsOffset = 1
+				RETURN IF (
+				    [ShowValueForDates],
+				    SUMX (
+				        SUMMARIZE ( 'Date', 'Date'[Fiscal YearMonthNumber] ),
+				        VAR CurrentYearMonthNumber = 'Date'[Fiscal YearMonthNumber]
+				        VAR PreviousYearMonthNumber = CurrentYearMonthNumber - MonthsOffset
+				        VAR DaysOnMonth = 
+				            CALCULATE (
+				                COUNTROWS ( 'Date' ),
+				                ALLEXCEPT ( 'Date', 'Date'[Fiscal YearMonthNumber], 'Date'[IsWorkingDay], 'Date'[Week Day] )
+				            )
+				        VAR DaysSelected = 
+				            CALCULATE ( 
+				                COUNTROWS ( 'Date' ), 
+				                'Date'[DatesWithTransactions] = TRUE 
+				            )
+				        RETURN IF (
+				            DaysOnMonth = DaysSelected,
+				
+				            -- Selection of all days in the month
+				            CALCULATE (
+				                SELECTEDMEASURE(),
+				                ALLEXCEPT ( 'Date', 'Date'[IsWorkingDay], 'Date'[Week Day] ),
+				                'Date'[Fiscal YearMonthNumber] = PreviousYearMonthNumber
+				            ),
+				            
+				            -- Partial selection of days in a month
+				            CALCULATE (
+				                SELECTEDMEASURE(),
+				                ALLEXCEPT ( 'Date', 'Date'[IsWorkingDay], 'Date'[Week Day] ),
+				                'Date'[Fiscal YearMonthNumber] = PreviousYearMonthNumber,
+				                CALCULATETABLE ( 
+				                    VALUES ( 'Date'[Fiscal DayOfMonthNumber] ),
+				                    ALLEXCEPT ( 'Date', 'Date'[Fiscal DayOfMonthNumber], 'Date'[Date] ),
+				                    'Date'[Fiscal YearMonthNumber] = CurrentYearMonthNumber,
+				                    'Date'[DatesWithTransactions] = TRUE 
+				                )
+				            )
+				        )
+				    )
+				)
+				```
+
+		calculationItem MOM = ```
+				VAR ValueCurrentPeriod = SELECTEDMEASURE()
+				VAR MonthsOffset = 1
+				VAR ValuePreviousPeriod = IF (
+				    [ShowValueForDates],
+				    SUMX (
+				        SUMMARIZE ( 'Date', 'Date'[Fiscal YearMonthNumber] ),
+				        VAR CurrentYearMonthNumber = 'Date'[Fiscal YearMonthNumber]
+				        VAR PreviousYearMonthNumber = CurrentYearMonthNumber - MonthsOffset
+				        VAR DaysOnMonth = 
+				            CALCULATE (
+				                COUNTROWS ( 'Date' ),
+				                ALLEXCEPT ( 'Date', 'Date'[Fiscal YearMonthNumber], 'Date'[IsWorkingDay], 'Date'[Week Day] )
+				            )
+				        VAR DaysSelected = 
+				            CALCULATE ( 
+				                COUNTROWS ( 'Date' ), 
+				                'Date'[DatesWithTransactions] = TRUE 
+				            )
+				        RETURN IF (
+				            DaysOnMonth = DaysSelected,
+				
+				            -- Selection of all days in the month
+				            CALCULATE (
+				                SELECTEDMEASURE(),
+				                ALLEXCEPT ( 'Date', 'Date'[IsWorkingDay], 'Date'[Week Day] ),
+				                'Date'[Fiscal YearMonthNumber] = PreviousYearMonthNumber
+				            ),
+				            
+				            -- Partial selection of days in a month
+				            CALCULATE (
+				                SELECTEDMEASURE(),
+				                ALLEXCEPT ( 'Date', 'Date'[IsWorkingDay], 'Date'[Week Day] ),
+				                'Date'[Fiscal YearMonthNumber] = PreviousYearMonthNumber,
+				                CALCULATETABLE ( 
+				                    VALUES ( 'Date'[Fiscal DayOfMonthNumber] ),
+				                    ALLEXCEPT ( 'Date', 'Date'[Fiscal DayOfMonthNumber], 'Date'[Date] ),
+				                    'Date'[Fiscal YearMonthNumber] = CurrentYearMonthNumber,
+				                    'Date'[DatesWithTransactions] = TRUE 
+				                )
+				            )
+				        )
+				    )
+				)
+				RETURN IF (
+				        NOT ISBLANK ( ValueCurrentPeriod ) 
+				            && NOT ISBLANK ( ValuePreviousPeriod ),
+				        ValueCurrentPeriod - ValuePreviousPeriod
+				    )
+				```
+
+		calculationItem 'MOM %' = ```
+				VAR ValueCurrentPeriod = SELECTEDMEASURE()
+				VAR MonthsOffset = 1
+				VAR _PM = IF (
+				    [ShowValueForDates],
+				    SUMX (
+				        SUMMARIZE ( 'Date', 'Date'[Fiscal YearMonthNumber] ),
+				        VAR CurrentYearMonthNumber = 'Date'[Fiscal YearMonthNumber]
+				        VAR PreviousYearMonthNumber = CurrentYearMonthNumber - MonthsOffset
+				        VAR DaysOnMonth = 
+				            CALCULATE (
+				                COUNTROWS ( 'Date' ),
+				                ALLEXCEPT ( 'Date', 'Date'[Fiscal YearMonthNumber], 'Date'[IsWorkingDay], 'Date'[Week Day] )
+				            )
+				        VAR DaysSelected = 
+				            CALCULATE ( 
+				                COUNTROWS ( 'Date' ), 
+				                'Date'[DatesWithTransactions] = TRUE 
+				            )
+				        RETURN IF (
+				            DaysOnMonth = DaysSelected,
+				
+				            -- Selection of all days in the month
+				            CALCULATE (
+				                SELECTEDMEASURE(),
+				                ALLEXCEPT ( 'Date', 'Date'[IsWorkingDay], 'Date'[Week Day] ),
+				                'Date'[Fiscal YearMonthNumber] = PreviousYearMonthNumber
+				            ),
+				            
+				            -- Partial selection of days in a month
+				            CALCULATE (
+				                SELECTEDMEASURE(),
+				                ALLEXCEPT ( 'Date', 'Date'[IsWorkingDay], 'Date'[Week Day] ),
+				                'Date'[Fiscal YearMonthNumber] = PreviousYearMonthNumber,
+				                CALCULATETABLE ( 
+				                    VALUES ( 'Date'[Fiscal DayOfMonthNumber] ),
+				                    ALLEXCEPT ( 'Date', 'Date'[Fiscal DayOfMonthNumber], 'Date'[Date] ),
+				                    'Date'[Fiscal YearMonthNumber] = CurrentYearMonthNumber,
+				                    'Date'[DatesWithTransactions] = TRUE 
+				                )
+				            )
+				        )
+				    )
+				)
+				VAR _MOM = IF (
+				        NOT ISBLANK ( ValueCurrentPeriod ) 
+				            && NOT ISBLANK ( _PM ),
+				        ValueCurrentPeriod - _PM
+				    )
+				RETURN DIVIDE ( 
+				    _MOM,
+				    _PM
+				)
+				```
+
+		calculationItem PQ = ```
+				VAR MonthsOffset = 3
+				RETURN IF (
+				    [ShowValueForDates],
+				    SUMX (
+				        SUMMARIZE ( 'Date', 'Date'[Fiscal YearMonthNumber] ),
+				        VAR CurrentYearMonthNumber = 'Date'[Fiscal YearMonthNumber]
+				        VAR PreviousYearMonthNumber = CurrentYearMonthNumber - MonthsOffset
+				        VAR DaysOnMonth = 
+				            CALCULATE (
+				                COUNTROWS ( 'Date' ),
+				                ALLEXCEPT ( 'Date', 'Date'[Fiscal YearMonthNumber], 'Date'[IsWorkingDay], 'Date'[Week Day] )
+				            )
+				        VAR DaysSelected = 
+				            CALCULATE ( 
+				                COUNTROWS ( 'Date' ), 
+				                'Date'[DatesWithTransactions] = TRUE 
+				            )
+				        RETURN IF (
+				            DaysOnMonth = DaysSelected,
+				
+				            -- Selection of all days in the month
+				            CALCULATE (
+				                SELECTEDMEASURE(),
+				                ALLEXCEPT ( 'Date', 'Date'[IsWorkingDay], 'Date'[Week Day] ),
+				                'Date'[Fiscal YearMonthNumber] = PreviousYearMonthNumber
+				            ),
+				            
+				            -- Partial selection of days in a month
+				            CALCULATE (
+				                SELECTEDMEASURE(),
+				                ALLEXCEPT ( 'Date', 'Date'[IsWorkingDay], 'Date'[Week Day] ),
+				                'Date'[Fiscal YearMonthNumber] = PreviousYearMonthNumber,
+				                CALCULATETABLE ( 
+				                    VALUES ( 'Date'[Fiscal DayOfMonthNumber] ),
+				                    ALLEXCEPT ( 'Date', 'Date'[Fiscal DayOfMonthNumber], 'Date'[Date] ),
+				                    'Date'[Fiscal YearMonthNumber] = CurrentYearMonthNumber,
+				                    'Date'[DatesWithTransactions] = TRUE 
+				                )
+				            )
+				        )
+				    )
+				)
+				```
+
+		calculationItem QOQ = ```
+				VAR ValueCurrentPeriod = SELECTEDMEASURE()
+				VAR MonthsOffset = 3
+				VAR ValuePreviousPeriod = IF (
+				    [ShowValueForDates],
+				    SUMX (
+				        SUMMARIZE ( 'Date', 'Date'[Fiscal YearMonthNumber] ),
+				        VAR CurrentYearMonthNumber = 'Date'[Fiscal YearMonthNumber]
+				        VAR PreviousYearMonthNumber = CurrentYearMonthNumber - MonthsOffset
+				        VAR DaysOnMonth = 
+				            CALCULATE (
+				                COUNTROWS ( 'Date' ),
+				                ALLEXCEPT ( 'Date', 'Date'[Fiscal YearMonthNumber], 'Date'[IsWorkingDay], 'Date'[Week Day] )
+				            )
+				        VAR DaysSelected = 
+				            CALCULATE ( 
+				                COUNTROWS ( 'Date' ), 
+				                'Date'[DatesWithTransactions] = TRUE 
+				            )
+				        RETURN IF (
+				            DaysOnMonth = DaysSelected,
+				
+				            -- Selection of all days in the month
+				            CALCULATE (
+				                SELECTEDMEASURE(),
+				                ALLEXCEPT ( 'Date', 'Date'[IsWorkingDay], 'Date'[Week Day] ),
+				                'Date'[Fiscal YearMonthNumber] = PreviousYearMonthNumber
+				            ),
+				            
+				            -- Partial selection of days in a month
+				            CALCULATE (
+				                SELECTEDMEASURE(),
+				                ALLEXCEPT ( 'Date', 'Date'[IsWorkingDay], 'Date'[Week Day] ),
+				                'Date'[Fiscal YearMonthNumber] = PreviousYearMonthNumber,
+				                CALCULATETABLE ( 
+				                    VALUES ( 'Date'[Fiscal DayOfMonthNumber] ),
+				                    ALLEXCEPT ( 'Date', 'Date'[Fiscal DayOfMonthNumber], 'Date'[Date] ),
+				                    'Date'[Fiscal YearMonthNumber] = CurrentYearMonthNumber,
+				                    'Date'[DatesWithTransactions] = TRUE 
+				                )
+				            )
+				        )
+				    )
+				)
+				RETURN IF (
+				        NOT ISBLANK ( ValueCurrentPeriod ) 
+				            && NOT ISBLANK ( ValuePreviousPeriod ),
+				        ValueCurrentPeriod - ValuePreviousPeriod
+				    )
+				
+				```
+
+		calculationItem 'QOQ %' = ```
+				VAR ValueCurrentPeriod = SELECTEDMEASURE()
+				VAR MonthsOffset = 3
+				VAR _PQ = IF (
+				    [ShowValueForDates],
+				    SUMX (
+				        SUMMARIZE ( 'Date', 'Date'[Fiscal YearMonthNumber] ),
+				        VAR CurrentYearMonthNumber = 'Date'[Fiscal YearMonthNumber]
+				        VAR PreviousYearMonthNumber = CurrentYearMonthNumber - MonthsOffset
+				        VAR DaysOnMonth = 
+				            CALCULATE (
+				                COUNTROWS ( 'Date' ),
+				                ALLEXCEPT ( 'Date', 'Date'[Fiscal YearMonthNumber], 'Date'[IsWorkingDay], 'Date'[Week Day] )
+				            )
+				        VAR DaysSelected = 
+				            CALCULATE ( 
+				                COUNTROWS ( 'Date' ), 
+				                'Date'[DatesWithTransactions] = TRUE 
+				            )
+				        RETURN IF (
+				            DaysOnMonth = DaysSelected,
+				
+				            -- Selection of all days in the month
+				            CALCULATE (
+				                SELECTEDMEASURE(),
+				                ALLEXCEPT ( 'Date', 'Date'[IsWorkingDay], 'Date'[Week Day] ),
+				                'Date'[Fiscal YearMonthNumber] = PreviousYearMonthNumber
+				            ),
+				            
+				            -- Partial selection of days in a month
+				            CALCULATE (
+				                SELECTEDMEASURE(),
+				                ALLEXCEPT ( 'Date', 'Date'[IsWorkingDay], 'Date'[Week Day] ),
+				                'Date'[Fiscal YearMonthNumber] = PreviousYearMonthNumber,
+				                CALCULATETABLE ( 
+				                    VALUES ( 'Date'[Fiscal DayOfMonthNumber] ),
+				                    ALLEXCEPT ( 'Date', 'Date'[Fiscal DayOfMonthNumber], 'Date'[Date] ),
+				                    'Date'[Fiscal YearMonthNumber] = CurrentYearMonthNumber,
+				                    'Date'[DatesWithTransactions] = TRUE 
+				                )
+				            )
+				        )
+				    )
+				)
+				
+				VAR _QOQ = IF (
+				        NOT ISBLANK ( ValueCurrentPeriod ) 
+				            && NOT ISBLANK ( _PQ ),
+				        ValueCurrentPeriod - _PQ
+				    )
+				
+				RETURN DIVIDE ( 
+				    _QOQ,
+				    _PQ
+				)
+				```
+
+		calculationItem PYMAT = ```
+				IF ( 
+				    [ShowValueForDates], 
+				    VAR LastDayAvailable = MAX ( 'Date'[Sequential365DayNumber] )
+				    VAR LastDayMAT =  INT ( EDATE ( LastDayAvailable, -12 ) )
+				    VAR FirstDayMAT = INT ( EDATE ( LastDayAvailable + 1, -24 ) )
+				    VAR Result = 
+				        CALCULATE ( 
+				            SELECTEDMEASURE(), 
+				            ALLEXCEPT ( 'Date', 'Date'[IsWorkingDay], 'Date'[Week Day] ),
+				            'Date'[Sequential365DayNumber] >= FirstDayMAT 
+				                && 'Date'[Sequential365DayNumber] <= LastDayMAT
+				        ) 
+				    RETURN 
+				        Result
+				)
+				```
+
+		calculationItem 'MATG %' = ```
+				//---------- MATG
+				VAR ValueCurrentPeriod = IF ( 
+				    [ShowValueForDates], 
+				    VAR LastDayMAT =  MAX ( 'Date'[Sequential365DayNumber] )
+				    VAR FirstDayMAT = INT ( EDATE ( LastDayMAT + 1, -12 ) )
+				    VAR Result = 
+				        CALCULATE ( 
+				            SELECTEDMEASURE(), 
+				            ALLEXCEPT ( 'Date', 'Date'[IsWorkingDay], 'Date'[Week Day] ),
+				            'Date'[Sequential365DayNumber] >= FirstDayMAT 
+				                && 'Date'[Sequential365DayNumber] <= LastDayMAT
+				        ) 
+				    RETURN
+				        Result
+				)
+				VAR ValuePreviousPeriod = IF ( 
+				    [ShowValueForDates], 
+				    VAR LastDayAvailable = MAX ( 'Date'[Sequential365DayNumber] )
+				    VAR LastDayMAT =  INT ( EDATE ( LastDayAvailable, -12 ) )
+				    VAR FirstDayMAT = INT ( EDATE ( LastDayAvailable + 1, -24 ) )
+				    VAR Result = 
+				        CALCULATE ( 
+				             SELECTEDMEASURE(), 
+				            ALLEXCEPT ( 'Date', 'Date'[IsWorkingDay], 'Date'[Week Day] ),
+				            'Date'[Sequential365DayNumber] >= FirstDayMAT 
+				                && 'Date'[Sequential365DayNumber] <= LastDayMAT
+				        ) 
+				    RETURN 
+				        Result
+				)
+				VAR _MATG = IF (
+				        NOT ISBLANK ( ValueCurrentPeriod ) 
+				            && NOT ISBLANK ( ValuePreviousPeriod ),
+				        ValueCurrentPeriod - ValuePreviousPeriod
+				    )
+				//---------- PYMAT
+				VAR _PYMAT = IF ( 
+				    [ShowValueForDates], 
+				    VAR LastDayAvailable = MAX ( 'Date'[Sequential365DayNumber] )
+				    VAR LastDayMAT =  INT ( EDATE ( LastDayAvailable, -12 ) )
+				    VAR FirstDayMAT = INT ( EDATE ( LastDayAvailable + 1, -24 ) )
+				    VAR Result = 
+				        CALCULATE ( 
+				            SELECTEDMEASURE(), 
+				            ALLEXCEPT ( 'Date', 'Date'[IsWorkingDay], 'Date'[Week Day] ),
+				            'Date'[Sequential365DayNumber] >= FirstDayMAT 
+				                && 'Date'[Sequential365DayNumber] <= LastDayMAT
+				        ) 
+				    RETURN 
+				        Result
+				)
+				//---------- RETURN
+				RETURN DIVIDE ( 
+				    _MATG,
+				    _PYMAT
+				)
+				```
+
+	column 'Selected Measure'
+		dataType: string
+		lineageTag: 024b1eae-3af6-4bbb-adb5-09fe132d5049
+		summarizeBy: none
+		sourceColumn: Name
+		sortByColumn: Ordinal
+
+		annotation SummarizationSetBy = Automatic
+
+	column Ordinal
+		dataType: int64
+		isHidden
+		lineageTag: c2e1cfa4-4d7d-4a24-94f0-a5b6575b5797
+		summarizeBy: sum
+		sourceColumn: Ordinal
+
+		annotation SummarizationSetBy = Automatic
+
+	column Type = ```
+			
+			SWITCH(
+			    [Selected Measure],
+			    // ----- Period-Over-Period Growth
+			    "PP","Period-Over-Period Growth",
+			    "POP","Period-Over-Period Growth",
+			    "POP %","Period-Over-Period Growth",  
+			
+			    "PM","Period-Over-Period Growth",
+			    "MOM","Period-Over-Period Growth",
+			    "MOM %","Period-Over-Period Growth",       
+			
+			    "PQ","Period-Over-Period Growth",
+			    "QOQ","Period-Over-Period Growth",
+			    "QOQ %","Period-Over-Period Growth",    
+			    
+			    "PY","Period-Over-Period Growth",
+			    "YOY","Period-Over-Period Growth",
+			    "YOY %","Period-Over-Period Growth",
+			
+			    // ----- Period-To-Date Totals
+			    "MTD","Period-To-Date Totals",
+			    "QTD","Period-To-Date Totals",
+			    "YTD","Period-To-Date Totals",
+			
+			    // ----- Period-To-Date Growth
+			    "MOMTD","Period-To-Date Growth",
+			    "PMTD","Period-To-Date Growth",
+			    "MOMTD %","Period-To-Date Growth",
+			
+			    "QOQTD","Period-To-Date Growth",
+			    "PQTD","Period-To-Date Growth",
+			    "QOQTD %","Period-To-Date Growth",
+			
+			    "YOYTD","Period-To-Date Growth",
+			    "PYTD","Period-To-Date Growth",
+			    "YOYTD %","Period-To-Date Growth",
+			
+			    // ---- Period-To-Date with Previous Full Period
+			    "PYC","Period-To-Date with Previous Full Period",
+			    "YTDOPY","Period-To-Date with Previous Full Period",
+			    "YTDOPY %","Period-To-Date with Previous Full Period",
+			
+			    "PQC","Period-To-Date with Previous Full Period",
+			    "QTDOPQ","Period-To-Date with Previous Full Period",
+			    "QTDOPQ %","Period-To-Date with Previous Full Period",
+			
+			    "PMC","Period-To-Date with Previous Full Period",
+			    "MTDOPM","Period-To-Date with Previous Full Period",
+			    "MTDOPM %","Period-To-Date with Previous Full Period",
+			
+			    // ----  Moving Averages
+			    "AVG 1Y","Moving Averages",
+			    "AVG 30D","Moving Averages",
+			    "AVG 3M","Moving Averages",
+			
+			    // ---- Moving Annual Total Growth
+			    "MATG","Moving Annual Total Growth",
+			    "MATG %","Moving Annual Total Growth",
+			    "PYMAT","Moving Annual Total Growth",
+			    "MAT","Moving Annual Total Growth"
+			)
+			```
+		lineageTag: d2d09a3c-c758-4bab-9eb2-b728d667efec
+		summarizeBy: none
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Sub Type' = ```
+			
+			SWITCH(
+			    [Type],
+			    "Period-To-Date Totals",
+			        SWITCH( [Selected Measure],
+			        "MTD","Period-To-Date Totals",
+			        "QTD","Period-To-Date Totals",
+			        "YTD","Period-To-Date Totals"
+			        ),
+			    "Period-Over-Period Growth",
+			        SWITCH( [Selected Measure],
+			        "PY","Year-Over-Year Growth",
+			        "YOY","Year-Over-Year Growth",
+			        "YOY %","Year-Over-Year Growth",
+			
+			        "PQ","Quarter-Over-Quarter Growth",
+			        "QOQ","Quarter-Over-Quarter Growth",
+			        "QOQ %","Quarter-Over-Quarter Growth",
+			        
+			        "PM", "Month-Over-Month Growth",
+			        "MOM", "Month-Over-Month Growth",
+			        "MOM %", "Month-Over-Month Growth",
+			        
+			        "PP", "Period-Over-Period Growth",
+			        "POP", "Period-Over-Period Growth",
+			        "POP %", "Period-Over-Period Growth"
+			        ),
+			    "Period-To-Date Growth",
+			        SWITCH( [Selected Measure],
+			        "PYTD","Year-Over-Year-To-Date Growth",
+			        "YOYTD","Year-Over-Year-To-Date Growth",
+			        "YOYTD %","Year-Over-Year-To-Date Growth",
+			
+			        "PQTD","Quarter-Over-Quarter-To-Date Growth",
+			        "QOQTD","Quarter-Over-Quarter-To-Date Growth",
+			        "QOQTD %","Quarter-Over-Quarter-To-Date Growth",
+			        
+			        "PMTD", "Month-Over-Month-To Date Growth",
+			        "MOMTD", "Month-Over-Month-To Date Growth",
+			        "MOMTD %", "Month-Over-Month-To Date Growth"
+			        ),
+			    "Period-To-Date with Previous Full Period",
+			        SWITCH( [Selected Measure],
+			        "PYC","Year-To-Date-Over Full Previous Year",
+			        "YTDOPY","Year-To-Date-Over Full Previous Year",
+			        "YTDOPY %","Year-To-Date-Over Full Previous Year",
+			
+			        "PQC","Quarter-To-Date-Over Full Previous Quarter",
+			        "QTDOPQ","Quarter-To-Date-Over Full Previous Quarter",
+			        "QTDOPQ %","Quarter-To-Date-Over Full Previous Quarter",
+			
+			        "PMC","Month-To-Date-Over Full Previous Month",
+			        "MTDOPM","Month-To-Date-Over Full Previous Month",
+			        "MTDOPM %","Month-To-Date-Over Full Previous Month"
+			        ),
+			    "Moving Averages",
+			        SWITCH( [Selected Measure],
+			        "AVG 1Y","Moving Averages",
+			        "AVG 30D","Moving Averages",
+			        "AVG 3M","Moving Averages"
+			        ),
+			    "Moving Annual Totals",
+			        SWITCH( [Selected Measure],
+			        "MAT","Moving Annual Totals"
+			        ),
+			    "Moving Annual Total Growth",
+			        SWITCH( [Selected Measure],
+			        "MATG","Moving Annual Total Growth",
+			        "MATG %","Moving Annual Total Growth",
+			        "PYMAT","Moving Annual Total Growth"
+			        )
+			)
+			```
+		lineageTag: 8bff1f53-7223-4119-9d99-9e495aa4d2bd
+		summarizeBy: none
+
+		annotation SummarizationSetBy = Automatic
+
+	hierarchy 'Calc. Group Hierarchy (Fiscal)'
+		lineageTag: e93fa3c3-1c84-4b5e-83df-fa1c2b50364d
+
+		level Type
+			lineageTag: 824d5b1c-e51e-440d-95b6-4747fd5b8c0a
+			column: Type
+
+		level 'Sub Type'
+			lineageTag: 78c9cf27-42ea-4763-91ce-23b3c615b051
+			column: 'Sub Type'
+
+		level 'Selected Measure'
+			lineageTag: b6657b1b-555e-463f-ac8f-2985b602c08c
+			column: 'Selected Measure'
+

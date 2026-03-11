@@ -1,0 +1,28 @@
+{
+   "type": "object",
+   "description": "Assigns the most appropriate General Ledger (GL) account to a purchase invoice line, using all available context.",
+   "properties": {
+      "reasoning": {
+         "type": "string",
+         "description": "A concise, audit-ready justification for the match, in the output language. If the line is not in English, translate or explain as needed."
+      },
+      "lineId": {
+         "type": "number",
+         "description": "Unique identifier of the invoice line."
+      },
+      "accountId": {
+         "type": "string",
+         "description": "GL account number (string). If no match is possible, omit the tool call."
+      },
+      "totalNumberOfPotentialAccounts": {
+         "type": "number",
+         "description": "Number of equally valid accounts (system metadata)."
+      }
+   },
+   "required": [
+      "reasoning",
+      "lineId",
+      "accountId",
+      "totalNumberOfPotentialAccounts"
+   ]
+}

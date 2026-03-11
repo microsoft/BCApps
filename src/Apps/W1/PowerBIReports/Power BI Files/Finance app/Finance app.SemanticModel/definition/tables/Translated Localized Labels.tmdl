@@ -1,0 +1,2648 @@
+table 'Translated Localized Labels'
+	isHidden
+	lineageTag: a18f2e85-7db6-49d8-a3da-9df18a99f445
+
+	measure 'My Report Title Label' =
+			SWITCH(USERCULTURE(),
+			   "es-ES", "Título del informe",
+			   "de-DE", "Titel meines Berichts",
+			   "fr-FR", "Titre de l’état",
+			   "cs-CZ", "Můj nadpis sestavy",
+			   "da-DK", "Min rapporttitel",
+			   "de-AT", "Titel meines Berichts",
+			   "de-CH", "Titel meines Berichts",
+			   "en-AU", "My Report Title",
+			   "en-CA", "My Report Title",
+			   "en-GB", "My Report Title",
+			   "en-NZ", "My Report Title",
+			   "es-MX", "Título del informe",
+			   "fi-FI", "Oman raportin otsikko",
+			   "fr-BE", "Titre de l’état",
+			   "fr-CA", "Titre du rapport",
+			   "fr-CH", "Titre de l’état",
+			   "is-IS", "Skýrslutitillinn minn",
+			   "it-CH", "Titolo report personale",
+			   "it-IT", "Titolo report personale",
+			   "nb-NO", "Min rapporttittel",
+			   "nl-BE", "Mijn rapporttitel",
+			   "nl-NL", "Mijn rapporttitel",
+			   "sv-SE", "Min rapportrubrik",
+			   "My Report Title"
+			)
+		isHidden
+		lineageTag: ce98e664-c42e-44e3-ba7e-0176be9da712
+
+	measure 'My Button Caption Label' =
+			SWITCH(USERCULTURE(),
+			   "es-ES", "Título de botón",
+			   "de-DE", "Beschriftung Meine Schaltfläche",
+			   "fr-FR", "Légende de mon bouton",
+			   "cs-CZ", "Popisek mého tlačítka",
+			   "da-DK", "Min knaptitel",
+			   "de-AT", "Beschriftung Meine Schaltfläche",
+			   "de-CH", "Beschriftung Meine Schaltfläche",
+			   "en-AU", "My Button Caption",
+			   "en-CA", "My Button Caption",
+			   "en-GB", "My Button Caption",
+			   "en-NZ", "My Button Caption",
+			   "es-MX", "Título de botón",
+			   "fi-FI", "Oma painikkeen otsikko",
+			   "fr-BE", "Légende de mon bouton",
+			   "fr-CA", "Légende de mon bouton",
+			   "fr-CH", "Légende de mon bouton",
+			   "is-IS", "Texti hnappsins míns",
+			   "it-CH", "Didascalia pulsante personale",
+			   "it-IT", "Didascalia pulsante personale",
+			   "nb-NO", "Min knappetittel",
+			   "nl-BE", "Bijschrift van mijn knop",
+			   "nl-NL", "Bijschrift van mijn knop",
+			   "sv-SE", "Min knapprubrik",
+			   "My Button Caption"
+			)
+		isHidden
+		lineageTag: 08988b0e-e1f1-4af9-9cbe-48b750ffd35e
+
+	measure 'My Visual Title Label' =
+			SWITCH(USERCULTURE(),
+			   "es-ES", "Título visual",
+			   "de-DE", "Titel meines Visuals",
+			   "fr-FR", "Mon titre visuel",
+			   "cs-CZ", "Název mého vizuálu",
+			   "da-DK", "Min visuelle titel",
+			   "de-AT", "Titel meines Visuals",
+			   "de-CH", "Titel meines Visuals",
+			   "en-AU", "My Visual Title",
+			   "en-CA", "My Visual Title",
+			   "en-GB", "My Visual Title",
+			   "en-NZ", "My Visual Title",
+			   "es-MX", "Título visual",
+			   "fi-FI", "Oma visuaalinen otsikko",
+			   "fr-BE", "Mon titre visuel",
+			   "fr-CA", "Mon titre visuel",
+			   "fr-CH", "Mon titre visuel",
+			   "is-IS", "Sjónræni titillinn minn",
+			   "it-CH", "Titolo visivo personale",
+			   "it-IT", "Titolo visivo personale",
+			   "nb-NO", "Min visuelle tittel",
+			   "nl-BE", "Mijn visuele titel",
+			   "nl-NL", "Mijn visuele titel",
+			   "sv-SE", "Min visuella rubrik",
+			   "My Visual Title"
+			)
+		isHidden
+		lineageTag: 4a51df0c-0854-423b-8f9b-5c02b8a2b6d8
+
+	measure 'Financial Overview Label' =
+			SWITCH(USERCULTURE(),
+			   "es-ES", "Información general financiera",
+			   "de-DE", "Finanzübersicht",
+			   "fr-FR", "Vue d’ensemble financière",
+			   "cs-CZ", "Finanční přehled",
+			   "da-DK", "Økonomisk oversigt",
+			   "de-AT", "Finanzübersicht",
+			   "de-CH", "Finanzübersicht",
+			   "en-AU", "Financial Overview",
+			   "en-CA", "Financial Overview",
+			   "en-GB", "Financial Overview",
+			   "en-NZ", "Financial Overview",
+			   "es-MX", "Información general financiera",
+			   "fi-FI", "Taloudellinen yhteenveto",
+			   "fr-BE", "Vue d’ensemble financière",
+			   "fr-CA", "Vue d’ensemble financière",
+			   "fr-CH", "Vue d’ensemble financière",
+			   "is-IS", "Fjármálayfirlit",
+			   "it-CH", "Panoramica finanziaria",
+			   "it-IT", "Panoramica finanziaria",
+			   "nb-NO", "Finansoversikt",
+			   "nl-BE", "Financieel overzicht",
+			   "nl-NL", "Financieel overzicht",
+			   "sv-SE", "Ekonomisk översikt",
+			   "Financial Overview"
+			)
+		isHidden
+		lineageTag: 658e3796-616f-4658-8916-4a1bf9daf8c3
+
+	measure 'Income Statement by Month Label' =
+			SWITCH(USERCULTURE(),
+			   "es-ES", "Balance de ingresos por mes",
+			   "de-DE", "GuV nach Monat",
+			   "fr-FR", "Compte résultats par mois",
+			   "cs-CZ", "Výsledovka podle měsíce",
+			   "da-DK", "Resultatopgørelse pr. måned",
+			   "de-AT", "GuV nach Monat",
+			   "de-CH", "Erfolgsrechnung nach Monat",
+			   "en-AU", "Income Statement by Month",
+			   "en-CA", "Income Statement by Month",
+			   "en-GB", "Income Statement by Month",
+			   "en-NZ", "Income Statement by Month",
+			   "es-MX", "Balance de ingresos por mes",
+			   "fi-FI", "Tuloslaskelma kuukausittain",
+			   "fr-BE", "Compte résultats par mois",
+			   "fr-CA", "État des résultats par mois",
+			   "fr-CH", "Compte résultats par mois",
+			   "is-IS", "Rekstrarreikningur eftir mánuði",
+			   "it-CH", "Conto economico per mese",
+			   "it-IT", "Conto economico per mese",
+			   "nb-NO", "Resultatregnskap etter måned",
+			   "nl-BE", "Resultatenrekening per maand",
+			   "nl-NL", "Resultatenrekening per maand",
+			   "sv-SE", "Resultaträkning per månad",
+			   "Income Statement by Month"
+			)
+		isHidden
+		lineageTag: efa67bc4-8394-4c48-bb1f-2037c1f03319
+
+	measure 'Balance Sheet by Month Label' =
+			SWITCH(USERCULTURE(),
+			   "es-ES", "Balance por mes",
+			   "de-DE", "Bilanz nach Monat",
+			   "fr-FR", "Bilan par mois",
+			   "cs-CZ", "Rozvaha podle měsíce",
+			   "da-DK", "Balance pr. måned",
+			   "de-AT", "Bilanz nach Monat",
+			   "de-CH", "Bilanz nach Monat",
+			   "en-AU", "Balance Sheet by Month",
+			   "en-CA", "Balance Sheet by Month",
+			   "en-GB", "Balance Sheet by Month",
+			   "en-NZ", "Balance Sheet by Month",
+			   "es-MX", "Balance por mes",
+			   "fi-FI", "Tase kuukausittain",
+			   "fr-BE", "Bilan par mois",
+			   "fr-CA", "Bilan par mois",
+			   "fr-CH", "Bilan par mois",
+			   "is-IS", "Efnahagsreikningur eftir mánuði",
+			   "it-CH", "Conto patrimoniale per mese",
+			   "it-IT", "Conto patrimoniale per mese",
+			   "nb-NO", "Balanse etter måned",
+			   "nl-BE", "Balans per maand",
+			   "nl-NL", "Balans per maand",
+			   "sv-SE", "Balansräkning per månad",
+			   "Balance Sheet by Month"
+			)
+		isHidden
+		lineageTag: 9f75dafe-2410-457b-9a70-d5c108cbfe9f
+
+	measure 'Budget Comparison Label' =
+			SWITCH(USERCULTURE(),
+			   "es-ES", "Comparación de presupuestos",
+			   "de-DE", "Budgetvergleich",
+			   "fr-FR", "Comparaison budgétaire",
+			   "cs-CZ", "Porovnání rozpočtu",
+			   "da-DK", "Budgetsammenligning",
+			   "de-AT", "Budgetvergleich",
+			   "de-CH", "Budgetvergleich",
+			   "en-AU", "Budget Comparison",
+			   "en-CA", "Budget Comparison",
+			   "en-GB", "Budget Comparison",
+			   "en-NZ", "Budget Comparison",
+			   "es-MX", "Comparación de presupuestos",
+			   "fi-FI", "Budjettivertailu",
+			   "fr-BE", "Comparaison budgétaire",
+			   "fr-CA", "Comparaison budgétaire",
+			   "fr-CH", "Comparaison budgétaire",
+			   "is-IS", "Samanburður fjárhagsáætlana",
+			   "it-CH", "Confronto budget",
+			   "it-IT", "Confronto budget",
+			   "nb-NO", "Budsjettsammenligning",
+			   "nl-BE", "Budgetvergelijking",
+			   "nl-NL", "Budgetvergelijking",
+			   "sv-SE", "Budgetjämförelse",
+			   "Budget Comparison"
+			)
+		isHidden
+		lineageTag: 740a1942-b103-4ebc-843c-003d5c3ffbea
+
+	measure 'Liquidity KPIs Label' =
+			SWITCH(USERCULTURE(),
+			   "es-ES", "KPI de liquidez",
+			   "de-DE", "Liquiditäts-KPI",
+			   "fr-FR", "Indicateurs de performances clés liquidités",
+			   "cs-CZ", "KPI likvidity",
+			   "da-DK", "Likviditets-KPI'er",
+			   "de-AT", "Liquiditäts-KPI",
+			   "de-CH", "Liquiditäts-KPI",
+			   "en-AU", "Liquidity KPIs",
+			   "en-CA", "Liquidity KPIs",
+			   "en-GB", "Liquidity KPIs",
+			   "en-NZ", "Liquidity KPIs",
+			   "es-MX", "KPI de liquidez",
+			   "fi-FI", "Maksuvalmiuden tunnusluvut",
+			   "fr-BE", "Indicateurs de performances clés liquidités",
+			   "fr-CA", "Indicateurs de performances clés liquidités",
+			   "fr-CH", "Indicateurs de performances clés pour les liquidités",
+			   "is-IS", "Afkastavísar greiðslugetu",
+			   "it-CH", "KPI liquidità",
+			   "it-IT", "KPI liquidità",
+			   "nb-NO", "Ytelsesindikatorer for likviditet",
+			   "nl-BE", "Liquiditeits-KPI's",
+			   "nl-NL", "Liquiditeits-KPI's",
+			   "sv-SE", "KPI:er för likviditet",
+			   "Liquidity KPIs"
+			)
+		isHidden
+		lineageTag: d5ef83da-ecb0-4a2b-93a1-357d534b520d
+
+	measure 'Profitability Label' =
+			SWITCH(USERCULTURE(),
+			   "es-ES", "Rentabilidad",
+			   "de-DE", "Rentabilität",
+			   "fr-FR", "Rentabilité",
+			   "cs-CZ", "Ziskovost",
+			   "da-DK", "Rentabilitet",
+			   "de-AT", "Rentabilität",
+			   "de-CH", "Rentabilität",
+			   "en-AU", "Profitability",
+			   "en-CA", "Profitability",
+			   "en-GB", "Profitability",
+			   "en-NZ", "Profitability",
+			   "es-MX", "Rentabilidad",
+			   "fi-FI", "Kannattavuus",
+			   "fr-BE", "Rentabilité",
+			   "fr-CA", "Rentabilité",
+			   "fr-CH", "Rentabilité",
+			   "is-IS", "Arðsemi",
+			   "it-CH", "Redditività",
+			   "it-IT", "Redditività",
+			   "nb-NO", "Lønnsomhet",
+			   "nl-BE", "Winstgevendheid",
+			   "nl-NL", "Winstgevendheid",
+			   "sv-SE", "Lönsamhet",
+			   "Profitability"
+			)
+		isHidden
+		lineageTag: 589bb310-6b39-4fa8-83c9-285e3f249a9d
+
+	measure 'Liabilities  Label' =
+			SWITCH(USERCULTURE(),
+			   "es-ES", "Pasivo ",
+			   "de-DE", "Verbindlichkeiten",
+			   "fr-FR", "Passif ",
+			   "cs-CZ", "Pasiva ",
+			   "da-DK", "Passiver ",
+			   "de-AT", "Verbindlichkeiten",
+			   "de-CH", "Verbindlichkeiten",
+			   "en-AU", "Liabilities ",
+			   "en-CA", "Liabilities ",
+			   "en-GB", "Liabilities ",
+			   "en-NZ", "Liabilities ",
+			   "es-MX", "Pasivo ",
+			   "fi-FI", "Vieras pääoma ",
+			   "fr-BE", "Passif ",
+			   "fr-CA", "Passif ",
+			   "fr-CH", "Passif ",
+			   "is-IS", "Skuldir ",
+			   "it-CH", "Passività",
+			   "it-IT", "Passività",
+			   "nb-NO", "Gjeld ",
+			   "nl-BE", "Verplichtingen ",
+			   "nl-NL", "Verplichtingen ",
+			   "sv-SE", "Skulder ",
+			   "Liabilities "
+			)
+		isHidden
+		lineageTag: 3acfbb79-d442-455e-9c15-cecf5dc4d832
+
+	measure 'Average Collection Period  Label' =
+			SWITCH(USERCULTURE(),
+			   "es-ES", "Promedio de periodo de cobro",
+			   "de-DE", "Durchschnittlicher Mahnzeitraum",
+			   "fr-FR", "Délai règlement moyen ",
+			   "cs-CZ", "Průměrné období inkasa",
+			   "da-DK", "Gennemsnitlig rykkerperiode ",
+			   "de-AT", "Durchschnittlicher Mahnzeitraum",
+			   "de-CH", "Durchschnittlicher Mahnzeitraum",
+			   "en-AU", "Average Collection Period ",
+			   "en-CA", "Average Collection Period ",
+			   "en-GB", "Average Collection Period ",
+			   "en-NZ", "Average Collection Period ",
+			   "es-MX", "Promedio de periodo de cobro",
+			   "fi-FI", "Perintäjakso keskimäärin ",
+			   "fr-BE", "Délai règlement moyen ",
+			   "fr-CA", "Période de recouvrement moyenne ",
+			   "fr-CH", "Délai règlement moyen ",
+			   "is-IS", "Meðaltal innheimtutímabils ",
+			   "it-CH", "Periodo medio di riscossione",
+			   "it-IT", "Periodo medio di riscossione",
+			   "nb-NO", "Gjennomsnittlig purreperiode ",
+			   "nl-BE", "Gemiddelde incassoperiode ",
+			   "nl-NL", "Gemiddelde incassoperiode ",
+			   "sv-SE", "Genomsnittlig inkassoperiod ",
+			   "Average Collection Period "
+			)
+		isHidden
+		lineageTag: 3991988a-e9cc-4336-824f-f71d198460ff
+
+	measure 'Aged Receivables (Back Dating) Label' =
+			SWITCH(USERCULTURE(),
+			   "es-ES", "Antigüedad de cuentas por cobrar (fecha atrasada)",
+			   "de-DE", "Debitorenrückblick (Rückdatierung)",
+			   "fr-FR", "Comptabilité client âgée (rétrodatation)",
+			   "cs-CZ", "Splatné pohledávky (zpětné datování)",
+			   "da-DK", "Ældre tilgodehavender (Back Dating)",
+			   "de-AT", "Debitorenrückblick (Rückdatierung)",
+			   "de-CH", "Debitorenrückblick (Rückdatierung)",
+			   "en-AU", "Aged Receivables (Back Dating)",
+			   "en-CA", "Aged Receivables (Back Dating)",
+			   "en-GB", "Aged Receivables (Back Dating)",
+			   "en-NZ", "Aged Receivables (Back Dating)",
+			   "es-MX", "Antigüedad de cuentas por cobrar (fecha atrasada)",
+			   "fi-FI", "Myyntisaatavien tilanne (päiväys taaksepäin)",
+			   "fr-BE", "Comptabilité client âgée (rétrodatation)",
+			   "fr-CA", "Comptabilité client classée chronologiquement (rétrodatation)",
+			   "fr-CH", "Comptabilité client âgée (rétrodatation)",
+			   "is-IS", "Aldursgreindar viðskiptakröfur (gerðar afturvirkar)",
+			   "it-CH", "Scadenzario clienti (retrodatazione)",
+			   "it-IT", "Scadenzario clienti (retrodatazione)",
+			   "nb-NO", "Aldersfordelt kunde (tilbakedatert)",
+			   "nl-BE", "Vervallen tegoeden (terugdatering)",
+			   "nl-NL", "Vervallen tegoeden (terugdatering)",
+			   "sv-SE", "Kundreskontra (bakåtdatering) – ålder",
+			   "Aged Receivables (Back Dating)"
+			)
+		isHidden
+		lineageTag: 7852b5a3-0389-46e4-8e7a-71b6b4330fef
+
+	measure 'Aged Payables (Back Dating) Label' =
+			SWITCH(USERCULTURE(),
+			   "es-ES", "Antigüedad de cuentas por pagar (fecha atrasada)",
+			   "de-DE", "Kreditorenrückblick (Rückdatierung)",
+			   "fr-FR", "Comptabilité fournisseur âgée (rétrodatation)",
+			   "cs-CZ", "Splatné závazky (zpětné datování)",
+			   "da-DK", "Ældre gæld (Back Dating)",
+			   "de-AT", "Kreditorenrückblick (Rückdatierung)",
+			   "de-CH", "Kreditorenrückblick (Rückdatierung)",
+			   "en-AU", "Aged Payables (Back Dating)",
+			   "en-CA", "Aged Payables (Back Dating)",
+			   "en-GB", "Aged Payables (Back Dating)",
+			   "en-NZ", "Aged Payables (Back Dating)",
+			   "es-MX", "Antigüedad de cuentas por pagar (fecha atrasada)",
+			   "fi-FI", "Erääntyneet ostovelat (päiväys taaksepäin)",
+			   "fr-BE", "Comptabilité fournisseur âgée (rétrodatation)",
+			   "fr-CA", "Comptabilité fournisseur classée chronologiquement (rétrodatation)",
+			   "fr-CH", "Comptabilité fournisseur âgée (rétrodatation)",
+			   "is-IS", "Aldursgreindar viðskiptaskuldir (gerðar afturvirkar)",
+			   "it-CH", "Scadenzario fornitori (retrodatazione)",
+			   "it-IT", "Scadenzario fornitori (retrodatazione)",
+			   "nb-NO", "Aldersfordelt leverandør (tilbakedatert)",
+			   "nl-BE", "Vervallen schulden (terugdatering)",
+			   "nl-NL", "Vervallen schulden (terugdatering)",
+			   "sv-SE", "Leverantörsreskontra (bakåtdatering) – ålder",
+			   "Aged Payables (Back Dating)"
+			)
+		isHidden
+		lineageTag: 54031a6a-03e9-4f89-81bf-7554a3904567
+
+	measure 'G/L Entries Label' =
+			SWITCH(USERCULTURE(),
+			   "es-ES", "Movimientos de contabilidad",
+			   "de-DE", "Sachposten",
+			   "fr-FR", "Écritures comptables",
+			   "cs-CZ", "Věcné položky",
+			   "da-DK", "Finansposter",
+			   "de-AT", "Sachposten",
+			   "de-CH", "Fibuposten",
+			   "en-AU", "G/L Entries",
+			   "en-CA", "G/L Entries",
+			   "en-GB", "G/L Entries",
+			   "en-NZ", "G/L Entries",
+			   "es-MX", "Movimientos de contabilidad",
+			   "fi-FI", "KP-tapahtumat",
+			   "fr-BE", "Écritures comptables",
+			   "fr-CA", "Écritures GL",
+			   "fr-CH", "Écritures comptables",
+			   "is-IS", "Fjárhagsfærslur",
+			   "it-CH", "Movimenti C/G",
+			   "it-IT", "Movimenti C/G",
+			   "nb-NO", "Finansposter",
+			   "nl-BE", "Grootboekposten",
+			   "nl-NL", "Grootboekposten",
+			   "sv-SE", "Redovisningstransaktioner",
+			   "G/L Entries"
+			)
+		isHidden
+		lineageTag: 35acc266-15e1-4934-8903-3db5c54f0bd7
+
+	measure 'Detailed Vendor Ledger Entries Label' =
+			SWITCH(USERCULTURE(),
+			   "es-ES", "Movs. proveedor detallados",
+			   "de-DE", "Detaillierte Kreditorenposten",
+			   "fr-FR", "Écritures comptables fournisseur détaillées",
+			   "cs-CZ", "Detailní položky dodavatele",
+			   "da-DK", "Detaljerede kreditorposter",
+			   "de-AT", "Detaillierte Kreditorenposten",
+			   "de-CH", "Detaillierte Kreditorenposten",
+			   "en-AU", "Detailed Vendor Ledger Entries",
+			   "en-CA", "Detailed Vendor Ledger Entries",
+			   "en-GB", "Detailed Vendor Ledger Entries",
+			   "en-NZ", "Detailed Vendor Ledger Entries",
+			   "es-MX", "Movs. proveedor detallados",
+			   "fi-FI", "Yksityiskohtaiset toimittajatapahtumat",
+			   "fr-BE", "Écritures comptables fournisseur détaillées",
+			   "fr-CA", "Écritures fournisseur détaillées",
+			   "fr-CH", "Écritures comptables fournisseur détaillées",
+			   "is-IS", "Sundurliðaðar lánardrottnafærslur",
+			   "it-CH", "Dettagli movimenti contabili fornitori",
+			   "it-IT", "Dettagli movimenti contabili fornitori",
+			   "nb-NO", "Detaljerte leverandørposter",
+			   "nl-BE", "Gedetailleerde leveranciersposten",
+			   "nl-NL", "Gedetailleerde leveranciersposten",
+			   "sv-SE", "Detaljerade leverantörsreskontratransaktioner",
+			   "Detailed Vendor Ledger Entries"
+			)
+		isHidden
+		lineageTag: 4ee7d333-faee-42fc-9386-ece93f167ec2
+
+	measure 'Detailed Customer Ledger Entries Label' =
+			SWITCH(USERCULTURE(),
+			   "es-ES", "Movimientos detallados de cliente",
+			   "de-DE", "Detaillierte Debitorenposten",
+			   "fr-FR", "Écritures comptables client détaillées",
+			   "cs-CZ", "Podrobné položky zákazníka",
+			   "da-DK", "Detaljerede debitorposter",
+			   "de-AT", "Detaillierte Debitorenposten",
+			   "de-CH", "Detaillierte Debitorenposten",
+			   "en-AU", "Detailed Customer Ledger Entries",
+			   "en-CA", "Detailed Customer Ledger Entries",
+			   "en-GB", "Detailed Customer Ledger Entries",
+			   "en-NZ", "Detailed Customer Ledger Entries",
+			   "es-MX", "Movimientos detallados de cliente",
+			   "fi-FI", "Yksityiskohtaiset asiakastapahtumat",
+			   "fr-BE", "Écritures comptables client détaillées",
+			   "fr-CA", "Écritures client détaillées",
+			   "fr-CH", "Écritures comptables client détaillées",
+			   "is-IS", "Upplýsingar um viðskiptamannafærslur",
+			   "it-CH", "Dettagli movimenti contabili clienti",
+			   "it-IT", "Dettagli movimenti contabili clienti",
+			   "nb-NO", "Detaljerte kundeposter",
+			   "nl-BE", "Gedetailleerde klantenposten",
+			   "nl-NL", "Gedetailleerde klantenposten",
+			   "sv-SE", "Detaljerade kundreskontratransaktioner",
+			   "Detailed Customer Ledger Entries"
+			)
+		isHidden
+		lineageTag: d0f8a629-ccf2-4958-8678-d4fd93b796fa
+
+	measure 'Income Statement Drill Through Label' =
+			SWITCH(USERCULTURE(),
+			   "es-ES", "Análisis detallado de balance de ingresos",
+			   "de-DE", "GuV-Drillthrough",
+			   "fr-FR", "Exploration du compte de résultat",
+			   "cs-CZ", "Podrobné procházení výsledovky",
+			   "da-DK", "Detaljeudledning af resultatopgørelse",
+			   "de-AT", "GuV-Drillthrough",
+			   "de-CH", "Erfolgsrechnung-Drillthrough",
+			   "en-AU", "Income Statement Drill Through",
+			   "en-CA", "Income Statement Drill Through",
+			   "en-GB", "Income Statement Drill Through",
+			   "en-NZ", "Income Statement Drill Through",
+			   "es-MX", "Análisis detallado de balance de ingresos",
+			   "fi-FI", "Tuloslaskelmaan porautuminen",
+			   "fr-BE", "Exploration du compte de résultat",
+			   "fr-CA", "Exploration de l’état des résultats",
+			   "fr-CH", "Exploration du compte de résultat",
+			   "is-IS", "Köfun í rekstrarreikning",
+			   "it-CH", "Drill-through conto economico",
+			   "it-IT", "Drill-through conto economico",
+			   "nb-NO", "Gjennomgang av resultatregnskap",
+			   "nl-BE", "Detailanalyse van resultatenrekening",
+			   "nl-NL", "Detailanalyse van resultatenrekening",
+			   "sv-SE", "Detaljerad analys av resultaträkning",
+			   "Income Statement Drill Through"
+			)
+		isHidden
+		lineageTag: 4fa04edd-9ab4-4761-b9b1-e7253114fdfc
+
+	measure 'Balance Sheet Drill Through Label' =
+			SWITCH(USERCULTURE(),
+			   "es-ES", "Análisis detallado del balance",
+			   "de-DE", "Bilanz-Drillthrough",
+			   "fr-FR", "Exploration du bilan",
+			   "cs-CZ", "Podrobné procházení rozvahy",
+			   "da-DK", "Gennemgang af balance",
+			   "de-AT", "Bilanz-Drillthrough",
+			   "de-CH", "Bilanz-Drillthrough",
+			   "en-AU", "Balance Sheet Drill Through",
+			   "en-CA", "Balance Sheet Drill Through",
+			   "en-GB", "Balance Sheet Drill Through",
+			   "en-NZ", "Balance Sheet Drill Through",
+			   "es-MX", "Análisis detallado del balance",
+			   "fi-FI", "Taseeseen porautuminen",
+			   "fr-BE", "Exploration du bilan",
+			   "fr-CA", "Exploration du bilan",
+			   "fr-CH", "Exploration du bilan",
+			   "is-IS", "Köfun í efnahagsreikning",
+			   "it-CH", "Drill-through stato patrimoniale",
+			   "it-IT", "Drill-through stato patrimoniale",
+			   "nb-NO", "Balansegjennomgang",
+			   "nl-BE", "Detailanalyse van balans",
+			   "nl-NL", "Detailanalyse van balans",
+			   "sv-SE", "Detaljerad analys av balansräkning",
+			   "Balance Sheet Drill Through"
+			)
+		isHidden
+		lineageTag: eb7f33e2-c645-4e72-aeb4-28985b615498
+
+	measure 'Vendor Ledger Entries Drill Through Label' =
+			SWITCH(USERCULTURE(),
+			   "es-ES", "Análisis detallado de los movimientos de proveedor",
+			   "de-DE", "Kreditorenposten-Drillthrough",
+			   "fr-FR", "Exploration des écritures comptables fournisseur",
+			   "cs-CZ", "Podrobné procházení položek dodavatele",
+			   "da-DK", "Detaljeadgang for kreditorfinansposter",
+			   "de-AT", "Kreditorenposten-Drillthrough",
+			   "de-CH", "Kreditorenposten-Drillthrough",
+			   "en-AU", "Vendor Ledger Entries Drill Through",
+			   "en-CA", "Vendor Ledger Entries Drill Through",
+			   "en-GB", "Vendor Ledger Entries Drill Through",
+			   "en-NZ", "Vendor Ledger Entries Drill Through",
+			   "es-MX", "Análisis detallado de los movimientos de proveedor",
+			   "fi-FI", "Toimittajatapahtumiin porautuminen",
+			   "fr-BE", "Exploration des écritures comptables fournisseur",
+			   "fr-CA", "Exploration des écritures fournisseur",
+			   "fr-CH", "Exploration des écritures comptables fournisseur",
+			   "is-IS", "Köfun í færslur lánardrottnabókar",
+			   "it-CH", "Drill-through movimenti contabili fornitori",
+			   "it-IT", "Drill-through movimenti contabili fornitori",
+			   "nb-NO", "Gjennomgang av leverandørposter",
+			   "nl-BE", "Detailanalyse van leveranciersposten",
+			   "nl-NL", "Detailanalyse van leveranciersposten",
+			   "sv-SE", "Detaljerad analys av leverantörsreskontratransaktioner",
+			   "Vendor Ledger Entries Drill Through"
+			)
+		isHidden
+		lineageTag: 0ea85af9-d171-4174-9bb3-c31488d241db
+
+	measure 'Customer Ledger Entries Drill Through Label' =
+			SWITCH(USERCULTURE(),
+			   "es-ES", "Análisis detallado de los movimientos de cliente",
+			   "de-DE", "Debitorenposten-Drillthrough",
+			   "fr-FR", "Exploration des écritures comptables client",
+			   "cs-CZ", "Podrobné procházení položek zákazníka",
+			   "da-DK", "Detaljeadgang for kundefinansposter",
+			   "de-AT", "Debitorenposten-Drillthrough",
+			   "de-CH", "Debitorenposten-Drillthrough",
+			   "en-AU", "Customer Ledger Entries Drill Through",
+			   "en-CA", "Customer Ledger Entries Drill Through",
+			   "en-GB", "Customer Ledger Entries Drill Through",
+			   "en-NZ", "Customer Ledger Entries Drill Through",
+			   "es-MX", "Análisis detallado de los movimientos de cliente",
+			   "fi-FI", "Asiakastapahtumiin porautuminen",
+			   "fr-BE", "Exploration des écritures comptables client",
+			   "fr-CA", "Exploration des écritures client",
+			   "fr-CH", "Exploration des écritures comptables client",
+			   "is-IS", "Köfun í færslur viðskiptamannabókar",
+			   "it-CH", "Drill-through movimenti contabili clienti",
+			   "it-IT", "Drill-through movimenti contabili clienti",
+			   "nb-NO", "Gjennomgang av kundeposter",
+			   "nl-BE", "Detailanalyse van klantenposten",
+			   "nl-NL", "Detailanalyse van klantenposten",
+			   "sv-SE", "Detaljerad analys av kundreskontratransaktioner",
+			   "Customer Ledger Entries Drill Through"
+			)
+		isHidden
+		lineageTag: 275e48c1-2af5-4c0c-9666-16387ddbc5f5
+
+	measure 'Liabilities Drill Through Label' =
+			SWITCH(USERCULTURE(),
+			   "es-ES", "Análisis detallado de pasivos",
+			   "de-DE", "Verbindlichkeiten-Drillthrough",
+			   "fr-FR", "Exploration du passif",
+			   "cs-CZ", "Podrobné procházení pasiv",
+			   "da-DK", "Detailudledning af passiver",
+			   "de-AT", "Verbindlichkeiten-Drillthrough",
+			   "de-CH", "Verbindlichkeiten-Drillthrough",
+			   "en-AU", "Liabilities Drill Through",
+			   "en-CA", "Liabilities Drill Through",
+			   "en-GB", "Liabilities Drill Through",
+			   "en-NZ", "Liabilities Drill Through",
+			   "es-MX", "Análisis detallado de pasivos",
+			   "fi-FI", "Vastattaviin porautuminen",
+			   "fr-BE", "Exploration du passif",
+			   "fr-CA", "Exploration du passif",
+			   "fr-CH", "Exploration du passif",
+			   "is-IS", "Köfun í skuldir",
+			   "it-CH", "Drill-through passività",
+			   "it-IT", "Drill-through passività",
+			   "nb-NO", "Gjeldsgjennomgang",
+			   "nl-BE", "Detailanalyse van liquiditeit",
+			   "nl-NL", "Detailanalyse van liquiditeit",
+			   "sv-SE", "Detaljerad analys av skulder",
+			   "Liabilities Drill Through"
+			)
+		isHidden
+		lineageTag: 86372d8f-0ddd-494b-a304-3c625648ed05
+
+	measure 'Finance App Change Log Label' =
+			SWITCH(USERCULTURE(),
+			   "es-ES", "Registro de cambios de la aplicación Finance",
+			   "de-DE", "Änderungsprotokoll der Finance-App",
+			   "fr-FR", "Journal des modifications de l’application Finance",
+			   "cs-CZ", "Protokol změn aplikace Finance",
+			   "da-DK", "Ændringslog for appen Finance",
+			   "de-AT", "Änderungsprotokoll der Finance-App",
+			   "de-CH", "Änderungsprotokoll der Finance-App",
+			   "en-AU", "Finance App Change Log",
+			   "en-CA", "Finance App Change Log",
+			   "en-GB", "Finance App Change Log",
+			   "en-NZ", "Finance App Change Log",
+			   "es-MX", "Registro de cambios de la aplicación Finance",
+			   "fi-FI", "Finance-sovelluksen muutosloki",
+			   "fr-BE", "Journal des modifications de l’application Finance",
+			   "fr-CA", "Journal des modifications de l’application Finance",
+			   "fr-CH", "Journal des modifications de l’application Finance",
+			   "is-IS", "Breytingaskrá Finance-forrits",
+			   "it-CH", "Log modifiche app Finance",
+			   "it-IT", "Log modifiche app Finance",
+			   "nb-NO", "Endringslogg for appen Finance",
+			   "nl-BE", "Wijzigingslogbestand van Finance-app",
+			   "nl-NL", "Wijzigingslogbestand van Finance-app",
+			   "sv-SE", "Ändringslogg för appen Finance",
+			   "Finance App Change Log"
+			)
+		isHidden
+		lineageTag: 43c4338f-493d-4ee3-8534-b2e2df513b69
+
+	measure 'As At Date Label' =
+			SWITCH(USERCULTURE(),
+			   "es-ES", "En la fecha",
+			   "de-DE", "Wie an Datum",
+			   "fr-FR", "À ce jour",
+			   "cs-CZ", "K datu",
+			   "da-DK", "Pr. dato",
+			   "de-AT", "Wie an Datum",
+			   "de-CH", "Wie an Datum",
+			   "en-AU", "As At Date",
+			   "en-CA", "As At Date",
+			   "en-GB", "As At Date",
+			   "en-NZ", "As At Date",
+			   "es-MX", "En la fecha",
+			   "fi-FI", "Päivämääränä",
+			   "fr-BE", "À ce jour",
+			   "fr-CA", "À ce jour",
+			   "fr-CH", "À ce jour",
+			   "is-IS", "Eftir dagsetningu",
+			   "it-CH", "Alla data",
+			   "it-IT", "Alla data",
+			   "nb-NO", "Per dato",
+			   "nl-BE", "Vanaf datum",
+			   "nl-NL", "Vanaf datum",
+			   "sv-SE", "Som datum",
+			   "As At Date"
+			)
+		isHidden
+		lineageTag: 543c3c6c-a728-4afd-90a6-1bf5f8ff796a
+
+	measure 'Aging Bucket Length Label' =
+			SWITCH(USERCULTURE(),
+			   "es-ES", "Duración del periodo de antigüedad",
+			   "de-DE", "Zeitperiodenlänge",
+			   "fr-FR", "Longueur de compartiment âgé",
+			   "cs-CZ", "Délka sledování splatnosti kbelíku",
+			   "da-DK", "Aldrende bucket-længde",
+			   "de-AT", "Zeitperiodenlänge",
+			   "de-CH", "Zeitperiodenlänge",
+			   "en-AU", "Ageing Bucket Length",
+			   "en-CA", "Aging Bucket Length",
+			   "en-GB", "Ageing Bucket Length",
+			   "en-NZ", "Ageing Bucket Length",
+			   "es-MX", "Duración del periodo de antigüedad",
+			   "fi-FI", "Erääntymisjakauman pituus",
+			   "fr-BE", "Longueur de compartiment âgé",
+			   "fr-CA", "Longueur de compartiment âgé",
+			   "fr-CH", "Longueur de compartiment âgé",
+			   "is-IS", "Lengd aldursgreiningarramma",
+			   "it-CH", "Lunghezza bucket scadenzario",
+			   "it-IT", "Lunghezza bucket scadenzario",
+			   "nb-NO", "Aldersfordelt samlingslengde",
+			   "nl-BE", "Lengte van ouderdomsbucket",
+			   "nl-NL", "Lengte van ouderdomsbucket",
+			   "sv-SE", "Bucket-längd – ålder",
+			   "Aging Bucket Length"
+			)
+		isHidden
+		lineageTag: 932e3fba-e94f-4683-b8ae-567b7f60713d
+
+	measure 'Use Aging Date Label' =
+			SWITCH(USERCULTURE(),
+			   "es-ES", "Usar fecha de vencimiento",
+			   "de-DE", "Fälligkeitsdatum verwenden",
+			   "fr-FR", "Utiliser date de vieillissement",
+			   "cs-CZ", "Použít datum pro sledování splatnosti",
+			   "da-DK", "Brug aldringsdato",
+			   "de-AT", "Fälligkeitsdatum verwenden",
+			   "de-CH", "Fälligkeitsdatum verwenden",
+			   "en-AU", "Use Ageing Date",
+			   "en-CA", "Use Aging Date",
+			   "en-GB", "Use Ageing Date",
+			   "en-NZ", "Use Ageing Date",
+			   "es-MX", "Usar fecha de vencimiento",
+			   "fi-FI", "Käytä maksupäivää",
+			   "fr-BE", "Utiliser date de vieillissement",
+			   "fr-CA", "Utiliser date de vieillissement",
+			   "fr-CH", "Utiliser date de vieillissement",
+			   "is-IS", "Nota dagsetningu aldursgreiningar",
+			   "it-CH", "Usa data scadenzario",
+			   "it-IT", "Usa data scadenzario",
+			   "nb-NO", "Bruk aldersfordelingsdato",
+			   "nl-BE", "Ouderdomsdatum gebruiken",
+			   "nl-NL", "Ouderdomsdatum gebruiken",
+			   "sv-SE", "Använd åldersfördelning",
+			   "Use Aging Date"
+			)
+		isHidden
+		lineageTag: b283e229-3f46-4a7d-9ff3-f27182012b6e
+
+	measure 'Cost of Goods Sold  Label' =
+			SWITCH(USERCULTURE(),
+			   "es-ES", "Coste de las mercancías vendidas ",
+			   "de-DE", "Lagerverbrauch",
+			   "fr-FR", "Coût des produits vendus ",
+			   "cs-CZ", "Náklady na prodané zboží ",
+			   "da-DK", "Omkostning ved solgte varer ",
+			   "de-AT", "Lagerverbrauch",
+			   "de-CH", "Lagerverbrauch",
+			   "en-AU", "Cost of Goods Sold ",
+			   "en-CA", "Cost of Goods Sold ",
+			   "en-GB", "Cost of Goods Sold ",
+			   "en-NZ", "Cost of Goods Sold ",
+			   "es-MX", "Costo de mercancías vendidas ",
+			   "fi-FI", "Myytyjen tuotteiden kustannukset ",
+			   "fr-BE", "Coût des produits vendus ",
+			   "fr-CA", "Coût des produits vendus ",
+			   "fr-CH", "Coût des produits vendus ",
+			   "is-IS", "Kostnaður seldra vara ",
+			   "it-CH", "COGS",
+			   "it-IT", "COGS",
+			   "nb-NO", "Solgte varers kost ",
+			   "nl-BE", "KPV-kosten ",
+			   "nl-NL", "KPV-kosten ",
+			   "sv-SE", "Kostnad för sålda varor ",
+			   "Cost of Goods Sold "
+			)
+		isHidden
+		lineageTag: eea84c86-a6e5-4dc3-bb49-d8d2cc0ada5e
+
+	measure 'Net Profit  Label' =
+			SWITCH(USERCULTURE(),
+			   "es-ES", "Ganancias netas ",
+			   "de-DE", "Nettogewinn",
+			   "fr-FR", "Bénéfice net ",
+			   "cs-CZ", "Čistý zisk ",
+			   "da-DK", "Nettofortjeneste ",
+			   "de-AT", "Nettogewinn",
+			   "de-CH", "Nettogewinn",
+			   "en-AU", "Net Profit ",
+			   "en-CA", "Net Profit ",
+			   "en-GB", "Net Profit ",
+			   "en-NZ", "Net Profit ",
+			   "es-MX", "Ganancias netas ",
+			   "fi-FI", "Nettovoitto ",
+			   "fr-BE", "Bénéfice net ",
+			   "fr-CA", "Profit net ",
+			   "fr-CH", "Bénéfice net ",
+			   "is-IS", "Hreinn hagnaður ",
+			   "it-CH", "Profitto netto",
+			   "it-IT", "Profitto netto",
+			   "nb-NO", "Nettofortjeneste ",
+			   "nl-BE", "Nettowinst ",
+			   "nl-NL", "Nettowinst ",
+			   "sv-SE", "Nettovinst ",
+			   "Net Profit "
+			)
+		isHidden
+		lineageTag: c059c7b8-3f5c-4e02-8b57-cfaa6dafbc78
+
+	measure 'Current Assets / Current Liabilities Label' =
+			SWITCH(USERCULTURE(),
+			   "es-ES", "Activo circulante/Pasivos corrientes",
+			   "de-DE", "Umlaufvermögen/Kurzfristige Verbindlichkeiten",
+			   "fr-FR", "Actif circulant / Passif à court terme",
+			   "cs-CZ", "Oběžná aktiva / Krátkodobá pasiva",
+			   "da-DK", "Omsætningsaktiver/kortfristede forpligtelser",
+			   "de-AT", "Umlaufvermögen/Kurzfristige Verbindlichkeiten",
+			   "de-CH", "Umlaufvermögen/Kurzfristige Verbindlichkeiten",
+			   "en-AU", "Current Assets / Current Liabilities",
+			   "en-CA", "Current Assets / Current Liabilities",
+			   "en-GB", "Current Assets / Current Liabilities",
+			   "en-NZ", "Current Assets / Current Liabilities",
+			   "es-MX", "Activo circulante/Pasivos corrientes",
+			   "fi-FI", "Nyk. vastaavat / lyhytaikaiset vastattavat",
+			   "fr-BE", "Actif circulant / Passif à court terme",
+			   "fr-CA", "Actif circulant / Passif à court terme",
+			   "fr-CH", "Actif circulant / Passif à court terme",
+			   "is-IS", "Núverandi eignir /núverandi skammtímaskuldir",
+			   "it-CH", "Attività correnti/Passività correnti",
+			   "it-IT", "Attività correnti/Passività correnti",
+			   "nb-NO", "Omløpsmidler / kortsiktig gjeld",
+			   "nl-BE", "Vlottende activa/vlottende verplichtingen",
+			   "nl-NL", "Vlottende activa/vlottende verplichtingen",
+			   "sv-SE", "Omsättningstillgångar/Kortfristiga skulder",
+			   "Current Assets / Current Liabilities"
+			)
+		isHidden
+		lineageTag: 6b010983-bea0-4b8c-92e4-1c75a69e8397
+
+	measure '(Current Assets - Inventory - Purch. Prepayments) /  Current Liabilities Label' =
+			SWITCH(USERCULTURE(),
+			   "es-ES", "(Activos circulantes - Inventario - Prepagos compras) / Pasivos corrientes",
+			   "de-DE", "(Umlaufvermögen – Lagerbestand – Einkaufsvorauszahlung) / Kurzfristige Verbindlichkeiten",
+			   "fr-FR", "(Actif circulant : stock : acomptes achats) / Passif à court terme",
+			   "cs-CZ", "(Oběžná aktiva – Zásoby – Nákupní zálohy) / Krátkodobá pasiva",
+			   "da-DK", "(Omsætningsaktiver - Lager - Køb. Forudbetalinger) / kortfristede forpligtelser",
+			   "de-AT", "(Umlaufvermögen – Lagerbestand – Einkaufsvorauszahlung) / Kurzfristige Verbindlichkeiten",
+			   "de-CH", "(Umlaufvermögen – Lagerbestand – Einkaufsvorauszahlung) / Kurzfristige Verbindlichkeiten",
+			   "en-AU", "(Current Assets - Inventory - Purch. Prepayments) /  Current Liabilities",
+			   "en-CA", "(Current Assets - Inventory - Purch. Prepayments) /  Current Liabilities",
+			   "en-GB", "(Current Assets - Inventory - Purch. Prepayments) /  Current Liabilities",
+			   "en-NZ", "(Current Assets - Inventory - Purch. Prepayments) /  Current Liabilities",
+			   "es-MX", "(Activos corrientes - Inventario - Anticipos de compras) / Pasivos corrientes",
+			   "fi-FI", "(Nyk. vastaavat – Varasto – Ostojen ennakkomaksut) / lyhytaikaiset vastattavat",
+			   "fr-BE", "(Actif circulant : stock : acomptes achats) / Passif à court terme",
+			   "fr-CA", "(Actif circulant : inventaire : paiements anticipés achats) / Passif à court terme",
+			   "fr-CH", "(Actif circulant : stock : acomptes achats) / Passif à court terme",
+			   "is-IS", "(Skammtímaskuldir - Birgðir - Fyrirframgreiðsla innkaupa) / Núverandi skammtímaskuldir",
+			   "it-CH", "(Attività correnti - Inventario - Pagamenti anticipati acquisti) / Passività correnti",
+			   "it-IT", "(Attività correnti - Inventario - Pagamenti anticipati acquisti) / Passività correnti",
+			   "nb-NO", "(Omløpsmidler – beholdning – kjøp.forskuddsbetalinger) / kortsiktig gjeld",
+			   "nl-BE", "(Vlottende activa - Voorraad - Inkoopvooruitbetalingen)/vlottende verplichtingen",
+			   "nl-NL", "(Vlottende activa - Voorraad - Inkoopvooruitbetalingen)/vlottende verplichtingen",
+			   "sv-SE", "(Omsättningstillgångar-Lager-Förskottsbetalningar inköp)/Kortfristiga skulder",
+			   "(Current Assets - Inventory - Purch. Prepayments) /  Current Liabilities"
+			)
+		isHidden
+		lineageTag: 353c5aa2-d279-4306-a7dc-fe2cde9c3670
+
+	measure 'Liquid Assets / Current Liabilities Label' =
+			SWITCH(USERCULTURE(),
+			   "es-ES", "Activos líquidos/Pasivos corrientes",
+			   "de-DE", "Flüssige Mittel/Kurzfristige Verbindlichkeiten",
+			   "fr-FR", "Actifs trésorerie / Passif à court terme",
+			   "cs-CZ", "Likvidní aktiva / Krátkodobá pasiva",
+			   "da-DK", "Likvide aktiver/kortfristede forpligtelser",
+			   "de-AT", "Flüssige Mittel/Kurzfristige Verbindlichkeiten",
+			   "de-CH", "Flüssige Mittel/Kurzfristige Verbindlichkeiten",
+			   "en-AU", "Liquid Assets / Current Liabilities",
+			   "en-CA", "Liquid Assets / Current Liabilities",
+			   "en-GB", "Liquid Assets / Current Liabilities",
+			   "en-NZ", "Liquid Assets / Current Liabilities",
+			   "es-MX", "Activos corrientes/Pasivos corrientes",
+			   "fi-FI", "Rahoitusomaisuus / lyhytaikaiset vastattavat",
+			   "fr-BE", "Actifs liquides / Passif à court terme",
+			   "fr-CA", "Actifs/Passif à court terme",
+			   "fr-CH", "Actifs liquides / Passif à court terme",
+			   "is-IS", "Lausafjármunir / Núverandi skammtímaskuldir",
+			   "it-CH", "Liquidità/Passività correnti",
+			   "it-IT", "Liquidità/Passività correnti",
+			   "nb-NO", "Likvide aktiva / kortsiktig gjeld",
+			   "nl-BE", "Liquide activa/vlottende verplichtingen",
+			   "nl-NL", "Liquide activa/vlottende verplichtingen",
+			   "sv-SE", "Likvida tillgångar/Kortfristiga skulder",
+			   "Liquid Assets / Current Liabilities"
+			)
+		isHidden
+		lineageTag: 6059f953-b3ee-4e18-ad64-b066e879e5d4
+
+	measure 'Revenue - Cost of Goods Sold - Expenses Label' =
+			SWITCH(USERCULTURE(),
+			   "es-ES", "Ingresos - Coste de las mercancías vendidas - Gastos",
+			   "de-DE", "Umsätze ‑ Lagerverbrauch ‑ Ausgaben",
+			   "fr-FR", "Produits : coût des produits vendus : charges",
+			   "cs-CZ", "Výnosy – Náklady na prodané zboží – Výdaje",
+			   "da-DK", "Omsætning – Omkostning ved solgte varer – Udgifter",
+			   "de-AT", "Umsätze ‑ Lagerverbrauch ‑ Ausgaben",
+			   "de-CH", "Umsätze ‑ Lagerverbrauch ‑ Ausgaben",
+			   "en-AU", "Revenue - Cost of Goods Sold - Expenses",
+			   "en-CA", "Revenue - Cost of Goods Sold - Expenses",
+			   "en-GB", "Revenue - Cost of Goods Sold - Expenses",
+			   "en-NZ", "Revenue - Cost of Goods Sold - Expenses",
+			   "es-MX", "Ingresos - Costo de mercancías vendidas - Gastos",
+			   "fi-FI", "Tuotto – Myytyjen tuotteiden kustannukset – Kulut",
+			   "fr-BE", "Produits : coût des produits vendus : charges",
+			   "fr-CA", "Produits : coût des produits vendus : charges",
+			   "fr-CH", "Produits : coût des produits vendus : charges",
+			   "is-IS", "Tekjur -Kostnaður seldra vara - Kostnaður",
+			   "it-CH", "Ricavi - COGS - Spese",
+			   "it-IT", "Ricavi - COGS - Spese",
+			   "nb-NO", "Inntekt – solgte varers kost – utgifter",
+			   "nl-BE", "Opbrengst - KPV-kosten - Kosten",
+			   "nl-NL", "Opbrengst - KPV-kosten - Kosten",
+			   "sv-SE", "Intäkt – Kostnad för sålda varor – Utgifter",
+			   "Revenue - Cost of Goods Sold - Expenses"
+			)
+		isHidden
+		lineageTag: b049d54d-b380-4dc1-b191-cb4cb7d10a65
+
+	measure 'Net Profit / Revenue Label' =
+			SWITCH(USERCULTURE(),
+			   "es-ES", "Ingresos/ganancias netas",
+			   "de-DE", "Nettogewinn/-umsatz",
+			   "fr-FR", "Bénéfice net / Produits nets",
+			   "cs-CZ", "Čistý zisk / výnosy",
+			   "da-DK", "Nettoindtægt/omsætning",
+			   "de-AT", "Nettogewinn/-umsatz",
+			   "de-CH", "Nettogewinn/-umsatz",
+			   "en-AU", "Net Profit / Revenue",
+			   "en-CA", "Net Profit / Revenue",
+			   "en-GB", "Net Profit / Revenue",
+			   "en-NZ", "Net Profit / Revenue",
+			   "es-MX", "Ingresos/ganancias netas",
+			   "fi-FI", "Nettovoitto/-tuotto",
+			   "fr-BE", "Bénéfice net / Produits nets",
+			   "fr-CA", "Profit net/Chiffre d’affaires",
+			   "fr-CH", "Bénéfice net / Produits nets",
+			   "is-IS", "Hreinn hagnaður / tekjur",
+			   "it-CH", "Profitto netto/ricavi",
+			   "it-IT", "Profitto netto/ricavi",
+			   "nb-NO", "Nettofortjeneste/-inntekt",
+			   "nl-BE", "Nettowinst/opbrengst",
+			   "nl-NL", "Nettowinst/opbrengst",
+			   "sv-SE", "Nettovinst/Intäkt",
+			   "Net Profit / Revenue"
+			)
+		isHidden
+		lineageTag: fac6465e-3ca9-40f0-8d54-31c4dc090e07
+
+	measure 'Revenue - Cost of Goods Sold Label' =
+			SWITCH(USERCULTURE(),
+			   "es-ES", "Ingresos - Coste de las mercancías vendidas",
+			   "de-DE", "Umsätze ‑ Lagerverbrauch",
+			   "fr-FR", "Produits : coût des produits vendus",
+			   "cs-CZ", "Výnosy – Náklady na prodané zboží",
+			   "da-DK", "Omsætning – Omkostning ved solgte varer",
+			   "de-AT", "Umsätze ‑ Lagerverbrauch",
+			   "de-CH", "Umsätze ‑ Lagerverbrauch",
+			   "en-AU", "Revenue - Cost of Goods Sold",
+			   "en-CA", "Revenue - Cost of Goods Sold",
+			   "en-GB", "Revenue - Cost of Goods Sold",
+			   "en-NZ", "Revenue - Cost of Goods Sold",
+			   "es-MX", "Ingresos - Costo de mercancías vendidas",
+			   "fi-FI", "Tuotto – Myytyjen tuotteiden kustannukset",
+			   "fr-BE", "Produits : coût des produits vendus",
+			   "fr-CA", "Produits : coût des produits vendus",
+			   "fr-CH", "Produits : coût des produits vendus",
+			   "is-IS", "Tekjur -Kostnaður seldra vara",
+			   "it-CH", "Ricavi - COGS",
+			   "it-IT", "Ricavi - COGS",
+			   "nb-NO", "Inntekt – solgte varers kost",
+			   "nl-BE", "Opbrengst - KPV-kosten",
+			   "nl-NL", "Opbrengst - KPV-kosten",
+			   "sv-SE", "Intäkt – Kostnad för sålda varor",
+			   "Revenue - Cost of Goods Sold"
+			)
+		isHidden
+		lineageTag: 4b96c573-44a5-4671-9fd9-cf6d7df1cd0e
+
+	measure 'Gross Profit / Revenue Label' =
+			SWITCH(USERCULTURE(),
+			   "es-ES", "Ingresos/benef. bruto",
+			   "de-DE", "Bruttogewinn/-umsatz",
+			   "fr-FR", "Bénéfice brut / Produits bruts",
+			   "cs-CZ", "Hrubý zisk / výnosy",
+			   "da-DK", "Bruttofortjeneste/omsætning",
+			   "de-AT", "Bruttogewinn/-umsatz",
+			   "de-CH", "Bruttogewinn/-umsatz",
+			   "en-AU", "Gross Profit / Revenue",
+			   "en-CA", "Gross Profit / Revenue",
+			   "en-GB", "Gross Profit / Revenue",
+			   "en-NZ", "Gross Profit / Revenue",
+			   "es-MX", "Ingresos/benef. bruto",
+			   "fi-FI", "Bruttokate/-tuotto",
+			   "fr-BE", "Bénéfice brut / Produits bruts",
+			   "fr-CA", "Profit brut/Chiffre d’affaires",
+			   "fr-CH", "Bénéfice brut / Produits bruts",
+			   "is-IS", "Brúttóhagnaður/ -tekjur",
+			   "it-CH", "Profitto lordo/ricavi",
+			   "it-IT", "Profitto lordo/ricavi",
+			   "nb-NO", "Brutto fortjeneste/inntekt",
+			   "nl-BE", "Brutowinst/opbrengst",
+			   "nl-NL", "Brutowinst/opbrengst",
+			   "sv-SE", "Bruttovinst/Intäkt",
+			   "Gross Profit / Revenue"
+			)
+		isHidden
+		lineageTag: e1c6264d-04b0-450a-8c5b-91944e7fd09c
+
+	measure 'Liabilities by Month Label' =
+			SWITCH(USERCULTURE(),
+			   "es-ES", "Pasivo por mes",
+			   "de-DE", "Verbindlichkeiten nach Monat",
+			   "fr-FR", "Passif par mois",
+			   "cs-CZ", "Pasiva podle měsíce",
+			   "da-DK", "Passiver pr. måned",
+			   "de-AT", "Verbindlichkeiten nach Monat",
+			   "de-CH", "Verbindlichkeiten nach Monat",
+			   "en-AU", "Liabilities by Month",
+			   "en-CA", "Liabilities by Month",
+			   "en-GB", "Liabilities by Month",
+			   "en-NZ", "Liabilities by Month",
+			   "es-MX", "Pasivo por mes",
+			   "fi-FI", "Vastattavat kuukausittain",
+			   "fr-BE", "Passif par mois",
+			   "fr-CA", "Passif par mois",
+			   "fr-CH", "Passif par mois",
+			   "is-IS", "Skuldir eftir mánuði",
+			   "it-CH", "Passività per mese",
+			   "it-IT", "Passività per mese",
+			   "nb-NO", "Gjeld etter måned",
+			   "nl-BE", "Verplichtingen per maand",
+			   "nl-NL", "Verplichtingen per maand",
+			   "sv-SE", "Skulder per månad",
+			   "Liabilities by Month"
+			)
+		isHidden
+		lineageTag: 0d49e266-4b18-4d19-96aa-8235ce9ec8ab
+
+	measure 'Revenue & Accounts Receivable (Average) by Month Label' =
+			SWITCH(USERCULTURE(),
+			   "es-ES", "Ingresos y cuentas por cobrar (promedio) por mes",
+			   "de-DE", "Umsatz & Debitoren (Durchschnitt) nach Monat",
+			   "fr-FR", "Produits et comptabilité client (moyenne) par mois",
+			   "cs-CZ", "Výnosy a pohledávky (průměr) podle měsíce",
+			   "da-DK", "Omsætning og tilgodehavender (gennemsnit) pr. måned",
+			   "de-AT", "Umsatz & Debitoren (Durchschnitt) nach Monat",
+			   "de-CH", "Umsatz & Debitoren (Durchschnitt) nach Monat",
+			   "en-AU", "Revenue & Accounts Receivable (Average) by Month",
+			   "en-CA", "Revenue & Accounts Receivable (Average) by Month",
+			   "en-GB", "Revenue & Accounts Receivable (Average) by Month",
+			   "en-NZ", "Revenue & Accounts Receivable (Average) by Month",
+			   "es-MX", "Ingresos y cuentas por cobrar (promedio) por mes",
+			   "fi-FI", "Tuotot ja myyntisaamiset (keskimäärin) kuukausittain",
+			   "fr-BE", "Produits et comptabilité client (moyenne) par mois",
+			   "fr-CA", "Produits et comptabilité client (moyenne) par mois",
+			   "fr-CH", "Produits et comptabilité client (moyenne) par mois",
+			   "is-IS", "Tekjur og viðskiptakröfur (meðaltal) eftir mánuði",
+			   "it-CH", "Ricavi e contabilità clienti (media) per mese",
+			   "it-IT", "Ricavi e contabilità clienti (media) per mese",
+			   "nb-NO", "Inntekt og kundefordringer (gjennomsnitt) etter måned",
+			   "nl-BE", "Opbrengst en debiteuren (gemiddeld) per maand",
+			   "nl-NL", "Opbrengst en debiteuren (gemiddeld) per maand",
+			   "sv-SE", "Intäkter och kundfordringar (genomsnitt) per månad",
+			   "Revenue & Accounts Receivable (Average) by Month"
+			)
+		isHidden
+		lineageTag: c79ab3d2-7412-45e6-8a94-8ad8590f318e
+
+	measure 'Average Collection Period (Days) by Month Label' =
+			SWITCH(USERCULTURE(),
+			   "es-ES", "Periodo de pago medio (días) por mes",
+			   "de-DE", "Durchschn. Zahlungsfrist (Tage) nach Monat",
+			   "fr-FR", "Délai de règlement moyen (jours) par mois",
+			   "cs-CZ", "Průměrné období inkasa (dny) podle měsíce",
+			   "da-DK", "Gennemsnitlig antal kredit (dage) pr. måned",
+			   "de-AT", "Durchschn. Zahlungsfrist (Tage) nach Monat",
+			   "de-CH", "Durchschn. Zahlungsfrist (Tage) nach Monat",
+			   "en-AU", "Average Collection Period (Days) by Month",
+			   "en-CA", "Average Collection Period (Days) by Month",
+			   "en-GB", "Average Collection Period (Days) by Month",
+			   "en-NZ", "Average Collection Period (Days) by Month",
+			   "es-MX", "Periodo de pago medio (días) por mes",
+			   "fi-FI", "Keskimääräinen myyntisaamisten kiertoaika (päivinä) kuukausittain",
+			   "fr-BE", "Délai de règlement moyen (jours) par mois",
+			   "fr-CA", "Période de recouvrement moyenne (jours) par mois",
+			   "fr-CH", "Délai de règlement moyen (jours) par mois",
+			   "is-IS", "Meðaltal innheimtutímabils (dagar) eftir mánuði",
+			   "it-CH", "Periodo medio di riscossione (giorni) per mese",
+			   "it-IT", "Periodo medio di riscossione (giorni) per mese",
+			   "nb-NO", "Gjennomsnittlig antall kredittdager etter måned",
+			   "nl-BE", "Gemiddelde incassoperiode (dagen) per maand",
+			   "nl-NL", "Gemiddelde incassoperiode (dagen) per maand",
+			   "sv-SE", "Genomsnittlig inkassotid (dagar) per månad",
+			   "Average Collection Period (Days) by Month"
+			)
+		isHidden
+		lineageTag: 1839571b-67a7-42f0-8721-72a4150f5a14
+
+	measure 'Operating Revenue  Label' =
+			SWITCH(USERCULTURE(),
+			   "es-ES", "Ingresos de explotación ",
+			   "de-DE", "Betriebliche Erträge",
+			   "fr-FR", "Produits d’exploitation ",
+			   "cs-CZ", "Provozní výnosy ",
+			   "da-DK", "Driftsindtægter ",
+			   "de-AT", "Betriebliche Erträge",
+			   "de-CH", "Betriebliche Erträge",
+			   "en-AU", "Operating Revenue ",
+			   "en-CA", "Operating Revenue ",
+			   "en-GB", "Operating Revenue ",
+			   "en-NZ", "Operating Revenue ",
+			   "es-MX", "Ingresos de explotación ",
+			   "fi-FI", "Liikevoitto ",
+			   "fr-BE", "Produits d’exploitation ",
+			   "fr-CA", "Produits d’exploitation ",
+			   "fr-CH", "Produits d’exploitation ",
+			   "is-IS", "Rekstrartekjur ",
+			   "it-CH", "Ricavi operativi",
+			   "it-IT", "Ricavi operativi",
+			   "nb-NO", "Driftsinntekt ",
+			   "nl-BE", "Bedrijfsopbrengst ",
+			   "nl-NL", "Bedrijfsopbrengst ",
+			   "sv-SE", "Rörelseintäkt ",
+			   "Operating Revenue "
+			)
+		isHidden
+		lineageTag: 73ba7133-4fdc-4f07-a077-6631497a3a3e
+
+	measure 'Operating Expenses  Label' =
+			SWITCH(USERCULTURE(),
+			   "es-ES", "Gastos de explotación ",
+			   "de-DE", "Betriebliche Aufwendungen",
+			   "fr-FR", "Frais d’exploitation ",
+			   "cs-CZ", "Provozní výdaje ",
+			   "da-DK", "Eksterne udgifter ",
+			   "de-AT", "Betriebliche Aufwendungen",
+			   "de-CH", "Betriebliche Aufwendungen",
+			   "en-AU", "Operating Expenses ",
+			   "en-CA", "Operating Expenses ",
+			   "en-GB", "Operating Expenses ",
+			   "en-NZ", "Operating Expenses ",
+			   "es-MX", "Gastos de explotación ",
+			   "fi-FI", "Juoksevat kulut ",
+			   "fr-BE", "Frais d’exploitation ",
+			   "fr-CA", "Frais d’exploitation ",
+			   "fr-CH", "Frais d’exploitation ",
+			   "is-IS", "Rekstrarkostnaður ",
+			   "it-CH", "Spese operative",
+			   "it-IT", "Spese operative",
+			   "nb-NO", "Driftsutgift ",
+			   "nl-BE", "Bedrijfskosten ",
+			   "nl-NL", "Bedrijfskosten ",
+			   "sv-SE", "Driftkostnader ",
+			   "Operating Expenses "
+			)
+		isHidden
+		lineageTag: 98ae53a3-2b7a-4404-96b2-2a3c875100bd
+
+	measure 'AGED AR / AP Label' =
+			SWITCH(USERCULTURE(),
+			   "es-ES", "ANTIGÜEDAD DE AR/AP",
+			   "de-DE", "Deb./Kred.-Rückblick",
+			   "fr-FR", "CC/CF ÂGÉE",
+			   "cs-CZ", "SPLATNÉ SP / Z",
+			   "da-DK", "ALDERSFORDELT AR/AP",
+			   "de-AT", "Deb./Kred.-Rückblick",
+			   "de-CH", "Deb./Kred.-Rückblick",
+			   "en-AU", "AGED AR / AP",
+			   "en-CA", "AGED AR / AP",
+			   "en-GB", "AGED AR / AP",
+			   "en-NZ", "AGED AR / AP",
+			   "es-MX", "ANTIGÜEDAD DE AR/AP",
+			   "fi-FI", "MYYNTISAATAVIEN TILANNE / OSTOVELAT",
+			   "fr-BE", "CC/CF ÂGÉE",
+			   "fr-CA", "CC/CF classée chronologiquement",
+			   "fr-CH", "CC/CF ÂGÉE",
+			   "is-IS", "Aldursgreindar viðskiptakröfur / viðskiptaskuldir",
+			   "it-CH", "SCADENZARIO CLIENTI E FORNITORI",
+			   "it-IT", "SCADENZARIO CLIENTI E FORNITORI",
+			   "nb-NO", "ALDERSFORDELT AR/AP",
+			   "nl-BE", "VERVALLEN AR/AP",
+			   "nl-NL", "VERVALLEN AR/AP",
+			   "sv-SE", "ÅLDERSFÖRDELNING KR/LR",
+			   "AGED AR / AP"
+			)
+		isHidden
+		lineageTag: d340c7e6-be90-461e-8978-abf06d9e4a20
+
+	measure 'Finance Analytics Label' =
+			SWITCH(USERCULTURE(),
+			   "es-ES", "Análisis financiero",
+			   "de-DE", "Finanzanalyse",
+			   "fr-FR", "Analyses financières",
+			   "cs-CZ", "Finanční analýza",
+			   "da-DK", "Økonomisk analyse",
+			   "de-AT", "Finanzanalyse",
+			   "de-CH", "Finanzanalyse",
+			   "en-AU", "Finance Analytics",
+			   "en-CA", "Finance Analytics",
+			   "en-GB", "Finance Analytics",
+			   "en-NZ", "Finance Analytics",
+			   "es-MX", "Análisis financiero",
+			   "fi-FI", "Talousanalytiikka",
+			   "fr-BE", "Analyses financières",
+			   "fr-CA", "Analyses financières",
+			   "fr-CH", "Analyses financières",
+			   "is-IS", "Fjármálagreining",
+			   "it-CH", "Analisi finanziaria",
+			   "it-IT", "Analisi finanziaria",
+			   "nb-NO", "Finansanalyse",
+			   "nl-BE", "Financiële analyse",
+			   "nl-NL", "Financiële analyse",
+			   "sv-SE", "Ekonomisk analys",
+			   "Finance Analytics"
+			)
+		isHidden
+		lineageTag: eac1c83e-55e2-4431-8229-97ffd3acdda3
+
+	measure 'for Label' =
+			SWITCH(USERCULTURE(),
+			   "es-ES", "para",
+			   "de-DE", "für",
+			   "fr-FR", "pour",
+			   "cs-CZ", "pro",
+			   "da-DK", "for",
+			   "de-AT", "für",
+			   "de-CH", "für",
+			   "en-AU", "for",
+			   "en-CA", "for",
+			   "en-GB", "for",
+			   "en-NZ", "for",
+			   "es-MX", "para",
+			   "fi-FI", "kohteelle",
+			   "fr-BE", "pour",
+			   "fr-CA", "pour",
+			   "fr-CH", "pour",
+			   "is-IS", "fyrir",
+			   "it-CH", "per",
+			   "it-IT", "per",
+			   "nb-NO", "for",
+			   "nl-BE", "voor",
+			   "nl-NL", "voor",
+			   "sv-SE", "för",
+			   "for"
+			)
+		isHidden
+		lineageTag: 254ea544-367b-414d-b922-7e30dd10c1d5
+
+	measure 'CONNECT YOUR DATA Label' =
+			SWITCH(USERCULTURE(),
+			   "es-ES", "CONECTAR LOS DATOS",
+			   "de-DE", "MIT EIGENEN DATEN VERBINDEN",
+			   "fr-FR", "CONNECTER VOS DONNÉES",
+			   "cs-CZ", "PŘIPOJENÍ DAT",
+			   "da-DK", "FORBIND DINE DATA",
+			   "de-AT", "MIT EIGENEN DATEN VERBINDEN",
+			   "de-CH", "MIT EIGENEN DATEN VERBINDEN",
+			   "en-AU", "CONNECT YOUR DATA",
+			   "en-CA", "CONNECT YOUR DATA",
+			   "en-GB", "CONNECT YOUR DATA",
+			   "en-NZ", "CONNECT YOUR DATA",
+			   "es-MX", "CONECTAR LOS DATOS",
+			   "fi-FI", "YHDISTÄ TIETOSI",
+			   "fr-BE", "CONNECTER VOS DONNÉES",
+			   "fr-CA", "CONNECTER VOS DONNÉES",
+			   "fr-CH", "CONNECTER VOS DONNÉES",
+			   "is-IS", "TENGDU GÖGNIN ÞÍN",
+			   "it-CH", "CONNETTI I DATI",
+			   "it-IT", "CONNETTI I DATI",
+			   "nb-NO", "KOBLE TIL DATAENE",
+			   "nl-BE", "UW GEGEVENS VERBINDEN",
+			   "nl-NL", "UW GEGEVENS VERBINDEN",
+			   "sv-SE", "ANSLUT DINA DATA",
+			   "CONNECT YOUR DATA"
+			)
+		isHidden
+		lineageTag: afab91d4-d845-423c-82b9-86eff19e6deb
+
+	measure '1. Download the Finance Connector for Power BI Label' =
+			SWITCH(USERCULTURE(),
+			   "es-ES", "1. Descargar Finance Connector for Power BI",
+			   "de-DE", "1. Finance Connector for Power BI herunterladen",
+			   "fr-FR", "1. Téléchargez Finance Connector for Power BI",
+			   "cs-CZ", "1. Stažení řešení Finance Connector for Power BI",
+			   "da-DK", "1. Download Finance Connector for Power BI",
+			   "de-AT", "1. Finance Connector for Power BI herunterladen",
+			   "de-CH", "1. Finance Connector for Power BI herunterladen",
+			   "en-AU", "1. Download the Finance Connector for Power BI",
+			   "en-CA", "1. Download the Finance Connector for Power BI",
+			   "en-GB", "1. Download the Finance Connector for Power BI",
+			   "en-NZ", "1. Download the Finance Connector for Power BI",
+			   "es-MX", "1. Descargar Finance Connector for Power BI",
+			   "fi-FI", "1. Lataa Finance Connector for Power BI",
+			   "fr-BE", "1. Téléchargez Finance Connector for Power BI",
+			   "fr-CA", "1. Téléchargez Finance Connector for Power BI",
+			   "fr-CH", "1. Téléchargez Finance Connector for Power BI",
+			   "is-IS", "1. Sækja Finance Connector for Power BI",
+			   "it-CH", "1. Scaricare Finance Connector for Power BI",
+			   "it-IT", "1. Scaricare Finance Connector for Power BI",
+			   "nb-NO", "1. Last ned Finance Connector for Power BI",
+			   "nl-BE", "1. Download de Finance Connector for Power BI",
+			   "nl-NL", "1. Download de Finance Connector for Power BI",
+			   "sv-SE", "1. Ladda ned Finance Connector for Power BI",
+			   "1. Download the Finance Connector for Power BI"
+			)
+		isHidden
+		lineageTag: 382f776d-abfd-4ade-8d03-1532a3086d16
+
+	measure '2. Configure Dynamics 365 Business Central Label' =
+			SWITCH(USERCULTURE(),
+			   "es-ES", "2. Configurar Dynamics 365 Business Central",
+			   "de-DE", "2. Dynamics 365 Business Central konfigurieren",
+			   "fr-FR", "2. Configurez Dynamics 365 Business Central",
+			   "cs-CZ", "2. Konfigurace Dynamics 365 Business Central",
+			   "da-DK", "2. Konfigurer Dynamics 365 Business Central",
+			   "de-AT", "2. Dynamics 365 Business Central konfigurieren",
+			   "de-CH", "2. Dynamics 365 Business Central konfigurieren",
+			   "en-AU", "2. Configure Dynamics 365 Business Central",
+			   "en-CA", "2. Configure Dynamics 365 Business Central",
+			   "en-GB", "2. Configure Dynamics 365 Business Central",
+			   "en-NZ", "2. Configure Dynamics 365 Business Central",
+			   "es-MX", "2. Configurar Dynamics 365 Business Central",
+			   "fi-FI", "2. Määritä Dynamics 365 Business Central",
+			   "fr-BE", "2. Configurez Dynamics 365 Business Central",
+			   "fr-CA", "2. Configurez Dynamics 365 Business Central",
+			   "fr-CH", "2. Configurez Dynamics 365 Business Central",
+			   "is-IS", "2. Stilla Dynamics 365 Business Central",
+			   "it-CH", "2. Configurare Dynamics 365 Business Central",
+			   "it-IT", "2. Configurare Dynamics 365 Business Central",
+			   "nb-NO", "2. Konfigurer Dynamics 365 Business Central",
+			   "nl-BE", "2. Dynamics 365 Business Central configureren",
+			   "nl-NL", "2. Dynamics 365 Business Central configureren",
+			   "sv-SE", "2. Konfigurera Dynamics 365 Business Central",
+			   "2. Configure Dynamics 365 Business Central"
+			)
+		isHidden
+		lineageTag: 3b23ecfd-dcb3-490f-92d4-440d2c5c1264
+
+	measure 'USE, EDIT AND BUILD YOUR OWN REPORTS Label' =
+			SWITCH(USERCULTURE(),
+			   "es-ES", "USAR, EDITAR Y CREAR SUS PROPIOS INFORMES",
+			   "de-DE", "EIGENE BERICHTE VERWENDEN, BEARBEITEN UND ERSTELLEN",
+			   "fr-FR", "UTILISEZ, MODIFIEZ ET CRÉEZ VOS PROPRES ÉTATS",
+			   "cs-CZ", "POUŽÍVÁNÍ, ÚPRAVA A TVORBA VLASTNÍCH SESTAV",
+			   "da-DK", "BRUG, REDIGER OG OPRET DINE EGNE RAPPORTER",
+			   "de-AT", "EIGENE BERICHTE VERWENDEN, BEARBEITEN UND ERSTELLEN",
+			   "de-CH", "EIGENE BERICHTE VERWENDEN, BEARBEITEN UND ERSTELLEN",
+			   "en-AU", "USE, EDIT AND BUILD YOUR OWN REPORTS",
+			   "en-CA", "USE, EDIT AND BUILD YOUR OWN REPORTS",
+			   "en-GB", "USE, EDIT AND BUILD YOUR OWN REPORTS",
+			   "en-NZ", "USE, EDIT AND BUILD YOUR OWN REPORTS",
+			   "es-MX", "USAR, EDITAR Y CREAR SUS PROPIOS INFORMES",
+			   "fi-FI", "KÄYTÄ, MUOKKAA JA LUO OMIA RAPORTTEJA",
+			   "fr-BE", "UTILISEZ, MODIFIEZ ET CRÉEZ VOS PROPRES ÉTATS",
+			   "fr-CA", "UTILISEZ, MODIFIEZ ET CRÉEZ VOS PROPRES RAPPORTS",
+			   "fr-CH", "UTILISEZ, MODIFIEZ ET CRÉEZ VOS PROPRES ÉTATS",
+			   "is-IS", "NOTAÐU, BREYTTU OG GERÐU ÞÍNAR EIGIN SKÝRSLUR",
+			   "it-CH", "USA, MODIFICA E CREA I TUOI REPORT",
+			   "it-IT", "USA, MODIFICA E CREA I TUOI REPORT",
+			   "nb-NO", "BRUK, REDIGER OG BYGG DINE EGNE RAPPORTER",
+			   "nl-BE", "UW EIGEN RAPPORTEN GEBRUIKEN, BEWERKEN EN MAKEN",
+			   "nl-NL", "UW EIGEN RAPPORTEN GEBRUIKEN, BEWERKEN EN MAKEN",
+			   "sv-SE", "ANVÄND, REDIGERA OCH SKAPA EGNA RAPPORTER",
+			   "USE, EDIT AND BUILD YOUR OWN REPORTS"
+			)
+		isHidden
+		lineageTag: 1dd20f4d-976c-4e22-95ab-48901b9f049b
+
+	measure 'Finance includes a variety of pre-built reports to help you see your data immediately. You are able to edit these reports or build your own report from scratch. Label' =
+			SWITCH(USERCULTURE(),
+			   "es-ES", "Finanzas incluye una variedad de informes prediseñados para ayudarlo a ver sus datos de inmediato. Puede editar estos informes o crear el suyo propio desde cero.",
+			   "de-DE", "Finanzen enthält eine Vielzahl vordefinierter Berichte, mit denen Sie Ihre Daten unmittelbar ansehen können. Sie können diese Berichte bearbeiten oder Ihren eigenen Bericht von Grund auf neu erstellen.",
+			   "fr-FR", "Finance inclut une variété d’états prédéfinis pour vous aider à voir vos données immédiatement. Vous pouvez modifier ces états ou créer votre propre état à partir de zéro.",
+			   "cs-CZ", "Finance obsahují řadu předpřipravených sestav, které vám pomohou okamžitě zobrazit vaše data. Tyto sestavy můžete upravovat nebo si vytvořit vlastní sestavu od základu.",
+			   "da-DK", "Finans indeholder en række færdigbyggede rapporter, der hjælper dig med at få vist dine data med det samme. Du kan redigere disse rapporter eller oprette din egen rapport fra bunden.",
+			   "de-AT", "Finanzen enthält eine Vielzahl vordefinierter Berichte, mit denen Sie Ihre Daten unmittelbar ansehen können. Sie können diese Berichte bearbeiten oder Ihren eigenen Bericht von Grund auf neu erstellen.",
+			   "de-CH", "Finanzen enthält eine Vielzahl vordefinierter Berichte, mit denen Sie Ihre Daten unmittelbar ansehen können. Sie können diese Berichte bearbeiten oder Ihren eigenen Bericht von Grund auf neu erstellen.",
+			   "en-AU", "Finance includes a variety of pre-built reports to help you see your data immediately. You are able to edit these reports or build your own report from scratch.",
+			   "en-CA", "Finance includes a variety of pre-built reports to help you see your data immediately. You are able to edit these reports or build your own report from scratch.",
+			   "en-GB", "Finance includes a variety of pre-built reports to help you see your data immediately. You are able to edit these reports or build your own report from scratch.",
+			   "en-NZ", "Finance includes a variety of pre-built reports to help you see your data immediately. You are able to edit these reports or build your own report from scratch.",
+			   "es-MX", "Finanzas incluye una variedad de informes prediseñados para ayudarlo a ver sus datos de inmediato. Puede editar estos informes o crear el suyo propio desde cero.",
+			   "fi-FI", "Taloushallinto sisältää erilaisia esimääritettyjä raportteja, joiden avulla voit tarkastella tietojasi välittömästi. Voit muokata näitä raportteja tai luoda oman raportin alusta alkaen.",
+			   "fr-BE", "Finance inclut une variété d’états prédéfinis pour vous aider à voir vos données immédiatement. Vous pouvez modifier ces états ou créer votre propre état à partir de zéro.",
+			   "fr-CA", "Finance inclut une variété de rapports prédéfinis pour vous aider à voir vos données immédiatement. Vous pouvez modifier ces rapports ou créer votre propre rapport à partir de zéro.",
+			   "fr-CH", "Finance inclut une variété d’états prédéfinis pour vous aider à voir vos données immédiatement. Vous pouvez modifier ces états ou créer votre propre état à partir de zéro.",
+			   "is-IS", "Fjármál bjóða upp á innbyggðar skýrslur til að skoða gögn samstundis. Hægt er að breyta skýrslunum eða búa til eigin skýrslur frá grunni.",
+			   "it-CH", "I dati finanziari includono una serie di report predefiniti che consentono di visualizzare immediatamente i dati. È possibile modificare questi report o creare il proprio report da zero.",
+			   "it-IT", "I dati finanziari includono una serie di report predefiniti che consentono di visualizzare immediatamente i dati. È possibile modificare questi report o creare il proprio report da zero.",
+			   "nb-NO", "Finans inneholder en rekke forhåndsbygde rapporter som hjelper deg med å se dataene umiddelbart. Du kan redigere disse rapportene eller lage din egen rapport fra bunnen av.",
+			   "nl-BE", "Financiën omvatten een verscheidenheid aan vooraf gemaakte rapporten om u te helpen uw gegevens direct te bekijken. U kunt deze rapporten bewerken of uw eigen rapport helemaal opnieuw maken.",
+			   "nl-NL", "Financiën omvatten een verscheidenheid aan vooraf gemaakte rapporten om u te helpen uw gegevens direct te bekijken. U kunt deze rapporten bewerken of uw eigen rapport helemaal opnieuw maken.",
+			   "sv-SE", "Ekonomi omfattar en mängd olika färdiga rapporter som gör det enkelt att se data direkt. Du kan redigera dessa rapporter eller skapa en egen rapport från grunden.",
+			   "Finance includes a variety of pre-built reports to help you see your data immediately. You are able to edit these reports or build your own report from scratch."
+			)
+		isHidden
+		lineageTag: 6aa56aab-0ede-464f-b1dc-00b5d0c0f3af
+
+	measure 'HELP AND SUPPORT Label' =
+			SWITCH(USERCULTURE(),
+			   "es-ES", "AYUDA Y SOPORTE",
+			   "de-DE", "HILFE UND SUPPORT",
+			   "fr-FR", "AIDE ET SUPPORT",
+			   "cs-CZ", "POMOC A PODPORA",
+			   "da-DK", "HJÆLP OG SUPPORT",
+			   "de-AT", "HILFE UND SUPPORT",
+			   "de-CH", "HILFE UND SUPPORT",
+			   "en-AU", "HELP AND SUPPORT",
+			   "en-CA", "HELP AND SUPPORT",
+			   "en-GB", "HELP AND SUPPORT",
+			   "en-NZ", "HELP AND SUPPORT",
+			   "es-MX", "AYUDA Y SOPORTE",
+			   "fi-FI", "OHJE JA TUKI",
+			   "fr-BE", "AIDE ET SUPPORT",
+			   "fr-CA", "AIDE ET SUPPORT",
+			   "fr-CH", "AIDE ET SUPPORT",
+			   "is-IS", "HJÁLP OG STUÐNINGUR",
+			   "it-CH", "GUIDA E SUPPORTO",
+			   "it-IT", "GUIDA E SUPPORTO",
+			   "nb-NO", "HJELP OG KUNDESTØTTE",
+			   "nl-BE", "HELP EN ONDERSTEUNING",
+			   "nl-NL", "HELP EN ONDERSTEUNING",
+			   "sv-SE", "HJÄLP OCH SUPPORT",
+			   "HELP AND SUPPORT"
+			)
+		isHidden
+		lineageTag: 2b031e3f-12c2-4555-8a1b-9ad666b9e098
+
+	measure 'For help and support with your new report please visit the Analytics overview documentation. Label' =
+			SWITCH(USERCULTURE(),
+			   "es-ES", "Para obtener ayuda y soporte técnico con su nuevo informe, visite la documentación de información general de Analytics.",
+			   "de-DE", "Hilfe und Unterstützung für Ihren neuen Bericht finden Sie in der Dokumentation Analysen – Übersicht.",
+			   "fr-FR", "Pour obtenir de l’aide et de l’assistance concernant votre nouvel état, consultez la documentation de vue d’ensemble de l’analyse.",
+			   "cs-CZ", "Nápovědu a podporu k nové sestavě naleznete v dokumentaci k přehledu Analytics.",
+			   "da-DK", "Du kan få hjælp og support til din nye rapport i dokumentationen til analyseoversigten.",
+			   "de-AT", "Hilfe und Unterstützung für Ihren neuen Bericht finden Sie in der Dokumentation Analysen – Übersicht.",
+			   "de-CH", "Hilfe und Unterstützung für Ihren neuen Bericht finden Sie in der Dokumentation Analysen – Übersicht.",
+			   "en-AU", "For help and support with your new report please visit the Analytics overview documentation.",
+			   "en-CA", "For help and support with your new report please visit the Analytics overview documentation.",
+			   "en-GB", "For help and support with your new report please visit the Analytics overview documentation.",
+			   "en-NZ", "For help and support with your new report please visit the Analytics overview documentation.",
+			   "es-MX", "Para obtener ayuda y soporte técnico con su nuevo informe, visite la documentación de información general de Analytics.",
+			   "fi-FI", "Lisätietoja ja tukea uudelle raportillesi löydät analytiikan yleiskuvauksesta.",
+			   "fr-BE", "Pour obtenir de l’aide et de l’assistance concernant votre nouvel état, consultez la documentation de vue d’ensemble de l’analyse.",
+			   "fr-CA", "Pour obtenir de l’aide et de l’assistance concernant votre nouveau rapport, consultez la documentation de vue d’ensemble de l’analyse.",
+			   "fr-CH", "Pour obtenir de l’aide et de l’assistance concernant votre nouvel état, consultez la documentation de vue d’ensemble de l’analyse.",
+			   "is-IS", "Kynntu þér fylgigögn greiningaryfirlitsins til að fá hjálp og aðstoð varðandi nýju skýrsluna þína.",
+			   "it-CH", "Per assistenza e supporto per il nuovo report, vedere la documentazione generale di analisi.",
+			   "it-IT", "Per assistenza e supporto per il nuovo report, vedere la documentazione generale di analisi.",
+			   "nb-NO", "Hvis du vil ha hjelp og støtte med den nye rapporten, kan du gå til dokumentasjonen for analyseoversikten.",
+			   "nl-BE", "Ga voor hulp en ondersteuning met uw nieuwe rapport naar de Analytics-overzichtsdocumentatie.",
+			   "nl-NL", "Ga voor hulp en ondersteuning met uw nieuwe rapport naar de Analytics-overzichtsdocumentatie.",
+			   "sv-SE", "Hjälp och support med den nya rapporten finns i översiktsdokumentationen för Analys.",
+			   "For help and support with your new report please visit the Analytics overview documentation."
+			)
+		isHidden
+		lineageTag: 9554b9e2-7420-48a4-b847-27c1255c93bd
+
+	measure 'OTHER POWER BI REPORTS Label' =
+			SWITCH(USERCULTURE(),
+			   "es-ES", "OTROS INFORMES DE POWER BI",
+			   "de-DE", "SONSTIGE POWER BI-BERICHTE",
+			   "fr-FR", "AUTRES ÉTATS POWER BI",
+			   "cs-CZ", "DALŠÍ SESTAVY POWER BI",
+			   "da-DK", "ANDRE POWER BI-RAPPORTER",
+			   "de-AT", "SONSTIGE POWER BI-BERICHTE",
+			   "de-CH", "SONSTIGE POWER BI-BERICHTE",
+			   "en-AU", "OTHER POWER BI REPORTS",
+			   "en-CA", "OTHER POWER BI REPORTS",
+			   "en-GB", "OTHER POWER BI REPORTS",
+			   "en-NZ", "OTHER POWER BI REPORTS",
+			   "es-MX", "OTROS INFORMES DE POWER BI",
+			   "fi-FI", "MUUT POWER BI -RAPORTIT",
+			   "fr-BE", "AUTRES ÉTATS POWER BI",
+			   "fr-CA", "AUTRES RAPPORTS POWER BI",
+			   "fr-CH", "AUTRES ÉTATS POWER BI",
+			   "is-IS", "AÐRAR POWER BI SKÝRSLUR",
+			   "it-CH", "ALTRI REPORT DI POWER BI",
+			   "it-IT", "ALTRI REPORT DI POWER BI",
+			   "nb-NO", "ANDRE POWER BI-RAPPORTER",
+			   "nl-BE", "OVERIGE POWER BI-RAPPORTEN",
+			   "nl-NL", "OVERIGE POWER BI-RAPPORTEN",
+			   "sv-SE", "ÖVRIGA POWER BI-RAPPORTER",
+			   "OTHER POWER BI REPORTS"
+			)
+		isHidden
+		lineageTag: 1b7789a6-97c9-41d2-a84e-267300de6490
+
+	measure 'PURCHASE Label' =
+			SWITCH(USERCULTURE(),
+			   "es-ES", "COMPRA",
+			   "de-DE", "EINKAUF",
+			   "fr-FR", "ACHATS",
+			   "cs-CZ", "NÁKUP",
+			   "da-DK", "INDKØB",
+			   "de-AT", "EINKAUF",
+			   "de-CH", "EINKAUF",
+			   "en-AU", "PURCHASE",
+			   "en-CA", "PURCHASE",
+			   "en-GB", "PURCHASE",
+			   "en-NZ", "PURCHASE",
+			   "es-MX", "COMPRA",
+			   "fi-FI", "OSTO",
+			   "fr-BE", "ACHATS",
+			   "fr-CA", "ACHATS",
+			   "fr-CH", "ACHATS",
+			   "is-IS", "INNKAUP",
+			   "it-CH", "ACQUISTI",
+			   "it-IT", "ACQUISTI",
+			   "nb-NO", "INNKJØP",
+			   "nl-BE", "INKOOP",
+			   "nl-NL", "INKOOP",
+			   "sv-SE", "INKÖP",
+			   "PURCHASE"
+			)
+		isHidden
+		lineageTag: 0a3869c4-0330-4297-aee0-29bd61a58511
+
+	measure 'SALES Label' =
+			SWITCH(USERCULTURE(),
+			   "es-ES", "VENTAS",
+			   "de-DE", "VERKAUF",
+			   "fr-FR", "VENTES",
+			   "cs-CZ", "PRODEJ",
+			   "da-DK", "SALG",
+			   "de-AT", "VERKAUF",
+			   "de-CH", "VERKAUF",
+			   "en-AU", "SALES",
+			   "en-CA", "SALES",
+			   "en-GB", "SALES",
+			   "en-NZ", "SALES",
+			   "es-MX", "VENTAS",
+			   "fi-FI", "MYYNTI",
+			   "fr-BE", "VENTES",
+			   "fr-CA", "VENTES",
+			   "fr-CH", "VENTES",
+			   "is-IS", "SALA",
+			   "it-CH", "VENDITE",
+			   "it-IT", "VENDITE",
+			   "nb-NO", "SALG",
+			   "nl-BE", "VERKOPEN",
+			   "nl-NL", "VERKOPEN",
+			   "sv-SE", "FÖRSÄLJNING",
+			   "SALES"
+			)
+		isHidden
+		lineageTag: 2ebfff8e-e6d1-4c5b-bf67-4570104a4dec
+
+	measure 'INVENTORY  Label' =
+			SWITCH(USERCULTURE(),
+			   "es-ES", "INVENTARIO ",
+			   "de-DE", "LAGERBESTAND",
+			   "fr-FR", "STOCK ",
+			   "cs-CZ", "ZÁSOBY ",
+			   "da-DK", "LAGERBEHOLDNING ",
+			   "de-AT", "LAGERBESTAND",
+			   "de-CH", "LAGERBESTAND",
+			   "en-AU", "INVENTORY ",
+			   "en-CA", "INVENTORY ",
+			   "en-GB", "INVENTORY ",
+			   "en-NZ", "INVENTORY ",
+			   "es-MX", "INVENTARIO ",
+			   "fi-FI", "VARASTO ",
+			   "fr-BE", "STOCK ",
+			   "fr-CA", "INVENTAIRE ",
+			   "fr-CH", "STOCK ",
+			   "is-IS", "BIRGÐIR ",
+			   "it-CH", "INVENTARIO",
+			   "it-IT", "INVENTARIO",
+			   "nb-NO", "BEHOLDNING ",
+			   "nl-BE", "VOORRAAD ",
+			   "nl-NL", "VOORRAAD ",
+			   "sv-SE", "LAGER ",
+			   "INVENTORY "
+			)
+		isHidden
+		lineageTag: e6d2c1ce-bcca-41f6-943b-81480dd168c8
+
+	measure 'MANUFACTURING Label' =
+			SWITCH(USERCULTURE(),
+			   "es-ES", "FABRICACIÓN",
+			   "de-DE", "PRODUKTION",
+			   "fr-FR", "FABRICATION",
+			   "cs-CZ", "VÝROBA",
+			   "da-DK", "PRODUKTION",
+			   "de-AT", "PRODUKTION",
+			   "de-CH", "PRODUKTION",
+			   "en-AU", "MANUFACTURING",
+			   "en-CA", "MANUFACTURING",
+			   "en-GB", "MANUFACTURING",
+			   "en-NZ", "MANUFACTURING",
+			   "es-MX", "FABRICACIÓN",
+			   "fi-FI", "TUOTANTO",
+			   "fr-BE", "FABRICATION",
+			   "fr-CA", "FABRICATION",
+			   "fr-CH", "FABRICATION",
+			   "is-IS", "FRAMLEIÐSLA",
+			   "it-CH", "PRODUZIONE",
+			   "it-IT", "PRODUZIONE",
+			   "nb-NO", "PRODUKSJON",
+			   "nl-BE", "PRODUCTIE",
+			   "nl-NL", "PRODUCTIE",
+			   "sv-SE", "PRODUKTION",
+			   "MANUFACTURING"
+			)
+		isHidden
+		lineageTag: 0543b1f6-30a8-4a57-85c0-bb275c13ebcd
+
+	measure 'JOBS Label' =
+			SWITCH(USERCULTURE(),
+			   "es-ES", "PROYECTOS",
+			   "de-DE", "PROJEKTE",
+			   "fr-FR", "PROJETS",
+			   "cs-CZ", "ÚLOHY",
+			   "da-DK", "JOB",
+			   "de-AT", "PROJEKTE",
+			   "de-CH", "PROJEKTE",
+			   "en-AU", "JOBS",
+			   "en-CA", "JOBS",
+			   "en-GB", "JOBS",
+			   "en-NZ", "JOBS",
+			   "es-MX", "PROYECTOS",
+			   "fi-FI", "PROJEKTIT",
+			   "fr-BE", "PROJETS",
+			   "fr-CA", "PROJETS",
+			   "fr-CH", "PROJETS",
+			   "is-IS", "VERK",
+			   "it-CH", "COMMESSE",
+			   "it-IT", "COMMESSE",
+			   "nb-NO", "PROSJEKTER",
+			   "nl-BE", "PROJECTEN",
+			   "nl-NL", "PROJECTEN",
+			   "sv-SE", "PROJEKT",
+			   "JOBS"
+			)
+		isHidden
+		lineageTag: 1842e1b8-b2db-43bd-a437-065ad049b394
+
+	measure 'for Business Central Label' =
+			SWITCH(USERCULTURE(),
+			   "es-ES", "para Business Central",
+			   "de-DE", "für Business Central",
+			   "fr-FR", "pour Business Central",
+			   "cs-CZ", "pro Business Central",
+			   "da-DK", "til Business Central",
+			   "de-AT", "für Business Central",
+			   "de-CH", "für Business Central",
+			   "en-AU", "for Business Central",
+			   "en-CA", "for Business Central",
+			   "en-GB", "for Business Central",
+			   "en-NZ", "for Business Central",
+			   "es-MX", "para Business Central",
+			   "fi-FI", "Business Centralille",
+			   "fr-BE", "pour Business Central",
+			   "fr-CA", "pour Business Central",
+			   "fr-CH", "pour Business Central",
+			   "is-IS", "fyrir Business Central",
+			   "it-CH", "per Business Central",
+			   "it-IT", "per Business Central",
+			   "nb-NO", "for Business Central",
+			   "nl-BE", "voor Business Central",
+			   "nl-NL", "voor Business Central",
+			   "sv-SE", "för Business Central",
+			   "for Business Central"
+			)
+		isHidden
+		lineageTag: d4d94783-1440-4061-92b5-29061e4d5256
+
+	measure 'Aged Accounts Receivable (AR) & Accounts Payable (AP) Label' =
+			SWITCH(USERCULTURE(),
+			   "es-ES", "Antigüedad de cobros (AR) y cuentas por pagar (AP)",
+			   "de-DE", "Debitor(D)- und Kreditor(K)-Saldenrückblick",
+			   "fr-FR", "Comptabilité client âgée (CC) et Comptabilité fournisseur âgée (CF)",
+			   "cs-CZ", "Splatné pohledávky (SP) a závazky (Z)",
+			   "da-DK", "Aldersfordelt tilgodehavender (AR) og kreditor (AP)",
+			   "de-AT", "Debitor(D)- und Kreditor(K)-Saldenrückblick",
+			   "de-CH", "Debitor(D)- und Kreditor(K)-Saldenrückblick",
+			   "en-AU", "Aged Accounts Receivable (AR) & Accounts Payable (AP)",
+			   "en-CA", "Aged Accounts Receivable (AR) & Accounts Payable (AP)",
+			   "en-GB", "Aged Accounts Receivable (AR) & Accounts Payable (AP)",
+			   "en-NZ", "Aged Accounts Receivable (AR) & Accounts Payable (AP)",
+			   "es-MX", "Antigüedad de cobros (AR) y cuentas por pagar (AP)",
+			   "fi-FI", "Myyntisaatavien tilanne (AR) ja ostovelat (AP)",
+			   "fr-BE", "Comptabilité client âgée (CC) et Comptabilité fournisseur âgée (CF)",
+			   "fr-CA", "Comptabilité client classée chronologiquement (CC) et Comptabilité fournisseur classée chronologiquement (CF)",
+			   "fr-CH", "Comptabilité client âgée (CC) et Comptabilité fournisseur âgée (CF)",
+			   "is-IS", "Aldursgreindar viðskiptakröfur (VK) og viðskiptaskuldir (VS)",
+			   "it-CH", "Scadenzario clienti e fornitori",
+			   "it-IT", "Scadenzario clienti e fornitori",
+			   "nb-NO", "Aldersfordelt saldoliste – kunde (AR) og leverandørgjeld (AP)",
+			   "nl-BE", "Vervallen vorderingen (AR) en crediteuren (AP)",
+			   "nl-NL", "Vervallen vorderingen (AR) en crediteuren (AP)",
+			   "sv-SE", "Kundfordringar och leverantörsskulder – ålder",
+			   "Aged Accounts Receivable (AR) & Accounts Payable (AP)"
+			)
+		isHidden
+		lineageTag: f7598ec1-bd7e-4658-ae88-8da484b58ee7
+
+	measure 'Aged Accounts Receivable & Accounts Payable Label' =
+			SWITCH(USERCULTURE(),
+			   "es-ES", "Antigüedad de cobros y cuentas por pagar",
+			   "de-DE", "Debitor- und Kreditor-Saldenrückblick",
+			   "fr-FR", "Comptabilité client âgée et Comptabilité fournisseur âgée",
+			   "cs-CZ", "Splatné pohledávky a závazky",
+			   "da-DK", "Aldersfordelt tilgodehavender og kreditor",
+			   "de-AT", "Debitor- und Kreditor-Saldenrückblick",
+			   "de-CH", "Debitor- und Kreditor-Saldenrückblick",
+			   "en-AU", "Aged Accounts Receivable & Accounts Payable",
+			   "en-CA", "Aged Accounts Receivable & Accounts Payable",
+			   "en-GB", "Aged Accounts Receivable & Accounts Payable",
+			   "en-NZ", "Aged Accounts Receivable & Accounts Payable",
+			   "es-MX", "Antigüedad de cobros y cuentas por pagar",
+			   "fi-FI", "Myyntisaatavien tilanne ja ostovelat",
+			   "fr-BE", "Comptabilité client âgée et Comptabilité fournisseur âgée",
+			   "fr-CA", "Comptabilité client classée chronologiquement et Comptabilité fournisseur classée chronologiquement",
+			   "fr-CH", "Comptabilité client âgée et Comptabilité fournisseur âgée",
+			   "is-IS", "Aldursgreindar viðskiptakröfur og viðskiptaskuldir",
+			   "it-CH", "Scadenzario clienti e fornitori",
+			   "it-IT", "Scadenzario clienti e fornitori",
+			   "nb-NO", "Aldersfordelt saldoliste – kunde og leverandørgjeld",
+			   "nl-BE", "Vervallen vorderingen en crediteuren (AP)",
+			   "nl-NL", "Vervallen vorderingen en crediteuren (AP)",
+			   "sv-SE", "Kundfordringar och leverantörsskulder – ålder",
+			   "Aged Accounts Receivable & Accounts Payable"
+			)
+		isHidden
+		lineageTag: 733b3fdf-6269-4415-8383-a0a662c62e14
+
+	measure 'Aged Accounts Label' =
+			SWITCH(USERCULTURE(),
+			   "es-ES", "Cuentas vencidas",
+			   "de-DE", "Saldenrückblick",
+			   "fr-FR", "Comptes âgés",
+			   "cs-CZ", "Splatné pohledávky",
+			   "da-DK", "Forældede konti",
+			   "de-AT", "Saldenrückblick",
+			   "de-CH", "Saldenrückblick",
+			   "en-AU", "Aged Accounts",
+			   "en-CA", "Aged Accounts",
+			   "en-GB", "Aged Accounts",
+			   "en-NZ", "Aged Accounts",
+			   "es-MX", "Cuentas vencidas",
+			   "fi-FI", "Erääntyneet tilit",
+			   "fr-BE", "Comptes âgés",
+			   "fr-CA", "Comptes classés chronologiquement",
+			   "fr-CH", "Comptes âgés",
+			   "is-IS", "Aldursgreindir lyklar",
+			   "it-CH", "Scadenzario",
+			   "it-IT", "Scadenzario",
+			   "nb-NO", "Aldersfordelte kontoer",
+			   "nl-BE", "Vervallen accounts",
+			   "nl-NL", "Vervallen accounts",
+			   "sv-SE", "Konton – ålder",
+			   "Aged Accounts"
+			)
+		isHidden
+		lineageTag: 60c11934-6e57-4a6b-bd03-a399e9638cec
+
+	measure 'General Ledger (G/L) Entries Label' =
+			SWITCH(USERCULTURE(),
+			   "es-ES", "Movs. contabilidad (CG)",
+			   "de-DE", "Finanzbuchhaltungsposten (Sachposten)",
+			   "fr-FR", "Écritures comptables",
+			   "cs-CZ", "Věcné položky",
+			   "da-DK", "Finansposter (G/L)",
+			   "de-AT", "Finanzbuchhaltungsposten (Sachposten)",
+			   "de-CH", "Finanzbuchhaltungsposten",
+			   "en-AU", "General Ledger (G/L) Entries",
+			   "en-CA", "General Ledger (G/L) Entries",
+			   "en-GB", "General Ledger (G/L) Entries",
+			   "en-NZ", "General Ledger (G/L) Entries",
+			   "es-MX", "Movs. contabilidad (CG)",
+			   "fi-FI", "Pääkirjanpidon (KP) tapahtumat",
+			   "fr-BE", "Écritures comptables",
+			   "fr-CA", "Écritures du grand livre (GL)",
+			   "fr-CH", "Écritures comptables",
+			   "is-IS", "Fjárhagsfærslur",
+			   "it-CH", "Movimenti C/G",
+			   "it-IT", "Movimenti C/G",
+			   "nb-NO", "Finansposter",
+			   "nl-BE", "Grootboekposten",
+			   "nl-NL", "Grootboekposten",
+			   "sv-SE", "Redovisningstransaktioner",
+			   "General Ledger (G/L) Entries"
+			)
+		isHidden
+		lineageTag: bc201707-7ac3-48d8-bef4-48c06e5f0979
+
+	measure 'General Ledger Entries Label' =
+			SWITCH(USERCULTURE(),
+			   "es-ES", "Movs. contabilidad",
+			   "de-DE", "Finanzbuchhaltungsposten",
+			   "fr-FR", "Écritures comptables",
+			   "cs-CZ", "Věcné položky",
+			   "da-DK", "Finansposter",
+			   "de-AT", "Finanzbuchhaltungsposten",
+			   "de-CH", "Finanzbuchhaltungsposten",
+			   "en-AU", "General Ledger Entries",
+			   "en-CA", "General Ledger Entries",
+			   "en-GB", "General Ledger Entries",
+			   "en-NZ", "General Ledger Entries",
+			   "es-MX", "Movs. contabilidad",
+			   "fi-FI", "Pääkirjanpidon tapahtumat",
+			   "fr-BE", "Écritures comptables",
+			   "fr-CA", "Écritures du grand livre",
+			   "fr-CH", "Écritures comptables",
+			   "is-IS", "Fjárhagsfærslur",
+			   "it-CH", "Movimenti C/G",
+			   "it-IT", "Movimenti C/G",
+			   "nb-NO", "Finansposter",
+			   "nl-BE", "Grootboekposten",
+			   "nl-NL", "Grootboekposten",
+			   "sv-SE", "Redovisningstransaktioner",
+			   "General Ledger Entries"
+			)
+		isHidden
+		lineageTag: cf521f72-71d6-412b-8943-5f7dfbdf9c98
+
+	measure 'Return On Assets - ROA by Month Label' =
+			SWITCH(USERCULTURE(),
+			   "es-ES", "Rentabilidad de los activos: RA por mes",
+			   "de-DE", "Gesamtkapitalrendite – GKR nach Monat",
+			   "fr-FR", "Rentabilité des actifs : ROA par mois",
+			   "cs-CZ", "Návratnost majetku – NM podle měsíce",
+			   "da-DK", "Afkastningsgrad – AG efter måned",
+			   "de-AT", "Gesamtkapitalrendite – GKR nach Monat",
+			   "de-CH", "Gesamtkapitalrendite – GKR nach Monat",
+			   "en-AU", "Return On Assets - ROA by Month",
+			   "en-CA", "Return On Assets - ROA by Month",
+			   "en-GB", "Return On Assets - ROA by Month",
+			   "en-NZ", "Return On Assets - ROA by Month",
+			   "es-MX", "Rentabilidad de los activos: RA por mes",
+			   "fi-FI", "Koko pääoman tuotto – KPT kuukauden mukaan",
+			   "fr-BE", "Rentabilité des actifs : ROA par mois",
+			   "fr-CA", "Rentabilité des actifs : ROA par mois",
+			   "fr-CH", "Rentabilité des actifs : ROA par mois",
+			   "is-IS", "Hagnaður af eignum (ROA) eftir mánuði",
+			   "it-CH", "Redditività patrimonio - ROA per mese",
+			   "it-IT", "Redditività patrimonio - ROA per mese",
+			   "nb-NO", "Kapitalavkastning – ROA etter måned",
+			   "nl-BE", "Rendement op activa - ROA per maand",
+			   "nl-NL", "Rendement op activa - ROA per maand",
+			   "sv-SE", "Avkastning på tillgångar – APT per månad",
+			   "Return On Assets - ROA by Month"
+			)
+		isHidden
+		lineageTag: 4e4e4c76-9c5b-499b-b44b-7f4cc4b72e24
+
+	measure 'Top 5 Customers by Balance Label' =
+			SWITCH(USERCULTURE(),
+			   "es-ES", "Los 5 clientes principales por saldo",
+			   "de-DE", "Top 5-Debitoren nach Saldo",
+			   "fr-FR", "5 premiers clients par solde",
+			   "cs-CZ", "5 předních zákazníků podle zůstatku",
+			   "da-DK", "Top 5 over debitorer efter saldo",
+			   "de-AT", "Top 5-Debitoren nach Saldo",
+			   "de-CH", "Top 5-Debitoren nach Saldo",
+			   "en-AU", "Top 5 Customers by Balance",
+			   "en-CA", "Top 5 Customers by Balance",
+			   "en-GB", "Top 5 Customers by Balance",
+			   "en-NZ", "Top 5 Customers by Balance",
+			   "es-MX", "Los 5 clientes principales por saldo",
+			   "fi-FI", "Viisi parasta asiakasta saldon mukaan",
+			   "fr-BE", "5 premiers clients par solde",
+			   "fr-CA", "5 premiers clients par solde",
+			   "fr-CH", "5 premiers clients par solde",
+			   "is-IS", "Fimm efstu viðskiptavinir eftir stöðu",
+			   "it-CH", "Primi 5 clienti per saldo",
+			   "it-IT", "Primi 5 clienti per saldo",
+			   "nb-NO", "Fem beste kunder etter saldo",
+			   "nl-BE", "Top 5 klanten per saldo",
+			   "nl-NL", "Top 5 klanten per saldo",
+			   "sv-SE", "5 bästa kunder per saldo",
+			   "Top 5 Customers by Balance"
+			)
+		isHidden
+		lineageTag: d9a9b0b9-a8ec-4ae4-a036-28e6cbde1413
+
+	measure 'Top 5 Vendors by Balance Label' =
+			SWITCH(USERCULTURE(),
+			   "es-ES", "Los 5 proveedores principales por saldo",
+			   "de-DE", "Top 5-Kreditoren nach Saldo",
+			   "fr-FR", "5 premiers fournisseurs par solde",
+			   "cs-CZ", "5 předních dodavatelů podle zůstatku",
+			   "da-DK", "Top 5 over kreditorer efter saldo",
+			   "de-AT", "Top 5-Kreditoren nach Saldo",
+			   "de-CH", "Top 5-Kreditoren nach Saldo",
+			   "en-AU", "Top 5 Vendors by Balance",
+			   "en-CA", "Top 5 Vendors by Balance",
+			   "en-GB", "Top 5 Vendors by Balance",
+			   "en-NZ", "Top 5 Vendors by Balance",
+			   "es-MX", "Los 5 proveedores principales por saldo",
+			   "fi-FI", "Viisi parasta toimittajaa saldon mukaan",
+			   "fr-BE", "5 premiers fournisseurs par solde",
+			   "fr-CA", "5 premiers fournisseurs par solde",
+			   "fr-CH", "5 premiers fournisseurs par solde",
+			   "is-IS", "Fimm efstu söluaðilar eftir stöðu",
+			   "it-CH", "Primi 5 fornitori per saldo",
+			   "it-IT", "Primi 5 fornitori per saldo",
+			   "nb-NO", "Fem beste leverandører etter saldo",
+			   "nl-BE", "Top 5 leveranciers op saldo",
+			   "nl-NL", "Top 5 leveranciers op saldo",
+			   "sv-SE", "5 bästa leverantörer per saldo",
+			   "Top 5 Vendors by Balance"
+			)
+		isHidden
+		lineageTag: b9bef4d2-804a-4b3b-ba46-52301c7d6c2e
+
+	measure 'Net Profit Margin by Month Label' =
+			SWITCH(USERCULTURE(),
+			   "es-ES", "Margen de ganancias netas por mes",
+			   "de-DE", "Nettogewinnspanne nach Monat",
+			   "fr-FR", "Marge bénéficiaire nette par mois",
+			   "cs-CZ", "Čistá zisková marže podle měsíce",
+			   "da-DK", "Nettodækningsgrad efter måned",
+			   "de-AT", "Nettogewinnspanne nach Monat",
+			   "de-CH", "Nettogewinnspanne nach Monat",
+			   "en-AU", "Net Profit Margin by Month",
+			   "en-CA", "Net Profit Margin by Month",
+			   "en-GB", "Net Profit Margin by Month",
+			   "en-NZ", "Net Profit Margin by Month",
+			   "es-MX", "Margen de ganancias netas por mes",
+			   "fi-FI", "Nettovoittokate kuukauden mukaan",
+			   "fr-BE", "Marge bénéficiaire nette par mois",
+			   "fr-CA", "Marge profit nette par mois",
+			   "fr-CH", "Marge bénéficiaire nette par mois",
+			   "is-IS", "Hagnaðarhlutfall eftir mánuði",
+			   "it-CH", "Margine profitto netto per mese",
+			   "it-IT", "Margine profitto netto per mese",
+			   "nb-NO", "Netto fortjenestemargin etter måned",
+			   "nl-BE", "Nettowinstmarge per maand",
+			   "nl-NL", "Nettowinstmarge per maand",
+			   "sv-SE", "Nettovinstmarginal per månad",
+			   "Net Profit Margin by Month"
+			)
+		isHidden
+		lineageTag: 8a8105e9-f77c-49cb-bdd9-4fafe914b519
+
+	measure 'Asset Turnover Ratio by Month Label' =
+			SWITCH(USERCULTURE(),
+			   "es-ES", "Índice de rotación de activos por mes",
+			   "de-DE", "Kapitalumschlagsanteil nach Monat",
+			   "fr-FR", "Ratio de rotation de l’actif par mois",
+			   "cs-CZ", "Poměr obratu majetku podle měsíce",
+			   "da-DK", "Aktivers omsætningshastighed efter måneder",
+			   "de-AT", "Kapitalumschlagsanteil nach Monat",
+			   "de-CH", "Kapitalumschlagsanteil nach Monat",
+			   "en-AU", "Asset Turnover Ratio by Month",
+			   "en-CA", "Asset Turnover Ratio by Month",
+			   "en-GB", "Asset Turnover Ratio by Month",
+			   "en-NZ", "Asset Turnover Ratio by Month",
+			   "es-MX", "Índice de rotación de activos por mes",
+			   "fi-FI", "Pääoman kiertonopeus kuukauden mukaan",
+			   "fr-BE", "Ratio de rotation de l’actif par mois",
+			   "fr-CA", "Ratio de rotation de l’actif par mois",
+			   "fr-CH", "Ratio de rotation de l’actif par mois",
+			   "is-IS", "Veltuhlutfall eigna eftir mánuði",
+			   "it-CH", "Rapporto tra vendite e cespiti per mese",
+			   "it-IT", "Rapporto tra vendite e cespiti per mese",
+			   "nb-NO", "Kapitalens omløpshastighet etter måned",
+			   "nl-BE", "Ratio omlooptijd activa per maand",
+			   "nl-NL", "Ratio omlooptijd activa per maand",
+			   "sv-SE", "Kapitalomsättningshastighet per månad",
+			   "Asset Turnover Ratio by Month"
+			)
+		isHidden
+		lineageTag: 8016931b-37f0-4542-8f7b-83db84f3e133
+
+	measure 'Last Refreshed Label' =
+			SWITCH(USERCULTURE(),
+			   "es-ES", "Última actualización",
+			   "de-DE", "Zuletzt aktualisiert",
+			   "fr-FR", "Dernière actualisation",
+			   "cs-CZ", "Naposledy aktualizováno",
+			   "da-DK", "Sidst opdateret",
+			   "de-AT", "Zuletzt aktualisiert",
+			   "de-CH", "Zuletzt aktualisiert",
+			   "en-AU", "Last Refreshed",
+			   "en-CA", "Last Refreshed",
+			   "en-GB", "Last Refreshed",
+			   "en-NZ", "Last Refreshed",
+			   "es-MX", "Última actualización",
+			   "fi-FI", "Päivitetty viimeksi",
+			   "fr-BE", "Dernière actualisation",
+			   "fr-CA", "Dernière actualisation",
+			   "fr-CH", "Dernière actualisation",
+			   "is-IS", "Síðast uppfært",
+			   "it-CH", "Ultimo aggiornamento",
+			   "it-IT", "Ultimo aggiornamento",
+			   "nb-NO", "Sist oppdatert",
+			   "nl-BE", "Laatst vernieuwd",
+			   "nl-NL", "Laatst vernieuwd",
+			   "sv-SE", "Uppdaterades senast",
+			   "Last Refreshed"
+			)
+		isHidden
+		lineageTag: 7b876183-c87d-4f6f-ade4-38f1beb99942
+
+	measure 'Company Name Label' =
+			SWITCH(USERCULTURE(),
+			   "es-ES", "Nombre empresa",
+			   "de-DE", "Mandantenname",
+			   "fr-FR", "Nom de la société",
+			   "cs-CZ", "Název společnosti",
+			   "da-DK", "Virksomhedsnavn",
+			   "de-AT", "Mandantenname",
+			   "de-CH", "Mandantenname",
+			   "en-AU", "Company Name",
+			   "en-CA", "Company Name",
+			   "en-GB", "Company Name",
+			   "en-NZ", "Company Name",
+			   "es-MX", "Nombre empresa",
+			   "fi-FI", "Yrityksen nimi",
+			   "fr-BE", "Nom de la société",
+			   "fr-CA", "Nom de la compagnie",
+			   "fr-CH", "Nom de la société",
+			   "is-IS", "Heiti fyrirtækis",
+			   "it-CH", "Nome società",
+			   "it-IT", "Nome società",
+			   "nb-NO", "Selskapsnavn",
+			   "nl-BE", "Bedrijfsnaam",
+			   "nl-NL", "Bedrijfsnaam",
+			   "sv-SE", "Företagsnamn",
+			   "Company Name"
+			)
+		isHidden
+		lineageTag: c47a525e-c0e3-42d7-91d0-e131956e6a34
+
+	measure 'Liquidity Line Chart Label' =
+			SWITCH(USERCULTURE(),
+			   "es-ES", "Gráfico línea liquidez",
+			   "de-DE", "Liquiditätszeilendiagramm",
+			   "fr-FR", "Graphique en courbes liquidité",
+			   "cs-CZ", "Spojnicový graf likvidity",
+			   "da-DK", "Linjediagram til likviditet",
+			   "de-AT", "Liquiditätszeilendiagramm",
+			   "de-CH", "Liquiditätszeilendiagramm",
+			   "en-AU", "Liquidity Line Chart",
+			   "en-CA", "Liquidity Line Chart",
+			   "en-GB", "Liquidity Line Chart",
+			   "en-NZ", "Liquidity Line Chart",
+			   "es-MX", "Gráfico línea liquidez",
+			   "fi-FI", "Maksuvalmius-viivakaavio",
+			   "fr-BE", "Graphique en courbes liquidité",
+			   "fr-CA", "Graphique en courbes liquidité",
+			   "fr-CH", "Graphique en courbes liquidités",
+			   "is-IS", "Línurit greiðslugetu",
+			   "it-CH", "Grafico righe liquidità",
+			   "it-IT", "Grafico righe liquidità",
+			   "nb-NO", "Likviditetslinjediagram",
+			   "nl-BE", "Diagram Liquiditeitslijn",
+			   "nl-NL", "Diagram Liquiditeitslijn",
+			   "sv-SE", "Linjediagram för likviditet",
+			   "Liquidity Line Chart"
+			)
+		isHidden
+		lineageTag: f843716b-e0db-414c-8dc6-1b7e904e5df2
+
+	measure 'Net Profit by Month Label' =
+			SWITCH(USERCULTURE(),
+			   "es-ES", "Beneficio neto por mes",
+			   "de-DE", "Nettogewinn nach Monat",
+			   "fr-FR", "Bénéfice net par mois",
+			   "cs-CZ", "Čistý zisk podle měsíce",
+			   "da-DK", "Nettofortjeneste efter måned",
+			   "de-AT", "Nettogewinn nach Monat",
+			   "de-CH", "Nettogewinn nach Monat",
+			   "en-AU", "Net Profit by Month",
+			   "en-CA", "Net Profit by Month",
+			   "en-GB", "Net Profit by Month",
+			   "en-NZ", "Net Profit by Month",
+			   "es-MX", "Beneficio neto por mes",
+			   "fi-FI", "Nettovoitto kuukauden mukaan",
+			   "fr-BE", "Bénéfice net par mois",
+			   "fr-CA", "Profit net par mois",
+			   "fr-CH", "Bénéfice net par mois",
+			   "is-IS", "Hreinn hagnaður eftir mánuði",
+			   "it-CH", "Profitto netto per mese",
+			   "it-IT", "Profitto netto per mese",
+			   "nb-NO", "Nettofortjeneste etter måned",
+			   "nl-BE", "Nettowinst per maand",
+			   "nl-NL", "Nettowinst per maand",
+			   "sv-SE", "Nettovinst per månad",
+			   "Net Profit by Month"
+			)
+		isHidden
+		lineageTag: ccb4791c-15fb-4eb3-9088-a11d6794cc5d
+
+	measure 'Gross Profit by Month Label' =
+			SWITCH(USERCULTURE(),
+			   "es-ES", "Beneficio bruto por mes",
+			   "de-DE", "Bruttogewinn nach Monat",
+			   "fr-FR", "Bénéfice brut par mois",
+			   "cs-CZ", "Hrubý zisk podle měsíce",
+			   "da-DK", "Bruttofortjeneste efter måned",
+			   "de-AT", "Bruttogewinn nach Monat",
+			   "de-CH", "Bruttogewinn nach Monat",
+			   "en-AU", "Gross Profit by Month",
+			   "en-CA", "Gross Profit by Month",
+			   "en-GB", "Gross Profit by Month",
+			   "en-NZ", "Gross Profit by Month",
+			   "es-MX", "Beneficio bruto por mes",
+			   "fi-FI", "Bruttovoitto kuukauden mukaan",
+			   "fr-BE", "Bénéfice brut par mois",
+			   "fr-CA", "Profit brut par mois",
+			   "fr-CH", "Bénéfice brut par mois",
+			   "is-IS", "Brúttóhagnaður eftir mánuði",
+			   "it-CH", "Profitto lordo per mese",
+			   "it-IT", "Profitto lordo per mese",
+			   "nb-NO", "Bruttofortjeneste etter måned",
+			   "nl-BE", "Brutowinst per maand",
+			   "nl-NL", "Brutowinst per maand",
+			   "sv-SE", "Bruttovinst per månad",
+			   "Gross Profit by Month"
+			)
+		isHidden
+		lineageTag: ac008657-cd53-48cd-9bf0-4a63557454dc
+
+	measure 'Operating Profit - EBIT and EBITDA by Month Label' =
+			SWITCH(USERCULTURE(),
+			   "es-ES", "Beneficio de explotación: EBIT y EBITDA por mes",
+			   "de-DE", "Betriebsgewinn – EVZS und EVZSAA nach Monat",
+			   "fr-FR", "Bénéfice d’exploitation - BAII et BAIIA par mois",
+			   "cs-CZ", "Provozní zisk – ZPZÚAD a ZPZÚDAO podle měsíce",
+			   "da-DK", "Driftsoverskud - EBIT og EBITDA efter måneder",
+			   "de-AT", "Betriebsgewinn – EVZS und EVZSAA nach Monat",
+			   "de-CH", "Betriebsgewinn – EVZS und EVZSAA nach Monat",
+			   "en-AU", "Operating Profit - EBIT and EBITDA by Month",
+			   "en-CA", "Operating Profit - EBIT and EBITDA by Month",
+			   "en-GB", "Operating Profit - EBIT and EBITDA by Month",
+			   "en-NZ", "Operating Profit - EBIT and EBITDA by Month",
+			   "es-MX", "Beneficio de explotación: EBIT y EBITDA por mes",
+			   "fi-FI", "Liikevoitto – TEKV ja TEKVPK kuukauden mukaan",
+			   "fr-BE", "Bénéfice d’exploitation - BAII et BAIIA par mois",
+			   "fr-CA", "Profit d’exploitation - BAII et BAIIA par mois",
+			   "fr-CH", "Bénéfice d’exploitation - BAII et BAIIA par mois",
+			   "is-IS", "Rekstrarhagnaður (EBIT og EBITDA) eftir mánuði",
+			   "it-CH", "Profitto operativo - EBIT ed EBITDA per mese",
+			   "it-IT", "Profitto operativo - EBIT ed EBITDA per mese",
+			   "nb-NO", "Driftsresultat – EBIT og EBITDA etter måned",
+			   "nl-BE", "Bedrijfswinst - EBIT en EBITDA per maand",
+			   "nl-NL", "Bedrijfswinst - EBIT en EBITDA per maand",
+			   "sv-SE", "Rörelseresultat – EBIT och EBITDA per månad",
+			   "Operating Profit - EBIT and EBITDA by Month"
+			)
+		isHidden
+		lineageTag: 1aca74cc-dcfd-4c2c-af32-dbedfa90ef05
+
+	measure 'EBITDA  Label' =
+			SWITCH(USERCULTURE(),
+			   "es-ES", "EBITDA ",
+			   "de-DE", "EVZSAA ",
+			   "fr-FR", "BAIIA ",
+			   "cs-CZ", "ZPZÚDAO ",
+			   "da-DK", "EBITDA ",
+			   "de-AT", "EVZSAA ",
+			   "de-CH", "EVZSAA ",
+			   "en-AU", "EBITDA ",
+			   "en-CA", "EBITDA ",
+			   "en-GB", "EBITDA ",
+			   "en-NZ", "EBITDA ",
+			   "es-MX", "EBITDA ",
+			   "fi-FI", "TEKVPK ",
+			   "fr-BE", "BAIIA ",
+			   "fr-CA", "BAIIA ",
+			   "fr-CH", "BAIIA ",
+			   "is-IS", "EBITDA ",
+			   "it-CH", "EBITDA ",
+			   "it-IT", "EBITDA ",
+			   "nb-NO", "EBITDA ",
+			   "nl-BE", "EBITDA ",
+			   "nl-NL", "EBITDA ",
+			   "sv-SE", "EBITDA ",
+			   "EBITDA "
+			)
+		isHidden
+		lineageTag: bd780bec-a1f4-4b9b-bda1-a3fdad850d04
+
+	measure 'Revenue, Accounts Receivable (Average), No. of Days and Average Collection Period (Days) by Month Label' =
+			SWITCH(USERCULTURE(),
+			   "es-ES", "Ingresos, Cobros (promedio), N.º de días y periodo medio de cobro (días) por mes",
+			   "de-DE", "Umsätze, Debitoren (Durchschnitt), Anzahl Tage und durchschn. Zahlungsfrist (Tage) nach Monat",
+			   "fr-FR", "Produits, Comptabilité client (moyenne), Nbre de jours et Délai de règlement moyen (jours) par mois",
+			   "cs-CZ", "Výnosy, pohledávky (průměr), počet dní a průměrné období inkasa (dny) podle měsíce",
+			   "da-DK", "Omsætning, Tilgodehavender (gennemsnit), Antal dage og gennemsnitligt antal kreditdage (dage) pr. måned",
+			   "de-AT", "Umsätze, Debitoren (Durchschnitt), Anzahl Tage und durchschn. Zahlungsfrist (Tage) nach Monat",
+			   "de-CH", "Umsätze, Debitoren (Durchschnitt), Anzahl Tage und durchschn. Zahlungsfrist (Tage) nach Monat",
+			   "en-AU", "Revenue, Accounts Receivable (Average), No. of Days and Average Collection Period (Days) by Month",
+			   "en-CA", "Revenue, Accounts Receivable (Average), No. of Days and Average Collection Period (Days) by Month",
+			   "en-GB", "Revenue, Accounts Receivable (Average), No. of Days and Average Collection Period (Days) by Month",
+			   "en-NZ", "Revenue, Accounts Receivable (Average), No. of Days and Average Collection Period (Days) by Month",
+			   "es-MX", "Ingresos, Cobros (promedio), N.º de días y periodo medio de cobro (días) por mes",
+			   "fi-FI", "Tuotto, Myyntisaatavat (keskiarvo), Päivien määrä ja Perintäjakso keskimäärin (päivinä) kuukauden mukaan",
+			   "fr-BE", "Produits, Comptabilité client (moyenne), Nbre de jours et Délai de règlement moyen (jours) par mois",
+			   "fr-CA", "Revenus, Comptabilité client (moyenne), Nbre de jours et Période de recouvrement moyenne (jours) par mois",
+			   "fr-CH", "Produits, Comptabilité client (moyenne), Nbre de jours et Délai de règlement moyen (jours) par mois",
+			   "is-IS", "Tekjur, viðskiptakröfur (meðaltal), fjöldi daga og meðaltal innheimtutímabils (dagar) eftir mánuði",
+			   "it-CH", "Ricavi, contabilità clienti (media), nr. giorni e periodo medio di riscossione (giorni) per mese",
+			   "it-IT", "Ricavi, contabilità clienti (media), nr. giorni e periodo medio di riscossione (giorni) per mese",
+			   "nb-NO", "Inntekter, kundefordringer (gjennomsnitt), antall dager og gjennomsnittlig purreperiode (dager) etter måned",
+			   "nl-BE", "Opbrengst, Debiteuren (gemiddeld), Aantal dagen en Gemiddelde incassoperiode (dagen) per maand",
+			   "nl-NL", "Opbrengst, Debiteuren (gemiddeld), Aantal dagen en Gemiddelde incassoperiode (dagen) per maand",
+			   "sv-SE", "Intäkter, Kundfordringar (genomsnitt), Antal dagar och genomsnittlig inkassotid (dagar) per månad",
+			   "Revenue, Accounts Receivable (Average), No. of Days and Average Collection Period (Days) by Month"
+			)
+		isHidden
+		lineageTag: 39df7d95-61b1-4e16-a783-f18877eafcfb
+
+	measure 'Revenue, Net Profit, Net Profit Margin, Assets, Days Sales Outstanding, Days Sales of Inventory, Days Payable Outstanding. Label' =
+			SWITCH(USERCULTURE(),
+			   "es-ES", "Ingresos, beneficio neto, margen de beneficio neto, activos, días de ventas pendientes, días de ventas de inventario, días a pagar pendientes.",
+			   "de-DE", "Umsätze, Nettogewinn, Nettogewinnmarge, Aktiva, Ausstehende Verkäufe in Tagen, Dauer der Lagerverkäufe in Tagen, Ausstehende Zahlungen in Tagen.",
+			   "fr-FR", "Produits, Bénéfice net, Marge bénéficiaire nette, Actifs, Délai moyen de paiement client, Jours de ventes en stock, Délai de paiement fournisseur.",
+			   "cs-CZ", "Výnosy, čistý zisk, čistá zisková marže, majetky, počet dnů neuhrazeného prodeje, dny prodeje zásob, dny neuhrazeného závazku.",
+			   "da-DK", "Omsætning, Nettofortjeneste, Nettodækningsgrad, Aktiver, Udestående salg i dage, Salg af lager i dage, Udestående gæld i dage.",
+			   "de-AT", "Umsätze, Nettogewinn, Nettogewinnmarge, Aktiva, Ausstehende Verkäufe in Tagen, Dauer der Lagerverkäufe in Tagen, Ausstehende Zahlungen in Tagen.",
+			   "de-CH", "Umsätze, Nettogewinn, Nettogewinnmarge, Aktiva, Ausstehende Verkäufe in Tagen, Dauer der Lagerverkäufe in Tagen, Ausstehende Zahlungen in Tagen.",
+			   "en-AU", "Revenue, Net Profit, Net Profit Margin, Assets, Days Sales Outstanding, Days Sales of Inventory, Days Payable Outstanding.",
+			   "en-CA", "Revenue, Net Profit, Net Profit Margin, Assets, Days Sales Outstanding, Days Sales of Inventory, Days Payable Outstanding.",
+			   "en-GB", "Revenue, Net Profit, Net Profit Margin, Assets, Days Sales Outstanding, Days Sales of Inventory, Days Payable Outstanding.",
+			   "en-NZ", "Revenue, Net Profit, Net Profit Margin, Assets, Days Sales Outstanding, Days Sales of Inventory, Days Payable Outstanding.",
+			   "es-MX", "Ingresos, beneficio neto, margen de beneficio neto, activos, días de ventas pendientes, días de ventas de inventario, días a pagar pendientes.",
+			   "fi-FI", "Tuotto, Nettovoitto, Nettovoittomarginaali, Vastaavaa, Myyntisaatavien kiertoaika päivinä, Varaston myynti päivinä, Ostovelkojen kiertoaika päivinä.",
+			   "fr-BE", "Produits, Bénéfice net, Marge bénéficiaire nette, Actifs, Délai moyen de paiement client, Jours de ventes en stock, Délai de paiement fournisseur.",
+			   "fr-CA", "Revenus, Profit net, Marge profit nette, Actifs, Délai de paiement client, Jours de ventes en inventaire, Délai de paiement fournisseur.",
+			   "fr-CH", "Produits, Bénéfice net, Marge bénéficiaire nette, Actifs, Délai moyen de paiement client, Jours de ventes en stock, Délai de paiement fournisseur.",
+			   "is-IS", "Tekjur, hreinn hagnaður, hagnaðarhlutfall, eignir, dagssala útistandandi, dagsala af birgðu, dagar útistandandi greiðslu.",
+			   "it-CH", "Ricavi, profitto netto, margine profitto netto, attività, giorni di vendita in sospeso, giorni di vendita scorte, giorni di pagamento in sospeso.",
+			   "it-IT", "Ricavi, profitto netto, margine profitto netto, attività, giorni di vendita in sospeso, giorni di vendita scorte, giorni di pagamento in sospeso.",
+			   "nb-NO", "Inntekt, nettofortjeneste, netto fortjenestemargin, aktiva, dager for utestående salg, dager med salg fra beholdning, dager med utestående betaling.",
+			   "nl-BE", "Opbrengst, Nettowinst, Nettowinstmarge, Activa, Dagen verkoop openstaand, Verkoopdagen van voorraad, Dagen betaalbaar openstaand.",
+			   "nl-NL", "Opbrengst, Nettowinst, Nettowinstmarge, Activa, Dagen verkoop openstaand, Verkoopdagen van voorraad, Dagen betaalbaar openstaand.",
+			   "sv-SE", "Intäkt, Nettovinst, Nettovinstmarginal, Dagar för utestående försäljning, Liggtid i lager, Dagar utestående obetalda.",
+			   "Revenue, Net Profit, Net Profit Margin, Assets, Days Sales Outstanding, Days Sales of Inventory, Days Payable Outstanding."
+			)
+		isHidden
+		lineageTag: 241ecfd9-bb92-4181-ab95-afcf057f2806
+
+	measure 'Current Ratio, Current Assets, Current Liabilities. Label' =
+			SWITCH(USERCULTURE(),
+			   "es-ES", "Índice actual, activos actuales, pasivos actuales.",
+			   "de-DE", "Liquiditätskoeffizient, Umlaufvermögen, kurzfristige Verbindlichkeiten.",
+			   "fr-FR", "Taux actuel, Actifs circulants, Passif à court terme.",
+			   "cs-CZ", "Krátkodobý poměr, běžná aktiva, krátkodobá pasiva.",
+			   "da-DK", "Likviditetsgrad, Omsætningsaktiver, kortfristet gæld.",
+			   "de-AT", "Liquiditätskoeffizient, Umlaufvermögen, kurzfristige Verbindlichkeiten.",
+			   "de-CH", "Liquiditätskoeffizient, Umlaufvermögen, kurzfristige Verbindlichkeiten.",
+			   "en-AU", "Current Ratio, Current Assets, Current Liabilities.",
+			   "en-CA", "Current Ratio, Current Assets, Current Liabilities.",
+			   "en-GB", "Current Ratio, Current Assets, Current Liabilities.",
+			   "en-NZ", "Current Ratio, Current Assets, Current Liabilities.",
+			   "es-MX", "Índice actual, activos actuales, pasivos actuales.",
+			   "fi-FI", "Nykyinen suhde, Nykyiset vastaavat, Lyhytaikaiset velat.",
+			   "fr-BE", "Taux actuel, Actifs circulants, Passif à court terme.",
+			   "fr-CA", "Taux actuel, Actifs circulants, Passif à court terme.",
+			   "fr-CH", "Taux actuel, Actifs circulants, Passif à court terme.",
+			   "is-IS", "Veltufjárhlutfall, veltufjármunir, skammtímaskuldir.",
+			   "it-CH", "Indice corrente, attività correnti, passività correnti.",
+			   "it-IT", "Indice corrente, attività correnti, passività correnti.",
+			   "nb-NO", "Likviditetsgrad, omløpsmidler, kortsiktig gjeld.",
+			   "nl-BE", "Huidige ratio, Vlottende activa, Vlottende verplichtingen.",
+			   "nl-NL", "Huidige ratio, Vlottende activa, Vlottende verplichtingen.",
+			   "sv-SE", "Balanslikviditet, Omsättningstillgångar, Kortfristiga skulder.",
+			   "Current Ratio, Current Assets, Current Liabilities."
+			)
+		isHidden
+		lineageTag: 7d68c42b-e5e0-4ddf-ade4-cf529e2d136f
+
+	measure 'Quick Ratio, Current Assets, Inventory. Label' =
+			SWITCH(USERCULTURE(),
+			   "es-ES", "Coeficiente de liquidez inmediata, activos circulantes, inventario.",
+			   "de-DE", "Liquiditätsgrad, kurzfristiges Umlaufvermögen, Lagerbestand.",
+			   "fr-FR", "Ratio de liquidité, Actifs circulants, Stock.",
+			   "cs-CZ", "Rychlý poměr, oběžná aktiva, zásoby.",
+			   "da-DK", "Likviditetsgrad på kort sigt, Omsætningsaktiver, Lager.",
+			   "de-AT", "Liquiditätsgrad, kurzfristiges Umlaufvermögen, Lagerbestand.",
+			   "de-CH", "Liquiditätsgrad, kurzfristiges Umlaufvermögen, Lagerbestand.",
+			   "en-AU", "Quick Ratio, Current Assets, Inventory.",
+			   "en-CA", "Quick Ratio, Current Assets, Inventory.",
+			   "en-GB", "Quick Ratio, Current Assets, Inventory.",
+			   "en-NZ", "Quick Ratio, Current Assets, Inventory.",
+			   "es-MX", "Coeficiente de liquidez inmediata, activos circulantes, inventario.",
+			   "fi-FI", "Maksuvalmiussuhde, Nykyiset vastaavat, Varasto.",
+			   "fr-BE", "Ratio de liquidité, Actifs circulants, Stock.",
+			   "fr-CA", "Ratio de liquidité, Actifs circulants, Inventaire.",
+			   "fr-CH", "Ratio de liquidité, Actifs circulants, Stock.",
+			   "is-IS", "Lausafjárhlutfall, veltufjármunir, birgðir.",
+			   "it-CH", "Indice rapido, attività correnti, inventario.",
+			   "it-IT", "Indice rapido, attività correnti, inventario.",
+			   "nb-NO", "Likviditetsgrad, omløpsmidler, beholdning.",
+			   "nl-BE", "Snelle ratio, Vlottende activa, Voorraad.",
+			   "nl-NL", "Snelle ratio, Vlottende activa, Voorraad.",
+			   "sv-SE", "Snabbkvot, Omsättningstillgångar, Lager.",
+			   "Quick Ratio, Current Assets, Inventory."
+			)
+		isHidden
+		lineageTag: 497275b3-935a-4338-8477-abd3d9f2df6a
+
+	measure 'Cash Ratio, Liquid Assets, Current Liabilities. Label' =
+			SWITCH(USERCULTURE(),
+			   "es-ES", "Ratio de efectivo, activos líquidos, pasivos corrientes.",
+			   "de-DE", "Bargeldanteil, flüssige Mittel, kurzfristige Verbindlichkeiten.",
+			   "fr-FR", "Ratio de trésorerie, Actifs trésorerie, Passif à court terme.",
+			   "cs-CZ", "Poměr hotovosti, likvidní aktiva, krátkodobá pasiva.",
+			   "da-DK", "Likviditetsgrad, Likvide beholdninger, Kortfristet gæld.",
+			   "de-AT", "Bargeldanteil, flüssige Mittel, kurzfristige Verbindlichkeiten.",
+			   "de-CH", "Bargeldanteil, flüssige Mittel, kurzfristige Verbindlichkeiten.",
+			   "en-AU", "Cash Ratio, Liquid Assets, Current Liabilities.",
+			   "en-CA", "Cash Ratio, Liquid Assets, Current Liabilities.",
+			   "en-GB", "Cash Ratio, Liquid Assets, Current Liabilities.",
+			   "en-NZ", "Cash Ratio, Liquid Assets, Current Liabilities.",
+			   "es-MX", "Ratio de efectivo, activos corrientes, pasivos corrientes.",
+			   "fi-FI", "Omavaraisuusaste, Rahoitusomaisuus ja Lyhytaikaiset velat.",
+			   "fr-BE", "Ratio de trésorerie, Actifs liquides, Passif à court terme.",
+			   "fr-CA", "Ratio de trésorerie, Actifs, Passif à court terme.",
+			   "fr-CH", "Ratio de trésorerie, Actifs liquides, Passif à court terme.",
+			   "is-IS", "Hlutfall reiðufjár, lausafé, skammtímaskuldir.",
+			   "it-CH", "Indice flusso di cassa, attività correnti, passività correnti.",
+			   "it-IT", "Indice flusso di cassa, attività correnti, passività correnti.",
+			   "nb-NO", "Likviditetsforhold, likvide aktiva, kortsiktig gjeld.",
+			   "nl-BE", "Cashratio, Liquide middelen, Vlottende verplichtingen.",
+			   "nl-NL", "Cashratio, Liquide middelen, Vlottende verplichtingen.",
+			   "sv-SE", "Kassakvot, Likvida tillgångar, Kortfristiga skulder.",
+			   "Cash Ratio, Liquid Assets, Current Liabilities."
+			)
+		isHidden
+		lineageTag: d9e92c09-8f51-4397-8cef-436e008d5402
+
+	measure 'Net Profit, Revenue, Cost of Goods Sold. Label' =
+			SWITCH(USERCULTURE(),
+			   "es-ES", "Beneficio neto, ingresos, coste de las mercancías vendidas.",
+			   "de-DE", "Nettogewinn, Umsätze, Lagerverbrauch.",
+			   "fr-FR", "Bénéfice net, Produits, Coût des produits vendus.",
+			   "cs-CZ", "Čistý zisk, výnosy, náklady na prodané zboží.",
+			   "da-DK", "Nettofortjeneste, Omsætning, Omkostning ved solgte varer.",
+			   "de-AT", "Nettogewinn, Umsätze, Lagerverbrauch.",
+			   "de-CH", "Nettogewinn, Umsätze, Lagerverbrauch.",
+			   "en-AU", "Net Profit, Revenue, Cost of Goods Sold.",
+			   "en-CA", "Net Profit, Revenue, Cost of Goods Sold.",
+			   "en-GB", "Net Profit, Revenue, Cost of Goods Sold.",
+			   "en-NZ", "Net Profit, Revenue, Cost of Goods Sold.",
+			   "es-MX", "Beneficio neto, ingresos, costo de mercancías vendidas.",
+			   "fi-FI", "Nettovoitto, Tuotto, Myytyjen tuotteiden kustannukset.",
+			   "fr-BE", "Bénéfice net, Produits, Coût des produits vendus.",
+			   "fr-CA", "Profit net, Revenus, Coût des produits vendus.",
+			   "fr-CH", "Bénéfice net, Produits, Coût des produits vendus.",
+			   "is-IS", "Hreinn hagnaður, tekjur, kostnaður seldra vara.",
+			   "it-CH", "Profitto netto, ricavi, COGS.",
+			   "it-IT", "Profitto netto, ricavi, COGS.",
+			   "nb-NO", "Nettofortjeneste, inntekt, solgte varers kost.",
+			   "nl-BE", "Nettowinst, Opbrengst, KPV-kosten.",
+			   "nl-NL", "Nettowinst, Opbrengst, KPV-kosten.",
+			   "sv-SE", "Nettovinst, Intäkt, Kostnad för sålda varor.",
+			   "Net Profit, Revenue, Cost of Goods Sold."
+			)
+		isHidden
+		lineageTag: d9318041-628a-49c1-b693-269c6efb7fda
+
+	measure 'Net Profit Margin, Net Profit, Revenue. Label' =
+			SWITCH(USERCULTURE(),
+			   "es-ES", "Margen de beneficio neto, beneficio neto, ingresos.",
+			   "de-DE", "Nettogewinnmarge, Nettogewinn, Umsätze.",
+			   "fr-FR", "Marge bénéficiaire nette, Bénéfice net, Produits.",
+			   "cs-CZ", "Čistá zisková marže, čistý zisk, výnosy.",
+			   "da-DK", "Nettodækningsgrad, nettofortjeneste, omsætning.",
+			   "de-AT", "Nettogewinnmarge, Nettogewinn, Umsätze.",
+			   "de-CH", "Nettogewinnmarge, Nettogewinn, Umsätze.",
+			   "en-AU", "Net Profit Margin, Net Profit, Revenue.",
+			   "en-CA", "Net Profit Margin, Net Profit, Revenue.",
+			   "en-GB", "Net Profit Margin, Net Profit, Revenue.",
+			   "en-NZ", "Net Profit Margin, Net Profit, Revenue.",
+			   "es-MX", "Margen de beneficio neto, beneficio neto, ingresos.",
+			   "fi-FI", "Nettovoittomarginaali, nettovoitto, tuotto.",
+			   "fr-BE", "Marge bénéficiaire nette, Bénéfice net, Produits.",
+			   "fr-CA", "Marge profit nette, Profit net, Revenus.",
+			   "fr-CH", "Marge bénéficiaire nette, Bénéfice net, Produits.",
+			   "is-IS", "Hagnaðarhlutfall, hreinn hagnaður, tekjur.",
+			   "it-CH", "Margine profitto netto, profitto netto, ricavi.",
+			   "it-IT", "Margine profitto netto, profitto netto, ricavi.",
+			   "nb-NO", "Netto fortjenestemargin, nettoresultat, inntekt.",
+			   "nl-BE", "Nettowinstmarge, Nettowinst, Opbrengst.",
+			   "nl-NL", "Nettowinstmarge, Nettowinst, Opbrengst.",
+			   "sv-SE", "Nettovinstmarginal, Nettovinst, Intäkt.",
+			   "Net Profit Margin, Net Profit, Revenue."
+			)
+		isHidden
+		lineageTag: 82438cb9-f942-4719-a2af-baaf8ebd799e
+
+	measure 'Gross Profit, Revenue, Cost of Goods Sold. Label' =
+			SWITCH(USERCULTURE(),
+			   "es-ES", "Beneficio bruto, ingresos, coste de las mercancías vendidas.",
+			   "de-DE", "Bruttogewinn, Umsätze, Lagerverbrauch.",
+			   "fr-FR", "Bénéfice brut, Produits, Coût des produits vendus.",
+			   "cs-CZ", "Hrubý zisk, výnosy, náklady na prodané zboží.",
+			   "da-DK", "Bruttofortjeneste, Omsætning, Omkostning ved solgte varer.",
+			   "de-AT", "Bruttogewinn, Umsätze, Lagerverbrauch.",
+			   "de-CH", "Bruttogewinn, Umsätze, Lagerverbrauch.",
+			   "en-AU", "Gross Profit, Revenue, Cost of Goods Sold.",
+			   "en-CA", "Gross Profit, Revenue, Cost of Goods Sold.",
+			   "en-GB", "Gross Profit, Revenue, Cost of Goods Sold.",
+			   "en-NZ", "Gross Profit, Revenue, Cost of Goods Sold.",
+			   "es-MX", "Beneficio bruto, ingresos, costo de mercancías vendidas.",
+			   "fi-FI", "Bruttovoitto, Tuotto, Myytyjen tuotteiden kustannukset.",
+			   "fr-BE", "Bénéfice brut, Produits, Coût des produits vendus.",
+			   "fr-CA", "Profit brut, Revenus, Coût des produits vendus.",
+			   "fr-CH", "Bénéfice brut, Produits, Coût des produits vendus.",
+			   "is-IS", "Brúttóhagnaður, tekjur, kostnaður seldra vara.",
+			   "it-CH", "Profitto lordo, ricavi, COGS.",
+			   "it-IT", "Profitto lordo, ricavi, COGS.",
+			   "nb-NO", "Bruttofortjeneste, inntekt, solgte varers kost.",
+			   "nl-BE", "Brutowinst, Opbrengst, KPV-kosten.",
+			   "nl-NL", "Brutowinst, Opbrengst, KPV-kosten.",
+			   "sv-SE", "Bruttovinst, Intäkt, Kostnad för sålda varor.",
+			   "Gross Profit, Revenue, Cost of Goods Sold."
+			)
+		isHidden
+		lineageTag: 1838cf71-4404-4a58-9d22-7f1977082e8d
+
+	measure 'Gross Profit Marging, Gross Profit, Revenue. Label' =
+			SWITCH(USERCULTURE(),
+			   "es-ES", "Margen de beneficio bruto, beneficio bruto, ingresos.",
+			   "de-DE", "Bruttogewinnmarge, Bruttogewinn, Umsätze.",
+			   "fr-FR", "Marge bénéf. brute, Marge brute, Produits.",
+			   "cs-CZ", "Hrubá zisková marže, hrubý zisk, výnosy.",
+			   "da-DK", "Bruttodækningsgrad, bruttofortjeneste, omsætning.",
+			   "de-AT", "Bruttogewinnmarge, Bruttogewinn, Umsätze.",
+			   "de-CH", "Bruttogewinnmarge, Bruttogewinn, Umsätze.",
+			   "en-AU", "Gross Profit Marging, Gross Profit, Revenue.",
+			   "en-CA", "Gross Profit Marging, Gross Profit, Revenue.",
+			   "en-GB", "Gross Profit Marging, Gross Profit, Revenue.",
+			   "en-NZ", "Gross Profit Marging, Gross Profit, Revenue.",
+			   "es-MX", "Margen de beneficio bruto, beneficio bruto, ingresos.",
+			   "fi-FI", "Bruttovoittomarginaali, bruttovoitto, tuotto.",
+			   "fr-BE", "Marge bénéf. brute, Marge brute, Produits.",
+			   "fr-CA", "Marge profit brute, Profit brut, Revenus.",
+			   "fr-CH", "Marge bénéf. brute, Marge brute, Produits.",
+			   "is-IS", "Brúttóhagnaðarhlutfall, brúttóhagnaður, tekjur.",
+			   "it-CH", "Margine profitto lordo, profitto lordo, ricavi.",
+			   "it-IT", "Margine profitto lordo, profitto lordo, ricavi.",
+			   "nb-NO", "Brutto fortjenestemargin, bruttofortjeneste, inntekt.",
+			   "nl-BE", "Brutowinstmarge, Brutowinst, Opbrengst.",
+			   "nl-NL", "Brutowinstmarge, Brutowinst, Opbrengst.",
+			   "sv-SE", "Bruttovinstmarginal, Bruttovinst, Intäkt.",
+			   "Gross Profit Marging, Gross Profit, Revenue."
+			)
+		isHidden
+		lineageTag: 894d50ac-eeea-442f-b448-e5190d64ea89
+
+	measure 'Liabilities, Current Liabilities, Payrol Liabilities, Debt Ratio, Debt/Equity Ratio, Assets, Longterm Liabilities. Label' =
+			SWITCH(USERCULTURE(),
+			   "es-ES", "Pasivos, pasivos corrientes, pasivos por nómina, proporción de deuda, proporción de deuda/patrimonio, activos, pasivos a largo plazo.",
+			   "de-DE", "Verbindlichkeiten, kurzfristige Verbindlichkeiten, Lohnverbindlichkeiten, Schuldenquote, Verschuldungsgrad, Aktiva, langfristige Verbindlichkeiten.",
+			   "fr-FR", "Passif, Passif à court terme, Passif de frais de personnel, Taux d’endettement, Ratio emprunts/capitaux propres, Actifs, Passif à long terme.",
+			   "cs-CZ", "Pasiva, krátkodobá pasiva, mzdové závazky, poměr dluhu, poměr dluhu/jmění, majetky, dlouhodobá pasiva.",
+			   "da-DK", "Passiver, Kortfristet gæld, Lønforpligtelser, Gældsgrad, Forholdet mellem gæld/egenkapital, Aktiver, Langfristet gæld.",
+			   "de-AT", "Verbindlichkeiten, kurzfristige Verbindlichkeiten, Lohnverbindlichkeiten, Schuldenquote, Verschuldungsgrad, Aktiva, langfristige Verbindlichkeiten.",
+			   "de-CH", "Verbindlichkeiten, kurzfristige Verbindlichkeiten, Lohnverbindlichkeiten, Schuldenquote, Verschuldungsgrad, Aktiva, langfristige Verbindlichkeiten.",
+			   "en-AU", "Liabilities, Current Liabilities, Payrol Liabilities, Debt Ratio, Debt/Equity Ratio, Assets, Longterm Liabilities.",
+			   "en-CA", "Liabilities, Current Liabilities, Payrol Liabilities, Debt Ratio, Debt/Equity Ratio, Assets, Longterm Liabilities.",
+			   "en-GB", "Liabilities, Current Liabilities, Payrol Liabilities, Debt Ratio, Debt/Equity Ratio, Assets, Longterm Liabilities.",
+			   "en-NZ", "Liabilities, Current Liabilities, Payrol Liabilities, Debt Ratio, Debt/Equity Ratio, Assets, Longterm Liabilities.",
+			   "es-MX", "Pasivos, pasivos corrientes, pasivos por nómina, proporción de deuda, proporción de deuda/patrimonio, activos, pasivos a largo plazo.",
+			   "fi-FI", "Vieras pääoma, Lyhytaikaiset velat, Palkan sivukulut, Velkasuhde, Velan ja oman pääoman suhde, Vastaavaa, Pitkäaikaiset velat.",
+			   "fr-BE", "Passif, Passif à court terme, Passif de frais de personnel, Taux d’endettement, Ratio emprunts/capitaux propres, Actifs, Passif à long terme.",
+			   "fr-CA", "Passif, Passif à court terme, Passif de frais de personnel, Taux d’endettement, Ratio emprunts/capitaux propres, Actifs, Passif à long terme.",
+			   "fr-CH", "Passif, Passif à court terme, Passif de frais de personnel, Taux d’endettement, Ratio emprunts/capitaux propres, Actifs, Passif à long terme.",
+			   "is-IS", "Skuldir, skammtímaskuldir, launaskuldir, skuldahlutfall, hlutfall skulda/eiginfjár, eignir, langtímaskuldir.",
+			   "it-CH", "Passività, passività correnti, passività retribuzioni, rapporto debito, rapporto debito/capitale netto, attività, passività consolidate.",
+			   "it-IT", "Passività, passività correnti, passività retribuzioni, rapporto debito, rapporto debito/capitale netto, attività, passività consolidate.",
+			   "nb-NO", "Gjeld, kortsiktig gjeld, lønnsgjeld, gjeldsgrad, gjeld/egenkapitalgrad, eiendeler, langsiktig gjeld.",
+			   "nl-BE", "Verplichtingen, Vlottende verplichtingen, Salarisverplichtingen, Ratio schuld, Ratio schuld/eigen vermogen, Activa, Langlopende schulden.",
+			   "nl-NL", "Verplichtingen, Vlottende verplichtingen, Salarisverplichtingen, Ratio schuld, Ratio schuld/eigen vermogen, Activa, Langlopende schulden.",
+			   "sv-SE", "Skulder, Kortfristiga skulder, Löneskulder, Skuldkvot, Förhållande skulder/eget kapital, Tillgångar, Långfristiga skulder.",
+			   "Liabilities, Current Liabilities, Payrol Liabilities, Debt Ratio, Debt/Equity Ratio, Assets, Longterm Liabilities."
+			)
+		isHidden
+		lineageTag: 80661ed5-d42b-4a9c-b11d-6dadde113716
+
+	measure 'Gross Profit Margin, Gross Profit, Revenue. Label' =
+			SWITCH(USERCULTURE(),
+			   "es-ES", "Margen de beneficio bruto, beneficio bruto, ingresos.",
+			   "de-DE", "Bruttogewinnmarge, Bruttogewinn, Umsätze.",
+			   "fr-FR", "Marge bénéf. brute, Marge brute, Produits.",
+			   "cs-CZ", "Hrubá zisková marže, hrubý zisk, výnosy.",
+			   "da-DK", "Bruttodækningsgrad, bruttofortjeneste, omsætning.",
+			   "de-AT", "Bruttogewinnmarge, Bruttogewinn, Umsätze.",
+			   "de-CH", "Bruttogewinnmarge, Bruttogewinn, Umsätze.",
+			   "en-AU", "Gross Profit Margin, Gross Profit, Revenue.",
+			   "en-CA", "Gross Profit Margin, Gross Profit, Revenue.",
+			   "en-GB", "Gross Profit Margin, Gross Profit, Revenue.",
+			   "en-NZ", "Gross Profit Margin, Gross Profit, Revenue.",
+			   "es-MX", "Margen de beneficio bruto, beneficio bruto, ingresos.",
+			   "fi-FI", "Bruttovoittomarginaali, bruttovoitto, tuotto.",
+			   "fr-BE", "Marge bénéf. brute, Marge brute, Produits.",
+			   "fr-CA", "Marge profit brute, Profit brut, Revenus.",
+			   "fr-CH", "Marge bénéf. brute, Marge brute, Produits.",
+			   "is-IS", "Brúttóhagnaðarhlutfall, brúttóhagnaður, tekjur.",
+			   "it-CH", "Margine profitto lordo, profitto lordo, ricavi.",
+			   "it-IT", "Margine profitto lordo, profitto lordo, ricavi.",
+			   "nb-NO", "Brutto fortjenestemargin, bruttofortjeneste, inntekt.",
+			   "nl-BE", "Brutowinstmarge, Brutowinst, Opbrengst.",
+			   "nl-NL", "Brutowinstmarge, Brutowinst, Opbrengst.",
+			   "sv-SE", "Bruttovinstmarginal, Bruttovinst, Intäkt.",
+			   "Gross Profit Margin, Gross Profit, Revenue."
+			)
+		isHidden
+		lineageTag: f39d4582-ba35-4fbc-a8f5-c45f91d24112
+
+	measure 'Net Profit Margin by Fiscal Year and Month Label' =
+			SWITCH(USERCULTURE(),
+			   "es-ES", "Margen de beneficio neto por ejercicio y mes",
+			   "de-DE", "Nettogewinnmarge nach Geschäftsjahr und Monat",
+			   "fr-FR", "Marge bénéficiaire nette par exercice et mois",
+			   "cs-CZ", "Čistá zisková marže podle fiskálního roku a měsíce",
+			   "da-DK", "Nettodækningsgrad efter regnskabsår og måned",
+			   "de-AT", "Nettogewinnmarge nach Geschäftsjahr und Monat",
+			   "de-CH", "Nettogewinnmarge nach Geschäftsjahr und Monat",
+			   "en-AU", "Net Profit Margin by Fiscal Year and Month",
+			   "en-CA", "Net Profit Margin by Fiscal Year and Month",
+			   "en-GB", "Net Profit Margin by Fiscal Year and Month",
+			   "en-NZ", "Net Profit Margin by Fiscal Year and Month",
+			   "es-MX", "Margen de beneficio neto por ejercicio y mes",
+			   "fi-FI", "Nettovoittomarginaali tilikauden ja kuukauden mukaan",
+			   "fr-BE", "Marge bénéficiaire nette par exercice et mois",
+			   "fr-CA", "Marge profit nette par exercice financier et mois",
+			   "fr-CH", "Marge bénéficiaire nette par exercice et mois",
+			   "is-IS", "Hagnaðarhlutfall eftir fjárhagsári og mánuði",
+			   "it-CH", "Margine profitto netto per mese e anno fiscale",
+			   "it-IT", "Margine profitto netto per mese e anno fiscale",
+			   "nb-NO", "Netto fortjenestemargin etter regnskapsår og måned",
+			   "nl-BE", "Nettowinstmarge per boekjaar en -maand",
+			   "nl-NL", "Nettowinstmarge per boekjaar en -maand",
+			   "sv-SE", "Nettovinstmarginal per räkenskapsår och månad",
+			   "Net Profit Margin by Fiscal Year and Month"
+			)
+		isHidden
+		lineageTag: 5ce2e7c9-aca5-4ed1-9632-408aafd6c2d6
+
+	measure 'Asset Turnover Ratio by Fiscal Year and Month Label' =
+			SWITCH(USERCULTURE(),
+			   "es-ES", "Ratio de rotación de activos por ejercicio y mes",
+			   "de-DE", "Kapitalumschlagsanteil nach Geschäftsjahr und Monat",
+			   "fr-FR", "Ratio de rotation de l’actif par exercice et mois",
+			   "cs-CZ", "Poměr obratu majetku podle fiskálního roku a měsíce",
+			   "da-DK", "Aktivers omsætningshastighedsgrad efter regnskabsår og måned",
+			   "de-AT", "Kapitalumschlagsanteil nach Geschäftsjahr und Monat",
+			   "de-CH", "Kapitalumschlagsanteil nach Geschäftsjahr und Monat",
+			   "en-AU", "Asset Turnover Ratio by Fiscal Year and Month",
+			   "en-CA", "Asset Turnover Ratio by Fiscal Year and Month",
+			   "en-GB", "Asset Turnover Ratio by Fiscal Year and Month",
+			   "en-NZ", "Asset Turnover Ratio by Fiscal Year and Month",
+			   "es-MX", "Ratio de rotación de activos por ejercicio y mes",
+			   "fi-FI", "Pääoman kiertonopeus tilikauden ja kuukauden mukaan",
+			   "fr-BE", "Ratio de rotation de l’actif par exercice et mois",
+			   "fr-CA", "Ratio de rotation de l’actif par exercice financier et mois",
+			   "fr-CH", "Ratio de rotation de l’actif par exercice et mois",
+			   "is-IS", "Veltuhlutfall eigna eftir fjárhagsári og mánuði",
+			   "it-CH", "Rapporto tra vendite e cespiti per mese e anno fiscale",
+			   "it-IT", "Rapporto tra vendite e cespiti per mese e anno fiscale",
+			   "nb-NO", "Kapitalens omløpshastighet etter regnskapsår og måned",
+			   "nl-BE", "Ratio omlooptijd activa per boekjaar en -maand",
+			   "nl-NL", "Ratio omlooptijd activa per boekjaar en -maand",
+			   "sv-SE", "Kapitalomsättningshastighet per räkenskapsår och -månad",
+			   "Asset Turnover Ratio by Fiscal Year and Month"
+			)
+		isHidden
+		lineageTag: 8cbe1b03-92ca-4a3e-b414-2aae49e2309f
+
+	measure 'Balance at Date (Neg) by Fiscal Year, Month and G/L Account No./Name Label' =
+			SWITCH(USERCULTURE(),
+			   "es-ES", "Saldo a la fecha (Neg) por ejercicio, mes y n.º/nombre de cuenta de contabilidad general",
+			   "de-DE", "Saldo bis Datum (Neg) nach Geschäftsjahr, Monat und Sachkontonr./-name",
+			   "fr-FR", "Solde à ce jour (négatif) par exercice, Mois et Nom/N° compte général",
+			   "cs-CZ", "Saldo do data (záporný) podle fiskálního roku, měsíce a čísla/názvu finančního účtu",
+			   "da-DK", "Saldo til dato (neg) efter regnskabsår, måned og finanskontonr./navn",
+			   "de-AT", "Saldo bis Datum (Neg) nach Geschäftsjahr, Monat und Sachkontonr./-name",
+			   "de-CH", "Saldo bis Datum (Neg) nach Geschäftsjahr, Monat und Fibukontonr./-name",
+			   "en-AU", "Balance at Date (Neg) by Fiscal Year, Month and G/L Account No./Name",
+			   "en-CA", "Balance at Date (Neg) by Fiscal Year, Month and G/L Account No./Name",
+			   "en-GB", "Balance at Date (Neg) by Fiscal Year, Month and G/L Account No./Name",
+			   "en-NZ", "Balance at Date (Neg) by Fiscal Year, Month and G/L Account No./Name",
+			   "es-MX", "Saldo a la fecha (Neg) por ejercicio, mes y n.º/nombre de cuenta de contabilidad general",
+			   "fi-FI", "Saldo pvm:ttäin (neg) tilikauden, kuukauden ja KP-tilin nron/nimen mukaan",
+			   "fr-BE", "Solde à ce jour (négatif) par exercice, Mois et Nom/N° compte général",
+			   "fr-CA", "Solde à ce jour (négatif) par exercice financier, Mois et Nom/N° compte du grand livre",
+			   "fr-CH", "Solde à ce jour (négatif) par exercice, Mois et Nom/N° compte général",
+			   "is-IS", "Staða til dags. (neikv.) eftir fjárhagsári, mánuði og nr./heiti fjárhagsreiknings",
+			   "it-CH", "Saldo alla data (neg) per anno fiscale, mese e nome/nr. conto C/G",
+			   "it-IT", "Saldo alla data (neg) per anno fiscale, mese e nome/nr. conto C/G",
+			   "nb-NO", "Saldo per dato (neg.) etter regnskapsår, måned og finanskontonr./navn",
+			   "nl-BE", "Saldo t/m datum (neg.) per boekjaar, -maand en Nr./naam van grootboekrekening",
+			   "nl-NL", "Saldo t/m datum (neg.) per boekjaar, -maand en Nr./naam van grootboekrekening",
+			   "sv-SE", "Saldo t.o.m. datum (neg) per räkenskapsår, Månad och Redovisningskontonr/namn",
+			   "Balance at Date (Neg) by Fiscal Year, Month and G/L Account No./Name"
+			)
+		isHidden
+		lineageTag: 1534addb-2b60-4bd5-9379-19712cc49a76
+
+	measure 'Accounts Receivable (Net Change) and Revenue by Month Label' = "Accounts Receivable (Net Change) and Revenue by Month"
+		isHidden
+		lineageTag: a2a6a88f-c9e0-4476-a6fc-99eb1e3b4fae
+
+	measure 'Late Payment Amount by Customer Label' = "Late Payment Amount by Customer"
+		isHidden
+		lineageTag: 02c666f0-4ae9-4775-92d4-647c61067818
+
+	measure 'Late Payments Over Time Label' = "Late Payments Over Time"
+		isHidden
+		lineageTag: d30c85cb-69bc-4ae1-ba3e-dd2cc9799a1b
+
+	measure 'Late Payments Analysis by Customer Label' = "Late Payments Analysis by Customer"
+		isHidden
+		lineageTag: 48bdc75f-26ed-456f-8723-927832420651
+
+	measure 'Late Payment Details Label' = "Late Payment Details"
+		isHidden
+		lineageTag: 3e303521-8a6e-4dca-9805-e49258738ccc
+
+	measure 'Late Payments (Receivables) Label' = "Late Payments (Receivables)"
+		isHidden
+		lineageTag: fe460a9e-8228-4018-9bed-da53c5dc5159
+
+	column unused
+		isHidden
+		displayFolder: unused
+		lineageTag: 84b53a14-f7f2-43ce-8f5a-b260743f096d
+		isNameInferred
+		sourceColumn: [unused]
+
+	partition Partition = calculated
+		source = DATATABLE("unused", STRING, {{"This is a table automatically generated by Translations Builder"}})
+

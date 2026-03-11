@@ -1,0 +1,159 @@
+// ------------------------------------------------------------------------------------------------
+// Copyright (c) Microsoft Corporation. All rights reserved.
+// Licensed under the MIT License. See License.txt in the project root for license information.
+// ------------------------------------------------------------------------------------------------
+
+namespace System.Agents;
+
+using System.Environment.Consumption;
+
+page 4316 "Agent List"
+{
+    PageType = List;
+    ApplicationArea = All;
+    UsageCategory = Administration;
+    SourceTable = "Agent";
+    Caption = 'Agents', Comment = 'Agents in this page should be translated as AI agents. It is listing the AI agents that users have setup to help with automating tasks.';
+    CardPageId = "Agent Card";
+    AdditionalSearchTerms = 'Agent, Agents, Copilot, Automation, AI';
+    Editable = false;
+    InsertAllowed = false;
+    DeleteAllowed = false;
+    InherentEntitlements = X;
+    InherentPermissions = X;
+
+    layout
+    {
+        area(Content)
+        {
+            repeater(Main)
+            {
+                field(UserName; Rec."User Name")
+                {
+                    Caption = 'User Name';
+                }
+                field(DisplayName; Rec."Display Name")
+                {
+                    Caption = 'Display Name';
+                }
+                field(AgentType; Rec."Agent Metadata Provider")
+                {
+                    Caption = 'Agent type';
+                }
+                field(Availability; CopilotAvailabilityTxt)
+                {
+                    Caption = 'Availability';
+                    ToolTip = 'Specifies the availability of the agent.';
+                }
+                field(State; Rec.State)
+                {
+                    Caption = 'State';
+                }
+            }
+        }
+    }
+    actions
+    {
+        area(Processing)
+        {
+            action(AgentSetup)
+            {
+                ApplicationArea = Basic, Suite;
+                Caption = 'Setup';
+                ToolTip = 'Set up the agent';
+                Image = SetupLines;
+                Enabled = Rec."Can Curr. User Configure Agent";
+
+                trigger OnAction()
+                var
+                    Agent: Codeunit Agent;
+                begin
+                    if Rec.IsEmpty() then
+                        Error(NoAgentSetupErr);
+
+                    Agent.OpenSetupPageId(Rec."Agent Metadata Provider", Rec."User Security ID");
+                    CurrPage.Update(false);
+                end;
+            }
+            action(AgentTasks)
+            {
+                ApplicationArea = All;
+                Caption = 'View tasks';
+                ToolTip = 'View agent tasks';
+                Image = Log;
+
+                trigger OnAction()
+                var
+                    AgentTask: Record "Agent Task";
+                begin
+                    if Rec.IsEmpty() then
+                        Error(NoAgentSetupErr);
+                    AgentTask.SetRange("Agent User Security ID", Rec."User Security ID");
+                    Page.Run(Page::"Agent Task List", AgentTask);
+                end;
+            }
+            action(ShowConsumptionData)
+            {
+                ApplicationArea = All;
+                Caption = 'View consumption data';
+                ToolTip = 'View AI consumption data for this agent.';
+                Image = BankAccountLedger;
+
+                trigger OnAction()
+                var
+                    UserAIConsumptionData: Record "User AI Consumption Data";
+                begin
+                    if Rec.IsEmpty() then
+                        Error(NoAgentSetupErr);
+                    UserAIConsumptionData.SetRange("User ID", Rec."User Security ID");
+                    Page.Run(Page::"Agent Consumption Overview", UserAIConsumptionData);
+                end;
+            }
+        }
+        area(Promoted)
+        {
+            group(Category_Process)
+            {
+                actionref(AgentSetup_Promoted; AgentSetup)
+                {
+                }
+                actionref(AgentTasks_Promoted; AgentTasks)
+                {
+                }
+            }
+        }
+    }
+
+    trigger OnOpenPage()
+    var
+        AgentImpl: Codeunit "Agent Impl.";
+        AgentUtilities: Codeunit "Agent Utilities";
+        AgentMetadataProvider: Enum "Agent Metadata Provider";
+    begin
+        AgentUtilities.BlockPageFromBeingOpenedByAgent();
+        // Check if there are any agents available
+        if AgentMetadataProvider.Names().Count() = 0 then
+            AgentImpl.ShowNoAgentsAvailableNotification();
+    end;
+
+    trigger OnAfterGetCurrRecord()
+    begin
+        UpdateControls();
+    end;
+
+    trigger OnAfterGetRecord()
+    begin
+        UpdateControls();
+    end;
+
+    local procedure UpdateControls()
+    var
+        AgentImpl: Codeunit "Agent Impl.";
+    begin
+        CopilotAvailabilityTxt := AgentImpl.GetCopilotAvailabilityDisplayText(Rec);
+    end;
+
+    var
+        CopilotAvailabilityTxt: Text;
+        NoAgentSetupErr: Label 'No agents have been setup. You must set up an agent first.';
+}

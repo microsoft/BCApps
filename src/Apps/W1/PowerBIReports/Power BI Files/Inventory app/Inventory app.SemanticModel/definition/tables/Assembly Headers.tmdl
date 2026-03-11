@@ -1,0 +1,186 @@
+table 'Assembly Headers'
+	lineageTag: 519ca779-e2ae-4120-b588-d3f360743dcf
+
+	/// This measure shows how many items are yet to be assembled for assembly orders by summing up the remaining quantity of items on all assembly headers.
+	measure 'Qty. on Assembly Order' = SUM('Assembly Headers'[remainingQtyBase])
+		displayFolder: _Assembly Header Measures
+		lineageTag: 7d4f1739-96b1-40d6-8753-fd6f0079157a
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	/// Specifies the earliest date when the assembled item is due to be available for use.
+	measure 'Assembly Order - Earliest Due Date' =
+			
+			MIN('Assembly Headers'[Due Date])
+		formatString: Short Date
+		displayFolder: _Assembly Header Measures
+		lineageTag: f75a585a-0d6c-4e92-ae68-0514c4e0faae
+
+	measure 'Assembly Order Quantity Link' =
+			
+			VAR Endpoint = "&page=902&"
+			VAR BaseLink = [Base Link] & Endpoint
+			// Filter Context
+			VAR Items = CONCATENATEX(VALUES('Assembly Headers'[itemNo]),'Assembly Headers'[itemNo], "|")
+			VAR DimensionSetIDs = CONCATENATEX(VALUES('Assembly Headers'[dimensionSetID]), 'Assembly Headers'[dimensionSetID], "|")
+			
+			VAR ItemFilter = "filter='Assembly Header'.'Item No.' IS '" & Items & "'"
+			VAR DimensionFilter = " AND 'Assembly Header'.'Dimension Set ID' IS '" & DimensionSetIDs & "'"
+			RETURN
+			BaseLink & ItemFilter & DimensionFilter
+		lineageTag: 3d92849b-6824-4e15-901a-75d98078471d
+
+	column itemNo
+		dataType: string
+		isHidden
+		lineageTag: 23c468f4-dafd-42d9-9eed-35e656b74a35
+		summarizeBy: none
+		sourceColumn: itemNo
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	/// This measure shows the total quantity of items that have been processed through the item ledger by summing up the quantity of items on all item ledger entries including sales, purchases, adjustments, and other types of transactions.
+	column quantity
+		dataType: double
+		isHidden
+		lineageTag: 10766295-ea87-46bf-b6c8-72f457ad4d67
+		summarizeBy: sum
+		sourceColumn: quantity
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column locationCode
+		dataType: string
+		isHidden
+		lineageTag: 6d52beac-889f-4e6d-871e-dc902b1e3c95
+		summarizeBy: none
+		sourceColumn: locationCode
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Document No.'
+		dataType: string
+		lineageTag: 6863de4f-ee6c-4186-8b44-06f83d32c322
+		summarizeBy: none
+		sourceColumn: Document No.
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column remainingQtyBase
+		dataType: double
+		isHidden
+		lineageTag: 9bafe024-7357-4093-9bb1-3ba56492ced5
+		summarizeBy: sum
+		sourceColumn: remainingQtyBase
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column 'Due Date'
+		dataType: dateTime
+		isHidden
+		formatString: Short Date
+		lineageTag: 19a1b05a-8ebc-4a92-bc4e-a136c23c2865
+		summarizeBy: none
+		sourceColumn: Due Date
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	column dimensionSetID
+		dataType: int64
+		isHidden
+		formatString: 0
+		lineageTag: 06549118-9701-4a81-a0e0-141a59768a34
+		summarizeBy: none
+		sourceColumn: dimensionSetID
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column Status
+		dataType: string
+		lineageTag: 44a63a96-a774-4f04-b8a8-b5eec560de8a
+		summarizeBy: none
+		sourceColumn: Status
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Quantity Per Unit of Measure'
+		dataType: double
+		lineageTag: 87233701-7fe1-4b19-b352-f3da2665dece
+		summarizeBy: sum
+		sourceColumn: Quantity Per Unit of Measure
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column 'Unit of Measure Code'
+		dataType: string
+		lineageTag: 90656d10-5a7f-4bdf-a9a4-9317cb66bf23
+		summarizeBy: none
+		sourceColumn: Unit of Measure Code
+
+		annotation SummarizationSetBy = Automatic
+
+	column ETag
+		dataType: string
+		isHidden
+		lineageTag: f290f9b9-5ced-4949-8bfc-622c951ac655
+		summarizeBy: none
+		sourceColumn: ETag
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	partition 'Assembly Headers' = m
+		mode: import
+		queryGroup: 'Fact Tables'
+		source =
+				let
+				    Source = Dynamics365BusinessCentral.ApiContentsWithOptions(ENVIRONMENT, COMPANY,API_ENDPOINT, []),
+				    TableData = Source{[Name="assemblyHeaders",Signature="table"]}[Data],
+				    #"Changed Type1" = Table.TransformColumnTypes(
+				        TableData,
+				        {
+				            {"documentNo", type text},
+				            {"itemNo", type text},
+				            {"quantity", type number},
+				            {"remainingQtyBase", type number},
+				            {"dueDate", type date},
+				            {"locationCode", type text},
+				            {"status", type text},
+				            {"dimensionSetID", Int64.Type},
+				            {"qtyPerUnitOfMeasure", type number},
+				            {"unitOfMeasureCode", type text}
+				        }
+				    ),
+				    #"Renamed Columns" = Table.RenameColumns(#"Changed Type1",{{"qtyPerUnitOfMeasure","Quantity Per Unit of Measure"},{"dueDate", "Due Date"}, {"documentNo", "Document No."}, {"status", "Status"},{"unitOfMeasureCode","Unit of Measure Code"}})
+				in
+				    #"Renamed Columns"
+
+	changedProperty = IsHidden
+
+	annotation PBI_ResultType = Table
+
+	annotation PBI_NavigationStepName = Navigation
+

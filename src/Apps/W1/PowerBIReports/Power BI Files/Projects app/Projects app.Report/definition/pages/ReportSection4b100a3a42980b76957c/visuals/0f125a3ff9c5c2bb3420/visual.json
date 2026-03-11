@@ -1,0 +1,56 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.4.0/schema.json",
+  "name": "0f125a3ff9c5c2bb3420",
+  "position": {
+    "x": 27.241466717362371,
+    "y": 61.2957746478873,
+    "z": 4000,
+    "height": 230.76056338028172,
+    "width": 390.68283709142406,
+    "tabOrder": 2000
+  },
+  "visualGroup": {
+    "displayName": "Project Performance to Budget Group",
+    "groupMode": "ScaleMode",
+    "objects": {
+      "background": [
+        {
+          "properties": {
+            "show": {
+              "expr": {
+                "Literal": {
+                  "Value": "false"
+                }
+              }
+            },
+            "color": {
+              "solid": {
+                "color": {
+                  "expr": {
+                    "ThemeDataColor": {
+                      "ColorId": 0,
+                      "Percent": 0
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      ],
+      "general": [
+        {
+          "properties": {
+            "altText": {
+              "expr": {
+                "Literal": {
+                  "Value": "'Actual (Total Cost), Completed Percentage, Invoiced Percentage.'"
+                }
+              }
+            }
+          }
+        }
+      ]
+    }
+  }
+}

@@ -1,0 +1,401 @@
+/// Project Ledger Entries capture Item sales related to projects.
+table 'Project Ledger Entries'
+	lineageTag: 00e15ad7-0b55-47c6-806c-20d9c1240334
+
+	measure 'Total Cost' = SUM('Project Ledger Entries'[totalCostLCY])
+		formatString: #,0.00
+		displayFolder: _Project Ledger Entry Measures
+		lineageTag: 60f4aa58-0ecb-433a-ae4a-9408a8efcb46
+
+		annotation PBI_FormatHint = {"currencyCulture":"en-AU"}
+
+	measure 'Project Ledger Item Gross Profit' = [Total Price] + [Total Cost]
+		formatString: #,0.00
+		displayFolder: _Project Ledger Entry Measures
+		lineageTag: d18777c0-a281-4f5b-a6bc-28cbe717e882
+
+		annotation PBI_FormatHint = {"currencyCulture":"en-AU"}
+
+	measure 'Project Ledger Gross Profit Margin' = DIVIDE([Project Ledger Item Gross Profit],[Total Price])
+		formatString: 0.00%;-0.00%;0.00%
+		displayFolder: _Project Ledger Entry Measures
+		lineageTag: c5b959c2-0935-4531-a622-231ce7809ab5
+
+	/// The sum of the Sales Qty. (Base) column from the Sales table where the Source Type is Value Entries Invoiced.
+	measure 'Project Ledger Item Quantity' = -sum('Project Ledger Entries'[quantityBase])
+		formatString: #,0.00
+		displayFolder: _Project Ledger Entry Measures
+		lineageTag: fc97c2ed-7c1e-4060-bb34-aec0b8310413
+
+		changedProperty = IsHidden
+
+		annotation PBI_FormatHint = {"isDecimal":true}
+
+	/// The sum of the Sales Amount column from the Sales table where the Source Type is Value Entries Invoiced.
+	measure 'Total Price' = -SUM('Project Ledger Entries'[totalPriceLCY])
+		formatString: #,0.00
+		displayFolder: _Project Ledger Entry Measures
+		lineageTag: 5471fa44-0d36-476a-a85d-fafce0f7375b
+
+		changedProperty = IsHidden
+
+		annotation PBI_FormatHint = {"currencyCulture":"en-AU"}
+
+	measure 'Sales CR/Adj Total Price' =
+			
+			CALCULATE(
+			    [Total Price],
+			    'Project Ledger Entries'[Document Type] = "Posted Sales CR/Adj Note"
+			)
+		displayFolder: _Project Ledger Entry Measures\_Sales Cr/Adj Notes
+		lineageTag: fb3af76c-2e9f-4011-b6d5-adcb08335584
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Sales Invoice Total Price' =
+			
+			CALCULATE(
+			    [Total Price],
+			    'Project Ledger Entries'[Document Type] = "Posted Sales Invoice"
+			)
+		displayFolder: _Project Ledger Entry Measures\_Sales Invoices
+		lineageTag: 9108a8b6-8f0b-4e16-a300-4078e9ce5f03
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Sales Invoice Item Quantity' =
+			
+			CALCULATE(
+			    [Project Ledger Item Quantity],
+			    'Project Ledger Entries'[Document Type] = "Posted Sales Invoice"
+			)
+		displayFolder: _Project Ledger Entry Measures\_Sales Invoices
+		lineageTag: ec4fbb07-8ac6-4154-a582-7fef8b16e256
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Sales CR/Adj Item Quantity' =
+			
+			CALCULATE(
+			    [Project Ledger Item Quantity],
+			    'Project Ledger Entries'[Document Type] = "Posted Sales CR/Adj Note"
+			)
+		displayFolder: _Project Ledger Entry Measures\_Sales Cr/Adj Notes
+		lineageTag: 4083fac6-a03c-4ca0-a08e-695efd2c7ec0
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column postingDate
+		dataType: dateTime
+		isHidden
+		formatString: Long Date
+		lineageTag: 6e6d0ab6-d341-4ccf-b686-1c4ec8e72a49
+		summarizeBy: none
+		sourceColumn: postingDate
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	column type
+		dataType: string
+		isHidden
+		lineageTag: 74deb770-0a22-4586-85b6-e955180dbbac
+		summarizeBy: none
+		sourceColumn: type
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column Description
+		dataType: string
+		lineageTag: c62da00a-34df-4b96-beea-cf36262b6cdb
+		summarizeBy: none
+		sourceColumn: Description
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Project Ledger Entry No.'
+		dataType: int64
+		formatString: 0
+		lineageTag: b5697652-67d6-4b81-a6de-ebcaa8904c66
+		summarizeBy: sum
+		sourceColumn: Project Ledger Entry No.
+
+		annotation SummarizationSetBy = Automatic
+
+	column no
+		dataType: string
+		isHidden
+		lineageTag: 76f1cc6c-580b-4946-b55e-b0ac1bbeb158
+		summarizeBy: none
+		sourceColumn: no
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Document No.'
+		dataType: string
+		isHidden
+		lineageTag: aa162854-160f-48ea-8a22-db05a258d092
+		summarizeBy: none
+		sourceColumn: Document No.
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column locationCode
+		dataType: string
+		isHidden
+		lineageTag: ae5932b5-cb0a-4f3b-8931-cdb4fedf5558
+		summarizeBy: none
+		sourceColumn: locationCode
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column quantityBase
+		dataType: double
+		isHidden
+		lineageTag: f865c61e-c157-495e-a67d-0d21d12d2795
+		summarizeBy: sum
+		sourceColumn: quantityBase
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column totalPriceLCY
+		dataType: double
+		isHidden
+		lineageTag: 42c7431a-90a5-4268-b49a-a459c1eab9b7
+		summarizeBy: sum
+		sourceColumn: totalPriceLCY
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column totalCostLCY
+		dataType: double
+		isHidden
+		lineageTag: af69d92c-5061-4ec3-a746-f90b7fc6f6bc
+		summarizeBy: sum
+		sourceColumn: totalCostLCY
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column 'Unit Cost (LCY)'
+		dataType: double
+		lineageTag: fb6787aa-6e2b-486d-9c79-6ae0b74760e3
+		summarizeBy: sum
+		sourceColumn: Unit Cost (LCY)
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column 'Reason Code'
+		dataType: string
+		lineageTag: d68212d4-3428-4831-aa3d-19e5ba042d6c
+		summarizeBy: none
+		sourceColumn: Reason Code
+
+		annotation SummarizationSetBy = Automatic
+
+	column dimensionSetID
+		dataType: int64
+		isHidden
+		formatString: 0
+		lineageTag: 2a63472a-5d6c-42c3-b03a-e4e209d4f6a8
+		summarizeBy: none
+		sourceColumn: dimensionSetID
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column projectNo
+		dataType: string
+		isHidden
+		lineageTag: c5c57bd9-1ee0-4482-a4e0-c9bd857aa182
+		summarizeBy: none
+		sourceColumn: projectNo
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column salesInvoiceDocumentNo
+		dataType: string
+		isHidden
+		lineageTag: dc95ebb4-5e2d-4e0d-8ac5-086f31ff4edd
+		summarizeBy: none
+		sourceColumn: salesInvoiceDocumentNo
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column campaignNo
+		dataType: string
+		isHidden
+		lineageTag: 90314de6-8c01-4ba7-8474-92aeccaaf41a
+		summarizeBy: none
+		sourceColumn: campaignNo
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column salespersonCode
+		dataType: string
+		isHidden
+		lineageTag: 835f5969-e6f8-4988-a747-dd07b430ea0d
+		summarizeBy: none
+		sourceColumn: salespersonCode
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column opportunityNo
+		dataType: string
+		isHidden
+		lineageTag: 0319d097-d381-46ff-8782-d09697d9c1fd
+		summarizeBy: none
+		sourceColumn: opportunityNo
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column quoteNo
+		dataType: string
+		isHidden
+		lineageTag: 36c48342-ebf1-4ea7-b766-52c5dbd29b43
+		summarizeBy: none
+		sourceColumn: quoteNo
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column ETag
+		dataType: string
+		isHidden
+		lineageTag: 494c982a-421c-41fc-b3de-5a889ec4099c
+		summarizeBy: none
+		sourceColumn: ETag
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Document Type'
+		dataType: string
+		isHidden
+		lineageTag: 74cef5b3-c7b7-4f61-965c-d9d3d6f4d458
+		summarizeBy: none
+		sourceColumn: Document Type
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Source Table'
+		dataType: string
+		isHidden
+		lineageTag: b4a3ba98-6174-4020-baf5-a616bb294861
+		summarizeBy: none
+		sourceColumn: Source Table
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Sales Key'
+		dataType: string
+		isHidden
+		lineageTag: b8486ca9-7a05-4253-8032-5ffc26709c9c
+		summarizeBy: none
+		sourceColumn: Sales Key
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column billToCustomerNo
+		dataType: string
+		isHidden
+		lineageTag: 18c0e0dc-fa2a-4242-9d0b-f57b173b7c43
+		summarizeBy: none
+		sourceColumn: billToCustomerNo
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column sellToCustomerNo
+		dataType: string
+		isHidden
+		lineageTag: 9225bc15-9f46-4a91-9ed3-30902da0e69e
+		summarizeBy: none
+		sourceColumn: sellToCustomerNo
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column salesCreditDocumentNo
+		dataType: string
+		isHidden
+		lineageTag: 865f941a-542c-4981-9f18-09c4d6c7d73c
+		summarizeBy: none
+		sourceColumn: salesCreditDocumentNo
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Type Key'
+		dataType: string
+		isHidden
+		lineageTag: 4fa6b3cb-d5cc-451d-b322-36144df2dfbf
+		summarizeBy: none
+		sourceColumn: Type Key
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	partition 'Project Ledger Entries' = m
+		mode: import
+		queryGroup: 'Fact Tables\Project Ledger Entries'
+		source =
+				let
+				    Source = Table.Combine({#"Sales Invoice Project Ledger Entries", #"Sales Credit Project Ledger Entries"}),
+				    #"Added Custom" = Table.AddColumn(Source, "Sales Key", each [Document Type] & " " & [#"Document No."] & " " & [#"Source Table"], type text),
+				    #"Renamed Columns" = Table.RenameColumns(#"Added Custom",{{"unitCostLCY", "Unit Cost (LCY)"}, {"description", "Description"}, {"entryNo", "Project Ledger Entry No."}, {"reasonCode", "Reason Code"}}),
+				    #"Added Type Key" = Table.AddColumn(#"Renamed Columns", "Type Key", each [type] & " " & [no], type text)
+				in
+				    #"Added Type Key"
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Table
+

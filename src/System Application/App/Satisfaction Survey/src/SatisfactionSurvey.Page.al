@@ -1,0 +1,67 @@
+#if not CLEAN28
+// ------------------------------------------------------------------------------------------------
+// Copyright (c) Microsoft Corporation. All rights reserved.
+// Licensed under the MIT License. See License.txt in the project root for license information.
+// ------------------------------------------------------------------------------------------------
+
+namespace System.Feedback;
+
+/// <summary>
+/// Displays the satisfaction survey dialog box.
+/// </summary>
+page 1433 "Satisfaction Survey"
+{
+    Extensible = false;
+    Caption = ' ';
+    Editable = false;
+    PageType = Card;
+    InherentEntitlements = X;
+    InherentPermissions = X;
+    ObsoleteReason = 'This module is no longer used.';
+    ObsoleteState = Pending;
+    ObsoleteTag = '28.0';
+
+
+    layout
+    {
+        area(Content)
+        {
+            usercontrol(SatisfactionSurvey; SatisfactionSurvey)
+            {
+                ApplicationArea = All;
+
+                trigger ControlAddInReady(callbackUrl: Text)
+                begin
+                    Navigate();
+                end;
+
+                trigger Callback(data: Text)
+                begin
+                    if SatisfactionSurveyImpl.IsCloseCallback(data) then
+                        CurrPage.Close();
+                end;
+
+                trigger Refresh(CallbackUrl: Text)
+                begin
+                    Navigate();
+                end;
+            }
+        }
+    }
+
+
+    var
+        SatisfactionSurveyImpl: Codeunit "Satisfaction Survey Impl.";
+
+    local procedure Navigate()
+    var
+        Url: Text;
+    begin
+        Url := SatisfactionSurveyImpl.GetRenderUrl();
+        if Url = '' then
+            exit;
+        CurrPage.SatisfactionSurvey.SubscribeToEvent('message', Url);
+        CurrPage.SatisfactionSurvey.Navigate(Url);
+    end;
+}
+#endif

@@ -1,0 +1,85 @@
+model Model
+	culture: en-US
+	defaultPowerBIDataSourceVersion: powerBI_V3
+	discourageImplicitMeasures
+	sourceQueryCulture: en-AU
+	dataAccessOptions
+		fastCombine
+		legacyRedirects
+		returnErrorValuesAsNull
+
+queryGroup 'Parameters and Functions'
+
+	annotation PBI_QueryGroupOrder = 0
+
+queryGroup 'Dimension Tables'
+
+	annotation PBI_QueryGroupOrder = 1
+
+queryGroup 'Fact Tables'
+
+	annotation PBI_QueryGroupOrder = 2
+
+queryGroup 'Parameters and Functions\Functions'
+
+	annotation PBI_QueryGroupOrder = 0
+
+queryGroup 'Date Table'
+
+	annotation PBI_QueryGroupOrder = 5
+
+annotation __PBI_TimeIntelligenceEnabled = 0
+
+annotation PBI_QueryOrder = ["Project Planning Line","Project Ledger Entry","Project","Customer","Tasks","Dimension Sets","Purchases","ENVIRONMENT","COMPANY","Dimensions","DimensionSets_DataSource","DimensionSet_Blank","Purchase Lines Outstanding","Purchase Lines Received Not Invoiced","API_ENDPOINT","Date Table Setup","Working Days","ConvertUTC","Items","G/L Accounts","Resources","Type"]
+
+annotation __TEdtr = 1
+
+annotation TranslationsBuilder = Version:2.2-Updated:2025-05-05
+
+annotation PBI_ProTooling = ["DevMode"]
+
+ref table 'Project Ledger Entry'
+ref table Project
+ref table 'Project Planning Line'
+ref table Customer
+ref table Tasks
+ref table 'Dimension Sets'
+ref table Date
+ref table Purchases
+ref table 'Localized Labels'
+ref table 'Date Table Setup'
+ref table 'Working Days'
+ref table 'Date Ref'
+ref table COMPANY
+ref table ENVIRONMENT
+ref table 'Translated Localized Labels'
+ref table Items
+ref table 'G/L Accounts'
+ref table Resources
+ref table Type
+
+ref cultureInfo en-US
+ref cultureInfo cs-CZ
+ref cultureInfo da-DK
+ref cultureInfo de-AT
+ref cultureInfo de-CH
+ref cultureInfo de-DE
+ref cultureInfo en-AU
+ref cultureInfo en-CA
+ref cultureInfo en-GB
+ref cultureInfo en-NZ
+ref cultureInfo es-ES
+ref cultureInfo es-MX
+ref cultureInfo fi-FI
+ref cultureInfo fr-BE
+ref cultureInfo fr-CA
+ref cultureInfo fr-CH
+ref cultureInfo fr-FR
+ref cultureInfo is-IS
+ref cultureInfo it-CH
+ref cultureInfo it-IT
+ref cultureInfo nb-NO
+ref cultureInfo nl-BE
+ref cultureInfo nl-NL
+ref cultureInfo sv-SE
+

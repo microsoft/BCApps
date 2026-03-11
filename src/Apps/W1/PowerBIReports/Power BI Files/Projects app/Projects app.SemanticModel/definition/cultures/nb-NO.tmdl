@@ -1,0 +1,599 @@
+cultureInfo nb-NO
+	translations
+		model Model
+			table 'Project Ledger Entry'
+				caption: Prosjektpost
+				column 'No. & Description'
+					caption: Nummer og beskrivelse
+				column 'Project No.'
+					caption: Prosjektnr.
+				column 'Task No.'
+					caption: Oppgavenr.
+				column 'Posting Date'
+					caption: Bokføringsdato
+				column 'Entry Type'
+					caption: Oppføringstype
+				column Type
+					caption: Type
+				column 'No.'
+					caption: Nr.
+				column Description
+					caption: Beskrivelse
+				column Location
+					caption: Lokasjon
+				column 'Unit of Measure Code'
+					caption: Enhetskode
+				column 'Unit Cost (LCY)'
+					caption: Enhetskost (lokal valuta)
+				column 'Unit Price (LCY)'
+					caption: Salgspris (lokal valuta)
+				measure 'Project Ledger Entry Quantity'
+					caption: Antall
+				measure 'Invoiced (Total Cost)'
+					caption: Fakturert (kostbeløp)
+				measure 'Total Price'
+					caption: Salgsbeløp
+				measure 'Actual (Total Price)'
+					caption: Faktisk (salgsbeløp)
+				measure 'Billable (Invoiced Price)'
+					caption: Fakturerbar (fakturert pris)
+				measure 'Actual (Total Cost)'
+					caption: Faktisk (totalkostnad)
+				measure 'Gen. Journal Usage (Total Cost)'
+					caption: Finanskladdbruk (totalkostnad)
+				measure 'Labour Usage (Total Cost)'
+					caption: Arbeidsbruk (totalkostnad)
+				measure 'Material Usage (Total Cost)'
+					caption: Materialbruk (totalkostnad)
+				measure 'Invoiced (Total Price)'
+					caption: Fakturert (salgsbeløp)
+			table Project
+				caption: Prosjekt
+				column 'Project No.'
+					caption: Prosjektnr.
+				column 'Project Description'
+					caption: Prosjektbeskrivelse
+				column 'Project Bill to Customer No.'
+					caption: Prosjektfaktura til-kundenr.
+				column 'Project Creation Date'
+					caption: Prosjektopprettingsdato
+				column 'Project Starting Date'
+					caption: Startdato for prosjekt
+				column 'Project Ending Date'
+					caption: Sluttdato for prosjekt
+				column 'Project Status'
+					caption: Prosjektstatus
+				column 'Project Posting Group'
+					caption: Prosjektbokføringsgruppe
+				column 'Project Blocked'
+					caption: Prosjekt sperret
+				column 'Project Project Manager'
+					caption: Prosjektleder
+				column 'Project Complete'
+					caption: Prosjekt fullført
+				column 'Project No. & Description'
+					caption: Prosjektnr. og -beskrivelse
+				measure 'Project Count'
+					caption: Antall prosjekter
+				measure 'Actual Profit'
+					caption: Faktisk fortjeneste
+				measure 'Actual Profit Margin (%)'
+					caption: Faktisk fortjenestemargin (%)
+				measure 'Project Duration (Days)'
+					caption: Varighet (dager)
+				measure 'Budget Profit'
+					caption: Budsjettbruttofortjeneste
+				measure 'Budget Profit Margin (%)'
+					caption: Budsjettfortjenestemargin (%)
+				measure 'Completed (%)'
+					caption: Fullført (%)
+				measure 'Invoiced (%)'
+					caption: Fakturert (%)
+				measure 'Tasks Count'
+					caption: Antall oppgaver
+				measure 'Realization (%)'
+					caption: Realisering (%)
+				measure 'Realization Variance'
+					caption: Realiseringsavvik
+				measure 'Base Link'
+					caption: Grunnkobling
+				measure 'Project Planning Lines Back Link'
+					caption: Tilbakekobling for prosjektplanleggingslinjer
+			table 'Project Planning Line'
+				caption: Prosjektplanleggingslinje
+				column 'Project No.'
+					caption: Prosjektnr.
+				column 'Task No.'
+					caption: Oppgavenr.
+				column 'Line No.'
+					caption: Linjenr.
+				column Type
+					caption: Type
+				column 'Line Type'
+					caption: Linjetype
+				column 'No.'
+					caption: Nr.
+				column Description
+					caption: Beskrivelse
+				column 'Unit Cost (LCY)'
+					caption: Enhetskost (lokal valuta)
+				column 'Unit Price (LCY)'
+					caption: Salgspris (lokal valuta)
+				column 'Planning Date'
+					caption: Planleggingsdato
+				measure 'Planning Line Quantity'
+					caption: Antall planleggingslinjer
+				measure 'Planning Line Total Cost (LCY)'
+					caption: Totalkostnad for planleggingslinje (lokal valuta)
+				measure 'Planning Line Total Price (LCY)'
+					caption: Totalpris for planleggingslinje (lokal valuta)
+				measure 'Budget (Total Cost)'
+					caption: Budsjett (totalkostnad)
+				measure 'Billable (Total Price)'
+					caption: Fakturerbar (salgsbeløp)
+				measure 'Total Cost Variance to Budget'
+					caption: Totalt kostnadsavvik til budsjett
+				measure 'Total Cost Variance to Budget %'
+					caption: Totalt kostnadsavvik til budsjett (%)
+				measure 'Billable (Total Cost)'
+					caption: Fakturerbar (kostbeløp)
+				measure 'Budget (Total Price)'
+					caption: Budsjett (salgsbeløp)
+			table Customer
+				caption: Kunde
+				column 'Customer No. & Name'
+					caption: Kundenr. og -navn
+				column 'Customer No.'
+					caption: Kundenr.
+				column 'Customer Name'
+					caption: Kundenavn
+				column 'Customer Address'
+					caption: Kundeadresse
+				column 'Customer Address 2'
+					caption: Kundens adresse 2
+				column 'Customer City'
+					caption: Kundens poststed
+				column 'Customer Post Code'
+					caption: Kundens postnummer
+				column 'Customer State'
+					caption: Kundens delstat
+				column 'Customer Country/Region Code'
+					caption: Kundens kode for land/område
+				column 'Customer Posting Group'
+					caption: Kundebokføringsgruppe
+				column 'Customer Price Group'
+					caption: Kundeprisgruppe
+				column 'Customer Discount Group'
+					caption: Kunderabattgruppe
+			table Tasks
+				caption: Oppgaver
+				column 'Task Project No.'
+					caption: Oppgaveprosjektnr.
+				column 'Task No.'
+					caption: Oppgavenr.
+				column 'Task Description'
+					caption: Oppgavebeskrivelse
+				column 'Task Type'
+					caption: Oppgavetype
+				column 'Task Project No. & Task No.'
+					caption: Oppgaveprosjektnr. og oppgavenr.
+				column 'Task Project Task & Description'
+					caption: Oppgaveprosjektoppgave og -beskrivelse
+				column 'Project Task Starting Date'
+					caption: Startdato for prosjektoppgave
+				column 'Project Task Ending Date'
+					caption: Sluttdato for prosjektoppgave
+			table 'Dimension Sets'
+				caption: Dimensjonssett
+				column 'Global Dimension 1'
+					caption: Global dimensjon 1
+				column 'Global Dimension 2'
+					caption: Global dimensjon 2
+				column 'Shortcut Dimension 3'
+					caption: Snarveisdimensjon 3
+				column 'Shortcut Dimension 4'
+					caption: Snarveisdimensjon 4
+				column 'Shortcut Dimension 5'
+					caption: Snarveisdimensjon 5
+				column 'Shortcut Dimension 6'
+					caption: Snarveisdimensjon 6
+				column 'Shortcut Dimension 7'
+					caption: Snarveisdimensjon 7
+				column 'Shortcut Dimension 8'
+					caption: Snarveisdimensjon 8
+				column id
+					caption: ID
+			table Date
+				caption: Dato
+				column Date
+					caption: Bokføringsdato
+				column 'Week Day'
+					caption: Ukedag
+				column 'Relative Day'
+					caption: Relativ dag
+				column 'Calendar YearNumber'
+					caption: Kalender ÅrNummer
+				column 'Calendar Year'
+					caption: Kalenderår
+				column 'Calendar QuarterNumber'
+					caption: Kalender KvartalNummer
+				column 'Calendar Quarter'
+					caption: Kalenderkvartal
+				column 'Calendar YearQuarterNumber'
+					caption: Kalender ÅrKvartalNummer
+				column 'Calendar Quarter Year'
+					caption: Kalender Kvartal År
+				column 'Calendar MonthNumber'
+					caption: Kalender MånedNummer
+				column 'Calendar Month'
+					caption: Kalendermåned
+				column 'Calendar YearMonthNumber'
+					caption: Kalender ÅrMånedNummer
+				column 'Calendar Month Year'
+					caption: Kalender Måned År
+				column 'Calendar WeekNumber'
+					caption: Kalender UkeNummer
+				column 'Calendar Week'
+					caption: Kalenderuke
+				column 'Calendar YearWeekNumber'
+					caption: Kalender ÅrUkeNummer
+				column 'Calendar Week Year'
+					caption: Kalender Uke År
+				column 'Calendar WeekYearOrder'
+					caption: Kalender UkeÅrRekkefølge
+				column 'Calendar RelativeWeekPos'
+					caption: Kalender RelativUkePos
+				column 'Calendar RelativeMonthPos'
+					caption: Kalender RelativMånedPos
+				column 'Calendar RelativeQuarterPos'
+					caption: Kalender RelativtKvartalPos
+				column 'Calendar RelativeYearPos'
+					caption: Kalender RelativtÅrPos
+				column 'Calendar StartOfMonth'
+					caption: Kalender StartPåMåned
+				column 'Calendar EndOfMonth'
+					caption: Kalender SluttPåMåned
+				column 'Calendar StartOfQuarter'
+					caption: Kalender StartPåKvartal
+				column 'Calendar EndOfQuarter'
+					caption: Kalender SluttPåKvartal
+				column 'Calendar StartOfYear'
+					caption: Kalender StartPåÅr
+				column 'Calendar EndOfYear'
+					caption: Kalender SluttPåÅr
+				column 'Calendar MonthDays'
+					caption: Kalender MånedDager
+				column 'Calendar QuarterDays'
+					caption: Kalender KvartalDager
+				column 'Calendar YearDays'
+					caption: Kalender ÅrDager
+				column 'Calendar DayOfMonthNumber'
+					caption: Kalender DagIMånedNummer
+				column 'Calendar DayOfQuarterNumber'
+					caption: Kalender DagIKvartalNummer
+				column 'Calendar DayOfYearNumber'
+					caption: Kalender DagIÅretNummer
+				column 'Calendar DatePreviousWeek'
+					caption: Kalender DatoForrigeUke
+				column 'Calendar DatePreviousMonth'
+					caption: Kalender DatoForrigeMåned
+				column 'Calendar DatePreviousQuarter'
+					caption: Kalender DatoForrigeKvartal
+				column 'Calendar DatePreviousYear'
+					caption: Kalender DatoForrigeÅr
+				column 'Fiscal Year'
+					caption: Regnskapsår
+				column 'Fiscal YearNumber'
+					caption: Regnskap ÅrNummer
+				column 'Fiscal QuarterNumber'
+					caption: Regnskap KvartalNummer
+				column 'Fiscal Quarter'
+					caption: Regnskapskvartal
+				column 'Fiscal YearQuarterNumber'
+					caption: Regnskap ÅrKvartalNummer
+				column 'Fiscal Quarter Year'
+					caption: Regnskap Kvartal År
+				column 'Fiscal MonthNumber'
+					caption: Regnskap MånedNummer
+				column 'Fiscal MonthInQuarterNumber'
+					caption: Regnskap MånedIKvartalNummer
+				column 'Fiscal Month'
+					caption: Regnskapsmåned
+				column 'Fiscal YearMonthNumber'
+					caption: Regnskap ÅrMånedNummer
+				column 'Fiscal Month Year'
+					caption: Regnskap Måned År
+				column 'Fiscal WeekNumber'
+					caption: Regnskap Ukenummer
+				column 'Fiscal Week'
+					caption: Regnskapsuke
+				column 'Fiscal YearWeekNumber'
+					caption: RegnskapsårUkenummer
+				column 'Fiscal Week Year'
+					caption: Regnskap Uke År
+				column 'Fiscal WeekYearOrder'
+					caption: Regnskap UkeÅrRekkefølge
+				column 'Fiscal RelativeWeekPos'
+					caption: Regnskap RelativUkePos
+				column 'Fiscal RelativeMonthPos'
+					caption: Regnskap RelativMånedPos
+				column 'Fiscal RelativeQuarterPos'
+					caption: Regnskap RelativtKvartalPos
+				column 'Fiscal RelativeYearPos'
+					caption: Regnskap RelativtÅrPos
+				column 'Fiscal StartOfMonth'
+					caption: Regnskap StartPåMåned
+				column 'Fiscal EndOfMonth'
+					caption: Regnskap SluttPåMåned
+				column 'Fiscal StartOfQuarter'
+					caption: Regnskap StartPåKvartal
+				column 'Fiscal EndOfQuarter'
+					caption: Regnskap SluttPåKvartal
+				column 'Fiscal StartOfYear'
+					caption: Regnskap StartPåÅr
+				column 'Fiscal EndOfYear'
+					caption: Regnskap SluttPåÅr
+				column 'Fiscal MonthDays'
+					caption: Regnskap MånedDager
+				column 'Fiscal QuarterDays'
+					caption: Regnskap KvartalDager
+				column 'Fiscal YearDays'
+					caption: Regnskap ÅrDager
+				column 'Fiscal DayOfMonthNumber'
+					caption: Regnskap DagIMånedNummer
+				column 'Fiscal DayOfQuarterNumber'
+					caption: Regnskap DagIKvartalNummer
+				column 'Fiscal DayOfYearNumber'
+					caption: Regnskap DagIÅretNummer
+				column 'Fiscal DatePreviousWeek'
+					caption: Regnskap DatoForrigeUke
+				column 'Fiscal DatePreviousMonth'
+					caption: Regnskap DatoForrigeMåned
+				column 'Fiscal DatePreviousQuarter'
+					caption: Regnskap DatoForrigeKvartal
+				column 'Fiscal DatePreviousYear'
+					caption: Regnskap DatoForrigeÅr
+				column 'FW YearNumber'
+					caption: Regnskapsuke ÅrNummer
+				column 'FW Year'
+					caption: Regnskapsuke år
+				column 'FW QuarterNumber'
+					caption: Regnskapsuke KvartalNummer
+				column 'FW Quarter'
+					caption: Regnskapsuke kvartal
+				column 'FW YearQuarterNumber'
+					caption: Regnskapsuke ÅrKvartalNummer
+				column 'FW Quarter Year'
+					caption: Regnskapsuke Kvartal År
+				column 'FW MonthNumber'
+					caption: Regnskapsuke MånedNummer
+				column 'FW Month'
+					caption: Regnskapsuke måned
+				column 'FW YearMonthNumber'
+					caption: Regnskapsuke ÅrMånedNummer
+				column 'FW Month Year'
+					caption: Regnskapsuke Måned År
+				column 'FW WeekNumber'
+					caption: Regnskapsuke UkeNummer
+				column 'FW Week'
+					caption: Regnskapsuke Uke
+				column 'FW PeriodNumber'
+					caption: Regnskapsuke PeriodeNummer
+				column 'FW Period'
+					caption: Regnskapsukeperiode
+				column 'FW YearWeekNumber'
+					caption: Regnskapsuke ÅrUkeNummer
+				column 'FW Week Year'
+					caption: Regnskapsuke Uke År
+				column 'FW StartOfWeek'
+					caption: Regnskapsuke StartPåUke
+				column 'FW EndOfWeek'
+					caption: Regnskapsuke SluttPåUke
+				column 'FW RelativeWeekPos'
+					caption: Regnskapsuke RelativUkePos
+				column 'FW RelativeMonthPos'
+					caption: Regnskapsuke RelativMånedPos
+				column 'FW RelativeQuarterPos'
+					caption: Regnskapsuke RelativtKvartalPos
+				column 'FW RelativeYearPos'
+					caption: Regnskapsuke RelativtÅrPos
+				column 'FW StartOfMonth'
+					caption: Regnskapsuke StartPåMåned
+				column 'FW EndOfMonth'
+					caption: Regnskapsuke SluttPåMåned
+				column 'FW StartOfQuarter'
+					caption: Regnskapsuke StartPåKvartal
+				column 'FW EndOfQuarter'
+					caption: Regnskapsuke SluttPåKvartal
+				column 'FW StartOfYear'
+					caption: Regnskapsuke StartPåÅr
+				column 'FW EndOfYear'
+					caption: Regnskapsuke SluttPåÅr
+				column 'FW MonthDays'
+					caption: Regnskapsuke MånedDager
+				column 'FW QuarterDays'
+					caption: Regnskapsuke KvartalDager
+				column 'FW YearDays'
+					caption: Regnskapsuke ÅrDager
+				column 'FW DayOfMonthNumber'
+					caption: Regnskapsuke DagIMånedNummer
+				column 'FW DayOfQuarterNumber'
+					caption: Regnskapsuke DagIKvartalNummer
+				column 'FW DayOfYearNumber'
+					caption: Regnskapsuke DagIÅretNummer
+				column 'FW DatePreviousWeek'
+					caption: Regnskapsuke DatoForrigeUke
+				column 'FW DatePreviousMonth'
+					caption: Regnskapsuke DatoForrigeMåned
+				column 'FW DatePreviousQuarter'
+					caption: Regnskapsuke DatoForrigeKvartal
+				column 'FW DatePreviousYear'
+					caption: Regnskapsuke DatoForrigeÅr
+				column 'Day Type'
+					caption: Type dag
+			table Purchases
+				caption: Kjøp
+				column 'Quantity (Base)'
+					caption: Antall (lagerenheter)
+				column 'Amount (LCY)'
+					caption: Beløp (lokal valuta)
+				column 'Expected Receipt Date'
+					caption: Forventet mottaksdato
+				column 'Source Type'
+					caption: Kildetype
+				column 'Document Type'
+					caption: Dokumenttype
+				column 'Line No.'
+					caption: Linjenr.
+				column 'Document No.'
+					caption: Dokumentnr.
+				column 'No.'
+					caption: Nr.
+				column Type
+					caption: Type
+				column Description
+					caption: Beskrivelse
+				column 'Project No'
+					caption: Prosjektnr.
+				column 'Task No'
+					caption: Oppgavenr.
+				column 'Project No Task No'
+					caption: Prosjektoppgavenr. Oppgavenr.
+				measure 'Quantity on PO'
+					caption: Antall i bestilling
+				measure 'Amount on PO'
+					caption: Beløp i bestilling
+				measure 'Amount Rcvd. Not Invoiced'
+					caption: Beløp mottatt, ikke fakturert
+				measure 'Outstanding Amt. on PO'
+					caption: Utestående beløp i bestilling
+				measure 'Purchase Order Count'
+					caption: Antall bestillinger
+			table 'Localized Labels'
+				measure 'My Report Title'
+					caption: Min rapporttittel
+				measure 'My Button Caption'
+					caption: Min knappetittel
+				measure 'My Visual Title'
+					caption: Min visuelle tittel
+				measure 'Projects Overview'
+					caption: Oversikt over prosjekter
+				measure 'Project Tasks'
+					caption: Prosjektoppgaver
+				measure 'Project Profitability'
+					caption: Prosjektlønnsomhet
+				measure 'Project Realization'
+					caption: Prosjektrealisering
+				measure 'Project Performance to Budget'
+					caption: Prosjektresultater til budsjett
+				measure 'Project Invoiced Sales by Type'
+					caption: Fakturert prosjektsalg etter type
+				measure 'Project Invoiced Sales by Customer'
+					caption: Fakturert prosjektsalg etter kunde
+				measure 'Project Ledger Entry Drill Through'
+					caption: Gjennomgang av prosjektpost
+				measure 'Purchase Order Drill Through'
+					caption: Gjennomgang av bestilling
+				measure 'Project Planning Line Drill Through'
+					caption: Gjennomgang av prosjektplanleggingslinje
+				measure 'Project KPIs'
+					caption: Ytelsesindikatorer for prosjekt
+				measure 'Actual Costs (Total Cost) vs. Budget (Total Cost)'
+					caption: Faktiske kostnader (totalkostnad) kontra budsjett (totalkostnad)
+				measure 'Actual Profit by Project'
+					caption: Faktisk fortjeneste etter prosjekt
+				measure 'Projects by Project Manager'
+					caption: Prosjekter etter prosjektleder
+				measure 'Realization by Projects'
+					caption: Realisering etter prosjekter
+				measure 'Actual Profit vs. Initial Profit'
+					caption: Faktisk fortjeneste kontra opprinnelig fortjeneste
+				measure Actuals
+					caption: Faktiske verdier
+				measure Budgeted
+					caption: Budsjettert
+				measure 'Realization KPIs'
+					caption: Ytelsesindikatorer for realisering
+				measure 'Realization by Project Manager'
+					caption: Realisering etter prosjektleder
+				measure 'Actual Total Cost to Budget'
+					caption: Faktisk totalkostnad til budsjett
+				measure 'Performance KPIs'
+					caption: Ytelsesindikatorer for ytelse
+				measure 'Invoiced Sales KPIs'
+					caption: Ytelsesindikatorer for fakturert salg
+				measure Projects
+					caption: Prosjekter
+				measure 'for Business Central'
+					caption: for Business Central
+				measure 'CONNECT YOUR DATA'
+					caption: KOBLE TIL DATAENE
+				measure '1. Download the Projects Connector for Power BI'
+					caption: 1. Last ned prosjektkoblingen for Power BI
+				measure '2. Configure Dynamics 365 Business Central'
+					caption: 2. Konfigurer Dynamics 365 Business Central
+				measure 'USE, EDIT AND BUILD YOUR OWN REPORTS'
+					caption: BRUK, REDIGER OG BYGG DINE EGNE RAPPORTER
+				measure 'Projects includes a variety of pre-built reports to help you see your data immediately.'
+					caption: Prosjekter inkluderer en rekke forhåndsbygde rapporter for å hjelpe deg med å se dataene umiddelbart.
+				measure 'You are able to edit these reports or build your own report from scratch'
+					caption: Du kan redigere disse rapportene eller lage din egen rapport fra bunnen av
+				measure 'HELP AND SUPPORT'
+					caption: HJELP OG KUNDESTØTTE
+				measure 'For help and support with your new report please visit the Analytics overview documentation.'
+					caption: Hvis du vil ha hjelp og støtte med den nye rapporten, kan du gå til dokumentasjonen for analyseoversikten.
+				measure 'OTHER POWER BI REPORTS'
+					caption: ANDRE POWER BI-RAPPORTER
+				measure PURCHASE
+					caption: KJØP
+				measure FINANCE
+					caption: FINANS
+				measure INVENTORY
+					caption: BEHOLDNING
+				measure SALES
+					caption: SALG
+				measure MANUFACTURING
+					caption: PRODUKSJON
+				measure 'The project tasks shows project number and description, budget (total cost), actual cost (total cost), billable (total price), billable (invoiced price), actual (total price), realization percentage, actual profit, and actual profit margin percentage.'
+					caption: Prosjektoppgavene viser prosjektnummer og -beskrivelse, budsjett (kostbeløp), faktiske kostnader (kostbeløp), fakturerbar (salgsbeløp), fakturerbar (fakturert pris), faktisk (salgsbeløp), realiseringsprosent, faktisk fortjeneste og faktisk fortjenestemarginprosent.
+				measure 'The project profitability shows project number, type, number and description, actual (total cost), billable (invoiced price), actual profit margin percentage, and actual profit.'
+					caption: Prosjektets lønnsomhet viser prosjektnummer, type, nummer og beskrivelse, faktisk (kostbeløp), fakturerbar (fakturert pris), faktisk fortjenestemarginprosent og faktisk fortjeneste.
+				measure 'The project realization shows project number, type, number and description, billable (invoiced price), actual (total price), and realization percentage.'
+					caption: Prosjektrealiseringen viser prosjektnummer, type, nummer og beskrivelse, faktisk (kostbeløp), fakturerbar (fakturert pris), faktisk (totalpris) og realiseringsprosent.
+				measure 'The project performance to budget shows project number and description, status, budget (total cost), actual (total cost), total cost variance to budget, and total cost variance to budget percentage.'
+					caption: Prosjektresultater til budsjett viser prosjektnummer og -beskrivelse, status, budsjett (kostbeløp), faktisk (kostbeløp), totale kostnadsavvik fra budsjett og totale kostnadsavvik i budsjettprosent.
+				measure 'The project invoiced sales by type shows type, number and description, project number, unit of measure, quantity, unit price (local currency), and billable (invoiced price).'
+					caption: Prosjekt fakturert salg etter type viser type, nummer og beskrivelse, prosjektnummer, enhet, antall, enhetspris (lokal valuta) og fakturerbar (fakturert pris).
+				measure 'The project invoiced sales by customer shows customer number and name, project number, type, number and description, quantity, unit price (local currency), and billable (invoiced price).'
+					caption: Prosjektet fakturert salg etter kunde viser kundenummer og navn, prosjektnummer, type, nummer og beskrivelse, antall, enhetspris (lokal valuta) og fakturerbar (fakturert pris).
+				measure 'The project ledger entry drill through shows posting date, project number, task number, task entry type, type, number, description, unit of measure, quantity, unit cost, unit price, total cost, and total price.'
+					caption: Gjennomgang av prosjektposten viser bokføringsdato, prosjektnummer, oppgavenummer, oppgaveoppføringstype, type, nummer, beskrivelse, enhet, antall, enhetskost, enhetspris, totalkostnad og totalpris.
+				measure 'The project order drill through shows project number, task number, source type,entry type, type, number, description, document number, quantity (base), amount (local currency), expected receipt date, outstanding amount on purchase order, amount received not invoiced, and document type.'
+					caption: Gjennomgangen av prosjektordren viser prosjektnummer, oppgavenummer, kildetype, posttype, type, nummer, beskrivelse, dokumentnummer, antall (lagerenhet), beløp (lokal valuta), forventet mottaksdato, utestående beløp på bestilling, mottatt, ikke fakturert beløp og dokumenttype.
+				measure 'The project planning drill through shows project number, task number, line number, type, number, description, line type, planning line quantity, unit cost, unit price, planning line total cost, and planning line total price.'
+					caption: Gjennomgang av prosjektplanlegging viser prosjektnummer, oppgavenummer, linjenummer, type, nummer, beskrivelse, linjetype, planleggingslinjeantall, enhetskost, enhetspris, totalkostnad for planleggingslinje og totalpris for planleggingslinje.
+				measure 'Company Name'
+					caption: Selskapsnavn
+				measure 'Last Refreshed'
+					caption: Sist oppdatert
+				measure 'Actual Profit Margin % vs Budget Profit Margin %'
+					caption: Faktisk fortjenestemarginsprosent kontra prosent for budsjettfortjenestemargin
+				measure 'Billable (Invoiced Price) and Actual (Total Price) by Project No. & Description'
+					caption: Fakturerbar (fakturert pris) og faktisk (salgsbeløp) etter prosjektnr. og beskrivelse
+				measure 'Billable (Invoiced Price) by Type'
+					caption: Fakturerbar (fakturert pris) etter type
+				measure 'Profit Margin vs Budget Profit Margin'
+					caption: Fortjenestemargin kontra budsjettfortjenestemargin
+				measure 'Project Tasks by Project'
+					caption: Prosjektoppgaver etter prosjekt
+				measure 'Project Timeline'
+					caption: Prosjekttidslinje
+				measure 'Project Tasks Duration'
+					caption: Varighet på prosjektoppgaver
+				measure 'Project Task Details'
+					caption: Prosjektoppgavedetaljer
+			table COMPANY
+				caption: SELSKAP
+				measure 'Company Label'
+					caption: Selskapsetikett
+

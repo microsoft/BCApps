@@ -1,0 +1,1151 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.4.0/schema.json",
+  "name": "81632f105a7b9c2c1744",
+  "position": {
+    "x": 443.10821669724993,
+    "y": 145.41023519111528,
+    "z": 0,
+    "height": 546.27088355581145,
+    "width": 809.58130944242555,
+    "tabOrder": 0
+  },
+  "visual": {
+    "visualType": "decompositionTreeVisual",
+    "query": {
+      "queryState": {
+        "Analyze": {
+          "projections": [
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Subscription Billing KPIs"
+                    }
+                  },
+                  "Property": "Mon. Recurring Revenue Downgrade & Churn"
+                }
+              },
+              "queryRef": "Subscription Billing KPIs.Mon. Recurring Revenue Downgrade & Churn",
+              "nativeQueryRef": "Mon. Recurring Revenue Downgrade & Churn"
+            }
+          ]
+        },
+        "ExplainBy": {
+          "projections": [
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Customer Contract Changes"
+                    }
+                  },
+                  "Property": "Change Type"
+                }
+              },
+              "queryRef": "Customer Contract Changes.Change Type",
+              "nativeQueryRef": "Change Type",
+              "active": true
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Customer Contract Line"
+                    }
+                  },
+                  "Property": "Billing Rhythm"
+                }
+              },
+              "queryRef": "Customer Contract Line.Billing Rhythm",
+              "nativeQueryRef": "Billing Rhythm",
+              "active": true
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Customers"
+                    }
+                  },
+                  "Property": "Customer No. & Name"
+                }
+              },
+              "queryRef": "Customers.Customer No. & Name",
+              "nativeQueryRef": "Customer No. & Name",
+              "active": true
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Customers"
+                    }
+                  },
+                  "Property": "Post Code"
+                }
+              },
+              "queryRef": "Customers.Post Code",
+              "nativeQueryRef": "Post Code",
+              "active": false
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Dimension Sets"
+                    }
+                  },
+                  "Property": "Global Dimension 1"
+                }
+              },
+              "queryRef": "Dimension Sets.Global Dimension 1",
+              "nativeQueryRef": "Global Dimension 1",
+              "active": false
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Dimension Sets"
+                    }
+                  },
+                  "Property": "Global Dimension 2"
+                }
+              },
+              "queryRef": "Dimension Sets.Global Dimension 2",
+              "nativeQueryRef": "Global Dimension 2",
+              "active": false
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Dimension Sets"
+                    }
+                  },
+                  "Property": "Shortcut Dimension 3"
+                }
+              },
+              "queryRef": "Dimension Sets.Shortcut Dimension 3",
+              "nativeQueryRef": "Shortcut Dimension 3",
+              "active": false
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Dimension Sets"
+                    }
+                  },
+                  "Property": "Shortcut Dimension 4"
+                }
+              },
+              "queryRef": "Dimension Sets.Shortcut Dimension 4",
+              "nativeQueryRef": "Shortcut Dimension 4",
+              "active": false
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Dimension Sets"
+                    }
+                  },
+                  "Property": "Shortcut Dimension 5"
+                }
+              },
+              "queryRef": "Dimension Sets.Shortcut Dimension 5",
+              "nativeQueryRef": "Shortcut Dimension 5",
+              "active": false
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Dimension Sets"
+                    }
+                  },
+                  "Property": "Shortcut Dimension 6"
+                }
+              },
+              "queryRef": "Dimension Sets.Shortcut Dimension 6",
+              "nativeQueryRef": "Shortcut Dimension 6",
+              "active": false
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Dimension Sets"
+                    }
+                  },
+                  "Property": "Shortcut Dimension 7"
+                }
+              },
+              "queryRef": "Dimension Sets.Shortcut Dimension 7",
+              "nativeQueryRef": "Shortcut Dimension 7",
+              "active": false
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Dimension Sets"
+                    }
+                  },
+                  "Property": "Shortcut Dimension 8"
+                }
+              },
+              "queryRef": "Dimension Sets.Shortcut Dimension 8",
+              "nativeQueryRef": "Shortcut Dimension 8",
+              "active": false
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Customer Contract"
+                    }
+                  },
+                  "Property": "Customer Contract Type"
+                }
+              },
+              "queryRef": "Customer Contract.Customer Contract Type",
+              "nativeQueryRef": "Customer Contract Type",
+              "active": false
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Item"
+                    }
+                  },
+                  "Property": "Item No."
+                }
+              },
+              "queryRef": "Item.Item No.",
+              "nativeQueryRef": "Item No.",
+              "active": false
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Item"
+                    }
+                  },
+                  "Property": "Item Name"
+                }
+              },
+              "queryRef": "Item.Item Name",
+              "nativeQueryRef": "Item Name",
+              "active": false
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Item"
+                    }
+                  },
+                  "Property": "Item Category Code"
+                }
+              },
+              "queryRef": "Item.Item Category Code",
+              "nativeQueryRef": "Item Category Code",
+              "active": false
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Customer Contract Line"
+                    }
+                  },
+                  "Property": "Remaining Term"
+                }
+              },
+              "queryRef": "Customer Contract Line.Remaining Term",
+              "nativeQueryRef": "Remaining Term",
+              "active": false
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Customers"
+                    }
+                  },
+                  "Property": "Country/Region Code"
+                }
+              },
+              "queryRef": "Customers.Country/Region Code",
+              "nativeQueryRef": "Country/Region Code",
+              "active": false
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Date"
+                    }
+                  },
+                  "Property": "Fiscal Month Year"
+                }
+              },
+              "queryRef": "Date.Fiscal Month Year",
+              "nativeQueryRef": "Fiscal Month Year",
+              "active": false
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Customers"
+                    }
+                  },
+                  "Property": "State"
+                }
+              },
+              "queryRef": "Customers.State",
+              "nativeQueryRef": "State",
+              "active": false
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Customer Contract"
+                    }
+                  },
+                  "Property": "Customer Contract No. Desc."
+                }
+              },
+              "queryRef": "Customer Contract.Customer Contract No. Desc.",
+              "nativeQueryRef": "Customer Contract No. Desc.",
+              "active": false
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Customer Contract Line"
+                    }
+                  },
+                  "Property": "Initial Term"
+                }
+              },
+              "queryRef": "Customer Contract Line.Initial Term",
+              "nativeQueryRef": "Initial Term",
+              "active": false
+            }
+          ]
+        }
+      }
+    },
+    "expansionStates": [
+      {
+        "roles": [
+          "ExplainBy"
+        ],
+        "levels": [
+          {
+            "queryRefs": [
+              "Customer Contract Changes.Change Type"
+            ],
+            "isCollapsed": true,
+            "identityKeys": [
+              {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Customer Contract Changes"
+                    }
+                  },
+                  "Property": "Change Type"
+                }
+              }
+            ],
+            "isPinned": true
+          },
+          {
+            "queryRefs": [
+              "Customer Contract Line.Billing Rhythm"
+            ],
+            "isCollapsed": true,
+            "identityKeys": [
+              {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Customer Contract Line"
+                    }
+                  },
+                  "Property": "Billing Rhythm"
+                }
+              }
+            ],
+            "isPinned": true
+          },
+          {
+            "queryRefs": [
+              "Customers.Customer No. & Name"
+            ],
+            "isCollapsed": true,
+            "identityKeys": [
+              {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Customers"
+                    }
+                  },
+                  "Property": "Customer No. & Name"
+                }
+              }
+            ],
+            "isPinned": true
+          },
+          {
+            "queryRefs": [
+              "Customers.Post Code"
+            ],
+            "isCollapsed": true
+          },
+          {
+            "queryRefs": [
+              "Dimension Sets.Global Dimension 1"
+            ],
+            "isCollapsed": true
+          },
+          {
+            "queryRefs": [
+              "Dimension Sets.Global Dimension 2"
+            ],
+            "isCollapsed": true
+          },
+          {
+            "queryRefs": [
+              "Dimension Sets.Shortcut Dimension 3"
+            ],
+            "isCollapsed": true
+          },
+          {
+            "queryRefs": [
+              "Dimension Sets.Shortcut Dimension 4"
+            ],
+            "isCollapsed": true
+          },
+          {
+            "queryRefs": [
+              "Dimension Sets.Shortcut Dimension 5"
+            ],
+            "isCollapsed": true
+          },
+          {
+            "queryRefs": [
+              "Dimension Sets.Shortcut Dimension 6"
+            ],
+            "isCollapsed": true
+          },
+          {
+            "queryRefs": [
+              "Dimension Sets.Shortcut Dimension 7"
+            ],
+            "isCollapsed": true
+          },
+          {
+            "queryRefs": [
+              "Dimension Sets.Shortcut Dimension 8"
+            ],
+            "isCollapsed": true
+          },
+          {
+            "queryRefs": [
+              "Customer Contract.Customer Contract Type"
+            ],
+            "isCollapsed": true
+          },
+          {
+            "queryRefs": [
+              "Item.Item No."
+            ],
+            "isCollapsed": true
+          },
+          {
+            "queryRefs": [
+              "Item.Item Name"
+            ],
+            "isCollapsed": true
+          },
+          {
+            "queryRefs": [
+              "Item.Item Category Code"
+            ],
+            "isCollapsed": true
+          },
+          {
+            "queryRefs": [
+              "Customer Contract Line.Remaining Term"
+            ],
+            "isCollapsed": true
+          },
+          {
+            "queryRefs": [
+              "Customers.Country/Region Code"
+            ],
+            "isCollapsed": true,
+            "identityKeys": [
+              {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Customers"
+                    }
+                  },
+                  "Property": "Country/Region Code"
+                }
+              }
+            ]
+          },
+          {
+            "queryRefs": [
+              "Date.Fiscal Month Year"
+            ],
+            "isCollapsed": true
+          },
+          {
+            "queryRefs": [
+              "Customers.State"
+            ],
+            "isCollapsed": true
+          },
+          {
+            "queryRefs": [
+              "Customer Contract.Customer Contract No. Desc."
+            ],
+            "isCollapsed": true,
+            "identityKeys": [
+              {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Customer Contract"
+                    }
+                  },
+                  "Property": "Customer Contract No. Desc."
+                }
+              }
+            ]
+          },
+          {
+            "queryRefs": [
+              "Customer Contract Line.Initial Term"
+            ],
+            "isCollapsed": true
+          }
+        ],
+        "root": {
+          "children": [
+            {
+              "identityValues": [
+                {
+                  "Literal": {
+                    "Value": "'Churn'"
+                  }
+                }
+              ],
+              "isToggled": true,
+              "children": [
+                {
+                  "identityValues": [
+                    {
+                      "Literal": {
+                        "Value": "'1M'"
+                      }
+                    }
+                  ],
+                  "isToggled": true
+                }
+              ]
+            }
+          ]
+        }
+      }
+    ],
+    "objects": {
+      "tree": [
+        {
+          "properties": {
+            "effectiveBarsPerLevel": {
+              "expr": {
+                "Literal": {
+                  "Value": "6L"
+                }
+              }
+            }
+          }
+        }
+      ],
+      "insights": [
+        {
+          "properties": {
+            "isAINode": {
+              "expr": {
+                "Literal": {
+                  "Value": "true"
+                }
+              }
+            }
+          },
+          "selector": {
+            "data": [
+              {
+                "scopeId": {
+                  "Comparison": {
+                    "ComparisonKind": 0,
+                    "Left": {
+                      "Column": {
+                        "Expression": {
+                          "SourceRef": {
+                            "Entity": "Customer Contract Changes"
+                          }
+                        },
+                        "Property": "Change Type"
+                      }
+                    },
+                    "Right": {
+                      "Literal": {
+                        "Value": "'Churn'"
+                      }
+                    }
+                  }
+                }
+              }
+            ]
+          }
+        }
+      ]
+    },
+    "visualContainerObjects": {
+      "background": [
+        {
+          "properties": {
+            "show": {
+              "expr": {
+                "Literal": {
+                  "Value": "true"
+                }
+              }
+            },
+            "transparency": {
+              "expr": {
+                "Literal": {
+                  "Value": "0D"
+                }
+              }
+            }
+          }
+        }
+      ],
+      "title": [
+        {
+          "properties": {
+            "text": {
+              "expr": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Translated Localized Labels"
+                    }
+                  },
+                  "Property": "Mon. Recurring Revenue Analysis Label"
+                }
+              }
+            },
+            "show": {
+              "expr": {
+                "Literal": {
+                  "Value": "false"
+                }
+              }
+            }
+          }
+        }
+      ],
+      "padding": [
+        {
+          "properties": {
+            "top": {
+              "expr": {
+                "Literal": {
+                  "Value": "16D"
+                }
+              }
+            },
+            "bottom": {
+              "expr": {
+                "Literal": {
+                  "Value": "16D"
+                }
+              }
+            },
+            "left": {
+              "expr": {
+                "Literal": {
+                  "Value": "20D"
+                }
+              }
+            },
+            "right": {
+              "expr": {
+                "Literal": {
+                  "Value": "20D"
+                }
+              }
+            }
+          }
+        }
+      ],
+      "border": [
+        {
+          "properties": {
+            "show": {
+              "expr": {
+                "Literal": {
+                  "Value": "true"
+                }
+              }
+            },
+            "color": {
+              "solid": {
+                "color": {
+                  "expr": {
+                    "ThemeDataColor": {
+                      "ColorId": 0,
+                      "Percent": -0.1
+                    }
+                  }
+                }
+              }
+            },
+            "radius": {
+              "expr": {
+                "Literal": {
+                  "Value": "4D"
+                }
+              }
+            }
+          }
+        }
+      ],
+      "dropShadow": [
+        {
+          "properties": {
+            "show": {
+              "expr": {
+                "Literal": {
+                  "Value": "true"
+                }
+              }
+            },
+            "color": {
+              "solid": {
+                "color": {
+                  "expr": {
+                    "ThemeDataColor": {
+                      "ColorId": 4,
+                      "Percent": 0.4
+                    }
+                  }
+                }
+              }
+            },
+            "preset": {
+              "expr": {
+                "Literal": {
+                  "Value": "'Bottom'"
+                }
+              }
+            }
+          }
+        }
+      ]
+    }
+  },
+  "filterConfig": {
+    "filters": [
+      {
+        "name": "48549bc0b92c9d1c05b6",
+        "ordinal": 0,
+        "field": {
+          "Column": {
+            "Expression": {
+              "SourceRef": {
+                "Entity": "Customer Contract Line"
+              }
+            },
+            "Property": "Billing Rhythm"
+          }
+        },
+        "type": "Categorical"
+      },
+      {
+        "name": "2a81f71394b15db2cba3",
+        "ordinal": 1,
+        "field": {
+          "Column": {
+            "Expression": {
+              "SourceRef": {
+                "Entity": "Customers"
+              }
+            },
+            "Property": "Country/Region Code"
+          }
+        },
+        "type": "Categorical"
+      },
+      {
+        "name": "a8bb1b6376417163c811",
+        "ordinal": 2,
+        "field": {
+          "Column": {
+            "Expression": {
+              "SourceRef": {
+                "Entity": "Customer Contract"
+              }
+            },
+            "Property": "Customer Contract No. Desc."
+          }
+        },
+        "type": "Categorical"
+      },
+      {
+        "name": "8ee05ad497612b4c0020",
+        "ordinal": 3,
+        "field": {
+          "Column": {
+            "Expression": {
+              "SourceRef": {
+                "Entity": "Customer Contract"
+              }
+            },
+            "Property": "Customer Contract Type"
+          }
+        },
+        "type": "Categorical"
+      },
+      {
+        "name": "a901805f020d76d0503b",
+        "ordinal": 4,
+        "field": {
+          "Column": {
+            "Expression": {
+              "SourceRef": {
+                "Entity": "Customer Contract Changes"
+              }
+            },
+            "Property": "Change Type"
+          }
+        },
+        "type": "Categorical"
+      },
+      {
+        "name": "b077487e04484d159992",
+        "ordinal": 5,
+        "field": {
+          "Column": {
+            "Expression": {
+              "SourceRef": {
+                "Entity": "Customers"
+              }
+            },
+            "Property": "Customer No. & Name"
+          }
+        },
+        "type": "Categorical"
+      },
+      {
+        "name": "0303f4b2b7eb015799aa",
+        "ordinal": 6,
+        "field": {
+          "Column": {
+            "Expression": {
+              "SourceRef": {
+                "Entity": "Date"
+              }
+            },
+            "Property": "Fiscal Month Year"
+          }
+        },
+        "type": "Categorical"
+      },
+      {
+        "name": "6bfa0c40c90c45819d27",
+        "ordinal": 7,
+        "field": {
+          "Column": {
+            "Expression": {
+              "SourceRef": {
+                "Entity": "Dimension Sets"
+              }
+            },
+            "Property": "Global Dimension 1"
+          }
+        },
+        "type": "Categorical"
+      },
+      {
+        "name": "523bbaa6806b621612a3",
+        "ordinal": 8,
+        "field": {
+          "Column": {
+            "Expression": {
+              "SourceRef": {
+                "Entity": "Dimension Sets"
+              }
+            },
+            "Property": "Global Dimension 2"
+          }
+        },
+        "type": "Categorical"
+      },
+      {
+        "name": "7369e3725b8a2a928133",
+        "ordinal": 9,
+        "field": {
+          "Column": {
+            "Expression": {
+              "SourceRef": {
+                "Entity": "Customer Contract Line"
+              }
+            },
+            "Property": "Initial Term"
+          }
+        },
+        "type": "Categorical"
+      },
+      {
+        "name": "4052ca1d46405d2dea1b",
+        "ordinal": 10,
+        "field": {
+          "Column": {
+            "Expression": {
+              "SourceRef": {
+                "Entity": "Item"
+              }
+            },
+            "Property": "Item Category Code"
+          }
+        },
+        "type": "Categorical"
+      },
+      {
+        "name": "31abddbf24b778241a9b",
+        "ordinal": 11,
+        "field": {
+          "Column": {
+            "Expression": {
+              "SourceRef": {
+                "Entity": "Item"
+              }
+            },
+            "Property": "Item Name"
+          }
+        },
+        "type": "Categorical"
+      },
+      {
+        "name": "483350850d87aad98a31",
+        "ordinal": 12,
+        "field": {
+          "Column": {
+            "Expression": {
+              "SourceRef": {
+                "Entity": "Item"
+              }
+            },
+            "Property": "Item No."
+          }
+        },
+        "type": "Categorical"
+      },
+      {
+        "name": "41b31fb0d2255e386694",
+        "ordinal": 13,
+        "field": {
+          "Measure": {
+            "Expression": {
+              "SourceRef": {
+                "Entity": "Subscription Billing KPIs"
+              }
+            },
+            "Property": "Mon. Recurring Revenue Churn"
+          }
+        },
+        "type": "Advanced",
+        "howCreated": "User"
+      },
+      {
+        "name": "58ae3ab08d26a901001a",
+        "ordinal": 14,
+        "field": {
+          "Column": {
+            "Expression": {
+              "SourceRef": {
+                "Entity": "Customers"
+              }
+            },
+            "Property": "Post Code"
+          }
+        },
+        "type": "Categorical"
+      },
+      {
+        "name": "2ce11c71bce790e90127",
+        "ordinal": 15,
+        "field": {
+          "Column": {
+            "Expression": {
+              "SourceRef": {
+                "Entity": "Customer Contract Line"
+              }
+            },
+            "Property": "Remaining Term"
+          }
+        },
+        "type": "Categorical"
+      },
+      {
+        "name": "6234e1c3203e4b80d7dd",
+        "ordinal": 16,
+        "field": {
+          "Column": {
+            "Expression": {
+              "SourceRef": {
+                "Entity": "Dimension Sets"
+              }
+            },
+            "Property": "Shortcut Dimension 3"
+          }
+        },
+        "type": "Categorical"
+      },
+      {
+        "name": "af0bcfd240dbad7d98e0",
+        "ordinal": 17,
+        "field": {
+          "Column": {
+            "Expression": {
+              "SourceRef": {
+                "Entity": "Dimension Sets"
+              }
+            },
+            "Property": "Shortcut Dimension 4"
+          }
+        },
+        "type": "Categorical"
+      },
+      {
+        "name": "f5ce93ea0a9e19da375c",
+        "ordinal": 18,
+        "field": {
+          "Column": {
+            "Expression": {
+              "SourceRef": {
+                "Entity": "Dimension Sets"
+              }
+            },
+            "Property": "Shortcut Dimension 5"
+          }
+        },
+        "type": "Categorical"
+      },
+      {
+        "name": "73445087b30625e12db1",
+        "ordinal": 19,
+        "field": {
+          "Column": {
+            "Expression": {
+              "SourceRef": {
+                "Entity": "Dimension Sets"
+              }
+            },
+            "Property": "Shortcut Dimension 6"
+          }
+        },
+        "type": "Categorical"
+      },
+      {
+        "name": "f8964b1ec538a6429131",
+        "ordinal": 20,
+        "field": {
+          "Column": {
+            "Expression": {
+              "SourceRef": {
+                "Entity": "Dimension Sets"
+              }
+            },
+            "Property": "Shortcut Dimension 7"
+          }
+        },
+        "type": "Categorical"
+      },
+      {
+        "name": "0036065d034020d400ae",
+        "ordinal": 21,
+        "field": {
+          "Column": {
+            "Expression": {
+              "SourceRef": {
+                "Entity": "Dimension Sets"
+              }
+            },
+            "Property": "Shortcut Dimension 8"
+          }
+        },
+        "type": "Categorical"
+      },
+      {
+        "name": "d489aefd21a88dec9d61",
+        "ordinal": 22,
+        "field": {
+          "Column": {
+            "Expression": {
+              "SourceRef": {
+                "Entity": "Customers"
+              }
+            },
+            "Property": "State"
+          }
+        },
+        "type": "Categorical"
+      }
+    ],
+    "filterSortOrder": "Custom"
+  }
+}

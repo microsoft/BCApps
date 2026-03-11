@@ -1,0 +1,409 @@
+cultureInfo fi-FI
+	translations
+		model Model
+			table Item
+				caption: Nimike
+				column 'Item No. & Description'
+					caption: Nimikkeen nro ja kuvaus
+				column 'Item No.'
+					caption: Nimikkeen numero
+				column 'Item Description'
+					caption: Nimikkeen kuvaus
+				column 'Item Base Unit of Measure'
+					caption: Nimikkeen perusmittayksikkö
+				column 'Item Unit Cost (LCY)'
+					caption: Yksikkökustannus (PVA)
+				column 'Item Inventory Posting Group'
+					caption: Nimikkeen varaston kirjausryhmä
+				column 'Item Category Code'
+					caption: Nimikeluokan koodi
+				column 'Item Category Description'
+					caption: Nimikeluokan kuvaus
+			table Location
+				caption: Sijainti
+				column 'Location Code'
+					caption: Sijaintikoodi
+				column 'Location Name'
+					caption: Sijainnin nimi
+				column 'Location Adjustment Bin Code'
+					caption: Sijainnin muutosvarastopaikkakoodi
+			table 'Value Entries'
+				caption: Arvotapahtumat
+				column 'Entry No.'
+					caption: Tapahtumanro
+				column 'Valuation Date'
+					caption: Arvostuspvm
+				column 'Item Ledger Entry Type'
+					caption: Nimiketapahtuman tyyppi
+				column 'Document Type'
+					caption: Asiakirjatyyppi
+				column Type
+					caption: Tyyppi
+				measure 'As of Beg. Date Label'
+					caption: Alkaen-päivämäärän otsikko
+				measure 'As of End Date Label'
+					caption: Päättyen-päivämäärän otsikko
+				measure 'Beginning Balance Cost Posted to G/L'
+					caption: Alkusaldon kustannus kirjattu KP:oon
+				measure 'Beginning Balance Expected Cost Posted to G/L'
+					caption: Alkusaldon oletettu kustannus kirjattu KP:oon
+				measure 'Beginning Balance Qty'
+					caption: Alkusaldon määrä
+				measure 'Beginning Balance Cost Amount (Actual)'
+					caption: Alkusaldon kustannussumma (toteuma)
+				measure 'Beginning Balance Cost Amount (Expected)'
+					caption: Alkusaldon kustannussumma (oletettu)
+				measure 'Beginning Balance Cost Amount (Incl. Exp Cost)'
+					caption: Alkusaldon kustannussumma (sis. oletetun kustannuksen)
+				measure 'Cost Amount (Actual)'
+					caption: Kustannussumma (toteuma)
+				measure 'Cost Amount (Expected)'
+					caption: Kustannussumma (oletettu)
+				measure 'Cost Posted to G/L'
+					caption: Kustannus kirjattu KP:oon
+				measure 'Expected Cost Posted to G/L'
+					caption: Olet. kust. kirjattu KP:oon
+				measure 'Decrease Qty.'
+					caption: Pienennä määrää
+				measure 'Decrease Value'
+					caption: Pienennä arvoa
+				measure 'Decrease Value (Expected)'
+					caption: Pienennä arvoa (oletettu)
+				measure 'Decrease Value Expected Cost Included'
+					caption: Sisällytetty Laske arvon odotettua kustannusta
+				measure 'Ending Balance Cost Amount (Incl. Exp Cost)'
+					caption: Loppusaldon kustannussumma (sis. oletetun kustannuksen)
+				measure 'Ending Balance Cost Posted to G/L'
+					caption: Loppusaldon kustannus kirjattu KP:oon
+				measure 'Ending Balance Qty.'
+					caption: Loppusaldon määrä
+				measure 'Ending Balance Cost Amount (Actual)'
+					caption: Loppusaldon kustannussumma (toteuma)
+				measure 'Ending Balance Cost Amount (Expected)'
+					caption: Loppusaldon kustannussumma (oletettu)
+				measure 'Ending Balance Expected Cost Posted to G/L'
+					caption: Loppusaldon oletettu kustannus kirjattu KP:oon
+				measure 'Increase Value Expected Cost Included'
+					caption: Sisällytetty Kasvata arvon odotettua kustannusta
+				measure 'Increases Qty.'
+					caption: Lisäysmäärä
+				measure 'Increases Value'
+					caption: Lisäysarvo
+				measure 'Increases Value (Expected)'
+					caption: Lisäysarvo (oletettu)
+				measure 'Invoiced Quantity'
+					caption: Laskutettu määrä
+				measure 'Cost Amount (Incl. Exp Cost)'
+					caption: Kustannussumma (sis. oletetun kustannuksen)
+				measure 'Variance Cost Posted to G/L'
+					caption: Vaihtelun kustannus kirjattu KP:oon
+				measure 'Base Link'
+					caption: Perus, linkki
+				measure 'Value Entry Back Link'
+					caption: Arvotapahtuma – Takaisin-linkki
+			table 'Dimension Sets'
+				caption: Dimensioyhdistelmät
+				column 'Global Dimension 1'
+					caption: Yleinen dimensio 1
+				column 'Global Dimension 2'
+					caption: Yleinen dimensio 2
+				column 'Shortcut Dimension 3'
+					caption: Pikadimensio 3
+				column 'Shortcut Dimension 4'
+					caption: Pikadimensio 4
+				column 'Shortcut Dimension 5'
+					caption: Pikadimensio 5
+				column 'Shortcut Dimension 6'
+					caption: Pikadimensio 6
+				column 'Shortcut Dimension 7'
+					caption: Pikadimensio 7
+				column 'Shortcut Dimension 8'
+					caption: Pikadimensio 8
+			table Date
+				caption: Pvm
+				column 'Week Day'
+					caption: Viikonpäivä
+				column 'Relative Day'
+					caption: Suhteellinen päivämäärä
+				column 'Calendar Year'
+					caption: Kalenterivuosi
+				column 'Calendar Quarter'
+					caption: Kalenterin vuosineljännes
+				column 'Calendar Quarter Year'
+					caption: Kalenteri – Vuosineljännes, vuosi
+				column 'Calendar Month'
+					caption: Kalenterikuukausi
+				column 'Calendar Month Year'
+					caption: Kalenterikuukausi, vuosi
+				column 'Calendar Week'
+					caption: Kalenteriviikko
+				column 'Calendar Week Year'
+					caption: Kalenteriviikko, vuosi
+				column 'Calendar WeekYearOrder'
+					caption: Kalenteri – ViikonVuodenJärjestys
+				column 'Calendar RelativeWeekPos'
+					caption: Kalenteri – SuhteellisenViikonOstotilaukset
+				column 'Calendar RelativeMonthPos'
+					caption: Kalenteri – SuhteellisenKuukaudenOstotilaukset
+				column 'Calendar RelativeQuarterPos'
+					caption: Kalenteri – SuhteellisenVuosineljänneksenOstotilaukset
+				column 'Calendar RelativeYearPos'
+					caption: Kalenterin suhteellisen vuoden ostotilaukset
+				column 'Calendar StartOfMonth'
+					caption: Kalenteri – KuukausiAlkaa
+				column 'Calendar EndOfMonth'
+					caption: Kalenteri – KuukausiPäättyy
+				column 'Calendar StartOfQuarter'
+					caption: Kalenteri – VuosineljännesAlkaa
+				column 'Calendar EndOfQuarter'
+					caption: Kalenteri – VuosineljännesPäättyy
+				column 'Calendar StartOfYear'
+					caption: Kalenteri – VuosiAlkaa
+				column 'Calendar EndOfYear'
+					caption: Kalenteri – VuosiPäättyy
+				column 'Calendar MonthDays'
+					caption: Kalenteri – KuukaudenPäivät
+				column 'Calendar QuarterDays'
+					caption: Kalenteri – VuosineljänneksenPäivät
+				column 'Calendar YearDays'
+					caption: Kalenteri – VuodenPäivät
+				column 'Calendar DayOfMonthNumber'
+					caption: Kalenteri – PäiväKuukaudenNumero
+				column 'Calendar DayOfQuarterNumber'
+					caption: Kalenteri – PäiväVuosineljänneksenNumero
+				column 'Calendar DayOfYearNumber'
+					caption: Kalenteri – PäiväVuodenNumero
+				column 'Calendar DatePreviousWeek'
+					caption: Kalenteri – PäivämääräEdellinenViikko
+				column 'Calendar DatePreviousMonth'
+					caption: Kalenteri – PäivämääräEdellinenKuukausi
+				column 'Calendar DatePreviousQuarter'
+					caption: Kalenteri – PäivämääräEdellinenVuosineljännes
+				column 'Calendar DatePreviousYear'
+					caption: Kalenteri – PäivämääräEdellinenVuosi
+				column 'Fiscal Year'
+					caption: Tilikausi
+				column 'Fiscal QuarterNumber'
+					caption: Kirjanpito – VuosineljänneksenNumero
+				column 'Fiscal Quarter'
+					caption: Kirjanpidon vuosineljännes
+				column 'Fiscal Quarter Year'
+					caption: Kirjanpito – Vuosineljännes, vuosi
+				column 'Fiscal MonthInQuarterNumber'
+					caption: Kirjanpito – KuukaudenNumeroVuosineljänneksessä
+				column 'Fiscal Month'
+					caption: Kirjanpitokuukausi
+				column 'Fiscal Month Year'
+					caption: Kirjanpidon kuukausi, vuosi
+				column 'Fiscal WeekNumber'
+					caption: Kirjanpito – ViikonNumero
+				column 'Fiscal Week'
+					caption: Kirjanpitoviikko
+				column 'Fiscal Week Year'
+					caption: Kirjanpitoviikko, vuosi
+				column 'Fiscal WeekYearOrder'
+					caption: Kirjanpito – ViikonVuodenJärjestys
+				column 'Fiscal RelativeWeekPos'
+					caption: Kirjanpito – SuhteellisenViikonOstotilaukset
+				column 'Fiscal RelativeMonthPos'
+					caption: Kirjanpito – SuhteellisenKuukaudenOstotilaukset
+				column 'Fiscal RelativeQuarterPos'
+					caption: Kirjanpito – SuhteellisenVuosineljänneksenOstotilaukset
+				column 'Fiscal RelativeYearPos'
+					caption: Kirjanpito – SuhteellisenVuodenOstotilaukset
+				column 'Fiscal StartOfMonth'
+					caption: Kirjanpito – KuukausiAlkaa
+				column 'Fiscal EndOfMonth'
+					caption: Kirjanpito – KuukausiPäättyy
+				column 'Fiscal StartOfQuarter'
+					caption: Kirjanpito – VuosineljännesAlkaa
+				column 'Fiscal EndOfQuarter'
+					caption: Kirjanpito – VuosineljännesPäättyy
+				column 'Fiscal StartOfYear'
+					caption: Kirjanpito – VuosiAlkaa
+				column 'Fiscal EndOfYear'
+					caption: Kirjanpito – VuosiPäättyy
+				column 'Fiscal MonthDays'
+					caption: Kirjanpito – KuukaudenPäivät
+				column 'Fiscal QuarterDays'
+					caption: Kirjanpito – VuosineljänneksenPäivät
+				column 'Fiscal YearDays'
+					caption: Kirjanpito – VuodenPäivät
+				column 'Fiscal DayOfMonthNumber'
+					caption: Kirjanpito – PäiväKuukaudenNumero
+				column 'Fiscal DayOfQuarterNumber'
+					caption: Kirjanpito – PäiväVuosineljänneksenNumero
+				column 'Fiscal DayOfYearNumber'
+					caption: Kirjanpito – PäiväVuodenNumero
+				column 'Fiscal DatePreviousWeek'
+					caption: Kirjanpito – PäivämääräEdellinenViikko
+				column 'Fiscal DatePreviousMonth'
+					caption: Kirjanpito – PäivämääräEdellinenKuukausi
+				column 'Fiscal DatePreviousQuarter'
+					caption: Kirjanpito – PäivämääräEdellinenVuosineljännes
+				column 'Fiscal DatePreviousYear'
+					caption: Kirjanpito – PäivämääräEdellinenVuosi
+				column 'FW Year'
+					caption: KV – Vuosi
+				column 'FW Quarter'
+					caption: KV – Vuosineljännes
+				column 'FW Quarter Year'
+					caption: KV – Vuosineljännes, vuosi
+				column 'FW Month'
+					caption: KV – Kuukausi
+				column 'FW Month Year'
+					caption: KV – Kuukausi, vuosi
+				column 'FW Week'
+					caption: KV – Viikko
+				column 'FW Period'
+					caption: KV – Kausi
+				column 'FW Week Year'
+					caption: KV – Viikko, vuosi
+				column 'FW StartOfWeek'
+					caption: KV – ViikkoAlkaa
+				column 'FW EndOfWeek'
+					caption: KV – ViikkoPäättyy
+				column 'FW RelativeWeekPos'
+					caption: KV – SuhteellisenViikonOstotilaukset
+				column 'FW RelativeMonthPos'
+					caption: KV – SuhteellisenKuukaudenOstotilaukset
+				column 'FW RelativeQuarterPos'
+					caption: KV – SuhteellisenVuosineljänneksenOstotilaukset
+				column 'FW RelativeYearPos'
+					caption: KV – SuhteellisenVuodenOstotilaukset
+				column 'FW StartOfMonth'
+					caption: KV – KuukausiAlkaa
+				column 'FW EndOfMonth'
+					caption: KV – KuukausiPäättyy
+				column 'FW StartOfQuarter'
+					caption: KV – VuosineljännesAlkaa
+				column 'FW EndOfQuarter'
+					caption: KV – VuosineljännesPäättyy
+				column 'FW StartOfYear'
+					caption: KV – VuosiAlkaa
+				column 'FW EndOfYear'
+					caption: KV – VuosiPäättyy
+				column 'FW MonthDays'
+					caption: KV – KuukaudenPäivät
+				column 'FW QuarterDays'
+					caption: KV – VuosineljänneksenPäivät
+				column 'FW YearDays'
+					caption: KV – VuodenPäivät
+				column 'FW DayOfMonthNumber'
+					caption: KV – PäiväKuukaudenNumero
+				column 'FW DayOfQuarterNumber'
+					caption: KV – PäiväVuosineljänneksenNumero
+				column 'FW DayOfYearNumber'
+					caption: KV – PäiväVuodenNumero
+				column 'FW DatePreviousWeek'
+					caption: KV – PäivämääräEdellinenViikko
+				column 'FW DatePreviousMonth'
+					caption: KV – PäivämääräEdellinenKuukausi
+				column 'FW DatePreviousQuarter'
+					caption: KV – PäivämääräEdellinenVuosineljännes
+				column 'FW DatePreviousYear'
+					caption: KV – PäivämääräEdellinenVuosi
+				column 'Holiday Name'
+					caption: Loman nimi
+				column IsWorkingDay
+					caption: OnArkipäivä
+				column 'Day Type'
+					caption: Päivän tyyppi
+			table 'Localized Labels'
+				measure 'My Report Title'
+					caption: Oman raportin otsikko
+				measure 'My Button Caption'
+					caption: Oma painikkeen otsikko
+				measure 'My Visual Title'
+					caption: Oma visuaalinen otsikko
+				measure 'Inventory Valuation'
+					caption: Varaston arvostus
+				measure 'for Business Central'
+					caption: Business Centralille
+				measure 'CONNECT YOUR DATA'
+					caption: YHDISTÄ TIETOSI
+				measure '1. Download the Inventory Connector for Power BI'
+					caption: 1. Lataa Inventory Connector for Power BI
+				measure '2. Configure Dynamics 365 Business Central'
+					caption: 2. Määritä Dynamics 365 Business Central
+				measure 'USE, EDIT AND BUILD YOUR OWN REPORTS'
+					caption: KÄYTÄ, MUOKKAA JA LUO OMIA RAPORTTEJA
+				measure 'Inventory Valuation includes a variety of pre-built reports to help you see your data immediately.'
+					caption: Varaston arvostus sisältää erilaisia etukäteen luotuja raportteja, joiden avulla voit tarkastella tietoja heti.
+				measure 'You are able to edit these reports or build your own report from scratch.'
+					caption: Voit muokata näitä raportteja tai luoda oman raportin alusta alkaen.
+				measure 'HELP AND SUPPORT'
+					caption: OHJE JA TUKI
+				measure 'For help and support with your new report please visit the Analytics overview documentation.'
+					caption: Lisätietoja ja tukea uudelle raportillesi löydät analytiikan yleiskuvauksesta.
+				measure 'OTHER POWER BI REPORTS'
+					caption: MUUT POWER BI -RAPORTIT
+				measure PURCHASE
+					caption: OSTO
+				measure FINANCE
+					caption: TALOUSHALLINTO
+				measure PROJECTS
+					caption: PROJEKTIT
+				measure INVENTORY
+					caption: VARASTO
+				measure SALES
+					caption: MYYNTI
+				measure 'Inventory Valuation Overview'
+					caption: Varaston arvostuksen yleiskatsaus
+				measure 'Inventory Value & Cost Posted to G/L by Month Year'
+					caption: Varaston arvo ja KP:oon kirjatut kustannukset kuukauden vuoden mukaan
+				measure 'Inventory Value by Location'
+					caption: Varaston arvo sijainneittain
+				measure 'Inventory Quantity'
+					caption: Varastomäärä
+				measure 'Inventory Valuation by Item'
+					caption: Varaston arvostus nimikkeen mukaan
+				measure 'Inventory Valuation by Location'
+					caption: Varaston arvostus sijainneittain
+				measure 'Detailed Inventory Valuation'
+					caption: Tarkka varaston arvostus
+				measure 'The inventory valuation by item shows item number, beginning balance value, increase value, decrease value, and ending balance value.'
+					caption: Varaston arvostus nimikkeen mukaan näyttää nimikenumeron, alkusaldon arvon, lisäysarvon, vähennysarvon ja loppusaldon arvon.
+				measure 'The inventory valuation by location shows location code, beginning balance value, increase value, decrease value, and ending balance value.'
+					caption: Varaston arvostus sijainneittain näyttää sijaintikoodin, alkusaldon arvon, lisäysarvon, vähennysarvon ja loppusaldon arvon.
+				measure 'The detailed inventory valuation shows date, item number and description, location code, document type, entry number, invoiced quantity, cost amount (actual), cost amount (expected), cost posted to G/L (actual), and cost posted to G/L (expected).'
+					caption: Tarkka varaston arvostus näyttää päivämäärän, nimikenumeron ja kuvauksen, sijaintikoodin, asiakirjatyypin, tapahtumanumeron, laskutetun määrän, kustannussumman (toteuma), kustannussumman (oletettu), kirjanpitoon kirjatun kustannuksen (toteuma) ja kirjanpitoon kirjatun kustannuksen (oletettu).
+				measure 'The inventory valuation by location shows location and ending balance value.'
+					caption: Varaston arvostus sijainneittain näyttää sijainnin ja loppusaldon arvon.
+				measure 'The inventory valuation by item shows item category and ending balance quantity.'
+					caption: Varaston arvostus nimikkeen mukaan näyttää nimikeluokan ja loppusaldon määrän.
+				measure 'Last Refreshed'
+					caption: Päivitetty viimeksi
+				measure 'Company Name'
+					caption: Yrityksen nimi
+				measure 'Inventory value as of '
+					caption: "Varaston arvo "
+				measure 'Ending Balance Value and Invoiced Quantity by Location Code'
+					caption: Loppusaldon arvo ja laskutettu määrä sijaintikoodin mukaan
+				measure 'Ending Balance Value, Ending Balance Posted to G/L and Variance by Month'
+					caption: Loppusaldon arvo, Kirjanpitoon kirjattu loppusaldo ja Vaihtelu kuukauden mukaan
+				measure 'Ending Balance Quantity by Item Category Code'
+					caption: Loppusaldon määrä nimikeluokan koodin mukaan
+				measure 'Ending Balance Value by Location Name'
+					caption: Loppusaldon arvo sijainnin nimen mukaan
+			table COMPANY
+				caption: YRITYS
+				measure 'Company Label'
+					caption: Yrityksen selite
+			table 'Item Category'
+				caption: Nimikeluokka
+				column 'Item Category Code'
+					caption: Nimikeluokan koodi
+				column 'Item Category Description'
+					caption: Nimikeluokan kuvaus
+				hierarchy 'Item Category Code Hierarchy'
+					caption: Nimikeluokan koodihierarkia
+					level 'Item Category Code Level 1'
+						caption: Nimikeluokan kooditaso 1
+					level 'Item Category Code Level 2'
+						caption: Nimikeluokan kooditaso 2
+					level 'Item Category Code Level 3'
+						caption: Nimikeluokan kooditaso 3
+					level 'Item Category Code'
+						caption: Nimikeluokan koodi
+

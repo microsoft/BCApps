@@ -1,0 +1,530 @@
+table Documents
+	lineageTag: 131c73ef-3cf0-45e3-a166-91abcb825a5f
+
+	measure 'Sales (LCY)' = ```
+			'Sales Value Entries'[Sales Amount Actual] + 'Sales Invoice Lines'[Sales Invoice Line Amount] + 'Sales Credit Lines'[Sales Credit Line Amount] + 'Project Ledger Entries'[Total Price]
+			
+			```
+		formatString: #,0.00
+		displayFolder: _Sales Measures
+		lineageTag: 8b56efcc-2fe9-475c-a143-7a24b31cd6ea
+
+	measure 'Base Link' =
+			
+			VAR BusinessCentral = "https://businesscentral.dynamics.com/"
+			VAR TenantID = VALUES('Date Table Setup'[tenantID])
+			VAR Environment = VALUES(ENVIRONMENT[ENVIRONMENT])
+			VAR Company = "?company=" & VALUES(COMPANY[COMPANY])
+			RETURN BusinessCentral & TenantID & "/" & Environment & "/" & Company
+		displayFolder: _Sales Measures\_Back Links
+		lineageTag: db385722-aa98-416b-bd98-d5058fe788c9
+
+	measure Ranged = ```
+			
+			VAR _FilterTable = VALUES('Date'[Date])
+			VAR IndexedDates =
+			    ADDCOLUMNS(
+			        _FilterTable,
+			        "@Index", RANKX(
+			            SUMMARIZECOLUMNS(
+			                'Date'[Date], _FilterTable
+			            ),
+			            'Date'[Date],
+			            ,
+			            ASC,
+			            DENSE
+			        )
+			    )
+			VAR PreviousIndexedDate =
+			    ADDCOLUMNS(
+			        IndexedDates,
+			        "@Previous Date",
+			            VAR PrevIndex = [@Index] - 1
+			            RETURN SELECTCOLUMNS(
+			                FILTER(IndexedDates, [@Index] = PrevIndex),
+			                [Date])
+			    )
+			 
+			VAR CalculateBreakPoint =
+			    ADDCOLUMNS(
+			        PreviousIndexedDate,
+			        "@Break Point",
+			        IF( NOT DATEDIFF([@Previous Date],'Date'[Date],DAY) = 1, TRUE(), FALSE() )
+			    )
+			VAR BreakPointTable = FILTER(CalculateBreakPoint, [@Break Point] = TRUE())
+			 
+			VAR MaxDate = CALCULATE(MAX('Date'[Date]),_FilterTable)
+			 
+			var NextIndex =
+			    ADDCOLUMNS(
+			        BreakPointTable,
+			        "@NextIndex",
+			        SELECTCOLUMNS(
+			            OFFSET( +1, BreakPointTable ),
+			            [@Index]
+			        ) - 1
+			    )
+			 
+			VAR NextDate =
+			    ADDCOLUMNS(
+			        NextIndex,
+			        "@NextDate",
+			            VAR PrevIndex = [@Index] - 1
+			            RETURN SELECTCOLUMNS(
+			                FILTER(IndexedDates, [@Index] = [@NextIndex]),
+			                [Date])
+			    )
+			 
+			VAR Ranged =
+			ADDCOLUMNS(
+			    NextDate,
+			    "@Range",
+			    IF( ISBLANK([@NextDate]),
+			    FORMAT ( 'Date'[Date], "yyyy-mm-dd" ) & ".." & FORMAT ( MaxDate ,"yyyy-mm-dd"),
+			    FORMAT ( 'Date'[Date], "yyyy-mm-dd" ) & ".." & FORMAT ( [@NextDate] ,"yyyy-mm-dd")
+			    )
+			)
+			 
+			Return CONCATENATEX(Ranged, [@Range], "|")
+			```
+		displayFolder: _Sales Measures\_Back Links
+		lineageTag: 35f93754-b5ca-41bb-abe0-481fdca42e33
+
+	measure 'Sales Back Link' = ```
+			
+			
+			// --- Sales Lines --
+			
+			    VAR SalesLineDocumentNos = 
+			        CONCATENATEX(VALUES('Sales Lines'[Document No.]), 'Sales Lines'[Document No.], "|")
+			    VAR SalesLineItems = 
+			        CONCATENATEX( VALUES('Sales Lines'[itemNo]), 'Sales Lines'[itemNo], "|")
+			
+			    // --- Document Type concatenation ---
+			    VAR DistinctSaleLineDocTypes =
+			        DISTINCT ( SELECTCOLUMNS ( 'Sales Lines', "Document Type", 'Sales Lines'[Document Type] ) )
+			
+			    VAR SalesLineDocTypesWithValues =
+			        ADDCOLUMNS (
+			            DistinctSaleLineDocTypes,
+			            "DocTypeValue",
+			            LOOKUPVALUE (
+			                'Sales Document Type'[Value],
+			                'Sales Document Type'[Caption], [Document Type]
+			            )
+			        )
+			
+			    VAR SalesLineDocumentTypes =
+			        CONCATENATEX ( SalesLineDocTypesWithValues, [DocTypeValue], "|" )
+			
+			    // --- Line Type concatenation ---
+			    VAR DistinctSalesLineTypes =
+			        DISTINCT ( SELECTCOLUMNS ( 'Sales Lines', "Line Type", 'Sales Lines'[Type] ) )
+			
+			    VAR SalesLineTypesWithValues =
+			        ADDCOLUMNS (
+			            DistinctSalesLineTypes,
+			            "LineTypeValue",
+			            LOOKUPVALUE (
+			                'Sales Line Type'[Value],
+			                'Sales Line Type'[Caption], [Line Type]
+			            )
+			        )
+			
+			    VAR SalesLineTypes =
+			        CONCATENATEX ( SalesLineTypesWithValues, [LineTypeValue], "|" )
+			
+			// --- Sales Value Entries --- 
+			    VAR SalesValueEntriesDocumentNos =
+			        CONCATENATEX(VALUES('Sales Value Entries'[Document No.]), 'Sales Value Entries'[Document No.], "|")
+			    VAR SalesValueEntriesItems = 
+			        CONCATENATEX(VALUES('Sales Value Entries'[itemNo]), 'Sales Value Entries'[itemNo], "|")
+			    
+			    // --- Sales Value Enntry Document Type concatenation ---
+			    VAR DistinctSaleValueEntryDocTypes =
+			        DISTINCT ( SELECTCOLUMNS ( 'Sales Value Entries', "Document Type", 'Sales Value Entries'[Document Type] ) )
+			
+			    VAR SalesValueEntryDocTypesWithValues =
+			        ADDCOLUMNS (
+			            DistinctSaleValueEntryDocTypes,
+			            "DocTypeValue",
+			            LOOKUPVALUE (
+			                'Item Ledger Document Type'[Value],
+			                'Item Ledger Document Type'[Caption], [Document Type]
+			            )
+			        )
+			
+			    VAR SalesValueEntryDocumentTypes =
+			        CONCATENATEX ( SalesValueEntryDocTypesWithValues, [DocTypeValue], "|" )
+			
+			// --- Sales Invoice Lines ---
+			
+			    VAR SalesInvoiceLineDocumentNos = 
+			        CONCATENATEX(VALUES('Sales Invoice Lines'[Document No.]), 'Sales Invoice Lines'[Document No.], "|")
+			    VAR SalesInvoiceLineItems = 
+			        CONCATENATEX(VALUES('Sales Invoice Lines'[No]), 'Sales Invoice Lines'[No], "|")
+			
+			    // --- Line Type concatenation ---
+			    VAR DistinctSalesInvoiceLineTypes =
+			        DISTINCT ( SELECTCOLUMNS ( 'Sales Invoice Lines', "Line Type", 'Sales Invoice Lines'[Type] ) )
+			
+			    VAR SalesInvoiceLineTypesWithValues =
+			        ADDCOLUMNS (
+			            DistinctSalesInvoiceLineTypes,
+			            "LineTypeValue",
+			            LOOKUPVALUE (
+			                'Sales Line Type'[Value],
+			                'Sales Line Type'[Caption], [Line Type]
+			            )
+			        )
+			
+			    VAR SalesInvoiceLineTypes =
+			        CONCATENATEX ( SalesInvoiceLineTypesWithValues, [LineTypeValue], "|" )
+			
+			// --- Sales Credit Lines ---
+			    VAR SalesCreditLineDocumentNos = CONCATENATEX(VALUES('Sales Credit Lines'[Document No.]), 'Sales Credit Lines'[Document No.], "|")
+			    VAR SalesCreditLineItems = CONCATENATEX(VALUES('Sales Credit Lines'[No]), 'Sales Credit Lines'[No], "|")
+			
+			    // --- Line Type concatenation ---
+			    VAR DistinctSalesCreditLineTypes =
+			        DISTINCT ( SELECTCOLUMNS ( 'Sales Credit Lines', "Line Type", 'Sales Credit Lines'[Type] ) )
+			
+			    VAR SalesCreditLineTypesWithValues =
+			        ADDCOLUMNS (
+			            DistinctSalesCreditLineTypes,
+			            "LineTypeValue",
+			            LOOKUPVALUE (
+			                'Sales Line Type'[Value],
+			                'Sales Line Type'[Caption], [Line Type]
+			            )
+			        )
+			
+			    VAR SalesCreditLineTypes =
+			        CONCATENATEX ( SalesCreditLineTypesWithValues, [LineTypeValue], "|" )
+			
+			// --- Project Lines ---
+			    VAR ProjectLedgerEntryDocumentNos = CONCATENATEX(VALUES('Project Ledger Entries'[Document No.]), 'Project Ledger Entries'[Document No.], "|")
+			    VAR ProjectLedgerEntryProjectNos = CONCATENATEX(VALUES('Project Ledger Entries'[projectNo]), 'Project Ledger Entries'[projectNo], "|")
+			    VAR ProjectLedgerEntryItems = CONCATENATEX(VALUES('Project Ledger Entries'[No]), 'Project Ledger Entries'[No], "|")
+			
+			    // --- Line Type concatenation ---
+			    VAR DistinctProjectLedgerLineTypes =
+			        DISTINCT ( SELECTCOLUMNS ( 'Project Ledger Entries', "Line Type", 'Project Ledger Entries'[Type] ) )
+			
+			    VAR ProjectLedgerTypesWithValues =
+			        ADDCOLUMNS (
+			            DistinctProjectLedgerLineTypes,
+			            "LineTypeValue",
+			            LOOKUPVALUE (
+			                'Project Journal Line Type'[Value],
+			                'Project Journal Line Type'[Caption], [Line Type]
+			            )
+			        )
+			
+			    VAR ProjectLedgerEntryTypes =
+			        CONCATENATEX ( SalesLineTypesWithValues, [LineTypeValue], "|" )
+			
+			RETURN 
+			    SWITCH(
+			        SELECTEDVALUE('Documents'[Source Table]),
+			        "Sales Line", 
+			            [Base Link] 
+			            & "&page=516&filter='Sales Line'.'Document Type' IS '" & SalesLineDocumentTypes & "'"
+			            & " AND 'Sales Line'.'Document No.' IS '" & SalesLineDocumentNos & "'"
+			            & " AND 'Sales Line'.'Dimension Set ID' IS '" & [Ranged Dimensions] & "'"
+			            & " AND 'Sales Line'.'No.' IS '" & SalesLineItems & "'"
+			            & " AND 'Sales Line'.'Type' IS '" & SalesLineTypes & "'",
+			        "Sales Value Entries",
+			            [Base Link] & "&page=5802&filter='Value Entry'.'Item Ledger Entry Type' IS 'Sale'"
+			                    & " AND 'Value Entry'.'Document Type' IS '" & SalesValueEntryDocumentTypes & "'"
+			                    & " AND 'Value Entry'.'Document No.' IS '" & SalesValueEntriesDocumentNos & "'"
+			                    & " AND 'Value Entry'.'Posting Date' IS " & [Ranged]
+			                    & " AND 'Value Entry'.'Dimension Set ID' IS '" & [Ranged Dimensions] & "'"
+			                    & " AND 'Value Entry'.'Item No.' IS '" & SalesValueEntriesItems & "'",
+			        "Sales Invoice Line", 
+			            [Base Link] 
+			            & "&page=526&filter='Sales Invoice Line'.'Document No.' IS '" & SalesInvoiceLineDocumentNos & "'"
+			            & " AND 'Sales Invoice Line'.'Dimension Set ID' IS '" & [Ranged Dimensions] & "'"
+			            & " AND 'Sales Invoice Line'.'No.' IS '" & SalesInvoiceLineItems & "'"
+			            & " AND 'Sales Invoice Line'.'Type' IS '" & SalesInvoiceLinetypes & "'",
+			        "Sales Credit Line", 
+			            [Base Link] 
+			            & "&page=527&filter='Sales Cr.Memo Line'.'Document No.' IS '" & SalesCreditLineDocumentNos & "'"
+			            & " AND 'Sales Cr.Memo Line'.'Dimension Set ID' IS '" & [Ranged Dimensions] & "'"
+			            & " AND 'Sales Cr.Memo Line'.'No.' IS '" & SalesCreditLineItems & "'"
+			            & " AND 'Sales Cr.Memo Line'.'Type' IS '" & SalesCreditLineTypes & "'",
+			        "Project Ledger Entry", 
+			            [Base Link] 
+			            & "&page=92&filter='Job Ledger Entry'.'Document No.' IS '" & ProjectLedgerEntryDocumentNos & "'"
+			            & " AND 'Job Ledger Entry'.'Job No.' IS '" & ProjectLedgerEntryProjectNos & "'"
+			            & " AND 'Job Ledger Entry'.'Dimension Set ID' IS '" & [Ranged Dimensions] & "'"
+			            & " AND 'Job Ledger Entry'.'No.' IS '" & ProjectLedgerEntryItems & "'"
+			            & " AND 'Job Ledger Entry'.'Type' IS '" & ProjectLedgerEntryTypes & "'"
+			        )
+			```
+		displayFolder: _Sales Measures\_Back Links
+		lineageTag: 20e23274-90fb-4609-b5fc-f14ed34e1499
+
+	/// The sum of the Cost Amt. (LCY) column from the Sales table.
+	measure 'Adjusted Cost (LCY)' = ```
+			[Cost Amount Actual]  + [Sales Invoice Line Cost Amount] + [Sales Credit Line Cost Amount] 
+			```
+		formatString: #,0.00
+		displayFolder: _Sales Measures
+		lineageTag: 798256c6-9885-4037-bb20-49fa204baa67
+
+		changedProperty = IsHidden
+
+		annotation PBI_FormatHint = {"currencyCulture":"en-AU"}
+
+	/// The Sales Amount minus the Cost Amount minus the Cost Amount Non-Inv.
+	measure 'Adjusted Profit (LCY)' =
+			
+			VAR ValueEntryCosts = 'Sales Value Entries'[Cost Amount Actual] + [Cost Amount Non-Inv]
+			VAR SalesInvoiceLinesCosts = 'Sales Invoice Lines'[Sales Invoice Line Cost Amount]
+			VAR SalesCreditLinesCosts = 'Sales Credit Lines'[Sales Credit Line Cost Amount]
+			VAR TotalCosts = -(ValueEntryCosts + SalesInvoiceLinesCosts + SalesCreditLinesCosts )
+			
+			VAR TotalSalesAmount = [Sales Amount Actual] + 'Sales Invoice Lines'[Sales Invoice Line Amount] + 'Sales Credit Lines'[Sales Credit Line Amount] + 'Project Ledger Entries'[Total Price]
+			RETURN TotalSalesAmount - TotalCosts
+		formatString: #,0.00
+		displayFolder: _Sales Measures
+		lineageTag: 7cfce684-9101-4af4-b590-c9b909afc160
+
+		changedProperty = IsHidden
+
+		annotation PBI_FormatHint = {"currencyCulture":"en-AU"}
+
+	/// The Gross Profit divided by the Sales Amount.
+	measure 'Adjusted Profit Margin' = ```
+			DIVIDE([Adjusted Profit (LCY)], [Sales (LCY)])
+			
+			```
+		formatString: 0.00%;-0.00%;0.00%
+		displayFolder: _Sales Measures
+		lineageTag: 51643f38-fced-4145-9f17-55402fa98ba6
+
+		changedProperty = FormatString
+
+		changedProperty = IsHidden
+
+	/// The Sales Credit Memo Amount divided by the Sales Invoice Amount.
+	measure 'Return Rate (Amount)' = -DIVIDE([Total Credit (Amount)], [Total Sales (Amount)])
+		formatString: 0.00%;-0.00%;0.00%
+		displayFolder: _Sales Measures
+		lineageTag: 91f68857-7db1-473e-a81b-5108784c64c8
+
+	/// The sum of the Sales Qty. (Base) column from the Sales table.
+	measure 'Sales Quantity' = 'Sales Value Entries'[Invoiced Quantity] + 'Project Ledger Entries'[Project Ledger Item Quantity] + 'Sales Invoice Lines'[Sales Invoice Line Quantity] + 'Sales Credit Lines'[Sales Credit Line Quantity]
+		formatString: #,0.00
+		displayFolder: _Sales Measures
+		lineageTag: 634d5fa6-ed75-4ecb-bf9a-073174bdbc73
+
+		changedProperty = IsHidden
+
+	measure ShowValueForDates =
+			
+			VAR LastDateWithData =
+			    CALCULATE (
+			        MAXX (
+			        {
+			            MAX ( 'Sales Value Entries'[postingDate] ),
+			            MAX ( 'Sales Invoice Lines'[postingDate] ),
+			            MAX ( 'Sales Credit Lines'[postingDate] ),
+			            MAX ( 'Project Ledger Entries'[postingDate] )
+			        },
+			        [Value]
+			    ),
+			        REMOVEFILTERS ()
+			    )
+			VAR FirstDateVisible =
+			    MIN ( 'Date'[Date] )
+			VAR Result =
+			    FirstDateVisible <= LastDateWithData
+			RETURN
+			    Result
+		formatString: """TRUE"";""TRUE"";""FALSE"""
+		isHidden
+		lineageTag: 4f538bd9-4ff1-4fe3-8581-834aa77406bb
+
+		changedProperty = IsHidden
+
+	measure 'Sales (LCY) (Forecasting)' =
+			
+			VAR DatesWithSales = SELECTCOLUMNS(CALCULATETABLE('Date', 'Date'[DateWithSales] = TRUE()),'Date'[Date])
+			return SUMX(DatesWithSales, IF(ISBLANK([Sales (LCY)]),0,[Sales (LCY)]))
+		displayFolder: _Sales Measures
+		lineageTag: 28f2cdc3-5bcc-4530-a9be-b94d938d1e57
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Total Credit (Amount)' = [Posted Sales CR/Adj Note Amount] + [Sales Credit Line Amount] + 'Project Ledger Entries'[Sales CR/Adj Total Price]
+		displayFolder: _Sales Measures\_Sales Credits
+		lineageTag: c03b7fcf-5d3b-4926-bbe4-dbdca02c38e9
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Total Credit (Qty.)' = [Posted Sales CR/Adj Note Quantity] + [Sales Credit Line Quantity] + 'Project Ledger Entries'[Sales CR/Adj Item Quantity]
+		displayFolder: _Sales Measures\_Sales Credits
+		lineageTag: f86df183-9960-42b0-8e1a-2f01fb6f96e6
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Total Sales (Amount)' = [Posted Sales Invoice Amount] + [Sales Invoice Line Amount] + 'Project Ledger Entries'[Sales Invoice Total Price]
+		displayFolder: _Sales Measures\_Sales Invoices
+		lineageTag: c34d627a-0944-4bc2-999a-ccceae148451
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Total Sales (Qty.)' = [Posted Sales Invoice Quantity] + [Sales Invoice Line Quantity] + 'Project Ledger Entries'[Sales Invoice Item Quantity]
+		displayFolder: _Sales Measures\_Sales Invoices
+		lineageTag: 9795c7da-d352-4b7e-a064-82e96aa25530
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Return Rate (Qty.)' = -DIVIDE([Total Credit (Qty.)], [Total Sales (Qty.)])
+		formatString: 0.00%;-0.00%;0.00%
+		displayFolder: _Sales Measures
+		lineageTag: 73ea4bd3-6a3d-4b6f-9c91-cebe01465ef9
+
+	measure 'Credit Adjusted Profit (LCY)' =
+			
+			VAR ValueEntryCosts = 'Sales Value Entries'[Posted Sales CR/Adj Note Cost Amount] + [Posted Sales CR/Adj Note Cost Amount Non-Inv]
+			VAR SalesCreditLinesCosts = 'Sales Credit Lines'[Sales Credit Line Cost Amount]
+			VAR TotalCosts = - ( ValueEntryCosts + SalesCreditLinesCosts )
+			VAR TotalSalesAmount = 'Sales Value Entries'[Posted Sales CR/Adj Note Amount] + 'Sales Credit Lines'[Sales Credit Line Amount] + 'Project Ledger Entries'[Sales CR/Adj Total Price]
+			RETURN
+			    TotalSalesAmount - TotalCosts
+		displayFolder: _Sales Measures\_Sales Credits
+		lineageTag: 53a16aaa-d352-46b8-ae63-76573bfd8bc6
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Ranged Dimensions' = ```
+			
+			VAR _FilterTable = VALUES('Dimension Sets'[dimensionSetID])
+			VAR IndexedDimSetID =
+			    ADDCOLUMNS(
+			        _FilterTable,
+			        "@Index", RANKX(
+			            SUMMARIZECOLUMNS(
+			                'Dimension Sets'[dimensionSetID], _FilterTable
+			            ),
+			            'Dimension Sets'[dimensionSetID],
+			            ,
+			            ASC,
+			            DENSE
+			        )
+			    )
+			 
+			VAR PreviousIndexedDimSetID =
+			    ADDCOLUMNS(
+			        IndexedDimSetID,
+			        "@Previous Date",
+			            VAR PrevIndex = [@Index] - 1
+			            RETURN SELECTCOLUMNS(
+			                FILTER(IndexedDimSetID, [@Index] = PrevIndex),
+			                [dimensionSetID])
+			    )
+			 
+			VAR CalculateBreakPoint =
+			    ADDCOLUMNS(
+			        PreviousIndexedDimSetID,
+			        "@Break Point",
+			        IF( NOT 'Dimension Sets'[dimensionSetID] - [@Previous Date] = 1, TRUE(), FALSE()
+			        )
+			    )
+			 
+			VAR BreakPointTable = FILTER(CalculateBreakPoint, [@Break Point] = TRUE())
+			 
+			VAR MaxDimension = CALCULATE(MAX('Dimension Sets'[dimensionSetID]),_FilterTable)
+			 
+			var NextIndex =
+			    ADDCOLUMNS(
+			        BreakPointTable,
+			        "@NextIndex",
+			        SELECTCOLUMNS(
+			            OFFSET( +1, BreakPointTable ),
+			            [@Index]
+			        ) - 1
+			    )
+			 
+			VAR NextDimension =
+			    ADDCOLUMNS(
+			        NextIndex,
+			        "@NextDimension",
+			            VAR PrevIndex = [@Index] - 1
+			            RETURN SELECTCOLUMNS(
+			                FILTER(IndexedDimSetID, [@Index] = [@NextIndex]),
+			                'Dimension Sets'[dimensionSetID])
+			    )
+			 
+			VAR Ranged =
+			ADDCOLUMNS(
+			    NextDimension,
+			    "@Range",
+			    IF( ISBLANK([@NextDimension]),
+			    'Dimension Sets'[dimensionSetID] & ".." & MaxDimension ,
+			    'Dimension Sets'[dimensionSetID] & ".." & [@NextDimension]
+			    )
+			)
+			
+			Return
+			    IF(COUNTROWS(NextDimension) = 1, MaxDimension, CONCATENATEX(Ranged, [@Range], "|"))
+			```
+		displayFolder: _Sales Measures\_Back Links
+		lineageTag: 08d97b1c-8c55-423e-b9cf-8a3328c70938
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column 'Document Type'
+		dataType: string
+		lineageTag: cfd9bb00-c1a7-4790-b998-c19e4753e15e
+		summarizeBy: none
+		sourceColumn: Document Type
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Document No.'
+		dataType: string
+		lineageTag: 6dc40170-3b50-4ec4-99d9-c867b4de589b
+		summarizeBy: none
+		sourceColumn: Document No.
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Source Table'
+		dataType: string
+		lineageTag: 1a4da57d-5cda-4f41-a9db-fefc512ffd26
+		summarizeBy: none
+		sourceColumn: Source Table
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Sales Key'
+		dataType: string
+		isHidden
+		lineageTag: 7c71e963-806c-4883-b76c-bfeaf7c05a4e
+		summarizeBy: none
+		sourceColumn: Sales Key
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	partition Documents = m
+		mode: import
+		queryGroup: 'Dimension Tables'
+		source =
+				let
+				    Source = Table.Combine({#"Sales Lines", #"Sales Value Entries", #"Sales Invoice Lines", #"Sales Credit Lines", #"Sales Invoice Project Ledger Entries", #"Project Ledger Entries"}),
+				    #"Removed Other Columns" = Table.SelectColumns(Source,{"Document Type", "Document No.", "Source Table"}),
+				    #"Added Custom" = Table.AddColumn(#"Removed Other Columns", "Sales Key", each [Document Type]& " " &[#"Document No."]& " " &[#"Source Table"], type text),
+				    #"Removed Duplicates" = Table.Distinct(#"Added Custom", {"Sales Key"})
+				in
+				    #"Removed Duplicates"
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Table
+

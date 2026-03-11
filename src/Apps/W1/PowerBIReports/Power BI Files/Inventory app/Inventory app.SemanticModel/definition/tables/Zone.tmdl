@@ -1,0 +1,79 @@
+table Zone
+	lineageTag: c0850189-da8a-451a-a81f-9601baf6f42e
+
+	column 'Zone Description'
+		dataType: string
+		lineageTag: b90e7acf-9d25-476c-9597-0aae1383f015
+		summarizeBy: none
+		sourceColumn: Zone Description
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Zone Bin Type Code'
+		dataType: string
+		lineageTag: 5da3b3b3-216f-4cfe-9780-c974b2db1a1d
+		summarizeBy: none
+		sourceColumn: Zone Bin Type Code
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Zone Code'
+		dataType: string
+		lineageTag: d4dc5107-f617-4f96-9ad2-710af62b587a
+		summarizeBy: none
+		sourceColumn: Zone Code
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Zone Location Code'
+		dataType: string
+		isHidden
+		lineageTag: f78bdc91-5c85-4e34-837d-97bf2aa21923
+		summarizeBy: none
+		sourceColumn: Zone Location Code
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Zone Key'
+		dataType: string
+		isHidden
+		isKey
+		lineageTag: f389a0b0-f864-4d54-8330-98998c3f4afc
+		summarizeBy: none
+		sourceColumn: Zone Key
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	partition Zone = m
+		mode: import
+		queryGroup: 'Dimension Tables'
+		source =
+				let
+				    Source = Dynamics365BusinessCentral.ApiContentsWithOptions(ENVIRONMENT, COMPANY,API_ENDPOINT, []),
+				    TableData = Source{[Name="zones",Signature="table"]}[Data],
+				    #"Changed Type" = Table.TransformColumnTypes(
+				        TableData,
+				        {
+				            {"zoneCode", type text},
+				            {"zoneDescription", type text},
+				            {"locationCode", type text},
+				            {"binTypeCode", type text}
+				        }
+				    ),
+				    #"Added Custom" = Table.AddColumn(
+				        #"Changed Type", "Zone Key", each [zoneCode] & "(" & [locationCode] & ")", type text
+				    ),
+				    #"Reordered Columns" = Table.ReorderColumns(#"Added Custom", {"Zone Key", "zoneDescription", "binTypeCode"}),
+				    #"Renamed Columns" = Table.RenameColumns(#"Reordered Columns",{{"zoneDescription", "Zone Description"}, {"binTypeCode", "Zone Bin Type Code"}, {"zoneCode", "Zone Code"}, {"locationCode", "Zone Location Code"}}),
+				    #"Removed Columns" = Table.RemoveColumns(#"Renamed Columns",{"ETag"})
+				in
+				    #"Removed Columns"
+
+	annotation PBI_ResultType = Table
+
+	annotation PBI_NavigationStepName = Navigation
+

@@ -1,0 +1,383 @@
+table 'G/L Account Category'
+	lineageTag: c3ba4558-e02a-404b-b4a1-a2903520532a
+
+	measure GLAccCategoryBrowseDepth = ```
+			
+			    ISFILTERED ( 'G/L Account Category'[G/L Account Category (Level 1)] )
+			    + ISFILTERED ( 'G/L Account Category'[G/L Account Category (Level 2)] )
+			    + ISFILTERED ( 'G/L Account Category'[G/L Account Category (Level 3)] )
+			```
+		formatString: 0
+		displayFolder: _G/L Account Category Measures
+		lineageTag: 10c3d1a2-4c9e-445f-83a5-5620a57acbc6
+
+		changedProperty = IsHidden
+
+	measure GLAccCategoryMaxNodeDepth = MAX ('G/L Account Category'[GLAccCategoryNodeDepth])
+		formatString: 0
+		displayFolder: _G/L Account Category Measures
+		lineageTag: 6fb8cab5-d972-4b28-b8a4-f0dbf86c519b
+
+		changedProperty = IsHidden
+
+	measure 'G/L Acc. Category Balance at Date' =
+			
+			IF (
+			    [GLAccCategoryMaxNodeDepth] + 1 >= [GLAccCategoryBrowseDepth],
+			    IF (
+			        [GLAccCategoryMaxNodeDepth] + 1 = [GLAccCategoryBrowseDepth],
+			        IF (
+			            VALUES ( 'G/L Account Category'[GLAccCategoryHasChildren] ) = TRUE && [Balance at Date] <> 0,
+			            [Balance at Date]
+			        ),
+			        [Balance at Date]
+			    )
+			)
+		formatString: #,0.00
+		displayFolder: _G/L Account Category Measures
+		lineageTag: e161e943-5843-47f5-8f73-35a775419b93
+
+		changedProperty = IsHidden
+
+		annotation PBI_FormatHint = {"currencyCulture":"en-AU"}
+
+	measure 'G/L Acc. Category Net Change' =
+			
+			IF (
+			    [GLAccCategoryMaxNodeDepth] + 1 >= [GLAccCategoryBrowseDepth],
+			    IF (
+			        [GLAccCategoryMaxNodeDepth] + 1 = [GLAccCategoryBrowseDepth],
+			        IF (
+			            VALUES ( 'G/L Account Category'[GLAccCategoryHasChildren] ) = TRUE && [Net Change] <> 0,
+			            [Net Change]
+			        ),
+			        [Net Change]
+			    )
+			)
+		formatString: #,0.00
+		displayFolder: _G/L Account Category Measures
+		lineageTag: 6c81d57f-b4d1-4e09-9645-e9a80a03166b
+
+		changedProperty = IsHidden
+
+		annotation PBI_FormatHint = {"currencyCulture":"en-AU"}
+
+	measure 'G/L Acc. Category Budget Balance at Date' =
+			
+			IF (
+			    [GLAccCategoryMaxNodeDepth] + 1 >= [GLAccCategoryBrowseDepth],
+			    IF (
+			        [GLAccCategoryMaxNodeDepth] + 1 = [GLAccCategoryBrowseDepth],
+			        IF (
+			            VALUES ( 'G/L Account Category'[GLAccCategoryHasChildren] ) = TRUE && [Budget Balance at Date] <> 0,
+			            [Budget Balance at Date]
+			        ),
+			        [Budget Balance at Date]
+			    )
+			)
+		formatString: #,0.00
+		displayFolder: _G/L Account Category Measures
+		lineageTag: 4b253351-6669-4aa6-9f0c-4cb32c4bd319
+
+		changedProperty = IsHidden
+
+		annotation PBI_FormatHint = {"currencyCulture":"en-AU"}
+
+	measure 'G/L Acc. Category Budget Amount' =
+			IF (
+			    [GLAccCategoryMaxNodeDepth] + 1 >= [GLAccCategoryBrowseDepth],
+			    IF (
+			        [GLAccCategoryMaxNodeDepth] + 1 = [GLAccCategoryBrowseDepth],
+			        IF (
+			            VALUES ( 'G/L Account Category'[GLAccCategoryHasChildren] ) = TRUE && [Budget Amount] <> 0,
+			            [Budget Amount]
+			        ),
+			        [Budget Amount]
+			    )
+			)
+		formatString: #,0.00
+		displayFolder: _G/L Account Category Measures
+		lineageTag: 4c34ea6c-20c5-4bb8-9bc4-b15037b552c7
+
+		changedProperty = IsHidden
+
+		annotation PBI_FormatHint = {"currencyCulture":"en-AU"}
+
+	column GLAccCategoryPath = PATH ( 'G/L Account Category'[Entry No.], 'G/L Account Category'[Parent Entry No.] )
+		isHidden
+		lineageTag: 867d72cb-7b16-4161-bca5-f47fbc02814f
+		summarizeBy: none
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'G/L Account Category (Level 1)' =
+			
+			LOOKUPVALUE (
+			    'G/L Account Category'[G/L Acc. Category Description],
+			    'G/L Account Category'[Entry No.], PATHITEM ( 'G/L Account Category'[GLAccCategoryPath], 1, INTEGER )
+			)
+		isHidden
+		lineageTag: 92ffc212-7d46-41ac-a09e-5c5551feed4c
+		summarizeBy: none
+		sortByColumn: 'Level 1 Sorting No.'
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'G/L Account Category (Level 2)' =
+			
+			IF (
+			    PATHLENGTH ( 'G/L Account Category'[GLAccCategoryPath] ) > 1,
+			    LOOKUPVALUE (
+			        'G/L Account Category'[G/L Acc. Category Description],
+			        'G/L Account Category'[Entry No.], PATHITEM ( 'G/L Account Category'[GLAccCategoryPath], 2, INTEGER )
+			    ),
+			    'G/L Account Category'[G/L Account Category (Level 1)]
+			)
+		isHidden
+		lineageTag: 201d8d41-1e8a-465c-988c-3a57250e9abb
+		summarizeBy: none
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'G/L Account Category (Level 3)' =
+			
+			IF (
+			    PATHLENGTH ( 'G/L Account Category'[GLAccCategoryPath] ) > 2,
+			    LOOKUPVALUE (
+			        'G/L Account Category'[G/L Acc. Category Description],
+			        'G/L Account Category'[Entry No.], PATHITEM ( 'G/L Account Category'[GLAccCategoryPath], 3, INTEGER )
+			    ),
+			    'G/L Account Category'[G/L Account Category (Level 2)]
+			)
+		isHidden
+		lineageTag: 5f771e2c-7ce9-453d-9227-6857d126fb1a
+		summarizeBy: none
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column GLAccCategoryNodeDepth = PATHLENGTH ( [GLAccCategoryPath] )
+		isHidden
+		formatString: 0
+		lineageTag: f7c10a76-52f4-46c6-bda1-e6770b9f1d59
+		summarizeBy: sum
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Level 1 Sorting No.' = LEFT('G/L Account Category'[Presentation Order],1)
+		dataType: int64
+		isHidden
+		formatString: 0
+		lineageTag: 727cb838-e819-4fd7-b6fe-6a0101035a70
+		summarizeBy: sum
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column GLAccCategoryHasChildren =
+			
+			CALCULATE (
+			    COUNTROWS ( 'G/L Account Category' ),
+			    ALL ( 'G/L Account Category' ),
+			    'G/L Account Category'[Parent Entry No.] = EARLIER ( 'G/L Account Category'[Entry No.] )
+			) > 0
+		isHidden
+		formatString: """TRUE"";""TRUE"";""FALSE"""
+		lineageTag: b01e440a-4fdd-4198-af74-922cd8767796
+		summarizeBy: none
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Entry No.'
+		dataType: int64
+		isHidden
+		formatString: 0
+		lineageTag: 044225b4-45f3-4bb6-bd5e-e6a1e9151287
+		summarizeBy: none
+		sourceColumn: Entry No.
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Parent Entry No.'
+		dataType: int64
+		isHidden
+		formatString: 0
+		lineageTag: 60c4ae57-1819-4e86-bd1c-58aaea55cf39
+		summarizeBy: sum
+		sourceColumn: Parent Entry No.
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'G/L Acc. Category Description'
+		dataType: string
+		lineageTag: 6b744939-6d03-4b1d-ae58-32a1709bba2b
+		summarizeBy: none
+		sourceColumn: G/L Acc. Category Description
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Presentation Order'
+		dataType: string
+		isHidden
+		lineageTag: ea728581-4ac1-4e27-8181-9c87717cd116
+		summarizeBy: none
+		sourceColumn: Presentation Order
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column siblingSequenceNo
+		dataType: int64
+		isHidden
+		formatString: 0
+		lineageTag: 40847372-a3bf-4336-8674-c8615953d9e9
+		summarizeBy: sum
+		sourceColumn: siblingSequenceNo
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column indentation
+		dataType: int64
+		isHidden
+		formatString: 0
+		lineageTag: aba60fdb-4a6f-422b-846b-2e39fb56e445
+		summarizeBy: sum
+		sourceColumn: indentation
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column accountCategory
+		dataType: string
+		isHidden
+		lineageTag: bafb3245-b95f-494c-9598-d3149e61824f
+		summarizeBy: none
+		sourceColumn: accountCategory
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column incomeBalance
+		dataType: string
+		isHidden
+		lineageTag: 30b5de68-e001-4999-afe6-33db2cec5bd3
+		summarizeBy: none
+		sourceColumn: incomeBalance
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column additionalReportDefinition
+		dataType: string
+		isHidden
+		lineageTag: 1c347e18-1bfe-494f-8761-c2e5b86949bc
+		summarizeBy: none
+		sourceColumn: additionalReportDefinition
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column systemGenerated
+		dataType: boolean
+		isHidden
+		formatString: """TRUE"";""TRUE"";""FALSE"""
+		lineageTag: ae4750d1-52d1-4ad7-bec2-a47a59af568a
+		summarizeBy: none
+		sourceColumn: systemGenerated
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column hasChildren
+		dataType: boolean
+		isHidden
+		formatString: """TRUE"";""TRUE"";""FALSE"""
+		lineageTag: d7b5acda-8a8a-4ce1-9ef5-f8264c739298
+		summarizeBy: none
+		sourceColumn: hasChildren
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	hierarchy 'G/L Account Category Hierarchy'
+		lineageTag: 44f40f11-1542-4438-bf6a-d9c0dfbd200e
+
+		level 'G/L Account Category (Level 1)'
+			lineageTag: 7e5d343e-10ad-450d-8b36-1be425217824
+			column: 'G/L Account Category (Level 1)'
+
+		level 'G/L Account Category (Level 2)'
+			lineageTag: 31d2c7fc-43a6-4a8f-9b43-bc3afa4042b6
+			column: 'G/L Account Category (Level 2)'
+
+		level 'G/L Account Category (Level 3)'
+			lineageTag: e7813b3f-2554-4516-8001-1c411c9628bd
+			column: 'G/L Account Category (Level 3)'
+
+		changedProperty = IsHidden
+
+	partition 'G/L Account Category-94274dc9-2281-4ba8-adae-86acd137ae3a' = m
+		mode: import
+		queryGroup: 'Dimension Tables'
+		source =
+				let
+				    Source = Dynamics365BusinessCentral.ApiContentsWithOptions(ENVIRONMENT, COMPANY,API_ENDPOINT, []),
+				    TableData = Source{[Name="generalLedgerAccountCategories",Signature="table"]}[Data],
+				    #"Changed Type" = Table.TransformColumnTypes(
+				        TableData,
+				        {
+				            {"entryNo", Int64.Type},
+				            {"parentEntryNo", Int64.Type},
+				            {"description", type text},
+				            {"presentationOrder", type text}
+				        }
+				    ),
+				    #"Replaced Value" = Table.ReplaceValue(
+				        #"Changed Type", 0, null, Replacer.ReplaceValue, {"parentEntryNo"}
+				    ),
+				    #"Renamed Columns" = Table.RenameColumns(
+				        #"Replaced Value",
+				        {
+				            {"entryNo", "Entry No."},
+				            {"parentEntryNo", "Parent Entry No."},
+				            {"presentationOrder", "Presentation Order"},
+				            {"description", "G/L Acc. Category Description"}
+				        }
+				    ),
+				    #"Removed Columns1" = Table.RemoveColumns(#"Renamed Columns", {"ETag"})
+				in
+				    #"Removed Columns1"
+
+	changedProperty = IsHidden
+
+	annotation PBI_ResultType = Table
+
+	annotation PBI_NavigationStepName = Navigation
+

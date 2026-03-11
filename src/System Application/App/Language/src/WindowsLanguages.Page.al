@@ -1,0 +1,54 @@
+// ------------------------------------------------------------------------------------------------
+// Copyright (c) Microsoft Corporation. All rights reserved.
+// Licensed under the MIT License. See License.txt in the project root for license information.
+// ------------------------------------------------------------------------------------------------
+
+namespace System.Globalization;
+
+using System.Environment.Configuration;
+
+/// <summary>
+/// Page for displaying available windows languages.
+/// </summary>
+page 535 "Windows Languages"
+{
+    Extensible = false;
+    Caption = 'Available Languages';
+    Editable = false;
+    PageType = List;
+    SourceTable = "Windows Language";
+    ContextSensitiveHelpPage = 'ui-change-basic-settings#language';
+    Permissions = tabledata "Page Data Personalization" = r,
+                  tabledata "Windows Language" = r;
+
+    layout
+    {
+        area(Content)
+        {
+            repeater(Control2)
+            {
+                ShowCaption = false;
+                field("Language ID"; Rec."Language ID")
+                {
+                    ApplicationArea = All;
+                    Caption = 'ID';
+                    ToolTip = 'Specifies the unique language ID for the Windows language.';
+                    Visible = false;
+                }
+                field(Name; Rec.Name)
+                {
+                    ApplicationArea = All;
+                    Caption = 'Name';
+                    ToolTip = 'Specifies the names of the available Windows languages.';
+                }
+            }
+        }
+    }
+
+    trigger OnOpenPage()
+    var
+        LanguageImpl: Codeunit "Language Impl.";
+    begin
+        LanguageImpl.ShowAllowedLanguagesNotification();
+    end;
+}

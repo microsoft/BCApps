@@ -1,0 +1,2758 @@
+table 'Standard Calendar Time Intelligence'
+	lineageTag: f1b8f50b-016f-432b-aad8-9747c2322904
+
+	measure 'Purchase Amount YTD' = ```
+			
+			IF ( 
+			    [ShowValueForDates], 
+			    CALCULATE ( 
+			        [Purchase (LCY)], 
+			        DATESYTD ( 'Date'[Date] ) 
+			    ) 
+			)
+			```
+		formatString: #,0.00
+		displayFolder: Purchase Amount\Period-to-date total
+		lineageTag: 38412a1f-831a-4590-a264-37b463c652a8
+
+	measure 'Purchase Amount PY' = ```
+			
+			IF (
+			    [ShowValueForDates],
+			    CALCULATE (
+			        [Purchase (LCY)],
+			        CALCULATETABLE ( 
+			            DATEADD ( 'Date'[Date], -1, YEAR ),
+			            'Date'[DateWithPurchases] = TRUE
+			        )
+			    )
+			)
+			```
+		formatString: #,0.00
+		displayFolder: Purchase Amount\Period-over-period growth
+		lineageTag: 0fc622df-db64-452f-8d55-6b1effebba80
+
+	measure 'Purchase Amount PYTD' = ```
+			
+			IF (
+			    [ShowValueForDates],
+			    CALCULATE (
+			        [Purchase Amount YTD],
+			        CALCULATETABLE ( 
+			            DATEADD ( 'Date'[Date], -1, YEAR ),
+			            'Date'[DateWithPurchases] = TRUE
+			        )
+			    )
+			)
+			
+			```
+		formatString: #,0.00
+		displayFolder: Purchase Amount\Period-to-date growth
+		lineageTag: 77c133a0-4e40-4faa-87ec-72e719690eb6
+
+	measure 'Purchase Amount PQTD' = ```
+			
+			IF (
+			    [ShowValueForDates],
+			    CALCULATE (
+			        [Purchase Amount QTD],
+			        CALCULATETABLE ( 
+			            DATEADD ( 'Date'[Date], -1, QUARTER ),
+			            'Date'[DateWithPurchases] = TRUE
+			        )
+			    )
+			)
+			```
+		formatString: #,0.00
+		displayFolder: Purchase Amount\Period-to-date growth
+		lineageTag: 7f672a49-42c1-47d2-a086-257b7f15ce2a
+
+	measure 'Purchase Amount QTD' = ```
+			
+			IF (
+			    [ShowValueForDates],
+			    CALCULATE ( 
+			        [Purchase (LCY)], 
+			        DATESQTD ( 'Date'[Date] )
+			    )
+			)
+			```
+		formatString: #,0.00
+		displayFolder: Purchase Amount\Period-to-date total
+		lineageTag: a5266d3c-275d-4216-8898-66cf10010e7c
+
+	measure 'Purchase Amount MTD' = ```
+			
+			IF ( 
+			    [ShowValueForDates], 
+			    CALCULATE ( 
+			        [Purchase (LCY)], 
+			        DATESMTD ( 'Date'[Date] ) 
+			    ) 
+			)
+			```
+		formatString: #,0.00
+		displayFolder: Purchase Amount\Period-to-date total
+		lineageTag: 3257d1e6-094f-42f1-b514-531d4ca4a1ba
+
+	measure 'Purchase Amount YOY %' = ```
+			
+			DIVIDE ( 
+			    [Purchase Amount YOY],
+			    [Purchase Amount PY]
+			)
+			```
+		formatString: 0.00%;-0.00%;0.00%
+		displayFolder: Purchase Amount\Period-over-period growth
+		lineageTag: 88452fce-5d7b-4e2d-8552-5f1fec325a77
+
+	measure 'Purchase Amount YOY' = ```
+			
+			VAR ValueCurrentPeriod = [Purchase (LCY)]
+			VAR ValuePreviousPeriod = [Purchase Amount PY]
+			VAR Result =
+			    IF (
+			        NOT ISBLANK ( ValueCurrentPeriod ) 
+			            && NOT ISBLANK ( ValuePreviousPeriod ),
+			        ValueCurrentPeriod - ValuePreviousPeriod
+			    )
+			RETURN
+			    Result
+			
+			```
+		formatString: #,0.00
+		displayFolder: Purchase Amount\Period-over-period growth
+		lineageTag: c8ed3d09-17a4-4d9b-b5e7-e6c208d50cf5
+
+	measure 'Purchase Amount PQ' = ```
+			
+			IF (
+			    [ShowValueForDates],
+			    CALCULATE (
+			        [Purchase (LCY)],
+			        CALCULATETABLE ( 
+			            DATEADD ( 'Date'[Date], -1, QUARTER ),
+			            'Date'[DateWithPurchases] = TRUE
+			        )
+			    )
+			)
+			
+			```
+		formatString: #,0.00
+		displayFolder: Purchase Amount\Period-over-period growth
+		lineageTag: ec03bff5-4f0f-47f6-8b58-bfc627ce75e4
+
+	measure 'Purchase Amount QOQ' = ```
+			
+			VAR ValueCurrentPeriod = [Purchase (LCY)]
+			VAR ValuePreviousPeriod = [Purchase Amount PQ]
+			VAR Result =
+			    IF (
+			        NOT ISBLANK ( ValueCurrentPeriod ) 
+			            && NOT ISBLANK ( ValuePreviousPeriod ),
+			        ValueCurrentPeriod - ValuePreviousPeriod
+			    )
+			RETURN
+			    Result
+			
+			```
+		formatString: #,0.00
+		displayFolder: Purchase Amount\Period-over-period growth
+		lineageTag: 1091245b-89ae-4444-99f3-b5ff872cb562
+
+	measure 'Purchase Amount PM' = ```
+			
+			IF (
+			    [ShowValueForDates],
+			    CALCULATE (
+			        [Purchase (LCY)],
+			        CALCULATETABLE ( 
+			            DATEADD ( 'Date'[Date], -1, MONTH ),
+			            'Date'[DateWithPurchases] = TRUE
+			        )
+			    )
+			)
+			
+			```
+		formatString: #,0.00
+		displayFolder: Purchase Amount\Period-over-period growth
+		lineageTag: b5467ba8-c395-4f5a-bb65-3cf8707deeb1
+
+	measure 'Purchase Amount QOQ %' = ```
+			
+			DIVIDE ( 
+			    [Purchase Amount QOQ],
+			    [Purchase Amount PQ]
+			)
+			
+			```
+		formatString: 0.00%;-0.00%;0.00%
+		displayFolder: Purchase Amount\Period-over-period growth
+		lineageTag: 852aabcf-c536-44cb-8212-bb12304a14c8
+
+	measure 'Purchase Amount MOM' = ```
+			
+			VAR ValueCurrentPeriod = [Purchase (LCY)]
+			VAR ValuePreviousPeriod = [Purchase Amount PM]
+			VAR Result =
+			    IF (
+			        NOT ISBLANK ( ValueCurrentPeriod ) 
+			            && NOT ISBLANK ( ValuePreviousPeriod ),
+			        ValueCurrentPeriod - ValuePreviousPeriod
+			    )
+			RETURN
+			    Result
+			
+			```
+		formatString: #,0.00
+		displayFolder: Purchase Amount\Period-over-period growth
+		lineageTag: 691e34ed-5394-418e-9671-c8cc2d937031
+
+	measure 'Purchase Amount MOM %' = ```
+			
+			DIVIDE ( 
+			    [Purchase Amount MOM],
+			    [Purchase Amount PM]
+			)
+			
+			```
+		formatString: 0.00%;-0.00%;0.00%
+		displayFolder: Purchase Amount\Period-over-period growth
+		lineageTag: 574352f6-e7b8-414b-9672-d209a1304703
+
+	measure 'Purchase Amount MAT' = ```
+			
+			IF ( 
+			    [ShowValueForDates], 
+			    CALCULATE ( 
+			        [Purchase (LCY)], 
+			        DATESINPERIOD (
+			            'Date'[Date],
+			            MAX ( 'Date'[Date] ),
+			            -1,
+			            YEAR
+			        )
+			    ) 
+			)
+			
+			```
+		formatString: #,0.00
+		displayFolder: Purchase Amount\Moving annual total growth
+		lineageTag: 53d9727a-ae1a-47ac-80d0-442f6cdff4db
+
+	measure 'Purchase Amount PYMAT' =
+			
+			IF (
+			    [ShowValueForDates],
+			    CALCULATE (
+			        [Purchase Amount MAT],
+			        DATEADD ( 'Date'[Date], -1, YEAR )
+			    )
+			)
+		formatString: #,0.00
+		displayFolder: Purchase Amount\Moving annual total growth
+		lineageTag: 7ced06c2-6042-4cba-ac44-ea166a5d0a64
+
+	measure 'Purchase Amount YOYTD' = ```
+			
+			VAR ValueCurrentPeriod = [Purchase Amount YTD]
+			VAR ValuePreviousPeriod = [Purchase Amount PYTD]
+			VAR Result =
+			    IF (
+			        NOT ISBLANK ( ValueCurrentPeriod ) 
+			            && NOT ISBLANK ( ValuePreviousPeriod ),
+			        ValueCurrentPeriod - ValuePreviousPeriod
+			    )
+			RETURN
+			    Result
+			
+			```
+		formatString: #,0.00
+		displayFolder: Purchase Amount\Period-to-date growth
+		lineageTag: e4592e1e-71b3-443e-8ff3-dba93109c619
+
+	measure 'Purchase Amount YOYTD %' = ```
+			
+			DIVIDE ( 
+			    [Purchase Amount YOYTD],
+			    [Purchase Amount PYTD]
+			)
+			
+			```
+		formatString: 0.00%;-0.00%;0.00%
+		displayFolder: Purchase Amount\Period-to-date growth
+		lineageTag: 6baef07f-485c-4a5a-af97-b4dce33e1956
+
+	measure 'Purchase Amount PYC' = ```
+			
+			IF (
+			    [ShowValueForDates] && HASONEVALUE ( 'Date'[Calendar Year] ),
+			    CALCULATE (
+			        [Purchase (LCY)],
+			        PARALLELPERIOD ( 'Date'[Date], -1, YEAR )
+			    )
+			)
+			
+			```
+		formatString: #,0.00
+		displayFolder: Purchase Amount\Period-to-date over full previous period
+		lineageTag: ef25aabd-7568-4d6b-a08a-d95daab64490
+
+	measure 'Purchase Amount YTDOPY' = ```
+			
+			VAR ValueCurrentPeriod = [Purchase Amount YTD]
+			VAR ValuePreviousPeriod = [Purchase Amount PYC]
+			VAR Result =
+			    IF (
+			        NOT ISBLANK ( ValueCurrentPeriod ) 
+			            && NOT ISBLANK ( ValuePreviousPeriod ),
+			        ValueCurrentPeriod - ValuePreviousPeriod
+			    )
+			RETURN
+			    Result
+			
+			```
+		formatString: #,0.00
+		displayFolder: Purchase Amount\Period-to-date over full previous period
+		lineageTag: 5ba60dc6-dddd-4723-885c-4d1c198f1c96
+
+	measure 'Purchase Amount YTDOPY %' = ```
+			
+			DIVIDE ( 
+			    [Purchase Amount YTDOPY],
+			    [Purchase Amount PYC]
+			)
+			
+			```
+		formatString: 0.00%;-0.00%;0.00%
+		displayFolder: Purchase Amount\Period-to-date over full previous period
+		lineageTag: e4efd6fd-a83f-4d86-b623-986bc68c5a6b
+
+	measure 'Purchase Amount QOQTD' = ```
+			
+			VAR ValueCurrentPeriod = [Purchase Amount QTD]
+			VAR ValuePreviousPeriod = [Purchase Amount PQTD]
+			VAR Result =
+			    IF (
+			        NOT ISBLANK ( ValueCurrentPeriod ) 
+			            && NOT ISBLANK ( ValuePreviousPeriod ),
+			        ValueCurrentPeriod - ValuePreviousPeriod
+			    )
+			RETURN
+			    Result
+			
+			```
+		formatString: #,0.00
+		displayFolder: Purchase Amount\Period-to-date growth
+		lineageTag: 51196882-48b9-442a-a13b-c123c9474970
+
+	measure 'Purchase Amount QOQTD %' = ```
+			
+			DIVIDE ( 
+			    [Purchase Amount QOQTD],
+			    [Purchase Amount PQTD]
+			)
+			
+			```
+		formatString: 0.00%;-0.00%;0.00%
+		displayFolder: Purchase Amount\Period-to-date growth
+		lineageTag: 5a0e9cee-b941-4b20-ad79-47bafa0505c9
+
+	measure 'Purchase Amount PQC' = ```
+			
+			IF (
+			    [ShowValueForDates] && HASONEVALUE ( 'Date'[Calendar Quarter Year] ),
+			    CALCULATE (
+			        [Purchase (LCY)],
+			        PARALLELPERIOD ( 'Date'[Date], -1, QUARTER )
+			    )
+			)
+			
+			```
+		formatString: #,0.00
+		displayFolder: Purchase Amount\Period-to-date over full previous period
+		lineageTag: 9a9286c6-a25a-4808-8cf6-38b6c26847b8
+
+	measure 'Purchase Amount QTDOPQ' = ```
+			
+			VAR ValueCurrentPeriod = [Purchase Amount QTD]
+			VAR ValuePreviousPeriod = [Purchase Amount PQC]
+			VAR Result =
+			    IF (
+			        NOT ISBLANK ( ValueCurrentPeriod ) 
+			            && NOT ISBLANK ( ValuePreviousPeriod ),
+			        ValueCurrentPeriod - ValuePreviousPeriod
+			    )
+			RETURN
+			    Result
+			
+			```
+		formatString: #,0.00
+		displayFolder: Purchase Amount\Period-to-date over full previous period
+		lineageTag: ca3e88b0-8d05-45ba-9158-22a95eee78a2
+
+	measure 'Purchase Amount QTDOPQ %' = ```
+			
+			DIVIDE ( 
+			    [Purchase Amount QTDOPQ],
+			    [Purchase Amount PQC]
+			)
+			
+			```
+		formatString: 0.00%;-0.00%;0.00%
+		displayFolder: Purchase Amount\Period-to-date over full previous period
+		lineageTag: 5432dbee-eca4-44ee-8929-5b81afceb02c
+
+	measure 'Purchase Amount PMTD' = ```
+			
+			IF (
+			    [ShowValueForDates],
+			    CALCULATE (
+			        [Purchase Amount MTD],
+			        CALCULATETABLE ( 
+			            DATEADD ( 'Date'[Date], -1, MONTH ),
+			            'Date'[DateWithPurchases] = TRUE
+			        )
+			    )
+			)
+			
+			```
+		formatString: #,0.00
+		displayFolder: Purchase Amount\Period-to-date growth
+		lineageTag: 55ec74c0-7e4e-40c6-a2bf-0e53452f103e
+
+	measure 'Purchase Amount MOMTD' = ```
+			
+			VAR ValueCurrentPeriod = [Purchase Amount MTD]
+			VAR ValuePreviousPeriod = [Purchase Amount PMTD]
+			VAR Result =
+			    IF (
+			        NOT ISBLANK ( ValueCurrentPeriod ) 
+			            && NOT ISBLANK ( ValuePreviousPeriod ),
+			        ValueCurrentPeriod - ValuePreviousPeriod
+			    )
+			RETURN
+			    Result
+			
+			```
+		formatString: #,0.00
+		displayFolder: Purchase Amount\Period-to-date growth
+		lineageTag: d138f13b-190e-4c92-ac9a-3fb880f437ad
+
+	measure 'Purchase Amount MOMTD %' = ```
+			
+			DIVIDE ( 
+			    [Purchase Amount MOMTD],
+			    [Purchase Amount PMTD]
+			)
+			
+			```
+		formatString: 0.00%;-0.00%;0.00%
+		displayFolder: Purchase Amount\Period-to-date growth
+		lineageTag: 1b816673-c0ca-4372-992a-7f51d4cb3810
+
+	measure 'Purchase Amount PMC' = ```
+			
+			IF (
+			    [ShowValueForDates] && HASONEVALUE ( 'Date'[Calendar Month Year] ),
+			    CALCULATE (
+			        [Purchase (LCY)],
+			        PARALLELPERIOD ( 'Date'[Date], -1, MONTH )
+			    )
+			)
+			
+			```
+		formatString: #,0.00
+		displayFolder: Purchase Amount\Period-to-date over full previous period
+		lineageTag: 91751828-be34-487d-9874-c7b1c20fca59
+
+	measure 'Purchase Amount MTDOPM' = ```
+			
+			VAR ValueCurrentPeriod = [Purchase Amount MTD]
+			VAR ValuePreviousPeriod = [Purchase Amount PMC]
+			VAR Result =
+			    IF (
+			        NOT ISBLANK ( ValueCurrentPeriod ) 
+			            && NOT ISBLANK ( ValuePreviousPeriod ),
+			        ValueCurrentPeriod - ValuePreviousPeriod
+			    )
+			RETURN
+			    Result
+			
+			```
+		formatString: #,0.00
+		displayFolder: Purchase Amount\Period-to-date over full previous period
+		lineageTag: 7057c97f-002f-4760-9d39-3e03581d3162
+
+	measure 'Purchase Amount MTDOPM %' = ```
+			
+			DIVIDE ( 
+			    [Purchase Amount MTDOPM],
+			    [Purchase Amount PMC]
+			)
+			
+			```
+		formatString: 0.00%;-0.00%;0.00%
+		displayFolder: Purchase Amount\Period-to-date over full previous period
+		lineageTag: c642c5c8-efa8-4938-932d-8b6d2c0e516b
+
+	measure 'Purchase Amount AVG 30D' = ```
+			
+			VAR Period30D =
+			    CALCULATETABLE (
+			        DATESINPERIOD (
+			            'Date'[Date],
+			            MAX ( 'Date'[Date] ),
+			            -30,
+			            DAY
+			        ),
+			        'Date'[DateWithPurchases] = TRUE
+			    )
+			VAR FirstDayWithData =
+			    CALCULATE (
+			        INT (
+			            MINX (
+			                {
+			                    MIN ( 'Purchase Value Entries'[Date] ),
+			                    MIN ( 'Purchase Invoice Lines'[postingDate] ),
+			                    MIN ( 'Purchase Credit Lines'[postingDate] )
+			                },
+			                [Value]
+			            )
+			        ),
+			        REMOVEFILTERS ()
+			    )
+			VAR FirstDayInPeriod =
+			    MINX ( Period30D, 'Date'[Date] )
+			VAR Result =
+			    IF ( 
+			        FirstDayWithData <= FirstDayInPeriod,
+			        AVERAGEX (
+			            Period30D,
+			            [Purchase (LCY)]
+			        )
+			    )
+			RETURN
+			    Result
+			
+			```
+		formatString: #,0.00
+		displayFolder: Purchase Amount\Moving averages
+		lineageTag: 99c302a8-02fb-4536-9c31-a8785a7cb773
+
+	measure 'Purchase Amount AVG 3M' = ```
+			
+			VAR Period3M =
+			    CALCULATETABLE (
+			        DATESINPERIOD (
+			            'Date'[Date],
+			            MAX ( 'Date'[Date] ),
+			            -3,
+			            MONTH
+			        ),
+			        'Date'[DateWithPurchases] = TRUE
+			    )
+			VAR FirstDayWithData =
+			    CALCULATE (
+			        INT (
+			            MINX (
+			                {
+			                    MIN ( 'Purchase Value Entries'[Date] ),
+			                    MIN ( 'Purchase Invoice Lines'[postingDate] ),
+			                    MIN ( 'Purchase Credit Lines'[postingDate] )
+			                },
+			                [Value]
+			            )
+			        ),
+			        REMOVEFILTERS ()
+			    )
+			VAR FirstDayInPeriod =
+			    MINX ( Period3M, 'Date'[Date] )
+			VAR Result =
+			    IF ( 
+			        FirstDayWithData <= FirstDayInPeriod,
+			        AVERAGEX (
+			            Period3M,
+			            [Purchase (LCY)]
+			        )
+			    )
+			RETURN
+			    Result
+			
+			```
+		formatString: #,0.00
+		displayFolder: Purchase Amount\Moving averages
+		lineageTag: 42318409-da7f-4d5e-a457-0f4879ca4d50
+
+	measure 'Purchase Amount AVG 1Y' =
+			
+			VAR Period1Y =
+			    CALCULATETABLE (
+			        DATESINPERIOD ( 'Date'[Date], MAX ( 'Date'[Date] ), -1, YEAR ),
+			        'Date'[DateWithPurchases] = TRUE
+			    )
+			VAR FirstDayWithData =
+			    CALCULATE (
+			        INT (
+			            MINX (
+			                {
+			                    MIN ( 'Purchase Value Entries'[Date] ),
+			                    MIN ( 'Purchase Invoice Lines'[postingDate] ),
+			                    MIN ( 'Purchase Credit Lines'[postingDate] )
+			                },
+			                [Value]
+			            )
+			        ),
+			        REMOVEFILTERS ()
+			    )
+			VAR FirstDayInPeriod =
+			    MINX ( Period1Y, 'Date'[Date] )
+			VAR Result =
+			    IF (
+			        FirstDayWithData <= FirstDayInPeriod,
+			        AVERAGEX ( Period1Y, [Purchase (LCY)] )
+			    )
+			RETURN
+			    Result
+		formatString: #,0.00
+		displayFolder: Purchase Amount\Moving averages
+		lineageTag: 2ad11b4b-540f-4ae1-a229-257b84c2a0b3
+
+	measure 'Purchase Amount MATG' = ```
+			
+			VAR ValueCurrentPeriod = [Purchase Amount MAT]
+			VAR ValuePreviousPeriod = [Purchase Amount PYMAT]
+			VAR Result =
+			    IF (
+			        NOT ISBLANK ( ValueCurrentPeriod ) 
+			            && NOT ISBLANK ( ValuePreviousPeriod ),
+			        ValueCurrentPeriod - ValuePreviousPeriod
+			    )
+			RETURN
+			    Result
+			
+			```
+		formatString: #,0.00
+		displayFolder: Purchase Amount\Moving annual total growth
+		lineageTag: 6008b500-0ea3-4b29-b004-1b29d6cff730
+
+	measure 'Purchase Amount MATG %' = ```
+			
+			DIVIDE ( 
+			    [Purchase Amount MATG],
+			    [Purchase Amount PYMAT]
+			)
+			
+			```
+		formatString: 0.00%;-0.00%;0.00%
+		displayFolder: Purchase Amount\Moving annual total growth
+		lineageTag: 2684dc76-0921-40a9-b75f-3d2da00d2571
+
+	measure 'Purchase Amount PP' = ```
+			
+			SWITCH ( 
+			    TRUE,
+			    ISINSCOPE ( 'Date'[Calendar Month Year] ), [Purchase Amount PM],
+			    ISINSCOPE ( 'Date'[Calendar Quarter Year] ), [Purchase Amount PQ],
+			    ISINSCOPE ( 'Date'[Calendar Year] ), [Purchase Amount PY]
+			)
+			
+			```
+		formatString: #,0.00
+		displayFolder: Purchase Amount\Period-over-period growth
+		lineageTag: 73fee03f-0581-44f0-8ad4-c756194eca65
+
+	measure 'Purchase Amount POP' = ```
+			
+			SWITCH ( 
+			    TRUE,
+			    ISINSCOPE ( 'Date'[Calendar Month Year] ), [Purchase Amount MOM],
+			    ISINSCOPE ( 'Date'[Calendar Quarter Year] ), [Purchase Amount QOQ],
+			    ISINSCOPE ( 'Date'[Calendar Year] ), [Purchase Amount YOY]
+			)
+			
+			```
+		formatString: #,0.00
+		displayFolder: Purchase Amount\Period-over-period growth
+		lineageTag: e3cba894-4380-4df8-94de-4e290d9395d3
+
+	measure 'Purchase Amount POP %' = ```
+			
+			SWITCH ( 
+			    TRUE,
+			    ISINSCOPE ( 'Date'[Calendar Month Year] ), [Purchase Amount MOM %],
+			    ISINSCOPE ( 'Date'[Calendar Quarter Year] ), [Purchase Amount QOQ %],
+			    ISINSCOPE ( 'Date'[Calendar Year] ), [Purchase Amount YOY %]
+			)
+			
+			```
+		formatString: 0.00%;-0.00%;0.00%
+		displayFolder: Purchase Amount\Period-over-period growth
+		lineageTag: 1bcc3ca4-2741-442b-a511-0768685e00e7
+
+	measure 'Purchase Quantity YTD' = ```
+			
+			IF ( 
+			    [ShowValueForDates], 
+			    CALCULATE ( 
+			        [Purchase Quantity], 
+			        DATESYTD ( 'Date'[Date] ) 
+			    ) 
+			)
+			```
+		formatString: #,0.00
+		displayFolder: Purchase Quantity\Period-to-date total
+		lineageTag: b551f76e-ad65-4b57-84ac-acc2a80f3d7d
+
+	measure 'Purchase Quantity PY' = ```
+			
+			IF (
+			    [ShowValueForDates],
+			    CALCULATE (
+			        [Purchase Quantity],
+			        CALCULATETABLE ( 
+			            DATEADD ( 'Date'[Date], -1, YEAR ),
+			            'Date'[DateWithPurchases] = TRUE
+			        )
+			    )
+			)
+			```
+		formatString: #,0.00
+		displayFolder: Purchase Quantity\Period-over-period growth
+		lineageTag: 33cfd214-80cb-4536-a82e-661f235ae014
+
+	measure 'Purchase Quantity PYTD' = ```
+			
+			IF (
+			    [ShowValueForDates],
+			    CALCULATE (
+			        [Purchase Quantity YTD],
+			        CALCULATETABLE ( 
+			            DATEADD ( 'Date'[Date], -1, YEAR ),
+			            'Date'[DateWithPurchases] = TRUE
+			        )
+			    )
+			)
+			
+			```
+		formatString: #,0.00
+		displayFolder: Purchase Quantity\Period-to-date growth
+		lineageTag: c12dabc6-728c-427c-8dca-40f5e80ee864
+
+	measure 'Purchase Quantity PQTD' = ```
+			
+			IF (
+			    [ShowValueForDates],
+			    CALCULATE (
+			        [Purchase Quantity QTD],
+			        CALCULATETABLE ( 
+			            DATEADD ( 'Date'[Date], -1, QUARTER ),
+			            'Date'[DateWithPurchases] = TRUE
+			        )
+			    )
+			)
+			```
+		formatString: #,0.00
+		displayFolder: Purchase Quantity\Period-to-date growth
+		lineageTag: 132dbd40-8f24-4565-9951-fea35ecab4ea
+
+	measure 'Purchase Quantity QTD' = ```
+			
+			IF (
+			    [ShowValueForDates],
+			    CALCULATE ( 
+			        [Purchase Quantity], 
+			        DATESQTD ( 'Date'[Date] )
+			    )
+			)
+			```
+		formatString: #,0.00
+		displayFolder: Purchase Quantity\Period-to-date total
+		lineageTag: 85950c9d-2323-4b80-ae82-64b715fa8ea6
+
+	measure 'Purchase Quantity MTD' = ```
+			
+			IF ( 
+			    [ShowValueForDates], 
+			    CALCULATE ( 
+			        [Purchase Quantity], 
+			        DATESMTD ( 'Date'[Date] ) 
+			    ) 
+			)
+			```
+		formatString: #,0.00
+		displayFolder: Purchase Quantity\Period-to-date total
+		lineageTag: 7f18266c-afde-4163-a724-840c99c7d2ec
+
+	measure 'Purchase Quantity YOY %' = ```
+			
+			DIVIDE ( 
+			    [Purchase Quantity YOY],
+			    [Purchase Quantity PY]
+			)
+			```
+		formatString: 0.00%;-0.00%;0.00%
+		displayFolder: Purchase Quantity\Period-over-period growth
+		lineageTag: 765e274e-daa4-4055-8c35-194d54e1d01e
+
+	measure 'Purchase Quantity YOY' = ```
+			
+			VAR ValueCurrentPeriod = [Purchase Quantity]
+			VAR ValuePreviousPeriod = [Purchase Quantity PY]
+			VAR Result =
+			    IF (
+			        NOT ISBLANK ( ValueCurrentPeriod ) 
+			            && NOT ISBLANK ( ValuePreviousPeriod ),
+			        ValueCurrentPeriod - ValuePreviousPeriod
+			    )
+			RETURN
+			    Result
+			
+			```
+		formatString: #,0.00
+		displayFolder: Purchase Quantity\Period-over-period growth
+		lineageTag: 12c970d9-c46e-444e-a17a-37501662e7d5
+
+	measure 'Purchase Quantity PQ' = ```
+			
+			IF (
+			    [ShowValueForDates],
+			    CALCULATE (
+			        [Purchase Quantity],
+			        CALCULATETABLE ( 
+			            DATEADD ( 'Date'[Date], -1, QUARTER ),
+			            'Date'[DateWithPurchases] = TRUE
+			        )
+			    )
+			)
+			
+			```
+		formatString: #,0.00
+		displayFolder: Purchase Quantity\Period-over-period growth
+		lineageTag: f272022b-0e6d-460e-9b17-2ef908179944
+
+	measure 'Purchase Quantity QOQ' = ```
+			
+			VAR ValueCurrentPeriod = [Purchase Quantity]
+			VAR ValuePreviousPeriod = [Purchase Quantity PQ]
+			VAR Result =
+			    IF (
+			        NOT ISBLANK ( ValueCurrentPeriod ) 
+			            && NOT ISBLANK ( ValuePreviousPeriod ),
+			        ValueCurrentPeriod - ValuePreviousPeriod
+			    )
+			RETURN
+			    Result
+			
+			```
+		formatString: #,0.00
+		displayFolder: Purchase Quantity\Period-over-period growth
+		lineageTag: 79c4ac64-2130-4e12-a4f2-5b7072dab806
+
+	measure 'Purchase Quantity PM' = ```
+			
+			IF (
+			    [ShowValueForDates],
+			    CALCULATE (
+			        [Purchase Quantity],
+			        CALCULATETABLE ( 
+			            DATEADD ( 'Date'[Date], -1, MONTH ),
+			            'Date'[DateWithPurchases] = TRUE
+			        )
+			    )
+			)
+			
+			```
+		formatString: #,0.00
+		displayFolder: Purchase Quantity\Period-over-period growth
+		lineageTag: 2b2e02ad-3aa8-4879-b269-bce34a585b71
+
+	measure 'Purchase Quantity QOQ %' = ```
+			
+			DIVIDE ( 
+			    [Purchase Quantity QOQ],
+			    [Purchase Quantity PQ]
+			)
+			
+			```
+		formatString: 0.00%;-0.00%;0.00%
+		displayFolder: Purchase Quantity\Period-over-period growth
+		lineageTag: bb11a032-fe24-44bc-b465-c988553b7951
+
+	measure 'Purchase Quantity MOM' = ```
+			
+			VAR ValueCurrentPeriod = [Purchase Quantity]
+			VAR ValuePreviousPeriod = [Purchase Quantity PM]
+			VAR Result =
+			    IF (
+			        NOT ISBLANK ( ValueCurrentPeriod ) 
+			            && NOT ISBLANK ( ValuePreviousPeriod ),
+			        ValueCurrentPeriod - ValuePreviousPeriod
+			    )
+			RETURN
+			    Result
+			
+			```
+		formatString: #,0.00
+		displayFolder: Purchase Quantity\Period-over-period growth
+		lineageTag: a211dd34-cbbe-48c2-87ac-679eb3dc978f
+
+	measure 'Purchase Quantity MOM %' = ```
+			
+			DIVIDE ( 
+			    [Purchase Quantity MOM],
+			    [Purchase Quantity PM]
+			)
+			
+			```
+		formatString: 0.00%;-0.00%;0.00%
+		displayFolder: Purchase Quantity\Period-over-period growth
+		lineageTag: ef941450-4421-46dc-8743-8e254cff16d1
+
+	measure 'Purchase Quantity MAT' = ```
+			
+			IF ( 
+			    [ShowValueForDates], 
+			    CALCULATE ( 
+			        [Purchase Quantity], 
+			        DATESINPERIOD (
+			            'Date'[Date],
+			            MAX ( 'Date'[Date] ),
+			            -1,
+			            YEAR
+			        )
+			    ) 
+			)
+			
+			```
+		formatString: #,0.00
+		displayFolder: Purchase Quantity\Moving annual total growth
+		lineageTag: a2104553-753f-4d39-97b5-5d1d7bf7d46b
+
+	measure 'Purchase Quantity PYMAT' =
+			
+			IF (
+			    [ShowValueForDates],
+			    CALCULATE (
+			        [Purchase Quantity MAT],
+			        DATEADD ( 'Date'[Date], -1, YEAR )
+			    )
+			)
+		formatString: #,0.00
+		displayFolder: Purchase Quantity\Moving annual total growth
+		lineageTag: b5fa51b7-08a4-4311-bacb-d4cc65c52439
+
+	measure 'Purchase Quantity YOYTD' = ```
+			
+			VAR ValueCurrentPeriod = [Purchase Quantity YTD]
+			VAR ValuePreviousPeriod = [Purchase Quantity PYTD]
+			VAR Result =
+			    IF (
+			        NOT ISBLANK ( ValueCurrentPeriod ) 
+			            && NOT ISBLANK ( ValuePreviousPeriod ),
+			        ValueCurrentPeriod - ValuePreviousPeriod
+			    )
+			RETURN
+			    Result
+			
+			```
+		formatString: #,0.00
+		displayFolder: Purchase Quantity\Period-to-date growth
+		lineageTag: 2c73a33e-a0e9-47b5-b40c-e32b605eaf6f
+
+	measure 'Purchase Quantity YOYTD %' = ```
+			
+			DIVIDE ( 
+			    [Purchase Quantity YOYTD],
+			    [Purchase Quantity PYTD]
+			)
+			
+			```
+		formatString: 0.00%;-0.00%;0.00%
+		displayFolder: Purchase Quantity\Period-to-date growth
+		lineageTag: 3ccbd66d-f6e7-4208-8255-4c3244e62c33
+
+	measure 'Purchase Quantity PYC' = ```
+			
+			IF (
+			    [ShowValueForDates] && HASONEVALUE ( 'Date'[Calendar Year] ),
+			    CALCULATE (
+			        [Purchase Quantity],
+			        PARALLELPERIOD ( 'Date'[Date], -1, YEAR )
+			    )
+			)
+			
+			```
+		formatString: #,0.00
+		displayFolder: Purchase Quantity\Period-to-date over full previous period
+		lineageTag: ba3c201c-6a26-43a4-b435-84edf74a987a
+
+	measure 'Purchase Quantity YTDOPY' = ```
+			
+			VAR ValueCurrentPeriod = [Purchase Quantity YTD]
+			VAR ValuePreviousPeriod = [Purchase Quantity PYC]
+			VAR Result =
+			    IF (
+			        NOT ISBLANK ( ValueCurrentPeriod ) 
+			            && NOT ISBLANK ( ValuePreviousPeriod ),
+			        ValueCurrentPeriod - ValuePreviousPeriod
+			    )
+			RETURN
+			    Result
+			
+			```
+		formatString: #,0.00
+		displayFolder: Purchase Quantity\Period-to-date over full previous period
+		lineageTag: 5269e52e-52c6-4cc9-a133-f4f9ceb15d90
+
+	measure 'Purchase Quantity YTDOPY %' = ```
+			
+			DIVIDE ( 
+			    [Purchase Quantity YTDOPY],
+			    [Purchase Quantity PYC]
+			)
+			
+			```
+		formatString: 0.00%;-0.00%;0.00%
+		displayFolder: Purchase Quantity\Period-to-date over full previous period
+		lineageTag: f6c1eb68-0236-479e-b980-c9cd85ad791a
+
+	measure 'Purchase Quantity QOQTD' = ```
+			
+			VAR ValueCurrentPeriod = [Purchase Quantity QTD]
+			VAR ValuePreviousPeriod = [Purchase Quantity PQTD]
+			VAR Result =
+			    IF (
+			        NOT ISBLANK ( ValueCurrentPeriod ) 
+			            && NOT ISBLANK ( ValuePreviousPeriod ),
+			        ValueCurrentPeriod - ValuePreviousPeriod
+			    )
+			RETURN
+			    Result
+			
+			```
+		formatString: #,0.00
+		displayFolder: Purchase Quantity\Period-to-date growth
+		lineageTag: 1ce8974b-4167-497c-a635-36fdaf37d91a
+
+	measure 'Purchase Quantity QOQTD %' = ```
+			
+			DIVIDE ( 
+			    [Purchase Quantity QOQTD],
+			    [Purchase Quantity PQTD]
+			)
+			
+			```
+		formatString: 0.00%;-0.00%;0.00%
+		displayFolder: Purchase Quantity\Period-to-date growth
+		lineageTag: fb348b73-036b-4407-9cf8-ef2f779d4661
+
+	measure 'Purchase Quantity PQC' = ```
+			
+			IF (
+			    [ShowValueForDates] && HASONEVALUE ( 'Date'[Calendar Quarter Year] ),
+			    CALCULATE (
+			        [Purchase Quantity],
+			        PARALLELPERIOD ( 'Date'[Date], -1, QUARTER )
+			    )
+			)
+			
+			```
+		formatString: #,0.00
+		displayFolder: Purchase Quantity\Period-to-date over full previous period
+		lineageTag: aa66702c-408b-41b6-a43f-326f5017057e
+
+	measure 'Purchase Quantity QTDOPQ' = ```
+			
+			VAR ValueCurrentPeriod = [Purchase Quantity QTD]
+			VAR ValuePreviousPeriod = [Purchase Quantity PQC]
+			VAR Result =
+			    IF (
+			        NOT ISBLANK ( ValueCurrentPeriod ) 
+			            && NOT ISBLANK ( ValuePreviousPeriod ),
+			        ValueCurrentPeriod - ValuePreviousPeriod
+			    )
+			RETURN
+			    Result
+			
+			```
+		formatString: #,0.00
+		displayFolder: Purchase Quantity\Period-to-date over full previous period
+		lineageTag: af8de9c6-5ebb-44dc-8a89-081dbd7f51f0
+
+	measure 'Purchase Quantity QTDOPQ %' = ```
+			
+			DIVIDE ( 
+			    [Purchase Quantity QTDOPQ],
+			    [Purchase Quantity PQC]
+			)
+			
+			```
+		formatString: 0.00%;-0.00%;0.00%
+		displayFolder: Purchase Quantity\Period-to-date over full previous period
+		lineageTag: ecebf067-1170-409d-8e1a-8eaebfd444a4
+
+	measure 'Purchase Quantity PMTD' = ```
+			
+			IF (
+			    [ShowValueForDates],
+			    CALCULATE (
+			        [Purchase Quantity MTD],
+			        CALCULATETABLE ( 
+			            DATEADD ( 'Date'[Date], -1, MONTH ),
+			            'Date'[DateWithPurchases] = TRUE
+			        )
+			    )
+			)
+			
+			```
+		formatString: #,0.00
+		displayFolder: Purchase Quantity\Period-to-date growth
+		lineageTag: 15b209af-ac04-4d34-baad-ab7724390120
+
+	measure 'Purchase Quantity MOMTD' = ```
+			
+			VAR ValueCurrentPeriod = [Purchase Quantity MTD]
+			VAR ValuePreviousPeriod = [Purchase Quantity PMTD]
+			VAR Result =
+			    IF (
+			        NOT ISBLANK ( ValueCurrentPeriod ) 
+			            && NOT ISBLANK ( ValuePreviousPeriod ),
+			        ValueCurrentPeriod - ValuePreviousPeriod
+			    )
+			RETURN
+			    Result
+			
+			```
+		formatString: #,0.00
+		displayFolder: Purchase Quantity\Period-to-date growth
+		lineageTag: 5549b867-2ba0-4490-8276-f920e12c2c5c
+
+	measure 'Purchase Quantity MOMTD %' = ```
+			
+			DIVIDE ( 
+			    [Purchase Quantity MOMTD],
+			    [Purchase Quantity PMTD]
+			)
+			
+			```
+		formatString: 0.00%;-0.00%;0.00%
+		displayFolder: Purchase Quantity\Period-to-date growth
+		lineageTag: 7402e0da-765f-4324-b8d5-f22a9f11c598
+
+	measure 'Purchase Quantity PMC' = ```
+			
+			IF (
+			    [ShowValueForDates] && HASONEVALUE ( 'Date'[Calendar Month Year] ),
+			    CALCULATE (
+			        [Purchase Quantity],
+			        PARALLELPERIOD ( 'Date'[Date], -1, MONTH )
+			    )
+			)
+			
+			```
+		formatString: #,0.00
+		displayFolder: Purchase Quantity\Period-to-date over full previous period
+		lineageTag: 69d2758c-8ae1-4f84-a484-23dac95773f9
+
+	measure 'Purchase Quantity MTDOPM' = ```
+			
+			VAR ValueCurrentPeriod = [Purchase Quantity MTD]
+			VAR ValuePreviousPeriod = [Purchase Quantity PMC]
+			VAR Result =
+			    IF (
+			        NOT ISBLANK ( ValueCurrentPeriod ) 
+			            && NOT ISBLANK ( ValuePreviousPeriod ),
+			        ValueCurrentPeriod - ValuePreviousPeriod
+			    )
+			RETURN
+			    Result
+			
+			```
+		formatString: #,0.00
+		displayFolder: Purchase Quantity\Period-to-date over full previous period
+		lineageTag: 73ca35c3-7587-4b46-b165-8c37b835a77b
+
+	measure 'Purchase Quantity MTDOPM %' = ```
+			
+			DIVIDE ( 
+			    [Purchase Quantity MTDOPM],
+			    [Purchase Quantity PMC]
+			)
+			
+			```
+		formatString: 0.00%;-0.00%;0.00%
+		displayFolder: Purchase Quantity\Period-to-date over full previous period
+		lineageTag: bf33507c-80a0-4cda-a217-e830bfd56a44
+
+	measure 'Purchase Quantity AVG 30D' = ```
+			
+			VAR Period30D =
+			    CALCULATETABLE (
+			        DATESINPERIOD (
+			            'Date'[Date],
+			            MAX ( 'Date'[Date] ),
+			            -30,
+			            DAY
+			        ),
+			        'Date'[DateWithPurchases] = TRUE
+			    )
+			VAR FirstDayWithData =
+			    CALCULATE (
+			        INT (
+			            MINX (
+			                {
+			                    MIN ( 'Purchase Value Entries'[Date] ),
+			                    MIN ( 'Purchase Invoice Lines'[postingDate] ),
+			                    MIN ( 'Purchase Credit Lines'[postingDate] )
+			                },
+			                [Value]
+			            )
+			        ),
+			        REMOVEFILTERS ()
+			    )
+			VAR FirstDayInPeriod =
+			    MINX ( Period30D, 'Date'[Date] )
+			VAR Result =
+			    IF ( 
+			        FirstDayWithData <= FirstDayInPeriod,
+			        AVERAGEX (
+			            Period30D,
+			            [Purchase Quantity]
+			        )
+			    )
+			RETURN
+			    Result
+			
+			```
+		formatString: #,0.00
+		displayFolder: Purchase Quantity\Moving averages
+		lineageTag: 64b21ac4-1c78-46e9-83be-e2c9f7da708c
+
+	measure 'Purchase Quantity AVG 3M' = ```
+			
+			VAR Period3M =
+			    CALCULATETABLE (
+			        DATESINPERIOD (
+			            'Date'[Date],
+			            MAX ( 'Date'[Date] ),
+			            -3,
+			            MONTH
+			        ),
+			        'Date'[DateWithPurchases] = TRUE
+			    )
+			VAR FirstDayWithData =
+			    CALCULATE (
+			        INT (
+			            MINX (
+			                {
+			                    MIN ( 'Purchase Value Entries'[Date] ),
+			                    MIN ( 'Purchase Invoice Lines'[postingDate] ),
+			                    MIN ( 'Purchase Credit Lines'[postingDate] )
+			                },
+			                [Value]
+			            )
+			        ),
+			        REMOVEFILTERS ()
+			    )
+			VAR FirstDayInPeriod =
+			    MINX ( Period3M, 'Date'[Date] )
+			VAR Result =
+			    IF ( 
+			        FirstDayWithData <= FirstDayInPeriod,
+			        AVERAGEX (
+			            Period3M,
+			            [Purchase Quantity]
+			        )
+			    )
+			RETURN
+			    Result
+			
+			```
+		formatString: #,0.00
+		displayFolder: Purchase Quantity\Moving averages
+		lineageTag: 2de1e32c-8fa8-4a0f-990f-707cc49e4478
+
+	measure 'Purchase Quantity AVG 1Y' = ```
+			
+			VAR Period1Y =
+			    CALCULATETABLE (
+			        DATESINPERIOD (
+			            'Date'[Date],
+			            MAX ( 'Date'[Date] ),
+			            -1,
+			            YEAR
+			        ),
+			        'Date'[DateWithPurchases] = TRUE
+			    )
+			VAR FirstDayWithData =
+			    CALCULATE (
+			        INT (
+			            MINX (
+			                {
+			                    MIN ( 'Purchase Value Entries'[Date] ),
+			                    MIN ( 'Purchase Invoice Lines'[postingDate] ),
+			                    MIN ( 'Purchase Credit Lines'[postingDate] )
+			                },
+			                [Value]
+			            )
+			        ),
+			        REMOVEFILTERS ()
+			    )
+			VAR FirstDayInPeriod =
+			    MINX ( Period1Y, 'Date'[Date] )
+			VAR Result =
+			    IF ( 
+			        FirstDayWithData <= FirstDayInPeriod,
+			        AVERAGEX (
+			            Period1Y,
+			            [Purchase Quantity]
+			        )
+			    )
+			RETURN
+			    Result
+			
+			```
+		formatString: #,0.00
+		displayFolder: Purchase Quantity\Moving averages
+		lineageTag: 1d887308-f87a-4f67-8a99-6c4514716775
+
+	measure 'Purchase Quantity MATG' = ```
+			
+			VAR ValueCurrentPeriod = [Purchase Quantity MAT]
+			VAR ValuePreviousPeriod = [Purchase Quantity PYMAT]
+			VAR Result =
+			    IF (
+			        NOT ISBLANK ( ValueCurrentPeriod ) 
+			            && NOT ISBLANK ( ValuePreviousPeriod ),
+			        ValueCurrentPeriod - ValuePreviousPeriod
+			    )
+			RETURN
+			    Result
+			
+			```
+		formatString: #,0.00
+		displayFolder: Purchase Quantity\Moving annual total growth
+		lineageTag: d6805a2e-ae0c-491a-9e33-f4a745f9b278
+
+	measure 'Purchase Quantity MATG %' = ```
+			
+			DIVIDE ( 
+			    [Purchase Quantity MATG],
+			    [Purchase Quantity PYMAT]
+			)
+			
+			```
+		formatString: 0.00%;-0.00%;0.00%
+		displayFolder: Purchase Quantity\Moving annual total growth
+		lineageTag: 965fc6c1-f2c7-418f-9df8-59438f991d38
+
+	measure 'Purchase Quantity PP' = ```
+			
+			SWITCH ( 
+			    TRUE,
+			    ISINSCOPE ( 'Date'[Calendar Month Year] ), [Purchase Quantity PM],
+			    ISINSCOPE ( 'Date'[Calendar Quarter Year] ), [Purchase Quantity PQ],
+			    ISINSCOPE ( 'Date'[Calendar Year] ), [Purchase Quantity PY]
+			)
+			
+			```
+		formatString: #,0.00
+		displayFolder: Purchase Quantity\Period-over-period growth
+		lineageTag: 6fa3fa70-9559-4b87-b426-6028ea375067
+
+	measure 'Purchase Quantity POP' = ```
+			
+			SWITCH ( 
+			    TRUE,
+			    ISINSCOPE ( 'Date'[Calendar Month Year] ), [Purchase Quantity MOM],
+			    ISINSCOPE ( 'Date'[Calendar Quarter Year] ), [Purchase Quantity QOQ],
+			    ISINSCOPE ( 'Date'[Calendar Year] ), [Purchase Quantity YOY]
+			)
+			
+			```
+		formatString: #,0.00
+		displayFolder: Purchase Quantity\Period-over-period growth
+		lineageTag: cd24ecb6-143e-4cfa-9d24-da0703fe28b9
+
+	measure 'Purchase Quantity POP %' = ```
+			
+			SWITCH ( 
+			    TRUE,
+			    ISINSCOPE ( 'Date'[Calendar Month Year] ), [Purchase Quantity MOM %],
+			    ISINSCOPE ( 'Date'[Calendar Quarter Year] ), [Purchase Quantity QOQ %],
+			    ISINSCOPE ( 'Date'[Calendar Year] ), [Purchase Quantity YOY %]
+			)
+			
+			```
+		formatString: 0.00%;-0.00%;0.00%
+		displayFolder: Purchase Quantity\Period-over-period growth
+		lineageTag: 10d3798e-f815-4ce2-beab-49a97f43c523
+
+	measure 'Budget Amount YTD' = ```
+			
+			IF ( 
+			    [ShowValueForDates], 
+			    CALCULATE ( 
+			        [Budget Amount], 
+			        DATESYTD ( 'Date'[Date] ) 
+			    ) 
+			)
+			```
+		formatString: #,0.00
+		displayFolder: Budget Amount\Period-to-date total
+		lineageTag: b2910a36-793b-4372-87a8-12132c23d3d9
+
+	measure 'Budget Amount QTD' = ```
+			
+			IF (
+			    [ShowValueForDates],
+			    CALCULATE ( 
+			        [Budget Amount], 
+			        DATESQTD ( 'Date'[Date] )
+			    )
+			)
+			```
+		formatString: #,0.00
+		displayFolder: Budget Amount\Period-to-date total
+		lineageTag: 2bd71a0a-bbcb-4803-9d34-06b394c37900
+
+	measure 'Budget Amount MTD' = ```
+			
+			IF ( 
+			    [ShowValueForDates], 
+			    CALCULATE ( 
+			        [Budget Amount], 
+			        DATESMTD ( 'Date'[Date] ) 
+			    ) 
+			)
+			```
+		formatString: #,0.00
+		displayFolder: Budget Amount\Period-to-date total
+		lineageTag: 10cfd765-67b8-4499-8e55-da19fc486583
+
+	measure 'Budget Amount PY' = ```
+			
+			IF (
+			    [ShowValueForDates],
+			    CALCULATE (
+			        [Budget Amount],
+			        CALCULATETABLE ( 
+			            DATEADD ( 'Date'[Date], -1, YEAR ),
+			            'Date'[DateWithPurchases] = TRUE
+			        )
+			    )
+			)
+			```
+		formatString: #,0.00
+		displayFolder: Budget Amount\Period-over-period growth
+		lineageTag: acba2556-8384-4d57-872b-4bc0b0a3a5c4
+
+	measure 'Budget Amount YOY %' = ```
+			
+			DIVIDE ( 
+			    [Budget Amount YOY],
+			    [Budget Amount PY]
+			)
+			```
+		formatString: 0.00%;-0.00%;0.00%
+		displayFolder: Budget Amount\Period-over-period growth
+		lineageTag: 94e389ed-0003-47ae-82de-320f475ad643
+
+	measure 'Budget Amount YOY' = ```
+			
+			VAR ValueCurrentPeriod = [Budget Amount]
+			VAR ValuePreviousPeriod = [Budget Amount PY]
+			VAR Result =
+			    IF (
+			        NOT ISBLANK ( ValueCurrentPeriod ) 
+			            && NOT ISBLANK ( ValuePreviousPeriod ),
+			        ValueCurrentPeriod - ValuePreviousPeriod
+			    )
+			RETURN
+			    Result
+			
+			```
+		formatString: #,0.00
+		displayFolder: Budget Amount\Period-over-period growth
+		lineageTag: bbec3dc5-3fe7-4ca8-b7a0-d0be5ce19d84
+
+	measure 'Budget Amount PQ' = ```
+			
+			IF (
+			    [ShowValueForDates],
+			    CALCULATE (
+			        [Budget Amount],
+			        CALCULATETABLE ( 
+			            DATEADD ( 'Date'[Date], -1, QUARTER ),
+			            'Date'[DateWithPurchases] = TRUE
+			        )
+			    )
+			)
+			
+			```
+		formatString: #,0.00
+		displayFolder: Budget Amount\Period-over-period growth
+		lineageTag: 162de262-0118-4877-b6f0-8343b19ef0a7
+
+	measure 'Budget Amount QOQ' = ```
+			
+			VAR ValueCurrentPeriod = [Budget Amount]
+			VAR ValuePreviousPeriod = [Budget Amount PQ]
+			VAR Result =
+			    IF (
+			        NOT ISBLANK ( ValueCurrentPeriod ) 
+			            && NOT ISBLANK ( ValuePreviousPeriod ),
+			        ValueCurrentPeriod - ValuePreviousPeriod
+			    )
+			RETURN
+			    Result
+			
+			```
+		formatString: #,0.00
+		displayFolder: Budget Amount\Period-over-period growth
+		lineageTag: a678f03b-afbd-40ec-8b0a-a03b3049c5d1
+
+	measure 'Budget Amount PM' = ```
+			
+			IF (
+			    [ShowValueForDates],
+			    CALCULATE (
+			        [Budget Amount],
+			        CALCULATETABLE ( 
+			            DATEADD ( 'Date'[Date], -1, MONTH ),
+			            'Date'[DateWithPurchases] = TRUE
+			        )
+			    )
+			)
+			
+			```
+		formatString: #,0.00
+		displayFolder: Budget Amount\Period-over-period growth
+		lineageTag: a3662487-1fcc-40f9-b292-aef2a5afeada
+
+	measure 'Budget Amount QOQ %' = ```
+			
+			DIVIDE ( 
+			    [Budget Amount QOQ],
+			    [Budget Amount PQ]
+			)
+			
+			```
+		formatString: 0.00%;-0.00%;0.00%
+		displayFolder: Budget Amount\Period-over-period growth
+		lineageTag: 78bea2cd-3acd-44fd-aa04-4dfce842c997
+
+	measure 'Budget Amount MOM' = ```
+			
+			VAR ValueCurrentPeriod = [Budget Amount]
+			VAR ValuePreviousPeriod = [Budget Amount PM]
+			VAR Result =
+			    IF (
+			        NOT ISBLANK ( ValueCurrentPeriod ) 
+			            && NOT ISBLANK ( ValuePreviousPeriod ),
+			        ValueCurrentPeriod - ValuePreviousPeriod
+			    )
+			RETURN
+			    Result
+			
+			```
+		formatString: #,0.00
+		displayFolder: Budget Amount\Period-over-period growth
+		lineageTag: ddcdb173-3ab8-4f84-911d-f756baf0e335
+
+	measure 'Budget Amount MOM %' = ```
+			
+			DIVIDE ( 
+			    [Budget Amount MOM],
+			    [Budget Amount PM]
+			)
+			
+			```
+		formatString: 0.00%;-0.00%;0.00%
+		displayFolder: Budget Amount\Period-over-period growth
+		lineageTag: 783c4e69-eef0-45e8-baa7-4f5572120898
+
+	measure 'Budget Amount PP' = ```
+			
+			SWITCH ( 
+			    TRUE,
+			    ISINSCOPE ( 'Date'[Calendar Month Year] ), [Budget Amount PM],
+			    ISINSCOPE ( 'Date'[Calendar Quarter Year] ), [Budget Amount PQ],
+			    ISINSCOPE ( 'Date'[Calendar Year] ), [Budget Amount PY]
+			)
+			
+			```
+		formatString: #,0.00
+		displayFolder: Budget Amount\Period-over-period growth
+		lineageTag: 8b4f3af1-5663-4d4b-97f8-aada68c6139c
+
+	measure 'Budget Amount POP' = ```
+			
+			SWITCH ( 
+			    TRUE,
+			    ISINSCOPE ( 'Date'[Calendar Month Year] ), [Budget Amount MOM],
+			    ISINSCOPE ( 'Date'[Calendar Quarter Year] ), [Budget Amount QOQ],
+			    ISINSCOPE ( 'Date'[Calendar Year] ), [Budget Amount YOY]
+			)
+			
+			```
+		formatString: #,0.00
+		displayFolder: Budget Amount\Period-over-period growth
+		lineageTag: 5f9df90c-ff2f-4113-bd4f-ac21d5f814d9
+
+	measure 'Budget Amount POP %' = ```
+			
+			SWITCH ( 
+			    TRUE,
+			    ISINSCOPE ( 'Date'[Calendar Month Year] ), [Budget Amount MOM %],
+			    ISINSCOPE ( 'Date'[Calendar Quarter Year] ), [Budget Amount QOQ %],
+			    ISINSCOPE ( 'Date'[Calendar Year] ), [Budget Amount YOY %]
+			)
+			
+			```
+		formatString: 0.00%;-0.00%;0.00%
+		displayFolder: Budget Amount\Period-over-period growth
+		lineageTag: 8b9334e3-495f-43e6-b945-3d8ba371799f
+
+	measure 'Budget Amount PYTD' = ```
+			
+			IF (
+			    [ShowValueForDates],
+			    CALCULATE (
+			        [Budget Amount YTD],
+			        CALCULATETABLE ( 
+			            DATEADD ( 'Date'[Date], -1, YEAR ),
+			            'Date'[DateWithPurchases] = TRUE
+			        )
+			    )
+			)
+			
+			```
+		formatString: #,0.00
+		displayFolder: Budget Amount\Period-to-date growth
+		lineageTag: 083bc435-f0be-4b2a-9ad2-431ddc02a239
+
+	measure 'Budget Amount PQTD' = ```
+			
+			IF (
+			    [ShowValueForDates],
+			    CALCULATE (
+			        [Budget Amount QTD],
+			        CALCULATETABLE ( 
+			            DATEADD ( 'Date'[Date], -1, QUARTER ),
+			            'Date'[DateWithPurchases] = TRUE
+			        )
+			    )
+			)
+			```
+		formatString: #,0.00
+		displayFolder: Budget Amount\Period-to-date growth
+		lineageTag: 7ac8d2c3-be33-4a82-a982-e01f243f0e69
+
+	measure 'Budget Amount YOYTD' = ```
+			
+			VAR ValueCurrentPeriod = [Budget Amount YTD]
+			VAR ValuePreviousPeriod = [Budget Amount PYTD]
+			VAR Result =
+			    IF (
+			        NOT ISBLANK ( ValueCurrentPeriod ) 
+			            && NOT ISBLANK ( ValuePreviousPeriod ),
+			        ValueCurrentPeriod - ValuePreviousPeriod
+			    )
+			RETURN
+			    Result
+			```
+		formatString: #,0.00
+		displayFolder: Budget Amount\Period-to-date growth
+		lineageTag: 41f99a96-6f60-4a1b-85cd-05d2c006540d
+
+	measure 'Budget Amount YOYTD %' = ```
+			
+			DIVIDE ( 
+			    [Budget Amount YOYTD],
+			    [Budget Amount PYTD]
+			)
+			
+			```
+		formatString: 0.00%;-0.00%;0.00%
+		displayFolder: Budget Amount\Period-to-date growth
+		lineageTag: 8d164339-9940-4451-bc9c-6bb2e2c444a5
+
+	measure 'Budget Amount QOQTD' = ```
+			
+			VAR ValueCurrentPeriod = [Budget Amount QTD]
+			VAR ValuePreviousPeriod = [Budget Amount PQTD]
+			VAR Result =
+			    IF (
+			        NOT ISBLANK ( ValueCurrentPeriod ) 
+			            && NOT ISBLANK ( ValuePreviousPeriod ),
+			        ValueCurrentPeriod - ValuePreviousPeriod
+			    )
+			RETURN
+			    Result
+			
+			```
+		formatString: #,0.00
+		displayFolder: Budget Amount\Period-to-date growth
+		lineageTag: be98964f-8087-41a2-9846-b1e58b3c7c40
+
+	measure 'Budget Amount QOQTD %' = ```
+			
+			DIVIDE ( 
+			    [Budget Amount QOQTD],
+			    [Budget Amount PQTD]
+			)
+			
+			```
+		formatString: 0.00%;-0.00%;0.00%
+		displayFolder: Budget Amount\Period-to-date growth
+		lineageTag: 233ed055-43ad-4c14-9865-e1d72776ea2c
+
+	measure 'Budget Amount PMTD' = ```
+			
+			IF (
+			    [ShowValueForDates],
+			    CALCULATE (
+			        [Budget Amount MTD],
+			        CALCULATETABLE ( 
+			            DATEADD ( 'Date'[Date], -1, MONTH ),
+			            'Date'[DateWithPurchases] = TRUE
+			        )
+			    )
+			)
+			
+			```
+		formatString: #,0.00
+		displayFolder: Budget Amount\Period-to-date growth
+		lineageTag: 82dfcdd3-bf95-4403-9673-4bc8b24f8a21
+
+	measure 'Budget Amount MOMTD' = ```
+			
+			VAR ValueCurrentPeriod = [Budget Amount MTD]
+			VAR ValuePreviousPeriod = [Budget Amount PMTD]
+			VAR Result =
+			    IF (
+			        NOT ISBLANK ( ValueCurrentPeriod ) 
+			            && NOT ISBLANK ( ValuePreviousPeriod ),
+			        ValueCurrentPeriod - ValuePreviousPeriod
+			    )
+			RETURN
+			    Result
+			
+			```
+		formatString: #,0.00
+		displayFolder: Budget Amount\Period-to-date growth
+		lineageTag: 89d26dcb-57e9-4991-b9fa-c2159e096401
+
+	measure 'Budget Amount MOMTD %' = ```
+			
+			DIVIDE ( 
+			    [Budget Amount MOMTD],
+			    [Budget Amount PMTD]
+			)
+			
+			```
+		formatString: 0.00%;-0.00%;0.00%
+		displayFolder: Budget Amount\Period-to-date growth
+		lineageTag: 13f6bd36-f1fb-4a7c-add3-c547eeff3bae
+
+	measure 'Budget Amount MAT' = ```
+			
+			IF ( 
+			    [ShowValueForDates], 
+			    CALCULATE ( 
+			        [Budget Amount], 
+			        DATESINPERIOD (
+			            'Date'[Date],
+			            MAX ( 'Date'[Date] ),
+			            -1,
+			            YEAR
+			        )
+			    ) 
+			)
+			
+			```
+		formatString: #,0.00
+		displayFolder: Budget Amount\Moving annual total growth
+		lineageTag: 958d40bd-ec30-4589-ba5f-e405d1092b64
+
+	measure 'Budget Amount PYMAT' =
+			
+			IF (
+			    [ShowValueForDates],
+			    CALCULATE (
+			        [Budget Amount MAT],
+			        DATEADD ( 'Date'[Date], -1, YEAR )
+			    )
+			)
+		formatString: #,0.00
+		displayFolder: Budget Amount\Moving annual total growth
+		lineageTag: 3a0028fe-e6f4-4e8f-990f-33a3755f3199
+
+	measure 'Budget Amount MATG' = ```
+			
+			VAR ValueCurrentPeriod = [Budget Amount MAT]
+			VAR ValuePreviousPeriod = [Budget Amount PYMAT]
+			VAR Result =
+			    IF (
+			        NOT ISBLANK ( ValueCurrentPeriod ) 
+			            && NOT ISBLANK ( ValuePreviousPeriod ),
+			        ValueCurrentPeriod - ValuePreviousPeriod
+			    )
+			RETURN
+			    Result
+			
+			```
+		formatString: #,0.00
+		displayFolder: Budget Amount\Moving annual total growth
+		lineageTag: 182657d3-742d-4854-a300-b44929203d19
+
+	measure 'Budget Amount MATG %' = ```
+			
+			DIVIDE ( 
+			    [Budget Amount MATG],
+			    [Budget Amount PYMAT]
+			)
+			
+			```
+		formatString: 0.00%;-0.00%;0.00%
+		displayFolder: Budget Amount\Moving annual total growth
+		lineageTag: 8e8a6bab-f0ee-4136-bd24-027d8cf4a3c8
+
+	measure 'Budget Amount PYC' = ```
+			
+			IF (
+			    [ShowValueForDates] && HASONEVALUE ( 'Date'[Calendar Year] ),
+			    CALCULATE (
+			        [Budget Amount],
+			        PARALLELPERIOD ( 'Date'[Date], -1, YEAR )
+			    )
+			)
+			
+			```
+		formatString: #,0.00
+		displayFolder: Budget Amount\Period-to-date over full previous period
+		lineageTag: b01ce0e7-67ff-4c63-9cc7-09fd403ec302
+
+	measure 'Budget Amount YTDOPY' = ```
+			
+			VAR ValueCurrentPeriod = [Budget Amount YTD]
+			VAR ValuePreviousPeriod = [Budget Amount PYC]
+			VAR Result =
+			    IF (
+			        NOT ISBLANK ( ValueCurrentPeriod ) 
+			            && NOT ISBLANK ( ValuePreviousPeriod ),
+			        ValueCurrentPeriod - ValuePreviousPeriod
+			    )
+			RETURN
+			    Result
+			
+			```
+		formatString: #,0.00
+		displayFolder: Budget Amount\Period-to-date over full previous period
+		lineageTag: e355bd9f-bcaf-4dca-8da6-54ebc26bfc8f
+
+	measure 'Budget Amount YTDOPY %' = ```
+			
+			DIVIDE ( 
+			    [Budget Amount YTDOPY],
+			    [Budget Amount PYC]
+			)
+			
+			```
+		formatString: 0.00%;-0.00%;0.00%
+		displayFolder: Budget Amount\Period-to-date over full previous period
+		lineageTag: d7e1c1c5-6248-4b2d-bc56-437b06b9516e
+
+	measure 'Budget Amount PQC' = ```
+			
+			IF (
+			    [ShowValueForDates] && HASONEVALUE ( 'Date'[Calendar Quarter Year] ),
+			    CALCULATE (
+			        [Budget Amount],
+			        PARALLELPERIOD ( 'Date'[Date], -1, QUARTER )
+			    )
+			)
+			
+			```
+		formatString: #,0.00
+		displayFolder: Budget Amount\Period-to-date over full previous period
+		lineageTag: dfaa705e-26e1-40ff-8970-0bf54767edb7
+
+	measure 'Budget Amount QTDOPQ' = ```
+			
+			VAR ValueCurrentPeriod = [Budget Amount QTD]
+			VAR ValuePreviousPeriod = [Budget Amount PQC]
+			VAR Result =
+			    IF (
+			        NOT ISBLANK ( ValueCurrentPeriod ) 
+			            && NOT ISBLANK ( ValuePreviousPeriod ),
+			        ValueCurrentPeriod - ValuePreviousPeriod
+			    )
+			RETURN
+			    Result
+			
+			```
+		formatString: #,0.00
+		displayFolder: Budget Amount\Period-to-date over full previous period
+		lineageTag: 6d929ed3-b5c4-49bf-b7a7-9faf165710bc
+
+	measure 'Budget Amount QTDOPQ %' = ```
+			
+			DIVIDE ( 
+			    [Budget Amount QTDOPQ],
+			    [Budget Amount PQC]
+			)
+			
+			```
+		formatString: 0.00%;-0.00%;0.00%
+		displayFolder: Budget Amount\Period-to-date over full previous period
+		lineageTag: 9cdd324a-96d3-45b7-b810-55bb1a5566e1
+
+	measure 'Budget Amount PMC' = ```
+			
+			IF (
+			    [ShowValueForDates] && HASONEVALUE ( 'Date'[Calendar Month Year] ),
+			    CALCULATE (
+			        [Budget Amount],
+			        PARALLELPERIOD ( 'Date'[Date], -1, MONTH )
+			    )
+			)
+			
+			```
+		formatString: #,0.00
+		displayFolder: Budget Amount\Period-to-date over full previous period
+		lineageTag: f0ad174d-5a4b-494c-bde8-07d1adbe41f7
+
+	measure 'Budget Amount MTDOPM' = ```
+			
+			VAR ValueCurrentPeriod = [Budget Amount MTD]
+			VAR ValuePreviousPeriod = [Budget Amount PMC]
+			VAR Result =
+			    IF (
+			        NOT ISBLANK ( ValueCurrentPeriod ) 
+			            && NOT ISBLANK ( ValuePreviousPeriod ),
+			        ValueCurrentPeriod - ValuePreviousPeriod
+			    )
+			RETURN
+			    Result
+			
+			```
+		formatString: #,0.00
+		displayFolder: Budget Amount\Period-to-date over full previous period
+		lineageTag: a37e8902-7935-42a9-ac16-662a85940a87
+
+	measure 'Budget Amount MTDOPM %' = ```
+			
+			DIVIDE ( 
+			    [Budget Amount MTDOPM],
+			    [Budget Amount PMC]
+			)
+			
+			```
+		formatString: 0.00%;-0.00%;0.00%
+		displayFolder: Budget Amount\Period-to-date over full previous period
+		lineageTag: 5a38e030-f599-4676-82f3-4b8e8d674d15
+
+	measure 'Budget Amount AVG 30D' = ```
+			
+			VAR Period30D =
+			    CALCULATETABLE (
+			        DATESINPERIOD (
+			            'Date'[Date],
+			            MAX ( 'Date'[Date] ),
+			            -30,
+			            DAY
+			        ),
+			        'Date'[DateWithPurchases] = TRUE
+			    )
+			VAR FirstDayWithData =
+			    CALCULATE (
+			        MIN ( 'Purchase Budget'[Date] ),
+			        REMOVEFILTERS ()
+			    )
+			VAR FirstDayInPeriod =
+			    MINX ( Period30D, 'Date'[Date] )
+			VAR Result =
+			    IF ( 
+			        FirstDayWithData <= FirstDayInPeriod,
+			        AVERAGEX (
+			            Period30D,
+			            [Budget Amount]
+			        )
+			    )
+			RETURN
+			    Result
+			
+			```
+		formatString: #,0.00
+		displayFolder: Budget Amount\Moving averages
+		lineageTag: 1ae76a46-3a36-47d6-b48c-abd80f7207c1
+
+	measure 'Budget Amount AVG 3M' = ```
+			
+			VAR Period3M =
+			    CALCULATETABLE (
+			        DATESINPERIOD (
+			            'Date'[Date],
+			            MAX ( 'Date'[Date] ),
+			            -3,
+			            MONTH
+			        ),
+			        'Date'[DateWithPurchases] = TRUE
+			    )
+			VAR FirstDayWithData =
+			    CALCULATE (
+			        MIN ( 'Purchase Budget'[Date] ),
+			        REMOVEFILTERS ()
+			    )
+			VAR FirstDayInPeriod =
+			    MINX ( Period3M, 'Date'[Date] )
+			VAR Result =
+			    IF ( 
+			        FirstDayWithData <= FirstDayInPeriod,
+			        AVERAGEX (
+			            Period3M,
+			            [Budget Amount]
+			        )
+			    )
+			RETURN
+			    Result
+			
+			```
+		formatString: #,0.00
+		displayFolder: Budget Amount\Moving averages
+		lineageTag: 8b2402f3-26c8-4afe-bc6d-717d67a958f2
+
+	measure 'Budget Amount AVG 1Y' = ```
+			
+			VAR Period1Y =
+			    CALCULATETABLE (
+			        DATESINPERIOD (
+			            'Date'[Date],
+			            MAX ( 'Date'[Date] ),
+			            -1,
+			            YEAR
+			        ),
+			        'Date'[DateWithPurchases] = TRUE
+			    )
+			VAR FirstDayWithData =
+			    CALCULATE (
+			        MIN ( 'Purchase Budget'[Date] ),
+			        REMOVEFILTERS ()
+			    )
+			VAR FirstDayInPeriod =
+			    MINX ( Period1Y, 'Date'[Date] )
+			VAR Result =
+			    IF ( 
+			        FirstDayWithData <= FirstDayInPeriod,
+			        AVERAGEX (
+			            Period1Y,
+			            [Budget Amount]
+			        )
+			    )
+			RETURN
+			    Result
+			
+			```
+		formatString: #,0.00
+		displayFolder: Budget Amount\Moving averages
+		lineageTag: 74d0cf48-0310-4298-9a27-d3ce96606941
+
+	measure 'Budget Quantity YTD' = ```
+			
+			IF ( 
+			    [ShowValueForDates], 
+			    CALCULATE ( 
+			        [Budget Quantity], 
+			        DATESYTD ( 'Date'[Date] ) 
+			    ) 
+			)
+			```
+		formatString: #,0.00
+		displayFolder: Budget Quantity\Period-to-date total
+		lineageTag: 8914cbcc-b952-402c-ad58-84a3fe126c1d
+
+	measure 'Budget Quantity QTD' = ```
+			
+			IF (
+			    [ShowValueForDates],
+			    CALCULATE ( 
+			        [Budget Quantity], 
+			        DATESQTD ( 'Date'[Date] )
+			    )
+			)
+			```
+		formatString: #,0.00
+		displayFolder: Budget Quantity\Period-to-date total
+		lineageTag: 00351f56-24d0-4e40-a7fa-0ec0a69b4fe5
+
+	measure 'Budget Quantity MTD' = ```
+			
+			IF ( 
+			    [ShowValueForDates], 
+			    CALCULATE ( 
+			        [Budget Quantity], 
+			        DATESMTD ( 'Date'[Date] ) 
+			    ) 
+			)
+			```
+		formatString: #,0.00
+		displayFolder: Budget Quantity\Period-to-date total
+		lineageTag: 0cb8190d-adb9-4e13-a00c-eb6ce7766169
+
+	measure 'Budget Quantity PY' = ```
+			
+			IF (
+			    [ShowValueForDates],
+			    CALCULATE (
+			        [Budget Quantity],
+			        CALCULATETABLE ( 
+			            DATEADD ( 'Date'[Date], -1, YEAR ),
+			            'Date'[DateWithPurchases] = TRUE
+			        )
+			    )
+			)
+			```
+		formatString: #,0.00
+		displayFolder: Budget Quantity\Period-over-period growth
+		lineageTag: fdb11625-6cd8-4e13-965d-3b21c065a553
+
+	measure 'Budget Quantity YOY %' = ```
+			
+			DIVIDE ( 
+			    [Budget Quantity YOY],
+			    [Budget Quantity PY]
+			)
+			```
+		formatString: 0.00%;-0.00%;0.00%
+		displayFolder: Budget Quantity\Period-over-period growth
+		lineageTag: 28b65d32-f6e1-45cb-be7e-2f1b951b9528
+
+	measure 'Budget Quantity YOY' = ```
+			
+			VAR ValueCurrentPeriod = [Budget Quantity]
+			VAR ValuePreviousPeriod = [Budget Quantity PY]
+			VAR Result =
+			    IF (
+			        NOT ISBLANK ( ValueCurrentPeriod ) 
+			            && NOT ISBLANK ( ValuePreviousPeriod ),
+			        ValueCurrentPeriod - ValuePreviousPeriod
+			    )
+			RETURN
+			    Result
+			
+			```
+		formatString: #,0.00
+		displayFolder: Budget Quantity\Period-over-period growth
+		lineageTag: f48cf8e1-2a55-4c2b-86e1-4fd4003d6a36
+
+	measure 'Budget Quantity PQ' = ```
+			
+			IF (
+			    [ShowValueForDates],
+			    CALCULATE (
+			        [Budget Quantity],
+			        CALCULATETABLE ( 
+			            DATEADD ( 'Date'[Date], -1, QUARTER ),
+			            'Date'[DateWithPurchases] = TRUE
+			        )
+			    )
+			)
+			
+			```
+		formatString: #,0.00
+		displayFolder: Budget Quantity\Period-over-period growth
+		lineageTag: 07d50e51-ca1e-46ea-8696-fb7be89e7bbf
+
+	measure 'Budget Quantity QOQ' = ```
+			
+			VAR ValueCurrentPeriod = [Budget Quantity]
+			VAR ValuePreviousPeriod = [Budget Quantity PQ]
+			VAR Result =
+			    IF (
+			        NOT ISBLANK ( ValueCurrentPeriod ) 
+			            && NOT ISBLANK ( ValuePreviousPeriod ),
+			        ValueCurrentPeriod - ValuePreviousPeriod
+			    )
+			RETURN
+			    Result
+			
+			```
+		formatString: #,0.00
+		displayFolder: Budget Quantity\Period-over-period growth
+		lineageTag: ac5312d1-2ee7-4a55-809b-8280311ad06a
+
+	measure 'Budget Quantity PM' = ```
+			
+			IF (
+			    [ShowValueForDates],
+			    CALCULATE (
+			        [Budget Quantity],
+			        CALCULATETABLE ( 
+			            DATEADD ( 'Date'[Date], -1, MONTH ),
+			            'Date'[DateWithPurchases] = TRUE
+			        )
+			    )
+			)
+			
+			```
+		formatString: #,0.00
+		displayFolder: Budget Quantity\Period-over-period growth
+		lineageTag: 5c257992-ec58-42d3-8636-ed8646aaf906
+
+	measure 'Budget Quantity QOQ %' = ```
+			
+			DIVIDE ( 
+			    [Budget Quantity QOQ],
+			    [Budget Quantity PQ]
+			)
+			
+			```
+		formatString: 0.00%;-0.00%;0.00%
+		displayFolder: Budget Quantity\Period-over-period growth
+		lineageTag: f3c27460-0c0b-44d0-a140-94e68edbc2a9
+
+	measure 'Budget Quantity MOM' = ```
+			
+			VAR ValueCurrentPeriod = [Budget Quantity]
+			VAR ValuePreviousPeriod = [Budget Quantity PM]
+			VAR Result =
+			    IF (
+			        NOT ISBLANK ( ValueCurrentPeriod ) 
+			            && NOT ISBLANK ( ValuePreviousPeriod ),
+			        ValueCurrentPeriod - ValuePreviousPeriod
+			    )
+			RETURN
+			    Result
+			
+			```
+		formatString: #,0.00
+		displayFolder: Budget Quantity\Period-over-period growth
+		lineageTag: 0896c8b1-1f54-463b-8119-aeaff6814b39
+
+	measure 'Budget Quantity MOM %' = ```
+			
+			DIVIDE ( 
+			    [Budget Quantity MOM],
+			    [Budget Quantity PM]
+			)
+			
+			```
+		formatString: 0.00%;-0.00%;0.00%
+		displayFolder: Budget Quantity\Period-over-period growth
+		lineageTag: 90ae3ec7-e69f-448d-b21a-b7053b49177d
+
+	measure 'Budget Quantity PP' = ```
+			
+			SWITCH ( 
+			    TRUE,
+			    ISINSCOPE ( 'Date'[Calendar Month Year] ), [Budget Quantity PM],
+			    ISINSCOPE ( 'Date'[Calendar Quarter Year] ), [Budget Quantity PQ],
+			    ISINSCOPE ( 'Date'[Calendar Year] ), [Budget Quantity PY]
+			)
+			
+			```
+		formatString: #,0.00
+		displayFolder: Budget Quantity\Period-over-period growth
+		lineageTag: 790bff91-0a60-4cb0-b026-6c1ed8bd6d11
+
+	measure 'Budget Quantity POP' = ```
+			
+			SWITCH ( 
+			    TRUE,
+			    ISINSCOPE ( 'Date'[Calendar Month Year] ), [Budget Quantity MOM],
+			    ISINSCOPE ( 'Date'[Calendar Quarter Year] ), [Budget Quantity QOQ],
+			    ISINSCOPE ( 'Date'[Calendar Year] ), [Budget Quantity YOY]
+			)
+			
+			```
+		formatString: #,0.00
+		displayFolder: Budget Quantity\Period-over-period growth
+		lineageTag: fd0d4702-55c7-42ef-810b-7fd73fabcfec
+
+	measure 'Budget Quantity POP %' = ```
+			
+			SWITCH ( 
+			    TRUE,
+			    ISINSCOPE ( 'Date'[Calendar Month Year] ), [Budget Quantity MOM %],
+			    ISINSCOPE ( 'Date'[Calendar Quarter Year] ), [Budget Quantity QOQ %],
+			    ISINSCOPE ( 'Date'[Calendar Year] ), [Budget Quantity YOY %]
+			)
+			
+			```
+		formatString: 0.00%;-0.00%;0.00%
+		displayFolder: Budget Quantity\Period-over-period growth
+		lineageTag: cbc2eae0-9d9a-4552-b588-e8c3f8b6430c
+
+	measure 'Budget Quantity PYTD' = ```
+			
+			IF (
+			    [ShowValueForDates],
+			    CALCULATE (
+			        [Budget Quantity YTD],
+			        CALCULATETABLE ( 
+			            DATEADD ( 'Date'[Date], -1, YEAR ),
+			            'Date'[DateWithPurchases] = TRUE
+			        )
+			    )
+			)
+			
+			```
+		formatString: #,0.00
+		displayFolder: Budget Quantity\Period-to-date growth
+		lineageTag: 2fc43bc0-7b68-4b0e-88af-581164dcc884
+
+	measure 'Budget Quantity PQTD' = ```
+			
+			IF (
+			    [ShowValueForDates],
+			    CALCULATE (
+			        [Budget Quantity QTD],
+			        CALCULATETABLE ( 
+			            DATEADD ( 'Date'[Date], -1, QUARTER ),
+			            'Date'[DateWithPurchases] = TRUE
+			        )
+			    )
+			)
+			```
+		formatString: #,0.00
+		displayFolder: Budget Quantity\Period-to-date growth
+		lineageTag: 784b78f1-f4bd-43cd-b32c-bdb337a44ed4
+
+	measure 'Budget Quantity YOYTD' = ```
+			
+			VAR ValueCurrentPeriod = [Budget Quantity YTD]
+			VAR ValuePreviousPeriod = [Budget Quantity PYTD]
+			VAR Result =
+			    IF (
+			        NOT ISBLANK ( ValueCurrentPeriod ) 
+			            && NOT ISBLANK ( ValuePreviousPeriod ),
+			        ValueCurrentPeriod - ValuePreviousPeriod
+			    )
+			RETURN
+			    Result
+			```
+		formatString: #,0.00
+		displayFolder: Budget Quantity\Period-to-date growth
+		lineageTag: faee458c-fa4c-4ab5-aa7c-7f9ccbdef973
+
+	measure 'Budget Quantity YOYTD %' = ```
+			
+			DIVIDE ( 
+			    [Budget Quantity YOYTD],
+			    [Budget Quantity PYTD]
+			)
+			
+			```
+		formatString: 0.00%;-0.00%;0.00%
+		displayFolder: Budget Quantity\Period-to-date growth
+		lineageTag: a78def76-bd86-46da-bdab-26afb31597cf
+
+	measure 'Budget Quantity QOQTD' = ```
+			
+			VAR ValueCurrentPeriod = [Budget Quantity QTD]
+			VAR ValuePreviousPeriod = [Budget Quantity PQTD]
+			VAR Result =
+			    IF (
+			        NOT ISBLANK ( ValueCurrentPeriod ) 
+			            && NOT ISBLANK ( ValuePreviousPeriod ),
+			        ValueCurrentPeriod - ValuePreviousPeriod
+			    )
+			RETURN
+			    Result
+			
+			```
+		formatString: #,0.00
+		displayFolder: Budget Quantity\Period-to-date growth
+		lineageTag: be3b9355-f293-4b57-8df4-da5c9962937b
+
+	measure 'Budget Quantity QOQTD %' = ```
+			
+			DIVIDE ( 
+			    [Budget Quantity QOQTD],
+			    [Budget Quantity PQTD]
+			)
+			
+			```
+		formatString: 0.00%;-0.00%;0.00%
+		displayFolder: Budget Quantity\Period-to-date growth
+		lineageTag: 4af6d431-8815-41c2-a89d-8de90e586af8
+
+	measure 'Budget Quantity PMTD' = ```
+			
+			IF (
+			    [ShowValueForDates],
+			    CALCULATE (
+			        [Budget Quantity MTD],
+			        CALCULATETABLE ( 
+			            DATEADD ( 'Date'[Date], -1, MONTH ),
+			            'Date'[DateWithPurchases] = TRUE
+			        )
+			    )
+			)
+			
+			```
+		formatString: #,0.00
+		displayFolder: Budget Quantity\Period-to-date growth
+		lineageTag: f9c94f82-0be7-4a8e-8e36-b73657f65a9b
+
+	measure 'Budget Quantity MOMTD' = ```
+			
+			VAR ValueCurrentPeriod = [Budget Quantity MTD]
+			VAR ValuePreviousPeriod = [Budget Quantity PMTD]
+			VAR Result =
+			    IF (
+			        NOT ISBLANK ( ValueCurrentPeriod ) 
+			            && NOT ISBLANK ( ValuePreviousPeriod ),
+			        ValueCurrentPeriod - ValuePreviousPeriod
+			    )
+			RETURN
+			    Result
+			
+			```
+		formatString: #,0.00
+		displayFolder: Budget Quantity\Period-to-date growth
+		lineageTag: 19973dbe-6373-42df-a35f-b08a0c1037c4
+
+	measure 'Budget Quantity MOMTD %' = ```
+			
+			DIVIDE ( 
+			    [Budget Quantity MOMTD],
+			    [Budget Quantity PMTD]
+			)
+			
+			```
+		formatString: 0.00%;-0.00%;0.00%
+		displayFolder: Budget Quantity\Period-to-date growth
+		lineageTag: d3dfcaa0-3cb6-4470-972a-d72524ba795d
+
+	measure 'Budget Quantity MAT' = ```
+			
+			IF ( 
+			    [ShowValueForDates], 
+			    CALCULATE ( 
+			        [Budget Quantity], 
+			        DATESINPERIOD (
+			            'Date'[Date],
+			            MAX ( 'Date'[Date] ),
+			            -1,
+			            YEAR
+			        )
+			    ) 
+			)
+			
+			```
+		formatString: #,0.00
+		displayFolder: Budget Quantity\Moving annual total growth
+		lineageTag: 305f97ea-baf5-4e22-b6ba-2b9622353285
+
+	measure 'Budget Quantity PYMAT' =
+			
+			IF (
+			    [ShowValueForDates],
+			    CALCULATE (
+			        [Budget Quantity MAT],
+			        DATEADD ( 'Date'[Date], -1, YEAR )
+			    )
+			)
+		formatString: #,0.00
+		displayFolder: Budget Quantity\Moving annual total growth
+		lineageTag: 093f7923-1abb-4953-aee4-e4d9bfb7a12b
+
+	measure 'Budget Quantity MATG' = ```
+			
+			VAR ValueCurrentPeriod = [Budget Quantity MAT]
+			VAR ValuePreviousPeriod = [Budget Quantity PYMAT]
+			VAR Result =
+			    IF (
+			        NOT ISBLANK ( ValueCurrentPeriod ) 
+			            && NOT ISBLANK ( ValuePreviousPeriod ),
+			        ValueCurrentPeriod - ValuePreviousPeriod
+			    )
+			RETURN
+			    Result
+			
+			```
+		formatString: #,0.00
+		displayFolder: Budget Quantity\Moving annual total growth
+		lineageTag: 45a4c8f5-31bb-4658-9d69-673d9892694c
+
+	measure 'Budget Quantity MATG %' = ```
+			
+			DIVIDE ( 
+			    [Budget Quantity MATG],
+			    [Budget Quantity PYMAT]
+			)
+			
+			```
+		formatString: 0.00%;-0.00%;0.00%
+		displayFolder: Budget Quantity\Moving annual total growth
+		lineageTag: bdcf7988-51e6-46f5-9dea-f09873223e15
+
+	measure 'Budget Quantity PYC' = ```
+			
+			IF (
+			    [ShowValueForDates] && HASONEVALUE ( 'Date'[Calendar Year] ),
+			    CALCULATE (
+			        [Budget Quantity],
+			        PARALLELPERIOD ( 'Date'[Date], -1, YEAR )
+			    )
+			)
+			
+			```
+		formatString: #,0.00
+		displayFolder: Budget Quantity\Period-to-date over full previous period
+		lineageTag: bb0fc1aa-8c1d-43a1-b76d-98a89fdcaab9
+
+	measure 'Budget Quantity YTDOPY' = ```
+			
+			VAR ValueCurrentPeriod = [Budget Quantity YTD]
+			VAR ValuePreviousPeriod = [Budget Quantity PYC]
+			VAR Result =
+			    IF (
+			        NOT ISBLANK ( ValueCurrentPeriod ) 
+			            && NOT ISBLANK ( ValuePreviousPeriod ),
+			        ValueCurrentPeriod - ValuePreviousPeriod
+			    )
+			RETURN
+			    Result
+			
+			```
+		formatString: #,0.00
+		displayFolder: Budget Quantity\Period-to-date over full previous period
+		lineageTag: 1a3fae80-bd96-4e5c-aed8-b7662065fe30
+
+	measure 'Budget Quantity YTDOPY %' = ```
+			
+			DIVIDE ( 
+			    [Budget Quantity YTDOPY],
+			    [Budget Quantity PYC]
+			)
+			
+			```
+		formatString: 0.00%;-0.00%;0.00%
+		displayFolder: Budget Quantity\Period-to-date over full previous period
+		lineageTag: 6da89987-90da-4c01-a432-c6750e0e2a67
+
+	measure 'Budget Quantity PQC' = ```
+			
+			IF (
+			    [ShowValueForDates] && HASONEVALUE ( 'Date'[Calendar Quarter Year] ),
+			    CALCULATE (
+			        [Budget Quantity],
+			        PARALLELPERIOD ( 'Date'[Date], -1, QUARTER )
+			    )
+			)
+			
+			```
+		formatString: #,0.00
+		displayFolder: Budget Quantity\Period-to-date over full previous period
+		lineageTag: 2e1a2186-1a3b-45db-9bd0-7100c3f8c35c
+
+	measure 'Budget Quantity QTDOPQ' = ```
+			
+			VAR ValueCurrentPeriod = [Budget Quantity QTD]
+			VAR ValuePreviousPeriod = [Budget Quantity PQC]
+			VAR Result =
+			    IF (
+			        NOT ISBLANK ( ValueCurrentPeriod ) 
+			            && NOT ISBLANK ( ValuePreviousPeriod ),
+			        ValueCurrentPeriod - ValuePreviousPeriod
+			    )
+			RETURN
+			    Result
+			
+			```
+		formatString: #,0.00
+		displayFolder: Budget Quantity\Period-to-date over full previous period
+		lineageTag: 4e128b00-cd29-4375-85b7-e17ee103c2c4
+
+	measure 'Budget Quantity QTDOPQ %' = ```
+			
+			DIVIDE ( 
+			    [Budget Quantity QTDOPQ],
+			    [Budget Quantity PQC]
+			)
+			
+			```
+		formatString: 0.00%;-0.00%;0.00%
+		displayFolder: Budget Quantity\Period-to-date over full previous period
+		lineageTag: a6644b8c-b52b-42f3-b68b-4ff971f970bb
+
+	measure 'Budget Quantity PMC' = ```
+			
+			IF (
+			    [ShowValueForDates] && HASONEVALUE ( 'Date'[Calendar Month Year] ),
+			    CALCULATE (
+			        [Budget Quantity],
+			        PARALLELPERIOD ( 'Date'[Date], -1, MONTH )
+			    )
+			)
+			
+			```
+		formatString: #,0.00
+		displayFolder: Budget Quantity\Period-to-date over full previous period
+		lineageTag: 9f86018c-67cd-4717-9680-7abf4be567e7
+
+	measure 'Budget Quantity MTDOPM' = ```
+			
+			VAR ValueCurrentPeriod = [Budget Quantity MTD]
+			VAR ValuePreviousPeriod = [Budget Quantity PMC]
+			VAR Result =
+			    IF (
+			        NOT ISBLANK ( ValueCurrentPeriod ) 
+			            && NOT ISBLANK ( ValuePreviousPeriod ),
+			        ValueCurrentPeriod - ValuePreviousPeriod
+			    )
+			RETURN
+			    Result
+			
+			```
+		formatString: #,0.00
+		displayFolder: Budget Quantity\Period-to-date over full previous period
+		lineageTag: 234ed5e3-0f76-4051-bce1-75d3d4ec63d0
+
+	measure 'Budget Quantity MTDOPM %' = ```
+			
+			DIVIDE ( 
+			    [Budget Quantity MTDOPM],
+			    [Budget Quantity PMC]
+			)
+			
+			```
+		formatString: 0.00%;-0.00%;0.00%
+		displayFolder: Budget Quantity\Period-to-date over full previous period
+		lineageTag: 11d64e44-08d9-4466-a3df-1e67ae9c218e
+
+	measure 'Budget Quantity AVG 30D' = ```
+			
+			VAR Period30D =
+			    CALCULATETABLE (
+			        DATESINPERIOD (
+			            'Date'[Date],
+			            MAX ( 'Date'[Date] ),
+			            -30,
+			            DAY
+			        ),
+			        'Date'[DateWithPurchases] = TRUE
+			    )
+			VAR FirstDayWithData =
+			    CALCULATE (
+			        MIN ( 'Purchase Budget'[Date]),
+			        REMOVEFILTERS ()
+			    )
+			VAR FirstDayInPeriod =
+			    MINX ( Period30D, 'Date'[Date] )
+			VAR Result =
+			    IF ( 
+			        FirstDayWithData <= FirstDayInPeriod,
+			        AVERAGEX (
+			            Period30D,
+			            [Budget Quantity]
+			        )
+			    )
+			RETURN
+			    Result
+			
+			```
+		formatString: #,0.00
+		displayFolder: Budget Quantity\Moving averages
+		lineageTag: 6f66ea5d-dd8c-4ff5-9ca6-850c9d965154
+
+	measure 'Budget Quantity AVG 3M' = ```
+			
+			VAR Period3M =
+			    CALCULATETABLE (
+			        DATESINPERIOD (
+			            'Date'[Date],
+			            MAX ( 'Date'[Date] ),
+			            -3,
+			            MONTH
+			        ),
+			        'Date'[DateWithPurchases] = TRUE
+			    )
+			VAR FirstDayWithData =
+			    CALCULATE (
+			        MIN ( 'Purchase Budget'[Date]),
+			        REMOVEFILTERS ()
+			    )
+			VAR FirstDayInPeriod =
+			    MINX ( Period3M, 'Date'[Date] )
+			VAR Result =
+			    IF ( 
+			        FirstDayWithData <= FirstDayInPeriod,
+			        AVERAGEX (
+			            Period3M,
+			            [Budget Quantity]
+			        )
+			    )
+			RETURN
+			    Result
+			
+			```
+		formatString: #,0.00
+		displayFolder: Budget Quantity\Moving averages
+		lineageTag: 1f50d51e-7d47-414a-b4d2-cc2ea2620217
+
+	measure 'Budget Quantity AVG 1Y' = ```
+			
+			VAR Period1Y =
+			    CALCULATETABLE (
+			        DATESINPERIOD (
+			            'Date'[Date],
+			            MAX ( 'Date'[Date] ),
+			            -1,
+			            YEAR
+			        ),
+			        'Date'[DateWithPurchases] = TRUE
+			    )
+			VAR FirstDayWithData =
+			    CALCULATE (
+			        MIN ( 'Purchase Budget'[Date]),
+			        REMOVEFILTERS ()
+			    )
+			VAR FirstDayInPeriod =
+			    MINX ( Period1Y, 'Date'[Date] )
+			VAR Result =
+			    IF ( 
+			        FirstDayWithData <= FirstDayInPeriod,
+			        AVERAGEX (
+			            Period1Y,
+			            [Budget Quantity]
+			        )
+			    )
+			RETURN
+			    Result
+			
+			```
+		formatString: #,0.00
+		displayFolder: Budget Quantity\Moving averages
+		lineageTag: 0353e962-bfcf-41df-8558-1197ca514c01
+
+	column Column1
+		dataType: string
+		isHidden
+		lineageTag: f2e8e5c4-c8db-421d-a295-b899807993e1
+		summarizeBy: none
+		sourceColumn: Column1
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	partition 'Standard Calendar Time Intelligence-d0bdf3d0-0d2c-4ea4-8822-802ce3c19e5e' = m
+		mode: import
+		queryGroup: 'Parameters and Functions'
+		source =
+				let
+				    Source = Table.FromRows(Json.Document(Binary.Decompress(Binary.FromText("i44FAA==", BinaryEncoding.Base64), Compression.Deflate)), let _t = ((type nullable text) meta [Serialized.Text = true]) in type table [Column1 = _t]),
+				    #"Changed Type" = Table.TransformColumnTypes(Source,{{"Column1", type text}})
+				in
+				    #"Changed Type"
+
+	annotation PBI_ResultType = Table
+
+	annotation PBI_NavigationStepName = Navigation
+

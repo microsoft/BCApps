@@ -1,0 +1,353 @@
+table 'Opportunity Entries'
+	lineageTag: 37398a2b-ec4c-4522-9670-69150c424849
+
+	/// The sum of the Calculated Current Value column from the Opportunity Entries table.
+	measure 'Calculated Current Value' = SUM('Opportunity Entries'[Calculated Current Value (LCY)])
+		formatString: #,0.00
+		displayFolder: _Opportunity Entry Measures
+		lineageTag: 06493551-eaf5-4710-9b51-ff32e4ca3e06
+
+	/// The sum of the Estimated Value column from the Opportunity Entries table.
+	measure 'Estimated Value' = SUM('Opportunity Entries'[Estimated Value (LCY)])
+		formatString: #,0.00
+		displayFolder: _Opportunity Entry Measures
+		lineageTag: 68a4dcb6-fed1-4aba-83cd-6dcaa3083012
+
+	/// The count of the Opportunity No. column from the Opportunity Entries table.
+	measure 'No. of Opportunities' = DISTINCTCOUNT('Opportunity Entries'[Opportunity No.])
+		formatString: #,0
+		displayFolder: _Counters
+		lineageTag: eaed9f5f-b30b-4cd4-966d-6c2fe2d7dc2d
+
+	/// The sum of the Calculated Current Value column from the Opportunity Entries table where Active is true.
+	measure 'Active Calculated Current Value' =
+			
+			CALCULATE(
+			    [Calculated Current Value],
+			    'Opportunity Entries'[Active] = TRUE())
+		formatString: #,0.00
+		displayFolder: _Opportunity Entry Measures
+		lineageTag: e6b83b82-4ef6-44db-b37b-d2a77da4e1b3
+
+	/// The sum of the Estimated Value column from the Opportunity Entries table where Active is true.
+	measure 'Active Estimated Value' =
+			
+			CALCULATE([Estimated Value],
+			'Opportunity Entries'[Active] = TRUE())
+		formatString: #,0.00
+		displayFolder: _Opportunity Entry Measures
+		lineageTag: 590b01ce-ee33-4592-a581-bf1f3f4c54aa
+
+	/// The average of the Chance of Success column from the Opportunity Entries table.
+	measure 'Average Chance of Success %' = AVERAGE('Opportunity Entries'[Chances of Success (%)])
+		formatString: 0.00%;-0.00%;0.00%
+		displayFolder: _Opportunity Entry Measures
+		lineageTag: 78ef4427-ad06-4b55-8641-5b22c3e45a73
+
+	/// The average of the Completed column from the Opportunity Entries table.
+	measure 'Average Completed %' = AVERAGE('Opportunity Entries'[Completed (%)])
+		formatString: 0.00%;-0.00%;0.00%
+		displayFolder: _Opportunity Entry Measures
+		lineageTag: fd14fab4-35d9-46d8-9cf9-0ee44ed7cde6
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	/// The average of the Probability column from the Opportunity Entries table.
+	measure 'Average Probability %' = AVERAGE('Opportunity Entries'[Probability (%)])
+		formatString: 0.00%;-0.00%;0.00%
+		displayFolder: _Opportunity Entry Measures
+		lineageTag: 7384cce6-42bb-4d8c-9000-30cb12b0a12a
+
+	/// The Web URL based on the selected filters on the Opportunity Entries table.
+	measure 'Opportunity Entries Back Link' = ```
+			
+			VAR OpportunityNos = CONCATENATEX(VALUES('Opportunity Entries'[Opportunity No.]), 'Opportunity Entries'[Opportunity No.], "|")
+			VAR EntryNos = CONCATENATEX(VALUES('Opportunity Entries'[Opportunity Entry No.]), 'Opportunity Entries'[Opportunity Entry No.], "|")
+			
+			RETURN 
+			    [Base Link] 
+			    & "&page=5130&filter='Opportunity Entry'.'Opportunity No.' IS '" & OpportunityNos & "'"
+			    & " AND 'Opportunity Entry'.'Entry No.' IS '" & EntryNos & "'"
+			
+			```
+		displayFolder: _Opportunity Entry Measures
+		lineageTag: 393e8db7-2285-47af-b82f-5cc311820739
+
+	/// The count of the Opportunity No. column from the Opportunity Entries table where Active is true and the Action Taken is Won.
+	measure 'No. of Won Opportunities' =
+			
+			CALCULATE(
+			    DISTINCTCOUNT('Opportunity Entries'[Opportunity No.]),
+			    'Opportunity Entries'[Active] = TRUE(),
+			    'Opportunity Entries'[Action Taken] = "Won"
+			    )
+		formatString: #,0
+		displayFolder: _Counters
+		lineageTag: abe74447-4f84-4b9c-8c97-f6e0eb03238d
+
+	/// The count of the Opportunity No. column from the Opportunity Entries table where Active is true and the Action Taken is Lost.
+	measure 'No. of Lost Opportunities' =
+			
+			CALCULATE(
+			    DISTINCTCOUNT('Opportunity Entries'[Opportunity No.]),
+			    'Opportunity Entries'[Active] = TRUE(),
+			    'Opportunity Entries'[Action Taken] = "Lost"
+			    )
+		formatString: #,0
+		displayFolder: _Counters
+		lineageTag: 590b80b5-d64a-47e4-8d61-7589d7fd9a29
+
+	/// The No. of Won Opportunities, divided by the sum of the No. of Won Opportunities and No. of Lost Opportunities.
+	measure 'Win/Loss %' = [No. of Won Opportunities]/([No. of Won Opportunities]+[No. of Lost Opportunities])
+		formatString: 0.00%;-0.00%;0.00%
+		displayFolder: _Opportunity Entry Measures
+		lineageTag: ef3ad074-7a87-4d84-b8af-53741f721796
+
+	/// The average of the Chance of Success column from the Opportunity Entries table where Active is true.
+	measure 'Active Chance of Success %' =
+			
+			CALCULATE([Average Chance of Success %],
+			'Opportunity Entries'[Active] = TRUE())
+		formatString: 0.00%;-0.00%;0.00%
+		displayFolder: _Opportunity Entry Measures
+		lineageTag: d2cb1085-1721-4314-99c1-f9d5a2f5371d
+
+	column 'Opportunity No.'
+		dataType: string
+		lineageTag: c2bfb7d7-f9ad-4d80-b7b9-3b1deacbcfd2
+		summarizeBy: none
+		sourceColumn: Opportunity No.
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Opportunity Entry No.'
+		dataType: string
+		lineageTag: ca89428a-f480-4912-86f7-13ecc95ba5ae
+		summarizeBy: none
+		sourceColumn: Opportunity Entry No.
+
+		annotation SummarizationSetBy = Automatic
+
+	column Active
+		dataType: boolean
+		formatString: """TRUE"";""TRUE"";""FALSE"""
+		lineageTag: 3b740afd-6ffa-4c63-ada0-f7de00ad489d
+		summarizeBy: none
+		sourceColumn: Active
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Action Taken'
+		dataType: string
+		lineageTag: 343a05c0-76e4-4a73-906a-0a310edfb67a
+		summarizeBy: none
+		sourceColumn: Action Taken
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Sales Cycle Code'
+		dataType: string
+		isHidden
+		lineageTag: ef08dea5-27f8-4e89-bb45-b267ab2071d0
+		summarizeBy: none
+		sourceColumn: Sales Cycle Code
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Sales Cycle Stage'
+		dataType: string
+		isHidden
+		lineageTag: acb54138-e715-43cc-93c0-b38f1905d0ff
+		summarizeBy: none
+		sourceColumn: Sales Cycle Stage
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Sales Cycle Stage Description'
+		dataType: string
+		isHidden
+		lineageTag: ee43f02f-e7e2-4bbf-9886-1f122c1bc704
+		summarizeBy: none
+		sourceColumn: Sales Cycle Stage Description
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Date of Change'
+		dataType: dateTime
+		formatString: Long Date
+		lineageTag: 7a251d38-ca33-4370-9782-fc1eb1aa0316
+		summarizeBy: none
+		sourceColumn: Date of Change
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	column 'Estimated Close Date'
+		dataType: dateTime
+		formatString: Long Date
+		lineageTag: 3f9f6457-8bb8-4e97-98c8-9b4ee7dd53ff
+		summarizeBy: none
+		sourceColumn: Estimated Close Date
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	column 'Estimated Value (LCY)'
+		dataType: decimal
+		isHidden
+		formatString: \$#,0.###############;-\$#,0.###############;\$#,0.###############
+		lineageTag: de8d049c-225a-480c-b856-60db773cc329
+		summarizeBy: sum
+		sourceColumn: Estimated Value (LCY)
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"currencyCulture":"en-AU"}
+
+	column 'Calculated Current Value (LCY)'
+		dataType: decimal
+		isHidden
+		formatString: \$#,0.###############;-\$#,0.###############;\$#,0.###############
+		lineageTag: 81735b01-b422-4481-a48a-27e1049e6e93
+		summarizeBy: sum
+		sourceColumn: Calculated Current Value (LCY)
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"currencyCulture":"en-AU"}
+
+	column 'Completed (%)'
+		dataType: double
+		isHidden
+		lineageTag: a3dd2e62-df21-4c88-b0d2-d3fab0d2583e
+		summarizeBy: none
+		sourceColumn: Completed (%)
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = User
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column 'Chances of Success (%)'
+		dataType: double
+		isHidden
+		lineageTag: dc1c70ee-38f6-4886-9aa5-e514281c26fb
+		summarizeBy: none
+		sourceColumn: Chances of Success (%)
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = User
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column 'Probability (%)'
+		dataType: double
+		isHidden
+		formatString: 0.00%;-0.00%;0.00%
+		lineageTag: e83fd921-5ab9-4245-8b86-6d35b156855c
+		summarizeBy: none
+		sourceColumn: Probability (%)
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = User
+
+	column salespersonCode
+		dataType: string
+		isHidden
+		lineageTag: 445c943d-7e55-49cc-acc5-62936c73f68f
+		summarizeBy: none
+		sourceColumn: salespersonCode
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Contact No.'
+		dataType: string
+		isHidden
+		lineageTag: 84043088-d7ed-462d-a023-80928348c1f4
+		summarizeBy: none
+		sourceColumn: Contact No.
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Sales Cycle Key'
+		dataType: string
+		isHidden
+		lineageTag: 9d3d03d2-0799-4b79-b36c-27e7fb9ca3a7
+		summarizeBy: none
+		sourceColumn: Sales Cycle Key
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Close Opportunity Code'
+		dataType: string
+		isHidden
+		lineageTag: e9a46d74-2eeb-4068-9881-26918b4b3c90
+		summarizeBy: none
+		sourceColumn: Close Opportunity Code
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	partition 'Opportunity Entries' = m
+		mode: import
+		queryGroup: 'Fact Tables'
+		source =
+				let
+				    Source = Dynamics365BusinessCentral.ApiContentsWithOptions(#"ENVIRONMENT", #"COMPANY",#"API_ENDPOINT", []),
+				    TableData = Source{[Name="opportunityEntries",Signature="table"]}[Data],
+				    #"Divided Completed" = Table.TransformColumns(TableData, {{"opportunityEntryCompleted", each _ / 100, type number}}),
+				    #"Divided Chance Success" = Table.TransformColumns(#"Divided Completed", {{"opportunityEntryChanceSuccess", each _ / 100, type number}}),
+				    #"Divided Probability" = Table.TransformColumns(#"Divided Chance Success", {{"opportunityEntryProbability", each _ / 100, type number}}),
+				    #"Changed Type" = Table.TransformColumnTypes(#"Divided Probability",{{"opportunityEntryOpportunity", type text}, {"opportunityEntryEntryNo", type text}, {"opportunityEntryActive", type logical}, {"opportunityEntryActionTaken", type text}, {"opportunityEntrySalesCycleCode", type text}, {"opportunityEntryDateChange", type date}, {"opportunityEntryEstCloseDate", type date}, {"opportunityEntryEstValue", Currency.Type}, {"opportunityEntryCalcCurrentValue", Currency.Type}, {"opportunityEntrySalesCycleStage", type text}, {"opportunityEntrySalesCycleStageDescription", type text}, {"opportunityEntryCompleted", Percentage.Type}, {"opportunityEntryChanceSuccess", Percentage.Type}, {"opportunityEntryProbability", Percentage.Type}, {"opportunityContactNo", type text}}),
+				    #"Removed Columns" = Table.RemoveColumns(#"Changed Type",{"ETag"}),
+				    #"Renamed Columns" = Table.RenameColumns(
+				        #"Removed Columns",
+				        {
+				            {"opportunityEntryOpportunity", "Opportunity No."},
+				            {"opportunityEntryEntryNo", "Opportunity Entry No."},
+				            {"opportunityEntryActive", "Active"},
+				            {"opportunityEntryActionTaken", "Action Taken"},
+				            {"opportunityEntrySalesCycleCode", "Sales Cycle Code"},
+				            {"opportunityEntryDateChange", "Date of Change"},
+				            {"opportunityEntryEstCloseDate", "Estimated Close Date"},
+				            {"opportunityEntryEstValue", "Estimated Value (LCY)"},
+				            {"opportunityEntryCalcCurrentValue", "Calculated Current Value (LCY)"},
+				            {"opportunityEntryCompleted", "Completed (%)"},
+				            {"opportunityEntryChanceSuccess", "Chances of Success (%)"},
+				            {"opportunityEntryProbability", "Probability (%)"},
+				            {"opportunityEntrySalesCycleStage", "Sales Cycle Stage"},
+				            {"opportunityEntrySalesCycleStageDescription", "Sales Cycle Stage Description"},
+				            {"opportunityEntryCloseOpportunityCode", "Close Opportunity Code"},
+				            {"opportunityContactNo", "Contact No."}
+				        }
+				    ),
+				    #"Added Sales Cycle Key" = Table.AddColumn(#"Renamed Columns", "Sales Cycle Key", each [Sales Cycle Code]&[Sales Cycle Stage], type text)
+				in
+				    #"Added Sales Cycle Key"
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Table
+

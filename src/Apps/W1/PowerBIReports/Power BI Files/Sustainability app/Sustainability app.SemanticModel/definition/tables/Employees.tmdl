@@ -1,0 +1,213 @@
+table Employees
+	lineageTag: c080803e-a4fd-4a9e-b16d-0c0d3de20837
+
+	measure 'No. of Employees' =
+			
+			COUNT ( Employees[Employee No.] )
+		formatString: 0
+		displayFolder: _Employee Measures
+		lineageTag: c24a6780-10b6-4f6c-b8d4-155ed521df53
+
+	measure 'No. of Male Employees' =
+			
+			CALCULATE ( [No. of Employees], Employees[Employee Gender] = "Male" )
+		formatString: 0
+		displayFolder: _Employee Measures
+		lineageTag: 3a59aa72-61f5-439a-95f3-a1044b352e10
+
+	measure 'No. of Female Employees' =
+			
+			CALCULATE ( [No. of Employees], Employees[Employee Gender] = "Female" )
+		formatString: 0
+		displayFolder: _Employee Measures
+		lineageTag: 4b7fb167-179f-4459-a79a-db1b2db3a249
+
+	measure 'No. of Other Employees' =
+			
+			CALCULATE (
+			    [No. of Employees],
+			    Employees[Employee Gender] <> "Male",
+			    Employees[Employee Gender] <> "Female"
+			)
+		formatString: 0
+		displayFolder: _Employee Measures
+		lineageTag: 00874ba1-5083-4337-b5e4-6bfce0db94c7
+
+	measure 'Male Employees (%)' =
+			
+			DIVIDE ( [No. of Male Employees], [No. of Employees] )
+		formatString: 0.00%;-0.00%;0.00%
+		displayFolder: _Employee Measures
+		lineageTag: eefb5ba3-77ce-4b47-861c-a0b8f5822471
+
+	measure 'Female Employees (%)' =
+			
+			DIVIDE ( [No. of Female Employees], [No. of Employees] )
+		formatString: 0.00%;-0.00%;0.00%
+		displayFolder: _Employee Measures
+		lineageTag: fbf3d691-b627-40ef-a581-ee0094f7b43e
+
+	measure 'Other Employees (%)' =
+			
+			DIVIDE ( [No. of Other Employees], [No. of Employees] )
+		displayFolder: _Employee Measures
+		lineageTag: b8f03a06-2a3a-4e7f-8d41-beaba6d24073
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Active Employees' =
+			
+			CALCULATE ( Employees[No. of Employees], Employees[Employee Status] = "Active" )
+		formatString: 0
+		displayFolder: _Employee Measures
+		lineageTag: e75cd780-38ae-4bde-aa11-836a80e34d14
+
+	column 'Employee No.'
+		dataType: string
+		isKey
+		lineageTag: 3c95435d-58df-4aad-af62-dc55ed4b3acf
+		summarizeBy: none
+		sourceColumn: Employee No.
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Employee Full Name'
+		dataType: string
+		lineageTag: 3bb36502-e4a2-4ff0-8848-32458b6c1345
+		summarizeBy: none
+		sourceColumn: Employee Full Name
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Employee First Name'
+		dataType: string
+		lineageTag: c2fc45c0-5806-4446-9f5b-e5514f9f6332
+		summarizeBy: none
+		sourceColumn: Employee First Name
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Employee Last Name'
+		dataType: string
+		lineageTag: 2bedba2b-5602-4dfc-afe8-faf930c5b912
+		summarizeBy: none
+		sourceColumn: Employee Last Name
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Employee Gender'
+		dataType: string
+		lineageTag: 47dcb956-edf5-4742-a8db-c814b36b86d9
+		summarizeBy: none
+		sourceColumn: Employee Gender
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Employee Union Code'
+		dataType: string
+		lineageTag: c9a79b09-7d16-4803-8510-875fa81896d8
+		summarizeBy: none
+		sourceColumn: Employee Union Code
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Employee Status'
+		dataType: string
+		lineageTag: b5f7243d-70e5-4253-a1d4-d49c9a4f4145
+		summarizeBy: none
+		sourceColumn: Employee Status
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Employee Cause of Inactivity'
+		dataType: string
+		lineageTag: 4f832747-1e3b-4f63-bbe2-fccc0c17c786
+		summarizeBy: none
+		sourceColumn: Employee Cause of Inactivity
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Employee Inactive Date'
+		dataType: dateTime
+		formatString: Long Date
+		lineageTag: ff7110d1-3f92-4a4e-a320-ab232b473cb1
+		summarizeBy: none
+		sourceColumn: Employee Inactive Date
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	column 'Employee Grounds for Termination'
+		dataType: string
+		lineageTag: e2cbc06b-686b-40ea-94b8-6fb281094682
+		summarizeBy: none
+		sourceColumn: Employee Grounds for Termination
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Employee Date of Birth'
+		dataType: dateTime
+		formatString: Long Date
+		lineageTag: b8f03122-d79a-462a-b243-835f18ebd8f0
+		summarizeBy: none
+		sourceColumn: Employee Date of Birth
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	column Age =
+			
+			VAR Birthdate = Employees[Employee Date of Birth]
+			VAR TodaysDate = TODAY()
+			VAR YearDiff = YEAR(TodaysDate) - YEAR(Birthdate)
+			VAR MonthDayAdjustment =
+			    IF(
+			        MONTH(TodaysDate) < MONTH(Birthdate) ||
+			        (MONTH(TodaysDate) = MONTH(Birthdate) && DAY(TodaysDate) < DAY(Birthdate)),
+			        1,
+			        0
+			    )
+			RETURN
+			YearDiff - MonthDayAdjustment
+		formatString: 0
+		displayFolder: _Employee Measures
+		lineageTag: 2774549d-a4a0-417e-aaf0-8cf1c557360a
+		summarizeBy: sum
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Age Distribution' = ```
+			
+			 SWITCH(
+			    TRUE(),
+			    Employees[Age] < 30, "Under 30",
+			    Employees[Age] < 50, "30 - 50",
+			    Employees[Age] > 50, "Over 50"
+			 )
+			```
+		displayFolder: _Employee Measures
+		lineageTag: 92926218-b984-4167-b15b-5502d9e59fab
+		summarizeBy: none
+
+		annotation SummarizationSetBy = Automatic
+
+	partition Employees = m
+		mode: import
+		queryGroup: 'Dimension Tables'
+		source =
+				let
+				    Source = Dynamics365BusinessCentral.ApiContentsWithOptions(ENVIRONMENT, COMPANY,API_ENDPOINT, []),
+				    TableData = Source{[Name="pbiEmployees",Signature="table"]}[Data],
+				    #"Renamed Columns" = Table.RenameColumns(TableData,{{"no", "Employee No."}, {"firstName", "Employee First Name"}, {"lastName", "Employee Last Name"}, {"gender", "Employee Gender"}, {"unionCode", "Employee Union Code"}, {"status", "Employee Status"}, {"casueofInactivty", "Employee Cause of Inactivity"}, {"groudForTermCode", "Employee Grounds for Termination"}, {"dateOfBirth", "Employee Date of Birth"}, {"inactivedate", "Employee Inactive Date"}}),
+				    #"Removed Columns1" = Table.RemoveColumns(#"Renamed Columns",{"ETag"}),
+				    #"Added Custom" = Table.AddColumn(#"Removed Columns1", "Employee Full Name", each [Employee First Name] & "  " & [Employee Last Name]),
+				    #"Reordered Columns" = Table.ReorderColumns(#"Added Custom",{"Employee No.", "Employee Full Name", "Employee First Name", "Employee Last Name", "Employee Gender", "Employee Union Code", "Employee Status", "Employee Cause of Inactivity", "Employee Inactive Date", "Employee Grounds for Termination", "Employee Date of Birth"})
+				in
+				    #"Reordered Columns"
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Table
+

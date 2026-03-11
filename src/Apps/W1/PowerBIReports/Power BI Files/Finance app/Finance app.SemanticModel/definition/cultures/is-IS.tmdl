@@ -1,0 +1,1533 @@
+cultureInfo is-IS
+	translations
+		model Model
+			table 'G/L Account Category'
+				caption: Fjárhagsreikningsflokkur
+				column 'G/L Acc. Category Description'
+					caption: Lýsing fjárhagsreikningsflokka
+				column siblingSequenceNo
+					caption: siblingSequenceNo
+				column indentation
+					caption: inndráttur
+				column accountCategory
+					caption: accountCategory
+				column incomeBalance
+					caption: incomeBalance
+				column additionalReportDefinition
+					caption: additionalReportDefinition
+				column systemGenerated
+					caption: systemGenerated
+				column hasChildren
+					caption: hasChildren
+				measure GLAccCategoryBrowseDepth
+					caption: GLAccCategoryBrowseDepth
+				measure GLAccCategoryMaxNodeDepth
+					caption: GLAccCategoryMaxNodeDepth
+				measure 'G/L Acc. Category Balance at Date'
+					caption: Fjárhagsreikningsfl. Staða til dags.
+				measure 'G/L Acc. Category Net Change'
+					caption: Fjárhagsreikningsfl. Nettóbreyting
+				measure 'G/L Acc. Category Budget Balance at Date'
+					caption: Fjárhagsreikningsfl. Staða fjárhagsáætlunar til dags
+				measure 'G/L Acc. Category Budget Amount'
+					caption: Fjárhagsreikningsfl. Upphæð fjárhagsáætlunar
+				hierarchy 'G/L Account Category Hierarchy'
+					caption: Stigveldi fjárhagsreikningsflokka
+					level 'G/L Account Category (Level 1)'
+						caption: Fjárhagsreikningsflokkur (stig 1)
+					level 'G/L Account Category (Level 2)'
+						caption: Fjárhagsreikningsflokkur (stig 2)
+					level 'G/L Account Category (Level 3)'
+						caption: Fjárhagsreikningsflokkur (stig 3)
+			table 'Balance Sheet Measures'
+				caption: Ráðstafanir í efnahagsreikningi
+				measure 'Current Assets'
+					caption: Veltufjármunir
+				measure 'Current Liabilities'
+					caption: Núverandi skammtímaskuldir
+				measure Inventory
+					caption: Birgðir
+				measure 'Working Capital'
+					caption: Veltufé
+				measure 'Shareholders'' Equity'
+					caption: Eigið fé hluthafa
+				measure Liabilities
+					caption: Skuldir
+				measure Assets
+					caption: Eignir
+				measure Equity
+					caption: Eigið fé
+				measure 'Liabilities & Equity'
+					caption: Skuldir og eigið fé
+				measure 'Accounts Payable'
+					caption: Viðskiptaskuldir
+				measure 'Accounts Receivable'
+					caption: Viðskiptakröfur
+				measure 'Accounts Receivable (Beginning Balance)'
+					caption: Viðskiptakröfur (upphafsstaða)
+				measure 'Accounts Receivable (Average)'
+					caption: Viðskiptakröfur (meðaltal)
+				measure 'Inventory (Beginning Balance)'
+					caption: Birgðir (Upphafsstaða)
+				measure 'Inventory (Average)'
+					caption: Birgðir (meðaltal)
+				measure 'Purchase Prepayments'
+					caption: Fyrirframgreiðslur innkaupa
+				measure 'Liquid Assets'
+					caption: Lausafjármunir
+				measure 'Fixed Assets'
+					caption: Eignir
+				measure 'Capital Employed'
+					caption: Heildarfjármagn
+				measure 'Liabilities (Neg)'
+					caption: Skuldir (neikv.)
+				measure 'Accounts Payable (Neg)'
+					caption: Viðskiptaskuldir (neikv.)
+				measure 'Payroll Liabilites'
+					caption: Bótaábyrgðir launa
+				measure 'Longterm Liabilities'
+					caption: Langtímaskuldir
+			table 'Income Statement Measures'
+				caption: Ráðstafanir í rekstrarreikningi
+				measure Revenue
+					caption: Tekjur
+				measure 'Cost of Goods Sold'
+					caption: Kostnaður seldra vara
+				measure Expense
+					caption: Kostnaður
+				measure 'Interest Expense'
+					caption: Vaxtakostnaður
+				measure 'Tax Expense'
+					caption: Skattakostnaður
+				measure 'Extraordinary Expense'
+					caption: Framúrskarandi kostnaði
+				measure 'Operating Expense - OPEX'
+					caption: Rekstrarkostnaður - Rekstrarkostnaður
+				measure Purchases
+					caption: Innkaup
+				measure 'FX Losses Expense'
+					caption: Gjaldeyrisviðskipti Tap Kostnaður
+				measure 'Depreciation and Amortization'
+					caption: Afskriftir og afborganir
+				measure 'Revenue (Balance at Date)'
+					caption: Tekjur (staða til dags.)
+				measure 'Revenue (Beginning Balance)'
+					caption: Tekjur (upphafsstaða)
+				measure 'Interest Revenue'
+					caption: Vaxtatekjur
+				measure 'FX Gains Revenue'
+					caption: Gjaldeyrisviðskipti tekjuafgangur
+				measure 'Extraordinary Revenue'
+					caption: Óreglulegur tekjur
+				measure 'Operating Revenue'
+					caption: Rekstrartekjur
+				measure 'Expense (Balance at Date)'
+					caption: Kostnaður (staða til dags.)
+				measure 'Expense (Beginning Balance)'
+					caption: Kostnaður (upphafsstaða)
+				measure 'Interest Expense (Balance at Date)'
+					caption: Vaxtakostnaður (staða til dags.)
+				measure 'Interest Expense (Beginning Balance)'
+					caption: Vaxtakostnaður (upphafsstaða)
+				measure 'FX Losses Expense (Balance at Date)'
+					caption: Gjaldeyrisviðskipti Tap Kostnaður (staða til dags.)
+				measure 'FX Losses Expense (Beginning Balance)'
+					caption: Gjaldeyrisviðskipti Tap Kostnaður (upphafsstaða)
+				measure 'Tax Expense (Balance at Date)'
+					caption: Skattakostnaður (staða til dags.)
+				measure 'Tax Expense (Beginning Balance)'
+					caption: Skattakostnaður (upphafsstaða)
+				measure 'Extraordinary Expense (Balance at Date)'
+					caption: Óreglulegur kostnaður (staða til dags.)
+				measure 'Extraordinary Expense (Beginning Balance)'
+					caption: Óreglulegur kostnaður (upphafsstaða)
+				measure 'Interest Revenue (Balance at Date)'
+					caption: Vaxtatekjur (staða til dags.)
+				measure 'Interest Revenue (Beginning Balance)'
+					caption: Vaxtatekjur (upphafsstaða)
+				measure 'FX Gains Revenue (Balance at Date)'
+					caption: Gjaldeyrisviðskipti tekjuafgangur (Staða á DATE)
+				measure 'FX Gains Revenue (Beginning Balance)'
+					caption: Gjaldeyrisviðskipti tekjuafgangur (upphafsstaða)
+				measure 'Extraordinary Revenue (Balance at Date)'
+					caption: Óreglulegar tekjur (staða til dags.)
+				measure 'Extraordinary Revenue (Beginning Balance)'
+					caption: Óreglulegar tekjur (upphafsstaða)
+				measure 'Operating Expense - OPEX (Balance at Date)'
+					caption: Rekstrarkostnaður - Rekstrarkostnaður - (staða til dags.)
+				measure 'Operating Expense - OPEX (Beginning Balance)'
+					caption: Rekstrarkostnaður - Rekstrarkostnaður (upphafsstaða)
+				measure 'Operating Revenue (Balance at Date)'
+					caption: Rekstrartekjur (staða til dags.)
+				measure 'Operating Revenue (Beginning Balance)'
+					caption: Rekstrartekjur (upphafsstaða)
+			table 'G/L Account'
+				caption: Fjárhagsreikningur
+				column 'G/L Account No./Name'
+					caption: Fjárhagsreikningur/Heiti
+				column 'G/L Account No./Name Indented'
+					caption: Nr. fjárhagsreiknings/Heiti inndregið
+				column 'Parent G/L Account No.'
+					caption: Nr. yfireiningar fjárhagsreiknings
+				column 'G/L Account No.'
+					caption: Fjárhagsreikn.nr.
+				column 'G/L Account Name'
+					caption: Heiti fjárhagsreiknings
+				column 'Account Type'
+					caption: Gerð lykils
+				column Income/Balance
+					caption: Rekstur/efnahagur
+				column 'Account Subcategory Entry No.'
+					caption: Færslunr. reikningsundirflokks
+				measure 'G/L Acc. Balance at Date'
+					caption: Fjárhagsreikn. staða til dags
+				measure 'G/L Acc. Net Change'
+					caption: Fjárhagsreikn. nettóbreyting
+				measure 'G/L Acc. Budget Balance at Date'
+					caption: Fjárhagsreikn. Staða fjárhagsáætlunar til dags
+				measure 'G/L Acc. Budget Amount'
+					caption: Fjárhagsreikn. upphæð fjárhagsáætlunar
+				hierarchy 'G/L Account Hierarchy'
+					caption: Stigveldi fjárhagsreiknings
+					level 'G/L Account (Level 1)'
+						caption: Fjárhagsreikningur (stig 1)
+					level 'G/L Account (Level 2)'
+						caption: Fjárhagsreikningur (stig 2)
+					level 'G/L Account (Level 3)'
+						caption: Fjárhagsreikningur (stig 3)
+					level 'G/L Account (Level 4)'
+						caption: Fjárhagsreikningur (stig 4)
+					level 'G/L Account (Level 5)'
+						caption: Fjárhagsreikningur (stig 5)
+			table 'Activity KPIs'
+				caption: Afkastavísar aðgerðar
+				measure 'Average Collection Period (Days)'
+					caption: Meðaltal innheimtutímabils (dagar)
+				measure '% Change in Revenue'
+					caption: % breyting á tekjum
+				measure '% Change in Operating Profit - EBIT'
+					caption: % breyting á rekstrarhagnaði - Tekjur fyrir vexti og skatta
+				measure 'Days Sales Outstanding - DSO'
+					caption: Dagssala útistandandi
+				measure 'Days Payable Outstanding - DPO'
+					caption: Dagar útistandandi skulda
+				measure 'Days Sales Of Inventory - DSI'
+					caption: Dagssala birgða
+				measure 'Cash Conversion Cycle - CCC'
+					caption: Ferill bundins reiðufés
+				measure 'Degree Of Operating Leverage - DOL'
+					caption: Rekstrarvogun
+				measure 'Asset Turnover Ratio'
+					caption: Veltuhlutfall eigna
+				measure 'Inventory Turnover'
+					caption: Birgðavelta
+			table 'Liquidity KPIs'
+				caption: Afkastavísar greiðslugetu
+				measure 'Current Ratio'
+					caption: Veltufjárhlutfall
+				measure 'Quick Ratio'
+					caption: Lausafjárhlutfall
+				measure 'Cash Ratio'
+					caption: Hlutfall reiðufjár
+			table 'Profitability KPIs'
+				caption: Afkastavísar arðsemi
+				measure 'Gross Profit Margin'
+					caption: Brúttóhagnaðarhlutfall
+				measure 'Net Profit Margin'
+					caption: Hagnaðarhlutfall
+				measure 'Gross Profit'
+					caption: Brúttóframlegð
+				measure 'Net Profit'
+					caption: Hreinn hagnaður
+				measure 'Operating Profit - EBIT (Beginning Balance)'
+					caption: Rekstrarhagnaður - Tekjur fyrir vexti og skatta (upphafsstaða)
+				measure 'Operating Profit - EBIT'
+					caption: Rekstrarhagnaður - Tekjur fyrir vexti og skatta
+				measure 'Operating Profit - EBIT (Balance at Date)'
+					caption: Tekjur fyrir vexti og skatta - (staða til dags.)
+				measure 'Operating Profit Margin'
+					caption: Hlutfall rekstrarhagnaðar
+				measure EBITDA
+					caption: EBITDA
+				measure 'Return On Assets - ROA'
+					caption: Hagnaður af eignum
+				measure 'Return On Equity - ROE'
+					caption: Arðsemi eigin fjár
+				measure 'Return On Net Assets - RONA'
+					caption: Arðsemi hreinna eigna
+				measure 'Return On Capital Employed - ROCE'
+					caption: Arðsemi fjármagns
+				measure 'Debt/Equity Ratio'
+					caption: Skulda-/eiginfjárhlutfall
+				measure 'Shareholder Equity Ratio'
+					caption: Eiginfjárhlutfall hluthafa
+				measure 'Debt Ratio'
+					caption: Skuldahlutfall
+			table 'G/L Budget Entries'
+				caption: Fjárhagsáætl.færslur
+				column 'Budget Name'
+					caption: Heiti áætlunar
+				column 'Budget Date'
+					caption: Dagsetning fjárhagsáætlunar
+				column 'Entry No.'
+					caption: Færslunr.
+				measure 'Budget Balance at Date'
+					caption: Staða fjárhagsáætlunar til dags
+				measure 'Budget Amount'
+					caption: Upphæð áætlunar
+				measure 'Budget Entry Back Link'
+					caption: Baktengill fjárhagsáætlunarfærslu
+			table 'Dimension Sets'
+				caption: Víddasamstæður
+				column 'Global Dimension 1'
+					caption: Altæk vídd 1
+				column 'Global Dimension 2'
+					caption: Altæk vídd 2
+				column 'Shortcut Dimension 3'
+					caption: Flýtivídd 3
+				column 'Shortcut Dimension 4'
+					caption: Flýtivídd 4
+				column 'Shortcut Dimension 5'
+					caption: Flýtivídd 5
+				column 'Shortcut Dimension 6'
+					caption: Flýtivídd 6
+				column 'Shortcut Dimension 7'
+					caption: Flýtivídd 7
+				column 'Shortcut Dimension 8'
+					caption: Flýtivídd 8
+				column id
+					caption: kenni
+			table 'G/L Entries'
+				caption: Fjárhagsfærslur
+				column 'Posting Date'
+					caption: Bókunardagsetning
+				column 'Closing Entry'
+					caption: Lokunarfærsla
+				column 'Source Code'
+					caption: Frumkóði
+				column 'Source Type'
+					caption: Tegund uppruna
+				column 'Source No.'
+					caption: Upprunanúmer
+				column 'Entry No.'
+					caption: Færslunr.
+				column Description
+					caption: Lýsing
+				measure 'Net Change'
+					caption: Nettóbreyting
+				measure 'Net Change (Neg)'
+					caption: Nettóbreyting (Neikv.)
+				measure 'Balance at Date'
+					caption: Staða til dags.
+				measure Amount
+					caption: Upphæð
+				measure Balance
+					caption: Staða
+				measure 'Variance to Budget'
+					caption: Frávik frá fjárhagsáætlun
+				measure 'Variance to Budget %'
+					caption: Frávik frá fjárhagsáætlun %
+				measure 'Balance at Date (Neg)'
+					caption: Staða til dags. (Neikv.)
+				measure 'Net Change Back Link'
+					caption: Baktengill nettóbreytingar
+				measure 'Balance At Date Back Link'
+					caption: Baktengill stöðu til dags.
+				measure 'Base Link'
+					caption: Grunntengill
+			table 'Standard Calendar Time Intelligence'
+				caption: Tímagreind staðlaðs dagatals
+				measure 'Net Change AVG 1Y'
+					caption: Nettóbreyting Meðaltal 1Á
+				measure 'Net Change AVG 3M'
+					caption: Nettóbreyting Meðaltal 3M
+				measure 'Net Change AVG 30D'
+					caption: Nettóbreyting Meðaltal 30D
+				measure 'Net Change MTDOPM %'
+					caption: Nettóbreyting Frá upphafi mánaðar samanburður við fyrri mánuð %
+				measure 'Net Change MTDOPM'
+					caption: Nettóbreyting Frá upphafi mánaðar samanburður við fyrri mánuð
+				measure 'Net Change PMC'
+					caption: Nettóbreyting frá lokum fyrri mánaðar
+				measure 'Net Change QTDOPQ %'
+					caption: Nettóbreyting Ársfjórðungur til dagsins í dag samanburður fyrri ársfjórðungs %
+				measure 'Net Change QTDOPQ'
+					caption: Nettóbreyting Ársfjórðungur til dagsins í dag samanburður fyrri ársfjórðungs
+				measure 'Net Change PQC'
+					caption: Nettóbreyting frá lokum fyrri ársfjórðungs
+				measure 'Net Change YTDOPY %'
+					caption: Nettóbreyting Ár til dagsins í dag samanburður fyrra árs %
+				measure 'Net Change YTDOPY'
+					caption: Nettóbreyting Ár til dagsins í dag samanburður fyrra árs
+				measure 'Net Change PYC'
+					caption: Nettóbreyting frá lokum fyrra árs
+				measure 'Net Change MATG %'
+					caption: Nettóbreyting Hlaupandi vöxtur alls yfir árið %
+				measure 'Net Change MATG'
+					caption: Nettóbreyting Hlaupandi vöxtur alls yfir árið
+				measure 'Net Change PYMAT'
+					caption: Nettóbreyting Fyrra ár hlaupandi heildarsala
+				measure 'Net Change MAT'
+					caption: Nettóbreyting Hlaupandi alls yfir árið
+				measure 'Net Change MOMTD %'
+					caption: Nettóbreyting á milli mánaða til dagsins í dag í %
+				measure 'Net Change MOMTD'
+					caption: Nettóbreyting á milli mánaða til dagsins í dag
+				measure 'Net Change PMTD'
+					caption: Nettóbreyting Frá síðasta mánuði til dagsins í dag
+				measure 'Net Change QOQTD %'
+					caption: Nettóbreyting á milli ársfjórðunga til dagsins í dag í %
+				measure 'Net Change QOQTD'
+					caption: Nettóbreyting á milli ársfjórðunga til dagsins í dag
+				measure 'Net Change YOYTD %'
+					caption: Nettóbreyting á milli ára til dagsins í dag í %
+				measure 'Net Change YOYTD'
+					caption: Nettóbreyting á milli ára til dagsins í dag
+				measure 'Net Change PQTD'
+					caption: Nettóbreyting Frá síðasta ársfjórðungi til dagsins í dag
+				measure 'Net Change PYTD'
+					caption: Nettóbreyting Fyrra ár til dagsins í dag
+				measure 'Net Change POP %'
+					caption: Nettóbreyting Samanburður milli tímabila %
+				measure 'Net Change POP'
+					caption: Nettóbreyting Samanburður milli tímabila
+				measure 'Net Change PP'
+					caption: Nettóbreyting Fyrra tímabil
+				measure 'Net Change MOM %'
+					caption: Nettóbreyting Samanburður mánaða %
+				measure 'Net Change MOM'
+					caption: Nettóbreyting Samanburður mánaða
+				measure 'Net Change QOQ %'
+					caption: Nettóbreyting Samanburður milli ársfjórðunga %
+				measure 'Net Change PM'
+					caption: Nettóbreyting Fyrri mánuður
+				measure 'Net Change QOQ'
+					caption: Nettóbreyting Samanburður milli ársfjórðunga
+				measure 'Net Change PQ'
+					caption: Nettóbreyting Fyrri ársfjórðungur
+				measure 'Net Change YOY'
+					caption: Nettóbreyting Samanburður milli ára
+				measure 'Net Change YOY %'
+					caption: Nettóbreyting Samanburður milli ára %
+				measure 'Net Change PY'
+					caption: Nettóbreyting Fyrra ár
+				measure 'Net Change MTD'
+					caption: Nettóbreyting Frá upphafi mánaðar
+				measure 'Net Change QTD'
+					caption: Nettóbreyting Ársfjórðungur til dagsins í dag
+				measure 'Net Change YTD'
+					caption: Nettóbreyting Ár til dagsins í dag
+				measure 'Balance at Date AVG 1Y'
+					caption: Staða til dags. Meðaltal 1Á
+				measure 'Balance at Date AVG 3M'
+					caption: Staða til dags. Meðaltal 3M
+				measure 'Balance at Date AVG 30D'
+					caption: Staða til dags. Meðaltal 30D
+				measure 'Balance at Date MTDOPM %'
+					caption: Staða til dags. Frá upphafi mánaðar samanburður við fyrri mánuð %
+				measure 'Balance at Date MTDOPM'
+					caption: Staða til dags. Frá upphafi mánaðar samanburður við fyrri mánuð
+				measure 'Balance at Date PMC'
+					caption: Staða til dags. frá lokum fyrri mánaðar
+				measure 'Balance at Date QTDOPQ %'
+					caption: Staða til dags. Ársfjórðungur til dagsins í dag samanburður fyrri ársfjórðungs %
+				measure 'Balance at Date QTDOPQ'
+					caption: Staða til dags. Ársfjórðungur til dagsins í dag samanburður fyrri ársfjórðungs
+				measure 'Balance at Date PQC'
+					caption: Staða til dags. frá lokum fyrri ársfjórðungs
+				measure 'Balance at Date YTDOPY %'
+					caption: Staða til dags. Ár til dagsins í dag samanburður fyrra árs %
+				measure 'Balance at Date YTDOPY'
+					caption: Staða til dags. Ár til dagsins í dag samanburður fyrra árs
+				measure 'Balance at Date PYC'
+					caption: Staða til dags. frá lokum fyrra árs
+				measure 'Balance at Date MATG %'
+					caption: Staða til dags. Hlaupandi vöxtur alls yfir árið %
+				measure 'Balance at Date MATG'
+					caption: Staða til dags. Hlaupandi vöxtur alls yfir árið
+				measure 'Balance at Date PYMAT'
+					caption: Staða til dags. Fyrra ár hlaupandi heildarsala
+				measure 'Balance at Date MAT'
+					caption: Staða til dags. Hlaupandi alls yfir árið
+				measure 'Balance at Date MOMTD %'
+					caption: Staða til dags. á milli mánaða til dagsins í dag í %
+				measure 'Balance at Date MOMTD'
+					caption: Staða til dags. á milli mánaða til dagsins í dag
+				measure 'Balance at Date PMTD'
+					caption: Staða til dags. Frá síðasta mánuði til dagsins í dag
+				measure 'Balance at Date QOQTD %'
+					caption: Staða til dags. á milli ársfjórðunga til dagsins í dag í %
+				measure 'Balance at Date QOQTD'
+					caption: Staða til dags. á milli ársfjórðunga til dagsins í dag
+				measure 'Balance at Date YOYTD %'
+					caption: Staða til dags. á milli ára til dagsins í dag í %
+				measure 'Balance at Date YOYTD'
+					caption: Staða til dags. á milli ára til dagsins í dag
+				measure 'Balance at Date PQTD'
+					caption: Staða til dags. Frá síðasta ársfjórðungi til dagsins í dag
+				measure 'Balance at Date PYTD'
+					caption: Staða til dags. Fyrra ár til dagsins í dag
+				measure 'Balance at Date POP %'
+					caption: Staða til dags. Samanburður milli tímabila %
+				measure 'Balance at Date POP'
+					caption: Staða til dags. Samanburður milli tímabila
+				measure 'Balance at Date PP'
+					caption: Staða til dags. Fyrra tímabil
+				measure 'Balance at Date MOM %'
+					caption: Staða til dags. Samanburður mánaða %
+				measure 'Balance at Date MOM'
+					caption: Staða til dags. Samanburður mánaða
+				measure 'Balance at Date QOQ %'
+					caption: Staða til dags. Samanburður milli ársfjórðunga %
+				measure 'Balance at Date PM'
+					caption: Staða til dags. Fyrri mánuður
+				measure 'Balance at Date QOQ'
+					caption: Staða til dags. Samanburður milli ársfjórðunga
+				measure 'Balance at Date PQ'
+					caption: Staða til dags. Fyrri ársfjórðungur
+				measure 'Balance at Date YOY'
+					caption: Staða til dags. Samanburður milli ára
+				measure 'Balance at Date YOY %'
+					caption: Staða til dags. Samanburður milli ára %
+				measure 'Balance at Date PY'
+					caption: Staða til dags. Fyrra ár
+				measure 'Balance at Date MTD'
+					caption: Staða til dags. Frá upphafi mánaðar
+				measure 'Balance at Date QTD'
+					caption: Staða til dags. Ársfjórðungur til dagsins í dag
+				measure 'Balance at Date YTD'
+					caption: Staða til dags. Ár til dagsins í dag
+			table 'Fiscal Calendar Time Intelligence'
+				caption: Tímagreind fjárhagsdagatals
+				measure 'Net Change YTD (Fiscal)'
+					caption: Nettóbreyting Ár til dagsins í dag (fjárhagur)
+				measure 'Net Change QTD (Fiscal)'
+					caption: Nettóbreyting Ársfjórðungur til dagsins í dag (fjárhagur)
+				measure 'Net Change MTD (Fiscal)'
+					caption: Nettóbreyting Frá upphafi mánaðar (fjárhagur)
+				measure 'Net Change PY (Fiscal)'
+					caption: Nettóbreyting Fyrra ár (fjárhagur)
+				measure 'Net Change YOY % (Fiscal)'
+					caption: Nettóbreyting Samanburður milli ára % (fjárhagur)
+				measure 'Net Change YOY (Fiscal)'
+					caption: Nettóbreyting Samanburður milli ára (fjárhagur)
+				measure 'Net Change PQ (Fiscal)'
+					caption: Nettóbreyting Fyrri ársfjórðungur (fjárhagur)
+				measure 'Net Change QOQ (Fiscal)'
+					caption: Nettóbreyting Samanburður milli ársfjórðunga (fjárhagur)
+				measure 'Net Change QOQ % (Fiscal)'
+					caption: Nettóbreyting Samanburður milli ársfjórðunga % (fjárhagur)
+				measure 'Net Change PM (Fiscal)'
+					caption: Nettóbreyting Fyrri mánuður (fjárhagur)
+				measure 'Net Change MOM (Fiscal)'
+					caption: Nettóbreyting Samanburður mánaða (fjárhagur)
+				measure 'Net Change MOM % (Fiscal)'
+					caption: Nettóbreyting Samanburður mánaða % (fjárhagur)
+				measure 'Net Change PP (Fiscal)'
+					caption: Nettóbreyting Fyrra tímabil (fjárhagur)
+				measure 'Net Change POP (Fiscal)'
+					caption: Nettóbreyting Samanburður milli tímabila (fjárhagur)
+				measure 'Net Change POP % (Fiscal)'
+					caption: Nettóbreyting Samanburður milli tímabila % (fjárhagur)
+				measure 'Net Change PYTD (Fiscal)'
+					caption: Nettóbreyting Fyrra ár til dagsins í dag (fjárhagur)
+				measure 'Net Change PQTD (Fiscal)'
+					caption: Nettóbreyting Frá síðasta ársfjórðungi til dagsins í dag (fjárhagur)
+				measure 'Net Change YOYTD (Fiscal)'
+					caption: Nettóbreyting á milli ára til dagsins í dag (fjárhagur)
+				measure 'Net Change YOYTD % (Fiscal)'
+					caption: Nettóbreyting á milli ára til dagsins í dag í % (fjárhagur)
+				measure 'Net Change QOQTD (Fiscal)'
+					caption: Nettóbreyting á milli ársfjórðunga til dagsins í dag (fjárhagur)
+				measure 'Net Change QOQTD % (Fiscal)'
+					caption: Nettóbreyting á milli ársfjórðunga til dagsins í dag í % (fjárhagur)
+				measure 'Net Change PMTD (Fiscal)'
+					caption: Nettóbreyting Frá síðasta mánuði til dagsins í dag (fjárhagur)
+				measure 'Net Change MOMTD % (Fiscal)'
+					caption: Nettóbreyting á milli mánaða til dagsins í dag í % (fjárhagur)
+				measure 'Net Change MOMTD (Fiscal)'
+					caption: Nettóbreyting á milli mánaða til dagsins í dag (fjárhagur)
+				measure 'Net Change MAT (Fiscal)'
+					caption: Nettóbreyting Hlaupandi alls yfir árið (fjárhagur)
+				measure 'Net Change PYMAT (Fiscal)'
+					caption: Nettóbreyting Fyrra ár hlaupandi heildarsala (fjárhagur)
+				measure 'Net Change MATG (Fiscal)'
+					caption: Nettóbreyting Hlaupandi vöxtur alls yfir árið (fjárhagur)
+				measure 'Net Change MATG % (Fiscal)'
+					caption: Nettóbreyting Hlaupandi vöxtur alls yfir árið % (fjárhagur)
+				measure 'Net Change MAT (364) (Fiscal)'
+					caption: Nettóbreyting Hlaupandi alls yfir árið (364) (fjárhagur)
+				measure 'Net Change PYMAT (364) (Fiscal)'
+					caption: Nettóbreyting Fyrra ár hlaupandi heildarsala (364) (fjárhagur)
+				measure 'Net Change PYC (Fiscal)'
+					caption: Nettóbreyting frá lokum fyrra árs (fjárhagur)
+				measure 'Net Change YTDOPY (Fiscal)'
+					caption: Nettóbreyting Ár til dagsins í dag samanburður fyrra árs (fjárhagur)
+				measure 'Net Change YTDOPY % (Fiscal)'
+					caption: Nettóbreyting Ár til dagsins í dag samanburður fyrra árs % (fjárhagur)
+				measure 'Net Change PQC (Fiscal)'
+					caption: Nettóbreyting frá lokum fyrri ársfjórðungs (fjárhagur)
+				measure 'Net Change QTDOPQ (Fiscal)'
+					caption: Nettóbreyting Ársfjórðungur til dagsins í dag samanburður fyrri ársfjórðungs (fjárhagur)
+				measure 'Net Change QTDOPQ % (Fiscal)'
+					caption: Nettóbreyting Ársfjórðungur til dagsins í dag samanburður fyrri ársfjórðungs % (fjárhagur)
+				measure 'Net Change PMC (Fiscal)'
+					caption: Nettóbreyting frá lokum fyrri mánaðar (fjárhagur)
+				measure 'Net Change MTDOPM (Fiscal)'
+					caption: Nettóbreyting Frá upphafi mánaðar samanburður við fyrri mánuð (fjárhagur)
+				measure 'Net Change MTDOPM % (Fiscal)'
+					caption: Nettóbreyting Frá upphafi mánaðar samanburður við fyrri mánuð % (fjárhagur)
+				measure 'Net Change AVG 30D (Fiscal)'
+					caption: Nettóbreyting Meðaltal 30D (fjárhagur)
+				measure 'Net Change AVG 3M (Fiscal)'
+					caption: Nettóbreyting Meðaltal 3M (fjárhagur)
+				measure 'Net Change AVG 1Y (Fiscal)'
+					caption: Nettóbreyting Meðaltal 1Á (fjárhagur)
+				measure 'Balance at Date YTD (Fiscal)'
+					caption: Staða til dags. Ár til dagsins í dag (fjárhagur)
+				measure 'Balance at Date QTD (Fiscal)'
+					caption: Staða til dags. Ársfjórðungur til dagsins í dag (fjárhagur)
+				measure 'Balance at Date MTD (Fiscal)'
+					caption: Staða til dags. Frá upphafi mánaðar (fjárhagur)
+				measure 'Balance at Date PY (Fiscal)'
+					caption: Staða til dags. Fyrra ár (fjárhagur)
+				measure 'Balance at Date YOY % (Fiscal)'
+					caption: Staða til dags. Samanburður milli ára % (fjárhagur)
+				measure 'Balance at Date YOY (Fiscal)'
+					caption: Staða til dags. Samanburður milli ára (fjárhagur)
+				measure 'Balance at Date PQ (Fiscal)'
+					caption: Staða til dags. Fyrri ársfjórðungur (fjárhagur)
+				measure 'Balance at Date QOQ (Fiscal)'
+					caption: Staða til dags. Samanburður milli ársfjórðunga (fjárhagur)
+				measure 'Balance at Date QOQ % (Fiscal)'
+					caption: Staða til dags. Samanburður milli ársfjórðunga % (fjárhagur)
+				measure 'Balance at Date PM (Fiscal)'
+					caption: Staða til dags. Fyrri mánuður (fjárhagur)
+				measure 'Balance at Date MOM (Fiscal)'
+					caption: Staða til dags. Samanburður mánaða (fjárhagur)
+				measure 'Balance at Date MOM % (Fiscal)'
+					caption: Staða til dags. Samanburður mánaða % (fjárhagur)
+				measure 'Balance at Date PP (Fiscal)'
+					caption: Staða til dags. Fyrra tímabil (fjárhagur)
+				measure 'Balance at Date POP (Fiscal)'
+					caption: Staða til dags. Samanburður milli tímabila (fjárhagur)
+				measure 'Balance at Date POP % (Fiscal)'
+					caption: Staða til dags. Samanburður milli tímabila % (fjárhagur)
+				measure 'Balance at Date PYTD (Fiscal)'
+					caption: Staða til dags. Fyrra ár til dagsins í dag (fjárhagur)
+				measure 'Balance at Date PQTD (Fiscal)'
+					caption: Staða til dags. Frá síðasta ársfjórðungi til dagsins í dag (fjárhagur)
+				measure 'Balance at Date YOYTD (Fiscal)'
+					caption: Staða til dags. á milli ára til dagsins í dag (fjárhagur)
+				measure 'Balance at Date YOYTD % (Fiscal)'
+					caption: Staða til dags. á milli ára til dagsins í dag í % (fjárhagur)
+				measure 'Balance at Date QOQTD (Fiscal)'
+					caption: Staða til dags. á milli ársfjórðunga til dagsins í dag (fjárhagur)
+				measure 'Balance at Date QOQTD % (Fiscal)'
+					caption: Staða til dags. á milli ársfjórðunga til dagsins í dag í % (fjárhagur)
+				measure 'Balance at Date PMTD (Fiscal)'
+					caption: Staða til dags. Frá síðasta mánuði til dagsins í dag (fjárhagur)
+				measure 'Balance at Date MOMTD % (Fiscal)'
+					caption: Staða til dags. á milli mánaða til dagsins í dag (fjárhagur)
+				measure 'Balance at Date MOMTD (Fiscal)'
+					caption: Staða til dags. á milli mánaða til dagsins í dag (fjárhagur)
+				measure 'Balance at Date MAT (Fiscal)'
+					caption: Staða til dags. Hlaupandi alls yfir árið (fjárhagur)
+				measure 'Balance at Date PYMAT (Fiscal)'
+					caption: Staða til dags. Fyrra ár hlaupandi heildarsala (fjárhagur)
+				measure 'Balance at Date MATG (Fiscal)'
+					caption: Staða til dags. Hlaupandi vöxtur alls yfir árið (fjárhagur)
+				measure 'Balance at Date MATG % (Fiscal)'
+					caption: Staða til dags. Hlaupandi vöxtur alls yfir árið % (fjárhagur)
+				measure 'Balance at Date MAT (364) (Fiscal)'
+					caption: Staða til dags. Hlaupandi alls yfir árið (364) (fjárhagur)
+				measure 'Balance at Date PYMAT (364) (Fiscal)'
+					caption: Staða til dags. Fyrra ár hlaupandi heildarsala (364) (fjárhagur)
+				measure 'Balance at Date PYC (Fiscal)'
+					caption: Staða til dags. frá lokum fyrra árs (fjárhagur)
+				measure 'Balance at Date YTDOPY (Fiscal)'
+					caption: Staða til dags. Ár til dagsins í dag samanburður fyrra árs (fjárhagur)
+				measure 'Balance at Date YTDOPY % (Fiscal)'
+					caption: Staða til dags. Ár til dagsins í dag samanburður fyrra árs % (fjárhagur)
+				measure 'Balance at Date PQC (Fiscal)'
+					caption: Staða á degi frá lokum fyrri ársfjórðungs (fjárhagur)
+				measure 'Balance at Date QTDOPQ (Fiscal)'
+					caption: Staða til dags. Ársfjórðungur til dagsins í dag samanburður fyrri ársfjórðungs (fjárhagur)
+				measure 'Balance at Date QTDOPQ % (Fiscal)'
+					caption: Staða til dags. Ársfjórðungur til dagsins í dag samanburður fyrri ársfjórðungs % (fjárhagur)
+				measure 'Balance at Date PMC (Fiscal)'
+					caption: Staða til dags. frá lokum fyrri mánaðar (fjárhagur)
+				measure 'Balance at Date MTDOPM (Fiscal)'
+					caption: Staða til dags. Frá upphafi mánaðar samanburður við fyrri mánuð (fjárhagur)
+				measure 'Balance at Date MTDOPM % (Fiscal)'
+					caption: Staða til dags. Frá upphafi mánaðar samanburður við fyrri mánuð % (fjárhagur)
+				measure 'Balance at Date AVG 30D (Fiscal)'
+					caption: Staða til dags. Meðaltal 30D (fjárhagur)
+				measure 'Balance at Date AVG 3M (Fiscal)'
+					caption: Staða til dags. Meðaltal 3M (fjárhagur)
+				measure 'Balance at Date AVG 1Y (Fiscal)'
+					caption: Staða til dags. Meðaltal 1Á (fjárhagur)
+			table 'Weekly Calendar Time Intelligence'
+				caption: Tímagreind vikudagatals
+				measure 'Net Change YTD (Weekly)'
+					caption: Nettóbreyting Árið til dagsins í dag (vikulega)
+				measure 'Net Change QTD (Weekly)'
+					caption: Nettóbreyting Ársfjórðungur til dagsins í dag (vikulega)
+				measure 'Net Change MTD (Weekly)'
+					caption: Nettóbreyting Frá upphafi mánaðar (vikulega)
+				measure 'Net Change WTD (Weekly)'
+					caption: Nettóbreyting Frá upphafi viku (vikulega)
+				measure 'Net Change PY (Weekly)'
+					caption: Nettóbreyting Fyrra ár (vikulega)
+				measure 'Net Change YOY % (Weekly)'
+					caption: Nettóbreyting Samanburður milli ára % (vikulega)
+				measure 'Net Change YOY (Weekly)'
+					caption: Nettóbreyting Samanburður milli ára (vikulega)
+				measure 'Net Change PQ (Weekly)'
+					caption: Nettóbreyting Fyrri ársfjórðungur (vikulega)
+				measure 'Net Change QOQ (Weekly)'
+					caption: Nettóbreyting Samanburður milli ársfjórðunga (vikulega)
+				measure 'Net Change QOQ % (Weekly)'
+					caption: Nettóbreyting Samanburður milli ársfjórðunga % (vikulega)
+				measure 'Net Change PW (Weekly)'
+					caption: Nettóbreyting Fyrri vika (vikulega)
+				measure 'Net Change WOW (Weekly)'
+					caption: Nettóbreyting Samanburður milli vikna (vikulega)
+				measure 'Net Change WOW % (Weekly)'
+					caption: Nettóbreyting Samanburður milli vikna % (vikulega)
+				measure 'Net Change PP (Weekly)'
+					caption: Nettóbreyting Fyrra tímabil (vikulega)
+				measure 'Net Change POP (Weekly)'
+					caption: Nettóbreyting Samanburður milli tímabila (vikulega)
+				measure 'Net Change POP % (Weekly)'
+					caption: Nettóbreyting Samanburður milli tímabila % (vikulega)
+				measure 'Net Change PYTD (Weekly)'
+					caption: Nettóbreyting Fyrra ár til dagsins í dag (vikulega)
+				measure 'Net Change PQTD (Weekly)'
+					caption: Nettóbreyting Frá síðasta ársfjórðungi til dagsins í dag (vikulega)
+				measure 'Net Change YOYTD (Weekly)'
+					caption: Nettóbreyting á milli ára til dagsins í dag (vikulega)
+				measure 'Net Change YOYTD % (Weekly)'
+					caption: Nettóbreyting á milli ára til dagsins í dag í % (vikulega)
+				measure 'Net Change QOQTD (Weekly)'
+					caption: Nettóbreyting á milli ársfjórðunga til dagsins í dag (vikulega)
+				measure 'Sales Amount QOQTD % (Weekly)'
+					caption: Söluupphæð á milli ársfjórðunga til dagsins í dag í % (vikulega)
+				measure 'Net Change PWTD (Weekly)'
+					caption: Nettóbreyting Frá síðustu viku til dagsins í dag (vikulega)
+				measure 'Net Change WOWTD (Weekly)'
+					caption: Nettóbreyting á milli vikna til dagsins í dag (vikulega)
+				measure 'Net Change WOWTD % (Weekly)'
+					caption: Nettóbreyting á milli vikna til dagsins í dag í % (vikulega)
+				measure 'Net Change MAT (364) (Weekly)'
+					caption: Nettóbreyting Hlaupandi alls yfir árið (364) (vikulega)
+				measure 'Net Change PYMAT (364) (Weekly)'
+					caption: Nettóbreyting Fyrra ár hlaupandi heildarsala (364) (vikulega)
+				measure 'Net Change MATG (Weekly)'
+					caption: Nettóbreyting Hlaupandi vöxtur alls yfir árið (vikulega)
+				measure 'Net Change MATG % (Weekly)'
+					caption: Nettóbreyting Hlaupandi vöxtur alls yfir árið % (vikulega)
+				measure 'Net Change PYC (Weekly)'
+					caption: Nettóbreyting frá lokum fyrra árs (vikulega)
+				measure 'Net Change YTDOPY (Weekly)'
+					caption: Nettóbreyting Ár til dagsins í dag samanburður fyrra árs (vikulega)
+				measure 'Net Change YTDOPY % (Weekly)'
+					caption: Nettóbreyting Ár til dagsins í dag samanburður fyrra árs % (vikulega)
+				measure 'Net Change PQC (Weekly)'
+					caption: Nettóbreyting frá lokum fyrri ársfjórðungs (vikulega)
+				measure 'Net Change QTDOPQ (Weekly)'
+					caption: Nettóbreyting Ársfjórðungur til dagsins í dag samanburður fyrri ársfjórðungs (vikulega)
+				measure 'Net Change QTDOPQ % (Weekly)'
+					caption: Nettóbreyting Ársfjórðungur til dagsins í dag samanburður fyrri ársfjórðungs % (vikulega)
+				measure 'Net Change PWC (Weekly)'
+					caption: Nettóbreyting frá lokum fyrri viku (vikulega)
+				measure 'Net Change WTDOPW (Weekly)'
+					caption: Nettóbreyting Frá upphafi viku samanburður fyrri viku (vikulega)
+				measure 'Net Change WTDOPW % (Weekly)'
+					caption: Nettóbreyting Frá upphafi viku samanburður fyrri viku % (vikulega)
+				measure 'Net Change AVG 4W (Weekly)'
+					caption: Nettóbreyting Meðaltal 4V (vikulega)
+				measure 'Net Change AVG 1Q (Weekly)'
+					caption: Nettóbreyting Meðaltal 1Á (vikulega)
+				measure 'Net Change AVG 1Y (Weekly)'
+					caption: Nettóbreyting Meðaltal 1Á (vikulega)
+				measure 'Balance at Date YTD (Weekly)'
+					caption: Staða til dags. Ár til dagsins í dag (vikulega)
+				measure 'Balance at Date QTD (Weekly)'
+					caption: Staða til dags. Ársfjórðungur til dagsins í dag (vikulega)
+				measure 'Balance at Date MTD (Weekly)'
+					caption: Staða til dags. Frá upphafi mánaðar (vikulega)
+				measure 'Balance at Date WTD (Weekly)'
+					caption: Staða til dags. Frá upphafi viku (vikulega)
+				measure 'Balance at Date PY (Weekly)'
+					caption: Staða til dags. Fyrra ár (vikulega)
+				measure 'Balance at Date YOY % (Weekly)'
+					caption: Staða til dags. Samanburður milli ára % (vikulega)
+				measure 'Balance at Date YOY (Weekly)'
+					caption: Staða til dags. Samanburður milli ára (vikulega)
+				measure 'Balance at Date PQ (Weekly)'
+					caption: Staða til dags. Fyrri ársfjórðungur (vikulega)
+				measure 'Balance at Date QOQ (Weekly)'
+					caption: Staða til dags. Samanburður milli ársfjórðunga (vikulega)
+				measure 'Balance at Date QOQ % (Weekly)'
+					caption: Staða til dags. Samanburður milli ársfjórðunga % (vikulega)
+				measure 'Balance at Date PW (Weekly)'
+					caption: Staða til dags. Fyrri vika (vikulega)
+				measure 'Balance at Date WOW (Weekly)'
+					caption: Staða til dags. Samanburður milli vikna (vikulega)
+				measure 'Balance at Date WOW % (Weekly)'
+					caption: Staða til dags. Samanburður milli vikna % (vikulega)
+				measure 'Balance at Date PP (Weekly)'
+					caption: Staða til dags. Fyrra tímabil (vikulega)
+				measure 'Balance at Date POP (Weekly)'
+					caption: Staða til dags. Samanburður milli tímabila (vikulega)
+				measure 'Balance at Date POP % (Weekly)'
+					caption: Staða til dags. Samanburður milli tímabila % (vikulega)
+				measure 'Balance at Date PYTD (Weekly)'
+					caption: Staða til dags. Fyrra ár til dagsins í dag (vikulega)
+				measure 'Balance at Date PQTD (Weekly)'
+					caption: Staða til dags. Frá síðasta ársfjórðungi til dagsins í dag (vikulega)
+				measure 'Balance at Date YOYTD (Weekly)'
+					caption: Staða til dags. á milli ára til dagsins í dag (vikulega)
+				measure 'Balance at Date YOYTD % (Weekly)'
+					caption: Staða til dags. á milli ára til dagsins í dag í % (vikulega)
+				measure 'Balance at Date QOQTD (Weekly)'
+					caption: Staða til dags. á milli ársfjórðunga til dagsins í dag (vikulega)
+				measure 'Balance at Date QOQTD % (Weekly)'
+					caption: Staða til dags. á milli ársfjórðunga til dagsins í dag í % (vikulega)
+				measure 'Balance at Date PWTD (Weekly)'
+					caption: Staða til dags. Frá síðustu viku til dagsins í dag (vikulega)
+				measure 'Balance at Date WOWTD (Weekly)'
+					caption: Staða til dags. á milli vikna til dagsins í dag (vikulega)
+				measure 'Balance at Date WOWTD % (Weekly)'
+					caption: Staða til dags. á milli vikna til dagsins í dag í % (vikulega)
+				measure 'Balance at Date MAT (364) (Weekly)'
+					caption: Staða til dags. Hlaupandi alls yfir árið (364) (vikulega)
+				measure 'Balance at Date PYMAT (364) (Weekly)'
+					caption: Staða til dags. Fyrra ár hlaupandi heildarsala (364) (vikulega)
+				measure 'Balance at Date MATG (Weekly)'
+					caption: Staða til dags. Hlaupandi vöxtur alls yfir árið (vikulega)
+				measure 'Balance at Date MATG % (Weekly)'
+					caption: Staða til dags. Hlaupandi vöxtur alls yfir árið % (vikulega)
+				measure 'Balance at Date PYC (Weekly)'
+					caption: Staða til dags. frá lokum fyrra árs (vikulega)
+				measure 'Balance at Date YTDOPY (Weekly)'
+					caption: Staða til dags. Ár til dagsins í dag samanburður fyrra árs (vikulega)
+				measure 'Balance at Date YTDOPY % (Weekly)'
+					caption: Staða til dags. Ár til dagsins í dag samanburður fyrra árs % (vikulega)
+				measure 'Balance at Date PQC (Weekly)'
+					caption: Staða til dags. frá lokum fyrri ársfjórðungs (vikulega)
+				measure 'Balance at Date QTDOPQ (Weekly)'
+					caption: Staða til dags. Ársfjórðungur til dagsins í dag samanburður fyrri ársfjórðungs (vikulega)
+				measure 'Balance at Date QTDOPQ % (Weekly)'
+					caption: Staða til dags. Ársfjórðungur til dagsins í dag samanburður fyrri ársfjórðungs % (vikulega)
+				measure 'Balance at Date PWC (Weekly)'
+					caption: Staða til dags. frá lokum fyrri viku (vikulega)
+				measure 'Balance at Date WTDOPW (Weekly)'
+					caption: Staða til dags. Frá upphafi viku samanburður fyrri viku (vikulega)
+				measure 'Balance at Date WTDOPW % (Weekly)'
+					caption: Staða til dags. Frá upphafi viku samanburður fyrri viku % (vikulega)
+				measure 'Balance at Date AVG 4W (Weekly)'
+					caption: Staða til dags. Meðaltal 4V (vikulega)
+				measure 'Balance at Date AVG 1Q (Weekly)'
+					caption: Staða til dags. Meðaltal 1F (vikulega)
+				measure 'Balance at Date AVG 1Y (Weekly)'
+					caption: Staða til dags. Meðaltal 1Á (vikulega)
+			table 'Customer Ledger Entries'
+				caption: Viðskm.færslur
+				column 'CLE Entry No.'
+					caption: Færslunr. viðskiptamannafærslu
+				column 'CLE Due Date'
+					caption: Skiladagur viðskiptamannafærslu
+				column 'CLE Open'
+					caption: Viðskiptamannafærsla Opna
+				column 'CLE Posting Date'
+					caption: Bókunardagsetning viðskiptamannafærslu
+				column 'CLE Document Date'
+					caption: Dagsetning fylgiskjals viðskiptamannafærslu
+				column 'DCLE Entry No.'
+					caption: Nr. ítarlegrar viðskiptamannafærslu
+				column 'DCLE Posting Date'
+					caption: Bókunardagsetning ítarlegrar viðskiptamannafærslu
+				column 'Ledger Entry Amount'
+					caption: Upphæð fjárhagsfærslu
+				column 'Entry Type'
+					caption: Tegund færslu
+				column 'Document Type'
+					caption: Tegund fylgiskjals
+				column 'Document No.'
+					caption: Númer fylgiskjals
+				column 'DCLE Initial Entry Due Date'
+					caption: Skiladagur upphafsfærslu ítarlegrar lánardrottnafærslu
+				column 'Customer No.'
+					caption: Nr. viðskiptamanns
+				column 'Application No.'
+					caption: Jöfnunarnr.
+				column 'Applied Customer Ledger Entry No.'
+					caption: Jöfnuð viðskiptamannafærsla nr.
+				column 'Sales Invoice Header Document No.'
+					caption: Númer fylgiskjals sölureikningshauss
+				column 'Payment Terms Code'
+					caption: Kóði greiðsluskilmála
+				column 'Payment Discount Date'
+					caption: Dags. greiðsluafsláttar
+				measure 'Original Amount (LCY)'
+					caption: Upphafleg upphæð (SGM)
+				measure 'Amount Receivable (LCY)'
+					caption: Viðskiptakrafa (SGM)
+				measure 'Balance (Accounts Receivable)'
+					caption: Staða (viðskiptakröfur)
+				measure 'Bucket 1 (Receivables)'
+					caption: Rammi 1 (viðskiptakröfur)
+				measure 'Bucket 2 (Receivables)'
+					caption: Rammi 2 (viðskiptakröfur)
+				measure 'Bucket 3 (Receivables)'
+					caption: Rammi 3 (viðskiptakröfur)
+				measure 'Bucket 4 (Receivables)'
+					caption: Rammi 4 (viðskiptakröfur)
+				measure 'Current (Receivables)'
+					caption: Núverandi (viðskiptakröfur)
+				measure 'CLE Bucket 1 Back Link'
+					caption: Baktengill ramma viðskiptavinafærslu 1
+				measure 'CLE Bucket 2 Back Link'
+					caption: Baktengill ramma viðskiptavinafærslu 2
+				measure 'CLE Bucket 3 Back Link'
+					caption: Baktengill ramma viðskiptavinafærslu 3
+				measure 'CLE Bucket 4 Back Link'
+					caption: Baktengill ramma viðskiptavinafærslu 4
+				measure 'CLE Current Back Link'
+					caption: Baktengill núverandi viðskiptavinafærslu
+				measure 'CLE Balance Back Link'
+					caption: Baktengill stöðu viðskiptavinafærslu
+			table 'Vendor Ledger Entries'
+				caption: Lánardr.færslur
+				column 'VLE Entry No.'
+					caption: Nr. lánardrottnafærslu
+				column 'VLE Due Date'
+					caption: Lánardrottnafærsla gjalddagi
+				column 'VLE Open'
+					caption: Lánardrottnafærsla Opna
+				column 'VLE Posting Date'
+					caption: Bókunardagsetning lánardrottnafærslu
+				column 'VLE Document Date'
+					caption: Dagsetning skjals lánardrottnafærslu
+				column 'DVLE Entry No.'
+					caption: Færslunr. ítarlegrar lánardrottnafærslu
+				column 'DVLE Posting Date'
+					caption: Bókunardagsetning ítarlegrar lánardrottnafærslu
+				column 'DVLE Ledger Entry Amount'
+					caption: Færsluupphæð ítarlegrar lánardrottnafærslu
+				column 'Entry Type'
+					caption: Tegund færslu
+				column 'Document Type'
+					caption: Tegund fylgiskjals
+				column 'Document No.'
+					caption: Númer fylgiskjals
+				column 'DVLE Initial Entry Due Date'
+					caption: Gjalddagi ítarlegrar lánardrottnafærslu
+				column 'Vendor No.'
+					caption: Nr. lánardrottins
+				column 'Application No.'
+					caption: Jöfnunarnr.
+				column 'Applied Vendor Ledger Entry No.'
+					caption: Jafnað nr. lánardrottinsfærslu
+				column 'PIH Document No.'
+					caption: Númer fylgiskjals hauss innkaupapöntunar
+				column 'Payment Terms Code'
+					caption: Kóði greiðsluskilmála
+				column 'Payment Discount Date'
+					caption: Dags. greiðsluafsláttar
+				measure 'Amount Payable (LCY)'
+					caption: Upphæð til greiðslu (SGM)
+				measure 'Bucket 2 (Payables)'
+					caption: Rammi 2 (viðskiptaskuldir)
+				measure 'Bucket 1 (Payables)'
+					caption: Rammi 1 (viðskiptaskuldir)
+				measure 'Bucket 3 (Payables)'
+					caption: Rammi 3 (viðskiptaskuldir)
+				measure 'Bucket 4 (Payables)'
+					caption: Rammi 4 (viðskiptaskuldir)
+				measure 'Current (Payables)'
+					caption: Núverandi (viðskiptaskuldir)
+				measure 'Balance (Accounts Payable)'
+					caption: Staða (viðskiptaskuldir)
+				measure 'Original Amount'
+					caption: Upphafleg upphæð
+				measure 'VLE Bucket 1 Back Link'
+					caption: Baktengill lánardrottnafærslu rammi 1
+				measure 'VLE Bucket 2 Back Link'
+					caption: Baktengill ramma lánardrottnafærslu 2
+				measure 'VLE Bucket 3 Back Link'
+					caption: Baktengill lánardrottnafærslu rammi 3
+				measure 'VLE Bucket 4 Back Link'
+					caption: Baktengill ramma lánardrottnafærslu 4
+				measure 'VLE Current Back Link'
+					caption: Baktengill núverandi lánardrottnafærslu
+				measure 'VLE Balance Back Link'
+					caption: Baktengill stöðu lánardrottnafærslu
+			table Vendors
+				caption: Lánardrottnar
+				column 'Vendor No.'
+					caption: Nr. lánardrottins
+				column 'Vendor Name'
+					caption: Nafn lánardrottins
+				column 'Vendor Address'
+					caption: Heimilisfang
+				column 'Vendor Address 2'
+					caption: Aðsetur 2
+				column 'Vendor City'
+					caption: Borg
+				column 'Vendor Post Code'
+					caption: Póstnúmer
+				column 'Vendor State'
+					caption: Ríki
+				column 'Vendor Country/Region Code'
+					caption: Lands-/svæðiskóði
+				column 'Vendor Posting Group'
+					caption: Bókunarflokkur lánardr.
+				column 'Vendor No. & Name'
+					caption: Númer og nafn lánardrottins
+			table 'Calc. Group - Time Intelligence for Calendar (Standard)'
+				caption: Útreikningshópur - Tímagreind dagatals (staðlað)
+				column 'Selected Measure'
+					caption: Valin mælieining
+				column Type
+					caption: Gerð
+				column 'Sub Type'
+					caption: Undirgerð
+				hierarchy 'Calc. Group Hierarchy (Standard)'
+					caption: Stigveldi útreikningshóps (staðlað)
+					level Type
+						caption: Gerð
+					level 'Sub Type'
+						caption: Undirgerð
+					level 'Selected Measure'
+						caption: Valin mælieining
+			table 'Aging Date Parameter'
+				caption: Færibreytur dagsetningar aldursgreiningar
+				column 'AGING PARAMETER'
+					caption: FÆRIBREYTA ALDURSGREININGAR
+			table 'Aging Bucket Period'
+				caption: Tímabil aldursgreiningarramma
+				measure 'Aging Bucket Period Value'
+					caption: Virði tímabils aldursgreiningarramma
+				measure 'Bucket 1 Range'
+					caption: Rammi 1 Svið
+				measure 'Bucket 2 Range'
+					caption: Rammi 2 Svið
+				measure 'Bucket 3 Range'
+					caption: Rammi 3 Svið
+				measure 'Bucket 4 Range'
+					caption: Rammi 4 Svið
+				measure 'Bucket 1 Date Range'
+					caption: Rammi 1 dagsetningabil
+				measure 'Bucket 2 Date Range'
+					caption: Fjárhagsáætlun 2 dagsetningabil
+				measure 'Bucket 3 Date Range'
+					caption: Rammi 3 dagsetningabil
+				measure 'Bucket 4 Date Range'
+					caption: Rammi 4 dagsetningabil
+			table Customers
+				caption: Viðskiptavinir
+				column 'Customer No.'
+					caption: Nr. viðskiptamanns
+				column 'Customer Name'
+					caption: Nafn viðskiptamanns
+				column 'Customer Address'
+					caption: Heimilisfang
+				column 'Customer Address 2'
+					caption: Aðsetur 2
+				column 'Customer City'
+					caption: Borg
+				column 'CustomerPost Code'
+					caption: Póstnúmer
+				column 'Customer State'
+					caption: Ríki
+				column 'Country/Region Code'
+					caption: Lands-/svæðiskóði
+				column 'Customer Posting Group'
+					caption: Bókunarflokkur viðskiptavinar
+				column 'Customer Price Group'
+					caption: Verðflokkur viðskiptamanns
+				column 'Customer Discount Group'
+					caption: Afsláttarflokkur viðskm.
+				column 'Customer No. & Name'
+					caption: Nr. og nafn viðskiptavinar
+			table 'Calc. Group - Time Intelligence for Calendar (Fiscal)'
+				caption: Útreikningshópur - Tímagreind dagatals (fjárhagur)
+				column 'Selected Measure'
+					caption: Valin mælieining
+				column Type
+					caption: Gerð
+				column 'Sub Type'
+					caption: Undirgerð
+				hierarchy 'Calc. Group Hierarchy (Fiscal)'
+					caption: Stigveldi útreikningshóps (fjárhagur)
+					level Type
+						caption: Gerð
+					level 'Sub Type'
+						caption: Undirgerð
+					level 'Selected Measure'
+						caption: Valin mælieining
+			table 'Calc. Group - Time Intelligence for Calenday (Weekly)'
+				caption: Útreikningshópur - Tímagreind dagatals (vikulega)
+				column 'Selected Measure'
+					caption: Valin mælieining
+				column Type
+					caption: Gerð
+				column 'Sub Type'
+					caption: Undirgerð
+				hierarchy 'Calc. Group Hierarchy (Weekly)'
+					caption: Stigveldi útreikningshóps (vikulega)
+					level Type
+						caption: Gerð
+					level 'Sub Type'
+						caption: Undirgerð
+					level 'Selected Measure'
+						caption: Valin mælieining
+			table Date
+				caption: Dagsetning
+				column 'Week Day'
+					caption: Vikudagur
+				column 'Day Type'
+					caption: Dagsgerð
+				column 'Calendar Year'
+					caption: Almanaksár
+				column 'Calendar Quarter'
+					caption: Dagatal Ársfjórðungur
+				column 'Calendar Quarter Year'
+					caption: Dagatal Ársfjórðungur Ár
+				column 'Calendar Month'
+					caption: Almanaksmánuður
+				column 'Calendar Month Year'
+					caption: Almanaksmánuður Ár
+				column 'Calendar Week'
+					caption: Almanaksvika
+				column 'Calendar Week Year'
+					caption: Almanaksvika Ár
+				column 'Calendar RelativeWeekPos'
+					caption: Dagatal TengtVikaJákv
+				column 'Calendar RelativeMonthPos'
+					caption: Dagatal TengtMánuðurJákv
+				column 'Calendar RelativeQuarterPos'
+					caption: Dagatal TengtÁrsfjórðungurJákv
+				column 'Calendar RelativeYearPos'
+					caption: Dagatal TengtÁrJákv
+				column 'Calendar StartOfMonth'
+					caption: Dagatal Upphafmánaðar
+				column 'Calendar EndOfMonth'
+					caption: Dagatal Mánaðarlok
+				column 'Calendar StartOfQuarter'
+					caption: Dagatal UpphafÁrsfjórðungs
+				column 'Calendar EndOfQuarter'
+					caption: Dagatal Ársfjórðungslok
+				column 'Calendar StartOfYear'
+					caption: Dagatal Upphafsárs
+				column 'Calendar EndOfYear'
+					caption: Dagatal Árslok
+				column 'Calendar MonthDays'
+					caption: Dagatal MánuðurDagar
+				column 'Calendar QuarterDays'
+					caption: Dagatal ÁrsfjórðungurDagar
+				column 'Calendar YearDays'
+					caption: Dagatal ÁrDagar
+				column 'Calendar DayOfMonthNumber'
+					caption: Dagatal MánaðardagurNúmer
+				column 'Calendar DayOfQuarterNumber'
+					caption: Dagatal DagurÁrsfjórðungurNúmer
+				column 'Calendar DayOfYearNumber'
+					caption: Dagatal DagurÁrsNúmer
+				column 'Calendar DatePreviousWeek'
+					caption: Dagatal DagsetningFyrriVika
+				column 'Calendar DatePreviousMonth'
+					caption: Dagatal DagsetningFyrriMánuður
+				column 'Calendar DatePreviousQuarter'
+					caption: Dagatal DagsetningFyrriÁrsfjórðungur
+				column 'Calendar DatePreviousYear'
+					caption: Dagatal DagsetningFyrraÁr
+				column 'Fiscal Year'
+					caption: Reikningsár
+				column 'Fiscal Quarter'
+					caption: Fjórðungur fjárhagsárs
+				column 'Fiscal Quarter Year'
+					caption: Fjárhagsfjórðungur Ár
+				column 'Fiscal Month'
+					caption: Mánuður fjárhagsárs
+				column 'Fiscal Month Year'
+					caption: Reikningsmánuður Ár
+				column 'Fiscal Week'
+					caption: Vika fjárhagsárs
+				column 'Fiscal Week Year'
+					caption: Fjárhagsvik Ár
+				column 'Fiscal RelativeWeekPos'
+					caption: Fjárhagur TengtVikaJákv
+				column 'Fiscal RelativeMonthPos'
+					caption: Fjárhagur TengtMánuðurJákv
+				column 'Fiscal RelativeQuarterPos'
+					caption: Fjárhagur TengtÁrsfjórðungurJákv
+				column 'Fiscal RelativeYearPos'
+					caption: Fjárhagur TengtÁrJákv
+				column 'Fiscal StartOfMonth'
+					caption: Fjárhagur Upphafmánaðar
+				column 'Fiscal EndOfMonth'
+					caption: Fjárhagur Mánaðarlok
+				column 'Fiscal StartOfQuarter'
+					caption: Fjárhagur UpphafÁrsfjórðungs
+				column 'Fiscal EndOfQuarter'
+					caption: Fjárhagur Ársfjórðungslok
+				column 'Fiscal StartOfYear'
+					caption: Fjárhagur Upphafárs
+				column 'Fiscal EndOfYear'
+					caption: Fjárhagur Árslok
+				column 'Fiscal MonthDays'
+					caption: Fjárhagur MánuðurDagur
+				column 'Fiscal QuarterDays'
+					caption: Fjárhagur ÁrsfjórðungurDagar
+				column 'Fiscal YearDays'
+					caption: ReikningsárDagar
+				column 'Fiscal DayOfMonthNumber'
+					caption: Fjárhagur MánaðardagurNúmer
+				column 'Fiscal DayOfQuarterNumber'
+					caption: Fjárhagur DagurÁrsfjórðungurNúmer
+				column 'Fiscal DayOfYearNumber'
+					caption: Fjárhagur DagurÁrsNúmer
+				column 'Fiscal DatePreviousWeek'
+					caption: Fjárhagur DagsetningFyrriVika
+				column 'Fiscal DatePreviousMonth'
+					caption: Fjárhagur DagsetningFyrriMánuður
+				column 'Fiscal DatePreviousQuarter'
+					caption: Fjárhagur DagsetningFyrriÁrsfjórðungur
+				column 'Fiscal DatePreviousYear'
+					caption: Fjárhagur DagsetningFyrraÁr
+				column 'FW Year'
+					caption: Fjárhagsvika Ár
+				column 'FW Quarter'
+					caption: Fjárhagsvika Ársfjórðungur
+				column 'FW Quarter Year'
+					caption: Fjárhagsvika Ársfjórðungur Ár
+				column 'FW Month'
+					caption: Fjárhagsvika Mánuður
+				column 'FW Month Year'
+					caption: Fjárhagsvika Mánuður Ár
+				column 'FW Week'
+					caption: Fjárhagsvika Vika
+				column 'FW Period'
+					caption: Fjárhagsvika Tímabil
+				column 'FW Week Year'
+					caption: Fjárhagsvika Vika Ár
+				column 'FW StartOfWeek'
+					caption: Fjárhagsvika UpphafViku
+				column 'FW EndOfWeek'
+					caption: Fjárhagsvika Vikulok
+				column 'FW RelativeWeekPos'
+					caption: Fjárhagsvika TengtVikaJákv
+				column 'FW RelativeMonthPos'
+					caption: Fjárhagsvika TengtMánuðurJákv
+				column 'FW RelativeQuarterPos'
+					caption: Fjárhagsvika TengtÁrsfjórðungurJákv
+				column 'FW RelativeYearPos'
+					caption: Fjárhagsvika TengtÁrJákv
+				column 'FW StartOfMonth'
+					caption: Fjárhagsvika Upphafmánaðar
+				column 'FW EndOfMonth'
+					caption: Fjárhagsvika Mánaðarlok
+				column 'FW StartOfQuarter'
+					caption: Fjárhagsvika UpphafÁrsfjórðungs
+				column 'FW EndOfQuarter'
+					caption: Fjárhagsvika Ársfjórðungslok
+				column 'FW StartOfYear'
+					caption: Fjárhagsvika Upphafárs
+				column 'FW EndOfYear'
+					caption: Fjárhagsvika Árslok
+				column 'FW MonthDays'
+					caption: Fjárhagsvika MánuðurDagar
+				column 'FW QuarterDays'
+					caption: Fjárhagsvika ÁrsfjórðungurDagar
+				column 'FW YearDays'
+					caption: Fjárhagsvika ÁrDagar
+				column 'FW DayOfMonthNumber'
+					caption: Fjárhagsvika MánaðardagurNúmer
+				column 'FW DayOfQuarterNumber'
+					caption: Fjárhagsvika DagurÁrsfjórðungurNúmer
+				column 'FW DayOfYearNumber'
+					caption: Fjárhagsvika DagurÁrsNúmer
+				column 'FW DatePreviousWeek'
+					caption: Fjárhagsvika DagsetningFyrriVika
+				column 'FW DatePreviousMonth'
+					caption: Fjárhagsvika DagsetningFyrriMánuður
+				column 'FW DatePreviousQuarter'
+					caption: Fjárhagsvika DagsetningFyrriÁrsfjórðungur
+				column 'FW DatePreviousYear'
+					caption: Fjárhagsvika DagsetningFyrraÁr
+				column 'Relative Day'
+					caption: Tengdur dagur
+				column Sequential365DayNumber
+					caption: Númer dags af 365 dögum
+				measure 'No. of Days'
+					caption: Fjöldi daga
+				hierarchy 'Fiscal Year-Quarter-Month-Week'
+					caption: Reikningsár-Ársfjórðungur-Mánuður-Vika
+					level 'Fiscal Year'
+						caption: Reikningsár
+					level 'Fiscal Quarter Year'
+						caption: Fjárhagsfjórðungur Ár
+					level 'Fiscal Month Year'
+						caption: Reikningsmánuður Ár
+					level 'Fiscal Week Year'
+						caption: Reikningsvika Ár
+				hierarchy 'Calendar Year-Quarter-Month-Week'
+					caption: Dagatal Ár-Ársfjórðungur-Mánuður-Vika
+					level 'Calendar Year'
+						caption: Almanaksár
+					level 'Calendar Quarter Year'
+						caption: Dagatal Ársfjórðungur Ár
+					level 'Calendar Month Year'
+						caption: Almanaksmánuður Ár
+					level 'Calendar Week Year'
+						caption: Almanaksvika Ár
+				hierarchy 'FW Year-Quarter-Month-Week'
+					caption: Fjárhagsvika Ár-Ársfjórðungur-Mánuður-Vika
+					level 'FW Year'
+						caption: Fjárhagsvika Ár
+					level 'FW Quarter Year'
+						caption: Fjárhagsvika Ársfjórðungur Ár
+					level 'FW Month Year'
+						caption: Fjárhagsvika Mánuður Ár
+					level 'FW Week Year'
+						caption: Fjárhagsvika Vika Ár
+				hierarchy 'Fiscal Year-Month'
+					caption: Reikningsár-mánuður
+					level 'Fiscal Year'
+						caption: Reikningsár
+					level 'Fiscal Month Year'
+						caption: Reikningsmánuður Ár
+				hierarchy 'Fiscal Year-Month-Week'
+					caption: Reikningsár-Mánuður-Vika
+					level 'Fiscal Year'
+						caption: Reikningsár
+					level 'Fiscal Month Year'
+						caption: Reikningsmánuður Ár
+					level 'Fiscal Week Year'
+						caption: Fjárhagsvik Ár
+				hierarchy 'Calendar Year-Month'
+					caption: Dagatal Ár-Mánuður
+					level 'Calendar Year'
+						caption: Almanaksár
+					level 'Calendar Month Year'
+						caption: Almanaksmánuður Ár
+				hierarchy 'Calendar Year-Month-Week'
+					caption: Dagatal Ár-Mánuður-Vika
+					level 'Calendar Year'
+						caption: Almanaksár
+					level 'Calendar Month Year'
+						caption: Almanaksmánuður Ár
+					level 'Calendar Week Year'
+						caption: Almanaksvika Ár
+				hierarchy 'FW Year-Month-Week'
+					caption: Fjárhagsvika Ár-Mánuður-Vika
+					level 'FW Year'
+						caption: Fjárhagsvika Ár
+					level 'FW Month Year'
+						caption: Fjárhagsvika Mánuður Ár
+					level 'FW Week Year'
+						caption: Fjárhagsvika Vika Ár
+				hierarchy 'FW Year-Quarter-Week'
+					caption: Fjárhagsvika Ár-Ársfjórðungur-Vika
+					level 'FW Year'
+						caption: Fjárhagsvika Ár
+					level 'FW Quarter Year'
+						caption: Fjárhagsvika Ársfjórðungur Ár
+					level 'FW Week Year'
+						caption: Fjárhagsvika Vika Ár
+				hierarchy 'FW Year-Week'
+					caption: Fjárhagsvika Ár-Vika
+					level 'FW Year'
+						caption: Fjárhagsvika Ár
+					level 'FW Week Year'
+						caption: Fjárhagsvika Vika Ár
+			table 'Localized Labels'
+				measure 'My Report Title'
+					caption: Skýrslutitillinn minn
+				measure 'My Button Caption'
+					caption: Texti hnappsins míns
+				measure 'My Visual Title'
+					caption: Sjónræni titillinn minn
+				measure 'Financial Overview'
+					caption: Fjármálayfirlit
+				measure 'Income Statement by Month'
+					caption: Rekstrarreikningur eftir mánuði
+				measure 'Balance Sheet by Month'
+					caption: Efnahagsreikningur eftir mánuði
+				measure 'Budget Comparison'
+					caption: Samanburður fjárhagsáætlana
+				measure 'Liquidity KPIs'
+					caption: Afkastavísar greiðslugetu
+				measure Profitability
+					caption: Arðsemi
+				measure 'Liabilities '
+					caption: "Skuldir "
+				measure 'Average Collection Period '
+					caption: "Meðaltal innheimtutímabils "
+				measure 'Aged Receivables (Back Dating)'
+					caption: Aldursgreindar viðskiptakröfur (gerðar afturvirkar)
+				measure 'Aged Payables (Back Dating)'
+					caption: Aldursgreindar viðskiptaskuldir (gerðar afturvirkar)
+				measure 'G/L Entries'
+					caption: Fjárhagsfærslur
+				measure 'Detailed Vendor Ledger Entries'
+					caption: Sundurliðaðar lánardrottnafærslur
+				measure 'Detailed Customer Ledger Entries'
+					caption: Upplýsingar um viðskiptamannafærslur
+				measure 'Income Statement Drill Through'
+					caption: Köfun í rekstrarreikning
+				measure 'Balance Sheet Drill Through'
+					caption: Köfun í efnahagsreikning
+				measure 'Vendor Ledger Entries Drill Through'
+					caption: Köfun í færslur lánardrottnabókar
+				measure 'Customer Ledger Entries Drill Through'
+					caption: Köfun í færslur viðskiptamannabókar
+				measure 'Liabilities Drill Through'
+					caption: Köfun í skuldir
+				measure 'Finance App Change Log'
+					caption: Breytingaskrá Finance-forrits
+				measure 'As At Date'
+					caption: Eftir dagsetningu
+				measure 'Aging Bucket Length'
+					caption: Lengd aldursgreiningarramma
+				measure 'Use Aging Date'
+					caption: Nota dagsetningu aldursgreiningar
+				measure 'Cost of Goods Sold '
+					caption: "Kostnaður seldra vara "
+				measure 'Net Profit '
+					caption: "Hreinn hagnaður "
+				measure 'Current Assets / Current Liabilities'
+					caption: Núverandi eignir /núverandi skammtímaskuldir
+				measure '(Current Assets - Inventory - Purch. Prepayments) /  Current Liabilities'
+					caption: (Skammtímaskuldir - Birgðir - Fyrirframgreiðsla innkaupa) / Núverandi skammtímaskuldir
+				measure 'Liquid Assets / Current Liabilities'
+					caption: Lausafjármunir / Núverandi skammtímaskuldir
+				measure 'Revenue - Cost of Goods Sold - Expenses'
+					caption: Tekjur -Kostnaður seldra vara - Kostnaður
+				measure 'Net Profit / Revenue'
+					caption: Hreinn hagnaður / tekjur
+				measure 'Revenue - Cost of Goods Sold'
+					caption: Tekjur -Kostnaður seldra vara
+				measure 'Gross Profit / Revenue'
+					caption: Brúttóhagnaður/ -tekjur
+				measure 'Liabilities by Month'
+					caption: Skuldir eftir mánuði
+				measure 'Revenue & Accounts Receivable (Average) by Month'
+					caption: Tekjur og viðskiptakröfur (meðaltal) eftir mánuði
+				measure 'Average Collection Period (Days) by Month'
+					caption: Meðaltal innheimtutímabils (dagar) eftir mánuði
+				measure 'Operating Revenue '
+					caption: "Rekstrartekjur "
+				measure 'Operating Expenses '
+					caption: "Rekstrarkostnaður "
+				measure 'AGED AR / AP'
+					caption: Aldursgreindar viðskiptakröfur / viðskiptaskuldir
+				measure 'Finance Analytics'
+					caption: Fjármálagreining
+				measure for
+					caption: fyrir
+				measure 'CONNECT YOUR DATA'
+					caption: TENGDU GÖGNIN ÞÍN
+				measure '1. Download the Finance Connector for Power BI'
+					caption: 1. Sækja Finance Connector for Power BI
+				measure '2. Configure Dynamics 365 Business Central'
+					caption: 2. Stilla Dynamics 365 Business Central
+				measure 'USE, EDIT AND BUILD YOUR OWN REPORTS'
+					caption: NOTAÐU, BREYTTU OG GERÐU ÞÍNAR EIGIN SKÝRSLUR
+				measure 'Finance includes a variety of pre-built reports to help you see your data immediately. You are able to edit these reports or build your own report from scratch.'
+					caption: Fjármál bjóða upp á innbyggðar skýrslur til að skoða gögn samstundis. Hægt er að breyta skýrslunum eða búa til eigin skýrslur frá grunni.
+				measure 'HELP AND SUPPORT'
+					caption: HJÁLP OG STUÐNINGUR
+				measure 'For help and support with your new report please visit the Analytics overview documentation.'
+					caption: Kynntu þér fylgigögn greiningaryfirlitsins til að fá hjálp og aðstoð varðandi nýju skýrsluna þína.
+				measure 'OTHER POWER BI REPORTS'
+					caption: AÐRAR POWER BI SKÝRSLUR
+				measure PURCHASE
+					caption: INNKAUP
+				measure SALES
+					caption: SALA
+				measure 'INVENTORY '
+					caption: "BIRGÐIR "
+				measure MANUFACTURING
+					caption: FRAMLEIÐSLA
+				measure JOBS
+					caption: VERK
+				measure 'for Business Central'
+					caption: fyrir Business Central
+				measure 'Aged Accounts Receivable (AR) & Accounts Payable (AP)'
+					caption: Aldursgreindar viðskiptakröfur (VK) og viðskiptaskuldir (VS)
+				measure 'Aged Accounts Receivable & Accounts Payable'
+					caption: Aldursgreindar viðskiptakröfur og viðskiptaskuldir
+				measure 'Aged Accounts'
+					caption: Aldursgreindir lyklar
+				measure 'General Ledger (G/L) Entries'
+					caption: Fjárhagsfærslur
+				measure 'General Ledger Entries'
+					caption: Fjárhagsfærslur
+				measure 'Return On Assets - ROA by Month'
+					caption: Hagnaður af eignum (ROA) eftir mánuði
+				measure 'Top 5 Customers by Balance'
+					caption: Fimm efstu viðskiptavinir eftir stöðu
+				measure 'Top 5 Vendors by Balance'
+					caption: Fimm efstu söluaðilar eftir stöðu
+				measure 'Net Profit Margin by Month'
+					caption: Hagnaðarhlutfall eftir mánuði
+				measure 'Asset Turnover Ratio by Month'
+					caption: Veltuhlutfall eigna eftir mánuði
+				measure 'Last Refreshed'
+					caption: Síðast uppfært
+				measure 'Company Name'
+					caption: Heiti fyrirtækis
+				measure 'Liquidity Line Chart'
+					caption: Línurit greiðslugetu
+				measure 'Net Profit by Month'
+					caption: Hreinn hagnaður eftir mánuði
+				measure 'Gross Profit by Month'
+					caption: Brúttóhagnaður eftir mánuði
+				measure 'Operating Profit - EBIT and EBITDA by Month'
+					caption: Rekstrarhagnaður (EBIT og EBITDA) eftir mánuði
+				measure 'EBITDA '
+					caption: "EBITDA "
+				measure 'Revenue, Accounts Receivable (Average), No. of Days and Average Collection Period (Days) by Month'
+					caption: Tekjur, viðskiptakröfur (meðaltal), fjöldi daga og meðaltal innheimtutímabils (dagar) eftir mánuði
+				measure 'Revenue, Net Profit, Net Profit Margin, Assets, Days Sales Outstanding, Days Sales of Inventory, Days Payable Outstanding.'
+					caption: Tekjur, hreinn hagnaður, hagnaðarhlutfall, eignir, dagssala útistandandi, dagsala af birgðu, dagar útistandandi greiðslu.
+				measure 'Current Ratio, Current Assets, Current Liabilities.'
+					caption: Veltufjárhlutfall, veltufjármunir, skammtímaskuldir.
+				measure 'Quick Ratio, Current Assets, Inventory.'
+					caption: Lausafjárhlutfall, veltufjármunir, birgðir.
+				measure 'Cash Ratio, Liquid Assets, Current Liabilities.'
+					caption: Hlutfall reiðufjár, lausafé, skammtímaskuldir.
+				measure 'Net Profit, Revenue, Cost of Goods Sold.'
+					caption: Hreinn hagnaður, tekjur, kostnaður seldra vara.
+				measure 'Net Profit Margin, Net Profit, Revenue.'
+					caption: Hagnaðarhlutfall, hreinn hagnaður, tekjur.
+				measure 'Gross Profit, Revenue, Cost of Goods Sold.'
+					caption: Brúttóhagnaður, tekjur, kostnaður seldra vara.
+				measure 'Gross Profit Marging, Gross Profit, Revenue.'
+					caption: Brúttóhagnaðarhlutfall, brúttóhagnaður, tekjur.
+				measure 'Liabilities, Current Liabilities, Payrol Liabilities, Debt Ratio, Debt/Equity Ratio, Assets, Longterm Liabilities.'
+					caption: Skuldir, skammtímaskuldir, launaskuldir, skuldahlutfall, hlutfall skulda/eiginfjár, eignir, langtímaskuldir.
+				measure 'Gross Profit Margin, Gross Profit, Revenue.'
+					caption: Brúttóhagnaðarhlutfall, brúttóhagnaður, tekjur.
+				measure 'Net Profit Margin by Fiscal Year and Month'
+					caption: Hagnaðarhlutfall eftir fjárhagsári og mánuði
+				measure 'Asset Turnover Ratio by Fiscal Year and Month'
+					caption: Veltuhlutfall eigna eftir fjárhagsári og mánuði
+				measure 'Balance at Date (Neg) by Fiscal Year, Month and G/L Account No./Name'
+					caption: Staða til dags. (neikv.) eftir fjárhagsári, mánuði og nr./heiti fjárhagsreiknings
+			table COMPANY
+				caption: FYRIRTÆKI
+				measure 'Company Label'
+					caption: Merki fyrirtækis
+			table 'Closing Entry Filter Table'
+				caption: Síutafla lokunarfærslu
+				column CloseIncomeSourceCodeFilter
+					caption: CloseIncomeSourceCodeFilter
+			table 'Back Links'
+				caption: Baktenglar
+

@@ -1,0 +1,224 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.4.0/schema.json",
+  "name": "d22a0089b51816969e9c",
+  "position": {
+    "x": 20.887372013651877,
+    "y": 60.204778156996589,
+    "z": 0,
+    "height": 630.30716723549483,
+    "width": 1228.0546075085324,
+    "tabOrder": 1000
+  },
+  "visual": {
+    "visualType": "tableEx",
+    "query": {
+      "queryState": {
+        "Values": {
+          "projections": [
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "G/L Entries"
+                    }
+                  },
+                  "Property": "Entry No."
+                }
+              },
+              "queryRef": "G/L Entries.Entry No."
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "G/L Entries"
+                    }
+                  },
+                  "Property": "Posting Date"
+                }
+              },
+              "queryRef": "G/L Entries.Posting Date",
+              "nativeQueryRef": "Posting Date"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "G/L Account"
+                    }
+                  },
+                  "Property": "G/L Account No."
+                }
+              },
+              "queryRef": "G/L Account.G/L Account No."
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "G/L Entries"
+                    }
+                  },
+                  "Property": "Description"
+                }
+              },
+              "queryRef": "G/L Entries.Description"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "G/L Entries"
+                    }
+                  },
+                  "Property": "Source Type"
+                }
+              },
+              "queryRef": "G/L Entries.Source Type"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "G/L Entries"
+                    }
+                  },
+                  "Property": "Source No."
+                }
+              },
+              "queryRef": "G/L Entries.Source No."
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "G/L Entries"
+                    }
+                  },
+                  "Property": "Source Code"
+                }
+              },
+              "queryRef": "G/L Entries.Source Code"
+            },
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "G/L Entries"
+                    }
+                  },
+                  "Property": "Balance at Date"
+                }
+              },
+              "queryRef": "G/L Entries.Balance at Date"
+            }
+          ]
+        }
+      },
+      "sortDefinition": {
+        "sort": [
+          {
+            "field": {
+              "Column": {
+                "Expression": {
+                  "SourceRef": {
+                    "Entity": "G/L Entries"
+                  }
+                },
+                "Property": "Entry No."
+              }
+            },
+            "direction": "Ascending"
+          }
+        ]
+      }
+    },
+    "objects": {
+      "values": [
+        {
+          "properties": {
+            "urlIcon": {
+              "expr": {
+                "Literal": {
+                  "Value": "true"
+                }
+              }
+            }
+          }
+        }
+      ],
+      "columnWidth": [
+        {
+          "properties": {
+            "value": {
+              "expr": {
+                "Literal": {
+                  "Value": "89.27304048047056D"
+                }
+              }
+            }
+          },
+          "selector": {
+            "metadata": "G/L Entries.Source No."
+          }
+        },
+        {
+          "properties": {
+            "value": {
+              "expr": {
+                "Literal": {
+                  "Value": "97.73036785063998D"
+                }
+              }
+            }
+          },
+          "selector": {
+            "metadata": "G/L Entries.Source Type"
+          }
+        },
+        {
+          "properties": {
+            "value": {
+              "expr": {
+                "Literal": {
+                  "Value": "181.32083781991386D"
+                }
+              }
+            }
+          },
+          "selector": {
+            "metadata": "G/L Entries.Description"
+          }
+        }
+      ]
+    },
+    "visualContainerObjects": {
+      "title": [
+        {
+          "properties": {
+            "text": {
+              "expr": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Translated Localized Labels"
+                    }
+                  },
+                  "Property": "Balance Sheet Drill Through Label"
+                }
+              }
+            }
+          }
+        }
+      ]
+    }
+  }
+}

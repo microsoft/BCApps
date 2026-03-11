@@ -1,0 +1,145 @@
+table 'Item Category'
+	lineageTag: 28c0c3ac-2661-462c-97ed-8eb717cc0460
+
+	column 'Item Category Code'
+		dataType: string
+		lineageTag: 203ca2e5-5714-4431-a72c-4c537a27f12d
+		summarizeBy: none
+		sourceColumn: Item Category Code
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Item Category Description'
+		dataType: string
+		lineageTag: 7c14b037-9dd8-4b4e-bb8f-dc64307113e3
+		summarizeBy: none
+		sourceColumn: Item Category Description
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Item Category Parent Category'
+		dataType: string
+		isHidden
+		lineageTag: f3134f50-c26d-4c05-82c5-0f6ff78b9289
+		summarizeBy: none
+		sourceColumn: Item Category Parent Category
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Entity Path' = PATH('Item Category'[Item Category Code],'Item Category'[Item Category Parent Category])
+		isHidden
+		lineageTag: 65cac123-ac5e-433a-996e-a38ccc0acfbd
+		summarizeBy: none
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Item Category Code Level 1' =
+			
+			
+			VAR LevelNumber = 1
+			VAR LevelKey = PATHITEM ( 'Item Category'[Entity Path], LevelNumber, TEXT )
+			VAR LevelName = LOOKUPVALUE ( 'Item Category'[Item Category Code], 'Item Category'[Item Category Code], LevelKey )
+			VAR Result = LevelName
+			RETURN
+			 Result
+		isHidden
+		lineageTag: 1636e931-bd67-4a8b-901e-319c4aefa815
+		summarizeBy: none
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Item Category Code Level 2' =
+			
+			VAR LevelNumber = 2
+			VAR LevelKey = PATHITEM ( 'Item Category'[Entity Path], LevelNumber, TEXT )
+			VAR LevelName = LOOKUPVALUE ( 'Item Category'[Item Category Code], 'Item Category'[Item Category Code], LevelKey )
+			VAR Result = LevelName
+			RETURN
+			 Result
+		isHidden
+		lineageTag: ce1f8cba-ed16-4e9e-9811-69c0ff6364b8
+		summarizeBy: none
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Item Category Code Level 3' =
+			
+			VAR LevelNumber = 3
+			VAR LevelKey = PATHITEM ( 'Item Category'[Entity Path], LevelNumber, TEXT )
+			VAR LevelName = LOOKUPVALUE ( 'Item Category'[Item Category Code], 'Item Category'[Item Category Code], LevelKey )
+			VAR Result = LevelName
+			RETURN
+			 Result
+		isHidden
+		lineageTag: 0fb14705-40de-4c20-a981-7fb247d63676
+		summarizeBy: none
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column Depth = PATHLENGTH('Item Category'[Entity Path])
+		isHidden
+		formatString: 0
+		lineageTag: c7fba808-deab-4729-87cb-56ba7233742e
+		summarizeBy: none
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column EntityRowDepth =
+			
+			MAX ( 'Item Category'[Depth] )
+		isHidden
+		formatString: 0
+		lineageTag: b998f7ec-2384-4f06-8bb3-d77e2c663e91
+		summarizeBy: none
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	hierarchy 'Item Category Code Hierarchy'
+		lineageTag: 054c855b-28c5-4b93-a50f-9ae77b57ffe2
+
+		level 'Item Category Code Level 1'
+			lineageTag: 38c218e4-e4f0-42ce-94db-be25dad41eb9
+			column: 'Item Category Code Level 1'
+
+		level 'Item Category Code Level 2'
+			lineageTag: a813802b-6de1-4dd3-ac3a-c67d2f453029
+			column: 'Item Category Code Level 2'
+
+		level 'Item Category Code Level 3'
+			lineageTag: 13316c4a-3e64-4665-b23a-31af98a21911
+			column: 'Item Category Code Level 3'
+
+		changedProperty = IsHidden
+
+	partition 'Item Category' = m
+		mode: import
+		queryGroup: 'Dimension Tables'
+		source =
+				let
+				    Source = Dynamics365BusinessCentral.ApiContentsWithOptions(ENVIRONMENT, COMPANY,API_ENDPOINT, []),
+				    TableData = Source{[Name="itemCategories",Signature="table"]}[Data],
+				    #"Replaced Value" = Table.ReplaceValue(TableData,"itemCategories", each _[code],Replacer.ReplaceValue,{"parentCategory"}),
+				    #"Replaced Value1" = Table.ReplaceValue(#"Replaced Value","",null,Replacer.ReplaceValue,{"parentCategory"}),
+				    #"Renamed Columns" = Table.RenameColumns(#"Replaced Value1",{{"code", "Item Category Code"}, {"description", "Item Category Description"}, {"parentCategory", "Item Category Parent Category"}}),
+				    #"Removed Columns" = Table.RemoveColumns(#"Renamed Columns",{"systemId", "ETag"})
+				in
+				    #"Removed Columns"
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Table
+

@@ -1,0 +1,73 @@
+table Type
+	lineageTag: 4f975a3b-27d8-407f-929b-42da43ec6657
+
+	column Type
+		dataType: string
+		lineageTag: c94500f8-fc7b-4223-8b99-bdf180ccf5ef
+		summarizeBy: none
+		sourceColumn: Type
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Type Key'
+		dataType: string
+		isKey
+		lineageTag: 0e839c8c-de9c-4501-917e-a66e288e5be6
+		summarizeBy: none
+		sourceColumn: Type Key
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'No.'
+		dataType: string
+		lineageTag: 2be7781a-dafa-4fc0-b819-ae175c9d7200
+		summarizeBy: none
+		sourceColumn: No.
+
+		annotation SummarizationSetBy = Automatic
+
+	partition Type = m
+		mode: import
+		queryGroup: 'Dimension Tables'
+		source =
+				let
+				     // Items
+				    #"Source Items" =
+				        Table.AddColumn(
+				            Table.RenameColumns(
+				                Table.SelectColumns(Item, {"Type Key", "Item No."}),
+				                {{"Item No.", "No."}}
+				            ),
+				            "Type", each "Item", type text
+				        ),
+				
+				    // Resources
+				    #"Source Resource" =
+				        Table.AddColumn(
+				            Table.RenameColumns(
+				                Table.SelectColumns(Resources, {"Type Key", "Resource No."}),
+				                {{"Resource No.", "No."}}
+				            ),
+				            "Type", each "Resource", type text
+				        ),
+				
+				    // G/L Accounts
+				    #"Source GL Account" =
+				        Table.AddColumn(
+				            Table.RenameColumns(
+				                Table.SelectColumns(#"G/L Accounts", {"Type Key", "G/L Account No."}),
+				                {{"G/L Account No.", "No."}}
+				            ),
+				            "Type", each "G/L Account", type text
+				        ),
+				
+				    // Combine
+				    #"Combine Source Tables" = Table.Combine({#"Source Items", #"Source Resource", #"Source GL Account"})
+				
+				in
+				    #"Combine Source Tables"
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Table
+

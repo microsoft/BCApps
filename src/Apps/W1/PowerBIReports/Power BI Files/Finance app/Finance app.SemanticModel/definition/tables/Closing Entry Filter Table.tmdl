@@ -1,0 +1,30 @@
+table 'Closing Entry Filter Table'
+	isHidden
+	lineageTag: 44df98ef-ec05-4a50-b2f3-54cf7a3cb9b9
+
+	column CloseIncomeSourceCodeFilter
+		dataType: string
+		isHidden
+		lineageTag: 2699ac4e-d217-4386-bc2f-9c36fc681a50
+		summarizeBy: none
+		sourceColumn: CloseIncomeSourceCodeFilter
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	partition 'Closing Entry Filter Table' = m
+		mode: import
+		source =
+				let
+				    ConcatenatedCodes = #"Build Closing Entry Filter"(),
+				    ResultTable = #table(type table [CloseIncomeSourceCodeFilter = text], {{ConcatenatedCodes}})
+				in
+				    ResultTable
+
+	changedProperty = IsHidden
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Table
+

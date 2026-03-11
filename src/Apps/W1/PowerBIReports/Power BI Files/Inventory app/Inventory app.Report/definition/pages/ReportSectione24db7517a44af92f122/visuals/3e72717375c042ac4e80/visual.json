@@ -1,0 +1,16 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.4.0/schema.json",
+  "name": "3e72717375c042ac4e80",
+  "position": {
+    "x": 652.43353783231089,
+    "y": 462.65848670756645,
+    "z": 3000,
+    "height": 230.2901442774648,
+    "width": 602.18432659868972,
+    "tabOrder": 7000
+  },
+  "visualGroup": {
+    "displayName": "Scheduled Receipt KPI Card",
+    "groupMode": "ScaleMode"
+  }
+}

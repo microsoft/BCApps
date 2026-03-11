@@ -1,0 +1,27 @@
+table 'UBB handling'
+	lineageTag: 37de7ae7-1930-41cc-980c-6505b3f128d8
+
+	column 'Treat Usage Based Billing as constant'
+		dataType: boolean
+		formatString: """TRUE"";""TRUE"";""FALSE"""
+		lineageTag: 0f4da653-1852-49cf-a232-9e265831323b
+		summarizeBy: none
+		sourceColumn: Treat Usage Based Billing as constant
+
+		annotation SummarizationSetBy = Automatic
+
+	partition 'UBB handling' = m
+		mode: import
+		queryGroup: 'Dimension Tables'
+		source =
+				let
+				    Source = Table.FromRows(Json.Document(Binary.Decompress(Binary.FromText("i45WKikqTVWK1YlWSkvMKQayYgE=", BinaryEncoding.Base64), Compression.Deflate)), let _t = ((type nullable text) meta [Serialized.Text = true]) in type table [#"Treat UBB as constant" = _t]),
+				    #"Changed Type" = Table.TransformColumnTypes(Source,{{"Treat UBB as constant", type logical}}),
+				    #"Renamed Columns" = Table.RenameColumns(#"Changed Type",{{"Treat UBB as constant", "Treat Usage Based Billing as constant"}})
+				in
+				    #"Renamed Columns"
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Table
+

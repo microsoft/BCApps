@@ -1,0 +1,1207 @@
+cultureInfo sv-SE
+	translations
+		model Model
+			table Item
+				caption: Artikel
+				column 'Item No. & Description'
+					caption: Artikelnummer och -beskrivning
+				column 'Item No.'
+					caption: Artikelnummer
+				column 'Item Description'
+					caption: Artikelbeskrivning
+				column 'Item Unit Cost (LCY)'
+					caption: Styckkostnad för artikel (BVA)
+				column 'Item Inventory Posting Group'
+					caption: Lagerbokföringsmall för artikel
+				column 'Item Category Code'
+					caption: Artikelkategorikod
+				column 'Item Category Description'
+					caption: Beskrivning av artikelkategori
+				column 'Item Routing No.'
+					caption: Operationsföljdsnr för artikel
+				column 'Item Production BOM No.'
+					caption: Prod.struktursnr för artikel
+				column 'Item Replenishment System'
+					caption: Återanskaffningssystem för artikel
+				column 'Item Single-Level Cap. Ovhd Cost'
+					caption: En-nivå kap.overheadkost. för artikel
+				column 'Item Single-Level Capacity Cost'
+					caption: En-nivå kapacitetskostnad för artikel
+				column 'Item Single-Level Material Cost'
+					caption: En-nivå materialkostnad för artikel
+				column 'Item Single-Level Mfg. Ovhd Cost'
+					caption: En-nivå mat.overheadkost. för artikel
+				column 'Item Single-Level Subcontrd. Cost'
+					caption: En-nivå underleverantörkost. för artikel
+				column 'Item Base Unit of Measure'
+					caption: Basmåttenhet för artikel
+				column 'Item Rolled-up Cap. Overhead Cost'
+					caption: Uppsum. kap.omkostnad för artikel
+				column 'Item Rolled-up Capacity Cost'
+					caption: Uppsum. kapacitetskost. för artikel
+				column 'Item Rolled-up Material Cost'
+					caption: Uppsum. materialkost. för artikel
+				column 'Item Rolled-up Mfg. Ovhd Cost'
+					caption: Uppsum. prod.overheadkost. för artikel
+				column 'Item Rolled-up Subcontracted Cost'
+					caption: Uppsummerad utlegokostnad för artikel
+				column 'Item Scrap %'
+					caption: Artikelkassation %
+				column 'Item Single-Lvl Mat. Non-Invt. Cost'
+					caption: En-nivå materialkostnad – inte i lager för artikel
+				column 'Item Rolled-up Mat. Non-Invt. Cost'
+					caption: Uppsummerad materialkostnad – inte i lager för artikel
+			table Date
+				caption: Datum
+				column DateKey
+					caption: DateKey
+				column 'Day of Month'
+					caption: Dag i månad
+				column WeekDayNumber
+					caption: WeekDayNumber
+				column 'Week Day'
+					caption: Vecka Dag
+				column 'Holiday Name'
+					caption: Namn på helgdag
+				column IsWorkingDay
+					caption: IsWorkingDay
+				column 'Day Type'
+					caption: Typ av dag
+				column DatesWithTransactions
+					caption: DatesWithTransactions
+				column 'Calendar YearNumber'
+					caption: Kalender ÅrNummer
+				column 'Calendar Year'
+					caption: Kalender År
+				column 'Calendar QuarterNumber'
+					caption: Kalender KvartalNummer
+				column 'Calendar Quarter'
+					caption: Kalender Kvartal
+				column 'Calendar YearQuarterNumber'
+					caption: Kalender ÅrKvartalNummer
+				column 'Calendar Quarter Year'
+					caption: Kalender Kvartal År
+				column 'Calendar MonthNumber'
+					caption: Kalender MånadNummer
+				column 'Calendar Month'
+					caption: Kalender Månad
+				column 'Calendar YearMonthNumber'
+					caption: Kalender ÅrMånadNummer
+				column 'Calendar Month Year'
+					caption: Kalender Månad År
+				column 'Calendar WeekNumber'
+					caption: Kalender VeckaNummer
+				column 'Calendar Week'
+					caption: Kalender Vecka
+				column 'Calendar YearWeekNumber'
+					caption: Kalender ÅrVeckaNummer
+				column 'Calendar Week Year'
+					caption: Kalender Vecka År
+				column 'Calendar WeekYearOrder'
+					caption: Kalender VeckaÅrOrdning
+				column 'Calendar RelativeWeekPos'
+					caption: Kalender RelativtVeckaPos
+				column 'Calendar RelativeMonthPos'
+					caption: Kalender RelativtMånadPos
+				column 'Calendar RelativeQuarterPos'
+					caption: Kalender RelativtKvartalPos
+				column 'Calendar RelativeYearPos'
+					caption: Kalender RelativtÅrPos
+				column 'Calendar StartOfMonth'
+					caption: Kalender StartPåMånad
+				column 'Calendar EndOfMonth'
+					caption: Kalender SlutPåMånad
+				column 'Calendar StartOfQuarter'
+					caption: Kalender StartPåKvartal
+				column 'Calendar EndOfQuarter'
+					caption: Kalender SlutPåKvartal
+				column 'Calendar StartOfYear'
+					caption: Kalender StartPåÅr
+				column 'Calendar EndOfYear'
+					caption: Kalender Årsslut
+				column 'Calendar MonthDays'
+					caption: Kalender MånadDagar
+				column 'Calendar QuarterDays'
+					caption: Kalender KvartalDagar
+				column 'Calendar YearDays'
+					caption: Kalender ÅrDagar
+				column 'Calendar DayOfMonthNumber'
+					caption: Kalender DagIMånadNummer
+				column 'Calendar DayOfQuarterNumber'
+					caption: Kalender DagIKvartalNummer
+				column 'Calendar DayOfYearNumber'
+					caption: Kalender DagIÅrNummer
+				column 'Calendar DatePreviousWeek'
+					caption: Kalender DatumFöregåendeVecka
+				column 'Calendar DatePreviousMonth'
+					caption: Kalender DatumFöregåendeMånad
+				column 'Calendar DatePreviousQuarter'
+					caption: Kalender DatumFöregåendeKvartal
+				column 'Calendar DatePreviousYear'
+					caption: Kalender DatumFöregåendeÅr
+				column 'Fiscal Year'
+					caption: Räkenskapsår
+				column 'Fiscal YearNumber'
+					caption: Räkenskapskalender ÅrNummer
+				column 'Fiscal QuarterNumber'
+					caption: Räkenskapskalender KvartalNummer
+				column 'Fiscal Quarter'
+					caption: Räkenskapskalender Kvartal
+				column 'Fiscal YearQuarterNumber'
+					caption: Räkenskapskalender ÅrKvartalNummer
+				column 'Fiscal Quarter Year'
+					caption: Räkenskapskalender Kvartal År
+				column 'Fiscal MonthNumber'
+					caption: Räkenskapskalender MånadNummer
+				column 'Fiscal MonthInQuarterNumber'
+					caption: Räkenskapskalender MånadIKvartalNummer
+				column 'Fiscal Month'
+					caption: Räkenskapskalender Månad
+				column 'Fiscal YearMonthNumber'
+					caption: Räkenskapskalender ÅrMÅnadNummer
+				column 'Fiscal Month Year'
+					caption: Räkenskapskalender Månad År
+				column 'Fiscal WeekNumber'
+					caption: Räkenskapskalender Veckonummer
+				column 'Fiscal Week'
+					caption: Räkenskapskalender Vecka
+				column 'Fiscal YearWeekNumber'
+					caption: RäkenskapsårVeckonummer
+				column 'Fiscal Week Year'
+					caption: Räkenskapskalender År Vecka
+				column 'Fiscal WeekYearOrder'
+					caption: Räkenskapskalender VeckaÅrOrdning
+				column 'Fiscal RelativeWeekPos'
+					caption: Räkenskapskalender RelativtVeckaPos
+				column 'Fiscal RelativeMonthPos'
+					caption: Räkenskapskalender: RelativtMånadPos
+				column 'Fiscal RelativeQuarterPos'
+					caption: Räkenskapskalender RelativtKvartalPos
+				column 'Fiscal RelativeYearPos'
+					caption: Räkenskapskalender RelativtÅrPos
+				column 'Fiscal StartOfMonth'
+					caption: Räkenskapskalender StartPåMånad
+				column 'Fiscal EndOfMonth'
+					caption: Räkenskapskalender SlutPåMånad
+				column 'Fiscal StartOfQuarter'
+					caption: Räkenskapskalender StartPåKvartal
+				column 'Fiscal EndOfQuarter'
+					caption: Räkenskapskalender SlutPåKvartal
+				column 'Fiscal StartOfYear'
+					caption: Räkenskapskalender StartPåÅr
+				column 'Fiscal EndOfYear'
+					caption: Räkenskapskalender Årsslut
+				column 'Fiscal MonthDays'
+					caption: Räkenskapskalender MånadDagar
+				column 'Fiscal QuarterDays'
+					caption: Räkenskapskalender KvartalDagar
+				column 'Fiscal YearDays'
+					caption: Räkenskapskalender ÅrDagar
+				column 'Fiscal DayOfMonthNumber'
+					caption: Räkenskapskalender DagIMÅnadNummer
+				column 'Fiscal DayOfQuarterNumber'
+					caption: Räkenskapskalender DagIKvartalNummer
+				column 'Fiscal DayOfYearNumber'
+					caption: Räkenskapskalender DagIÅrNummer
+				column 'Fiscal DatePreviousWeek'
+					caption: Räkenskapskalender DatumFöregåendeVecka
+				column 'Fiscal DatePreviousMonth'
+					caption: Räkenskapskalender DatumFöregåendeMånad
+				column 'Fiscal DatePreviousQuarter'
+					caption: Räkenskapskalender DatumFöregåendeKvartal
+				column 'Fiscal DatePreviousYear'
+					caption: Räkenskapskalender DatumFöregåendeÅr
+				column 'FW YearNumber'
+					caption: RV ÅrNummer
+				column 'FW Year'
+					caption: RV År
+				column 'FW QuarterNumber'
+					caption: RV KvartalNummer
+				column 'FW Quarter'
+					caption: RV Kvartal
+				column 'FW YearQuarterNumber'
+					caption: RV ÅrKvartalNummer
+				column 'FW Quarter Year'
+					caption: RV Kvartal År
+				column 'FW MonthNumber'
+					caption: RV MånadNummer
+				column 'FW Month'
+					caption: RV Månad
+				column 'FW YearMonthNumber'
+					caption: RV ÅrMånadNummer
+				column 'FW Month Year'
+					caption: RV Månad År
+				column 'FW WeekNumber'
+					caption: RV VeckaNummer
+				column 'FW Week'
+					caption: RV Vecka
+				column 'FW PeriodNumber'
+					caption: RV PeriodNummer
+				column 'FW Period'
+					caption: RV Period
+				column 'FW YearWeekNumber'
+					caption: RV ÅrVeckaNummer
+				column 'FW Week Year'
+					caption: RV Vecka År
+				column 'FW StartOfWeek'
+					caption: RV StartPåVecka
+				column 'FW EndOfWeek'
+					caption: RV SlutPåVecka
+				column 'FW RelativeWeekPos'
+					caption: RV RelativtVeckaPos
+				column 'FW RelativeMonthPos'
+					caption: RV RelativtMånPos
+				column 'FW RelativeQuarterPos'
+					caption: RV RelativtKvartalPos
+				column 'FW RelativeYearPos'
+					caption: RV RelativtÅrPos
+				column 'FW StartOfMonth'
+					caption: RV StartPåMånad
+				column 'FW EndOfMonth'
+					caption: RV SlutPå Månad
+				column 'FW StartOfQuarter'
+					caption: RV StartPåKvartal
+				column 'FW EndOfQuarter'
+					caption: RV SlutPåKvartal
+				column 'FW StartOfYear'
+					caption: RV StartPåÅr
+				column 'FW EndOfYear'
+					caption: RV Årsslut
+				column 'FW MonthDays'
+					caption: RV MånadDagar
+				column 'FW QuarterDays'
+					caption: RV KvartalDagar
+				column 'FW YearDays'
+					caption: RV ÅrDagar
+				column 'FW DayOfMonthNumber'
+					caption: RV DagPåMånadNummer
+				column 'FW DayOfQuarterNumber'
+					caption: RV DagIKvartalNummer
+				column 'FW DayOfYearNumber'
+					caption: RV DagIÅrNummer
+				column 'FW DatePreviousWeek'
+					caption: RV DatumFöregåendeVecka
+				column 'FW DatePreviousMonth'
+					caption: RV DatumFöregåendeMånad
+				column 'FW DatePreviousQuarter'
+					caption: RV DatumFöregåendeKvartal
+				column 'FW DatePreviousYear'
+					caption: RV DatumFöregåendeÅr
+				column 'Relative Day'
+					caption: Relativt Dag
+				column Sequential365DayNumber
+					caption: Sequential365DayNumber
+				hierarchy 'Fiscal Year-Month'
+					caption: Räkenskapskalender År-Månad
+					level 'Fiscal Year'
+						caption: Räkenskapsår
+					level 'Fiscal Month Year'
+						caption: Räkenskapskalender Månad År
+				hierarchy 'Fiscal Year-Month-Week'
+					caption: Räkenskapskalender År-Månad-Vecka
+					level 'Fiscal Year'
+						caption: Räkenskapsår
+					level 'Fiscal Month Year'
+						caption: Räkenskapskalender Månad År
+					level 'Fiscal Week Year'
+						caption: Räkenskapskalender År Vecka
+				hierarchy 'Fiscal Year-Quarter-Month-Week'
+					caption: Räkenskapskalender År-Kvartal-Månad-Vecka
+					level 'Fiscal Year'
+						caption: Räkenskapsår
+					level 'Fiscal Quarter Year'
+						caption: Räkenskapskalender Kvartal År
+					level 'Fiscal Month Year'
+						caption: Räkenskapskalender Månad År
+					level 'Fiscal Week Year'
+						caption: Räkenskapskalender År Vecka
+				hierarchy 'Calendar Year-Month'
+					caption: Kalender År-Månad
+					level 'Calendar Year'
+						caption: Kalender År
+					level 'Calendar Month Year'
+						caption: Kalender Månad År
+				hierarchy 'Calendar Year-Month-Week'
+					caption: Kalender År-Månad-Vecka
+					level 'Calendar Year'
+						caption: Kalender År
+					level 'Calendar Month Year'
+						caption: Kalender Månad År
+					level 'Calendar Week Year'
+						caption: Kalender Vecka År
+				hierarchy 'Calendar Year-Quarter-Month-Week'
+					caption: Kalender År-Kvartal-Månad-Vecka
+					level 'Calendar Year'
+						caption: Kalender År
+					level 'Calendar Quarter Year'
+						caption: Kalender Kvartal År
+					level 'Calendar Month Year'
+						caption: Kalender Månad År
+					level 'Calendar Week Year'
+						caption: Kalender Vecka År
+				hierarchy 'FW Year-Month-Week'
+					caption: RV År-Månad-Vecka
+					level 'FW Year'
+						caption: RV År
+					level 'FW Month Year'
+						caption: RV Månad År
+					level 'FW Week Year'
+						caption: RV Vecka År
+				hierarchy 'FW Year-Quarter-Month-Week'
+					caption: RV År-Kvartal-Månad-Vecka
+					level 'FW Year'
+						caption: RV År
+					level 'FW Quarter Year'
+						caption: RV Kvartal År
+					level 'FW Month Year'
+						caption: RV Månad År
+					level 'FW Week Year'
+						caption: RV Vecka År
+				hierarchy 'FW Year-Quarter-Week'
+					caption: RV År-Kvartal-Vecka
+					level 'FW Year'
+						caption: RV År
+					level 'FW Quarter Year'
+						caption: RV Kvartal År
+					level 'FW Week Year'
+						caption: RV Vecka År
+				hierarchy 'FW Year-Week'
+					caption: RV År-Vecka
+					level 'FW Year'
+						caption: RV År
+					level 'FW Week Year'
+						caption: RV Vecka År
+			table 'Work Center'
+				caption: Produktionsgrupp
+				column 'Work Center Name'
+					caption: Produktionsgruppsnamn
+				column 'Work Center Group Code'
+					caption: Produktionsavd.kod
+				column 'Work Center Group Name'
+					caption: Namn på produktionsavdelning
+				column 'Work Center No.'
+					caption: Produktionsgruppsnr
+				column 'Work Center Subcontractor No.'
+					caption: Underleverantörsnummer för produktionsgrupp
+				column 'Work Center Unit of Measure Code'
+					caption: Måttenhetskod för produktionsgrupp
+				measure 'Work Center Availability After Orders'
+					caption: Produktionsgruppens disposition efter order
+				measure 'Work Center Capacity (Effective)'
+					caption: Produktionsgruppens kapacitet (effektivt)
+				measure 'Work Center Load'
+					caption: Produktionsgruppens beläggning
+				measure 'Work Center Allocated Time'
+					caption: Tilldelad arbetstid för produktionsgrupp
+				measure 'Work Center Capacity (Total)'
+					caption: Produktionsgruppens kapacitet (summa)
+				measure 'Work Center Expected Efficiency %'
+					caption: Produktionsgruppens förväntade effektivitet %
+				measure 'Work Center Actual Total Cost'
+					caption: Produktionsgruppens faktiska totalkostnad
+				measure 'Work Center Actual Efficiency %'
+					caption: Produktionsgruppens faktiska effektivitet %
+				measure 'Work Center Actual Need'
+					caption: Produktionsgruppens faktiska behov
+				measure 'Work Center Scrap %'
+					caption: Produktionsgruppens kassation %
+				measure 'Work Center Scrap'
+					caption: Produktionsgruppens kassation
+				measure 'Work Center Output'
+					caption: Utflöde från produktionsgrupp
+			table 'Working Days'
+				caption: Arbetsdagar
+				column FSG_PBI_Day_Number
+					caption: FSG_PBI_Day_Number
+				column id
+					caption: ID
+			table COMPANY
+				caption: FÖRETAG
+				measure 'Company Label'
+					caption: Företagsetikett
+			table 'Localized Labels'
+				measure 'My Report Title'
+					caption: Min rapportrubrik
+				measure 'My Button Caption'
+					caption: Min knapprubrik
+				measure 'My Visual Title'
+					caption: Min visuella rubrik
+				measure 'Current Utilization'
+					caption: Aktuellt utnyttjande
+				measure 'Utilization %, Capacity Used (Hours) and Capacity Available (Hours) by Day'
+					caption: Utnyttjande %, använd kapacitet (timmar) och tillgänglig kapacitet (timmar) per dag
+				measure 'Utilization % and Expected Capacity Need % (Today)'
+					caption: Utnyttjande % och förväntat kapacitetsbehov % (i dag)
+				measure 'Utilization % and Expected Capacity Need % (Current Week)'
+					caption: Utnyttjande % och förväntat kapacitetsbehov % (innevarande vecka)
+				measure 'Utilization % and Expected Capacity Need % (Current Year)'
+					caption: Utnyttjande % och förväntat kapacitetsbehov % (innevarande år)
+				measure 'Historical Utilization'
+					caption: Historiskt utnyttjande
+				measure 'Load %, Allocated Time (Hours) and Capacity Available (Hours) by Work Center Group Name'
+					caption: Beläggning %, fördelad tid (timmar) och tillgänglig kapacitet (timmar) per produktionsgruppnamn
+				measure 'Load % (Today)'
+					caption: Beläggning % (i dag)
+				measure 'Load % (Current Week)'
+					caption: Beläggning % (innevarande vecka)
+				measure 'Load % (Current Year)'
+					caption: Beläggning % (innevarande år)
+				measure 'Allocated Hours'
+					caption: Fördelade timmar
+				measure 'Allocated Time (Hours) and Load % by Work Center Group Name and Name'
+					caption: Fördelad tid (timmar) och beläggning % per produktionsgruppnamn och namn
+				measure 'Allocated Time in Hours (Today)'
+					caption: Fördelad tid i timmar (i dag)
+				measure 'Allocated Time in Hours (Current Week)'
+					caption: Fördelad tid i timmar (innevarande vecka)
+				measure 'Allocated Time in Hours (Current Year)'
+					caption: Fördelad tid i timmar (innevarande år)
+				measure 'Expected Capacity Need'
+					caption: Förväntat kap.behov
+				measure 'Expected Capacity Need (Hours) by Work Centre Group Code and Production Order Status'
+					caption: Förväntat kapacitetsbehov (timmar) per produktionsgruppkod och produktionsorderstatus
+				measure 'Finished Production Order Breakdown'
+					caption: Uppdelning färdig produktionsorder
+				measure 'Expected Quantity (Base) and Finished Quantity (Base) by Month'
+					caption: Förväntad kvantitet (bas) och färdig kvantitet (bas) per månad
+				measure 'Consumption Variance'
+					caption: Förbrukningsvarians
+				measure 'Expected Consumption Cost Amount and Consumed Cost Amount (Actual) by Month'
+					caption: Förväntat förbrukningskostnadsbelopp och förbrukningskostnadsbelopp (faktiskt) per månad
+				measure 'Capacity Variance'
+					caption: Kapacitetsvarians
+				measure 'Expected Capacity Cost Amount and Capacity Cost Amount (Actual) by Month'
+					caption: Förväntat kapacitetskostnadsbelopp och kapacitetskostnadsbelopp (faktiskt) per månad
+				measure 'Average Production Times'
+					caption: Genomsnittliga produktionstider
+				measure 'Released Production Orders'
+					caption: Släppta produktionsorder
+				measure 'Production Scrap'
+					caption: Produktionskassation
+				measure 'Capacity Scrap Quantity by Month'
+					caption: Kapacitetskassationsantal per månad
+				measure 'Capacity Scrap Quantity by Scrap Code'
+					caption: Kapacitetskassationsantal per kassationskod
+				measure 'Capacity Scrap Quantity by Location Code'
+					caption: Kapacitetskassationsantal per lagerställekod
+				measure Manufacturing
+					caption: Produktion
+				measure 'for Business Central'
+					caption: för Business Central
+				measure 'CONNECT YOUR DATA'
+					caption: ANSLUT DINA DATA
+				measure '2. Configure Dynamics 365 Business Central'
+					caption: 2. Konfigurera Dynamics 365 Business Central
+				measure 'USE, EDIT AND BUILD YOUR OWN REPORTS'
+					caption: ANVÄND, REDIGERA OCH SKAPA EGNA RAPPORTER
+				measure 'HELP AND SUPPORT'
+					caption: HJÄLP OCH SUPPORT
+				measure 'For help and support with your new report please visit the Analytics overview documentation.'
+					caption: Hjälp och support med den nya rapporten finns i översiktsdokumentationen för Analys.
+				measure 'OTHER POWER BI REPORTS'
+					caption: ÖVRIGA POWER BI-RAPPORTER
+				measure PURCHASE
+					caption: INKÖP
+				measure FINANCE
+					caption: EKONOMI
+				measure INVENTORY
+					caption: LAGER
+				measure SALES
+					caption: FÖRSÄLJNING
+				measure 'Last Refreshed'
+					caption: Uppdaterades senast
+				measure 'Company Name'
+					caption: Företagsnamn
+				measure 'Capacity Scrap Quantity by Item Category Code'
+					caption: Kapacitetskassationsantal per artikelkategorikod
+				measure '1. Download the Manufacturing Connector for Power BI'
+					caption: 1. Ladda ned anslutningsprogrammet för produktion för Power BI
+				measure 'Manufacturing includes a variety of pre-built reports to help you see your data immediately.'
+					caption: Produktion innehåller en mängd fördefinierade rapporter som gör att du kan visa data omedelbart.
+				measure 'You are able to edit these reports or build your own report from scratch.'
+					caption: Du kan redigera dessa rapporter eller skapa en egen rapport från grunden.
+				measure PROJECTS
+					caption: PROJEKT
+				measure 'Capacity Used (Hours), Capacity Available (Hours) and Utilization % by Date'
+					caption: Kapacitetsutnyttjande (timmar), disponibel kapacitet (timmar) och utnyttjande % per datum
+				measure 'Actual Cost by Source No.'
+					caption: Faktisk kostnad per källnummer
+				measure 'Production Order Overview'
+					caption: Översikt över produktionsorder
+				measure 'No. of Production Orders by Status'
+					caption: Antal produktionsorder per status
+				measure 'Completion Ratios by Source No.'
+					caption: Färdigställandegrad per källnr
+				measure 'Total Actual Cost Breakdown'
+					caption: Analys av total faktisk kostnad
+				measure 'Current Production Orders'
+					caption: Aktuella produktionsorder
+				measure 'Current Work Center Utilization by Year, Month, Week and Day'
+					caption: Aktuellt produktionsgruppsutnyttjande per år, månad, vecka och dag
+				measure 'Work Center Load Over Time'
+					caption: Produktionsgruppens beläggning över tid
+				measure 'Work Center Load Details'
+					caption: Information om produktionsgruppens beläggning
+				measure 'Work Center Load '
+					caption: "Produktionsgruppens beläggning "
+				measure 'Allocated Time '
+					caption: "Allokerad tid "
+				measure 'Allocated Time by Work Center Name'
+					caption: Allokerad tid per produktionsgruppsnamn
+				measure 'Allocated Time by Source No.'
+					caption: Allokerad tid per källnummer
+				measure 'Allocated Time by Type'
+					caption: Fördelad tid per typ
+				measure 'Allocated Time Details'
+					caption: Information om tilldelad tid
+				measure 'Allocated Time by Production Order Status'
+					caption: Allokerad tid per produktionsorderstatus
+				measure 'Expected Capacity Need by Work Center'
+					caption: Förväntat kapacitetsbehov per produktionsgrupp
+				measure 'Expected Capacity Need by Machine Center'
+					caption: Förväntat kapacitetsbehov per maskingrupp
+				measure 'Expected Capacity Need Details'
+					caption: Information om förväntat kapacitetsbehov
+				measure 'Expected Capacity Need by Source No.'
+					caption: Förväntat kapacitetsbehov per källnr
+				measure 'Expected Material Dev % by Source No.'
+					caption: Förväntad materialavvikelse % per källnummer
+				measure 'Expected Material Dev % by Production Order'
+					caption: Förväntad materialavvikelse % per produktionsorder
+				measure 'Consumption Variance Details'
+					caption: Information om förbrukningsvarians
+				measure 'Expected Capacity Dev % by Source No.'
+					caption: Förväntad kapacitetsavvikelse % per källnummer
+				measure 'Expected Capacity Dev % by Production Order|'
+					caption: Förväntad kapacitetsavvikelse % per produktionsorder|
+				measure 'Capacity Variance Details'
+					caption: Information om kapacitetsvarians
+				measure 'Average Time Per Finished Quantity by Work Center'
+					caption: Genomsnittlig tid per färdigt antal per produktionsgrupp
+				measure 'Average Time Per Finished Quantity by Source No.'
+					caption: Genomsnittlig tid per färdigt antal per källnr
+				measure 'Average Production Time Details'
+					caption: Information om genomsnittlig produktionstid
+				measure 'No. of Production Orders by Source No.'
+					caption: Antal produktionsorder per källnr
+				measure 'Released Production Order Details'
+					caption: Information om utsläppt produktionsorder
+				measure 'Scrap Quantity by Work Center'
+					caption: Kassationsantal per produktionsgrupp
+				measure 'Work Center Statistics'
+					caption: Prod.gruppstatistik
+				measure 'Statistic Details'
+					caption: Statistikinformation
+				measure 'Machine Center Statistics'
+					caption: Maskingrupp statistik
+				measure 'Machine Center Load '
+					caption: "Maskingrupp beläggning "
+				measure 'Machine Center Load Details'
+					caption: Information om maskingruppens beläggning
+				measure 'Prod. Order List'
+					caption: Prod.orderlista
+				measure 'Prod. Order List Details'
+					caption: Information om prod.orderlista
+				measure 'Production Order Routing Lines Gantt'
+					caption: Ganttschema för operationsföljdsrader i produktionsorder
+				measure 'Routing Line Operation Duration'
+					caption: Operationstid för operationsföljdsrad
+				measure 'Routing Line Details'
+					caption: Information om operationsföljdsrad
+				measure 'Production Order WIP'
+					caption: PIA för produktionsorder
+				measure 'Inventory Valuation - WIP'
+					caption: Lagervärdering – PIA
+				measure 'Task List Drill Through'
+					caption: Detaljerad analys av uppgiftslista
+				measure 'Task List Details'
+					caption: Information om uppgiftslista
+				measure 'Expected Capacity Need Variance'
+					caption: Förväntad varians kapacitetsbehov
+				measure 'Expected Capacity Cost Dev % by Source No.'
+					caption: Förväntad kapacitetskostnadsavvikelse % per källnummer
+				measure 'Average Production Time Per Unit by Work Center'
+					caption: Genomsnittlig produktionstid per enhet per produktionsgrupp
+				measure 'Average Production Time Per Unit by Source No.'
+					caption: Genomsnittlig produktionstid per enhet per källnr
+				measure 'Scrap Quantity Over Time'
+					caption: Kassationsantal över tid
+				measure 'Scrap % by Production Order'
+					caption: Kassation % för produktionsorder
+				measure 'Scrap Quantity by Scrap Code'
+					caption: Kassationsantal per kassationskod
+				measure 'Scrap Quantity vs. Expected Scrap Quantity'
+					caption: Kassationsantal jämfört med förväntat kassationsantal
+				measure 'Production Order Time Line'
+					caption: Tidslinje för produktionsorder
+				measure 'Production Time Line'
+					caption: Tidslinje för produktion
+			table 'Machine Center'
+				caption: Maskingrupp
+				column 'Machine Center No.'
+					caption: Maskingruppsnr
+				column 'Machine Center Name'
+					caption: Maskingruppsnamn
+				column 'Work Center No.'
+					caption: Produktionsgruppsnr
+				column 'Work Center Unit of Measure'
+					caption: Måttenhet för produktionsgrupp
+				measure 'Machine Center Capacity (Effective)'
+					caption: Maskingruppens kapacitet (effektivt)
+				measure 'Machine Center Capacity (Total)'
+					caption: Maskingruppens kapacitet (summa)
+				measure 'Machine Center Expected Efficiency %'
+					caption: Maskingruppens förväntade effektivitet %
+				measure 'Machine Center Actual Total Cost'
+					caption: Maskingruppens faktiska totalkostnad
+				measure 'Machine Center Actual Efficiency %'
+					caption: Maskingruppens faktiska effektivitet %
+				measure 'Machine Center Actual Need'
+					caption: Maskingruppens faktiska behov
+				measure 'Machine Center Allocated Time'
+					caption: Maskingruppens tilldelade tid
+				measure 'Machine Center Output'
+					caption: Maskingruppsutflöde
+				measure 'Machine Center Scrap'
+					caption: Maskingruppens kassation
+				measure 'Machine Center Scrap %'
+					caption: Maskingruppens kassation %
+				measure 'Machine Center Run Time'
+					caption: Maskingruppens körtid
+				measure 'Machine Center Stop Time'
+					caption: Maskingruppens stopptid
+				measure 'Machine Center Stop %'
+					caption: Maskingruppens stopp %
+				measure 'Machine Center Availability After Orders'
+					caption: Maskingruppens disposition efter order
+				measure 'Machine Center Load'
+					caption: Maskingrupp beläggning
+			table 'Production Order Lines'
+				caption: Produktionsorderrader
+				column quantityBase
+					caption: Antal (bas)
+				column remainingQtyBase
+					caption: Återstående ant. (bas)
+				column dimensionSetID
+					caption: Dimensionsuppsättnings-ID
+				column 'Prod. Order Line No.'
+					caption: Prod.orderradnr
+				column 'Routing No.'
+					caption: Operationsföljdsnr
+				column 'Routing Reference No.'
+					caption: Oper.följd referensnr
+				column finishedQtyBase
+					caption: finishedQtyBase
+				column ShareOfTotalCapCost
+					caption: ShareOfTotalCapCost
+				column 'Routing Type'
+					caption: Operationsföljdstyp
+				column indirectCostPercent
+					caption: indirectCostPercent
+				column overheadRate
+					caption: overheadRate
+				column 'Scrap Percent'
+					caption: Kassationsprocent
+				column 'Planning Level Code'
+					caption: Planeringsnivåkod
+			table 'Prod Order Components'
+				caption: Prod.order komponenter
+				column expectedQtyBase
+					caption: Förväntat antal (bas)
+				column remainingQtyBase
+					caption: Återstående ant. (bas)
+				column 'Routing Link Code'
+					caption: Operationsföljdslänkkod
+				column costAmount
+					caption: costAmount
+				column 'Prod Order Components Line No.'
+					caption: Radnummer för produktionsorderkomponenter
+			table 'Prod Order Capacity Need'
+				caption: Prod.order kapacitetsbehov
+				column 'Routing No.'
+					caption: Operationsföljdsnr
+				column 'Routing Reference No.'
+					caption: Oper.följd referensnr
+				column 'Operation No.'
+					caption: Operationsnr
+				column 'Requested Only'
+					caption: Endast begärt
+				column workCenterNo
+					caption: workCenterNo
+				column workCenterGroupCode
+					caption: workCenterGroupCode
+				column no
+					caption: nummer
+				column Type
+					caption: Typ
+				column neededTimeMs
+					caption: neededTimeMs
+				column neededTime
+					caption: neededTime
+				column 'Prod Order Capacity Need Line No.'
+					caption: Radnummer för prod.order kapacitetsbehov
+				measure 'Needed Time'
+					caption: Behövd tid
+				measure 'Needed Time (MS)'
+					caption: Behövd tid (ms)
+				measure 'Allocated Time'
+					caption: Allokerad tid
+			table 'Prod Order Routing Lines'
+				caption: Prod.order oper.följdrader
+				column 'No.'
+					caption: Nummer
+				column 'Expected Capacity Need'
+					caption: Förväntat kap.behov
+				column 'Expected Capacity Ovhd. Cost'
+					caption: Förväntad kap.overh.kost.
+				column 'Routing Link Code'
+					caption: Operationsföljdslänkkod
+				column Description
+					caption: Beskrivning
+				column 'Expected Operation Cost Amt.'
+					caption: Förväntad operationskostnad
+				column 'Routing No.'
+					caption: Operationsföljdsnr
+				column 'Routing Reference No.'
+					caption: Oper.följd referensnr
+				column 'Operation No.'
+					caption: Operationsnr
+				column locationName
+					caption: locationName
+				column 'Setup Time'
+					caption: Omställningstid
+				column 'Run Time'
+					caption: Bearbetningstid
+				column 'Wait Time'
+					caption: Väntetid
+				column 'Move Time'
+					caption: Transporttid
+				column 'Routing Status'
+					caption: Oper.följd status
+				column 'Duration Total Hours'
+					caption: Varaktighet, totalt antal timmar
+				column 'Duration Total Days'
+					caption: Varaktighet, totalt antal dagar
+				column 'Work/Machine Center Name'
+					caption: Namn på produktions-/maskingrupp
+				column workCenterNo
+					caption: workCenterNo
+				column 'Ending Date Time'
+					caption: Slutdatum och -tid
+				column 'Starting Date Time'
+					caption: Startdatum och -tid
+				measure 'Operation Run Time'
+					caption: Körningstid för åtgärd
+				measure 'Operation Setup Time'
+					caption: Omställningstid för åtgärd
+				measure 'Operation Wait Time'
+					caption: Väntetid för åtgärd
+				measure 'Operation Move Time'
+					caption: Transporttid för åtgärd
+				measure 'Total Duration Hours'
+					caption: Total varaktighet i timmar
+			table 'Item Ledger Entries'
+				caption: Artikeltransaktioner
+				column 'Serial No.'
+					caption: Serienummer
+				column 'Lot No.'
+					caption: Partinummer
+				column qty
+					caption: Antal
+				column costAmountActual
+					caption: Faktiskt kostnadsbelopp
+				column 'Entry Type'
+					caption: Transaktionstyp
+				column 'Order Type'
+					caption: Ordertyp
+				column 'Order Line No.'
+					caption: Orderradnr
+				column Positive
+					caption: Positivt
+				measure 'Output Quantity'
+					caption: Utflöde antal
+				measure 'Consumption Quantity'
+					caption: Förbrukningsantal
+			table 'Capacity Ledger Entries'
+				caption: Kapacitetstransaktioner
+				column 'Order Type'
+					caption: Ordertyp
+				column 'Order Line No.'
+					caption: Orderradnr
+				column Type
+					caption: Typ
+				column 'No.'
+					caption: Nummer
+				column Description
+					caption: Beskrivning
+				column scrapQuantity
+					caption: scrapQuantity
+				column 'Routing No.'
+					caption: Operationsföljdsnr
+				column 'Routing Reference No.'
+					caption: Oper.följd referensnr
+				column 'Operation No.'
+					caption: Operationsnr
+				column 'Scrap Code'
+					caption: Kassationskod
+				column directCost
+					caption: directCost
+				column overheadCost
+					caption: overheadCost
+				column 'Entry No.'
+					caption: Transaktionsnummer
+				column workCenterNo
+					caption: workCenterNo
+				column 'Work Shift Code'
+					caption: Arbetspasskod
+				column Subcontracting
+					caption: Legotillverkning
+				column 'Capacity Unit of Measure'
+					caption: Kapacitetsmåttenhet
+				column 'Qty. Per Unit of Measure'
+					caption: Kvantitet per måttenhet
+				column 'Qty. Per Capacity Unit of Measure'
+					caption: Ant. per kapacitetsmåttenhet
+				measure 'Direct Cost'
+					caption: Direkt kostnad
+				measure 'Overhead Cost'
+					caption: Omkostnad
+				measure 'Run Time'
+					caption: Bearbetningstid
+				measure 'Setup Time'
+					caption: Omställningstid
+				measure 'Stop Time'
+					caption: Stopptid
+				measure 'Scrap Quantity'
+					caption: Kassationsantal
+				measure 'Scrap %'
+					caption: Kassation %
+				measure 'Capacity Ledger Output Quantity'
+					caption: Utflödeskvantitet för kapacitetstransaktion
+				measure 'Capacity Ledger Quantity'
+					caption: Kvantitet för kapacitetstransaktion
+			table 'Calendar Entries'
+				caption: Kalendertransaktioner
+				column 'Capacity Type'
+					caption: Kapacitetstyp
+				measure 'Capacity (Effective)'
+					caption: Kapacitet (effektiv)
+				measure 'Capacity (Total)'
+					caption: Kapacitet (total)
+			table Location
+				caption: Lagerställe
+				column 'Location Code'
+					caption: Lagerställets kod
+				column 'Location Name'
+					caption: Lagerställets namn
+			table 'Routing Link'
+				caption: Operationsföljdlänk
+				column 'Routing Link Code'
+					caption: Operationsföljdslänkkod
+				column 'Routing Link Description'
+					caption: Oper.följdslänk beskrivning
+			table Routing
+				caption: Operationsföljd
+				column 'Routing No.'
+					caption: Operationsföljdsnr
+				column 'Routing Type'
+					caption: Operationsföljdstyp
+				column 'Routing Status'
+					caption: Oper.följd status
+				column 'Routing Description'
+					caption: Oper.följd beskrivning
+			table 'Work Center Group'
+				caption: Produktionsavdelning
+				column 'Work Center Group Code'
+					caption: Produktionsavd.kod
+				column 'Work Center Group Name'
+					caption: Namn på produktionsavdelning
+			table 'Value Entries'
+				caption: Värdetransaktioner
+				column 'Entry No.'
+					caption: Transaktionsnummer
+				column 'Valuation Date'
+					caption: Värderingsdatum
+				column costAmountActual
+					caption: costAmountActual
+				column 'Cost Per Unit'
+					caption: costPerUnit
+				column itemLedgerEntryQuantity
+					caption: itemLedgerEntryQuantity
+				column valuedQuantity
+					caption: valuedQuantity
+				column 'Item Ledger Entry Type'
+					caption: Artikeltransaktionstyp
+				column Type
+					caption: Typ
+				column 'No.'
+					caption: Nummer
+				column 'Capacity Ledger Entry No.'
+					caption: capacityLedgerEntryNo
+				column 'Entry Type'
+					caption: entryType
+				column costPostedtoGL
+					caption: costPostedtoGL
+				column costAmountExpected
+					caption: costAmountExpected
+				column 'Order Type'
+					caption: orderType
+				column 'Order No.'
+					caption: orderNo
+				column expectedCostPostedtoGL
+					caption: expectedCostPostedtoGL
+				column 'Is Expected Cost'
+					caption: expectedCost
+				measure 'Beginning Balance Value'
+					caption: Värde för ingående saldo
+				measure 'Consumption Value'
+					caption: Förbrukningsvärde
+				measure 'Capacity Value'
+					caption: Kapacitetsvärde
+				measure 'Output Value'
+					caption: Utflödesvärde
+				measure 'Ending Balance Value'
+					caption: Värde för slutsaldo
+				measure 'Cost Posted to G/L'
+					caption: Kostnad bokförd i redovisning
+			table 'Production Orders'
+				caption: Produktionsorder
+				column 'Prod Order Status'
+					caption: Prod.order status
+				column 'Prod Order No.'
+					caption: Prod.ordernr
+				column 'Prod Order Source No.'
+					caption: Prod.order ursprungsnummer
+				column 'Prod Order Routing No.'
+					caption: Prod.order oper.följdsnr
+				column 'Prod Order Starting Date'
+					caption: Prod.order startdatum
+				column 'Prod Order Ending Date'
+					caption: Prod.order slutdatum
+				column 'Prod Order Due Date'
+					caption: Prod.order förfallodatum
+				column quantity
+					caption: antal
+				column 'Prod Order Description'
+					caption: Prod.order beskrivning
+				column 'Prod Order Source Type'
+					caption: Prod.order, ursprungstyp
+				column 'Production Order'
+					caption: Produktionsorder
+				measure 'Planned Quantity'
+					caption: Planerat antal
+				measure 'Expected Material Cost'
+					caption: Förväntad materialkostnad
+				measure 'Expected Capacity Cost'
+					caption: Förväntad kapacitetskostnad
+				measure 'Expected Subcontracted Cost'
+					caption: Förväntad utlegokostnad
+				measure 'Expected Capacity Overhead Cost'
+					caption: Förväntad kapacitetsomkostnad
+				measure 'Total Standard Cost'
+					caption: Summa standardkostnad
+				measure 'Expected Manufacturing Overhead Cost'
+					caption: Förväntad produktionsomkostnad
+				measure 'Total Expected Cost'
+					caption: Summa förväntad kostnad
+				measure 'Standard Capacity Cost'
+					caption: Standardkapacitetskostnad
+				measure 'Standard Material Cost'
+					caption: Standardmaterialkostnad
+				measure 'Standard Subcontracted Cost'
+					caption: Standardutlegokostnad
+				measure 'Standard Capacity Overhead Cost'
+					caption: Standardkapacitetsomkostnad
+				measure 'Standard Manufacturing Overhead Cost'
+					caption: Standardomkostnad – produktion
+				measure 'Actual Material Cost'
+					caption: Faktisk materialkostnad
+				measure 'Actual Capacity Cost'
+					caption: Faktisk kapacitetskostnad
+				measure 'Actual Subcontracted Cost'
+					caption: Faktisk utlegokostnad
+				measure 'Actual Capacity Overhead Cost'
+					caption: Faktisk kapacitetsomkostnad
+				measure 'Actual Manufacturing Overhead Cost'
+					caption: Faktisk produktionsomkostnad
+				measure 'Total Actual Cost'
+					caption: Summa faktisk kostnad
+				measure 'Standard Material Cost Variance'
+					caption: Kostnadsavvikelse standardmaterial
+				measure 'Standard Capacity Cost Variance'
+					caption: Kostnadsavvikelse standardkapacitet
+				measure 'Standard Subcontracted Cost Variance'
+					caption: Varians standardutlegokostnad
+				measure 'Standard Capacity Overhead Cost Variance'
+					caption: Standardkapacitet varians produktionsomkostnad
+				measure 'Standard Manufacturing Overhead Cost Variance'
+					caption: Standardproduktionsomkostnad varians
+				measure 'Total Standard Cost Variance'
+					caption: Summa standardkostnadsvarians
+				measure 'Standard Material Cost Dev %'
+					caption: Standardmaterial kostnadsavvikelse %
+				measure 'Standard Capacity Cost Dev %'
+					caption: Kostnadsavvikelse för standardkostnad %
+				measure 'Standard Subcontracted Cost Dev %'
+					caption: Standardutlegokostnad avvikelse %
+				measure 'Standard Capacity Overhead Cost Dev %'
+					caption: Standardkapacitet omkostnadsavvikelse %
+				measure 'Standard Manufacturing Overhead Cost Dev %'
+					caption: Standardomkostnad för produktion – avvikelse %
+				measure 'Total Standard Cost Dev %'
+					caption: Summa standardkostnadsavvikelse %
+				measure 'Prod Order Expected Capacity Need (Finished)'
+					caption: Förväntad prod.order kapacitetsbehov (slutfört)
+				measure 'Prod Order Actual Capacity Need'
+					caption: Prod.order faktiskt kapacitetsbehov
+				measure 'Prod Order Expected Capacity Need (Non Finished)'
+					caption: Förväntad prod.order kapacitetsbehov (ej slutfört)
+				measure 'Prod Order Expected Capacity Need'
+					caption: Prod.order förväntat kapacitetsbehov
+				measure 'Finished Quantity'
+					caption: Färdigt antal
+				measure 'Actual Time Used'
+					caption: Faktisk använd tid
+				measure 'Finished %'
+					caption: Färdigt %
+				measure 'Remaining %'
+					caption: Återstående %
+				measure 'Variance Quantity'
+					caption: Varianskvantitet
+				measure 'Expected Capacity Cost Dev %'
+					caption: Förväntad kapacitetskostnad avvikelse %
+				measure 'Expected Capacity Overhead Cost Dev %'
+					caption: Förväntad kapacitet omkostnadsavvikelse %
+				measure 'Expected Manufacturing Overhead Cost Dev %'
+					caption: Förväntad produktionsomkostnad avvikelse %
+				measure 'Expected Material Cost Dev %'
+					caption: Förväntad materialkostnad, avvikelse %
+				measure 'Expected Subcontracted Cost Dev %'
+					caption: Förväntad utlegokostnad avvikelse %
+				measure 'Total Expected Cost Dev %'
+					caption: Summa förväntad kostnadsavvikelse %
+				measure 'Expected Capacity Cost Variance'
+					caption: Förväntad varians kapacitetskostnad
+				measure 'Expected Capacity Overhead Cost Variance'
+					caption: Förväntad varians kapacitetsomkostnad
+				measure 'Expected Manufacturing Overhead Cost Variance'
+					caption: Förväntad varians produktionsomkostnad
+				measure 'Expected Material Cost Variance'
+					caption: Varians förväntad materialkostnad
+				measure 'Expected Subcontracted Cost Variance'
+					caption: Förväntad avvikelse utlegokostnad
+				measure 'Total Expected Cost Variance'
+					caption: Varians total förväntad kostnad
+				measure 'No. of Production Orders'
+					caption: Antal produktionsorder
+				measure 'Average Production Time Per Finished Quantity'
+					caption: Genomsnittlig produktionstid per färdigt antal
+				measure 'Prod Order Capacity Need Variance'
+					caption: Varians för prod.order kapacitetsbehov
+				measure 'Prod Order Capacity Need Dev %'
+					caption: Prod.order kapacitetsbehov avvikelse %
+				measure 'Production Order Scrap %'
+					caption: Produktionsorder, kassation %
+				measure 'Expected Production Order Scrap Quantity'
+					caption: Förväntad kassationskvantitet för produktionsorder
+			table 'Dimension Sets'
+				caption: Dimensionsuppsättningar
+				column id
+					caption: ID
+				column dimensionSetID
+					caption: dimensionSetID
+				column valueCount
+					caption: valueCount
+				column 'Global Dimension 1'
+					caption: Global dimension 1
+				column dimension1ValueName
+					caption: dimension1ValueName
+				column 'Global Dimension 2'
+					caption: Global dimension 2
+				column dimension2ValueName
+					caption: dimension2ValueName
+				column 'Shortcut Dimension 3'
+					caption: Genväg dimension 3
+				column dimension3ValueName
+					caption: dimension3ValueName
+				column 'Shortcut Dimension 4'
+					caption: Genväg dimension 4
+				column dimension4ValueName
+					caption: dimension4ValueName
+				column 'Shortcut Dimension 5'
+					caption: Genväg dimension 5
+				column dimension5ValueName
+					caption: dimension5ValueName
+				column 'Shortcut Dimension 6'
+					caption: Genväg dimension 6
+				column dimension6ValueName
+					caption: dimension6ValueName
+				column 'Shortcut Dimension 7'
+					caption: Genväg dimension 7
+				column dimension7ValueName
+					caption: dimension7ValueName
+				column 'Shortcut Dimension 8'
+					caption: Genväg dimension 8
+				column dimension8ValueName
+					caption: dimension8ValueName
+			table 'Inventory Adjustment Entry Order Line'
+				caption: Lagerjusteringstransaktion orderrad
+				column itemNo
+					caption: itemNo
+				column orderLineNo
+					caption: orderLineNo
+				column orderNo
+					caption: orderNo
+				column singleLevelMaterialCost
+					caption: singleLevelMaterialCost
+				column iSFinished
+					caption: iSFinished
+				column auxiliaryIndex1
+					caption: auxiliaryIndex1
+				column ETag
+					caption: ETag
+				column 'Adjustment Order Key'
+					caption: Justeringsordernyckel
+				column singleLevelCapacityCost
+					caption: singleLevelCapacityCost
+				column singleLevelSubcontrdCost
+					caption: singleLevelSubcontrdCost
+				column singleLevelCapOvhdCost
+					caption: singleLevelCapOvhdCost
+				column singleLevelMfgOvhdCost
+					caption: singleLevelMfgOvhdCost
+				column completelyInvoiced
+					caption: completelyInvoiced
+				column indirectCostPercent
+					caption: indirectCostPercent
+				column overheadRate
+					caption: overheadRate
+			table ENVIRONMENT
+				caption: MILJÖ
+			table 'Back Links'
+				caption: Bakåtlänkar
+				measure 'Base Link'
+					caption: Baslänk
+				measure 'Calendar Entries Back Link'
+					caption: Bakåtlänk för kalendertransaktioner
+				measure Ranged
+					caption: Intervall
+				measure 'Prod. Order Capacity Need Back Link'
+					caption: Bakåtlänk för Prod.order kapacitetsbehov
+				measure 'Work Center Need Qty Back Link'
+					caption: Bakåtlänk för produktionsgruppens behovskvantitet
+			table 'Item Category'
+				caption: Artikelkategori
+				column 'Item Category Code'
+					caption: Artikelkategorikod
+				column 'Item Category Description'
+					caption: Beskrivning av artikelkategori
+				hierarchy 'Item Category Code Hierarchy'
+					caption: Hierarki för artikelkategorikod
+					level 'Item Category Code Level 1'
+						caption: Artikelkategorikod nivå 1
+					level 'Item Category Code Level 2'
+						caption: Artikelkategorikod nivå 2
+					level 'Item Category Code Level 3'
+						caption: Artikelkategorikod nivå 3
+

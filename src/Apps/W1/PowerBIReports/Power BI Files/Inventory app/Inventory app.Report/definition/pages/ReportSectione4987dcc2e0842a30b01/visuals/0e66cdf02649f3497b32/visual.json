@@ -1,0 +1,213 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.4.0/schema.json",
+  "name": "0e66cdf02649f3497b32",
+  "position": {
+    "x": 25.714285714285715,
+    "y": 62.142857142857146,
+    "z": 0,
+    "height": 632.14285714285722,
+    "width": 1227.1428571428571,
+    "tabOrder": 0
+  },
+  "visual": {
+    "visualType": "tableEx",
+    "query": {
+      "queryState": {
+        "Values": {
+          "projections": [
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Item"
+                    }
+                  },
+                  "Property": "Item No."
+                }
+              },
+              "queryRef": "Item.Item No.",
+              "nativeQueryRef": "Item No."
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Item"
+                    }
+                  },
+                  "Property": "Item Description"
+                }
+              },
+              "queryRef": "Item.Item Description",
+              "nativeQueryRef": "Item Description"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Production Order Lines"
+                    }
+                  },
+                  "Property": "Document No."
+                }
+              },
+              "queryRef": "Production Order Lines.documentNo",
+              "nativeQueryRef": "documentNo"
+            },
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Production Order Lines"
+                    }
+                  },
+                  "Property": "Qty. on Prod. Order"
+                }
+              },
+              "queryRef": "Production Order Lines.Qty. on Production Orders",
+              "nativeQueryRef": "Qty. on Production Orders"
+            },
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Production Order Lines"
+                    }
+                  },
+                  "Property": "Rel. Order Receipt (Qty.)"
+                }
+              },
+              "queryRef": "Production Order Lines.Rel. Order Receipt (Qty.)",
+              "nativeQueryRef": "Rel. Order Receipt (Qty.)"
+            },
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Production Order Lines"
+                    }
+                  },
+                  "Property": "Scheduled Receipt (Qty.)"
+                }
+              },
+              "queryRef": "Production Order Lines.Scheduled Receipt (Qty.)",
+              "nativeQueryRef": "Scheduled Receipt (Qty.)"
+            },
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Production Order Lines"
+                    }
+                  },
+                  "Property": "FP Order Receipt (Qty.)"
+                }
+              },
+              "queryRef": "Production Order Lines.FP Order Receipt (Qty.)",
+              "nativeQueryRef": "FP Order Receipt (Qty.)"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Production Order Lines"
+                    }
+                  },
+                  "Property": "Status"
+                }
+              },
+              "queryRef": "Production Order Lines.Status",
+              "nativeQueryRef": "Status"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Production Order Lines"
+                    }
+                  },
+                  "Property": "Starting Date"
+                }
+              },
+              "queryRef": "Production Order Lines.startingDate",
+              "nativeQueryRef": "Starting Date"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Production Order Lines"
+                    }
+                  },
+                  "Property": "Due Date"
+                }
+              },
+              "queryRef": "Production Order Lines.Due Date",
+              "nativeQueryRef": "Due Date"
+            }
+          ]
+        }
+      }
+    },
+    "objects": {
+      "values": [
+        {
+          "properties": {
+            "webURL": {
+              "expr": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Production Order Lines"
+                    }
+                  },
+                  "Property": "Production Order Link"
+                }
+              }
+            }
+          },
+          "selector": {
+            "data": [
+              {
+                "dataViewWildcard": {
+                  "matchingOption": 0
+                }
+              }
+            ],
+            "metadata": "Production Order Lines.Qty. on Production Orders"
+          }
+        }
+      ]
+    },
+    "visualContainerObjects": {
+      "title": [
+        {
+          "properties": {
+            "text": {
+              "expr": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Translated Localized Labels"
+                    }
+                  },
+                  "Property": "Production Order Drill Through Label"
+                }
+              }
+            }
+          }
+        }
+      ]
+    }
+  }
+}

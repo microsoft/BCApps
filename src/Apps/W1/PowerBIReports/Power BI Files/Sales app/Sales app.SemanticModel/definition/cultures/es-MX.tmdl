@@ -1,0 +1,2255 @@
+cultureInfo es-MX
+	translations
+		model Model
+			table Item
+				caption: Producto
+				column 'Item No. & Description'
+					caption: N.º y descripción del artículo
+				column 'Item No.'
+					caption: N.º de producto
+				column 'Item Description'
+					caption: Descripción del producto
+				column 'Item Base Unit of Measure'
+					caption: Unidad medida base producto
+				column 'Item Unit Cost (LCY)'
+					caption: Costo unitario del artículo ($)
+				column 'Item Inventory Posting Group'
+					caption: Grupo contable inventario de producto
+				column 'Item Category Code'
+					caption: Código de categoría de producto
+				column 'Item Category Description'
+					caption: Descripción de la categoría de artículo
+				column 'Item Routing No.'
+					caption: routingNo
+				column 'Item Production BOM No.'
+					caption: productionBomNo
+				column 'Item Replenishment System'
+					caption: replenishmentSystem
+				column 'Item Single-Level Cap. Ovhd Cost'
+					caption: singleLevelCapOvhdCost
+				column 'Item Single-Level Capacity Cost'
+					caption: singleLevelCapacityCost
+				column 'Item Single-Level Material Cost'
+					caption: singleLevelMaterialCost
+				column 'Item Single-Level Mfg. Ovhd Cost'
+					caption: singleLevelMfgOvhdCost
+				column 'Item Single-Level Subcontrd. Cost'
+					caption: singleLevelSubcontrdCost
+				column 'Item Single-Lvl Mat. Non-Invt. Cost'
+					caption: singleLvlMatNonInvtCost
+				column 'Item Rolled-up Cap. Overhead Cost'
+					caption: rolledUpCapOverheadCost
+				column 'Item Rolled-up Capacity Cost'
+					caption: rolledUpCapacityCost
+				column 'Item Rolled-up Mat. Non-Invt. Cost'
+					caption: rolledUpMatNonInvtCost
+				column 'Item Rolled-up Material Cost'
+					caption: rolledUpMaterialCost
+				column 'Item Rolled-up Mfg. Ovhd Cost'
+					caption: rolledUpMfgOvhdCost
+				column 'Item Rolled-up Subcontracted Cost'
+					caption: rolledUpSubcontractedCost
+				column 'Item Scrap %'
+					caption: scrapPrc
+			table Location
+				caption: Almacén
+				column 'Location Code'
+					caption: Código de almacén
+				column 'Location Name'
+					caption: Nombre almacén
+			table Customer
+				caption: Cliente
+				column 'Customer No. & Name'
+					caption: Nombre y n.º de cliente
+				column 'Customer No.'
+					caption: N.º de cliente
+				column 'Customer Name'
+					caption: Nombre del cliente
+				column 'Customer Address'
+					caption: Dirección de cliente
+				column 'Customer Address 2'
+					caption: Dirección de cliente 2
+				column 'Customer City'
+					caption: Municipio/Ciudad de cliente
+				column 'Customer County'
+					caption: Provincia del cliente
+				column 'Customer Country/Region Code'
+					caption: Cód. país/región clientes
+				column 'Customer Posting Group'
+					caption: Grupo contable cliente
+				column 'Customer Price Group'
+					caption: Grupo de precio de cliente
+				column 'Customer Discount Group'
+					caption: Grupo de descuento de cliente
+				column 'Customer Post Code'
+					caption: Código postal de cliente
+				measure 'No. of New Customers'
+					caption: N.º de clientes nuevos
+				measure 'No. of Lost Customers'
+					caption: N.º de clientes perdidos
+				measure 'Sales New Customers'
+					caption: Ventas Nuevo clientes
+				measure 'No. of Returning Customers'
+					caption: N.º de clientes recurrentes
+				measure 'Sales Returning Customers'
+					caption: Ventas Clientes recurrentes
+				measure 'No. of Recovered Customers'
+					caption: N.º de clientes recuperados
+				measure 'Sales Recovered Customers'
+					caption: Ventas Clientes recuperados
+				measure 'Sales Lost Customers (12M)'
+					caption: Ventas Clientes perdidos (12M)
+				measure 'No. of Customers'
+					caption: N.º de clientes
+			table Salesperson
+				caption: Vendedor
+				column 'Salesperson Code'
+					caption: Cód. vendedor
+				column 'Salesperson Name'
+					caption: Nombre vendedor
+			table 'Standard Calendar Time Intelligence'
+				caption: Inteligencia de tiempo del calendario estándar
+				measure 'Sales Amount YTD'
+					caption: Importe ventas AHF
+				measure 'Sales Amount PY'
+					caption: Importe ventas AA
+				measure 'Sales Amount PYTD'
+					caption: Importe ventas AAHF
+				measure 'Sales Amount PQTD'
+					caption: Importe ventas TAHF
+				measure 'Sales Amount QTD'
+					caption: Importe ventas THF
+				measure 'Sales Amount MTD'
+					caption: Importe ventas MHF
+				measure 'Sales Amount YOY %'
+					caption: % importe ventas ATA
+				measure 'Sales Amount YOY'
+					caption: Importe ventas ATA
+				measure 'Sales Amount PQ'
+					caption: Importe ventas TA
+				measure 'Sales Amount QOQ'
+					caption: Importe ventas TTT
+				measure 'Sales Amount PM'
+					caption: Importe ventas MA
+				measure 'Sales Amount QOQ %'
+					caption: % importe ventas TTT
+				measure 'Sales Amount MOM'
+					caption: Importe ventas MTM
+				measure 'Sales Amount MOM %'
+					caption: % importe ventas MTM
+				measure 'Sales Amount MAT'
+					caption: Importe ventas TAM
+				measure 'Sales Amount PYMAT'
+					caption: Importe ventas AATAM
+				measure 'Sales Amount YOYTD'
+					caption: Importe ventas AAAHLF
+				measure 'Sales Amount YOYTD %'
+					caption: % importe ventas AAAHLF
+				measure 'Sales Amount PYC'
+					caption: Importe ventas AAC
+				measure 'Sales Amount YTDOPY'
+					caption: Importe ventas AHFRAA
+				measure 'Sales Amount YTDOPY %'
+					caption: % importe ventas AHFRAA
+				measure 'Sales Amount QOQTD'
+					caption: Importe ventas TATHLF
+				measure 'Sales Amount QOQTD %'
+					caption: % importe ventas TATHLF
+				measure 'Sales Amount PQC'
+					caption: Importe ventas TAC
+				measure 'Sales Amount QTDOPQ'
+					caption: Importe ventas THFRTA
+				measure 'Sales Amount QTDOPQ %'
+					caption: % importe ventas THFRTA
+				measure 'Sales Amount PMTD'
+					caption: Importe ventas MAHF
+				measure 'Sales Amount MOMTD'
+					caption: Importe ventas MAMHLF
+				measure 'Sales Amount MOMTD %'
+					caption: % importe ventas MAMHLF
+				measure 'Sales Amount PMC'
+					caption: Importe ventas MAC
+				measure 'Sales Amount MTDOPM'
+					caption: Importe ventas MHFTMA
+				measure 'Sales Amount MTDOPM %'
+					caption: % importe ventas MHFTMA
+				measure 'Sales Amount AVG 30D'
+					caption: Importe ventas AVG 30D
+				measure 'Sales Amount AVG 3M'
+					caption: Importe ventas AVG 3M
+				measure 'Sales Amount AVG 1Y'
+					caption: Importe ventas AVG 1A
+				measure 'Sales Amount MATG'
+					caption: Importe ventas CTAM
+				measure 'Sales Amount MATG %'
+					caption: % importe ventas CTAM
+				measure 'Sales Amount PP'
+					caption: Importe ventas PA
+				measure 'Sales Amount POP'
+					caption: Importe ventas PTP
+				measure 'Sales Amount POP %'
+					caption: % importe ventas PTP
+				measure 'Sales Quantity YTD'
+					caption: Cantidad ventas AHF
+				measure 'Sales Quantity PY'
+					caption: Cantidad ventas AA
+				measure 'Sales Quantity PYTD'
+					caption: Cantidad ventas AAHF
+				measure 'Sales Quantity PQTD'
+					caption: Cantidad ventas TAHF
+				measure 'Sales Quantity QTD'
+					caption: Cantidad ventas THF
+				measure 'Sales Quantity MTD'
+					caption: Cantidad ventas MHF
+				measure 'Sales Quantity YOY %'
+					caption: % cantidad ventas ATA
+				measure 'Sales Quantity YOY'
+					caption: Cantidad ventas ATA
+				measure 'Sales Quantity PQ'
+					caption: Cantidad ventas TA
+				measure 'Sales Quantity QOQ'
+					caption: Cantidad ventas TTT
+				measure 'Sales Quantity PM'
+					caption: Cantidad ventas MA
+				measure 'Sales Quantity QOQ %'
+					caption: % cantidad ventas TTT
+				measure 'Sales Quantity MOM'
+					caption: Cantidad ventas MTM
+				measure 'Sales Quantity MOM %'
+					caption: % cantidad ventas MTM
+				measure 'Sales Quantity MAT'
+					caption: Cantidad ventas TAM
+				measure 'Sales Quantity PYMAT'
+					caption: Cantidad ventas AATAM
+				measure 'Sales Quantity YOYTD'
+					caption: Cantidad ventas AAAHLF
+				measure 'Sales Quantity YOYTD %'
+					caption: % cantidad ventas AAAHLF
+				measure 'Sales Quantity PYC'
+					caption: Cantidad ventas AAC
+				measure 'Sales Quantity YTDOPY'
+					caption: Cantidad ventas AHFRAA
+				measure 'Sales Quantity YTDOPY %'
+					caption: % cantidad ventas AHFRAA
+				measure 'Sales Quantity QOQTD'
+					caption: Cantidad ventas TATHLF
+				measure 'Sales Quantity QOQTD %'
+					caption: % cantidad ventas TATHLF
+				measure 'Sales Quantity PQC'
+					caption: Cantidad ventas TAC
+				measure 'Sales Quantity QTDOPQ'
+					caption: Cantidad ventas THFRTA
+				measure 'Sales Quantity QTDOPQ %'
+					caption: % cantidad ventas THFRTA
+				measure 'Sales Quantity PMTD'
+					caption: Cantidad ventas MAHF
+				measure 'Sales Quantity MOMTD'
+					caption: Cantidad ventas MAMHLF
+				measure 'Sales Quantity MOMTD %'
+					caption: % cantidad ventas MAMHLF
+				measure 'Sales Quantity PMC'
+					caption: Cantidad ventas MAC
+				measure 'Sales Quantity MTDOPM'
+					caption: Cantidad ventas MHFTMA
+				measure 'Sales Quantity MTDOPM %'
+					caption: % cantidad ventas MHFTMA
+				measure 'Sales Quantity AVG 30D'
+					caption: Cantidad ventas AVG 30D
+				measure 'Sales Quantity AVG 3M'
+					caption: Cantidad ventas AVG 3M
+				measure 'Sales Quantity AVG 1Y'
+					caption: Cantidad ventas AVG 1A
+				measure 'Sales Quantity MATG'
+					caption: Cantidad ventas CTAM
+				measure 'Sales Quantity MATG %'
+					caption: % cantidad ventas CTAM
+				measure 'Sales Quantity PP'
+					caption: Cantidad ventas PA
+				measure 'Sales Quantity POP'
+					caption: Cantidad ventas PTP
+				measure 'Sales Quantity POP %'
+					caption: % cantidad ventas PTP
+				measure 'Gross Profit YTD'
+					caption: Beneficio bruto AHF
+				measure 'Gross Profit PY'
+					caption: Beneficio bruto AA
+				measure 'Gross Profit PYTD'
+					caption: Beneficio bruto AAHF
+				measure 'Gross Profit PQTD'
+					caption: Beneficio bruto TAHF
+				measure 'Gross Profit QTD'
+					caption: Beneficio bruto THF
+				measure 'Gross Profit MTD'
+					caption: Beneficio bruto MHF
+				measure 'Gross Profit YOY %'
+					caption: % beneficio bruto ATA
+				measure 'Gross Profit YOY'
+					caption: Beneficio bruto ATA
+				measure 'Gross Profit PQ'
+					caption: Beneficio bruto TA
+				measure 'Gross Profit QOQ'
+					caption: Beneficio bruto TTT
+				measure 'Gross Profit PM'
+					caption: Beneficio bruto MA
+				measure 'Gross Profit QOQ %'
+					caption: % beneficio bruto TTT
+				measure 'Gross Profit MOM'
+					caption: Beneficio bruto MTM
+				measure 'Gross Profit MOM %'
+					caption: % beneficio bruto MTM
+				measure 'Gross Profit MAT'
+					caption: Beneficio bruto TAM
+				measure 'Gross Profit PYMAT'
+					caption: Benef. bruto AATAM
+				measure 'Gross Profit YOYTD'
+					caption: Beneficio bruto AAAHLF
+				measure 'Gross Profit YOYTD %'
+					caption: % beneficio bruto AAAHLF
+				measure 'Gross Profit PYC'
+					caption: Beneficio bruto AAC
+				measure 'Gross Profit YTDOPY'
+					caption: Beneficio bruto AHFRAA
+				measure 'Gross Profit YTDOPY %'
+					caption: % beneficio bruto AHFRAA
+				measure 'Gross Profit QOQTD'
+					caption: Beneficio bruto TATHLF
+				measure 'Gross Profit QOQTD %'
+					caption: % beneficio bruto TATHLF
+				measure 'Gross Profit PQC'
+					caption: Beneficio bruto TAC
+				measure 'Gross Profit QTDOPQ'
+					caption: Beneficio bruto THFRTA
+				measure 'Gross Profit QTDOPQ %'
+					caption: % beneficio bruto THFRTA
+				measure 'Gross Profit PMTD'
+					caption: Beneficio bruto MAHF
+				measure 'Gross Profit MOMTD'
+					caption: Beneficio bruto MAMHLF
+				measure 'Gross Profit MOMTD %'
+					caption: % beneficio bruto MAMHLF
+				measure 'Gross Profit PMC'
+					caption: Beneficio bruto MAC
+				measure 'Gross Profit MTDOPM'
+					caption: Beneficio bruto MHFTMA
+				measure 'Gross Profit MTDOPM %'
+					caption: % beneficio bruto MHFTMA
+				measure 'Gross Profit AVG 30D'
+					caption: Beneficio bruto AVG 30D
+				measure 'Gross Profit AVG 3M'
+					caption: Beneficio bruto AVG 3M
+				measure 'Gross Profit AVG 1Y'
+					caption: Beneficio bruto AVG 1A
+				measure 'Gross Profit MATG'
+					caption: Beneficio bruto CTAM
+				measure 'Gross Profit MATG %'
+					caption: % beneficio bruto CTAM
+				measure 'Gross Profit PP'
+					caption: Beneficio bruto PA
+				measure 'Gross Profit POP'
+					caption: Beneficio bruto PTP
+				measure 'Gross Profit POP %'
+					caption: % beneficio bruto PTP
+				measure 'Gross Profit Margin YTD'
+					caption: Marg. benef. bruto AHF
+				measure 'Gross Profit Margin PY'
+					caption: Marg. benef. bruto AA
+				measure 'Gross Profit Margin PYTD'
+					caption: Marg. benef. bruto AAHF
+				measure 'Gross Profit Margin PQTD'
+					caption: Marg. benef. bruto TAHF
+				measure 'Gross Profit Margin QTD'
+					caption: Marg. benef. bruto THF
+				measure 'Gross Profit Margin MTD'
+					caption: Marg. benef. bruto MHF
+				measure 'Gross Profit Margin YOY %'
+					caption: % marg. benef. bruto ATA
+				measure 'Gross Profit Margin YOY'
+					caption: Marg. benef. bruto ATA
+				measure 'Gross Profit Margin PQ'
+					caption: Marg. benef. bruto TA
+				measure 'Gross Profit Margin QOQ'
+					caption: Marg. benef. bruto TTT
+				measure 'Gross Profit Margin PM'
+					caption: Marg. benef. bruto MA
+				measure 'Gross Profit Margin QOQ %'
+					caption: % marg. benef. bruto TTT
+				measure 'Gross Profit Margin MOM'
+					caption: Marg. benef. bruto MTM
+				measure 'Gross Profit Margin MOM %'
+					caption: % marg. benef. bruto MTM
+				measure 'Gross Profit Margin MAT'
+					caption: Marg. benef. bruto TAM
+				measure 'Gross Profit Margin PYMAT'
+					caption: Marg. benef. bruto AATAM
+				measure 'Gross Profit Margin YOYTD'
+					caption: Marg. benef. bruto AAAHLF
+				measure 'Gross Profit Margin YOYTD %'
+					caption: % marg. benef. bruto AAAHLF
+				measure 'Gross Profit Margin PYC'
+					caption: Marg. benef. bruto AAC
+				measure 'Gross Profit Margin YTDOPY'
+					caption: Marg. benef. bruto AHFRAA
+				measure 'Gross Profit Margin YTDOPY %'
+					caption: % marg. benef. bruto AHFRAA
+				measure 'Gross Profit Margin QOQTD'
+					caption: Marg. benef. bruto TATHLF
+				measure 'Gross Profit Margin QOQTD %'
+					caption: % marg. benef. bruto TATHLF
+				measure 'Gross Profit Margin PQC'
+					caption: Marg. benef. bruto TAC
+				measure 'Gross Profit Margin QTDOPQ'
+					caption: Marg. benef. bruto THFRTA
+				measure 'Gross Profit Margin QTDOPQ %'
+					caption: % marg. benef. bruto THFRTA
+				measure 'Gross Profit Margin PMTD'
+					caption: Marg. benef. bruto MAHF
+				measure 'Gross Profit Margin MOMTD'
+					caption: Marg. benef. bruto MAMHLF
+				measure 'Gross Profit Margin MOMTD %'
+					caption: % marg. benef. bruto MAMHLF
+				measure 'Gross Profit Margin PMC'
+					caption: Marg. benef. bruto MAC
+				measure 'Gross Profit Margin MTDOPM'
+					caption: Marg. benef. bruto MHFTMA
+				measure 'Gross Profit Margin MTDOPM %'
+					caption: % marg. benef. bruto MHFTMA
+				measure 'Gross Profit Margin AVG 30D'
+					caption: Marg. benef. bruto AVG 30D
+				measure 'Gross Profit Margin AVG 3M'
+					caption: Marg. benef. bruto AVG 3M
+				measure 'Gross Profit Margin AVG 1Y'
+					caption: Marg. benef. bruto AVG 1A
+				measure 'Gross Profit Margin MATG'
+					caption: Marg. benef. bruto CTAM
+				measure 'Gross Profit Margin MATG %'
+					caption: % marg. benef. bruto CTAM
+				measure 'Gross Profit Margin PP'
+					caption: Marg. benef. bruto PA
+				measure 'Gross Profit Margin POP'
+					caption: Marg. benef. bruto PTP
+				measure 'Gross Profit Margin POP %'
+					caption: % marg. benef. bruto PTP
+				measure 'Cost Amount YTD'
+					caption: Importe de costo AHF
+				measure 'Cost Amount PY'
+					caption: Importe de costo AA
+				measure 'Cost Amount PYTD'
+					caption: Importe de costo AAHF
+				measure 'Cost Amount PQTD'
+					caption: Importe de costo TAHF
+				measure 'Cost Amount QTD'
+					caption: Importe de costo THF
+				measure 'Cost Amount MTD'
+					caption: Importe de costo MHF
+				measure 'Cost Amount YOY %'
+					caption: % importe de costo ATA
+				measure 'Cost Amount YOY'
+					caption: Importe de costo ATA
+				measure 'Cost Amount PQ'
+					caption: Importe de costo TA
+				measure 'Cost Amount QOQ'
+					caption: Importe de costo TTT
+				measure 'Cost Amount PM'
+					caption: Importe de costo MA
+				measure 'Cost Amount QOQ %'
+					caption: % importe de costo TTT
+				measure 'Cost Amount MOM'
+					caption: Importe de costo MTM
+				measure 'Cost Amount MOM %'
+					caption: % importe de costo MTM
+				measure 'Cost Amount MAT'
+					caption: Importe de costo TAM
+				measure 'Cost Amount PYMAT'
+					caption: Importe de costo AATAM
+				measure 'Cost Amount YOYTD'
+					caption: Importe de costo AAAHLF
+				measure 'Cost Amount YOYTD %'
+					caption: % importe de costo AAAHLF
+				measure 'Cost Amount PYC'
+					caption: Importe de costo AAC
+				measure 'Cost Amount YTDOPY'
+					caption: Importe de costo AHFRAA
+				measure 'Cost Amount YTDOPY %'
+					caption: % importe de costo AHFRAA
+				measure 'Cost Amount QOQTD'
+					caption: Importe de costo TATHLF
+				measure 'Cost Amount QOQTD %'
+					caption: % importe de costo TATHLF
+				measure 'Cost Amount PQC'
+					caption: Importe de costo TAC
+				measure 'Cost Amount QTDOPQ'
+					caption: Importe de costo THFRTA
+				measure 'Cost Amount QTDOPQ %'
+					caption: % importe de costo THFRTA
+				measure 'Cost Amount PMTD'
+					caption: Importe de costo MAHF
+				measure 'Cost Amount MOMTD'
+					caption: Importe de costo MAMHLF
+				measure 'Cost Amount MOMTD %'
+					caption: % importe de costo MAMHLF
+				measure 'Cost Amount PMC'
+					caption: Importe de costo MAC
+				measure 'Cost Amount MTDOPM'
+					caption: Importe de costo MHFTMA
+				measure 'Cost Amount MTDOPM %'
+					caption: % importe de costo MHFTMA
+				measure 'Cost Amount AVG 30D'
+					caption: Importe de costo AVG 30D
+				measure 'Cost Amount AVG 3M'
+					caption: Importe de costo AVG 3M
+				measure 'Cost Amount AVG 1Y'
+					caption: Importe de costo AVG 1A
+				measure 'Cost Amount MATG'
+					caption: Importe de costo CTAM
+				measure 'Cost Amount MATG %'
+					caption: % importe de costo CTAM
+				measure 'Cost Amount PP'
+					caption: Importe de costo PA
+				measure 'Cost Amount POP'
+					caption: Importe de costo PTP
+				measure 'Cost Amount POP %'
+					caption: % importe de costo PTP
+				measure 'Cost Amount Non-Inv YTD'
+					caption: Importe de costo no invent. AHF
+				measure 'Cost Amount Non-Inv PY'
+					caption: Importe de costo no invent. AA
+				measure 'Cost Amount Non-Inv PYTD'
+					caption: Importe de costo no invent. AAHF
+				measure 'Cost Amount Non-Inv PQTD'
+					caption: Importe de costo no invent. TAHF
+				measure 'Cost Amount Non-Inv QTD'
+					caption: Importe de costo no invent. THF
+				measure 'Cost Amount Non-Inv MTD'
+					caption: Importe de costo no invent. MHF
+				measure 'Cost Amount Non-Inv YOY %'
+					caption: % importe de costo no invent. ATA
+				measure 'Cost Amount Non-Inv YOY'
+					caption: Importe de costo no invent. ATA
+				measure 'Cost Amount Non-Inv PQ'
+					caption: Importe de costo no invent. TA
+				measure 'Cost Amount Non-Inv QOQ'
+					caption: Importe de costo no invent. TTT
+				measure 'Cost Amount Non-Inv PM'
+					caption: Importe de costo no invent. MA
+				measure 'Cost Amount Non-Inv QOQ %'
+					caption: % importe de costo no invent. TTT
+				measure 'Cost Amount Non-Inv MOM'
+					caption: Importe de costo no invent. MTM
+				measure 'Cost Amount Non-Inv MOM %'
+					caption: % importe de costo no invent. MTM
+				measure 'Cost Amount Non-Inv MAT'
+					caption: Importe de costo no invent. TAM
+				measure 'Cost Amount Non-Inv PYMAT'
+					caption: Importe de costo no invent. AATAM
+				measure 'Cost Amount Non-Inv YOYTD'
+					caption: Importe de costo no invent. AAAHLF
+				measure 'Cost Amount Non-Inv YOYTD %'
+					caption: % importe de costo no invent. AAAHLF
+				measure 'Cost Amount Non-Inv PYC'
+					caption: Importe de costo no invent. AAC
+				measure 'Cost Amount Non-Inv YTDOPY'
+					caption: Importe de costo no invent. AHFRAA
+				measure 'Cost Amount Non-Inv YTDOPY %'
+					caption: % importe de costo no invent. AHFRAA
+				measure 'Cost Amount Non-Inv QOQTD'
+					caption: Importe de costo no invent. TATHLF
+				measure 'Cost Amount Non-Inv QOQTD %'
+					caption: % importe de costo no invent. TATHLF
+				measure 'Cost Amount Non-Inv PQC'
+					caption: Importe de costo no invent. TAC
+				measure 'Cost Amount Non-Inv QTDOPQ'
+					caption: Importe de costo no invent. THFRTA
+				measure 'Cost Amount Non-Inv QTDOPQ %'
+					caption: % importe de costo no invent. THFRTA
+				measure 'Cost Amount Non-Inv PMTD'
+					caption: Importe de costo no invent. MAHF
+				measure 'Cost Amount Non-Inv MOMTD'
+					caption: Importe de costo no invent. MAMHLF
+				measure 'Cost Amount Non-Inv MOMTD %'
+					caption: % importe de costo no invent. MAMHLF
+				measure 'Cost Amount Non-Inv PMC'
+					caption: Importe de costo no invent. MAC
+				measure 'Cost Amount Non-Inv MTDOPM'
+					caption: Importe de costo no invent. MHFTMA
+				measure 'Cost Amount Non-Inv MTDOPM %'
+					caption: % importe de costo no invent. MHFTMA
+				measure 'Cost Amount Non-Inv AVG 30D'
+					caption: Importe de costo no invent. AVG 30D
+				measure 'Cost Amount Non-Inv AVG 3M'
+					caption: Importe de costo no invent. AVG 3M
+				measure 'Cost Amount Non-Inv AVG 1Y'
+					caption: Importe de costo no invent. AVG 1A
+				measure 'Cost Amount Non-Inv MATG'
+					caption: Importe de costo no invent. CTAM
+				measure 'Cost Amount Non-Inv MATG %'
+					caption: % importe de costo no invent. CTAM
+				measure 'Cost Amount Non-Inv PP'
+					caption: Importe de costo no invent. PA
+				measure 'Cost Amount Non-Inv POP'
+					caption: Importe de costo no invent. PTP
+				measure 'Cost Amount Non-Inv POP %'
+					caption: % importe de costo no invent. PTP
+			table 'Dimension Sets'
+				caption: Grupos de dimensiones
+				column 'Global Dimension 1'
+					caption: Dimensión global 1
+				column 'Global Dimension 2'
+					caption: Dimensión global 2
+				column 'Shortcut Dimension 3'
+					caption: Dim. acceso dir. 3
+				column 'Shortcut Dimension 4'
+					caption: Dim. acceso dir. 4
+				column 'Shortcut Dimension 5'
+					caption: Dim. acceso dir. 5
+				column 'Shortcut Dimension 6'
+					caption: Dim. acceso dir. 6
+				column 'Shortcut Dimension 7'
+					caption: Dim. acceso dir. 7
+				column 'Shortcut Dimension 8'
+					caption: Dim. acceso dir. 8
+				column id
+					caption: id.
+			table 'Sales Budget'
+				caption: Presupuesto ventas
+				column 'Entry No.'
+					caption: N.º de movimiento
+				column 'Budget Name'
+					caption: Nombre ppto.
+				column 'Item No.'
+					caption: N.º de producto
+				column 'Location Code'
+					caption: Código de almacén
+				measure 'Budget Amount'
+					caption: Importe presupuesto
+				measure 'Budget Amount Variance'
+					caption: Desviación importe ppto.
+				measure 'Budget Quantity'
+					caption: Cantidad presupuesto
+				measure 'Budget Quantity Variance'
+					caption: Desviación cantidad presupuesto
+				measure 'Budget Amount Variance %'
+					caption: Desviación importe ppto. %
+				measure 'Budget Quantity Variance %'
+					caption: Desviación cantidad presupuesto %
+				measure 'Budget Back Link'
+					caption: Vínculo de retroceso de presupuesto
+			table Date
+				caption: Fecha
+				column 'Week Day'
+					caption: Día de la semana
+				column 'Calendar Year'
+					caption: Año natural
+				column 'Calendar Quarter'
+					caption: Trimestre natural
+				column 'Calendar Quarter Year'
+					caption: Trimestre año natural
+				column 'Calendar Month'
+					caption: Mes natural
+				column 'Calendar Month Year'
+					caption: Mes año natural
+				column 'Calendar Week'
+					caption: Semana natural
+				column 'Calendar Week Year'
+					caption: Semana año natural
+				column 'Calendar RelativeWeekPos'
+					caption: PosSemanaRelativa natural
+				column 'Calendar RelativeMonthPos'
+					caption: PosMesRelativa natural
+				column 'Calendar RelativeQuarterPos'
+					caption: PosTrimestreRelativa natural
+				column 'Calendar RelativeYearPos'
+					caption: PosAñoRelativa natural
+				column 'Calendar StartOfMonth'
+					caption: InicioDeMes natural
+				column 'Calendar EndOfMonth'
+					caption: FinDeMes natural
+				column 'Calendar StartOfQuarter'
+					caption: InicioDeTrimestre natural
+				column 'Calendar EndOfQuarter'
+					caption: FinDeTrimestre natural
+				column 'Calendar StartOfYear'
+					caption: InicioDeAño natural
+				column 'Calendar EndOfYear'
+					caption: FinDeAño natural
+				column 'Calendar MonthDays'
+					caption: DíasMes natural
+				column 'Calendar QuarterDays'
+					caption: TrimestreDías natural
+				column 'Calendar YearDays'
+					caption: AñoDías natural
+				column 'Calendar DayOfMonthNumber'
+					caption: NúmeroDeDíaDeMes natural
+				column 'Calendar DayOfQuarterNumber'
+					caption: NúmeroDeDíaDeTrimestre natural
+				column 'Calendar DayOfYearNumber'
+					caption: NúmeroDeDíaDeAño natural
+				column 'Calendar DatePreviousWeek'
+					caption: FechaSemanaAnterior natural
+				column 'Calendar DatePreviousMonth'
+					caption: FechaMesAnterior natural
+				column 'Calendar DatePreviousQuarter'
+					caption: FechaTrimestreAnterior natural
+				column 'Calendar DatePreviousYear'
+					caption: FechaAñoAnterior natural
+				column 'Fiscal Year'
+					caption: Ejercicio
+				column 'Fiscal Quarter'
+					caption: Trimestre fiscal
+				column 'Fiscal Quarter Year'
+					caption: Año trimestre fiscal
+				column 'Fiscal Month'
+					caption: Mes fiscal
+				column 'Fiscal Month Year'
+					caption: Mes año fiscal
+				column 'Fiscal Week'
+					caption: Semana fiscal
+				column 'Fiscal Week Year'
+					caption: Semana año fiscal
+				column 'Fiscal RelativeWeekPos'
+					caption: PosSemanaRelativa fiscal
+				column 'Fiscal RelativeMonthPos'
+					caption: PosMesRelativa fiscal
+				column 'Fiscal RelativeQuarterPos'
+					caption: PosTrimestreRelativa fiscal
+				column 'Fiscal RelativeYearPos'
+					caption: PosAñoRelativa fiscal
+				column 'Fiscal StartOfMonth'
+					caption: InicioDeMes fiscal
+				column 'Fiscal EndOfMonth'
+					caption: FinDeMes fiscal
+				column 'Fiscal StartOfQuarter'
+					caption: InicioDeTrimestre fiscal
+				column 'Fiscal EndOfQuarter'
+					caption: FinDeTrimestre fiscal
+				column 'Fiscal StartOfYear'
+					caption: InicioDeAño fiscal
+				column 'Fiscal EndOfYear'
+					caption: FinDeAño fiscal
+				column 'Fiscal MonthDays'
+					caption: MesDías fiscal
+				column 'Fiscal QuarterDays'
+					caption: DíasTrimestre fiscal
+				column 'Fiscal YearDays'
+					caption: AñoDías fiscal
+				column 'Fiscal DayOfMonthNumber'
+					caption: NúmeroDeDíaDeMes fiscal
+				column 'Fiscal DayOfQuarterNumber'
+					caption: NúmeroDeDíaDeTrimestre fiscal
+				column 'Fiscal DayOfYearNumber'
+					caption: NúmerDeDíaDeAño fiscal
+				column 'Fiscal DatePreviousWeek'
+					caption: FechaSemanaAnterior fiscal
+				column 'Fiscal DatePreviousMonth'
+					caption: FechaMesAnterior fiscal
+				column 'Fiscal DatePreviousQuarter'
+					caption: FechaTrimestreAnterior fiscal
+				column 'Fiscal DatePreviousYear'
+					caption: FechaAñoAnterior fiscal
+				column 'FW Year'
+					caption: Año SF
+				column 'FW Quarter'
+					caption: Trimestre SF
+				column 'FW Quarter Year'
+					caption: Trimestre año SF
+				column 'FW Month'
+					caption: Mes SF
+				column 'FW Month Year'
+					caption: Mes año SF
+				column 'FW Week'
+					caption: Semana SF
+				column 'FW Period'
+					caption: Periodo SF
+				column 'FW Week Year'
+					caption: Semana año SF
+				column 'FW StartOfWeek'
+					caption: InicioDeSemana SF
+				column 'FW EndOfWeek'
+					caption: FinDeSemana SF
+				column 'FW RelativeWeekPos'
+					caption: PosSemanaRelativa SF
+				column 'FW RelativeMonthPos'
+					caption: PosMesRelativa SF
+				column 'FW RelativeQuarterPos'
+					caption: PosTrimestreRelativa SF
+				column 'FW RelativeYearPos'
+					caption: PosAñoRelativa SF
+				column 'FW StartOfMonth'
+					caption: InicioDeMes SF
+				column 'FW EndOfMonth'
+					caption: FinDeMes SF
+				column 'FW StartOfQuarter'
+					caption: InicioDeTrimestre SF
+				column 'FW EndOfQuarter'
+					caption: FinDeTrimestre SF
+				column 'FW StartOfYear'
+					caption: InicioDeAño SF
+				column 'FW EndOfYear'
+					caption: FinDeAño SF
+				column 'FW MonthDays'
+					caption: MesDías FS
+				column 'FW QuarterDays'
+					caption: DíasTrimestre SF
+				column 'FW YearDays'
+					caption: DíasAño SF
+				column 'FW DatePreviousWeek'
+					caption: FechaSemanaAnterior SF
+				column 'FW DatePreviousMonth'
+					caption: FechaMesAnterior SF
+				column 'FW DatePreviousQuarter'
+					caption: FechaTrimestreAnterior SF
+				column 'FW DatePreviousYear'
+					caption: Fecha AñoAnterior SF
+				column 'Holiday Name'
+					caption: Nombre de día festivo
+				column IsWorkingDay
+					caption: IsWorkingDay
+				column 'Day Type'
+					caption: Tipo de pago
+				column 'Relative Day'
+					caption: Día relativo
+				hierarchy 'Fiscal Year-Quarter-Month-Week'
+					caption: Año-Trimestre-Mes-Semana fiscal
+					level 'Fiscal Year'
+						caption: Ejercicio
+					level 'Fiscal Quarter Year'
+						caption: Año trimestre fiscal
+					level 'Fiscal Month Year'
+						caption: Mes año fiscal
+					level 'Fiscal Week Year'
+						caption: Semana año fiscal
+				hierarchy 'Calendar Year-Quarter-Month-Week'
+					caption: Año-Trimestre-Mes-Semana natural
+					level 'Calendar Year'
+						caption: Año natural
+					level 'Calendar Quarter Year'
+						caption: Trimestre año natural
+					level 'Calendar Month Year'
+						caption: Mes año natural
+					level 'Calendar Week Year'
+						caption: Semana año natural
+				hierarchy 'FW Year-Quarter-Month-Week'
+					caption: Año-Trimestre-Mes-Semana SF
+					level 'FW Year'
+						caption: Año SF
+					level 'FW Quarter Year'
+						caption: Trimestre año SF
+					level 'FW Month Year'
+						caption: Mes año SF
+					level 'FW Week Year'
+						caption: Semana año SF
+				hierarchy 'FW Year-Week'
+					caption: Semana-Año SF
+					level 'FW Year'
+						caption: Año SF
+					level 'FW Week Year'
+						caption: Semana año SF
+				hierarchy 'FW Year-Month-Week'
+					caption: Año-Mes-Semana SF
+					level 'FW Year'
+						caption: Año SF
+					level 'FW Month Year'
+						caption: Mes año SF
+					level 'FW Week Year'
+						caption: Semana año SF
+				hierarchy 'FW Year-Quarter-Week'
+					caption: Año-Trimestre-Semana SF
+					level 'FW Year'
+						caption: Año SF
+					level 'FW Quarter Year'
+						caption: Trimestre año SF
+					level 'FW Week Year'
+						caption: Semana año SF
+				hierarchy 'Calendar Year-Month-Week'
+					caption: Año-Mes-Semana natural
+					level 'Calendar Year'
+						caption: Año natural
+					level 'Calendar Month Year'
+						caption: Mes año natural
+					level 'Calendar Week Year'
+						caption: Semana año natural
+				hierarchy 'Calendar Year-Month'
+					caption: Año-mes natural
+					level 'Calendar Year'
+						caption: Año natural
+					level 'Calendar Month Year'
+						caption: Mes año natural
+				hierarchy 'Fiscal Year-Month'
+					caption: Año-mes fiscal
+					level 'Fiscal Year'
+						caption: Ejercicio
+					level 'Fiscal Month Year'
+						caption: Mes año fiscal
+				hierarchy 'Fiscal Year-Month-Week'
+					caption: Año-Mes-Semana fiscal
+					level 'Fiscal Year'
+						caption: Ejercicio
+					level 'Fiscal Month Year'
+						caption: Mes año fiscal
+					level 'Fiscal Week Year'
+						caption: Semana año fiscal
+			table 'Fiscal Calendar Time Intelligence'
+				caption: Inteligencia de tiempo del calendario fiscal
+				measure 'Sales Amount YTD (Fiscal)'
+					caption: Importe ventas AHF (fiscal)
+				measure 'Sales Amount PY (Fiscal)'
+					caption: Importe ventas AA (fiscal)
+				measure 'Sales Amount PYTD (Fiscal)'
+					caption: Importe ventas AAHF (fiscal)
+				measure 'Sales Amount PQTD (Fiscal)'
+					caption: Importe ventas TAHF (fiscal)
+				measure 'Sales Amount QTD (Fiscal)'
+					caption: Importe ventas THF (fiscal)
+				measure 'Sales Amount MTD (Fiscal)'
+					caption: Importe ventas MHF (fiscal)
+				measure 'Sales Amount YOY % (Fiscal)'
+					caption: % importe ventas ATA (fiscal)
+				measure 'Sales Amount YOY (Fiscal)'
+					caption: Importe ventas ATA (fiscal)
+				measure 'Sales Amount PQ (Fiscal)'
+					caption: Importe ventas TA (fiscal)
+				measure 'Sales Amount QOQ (Fiscal)'
+					caption: Importe ventas TTT (fiscal)
+				measure 'Sales Amount QOQ % (Fiscal)'
+					caption: % importe ventas TTT (fiscal)
+				measure 'Sales Amount PM (Fiscal)'
+					caption: Importe ventas MA (fiscal)
+				measure 'Sales Amount MOM (Fiscal)'
+					caption: Importe ventas MTM (fiscal)
+				measure 'Sales Amount MOM % (Fiscal)'
+					caption: % importe ventas MTM (fiscal)
+				measure 'Sales Amount MAT (Fiscal)'
+					caption: Importe ventas TAM (fiscal)
+				measure 'Sales Amount PYMAT (Fiscal)'
+					caption: Importe ventas AATAM (fiscal)
+				measure 'Sales Amount YOYTD (Fiscal)'
+					caption: Importe ventas AAAHLF (fiscal)
+				measure 'Sales Amount YOYTD % (Fiscal)'
+					caption: % importe ventas AAAHLF (fiscal)
+				measure 'Sales Amount PYC (Fiscal)'
+					caption: Importe ventas AAC (fiscal)
+				measure 'Sales Amount YTDOPY (Fiscal)'
+					caption: Importe ventas AHFRAA (fiscal)
+				measure 'Sales Amount YTDOPY % (Fiscal)'
+					caption: % importe ventas AHFRAA (fiscal)
+				measure 'Sales Amount QOQTD (Fiscal)'
+					caption: Importe ventas TATHLF (fiscal)
+				measure 'Sales Amount QOQTD % (Fiscal)'
+					caption: % importe ventas TATHLF (fiscal)
+				measure 'Sales Amount PQC (Fiscal)'
+					caption: Importe ventas TAC (fiscal)
+				measure 'Sales Amount QTDOPQ (Fiscal)'
+					caption: Importe ventas THFRTA (fiscal)
+				measure 'Sales Amount QTDOPQ % (Fiscal)'
+					caption: % importe ventas THFRTA (fiscal)
+				measure 'Sales Amount PMTD (Fiscal)'
+					caption: Importe ventas MAHF (fiscal)
+				measure 'Sales Amount MOMTD % (Fiscal)'
+					caption: % importe ventas MAMHLF (fiscal)
+				measure 'Sales Amount MOMTD (Fiscal)'
+					caption: Importe ventas MAMHLF (fiscal)
+				measure 'Sales Amount PMC (Fiscal)'
+					caption: Importe ventas MAC (fiscal)
+				measure 'Sales Amount MTDOPM (Fiscal)'
+					caption: Importe ventas MHFTMA (fiscal)
+				measure 'Sales Amount MTDOPM % (Fiscal)'
+					caption: % importe ventas MHFTMA (fiscal)
+				measure 'Sales Amount AVG 30D (Fiscal)'
+					caption: Importe ventas AVG 30D (fiscal)
+				measure 'Sales Amount AVG 3M (Fiscal)'
+					caption: Importe ventas AVG 3M (fiscal)
+				measure 'Sales Amount AVG 1Y (Fiscal)'
+					caption: Importe ventas AVG 1A (fiscal)
+				measure 'Sales Amount MATG (Fiscal)'
+					caption: Importe ventas CTAM (fiscal)
+				measure 'Sales Amount MATG % (Fiscal)'
+					caption: % importe ventas CTAM (fiscal)
+				measure 'Sales Amount PP (Fiscal)'
+					caption: Importe ventas PA (fiscal)
+				measure 'Sales Amount POP (Fiscal)'
+					caption: Importe ventas PTP (fiscal)
+				measure 'Sales Amount POP % (Fiscal)'
+					caption: % importe ventas PTP (fiscal)
+				measure 'Sales Amount MAT (364) (Fiscal)'
+					caption: Importe ventas TAM (364) (fiscal)
+				measure 'Sales PYMAT (364) (Fiscal)'
+					caption: Importe ventas AATAM (364) (fiscal)
+				measure 'Sales Quantity YTD (Fiscal)'
+					caption: Cantidad ventas AHF (fiscal)
+				measure 'Sales Quantity PY (Fiscal)'
+					caption: Cantidad ventas AA (fiscal)
+				measure 'Sales Quantity PYTD (Fiscal)'
+					caption: Cantidad ventas AAHF (fiscal)
+				measure 'Sales Quantity PQTD (Fiscal)'
+					caption: Cantidad ventas TAHF (fiscal)
+				measure 'Sales Quantity QTD (Fiscal)'
+					caption: Cantidad ventas THF (fiscal)
+				measure 'Sales Quantity MTD (Fiscal)'
+					caption: Cantidad ventas MHF (fiscal)
+				measure 'Sales Quantity YOY % (Fiscal)'
+					caption: % cantidad ventas ATA (fiscal)
+				measure 'Sales Quantity YOY (Fiscal)'
+					caption: Cantidad ventas ATA (fiscal)
+				measure 'Sales Quantity PQ (Fiscal)'
+					caption: Cantidad ventas TA (fiscal)
+				measure 'Sales Quantity QOQ (Fiscal)'
+					caption: Cantidad ventas TTT (fiscal)
+				measure 'Sales Quantity QOQ % (Fiscal)'
+					caption: % cantidad ventas TTT (fiscal)
+				measure 'Sales Quantity PM (Fiscal)'
+					caption: Cantidad ventas MA (fiscal)
+				measure 'Sales Quantity MOM (Fiscal)'
+					caption: Cantidad ventas MTM (fiscal)
+				measure 'Sales Quantity MOM % (Fiscal)'
+					caption: % cantidad ventas MTM (fiscal)
+				measure 'Sales Quantity MAT (Fiscal)'
+					caption: Cantidad ventas TAM (fiscal)
+				measure 'Sales Quantity PYMAT (Fiscal)'
+					caption: Cantidad ventas AATAM (fiscal)
+				measure 'Sales Quantity YOYTD (Fiscal)'
+					caption: Cantidad ventas AAAHLF (fiscal)
+				measure 'Sales Quantity YOYTD % (Fiscal)'
+					caption: % cantidad ventas AAAHLF (fiscal)
+				measure 'Sales Quantity PYC (Fiscal)'
+					caption: Cantidad ventas AAC (fiscal)
+				measure 'Sales Quantity YTDOPY (Fiscal)'
+					caption: Cantidad ventas AHFRAA (fiscal)
+				measure 'Sales Quantity YTDOPY % (Fiscal)'
+					caption: % cantidad ventas AHFRAA (fiscal)
+				measure 'Sales Quantity QOQTD (Fiscal)'
+					caption: Cantidad ventas TATHLF (fiscal)
+				measure 'Sales Quantity QOQTD % (Fiscal)'
+					caption: % cantidad ventas TATHLF (fiscal)
+				measure 'Sales Quantity PQC (Fiscal)'
+					caption: Cantidad ventas TAC (fiscal)
+				measure 'Sales Quantity QTDOPQ (Fiscal)'
+					caption: Cantidad ventas THFRTA (fiscal)
+				measure 'Sales Quantity QTDOPQ % (Fiscal)'
+					caption: % cantidad ventas THFRTA (fiscal)
+				measure 'Sales Quantity PMTD (Fiscal)'
+					caption: Cantidad ventas MAHF (fiscal)
+				measure 'Sales Quantity MOMTD % (Fiscal)'
+					caption: % cantidad ventas MAMHLF (fiscal)
+				measure 'Sales Quantity MOMTD (Fiscal)'
+					caption: Cantidad ventas MAMHLF (fiscal)
+				measure 'Sales Quantity PMC (Fiscal)'
+					caption: Cantidad ventas MAC (fiscal)
+				measure 'Sales Quantity MTDOPM (Fiscal)'
+					caption: Cantidad ventas MHFTMA (fiscal)
+				measure 'Sales Quantity MTDOPM % (Fiscal)'
+					caption: % cantidad ventas MHFTMA (fiscal)
+				measure 'Sales Quantity AVG 30D (Fiscal)'
+					caption: Cantidad ventas AVG 30D (fiscal)
+				measure 'Sales Quantity AVG 3M (Fiscal)'
+					caption: Cantidad ventas AVG 3M (fiscal)
+				measure 'Sales Quantity AVG 1Y (Fiscal)'
+					caption: Cantidad ventas AVG 1A (fiscal)
+				measure 'Sales Quantity MATG (Fiscal)'
+					caption: Cantidad ventas CTAM (fiscal)
+				measure 'Sales Quantity MATG % (Fiscal)'
+					caption: % cantidad ventas CTAM (fiscal)
+				measure 'Sales Quantity PP (Fiscal)'
+					caption: Cantidad ventas PA (fiscal)
+				measure 'Sales Quantity POP (Fiscal)'
+					caption: Cantidad ventas PTP (fiscal)
+				measure 'Sales Quantity POP % (Fiscal)'
+					caption: % cantidad ventas PTP (fiscal)
+				measure 'Cost Amount YTD (Fiscal)'
+					caption: Importe de costo AHF (fiscal)
+				measure 'Cost Amount PY (Fiscal)'
+					caption: Importe de costo AA (fiscal)
+				measure 'Cost Amount QTD (Fiscal)'
+					caption: Importe de costo THF (fiscal)
+				measure 'Cost Amount MTD (Fiscal)'
+					caption: Importe de costo MHF (fiscal)
+				measure 'Cost Amount YOY % (Fiscal)'
+					caption: % importe de costo ATA (fiscal)
+				measure 'Cost Amount YOY (Fiscal)'
+					caption: Importe de costo ATA (fiscal)
+				measure 'Cost Amount PQ (Fiscal)'
+					caption: Importe de costo TA (fiscal)
+				measure 'Cost Amount QOQ (Fiscal)'
+					caption: Importe de costo TTT (fiscal)
+				measure 'Cost Amount QOQ % (Fiscal)'
+					caption: % importe de costo TTT (fiscal)
+				measure 'Cost Amount PM (Fiscal)'
+					caption: Importe de costo MA (fiscal)
+				measure 'Cost Amount MOM (Fiscal)'
+					caption: Importe de costo MTM (fiscal)
+				measure 'Cost Amount MOM % (Fiscal)'
+					caption: % importe de costo MTM (fiscal)
+				measure 'Cost Amount PP (Fiscal)'
+					caption: Importe de costo PA (fiscal)
+				measure 'Cost Amount POP (Fiscal)'
+					caption: Importe de costo PTP (fiscal)
+				measure 'Cost Amount POP % (Fiscal)'
+					caption: % importe de costo PTP (fiscal)
+				measure 'Cost Amount PYTD (Fiscal)'
+					caption: Importe de costo AAHF (fiscal)
+				measure 'Cost Amount PQTD (Fiscal)'
+					caption: Importe de costo TAHF (fiscal)
+				measure 'Cost Amount YOYTD (Fiscal)'
+					caption: Importe de costo AAAHLF (fiscal)
+				measure 'Cost Amount YOYTD % (Fiscal)'
+					caption: % importe de costo AAAHLF (fiscal)
+				measure 'Cost Amount QOQTD (Fiscal)'
+					caption: Importe de costo TATHLF (fiscal)
+				measure 'Cost Amount QOQTD % (Fiscal)'
+					caption: % importe de costo TATHLF (fiscal)
+				measure 'Cost Amount PMTD (Fiscal)'
+					caption: Importe de costo MAHF (fiscal)
+				measure 'Cost Amount MOMTD % (Fiscal)'
+					caption: % importe de costo MAMHLF (fiscal)
+				measure 'Cost Amount MOMTD (Fiscal)'
+					caption: Importe de costo MAMHLF (fiscal)
+				measure 'Cost Amount MAT (Fiscal)'
+					caption: Importe de costo TAM (fiscal)
+				measure 'Cost Amount PYMAT (Fiscal)'
+					caption: Importe de costo AATAM (fiscal)
+				measure 'Cost Amount MATG (Fiscal)'
+					caption: Importe de costo CTAM (fiscal)
+				measure 'Cost Amount MATG % (Fiscal)'
+					caption: % importe de costo CTAM (fiscal)
+				measure 'Cost Amount MAT (364) (Fiscal)'
+					caption: Importe de costo TAM (364) (fiscal)
+				measure 'Cost PYMAT (364) (Fiscal)'
+					caption: Importe de costo AATAM (364) (fiscal)
+				measure 'Cost Amount PYC (Fiscal)'
+					caption: Importe de costo AAC (fiscal)
+				measure 'Cost Amount YTDOPY (Fiscal)'
+					caption: Importe de costo AHFRAA (fiscal)
+				measure 'Cost Amount YTDOPY % (Fiscal)'
+					caption: % importe de costo AHFRAA (fiscal)
+				measure 'Cost Amount PQC (Fiscal)'
+					caption: Importe de costo TAC (fiscal)
+				measure 'Cost Amount QTDOPQ (Fiscal)'
+					caption: Importe de costo THFRTA (fiscal)
+				measure 'Cost Amount QTDOPQ % (Fiscal)'
+					caption: % importe de costo THFRTA (fiscal)
+				measure 'Cost Amount PMC (Fiscal)'
+					caption: Importe de costo MAC (fiscal)
+				measure 'Cost Amount MTDOPM (Fiscal)'
+					caption: Importe de costo MHFTMA (fiscal)
+				measure 'Cost Amount MTDOPM % (Fiscal)'
+					caption: % importe de costo MHFTMA (fiscal)
+				measure 'Cost Amount AVG 30D (Fiscal)'
+					caption: Importe de costo AVG 30D (fiscal)
+				measure 'Cost Amount AVG 3M (Fiscal)'
+					caption: Importe de costo AVG 3M (fiscal)
+				measure 'Cost Amount AVG 1Y (Fiscal)'
+					caption: Importe de costo AVG 1A (fiscal)
+				measure 'Cost Amount Non-Inv YTD (Fiscal)'
+					caption: Importe de costo no invent. AHF (fiscal)
+				measure 'Cost Amount Non-Inv QTD (Fiscal)'
+					caption: Importe de costo no invent. THF (fiscal)
+				measure 'Cost Amount Non-Inv MTD (Fiscal)'
+					caption: Importe de costo no invent. MHF (fiscal)
+				measure 'Cost Amount Non-Inv PY (Fiscal)'
+					caption: Importe de costo no invent. AA (fiscal)
+				measure 'Cost Amount Non-Inv YOY % (Fiscal)'
+					caption: % importe de costo no invent. ATA (fiscal)
+				measure 'Cost Amount Non-Inv YOY (Fiscal)'
+					caption: Importe de costo no invent. ATA (fiscal)
+				measure 'Cost Amount Non-Inv PQ (Fiscal)'
+					caption: Importe de costo no invent. TA (fiscal)
+				measure 'Cost Amount Non-Inv QOQ (Fiscal)'
+					caption: Importe de costo no invent. TTT (fiscal)
+				measure 'Cost Amount Non-Inv QOQ % (Fiscal)'
+					caption: % importe de costo no invent. TTT (fiscal)
+				measure 'Cost Amount Non-Inv PM (Fiscal)'
+					caption: Importe de costo no invent. MA (fiscal)
+				measure 'Cost Amount Non-Inv MOM (Fiscal)'
+					caption: Importe de costo no invent. MTM (fiscal)
+				measure 'Cost Amount Non-Inv MOM % (Fiscal)'
+					caption: % importe de costo no invent. MTM (fiscal)
+				measure 'Cost Amount Non-Inv PP (Fiscal)'
+					caption: Importe de costo no invent. PA (fiscal)
+				measure 'Cost Amount Non-Inv POP (Fiscal)'
+					caption: Importe de costo no invent. PTP (fiscal)
+				measure 'Cost Amount Non-Inv POP % (Fiscal)'
+					caption: % importe de costo no invent. PTP (fiscal)
+				measure 'Cost Amount Non-Inv PYTD (Fiscal)'
+					caption: Importe de costo no invent. AAHF (fiscal)
+				measure 'Cost Amount Non-Inv PQTD (Fiscal)'
+					caption: Importe de costo no invent. TAHF (fiscal)
+				measure 'Cost Amount Non-Inv YOYTD (Fiscal)'
+					caption: Importe de costo no invent. AAAHLF (fiscal)
+				measure 'Cost Amount Non-Inv YOYTD % (Fiscal)'
+					caption: % importe de costo no invent. AAAHLF (fiscal)
+				measure 'Cost Amount Non-Inv QOQTD (Fiscal)'
+					caption: Importe de costo no invent. TATHLF (fiscal)
+				measure 'Cost Amount Non-Inv QOQTD % (Fiscal)'
+					caption: % importe de costo no invent. TATHLF (fiscal)
+				measure 'Cost Amount Non-Inv PMTD (Fiscal)'
+					caption: Importe de costo no invent. MAHF (fiscal)
+				measure 'Cost Amount Non-Inv MOMTD % (Fiscal)'
+					caption: % importe de costo no invent. MAMHLF (fiscal)
+				measure 'Cost Amount Non-Inv MOMTD (Fiscal)'
+					caption: Importe de costo no invent. MAMHLF (fiscal)
+				measure 'Cost Amount Non-Inv MAT (Fiscal)'
+					caption: Importe de costo no invent. TAM (fiscal)
+				measure 'Cost Amount Non-Inv PYMAT (Fiscal)'
+					caption: Importe de costo no invent. AATAM (fiscal)
+				measure 'Cost Amount Non-Inv MATG (Fiscal)'
+					caption: Importe de costo no invent. CTAM (fiscal)
+				measure 'Cost Amount Non-Inv MATG % (Fiscal)'
+					caption: % importe de costo no invent. CTAM (fiscal)
+				measure 'Cost Amount Non-Inv PYC (Fiscal)'
+					caption: Importe de costo no invent. AAC (fiscal)
+				measure 'Cost Amount Non-Inv YTDOPY (Fiscal)'
+					caption: Importe de costo no invent. AHFRAA (fiscal)
+				measure 'Cost Amount Non-Inv YTDOPY % (Fiscal)'
+					caption: % importe de costo no invent. AHFRAA (fiscal)
+				measure 'Cost Amount Non-Inv PQC (Fiscal)'
+					caption: Importe de costo no invent. TAC (fiscal)
+				measure 'Cost Amount Non-Inv QTDOPQ (Fiscal)'
+					caption: Importe de costo no invent. THFRTA (fiscal)
+				measure 'Cost Amount Non-Inv QTDOPQ % (Fiscal)'
+					caption: % importe de costo no invent. THFRTA (fiscal)
+				measure 'Cost Amount Non-Inv PMC (Fiscal)'
+					caption: Importe de costo no invent. MAC (fiscal)
+				measure 'Cost Amount Non-Inv MTDOPM (Fiscal)'
+					caption: Importe de costo no invent. MHFTMA (fiscal)
+				measure 'Cost Amount Non-Inv MTDOPM % (Fiscal)'
+					caption: % importe de costo no invent. MHFTMA (fiscal)
+				measure 'Cost Amount Non-Inv AVG 30D (Fiscal)'
+					caption: Importe de costo no invent. AVG 30D (fiscal)
+				measure 'Cost Amount Non-Inv AVG 3M (Fiscal)'
+					caption: Importe de costo no invent. AVG 3M (fiscal)
+				measure 'Cost Amount Non-Inv AVG 1Y (Fiscal)'
+					caption: Importe de costo no invent. AVG 1A (fiscal)
+				measure 'Gross Profit YTD (Fiscal)'
+					caption: Beneficio bruto AHF (fiscal)
+				measure 'Gross Profit QTD (Fiscal)'
+					caption: Beneficio bruto THF (fiscal)
+				measure 'Gross Profit MTD (Fiscal)'
+					caption: Beneficio bruto MHF (fiscal)
+				measure 'Gross Profit PY (Fiscal)'
+					caption: Beneficio bruto AA (fiscal)
+				measure 'Gross Profit YOY % (Fiscal)'
+					caption: % beneficio bruto ATA (fiscal)
+				measure 'Gross Profit YOY (Fiscal)'
+					caption: Beneficio bruto ATA (fiscal)
+				measure 'Gross Profit PQ (Fiscal)'
+					caption: Beneficio bruto TA (fiscal)
+				measure 'Gross Profit QOQ (Fiscal)'
+					caption: Beneficio bruto TTT (fiscal)
+				measure 'Gross Profit QOQ % (Fiscal)'
+					caption: % beneficio bruto TTT (fiscal)
+				measure 'Gross Profit PM (Fiscal)'
+					caption: Beneficio bruto MA (fiscal)
+				measure 'Gross Profit MOM (Fiscal)'
+					caption: Beneficio bruto MTM (fiscal)
+				measure 'Gross Profit MOM % (Fiscal)'
+					caption: % beneficio bruto MTM (fiscal)
+				measure 'Gross Profit PP (Fiscal)'
+					caption: Beneficio bruto PA (fiscal)
+				measure 'Gross Profit POP (Fiscal)'
+					caption: Beneficio bruto PTP (fiscal)
+				measure 'Gross Profit POP % (Fiscal)'
+					caption: % beneficio bruto PTP (fiscal)
+				measure 'Gross Profit PYTD (Fiscal)'
+					caption: Beneficio bruto AAHF (fiscal)
+				measure 'Gross Profit PQTD (Fiscal)'
+					caption: Beneficio bruto TAHF (fiscal)
+				measure 'Gross Profit YOYTD (Fiscal)'
+					caption: Beneficio bruto AAAHLF (fiscal)
+				measure 'Gross Profit YOYTD % (Fiscal)'
+					caption: % beneficio bruto AAAHLF (fiscal)
+				measure 'Gross Profit QOQTD (Fiscal)'
+					caption: Beneficio bruto TATHLF (fiscal)
+				measure 'Gross Profit  QOQTD % (Fiscal)'
+					caption: % beneficio bruto TATHLF (fiscal)
+				measure 'Gross Profit PMTD (Fiscal)'
+					caption: Beneficio bruto MAHF (fiscal)
+				measure 'Gross Profit MOMTD % (Fiscal)'
+					caption: % beneficio bruto MAMHLF (fiscal)
+				measure 'Gross Profit MOMTD (Fiscal)'
+					caption: Beneficio bruto MAMHLF (fiscal)
+				measure 'Gross Profit MAT (Fiscal)'
+					caption: Beneficio bruto TAM (fiscal)
+				measure 'Gross Profit PYMAT (Fiscal)'
+					caption: Benef. bruto AATAM (fiscal)
+				measure 'Gross Profit MATG (Fiscal)'
+					caption: Beneficio bruto CTAM (fiscal)
+				measure 'Gross Profit MATG % (Fiscal)'
+					caption: % beneficio bruto CTAM (fiscal)
+				measure 'Gross Profit MAT (364) (Fiscal)'
+					caption: Beneficio bruto TAM (364) (fiscal)
+				measure 'Gross Profit PYMAT (364) (Fiscal)'
+					caption: Benef. bruto AATAM (364) (fiscal)
+				measure 'Gross Profit PYC (Fiscal)'
+					caption: Beneficio bruto AAC (fiscal)
+				measure 'Gross Profit YTDOPY (Fiscal)'
+					caption: Beneficio bruto AHFRAA (fiscal)
+				measure 'Gross Profit YTDOPY % (Fiscal)'
+					caption: % beneficio bruto AHFRAA (fiscal)
+				measure 'Gross Profit PQC (Fiscal)'
+					caption: Beneficio bruto TAC (fiscal)
+				measure 'Gross Profit QTDOPQ (Fiscal)'
+					caption: Beneficio bruto THFRTA (fiscal)
+				measure 'Gross Profit QTDOPQ % (Fiscal)'
+					caption: % beneficio bruto THFRTA (fiscal)
+				measure 'Gross Profit PMC (Fiscal)'
+					caption: Beneficio bruto MAC (fiscal)
+				measure 'Gross Profit MTDOPM (Fiscal)'
+					caption: Beneficio bruto MHFTMA (fiscal)
+				measure 'Gross Profit MTDOPM % (Fiscal)'
+					caption: % beneficio bruto MHFTMA (fiscal)
+				measure 'Gross Profit AVG 30D (Fiscal)'
+					caption: Beneficio bruto AVG 30D (fiscal)
+				measure 'Gross Profit AVG 3M (Fiscal)'
+					caption: Beneficio bruto AVG 3M (fiscal)
+				measure 'Gross Profit AVG 1Y (Fiscal)'
+					caption: Beneficio bruto AVG 1A (fiscal)
+				measure 'Gross Profit Margin AVG 30D (Fiscal)'
+					caption: Marg. benef. bruto AVG 30D (fiscal)
+				measure 'Gross Profit Margin AVG 3M (Fiscal)'
+					caption: Marg. benef. bruto AVG 3M (fiscal)
+				measure 'Gross Profit Margin AVG 1Y (Fiscal)'
+					caption: Marg. benef. bruto AVG 1A (fiscal)
+				measure 'Gross Profit Margin PYC (Fiscal)'
+					caption: Marg. benef. bruto AAC (fiscal)
+				measure 'Gross Profit Margin YTDOPY (Fiscal)'
+					caption: Marg. benef. bruto AHFRAA (fiscal)
+				measure 'Gross Profit Margin YTDOPY % (Fiscal)'
+					caption: % marg. benef. bruto AHFRAA (fiscal)
+				measure 'Gross Profit Margin PQC (Fiscal)'
+					caption: Marg. benef. bruto TAC (fiscal)
+				measure 'Gross Profit Margin QTDOPQ (Fiscal)'
+					caption: Marg. benef. bruto THFRTA (fiscal)
+				measure 'Gross Profit Margin QTDOPQ % (Fiscal)'
+					caption: % marg. benef. bruto THFRTA (fiscal)
+				measure 'Gross Profit Margin PMC (Fiscal)'
+					caption: Marg. benef. bruto MAC (fiscal)
+				measure 'Gross Profit Margin MTDOPM (Fiscal)'
+					caption: Marg. benef. bruto MHFTMA (fiscal)
+				measure 'Gross Profit Margin MTDOPM % (Fiscal)'
+					caption: % marg. benef. bruto MHFTMA (fiscal)
+				measure 'Gross Profit Margin MAT (Fiscal)'
+					caption: Marg. benef. bruto TAM (fiscal)
+				measure 'Gross Profit Margin PYMAT (Fiscal)'
+					caption: Marg. benef. bruto AATAM (fiscal)
+				measure 'Gross Profit Margin MATG (Fiscal)'
+					caption: Marg. benef. bruto CTAM (fiscal)
+				measure 'Gross Profit Margin MATG % (Fiscal)'
+					caption: % marg. benef. bruto CTAM (fiscal)
+				measure 'Gross Profit Margin MAT (364) (Fiscal)'
+					caption: Marg. benef. bruto TAM (364) (fiscal)
+				measure 'Gross Profit Margin PYMAT (364) (Fiscal)'
+					caption: Marg. benef. bruto AATAM (364) (fiscal)
+				measure 'Gross Profit Margin PYTD (Fiscal)'
+					caption: Marg. benef. bruto AAHF (fiscal)
+				measure 'Gross Profit Margin PQTD (Fiscal)'
+					caption: Marg. benef. bruto TAHF (fiscal)
+				measure 'Gross Profit Margin YOYTD (Fiscal)'
+					caption: Marg. benef. bruto AAAHLF (fiscal)
+				measure 'Gross Profit Margin YOYTD % (Fiscal)'
+					caption: % marg. benef. bruto AAAHLF (fiscal)
+				measure 'Gross Profit Margin QOQTD (Fiscal)'
+					caption: Marg. benef. bruto TATHLF (fiscal)
+				measure 'Gross Profit Margin QOQTD % (Fiscal)'
+					caption: % marg. benef. bruto TATHLF (fiscal)
+				measure 'Gross Profit Margin PMTD (Fiscal)'
+					caption: Marg. benef. bruto MAHF (fiscal)
+				measure 'Gross Profit Margin MOMTD % (Fiscal)'
+					caption: % marg. benef. bruto MAMHLF (fiscal)
+				measure 'Gross Profit Margin MOMTD (Fiscal)'
+					caption: Marg. benef. bruto MAMHLF (fiscal)
+				measure 'Gross Profit Margin PY (Fiscal)'
+					caption: Marg. benef. bruto AA (fiscal)
+				measure 'Gross Profit Margin YOY % (Fiscal)'
+					caption: % marg. benef. bruto ATA (fiscal)
+				measure 'Gross Profit Margin YOY (Fiscal)'
+					caption: Marg. benef. bruto ATA (fiscal)
+				measure 'Gross Profit Margin PQ (Fiscal)'
+					caption: Marg. benef. bruto TA (fiscal)
+				measure 'Gross Profit Margin QOQ (Fiscal)'
+					caption: Marg. benef. bruto TTT (fiscal)
+				measure 'Gross Profit Margin QOQ % (Fiscal)'
+					caption: % marg. benef. bruto TTT (fiscal)
+				measure 'Gross Profit Margin PM (Fiscal)'
+					caption: Marg. benef. bruto MA (fiscal)
+				measure 'Gross Profit Margin MOM (Fiscal)'
+					caption: Marg. benef. bruto MTM (fiscal)
+				measure 'Gross Profit Margin MOM % (Fiscal)'
+					caption: % marg. benef. bruto MTM (fiscal)
+				measure 'Gross Profit Margin PP (Fiscal)'
+					caption: Marg. benef. bruto PA (fiscal)
+				measure 'Gross Profit Margin POP (Fiscal)'
+					caption: Marg. benef. bruto PTP (fiscal)
+				measure 'Gross Profit Margin POP % (Fiscal)'
+					caption: % marg. benef. bruto PTP (fiscal)
+				measure 'Gross Profit Margin YTD (Fiscal)'
+					caption: Marg. benef. bruto AHF (fiscal)
+				measure 'Gross Profit Margin QTD (Fiscal)'
+					caption: Marg. benef. bruto THF (fiscal)
+				measure 'Gross Profit Margin MTD (Fiscal)'
+					caption: Marg. benef. bruto MHF (fiscal)
+			table 'Weekly Calendar Time Intelligence'
+				caption: Inteligencia de tiempo del calendario semanal
+				measure 'Sales Amount YTD (Weekly)'
+					caption: Importe ventas AHF (semanal)
+				measure 'Sales Amount PY (Weekly)'
+					caption: Importe ventas AA (semanal)
+				measure 'Sales Amount PYTD (Weekly)'
+					caption: Importe ventas AAHF (semanal)
+				measure 'Sales Amount PQTD (Weekly)'
+					caption: Importe ventas TAHF (semanal)
+				measure 'Sales Amount QTD (Weekly)'
+					caption: Importe ventas THF (semanal)
+				measure 'Sales Amount MTD (Weekly)'
+					caption: Importe ventas MHF (semanal)
+				measure 'Sales Amount YOY % (Weekly)'
+					caption: % importe ventas ATA (semanal)
+				measure 'Sales Amount YOY (Weekly)'
+					caption: Importe ventas ATA (semanal)
+				measure 'Sales Amount PQ (Weekly)'
+					caption: Importe ventas TA (semanal)
+				measure 'Sales Amount QOQ (Weekly)'
+					caption: Importe ventas TTT (semanal)
+				measure 'Sales Amount QOQ % (Weekly)'
+					caption: % importe ventas TTT (semanal)
+				measure 'Sales Amount PW (Weekly)'
+					caption: Importe ventas SA (semanal)
+				measure 'Sales Amount WOW (Weekly)'
+					caption: Importe ventas STS (semanal)
+				measure 'Sales Amount WOW % (Weekly)'
+					caption: % importe ventas STS (semanal)
+				measure 'Sales Amount MAT (364) (Weekly)'
+					caption: Importe ventas TAM (364) (semanal)
+				measure 'Sales Amount PYMAT (364) (Weekly)'
+					caption: Importe ventas AATAM (364) (semanal)
+				measure 'Sales Amount YOYTD (Weekly)'
+					caption: Importe ventas AAAHLF (semanal)
+				measure 'Sales Amount YOYTD % (Weekly)'
+					caption: % importe ventas AAAHLF (semanal)
+				measure 'Sales Amount PYC (Weekly)'
+					caption: Importe ventas AAC (semanal)
+				measure 'Sales Amount YTDOPY (Weekly)'
+					caption: Importe ventas AHFRAA (semanal)
+				measure 'Sales Amount YTDOPY % (Weekly)'
+					caption: % importe ventas AHFRAA (semanal)
+				measure 'Sales Amount QOQTD (Weekly)'
+					caption: Importe ventas TATHLF (semanal)
+				measure 'Sales Amount QOQTD % (Weekly)'
+					caption: % importe ventas TATHLF (semanal)
+				measure 'Sales Amount PQC (Weekly)'
+					caption: Importe ventas TAC (semanal)
+				measure 'Sales Amount QTDOPQ (Weekly)'
+					caption: Importe ventas THFRTA (semanal)
+				measure 'Sales Amount QTDOPQ % (Weekly)'
+					caption: % importe ventas THFRTA (semanal)
+				measure 'Sales Amount PWTD (Weekly)'
+					caption: Importe ventas SAHF (semanal)
+				measure 'Sales Amount WOWTD (Weekly)'
+					caption: Importe ventas SASHLF (semanal)
+				measure 'Sales Amount WOWTD % (Weekly)'
+					caption: % importe ventas SASHLF (semanal)
+				measure 'Sales Amount PWC (Weekly)'
+					caption: Importe ventas SAC (semanal)
+				measure 'Sales Amount WTDOPW (Weekly)'
+					caption: Importe ventas SHFRSA (semanal)
+				measure 'Sales Amount WTDOPW % (Weekly)'
+					caption: % importe ventas SHFRSA (semanal)
+				measure 'Sales Amount AVG 4W (Weekly)'
+					caption: Importe ventas AVG 4S (semanal)
+				measure 'Sales Amount AVG 1Q (Weekly)'
+					caption: Importe ventas AVG 1T (semanal)
+				measure 'Sales Amount AVG 1Y (Weekly)'
+					caption: Importe ventas AVG 1A (semanal)
+				measure 'Sales Amount MATG (Weekly)'
+					caption: Importe ventas CTAM (semanal)
+				measure 'Sales Amount MATG % (Weekly)'
+					caption: % importe ventas CTAM (semanal)
+				measure 'Sales Amount PP (Weekly)'
+					caption: Importe ventas PA (semanal)
+				measure 'Sales Amount POP (Weekly)'
+					caption: Importe ventas PTP (semanal)
+				measure 'Sales Amount POP % (Weekly)'
+					caption: % importe ventas PTP (semanal)
+				measure 'Sales Amount WTD (Weekly)'
+					caption: Importe ventas SHF (semanal)
+				measure 'Sales Quantity YTD (Weekly)'
+					caption: Cantidad ventas AHF (semanal)
+				measure 'Sales Quantity PY (Weekly)'
+					caption: Cantidad ventas AA (semanal)
+				measure 'Sales Quantity PYTD (Weekly)'
+					caption: Cantidad ventas AAHF (semanal)
+				measure 'Sales Quantity QTD (Weekly)'
+					caption: Cantidad ventas THF (semanal)
+				measure 'Sales Quantity PQTD (Weekly)'
+					caption: Cantidad ventas TAHF (semanal)
+				measure 'Sales Quantity MTD (Weekly)'
+					caption: Cantidad ventas MHF (semanal)
+				measure 'Sales Quantity YOY % (Weekly)'
+					caption: % cantidad ventas ATA (semanal)
+				measure 'Sales Quantity YOY (Weekly)'
+					caption: Cantidad ventas ATA (semanal)
+				measure 'Sales Quantity PQ (Weekly)'
+					caption: Cantidad ventas TA (semanal)
+				measure 'Sales Quantity QOQ (Weekly)'
+					caption: Cantidad ventas TTT (semanal)
+				measure 'Sales Quantity QOQ % (Weekly)'
+					caption: % cantidad ventas TTT (semanal)
+				measure 'Sales Quantity PW (Weekly)'
+					caption: Cantidad ventas SA (semanal)
+				measure 'Sales Quantity WOW (Weekly)'
+					caption: Cantidad ventas STS (semanal)
+				measure 'Sales Quantity WOW % (Weekly)'
+					caption: % cantidad ventas STS (semanal)
+				measure 'Sales Quantity MAT (364) (Weekly)'
+					caption: Cantidad ventas TAM (364) (semanal)
+				measure 'Sales Quantity PYMAT (364) (Weekly)'
+					caption: Cantidad venta AATAM (364) (semanal)
+				measure 'Sales Quantity YOYTD (Weekly)'
+					caption: Cantidad ventas AAAHLF (semanal)
+				measure 'Sales Quantity YOYTD % (Weekly)'
+					caption: % cantidad ventas AAAHLF (semanal)
+				measure 'Sales Quantity PYC (Weekly)'
+					caption: Cantidad ventas AAC (semanal)
+				measure 'Sales Quantity YTDOPY (Weekly)'
+					caption: Cantidad ventas AHFRAA (semanal)
+				measure 'Sales Quantity YTDOPY  % (Weekly)'
+					caption: % cantidad ventas AHFRAA (semanal)
+				measure 'Sales Quantity QOQTD (Weekly)'
+					caption: Cantidad ventas TATHLF (semanal)
+				measure 'Sales Quantity QOQTD % (Weekly)'
+					caption: % cantidad ventas TATHLF (semanal)
+				measure 'Sales Quantity PQC (Weekly)'
+					caption: Cantidad ventas TAC (semanal)
+				measure 'Sales Quantity QTDOPQ (Weekly)'
+					caption: Cantidad ventas THFRTA (semanal)
+				measure 'Sales Quantity QTDOPQ % (Weekly)'
+					caption: Cantidad ventas THFRTA % (semanal)
+				measure 'Sales Quantity PWTD (Weekly)'
+					caption: Cantidad ventas SAHF (semanal)
+				measure 'Sales Quantity WOWTD (Weekly)'
+					caption: Cantidad ventas SASHLF (semanal)
+				measure 'Sales Quantity WOWTD % (Weekly)'
+					caption: % cantidad ventas SASHLF (semanal)
+				measure 'Sales Quantity PWC (Weekly)'
+					caption: Cantidad ventas SAC (semanal)
+				measure 'Sales Quantity WTDOPW (Weekly)'
+					caption: Cantidad ventas SHFRSA (semanal)
+				measure 'Sales Quantity WTDOPW % (Weekly)'
+					caption: % cantidad ventas SHFRSA (semanal)
+				measure 'Sales Quantity AVG 4W (Weekly)'
+					caption: Cantidad ventas AVG 4S (semanal)
+				measure 'Sales Quantity AVG 1Q (Weekly)'
+					caption: Cantidad ventas AVG 1T (semanal)
+				measure 'Sales Quantity AVG 1Y (Weekly)'
+					caption: Cantidad ventas AVG 1A (semanal)
+				measure 'Sales Quantity MATG (Weekly)'
+					caption: Cantidad ventas CTAM (semanal)
+				measure 'Sales Quantity MATG % (Weekly)'
+					caption: % cantidad ventas CTAM (semanal)
+				measure 'Sales Quantity PP (Weekly)'
+					caption: Cantidad ventas PA (semanal)
+				measure 'Sales Quantity POP (Weekly)'
+					caption: Cantidad ventas PTP (semanal)
+				measure 'Sales Quantity POP % (Weekly)'
+					caption: % cantidad ventas PTP (semanal)
+				measure 'Sales Quantity WTD (Weekly)'
+					caption: Cantidad ventas SHF (semanal)
+				measure 'Gross Profit YTD (Weekly)'
+					caption: Beneficio bruto AHF (semanal)
+				measure 'Gross Profit PY (Weekly)'
+					caption: Beneficio bruto AA (semanal)
+				measure 'Gross Profit PYTD (Weekly)'
+					caption: Beneficio bruto AAHF (semanal)
+				measure 'Gross Profit QTD (Weekly)'
+					caption: Beneficio bruto THF (semanal)
+				measure 'Gross Profit PQTD (Weekly)'
+					caption: Benef. bruto TAHF (semanal)
+				measure 'Gross Profit MTD (Weekly)'
+					caption: Benef. bruto MHF (semanal)
+				measure 'Gross Profit YOY % (Weekly)'
+					caption: % beneficio bruto ATA (semanal)
+				measure 'Gross Profit YOY (Weekly)'
+					caption: Beneficio bruto ATA (semanal)
+				measure 'Gross Profit PQ (Weekly)'
+					caption: Beneficio bruto TA (semanal)
+				measure 'Gross Profit QOQ (Weekly)'
+					caption: Beneficio bruto TTT (semanal)
+				measure 'Gross Profit QOQ % (Weekly)'
+					caption: % beneficio bruto TTT (semanal)
+				measure 'Gross Profit PW (Weekly)'
+					caption: Beneficio bruto SA (semanal)
+				measure 'Gross Profit WOW (Weekly)'
+					caption: Beneficio bruto STS (semanal)
+				measure 'Gross Profit WOW % (Weekly)'
+					caption: % beneficio bruto STS (semanal)
+				measure 'Gross Profit MAT (364) (Weekly)'
+					caption: Beneficio bruto TAM (364) (semanal)
+				measure 'Gross Profit PYMAT (364) (Weekly)'
+					caption: Benef. bruto AATAM (364) (semanal)
+				measure 'Gross Profit YOYTD (Weekly)'
+					caption: Beneficio bruto AAAHLF (semanal)
+				measure 'Gross Profit YOYTD % (Weekly)'
+					caption: % beneficio bruto AAAHLF (semanal)
+				measure 'Gross Profit PYC (Weekly)'
+					caption: Benef. bruto AAC (semanal)
+				measure 'Gross Profit YTDOPY (Weekly)'
+					caption: Beneficio bruto AHFRAA (semanal)
+				measure 'Gross Profit YTDOPY % (Weekly)'
+					caption: % beneficio bruto AHFRAA (semanal)
+				measure 'Gross Profit QOQTD (Weekly)'
+					caption: Beneficio bruto TATHLF (semanal)
+				measure 'Gross Profit QOQTD % (Weekly)'
+					caption: % beneficio bruto TATHLF (semanal)
+				measure 'Gross Profit PQC (Weekly)'
+					caption: Benef. bruto TAC (semanal)
+				measure 'Gross Profit QTDOPQ (Weekly)'
+					caption: Beneficio bruto THFRTA (semanal)
+				measure 'Gross Profit QTDOPQ % (Weekly)'
+					caption: % beneficio bruto THFRTA (semanal)
+				measure 'Gross Profit PWTD (Weekly)'
+					caption: Beneficio bruto SAHF (semanal)
+				measure 'Gross Profit WOWTD (Weekly)'
+					caption: Beneficio bruto SASHLF (semanal)
+				measure 'Gross Profit WOWTD % (Weekly)'
+					caption: % beneficio bruto SASHLF (semanal)
+				measure 'Gross Profit PWC (Weekly)'
+					caption: Beneficio bruto SAC (semanal)
+				measure 'Gross Profit WTDOPW (Weekly)'
+					caption: Beneficio bruto SHFRSA (semanal)
+				measure 'Gross Profit WTDOPW % (Weekly)'
+					caption: % beneficio bruto SHFRSA (semanal)
+				measure 'Gross Profit AVG 4W (Weekly)'
+					caption: Beneficio bruto AVG 4S (semanal)
+				measure 'Gross Profit AVG 1Q (Weekly)'
+					caption: Marg. benef. bruto AVG 1T (semanal)
+				measure 'Gross Profit AVG 1Y (Weekly)'
+					caption: Beneficio bruto AVG 1A (semanal)
+				measure 'Gross Profit MATG (Weekly)'
+					caption: Beneficio bruto CTAM (semanal)
+				measure 'Gross Profit MATG % (Weekly)'
+					caption: % beneficio bruto CTAM (semanal)
+				measure 'Gross Profit PP (Weekly)'
+					caption: Beneficio bruto PA (semanal)
+				measure 'Gross Profit POP (Weekly)'
+					caption: Beneficio bruto PTP (semanal)
+				measure 'Gross Profit POP % (Weekly)'
+					caption: % beneficio bruto PTP (semanal)
+				measure 'Gross Profit WTD (Weekly)'
+					caption: Beneficio bruto SHF (semanal)
+				measure 'Gross Profit Margin YTD (Weekly)'
+					caption: Marg. benef. bruto AHF (semanal)
+				measure 'Gross Profit Margin QTD (Weekly)'
+					caption: Marg. benef. bruto THF (semanal)
+				measure 'Gross Profit Margin MTD (Weekly)'
+					caption: Marg. benef. bruto MHF (semanal)
+				measure 'Gross Profit Margin WTD (Weekly)'
+					caption: Marg. benef. bruto SHF (semanal)
+				measure 'Gross Profit Margin PY (Weekly)'
+					caption: Marg. benef. bruto AA (semanal)
+				measure 'Gross Profit Margin YOY % (Weekly)'
+					caption: % marg. benef. bruto ATA (semanal)
+				measure 'Gross Profit Margin YOY (Weekly)'
+					caption: Marg. benef. bruto ATA (semanal)
+				measure 'Gross Profit Margin PQ (Weekly)'
+					caption: Marg. benef. bruto TA (semanal)
+				measure 'Gross Profit Margin QOQ (Weekly)'
+					caption: Marg. benef. bruto TTT (semanal)
+				measure 'Gross Profit Margin QOQ % (Weekly)'
+					caption: % marg. benef. bruto TTT (semanal)
+				measure 'Gross Profit Margin PW (Weekly)'
+					caption: Marg. benef. bruto SA (semanal)
+				measure 'Gross Profit Margin WOW (Weekly)'
+					caption: Marg. benef. bruto STS (semanal)
+				measure 'Gross Profit Margin WOW % (Weekly)'
+					caption: % marg. benef. bruto STS (semanal)
+				measure 'Gross Profit Margin PP (Weekly)'
+					caption: Marg. benef. bruto PA (semanal)
+				measure 'Gross Profit Margin POP (Weekly)'
+					caption: Marg. benef. bruto PTP (semanal)
+				measure 'Gross Profit Margin POP % (Weekly)'
+					caption: % marg. benef. bruto PTP (semanal)
+				measure 'Gross Profit Margin PYTD (Weekly)'
+					caption: Marg. benef. bruto AAHF (semanal)
+				measure 'Gross Profit Margin PQTD (Weekly)'
+					caption: Marg. benef. bruto TAHF (semanal)
+				measure 'Gross Profit Margin YOYTD (Weekly)'
+					caption: Marg. benef. bruto AAAHLF (semanal)
+				measure 'Gross Profit Margin YOYTD % (Weekly)'
+					caption: % marg. benef. bruto AAAHLF (semanal)
+				measure 'Gross Profit Margin QOQTD (Weekly)'
+					caption: Marg. benef. bruto TATHLF (semanal)
+				measure 'Gross Profit Margin QOQTD % (Weekly)'
+					caption: % marg. benef. bruto TATHLF (semanal)
+				measure 'Gross Profit Margin PWTD (Weekly)'
+					caption: Marg. benef. bruto SAHF (semanal)
+				measure 'Gross Profit Margin WOWTD (Weekly)'
+					caption: Marg. benef. bruto SASHLF (semanal)
+				measure 'Gross Profit Margin WOWTD % (Weekly)'
+					caption: % marg. benef. bruto SASHLF (semanal)
+				measure 'Gross Profit Margin MAT (364) (Weekly)'
+					caption: Marg. benef. bruto TAM (364) (semanal)
+				measure 'Gross Profit Margin PYMAT (364) (Weekly)'
+					caption: Marg. benef. bruto AATAM (364) (semanal)
+				measure 'Gross Profit Margin MATG (Weekly)'
+					caption: Marg. benef. bruto CTAM (semanal)
+				measure 'Gross Profit Margin MATG % (Weekly)'
+					caption: % marg. benef. bruto CTAM (semanal)
+				measure 'Gross Profit Margin PYC (Weekly)'
+					caption: Marg. benef. bruto AAC (semanal)
+				measure 'Gross Profit Margin YTDOPY (Weekly)'
+					caption: Marg. benef. bruto AHFRAA (semanal)
+				measure 'Gross Profit Margin YTDOPY % (Weekly)'
+					caption: % marg. benef. bruto AHFRAA (semanal)
+				measure 'Gross Profit Margin PQC (Weekly)'
+					caption: Marg. benef. bruto TAC (semanal)
+				measure 'Gross Profit Margin QTDOPQ (Weekly)'
+					caption: Marg. benef. bruto THFRTA (semanal)
+				measure 'Gross Profit Margin QTDOPQ % (Weekly)'
+					caption: % marg. benef. bruto THFRTA (semanal)
+				measure 'Gross Profit Margin PWC (Weekly)'
+					caption: Marg. benef. bruto SAC (semanal)
+				measure 'Gross Profit Margin WTDOPW (Weekly)'
+					caption: Marg. benef. bruto SHFRSA (semanal)
+				measure 'Gross Profit Margin WTDOPW % (Weekly)'
+					caption: % marg. benef. bruto SHFRSA (semanal)
+				measure 'Gross Profit Margin AVG 4W (Weekly'
+					caption: Marg. benef. bruto AVG 4S (semanal)
+				measure 'Gross Profit Margin AVG 1Q (Weekly)'
+					caption: Marg. benef. bruto AVG 1T (semanal)
+				measure 'Gross Profit Margin AVG 1Y (Weekly)'
+					caption: Marg. benef. bruto AVG 1A (semanal)
+				measure 'Cost Amount YTD (Weekly)'
+					caption: Importe de costo AHF (semanal)
+				measure 'Cost Amount QTD (Weekly)'
+					caption: Importe de costo THF (semanal)
+				measure 'Cost Amount MTD (Weekly)'
+					caption: Importe de costo MHF (semanal)
+				measure 'Cost Amount WTD (Weekly)'
+					caption: Importe de costo SHF (semanal)
+				measure 'Cost Amount PY (Weekly)'
+					caption: Importe de costo AA (semanal)
+				measure 'Cost Amount YOY % (Weekly)'
+					caption: % importe de costo ATA (semanal)
+				measure 'Cost Amount YOY (Weekly)'
+					caption: Importe de costo ATA (semanal)
+				measure 'Cost Amount PQ (Weekly)'
+					caption: Importe de costo TA (semanal)
+				measure 'Cost Amount QOQ (Weekly)'
+					caption: Importe de costo TTT (semanal)
+				measure 'Cost Amount QOQ % (Weekly)'
+					caption: % importe de costo TTT (semanal)
+				measure 'Cost Amount PW (Weekly)'
+					caption: Importe de costo SA (semanal)
+				measure 'Cost Amount WOW (Weekly)'
+					caption: Importe de costo STS (semanal)
+				measure 'Cost Amount WOW % (Weekly)'
+					caption: % importe de costo STS (semanal)
+				measure 'Cost Amount PP (Weekly)'
+					caption: Importe de costo PA (semanal)
+				measure 'Cost Amount POP (Weekly)'
+					caption: Importe de costo PTP (semanal)
+				measure 'Cost Amount POP % (Weekly)'
+					caption: % importe de costo PTP (semanal)
+				measure 'Cost Amount PYTD (Weekly)'
+					caption: Importe de costo AAHF (semanal)
+				measure 'Cost Amount PQTD (Weekly)'
+					caption: Importe de costo TAHF (semanal)
+				measure 'Cost Amount YOYTD (Weekly)'
+					caption: Importe de costo AAAHLF (semanal)
+				measure 'Cost Amount YOYTD % (Weekly)'
+					caption: % importe de costo AAAHLF (semanal)
+				measure 'Cost Amount QOQTD (Weekly)'
+					caption: Importe de costo TATHLF (semanal)
+				measure 'Cost Amount QOQTD % (Weekly)'
+					caption: % importe de costo TATHLF (semanal)
+				measure 'Cost Amount PWTD (Weekly)'
+					caption: Importe de costo SAHF (semanal)
+				measure 'Cost Amount WOWTD (Weekly)'
+					caption: Importe de costo SASHLF (semanal)
+				measure 'Cost Amount WOWTD % (Weekly)'
+					caption: % importe de costo SASHLF (semanal)
+				measure 'Cost Amount MAT (364) (Weekly)'
+					caption: Importe de costo TAM (364) (semanal)
+				measure 'Cost Amount PYMAT (364) (Weekly)'
+					caption: Importe de costo AATAM (364) (semanal)
+				measure 'Cost Amount MATG (Weekly)'
+					caption: Importe de costo CTAM (semanal)
+				measure 'Cost Amount MATG % (Weekly)'
+					caption: % importe de costo CTAM (semanal)
+				measure 'Cost Amount PYC (Weekly)'
+					caption: Importe de costo AAC (semanal)
+				measure 'Cost Amount YTDOPY (Weekly)'
+					caption: Importe de costo AHFRAA (semanal)
+				measure 'Cost Amount YTDOPY % (Weekly)'
+					caption: % importe de costo AHFRAA (semanal)
+				measure 'Cost Amount PQC (Weekly)'
+					caption: Importe de costo TAC (semanal)
+				measure 'Cost Amount QTDOPQ (Weekly)'
+					caption: Importe de costo THFRTA (semanal)
+				measure 'Cost Amount QTDOPQ % (Weekly)'
+					caption: % importe de costo THFRTA (semanal)
+				measure 'Cost Amount PWC (Weekly)'
+					caption: Importe de costo SAC (semanal)
+				measure 'Cost Amount WTDOPW (Weekly)'
+					caption: Importe de costo SHFRSA (semanal)
+				measure 'Cost Amount WTDOPW % (Weekly)'
+					caption: % importe de costo SHFRSA (semanal)
+				measure 'Cost Amount AVG 4W (Weekly)'
+					caption: Importe de costo AVG 4S (semanal)
+				measure 'Cost Amount AVG 1Q (Weekly)'
+					caption: Importe de costo AVG 1T (semanal)
+				measure 'Cost Amount AVG 1Y (Weekly)'
+					caption: Importe de costo AVG 1A (semanal)
+				measure 'Cost Amount Non-Inv PY (Weekly)'
+					caption: Importe de costo no invent. AA (semanal)
+				measure 'Cost Amount Non-Inv YOY % (Weekly)'
+					caption: % importe de costo no invent. ATA (semanal)
+				measure 'Cost Amount Non-Inv YOY (Weekly)'
+					caption: Importe de costo no invent. ATA (semanal)
+				measure 'Cost Amount Non-Inv PQ (Weekly)'
+					caption: Importe de costo no invent. TA (semanal)
+				measure 'Cost Amount Non-Inv QOQ (Weekly)'
+					caption: Importe de costo no invent. TTT (semanal)
+				measure 'Cost Amount Non-Inv QOQ % (Weekly)'
+					caption: % importe de costo no invent. TTT (semanal)
+				measure 'Cost Amount Non-Inv PW (Weekly)'
+					caption: Importe de costo no invent. SA (semanal)
+				measure 'Cost Amount Non-Inv WOW (Weekly)'
+					caption: Importe de costo no invent. STS (semanal)
+				measure 'Cost Amount Non-Inv WOW % (Weekly)'
+					caption: % importe de costo no invent. STS (semanal)
+				measure 'Cost Amount Non-Inv PP (Weekly)'
+					caption: Importe de costo no invent. PA (semanal)
+				measure 'Cost Amount Non-Inv POP (Weekly)'
+					caption: Importe de costo no invent. PTP (semanal)
+				measure 'Cost Amount Non-Inv POP % (Weekly)'
+					caption: % importe de costo no invent. PTP (semanal)
+				measure 'Cost Amount Non-Inv PYTD (Weekly)'
+					caption: Importe de costo no invent. AAHF (semanal)
+				measure 'Cost Amount Non-Inv PQTD (Weekly)'
+					caption: Importe de costo no invent. TAHF (semanal)
+				measure 'Cost Amount Non-Inv YOYTD (Weekly)'
+					caption: Importe de costo no invent. AAAHLF (semanal)
+				measure 'Cost Amount Non-Inv YOYTD % (Weekly)'
+					caption: % importe de costo no invent. AAAHLF (semanal)
+				measure 'Cost Amount Non-Inv QOQTD (Weekly)'
+					caption: Importe de costo no invent. TATHLF (semanal)
+				measure 'Cost Amount Non-Inv QOQTD % (Weekly)'
+					caption: % importe de costo no invent. TATHLF (semanal)
+				measure 'Cost Amount Non-Inv PWTD (Weekly)'
+					caption: Importe de costo no invent. SAHF (semanal)
+				measure 'Cost Amount Non-Inv WOWTD (Weekly)'
+					caption: Importe de costo no invent. SASHLF (semanal)
+				measure 'Cost Amount Non-Inv WOWTD % (Weekly)'
+					caption: % importe de costo no invent. SASHLF (semanal)
+				measure 'Cost Amount Non-Inv MAT (364) (Weekly)'
+					caption: Importe de costo no invent. TAM (364) (semanal)
+				measure 'Cost Amount Non-Inv PYMAT (364) (Weekly)'
+					caption: Importe de costo no invent. AATAM (364) (semanal)
+				measure 'Cost Amount Non-Inv MATG (Weekly)'
+					caption: Importe de costo no invent. CTAM (semanal)
+				measure 'Cost Amount Non-Inv MATG % (Weekly)'
+					caption: % importe de costo no invent. CTAM (semanal)
+				measure 'Cost Amount Non-Inv PYC (Weekly)'
+					caption: Importe de costo no invent. AAC (semanal)
+				measure 'Cost Amount Non-Inv YTDOPY (Weekly)'
+					caption: Importe de costo no invent. AHFRAA (semanal)
+				measure 'Cost Amount Non-Inv YTDOPY % (Weekly)'
+					caption: % importe de costo no invent. AHFRAA (semanal)
+				measure 'Cost Amount Non-Inv PQC (Weekly)'
+					caption: Importe de costo no invent. TAC (semanal)
+				measure 'Cost Amount Non-Inv QTDOPQ (Weekly)'
+					caption: Importe de costo no invent. THFRTA (semanal)
+				measure 'Cost Amount Non-Inv QTDOPQ % (Weekly)'
+					caption: % importe de costo no invent. THFRTA (semanal)
+				measure 'Cost Amount Non-Inv PWC (Weekly)'
+					caption: Importe de costo no invent. SAC (semanal)
+				measure 'Cost Amount Non-Inv WTDOPW (Weekly)'
+					caption: Importe de costo no invent. SHFRSA (semanal)
+				measure 'Cost Amount Non-Inv WTDOPW % (Weekly)'
+					caption: % importe de costo no invent. SHFRSA (semanal)
+				measure 'Cost Amount Non-Inv AVG 4W (Weekly)'
+					caption: Importe de costo no invent. AVG 4S (semanal)
+				measure 'Cost Amount Non-Inv AVG 1Q (Weekly)'
+					caption: Importe de costo no invent. AVG 1T (semanal)
+				measure 'Cost Amount Non-Inv AVG 1Y (Weekly)'
+					caption: Importe de costo no invent. AVG 1A (semanal)
+				measure 'Cost Amount Non-Inv YTD (Weekly)'
+					caption: Importe de costo no invent. AHF (semanal)
+				measure 'Cost Amount Non-Inv QTD (Weekly)'
+					caption: Importe de costo no invent. THF (semanal)
+				measure 'Cost Amount Non-Inv MTD (Weekly)'
+					caption: Importe de costo no invent. MHF (semanal)
+				measure 'Cost Amount Non-Inv WTD (Weekly)'
+					caption: Importe de costo no invent. SHF (semanal)
+			table 'Localized Labels'
+				measure 'My Report Title'
+					caption: Título del informe
+				measure 'My Button Caption'
+					caption: Título de botón
+				measure 'My Visual Title'
+					caption: Título visual
+				measure 'Top 5 Items Gross Profit'
+					caption: Las 5 principales partidas de beneficio bruto
+				measure 'Top 5 Salesperson'
+					caption: Los 5 mejores vendedores
+				measure 'Top 5 Customers'
+					caption: Los 5 mejores clientes
+				measure 'Document Value'
+					caption: Valor del documento
+				measure 'Document Count'
+					caption: Número de documentos
+				measure 'Sales Amount and Sales Amount AVG 30D (Fiscal) by Fiscal Month Year'
+					caption: Importe de ventas e importe medio de ventas 30 días (fiscal) por mes año fiscal
+				measure 'Sales Overview'
+					caption: Información general de ventas
+				measure 'Daily Sales'
+					caption: Ventas diarias
+				measure 'Moving Averages'
+					caption: Medias móviles
+				measure 'Moving Annual Total'
+					caption: Total anual móvil
+				measure 'Previous Year MAT and MAT by Fiscal Month Year'
+					caption: Año anterior TAM y TAM por mes año fiscal
+				measure 'Period-Over-Period Growth'
+					caption: Crecimiento periodo tras periodo
+				measure Month-To-Date
+					caption: Mes hasta la fecha
+				measure '% Share of Sales'
+					caption: % cuota de ventas
+				measure 'Sales Amount, Sales Quantity and Gross Profit by Item Category Code'
+					caption: Importe ventas, cantidad venta y beneficio bruto por código de categoría de producto
+				measure 'Sales by Item'
+					caption: Ventas por producto
+				measure 'Sales by Customer'
+					caption: Ventas por cliente
+				measure 'Sales Amount, Sales Quantity and Gross Profit by Customer Name'
+					caption: Importe ventas, cantidad venta y beneficio bruto por nombre de cliente
+				measure 'Sales by Salesperson'
+					caption: Equipos por vendedor
+				measure 'Sales Amount, Sales Quantity and Gross Profit by Salesperson Code'
+					caption: Importe ventas, cantidad venta y beneficio bruto por código de vendedor
+				measure 'Actual vs Budget Quantity'
+					caption: Cantidad real vs. ppto
+				measure 'Actual vs Budget Amount'
+					caption: Importe real vs. ppto
+				measure Sales
+					caption: Ventas
+				measure 'for Business Central'
+					caption: para Business Central
+				measure 'USE, EDIT AND BUILD YOUR OWN REPORTS'
+					caption: USAR, EDITAR Y CREAR SUS PROPIOS INFORMES
+				measure 'Sales includes a variety of pre-built reports to help you see your data immediately. You are able to edit these reports or build your own report from scratch.'
+					caption: Ventas incluye una variedad de informes prediseñados para ayudarlo a ver sus datos de inmediato. Puede editar estos informes o crear su propio informe desde cero.
+				measure 'CONNECT YOUR DATA'
+					caption: CONECTAR LOS DATOS
+				measure '1. Download the Sales Connector for Power BI'
+					caption: 1. Descargar Sales Connector for Power BI
+				measure '2. Configure Dynamics 365 Business Central'
+					caption: 2. Configurar Dynamics 365 Business Central
+				measure 'HELP AND SUPPORT'
+					caption: AYUDA Y SOPORTE
+				measure 'For help and support with your new report please visit the Analytics overview documentation.'
+					caption: Para obtener ayuda y soporte técnico con su nuevo informe, visite la documentación de información general de Analytics.
+				measure 'OTHER POWER BI REPORTS'
+					caption: OTROS INFORMES DE POWER BI
+				measure PURCHASE
+					caption: COMPRA
+				measure FINANCE
+					caption: FINANZAS
+				measure REBATES
+					caption: DEVOLUCIONES
+				measure INVENTORY
+					caption: INVENTARIO
+				measure JOBS
+					caption: PROYECTOS
+				measure 'SALES '
+					caption: "VENTAS "
+				measure 'Sales Amount '
+					caption: "Importe ventas "
+				measure 'Sales Amount and Sales Amount Average 30 Days (Fiscal) by Fiscal Month Year'
+					caption: Importe de ventas e importe medio de ventas 30 días (fiscal) por mes año fiscal
+				measure 'Previous Year and Current Moving Annual Total by Fiscal Month Year'
+					caption: Total anual móvil actual y año anterior por mes año fiscal
+				measure 'Sales Amount Period-over-Period (Fiscal) and Sales Amount by Fiscal Month Year'
+					caption: Periodo tras periodo (fiscal) de importe de ventas e importe de ventas por mes año fiscal
+				measure 'Sales Amount Month-to-Date (Fiscal) by Date'
+					caption: Importe ventas mes hasta la fecha (fiscal) por fecha
+				measure 'Last Refreshed'
+					caption: Última actualización
+				measure 'Company Name'
+					caption: Nombre empresa
+				measure 'Sales Amount by Salesperson'
+					caption: Importe de ventas por vendedor
+				measure 'Gross Profit by Item'
+					caption: Beneficio bruto por producto
+				measure 'Sales Amount by Customer'
+					caption: Importe de ventas por cliente
+				measure 'Sales Amount and Sales Amount Average 30 Days (Fiscal) by Fiscal Year'
+					caption: Importe de ventas e importe medio de ventas 30 días (fiscal) por año fiscal
+				measure 'Monthly Comparison of Previous Year and Current Year Moving Annual Totals'
+					caption: Comparación mensual del total anual móvil año actual y año anterior
+				measure 'Sales Amount Period-over-Period (Fiscal) and Sales Amount by Fiscal Year'
+					caption: Periodo tras periodo (fiscal) de importe de ventas e importe de ventas por año fiscal
+				measure 'Sales Amount by Item Category'
+					caption: Importe de ventas por categoría de producto
+				measure 'Sales Metrics by Salesperson'
+					caption: Métricas de ventas por vendedor
+				measure 'Sales by Location'
+					caption: Ventas por almacén
+				measure 'Sales Amount by Location'
+					caption: Importe ventas por almacén
+				measure 'Actual vs Budget'
+					caption: Valor real frente a presupuesto
+				measure 'Actual vs Budget Purchase Analysis by Item Category'
+					caption: Análisis de compras reales frente a presupuestadas por categoría de producto
+				measure 'Sales Drillthrough'
+					caption: Análisis detallado de ventas
+				measure 'Detailed Sales Ledger'
+					caption: Movimientos detallados de ventas
+				measure 'Sales Amount by Month'
+					caption: Importe ventas por mes
+				measure PROJECTS
+					caption: PROYECTOS
+				measure MANUFACTURING
+					caption: FABRICACIÓN
+				measure 'Month-To-Date Sales Performance'
+					caption: Rendimiento de ventas mes hasta la fecha
+				measure 'Top Customer Sales Contributions'
+					caption: Principales contribuciones de ventas de los clientes
+				measure 'Daily Sales by Date'
+					caption: Ventas diarias por fecha
+				measure 'Daily Sales by Entry No'
+					caption: Ventas diarias por n.º de movimiento
+				measure 'Daily Sales Details'
+					caption: Detalles de venta diarias
+				measure 'Moving Annual Total Details'
+					caption: Detalles totales anuales móviles
+				measure 'Period-Over-Period Growth Details'
+					caption: Detalles crecimiento periodo tras periodo
+				measure 'Month-To-Date Details'
+					caption: Detalles mes hasta la fecha
+				measure 'Sales by Item Category Over Time'
+					caption: Ventas por categoría de producto a lo largo del tiempo
+				measure 'Sales by Item Details'
+					caption: Detalles de ventas por producto
+				measure 'Profitability by Item Category'
+					caption: Rentabilidad por categoría de producto
+				measure 'Gross Profit Pareto Analysis by Customer'
+					caption: Análisis de Pareto por cliente de beneficio bruto
+				measure 'Sales by Customer Details'
+					caption: Detalles de ventas por cliente
+				measure 'Estimated Opportunity Value'
+					caption: Valor de oportunidad estimado
+				measure 'Sales by Salesperson Details'
+					caption: Detalles de ventas por vendedor
+				measure 'Profitability by Salesperson'
+					caption: Rentabilidad por vendedor
+				measure 'Sales Amount by Customer Location'
+					caption: Importe ventas por almacén de cliente
+				measure 'Sales by Location Details'
+					caption: Detalles de ventas por almacén
+				measure 'Sales Demographics'
+					caption: Datos demográficos de ventas
+				measure 'Sales Metrics by Item Category'
+					caption: Métricas de ventas por categoría de producto
+				measure 'Sales by Customer Posting Group'
+					caption: Grupo contable ventas por cliente
+				measure 'Sales by Document Type'
+					caption: Ventas por tipo de documento
+				measure 'No. of Customers by Location'
+					caption: N.º de clientes por almacén
+				measure 'Sales Decomposition'
+					caption: Descomposición de ventas
+				measure 'Sales Amount by Item Category Description'
+					caption: Descripción de importe de ventas por categoría de producto
+				measure 'Sales Quantity by Salesperson Name'
+					caption: Cantidad de ventas por nombre de vendedor
+				measure 'Key Sales Influencers'
+					caption: Personas con influencia de ventas clave
+				measure 'Sales Amount by Item Category Code'
+					caption: Importe de ventas por código de categoría de producto
+				measure 'Opportunity Overview'
+					caption: Información general de oportunidad
+				measure 'Opportunity Value by Status'
+					caption: Valor de oportunidad por estado
+				measure 'Open Opportunities by Sales Cycle'
+					caption: Oportunidades abiertas por ciclo de ventas
+				measure 'Open Opportunities by Sales Cycle Stage'
+					caption: Oportunidades abiertas por etapa de ciclo de ventas
+				measure 'Estimated Value by Salesperson'
+					caption: Valor estimado por vendedor
+				measure 'Estimated Value by Contact Location'
+					caption: Valor estimado por almacén de contacto
+				measure 'Sales Quote Overview'
+					caption: Información general de cotización de venta
+				measure 'Sales Quotes by Customer Details'
+					caption: Detalles de cotizaciones de vta. por cliente
+				measure 'Sales Quote Amount by Salesperson'
+					caption: Importe de cotiz. de venta por vendedor
+				measure 'Sales Quote Amount Over Time'
+					caption: Importe de cotiz. de venta a lo largo del tiempo
+				measure 'Sales Quote Amount by Item Category Code'
+					caption: Importe de cotiz. de venta por código de categ. de prod.
+				measure 'Sales Returns Overview'
+					caption: Inf. general de devoluciones de ventas
+				measure 'Sales Returns by Customer'
+					caption: Devoluciones de ventas por cliente
+				measure 'Sales Return Amount by Reason Code'
+					caption: Importe de devolución de venta por código de auditoría
+				measure 'Sales Return Amount Over Time'
+					caption: Importe de devolución de venta a lo largo del tiempo
+				measure 'Sales Return Amount by Item Category Code'
+					caption: Importe de devolución de venta por código de categoría de producto
+				measure 'Sales Opportunity Analysis'
+					caption: Análisis de oportunidad de venta
+				measure 'Estimated Value by Opportunity'
+					caption: Valor estimado por oportunidad
+				measure 'Opportunities by Closed Opportunity Code'
+					caption: Oportunidades por código de oportunidad cerrado
+				measure 'Opportunities by Salesperson Details'
+					caption: Detalles de oportunidad por vendedor
+				measure 'Opportunities by Closed Status'
+					caption: Oportunidades por estado cerrado
+				measure 'Sales Drillthrough Details'
+					caption: Detalles de análisis detallado de ventas
+			table COMPANY
+				caption: EMPRESA
+				measure 'Company Label'
+					caption: Etiqueta de empresa
+			table 'Sales Budget Name'
+				caption: Nombre de presupuesto de ventas
+				column 'Sales Budget Description'
+					caption: Descripción de presupuesto de ventas
+			table Opportunities
+				caption: Oportunidades
+				column 'Opportunity No.'
+					caption: N.º oportunidad
+				column 'Opportunity Description'
+					caption: Descripción
+				column 'Opportunity Creation Date'
+					caption: Fecha de creación de oportunidad
+				column 'Opportunity Status'
+					caption: Estado
+				column 'Opportunity Closed'
+					caption: Cerrado
+				column 'Opportunity Sales Document No.'
+					caption: N.º documento venta
+				column 'Opportunity Sales Document Type'
+					caption: Tipo documento venta
+				measure 'Opportunity Sales Quote Amount'
+					caption: Importe de cotiz. de venta de oport.
+			table 'Opportunity Entries'
+				caption: Movs. oportunidad
+				column 'Opportunity No.'
+					caption: N.º oportunidad
+				column 'Opportunity Entry No.'
+					caption: N.º mov. oportunidad
+				column Active
+					caption: Activo
+				column 'Action Taken'
+					caption: Acción tomada
+				column 'Date of Change'
+					caption: Fecha del cambio
+				column 'Estimated Close Date'
+					caption: Fecha cierre estimada
+				column 'Completed (%)'
+					caption: Completado (%)
+				column 'Chances of Success (%)'
+					caption: Posibilidades de éxito (%)
+				column 'Probability (%)'
+					caption: Probabilidad (%)
+				column 'Contact No.'
+					caption: N.º contacto
+				measure 'Calculated Current Value'
+					caption: Valor actual calculado
+				measure 'Estimated Value'
+					caption: Valor estimado
+				measure 'No. of Opportunities'
+					caption: Nº de oportunidades
+				measure 'Active Calculated Current Value'
+					caption: Valor actual calculado activo
+				measure 'Active Estimated Value'
+					caption: Valor estimado activo
+				measure 'Average Chance of Success %'
+					caption: % de posibilidad de éxito media
+				measure 'Average Completed %'
+					caption: Promedio completado (%)
+				measure 'Average Probability %'
+					caption: % de probabilidad media
+				measure 'Opportunity Entries Back Link'
+					caption: Vínculo de retroceso de movs. oportunidad
+				measure 'No. of Won Opportunities'
+					caption: N.º de oportunidades ganadas
+				measure 'No. of Lost Opportunities'
+					caption: N.º de oportunidades perdidas
+				measure 'Win/Loss %'
+					caption: % pérdidas/ganancias
+				measure 'Active Chance of Success %'
+					caption: % de posibilidad de éxito activa
+			table Contacts
+				caption: Contactos
+				column 'Contact No.'
+					caption: N.º contacto
+				column 'Contact Name'
+					caption: Nombre de contacto
+				column 'Contact Company No.'
+					caption: Nº empresa
+				column 'Contact Company Name'
+					caption: Nombre empresa
+				column 'Contact Address'
+					caption: Dirección de contacto
+				column 'Contact Address 2'
+					caption: Dirección contacto 2
+				column 'Contact City'
+					caption: Municipio/Ciudad de contacto
+				column 'Contact Post Code'
+					caption: Cód. pos. contacto
+				column 'Contact County'
+					caption: País de contacto
+				column 'Contact Country/Region Code'
+					caption: Cód. país/región contacto
+				column 'Contact No. & Name'
+					caption: Nombre y n.º contacto
+				column 'Contact Type'
+					caption: Tipo contacto
+			table 'Reason Codes'
+				caption: Códigos de auditoría
+				column 'Return Reason Code'
+					caption: Cód. auditoría dev.
+				column 'Return Reason Description'
+					caption: Descripción motivo de devolución
+			table 'Item Category'
+				caption: Categoría producto
+				column 'Item Category Code'
+					caption: Código de categoría de producto
+				column 'Item Category Description'
+					caption: Descripción de la categoría de producto
+				hierarchy 'Item Category Code Hierarchy'
+					caption: Jerarquía de código de categoría de producto
+					level 'Item Category Code Level 1'
+						caption: Nivel 1 de código de categoría de producto
+					level 'Item Category Code Level 2'
+						caption: Nivel 2 de código de categoría de producto
+					level 'Item Category Code Level 3'
+						caption: Nivel 3 de código de categoría de producto
+					level 'Item Category Code'
+						caption: Código de categoría de producto
+			table 'Pareto Scale'
+				caption: Escala de Pareto
+				column Value
+					caption: Valor
+			table 'Sales Cycle Stages'
+				caption: Etapas ciclo ventas
+				column 'Sales Cycle Code'
+					caption: Cód. ciclo ventas
+				column 'Sales Cycle Stage'
+					caption: Etapa ciclo ventas
+				column 'Sales Cycle Stage Description'
+					caption: Descripción etapa ciclo ventas
+			table 'Close Opportunity Codes'
+				caption: Códigos de cierre de oportunidad
+				column 'Close Opportunity Code'
+					caption: Cód. cierre oportunidad
+				column 'Close Opportunity Type'
+					caption: Tipo de cierre de oportunidad
+				column 'Close Opportunity Description'
+					caption: Descripción de cierre de oportunidad
+

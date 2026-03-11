@@ -1,0 +1,43 @@
+table 'Employee Qualifications'
+	lineageTag: 0dff38e4-da38-4481-bce4-10332ddefc77
+
+	measure 'Employee Qualifications' =
+			
+			COUNT ( 'Employee Qualifications'[Employee No.] )
+		formatString: 0
+		displayFolder: _Employee Qualifications Measures
+		lineageTag: 7f1ce2fe-ef23-4593-a5e1-0a9b8be64352
+
+	column 'Employee No.'
+		dataType: string
+		isHidden
+		lineageTag: cb60b3ab-b20b-4352-a0c6-89905eb01faa
+		summarizeBy: none
+		sourceColumn: Employee No.
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Employee Qualification Codes'
+		dataType: string
+		lineageTag: dc150d05-cea8-4741-8e2b-7fb23c45e1c8
+		summarizeBy: none
+		sourceColumn: Employee Qualification Codes
+
+		annotation SummarizationSetBy = Automatic
+
+	partition 'Employee Qualifications' = m
+		mode: import
+		queryGroup: 'Dimension Tables'
+		source =
+				let
+				    Source = Dynamics365BusinessCentral.ApiContentsWithOptions(ENVIRONMENT, COMPANY,API_ENDPOINT, []),
+				    TableData = Source{[Name="pbiEmployeeQualifications",Signature="table"]}[Data],
+				    #"Renamed Columns" = Table.RenameColumns(TableData,{{"employeeNo", "Employee No."}, {"qualificationCode", "Employee Qualification Codes"}}),
+				    #"Removed Columns" = Table.RemoveColumns(#"Renamed Columns",{"ETag", "auxiliaryIndex1"})
+				in
+				    #"Removed Columns"
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Table
+

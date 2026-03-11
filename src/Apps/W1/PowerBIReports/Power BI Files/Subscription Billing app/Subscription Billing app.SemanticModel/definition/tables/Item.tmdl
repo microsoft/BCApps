@@ -1,0 +1,87 @@
+table Item
+	lineageTag: e8181695-0d8d-46a4-a884-1119686c45c5
+
+	column 'Item No.'
+		dataType: string
+		isKey
+		lineageTag: ec838ba3-3308-496f-b02f-82d63f822c1a
+		summarizeBy: none
+		sourceColumn: Item No.
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Item Name'
+		dataType: string
+		lineageTag: 554a518b-1a0e-4285-9fb7-ee9a8d627013
+		summarizeBy: none
+		sourceColumn: Item Name
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Item Category Code'
+		dataType: string
+		isHidden
+		lineageTag: 9579f121-c85e-497b-a169-78aa8e482153
+		summarizeBy: none
+		sourceColumn: Item Category Code
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Item Category Description'
+		dataType: string
+		isHidden
+		lineageTag: 956c91d4-c21c-49ab-964a-1cb86262eb1a
+		summarizeBy: none
+		sourceColumn: Item Category Description
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Inventory Posting Group'
+		dataType: string
+		lineageTag: a818434f-0f24-4fff-8ecc-68316bc3d528
+		summarizeBy: none
+		sourceColumn: Inventory Posting Group
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Base Unit of Measure'
+		dataType: string
+		lineageTag: 117b02ae-38a1-48ad-b9d4-366f428638a6
+		summarizeBy: none
+		sourceColumn: Base Unit of Measure
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Item No. & Description'
+		dataType: string
+		lineageTag: 7b4d7ec7-ac3f-468e-86d5-44a449616378
+		summarizeBy: none
+		sourceColumn: Item No. & Description
+
+		annotation SummarizationSetBy = Automatic
+
+	partition Item = m
+		mode: import
+		queryGroup: 'Dimension Tables'
+		source = ```
+				let
+				 
+				    Source = Dynamics365BusinessCentral.ApiContentsWithOptions(ENVIRONMENT, COMPANY,API_ENDPOINT, []),
+				    TableData = Source{[Name="items",Signature="table"]}[Data],
+				    #"Removed Other Columns1" = Table.SelectColumns(TableData,{ "itemNo", "itemDescription","itemCategoryCode", "itemCategoryDescription", "inventoryPostingGroup", "baseUnitofMeasure" }),
+				
+				    ConvertColumnNames = Table.TransformColumnNames(#"Removed Other Columns1",fctImproveColumnNames),
+				    #"Renamed Columns1" = Table.RenameColumns(ConvertColumnNames,{{"Item Description", "Item Name"}, {"Base Unitof Measure", "Base Unit of Measure"}}),
+				    #"Add Item No. Description" = Table.AddColumn(#"Renamed Columns1", "Item No. & Description", each Text.Combine({[#"Item No."], " ", [Item Name]}), type text)
+				in
+				    #"Add Item No. Description"
+				```
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Table
+

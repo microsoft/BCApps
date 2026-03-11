@@ -1,0 +1,252 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/page/2.0.0/schema.json",
+  "name": "2d0cb2bcdd89b4f97c9e",
+  "displayName": "Project Planning Line Drill through",
+  "displayOption": "FitToPage",
+  "height": 720,
+  "width": 1280,
+  "filterConfig": {
+    "filters": [
+      {
+        "name": "Filterad3f9be7fd61ab5d56dd",
+        "field": {
+          "Column": {
+            "Expression": {
+              "SourceRef": {
+                "Entity": "Project"
+              }
+            },
+            "Property": "Project No."
+          }
+        },
+        "type": "Categorical",
+        "howCreated": "Drillthrough"
+      },
+      {
+        "name": "Filter8762a425b97fc257a738",
+        "field": {
+          "Column": {
+            "Expression": {
+              "SourceRef": {
+                "Entity": "Project"
+              }
+            },
+            "Property": "Project No. & Description"
+          }
+        },
+        "type": "Categorical",
+        "howCreated": "Drillthrough"
+      },
+      {
+        "name": "0d5c0ba6d06384408b4d",
+        "field": {
+          "Column": {
+            "Expression": {
+              "SourceRef": {
+                "Entity": "Type"
+              }
+            },
+            "Property": "Type Key"
+          }
+        },
+        "type": "Categorical",
+        "howCreated": "Drillthrough"
+      },
+      {
+        "name": "a6052634bee19092c4e8",
+        "field": {
+          "Column": {
+            "Expression": {
+              "SourceRef": {
+                "Entity": "Type"
+              }
+            },
+            "Property": "Type"
+          }
+        },
+        "type": "Categorical",
+        "howCreated": "Drillthrough"
+      },
+      {
+        "name": "4af2cc0512b8c8b05b01",
+        "field": {
+          "Column": {
+            "Expression": {
+              "SourceRef": {
+                "Entity": "Type"
+              }
+            },
+            "Property": "No."
+          }
+        },
+        "type": "Categorical",
+        "howCreated": "Drillthrough"
+      },
+      {
+        "name": "948b429b28b169894092",
+        "field": {
+          "Column": {
+            "Expression": {
+              "SourceRef": {
+                "Entity": "Tasks"
+              }
+            },
+            "Property": "Task Project No."
+          }
+        },
+        "type": "Categorical",
+        "howCreated": "Drillthrough"
+      },
+      {
+        "name": "3043cc9f5ceb521be644",
+        "field": {
+          "Column": {
+            "Expression": {
+              "SourceRef": {
+                "Entity": "Tasks"
+              }
+            },
+            "Property": "Task No."
+          }
+        },
+        "type": "Categorical",
+        "howCreated": "Drillthrough"
+      },
+      {
+        "name": "95d4c51c10908e403424",
+        "field": {
+          "Column": {
+            "Expression": {
+              "SourceRef": {
+                "Entity": "Tasks"
+              }
+            },
+            "Property": "Task Project Task & Description"
+          }
+        },
+        "type": "Categorical",
+        "howCreated": "Drillthrough"
+      }
+    ]
+  },
+  "pageBinding": {
+    "name": "110b64021bae74b70c2e",
+    "type": "Drillthrough",
+    "parameters": [
+      {
+        "name": "Param_Filterad3f9be7fd61ab5d56dd",
+        "boundFilter": "Filterad3f9be7fd61ab5d56dd",
+        "fieldExpr": {
+          "Column": {
+            "Expression": {
+              "SourceRef": {
+                "Entity": "Project"
+              }
+            },
+            "Property": "Project No."
+          }
+        }
+      },
+      {
+        "name": "Param_Filter8762a425b97fc257a738",
+        "boundFilter": "Filter8762a425b97fc257a738",
+        "fieldExpr": {
+          "Column": {
+            "Expression": {
+              "SourceRef": {
+                "Entity": "Project"
+              }
+            },
+            "Property": "Project No. & Description"
+          }
+        }
+      },
+      {
+        "name": "e20707475b2031051aee",
+        "boundFilter": "0d5c0ba6d06384408b4d",
+        "fieldExpr": {
+          "Column": {
+            "Expression": {
+              "SourceRef": {
+                "Entity": "Type"
+              }
+            },
+            "Property": "Type Key"
+          }
+        }
+      },
+      {
+        "name": "f63e21ad69a00a11131b",
+        "boundFilter": "a6052634bee19092c4e8",
+        "fieldExpr": {
+          "Column": {
+            "Expression": {
+              "SourceRef": {
+                "Entity": "Type"
+              }
+            },
+            "Property": "Type"
+          }
+        }
+      },
+      {
+        "name": "1d292f8dedd9e4ad0114",
+        "boundFilter": "4af2cc0512b8c8b05b01",
+        "fieldExpr": {
+          "Column": {
+            "Expression": {
+              "SourceRef": {
+                "Entity": "Type"
+              }
+            },
+            "Property": "No."
+          }
+        }
+      },
+      {
+        "name": "543376f230047e7d8452",
+        "boundFilter": "948b429b28b169894092",
+        "fieldExpr": {
+          "Column": {
+            "Expression": {
+              "SourceRef": {
+                "Entity": "Tasks"
+              }
+            },
+            "Property": "Task Project No."
+          }
+        }
+      },
+      {
+        "name": "171f9391b553c01b20d0",
+        "boundFilter": "3043cc9f5ceb521be644",
+        "fieldExpr": {
+          "Column": {
+            "Expression": {
+              "SourceRef": {
+                "Entity": "Tasks"
+              }
+            },
+            "Property": "Task No."
+          }
+        }
+      },
+      {
+        "name": "87dfe8cb00bd08073256",
+        "boundFilter": "95d4c51c10908e403424",
+        "fieldExpr": {
+          "Column": {
+            "Expression": {
+              "SourceRef": {
+                "Entity": "Tasks"
+              }
+            },
+            "Property": "Task Project Task & Description"
+          }
+        }
+      }
+    ],
+    "referenceScope": "CrossReport"
+  },
+  "visibility": "HiddenInViewMode"
+}

@@ -1,0 +1,1501 @@
+cultureInfo cs-CZ
+	translations
+		model Model
+			table Item
+				caption: Zboží
+				column 'Item No. & Description'
+					caption: Číslo a popis zboží
+				column 'Item No.'
+					caption: Číslo zboží
+				column 'Item Description'
+					caption: Popis zboží
+				column 'Item Base Unit of Measure'
+					caption: Základní měrná jednotka
+				column 'Item Unit Cost (LCY)'
+					caption: Pořizovací cena zboží (LM)
+				column 'Item Inventory Posting Group'
+					caption: Účto skupina zboží
+				column 'Item Category Code'
+					caption: Kód kategorie zboží
+				column 'Item Category Description'
+					caption: Popis kategorie zboží
+			table Location
+				caption: Lokace
+				column 'Location Code'
+					caption: Kód lokace
+				column 'Location Name'
+					caption: Název lokace
+				column 'Location Adjustment Bin Code'
+					caption: Kód korekční přihrádky umístění
+			table Vendor
+				caption: Dodavatel
+				column 'Vendor No. & Name'
+					caption: Číslo a jméno dodavatele
+				column 'Vendor No.'
+					caption: Číslo dodavatele
+				column 'Vendor Name'
+					caption: Jméno dodavatele
+				column 'Vendor Address'
+					caption: Adresa dodavatele
+				column 'Vendor Address 2'
+					caption: Adresa dodavatele 2
+				column 'Vendor City'
+					caption: Město dodavatele
+				column 'Vendor Post Code'
+					caption: Poštovní směrovací číslo dodavatele
+				column 'Vendor State'
+					caption: Stav dodavatele
+				column 'Vendor Country/Region Code'
+					caption: Kód země/oblasti dodavatele
+				column 'Vendor Posting Group'
+					caption: Účto skupina dodavatele
+			table Purchaser
+				caption: Nákupčí
+				column 'Purchaser Code'
+					caption: Kód nákupčího
+				column 'Purchaser Name'
+					caption: Jméno nákupčího
+			table 'Dimension Sets'
+				caption: Sady dimenzí
+				column 'Global Dimension 1'
+					caption: Globální dimenze 1
+				column 'Global Dimension 2'
+					caption: Globální dimenze 2
+				column 'Shortcut Dimension 3'
+					caption: Zkratka dimenze 3
+				column 'Shortcut Dimension 4'
+					caption: Zkratka dimenze 4
+				column 'Shortcut Dimension 5'
+					caption: Zkratka dimenze 5
+				column 'Shortcut Dimension 6'
+					caption: Zkratka dimenze 6
+				column 'Shortcut Dimension 7'
+					caption: Zkratka dimenze 7
+				column 'Shortcut Dimension 8'
+					caption: Zkratka dimenze 8
+				column id
+					caption: ID
+			table 'Purchase Budget'
+				caption: Rozpočet nákupu
+				column 'Entry No.'
+					caption: Číslo položky
+				column 'Budget Name'
+					caption: Název rozpočtu
+				column Date
+					caption: Datum
+				measure 'Budget Amount'
+					caption: Částka rozpočtu
+				measure 'Budget Quantity'
+					caption: Rozpočtové množství
+				measure 'Budget Quantity Variance'
+					caption: Odchylka rozpočtového množství
+				measure 'Budget Amount Variance'
+					caption: Odchylka částky rozpočtu
+				measure 'Budget Amount Variance %'
+					caption: Odchylka částky rozpočtu (%)
+				measure 'Budget Quantity Variance %'
+					caption: Odchylka rozpočtového množství (%)
+			table Date
+				caption: Datum
+				column 'Week Day'
+					caption: Den v týdnu
+				column 'Calendar Year'
+					caption: Kalendářní rok
+				column 'Calendar Quarter'
+					caption: Kalendářní kvartál
+				column 'Calendar Quarter Year'
+					caption: Rok kalendářního kvartálu
+				column 'Calendar Month'
+					caption: Kalendářní měsíc
+				column 'Calendar Month Year'
+					caption: Kalendářní měsíc v roce
+				column 'Calendar Week'
+					caption: Kalendářní týden
+				column 'Calendar Week Year'
+					caption: Kalendářní týden a rok
+				column 'Calendar RelativeWeekPos'
+					caption: Relativní pozice kalendářního týdne
+				column 'Calendar RelativeMonthPos'
+					caption: Relativní pozice kalendářního měsíce
+				column 'Calendar RelativeQuarterPos'
+					caption: Relativní pozice kalendářního kvartálu
+				column 'Calendar RelativeYearPos'
+					caption: Relativní pozice kalendářního roku
+				column 'Calendar StartOfMonth'
+					caption: Začátek kalendářního měsíce
+				column 'Calendar EndOfMonth'
+					caption: Konec kalendářního měsíce
+				column 'Calendar StartOfQuarter'
+					caption: Začátek kalendářního kvartálu
+				column 'Calendar EndOfQuarter'
+					caption: Konec kalendářního kvartálu
+				column 'Calendar StartOfYear'
+					caption: Začátek kalendářního roku
+				column 'Calendar EndOfYear'
+					caption: Konec kalendářního roku
+				column 'Calendar MonthDays'
+					caption: Kalendářní dny v měsíci
+				column 'Calendar QuarterDays'
+					caption: Dny kalendářního kvartálu
+				column 'Calendar YearDays'
+					caption: Dny kalendářního roku
+				column 'Calendar DayOfMonthNumber'
+					caption: Počet dní ve fiskálním měsíci
+				column 'Calendar DayOfQuarterNumber'
+					caption: Počet dní v kalendářním kvartálu
+				column 'Calendar DayOfYearNumber'
+					caption: Počet dní ve fiskálním roce
+				column 'Calendar DatePreviousWeek'
+					caption: Datum v předchozím kalendářním týdnu
+				column 'Calendar DatePreviousMonth'
+					caption: Datum v předchozím kalendářním měsíci
+				column 'Calendar DatePreviousQuarter'
+					caption: Datum v předchozím kalendářním kvartálu
+				column 'Calendar DatePreviousYear'
+					caption: Datum v předchozím kalendářním roce
+				column 'Fiscal Year'
+					caption: Fiskální rok
+				column 'Fiscal Quarter'
+					caption: Fiskální kvartál
+				column 'Fiscal Quarter Year'
+					caption: FIskální rok kvartálu
+				column 'Fiscal Month'
+					caption: Fiskální měsíc
+				column 'Fiscal Month Year'
+					caption: FIskální rok měsíce
+				column 'Fiscal Week'
+					caption: Fiskální týden
+				column 'Fiscal Week Year'
+					caption: Fiskální týden a rok
+				column 'Fiscal RelativeWeekPos'
+					caption: Relativní pozice fiskálního týdne
+				column 'Fiscal RelativeMonthPos'
+					caption: Relativní pozice fiskálního měsíce
+				column 'Fiscal RelativeQuarterPos'
+					caption: Relativní pozice fiskálního kvartálu
+				column 'Fiscal RelativeYearPos'
+					caption: Relativní pozice fiskálního roku
+				column 'Fiscal StartOfMonth'
+					caption: Začátek fiskálního měsíce
+				column 'Fiscal EndOfMonth'
+					caption: Konec fiskálního měsíce
+				column 'Fiscal StartOfQuarter'
+					caption: Začátek fiskálního kvartálu
+				column 'Fiscal EndOfQuarter'
+					caption: Konec fiskálního kvartálu
+				column 'Fiscal StartOfYear'
+					caption: Začátek fiskálního roku
+				column 'Fiscal EndOfYear'
+					caption: Konec fiskálního roku
+				column 'Fiscal MonthDays'
+					caption: Dny fiskálního měsíce
+				column 'Fiscal QuarterDays'
+					caption: Dny fiskálního kvartálu
+				column 'Fiscal YearDays'
+					caption: Dny fiskálního roku
+				column 'Fiscal DayOfMonthNumber'
+					caption: Počet dní ve fiskálním měsíci
+				column 'Fiscal DayOfQuarterNumber'
+					caption: Počet dnů ve fiskálním kvartálu
+				column 'Fiscal DayOfYearNumber'
+					caption: Počet dní ve fiskálním roce
+				column 'Fiscal DatePreviousWeek'
+					caption: Datum v předchozím fiskálním týdnu
+				column 'Fiscal DatePreviousMonth'
+					caption: Datum v předchozím fiskálním měsíci
+				column 'Fiscal DatePreviousQuarter'
+					caption: Datum v předchozím fiskálním kvartálu
+				column 'Fiscal DatePreviousYear'
+					caption: Datum v předchozím fiskálním roce
+				column 'FW Year'
+					caption: Rok FT
+				column 'FW Quarter'
+					caption: Kvartál FT
+				column 'FW Quarter Year'
+					caption: Rok kvartálu FT
+				column 'FW Month'
+					caption: Měsíc FT
+				column 'FW Month Year'
+					caption: Rok měsíce FT
+				column 'FW Week'
+					caption: Týden FT
+				column 'FW Period'
+					caption: Období FT
+				column 'FW Week Year'
+					caption: Týden a rok FT
+				column 'FW StartOfWeek'
+					caption: Začátek týdne FT
+				column 'FW EndOfWeek'
+					caption: Konec týdne FT
+				column 'FW RelativeWeekPos'
+					caption: Relativní pozice týdne FT
+				column 'FW RelativeMonthPos'
+					caption: Relativní pozice měsíce FT
+				column 'FW RelativeQuarterPos'
+					caption: Relativní pozice kvartálu FT
+				column 'FW RelativeYearPos'
+					caption: Relativní pozice roku FT
+				column 'FW StartOfMonth'
+					caption: Začátek měsíce FT
+				column 'FW EndOfMonth'
+					caption: Konec měsíce FT
+				column 'FW StartOfQuarter'
+					caption: Začátek kvartálu FT
+				column 'FW EndOfQuarter'
+					caption: Konec kvartálu FT
+				column 'FW StartOfYear'
+					caption: Začátek roku FT
+				column 'FW EndOfYear'
+					caption: Konec roku FT
+				column 'FW MonthDays'
+					caption: Dny v měsíci FT
+				column 'FW QuarterDays'
+					caption: Dny kvartálu FT
+				column 'FW YearDays'
+					caption: Dny roku FT
+				column 'FW DatePreviousWeek'
+					caption: Datum v předchozím týdnu FT
+				column 'FW DatePreviousMonth'
+					caption: Datum v předchozím měsíci FT
+				column 'FW DatePreviousQuarter'
+					caption: Datum v předchozím kvartálu FT
+				column 'FW DatePreviousYear'
+					caption: Datum v předchozím roce FT
+				column 'Holiday Name'
+					caption: Název svátku
+				column IsWorkingDay
+					caption: IsWorkingDay
+				column 'Day Type'
+					caption: Typ dne
+				column 'Relative Day'
+					caption: Relativní den
+				hierarchy 'Fiscal Year-Month'
+					caption: Fiskální rok-měsíc
+					level 'Fiscal Year'
+						caption: Fiskální rok
+					level 'Fiscal Month Year'
+						caption: FIskální rok měsíce
+				hierarchy 'Fiscal Year-Quarter-Month-Week'
+					caption: Fiskální rok-kvartál-měsíc-týden
+					level 'Fiscal Year'
+						caption: Fiskální rok
+					level 'Fiscal Quarter Year'
+						caption: FIskální rok kvartálu
+					level 'Fiscal Month Year'
+						caption: FIskální rok měsíce
+					level 'Fiscal Week Year'
+						caption: Fiskální týden a rok
+				hierarchy 'Fiscal Year-Month-Week'
+					caption: Fiskální rok-měsíc-týden
+					level 'Fiscal Year'
+						caption: Fiskální rok
+					level 'Fiscal Month Year'
+						caption: FIskální rok měsíce
+					level 'Fiscal Week Year'
+						caption: Fiskální týden a rok
+				hierarchy 'Calendar Year-Month'
+					caption: Kalendářní rok-měsíc
+					level 'Calendar Year'
+						caption: Kalendářní rok
+					level 'Calendar Month Year'
+						caption: Kalendářní měsíc v roce
+				hierarchy 'Calendar Year-Quarter-Month-Week'
+					caption: Kalendářní rok-kvartál-měsíc-týden
+					level 'Calendar Year'
+						caption: Kalendářní rok
+					level 'Calendar Quarter Year'
+						caption: Rok kalendářního kvartálu
+					level 'Calendar Month Year'
+						caption: Kalendářní měsíc v roce
+					level 'Calendar Week Year'
+						caption: Kalendářní týden a rok
+				hierarchy 'Calendar Year-Month-Week'
+					caption: Kalendářní rok-měsíc-týden
+					level 'Calendar Year'
+						caption: Kalendářní rok
+					level 'Calendar Month Year'
+						caption: Kalendářní měsíc v roce
+					level 'Calendar Week Year'
+						caption: Kalendářní týden a rok
+				hierarchy 'FW Year-Month-Week'
+					caption: Rok-měsíc-týden FT
+					level 'FW Year'
+						caption: Rok FT
+					level 'FW Month Year'
+						caption: Rok měsíce FT
+					level 'FW Week Year'
+						caption: Týden a rok FT
+				hierarchy 'FW Year-Quarter-Month-Week'
+					caption: Rok-kvartál-měsíc-týden FT
+					level 'FW Year'
+						caption: Rok FT
+					level 'FW Quarter Year'
+						caption: Rok kvartálu FT
+					level 'FW Month Year'
+						caption: Rok měsíce FT
+					level 'FW Week Year'
+						caption: Týden a rok FT
+				hierarchy 'FW Year-Week'
+					caption: Rok-týden FT
+					level 'FW Year'
+						caption: Rok FT
+					level 'FW Week Year'
+						caption: Týden a rok FT
+				hierarchy 'FW Year-Quarter-Week'
+					caption: Rok-kvartál-týden FT
+					level 'FW Year'
+						caption: Rok FT
+					level 'FW Quarter Year'
+						caption: Rok kvartálu FT
+					level 'FW Week Year'
+						caption: Týden a rok FT
+			table 'Standard Calendar Time Intelligence'
+				caption: Časová analýza standardního kalendáře
+				measure 'Purchase Amount YTD'
+					caption: Částka nákupu RKDD
+				measure 'Purchase Amount PY'
+					caption: Částka nákupu PR
+				measure 'Purchase Amount PYTD'
+					caption: Částka nákupu PRKDD
+				measure 'Purchase Amount PQTD'
+					caption: Částka nákupu PKDD
+				measure 'Purchase Amount QTD'
+					caption: Částka nákupu KKDD
+				measure 'Purchase Amount MTD'
+					caption: Částka nákupu MKDD
+				measure 'Purchase Amount YOY %'
+					caption: Částka nákupu MR (%)
+				measure 'Purchase Amount YOY'
+					caption: Částka nákupu MR
+				measure 'Purchase Amount PQ'
+					caption: Částka nákupu PK
+				measure 'Purchase Amount QOQ'
+					caption: Částka nákupu MK
+				measure 'Purchase Amount PM'
+					caption: Částka nákupu PM
+				measure 'Purchase Amount QOQ %'
+					caption: Částka nákupu MK (%)
+				measure 'Purchase Amount MOM'
+					caption: Částka nákupu MM
+				measure 'Purchase Amount MOM %'
+					caption: Částka nákupu MM (%)
+				measure 'Purchase Amount MAT'
+					caption: Částka nákupu RPS
+				measure 'Purchase Amount PYMAT'
+					caption: Částka nákupu PRSPR
+				measure 'Purchase Amount YOYTD'
+					caption: Částka nákupu MRKDD
+				measure 'Purchase Amount YOYTD %'
+					caption: Částka nákupu MRKDD (%)
+				measure 'Purchase Amount PYC'
+					caption: Částka nákupu CPR
+				measure 'Purchase Amount YTDOPY'
+					caption: Částka nákupu RKDDPPR
+				measure 'Purchase Amount YTDOPY %'
+					caption: Částka nákupu RKDDPPR (%)
+				measure 'Purchase Amount QOQTD'
+					caption: Částka nákupu MKKDD
+				measure 'Purchase Amount QOQTD %'
+					caption: Částka nákupu MKKDD (%)
+				measure 'Purchase Amount PQC'
+					caption: Částka nákupu CPK
+				measure 'Purchase Amount QTDOPQ'
+					caption: Částka nákupu KDDVPK
+				measure 'Purchase Amount QTDOPQ %'
+					caption: Částka nákupu KDDVPK (%)
+				measure 'Purchase Amount PMTD'
+					caption: Částka nákupu PMDD
+				measure 'Purchase Amount MOMTD'
+					caption: Částka nákupu MMKDD
+				measure 'Purchase Amount MOMTD %'
+					caption: Částka nákupu MMKDD (%)
+				measure 'Purchase Amount PMC'
+					caption: Částka nákupu CPM
+				measure 'Purchase Amount MTDOPM'
+					caption: Částka nákupu MKDDPPM
+				measure 'Purchase Amount MTDOPM %'
+					caption: Částka nákupu MKDDPPM (%)
+				measure 'Purchase Amount AVG 30D'
+					caption: Částka nákupu PRŮM 30D
+				measure 'Purchase Amount AVG 3M'
+					caption: Částka nákupu PRŮM 3M
+				measure 'Purchase Amount AVG 1Y'
+					caption: Částka nákupu PRŮM 1R
+				measure 'Purchase Amount MATG'
+					caption: Částka nákupu PCRR
+				measure 'Purchase Amount MATG %'
+					caption: Částka nákupu PCRR (%)
+				measure 'Purchase Amount PP'
+					caption: Částka nákupu PO
+				measure 'Purchase Amount POP'
+					caption: Částka nákupu MO
+				measure 'Purchase Amount POP %'
+					caption: Částka nákupu MO (%)
+				measure 'Purchase Quantity YTD'
+					caption: Nakoupené množství RKDD
+				measure 'Purchase Quantity PY'
+					caption: Nakoupené množství PR
+				measure 'Purchase Quantity PYTD'
+					caption: Nakoupené množství PRKDD
+				measure 'Purchase Quantity PQTD'
+					caption: Nakoupené množství PKDD
+				measure 'Purchase Quantity QTD'
+					caption: Nakoupené množství KKDD
+				measure 'Purchase Quantity MTD'
+					caption: Nakoupené množství MKDD
+				measure 'Purchase Quantity YOY %'
+					caption: Nakoupené množství MR (%)
+				measure 'Purchase Quantity YOY'
+					caption: Nakoupené množství MR
+				measure 'Purchase Quantity PQ'
+					caption: Nakoupené množství PK
+				measure 'Purchase Quantity QOQ'
+					caption: Nakoupené množství MK
+				measure 'Purchase Quantity PM'
+					caption: Nakoupené množství PM
+				measure 'Purchase Quantity QOQ %'
+					caption: Nakoupené množství MK (%)
+				measure 'Purchase Quantity MOM'
+					caption: Nakoupené množství MM
+				measure 'Purchase Quantity MOM %'
+					caption: Nakoupené množství MM (%)
+				measure 'Purchase Quantity MAT'
+					caption: Nakoupené množství RPS
+				measure 'Purchase Quantity PYMAT'
+					caption: Nakoupené množství PRSPR
+				measure 'Purchase Quantity YOYTD'
+					caption: Nákupní množství MRKDD
+				measure 'Purchase Quantity YOYTD %'
+					caption: Nákupní množství MRKDD (%)
+				measure 'Purchase Quantity PYC'
+					caption: Nakoupené množství CPR
+				measure 'Purchase Quantity YTDOPY'
+					caption: Nákupní množství RKDDPPR
+				measure 'Purchase Quantity YTDOPY %'
+					caption: Nákupní množství RKDDPPR (%)
+				measure 'Purchase Quantity QOQTD'
+					caption: Nákupní množství MKKDD
+				measure 'Purchase Quantity QOQTD %'
+					caption: Nákupní množství MKKDD (%)
+				measure 'Purchase Quantity PQC'
+					caption: Nakoupené množství CPK
+				measure 'Purchase Quantity QTDOPQ'
+					caption: Nákupní množství KDDVPK
+				measure 'Purchase Quantity QTDOPQ %'
+					caption: Nákupní množství KDDVPK (%)
+				measure 'Purchase Quantity PMTD'
+					caption: Nakoupené množství PMDD
+				measure 'Purchase Quantity MOMTD'
+					caption: Nákupní množství MMKDD
+				measure 'Purchase Quantity MOMTD %'
+					caption: Nákupní množství MMKDD (%)
+				measure 'Purchase Quantity PMC'
+					caption: Nakoupené množství CPM
+				measure 'Purchase Quantity MTDOPM'
+					caption: Nákupní množství MKDDPPM
+				measure 'Purchase Quantity MTDOPM %'
+					caption: Nákupní množství MKDDPPM (%)
+				measure 'Purchase Quantity AVG 30D'
+					caption: Nakoupené množství PRŮM 30D
+				measure 'Purchase Quantity AVG 3M'
+					caption: Nakoupené množství PRŮM 3M
+				measure 'Purchase Quantity AVG 1Y'
+					caption: Nakoupené množství PRŮM 1R
+				measure 'Purchase Quantity MATG'
+					caption: Nakoupené množství PCRR
+				measure 'Purchase Quantity MATG %'
+					caption: Nakoupené množství PCRR (%)
+				measure 'Purchase Quantity PP'
+					caption: Nakoupené množství PO
+				measure 'Purchase Quantity POP'
+					caption: Nakoupené množství MO
+				measure 'Purchase Quantity POP %'
+					caption: Nakoupené množství MO (%)
+				measure 'Budget Amount YTD'
+					caption: Částka rozpočtu RKDD
+				measure 'Budget Amount QTD'
+					caption: Částka rozpočtu KKDD
+				measure 'Budget Amount MTD'
+					caption: Částka rozpočtu MKDD
+				measure 'Budget Amount PY'
+					caption: Částka rozpočtu PR
+				measure 'Budget Amount YOY %'
+					caption: Částka rozpočtu MR (%)
+				measure 'Budget Amount YOY'
+					caption: Částka rozpočtu MR
+				measure 'Budget Amount PQ'
+					caption: Částka rozpočtu PK
+				measure 'Budget Amount QOQ'
+					caption: Částka rozpočtu MK
+				measure 'Budget Amount PM'
+					caption: Částka rozpočtu PM
+				measure 'Budget Amount QOQ %'
+					caption: Částka rozpočtu MK (%)
+				measure 'Budget Amount MOM'
+					caption: Částka rozpočtu MM
+				measure 'Budget Amount MOM %'
+					caption: Částka rozpočtu MM (%)
+				measure 'Budget Amount PP'
+					caption: Částka rozpočtu PO
+				measure 'Budget Amount POP'
+					caption: Částka rozpočtu MO
+				measure 'Budget Amount POP %'
+					caption: Částka rozpočtu MO (%)
+				measure 'Budget Amount PYTD'
+					caption: Částka rozpočtu PRKDD
+				measure 'Budget Amount PQTD'
+					caption: Částka rozpočtu PKDD
+				measure 'Budget Amount YOYTD'
+					caption: Částka rozpočtu MRKDD
+				measure 'Budget Amount YOYTD %'
+					caption: Částka rozpočtu MRKDD (%)
+				measure 'Budget Amount QOQTD'
+					caption: Částka rozpočtu MKKDD
+				measure 'Budget Amount QOQTD %'
+					caption: Částka rozpočtu MKKDD (%)
+				measure 'Budget Amount PMTD'
+					caption: Částka rozpočtu PMDD
+				measure 'Budget Amount MOMTD'
+					caption: Částka rozpočtu MMKDD
+				measure 'Budget Amount MOMTD %'
+					caption: Částka rozpočtu MMKDD (%)
+				measure 'Budget Amount MAT'
+					caption: Částka rozpočtu RPS
+				measure 'Budget Amount PYMAT'
+					caption: Částka rozpočtu PRSPR
+				measure 'Budget Amount MATG'
+					caption: Částka rozpočtu PCRR
+				measure 'Budget Amount MATG %'
+					caption: Částka rozpočtu PCRR (%)
+				measure 'Budget Amount PYC'
+					caption: Částka rozpočtu CPR
+				measure 'Budget Amount YTDOPY'
+					caption: Částka rozpočtu RKDDPPR
+				measure 'Budget Amount YTDOPY %'
+					caption: Částka rozpočtu RKDDPPR (%)
+				measure 'Budget Amount PQC'
+					caption: Částka rozpočtu CPK
+				measure 'Budget Amount QTDOPQ'
+					caption: Částka rozpočtu KDDVPK
+				measure 'Budget Amount QTDOPQ %'
+					caption: Částka rozpočtu KDDVPK (%)
+				measure 'Budget Amount PMC'
+					caption: Částka rozpočtu CPM
+				measure 'Budget Amount MTDOPM'
+					caption: Částka rozpočtu MKDDPPM
+				measure 'Budget Amount MTDOPM %'
+					caption: Částka rozpočtu MKDDPPM (%)
+				measure 'Budget Amount AVG 30D'
+					caption: Částka rozpočtu PRŮM 30D
+				measure 'Budget Amount AVG 3M'
+					caption: Částka rozpočtu PRŮM 3M
+				measure 'Budget Amount AVG 1Y'
+					caption: Částka rozpočtu PRŮM 1R
+				measure 'Budget Quantity YTD'
+					caption: Rozpočtové množství RKDD
+				measure 'Budget Quantity QTD'
+					caption: Rozpočtové množství KKDD
+				measure 'Budget Quantity MTD'
+					caption: Rozpočtové množství MKDD
+				measure 'Budget Quantity PY'
+					caption: Rozpočtové množství PR
+				measure 'Budget Quantity YOY %'
+					caption: Rozpočtové množství MR (%)
+				measure 'Budget Quantity YOY'
+					caption: Rozpočtové množství MR
+				measure 'Budget Quantity PQ'
+					caption: Rozpočtové množství PK
+				measure 'Budget Quantity QOQ'
+					caption: Rozpočtové množství MK
+				measure 'Budget Quantity PM'
+					caption: Rozpočtové množství PM
+				measure 'Budget Quantity QOQ %'
+					caption: Rozpočtové množství MK (%)
+				measure 'Budget Quantity MOM'
+					caption: Rozpočtové množství MM
+				measure 'Budget Quantity MOM %'
+					caption: Rozpočtové množství MM (%)
+				measure 'Budget Quantity PP'
+					caption: Rozpočtové množství PO
+				measure 'Budget Quantity POP'
+					caption: Rozpočtové množství MO
+				measure 'Budget Quantity POP %'
+					caption: Rozpočtové množství MO (%)
+				measure 'Budget Quantity PYTD'
+					caption: Rozpočtové množství PRKDD
+				measure 'Budget Quantity PQTD'
+					caption: Rozpočtové množství PKDD
+				measure 'Budget Quantity YOYTD'
+					caption: Rozpočtové množství MRKDD
+				measure 'Budget Quantity YOYTD %'
+					caption: Rozpočtové množství MRKDD (%)
+				measure 'Budget Quantity QOQTD'
+					caption: Rozpočtové množství MKKDD
+				measure 'Budget Quantity QOQTD %'
+					caption: Rozpočtové množství MKKDD (%)
+				measure 'Budget Quantity PMTD'
+					caption: Rozpočtové množství PMDD
+				measure 'Budget Quantity MOMTD'
+					caption: Rozpočtové množství MMKDD
+				measure 'Budget Quantity MOMTD %'
+					caption: Rozpočtové množství MMKDD (%)
+				measure 'Budget Quantity MAT'
+					caption: Rozpočtové množství RPS
+				measure 'Budget Quantity PYMAT'
+					caption: Rozpočtové množství PRSPR
+				measure 'Budget Quantity MATG'
+					caption: Rozpočtové množství PCRR
+				measure 'Budget Quantity MATG %'
+					caption: Rozpočtové množství PCRR (%)
+				measure 'Budget Quantity PYC'
+					caption: Rozpočtové množství CPR
+				measure 'Budget Quantity YTDOPY'
+					caption: Rozpočtové množství RKDDPPR
+				measure 'Budget Quantity YTDOPY %'
+					caption: Rozpočtové množství RKDDPPR (%)
+				measure 'Budget Quantity PQC'
+					caption: Rozpočtové množství CPK
+				measure 'Budget Quantity QTDOPQ'
+					caption: Rozpočtové množství KDDVPK
+				measure 'Budget Quantity QTDOPQ %'
+					caption: Rozpočtové množství KDDVPK (%)
+				measure 'Budget Quantity PMC'
+					caption: Rozpočtové množství CPM
+				measure 'Budget Quantity MTDOPM'
+					caption: Rozpočtové množství MKDDPPM
+				measure 'Budget Quantity MTDOPM %'
+					caption: Rozpočtové množství MKDDPPM (%)
+				measure 'Budget Quantity AVG 30D'
+					caption: Rozpočtové množství PRŮM 30D
+				measure 'Budget Quantity AVG 3M'
+					caption: Rozpočtové množství PRŮM 3M
+				measure 'Budget Quantity AVG 1Y'
+					caption: Rozpočtové množství PRŮM 1R
+			table 'Fiscal Calendar Time Intelligence'
+				caption: Časová analýza fiskálního kalendáře
+				measure 'Purchase Amount YTD (Fiscal)'
+					caption: Částka nákupu RKDD (fiskální)
+				measure 'Purchase Amount QTD (Fiscal)'
+					caption: Částka nákupu KKDD (fiskální)
+				measure 'Purchase Amount MTD (Fiscal)'
+					caption: Částka nákupu MKDD (fiskální)
+				measure 'Purchase Amount PY (Fiscal)'
+					caption: Částka nákupu PR (fiskální)
+				measure 'Purchase Amount YOY % (Fiscal)'
+					caption: Částka nákupu MR (%) (fiskální)
+				measure 'Purchase Amount YOY (Fiscal)'
+					caption: Částka nákupu MR (fiskální)
+				measure 'Purchase Amount PQ (Fiscal)'
+					caption: Částka nákupu PK (fiskální)
+				measure 'Purchase Amount QOQ (Fiscal)'
+					caption: Částka nákupu MK (fiskální)
+				measure 'Purchase Amount QOQ % (Fiscal)'
+					caption: Částka nákupu MK (%) (fiskální)
+				measure 'Purchase Amount PM (Fiscal)'
+					caption: Částka nákupu PM (fiskální)
+				measure 'Purchase Amount MOM (Fiscal)'
+					caption: Částka nákupu MM (fiskální)
+				measure 'Purchase Amount MOM % (Fiscal)'
+					caption: Částka nákupu MM (%) (fiskální)
+				measure 'Purchase Amount PP (Fiscal)'
+					caption: Částka nákupu PO (fiskální)
+				measure 'Purchase Amount POP (Fiscal)'
+					caption: Částka nákupu MO (fiskální)
+				measure 'Purchase Amount POP % (Fiscal)'
+					caption: Částka nákupu MO (%) (fiskální)
+				measure 'Purchase Amount PYTD (Fiscal)'
+					caption: Částka nákupu PRKDD (fiskální)
+				measure 'Purchase Amount PQTD (Fiscal)'
+					caption: Částka nákupu PKDD (fiskální)
+				measure 'Purchase Amount YOYTD (Fiscal)'
+					caption: Částka nákupu MRKDD (fiskální)
+				measure 'Purchase Amount YOYTD % (Fiscal)'
+					caption: Částka nákupu MRKDD (%) (fiskální)
+				measure 'Purchase Amount QOQTD (Fiscal)'
+					caption: Částka nákupu MKKDD (fiskální)
+				measure 'Purchase Amount QOQTD % (Fiscal)'
+					caption: Částka nákupu MKKDD (%) (fiskální)
+				measure 'Purchase Amount PMTD (Fiscal)'
+					caption: Částka nákupu PMDD (fiskální)
+				measure 'Purchase Amount MOMTD % (Fiscal)'
+					caption: Částka nákupu MMKDD (%) (fiskální)
+				measure 'Purchase Amount MOMTD (Fiscal)'
+					caption: Částka nákupu MMKDD (fiskální)
+				measure 'Purchase Amount MAT (Fiscal)'
+					caption: Částka nákupu RPS (fiskální)
+				measure 'Purchase Amount PYMAT (Fiscal)'
+					caption: Částka nákupu PRSPR (fiskální)
+				measure 'Purchase Amount MATG (Fiscal)'
+					caption: Částka nákupu PCRR (fiskální)
+				measure 'Purchase Amount MATG % (Fiscal)'
+					caption: Částka nákupu PCRR (%) (fiskální)
+				measure 'Purchase Amount MAT (364) (Fiscal)'
+					caption: Částka nákupu RPS (364) (fiskální)
+				measure 'Purchase PYMAT (364) (Fiscal)'
+					caption: Nákup PRSPR (364) (fiskální)
+				measure 'Purchase Amount PYC (Fiscal)'
+					caption: Částka nákupu CPR (fiskální)
+				measure 'Purchase Amount YTDOPY (Fiscal)'
+					caption: Částka nákupu RKDDPPR (fiskální)
+				measure 'Purchase Amount YTDOPY % (Fiscal)'
+					caption: Částka nákupu RKDDPPR (%) (fiskální)
+				measure 'Purchase Amount PQC (Fiscal)'
+					caption: Částka nákupu CPK (fiskální)
+				measure 'Purchase Amount QTDOPQ (Fiscal)'
+					caption: Částka nákupu KDDVPK (fiskální)
+				measure 'Purchase Amount QTDOPQ % (Fiscal)'
+					caption: Částka nákupu KDDVPK (%) (fiskální)
+				measure 'Purchase Amount PMC (Fiscal)'
+					caption: Částka nákupu CPM (fiskální)
+				measure 'Purchase Amount MTDOPM (Fiscal)'
+					caption: Částka nákupu MKDDPPM (fiskální)
+				measure 'Purchase Amount MTDOPM % (Fiscal)'
+					caption: Částka nákupu MKDDPPM (%) (fiskální)
+				measure 'Purchase Amount AVG 30D (Fiscal)'
+					caption: Částka nákupu PRŮM 30D (fiskální)
+				measure 'Purchase Amount AVG 3M (Fiscal)'
+					caption: Částka nákupu PRŮM 3M (fiskální)
+				measure 'Purchase Amount AVG 1Y (Fiscal)'
+					caption: Částka nákupu PRŮM 1R (fiskální)
+				measure 'Purchases Quantity YTD (Fiscal)'
+					caption: Množství nákupu RKDD (fiskální)
+				measure 'Purchases Quantity QTD (Fiscal)'
+					caption: Množství nákupu KKDD (fiskální)
+				measure 'Purchases Quantity MTD (Fiscal)'
+					caption: Množství nákupu MKDD (fiskální)
+				measure 'Purchase Quantity PY (Fiscal)'
+					caption: Nákupní množství PR (fiskální)
+				measure 'Purchase Quantity YOY % (Fiscal)'
+					caption: Nákupní množství MR (%) (fiskální)
+				measure 'Purchase Quantity YOY (Fiscal)'
+					caption: Nákupní množství MR (fiskální)
+				measure 'Purchase Quantity PQ (Fiscal)'
+					caption: Nákupní množství PK (fiskální)
+				measure 'Purchase Quantity QOQ (Fiscal)'
+					caption: Nákupní množství MK (fiskální)
+				measure 'Purchase Quantity QOQ % (Fiscal)'
+					caption: Nákupní množství MK (%) (fiskální)
+				measure 'Purchase Quantity PM (Fiscal)'
+					caption: Nákupní množství PM (fiskální)
+				measure 'Purchase Quantity MOM (Fiscal)'
+					caption: Nákupní množství MM (fiskální)
+				measure 'Purchase Quantity MOM % (Fiscal)'
+					caption: Nákupní množství MM (%) (fiskální)
+				measure 'Purchase Quantity PP (Fiscal)'
+					caption: Nákupní množství PO (fiskální)
+				measure 'Purchase Quantity POP (Fiscal)'
+					caption: Nákupní množství MO (fiskální)
+				measure 'Purchase Quantity POP % (Fiscal)'
+					caption: Nákupní množství MO (%) (fiskální)
+				measure 'Purchase Quantity PYTD (Fiscal)'
+					caption: Nákupní množství PRKDD (fiskální)
+				measure 'Purchase Quantity PQTD (Fiscal)'
+					caption: Nákupní množství PKDD (fiskální)
+				measure 'Purchase Quantity YOYTD (Fiscal)'
+					caption: Nákupní množství MRKDD (fiskální)
+				measure 'Purchase Quantity YOYTD % (Fiscal)'
+					caption: Nákupní množství MRKDD (%) (fiskální)
+				measure 'Purchase Quantity QOQTD (Fiscal)'
+					caption: Nákupní množství MKKDD (fiskální)
+				measure 'Purchase Quantity QOQTD % (Fiscal)'
+					caption: Nákupní množství MKKDD (%) (fiskální)
+				measure 'Purchase Quantity PMTD (Fiscal)'
+					caption: Nákupní množství PMDD (fiskální)
+				measure 'Purchase Quantity MOMTD % (Fiscal)'
+					caption: Nákupní množství MMKDD (%) (fiskální)
+				measure 'Purchase Quantity MOMTD (Fiscal)'
+					caption: Nákupní množství MMKDD (fiskální)
+				measure 'Purchase Quantity MAT (Fiscal)'
+					caption: Nákupní množství RPS (fiskální)
+				measure 'Purchase Quantity PYMAT (Fiscal)'
+					caption: Nákupní množství PRSPR (fiskální)
+				measure 'Purchase Quantity MATG (Fiscal)'
+					caption: Nákupní množství PCRR (fiskální)
+				measure 'Purchase Quantity MATG % (Fiscal)'
+					caption: Nákupní množství PCRR (%) (fiskální)
+				measure 'Purchase Quantity PYC (Fiscal)'
+					caption: Nákupní množství CPR (fiskální)
+				measure 'Purchase Quantity YTDOPY (Fiscal)'
+					caption: Nákupní množství RKDDPPR (fiskální)
+				measure 'Purchase Quantity YTDOPY % (Fiscal)'
+					caption: Nákupní množství RKDDPPR (%) (fiskální)
+				measure 'Purchase Quantity PQC (Fiscal)'
+					caption: Nákupní množství CPK (fiskální)
+				measure 'Purchase Quantity QTDOPQ (Fiscal)'
+					caption: Nákupní množství KDDVPK (fiskální)
+				measure 'Purchase Quantity QTDOPQ % (Fiscal)'
+					caption: Nákupní množství KDDVPK (%) (fiskální)
+				measure 'Purchase Quantity PMC (Fiscal)'
+					caption: Nákupní množství CPM (fiskální)
+				measure 'Purchase Quantity MTDOPM (Fiscal)'
+					caption: Nákupní množství MKDDPPM (fiskální)
+				measure 'Purchase Quantity MTDOPM % (Fiscal)'
+					caption: Nákupní množství MKDDPPM (%) (fiskální)
+				measure 'Purchase Quantity AVG 30D (Fiscal)'
+					caption: Nákupní množství PRŮM 30D (fiskální)
+				measure 'Purchase Quantity AVG 3M (Fiscal)'
+					caption: Nákupní množství PRŮM 3M (fiskální)
+				measure 'Purchase Quantity AVG 1Y (Fiscal)'
+					caption: Nákupní množství PRŮM 1R (fiskální)
+				measure 'Budget Amount YTD (Fiscal)'
+					caption: Částka rozpočtu RKDD (fiskální)
+				measure 'Budget Amount QTD (Fiscal)'
+					caption: Částka rozpočtu KKDD (fiskální)
+				measure 'Budget Amount MTD (Fiscal)'
+					caption: Částka rozpočtu MKDD (fiskální)
+				measure 'Budget Amount PY (Fiscal)'
+					caption: Částka rozpočtu PR (fiskální)
+				measure 'Budget Amount YOY % (Fiscal)'
+					caption: Částka rozpočtu MR (%) (fiskální)
+				measure 'Budget Amount YOY (Fiscal)'
+					caption: Částka rozpočtu MR (fiskální)
+				measure 'Budget Amount PQ (Fiscal)'
+					caption: Částka rozpočtu PK (fiskální)
+				measure 'Budget Amount QOQ (Fiscal)'
+					caption: Částka rozpočtu MK (fiskální)
+				measure 'Budget Amount QOQ % (Fiscal)'
+					caption: Částka rozpočtu MK (%) (fiskální)
+				measure 'Budget Amount PM (Fiscal)'
+					caption: Částka rozpočtu PM (fiskální)
+				measure 'Budget Amount MOM (Fiscal)'
+					caption: Částka rozpočtu MM (fiskální)
+				measure 'Budget Amount MOM % (Fiscal)'
+					caption: Částka rozpočtu MM (%) (fiskální)
+				measure 'Budget Amount PP (Fiscal)'
+					caption: Částka rozpočtu PO (fiskální)
+				measure 'Budget Amount POP (Fiscal)'
+					caption: Částka rozpočtu MO (fiskální)
+				measure 'Budget Amount POP % (Fiscal)'
+					caption: Částka rozpočtu MO (%) (fiskální)
+				measure 'Budget Amount PYTD (Fiscal)'
+					caption: Částka rozpočtu PRKDD (fiskální)
+				measure 'Budget Amount PQTD (Fiscal)'
+					caption: Částka rozpočtu PKDD (fiskální)
+				measure 'Budget Amount YOYTD (Fiscal)'
+					caption: Částka rozpočtu MRKDD (fiskální)
+				measure 'Budget Amount YOYTD % (Fiscal)'
+					caption: Částka rozpočtu MRKDD (%) (fiskální)
+				measure 'Budget Amount QOQTD (Fiscal)'
+					caption: Částka rozpočtu MKKDD (fiskální)
+				measure 'Budget Amount QOQTD % (Fiscal)'
+					caption: Částka rozpočtu MKKDD (%) (fiskální)
+				measure 'Budget Amount PMTD (Fiscal)'
+					caption: Částka rozpočtu PMDD (fiskální)
+				measure 'Budget Amount MOMTD % (Fiscal)'
+					caption: Částka rozpočtu MMKDD (%) (fiskální)
+				measure 'Budget Amount MOMTD (Fiscal)'
+					caption: Částka rozpočtu MMKDD (fiskální)
+				measure 'Budget Amount MAT (Fiscal)'
+					caption: Částka rozpočtu RPS (fiskální)
+				measure 'Budget Amount PYMAT (Fiscal)'
+					caption: Částka rozpočtu PRSPR (fiskální)
+				measure 'Budget Amount MATG (Fiscal)'
+					caption: Částka rozpočtu PCRR (fiskální)
+				measure 'Budget Amount MATG % (Fiscal)'
+					caption: Částka rozpočtu PCRR (%) (fiskální)
+				measure 'Budget Amount MAT (364) (Fiscal)'
+					caption: Částka rozpočtu RPS (364) (fiskální)
+				measure 'Budget PYMAT (364) (Fiscal)'
+					caption: Rozpočet PRSPR (364) (fiskální)
+				measure 'Budget Amount PYC (Fiscal)'
+					caption: Částka rozpočtu CPR (fiskální)
+				measure 'Budget Amount YTDOPY (Fiscal)'
+					caption: Částka rozpočtu MMKDD (fiskální)
+				measure 'Budget Amount YTDOPY % (Fiscal)'
+					caption: Částka rozpočtu MMKDD (%) (fiskální)
+				measure 'Budget Amount PQC (Fiscal)'
+					caption: Částka rozpočtu CPK (fiskální)
+				measure 'Budget Amount QTDOPQ (Fiscal)'
+					caption: Částka rozpočtu KDDVPK (fiskální)
+				measure 'Budget Amount QTDOPQ % (Fiscal)'
+					caption: Částka rozpočtu KDDVPK (%) (fiskální)
+				measure 'Budget Amount PMC (Fiscal)'
+					caption: Částka rozpočtu CPM (fiskální)
+				measure 'Budget Amount MTDOPM (Fiscal)'
+					caption: Částka rozpočtu MKDDPPM (fiskální)
+				measure 'Budget Amount MTDOPM % (Fiscal)'
+					caption: Částka rozpočtu MKDDPPM (%) (fiskální)
+				measure 'Budget Amount AVG 30D (Fiscal)'
+					caption: Částka rozpočtu PRŮM 30D (fiskální)
+				measure 'Budget Amount AVG 3M (Fiscal)'
+					caption: Částka rozpočtu PRŮM 3M (fiskální)
+				measure 'Budget Amount AVG 1Y (Fiscal)'
+					caption: Částka rozpočtu PRŮM 1R (fiskální)
+				measure 'Budget Quantity YTD (Fiscal)'
+					caption: Rozpočtové množství RKDD (fiskální)
+				measure 'Budget Quantity QTD (Fiscal)'
+					caption: Rozpočtové množství KKDD (fiskální)
+				measure 'Budget Quantity MTD (Fiscal)'
+					caption: Rozpočtové množství MKDD (fiskální)
+				measure 'Budget Quantity PY (Fiscal)'
+					caption: Rozpočtové množství PR (fiskální)
+				measure 'Budget Quantity YOY % (Fiscal)'
+					caption: Rozpočtové množství MR (%) (fiskální)
+				measure 'Budget Quantity YOY (Fiscal)'
+					caption: Rozpočtové množství MR (fiskální)
+				measure 'Budget Quantity PQ (Fiscal)'
+					caption: Rozpočtové množství PK (fiskální)
+				measure 'Budget Quantity QOQ (Fiscal)'
+					caption: Rozpočtové množství MK (fiskální)
+				measure 'Budget Quantity QOQ % (Fiscal)'
+					caption: Rozpočtové množství MK (%) (fiskální)
+				measure 'Budget Quantity PM (Fiscal)'
+					caption: Rozpočtové množství PM (fiskální)
+				measure 'Budget Quantity MOM (Fiscal)'
+					caption: Rozpočtové množství MM (fiskální)
+				measure 'Budget Quantity MOM % (Fiscal)'
+					caption: Rozpočtové množství MM (%) (fiskální)
+				measure 'Budget Quantity PP (Fiscal)'
+					caption: Rozpočtové množství PO (fiskální)
+				measure 'Budget Quantity POP (Fiscal)'
+					caption: Rozpočtové množství MO (fiskální)
+				measure 'Budget Quantity POP % (Fiscal)'
+					caption: Rozpočtové množství MO (%) (fiskální)
+				measure 'Budget Quantity PYTD (Fiscal)'
+					caption: Rozpočtové množství PRKDD (fiskální)
+				measure 'Budget Quantity PQTD (Fiscal)'
+					caption: Rozpočtové množství PKDD (fiskální)
+				measure 'Budget Quantity YOYTD (Fiscal)'
+					caption: Rozpočtové množství MRKDD (fiskální)
+				measure 'Budget Quantity YOYTD % (Fiscal)'
+					caption: Rozpočtové množství MRKDD (%) (fiskální)
+				measure 'Budget Quantity QOQTD (Fiscal)'
+					caption: Rozpočtové množství MKKDD (fiskální)
+				measure 'Budget Quantity QOQTD % (Fiscal)'
+					caption: Rozpočtové množství MKKDD (%) (fiskální)
+				measure 'Budget Quantity PMTD (Fiscal)'
+					caption: Rozpočtové množství PMDD (fiskální)
+				measure 'Budget Quantity MOMTD % (Fiscal)'
+					caption: Rozpočtové množství MMKDD (%) (fiskální)
+				measure 'Budget Quantity MOMTD (Fiscal)'
+					caption: Rozpočtové množství MMKDD (fiskální)
+				measure 'Budget Quantity MAT (Fiscal)'
+					caption: Rozpočtové množství RPS (fiskální)
+				measure 'Budget Quantity PYMAT (Fiscal)'
+					caption: Rozpočtové množství PRSPR (fiskální)
+				measure 'Budget Quantity MATG (Fiscal)'
+					caption: Rozpočtové množství PCRR (fiskální)
+				measure 'Budget Quantity MATG % (Fiscal)'
+					caption: Rozpočtové množství PCRR (%) (fiskální)
+				measure 'Budget Quantity PYC (Fiscal)'
+					caption: Rozpočtové množství CPR (fiskální)
+				measure 'Budget Quantity YTDOPY (Fiscal)'
+					caption: Rozpočtové množství RKDDPPR (fiskální)
+				measure 'Budget Quantity YTDOPY % (Fiscal)'
+					caption: Rozpočtové množství RKDDPPR (%) (fiskální)
+				measure 'Budget Quantity PQC (Fiscal)'
+					caption: Rozpočtové množství CPK (fiskální)
+				measure 'Budget Quantity QTDOPQ (Fiscal)'
+					caption: Rozpočtové množství KDDVPK (fiskální)
+				measure 'Budget Quantity QTDOPQ % (Fiscal)'
+					caption: Rozpočtové množství KDDVPK (%) (fiskální)
+				measure 'Budget Quantity PMC (Fiscal)'
+					caption: Rozpočtové množství CPM (fiskální)
+				measure 'Budget Quantity MTDOPM (Fiscal)'
+					caption: Rozpočtové množství MKDDPPM (fiskální)
+				measure 'Budget Quantity MTDOPM % (Fiscal)'
+					caption: Rozpočtové množství MKDDPPM (%) (fiskální)
+				measure 'Budget Quantity AVG 30D (Fiscal)'
+					caption: Rozpočtové množství PRŮM 30D (fiskální)
+				measure 'Budget Quantity AVG 3M (Fiscal)'
+					caption: Rozpočtové množství PRŮM 3M (fiskální)
+				measure 'Budget Quantity AVG 1Y (Fiscal)'
+					caption: Rozpočtové množství PRŮM 1R (fiskální)
+			table 'Weekly Calendar Time Intelligence'
+				caption: Časová analýza týdenního kalendáře
+				measure 'Purchase Amount YTD (Weekly)'
+					caption: Částka nákupu RKDD (týdenní)
+				measure 'Purchase Amount QTD (Weekly)'
+					caption: Částka nákupu KKDD (týdenní)
+				measure 'Purchase Amount MTD (Weekly)'
+					caption: Částka nákupu MKDD (týdenní)
+				measure 'Purchase Amount WTD (Weekly)'
+					caption: Částka nákupu TKDD (týdenní)
+				measure 'Purchase Amount PY (Weekly)'
+					caption: Částka nákupu PR (týdenní)
+				measure 'Purchase Amount YOY % (Weekly)'
+					caption: Částka nákupu MR (%) (týdenní)
+				measure 'Purchase Amount YOY (Weekly)'
+					caption: Částka nákupu MR (týdenní)
+				measure 'Purchase Amount PQ (Weekly)'
+					caption: Částka nákupu PK (týdenní)
+				measure 'Purchase Amount QOQ (Weekly)'
+					caption: Částka nákupu MK (týdenní)
+				measure 'Purchase Amount QOQ % (Weekly)'
+					caption: Částka nákupu MK (%) (týdenní)
+				measure 'Purchase Amount PW (Weekly)'
+					caption: Částka nákupu MT (týdenní)
+				measure 'Purchase Amount WOW (Weekly)'
+					caption: Částka nákupu MT (týdenní)
+				measure 'Purchase Amount WOW % (Weekly)'
+					caption: Částka nákupu MT (%) (týdenní)
+				measure 'Purchase Amount PP (Weekly)'
+					caption: Částka nákupu PO (týdenní)
+				measure 'Purchase Amount POP (Weekly)'
+					caption: Částka nákupu MO (týdenní)
+				measure 'Purchase Amount POP % (Weekly)'
+					caption: Částka nákupu MO (%) (týdenní)
+				measure 'Purchase Amount PYTD (Weekly)'
+					caption: Částka nákupu PRKDD (týdenní)
+				measure 'Purchase Amount PQTD (Weekly)'
+					caption: Částka nákupu PKDD (týdenní)
+				measure 'Purchase Amount YOYTD (Weekly)'
+					caption: Částka nákupu MRKDD (týdenní)
+				measure 'Purchase Amount YOYTD % (Weekly)'
+					caption: Částka nákupu MRKDD (%) (týdenní)
+				measure 'Purchase Amount QOQTD (Weekly)'
+					caption: Částka nákupu MKKDD (týdenní)
+				measure 'Purchase Amount QOQTD % (Weekly)'
+					caption: Částka nákupu MKKDD (%) (týdenní)
+				measure 'Purchase Amount PWTD (Weekly)'
+					caption: Částka nákupu PTKDD (týdenní)
+				measure 'Purchase Amount WOWTD (Weekly)'
+					caption: Částka nákupu MTKDD (týdenní)
+				measure 'Purchase Amount WOWTD % (Weekly)'
+					caption: Částka nákupu MTKDD (%) (týdenní)
+				measure 'Purchase Amount MAT (364) (Weekly)'
+					caption: Částka nákupu RPS (364) (týdenní)
+				measure 'Purchase Amount PYMAT (364) (Weekly)'
+					caption: Částka nákupu PRSPR (364) (týdenní)
+				measure 'Purchase Amount MATG (Weekly)'
+					caption: Částka nákupu PCRR (týdenní)
+				measure 'Purchase Amount MATG % (Weekly)'
+					caption: Částka nákupu PCRR (%) (týdenní)
+				measure 'Purchase Amount PYC (Weekly)'
+					caption: Částka nákupu CPR (týdenní)
+				measure 'Purchase Amount YTDOPY (Weekly)'
+					caption: Částka nákupu RKDDPPR (týdenní)
+				measure 'Purchase Amount YTDOPY % (Weekly)'
+					caption: Částka nákupu RKDDPPR (%) (týdenní)
+				measure 'Purchase Amount PQC (Weekly)'
+					caption: Částka nákupu CPK (týdenní)
+				measure 'Purchase Amount QTDOPQ (Weekly)'
+					caption: Částka nákupu KDDVPK (týdenní)
+				measure 'Purchase Amount QTDOPQ % (Weekly)'
+					caption: Částka nákupu KDDVPK (%) (týdenní)
+				measure 'Purchase Amount PWC (Weekly)'
+					caption: Částka nákupu CPT (týdenní)
+				measure 'Purchase Amount WTDOPW (Weekly)'
+					caption: Částka nákupu MTOPT (týdenní)
+				measure 'Purchase Amount WTDOPW % (Weekly)'
+					caption: Částka nákupu MTOPT (%) (týdenní)
+				measure 'Purchase Amount AVG 4W (Weekly)'
+					caption: Částka nákupu PRŮM 4T (týdenní)
+				measure 'Purchase Amount AVG 1Q (Weekly)'
+					caption: Částka nákupu PRŮM 1K (týdenní)
+				measure 'Purchase Amount AVG 1Y (Weekly)'
+					caption: Částka nákupu PRŮM 1R (týdenní)
+				measure 'Purchase Quantity YTD (Weekly)'
+					caption: Nákupní množství RKDD (týdenní)
+				measure 'Purchase Quantity QTD (Weekly)'
+					caption: Nákupní množství KKDD (týdenní)
+				measure 'Purchase Quantity MTD (Weekly)'
+					caption: Nákupní množství MKDD (týdenní)
+				measure 'Purchase Quantity WTD (Weekly)'
+					caption: Nákupní množství TKDD (týdenní)
+				measure 'Purchase Quantity PY (Weekly)'
+					caption: Nákupní množství PR (týdenní)
+				measure 'Purchase Quantity YOY % (Weekly)'
+					caption: Nákupní množství MR (%) (týdenní)
+				measure 'Purchase Quantity YOY (Weekly)'
+					caption: Nákupní množství MR (týdenní)
+				measure 'Purchase Quantity PQ (Weekly)'
+					caption: Nákupní množství PK (týdenní)
+				measure 'Purchase Quantity QOQ (Weekly)'
+					caption: Nákupní množství MK (týdenní)
+				measure 'Purchase Quantity QOQ % (Weekly)'
+					caption: Nákupní množství MK (%) (týdenní)
+				measure 'Purchase Quantity PW (Weekly)'
+					caption: Nákupní množství PT (týdenní)
+				measure 'Purchase Quantity WOW (Weekly)'
+					caption: Nákupní množství MT (týdenní)
+				measure 'Purchase Quantity WOW % (Weekly)'
+					caption: Nákupní množství MT (%) (týdenní)
+				measure 'Purchase Quantity PP (Weekly)'
+					caption: Nákupní množství PO (týdenní)
+				measure 'Purchase Quantity POP (Weekly)'
+					caption: Nákupní množství MO (týdenní)
+				measure 'Purchase Quantity POP % (Weekly)'
+					caption: Nákupní množství MO (%) (týdenní)
+				measure 'Purchase Quantity PYTD (Weekly)'
+					caption: Nákupní množství PRKDD (týdenní)
+				measure 'Purchase Quantity PQTD (Weekly)'
+					caption: Nákupní množství PKDD (týdenní)
+				measure 'Purchase Quantity YOYTD (Weekly)'
+					caption: Nákupní množství MRKDD (týdenní)
+				measure 'Purchase Quantity YOYTD % (Weekly)'
+					caption: Nákupní množství MRKDD (%) (týdenní)
+				measure 'Purchase Quantity QOQTD (Weekly)'
+					caption: Nákupní množství MKKDD (týdenní)
+				measure 'Purchase Quantity QOQTD % (Weekly)'
+					caption: Nákupní množství MKKDD (%) (týdenní)
+				measure 'Purchase Quantity PWTD (Weekly)'
+					caption: Nákupní množství PTKDD (týdenní)
+				measure 'Purchase Quantity WOWTD (Weekly)'
+					caption: Nákupní množství MTKDD (týdenní)
+				measure 'Purchase Quantity WOWTD % (Weekly)'
+					caption: Nákupní množství MTKDD (%) (týdenní)
+				measure 'Purchase Quantity MAT (364) (Weekly)'
+					caption: Nákupní množství RPS (364) (týdenní)
+				measure 'Purchase Quantity PYMAT (364) (Weekly)'
+					caption: Nákupní množství PRSPR (364) (týdenní)
+				measure 'Purchase Quantity MATG (Weekly)'
+					caption: Nákupní množství PCRR (týdenní)
+				measure 'Purchase Quantity MATG % (Weekly)'
+					caption: Nákupní množství PCRR (%) (týdenní)
+				measure 'Purchase Quantity PYC (Weekly)'
+					caption: Nákupní množství CPR (týdenní)
+				measure 'Purchase Quantity YTDOPY (Weekly)'
+					caption: Nákupní množství RKDDPPR (týdenní)
+				measure 'Purchase Quantity YTDOPY  % (Weekly)'
+					caption: Nákupní množství RKDDPPR (%) (týdenní)
+				measure 'Purchase Quantity PQC (Weekly)'
+					caption: Nákupní množství CPK (týdenní)
+				measure 'Purchase Quantity QTDOPQ (Weekly)'
+					caption: Nákupní množství KDDVPK (týdenní)
+				measure 'Purchase Quantity QTDOPQ % (Weekly)'
+					caption: Nákupní množství KDDVPK (%) (týdenní)
+				measure 'Purchase Quantity PWC (Weekly)'
+					caption: Nákupní množství CPT (týdenní)
+				measure 'Purchase Quantity WTDOPW (Weekly)'
+					caption: Nákupní množství MTOPT (týdenní)
+				measure 'Purchase Quantity WTDOPW % (Weekly)'
+					caption: Nákupní množství MTOPT (%) (týdenní)
+				measure 'Purchase Quantity AVG 4W (Weekly)'
+					caption: Nákupní množství PRŮM 4T (týdenní)
+				measure 'Purchase Quantity AVG 1Q (Weekly)'
+					caption: Nákupní množství PRŮM 1K (týdenní)
+				measure 'Purchase Quantity AVG 1Y (Weekly)'
+					caption: Nákupní množství PRŮM 1R (týdenní)
+				measure 'Budget Quantity YTD (Weekly)'
+					caption: Rozpočtové množství RKDD (týdenní)
+				measure 'Budget Quantity QTD (Weekly)'
+					caption: Rozpočtové množství KKDD (týdenní)
+				measure 'Budget Quantity MTD (Weekly)'
+					caption: Rozpočtové množství MKDD (týdenní)
+				measure 'Budget Quantity WTD (Weekly)'
+					caption: Rozpočtové množství TKDD (týdenní)
+				measure 'Budget Quantity PY (Weekly)'
+					caption: Rozpočtové množství PT (týdenní)
+				measure 'Budget Quantity YOY % (Weekly)'
+					caption: Rozpočtové množství MR (%) (týdenní)
+				measure 'Budget Quantity YOY (Weekly)'
+					caption: Rozpočtové množství MR (týdenní)
+				measure 'Budget Quantity PQ (Weekly)'
+					caption: Rozpočtové množství PK (týdenní)
+				measure 'Budget Quantity QOQ (Weekly)'
+					caption: Rozpočtové množství MK (týdenní)
+				measure 'Budget Quantity QOQ % (Weekly)'
+					caption: Rozpočtové množství MK (%) (týdenní)
+				measure 'Budget Quantity PW (Weekly)'
+					caption: Rozpočtové množství PT (týdenní)
+				measure 'Budget Quantity WOW (Weekly)'
+					caption: Rozpočtové množství MT (týdenní)
+				measure 'Budget Quantity WOW % (Weekly)'
+					caption: Rozpočtové množství MT (%) (týdenní)
+				measure 'Budget Quantity PP (Weekly)'
+					caption: Rozpočtové množství PO (týdenní)
+				measure 'Budget Quantity POP (Weekly)'
+					caption: Rozpočtové množství MO (týdenní)
+				measure 'Budget Quantity POP % (Weekly)'
+					caption: Rozpočtové množství MO (%) (týdenní)
+				measure 'Budget Quantity PYTD (Weekly)'
+					caption: Rozpočtové množství PRKDD (týdenní)
+				measure 'Budget Quantity PQTD (Weekly)'
+					caption: Rozpočtové množství PKDD (týdenní)
+				measure 'Budget Quantity YOYTD (Weekly)'
+					caption: Rozpočtové množství MRKDD (týdenní)
+				measure 'Budget Quantity YOYTD % (Weekly)'
+					caption: Rozpočtové množství MRKDD (%) (týdenní)
+				measure 'Budget Quantity QOQTD (Weekly)'
+					caption: Rozpočtové množství MKKDD (týdenní)
+				measure 'Budget Quantity QOQTD % (Weekly)'
+					caption: Rozpočtové množství MKKDD (%) (týdenní)
+				measure 'Budget Quantity PWTD (Weekly)'
+					caption: Rozpočtové množství PTKDD (týdenní)
+				measure 'Budget Quantity WOWTD (Weekly)'
+					caption: Rozpočtové množství MTKDD (týdenní)
+				measure 'Budget Quantity WOWTD % (Weekly)'
+					caption: Rozpočtové množství MTKDD (%) (týdenní)
+				measure 'Budget Quantity MAT (364) (Weekly)'
+					caption: Rozpočtové množství RPS (364) (týdenní)
+				measure 'Budget Quantity PYMAT (364) (Weekly)'
+					caption: Rozpočtové množství PRSPR (364) (týdenní)
+				measure 'Budget Quantity MATG (Weekly)'
+					caption: Rozpočtové množství PCRR (týdenní)
+				measure 'Budget Quantity MATG % (Weekly)'
+					caption: Rozpočtové množství PCRR (%) (týdenní)
+				measure 'Budget Quantity PYC (Weekly)'
+					caption: Rozpočtové množství CPR (týdenní)
+				measure 'Budget Quantity YTDOPY (Weekly)'
+					caption: Rozpočtové množství RKDDPPR (týdenní)
+				measure 'Budget Quantity YTDOPY  % (Weekly)'
+					caption: Rozpočtové množství RKDDPPR (%) (týdenní)
+				measure 'Budget Quantity PQC (Weekly)'
+					caption: Rozpočtové množství CPK (týdenní)
+				measure 'Budget Quantity QTDOPQ (Weekly)'
+					caption: Rozpočtové množství KDDVPK (týdenní)
+				measure 'Budget Quantity QTDOPQ % (Weekly)'
+					caption: Rozpočtové množství KDDVPK (%) (týdenní)
+				measure 'Budget Quantity PWC (Weekly)'
+					caption: Rozpočtové množství CPT (týdenní)
+				measure 'Budget Quantity WTDOPW (Weekly)'
+					caption: Rozpočtové množství MTOPT (týdenní)
+				measure 'Budget Quantity WTDOPW % (Weekly)'
+					caption: Rozpočtové množství MTOPT (%) (týdenní)
+				measure 'Budget Quantity AVG 4W (Weekly)'
+					caption: Rozpočtové množství PRŮM 4T (týdenní)
+				measure 'Budget Quantity AVG 1Q (Weekly)'
+					caption: Rozpočtové množství PRŮM 1K (týdenní)
+				measure 'Budget Quantity AVG 1Y (Weekly)'
+					caption: Rozpočtové množství PRŮM 1R (týdenní)
+				measure 'Budget Amount YTD (Weekly)'
+					caption: Částka rozpočtu RKDD (týdenní)
+				measure 'Budget Amount QTD (Weekly)'
+					caption: Částka rozpočtu KKDD (týdenní)
+				measure 'Budget Amount MTD (Weekly)'
+					caption: Částka rozpočtu MKDD (týdenní)
+				measure 'Budget Amount WTD (Weekly)'
+					caption: Částka rozpočtu TKDD (týdenní)
+				measure 'Budget Amount PY (Weekly)'
+					caption: Částka rozpočtu PR (týdenní)
+				measure 'Budget Amount YOY % (Weekly)'
+					caption: Částka rozpočtu MR (%) (týdenní)
+				measure 'Budget Amount YOY (Weekly)'
+					caption: Částka rozpočtu MR (týdenní)
+				measure 'Budget Amount PQ (Weekly)'
+					caption: Částka rozpočtu PK (týdenní)
+				measure 'Budget Amount QOQ (Weekly)'
+					caption: Částka rozpočtu MK (týdenní)
+				measure 'Budget Amount QOQ % (Weekly)'
+					caption: Částka rozpočtu MK (%) (týdenní)
+				measure 'Budget Amount PW (Weekly)'
+					caption: Částka rozpočtu PT (týdenní)
+				measure 'Budget Amount WOW (Weekly)'
+					caption: Částka rozpočtu MT (týdenní)
+				measure 'Budget Amount WOW % (Weekly)'
+					caption: Částka rozpočtu MT (%) (týdenní)
+				measure 'Budget Amount PP (Weekly)'
+					caption: Částka rozpočtu PO (týdenní)
+				measure 'Budget Amount POP (Weekly)'
+					caption: Částka rozpočtu MO (týdenní)
+				measure 'Budget Amount POP % (Weekly)'
+					caption: Částka rozpočtu MO (%) (týdenní)
+				measure 'Budget Amount PYTD (Weekly)'
+					caption: Částka rozpočtu PRKDD (týdenní)
+				measure 'Budget Amount PQTD (Weekly)'
+					caption: Částka rozpočtu PKDD (týdenní)
+				measure 'Budget Amount YOYTD (Weekly)'
+					caption: Částka rozpočtu MRKDD (týdenní)
+				measure 'Budget Amount YOYTD % (Weekly)'
+					caption: Částka rozpočtu MRKDD (%) (týdenní)
+				measure 'Budget Amount QOQTD (Weekly)'
+					caption: Částka rozpočtu MKKDD (týdenní)
+				measure 'Budget Amount QOQTD % (Weekly)'
+					caption: Částka rozpočtu MKKDD (%) (týdenní)
+				measure 'Budget Amount PWTD (Weekly)'
+					caption: Částka rozpočtu PTKDD (týdenní)
+				measure 'Budget Amount WOWTD (Weekly)'
+					caption: Částka rozpočtu MTKDD (týdenní)
+				measure 'Budget Amount WOWTD % (Weekly)'
+					caption: Částka rozpočtu MTKDD (%) (týdenní)
+				measure 'Budget Amount MAT (364) (Weekly)'
+					caption: Částka rozpočtu RPS (364) (týdenní)
+				measure 'Budget Amount PYMAT (364) (Weekly)'
+					caption: Částka rozpočtu PRSPR (364) (týdenní)
+				measure 'Budget Amount MATG (Weekly)'
+					caption: Částka rozpočtu PCRR (týdenní)
+				measure 'Budget Amount MATG % (Weekly)'
+					caption: Částka rozpočtu PCRR (%) (týdenní)
+				measure 'Budget Amount PYC (Weekly)'
+					caption: Částka rozpočtu CPR (týdenní)
+				measure 'Budget Amount YTDOPY (Weekly)'
+					caption: Částka rozpočtu RKDDPPR (týdenní)
+				measure 'Budget Amount YTDOPY % (Weekly)'
+					caption: Částka rozpočtu RKDDPPR (%) (týdenní)
+				measure 'Budget Amount PQC (Weekly)'
+					caption: Částka rozpočtu CPK (týdenní)
+				measure 'Budget Amount QTDOPQ (Weekly)'
+					caption: Částka rozpočtu KDDVPK (týdenní)
+				measure 'Budget Amount QTDOPQ % (Weekly)'
+					caption: Částka rozpočtu KDDVPK (%) (týdenní)
+				measure 'Budget Amount PWC (Weekly)'
+					caption: Částka rozpočtu CPT (týdenní)
+				measure 'Budget Amount WTDOPW (Weekly)'
+					caption: Částka rozpočtu MTOPT (týdenní)
+				measure 'Budget Amount WTDOPW % (Weekly)'
+					caption: Částka rozpočtu MTOPT (%) (týdenní)
+				measure 'Budget Amount AVG 4W (Weekly)'
+					caption: Částka rozpočtu PRŮM 4T (týdenní)
+				measure 'Budget Amount AVG 1Q (Weekly)'
+					caption: Částka rozpočtu PRŮM 1K (týdenní)
+				measure 'Budget Amount AVG 1Y (Weekly)'
+					caption: Částka rozpočtu PRŮM 1R (týdenní)
+			table 'Localized Labels'
+				measure 'My Report Title'
+					caption: Můj nadpis sestavy
+				measure 'My Button Caption'
+					caption: Popisek mého tlačítka
+				measure 'My Visual Title'
+					caption: Název mého vizuálu
+				measure 'Purchases Overview'
+					caption: Přehled nákupů
+				measure 'Purchases Decomposition'
+					caption: Dekompozice nákupů
+				measure 'Daily Purchases'
+					caption: Denní nákupy
+				measure 'Moving Averages'
+					caption: Klouzavé průměry
+				measure 'Moving Annual Total (MAT)'
+					caption: Roční pohyblivý součet (RPS)
+				measure 'Period-Over-Period (POP)'
+					caption: Mezi obdobími (MO)
+				measure 'Year-Over-Year (YOY)'
+					caption: Meziročně (MR)
+				measure 'Purchases by Item'
+					caption: Nákupy podle zboží
+				measure 'Purchases by Purchaser'
+					caption: Nákupy podle kupujícího
+				measure 'Purchases by Vendor'
+					caption: Nákupy podle dodavatele
+				measure 'Purchases by Location'
+					caption: Nákupy podle lokality
+				measure 'Actual vs. Budget Quantity'
+					caption: Skutečné vs. rozpočtové množství
+				measure 'Actual vs. Budget Amount'
+					caption: Skutečná vs. rozpočtovaná částka
+				measure 'Item Drillthrough'
+					caption: Podrobné procházení zboží
+				measure 'Vendor Drillthrough'
+					caption: Podrobné procházení dodavatelů
+				measure 'Location Drillthrough'
+					caption: Podrobné procházení lokací
+				measure 'Purchaser Drillthrough'
+					caption: Podrobné procházení nakupujících
+				measure Purchase
+					caption: Nákup
+				measure 'for Business Central'
+					caption: pro Business Central
+				measure 'CONNECT YOUR DATA'
+					caption: PŘIPOJENÍ DAT
+				measure '1. Download the Purchasing Connector for Power BI'
+					caption: 1. Stažení řešení Purchasing Connector for Power BI
+				measure '2. Configure Dynamics 365 Business Central'
+					caption: 2. Konfigurace Dynamics 365 Business Central
+				measure 'USE, EDIT AND BUILD YOUR OWN REPORTS'
+					caption: POUŽÍVÁNÍ, ÚPRAVA A TVORBA VLASTNÍCH SESTAV
+				measure 'Purchasing includes a variety of pre-built reports to help you see your data immediately.'
+					caption: Nakupování obsahuje řadu předpřipravených sestav, které vám pomohou okamžitě zobrazit vaše data.
+				measure 'You are able to edit these reports or build your own report from scratch'
+					caption: Tyto sestavy můžete upravovat nebo si vytvořit vlastní sestavu od základu.
+				measure 'HELP AND SUPPORT'
+					caption: POMOC A PODPORA
+				measure 'For help and support with your new report please visit the Analytics overview documentation.'
+					caption: Nápovědu a podporu k nové sestavě naleznete v dokumentaci k přehledu Analytics.
+				measure 'OTHER POWER BI REPORTS'
+					caption: DALŠÍ SESTAVY POWER BI
+				measure SALES
+					caption: PRODEJ
+				measure FINANCE
+					caption: FINANCE
+				measure REBATES
+					caption: RABATY
+				measure INVENTORY
+					caption: ZÁSOBY
+				measure JOBS
+					caption: ÚLOHY
+				measure 'Purchase Amounts'
+					caption: Částky nákupů
+				measure 'Purchase Quantity by Item Category'
+					caption: Nákupní množství podle kategorie zboží
+				measure 'Top 5 Vendors by Amount by Source Type'
+					caption: 5 nejlepších dodavatelů podle množství podle typu původu
+				measure 'Locations by Quantity'
+					caption: Lokace podle množství
+				measure 'Document Count'
+					caption: Počet dokladů
+				measure 'Purchase Quantities'
+					caption: Nakoupená množství
+				measure 'Decomposition by Amount'
+					caption: Dekompozice podle množství
+				measure 'Purchase Amount and Purchase Amount 30 Days Average (Fiscal) by Fiscal Month Year'
+					caption: Průměrná částka nákupu za 30 dní (fiskální) a částka nákupu podle fiskálního měsíce a roku
+				measure 'Previous Year & Current Year Moving Annual Total by Fiscal Month Year'
+					caption: Předchozí rok a aktuální rok – roční pohyblivý součet podle fiskálního měsíce a roku
+				measure 'Purchase Amount Period-over-Period (Fiscal) and Purchase Amount by Fiscal Month Year'
+					caption: Částka nákupu mezi dvěma obdobími (fiskální) a částka nákupu podle fiskálního měsíce a roku
+				measure 'Current Year and Previous Year (Fiscal) Purchase Amount by Fiscal Month Year'
+					caption: Aktuální rok a předchozí rok (fiskální) – částka nákupu podle fiskálního měsíce a roku
+				measure 'Last Refreshed'
+					caption: Naposledy aktualizováno
+				measure 'Company Name'
+					caption: Název společnosti
+				measure 'Purchase Quantity by Location'
+					caption: Nakoupené množství podle lokace
+				measure 'Purchase Amounts of Top 5 Vendors'
+					caption: Částky nákupů 5 nejlepších dodavatelů
+				measure 'Purchase Distribution by Item Category'
+					caption: Distribuce nákupů podle kategorie zboží
+				measure 'Purchases by Item Category'
+					caption: Nákupy podle kategorie zboží
+				measure 'Purchase Amount by Item Category'
+					caption: Částka nákupu podle kategorie zboží
+				measure 'Actual vs Budget'
+					caption: Skutečnost vs. rozpočet
+				measure 'Actual vs Budget Purchase Analysis by Item Category'
+					caption: Analýza skutečného a rozpočtového nákupu podle kategorie zboží
+				measure 'Purchases Drillthrough'
+					caption: Podrobné procházení nákupů
+				measure 'Detailed Purchase Ledger'
+					caption: Podrobná položka nákupů
+				measure 'Total Purchase Amount by Fiscal Year'
+					caption: Celková částka nákupu podle fiskálního roku
+				measure PROJECTS
+					caption: PROJEKTY
+				measure MANUFACTURING
+					caption: VÝROBA
+				measure 'This card displays key metrics for business analysis. The card shows total purchase amount, document count, number of outstanding purchase orders, number of purchase invoices, outstanding amount, and invoiced amount.'
+					caption: Tato karta zobrazuje klíčové metriky pro obchodní analýzu. Karta zobrazuje celkovou částku nákupu, počet dokladů, počet nevyřízených nákupních objednávek, počet nákupních faktur, zůstatek a fakturovanou částku.
+				measure 'The card displays key metrics for business analysis, including total purchase amount, document count, number of outstanding purchase orders, number of purchase invoices, outstanding amount excluding VAT, and invoiced amount.'
+					caption: Karta zobrazuje klíčové metriky pro obchodní analýzu včetně celkové částky nákupu, počtu dokladů, počtu nevyřízených nákupních objednávek, počtu nákupních faktur, zůstatku bez DPH a fakturované částky.
+				measure 'Daily Purchases Details'
+					caption: Denní nákupy – podrobnosti
+				measure 'Moving Annual Total (MAT) Details'
+					caption: Roční pohyblivý součet (RPS) – podrobnosti
+				measure 'Period-Over-Period (POP) Details'
+					caption: Mezi obdobími (MO) – podrobnosti
+				measure 'Year-Over-Year (YOY) Details'
+					caption: Meziročně (MR) – podrobnosti
+				measure 'Purchases by Item Details'
+					caption: Nákupy podle zboží – podrobnosti
+				measure 'Purchases by Vendor Details'
+					caption: Nákupy podle dodavatele – podrobnosti
+				measure 'Purchases by Purchaser Details'
+					caption: Nákupy podle kupujícího – podrobnosti
+				measure 'Purchases by Location Details'
+					caption: Nákupy podle lokace – podrobnosti
+				measure 'Purchases Drillthrough Details'
+					caption: Podrobné procházení nákupů – podrobnosti
+			table COMPANY
+				caption: SPOLEČNOST
+				measure 'Company Label'
+					caption: Popisek společnosti
+			table 'Purchase Budget Name'
+				caption: Název rozpočtu nákupu
+				column 'Purchase Budget Description'
+					caption: Popis rozpočtu nákupu
+			table 'Item Category'
+				caption: Kategorie zboží
+				column 'Item Category Code'
+					caption: Kód kategorie zboží
+				column 'Item Category Description'
+					caption: Popis kategorie zboží
+				column 'Item Category Parent Category'
+					caption: Nadřazená kategorie kategorie zboží
+				column 'Item Category Code Level 1'
+					caption: Kód kategorie zboží – úroveň 1
+				column 'Item Category Code Level 2'
+					caption: Kód kategorie zboží – úroveň 2
+				column 'Item Category Code Level 3'
+					caption: Kód kategorie zboží – úroveň 3
+

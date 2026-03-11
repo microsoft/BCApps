@@ -1,0 +1,157 @@
+table 'G/L Budget Entries'
+	lineageTag: 31ab228d-b61f-4fdb-859e-d08bcd5e059e
+
+	measure 'Budget Balance at Date' =
+			
+			CALCULATE (
+			    [Budget Amount],
+			    FILTER ( ALL ( 'Date'[Date] ), 'Date'[Date] <= MAX ( 'Date'[Date] ) )
+			)
+		formatString: #,0.00
+		displayFolder: _G/L Budget Entry Measures
+		lineageTag: 672ce4f6-d49f-42e7-af0e-872a974b6e8f
+
+		annotation PBI_FormatHint = {"currencyCulture":"en-AU"}
+
+	measure 'Budget Amount' = SUM('G/L Budget Entries'[Budget Amt.])
+		formatString: #,0.00
+		displayFolder: _G/L Budget Entry Measures
+		lineageTag: 032f8781-490c-4b21-a3ff-bb035554405f
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Budget Entry Back Link' =
+			
+			VAR Endpoint = "&page=120&"
+			VAR baseLink = [Base Link] & Endpoint
+			
+			// Build filter context
+			var budgetName = CONCATENATEX(VALUES('G/L Budget Entries'[Budget Name]), [Budget Name], "|")
+			VAR GLAccounts =
+			    VALUES ( 'G/L Account'[G/L Account No.] )
+			VAR MinGLAcc =  MIN ( 'G/L Account'[G/L Account No.] )
+			VAR MaxGLAcc =  MAX ( 'G/L Account'[G/L Account No.] )
+			VAR DimensionSets = CONCATENATEX(VALUES('G/L Budget Entries'[dimensionSetID]), [dimensionSetID], "|")
+			
+			// Build URL string components
+			VAR GLAccountRange = MinGLAcc & ".." & MaxGLAcc
+			VAR GLAccountFilter = "filter='G/L Budget Entry'.'G/L Account No.' IS " & "'" & GLAccountRange & "'"
+			VAR GLPostingDateFilter = " AND 'G/L Budget Entry'.'Date' IS " & "'" & [Ranged]  & "'"
+			VAR GLBudgetFilter = " AND 'G/L Budget Entry'.'Budget Name' IS " & "'" & budgetName  & "'"
+			VAR DimensionSetFilter = " AND 'G/L Budget Entry'.'Dimension Set ID' IS " & "'" & DimensionSets & "'"
+			
+			RETURN
+			    baseLink & GLAccountFilter & GLPostingDateFilter & GLBudgetFilter & DimensionSetFilter
+		displayFolder: _G/L Budget Entry Measures\_G/L Budget Entry Back Links
+		lineageTag: 1dcb8fc2-2a72-419b-ac3e-527433816439
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column 'Budget Name'
+		dataType: string
+		isHidden
+		lineageTag: 7fa1b4db-1feb-494f-9efe-07ab9cefd858
+		summarizeBy: none
+		sourceColumn: Budget Name
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'G/L Account No.'
+		dataType: string
+		isHidden
+		lineageTag: 9ecd3aa9-abed-4267-bbef-4dcfb9d5448d
+		summarizeBy: none
+		sourceColumn: G/L Account No.
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Budget Date'
+		dataType: dateTime
+		isHidden
+		formatString: Short Date
+		lineageTag: d140a41e-03d3-48e8-88ab-64df845eb45f
+		summarizeBy: none
+		sourceColumn: Budget Date
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	column 'Budget Amt.'
+		dataType: decimal
+		isHidden
+		formatString: \$#,0.###############;-\$#,0.###############;\$#,0.###############
+		lineageTag: 6d6247eb-a8d5-47fe-93ca-715fcaba9ec8
+		summarizeBy: sum
+		sourceColumn: Budget Amt.
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"currencyCulture":"en-AU"}
+
+	column dimensionSetID
+		dataType: int64
+		isHidden
+		formatString: 0
+		lineageTag: 160a6c1f-77b2-4a4c-a3f1-1571643ce810
+		summarizeBy: none
+		sourceColumn: dimensionSetID
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Entry No.'
+		dataType: int64
+		isKey
+		formatString: 0
+		lineageTag: 31220284-7497-4d6f-a200-88451e745123
+		summarizeBy: sum
+		sourceColumn: Entry No.
+
+		annotation SummarizationSetBy = Automatic
+
+	partition 'G/L Budget Entries-9162cab7-47d5-46d5-a61c-1b5eeeaf073f' = m
+		mode: import
+		queryGroup: 'Fact Tables'
+		source =
+				let
+				    Source = Dynamics365BusinessCentral.ApiContentsWithOptions(
+				        ENVIRONMENT, COMPANY,API_ENDPOINT, []
+				    ),
+				    TableData = Source{[Name = "generalLedgerBudgetEntries", Signature = "table"]}[Data],
+				    #"Changed Type" = Table.TransformColumnTypes(
+				        TableData,
+				        {
+				            {"budgetName", type text},
+				            {"glAccountNo", type text},
+				            {"budgetDate", type date},
+				            {"budgetAmount", Currency.Type},
+				            {"dimensionSetID", Int64.Type},
+				            {"entryNo", Int64.Type}
+				        }
+				    ),
+				    #"Renamed Columns" = Table.RenameColumns(
+				        #"Changed Type",
+				        {
+				            {"glAccountNo", "G/L Account No."},
+				            {"budgetAmount", "Budget Amt."},
+				            {"budgetName", "Budget Name"},
+				            {"budgetDate", "Budget Date"},
+				            {"entryNo", "Entry No."}
+				        }
+				    ),
+				    #"Removed Columns" = Table.RemoveColumns(#"Renamed Columns", {"ETag"})
+				in
+				    #"Removed Columns"
+
+	annotation PBI_ResultType = Table
+
+	annotation PBI_NavigationStepName = Navigation
+

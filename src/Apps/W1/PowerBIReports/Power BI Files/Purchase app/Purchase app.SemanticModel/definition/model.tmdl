@@ -1,0 +1,101 @@
+model Model
+	culture: en-US
+	defaultPowerBIDataSourceVersion: powerBI_V3
+	sourceQueryCulture: en-AU
+	dataAccessOptions
+		legacyRedirects
+		returnErrorValuesAsNull
+
+queryGroup 'Parameters and Functions'
+
+	annotation PBI_QueryGroupOrder = 0
+
+queryGroup 'Dimension Tables'
+
+	annotation PBI_QueryGroupOrder = 1
+
+queryGroup 'Fact Tables'
+
+	annotation PBI_QueryGroupOrder = 2
+
+queryGroup 'Date Table'
+
+	annotation PBI_QueryGroupOrder = 3
+
+queryGroup 'Parameters and Functions\Functions'
+
+	annotation PBI_QueryGroupOrder = 0
+
+queryGroup 'Purchase Types'
+
+	annotation PBI_QueryGroupOrder = 5
+
+annotation __PBI_TimeIntelligenceEnabled = 0
+
+annotation PBI_QueryOrder = ["Item","Location","Vendor","Purchaser","Dimension Sets","InvertSignsPurchaseLines","InvertSignsResourceLedgerEntries","InvertSignsGeneralLedgerEntries","ENVIRONMENT","COMPANY","API_ENDPOINT","ConvertUTC","Dimensions","DimensionSet_Blank","DimensionSets_DataSource","GetDimCode","GetDimCodeCaption","GetDimNameCaption","Documents","Purchase Budget","Date Table Setup","Working Days","Standard Calendar Time Intelligence","Fiscal Calendar Time Intelligence","Weekly Calendar Time Intelligence","Purchase Budget Name","Item Category","Purchase Lines","Purchase Value Entries","Resources","G/L Accounts","Purchase Invoice Lines","Purchase Credit Lines","Type","Project","Capacity Ledger Entries","Reason Codes","Item Ledger Document Type","Purchase Document Type","Purchase Line Type"]
+
+annotation __TEdtr = 1
+
+annotation PBI_ProTooling = ["DevMode","DaxQueryView_Desktop"]
+
+annotation TranslationsBuilder = Version:2.2-Updated:2025-05-16
+
+ref table Item
+ref table Location
+ref table Vendor
+ref table Purchaser
+ref table 'Dimension Sets'
+ref table 'Purchase Budget'
+ref table 'Date Table Setup'
+ref table 'Working Days'
+ref table 'Date Ref'
+ref table Date
+ref table 'Standard Calendar Time Intelligence'
+ref table 'Fiscal Calendar Time Intelligence'
+ref table 'Weekly Calendar Time Intelligence'
+ref table 'Localized Labels'
+ref table COMPANY
+ref table 'Purchase Budget Name'
+ref table ENVIRONMENT
+ref table 'Item Category'
+ref table 'Translated Localized Labels'
+ref table Documents
+ref table 'Purchase Lines'
+ref table 'Purchase Value Entries'
+ref table Resources
+ref table 'G/L Accounts'
+ref table 'Purchase Invoice Lines'
+ref table 'Purchase Credit Lines'
+ref table Type
+ref table Project
+ref table 'Pareto Scale'
+ref table 'Reason Codes'
+ref table 'Item Ledger Document Type'
+ref table 'Purchase Document Type'
+ref table 'Purchase Line Type'
+
+ref cultureInfo en-US
+ref cultureInfo da-DK
+ref cultureInfo de-DE
+ref cultureInfo es-ES
+ref cultureInfo fr-FR
+ref cultureInfo cs-CZ
+ref cultureInfo de-AT
+ref cultureInfo de-CH
+ref cultureInfo en-AU
+ref cultureInfo en-CA
+ref cultureInfo en-GB
+ref cultureInfo en-NZ
+ref cultureInfo es-MX
+ref cultureInfo fi-FI
+ref cultureInfo fr-BE
+ref cultureInfo fr-CA
+ref cultureInfo fr-CH
+ref cultureInfo is-IS
+ref cultureInfo it-CH
+ref cultureInfo it-IT
+ref cultureInfo nb-NO
+ref cultureInfo nl-BE
+ref cultureInfo nl-NL
+ref cultureInfo sv-SE
+

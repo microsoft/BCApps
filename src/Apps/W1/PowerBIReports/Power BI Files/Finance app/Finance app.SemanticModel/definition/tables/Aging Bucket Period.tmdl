@@ -1,0 +1,114 @@
+table 'Aging Bucket Period'
+	lineageTag: 7b6e5cc8-2555-4137-af8f-47e449cb4633
+
+	measure 'Aging Bucket Period Value' = SELECTEDVALUE('Aging Bucket Period'[Aging Bucket Period], 30)
+		formatString: 0
+		lineageTag: 73184a50-6937-4c96-ab41-7a56c7634a4d
+
+	measure 'Bucket 1 Range' =
+			
+			VAR AGINGBUCKETLENGTH = 'Aging Bucket Period'[Aging Bucket Period Value]
+			VAR STARTAGINGVALUE = AGINGBUCKETLENGTH
+			RETURN 1 & " - " & STARTAGINGVALUE & "D"
+		lineageTag: fb38b8fc-e341-4f41-92fa-46a410eca0f0
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Bucket 2 Range' =
+			
+			VAR AGINGBUCKETLENGTH = 'Aging Bucket Period'[Aging Bucket Period Value]
+			VAR AGINGENDDATEVALUE = AGINGBUCKETLENGTH + 1
+			VAR AGINGSTARTDATEVALUE = AGINGBUCKETLENGTH * 2
+			RETURN AGINGENDDATEVALUE & " - " & AGINGSTARTDATEVALUE & "D"
+		lineageTag: 93a05484-c456-4542-95e3-9c0080bf44b5
+
+	measure 'Bucket 3 Range' =
+			
+			VAR AGINGBUCKETLENGTH = 'Aging Bucket Period'[Aging Bucket Period Value]
+			VAR AGINGENDDATEVALUE = (AGINGBUCKETLENGTH * 2) + 1
+			VAR AGINGSTARTDATEVALUE = AGINGBUCKETLENGTH * 3
+			RETURN AGINGENDDATEVALUE & " - " & AGINGSTARTDATEVALUE & "D"
+		lineageTag: 02a452d2-13d3-499b-bdc9-d13cb5c0b9f0
+
+	measure 'Bucket 4 Range' =
+			
+			VAR AGINGBUCKETLENGTH = 'Aging Bucket Period'[Aging Bucket Period Value]
+			VAR AGINGENDDATEVALUE = AGINGBUCKETLENGTH * 3
+			VAR ASATDATE = LASTDATE('Date'[Date])
+			VAR ENDDATE = DATEADD(ASATDATE,AGINGENDDATEVALUE,DAY)
+			RETURN AGINGENDDATEVALUE & "D+"
+		lineageTag: 8bd05019-4991-4900-81ca-b1eb0208ca27
+
+	measure 'Bucket 1 Date Range' =
+			
+			VAR AGINGBUCKETLENGTH = 'Aging Bucket Period'[Aging Bucket Period Value] - 1
+			VAR STARTAGINGVALUE = AGINGBUCKETLENGTH * -1
+			
+			VAR ASATDATE = DATEADD(LASTDATE('Date'[Date]),-1,DAY)
+			VAR STARTDATE = DATEADD(ASATDATE,STARTAGINGVALUE,DAY)
+			RETURN FORMAT(ASATDATE, "Short Date", USERCULTURE()) & " .. " & FORMAT(STARTDATE, "Short Date", USERCULTURE())
+		lineageTag: f5db9d5f-a970-476c-926e-ca707d38b909
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Bucket 2 Date Range' =
+			
+			VAR AGINGBUCKETLENGTH = 'Aging Bucket Period'[Aging Bucket Period Value] * -1
+			VAR AGINGENDDATEVALUE = AGINGBUCKETLENGTH
+			VAR AGINGSTARTDATEVALUE = (AGINGBUCKETLENGTH * 2) + 1
+			
+			VAR ASATDATE = DATEADD(LASTDATE('Date'[Date]),-1,DAY)
+			VAR ENDDATE = DATEADD(ASATDATE,AGINGENDDATEVALUE,DAY)
+			VAR STARTDATE = DATEADD(ASATDATE,AGINGSTARTDATEVALUE,DAY)
+			RETURN FORMAT(ENDDATE, "Short Date", USERCULTURE()) & " .. " & FORMAT(STARTDATE, "Short Date", USERCULTURE())
+		lineageTag: 2568dd31-ab4f-4fcf-ad6f-b3cfe5b6efcb
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Bucket 3 Date Range' =
+			
+			VAR AGINGBUCKETLENGTH = 'Aging Bucket Period'[Aging Bucket Period Value] * -1
+			VAR AGINGENDDATEVALUE =  AGINGBUCKETLENGTH * 2
+			VAR AGINGSTARTDATEVALUE = (AGINGBUCKETLENGTH * 3) + 1
+			
+			VAR ASATDATE = DATEADD(LASTDATE('Date'[Date]),-1,DAY)
+			VAR ENDDATE = DATEADD(ASATDATE,AGINGENDDATEVALUE,DAY)
+			VAR STARTDATE = DATEADD(ASATDATE,AGINGSTARTDATEVALUE,DAY)
+			RETURN FORMAT(ENDDATE, "Short Date", USERCULTURE()) & " .. " & FORMAT(STARTDATE, "Short Date", USERCULTURE())
+		lineageTag: 56523b88-65b6-4cda-a690-f1504f894781
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Bucket 4 Date Range' = ```
+			
+			VAR AGINGBUCKETLENGTH = 'Aging Bucket Period'[Aging Bucket Period Value] * -1
+			VAR AGINGENDDATEVALUE = (AGINGBUCKETLENGTH * 3) + 1
+			
+			VAR ASATDATE = DATEADD(LASTDATE('Date'[Date]),-1,DAY)
+			VAR ENDDATE = DATEADD(ASATDATE,AGINGENDDATEVALUE,DAY)
+			RETURN  FORMAT(ENDDATE, "Short Date", USERCULTURE()) & " .."
+			
+			```
+		lineageTag: 775dff5c-9502-4866-90da-0d8e762e9fb5
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column 'Aging Bucket Period'
+		formatString: 0
+		lineageTag: 917780ff-858f-4461-853a-b0e76010ec3e
+		summarizeBy: none
+		sourceColumn: [Value]
+
+		extendedProperty ParameterMetadata =
+				{
+				  "version": 0
+				}
+
+		annotation SummarizationSetBy = User
+
+	partition 'Aging Bucket Period-f7e7c849-9522-4468-83d2-38211d7e6038' = calculated
+		mode: import
+		source = GENERATESERIES(1, 365, 1)
+
+	annotation PBI_Id = 11073b224f9b40fb96a849df156ec6f7
+

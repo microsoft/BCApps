@@ -1,0 +1,1303 @@
+{
+  "version": "1.1.0",
+  "diagrams": [
+    {
+      "ordinal": 0,
+      "scrollPosition": {
+        "x": 6129,
+        "y": 0
+      },
+      "nodes": [
+        {
+          "location": {
+            "x": 1215.0624234543989,
+            "y": 434.95175892784039
+          },
+          "nodeIndex": "Fiscal Calendar Time Intelligence",
+          "nodeLineageTag": "5d237275-417b-46df-8bb9-4efa33baba80",
+          "size": {
+            "height": 300,
+            "width": 234
+          },
+          "zIndex": 0
+        },
+        {
+          "location": {
+            "x": 1499.0624234543989,
+            "y": 434.95175892784039
+          },
+          "nodeIndex": "Standard Calendar Time Intelligence",
+          "nodeLineageTag": "f1b8f50b-016f-432b-aad8-9747c2322904",
+          "size": {
+            "height": 300,
+            "width": 234
+          },
+          "zIndex": 0
+        },
+        {
+          "location": {
+            "x": 2067.0624234543989,
+            "y": 434.95175892784039
+          },
+          "nodeIndex": "Weekly Calendar Time Intelligence",
+          "nodeLineageTag": "2622aeff-99bb-4997-a6ad-1f8d09869ec5",
+          "size": {
+            "height": 300,
+            "width": 234
+          },
+          "zIndex": 0
+        },
+        {
+          "location": {
+            "x": 662.017000066061,
+            "y": 794.65351785568089
+          },
+          "nodeIndex": "Date",
+          "nodeLineageTag": "3e69dbdc-0f07-4c5c-bfd0-e36ebb84add5",
+          "size": {
+            "height": 104,
+            "width": 234
+          },
+          "zIndex": 0,
+          "expandedHeight": 300
+        },
+        {
+          "location": {
+            "x": 2351.0624234543989,
+            "y": 434.95175892784039
+          },
+          "nodeIndex": "Date Ref",
+          "nodeLineageTag": "6a580248-ffd8-48e9-b1b8-322016e3b775",
+          "size": {
+            "height": 300,
+            "width": 234
+          },
+          "zIndex": 0
+        },
+        {
+          "location": {
+            "x": 2635.0624234543989,
+            "y": 434.95175892784039
+          },
+          "nodeIndex": "Date Table Setup",
+          "nodeLineageTag": "f131f322-e06e-4f0a-9660-6ff8b8564842",
+          "size": {
+            "height": 300,
+            "width": 234
+          },
+          "zIndex": 0
+        },
+        {
+          "location": {
+            "x": 944.062423454399,
+            "y": 428.95950547905403
+          },
+          "nodeIndex": "Dimension Sets",
+          "nodeLineageTag": "0e6b1eae-ab03-419c-b6aa-11a51746adad",
+          "size": {
+            "height": 104,
+            "width": 234
+          },
+          "zIndex": 0,
+          "expandedHeight": 300
+        },
+        {
+          "location": {
+            "x": 731.72531955416571,
+            "y": 99.398711067195222
+          },
+          "nodeIndex": "Item",
+          "nodeLineageTag": "5a9bd65b-6f5f-459e-aa78-812cb31cc047",
+          "size": {
+            "height": 104,
+            "width": 234
+          },
+          "zIndex": 0,
+          "expandedHeight": 272
+        },
+        {
+          "location": {
+            "x": 2919.0624234543989,
+            "y": 434.95175892784039
+          },
+          "nodeIndex": "Localized Labels",
+          "nodeLineageTag": "7ab9b912-a1ea-480f-ab22-ede9aa53e9d7",
+          "size": {
+            "height": 300,
+            "width": 234
+          },
+          "zIndex": 0
+        },
+        {
+          "location": {
+            "x": 244.61820548141077,
+            "y": 777.88170585928731
+          },
+          "nodeIndex": "Location",
+          "nodeLineageTag": "597c0630-13e6-42ad-a184-61e439cebab6",
+          "size": {
+            "height": 104,
+            "width": 234
+          },
+          "zIndex": 0,
+          "expandedHeight": 152
+        },
+        {
+          "location": {
+            "x": 645.37233494014845,
+            "y": 424.95263227415006
+          },
+          "nodeIndex": "Purchase Budget",
+          "nodeLineageTag": "8d492e62-d0b3-4313-97b4-03539d4ba97e",
+          "size": {
+            "height": 200,
+            "width": 234
+          },
+          "zIndex": 0,
+          "expandedHeight": 300
+        },
+        {
+          "location": {
+            "x": 10,
+            "y": 346.24414277907931
+          },
+          "nodeIndex": "Purchaser",
+          "nodeLineageTag": "40b0470b-ee89-43f9-a967-e68fd02dce42",
+          "size": {
+            "height": 104,
+            "width": 234
+          },
+          "zIndex": 0,
+          "expandedHeight": 128
+        },
+        {
+          "location": {
+            "x": 297.0832033747713,
+            "y": 71.25
+          },
+          "nodeIndex": "Vendor",
+          "nodeLineageTag": "7c350b7c-ed71-499f-860b-bf6b769f6755",
+          "size": {
+            "height": 104,
+            "width": 234
+          },
+          "zIndex": 0,
+          "expandedHeight": 300
+        },
+        {
+          "location": {
+            "x": 4055.0624234543989,
+            "y": 520.95175892784039
+          },
+          "nodeIndex": "Working Days",
+          "nodeLineageTag": "e508ac4c-018e-4d32-8b34-03271ebfe8d2",
+          "size": {
+            "height": 128,
+            "width": 234
+          },
+          "zIndex": 0
+        },
+        {
+          "location": {
+            "x": 5040.1264614751653,
+            "y": 520.9517589278405
+          },
+          "nodeIndex": "COMPANY",
+          "nodeLineageTag": "7c0c6ae0-1bfb-4738-853d-1e50fc13e6d1",
+          "size": {
+            "height": 128,
+            "width": 234
+          },
+          "zIndex": 0
+        },
+        {
+          "location": {
+            "x": 5314.1264614751653,
+            "y": 430.95175892784044
+          },
+          "nodeIndex": "Purchase Budget Name",
+          "nodeLineageTag": "b0d69b4b-97c9-4ff6-a067-baf22b5f7b07",
+          "size": {
+            "height": 128,
+            "width": 234
+          },
+          "zIndex": 0
+        },
+        {
+          "location": {
+            "x": 5598.1264614751653,
+            "y": 442.95175892784044
+          },
+          "nodeIndex": "ENVIRONMENT",
+          "nodeLineageTag": "4c9e6805-e2b0-486d-adfe-e6074055ac4e",
+          "size": {
+            "height": 104,
+            "width": 234
+          },
+          "zIndex": 0
+        },
+        {
+          "location": {
+            "x": 5882.1264614751653,
+            "y": 418.95175892784044
+          },
+          "nodeIndex": "Item Category",
+          "nodeLineageTag": "f8ad2218-1f98-4889-ac89-2cf23a71add7",
+          "size": {
+            "height": 152,
+            "width": 234
+          },
+          "zIndex": 0
+        },
+        {
+          "location": {
+            "x": 6166.1264614751653,
+            "y": 344.95175892784044
+          },
+          "nodeIndex": "Translated Localized Labels",
+          "size": {
+            "height": 300,
+            "width": 234
+          },
+          "zIndex": 0
+        },
+        {
+          "location": {
+            "x": 6450.1264614751653,
+            "y": 344.95175892784044
+          },
+          "nodeIndex": "Purchase Lines",
+          "nodeLineageTag": "f39f80cf-ea2f-4b97-9e86-699fc65d6962",
+          "size": {
+            "height": 300,
+            "width": 234
+          },
+          "zIndex": 0
+        },
+        {
+          "location": {
+            "x": 6734.1264614751653,
+            "y": 344.95175892784044
+          },
+          "nodeIndex": "Purchase Value Entries",
+          "nodeLineageTag": "19fc67f9-f834-46b9-978d-03d45803d13f",
+          "size": {
+            "height": 300,
+            "width": 234
+          },
+          "zIndex": 0
+        },
+        {
+          "location": {
+            "x": 7342.1264614751653,
+            "y": 308.95175892784044
+          },
+          "nodeIndex": "G/L Accounts",
+          "nodeLineageTag": "523c4210-80f1-492c-9444-141aa9c3ee04",
+          "size": {
+            "height": 272,
+            "width": 234
+          },
+          "zIndex": 0
+        },
+        {
+          "location": {
+            "x": 7626.1264614751653,
+            "y": 332.95175892784044
+          },
+          "nodeIndex": "Resources",
+          "nodeLineageTag": "5dbd685e-f6e8-4163-a858-c2d621dfa648",
+          "size": {
+            "height": 224,
+            "width": 234
+          },
+          "zIndex": 0
+        },
+        {
+          "location": {
+            "x": 7900.1264614751653,
+            "y": 324.95175892784044
+          },
+          "nodeIndex": "Purchase Invoice Lines",
+          "nodeLineageTag": "779ec479-0f3c-4091-96fd-880491db009d",
+          "size": {
+            "height": 300,
+            "width": 234
+          },
+          "zIndex": 0
+        },
+        {
+          "location": {
+            "x": 359.5294641840884,
+            "y": 424.94307928521374
+          },
+          "nodeIndex": "Documents",
+          "size": {
+            "height": 224,
+            "width": 234
+          },
+          "zIndex": 0,
+          "expandedHeight": 300
+        },
+        {
+          "location": {
+            "x": 8508.3112126557953,
+            "y": 279.41920433916857
+          },
+          "nodeIndex": "Purchase Credit Lines",
+          "nodeLineageTag": "b05ab150-3ef3-4c53-b559-c4d393f3dd6f",
+          "size": {
+            "height": 300,
+            "width": 234
+          },
+          "zIndex": 0
+        },
+        {
+          "location": {
+            "x": 8792.4881008905249,
+            "y": 390.74419697160471
+          },
+          "nodeIndex": "Type",
+          "nodeLineageTag": "71c5b91b-3d8f-440e-8ef4-48cbfa95146b",
+          "size": {
+            "height": 104,
+            "width": 234
+          },
+          "zIndex": 0
+        },
+        {
+          "location": {
+            "x": 8224.1264614751653,
+            "y": 260.48431351651232
+          },
+          "nodeIndex": "Project",
+          "nodeLineageTag": "e76a9889-6235-4e45-bb1f-5d887e608d9c",
+          "size": {
+            "height": 300,
+            "width": 234
+          },
+          "zIndex": 0
+        },
+        {
+          "location": {
+            "x": 9066.4881008905249,
+            "y": 287.45175892784044
+          },
+          "nodeIndex": "Pareto Scale",
+          "nodeLineageTag": "73d6e048-d3f8-469b-8c14-e6e85c1c7899",
+          "size": {
+            "height": 300,
+            "width": 234
+          },
+          "zIndex": 0
+        },
+        {
+          "location": {
+            "x": 9350.4881008905249,
+            "y": 373.45175892784044
+          },
+          "nodeIndex": "Reason Codes",
+          "nodeLineageTag": "c0cc41a4-049b-455a-92ce-d8b38f5825d7",
+          "size": {
+            "height": 128,
+            "width": 234
+          },
+          "zIndex": 0
+        }
+      ],
+      "name": "All tables",
+      "zoomValue": 100,
+      "pinKeyFieldsToTop": false,
+      "showExtraHeaderInfo": false,
+      "hideKeyFieldsWhenCollapsed": false,
+      "tablesLocked": false
+    },
+    {
+      "ordinal": 1,
+      "scrollPosition": {
+        "x": 0,
+        "y": 0
+      },
+      "nodes": [
+        {
+          "location": {
+            "x": 372.46664319263948,
+            "y": 194.51102778790676
+          },
+          "nodeIndex": "Purchase Budget",
+          "nodeLineageTag": "8d492e62-d0b3-4313-97b4-03539d4ba97e",
+          "size": {
+            "height": 300,
+            "width": 234
+          },
+          "zIndex": 1
+        },
+        {
+          "location": {
+            "x": 741.34115306539445,
+            "y": 194.44472935146905
+          },
+          "nodeIndex": "Date",
+          "nodeLineageTag": "3e69dbdc-0f07-4c5c-bfd0-e36ebb84add5",
+          "size": {
+            "height": 300,
+            "width": 234
+          },
+          "zIndex": 2
+        },
+        {
+          "location": {
+            "x": 302.32095195674924,
+            "y": 0
+          },
+          "nodeIndex": "Location",
+          "nodeLineageTag": "597c0630-13e6-42ad-a184-61e439cebab6",
+          "size": {
+            "height": 152,
+            "width": 234
+          },
+          "zIndex": 3
+        },
+        {
+          "location": {
+            "x": 577.17446156968151,
+            "y": 548.21771698749433
+          },
+          "nodeIndex": "Vendor",
+          "nodeLineageTag": "7c350b7c-ed71-499f-860b-bf6b769f6755",
+          "size": {
+            "height": 300,
+            "width": 234
+          },
+          "zIndex": 4
+        },
+        {
+          "location": {
+            "x": 10,
+            "y": 194.39928192157419
+          },
+          "nodeIndex": "Dimension Sets",
+          "nodeLineageTag": "0e6b1eae-ab03-419c-b6aa-11a51746adad",
+          "size": {
+            "height": 300,
+            "width": 234
+          },
+          "zIndex": 5
+        },
+        {
+          "location": {
+            "x": 91.864439096577712,
+            "y": 548.05879694021814
+          },
+          "nodeIndex": "Item",
+          "nodeLineageTag": "5a9bd65b-6f5f-459e-aa78-812cb31cc047",
+          "size": {
+            "height": 272,
+            "width": 234
+          },
+          "zIndex": 6
+        },
+        {
+          "location": {
+            "x": 589,
+            "y": 0
+          },
+          "nodeIndex": "Purchase Budget Name",
+          "nodeLineageTag": "b0d69b4b-97c9-4ff6-a067-baf22b5f7b07",
+          "size": {
+            "height": 128,
+            "width": 234
+          },
+          "zIndex": 7
+        }
+      ],
+      "name": "Budgets",
+      "zoomValue": 100,
+      "pinKeyFieldsToTop": false,
+      "showExtraHeaderInfo": false,
+      "hideKeyFieldsWhenCollapsed": false,
+      "tablesLocked": false
+    },
+    {
+      "ordinal": 2,
+      "scrollPosition": {
+        "x": 0,
+        "y": 0
+      },
+      "nodes": [
+        {
+          "location": {
+            "x": 568,
+            "y": 154
+          },
+          "nodeIndex": "Item",
+          "nodeLineageTag": "5a9bd65b-6f5f-459e-aa78-812cb31cc047",
+          "size": {
+            "height": 348,
+            "width": 234
+          },
+          "zIndex": 0
+        },
+        {
+          "location": {
+            "x": 1025,
+            "y": 45
+          },
+          "nodeIndex": "Item Category",
+          "nodeLineageTag": "f8ad2218-1f98-4889-ac89-2cf23a71add7",
+          "size": {
+            "height": 296,
+            "width": 234
+          },
+          "zIndex": 0
+        }
+      ],
+      "name": "Items",
+      "zoomValue": 100,
+      "pinKeyFieldsToTop": false,
+      "showExtraHeaderInfo": false,
+      "hideKeyFieldsWhenCollapsed": false,
+      "tablesLocked": false
+    },
+    {
+      "ordinal": 3,
+      "scrollPosition": {
+        "x": 0,
+        "y": 0
+      },
+      "nodes": [
+        {
+          "location": {
+            "x": 671,
+            "y": 155
+          },
+          "nodeIndex": "Purchase Lines",
+          "nodeLineageTag": "f39f80cf-ea2f-4b97-9e86-699fc65d6962",
+          "size": {
+            "height": 300,
+            "width": 234
+          },
+          "zIndex": 12
+        },
+        {
+          "location": {
+            "x": 1114,
+            "y": 160
+          },
+          "nodeIndex": "Purchaser",
+          "nodeLineageTag": "40b0470b-ee89-43f9-a967-e68fd02dce42",
+          "size": {
+            "height": 128,
+            "width": 234
+          },
+          "zIndex": 3
+        },
+        {
+          "location": {
+            "x": 1130,
+            "y": 481
+          },
+          "nodeIndex": "Vendor",
+          "nodeLineageTag": "7c350b7c-ed71-499f-860b-bf6b769f6755",
+          "size": {
+            "height": 104,
+            "width": 234
+          },
+          "zIndex": 4,
+          "expandedHeight": 300
+        },
+        {
+          "location": {
+            "x": 1111,
+            "y": 6
+          },
+          "nodeIndex": "Item",
+          "nodeLineageTag": "5a9bd65b-6f5f-459e-aa78-812cb31cc047",
+          "size": {
+            "height": 128,
+            "width": 234
+          },
+          "zIndex": 5,
+          "expandedHeight": 300
+        },
+        {
+          "location": {
+            "x": 1125,
+            "y": 331
+          },
+          "nodeIndex": "Date",
+          "nodeLineageTag": "3e69dbdc-0f07-4c5c-bfd0-e36ebb84add5",
+          "size": {
+            "height": 104,
+            "width": 234
+          },
+          "zIndex": 6,
+          "expandedHeight": 300
+        },
+        {
+          "location": {
+            "x": 1130,
+            "y": 619
+          },
+          "nodeIndex": "G/L Accounts",
+          "nodeLineageTag": "523c4210-80f1-492c-9444-141aa9c3ee04",
+          "size": {
+            "height": 104,
+            "width": 234
+          },
+          "zIndex": 7,
+          "expandedHeight": 200
+        },
+        {
+          "location": {
+            "x": 1139,
+            "y": 762
+          },
+          "nodeIndex": "Resources",
+          "nodeLineageTag": "5dbd685e-f6e8-4163-a858-c2d621dfa648",
+          "size": {
+            "height": 104,
+            "width": 234
+          },
+          "zIndex": 8,
+          "expandedHeight": 224
+        },
+        {
+          "location": {
+            "x": 326.93528607142144,
+            "y": 25.366913611773811
+          },
+          "nodeIndex": "Documents",
+          "nodeLineageTag": "112cc132-4cef-4b01-879b-c18c1431b470",
+          "size": {
+            "height": 176,
+            "width": 234
+          },
+          "zIndex": 11
+        },
+        {
+          "location": {
+            "x": 325.20000076293945,
+            "y": 575.19999694824219
+          },
+          "nodeIndex": "Type",
+          "nodeLineageTag": "71c5b91b-3d8f-440e-8ef4-48cbfa95146b",
+          "size": {
+            "height": 104,
+            "width": 234
+          },
+          "zIndex": 9
+        },
+        {
+          "location": {
+            "x": 324.20329381910062,
+            "y": 340.12771978626023
+          },
+          "nodeIndex": "Project",
+          "nodeLineageTag": "e76a9889-6235-4e45-bb1f-5d887e608d9c",
+          "size": {
+            "height": 104,
+            "width": 234
+          },
+          "zIndex": 10,
+          "expandedHeight": 300
+        },
+        {
+          "location": {
+            "x": 396.53711287257136,
+            "y": 754.74602232711106
+          },
+          "nodeIndex": "Dimension Sets",
+          "nodeLineageTag": "0e6b1eae-ab03-419c-b6aa-11a51746adad",
+          "size": {
+            "height": 104,
+            "width": 234
+          },
+          "zIndex": 1,
+          "expandedHeight": 300
+        },
+        {
+          "location": {
+            "x": 663.0255104071091,
+            "y": 846.50853657249445
+          },
+          "nodeIndex": "Reason Codes",
+          "nodeLineageTag": "c0cc41a4-049b-455a-92ce-d8b38f5825d7",
+          "size": {
+            "height": 128,
+            "width": 234
+          },
+          "zIndex": 2
+        }
+      ],
+      "name": "Purchase Lines",
+      "zoomValue": 79.553182037699813,
+      "pinKeyFieldsToTop": false,
+      "showExtraHeaderInfo": false,
+      "hideKeyFieldsWhenCollapsed": false,
+      "tablesLocked": false
+    },
+    {
+      "ordinal": 4,
+      "scrollPosition": {
+        "x": 0,
+        "y": 0
+      },
+      "nodes": [
+        {
+          "location": {
+            "x": 339.67532010243048,
+            "y": 307.27303376480751
+          },
+          "nodeIndex": "Purchase Value Entries",
+          "nodeLineageTag": "19fc67f9-f834-46b9-978d-03d45803d13f",
+          "size": {
+            "height": 300,
+            "width": 234
+          },
+          "zIndex": 1
+        },
+        {
+          "location": {
+            "x": 722.64239848313207,
+            "y": 0
+          },
+          "nodeIndex": "Item",
+          "nodeLineageTag": "5a9bd65b-6f5f-459e-aa78-812cb31cc047",
+          "size": {
+            "height": 128,
+            "width": 234
+          },
+          "zIndex": 2,
+          "expandedHeight": 300
+        },
+        {
+          "location": {
+            "x": 721,
+            "y": 150.32530851270991
+          },
+          "nodeIndex": "Vendor",
+          "nodeLineageTag": "7c350b7c-ed71-499f-860b-bf6b769f6755",
+          "size": {
+            "height": 104,
+            "width": 234
+          },
+          "zIndex": 3,
+          "expandedHeight": 300
+        },
+        {
+          "location": {
+            "x": 720.88849844813092,
+            "y": 768.5251787201488
+          },
+          "nodeIndex": "Dimension Sets",
+          "nodeLineageTag": "0e6b1eae-ab03-419c-b6aa-11a51746adad",
+          "size": {
+            "height": 104,
+            "width": 234
+          },
+          "zIndex": 4,
+          "expandedHeight": 300
+        },
+        {
+          "location": {
+            "x": 721,
+            "y": 277
+          },
+          "nodeIndex": "Purchaser",
+          "nodeLineageTag": "40b0470b-ee89-43f9-a967-e68fd02dce42",
+          "size": {
+            "height": 128,
+            "width": 234
+          },
+          "zIndex": 5
+        },
+        {
+          "location": {
+            "x": 721,
+            "y": 431
+          },
+          "nodeIndex": "Location",
+          "nodeLineageTag": "597c0630-13e6-42ad-a184-61e439cebab6",
+          "size": {
+            "height": 152,
+            "width": 234
+          },
+          "zIndex": 6
+        },
+        {
+          "location": {
+            "x": 723,
+            "y": 620
+          },
+          "nodeIndex": "Date",
+          "nodeLineageTag": "3e69dbdc-0f07-4c5c-bfd0-e36ebb84add5",
+          "size": {
+            "height": 300,
+            "width": 234
+          },
+          "zIndex": 12
+        },
+        {
+          "location": {
+            "x": 43.43306403970746,
+            "y": 409.59900266534277
+          },
+          "nodeIndex": "Documents",
+          "size": {
+            "height": 176,
+            "width": 234
+          },
+          "zIndex": 7
+        },
+        {
+          "location": {
+            "x": 41.200000762939453,
+            "y": 649.19999694824219
+          },
+          "nodeIndex": "Type",
+          "nodeLineageTag": "71c5b91b-3d8f-440e-8ef4-48cbfa95146b",
+          "size": {
+            "height": 104,
+            "width": 234
+          },
+          "zIndex": 8
+        },
+        {
+          "location": {
+            "x": 63.200000762939453,
+            "y": 117.19999694824219
+          },
+          "nodeIndex": "G/L Accounts",
+          "nodeLineageTag": "523c4210-80f1-492c-9444-141aa9c3ee04",
+          "size": {
+            "height": 200,
+            "width": 234
+          },
+          "zIndex": 10
+        },
+        {
+          "location": {
+            "x": 1004.2000007629395,
+            "y": 310.19999694824219
+          },
+          "nodeIndex": "Project",
+          "nodeLineageTag": "e76a9889-6235-4e45-bb1f-5d887e608d9c",
+          "size": {
+            "height": 300,
+            "width": 234
+          },
+          "zIndex": 9
+        },
+        {
+          "location": {
+            "x": 113,
+            "y": 799
+          },
+          "nodeIndex": "Resources",
+          "nodeLineageTag": "5dbd685e-f6e8-4163-a858-c2d621dfa648",
+          "size": {
+            "height": 224,
+            "width": 234
+          },
+          "zIndex": 11
+        },
+        {
+          "location": {
+            "x": 277.12014227926426,
+            "y": -9.5225894700539016
+          },
+          "nodeIndex": "Reason Codes",
+          "nodeLineageTag": "c0cc41a4-049b-455a-92ce-d8b38f5825d7",
+          "size": {
+            "height": 128,
+            "width": 234
+          },
+          "zIndex": 0
+        }
+      ],
+      "name": "Purchase Value Entries",
+      "zoomValue": 79.553182037699813,
+      "pinKeyFieldsToTop": false,
+      "showExtraHeaderInfo": false,
+      "hideKeyFieldsWhenCollapsed": false,
+      "tablesLocked": false
+    },
+    {
+      "ordinal": 5,
+      "scrollPosition": {
+        "x": 0,
+        "y": 0
+      },
+      "nodes": [
+        {
+          "location": {
+            "x": 464.20000076293945,
+            "y": 212
+          },
+          "nodeIndex": "Purchase Invoice Lines",
+          "nodeLineageTag": "779ec479-0f3c-4091-96fd-880491db009d",
+          "size": {
+            "height": 300,
+            "width": 234
+          },
+          "zIndex": 9
+        },
+        {
+          "location": {
+            "x": 450.20000076293945,
+            "y": 6
+          },
+          "nodeIndex": "Date",
+          "nodeLineageTag": "3e69dbdc-0f07-4c5c-bfd0-e36ebb84add5",
+          "size": {
+            "height": 104,
+            "width": 234
+          },
+          "zIndex": 10,
+          "expandedHeight": 300
+        },
+        {
+          "location": {
+            "x": 913.20000076293945,
+            "y": 0
+          },
+          "nodeIndex": "Vendor",
+          "nodeLineageTag": "7c350b7c-ed71-499f-860b-bf6b769f6755",
+          "size": {
+            "height": 104,
+            "width": 234
+          },
+          "zIndex": 8,
+          "expandedHeight": 300
+        },
+        {
+          "location": {
+            "x": 126.20000076293945,
+            "y": 421
+          },
+          "nodeIndex": "Item",
+          "nodeLineageTag": "5a9bd65b-6f5f-459e-aa78-812cb31cc047",
+          "size": {
+            "height": 128,
+            "width": 234
+          },
+          "zIndex": 11,
+          "expandedHeight": 300
+        },
+        {
+          "location": {
+            "x": 123.20000076293945,
+            "y": 200
+          },
+          "nodeIndex": "Resources",
+          "nodeLineageTag": "5dbd685e-f6e8-4163-a858-c2d621dfa648",
+          "size": {
+            "height": 104,
+            "width": 234
+          },
+          "zIndex": 1,
+          "expandedHeight": 224
+        },
+        {
+          "location": {
+            "x": 104.20000076293945,
+            "y": 72
+          },
+          "nodeIndex": "G/L Accounts",
+          "nodeLineageTag": "523c4210-80f1-492c-9444-141aa9c3ee04",
+          "size": {
+            "height": 104,
+            "width": 234
+          },
+          "zIndex": 2,
+          "expandedHeight": 200
+        },
+        {
+          "location": {
+            "x": 929.20000076293945,
+            "y": 540.16849783409862
+          },
+          "nodeIndex": "Dimension Sets",
+          "nodeLineageTag": "0e6b1eae-ab03-419c-b6aa-11a51746adad",
+          "size": {
+            "height": 104,
+            "width": 234
+          },
+          "zIndex": 3,
+          "expandedHeight": 300
+        },
+        {
+          "location": {
+            "x": 925.20000076293945,
+            "y": 169
+          },
+          "nodeIndex": "Purchaser",
+          "nodeLineageTag": "40b0470b-ee89-43f9-a967-e68fd02dce42",
+          "size": {
+            "height": 104,
+            "width": 234
+          },
+          "zIndex": 4,
+          "expandedHeight": 128
+        },
+        {
+          "location": {
+            "x": 927.14383481823984,
+            "y": 412.33699566819723
+          },
+          "nodeIndex": "Location",
+          "nodeLineageTag": "597c0630-13e6-42ad-a184-61e439cebab6",
+          "size": {
+            "height": 104,
+            "width": 234
+          },
+          "zIndex": 5,
+          "expandedHeight": 152
+        },
+        {
+          "location": {
+            "x": 121.20000076293945,
+            "y": 617
+          },
+          "nodeIndex": "Documents",
+          "nodeLineageTag": "112cc132-4cef-4b01-879b-c18c1431b470",
+          "size": {
+            "height": 104,
+            "width": 234
+          },
+          "zIndex": 12,
+          "expandedHeight": 224
+        },
+        {
+          "location": {
+            "x": 483.20000076293945,
+            "y": 612
+          },
+          "nodeIndex": "Type",
+          "nodeLineageTag": "71c5b91b-3d8f-440e-8ef4-48cbfa95146b",
+          "size": {
+            "height": 104,
+            "width": 234
+          },
+          "zIndex": 6
+        },
+        {
+          "location": {
+            "x": 903.20000076293945,
+            "y": 677
+          },
+          "nodeIndex": "Project",
+          "nodeLineageTag": "e76a9889-6235-4e45-bb1f-5d887e608d9c",
+          "size": {
+            "height": 104,
+            "width": 234
+          },
+          "zIndex": 7,
+          "expandedHeight": 300
+        },
+        {
+          "location": {
+            "x": 932.0279494278218,
+            "y": 288.39132664167
+          },
+          "nodeIndex": "Reason Codes",
+          "nodeLineageTag": "c0cc41a4-049b-455a-92ce-d8b38f5825d7",
+          "size": {
+            "height": 104,
+            "width": 234
+          },
+          "zIndex": 0,
+          "expandedHeight": 128
+        }
+      ],
+      "name": "Purchase Invoice Lines",
+      "zoomValue": 79.553182037699813,
+      "pinKeyFieldsToTop": false,
+      "showExtraHeaderInfo": false,
+      "hideKeyFieldsWhenCollapsed": false,
+      "tablesLocked": false
+    },
+    {
+      "ordinal": 6,
+      "scrollPosition": {
+        "x": 0,
+        "y": 0
+      },
+      "nodes": [
+        {
+          "location": {
+            "x": 575.20000076293945,
+            "y": 261
+          },
+          "nodeIndex": "Purchase Credit Lines",
+          "nodeLineageTag": "b05ab150-3ef3-4c53-b559-c4d393f3dd6f",
+          "size": {
+            "height": 300,
+            "width": 234
+          },
+          "zIndex": 10
+        },
+        {
+          "location": {
+            "x": 162.20000076293945,
+            "y": 565
+          },
+          "nodeIndex": "Documents",
+          "nodeLineageTag": "112cc132-4cef-4b01-879b-c18c1431b470",
+          "size": {
+            "height": 104,
+            "width": 234
+          },
+          "zIndex": 8,
+          "expandedHeight": 224
+        },
+        {
+          "location": {
+            "x": 588.20000076293945,
+            "y": 29
+          },
+          "nodeIndex": "Date",
+          "nodeLineageTag": "3e69dbdc-0f07-4c5c-bfd0-e36ebb84add5",
+          "size": {
+            "height": 104,
+            "width": 234
+          },
+          "zIndex": 9,
+          "expandedHeight": 300
+        },
+        {
+          "location": {
+            "x": 163.20000076293945,
+            "y": 145
+          },
+          "nodeIndex": "G/L Accounts",
+          "nodeLineageTag": "523c4210-80f1-492c-9444-141aa9c3ee04",
+          "size": {
+            "height": 104,
+            "width": 234
+          },
+          "zIndex": 1,
+          "expandedHeight": 200
+        },
+        {
+          "location": {
+            "x": 161.20000076293945,
+            "y": 274
+          },
+          "nodeIndex": "Resources",
+          "nodeLineageTag": "5dbd685e-f6e8-4163-a858-c2d621dfa648",
+          "size": {
+            "height": 104,
+            "width": 234
+          },
+          "zIndex": 2,
+          "expandedHeight": 224
+        },
+        {
+          "location": {
+            "x": 161.20000076293945,
+            "y": 400
+          },
+          "nodeIndex": "Item",
+          "nodeLineageTag": "5a9bd65b-6f5f-459e-aa78-812cb31cc047",
+          "size": {
+            "height": 128,
+            "width": 234
+          },
+          "zIndex": 3,
+          "expandedHeight": 300
+        },
+        {
+          "location": {
+            "x": 982.20000076293945,
+            "y": 73
+          },
+          "nodeIndex": "Vendor",
+          "nodeLineageTag": "7c350b7c-ed71-499f-860b-bf6b769f6755",
+          "size": {
+            "height": 104,
+            "width": 234
+          },
+          "zIndex": 4,
+          "expandedHeight": 300
+        },
+        {
+          "location": {
+            "x": 975.20000076293945,
+            "y": 242
+          },
+          "nodeIndex": "Purchaser",
+          "nodeLineageTag": "40b0470b-ee89-43f9-a967-e68fd02dce42",
+          "size": {
+            "height": 128,
+            "width": 234
+          },
+          "zIndex": 5
+        },
+        {
+          "location": {
+            "x": 981.20000076293945,
+            "y": 418
+          },
+          "nodeIndex": "Location",
+          "nodeLineageTag": "597c0630-13e6-42ad-a184-61e439cebab6",
+          "size": {
+            "height": 104,
+            "width": 234
+          },
+          "zIndex": 6,
+          "expandedHeight": 152
+        },
+        {
+          "location": {
+            "x": 964.20000076293945,
+            "y": 585
+          },
+          "nodeIndex": "Dimension Sets",
+          "nodeLineageTag": "0e6b1eae-ab03-419c-b6aa-11a51746adad",
+          "size": {
+            "height": 104,
+            "width": 234
+          },
+          "zIndex": 7,
+          "expandedHeight": 300
+        },
+        {
+          "location": {
+            "x": 556.20000076293945,
+            "y": 671
+          },
+          "nodeIndex": "Type",
+          "nodeLineageTag": "71c5b91b-3d8f-440e-8ef4-48cbfa95146b",
+          "size": {
+            "height": 104,
+            "width": 234
+          },
+          "zIndex": 11
+        },
+        {
+          "location": {
+            "x": 1232.4527475140874,
+            "y": 619.88339411866139
+          },
+          "nodeIndex": "Project",
+          "nodeLineageTag": "e76a9889-6235-4e45-bb1f-5d887e608d9c",
+          "size": {
+            "height": 300,
+            "width": 234
+          },
+          "zIndex": 0
+        }
+      ],
+      "name": "Purchase Credit Lines",
+      "zoomValue": 79.553182037699813,
+      "pinKeyFieldsToTop": false,
+      "showExtraHeaderInfo": false,
+      "hideKeyFieldsWhenCollapsed": false,
+      "tablesLocked": false
+    }
+  ],
+  "selectedDiagram": "All tables",
+  "defaultDiagram": "All tables"
+}

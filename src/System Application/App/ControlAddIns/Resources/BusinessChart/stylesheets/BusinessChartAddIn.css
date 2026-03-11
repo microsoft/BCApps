@@ -1,0 +1,53 @@
+/*! Copyright (C) Microsoft Corporation. All rights reserved. */
+
+.addInToolTipPointName, .addInToolTipPointValue, .addInToolTipHeader {
+    font-family: "Segoe UI", "Segoe WP", Segoe, device-segoe, Tahoma, Helvetica, Arial, sans-serif;
+    font-size: 9pt;
+    padding: 0;
+}
+
+.addInToolTipPointValue {
+    text-align: right;
+}
+
+/*
+   dataLabels.className could be used to set a custom class name, but legend.className doesn't exist,
+   so we use the highcharts class names for consistency.
+   Documentation here: https://www.highcharts.com/docs/chart-design-and-style/style-by-css
+ */
+.theme-m365 .highcharts-data-label text,
+.theme-m365 .highcharts-legend-item text {
+    font-family: "Segoe UI", "Segoe WP", Segoe, device-segoe, Tahoma, Helvetica, Arial, sans-serif !important;
+    font-weight: normal !important;
+    font-size: 13px !important;
+    color: #212121 !important;
+}
+
+.addInMessage-desktop, .addInMessage-tablet, .addInMessage-phone {
+    font-family: "Segoe UI", "Segoe WP", Segoe, device-segoe, Tahoma, Helvetica, Arial, sans-serif;
+    height: 80px;
+    text-align: center;
+    text-overflow: ellipsis;
+}
+
+.addInMessage-desktop {
+    color: #777;
+    font-size: 9pt;
+    padding-top: 40px;
+}
+
+.addInMessage-tablet {
+    color: #777;
+    font-size: 9pt;
+    padding-top: 30px;
+}
+
+.addInMessage-phone {
+    color: #888;
+    font-size: 10pt;
+    padding-top: 50px;
+}
+
+.left-align-legend g.highcharts-legend {
+    transform: translate(0, 10px);
+}

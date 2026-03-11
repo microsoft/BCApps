@@ -1,0 +1,32 @@
+table COMPANY
+	isHidden
+	lineageTag: 876ce1ea-91a1-4615-b085-6f03dae2e66e
+
+	measure 'Company Label' = VALUES(COMPANY)
+		isHidden
+		lineageTag: 5cc605d3-2edc-4bbd-a337-5abe7d49d595
+
+		changedProperty = IsHidden
+
+	column COMPANY
+		dataType: string
+		isHidden
+		lineageTag: cbe7a2f0-1737-4fb5-be35-e95e8d36962c
+		summarizeBy: none
+		sourceColumn: COMPANY
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	partition COMPANY = m
+		mode: import
+		queryGroup: 'Parameters and Functions'
+		source = "Cronus" meta [IsParameterQuery=true, Type="Text", IsParameterQueryRequired=true]
+
+	changedProperty = IsHidden
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Text
+

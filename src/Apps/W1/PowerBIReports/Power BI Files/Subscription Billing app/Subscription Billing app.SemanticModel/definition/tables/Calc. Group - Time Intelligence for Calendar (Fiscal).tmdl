@@ -1,0 +1,37 @@
+table 'Calc. Group - Time Intelligence for Calendar (Fiscal)'
+	lineageTag: 472eaab7-d1a5-4024-a758-94a911af9808
+
+	calculationGroup
+		precedence: 100
+
+		calculationItem Periode = SELECTEDMEASURE()
+
+		calculationItem PY = ```
+				    CALCULATE (
+				        SELECTEDMEASURE (),
+				        CALCULATETABLE (
+				            DATEADD ( 'Date'[Date], -1, YEAR ),
+				            'Date'[Data Range Analysis] = TRUE
+				        )
+				    )
+				
+				```
+
+	column Perspective
+		dataType: string
+		lineageTag: eef633e2-ed98-4dbc-b435-63b87327198e
+		summarizeBy: none
+		sourceColumn: Name
+		sortByColumn: Ordinal
+
+		annotation SummarizationSetBy = Automatic
+
+	column Ordinal
+		dataType: int64
+		isHidden
+		lineageTag: 781d1bb3-fbb6-4e4c-9427-eaa5a8de3bf1
+		summarizeBy: sum
+		sourceColumn: Ordinal
+
+		annotation SummarizationSetBy = Automatic
+

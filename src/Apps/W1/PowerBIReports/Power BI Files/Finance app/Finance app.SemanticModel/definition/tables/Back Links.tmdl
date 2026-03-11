@@ -1,0 +1,103 @@
+table 'Back Links'
+	lineageTag: c47d9fc9-8979-4805-9875-90c12fa378f4
+
+	measure Ranged = ```
+			
+			VAR _FilterTable = VALUES('Date'[Date])
+			VAR IndexedDates =
+			    ADDCOLUMNS(
+			        _FilterTable,
+			        "@Index", RANKX(
+			            SUMMARIZECOLUMNS(
+			                'Date'[Date], _FilterTable
+			            ),
+			            'Date'[Date],
+			            ,
+			            ASC,
+			            DENSE
+			        )
+			    )
+			VAR PreviousIndexedDate =
+			    ADDCOLUMNS(
+			        IndexedDates,
+			        "@Previous Date",
+			            VAR PrevIndex = [@Index] - 1
+			            RETURN SELECTCOLUMNS(
+			                FILTER(IndexedDates, [@Index] = PrevIndex),
+			                [Date])
+			    )
+			 
+			VAR CalculateBreakPoint =
+			    ADDCOLUMNS(
+			        PreviousIndexedDate,
+			        "@Break Point",
+			        IF( NOT DATEDIFF([@Previous Date],'Date'[Date],DAY) = 1, TRUE(), FALSE() )
+			    )
+			VAR BreakPointTable = FILTER(CalculateBreakPoint, [@Break Point] = TRUE())
+			 
+			VAR MaxDate = CALCULATE(MAX('Date'[Date]),_FilterTable)
+			 
+			var NextIndex =
+			    ADDCOLUMNS(
+			        BreakPointTable,
+			        "@NextIndex",
+			        SELECTCOLUMNS(
+			            OFFSET( +1, BreakPointTable ),
+			            [@Index]
+			        ) - 1
+			    )
+			 
+			VAR NextDate =
+			    ADDCOLUMNS(
+			        NextIndex,
+			        "@NextDate",
+			            VAR PrevIndex = [@Index] - 1
+			            RETURN SELECTCOLUMNS(
+			                FILTER(IndexedDates, [@Index] = [@NextIndex]),
+			                [Date])
+			    )
+			 
+			VAR Ranged =
+			ADDCOLUMNS(
+			    NextDate,
+			    "@Range",
+			    IF( ISBLANK([@NextDate]),
+			    FORMAT ( 'Date'[Date], "yyyy-mm-dd" ) & ".." & FORMAT ( MaxDate ,"yyyy-mm-dd"),
+			    FORMAT ( 'Date'[Date], "yyyy-mm-dd" ) & ".." & FORMAT ( [@NextDate] ,"yyyy-mm-dd")
+			    )
+			)
+			 
+			Return CONCATENATEX(Ranged, [@Range], "|")
+			```
+		isHidden
+		lineageTag: 4018e7f4-8dcf-46e8-9b8a-b8cd246124e3
+
+		changedProperty = IsHidden
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column Column1
+		dataType: string
+		isHidden
+		lineageTag: 4fc69239-ab82-4d8e-8e5d-07970ee86abb
+		summarizeBy: none
+		sourceColumn: Column1
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	partition 'Back Links' = m
+		mode: import
+		queryGroup: 'Parameters and Functions'
+		source =
+				let
+				    Source = Table.FromRows(Json.Document(Binary.Decompress(Binary.FromText("i44FAA==", BinaryEncoding.Base64), Compression.Deflate)), let _t = ((type text) meta [Serialized.Text = true]) in type table [Column1 = _t]),
+				    #"Changed Type" = Table.TransformColumnTypes(Source,{{"Column1", type text}})
+				in
+				    #"Changed Type"
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Table
+

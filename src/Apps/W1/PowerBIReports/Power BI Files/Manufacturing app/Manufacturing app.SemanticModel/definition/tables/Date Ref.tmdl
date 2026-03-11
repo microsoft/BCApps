@@ -1,0 +1,2879 @@
+table 'Date Ref'
+	isHidden
+	lineageTag: 1e1ed886-1a22-43c4-999b-4693399c6ced
+	dataCategory: Time
+
+	measure 'No. of Days' = ```
+			
+			COUNTROWS ( 
+			    DATESBETWEEN ( 
+			        'Date'[Date],
+			        MIN('Date'[Date]),
+			        MAX('Date'[Date])
+			    )
+			)
+			```
+		formatString: 0
+		isHidden
+		lineageTag: 1a4368d8-993e-48df-ba27-a8c23154722a
+
+		changedProperty = IsHidden
+
+	measure ShowValueForDates = ```
+			VAR LastDateWithData =
+			    CALCULATE (
+			       // MAX ( 'Production Data Table'[Date] ),
+			       MAXX ( { 
+			                        MAX ( 'Capacity Ledger Entries'[Posting Date] ), 
+			                        MAX ( 'Item Ledger Entries'[Posting Date] ), 
+			                        MAX ( 'Prod Order Routing Lines'[Ending Date] ), 
+			                        MAX ( 'Value Entries'[postingDate] ) }, ''[Value] ),
+			        REMOVEFILTERS ()
+			    )
+			VAR FirstDateVisible =
+			    MIN ( 'Date Ref'[Date] )
+			VAR Result =
+			    FirstDateVisible <= LastDateWithData
+			RETURN
+			    Result
+			```
+		formatString: """TRUE"";""TRUE"";""FALSE"""
+		isHidden
+		lineageTag: adc06805-5b13-45af-b298-3fc6f11c0e43
+
+		changedProperty = IsHidden
+
+	measure 'Current Date Range' = "Current Date Range: " & FIRSTDATE('Date Ref'[Date]) & " .. " & LASTDATE('Date Ref'[Date])
+		isHidden
+		lineageTag: 75d54c63-1447-4564-a478-5da8b014f91a
+
+		changedProperty = IsHidden
+
+	column Date
+		isHidden
+		isKey
+		formatString: Short Date
+		lineageTag: 2bbc3c34-8fbb-43d5-b1aa-daaef4e219fd
+		summarizeBy: none
+		isNameInferred
+		sourceColumn: [Date]
+
+		changedProperty = DataType
+
+		changedProperty = FormatString
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	column DateKey
+		isHidden
+		formatString: 0
+		lineageTag: 06ab21ff-ae2b-46f3-8c30-997b040a562f
+		summarizeBy: count
+		isNameInferred
+		sourceColumn: [DateKey]
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Day of Month'
+		isHidden
+		formatString: 0
+		lineageTag: 8dbfdf38-d0e9-4c76-b5b0-a634fa94f943
+		summarizeBy: sum
+		isNameInferred
+		sourceColumn: [Day of Month]
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column WeekDayNumber
+		isHidden
+		formatString: 0
+		lineageTag: a67086bf-fd58-49ab-9bc0-738d18394d32
+		summarizeBy: sum
+		isNameInferred
+		sourceColumn: [WeekDayNumber]
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Week Day'
+		isHidden
+		lineageTag: 1f8f2b4a-bd5b-4c19-90b8-8d0aab109478
+		summarizeBy: none
+		isNameInferred
+		sourceColumn: [Week Day]
+		sortByColumn: WeekDayNumber
+
+		changedProperty = SortByColumn
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Holiday Name'
+		isHidden
+		lineageTag: 8dd9bf85-6701-4373-bd31-c61dbb46fdf9
+		summarizeBy: none
+		isNameInferred
+		sourceColumn: [Holiday Name]
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column IsWorkingDay
+		isHidden
+		formatString: """TRUE"";""TRUE"";""FALSE"""
+		lineageTag: 0ce9e2d6-98bc-4698-9a01-36776c38ab87
+		summarizeBy: none
+		isNameInferred
+		sourceColumn: [IsWorkingDay]
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Day Type'
+		isHidden
+		lineageTag: 4a400d2e-c05c-4447-967d-45bc54f6e913
+		summarizeBy: none
+		isNameInferred
+		sourceColumn: [Day Type]
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column DatesWithTransactions = ```
+			
+			'Date Ref'[Date] <= 
+			MAXX ( { 
+			                        MAX ( 'Capacity Ledger Entries'[Posting Date] ), 
+			                        MAX ( 'Item Ledger Entries'[Posting Date] ), 
+			                        MAX ( 'Prod Order Routing Lines'[Ending Date] ), 
+			                        MAX ( 'Value Entries'[postingDate] ) }, ''[Value] )
+			                        
+			```
+		isHidden
+		formatString: """TRUE"";""TRUE"";""FALSE"""
+		lineageTag: ff8ffd34-286f-4996-ab13-48278d54059e
+		summarizeBy: none
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Calendar YearNumber'
+		isHidden
+		formatString: 0
+		lineageTag: ef7b1d9c-b0be-48f5-ae23-08838c6dbb48
+		summarizeBy: sum
+		isNameInferred
+		sourceColumn: [Calendar YearNumber]
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Calendar Year'
+		isHidden
+		lineageTag: bd0f3d3f-095c-4055-912a-5f0410aff3e6
+		summarizeBy: none
+		isNameInferred
+		sourceColumn: [Calendar Year]
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Calendar QuarterNumber'
+		isHidden
+		lineageTag: 549dc900-ebd5-4487-90c1-f48ca74700c5
+		summarizeBy: sum
+		isNameInferred
+		sourceColumn: [Calendar QuarterNumber]
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column 'Calendar Quarter'
+		isHidden
+		lineageTag: 38bdfc43-2c93-48b7-9df6-7b2c1706024d
+		summarizeBy: none
+		isNameInferred
+		sourceColumn: [Calendar Quarter]
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Calendar YearQuarterNumber'
+		isHidden
+		lineageTag: 7031d9fc-85e9-435c-a019-fd714241ee3c
+		summarizeBy: sum
+		isNameInferred
+		sourceColumn: [Calendar YearQuarterNumber]
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column 'Calendar Quarter Year'
+		isHidden
+		lineageTag: 61a5df58-d3bb-4729-995c-d192c0320f43
+		summarizeBy: none
+		isNameInferred
+		sourceColumn: [Calendar Quarter Year]
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Calendar MonthNumber'
+		isHidden
+		formatString: 0
+		lineageTag: 58e49b69-1ef3-4066-9a49-470be0e4b606
+		summarizeBy: sum
+		isNameInferred
+		sourceColumn: [Calendar MonthNumber]
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Calendar Month'
+		isHidden
+		lineageTag: 316f6b3f-a5f8-47b2-a76b-164186328643
+		summarizeBy: none
+		isNameInferred
+		sourceColumn: [Calendar Month]
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Calendar YearMonthNumber'
+		isHidden
+		formatString: 0
+		lineageTag: 0959737a-0014-4d21-a7be-b67803615ae6
+		summarizeBy: sum
+		isNameInferred
+		sourceColumn: [Calendar YearMonthNumber]
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Calendar Month Year'
+		isHidden
+		lineageTag: 9068816f-8a8b-4eeb-9dc3-89d6ed9b18dc
+		summarizeBy: none
+		isNameInferred
+		sourceColumn: [Calendar Month Year]
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Calendar WeekNumber'
+		isHidden
+		formatString: 0
+		lineageTag: 05cc1398-82e3-4d2c-b12d-e3aab8de7b84
+		summarizeBy: sum
+		isNameInferred
+		sourceColumn: [Calendar WeekNumber]
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Calendar Week'
+		isHidden
+		lineageTag: b31f07a8-38e3-408f-894d-8b3bd3993860
+		summarizeBy: none
+		isNameInferred
+		sourceColumn: [Calendar Week]
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Calendar YearWeekNumber'
+		isHidden
+		formatString: 0
+		lineageTag: b6198754-2be5-4e78-a7ec-372138cc46df
+		summarizeBy: sum
+		isNameInferred
+		sourceColumn: [Calendar YearWeekNumber]
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Calendar Week Year'
+		isHidden
+		lineageTag: 43d111f2-bb43-4533-8e64-c8460325eeb5
+		summarizeBy: none
+		isNameInferred
+		sourceColumn: [Calendar Week Year]
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Calendar WeekYearOrder'
+		isHidden
+		formatString: 0
+		lineageTag: 19773601-9ef8-4a9f-9d35-ccc022dbd916
+		summarizeBy: sum
+		isNameInferred
+		sourceColumn: [Calendar WeekYearOrder]
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Calendar RelativeWeekPos'
+		isHidden
+		lineageTag: dde24949-baac-48ac-81be-40d8e8f3ef91
+		summarizeBy: sum
+		isNameInferred
+		sourceColumn: [Calendar RelativeWeekPos]
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column 'Calendar RelativeMonthPos'
+		isHidden
+		lineageTag: d0dae596-61c8-4761-a329-d2435bc65739
+		summarizeBy: sum
+		isNameInferred
+		sourceColumn: [Calendar RelativeMonthPos]
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column 'Calendar RelativeQuarterPos'
+		isHidden
+		lineageTag: 75f7de36-78c9-4efe-9d93-fdab710d107b
+		summarizeBy: sum
+		isNameInferred
+		sourceColumn: [Calendar RelativeQuarterPos]
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column 'Calendar RelativeYearPos'
+		isHidden
+		lineageTag: 79fba4fa-2306-40c8-87b7-52317485aa7c
+		summarizeBy: sum
+		isNameInferred
+		sourceColumn: [Calendar RelativeYearPos]
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column 'Calendar StartOfMonth'
+		isHidden
+		formatString: General Date
+		lineageTag: 9ab5a7bd-3028-4369-bc6a-f629b923b1cd
+		summarizeBy: none
+		isNameInferred
+		sourceColumn: [Calendar StartOfMonth]
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Calendar EndOfMonth'
+		isHidden
+		formatString: General Date
+		lineageTag: c7da01f6-f1d6-4e73-ae06-32e10e32c011
+		summarizeBy: none
+		isNameInferred
+		sourceColumn: [Calendar EndOfMonth]
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Calendar StartOfQuarter'
+		isHidden
+		formatString: General Date
+		lineageTag: ac699e69-5405-4af6-91f2-8effb25c98f9
+		summarizeBy: none
+		isNameInferred
+		sourceColumn: [Calendar StartOfQuarter]
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Calendar EndOfQuarter'
+		isHidden
+		formatString: General Date
+		lineageTag: 336fa715-5507-4154-97f6-4636b2c4ccb9
+		summarizeBy: none
+		isNameInferred
+		sourceColumn: [Calendar EndOfQuarter]
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Calendar StartOfYear'
+		isHidden
+		formatString: General Date
+		lineageTag: fa71a538-7f62-4eb8-8358-47c7e14ad18a
+		summarizeBy: none
+		isNameInferred
+		sourceColumn: [Calendar StartOfYear]
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Calendar EndOfYear'
+		isHidden
+		formatString: General Date
+		lineageTag: ba74cfd4-28e2-430c-a96f-ec9856d79681
+		summarizeBy: none
+		isNameInferred
+		sourceColumn: [Calendar EndOfYear]
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Calendar MonthDays'
+		isHidden
+		formatString: 0
+		lineageTag: e2c89387-780b-439d-8072-0ed4df890933
+		summarizeBy: sum
+		isNameInferred
+		sourceColumn: [Calendar MonthDays]
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Calendar QuarterDays'
+		isHidden
+		formatString: 0
+		lineageTag: 09819e16-a4b0-4604-bb63-1abcfaacb735
+		summarizeBy: sum
+		isNameInferred
+		sourceColumn: [Calendar QuarterDays]
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Calendar YearDays'
+		isHidden
+		formatString: 0
+		lineageTag: 5e5bbd97-3f1e-46f3-92ab-6147b55bfd76
+		summarizeBy: sum
+		isNameInferred
+		sourceColumn: [Calendar YearDays]
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Calendar DayOfMonthNumber'
+		isHidden
+		formatString: 0
+		lineageTag: f32ba97b-2da7-49cf-a828-89fd323c1cd4
+		summarizeBy: sum
+		isNameInferred
+		sourceColumn: [Calendar DayOfMonthNumber]
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Calendar DayOfQuarterNumber'
+		isHidden
+		formatString: 0
+		lineageTag: ebb93534-d5f8-47a0-9084-e92bb16b23fc
+		summarizeBy: sum
+		isNameInferred
+		sourceColumn: [Calendar DayOfQuarterNumber]
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Calendar DayOfYearNumber'
+		isHidden
+		formatString: 0
+		lineageTag: 149b3927-3744-4af8-876a-1179f15bad8c
+		summarizeBy: sum
+		isNameInferred
+		sourceColumn: [Calendar DayOfYearNumber]
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Calendar DatePreviousWeek'
+		isHidden
+		formatString: General Date
+		lineageTag: bba58cdf-6ea2-416b-8662-32d64a3e7d56
+		summarizeBy: none
+		isNameInferred
+		sourceColumn: [Calendar DatePreviousWeek]
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Calendar DatePreviousMonth'
+		isHidden
+		formatString: General Date
+		lineageTag: 87ee7208-9bde-406e-9d9c-3a552666eb9c
+		summarizeBy: none
+		isNameInferred
+		sourceColumn: [Calendar DatePreviousMonth]
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Calendar DatePreviousQuarter'
+		isHidden
+		formatString: General Date
+		lineageTag: cc5a6bb2-44c4-439b-8b1a-7e9668a1f2fd
+		summarizeBy: none
+		isNameInferred
+		sourceColumn: [Calendar DatePreviousQuarter]
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Calendar DatePreviousYear'
+		isHidden
+		formatString: General Date
+		lineageTag: 6a45bbfd-7302-44e5-9c41-340bda7886e0
+		summarizeBy: none
+		isNameInferred
+		sourceColumn: [Calendar DatePreviousYear]
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Fiscal Year'
+		isHidden
+		lineageTag: 247c3551-dc03-4258-a2e0-3373d7824994
+		summarizeBy: none
+		isNameInferred
+		sourceColumn: [Fiscal Year]
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Fiscal YearNumber'
+		isHidden
+		formatString: 0
+		lineageTag: c0371eba-b8af-4a40-9af4-cac328835a6e
+		summarizeBy: sum
+		isNameInferred
+		sourceColumn: [Fiscal YearNumber]
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Fiscal QuarterNumber'
+		isHidden
+		lineageTag: fd81a129-7b48-4701-a4c4-750b52d1fbfe
+		summarizeBy: sum
+		isNameInferred
+		sourceColumn: [Fiscal QuarterNumber]
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column 'Fiscal Quarter'
+		isHidden
+		lineageTag: 93ccdf3a-4738-4f26-9835-3d9ae2b78088
+		summarizeBy: none
+		isNameInferred
+		sourceColumn: [Fiscal Quarter]
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Fiscal YearQuarterNumber'
+		isHidden
+		lineageTag: 7581d083-164d-4d46-b09a-7bb84ffdf7d7
+		summarizeBy: sum
+		isNameInferred
+		sourceColumn: [Fiscal YearQuarterNumber]
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column 'Fiscal Quarter Year'
+		isHidden
+		lineageTag: 04f82a95-3e17-4152-8cd0-fc6f74ba669a
+		summarizeBy: none
+		isNameInferred
+		sourceColumn: [Fiscal Quarter Year]
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Fiscal MonthNumber'
+		isHidden
+		formatString: 0
+		lineageTag: 8f9a4c68-6c13-4153-b367-f99982602af8
+		summarizeBy: sum
+		isNameInferred
+		sourceColumn: [Fiscal MonthNumber]
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Fiscal MonthInQuarterNumber'
+		isHidden
+		formatString: 0
+		lineageTag: 1f9ccca5-8bd4-4c8c-86a7-b06d9d7ddda1
+		summarizeBy: sum
+		isNameInferred
+		sourceColumn: [Fiscal MonthInQuarterNumber]
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Fiscal Month'
+		isHidden
+		lineageTag: ac4b4ef2-b735-4a91-8e53-5f3ec42eb96b
+		summarizeBy: none
+		isNameInferred
+		sourceColumn: [Fiscal Month]
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Fiscal YearMonthNumber'
+		isHidden
+		formatString: 0
+		lineageTag: 819587fd-7dc9-4578-b38f-37db03ad8a20
+		summarizeBy: sum
+		isNameInferred
+		sourceColumn: [Fiscal YearMonthNumber]
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Fiscal Month Year'
+		isHidden
+		lineageTag: 4b88baba-b33c-4418-873f-39607ea030d9
+		summarizeBy: none
+		isNameInferred
+		sourceColumn: [Fiscal Month Year]
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Fiscal WeekNumber'
+		isHidden
+		formatString: 0
+		lineageTag: 0dff40ba-b78d-4577-989e-0b65b6b09ef8
+		summarizeBy: sum
+		isNameInferred
+		sourceColumn: [Fiscal WeekNumber]
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Fiscal Week'
+		isHidden
+		lineageTag: 26dde602-47d9-4ca3-bc96-dee118152bbf
+		summarizeBy: none
+		isNameInferred
+		sourceColumn: [Fiscal Week]
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Fiscal YearWeekNumber'
+		isHidden
+		formatString: 0
+		lineageTag: ec2c915b-e3d6-4639-b5aa-3c7d0c7f3e15
+		summarizeBy: sum
+		isNameInferred
+		sourceColumn: [Fiscal YearWeekNumber]
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Fiscal Week Year'
+		isHidden
+		lineageTag: 472cee3e-3123-480a-94e9-64a053646aa5
+		summarizeBy: none
+		isNameInferred
+		sourceColumn: [Fiscal Week Year]
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Fiscal WeekYearOrder'
+		isHidden
+		formatString: 0
+		lineageTag: c01e8935-3f87-4bf6-bbb3-e9831eacea53
+		summarizeBy: sum
+		isNameInferred
+		sourceColumn: [Fiscal WeekYearOrder]
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Fiscal RelativeWeekPos'
+		isHidden
+		lineageTag: 0762f819-ea88-49f6-bf2c-a1c4abc5d61b
+		summarizeBy: sum
+		isNameInferred
+		sourceColumn: [Fiscal RelativeWeekPos]
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column 'Fiscal RelativeMonthPos'
+		isHidden
+		lineageTag: e6b300eb-e6e7-4269-84f2-f31cfea7c594
+		summarizeBy: sum
+		isNameInferred
+		sourceColumn: [Fiscal RelativeMonthPos]
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column 'Fiscal RelativeQuarterPos'
+		isHidden
+		lineageTag: e4b5ca99-18ba-449b-bf02-6ba595a348bb
+		summarizeBy: sum
+		isNameInferred
+		sourceColumn: [Fiscal RelativeQuarterPos]
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column 'Fiscal RelativeYearPos'
+		isHidden
+		lineageTag: df90b375-fd83-4156-800f-80732ae980c2
+		summarizeBy: sum
+		isNameInferred
+		sourceColumn: [Fiscal RelativeYearPos]
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column 'Fiscal StartOfMonth'
+		isHidden
+		formatString: General Date
+		lineageTag: 6c421b26-2101-46d7-9983-122860d39f8b
+		summarizeBy: none
+		isNameInferred
+		sourceColumn: [Fiscal StartOfMonth]
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Fiscal EndOfMonth'
+		isHidden
+		formatString: General Date
+		lineageTag: 06038d6e-4335-4333-8ae4-a111c2cb1351
+		summarizeBy: none
+		isNameInferred
+		sourceColumn: [Fiscal EndOfMonth]
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Fiscal StartOfQuarter'
+		isHidden
+		formatString: General Date
+		lineageTag: 3f1d2511-1fac-48cd-85f5-79c04fd4042d
+		summarizeBy: none
+		isNameInferred
+		sourceColumn: [Fiscal StartOfQuarter]
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Fiscal EndOfQuarter'
+		isHidden
+		formatString: General Date
+		lineageTag: 30f11a71-96a8-49f7-b6c3-b036fbb0a1d3
+		summarizeBy: none
+		isNameInferred
+		sourceColumn: [Fiscal EndOfQuarter]
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Fiscal StartOfYear'
+		isHidden
+		formatString: General Date
+		lineageTag: a03e418b-bf2f-4ba7-aab1-49c233129581
+		summarizeBy: none
+		isNameInferred
+		sourceColumn: [Fiscal StartOfYear]
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Fiscal EndOfYear'
+		isHidden
+		formatString: General Date
+		lineageTag: ac1e6d22-569f-4930-8350-eab8d97cd203
+		summarizeBy: none
+		isNameInferred
+		sourceColumn: [Fiscal EndOfYear]
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Fiscal MonthDays'
+		isHidden
+		formatString: 0
+		lineageTag: e6c92183-8ab5-45b3-b31b-8a2fc08fc3fa
+		summarizeBy: sum
+		isNameInferred
+		sourceColumn: [Fiscal MonthDays]
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Fiscal QuarterDays'
+		isHidden
+		formatString: 0
+		lineageTag: 4900d436-89bd-4c2b-9249-47fa4d616954
+		summarizeBy: sum
+		isNameInferred
+		sourceColumn: [Fiscal QuarterDays]
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Fiscal YearDays'
+		isHidden
+		formatString: 0
+		lineageTag: 540cd2c0-aa7e-4bc5-8b23-176f168088e5
+		summarizeBy: sum
+		isNameInferred
+		sourceColumn: [Fiscal YearDays]
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Fiscal DayOfMonthNumber'
+		isHidden
+		formatString: 0
+		lineageTag: b2e64002-584f-4361-afe1-9a3344529ff0
+		summarizeBy: sum
+		isNameInferred
+		sourceColumn: [Fiscal DayOfMonthNumber]
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Fiscal DayOfQuarterNumber'
+		isHidden
+		formatString: 0
+		lineageTag: 31d08eaf-4348-4b78-adec-dcaaf3230768
+		summarizeBy: sum
+		isNameInferred
+		sourceColumn: [Fiscal DayOfQuarterNumber]
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Fiscal DayOfYearNumber'
+		isHidden
+		formatString: 0
+		lineageTag: 9ba27de7-0b8d-4dd9-a7af-f07dcac0e71e
+		summarizeBy: sum
+		isNameInferred
+		sourceColumn: [Fiscal DayOfYearNumber]
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Fiscal DatePreviousWeek'
+		isHidden
+		formatString: General Date
+		lineageTag: 7fd5c588-f9f0-4c9c-adc6-3a81acc90873
+		summarizeBy: none
+		isNameInferred
+		sourceColumn: [Fiscal DatePreviousWeek]
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Fiscal DatePreviousMonth'
+		isHidden
+		formatString: General Date
+		lineageTag: 355bb33d-cb89-45d2-8cdb-aa46a118166a
+		summarizeBy: none
+		isNameInferred
+		sourceColumn: [Fiscal DatePreviousMonth]
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Fiscal DatePreviousQuarter'
+		isHidden
+		formatString: General Date
+		lineageTag: 5f8780eb-53e8-492c-b08b-4a75e41ee8a1
+		summarizeBy: none
+		isNameInferred
+		sourceColumn: [Fiscal DatePreviousQuarter]
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Fiscal DatePreviousYear'
+		isHidden
+		formatString: General Date
+		lineageTag: ea0b214f-3c85-4b8d-ba60-957f6e7545e2
+		summarizeBy: none
+		isNameInferred
+		sourceColumn: [Fiscal DatePreviousYear]
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'FW YearNumber'
+		isHidden
+		formatString: 0
+		lineageTag: cbf7a1ae-5796-43ba-a05c-3e6064f645e8
+		summarizeBy: sum
+		isNameInferred
+		sourceColumn: [FW YearNumber]
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'FW Year'
+		isHidden
+		lineageTag: 630bbb76-857e-46f7-bdea-7c35dc97b163
+		summarizeBy: none
+		isNameInferred
+		sourceColumn: [FW Year]
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'FW QuarterNumber'
+		isHidden
+		lineageTag: b8d0529a-d0e9-47b4-bf2f-60cb08f01a6f
+		summarizeBy: sum
+		isNameInferred
+		sourceColumn: [FW QuarterNumber]
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column 'FW Quarter'
+		isHidden
+		lineageTag: 952e537b-bc95-4ac2-98e0-2e7d9b6ada3c
+		summarizeBy: none
+		isNameInferred
+		sourceColumn: [FW Quarter]
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'FW YearQuarterNumber'
+		isHidden
+		lineageTag: 2f9fa70a-e141-4346-aac6-4a3c3642dc75
+		summarizeBy: sum
+		isNameInferred
+		sourceColumn: [FW YearQuarterNumber]
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column 'FW Quarter Year'
+		isHidden
+		lineageTag: a838e2cd-6b14-4b6d-908c-ca6cd14f2a23
+		summarizeBy: none
+		isNameInferred
+		sourceColumn: [FW Quarter Year]
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'FW MonthNumber'
+		isHidden
+		lineageTag: 27bf0749-44f2-4f69-a042-4d3bd9fc1132
+		summarizeBy: sum
+		isNameInferred
+		sourceColumn: [FW MonthNumber]
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column 'FW Month'
+		isHidden
+		lineageTag: 95e3de3c-f808-4e10-9961-f97b42c142fb
+		summarizeBy: none
+		isNameInferred
+		sourceColumn: [FW Month]
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'FW YearMonthNumber'
+		isHidden
+		lineageTag: 5778bde1-e3a9-43d7-9c8a-e38b8880893e
+		summarizeBy: sum
+		isNameInferred
+		sourceColumn: [FW YearMonthNumber]
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column 'FW Month Year'
+		isHidden
+		lineageTag: 0944fbcb-8660-40e7-9162-912790936fa5
+		summarizeBy: none
+		isNameInferred
+		sourceColumn: [FW Month Year]
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'FW WeekNumber'
+		isHidden
+		formatString: 0
+		lineageTag: e7aa325a-1f4a-4a87-9cd1-444779be556b
+		summarizeBy: sum
+		isNameInferred
+		sourceColumn: [FW WeekNumber]
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'FW Week'
+		isHidden
+		lineageTag: 4a3e6cda-7b44-46ff-81f2-2e1a934b534b
+		summarizeBy: none
+		isNameInferred
+		sourceColumn: [FW Week]
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'FW PeriodNumber'
+		isHidden
+		lineageTag: 8b43f926-a86c-481f-a2fc-3e2c7c20b89b
+		summarizeBy: sum
+		isNameInferred
+		sourceColumn: [FW PeriodNumber]
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column 'FW Period'
+		isHidden
+		lineageTag: 0aeb813d-6d08-4747-9619-1471f016da98
+		summarizeBy: none
+		isNameInferred
+		sourceColumn: [FW Period]
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'FW YearWeekNumber'
+		isHidden
+		formatString: 0
+		lineageTag: 32da3b8b-82ff-4d28-ab04-cb2d1157277d
+		summarizeBy: sum
+		isNameInferred
+		sourceColumn: [FW YearWeekNumber]
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'FW Week Year'
+		isHidden
+		lineageTag: 1f423f64-7510-4596-ac2c-a59d0f3b0b0d
+		summarizeBy: none
+		isNameInferred
+		sourceColumn: [FW Week Year]
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'FW StartOfWeek'
+		isHidden
+		formatString: General Date
+		lineageTag: e10ddd6a-1f1b-4ad1-9be2-4343b7623d5f
+		summarizeBy: none
+		isNameInferred
+		sourceColumn: [FW StartOfWeek]
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'FW EndOfWeek'
+		isHidden
+		formatString: General Date
+		lineageTag: c6e35452-6a1c-4f77-bc07-3f691507317e
+		summarizeBy: none
+		isNameInferred
+		sourceColumn: [FW EndOfWeek]
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'FW RelativeWeekPos'
+		isHidden
+		lineageTag: 81483dd5-9758-4e0d-be34-4b5a1c67bd8b
+		summarizeBy: sum
+		isNameInferred
+		sourceColumn: [FW RelativeWeekPos]
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column 'FW RelativeMonthPos'
+		isHidden
+		lineageTag: 51ce3ca8-b205-4b7a-a411-685cc6920ba1
+		summarizeBy: sum
+		isNameInferred
+		sourceColumn: [FW RelativeMonthPos]
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column 'FW RelativeQuarterPos'
+		isHidden
+		lineageTag: 9984d835-5170-4f5c-8eb8-8535c9c87c81
+		summarizeBy: sum
+		isNameInferred
+		sourceColumn: [FW RelativeQuarterPos]
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column 'FW RelativeYearPos'
+		isHidden
+		lineageTag: 14738b53-3e0d-42ee-a619-4013be60f4a3
+		summarizeBy: sum
+		isNameInferred
+		sourceColumn: [FW RelativeYearPos]
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column 'FW StartOfMonth'
+		isHidden
+		formatString: General Date
+		lineageTag: 031d0594-a5e3-42f8-9e62-6fab59a5b18e
+		summarizeBy: none
+		isNameInferred
+		sourceColumn: [FW StartOfMonth]
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'FW EndOfMonth'
+		isHidden
+		formatString: General Date
+		lineageTag: 4a087d5e-5d2f-4bbd-bcc9-11e70377c82d
+		summarizeBy: none
+		isNameInferred
+		sourceColumn: [FW EndOfMonth]
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'FW StartOfQuarter'
+		isHidden
+		formatString: General Date
+		lineageTag: 549daede-8ed7-47ca-baf7-22142cd55965
+		summarizeBy: none
+		isNameInferred
+		sourceColumn: [FW StartOfQuarter]
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'FW EndOfQuarter'
+		isHidden
+		formatString: General Date
+		lineageTag: 74f623b4-8c4e-4168-aea7-4880556d5472
+		summarizeBy: none
+		isNameInferred
+		sourceColumn: [FW EndOfQuarter]
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'FW StartOfYear'
+		isHidden
+		formatString: General Date
+		lineageTag: b3693736-a90c-484e-97af-dde2d6df788c
+		summarizeBy: none
+		isNameInferred
+		sourceColumn: [FW StartOfYear]
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'FW EndOfYear'
+		isHidden
+		formatString: General Date
+		lineageTag: ddfc1074-f083-4ff2-bc1d-121c3364d892
+		summarizeBy: none
+		isNameInferred
+		sourceColumn: [FW EndOfYear]
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'FW MonthDays'
+		isHidden
+		formatString: 0
+		lineageTag: 21849620-f077-4b21-849d-76f86cf7dcdf
+		summarizeBy: sum
+		isNameInferred
+		sourceColumn: [FW MonthDays]
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'FW QuarterDays'
+		isHidden
+		formatString: 0
+		lineageTag: 4ee3648c-f5cf-43c3-9029-065b597b2206
+		summarizeBy: sum
+		isNameInferred
+		sourceColumn: [FW QuarterDays]
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'FW YearDays'
+		isHidden
+		formatString: 0
+		lineageTag: 972b026d-6b92-4515-b2fb-3edc06070c8a
+		summarizeBy: sum
+		isNameInferred
+		sourceColumn: [FW YearDays]
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'FW DayOfMonthNumber'
+		isHidden
+		formatString: 0
+		lineageTag: 415c4151-010d-42be-aa7a-9442524d6361
+		summarizeBy: sum
+		isNameInferred
+		sourceColumn: [FW DayOfMonthNumber]
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'FW DayOfQuarterNumber'
+		isHidden
+		formatString: 0
+		lineageTag: 7877920b-94b4-45e8-9a98-b3497dfc1c63
+		summarizeBy: sum
+		isNameInferred
+		sourceColumn: [FW DayOfQuarterNumber]
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'FW DayOfYearNumber'
+		isHidden
+		formatString: 0
+		lineageTag: 40f789d2-ebcd-42b9-bf16-2270cd61a60a
+		summarizeBy: sum
+		isNameInferred
+		sourceColumn: [FW DayOfYearNumber]
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'FW DatePreviousWeek'
+		isHidden
+		formatString: General Date
+		lineageTag: 183ddc03-f98a-4945-a55b-0bd660e92f77
+		summarizeBy: none
+		isNameInferred
+		sourceColumn: [FW DatePreviousWeek]
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'FW DatePreviousMonth'
+		isHidden
+		formatString: General Date
+		lineageTag: 4c1cdcda-0408-4607-9e06-432aed827a44
+		summarizeBy: none
+		isNameInferred
+		sourceColumn: [FW DatePreviousMonth]
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'FW DatePreviousQuarter'
+		isHidden
+		formatString: General Date
+		lineageTag: af0cfe5e-2dfd-4b02-932d-757f36ad1ab3
+		summarizeBy: none
+		isNameInferred
+		sourceColumn: [FW DatePreviousQuarter]
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'FW DatePreviousYear'
+		isHidden
+		formatString: General Date
+		lineageTag: 3902fc78-91ea-4ad0-84a3-f4d1239de85c
+		summarizeBy: none
+		isNameInferred
+		sourceColumn: [FW DatePreviousYear]
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Relative Day'
+		formatString: 0
+		lineageTag: 1b6b5166-75b4-4106-a11c-3b9323408f5e
+		summarizeBy: sum
+		isNameInferred
+		sourceColumn: [Relative Day]
+
+		annotation SummarizationSetBy = Automatic
+
+	column Sequential365DayNumber
+		lineageTag: 21daa895-e32b-49e1-a55b-2f46be623041
+		summarizeBy: sum
+		isNameInferred
+		sourceColumn: [Sequential365DayNumber]
+
+		annotation SummarizationSetBy = Automatic
+
+	partition 'Date Ref-d63d5669-3a74-4b2b-b49d-f504bd49d56d' = calculated
+		mode: import
+		source = ```
+				
+				------------------------------------------------------------
+				--
+				-- Configuration
+				--
+				------------------------------------------------------------
+				VAR TodayReference = VALUES('Date Table Setup'[Today]) -- Change this if you need to use another date as a reference "current" day
+				
+				// Based on the first and last dates in the main fact table
+				VAR FirstYear = YEAR(VALUES('Date Table Setup'[dateTblStart]))
+				VAR LastYear = YEAR(VALUES('Date Table Setup'[dateTblEnd]))
+				
+				// For Fiscal 52-53 weeks (start depends on rules) and Gregorian (starts on the first of the month) 
+				VAR FiscalCalendarFirstMonth = VALUES('Date Table Setup'[fiscalCalendarFirstMonth])
+				
+				// Use: 0 - Sunday, 1 - Monday, 2 - Tuesday, ... 5 - Friday, 6 - Saturday
+				VAR FirstDayOfWeek = VALUES('Date Table Setup'[First Day of Week]) 
+				
+				VAR TypeStartFiscalYear = 1 -- Fiscal year as Calendar Year of : 0 - First day of fiscal year, 1 - Last day of fiscal year
+				
+				VAR IsoCountryHolidays = VALUES('Date Table Setup'[isoCountryHolidays]) -- Use only supported ISO countries or "" for no holidays
+				
+				VAR WeeklyType = COALESCE(VALUES('Date Table Setup'[weeklyType]), "Nearest") -- Supports only "Nearest", or "Last"
+				
+				VAR QuarterWeekType = COALESCE(VALUES('Date Table Setup'[quarterWeekType]),"445") -- Supports only "445", "454", and "544"
+				
+				VAR CalendarRange = VALUES('Date Table Setup'[calendarRange]) -- Supports "Calendar", "FiscalGregorian", "FiscalWeekly"
+				-- Last:    for last weekday of the month at fiscal year end
+				-- Nearest: for last weekday nearest the end of month 
+				-- Reference for Last/Nearest definition: https://en.wikipedia.org/wiki/4%E2%80%934%E2%80%935_calendar)
+				--
+				-- For ISO calendar use 
+				--   FiscalCalendarFirstMonth = 1 (ISO always starts in January)
+				--   FirstDayOfWeek = 1           (ISO always starts on Monday)
+				--   WeeklyType = "Nearest"       (ISO use the nearest week type algorithm)
+				-- For US with last Saturday of the month at fiscal year end
+				--   FirstDayOfWeek = 0           (US weeks start on Sunday)
+				--   WeeklyType = "Last"
+				-- For US with last Saturday nearest the end of month
+				--   FirstDayOfWeek = 0           (US weeks start on Sunday)
+				--   WeeklyType = "Nearest"
+				--
+				------------------------------
+				VAR CalendarGregorianPrefix = VALUES('Date Table Setup'[calendarPrefix]) -- Prefix used in columns of standard Gregorian calendar
+				VAR FiscalGregorianPrefix = VALUES('Date Table Setup'[fiscalGregorianPrefix]) -- Prefix used in columns of fiscal Gregorian calendar
+				VAR FiscalWeeklyPrefix = VALUES('Date Table Setup'[fiscalWeeklyPrefix]) -- Prefix used in columns of fiscal weekly calendar
+				VAR WorkingDayType = "Working day" -- Description for working days
+				VAR NonWorkingDayType = "Non-working day" -- Description for non-working days
+				------------------------------
+				VAR WeeklyCalendarType = "Weekly" -- Supports "Weekly", "Custom"
+				-- Set the working days - 0 = Sunday, 1 = Monday, ... 6 = Saturday
+				VAR WorkingDays = VALUES('Working Days')
+				
+				
+				-- Use CustomFiscalPeriods in case you need arbitrary definition of weekly fiscal years 
+				-- Set "UseCustomFiscalPeriods" to TRUE in order to use CustomFiscalPeriods 
+				VAR UseCustomFiscalPeriods = FALSE
+				-- Set "IgnoreWeeklyFiscalPeriods" to TRUE in order to ignore the WeeklyFiscalPeriods
+				-- You should set IgnoreWeeklyFiscalPeriods to TRUE only when UseCustomFiscalPeriods is TRUE, too
+				VAR IgnoreWeeklyFiscalPeriods = FALSE
+				-- Include here your own definition of custom fiscal periods
+				VAR CustomFiscalPeriods =
+				    FILTER ( 
+				        DATATABLE (
+				            "Fiscal YearNumber", INTEGER,
+				            "FirstDayOfYear", DATETIME,
+				            "LastDayOfYear", DATETIME,
+				            {
+				                -- IMPORTANT!!! The first day of each year must be a weekday corresponding to the definition of FirstDayOfWeek
+				                --              If you want to use this table, remember to set the UseCustomFiscalPeriods variable to TRUE
+				                --              If the IgnoreWeeklyFiscalPeriods is TRUE, there are no warnings in case the FirstDayOfWeek 
+				                --              does not match the first day of the year 
+				                { 2016, "2015-06-28", "2016-07-02" },
+				                { 2017, "2016-07-03", "2017-07-01" },
+				                { 2018, "2017-07-02", "2018-06-30" },
+				                { 2019, "2018-07-01", "2019-06-29" }
+				            }
+				        ),
+				        UseCustomFiscalPeriods
+				    )
+				
+				------------------------------------------------------------
+				--  
+				-- End of General Configuration
+				--
+				------------------------------------------------------------
+				--  
+				-- The following variables define specific parameters 
+				-- for calendars - you should modify them only to 
+				-- change configuration of specific countries, translate 
+				-- names of holidays, or to add configuration for other 
+				-- countries
+				--
+				------------------------------------------------------------
+				VAR InLieuOf_prefix = "(in lieu of " -- prefix of substitute holidays
+				VAR InLieuOf_suffix = ")" -- suffix of substitute holidays
+				VAR HolidayParameters =
+				    DATATABLE (
+				        "ISO Country", STRING,
+				        -- ISO country code (to enable filter based on country)
+				        "MonthNumber", INTEGER,
+				        -- Number of month - use 99 for relative dates using Easter as a reference
+				        "DayNumber", INTEGER,
+				        -- Absolute day (ignore WeekDayNumber, otherwise use 0)
+				        "WeekDayNumber", INTEGER,
+				        -- 0 = Sunday, 1 = Monday, ... , 7 = Saturday
+				        "OffsetWeek", INTEGER,
+				        -- 1 = first, 2 = second, ... -1 = last, -2 = second-last, ...
+				        "OffsetDays", INTEGER,
+				        -- days to add after offsetWeek and WeekDayNumber have been applied
+				        "HolidayName", STRING,
+				        -- Holiday name 
+				        "SubstituteHoliday", INTEGER,
+				        -- 0 = no substituteHoliday, 1 = substitute holiday with next working day, 2 = substitute holiday with next working day 
+				        -- (use 2 before 1 only, e.g. Christmas = 2, Boxing Day = 1)
+				        -- -1 = if it falls on a Saturday then it is observed on Friday, if it falls on a Sunday then it is observed on Monday
+				        "ConflictPriority", INTEGER,
+				        -- Priority in case of two or more holidays in the same date - lower number --> higher priority
+				        -- For example: marking Easter relative days with 150 and other holidays with 100 means that other holidays take 
+				        --              precedence over Easter-related days; use 50 for Easter related holidays to invert such a priority
+				        "FirstYear", INTEGER,
+				        -- First year for the holiday, 0 if it is not defined
+				        "LastYear", INTEGER,
+				        -- Last year for the holiday, 0 if it is not defined
+				        {
+				            --
+				            -- US = United States
+				            { "US", 1, 1, 0, 0, 0, "New Year's Day", 0, 100, 0, 0 },
+				            { "US", 1, 0, 1, 3, 0, "Martin Luther King, Jr.", 0, 100, 0, 0 },
+				            { "US", 2, 0, 1, 3, 0, "Presidents' Day", 0, 100, 0, 0 },
+				            // aka Washington's Birthday
+				            { "US", 5, 0, 1, -1, 0, "Memorial Day", 0, 100, 0, 0 },
+				            { "US", 6, 19, 0, 0, 0, "Juneteenth", -1, 100, 2021, 0 },
+				            { "US", 7, 4, 0, 0, 0, "Independence Day", 0, 100, 0, 0 },
+				            { "US", 9, 0, 1, 1, 0, "Labor Day", 0, 100, 0, 0 },
+				            { "US", 10, 0, 1, 2, 0, "Columbus Day", 0, 100, 0, 0 },
+				            { "US", 11, 11, 0, 0, 0, "Veterans Day", 0, 100, 0, 0 },
+				            { "US", 11, 0, 4, 4, 0, "Thanksgiving Day", 0, 100, 0, 0 },
+				            { "US", 11, 0, 4, 4, 1, "Black Friday", 0, 100, 0, 0 },
+				            { "US", 12, 25, 0, 0, 0, "Christmas Day", 0, 100, 0, 0 },
+				            -- 
+				            -- The following countries are in alphabetical order (by ISO Code)
+				            --
+				            
+				            --
+				            -- AT = Austria
+				            { "AT", 1, 1, 0, 0, 0, "New Year's Day", 0, 100, 0, 0 },
+				            { "AT", 1, 6, 0, 0, 0, "Epiphany", 0, 100, 0, 0 },
+				            { "AT", 99, 1, 0, 0, 0, "Easter Monday", 0, 50, 0, 0 },
+				            { "AT", 5, 1, 0, 0, 0, "Labour Day", 0, 100, 0, 0 },
+				            { "AT", 99, 39, 0, 0, 0, "Ascension Day", 0, 50, 0, 0 },
+				            { "AT", 99, 50, 0, 0, 0, "Whit Monday", 0, 50, 0, 0 },
+				            { "AT", 99, 60, 0, 0, 0, "Corpus Christi", 0, 50, 0, 0 },
+				            { "AT", 8, 15, 0, 0, 0, "Assumption Day", 0, 100, 0, 0 },
+				            { "AT", 10, 26, 0, 0, 0, "National Day", 0, 100, 0, 0 },
+				            { "AT", 11, 1, 0, 0, 0, "All Saints' Day", 0, 100, 0, 0 },
+				            { "AT", 12, 8, 0, 0, 0, "Immaculate Conception Day", 0, 100, 0, 0 },
+				            { "AT", 12, 25, 0, 0, 0, "Christmas Day", 0, 100, 0, 0 },
+				            { "AT", 12, 26, 0, 0, 0, "St. Stephen's Day", 0, 100, 0, 0 },
+				            --
+				            -- AU = Australia
+				            { "AU", 1, 1, 0, 0, 0, "New Year's Day", 1, 100, 0, 0 },
+				            { "AU", 1, 26, 0, 0, 0, "Australia Day", 1, 100, 0, 0 },
+				            { "AU", 99, -2, 0, 0, 0, "Good Friday", 0, 50, 0, 0 },
+				            { "AU", 99, 1, 0, 0, 0, "Easter Monday", 0, 50, 0, 0 },
+				            { "AU", 4, 25, 0, 0, 0, "Anzac Day", 1, 100, 0, 0 },
+				            { "AU", 12, 25, 0, 0, 0, "Christmas Day", 2, 100, 0, 0 },
+				            { "AU", 12, 26, 0, 0, 0, "Boxing Day", 1, 100, 0, 0 },
+				            --
+				            -- BE = Belgium
+				            { "BE", 1, 1, 0, 0, 0, "New Year's Day", 0, 100, 0, 0 },
+				            { "BE", 99, 1, 0, 0, 0, "Easter Monday", 0, 50, 0, 0 },
+				            { "BE", 99, 39, 0, 0, 0, "Ascension Day", 0, 50, 0, 0 },
+				            { "BE", 99, 50, 0, 0, 0, "Whit Monday", 0, 50, 0, 0 },
+				            { "BE", 5, 1, 0, 0, 0, "Labour Day", 0, 100, 0, 0 },
+				            { "BE", 7, 21, 0, 0, 0, "Belgian National DayDay", 0, 100, 0, 0 },
+				            { "BE", 8, 15, 0, 0, 0, "Assumption Day", 0, 100, 0, 0 },
+				            { "BE", 11, 1, 0, 0, 0, "All Saints' Day", 0, 100, 0, 0 },
+				            { "BE", 11, 11, 0, 0, 0, "Armistice Day", 0, 100, 0, 0 },
+				            { "BE", 12, 25, 0, 0,0, "Christmas Day", 0, 100, 0, 0 },
+				            --
+				            -- CA = Canada (include only nationwide and Thanksgiving)
+				            { "CA", 1, 1, 0, 0, 0, "New Year's Day", 0, 100, 0, 0 },
+				            { "CA", 99, -2, 0, 0, 0, "Good Friday", 0, 50, 0, 0 },
+				            { "CA", 7, 1, 0, 0, 0, "Canada Day", 0, 100, 0, 0 },
+				            { "CA", 9, 0, 1, 1, 0, "Labour Day", 0, 100, 0, 0 },
+				            { "CA", 10, 0, 1, 2, 0, "Thanksgiving", 0, 100, 0, 0 },
+				            { "CA", 12, 25, 0, 0, 0, "Christmas Day", 0, 100, 0, 0 },
+				            --
+				            -- DE = Germany
+				            { "DE", 1, 1, 0, 0, 0, "New Year's Day", 0, 100, 0, 0 },
+				            { "DE", 99, -2, 0, 0, 0, "Good Friday", 0, 50, 0, 0 },
+				            { "DE", 99, 1, 0, 0, 0, "Easter Monday", 0, 50, 0, 0 },
+				            { "DE", 5, 1, 0, 0, 0, "Labour Day", 0, 100, 0, 0 },
+				            { "DE", 99, 39, 0, 0, 0, "Ascension Day", 0, 50, 0, 0 },
+				            { "DE", 99, 50, 0, 0, 0, "Whit Monday", 0, 50, 0, 0 },
+				            { "DE", 10, 3, 0, 0, 0, "German Unity Day", 0, 100, 0, 0 },
+				            { "DE", 12, 25, 0, 0, 0, "Christmas Day", 0, 100, 0, 0 },
+				            { "DE", 12, 26, 0, 0, 0, "St. Stephen's Day", 0, 100, 0, 0 },
+				            --
+				            -- ES = Spain
+				            { "ES", 1, 1, 0, 0,0,  "New Year's Day", 0, 100, 0, 0 },
+				            { "ES", 1, 6, 0, 0, 0, "Epiphany", 0, 100, 0, 0 },
+				            { "ES", 99, -3, 0, 0, 0, "Maundy Thursday", 0, 50, 0, 0 },
+				            // Except Catalonia
+				            { "ES", 99, -2, 0, 0, 0, "Good Friday", 0, 50, 0, 0 },
+				            { "ES", 99, 1, 0, 0, 0, "Easter Monday", 0, 50, 0, 0 },
+				            // Belearic Islands, Basque Country, Catalonia, La Rioja, Navarra and Valenciana only
+				            { "ES", 5, 1, 0, 0, 0, "Labour Day", 0, 100, 0, 0 },
+				            { "ES", 8, 15, 0, 0, 0, "Assumption Day", 0, 100, 0, 0 },
+				            { "ES", 10, 12, 0, 0, 0, "Fiesta Navional de España", 0, 100, 0, 0 },
+				            { "ES", 11, 1, 0, 0, 0, "All Saints' Day", 0, 100, 0, 0 },
+				            { "ES", 12, 6, 0, 0, 0, "Constitution Day", 0, 100, 0, 0 },
+				            { "ES", 12, 8, 0, 0, 0, "Immaculate Conception", 0, 100, 0, 0 },
+				            { "ES", 12, 25, 0, 0, 0, "Christmas Day", 0, 100, 0, 0 },
+				            --
+				            -- FR = France
+				            { "FR", 1, 1, 0, 0, 0, "New Year's Day", 0, 100, 0, 0 },
+				            { "FR", 99, 1, 0, 0, 0, "Easter Monday", 0, 50, 0, 0 },
+				            { "FR", 5, 1, 0, 0, 0, "Labour Day", 0, 100, 0, 0 },
+				            { "FR", 5, 8, 0, 0, 0, "Victor in Europe Day", 0, 100, 0, 0 },
+				            { "FR", 99, 39, 0, 0, 0, "Ascension Day", 0, 50, 0, 0 },
+				            { "FR", 99, 50, 0, 0, 0, "Whit Monday", 0, 50, 0, 0 },
+				            { "FR", 7, 14, 0, 0, 0, "Bastille Day", 0, 100, 0, 0 },
+				            { "FR", 8, 15, 0, 0, 0, "Assumption Day", 0, 100, 0, 0 },
+				            { "FR", 11, 1, 0, 0, 0, "All Saints' Day", 0, 100, 0, 0 },
+				            { "FR", 11, 11, 0, 0, 0, "Armistice Day", 0, 100, 0, 0 },
+				            { "FR", 12, 25, 0, 0, 0, "Christmas Day", 0, 100, 0, 0 },
+				            --
+				            -- GB = England (different configuration in Scotland and Northern Ireland)
+				            { "GB", 1, 1, 0, 0, 0, "New Year's Day", 1, 100, 0, 0 },
+				            { "GB", 99, -2, 0, 0, 0, "Good Friday", 0, 50, 0, 0 },
+				            { "GB", 99, 1, 0, 0, 0, "Easter Monday", 0, 50, 0, 0 },
+				            { "GB", 5, 0, 1, 1, 0, "May Day Bank Holiday", 0, 100, 0, 0 },
+				            { "GB", 5, 0, 1, -1, 0, "Spring Bank Holiday", 0, 100, 0, 0 },
+				            { "GB", 8, 0, 1, -1, 0, "Late Summer Bank Holiday", 0, 100, 0, 0 },
+				            { "GB", 12, 25, 0, 0, 0, "Christmas Day", 2, 100, 0, 0 },
+				            { "GB", 12, 26, 0, 0, 0, "Boxing Day", 1, 100, 0, 0 },
+				            --
+				            -- IT = Italy
+				            { "IT", 1, 1, 0, 0, 0, "New Year's Day", 0, 100, 0, 0 },
+				            { "IT", 1, 6, 0, 0, 0, "Epiphany", 0, 100, 0, 0 },
+				            { "IT", 99, 1, 0, 0, 0, "Easter Monday", 0, 100, 0, 0 },
+				            { "IT", 4, 25, 0, 0, 0, "Liberation Day", 0, 100, 0, 0 },
+				            { "IT", 5, 1, 0, 0, 0, "Labour Day", 0, 100, 0, 0 },
+				            { "IT", 6, 2, 0, 0, 0, "Republic Day", 0, 100, 0, 0 },
+				            { "IT", 8, 15, 0, 0, 0, "Assumption Day", 0, 100, 0, 0 },
+				            { "IT", 11, 1, 0, 0, 0, "All Saints' Day", 0, 100, 0, 0 },
+				            { "IT", 12, 8, 0, 0, 0, "Immaculate Conception", 0, 100, 0, 0 },
+				            { "IT", 12, 25, 0, 0, 0, "Christmas Day", 0, 100, 0, 0 },
+				            { "IT", 12, 26, 0, 0, 0, "St. Stephen's Day", 0, 100, 0, 0 },
+				            --
+				            -- NL = The Netherlands
+				            { "NL", 1, 1, 0, 0, 0, "New Year's Day", 0, 100, 0, 0 },
+				            { "NL", 99, 1, 0, 0, 0, "Easter Monday", 0, 50, 0, 0 },
+				            { "NL", 99, 39, 0, 0, 0, "Ascension Day", 0, 50, 0, 0 },
+				            { "NL", 99, 50, 0, 0, 0, "Whit Monday", 0, 50, 0, 0 },
+				            { "NL", 4, 27, 0, 0, 0, "King's Day", 0, 100, 0, 0 },
+				            // King's day shifted to Saturday if on a Sunday - not handled in this calendar
+				            { "NL", 5, 5, 0, 0, 0, "Liberation Day", 0, 100, 0, 0 },
+				            { "NL", 12, 25, 0, 0, 0, "Christmas Day", 0, 100, 0, 0 },
+				            { "NL", 12, 26, 0, 0, 0, "St. Stephen's Day", 0, 100, 0, 0 },
+				            --
+				            -- NO = Norway
+				            { "NO", 1, 1, 0, 0, 0, "New Year's Day", 0, 100, 0, 0 },
+				            { "NO", 99, -3, 0, 0, 0, "Maundy Thursday", 0, 100, 0, 0 },
+				            { "NO", 99, -2, 0, 0, 0, "Good Friday", 0, 50, 0, 0 },
+				            { "NO", 99, 1, 0, 0, 0, "Easter Monday", 0, 50, 0, 0 },
+				            { "NO", 99, 39, 0, 0, 0, "Ascension Day", 0, 50, 0, 0 },
+				            { "NO", 99, 50, 0, 0, 0, "Whit Monday", 0, 50, 0, 0 },
+				            { "NO", 5, 1, 0, 0, 0, "Labour Day", 0, 100, 0, 0 },
+				            { "NO", 5, 17, 0, 0, 0, "Constitution Day", 0, 100, 0, 0 },
+				            { "NO", 12, 25, 0, 0, 0, "Christmas Day", 0, 100, 0, 0 },
+				            { "NO", 12, 26, 0, 0, 0, "Boxing Day", 0, 100, 0, 0 },
+				            -- De facto Holidays in Norway - not official public holidays
+				            { "NO", 12, 24, 0, 0, 0, "Christmas Eve", 0, 50, 0, 0 },
+				            { "NO", 12, 31, 0, 0, 0, "New Year's Eve", 0, 50, 0, 0 },
+				            --
+				            -- PT = Portugal
+				            { "PT", 1, 1, 0, 0, 0, "New Year's Day", 0, 100, 0, 0 },
+				            { "PT", 99, -2, 0, 0, 0, "Good Friday", 0, 50, 0, 0 },
+				            { "PT", 99, 60, 0, 0, 0, "Corpus Christi", 0, 50, 0, 0 },
+				            { "PT", 4, 25, 0, 0, 0, "Freedom Day", 0, 100, 0, 0 },
+				            { "PT", 5, 1, 0, 0, 0, "Labour Day", 0, 100, 0, 0 },
+				            { "PT", 6, 10, 0, 0, 0, "Portugal Day", 0, 100, 0, 0 },
+				            { "PT", 8, 15, 0, 0, 0, "Assumption Day", 0, 100, 0, 0 },
+				            { "PT", 10, 5, 0, 0, 0, "Republic Day", 0, 100, 0, 0 },
+				            { "PT", 11, 1, 0, 0, 0, "All Saints' Day", 0, 100, 0, 0 },
+				            { "PT", 12, 1, 0, 0, 0, "Restoration of Independence", 0, 100, 0, 0 },
+				            { "PT", 12, 8, 0, 0, 0, "Immaculate Conception", 0, 100, 0, 0 },
+				            { "PT", 12, 25, 0, 0, 0, "Christmas Day", 0, 100, 0, 0 },            --
+				            --
+				            -- SE = Sweden
+				            { "SE", 1, 1, 0, 0, 0, "New Year's Day", 0, 100, 0, 0 },
+				            { "SE", 1, 6, 0, 0, 0, "Epiphany", 0, 100, 0, 0 },
+				            { "SE", 99, -2, 0, 0, 0, "Good Friday", 0, 50, 0, 0 },
+				            { "SE", 99, 1, 0, 0, 0, "Easter Monday", 0, 50, 0, 0 },
+				            { "SE", 99, 39, 0, 0, 0, "Ascension Day", 0, 50, 0, 0 },
+				            { "SE", 5, 1, 0, 0, 0, "Labour Day", 0, 100, 0, 0 },
+				            { "SE", 6, 6, 0, 0, 0, "National Day", 0, 100, 0, 0 },
+				            { "SE", 12, 25, 0, 0, 0, "Christmas Day", 0, 100, 0, 0 },
+				            { "SE", 12, 26, 0, 0, 0, "Boxing Day", 0, 100, 0, 0 },
+				            -- De facto Holidays in Sweden - not official public holidays
+				            { "SE", 12, 24, 0, 0, 0, "Christmas Eve", 0, 50, 0, 0 },
+				            { "SE", 12, 31, 0, 0, 0, "New Year's Eve", 0, 50, 0, 0 },
+				            -- Midsummer Day is a Saturday
+				            -- { "SE", 98, 0, 0, 0, "Midsummer Day", 0, 50, 0, 0 },
+				            { "SE", 98, -1, 0, 0, 0, "Midsummer Eve", 0, 50, 0, 0 }
+				            ------------------------------------------------------------       
+				            -- UK --> see GB
+				        }
+				    )
+				VAR HolidayDates_ConfigGeneration =
+				    FILTER (
+				        HolidayParameters,
+				        IF (
+				            CONTAINS ( HolidayParameters, [ISO Country], IsoCountryHolidays )
+				                || IsoCountryHolidays = "",
+				            [ISO Country] = IsoCountryHolidays,
+				            ERROR ( "IsoCountryHolidays set to an unsupported country code" )
+				        )
+				    )
+				VAR HolidayDates_GeneratedRawWithDuplicatesUnfiltered =
+				    GENERATE (
+				        GENERATE (
+				            GENERATESERIES ( FirstYear - 1, LastYear + 1, 1 ),
+				            HolidayDates_ConfigGeneration
+				        ),
+				        VAR HolidayYear = [Value]
+				        VAR EasterDate =
+				            -- Code adapted from original VB version from https://www.assa.org.au/edm 
+				            VAR EasterYear = HolidayYear
+				            VAR FirstDig =
+				                INT ( EasterYear / 100 )
+				            VAR Remain19 =
+				                MOD ( EasterYear, 19 ) //
+				            -- Calculate PFM date
+				            VAR temp1 =
+				                MOD (
+				                    INT ( ( FirstDig - 15 ) / 2 )
+				                        + 202
+				                        - 11 * Remain19
+				                        + SWITCH (
+				                            TRUE,
+				                            FirstDig IN { 21, 24, 25, 27, 28, 29, 30, 31, 32, 34, 35, 38 }, -1,
+				                            FirstDig IN { 33, 36, 37, 39, 40 }, -2,
+				                            0
+				                        ),
+				                    30
+				                )
+				            VAR tA =
+				                temp1 + 21
+				                    + IF ( temp1 = 29 || ( temp1 = 28 && Remain19 > 10 ), -1 ) // 
+				            -- Find the next Sunday
+				            VAR tB =
+				                MOD ( tA - 19, 7 )
+				            VAR tCpre =
+				                MOD ( 40 - FirstDig, 4 )
+				            VAR tC =
+				                tCpre
+				                    + IF ( tCpre = 3, 1 )
+				                    + IF ( tCpre > 1, 1 )
+				            VAR temp2 =
+				                MOD ( EasterYear, 100 )
+				            VAR tD =
+				                MOD ( temp2 + INT ( temp2 / 4 ), 7 )
+				            VAR tE =
+				                MOD ( 20 - tB - tC - tD, 7 )
+				                    + 1
+				            VAR d = tA + tE //
+				            -- Return the date
+				            VAR EasterDay =
+				                IF ( d > 31, d - 31, d )
+				            VAR EasterMonth =
+				                IF ( d > 31, 4, 3 )
+				            RETURN
+				                DATE ( EasterYear, EasterMonth, EasterDay ) //
+				        -- End of code adapted from original VB version from https://www.assa.org.au/edm 
+				        VAR SwedishMidSummer =
+				            -- Compute the Midsummer day in Swedish - it is the Saturday between 20 and 26 June
+				            -- This calculation is valid only for years after 1953 
+				            -- https://sv.wikipedia.org/wiki/Midsommar_i_Sverige
+				            VAR __June20 = 
+				                DATE ( HolidayYear, 6, 20 )
+				            RETURN
+				                DATE ( HolidayYear, 6, 20 + (7 - WEEKDAY ( __June20, 1 ) ) )
+				            -- End of SwedishMidSummer calculation
+				        VAR HolidayDate =
+				            SWITCH (
+				                TRUE,
+				                [DayNumber] <> 0
+				                    && [WeekDayNumber] <> 0, ERROR ( "Wrong configuration in HolidayParameters" ),
+				                [DayNumber] <> 0
+				                    && [MonthNumber] <= 12, DATE ( HolidayYear, [MonthNumber], [DayNumber] ),
+				                [MonthNumber] = 99, -- Easter offset
+				                    EasterDate + [DayNumber],
+				                [MonthNumber] = 98, -- Swedish Midsummer Day
+				                    SwedishMidSummer + [DayNumber],
+				                [WeekDayNumber] <> 0,
+				                    VAR ReferenceDate =
+				                        DATE ( HolidayYear, 1
+				                            + MOD ( [MonthNumber] - 1 + IF ( [OffsetWeek] < 0, 1 ), 12 ), 1 )
+				                            - IF ( [OffsetWeek] < 0, 1 )
+				                    VAR ReferenceWeekDayNumber =
+				                        WEEKDAY ( ReferenceDate, 1 ) - 1
+				                    VAR Offset =
+				                        [WeekDayNumber] - ReferenceWeekDayNumber
+				                            + 7 * [OffsetWeek]
+				                            + IF (
+				                                [OffsetWeek] > 0,
+				                                IF ( [WeekDayNumber] >= ReferenceWeekDayNumber, - 7 ),
+				                                IF ( ReferenceWeekDayNumber >= [WeekDayNumber], 7 )
+				                            )
+				                RETURN
+				                    ReferenceDate + Offset + [OffsetDays],
+				                ERROR ( "Wrong configuration in HolidayParameters" )
+				            )
+				        VAR HolidayDay =
+				            WEEKDAY ( HolidayDate, 1 ) - 1
+				        VAR SubstituteHolidayOffset =
+				            SWITCH (
+				                TRUE,
+				                [SubstituteHoliday] = -1,
+				                    SWITCH ( 
+				                        HolidayDay, 
+				                        0, 1,       -- If it falls on a Sunday then it is observed on Monday
+				                        6, -1,      -- If it falls on a Saturday then it is observed on Friday
+				                        0
+				                    ),
+				                [SubstituteHoliday] > 0
+				                    && NOT CONTAINS ( WorkingDays, [FSG_PBI_Day_Number], HolidayDay ),
+				                VAR NextWorkingDay =
+				                    MINX (
+				                        FILTER ( WorkingDays, [FSG_PBI_Day_Number] > HolidayDay ),
+				                        [FSG_PBI_Day_Number]
+				                    )
+				                VAR SubstituteDay =
+				                    IF (
+				                        ISBLANK ( NextWorkingDay ),
+				                        MINX ( WorkingDays, [FSG_PBI_Day_Number] ) + 7,
+				                        NextWorkingDay
+				                    )
+				                RETURN
+				                    SubstituteDay - HolidayDay
+				                        + ( [SubstituteHoliday] - 1 )
+				            )
+				        RETURN
+				            ROW (
+				                -- Use DATE function to get a DATE column as a result 
+				                "HolidayDate", DATE ( YEAR ( HolidayDate ), MONTH ( HolidayDate ), DAY ( HolidayDate ) ),
+				                "SubstituteHolidayOffset", SubstituteHolidayOffset
+				            )
+				    ) //
+				VAR HolidayDates_GeneratedRawWithDuplicates =
+				    FILTER (
+				        HolidayDates_GeneratedRawWithDuplicatesUnfiltered,
+				        ( [FirstYear] = 0 || [FirstYear] <= [Value] )
+				            && ( [LastYear] = 0 || [LastYear] >= [Value] )
+				    )
+				VAR HolidayDates_RawDatesUnique = 
+				    DISTINCT ( 
+				        SELECTCOLUMNS ( 
+				            HolidayDates_GeneratedRawWithDuplicates,
+				            "HolidayDateUnique", [HolidayDate]
+				        )
+				    )
+				VAR HolidayDates_GeneratedRaw = 
+				    GENERATE (
+				        HolidayDates_RawDatesUnique,
+				        VAR FilterDate = [HolidayDateUnique]
+				        RETURN 
+				            TOPN (
+				                1,
+				                FILTER ( 
+				                    HolidayDates_GeneratedRawWithDuplicates,
+				                    [HolidayDate] = FilterDate
+				                ),
+				                [ConflictPriority],
+				                ASC,
+				                [HolidayName], 
+				                ASC
+				            )
+				    )  
+				VAR HolidayDates_GeneratedSubstitutesOffset =
+				    SELECTCOLUMNS (
+				        FILTER ( HolidayDates_GeneratedRawWithDuplicates, [SubstituteHoliday] <> 0 ),
+				        "Value", [Value],
+				        "ISO Country", [ISO Country],
+				        "MonthNumber", [MonthNumber],
+				        "DayNumber", [DayNumber],
+				        "WeekDayNumber", [WeekDayNumber],
+				        "OffsetWeek", [OffsetWeek],
+				        "HolidayName", [HolidayName],
+				        "SubstituteHoliday", [SubstituteHoliday],
+				        "ConflictPriority", [ConflictPriority],
+				        "HolidayDate", [HolidayDate],
+				        "SubstituteHolidayOffset", 
+				            VAR CurrentHolidayDate = [HolidayDate]
+				            VAR CurrentHolidayName = [HolidayName]
+				            VAR OriginalSubstituteDate = [HolidayDate] + [SubstituteHolidayOffset]
+				            VAR OtherHolidays = 
+				                FILTER ( 
+				                    HolidayDates_GeneratedRawWithDuplicates, 
+				                    [HolidayDate] <> CurrentHolidayDate
+				                    || [HolidayName] <> CurrentHolidayName
+				                )
+				            VAR ConflictDay0 = 
+				                CONTAINS ( 
+				                    OtherHolidays,
+				                    [HolidayDate], OriginalSubstituteDate
+				                )
+				            VAR ConflictDay1 = 
+				                ConflictDay0 
+				                && CONTAINS ( 
+				                    OtherHolidays,
+				                    [HolidayDate], OriginalSubstituteDate + 1
+				                )
+				            VAR ConflictDay2 = 
+				                ConflictDay1 
+				                && CONTAINS ( 
+				                    OtherHolidays,
+				                    [HolidayDate], OriginalSubstituteDate + 2
+				                )
+				            VAR SubstituteOffsetStep1 = [SubstituteHolidayOffset] + ConflictDay0 + ConflictDay1 + ConflictDay2
+				            VAR HolidayDateStep1 = CurrentHolidayDate + SubstituteOffsetStep1
+				            VAR HolidayDayStep1 =
+				                WEEKDAY ( HolidayDateStep1, 1 ) - 1
+				            VAR SubstituteHolidayOffsetNonWorkingDays =
+				                IF (
+				                    NOT CONTAINS ( WorkingDays, [FSG_PBI_Day_Number], HolidayDayStep1 ),
+				                    VAR NextWorkingDayStep2 =
+				                        MINX (
+				                            FILTER ( WorkingDays, [FSG_PBI_Day_Number] > HolidayDayStep1 ),
+				                            [FSG_PBI_Day_Number]
+				                        )
+				                    VAR SubstituteDay =
+				                        IF (
+				                            ISBLANK ( NextWorkingDayStep2 ),
+				                            MINX ( WorkingDays, [FSG_PBI_Day_Number] ) + 7,
+				                            NextWorkingDayStep2
+				                        )
+				                    RETURN SubstituteDay - HolidayDateStep1
+				                )
+				            VAR SubstituteOffsetStep2 = SubstituteOffsetStep1 + SubstituteHolidayOffsetNonWorkingDays
+				            VAR SubstituteDateStep2 = OriginalSubstituteDate + SubstituteOffsetStep2
+				            VAR ConflictDayStep2_0 = 
+				                CONTAINS ( 
+				                    OtherHolidays,
+				                    [HolidayDate], SubstituteDateStep2
+				                )
+				            VAR ConflictDayStep2_1 = 
+				                ConflictDayStep2_0
+				                && CONTAINS ( 
+				                    OtherHolidays,
+				                    [HolidayDate], SubstituteDateStep2 + 1
+				                )
+				            VAR ConflictDayStep2_2 = 
+				                ConflictDayStep2_1 
+				                && CONTAINS ( 
+				                    OtherHolidays,
+				                    [HolidayDate], SubstituteDateStep2 + 2
+				                )
+				            VAR FinalSubstituteHolidayOffset = 
+				                SubstituteOffsetStep2 + ConflictDayStep2_0 + ConflictDayStep2_1 + ConflictDayStep2_2
+				            RETURN
+				                FinalSubstituteHolidayOffset
+				        )
+				VAR HolidayDates_GeneratedSubstitutesExpanded =
+				    ADDCOLUMNS (
+				        HolidayDates_GeneratedSubstitutesOffset,
+				        "ReplacementHolidayDate", [HolidayDate] + [SubstituteHolidayOffset]
+				    )
+				VAR HolidayDates_GeneratedSubstitutesUnique =
+				    DISTINCT ( 
+				        SELECTCOLUMNS ( 
+				            HolidayDates_GeneratedSubstitutesExpanded,
+				            "UniuqeReplacementHolidayDate", [ReplacementHolidayDate]
+				        )
+				    )
+				VAR HolidayDates_GeneratedSubstitutes =
+				    GENERATE (
+				        HolidayDates_GeneratedSubstitutesUnique,
+				        TOPN (
+				            1,
+				            FILTER ( 
+				                HolidayDates_GeneratedSubstitutesExpanded,
+				                [UniuqeReplacementHolidayDate] = [ReplacementHolidayDate]
+				            ),
+				            [ConflictPriority],
+				            ASC,
+				            [HolidayName], 
+				            ASC
+				        )
+				    )  
+				VAR HolidayDates_Generated =
+				    UNION (
+				        SELECTCOLUMNS (
+				            HolidayDates_GeneratedRaw,
+				            "HolidayDate", [HolidayDate],
+				            "HolidayName", [HolidayName]
+				        ),
+				        SELECTCOLUMNS (
+				            FILTER ( HolidayDates_GeneratedSubstitutes, [SubstituteHolidayOffset] <> 0 ), 
+				            "HolidayDate", [HolidayDate] + [SubstituteHolidayOffset],
+				            "HolidayName", InLieuOf_prefix & [HolidayName]
+				                & InLieuOf_suffix
+				        )
+				    )
+				-- Alternative way to express holidays: create a table with the list of the dates
+				-- The following table should be used instead of HolidayDates_Generated in the following 
+				-- HolidayDates variable if you want to use a fixed list of holidays
+				VAR HolidayDates_US_ExplicitDates =
+				    DATATABLE (
+				        "HolidayDate", DATETIME,
+				        "HolidayName", STRING,
+				        {
+				            { "2008-01-01", "New Year's Day" },
+				            { "2008-12-25", "Christmas Day" },
+				            -------------------------
+				            { "2008-11-27", "Thanksgiving Day" },
+				            { "2009-11-26", "Thanksgiving Day" },
+				            { "2010-11-25", "Thanksgiving Day" },
+				            { "2011-11-24", "Thanksgiving Day" },
+				            { "2012-11-22", "Thanksgiving Day" },
+				            { "2013-11-28", "Thanksgiving Day" },
+				            { "2014-11-27", "Thanksgiving Day" },
+				            { "2015-11-26", "Thanksgiving Day" },
+				            { "2016-11-24", "Thanksgiving Day" },
+				            { "2017-11-23", "Thanksgiving Day" },
+				            { "2018-11-22", "Thanksgiving Day" },
+				            { "2019-11-28", "Thanksgiving Day" },
+				            { "2020-11-26", "Thanksgiving Day" }
+				        }
+				    )
+				VAR HolidayDates =
+				    SELECTCOLUMNS (
+				        HolidayDates_Generated,
+				        "Date", [HolidayDate],
+				        "Holiday Name", [HolidayName]
+				    ) //
+				------------------------------------------------------------
+				--  
+				-- End of Configuration
+				--
+				------------------------------------------------------------
+				--  
+				-- The following variables define 
+				-- the content of the calendar tables
+				--
+				------------------------------------------------------------
+				------------------------------------------------------------
+				VAR FirstDayCalendar =
+				    DATE ( FirstYear - 1, 1, 1 )
+				VAR LastDayCalendar =
+				    DATE ( LastYear + 1, 12, 31 )
+				VAR WeekDayCalculationType =
+				    IF ( FirstDayOfWeek = 0, 7, FirstDayOfWeek )
+				        + 10
+				VAR OffsetFiscalYear = 
+				    IF ( FiscalCalendarFirstMonth > 1, 1, 0 )
+				VAR WeeklyFiscalPeriods =
+				    GENERATE (
+				        SELECTCOLUMNS (
+				            GENERATESERIES ( FirstYear - OffsetFiscalYear, LastYear + OffsetFiscalYear, 1 ),
+				            "CalendarType", "Weekly",
+				            "Fiscal YearNumber", [Value]
+				        ),
+				        VAR StartFiscalYearNumber = [Fiscal YearNumber] - (OffsetFiscalYear * TypeStartFiscalYear)
+				        VAR FirstDayCurrentYear =
+				            DATE ( StartFiscalYearNumber, FiscalCalendarFirstMonth, 1 )
+				        VAR FirstDayNextYear =
+				            DATE ( StartFiscalYearNumber + 1, FiscalCalendarFirstMonth, 1 )
+				        VAR DayOfWeekNumberCurrentYear =
+				            WEEKDAY ( FirstDayCurrentYear, WeekDayCalculationType )
+				        VAR OffsetStartCurrentFiscalYear =
+				            SWITCH (
+				                WeeklyType,
+				                "Last", 1 - DayOfWeekNumberCurrentYear,
+				                "Nearest", IF (
+				                    DayOfWeekNumberCurrentYear >= 5,
+				                    8 - DayOfWeekNumberCurrentYear,
+				                    1 - DayOfWeekNumberCurrentYear
+				                ),
+				                ERROR ( "Unknown WeeklyType definition.")
+				            )
+				        VAR DayOfWeekNumberNextYear =
+				            WEEKDAY ( FirstDayNextYear, WeekDayCalculationType )
+				        VAR OffsetStartNextFiscalYear =
+				            SWITCH (
+				                WeeklyType,
+				                "Last", - DayOfWeekNumberNextYear,
+				                "Nearest", IF (
+				                    DayOfWeekNumberNextYear >= 5,
+				                    7 - DayOfWeekNumberNextYear,
+				                    - DayOfWeekNumberNextYear
+				                ),
+				                ERROR ( "Unknown WeeklyType definition.")
+				            )
+				        VAR FirstDayOfFiscalYear = FirstDayCurrentYear + OffsetStartCurrentFiscalYear
+				        VAR LastDayOfFiscalYear = FirstDayNextYear + OffsetStartNextFiscalYear
+				        RETURN
+				            ROW ( "FirstDayOfYear", FirstDayOfFiscalYear,
+				            "LastDayOfYear", LastDayOfFiscalYear )
+				    )
+				VAR CheckFirstDayOfWeek =
+				    IF (
+				        UseCustomFiscalPeriods && (NOT IgnoreWeeklyFiscalPeriods)
+				        && WEEKDAY ( MINX ( CustomFiscalPeriods, [FirstDayOfYear] ), 1 )
+				              <> ( FirstDayOfWeek + 1 ),
+				        ERROR ( "CustomFiscalPeriods table does not match FirstDayOfWeek setting" ),
+				        TRUE
+				    )
+				VAR CustomFiscalPeriodsWithType =
+				    GENERATE (
+				        ROW ( "CalendarType", "Custom" ),
+				        FILTER ( CustomFiscalPeriods, CheckFirstDayOfWeek )
+				    )
+				VAR FiscalPeriods =
+				    SELECTCOLUMNS (
+				        FILTER (
+				            UNION ( 
+				                FILTER ( WeeklyFiscalPeriods, NOT IgnoreWeeklyFiscalPeriods ),
+				                CustomFiscalPeriodsWithType 
+				            ),
+				            [CalendarType] = WeeklyCalendarType
+				        ),
+				        "FW YearNumber", [Fiscal YearNumber],
+				        "FW StartOfYear", [FirstDayOfYear],
+				        "FW EndOfYear", [LastDayOfYear]
+				    )
+				VAR WeeksInP1 =
+				    SWITCH (
+				        QuarterWeekType,
+				        "445", 4,
+				        "454", 4,
+				        "544", 5,
+				        ERROR ( "QuarterWeekType only supports 445, 454, and 544" )
+				    )
+				VAR WeeksInP2 =
+				    SWITCH (
+				        QuarterWeekType,
+				        "445", 4,
+				        "454", 5,
+				        "544", 4,
+				        ERROR ( "QuarterWeekType only supports 445, 454, and 544" )
+				    )
+				VAR WeeksInP3 =
+				    SWITCH (
+				        QuarterWeekType,
+				        "445", 5,
+				        "454", 4,
+				        "544", 4,
+				        ERROR ( "QuarterWeekType only supports 445, 454, and 544" )
+				    )
+				VAR FirstSundayReference =
+				    DATE ( 1900, 12, 30 ) -- Do not change this 
+				VAR FirstWeekReference = FirstSundayReference + FirstDayOfWeek
+				VAR RawDays =
+				    CALENDAR ( FirstDayCalendar, LastDayCalendar )
+				VAR CalendarGregorianPrefixSpace =
+				    IF ( CalendarGregorianPrefix <> "", CalendarGregorianPrefix & " ", "" )
+				VAR FiscalGregorianPrefixSpace =
+				    IF ( FiscalGregorianPrefix <> "", FiscalGregorianPrefix & " ", "" )
+				VAR FiscalWeeklyPrefixSpace =
+				    IF ( FiscalWeeklyPrefix <> "", FiscalWeeklyPrefix & " ", "" )
+				VAR CustomFiscalRawDays =
+				    GENERATE ( FiscalPeriods, CALENDAR ( [FW StartOfYear], [FW EndOfYear] ) )
+				VAR CalendarStandardGregorianBase =
+				    GENERATE (
+				        NATURALLEFTOUTERJOIN ( RawDays, HolidayDates ),
+				        VAR CalDate = [Date]
+				        VAR CalYear =
+				            YEAR ( [Date] )
+				        VAR CalMonthNumber =
+				            MONTH ( [Date] )
+				        VAR CalQuarterNumber =
+				            ROUNDUP ( CalMonthNumber / 3, 0 )
+				        VAR CalDay =
+				            DAY ( [Date] )
+				        VAR CalWeekNumber =
+				            WEEKNUM ( CalDate, WeekDayCalculationType )
+				        VAR CalDayOfMonth =
+				            DAY ( CalDate )
+				        VAR WeekDayNumber =
+				            WEEKDAY ( CalDate, WeekDayCalculationType )
+				        VAR YearWeekNumber =
+				            INT ( DIVIDE ( CalDate - FirstWeekReference, 7 ) )
+				        VAR CalendarFirstDayOfYear =
+				            DATE ( CalYear, 1, 1 )
+				        VAR CalendarDayOfYear =
+				            INT ( CalDate - CalendarFirstDayOfYear + 1 )
+				        VAR IsWorkingDay =
+				            CONTAINS ( WorkingDays, [FSG_PBI_Day_Number], WEEKDAY ( CalDate, 1 ) - 1 )
+				                && ISBLANK ( [Holiday Name] )
+				        VAR _CheckLeapYearBefore =
+				            CalYear -
+				            IF ( (CalMonthNumber = 2 && CalDayOfMonth < 29)
+				                     || CalMonthNumber < 2,
+				                1,
+				                0 )
+				        VAR LeapYearsBefore1900 =
+				            INT ( 1899 / 4 )
+				                - INT ( 1899 / 100 )
+				                + INT ( 1899 / 400 )
+				        VAR LeapYearsBetween =
+				            INT ( _CheckLeapYearBefore / 4 )
+				                - INT ( _CheckLeapYearBefore / 100 )
+				                + INT ( _CheckLeapYearBefore / 400 )
+				                - LeapYearsBefore1900
+				        VAR Sequential365DayNumber =
+				            INT ( CalDate - LeapYearsBetween ) 
+				        RETURN
+				            ROW (
+				                "DateKey", CalYear * 10000
+				                    + CalMonthNumber * 100
+				                    + CalDay,
+				                "Calendar YearNumber", CalYear,
+				                "Calendar Year", CalendarGregorianPrefixSpace & CalYear,
+				                "Calendar QuarterNumber", CalQuarterNumber,
+				                "Calendar Quarter", CalendarGregorianPrefix & "Q"
+				                    & CalQuarterNumber
+				                    & " ",
+				                "Calendar YearQuarterNumber", CalYear * 4
+				                    - 1
+				                    + CalQuarterNumber,
+				                "Calendar Quarter Year", CalendarGregorianPrefix & "Q"
+				                    & CalQuarterNumber
+				                    & " "
+				                    & CalYear,
+				                "Calendar MonthNumber", CalMonthNumber,
+				                "Calendar Month", FORMAT ( CalDate, "mmm" ),
+				                "Calendar YearMonthNumber", CalYear * 12
+				                    - 1
+				                    + CalMonthNumber,
+				                "Calendar Month Year", FORMAT ( CalDate, "mmm" ) & " "
+				                    & CalYear,
+				                "Calendar WeekNumber", CalWeekNumber,
+				                "Calendar Week", CalendarGregorianPrefix & "W"
+				                    & FORMAT ( CalWeekNumber, "00" ),
+				                "Calendar YearWeekNumber", YearWeekNumber,
+				                "Calendar Week Year", CalendarGregorianPrefix & "W"
+				                    & FORMAT ( CalWeekNumber, "00" )
+				                    & "-"
+				                    & CalYear,
+				                "Calendar WeekYearOrder", CalYear * 100
+				                    + CalWeekNumber,
+				                "Calendar DayOfYearNumber", CalendarDayOfYear,
+				                "Day of Month", CalDayOfMonth,
+				                "WeekDayNumber", WeekDayNumber,
+				                "Week Day", FORMAT ( CalDate, "ddd" ),
+				                "IsWorkingDay", IsWorkingDay,
+				                "Day Type", IF ( IsWorkingDay, WorkingDayType, NonWorkingDayType ),
+				                "Sequential365DayNumber", Sequential365DayNumber
+				            )
+				    )
+				VAR CalendarStandardGregorian =
+				    GENERATE (
+				        CalendarStandardGregorianBase,
+				        VAR CalDate = [Date]
+				        VAR YearNumber = [Calendar YearNumber]
+				        VAR MonthNumber = [Calendar MonthNumber]
+				        VAR YearWeekNumber = [Calendar YearWeekNumber]
+				        VAR YearMonthNumber = [Calendar YearMonthNumber]
+				        VAR YearQuarterNumber = [Calendar YearQuarterNumber]
+				        VAR CurrentWeekPos =
+				            AVERAGEX (
+				                FILTER ( CalendarStandardGregorianBase, [Date] = TodayReference ),
+				                [Calendar YearWeekNumber]
+				            )
+				        VAR CurrentMonthPos =
+				            AVERAGEX (
+				                FILTER ( CalendarStandardGregorianBase, [Date] = TodayReference ),
+				                [Calendar YearMonthNumber]
+				            )
+				        VAR CurrentQuarterPos =
+				            AVERAGEX (
+				                FILTER ( CalendarStandardGregorianBase, [Date] = TodayReference ),
+				                [Calendar YearQuarterNumber]
+				            )
+				        VAR CurrentYearPos =
+				            AVERAGEX (
+				                FILTER ( CalendarStandardGregorianBase, [Date] = TodayReference ),
+				                [Calendar YearNumber]
+				            )
+				        VAR RelativeWeekPos = YearWeekNumber - CurrentWeekPos
+				        VAR RelativeMonthPos = YearMonthNumber - CurrentMonthPos
+				        VAR RelativeQuarterPos = YearQuarterNumber - CurrentQuarterPos
+				        VAR RelativeYearPos = YearNumber - CurrentYearPos
+				        VAR CalStartOfMonth =
+				            DATE ( YearNumber, MonthNumber, 1 )
+				        VAR CalEndOfMonth =
+				            EOMONTH ( CalDate, 0 )
+				        VAR CalMonthDays = 
+				            INT ( CalEndOfMonth - CalStartOfMonth + 1 ) 
+				        VAR CalDayOfMonthNumber =
+				            INT ( CalDate - CalStartOfMonth + 1 )
+				        VAR CalStartOfQuarter =
+				            MINX (
+				                FILTER (
+				                    CalendarStandardGregorianBase,
+				                    [Calendar YearQuarterNumber] = YearQuarterNumber
+				                ),
+				                [Date]
+				            )
+				        VAR CalEndOfQuarter =
+				            MAXX (
+				                FILTER (
+				                    CalendarStandardGregorianBase,
+				                    [Calendar YearQuarterNumber] = YearQuarterNumber
+				                ),
+				                [Date]
+				            )
+				        VAR CalQuarterDays =
+				            INT ( CalEndOfQuarter - CalStartOfQuarter + 1 )         
+				        VAR CalDayOfQuarterNumber =
+				            INT ( CalDate - CalStartOfQuarter + 1 )
+				        VAR CalYearDays =
+				            INT ( DATE ( YearNumber, 12, 31 ) - DATE ( YearNumber, 1, 1 ) + 1 )
+				        VAR CalDatePreviousWeek = CalDate - 7
+				        VAR CalDatePreviousMonth = 
+				            MAXX (
+				                FILTER (
+				                    CalendarStandardGregorianBase,
+				                    [Calendar YearMonthNumber] = YearMonthNumber - 1
+				                    &&
+				                    ( [Day of Month] <= CalDayOfMonthNumber
+				                      || CalDayOfMonthNumber = CalMonthDays )
+				                ),
+				                [Date]
+				            )
+				        VAR CalDatePreviousQuarter = 
+				            MAXX (
+				                FILTER (
+				                    CalendarStandardGregorianBase,
+				                    [Calendar YearMonthNumber] = YearMonthNumber - 3
+				                    &&
+				                    ( [Day of Month] <= CalDayOfMonthNumber
+				                      || CalDayOfMonthNumber = CalMonthDays )
+				                ),
+				                [Date]
+				            )
+				        VAR CalDatePreviousYear = 
+				            MAXX (
+				                FILTER (
+				                    CalendarStandardGregorianBase,
+				                    [Calendar YearMonthNumber] = YearMonthNumber - 12
+				                    &&
+				                    ( [Day of Month] <= CalDayOfMonthNumber
+				                      || CalDayOfMonthNumber = CalMonthDays )
+				                ),
+				                [Date]
+				            )
+				        VAR CalStartOfYear =
+				            DATE ( YearNumber, 1, 1 )
+				        VAR CalEndOfYear =
+				            DATE ( YearNumber, 12, 31 )
+				        RETURN
+				            ROW ( "Calendar RelativeWeekPos", RelativeWeekPos,
+				            "Calendar RelativeMonthPos", RelativeMonthPos,
+				            "Calendar RelativeQuarterPos", RelativeQuarterPos,
+				            "Calendar RelativeYearPos", RelativeYearPos,
+				            "Calendar StartOfMonth", CalStartOfMonth,
+				            "Calendar EndOfMonth", CalEndOfMonth,
+				            "Calendar DayOfMonthNumber", CalDayOfMonthNumber,
+				            "Calendar StartOfQuarter", CalStartOfQuarter,
+				            "Calendar EndOfQuarter", CalEndOfQuarter,
+				            "Calendar DayOfQuarterNumber", CalDayOfQuarterNumber,            
+				            "Calendar StartOfYear", CalStartOfYear,
+				            "Calendar EndOfYear", CalEndOfYear,
+				            "Calendar DatePreviousWeek", CalDatePreviousWeek,
+				            "Calendar DatePreviousMonth", CalDatePreviousMonth,
+				            "Calendar DatePreviousQuarter", CalDatePreviousQuarter,
+				            "Calendar DatePreviousYear", CalDatePreviousYear,
+				            "Calendar MonthDays", CalMonthDays,
+				            "Calendar QuarterDays", CalQuarterDays,
+				            "Calendar YearDays", CalYearDays
+				            )
+				    )
+				VAR FiscalStandardGregorianBase =
+				    GENERATE (
+				        NATURALLEFTOUTERJOIN ( RawDays, HolidayDates ),
+				        VAR FiscalDate = [Date]
+				        VAR CalYear =
+				            YEAR ( FiscalDate )
+				        VAR CalMonthNumber =
+				            MONTH ( FiscalDate )
+				        VAR CalDay =
+				            DAY ( [Date] )
+				        VAR WeekDayNumber =
+				            WEEKDAY ( FiscalDate, WeekDayCalculationType )
+				        VAR YearWeekNumber =
+				            INT ( DIVIDE ( FiscalDate - FirstWeekReference, 7 ) )
+				        VAR FiscalYear =
+				            CalYear 
+				                + IF ( FiscalCalendarFirstMonth > 1,
+				                      IF ( CalMonthNumber >= FiscalCalendarFirstMonth, 
+				                          TypeStartFiscalYear,                     -- TypeStartFiscalYear = 1
+				                          -1 * (TypeStartFiscalYear = 0)           -- TypeStartFiscalYear = 0
+				                      )
+				                  )
+				        VAR FiscalMonthNumber =
+				            MOD ( CalMonthNumber - FiscalCalendarFirstMonth, 12 )
+				                + 1
+				        VAR FiscalMonthQuarterNumber = 
+				            MOD ( FiscalMonthNumber - 1, 3 ) + 1
+				        VAR FiscalFirstDayOfYear =
+				            DATE ( FiscalYear - (OffsetFiscalYear * TypeStartFiscalYear), FiscalCalendarFirstMonth, 1 )
+				        VAR FiscalDayOfYear =
+				            INT ( FiscalDate - FiscalFirstDayOfYear + 1 )
+				        VAR FiscalFirstYearWeekNumber =
+				            INT ( DIVIDE ( FiscalFirstDayOfYear - FirstWeekReference, 7 ) )
+				        VAR FiscalWeekNumber = YearWeekNumber - FiscalFirstYearWeekNumber
+				            + 1
+				        VAR FiscalQuarterNumber =
+				            ROUNDUP ( FiscalMonthNumber / 3, 0 )
+				        VAR IsWorkingDay =
+				            CONTAINS ( WorkingDays, [FSG_PBI_Day_Number], WEEKDAY ( FiscalDate, 1 ) - 1 )
+				                && ISBLANK ( [Holiday Name] )
+				        RETURN
+				            ROW (
+				                "DateKey", CalYear * 10000
+				                    + CalMonthNumber * 100
+				                    + CalDay,
+				                "Fiscal Year", FiscalGregorianPrefixSpace & FiscalYear,
+				                "Fiscal YearNumber", FiscalYear,
+				                "Fiscal QuarterNumber", FiscalQuarterNumber,
+				                "Fiscal Quarter", FiscalGregorianPrefix & "Q"
+				                    & FiscalQuarterNumber
+				                    & " ",
+				                "Fiscal YearQuarterNumber", FiscalYear * 4
+				                    - 1
+				                    + FiscalQuarterNumber,
+				                "Fiscal Quarter Year", FiscalGregorianPrefix & "Q"
+				                    & FiscalQuarterNumber
+				                    & " "
+				                    & FiscalYear,
+				                "Fiscal MonthNumber", FiscalMonthNumber,
+				                "Fiscal MonthQuarterNumber", FiscalMonthQuarterNumber,
+				                "Fiscal Month", FORMAT ( FiscalDate, "mmm" ),
+				                "Fiscal YearMonthNumber", FiscalYear * 12
+				                    - 1
+				                    + FiscalMonthNumber,
+				                "Fiscal Month Year", FORMAT ( FiscalDate, "mmm" ) & " "
+				                    & CalYear,
+				                "Fiscal WeekNumber", FiscalWeekNumber,
+				                "Fiscal Week", FiscalGregorianPrefix & "W"
+				                    & FORMAT ( FiscalWeekNumber, "00" ),
+				                "Fiscal YearWeekNumber", YearWeekNumber,
+				                "Fiscal Week Year", FiscalGregorianPrefix & "W"
+				                    & FORMAT ( FiscalWeekNumber, "00" )
+				                    & "-"
+				                    & FiscalYear,
+				                "Fiscal WeekYearOrder", FiscalYear * 100
+				                    + FiscalWeekNumber,
+				                "Fiscal DayOfYearNumber", FiscalDayOfYear,
+				                "Day of Month", DAY ( FiscalDate ),
+				                "WeekDayNumber", WeekDayNumber,
+				                "Week Day", FORMAT ( FiscalDate, "ddd" ),
+				                "IsWorkingDay", IsWorkingDay,
+				                "Day Type", IF ( IsWorkingDay, WorkingDayType, NonWorkingDayType )
+				            )
+				    )
+				VAR FiscalStandardGregorian =
+				    GENERATE (
+				        FiscalStandardGregorianBase,
+				        VAR FiscalDate = [Date]
+				        VAR FiscalYearNumber = [Fiscal YearNumber]
+				        VAR MonthNumber = [Fiscal MonthNumber]
+				        VAR CalendarYearNumber =
+				            YEAR ( FiscalDate )
+				        VAR CalendarMonthNumber =
+				            MONTH ( FiscalDate )
+				        VAR YearWeekNumber = [Fiscal YearWeekNumber]
+				        VAR YearMonthNumber = [Fiscal YearMonthNumber]
+				        VAR YearQuarterNumber = [Fiscal YearQuarterNumber]
+				        VAR CurrentWeekPos =
+				            AVERAGEX (
+				                FILTER ( FiscalStandardGregorianBase, [Date] = TodayReference ),
+				                [Fiscal YearWeekNumber]
+				            )
+				        VAR CurrentMonthPos =
+				            AVERAGEX (
+				                FILTER ( FiscalStandardGregorianBase, [Date] = TodayReference ),
+				                [Fiscal YearMonthNumber]
+				            )
+				        VAR CurrentQuarterPos =
+				            AVERAGEX (
+				                FILTER ( FiscalStandardGregorianBase, [Date] = TodayReference ),
+				                [Fiscal YearQuarterNumber]
+				            )
+				        VAR CurrentYearPos =
+				            AVERAGEX (
+				                FILTER ( FiscalStandardGregorianBase, [Date] = TodayReference ),
+				                [Fiscal YearNumber]
+				            )
+				        VAR RelativeWeekPos = YearWeekNumber - CurrentWeekPos
+				        VAR RelativeMonthPos = YearMonthNumber - CurrentMonthPos
+				        VAR RelativeQuarterPos = YearQuarterNumber - CurrentQuarterPos
+				        VAR RelativeYearPos = FiscalYearNumber - CurrentYearPos
+				        VAR FiscalStartOfMonth =
+				            DATE ( CalendarYearNumber, CalendarMonthNumber, 1 )
+				        VAR FiscalEndOfMonth =
+				            EOMONTH ( FiscalDate, 0 )
+				        VAR FiscalMonthDays = 
+				            INT ( FiscalEndOfMonth - FiscalStartOfMonth + 1 ) 
+				        VAR FiscalDayOfMonthNumber =
+				            INT ( FiscalDate - FiscalStartOfMonth + 1 )
+				        VAR FiscalStartOfQuarter =
+				            MINX (
+				                FILTER (
+				                    FiscalStandardGregorianBase,
+				                    [Fiscal YearQuarterNumber] = YearQuarterNumber
+				                ),
+				                [Date]
+				            )
+				        VAR FiscalEndOfQuarter =
+				            MAXX (
+				                FILTER (
+				                    FiscalStandardGregorianBase,
+				                    [Fiscal YearQuarterNumber] = YearQuarterNumber
+				                ),
+				                [Date]
+				            )
+				        VAR FiscalQuarterDays = 
+				            INT ( FiscalEndOfQuarter - FiscalStartOfQuarter + 1 )
+				        VAR FiscalFirstDayOfYear =
+				            DATE ( FiscalYearNumber - OffsetFiscalYear, FiscalCalendarFirstMonth, 1 )
+				        VAR FiscalLastDayOfYear =
+				            DATE ( FiscalYearNumber + (1 * (OffsetFiscalYear = 0)), FiscalCalendarFirstMonth, 1 ) - 1
+				        VAR FiscalYearDays = 
+				            INT ( FiscalLastDayOfYear - FiscalFirstDayOfYear + 1 ) 
+				        VAR FiscalDayOfQuarterNumber =
+				            INT ( FiscalDate - FiscalStartOfQuarter + 1 )
+				        VAR FiscalStartOfYear =
+				            MINX (
+				                FILTER (
+				                    FiscalStandardGregorianBase,
+				                    [Fiscal YearNumber] = FiscalYearNumber
+				                ),
+				                [Date]
+				            )
+				        VAR FiscalEndOfYear =
+				            MAXX (
+				                FILTER (
+				                    FiscalStandardGregorianBase,
+				                    [Fiscal YearNumber] = FiscalYearNumber
+				                ),
+				                [Date]
+				            )
+				        VAR FiscalDatePreviousWeek = FiscalDate - 7
+				        VAR FiscalDatePreviousMonth = 
+				            MAXX (
+				                FILTER (
+				                    FiscalStandardGregorianBase,
+				                    [Fiscal YearMonthNumber] = YearMonthNumber - 1
+				                    &&
+				                    ( [Day of Month] <= FiscalDayOfMonthNumber
+				                      || FiscalDayOfMonthNumber = FiscalMonthDays )
+				                ),
+				                [Date]
+				            )
+				        VAR FiscalDatePreviousQuarter = 
+				            MAXX (
+				                FILTER (
+				                    FiscalStandardGregorianBase,
+				                    [Fiscal YearMonthNumber] = YearMonthNumber - 3
+				                    &&
+				                    ( [Day of Month] <= FiscalDayOfMonthNumber
+				                      || FiscalDayOfMonthNumber = FiscalMonthDays )
+				                ),
+				                [Date]
+				            )
+				        VAR FiscalDatePreviousYear = 
+				            MAXX (
+				                FILTER (
+				                    FiscalStandardGregorianBase,
+				                    [Fiscal YearMonthNumber] = YearMonthNumber - 12
+				                    &&
+				                    ( [Day of Month] <= FiscalDayOfMonthNumber
+				                      || FiscalDayOfMonthNumber = FiscalMonthDays )
+				                ),
+				                [Date]
+				            )
+				        RETURN
+				            ROW ( "Fiscal RelativeWeekPos", RelativeWeekPos,
+				            "Fiscal RelativeMonthPos", RelativeMonthPos,
+				            "Fiscal RelativeQuarterPos", RelativeQuarterPos,
+				            "Fiscal RelativeYearPos", RelativeYearPos,
+				            "Fiscal StartOfMonth", FiscalStartOfMonth,
+				            "Fiscal EndOfMonth", FiscalEndOfMonth,
+				            "Fiscal DayOfMonthNumber", FiscalDayOfMonthNumber,
+				            "Fiscal StartOfQuarter", FiscalStartOfQuarter,
+				            "Fiscal EndOfQuarter", FiscalEndOfQuarter,
+				            "Fiscal DayOfQuarterNumber", FiscalDayOfQuarterNumber,
+				            "Fiscal StartOfYear", FiscalStartOfYear,
+				            "Fiscal EndOfYear", FiscalEndOfYear,
+				            "Fiscal DatePreviousWeek", FiscalDatePreviousWeek,
+				            "Fiscal DatePreviousMonth", FiscalDatePreviousMonth,
+				            "Fiscal DatePreviousQuarter", FiscalDatePreviousQuarter,
+				            "Fiscal DatePreviousYear", FiscalDatePreviousYear,
+				            "Fiscal MonthDays", FiscalMonthDays,
+				            "Fiscal QuarterDays", FiscalQuarterDays,
+				            "Fiscal YearDays", FiscalYearDays
+				           )
+				    )
+				VAR FiscalWeeksBase =
+				    GENERATE (
+				        NATURALLEFTOUTERJOIN ( CustomFiscalRawDays, HolidayDates ),
+				        VAR CalDate = [Date]
+				        VAR FwFirstDayOfYear = [FW StartOfYear]
+				        VAR FwDayOfYear =
+				            INT ( CalDate - FwFirstDayOfYear + 1 )
+				        VAR CalYear =
+				            YEAR ( [Date] )
+				        VAR CalMonthNumber =
+				            MONTH ( [Date] )
+				        VAR CalDay =
+				            DAY ( [Date] )
+				        VAR FwDayOfYearNumber = CalDate - [FW StartOfYear]
+				            + 1
+				        VAR FwWeekNumber =
+				            INT ( CEILING ( FwDayOfYearNumber / 7, 1 ) )
+				        VAR FwPeriodNumber = 
+				            IF ( FwWeekNumber > 52, 14, ROUNDUP ( FwWeekNumber / 4, 0 ) )
+				        VAR FwYearNumber = [FW YearNumber]
+				        VAR FwQuarterNumber =
+				            IF ( FwWeekNumber > 52, 4, ROUNDUP ( FwWeekNumber / 13, 0 ) )
+				        VAR FwWeekInQuarterNumber =
+				            IF ( FwWeekNumber > 52, 14, FwWeekNumber - 13 * ( FwQuarterNumber - 1 ) )
+				        VAR FwMonthNumber =
+				            ( FwQuarterNumber - 1 )
+				                * 3
+				                + SWITCH (
+				                    TRUE,
+				                    FwWeekInQuarterNumber <= WeeksInP1, 1,
+				                    FwWeekInQuarterNumber
+				                        <= ( WeeksInP1 + WeeksInP2 ), 2,
+				                    3
+				                )
+				        VAR WeekDayNumber =
+				            WEEKDAY ( CalDate, WeekDayCalculationType )
+				        VAR FirstDayOfWeek = [Date] - WeekDayNumber
+				            + 1
+				        VAR LastDayOfWeek = FirstDayOfWeek + 6
+				        VAR IsWorkingDay =
+				            CONTAINS ( WorkingDays, [FSG_PBI_Day_Number], WEEKDAY ( CalDate, 1 ) - 1 )
+				                && ISBLANK ( [Holiday Name] )
+				        RETURN
+				            ROW (
+				                "DateKey", CalYear * 10000
+				                    + CalMonthNumber * 100
+				                    + CalDay,
+				                // "FW YearNumber", FwYearNumber, -- It is already in the first set of columns of the GENERATE function
+				                "FW Year", FiscalWeeklyPrefixSpace & FwYearNumber,
+				                "FW QuarterNumber", FwQuarterNumber,
+				                "FW Quarter", FiscalWeeklyPrefix & "Q"
+				                    & FwQuarterNumber,
+				                "FW YearQuarterNumber", FwYearNumber * 4
+				                    - 1
+				                    + FwQuarterNumber,
+				                "FW Quarter Year", FiscalWeeklyPrefix & "Q"
+				                    & FwQuarterNumber
+				                    & " "
+				                    & FwYearNumber,
+				                "FW MonthNumber", FwMonthNumber,
+				                "FW Month", FiscalWeeklyPrefix & "P"
+				                    & FORMAT ( FwMonthNumber, "00" ),
+				                "FW YearMonthNumber", FwYearNumber * 12
+				                    - 1
+				                    + FwMonthNumber,
+				                "FW Month Year", FiscalWeeklyPrefix & "P"
+				                    & FORMAT ( FwMonthNumber, "00" )
+				                    & " "
+				                    & FwYearNumber,
+				                "FW WeekNumber", FwWeekNumber,
+				                "FW Week", FiscalWeeklyPrefix & "W"
+				                    & FORMAT ( FwWeekNumber, "00" ),
+				                "FW PeriodNumber", FwPeriodNumber,
+				                "FW Period", FiscalWeeklyPrefix & "P"
+				                    & FORMAT ( FwPeriodNumber, "00" ),
+				                "FW YearWeekNumber", INT ( DIVIDE ( CalDate - FirstWeekReference, 7 ) )
+				                    + 1,
+				                "FW Week Year", FiscalWeeklyPrefix & "W"
+				                    & FORMAT ( FwWeekNumber, "00" )
+				                    & " "
+				                    & FwYearNumber,
+				                "FW StartOfWeek", FirstDayOfWeek,
+				                "FW EndOfWeek", LastDayOfWeek,
+				                "WeekDayNumber", WeekDayNumber,
+				                "Week Day", FORMAT ( CalDate, "ddd" ),
+				                "FW DayOfYearNumber", FwDayOfYear,
+				                "IsWorkingDay", IsWorkingDay,
+				                "Day Type", IF ( IsWorkingDay, WorkingDayType, NonWorkingDayType )
+				            )
+				    )
+				VAR FiscalWeeks_Pre = 
+				    GENERATE (
+				        FiscalWeeksBase,
+				        VAR CalDate = [Date]
+				        VAR FWYearNumber = [FW YearNumber]
+				        VAR FwYearWeekNumber = [FW YearWeekNumber]
+				        VAR FwYearMonthNumber = [FW YearMonthNumber]
+				        VAR FwYearQuarterNumber = [FW YearQuarterNumber]
+				        VAR CurrentWeekPos =
+				            AVERAGEX (
+				                FILTER ( FiscalWeeksBase, [Date] = TodayReference ),
+				                [FW YearWeekNumber]
+				            )
+				        VAR CurrentMonthPos =
+				            AVERAGEX (
+				                FILTER ( FiscalWeeksBase, [Date] = TodayReference ),
+				                [FW YearMonthNumber]
+				            )
+				        VAR CurrentQuarterPos =
+				            AVERAGEX (
+				                FILTER ( FiscalWeeksBase, [Date] = TodayReference ),
+				                [FW YearQuarterNumber]
+				            )
+				        VAR CurrentYearPos =
+				            AVERAGEX (
+				                FILTER ( FiscalWeeksBase, [Date] = TodayReference ),
+				                [FW YearNumber]
+				            )
+				        VAR RelativeWeekPos = FwYearWeekNumber - CurrentWeekPos
+				        VAR RelativeMonthPos = FwYearMonthNumber - CurrentMonthPos
+				        VAR RelativeQuarterPos = FwYearQuarterNumber - CurrentQuarterPos
+				        VAR RelativeYearPos = FWYearNumber - CurrentYearPos
+				        VAR FwStartOfMonth =
+				            MINX (
+				                FILTER ( FiscalWeeksBase, [FW YearMonthNumber] = FwYearMonthNumber ),
+				                [Date]
+				            )
+				        VAR FwEndOfMonth =
+				            MAXX (
+				                FILTER ( FiscalWeeksBase, [FW YearMonthNumber] = FwYearMonthNumber ),
+				                [Date]
+				            )
+				        VAR FwMonthDays = 
+				            INT ( FwEndOfMonth - FwStartOfMonth + 1 ) 
+				        VAR FwDayOfMonthNumber =
+				            INT ( CalDate - FwStartOfMonth + 1 )
+				        VAR FwStartOfQuarter =
+				            MINX (
+				                FILTER ( FiscalWeeksBase, [FW YearQuarterNumber] = FwYearQuarterNumber ),
+				                [Date]
+				            )
+				        VAR FwEndOfQuarter =
+				            MAXX (
+				                FILTER ( FiscalWeeksBase, [FW YearQuarterNumber] = FwYearQuarterNumber ),
+				                [Date]
+				            )
+				        VAR FwQuarterDays = 
+				            INT ( FwEndOfQuarter - FwStartOfQuarter + 1 )
+				        VAR FwDayOfQuarterNumber =
+				            INT ( CalDate - FwStartOfQuarter + 1 )
+				        VAR FwStartOfYear =
+				            MINX (
+				                FILTER ( FiscalWeeksBase, [FW YearNumber] = FwYearNumber ),
+				                [Date]
+				            )
+				        VAR FwEndOfYear =
+				            MAXX (
+				                FILTER ( FiscalWeeksBase, [FW YearNumber] = FwYearNumber ),
+				                [Date]
+				            )
+				        VAR FwYearDays = 
+				            INT ( FwEndOfYear - FwStartOfYear + 1 )
+				        RETURN
+				            ROW ( "FW RelativeWeekPos", RelativeWeekPos,
+				            "FW RelativeMonthPos", RelativeMonthPos,
+				            "FW RelativeQuarterPos", RelativeQuarterPos,
+				            "FW RelativeYearPos", RelativeYearPos,
+				            "FW StartOfMonth", FwStartOfMonth,
+				            "FW EndOfMonth", FwEndOfMonth,
+				            "FW DayOfMonthNumber", FwDayOfMonthNumber,
+				            "FW StartOfQuarter", FwStartOfQuarter,
+				            "FW EndOfQuarter", FwEndOfQuarter,
+				            "FW DayOfQuarterNumber", FwDayOfQuarterNumber,
+				            "FW MonthDays", FwMonthDays,
+				            "FW QuarterDays", FwQuarterDays,
+				            "FW YearDays", FwYearDays   
+				            )
+				    )
+				VAR FiscalWeeks =
+				    GENERATE (
+				        FiscalWeeks_Pre,
+				        VAR CalDate = [Date]
+				        VAR FwYearMonthNumber = [FW YearMonthNumber]
+				        VAR FwYearQuarterNumber = [FW YearQuarterNumber]
+				        VAR FWYearNumber = [FW YearNumber]
+				        VAR FwDayOfMonthNumber = [FW DayOfMonthNumber]
+				        VAR FwDayOfQuarterNumber = [FW DayOfQuarterNumber]
+				        VAR FwDayOfYearNumber = [FW DayOfYearNumber]
+				        VAR FwMonthDays = [FW EndOfMonth] - [FW StartOfMonth] + 1 
+				        VAR FwQuarterDays = [FW EndOfQuarter] - [FW StartOfQuarter] + 1 
+				        VAR FwYearDays = [FW EndOfYear] - [FW StartOfYear] + 1 
+				        VAR FwDatePreviousWeek = CalDate - 7
+				        VAR FwDatePreviousMonth = 
+				            MAXX (
+				                FILTER (
+				                    FiscalWeeks_Pre,
+				                    [Fw YearMonthNumber] = FwYearMonthNumber - 1
+				                    &&
+				                    ( [FW DayOfMonthNumber] <= FwDayOfMonthNumber
+				                      || FwDayOfMonthNumber = FwMonthDays )
+				                ),
+				                [Date]
+				            )
+				        VAR FwDatePreviousQuarter = 
+				            MAXX (
+				                FILTER (
+				                    FiscalWeeks_Pre,
+				                    [Fw YearQuarterNumber] = FwYearQuarterNumber - 1
+				                    &&
+				                    ( [FW DayOfQuarterNumber] <= FwDayOfQuarterNumber
+				                      || FwDayOfQuarterNumber = FwQuarterDays )
+				                ),
+				                [Date]
+				            )        
+				        VAR FwDatePreviousYear = 
+				            MAXX (
+				                FILTER (
+				                    FiscalWeeks_Pre,
+				                    [Fw YearNumber] = FWYearNumber - 1
+				                    &&
+				                    ( [FW DayOfYearNumber] <= FwDayOfYearNumber
+				                      || FwDayOfYearNumber = FwYearDays )
+				                ),
+				                [Date]
+				            )
+				        RETURN
+				            ROW ( 
+				                "FW DatePreviousWeek", FwDatePreviousWeek,
+				                "FW DatePreviousMonth", FwDatePreviousMonth,
+				                "FW DatePreviousQuarter", FwDatePreviousQuarter,
+				                "FW DatePreviousYear", FwDatePreviousYear         
+				            )
+				    )
+				    
+				VAR CompleteCalendarExpanded =
+				    NATURALLEFTOUTERJOIN (
+				        FiscalStandardGregorian,
+				        NATURALLEFTOUTERJOIN ( CalendarStandardGregorian, FiscalWeeks )
+				    )
+				VAR CompleteCalendar = 
+				    FILTER (
+				        CompleteCalendarExpanded,
+				        ( [Calendar YearNumber] >= FirstYear && [Calendar YearNumber] <= LastYear && CalendarRange = "Calendar" )
+				        ||
+				        ( [Fiscal YearNumber] >= FirstYear && [Fiscal YearNumber] <= LastYear && CalendarRange = "FiscalGregorian" )
+				        ||
+				        ( [FW YearNumber] >= FirstYear && [FW YearNumber] <= LastYear && CalendarRange = "FiscalWeekly" )
+				    )
+				    
+				VAR Result =
+				    SELECTCOLUMNS (
+				        CompleteCalendar,
+				        
+				        -- Base date columns
+				        "Date", [Date],
+				        "DateKey", [DateKey],
+				
+				        "Day of Month", [Day of Month],
+				        "WeekDayNumber", [WeekDayNumber],
+				
+				        "Week Day", [Week Day],
+				        "Sequential365DayNumber", [Sequential365DayNumber],
+				        "Relative Day", DATEDIFF(VALUES('Date Table Setup'[Today]),[Date],DAY),
+				        
+				        -- Calendar = Solar Calendar (January-December)
+				        "Calendar YearNumber", [Calendar YearNumber],
+				        "Calendar Year", [Calendar Year],
+				        "Calendar QuarterNumber", [Calendar QuarterNumber],
+				        "Calendar Quarter", [Calendar Quarter],
+				        "Calendar YearQuarterNumber", [Calendar YearQuarterNumber],
+				        "Calendar Quarter Year", [Calendar Quarter Year],
+				        "Calendar MonthNumber", [Calendar MonthNumber],
+				        "Calendar Month", [Calendar Month],
+				        "Calendar YearMonthNumber", [Calendar YearMonthNumber],
+				        "Calendar Month Year", [Calendar Month Year],
+				        "Calendar WeekNumber", [Calendar WeekNumber],
+				        "Calendar Week", [Calendar Week],
+				        "Calendar YearWeekNumber", [Calendar YearWeekNumber],
+				        "Calendar Week Year", [Calendar Week Year],
+				        "Calendar WeekYearOrder", [Calendar WeekYearOrder],
+				        "Calendar RelativeWeekPos", [Calendar RelativeWeekPos],
+				        "Calendar RelativeMonthPos", [Calendar RelativeMonthPos],
+				        "Calendar RelativeQuarterPos", [Calendar RelativeQuarterPos],
+				        "Calendar RelativeYearPos", [Calendar RelativeYearPos],
+				        "Calendar StartOfMonth", [Calendar StartOfMonth],
+				        "Calendar EndOfMonth", [Calendar EndOfMonth],
+				        "Calendar StartOfQuarter", [Calendar StartOfQuarter],
+				        "Calendar EndOfQuarter", [Calendar EndOfQuarter],
+				        "Calendar StartOfYear", [Calendar StartOfYear],
+				        "Calendar EndOfYear", [Calendar EndOfYear],
+				        "Calendar MonthDays", [Calendar MonthDays],
+				        "Calendar QuarterDays", [Calendar QuarterDays],
+				        "Calendar YearDays", [Calendar YearDays],
+				        "Calendar DayOfMonthNumber", [Calendar DayOfMonthNumber],
+				        "Calendar DayOfQuarterNumber", [Calendar DayOfQuarterNumber],
+				        "Calendar DayOfYearNumber", [Calendar DayOfYearNumber],
+				        "Calendar DatePreviousWeek", [Calendar DatePreviousWeek],
+				        "Calendar DatePreviousMonth", [Calendar DatePreviousMonth],
+				        "Calendar DatePreviousQuarter", [Calendar DatePreviousQuarter],
+				        "Calendar DatePreviousYear", [Calendar DatePreviousYear],
+				
+				        -- Fiscal = Fiscal Monthly Calendar
+				        "Fiscal Year", [Fiscal Year],
+				        "Fiscal YearNumber", [Fiscal YearNumber],
+				        "Fiscal QuarterNumber", [Fiscal QuarterNumber],
+				        "Fiscal Quarter", [Fiscal Quarter],
+				        "Fiscal YearQuarterNumber", [Fiscal YearQuarterNumber],
+				        "Fiscal Quarter Year", [Fiscal Quarter Year],
+				        "Fiscal MonthNumber", [Fiscal MonthNumber],
+				        "Fiscal MonthInQuarterNumber", [Fiscal MonthQuarterNumber],
+				        "Fiscal Month", [Fiscal Month],
+				        "Fiscal YearMonthNumber", [Fiscal YearMonthNumber],
+				        "Fiscal Month Year", [Fiscal Month Year],
+				        "Fiscal WeekNumber", [Fiscal WeekNumber],
+				        "Fiscal Week", [Fiscal Week],
+				        "Fiscal YearWeekNumber", [Fiscal YearWeekNumber],
+				        "Fiscal Week Year", [Fiscal Week Year],
+				        "Fiscal WeekYearOrder", [Fiscal WeekYearOrder],
+				        "Fiscal RelativeWeekPos", [Fiscal RelativeWeekPos],
+				        "Fiscal RelativeMonthPos", [Fiscal RelativeMonthPos],
+				        "Fiscal RelativeQuarterPos", [Fiscal RelativeQuarterPos],
+				        "Fiscal RelativeYearPos", [Fiscal RelativeYearPos],
+				        "Fiscal StartOfMonth", [Fiscal StartOfMonth],
+				        "Fiscal EndOfMonth", [Fiscal EndOfMonth],
+				        "Fiscal StartOfQuarter", [Fiscal StartOfQuarter],
+				        "Fiscal EndOfQuarter", [Fiscal EndOfQuarter],
+				        "Fiscal StartOfYear", [Fiscal StartOfYear],
+				        "Fiscal EndOfYear", [Fiscal EndOfYear],
+				        "Fiscal MonthDays", [Fiscal MonthDays],
+				        "Fiscal QuarterDays", [Fiscal QuarterDays],
+				        "Fiscal YearDays", [Fiscal YearDays],
+				        "Fiscal DayOfMonthNumber", [Fiscal DayOfMonthNumber],
+				        "Fiscal DayOfQuarterNumber", [Fiscal DayOfQuarterNumber],
+				        "Fiscal DayOfYearNumber", [Fiscal DayOfYearNumber],
+				        "Fiscal DatePreviousWeek", [Fiscal DatePreviousWeek],
+				        "Fiscal DatePreviousMonth", [Fiscal DatePreviousMonth],
+				        "Fiscal DatePreviousQuarter", [Fiscal DatePreviousQuarter],
+				        "Fiscal DatePreviousYear", [Fiscal DatePreviousYear],
+				
+				        -- FW = Fiscal Weekly calendar
+				        "FW YearNumber", [FW YearNumber],
+				        "FW Year", [FW Year],
+				        "FW QuarterNumber", [FW QuarterNumber],
+				        "FW Quarter", [FW Quarter],
+				        "FW YearQuarterNumber", [FW YearQuarterNumber],
+				        "FW Quarter Year", [FW Quarter Year],
+				        "FW MonthNumber", [FW MonthNumber],
+				        "FW Month", [FW Month],
+				        "FW YearMonthNumber", [FW YearMonthNumber],
+				        "FW Month Year", [FW Month Year],
+				        "FW WeekNumber", [FW WeekNumber],
+				        "FW Week", [FW Week],
+				        "FW PeriodNumber", [FW PeriodNumber],
+				        "FW Period", [FW Period],
+				        "FW YearWeekNumber", [FW YearWeekNumber],
+				        "FW Week Year", [FW Week Year],
+				        "FW StartOfWeek", [FW StartOfWeek],
+				        "FW EndOfWeek", [FW EndOfWeek],
+				        "FW RelativeWeekPos", [FW RelativeWeekPos],
+				        "FW RelativeMonthPos", [FW RelativeMonthPos],
+				        "FW RelativeQuarterPos", [FW RelativeQuarterPos],
+				        "FW RelativeYearPos", [FW RelativeYearPos],
+				        "FW StartOfMonth", [FW StartOfMonth],
+				        "FW EndOfMonth", [FW EndOfMonth],
+				        "FW StartOfQuarter", [FW StartOfQuarter],
+				        "FW EndOfQuarter", [FW EndOfQuarter],
+				        "FW StartOfYear", [FW StartOfYear],
+				        "FW EndOfYear", [FW EndOfYear],
+				        "FW MonthDays", [FW MonthDays],
+				        "FW QuarterDays", [FW QuarterDays],
+				        "FW YearDays", [FW YearDays],
+				        "FW DayOfMonthNumber", [FW DayOfMonthNumber],
+				        "FW DayOfQuarterNumber", [FW DayOfQuarterNumber],
+				        "FW DayOfYearNumber", [FW DayOfYearNumber],
+				        "FW DatePreviousWeek", [FW DatePreviousWeek],
+				        "FW DatePreviousMonth", [FW DatePreviousMonth],
+				        "FW DatePreviousQuarter", [FW DatePreviousQuarter],
+				        "FW DatePreviousYear", [FW DatePreviousYear],
+				
+				        -- Holidays and working days
+				        "Holiday Name", [Holiday Name],
+				        "IsWorkingDay", [IsWorkingDay],
+				        "Day Type", [Day Type]    
+				    )
+				RETURN 
+				    Result
+				```
+
+	changedProperty = IsHidden
+
+	annotation PBI_Id = 8529640259ef4503a795eb4acb9896dc
+

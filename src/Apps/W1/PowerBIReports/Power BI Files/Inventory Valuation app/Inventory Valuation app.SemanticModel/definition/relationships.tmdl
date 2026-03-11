@@ -1,0 +1,20 @@
+relationship 64e2bb41-8dcf-4ac8-8753-98a6485724b7
+	fromColumn: 'Value Entries'.itemNo
+	toColumn: Item.'Item No.'
+
+relationship 1df9f488-567c-4eeb-a23b-d4e18ffa09ed
+	fromColumn: 'Value Entries'.locationCode
+	toColumn: Location.'Location Code'
+
+relationship 7631c994-deac-cd0c-d3ff-771df71036bf
+	fromColumn: 'Value Entries'.dimensionSetID
+	toColumn: 'Dimension Sets'.dimensionSetID
+
+relationship 7c1379c9-1e76-3b7e-94ef-58e063f46bcf
+	fromColumn: Item.'Item Category Code'
+	toColumn: 'Item Category'.'Item Category Code'
+
+relationship f5df81d6-f2bd-0116-4e3d-fe70204d23b3
+	fromColumn: 'Value Entries'.postingDate
+	toColumn: Date.Date
+

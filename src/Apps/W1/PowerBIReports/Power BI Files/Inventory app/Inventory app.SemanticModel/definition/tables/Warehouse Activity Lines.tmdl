@@ -1,0 +1,152 @@
+table 'Warehouse Activity Lines'
+	isHidden
+	lineageTag: 356e6deb-72d3-43c7-a4ad-3f514bb97a96
+
+	column actionType
+		dataType: string
+		lineageTag: e0b2c76f-69f7-4564-83f7-0831d47384bb
+		summarizeBy: none
+		sourceColumn: actionType
+
+		annotation SummarizationSetBy = Automatic
+
+	column assembleToOrder
+		dataType: boolean
+		formatString: """TRUE"";""TRUE"";""FALSE"""
+		lineageTag: 5e58b6ae-ae6b-4760-ab48-db1ae8172088
+		summarizeBy: none
+		sourceColumn: assembleToOrder
+
+		annotation SummarizationSetBy = Automatic
+
+	column atoComponent
+		dataType: boolean
+		formatString: """TRUE"";""TRUE"";""FALSE"""
+		lineageTag: b3471fcc-ba06-4512-8382-2931414ed2ff
+		summarizeBy: none
+		sourceColumn: atoComponent
+
+		annotation SummarizationSetBy = Automatic
+
+	column itemNo
+		dataType: string
+		isHidden
+		lineageTag: 0f08bfca-e6c8-4358-a689-04e68f6cc949
+		summarizeBy: none
+		sourceColumn: itemNo
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column locationCode
+		dataType: string
+		isHidden
+		lineageTag: 45947539-3f2b-4088-bbcd-1f24e0c31c01
+		summarizeBy: none
+		sourceColumn: locationCode
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column qtyBase
+		dataType: double
+		lineageTag: 00d60b57-2ba6-4745-a616-6ed8aa8999e2
+		summarizeBy: sum
+		sourceColumn: qtyBase
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column 'Bin Key'
+		dataType: string
+		lineageTag: 88229838-ea86-438e-85ef-468c2017a849
+		summarizeBy: none
+		sourceColumn: Bin Key
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column qtyPerUnitOfMeasure
+		dataType: double
+		lineageTag: e1d2af79-4789-4b75-9b91-33504310ff88
+		summarizeBy: sum
+		sourceColumn: qtyPerUnitOfMeasure
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column unitOfMeasureCode
+		dataType: string
+		lineageTag: 94e0e06e-d605-4c11-a561-aadddee7144f
+		summarizeBy: none
+		sourceColumn: unitOfMeasureCode
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Lot Key'
+		dataType: string
+		isHidden
+		lineageTag: c00f6812-30ba-4446-92c0-af076ba15859
+		summarizeBy: none
+		sourceColumn: Lot Key
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Serial Key'
+		dataType: string
+		isHidden
+		lineageTag: 6cfcc07d-86d3-4f2e-ac86-d46526b01f90
+		summarizeBy: none
+		sourceColumn: Serial Key
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	partition 'Warehouse Activity Lines' = m
+		mode: import
+		queryGroup: 'Fact Tables'
+		source =
+				let
+				    Source = Dynamics365BusinessCentral.ApiContentsWithOptions(ENVIRONMENT, COMPANY,API_ENDPOINT, []),
+				    TableData = Source{[Name="warehouseActivityLines",Signature="table"]}[Data],
+				    #"Changed Type" = Table.TransformColumnTypes(
+				        TableData,
+				        {
+				            {"actionType", type text},
+				            {"assembleToOrder", type logical},
+				            {"atoComponent", type logical},
+				            {"binCode", type text},
+				            {"itemNo", type text},
+				            {"locationCode", type text},
+				            {"qtyBase", type number},
+				            {"qtyPerUnitOfMeasure", type number},
+				            {"unitOfMeasureCode", type text},
+				            {"lotNo", type text},
+				            {"serialNo", type text}
+				        }
+				    ),
+				    #"Added Bin Key" = Table.AddColumn(
+				        #"Changed Type", "Bin Key", each [binCode] & "(" & [locationCode] & ")", type text
+				    ),
+				    #"Added Lot Key" = Table.AddColumn(
+				        #"Added Bin Key", "Lot Key", each if [lotNo] = "" then "" else [itemNo] & [lotNo], type text
+				    ),
+				    #"Added Custom" = Table.AddColumn(
+				        #"Added Lot Key", "Serial Key", each if [serialNo] = "" then "" else [itemNo] & [serialNo], type text
+				    ),
+				    #"Removed Columns2" = Table.RemoveColumns(#"Added Custom", {"ETag", "binCode", "lotNo", "serialNo"})
+				in
+				    #"Removed Columns2"
+
+	annotation PBI_ResultType = Table
+
+	annotation PBI_NavigationStepName = Navigation
+

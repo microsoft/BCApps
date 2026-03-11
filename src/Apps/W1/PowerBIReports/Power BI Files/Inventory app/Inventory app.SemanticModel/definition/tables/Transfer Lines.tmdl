@@ -1,0 +1,238 @@
+/// Specifies the quantity of the items that remains to be received but are not yet shipped as the difference between the Quantity and the Quantity Shipped fields.
+table 'Transfer Lines'
+	lineageTag: 05e61295-ab37-41ec-8a54-57bb16afad6c
+
+	/// This measure shows how many items are currently in transit between locations by summing up the quantity of items in transit on all transfer lines.
+	measure 'Qty. in Transit' =
+			CALCULATE(
+			    SUM('Transfer Lines'[qtyInTransitBase]),
+			    USERELATIONSHIP(Location[Location Code],'Transfer Lines'[Transfer To Location Code]),
+			    USERELATIONSHIP('Date'[Date],'Transfer Lines'[Receipt Date])
+			)
+		formatString: 0.00
+		displayFolder: _Transfer Line Measures
+		lineageTag: b58903be-f152-48eb-a9df-a19d8e04e72f
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	/// This measure shows how many items have been shipped between two locations by summing up the total outstanding quantity of items on all transfer order lines that are associated with the specified location codes and shipment date.
+	measure 'Trans. Order Shipment (Qty.)' =
+			
+			CALCULATE(
+			    sum('Transfer Lines'[outstandingQtyBase]),
+			    USERELATIONSHIP(Location[Location Code],'Transfer Lines'[Transfer From Location Code]),
+			    USERELATIONSHIP('Date'[Date],'Transfer Lines'[Shipment Date])
+			)
+		formatString: 0.00
+		displayFolder: _Transfer Line Measures
+		lineageTag: 9d180063-eff9-4605-982c-9d1ed839acf8
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	/// This measure shows how many items are expected to be received for transfer orders by summing up the outstanding quantity of items on all transfer lines.
+	measure 'Trans. Order Receipt (Qty.)' =
+			
+			CALCULATE(
+			    SUM('Transfer Lines'[outstandingQtyBase]),
+			    USERELATIONSHIP(Location[Location Code],'Transfer Lines'[Transfer To Location Code]),
+			    USERELATIONSHIP('Date'[Date],'Transfer Lines'[Receipt Date])
+			)
+		formatString: 0.00
+		displayFolder: _Transfer Line Measures
+		lineageTag: c0b5929b-320c-4e19-9fb0-eaf929bce46e
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	/// This measure calculates the total outstanding quantity for transfer orders by summing all values in the [outstandingQtyBase] column from the Transfer Lines table.
+	measure 'Trans. Order Outstanding Qty.' = SUM('Transfer Lines'[outstandingQtyBase])
+		formatString: 0.00
+		displayFolder: _Transfer Line Measures
+		lineageTag: 05ee7d44-b900-404c-be31-9cf6bb00ec57
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	/// Specifies the earliest shipment date from the transfer lines table.
+	measure 'Trans. Order Shipment - Earliest Shipment Date' = MIN('Transfer Lines'[Shipment Date])
+		formatString: Short Date
+		displayFolder: _Transfer Line Measures
+		lineageTag: acebe7d7-70c8-4efe-8386-40e8cd22f358
+
+	/// Specifies the earliest receipt date from the transfer lines table.
+	measure 'Trans. Order Receipt - Earliest Receipt Date' = MIN('Transfer Lines'[Receipt Date])
+		formatString: Short Date
+		displayFolder: _Transfer Line Measures
+		lineageTag: 996e99e1-e22b-4095-a8e0-5e4aa4981a5a
+
+	measure 'Transfer Lines Quantity Link' =
+			
+			VAR Endpoint = "&page=5749&"
+			VAR BaseLink = [Base Link] & Endpoint
+			// Filter Context
+			VAR Items = CONCATENATEX(VALUES('Transfer Lines'[itemNo]),'Transfer Lines'[itemNo], "|")
+			VAR DimensionSetIDs = CONCATENATEX(VALUES('Transfer Lines'[dimensionSetID]), 'Transfer Lines'[dimensionSetID], "|")
+			VAR Location = SELECTEDVALUE('Transfer Lines'[Transfer From Location Code])
+			
+			VAR ItemFilter = "filter='Transfer Line'.'Item No.' IS '" & Items & "'"
+			VAR DateFilter = " AND 'Transfer Line'.'Shipment Date' IS '" & [Ranged] & "'"
+			VAR DimensionFilter = " AND 'Transfer Line'.'Dimension Set ID' IS '" & DimensionSetIDs & "'"
+			VAR LocationFilter = " AND 'Transfer Line'.'Transfer-from Code' IS '" & Location & "'"
+			
+			RETURN
+			BaseLink & ItemFilter & DateFilter & DimensionFilter & LocationFilter
+		displayFolder: _Back Link
+		lineageTag: 68ec7ae9-c366-436b-98d3-8638a543c464
+
+	column 'Document No.'
+		dataType: string
+		lineageTag: d9fd7223-2aac-4889-b15b-2055cb6bdaa3
+		summarizeBy: none
+		sourceColumn: Document No.
+
+		annotation SummarizationSetBy = Automatic
+
+	column itemNo
+		dataType: string
+		isHidden
+		lineageTag: f237fb28-8c4b-4826-8a40-106d49931d5e
+		summarizeBy: none
+		sourceColumn: itemNo
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column qtyInTransitBase
+		dataType: double
+		isHidden
+		lineageTag: 571c37c8-6b44-4c0b-a1ff-cbfbb5a3826a
+		summarizeBy: sum
+		sourceColumn: qtyInTransitBase
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column 'Receipt Date'
+		dataType: dateTime
+		formatString: Short Date
+		lineageTag: aa6c1a25-37bc-4e21-bfc7-2455d359ed69
+		summarizeBy: none
+		sourceColumn: Receipt Date
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	column 'Transfer To Location Code'
+		dataType: string
+		lineageTag: 0d5bcb54-48ec-4b8d-9080-5dc132f161f6
+		summarizeBy: none
+		sourceColumn: Transfer To Location Code
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Transfer From Location Code'
+		dataType: string
+		lineageTag: 88ba6f86-966d-4f6b-ad62-9e2cc6eb1d5a
+		summarizeBy: none
+		sourceColumn: Transfer From Location Code
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Shipment Date'
+		dataType: dateTime
+		formatString: Short Date
+		lineageTag: b276cf0d-e2bd-42ff-af93-4c5310b6cc91
+		summarizeBy: none
+		sourceColumn: Shipment Date
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	column 'In Transit Location Code'
+		dataType: string
+		lineageTag: 06c60dec-3195-4248-bc3b-c38953653047
+		summarizeBy: none
+		sourceColumn: In Transit Location Code
+
+		annotation SummarizationSetBy = Automatic
+
+	column outstandingQtyBase
+		dataType: double
+		isHidden
+		lineageTag: 27638fb8-15f9-4b89-a01d-387aa0d97e46
+		summarizeBy: sum
+		sourceColumn: outstandingQtyBase
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column dimensionSetID
+		dataType: int64
+		isHidden
+		formatString: 0
+		lineageTag: 1588c8d5-b4e3-4bca-b5e2-cb76120a068c
+		summarizeBy: none
+		sourceColumn: dimensionSetID
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Quantity Per Unit of Measure'
+		dataType: double
+		lineageTag: 849e147b-0ea8-4288-8da9-73a57e28b657
+		summarizeBy: sum
+		sourceColumn: Quantity Per Unit of Measure
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column 'Unit of Measure Code'
+		dataType: string
+		lineageTag: a685d3d8-c6bd-4ed3-959a-2cab6651caad
+		summarizeBy: none
+		sourceColumn: Unit of Measure Code
+
+		annotation SummarizationSetBy = Automatic
+
+	partition 'Transfer Lines' = m
+		mode: import
+		queryGroup: 'Fact Tables'
+		source =
+				let
+				    Source = Dynamics365BusinessCentral.ApiContentsWithOptions(ENVIRONMENT, COMPANY,API_ENDPOINT, []),
+				    TableData = Source{[Name="transferLines",Signature="table"]}[Data],
+				    #"Changed Type" = Table.TransformColumnTypes(
+				        TableData,
+				        {
+				            {"documentNo", type text},
+				            {"itemNo", type text},
+				            {"inTransitLocationCode", type text},
+				            {"transferToLocationCode", type text},
+				            {"transferFromLocationCode", type text},
+				            {"qtyInTransitBase", type number},
+				            {"outstandingQtyBase", type number},
+				            {"receiptDate", type date},
+				            {"shipmentDate", type date},
+				            {"dimensionSetID", Int64.Type},
+				            {"qtyPerUnitOfMeasure", type number},
+				            {"unitOfMeasureCode", type text}
+				        }
+				    ),
+				    #"Removed Columns" = Table.RemoveColumns(#"Changed Type", {"ETag"}),
+				    #"Renamed Columns" = Table.RenameColumns(#"Removed Columns",{{"documentNo", "Document No."}, {"inTransitLocationCode", "In Transit Location Code"}, {"transferToLocationCode", "Transfer To Location Code"}, {"transferFromLocationCode", "Transfer From Location Code"}, {"receiptDate", "Receipt Date"}, {"shipmentDate", "Shipment Date"}, {"qtyPerUnitOfMeasure", "Quantity Per Unit of Measure"},{"unitOfMeasureCode","Unit of Measure Code"}})
+				in
+				    #"Renamed Columns"
+
+	annotation PBI_ResultType = Table
+
+	annotation PBI_NavigationStepName = Navigation
+

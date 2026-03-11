@@ -1,0 +1,229 @@
+table 'Sales Lines'
+	lineageTag: 0570f05a-7137-4ca8-b176-08767ce05397
+
+	/// This measure shows how many items have been ordered by customers but are yet to be delivered or shipped by summing up the total outstanding quantity of items on all sales order lines.
+	measure 'Qty. on Sales Order' =
+			
+			CALCULATE(
+			    SUM('Sales Lines'[outstandingQtyBase]),
+			    'Sales Lines'[Document Type] = "Order"
+			)
+		displayFolder: _Sales Line Measures
+		lineageTag: b661850d-dbe5-4ee0-9d3c-1cbf6f432dc0
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	/// This measure shows how many items are yet to be returned by customers for sales return orders by summing up the outstanding quantity of items on all sales lines that are associated with return orders.
+	measure 'Qty. on Sales Return Order' =
+			
+			CALCULATE(
+			    SUM('Sales Lines'[outstandingQtyBase]),
+			    'Sales Lines'[Document Type] = "Return Order"
+			)
+		displayFolder: _Sales Line Measures
+		lineageTag: 7c05a748-1695-43e8-ab0e-7c08fe8d7e7f
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Sales Order - Earliest Shipment Date' =
+			
+			CALCULATE(
+			    MIN('Sales Lines'[Shipment Date]),
+			    'Sales Lines'[Document Type] = "Order"
+			)
+		formatString: Short Date
+		displayFolder: _Sales Line Measures
+		lineageTag: 333d8eda-40d7-4858-9c75-7ed23f3899e3
+
+	measure 'Sales Retrun Order - Earliest Shipment Date' =
+			
+			CALCULATE(
+			    MIN('Sales Lines'[Shipment Date]),
+			    'Sales Lines'[Document Type] = "Return Order"
+			)
+		formatString: Short Date
+		displayFolder: _Sales Line Measures
+		lineageTag: 21790e32-2cfa-4fc1-8ff8-b4d2adf86464
+
+	measure 'Sales Order Line Link' =
+			
+			VAR Endpoint = "&page=516&"
+			VAR BaseLink = [Base Link] & Endpoint
+			VAR OrderBaseLink = BaseLink & "filter='Sales Line'.'Document Type' IS 'Order'"
+			// Filter Context
+			VAR Items = CONCATENATEX(VALUES('Sales Lines'[Item No.]),'Sales Lines'[Item No.], "|")
+			VAR DimensionSetIDs = CONCATENATEX(VALUES('Sales Lines'[dimensionSetID]), 'Sales Lines'[dimensionSetID], "|")
+			
+			VAR ItemFilter = " AND 'Sales Line'.'No.' IS '" & Items & "'"
+			VAR DateFilter = " AND 'Sales Line'.'Shipment Date' IS '" & [Ranged] & "'"
+			VAR DimensionFilter = " AND 'Sales Line'.'Dimension Set ID' IS '" & DimensionSetIDs & "'"
+			RETURN
+			OrderBaseLink & ItemFilter & DateFilter & DimensionFilter
+		displayFolder: _Back Link
+		lineageTag: 717f4d77-4e83-4aaf-8df1-8fc0fc408401
+
+	measure 'Sales Return Order Line Link' =
+			
+			VAR Endpoint = "&page=516&"
+			VAR BaseLink = [Base Link] & Endpoint
+			VAR OrderBaseLink = BaseLink & "filter='Sales Line'.'Document Type' IS 'Return Order'"
+			// Filter Context
+			VAR Items = CONCATENATEX(VALUES('Sales Lines'[Item No.]),'Sales Lines'[Item No.], "|")
+			VAR DimensionSetIDs = CONCATENATEX(VALUES('Sales Lines'[dimensionSetID]), 'Sales Lines'[dimensionSetID], "|")
+			
+			VAR ItemFilter = " AND 'Sales Line'.'No.' IS '" & Items & "'"
+			VAR DateFilter = " AND 'Sales Line'.'Shipment Date' IS '" & [Ranged] & "'"
+			VAR DimensionFilter = " AND 'Sales Line'.'Dimension Set ID' IS '" & DimensionSetIDs & "'"
+			RETURN
+			OrderBaseLink & ItemFilter & DateFilter & DimensionFilter
+		displayFolder: _Back Link
+		lineageTag: d051088a-53de-4963-883d-6c6c34714bcf
+
+	column 'Document No.'
+		dataType: string
+		lineageTag: 8b5489fb-b79d-4892-bc6e-02a8a6133268
+		summarizeBy: none
+		sourceColumn: Document No.
+
+		annotation SummarizationSetBy = Automatic
+
+	column sellToCustomerNo
+		dataType: string
+		isHidden
+		lineageTag: b439f6b7-feaa-4b67-bbd2-7cf2436d1b7c
+		summarizeBy: none
+		sourceColumn: sellToCustomerNo
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Item No.'
+		dataType: string
+		isHidden
+		lineageTag: a1f71a1c-2fe2-45fb-a610-11a988c71d4a
+		summarizeBy: none
+		sourceColumn: Item No.
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	/// Specifies when items on the document are shipped or were shipped. A shipment date is usually calculated from a requested delivery date plus lead time.
+	column 'Shipment Date'
+		dataType: dateTime
+		formatString: Short Date
+		lineageTag: 988e3146-9afa-447a-b7bb-bb81f93fc420
+		summarizeBy: none
+		sourceColumn: Shipment Date
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	column 'Location Code'
+		dataType: string
+		isHidden
+		lineageTag: 257b8e0e-af79-4701-8a48-8e60809d5c3e
+		summarizeBy: none
+		sourceColumn: Location Code
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Document Type'
+		dataType: string
+		lineageTag: f66ef470-32a6-4702-879f-f9a309a52a62
+		summarizeBy: none
+		sourceColumn: Document Type
+
+		annotation SummarizationSetBy = Automatic
+
+	column outstandingQtyBase
+		dataType: double
+		isHidden
+		lineageTag: 0a124015-5517-45ed-bde0-c32c505094f0
+		summarizeBy: sum
+		sourceColumn: outstandingQtyBase
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column dimensionSetID
+		dataType: int64
+		isHidden
+		formatString: 0
+		lineageTag: 008829a3-a049-4aea-af10-0cf6a86043a1
+		summarizeBy: count
+		sourceColumn: dimensionSetID
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Quantity Per Unit of Measure'
+		dataType: double
+		lineageTag: 6bc48eae-ef1f-4407-bea5-465e18983687
+		summarizeBy: sum
+		sourceColumn: Quantity Per Unit of Measure
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column 'Unit of Measure Code'
+		dataType: string
+		lineageTag: 9e85b6d8-f629-4e17-9bb0-7d0a97af44ef
+		summarizeBy: none
+		sourceColumn: Unit of Measure Code
+
+		annotation SummarizationSetBy = Automatic
+
+	partition 'Sales Lines' = m
+		mode: import
+		queryGroup: 'Fact Tables'
+		source =
+				let
+				    Source = Dynamics365BusinessCentral.ApiContentsWithOptions(ENVIRONMENT, COMPANY,API_ENDPOINT, []),
+				    TableData = Source{[Name="outstandingSalesLines",Signature="table"]}[Data],
+				    #"Changed Type" = Table.TransformColumnTypes(
+				        TableData,
+				        {
+				            {"documentNo", type text},
+				            {"documentType", type text},
+				            {"sellToCustomerNo", type text},
+				            {"itemNo", type text},
+				            {"outstandingQtyBase", type number},
+				            {"shipmentDate", type date},
+				            {"locationCode", type text},
+				            {"dimensionSetID", Int64.Type},
+				            {"qtyPerUnitOfMeasure", type number},
+				            {"unitOfMeasureCode", type text}
+				        }
+				    ),
+				    #"Removed Columns" = Table.RemoveColumns(#"Changed Type", {"ETag"}),
+				    #"Renamed Columns" = Table.RenameColumns(
+				        #"Removed Columns",
+				        {
+				            {"documentNo", "Document No."},
+				            {"itemNo", "Item No."},
+				            {"locationCode", "Location Code"},
+				            {"shipmentDate", "Shipment Date"},
+				            {"documentType", "Document Type"},
+				            {"qtyPerUnitOfMeasure","Quantity Per Unit of Measure"},
+				            {"unitOfMeasureCode","Unit of Measure Code"}
+				        }
+				    )
+				in
+				    #"Renamed Columns"
+
+	annotation PBI_ResultType = Table
+
+	annotation PBI_NavigationStepName = Navigation
+

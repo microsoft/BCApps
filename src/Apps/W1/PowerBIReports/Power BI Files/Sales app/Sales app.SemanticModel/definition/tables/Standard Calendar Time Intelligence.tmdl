@@ -1,0 +1,4206 @@
+table 'Standard Calendar Time Intelligence'
+	lineageTag: da77effe-39f2-4dff-86b5-cb0fa3bd206d
+
+	measure 'Sales Amount YTD' = ```
+			
+			IF ( 
+			    [ShowValueForDates], 
+			    CALCULATE ( 
+			        [Sales (LCY)], 
+			        DATESYTD ( 'Date'[Date] ) 
+			    ) 
+			)
+			```
+		formatString: #,0.00
+		displayFolder: Sales\Sales Amount\Period-to-date total
+		lineageTag: 38412a1f-831a-4590-a264-37b463c652a8
+
+	measure 'Sales Amount PY' = ```
+			
+			IF (
+			    [ShowValueForDates],
+			    CALCULATE (
+			        [Sales (LCY)],
+			        CALCULATETABLE ( 
+			            DATEADD ( 'Date'[Date], -1, YEAR ),
+			            'Date'[DateWithSales] = TRUE
+			        )
+			    )
+			)
+			```
+		formatString: #,0.00
+		displayFolder: Sales\Sales Amount\Period-over-period growth
+		lineageTag: 0fc622df-db64-452f-8d55-6b1effebba80
+
+	measure 'Sales Amount PYTD' = ```
+			
+			IF (
+			    [ShowValueForDates],
+			    CALCULATE (
+			        [Sales Amount YTD],
+			        CALCULATETABLE ( 
+			            DATEADD ( 'Date'[Date], -1, YEAR ),
+			            'Date'[DateWithSales] = TRUE
+			        )
+			    )
+			)
+			
+			```
+		formatString: #,0.00
+		displayFolder: Sales\Sales Amount\Period-to-date growth
+		lineageTag: 77c133a0-4e40-4faa-87ec-72e719690eb6
+
+	measure 'Sales Amount PQTD' = ```
+			
+			IF (
+			    [ShowValueForDates],
+			    CALCULATE (
+			        [Sales Amount QTD],
+			        CALCULATETABLE ( 
+			            DATEADD ( 'Date'[Date], -1, QUARTER ),
+			            'Date'[DateWithSales] = TRUE
+			        )
+			    )
+			)
+			```
+		formatString: #,0.00
+		displayFolder: Sales\Sales Amount\Period-to-date growth
+		lineageTag: 7f672a49-42c1-47d2-a086-257b7f15ce2a
+
+	measure 'Sales Amount QTD' = ```
+			
+			IF (
+			    [ShowValueForDates],
+			    CALCULATE ( 
+			        [Sales (LCY)], 
+			        DATESQTD ( 'Date'[Date] )
+			    )
+			)
+			```
+		formatString: #,0.00
+		displayFolder: Sales\Sales Amount\Period-to-date total
+		lineageTag: a5266d3c-275d-4216-8898-66cf10010e7c
+
+	measure 'Sales Amount MTD' = ```
+			
+			IF ( 
+			    [ShowValueForDates], 
+			    CALCULATE ( 
+			        [Sales (LCY)], 
+			        DATESMTD ( 'Date'[Date] ) 
+			    ) 
+			)
+			```
+		formatString: #,0.00
+		displayFolder: Sales\Sales Amount\Period-to-date total
+		lineageTag: 3257d1e6-094f-42f1-b514-531d4ca4a1ba
+
+	measure 'Sales Amount YOY %' = ```
+			
+			DIVIDE ( 
+			    [Sales Amount YOY],
+			    [Sales Amount PY]
+			)
+			```
+		formatString: 0.00%;-0.00%;0.00%
+		displayFolder: Sales\Sales Amount\Period-over-period growth
+		lineageTag: 88452fce-5d7b-4e2d-8552-5f1fec325a77
+
+	measure 'Sales Amount YOY' = ```
+			
+			VAR ValueCurrentPeriod = [Sales (LCY)]
+			VAR ValuePreviousPeriod = [Sales Amount PY]
+			VAR Result =
+			    IF (
+			        NOT ISBLANK ( ValueCurrentPeriod ) 
+			            && NOT ISBLANK ( ValuePreviousPeriod ),
+			        ValueCurrentPeriod - ValuePreviousPeriod
+			    )
+			RETURN
+			    Result
+			
+			```
+		formatString: #,0.00
+		displayFolder: Sales\Sales Amount\Period-over-period growth
+		lineageTag: c8ed3d09-17a4-4d9b-b5e7-e6c208d50cf5
+
+	measure 'Sales Amount PQ' = ```
+			
+			IF (
+			    [ShowValueForDates],
+			    CALCULATE (
+			        [Sales (LCY)],
+			        CALCULATETABLE ( 
+			            DATEADD ( 'Date'[Date], -1, QUARTER ),
+			            'Date'[DateWithSales] = TRUE
+			        )
+			    )
+			)
+			
+			```
+		formatString: #,0.00
+		displayFolder: Sales\Sales Amount\Period-over-period growth
+		lineageTag: ec03bff5-4f0f-47f6-8b58-bfc627ce75e4
+
+	measure 'Sales Amount QOQ' = ```
+			
+			VAR ValueCurrentPeriod = [Sales (LCY)]
+			VAR ValuePreviousPeriod = [Sales Amount PQ]
+			VAR Result =
+			    IF (
+			        NOT ISBLANK ( ValueCurrentPeriod ) 
+			            && NOT ISBLANK ( ValuePreviousPeriod ),
+			        ValueCurrentPeriod - ValuePreviousPeriod
+			    )
+			RETURN
+			    Result
+			
+			```
+		formatString: #,0.00
+		displayFolder: Sales\Sales Amount\Period-over-period growth
+		lineageTag: 1091245b-89ae-4444-99f3-b5ff872cb562
+
+	measure 'Sales Amount PM' = ```
+			
+			IF (
+			    [ShowValueForDates],
+			    CALCULATE (
+			        [Sales (LCY)],
+			        CALCULATETABLE ( 
+			            DATEADD ( 'Date'[Date], -1, MONTH ),
+			            'Date'[DateWithSales] = TRUE
+			        )
+			    )
+			)
+			
+			```
+		formatString: #,0.00
+		displayFolder: Sales\Sales Amount\Period-over-period growth
+		lineageTag: b5467ba8-c395-4f5a-bb65-3cf8707deeb1
+
+	measure 'Sales Amount QOQ %' = ```
+			
+			DIVIDE ( 
+			    [Sales Amount QOQ],
+			    [Sales Amount PQ]
+			)
+			
+			```
+		formatString: 0.00%;-0.00%;0.00%
+		displayFolder: Sales\Sales Amount\Period-over-period growth
+		lineageTag: 852aabcf-c536-44cb-8212-bb12304a14c8
+
+	measure 'Sales Amount MOM' = ```
+			
+			VAR ValueCurrentPeriod = [Sales (LCY)]
+			VAR ValuePreviousPeriod = [Sales Amount PM]
+			VAR Result =
+			    IF (
+			        NOT ISBLANK ( ValueCurrentPeriod ) 
+			            && NOT ISBLANK ( ValuePreviousPeriod ),
+			        ValueCurrentPeriod - ValuePreviousPeriod
+			    )
+			RETURN
+			    Result
+			
+			```
+		formatString: #,0.00
+		displayFolder: Sales\Sales Amount\Period-over-period growth
+		lineageTag: 691e34ed-5394-418e-9671-c8cc2d937031
+
+	measure 'Sales Amount MOM %' = ```
+			
+			DIVIDE ( 
+			    [Sales Amount MOM],
+			    [Sales Amount PM]
+			)
+			
+			```
+		formatString: 0.00%;-0.00%;0.00%
+		displayFolder: Sales\Sales Amount\Period-over-period growth
+		lineageTag: 574352f6-e7b8-414b-9672-d209a1304703
+
+	measure 'Sales Amount MAT' = ```
+			
+			IF ( 
+			    [ShowValueForDates], 
+			    CALCULATE ( 
+			        [Sales (LCY)], 
+			        DATESINPERIOD (
+			            'Date'[Date],
+			            MAX ( 'Date'[Date] ),
+			            -1,
+			            YEAR
+			        )
+			    ) 
+			)
+			
+			```
+		formatString: #,0.00
+		displayFolder: Sales\Sales Amount\Moving annual total growth
+		lineageTag: 53d9727a-ae1a-47ac-80d0-442f6cdff4db
+
+	measure 'Sales Amount PYMAT' =
+			
+			IF (
+			    [ShowValueForDates],
+			    CALCULATE (
+			        [Sales Amount MAT],
+			        DATEADD ( 'Date'[Date], -1, YEAR )
+			    )
+			)
+		formatString: #,0.00
+		displayFolder: Sales\Sales Amount\Moving annual total growth
+		lineageTag: 7ced06c2-6042-4cba-ac44-ea166a5d0a64
+
+	measure 'Sales Amount YOYTD' = ```
+			
+			VAR ValueCurrentPeriod = [Sales Amount YTD]
+			VAR ValuePreviousPeriod = [Sales Amount PYTD]
+			VAR Result =
+			    IF (
+			        NOT ISBLANK ( ValueCurrentPeriod ) 
+			            && NOT ISBLANK ( ValuePreviousPeriod ),
+			        ValueCurrentPeriod - ValuePreviousPeriod
+			    )
+			RETURN
+			    Result
+			
+			```
+		formatString: #,0.00
+		displayFolder: Sales\Sales Amount\Period-to-date growth
+		lineageTag: e4592e1e-71b3-443e-8ff3-dba93109c619
+
+	measure 'Sales Amount YOYTD %' = ```
+			
+			DIVIDE ( 
+			    [Sales Amount YOYTD],
+			    [Sales Amount PYTD]
+			)
+			
+			```
+		formatString: 0.00%;-0.00%;0.00%
+		displayFolder: Sales\Sales Amount\Period-to-date growth
+		lineageTag: 6baef07f-485c-4a5a-af97-b4dce33e1956
+
+	measure 'Sales Amount PYC' = ```
+			
+			IF (
+			    [ShowValueForDates] && HASONEVALUE ( 'Date'[Calendar Year] ),
+			    CALCULATE (
+			        [Sales (LCY)],
+			        PARALLELPERIOD ( 'Date'[Date], -1, YEAR )
+			    )
+			)
+			
+			```
+		formatString: #,0.00
+		displayFolder: Sales\Sales Amount\Period-to-date over full previous period
+		lineageTag: ef25aabd-7568-4d6b-a08a-d95daab64490
+
+	measure 'Sales Amount YTDOPY' = ```
+			
+			VAR ValueCurrentPeriod = [Sales Amount YTD]
+			VAR ValuePreviousPeriod = [Sales Amount PYC]
+			VAR Result =
+			    IF (
+			        NOT ISBLANK ( ValueCurrentPeriod ) 
+			            && NOT ISBLANK ( ValuePreviousPeriod ),
+			        ValueCurrentPeriod - ValuePreviousPeriod
+			    )
+			RETURN
+			    Result
+			
+			```
+		formatString: #,0.00
+		displayFolder: Sales\Sales Amount\Period-to-date over full previous period
+		lineageTag: 5ba60dc6-dddd-4723-885c-4d1c198f1c96
+
+	measure 'Sales Amount YTDOPY %' = ```
+			
+			DIVIDE ( 
+			    [Sales Amount YTDOPY],
+			    [Sales Amount PYC]
+			)
+			
+			```
+		formatString: 0.00%;-0.00%;0.00%
+		displayFolder: Sales\Sales Amount\Period-to-date over full previous period
+		lineageTag: e4efd6fd-a83f-4d86-b623-986bc68c5a6b
+
+	measure 'Sales Amount QOQTD' = ```
+			
+			VAR ValueCurrentPeriod = [Sales Amount QTD]
+			VAR ValuePreviousPeriod = [Sales Amount PQTD]
+			VAR Result =
+			    IF (
+			        NOT ISBLANK ( ValueCurrentPeriod ) 
+			            && NOT ISBLANK ( ValuePreviousPeriod ),
+			        ValueCurrentPeriod - ValuePreviousPeriod
+			    )
+			RETURN
+			    Result
+			
+			```
+		formatString: #,0.00
+		displayFolder: Sales\Sales Amount\Period-to-date growth
+		lineageTag: 51196882-48b9-442a-a13b-c123c9474970
+
+	measure 'Sales Amount QOQTD %' = ```
+			
+			DIVIDE ( 
+			    [Sales Amount QOQTD],
+			    [Sales Amount PQTD]
+			)
+			
+			```
+		formatString: 0.00%;-0.00%;0.00%
+		displayFolder: Sales\Sales Amount\Period-to-date growth
+		lineageTag: 5a0e9cee-b941-4b20-ad79-47bafa0505c9
+
+	measure 'Sales Amount PQC' = ```
+			
+			IF (
+			    [ShowValueForDates] && HASONEVALUE ( 'Date'[Calendar Quarter Year] ),
+			    CALCULATE (
+			        [Sales (LCY)],
+			        PARALLELPERIOD ( 'Date'[Date], -1, QUARTER )
+			    )
+			)
+			
+			```
+		formatString: #,0.00
+		displayFolder: Sales\Sales Amount\Period-to-date over full previous period
+		lineageTag: 9a9286c6-a25a-4808-8cf6-38b6c26847b8
+
+	measure 'Sales Amount QTDOPQ' = ```
+			
+			VAR ValueCurrentPeriod = [Sales Amount QTD]
+			VAR ValuePreviousPeriod = [Sales Amount PQC]
+			VAR Result =
+			    IF (
+			        NOT ISBLANK ( ValueCurrentPeriod ) 
+			            && NOT ISBLANK ( ValuePreviousPeriod ),
+			        ValueCurrentPeriod - ValuePreviousPeriod
+			    )
+			RETURN
+			    Result
+			
+			```
+		formatString: #,0.00
+		displayFolder: Sales\Sales Amount\Period-to-date over full previous period
+		lineageTag: ca3e88b0-8d05-45ba-9158-22a95eee78a2
+
+	measure 'Sales Amount QTDOPQ %' = ```
+			
+			DIVIDE ( 
+			    [Sales Amount QTDOPQ],
+			    [Sales Amount PQC]
+			)
+			
+			```
+		formatString: 0.00%;-0.00%;0.00%
+		displayFolder: Sales\Sales Amount\Period-to-date over full previous period
+		lineageTag: 5432dbee-eca4-44ee-8929-5b81afceb02c
+
+	measure 'Sales Amount PMTD' = ```
+			
+			IF (
+			    [ShowValueForDates],
+			    CALCULATE (
+			        [Sales Amount MTD],
+			        CALCULATETABLE ( 
+			            DATEADD ( 'Date'[Date], -1, MONTH ),
+			            'Date'[DateWithSales] = TRUE
+			        )
+			    )
+			)
+			
+			```
+		formatString: #,0.00
+		displayFolder: Sales\Sales Amount\Period-to-date growth
+		lineageTag: 55ec74c0-7e4e-40c6-a2bf-0e53452f103e
+
+	measure 'Sales Amount MOMTD' = ```
+			
+			VAR ValueCurrentPeriod = [Sales Amount MTD]
+			VAR ValuePreviousPeriod = [Sales Amount PMTD]
+			VAR Result =
+			    IF (
+			        NOT ISBLANK ( ValueCurrentPeriod ) 
+			            && NOT ISBLANK ( ValuePreviousPeriod ),
+			        ValueCurrentPeriod - ValuePreviousPeriod
+			    )
+			RETURN
+			    Result
+			
+			```
+		formatString: #,0.00
+		displayFolder: Sales\Sales Amount\Period-to-date growth
+		lineageTag: d138f13b-190e-4c92-ac9a-3fb880f437ad
+
+	measure 'Sales Amount MOMTD %' = ```
+			
+			DIVIDE ( 
+			    [Sales Amount MOMTD],
+			    [Sales Amount PMTD]
+			)
+			
+			```
+		formatString: 0.00%;-0.00%;0.00%
+		displayFolder: Sales\Sales Amount\Period-to-date growth
+		lineageTag: 1b816673-c0ca-4372-992a-7f51d4cb3810
+
+	measure 'Sales Amount PMC' = ```
+			
+			IF (
+			    [ShowValueForDates] && HASONEVALUE ( 'Date'[Calendar Month Year] ),
+			    CALCULATE (
+			        [Sales (LCY)],
+			        PARALLELPERIOD ( 'Date'[Date], -1, MONTH )
+			    )
+			)
+			
+			```
+		formatString: #,0.00
+		displayFolder: Sales\Sales Amount\Period-to-date over full previous period
+		lineageTag: 91751828-be34-487d-9874-c7b1c20fca59
+
+	measure 'Sales Amount MTDOPM' = ```
+			
+			VAR ValueCurrentPeriod = [Sales Amount MTD]
+			VAR ValuePreviousPeriod = [Sales Amount PMC]
+			VAR Result =
+			    IF (
+			        NOT ISBLANK ( ValueCurrentPeriod ) 
+			            && NOT ISBLANK ( ValuePreviousPeriod ),
+			        ValueCurrentPeriod - ValuePreviousPeriod
+			    )
+			RETURN
+			    Result
+			
+			```
+		formatString: #,0.00
+		displayFolder: Sales\Sales Amount\Period-to-date over full previous period
+		lineageTag: 7057c97f-002f-4760-9d39-3e03581d3162
+
+	measure 'Sales Amount MTDOPM %' = ```
+			
+			DIVIDE ( 
+			    [Sales Amount MTDOPM],
+			    [Sales Amount PMC]
+			)
+			
+			```
+		formatString: 0.00%;-0.00%;0.00%
+		displayFolder: Sales\Sales Amount\Period-to-date over full previous period
+		lineageTag: c642c5c8-efa8-4938-932d-8b6d2c0e516b
+
+	measure 'Sales Amount AVG 30D' = ```
+			
+			VAR Period30D =
+			    CALCULATETABLE (
+			        DATESINPERIOD (
+			            'Date'[Date],
+			            MAX ( 'Date'[Date] ),
+			            -30,
+			            DAY
+			        ),
+			        'Date'[DateWithSales] = TRUE
+			    )
+			VAR FirstDayWithData =
+			        CALCULATE (
+			            INT (
+			                MINX (
+			                    {
+			                        MIN ( 'Sales Value Entries'[postingDate] ),
+			                        MIN ( 'Sales Invoice Lines'[postingDate] ),
+			                        MIN ( 'Sales Credit Lines'[postingDate] ),
+			                        MIN ( 'Project Ledger Entries'[postingDate] )
+			                    },
+			                    [Value]
+			                )
+			            ),
+			            REMOVEFILTERS ()
+			        )
+			VAR FirstDayInPeriod =
+			    MINX ( Period30D, 'Date'[Date] )
+			VAR Result =
+			    IF ( 
+			        FirstDayWithData <= FirstDayInPeriod,
+			        AVERAGEX (
+			            Period30D,
+			            [Sales (LCY)]
+			        )
+			    )
+			RETURN
+			    Result
+			
+			```
+		formatString: #,0.00
+		displayFolder: Sales\Sales Amount\Moving averages
+		lineageTag: 99c302a8-02fb-4536-9c31-a8785a7cb773
+
+	measure 'Sales Amount AVG 3M' = ```
+			
+			VAR Period3M =
+			    CALCULATETABLE (
+			        DATESINPERIOD (
+			            'Date'[Date],
+			            MAX ( 'Date'[Date] ),
+			            -3,
+			            MONTH
+			        ),
+			        'Date'[DateWithSales] = TRUE
+			    )
+			VAR FirstDayWithData =
+			        CALCULATE (
+			            INT (
+			                MINX (
+			                    {
+			                        MIN ( 'Sales Value Entries'[postingDate] ),
+			                        MIN ( 'Sales Invoice Lines'[postingDate] ),
+			                        MIN ( 'Sales Credit Lines'[postingDate] ),
+			                        MIN ( 'Project Ledger Entries'[postingDate] )
+			                    },
+			                    [Value]
+			                )
+			            ),
+			            REMOVEFILTERS ()
+			        )
+			VAR FirstDayInPeriod =
+			    MINX ( Period3M, 'Date'[Date] )
+			VAR Result =
+			    IF ( 
+			        FirstDayWithData <= FirstDayInPeriod,
+			        AVERAGEX (
+			            Period3M,
+			            [Sales (LCY)]
+			        )
+			    )
+			RETURN
+			    Result
+			
+			```
+		formatString: #,0.00
+		displayFolder: Sales\Sales Amount\Moving averages
+		lineageTag: 42318409-da7f-4d5e-a457-0f4879ca4d50
+
+	measure 'Sales Amount AVG 1Y' = ```
+			
+			VAR Period1Y =
+			    CALCULATETABLE (
+			        DATESINPERIOD (
+			            'Date'[Date],
+			            MAX ( 'Date'[Date] ),
+			            -1,
+			            YEAR
+			        ),
+			        'Date'[DateWithSales] = TRUE
+			    )
+			VAR FirstDayWithData =
+			        CALCULATE (
+			            INT (
+			                MINX (
+			                    {
+			                        MIN ( 'Sales Value Entries'[postingDate] ),
+			                        MIN ( 'Sales Invoice Lines'[postingDate] ),
+			                        MIN ( 'Sales Credit Lines'[postingDate] ),
+			                        MIN ( 'Project Ledger Entries'[postingDate] )
+			                    },
+			                    [Value]
+			                )
+			            ),
+			            REMOVEFILTERS ()
+			        )
+			VAR FirstDayInPeriod =
+			    MINX ( Period1Y, 'Date'[Date] )
+			VAR Result =
+			    IF ( 
+			        FirstDayWithData <= FirstDayInPeriod,
+			        AVERAGEX (
+			            Period1Y,
+			            [Sales (LCY)]
+			        )
+			    )
+			RETURN
+			    Result
+			
+			```
+		formatString: #,0.00
+		displayFolder: Sales\Sales Amount\Moving averages
+		lineageTag: 2ad11b4b-540f-4ae1-a229-257b84c2a0b3
+
+	measure 'Sales Amount MATG' = ```
+			
+			VAR ValueCurrentPeriod = [Sales Amount MAT]
+			VAR ValuePreviousPeriod = [Sales Amount PYMAT]
+			VAR Result =
+			    IF (
+			        NOT ISBLANK ( ValueCurrentPeriod ) 
+			            && NOT ISBLANK ( ValuePreviousPeriod ),
+			        ValueCurrentPeriod - ValuePreviousPeriod
+			    )
+			RETURN
+			    Result
+			
+			```
+		formatString: #,0.00
+		displayFolder: Sales\Sales Amount\Moving annual total growth
+		lineageTag: 6008b500-0ea3-4b29-b004-1b29d6cff730
+
+	measure 'Sales Amount MATG %' = ```
+			
+			DIVIDE ( 
+			    [Sales Amount MATG],
+			    [Sales Amount PYMAT]
+			)
+			
+			```
+		formatString: 0.00%;-0.00%;0.00%
+		displayFolder: Sales\Sales Amount\Moving annual total growth
+		lineageTag: 2684dc76-0921-40a9-b75f-3d2da00d2571
+
+	measure 'Sales Amount PP' = ```
+			
+			SWITCH ( 
+			    TRUE,
+			    ISINSCOPE ( 'Date'[Calendar Month Year] ), [Sales Amount PM],
+			    ISINSCOPE ( 'Date'[Calendar Quarter Year] ), [Sales Amount PQ],
+			    ISINSCOPE ( 'Date'[Calendar Year] ), [Sales Amount PY]
+			)
+			
+			```
+		formatString: #,0.00
+		displayFolder: Sales\Sales Amount\Period-over-period growth
+		lineageTag: 73fee03f-0581-44f0-8ad4-c756194eca65
+
+	measure 'Sales Amount POP' = ```
+			
+			SWITCH ( 
+			    TRUE,
+			    ISINSCOPE ( 'Date'[Calendar Month Year] ), [Sales Amount MOM],
+			    ISINSCOPE ( 'Date'[Calendar Quarter Year] ), [Sales Amount QOQ],
+			    ISINSCOPE ( 'Date'[Calendar Year] ), [Sales Amount YOY]
+			)
+			
+			```
+		formatString: #,0.00
+		displayFolder: Sales\Sales Amount\Period-over-period growth
+		lineageTag: e3cba894-4380-4df8-94de-4e290d9395d3
+
+	measure 'Sales Amount POP %' = ```
+			
+			SWITCH ( 
+			    TRUE,
+			    ISINSCOPE ( 'Date'[Calendar Month Year] ), [Sales Amount MOM %],
+			    ISINSCOPE ( 'Date'[Calendar Quarter Year] ), [Sales Amount QOQ %],
+			    ISINSCOPE ( 'Date'[Calendar Year] ), [Sales Amount YOY %]
+			)
+			
+			```
+		formatString: 0.00%;-0.00%;0.00%
+		displayFolder: Sales\Sales Amount\Period-over-period growth
+		lineageTag: 1bcc3ca4-2741-442b-a511-0768685e00e7
+
+	measure 'Sales Quantity YTD' = ```
+			
+			IF ( 
+			    [ShowValueForDates], 
+			    CALCULATE ( 
+			        [Sales Quantity], 
+			        DATESYTD ( 'Date'[Date] ) 
+			    ) 
+			)
+			```
+		formatString: #,0.00
+		displayFolder: Sales\Sales Quantity\Period-to-date total
+		lineageTag: b551f76e-ad65-4b57-84ac-acc2a80f3d7d
+
+	measure 'Sales Quantity PY' = ```
+			
+			IF (
+			    [ShowValueForDates],
+			    CALCULATE (
+			        [Sales Quantity],
+			        CALCULATETABLE ( 
+			            DATEADD ( 'Date'[Date], -1, YEAR ),
+			            'Date'[DateWithSales] = TRUE
+			        )
+			    )
+			)
+			```
+		formatString: #,0.00
+		displayFolder: Sales\Sales Quantity\Period-over-period growth
+		lineageTag: 33cfd214-80cb-4536-a82e-661f235ae014
+
+	measure 'Sales Quantity PYTD' = ```
+			
+			IF (
+			    [ShowValueForDates],
+			    CALCULATE (
+			        [Sales Quantity YTD],
+			        CALCULATETABLE ( 
+			            DATEADD ( 'Date'[Date], -1, YEAR ),
+			            'Date'[DateWithSales] = TRUE
+			        )
+			    )
+			)
+			
+			```
+		formatString: #,0.00
+		displayFolder: Sales\Sales Quantity\Period-to-date growth
+		lineageTag: c12dabc6-728c-427c-8dca-40f5e80ee864
+
+	measure 'Sales Quantity PQTD' = ```
+			
+			IF (
+			    [ShowValueForDates],
+			    CALCULATE (
+			        [Sales Quantity QTD],
+			        CALCULATETABLE ( 
+			            DATEADD ( 'Date'[Date], -1, QUARTER ),
+			            'Date'[DateWithSales] = TRUE
+			        )
+			    )
+			)
+			```
+		formatString: #,0.00
+		displayFolder: Sales\Sales Quantity\Period-to-date growth
+		lineageTag: 132dbd40-8f24-4565-9951-fea35ecab4ea
+
+	measure 'Sales Quantity QTD' = ```
+			
+			IF (
+			    [ShowValueForDates],
+			    CALCULATE ( 
+			        [Sales Quantity], 
+			        DATESQTD ( 'Date'[Date] )
+			    )
+			)
+			```
+		formatString: #,0.00
+		displayFolder: Sales\Sales Quantity\Period-to-date total
+		lineageTag: 85950c9d-2323-4b80-ae82-64b715fa8ea6
+
+	measure 'Sales Quantity MTD' = ```
+			
+			IF ( 
+			    [ShowValueForDates], 
+			    CALCULATE ( 
+			        [Sales Quantity], 
+			        DATESMTD ( 'Date'[Date] ) 
+			    ) 
+			)
+			```
+		formatString: #,0.00
+		displayFolder: Sales\Sales Quantity\Period-to-date total
+		lineageTag: 7f18266c-afde-4163-a724-840c99c7d2ec
+
+	measure 'Sales Quantity YOY %' = ```
+			
+			DIVIDE ( 
+			    [Sales Quantity YOY],
+			    [Sales Quantity PY]
+			)
+			```
+		formatString: 0.00%;-0.00%;0.00%
+		displayFolder: Sales\Sales Quantity\Period-over-period growth
+		lineageTag: 765e274e-daa4-4055-8c35-194d54e1d01e
+
+	measure 'Sales Quantity YOY' = ```
+			
+			VAR ValueCurrentPeriod = [Sales Quantity]
+			VAR ValuePreviousPeriod = [Sales Quantity PY]
+			VAR Result =
+			    IF (
+			        NOT ISBLANK ( ValueCurrentPeriod ) 
+			            && NOT ISBLANK ( ValuePreviousPeriod ),
+			        ValueCurrentPeriod - ValuePreviousPeriod
+			    )
+			RETURN
+			    Result
+			
+			```
+		formatString: #,0.00
+		displayFolder: Sales\Sales Quantity\Period-over-period growth
+		lineageTag: 12c970d9-c46e-444e-a17a-37501662e7d5
+
+	measure 'Sales Quantity PQ' = ```
+			
+			IF (
+			    [ShowValueForDates],
+			    CALCULATE (
+			        [Sales Quantity],
+			        CALCULATETABLE ( 
+			            DATEADD ( 'Date'[Date], -1, QUARTER ),
+			            'Date'[DateWithSales] = TRUE
+			        )
+			    )
+			)
+			
+			```
+		formatString: #,0.00
+		displayFolder: Sales\Sales Quantity\Period-over-period growth
+		lineageTag: f272022b-0e6d-460e-9b17-2ef908179944
+
+	measure 'Sales Quantity QOQ' = ```
+			
+			VAR ValueCurrentPeriod = [Sales Quantity]
+			VAR ValuePreviousPeriod = [Sales Quantity PQ]
+			VAR Result =
+			    IF (
+			        NOT ISBLANK ( ValueCurrentPeriod ) 
+			            && NOT ISBLANK ( ValuePreviousPeriod ),
+			        ValueCurrentPeriod - ValuePreviousPeriod
+			    )
+			RETURN
+			    Result
+			
+			```
+		formatString: #,0.00
+		displayFolder: Sales\Sales Quantity\Period-over-period growth
+		lineageTag: 79c4ac64-2130-4e12-a4f2-5b7072dab806
+
+	measure 'Sales Quantity PM' = ```
+			
+			IF (
+			    [ShowValueForDates],
+			    CALCULATE (
+			        [Sales Quantity],
+			        CALCULATETABLE ( 
+			            DATEADD ( 'Date'[Date], -1, MONTH ),
+			            'Date'[DateWithSales] = TRUE
+			        )
+			    )
+			)
+			
+			```
+		formatString: #,0.00
+		displayFolder: Sales\Sales Quantity\Period-over-period growth
+		lineageTag: 2b2e02ad-3aa8-4879-b269-bce34a585b71
+
+	measure 'Sales Quantity QOQ %' = ```
+			
+			DIVIDE ( 
+			    [Sales Quantity QOQ],
+			    [Sales Quantity PQ]
+			)
+			
+			```
+		formatString: 0.00%;-0.00%;0.00%
+		displayFolder: Sales\Sales Quantity\Period-over-period growth
+		lineageTag: bb11a032-fe24-44bc-b465-c988553b7951
+
+	measure 'Sales Quantity MOM' = ```
+			
+			VAR ValueCurrentPeriod = [Sales Quantity]
+			VAR ValuePreviousPeriod = [Sales Quantity PM]
+			VAR Result =
+			    IF (
+			        NOT ISBLANK ( ValueCurrentPeriod ) 
+			            && NOT ISBLANK ( ValuePreviousPeriod ),
+			        ValueCurrentPeriod - ValuePreviousPeriod
+			    )
+			RETURN
+			    Result
+			
+			```
+		formatString: #,0.00
+		displayFolder: Sales\Sales Quantity\Period-over-period growth
+		lineageTag: a211dd34-cbbe-48c2-87ac-679eb3dc978f
+
+	measure 'Sales Quantity MOM %' = ```
+			
+			DIVIDE ( 
+			    [Sales Quantity MOM],
+			    [Sales Quantity PM]
+			)
+			
+			```
+		formatString: 0.00%;-0.00%;0.00%
+		displayFolder: Sales\Sales Quantity\Period-over-period growth
+		lineageTag: ef941450-4421-46dc-8743-8e254cff16d1
+
+	measure 'Sales Quantity MAT' = ```
+			
+			IF ( 
+			    [ShowValueForDates], 
+			    CALCULATE ( 
+			        [Sales Quantity], 
+			        DATESINPERIOD (
+			            'Date'[Date],
+			            MAX ( 'Date'[Date] ),
+			            -1,
+			            YEAR
+			        )
+			    ) 
+			)
+			
+			```
+		formatString: #,0.00
+		displayFolder: Sales\Sales Quantity\Moving annual total growth
+		lineageTag: a2104553-753f-4d39-97b5-5d1d7bf7d46b
+
+	measure 'Sales Quantity PYMAT' =
+			
+			IF (
+			    [ShowValueForDates],
+			    CALCULATE (
+			        [Sales Quantity MAT],
+			        DATEADD ( 'Date'[Date], -1, YEAR )
+			    )
+			)
+		formatString: #,0.00
+		displayFolder: Sales\Sales Quantity\Moving annual total growth
+		lineageTag: b5fa51b7-08a4-4311-bacb-d4cc65c52439
+
+	measure 'Sales Quantity YOYTD' = ```
+			
+			VAR ValueCurrentPeriod = [Sales Quantity YTD]
+			VAR ValuePreviousPeriod = [Sales Quantity PYTD]
+			VAR Result =
+			    IF (
+			        NOT ISBLANK ( ValueCurrentPeriod ) 
+			            && NOT ISBLANK ( ValuePreviousPeriod ),
+			        ValueCurrentPeriod - ValuePreviousPeriod
+			    )
+			RETURN
+			    Result
+			
+			```
+		formatString: #,0.00
+		displayFolder: Sales\Sales Quantity\Period-to-date growth
+		lineageTag: 2c73a33e-a0e9-47b5-b40c-e32b605eaf6f
+
+	measure 'Sales Quantity YOYTD %' = ```
+			
+			DIVIDE ( 
+			    [Sales Quantity YOYTD],
+			    [Sales Quantity PYTD]
+			)
+			
+			```
+		formatString: 0.00%;-0.00%;0.00%
+		displayFolder: Sales\Sales Quantity\Period-to-date growth
+		lineageTag: 3ccbd66d-f6e7-4208-8255-4c3244e62c33
+
+	measure 'Sales Quantity PYC' = ```
+			
+			IF (
+			    [ShowValueForDates] && HASONEVALUE ( 'Date'[Calendar Year] ),
+			    CALCULATE (
+			        [Sales Quantity],
+			        PARALLELPERIOD ( 'Date'[Date], -1, YEAR )
+			    )
+			)
+			
+			```
+		formatString: #,0.00
+		displayFolder: Sales\Sales Quantity\Period-to-date over full previous period
+		lineageTag: ba3c201c-6a26-43a4-b435-84edf74a987a
+
+	measure 'Sales Quantity YTDOPY' = ```
+			
+			VAR ValueCurrentPeriod = [Sales Quantity YTD]
+			VAR ValuePreviousPeriod = [Sales Quantity PYC]
+			VAR Result =
+			    IF (
+			        NOT ISBLANK ( ValueCurrentPeriod ) 
+			            && NOT ISBLANK ( ValuePreviousPeriod ),
+			        ValueCurrentPeriod - ValuePreviousPeriod
+			    )
+			RETURN
+			    Result
+			
+			```
+		formatString: #,0.00
+		displayFolder: Sales\Sales Quantity\Period-to-date over full previous period
+		lineageTag: 5269e52e-52c6-4cc9-a133-f4f9ceb15d90
+
+	measure 'Sales Quantity YTDOPY %' = ```
+			
+			DIVIDE ( 
+			    [Sales Quantity YTDOPY],
+			    [Sales Quantity PYC]
+			)
+			
+			```
+		formatString: 0.00%;-0.00%;0.00%
+		displayFolder: Sales\Sales Quantity\Period-to-date over full previous period
+		lineageTag: f6c1eb68-0236-479e-b980-c9cd85ad791a
+
+	measure 'Sales Quantity QOQTD' = ```
+			
+			VAR ValueCurrentPeriod = [Sales Quantity QTD]
+			VAR ValuePreviousPeriod = [Sales Quantity PQTD]
+			VAR Result =
+			    IF (
+			        NOT ISBLANK ( ValueCurrentPeriod ) 
+			            && NOT ISBLANK ( ValuePreviousPeriod ),
+			        ValueCurrentPeriod - ValuePreviousPeriod
+			    )
+			RETURN
+			    Result
+			
+			```
+		formatString: #,0.00
+		displayFolder: Sales\Sales Quantity\Period-to-date growth
+		lineageTag: 1ce8974b-4167-497c-a635-36fdaf37d91a
+
+	measure 'Sales Quantity QOQTD %' = ```
+			
+			DIVIDE ( 
+			    [Sales Quantity QOQTD],
+			    [Sales Quantity PQTD]
+			)
+			
+			```
+		formatString: 0.00%;-0.00%;0.00%
+		displayFolder: Sales\Sales Quantity\Period-to-date growth
+		lineageTag: fb348b73-036b-4407-9cf8-ef2f779d4661
+
+	measure 'Sales Quantity PQC' = ```
+			
+			IF (
+			    [ShowValueForDates] && HASONEVALUE ( 'Date'[Calendar Quarter Year] ),
+			    CALCULATE (
+			        [Sales Quantity],
+			        PARALLELPERIOD ( 'Date'[Date], -1, QUARTER )
+			    )
+			)
+			
+			```
+		formatString: #,0.00
+		displayFolder: Sales\Sales Quantity\Period-to-date over full previous period
+		lineageTag: aa66702c-408b-41b6-a43f-326f5017057e
+
+	measure 'Sales Quantity QTDOPQ' = ```
+			
+			VAR ValueCurrentPeriod = [Sales Quantity QTD]
+			VAR ValuePreviousPeriod = [Sales Quantity PQC]
+			VAR Result =
+			    IF (
+			        NOT ISBLANK ( ValueCurrentPeriod ) 
+			            && NOT ISBLANK ( ValuePreviousPeriod ),
+			        ValueCurrentPeriod - ValuePreviousPeriod
+			    )
+			RETURN
+			    Result
+			
+			```
+		formatString: #,0.00
+		displayFolder: Sales\Sales Quantity\Period-to-date over full previous period
+		lineageTag: af8de9c6-5ebb-44dc-8a89-081dbd7f51f0
+
+	measure 'Sales Quantity QTDOPQ %' = ```
+			
+			DIVIDE ( 
+			    [Sales Quantity QTDOPQ],
+			    [Sales Quantity PQC]
+			)
+			
+			```
+		formatString: 0.00%;-0.00%;0.00%
+		displayFolder: Sales\Sales Quantity\Period-to-date over full previous period
+		lineageTag: ecebf067-1170-409d-8e1a-8eaebfd444a4
+
+	measure 'Sales Quantity PMTD' = ```
+			
+			IF (
+			    [ShowValueForDates],
+			    CALCULATE (
+			        [Sales Quantity MTD],
+			        CALCULATETABLE ( 
+			            DATEADD ( 'Date'[Date], -1, MONTH ),
+			            'Date'[DateWithSales] = TRUE
+			        )
+			    )
+			)
+			
+			```
+		formatString: #,0.00
+		displayFolder: Sales\Sales Quantity\Period-to-date growth
+		lineageTag: 15b209af-ac04-4d34-baad-ab7724390120
+
+	measure 'Sales Quantity MOMTD' = ```
+			
+			VAR ValueCurrentPeriod = [Sales Quantity MTD]
+			VAR ValuePreviousPeriod = [Sales Quantity PMTD]
+			VAR Result =
+			    IF (
+			        NOT ISBLANK ( ValueCurrentPeriod ) 
+			            && NOT ISBLANK ( ValuePreviousPeriod ),
+			        ValueCurrentPeriod - ValuePreviousPeriod
+			    )
+			RETURN
+			    Result
+			
+			```
+		formatString: #,0.00
+		displayFolder: Sales\Sales Quantity\Period-to-date growth
+		lineageTag: 5549b867-2ba0-4490-8276-f920e12c2c5c
+
+	measure 'Sales Quantity MOMTD %' = ```
+			
+			DIVIDE ( 
+			    [Sales Quantity MOMTD],
+			    [Sales Quantity PMTD]
+			)
+			
+			```
+		formatString: 0.00%;-0.00%;0.00%
+		displayFolder: Sales\Sales Quantity\Period-to-date growth
+		lineageTag: 7402e0da-765f-4324-b8d5-f22a9f11c598
+
+	measure 'Sales Quantity PMC' = ```
+			
+			IF (
+			    [ShowValueForDates] && HASONEVALUE ( 'Date'[Calendar Month Year] ),
+			    CALCULATE (
+			        [Sales Quantity],
+			        PARALLELPERIOD ( 'Date'[Date], -1, MONTH )
+			    )
+			)
+			
+			```
+		formatString: #,0.00
+		displayFolder: Sales\Sales Quantity\Period-to-date over full previous period
+		lineageTag: 69d2758c-8ae1-4f84-a484-23dac95773f9
+
+	measure 'Sales Quantity MTDOPM' = ```
+			
+			VAR ValueCurrentPeriod = [Sales Quantity MTD]
+			VAR ValuePreviousPeriod = [Sales Quantity PMC]
+			VAR Result =
+			    IF (
+			        NOT ISBLANK ( ValueCurrentPeriod ) 
+			            && NOT ISBLANK ( ValuePreviousPeriod ),
+			        ValueCurrentPeriod - ValuePreviousPeriod
+			    )
+			RETURN
+			    Result
+			
+			```
+		formatString: #,0.00
+		displayFolder: Sales\Sales Quantity\Period-to-date over full previous period
+		lineageTag: 73ca35c3-7587-4b46-b165-8c37b835a77b
+
+	measure 'Sales Quantity MTDOPM %' = ```
+			
+			DIVIDE ( 
+			    [Sales Quantity MTDOPM],
+			    [Sales Quantity PMC]
+			)
+			
+			```
+		formatString: 0.00%;-0.00%;0.00%
+		displayFolder: Sales\Sales Quantity\Period-to-date over full previous period
+		lineageTag: bf33507c-80a0-4cda-a217-e830bfd56a44
+
+	measure 'Sales Quantity AVG 30D' = ```
+			
+			VAR Period30D =
+			    CALCULATETABLE (
+			        DATESINPERIOD (
+			            'Date'[Date],
+			            MAX ( 'Date'[Date] ),
+			            -30,
+			            DAY
+			        ),
+			        'Date'[DateWithSales] = TRUE
+			    )
+			VAR FirstDayWithData =
+			        CALCULATE (
+			            INT (
+			                MINX (
+			                    {
+			                        MIN ( 'Sales Value Entries'[postingDate] ),
+			                        MIN ( 'Sales Invoice Lines'[postingDate] ),
+			                        MIN ( 'Sales Credit Lines'[postingDate] ),
+			                        MIN ( 'Project Ledger Entries'[postingDate] )
+			                    },
+			                    [Value]
+			                )
+			            ),
+			            REMOVEFILTERS ()
+			        )
+			VAR FirstDayInPeriod =
+			    MINX ( Period30D, 'Date'[Date] )
+			VAR Result =
+			    IF ( 
+			        FirstDayWithData <= FirstDayInPeriod,
+			        AVERAGEX (
+			            Period30D,
+			            [Sales Quantity]
+			        )
+			    )
+			RETURN
+			    Result
+			
+			```
+		formatString: #,0.00
+		displayFolder: Sales\Sales Quantity\Moving averages
+		lineageTag: 64b21ac4-1c78-46e9-83be-e2c9f7da708c
+
+	measure 'Sales Quantity AVG 3M' = ```
+			
+			VAR Period3M =
+			    CALCULATETABLE (
+			        DATESINPERIOD (
+			            'Date'[Date],
+			            MAX ( 'Date'[Date] ),
+			            -3,
+			            MONTH
+			        ),
+			        'Date'[DateWithSales] = TRUE
+			    )
+			VAR FirstDayWithData =
+			        CALCULATE (
+			            INT (
+			                MINX (
+			                    {
+			                        MIN ( 'Sales Value Entries'[postingDate] ),
+			                        MIN ( 'Sales Invoice Lines'[postingDate] ),
+			                        MIN ( 'Sales Credit Lines'[postingDate] ),
+			                        MIN ( 'Project Ledger Entries'[postingDate] )
+			                    },
+			                    [Value]
+			                )
+			            ),
+			            REMOVEFILTERS ()
+			        )
+			VAR FirstDayInPeriod =
+			    MINX ( Period3M, 'Date'[Date] )
+			VAR Result =
+			    IF ( 
+			        FirstDayWithData <= FirstDayInPeriod,
+			        AVERAGEX (
+			            Period3M,
+			            [Sales Quantity]
+			        )
+			    )
+			RETURN
+			    Result
+			
+			```
+		formatString: #,0.00
+		displayFolder: Sales\Sales Quantity\Moving averages
+		lineageTag: 2de1e32c-8fa8-4a0f-990f-707cc49e4478
+
+	measure 'Sales Quantity AVG 1Y' = ```
+			
+			VAR Period1Y =
+			    CALCULATETABLE (
+			        DATESINPERIOD (
+			            'Date'[Date],
+			            MAX ( 'Date'[Date] ),
+			            -1,
+			            YEAR
+			        ),
+			        'Date'[DateWithSales] = TRUE
+			    )
+			VAR FirstDayWithData =
+			        CALCULATE (
+			            INT (
+			                MINX (
+			                    {
+			                        MIN ( 'Sales Value Entries'[postingDate] ),
+			                        MIN ( 'Sales Invoice Lines'[postingDate] ),
+			                        MIN ( 'Sales Credit Lines'[postingDate] ),
+			                        MIN ( 'Project Ledger Entries'[postingDate] )
+			                    },
+			                    [Value]
+			                )
+			            ),
+			            REMOVEFILTERS ()
+			        )
+			VAR FirstDayInPeriod =
+			    MINX ( Period1Y, 'Date'[Date] )
+			VAR Result =
+			    IF ( 
+			        FirstDayWithData <= FirstDayInPeriod,
+			        AVERAGEX (
+			            Period1Y,
+			            [Sales Quantity]
+			        )
+			    )
+			RETURN
+			    Result
+			
+			```
+		formatString: #,0.00
+		displayFolder: Sales\Sales Quantity\Moving averages
+		lineageTag: 1d887308-f87a-4f67-8a99-6c4514716775
+
+	measure 'Sales Quantity MATG' = ```
+			
+			VAR ValueCurrentPeriod = [Sales Quantity MAT]
+			VAR ValuePreviousPeriod = [Sales Quantity PYMAT]
+			VAR Result =
+			    IF (
+			        NOT ISBLANK ( ValueCurrentPeriod ) 
+			            && NOT ISBLANK ( ValuePreviousPeriod ),
+			        ValueCurrentPeriod - ValuePreviousPeriod
+			    )
+			RETURN
+			    Result
+			
+			```
+		formatString: #,0.00
+		displayFolder: Sales\Sales Quantity\Moving annual total growth
+		lineageTag: d6805a2e-ae0c-491a-9e33-f4a745f9b278
+
+	measure 'Sales Quantity MATG %' = ```
+			
+			DIVIDE ( 
+			    [Sales Quantity MATG],
+			    [Sales Quantity PYMAT]
+			)
+			
+			```
+		formatString: 0.00%;-0.00%;0.00%
+		displayFolder: Sales\Sales Quantity\Moving annual total growth
+		lineageTag: 965fc6c1-f2c7-418f-9df8-59438f991d38
+
+	measure 'Sales Quantity PP' = ```
+			
+			SWITCH ( 
+			    TRUE,
+			    ISINSCOPE ( 'Date'[Calendar Month Year] ), [Sales Quantity PM],
+			    ISINSCOPE ( 'Date'[Calendar Quarter Year] ), [Sales Quantity PQ],
+			    ISINSCOPE ( 'Date'[Calendar Year] ), [Sales Quantity PY]
+			)
+			
+			```
+		formatString: #,0.00
+		displayFolder: Sales\Sales Quantity\Period-over-period growth
+		lineageTag: 6fa3fa70-9559-4b87-b426-6028ea375067
+
+	measure 'Sales Quantity POP' = ```
+			
+			SWITCH ( 
+			    TRUE,
+			    ISINSCOPE ( 'Date'[Calendar Month Year] ), [Sales Quantity MOM],
+			    ISINSCOPE ( 'Date'[Calendar Quarter Year] ), [Sales Quantity QOQ],
+			    ISINSCOPE ( 'Date'[Calendar Year] ), [Sales Quantity YOY]
+			)
+			
+			```
+		formatString: #,0.00
+		displayFolder: Sales\Sales Quantity\Period-over-period growth
+		lineageTag: cd24ecb6-143e-4cfa-9d24-da0703fe28b9
+
+	measure 'Sales Quantity POP %' = ```
+			
+			SWITCH ( 
+			    TRUE,
+			    ISINSCOPE ( 'Date'[Calendar Month Year] ), [Sales Quantity MOM %],
+			    ISINSCOPE ( 'Date'[Calendar Quarter Year] ), [Sales Quantity QOQ %],
+			    ISINSCOPE ( 'Date'[Calendar Year] ), [Sales Quantity YOY %]
+			)
+			
+			```
+		formatString: 0.00%;-0.00%;0.00%
+		displayFolder: Sales\Sales Quantity\Period-over-period growth
+		lineageTag: 10d3798e-f815-4ce2-beab-49a97f43c523
+
+	measure 'Gross Profit YTD' = ```
+			
+			IF ( 
+			    [ShowValueForDates], 
+			    CALCULATE ( 
+			        [Adjusted Profit (LCY)], 
+			        DATESYTD ( 'Date'[Date] ) 
+			    ) 
+			)
+			```
+		formatString: #,0.00
+		displayFolder: Profit\Gross Profit\Period-to-date total
+		lineageTag: 3a2030d9-8167-42f7-8dc1-dc1527787f95
+
+	measure 'Gross Profit PY' = ```
+			
+			IF (
+			    [ShowValueForDates],
+			    CALCULATE (
+			        [Adjusted Profit (LCY)],
+			        CALCULATETABLE ( 
+			            DATEADD ( 'Date'[Date], -1, YEAR ),
+			            'Date'[DateWithSales] = TRUE
+			        )
+			    )
+			)
+			```
+		formatString: #,0.00
+		displayFolder: Profit\Gross Profit\Period-over-period growth
+		lineageTag: 21399fbb-b7cc-4de3-9034-62164f911d13
+
+	measure 'Gross Profit PYTD' = ```
+			
+			IF (
+			    [ShowValueForDates],
+			    CALCULATE (
+			        [Gross Profit YTD],
+			        CALCULATETABLE ( 
+			            DATEADD ( 'Date'[Date], -1, YEAR ),
+			            'Date'[DateWithSales] = TRUE
+			        )
+			    )
+			)
+			
+			```
+		formatString: #,0.00
+		displayFolder: Profit\Gross Profit\Period-to-date growth
+		lineageTag: f61a5738-c17c-44c3-b459-5bab1edce203
+
+	measure 'Gross Profit PQTD' = ```
+			
+			IF (
+			    [ShowValueForDates],
+			    CALCULATE (
+			        [Gross Profit QTD],
+			        CALCULATETABLE ( 
+			            DATEADD ( 'Date'[Date], -1, QUARTER ),
+			            'Date'[DateWithSales] = TRUE
+			        )
+			    )
+			)
+			```
+		formatString: #,0.00
+		displayFolder: Profit\Gross Profit\Period-to-date growth
+		lineageTag: d0d11df6-1487-4789-bd80-3db2986e33b9
+
+	measure 'Gross Profit QTD' = ```
+			
+			IF (
+			    [ShowValueForDates],
+			    CALCULATE ( 
+			        [Adjusted Profit (LCY)], 
+			        DATESQTD ( 'Date'[Date] )
+			    )
+			)
+			```
+		formatString: #,0.00
+		displayFolder: Profit\Gross Profit\Period-to-date total
+		lineageTag: 3a85523d-1d17-4baa-a252-30e172354b46
+
+	measure 'Gross Profit MTD' = ```
+			
+			IF ( 
+			    [ShowValueForDates], 
+			    CALCULATE ( 
+			        [Adjusted Profit (LCY)], 
+			        DATESMTD ( 'Date'[Date] ) 
+			    ) 
+			)
+			```
+		formatString: #,0.00
+		displayFolder: Profit\Gross Profit\Period-to-date total
+		lineageTag: 873e353d-944e-4920-a53d-d85a3a7dc4a2
+
+	measure 'Gross Profit YOY %' = ```
+			
+			DIVIDE ( 
+			    [Gross Profit YOY],
+			    [Gross Profit PY]
+			)
+			```
+		formatString: 0.00%;-0.00%;0.00%
+		displayFolder: Profit\Gross Profit\Period-over-period growth
+		lineageTag: 6975a7a0-b8da-4951-a417-f77dca06df99
+
+	measure 'Gross Profit YOY' = ```
+			
+			VAR ValueCurrentPeriod = [Adjusted Profit (LCY)]
+			VAR ValuePreviousPeriod = [Gross Profit PY]
+			VAR Result =
+			    IF (
+			        NOT ISBLANK ( ValueCurrentPeriod ) 
+			            && NOT ISBLANK ( ValuePreviousPeriod ),
+			        ValueCurrentPeriod - ValuePreviousPeriod
+			    )
+			RETURN
+			    Result
+			
+			```
+		formatString: #,0.00
+		displayFolder: Profit\Gross Profit\Period-over-period growth
+		lineageTag: 26b82cb1-325f-4cb7-9f31-3c222313a725
+
+	measure 'Gross Profit PQ' = ```
+			
+			IF (
+			    [ShowValueForDates],
+			    CALCULATE (
+			        [Adjusted Profit (LCY)],
+			        CALCULATETABLE ( 
+			            DATEADD ( 'Date'[Date], -1, QUARTER ),
+			            'Date'[DateWithSales] = TRUE
+			        )
+			    )
+			)
+			
+			```
+		formatString: #,0.00
+		displayFolder: Profit\Gross Profit\Period-over-period growth
+		lineageTag: 0661c294-536a-447b-94b2-984960f4d566
+
+	measure 'Gross Profit QOQ' = ```
+			
+			VAR ValueCurrentPeriod = [Adjusted Profit (LCY)]
+			VAR ValuePreviousPeriod = [Gross Profit PQ]
+			VAR Result =
+			    IF (
+			        NOT ISBLANK ( ValueCurrentPeriod ) 
+			            && NOT ISBLANK ( ValuePreviousPeriod ),
+			        ValueCurrentPeriod - ValuePreviousPeriod
+			    )
+			RETURN
+			    Result
+			
+			```
+		formatString: #,0.00
+		displayFolder: Profit\Gross Profit\Period-over-period growth
+		lineageTag: 76491a6f-da6e-45a1-974e-6cdbd75c6ba7
+
+	measure 'Gross Profit PM' = ```
+			
+			IF (
+			    [ShowValueForDates],
+			    CALCULATE (
+			        [Adjusted Profit (LCY)],
+			        CALCULATETABLE ( 
+			            DATEADD ( 'Date'[Date], -1, MONTH ),
+			            'Date'[DateWithSales] = TRUE
+			        )
+			    )
+			)
+			
+			```
+		formatString: #,0.00
+		displayFolder: Profit\Gross Profit\Period-over-period growth
+		lineageTag: df0f6117-ee39-4759-944a-80b23b8608c7
+
+	measure 'Gross Profit QOQ %' = ```
+			
+			DIVIDE ( 
+			    [Gross Profit QOQ],
+			    [Gross Profit PQ]
+			)
+			
+			```
+		formatString: 0.00%;-0.00%;0.00%
+		displayFolder: Profit\Gross Profit\Period-over-period growth
+		lineageTag: d122dd56-2682-4647-aa7a-d1effa2d5766
+
+	measure 'Gross Profit MOM' = ```
+			
+			VAR ValueCurrentPeriod = [Adjusted Profit (LCY)]
+			VAR ValuePreviousPeriod = [Gross Profit PM]
+			VAR Result =
+			    IF (
+			        NOT ISBLANK ( ValueCurrentPeriod ) 
+			            && NOT ISBLANK ( ValuePreviousPeriod ),
+			        ValueCurrentPeriod - ValuePreviousPeriod
+			    )
+			RETURN
+			    Result
+			
+			```
+		formatString: #,0.00
+		displayFolder: Profit\Gross Profit\Period-over-period growth
+		lineageTag: b4d1e3e6-2ce2-46cf-b4a1-42254419c593
+
+	measure 'Gross Profit MOM %' = ```
+			
+			DIVIDE ( 
+			    [Gross Profit MOM],
+			    [Gross Profit PM]
+			)
+			
+			```
+		formatString: 0.00%;-0.00%;0.00%
+		displayFolder: Profit\Gross Profit\Period-over-period growth
+		lineageTag: 6d344c7a-f034-47c3-bffa-3e993ce9203a
+
+	measure 'Gross Profit MAT' = ```
+			
+			IF ( 
+			    [ShowValueForDates], 
+			    CALCULATE ( 
+			        [Adjusted Profit (LCY)], 
+			        DATESINPERIOD (
+			            'Date'[Date],
+			            MAX ( 'Date'[Date] ),
+			            -1,
+			            YEAR
+			        )
+			    ) 
+			)
+			
+			```
+		formatString: #,0.00
+		displayFolder: Profit\Gross Profit\Moving annual total growth
+		lineageTag: e58b0e81-0666-4b97-a15e-bf2ab69e696c
+
+	measure 'Gross Profit PYMAT' =
+			
+			IF (
+			    [ShowValueForDates],
+			    CALCULATE (
+			        [Gross Profit MAT],
+			        DATEADD ( 'Date'[Date], -1, YEAR )
+			    )
+			)
+		formatString: #,0.00
+		displayFolder: Profit\Gross Profit\Moving annual total growth
+		lineageTag: df393b5d-e82e-43c9-8cf3-66035421050b
+
+	measure 'Gross Profit YOYTD' = ```
+			
+			VAR ValueCurrentPeriod = [Gross Profit YTD]
+			VAR ValuePreviousPeriod = [Gross Profit PYTD]
+			VAR Result =
+			    IF (
+			        NOT ISBLANK ( ValueCurrentPeriod ) 
+			            && NOT ISBLANK ( ValuePreviousPeriod ),
+			        ValueCurrentPeriod - ValuePreviousPeriod
+			    )
+			RETURN
+			    Result
+			```
+		formatString: #,0.00
+		displayFolder: Profit\Gross Profit\Period-to-date growth
+		lineageTag: 8da3ef37-5d3b-4d8f-a8e7-ec11a6aad916
+
+	measure 'Gross Profit YOYTD %' = ```
+			
+			DIVIDE ( 
+			    [Gross Profit YOYTD],
+			    [Gross Profit PYTD]
+			)
+			
+			```
+		formatString: 0.00%;-0.00%;0.00%
+		displayFolder: Profit\Gross Profit\Period-to-date growth
+		lineageTag: 43f5a6ef-bde9-4393-a22d-6cbfc5281281
+
+	measure 'Gross Profit PYC' = ```
+			
+			IF (
+			    [ShowValueForDates] && HASONEVALUE ( 'Date'[Calendar Year] ),
+			    CALCULATE (
+			        [Adjusted Profit (LCY)],
+			        PARALLELPERIOD ( 'Date'[Date], -1, YEAR )
+			    )
+			)
+			
+			```
+		formatString: #,0.00
+		displayFolder: Profit\Gross Profit\Period-to-date over full previous period
+		lineageTag: 78be56d4-e0cf-479b-8339-5f753b08e424
+
+	measure 'Gross Profit YTDOPY' = ```
+			
+			VAR ValueCurrentPeriod = [Gross Profit YTD]
+			VAR ValuePreviousPeriod = [Gross Profit PYC]
+			VAR Result =
+			    IF (
+			        NOT ISBLANK ( ValueCurrentPeriod ) 
+			            && NOT ISBLANK ( ValuePreviousPeriod ),
+			        ValueCurrentPeriod - ValuePreviousPeriod
+			    )
+			RETURN
+			    Result
+			
+			```
+		formatString: #,0.00
+		displayFolder: Profit\Gross Profit\Period-to-date over full previous period
+		lineageTag: 5b57a733-59f0-4cf0-868c-246bfbf590c8
+
+	measure 'Gross Profit YTDOPY %' = ```
+			
+			DIVIDE ( 
+			    [Gross Profit YTDOPY],
+			    [Gross Profit PYC]
+			)
+			
+			```
+		formatString: 0.00%;-0.00%;0.00%
+		displayFolder: Profit\Gross Profit\Period-to-date over full previous period
+		lineageTag: 3d6ebe80-2731-4b1c-882b-dc4757d4af74
+
+	measure 'Gross Profit QOQTD' = ```
+			
+			VAR ValueCurrentPeriod = [Gross Profit QTD]
+			VAR ValuePreviousPeriod = [Gross Profit PQTD]
+			VAR Result =
+			    IF (
+			        NOT ISBLANK ( ValueCurrentPeriod ) 
+			            && NOT ISBLANK ( ValuePreviousPeriod ),
+			        ValueCurrentPeriod - ValuePreviousPeriod
+			    )
+			RETURN
+			    Result
+			
+			```
+		formatString: #,0.00
+		displayFolder: Profit\Gross Profit\Period-to-date growth
+		lineageTag: f40dafd1-597e-4971-adab-3fe547abf691
+
+	measure 'Gross Profit QOQTD %' = ```
+			
+			DIVIDE ( 
+			    [Gross Profit QOQTD],
+			    [Gross Profit PQTD]
+			)
+			
+			```
+		formatString: 0.00%;-0.00%;0.00%
+		displayFolder: Profit\Gross Profit\Period-to-date growth
+		lineageTag: d5fbd69a-f64e-45d2-b668-1e25d22eaae5
+
+	measure 'Gross Profit PQC' = ```
+			
+			IF (
+			    [ShowValueForDates] && HASONEVALUE ( 'Date'[Calendar Quarter Year] ),
+			    CALCULATE (
+			        [Adjusted Profit (LCY)],
+			        PARALLELPERIOD ( 'Date'[Date], -1, QUARTER )
+			    )
+			)
+			
+			```
+		formatString: #,0.00
+		displayFolder: Profit\Gross Profit\Period-to-date over full previous period
+		lineageTag: 1b7b8322-dcbe-43ce-88ec-ed0ea0015f9c
+
+	measure 'Gross Profit QTDOPQ' = ```
+			
+			VAR ValueCurrentPeriod = [Gross Profit QTD]
+			VAR ValuePreviousPeriod = [Gross Profit PQC]
+			VAR Result =
+			    IF (
+			        NOT ISBLANK ( ValueCurrentPeriod ) 
+			            && NOT ISBLANK ( ValuePreviousPeriod ),
+			        ValueCurrentPeriod - ValuePreviousPeriod
+			    )
+			RETURN
+			    Result
+			
+			```
+		formatString: #,0.00
+		displayFolder: Profit\Gross Profit\Period-to-date over full previous period
+		lineageTag: c2e88f78-dcf5-466e-ba2e-97ec6552053a
+
+	measure 'Gross Profit QTDOPQ %' = ```
+			
+			DIVIDE ( 
+			    [Gross Profit QTDOPQ],
+			    [Gross Profit PQC]
+			)
+			
+			```
+		formatString: 0.00%;-0.00%;0.00%
+		displayFolder: Profit\Gross Profit\Period-to-date over full previous period
+		lineageTag: 0ce2752d-f3e9-453c-957e-219338211621
+
+	measure 'Gross Profit PMTD' = ```
+			
+			IF (
+			    [ShowValueForDates],
+			    CALCULATE (
+			        [Gross Profit MTD],
+			        CALCULATETABLE ( 
+			            DATEADD ( 'Date'[Date], -1, MONTH ),
+			            'Date'[DateWithSales] = TRUE
+			        )
+			    )
+			)
+			
+			```
+		formatString: #,0.00
+		displayFolder: Profit\Gross Profit\Period-to-date growth
+		lineageTag: be2969b0-281f-43f1-9c27-b935c9719339
+
+	measure 'Gross Profit MOMTD' = ```
+			
+			VAR ValueCurrentPeriod = [Gross Profit MTD]
+			VAR ValuePreviousPeriod = [Gross Profit PMTD]
+			VAR Result =
+			    IF (
+			        NOT ISBLANK ( ValueCurrentPeriod ) 
+			            && NOT ISBLANK ( ValuePreviousPeriod ),
+			        ValueCurrentPeriod - ValuePreviousPeriod
+			    )
+			RETURN
+			    Result
+			
+			```
+		formatString: #,0.00
+		displayFolder: Profit\Gross Profit\Period-to-date growth
+		lineageTag: 5e633962-407e-4890-9472-1ea8aa8c336c
+
+	measure 'Gross Profit MOMTD %' = ```
+			
+			DIVIDE ( 
+			    [Gross Profit MOMTD],
+			    [Gross Profit PMTD]
+			)
+			
+			```
+		formatString: 0.00%;-0.00%;0.00%
+		displayFolder: Profit\Gross Profit\Period-to-date growth
+		lineageTag: 3424f480-228e-4281-8b26-5f93db84903d
+
+	measure 'Gross Profit PMC' = ```
+			
+			IF (
+			    [ShowValueForDates] && HASONEVALUE ( 'Date'[Calendar Month Year] ),
+			    CALCULATE (
+			        [Adjusted Profit (LCY)],
+			        PARALLELPERIOD ( 'Date'[Date], -1, MONTH )
+			    )
+			)
+			
+			```
+		formatString: #,0.00
+		displayFolder: Profit\Gross Profit\Period-to-date over full previous period
+		lineageTag: 1dd1141f-c2b0-4a2b-b628-afb1302c975f
+
+	measure 'Gross Profit MTDOPM' = ```
+			
+			VAR ValueCurrentPeriod = [Gross Profit MTD]
+			VAR ValuePreviousPeriod = [Gross Profit PMC]
+			VAR Result =
+			    IF (
+			        NOT ISBLANK ( ValueCurrentPeriod ) 
+			            && NOT ISBLANK ( ValuePreviousPeriod ),
+			        ValueCurrentPeriod - ValuePreviousPeriod
+			    )
+			RETURN
+			    Result
+			
+			```
+		formatString: #,0.00
+		displayFolder: Profit\Gross Profit\Period-to-date over full previous period
+		lineageTag: 5fe45c5e-77e4-4534-9456-f79f59648183
+
+	measure 'Gross Profit MTDOPM %' = ```
+			
+			DIVIDE ( 
+			    [Gross Profit MTDOPM],
+			    [Gross Profit PMC]
+			)
+			
+			```
+		formatString: 0.00%;-0.00%;0.00%
+		displayFolder: Profit\Gross Profit\Period-to-date over full previous period
+		lineageTag: 2448d33a-8403-4a8b-a28e-fccd4785aaa6
+
+	measure 'Gross Profit AVG 30D' = ```
+			
+			VAR Period30D =
+			    CALCULATETABLE (
+			        DATESINPERIOD (
+			            'Date'[Date],
+			            MAX ( 'Date'[Date] ),
+			            -30,
+			            DAY
+			        ),
+			        'Date'[DateWithSales] = TRUE
+			    )
+			VAR FirstDayWithData =
+			        CALCULATE (
+			            INT (
+			                MINX (
+			                    {
+			                        MIN ( 'Sales Value Entries'[postingDate] ),
+			                        MIN ( 'Sales Invoice Lines'[postingDate] ),
+			                        MIN ( 'Sales Credit Lines'[postingDate] ),
+			                        MIN ( 'Project Ledger Entries'[postingDate] )
+			                    },
+			                    [Value]
+			                )
+			            ),
+			            REMOVEFILTERS ()
+			        )
+			VAR FirstDayInPeriod =
+			    MINX ( Period30D, 'Date'[Date] )
+			VAR Result =
+			    IF ( 
+			        FirstDayWithData <= FirstDayInPeriod,
+			        AVERAGEX (
+			            Period30D,
+			            [Adjusted Profit (LCY)]
+			        )
+			    )
+			RETURN
+			    Result
+			
+			```
+		formatString: #,0.00
+		displayFolder: Profit\Gross Profit\Moving averages
+		lineageTag: 12fcd33a-397b-46bc-9151-b8aa7c1a66d8
+
+	measure 'Gross Profit AVG 3M' = ```
+			
+			VAR Period3M =
+			    CALCULATETABLE (
+			        DATESINPERIOD (
+			            'Date'[Date],
+			            MAX ( 'Date'[Date] ),
+			            -3,
+			            MONTH
+			        ),
+			        'Date'[DateWithSales] = TRUE
+			    )
+			VAR FirstDayWithData =
+			        CALCULATE (
+			            INT (
+			                MINX (
+			                    {
+			                        MIN ( 'Sales Value Entries'[postingDate] ),
+			                        MIN ( 'Sales Invoice Lines'[postingDate] ),
+			                        MIN ( 'Sales Credit Lines'[postingDate] ),
+			                        MIN ( 'Project Ledger Entries'[postingDate] )
+			                    },
+			                    [Value]
+			                )
+			            ),
+			            REMOVEFILTERS ()
+			        )
+			VAR FirstDayInPeriod =
+			    MINX ( Period3M, 'Date'[Date] )
+			VAR Result =
+			    IF ( 
+			        FirstDayWithData <= FirstDayInPeriod,
+			        AVERAGEX (
+			            Period3M,
+			            [Adjusted Profit (LCY)]
+			        )
+			    )
+			RETURN
+			    Result
+			
+			```
+		formatString: #,0.00
+		displayFolder: Profit\Gross Profit\Moving averages
+		lineageTag: db7775c3-9ccd-4c9c-a953-423f3dfb209f
+
+	measure 'Gross Profit AVG 1Y' = ```
+			
+			VAR Period1Y =
+			    CALCULATETABLE (
+			        DATESINPERIOD (
+			            'Date'[Date],
+			            MAX ( 'Date'[Date] ),
+			            -1,
+			            YEAR
+			        ),
+			        'Date'[DateWithSales] = TRUE
+			    )
+			VAR FirstDayWithData =
+			        CALCULATE (
+			            INT (
+			                MINX (
+			                    {
+			                        MIN ( 'Sales Value Entries'[postingDate] ),
+			                        MIN ( 'Sales Invoice Lines'[postingDate] ),
+			                        MIN ( 'Sales Credit Lines'[postingDate] ),
+			                        MIN ( 'Project Ledger Entries'[postingDate] )
+			                    },
+			                    [Value]
+			                )
+			            ),
+			            REMOVEFILTERS ()
+			        )
+			VAR FirstDayInPeriod =
+			    MINX ( Period1Y, 'Date'[Date] )
+			VAR Result =
+			    IF ( 
+			        FirstDayWithData <= FirstDayInPeriod,
+			        AVERAGEX (
+			            Period1Y,
+			            [Adjusted Profit (LCY)]
+			        )
+			    )
+			RETURN
+			    Result
+			
+			```
+		formatString: #,0.00
+		displayFolder: Profit\Gross Profit\Moving averages
+		lineageTag: c3987639-ee2d-4e1c-83ec-551cfaac885f
+
+	measure 'Gross Profit MATG' = ```
+			
+			VAR ValueCurrentPeriod = [Gross Profit MAT]
+			VAR ValuePreviousPeriod = [Gross Profit PYMAT]
+			VAR Result =
+			    IF (
+			        NOT ISBLANK ( ValueCurrentPeriod ) 
+			            && NOT ISBLANK ( ValuePreviousPeriod ),
+			        ValueCurrentPeriod - ValuePreviousPeriod
+			    )
+			RETURN
+			    Result
+			
+			```
+		formatString: #,0.00
+		displayFolder: Profit\Gross Profit\Moving annual total growth
+		lineageTag: e46d0799-066d-4257-952b-b0e0f8517edc
+
+	measure 'Gross Profit MATG %' = ```
+			
+			DIVIDE ( 
+			    [Gross Profit MATG],
+			    [Gross Profit PYMAT]
+			)
+			
+			```
+		formatString: 0.00%;-0.00%;0.00%
+		displayFolder: Profit\Gross Profit\Moving annual total growth
+		lineageTag: bff023ee-e3dc-43cf-8841-c8c745cd2251
+
+	measure 'Gross Profit PP' = ```
+			
+			SWITCH ( 
+			    TRUE,
+			    ISINSCOPE ( 'Date'[Calendar Month Year] ), [Gross Profit PM],
+			    ISINSCOPE ( 'Date'[Calendar Quarter Year] ), [Gross Profit PQ],
+			    ISINSCOPE ( 'Date'[Calendar Year] ), [Gross Profit PY]
+			)
+			
+			```
+		formatString: #,0.00
+		displayFolder: Profit\Gross Profit\Period-over-period growth
+		lineageTag: 14e33b52-84c8-4be2-a97d-2cbe5dee5329
+
+	measure 'Gross Profit POP' = ```
+			
+			SWITCH ( 
+			    TRUE,
+			    ISINSCOPE ( 'Date'[Calendar Month Year] ), [Gross Profit MOM],
+			    ISINSCOPE ( 'Date'[Calendar Quarter Year] ), [Gross Profit QOQ],
+			    ISINSCOPE ( 'Date'[Calendar Year] ), [Gross Profit YOY]
+			)
+			
+			```
+		formatString: #,0.00
+		displayFolder: Profit\Gross Profit\Period-over-period growth
+		lineageTag: 94c8ecc3-80cc-45df-8f66-0d1f62599fb5
+
+	measure 'Gross Profit POP %' = ```
+			
+			SWITCH ( 
+			    TRUE,
+			    ISINSCOPE ( 'Date'[Calendar Month Year] ), [Gross Profit MOM %],
+			    ISINSCOPE ( 'Date'[Calendar Quarter Year] ), [Gross Profit QOQ %],
+			    ISINSCOPE ( 'Date'[Calendar Year] ), [Gross Profit YOY %]
+			)
+			
+			```
+		formatString: 0.00%;-0.00%;0.00%
+		displayFolder: Profit\Gross Profit\Period-over-period growth
+		lineageTag: 77d2bab5-09ae-4f10-81cf-2eae8e8970d0
+
+	measure 'Gross Profit Margin YTD' = ```
+			
+			IF ( 
+			    [ShowValueForDates], 
+			    CALCULATE ( 
+			        [Adjusted Profit Margin], 
+			        DATESYTD ( 'Date'[Date] ) 
+			    ) 
+			)
+			```
+		formatString: 0.00%;-0.00%;0.00%
+		displayFolder: Profit\Gross Profit Margin\Period-to-date total
+		lineageTag: 4e54650e-0633-422f-91a1-145ea95c046c
+
+	measure 'Gross Profit Margin PY' = ```
+			
+			IF (
+			    [ShowValueForDates],
+			    CALCULATE (
+			        [Adjusted Profit Margin],
+			        CALCULATETABLE ( 
+			            DATEADD ( 'Date'[Date], -1, YEAR ),
+			            'Date'[DateWithSales] = TRUE
+			        )
+			    )
+			)
+			```
+		formatString: 0.00%;-0.00%;0.00%
+		displayFolder: Profit\Gross Profit Margin\Period-over-period growth
+		lineageTag: 1cc4be7e-0e16-4585-b93a-c2e31bbe13d8
+
+	measure 'Gross Profit Margin PYTD' = ```
+			
+			IF (
+			    [ShowValueForDates],
+			    CALCULATE (
+			        [Gross Profit Margin YTD],
+			        CALCULATETABLE ( 
+			            DATEADD ( 'Date'[Date], -1, YEAR ),
+			            'Date'[DateWithSales] = TRUE
+			        )
+			    )
+			)
+			
+			```
+		formatString: 0.00%;-0.00%;0.00%
+		displayFolder: Profit\Gross Profit Margin\Period-to-date growth
+		lineageTag: 2f64ded6-d727-4153-9bd5-fdceddd18d94
+
+	measure 'Gross Profit Margin PQTD' = ```
+			
+			IF (
+			    [ShowValueForDates],
+			    CALCULATE (
+			        [Gross Profit Margin QTD],
+			        CALCULATETABLE ( 
+			            DATEADD ( 'Date'[Date], -1, QUARTER ),
+			            'Date'[DateWithSales] = TRUE
+			        )
+			    )
+			)
+			```
+		formatString: 0.00%;-0.00%;0.00%
+		displayFolder: Profit\Gross Profit Margin\Period-to-date growth
+		lineageTag: e1f12e4c-23d1-4a8c-a683-80220a7056d3
+
+	measure 'Gross Profit Margin QTD' = ```
+			
+			IF (
+			    [ShowValueForDates],
+			    CALCULATE ( 
+			        [Adjusted Profit Margin], 
+			        DATESQTD ( 'Date'[Date] )
+			    )
+			)
+			```
+		formatString: 0.00%;-0.00%;0.00%
+		displayFolder: Profit\Gross Profit Margin\Period-to-date total
+		lineageTag: 84c62730-28eb-46a1-8d51-6f447920716b
+
+	measure 'Gross Profit Margin MTD' = ```
+			
+			IF ( 
+			    [ShowValueForDates], 
+			    CALCULATE ( 
+			        [Adjusted Profit Margin], 
+			        DATESMTD ( 'Date'[Date] ) 
+			    ) 
+			)
+			```
+		formatString: 0.00%;-0.00%;0.00%
+		displayFolder: Profit\Gross Profit Margin\Period-to-date total
+		lineageTag: 575efedc-39e7-49f3-b556-f3bf6c1ae9d8
+
+	measure 'Gross Profit Margin YOY %' = ```
+			
+			DIVIDE ( 
+			    [Gross Profit Margin YOY],
+			    [Gross Profit Margin PY]
+			)
+			```
+		formatString: 0.00%;-0.00%;0.00%
+		displayFolder: Profit\Gross Profit Margin\Period-over-period growth
+		lineageTag: 6f411540-d1ca-409f-9b3a-92422b8cdca8
+
+	measure 'Gross Profit Margin YOY' = ```
+			
+			VAR ValueCurrentPeriod = [Adjusted Profit Margin]
+			VAR ValuePreviousPeriod = [Gross Profit Margin PY]
+			VAR Result =
+			    IF (
+			        NOT ISBLANK ( ValueCurrentPeriod ) 
+			            && NOT ISBLANK ( ValuePreviousPeriod ),
+			        ValueCurrentPeriod - ValuePreviousPeriod
+			    )
+			RETURN
+			    Result
+			
+			```
+		formatString: 0.00%;-0.00%;0.00%
+		displayFolder: Profit\Gross Profit Margin\Period-over-period growth
+		lineageTag: feb83ac1-9e8e-4ac4-9013-56138c4e3c73
+
+	measure 'Gross Profit Margin PQ' = ```
+			
+			IF (
+			    [ShowValueForDates],
+			    CALCULATE (
+			        [Adjusted Profit Margin],
+			        CALCULATETABLE ( 
+			            DATEADD ( 'Date'[Date], -1, QUARTER ),
+			            'Date'[DateWithSales] = TRUE
+			        )
+			    )
+			)
+			
+			```
+		formatString: 0.00%;-0.00%;0.00%
+		displayFolder: Profit\Gross Profit Margin\Period-over-period growth
+		lineageTag: fbbd2223-1344-401c-a96d-014e64206d2e
+
+	measure 'Gross Profit Margin QOQ' = ```
+			
+			VAR ValueCurrentPeriod = [Adjusted Profit Margin]
+			VAR ValuePreviousPeriod = [Gross Profit Margin PQ]
+			VAR Result =
+			    IF (
+			        NOT ISBLANK ( ValueCurrentPeriod ) 
+			            && NOT ISBLANK ( ValuePreviousPeriod ),
+			        ValueCurrentPeriod - ValuePreviousPeriod
+			    )
+			RETURN
+			    Result
+			
+			```
+		formatString: 0.00%;-0.00%;0.00%
+		displayFolder: Profit\Gross Profit Margin\Period-over-period growth
+		lineageTag: ee332eed-e55b-476f-b599-9b75187d9d21
+
+	measure 'Gross Profit Margin PM' = ```
+			
+			IF (
+			    [ShowValueForDates],
+			    CALCULATE (
+			        [Adjusted Profit Margin],
+			        CALCULATETABLE ( 
+			            DATEADD ( 'Date'[Date], -1, MONTH ),
+			            'Date'[DateWithSales] = TRUE
+			        )
+			    )
+			)
+			
+			```
+		formatString: 0.00%;-0.00%;0.00%
+		displayFolder: Profit\Gross Profit Margin\Period-over-period growth
+		lineageTag: 78a819ef-8dd5-4638-80d7-0e96e0eea90f
+
+	measure 'Gross Profit Margin QOQ %' = ```
+			
+			DIVIDE ( 
+			    [Gross Profit Margin QOQ],
+			    [Gross Profit Margin PQ]
+			)
+			
+			```
+		formatString: 0.00%;-0.00%;0.00%
+		displayFolder: Profit\Gross Profit Margin\Period-over-period growth
+		lineageTag: 40bd7104-5461-48bf-aa6f-d97dd277c64b
+
+	measure 'Gross Profit Margin MOM' = ```
+			
+			VAR ValueCurrentPeriod = [Adjusted Profit Margin]
+			VAR ValuePreviousPeriod = [Gross Profit Margin PM]
+			VAR Result =
+			    IF (
+			        NOT ISBLANK ( ValueCurrentPeriod ) 
+			            && NOT ISBLANK ( ValuePreviousPeriod ),
+			        ValueCurrentPeriod - ValuePreviousPeriod
+			    )
+			RETURN
+			    Result
+			
+			```
+		formatString: 0.00%;-0.00%;0.00%
+		displayFolder: Profit\Gross Profit Margin\Period-over-period growth
+		lineageTag: 13be8bf3-f355-427d-ae77-b93aac1dc195
+
+	measure 'Gross Profit Margin MOM %' = ```
+			
+			DIVIDE ( 
+			    [Gross Profit Margin MOM],
+			    [Gross Profit Margin PM]
+			)
+			
+			```
+		formatString: 0.00%;-0.00%;0.00%
+		displayFolder: Profit\Gross Profit Margin\Period-over-period growth
+		lineageTag: 1b4c6ce2-352d-461f-b9f4-f8ba0e066c1b
+
+	measure 'Gross Profit Margin MAT' = ```
+			
+			IF ( 
+			    [ShowValueForDates], 
+			    CALCULATE ( 
+			        [Adjusted Profit Margin], 
+			        DATESINPERIOD (
+			            'Date'[Date],
+			            MAX ( 'Date'[Date] ),
+			            -1,
+			            YEAR
+			        )
+			    ) 
+			)
+			
+			```
+		formatString: 0.00%;-0.00%;0.00%
+		displayFolder: Profit\Gross Profit Margin\Moving annual total growth
+		lineageTag: 2a03da15-b4ee-4fc6-a9ae-5de8629d3c1b
+
+	measure 'Gross Profit Margin PYMAT' =
+			
+			IF (
+			    [ShowValueForDates],
+			    CALCULATE (
+			        [Gross Profit Margin MAT],
+			        DATEADD ( 'Date'[Date], -1, YEAR )
+			    )
+			)
+		formatString: 0.00%;-0.00%;0.00%
+		displayFolder: Profit\Gross Profit Margin\Moving annual total growth
+		lineageTag: 8c10fa57-34b4-4ae1-9500-d11a5e5b2c82
+
+	measure 'Gross Profit Margin YOYTD' = ```
+			
+			VAR ValueCurrentPeriod = [Gross Profit Margin YTD]
+			VAR ValuePreviousPeriod = [Gross Profit Margin PYTD]
+			VAR Result =
+			    IF (
+			        NOT ISBLANK ( ValueCurrentPeriod ) 
+			            && NOT ISBLANK ( ValuePreviousPeriod ),
+			        ValueCurrentPeriod - ValuePreviousPeriod
+			    )
+			RETURN
+			    Result
+			```
+		formatString: 0.00%;-0.00%;0.00%
+		displayFolder: Profit\Gross Profit Margin\Period-to-date growth
+		lineageTag: cc65efa6-fe68-476e-89ab-8e93127be09d
+
+	measure 'Gross Profit Margin YOYTD %' = ```
+			
+			DIVIDE ( 
+			    [Gross Profit Margin YOYTD],
+			    [Gross Profit Margin PYTD]
+			)
+			
+			```
+		formatString: 0.00%;-0.00%;0.00%
+		displayFolder: Profit\Gross Profit Margin\Period-to-date growth
+		lineageTag: ad76a4a2-e850-4b79-9ac2-ff24656d6d4d
+
+	measure 'Gross Profit Margin PYC' = ```
+			
+			IF (
+			    [ShowValueForDates] && HASONEVALUE ( 'Date'[Calendar Year] ),
+			    CALCULATE (
+			        [Adjusted Profit Margin],
+			        PARALLELPERIOD ( 'Date'[Date], -1, YEAR )
+			    )
+			)
+			
+			```
+		formatString: 0.00%;-0.00%;0.00%
+		displayFolder: Profit\Gross Profit Margin\Period-to-date over full previous period
+		lineageTag: b1e5c10e-ac51-4864-b47a-6d0687943dd9
+
+	measure 'Gross Profit Margin YTDOPY' = ```
+			
+			VAR ValueCurrentPeriod = [Gross Profit Margin YTD]
+			VAR ValuePreviousPeriod = [Gross Profit Margin PYC]
+			VAR Result =
+			    IF (
+			        NOT ISBLANK ( ValueCurrentPeriod ) 
+			            && NOT ISBLANK ( ValuePreviousPeriod ),
+			        ValueCurrentPeriod - ValuePreviousPeriod
+			    )
+			RETURN
+			    Result
+			
+			```
+		formatString: 0.00%;-0.00%;0.00%
+		displayFolder: Profit\Gross Profit Margin\Period-to-date over full previous period
+		lineageTag: 948cebc8-ac0f-4521-8cb7-9eff6f16d3a2
+
+	measure 'Gross Profit Margin YTDOPY %' = ```
+			
+			DIVIDE ( 
+			    [Gross Profit Margin YTDOPY],
+			    [Gross Profit Margin PYC]
+			)
+			
+			```
+		formatString: 0.00%;-0.00%;0.00%
+		displayFolder: Profit\Gross Profit Margin\Period-to-date over full previous period
+		lineageTag: df1f99ee-04c4-4ebc-a1b1-3293ae1c1692
+
+	measure 'Gross Profit Margin QOQTD' = ```
+			
+			VAR ValueCurrentPeriod = [Gross Profit Margin QTD]
+			VAR ValuePreviousPeriod = [Gross Profit Margin PQTD]
+			VAR Result =
+			    IF (
+			        NOT ISBLANK ( ValueCurrentPeriod ) 
+			            && NOT ISBLANK ( ValuePreviousPeriod ),
+			        ValueCurrentPeriod - ValuePreviousPeriod
+			    )
+			RETURN
+			    Result
+			
+			```
+		formatString: 0.00%;-0.00%;0.00%
+		displayFolder: Profit\Gross Profit Margin\Period-to-date growth
+		lineageTag: 5dca61b0-d419-4606-87d0-f70a19bb32b8
+
+	measure 'Gross Profit Margin QOQTD %' = ```
+			
+			DIVIDE ( 
+			    [Gross Profit Margin QOQTD],
+			    [Gross Profit Margin PQTD]
+			)
+			
+			```
+		formatString: 0.00%;-0.00%;0.00%
+		displayFolder: Profit\Gross Profit Margin\Period-to-date growth
+		lineageTag: 212dc634-75b0-4a0f-b793-f5bce653c51f
+
+	measure 'Gross Profit Margin PQC' = ```
+			
+			IF (
+			    [ShowValueForDates] && HASONEVALUE ( 'Date'[Calendar Quarter Year] ),
+			    CALCULATE (
+			        [Adjusted Profit Margin],
+			        PARALLELPERIOD ( 'Date'[Date], -1, QUARTER )
+			    )
+			)
+			
+			```
+		formatString: 0.00%;-0.00%;0.00%
+		displayFolder: Profit\Gross Profit Margin\Period-to-date over full previous period
+		lineageTag: ab3ef20c-f7b0-4101-8ea7-9a5d29f5a096
+
+	measure 'Gross Profit Margin QTDOPQ' = ```
+			
+			VAR ValueCurrentPeriod = [Gross Profit Margin QTD]
+			VAR ValuePreviousPeriod = [Gross Profit Margin PQC]
+			VAR Result =
+			    IF (
+			        NOT ISBLANK ( ValueCurrentPeriod ) 
+			            && NOT ISBLANK ( ValuePreviousPeriod ),
+			        ValueCurrentPeriod - ValuePreviousPeriod
+			    )
+			RETURN
+			    Result
+			
+			```
+		formatString: 0.00%;-0.00%;0.00%
+		displayFolder: Profit\Gross Profit Margin\Period-to-date over full previous period
+		lineageTag: e6009e22-665e-4199-876a-fa07b7283626
+
+	measure 'Gross Profit Margin QTDOPQ %' = ```
+			
+			DIVIDE ( 
+			    [Gross Profit Margin QTDOPQ],
+			    [Gross Profit Margin PQC]
+			)
+			
+			```
+		formatString: 0.00%;-0.00%;0.00%
+		displayFolder: Profit\Gross Profit Margin\Period-to-date over full previous period
+		lineageTag: 12644b15-b4ec-4f83-b705-d52751a9fa16
+
+	measure 'Gross Profit Margin PMTD' = ```
+			
+			IF (
+			    [ShowValueForDates],
+			    CALCULATE (
+			        [Gross Profit Margin MTD],
+			        CALCULATETABLE ( 
+			            DATEADD ( 'Date'[Date], -1, MONTH ),
+			            'Date'[DateWithSales] = TRUE
+			        )
+			    )
+			)
+			
+			```
+		formatString: 0.00%;-0.00%;0.00%
+		displayFolder: Profit\Gross Profit Margin\Period-to-date growth
+		lineageTag: ced90b98-a112-4fb4-984f-d80676de9aa9
+
+	measure 'Gross Profit Margin MOMTD' = ```
+			
+			VAR ValueCurrentPeriod = [Gross Profit Margin MTD]
+			VAR ValuePreviousPeriod = [Gross Profit Margin PMTD]
+			VAR Result =
+			    IF (
+			        NOT ISBLANK ( ValueCurrentPeriod ) 
+			            && NOT ISBLANK ( ValuePreviousPeriod ),
+			        ValueCurrentPeriod - ValuePreviousPeriod
+			    )
+			RETURN
+			    Result
+			
+			```
+		formatString: 0.00%;-0.00%;0.00%
+		displayFolder: Profit\Gross Profit Margin\Period-to-date growth
+		lineageTag: abfa1b5d-a5c9-4711-af6d-fc6a1373b8d7
+
+	measure 'Gross Profit Margin MOMTD %' = ```
+			
+			DIVIDE ( 
+			    [Gross Profit Margin MOMTD],
+			    [Gross Profit Margin PMTD]
+			)
+			
+			```
+		formatString: 0.00%;-0.00%;0.00%
+		displayFolder: Profit\Gross Profit Margin\Period-to-date growth
+		lineageTag: d72556ed-907c-444d-9052-e4d179e997d6
+
+	measure 'Gross Profit Margin PMC' = ```
+			
+			IF (
+			    [ShowValueForDates] && HASONEVALUE ( 'Date'[Calendar Month Year] ),
+			    CALCULATE (
+			        [Adjusted Profit Margin],
+			        PARALLELPERIOD ( 'Date'[Date], -1, MONTH )
+			    )
+			)
+			
+			```
+		formatString: 0.00%;-0.00%;0.00%
+		displayFolder: Profit\Gross Profit Margin\Period-to-date over full previous period
+		lineageTag: 3171dbba-d5e1-4d19-9a08-a1136df73c31
+
+	measure 'Gross Profit Margin MTDOPM' = ```
+			
+			VAR ValueCurrentPeriod = [Gross Profit Margin MTD]
+			VAR ValuePreviousPeriod = [Gross Profit Margin PMC]
+			VAR Result =
+			    IF (
+			        NOT ISBLANK ( ValueCurrentPeriod ) 
+			            && NOT ISBLANK ( ValuePreviousPeriod ),
+			        ValueCurrentPeriod - ValuePreviousPeriod
+			    )
+			RETURN
+			    Result
+			
+			```
+		formatString: 0.00%;-0.00%;0.00%
+		displayFolder: Profit\Gross Profit Margin\Period-to-date over full previous period
+		lineageTag: b8c957d8-1ded-4d7b-940a-19e907f29686
+
+	measure 'Gross Profit Margin MTDOPM %' = ```
+			
+			DIVIDE ( 
+			    [Gross Profit Margin MTDOPM],
+			    [Gross Profit Margin PMC]
+			)
+			
+			```
+		formatString: 0.00%;-0.00%;0.00%
+		displayFolder: Profit\Gross Profit Margin\Period-to-date over full previous period
+		lineageTag: e7c658bd-6fd1-4d25-8ba1-4853cd865603
+
+	measure 'Gross Profit Margin AVG 30D' = ```
+			
+			VAR Period30D =
+			    CALCULATETABLE (
+			        DATESINPERIOD (
+			            'Date'[Date],
+			            MAX ( 'Date'[Date] ),
+			            -30,
+			            DAY
+			        ),
+			        'Date'[DateWithSales] = TRUE
+			    )
+			VAR FirstDayWithData =
+			        CALCULATE (
+			            INT (
+			                MINX (
+			                    {
+			                        MIN ( 'Sales Value Entries'[postingDate] ),
+			                        MIN ( 'Sales Invoice Lines'[postingDate] ),
+			                        MIN ( 'Sales Credit Lines'[postingDate] ),
+			                        MIN ( 'Project Ledger Entries'[postingDate] )
+			                    },
+			                    [Value]
+			                )
+			            ),
+			            REMOVEFILTERS ()
+			        )
+			VAR FirstDayInPeriod =
+			    MINX ( Period30D, 'Date'[Date] )
+			VAR Result =
+			    IF ( 
+			        FirstDayWithData <= FirstDayInPeriod,
+			        AVERAGEX (
+			            Period30D,
+			            [Adjusted Profit Margin]
+			        )
+			    )
+			RETURN
+			    Result
+			
+			```
+		formatString: 0.00%;-0.00%;0.00%
+		displayFolder: Profit\Gross Profit Margin\Moving averages
+		lineageTag: 2b392cf0-752a-40c4-af08-e41e15cbe1f3
+
+	measure 'Gross Profit Margin AVG 3M' = ```
+			
+			VAR Period3M =
+			    CALCULATETABLE (
+			        DATESINPERIOD (
+			            'Date'[Date],
+			            MAX ( 'Date'[Date] ),
+			            -3,
+			            MONTH
+			        ),
+			        'Date'[DateWithSales] = TRUE
+			    )
+			VAR FirstDayWithData =
+			        CALCULATE (
+			            INT (
+			                MINX (
+			                    {
+			                        MIN ( 'Sales Value Entries'[postingDate] ),
+			                        MIN ( 'Sales Invoice Lines'[postingDate] ),
+			                        MIN ( 'Sales Credit Lines'[postingDate] ),
+			                        MIN ( 'Project Ledger Entries'[postingDate] )
+			                    },
+			                    [Value]
+			                )
+			            ),
+			            REMOVEFILTERS ()
+			        )
+			VAR FirstDayInPeriod =
+			    MINX ( Period3M, 'Date'[Date] )
+			VAR Result =
+			    IF ( 
+			        FirstDayWithData <= FirstDayInPeriod,
+			        AVERAGEX (
+			            Period3M,
+			            [Adjusted Profit Margin]
+			        )
+			    )
+			RETURN
+			    Result
+			
+			```
+		formatString: 0.00%;-0.00%;0.00%
+		displayFolder: Profit\Gross Profit Margin\Moving averages
+		lineageTag: 87424cf5-349d-4283-836c-f753903c1c46
+
+	measure 'Gross Profit Margin AVG 1Y' = ```
+			
+			VAR Period1Y =
+			    CALCULATETABLE (
+			        DATESINPERIOD (
+			            'Date'[Date],
+			            MAX ( 'Date'[Date] ),
+			            -1,
+			            YEAR
+			        ),
+			        'Date'[DateWithSales] = TRUE
+			    )
+			VAR FirstDayWithData =
+			        CALCULATE (
+			            INT (
+			                MINX (
+			                    {
+			                        MIN ( 'Sales Value Entries'[postingDate] ),
+			                        MIN ( 'Sales Invoice Lines'[postingDate] ),
+			                        MIN ( 'Sales Credit Lines'[postingDate] ),
+			                        MIN ( 'Project Ledger Entries'[postingDate] )
+			                    },
+			                    [Value]
+			                )
+			            ),
+			            REMOVEFILTERS ()
+			        )
+			VAR FirstDayInPeriod =
+			    MINX ( Period1Y, 'Date'[Date] )
+			VAR Result =
+			    IF ( 
+			        FirstDayWithData <= FirstDayInPeriod,
+			        AVERAGEX (
+			            Period1Y,
+			            [Adjusted Profit Margin]
+			        )
+			    )
+			RETURN
+			    Result
+			
+			```
+		formatString: 0.00%;-0.00%;0.00%
+		displayFolder: Profit\Gross Profit Margin\Moving averages
+		lineageTag: bf530faa-76f9-436b-bf3d-2f651df06fc2
+
+	measure 'Gross Profit Margin MATG' = ```
+			
+			VAR ValueCurrentPeriod = [Gross Profit Margin MAT]
+			VAR ValuePreviousPeriod = [Gross Profit Margin PYMAT]
+			VAR Result =
+			    IF (
+			        NOT ISBLANK ( ValueCurrentPeriod ) 
+			            && NOT ISBLANK ( ValuePreviousPeriod ),
+			        ValueCurrentPeriod - ValuePreviousPeriod
+			    )
+			RETURN
+			    Result
+			
+			```
+		formatString: 0.00%;-0.00%;0.00%
+		displayFolder: Profit\Gross Profit Margin\Moving annual total growth
+		lineageTag: 8b0d823a-12f8-4ef5-912a-8ea5a292feca
+
+	measure 'Gross Profit Margin MATG %' = ```
+			
+			DIVIDE ( 
+			    [Gross Profit Margin MATG],
+			    [Gross Profit Margin PYMAT]
+			)
+			
+			```
+		formatString: 0.00%;-0.00%;0.00%
+		displayFolder: Profit\Gross Profit Margin\Moving annual total growth
+		lineageTag: a252ddc6-d749-4870-9bc0-fe8114f108c9
+
+	measure 'Gross Profit Margin PP' = ```
+			
+			SWITCH ( 
+			    TRUE,
+			    ISINSCOPE ( 'Date'[Calendar Month Year] ), [Gross Profit Margin PM],
+			    ISINSCOPE ( 'Date'[Calendar Quarter Year] ), [Gross Profit Margin PQ],
+			    ISINSCOPE ( 'Date'[Calendar Year] ), [Gross Profit Margin PY]
+			)
+			
+			```
+		formatString: 0.00%;-0.00%;0.00%
+		displayFolder: Profit\Gross Profit Margin\Period-over-period growth
+		lineageTag: ad7c30bd-f273-4747-aac0-3315ae53181f
+
+	measure 'Gross Profit Margin POP' = ```
+			
+			SWITCH ( 
+			    TRUE,
+			    ISINSCOPE ( 'Date'[Calendar Month Year] ), [Gross Profit Margin MOM],
+			    ISINSCOPE ( 'Date'[Calendar Quarter Year] ), [Gross Profit Margin QOQ],
+			    ISINSCOPE ( 'Date'[Calendar Year] ), [Gross Profit Margin YOY]
+			)
+			
+			```
+		formatString: 0.00%;-0.00%;0.00%
+		displayFolder: Profit\Gross Profit Margin\Period-over-period growth
+		lineageTag: 80eefbb7-b275-4ce5-86f8-1785b7a449f4
+
+	measure 'Gross Profit Margin POP %' = ```
+			
+			SWITCH ( 
+			    TRUE,
+			    ISINSCOPE ( 'Date'[Calendar Month Year] ), [Gross Profit Margin MOM %],
+			    ISINSCOPE ( 'Date'[Calendar Quarter Year] ), [Gross Profit Margin QOQ %],
+			    ISINSCOPE ( 'Date'[Calendar Year] ), [Gross Profit Margin YOY %]
+			)
+			
+			```
+		formatString: 0.00%;-0.00%;0.00%
+		displayFolder: Profit\Gross Profit Margin\Period-over-period growth
+		lineageTag: a3c31f9f-be9b-4ce8-88a9-1ddab8c5ac00
+
+	measure 'Cost Amount YTD' = ```
+			
+			IF ( 
+			    [ShowValueForDates], 
+			    CALCULATE ( 
+			        [Adjusted Cost (LCY)], 
+			        DATESYTD ( 'Date'[Date] ) 
+			    ) 
+			)
+			```
+		formatString: #,0.00
+		displayFolder: Cost\Cost Amount\Period-to-date total
+		lineageTag: 1030e725-96bc-4228-9a70-ecadd1d1dc45
+
+	measure 'Cost Amount PY' = ```
+			
+			IF (
+			    [ShowValueForDates],
+			    CALCULATE (
+			        [Adjusted Cost (LCY)],
+			        CALCULATETABLE ( 
+			            DATEADD ( 'Date'[Date], -1, YEAR ),
+			            'Date'[DateWithSales] = TRUE
+			        )
+			    )
+			)
+			```
+		formatString: #,0.00
+		displayFolder: Cost\Cost Amount\Period-over-period growth
+		lineageTag: 766c4f44-407b-4369-84e5-2330a8a3c4a4
+
+	measure 'Cost Amount PYTD' = ```
+			
+			IF (
+			    [ShowValueForDates],
+			    CALCULATE (
+			        [Cost Amount YTD],
+			        CALCULATETABLE ( 
+			            DATEADD ( 'Date'[Date], -1, YEAR ),
+			            'Date'[DateWithSales] = TRUE
+			        )
+			    )
+			)
+			
+			```
+		formatString: #,0.00
+		displayFolder: Cost\Cost Amount\Period-to-date growth
+		lineageTag: 6cb6c38e-02af-418b-8f78-d2457f2cc6e2
+
+	measure 'Cost Amount PQTD' = ```
+			
+			IF (
+			    [ShowValueForDates],
+			    CALCULATE (
+			        [Cost Amount QTD],
+			        CALCULATETABLE ( 
+			            DATEADD ( 'Date'[Date], -1, QUARTER ),
+			            'Date'[DateWithSales] = TRUE
+			        )
+			    )
+			)
+			```
+		formatString: #,0.00
+		displayFolder: Cost\Cost Amount\Period-to-date growth
+		lineageTag: b8ec1877-1b93-4949-931f-e0e92ddf823a
+
+	measure 'Cost Amount QTD' = ```
+			
+			IF (
+			    [ShowValueForDates],
+			    CALCULATE ( 
+			        [Adjusted Cost (LCY)], 
+			        DATESQTD ( 'Date'[Date] )
+			    )
+			)
+			```
+		formatString: #,0.00
+		displayFolder: Cost\Cost Amount\Period-to-date total
+		lineageTag: 46481419-1d07-4b32-8b92-a9828c83be6e
+
+	measure 'Cost Amount MTD' = ```
+			
+			IF ( 
+			    [ShowValueForDates], 
+			    CALCULATE ( 
+			        [Adjusted Cost (LCY)], 
+			        DATESMTD ( 'Date'[Date] ) 
+			    ) 
+			)
+			```
+		formatString: #,0.00
+		displayFolder: Cost\Cost Amount\Period-to-date total
+		lineageTag: 9b8110b3-e889-4e2c-a4ce-25db37e49ac8
+
+	measure 'Cost Amount YOY %' = ```
+			
+			DIVIDE ( 
+			    [Cost Amount YOY],
+			    [Cost Amount PY]
+			)
+			```
+		formatString: 0.00%;-0.00%;0.00%
+		displayFolder: Cost\Cost Amount\Period-over-period growth
+		lineageTag: 35e50030-e442-46f0-9e4b-82bf3f749680
+
+	measure 'Cost Amount YOY' = ```
+			
+			VAR ValueCurrentPeriod = [Adjusted Cost (LCY)]
+			VAR ValuePreviousPeriod = [Cost Amount PY]
+			VAR Result =
+			    IF (
+			        NOT ISBLANK ( ValueCurrentPeriod ) 
+			            && NOT ISBLANK ( ValuePreviousPeriod ),
+			        ValueCurrentPeriod - ValuePreviousPeriod
+			    )
+			RETURN
+			    Result
+			
+			```
+		formatString: #,0.00
+		displayFolder: Cost\Cost Amount\Period-over-period growth
+		lineageTag: 6d7655b4-7898-4ef6-b555-7d5761152234
+
+	measure 'Cost Amount PQ' = ```
+			
+			IF (
+			    [ShowValueForDates],
+			    CALCULATE (
+			        [Adjusted Cost (LCY)],
+			        CALCULATETABLE ( 
+			            DATEADD ( 'Date'[Date], -1, QUARTER ),
+			            'Date'[DateWithSales] = TRUE
+			        )
+			    )
+			)
+			
+			```
+		formatString: #,0.00
+		displayFolder: Cost\Cost Amount\Period-over-period growth
+		lineageTag: cf152c96-7f37-4197-aff5-da68c04fb185
+
+	measure 'Cost Amount QOQ' = ```
+			
+			VAR ValueCurrentPeriod = [Adjusted Cost (LCY)]
+			VAR ValuePreviousPeriod = [Cost Amount PQ]
+			VAR Result =
+			    IF (
+			        NOT ISBLANK ( ValueCurrentPeriod ) 
+			            && NOT ISBLANK ( ValuePreviousPeriod ),
+			        ValueCurrentPeriod - ValuePreviousPeriod
+			    )
+			RETURN
+			    Result
+			
+			```
+		formatString: #,0.00
+		displayFolder: Cost\Cost Amount\Period-over-period growth
+		lineageTag: 8e33c589-3202-4bbd-b0f9-38c4e2d505b0
+
+	measure 'Cost Amount PM' = ```
+			
+			IF (
+			    [ShowValueForDates],
+			    CALCULATE (
+			        [Adjusted Cost (LCY)],
+			        CALCULATETABLE ( 
+			            DATEADD ( 'Date'[Date], -1, MONTH ),
+			            'Date'[DateWithSales] = TRUE
+			        )
+			    )
+			)
+			
+			```
+		formatString: #,0.00
+		displayFolder: Cost\Cost Amount\Period-over-period growth
+		lineageTag: 414f1578-bfc7-4f83-ab1b-6c3f2fb4cc9b
+
+	measure 'Cost Amount QOQ %' = ```
+			
+			DIVIDE ( 
+			    [Cost Amount QOQ],
+			    [Cost Amount PQ]
+			)
+			
+			```
+		formatString: 0.00%;-0.00%;0.00%
+		displayFolder: Cost\Cost Amount\Period-over-period growth
+		lineageTag: c461f02f-eef8-4272-ba36-d348e96e4efc
+
+	measure 'Cost Amount MOM' = ```
+			
+			VAR ValueCurrentPeriod = [Adjusted Cost (LCY)]
+			VAR ValuePreviousPeriod = [Cost Amount PM]
+			VAR Result =
+			    IF (
+			        NOT ISBLANK ( ValueCurrentPeriod ) 
+			            && NOT ISBLANK ( ValuePreviousPeriod ),
+			        ValueCurrentPeriod - ValuePreviousPeriod
+			    )
+			RETURN
+			    Result
+			
+			```
+		formatString: #,0.00
+		displayFolder: Cost\Cost Amount\Period-over-period growth
+		lineageTag: f45c7179-97cb-4aac-877e-c030c112d7a3
+
+	measure 'Cost Amount MOM %' = ```
+			
+			DIVIDE ( 
+			    [Cost Amount MOM],
+			    [Cost Amount PM]
+			)
+			
+			```
+		formatString: 0.00%;-0.00%;0.00%
+		displayFolder: Cost\Cost Amount\Period-over-period growth
+		lineageTag: 68c67bfb-05fc-495d-85a7-fee95c5f549f
+
+	measure 'Cost Amount MAT' = ```
+			
+			IF ( 
+			    [ShowValueForDates], 
+			    CALCULATE ( 
+			        [Adjusted Cost (LCY)], 
+			        DATESINPERIOD (
+			            'Date'[Date],
+			            MAX ( 'Date'[Date] ),
+			            -1,
+			            YEAR
+			        )
+			    ) 
+			)
+			
+			```
+		formatString: #,0.00
+		displayFolder: Cost\Cost Amount\Moving annual total growth
+		lineageTag: 01391fc4-46cd-452d-b775-e872f194711e
+
+	measure 'Cost Amount PYMAT' =
+			
+			IF (
+			    [ShowValueForDates],
+			    CALCULATE (
+			        [Cost Amount MAT],
+			        DATEADD ( 'Date'[Date], -1, YEAR )
+			    )
+			)
+		formatString: #,0.00
+		displayFolder: Cost\Cost Amount\Moving annual total growth
+		lineageTag: 8eee60bf-59b5-4564-b196-b81714356e60
+
+	measure 'Cost Amount YOYTD' = ```
+			
+			VAR ValueCurrentPeriod = [Cost Amount YTD]
+			VAR ValuePreviousPeriod = [Cost Amount PYTD]
+			VAR Result =
+			    IF (
+			        NOT ISBLANK ( ValueCurrentPeriod ) 
+			            && NOT ISBLANK ( ValuePreviousPeriod ),
+			        ValueCurrentPeriod - ValuePreviousPeriod
+			    )
+			RETURN
+			    Result
+			```
+		formatString: #,0.00
+		displayFolder: Cost\Cost Amount\Period-to-date growth
+		lineageTag: 0622f9fe-52b6-4608-992f-5f4c3bf8ed14
+
+	measure 'Cost Amount YOYTD %' = ```
+			
+			DIVIDE ( 
+			    [Cost Amount YOYTD],
+			    [Cost Amount PYTD]
+			)
+			
+			```
+		formatString: 0.00%;-0.00%;0.00%
+		displayFolder: Cost\Cost Amount\Period-to-date growth
+		lineageTag: 5eea7580-b7d4-460a-8a14-d5cdc1230bfb
+
+	measure 'Cost Amount PYC' = ```
+			
+			IF (
+			    [ShowValueForDates] && HASONEVALUE ( 'Date'[Calendar Year] ),
+			    CALCULATE (
+			        [Adjusted Cost (LCY)],
+			        PARALLELPERIOD ( 'Date'[Date], -1, YEAR )
+			    )
+			)
+			
+			```
+		formatString: #,0.00
+		displayFolder: Cost\Cost Amount\Period-to-date over full previous period
+		lineageTag: 3349390d-144a-43f7-bfe0-1562ac8b92c2
+
+	measure 'Cost Amount YTDOPY' = ```
+			
+			VAR ValueCurrentPeriod = [Cost Amount YTD]
+			VAR ValuePreviousPeriod = [Cost Amount PYC]
+			VAR Result =
+			    IF (
+			        NOT ISBLANK ( ValueCurrentPeriod ) 
+			            && NOT ISBLANK ( ValuePreviousPeriod ),
+			        ValueCurrentPeriod - ValuePreviousPeriod
+			    )
+			RETURN
+			    Result
+			
+			```
+		formatString: #,0.00
+		displayFolder: Cost\Cost Amount\Period-to-date over full previous period
+		lineageTag: 7583848f-29ff-446b-92f0-5089af6cc6ee
+
+	measure 'Cost Amount YTDOPY %' = ```
+			
+			DIVIDE ( 
+			    [Cost Amount YTDOPY],
+			    [Cost Amount PYC]
+			)
+			
+			```
+		formatString: 0.00%;-0.00%;0.00%
+		displayFolder: Cost\Cost Amount\Period-to-date over full previous period
+		lineageTag: bdf5b09c-d04a-40bb-9c9e-9aeac195c9ef
+
+	measure 'Cost Amount QOQTD' = ```
+			
+			VAR ValueCurrentPeriod = [Cost Amount QTD]
+			VAR ValuePreviousPeriod = [Cost Amount PQTD]
+			VAR Result =
+			    IF (
+			        NOT ISBLANK ( ValueCurrentPeriod ) 
+			            && NOT ISBLANK ( ValuePreviousPeriod ),
+			        ValueCurrentPeriod - ValuePreviousPeriod
+			    )
+			RETURN
+			    Result
+			
+			```
+		formatString: #,0.00
+		displayFolder: Cost\Cost Amount\Period-to-date growth
+		lineageTag: c6017a8a-34cc-49bb-a568-78d58b350f35
+
+	measure 'Cost Amount QOQTD %' = ```
+			
+			DIVIDE ( 
+			    [Cost Amount QOQTD],
+			    [Cost Amount PQTD]
+			)
+			
+			```
+		formatString: 0.00%;-0.00%;0.00%
+		displayFolder: Cost\Cost Amount\Period-to-date growth
+		lineageTag: 469c3923-3b49-4c3e-96b6-057a3a5e72be
+
+	measure 'Cost Amount PQC' = ```
+			
+			IF (
+			    [ShowValueForDates] && HASONEVALUE ( 'Date'[Calendar Quarter Year] ),
+			    CALCULATE (
+			        [Adjusted Cost (LCY)],
+			        PARALLELPERIOD ( 'Date'[Date], -1, QUARTER )
+			    )
+			)
+			
+			```
+		formatString: #,0.00
+		displayFolder: Cost\Cost Amount\Period-to-date over full previous period
+		lineageTag: 9ffff1f3-63c3-45d0-bc25-ddc848958c89
+
+	measure 'Cost Amount QTDOPQ' = ```
+			
+			VAR ValueCurrentPeriod = [Cost Amount QTD]
+			VAR ValuePreviousPeriod = [Cost Amount PQC]
+			VAR Result =
+			    IF (
+			        NOT ISBLANK ( ValueCurrentPeriod ) 
+			            && NOT ISBLANK ( ValuePreviousPeriod ),
+			        ValueCurrentPeriod - ValuePreviousPeriod
+			    )
+			RETURN
+			    Result
+			
+			```
+		formatString: #,0.00
+		displayFolder: Cost\Cost Amount\Period-to-date over full previous period
+		lineageTag: 75ae6321-84ee-4099-91ab-4df521759214
+
+	measure 'Cost Amount QTDOPQ %' = ```
+			
+			DIVIDE ( 
+			    [Cost Amount QTDOPQ],
+			    [Cost Amount PQC]
+			)
+			
+			```
+		formatString: 0.00%;-0.00%;0.00%
+		displayFolder: Cost\Cost Amount\Period-to-date over full previous period
+		lineageTag: 096cf629-9e6d-42c7-bf08-03dc641cebaa
+
+	measure 'Cost Amount PMTD' = ```
+			
+			IF (
+			    [ShowValueForDates],
+			    CALCULATE (
+			        [Cost Amount MTD],
+			        CALCULATETABLE ( 
+			            DATEADD ( 'Date'[Date], -1, MONTH ),
+			            'Date'[DateWithSales] = TRUE
+			        )
+			    )
+			)
+			
+			```
+		formatString: #,0.00
+		displayFolder: Cost\Cost Amount\Period-to-date growth
+		lineageTag: ac2f3902-acc6-4538-bb5f-0171e5ca21b2
+
+	measure 'Cost Amount MOMTD' = ```
+			
+			VAR ValueCurrentPeriod = [Cost Amount MTD]
+			VAR ValuePreviousPeriod = [Cost Amount PMTD]
+			VAR Result =
+			    IF (
+			        NOT ISBLANK ( ValueCurrentPeriod ) 
+			            && NOT ISBLANK ( ValuePreviousPeriod ),
+			        ValueCurrentPeriod - ValuePreviousPeriod
+			    )
+			RETURN
+			    Result
+			
+			```
+		formatString: #,0.00
+		displayFolder: Cost\Cost Amount\Period-to-date growth
+		lineageTag: f37cc5d8-aa93-40a1-8154-3d946507b3a1
+
+	measure 'Cost Amount MOMTD %' = ```
+			
+			DIVIDE ( 
+			    [Cost Amount MOMTD],
+			    [Cost Amount PMTD]
+			)
+			
+			```
+		formatString: 0.00%;-0.00%;0.00%
+		displayFolder: Cost\Cost Amount\Period-to-date growth
+		lineageTag: f41e5de6-bfe4-44b0-a4ff-f282cc52bf86
+
+	measure 'Cost Amount PMC' = ```
+			
+			IF (
+			    [ShowValueForDates] && HASONEVALUE ( 'Date'[Calendar Month Year] ),
+			    CALCULATE (
+			        [Adjusted Cost (LCY)],
+			        PARALLELPERIOD ( 'Date'[Date], -1, MONTH )
+			    )
+			)
+			
+			```
+		formatString: #,0.00
+		displayFolder: Cost\Cost Amount\Period-to-date over full previous period
+		lineageTag: 637f1743-e445-47c0-8415-c0df7e119207
+
+	measure 'Cost Amount MTDOPM' = ```
+			
+			VAR ValueCurrentPeriod = [Cost Amount MTD]
+			VAR ValuePreviousPeriod = [Cost Amount PMC]
+			VAR Result =
+			    IF (
+			        NOT ISBLANK ( ValueCurrentPeriod ) 
+			            && NOT ISBLANK ( ValuePreviousPeriod ),
+			        ValueCurrentPeriod - ValuePreviousPeriod
+			    )
+			RETURN
+			    Result
+			
+			```
+		formatString: #,0.00
+		displayFolder: Cost\Cost Amount\Period-to-date over full previous period
+		lineageTag: 4d275842-fc2d-4ed0-8173-3bd67af310be
+
+	measure 'Cost Amount MTDOPM %' = ```
+			
+			DIVIDE ( 
+			    [Cost Amount MTDOPM],
+			    [Cost Amount PMC]
+			)
+			
+			```
+		formatString: 0.00%;-0.00%;0.00%
+		displayFolder: Cost\Cost Amount\Period-to-date over full previous period
+		lineageTag: 7e5a0697-c5be-4e68-81c5-54e28fe556d8
+
+	measure 'Cost Amount AVG 30D' = ```
+			
+			VAR Period30D =
+			    CALCULATETABLE (
+			        DATESINPERIOD (
+			            'Date'[Date],
+			            MAX ( 'Date'[Date] ),
+			            -30,
+			            DAY
+			        ),
+			        'Date'[DateWithSales] = TRUE
+			    )
+			VAR FirstDayWithData =
+			        CALCULATE (
+			            INT (
+			                MINX (
+			                    {
+			                        MIN ( 'Sales Value Entries'[postingDate] ),
+			                        MIN ( 'Sales Invoice Lines'[postingDate] ),
+			                        MIN ( 'Sales Credit Lines'[postingDate] ),
+			                        MIN ( 'Project Ledger Entries'[postingDate] )
+			                    },
+			                    [Value]
+			                )
+			            ),
+			            REMOVEFILTERS ()
+			        )
+			VAR FirstDayInPeriod =
+			    MINX ( Period30D, 'Date'[Date] )
+			VAR Result =
+			    IF ( 
+			        FirstDayWithData <= FirstDayInPeriod,
+			        AVERAGEX (
+			            Period30D,
+			            [Adjusted Cost (LCY)]
+			        )
+			    )
+			RETURN
+			    Result
+			
+			```
+		formatString: #,0.00
+		displayFolder: Cost\Cost Amount\Moving averages
+		lineageTag: c30c5166-1186-4944-ab84-0f7e99b32930
+
+	measure 'Cost Amount AVG 3M' = ```
+			
+			VAR Period3M =
+			    CALCULATETABLE (
+			        DATESINPERIOD (
+			            'Date'[Date],
+			            MAX ( 'Date'[Date] ),
+			            -3,
+			            MONTH
+			        ),
+			        'Date'[DateWithSales] = TRUE
+			    )
+			VAR FirstDayWithData =
+			        CALCULATE (
+			            INT (
+			                MINX (
+			                    {
+			                        MIN ( 'Sales Value Entries'[postingDate] ),
+			                        MIN ( 'Sales Invoice Lines'[postingDate] ),
+			                        MIN ( 'Sales Credit Lines'[postingDate] ),
+			                        MIN ( 'Project Ledger Entries'[postingDate] )
+			                    },
+			                    [Value]
+			                )
+			            ),
+			            REMOVEFILTERS ()
+			        )
+			VAR FirstDayInPeriod =
+			    MINX ( Period3M, 'Date'[Date] )
+			VAR Result =
+			    IF ( 
+			        FirstDayWithData <= FirstDayInPeriod,
+			        AVERAGEX (
+			            Period3M,
+			            [Adjusted Cost (LCY)]
+			        )
+			    )
+			RETURN
+			    Result
+			
+			```
+		formatString: #,0.00
+		displayFolder: Cost\Cost Amount\Moving averages
+		lineageTag: 2eaaae02-4dbf-43a9-9f54-7efeb9d02d31
+
+	measure 'Cost Amount AVG 1Y' = ```
+			
+			VAR Period1Y =
+			    CALCULATETABLE (
+			        DATESINPERIOD (
+			            'Date'[Date],
+			            MAX ( 'Date'[Date] ),
+			            -1,
+			            YEAR
+			        ),
+			        'Date'[DateWithSales] = TRUE
+			    )
+			VAR FirstDayWithData =
+			        CALCULATE (
+			            INT (
+			                MINX (
+			                    {
+			                        MIN ( 'Sales Value Entries'[postingDate] ),
+			                        MIN ( 'Sales Invoice Lines'[postingDate] ),
+			                        MIN ( 'Sales Credit Lines'[postingDate] ),
+			                        MIN ( 'Project Ledger Entries'[postingDate] )
+			                    },
+			                    [Value]
+			                )
+			            ),
+			            REMOVEFILTERS ()
+			        )
+			VAR FirstDayInPeriod =
+			    MINX ( Period1Y, 'Date'[Date] )
+			VAR Result =
+			    IF ( 
+			        FirstDayWithData <= FirstDayInPeriod,
+			        AVERAGEX (
+			            Period1Y,
+			            [Adjusted Cost (LCY)]
+			        )
+			    )
+			RETURN
+			    Result
+			
+			```
+		formatString: #,0.00
+		displayFolder: Cost\Cost Amount\Moving averages
+		lineageTag: 18121d99-7144-4468-aeb6-8b610916b3fe
+
+	measure 'Cost Amount MATG' = ```
+			
+			VAR ValueCurrentPeriod = [Cost Amount MAT]
+			VAR ValuePreviousPeriod = [Cost Amount PYMAT]
+			VAR Result =
+			    IF (
+			        NOT ISBLANK ( ValueCurrentPeriod ) 
+			            && NOT ISBLANK ( ValuePreviousPeriod ),
+			        ValueCurrentPeriod - ValuePreviousPeriod
+			    )
+			RETURN
+			    Result
+			
+			```
+		formatString: #,0.00
+		displayFolder: Cost\Cost Amount\Moving annual total growth
+		lineageTag: dda02973-179d-4045-a491-fce151cdfb29
+
+	measure 'Cost Amount MATG %' = ```
+			
+			DIVIDE ( 
+			    [Cost Amount MATG],
+			    [Cost Amount PYMAT]
+			)
+			
+			```
+		formatString: 0.00%;-0.00%;0.00%
+		displayFolder: Cost\Cost Amount\Moving annual total growth
+		lineageTag: 33ac996a-2f89-4c0d-abf9-c1d985239f58
+
+	measure 'Cost Amount PP' = ```
+			
+			SWITCH ( 
+			    TRUE,
+			    ISINSCOPE ( 'Date'[Calendar Month Year] ), [Cost Amount PM],
+			    ISINSCOPE ( 'Date'[Calendar Quarter Year] ), [Cost Amount PQ],
+			    ISINSCOPE ( 'Date'[Calendar Year] ), [Cost Amount PY]
+			)
+			
+			```
+		formatString: #,0.00
+		displayFolder: Cost\Cost Amount\Period-over-period growth
+		lineageTag: 28a8f783-05c9-403e-ba1b-a72f21a8c052
+
+	measure 'Cost Amount POP' = ```
+			
+			SWITCH ( 
+			    TRUE,
+			    ISINSCOPE ( 'Date'[Calendar Month Year] ), [Cost Amount MOM],
+			    ISINSCOPE ( 'Date'[Calendar Quarter Year] ), [Cost Amount QOQ],
+			    ISINSCOPE ( 'Date'[Calendar Year] ), [Cost Amount YOY]
+			)
+			
+			```
+		formatString: #,0.00
+		displayFolder: Cost\Cost Amount\Period-over-period growth
+		lineageTag: 3f6ed583-6f59-473d-8af4-1b64cc4a5218
+
+	measure 'Cost Amount POP %' = ```
+			
+			SWITCH ( 
+			    TRUE,
+			    ISINSCOPE ( 'Date'[Calendar Month Year] ), [Cost Amount MOM %],
+			    ISINSCOPE ( 'Date'[Calendar Quarter Year] ), [Cost Amount QOQ %],
+			    ISINSCOPE ( 'Date'[Calendar Year] ), [Cost Amount YOY %]
+			)
+			
+			```
+		formatString: 0.00%;-0.00%;0.00%
+		displayFolder: Cost\Cost Amount\Period-over-period growth
+		lineageTag: 902f3898-3c4e-4230-97a4-dfd6910e78de
+
+	measure 'Cost Amount Non-Inv YTD' = ```
+			
+			IF ( 
+			    [ShowValueForDates], 
+			    CALCULATE ( 
+			        [Cost Amount Non-Inv], 
+			        DATESYTD ( 'Date'[Date] ) 
+			    ) 
+			)
+			```
+		formatString: #,0.00
+		displayFolder: Cost\Cost Amount Non-Inv\Period-to-date total
+		lineageTag: 4ea4925f-3900-4453-8c66-f838119e6c00
+
+	measure 'Cost Amount Non-Inv PY' = ```
+			
+			IF (
+			    [ShowValueForDates],
+			    CALCULATE (
+			        [Cost Amount Non-Inv],
+			        CALCULATETABLE ( 
+			            DATEADD ( 'Date'[Date], -1, YEAR ),
+			            'Date'[DateWithSales] = TRUE
+			        )
+			    )
+			)
+			```
+		formatString: #,0.00
+		displayFolder: Cost\Cost Amount Non-Inv\Period-over-period growth
+		lineageTag: 5f30f213-3fe9-440c-be14-3f6f2bcf3be9
+
+	measure 'Cost Amount Non-Inv PYTD' = ```
+			
+			IF (
+			    [ShowValueForDates],
+			    CALCULATE (
+			        [Cost Amount Non-Inv YTD],
+			        CALCULATETABLE ( 
+			            DATEADD ( 'Date'[Date], -1, YEAR ),
+			            'Date'[DateWithSales] = TRUE
+			        )
+			    )
+			)
+			
+			```
+		formatString: #,0.00
+		displayFolder: Cost\Cost Amount Non-Inv\Period-to-date growth
+		lineageTag: b5a66528-7e8c-4be0-bb77-92847695e532
+
+	measure 'Cost Amount Non-Inv PQTD' = ```
+			
+			IF (
+			    [ShowValueForDates],
+			    CALCULATE (
+			        [Cost Amount Non-Inv QTD],
+			        CALCULATETABLE ( 
+			            DATEADD ( 'Date'[Date], -1, QUARTER ),
+			            'Date'[DateWithSales] = TRUE
+			        )
+			    )
+			)
+			```
+		formatString: #,0.00
+		displayFolder: Cost\Cost Amount Non-Inv\Period-to-date growth
+		lineageTag: 1c5f5eb3-7627-4479-a022-5b2d03296777
+
+	measure 'Cost Amount Non-Inv QTD' = ```
+			
+			IF (
+			    [ShowValueForDates],
+			    CALCULATE ( 
+			        [Cost Amount Non-Inv], 
+			        DATESQTD ( 'Date'[Date] )
+			    )
+			)
+			```
+		formatString: #,0.00
+		displayFolder: Cost\Cost Amount Non-Inv\Period-to-date total
+		lineageTag: 06e58e66-8680-4d8c-a0d2-53a701828481
+
+	measure 'Cost Amount Non-Inv MTD' = ```
+			
+			IF ( 
+			    [ShowValueForDates], 
+			    CALCULATE ( 
+			        [Cost Amount Non-Inv], 
+			        DATESMTD ( 'Date'[Date] ) 
+			    ) 
+			)
+			```
+		formatString: #,0.00
+		displayFolder: Cost\Cost Amount Non-Inv\Period-to-date total
+		lineageTag: f5adef14-d995-467c-b8e1-47418ac666c0
+
+	measure 'Cost Amount Non-Inv YOY %' = ```
+			
+			DIVIDE ( 
+			    [Cost Amount Non-Inv YOY],
+			    [Cost Amount Non-Inv PY]
+			)
+			```
+		formatString: 0.00%;-0.00%;0.00%
+		displayFolder: Cost\Cost Amount Non-Inv\Period-over-period growth
+		lineageTag: 716c1c78-eb38-48c9-acb3-0dec552db398
+
+	measure 'Cost Amount Non-Inv YOY' = ```
+			
+			VAR ValueCurrentPeriod = [Cost Amount Non-Inv]
+			VAR ValuePreviousPeriod = [Cost Amount Non-Inv PY]
+			VAR Result =
+			    IF (
+			        NOT ISBLANK ( ValueCurrentPeriod ) 
+			            && NOT ISBLANK ( ValuePreviousPeriod ),
+			        ValueCurrentPeriod - ValuePreviousPeriod
+			    )
+			RETURN
+			    Result
+			
+			```
+		formatString: #,0.00
+		displayFolder: Cost\Cost Amount Non-Inv\Period-over-period growth
+		lineageTag: de665100-8c67-447b-b5bc-20f06a09e737
+
+	measure 'Cost Amount Non-Inv PQ' = ```
+			
+			IF (
+			    [ShowValueForDates],
+			    CALCULATE (
+			        [Cost Amount Non-Inv],
+			        CALCULATETABLE ( 
+			            DATEADD ( 'Date'[Date], -1, QUARTER ),
+			            'Date'[DateWithSales] = TRUE
+			        )
+			    )
+			)
+			
+			```
+		formatString: #,0.00
+		displayFolder: Cost\Cost Amount Non-Inv\Period-over-period growth
+		lineageTag: f3c1de5a-d6f5-4886-bb9c-f8d2068abaa6
+
+	measure 'Cost Amount Non-Inv QOQ' = ```
+			
+			VAR ValueCurrentPeriod = [Cost Amount Non-Inv]
+			VAR ValuePreviousPeriod = [Cost Amount Non-Inv PQ]
+			VAR Result =
+			    IF (
+			        NOT ISBLANK ( ValueCurrentPeriod ) 
+			            && NOT ISBLANK ( ValuePreviousPeriod ),
+			        ValueCurrentPeriod - ValuePreviousPeriod
+			    )
+			RETURN
+			    Result
+			
+			```
+		formatString: #,0.00
+		displayFolder: Cost\Cost Amount Non-Inv\Period-over-period growth
+		lineageTag: 0ba1b9d9-bdd6-466a-ab07-e0aa26f184cb
+
+	measure 'Cost Amount Non-Inv PM' = ```
+			
+			IF (
+			    [ShowValueForDates],
+			    CALCULATE (
+			        [Cost Amount Non-Inv],
+			        CALCULATETABLE ( 
+			            DATEADD ( 'Date'[Date], -1, MONTH ),
+			            'Date'[DateWithSales] = TRUE
+			        )
+			    )
+			)
+			
+			```
+		formatString: #,0.00
+		displayFolder: Cost\Cost Amount Non-Inv\Period-over-period growth
+		lineageTag: e8bb4075-0b8a-4b75-a36f-f16354278197
+
+	measure 'Cost Amount Non-Inv QOQ %' = ```
+			
+			DIVIDE ( 
+			    [Cost Amount Non-Inv QOQ],
+			    [Cost Amount Non-Inv PQ]
+			)
+			
+			```
+		formatString: 0.00%;-0.00%;0.00%
+		displayFolder: Cost\Cost Amount Non-Inv\Period-over-period growth
+		lineageTag: b4a0ba3e-e63b-422f-96f3-300c9827f45e
+
+	measure 'Cost Amount Non-Inv MOM' = ```
+			
+			VAR ValueCurrentPeriod = [Cost Amount Non-Inv]
+			VAR ValuePreviousPeriod = [Cost Amount Non-Inv PM]
+			VAR Result =
+			    IF (
+			        NOT ISBLANK ( ValueCurrentPeriod ) 
+			            && NOT ISBLANK ( ValuePreviousPeriod ),
+			        ValueCurrentPeriod - ValuePreviousPeriod
+			    )
+			RETURN
+			    Result
+			
+			```
+		formatString: #,0.00
+		displayFolder: Cost\Cost Amount Non-Inv\Period-over-period growth
+		lineageTag: e60db6d5-841d-4cd3-ab32-e138c299629e
+
+	measure 'Cost Amount Non-Inv MOM %' = ```
+			
+			DIVIDE ( 
+			    [Cost Amount Non-Inv MOM],
+			    [Cost Amount Non-Inv PM]
+			)
+			
+			```
+		formatString: 0.00%;-0.00%;0.00%
+		displayFolder: Cost\Cost Amount Non-Inv\Period-over-period growth
+		lineageTag: addb1dbc-0a12-4a4c-a51b-1a6c0e09fb02
+
+	measure 'Cost Amount Non-Inv MAT' = ```
+			
+			IF ( 
+			    [ShowValueForDates], 
+			    CALCULATE ( 
+			        [Cost Amount Non-Inv], 
+			        DATESINPERIOD (
+			            'Date'[Date],
+			            MAX ( 'Date'[Date] ),
+			            -1,
+			            YEAR
+			        )
+			    ) 
+			)
+			
+			```
+		formatString: #,0.00
+		displayFolder: Cost\Cost Amount Non-Inv\Moving annual total growth
+		lineageTag: 71ae47cd-4a37-483f-a91a-4c08be760d74
+
+	measure 'Cost Amount Non-Inv PYMAT' =
+			
+			IF (
+			    [ShowValueForDates],
+			    CALCULATE (
+			        [Cost Amount Non-Inv MAT],
+			        DATEADD ( 'Date'[Date], -1, YEAR )
+			    )
+			)
+		formatString: #,0.00
+		displayFolder: Cost\Cost Amount Non-Inv\Moving annual total growth
+		lineageTag: 56f2b8a8-a700-40fa-b7ff-d03cf0dd7319
+
+	measure 'Cost Amount Non-Inv YOYTD' = ```
+			
+			VAR ValueCurrentPeriod = [Cost Amount Non-Inv YTD]
+			VAR ValuePreviousPeriod = [Cost Amount Non-Inv PYTD]
+			VAR Result =
+			    IF (
+			        NOT ISBLANK ( ValueCurrentPeriod ) 
+			            && NOT ISBLANK ( ValuePreviousPeriod ),
+			        ValueCurrentPeriod - ValuePreviousPeriod
+			    )
+			RETURN
+			    Result
+			```
+		formatString: #,0.00
+		displayFolder: Cost\Cost Amount Non-Inv\Period-to-date growth
+		lineageTag: 787415e8-47dd-4672-9650-69c4f5909167
+
+	measure 'Cost Amount Non-Inv YOYTD %' = ```
+			
+			DIVIDE ( 
+			    [Cost Amount Non-Inv YOYTD],
+			    [Cost Amount Non-Inv PYTD]
+			)
+			
+			```
+		formatString: 0.00%;-0.00%;0.00%
+		displayFolder: Cost\Cost Amount Non-Inv\Period-to-date growth
+		lineageTag: 2ef5dfcb-30b2-4106-8040-4e08bb9bc9ff
+
+	measure 'Cost Amount Non-Inv PYC' = ```
+			
+			IF (
+			    [ShowValueForDates] && HASONEVALUE ( 'Date'[Calendar Year] ),
+			    CALCULATE (
+			        [Cost Amount Non-Inv],
+			        PARALLELPERIOD ( 'Date'[Date], -1, YEAR )
+			    )
+			)
+			
+			```
+		formatString: #,0.00
+		displayFolder: Cost\Cost Amount Non-Inv\Period-to-date over full previous period
+		lineageTag: 5722a080-55dd-4229-84e3-86b0cf970679
+
+	measure 'Cost Amount Non-Inv YTDOPY' = ```
+			
+			VAR ValueCurrentPeriod = [Cost Amount Non-Inv YTD]
+			VAR ValuePreviousPeriod = [Cost Amount Non-Inv PYC]
+			VAR Result =
+			    IF (
+			        NOT ISBLANK ( ValueCurrentPeriod ) 
+			            && NOT ISBLANK ( ValuePreviousPeriod ),
+			        ValueCurrentPeriod - ValuePreviousPeriod
+			    )
+			RETURN
+			    Result
+			
+			```
+		formatString: #,0.00
+		displayFolder: Cost\Cost Amount Non-Inv\Period-to-date over full previous period
+		lineageTag: eeeea619-b36f-4320-b3b3-7a164dffba1c
+
+	measure 'Cost Amount Non-Inv YTDOPY %' = ```
+			
+			DIVIDE ( 
+			    [Cost Amount Non-Inv YTDOPY],
+			    [Cost Amount Non-Inv PYC]
+			)
+			
+			```
+		formatString: 0.00%;-0.00%;0.00%
+		displayFolder: Cost\Cost Amount Non-Inv\Period-to-date over full previous period
+		lineageTag: e101992b-c3eb-44f1-a6d6-accc340bce5c
+
+	measure 'Cost Amount Non-Inv QOQTD' = ```
+			
+			VAR ValueCurrentPeriod = [Cost Amount Non-Inv QTD]
+			VAR ValuePreviousPeriod = [Cost Amount Non-Inv PQTD]
+			VAR Result =
+			    IF (
+			        NOT ISBLANK ( ValueCurrentPeriod ) 
+			            && NOT ISBLANK ( ValuePreviousPeriod ),
+			        ValueCurrentPeriod - ValuePreviousPeriod
+			    )
+			RETURN
+			    Result
+			
+			```
+		formatString: #,0.00
+		displayFolder: Cost\Cost Amount Non-Inv\Period-to-date growth
+		lineageTag: cb7df3ff-32e6-47d2-8c17-f71dc2bb9e58
+
+	measure 'Cost Amount Non-Inv QOQTD %' = ```
+			
+			DIVIDE ( 
+			    [Cost Amount Non-Inv QOQTD],
+			    [Cost Amount Non-Inv PQTD]
+			)
+			
+			```
+		formatString: 0.00%;-0.00%;0.00%
+		displayFolder: Cost\Cost Amount Non-Inv\Period-to-date growth
+		lineageTag: 408080a2-5537-4c28-867b-9d73dc46c38f
+
+	measure 'Cost Amount Non-Inv PQC' = ```
+			
+			IF (
+			    [ShowValueForDates] && HASONEVALUE ( 'Date'[Calendar Quarter Year] ),
+			    CALCULATE (
+			        [Cost Amount Non-Inv],
+			        PARALLELPERIOD ( 'Date'[Date], -1, QUARTER )
+			    )
+			)
+			
+			```
+		formatString: #,0.00
+		displayFolder: Cost\Cost Amount Non-Inv\Period-to-date over full previous period
+		lineageTag: a7e0e589-c725-4a92-84fd-7525d1f33087
+
+	measure 'Cost Amount Non-Inv QTDOPQ' = ```
+			
+			VAR ValueCurrentPeriod = [Cost Amount Non-Inv QTD]
+			VAR ValuePreviousPeriod = [Cost Amount Non-Inv PQC]
+			VAR Result =
+			    IF (
+			        NOT ISBLANK ( ValueCurrentPeriod ) 
+			            && NOT ISBLANK ( ValuePreviousPeriod ),
+			        ValueCurrentPeriod - ValuePreviousPeriod
+			    )
+			RETURN
+			    Result
+			
+			```
+		formatString: #,0.00
+		displayFolder: Cost\Cost Amount Non-Inv\Period-to-date over full previous period
+		lineageTag: f1556f00-3a06-4f38-a2e3-18ccbab69ea2
+
+	measure 'Cost Amount Non-Inv QTDOPQ %' = ```
+			
+			DIVIDE ( 
+			    [Cost Amount Non-Inv QTDOPQ],
+			    [Cost Amount Non-Inv PQC]
+			)
+			
+			```
+		formatString: 0.00%;-0.00%;0.00%
+		displayFolder: Cost\Cost Amount Non-Inv\Period-to-date over full previous period
+		lineageTag: 19c2edcd-bb4d-4661-bd5c-6d56de34e0cd
+
+	measure 'Cost Amount Non-Inv PMTD' = ```
+			
+			IF (
+			    [ShowValueForDates],
+			    CALCULATE (
+			        [Cost Amount Non-Inv MTD],
+			        CALCULATETABLE ( 
+			            DATEADD ( 'Date'[Date], -1, MONTH ),
+			            'Date'[DateWithSales] = TRUE
+			        )
+			    )
+			)
+			
+			```
+		formatString: #,0.00
+		displayFolder: Cost\Cost Amount Non-Inv\Period-to-date growth
+		lineageTag: 063decd9-c7ab-45aa-8485-01cf715a57b7
+
+	measure 'Cost Amount Non-Inv MOMTD' = ```
+			
+			VAR ValueCurrentPeriod = [Cost Amount Non-Inv MTD]
+			VAR ValuePreviousPeriod = [Cost Amount Non-Inv PMTD]
+			VAR Result =
+			    IF (
+			        NOT ISBLANK ( ValueCurrentPeriod ) 
+			            && NOT ISBLANK ( ValuePreviousPeriod ),
+			        ValueCurrentPeriod - ValuePreviousPeriod
+			    )
+			RETURN
+			    Result
+			
+			```
+		formatString: #,0.00
+		displayFolder: Cost\Cost Amount Non-Inv\Period-to-date growth
+		lineageTag: 668484b5-2a06-41b4-8e8f-0b26cca45a25
+
+	measure 'Cost Amount Non-Inv MOMTD %' = ```
+			
+			DIVIDE ( 
+			    [Cost Amount Non-Inv MOMTD],
+			    [Cost Amount Non-Inv PMTD]
+			)
+			
+			```
+		formatString: 0.00%;-0.00%;0.00%
+		displayFolder: Cost\Cost Amount Non-Inv\Period-to-date growth
+		lineageTag: 88d666af-67a4-4d75-bef7-07b1650cefa0
+
+	measure 'Cost Amount Non-Inv PMC' = ```
+			
+			IF (
+			    [ShowValueForDates] && HASONEVALUE ( 'Date'[Calendar Month Year] ),
+			    CALCULATE (
+			        [Cost Amount Non-Inv],
+			        PARALLELPERIOD ( 'Date'[Date], -1, MONTH )
+			    )
+			)
+			
+			```
+		formatString: #,0.00
+		displayFolder: Cost\Cost Amount Non-Inv\Period-to-date over full previous period
+		lineageTag: 528490fa-cc89-40dc-a54f-b0551966da7d
+
+	measure 'Cost Amount Non-Inv MTDOPM' = ```
+			
+			VAR ValueCurrentPeriod = [Cost Amount Non-Inv MTD]
+			VAR ValuePreviousPeriod = [Cost Amount Non-Inv PMC]
+			VAR Result =
+			    IF (
+			        NOT ISBLANK ( ValueCurrentPeriod ) 
+			            && NOT ISBLANK ( ValuePreviousPeriod ),
+			        ValueCurrentPeriod - ValuePreviousPeriod
+			    )
+			RETURN
+			    Result
+			
+			```
+		formatString: #,0.00
+		displayFolder: Cost\Cost Amount Non-Inv\Period-to-date over full previous period
+		lineageTag: ab87c68e-6610-43db-a629-d59d43575c29
+
+	measure 'Cost Amount Non-Inv MTDOPM %' = ```
+			
+			DIVIDE ( 
+			    [Cost Amount Non-Inv MTDOPM],
+			    [Cost Amount Non-Inv PMC]
+			)
+			
+			```
+		formatString: 0.00%;-0.00%;0.00%
+		displayFolder: Cost\Cost Amount Non-Inv\Period-to-date over full previous period
+		lineageTag: ec424272-299b-48aa-86ea-724fc0641fb1
+
+	measure 'Cost Amount Non-Inv AVG 30D' = ```
+			
+			VAR Period30D =
+			    CALCULATETABLE (
+			        DATESINPERIOD (
+			            'Date'[Date],
+			            MAX ( 'Date'[Date] ),
+			            -30,
+			            DAY
+			        ),
+			        'Date'[DateWithSales] = TRUE
+			    )
+			VAR FirstDayWithData =
+			    CALCULATE (
+			        MIN ( 'Sales Value Entries'[postingDate] ),
+			        REMOVEFILTERS ()
+			    )
+			VAR FirstDayInPeriod =
+			    MINX ( Period30D, 'Date'[Date] )
+			VAR Result =
+			    IF ( 
+			        FirstDayWithData <= FirstDayInPeriod,
+			        AVERAGEX (
+			            Period30D,
+			            [Cost Amount Non-Inv]
+			        )
+			    )
+			RETURN
+			    Result
+			
+			```
+		formatString: #,0.00
+		displayFolder: Cost\Cost Amount Non-Inv\Moving averages
+		lineageTag: f053d37a-45f9-4944-8fe5-f5d957ec2d29
+
+	measure 'Cost Amount Non-Inv AVG 3M' = ```
+			
+			VAR Period3M =
+			    CALCULATETABLE (
+			        DATESINPERIOD (
+			            'Date'[Date],
+			            MAX ( 'Date'[Date] ),
+			            -3,
+			            MONTH
+			        ),
+			        'Date'[DateWithSales] = TRUE
+			    )
+			VAR FirstDayWithData =
+			    CALCULATE (
+			        MIN ( 'Sales Value Entries'[postingDate] ),
+			        REMOVEFILTERS ()
+			    )
+			VAR FirstDayInPeriod =
+			    MINX ( Period3M, 'Date'[Date] )
+			VAR Result =
+			    IF ( 
+			        FirstDayWithData <= FirstDayInPeriod,
+			        AVERAGEX (
+			            Period3M,
+			            [Cost Amount Non-Inv]
+			        )
+			    )
+			RETURN
+			    Result
+			
+			```
+		formatString: #,0.00
+		displayFolder: Cost\Cost Amount Non-Inv\Moving averages
+		lineageTag: 5a0774c4-c175-4132-aff3-c60b4cf0e249
+
+	measure 'Cost Amount Non-Inv AVG 1Y' = ```
+			
+			VAR Period1Y =
+			    CALCULATETABLE (
+			        DATESINPERIOD (
+			            'Date'[Date],
+			            MAX ( 'Date'[Date] ),
+			            -1,
+			            YEAR
+			        ),
+			        'Date'[DateWithSales] = TRUE
+			    )
+			VAR FirstDayWithData =
+			    CALCULATE (
+			        MIN ( 'Sales Value Entries'[postingDate] ),
+			        REMOVEFILTERS ()
+			    )
+			VAR FirstDayInPeriod =
+			    MINX ( Period1Y, 'Date'[Date] )
+			VAR Result =
+			    IF ( 
+			        FirstDayWithData <= FirstDayInPeriod,
+			        AVERAGEX (
+			            Period1Y,
+			            [Cost Amount Non-Inv]
+			        )
+			    )
+			RETURN
+			    Result
+			
+			```
+		formatString: #,0.00
+		displayFolder: Cost\Cost Amount Non-Inv\Moving averages
+		lineageTag: a4a7924b-fd19-4cdf-b9cd-c8ab5b6f54fb
+
+	measure 'Cost Amount Non-Inv MATG' = ```
+			
+			VAR ValueCurrentPeriod = [Cost Amount Non-Inv MAT]
+			VAR ValuePreviousPeriod = [Cost Amount Non-Inv PYMAT]
+			VAR Result =
+			    IF (
+			        NOT ISBLANK ( ValueCurrentPeriod ) 
+			            && NOT ISBLANK ( ValuePreviousPeriod ),
+			        ValueCurrentPeriod - ValuePreviousPeriod
+			    )
+			RETURN
+			    Result
+			
+			```
+		formatString: #,0.00
+		displayFolder: Cost\Cost Amount Non-Inv\Moving annual total growth
+		lineageTag: cc471e74-0699-424a-a435-021658edd6de
+
+	measure 'Cost Amount Non-Inv MATG %' = ```
+			
+			DIVIDE ( 
+			    [Cost Amount Non-Inv MATG],
+			    [Cost Amount Non-Inv PYMAT]
+			)
+			
+			```
+		formatString: 0.00%;-0.00%;0.00%
+		displayFolder: Cost\Cost Amount Non-Inv\Moving annual total growth
+		lineageTag: bb66ccd1-d9b9-4f33-b2bd-e6a3ab2bcf59
+
+	measure 'Cost Amount Non-Inv PP' = ```
+			
+			SWITCH ( 
+			    TRUE,
+			    ISINSCOPE ( 'Date'[Calendar Month Year] ), [Cost Amount Non-Inv PM],
+			    ISINSCOPE ( 'Date'[Calendar Quarter Year] ), [Cost Amount Non-Inv PQ],
+			    ISINSCOPE ( 'Date'[Calendar Year] ), [Cost Amount Non-Inv PY]
+			)
+			
+			```
+		formatString: #,0.00
+		displayFolder: Cost\Cost Amount Non-Inv\Period-over-period growth
+		lineageTag: 7e0dc23c-3fc3-4efc-9c8a-4acb689acf87
+
+	measure 'Cost Amount Non-Inv POP' = ```
+			
+			SWITCH ( 
+			    TRUE,
+			    ISINSCOPE ( 'Date'[Calendar Month Year] ), [Cost Amount Non-Inv MOM],
+			    ISINSCOPE ( 'Date'[Calendar Quarter Year] ), [Cost Amount Non-Inv QOQ],
+			    ISINSCOPE ( 'Date'[Calendar Year] ), [Cost Amount Non-Inv YOY]
+			)
+			
+			```
+		formatString: #,0.00
+		displayFolder: Cost\Cost Amount Non-Inv\Period-over-period growth
+		lineageTag: f24ffd94-8939-46be-8b18-cc2a7aaea95a
+
+	measure 'Cost Amount Non-Inv POP %' = ```
+			
+			SWITCH ( 
+			    TRUE,
+			    ISINSCOPE ( 'Date'[Calendar Month Year] ), [Cost Amount Non-Inv MOM %],
+			    ISINSCOPE ( 'Date'[Calendar Quarter Year] ), [Cost Amount Non-Inv QOQ %],
+			    ISINSCOPE ( 'Date'[Calendar Year] ), [Cost Amount Non-Inv YOY %]
+			)
+			
+			```
+		formatString: 0.00%;-0.00%;0.00%
+		displayFolder: Cost\Cost Amount Non-Inv\Period-over-period growth
+		lineageTag: 01a58074-7bdb-4b7d-8fbc-e04d435c30b7
+
+	column Column1
+		dataType: string
+		isHidden
+		lineageTag: 1e0329f9-c1dc-47dc-85eb-7bd7971d051b
+		summarizeBy: none
+		sourceColumn: Column1
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	partition 'Standard Calendar Time Intelligence-e3a13283-be56-4781-af6d-764f2a70990a' = m
+		mode: import
+		queryGroup: 'Parameters and Functions'
+		source =
+				let
+				    Source = Table.FromRows(Json.Document(Binary.Decompress(Binary.FromText("i44FAA==", BinaryEncoding.Base64), Compression.Deflate)), let _t = ((type text) meta [Serialized.Text = true]) in type table [Column1 = _t]),
+				    #"Changed Type" = Table.TransformColumnTypes(Source,{{"Column1", type text}})
+				in
+				    #"Changed Type"
+
+	annotation PBI_ResultType = Table
+
+	annotation PBI_NavigationStepName = Navigation
+

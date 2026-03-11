@@ -1,0 +1,31 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.4.0/schema.json",
+  "name": "433165f3179720ef426b",
+  "position": {
+    "x": 963,
+    "y": 62,
+    "z": 5000,
+    "height": 230,
+    "width": 291,
+    "tabOrder": 2000
+  },
+  "visualGroup": {
+    "displayName": "Gross Profit Group",
+    "groupMode": "ScaleMode",
+    "objects": {
+      "general": [
+        {
+          "properties": {
+            "altText": {
+              "expr": {
+                "Literal": {
+                  "Value": "'Gross Profit Margin, Gross Profit, Revenue.'"
+                }
+              }
+            }
+          }
+        }
+      ]
+    }
+  }
+}

@@ -1,0 +1,31 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.4.0/schema.json",
+  "name": "ff2e42de0c29c48402e1",
+  "position": {
+    "x": 27.510044495616402,
+    "y": 463.74075006896226,
+    "z": 5000,
+    "height": 229.90537185622281,
+    "width": 599.32596936878588,
+    "tabOrder": 9000
+  },
+  "visualGroup": {
+    "displayName": "Purchasing Metrics Group",
+    "groupMode": "ScaleMode",
+    "objects": {
+      "general": [
+        {
+          "properties": {
+            "altText": {
+              "expr": {
+                "Literal": {
+                  "Value": "''"
+                }
+              }
+            }
+          }
+        }
+      ]
+    }
+  }
+}

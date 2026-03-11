@@ -1,0 +1,409 @@
+cultureInfo it-IT
+	translations
+		model Model
+			table Item
+				caption: Articolo
+				column 'Item No. & Description'
+					caption: Nr. e descrizione articolo
+				column 'Item No.'
+					caption: Nr. articolo
+				column 'Item Description'
+					caption: Descrizione articolo
+				column 'Item Base Unit of Measure'
+					caption: Unità di misura base articoli
+				column 'Item Unit Cost (LCY)'
+					caption: Costo unitario (VL)
+				column 'Item Inventory Posting Group'
+					caption: Categoria registrazione magazzino articoli
+				column 'Item Category Code'
+					caption: Codice categoria articolo
+				column 'Item Category Description'
+					caption: Descrizione categoria articolo
+			table Location
+				caption: Ubicazione
+				column 'Location Code'
+					caption: Codice ubicazione
+				column 'Location Name'
+					caption: Nome ubicazione
+				column 'Location Adjustment Bin Code'
+					caption: Codice collocazione rettifica ubicazione
+			table 'Value Entries'
+				caption: Movimenti valorizzazione
+				column 'Entry No.'
+					caption: Nr. movimento
+				column 'Valuation Date'
+					caption: Data di valutazione
+				column 'Item Ledger Entry Type'
+					caption: Tipo movimento contabile articolo
+				column 'Document Type'
+					caption: Tipo di documento
+				column Type
+					caption: Tipo
+				measure 'As of Beg. Date Label'
+					caption: Etichetta a partire dalla data di inizio
+				measure 'As of End Date Label'
+					caption: Etichetta a partire dalla data di fine
+				measure 'Beginning Balance Cost Posted to G/L'
+					caption: Saldo iniziale costi registrato in C/G
+				measure 'Beginning Balance Expected Cost Posted to G/L'
+					caption: Saldo iniziale costo previsto registrato in C/G
+				measure 'Beginning Balance Qty'
+					caption: Quantità saldo iniziale
+				measure 'Beginning Balance Cost Amount (Actual)'
+					caption: Saldo iniziale importo costi (effettivo)
+				measure 'Beginning Balance Cost Amount (Expected)'
+					caption: Saldo iniziale importo costi (previsto)
+				measure 'Beginning Balance Cost Amount (Incl. Exp Cost)'
+					caption: Saldo iniziale importo costi (incluso costo previsto)
+				measure 'Cost Amount (Actual)'
+					caption: Importo costi (effettivo)
+				measure 'Cost Amount (Expected)'
+					caption: Importo costi (previsto)
+				measure 'Cost Posted to G/L'
+					caption: Costo registrato in C/G
+				measure 'Expected Cost Posted to G/L'
+					caption: Costo previsto registrato in C/G
+				measure 'Decrease Qty.'
+					caption: Quantità di riduzione
+				measure 'Decrease Value'
+					caption: Valore di riduzione
+				measure 'Decrease Value (Expected)'
+					caption: Valore di riduzione (previsto)
+				measure 'Decrease Value Expected Cost Included'
+					caption: Costo previsto incluso in valore di riduzione
+				measure 'Ending Balance Cost Amount (Incl. Exp Cost)'
+					caption: Saldo finale importo costi (incluso costo previsto)
+				measure 'Ending Balance Cost Posted to G/L'
+					caption: Saldo finale costi registrato in C/G
+				measure 'Ending Balance Qty.'
+					caption: Quantità saldo finale
+				measure 'Ending Balance Cost Amount (Actual)'
+					caption: Saldo finale importo costi (effettivo)
+				measure 'Ending Balance Cost Amount (Expected)'
+					caption: Costo finale importo costi (previsto)
+				measure 'Ending Balance Expected Cost Posted to G/L'
+					caption: Saldo finale costo previsto registrato in C/G
+				measure 'Increase Value Expected Cost Included'
+					caption: Costo previsto incluso in aumento di valore
+				measure 'Increases Qty.'
+					caption: Aumenti in quantità
+				measure 'Increases Value'
+					caption: Aumenti di valore
+				measure 'Increases Value (Expected)'
+					caption: Aumenti di valore (previsti)
+				measure 'Invoiced Quantity'
+					caption: Quantità fatturata
+				measure 'Cost Amount (Incl. Exp Cost)'
+					caption: Importo costi (incluso costo previsto)
+				measure 'Variance Cost Posted to G/L'
+					caption: Scostamento costo registrato in C/G
+				measure 'Base Link'
+					caption: Collegamento base
+				measure 'Value Entry Back Link'
+					caption: Backlink movimenti valorizzazione
+			table 'Dimension Sets'
+				caption: Set di dimensioni
+				column 'Global Dimension 1'
+					caption: Dimensione globale 1
+				column 'Global Dimension 2'
+					caption: Dimensione globale 2
+				column 'Shortcut Dimension 3'
+					caption: Collegamento dimensione 3
+				column 'Shortcut Dimension 4'
+					caption: Collegamento dimensione 4
+				column 'Shortcut Dimension 5'
+					caption: Collegamento dimensione 5
+				column 'Shortcut Dimension 6'
+					caption: Collegamento dimensione 6
+				column 'Shortcut Dimension 7'
+					caption: Collegamento dimensione 7
+				column 'Shortcut Dimension 8'
+					caption: Collegamento dimensione 8
+			table Date
+				caption: Data
+				column 'Week Day'
+					caption: Giorno della settimana
+				column 'Relative Day'
+					caption: Giorno relativo
+				column 'Calendar Year'
+					caption: Anno di calendario
+				column 'Calendar Quarter'
+					caption: Trimestre di calendario
+				column 'Calendar Quarter Year'
+					caption: Trimestre anno di calendario
+				column 'Calendar Month'
+					caption: Mese di calendario
+				column 'Calendar Month Year'
+					caption: Mese anno di calendario
+				column 'Calendar Week'
+					caption: Settimana di calendario
+				column 'Calendar Week Year'
+					caption: Settimana anno di calendario
+				column 'Calendar WeekYearOrder'
+					caption: OrdineSettimanaAnno di calendario
+				column 'Calendar RelativeWeekPos'
+					caption: SettimanaRelativaPos di calendario
+				column 'Calendar RelativeMonthPos'
+					caption: MeseRelativoPos di calendario
+				column 'Calendar RelativeQuarterPos'
+					caption: TrimestreRelativoPos di calendario
+				column 'Calendar RelativeYearPos'
+					caption: AnnoRelativoPos di calendario
+				column 'Calendar StartOfMonth'
+					caption: InizioMese di calendario
+				column 'Calendar EndOfMonth'
+					caption: FineMese di calendario
+				column 'Calendar StartOfQuarter'
+					caption: InizioTrimestre di calendario
+				column 'Calendar EndOfQuarter'
+					caption: FineTrimestre di calendario
+				column 'Calendar StartOfYear'
+					caption: InizioAnno di calendario
+				column 'Calendar EndOfYear'
+					caption: FineAnno di calendario
+				column 'Calendar MonthDays'
+					caption: GiorniMese di calendario
+				column 'Calendar QuarterDays'
+					caption: GiorniTrimestre di calendario
+				column 'Calendar YearDays'
+					caption: GiorniAnno di calendario
+				column 'Calendar DayOfMonthNumber'
+					caption: NumeroGiornoMese di calendario
+				column 'Calendar DayOfQuarterNumber'
+					caption: NumeroGiornoTrimestre di calendario
+				column 'Calendar DayOfYearNumber'
+					caption: NumeroGiornoAnno di calendario
+				column 'Calendar DatePreviousWeek'
+					caption: DataSettimanaPrecedente di calendario
+				column 'Calendar DatePreviousMonth'
+					caption: DataMesePrecedente di calendario
+				column 'Calendar DatePreviousQuarter'
+					caption: DataTrimestrePrecedente di calendario
+				column 'Calendar DatePreviousYear'
+					caption: DataAnnoPrecedente di calendario
+				column 'Fiscal Year'
+					caption: Anno fiscale
+				column 'Fiscal QuarterNumber'
+					caption: NumeroTrimestre fiscale
+				column 'Fiscal Quarter'
+					caption: Trimestre fiscale
+				column 'Fiscal Quarter Year'
+					caption: Trimestre anno fiscale
+				column 'Fiscal MonthInQuarterNumber'
+					caption: NumeroMeseInTrimestre fiscale
+				column 'Fiscal Month'
+					caption: Mese fiscale
+				column 'Fiscal Month Year'
+					caption: Mese anno fiscale
+				column 'Fiscal WeekNumber'
+					caption: NumeroSettimana fiscale
+				column 'Fiscal Week'
+					caption: Settimana fiscale
+				column 'Fiscal Week Year'
+					caption: Settimana anno fiscale
+				column 'Fiscal WeekYearOrder'
+					caption: OrdineSettimanaAnno fiscale
+				column 'Fiscal RelativeWeekPos'
+					caption: SettimanaRelativaPos fiscale
+				column 'Fiscal RelativeMonthPos'
+					caption: MeseRelativoPos fiscale
+				column 'Fiscal RelativeQuarterPos'
+					caption: TrimestreRelativoPos fiscale
+				column 'Fiscal RelativeYearPos'
+					caption: AnnoRelativoPos fiscale
+				column 'Fiscal StartOfMonth'
+					caption: InizioMese fiscale
+				column 'Fiscal EndOfMonth'
+					caption: FineMese fiscale
+				column 'Fiscal StartOfQuarter'
+					caption: InizioTrimestre fiscale
+				column 'Fiscal EndOfQuarter'
+					caption: FineTrimestre fiscale
+				column 'Fiscal StartOfYear'
+					caption: InizioAnno fiscale
+				column 'Fiscal EndOfYear'
+					caption: FineAnno fiscale
+				column 'Fiscal MonthDays'
+					caption: GiorniMese fiscale
+				column 'Fiscal QuarterDays'
+					caption: GiorniTrimestre fiscale
+				column 'Fiscal YearDays'
+					caption: GiorniAnno fiscale
+				column 'Fiscal DayOfMonthNumber'
+					caption: NumeroGiornoMese fiscale
+				column 'Fiscal DayOfQuarterNumber'
+					caption: NumeroGiornoTrimestre fiscale
+				column 'Fiscal DayOfYearNumber'
+					caption: NumeroGiornoAnno fiscale
+				column 'Fiscal DatePreviousWeek'
+					caption: DataSettimanaPrecedente fiscale
+				column 'Fiscal DatePreviousMonth'
+					caption: DataMesePrecedente fiscale
+				column 'Fiscal DatePreviousQuarter'
+					caption: DataTrimestrePrecedente fiscale
+				column 'Fiscal DatePreviousYear'
+					caption: DataAnnoPrecedente fiscale
+				column 'FW Year'
+					caption: Anno FW
+				column 'FW Quarter'
+					caption: Trimestre FW
+				column 'FW Quarter Year'
+					caption: Trimestre anno FW
+				column 'FW Month'
+					caption: Mese FW
+				column 'FW Month Year'
+					caption: Mese anno FW
+				column 'FW Week'
+					caption: Settimana FW
+				column 'FW Period'
+					caption: Periodo FW
+				column 'FW Week Year'
+					caption: Settimana anno FW
+				column 'FW StartOfWeek'
+					caption: InizioSettimana FW
+				column 'FW EndOfWeek'
+					caption: FineSettimana FW
+				column 'FW RelativeWeekPos'
+					caption: SettimanaRelativaPos FW
+				column 'FW RelativeMonthPos'
+					caption: MeseRelativoPos FW
+				column 'FW RelativeQuarterPos'
+					caption: TrimestreRelativoPos FW
+				column 'FW RelativeYearPos'
+					caption: AnnoRelativoPos FW
+				column 'FW StartOfMonth'
+					caption: InizioMese FW
+				column 'FW EndOfMonth'
+					caption: FineMese FW
+				column 'FW StartOfQuarter'
+					caption: InizioTrimestre FW
+				column 'FW EndOfQuarter'
+					caption: FineTrimestre FW
+				column 'FW StartOfYear'
+					caption: InizioAnno FW
+				column 'FW EndOfYear'
+					caption: FineAnno fiscale
+				column 'FW MonthDays'
+					caption: GiorniMese FW
+				column 'FW QuarterDays'
+					caption: GiorniTrimestre FW
+				column 'FW YearDays'
+					caption: GiorniAnno FW
+				column 'FW DayOfMonthNumber'
+					caption: NumeroGiornoMese FW
+				column 'FW DayOfQuarterNumber'
+					caption: NumeroGiornoTrimestre FW
+				column 'FW DayOfYearNumber'
+					caption: NumeroGiornoAnno FW
+				column 'FW DatePreviousWeek'
+					caption: DataSettimanaPrecedente FW
+				column 'FW DatePreviousMonth'
+					caption: DataMesePrecedente FW
+				column 'FW DatePreviousQuarter'
+					caption: DataTrimestrePrecedente FW
+				column 'FW DatePreviousYear'
+					caption: DataAnnoPrecedente FW
+				column 'Holiday Name'
+					caption: Nome festività
+				column IsWorkingDay
+					caption: IsWorkingDay
+				column 'Day Type'
+					caption: Tipo di giorno
+			table 'Localized Labels'
+				measure 'My Report Title'
+					caption: Titolo report personale
+				measure 'My Button Caption'
+					caption: Didascalia pulsante personale
+				measure 'My Visual Title'
+					caption: Titolo visivo personale
+				measure 'Inventory Valuation'
+					caption: Valutazione magazzino
+				measure 'for Business Central'
+					caption: per Business Central
+				measure 'CONNECT YOUR DATA'
+					caption: CONNETTI I DATI
+				measure '1. Download the Inventory Connector for Power BI'
+					caption: 1. Scaricare Inventory Connector for Power BI
+				measure '2. Configure Dynamics 365 Business Central'
+					caption: 2. Configurare Dynamics 365 Business Central
+				measure 'USE, EDIT AND BUILD YOUR OWN REPORTS'
+					caption: USA, MODIFICA E CREA I TUOI REPORT
+				measure 'Inventory Valuation includes a variety of pre-built reports to help you see your data immediately.'
+					caption: Valutazione magazzino include una serie di report predefiniti che consentono di visualizzare immediatamente i dati.
+				measure 'You are able to edit these reports or build your own report from scratch.'
+					caption: È possibile modificare questi report o creare il proprio report da zero.
+				measure 'HELP AND SUPPORT'
+					caption: GUIDA E SUPPORTO
+				measure 'For help and support with your new report please visit the Analytics overview documentation.'
+					caption: Per assistenza e supporto per il nuovo report, vedere la documentazione generale di analisi.
+				measure 'OTHER POWER BI REPORTS'
+					caption: ALTRI REPORT DI POWER BI
+				measure PURCHASE
+					caption: ACQUISTI
+				measure FINANCE
+					caption: DATI FINANZIARI
+				measure PROJECTS
+					caption: PROGETTI
+				measure INVENTORY
+					caption: INVENTARIO
+				measure SALES
+					caption: VENDITE
+				measure 'Inventory Valuation Overview'
+					caption: Panoramica di Valutazione magazzino
+				measure 'Inventory Value & Cost Posted to G/L by Month Year'
+					caption: Valore e costi magazzino registrati in C/G per mese/anno
+				measure 'Inventory Value by Location'
+					caption: Valore magazzino per ubicazione
+				measure 'Inventory Quantity'
+					caption: Quantità in giacenza
+				measure 'Inventory Valuation by Item'
+					caption: Valutazione magazzino per articolo
+				measure 'Inventory Valuation by Location'
+					caption: Valutazione magazzino per ubicazione
+				measure 'Detailed Inventory Valuation'
+					caption: Valutazione magazzino dettagliata
+				measure 'The inventory valuation by item shows item number, beginning balance value, increase value, decrease value, and ending balance value.'
+					caption: La valutazione magazzino per articolo mostra il numero, il valore del saldo iniziale, il valore di aumento e di diminuzione e il valore del saldo finale relativi all'articolo.
+				measure 'The inventory valuation by location shows location code, beginning balance value, increase value, decrease value, and ending balance value.'
+					caption: La valutazione magazzino per ubicazione mostra il codice ubicazione, il valore del saldo iniziale, il valore di aumento e di diminuzione e il valore del saldo finale.
+				measure 'The detailed inventory valuation shows date, item number and description, location code, document type, entry number, invoiced quantity, cost amount (actual), cost amount (expected), cost posted to G/L (actual), and cost posted to G/L (expected).'
+					caption: La valutazione magazzino dettagliata mostra la data, il numero, la descrizione il codice ubicazione, il tipo di documento, il numero di movimento, la quantità fatturata, l'importo dei costi (effettivo e previsto), e il costo registrato in C/G (effettivo e previsto) relativi agli articoli.
+				measure 'The inventory valuation by location shows location and ending balance value.'
+					caption: La valutazione magazzino per ubicazione mostra l'ubicazione e il valore del saldo finale.
+				measure 'The inventory valuation by item shows item category and ending balance quantity.'
+					caption: La valutazione magazzino per articolo mostra la categoria e la quantità del saldo finale relativi all'articolo.
+				measure 'Last Refreshed'
+					caption: Ultimo aggiornamento
+				measure 'Company Name'
+					caption: Nome società
+				measure 'Inventory value as of '
+					caption: "Valore magazzino a partire da "
+				measure 'Ending Balance Value and Invoiced Quantity by Location Code'
+					caption: Valore saldo finale e quantità fatturata per codice ubicazione
+				measure 'Ending Balance Value, Ending Balance Posted to G/L and Variance by Month'
+					caption: Valore saldo finale, saldo finale registrato in C/G e scostamento per mese
+				measure 'Ending Balance Quantity by Item Category Code'
+					caption: Quantità saldo finale per codice categoria articolo
+				measure 'Ending Balance Value by Location Name'
+					caption: Valore saldo finale per nome ubicazione
+			table COMPANY
+				caption: SOCIETÀ
+				measure 'Company Label'
+					caption: Etichetta società
+			table 'Item Category'
+				caption: Categoria articolo
+				column 'Item Category Code'
+					caption: Codice categoria articolo
+				column 'Item Category Description'
+					caption: Descrizione categoria articolo
+				hierarchy 'Item Category Code Hierarchy'
+					caption: Gerarchia codici categoria articolo
+					level 'Item Category Code Level 1'
+						caption: Codice categoria articolo livello 1
+					level 'Item Category Code Level 2'
+						caption: Codice categoria articolo livello 2
+					level 'Item Category Code Level 3'
+						caption: Codice categoria articolo livello 3
+					level 'Item Category Code'
+						caption: Codice categoria articolo
+

@@ -1,0 +1,16 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.4.0/schema.json",
+  "name": "e7b01f43a5370ee1ee86",
+  "position": {
+    "x": 31,
+    "y": 351,
+    "z": 0,
+    "height": 122,
+    "width": 556,
+    "tabOrder": 9000
+  },
+  "visualGroup": {
+    "displayName": "Edit And Build Reports Group",
+    "groupMode": "ScaleMode"
+  }
+}

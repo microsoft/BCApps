@@ -1,0 +1,67 @@
+table 'Sustainability Sub-Account Categories'
+	lineageTag: 69811130-f179-45c5-b874-e277cc1470f4
+
+	column 'Category Code'
+		dataType: string
+		isHidden
+		lineageTag: 2a9016b9-5374-4a61-9935-3ac2017a517d
+		summarizeBy: none
+		sourceColumn: Category Code
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Sub-Category Description'
+		dataType: string
+		lineageTag: f8eaddfc-77bf-40d5-8bf3-1febb540225b
+		summarizeBy: none
+		sourceColumn: Sub-Category Description
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Renewable Energy'
+		dataType: boolean
+		formatString: """TRUE"";""TRUE"";""FALSE"""
+		lineageTag: 7c2f6290-5e19-4c60-a25e-9ac2c982d87e
+		summarizeBy: none
+		sourceColumn: Renewable Energy
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Sub-Category Code'
+		dataType: string
+		lineageTag: 8bb05cc7-68e8-4b12-82de-fbeb7db0f8b6
+		summarizeBy: none
+		sourceColumn: Sub-Category Code
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Sustainability Account Subcategory Key'
+		dataType: string
+		isHidden
+		lineageTag: f084b9f8-33f8-4369-b6eb-e6a71965fb91
+		summarizeBy: none
+		sourceColumn: Sustainability Account Subcategory Key
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	partition 'Sustainability Sub-Account Categories' = m
+		mode: import
+		queryGroup: 'Dimension Tables'
+		source =
+				let
+				    Source = Dynamics365BusinessCentral.ApiContentsWithOptions(ENVIRONMENT, COMPANY,API_ENDPOINT, []),
+				    TableData = Source{[Name="pbiSustainabilitySubAccountCategories",Signature="table"]}[Data],
+				    #"Renamed Columns1" = Table.RenameColumns(TableData,{{"categoryCode", "Category Code"}, {"subcategoryCode", "Sub-Category Code"}, {"subCategoryDescription", "Sub-Category Description"}, {"subCategoryRenewableEnergy", "Renewable Energy"}}),
+				    #"Removed Columns" = Table.RemoveColumns(#"Renamed Columns1",{"ETag"}),
+				    #"Added Sustainability Account Key" = Table.AddColumn(#"Removed Columns", "Sustainability Account Subcategory Key", each [Category Code] & " " & [#"Sub-Category Code"], type text)
+				in
+				    #"Added Sustainability Account Key"
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Table
+

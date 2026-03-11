@@ -1,0 +1,1237 @@
+{
+  "version": "1.1.0",
+  "diagrams": [
+    {
+      "ordinal": 0,
+      "scrollPosition": {
+        "x": 1706.0132430000019,
+        "y": 0
+      },
+      "nodes": [
+        {
+          "location": {
+            "x": 1802.0528016330459,
+            "y": 818.54803372140941
+          },
+          "nodeIndex": "Item",
+          "nodeLineageTag": "15e037bf-2c91-4a8e-8264-65fb7172d679",
+          "size": {
+            "height": 104,
+            "width": 254
+          },
+          "zIndex": 20,
+          "expandedHeight": 187
+        },
+        {
+          "location": {
+            "x": 1586.15850818414,
+            "y": 632.8296605882133
+          },
+          "nodeIndex": "Date",
+          "nodeLineageTag": "933e9efb-78e7-4e63-b6f8-7e3b861d9284",
+          "size": {
+            "height": 104,
+            "width": 254
+          },
+          "zIndex": 28,
+          "expandedHeight": 187
+        },
+        {
+          "location": {
+            "x": 1951.5304913973685,
+            "y": 471.74543508767482
+          },
+          "nodeIndex": "Work Center",
+          "nodeLineageTag": "35c4c490-e6e2-463c-8116-538f2549651e",
+          "size": {
+            "height": 187,
+            "width": 254
+          },
+          "zIndex": 13
+        },
+        {
+          "location": {
+            "x": 2616.3012534430582,
+            "y": 0
+          },
+          "nodeIndex": "Date Table Setup",
+          "nodeLineageTag": "9ceeab9e-4f28-48d2-a391-6f19e8007e8b",
+          "size": {
+            "height": 300,
+            "width": 234
+          },
+          "zIndex": 14
+        },
+        {
+          "location": {
+            "x": 2920.4135853324574,
+            "y": 0
+          },
+          "nodeIndex": "Working Days",
+          "nodeLineageTag": "dae7506c-b59f-469c-8e15-b5340607231c",
+          "size": {
+            "height": 128,
+            "width": 234
+          },
+          "zIndex": 15
+        },
+        {
+          "location": {
+            "x": 3206.6550934476259,
+            "y": 0
+          },
+          "nodeIndex": "Date Ref",
+          "nodeLineageTag": "1e1ed886-1a22-43c4-999b-4693399c6ced",
+          "size": {
+            "height": 300,
+            "width": 234
+          },
+          "zIndex": 16
+        },
+        {
+          "location": {
+            "x": 5196.159708446281,
+            "y": 333.94491808815371
+          },
+          "nodeIndex": "COMPANY",
+          "nodeLineageTag": "72bb9788-fa47-4071-858a-5c2b6d49c635",
+          "size": {
+            "height": 104,
+            "width": 234
+          },
+          "zIndex": 17
+        },
+        {
+          "location": {
+            "x": 5507.72747685644,
+            "y": 513.7465023104786
+          },
+          "nodeIndex": "Localized Labels",
+          "nodeLineageTag": "f156500f-aa19-4c6e-ba7c-ed4fabc81e7e",
+          "size": {
+            "height": 300,
+            "width": 234
+          },
+          "zIndex": 19
+        },
+        {
+          "location": {
+            "x": 1637.8785896424504,
+            "y": 357.968822391941
+          },
+          "nodeIndex": "Machine Center",
+          "nodeLineageTag": "ec3e7df6-052e-4b94-94f7-665881f0d00f",
+          "size": {
+            "height": 145,
+            "width": 234
+          },
+          "zIndex": 27
+        },
+        {
+          "location": {
+            "x": 3685.3521315727294,
+            "y": 0
+          },
+          "nodeIndex": "Location",
+          "nodeLineageTag": "b3bae95d-0eb7-400f-b2da-967e08b90b57",
+          "size": {
+            "height": 152,
+            "width": 234
+          },
+          "zIndex": 8
+        },
+        {
+          "location": {
+            "x": 4502.841603369312,
+            "y": 349.72172204346538
+          },
+          "nodeIndex": "Routing Link",
+          "nodeLineageTag": "cd950cc8-17b7-48d2-a94f-f136fe86537f",
+          "size": {
+            "height": 128,
+            "width": 234
+          },
+          "zIndex": 10
+        },
+        {
+          "location": {
+            "x": 4658.6254875743925,
+            "y": 557.01353877155475
+          },
+          "nodeIndex": "Routing",
+          "nodeLineageTag": "1e4ae15e-fafd-484d-bf9a-a85aa6218ec9",
+          "size": {
+            "height": 176,
+            "width": 234
+          },
+          "zIndex": 12
+        },
+        {
+          "location": {
+            "x": 4205.5689686723,
+            "y": 641.3505344397521
+          },
+          "nodeIndex": "Work Center Group",
+          "nodeLineageTag": "9b159fa1-9b4a-4a68-b1a5-3d1586c93cc4",
+          "size": {
+            "height": 128,
+            "width": 234
+          },
+          "zIndex": 0
+        },
+        {
+          "location": {
+            "x": 3485.4839385965015,
+            "y": 207.05460277683059
+          },
+          "nodeIndex": "Production Order Lines",
+          "size": {
+            "height": 300,
+            "width": 234
+          },
+          "zIndex": 0
+        },
+        {
+          "location": {
+            "x": 3594.9984166601607,
+            "y": 748.0221900833368
+          },
+          "nodeIndex": "Prod Order Components",
+          "size": {
+            "height": 300,
+            "width": 234
+          },
+          "zIndex": 0
+        },
+        {
+          "location": {
+            "x": 3956.0035961843087,
+            "y": -10
+          },
+          "nodeIndex": "Prod Order Capacity Need",
+          "size": {
+            "height": 128,
+            "width": 234
+          },
+          "zIndex": 0
+        },
+        {
+          "location": {
+            "x": 4024.4537342662015,
+            "y": 170.86109829025906
+          },
+          "nodeIndex": "Prod Order Routing Lines",
+          "size": {
+            "height": 300,
+            "width": 234
+          },
+          "zIndex": 0
+        },
+        {
+          "location": {
+            "x": 3855.8829051197581,
+            "y": 1100.7010688795042
+          },
+          "nodeIndex": "Item Ledger Entries",
+          "size": {
+            "height": 300,
+            "width": 234
+          },
+          "zIndex": 0
+        },
+        {
+          "location": {
+            "x": 4087.1166146262667,
+            "y": 747.08815780140208
+          },
+          "nodeIndex": "Capacity Ledger Entries",
+          "size": {
+            "height": 300,
+            "width": 234
+          },
+          "zIndex": 0
+        },
+        {
+          "location": {
+            "x": 3864.593421106727,
+            "y": 528.10206168054367
+          },
+          "nodeIndex": "Calendar Entries",
+          "size": {
+            "height": 176,
+            "width": 234
+          },
+          "zIndex": 0
+        },
+        {
+          "location": {
+            "x": 4489.5689686723,
+            "y": 653.3505344397521
+          },
+          "nodeIndex": "Manufacturing Setup",
+          "nodeLineageTag": "d7b801fd-711d-4bb6-abe5-e93e50f93564",
+          "size": {
+            "height": 104,
+            "width": 234
+          },
+          "zIndex": 0
+        },
+        {
+          "location": {
+            "x": 4773.5689686723,
+            "y": 555.3505344397521
+          },
+          "nodeIndex": "Value Entries",
+          "nodeLineageTag": "8973d907-1a71-4e19-835f-993978526a6e",
+          "size": {
+            "height": 300,
+            "width": 234
+          },
+          "zIndex": 0
+        },
+        {
+          "location": {
+            "x": 6477.5689686723,
+            "y": 555.3505344397521
+          },
+          "nodeIndex": "Dimension Sets",
+          "nodeLineageTag": "5a56d38b-3b5a-49ee-94a4-970fcce4517a",
+          "size": {
+            "height": 300,
+            "width": 234
+          },
+          "zIndex": 0
+        },
+        {
+          "location": {
+            "x": 5175.4104604881595,
+            "y": 569.3505344397521
+          },
+          "nodeIndex": "Inventory Adjustment Entry Order Line",
+          "nodeLineageTag": "d2b70d4a-bb95-4026-bea1-800ece7bfdd6",
+          "size": {
+            "height": 272,
+            "width": 234
+          },
+          "zIndex": 0
+        },
+        {
+          "location": {
+            "x": 4205.5689686723,
+            "y": 629.3505344397521
+          },
+          "nodeIndex": "Production Orders",
+          "size": {
+            "height": 152,
+            "width": 234
+          },
+          "zIndex": 0
+        },
+        {
+          "location": {
+            "x": 5175.4104604881595,
+            "y": 653.3505344397521
+          },
+          "nodeIndex": "ENVIRONMENT",
+          "nodeLineageTag": "f4c87e7d-b2d3-4759-9f0d-210029dfe1d6",
+          "size": {
+            "height": 104,
+            "width": 234
+          },
+          "zIndex": 0
+        },
+        {
+          "location": {
+            "x": 5459.4104604881595,
+            "y": 653.3505344397521
+          },
+          "nodeIndex": "Back Links",
+          "nodeLineageTag": "3e1e429b-5a8a-4753-81a6-7104a1063929",
+          "size": {
+            "height": 104,
+            "width": 234
+          },
+          "zIndex": 0
+        },
+        {
+          "location": {
+            "x": 6027.4104604881595,
+            "y": 641.3505344397521
+          },
+          "nodeIndex": "Time Factors",
+          "nodeLineageTag": "0fe20238-2afe-49f0-ba36-6d399774a635",
+          "size": {
+            "height": 128,
+            "width": 234
+          },
+          "zIndex": 0
+        },
+        {
+          "location": {
+            "x": 5175.4104604881595,
+            "y": 629.3505344397521
+          },
+          "nodeIndex": "Item Category",
+          "nodeLineageTag": "74f6110d-5f70-4704-a3e1-8795ec849dc4",
+          "size": {
+            "height": 152,
+            "width": 234
+          },
+          "zIndex": 0
+        },
+        {
+          "location": {},
+          "nodeIndex": "Translated Localized Labels",
+          "size": {
+            "height": 300,
+            "width": 234
+          },
+          "zIndex": 0
+        }
+      ],
+      "name": "All tables",
+      "zoomValue": 56.447393005377677,
+      "pinKeyFieldsToTop": false,
+      "showExtraHeaderInfo": false,
+      "hideKeyFieldsWhenCollapsed": false,
+      "tablesLocked": false
+    },
+    {
+      "ordinal": 1,
+      "scrollPosition": {
+        "x": 0,
+        "y": 0
+      },
+      "nodes": [
+        {
+          "location": {
+            "x": 9,
+            "y": 183.82499263243511
+          },
+          "nodeIndex": "Routing",
+          "nodeLineageTag": "1e4ae15e-fafd-484d-bf9a-a85aa6218ec9",
+          "size": {
+            "height": 104,
+            "width": 234
+          },
+          "zIndex": 6,
+          "expandedHeight": 176
+        },
+        {
+          "location": {
+            "x": 464.18475118062975,
+            "y": 212
+          },
+          "nodeIndex": "Prod Order Capacity Need",
+          "size": {
+            "height": 351,
+            "width": 234
+          },
+          "zIndex": 7
+        },
+        {
+          "location": {
+            "x": 56.200000762939453,
+            "y": 416
+          },
+          "nodeIndex": "Production Orders",
+          "nodeLineageTag": "71868c65-77d4-4c54-921e-130d2f685a53",
+          "size": {
+            "height": 298,
+            "width": 234
+          },
+          "zIndex": 1
+        },
+        {
+          "location": {
+            "x": 784,
+            "y": 219
+          },
+          "nodeIndex": "Work Center",
+          "nodeLineageTag": "35c4c490-e6e2-463c-8116-538f2549651e",
+          "size": {
+            "height": 224,
+            "width": 234
+          },
+          "zIndex": 2
+        },
+        {
+          "location": {
+            "x": 795,
+            "y": 458
+          },
+          "nodeIndex": "Work Center Group",
+          "nodeLineageTag": "9b159fa1-9b4a-4a68-b1a5-3d1586c93cc4",
+          "size": {
+            "height": 128,
+            "width": 234
+          },
+          "zIndex": 3
+        },
+        {
+          "location": {
+            "x": 305,
+            "y": 0
+          },
+          "nodeIndex": "Date",
+          "nodeLineageTag": "933e9efb-78e7-4e63-b6f8-7e3b861d9284",
+          "size": {
+            "height": 104,
+            "width": 234
+          },
+          "zIndex": 4,
+          "expandedHeight": 300
+        },
+        {
+          "location": {
+            "x": 777,
+            "y": 0
+          },
+          "nodeIndex": "Machine Center",
+          "nodeLineageTag": "ec3e7df6-052e-4b94-94f7-665881f0d00f",
+          "size": {
+            "height": 200,
+            "width": 234
+          },
+          "zIndex": 5
+        }
+      ],
+      "name": "Prod. Order Capacity Need",
+      "zoomValue": 100,
+      "pinKeyFieldsToTop": false,
+      "showExtraHeaderInfo": false,
+      "hideKeyFieldsWhenCollapsed": false,
+      "tablesLocked": false
+    },
+    {
+      "ordinal": 2,
+      "scrollPosition": {
+        "x": 0,
+        "y": 0
+      },
+      "nodes": [
+        {
+          "location": {
+            "x": 70.747087209868482,
+            "y": 144.09095200105833
+          },
+          "nodeIndex": "Item",
+          "nodeLineageTag": "15e037bf-2c91-4a8e-8264-65fb7172d679",
+          "size": {
+            "height": 104,
+            "width": 234
+          },
+          "zIndex": 8,
+          "expandedHeight": 316
+        },
+        {
+          "location": {
+            "x": 71.547846604846541,
+            "y": 0
+          },
+          "nodeIndex": "Date",
+          "nodeLineageTag": "933e9efb-78e7-4e63-b6f8-7e3b861d9284",
+          "size": {
+            "height": 104,
+            "width": 234
+          },
+          "zIndex": 7,
+          "expandedHeight": 300
+        },
+        {
+          "location": {
+            "x": 69,
+            "y": 296.83564814593046
+          },
+          "nodeIndex": "Routing Link",
+          "nodeLineageTag": "cd950cc8-17b7-48d2-a94f-f136fe86537f",
+          "size": {
+            "height": 104,
+            "width": 246
+          },
+          "zIndex": 6,
+          "expandedHeight": 161
+        },
+        {
+          "location": {
+            "x": 489.54099089353622,
+            "y": 206.70718401493275
+          },
+          "nodeIndex": "Prod Order Components",
+          "nodeLineageTag": "ce34ad92-5537-41fa-9cd7-8b79f67d987d",
+          "size": {
+            "height": 452,
+            "width": 270
+          },
+          "zIndex": 1
+        },
+        {
+          "location": {
+            "x": 79.200000762939453,
+            "y": 465
+          },
+          "nodeIndex": "Location",
+          "nodeLineageTag": "b3bae95d-0eb7-400f-b2da-967e08b90b57",
+          "size": {
+            "height": 152,
+            "width": 234
+          },
+          "zIndex": 2
+        },
+        {
+          "location": {
+            "x": 906.00000381469727,
+            "y": 287
+          },
+          "nodeIndex": "Production Orders",
+          "nodeLineageTag": "71868c65-77d4-4c54-921e-130d2f685a53",
+          "size": {
+            "height": 333,
+            "width": 234
+          },
+          "zIndex": 0
+        }
+      ],
+      "name": "Prod. Order Components",
+      "zoomValue": 100,
+      "pinKeyFieldsToTop": false,
+      "showExtraHeaderInfo": false,
+      "hideKeyFieldsWhenCollapsed": false,
+      "tablesLocked": false
+    },
+    {
+      "ordinal": 3,
+      "scrollPosition": {
+        "x": 0,
+        "y": 0
+      },
+      "nodes": [
+        {
+          "location": {
+            "x": 897,
+            "y": 89
+          },
+          "nodeIndex": "Item",
+          "nodeLineageTag": "15e037bf-2c91-4a8e-8264-65fb7172d679",
+          "size": {
+            "height": 104,
+            "width": 234
+          },
+          "zIndex": 4,
+          "expandedHeight": 181
+        },
+        {
+          "location": {
+            "x": 898.20000076293945,
+            "y": 355
+          },
+          "nodeIndex": "Location",
+          "nodeLineageTag": "b3bae95d-0eb7-400f-b2da-967e08b90b57",
+          "size": {
+            "height": 104,
+            "width": 234
+          },
+          "zIndex": 3,
+          "expandedHeight": 152
+        },
+        {
+          "location": {
+            "x": 898.20000076293945,
+            "y": 226.39999961853027
+          },
+          "nodeIndex": "Date",
+          "nodeLineageTag": "933e9efb-78e7-4e63-b6f8-7e3b861d9284",
+          "size": {
+            "height": 104,
+            "width": 234
+          },
+          "zIndex": 2,
+          "expandedHeight": 145
+        },
+        {
+          "location": {
+            "x": 493,
+            "y": 185
+          },
+          "nodeIndex": "Production Order Lines",
+          "nodeLineageTag": "a44ea935-88f3-4cbe-b453-1df1c006bef0",
+          "size": {
+            "height": 419,
+            "width": 266
+          },
+          "zIndex": 5
+        },
+        {
+          "location": {
+            "x": 187,
+            "y": 167
+          },
+          "nodeIndex": "Production Orders",
+          "nodeLineageTag": "71868c65-77d4-4c54-921e-130d2f685a53",
+          "size": {
+            "height": 104,
+            "width": 234
+          },
+          "zIndex": 1,
+          "expandedHeight": 440
+        },
+        {
+          "location": {
+            "x": 188,
+            "y": 0
+          },
+          "nodeIndex": "Dimension Sets",
+          "nodeLineageTag": "5a56d38b-3b5a-49ee-94a4-970fcce4517a",
+          "size": {
+            "height": 104,
+            "width": 234
+          },
+          "zIndex": 0,
+          "expandedHeight": 300
+        }
+      ],
+      "name": "Production Order Lines",
+      "zoomValue": 100,
+      "pinKeyFieldsToTop": false,
+      "showExtraHeaderInfo": false,
+      "hideKeyFieldsWhenCollapsed": false,
+      "tablesLocked": false
+    },
+    {
+      "ordinal": 4,
+      "scrollPosition": {
+        "x": 0,
+        "y": 153
+      },
+      "nodes": [
+        {
+          "location": {
+            "x": 195.20000076293945,
+            "y": 475
+          },
+          "nodeIndex": "Location",
+          "nodeLineageTag": "b3bae95d-0eb7-400f-b2da-967e08b90b57",
+          "size": {
+            "height": 104,
+            "width": 234
+          },
+          "zIndex": 7,
+          "expandedHeight": 152
+        },
+        {
+          "location": {
+            "x": 195.20000076293945,
+            "y": 622
+          },
+          "nodeIndex": "Routing Link",
+          "nodeLineageTag": "cd950cc8-17b7-48d2-a94f-f136fe86537f",
+          "size": {
+            "height": 104,
+            "width": 234
+          },
+          "zIndex": 6,
+          "expandedHeight": 145
+        },
+        {
+          "location": {
+            "x": 210.20000076293945,
+            "y": 0
+          },
+          "nodeIndex": "Date",
+          "nodeLineageTag": "933e9efb-78e7-4e63-b6f8-7e3b861d9284",
+          "size": {
+            "height": 104,
+            "width": 234
+          },
+          "zIndex": 5,
+          "expandedHeight": 300
+        },
+        {
+          "location": {
+            "x": 205.20000076293945,
+            "y": 124
+          },
+          "nodeIndex": "Routing",
+          "nodeLineageTag": "1e4ae15e-fafd-484d-bf9a-a85aa6218ec9",
+          "size": {
+            "height": 104,
+            "width": 234
+          },
+          "zIndex": 8,
+          "expandedHeight": 176
+        },
+        {
+          "location": {
+            "x": 0,
+            "y": 297.19999980926514
+          },
+          "nodeIndex": "Work Center",
+          "nodeLineageTag": "35c4c490-e6e2-463c-8116-538f2549651e",
+          "size": {
+            "height": 128,
+            "width": 234
+          },
+          "zIndex": 4,
+          "expandedHeight": 176
+        },
+        {
+          "location": {
+            "x": 194.20000076293945,
+            "y": 755.200008392334
+          },
+          "nodeIndex": "Work Center Group",
+          "nodeLineageTag": "9b159fa1-9b4a-4a68-b1a5-3d1586c93cc4",
+          "size": {
+            "height": 104,
+            "width": 234
+          },
+          "zIndex": 3,
+          "expandedHeight": 128
+        },
+        {
+          "location": {
+            "x": 705.20000076293945,
+            "y": 153.19999694824219
+          },
+          "nodeIndex": "Prod Order Routing Lines",
+          "nodeLineageTag": "619d4105-2170-4e3d-8c4d-fb50f10866b6",
+          "size": {
+            "height": 560,
+            "width": 234
+          },
+          "zIndex": 10
+        },
+        {
+          "location": {
+            "x": 276,
+            "y": 295.39999389648438
+          },
+          "nodeIndex": "Machine Center",
+          "nodeLineageTag": "ec3e7df6-052e-4b94-94f7-665881f0d00f",
+          "size": {
+            "height": 128,
+            "width": 234
+          },
+          "zIndex": 2,
+          "expandedHeight": 176
+        },
+        {
+          "location": {
+            "x": 1006.2000007629395,
+            "y": 303.79999923706055
+          },
+          "nodeIndex": "Production Orders",
+          "nodeLineageTag": "71868c65-77d4-4c54-921e-130d2f685a53",
+          "size": {
+            "height": 360,
+            "width": 234
+          },
+          "zIndex": 9
+        },
+        {
+          "location": {
+            "x": 1409,
+            "y": 398
+          },
+          "nodeIndex": "Item Category",
+          "nodeLineageTag": "74f6110d-5f70-4704-a3e1-8795ec849dc4",
+          "size": {
+            "height": 300,
+            "width": 234
+          },
+          "zIndex": 1
+        }
+      ],
+      "name": "Prod. Order Routing Lines",
+      "zoomValue": 100,
+      "pinKeyFieldsToTop": false,
+      "showExtraHeaderInfo": false,
+      "hideKeyFieldsWhenCollapsed": false,
+      "tablesLocked": false
+    },
+    {
+      "ordinal": 5,
+      "scrollPosition": {
+        "x": 0,
+        "y": 0
+      },
+      "nodes": [
+        {
+          "location": {
+            "x": 638.96333544031063,
+            "y": 35
+          },
+          "nodeIndex": "Item",
+          "nodeLineageTag": "15e037bf-2c91-4a8e-8264-65fb7172d679",
+          "size": {
+            "height": 128,
+            "width": 234
+          },
+          "zIndex": 5,
+          "expandedHeight": 191
+        },
+        {
+          "location": {
+            "x": 664.07457933273076,
+            "y": 405.75611983602607
+          },
+          "nodeIndex": "Location",
+          "nodeLineageTag": "b3bae95d-0eb7-400f-b2da-967e08b90b57",
+          "size": {
+            "height": 104,
+            "width": 234
+          },
+          "zIndex": 3,
+          "expandedHeight": 152
+        },
+        {
+          "location": {
+            "x": 630.877925201867,
+            "y": 239.12163733219359
+          },
+          "nodeIndex": "Date",
+          "nodeLineageTag": "933e9efb-78e7-4e63-b6f8-7e3b861d9284",
+          "size": {
+            "height": 104,
+            "width": 234
+          },
+          "zIndex": 2,
+          "expandedHeight": 187
+        },
+        {
+          "location": {
+            "x": 300.91285905934592,
+            "y": 0
+          },
+          "nodeIndex": "Item Ledger Entries",
+          "nodeLineageTag": "fe65b27a-8945-4e5d-868d-f3cef8834849",
+          "size": {
+            "height": 517,
+            "width": 234
+          },
+          "zIndex": 6
+        },
+        {
+          "location": {
+            "x": 0,
+            "y": 113
+          },
+          "nodeIndex": "Production Orders",
+          "nodeLineageTag": "71868c65-77d4-4c54-921e-130d2f685a53",
+          "size": {
+            "height": 425,
+            "width": 234
+          },
+          "zIndex": 1
+        },
+        {
+          "location": {
+            "x": 967,
+            "y": 12
+          },
+          "nodeIndex": "Item Category",
+          "nodeLineageTag": "74f6110d-5f70-4704-a3e1-8795ec849dc4",
+          "size": {
+            "height": 152,
+            "width": 234
+          },
+          "zIndex": 4
+        }
+      ],
+      "name": "Item Ledger Entries",
+      "zoomValue": 88.305847076461774,
+      "pinKeyFieldsToTop": false,
+      "showExtraHeaderInfo": false,
+      "hideKeyFieldsWhenCollapsed": false,
+      "tablesLocked": false
+    },
+    {
+      "ordinal": 6,
+      "scrollPosition": {
+        "x": 0,
+        "y": 59.072749691738586
+      },
+      "nodes": [
+        {
+          "location": {
+            "x": 0,
+            "y": 365.19999885559082
+          },
+          "nodeIndex": "Routing",
+          "nodeLineageTag": "1e4ae15e-fafd-484d-bf9a-a85aa6218ec9",
+          "size": {
+            "height": 104,
+            "width": 234
+          },
+          "zIndex": 3,
+          "expandedHeight": 145
+        },
+        {
+          "location": {
+            "x": 0,
+            "y": 671
+          },
+          "nodeIndex": "Item",
+          "nodeLineageTag": "15e037bf-2c91-4a8e-8264-65fb7172d679",
+          "size": {
+            "height": 104,
+            "width": 234
+          },
+          "zIndex": 4,
+          "expandedHeight": 201
+        },
+        {
+          "location": {
+            "x": 0,
+            "y": 528
+          },
+          "nodeIndex": "Date",
+          "nodeLineageTag": "933e9efb-78e7-4e63-b6f8-7e3b861d9284",
+          "size": {
+            "height": 104,
+            "width": 234
+          },
+          "zIndex": 5,
+          "expandedHeight": 300
+        },
+        {
+          "location": {
+            "x": 0,
+            "y": 0
+          },
+          "nodeIndex": "Work Center",
+          "nodeLineageTag": "35c4c490-e6e2-463c-8116-538f2549651e",
+          "size": {
+            "height": 128,
+            "width": 234
+          },
+          "zIndex": 6,
+          "expandedHeight": 200
+        },
+        {
+          "location": {
+            "x": 0,
+            "y": 185.20000457763672
+          },
+          "nodeIndex": "Machine Center",
+          "nodeLineageTag": "ec3e7df6-052e-4b94-94f7-665881f0d00f",
+          "size": {
+            "height": 104,
+            "width": 234
+          },
+          "zIndex": 7,
+          "expandedHeight": 176
+        },
+        {
+          "location": {
+            "x": 924.20000076293945,
+            "y": 504
+          },
+          "nodeIndex": "Work Center Group",
+          "nodeLineageTag": "9b159fa1-9b4a-4a68-b1a5-3d1586c93cc4",
+          "size": {
+            "height": 128,
+            "width": 234
+          },
+          "zIndex": 2
+        },
+        {
+          "location": {
+            "x": 493.20000076293945,
+            "y": 212
+          },
+          "nodeIndex": "Capacity Ledger Entries",
+          "size": {
+            "height": 662,
+            "width": 234
+          },
+          "zIndex": 8
+        },
+        {
+          "location": {
+            "x": 905.20000076293945,
+            "y": 12
+          },
+          "nodeIndex": "Production Orders",
+          "nodeLineageTag": "71868c65-77d4-4c54-921e-130d2f685a53",
+          "size": {
+            "height": 427,
+            "width": 234
+          },
+          "zIndex": 1
+        }
+      ],
+      "name": "Capacity Ledger Entries",
+      "zoomValue": 99.8768472906404,
+      "pinKeyFieldsToTop": false,
+      "showExtraHeaderInfo": false,
+      "hideKeyFieldsWhenCollapsed": false,
+      "tablesLocked": false
+    },
+    {
+      "ordinal": 7,
+      "scrollPosition": {
+        "x": 0,
+        "y": 0
+      },
+      "nodes": [
+        {
+          "location": {
+            "x": 968.60000228881836,
+            "y": 240
+          },
+          "nodeIndex": "Date",
+          "nodeLineageTag": "933e9efb-78e7-4e63-b6f8-7e3b861d9284",
+          "size": {
+            "height": 104,
+            "width": 234
+          },
+          "zIndex": 4,
+          "expandedHeight": 300
+        },
+        {
+          "location": {
+            "x": 59.200000762939453,
+            "y": 190
+          },
+          "nodeIndex": "Work Center",
+          "nodeLineageTag": "35c4c490-e6e2-463c-8116-538f2549651e",
+          "size": {
+            "height": 128,
+            "width": 234
+          },
+          "zIndex": 2,
+          "expandedHeight": 232
+        },
+        {
+          "location": {
+            "x": 68.200000762939453,
+            "y": 388
+          },
+          "nodeIndex": "Machine Center",
+          "nodeLineageTag": "ec3e7df6-052e-4b94-94f7-665881f0d00f",
+          "size": {
+            "height": 128,
+            "width": 234
+          },
+          "zIndex": 1,
+          "expandedHeight": 176
+        },
+        {
+          "location": {
+            "x": 67.200000762939453,
+            "y": 0
+          },
+          "nodeIndex": "Work Center Group",
+          "nodeLineageTag": "9b159fa1-9b4a-4a68-b1a5-3d1586c93cc4",
+          "size": {
+            "height": 128,
+            "width": 234
+          },
+          "zIndex": 0
+        },
+        {
+          "location": {
+            "x": 583.20000076293945,
+            "y": 223
+          },
+          "nodeIndex": "Calendar Entries",
+          "size": {
+            "height": 398,
+            "width": 234
+          },
+          "zIndex": 0
+        }
+      ],
+      "name": "Calendar Entries",
+      "zoomValue": 100,
+      "pinKeyFieldsToTop": false,
+      "showExtraHeaderInfo": false,
+      "hideKeyFieldsWhenCollapsed": false,
+      "tablesLocked": false
+    },
+    {
+      "ordinal": 8,
+      "scrollPosition": {
+        "x": 0,
+        "y": 0
+      },
+      "nodes": [
+        {
+          "location": {
+            "x": 520,
+            "y": 118
+          },
+          "nodeIndex": "Value Entries",
+          "nodeLineageTag": "8973d907-1a71-4e19-835f-993978526a6e",
+          "size": {
+            "height": 512,
+            "width": 234
+          },
+          "zIndex": 4
+        },
+        {
+          "location": {
+            "x": 47,
+            "y": 71
+          },
+          "nodeIndex": "Item",
+          "nodeLineageTag": "15e037bf-2c91-4a8e-8264-65fb7172d679",
+          "size": {
+            "height": 157,
+            "width": 234
+          },
+          "zIndex": 1
+        },
+        {
+          "location": {
+            "x": 859,
+            "y": 25
+          },
+          "nodeIndex": "Date",
+          "nodeLineageTag": "933e9efb-78e7-4e63-b6f8-7e3b861d9284",
+          "size": {
+            "height": 177,
+            "width": 234
+          },
+          "zIndex": 2
+        },
+        {
+          "location": {
+            "x": 46,
+            "y": 282
+          },
+          "nodeIndex": "Location",
+          "nodeLineageTag": "b3bae95d-0eb7-400f-b2da-967e08b90b57",
+          "size": {
+            "height": 152,
+            "width": 234
+          },
+          "zIndex": 3
+        },
+        {
+          "location": {
+            "x": 939,
+            "y": 429
+          },
+          "nodeIndex": "Production Orders",
+          "nodeLineageTag": "71868c65-77d4-4c54-921e-130d2f685a53",
+          "size": {
+            "height": 104,
+            "width": 234
+          },
+          "zIndex": 5,
+          "expandedHeight": 300
+        }
+      ],
+      "name": "Value Entries",
+      "zoomValue": 100,
+      "pinKeyFieldsToTop": false,
+      "showExtraHeaderInfo": false,
+      "hideKeyFieldsWhenCollapsed": false,
+      "tablesLocked": false
+    }
+  ],
+  "selectedDiagram": "Capacity Ledger Entries",
+  "defaultDiagram": "All tables"
+}

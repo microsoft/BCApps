@@ -1,0 +1,20 @@
+// ------------------------------------------------------------------------------------------------
+// Copyright (c) Microsoft Corporation. All rights reserved.
+// Licensed under the MIT License. See License.txt in the project root for license information.
+// ------------------------------------------------------------------------------------------------
+
+namespace Microsoft.Integration.Shopify;
+
+codeunit 30227 "Shpfy GQL NextReturnLines" implements "Shpfy IGraphQL"
+{
+
+    internal procedure GetGraphQL(): Text
+    begin
+        exit('{"query":"{ return(id: \"gid://shopify/Return/{{ReturnId}}\") { returnLineItems(first: 10, after:\"{{After}}\") { pageInfo { endCursor hasNextPage } nodes { id quantity returnReasonDefinition { name handle } returnReasonNote refundableQuantity refundedQuantity customerNote ... on UnverifiedReturnLineItem { __typename unitPrice { amount currencyCode } } ... on ReturnLineItem { __typename totalWeight { unit value } withCodeDiscountedTotalPriceSet { presentmentMoney { amount } shopMoney { amount } } fulfillmentLineItem { id lineItem { id } quantity originalTotalSet { presentmentMoney { amount } shopMoney { amount } } discountedTotalSet { presentmentMoney { amount } shopMoney { amount }}}}}}}}"}');
+    end;
+
+    internal procedure GetExpectedCost(): Integer
+    begin
+        exit(15);
+    end;
+}

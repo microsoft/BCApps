@@ -1,0 +1,205 @@
+table 'Inventory Adjustment Entry Order Line'
+	isHidden
+	lineageTag: d2b70d4a-bb95-4026-bea1-800ece7bfdd6
+
+	column itemNo
+		dataType: string
+		isHidden
+		lineageTag: 36e57c30-4a5a-4468-927c-2d30743a4ba0
+		summarizeBy: none
+		sourceColumn: itemNo
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column orderLineNo
+		dataType: int64
+		isHidden
+		formatString: 0
+		lineageTag: 99f3b3eb-4a57-408a-a316-7027b991f572
+		summarizeBy: sum
+		sourceColumn: orderLineNo
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column orderNo
+		dataType: string
+		isHidden
+		lineageTag: ba77d0dc-6c97-4b02-ba9d-9f325c46bf42
+		summarizeBy: none
+		sourceColumn: orderNo
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column singleLevelMaterialCost
+		dataType: double
+		isHidden
+		lineageTag: 304bfd55-8cfe-4cb1-bcd0-b731d3ca3e8f
+		summarizeBy: sum
+		sourceColumn: singleLevelMaterialCost
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column iSFinished
+		dataType: boolean
+		isHidden
+		formatString: """TRUE"";""TRUE"";""FALSE"""
+		lineageTag: 38e5de38-7d6e-4f74-a79a-ed82d6cb50ca
+		summarizeBy: none
+		sourceColumn: iSFinished
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column auxiliaryIndex1
+		dataType: string
+		isHidden
+		lineageTag: 98eabbcd-4733-4ed3-aa02-5af7a3011693
+		summarizeBy: none
+		sourceColumn: auxiliaryIndex1
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column ETag
+		dataType: string
+		isHidden
+		lineageTag: 88f723d9-1e3f-41c5-a062-62de6ba50132
+		summarizeBy: none
+		sourceColumn: ETag
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Adjustment Order Key'
+		dataType: string
+		isHidden
+		lineageTag: b35a9a87-21b5-464c-842a-bb49ab518e72
+		summarizeBy: none
+		sourceColumn: Adjustment Order Key
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column singleLevelCapacityCost
+		dataType: double
+		isHidden
+		lineageTag: 105c35d8-8c46-419e-a9a0-e97ebc6f5cfd
+		summarizeBy: sum
+		sourceColumn: singleLevelCapacityCost
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column singleLevelSubcontrdCost
+		dataType: double
+		isHidden
+		lineageTag: 6a93a7ad-96cf-4f6b-8d6a-eee752d27aa8
+		summarizeBy: sum
+		sourceColumn: singleLevelSubcontrdCost
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column singleLevelCapOvhdCost
+		dataType: double
+		isHidden
+		lineageTag: e9ffed63-9c12-4b3d-af87-06c702faea65
+		summarizeBy: sum
+		sourceColumn: singleLevelCapOvhdCost
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column singleLevelMfgOvhdCost
+		dataType: double
+		isHidden
+		lineageTag: d787adfc-7d2b-4c1b-892c-dcccd5ae38be
+		summarizeBy: sum
+		sourceColumn: singleLevelMfgOvhdCost
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column completelyInvoiced
+		dataType: boolean
+		isHidden
+		formatString: """TRUE"";""TRUE"";""FALSE"""
+		lineageTag: 259424c9-61d5-4940-9c1e-c050f376bf68
+		summarizeBy: none
+		sourceColumn: completelyInvoiced
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column indirectCostPercent
+		dataType: double
+		isHidden
+		lineageTag: b22b39b3-e500-4b18-9fe6-d514bd40b928
+		summarizeBy: sum
+		sourceColumn: indirectCostPercent
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column overheadRate
+		dataType: double
+		isHidden
+		lineageTag: 149cff9b-2810-4ae9-931e-7cb1055c01e0
+		summarizeBy: sum
+		sourceColumn: overheadRate
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	partition 'Inventory Adjustment Entry Order Line' = m
+		mode: import
+		queryGroup: 'Fact Tables'
+		source =
+				let
+				    Source = Dynamics365BusinessCentral.ApiContentsWithOptions(
+				        ENVIRONMENT, COMPANY,API_ENDPOINT, []
+				    ),
+				    TableData = Source{[Name = "inventoryAdjustmentEntryOrders", Signature = "table"]}[Data],
+				    #"Added Custom" = Table.AddColumn(TableData, "Adjustment Order Key", each [orderNo] & Number.ToText([orderLineNo]))
+				in
+				    #"Added Custom"
+
+	changedProperty = IsHidden
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Table
+

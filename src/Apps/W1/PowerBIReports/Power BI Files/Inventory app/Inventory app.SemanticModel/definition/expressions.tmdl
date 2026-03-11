@@ -1,0 +1,138 @@
+expression Dimensions =
+		let
+		    Source = Dynamics365BusinessCentral.ApiContentsWithOptions(ENVIRONMENT, COMPANY,API_ENDPOINT, []),
+		    TableData = Source{[Name="dimensions",Signature="table"]}[Data],
+		    #"Changed Type" = Table.TransformColumnTypes(
+		        TableData,
+		        {
+		            {"dim1Code", type text},
+		            {"dim1Name", type text},
+		            {"dim1Caption", type text},
+		            {"dim2Code", type text},
+		            {"dim2Name", type text},
+		            {"dim2Caption", type text},
+		            {"dim3Code", type text},
+		            {"dim3Name", type text},
+		            {"dim3Caption", type text},
+		            {"dim4Code", type text},
+		            {"dim4Name", type text},
+		            {"dim4Caption", type text},
+		            {"dim5Code", type text},
+		            {"dim5Name", type text},
+		            {"dim5Caption", type text},
+		            {"dim6Code", type text},
+		            {"dim6Name", type text},
+		            {"dim6Caption", type text},
+		            {"dim7Code", type text},
+		            {"dim7Name", type text},
+		            {"dim7Caption", type text},
+		            {"dim8Code", type text},
+		            {"dim8Name", type text},
+		            {"dim8Caption", type text}
+		        }
+		    ),
+		    #"Removed Columns" = Table.RemoveColumns(#"Changed Type",{"ETag"})
+		in
+		    #"Removed Columns"
+	lineageTag: 09f7bb37-4fd6-449b-b880-368a9c934e51
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Table
+
+expression DimensionSet_Blank =
+		let
+		    Source = Table.FromRows(Json.Document(Binary.Decompress(Binary.FromText("i45WMlDSUTIEYtJQbCwA", BinaryEncoding.Base64), Compression.Deflate)), let _t = ((type nullable text) meta [Serialized.Text = true]) in type table [dimensionSetID = _t, valueCount = _t, dimension1ValueCode = _t, dimension1ValueName = _t, dimension2ValueCode = _t, dimension2ValueName = _t, dimension3ValueCode = _t, dimension3ValueName = _t, dimension4ValueCode = _t, dimension4ValueName = _t, dimension5ValueCode = _t, dimension5ValueName = _t, dimension6ValueCode = _t, dimension6ValueName = _t, dimension7ValueCode = _t, dimension7ValueName = _t, dimension8ValueCode = _t, dimension8ValueName = _t]),
+		    #"Changed Type" = Table.TransformColumnTypes(Source,{{"dimensionSetID", Int64.Type}, {"valueCount", Int64.Type}, {"dimension1ValueCode", type text}, {"dimension1ValueName", type text}, {"dimension2ValueCode", type text}, {"dimension2ValueName", type text}, {"dimension3ValueCode", type text}, {"dimension3ValueName", type text}, {"dimension4ValueCode", type text}, {"dimension4ValueName", type text}, {"dimension5ValueCode", type text}, {"dimension5ValueName", type text}, {"dimension6ValueCode", type text}, {"dimension6ValueName", type text}, {"dimension7ValueCode", type text}, {"dimension7ValueName", type text}, {"dimension8ValueCode", type text}, {"dimension8ValueName", type text}})
+		in
+		    #"Changed Type"
+	lineageTag: 270b3e61-19f2-4a9b-af7a-38bc70b4235d
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Table
+
+expression DimensionSets_DataSource =
+		let
+		    Source = Dynamics365BusinessCentral.ApiContentsWithOptions(ENVIRONMENT, COMPANY,API_ENDPOINT, []),
+		    TableData = Source{[Name="dimensionSetEntries",Signature="table"]}[Data],
+		    #"Changed Type" = Table.TransformColumnTypes(
+		        TableData,
+		        {
+		            {"dimensionSetID", Int64.Type},
+		            {"valueCount", Int64.Type},
+		            {"dimension1ValueCode", type text},
+		            {"dimension1ValueName", type text},
+		            {"dimension2ValueCode", type text},
+		            {"dimension2ValueName", type text},
+		            {"dimension3ValueCode", type text},
+		            {"dimension3ValueName", type text},
+		            {"dimension4ValueCode", type text},
+		            {"dimension4ValueName", type text},
+		            {"dimension5ValueCode", type text},
+		            {"dimension5ValueName", type text},
+		            {"dimension6ValueCode", type text},
+		            {"dimension6ValueName", type text},
+		            {"dimension7ValueCode", type text},
+		            {"dimension7ValueName", type text},
+		            {"dimension8ValueCode", type text},
+		            {"dimension8ValueName", type text}
+		        }
+		    ),
+		    #"Removed Columns" = Table.RemoveColumns(#"Changed Type",{"ETag"}),
+		    #"Appended Query" = Table.Combine({#"Removed Columns", DimensionSet_Blank}),
+		    #"Filtered Rows" = Table.SelectRows(#"Appended Query", each ([dimensionSetID] <> 0))
+		in
+		    #"Filtered Rows"
+	lineageTag: b7194c34-7f17-4f0b-96c0-755272f6b05d
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Table
+
+expression API_ENDPOINT = "microsoft/analytics/v1.0" meta [IsParameterQuery=true, Type="Text", IsParameterQueryRequired=true]
+	lineageTag: 66086399-6a6f-461b-b9b3-bdf39f81d8b1
+	queryGroup: 'Parameters and Functions'
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Text
+
+expression ConvertUTC =
+		let
+		    Source = (dateTableSetup as table) =>
+		        let
+		            #"Added UTC Now" = Table.AddColumn(dateTableSetup, "UTC Now", each DateTimeZone.UtcNow()),
+		            #"Extract UTC Value" = Table.AddColumn(
+		                #"Added UTC Now", "Extract UTC", each Text.BetweenDelimiters([timeZoneDisplayName], "(", ")")
+		            ),
+		            #"Remove UTC prefix" = Table.AddColumn(
+		                #"Extract UTC Value", "Remove UTC prefix", each Text.AfterDelimiter([Extract UTC], "UTC")
+		            ),
+		            #"Extract Hour and Minutes" = Table.SplitColumn(#"Remove UTC prefix", "Remove UTC prefix", Splitter.SplitTextByDelimiter(":", QuoteStyle.None), {"UTC Hours", "UTC Minutes"}),
+		            #"Changed Type" = Table.TransformColumnTypes(#"Extract Hour and Minutes",{{"UTC Hours", Int64.Type}, {"UTC Minutes", Int64.Type}},"en-us"),
+		            #"Switch Zone" = Table.AddColumn(
+		                #"Changed Type",
+		                "UTC Offset",
+		                each if [UTC Hours] = null then [UTC Now] else DateTimeZone.SwitchZone([UTC Now], [UTC Hours], [UTC Minutes])
+		            ),
+		            #"Set Date" = Table.AddColumn(
+		                #"Switch Zone", "Today", each Date.From(DateTimeZone.RemoveZone([UTC Offset])), type date
+		            ),
+		            #"Set Last Refresh Time" = Table.AddColumn(
+		                #"Set Date", "Last Refresh Time", each Time.From(DateTimeZone.RemoveZone([UTC Offset])), type time
+		            ),
+		            #"Remove unnecessary" = Table.RemoveColumns(
+		                #"Set Last Refresh Time", {"UTC Now", "Extract UTC", "UTC Offset"}
+		            )
+		        in
+		            #"Remove unnecessary"
+		in
+		    Source
+	lineageTag: 6f1a2fbb-39cc-4eb0-ba29-b1df6be0df87
+	queryGroup: 'Parameters and Functions\Functions'
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Function
+

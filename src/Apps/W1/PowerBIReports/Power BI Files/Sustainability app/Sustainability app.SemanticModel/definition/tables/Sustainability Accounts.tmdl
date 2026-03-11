@@ -1,0 +1,70 @@
+table 'Sustainability Accounts'
+	lineageTag: 816fcc93-a534-482d-bf58-a75c40d24465
+
+	column 'Sustainability Account No.'
+		dataType: string
+		isKey
+		lineageTag: a4e29f80-9152-4ee5-9b88-4bd0d76f5243
+		summarizeBy: none
+		sourceColumn: Sustainability Account No.
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Sustainability Account Name'
+		dataType: string
+		lineageTag: 9e586a43-6c1b-4947-8d51-309bc60b1522
+		summarizeBy: none
+		sourceColumn: Sustainability Account Name
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Sustainability Account Category'
+		dataType: string
+		isHidden
+		lineageTag: 3916a1cc-802d-4243-8412-484e1d017e3e
+		summarizeBy: none
+		sourceColumn: Sustainability Account Category
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Sustainability Account Sub-Category'
+		dataType: string
+		isHidden
+		lineageTag: 4273ec74-338d-4382-a539-c5a465aecada
+		summarizeBy: none
+		sourceColumn: Sustainability Account Sub-Category
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Sustainability Account Subcategory Key'
+		dataType: string
+		isHidden
+		lineageTag: 6b432394-589a-4074-927c-d3cc1c04e973
+		summarizeBy: none
+		sourceColumn: Sustainability Account Subcategory Key
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	partition 'Sustainability Accounts' = m
+		mode: import
+		queryGroup: 'Dimension Tables'
+		source =
+				let
+				    Source = Dynamics365BusinessCentral.ApiContentsWithOptions(ENVIRONMENT, COMPANY,API_ENDPOINT, []),
+				    TableData = Source{[Name="pbiSustainabilityAccounts",Signature="table"]}[Data],
+				    #"Renamed Columns" = Table.RenameColumns(TableData,{{"sustainabilityAccountNo", "Sustainability Account No."}, {"sustainabilityAccountName", "Sustainability Account Name"}, {"sustainabilityAccountCategory", "Sustainability Account Category"}, {"sustainabilityAccountSubCategory", "Sustainability Account Sub-Category"}}),
+				    #"Removed Columns" = Table.RemoveColumns(#"Renamed Columns",{"ETag"}),
+				    #"Added Sustainability Account Key" = Table.AddColumn(#"Removed Columns", "Sustainability Account Subcategory Key", each [Sustainability Account Category] & " " & [#"Sustainability Account Sub-Category"],type text)
+				in
+				    #"Added Sustainability Account Key"
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Table
+

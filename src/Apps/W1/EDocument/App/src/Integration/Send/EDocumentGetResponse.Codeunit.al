@@ -1,0 +1,135 @@
+// ------------------------------------------------------------------------------------------------
+// Copyright (c) Microsoft Corporation. All rights reserved.
+// Licensed under the MIT License. See License.txt in the project root for license information.
+// ------------------------------------------------------------------------------------------------
+namespace Microsoft.eServices.EDocument;
+
+using Microsoft.eServices.EDocument.Integration.Send;
+using System.Automation;
+using System.Telemetry;
+using System.Threading;
+
+codeunit 6144 "E-Document Get Response"
+{
+    TableNo = "Job Queue Entry";
+    Permissions = tabledata "E-Document" = rm,
+                    tabledata "E-Document Service" = r,
+                    tabledata "E-Document Service Status" = r;
+
+    trigger OnRun()
+    var
+        EDocumentBackgroundjobs: Codeunit "E-Document Background jobs";
+    begin
+        if not IsEDocumentPendingResponse() then
+            exit;
+
+        ProcessPendingResponseDocuments();
+
+        if IsEDocumentPendingResponse() then
+            EDocumentBackgroundjobs.ScheduleGetResponseJob(false);
+    end;
+
+    local procedure ProcessPendingResponseDocuments()
+    var
+        EDocumentServiceStatus: Record "E-Document Service Status";
+        EDocumentService: Record "E-Document Service";
+        EDocument: Record "E-Document";
+        WorkflowManagement: Codeunit "Workflow Management";
+        EDocumentWorkflowSetup: Codeunit "E-Document Workflow Setup";
+    begin
+        EDocumentServiceStatus.SetRange(Status, EDocumentServiceStatus.Status::"Pending Response");
+        if EDocumentServiceStatus.FindSet() then
+            repeat
+                EDocument.Get(EDocumentServiceStatus."E-Document Entry No");
+                EDocumentService.Get(EDocumentServiceStatus."E-Document Service Code");
+                HandleResponse(EDocument, EDocumentService, EDocumentServiceStatus);
+
+                WorkflowManagement.HandleEventOnKnownWorkflowInstance(EDocumentWorkflowSetup.EventEDocStatusChanged(), EDocumentServiceStatus, EDocument."Workflow Step Instance ID");
+
+            until EDocumentServiceStatus.Next() = 0;
+    end;
+
+    local procedure HandleResponse(var EDocument: Record "E-Document"; var EDocumentService: Record "E-Document Service"; var EDocumentServiceStatus: Record "E-Document Service Status")
+    var
+        SendContext: Codeunit SendContext;
+        EDocumentLog: Codeunit "E-Document Log";
+        EDocumentErrorHelper: Codeunit "E-Document Error Helper";
+        EDocServiceStatus: Enum "E-Document Service Status";
+        ErrorCount: Integer;
+        GotResponse, Success : Boolean;
+    begin
+        // Set default status value
+        SendContext.Status().SetStatus(Enum::"E-Document Service Status"::Sent);
+
+        ErrorCount := EDocumentErrorHelper.ErrorMessageCount(EDocument);
+        GotResponse := RunGetResponse(EDocument, EDocumentService, EDocumentServiceStatus, SendContext);
+        Success := EDocumentErrorHelper.ErrorMessageCount(EDocument) = ErrorCount;
+
+        EDocServiceStatus := GetServiceStatusFromResponse(
+            Success,
+            GotResponse,
+            SendContext
+        );
+
+        EDocumentLog.InsertLog(EDocument, EDocumentService, EDocServiceStatus);
+        EDocumentLog.InsertIntegrationLog(EDocument, EDocumentService, SendContext.Http().GetHttpRequestMessage(), SendContext.Http().GetHttpResponseMessage());
+        EDocumentProcessing.ModifyServiceStatus(EDocument, EDocumentService, EDocServiceStatus);
+        EDocumentProcessing.ModifyEDocumentStatus(EDocument);
+    end;
+
+    local procedure GetServiceStatusFromResponse(Success: Boolean; GotResponse: Boolean; SendContext: Codeunit SendContext): Enum "E-Document Service Status";
+    begin
+        if not Success then
+            exit(Enum::"E-Document Service Status"::"Sending Error");
+
+        if GotResponse then
+            exit(SendContext.Status().GetStatus())
+        else
+            exit(Enum::"E-Document Service Status"::"Pending Response");
+    end;
+
+    local procedure RunGetResponse(var EDocument: Record "E-Document"; var EDocumentService: Record "E-Document Service"; var EDocumentServiceStatus: Record "E-Document Service Status"; SendContext: Codeunit SendContext) Result: Boolean
+    var
+        GetResponseRunner: Codeunit "Get Response Runner";
+        EDocumentHelper: Codeunit "E-Document Processing";
+        EDocumentErrorHelper: Codeunit "E-Document Error Helper";
+        TelemetryDimensions: Dictionary of [Text, Text];
+    begin
+        // Commit needed for "if codeunit run" pattern.
+        Commit();
+        EDocumentHelper.GetTelemetryDimensions(EDocumentService, EDocumentServiceStatus, TelemetryDimensions);
+        Telemetry.LogMessage('0000LBQ', EDocTelemetryGetResponseScopeStartLbl, Verbosity::Normal, DataClassification::OrganizationIdentifiableInformation, TelemetryScope::All, TelemetryDimensions);
+
+        GetResponseRunner.SetDocumentAndService(EDocument, EDocumentService);
+        GetResponseRunner.SetContext(SendContext);
+        if not GetResponseRunner.Run() then begin
+            EDocument.Get(EDocumentServiceStatus."E-Document Entry No");
+            EDocumentErrorHelper.LogSimpleErrorMessage(EDocument, GetLastErrorText());
+        end;
+
+        // After interface call, reread the EDocument and EDocumentService for the latest values.
+        EDocument.Get(EDocument."Entry No");
+        EDocumentService.Get(EDocumentService.Code);
+        Result := GetResponseRunner.GetResponseResult();
+#if not CLEAN26
+        GetResponseRunner.GetContext(SendContext);
+#endif
+
+        Telemetry.LogMessage('0000LBR', EDocTelemetryGetResponseScopeEndLbl, Verbosity::Normal, DataClassification::OrganizationIdentifiableInformation, TelemetryScope::All);
+    end;
+
+    local procedure IsEDocumentPendingResponse(): Boolean
+    var
+        EdocumentServiceStatus: Record "E-Document Service Status";
+    begin
+        EdocumentServiceStatus.SetRange(Status, EdocumentServiceStatus.Status::"Pending Response");
+        exit(not EdocumentServiceStatus.IsEmpty());
+    end;
+
+    var
+        Telemetry: Codeunit Telemetry;
+        EDocumentProcessing: Codeunit "E-Document Processing";
+        EDocTelemetryGetResponseScopeStartLbl: Label 'E-Document Get Response: Start Scope', Locked = true;
+        EDocTelemetryGetResponseScopeEndLbl: Label 'E-Document Get Response: End Scope', Locked = true;
+
+}

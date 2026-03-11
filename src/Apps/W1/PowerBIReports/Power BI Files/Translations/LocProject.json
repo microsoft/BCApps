@@ -1,0 +1,65 @@
+{
+    "_comment": "Find the details on 'Author Localization Project File' at https://eng.ms/docs/cloud-ai-platform/azure-core/azure-experiences-and-ecosystems/cme-international-customer-exp/software-localization-onelocbuild/onelocbuild/onboarding/localizationproject or https://aka.ms/OneLocBuild",
+    "Projects": [
+        {
+            "LanguageSet": "BC_Client_24_Languages",
+            "_LanguageSet.comment": "Find the details at https://dev.azure.com/ceapex/CEINTL/_git/SWSys-Build-XLoc?path=/src/OneBranchPackages/Localization.Languages/Localization.Languages.props",
+            "LocItems": [
+                {
+                    "SourceFile": "src\\Apps\\W1\\PowerBIReports\\Power BI Files\\Translations\\Sustainability app\\SustainabilityApp.en-US.resx",
+                    "OutputPath": "src\\Apps\\W1\\PowerBIReports\\Power BI Files\\Translations\\Sustainability app\\SustainabilityApp.{Lang}.resx",
+                    "Languages": "cs-CZ;da-DK;de-AT;de-CH;de-DE;en-AU;en-CA;en-GB;en-NZ;es-ES;es-MX;fi-FI;fr-BE;fr-CA;fr-CH;fr-FR;is-IS;it-CH;it-IT;nb-NO;nl-BE;nl-NL;sv-SE",
+                    "CopyOption": "UsePlaceholders"
+                },
+                                {
+                    "SourceFile": "src\\Apps\\W1\\PowerBIReports\\Power BI Files\\Translations\\Sales app\\SalesApp.en-US.resx",
+                    "OutputPath": "src\\Apps\\W1\\PowerBIReports\\Power BI Files\\Translations\\Sales app\\SalesApp.{Lang}.resx",
+                    "Languages": "cs-CZ;da-DK;de-AT;de-CH;de-DE;en-AU;en-CA;en-GB;en-NZ;es-ES;es-MX;fi-FI;fr-BE;fr-CA;fr-CH;fr-FR;is-IS;it-CH;it-IT;nb-NO;nl-BE;nl-NL;sv-SE",
+                    "CopyOption": "UsePlaceholders"
+                },
+                                                {
+                    "SourceFile": "src\\Apps\\W1\\PowerBIReports\\Power BI Files\\Translations\\Subscription Billing app\\SubscriptionBillingApp.en-US.resx",
+                    "OutputPath": "src\\Apps\\W1\\PowerBIReports\\Power BI Files\\Translations\\Subscription Billing app\\SubscriptionBillingApp.{Lang}.resx",
+                    "Languages": "cs-CZ;da-DK;de-AT;de-CH;de-DE;en-AU;en-CA;en-GB;en-NZ;es-ES;es-MX;fi-FI;fr-BE;fr-CA;fr-CH;fr-FR;is-IS;it-CH;it-IT;nb-NO;nl-BE;nl-NL;sv-SE",
+                    "CopyOption": "UsePlaceholders"
+                },
+                                                {
+                    "SourceFile": "src\\Apps\\W1\\PowerBIReports\\Power BI Files\\Translations\\Inventory Valuation app\\InventoryValuationApp.en-US.resx",
+                    "OutputPath": "src\\Apps\\W1\\PowerBIReports\\Power BI Files\\Translations\\Inventory Valuation app\\InventoryValuationApp.{Lang}.resx",
+                    "Languages": "cs-CZ;da-DK;de-AT;de-CH;de-DE;en-AU;en-CA;en-GB;en-NZ;es-ES;es-MX;fi-FI;fr-BE;fr-CA;fr-CH;fr-FR;is-IS;it-CH;it-IT;nb-NO;nl-BE;nl-NL;sv-SE",
+                    "CopyOption": "UsePlaceholders"
+                },
+                                                {
+                    "SourceFile": "src\\Apps\\W1\\PowerBIReports\\Power BI Files\\Translations\\Manufacturing app\\ManufacturingApp.en-US.resx",
+                    "OutputPath": "src\\Apps\\W1\\PowerBIReports\\Power BI Files\\Translations\\Manufacturing app\\ManufacturingApp.{Lang}.resx",
+                    "Languages": "cs-CZ;da-DK;de-AT;de-CH;de-DE;en-AU;en-CA;en-GB;en-NZ;es-ES;es-MX;fi-FI;fr-BE;fr-CA;fr-CH;fr-FR;is-IS;it-CH;it-IT;nb-NO;nl-BE;nl-NL;sv-SE",
+                    "CopyOption": "UsePlaceholders"
+                },
+                                                {
+                    "SourceFile": "src\\Apps\\W1\\PowerBIReports\\Power BI Files\\Translations\\Projects app\\ProjectsApp.en-US.resx",
+                    "OutputPath": "src\\Apps\\W1\\PowerBIReports\\Power BI Files\\Translations\\Projects app\\ProjectsApp.{Lang}.resx",
+                    "Languages": "cs-CZ;da-DK;de-AT;de-CH;de-DE;en-AU;en-CA;en-GB;en-NZ;es-ES;es-MX;fi-FI;fr-BE;fr-CA;fr-CH;fr-FR;is-IS;it-CH;it-IT;nb-NO;nl-BE;nl-NL;sv-SE",
+                    "CopyOption": "UsePlaceholders"
+                },
+                                                {
+                    "SourceFile": "src\\Apps\\W1\\PowerBIReports\\Power BI Files\\Translations\\Purchase app\\PurchaseApp.en-US.resx",
+                    "OutputPath": "src\\Apps\\W1\\PowerBIReports\\Power BI Files\\Translations\\Purchase app\\PurchaseApp.{Lang}.resx",
+                    "Languages": "cs-CZ;da-DK;de-AT;de-CH;de-DE;en-AU;en-CA;en-GB;en-NZ;es-ES;es-MX;fi-FI;fr-BE;fr-CA;fr-CH;fr-FR;is-IS;it-CH;it-IT;nb-NO;nl-BE;nl-NL;sv-SE",
+                    "CopyOption": "UsePlaceholders"
+                },
+                                                {
+                    "SourceFile": "src\\Apps\\W1\\PowerBIReports\\Power BI Files\\Translations\\Finance app\\FinanceApp.en-US.resx",
+                    "OutputPath": "src\\Apps\\W1\\PowerBIReports\\Power BI Files\\Translations\\Finance app\\FinanceApp.{Lang}.resx",
+                    "Languages": "cs-CZ;da-DK;de-AT;de-CH;de-DE;en-AU;en-CA;en-GB;en-NZ;es-ES;es-MX;fi-FI;fr-BE;fr-CA;fr-CH;fr-FR;is-IS;it-CH;it-IT;nb-NO;nl-BE;nl-NL;sv-SE",
+                    "CopyOption": "UsePlaceholders"
+                },
+                                                {
+                    "SourceFile": "src\\Apps\\W1\\PowerBIReports\\Power BI Files\\Translations\\Inventory app\\InventoryApp.en-US.resx",
+                    "OutputPath": "src\\Apps\\W1\\PowerBIReports\\Power BI Files\\Translations\\Inventory app\\InventoryApp.{Lang}.resx",
+                    "Languages": "cs-CZ;da-DK;de-AT;de-CH;de-DE;en-AU;en-CA;en-GB;en-NZ;es-ES;es-MX;fi-FI;fr-BE;fr-CA;fr-CH;fr-FR;is-IS;it-CH;it-IT;nb-NO;nl-BE;nl-NL;sv-SE",
+                    "CopyOption": "UsePlaceholders"
+                }
+            ]
+        }
+    ]
+}

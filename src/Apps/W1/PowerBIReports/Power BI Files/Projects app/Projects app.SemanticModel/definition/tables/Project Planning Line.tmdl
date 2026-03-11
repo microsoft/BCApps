@@ -1,0 +1,538 @@
+table 'Project Planning Line'
+	lineageTag: ef9640e1-5bee-4de1-8ce2-a74068833660
+
+	/// The Planning Line Quantity measure calculates the sum of the quantity column in the Project Planning Line table.
+	measure 'Planning Line Quantity' = SUM('Project Planning Line'[quantity])
+		formatString: #,0.00
+		displayFolder: _Planning Line Measures\Planning Line
+		lineageTag: 88a94ac6-5dfd-452d-8bd5-b04622e77ca0
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	/// The Planning Line Total Cost (LCY) measure calculates the total cost of all project planning lines in the Project Planning Line table. It uses the SUMX function to iterate over each row in the table and multiply the quantity and unit cost (in local currency) columns for each row. The results of each multiplication are then summed up to produce the total cost.
+	measure 'Planning Line Total Cost (LCY)' = ```
+			
+			SUMX (
+			    'Project Planning Line',
+			    'Project Planning Line'[quantity] * 'Project Planning Line'[Unit Cost (LCY)]
+			)
+			
+			```
+		formatString: #,0.00
+		displayFolder: _Planning Line Measures\Planning Line
+		lineageTag: 4c183cd8-7575-4c89-bb69-08494e233cef
+
+		annotation PBI_FormatHint = {"currencyCulture":"en-AU"}
+
+	/// The Planning Line Total Price (LCY) measure calculates the total price of all project planning lines in the Project Planning Line table. It uses the SUMX function to iterate over each row in the table and multiply the quantity and unit price (in local currency) columns for each row. The results of each multiplication are then summed up to produce the total price.
+	measure 'Planning Line Total Price (LCY)' = ```
+			
+			SUMX (
+			    'Project Planning Line',
+			    'Project Planning Line'[quantity] * 'Project Planning Line'[Unit Price (LCY)]
+			)
+			
+			```
+		formatString: #,0.00
+		displayFolder: _Planning Line Measures\Planning Line
+		lineageTag: b9d41182-8a4d-4f8f-8cde-8acc7a92410f
+
+		annotation PBI_FormatHint = {"currencyCulture":"en-AU"}
+
+	/// The Budget (Total Cost) measure represents the budgeted cost of resources to be used in a project by calculating the total cost (in local currency) in the Project Planning Line table and selecting only those lines with a line type of "Budget" or "Both Budget and Billable".
+	measure 'Budget (Total Cost)' = ```
+			
+			CALCULATE (
+			    SUM ( 'Project Planning Line'[totalCostLCY] ),
+			    OR (
+			        'Project Planning Line'[Line Type] = "Budget",
+			        'Project Planning Line'[Line Type] = "Both Budget and Billable"
+			    )
+			)
+			
+			```
+		formatString: #,0.00
+		isHidden
+		displayFolder: _Planning Line Measures\_Obsolete
+		lineageTag: b44de556-1796-4ad8-8a12-5473c08546b4
+
+		annotation PBI_FormatHint = {"currencyCulture":"en-AU"}
+
+	/// The Billable (Total Price) measure calculates the total price (in local currency) of all project planning lines where the line type is "Billable" or "Both Budget and Billable" in the Project Planning Line table.
+	measure 'Billable (Total Price)' =
+			
+			CALCULATE (
+			    SUM ( 'Project Planning Line'[totalPriceLCY] ),
+			    OR (
+			        'Project Planning Line'[Line Type] = "Billable",
+			        'Project Planning Line'[Line Type] = "Both Budget and Billable"
+			    )
+			)
+		formatString: #,0.00
+		isHidden
+		displayFolder: _Planning Line Measures\_Obsolete
+		lineageTag: 26ef7202-8781-44b9-ad48-4906ec3e833f
+
+	/// Total Cost Variance to Budget = Actual (Total Cost) - Budget (Total Cost)
+	measure 'Total Cost Variance to Budget' = [Total Usage Cost] - [Total Budget Cost]
+		formatString: #,0.00
+		displayFolder: _Planning Line Measures\Variance
+		lineageTag: b5f08e35-c12b-487e-a9c3-c29b4076ddc3
+
+		annotation PBI_FormatHint = {"currencyCulture":"en-AU"}
+
+	/// Total Cost Variance to Budget % = Total Cost Variance to Budget % / Budget (Total Cost)
+	measure 'Total Cost Variance to Budget %' = DIVIDE([Total Cost Variance to Budget],[Total Budget Cost])
+		formatString: 0.00%;-0.00%;0.00%
+		displayFolder: _Planning Line Measures\Variance
+		lineageTag: 769ac9bd-2c72-4496-ac35-b7d0e647743d
+
+	/// The Billable (Total Cost) measure calculates the total cost (in local currency) of all project planning lines where the line type is "Billable" or "Both Budget and Billable" in the Project Planning Line table.
+	measure 'Billable (Total Cost)' =
+			
+			CALCULATE (
+			    SUM ( 'Project Planning Line'[totalCostLCY] ),
+			    OR (
+			        'Project Planning Line'[Line Type] = "Billable",
+			        'Project Planning Line'[Line Type] = "Both Budget and Billable"
+			    )
+			)
+		isHidden
+		displayFolder: _Planning Line Measures\_Obsolete
+		lineageTag: c15ba0a7-a37f-43f6-8c8d-809256311d23
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	/// The Budget (Total Price) measure represents the budgeted price of resources to be used in a project by calculating the total price (in local currency) in the Project Planning Line table and selecting only those lines with a line type of "Budget" or "Both Budget and Billable".
+	measure 'Budget (Total Price)' =
+			
+			CALCULATE (
+			    SUM ( 'Project Planning Line'[totalPriceLCY] ),
+			    'Project Planning Line'[Line Type] IN { "Budget", "Both Budget and Billable" }
+			)
+		isHidden
+		displayFolder: _Planning Line Measures\_Obsolete
+		lineageTag: 8eb0438f-627b-43fb-ae19-fa929c706c54
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Resource Billable Price' =
+			
+			CALCULATE(
+			    SUM('Project Planning Line'[Line Amount (LCY)]),
+			    'Project Planning Line'[Line Type] IN { "Billable", "Both Budget and Billable" },
+			    'Project Planning Line'[Type] = "Resource")
+		displayFolder: _Statistics\_Billable Price
+		lineageTag: fa911a38-36e1-4552-bddd-ac3670c9e631
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Item Billable Price' = ```
+			
+			CALCULATE(SUM('Project Planning Line'[Line Amount (LCY)]),    
+			'Project Planning Line'[Line Type] IN { "Billable", "Both Budget and Billable" },
+			'Project Planning Line'[Type] = "Item")
+			```
+		displayFolder: _Statistics\_Billable Price
+		lineageTag: 453df2b6-b473-4815-9f37-7da80dcd700a
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'G/L Account Billable Price' =
+			
+			CALCULATE(SUM('Project Planning Line'[Line Amount (LCY)]),
+			'Project Planning Line'[Line Type] IN { "Billable", "Both Budget and Billable" },
+			'Project Planning Line'[Type] = "G/L Account")
+		displayFolder: _Statistics\_Billable Price
+		lineageTag: 79976d36-c501-4d32-868f-5e25a3597f12
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Resource Budget Price' =
+			
+			CALCULATE(
+			    SUM('Project Planning Line'[Line Amount (LCY)]),
+			    'Project Planning Line'[Line Type] IN { "Budget", "Both Budget and Billable" },
+			    'Project Planning Line'[Type] = "Resource")
+		displayFolder: _Statistics\_Budget Price
+		lineageTag: 65994956-97d7-4881-b92e-85f0b4aa77e8
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Item Budget Price' = ```
+			
+			CALCULATE(SUM('Project Planning Line'[Line Amount (LCY)]),    
+			'Project Planning Line'[Line Type] IN { "Budget", "Both Budget and Billable" },
+			'Project Planning Line'[Type] = "Item")
+			```
+		displayFolder: _Statistics\_Budget Price
+		lineageTag: 8281de9c-760e-4d50-949f-0236ed454f75
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'G/L Account Budget Price' =
+			
+			CALCULATE(SUM('Project Planning Line'[Line Amount (LCY)]),
+			'Project Planning Line'[Line Type] IN { "Budget", "Both Budget and Billable" },
+			'Project Planning Line'[Type] = "G/L Account")
+		displayFolder: _Statistics\_Budget Price
+		lineageTag: 02b69c45-6405-4916-a7d1-3d9a884dc07a
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Resource Budget Costs' =
+			
+			CALCULATE(
+			    SUM('Project Planning Line'[totalCostLCY]),
+			    'Project Planning Line'[Line Type] IN { "Budget", "Both Budget and Billable" },
+			    'Project Planning Line'[Type] = "Resource")
+		displayFolder: _Statistics\_Budget Costs
+		lineageTag: 608d06ee-fe40-46c1-9b34-ffb2918dd244
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Item Budget Costs' = ```
+			
+			CALCULATE(SUM('Project Planning Line'[totalCostLCY]),    
+			'Project Planning Line'[Line Type] IN { "Budget", "Both Budget and Billable" },
+			'Project Planning Line'[Type] = "Item")
+			```
+		displayFolder: _Statistics\_Budget Costs
+		lineageTag: 84cfd2d6-5040-4e8a-9948-a4e6db38b47a
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'G/L Account Budget Costs' =
+			
+			CALCULATE(SUM('Project Planning Line'[totalCostLCY]),
+			'Project Planning Line'[Line Type] IN { "Budget", "Both Budget and Billable" },
+			'Project Planning Line'[Type] = "G/L Account")
+		displayFolder: _Statistics\_Budget Costs
+		lineageTag: 3767faef-8dd7-4877-83d5-d4a6add9283d
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Resource Billable Costs' =
+			
+			CALCULATE(
+			    SUM('Project Planning Line'[totalCostLCY]),
+			    'Project Planning Line'[Line Type] IN { "Billable", "Both Budget and Billable" },
+			    'Project Planning Line'[Type] = "Resource")
+		displayFolder: _Statistics\_Billable Costs
+		lineageTag: ed638054-551e-4da7-be70-41c58dae07a0
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Item Billable Costs' = ```
+			
+			CALCULATE(SUM('Project Planning Line'[totalCostLCY]),    
+			'Project Planning Line'[Line Type] IN { "Billable", "Both Budget and Billable" },
+			'Project Planning Line'[Type] = "Item")
+			```
+		displayFolder: _Statistics\_Billable Costs
+		lineageTag: f291c654-47d6-4f2f-be47-d48d7682c5ab
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'G/L Account Billable Costs' =
+			
+			CALCULATE(SUM('Project Planning Line'[totalCostLCY]),
+			'Project Planning Line'[Line Type] IN { "Billable", "Both Budget and Billable" },
+			'Project Planning Line'[Type] = "G/L Account")
+		displayFolder: _Statistics\_Billable Costs
+		lineageTag: eea78d3c-3d25-42e3-91da-31568bab8085
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Resource Billable Profit' = [Resource Billable Price] - [Resource Billable Costs]
+		displayFolder: _Statistics\_Billable Profit
+		lineageTag: 8ff21fc1-48e2-4ab9-ac7c-634e369fc24a
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Item Billable Profit' = [Item Billable Price] - [Item Billable Costs]
+		displayFolder: _Statistics\_Billable Profit
+		lineageTag: fda74cb0-f717-4e14-8cde-c01044f8b64b
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'G/L Account Billable Profit' = [G/L Account Billable Price] - [G/L Account Billable Costs]
+		displayFolder: _Statistics\_Billable Profit
+		lineageTag: 754194ab-f180-41e1-a6b5-a31fd76a7212
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Resource Profit' = [Resource Budget Price] - [Resource Budget Costs]
+		displayFolder: _Statistics\_Budget Profit
+		lineageTag: 23cac8aa-06ab-463f-a2bd-6f1248e13483
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Item Profit' = [Item Budget Price] - [Item Budget Costs]
+		displayFolder: _Statistics\_Budget Profit
+		lineageTag: 0b341c64-c16a-4ef3-afee-1bcbbfb8f48c
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'G/L Account Profit' = [G/L Account Budget Price] - [G/L Account Budget Costs]
+		displayFolder: _Statistics\_Budget Profit
+		lineageTag: db0b9418-46b1-43ca-9b40-3314a9218aca
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Total Budget Profit' = [Total Budget Price] - [Total Budget Cost]
+		displayFolder: _Statistics\Totals
+		lineageTag: cdd91184-e84a-46eb-a8ed-bc2f07d64f11
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Total Billable Profit' = [Billable (Total Price)] - [Billable (Total Cost)]
+		displayFolder: _Statistics\Totals
+		lineageTag: 99819909-776f-42b8-a8ca-ead0de7ca54b
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Total Billable Price' = [G/L Account Billable Price] + [Item Billable Price] + [Resource Billable Price]
+		formatString: #,0.00
+		displayFolder: _Statistics\Totals
+		lineageTag: 94516209-aa72-441b-a14a-321e2655c908
+
+	measure 'Total Budget Cost' = [G/L Account Budget Costs] + [Item Budget Costs] + [Resource Budget Costs]
+		displayFolder: _Statistics\Totals
+		lineageTag: e4ae479c-fcbc-4148-9b84-1fda26934571
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Total Budget Price' = [G/L Account Budget Price] + [Item Budget Price] + [Resource Budget Price]
+		formatString: \$#,0.###############;-\$#,0.###############;\$#,0.###############
+		displayFolder: _Statistics\Totals
+		lineageTag: 1f2fcbfc-b841-41ca-855e-3835aac8c4c0
+
+		annotation PBI_FormatHint = {"currencyCulture":"en-AU"}
+
+	measure 'Total Billable Cost' = [G/L Account Billable Costs] + [Item Billable Costs] + [Resource Billable Costs]
+		formatString: 0.00
+		displayFolder: _Statistics\Totals
+		lineageTag: 40394fd1-9599-4d0e-ba29-371155e6ca8a
+
+	column 'Project No.'
+		dataType: string
+		isHidden
+		lineageTag: a2f8d25a-f3df-4e45-a3e4-00e83d8158a2
+		summarizeBy: none
+		sourceColumn: Project No.
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Task No.'
+		dataType: string
+		lineageTag: 287c79ae-07ce-4968-8910-09cce23b6056
+		summarizeBy: none
+		sourceColumn: Task No.
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Line No.'
+		dataType: int64
+		formatString: 0
+		lineageTag: 0b9271e6-b12b-4fb5-b83a-6d0cea6a6396
+		summarizeBy: none
+		sourceColumn: Line No.
+
+		annotation SummarizationSetBy = User
+
+	column Type
+		dataType: string
+		lineageTag: 23429c70-9229-41f4-8907-9abd1f361993
+		summarizeBy: none
+		sourceColumn: Type
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Line Type'
+		dataType: string
+		lineageTag: 83aeaeda-18ff-4a63-971c-ebd391424260
+		summarizeBy: none
+		sourceColumn: Line Type
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'No.'
+		dataType: string
+		lineageTag: d59e47bb-6e33-4cca-87f8-5954aa944c9f
+		summarizeBy: none
+		sourceColumn: No.
+
+		annotation SummarizationSetBy = Automatic
+
+	column Description
+		dataType: string
+		lineageTag: 14acafcf-63d7-4f2a-801c-b7befc225ebf
+		summarizeBy: none
+		sourceColumn: Description
+
+		annotation SummarizationSetBy = Automatic
+
+	column quantity
+		dataType: double
+		isHidden
+		lineageTag: ad7494c6-0741-46c8-a862-e2f0f576a5f4
+		summarizeBy: sum
+		sourceColumn: quantity
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column 'Unit Cost (LCY)'
+		dataType: decimal
+		formatString: #,0.00
+		lineageTag: 4627b590-bf15-4f94-8cbf-abcbc9122389
+		summarizeBy: none
+		sourceColumn: Unit Cost (LCY)
+
+		annotation SummarizationSetBy = User
+
+		annotation PBI_FormatHint = {"currencyCulture":"en-AU"}
+
+	column totalCostLCY
+		dataType: double
+		isHidden
+		formatString: #,0.00
+		lineageTag: c39589ed-5c4c-4e5f-99f0-0a6740dad2ab
+		summarizeBy: sum
+		sourceColumn: totalCostLCY
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"currencyCulture":"en-AU"}
+
+	column 'Unit Price (LCY)'
+		dataType: decimal
+		formatString: #,0.00
+		lineageTag: 3e34047b-2644-48b6-9c8b-a974663e72a3
+		summarizeBy: none
+		sourceColumn: Unit Price (LCY)
+
+		annotation SummarizationSetBy = User
+
+		annotation PBI_FormatHint = {"currencyCulture":"en-AU"}
+
+	column 'Line Amount (LCY)'
+		dataType: decimal
+		isHidden
+		formatString: #,0.00
+		lineageTag: 4d0ed158-3b6c-4b81-aa85-cc2e46b4f68d
+		summarizeBy: sum
+		sourceColumn: Line Amount (LCY)
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"currencyCulture":"en-AU"}
+
+	column totalPriceLCY
+		dataType: double
+		isHidden
+		formatString: #,0.00
+		lineageTag: 72596aeb-ff10-4544-902f-e3cc2f4d233c
+		summarizeBy: sum
+		sourceColumn: totalPriceLCY
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"currencyCulture":"en-AU"}
+
+	column ETag
+		dataType: string
+		isHidden
+		lineageTag: db214fea-a0c1-43a4-9613-173b41118e4b
+		summarizeBy: none
+		sourceColumn: ETag
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Project No. Task No.'
+		dataType: string
+		isHidden
+		lineageTag: a7e59f09-6962-4f63-a905-278d34f42948
+		summarizeBy: none
+		sourceColumn: Project No. Task No.
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Planning Date'
+		dataType: dateTime
+		formatString: Long Date
+		lineageTag: d01c1172-1824-4b7c-8d58-2a7b78eecd52
+		summarizeBy: none
+		sourceColumn: Planning Date
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	column 'Type Key'
+		dataType: string
+		isHidden
+		lineageTag: d65f8ec9-8f20-4b2e-a0eb-d0b85bc8ec1f
+		summarizeBy: none
+		sourceColumn: Type Key
+
+		annotation SummarizationSetBy = Automatic
+
+	partition 'Project Planning Line-1ba48b66-f21e-4c89-ad72-d6fdac000ada' = m
+		mode: import
+		queryGroup: 'Fact Tables'
+		source =
+				let
+				    Source = Dynamics365BusinessCentral.ApiContentsWithOptions(ENVIRONMENT, COMPANY, API_ENDPOINT, []),
+				    TableData = Source{[Name = "jobPlanningLines", Signature = "table"]}[Data],
+				    #"Renamed Columns" = Table.RenameColumns(
+				        TableData,
+				        {
+				            {"jobTaskNo", "Task No."},
+				            {"lineNo", "Line No."},
+				            {"lineType", "Line Type"},
+				            {"no", "No."},
+				            {"unitCostLCY", "Unit Cost (LCY)"},
+				            {"unitPriceLCY", "Unit Price (LCY)"},
+				            {"lineAmountLCY", "Line Amount (LCY)"},
+				            {"jobNo", "Project No."},
+				            {"jobType", "Type"},
+				            {"description", "Description"},
+				            {"planningDate", "Planning Date"}
+				        }
+				    ),
+				    #"Changed Type" = Table.TransformColumnTypes(
+				        #"Renamed Columns",
+				        {
+				            {"Unit Cost (LCY)", Currency.Type},
+				            {"Unit Price (LCY)", Currency.Type},
+				            {"Line Amount (LCY)", Currency.Type}
+				        }
+				    ),
+				    #"Added Column" = Table.AddColumn(
+				        #"Changed Type", "Project No. Task No.", each [#"Project No."] & " " & [#"Task No."]
+				    ),
+				    #"Added Type Key" = Table.AddColumn(#"Added Column", "Type Key", each [Type] & " " & [#"No."], type text)
+				in
+				    #"Added Type Key"
+
+	annotation PBI_ResultType = Table
+
+	annotation PBI_NavigationStepName = Navigation
+

@@ -1,0 +1,731 @@
+cultureInfo fi-FI
+	translations
+		model Model
+			table 'Dimension Sets'
+				caption: Dimensioyhdistelmät
+				column 'Global Dimension 1'
+					caption: Yleinen dimensio 1
+				column 'Global Dimension 2'
+					caption: Yleinen dimensio 2
+				column 'Shortcut Dimension 3'
+					caption: Pikadimensio 3
+				column 'Shortcut Dimension 4'
+					caption: Pikadimensio 4
+				column 'Shortcut Dimension 5'
+					caption: Pikadimensio 5
+				column 'Shortcut Dimension 6'
+					caption: Pikadimensio 6
+				column 'Shortcut Dimension 7'
+					caption: Pikadimensio 7
+				column 'Shortcut Dimension 8'
+					caption: Pikadimensio 8
+				column id
+					caption: tunnus
+			table Vendors
+				caption: Toimittajat
+				column 'Vendor No.'
+					caption: Toimittajanro
+				column 'Vendor Name'
+					caption: Toimittajan nimi
+				column Address
+					caption: Osoite
+				column 'Address 2'
+					caption: Osoite 2
+				column City
+					caption: Kaupunki
+				column 'Post Code'
+					caption: Postinro
+				column State
+					caption: Osavaltio
+				column 'Country/Region Code'
+					caption: Maa- tai aluekoodi
+				column 'Vendor Posting Group'
+					caption: Toimittajan kirjausryhmä
+				column 'Vendor No. & Name'
+					caption: Toimittajan nro ja nimi
+			table Customers
+				caption: Asiakkaat
+				column 'Customer No.'
+					caption: Asiakasnumero
+				column 'Customer Name'
+					caption: Asiakkaan nimi
+				column Address
+					caption: Osoite
+				column 'Address 2'
+					caption: Osoite 2
+				column City
+					caption: Kaupunki
+				column 'Post Code'
+					caption: Postinro
+				column State
+					caption: Osavaltio
+				column 'Country/Region Code'
+					caption: Maa- tai aluekoodi
+				column 'Customer Posting Group'
+					caption: Asiakkaan kirjausryhmä
+				column 'Customer Price Group'
+					caption: Asiakkaan hintaryhmä
+				column 'Customer Discount Group'
+					caption: Asiakkaan alennusryhmä
+				column 'Customer No. & Name'
+					caption: Asiakkaan nro ja nimi
+			table Date
+				caption: Pvm
+				column 'Week Day'
+					caption: Viikonpäivä
+				column 'Day Type'
+					caption: Päivän tyyppi
+				column 'Calendar Year'
+					caption: Kalenterivuosi
+				column 'Calendar Quarter'
+					caption: Kalenterin vuosineljännes
+				column 'Calendar Quarter Year'
+					caption: Kalenteri – Neljännesvuosi
+				column 'Calendar Month'
+					caption: Kalenterikuukausi
+				column 'Calendar Month Year'
+					caption: Kalenterikuukausi – Vuosi
+				column 'Calendar Week'
+					caption: Kalenteriviikko
+				column 'Calendar Week Year'
+					caption: Kalenteriviikko – Vuosi
+				column 'Calendar RelativeWeekPos'
+					caption: Kalenteri – SuhteellisenViikonSijainti
+				column 'Calendar RelativeMonthPos'
+					caption: Kalenteri – SuhteellisenKuukaudenSijainti
+				column 'Calendar RelativeQuarterPos'
+					caption: Kalenteri – SuhteellisenVuosineljänneksenSijainti
+				column 'Calendar RelativeYearPos'
+					caption: Kalenteri – SuhteellisenVuodenSijainti
+				column 'Calendar StartOfMonth'
+					caption: Kalenteri – KuukausiAlkaa
+				column 'Calendar EndOfMonth'
+					caption: Kalenteri – KuukausiPäättyy
+				column 'Calendar StartOfQuarter'
+					caption: Kalenteri – VuosineljännesAlkaa
+				column 'Calendar EndOfQuarter'
+					caption: Kalenteri – VuosineljännesPäättyy
+				column 'Calendar StartOfYear'
+					caption: Kalenteri – VuosiAlkaa
+				column 'Calendar EndOfYear'
+					caption: Kalenteri – VuosiPäättyy
+				column 'Calendar MonthDays'
+					caption: Kalenteri – KuukaudenPäivät
+				column 'Calendar QuarterDays'
+					caption: Kalenteri – VuosineljänneksenPäivät
+				column 'Calendar YearDays'
+					caption: Kalenteri – VuodenPäivät
+				column 'Calendar DayOfMonthNumber'
+					caption: Kalenteri – KuukaudenPäivänNumero
+				column 'Calendar DayOfQuarterNumber'
+					caption: Kalenteri – VuosineljänneksenPäivänNumero
+				column 'Calendar DayOfYearNumber'
+					caption: Kalenteri – VuodenPäivänNumero
+				column 'Calendar DatePreviousWeek'
+					caption: Kalenteri – PäivämääräEdellinenViikko
+				column 'Calendar DatePreviousMonth'
+					caption: Kalenteri – PäivämääräEdellinenKuukausi
+				column 'Calendar DatePreviousQuarter'
+					caption: Kalenteri – PäivämääräEdellinenVuosineljännes
+				column 'Calendar DatePreviousYear'
+					caption: Kalenteri – PäivämääräEdellinenVuosi
+				column 'Fiscal Year'
+					caption: Tilikausi
+				column 'Fiscal Quarter'
+					caption: Kirjanpidon vuosineljännes
+				column 'Fiscal Quarter Year'
+					caption: Kirjanpito – Neljännesvuosi
+				column 'Fiscal Month'
+					caption: Kirjanpitokuukausi
+				column 'Fiscal Month Year'
+					caption: Kirjanpidon kuukausi, vuosi
+				column 'Fiscal Week'
+					caption: Kirjanpitoviikko
+				column 'Fiscal Week Year'
+					caption: Kirjanpitoviikko, vuosi
+				column 'Fiscal RelativeWeekPos'
+					caption: Kirjanpito – SuhteellisenViikonSijainti
+				column 'Fiscal RelativeMonthPos'
+					caption: Kirjanpito – SuhteellisenKuukaudenSijainti
+				column 'Fiscal RelativeQuarterPos'
+					caption: Kirjanpito – SuhteellisenVuosineljänneksenSijainti
+				column 'Fiscal RelativeYearPos'
+					caption: Kirjanpito – SuhteellisenVuodenSijainti
+				column 'Fiscal StartOfMonth'
+					caption: Kirjanpito – KuukausiAlkaa
+				column 'Fiscal EndOfMonth'
+					caption: Kirjanpito – KuukausiPäättyy
+				column 'Fiscal StartOfQuarter'
+					caption: Kirjanpito – VuosineljännesAlkaa
+				column 'Fiscal EndOfQuarter'
+					caption: Kirjanpito – VuosineljännesPäättyy
+				column 'Fiscal StartOfYear'
+					caption: Kirjanpito – VuosiAlkaa
+				column 'Fiscal EndOfYear'
+					caption: Kirjanpito – VuosiPäättyy
+				column 'Fiscal MonthDays'
+					caption: Kirjanpito – KuukaudenPäivät
+				column 'Fiscal QuarterDays'
+					caption: Kirjanpito – VuosineljänneksenPäivät
+				column 'Fiscal YearDays'
+					caption: Kirjanpito – VuodenPäivät
+				column 'Fiscal DayOfMonthNumber'
+					caption: Kirjanpito – KuukaudenPäivänNumero
+				column 'Fiscal DayOfQuarterNumber'
+					caption: Kirjanpito – VuosineljänneksenPäivänNumero
+				column 'Fiscal DayOfYearNumber'
+					caption: Kirjanpito – VuodenPäivänNumero
+				column 'Fiscal DatePreviousWeek'
+					caption: Kirjanpito – PäivämääräEdellinenViikko
+				column 'Fiscal DatePreviousMonth'
+					caption: Kirjanpito – PäivämääräEdellinenKuukausi
+				column 'Fiscal DatePreviousQuarter'
+					caption: Kirjanpito – PäivämääräEdellinenVuosineljännes
+				column 'Fiscal DatePreviousYear'
+					caption: Kirjanpito – PäivämääräEdellinenVuosi
+				column 'FW Year'
+					caption: KV – Vuosi
+				column 'FW Quarter'
+					caption: KV – Vuosineljännes
+				column 'FW Quarter Year'
+					caption: KV – Neljännesvuosi
+				column 'FW Month'
+					caption: KV – Kuukausi
+				column 'FW Month Year'
+					caption: KV – Kuukausi, vuosi
+				column 'FW Week'
+					caption: KV – Viikko
+				column 'FW Period'
+					caption: KV – Kausi
+				column 'FW Week Year'
+					caption: KV – Viikko, vuosi
+				column 'FW StartOfWeek'
+					caption: KV – ViikkoAlkaa
+				column 'FW EndOfWeek'
+					caption: KV – ViikkoPäättyy
+				column 'FW RelativeWeekPos'
+					caption: KV – SuhteellisenViikonSijainti
+				column 'FW RelativeMonthPos'
+					caption: KV – SuhteellisenKuukaudenSijainti
+				column 'FW RelativeQuarterPos'
+					caption: KV – SuhteellisenVuosineljänneksenSijainti
+				column 'FW RelativeYearPos'
+					caption: KV – SuhteellisenVuodenSijainti
+				column 'FW StartOfMonth'
+					caption: KV – KuukausiAlkaa
+				column 'FW EndOfMonth'
+					caption: KV – KuukausiPäättyy
+				column 'FW StartOfQuarter'
+					caption: KV – VuosineljännesAlkaa
+				column 'FW EndOfQuarter'
+					caption: KV – VuosineljännesPäättyy
+				column 'FW StartOfYear'
+					caption: KV – VuosiAlkaa
+				column 'FW EndOfYear'
+					caption: KV – VuosiPäättyy
+				column 'FW MonthDays'
+					caption: KV – KuukaudenPäivät
+				column 'FW QuarterDays'
+					caption: KV – VuosineljänneksenPäivät
+				column 'FW YearDays'
+					caption: KV – VuodenPäivät
+				column 'FW DayOfMonthNumber'
+					caption: KV – KuukaudenPäivänNumero
+				column 'FW DayOfQuarterNumber'
+					caption: KV – VuosineljänneksenPäivänNumero
+				column 'FW DayOfYearNumber'
+					caption: KV – VuodenPäivänNumero
+				column 'FW DatePreviousWeek'
+					caption: KV – PäivämääräEdellinenViikko
+				column 'FW DatePreviousMonth'
+					caption: KV – PäivämääräEdellinenKuukausi
+				column 'FW DatePreviousQuarter'
+					caption: KV – PäivämääräEdellinenVuosineljännes
+				column 'FW DatePreviousYear'
+					caption: KV – PäivämääräEdellinenVuosi
+				column 'Relative Day'
+					caption: Suhteellinen päivämäärä
+				column Sequential365DayNumber
+					caption: Järjestys 365 PäiväNumero
+				column 'Data Range Deferrals'
+					caption: Tietovälisiirrot
+				measure 'No. of Days'
+					caption: Päivien määrä
+				hierarchy 'Fiscal Year-Quarter-Month-Week'
+					caption: Kirjanpito – Vuosi-Vuosineljännes-Kuukausi-Viikko
+					level 'Fiscal Year'
+						caption: Tilikausi
+					level 'Fiscal Quarter Year'
+						caption: Kirjanpito – Neljännesvuosi
+					level 'Fiscal Month Year'
+						caption: Kirjanpidon kuukausi, vuosi
+					level 'Fiscal Week Year'
+						caption: Kirjanpitoviikko, vuosi
+				hierarchy 'Calendar Year-Quarter-Month-Week'
+					caption: Kalenteri – Vuosi-Vuosineljännes-Kuukausi-Viikko
+					level 'Calendar Year'
+						caption: Kalenterivuosi
+					level 'Calendar Quarter Year'
+						caption: Kalenteri – Neljännesvuosi
+					level 'Calendar Month Year'
+						caption: Kalenterikuukausi – Vuosi
+					level 'Calendar Week Year'
+						caption: Kalenteriviikko – Vuosi
+				hierarchy 'FW Year-Quarter-Month-Week'
+					caption: KV – Vuosi-Vuosineljännes-Kuukausi-Viikko
+					level 'FW Year'
+						caption: KV – Vuosi
+					level 'FW Quarter Year'
+						caption: KV – Neljännesvuosi
+					level 'FW Month Year'
+						caption: KV – Kuukausi, vuosi
+					level 'FW Week Year'
+						caption: KV – Viikko, vuosi
+				hierarchy 'Fiscal Year-Month'
+					caption: Kirjanpito – Vuosi-Kuukausi
+					level 'Fiscal Year'
+						caption: Tilikausi
+					level 'Fiscal Month Year'
+						caption: Kirjanpidon kuukausi, vuosi
+				hierarchy 'Fiscal Year-Month-Week'
+					caption: Kirjanpito – Vuosi-Kuukausi-Viikko
+					level 'Fiscal Year'
+						caption: Tilikausi
+					level 'Fiscal Month Year'
+						caption: Kirjanpidon kuukausi, vuosi
+					level 'Fiscal Week Year'
+						caption: Kirjanpitoviikko, vuosi
+				hierarchy 'Calendar Year-Month'
+					caption: Kalenteri – Vuosi-Kuukausi
+					level 'Calendar Year'
+						caption: Kalenterivuosi
+					level 'Calendar Month Year'
+						caption: Kalenterikuukausi – Vuosi
+				hierarchy 'Calendar Year-Month-Week'
+					caption: Kalenteri – Vuosi-Kuukausi-Viikko
+					level 'Calendar Year'
+						caption: Kalenterivuosi
+					level 'Calendar Month Year'
+						caption: Kalenterikuukausi – Vuosi
+					level 'Calendar Week Year'
+						caption: Kalenteriviikko – Vuosi
+				hierarchy 'FW Year-Month-Week'
+					caption: KV – Vuosi-Kuukausi-Viikko
+					level 'FW Year'
+						caption: KV – Vuosi
+					level 'FW Month Year'
+						caption: KV – Kuukausi, vuosi
+					level 'FW Week Year'
+						caption: KV – Viikko, vuosi
+				hierarchy 'FW Year-Quarter-Week'
+					caption: KV – Vuosi-Vuosineljännes-Viikko
+					level 'FW Year'
+						caption: KV – Vuosi
+					level 'FW Quarter Year'
+						caption: KV – Neljännesvuosi
+					level 'FW Week Year'
+						caption: KV – Viikko, vuosi
+				hierarchy 'FW Year-Week'
+					caption: KV – Vuosi-Viikko
+					level 'FW Year'
+						caption: KV – Vuosi
+					level 'FW Week Year'
+						caption: KV – Viikko, vuosi
+			table 'Localized Labels'
+				measure 'CONNECT YOUR DATA'
+					caption: YHDISTÄ TIETOSI
+				measure '1. Download the Finance Connector for Power BI'
+					caption: 1. Lataa Finance Connector for Power BI
+				measure '2. Configure Dynamics 365 Business Central'
+					caption: 2. Määritä Dynamics 365 Business Central
+				measure 'USE, EDIT AND BUILD YOUR OWN REPORTS'
+					caption: KÄYTÄ, MUOKKAA JA LUO OMIA RAPORTTEJA
+				measure 'Finance includes a variety of pre-built reports to help you see your data immediately. You are able to edit these reports or build your own report from scratch.'
+					caption: Taloushallinto sisältää erilaisia esimääritettyjä raportteja, joiden avulla voit tarkastella tietoja välittömästi. Voit muokata näitä raportteja tai luoda oman raportin alusta alkaen.
+				measure 'HELP AND SUPPORT'
+					caption: OHJE JA TUKI
+				measure 'For help and support with your new report please visit the Analytics overview documentation.'
+					caption: Lisätietoja ja tukea uudelle raportillesi löydät analytiikan yleiskatsauksen dokumentaatiosta.
+				measure 'for Business Central'
+					caption: Business Centralille
+				measure 'Last Refreshed'
+					caption: Päivitetty viimeksi
+				measure 'Company Name'
+					caption: Yrityksen nimi
+				measure 'Analysis Entries as of'
+					caption: Analyysitapahtumat alkaen
+				measure 'Billing Forecast by Billing Period, Customer and Contract No.'
+					caption: Laskutusennuste laskutuskauden, asiakkaan ja sopimuksen numeron mukaan
+				measure 'Billing Forecast by Year and Month'
+					caption: Laskutusennuste kalenterivuosittain ja -kuukausittain
+				measure 'Billing Schedule'
+					caption: Laskutusaikataulu
+				measure 'Change of Mon. Recurring Revenue by Year and Month'
+					caption: Kk:ttain toistuvan tuoton muutos vuosittain ja kuukausittain
+				measure 'Current Date Range:'
+					caption: Nykyinen päivämääräalue:
+				measure 'Customer Contract Deferrals'
+					caption: Asiakassopimuksen siirrot
+				measure 'Customer Contract Lines'
+					caption: Asiakassopimusrivit
+				measure 'Customer Deferrals (Caption)'
+					caption: Asiakassiirrot
+				measure 'Mon. Recurring Revenue Analysis'
+					caption: Kk:ttain toistuvan tuoton analyysi
+				measure 'Mon. Recurring Revenue and Mon. Recurring Revenue PY by Month'
+					caption: Kk:ttain toistuva tuotto ja Kk:ttain toistuva tuotto EDV kalenterikuukausittain
+				measure 'Mon. Recurring Revenue and Year-Over-Year Growth by Year and Month'
+					caption: Kk:ttain toistuva tuotto ja vuosittainen kasvu kalenterivuosittain ja -kuukausittain
+				measure 'Mon. Recurring Revenue by Customer'
+					caption: Kk:ttain toistuva tuotto asiakkaittain
+				measure 'Mon. Recurring Revenue by Salesperson'
+					caption: Kk:ttain toistuva tuotto myyjittäin
+				measure 'Mon. Recurring Revenue by Year and Month'
+					caption: Kk:ttain toistuva tuotto kalenterivuosittain ja -kuukausittain
+				measure 'Mon. Recurring Revenue by Item'
+					caption: Kk:ttain toistuva tuotto nimikkeittäin
+				measure 'Mon. Recurring Revenue by Item Category'
+					caption: Kk:ttain toistuva tuotto nimikeluokittain
+				measure 'Mon. Recurring Revenue Churn and Downgrade by Customer Contract'
+					caption: Kk:ttain toistuvan tuoton Vaihtuvuus ja Palautus asiakassopimuksittain
+				measure 'Mon. Recurring Revenue New and Upgrade by Customer Contract'
+					caption: Kk:ttain toistuvan tuoton Uusi ja Päivitä asiakassopimuksittain
+				measure 'Monthly Sales and Cost Forecast by Year and Month'
+					caption: Kuukausittainen tuotto- ja kustannusennuste kalenterivuovuosittain ja -kuukausittain
+				measure 'Monthly Sales and Cost Forecast by Salesperson, Customer and Contract No.'
+					caption: Kuukausittainen tuotto- ja kustannusennuste myyjän, asiakkaan ja sopimuksen numeron mukaan
+				measure 'Released and Deferred Amount by Year and Month'
+					caption: Vapautettu ja siirretty summa kalenterivuosittain ja -kuukausittain
+				measure 'Revenue Analysis'
+					caption: Tuottoanalyysi
+				measure 'Revenue by Customer'
+					caption: Asiakaskohtainen tuotto
+				measure 'Revenue by Item'
+					caption: Nimikekohtainen tuotto
+				measure 'Revenue by Salesperson'
+					caption: Myyjäkohtainen tuotto
+				measure 'Revenue Development'
+					caption: Tuottokehitys
+				measure 'Sales and Cost Forecast'
+					caption: Tuottoennuste
+				measure 'Revenue Year-Over-Year Growth'
+					caption: Tuoton vuosittainen kasvu
+				measure 'Subscription Billing Analysis'
+					caption: Subscription Billing – Analyysi
+				measure 'Subscription Billing Overview'
+					caption: Subscription Billing – Yleiskatsaus
+				measure 'Top 5 Customers by Mon. Recurring Revenue'
+					caption: Viisi suurinta asiakasta kk:ttain toistuvan tuoton mukaan
+				measure 'Top 5 Vendors by Mon. Recurring Cost'
+					caption: 5 suurinta toimittajaa kk:ttain toistuvien kustannusten mukaan
+				measure 'Total Contract Value Analysis'
+					caption: Sopimuksen kokonaisarvon analyysi
+				measure 'Total Contract Value and Total Contract Value PY by Month'
+					caption: Sopimuksen kokonaisarvo ja Sopimuksen kokonaisarvo EDV kalenterikuukausittain
+				measure 'Total Contract Value and Year-Over-Year Growth by Year and Month'
+					caption: Sopimuksen kokonaisarvo ja vuosittainen kasvu kalenterivuosittain ja -kuukausittain
+				measure 'Total Contract Value by Year and Month'
+					caption: Sopimuksen kokonaisarvo kalenterivuosittain ja -kuukausittain
+				measure 'Total Contract Value Year-Over-Year Growth'
+					caption: Sopimuksen kokonaisarvo – Vuosittainen kasvu
+				measure 'Vendor Contract Deferrals'
+					caption: Toimittajasopimuksen siirrot
+				measure 'Vendor Deferrals (Caption)'
+					caption: Toimittajasiirrot
+				measure 'Back button'
+					caption: Takaisin-painike
+				measure 'Monthly Recurring Revenue, Monthly Recurring Cost, Monthly Net Profit, Active Customers, Total Contract Value, Change in Monthly Recurring Revenue'
+					caption: Kuukausittain toistuva tuotto, Kuukausittainen toistuva kustannus, Kuukausittainen nettotulos, Aktiiviset asiakkaat, Sopimuksen kokonaisarvo, Kuukausittain toistuvan tuoton muutos
+				measure 'Churn Analysis'
+					caption: Vaihtuvuusanalyysi
+				measure 'Avg. Mon. Churn Rate % by Year and Month'
+					caption: Keskim. kk:ttainen vaihtuvuusprosentti % vuosittain ja kuukausittain
+			table 'Meta Information'
+				caption: YRITYS
+			table Subscription
+				caption: Huoltokohde
+				column 'Subscription No.'
+					caption: Huoltokohteen nro
+				column 'Package Code'
+					caption: Pakettikoodi
+				column 'Subscription Desc.'
+					caption: Huoltokohteen kuvaus
+				column 'Analysis Date'
+					caption: Analyysin päivämäärä
+				column 'Subscription No. Desc.'
+					caption: Subscription-nron kuvaus
+			table 'Vendor Contract Deferrals'
+				caption: Toimittajasopimuksen siirrot
+				column 'Document Type'
+					caption: Asiakirjatyyppi
+				column 'Document No.'
+					caption: Asiakirjanumero
+				column 'Posting Date'
+					caption: Kirjauspäivämäärä
+				column 'Document Posting Date'
+					caption: Asiakirjan kirjauspäivämäärä
+				column 'Release Posting Date'
+					caption: Vapautuksen kirjauspäivämäärä
+				column 'G LEntry No.'
+					caption: KP-tapahtuman nro
+				column Discount
+					caption: Alennus
+				column 'Document Line No.'
+					caption: Asiakirjan rivinro
+			table 'Customer Contract Line'
+				caption: Asiakassopimusrivi
+				column 'Subscription Line No.'
+					caption: Sitoumusrivin nro
+				column Template
+					caption: Malli
+				column 'Customer Contract Line Desc.'
+					caption: Asiakassopimusrivin kuvaus
+				column 'Subscription Start Date'
+					caption: Huollon alkamispäivä
+				column 'Subscription End Date'
+					caption: Huollon päättymispäivä
+				column 'Next Billing Date'
+					caption: Seuraava laskutuspäivämäärä
+				column 'Billing Base Period'
+					caption: Laskutuksen peruskausi
+				column 'Invoicing Item No.'
+					caption: Laskutusnimikkeen nro
+				column 'Customer Contract Line No.'
+					caption: Asiakassopimusrivin nro
+				column 'Notice Period'
+					caption: Irtisanomisaika
+				column 'Initial Term'
+					caption: Alkuperäinen kausi
+				column 'Extension Term'
+					caption: Jatkokausi
+				column 'Billing Rhythm'
+					caption: Laskutusrytmi
+				column 'Cancellation Possible Until'
+					caption: Peruutus mahdollista tähän asti
+				column 'Term Until'
+					caption: Kauden kesto
+				column 'Renewal Term'
+					caption: Uusimiskausi
+				column 'Line Active'
+					caption: Rivi aktiivinen
+				column 'Remaining Term'
+					caption: Jäljellä oleva kausi
+				column 'Billing Rhythm Months'
+					caption: Laskutusrytmin kuukaudet
+				column 'Customer Contract No.'
+					caption: Asiakassopimuksen nro
+				column 'Is Usage Based Billing'
+					caption: On käyttöperusteinen laskutus
+				column 'Source Type'
+					caption: Lähdetyyppi
+				column 'Source No.'
+					caption: Lähdenro
+			table 'Vendor Contract Line'
+				caption: Toimittajasopimusrivi
+				column 'Subscription Line No.'
+					caption: Sitoumusrivin nro
+				column Template
+					caption: Malli
+				column 'Vendor Contract Line Desc.'
+					caption: Toimittajasopimusrivin kuvaus
+				column 'Subscription Start Date'
+					caption: Huollon alkamispäivä
+				column 'Subscription End Date'
+					caption: Huollon päättymispäivä
+				column 'Next Billing Date'
+					caption: Seuraava laskutuspäivämäärä
+				column 'Vendor Contract Line No.'
+					caption: Toimittajasopimusrivin nro
+				column 'Notice Period'
+					caption: Irtisanomisaika
+				column 'Initial Term'
+					caption: Alkuperäinen kausi
+				column 'Extension Term'
+					caption: Jatkokausi
+				column 'Billing Rhythm'
+					caption: Laskutusrytmi
+				column 'Cancellation Possible Until'
+					caption: Peruutus mahdollista tähän asti
+				column 'Term Until'
+					caption: Kauden kesto
+				column 'Renewal Term'
+					caption: Uusimiskausi
+				column 'Line Active'
+					caption: Rivi aktiivinen
+				column 'Remaining Term'
+					caption: Jäljellä oleva kausi
+				column 'Billing Rhythm Months'
+					caption: Laskutusrytmin kuukaudet
+				column 'Vendor Contract No.'
+					caption: Toimittajasopimuksen nro
+				column 'Is Latest Version'
+					caption: On viimeisin versio
+				column 'Is Usage Based Billing'
+					caption: On käyttöperusteinen laskutus
+				column 'Source Type'
+					caption: Lähdetyyppi
+				column 'Source No.'
+					caption: Lähdenro
+			table 'Customer Contract Deferrals'
+				caption: Asiakassopimuksen siirrot
+				column 'Document Type'
+					caption: Asiakirjatyyppi
+				column 'Document No.'
+					caption: Asiakirjanumero
+				column 'Posting Date'
+					caption: Kirjauspäivämäärä
+				column 'Document Line No.'
+					caption: Asiakirjan rivinro
+				column 'Document Posting Date'
+					caption: Asiakirjan kirjauspäivämäärä
+				column 'Release Posting Date'
+					caption: Vapautuksen kirjauspäivämäärä
+				column 'G LEntry No.'
+					caption: KP-tapahtuman nro
+			table 'Customer Contract'
+				caption: Asiakassopimus
+				column 'Customer Contract No.'
+					caption: Asiakassopimuksen nro
+				column 'Customer Contract Type'
+					caption: Asiakassopimuksen tyyppi
+				column 'Customer Contract Description'
+					caption: Asiakassopimuksen kuvaus
+				column 'Customer Contract No. Desc.'
+					caption: Asiakassopimuksen nron kuvaus
+			table 'Vendor Contract'
+				caption: Toimittajasopimus
+				column 'Vendor Contract No.'
+					caption: Toimittajasopimuksen nro
+				column 'Vendor Contract Type'
+					caption: Toimittajasopimuksen tyyppi
+				column 'Vendor Contract Description'
+					caption: Toimittajasopimuksen kuvaus
+				column 'Vendor Contract No. Desc.'
+					caption: Toimittajasopimuksen nron kuvaus
+			table 'UBB handling'
+				caption: KPL:n käsittely
+				column 'Treat Usage Based Billing as constant'
+					caption: Käsittele KPL:ää vakiona
+			table 'Is Released'
+				caption: On vapautettu
+			table Item
+				caption: Nimike
+				column 'Item No.'
+					caption: Nimikenumero
+				column 'Item Name'
+					caption: Nimikkeen nimi
+				column 'Item Category Code'
+					caption: Nimikeluokan koodi
+				column 'Item Category Description'
+					caption: Nimikeluokan kuvaus
+				column 'Inventory Posting Group'
+					caption: Varaston kirjausryhmä
+				column 'Base Unit of Measure'
+					caption: Perusmittayksikkö
+				column 'Item No. & Description'
+					caption: Nimikkeen nro ja kuvaus
+			table 'Analysis Date'
+				caption: Analyysin päivämäärä
+				column 'Is Initial Version'
+					caption: On alkuperäinen versio
+				column 'Is Current Version'
+					caption: On nykyinen versio
+			table 'Calc. Group - Time Intelligence for Calendar (Fiscal)'
+				caption: Laskettu ryhmä – Kalenterin aikatiedot (kirjanpito)
+				column Perspective
+					caption: Perspektiivi
+			table 'Subscription Billing KPIs'
+				caption: Subscription Billing – Tunnusluvut
+				measure 'Mon. Recurring Revenue'
+					caption: KKTT
+				measure 'Mon. Recurring Cost'
+					caption: KKTK
+				measure 'Customer Deferrals'
+					caption: Asiakassiirrot
+				measure 'Vendor Deferrals'
+					caption: Toimittajasiirrot
+				measure 'Annual Recurring Revenue'
+					caption: VTT
+				measure 'Total Contract Value'
+					caption: SKA
+				measure 'Forecast Sales'
+					caption: Ennustemyynti
+				measure 'Mon. Recurring Cost PY'
+					caption: KKTK EDV
+				measure 'Mon. Recurring Cost Δ vs. PY'
+					caption: KKTK Δ vrt. EDV
+				measure 'Mon. Recurring Revenue Churn'
+					caption: Kk:ttain toistuva tuotto – Vaihtuvuus
+				measure 'Mon. Recurring Revenue PY'
+					caption: KKTT EDV
+				measure 'Mon. Recurring Revenue New'
+					caption: Kk:ttain toistuva tuotto – Uusi
+				measure 'Mon. Recurring Revenue Δ vs. PY'
+					caption: Kk:ttain toistuvan tuoton Δ vrt. EDV
+				measure 'Mon. Net Profit Amount'
+					caption: KKNVS
+				measure 'Mon. Net Profit %'
+					caption: KKTT:N KKNVS-%
+				measure 'Mon. Net Profit PY'
+					caption: KKNVS EDV
+				measure 'Mon. Net Profit Δ vs. PY'
+					caption: KKNV Δ vrt. EDV
+				measure 'Change in Mon. Recurring Revenue'
+					caption: KKTT:n yleinen muutos
+				measure 'Total Contract Value PY'
+					caption: SKA EDV
+				measure 'Total Contract Value Δ vs. PY'
+					caption: SKA Δ vrt. EDV
+				measure 'Last Update Analysis Entries'
+					caption: Viimeisen päivityksen analyysitapahtumat
+				measure 'Last Update Semantic Model'
+					caption: Viimeisen päivityksen semanttinen malli
+				measure 'Param Environment'
+					caption: Param – Ympäristö
+				measure 'Param Company'
+					caption: Param – Yritys
+				measure 'Mon. Recurring Revenue Upgrade'
+					caption: Kk:ttain toistuva tuotto – Päivitys
+				measure 'Mon. Recurring Revenue Change UBB'
+					caption: Kk:ttain toistuvan tuoton muutos – KPL
+				measure 'Reporting Currency'
+					caption: Raportointivaluutta
+				measure 'Active Customers'
+					caption: Aktiiviset asiakkaat
+				measure 'Active Customers PY'
+					caption: Aktiiviset asiakkaat – EDV
+				measure 'Active Customers Δ vs. PY'
+					caption: Aktiivisten asiakkaiden Δ vrt. EDV
+				measure 'Customer Billing Forecast'
+					caption: Asiakkaan laskutusennuste
+				measure 'Vendor Billing Forecast'
+					caption: Toimittajan laskutusennuste
+				measure 'Forecast Costs'
+					caption: Ennustekustannukset
+				measure 'Mon. Recurring Revenue Downgrade'
+					caption: Kk:ttain toistuva tuotto – Palautus
+				measure 'Selected Date Range'
+					caption: Valittu päivämääräalue
+				measure 'Avg. Mon. Churn Rate %'
+					caption: Keskim. kk:ttainen vaihtuvuusprosentti %
+				measure 'Mon. Avg. Downgrade Rate %'
+					caption: Kk:ttainen palautusprosentti % keskimäärin
+				measure 'Mon. Recurring Revenue Downgrade & Churn'
+					caption: Kk:ttain toistuva tuotto – Palautus ja Vaihtuvuus
+			table Salesperson
+				caption: Myyjä
+				column 'Salesperson Code'
+					caption: Myyjän koodi
+				column 'Salesperson Name'
+					caption: Myyjän nimi
+			table 'Customer Contract Changes'
+				caption: Asiakassopimuksen muutokset
+				column 'Customer Contract Line Key'
+					caption: Asiakassopimusrivin avain
+				column Date
+					caption: Pvm
+				column 'Change Type'
+					caption: Muuta tyyppiä
+				column 'MRR Delta'
+					caption: KKTT Delta
+

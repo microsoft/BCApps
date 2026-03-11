@@ -1,0 +1,2402 @@
+table 'Translated Localized Labels'
+	lineageTag: 55ed3098-6db1-43ef-93ae-d122b44f3d0d
+
+	measure 'My Report Title Label' =
+			SWITCH(USERCULTURE(),
+			   "cs-CZ", "Můj nadpis sestavy",
+			   "da-DK", "Min rapporttitel",
+			   "de-AT", "Titel meines Berichts",
+			   "de-CH", "Titel meines Berichts",
+			   "de-DE", "Titel meines Berichts",
+			   "en-AU", "My Report Title",
+			   "en-CA", "My Report Title",
+			   "en-GB", "My Report Title",
+			   "en-NZ", "My Report Title",
+			   "es-ES", "Título del informe",
+			   "es-MX", "Título del informe",
+			   "fi-FI", "Oman raportin otsikko",
+			   "fr-BE", "Titre de l’état",
+			   "fr-CA", "Titre de mon rapport",
+			   "fr-CH", "Titre de l’état",
+			   "fr-FR", "Titre de l’état",
+			   "is-IS", "Skýrslutitill notanda",
+			   "it-CH", "Titolo report personale",
+			   "it-IT", "Titolo report personale",
+			   "nb-NO", "Min rapporttittel",
+			   "nl-BE", "Mijn rapporttitel",
+			   "nl-NL", "Mijn rapporttitel",
+			   "sv-SE", "Min rapportrubrik",
+			   "My Report Title"
+			)
+		lineageTag: 15976cc2-6a96-4756-ba66-954f38bbd08e
+
+	measure 'My Button Caption Label' =
+			SWITCH(USERCULTURE(),
+			   "cs-CZ", "Popisek mého tlačítka",
+			   "da-DK", "Min knaptitel",
+			   "de-AT", "Beschriftung Meine Schaltfläche",
+			   "de-CH", "Beschriftung Meine Schaltfläche",
+			   "de-DE", "Beschriftung Meine Schaltfläche",
+			   "en-AU", "My Button Caption",
+			   "en-CA", "My Button Caption",
+			   "en-GB", "My Button Caption",
+			   "en-NZ", "My Button Caption",
+			   "es-ES", "Título de botón",
+			   "es-MX", "Título de botón",
+			   "fi-FI", "Oma painikkeen otsikko",
+			   "fr-BE", "Légende de mon bouton",
+			   "fr-CA", "Légende de mon bouton",
+			   "fr-CH", "Légende de mon bouton",
+			   "fr-FR", "Légende de mon bouton",
+			   "is-IS", "Texti hnapps notanda",
+			   "it-CH", "Didascalia pulsante personale",
+			   "it-IT", "Didascalia pulsante personale",
+			   "nb-NO", "Min knappetittel",
+			   "nl-BE", "Bijschrift van mijn knop",
+			   "nl-NL", "Bijschrift van mijn knop",
+			   "sv-SE", "Min knapprubrik",
+			   "My Button Caption"
+			)
+		lineageTag: 3b8f818e-714b-4366-ab65-44cd7a2be226
+
+	measure 'My Visual Title Label' =
+			SWITCH(USERCULTURE(),
+			   "cs-CZ", "Název mého vizuálu",
+			   "da-DK", "Min visuelle titel",
+			   "de-AT", "Titel meines Visuals",
+			   "de-CH", "Titel meines Visuals",
+			   "de-DE", "Titel meines Visuals",
+			   "en-AU", "My Visual Title",
+			   "en-CA", "My Visual Title",
+			   "en-GB", "My Visual Title",
+			   "en-NZ", "My Visual Title",
+			   "es-ES", "Título visual",
+			   "es-MX", "Título visual",
+			   "fi-FI", "Oma visuaalinen otsikko",
+			   "fr-BE", "Mon titre visuel",
+			   "fr-CA", "Mon titre visuel",
+			   "fr-CH", "Mon titre visuel",
+			   "fr-FR", "Mon titre visuel",
+			   "is-IS", "Sjónrænn titill notanda",
+			   "it-CH", "Titolo visivo personale",
+			   "it-IT", "Titolo visivo personale",
+			   "nb-NO", "Min visuelle tittel",
+			   "nl-BE", "Mijn visuele titel",
+			   "nl-NL", "Mijn visuele titel",
+			   "sv-SE", "Min visuella rubrik",
+			   "My Visual Title"
+			)
+		lineageTag: eb100899-310e-4096-8bd0-b25b15a36141
+
+	measure 'Inventory Overview Label' =
+			SWITCH(USERCULTURE(),
+			   "cs-CZ", "Přehled zásob",
+			   "da-DK", "Oversigt over lager",
+			   "de-AT", "Lagerbestand – Übersicht",
+			   "de-CH", "Lagerbestand – Übersicht",
+			   "de-DE", "Lagerbestand – Übersicht",
+			   "en-AU", "Inventory Overview",
+			   "en-CA", "Inventory Overview",
+			   "en-GB", "Inventory Overview",
+			   "en-NZ", "Inventory Overview",
+			   "es-ES", "Información general de inventario",
+			   "es-MX", "Información general de inventario",
+			   "fi-FI", "Varaston yleiskatsaus",
+			   "fr-BE", "Vue d’ensemble du stock",
+			   "fr-CA", "Vue d’ensemble de l’inventaire",
+			   "fr-CH", "Vue d’ensemble du stock",
+			   "fr-FR", "Vue d’ensemble du stock",
+			   "is-IS", "Birgðayfirlit",
+			   "it-CH", "Panoramica dell'inventario",
+			   "it-IT", "Panoramica dell'inventario",
+			   "nb-NO", "Oversikt over beholdning",
+			   "nl-BE", "Overzicht van voorraad",
+			   "nl-NL", "Overzicht van voorraad",
+			   "sv-SE", "Lageröversikt",
+			   "Inventory Overview"
+			)
+		lineageTag: 306be75e-ede1-443b-a0e3-83c99fb109d9
+
+	measure 'Inventory and Projected Available Balance Label' =
+			SWITCH(USERCULTURE(),
+			   "cs-CZ", "Zásoby a předpokládané dostupné množství",
+			   "da-DK", "Lager og planlagt disponibel saldo",
+			   "de-AT", "Lagerbestand und Verfügbarkeitssaldo",
+			   "de-CH", "Lagerbestand und Verfügbarkeitssaldo",
+			   "de-DE", "Lagerbestand und Verfügbarkeitssaldo",
+			   "en-AU", "Inventory and Projected Available Balance",
+			   "en-CA", "Inventory and Projected Available Balance",
+			   "en-GB", "Inventory and Projected Available Balance",
+			   "en-NZ", "Inventory and Projected Available Balance",
+			   "es-ES", "Saldo disponible proyectado y de inventario",
+			   "es-MX", "Saldo disponible proyectado y de inventario",
+			   "fi-FI", "Varasto ja oletettu saatavilla oleva saldo",
+			   "fr-BE", "Stock et solde disponible prévisionnel",
+			   "fr-CA", "Inventaire et solde disponible prévisionnel",
+			   "fr-CH", "Stock et solde disponible prévisionnel",
+			   "fr-FR", "Stock et solde disponible prévisionnel",
+			   "is-IS", "Birgðir og áætluð staða til ráðstöfunar",
+			   "it-CH", "Inventario e disponibilità calcolata",
+			   "it-IT", "Inventario e disponibilità calcolata",
+			   "nb-NO", "Beholdning og forventet disponibel saldo",
+			   "nl-BE", "Voorraad en voorspelde beschikbare voorraad",
+			   "nl-NL", "Voorraad en voorspelde beschikbare voorraad",
+			   "sv-SE", "Lager och lagerutveckling över tiden",
+			   "Inventory and Projected Available Balance"
+			)
+		lineageTag: 47e63c43-f867-4661-81b4-56a0d6a5b4e9
+
+	measure 'Availability Outlook Label' =
+			SWITCH(USERCULTURE(),
+			   "cs-CZ", "Výhled dostupnosti",
+			   "da-DK", "Tilgængelighed af Outlook",
+			   "de-AT", "Verfügbarkeitsübersicht",
+			   "de-CH", "Verfügbarkeitsübersicht",
+			   "de-DE", "Verfügbarkeitsübersicht",
+			   "en-AU", "Availability Outlook",
+			   "en-CA", "Availability Outlook",
+			   "en-GB", "Availability Outlook",
+			   "en-NZ", "Availability Outlook",
+			   "es-ES", "Disponibilidad Outlook",
+			   "es-MX", "Disponibilidad Outlook",
+			   "fi-FI", "Saatavuusnäkymä",
+			   "fr-BE", "Disponibilité Outlook",
+			   "fr-CA", "Disponibilité Outlook",
+			   "fr-CH", "Disponibilité Outlook",
+			   "fr-FR", "Disponibilité Outlook",
+			   "is-IS", "Framboðshorfur",
+			   "it-CH", "Disponibilità Outlook",
+			   "it-IT", "Disponibilità Outlook",
+			   "nb-NO", "Tilgjengelighet Outlook",
+			   "nl-BE", "Beschikbaarheid Outlook",
+			   "nl-NL", "Beschikbaarheid Outlook",
+			   "sv-SE", "Tillgänglighet Outlook",
+			   "Availability Outlook"
+			)
+		lineageTag: b0d7a47d-1068-4214-b9a8-cbbffa1a7524
+
+	measure 'Inventory by Item Label' =
+			SWITCH(USERCULTURE(),
+			   "cs-CZ", "Zásoby podle zboží",
+			   "da-DK", "Lager efter vare",
+			   "de-AT", "Bestand nach Artikel",
+			   "de-CH", "Bestand nach Artikel",
+			   "de-DE", "Bestand nach Artikel",
+			   "en-AU", "Inventory by Item",
+			   "en-CA", "Inventory by Item",
+			   "en-GB", "Inventory by Item",
+			   "en-NZ", "Inventory by Item",
+			   "es-ES", "Inventario por producto",
+			   "es-MX", "Inventario por producto",
+			   "fi-FI", "Varasto nimikkeittäin",
+			   "fr-BE", "Stock par article",
+			   "fr-CA", "Inventaire par article",
+			   "fr-CH", "Stock par article",
+			   "fr-FR", "Stock par article",
+			   "is-IS", "Birgðir eftir vöru",
+			   "it-CH", "Inventario per articolo",
+			   "it-IT", "Inventario per articolo",
+			   "nb-NO", "Beholdning etter vare",
+			   "nl-BE", "Voorraad per artikel",
+			   "nl-NL", "Voorraad per artikel",
+			   "sv-SE", "Lager per artikel",
+			   "Inventory by Item"
+			)
+		lineageTag: c859fe48-e701-4434-905b-9cd3291b849b
+
+	measure 'Inventory by Location Label' =
+			SWITCH(USERCULTURE(),
+			   "cs-CZ", "Zásoby podle lokace",
+			   "da-DK", "Lager efter placering",
+			   "de-AT", "Bestand nach Lagerort",
+			   "de-CH", "Bestand nach Lagerort",
+			   "de-DE", "Bestand nach Lagerort",
+			   "en-AU", "Inventory by Location",
+			   "en-CA", "Inventory by Location",
+			   "en-GB", "Inventory by Location",
+			   "en-NZ", "Inventory by Location",
+			   "es-ES", "Inventario por almacén",
+			   "es-MX", "Inventario por almacén",
+			   "fi-FI", "Varasto sijainneittain",
+			   "fr-BE", "Stock par magasin",
+			   "fr-CA", "Inventaire par emplacement",
+			   "fr-CH", "Stock par magasin",
+			   "fr-FR", "Stock par magasin",
+			   "is-IS", "Birgðir eftir birgðageymslu",
+			   "it-CH", "Inventario per ubicazione",
+			   "it-IT", "Inventario per ubicazione",
+			   "nb-NO", "Beholdning etter lokasjon",
+			   "nl-BE", "Voorraad per locatie",
+			   "nl-NL", "Voorraad per locatie",
+			   "sv-SE", "Lager utifrån lagerställe",
+			   "Inventory by Location"
+			)
+		lineageTag: 3efc703f-8e1c-4760-aa70-b0a5380656d9
+
+	measure 'Inventory on Hand by Location Label' =
+			SWITCH(USERCULTURE(),
+			   "cs-CZ", "Zásoby na skladě podle lokace",
+			   "da-DK", "Disponibel lagerværdi efter placering",
+			   "de-AT", "Lagerbestand nach Lagerort",
+			   "de-CH", "Lagerbestand nach Lagerort",
+			   "de-DE", "Lagerbestand nach Lagerort",
+			   "en-AU", "Inventory on Hand by Location",
+			   "en-CA", "Inventory on Hand by Location",
+			   "en-GB", "Inventory on Hand by Location",
+			   "en-NZ", "Inventory on Hand by Location",
+			   "es-ES", "Inventario disponible por almacén",
+			   "es-MX", "Inventario disponible por almacén",
+			   "fi-FI", "Varastosaldo sijainneittain",
+			   "fr-BE", "Stock disponible par magasin",
+			   "fr-CA", "Inventaire disponible par emplacement",
+			   "fr-CH", "Stock disponible par magasin",
+			   "fr-FR", "Stock disponible par magasin",
+			   "is-IS", "Birgðir á lager eftir birgðageymslu",
+			   "it-CH", "Inventario disponibile per ubicazione",
+			   "it-IT", "Inventario disponibile per ubicazione",
+			   "nb-NO", "Disponibel beholdning etter lokasjon",
+			   "nl-BE", "Beschikbare voorraad per locatie",
+			   "nl-NL", "Beschikbare voorraad per locatie",
+			   "sv-SE", "Lagersaldo per lagerställe",
+			   "Inventory on Hand by Location"
+			)
+		lineageTag: 419a58ed-f74c-4186-84bc-43ab79987426
+
+	measure 'Purchase and Sales Quantity Label' =
+			SWITCH(USERCULTURE(),
+			   "cs-CZ", "Nákupní a prodejní množství",
+			   "da-DK", "Købs- og salgsantal",
+			   "de-AT", "Einkaufs- und Verkaufsmenge",
+			   "de-CH", "Einkaufs- und Verkaufsmenge",
+			   "de-DE", "Einkaufs- und Verkaufsmenge",
+			   "en-AU", "Purchase and Sales Quantity",
+			   "en-CA", "Purchase and Sales Quantity",
+			   "en-GB", "Purchase and Sales Quantity",
+			   "en-NZ", "Purchase and Sales Quantity",
+			   "es-ES", "Cantidad de compras y ventas",
+			   "es-MX", "Cantidad de compras y ventas",
+			   "fi-FI", "Osto- ja myyntimäärä",
+			   "fr-BE", "Quantité achat et vente",
+			   "fr-CA", "Quantité achat et vente",
+			   "fr-CH", "Quantité achat et vente",
+			   "fr-FR", "Quantité achat et vente",
+			   "is-IS", "Innkaupa- og sölumagn",
+			   "it-CH", "Quantità acquisti e vendite",
+			   "it-IT", "Quantità acquisti e vendite",
+			   "nb-NO", "Kjøps- og salgsantall",
+			   "nl-BE", "Inkoop- en verkoopaantal",
+			   "nl-NL", "Inkoop- en verkoopaantal",
+			   "sv-SE", "Inköps- och försäljningsantal",
+			   "Purchase and Sales Quantity"
+			)
+		lineageTag: 3ed5bdb5-6d81-4317-b207-09f3b46aac59
+
+	measure 'Item Availability Label' =
+			SWITCH(USERCULTURE(),
+			   "cs-CZ", "Dostupnost zboží",
+			   "da-DK", "Varedisponering",
+			   "de-AT", "Artikelverfügbarkeit",
+			   "de-CH", "Artikelverfügbarkeit",
+			   "de-DE", "Artikelverfügbarkeit",
+			   "en-AU", "Item Availability",
+			   "en-CA", "Item Availability",
+			   "en-GB", "Item Availability",
+			   "en-NZ", "Item Availability",
+			   "es-ES", "Disponibilidad de producto",
+			   "es-MX", "Disponibilidad de producto",
+			   "fi-FI", "Nimikkeen saatavuus",
+			   "fr-BE", "Disponibilité article",
+			   "fr-CA", "Disponibilité article",
+			   "fr-CH", "Disponibilité article",
+			   "fr-FR", "Disponibilité article",
+			   "is-IS", "Vara til ráðstöfunar",
+			   "it-CH", "Disponibilità articolo",
+			   "it-IT", "Disponibilità articolo",
+			   "nb-NO", "Varedisposisjon",
+			   "nl-BE", "Artikelbeschikbaarheid",
+			   "nl-NL", "Artikelbeschikbaarheid",
+			   "sv-SE", "Artikeldisposition",
+			   "Item Availability"
+			)
+		lineageTag: 8662d6a9-76fe-47ba-a1b4-e77afded7e03
+
+	measure 'Projected Available Balance vs. Quantity on Hand Label' =
+			SWITCH(USERCULTURE(),
+			   "cs-CZ", "Předpokládané dostupné množství vs. množství na skladě",
+			   "da-DK", "Forventet disponibel saldo vs. disponibel beholdning",
+			   "de-AT", "Verfügbarkeitssaldo im Vergleich zum Lagerbestand",
+			   "de-CH", "Verfügbarkeitssaldo im Vergleich zum Lagerbestand",
+			   "de-DE", "Verfügbarkeitssaldo im Vergleich zum Lagerbestand",
+			   "en-AU", "Projected Available Balance vs. Quantity on Hand",
+			   "en-CA", "Projected Available Balance vs. Quantity on Hand",
+			   "en-GB", "Projected Available Balance vs. Quantity on Hand",
+			   "en-NZ", "Projected Available Balance vs. Quantity on Hand",
+			   "es-ES", "Saldo disponible proyectado frente a cantidad disponible",
+			   "es-MX", "Saldo disponible proyectado frente a cantidad disponible",
+			   "fi-FI", "Oletettu saatavilla oleva saldo vrt. varastosaldo",
+			   "fr-BE", "Solde disponible prévisionnel par rapport à la quantité disponible",
+			   "fr-CA", "Solde disponible prévisionnel par rapport à la quantité disponible",
+			   "fr-CH", "Solde disponible prévisionnel par rapport à la quantité disponible",
+			   "fr-FR", "Solde disponible prévisionnel par rapport à la quantité disponible",
+			   "is-IS", "Áætluð staða til ráðstöfunar á móti magni á lager",
+			   "it-CH", "Disponibilità calcolata e giacenza",
+			   "it-IT", "Disponibilità calcolata e giacenza",
+			   "nb-NO", "Forventet disponibel saldo kontra beholdning",
+			   "nl-BE", "Voorspelde beschikbare voorraad versus beschikbare voorraad",
+			   "nl-NL", "Voorspelde beschikbare voorraad versus beschikbare voorraad",
+			   "sv-SE", "Lagerutveckling över tiden jämfört med Lagersaldo",
+			   "Projected Available Balance vs. Quantity on Hand"
+			)
+		lineageTag: ebe3a33c-f380-4214-9988-0272ad4b718a
+
+	measure 'Gross Requirements vs. Projected Available Balance Label' =
+			SWITCH(USERCULTURE(),
+			   "cs-CZ", "Hrubé požadavky vs. předpokládané dostupné množství",
+			   "da-DK", "Bruttobehov i forhold til forventet disponibel saldo",
+			   "de-AT", "Bruttobedarf im Vergleich zum Verfügbarkeitssaldo",
+			   "de-CH", "Bruttobedarf im Vergleich zum Verfügbarkeitssaldo",
+			   "de-DE", "Bruttobedarf im Vergleich zum Verfügbarkeitssaldo",
+			   "en-AU", "Gross Requirements vs. Projected Available Balance",
+			   "en-CA", "Gross Requirements vs. Projected Available Balance",
+			   "en-GB", "Gross Requirements vs. Projected Available Balance",
+			   "en-NZ", "Gross Requirements vs. Projected Available Balance",
+			   "es-ES", "Necesidades brutas frente a saldo disponible proyectado",
+			   "es-MX", "Necesidades brutas frente a saldo disponible proyectado",
+			   "fi-FI", "Bruttotarpeet vrt. oletettu saatavilla oleva saldo",
+			   "fr-BE", "Besoins bruts et solde disponible prévisionnel",
+			   "fr-CA", "Besoins bruts et solde disponible prévisionnel",
+			   "fr-CH", "Besoins bruts et solde disponible prévisionnel",
+			   "fr-FR", "Besoins bruts et solde disponible prévisionnel",
+			   "is-IS", "Brúttóþörf á móti áætlaðri stöðu til ráðstöfunar",
+			   "it-CH", "Fabbisogni lordi e disponibilità calcolata",
+			   "it-IT", "Fabbisogni lordi e disponibilità calcolata",
+			   "nb-NO", "Bruttobehov kontra forventet disponibel saldo",
+			   "nl-BE", "Brutobehoeften versus voorspelde beschikbare voorraad",
+			   "nl-NL", "Brutobehoeften versus voorspelde beschikbare voorraad",
+			   "sv-SE", "Bruttobehov jämfört med Lagerutveckling över tiden",
+			   "Gross Requirements vs. Projected Available Balance"
+			)
+		lineageTag: c1c121e0-182b-40f4-ba51-ab61f5b3fea6
+
+	measure 'Gross Requirements Earliest Dates Label' =
+			SWITCH(USERCULTURE(),
+			   "cs-CZ", "Nejdřívější data hrubých požadavků",
+			   "da-DK", "Tidligste datoer for bruttobehov",
+			   "de-AT", "Bruttobedarf – früheste Daten",
+			   "de-CH", "Bruttobedarf – früheste Daten",
+			   "de-DE", "Bruttobedarf – früheste Daten",
+			   "en-AU", "Gross Requirements Earliest Dates",
+			   "en-CA", "Gross Requirements Earliest Dates",
+			   "en-GB", "Gross Requirements Earliest Dates",
+			   "en-NZ", "Gross Requirements Earliest Dates",
+			   "es-ES", "Primeras fechas de necesidades brutas",
+			   "es-MX", "Primeras fechas de necesidades brutas",
+			   "fi-FI", "Bruttotarpeiden aikaisimmat päivämäärät",
+			   "fr-BE", "Dates des besoins bruts les plus proches",
+			   "fr-CA", "Dates des besoins bruts les plus proches",
+			   "fr-CH", "Dates des besoins bruts les plus proches",
+			   "fr-FR", "Dates des besoins bruts les plus proches",
+			   "is-IS", "Fyrstu mögulegu dagsetningar brúttóþarfa",
+			   "it-CH", "Prime date per fabbisogni lordi",
+			   "it-IT", "Prime date per fabbisogni lordi",
+			   "nb-NO", "Bruttobehov tidligste datoer",
+			   "nl-BE", "Vroegste datums brutobehoeften",
+			   "nl-NL", "Vroegste datums brutobehoeften",
+			   "sv-SE", "Tidigaste datum för bruttobehov",
+			   "Gross Requirements Earliest Dates"
+			)
+		lineageTag: 993cc7c9-5717-40a6-9a6c-f9e67f31955a
+
+	measure 'Scheduled Receipt Earliest Dates Label' =
+			SWITCH(USERCULTURE(),
+			   "cs-CZ", "Nejdřívější data naplánovaného příjmu",
+			   "da-DK", "Tidligste datoer for planlagt modtagelse",
+			   "de-AT", "Geplanter Zugang - früheste Daten",
+			   "de-CH", "Geplanter Zugang - früheste Daten",
+			   "de-DE", "Geplanter Zugang - früheste Daten",
+			   "en-AU", "Scheduled Receipt Earliest Dates",
+			   "en-CA", "Scheduled Receipt Earliest Dates",
+			   "en-GB", "Scheduled Receipt Earliest Dates",
+			   "en-NZ", "Scheduled Receipt Earliest Dates",
+			   "es-ES", "Primeras fechas de recepción programada",
+			   "es-MX", "Primeras fechas de recepción programada",
+			   "fi-FI", "Aikataulutetun vastaanoton aikaisimmat päivämäärät",
+			   "fr-BE", "Dates de réception planifiée les plus proches",
+			   "fr-CA", "Dates de réception programmée les plus proches",
+			   "fr-CH", "Dates de réception planifiée les plus proches",
+			   "fr-FR", "Dates de réception planifiée les plus proches",
+			   "is-IS", "Fyrstu mögulegu dagsetningar áætlaðrar móttöku",
+			   "it-CH", "Prime date per carico programmato",
+			   "it-IT", "Prime date per carico programmato",
+			   "nb-NO", "Tidsplanlagt mottak tidligste datoer",
+			   "nl-BE", "Geplande vroegste ontvangstdatums",
+			   "nl-NL", "Geplande vroegste ontvangstdatums",
+			   "sv-SE", "Tidigaste datum för planenlig inleverans",
+			   "Scheduled Receipt Earliest Dates"
+			)
+		lineageTag: 5dad24d2-ddc3-4a01-8fe2-4cf2b71365e2
+
+	measure 'Purchase Order Drill Through Label' =
+			SWITCH(USERCULTURE(),
+			   "cs-CZ", "Podrobné procházení nákupních objednávek",
+			   "da-DK", "Detaljeadgang for købsordre",
+			   "de-AT", "Bestellungs-Drillthrough",
+			   "de-CH", "Bestellungs-Drillthrough",
+			   "de-DE", "Bestellungs-Drillthrough",
+			   "en-AU", "Purchase Order Drill Through",
+			   "en-CA", "Purchase Order Drill Through",
+			   "en-GB", "Purchase Order Drill Through",
+			   "en-NZ", "Purchase Order Drill Through",
+			   "es-ES", "Análisis detallado de pedidos de compra",
+			   "es-MX", "Análisis detallado de pedidos de compra",
+			   "fi-FI", "Ostotilaukseen porautuminen",
+			   "fr-BE", "Extraction commande achat",
+			   "fr-CA", "Extraction bon de commande",
+			   "fr-CH", "Extraction commande achat",
+			   "fr-FR", "Extraction commande achat",
+			   "is-IS", "Köfun í innkaupapöntun",
+			   "it-CH", "Drill-through ordini di acquisto",
+			   "it-IT", "Drill-through ordini di acquisto",
+			   "nb-NO", "Gjennomgang av bestilling",
+			   "nl-BE", "Detailanalyse inkooporder",
+			   "nl-NL", "Detailanalyse inkooporder",
+			   "sv-SE", "Detaljerad analys av inköpsorder",
+			   "Purchase Order Drill Through"
+			)
+		lineageTag: 2dccbdf1-e257-4daf-8a9b-8db777e6cdb7
+
+	measure 'Purchase Return Order Drill Through Label' =
+			SWITCH(USERCULTURE(),
+			   "cs-CZ", "Podrobné procházení objednávek nákupních vratek",
+			   "da-DK", "Detaljeadgang for købsreturordre",
+			   "de-AT", "Einkaufsretourenauftrags-Drillthrough",
+			   "de-CH", "Einkaufsretourenauftrags-Drillthrough",
+			   "de-DE", "Einkaufsretourenauftrags-Drillthrough",
+			   "en-AU", "Purchase Return Order Drill Through",
+			   "en-CA", "Purchase Return Order Drill Through",
+			   "en-GB", "Purchase Return Order Drill Through",
+			   "en-NZ", "Purchase Return Order Drill Through",
+			   "es-ES", "Análisis detallado pedidos devolución compra",
+			   "es-MX", "Análisis detallado pedidos devolución compra",
+			   "fi-FI", "Ostopalautustilaukseen porautuminen",
+			   "fr-BE", "Extraction ordre de retour achat",
+			   "fr-CA", "Extraction ordre de retour achat",
+			   "fr-CH", "Extraction ordre de retour achat",
+			   "fr-FR", "Extraction ordre de retour achat",
+			   "is-IS", "Köfun í vöruskilapöntun innkaupa",
+			   "it-CH", "Drill-through ordini di reso acquisti",
+			   "it-IT", "Drill-through ordini di reso acquisti",
+			   "nb-NO", "Gjennomgang av bestillingsretur",
+			   "nl-BE", "Detailanalyse inkoopretourorder",
+			   "nl-NL", "Detailanalyse inkoopretourorder",
+			   "sv-SE", "Detaljerad analys av inköpsreturorder",
+			   "Purchase Return Order Drill Through"
+			)
+		lineageTag: d5003269-6f1c-4a63-a780-879eb6fa6369
+
+	measure 'Item Ledger Entry Drill through Label' =
+			SWITCH(USERCULTURE(),
+			   "cs-CZ", "Podrobné procházení položek zboží",
+			   "da-DK", "Detaljeadgang for varefinanspost",
+			   "de-AT", "Artikelposten-Drillthrough",
+			   "de-CH", "Lagerposten-Drillthrough",
+			   "de-DE", "Artikelposten-Drillthrough",
+			   "en-AU", "Item Ledger Entry Drill through",
+			   "en-CA", "Item Ledger Entry Drill through",
+			   "en-GB", "Item Ledger Entry Drill through",
+			   "en-NZ", "Item Ledger Entry Drill through",
+			   "es-ES", "Análisis detallado de los movimientos de producto",
+			   "es-MX", "Análisis detallado de los movimientos de producto",
+			   "fi-FI", "Nimiketapahtumaan porautuminen",
+			   "fr-BE", "Extraction écriture compta. article",
+			   "fr-CA", "Extraction écriture article",
+			   "fr-CH", "Extraction écriture compta. article",
+			   "fr-FR", "Extraction écriture compta. article",
+			   "is-IS", "Köfun í birgðahöfuðbókarfærslu",
+			   "it-CH", "Drill-through movimenti contabili articoli",
+			   "it-IT", "Drill-through movimenti contabili articoli",
+			   "nb-NO", "Gjennomgang av varepost",
+			   "nl-BE", "Detailanalyse artikelpost",
+			   "nl-NL", "Detailanalyse artikelpost",
+			   "sv-SE", "Detaljerad analys av artikeltransaktioner",
+			   "Item Ledger Entry Drill through"
+			)
+		lineageTag: 167329b6-a5f1-41f5-8d0d-1c85bc85227c
+
+	measure 'Production Order Drill Through Label' =
+			SWITCH(USERCULTURE(),
+			   "cs-CZ", "Podrobné procházení výrobních zakázek",
+			   "da-DK", "Detaljeadgang for produktionsordre",
+			   "de-AT", "Fertigungsauftrags-Drillthrough",
+			   "de-CH", "Fertigungsauftrags-Drillthrough",
+			   "de-DE", "Fertigungsauftrags-Drillthrough",
+			   "en-AU", "Production Order Drill Through",
+			   "en-CA", "Production Order Drill Through",
+			   "en-GB", "Production Order Drill Through",
+			   "en-NZ", "Production Order Drill Through",
+			   "es-ES", "Análisis detallado pedidos producción",
+			   "es-MX", "Análisis detallado pedidos producción",
+			   "fi-FI", "Tuotantotilaukseen porautuminen",
+			   "fr-BE", "Extraction ordre de fabrication",
+			   "fr-CA", "Extraction bon de production",
+			   "fr-CH", "Extraction ordre de fabrication",
+			   "fr-FR", "Extraction ordre de fabrication",
+			   "is-IS", "Köfun í framleiðslupöntun",
+			   "it-CH", "Drill-through ordini di produzione",
+			   "it-IT", "Drill-through ordini di produzione",
+			   "nb-NO", "Gjennomgang av produksjonsordre",
+			   "nl-BE", "Detailanalyse productieorder",
+			   "nl-NL", "Detailanalyse productieorder",
+			   "sv-SE", "Detaljerad analys av produktionsorder",
+			   "Production Order Drill Through"
+			)
+		lineageTag: 8d36aa82-ab9c-4ebc-aaf7-e7b63104ec74
+
+	measure 'Prod. Order Components Drill Through Label' =
+			SWITCH(USERCULTURE(),
+			   "cs-CZ", "Podrobné procházení komponent výr. zakázky",
+			   "da-DK", "Detaljeudledning af produktionsordrekomponenter",
+			   "de-AT", "Produktionsauftrags-Komponenten-Drillthrough",
+			   "de-CH", "Produktionsauftrags-Komponenten-Drillthrough",
+			   "de-DE", "Produktionsauftrags-Komponenten-Drillthrough",
+			   "en-AU", "Prod. Order Components Drill Through",
+			   "en-CA", "Prod. Order Components Drill Through",
+			   "en-GB", "Prod. Order Components Drill Through",
+			   "en-NZ", "Prod. Order Components Drill Through",
+			   "es-ES", "Análisis detallado componentes ord. prod.",
+			   "es-MX", "Análisis detallado componentes ord. prod.",
+			   "fi-FI", "Tuotantotilauksen komponentteihin porautuminen",
+			   "fr-BE", "Extraction des composants de l’ordre de fabrication",
+			   "fr-CA", "Extraction des composantes du bon de production",
+			   "fr-CH", "Extraction des composants de l’ordre de fabrication",
+			   "fr-FR", "Extraction des composants de l’ordre de fabrication",
+			   "is-IS", "Köfun í framleiðslupöntunaríhluti",
+			   "it-CH", "Drill-through componenti ordine di produzione",
+			   "it-IT", "Drill-through componenti ordine di produzione",
+			   "nb-NO", "Gjennomgang av prod.ordrekomponenter",
+			   "nl-BE", "Detailanalyse prod.-ordermateriaal",
+			   "nl-NL", "Detailanalyse prod.-ordermateriaal",
+			   "sv-SE", "Detaljerad analys av prod.orderkomponenter",
+			   "Prod. Order Components Drill Through"
+			)
+		lineageTag: e661b9c0-f41d-4029-af34-d7a648f6bc2c
+
+	measure 'Sales Order Drill Through Label' =
+			SWITCH(USERCULTURE(),
+			   "cs-CZ", "Podrobné procházení prodejních objednávek",
+			   "da-DK", "Detaljeadgang for salgsordre",
+			   "de-AT", "Verkaufsauftrags-Drillthrough",
+			   "de-CH", "Verkaufsauftrags-Drillthrough",
+			   "de-DE", "Verkaufsauftrags-Drillthrough",
+			   "en-AU", "Sales Order Drill Through",
+			   "en-CA", "Sales Order Drill Through",
+			   "en-GB", "Sales Order Drill Through",
+			   "en-NZ", "Sales Order Drill Through",
+			   "es-ES", "Análisis detallado de pedidos de venta",
+			   "es-MX", "Análisis detallado de pedidos de venta",
+			   "fi-FI", "Myyntitilaukseen porautuminen",
+			   "fr-BE", "Extraction commande vente",
+			   "fr-CA", "Extraction document de vente",
+			   "fr-CH", "Extraction commande vente",
+			   "fr-FR", "Extraction commande vente",
+			   "is-IS", "Köfun í sölupöntun",
+			   "it-CH", "Drill-through ordini vendita",
+			   "it-IT", "Drill-through ordini vendita",
+			   "nb-NO", "Gjennomgang av ordre",
+			   "nl-BE", "Detailanalyse verkooporder",
+			   "nl-NL", "Detailanalyse verkooporder",
+			   "sv-SE", "Detaljerad analys av försäljningsorder",
+			   "Sales Order Drill Through"
+			)
+		lineageTag: 12ed8e8a-f7a0-4642-a7bf-9483ad747f23
+
+	measure 'Sales Return Order Drill Through Label' =
+			SWITCH(USERCULTURE(),
+			   "cs-CZ", "Podrobné procházení objednávek prodejních vratek",
+			   "da-DK", "Detaljeadgang for salgsreturvareordre",
+			   "de-AT", "Verkaufsretourenauftrags-Drillthrough",
+			   "de-CH", "Verkaufsretourenauftrags-Drillthrough",
+			   "de-DE", "Verkaufsretourenauftrags-Drillthrough",
+			   "en-AU", "Sales Return Order Drill Through",
+			   "en-CA", "Sales Return Order Drill Through",
+			   "en-GB", "Sales Return Order Drill Through",
+			   "en-NZ", "Sales Return Order Drill Through",
+			   "es-ES", "Análisis detallado de pedidos de devolución",
+			   "es-MX", "Análisis detallado de pedidos de devolución",
+			   "fi-FI", "Myyntipalautustilaukseen porautuminen",
+			   "fr-BE", "Extraction retour vente",
+			   "fr-CA", "Extraction retour vente",
+			   "fr-CH", "Extraction retour vente",
+			   "fr-FR", "Extraction retour vente",
+			   "is-IS", "Köfun í söluvöruskilapöntun",
+			   "it-CH", "Drill-through ordini di reso vendita",
+			   "it-IT", "Drill-through ordini di reso vendita",
+			   "nb-NO", "Gjennomgang av ordreretur",
+			   "nl-BE", "Detailanalyse verkoopretourorder",
+			   "nl-NL", "Detailanalyse verkoopretourorder",
+			   "sv-SE", "Detaljerad analys av försäljningsreturorder",
+			   "Sales Return Order Drill Through"
+			)
+		lineageTag: c6e2c5bf-4419-4611-848c-c8281340291a
+
+	measure 'Transfer Order Drill Through Label' =
+			SWITCH(USERCULTURE(),
+			   "cs-CZ", "Podrobné procházení objednávek transferu",
+			   "da-DK", "Detaljeadgang for overflytningsordre",
+			   "de-AT", "Umlagerungsauftrags-Drillthrough",
+			   "de-CH", "Umlagerungsauftrags-Drillthrough",
+			   "de-DE", "Umlagerungsauftrags-Drillthrough",
+			   "en-AU", "Transfer Order Drill Through",
+			   "en-CA", "Transfer Order Drill Through",
+			   "en-GB", "Transfer Order Drill Through",
+			   "en-NZ", "Transfer Order Drill Through",
+			   "es-ES", "Análisis detallado de pedidos de transferencia",
+			   "es-MX", "Análisis detallado de pedidos de transferencia",
+			   "fi-FI", "Siirtotilaukseen porautuminen",
+			   "fr-BE", "Extraction ordre transfert",
+			   "fr-CA", "Extraction ordre transfert",
+			   "fr-CH", "Extraction ordre transfert",
+			   "fr-FR", "Extraction ordre transfert",
+			   "is-IS", "Köfun í millifærslupöntun",
+			   "it-CH", "Drill-through ordini di trasferimento",
+			   "it-IT", "Drill-through ordini di trasferimento",
+			   "nb-NO", "Gjennomgang av overføringsordre",
+			   "nl-BE", "Detailanalyse transferorder",
+			   "nl-NL", "Detailanalyse transferorder",
+			   "sv-SE", "Detaljerad analys av överföringsorder",
+			   "Transfer Order Drill Through"
+			)
+		lineageTag: 3deaebbf-eeb5-4c8c-82e2-46164b797605
+
+	measure 'Assembly Order Drill Through Label' =
+			SWITCH(USERCULTURE(),
+			   "cs-CZ", "Podrobné procházení montážních zakázek",
+			   "da-DK", "Detaljeadgang for montageordre",
+			   "de-AT", "Montageauftrags-Drillthrough",
+			   "de-CH", "Montageauftrags-Drillthrough",
+			   "de-DE", "Montageauftrags-Drillthrough",
+			   "en-AU", "Assembly Order Drill Through",
+			   "en-CA", "Assembly Order Drill Through",
+			   "en-GB", "Assembly Order Drill Through",
+			   "en-NZ", "Assembly Order Drill Through",
+			   "es-ES", "Análisis detallado de pedidos de ensamblado",
+			   "es-MX", "Análisis detallado de pedidos de ensamblado",
+			   "fi-FI", "Kokoonpanotilaukseen porautuminen",
+			   "fr-BE", "Extraction ordre d’assemblage",
+			   "fr-CA", "Extraction ordre d’assemblage",
+			   "fr-CH", "Extraction ordre d’assemblage",
+			   "fr-FR", "Extraction ordre d’assemblage",
+			   "is-IS", "Köfun í samsetningarpöntun",
+			   "it-CH", "Drill-through ordini di assemblaggio",
+			   "it-IT", "Drill-through ordini di assemblaggio",
+			   "nb-NO", "Gjennomgang av monteringsordre",
+			   "nl-BE", "Detailanalyse assemblageorder",
+			   "nl-NL", "Detailanalyse assemblageorder",
+			   "sv-SE", "Detaljerad analys av monteringsorder",
+			   "Assembly Order Drill Through"
+			)
+		lineageTag: 63cb1634-2ac0-4e3c-9426-101ce41bed3d
+
+	measure 'Assembly Lines Drill Through Label' =
+			SWITCH(USERCULTURE(),
+			   "cs-CZ", "Podrobné procházení řádků sestavení",
+			   "da-DK", "Detailudledning af montagelinjer",
+			   "de-AT", "Montagezeilen-Drillthrough",
+			   "de-CH", "Montagezeilen-Drillthrough",
+			   "de-DE", "Montagezeilen-Drillthrough",
+			   "en-AU", "Assembly Lines Drill Through",
+			   "en-CA", "Assembly Lines Drill Through",
+			   "en-GB", "Assembly Lines Drill Through",
+			   "en-NZ", "Assembly Lines Drill Through",
+			   "es-ES", "Análisis detallado de líneas de ensamblado",
+			   "es-MX", "Análisis detallado de líneas de ensamblado",
+			   "fi-FI", "Kokoonpanoriveihin porautuminen",
+			   "fr-BE", "Extraction des lignes assemblage",
+			   "fr-CA", "Extraction des lignes assemblage",
+			   "fr-CH", "Extraction des lignes assemblage",
+			   "fr-FR", "Extraction des lignes assemblage",
+			   "is-IS", "Köfun í samsetningarlínur",
+			   "it-CH", "Drill-through righe di assemblaggio",
+			   "it-IT", "Drill-through righe di assemblaggio",
+			   "nb-NO", "Gjennomgang av monteringslinjer",
+			   "nl-BE", "Detailanalyse assemblageregels",
+			   "nl-NL", "Detailanalyse assemblageregels",
+			   "sv-SE", "Detaljerad analys av monteringsrader",
+			   "Assembly Lines Drill Through"
+			)
+		lineageTag: 3b986988-51cf-4fbd-99ce-891c5d3413b4
+
+	measure 'Service Lines Drill Through Label' =
+			SWITCH(USERCULTURE(),
+			   "cs-CZ", "Podrobné procházení řádků servisu",
+			   "da-DK", "Servicelinjer gennemgår detailudledning",
+			   "de-AT", "Servicezeilen-Drillthrough",
+			   "de-CH", "Servicezeilen-Drillthrough",
+			   "de-DE", "Servicezeilen-Drillthrough",
+			   "en-AU", "Service Lines Drill Through",
+			   "en-CA", "Service Lines Drill Through",
+			   "en-GB", "Service Lines Drill Through",
+			   "en-NZ", "Service Lines Drill Through",
+			   "es-ES", "Análisis detallado de líneas de servicio",
+			   "es-MX", "Análisis detallado de líneas de servicio",
+			   "fi-FI", "Huoltoriveihin porautuminen",
+			   "fr-BE", "Extraction des lignes service",
+			   "fr-CA", "Extraction des lignes service",
+			   "fr-CH", "Extraction des lignes service",
+			   "fr-FR", "Extraction des lignes service",
+			   "is-IS", "Köfun í þjónustulínur",
+			   "it-CH", "Drill-through righe di assistenza",
+			   "it-IT", "Drill-through righe di assistenza",
+			   "nb-NO", "Gjennomgang av servicelinjer",
+			   "nl-BE", "Detailanalyse serviceregels",
+			   "nl-NL", "Detailanalyse serviceregels",
+			   "sv-SE", "Detaljerad analys av servicerader",
+			   "Service Lines Drill Through"
+			)
+		lineageTag: 9621afa3-0e1c-4103-9a52-8097f0d99888
+
+	measure 'Gross Requirement  Label' =
+			SWITCH(USERCULTURE(),
+			   "cs-CZ", "Hrubý požadavek ",
+			   "da-DK", "Bruttobehov ",
+			   "de-AT", "Bruttobedarf",
+			   "de-CH", "Bruttobedarf",
+			   "de-DE", "Bruttobedarf",
+			   "en-AU", "Gross Requirement ",
+			   "en-CA", "Gross Requirement ",
+			   "en-GB", "Gross Requirement ",
+			   "en-NZ", "Gross Requirement ",
+			   "es-ES", "Necesidades brutas ",
+			   "es-MX", "Necesidades brutas ",
+			   "fi-FI", "Bruttotarve ",
+			   "fr-BE", "Besoin brut ",
+			   "fr-CA", "Besoin brut ",
+			   "fr-CH", "Besoin brut ",
+			   "fr-FR", "Besoin brut ",
+			   "is-IS", "Brúttóþörf ",
+			   "it-CH", "Fabbisogno lordo ",
+			   "it-IT", "Fabbisogno lordo ",
+			   "nb-NO", "Bruttobehov ",
+			   "nl-BE", "Brutobehoefte ",
+			   "nl-NL", "Brutobehoefte ",
+			   "sv-SE", "Bruttobehov ",
+			   "Gross Requirement "
+			)
+		lineageTag: 39c17bd8-3cb8-44cf-bfe5-f2d7faf8f119
+
+	measure 'Scheduled Receipt  Label' =
+			SWITCH(USERCULTURE(),
+			   "cs-CZ", "Naplánovaný příjem ",
+			   "da-DK", "Planlagt modtagelse ",
+			   "de-AT", "Geplanter Zugang",
+			   "de-CH", "Geplanter Zugang",
+			   "de-DE", "Geplanter Zugang",
+			   "en-AU", "Scheduled Receipt ",
+			   "en-CA", "Scheduled Receipt ",
+			   "en-GB", "Scheduled Receipt ",
+			   "en-NZ", "Scheduled Receipt ",
+			   "es-ES", "Recepción programada ",
+			   "es-MX", "Recepción programada ",
+			   "fi-FI", "Aikataulutettu vastaanotto ",
+			   "fr-BE", "Réception planifiée ",
+			   "fr-CA", "Réception programmée ",
+			   "fr-CH", "Réception planifiée ",
+			   "fr-FR", "Réception planifiée ",
+			   "is-IS", "Tímasett innhreyfing ",
+			   "it-CH", "Carico programmato ",
+			   "it-IT", "Carico programmato ",
+			   "nb-NO", "Tidsplanlagt mottak ",
+			   "nl-BE", "Geplande ontvangst ",
+			   "nl-NL", "Geplande ontvangst ",
+			   "sv-SE", "Planenlig inleverans ",
+			   "Scheduled Receipt "
+			)
+		lineageTag: 6a8971ad-b0bf-48ff-92a0-cd95a8e312ef
+
+	measure 'Inventory by Lot  Label' =
+			SWITCH(USERCULTURE(),
+			   "cs-CZ", "Zásoby podle šarže ",
+			   "da-DK", "Lager efter parti ",
+			   "de-AT", "Bestand nach Charge",
+			   "de-CH", "Bestand nach Charge",
+			   "de-DE", "Bestand nach Charge",
+			   "en-AU", "Inventory by Lot ",
+			   "en-CA", "Inventory by Lot ",
+			   "en-GB", "Inventory by Lot ",
+			   "en-NZ", "Inventory by Lot ",
+			   "es-ES", "Inventario por lote ",
+			   "es-MX", "Inventario por lote ",
+			   "fi-FI", "Varasto erittäin ",
+			   "fr-BE", "Stock par lot ",
+			   "fr-CA", "Inventaire par lot ",
+			   "fr-CH", "Stock par lot ",
+			   "fr-FR", "Stock par lot ",
+			   "is-IS", "Birgðir eftir lotu ",
+			   "it-CH", "Inventario per lotto ",
+			   "it-IT", "Inventario per lotto ",
+			   "nb-NO", "Beholdning etter parti ",
+			   "nl-BE", "Voorraad per lot ",
+			   "nl-NL", "Voorraad per lot ",
+			   "sv-SE", "Lager utifrån parti ",
+			   "Inventory by Lot "
+			)
+		lineageTag: 50f74e95-d9fa-4f66-b888-8ce814b4e466
+
+	measure 'Inventory by Serial No. Label' =
+			SWITCH(USERCULTURE(),
+			   "cs-CZ", "Zásoby podle sériového čísla",
+			   "da-DK", "Lager efter serienummer",
+			   "de-AT", "Lagerbestand nach Seriennr.",
+			   "de-CH", "Lagerbestand nach Seriennr.",
+			   "de-DE", "Lagerbestand nach Seriennr.",
+			   "en-AU", "Inventory by Serial No.",
+			   "en-CA", "Inventory by Serial No.",
+			   "en-GB", "Inventory by Serial No.",
+			   "en-NZ", "Inventory by Serial No.",
+			   "es-ES", "Inventario por n.º serie",
+			   "es-MX", "Inventario por n.º serie",
+			   "fi-FI", "Varasto sarjanroittain",
+			   "fr-BE", "Stock par n° de série",
+			   "fr-CA", "Inventaire par n° de série",
+			   "fr-CH", "Stock par n° de série",
+			   "fr-FR", "Stock par n° de série",
+			   "is-IS", "Birgðir eftir raðnúmeri",
+			   "it-CH", "Inventario per numero di serie",
+			   "it-IT", "Inventario per numero di serie",
+			   "nb-NO", "Beholdning etter serienr.",
+			   "nl-BE", "Voorraad per serienr.",
+			   "nl-NL", "Voorraad per serienr.",
+			   "sv-SE", "Lager per serienummer",
+			   "Inventory by Serial No."
+			)
+		lineageTag: 6f1f04b3-b6c7-4978-957c-d4991c144b53
+
+	measure 'Bin Contents Label' =
+			SWITCH(USERCULTURE(),
+			   "cs-CZ", "Obsah přihrádky",
+			   "da-DK", "Placeringsindhold",
+			   "de-AT", "Lagerplatzinhalt",
+			   "de-CH", "Lagerplatzinhalt",
+			   "de-DE", "Lagerplatzinhalt",
+			   "en-AU", "Bin Contents",
+			   "en-CA", "Bin Contents",
+			   "en-GB", "Bin Contents",
+			   "en-NZ", "Bin Contents",
+			   "es-ES", "Contenido almacén",
+			   "es-MX", "Contenido almacén",
+			   "fi-FI", "Varastopaikan sisältö",
+			   "fr-BE", "Contenu emplacement",
+			   "fr-CA", "Contenu de la zone",
+			   "fr-CH", "Contenu emplacement",
+			   "fr-FR", "Contenu emplacement",
+			   "is-IS", "Innihald hólfs",
+			   "it-CH", "Contenuto collocazioni",
+			   "it-IT", "Contenuto collocazioni",
+			   "nb-NO", "Hylleinnhold",
+			   "nl-BE", "Opslaglocatie-inhoud",
+			   "nl-NL", "Opslaglocatie-inhoud",
+			   "sv-SE", "Lagerplatsinnehåll",
+			   "Bin Contents"
+			)
+		lineageTag: ae3cb72e-601f-4474-ac13-45caa956795f
+
+	measure 'Bin Contents by Item Tracking Label' =
+			SWITCH(USERCULTURE(),
+			   "cs-CZ", "Obsah přihrádky podle sledování zboží",
+			   "da-DK", "Placeringsindhold efter varesporing",
+			   "de-AT", "Lagerplatzinhalt nach Artikelverfolgung",
+			   "de-CH", "Lagerplatzinhalt nach Artikeltracking",
+			   "de-DE", "Lagerplatzinhalt nach Artikelverfolgung",
+			   "en-AU", "Bin Contents by Item Tracking",
+			   "en-CA", "Bin Contents by Item Tracking",
+			   "en-GB", "Bin Contents by Item Tracking",
+			   "en-NZ", "Bin Contents by Item Tracking",
+			   "es-ES", "Contenido almacén por seguimiento productos",
+			   "es-MX", "Contenido almacén por seguimiento productos",
+			   "fi-FI", "Varastopaikan sisältö nimikeseurannan mukaan",
+			   "fr-BE", "Contenu emplacement par traçabilité",
+			   "fr-CA", "Contenu de la zone par traçabilité",
+			   "fr-CH", "Contenu emplacement par traçabilité",
+			   "fr-FR", "Contenu emplacement par traçabilité",
+			   "is-IS", "Innihald hólfs eftir vörurakningu",
+			   "it-CH", "Contenuto collocazioni per tracciabilità articolo",
+			   "it-IT", "Contenuto collocazioni per tracciabilità articolo",
+			   "nb-NO", "Hylleinnhold etter varesporing",
+			   "nl-BE", "Opslaglocatie-inhoud per artikeltracering",
+			   "nl-NL", "Opslaglocatie-inhoud per artikeltracering",
+			   "sv-SE", "Lagerplatsinnehåll per artikelspårning",
+			   "Bin Contents by Item Tracking"
+			)
+		lineageTag: f6ab076c-9607-4f96-a0d4-2899d3630606
+
+	measure 'Expired Inventory  Label' =
+			SWITCH(USERCULTURE(),
+			   "cs-CZ", "Prošlé zásoby ",
+			   "da-DK", "Udløbet lager ",
+			   "de-AT", "Abgelaufene Menge am Lager",
+			   "de-CH", "Abgelaufene Menge am Lager",
+			   "de-DE", "Abgelaufene Menge am Lager",
+			   "en-AU", "Expired Inventory ",
+			   "en-CA", "Expired Inventory ",
+			   "en-GB", "Expired Inventory ",
+			   "en-NZ", "Expired Inventory ",
+			   "es-ES", "Inventario caducado ",
+			   "es-MX", "Inventario caducado ",
+			   "fi-FI", "Vanhentunut varasto ",
+			   "fr-BE", "Stock expiré ",
+			   "fr-CA", "Inventaire expiré ",
+			   "fr-CH", "Stock expiré ",
+			   "fr-FR", "Stock expiré ",
+			   "is-IS", "Útrunnar birgðir ",
+			   "it-CH", "Giacenze scadute ",
+			   "it-IT", "Giacenze scadute ",
+			   "nb-NO", "Utgått beholdning ",
+			   "nl-BE", "Vervallen voorraad ",
+			   "nl-NL", "Vervallen voorraad ",
+			   "sv-SE", "Utgånget lager ",
+			   "Expired Inventory "
+			)
+		lineageTag: fbc36953-3cde-4232-9fa6-5a866e1d067e
+
+	measure 'Gross Requirements Label' =
+			SWITCH(USERCULTURE(),
+			   "cs-CZ", "Hrubé požadavky",
+			   "da-DK", "Bruttobehov",
+			   "de-AT", "Bruttobedarf",
+			   "de-CH", "Bruttobedarf",
+			   "de-DE", "Bruttobedarf",
+			   "en-AU", "Gross Requirements",
+			   "en-CA", "Gross Requirements",
+			   "en-GB", "Gross Requirements",
+			   "en-NZ", "Gross Requirements",
+			   "es-ES", "Necesidades brutas",
+			   "es-MX", "Necesidades brutas",
+			   "fi-FI", "Bruttotarpeet",
+			   "fr-BE", "Besoins bruts",
+			   "fr-CA", "Besoins bruts",
+			   "fr-CH", "Besoins bruts",
+			   "fr-FR", "Besoins bruts",
+			   "is-IS", "Brúttóþörf",
+			   "it-CH", "Fabbisogni lordi",
+			   "it-IT", "Fabbisogni lordi",
+			   "nb-NO", "Bruttobehov",
+			   "nl-BE", "Brutobehoeften",
+			   "nl-NL", "Brutobehoeften",
+			   "sv-SE", "Bruttobehov",
+			   "Gross Requirements"
+			)
+		lineageTag: 3a4d93ee-3e09-481f-86e8-a3d12087e03b
+
+	measure 'Scheduled Receipts Label' =
+			SWITCH(USERCULTURE(),
+			   "cs-CZ", "Naplánované příjmy",
+			   "da-DK", "Planlagte modtagelser",
+			   "de-AT", "Geplante Zugänge",
+			   "de-CH", "Geplante Zugänge",
+			   "de-DE", "Geplante Zugänge",
+			   "en-AU", "Scheduled Receipts",
+			   "en-CA", "Scheduled Receipts",
+			   "en-GB", "Scheduled Receipts",
+			   "en-NZ", "Scheduled Receipts",
+			   "es-ES", "Recep. previstas",
+			   "es-MX", "Recep. programadas",
+			   "fi-FI", "Aikataulutetut vastaanotot",
+			   "fr-BE", "Réceptions planifiées",
+			   "fr-CA", "Réceptions programmées",
+			   "fr-CH", "Réceptions planifiées",
+			   "fr-FR", "Réceptions planifiées",
+			   "is-IS", "Tímasettar innhreyfingar",
+			   "it-CH", "Carichi programmati",
+			   "it-IT", "Carichi programmati",
+			   "nb-NO", "Tidsplanlagte mottak",
+			   "nl-BE", "Geplande ontvangsten",
+			   "nl-NL", "Geplande ontvangsten",
+			   "sv-SE", "Planenliga inleveranser",
+			   "Scheduled Receipts"
+			)
+		lineageTag: 10a57863-d0bd-4424-a96b-3f97fc829935
+
+	measure 'for Business Central Label' =
+			SWITCH(USERCULTURE(),
+			   "cs-CZ", "pro Business Central",
+			   "da-DK", "til Business Central",
+			   "de-AT", "für Business Central",
+			   "de-CH", "für Business Central",
+			   "de-DE", "für Business Central",
+			   "en-AU", "for Business Central",
+			   "en-CA", "for Business Central",
+			   "en-GB", "for Business Central",
+			   "en-NZ", "for Business Central",
+			   "es-ES", "para Business Central",
+			   "es-MX", "para Business Central",
+			   "fi-FI", "Business Centralille",
+			   "fr-BE", "pour Business Central",
+			   "fr-CA", "pour Business Central",
+			   "fr-CH", "pour Business Central",
+			   "fr-FR", "pour Business Central",
+			   "is-IS", "fyrir Business Central",
+			   "it-CH", "per Business Central",
+			   "it-IT", "per Business Central",
+			   "nb-NO", "for Business Central",
+			   "nl-BE", "voor Business Central",
+			   "nl-NL", "voor Business Central",
+			   "sv-SE", "för Business Central",
+			   "for Business Central"
+			)
+		lineageTag: 9ea3ac06-9ab1-48da-a090-2d1aa3114578
+
+	measure 'CONNECT YOUR DATA Label' =
+			SWITCH(USERCULTURE(),
+			   "cs-CZ", "PŘIPOJENÍ DAT",
+			   "da-DK", "FORBIND DINE DATA",
+			   "de-AT", "MIT EIGENEN DATEN VERBINDEN",
+			   "de-CH", "MIT EIGENEN DATEN VERBINDEN",
+			   "de-DE", "MIT EIGENEN DATEN VERBINDEN",
+			   "en-AU", "CONNECT YOUR DATA",
+			   "en-CA", "CONNECT YOUR DATA",
+			   "en-GB", "CONNECT YOUR DATA",
+			   "en-NZ", "CONNECT YOUR DATA",
+			   "es-ES", "CONECTAR LOS DATOS",
+			   "es-MX", "CONECTAR LOS DATOS",
+			   "fi-FI", "YHDISTÄ TIETOSI",
+			   "fr-BE", "CONNECTER VOS DONNÉES",
+			   "fr-CA", "CONNECTER VOS DONNÉES",
+			   "fr-CH", "CONNECTER VOS DONNÉES",
+			   "fr-FR", "CONNECTER VOS DONNÉES",
+			   "is-IS", "TENGIÐ GÖGN",
+			   "it-CH", "CONNETTI I DATI",
+			   "it-IT", "CONNETTI I DATI",
+			   "nb-NO", "KOBLE TIL DATAENE",
+			   "nl-BE", "UW GEGEVENS VERBINDEN",
+			   "nl-NL", "UW GEGEVENS VERBINDEN",
+			   "sv-SE", "ANSLUT DINA DATA",
+			   "CONNECT YOUR DATA"
+			)
+		lineageTag: ea0ffa01-e405-4ceb-9719-3cab308958d5
+
+	measure '1. Download the Inventory Connector for Power BI Label' =
+			SWITCH(USERCULTURE(),
+			   "cs-CZ", "1. Stažení řešení Inventory Connector for Power BI",
+			   "da-DK", "1. Download lager-connectoren for Power BI",
+			   "de-AT", "1. Inventory Connector for Power BI herunterladen",
+			   "de-CH", "1. Inventory Connector for Power BI herunterladen",
+			   "de-DE", "1. Inventory Connector for Power BI herunterladen",
+			   "en-AU", "1. Download the Inventory Connector for Power BI",
+			   "en-CA", "1. Download the Inventory Connector for Power BI",
+			   "en-GB", "1. Download the Inventory Connector for Power BI",
+			   "en-NZ", "1. Download the Inventory Connector for Power BI",
+			   "es-ES", "1. Descargar el Conector de inventario para Power BI",
+			   "es-MX", "1. Descargar el Conector de inventario para Power BI",
+			   "fi-FI", "1. Lataa Inventory Connector for Power BI",
+			   "fr-BE", "1. Téléchargez le connecteur de stock pour Power BI",
+			   "fr-CA", "1. Téléchargez le connecteur d’inventaire pour Power BI",
+			   "fr-CH", "1. Téléchargez le connecteur de stock pour Power BI",
+			   "fr-FR", "1. Téléchargez le connecteur de stock pour Power BI",
+			   "is-IS", "1. Sækið birgðatengilinn fyrir Power BI",
+			   "it-CH", "1. Scaricare Inventory Connector for Power BI",
+			   "it-IT", "1. Scaricare Inventory Connector for Power BI",
+			   "nb-NO", "1. Last ned beholdningskoblingen for Power BI",
+			   "nl-BE", "1. Download de Voorraadconnector voor Power BI",
+			   "nl-NL", "1. Download de Voorraadconnector voor Power BI",
+			   "sv-SE", "1. Ladda ned lageranslutningsprogrammet för Power BI",
+			   "1. Download the Inventory Connector for Power BI"
+			)
+		lineageTag: 49dcd0b7-1bf0-4c99-9ee0-b09730503e72
+
+	measure '2. Configure Dynamics 365 Business Central Label' =
+			SWITCH(USERCULTURE(),
+			   "cs-CZ", "2. Konfigurace Dynamics 365 Business Central",
+			   "da-DK", "2. Konfigurer Dynamics 365 Business Central",
+			   "de-AT", "2. Dynamics 365 Business Central konfigurieren",
+			   "de-CH", "2. Dynamics 365 Business Central konfigurieren",
+			   "de-DE", "2. Dynamics 365 Business Central konfigurieren",
+			   "en-AU", "2. Configure Dynamics 365 Business Central",
+			   "en-CA", "2. Configure Dynamics 365 Business Central",
+			   "en-GB", "2. Configure Dynamics 365 Business Central",
+			   "en-NZ", "2. Configure Dynamics 365 Business Central",
+			   "es-ES", "2. Configurar Dynamics 365 Business Central",
+			   "es-MX", "2. Configurar Dynamics 365 Business Central",
+			   "fi-FI", "2. Määritä Dynamics 365 Business Central",
+			   "fr-BE", "2. Configurez Dynamics 365 Business Central",
+			   "fr-CA", "2. Configurez Dynamics 365 Business Central",
+			   "fr-CH", "2. Configurez Dynamics 365 Business Central",
+			   "fr-FR", "2. Configurez Dynamics 365 Business Central",
+			   "is-IS", "2. Grunnstillið Dynamics 365 Business Central",
+			   "it-CH", "2. Configurare Dynamics 365 Business Central",
+			   "it-IT", "2. Configurare Dynamics 365 Business Central",
+			   "nb-NO", "2. Konfigurer Dynamics 365 Business Central",
+			   "nl-BE", "2. Dynamics 365 Business Central configureren",
+			   "nl-NL", "2. Dynamics 365 Business Central configureren",
+			   "sv-SE", "2. Konfigurera Dynamics 365 Business Central",
+			   "2. Configure Dynamics 365 Business Central"
+			)
+		lineageTag: b4546e94-ce98-4aa0-ae56-1c48cf68fa32
+
+	measure 'USE, EDIT AND BUILD YOUR OWN REPORTS Label' =
+			SWITCH(USERCULTURE(),
+			   "cs-CZ", "POUŽÍVÁNÍ, ÚPRAVA A TVORBA VLASTNÍCH SESTAV",
+			   "da-DK", "BRUG, REDIGER OG OPRET DINE EGNE RAPPORTER",
+			   "de-AT", "EIGENE BERICHTE VERWENDEN, BEARBEITEN UND ERSTELLEN",
+			   "de-CH", "EIGENE BERICHTE VERWENDEN, BEARBEITEN UND ERSTELLEN",
+			   "de-DE", "EIGENE BERICHTE VERWENDEN, BEARBEITEN UND ERSTELLEN",
+			   "en-AU", "USE, EDIT AND BUILD YOUR OWN REPORTS",
+			   "en-CA", "USE, EDIT AND BUILD YOUR OWN REPORTS",
+			   "en-GB", "USE, EDIT AND BUILD YOUR OWN REPORTS",
+			   "en-NZ", "USE, EDIT AND BUILD YOUR OWN REPORTS",
+			   "es-ES", "USAR, EDITAR Y CREAR SUS PROPIOS INFORMES",
+			   "es-MX", "USAR, EDITAR Y CREAR SUS PROPIOS INFORMES",
+			   "fi-FI", "KÄYTÄ, MUOKKAA JA LUO OMIA RAPORTTEJA",
+			   "fr-BE", "UTILISER, MODIFIER ET CRÉER VOS PROPRES ÉTATS",
+			   "fr-CA", "UTILISER, MODIFIER ET CRÉER VOS PROPRES RAPPORTS",
+			   "fr-CH", "UTILISER, MODIFIER ET CRÉER VOS PROPRES ÉTATS",
+			   "fr-FR", "UTILISER, MODIFIER ET CRÉER VOS PROPRES ÉTATS",
+			   "is-IS", "NOTIÐ, BREYTIÐ OG BÚIÐ TIL EIGIN SKÝRSLUR",
+			   "it-CH", "USA, MODIFICA E CREA I TUOI REPORT",
+			   "it-IT", "USA, MODIFICA E CREA I TUOI REPORT",
+			   "nb-NO", "BRUK, REDIGER OG BYGG DINE EGNE RAPPORTER",
+			   "nl-BE", "UW EIGEN RAPPORTEN GEBRUIKEN, BEWERKEN EN MAKEN",
+			   "nl-NL", "UW EIGEN RAPPORTEN GEBRUIKEN, BEWERKEN EN MAKEN",
+			   "sv-SE", "ANVÄND, REDIGERA OCH SKAPA EGNA RAPPORTER",
+			   "USE, EDIT AND BUILD YOUR OWN REPORTS"
+			)
+		lineageTag: f1e7da62-e801-4c7e-8ca1-2f3f38456df0
+
+	measure 'Inventory includes a variety of pre-built reports to help you see your data immediately. Label' =
+			SWITCH(USERCULTURE(),
+			   "cs-CZ", "Zásoby obsahují řadu předpřipravených sestav, které vám pomohou okamžitě zobrazit vaše data.",
+			   "da-DK", "Lager omfatter en række forudbyggede rapporter, der hjælper dig med at få vist dine data med det samme.",
+			   "de-AT", "Lagerbestand enthält eine Vielzahl vordefinierter Berichte, mit denen Sie Ihre Daten unmittelbar ansehen können.",
+			   "de-CH", "Lagerbestand enthält eine Vielzahl vordefinierter Berichte, mit denen Sie Ihre Daten unmittelbar ansehen können.",
+			   "de-DE", "Lagerbestand enthält eine Vielzahl vordefinierter Berichte, mit denen Sie Ihre Daten unmittelbar ansehen können.",
+			   "en-AU", "Inventory includes a variety of pre-built reports to help you see your data immediately.",
+			   "en-CA", "Inventory includes a variety of pre-built reports to help you see your data immediately.",
+			   "en-GB", "Inventory includes a variety of pre-built reports to help you see your data immediately.",
+			   "en-NZ", "Inventory includes a variety of pre-built reports to help you see your data immediately.",
+			   "es-ES", "El inventario incluye una variedad de informes prediseñados para ayudarle a ver sus datos de inmediato.",
+			   "es-MX", "El inventario incluye una variedad de informes prediseñados para ayudarle a ver sus datos de inmediato.",
+			   "fi-FI", "Varasto sisältää erilaisia etukäteen luotuja raportteja, joiden avulla voit tarkastella tietoja heti.",
+			   "fr-BE", "Le stock comprend une variété d’états prédéfinis pour vous aider à voir vos données immédiatement.",
+			   "fr-CA", "L’inventaire comprend une variété de rapports prédéfinis pour vous aider à voir vos données immédiatement.",
+			   "fr-CH", "Le stock comprend une variété d’états prédéfinis pour vous aider à voir vos données immédiatement.",
+			   "fr-FR", "Le stock comprend une variété d’états prédéfinis pour vous aider à voir vos données immédiatement.",
+			   "is-IS", "Birgðir bjóða upp á innbyggðar skýrslur af ólíkum toga til að skoða gögn samstundis.",
+			   "it-CH", "L'inventario include una serie di report predefiniti che aiutano a visualizzare immediatamente i dati.",
+			   "it-IT", "L'inventario include una serie di report predefiniti che aiutano a visualizzare immediatamente i dati.",
+			   "nb-NO", "Beholdning inkluderer en rekke forhåndsbygde rapporter for å hjelpe deg med å se dataene umiddelbart.",
+			   "nl-BE", "Voorraad bevat een verscheidenheid aan vooraf gemaakte rapporten om u te helpen uw gegevens direct te bekijken.",
+			   "nl-NL", "Voorraad bevat een verscheidenheid aan vooraf gemaakte rapporten om u te helpen uw gegevens direct te bekijken.",
+			   "sv-SE", "Lager innehåller en mängd fördefinierade rapporter som gör att du kan visa data omedelbart.",
+			   "Inventory includes a variety of pre-built reports to help you see your data immediately."
+			)
+		lineageTag: 56398193-030f-49da-bf93-59fcdb5aaeab
+
+	measure 'You are able to edit these reports or build your own report from scratch. Label' =
+			SWITCH(USERCULTURE(),
+			   "cs-CZ", "Tyto sestavy můžete upravovat nebo si vytvořit vlastní sestavu od základu.",
+			   "da-DK", "Du kan redigere disse rapporter eller oprette din egen rapport fra bunden.",
+			   "de-AT", "Sie können diese Berichte bearbeiten oder Ihren eigenen Bericht von Grund auf neu erstellen.",
+			   "de-CH", "Sie können diese Berichte bearbeiten oder Ihren eigenen Bericht von Grund auf neu erstellen.",
+			   "de-DE", "Sie können diese Berichte bearbeiten oder Ihren eigenen Bericht von Grund auf neu erstellen.",
+			   "en-AU", "You are able to edit these reports or build your own report from scratch.",
+			   "en-CA", "You are able to edit these reports or build your own report from scratch.",
+			   "en-GB", "You are able to edit these reports or build your own report from scratch.",
+			   "en-NZ", "You are able to edit these reports or build your own report from scratch.",
+			   "es-ES", "Puede editar estos informes o crear el suyo propio desde cero.",
+			   "es-MX", "Puede editar estos informes o crear el suyo propio desde cero.",
+			   "fi-FI", "Voit muokata näitä raportteja tai luoda oman raportin alusta alkaen.",
+			   "fr-BE", "Vous pouvez modifier ces états ou créer votre propre état à partir de zéro.",
+			   "fr-CA", "Vous pouvez modifier ces rapports ou créer votre propre rapport à partir de zéro.",
+			   "fr-CH", "Vous pouvez modifier ces états ou créer votre propre état à partir de zéro.",
+			   "fr-FR", "Vous pouvez modifier ces états ou créer votre propre état à partir de zéro.",
+			   "is-IS", "Hægt er að breyta þessum skýrslum eða búa til nýja skýrslu frá grunni.",
+			   "it-CH", "È possibile modificare questi report o creare il proprio report da zero.",
+			   "it-IT", "È possibile modificare questi report o creare il proprio report da zero.",
+			   "nb-NO", "Du kan redigere disse rapportene eller lage din egen rapport fra bunnen av.",
+			   "nl-BE", "U kunt deze rapporten bewerken of uw eigen rapport helemaal opnieuw maken.",
+			   "nl-NL", "U kunt deze rapporten bewerken of uw eigen rapport helemaal opnieuw maken.",
+			   "sv-SE", "Du kan redigera dessa rapporter eller skapa en egen rapport från grunden.",
+			   "You are able to edit these reports or build your own report from scratch."
+			)
+		lineageTag: 246809bb-82c1-45d4-9a97-e6746f074dd7
+
+	measure 'HELP AND SUPPORT Label' =
+			SWITCH(USERCULTURE(),
+			   "cs-CZ", "POMOC A PODPORA",
+			   "da-DK", "HJÆLP OG SUPPORT",
+			   "de-AT", "HILFE UND SUPPORT",
+			   "de-CH", "HILFE UND SUPPORT",
+			   "de-DE", "HILFE UND SUPPORT",
+			   "en-AU", "HELP AND SUPPORT",
+			   "en-CA", "HELP AND SUPPORT",
+			   "en-GB", "HELP AND SUPPORT",
+			   "en-NZ", "HELP AND SUPPORT",
+			   "es-ES", "AYUDA Y SOPORTE",
+			   "es-MX", "AYUDA Y SOPORTE",
+			   "fi-FI", "OHJE JA TUKI",
+			   "fr-BE", "AIDE ET SUPPORT",
+			   "fr-CA", "AIDE ET SUPPORT",
+			   "fr-CH", "AIDE ET SUPPORT",
+			   "fr-FR", "AIDE ET SUPPORT",
+			   "is-IS", "HJÁLP OG STUÐNINGUR",
+			   "it-CH", "GUIDA E SUPPORTO",
+			   "it-IT", "GUIDA E SUPPORTO",
+			   "nb-NO", "HJELP OG KUNDESTØTTE",
+			   "nl-BE", "HELP EN ONDERSTEUNING",
+			   "nl-NL", "HELP EN ONDERSTEUNING",
+			   "sv-SE", "HJÄLP OCH SUPPORT",
+			   "HELP AND SUPPORT"
+			)
+		lineageTag: 0f7af54b-2938-49fa-8340-69532ffae196
+
+	measure 'For help and support with your new report please visit the Analytics overview documentation. Label' =
+			SWITCH(USERCULTURE(),
+			   "cs-CZ", "Nápovědu a podporu k nové sestavě naleznete v dokumentaci k přehledu Analytics.",
+			   "da-DK", "Du kan få hjælp og support til din nye rapport i dokumentationen til analyseoversigten.",
+			   "de-AT", "Hilfe und Unterstützung für Ihren neuen Bericht finden Sie in der Dokumentation Analysen – Übersicht.",
+			   "de-CH", "Hilfe und Unterstützung für Ihren neuen Bericht finden Sie in der Dokumentation Analysen – Übersicht.",
+			   "de-DE", "Hilfe und Unterstützung für Ihren neuen Bericht finden Sie in der Dokumentation Analysen – Übersicht.",
+			   "en-AU", "For help and support with your new report please visit the Analytics overview documentation.",
+			   "en-CA", "For help and support with your new report please visit the Analytics overview documentation.",
+			   "en-GB", "For help and support with your new report please visit the Analytics overview documentation.",
+			   "en-NZ", "For help and support with your new report please visit the Analytics overview documentation.",
+			   "es-ES", "Para obtener ayuda y soporte técnico con su nuevo informe, visite la documentación de información general de Analytics.",
+			   "es-MX", "Para obtener ayuda y soporte técnico con su nuevo informe, visite la documentación de información general de Analytics.",
+			   "fi-FI", "Lisätietoja ja tukea uudelle raportillesi löydät analytiikan yleiskuvauksesta.",
+			   "fr-BE", "Pour obtenir de l’aide et de l’assistance concernant votre nouvel état, consultez la documentation de vue d’ensemble de l’analyse.",
+			   "fr-CA", "Pour obtenir de l’aide et de l’assistance concernant votre nouveau rapport, consultez la documentation de vue d’ensemble de l’analyse.",
+			   "fr-CH", "Pour obtenir de l’aide et de l’assistance concernant votre nouvel état, consultez la documentation de vue d’ensemble de l’analyse.",
+			   "fr-FR", "Pour obtenir de l’aide et de l’assistance concernant votre nouvel état, consultez la documentation de vue d’ensemble de l’analyse.",
+			   "is-IS", "Lesið fylgigögn greiningaryfirlitsins til að fá hjálp og aðstoð við nýju skýrsluna.",
+			   "it-CH", "Per assistenza e supporto per il nuovo report, vedere la documentazione generale di analisi.",
+			   "it-IT", "Per assistenza e supporto per il nuovo report, vedere la documentazione generale di analisi.",
+			   "nb-NO", "Hvis du vil ha hjelp og støtte med den nye rapporten, kan du gå til dokumentasjonen for analyseoversikten.",
+			   "nl-BE", "Ga voor hulp en ondersteuning met uw nieuwe rapport naar de Analytics-overzichtsdocumentatie.",
+			   "nl-NL", "Ga voor hulp en ondersteuning met uw nieuwe rapport naar de Analytics-overzichtsdocumentatie.",
+			   "sv-SE", "Hjälp och support med den nya rapporten finns i översiktsdokumentationen för Analys.",
+			   "For help and support with your new report please visit the Analytics overview documentation."
+			)
+		lineageTag: dcd676b0-6813-469e-a6ae-d2e2a862a181
+
+	measure 'OTHER POWER BI REPORTS Label' =
+			SWITCH(USERCULTURE(),
+			   "cs-CZ", "DALŠÍ SESTAVY POWER BI",
+			   "da-DK", "ANDRE POWER BI-RAPPORTER",
+			   "de-AT", "SONSTIGE POWER BI-BERICHTE",
+			   "de-CH", "SONSTIGE POWER BI-BERICHTE",
+			   "de-DE", "SONSTIGE POWER BI-BERICHTE",
+			   "en-AU", "OTHER POWER BI REPORTS",
+			   "en-CA", "OTHER POWER BI REPORTS",
+			   "en-GB", "OTHER POWER BI REPORTS",
+			   "en-NZ", "OTHER POWER BI REPORTS",
+			   "es-ES", "OTROS INFORMES DE POWER BI",
+			   "es-MX", "OTROS INFORMES DE POWER BI",
+			   "fi-FI", "MUUT POWER BI -RAPORTIT",
+			   "fr-BE", "AUTRES ÉTATS POWER BI",
+			   "fr-CA", "AUTRES RAPPORTS POWER BI",
+			   "fr-CH", "AUTRES ÉTATS POWER BI",
+			   "fr-FR", "AUTRES ÉTATS POWER BI",
+			   "is-IS", "AÐRAR POWER BI-SKÝRSLUR",
+			   "it-CH", "ALTRI REPORT DI POWER BI",
+			   "it-IT", "ALTRI REPORT DI POWER BI",
+			   "nb-NO", "ANDRE POWER BI-RAPPORTER",
+			   "nl-BE", "OVERIGE POWER BI-RAPPORTEN",
+			   "nl-NL", "OVERIGE POWER BI-RAPPORTEN",
+			   "sv-SE", "ÖVRIGA POWER BI-RAPPORTER",
+			   "OTHER POWER BI REPORTS"
+			)
+		lineageTag: 65f03418-38d7-4d22-a403-69269fea7c69
+
+	measure 'PURCHASE Label' =
+			SWITCH(USERCULTURE(),
+			   "cs-CZ", "NÁKUP",
+			   "da-DK", "INDKØB",
+			   "de-AT", "EINKAUF",
+			   "de-CH", "EINKAUF",
+			   "de-DE", "EINKAUF",
+			   "en-AU", "PURCHASE",
+			   "en-CA", "PURCHASE",
+			   "en-GB", "PURCHASE",
+			   "en-NZ", "PURCHASE",
+			   "es-ES", "COMPRA",
+			   "es-MX", "COMPRA",
+			   "fi-FI", "OSTO",
+			   "fr-BE", "ACHAT",
+			   "fr-CA", "ACHAT",
+			   "fr-CH", "ACHAT",
+			   "fr-FR", "ACHAT",
+			   "is-IS", "KAUP",
+			   "it-CH", "ACQUISTI",
+			   "it-IT", "ACQUISTI",
+			   "nb-NO", "KJØP",
+			   "nl-BE", "INKOOP",
+			   "nl-NL", "INKOOP",
+			   "sv-SE", "INKÖP",
+			   "PURCHASE"
+			)
+		lineageTag: 87fe73f6-55a6-43eb-8633-25377694878f
+
+	measure 'FINANCE Label' =
+			SWITCH(USERCULTURE(),
+			   "cs-CZ", "FINANCE",
+			   "da-DK", "FINANS",
+			   "de-AT", "FINANZEN",
+			   "de-CH", "FINANZEN",
+			   "de-DE", "FINANZEN",
+			   "en-AU", "FINANCE",
+			   "en-CA", "FINANCE",
+			   "en-GB", "FINANCE",
+			   "en-NZ", "FINANCE",
+			   "es-ES", "FINANZAS",
+			   "es-MX", "FINANZAS",
+			   "fi-FI", "TALOUSHALLINTO",
+			   "fr-BE", "FINANCIER",
+			   "fr-CA", "FINANCIER",
+			   "fr-CH", "FINANCIER",
+			   "fr-FR", "FINANCIER",
+			   "is-IS", "FJÁRMÁL",
+			   "it-CH", "DATI FINANZIARI",
+			   "it-IT", "DATI FINANZIARI",
+			   "nb-NO", "FINANS",
+			   "nl-BE", "FINANCIËN",
+			   "nl-NL", "FINANCIËN",
+			   "sv-SE", "EKONOMI",
+			   "FINANCE"
+			)
+		lineageTag: fea3f7a1-39d9-4628-94d5-e1793b0bd20b
+
+	measure 'REBATES Label' =
+			SWITCH(USERCULTURE(),
+			   "cs-CZ", "RABATY",
+			   "da-DK", "RABATTER",
+			   "de-AT", "RÜCKVERGÜTUNGEN",
+			   "de-CH", "RÜCKVERGÜTUNGEN",
+			   "de-DE", "RÜCKVERGÜTUNGEN",
+			   "en-AU", "REBATES",
+			   "en-CA", "REBATES",
+			   "en-GB", "REBATES",
+			   "en-NZ", "REBATES",
+			   "es-ES", "DEVOLUCIONES",
+			   "es-MX", "DEVOLUCIONES",
+			   "fi-FI", "HYVITYKSET",
+			   "fr-BE", "REMISES",
+			   "fr-CA", "REMISES",
+			   "fr-CH", "REMISES",
+			   "fr-FR", "REMISES",
+			   "is-IS", "EFTIRÁGREIDDIR AFSLÆTTIR",
+			   "it-CH", "SCONTI",
+			   "it-IT", "SCONTI",
+			   "nb-NO", "RABATTER",
+			   "nl-BE", "KORTINGEN",
+			   "nl-NL", "KORTINGEN",
+			   "sv-SE", "RABATTER",
+			   "REBATES"
+			)
+		lineageTag: 0f986bdf-1969-42a6-b476-741bff8a7817
+
+	measure 'SALES Label' =
+			SWITCH(USERCULTURE(),
+			   "cs-CZ", "PRODEJ",
+			   "da-DK", "SALG",
+			   "de-AT", "VERKAUF",
+			   "de-CH", "VERKAUF",
+			   "de-DE", "VERKAUF",
+			   "en-AU", "SALES",
+			   "en-CA", "SALES",
+			   "en-GB", "SALES",
+			   "en-NZ", "SALES",
+			   "es-ES", "VENTAS",
+			   "es-MX", "VENTAS",
+			   "fi-FI", "MYYNTI",
+			   "fr-BE", "VENTES",
+			   "fr-CA", "VENTES",
+			   "fr-CH", "VENTES",
+			   "fr-FR", "VENTES",
+			   "is-IS", "SALA",
+			   "it-CH", "VENDITE",
+			   "it-IT", "VENDITE",
+			   "nb-NO", "SALG",
+			   "nl-BE", "VERKOPEN",
+			   "nl-NL", "VERKOPEN",
+			   "sv-SE", "FÖRSÄLJNING",
+			   "SALES"
+			)
+		lineageTag: e719f8f6-832c-47ba-ac77-7279cec40095
+
+	measure 'INVENTORY  Label' =
+			SWITCH(USERCULTURE(),
+			   "cs-CZ", "ZÁSOBY ",
+			   "da-DK", "LAGER ",
+			   "de-AT", "LAGERBESTAND",
+			   "de-CH", "LAGERBESTAND",
+			   "de-DE", "LAGERBESTAND",
+			   "en-AU", "INVENTORY ",
+			   "en-CA", "INVENTORY ",
+			   "en-GB", "INVENTORY ",
+			   "en-NZ", "INVENTORY ",
+			   "es-ES", "INVENTARIO ",
+			   "es-MX", "INVENTARIO ",
+			   "fi-FI", "VARASTO ",
+			   "fr-BE", "STOCK ",
+			   "fr-CA", "INVENTAIRE ",
+			   "fr-CH", "STOCK ",
+			   "fr-FR", "STOCK ",
+			   "is-IS", "BIRGÐIR ",
+			   "it-CH", "INVENTARIO ",
+			   "it-IT", "INVENTARIO ",
+			   "nb-NO", "BEHOLDNING ",
+			   "nl-BE", "VOORRAAD ",
+			   "nl-NL", "VOORRAAD ",
+			   "sv-SE", "LAGER ",
+			   "INVENTORY "
+			)
+		lineageTag: 596fc627-09b1-4a0e-bc98-5edb3397f906
+
+	measure 'Inventory   Label' =
+			SWITCH(USERCULTURE(),
+			   "cs-CZ", "Zásoby  ",
+			   "da-DK", "Lager ",
+			   "de-AT", "Lagerbestand",
+			   "de-CH", "Lagerbestand",
+			   "de-DE", "Lagerbestand",
+			   "en-AU", "Inventory  ",
+			   "en-CA", "Inventory  ",
+			   "en-GB", "Inventory  ",
+			   "en-NZ", "Inventory  ",
+			   "es-ES", "Inventario  ",
+			   "es-MX", "Inventario  ",
+			   "fi-FI", "Varasto  ",
+			   "fr-BE", "Stock ",
+			   "fr-CA", "Inventaire  ",
+			   "fr-CH", "Stock ",
+			   "fr-FR", "Stock ",
+			   "is-IS", "Birgðir  ",
+			   "it-CH", "Inventario  ",
+			   "it-IT", "Inventario  ",
+			   "nb-NO", "Beholdning  ",
+			   "nl-BE", "Voorraad  ",
+			   "nl-NL", "Voorraad  ",
+			   "sv-SE", "Lager  ",
+			   "Inventory  "
+			)
+		lineageTag: 50209f9d-28ea-44ac-a9db-434b85630883
+
+	measure 'The inventory by item shows item category code, inventory, and the quantity on various documents. Label' =
+			SWITCH(USERCULTURE(),
+			   "cs-CZ", "Zásoby podle zboží zobrazují kód kategorie zboží, zásoby a množství na různých dokladech.",
+			   "da-DK", "Lageret efter vare viser varekategorikode, lager og antallet på forskellige dokumenter.",
+			   "de-AT", "Der Lagerbestand nach Artikel zeigt den Artikelkategoriencode, den Lagerbestand und die Menge auf verschiedenen Belegen an.",
+			   "de-CH", "Der Lagerbestand nach Artikel zeigt den Artikelkategoriencode, den Lagerbestand und die Menge auf verschiedenen Belegen an.",
+			   "de-DE", "Der Lagerbestand nach Artikel zeigt den Artikelkategoriencode, den Lagerbestand und die Menge auf verschiedenen Belegen an.",
+			   "en-AU", "The inventory by item shows item category code, inventory, and the quantity on various documents.",
+			   "en-CA", "The inventory by item shows item category code, inventory, and the quantity on various documents.",
+			   "en-GB", "The inventory by item shows item category code, inventory, and the quantity on various documents.",
+			   "en-NZ", "The inventory by item shows item category code, inventory, and the quantity on various documents.",
+			   "es-ES", "El inventario por producto muestra el código de categoría del producto, el inventario y la cantidad en varios documentos.",
+			   "es-MX", "El inventario por producto muestra el código de categoría del producto, el inventario y la cantidad en varios documentos.",
+			   "fi-FI", "Varasto nimikkeittäin näyttää nimikeluokan koodin, varaston ja määrän eri asiakirjoissa.",
+			   "fr-BE", "Le stock par article indique le code de catégorie d’article, le stock et la quantité sur divers documents.",
+			   "fr-CA", "Le rapport inventaire par article indique le code de catégorie d’article, l’inventaire et la quantité sur divers documents.",
+			   "fr-CH", "Le stock par article indique le code de catégorie d’article, le stock et la quantité sur divers documents.",
+			   "fr-FR", "Le stock par article indique le code de catégorie d’article, le stock et la quantité sur divers documents.",
+			   "is-IS", "„Birgðir eftir vöru“ sýnir flokkakóða vöru, birgðir og magn í mismunandi fylgiskjölum.",
+			   "it-CH", "L'inventario per articolo mostra il codice della categoria, la disponibilità e la quantità degli articoli su vari documenti.",
+			   "it-IT", "L'inventario per articolo mostra il codice della categoria, la disponibilità e la quantità degli articoli su vari documenti.",
+			   "nb-NO", "Beholdning etter vare viser varekategorikode, beholdning og antallet i ulike dokumenter.",
+			   "nl-BE", "De voorraad per artikel bevat artikelcategoriecode, voorraad en het aantal in verschillende documenten.",
+			   "nl-NL", "De voorraad per artikel bevat artikelcategoriecode, voorraad en het aantal in verschillende documenten.",
+			   "sv-SE", "Lager per artikel visar artikelkategorikod, lager och kvantitet i olika dokument.",
+			   "The inventory by item shows item category code, inventory, and the quantity on various documents."
+			)
+		lineageTag: 3e25cdc6-589a-4c55-9e7e-822d4e4d3789
+
+	measure 'The inventory by location shows item number and description, and quantity on hand per location. Label' =
+			SWITCH(USERCULTURE(),
+			   "cs-CZ", "Zásoby podle lokace zobrazují číslo a popis zboží a množství na skladě pro každou lokaci.",
+			   "da-DK", "Lager efter placering viser varenummer og beskrivelse samt disponibelt antal pr. placering.",
+			   "de-AT", "Der Lagerbestand nach Lagerort zeigt die Artikelnummer und Beschreibung sowie die Menge pro Lagerort an.",
+			   "de-CH", "Der Lagerbestand nach Lagerort zeigt die Artikelnummer und Beschreibung sowie die Menge pro Lagerort an.",
+			   "de-DE", "Der Lagerbestand nach Lagerort zeigt die Artikelnummer und Beschreibung sowie die Menge pro Lagerort an.",
+			   "en-AU", "The inventory by location shows item number and description, and quantity on hand per location.",
+			   "en-CA", "The inventory by location shows item number and description, and quantity on hand per location.",
+			   "en-GB", "The inventory by location shows item number and description, and quantity on hand per location.",
+			   "en-NZ", "The inventory by location shows item number and description, and quantity on hand per location.",
+			   "es-ES", "El inventario por almacén muestra el número y la descripción del producto, y la cantidad disponible por almacén.",
+			   "es-MX", "El inventario por almacén muestra el número y la descripción del producto, y la cantidad disponible por almacén.",
+			   "fi-FI", "Varasto sijainneittain näyttää nimikenumeron ja kuvauksen sekä varastosaldon sijaintia kohden.",
+			   "fr-BE", "Le stock par magasin indique le numéro et la description de l’article, ainsi que la quantité disponible par magasin.",
+			   "fr-CA", "L’inventaire par emplacement indique le numéro et la description de l’article, ainsi que la quantité disponible par emplacement.",
+			   "fr-CH", "Le stock par magasin indique le numéro et la description de l’article, ainsi que la quantité disponible par magasin.",
+			   "fr-FR", "Le stock par magasin indique le numéro et la description de l’article, ainsi que la quantité disponible par magasin.",
+			   "is-IS", "„Birgðir eftir staðsetningu“ sýnir vörunúmer, lýsingu og magn á lager á hverjum stað.",
+			   "it-CH", "L'inventario per ubicazione mostra il numero, la descrizione e la giacenza degli articoli per ubicazione.",
+			   "it-IT", "L'inventario per ubicazione mostra il numero, la descrizione e la giacenza degli articoli per ubicazione.",
+			   "nb-NO", "Beholdning etter lokasjon viser varenummer og beskrivelse og disponibel beholdning per lokasjon.",
+			   "nl-BE", "De voorraad per locatie bevat artikelnummer, beschrijving en beschikbare voorraad per locatie.",
+			   "nl-NL", "De voorraad per locatie bevat artikelnummer, beschrijving en beschikbare voorraad per locatie.",
+			   "sv-SE", "Lagret per lagerställe visar artikelnummer och beskrivning samt lagersaldo per lagerställe.",
+			   "The inventory by location shows item number and description, and quantity on hand per location."
+			)
+		lineageTag: c7c3819d-1caa-439d-9f24-5adbc8327bf2
+
+	measure 'The purchases and sales quantity shows item category code, purchase and sales quantities, and the quantity net change by deducting purchases to sales. Label' =
+			SWITCH(USERCULTURE(),
+			   "cs-CZ", "Množství nákupu a prodeje zobrazuje kód kategorie zboží, množství nákupu a prodeje a pohyb kvality odečtením nákupu od prodeje.",
+			   "da-DK", "Købs- og salgsantallet viser varekategorikode, købs- og salgsmængder og nettoændringen i antallet ved at trække køb fra til salg.",
+			   "de-AT", "Die Einkaufs- und Verkaufsmenge zeigt den Artikelkategoriencode, die Einkaufs- und Verkaufsmengen sowie die Mengennettoveränderung durch Abzug der Einkäufe vom Verkauf an.",
+			   "de-CH", "Die Einkaufs- und Verkaufsmenge zeigt den Artikelkategoriencode, die Einkaufs- und Verkaufsmengen sowie die Mengennettoveränderung durch Abzug der Einkäufe vom Verkauf an.",
+			   "de-DE", "Die Einkaufs- und Verkaufsmenge zeigt den Artikelkategoriencode, die Einkaufs- und Verkaufsmengen sowie die Mengennettoveränderung durch Abzug der Einkäufe vom Verkauf an.",
+			   "en-AU", "The purchases and sales quantity shows item category code, purchase and sales quantities, and the quantity net change by deducting purchases to sales.",
+			   "en-CA", "The purchases and sales quantity shows item category code, purchase and sales quantities, and the quantity net change by deducting purchases to sales.",
+			   "en-GB", "The purchases and sales quantity shows item category code, purchase and sales quantities, and the quantity net change by deducting purchases to sales.",
+			   "en-NZ", "The purchases and sales quantity shows item category code, purchase and sales quantities, and the quantity net change by deducting purchases to sales.",
+			   "es-ES", "La cantidad de compras y ventas muestra el código de categoría del producto, las cantidades de compras y ventas, y el cambio neto de cantidad al deducir las compras a las ventas.",
+			   "es-MX", "La cantidad de compras y ventas muestra el código de categoría del producto, las cantidades de compras y ventas, y el cambio neto de cantidad al deducir las compras a las ventas.",
+			   "fi-FI", "Osto- ja myyntimäärä näyttää nimikeluokan koodin, osto- ja myyntimäärät sekä määrän nettomuutoksen vähentämällä ostot myyntiin.",
+			   "fr-BE", "La quantité achetée et la quantité vendue indiquent le code de catégorie article, les quantités achetées et vendues, ainsi que la variation nette de la quantité en déduisant les achats en ventes.",
+			   "fr-CA", "La quantité achetée et la quantité vendue indiquent le code de catégorie article, les quantités achetées et vendues, ainsi que la variation nette de la quantité en déduisant les achats en ventes.",
+			   "fr-CH", "La quantité achetée et la quantité vendue indiquent le code de catégorie article, les quantités achetées et vendues, ainsi que la variation nette de la quantité en déduisant les achats en ventes.",
+			   "fr-FR", "La quantité achetée et la quantité vendue indiquent le code de catégorie article, les quantités achetées et vendues, ainsi que la variation nette de la quantité en déduisant les achats en ventes.",
+			   "is-IS", "„Magn innkaupa og sölu“ sýnir flokkakóða vöru, magn innkaupa og sölu og upphæð nettóbreytingar með því að draga innkaup frá sölu.",
+			   "it-CH", "La quantità di acquisti e vendite mostra il codice della categoria articolo, le quantità di acquisti e vendite e il saldo periodo della quantità detraendo gli acquisti nelle vendite.",
+			   "it-IT", "La quantità di acquisti e vendite mostra il codice della categoria articolo, le quantità di acquisti e vendite e il saldo periodo della quantità detraendo gli acquisti nelle vendite.",
+			   "nb-NO", "Kjøps- og salgsantallet viser varekategorikode, kjøps- og salgsantall og bevegelse i antall ved å trekke kjøp fra salg.",
+			   "nl-BE", "Het in- en verkoopaantal bevat artikelcategoriecode, inkoop- en verkoopaantallen en de aantalmutatie doordat inkoop van verkoop wordt afgetrokken.",
+			   "nl-NL", "Het in- en verkoopaantal bevat artikelcategoriecode, inkoop- en verkoopaantallen en de aantalmutatie doordat inkoop van verkoop wordt afgetrokken.",
+			   "sv-SE", "Inköps- och försäljningskvantiteten visar artikelkategorikod, inköps- och försäljningskvantiteter samt kvantitetens nettoförändring genom att dra av inköp från försäljning.",
+			   "The purchases and sales quantity shows item category code, purchase and sales quantities, and the quantity net change by deducting purchases to sales."
+			)
+		lineageTag: 65246e0a-5b91-487b-b380-4b863de4436f
+
+	measure 'The item availiblity shows item number, inventory, projected available balance, gross requirement, scheduled receipt, planned order receipt, and planned order releases. Label' =
+			SWITCH(USERCULTURE(),
+			   "cs-CZ", "Dostupnost zboží zobrazuje číslo zboží, zásoby, předpokládaný disponibilní zůstatek, hrubý požadavek, naplánovaný příjem, plánovaný příjem objednávky a plánovaná vydání objednávky.",
+			   "da-DK", "Varetilgængeligheden viser varenummer, lager, forventet disponibel saldo, bruttobehov, planlagt modtagelse, planlagt ordremodtagelse og planlagte ordrefrigivelser.",
+			   "de-AT", "Die Artikelverfügbarkeit zeigt die Artikelnummer, den Lagerbestand, den voraussichtlichen Verfügbarkeitssaldo, den Bruttobedarf, den geplanten Zugang, den geplanten Auftragseingang und die geplanten Auftragsfreigaben an.",
+			   "de-CH", "Die Artikelverfügbarkeit zeigt die Artikelnummer, den Lagerbestand, den voraussichtlichen Verfügbarkeitssaldo, den Bruttobedarf, den geplanten Zugang, den geplanten Auftragseingang und die geplanten Auftragsfreigaben an.",
+			   "de-DE", "Die Artikelverfügbarkeit zeigt die Artikelnummer, den Lagerbestand, den voraussichtlichen Verfügbarkeitssaldo, den Bruttobedarf, den geplanten Zugang, den geplanten Auftragseingang und die geplanten Auftragsfreigaben an.",
+			   "en-AU", "The item availiblity shows item number, inventory, projected available balance, gross requirement, scheduled receipt, planned order receipt, and planned order releases.",
+			   "en-CA", "The item availiblity shows item number, inventory, projected available balance, gross requirement, scheduled receipt, planned order receipt, and planned order releases.",
+			   "en-GB", "The item availiblity shows item number, inventory, projected available balance, gross requirement, scheduled receipt, planned order receipt, and planned order releases.",
+			   "en-NZ", "The item availiblity shows item number, inventory, projected available balance, gross requirement, scheduled receipt, planned order receipt, and planned order releases.",
+			   "es-ES", "La disponibilidad del producto muestra el número de producto, el inventario, el saldo disponible proyectado, las necesidades brutas, la recepción programada, la recepción de pedidos planificados y las liberaciones de pedidos planificados.",
+			   "es-MX", "La disponibilidad del producto muestra el número de producto, el inventario, el saldo disponible proyectado, las necesidades brutas, la recepción programada, la recepción de pedidos planificados y las liberaciones de pedidos planificados.",
+			   "fi-FI", "Nimikkeen saatavuus näyttää nimikenumeron, varaston, oletetun saatavilla olevan saldon, bruttotarpeen, aikataulutetun vastaanoton, suunnitellun tilauksen vastaanoton ja suunnitellut tilausvapautukset.",
+			   "fr-BE", "La disponibilité de l’article indique le numéro de l’article, le stock, le solde disponible prévisionnel, le besoin brut, la réception planifiée, la réception planifiée des commandes et les lancements de commandes planifiés.",
+			   "fr-CA", "La disponibilité de l’article indique le numéro de l’article, l’inventaire, le solde disponible prévisionnel, le besoin brut, la réception programmée, la réception planifiée des commandes et les libérations planifiées des commandes.",
+			   "fr-CH", "La disponibilité de l’article indique le numéro de l’article, le stock, le solde disponible prévisionnel, le besoin brut, la réception planifiée, la réception planifiée des commandes et les lancements de commandes planifiés.",
+			   "fr-FR", "La disponibilité de l’article indique le numéro de l’article, le stock, le solde disponible prévisionnel, le besoin brut, la réception planifiée, la réception planifiée des commandes et les lancements de commandes planifiés.",
+			   "is-IS", "„Framboð vöru“ sýnir vörunúmer, birgðir, áætlaða stöðu til ráðstöfunar, brúttóþörf, tímasetta innhreyfingu, innhreyfingu áætlaðrar pöntunar og áætlaðar útgáfur pöntunar.",
+			   "it-CH", "La disponibilità dell'articolo mostra il numero, l'inventario, la disponibilità calcolata, il fabbisogno lordo, il carico programmato nonché il carico e il rilascio degli ordini pianificati relativi all'articolo.",
+			   "it-IT", "La disponibilità dell'articolo mostra il numero, l'inventario, la disponibilità calcolata, il fabbisogno lordo, il carico programmato nonché il carico e il rilascio degli ordini pianificati relativi all'articolo.",
+			   "nb-NO", "Varedisposisjon viser varenummer, beholdning, forventet disponibel saldo, bruttobehov, planlagt mottak, planlagt ordremottak og planlagte ordrefrigivelser.",
+			   "nl-BE", "De artikelbeschikbaarheid bevat artikelnummer, voorraad, voorspelde beschikbare voorraad, brutobehoefte, geplande ontvangst, geplande orderontvangst en geplande ordervrijgaven.",
+			   "nl-NL", "De artikelbeschikbaarheid bevat artikelnummer, voorraad, voorspelde beschikbare voorraad, brutobehoefte, geplande ontvangst, geplande orderontvangst en geplande ordervrijgaven.",
+			   "sv-SE", "Artikeldisposition visar artikelnummer, lager, lagerutveckling över tiden, bruttobehov, schemalagd inleverans, planerad orderinleverans och planerade frisläppningar av order.",
+			   "The item availiblity shows item number, inventory, projected available balance, gross requirement, scheduled receipt, planned order receipt, and planned order releases."
+			)
+		lineageTag: d8985734-66c6-44fd-93fa-ca3ff431631d
+
+	measure 'The gross requirement and projected available balance shows item number and description, and the quantity on various documents. Label' =
+			SWITCH(USERCULTURE(),
+			   "cs-CZ", "Hrubý požadavek a předpokládané dostupné množství zobrazuje číslo a popis zboží a množství na různých dokladech.",
+			   "da-DK", "Bruttobehovet og den forventede disponible saldo viser varenummer og beskrivelse samt antallet på forskellige bilag.",
+			   "de-AT", "Der Bruttobedarf und der voraussichtliche Verfügbarkeitssaldo zeigen die Artikelnummer und die Beschreibung sowie die Menge auf verschiedenen Belegen an.",
+			   "de-CH", "Der Bruttobedarf und der voraussichtliche Verfügbarkeitssaldo zeigen die Artikelnummer und die Beschreibung sowie die Menge auf verschiedenen Belegen an.",
+			   "de-DE", "Der Bruttobedarf und der voraussichtliche Verfügbarkeitssaldo zeigen die Artikelnummer und die Beschreibung sowie die Menge auf verschiedenen Belegen an.",
+			   "en-AU", "The gross requirement and projected available balance shows item number and description, and the quantity on various documents.",
+			   "en-CA", "The gross requirement and projected available balance shows item number and description, and the quantity on various documents.",
+			   "en-GB", "The gross requirement and projected available balance shows item number and description, and the quantity on various documents.",
+			   "en-NZ", "The gross requirement and projected available balance shows item number and description, and the quantity on various documents.",
+			   "es-ES", "La necesidad bruta y el saldo disponible proyectado muestran el número y la descripción del producto, así como la cantidad en varios documentos.",
+			   "es-MX", "La necesidad bruta y el saldo disponible proyectado muestran el número y la descripción del producto, así como la cantidad en varios documentos.",
+			   "fi-FI", "Bruttotarve ja oletettu saatavilla oleva saldo näyttävät nimikenumeron ja kuvauksen sekä määrän eri asiakirjoissa.",
+			   "fr-BE", "Le besoin brut et le solde disponible prévisionnel indiquent le numéro et la description de l’article, ainsi que la quantité sur divers documents.",
+			   "fr-CA", "Le besoin brut et le solde disponible prévisionnel indiquent le numéro et la description de l’article, ainsi que la quantité sur divers documents.",
+			   "fr-CH", "Le besoin brut et le solde disponible prévisionnel indiquent le numéro et la description de l’article, ainsi que la quantité sur divers documents.",
+			   "fr-FR", "Le besoin brut et le solde disponible prévisionnel indiquent le numéro et la description de l’article, ainsi que la quantité sur divers documents.",
+			   "is-IS", "„Brúttóþörf“ og „Áætluð staða til ráðstöfunar“ sýna vörunúmer, lýsingu og magn í mismunandi fylgiskjölum.",
+			   "it-CH", "Il fabbisogno lordo e la disponibilità calcolata mostrano il numero, la descrizione e la quantità degli articoli su vari documenti.",
+			   "it-IT", "Il fabbisogno lordo e la disponibilità calcolata mostrano il numero, la descrizione e la quantità degli articoli su vari documenti.",
+			   "nb-NO", "Bruttobehovet og forventet disponibel saldo viser varenummer og beskrivelse, samt antallet på ulike dokumenter.",
+			   "nl-BE", "De brutobehoefte en de voorspelde beschikbare voorraad bevatten artikelnummer, beschrijving en het aantal in verschillende documenten.",
+			   "nl-NL", "De brutobehoefte en de voorspelde beschikbare voorraad bevatten artikelnummer, beschrijving en het aantal in verschillende documenten.",
+			   "sv-SE", "Bruttobehovet och lagerutveckling över tid visar artikelnummer och beskrivning samt kvantiteten i olika dokument.",
+			   "The gross requirement and projected available balance shows item number and description, and the quantity on various documents."
+			)
+		lineageTag: 17a3bd5d-8c23-4283-953a-351de08c9b57
+
+	measure 'The bin contents shows available quantity to take for each location and bin. Label' =
+			SWITCH(USERCULTURE(),
+			   "cs-CZ", "Obsah přihrádky zobrazuje dostupné množství pro každou lokaci a přihrádku.",
+			   "da-DK", "Placeringsindholdet viser det tilgængelige antal, der kan tages for hver lokation og placering.",
+			   "de-AT", "Der Lagerplatzinhalt zeigt die verfügbare Menge an, die für jeden Lagerort und Lagerplatz entnommen werden kann.",
+			   "de-CH", "Der Lagerplatzinhalt zeigt die verfügbare Menge an, die für jeden Lagerort und Lagerplatz entnommen werden kann.",
+			   "de-DE", "Der Lagerplatzinhalt zeigt die verfügbare Menge an, die für jeden Lagerort und Lagerplatz entnommen werden kann.",
+			   "en-AU", "The bin contents shows available quantity to take for each location and bin.",
+			   "en-CA", "The bin contents shows available quantity to take for each location and bin.",
+			   "en-GB", "The bin contents shows available quantity to take for each location and bin.",
+			   "en-NZ", "The bin contents shows available quantity to take for each location and bin.",
+			   "es-ES", "El contenido almacén muestra la cantidad disponible para cada almacén.",
+			   "es-MX", "El contenido almacén muestra la cantidad disponible para cada almacén.",
+			   "fi-FI", "Varastopaikan sisältö näyttää saatavilla olevan määrän, joka voidaan ottaa kullekin sijainnille ja varastopaikalle.",
+			   "fr-BE", "Le contenu de l’emplacement indique la quantité disponible à prélever pour chaque magasin et emplacement.",
+			   "fr-CA", "Le contenu de la zone indique la quantité disponible à prélever pour chaque emplacement et zone.",
+			   "fr-CH", "Le contenu de l’emplacement indique la quantité disponible à prélever pour chaque magasin et emplacement.",
+			   "fr-FR", "Le contenu de l’emplacement indique la quantité disponible à prélever pour chaque magasin et emplacement.",
+			   "is-IS", "„Innihald hólfs“ sýnir tiltækt magn fyrir hverja staðsetningu og hólf.",
+			   "it-CH", "Il contenuto della collocazione mostra la quantità disponibile da prelevare per ogni ubicazione e collocazione.",
+			   "it-IT", "Il contenuto della collocazione mostra la quantità disponibile da prelevare per ogni ubicazione e collocazione.",
+			   "nb-NO", "Hylleinnholdet viser tilgjengelig antall som skal tas for hver lokasjon og hylle.",
+			   "nl-BE", "De opslaglocatie-inhoud bevat het beschikbare te nemen aantal voor elke locatie en opslaglocatie.",
+			   "nl-NL", "De opslaglocatie-inhoud bevat het beschikbare te nemen aantal voor elke locatie en opslaglocatie.",
+			   "sv-SE", "Lagerplatsinnehållet visar tillgängligt antal att ta för varje lagerställe och lagerplats.",
+			   "The bin contents shows available quantity to take for each location and bin."
+			)
+		lineageTag: 068d9674-a278-4304-9ec3-df122b862d01
+
+	measure 'The bin contents by item tracking shows item tracking details for each location and bin. Label' =
+			SWITCH(USERCULTURE(),
+			   "cs-CZ", "Obsah přihrádky podle sledování zboží zobrazuje podrobnosti sledování zboží pro každou lokaci a přihrádku.",
+			   "da-DK", "Placeringsindholdet efter varesporing viser varesporingsoplysninger for hver lokation og placering.",
+			   "de-AT", "Der Lagerplatzinhalt nach Artikelverfolgung zeigt Artikelverfolgungsdetails für jeden Lagerort und Lagerplatz an.",
+			   "de-CH", "Der Lagerplatzinhalt nach Artikeltracking zeigt Artikeltrackingdetails für jeden Lagerort und Lagerplatz an.",
+			   "de-DE", "Der Lagerplatzinhalt nach Artikelverfolgung zeigt Artikelverfolgungsdetails für jeden Lagerort und Lagerplatz an.",
+			   "en-AU", "The bin contents by item tracking shows item tracking details for each location and bin.",
+			   "en-CA", "The bin contents by item tracking shows item tracking details for each location and bin.",
+			   "en-GB", "The bin contents by item tracking shows item tracking details for each location and bin.",
+			   "en-NZ", "The bin contents by item tracking shows item tracking details for each location and bin.",
+			   "es-ES", "El contenido del almacén por seguimiento de productos muestra los detalles de seguimiento de productos para cada almacén.",
+			   "es-MX", "El contenido del almacén por seguimiento de productos muestra los detalles de seguimiento de productos para cada almacén.",
+			   "fi-FI", "Varastopaikan sisältö nimikeseurannan mukaan näyttää nimikeseurannan tiedot kullekin sijainnille ja varastopaikalle.",
+			   "fr-BE", "Le contenu de l’emplacement par traçabilité affiche les détails de traçabilité pour chaque magasin et emplacement.",
+			   "fr-CA", "Le contenu de la zone par traçabilité affiche les détails de traçabilité pour chaque emplacement et zone.",
+			   "fr-CH", "Le contenu de l’emplacement par traçabilité affiche les détails de traçabilité pour chaque magasin et emplacement.",
+			   "fr-FR", "Le contenu de l’emplacement par traçabilité affiche les détails de traçabilité pour chaque magasin et emplacement.",
+			   "is-IS", "„Innihald hólfs eftir vörurakningu“ sýnir upplýsingar um vörurakningu fyrir hverja staðsetningu og hólf.",
+			   "it-CH", "Il contenuto della collocazione per tracciabilità dell'articolo mostra i dettagli della tracciabilità articolo per ogni ubicazione e collocazione.",
+			   "it-IT", "Il contenuto della collocazione per tracciabilità dell'articolo mostra i dettagli della tracciabilità articolo per ogni ubicazione e collocazione.",
+			   "nb-NO", "Hylleinnholdet etter varesporing viser varesporingsdetaljer for hver lokasjon og hylle.",
+			   "nl-BE", "De opslaglocatie-inhoud per artikeltracering bevat artikeltraceringsgegevens voor elke locatie en opslaglocatie.",
+			   "nl-NL", "De opslaglocatie-inhoud per artikeltracering bevat artikeltraceringsgegevens voor elke locatie en opslaglocatie.",
+			   "sv-SE", "Lagerplatsinnehållet per artikelspårning visar artikelspårningsinformation för varje lagerställe och lagerplats.",
+			   "The bin contents by item tracking shows item tracking details for each location and bin."
+			)
+		lineageTag: d0bc7606-2a01-4438-a653-d8118e8aacdc
+
+	measure 'The scheduled receipt and projected available balance shows item number and description, and the quantity on various documents. Label' =
+			SWITCH(USERCULTURE(),
+			   "cs-CZ", "Naplánovaný příjem a předpokládané dostupné množství zobrazuje číslo a popis zboží a množství na různých dokladech.",
+			   "da-DK", "Den planlagte modtagelse og den forventede disponible saldo viser varenummer og beskrivelse samt antallet på forskellige bilag.",
+			   "de-AT", "Der geplante Zugang und der voraussichtliche Verfügbarkeitssaldo zeigen die Artikelnummer und die Beschreibung sowie die Menge auf verschiedenen Belegen an.",
+			   "de-CH", "Der geplante Zugang und der voraussichtliche Verfügbarkeitssaldo zeigen die Artikelnummer und die Beschreibung sowie die Menge auf verschiedenen Belegen an.",
+			   "de-DE", "Der geplante Zugang und der voraussichtliche Verfügbarkeitssaldo zeigen die Artikelnummer und die Beschreibung sowie die Menge auf verschiedenen Belegen an.",
+			   "en-AU", "The scheduled receipt and projected available balance shows item number and description, and the quantity on various documents.",
+			   "en-CA", "The scheduled receipt and projected available balance shows item number and description, and the quantity on various documents.",
+			   "en-GB", "The scheduled receipt and projected available balance shows item number and description, and the quantity on various documents.",
+			   "en-NZ", "The scheduled receipt and projected available balance shows item number and description, and the quantity on various documents.",
+			   "es-ES", "La recepción programada y el saldo disponible proyectado muestran el número y la descripción del producto, así como la cantidad en varios documentos.",
+			   "es-MX", "La recepción programada y el saldo disponible proyectado muestran el número y la descripción del producto, así como la cantidad en varios documentos.",
+			   "fi-FI", "Aikataulutettu vastaanotto ja oletettu saatavilla oleva saldo näyttävät nimikenumeron ja kuvauksen sekä määrän eri asiakirjoissa.",
+			   "fr-BE", "La réception planifiée et le solde disponible prévisionnel indiquent le numéro et la description de l’article, ainsi que la quantité sur divers documents.",
+			   "fr-CA", "La réception programmée et le solde disponible prévisionnel indiquent le numéro et la description de l’article, ainsi que la quantité sur divers documents.",
+			   "fr-CH", "La réception planifiée et le solde disponible prévisionnel indiquent le numéro et la description de l’article, ainsi que la quantité sur divers documents.",
+			   "fr-FR", "La réception planifiée et le solde disponible prévisionnel indiquent le numéro et la description de l’article, ainsi que la quantité sur divers documents.",
+			   "is-IS", "„Tímasett innhreyfing“ og „Áætluð staða til ráðstöfunar“ sýna vörunúmer, lýsingu og magn í mismunandi fylgiskjölum.",
+			   "it-CH", "Il carico programmato e la disponibilità calcolata mostrano il numero, la descrizione e la quantità degli articoli su vari documenti.",
+			   "it-IT", "Il carico programmato e la disponibilità calcolata mostrano il numero, la descrizione e la quantità degli articoli su vari documenti.",
+			   "nb-NO", "Planlagt mottak og forventet disponibel saldo viser varenummer og beskrivelse, samt antallet på ulike dokumenter.",
+			   "nl-BE", "De geplande ontvangst en de voorspelde beschikbare voorraad bevatten artikelnummer, beschrijving en het aantal in verschillende documenten.",
+			   "nl-NL", "De geplande ontvangst en de voorspelde beschikbare voorraad bevatten artikelnummer, beschrijving en het aantal in verschillende documenten.",
+			   "sv-SE", "Schemalagd inleverans och lagerutveckling över tid visar artikelnummer och beskrivning samt kvantiteten i olika dokument.",
+			   "The scheduled receipt and projected available balance shows item number and description, and the quantity on various documents."
+			)
+		lineageTag: 68b973c8-eb91-4e7a-b9bf-3f5fddda6c11
+
+	measure 'Last Refreshed Label' =
+			SWITCH(USERCULTURE(),
+			   "cs-CZ", "Naposledy aktualizováno",
+			   "da-DK", "Sidst opdateret",
+			   "de-AT", "Zuletzt aktualisiert",
+			   "de-CH", "Zuletzt aktualisiert",
+			   "de-DE", "Zuletzt aktualisiert",
+			   "en-AU", "Last Refreshed",
+			   "en-CA", "Last Refreshed",
+			   "en-GB", "Last Refreshed",
+			   "en-NZ", "Last Refreshed",
+			   "es-ES", "Última actualización",
+			   "es-MX", "Última actualización",
+			   "fi-FI", "Päivitetty viimeksi",
+			   "fr-BE", "Dernière actualisation",
+			   "fr-CA", "Dernière actualisation",
+			   "fr-CH", "Dernière actualisation",
+			   "fr-FR", "Dernière actualisation",
+			   "is-IS", "Síðast uppfært",
+			   "it-CH", "Ultimo aggiornamento",
+			   "it-IT", "Ultimo aggiornamento",
+			   "nb-NO", "Sist oppdatert",
+			   "nl-BE", "Laatst vernieuwd",
+			   "nl-NL", "Laatst vernieuwd",
+			   "sv-SE", "Uppdaterades senast",
+			   "Last Refreshed"
+			)
+		lineageTag: 0326ea48-51eb-4cf0-bd0e-ade878ed4965
+
+	measure 'Company Name Label' =
+			SWITCH(USERCULTURE(),
+			   "cs-CZ", "Název společnosti",
+			   "da-DK", "Virksomhedsnavn",
+			   "de-AT", "Mandantenname",
+			   "de-CH", "Mandantenname",
+			   "de-DE", "Mandantenname",
+			   "en-AU", "Company Name",
+			   "en-CA", "Company Name",
+			   "en-GB", "Company Name",
+			   "en-NZ", "Company Name",
+			   "es-ES", "Nombre empresa",
+			   "es-MX", "Nombre empresa",
+			   "fi-FI", "Yrityksen nimi",
+			   "fr-BE", "Nom de la société",
+			   "fr-CA", "Nom de la compagnie",
+			   "fr-CH", "Nom de la société",
+			   "fr-FR", "Nom de la société",
+			   "is-IS", "Heiti fyrirtækis",
+			   "it-CH", "Nome società",
+			   "it-IT", "Nome società",
+			   "nb-NO", "Selskapsnavn",
+			   "nl-BE", "Bedrijfsnaam",
+			   "nl-NL", "Bedrijfsnaam",
+			   "sv-SE", "Företagsnamn",
+			   "Company Name"
+			)
+		lineageTag: 1b028787-337b-4809-b0dc-48390e87ce66
+
+	measure 'Inventory (Quantity) by Location Code Label' =
+			SWITCH(USERCULTURE(),
+			   "cs-CZ", "Zásoby (množství) podle kódu lokace",
+			   "da-DK", "Lager (antal) efter lokationskode",
+			   "de-AT", "Lagerbestand (Menge) nach Lagerortcode",
+			   "de-CH", "Lagerbestand (Menge) nach Lagerortcode",
+			   "de-DE", "Lagerbestand (Menge) nach Lagerortcode",
+			   "en-AU", "Inventory (Quantity) by Location Code",
+			   "en-CA", "Inventory (Quantity) by Location Code",
+			   "en-GB", "Inventory (Quantity) by Location Code",
+			   "en-NZ", "Inventory (Quantity) by Location Code",
+			   "es-ES", "Inventario (cantidad) por código de almacén",
+			   "es-MX", "Inventario (cantidad) por código de almacén",
+			   "fi-FI", "Varasto (määrä) sijaintikoodin mukaan",
+			   "fr-BE", "Stock (quantité) par code magasin",
+			   "fr-CA", "Inventaire (quantité) par code d’emplacement",
+			   "fr-CH", "Stock (quantité) par code magasin",
+			   "fr-FR", "Stock (quantité) par code magasin",
+			   "is-IS", "Birgðir (magn) eftir staðsetningarkóða",
+			   "it-CH", "Inventario (quantità) per codice ubicazione",
+			   "it-IT", "Inventario (quantità) per codice ubicazione",
+			   "nb-NO", "Beholdning (antall) etter lokasjonskode",
+			   "nl-BE", "Voorraad (aantal) per locatiecode",
+			   "nl-NL", "Voorraad (aantal) per locatiecode",
+			   "sv-SE", "Lager (antal) per lagerställekod",
+			   "Inventory (Quantity) by Location Code"
+			)
+		lineageTag: fbb86df9-6ff3-4458-a7f5-ac0ae7b3d805
+
+	measure 'Scheduled Receipt and Projected Available Balance by Fiscal Year and Month Label' =
+			SWITCH(USERCULTURE(),
+			   "cs-CZ", "Naplánovaný příjem a předpokládané dostupné množství podle fiskálního roku a měsíce",
+			   "da-DK", "Planlagt tilgang og forventet disponibel saldo efter regnskabsår og måned",
+			   "de-AT", "Geplanter Zugang und voraussichtlicher Verfügbarkeitssaldo nach Geschäftsjahr und Monat",
+			   "de-CH", "Geplanter Zugang und voraussichtlicher Verfügbarkeitssaldo nach Geschäftsjahr und Monat",
+			   "de-DE", "Geplanter Zugang und voraussichtlicher Verfügbarkeitssaldo nach Geschäftsjahr und Monat",
+			   "en-AU", "Scheduled Receipt and Projected Available Balance by Fiscal Year and Month",
+			   "en-CA", "Scheduled Receipt and Projected Available Balance by Fiscal Year and Month",
+			   "en-GB", "Scheduled Receipt and Projected Available Balance by Fiscal Year and Month",
+			   "en-NZ", "Scheduled Receipt and Projected Available Balance by Fiscal Year and Month",
+			   "es-ES", "Recepción programada y saldo disponible proyectado por año fiscal y mes",
+			   "es-MX", "Recepción programada y saldo disponible proyectado por año fiscal y mes",
+			   "fi-FI", "Aikataulutettu vastaanotto ja oletettu saatavilla oleva saldo tilikauden ja kuukauden mukaan",
+			   "fr-BE", "Réception planifiée et solde disponible prévisionnel par exercice et par mois",
+			   "fr-CA", "Réception programmée et solde disponible prévisionnel par exercice financier et par mois",
+			   "fr-CH", "Réception planifiée et solde disponible prévisionnel par exercice et par mois",
+			   "fr-FR", "Réception planifiée et solde disponible prévisionnel par exercice et par mois",
+			   "is-IS", "Tímasett innhreyfing og áætluð staða til ráðstöfunar eftir fjárhagsári og mánuði",
+			   "it-CH", "Carico programmato e disponibilità calcolata per mese e anno fiscale",
+			   "it-IT", "Carico programmato e disponibilità calcolata per mese e anno fiscale",
+			   "nb-NO", "Planlagt mottak og forventet disponibel saldo etter regnskapsår og måned",
+			   "nl-BE", "Geplande ontvangst en voorspelde beschikbare voorraad per boekjaar en -maand",
+			   "nl-NL", "Geplande ontvangst en voorspelde beschikbare voorraad per boekjaar en -maand",
+			   "sv-SE", "Planerad inleverans och lagerutveckling över tiden per räkenskapsår och -månad",
+			   "Scheduled Receipt and Projected Available Balance by Fiscal Year and Month"
+			)
+		lineageTag: acf8ab7c-d448-4bd3-91bc-5ba2a9e83f1a
+
+	measure 'Inventory (Quantity) by Lot No. Label' =
+			SWITCH(USERCULTURE(),
+			   "cs-CZ", "Zásoby (množství) podle čísla šarže",
+			   "da-DK", "Lager (antal) efter lotnr.",
+			   "de-AT", "Lagerbestand (Menge) nach Chargennr.",
+			   "de-CH", "Lagerbestand (Menge) nach Chargennr.",
+			   "de-DE", "Lagerbestand (Menge) nach Chargennr.",
+			   "en-AU", "Inventory (Quantity) by Lot No.",
+			   "en-CA", "Inventory (Quantity) by Lot No.",
+			   "en-GB", "Inventory (Quantity) by Lot No.",
+			   "en-NZ", "Inventory (Quantity) by Lot No.",
+			   "es-ES", "Inventario (cantidad) por n.º de lote",
+			   "es-MX", "Inventario (cantidad) por n.º de lote",
+			   "fi-FI", "Varasto (määrä) eränroittain",
+			   "fr-BE", "Stock (quantité) par n° lot",
+			   "fr-CA", "Inventaire (quantité) par n° de lot",
+			   "fr-CH", "Stock (quantité) par n° lot",
+			   "fr-FR", "Stock (quantité) par n° lot",
+			   "is-IS", "Birgðir (magn) eftir lotunúmeri",
+			   "it-CH", "Inventario (quantità) per nr. lotto",
+			   "it-IT", "Inventario (quantità) per nr. lotto",
+			   "nb-NO", "Beholdning (antall) etter partinr.",
+			   "nl-BE", "Voorraad (aantal) per lotnr.",
+			   "nl-NL", "Voorraad (aantal) per lotnr.",
+			   "sv-SE", "Lager (antal) per partinummer",
+			   "Inventory (Quantity) by Lot No."
+			)
+		lineageTag: dfc7c7b2-9c25-4ca9-9314-5138936272b8
+
+	measure 'Inventory (Quantity) by Serial No. Label' =
+			SWITCH(USERCULTURE(),
+			   "cs-CZ", "Zásoby (množství) podle sériového čísla",
+			   "da-DK", "Lager (antal) efter serienummer",
+			   "de-AT", "Lagerbestand (Menge) nach Seriennr.",
+			   "de-CH", "Lagerbestand (Menge) nach Seriennr.",
+			   "de-DE", "Lagerbestand (Menge) nach Seriennr.",
+			   "en-AU", "Inventory (Quantity) by Serial No.",
+			   "en-CA", "Inventory (Quantity) by Serial No.",
+			   "en-GB", "Inventory (Quantity) by Serial No.",
+			   "en-NZ", "Inventory (Quantity) by Serial No.",
+			   "es-ES", "Inventario (cantidad) por n.º serie",
+			   "es-MX", "Inventario (cantidad) por n.º serie",
+			   "fi-FI", "Varasto (määrä) sarjanroittain",
+			   "fr-BE", "Stock (quantité) par n° de série",
+			   "fr-CA", "Inventaire (quantité) par n° de série",
+			   "fr-CH", "Stock (quantité) par n° de série",
+			   "fr-FR", "Stock (quantité) par n° de série",
+			   "is-IS", "Birgðir (magn) eftir raðnúmeri",
+			   "it-CH", "Inventario (quantità) per numero di serie",
+			   "it-IT", "Inventario (quantità) per numero di serie",
+			   "nb-NO", "Beholdning (antall) etter serienr.",
+			   "nl-BE", "Voorraad (aantal) per serienr.",
+			   "nl-NL", "Voorraad (aantal) per serienr.",
+			   "sv-SE", "Lager (antal) per serienummer",
+			   "Inventory (Quantity) by Serial No."
+			)
+		lineageTag: 58ef5baa-eb5b-4762-96dc-7160885fe4fd
+
+	measure 'MANUFACTURING Label' =
+			SWITCH(USERCULTURE(),
+			   "cs-CZ", "VÝROBA",
+			   "da-DK", "PRODUKTION",
+			   "de-AT", "PRODUKTION",
+			   "de-CH", "PRODUKTION",
+			   "de-DE", "PRODUKTION",
+			   "en-AU", "MANUFACTURING",
+			   "en-CA", "MANUFACTURING",
+			   "en-GB", "MANUFACTURING",
+			   "en-NZ", "MANUFACTURING",
+			   "es-ES", "FABRICACIÓN",
+			   "es-MX", "FABRICACIÓN",
+			   "fi-FI", "TUOTANTO",
+			   "fr-BE", "FABRICATION",
+			   "fr-CA", "FABRICATION",
+			   "fr-CH", "FABRICATION",
+			   "fr-FR", "FABRICATION",
+			   "is-IS", "FRAMLEIÐSLA",
+			   "it-CH", "PRODUZIONE",
+			   "it-IT", "PRODUZIONE",
+			   "nb-NO", "PRODUKSJON",
+			   "nl-BE", "PRODUCTIE",
+			   "nl-NL", "PRODUCTIE",
+			   "sv-SE", "PRODUKTION",
+			   "MANUFACTURING"
+			)
+		lineageTag: 9fe3b82a-efff-4b85-936b-9ede6e0fa328
+
+	measure 'INVENTORY VALUATION Label' =
+			SWITCH(USERCULTURE(),
+			   "cs-CZ", "HODNOTA ZÁSOB",
+			   "da-DK", "LAGERVÆRDI",
+			   "de-AT", "LAGERBESTANDSBEWERTUNG",
+			   "de-CH", "LAGERBESTANDSBEWERTUNG",
+			   "de-DE", "LAGERBESTANDSBEWERTUNG",
+			   "en-AU", "INVENTORY VALUATION",
+			   "en-CA", "INVENTORY VALUATION",
+			   "en-GB", "INVENTORY VALUATION",
+			   "en-NZ", "INVENTORY VALUATION",
+			   "es-ES", "VALORACIÓN INVENTARIO",
+			   "es-MX", "VALUACIÓN DE INVENTARIOS",
+			   "fi-FI", "VARASTON ARVOSTUS",
+			   "fr-BE", "ÉVALUATION DU STOCK",
+			   "fr-CA", "ÉVALUATION DE L’INVENTAIRE",
+			   "fr-CH", "ÉVALUATION DU STOCK",
+			   "fr-FR", "ÉVALUATION DU STOCK",
+			   "is-IS", "BIRGÐAVIRÐI",
+			   "it-CH", "VALUTAZIONE MAGAZZINO",
+			   "it-IT", "VALUTAZIONE MAGAZZINO",
+			   "nb-NO", "BEHOLDNINGSVERDISETTING",
+			   "nl-BE", "VOORRAADWAARDERING",
+			   "nl-NL", "VOORRAADWAARDERING",
+			   "sv-SE", "LAGERVÄRDERING",
+			   "INVENTORY VALUATION"
+			)
+		lineageTag: 504bfd2c-d301-4f37-a8fd-428328a52eee
+
+	measure 'Available Quantity to Take by Bin Code Label' =
+			SWITCH(USERCULTURE(),
+			   "cs-CZ", "Dostupné množství k výběru podle kódu přihrádky",
+			   "da-DK", "Disponibelt antal, der kan tages, efter placeringskode",
+			   "de-AT", "Verfügbare Entnahmemenge nach Lagerplatzcode",
+			   "de-CH", "Verfügbare Entnahmemenge nach Lagerplatzcode",
+			   "de-DE", "Verfügbare Entnahmemenge nach Lagerplatzcode",
+			   "en-AU", "Available Quantity to Take by Bin Code",
+			   "en-CA", "Available Quantity to Take by Bin Code",
+			   "en-GB", "Available Quantity to Take by Bin Code",
+			   "en-NZ", "Available Quantity to Take by Bin Code",
+			   "es-ES", "Cantidad disponible para tomar por cód. ubicación",
+			   "es-MX", "Cantidad disponible para tomar por cód. ubicación",
+			   "fi-FI", "Saatavilla oleva varastopaikkakoodin mukaan otettava määrä",
+			   "fr-BE", "Quantité disponible à prélever par code emplacement",
+			   "fr-CA", "Quantité disponible à prélever par code de zone",
+			   "fr-CH", "Quantité disponible à prélever par code emplacement",
+			   "fr-FR", "Quantité disponible à prélever par code emplacement",
+			   "is-IS", "Tiltækt magn eftir hólfakóða",
+			   "it-CH", "Quantità disponibile da prelevare per codice collocazione",
+			   "it-IT", "Quantità disponibile da prelevare per codice collocazione",
+			   "nb-NO", "Disponibelt antall som skal tas etter hyllekode",
+			   "nl-BE", "Beschikbaar te nemen aantal per code van opslaglocatie",
+			   "nl-NL", "Beschikbaar te nemen aantal per code van opslaglocatie",
+			   "sv-SE", "Disponibelt antal att hämta per lagerplatskod",
+			   "Available Quantity to Take by Bin Code"
+			)
+		lineageTag: b8f4d3ed-94c6-4c25-bff1-5c0a08031b00
+
+	measure 'Projected Available Balance vs. Current Inventory Label' =
+			SWITCH(USERCULTURE(),
+			   "cs-CZ", "Předpokládané dostupné množství vs. aktuální zásoby",
+			   "da-DK", "Forventet disponibel saldo i forhold til aktuelt lager",
+			   "de-AT", "Verfügbarkeitssaldo vs Aktueller Lagerbestand",
+			   "de-CH", "Verfügbarkeitssaldo vs Aktueller Lagerbestand",
+			   "de-DE", "Verfügbarkeitssaldo vs Aktueller Lagerbestand",
+			   "en-AU", "Projected Available Balance vs. Current Inventory",
+			   "en-CA", "Projected Available Balance vs. Current Inventory",
+			   "en-GB", "Projected Available Balance vs. Current Inventory",
+			   "en-NZ", "Projected Available Balance vs. Current Inventory",
+			   "es-ES", "Saldo disponible proyectado frente a inventario actual",
+			   "es-MX", "Saldo disponible proyectado frente a inventario actual",
+			   "fi-FI", "Oletettu saatavilla oleva saldo vrt. nykyinen varasto",
+			   "fr-BE", "Solde disponible prévisionnel par rapport au stock actuel",
+			   "fr-CA", "Solde disponible prévu par rapport à l’inventaire actuel",
+			   "fr-CH", "Solde disponible prévisionnel par rapport au stock actuel",
+			   "fr-FR", "Solde disponible prévisionnel par rapport au stock actuel",
+			   "is-IS", "Áætluð staða til ráðstöfunar samanborið við núverandi birgðir",
+			   "it-CH", "Disponibilità calcolata e inventario corrente",
+			   "it-IT", "Disponibilità calcolata e inventario corrente",
+			   "nb-NO", "Forventet disponibel saldo kontra nåværende beholdning",
+			   "nl-BE", "Voorspeld beschikbaar saldo versus huidige voorraad",
+			   "nl-NL", "Voorspeld beschikbaar saldo versus huidige voorraad",
+			   "sv-SE", "Lagerutveckling över tiden jämfört med aktuellt lager",
+			   "Projected Available Balance vs. Current Inventory"
+			)
+		lineageTag: af60464b-a493-4797-9a61-f48b69cfe294
+
+	measure 'Purchase vs. Sales Quantity Across Time Label' =
+			SWITCH(USERCULTURE(),
+			   "cs-CZ", "Nákupní vs. prodejní množství v průběhu času",
+			   "da-DK", "Købsantal i forhold til salgsantal over tid",
+			   "de-AT", "Einkaufs- vs Verkaufsmenge im Zeitverlauf",
+			   "de-CH", "Einkaufs- vs Verkaufsmenge im Zeitverlauf",
+			   "de-DE", "Einkaufs- vs Verkaufsmenge im Zeitverlauf",
+			   "en-AU", "Purchase vs. Sales Quantity Across Time",
+			   "en-CA", "Purchase vs. Sales Quantity Across Time",
+			   "en-GB", "Purchase vs. Sales Quantity Across Time",
+			   "en-NZ", "Purchase vs. Sales Quantity Across Time",
+			   "es-ES", "Cantidad de compras frente a cantidad ventas a lo largo del tiempo",
+			   "es-MX", "Cantidad de compras frente a cantidad ventas a lo largo del tiempo",
+			   "fi-FI", "Ostomäärä vrt. myyntimäärä ajan kuluessa",
+			   "fr-BE", "Quantité achetée par rapport à quantité vendue au fil du temps",
+			   "fr-CA", "Quantité achetée par rapport à quantité vendue au fil du temps",
+			   "fr-CH", "Quantité achetée par rapport à quantité vendue au fil du temps",
+			   "fr-FR", "Quantité achetée par rapport à quantité vendue au fil du temps",
+			   "is-IS", "Innkaup samanborið við sölumagn á tilteknu tímabili",
+			   "it-CH", "Quantità di acquisti e vendite nel tempo",
+			   "it-IT", "Quantità di acquisti e vendite nel tempo",
+			   "nb-NO", "Kjøpsantall kontra salgsantall over tid",
+			   "nl-BE", "Inkoop- versus verkoopaantal in loop van tijd",
+			   "nl-NL", "Inkoop- versus verkoopaantal in loop van tijd",
+			   "sv-SE", "Inköp jämfört med försäljningskvantitet över tid",
+			   "Purchase vs. Sales Quantity Across Time"
+			)
+		lineageTag: 1602ac6a-2d2d-4b80-9762-cbe782614adb
+
+	measure 'Inventory by Item Details Label' =
+			SWITCH(USERCULTURE(),
+			   "cs-CZ", "Zásoby podle zboží – podrobnosti",
+			   "da-DK", "Detaljer om lager efter vare",
+			   "de-AT", "Lagerbestand nach Artikel – Details",
+			   "de-CH", "Lagerbestand nach Artikel – Details",
+			   "de-DE", "Lagerbestand nach Artikel – Details",
+			   "en-AU", "Inventory by Item Details",
+			   "en-CA", "Inventory by Item Details",
+			   "en-GB", "Inventory by Item Details",
+			   "en-NZ", "Inventory by Item Details",
+			   "es-ES", "Detalles de inventario por producto",
+			   "es-MX", "Detalles de inventario por producto",
+			   "fi-FI", "Varasto nimikkeittäin – Tiedot",
+			   "fr-BE", "Détails stock par article",
+			   "fr-CA", "Détails de l’inventaire par article",
+			   "fr-CH", "Détails stock par article",
+			   "fr-FR", "Détails stock par article",
+			   "is-IS", "Upplýsingar um birgðir eftir vöru",
+			   "it-CH", "Dettagli inventario per articolo",
+			   "it-IT", "Dettagli inventario per articolo",
+			   "nb-NO", "Detaljer om beholdning etter vare",
+			   "nl-BE", "Details van voorraad per artikel",
+			   "nl-NL", "Details van voorraad per artikel",
+			   "sv-SE", "Information om Lager per artikel",
+			   "Inventory by Item Details"
+			)
+		lineageTag: 3a278d1a-3813-4576-a651-27b853af5d13
+
+	measure 'Inventory by Location Details Label' =
+			SWITCH(USERCULTURE(),
+			   "cs-CZ", "Zásoby podle lokace – podrobnosti",
+			   "da-DK", "Detaljer om lager efter placering",
+			   "de-AT", "Lagerbestand nach Lagerort – Details",
+			   "de-CH", "Lagerbestand nach Lagerort – Details",
+			   "de-DE", "Lagerbestand nach Lagerort – Details",
+			   "en-AU", "Inventory by Location Details",
+			   "en-CA", "Inventory by Location Details",
+			   "en-GB", "Inventory by Location Details",
+			   "en-NZ", "Inventory by Location Details",
+			   "es-ES", "Detalles de inventario por almacén",
+			   "es-MX", "Detalles de inventario por almacén",
+			   "fi-FI", "Varasto sijainneittain – Tiedot",
+			   "fr-BE", "Détails stock par magasin",
+			   "fr-CA", "Détails de l’inventaire par emplacement",
+			   "fr-CH", "Détails stock par magasin",
+			   "fr-FR", "Détails stock par magasin",
+			   "is-IS", "Upplýsingar um birgðir eftir staðsetningu",
+			   "it-CH", "Dettagli inventario per ubicazione",
+			   "it-IT", "Dettagli inventario per ubicazione",
+			   "nb-NO", "Detaljer om beholdning etter lokasjon",
+			   "nl-BE", "Details van voorraad per locatie",
+			   "nl-NL", "Details van voorraad per locatie",
+			   "sv-SE", "Information om Lager per lagerställe",
+			   "Inventory by Location Details"
+			)
+		lineageTag: 40645014-970d-4813-a7b9-c950ef5ddec8
+
+	measure 'Purchase and Sales Quantity Details Label' =
+			SWITCH(USERCULTURE(),
+			   "cs-CZ", "Nákupní a prodejní množství – podrobnosti",
+			   "da-DK", "Detaljer om købs- og salgsantal",
+			   "de-AT", "Einkaufs- und Verkaufsmenge – Details",
+			   "de-CH", "Einkaufs- und Verkaufsmenge – Details",
+			   "de-DE", "Einkaufs- und Verkaufsmenge – Details",
+			   "en-AU", "Purchase and Sales Quantity Details",
+			   "en-CA", "Purchase and Sales Quantity Details",
+			   "en-GB", "Purchase and Sales Quantity Details",
+			   "en-NZ", "Purchase and Sales Quantity Details",
+			   "es-ES", "Detalles de cantidad de compras y ventas",
+			   "es-MX", "Detalles de cantidad de compras y ventas",
+			   "fi-FI", "Osto- ja myyntimäärä – Tiedot",
+			   "fr-BE", "Détails quantité achat et vente",
+			   "fr-CA", "Détails quantité achat et vente",
+			   "fr-CH", "Détails quantité achat et vente",
+			   "fr-FR", "Détails quantité achat et vente",
+			   "is-IS", "Upplýsingar um innkaupa- og sölumagn",
+			   "it-CH", "Dettagli quantità acquisti e vendite",
+			   "it-IT", "Dettagli quantità acquisti e vendite",
+			   "nb-NO", "Detaljer om kjøps- og salgsantall",
+			   "nl-BE", "Details van inkoop- en verkoopaantal",
+			   "nl-NL", "Details van inkoop- en verkoopaantal",
+			   "sv-SE", "Information om Inköps- och försäljningsantal",
+			   "Purchase and Sales Quantity Details"
+			)
+		lineageTag: 30901f01-fa01-4c1b-ace1-fd30316f3b8c
+
+	measure 'Item Availability Details Label' =
+			SWITCH(USERCULTURE(),
+			   "cs-CZ", "Dostupnost zboží – podrobnosti",
+			   "da-DK", "Detaljer om varetilgængelighed",
+			   "de-AT", "Artikelverfügbarkeit – Details",
+			   "de-CH", "Artikelverfügbarkeit – Details",
+			   "de-DE", "Artikelverfügbarkeit – Details",
+			   "en-AU", "Item Availability Details",
+			   "en-CA", "Item Availability Details",
+			   "en-GB", "Item Availability Details",
+			   "en-NZ", "Item Availability Details",
+			   "es-ES", "Detalles de disponibilidad prod.",
+			   "es-MX", "Detalles de disponibilidad prod.",
+			   "fi-FI", "Nimikkeen saatavuus – Tiedot",
+			   "fr-BE", "Détails disponibilité article",
+			   "fr-CA", "Détails disponibilité article",
+			   "fr-CH", "Détails disponibilité article",
+			   "fr-FR", "Détails disponibilité article",
+			   "is-IS", "Upplýsingar um vöru til ráðstöfunar",
+			   "it-CH", "Dettagli disponibilità articolo",
+			   "it-IT", "Dettagli disponibilità articolo",
+			   "nb-NO", "Detaljer om varedisposisjon",
+			   "nl-BE", "Details van artikelbeschikbaarheid",
+			   "nl-NL", "Details van artikelbeschikbaarheid",
+			   "sv-SE", "Information om Artikeldisposition",
+			   "Item Availability Details"
+			)
+		lineageTag: d0ad3922-e1f9-4d35-99df-c61e85945acf
+
+	measure 'Gross Requirement Details Label' =
+			SWITCH(USERCULTURE(),
+			   "cs-CZ", "Hrubý požadavek – podrobnosti",
+			   "da-DK", "Detaljer om bruttobehov",
+			   "de-AT", "Bruttobedarf – Details",
+			   "de-CH", "Bruttobedarf – Details",
+			   "de-DE", "Bruttobedarf – Details",
+			   "en-AU", "Gross Requirement Details",
+			   "en-CA", "Gross Requirement Details",
+			   "en-GB", "Gross Requirement Details",
+			   "en-NZ", "Gross Requirement Details",
+			   "es-ES", "Detalles de necesidades brutas",
+			   "es-MX", "Detalles de necesidades brutas",
+			   "fi-FI", "Bruttotarve – Tiedot",
+			   "fr-BE", "Détails besoin brut",
+			   "fr-CA", "Détails besoin brut",
+			   "fr-CH", "Détails besoin brut",
+			   "fr-FR", "Détails besoin brut",
+			   "is-IS", "Upplýsingar um brúttóþörf",
+			   "it-CH", "Dettagli fabbisogno lordo",
+			   "it-IT", "Dettagli fabbisogno lordo",
+			   "nb-NO", "Detaljer om bruttobehov",
+			   "nl-BE", "Details van brutobehoefte",
+			   "nl-NL", "Details van brutobehoefte",
+			   "sv-SE", "Information om Bruttobehov",
+			   "Gross Requirement Details"
+			)
+		lineageTag: f2add8ab-8f2c-4438-bb16-a751693cf507
+
+	measure 'Scheduled Receipt Details Label' =
+			SWITCH(USERCULTURE(),
+			   "cs-CZ", "Naplánovaný příjem – podrobnosti",
+			   "da-DK", "Detaljer om planlagt modtagelse",
+			   "de-AT", "Geplanter Zugang – Details",
+			   "de-CH", "Geplanter Zugang – Details",
+			   "de-DE", "Geplanter Zugang – Details",
+			   "en-AU", "Scheduled Receipt Details",
+			   "en-CA", "Scheduled Receipt Details",
+			   "en-GB", "Scheduled Receipt Details",
+			   "en-NZ", "Scheduled Receipt Details",
+			   "es-ES", "Detalles de recepción programada",
+			   "es-MX", "Detalles de recepción programada",
+			   "fi-FI", "Aikataulutettu vastaanotto – Tiedot",
+			   "fr-BE", "Détails réception planifiée",
+			   "fr-CA", "Détails de la réception planifiée",
+			   "fr-CH", "Détails réception planifiée",
+			   "fr-FR", "Détails réception planifiée",
+			   "is-IS", "Upplýsingar um tímasetta innhreyfingu",
+			   "it-CH", "Dettagli carico programmato",
+			   "it-IT", "Dettagli carico programmato",
+			   "nb-NO", "Detaljer om tidsplanlagt mottak",
+			   "nl-BE", "Details van geplande ontvangst",
+			   "nl-NL", "Details van geplande ontvangst",
+			   "sv-SE", "Information om Planenlig inleverans",
+			   "Scheduled Receipt Details"
+			)
+		lineageTag: 6c013b6d-308e-41c9-80d1-6d069508a7d2
+
+	measure 'Inventory by Lot Details Label' =
+			SWITCH(USERCULTURE(),
+			   "cs-CZ", "Zásoby podle šarže – podrobnosti",
+			   "da-DK", "Detaljer om lager efter parti",
+			   "de-AT", "Lagerbestand nach Charge – Details",
+			   "de-CH", "Lagerbestand nach Charge – Details",
+			   "de-DE", "Lagerbestand nach Charge – Details",
+			   "en-AU", "Inventory by Lot Details",
+			   "en-CA", "Inventory by Lot Details",
+			   "en-GB", "Inventory by Lot Details",
+			   "en-NZ", "Inventory by Lot Details",
+			   "es-ES", "Detalles de inventario por lote",
+			   "es-MX", "Detalles de inventario por lote",
+			   "fi-FI", "Varasto erittäin – Tiedot",
+			   "fr-BE", "Détails stock par lot",
+			   "fr-CA", "Détails de l’inventaire par lot",
+			   "fr-CH", "Détails stock par lot",
+			   "fr-FR", "Détails stock par lot",
+			   "is-IS", "Upplýsingar um birgðir eftir lotu",
+			   "it-CH", "Dettagli inventario per lotto",
+			   "it-IT", "Dettagli inventario per lotto",
+			   "nb-NO", "Detaljer om beholdning etter parti",
+			   "nl-BE", "Details van voorraad per lot",
+			   "nl-NL", "Details van voorraad per lot",
+			   "sv-SE", "Information om Lager utifrån parti",
+			   "Inventory by Lot Details"
+			)
+		lineageTag: 9bc7d59e-f378-4c67-8c8e-2795f51d1a04
+
+	measure 'Inventory by Serial No Details Label' =
+			SWITCH(USERCULTURE(),
+			   "cs-CZ", "Zásoby podle sériového čísla – podrobnosti",
+			   "da-DK", "Detaljer om lager efter serienr.",
+			   "de-AT", "Lagerbestand nach Seriennr. – Details",
+			   "de-CH", "Lagerbestand nach Seriennr. – Details",
+			   "de-DE", "Lagerbestand nach Seriennr. – Details",
+			   "en-AU", "Inventory by Serial No Details",
+			   "en-CA", "Inventory by Serial No Details",
+			   "en-GB", "Inventory by Serial No Details",
+			   "en-NZ", "Inventory by Serial No Details",
+			   "es-ES", "Detalles de inventario por n.º serie",
+			   "es-MX", "Detalles de inventario por n.º serie",
+			   "fi-FI", "Varasto sarjanroittain – Tiedot",
+			   "fr-BE", "Détails stock par n° de série",
+			   "fr-CA", "Détails de l’inventaire par numéro de série",
+			   "fr-CH", "Détails stock par n° de série",
+			   "fr-FR", "Détails stock par n° de série",
+			   "is-IS", "Upplýsingar um birgðir eftir raðnúmeri",
+			   "it-CH", "Dettagli inventario per numero di serie",
+			   "it-IT", "Dettagli inventario per numero di serie",
+			   "nb-NO", "Detaljer om beholdning etter serienr.",
+			   "nl-BE", "Details van voorraad per serienr.",
+			   "nl-NL", "Details van voorraad per serienr.",
+			   "sv-SE", "Information om Lager per serienummer",
+			   "Inventory by Serial No Details"
+			)
+		lineageTag: f09aca82-15c3-4619-bec8-7090c508739a
+
+	measure 'Bin Contents Details Label' =
+			SWITCH(USERCULTURE(),
+			   "cs-CZ", "Obsah přihrádky – podrobnosti",
+			   "da-DK", "Detaljer om placeringsindhold",
+			   "de-AT", "Lagerplatzinhalt – Details",
+			   "de-CH", "Lagerplatzinhalt – Details",
+			   "de-DE", "Lagerplatzinhalt – Details",
+			   "en-AU", "Bin Contents Details",
+			   "en-CA", "Bin Contents Details",
+			   "en-GB", "Bin Contents Details",
+			   "en-NZ", "Bin Contents Details",
+			   "es-ES", "Detalles de contenido almacén",
+			   "es-MX", "Detalles de contenido almacén",
+			   "fi-FI", "Varastopaikan sisältö – Tiedot",
+			   "fr-BE", "Détails contenus emplacement",
+			   "fr-CA", "Détails du contenu du bac",
+			   "fr-CH", "Détails contenus emplacement",
+			   "fr-FR", "Détails contenus emplacement",
+			   "is-IS", "Upplýsingar um innihald hólfs",
+			   "it-CH", "Dettagli contenuto collocazioni",
+			   "it-IT", "Dettagli contenuto collocazioni",
+			   "nb-NO", "Detaljer om hylleinnhold",
+			   "nl-BE", "Details van opslaglocatie-inhoud",
+			   "nl-NL", "Details van opslaglocatie-inhoud",
+			   "sv-SE", "Information om Lagerplatsinnehåll",
+			   "Bin Contents Details"
+			)
+		lineageTag: 5da9553d-c910-4078-8d62-f8825c1b8b1f
+
+	measure 'Bin Contents by Item Tracking Details Label' =
+			SWITCH(USERCULTURE(),
+			   "cs-CZ", "Obsah přihrádky podle sledování zboží – podrobnosti",
+			   "da-DK", "Detaljer om placeringsindhold efter varesporing",
+			   "de-AT", "Lagerplatzinhalt nach Artikelverfolgung – Details",
+			   "de-CH", "Lagerplatzinhalt nach Artikeltracking – Details",
+			   "de-DE", "Lagerplatzinhalt nach Artikelverfolgung – Details",
+			   "en-AU", "Bin Contents by Item Tracking Details",
+			   "en-CA", "Bin Contents by Item Tracking Details",
+			   "en-GB", "Bin Contents by Item Tracking Details",
+			   "en-NZ", "Bin Contents by Item Tracking Details",
+			   "es-ES", "Detalles de contenido almacén por seguimiento productos",
+			   "es-MX", "Detalles de contenido almacén por seguimiento productos",
+			   "fi-FI", "Varastopaikan sisältö nimikeseurannan mukaan – Tiedot",
+			   "fr-BE", "Détails contenus emplacement par traçabilité",
+			   "fr-CA", "Détails du suivi du contenu du bac par article",
+			   "fr-CH", "Détails contenus emplacement par traçabilité",
+			   "fr-FR", "Détails contenus emplacement par traçabilité",
+			   "is-IS", "Upplýsingar um innihald hólfs eftir vörurakningu",
+			   "it-CH", "Dettagli contenuto collocazioni per tracciabilità articolo",
+			   "it-IT", "Dettagli contenuto collocazioni per tracciabilità articolo",
+			   "nb-NO", "Detaljer om hylleinnhold etter varesporing",
+			   "nl-BE", "Details van Opslaglocatie-inhoud per artikeltracering",
+			   "nl-NL", "Details van Opslaglocatie-inhoud per artikeltracering",
+			   "sv-SE", "Information om Lagerplatsinnehåll per artikelspårning",
+			   "Bin Contents by Item Tracking Details"
+			)
+		lineageTag: 840f351b-a83d-427d-9f32-e68a327a6b83
+
+	measure 'Inventory Sales Forecasting Label' = "Inventory Sales Forecasting"
+		lineageTag: 2ce0faff-c70c-4045-9e59-7ee0c79224a2
+
+	measure 'Sales Quantity Forecast Label' = "Sales Quantity Forecast"
+		lineageTag: 71f523bb-f9df-4618-bb77-a4b145566d01
+
+	measure 'Sales Quantity by Location Label' = "Sales Quantity by Location"
+		lineageTag: 6287b192-b3ff-4544-8118-8157b62fa2bc
+
+	measure 'Sales Quantity by Document Type Label' = "Sales Quantity by Document Type"
+		lineageTag: e141a00f-c4a4-4824-839a-03b4616d9682
+
+	measure 'Sales Quantity by Item Category Label' = "Sales Quantity by Item Category"
+		lineageTag: cba8ed49-e9fb-4123-9249-587240419066
+
+	measure 'Sales Quantity by Customer Label' = "Sales Quantity by Customer"
+		lineageTag: 34c8b25c-b16e-4e29-af8c-39310a891ecd
+
+	measure 'Inventory Purchase Forecasting Label' = "Inventory Purchase Forecasting"
+		lineageTag: 3ccaec9b-a156-46af-af2e-02c51743adb2
+
+	measure 'Purchase Quantity Forecast Label' = "Purchase Quantity Forecast"
+		lineageTag: d1ef701e-036f-4d6f-83d8-819ec01400ff
+
+	measure 'Purchase Quantity by Location Label' = "Purchase Quantity by Location"
+		lineageTag: e1b6225d-94bf-4fdd-9203-7ba448078ecf
+
+	measure 'Purchase Quantity by Document Type Label' = "Purchase Quantity by Document Type"
+		lineageTag: 837080a7-a3a4-4112-84b2-b1231208ac61
+
+	measure 'Purchase Quantity by Item Category Label' = "Purchase Quantity by Item Category"
+		lineageTag: c94cc95d-6b72-4a03-b0c5-72d20ae344a6
+
+	measure 'Purchase Quantity by Vendor Label' = "Purchase Quantity by Vendor"
+		lineageTag: f253217f-55f9-4065-a1d3-f21cc64efc2c
+
+	measure 'Inventory Forecasting Label' = "Inventory Forecasting"
+		lineageTag: 123deedb-80be-43f0-ae90-b3a3e0e5357a
+
+	measure 'Quantity Forecast Label' = "Quantity Forecast"
+		lineageTag: 768a3dfa-32bc-4c3e-b0af-0ce0a18bb8de
+
+	measure 'Quantity by Location Label' = "Quantity by Location"
+		lineageTag: 520b9c42-5de7-4041-b335-4fc062bcacaf
+
+	measure 'Quantity by Item Label' = "Quantity by Item"
+		lineageTag: 2d5042cc-d6e8-4c03-b84c-a405041050ab
+
+	measure 'Quantity by Item Ledger Entry Type Label' = "Quantity by Item Ledger Entry Type"
+		lineageTag: df3a8685-4d09-46a4-9534-c05abfe47651
+
+	measure 'ABC Analysis Label' = "ABC Analysis"
+		lineageTag: a813d47b-0dd4-4c38-95df-86a972761c84
+
+	measure 'Sales Amount by Class Label' = "Sales Amount by Class"
+		lineageTag: f6b588bf-cf8f-4c70-9acb-cc3418baa33c
+
+	measure 'Sales Amount by Item Category Label' = "Sales Amount by Item Category"
+		lineageTag: 07762b4b-176f-4120-938f-ad4e28696e92
+
+	measure 'ABC Class Details Label' = "ABC Class Details"
+		lineageTag: 2045dbef-e3d7-4ccb-a2d1-3215afff781d
+
+	measure 'Sales Amount by Item Label' = "Sales Amount by Item"
+		lineageTag: 564f244a-49e0-4177-a146-c9234e124dc5
+
+	measure 'Sales Amount by Item Details Label' = "Sales Amount by Item Details"
+		lineageTag: a7ecc33c-7247-4092-a78b-32519b839036
+
+	column unused
+		isHidden
+		displayFolder: unused
+		lineageTag: 84e0f66d-7817-4e61-8fb0-55f76fccf28e
+		isNameInferred
+		sourceColumn: [unused]
+
+	partition Partition = calculated
+		source = DATATABLE("unused", STRING, {{"This is a table automatically generated by Translations Builder"}})
+

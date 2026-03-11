@@ -1,0 +1,112 @@
+model Model
+	culture: en-US
+	defaultPowerBIDataSourceVersion: powerBI_V3
+	discourageImplicitMeasures
+	sourceQueryCulture: de-DE
+	dataAccessOptions
+		legacyRedirects
+		returnErrorValuesAsNull
+
+queryGroup 'Parameters and Functions'
+
+	annotation PBI_QueryGroupOrder = 0
+
+queryGroup 'Dimension Tables'
+
+	annotation PBI_QueryGroupOrder = 1
+
+queryGroup 'Fact Tables'
+
+	annotation PBI_QueryGroupOrder = 2
+
+queryGroup 'Date Table'
+
+	annotation PBI_QueryGroupOrder = 3
+
+queryGroup 'Parameters and Functions\Functions'
+
+	annotation PBI_QueryGroupOrder = 0
+
+queryGroup 'Parameters and Functions\Connection Parameters'
+
+	annotation PBI_QueryGroupOrder = 1
+
+queryGroup 'Parameters and Functions\Contract Analysis Entries Base'
+
+	annotation PBI_QueryGroupOrder = 2
+
+queryGroup Diemensions
+
+	annotation PBI_QueryGroupOrder = 8
+
+annotation __PBI_TimeIntelligenceEnabled = 0
+
+annotation PBI_QueryOrder = ["ENVIRONMENT","COMPANY","Dimensions","DimensionSet_Blank","DimensionSets_DataSource","GetDimCode","GetDimCodeCaption","GetDimNameCaption","Subscription","Dimension Sets","Date Table Setup","Working Days","Vendors","Customers","API_ENDPOINT","Default Contract Term","API_ENDPOINT_SUBSCR_BILLING","MaxForecastDate","MinReportingDate","fncPeriodsBetween","fctImproveColumnNames","SourceContractAnalysisEntries","ContractLineBase","Customer Contract Line","Vendor Contract Line","Vendor Contract Deferrals","Customer Contract Deferrals","Customer Contract","Vendor Contract","UBB handling","Is Released","Item","Salesperson","Meta Information","BCConnectionSubscriptionBilling","ConvertUTC","Item Category"]
+
+annotation __BNorm = 1
+
+annotation __TEdtr = 1
+
+annotation PBI_ProTooling = ["DevMode","DaxQueryView_Desktop"]
+
+annotation TranslationsBuilder = Version:2.2-Updated:2025-05-06
+
+ref table 'Dimension Sets'
+ref table 'Date Table Setup'
+ref table 'Date Ref'
+ref table 'Working Days'
+ref table Vendors
+ref table Customers
+ref table Date
+ref table 'Localized Labels'
+ref table 'Meta Information'
+ref table Subscription
+ref table 'Vendor Contract Deferrals'
+ref table 'Customer Contract Line'
+ref table 'Vendor Contract Line'
+ref table 'Customer Contract Deferrals'
+ref table 'Customer Contract'
+ref table 'Vendor Contract'
+ref table 'UBB handling'
+ref table 'Is Released'
+ref table Item
+ref table 'Analysis Date'
+ref table 'Tec Dummy Values'
+ref table 'Calc. Group - Tec. Transformations'
+ref table 'Calc. Group - Time Intelligence for Calendar (Fiscal)'
+ref table 'Customer Billing Forecast'
+ref table 'Vendor Billing Forecast'
+ref table 'Subscription Billing KPIs'
+ref table Salesperson
+ref table 'Customer Contract Changes'
+ref table ENVIRONMENT
+ref table COMPANY
+ref table 'Item Category'
+ref table 'Translated Localized Labels'
+
+ref cultureInfo en-US
+ref cultureInfo es-ES
+ref cultureInfo de-DE
+ref cultureInfo fr-FR
+ref cultureInfo cs-CZ
+ref cultureInfo da-DK
+ref cultureInfo de-AT
+ref cultureInfo de-CH
+ref cultureInfo en-AU
+ref cultureInfo en-CA
+ref cultureInfo en-GB
+ref cultureInfo en-NZ
+ref cultureInfo es-MX
+ref cultureInfo fi-FI
+ref cultureInfo fr-BE
+ref cultureInfo fr-CA
+ref cultureInfo fr-CH
+ref cultureInfo is-IS
+ref cultureInfo it-CH
+ref cultureInfo it-IT
+ref cultureInfo nb-NO
+ref cultureInfo nl-BE
+ref cultureInfo nl-NL
+ref cultureInfo ru-RU
+ref cultureInfo sv-SE
+

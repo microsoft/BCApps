@@ -1,0 +1,149 @@
+table 'Warehouse Entries'
+	isHidden
+	lineageTag: 9af2c46d-57f7-4388-ae14-32fe643d6916
+
+	column 'Item No.'
+		dataType: string
+		isHidden
+		lineageTag: 2858f41a-be1c-4ebc-b683-7f643bfccd8b
+		summarizeBy: none
+		sourceColumn: Item No.
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Location Code'
+		dataType: string
+		isHidden
+		lineageTag: db049c12-5c97-4b49-83a3-41afa3d30836
+		summarizeBy: none
+		sourceColumn: Location Code
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Qty. (Base)'
+		dataType: double
+		isHidden
+		formatString: #,0.00
+		lineageTag: 2f9b1934-ca14-4049-bb37-9bd640de3600
+		summarizeBy: sum
+		sourceColumn: Qty. (Base)
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Zone Key'
+		dataType: string
+		isHidden
+		lineageTag: e6e62bd9-ec91-431f-bcb3-3e38ca948af1
+		summarizeBy: none
+		sourceColumn: Zone Key
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Bin Key'
+		dataType: string
+		isHidden
+		lineageTag: 658abc7f-f28d-47c2-b7b9-e89eff431ec0
+		summarizeBy: none
+		sourceColumn: Bin Key
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Lot Key'
+		dataType: string
+		isHidden
+		lineageTag: 4322d14d-5b49-4422-a4e1-62a907a3bc21
+		summarizeBy: none
+		sourceColumn: Lot Key
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Serial Key'
+		dataType: string
+		isHidden
+		lineageTag: 02ba78a7-2f68-4b9d-bc1c-7ed61f9fd375
+		summarizeBy: none
+		sourceColumn: Serial Key
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Quantity Per Unit of Measure'
+		dataType: double
+		lineageTag: 5430ee1c-566c-4b1d-aed4-55c0278bcb6b
+		summarizeBy: sum
+		sourceColumn: Quantity Per Unit of Measure
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column 'Unit of Measure Code'
+		dataType: string
+		lineageTag: c5beaf77-d7ad-451c-a9fe-04cea086760f
+		summarizeBy: none
+		sourceColumn: Unit of Measure Code
+
+		annotation SummarizationSetBy = Automatic
+
+	partition 'Warehouse Entries' = m
+		mode: import
+		queryGroup: 'Fact Tables'
+		source =
+				let
+				    Source = Dynamics365BusinessCentral.ApiContentsWithOptions(ENVIRONMENT, COMPANY,API_ENDPOINT, []),
+				    TableData = Source{[Name="warehouseEntries",Signature="table"]}[Data],
+				    #"Changed Type" = Table.TransformColumnTypes(
+				        TableData,
+				        {
+				            {"itemNo", type text},
+				            {"locationCode", type text},
+				            {"lotNo", type text},
+				            {"serialNo", type text},
+				            {"zoneCode", type text},
+				            {"binCode", type text},
+				            {"qtyBase", type number},
+				            {"qtyPerUnitOfMeasure", type number},
+				            {"unitOfMeasureCode", type text}
+				        }
+				    ),
+				    #"Replaced Value" = Table.ReplaceValue(#"Changed Type", 0, null, Replacer.ReplaceValue, {"qtyBase"}),
+				    #"Added Zone Key" = Table.AddColumn(
+				        #"Replaced Value", "Zone Key", each [zoneCode] & "(" & [locationCode] & ")", type text
+				    ),
+				    #"Added Bin Key" = Table.AddColumn(
+				        #"Added Zone Key", "Bin Key", each [binCode] & "(" & [locationCode] & ")", type text
+				    ),
+				    #"Added Lot Key" = Table.AddColumn(
+				        #"Added Bin Key", "Lot Key", each if [lotNo] = "" then "" else [itemNo] & [lotNo], type text
+				    ),
+				    #"Added Serial Key" = Table.AddColumn(
+				        #"Added Lot Key", "Serial Key", each if [serialNo] = "" then "" else [itemNo] & [serialNo], type text
+				    ),
+				    #"Removed Columns" = Table.RemoveColumns(
+				        #"Added Serial Key", {"zoneCode", "binCode", "lotNo", "serialNo", "ETag"}
+				    ),
+				    #"Renamed Columns" = Table.RenameColumns(
+				        #"Removed Columns", {{"itemNo", "Item No."}, {"locationCode", "Location Code"}, {"qtyBase", "Qty. (Base)"},{"qtyPerUnitOfMeasure","Quantity Per Unit of Measure"},{"unitOfMeasureCode","Unit of Measure Code"}}
+				    )
+				in
+				    #"Renamed Columns"
+
+	changedProperty = IsHidden
+
+	annotation PBI_ResultType = Table
+
+	annotation PBI_NavigationStepName = Navigation
+

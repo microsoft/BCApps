@@ -1,0 +1,429 @@
+table Documents
+	lineageTag: 112cc132-4cef-4b01-879b-c18c1431b470
+
+	measure 'Purchase (LCY)' = ```
+			
+			VAR NetPurchases = 'Purchase Value Entries'[Purchase Value Entries Amount] + 'Purchase Invoice Lines'[Purchase Invoice Line Amount] + 'Purchase Credit Lines'[Purchase Credit Line Amount]
+			RETURN
+			    IF (
+			        NetPurchases = 0,
+			        BLANK (),
+			        NetPurchases
+			    )
+			
+			```
+		formatString: #,0.00
+		displayFolder: _Purchase Measures
+		lineageTag: a3cf721b-31d8-4e26-8a9b-ef32c5743f20
+
+	measure 'Purchase Quantity' =
+			
+			VAR NetPurchaseQuantity = 'Purchase Value Entries'[Purchase Value Entries Quantity] + 'Purchase Invoice Lines'[Purchase Invoice Line Quantity Base] + 'Purchase Credit Lines'[Purchase Credit Line Quantity Base]
+			RETURN IF(NetPurchaseQuantity = 0, BLANK(), NetPurchaseQuantity)
+		formatString: #,0.00
+		displayFolder: _Purchase Measures
+		lineageTag: 8fec104a-db91-4526-b4d9-43fa6186ef8e
+
+	measure 'Invoiced Prepayment Amount (LCY)' = SUM('Purchase Lines'[prepmtAmountInvLCY])
+		formatString: #,0.00
+		displayFolder: _Purchase Measures
+		lineageTag: 6f5967d8-1e71-46e6-b9ba-6dc6236d0e02
+
+	measure 'Purchase (LCY) (Forecasting)' =
+			
+			VAR DateWithPurchases = SELECTCOLUMNS(CALCULATETABLE('Date', 'Date'[DateWithPurchases] = TRUE()),'Date'[Date])
+			return SUMX(DateWithPurchases, IF(ISBLANK([Purchase (LCY)]),0,[Purchase (LCY)]))
+		formatString: #,0.00
+		displayFolder: _Purchase Measures
+		lineageTag: 222d49dc-f001-4c4b-bed9-6272d879386f
+
+	measure 'Return Rate (Qty.)' = -DIVIDE([Total Credit (Qty.)], [Total Purchase (Qty.)])
+		formatString: 0.00%;-0.00%;0.00%
+		displayFolder: _Purchase Measures
+		lineageTag: c914be63-a2e5-4bd6-814d-fc655dc968dd
+
+	measure 'Return Rate (Amount)' = -DIVIDE([Total Credit (Amount)], [Total Purchase (Amount)])
+		formatString: 0.00%;-0.00%;0.00%
+		displayFolder: _Purchase Measures
+		lineageTag: 13bd3ee7-8fdb-4db8-9ec0-4905425822e9
+
+	measure 'Total Purchase (Amount)' = [Posted Purchase Invoice Amount] + [Purchase Invoice Line Amount]
+		formatString: #,0.00
+		displayFolder: _Purchase Measures
+		lineageTag: 146f4951-37c9-4736-9a37-d467695e5479
+
+	measure 'Total Credit (Amount)' = [Posted Purchase CR/Adj Note Amount] + [Purchase Credit Line Amount]
+		formatString: #,0.00
+		displayFolder: _Purchase Measures\_Credits
+		lineageTag: 78934896-a536-492d-9ce9-fddde7e01365
+
+	measure 'Total Credit (Qty.)' = [Posted Purchase CR/Adj Note Quantity] + [Purchase Credit Line Quantity Base]
+		displayFolder: _Purchase Measures\_Credits
+		lineageTag: 52e50af1-fcf1-42db-8ed8-b863fafafd1f
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Total Purchase (Qty.)' = [Posted Purchase Invoice Quantity] + [Purchase Invoice Line Quantity Base]
+		displayFolder: _Purchase Measures
+		lineageTag: f34ca526-c831-41c5-af07-84f1cdebcaf1
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Base Link' =
+			
+			VAR BusinessCentral = "https://businesscentral.dynamics.com/"
+			VAR TenantID = VALUES('Date Table Setup'[tenantID])
+			VAR Environment = VALUES(ENVIRONMENT[ENVIRONMENT])
+			VAR Company = "?company=" & VALUES(COMPANY[COMPANY])
+			RETURN BusinessCentral & TenantID & "/" & Environment & "/" & Company
+		displayFolder: _Purchase Measures\_Back Links
+		lineageTag: bbc266f9-2fa9-45e4-adf0-278036f716f0
+
+	measure 'Purchase Back Link' = ```
+			
+			
+			// --- Purchase Lines --
+			    VAR PurchaseLineDocumentNos = CONCATENATEX(VALUES('Purchase Lines'[Document No.]), 'Purchase Lines'[Document No.], "|")
+			    VAR PurchaseLineItems = CONCATENATEX(VALUES('Purchase Lines'[itemNo]), 'Purchase Lines'[itemNo], "|")
+			
+			    // --- Document Type concatenation ---
+			    VAR DistinctPurchaseLineDocTypes =
+			        DISTINCT ( SELECTCOLUMNS ( 'Purchase Lines', "Document Type", 'Purchase Lines'[Document Type] ) )
+			
+			    VAR PurchaseLineDocTypesWithValues =
+			        ADDCOLUMNS (
+			            DistinctPurchaseLineDocTypes,
+			            "DocTypeValue",
+			            LOOKUPVALUE (
+			                'Purchase Document Type'[Value],
+			                'Purchase Document Type'[Caption], [Document Type]
+			            )
+			        )
+			
+			    VAR PurchaseLineDocumentTypes =
+			        CONCATENATEX ( PurchaseLineDocTypesWithValues, [DocTypeValue], "|" )
+			
+			    // --- Line Type concatenation ---
+			    VAR DistinctPurchaseLineTypes =
+			        DISTINCT ( SELECTCOLUMNS ( 'Purchase Lines', "Line Type", 'Purchase Lines'[Type] ) )
+			
+			    VAR PurchaseLineTypesWithValues =
+			        ADDCOLUMNS (
+			            DistinctPurchaseLineTypes,
+			            "LineTypeValue",
+			            LOOKUPVALUE (
+			                'Purchase Line Type'[Value],
+			                'Purchase Line Type'[Caption], [Line Type]
+			            )
+			        )
+			
+			    VAR PurchaseLineTypes =
+			        CONCATENATEX ( PurchaseLineTypesWithValues, [LineTypeValue], "|" )
+			
+			// --- Purchase Value Entries --- 
+			    VAR PurchaseValueEntriesItems = 
+			    CONCATENATEX(VALUES('Purchase Value Entries'[itemNo]), 'Purchase Value Entries'[itemNo], "|")
+			
+			    VAR PurchaseValueEntriesDocumentNos =
+			        CONCATENATEX(VALUES('Purchase Value Entries'[Document No.]), 'Purchase Value Entries'[Document No.], "|")
+			
+			    // --- Purchase Value Entry Document Type concatenation ---
+			    VAR DistinctPurchaseValueEntryDocTypes =
+			        DISTINCT ( SELECTCOLUMNS ( 'Purchase Value Entries', "Document Type", 'Purchase Value Entries'[Document Type] ) )
+			
+			    VAR PurchaseValueEntryDocTypesWithValues =
+			        ADDCOLUMNS (
+			            DistinctPurchaseValueEntryDocTypes,
+			            "DocTypeValue",
+			            LOOKUPVALUE (
+			                'Item Ledger Document Type'[Value],
+			                'Item Ledger Document Type'[Caption], [Document Type]
+			            )
+			        )
+			
+			    VAR PurchaseValueEntriesDocumentTypes =
+			        CONCATENATEX ( PurchaseValueEntryDocTypesWithValues, [DocTypeValue], "|" )
+			
+			// --- Purchase Invoice Lines ---
+			    VAR PurchaseInvoiceLineDocumentNos = 
+			        CONCATENATEX(VALUES('Purchase Invoice Lines'[Document No.]), 'Purchase Invoice Lines'[Document No.], "|")
+			    VAR PurchaseInvoiceLineItems = 
+			        CONCATENATEX(VALUES('Purchase Invoice Lines'[No]), 'Purchase Invoice Lines'[No], "|")
+			
+			    // --- Line Type concatenation ---
+			    VAR DistinctPurchaseInvoiceLineTypes =
+			        DISTINCT ( SELECTCOLUMNS ( 'Purchase Invoice Lines', "Line Type", 'Purchase Invoice Lines'[Type] ) )
+			
+			    VAR PurchaseInvoiceLineTypesWithValues =
+			        ADDCOLUMNS (
+			            DistinctPurchaseInvoiceLineTypes,
+			            "LineTypeValue",
+			            LOOKUPVALUE (
+			                'Purchase Line Type'[Value],
+			                'Purchase Line Type'[Caption], [Line Type]
+			            )
+			        )
+			
+			    VAR PurchaseInvoiceLineTypes =
+			        CONCATENATEX ( PurchaseInvoiceLineTypesWithValues, [LineTypeValue], "|" )
+			
+			// --- Purchase Credit Lines ---
+			    VAR PurchaseCreditLineDocumentNos = CONCATENATEX(VALUES('Purchase Credit Lines'[Document No.]), 'Purchase Credit Lines'[Document No.], "|")
+			    VAR PurchaseCreditLineItems = CONCATENATEX(VALUES('Purchase Credit Lines'[No]), 'Purchase Credit Lines'[No], "|")
+			
+			    // --- Line Type concatenation ---
+			    VAR DistinctPurchaseCreditLineTypes =
+			        DISTINCT ( SELECTCOLUMNS ( 'Purchase Credit Lines', "Line Type", 'Purchase Credit Lines'[Type] ) )
+			
+			    VAR PurchaseCreditLineTypesWithValues =
+			        ADDCOLUMNS (
+			            DistinctPurchaseCreditLineTypes,
+			            "LineTypeValue",
+			            LOOKUPVALUE (
+			                'Purchase Line Type'[Value],
+			                'Purchase Line Type'[Caption], [Line Type]
+			            )
+			        )
+			
+			    VAR PurchaseCreditLineTypes =
+			        CONCATENATEX ( PurchaseCreditLineTypesWithValues, [LineTypeValue], "|" )
+			
+			
+			RETURN 
+			    SWITCH(
+			        SELECTEDVALUE('Documents'[Source Table]),
+			        "Purchase Lines", 
+			            [Base Link] 
+			            & "&page=518&filter='Purchase Line'.'Document Type' IS '" & PurchaseLineDocumentTypes & "'"
+			            & " AND 'Purchase Line'.'Document No.' IS '" & PurchaseLineDocumentNos & "'"
+			            & " AND 'Purchase Line'.'Dimension Set ID' IS '" & [Ranged Dimensions] & "'"
+			            & " AND 'Purchase Line'.'No.' IS '" & PurchaseLineItems & "'"
+			            & " AND 'Purchase Line'.'Type' IS '" & PurchaseLineTypes & "'",
+			        "Purchase Value Entries",
+			            [Base Link] & "&page=5802&filter='Value Entry'.'Item Ledger Entry Type' IS '0|7'"
+			                    & " AND 'Value Entry'.'Entry Type' IS '0'"
+			                    & " AND 'Value Entry'.'Adjustment' IS '0'"
+			                    & " AND 'Value Entry'.'Document Type' IS '" & PurchaseValueEntriesDocumentTypes & "'"
+			                    & " AND 'Value Entry'.'Document No.' IS '" & PurchaseValueEntriesDocumentNos & "'"
+			                    & " AND 'Value Entry'.'Posting Date' IS " & [Ranged]
+			                    & " AND 'Value Entry'.'Dimension Set ID' IS '" & [Ranged Dimensions] & "'"
+			                    & " AND 'Value Entry'.'Item No.' IS '" & PurchaseValueEntriesItems & "|''''" & "'",
+			        "Purchase Invoice Line", 
+			            [Base Link] 
+			            & "&page=529&filter='Purch. Inv. Line'.'Document No.' IS '" & PurchaseInvoiceLineDocumentNos & "'"
+			            & " AND 'Purch. Inv. Line'.'Dimension Set ID' IS '" & [Ranged Dimensions] & "'"
+			            & " AND 'Purch. Inv. Line'.'No.' IS '" & PurchaseInvoiceLineItems & "'"
+			            & " AND 'Purch. Inv. Line'.'Type' IS '" & PurchaseInvoiceLineTypes & "'",
+			        "Purchase Credit Line", 
+			            [Base Link] 
+			            & "&page=530&filter='Purch. Cr. Memo Line'.'Document No.' IS '" & PurchaseCreditLineDocumentNos & "'"
+			            & " AND 'Purch. Cr. Memo Line'.'Dimension Set ID' IS '" & [Ranged Dimensions] & "'"
+			            & " AND 'Purch. Cr. Memo Line'.'No.' IS '" & PurchaseCreditLineItems & "'"
+			            & " AND 'Purch. Cr. Memo Line'.'Type' IS '" & PurchaseCreditLineTypes & "'"
+			        )
+			```
+		displayFolder: _Purchase Measures\_Back Links
+		lineageTag: 31c280c3-55dc-43b9-ad82-c34d24f80a2f
+
+	measure Ranged = ```
+			
+			VAR _FilterTable = VALUES('Date'[Date])
+			VAR IndexedDates =
+			    ADDCOLUMNS(
+			        _FilterTable,
+			        "@Index", RANKX(
+			            SUMMARIZECOLUMNS(
+			                'Date'[Date], _FilterTable
+			            ),
+			            'Date'[Date],
+			            ,
+			            ASC,
+			            DENSE
+			        )
+			    )
+			VAR PreviousIndexedDate =
+			    ADDCOLUMNS(
+			        IndexedDates,
+			        "@Previous Date",
+			            VAR PrevIndex = [@Index] - 1
+			            RETURN SELECTCOLUMNS(
+			                FILTER(IndexedDates, [@Index] = PrevIndex),
+			                [Date])
+			    )
+			 
+			VAR CalculateBreakPoint =
+			    ADDCOLUMNS(
+			        PreviousIndexedDate,
+			        "@Break Point",
+			        IF( NOT DATEDIFF([@Previous Date],'Date'[Date],DAY) = 1, TRUE(), FALSE() )
+			    )
+			VAR BreakPointTable = FILTER(CalculateBreakPoint, [@Break Point] = TRUE())
+			 
+			VAR MaxDate = CALCULATE(MAX('Date'[Date]),_FilterTable)
+			 
+			var NextIndex =
+			    ADDCOLUMNS(
+			        BreakPointTable,
+			        "@NextIndex",
+			        SELECTCOLUMNS(
+			            OFFSET( +1, BreakPointTable ),
+			            [@Index]
+			        ) - 1
+			    )
+			 
+			VAR NextDate =
+			    ADDCOLUMNS(
+			        NextIndex,
+			        "@NextDate",
+			            VAR PrevIndex = [@Index] - 1
+			            RETURN SELECTCOLUMNS(
+			                FILTER(IndexedDates, [@Index] = [@NextIndex]),
+			                [Date])
+			    )
+			 
+			VAR Ranged =
+			ADDCOLUMNS(
+			    NextDate,
+			    "@Range",
+			    IF( ISBLANK([@NextDate]),
+			    FORMAT ( 'Date'[Date], "yyyy-mm-dd" ) & ".." & FORMAT ( MaxDate ,"yyyy-mm-dd"),
+			    FORMAT ( 'Date'[Date], "yyyy-mm-dd" ) & ".." & FORMAT ( [@NextDate] ,"yyyy-mm-dd")
+			    )
+			)
+			 
+			Return CONCATENATEX(Ranged, [@Range], "|")
+			```
+		displayFolder: _Purchase Measures\_Back Links
+		lineageTag: f1cd7338-b5af-4d3c-af30-27cc99bce41a
+
+	measure 'Ranged Dimensions' = ```
+			
+			VAR _FilterTable = VALUES('Dimension Sets'[dimensionSetID])
+			VAR IndexedDimSetID =
+			    ADDCOLUMNS(
+			        _FilterTable,
+			        "@Index", RANKX(
+			            SUMMARIZECOLUMNS(
+			                'Dimension Sets'[dimensionSetID], _FilterTable
+			            ),
+			            'Dimension Sets'[dimensionSetID],
+			            ,
+			            ASC,
+			            DENSE
+			        )
+			    )
+			 
+			VAR PreviousIndexedDimSetID =
+			    ADDCOLUMNS(
+			        IndexedDimSetID,
+			        "@Previous Date",
+			            VAR PrevIndex = [@Index] - 1
+			            RETURN SELECTCOLUMNS(
+			                FILTER(IndexedDimSetID, [@Index] = PrevIndex),
+			                [dimensionSetID])
+			    )
+			 
+			VAR CalculateBreakPoint =
+			    ADDCOLUMNS(
+			        PreviousIndexedDimSetID,
+			        "@Break Point",
+			        IF( NOT 'Dimension Sets'[dimensionSetID] - [@Previous Date] = 1, TRUE(), FALSE()
+			        )
+			    )
+			 
+			VAR BreakPointTable = FILTER(CalculateBreakPoint, [@Break Point] = TRUE())
+			 
+			VAR MaxDimension = CALCULATE(MAX('Dimension Sets'[dimensionSetID]),_FilterTable)
+			 
+			var NextIndex =
+			    ADDCOLUMNS(
+			        BreakPointTable,
+			        "@NextIndex",
+			        SELECTCOLUMNS(
+			            OFFSET( +1, BreakPointTable ),
+			            [@Index]
+			        ) - 1
+			    )
+			 
+			VAR NextDimension =
+			    ADDCOLUMNS(
+			        NextIndex,
+			        "@NextDimension",
+			            VAR PrevIndex = [@Index] - 1
+			            RETURN SELECTCOLUMNS(
+			                FILTER(IndexedDimSetID, [@Index] = [@NextIndex]),
+			                'Dimension Sets'[dimensionSetID])
+			    )
+			 
+			VAR Ranged =
+			ADDCOLUMNS(
+			    NextDimension,
+			    "@Range",
+			    IF( ISBLANK([@NextDimension]),
+			    'Dimension Sets'[dimensionSetID] & ".." & MaxDimension ,
+			    'Dimension Sets'[dimensionSetID] & ".." & [@NextDimension]
+			    )
+			)
+			
+			Return
+			    IF(COUNTROWS(NextDimension) = 1, MaxDimension, CONCATENATEX(Ranged, [@Range], "|"))
+			```
+		displayFolder: _Purchase Measures\_Back Links
+		lineageTag: b9b5979a-bcce-45e4-a520-13299d19fc61
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column 'Document No.'
+		dataType: string
+		lineageTag: 69b0e0c5-c834-4c78-ae72-8a1d60de37db
+		summarizeBy: none
+		sourceColumn: Document No.
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Document Type'
+		dataType: string
+		lineageTag: 739501cd-81e7-43ae-91ba-76b19e8e3da2
+		summarizeBy: none
+		sourceColumn: Document Type
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Purchase Key'
+		dataType: string
+		isHidden
+		lineageTag: c35e49b8-4dbe-497e-9791-f6896000c024
+		summarizeBy: none
+		sourceColumn: Purchase Key
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Source Table'
+		dataType: string
+		lineageTag: 6f7f1750-69bd-4737-9010-6361cc6d2613
+		summarizeBy: none
+		sourceColumn: Source Table
+
+		annotation SummarizationSetBy = Automatic
+
+	partition Documents = m
+		mode: import
+		queryGroup: 'Dimension Tables'
+		source =
+				let
+				    Source = Table.Combine(
+				        {#"Purchase Lines",#"Purchase Value Entries",#"Purchase Invoice Lines",#"Purchase Credit Lines"}
+				    ),
+				    #"Removed Other Columns" = Table.SelectColumns(Source,{"Document No.", "Document Type", "Source Table"}),
+				    #"Changed Type" = Table.TransformColumnTypes(#"Removed Other Columns",{{"Source Table", type text}}),
+				    #"Added Custom" = Table.AddColumn(#"Changed Type", "Purchase Key", each [Document Type] & " " &[#"Document No."] &" " &[#"Source Table"], type text),
+				    #"Removed Duplicates" = Table.Distinct(#"Added Custom", {"Purchase Key"})
+				in
+				    #"Removed Duplicates"
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Table
+

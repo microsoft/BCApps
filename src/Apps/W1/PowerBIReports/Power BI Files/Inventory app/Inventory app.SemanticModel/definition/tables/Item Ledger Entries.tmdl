@@ -1,0 +1,537 @@
+table 'Item Ledger Entries'
+	lineageTag: e4a2bfd0-0b89-47c6-ba1d-6088fb7e0b4d
+
+	/// This measure shows the total quantity of inventory on hand for all items by summing up the quantity of items on all item ledger entries.
+	measure 'Inventory (Quantity)' = CALCULATE(SUM('Item Ledger Entries'[Qty.]),ALL('Date'))
+		formatString: #,0
+		displayFolder: _Item Ledger Entry Measures
+		lineageTag: 58022b36-d007-4aed-93af-4ea1181b3aa6
+
+	/// This measure calculates the total remaining quantity of items by summing all values in the [Remaining Qty.] column from the Item Ledger Entries table. Data Sources
+	/// Item Ledger Entry
+	measure 'Remaining Quantity' = SUM('Item Ledger Entries'[Remaining Qty.])
+		formatString: #,0
+		displayFolder: _Item Ledger Entry Measures
+		lineageTag: de7d4d5e-9944-4a5c-a2b8-c6702b07400f
+
+	/// This measure shows the total quantity of items that have been processed through the item ledger by summing up the quantity of items on all item ledger entries including sales, purchases, adjustments, and other types of transactions.
+	measure Quantity = SUM('Item Ledger Entries'[Qty.])
+		formatString: #,0
+		displayFolder: _Item Ledger Entry Measures
+		lineageTag: e6ac7c41-073c-4317-831c-25e9c22f4032
+
+	/// This measure shows how much inventory has expired and is no longer available for sale or use by calculating the remaining quantity of items on all item ledger entries.
+	measure 'Expired Inventory' =
+			
+			CALCULATE(
+			    SUM('Item Ledger Entries'[Remaining Qty.]),
+			    ALL('Date'),
+			    USERELATIONSHIP('Date'[Date],'Item Ledger Entries'[Expiration Date]),
+			    'Item Ledger Entries'[Open] = TRUE(),
+			    'Item Ledger Entries'[Positive] = TRUE(),
+			    ISBLANK('Item Ledger Entries'[Expiration Date]) = FALSE(),
+			    'Date'[Relative Day] <= 0,
+			    KEEPFILTERS('Lot No')
+			)
+		formatString: #,0
+		displayFolder: _Item Ledger Entry Measures
+		lineageTag: de7c3235-4e68-4094-92e3-a50a8b1f92f3
+
+	/// This measure shows the total quantity of items that have been sold by the company by calculating the quantity, filtered to only include item ledger entries that have an entry type of "Sale".
+	measure 'Net Qty. Sold' =
+			
+			CALCULATE(
+			    [Quantity] * -1,
+			    'Item Ledger Entries'[Entry Type] = "Sale"
+			)
+		formatString: #,0
+		displayFolder: _Item Ledger Entry Measures
+		lineageTag: 75983cc4-6235-4176-b9ea-2c17724cb44b
+
+	/// This measure shows the total quantity of items that have been purchased and received by the company by calculating the quantity, filtered to only include item ledger entries that have an entry type of "Purchase".
+	measure 'Net Qty. Purchased' =
+			
+			CALCULATE(
+			    [Quantity],
+			    'Item Ledger Entries'[Entry Type] = "Purchase"
+			)
+		formatString: #,0
+		displayFolder: _Item Ledger Entry Measures
+		lineageTag: 4855f28a-ac56-4c5a-9b7a-3afd58177cb7
+
+	/// This measure calculates the total quantity that has been invoiced by summing all values in the [invoicedQuantity] column from the Item Ledger Entries table.
+	measure 'Invoiced Quantity' = SUM('Item Ledger Entries'[invoicedQuantity])
+		formatString: #,0
+		displayFolder: _Item Ledger Entry Measures
+		lineageTag: 161e2361-e7b5-4c35-a79a-2e657318d9b7
+
+	measure 'Base Link' =
+			
+			VAR BusinessCentral = "https://businesscentral.dynamics.com/"
+			//VAR TenantID = VALUES('TENANT ID'[TENANT ID])
+			VAR TenantID = VALUES('Date Table Setup'[tenantID])
+			VAR Environment = VALUES(ENVIRONMENT[ENVIRONMENT])
+			VAR Company = "?company=" & VALUES(COMPANY[COMPANY])
+			RETURN BusinessCentral & TenantID & "/" & Environment & "/" & Company
+		displayFolder: _Back Links
+		lineageTag: 5ce10cd7-9520-4a7c-a650-b492a4dd903b
+
+	measure 'Item Ledger Entries Link (Location Context)' =
+			
+			VAR Endpoint = "&page=38&"
+			VAR BaseLink = [Base Link] & Endpoint
+			VAR ILEBaseLink = BaseLink & "filter='Item Ledger Entry'.'Open' IS 'Yes'"
+			// Filter Context
+			VAR Items = CONCATENATEX(VALUES('Item Ledger Entries'[Item No.]),'Item Ledger Entries'[Item No.], "|")
+			VAR DimensionSetIDs = CONCATENATEX(VALUES('Item Ledger Entries'[dimensionSetID]), 'Item Ledger Entries'[dimensionSetID], "|")
+			VAR Locations = CONCATENATEX(VALUES('Item Ledger Entries'[Location Code]), 'Item Ledger Entries'[Location Code], "|")
+			
+			VAR LocationFilter = " AND 'Item Ledger Entry'.'Location Code' IS '" & Locations & "'"
+			VAR ItemFilter = " AND 'Item Ledger Entry'.'Item No.' IS '" & Items & "'"
+			VAR DateFilter = " AND 'Item Ledger Entry'.'Posting Date' IS '" & [Ranged] & "'"
+			VAR DimensionFilter = " AND 'Item Ledger Entry'.'Dimension Set ID' IS '" & DimensionSetIDs & "'"
+			RETURN
+			ILEBaseLink & ItemFilter & DimensionFilter & LocationFilter & DateFilter
+		displayFolder: _Back Links
+		lineageTag: 0db0f775-f0bf-48cf-90ec-7d8a9d901d36
+
+	measure 'Item Ledger Entries Link' =
+			
+			VAR Endpoint = "&page=38&"
+			VAR BaseLink = [Base Link] & Endpoint
+			// Filter Context
+			VAR Items = CONCATENATEX(VALUES('Item Ledger Entries'[Item No.]),'Item Ledger Entries'[Item No.], "|")
+			VAR DimensionSetIDs = CONCATENATEX(VALUES('Item Ledger Entries'[dimensionSetID]), 'Item Ledger Entries'[dimensionSetID], "|")
+			
+			
+			VAR ItemFilter = "filter='Item Ledger Entry'.'Item No.' IS '" & Items & "'"
+			VAR DateFilter = " AND 'Item Ledger Entry'.'Posting Date' IS '" & [Ranged] & "'"
+			VAR DimensionFilter = " AND 'Item Ledger Entry'.'Dimension Set ID' IS '" & DimensionSetIDs & "'"
+			RETURN
+			BaseLink & ItemFilter & DimensionFilter & DateFilter
+		displayFolder: _Back Links
+		lineageTag: fd7edf49-9b06-4d6e-b6bf-693e05b7fc65
+
+	measure 'Item Ledger Entries Lot No Link' =
+			
+			VAR Endpoint = "&page=38&"
+			VAR BaseLink = [Base Link] & Endpoint
+			// Filter Context
+			VAR DimensionSetIDs = CONCATENATEX(VALUES('Item Ledger Entries'[dimensionSetID]), 'Item Ledger Entries'[dimensionSetID], "|")
+			VAR LotNo = SELECTEDVALUE('Item Ledger Entries'[Lot No.])
+			
+			VAR LotNoFilter = "filter='Item Ledger Entry'.'Lot No.' IS '" & LotNo & "'"
+			VAR DateFilter = " AND 'Item Ledger Entry'.'Posting Date' IS '" & [Ranged] & "'"
+			VAR DimensionFilter = " AND 'Item Ledger Entry'.'Dimension Set ID' IS '" & DimensionSetIDs & "'"
+			RETURN
+			BaseLink & LotNoFilter & DimensionFilter & DateFilter
+		displayFolder: _Back Links
+		lineageTag: a5f062eb-a79f-4a50-bfd4-477d6a222994
+
+	measure 'Item Ledger Entries Serial No Link' =
+			
+			VAR Endpoint = "&page=38&"
+			VAR BaseLink = [Base Link] & Endpoint
+			// Filter Context
+			VAR DimensionSetIDs = CONCATENATEX(VALUES('Item Ledger Entries'[dimensionSetID]), 'Item Ledger Entries'[dimensionSetID], "|")
+			VAR SerialNo = SELECTEDVALUE('Item Ledger Entries'[Serial No.])
+			
+			VAR SerialNoFilter = "filter='Item Ledger Entry'.'Serial No.' IS '" & SerialNo & "'"
+			VAR DateFilter = " AND 'Item Ledger Entry'.'Posting Date' IS '" & [Ranged] & "'"
+			VAR DimensionFilter = " AND 'Item Ledger Entry'.'Dimension Set ID' IS '" & DimensionSetIDs & "'"
+			RETURN
+			BaseLink & SerialNoFilter & DimensionFilter & DateFilter
+		displayFolder: _Back Links
+		lineageTag: 1d854284-5407-4c80-b325-9b06a0de6085
+
+	measure 'Quantity (Forecasting)' =
+			
+			VAR DatesWithTransactions = SELECTCOLUMNS(CALCULATETABLE('Date', 'Date'[DatesWithTransactions] = TRUE()),'Date'[Date])
+			return SUMX(DatesWithTransactions, IF(ISBLANK([Quantity]),0,[Quantity]))
+		formatString: #,0
+		displayFolder: _Item Ledger Entry Measures
+		lineageTag: 7230f819-0b0f-4c5c-8170-d0834467bc4f
+
+	measure 'Sales Amount' = ```
+			
+			CALCULATE (
+			    SUM ( 'Item Ledger Entries'[Sales Amt. (Actual)] ),
+			    'Item Ledger Entries'[Entry Type] = "Sale"
+			)
+			
+			```
+		formatString: #,0.00
+		displayFolder: _Item Ledger Entry Measures
+		lineageTag: f7b7197d-d2bc-423e-8a6c-bd844dd9a16d
+
+	measure 'Sales Quantity' = ```
+			
+			CALCULATE (
+			    SUM ( 'Item Ledger Entries'[Qty.] ),
+			    'Item Ledger Entries'[Entry Type] = "Sale"
+			)
+			
+			```
+		displayFolder: _Item Ledger Entry Measures
+		lineageTag: 89e29479-b576-414a-a9ca-1fb2c4625da4
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column 'Source No. (Customer)'
+		dataType: string
+		isHidden
+		lineageTag: b939bada-e63c-4af9-b879-2531567e15c6
+		summarizeBy: none
+		sourceColumn: Source No. (Customer)
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Source No. (Vendor)'
+		dataType: string
+		isHidden
+		lineageTag: 9d847766-0ce9-4683-940b-0b550fba0a22
+		summarizeBy: none
+		sourceColumn: Source No. (Vendor)
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Consumption & Sales Quantity' =
+			
+			IF
+			    (
+			        OR
+			            ('Item Ledger Entries'[Entry Type] = "Consumption"
+			            ,'Item Ledger Entries'[Entry Type] = "Sale")
+			        ,(-1*'Item Ledger Entries'[Qty.])
+			    )
+		dataType: double
+		isHidden
+		formatString: 0.00
+		lineageTag: 213e4f22-d852-40a0-bf10-cf5cb178719c
+		summarizeBy: sum
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Entry No.'
+		dataType: int64
+		isKey
+		formatString: 0
+		lineageTag: b0ee5e0c-ae65-476b-aa4a-38650f2b711d
+		summarizeBy: none
+		sourceColumn: Entry No.
+
+		annotation SummarizationSetBy = User
+
+	column 'Entry Type'
+		dataType: string
+		lineageTag: 4797f3f5-c7e7-4053-9c03-c238dbde69f2
+		summarizeBy: none
+		sourceColumn: Entry Type
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Posting Date'
+		dataType: dateTime
+		isHidden
+		formatString: Short Date
+		lineageTag: e0521d55-d666-4242-8253-170aa98557b4
+		summarizeBy: none
+		sourceColumn: Posting Date
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	column 'Item No.'
+		dataType: string
+		isHidden
+		lineageTag: 3dee7916-fa52-45e3-b417-3ae1fdfff3ab
+		summarizeBy: none
+		sourceColumn: Item No.
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Location Code'
+		dataType: string
+		isHidden
+		lineageTag: 8eaa1fc8-cf7d-4552-8bc3-9bb11ae9f4f7
+		summarizeBy: none
+		sourceColumn: Location Code
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Serial No.'
+		dataType: string
+		isHidden
+		lineageTag: 2dd80c37-8d35-486e-b403-08d9abbae97b
+		summarizeBy: none
+		sourceColumn: Serial No.
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Expiration Date'
+		dataType: dateTime
+		formatString: Short Date
+		lineageTag: b61f0621-1502-436a-9cd3-93df99669cb3
+		summarizeBy: none
+		sourceColumn: Expiration Date
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	column 'Lot No.'
+		dataType: string
+		isHidden
+		lineageTag: 1dcf2b93-9636-4fdf-8b39-a97ceb27b9d5
+		summarizeBy: none
+		sourceColumn: Lot No.
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column Open
+		dataType: boolean
+		formatString: """TRUE"";""TRUE"";""FALSE"""
+		lineageTag: 0383e67f-73cb-4ddc-bb02-7802bf28e649
+		summarizeBy: none
+		sourceColumn: Open
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Qty.'
+		dataType: double
+		isHidden
+		formatString: \$#,0.###############;-\$#,0.###############;\$#,0.###############
+		lineageTag: 97e81604-4c82-4da1-9dfc-dcba06f5af34
+		summarizeBy: sum
+		sourceColumn: Qty.
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"currencyCulture":"en-AU"}
+
+	column 'Remaining Qty.'
+		dataType: double
+		isHidden
+		formatString: \$#,0.###############;-\$#,0.###############;\$#,0.###############
+		lineageTag: 7c6c021f-ffe0-42c0-88be-b7af59796379
+		summarizeBy: sum
+		sourceColumn: Remaining Qty.
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"currencyCulture":"en-AU"}
+
+	column 'Cost Amt. (Actual)'
+		dataType: decimal
+		isHidden
+		formatString: \$#,0.###############;-\$#,0.###############;\$#,0.###############
+		lineageTag: aa378ead-d12e-4f16-b32a-0b50c782b064
+		summarizeBy: sum
+		sourceColumn: Cost Amt. (Actual)
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"currencyCulture":"en-AU"}
+
+	column 'Sales Amt. (Actual)'
+		dataType: decimal
+		isHidden
+		formatString: \$#,0.###############;-\$#,0.###############;\$#,0.###############
+		lineageTag: 304b7af3-656a-4c66-8ac1-91d15b225ae1
+		summarizeBy: sum
+		sourceColumn: Sales Amt. (Actual)
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"currencyCulture":"en-AU"}
+
+	column dimensionSetID
+		dataType: int64
+		isHidden
+		formatString: 0
+		lineageTag: fe7d4971-3182-4939-8ce1-f80b6a30f3e8
+		summarizeBy: none
+		sourceColumn: dimensionSetID
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Document No.'
+		dataType: string
+		lineageTag: 4b374619-633f-4519-b728-98e0242d4c38
+		summarizeBy: none
+		sourceColumn: Document No.
+
+		annotation SummarizationSetBy = Automatic
+
+	column Positive
+		dataType: boolean
+		isHidden
+		formatString: """TRUE"";""TRUE"";""FALSE"""
+		lineageTag: f40ab233-9689-428a-ab44-99a61e1b0d92
+		summarizeBy: none
+		sourceColumn: Positive
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Lot Key'
+		dataType: string
+		isHidden
+		lineageTag: f8416904-bc80-4775-9055-d00a202b2a57
+		summarizeBy: none
+		sourceColumn: Lot Key
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Serial Key'
+		dataType: string
+		isHidden
+		lineageTag: 55316e41-2203-4779-b35f-acfe854abb86
+		summarizeBy: none
+		sourceColumn: Serial Key
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Quantity Per Unit of Measure'
+		dataType: double
+		lineageTag: 0e47617b-25f2-48dc-bc06-1ed15415920f
+		summarizeBy: sum
+		sourceColumn: Quantity Per Unit of Measure
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column 'Unit of Measure Code'
+		dataType: string
+		lineageTag: e125168c-59e0-48bc-91e5-a2e4618b5b88
+		summarizeBy: none
+		sourceColumn: Unit of Measure Code
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Document Type'
+		dataType: string
+		lineageTag: 0df3f3de-eb33-402c-acd3-80bf34813556
+		summarizeBy: none
+		sourceColumn: Document Type
+
+		annotation SummarizationSetBy = Automatic
+
+	column invoicedQuantity
+		dataType: double
+		isHidden
+		lineageTag: 777dd849-4bc5-463e-bae1-3f55c9f1f42d
+		summarizeBy: sum
+		sourceColumn: invoicedQuantity
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	partition 'Item Ledger Entries-674826e4-e32d-47f5-a47f-b20910a7b50e' = m
+		mode: import
+		queryGroup: 'Fact Tables'
+		source =
+				let
+				    Source = Dynamics365BusinessCentral.ApiContentsWithOptions(ENVIRONMENT, COMPANY,API_ENDPOINT, []),
+				    TableData = Source{[Name="itemLedgerEntries",Signature="table"]}[Data],
+				    #"Changed Type" = Table.TransformColumnTypes(
+				        TableData,
+				        {
+				            {"entryNo", Int64.Type},
+				            {"entryType", type text},
+				            {"sourceType", type text},
+				            {"sourceNo", type text},
+				            {"documentNo", type text},
+				            {"documentType", type text},
+				            {"postingDate", type date},
+				            {"itemNo", type text},
+				            {"locationCode", type text},
+				            {"serialNo", type text},
+				            {"expirationDate", type date},
+				            {"lotNo", type text},
+				            {"quantity", type number},
+				            {"qtyPerUnitOfMeasure", type number},
+				            {"unitOfMeasureCode", type text},
+				            {"remainingQuantity", type number},
+				            {"dimensionSetID", Int64.Type},
+				            {"open", type logical},
+				            {"positive", type logical},
+				            {"costAmountActual", Currency.Type},
+				            {"salesAmountActual", Currency.Type},
+				            {"invoicedQuantity", type number}
+				        }
+				    ),
+				    #"Removed Columns" = Table.RemoveColumns(#"Changed Type", {"ETag"}),
+				    #"Added Custom" = Table.AddColumn(
+				        #"Removed Columns", "Source No. (Vendor)", each if [sourceType] = "Vendor" then [sourceNo] else ""
+				    ),
+				    #"Added Custom1" = Table.AddColumn(
+				        #"Added Custom", "Source No. (Customer)", each if [sourceType] = "Customer" then [sourceNo] else ""
+				    ),
+				    #"Removed Columns2" = Table.RemoveColumns(#"Added Custom1", {"sourceType", "sourceNo"}),
+				    #"Renamed Columns" = Table.RenameColumns(
+				        #"Removed Columns2",
+				        {
+				            {"entryType", "Entry Type"},
+				            {"postingDate", "Posting Date"},
+				            {"itemNo", "Item No."},
+				            {"locationCode", "Location Code"},
+				            {"remainingQuantity", "Remaining Qty."},
+				            {"costAmountActual", "Cost Amt. (Actual)"},
+				            {"salesAmountActual", "Sales Amt. (Actual)"},
+				            {"quantity", "Qty."},
+				            {"serialNo", "Serial No."},
+				            {"lotNo", "Lot No."},
+				            {"expirationDate", "Expiration Date"},
+				            {"documentNo", "Document No."},
+				            {"open", "Open"},
+				            {"entryNo", "Entry No."},
+				            {"positive", "Positive"},
+				            {"documentType", "Document Type"},
+				            {"qtyPerUnitOfMeasure","Quantity Per Unit of Measure"}
+				        }
+				    ),
+				    #"Added Lot Key" = Table.AddColumn(#"Renamed Columns", "Lot Key", each [#"Item No."] & [#"Lot No."], type text),
+				    #"Added Serial Key" = Table.AddColumn(#"Added Lot Key", "Serial Key", each [#"Item No."] & [#"Serial No."], type text),
+				    #"Renamed Columns1" = Table.RenameColumns(#"Added Serial Key",{{"unitOfMeasureCode", "Unit of Measure Code"}})
+				in
+				    #"Renamed Columns1"
+
+	annotation PBI_ResultType = Table
+
+	annotation PBI_NavigationStepName = Navigation
+

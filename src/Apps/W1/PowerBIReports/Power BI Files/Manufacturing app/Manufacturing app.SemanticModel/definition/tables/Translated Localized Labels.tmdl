@@ -1,0 +1,3286 @@
+table 'Translated Localized Labels'
+	isHidden
+	lineageTag: 3d22a988-8275-431c-8960-531970eaad99
+
+	measure 'My Report Title Label' =
+			SWITCH(USERCULTURE(),
+			   "cs-CZ", "Můj nadpis sestavy",
+			   "da-DK", "Min rapporttitel",
+			   "de-AT", "Titel meines Berichts",
+			   "de-CH", "Titel meines Berichts",
+			   "de-DE", "Titel meines Berichts",
+			   "en-AU", "My Report Title",
+			   "en-CA", "My Report Title",
+			   "en-GB", "My Report Title",
+			   "en-NZ", "My Report Title",
+			   "es-ES", "Título del informe",
+			   "es-MX", "Título del informe",
+			   "fi-FI", "Oman raportin otsikko",
+			   "fr-BE", "Titre de l’état",
+			   "fr-CA", "Titre de mon rapport",
+			   "fr-CH", "Titre de l’état",
+			   "fr-FR", "Titre de l’état",
+			   "is-IS", "Skýrslutitill notanda",
+			   "it-CH", "Titolo report personale",
+			   "it-IT", "Titolo report personale",
+			   "nb-NO", "Min rapporttittel",
+			   "nl-BE", "Mijn rapporttitel",
+			   "nl-NL", "Mijn rapporttitel",
+			   "sv-SE", "Min rapportrubrik",
+			   "My Report Title"
+			)
+		isHidden
+		lineageTag: 7853c684-2bc9-414b-9c55-ace79e95467f
+
+	measure 'My Button Caption Label' =
+			SWITCH(USERCULTURE(),
+			   "cs-CZ", "Popisek mého tlačítka",
+			   "da-DK", "Min knaptitel",
+			   "de-AT", "Beschriftung Meine Schaltfläche",
+			   "de-CH", "Beschriftung Meine Schaltfläche",
+			   "de-DE", "Beschriftung Meine Schaltfläche",
+			   "en-AU", "My Button Caption",
+			   "en-CA", "My Button Caption",
+			   "en-GB", "My Button Caption",
+			   "en-NZ", "My Button Caption",
+			   "es-ES", "Título de botón",
+			   "es-MX", "Título de botón",
+			   "fi-FI", "Oma painikkeen otsikko",
+			   "fr-BE", "Légende de mon bouton",
+			   "fr-CA", "Légende de mon bouton",
+			   "fr-CH", "Légende de mon bouton",
+			   "fr-FR", "Légende de mon bouton",
+			   "is-IS", "Texti hnapps notanda",
+			   "it-CH", "Didascalia pulsante personale",
+			   "it-IT", "Didascalia pulsante personale",
+			   "nb-NO", "Min knappetittel",
+			   "nl-BE", "Bijschrift van mijn knop",
+			   "nl-NL", "Bijschrift van mijn knop",
+			   "sv-SE", "Min knapprubrik",
+			   "My Button Caption"
+			)
+		isHidden
+		lineageTag: 3e6dbd17-203b-4bde-9015-50c46683265b
+
+	measure 'My Visual Title Label' =
+			SWITCH(USERCULTURE(),
+			   "cs-CZ", "Název mého vizuálu",
+			   "da-DK", "Min visuelle titel",
+			   "de-AT", "Titel meines Visuals",
+			   "de-CH", "Titel meines Visuals",
+			   "de-DE", "Titel meines Visuals",
+			   "en-AU", "My Visual Title",
+			   "en-CA", "My Visual Title",
+			   "en-GB", "My Visual Title",
+			   "en-NZ", "My Visual Title",
+			   "es-ES", "Título visual",
+			   "es-MX", "Título visual",
+			   "fi-FI", "Oma visuaalinen otsikko",
+			   "fr-BE", "Mon titre visuel",
+			   "fr-CA", "Mon titre visuel",
+			   "fr-CH", "Mon titre visuel",
+			   "fr-FR", "Mon titre visuel",
+			   "is-IS", "Sjónrænn titill notanda",
+			   "it-CH", "Titolo visivo personale",
+			   "it-IT", "Titolo visivo personale",
+			   "nb-NO", "Min visuelle tittel",
+			   "nl-BE", "Mijn visuele titel",
+			   "nl-NL", "Mijn visuele titel",
+			   "sv-SE", "Min visuella rubrik",
+			   "My Visual Title"
+			)
+		isHidden
+		lineageTag: 3e0d8be7-e430-4f0b-a61c-9754c9b83111
+
+	measure 'Current Utilization Label' =
+			SWITCH(USERCULTURE(),
+			   "cs-CZ", "Aktuální využití",
+			   "da-DK", "Aktuel udnyttelse",
+			   "de-AT", "Bereichsauslastung aktuell",
+			   "de-CH", "Bereichsauslastung aktuell",
+			   "de-DE", "Bereichsauslastung aktuell",
+			   "en-AU", "Current Utilisation",
+			   "en-CA", "Current Utilization",
+			   "en-GB", "Current Utilisation",
+			   "en-NZ", "Current Utilisation",
+			   "es-ES", "Uso actual",
+			   "es-MX", "Uso actual",
+			   "fi-FI", "Nykyinen käyttöaste",
+			   "fr-BE", "Utilisation actuelle",
+			   "fr-CA", "Utilisation actuelle",
+			   "fr-CH", "Utilisation actuelle",
+			   "fr-FR", "Utilisation actuelle",
+			   "is-IS", "Núverandi notkun",
+			   "it-CH", "Utilizzo corrente",
+			   "it-IT", "Utilizzo corrente",
+			   "nb-NO", "Nåværende utnyttelse",
+			   "nl-BE", "Huidig gebruik",
+			   "nl-NL", "Huidig gebruik",
+			   "sv-SE", "Aktuellt utnyttjande",
+			   "Current Utilization"
+			)
+		isHidden
+		lineageTag: 660a244d-ac50-4ab6-93e1-2583f1ab4a7c
+
+	measure 'Utilization %, Capacity Used (Hours) and Capacity Available (Hours) by Day Label' =
+			SWITCH(USERCULTURE(),
+			   "cs-CZ", "Využití (%), využitá kapacita (hodiny) a dostupná kapacita (hodiny) podle dne",
+			   "da-DK", "Udnyttelse i %, Udnyttet kapacitet (timer) og Disponibel kapacitet (timer) efter dag",
+			   "de-AT", "Auslastung %, Genutzte Kapazität (Std.) und Verfügbare Kapazität (Std.) nach Tag",
+			   "de-CH", "Auslastung %, Genutzte Kapazität (Std.) und Verfügbare Kapazität (Std.) nach Tag",
+			   "de-DE", "Auslastung %, Genutzte Kapazität (Std.) und Verfügbare Kapazität (Std.) nach Tag",
+			   "en-AU", "Utilisation %, Capacity Used (Hours) and Capacity Available (Hours) by Day",
+			   "en-CA", "Utilization %, Capacity Used (Hours) and Capacity Available (Hours) by Day",
+			   "en-GB", "Utilisation %, Capacity Used (Hours) and Capacity Available (Hours) by Day",
+			   "en-NZ", "Utilisation %, Capacity Used (Hours) and Capacity Available (Hours) by Day",
+			   "es-ES", "Porcentaje de uso, capacidad disponible (horas) y capacidad disponible (horas) por día",
+			   "es-MX", "Porcentaje de uso, capacidad disponible (horas) y capacidad disponible (horas) por día",
+			   "fi-FI", "Käyttö-%, Käytetty kapasiteetti (tunteina) ja Käytettävissä oleva kapasiteetti (tunteina) päivän mukaan",
+			   "fr-BE", "% d’utilisation, Capacité utilisée (heures) et Capacité disponible (heures) par jour",
+			   "fr-CA", "% d’utilisation, Capacité utilisée (heures) et Capacité disponible (heures) par jour",
+			   "fr-CH", "% d’utilisation, Capacité utilisée (heures) et Capacité disponible (heures) par jour",
+			   "fr-FR", "% d’utilisation, Capacité utilisée (heures) et Capacité disponible (heures) par jour",
+			   "is-IS", "% nýtingar, fyrri framleiðsla (vinnustundir) og núverandi framleiðslugeta (vinnustundir) eftir degi",
+			   "it-CH", "% utilizzo, capacità utilizzata (ore) e capacità disponibile (ore) per giorno",
+			   "it-IT", "% utilizzo, capacità utilizzata (ore) e capacità disponibile (ore) per giorno",
+			   "nb-NO", "Utnyttelsesprosent, kapasitet brukt (timer) og tilgjengelig kapasitet (timer) etter dag",
+			   "nl-BE", "Gebruik %, Gebruikte capaciteit (uren) en Beschikbare capaciteit (uren) per dag",
+			   "nl-NL", "Gebruik %, Gebruikte capaciteit (uren) en Beschikbare capaciteit (uren) per dag",
+			   "sv-SE", "Utnyttjande %, använd kapacitet (timmar) och tillgänglig kapacitet (timmar) per dag",
+			   "Utilization %, Capacity Used (Hours) and Capacity Available (Hours) by Day"
+			)
+		isHidden
+		lineageTag: a5c6e684-a400-4029-9840-a92bf27c128d
+
+	measure 'Utilization % and Expected Capacity Need % (Today) Label' =
+			SWITCH(USERCULTURE(),
+			   "cs-CZ", "Využití (%) a očekávaná potřebná kapacita (%) (dnes)",
+			   "da-DK", "Udnyttelsesgrad i % og forventet kapacitetsbehov i % (i dag)",
+			   "de-AT", "Auslastung % und erwarteter Kapazitätsbedarf % (Heute)",
+			   "de-CH", "Auslastung % und erwarteter Kapazitätsbedarf % (Heute)",
+			   "de-DE", "Auslastung % und erwarteter Kapazitätsbedarf % (Heute)",
+			   "en-AU", "Utilisation % and Expected Capacity Need % (Today)",
+			   "en-CA", "Utilization % and Expected Capacity Need % (Today)",
+			   "en-GB", "Utilisation % and Expected Capacity Need % (Today)",
+			   "en-NZ", "Utilisation % and Expected Capacity Need % (Today)",
+			   "es-ES", "Porcentaje de utilización y porcentaje de nec. capacidad prevista (hoy)",
+			   "es-MX", "Porcentaje de utilización y porcentaje de nec. capacidad prevista (hoy)",
+			   "fi-FI", "Käyttö-% ja Oletettu kapasiteettitarve-% (tänään)",
+			   "fr-BE", "% d’utilisation et % de charge prévue (aujourd’hui)",
+			   "fr-CA", "% d’utilisation et % de charge prévue (aujourd’hui)",
+			   "fr-CH", "% d’utilisation et % de charge prévue (aujourd’hui)",
+			   "fr-FR", "% d’utilisation et % de charge prévue (aujourd’hui)",
+			   "is-IS", "% nýtingar og % áætlaðrar framleiðsluþarfar (í dag)",
+			   "it-CH", "% di utilizzo e % di capacità prevista necessaria (oggi)",
+			   "it-IT", "% di utilizzo e % di capacità prevista necessaria (oggi)",
+			   "nb-NO", "Utnyttelsesprosent og forventet kapasitetsbehov i prosent (i dag)",
+			   "nl-BE", "Gebruik % en Capaciteitsbehoefte (Verw.) % (vandaag)",
+			   "nl-NL", "Gebruik % en Capaciteitsbehoefte (Verw.) % (vandaag)",
+			   "sv-SE", "Utnyttjande % och förväntat kapacitetsbehov % (i dag)",
+			   "Utilization % and Expected Capacity Need % (Today)"
+			)
+		isHidden
+		lineageTag: d1c96c36-906d-49b9-ad8d-03aad6690e14
+
+	measure 'Utilization % and Expected Capacity Need % (Current Week) Label' =
+			SWITCH(USERCULTURE(),
+			   "cs-CZ", "Využití (%) a očekávaná potřebná kapacita (%) (aktuální týden)",
+			   "da-DK", "Udnyttelsesgrad i % og forventet kapacitetsbehov i % (Indeværende uge)",
+			   "de-AT", "Auslastung % und erwarteter Kapazitätsbedarf % (Aktuelle Woche)",
+			   "de-CH", "Auslastung % und erwarteter Kapazitätsbedarf % (Aktuelle Woche)",
+			   "de-DE", "Auslastung % und erwarteter Kapazitätsbedarf % (Aktuelle Woche)",
+			   "en-AU", "Utilisation % and Expected Capacity Need % (Current Week)",
+			   "en-CA", "Utilization % and Expected Capacity Need % (Current Week)",
+			   "en-GB", "Utilisation % and Expected Capacity Need % (Current Week)",
+			   "en-NZ", "Utilisation % and Expected Capacity Need % (Current Week)",
+			   "es-ES", "Porcentaje de utilización y porcentaje de nec. capacidad prevista (semana actual)",
+			   "es-MX", "Porcentaje de utilización y porcentaje de nec. capacidad prevista (semana actual)",
+			   "fi-FI", "Käyttö-% ja Oletettu kapasiteettitarve-% (kuluva viikko)",
+			   "fr-BE", "% d’utilisation et % de charge prévue (semaine en cours)",
+			   "fr-CA", "% d’utilisation et % de charge prévue (semaine en cours)",
+			   "fr-CH", "% d’utilisation et % de charge prévue (semaine en cours)",
+			   "fr-FR", "% d’utilisation et % de charge prévue (semaine en cours)",
+			   "is-IS", "% nýtingar og % áætlaðrar framleiðsluþarfar (núlíðandi vika)",
+			   "it-CH", "% di utilizzo e % di capacità prevista necessaria (settimana corrente)",
+			   "it-IT", "% di utilizzo e % di capacità prevista necessaria (settimana corrente)",
+			   "nb-NO", "Utnyttelsesprosent og forventet kapasitetsbehov i prosent (inneværende uke)",
+			   "nl-BE", "Gebruik % en Capaciteitsbehoefte (Verw.) % (huidige week)",
+			   "nl-NL", "Gebruik % en Capaciteitsbehoefte (Verw.) % (huidige week)",
+			   "sv-SE", "Utnyttjande % och förväntat kapacitetsbehov % (innevarande vecka)",
+			   "Utilization % and Expected Capacity Need % (Current Week)"
+			)
+		isHidden
+		lineageTag: 5e6dabbb-a74e-4fa2-bab0-a030a0d0ba42
+
+	measure 'Utilization % and Expected Capacity Need % (Current Year) Label' =
+			SWITCH(USERCULTURE(),
+			   "cs-CZ", "Využití (%) a očekávaná potřebná kapacita (%) (aktuální rok)",
+			   "da-DK", "Udnyttelsesgrad i % og forventet kapacitetsbehov i % (Indeværende år)",
+			   "de-AT", "Auslastung % und erwarteter Kapazitätsbedarf % (Aktuelles Jahr)",
+			   "de-CH", "Auslastung % und erwarteter Kapazitätsbedarf % (Aktuelles Jahr)",
+			   "de-DE", "Auslastung % und erwarteter Kapazitätsbedarf % (Aktuelles Jahr)",
+			   "en-AU", "Utilisation % and Expected Capacity Need % (Current Year)",
+			   "en-CA", "Utilization % and Expected Capacity Need % (Current Year)",
+			   "en-GB", "Utilisation % and Expected Capacity Need % (Current Year)",
+			   "en-NZ", "Utilisation % and Expected Capacity Need % (Current Year)",
+			   "es-ES", "Porcentaje de utilización y porcentaje de nec. capacidad prevista (año actual)",
+			   "es-MX", "Porcentaje de utilización y porcentaje de nec. capacidad prevista (año actual)",
+			   "fi-FI", "Käyttö-% ja Oletettu kapasiteettitarve-% (kuluva vuosi)",
+			   "fr-BE", "% d’utilisation et % de charge prévue (année en cours)",
+			   "fr-CA", "% d’utilisation et % de charge prévue (année en cours)",
+			   "fr-CH", "% d’utilisation et % de charge prévue (année en cours)",
+			   "fr-FR", "% d’utilisation et % de charge prévue (année en cours)",
+			   "is-IS", "% nýtingar og % áætlaðrar framleiðsluþarfar (núlíðandi ár)",
+			   "it-CH", "% di utilizzo e % di capacità prevista necessaria (anno corrente)",
+			   "it-IT", "% di utilizzo e % di capacità prevista necessaria (anno corrente)",
+			   "nb-NO", "Utnyttelsesprosent og forventet kapasitetsbehov i prosent (inneværende år)",
+			   "nl-BE", "Gebruik % en Capaciteitsbehoefte (Verw.) % (huidig jaar)",
+			   "nl-NL", "Gebruik % en Capaciteitsbehoefte (Verw.) % (huidig jaar)",
+			   "sv-SE", "Utnyttjande % och förväntat kapacitetsbehov % (innevarande år)",
+			   "Utilization % and Expected Capacity Need % (Current Year)"
+			)
+		isHidden
+		lineageTag: 82a901f6-b6fc-4b88-afb5-ff83d5fe2caa
+
+	measure 'Historical Utilization Label' =
+			SWITCH(USERCULTURE(),
+			   "cs-CZ", "Historické využití",
+			   "da-DK", "Historisk udnyttelse",
+			   "de-AT", "Historische Nutzung",
+			   "de-CH", "Historische Nutzung",
+			   "de-DE", "Historische Nutzung",
+			   "en-AU", "Historical Utilisation",
+			   "en-CA", "Historical Utilization",
+			   "en-GB", "Historical Utilisation",
+			   "en-NZ", "Historical Utilisation",
+			   "es-ES", "Uso histórico",
+			   "es-MX", "Uso histórico",
+			   "fi-FI", "Historiallinen käyttöaste",
+			   "fr-BE", "Utilisation historique",
+			   "fr-CA", "Utilisation historique",
+			   "fr-CH", "Utilisation historique",
+			   "fr-FR", "Utilisation historique",
+			   "is-IS", "Fyrri notkun",
+			   "it-CH", "Utilizzo storico",
+			   "it-IT", "Utilizzo storico",
+			   "nb-NO", "Historisk utnyttelse",
+			   "nl-BE", "Historisch gebruik",
+			   "nl-NL", "Historisch gebruik",
+			   "sv-SE", "Historiskt utnyttjande",
+			   "Historical Utilization"
+			)
+		isHidden
+		lineageTag: b48b8f77-53fc-4b99-9b73-32b5ba70b848
+
+	measure 'Load %, Allocated Time (Hours) and Capacity Available (Hours) by Work Center Group Name Label' =
+			SWITCH(USERCULTURE(),
+			   "cs-CZ", "Zatížení %, přiřazený čas (hodiny) a dostupná kapacita (hodiny) podle názvu skupiny pracovních center",
+			   "da-DK", "Belastning i %, Allokeret tid (timer) og Disponibel kapacitet (timer) efter arbejdscentergruppenavn",
+			   "de-AT", "Auslastung %, Zugewiesene Zeit (Std.) und Verfügbare Kapazität (Std.) nach Workcentergruppenname",
+			   "de-CH", "Auslastung %, Zugewiesene Zeit (Std.) und Verfügbare Kapazität (Std.) nach Workcentergruppenname",
+			   "de-DE", "Auslastung %, Zugewiesene Zeit (Std.) und Verfügbare Kapazität (Std.) nach Workcentergruppenname",
+			   "en-AU", "Load %, Allocated Time (Hours) and Capacity Available (Hours) by Work Centre Group Name",
+			   "en-CA", "Load %, Allocated Time (Hours) and Capacity Available (Hours) by Work Centre Group Name",
+			   "en-GB", "Load %, Allocated Time (Hours) and Capacity Available (Hours) by Work Centre Group Name",
+			   "en-NZ", "Load %, Allocated Time (Hours) and Capacity Available (Hours) by Work Centre Group Name",
+			   "es-ES", "Porcentaje de carga, tiempo asignado (horas) y capacidad disponible (horas) por nombre de grupo de centros de trabajo",
+			   "es-MX", "Porcentaje de carga, tiempo asignado (horas) y capacidad disponible (horas) por nombre de grupo de centros de trabajo",
+			   "fi-FI", "Kuormitus-%, Kohdistettu aika (tunteina) ja Käytettävissä oleva kapasiteetti (tunteina) tuotantosoluryhmän nimen mukaan",
+			   "fr-BE", "% charge, Temps alloué (heures) et Capacité disponible (heures) par nom du groupe de centres de charge",
+			   "fr-CA", "% charge, Temps affecté (heures) et Capacité disponible (heures) par nom du groupe d’ateliers",
+			   "fr-CH", "% charge, Temps alloué (heures) et Capacité disponible (heures) par nom du groupe de centres de charge",
+			   "fr-FR", "% charge, Temps alloué (heures) et Capacité disponible (heures) par nom du groupe de centres de charge",
+			   "is-IS", "% álags, úthlutaður tími (vinnustundir) og núverandi framleiðslugeta (vinnustundir) eftir heiti vinnustöðvarhóps",
+			   "it-CH", "% carico, tempo allocato (ore) e capacità disponibile (ore) per nome gruppo aree di produzione",
+			   "it-IT", "% carico, tempo allocato (ore) e capacità disponibile (ore) per nome gruppo aree di produzione",
+			   "nb-NO", "Belastningsprosent, fordelt tid (timer) og tilgjengelig kapasitet (timer) etter navn på arbeidssentergruppe",
+			   "nl-BE", "Werklast %, Toegewezen tijd (uren) en Beschikbare capaciteit (uren) per afdelingsgroepsnaam",
+			   "nl-NL", "Werklast %, Toegewezen tijd (uren) en Beschikbare capaciteit (uren) per afdelingsgroepsnaam",
+			   "sv-SE", "Beläggning %, fördelad tid (timmar) och tillgänglig kapacitet (timmar) per produktionsgruppnamn",
+			   "Load %, Allocated Time (Hours) and Capacity Available (Hours) by Work Center Group Name"
+			)
+		isHidden
+		lineageTag: 7412e227-68fb-4757-aabd-54d13500a8a6
+
+	measure 'Load % (Today) Label' =
+			SWITCH(USERCULTURE(),
+			   "cs-CZ", "Vytížení (%) (dnes)",
+			   "da-DK", "Belastning i % (i dag)",
+			   "de-AT", "Auslastung % (Heute)",
+			   "de-CH", "Auslastung % (Heute)",
+			   "de-DE", "Auslastung % (Heute)",
+			   "en-AU", "Load % (Today)",
+			   "en-CA", "Load % (Today)",
+			   "en-GB", "Load % (Today)",
+			   "en-NZ", "Load % (Today)",
+			   "es-ES", "Porcentaje de carga (hoy)",
+			   "es-MX", "Porcentaje de carga (hoy)",
+			   "fi-FI", "Kuormitus-% (tänään)",
+			   "fr-BE", "% de charge (aujourd’hui)",
+			   "fr-CA", "% de charge (aujourd’hui)",
+			   "fr-CH", "% de charge (aujourd’hui)",
+			   "fr-FR", "% de charge (aujourd’hui)",
+			   "is-IS", "% álags (í dag)",
+			   "it-CH", "% di carico (oggi)",
+			   "it-IT", "% di carico (oggi)",
+			   "nb-NO", "Belastningsprosent (i dag)",
+			   "nl-BE", "Werklast % (vandaag)",
+			   "nl-NL", "Werklast % (vandaag)",
+			   "sv-SE", "Beläggning % (i dag)",
+			   "Load % (Today)"
+			)
+		isHidden
+		lineageTag: 8e59dad1-1127-45de-b522-e4f7f32edfc8
+
+	measure 'Load % (Current Week) Label' =
+			SWITCH(USERCULTURE(),
+			   "cs-CZ", "Vytížení (%) (aktuální týden)",
+			   "da-DK", "Belastning i % (løbende uge)",
+			   "de-AT", "Auslastung % (Aktuelle Woche)",
+			   "de-CH", "Auslastung % (Aktuelle Woche)",
+			   "de-DE", "Auslastung % (Aktuelle Woche)",
+			   "en-AU", "Load % (Current Week)",
+			   "en-CA", "Load % (Current Week)",
+			   "en-GB", "Load % (Current Week)",
+			   "en-NZ", "Load % (Current Week)",
+			   "es-ES", "Porcentaje de carga (semana actual)",
+			   "es-MX", "Porcentaje de carga (semana actual)",
+			   "fi-FI", "Kuormitus-% (kuluva viikko)",
+			   "fr-BE", "% charge (semaine en cours)",
+			   "fr-CA", "% charge (semaine en cours)",
+			   "fr-CH", "% charge (semaine en cours)",
+			   "fr-FR", "% charge (semaine en cours)",
+			   "is-IS", "% álags (núlíðandi vika)",
+			   "it-CH", "% carico (settimana corrente)",
+			   "it-IT", "% carico (settimana corrente)",
+			   "nb-NO", "Belastningsprosent (inneværende uke)",
+			   "nl-BE", "Werklast % (huidige week)",
+			   "nl-NL", "Werklast % (huidige week)",
+			   "sv-SE", "Beläggning % (innevarande vecka)",
+			   "Load % (Current Week)"
+			)
+		isHidden
+		lineageTag: 13b0e854-bbc2-4ea3-96ae-5cf00555f5ef
+
+	measure 'Load % (Current Year) Label' =
+			SWITCH(USERCULTURE(),
+			   "cs-CZ", "Vytížení (%) (aktuální rok)",
+			   "da-DK", "Belastning i % (aktuelt år)",
+			   "de-AT", "Auslastung % (Aktuelles Jahr)",
+			   "de-CH", "Auslastung % (Aktuelles Jahr)",
+			   "de-DE", "Auslastung % (Aktuelles Jahr)",
+			   "en-AU", "Load % (Current Year)",
+			   "en-CA", "Load % (Current Year)",
+			   "en-GB", "Load % (Current Year)",
+			   "en-NZ", "Load % (Current Year)",
+			   "es-ES", "Porcentaje de carga (año actual)",
+			   "es-MX", "Porcentaje de carga (año actual)",
+			   "fi-FI", "Kuormitus-% (kuluva vuosi)",
+			   "fr-BE", "% charge (année en cours)",
+			   "fr-CA", "% charge (année en cours)",
+			   "fr-CH", "% charge (année en cours)",
+			   "fr-FR", "% charge (année en cours)",
+			   "is-IS", "% álags (núlíðandi ár)",
+			   "it-CH", "% carico (anno corrente)",
+			   "it-IT", "% carico (anno corrente)",
+			   "nb-NO", "Belastningsprosent (inneværende år)",
+			   "nl-BE", "Werklast % (huidig jaar)",
+			   "nl-NL", "Werklast % (huidig jaar)",
+			   "sv-SE", "Beläggning % (innevarande år)",
+			   "Load % (Current Year)"
+			)
+		isHidden
+		lineageTag: 7cf21b33-090d-489e-bf93-680e16760165
+
+	measure 'Allocated Hours Label' =
+			SWITCH(USERCULTURE(),
+			   "cs-CZ", "Přidělené hodiny",
+			   "da-DK", "Allokerede timer",
+			   "de-AT", "Zugeordnete Stunden",
+			   "de-CH", "Zugeordnete Stunden",
+			   "de-DE", "Zugeordnete Stunden",
+			   "en-AU", "Allocated Hours",
+			   "en-CA", "Allocated Hours",
+			   "en-GB", "Allocated Hours",
+			   "en-NZ", "Allocated Hours",
+			   "es-ES", "Horas asignadas",
+			   "es-MX", "Horas asignadas",
+			   "fi-FI", "Kohdistetut tunnit",
+			   "fr-BE", "Heures affectées",
+			   "fr-CA", "Heures affectées",
+			   "fr-CH", "Heures affectées",
+			   "fr-FR", "Heures affectées",
+			   "is-IS", "Úthlutaðar vinnustundir",
+			   "it-CH", "Ore assegnate",
+			   "it-IT", "Ore assegnate",
+			   "nb-NO", "Fordelte timer",
+			   "nl-BE", "Toegewezen uren",
+			   "nl-NL", "Toegewezen uren",
+			   "sv-SE", "Fördelade timmar",
+			   "Allocated Hours"
+			)
+		isHidden
+		lineageTag: 74dfa3c8-0aa4-4e92-b56f-e4ea024e4939
+
+	measure 'Allocated Time (Hours) and Load % by Work Center Group Name and Name Label' =
+			SWITCH(USERCULTURE(),
+			   "cs-CZ", "Přiřazený čas (hodiny) a vytížení (%) podle názvu skupiny pracovních center a názvu",
+			   "da-DK", "Allokeret tid (timer) og Belastning i % efter arbejdscentergruppenavn og navn",
+			   "de-AT", "Zugewiesene Zeit (Std.) und Auslastung % nach Workcentergruppenname und Name",
+			   "de-CH", "Zugewiesene Zeit (Std.) und Auslastung % nach Workcentergruppenname und Name",
+			   "de-DE", "Zugewiesene Zeit (Std.) und Auslastung % nach Workcentergruppenname und Name",
+			   "en-AU", "Allocated Time (Hours) and Load % by Work Centre Group Name and Name",
+			   "en-CA", "Allocated Time (Hours) and Load % by Work Centre Group Name and Name",
+			   "en-GB", "Allocated Time (Hours) and Load % by Work Centre Group Name and Name",
+			   "en-NZ", "Allocated Time (Hours) and Load % by Work Centre Group Name and Name",
+			   "es-ES", "Tiempo asignado (horas) y porcentaje de carga por nombre de grupo de centros de trabajo y nombre",
+			   "es-MX", "Tiempo asignado (horas) y porcentaje de carga por nombre de grupo de centros de trabajo y nombre",
+			   "fi-FI", "Kohdistettu aika (tunteina) ja Kuormitus-% tuotantosoluryhmän nimen ja nimen mukaan",
+			   "fr-BE", "Temps alloué (heures) et % charge par nom et nom du groupe de centres de charge",
+			   "fr-CA", "Temps affecté (heures) et % charge par nom et nom du groupe d’ateliers",
+			   "fr-CH", "Temps alloué (heures) et % charge par nom et nom du groupe de centres de charge",
+			   "fr-FR", "Temps alloué (heures) et % charge par nom et nom du groupe de centres de charge",
+			   "is-IS", "Úthlutaður tími (vinnustundir) og % álags eftir heiti vinnustöðvarhóps",
+			   "it-CH", "Tempo allocato (ore) e % carico per nome gruppo aree di produzione e nome",
+			   "it-IT", "Tempo allocato (ore) e % carico per nome gruppo aree di produzione e nome",
+			   "nb-NO", "Fordelt tid (timer) og lastprosent etter navn på arbeidssentergruppe og navn",
+			   "nl-BE", "Toegewezen tijd (uren) en Werklast % per groepsnaam van afdeling en naam",
+			   "nl-NL", "Toegewezen tijd (uren) en Werklast % per groepsnaam van afdeling en naam",
+			   "sv-SE", "Fördelad tid (timmar) och beläggning % per produktionsgruppnamn och namn",
+			   "Allocated Time (Hours) and Load % by Work Center Group Name and Name"
+			)
+		isHidden
+		lineageTag: 1ec987e0-6cf0-41ee-b364-ab13b1082b31
+
+	measure 'Allocated Time in Hours (Today) Label' =
+			SWITCH(USERCULTURE(),
+			   "cs-CZ", "Přiřazený čas v hodinách (dnes)",
+			   "da-DK", "Allokeret tid i timer (i dag)",
+			   "de-AT", "Zugewiesene Zeit in Stunden (Heute)",
+			   "de-CH", "Zugewiesene Zeit in Stunden (Heute)",
+			   "de-DE", "Zugewiesene Zeit in Stunden (Heute)",
+			   "en-AU", "Allocated Time in Hours (Today)",
+			   "en-CA", "Allocated Time in Hours (Today)",
+			   "en-GB", "Allocated Time in Hours (Today)",
+			   "en-NZ", "Allocated Time in Hours (Today)",
+			   "es-ES", "Tiempo asignado en horas (hoy)",
+			   "es-MX", "Tiempo asignado en horas (hoy)",
+			   "fi-FI", "Kohdistettu aika tunteina (tänään)",
+			   "fr-BE", "Temps alloué en heures (aujourd’hui)",
+			   "fr-CA", "Temps affecté en heures (aujourd’hui)",
+			   "fr-CH", "Temps alloué en heures (aujourd’hui)",
+			   "fr-FR", "Temps alloué en heures (aujourd’hui)",
+			   "is-IS", "Úthlutaður tími í vinnustundum (í dag)",
+			   "it-CH", "Tempo allocato in ore (oggi)",
+			   "it-IT", "Tempo allocato in ore (oggi)",
+			   "nb-NO", "Tildelt tid i timer (i dag)",
+			   "nl-BE", "Toegewezen tijd in uren (vandaag)",
+			   "nl-NL", "Toegewezen tijd in uren (vandaag)",
+			   "sv-SE", "Fördelad tid i timmar (i dag)",
+			   "Allocated Time in Hours (Today)"
+			)
+		isHidden
+		lineageTag: 2a550bbd-fc9c-4aff-9f1d-b1c64479b6f3
+
+	measure 'Allocated Time in Hours (Current Week) Label' =
+			SWITCH(USERCULTURE(),
+			   "cs-CZ", "Přiřazený čas v hodinách (aktuální týden)",
+			   "da-DK", "Allokeret tid i timer (indeværende uge)",
+			   "de-AT", "Zugewiesene Zeit in Stunden (Aktuelle Woche)",
+			   "de-CH", "Zugewiesene Zeit in Stunden (Aktuelle Woche)",
+			   "de-DE", "Zugewiesene Zeit in Stunden (Aktuelle Woche)",
+			   "en-AU", "Allocated Time in Hours (Current Week)",
+			   "en-CA", "Allocated Time in Hours (Current Week)",
+			   "en-GB", "Allocated Time in Hours (Current Week)",
+			   "en-NZ", "Allocated Time in Hours (Current Week)",
+			   "es-ES", "Tiempo asignado en horas (semana actual)",
+			   "es-MX", "Tiempo asignado en horas (semana actual)",
+			   "fi-FI", "Kohdistettu aika tunteina (kuluva viikko)",
+			   "fr-BE", "Temps alloué en heures (semaine en cours)",
+			   "fr-CA", "Temps affecté en heures (semaine en cours)",
+			   "fr-CH", "Temps alloué en heures (semaine en cours)",
+			   "fr-FR", "Temps alloué en heures (semaine en cours)",
+			   "is-IS", "Úthlutaður tími í vinnustundum (núlíðandi vika)",
+			   "it-CH", "Tempo allocato in ore (settimana corrente)",
+			   "it-IT", "Tempo allocato in ore (settimana corrente)",
+			   "nb-NO", "Fordelt tid i timer (inneværende uke)",
+			   "nl-BE", "Toegewezen tijd in uren (huidige week)",
+			   "nl-NL", "Toegewezen tijd in uren (huidige week)",
+			   "sv-SE", "Fördelad tid i timmar (innevarande vecka)",
+			   "Allocated Time in Hours (Current Week)"
+			)
+		isHidden
+		lineageTag: 71c441d7-aff6-4d3e-97c3-9758be342a0e
+
+	measure 'Allocated Time in Hours (Current Year) Label' =
+			SWITCH(USERCULTURE(),
+			   "cs-CZ", "Přiřazený čas v hodinách (aktuální rok)",
+			   "da-DK", "Allokeret tid i timer (indeværende år)",
+			   "de-AT", "Zugewiesene Zeit in Stunden (Aktuelles Jahr)",
+			   "de-CH", "Zugewiesene Zeit in Stunden (Aktuelles Jahr)",
+			   "de-DE", "Zugewiesene Zeit in Stunden (Aktuelles Jahr)",
+			   "en-AU", "Allocated Time in Hours (Current Year)",
+			   "en-CA", "Allocated Time in Hours (Current Year)",
+			   "en-GB", "Allocated Time in Hours (Current Year)",
+			   "en-NZ", "Allocated Time in Hours (Current Year)",
+			   "es-ES", "Tiempo asignado en horas (año actual)",
+			   "es-MX", "Tiempo asignado en horas (año actual)",
+			   "fi-FI", "Kohdistettu aika tunteina (kuluva vuosi)",
+			   "fr-BE", "Temps alloué en heures (année en cours)",
+			   "fr-CA", "Temps affecté en heures (exercice en cours)",
+			   "fr-CH", "Temps alloué en heures (année en cours)",
+			   "fr-FR", "Temps alloué en heures (année en cours)",
+			   "is-IS", "Úthlutaður tími í vinnustundum (núlíðandi ár)",
+			   "it-CH", "Tempo allocato in ore (anno corrente)",
+			   "it-IT", "Tempo allocato in ore (anno corrente)",
+			   "nb-NO", "Fordelt tid i timer (inneværende år)",
+			   "nl-BE", "Toegewezen tijd in uren (huidig jaar)",
+			   "nl-NL", "Toegewezen tijd in uren (huidig jaar)",
+			   "sv-SE", "Fördelad tid i timmar (innevarande år)",
+			   "Allocated Time in Hours (Current Year)"
+			)
+		isHidden
+		lineageTag: be7b1383-31d9-450d-90b7-c2ed1c54f07a
+
+	measure 'Expected Capacity Need Label' =
+			SWITCH(USERCULTURE(),
+			   "cs-CZ", "Očekávaná potřebná kapacita",
+			   "da-DK", "Forventet kapacitetsbehov",
+			   "de-AT", "Erweiterter Kapazitätsbedarf",
+			   "de-CH", "Erweiterter Kapazitätsbedarf",
+			   "de-DE", "Erweiterter Kapazitätsbedarf",
+			   "en-AU", "Expected Capacity Need",
+			   "en-CA", "Expected Capacity Need",
+			   "en-GB", "Expected Capacity Need",
+			   "en-NZ", "Expected Capacity Need",
+			   "es-ES", "Nec. capacidad prevista",
+			   "es-MX", "Nec. capacidad prevista",
+			   "fi-FI", "Oletettu kapasiteettitarve",
+			   "fr-BE", "Charge prévue",
+			   "fr-CA", "Charge prévue",
+			   "fr-CH", "Charge prévue",
+			   "fr-FR", "Charge prévue",
+			   "is-IS", "Áætluð framleiðsluþörf",
+			   "it-CH", "Capacità prevista necessaria",
+			   "it-IT", "Capacità prevista necessaria",
+			   "nb-NO", "Forventet kapasitetsbehov",
+			   "nl-BE", "Capaciteitsbehoefte (Verw.)",
+			   "nl-NL", "Capaciteitsbehoefte (Verw.)",
+			   "sv-SE", "Förväntat kap.behov",
+			   "Expected Capacity Need"
+			)
+		isHidden
+		lineageTag: 46da2093-dbe1-41cc-a170-d6b546955b2b
+
+	measure 'Expected Capacity Need (Hours) by Work Centre Group Code and Production Order Status Label' =
+			SWITCH(USERCULTURE(),
+			   "cs-CZ", "Očekávaná potřebná kapacita (hodiny) podle kódu skupiny pracovních center a stavu výrobní zakázky",
+			   "da-DK", "Forventet kapacitetsbehov (timer) efter arbejdscentergruppekode og produktionsordrestatus",
+			   "de-AT", "Erwarteter Kapazitätsbedarf (Std.) nach Abteilungscode und Produktionsauftragsstatus",
+			   "de-CH", "Erwarteter Kapazitätsbedarf (Std.) nach Abteilungscode und Produktionsauftragsstatus",
+			   "de-DE", "Erwarteter Kapazitätsbedarf (Std.) nach Abteilungscode und Produktionsauftragsstatus",
+			   "en-AU", "Expected Capacity Need (Hours) by Work Centre Group Code and Production Order Status",
+			   "en-CA", "Expected Capacity Need (Hours) by Work Centre Group Code and Production Order Status",
+			   "en-GB", "Expected Capacity Need (Hours) by Work Centre Group Code and Production Order Status",
+			   "en-NZ", "Expected Capacity Need (Hours) by Work Centre Group Code and Production Order Status",
+			   "es-ES", "Nec. de capacidad prevista (horas) por código de grupo de centros de trabajo y estado de orden de producción",
+			   "es-MX", "Nec. de capacidad prevista (horas) por código de grupo de centros de trabajo y estado de orden de producción",
+			   "fi-FI", "Oletettu kapasiteettitarve (tunteina) tuotantosoluryhmän koodin ja tuotantotilauksen tilan mukaan",
+			   "fr-BE", "Charge prévue (heures) par code groupe centre de charge et statut de l’ordre de fabrication",
+			   "fr-CA", "Besoins prévu en capacité (heures) par code de groupe atelier et état du bon de production",
+			   "fr-CH", "Charge prévue (heures) par code groupe centre de charge et statut de l’ordre de fabrication",
+			   "fr-FR", "Charge prévue (heures) par code groupe centre de charge et statut de l’ordre de fabrication",
+			   "is-IS", "Áætluð framleiðsluþörf (vinnustundir) eftir kóða vinnustöðvarhóps og stöðu framleiðslupöntunar",
+			   "it-CH", "Capacità prevista necessaria (ore) per codice gruppo aree di produzione e stato ordine di produzione",
+			   "it-IT", "Capacità prevista necessaria (ore) per codice gruppo aree di produzione e stato ordine di produzione",
+			   "nb-NO", "Forventet kapasitetsbehov (timer) etter arbeidssentergruppekode og produksjonsordrestatus",
+			   "nl-BE", "Capaciteitsbehoefte (Verw.) (uren) per afdelingsgroepcode en productieorderstatus",
+			   "nl-NL", "Capaciteitsbehoefte (Verw.) (uren) per afdelingsgroepcode en productieorderstatus",
+			   "sv-SE", "Förväntat kapacitetsbehov (timmar) per produktionsgruppkod och produktionsorderstatus",
+			   "Expected Capacity Need (Hours) by Work Centre Group Code and Production Order Status"
+			)
+		isHidden
+		lineageTag: 5939b53d-cc07-4b3a-a1ce-a8cd710dc580
+
+	measure 'Finished Production Order Breakdown Label' =
+			SWITCH(USERCULTURE(),
+			   "cs-CZ", "Rozpis dokončených výr. zakázek",
+			   "da-DK", "Detaljeret visning af afsluttet produktionsordre",
+			   "de-AT", "Analyse beendeter Produktionsaufträge",
+			   "de-CH", "Analyse beendeter Produktionsaufträge",
+			   "de-DE", "Analyse beendeter Produktionsaufträge",
+			   "en-AU", "Finished Production Order Breakdown",
+			   "en-CA", "Finished Production Order Breakdown",
+			   "en-GB", "Finished Production Order Breakdown",
+			   "en-NZ", "Finished Production Order Breakdown",
+			   "es-ES", "Desglose de pedidos de producción terminados",
+			   "es-MX", "Desglose de pedidos de producción terminados",
+			   "fi-FI", "Valmiin tuotantotilauksen erittely",
+			   "fr-BE", "Répartition O.F. terminés",
+			   "fr-CA", "Répartition bons de production terminés",
+			   "fr-CH", "Répartition O.F. terminés",
+			   "fr-FR", "Répartition O.F. terminés",
+			   "is-IS", "Sundurliðun á tilbúinni framleiðslupöntun",
+			   "it-CH", "Suddivisione ordini di produzione chiusi",
+			   "it-IT", "Suddivisione ordini di produzione chiusi",
+			   "nb-NO", "Oversikt over ferdig produksjonsordre",
+			   "nl-BE", "Opsplitsing van voltooide productieorders",
+			   "nl-NL", "Opsplitsing van voltooide productieorders",
+			   "sv-SE", "Uppdelning färdig produktionsorder",
+			   "Finished Production Order Breakdown"
+			)
+		isHidden
+		lineageTag: b9017478-85e3-4551-84a8-0bbfee8b4c7c
+
+	measure 'Expected Quantity (Base) and Finished Quantity (Base) by Month Label' =
+			SWITCH(USERCULTURE(),
+			   "cs-CZ", "Očekávané množství (základ) a dokončené množství (základ) podle měsíce",
+			   "da-DK", "Forventet antal (basis) og færdigt antal (basis) pr. måned",
+			   "de-AT", "Erwartete Menge (Basis) und fertig gestellte Menge (Basis) nach Monat",
+			   "de-CH", "Erwartete Menge (Basis) und fertig gestellte Menge (Basis) nach Monat",
+			   "de-DE", "Erwartete Menge (Basis) und fertig gestellte Menge (Basis) nach Monat",
+			   "en-AU", "Expected Quantity (Base) and Finished Quantity (Base) by Month",
+			   "en-CA", "Expected Quantity (Base) and Finished Quantity (Base) by Month",
+			   "en-GB", "Expected Quantity (Base) and Finished Quantity (Base) by Month",
+			   "en-NZ", "Expected Quantity (Base) and Finished Quantity (Base) by Month",
+			   "es-ES", "Cantidad esperada (base) y cantidad terminada (base) por mes",
+			   "es-MX", "Cantidad esperada (base) y cantidad terminada (base) por mes",
+			   "fi-FI", "Oletettu määrä (perus) ja Valmis määrä (perus) kuukauden mukaan",
+			   "fr-BE", "Quantité prévue (base) et quantité finie (base) par mois",
+			   "fr-CA", "Quantité prévue (base) et quantité finie (base) par mois",
+			   "fr-CH", "Quantité prévue (base) et quantité finie (base) par mois",
+			   "fr-FR", "Quantité prévue (base) et quantité finie (base) par mois",
+			   "is-IS", "Áætlað magn (grunnur) og tilbúið magn (grunnur) eftir mánuði",
+			   "it-CH", "Quantità prevista (base) e quantità finita (base) per mese",
+			   "it-IT", "Quantità prevista (base) e quantità finita (base) per mese",
+			   "nb-NO", "Forventet antall (l.enh) og ferdig antall (l.enh) etter måned",
+			   "nl-BE", "Verwacht aantal (basis) en Gereed aantal (basis) per maand",
+			   "nl-NL", "Verwacht aantal (basis) en Gereed aantal (basis) per maand",
+			   "sv-SE", "Förväntad kvantitet (bas) och färdig kvantitet (bas) per månad",
+			   "Expected Quantity (Base) and Finished Quantity (Base) by Month"
+			)
+		isHidden
+		lineageTag: 06d6b82d-679d-4526-b31b-7dd0de25c99c
+
+	measure 'Consumption Variance Label' =
+			SWITCH(USERCULTURE(),
+			   "cs-CZ", "Odchylka spotřeby",
+			   "da-DK", "Forbrugsafvigelse",
+			   "de-AT", "Verbrauchsabweichung",
+			   "de-CH", "Verbrauchsabweichung",
+			   "de-DE", "Verbrauchsabweichung",
+			   "en-AU", "Consumption Variance",
+			   "en-CA", "Consumption Variance",
+			   "en-GB", "Consumption Variance",
+			   "en-NZ", "Consumption Variance",
+			   "es-ES", "Desviación de consumo",
+			   "es-MX", "Desviación de consumo",
+			   "fi-FI", "Kulutusvaihtelu",
+			   "fr-BE", "Écart de consommation",
+			   "fr-CA", "Écart de consommation",
+			   "fr-CH", "Écart de consommation",
+			   "fr-FR", "Écart de consommation",
+			   "is-IS", "Frávik í notkun",
+			   "it-CH", "Scostamento dei consumi",
+			   "it-IT", "Scostamento dei consumi",
+			   "nb-NO", "Forbruksavvik",
+			   "nl-BE", "Verbruiksverschil",
+			   "nl-NL", "Verbruiksverschil",
+			   "sv-SE", "Förbrukningsvarians",
+			   "Consumption Variance"
+			)
+		isHidden
+		lineageTag: 40d82b0d-8bdf-4d20-b430-9870e5357edd
+
+	measure 'Expected Consumption Cost Amount and Consumed Cost Amount (Actual) by Month Label' =
+			SWITCH(USERCULTURE(),
+			   "cs-CZ", "Očekávaná částka nákladů spotřeby a spotřebovaná částka nákladů (skutečná) podle měsíce",
+			   "da-DK", "Forventet forbrugskostbeløb og forbrugt kostbeløb (faktisk) pr. måned",
+			   "de-AT", "Erwarteter Verbrauchseinstandsbetrag und verbrauchter Einstandsbetrag (Ist) nach Monat",
+			   "de-CH", "Erwarteter Verbrauchseinstandsbetrag und verbrauchter Einstandsbetrag (Ist) nach Monat",
+			   "de-DE", "Erwarteter Verbrauchseinstandsbetrag und verbrauchter Einstandsbetrag (Ist) nach Monat",
+			   "en-AU", "Expected Consumption Cost Amount and Consumed Cost Amount (Actual) by Month",
+			   "en-CA", "Expected Consumption Cost Amount and Consumed Cost Amount (Actual) by Month",
+			   "en-GB", "Expected Consumption Cost Amount and Consumed Cost Amount (Actual) by Month",
+			   "en-NZ", "Expected Consumption Cost Amount and Consumed Cost Amount (Actual) by Month",
+			   "es-ES", "Importe coste consumo previsto e importe coste consumido (real) por mes",
+			   "es-MX", "Importe de costo consumo previsto e importe de costo consumido (real) por mes",
+			   "fi-FI", "Oletettu kulutuksen kustannussumma ja Kulutettu kustannussumma (toteuma) kuukauden mukaan",
+			   "fr-BE", "Montant prévu du coût de la consommation et montant du coût consommé (réel) par mois",
+			   "fr-CA", "Montant prévu du coût de la consommation et montant du coût consommé (réel) par mois",
+			   "fr-CH", "Montant prévu du coût de la consommation et montant du coût consommé (réel) par mois",
+			   "fr-FR", "Montant prévu du coût de la consommation et montant du coût consommé (réel) par mois",
+			   "is-IS", "Áætluð upphæð neyslukostnaðar og neytt kostnaðarupphæð (raunveruleg) eftir mánuði",
+			   "it-CH", "Importo costi di consumo previsto e importo costi utilizzato (effettivo) per mese",
+			   "it-IT", "Importo costi di consumo previsto e importo costi utilizzato (effettivo) per mese",
+			   "nb-NO", "Forventet forbrukskostbeløp og forbrukt kostbeløp (faktisk) etter måned",
+			   "nl-BE", "Verwacht verbruikskostenbedrag en Verbruikt kostenbedrag (werkelijk) per maand",
+			   "nl-NL", "Verwacht verbruikskostenbedrag en Verbruikt kostenbedrag (werkelijk) per maand",
+			   "sv-SE", "Förväntat förbrukningskostnadsbelopp och förbrukningskostnadsbelopp (faktiskt) per månad",
+			   "Expected Consumption Cost Amount and Consumed Cost Amount (Actual) by Month"
+			)
+		isHidden
+		lineageTag: 8d1cadc7-cbff-4e79-99ef-945b2df35bdd
+
+	measure 'Capacity Variance Label' =
+			SWITCH(USERCULTURE(),
+			   "cs-CZ", "Odchylka kapacity",
+			   "da-DK", "Kapacitetsafvigelse",
+			   "de-AT", "Kapazitätsabweichung",
+			   "de-CH", "Kapazitätsabweichung",
+			   "de-DE", "Kapazitätsabweichung",
+			   "en-AU", "Capacity Variance",
+			   "en-CA", "Capacity Variance",
+			   "en-GB", "Capacity Variance",
+			   "en-NZ", "Capacity Variance",
+			   "es-ES", "Desviac. capacidad",
+			   "es-MX", "Desviac. capacidad",
+			   "fi-FI", "Kapasiteettivaihtelu",
+			   "fr-BE", "Écart de capacité",
+			   "fr-CA", "Écart capacité",
+			   "fr-CH", "Écart de capacité",
+			   "fr-FR", "Écart de capacité",
+			   "is-IS", "Frávik í framleiðslugetu",
+			   "it-CH", "Scostamento capacità",
+			   "it-IT", "Scostamento capacità",
+			   "nb-NO", "Kapasitetsavvik",
+			   "nl-BE", "Capaciteitsverschil",
+			   "nl-NL", "Capaciteitsverschil",
+			   "sv-SE", "Kapacitetsvarians",
+			   "Capacity Variance"
+			)
+		isHidden
+		lineageTag: 46b5684b-4d21-4af1-921a-b5fe0ffcfe27
+
+	measure 'Expected Capacity Cost Amount and Capacity Cost Amount (Actual) by Month Label' =
+			SWITCH(USERCULTURE(),
+			   "cs-CZ", "Očekávaná částka nákladů na kapacitu a částka nákladů na kapacitu (skutečná) podle měsíce",
+			   "da-DK", "Forventet kapacitetskostbeløb og kapacitetskostbeløb (faktisk) pr. måned",
+			   "de-AT", "Erwarteter Kapazitätseinstandsbetrag und Kapazitätseinstandsbetrag (Ist) nach Monat",
+			   "de-CH", "Erwarteter Kapazitätseinstandsbetrag und Kapazitätseinstandsbetrag (Ist) nach Monat",
+			   "de-DE", "Erwarteter Kapazitätseinstandsbetrag und Kapazitätseinstandsbetrag (Ist) nach Monat",
+			   "en-AU", "Expected Capacity Cost Amount and Capacity Cost Amount (Actual) by Month",
+			   "en-CA", "Expected Capacity Cost Amount and Capacity Cost Amount (Actual) by Month",
+			   "en-GB", "Expected Capacity Cost Amount and Capacity Cost Amount (Actual) by Month",
+			   "en-NZ", "Expected Capacity Cost Amount and Capacity Cost Amount (Actual) by Month",
+			   "es-ES", "Importe coste capacidad previsto e importe coste capacidad (real) por mes",
+			   "es-MX", "Importe de costo de capac. prevista e importe de costo de capac. (real) por mes",
+			   "fi-FI", "Oletettu kapasiteettikustannussumma ja Kapasiteettikustannussumma (toteuma) kuukauden mukaan",
+			   "fr-BE", "Montant prévu du coût de la capacité et montant du coût de la capacité (réel) par mois",
+			   "fr-CA", "Montant prévu du coût de la capacité et montant du coût de la capacité (réel) par mois",
+			   "fr-CH", "Montant prévu du coût de la capacité et montant du coût de la capacité (réel) par mois",
+			   "fr-FR", "Montant prévu du coût de la capacité et montant du coût de la capacité (réel) par mois",
+			   "is-IS", "Áætluð kostnaðarupphæð framleiðslugetu og kostnaðarupphæð framleiðslugetu (raunveruleg) eftir mánuði",
+			   "it-CH", "Importo costi capacità previsto e importo costi capacità (effettivo) per mese",
+			   "it-IT", "Importo costi capacità previsto e importo costi capacità (effettivo) per mese",
+			   "nb-NO", "Forventet kapasitetskostbeløp og kapasitetskostbeløp (faktisk) etter måned",
+			   "nl-BE", "Verwacht capaciteitskostenbedrag en Capaciteitskostenbedrag (werkelijk) per maand",
+			   "nl-NL", "Verwacht capaciteitskostenbedrag en Capaciteitskostenbedrag (werkelijk) per maand",
+			   "sv-SE", "Förväntat kapacitetskostnadsbelopp och kapacitetskostnadsbelopp (faktiskt) per månad",
+			   "Expected Capacity Cost Amount and Capacity Cost Amount (Actual) by Month"
+			)
+		isHidden
+		lineageTag: 4b240b35-e628-4f10-930d-af653de23207
+
+	measure 'Average Production Times Label' =
+			SWITCH(USERCULTURE(),
+			   "cs-CZ", "Průměrná doba výroby",
+			   "da-DK", "Gennemsnitlige produktionstider",
+			   "de-AT", "Durchschnittliche Produktionszeiten",
+			   "de-CH", "Durchschnittliche Produktionszeiten",
+			   "de-DE", "Durchschnittliche Produktionszeiten",
+			   "en-AU", "Average Production Times",
+			   "en-CA", "Average Production Times",
+			   "en-GB", "Average Production Times",
+			   "en-NZ", "Average Production Times",
+			   "es-ES", "Tiempos medios de producción",
+			   "es-MX", "Tiempos medios de producción",
+			   "fi-FI", "Keskimääräiset tuotantoajat",
+			   "fr-BE", "Temps de production moyens",
+			   "fr-CA", "Temps de production moyens",
+			   "fr-CH", "Temps de production moyens",
+			   "fr-FR", "Temps de production moyens",
+			   "is-IS", "Meðaltími framleiðslu",
+			   "it-CH", "Tempi medi di produzione",
+			   "it-IT", "Tempi medi di produzione",
+			   "nb-NO", "Gjennomsnittlig produksjonstid",
+			   "nl-BE", "Gemiddelde productietijden",
+			   "nl-NL", "Gemiddelde productietijden",
+			   "sv-SE", "Genomsnittliga produktionstider",
+			   "Average Production Times"
+			)
+		isHidden
+		lineageTag: 75c85e06-70f2-4979-9e1f-c0e0a77b7afe
+
+	measure 'Released Production Orders Label' =
+			SWITCH(USERCULTURE(),
+			   "cs-CZ", "Vydané výrobní zakázky",
+			   "da-DK", "Frigivne produktionsordrer",
+			   "de-AT", "Freigegebene Produktionsaufträge",
+			   "de-CH", "Freigegebene Produktionsaufträge",
+			   "de-DE", "Freigegebene Produktionsaufträge",
+			   "en-AU", "Released Production Orders",
+			   "en-CA", "Released Production Orders",
+			   "en-GB", "Released Production Orders",
+			   "en-NZ", "Released Production Orders",
+			   "es-ES", "Órdenes producción lanzadas",
+			   "es-MX", "Órdenes producción lanzadas",
+			   "fi-FI", "Vapautetut tuotantotilaukset",
+			   "fr-BE", "O.F. lancés",
+			   "fr-CA", "Bons de production libérés",
+			   "fr-CH", "O.F. lancés",
+			   "fr-FR", "O.F. lancés",
+			   "is-IS", "Útgefnar framleiðslupantanir",
+			   "it-CH", "Ordini di produzione rilasciati",
+			   "it-IT", "Ordini di produzione rilasciati",
+			   "nb-NO", "Frigitte produksjonsordrer",
+			   "nl-BE", "Vrijgegeven productieorders",
+			   "nl-NL", "Vrijgegeven productieorders",
+			   "sv-SE", "Släppta produktionsorder",
+			   "Released Production Orders"
+			)
+		isHidden
+		lineageTag: bf4a026f-849c-4983-9584-680b85dcccb8
+
+	measure 'Production Scrap Label' =
+			SWITCH(USERCULTURE(),
+			   "cs-CZ", "Výrobní zmetky",
+			   "da-DK", "Produktionsspild",
+			   "de-AT", "Produktionsausschuss",
+			   "de-CH", "Produktionsausschuss",
+			   "de-DE", "Produktionsausschuss",
+			   "en-AU", "Production Scrap",
+			   "en-CA", "Production Scrap",
+			   "en-GB", "Production Scrap",
+			   "en-NZ", "Production Scrap",
+			   "es-ES", "Rechazo de producción",
+			   "es-MX", "Rechazo de producción",
+			   "fi-FI", "Tuotannon hukkatavara",
+			   "fr-BE", "Rebut de production",
+			   "fr-CA", "Rebut de production",
+			   "fr-CH", "Rebut de production",
+			   "fr-FR", "Rebut de production",
+			   "is-IS", "Framleiðslurýrnun",
+			   "it-CH", "Scarto di produzione",
+			   "it-IT", "Scarto di produzione",
+			   "nb-NO", "Produksjonssvinn",
+			   "nl-BE", "Productie-uitval",
+			   "nl-NL", "Productie-uitval",
+			   "sv-SE", "Produktionskassation",
+			   "Production Scrap"
+			)
+		isHidden
+		lineageTag: 3656d5a8-a29f-48fd-ba64-77f56aafc559
+
+	measure 'Capacity Scrap Quantity by Month Label' =
+			SWITCH(USERCULTURE(),
+			   "cs-CZ", "Množství zmetků kapacity podle měsíce",
+			   "da-DK", "Kapacitetsspildantal pr. måned",
+			   "de-AT", "Kapazitätsausschussmenge nach Monat",
+			   "de-CH", "Kapazitätsausschussmenge nach Monat",
+			   "de-DE", "Kapazitätsausschussmenge nach Monat",
+			   "en-AU", "Capacity Scrap Quantity by Month",
+			   "en-CA", "Capacity Scrap Quantity by Month",
+			   "en-GB", "Capacity Scrap Quantity by Month",
+			   "en-NZ", "Capacity Scrap Quantity by Month",
+			   "es-ES", "Cantidad de rechazo de capacidad por mes",
+			   "es-MX", "Cantidad de rechazo de capacidad por mes",
+			   "fi-FI", "Kapasiteetin hukkatavaramäärä kuukauden mukaan",
+			   "fr-BE", "Quantité capacité rebut par mois",
+			   "fr-CA", "Quantité capacité rebut par mois",
+			   "fr-CH", "Quantité capacité rebut par mois",
+			   "fr-FR", "Quantité capacité rebut par mois",
+			   "is-IS", "Úrkastsmagn v. framleiðslu eftir mánuði",
+			   "it-CH", "Quantità scarto capacità per mese",
+			   "it-IT", "Quantità scarto capacità per mese",
+			   "nb-NO", "Kapasitet vrakantall etter måned",
+			   "nl-BE", "Aanval capaciteitsuitval per maand",
+			   "nl-NL", "Aanval capaciteitsuitval per maand",
+			   "sv-SE", "Kapacitetskassationsantal per månad",
+			   "Capacity Scrap Quantity by Month"
+			)
+		isHidden
+		lineageTag: 4ed13bd3-a249-4f77-8f6b-5880dfe290d8
+
+	measure 'Capacity Scrap Quantity by Scrap Code Label' =
+			SWITCH(USERCULTURE(),
+			   "cs-CZ", "Množství zmetků kapacity podle kódu zmetku",
+			   "da-DK", "Kapacitetsspildantal pr. spildkode",
+			   "de-AT", "Kapazitätsausschussmenge nach Ausschusscode",
+			   "de-CH", "Kapazitätsausschussmenge nach Ausschusscode",
+			   "de-DE", "Kapazitätsausschussmenge nach Ausschusscode",
+			   "en-AU", "Capacity Scrap Quantity by Scrap Code",
+			   "en-CA", "Capacity Scrap Quantity by Scrap Code",
+			   "en-GB", "Capacity Scrap Quantity by Scrap Code",
+			   "en-NZ", "Capacity Scrap Quantity by Scrap Code",
+			   "es-ES", "Cantidad de rechazo de capacidad por código rechazo",
+			   "es-MX", "Cantidad de rechazo de capacidad por código rechazo",
+			   "fi-FI", "Kapasiteetin hukkatavaramäärä hukkatavarakoodin mukaan",
+			   "fr-BE", "Capacité quantité rebut par code rebut",
+			   "fr-CA", "Capacité quantité rebut par code rebut",
+			   "fr-CH", "Capacité quantité rebut par code rebut",
+			   "fr-FR", "Capacité quantité rebut par code rebut",
+			   "is-IS", "Úrkastsmagn v. framleiðslu eftir úrkastskóða",
+			   "it-CH", "Quantità scarto capacità per codice scarto",
+			   "it-IT", "Quantità scarto capacità per codice scarto",
+			   "nb-NO", "Kapasitet vrakantall etter vrakkode",
+			   "nl-BE", "Aantal capaciteitsuitval per uitvalcode",
+			   "nl-NL", "Aantal capaciteitsuitval per uitvalcode",
+			   "sv-SE", "Kapacitetskassationsantal per kassationskod",
+			   "Capacity Scrap Quantity by Scrap Code"
+			)
+		isHidden
+		lineageTag: bc75cc4a-114e-4a92-b6ee-3dc1cca7fc11
+
+	measure 'Capacity Scrap Quantity by Location Code Label' =
+			SWITCH(USERCULTURE(),
+			   "cs-CZ", "Množství zmetků kapacity podle kódu lokace",
+			   "da-DK", "Kapacitetsspildantal pr. lokationskode",
+			   "de-AT", "Kapazitätsausschussmenge nach Lagerortcode",
+			   "de-CH", "Kapazitätsausschussmenge nach Lagerortcode",
+			   "de-DE", "Kapazitätsausschussmenge nach Lagerortcode",
+			   "en-AU", "Capacity Scrap Quantity by Location Code",
+			   "en-CA", "Capacity Scrap Quantity by Location Code",
+			   "en-GB", "Capacity Scrap Quantity by Location Code",
+			   "en-NZ", "Capacity Scrap Quantity by Location Code",
+			   "es-ES", "Cantidad de rechazo de capacidad por código almacén",
+			   "es-MX", "Cantidad de rechazo de capacidad por código almacén",
+			   "fi-FI", "Kapasiteetin hukkatavaramäärä sijaintikoodin mukaan",
+			   "fr-BE", "Quantité capacité rebut par code magasin",
+			   "fr-CA", "Quantité capacité rebut par code d’emplacement",
+			   "fr-CH", "Quantité capacité rebut par code magasin",
+			   "fr-FR", "Quantité capacité rebut par code magasin",
+			   "is-IS", "Úrkastsmagn v. framleiðslu eftir staðsetningarkóða",
+			   "it-CH", "Quantità scarto capacità per codice ubicazione",
+			   "it-IT", "Quantità scarto capacità per codice ubicazione",
+			   "nb-NO", "Kapasitet vrakantall etter lokasjonskode",
+			   "nl-BE", "Aantal capaciteitsuitval per locatiecode",
+			   "nl-NL", "Aantal capaciteitsuitval per locatiecode",
+			   "sv-SE", "Kapacitetskassationsantal per lagerställekod",
+			   "Capacity Scrap Quantity by Location Code"
+			)
+		isHidden
+		lineageTag: 193a3894-c980-489a-970e-27914a906c38
+
+	measure 'Manufacturing Label' =
+			SWITCH(USERCULTURE(),
+			   "cs-CZ", "Výroba",
+			   "da-DK", "Produktion",
+			   "de-AT", "Produktion",
+			   "de-CH", "Produktion",
+			   "de-DE", "Produktion",
+			   "en-AU", "Manufacturing",
+			   "en-CA", "Manufacturing",
+			   "en-GB", "Manufacturing",
+			   "en-NZ", "Manufacturing",
+			   "es-ES", "Fabricación",
+			   "es-MX", "Fabricación",
+			   "fi-FI", "Tuotanto",
+			   "fr-BE", "Fabrication",
+			   "fr-CA", "Fabrication",
+			   "fr-CH", "Fabrication",
+			   "fr-FR", "Fabrication",
+			   "is-IS", "Framleiðsla",
+			   "it-CH", "Produzione",
+			   "it-IT", "Produzione",
+			   "nb-NO", "Produksjon",
+			   "nl-BE", "Productie",
+			   "nl-NL", "Productie",
+			   "sv-SE", "Produktion",
+			   "Manufacturing"
+			)
+		isHidden
+		lineageTag: 187987bc-f5d3-4170-8929-4d5496b8d3f3
+
+	measure 'for Business Central Label' =
+			SWITCH(USERCULTURE(),
+			   "cs-CZ", "pro Business Central",
+			   "da-DK", "til Business Central",
+			   "de-AT", "für Business Central",
+			   "de-CH", "für Business Central",
+			   "de-DE", "für Business Central",
+			   "en-AU", "for Business Central",
+			   "en-CA", "for Business Central",
+			   "en-GB", "for Business Central",
+			   "en-NZ", "for Business Central",
+			   "es-ES", "para Business Central",
+			   "es-MX", "para Business Central",
+			   "fi-FI", "Business Centralille",
+			   "fr-BE", "pour Business Central",
+			   "fr-CA", "pour Business Central",
+			   "fr-CH", "pour Business Central",
+			   "fr-FR", "pour Business Central",
+			   "is-IS", "fyrir Business Central",
+			   "it-CH", "per Business Central",
+			   "it-IT", "per Business Central",
+			   "nb-NO", "for Business Central",
+			   "nl-BE", "voor Business Central",
+			   "nl-NL", "voor Business Central",
+			   "sv-SE", "för Business Central",
+			   "for Business Central"
+			)
+		isHidden
+		lineageTag: c50924d4-05a0-48e1-8e79-37b37b6e0720
+
+	measure 'CONNECT YOUR DATA Label' =
+			SWITCH(USERCULTURE(),
+			   "cs-CZ", "PŘIPOJENÍ DAT",
+			   "da-DK", "FORBIND DINE DATA",
+			   "de-AT", "MIT EIGENEN DATEN VERBINDEN",
+			   "de-CH", "MIT EIGENEN DATEN VERBINDEN",
+			   "de-DE", "MIT EIGENEN DATEN VERBINDEN",
+			   "en-AU", "CONNECT YOUR DATA",
+			   "en-CA", "CONNECT YOUR DATA",
+			   "en-GB", "CONNECT YOUR DATA",
+			   "en-NZ", "CONNECT YOUR DATA",
+			   "es-ES", "CONECTAR LOS DATOS",
+			   "es-MX", "CONECTAR LOS DATOS",
+			   "fi-FI", "YHDISTÄ TIETOSI",
+			   "fr-BE", "CONNECTER VOS DONNÉES",
+			   "fr-CA", "CONNECTER VOS DONNÉES",
+			   "fr-CH", "CONNECTER VOS DONNÉES",
+			   "fr-FR", "CONNECTER VOS DONNÉES",
+			   "is-IS", "TENGIÐ GÖGN",
+			   "it-CH", "CONNETTI I DATI",
+			   "it-IT", "CONNETTI I DATI",
+			   "nb-NO", "KOBLE TIL DATAENE",
+			   "nl-BE", "UW GEGEVENS VERBINDEN",
+			   "nl-NL", "UW GEGEVENS VERBINDEN",
+			   "sv-SE", "ANSLUT DINA DATA",
+			   "CONNECT YOUR DATA"
+			)
+		isHidden
+		lineageTag: 80b2f517-e391-455f-b1ce-a907d48be4cb
+
+	measure '2. Configure Dynamics 365 Business Central Label' =
+			SWITCH(USERCULTURE(),
+			   "cs-CZ", "2. Konfigurace Dynamics 365 Business Central",
+			   "da-DK", "2. Konfigurer Dynamics 365 Business Central",
+			   "de-AT", "2. Dynamics 365 Business Central konfigurieren",
+			   "de-CH", "2. Dynamics 365 Business Central konfigurieren",
+			   "de-DE", "2. Dynamics 365 Business Central konfigurieren",
+			   "en-AU", "2. Configure Dynamics 365 Business Central",
+			   "en-CA", "2. Configure Dynamics 365 Business Central",
+			   "en-GB", "2. Configure Dynamics 365 Business Central",
+			   "en-NZ", "2. Configure Dynamics 365 Business Central",
+			   "es-ES", "2. Configurar Dynamics 365 Business Central",
+			   "es-MX", "2. Configurar Dynamics 365 Business Central",
+			   "fi-FI", "2. Määritä Dynamics 365 Business Central",
+			   "fr-BE", "2. Configurez Dynamics 365 Business Central",
+			   "fr-CA", "2. Configurez Dynamics 365 Business Central",
+			   "fr-CH", "2. Configurez Dynamics 365 Business Central",
+			   "fr-FR", "2. Configurez Dynamics 365 Business Central",
+			   "is-IS", "2. Grunnstillið Dynamics 365 Business Central",
+			   "it-CH", "2. Configurare Dynamics 365 Business Central",
+			   "it-IT", "2. Configurare Dynamics 365 Business Central",
+			   "nb-NO", "2. Konfigurer Dynamics 365 Business Central",
+			   "nl-BE", "2. Dynamics 365 Business Central configureren",
+			   "nl-NL", "2. Dynamics 365 Business Central configureren",
+			   "sv-SE", "2. Konfigurera Dynamics 365 Business Central",
+			   "2. Configure Dynamics 365 Business Central"
+			)
+		isHidden
+		lineageTag: e88f7079-62fb-4685-a9a1-e5f03a09c108
+
+	measure 'USE, EDIT AND BUILD YOUR OWN REPORTS Label' =
+			SWITCH(USERCULTURE(),
+			   "cs-CZ", "POUŽÍVÁNÍ, ÚPRAVA A TVORBA VLASTNÍCH SESTAV",
+			   "da-DK", "BRUG, REDIGER OG OPRET DINE EGNE RAPPORTER",
+			   "de-AT", "EIGENE BERICHTE VERWENDEN, BEARBEITEN UND ERSTELLEN",
+			   "de-CH", "EIGENE BERICHTE VERWENDEN, BEARBEITEN UND ERSTELLEN",
+			   "de-DE", "EIGENE BERICHTE VERWENDEN, BEARBEITEN UND ERSTELLEN",
+			   "en-AU", "USE, EDIT AND BUILD YOUR OWN REPORTS",
+			   "en-CA", "USE, EDIT AND BUILD YOUR OWN REPORTS",
+			   "en-GB", "USE, EDIT AND BUILD YOUR OWN REPORTS",
+			   "en-NZ", "USE, EDIT AND BUILD YOUR OWN REPORTS",
+			   "es-ES", "USAR, EDITAR Y CREAR SUS PROPIOS INFORMES",
+			   "es-MX", "USAR, EDITAR Y CREAR SUS PROPIOS INFORMES",
+			   "fi-FI", "KÄYTÄ, MUOKKAA JA LUO OMIA RAPORTTEJA",
+			   "fr-BE", "UTILISER, MODIFIER ET CRÉER VOS PROPRES ÉTATS",
+			   "fr-CA", "UTILISER, MODIFIER ET CRÉER VOS PROPRES RAPPORTS",
+			   "fr-CH", "UTILISER, MODIFIER ET CRÉER VOS PROPRES ÉTATS",
+			   "fr-FR", "UTILISER, MODIFIER ET CRÉER VOS PROPRES ÉTATS",
+			   "is-IS", "NOTIÐ, BREYTIÐ OG BÚIÐ TIL EIGIN SKÝRSLUR",
+			   "it-CH", "USA, MODIFICA E CREA I TUOI REPORT",
+			   "it-IT", "USA, MODIFICA E CREA I TUOI REPORT",
+			   "nb-NO", "BRUK, REDIGER OG BYGG DINE EGNE RAPPORTER",
+			   "nl-BE", "UW EIGEN RAPPORTEN GEBRUIKEN, BEWERKEN EN MAKEN",
+			   "nl-NL", "UW EIGEN RAPPORTEN GEBRUIKEN, BEWERKEN EN MAKEN",
+			   "sv-SE", "ANVÄND, REDIGERA OCH SKAPA EGNA RAPPORTER",
+			   "USE, EDIT AND BUILD YOUR OWN REPORTS"
+			)
+		isHidden
+		lineageTag: cb6183a7-f82e-424b-b01c-af65a3b4de21
+
+	measure 'HELP AND SUPPORT Label' =
+			SWITCH(USERCULTURE(),
+			   "cs-CZ", "POMOC A PODPORA",
+			   "da-DK", "HJÆLP OG SUPPORT",
+			   "de-AT", "HILFE UND SUPPORT",
+			   "de-CH", "HILFE UND SUPPORT",
+			   "de-DE", "HILFE UND SUPPORT",
+			   "en-AU", "HELP AND SUPPORT",
+			   "en-CA", "HELP AND SUPPORT",
+			   "en-GB", "HELP AND SUPPORT",
+			   "en-NZ", "HELP AND SUPPORT",
+			   "es-ES", "AYUDA Y SOPORTE",
+			   "es-MX", "AYUDA Y SOPORTE",
+			   "fi-FI", "OHJE JA TUKI",
+			   "fr-BE", "AIDE ET SUPPORT",
+			   "fr-CA", "AIDE ET SUPPORT",
+			   "fr-CH", "AIDE ET SUPPORT",
+			   "fr-FR", "AIDE ET SUPPORT",
+			   "is-IS", "HJÁLP OG STUÐNINGUR",
+			   "it-CH", "GUIDA E SUPPORTO",
+			   "it-IT", "GUIDA E SUPPORTO",
+			   "nb-NO", "HJELP OG KUNDESTØTTE",
+			   "nl-BE", "HELP EN ONDERSTEUNING",
+			   "nl-NL", "HELP EN ONDERSTEUNING",
+			   "sv-SE", "HJÄLP OCH SUPPORT",
+			   "HELP AND SUPPORT"
+			)
+		isHidden
+		lineageTag: 416af170-fd15-48b4-affe-2be6064f0709
+
+	measure 'For help and support with your new report please visit the Analytics overview documentation. Label' =
+			SWITCH(USERCULTURE(),
+			   "cs-CZ", "Nápovědu a podporu k nové sestavě naleznete v dokumentaci k přehledu Analytics.",
+			   "da-DK", "Du kan få hjælp og support til din nye rapport i dokumentationen til analyseoversigten.",
+			   "de-AT", "Hilfe und Unterstützung für Ihren neuen Bericht finden Sie in der Dokumentation Analysen – Übersicht.",
+			   "de-CH", "Hilfe und Unterstützung für Ihren neuen Bericht finden Sie in der Dokumentation Analysen – Übersicht.",
+			   "de-DE", "Hilfe und Unterstützung für Ihren neuen Bericht finden Sie in der Dokumentation Analysen – Übersicht.",
+			   "en-AU", "For help and support with your new report please visit the Analytics overview documentation.",
+			   "en-CA", "For help and support with your new report please visit the Analytics overview documentation.",
+			   "en-GB", "For help and support with your new report please visit the Analytics overview documentation.",
+			   "en-NZ", "For help and support with your new report please visit the Analytics overview documentation.",
+			   "es-ES", "Para obtener ayuda y soporte técnico con su nuevo informe, visite la documentación de información general de Analytics.",
+			   "es-MX", "Para obtener ayuda y soporte técnico con su nuevo informe, visite la documentación de información general de Analytics.",
+			   "fi-FI", "Lisätietoja ja tukea uudelle raportillesi löydät analytiikan yleiskuvauksesta.",
+			   "fr-BE", "Pour obtenir de l’aide et de l’assistance concernant votre nouvel état, consultez la documentation de vue d’ensemble de l’analyse.",
+			   "fr-CA", "Pour obtenir de l’aide et de l’assistance concernant votre nouveau rapport, consultez la documentation de vue d’ensemble de l’analyse.",
+			   "fr-CH", "Pour obtenir de l’aide et de l’assistance concernant votre nouvel état, consultez la documentation de vue d’ensemble de l’analyse.",
+			   "fr-FR", "Pour obtenir de l’aide et de l’assistance concernant votre nouvel état, consultez la documentation de vue d’ensemble de l’analyse.",
+			   "is-IS", "Lesið fylgigögn greiningaryfirlitsins til að fá hjálp og aðstoð við nýju skýrsluna.",
+			   "it-CH", "Per assistenza e supporto per il nuovo report, vedere la documentazione generale di analisi.",
+			   "it-IT", "Per assistenza e supporto per il nuovo report, vedere la documentazione generale di analisi.",
+			   "nb-NO", "Hvis du vil ha hjelp og støtte med den nye rapporten, kan du gå til dokumentasjonen for analyseoversikten.",
+			   "nl-BE", "Ga voor hulp en ondersteuning met uw nieuwe rapport naar de Analytics-overzichtsdocumentatie.",
+			   "nl-NL", "Ga voor hulp en ondersteuning met uw nieuwe rapport naar de Analytics-overzichtsdocumentatie.",
+			   "sv-SE", "Hjälp och support med den nya rapporten finns i översiktsdokumentationen för Analys.",
+			   "For help and support with your new report please visit the Analytics overview documentation."
+			)
+		isHidden
+		lineageTag: 8aa2e0b5-6b0c-42b7-8370-6376d9055f7b
+
+	measure 'OTHER POWER BI REPORTS Label' =
+			SWITCH(USERCULTURE(),
+			   "cs-CZ", "DALŠÍ SESTAVY POWER BI",
+			   "da-DK", "ANDRE POWER BI-RAPPORTER",
+			   "de-AT", "SONSTIGE POWER BI-BERICHTE",
+			   "de-CH", "SONSTIGE POWER BI-BERICHTE",
+			   "de-DE", "SONSTIGE POWER BI-BERICHTE",
+			   "en-AU", "OTHER POWER BI REPORTS",
+			   "en-CA", "OTHER POWER BI REPORTS",
+			   "en-GB", "OTHER POWER BI REPORTS",
+			   "en-NZ", "OTHER POWER BI REPORTS",
+			   "es-ES", "OTROS INFORMES DE POWER BI",
+			   "es-MX", "OTROS INFORMES DE POWER BI",
+			   "fi-FI", "MUUT POWER BI -RAPORTIT",
+			   "fr-BE", "AUTRES ÉTATS POWER BI",
+			   "fr-CA", "AUTRES RAPPORTS POWER BI",
+			   "fr-CH", "AUTRES ÉTATS POWER BI",
+			   "fr-FR", "AUTRES ÉTATS POWER BI",
+			   "is-IS", "AÐRAR POWER BI-SKÝRSLUR",
+			   "it-CH", "ALTRI REPORT DI POWER BI",
+			   "it-IT", "ALTRI REPORT DI POWER BI",
+			   "nb-NO", "ANDRE POWER BI-RAPPORTER",
+			   "nl-BE", "OVERIGE POWER BI-RAPPORTEN",
+			   "nl-NL", "OVERIGE POWER BI-RAPPORTEN",
+			   "sv-SE", "ÖVRIGA POWER BI-RAPPORTER",
+			   "OTHER POWER BI REPORTS"
+			)
+		isHidden
+		lineageTag: 1fdfb130-a990-478c-8a13-c53539f9ade7
+
+	measure 'PURCHASE Label' =
+			SWITCH(USERCULTURE(),
+			   "cs-CZ", "NÁKUP",
+			   "da-DK", "INDKØB",
+			   "de-AT", "EINKAUF",
+			   "de-CH", "EINKAUF",
+			   "de-DE", "EINKAUF",
+			   "en-AU", "PURCHASE",
+			   "en-CA", "PURCHASE",
+			   "en-GB", "PURCHASE",
+			   "en-NZ", "PURCHASE",
+			   "es-ES", "COMPRA",
+			   "es-MX", "COMPRA",
+			   "fi-FI", "OSTO",
+			   "fr-BE", "ACHAT",
+			   "fr-CA", "ACHAT",
+			   "fr-CH", "ACHAT",
+			   "fr-FR", "ACHAT",
+			   "is-IS", "KAUP",
+			   "it-CH", "ACQUISTI",
+			   "it-IT", "ACQUISTI",
+			   "nb-NO", "KJØP",
+			   "nl-BE", "INKOOP",
+			   "nl-NL", "INKOOP",
+			   "sv-SE", "INKÖP",
+			   "PURCHASE"
+			)
+		isHidden
+		lineageTag: c16b001f-18f2-4f48-8cf7-18a2de5d218c
+
+	measure 'FINANCE Label' =
+			SWITCH(USERCULTURE(),
+			   "cs-CZ", "FINANCE",
+			   "da-DK", "FINANS",
+			   "de-AT", "FINANZEN",
+			   "de-CH", "FINANZEN",
+			   "de-DE", "FINANZEN",
+			   "en-AU", "FINANCE",
+			   "en-CA", "FINANCE",
+			   "en-GB", "FINANCE",
+			   "en-NZ", "FINANCE",
+			   "es-ES", "FINANZAS",
+			   "es-MX", "FINANZAS",
+			   "fi-FI", "TALOUSHALLINTO",
+			   "fr-BE", "FINANCIER",
+			   "fr-CA", "FINANCIER",
+			   "fr-CH", "FINANCIER",
+			   "fr-FR", "FINANCIER",
+			   "is-IS", "FJÁRMÁL",
+			   "it-CH", "DATI FINANZIARI",
+			   "it-IT", "DATI FINANZIARI",
+			   "nb-NO", "FINANS",
+			   "nl-BE", "FINANCIËN",
+			   "nl-NL", "FINANCIËN",
+			   "sv-SE", "EKONOMI",
+			   "FINANCE"
+			)
+		isHidden
+		lineageTag: 6989b4ce-3a47-467a-985f-1ad93456909e
+
+	measure 'INVENTORY Label' =
+			SWITCH(USERCULTURE(),
+			   "cs-CZ", "ZÁSOBY",
+			   "da-DK", "LAGER",
+			   "de-AT", "LAGERBESTAND",
+			   "de-CH", "LAGERBESTAND",
+			   "de-DE", "LAGERBESTAND",
+			   "en-AU", "INVENTORY",
+			   "en-CA", "INVENTORY",
+			   "en-GB", "INVENTORY",
+			   "en-NZ", "INVENTORY",
+			   "es-ES", "INVENTARIO",
+			   "es-MX", "INVENTARIO",
+			   "fi-FI", "VARASTO",
+			   "fr-BE", "STOCK",
+			   "fr-CA", "INVENTAIRE",
+			   "fr-CH", "STOCK",
+			   "fr-FR", "STOCK",
+			   "is-IS", "BIRGÐIR",
+			   "it-CH", "INVENTARIO",
+			   "it-IT", "INVENTARIO",
+			   "nb-NO", "BEHOLDNING",
+			   "nl-BE", "VOORRAAD",
+			   "nl-NL", "VOORRAAD",
+			   "sv-SE", "LAGER",
+			   "INVENTORY"
+			)
+		isHidden
+		lineageTag: 306b6a37-45dc-4b10-b212-938a356f5ecc
+
+	measure 'SALES Label' =
+			SWITCH(USERCULTURE(),
+			   "cs-CZ", "PRODEJ",
+			   "da-DK", "SALG",
+			   "de-AT", "VERKAUF",
+			   "de-CH", "VERKAUF",
+			   "de-DE", "VERKAUF",
+			   "en-AU", "SALES",
+			   "en-CA", "SALES",
+			   "en-GB", "SALES",
+			   "en-NZ", "SALES",
+			   "es-ES", "VENTAS",
+			   "es-MX", "VENTAS",
+			   "fi-FI", "MYYNTI",
+			   "fr-BE", "VENTES",
+			   "fr-CA", "VENTES",
+			   "fr-CH", "VENTES",
+			   "fr-FR", "VENTES",
+			   "is-IS", "SALA",
+			   "it-CH", "VENDITE",
+			   "it-IT", "VENDITE",
+			   "nb-NO", "SALG",
+			   "nl-BE", "VERKOPEN",
+			   "nl-NL", "VERKOPEN",
+			   "sv-SE", "FÖRSÄLJNING",
+			   "SALES"
+			)
+		isHidden
+		lineageTag: 0e2d739d-a674-442b-b967-9c2f0307cfd1
+
+	measure 'Last Refreshed Label' =
+			SWITCH(USERCULTURE(),
+			   "cs-CZ", "Naposledy aktualizováno",
+			   "da-DK", "Sidst opdateret",
+			   "de-AT", "Zuletzt aktualisiert",
+			   "de-CH", "Zuletzt aktualisiert",
+			   "de-DE", "Zuletzt aktualisiert",
+			   "en-AU", "Last Refreshed",
+			   "en-CA", "Last Refreshed",
+			   "en-GB", "Last Refreshed",
+			   "en-NZ", "Last Refreshed",
+			   "es-ES", "Última actualización",
+			   "es-MX", "Última actualización",
+			   "fi-FI", "Päivitetty viimeksi",
+			   "fr-BE", "Dernière actualisation",
+			   "fr-CA", "Dernière actualisation",
+			   "fr-CH", "Dernière actualisation",
+			   "fr-FR", "Dernière actualisation",
+			   "is-IS", "Síðast uppfært",
+			   "it-CH", "Ultimo aggiornamento",
+			   "it-IT", "Ultimo aggiornamento",
+			   "nb-NO", "Sist oppdatert",
+			   "nl-BE", "Laatst vernieuwd",
+			   "nl-NL", "Laatst vernieuwd",
+			   "sv-SE", "Uppdaterades senast",
+			   "Last Refreshed"
+			)
+		isHidden
+		lineageTag: 78b2d968-e726-49b4-9b5f-c7fdcf5577f7
+
+	measure 'Company Name Label' =
+			SWITCH(USERCULTURE(),
+			   "cs-CZ", "Název společnosti",
+			   "da-DK", "Virksomhedsnavn",
+			   "de-AT", "Mandantenname",
+			   "de-CH", "Mandantenname",
+			   "de-DE", "Mandantenname",
+			   "en-AU", "Company Name",
+			   "en-CA", "Company Name",
+			   "en-GB", "Company Name",
+			   "en-NZ", "Company Name",
+			   "es-ES", "Nombre empresa",
+			   "es-MX", "Nombre empresa",
+			   "fi-FI", "Yrityksen nimi",
+			   "fr-BE", "Nom de la société",
+			   "fr-CA", "Nom de la compagnie",
+			   "fr-CH", "Nom de la société",
+			   "fr-FR", "Nom de la société",
+			   "is-IS", "Heiti fyrirtækis",
+			   "it-CH", "Nome società",
+			   "it-IT", "Nome società",
+			   "nb-NO", "Selskapsnavn",
+			   "nl-BE", "Bedrijfsnaam",
+			   "nl-NL", "Bedrijfsnaam",
+			   "sv-SE", "Företagsnamn",
+			   "Company Name"
+			)
+		isHidden
+		lineageTag: a25ef4f1-38ea-4e8c-a4d3-4c3de6fc77e6
+
+	measure 'Capacity Scrap Quantity by Item Category Code Label' =
+			SWITCH(USERCULTURE(),
+			   "cs-CZ", "Množství zmetků kapacity podle kódu kategorie zboží",
+			   "da-DK", "Kapacitetsspildantal efter varekategorikode",
+			   "de-AT", "Kapazitätsausschussmenge nach Artikelkategoriencode",
+			   "de-CH", "Kapazitätsausschussmenge nach Artikelkategoriencode",
+			   "de-DE", "Kapazitätsausschussmenge nach Artikelkategoriencode",
+			   "en-AU", "Capacity Scrap Quantity by Item Category Code",
+			   "en-CA", "Capacity Scrap Quantity by Item Category Code",
+			   "en-GB", "Capacity Scrap Quantity by Item Category Code",
+			   "en-NZ", "Capacity Scrap Quantity by Item Category Code",
+			   "es-ES", "Cantidad de rechazo de capacidad por código de categoría producto",
+			   "es-MX", "Cantidad de rechazo de capacidad por código de categoría producto",
+			   "fi-FI", "Kapasiteetin hukkatavaramäärä nimikeluokan koodin mukaan",
+			   "fr-BE", "Quantité capacité rebut par code catégorie article",
+			   "fr-CA", "Quantité capacité rebut par code catégorie article",
+			   "fr-CH", "Quantité capacité rebut par code catégorie article",
+			   "fr-FR", "Quantité capacité rebut par code catégorie article",
+			   "is-IS", "Úrkastsmagn v. framleiðslu eftir vöruflokkskóða",
+			   "it-CH", "Quantità scarto capacità per codice categoria articolo",
+			   "it-IT", "Quantità scarto capacità per codice categoria articolo",
+			   "nb-NO", "Kapasitet vrakantall etter varekategorikode",
+			   "nl-BE", "Aantal capaciteitsuitval per artikelcategoriecode",
+			   "nl-NL", "Aantal capaciteitsuitval per artikelcategoriecode",
+			   "sv-SE", "Kapacitetskassationsantal per artikelkategorikod",
+			   "Capacity Scrap Quantity by Item Category Code"
+			)
+		isHidden
+		lineageTag: 45543694-0e4b-4475-8179-3ff415e6f487
+
+	measure '1. Download the Manufacturing Connector for Power BI Label' =
+			SWITCH(USERCULTURE(),
+			   "cs-CZ", "1. Stažení Výrobního konektoru pro Power BI",
+			   "da-DK", "1. Download Manufacturing Connector til Power BI",
+			   "de-AT", "1. Produktionskonnektor für Power BI herunterladen",
+			   "de-CH", "1. Produktionskonnektor für Power BI herunterladen",
+			   "de-DE", "1. Produktionskonnektor für Power BI herunterladen",
+			   "en-AU", "1. Download the Manufacturing Connector for Power BI",
+			   "en-CA", "1. Download the Manufacturing Connector for Power BI",
+			   "en-GB", "1. Download the Manufacturing Connector for Power BI",
+			   "en-NZ", "1. Download the Manufacturing Connector for Power BI",
+			   "es-ES", "1. Descargar conector de fabricación para Power BI",
+			   "es-MX", "1. Descargar conector de fabricación para Power BI",
+			   "fi-FI", "1. Lataa ostojen Power BI -liitin",
+			   "fr-BE", "1. Téléchargez le connecteur de fabrication pour Power BI",
+			   "fr-CA", "1. Téléchargez le connecteur de fabrication pour Power BI",
+			   "fr-CH", "1. Téléchargez le connecteur de fabrication pour Power BI",
+			   "fr-FR", "1. Téléchargez le connecteur de fabrication pour Power BI",
+			   "is-IS", "1. Sæktu framleiðslutengilinn fyrir Power BI",
+			   "it-CH", "1. Scaricare Manufacturing Connector for Power BI",
+			   "it-IT", "1. Scaricare Manufacturing Connector for Power BI",
+			   "nb-NO", "1. Last ned produksjonskoblingen for Power BI",
+			   "nl-BE", "1. Download de Productieconnector voor Power BI",
+			   "nl-NL", "1. Download de Productieconnector voor Power BI",
+			   "sv-SE", "1. Ladda ned anslutningsprogrammet för produktion för Power BI",
+			   "1. Download the Manufacturing Connector for Power BI"
+			)
+		isHidden
+		lineageTag: 5b4141aa-1c25-43cb-ae9b-76f80a162c11
+
+	measure 'Manufacturing includes a variety of pre-built reports to help you see your data immediately. Label' =
+			SWITCH(USERCULTURE(),
+			   "cs-CZ", "Výroba obsahuje řadu předpřipravených sestav, které vám pomohou okamžitě zobrazit vaše data.",
+			   "da-DK", "Produktion omfatter en række forudbyggede rapporter, der hjælper dig med at få vist dine data med det samme.",
+			   "de-AT", "Die Produktion enthält eine Vielzahl vordefinierter Berichte, mit denen Sie Ihre Daten unmittelbar ansehen können.",
+			   "de-CH", "Die Produktion enthält eine Vielzahl vordefinierter Berichte, mit denen Sie Ihre Daten unmittelbar ansehen können.",
+			   "de-DE", "Die Produktion enthält eine Vielzahl vordefinierter Berichte, mit denen Sie Ihre Daten unmittelbar ansehen können.",
+			   "en-AU", "Manufacturing includes a variety of pre-built reports to help you see your data immediately.",
+			   "en-CA", "Manufacturing includes a variety of pre-built reports to help you see your data immediately.",
+			   "en-GB", "Manufacturing includes a variety of pre-built reports to help you see your data immediately.",
+			   "en-NZ", "Manufacturing includes a variety of pre-built reports to help you see your data immediately.",
+			   "es-ES", "La fabricación incluye una variedad de informes prediseñados para ayudarle a ver sus datos de inmediato.",
+			   "es-MX", "La fabricación incluye una variedad de informes prediseñados para ayudarle a ver sus datos de inmediato.",
+			   "fi-FI", "Tuotanto sisältää erilaisia etukäteen luotuja raportteja, joiden avulla voit tarkastella tietoja heti.",
+			   "fr-BE", "Fabrication comprend une variété de rapports prédéfinis pour vous aider à voir vos données immédiatement.",
+			   "fr-CA", "Fabrication comprend une variété de rapports prédéfinis pour vous aider à voir vos données immédiatement.",
+			   "fr-CH", "Fabrication comprend une variété de rapports prédéfinis pour vous aider à voir vos données immédiatement.",
+			   "fr-FR", "Fabrication comprend une variété de rapports prédéfinis pour vous aider à voir vos données immédiatement.",
+			   "is-IS", "Framleiðsla felur í sér innbyggðar skýrslur af ólíkum toga til að skoða gögn samstundis.",
+			   "it-CH", "Nella produzione è inclusa una serie di report predefiniti che consentono di visualizzare immediatamente i dati.",
+			   "it-IT", "Nella produzione è inclusa una serie di report predefiniti che consentono di visualizzare immediatamente i dati.",
+			   "nb-NO", "Produksjon inkluderer en rekke forhåndsbygde rapporter for å hjelpe deg med å se dataene umiddelbart.",
+			   "nl-BE", "Productie omvat een verscheidenheid aan vooraf gemaakte rapporten om u te helpen uw gegevens direct te bekijken.",
+			   "nl-NL", "Productie omvat een verscheidenheid aan vooraf gemaakte rapporten om u te helpen uw gegevens direct te bekijken.",
+			   "sv-SE", "Produktion innehåller en mängd fördefinierade rapporter som gör att du kan visa data omedelbart.",
+			   "Manufacturing includes a variety of pre-built reports to help you see your data immediately."
+			)
+		isHidden
+		lineageTag: 1adbf314-feaf-495d-8e0b-83350b5b2dcc
+
+	measure 'You are able to edit these reports or build your own report from scratch. Label' =
+			SWITCH(USERCULTURE(),
+			   "cs-CZ", "Tyto sestavy můžete upravovat nebo si vytvořit vlastní sestavu od základu.",
+			   "da-DK", "Du kan redigere disse rapporter eller oprette din egen rapport fra bunden.",
+			   "de-AT", "Sie können diese Berichte bearbeiten oder Ihren eigenen Bericht von Grund auf neu erstellen.",
+			   "de-CH", "Sie können diese Berichte bearbeiten oder Ihren eigenen Bericht von Grund auf neu erstellen.",
+			   "de-DE", "Sie können diese Berichte bearbeiten oder Ihren eigenen Bericht von Grund auf neu erstellen.",
+			   "en-AU", "You are able to edit these reports or build your own report from scratch.",
+			   "en-CA", "You are able to edit these reports or build your own report from scratch.",
+			   "en-GB", "You are able to edit these reports or build your own report from scratch.",
+			   "en-NZ", "You are able to edit these reports or build your own report from scratch.",
+			   "es-ES", "Puede editar estos informes o crear el suyo propio desde cero.",
+			   "es-MX", "Puede editar estos informes o crear el suyo propio desde cero.",
+			   "fi-FI", "Voit muokata näitä raportteja tai luoda oman raportin alusta alkaen.",
+			   "fr-BE", "Vous pouvez modifier ces états ou créer votre propre état à partir de zéro.",
+			   "fr-CA", "Vous pouvez modifier ces rapports ou créer votre propre rapport à partir de zéro.",
+			   "fr-CH", "Vous pouvez modifier ces états ou créer votre propre état à partir de zéro.",
+			   "fr-FR", "Vous pouvez modifier ces états ou créer votre propre état à partir de zéro.",
+			   "is-IS", "Hægt er að breyta þessum skýrslum eða búa til nýja skýrslu frá grunni.",
+			   "it-CH", "È possibile modificare questi report o creare il proprio report da zero.",
+			   "it-IT", "È possibile modificare questi report o creare il proprio report da zero.",
+			   "nb-NO", "Du kan redigere disse rapportene eller lage din egen rapport fra bunnen av.",
+			   "nl-BE", "U kunt deze rapporten bewerken of uw eigen rapport helemaal opnieuw maken.",
+			   "nl-NL", "U kunt deze rapporten bewerken of uw eigen rapport helemaal opnieuw maken.",
+			   "sv-SE", "Du kan redigera dessa rapporter eller skapa en egen rapport från grunden.",
+			   "You are able to edit these reports or build your own report from scratch."
+			)
+		isHidden
+		lineageTag: e6be3b54-8938-4e84-9e66-7aa8af5f30d6
+
+	measure 'PROJECTS Label' =
+			SWITCH(USERCULTURE(),
+			   "cs-CZ", "PROJEKTY",
+			   "da-DK", "PROJEKTER",
+			   "de-AT", "PROJEKTE",
+			   "de-CH", "PROJEKTE",
+			   "de-DE", "PROJEKTE",
+			   "en-AU", "PROJECTS",
+			   "en-CA", "PROJECTS",
+			   "en-GB", "PROJECTS",
+			   "en-NZ", "PROJECTS",
+			   "es-ES", "PROYECTOS",
+			   "es-MX", "PROYECTOS",
+			   "fi-FI", "PROJEKTIT",
+			   "fr-BE", "PROJETS",
+			   "fr-CA", "PROJETS",
+			   "fr-CH", "PROJETS",
+			   "fr-FR", "PROJETS",
+			   "is-IS", "VERKEFNI",
+			   "it-CH", "PROGETTI",
+			   "it-IT", "PROGETTI",
+			   "nb-NO", "PROSJEKTER",
+			   "nl-BE", "PROJECTEN",
+			   "nl-NL", "PROJECTEN",
+			   "sv-SE", "PROJEKT",
+			   "PROJECTS"
+			)
+		isHidden
+		lineageTag: c0bc14e3-bbb6-4a4d-a267-ac54cb2f9a4b
+
+	measure 'Capacity Used (Hours), Capacity Available (Hours) and Utilization % by Date Label' =
+			SWITCH(USERCULTURE(),
+			   "cs-CZ", "Využitá kapacita (hodiny), dostupná kapacita (hodiny) a využití (%) podle data",
+			   "da-DK", "Udnyttet kapacitet (timer), Disponibel kapacitet (timer) og Udnyttelse i % efter dato",
+			   "de-AT", "Genutzte Kapazität (Std.), Verfügbare Kapazität (Std.) und Auslastung % nach Datum",
+			   "de-CH", "Genutzte Kapazität (Std.), Verfügbare Kapazität (Std.) und Auslastung % nach Datum",
+			   "de-DE", "Genutzte Kapazität (Std.), Verfügbare Kapazität (Std.) und Auslastung % nach Datum",
+			   "en-AU", "Capacity Used (Hours), Capacity Available (Hours) and Utilisation % by Date",
+			   "en-CA", "Capacity Used (Hours), Capacity Available (Hours) and Utilization % by Date",
+			   "en-GB", "Capacity Used (Hours), Capacity Available (Hours) and Utilisation % by Date",
+			   "en-NZ", "Capacity Used (Hours), Capacity Available (Hours) and Utilisation % by Date",
+			   "es-ES", "Capacidad utilizada (horas), capacidad disponible (horas) y porcentaje de uso por fecha",
+			   "es-MX", "Capacidad utilizada (horas), capacidad disponible (horas) y porcentaje de uso por fecha",
+			   "fi-FI", "Käytetty kapasiteetti (tunteina), Käytettävissä oleva kapasiteetti (tunteina) ja Käyttö-% päivämäärän mukaan",
+			   "fr-BE", "Capacité utilisée (heures), Capacité disponible (heures) et % d’utilisation par date",
+			   "fr-CA", "Capacité utilisée (heures), Capacité disponible (heures) et % d’utilisation par date",
+			   "fr-CH", "Capacité utilisée (heures), Capacité disponible (heures) et % d’utilisation par date",
+			   "fr-FR", "Capacité utilisée (heures), Capacité disponible (heures) et % d’utilisation par date",
+			   "is-IS", "Fyrri framleiðsla (vinnustundir), núverandi framleiðslugeta (vinnustundir) og % nýtingar eftir dagsetningu",
+			   "it-CH", "Capacità utilizzata (ore), capacità disponibile (ore) e % di utilizzo per data",
+			   "it-IT", "Capacità utilizzata (ore), capacità disponibile (ore) e % di utilizzo per data",
+			   "nb-NO", "Kapasitet brukt (timer), tilgjengelig kapasitet (timer) og utnyttelsesprosent etter dato",
+			   "nl-BE", "Gebruikte capaciteit (uren), Beschikbare capaciteit (uren) en Gebruik % per datum",
+			   "nl-NL", "Gebruikte capaciteit (uren), Beschikbare capaciteit (uren) en Gebruik % per datum",
+			   "sv-SE", "Kapacitetsutnyttjande (timmar), disponibel kapacitet (timmar) och utnyttjande % per datum",
+			   "Capacity Used (Hours), Capacity Available (Hours) and Utilization % by Date"
+			)
+		isHidden
+		lineageTag: 168daded-8415-4caa-9748-2b97914e4067
+
+	measure 'Actual Cost by Source No. Label' =
+			SWITCH(USERCULTURE(),
+			   "cs-CZ", "Skutečné náklady podle č. původu",
+			   "da-DK", "Faktisk kostpris efter kildenr.",
+			   "de-AT", "Ist-Kosten nach Herkunftsnr.",
+			   "de-CH", "Ist-Kosten nach Herkunftsnr.",
+			   "de-DE", "Ist-Kosten nach Herkunftsnr.",
+			   "en-AU", "Actual Cost by Source No.",
+			   "en-CA", "Actual Cost by Source No.",
+			   "en-GB", "Actual Cost by Source No.",
+			   "en-NZ", "Actual Cost by Source No.",
+			   "es-ES", "Coste real por n.º origen",
+			   "es-MX", "Costo real por n.º origen",
+			   "fi-FI", "Todelliset kustannukset lähdenumeroittain",
+			   "fr-BE", "Coût réel par n° source",
+			   "fr-CA", "Coût réel par n° source",
+			   "fr-CH", "Coût réel par n° source",
+			   "fr-FR", "Coût réel par n° source",
+			   "is-IS", "Raunkostnaður eftir upprunanr.",
+			   "it-CH", "Costo effettivo per nr. origine",
+			   "it-IT", "Costo effettivo per nr. origine",
+			   "nb-NO", "Faktisk kostnad etter kildenr.",
+			   "nl-BE", "Werkelijke kosten per bronnr.",
+			   "nl-NL", "Werkelijke kosten per bronnr.",
+			   "sv-SE", "Faktisk kostnad per källnummer",
+			   "Actual Cost by Source No."
+			)
+		isHidden
+		lineageTag: 7c5fc252-5924-4830-a5a8-1431f1207983
+
+	measure 'Production Order Overview Label' =
+			SWITCH(USERCULTURE(),
+			   "cs-CZ", "Přehled výrobní zakázky",
+			   "da-DK", "Oversigt over produktionsordre",
+			   "de-AT", "Übersicht der Produktionsaufträge",
+			   "de-CH", "Übersicht der Produktionsaufträge",
+			   "de-DE", "Übersicht der Produktionsaufträge",
+			   "en-AU", "Production Order Overview",
+			   "en-CA", "Production Order Overview",
+			   "en-GB", "Production Order Overview",
+			   "en-NZ", "Production Order Overview",
+			   "es-ES", "Información general orden producción",
+			   "es-MX", "Información general orden producción",
+			   "fi-FI", "Tuotantotilaus – Yleiskatsaus",
+			   "fr-BE", "Vue d’ensemble ordre de fabrication",
+			   "fr-CA", "Synthèse des ordres de fabrication",
+			   "fr-CH", "Vue d’ensemble ordre de fabrication",
+			   "fr-FR", "Vue d’ensemble ordre de fabrication",
+			   "is-IS", "Yfirlit framleiðslupantana",
+			   "it-CH", "Panoramica ordini di produzione",
+			   "it-IT", "Panoramica ordini di produzione",
+			   "nb-NO", "Oversikt over produksjonsordre",
+			   "nl-BE", "Overzicht van productieorders",
+			   "nl-NL", "Overzicht van productieorders",
+			   "sv-SE", "Översikt över produktionsorder",
+			   "Production Order Overview"
+			)
+		isHidden
+		lineageTag: 44bc0f84-cd91-4d9d-bdb9-0957ff0c07d5
+
+	measure 'No. of Production Orders by Status Label' =
+			SWITCH(USERCULTURE(),
+			   "cs-CZ", "Počet výrobních zakázek podle stavu",
+			   "da-DK", "Antal produktionsordrer efter status",
+			   "de-AT", "Anzahl der Produktionsaufträge nach Status",
+			   "de-CH", "Anzahl der Produktionsaufträge nach Status",
+			   "de-DE", "Anzahl der Produktionsaufträge nach Status",
+			   "en-AU", "No. of Production Orders by Status",
+			   "en-CA", "No. of Production Orders by Status",
+			   "en-GB", "No. of Production Orders by Status",
+			   "en-NZ", "No. of Production Orders by Status",
+			   "es-ES", "N.º órdenes de producción por estado",
+			   "es-MX", "N.º órdenes de producción por estado",
+			   "fi-FI", "Tuotantotilausten määrä tiloittain",
+			   "fr-BE", "Nbre ordres de fabrication par statut",
+			   "fr-CA", "Nombre d’ordres de fabrication par état",
+			   "fr-CH", "Nbre ordres de fabrication par statut",
+			   "fr-FR", "Nbre ordres de fabrication par statut",
+			   "is-IS", "Fjöldi framleiðslupantana eftir stöðu",
+			   "it-CH", "Nr. di ordini di produzione per stato",
+			   "it-IT", "Nr. di ordini di produzione per stato",
+			   "nb-NO", "Antall produksjonsordrer etter status",
+			   "nl-BE", "Aantal productieorders per status",
+			   "nl-NL", "Aantal productieorders per status",
+			   "sv-SE", "Antal produktionsorder per status",
+			   "No. of Production Orders by Status"
+			)
+		isHidden
+		lineageTag: 9a37a0dd-2eb4-41da-aad6-d4dcbb3a6f0f
+
+	measure 'Completion Ratios by Source No. Label' =
+			SWITCH(USERCULTURE(),
+			   "cs-CZ", "Poměr dokončení podle č. původu",
+			   "da-DK", "Fuldførelsesforhold efter kildenr.",
+			   "de-AT", "Abschlussquoten nach Herkunftsnr.",
+			   "de-CH", "Abschlussquoten nach Herkunftsnr.",
+			   "de-DE", "Abschlussquoten nach Herkunftsnr.",
+			   "en-AU", "Completion Ratios by Source No.",
+			   "en-CA", "Completion Ratios by Source No.",
+			   "en-GB", "Completion Ratios by Source No.",
+			   "en-NZ", "Completion Ratios by Source No.",
+			   "es-ES", "Ratios de finalización por n.º de origen",
+			   "es-MX", "Ratios de finalización por n.º de origen",
+			   "fi-FI", "Valmistumisasteet lähdenumeron mukaan",
+			   "fr-BE", "Taux d’achèvement par n° source",
+			   "fr-CA", "Taux d’achèvement par n° source",
+			   "fr-CH", "Taux d’achèvement par n° source",
+			   "fr-FR", "Taux d’achèvement par n° source",
+			   "is-IS", "Lokahlutföll eftir upprunanr.",
+			   "it-CH", "Rapporti di completamento per nr. origine",
+			   "it-IT", "Rapporti di completamento per nr. origine",
+			   "nb-NO", "Fullføringsforhold etter kildenr.",
+			   "nl-BE", "Voltooiingsverhoudingen per bronnr.",
+			   "nl-NL", "Voltooiingsverhoudingen per bronnr.",
+			   "sv-SE", "Färdigställandegrad per källnr",
+			   "Completion Ratios by Source No."
+			)
+		isHidden
+		lineageTag: 106b5bfe-c69f-47e5-96bd-5bef4b277117
+
+	measure 'Total Actual Cost Breakdown Label' =
+			SWITCH(USERCULTURE(),
+			   "cs-CZ", "Rozpis celkových skutečných nákladů",
+			   "da-DK", "Grundlag for faktisk kostbeløb",
+			   "de-AT", "Aufschlüsselung der Ist-Gesamtkosten",
+			   "de-CH", "Aufschlüsselung der Ist-Gesamtkosten",
+			   "de-DE", "Aufschlüsselung der Ist-Gesamtkosten",
+			   "en-AU", "Total Actual Cost Breakdown",
+			   "en-CA", "Total Actual Cost Breakdown",
+			   "en-GB", "Total Actual Cost Breakdown",
+			   "en-NZ", "Total Actual Cost Breakdown",
+			   "es-ES", "Desglose de coste real total",
+			   "es-MX", "Desglose de costo total real",
+			   "fi-FI", "Todellinen kustannus yhteensä – Erittely",
+			   "fr-BE", "Ventilation réel : coût total",
+			   "fr-CA", "Ventilation réel : coût total",
+			   "fr-CH", "Ventilation réel : coût total",
+			   "fr-FR", "Ventilation réel : coût total",
+			   "is-IS", "Sundurliðun á raunkostnaði alls",
+			   "it-CH", "Ripartizione costi effettivi totali",
+			   "it-IT", "Ripartizione costi effettivi totali",
+			   "nb-NO", "Spesifikasjon av total faktisk kostnad",
+			   "nl-BE", "Opsplitsing van totale werkelijke kosten",
+			   "nl-NL", "Opsplitsing van totale werkelijke kosten",
+			   "sv-SE", "Analys av total faktisk kostnad",
+			   "Total Actual Cost Breakdown"
+			)
+		isHidden
+		lineageTag: 912668f2-98e7-425d-9bcd-f5b1f5221d8b
+
+	measure 'Current Production Orders Label' =
+			SWITCH(USERCULTURE(),
+			   "cs-CZ", "Aktuální výrobní zakázky",
+			   "da-DK", "Aktuelle produktionsordrer",
+			   "de-AT", "Aktuelle Produktionsaufträge",
+			   "de-CH", "Aktuelle Produktionsaufträge",
+			   "de-DE", "Aktuelle Produktionsaufträge",
+			   "en-AU", "Current Production Orders",
+			   "en-CA", "Current Production Orders",
+			   "en-GB", "Current Production Orders",
+			   "en-NZ", "Current Production Orders",
+			   "es-ES", "Órdenes producción actuales",
+			   "es-MX", "Órdenes producción actuales",
+			   "fi-FI", "Nykyiset tuotantotilaukset",
+			   "fr-BE", "Ordres de fabrication actuels",
+			   "fr-CA", "Ordres de fabrication TEC",
+			   "fr-CH", "Ordres de fabrication actuels",
+			   "fr-FR", "Ordres de fabrication actuels",
+			   "is-IS", "Núverandi framleiðslupantanir",
+			   "it-CH", "Ordini di produzione correnti",
+			   "it-IT", "Ordini di produzione correnti",
+			   "nb-NO", "Nåværende produksjonsordrer",
+			   "nl-BE", "Huidige productieorders",
+			   "nl-NL", "Huidige productieorders",
+			   "sv-SE", "Aktuella produktionsorder",
+			   "Current Production Orders"
+			)
+		isHidden
+		lineageTag: c9a2e4df-2c73-4ea1-95ee-c489b66fae23
+
+	measure 'Current Work Center Utilization by Year, Month, Week and Day Label' =
+			SWITCH(USERCULTURE(),
+			   "cs-CZ", "Aktuální využití pracovního centra podle roku, měsíce, týdne a dne",
+			   "da-DK", "Aktuel udnyttelse af arbejdscenter efter år, måned, uge og dag",
+			   "de-AT", "Aktuelle Workcenterauslastung nach Jahr, Monat, Woche und Tag",
+			   "de-CH", "Aktuelle Workcenterauslastung nach Jahr, Monat, Woche und Tag",
+			   "de-DE", "Aktuelle Workcenterauslastung nach Jahr, Monat, Woche und Tag",
+			   "en-AU", "Current Work Centre Utilisation by Year, Month, Week and Day",
+			   "en-CA", "Current Work Centre Utilization by Year, Month, Week and Day",
+			   "en-GB", "Current Work Centre Utilisation by Year, Month, Week and Day",
+			   "en-NZ", "Current Work Centre Utilisation by Year, Month, Week and Day",
+			   "es-ES", "Utilización actual del centro de trabajo por año, mes, semana y día",
+			   "es-MX", "Utilización actual del centro de trabajo por año, mes, semana y día",
+			   "fi-FI", "Nykyinen tuotantosolun käyttöaste vuoden, kuukauden, viikon ja päivän mukaan",
+			   "fr-BE", "Utilisation actuelle du centre de charge par année, mois, semaine et jour",
+			   "fr-CA", "Utilisation actuelle de l’atelier par année, mois, semaine et jour",
+			   "fr-CH", "Utilisation actuelle du centre de charge par année, mois, semaine et jour",
+			   "fr-FR", "Utilisation actuelle du centre de charge par année, mois, semaine et jour",
+			   "is-IS", "Núverandi nýting vinnustöðvar eftir ári, mánuði, viku og degi",
+			   "it-CH", "Utilizzo attuale dell'area di produzione per anno, mese, settimana e giorno",
+			   "it-IT", "Utilizzo attuale dell'area di produzione per anno, mese, settimana e giorno",
+			   "nb-NO", "Nåværende arbeidssenterutnyttelse etter år, måned, uke og dag",
+			   "nl-BE", "Huidig afdelingsgebruik per jaar, maand, week en dag",
+			   "nl-NL", "Huidig afdelingsgebruik per jaar, maand, week en dag",
+			   "sv-SE", "Aktuellt produktionsgruppsutnyttjande per år, månad, vecka och dag",
+			   "Current Work Center Utilization by Year, Month, Week and Day"
+			)
+		isHidden
+		lineageTag: cc3c043f-b944-4399-95d2-c561c1795580
+
+	measure 'Work Center Load Over Time Label' =
+			SWITCH(USERCULTURE(),
+			   "cs-CZ", "Zatížení pracovního centra v průběhu času",
+			   "da-DK", "Arbejdscenterbelastning over tid",
+			   "de-AT", "Workcenterauslastung im Zeitverlauf",
+			   "de-CH", "Workcenterauslastung im Zeitverlauf",
+			   "de-DE", "Workcenterauslastung im Zeitverlauf",
+			   "en-AU", "Work Centre Load Over Time",
+			   "en-CA", "Work Centre Load Over Time",
+			   "en-GB", "Work Centre Load Over Time",
+			   "en-NZ", "Work Centre Load Over Time",
+			   "es-ES", "Carga del centro de trabajo a lo largo del tiempo",
+			   "es-MX", "Carga del centro de trabajo a lo largo del tiempo",
+			   "fi-FI", "Tuotantosolun kuormitus ajan kuluessa",
+			   "fr-BE", "Charge centre de charge dans le temps",
+			   "fr-CA", "Charge de l’atelier au fil du temps",
+			   "fr-CH", "Charge centre de charge dans le temps",
+			   "fr-FR", "Charge centre de charge dans le temps",
+			   "is-IS", "Álag vinnustöðvar yfir tíma",
+			   "it-CH", "Carico area di produzione nel tempo",
+			   "it-IT", "Carico area di produzione nel tempo",
+			   "nb-NO", "Arbeidssenterbelastning over tid",
+			   "nl-BE", "Werklast afdeling in de loop van de tijd",
+			   "nl-NL", "Werklast afdeling in de loop van de tijd",
+			   "sv-SE", "Produktionsgruppens beläggning över tid",
+			   "Work Center Load Over Time"
+			)
+		isHidden
+		lineageTag: 65fad807-7f72-4c5c-829c-742873252cc5
+
+	measure 'Work Center Load Details Label' =
+			SWITCH(USERCULTURE(),
+			   "cs-CZ", "Podrobnosti zatížení pracovního centra",
+			   "da-DK", "Detaljer om arbejdscenterbelastning",
+			   "de-AT", "Details der Workcenterauslastung",
+			   "de-CH", "Details der Workcenterauslastung",
+			   "de-DE", "Details der Workcenterauslastung",
+			   "en-AU", "Work Centre Load Details",
+			   "en-CA", "Work Centre Load Details",
+			   "en-GB", "Work Centre Load Details",
+			   "en-NZ", "Work Centre Load Details",
+			   "es-ES", "Detalles de carga centro trabajo",
+			   "es-MX", "Detalles de carga centro trabajo",
+			   "fi-FI", "Tuotantosalon kuormitus – Tiedot",
+			   "fr-BE", "Détails charge centre de charge",
+			   "fr-CA", "Détails de la charge de l’atelier",
+			   "fr-CH", "Détails charge centre de charge",
+			   "fr-FR", "Détails charge centre de charge",
+			   "is-IS", "Upplýsingar um álag á vinnustöð",
+			   "it-CH", "Dettagli carico area di produzione",
+			   "it-IT", "Dettagli carico area di produzione",
+			   "nb-NO", "Detaljer om arbeidssenterbelastning",
+			   "nl-BE", "Details van werklast afdeling",
+			   "nl-NL", "Details van werklast afdeling",
+			   "sv-SE", "Information om produktionsgruppens beläggning",
+			   "Work Center Load Details"
+			)
+		isHidden
+		lineageTag: 10793aa0-d8b1-4cdd-ada6-8f933244ba77
+
+	measure 'Work Center Load  Label' =
+			SWITCH(USERCULTURE(),
+			   "cs-CZ", "Zatížení pracovního centra",
+			   "da-DK", "Arbejdscenterbelastning ",
+			   "de-AT", "Workcenterauslastung ",
+			   "de-CH", "Workcenterauslastung ",
+			   "de-DE", "Workcenterauslastung ",
+			   "en-AU", "Work Centre Load ",
+			   "en-CA", "Work Centre Load ",
+			   "en-GB", "Work Centre Load ",
+			   "en-NZ", "Work Centre Load ",
+			   "es-ES", "Carga centro trabajo ",
+			   "es-MX", "Carga centro trabajo ",
+			   "fi-FI", "Tuotantosolun kuormitus ",
+			   "fr-BE", "Charge centre de charge ",
+			   "fr-CA", "Charge de l’atelier",
+			   "fr-CH", "Charge centre de charge ",
+			   "fr-FR", "Charge centre de charge ",
+			   "is-IS", "Álag á vinnustöð ",
+			   "it-CH", "Carico area produzione ",
+			   "it-IT", "Carico area produzione ",
+			   "nb-NO", "Arbeidssenterbelastning ",
+			   "nl-BE", "Werklast afdeling ",
+			   "nl-NL", "Werklast afdeling ",
+			   "sv-SE", "Produktionsgruppens beläggning ",
+			   "Work Center Load "
+			)
+		isHidden
+		lineageTag: a3db0429-2019-41e0-90bc-a5df13619cf9
+
+	measure 'Allocated Time  Label' =
+			SWITCH(USERCULTURE(),
+			   "cs-CZ", "Přiřazený čas",
+			   "da-DK", "Allokeret tid ",
+			   "de-AT", "Zugewiesene Zeit ",
+			   "de-CH", "Zugewiesene Zeit ",
+			   "de-DE", "Zugewiesene Zeit ",
+			   "en-AU", "Allocated Time ",
+			   "en-CA", "Allocated Time ",
+			   "en-GB", "Allocated Time ",
+			   "en-NZ", "Allocated Time ",
+			   "es-ES", "Tiempo asignado ",
+			   "es-MX", "Tiempo asignado ",
+			   "fi-FI", "Kohdistettu aika ",
+			   "fr-BE", "Temps ventilé ",
+			   "fr-CA", "Temps alloué",
+			   "fr-CH", "Temps ventilé ",
+			   "fr-FR", "Temps ventilé ",
+			   "is-IS", "Ráðstafaður tími ",
+			   "it-CH", "Tempo allocato ",
+			   "it-IT", "Tempo allocato ",
+			   "nb-NO", "Tildelt tid ",
+			   "nl-BE", "Toegewezen tijd ",
+			   "nl-NL", "Toegewezen tijd ",
+			   "sv-SE", "Allokerad tid ",
+			   "Allocated Time "
+			)
+		isHidden
+		lineageTag: 002e6b4d-4547-4e60-b2e8-c72a240f556a
+
+	measure 'Allocated Time by Work Center Name Label' =
+			SWITCH(USERCULTURE(),
+			   "cs-CZ", "Přiřazený čas podle názvu pracovního centra",
+			   "da-DK", "Allokeret tid efter arbejdscenternavn",
+			   "de-AT", "Zugewiesene Zeit nach Workcentername",
+			   "de-CH", "Zugewiesene Zeit nach Workcentername",
+			   "de-DE", "Zugewiesene Zeit nach Workcentername",
+			   "en-AU", "Allocated Time by Work Centre Name",
+			   "en-CA", "Allocated Time by Work Centre Name",
+			   "en-GB", "Allocated Time by Work Centre Name",
+			   "en-NZ", "Allocated Time by Work Centre Name",
+			   "es-ES", "Tiempo asignado por nombre centro trabajo",
+			   "es-MX", "Tiempo asignado por nombre centro trabajo",
+			   "fi-FI", "Kohdistettu aika tuotantosolun nimen mukaan",
+			   "fr-BE", "Temps ventilé par nom centre de charge",
+			   "fr-CA", "Temps alloué par nom d’atelier",
+			   "fr-CH", "Temps ventilé par nom centre de charge",
+			   "fr-FR", "Temps ventilé par nom centre de charge",
+			   "is-IS", "Úthlutaður tími eftir heiti vinnustöðvar",
+			   "it-CH", "Tempo allocato per nome area di produzione",
+			   "it-IT", "Tempo allocato per nome area di produzione",
+			   "nb-NO", "Tildelt tid etter arbeidssenternavn",
+			   "nl-BE", "Toegewezen tijd per afdelingsnaam",
+			   "nl-NL", "Toegewezen tijd per afdelingsnaam",
+			   "sv-SE", "Allokerad tid per produktionsgruppsnamn",
+			   "Allocated Time by Work Center Name"
+			)
+		isHidden
+		lineageTag: 718a8ab0-1a2b-4af6-8528-e3e162746522
+
+	measure 'Allocated Time by Source No. Label' =
+			SWITCH(USERCULTURE(),
+			   "cs-CZ", "Přidělený čas podle č. původu",
+			   "da-DK", "Allokeret tid efter kildenr.",
+			   "de-AT", "Zugewiesene Zeit nach Herkunftsnr.",
+			   "de-CH", "Zugewiesene Zeit nach Herkunftsnr.",
+			   "de-DE", "Zugewiesene Zeit nach Herkunftsnr.",
+			   "en-AU", "Allocated Time by Source No.",
+			   "en-CA", "Allocated Time by Source No.",
+			   "en-GB", "Allocated Time by Source No.",
+			   "en-NZ", "Allocated Time by Source No.",
+			   "es-ES", "Tiempo asignado por n.º de origen",
+			   "es-MX", "Tiempo asignado por n.º de origen",
+			   "fi-FI", "Kohdistettu aika lähdenumeroittain",
+			   "fr-BE", "Temps ventilé par n° source",
+			   "fr-CA", "Temps alloué par numéro de source",
+			   "fr-CH", "Temps ventilé par n° source",
+			   "fr-FR", "Temps ventilé par n° source",
+			   "is-IS", "Úthlutaður tími eftir upprunanr.",
+			   "it-CH", "Tempo allocato per nr. origine",
+			   "it-IT", "Tempo allocato per nr. origine",
+			   "nb-NO", "Tildelt tid etter kildenr.",
+			   "nl-BE", "Toegewezen tijd op bronnr.",
+			   "nl-NL", "Toegewezen tijd op bronnr.",
+			   "sv-SE", "Allokerad tid per källnummer",
+			   "Allocated Time by Source No."
+			)
+		isHidden
+		lineageTag: 8b45832b-0afe-47f1-b3a6-cb88e53016fb
+
+	measure 'Allocated Time by Type Label' =
+			SWITCH(USERCULTURE(),
+			   "cs-CZ", "Přiřazený čas podle typu",
+			   "da-DK", "Allokeret tid er type",
+			   "de-AT", "Zugewiesene Zeit nach Typ",
+			   "de-CH", "Zugewiesene Zeit nach Typ",
+			   "de-DE", "Zugewiesene Zeit nach Typ",
+			   "en-AU", "Allocated Time by Type",
+			   "en-CA", "Allocated Time by Type",
+			   "en-GB", "Allocated Time by Type",
+			   "en-NZ", "Allocated Time by Type",
+			   "es-ES", "Tiempo asignado por tipo",
+			   "es-MX", "Tiempo asignado por tipo",
+			   "fi-FI", "Kohdistettu aika tyypeittäin",
+			   "fr-BE", "Temps ventilé par type",
+			   "fr-CA", "Temps alloué par type",
+			   "fr-CH", "Temps ventilé par type",
+			   "fr-FR", "Temps ventilé par type",
+			   "is-IS", "Úthlutaður tími eftir gerð",
+			   "it-CH", "Tempo allocato per tipo",
+			   "it-IT", "Tempo allocato per tipo",
+			   "nb-NO", "Tildelt tid etter type",
+			   "nl-BE", "Toegewezen tijd per soort",
+			   "nl-NL", "Toegewezen tijd per soort",
+			   "sv-SE", "Fördelad tid per typ",
+			   "Allocated Time by Type"
+			)
+		isHidden
+		lineageTag: 72d10295-7c27-4c94-94ff-d65172e6cfdd
+
+	measure 'Allocated Time Details Label' =
+			SWITCH(USERCULTURE(),
+			   "cs-CZ", "Podrobnosti přiřazeného času",
+			   "da-DK", "Detaljer om allokeret tid",
+			   "de-AT", "Zugewiesene Zeit (Details)",
+			   "de-CH", "Zugewiesene Zeit (Details)",
+			   "de-DE", "Zugewiesene Zeit (Details)",
+			   "en-AU", "Allocated Time Details",
+			   "en-CA", "Allocated Time Details",
+			   "en-GB", "Allocated Time Details",
+			   "en-NZ", "Allocated Time Details",
+			   "es-ES", "Detalles de tiempo asignado",
+			   "es-MX", "Detalles de tiempo asignado",
+			   "fi-FI", "Kohdistettu aika – Tiedot",
+			   "fr-BE", "Détails temps ventilé",
+			   "fr-CA", "Détails du temps alloué",
+			   "fr-CH", "Détails temps ventilé",
+			   "fr-FR", "Détails temps ventilé",
+			   "is-IS", "Upplýsingar um úthlutaðan tíma",
+			   "it-CH", "Dettagli tempo allocato",
+			   "it-IT", "Dettagli tempo allocato",
+			   "nb-NO", "Detaljer om tildelt tid",
+			   "nl-BE", "Details van toegewezen tijd",
+			   "nl-NL", "Details van toegewezen tijd",
+			   "sv-SE", "Information om tilldelad tid",
+			   "Allocated Time Details"
+			)
+		isHidden
+		lineageTag: 87bb9f0a-a46a-4fc5-97e6-84689923e325
+
+	measure 'Allocated Time by Production Order Status Label' =
+			SWITCH(USERCULTURE(),
+			   "cs-CZ", "Přidělený čas podle stavu výrobní zakázky",
+			   "da-DK", "Allokeret tid efter produktionsordrestatus",
+			   "de-AT", "Zugewiesene Zeit nach Produktionsauftragsstatus",
+			   "de-CH", "Zugewiesene Zeit nach Produktionsauftragsstatus",
+			   "de-DE", "Zugewiesene Zeit nach Produktionsauftragsstatus",
+			   "en-AU", "Allocated Time by Production Order Status",
+			   "en-CA", "Allocated Time by Production Order Status",
+			   "en-GB", "Allocated Time by Production Order Status",
+			   "en-NZ", "Allocated Time by Production Order Status",
+			   "es-ES", "Tiempo asignado por estado de orden de producción",
+			   "es-MX", "Tiempo asignado por estado de orden de producción",
+			   "fi-FI", "Kohdistettu aika tuotantotilauksen tilan mukaan",
+			   "fr-BE", "Temps ventilé par statut d’ordre de fabrication",
+			   "fr-CA", "Temps alloué par état de l’ordre de fabrication",
+			   "fr-CH", "Temps ventilé par statut d’ordre de fabrication",
+			   "fr-FR", "Temps ventilé par statut d’ordre de fabrication",
+			   "is-IS", "Úthlutaður tími eftir stöðu framleiðslupöntunar",
+			   "it-CH", "Tempo allocato per stato ordine di produzione",
+			   "it-IT", "Tempo allocato per stato ordine di produzione",
+			   "nb-NO", "Tildelt tid etter produksjonsordrestatus",
+			   "nl-BE", "Toegewezen tijd per productieorderstatus",
+			   "nl-NL", "Toegewezen tijd per productieorderstatus",
+			   "sv-SE", "Allokerad tid per produktionsorderstatus",
+			   "Allocated Time by Production Order Status"
+			)
+		isHidden
+		lineageTag: 72a2f6c2-136b-4a0d-a194-90d3f0c3a58d
+
+	measure 'Expected Capacity Need by Work Center Label' =
+			SWITCH(USERCULTURE(),
+			   "cs-CZ", "Předpokládaná potřebná kapacita podle pracovního centra",
+			   "da-DK", "Forventet kapacitetsbehov efter arbejdscenter",
+			   "de-AT", "Erwarteter Kapazitätsbedarf nach Workcenter",
+			   "de-CH", "Erwarteter Kapazitätsbedarf nach Workcenter",
+			   "de-DE", "Erwarteter Kapazitätsbedarf nach Workcenter",
+			   "en-AU", "Expected Capacity Need by Work Centre",
+			   "en-CA", "Expected Capacity Need by Work Centre",
+			   "en-GB", "Expected Capacity Need by Work Centre",
+			   "en-NZ", "Expected Capacity Need by Work Centre",
+			   "es-ES", "Nec. capacidad prevista por centro trabajo",
+			   "es-MX", "Nec. capacidad prevista por centro trabajo",
+			   "fi-FI", "Oletettu kapasiteettitarve tuotantosoluittain",
+			   "fr-BE", "Charge prévue par centre de charge",
+			   "fr-CA", "Besoin en capacité prévu par atelier",
+			   "fr-CH", "Charge prévue par centre de charge",
+			   "fr-FR", "Charge prévue par centre de charge",
+			   "is-IS", "Áætluð afkastaþörf eftir vinnustöð",
+			   "it-CH", "Capacità prevista necessaria per area di produzione",
+			   "it-IT", "Capacità prevista necessaria per area di produzione",
+			   "nb-NO", "Forventet kapasitetsbehov etter arbeidssenter",
+			   "nl-BE", "Capaciteitsbehoefte (Verw.) per afdeling",
+			   "nl-NL", "Capaciteitsbehoefte (Verw.) per afdeling",
+			   "sv-SE", "Förväntat kapacitetsbehov per produktionsgrupp",
+			   "Expected Capacity Need by Work Center"
+			)
+		isHidden
+		lineageTag: c0981c05-5ab2-4cff-ad0d-266471bf41d1
+
+	measure 'Expected Capacity Need by Machine Center Label' =
+			SWITCH(USERCULTURE(),
+			   "cs-CZ", "Předpokládaná potřebná kapacita podle strojního centra",
+			   "da-DK", "Forventet kapacitetsbehov efter produktionsressource",
+			   "de-AT", "Erwarteter Kapazitätsbedarf nach Arbeitsplatz",
+			   "de-CH", "Erwarteter Kapazitätsbedarf nach Arbeitsplatz",
+			   "de-DE", "Erwarteter Kapazitätsbedarf nach Arbeitsplatz",
+			   "en-AU", "Expected Capacity Need by Machine Centre",
+			   "en-CA", "Expected Capacity Need by Machine Centre",
+			   "en-GB", "Expected Capacity Need by Machine Centre",
+			   "en-NZ", "Expected Capacity Need by Machine Centre",
+			   "es-ES", "Nec. capacidad prevista por centro máquina",
+			   "es-MX", "Nec. capacidad prevista por centro máquina",
+			   "fi-FI", "Oletettu kapasiteettitarve kuormitusryhmittäin",
+			   "fr-BE", "Charge prévue par poste de charge",
+			   "fr-CA", "Besoins en capacité prévus par unité de production",
+			   "fr-CH", "Charge prévue par poste de charge",
+			   "fr-FR", "Charge prévue par poste de charge",
+			   "is-IS", "Áætluð afkastaþörf vélastöðvar",
+			   "it-CH", "Capacità prevista necessaria per centro di lavoro",
+			   "it-IT", "Capacità prevista necessaria per centro di lavoro",
+			   "nb-NO", "Forventet kapasitetsbehov etter produksjonsressurs",
+			   "nl-BE", "Capaciteitsbehoefte (Verw.) per bewerkingsplaats",
+			   "nl-NL", "Capaciteitsbehoefte (Verw.) per bewerkingsplaats",
+			   "sv-SE", "Förväntat kapacitetsbehov per maskingrupp",
+			   "Expected Capacity Need by Machine Center"
+			)
+		isHidden
+		lineageTag: d7d24ad4-e5e0-4eba-9f6c-b1d752a3c16e
+
+	measure 'Expected Capacity Need Details Label' =
+			SWITCH(USERCULTURE(),
+			   "cs-CZ", "Podrobnosti očekávané potřebné kapacity",
+			   "da-DK", "Detaljer om forventet kapacitetsbehov",
+			   "de-AT", "Erweiterter Kapazitätsbedarf (Details)",
+			   "de-CH", "Erweiterter Kapazitätsbedarf (Details)",
+			   "de-DE", "Erweiterter Kapazitätsbedarf (Details)",
+			   "en-AU", "Expected Capacity Need Details",
+			   "en-CA", "Expected Capacity Need Details",
+			   "en-GB", "Expected Capacity Need Details",
+			   "en-NZ", "Expected Capacity Need Details",
+			   "es-ES", "Detalles nec. capacidad prevista",
+			   "es-MX", "Detalles nec. capacidad prevista",
+			   "fi-FI", "Oletettu kapasiteettitarve – Tiedot",
+			   "fr-BE", "Détails charge prévue",
+			   "fr-CA", "Détails charge prévue",
+			   "fr-CH", "Détails charge prévue",
+			   "fr-FR", "Détails charge prévue",
+			   "is-IS", "Upplýsingar um áætlaða framleiðsluþörf",
+			   "it-CH", "Dettagli capacità prevista necessaria",
+			   "it-IT", "Dettagli capacità prevista necessaria",
+			   "nb-NO", "Detaljer om forventet kapasitetsbehov",
+			   "nl-BE", "Details van capaciteitsbehoefte (Verw.)",
+			   "nl-NL", "Details van capaciteitsbehoefte (Verw.)",
+			   "sv-SE", "Information om förväntat kapacitetsbehov",
+			   "Expected Capacity Need Details"
+			)
+		isHidden
+		lineageTag: fcfb7fef-2f8e-48d1-83e5-a60a627d3651
+
+	measure 'Expected Capacity Need by Source No. Label' =
+			SWITCH(USERCULTURE(),
+			   "cs-CZ", "Očekávaná potřebná kapacita podle č. původu",
+			   "da-DK", "Forventet kapacitetsbehov efter kildenr.",
+			   "de-AT", "Erweiterter Kapazitätsbedarf nach Herkunftsnr.",
+			   "de-CH", "Erweiterter Kapazitätsbedarf nach Herkunftsnr.",
+			   "de-DE", "Erweiterter Kapazitätsbedarf nach Herkunftsnr.",
+			   "en-AU", "Expected Capacity Need by Source No.",
+			   "en-CA", "Expected Capacity Need by Source No.",
+			   "en-GB", "Expected Capacity Need by Source No.",
+			   "en-NZ", "Expected Capacity Need by Source No.",
+			   "es-ES", "Nec. capacidad prevista por cód. procedencia mov.",
+			   "es-MX", "Nec. capacidad prevista por cód. procedencia mov.",
+			   "fi-FI", "Oletettu kapasiteettitarve lähdenumeroittain",
+			   "fr-BE", "Charge prévue par n° source",
+			   "fr-CA", "Charge prévue par n° source",
+			   "fr-CH", "Charge prévue par n° source",
+			   "fr-FR", "Charge prévue par n° source",
+			   "is-IS", "Áætluð afkastaþörf eftir upprunanr.",
+			   "it-CH", "Capacità prevista necessaria per nr. origine",
+			   "it-IT", "Capacità prevista necessaria per nr. origine",
+			   "nb-NO", "Forventet kapasitetsbehov etter kildenr.",
+			   "nl-BE", "Capaciteitsbehoefte (Verw.) per bronnr.",
+			   "nl-NL", "Capaciteitsbehoefte (Verw.) per bronnr.",
+			   "sv-SE", "Förväntat kapacitetsbehov per källnr",
+			   "Expected Capacity Need by Source No."
+			)
+		isHidden
+		lineageTag: 6c43d125-8700-4822-87c2-91283ccd3e89
+
+	measure 'Expected Material Dev % by Source No. Label' =
+			SWITCH(USERCULTURE(),
+			   "cs-CZ", "Odchylka očekávaného materiálu (%) podle č. původu",
+			   "da-DK", "Forventet afvigelsesprocent i materiale efter kildenr.",
+			   "de-AT", "Erwartete Materialabweichung in % nach Herkunftsnr.",
+			   "de-CH", "Erwartete Materialabweichung in % nach Herkunftsnr.",
+			   "de-DE", "Erwartete Materialabweichung in % nach Herkunftsnr.",
+			   "en-AU", "Expected Material Dev % by Source No.",
+			   "en-CA", "Expected Material Dev % by Source No.",
+			   "en-GB", "Expected Material Dev % by Source No.",
+			   "en-NZ", "Expected Material Dev % by Source No.",
+			   "es-ES", "% desv material esperado por cód. procedencia mov.",
+			   "es-MX", "% desv material esperado por cód. procedencia mov.",
+			   "fi-FI", "Oletettu materiaalin poikkeama-% lähdenumeroittain",
+			   "fr-BE", "% de développement matière prévu par n° source",
+			   "fr-CA", "% de développement matière prévu par n° source",
+			   "fr-CH", "% de développement matière prévu par n° source",
+			   "fr-FR", "% de développement matière prévu par n° source",
+			   "is-IS", "Áætlað efnisfráv % eftir upprunanr.",
+			   "it-CH", "% deviazione materiale previsto per nr. origine",
+			   "it-IT", "% deviazione materiale previsto per nr. origine",
+			   "nb-NO", "Forventet materialutviklingsprosent etter kildenr.",
+			   "nl-BE", "Verwacht % afwijking materiaal per bronnr.",
+			   "nl-NL", "Verwacht % afwijking materiaal per bronnr.",
+			   "sv-SE", "Förväntad materialavvikelse % per källnummer",
+			   "Expected Material Dev % by Source No."
+			)
+		isHidden
+		lineageTag: 58e8143c-6371-4fef-a237-7e60d95e1ba6
+
+	measure 'Expected Material Dev % by Production Order Label' =
+			SWITCH(USERCULTURE(),
+			   "cs-CZ", "Odchylka očekávaného materiálu (%) podle výrobní zakázky",
+			   "da-DK", "Forventet afvigelsesprocent i materiale efter produktionsordre",
+			   "de-AT", "Erwartete Materialabweichung in % nach Produktionsauftrag",
+			   "de-CH", "Erwartete Materialabweichung in % nach Produktionsauftrag",
+			   "de-DE", "Erwartete Materialabweichung in % nach Produktionsauftrag",
+			   "en-AU", "Expected Material Dev % by Production Order",
+			   "en-CA", "Expected Material Dev % by Production Order",
+			   "en-GB", "Expected Material Dev % by Production Order",
+			   "en-NZ", "Expected Material Dev % by Production Order",
+			   "es-ES", "% desv material esperado por orden de producción",
+			   "es-MX", "% desv material esperado por orden de producción",
+			   "fi-FI", "Oletettu materiaalin poikkeama-% tuotantotilauksittain",
+			   "fr-BE", "% de développement matière prévu par ordre de fabrication",
+			   "fr-CA", "Pourcentage d’écart de quantité prévu par ordre de fabrication",
+			   "fr-CH", "% de développement matière prévu par ordre de fabrication",
+			   "fr-FR", "% de développement matière prévu par ordre de fabrication",
+			   "is-IS", "Áætlað efnisfráv % eftir framleiðslupöntun",
+			   "it-CH", "% deviazione materiale previsto per ordine di produzione",
+			   "it-IT", "% deviazione materiale previsto per ordine di produzione",
+			   "nb-NO", "Forventet materialutviklingsprosent etter produksjonsordre",
+			   "nl-BE", "Verwacht % afwijking materiaal per productieorder",
+			   "nl-NL", "Verwacht % afwijking materiaal per productieorder",
+			   "sv-SE", "Förväntad materialavvikelse % per produktionsorder",
+			   "Expected Material Dev % by Production Order"
+			)
+		isHidden
+		lineageTag: 9eaeb558-5814-46d5-bff3-de3e5c4a80a7
+
+	measure 'Consumption Variance Details Label' =
+			SWITCH(USERCULTURE(),
+			   "cs-CZ", "Podrobnosti odchylky spotřeby",
+			   "da-DK", "Detaljer om forbrugsafvigelse",
+			   "de-AT", "Verbrauchsabweichungsdetails",
+			   "de-CH", "Verbrauchsabweichungsdetails",
+			   "de-DE", "Verbrauchsabweichungsdetails",
+			   "en-AU", "Consumption Variance Details",
+			   "en-CA", "Consumption Variance Details",
+			   "en-GB", "Consumption Variance Details",
+			   "en-NZ", "Consumption Variance Details",
+			   "es-ES", "Detalles de desviación de consumo",
+			   "es-MX", "Detalles de desviación de consumo",
+			   "fi-FI", "Kulutusvaihtelu – Tiedot",
+			   "fr-BE", "Détails écart de consommation",
+			   "fr-CA", "Détails écart de consommation",
+			   "fr-CH", "Détails écart de consommation",
+			   "fr-FR", "Détails écart de consommation",
+			   "is-IS", "Upplýsingar um notkunarfrávik",
+			   "it-CH", "Dettagli scostamento dei consumi",
+			   "it-IT", "Dettagli scostamento dei consumi",
+			   "nb-NO", "Detaljer om forbruksavvik",
+			   "nl-BE", "Details van verbruiksverschil",
+			   "nl-NL", "Details van verbruiksverschil",
+			   "sv-SE", "Information om förbrukningsvarians",
+			   "Consumption Variance Details"
+			)
+		isHidden
+		lineageTag: 98577657-c510-45c2-a967-3b191a8ec3ad
+
+	measure 'Expected Capacity Dev % by Source No. Label' =
+			SWITCH(USERCULTURE(),
+			   "cs-CZ", "Odchylka očekávané kapacity (%) podle č. původu",
+			   "da-DK", "Forventet afvigelsesprocent i kapacitet efter kildenr.",
+			   "de-AT", "Erwartete Kapazitätsabweichung in % nach Herkunftsnr.",
+			   "de-CH", "Erwartete Kapazitätsabweichung in % nach Herkunftsnr.",
+			   "de-DE", "Erwartete Kapazitätsabweichung in % nach Herkunftsnr.",
+			   "en-AU", "Expected Capacity Dev % by Source No.",
+			   "en-CA", "Expected Capacity Dev % by Source No.",
+			   "en-GB", "Expected Capacity Dev % by Source No.",
+			   "en-NZ", "Expected Capacity Dev % by Source No.",
+			   "es-ES", "% des capacidad prevista por cód. procedencia mov.",
+			   "es-MX", "% des capacidad prevista por cód. procedencia mov.",
+			   "fi-FI", "Oletettu kapasiteetin poikkeama-% lähdenumeroittain",
+			   "fr-BE", "% écart coût capacité prévu par n° source",
+			   "fr-CA", "% écart coût capacité prévu par n° source",
+			   "fr-CH", "% écart coût capacité prévu par n° source",
+			   "fr-FR", "% écart coût capacité prévu par n° source",
+			   "is-IS", "Áætlað afkastaveitu fráv % eftir upprunanr.",
+			   "it-CH", "% deviazione capacità prevista per nr. origine",
+			   "it-IT", "% deviazione capacità prevista per nr. origine",
+			   "nb-NO", "Forventet kapasitetsutviklingsprosent etter kildenr.",
+			   "nl-BE", "Verwacht % afwijking capaciteit per bronnr.",
+			   "nl-NL", "Verwacht % afwijking capaciteit per bronnr.",
+			   "sv-SE", "Förväntad kapacitetsavvikelse % per källnummer",
+			   "Expected Capacity Dev % by Source No."
+			)
+		isHidden
+		lineageTag: 6a1de350-142d-49e3-bd80-3724a841d328
+
+	measure 'Expected Capacity Dev % by Production Order| Label' =
+			SWITCH(USERCULTURE(),
+			   "cs-CZ", "Odchylka očekávané kapacity (%) podle výrobní zakázky|",
+			   "da-DK", "Forventet afvigelsesprocent i kapacitet efter produktionsordre|",
+			   "de-AT", "Erwartete Kapazitätsabweichung in % nach Produktionsauftrag|",
+			   "de-CH", "Erwartete Kapazitätsabweichung in % nach Produktionsauftrag|",
+			   "de-DE", "Erwartete Kapazitätsabweichung in % nach Produktionsauftrag|",
+			   "en-AU", "Expected Capacity Dev % by Production Order|",
+			   "en-CA", "Expected Capacity Dev % by Production Order|",
+			   "en-GB", "Expected Capacity Dev % by Production Order|",
+			   "en-NZ", "Expected Capacity Dev % by Production Order|",
+			   "es-ES", "% desv capacidad esperado por orden de producción|",
+			   "es-MX", "% desv capacidad esperado por orden de producción|",
+			   "fi-FI", "Oletettu kapasiteetin poikkeama-% tuotantotilauksittain|",
+			   "fr-BE", "% écart coût capacité prévu par ordre de fabrication|",
+			   "fr-CA", "Pourcentage d’écart de capacité prévu par ordre de fabrication",
+			   "fr-CH", "% écart coût capacité prévu par ordre de fabrication|",
+			   "fr-FR", "% écart coût capacité prévu par ordre de fabrication|",
+			   "is-IS", "Áætlað afkastaveitu fráv % eftir framleiðslupöntun|",
+			   "it-CH", "% deviazione capacità prevista per ordine di produzione|",
+			   "it-IT", "% deviazione capacità prevista per ordine di produzione|",
+			   "nb-NO", "Forventet kapasitetsutviklingsprosent etter produksjonsordre|",
+			   "nl-BE", "Verwacht % afwijking capaciteit per productieorder|",
+			   "nl-NL", "Verwacht % afwijking capaciteit per productieorder|",
+			   "sv-SE", "Förväntad kapacitetsavvikelse % per produktionsorder|",
+			   "Expected Capacity Dev % by Production Order|"
+			)
+		isHidden
+		lineageTag: 91ffec9e-4836-4797-94d2-1bf2b2f1cf7f
+
+	measure 'Capacity Variance Details Label' =
+			SWITCH(USERCULTURE(),
+			   "cs-CZ", "Podrobnosti odchylky kapacity",
+			   "da-DK", "Detaljer om kapacitetsafvigelse",
+			   "de-AT", "Kapazitätsabweichungsdetails",
+			   "de-CH", "Kapazitätsabweichungsdetails",
+			   "de-DE", "Kapazitätsabweichungsdetails",
+			   "en-AU", "Capacity Variance Details",
+			   "en-CA", "Capacity Variance Details",
+			   "en-GB", "Capacity Variance Details",
+			   "en-NZ", "Capacity Variance Details",
+			   "es-ES", "Detalles desviación capacidad",
+			   "es-MX", "Detalles desviación capacidad",
+			   "fi-FI", "Kapasiteettivaihtelu – Tiedot",
+			   "fr-BE", "Détails écart capacité",
+			   "fr-CA", "Détails écart capacité",
+			   "fr-CH", "Détails écart capacité",
+			   "fr-FR", "Détails écart capacité",
+			   "is-IS", "Upplýsingar um frávik í afkastagetu",
+			   "it-CH", "Dettagli scostamento capacità",
+			   "it-IT", "Dettagli scostamento capacità",
+			   "nb-NO", "Detaljer om kapasitetsavvik",
+			   "nl-BE", "Details van capaciteitsverschil",
+			   "nl-NL", "Details van capaciteitsverschil",
+			   "sv-SE", "Information om kapacitetsvarians",
+			   "Capacity Variance Details"
+			)
+		isHidden
+		lineageTag: dcd67a6e-a829-4c4a-949e-212e215a85fd
+
+	measure 'Average Time Per Finished Quantity by Work Center Label' =
+			SWITCH(USERCULTURE(),
+			   "cs-CZ", "Průměrný čas na dokončené množství podle pracovního centra",
+			   "da-DK", "Gennemsnitlig tid pr. færdigantal efter arbejdscenter",
+			   "de-AT", "Durchschn. Zeit pro beendeter Menge nach Workcenter",
+			   "de-CH", "Durchschn. Zeit pro beendeter Menge nach Workcenter",
+			   "de-DE", "Durchschn. Zeit pro beendeter Menge nach Workcenter",
+			   "en-AU", "Average Time Per Finished Quantity by Work Centre",
+			   "en-CA", "Average Time Per Finished Quantity by Work Centre",
+			   "en-GB", "Average Time Per Finished Quantity by Work Centre",
+			   "en-NZ", "Average Time Per Finished Quantity by Work Centre",
+			   "es-ES", "Tiempo medio por cantidad terminada por centro de trabajo",
+			   "es-MX", "Tiempo medio por cantidad terminada por centro de trabajo",
+			   "fi-FI", "Keskimääräinen aika valmista määrää kohti tuotantosoluittain",
+			   "fr-BE", "Temps moyen par quantité réalisée par centre de charge",
+			   "fr-CA", "Temps moyen par quantité finie par atelier",
+			   "fr-CH", "Temps moyen par quantité réalisée par centre de charge",
+			   "fr-FR", "Temps moyen par quantité réalisée par centre de charge",
+			   "is-IS", "Meðaltími á klárað magn eftir vinnustöð",
+			   "it-CH", "Tempo medio per quantità finita per area di produzione",
+			   "it-IT", "Tempo medio per quantità finita per area di produzione",
+			   "nb-NO", "Gjennomsnittlig tid per ferdig antall etter arbeidssenter",
+			   "nl-BE", "Gemiddelde tijd per voltooide hoeveelheid per afdeling",
+			   "nl-NL", "Gemiddelde tijd per voltooide hoeveelheid per afdeling",
+			   "sv-SE", "Genomsnittlig tid per färdigt antal per produktionsgrupp",
+			   "Average Time Per Finished Quantity by Work Center"
+			)
+		isHidden
+		lineageTag: dfb47457-be67-4d57-9137-b8c654771bcc
+
+	measure 'Average Time Per Finished Quantity by Source No. Label' =
+			SWITCH(USERCULTURE(),
+			   "cs-CZ", "Průměrný čas na dokončené množství podle č. původu",
+			   "da-DK", "Gennemsnitlig tid pr. færdigantal efter kildenr.",
+			   "de-AT", "Durchschn. Zeit pro beendeter Menge nach Herkunftsnr.",
+			   "de-CH", "Durchschn. Zeit pro beendeter Menge nach Herkunftsnr.",
+			   "de-DE", "Durchschn. Zeit pro beendeter Menge nach Herkunftsnr.",
+			   "en-AU", "Average Time Per Finished Quantity by Source No.",
+			   "en-CA", "Average Time Per Finished Quantity by Source No.",
+			   "en-GB", "Average Time Per Finished Quantity by Source No.",
+			   "en-NZ", "Average Time Per Finished Quantity by Source No.",
+			   "es-ES", "Tiempo medio por cantidad terminada por cód. procedencia mov.",
+			   "es-MX", "Tiempo medio por cantidad terminada por cód. procedencia mov.",
+			   "fi-FI", "Keskimääräinen aika valmista määrää kohti lähdenumeroittain",
+			   "fr-BE", "Temps moyen par quantité réalisée par n° source",
+			   "fr-CA", "Temps moyen par quantité réalisée par n° source",
+			   "fr-CH", "Temps moyen par quantité réalisée par n° source",
+			   "fr-FR", "Temps moyen par quantité réalisée par n° source",
+			   "is-IS", "Meðaltími á klárað magn eftir upprunanr.",
+			   "it-CH", "Tempo medio per quantità finita per nr. origine",
+			   "it-IT", "Tempo medio per quantità finita per nr. origine",
+			   "nb-NO", "Gjennomsnittlig tid per ferdig antall etter kildenr.",
+			   "nl-BE", "Gemiddelde tijd per voltooide hoeveelheid per bronnr.",
+			   "nl-NL", "Gemiddelde tijd per voltooide hoeveelheid per bronnr.",
+			   "sv-SE", "Genomsnittlig tid per färdigt antal per källnr",
+			   "Average Time Per Finished Quantity by Source No."
+			)
+		isHidden
+		lineageTag: a84dfef0-e1dd-4471-a034-23ef11787e34
+
+	measure 'Average Production Time Details Label' =
+			SWITCH(USERCULTURE(),
+			   "cs-CZ", "Podrobnosti průměrné doby výroby",
+			   "da-DK", "Detaljer om gennemsnitlig produktionstid",
+			   "de-AT", "Durchschnittliche Produktionszeitendetails",
+			   "de-CH", "Durchschnittliche Produktionszeitendetails",
+			   "de-DE", "Durchschnittliche Produktionszeitendetails",
+			   "en-AU", "Average Production Time Details",
+			   "en-CA", "Average Production Time Details",
+			   "en-GB", "Average Production Time Details",
+			   "en-NZ", "Average Production Time Details",
+			   "es-ES", "Detalles tiempo medio de producción",
+			   "es-MX", "Detalles tiempo medio de producción",
+			   "fi-FI", "Keskimääräinen tuotantoaika – Tiedot",
+			   "fr-BE", "Détails temps de production moyen",
+			   "fr-CA", "Détails temps de production moyen",
+			   "fr-CH", "Détails temps de production moyen",
+			   "fr-FR", "Détails temps de production moyen",
+			   "is-IS", "Upplýsingar um meðalframleiðslutíma á einingu",
+			   "it-CH", "Dettagli tempi medi di produzione",
+			   "it-IT", "Dettagli tempi medi di produzione",
+			   "nb-NO", "Detaljer om gjennomsnittlig produksjonstid",
+			   "nl-BE", "Details van gemiddelde productietijd",
+			   "nl-NL", "Details van gemiddelde productietijd",
+			   "sv-SE", "Information om genomsnittlig produktionstid",
+			   "Average Production Time Details"
+			)
+		isHidden
+		lineageTag: ba81329c-0505-4dc9-994e-39b494ad8554
+
+	measure 'No. of Production Orders by Source No. Label' =
+			SWITCH(USERCULTURE(),
+			   "cs-CZ", "Počet výrobních zakázek podle č. původu",
+			   "da-DK", "Antal produktionsordrer efter kildenr.",
+			   "de-AT", "Anzahl der Produktionsaufträge nach Herkunftsnr.",
+			   "de-CH", "Anzahl der Produktionsaufträge nach Herkunftsnr.",
+			   "de-DE", "Anzahl der Produktionsaufträge nach Herkunftsnr.",
+			   "en-AU", "No. of Production Orders by Source No.",
+			   "en-CA", "No. of Production Orders by Source No.",
+			   "en-GB", "No. of Production Orders by Source No.",
+			   "en-NZ", "No. of Production Orders by Source No.",
+			   "es-ES", "N.º órdenes de producción por cód. procedencia mov.",
+			   "es-MX", "N.º órdenes de producción por cód. procedencia mov.",
+			   "fi-FI", "Tuotantotilausten määrä lähdenumeroittain",
+			   "fr-BE", "Nbre ordres de fabrication n° source",
+			   "fr-CA", "Nombre d’ordres de fabrication par numéro de source",
+			   "fr-CH", "Nbre ordres de fabrication n° source",
+			   "fr-FR", "Nbre ordres de fabrication n° source",
+			   "is-IS", "Fjöldi framleiðslupantana eftir upprunanr.",
+			   "it-CH", "Nr. di ordini di produzione per nr. origine",
+			   "it-IT", "Nr. di ordini di produzione per nr. origine",
+			   "nb-NO", "Antall produksjonsordrer etter kildenr.",
+			   "nl-BE", "Aantal productieorders per bronnr.",
+			   "nl-NL", "Aantal productieorders per bronnr.",
+			   "sv-SE", "Antal produktionsorder per källnr",
+			   "No. of Production Orders by Source No."
+			)
+		isHidden
+		lineageTag: 8ebb84d8-d903-4f4e-bcb2-b2001f229fac
+
+	measure 'Released Production Order Details Label' =
+			SWITCH(USERCULTURE(),
+			   "cs-CZ", "Podrobnosti vydané výrobní zakázky",
+			   "da-DK", "Detaljer om frigivet produktionsordre",
+			   "de-AT", "Freigegebene Produktionsauftragsdetails",
+			   "de-CH", "Freigegebene Produktionsauftragsdetails",
+			   "de-DE", "Freigegebene Produktionsauftragsdetails",
+			   "en-AU", "Released Production Order Details",
+			   "en-CA", "Released Production Order Details",
+			   "en-GB", "Released Production Order Details",
+			   "en-NZ", "Released Production Order Details",
+			   "es-ES", "Detalles orden producción lanzada",
+			   "es-MX", "Detalles orden producción lanzada",
+			   "fi-FI", "Vapautettu tuotantotilaus – Tiedot",
+			   "fr-BE", "Détails O.F. lancé",
+			   "fr-CA", "Détails de l’ordre de fabrication libéré",
+			   "fr-CH", "Détails O.F. lancé",
+			   "fr-FR", "Détails O.F. lancé",
+			   "is-IS", "Upplýsingar um útgefna framleiðslupöntun",
+			   "it-CH", "Dettagli ordini di produzione rilasciati",
+			   "it-IT", "Dettagli ordini di produzione rilasciati",
+			   "nb-NO", "Detaljer om frigitt produksjonsordre",
+			   "nl-BE", "Details van vrijgegeven productieorder",
+			   "nl-NL", "Details van vrijgegeven productieorder",
+			   "sv-SE", "Information om utsläppt produktionsorder",
+			   "Released Production Order Details"
+			)
+		isHidden
+		lineageTag: 4e2715a8-ef7b-4aad-802d-7b9e65408386
+
+	measure 'Scrap Quantity by Work Center Label' =
+			SWITCH(USERCULTURE(),
+			   "cs-CZ", "Množství zmetků podle pracovního centra",
+			   "da-DK", "Spildantal efter arbejdscenter",
+			   "de-AT", "Ausschussmenge nach Workcenter",
+			   "de-CH", "Ausschussmenge nach Workcenter",
+			   "de-DE", "Ausschussmenge nach Workcenter",
+			   "en-AU", "Scrap Quantity by Work Centre",
+			   "en-CA", "Scrap Quantity by Work Centre",
+			   "en-GB", "Scrap Quantity by Work Centre",
+			   "en-NZ", "Scrap Quantity by Work Centre",
+			   "es-ES", "Cantidad rechazada por centro de trabajo",
+			   "es-MX", "Cantidad rechazada por centro de trabajo",
+			   "fi-FI", "Hukkamäärä tuotantosoluittain",
+			   "fr-BE", "Quantité rebut par centre de charge",
+			   "fr-CA", "Quantité de rebut par atelier",
+			   "fr-CH", "Quantité rebut par centre de charge",
+			   "fr-FR", "Quantité rebut par centre de charge",
+			   "is-IS", "Úrkastsmagn eftir vinnustöð",
+			   "it-CH", "Quantità scarto per area di produzione",
+			   "it-IT", "Quantità scarto per area di produzione",
+			   "nb-NO", "Vrakantall etter arbeidssenter",
+			   "nl-BE", "Hoeveelheid uitval per afdeling",
+			   "nl-NL", "Hoeveelheid uitval per afdeling",
+			   "sv-SE", "Kassationsantal per produktionsgrupp",
+			   "Scrap Quantity by Work Center"
+			)
+		isHidden
+		lineageTag: a0ea4443-5ba6-4de3-8ad3-eda09320eaa1
+
+	measure 'Work Center Statistics Label' =
+			SWITCH(USERCULTURE(),
+			   "cs-CZ", "Statistika pracovního centra",
+			   "da-DK", "Arbejdscenterstatistik",
+			   "de-AT", "Workcenterstatistik",
+			   "de-CH", "Workcenterstatistik",
+			   "de-DE", "Workcenterstatistik",
+			   "en-AU", "Work Centre Statistics",
+			   "en-CA", "Work Centre Statistics",
+			   "en-GB", "Work Centre Statistics",
+			   "en-NZ", "Work Centre Statistics",
+			   "es-ES", "Estadísticas centro trabajo",
+			   "es-MX", "Estadísticas centro trabajo",
+			   "fi-FI", "Tuotantosolun tilastot",
+			   "fr-BE", "Statistiques centre de charge",
+			   "fr-CA", "Statistiques de l’atelier",
+			   "fr-CH", "Statistiques centre de charge",
+			   "fr-FR", "Statistiques centre de charge",
+			   "is-IS", "Upplýsingar um vinnustöðvar",
+			   "it-CH", "Statistiche aree di produzione",
+			   "it-IT", "Statistiche aree di produzione",
+			   "nb-NO", "Arbeidssenterstatistikk",
+			   "nl-BE", "Afdelingsstatistiek",
+			   "nl-NL", "Afdelingsstatistiek",
+			   "sv-SE", "Prod.gruppstatistik",
+			   "Work Center Statistics"
+			)
+		isHidden
+		lineageTag: 9380d493-47ef-43dd-8d92-77b1cf1b6996
+
+	measure 'Statistic Details Label' =
+			SWITCH(USERCULTURE(),
+			   "cs-CZ", "Podrobnosti statistiky",
+			   "da-DK", "Statistiske detaljer",
+			   "de-AT", "Details zur Statistik",
+			   "de-CH", "Details zur Statistik",
+			   "de-DE", "Details zur Statistik",
+			   "en-AU", "Statistic Details",
+			   "en-CA", "Statistic Details",
+			   "en-GB", "Statistic Details",
+			   "en-NZ", "Statistic Details",
+			   "es-ES", "Detalles estadísticos",
+			   "es-MX", "Detalles estadísticos",
+			   "fi-FI", "Tilastotiedot",
+			   "fr-BE", "Détails des statistiques",
+			   "fr-CA", "Détails des statistiques",
+			   "fr-CH", "Détails des statistiques",
+			   "fr-FR", "Détails des statistiques",
+			   "is-IS", "Tölfræðilegar upplýsingar",
+			   "it-CH", "Dettagli statistiche",
+			   "it-IT", "Dettagli statistiche",
+			   "nb-NO", "Statistikkdetaljer",
+			   "nl-BE", "Statistische details",
+			   "nl-NL", "Statistische details",
+			   "sv-SE", "Statistikinformation",
+			   "Statistic Details"
+			)
+		isHidden
+		lineageTag: 18d43228-0ea8-4559-be6e-5283fdafbde1
+
+	measure 'Machine Center Statistics Label' =
+			SWITCH(USERCULTURE(),
+			   "cs-CZ", "Statistika strojního centra",
+			   "da-DK", "Produktionsressourcestatistik",
+			   "de-AT", "Arbeitsplatzstatistik",
+			   "de-CH", "Arbeitsplatzstatistik",
+			   "de-DE", "Arbeitsplatzstatistik",
+			   "en-AU", "Machine Centre Statistics",
+			   "en-CA", "Machine Centre Statistics",
+			   "en-GB", "Machine Centre Statistics",
+			   "en-NZ", "Machine Centre Statistics",
+			   "es-ES", "Estadísticas centro máquina",
+			   "es-MX", "Estadísticas centro máquina",
+			   "fi-FI", "Kuormitusryhmän tilastot",
+			   "fr-BE", "Statistiques poste de charge",
+			   "fr-CA", "Statistiques unité de production",
+			   "fr-CH", "Statistiques poste de charge",
+			   "fr-FR", "Statistiques poste de charge",
+			   "is-IS", "Upplýsingar um vélastöðvar",
+			   "it-CH", "Statistiche centro di lavoro",
+			   "it-IT", "Statistiche centro di lavoro",
+			   "nb-NO", "Produksjonsressursstatistikk",
+			   "nl-BE", "Bewerkingsplaatsstatistiek",
+			   "nl-NL", "Bewerkingsplaatsstatistiek",
+			   "sv-SE", "Maskingrupp statistik",
+			   "Machine Center Statistics"
+			)
+		isHidden
+		lineageTag: 9629a058-484b-4ac6-ae9a-fcf3dfcfc3b7
+
+	measure 'Machine Center Load  Label' =
+			SWITCH(USERCULTURE(),
+			   "cs-CZ", "Zatížení strojního centra",
+			   "da-DK", "Produktionsressourcebelastning ",
+			   "de-AT", "Arbeitsplatzauslastung ",
+			   "de-CH", "Arbeitsplatzauslastung ",
+			   "de-DE", "Arbeitsplatzauslastung ",
+			   "en-AU", "Machine Centre Load ",
+			   "en-CA", "Machine Centre Load ",
+			   "en-GB", "Machine Centre Load ",
+			   "en-NZ", "Machine Centre Load ",
+			   "es-ES", "Carga centro máquina ",
+			   "es-MX", "Carga centro máquina ",
+			   "fi-FI", "Kuormitusryhmän kuormitus ",
+			   "fr-BE", "Charge poste de charge ",
+			   "fr-CA", "Chargement unité de production",
+			   "fr-CH", "Charge poste de charge ",
+			   "fr-FR", "Charge poste de charge ",
+			   "is-IS", "Álag á vélastöð ",
+			   "it-CH", "Carico centro di lavoro ",
+			   "it-IT", "Carico centro di lavoro ",
+			   "nb-NO", "Produksjonsressursbelastning ",
+			   "nl-BE", "Werklast bewerkingsplaats ",
+			   "nl-NL", "Werklast bewerkingsplaats ",
+			   "sv-SE", "Maskingrupp beläggning ",
+			   "Machine Center Load "
+			)
+		isHidden
+		lineageTag: 656d53c3-adce-4ebc-b2d0-ec25308e4bda
+
+	measure 'Machine Center Load Details Label' =
+			SWITCH(USERCULTURE(),
+			   "cs-CZ", "Podrobnosti zatížení strojního centra",
+			   "da-DK", "Detaljer om produktionsressourcebelastning",
+			   "de-AT", "Arbeitsplatzauslastungsdetails",
+			   "de-CH", "Arbeitsplatzauslastungsdetails",
+			   "de-DE", "Arbeitsplatzauslastungsdetails",
+			   "en-AU", "Machine Centre Load Details",
+			   "en-CA", "Machine Centre Load Details",
+			   "en-GB", "Machine Centre Load Details",
+			   "en-NZ", "Machine Centre Load Details",
+			   "es-ES", "Detalles carga centro máquina",
+			   "es-MX", "Detalles carga centro máquina",
+			   "fi-FI", "Kuormitusryhmän kuormitus – Tiedot",
+			   "fr-BE", "Détails charge poste de charge",
+			   "fr-CA", "Détails du chargement unité de production",
+			   "fr-CH", "Détails charge poste de charge",
+			   "fr-FR", "Détails charge poste de charge",
+			   "is-IS", "Álagsupplýsingar vélastöðvar",
+			   "it-CH", "Dettagli carico centro di lavoro",
+			   "it-IT", "Dettagli carico centro di lavoro",
+			   "nb-NO", "Detaljer om produksjonsressursbelastning",
+			   "nl-BE", "Details van werklast bewerkingsplaats",
+			   "nl-NL", "Details van werklast bewerkingsplaats",
+			   "sv-SE", "Information om maskingruppens beläggning",
+			   "Machine Center Load Details"
+			)
+		isHidden
+		lineageTag: 944863aa-c8ef-4c5a-9ae9-6b87a4a6f80f
+
+	measure 'Prod. Order List Label' =
+			SWITCH(USERCULTURE(),
+			   "cs-CZ", "Seznam výr. zakázek",
+			   "da-DK", "Produktionsordreliste",
+			   "de-AT", "Produktionsauftragsübersicht",
+			   "de-CH", "Produktionsauftragsliste",
+			   "de-DE", "Produktionsauftragsübersicht",
+			   "en-AU", "Prod. Order List",
+			   "en-CA", "Prod. Order List",
+			   "en-GB", "Prod. Order List",
+			   "en-NZ", "Prod. Order List",
+			   "es-ES", "Lista orden producción",
+			   "es-MX", "Lista orden producción",
+			   "fi-FI", "Tuotantotilausluettelo",
+			   "fr-BE", "Liste O.F.",
+			   "fr-CA", "Liste des ordres de fabrication",
+			   "fr-CH", "Liste O.F.",
+			   "fr-FR", "Liste O.F.",
+			   "is-IS", "Framl.pöntun - Listi",
+			   "it-CH", "Lista ordini di produzione",
+			   "it-IT", "Lista ordini di produzione",
+			   "nb-NO", "Prod.ordreoversikt",
+			   "nl-BE", "Lijst met productieorders",
+			   "nl-NL", "Lijst met productieorders",
+			   "sv-SE", "Prod.orderlista",
+			   "Prod. Order List"
+			)
+		isHidden
+		lineageTag: 4683af3d-40a4-483b-82ce-c8e8f6dcb16f
+
+	measure 'Prod. Order List Details Label' =
+			SWITCH(USERCULTURE(),
+			   "cs-CZ", "Podrobnosti seznamu výr. zakázek",
+			   "da-DK", "Detaljer om produktionsordreliste",
+			   "de-AT", "Produktionsauftrags-Übersichtsdetails",
+			   "de-CH", "Produktionsauftrags-Listendetails",
+			   "de-DE", "Produktionsauftrags-Übersichtsdetails",
+			   "en-AU", "Prod. Order List Details",
+			   "en-CA", "Prod. Order List Details",
+			   "en-GB", "Prod. Order List Details",
+			   "en-NZ", "Prod. Order List Details",
+			   "es-ES", "Detalles lista Ord. prod.",
+			   "es-MX", "Detalles lista Ord. prod.",
+			   "fi-FI", "Tuotantotilausluettelo – Tiedot",
+			   "fr-BE", "Détails O.F. : liste",
+			   "fr-CA", "Détails de la liste des ordres de fabrication",
+			   "fr-CH", "Détails O.F. : liste",
+			   "fr-FR", "Détails O.F. : liste",
+			   "is-IS", "Upplýsingar um lista framl.pöntunar",
+			   "it-CH", "Dettagli lista ordini di produzione",
+			   "it-IT", "Dettagli lista ordini di produzione",
+			   "nb-NO", "Detaljer om prod.ordreoversikt",
+			   "nl-BE", "Details van lijst met productieorders",
+			   "nl-NL", "Details van lijst met productieorders",
+			   "sv-SE", "Information om prod.orderlista",
+			   "Prod. Order List Details"
+			)
+		isHidden
+		lineageTag: 1ee6cd56-0aa3-460c-a6df-ebee94baa47a
+
+	measure 'Production Order Routing Lines Gantt Label' =
+			SWITCH(USERCULTURE(),
+			   "cs-CZ", "Řádky Ganttova diagramu plánování výrobní zakázky",
+			   "da-DK", "Gantt-diagram for rutelinjer i produktionsordre",
+			   "de-AT", "Produktionsauftrag – Arbeitsplanzeilen – Gantt",
+			   "de-CH", "Produktionsauftrag – Arbeitsplanzeilen – Gantt",
+			   "de-DE", "Produktionsauftrag – Arbeitsplanzeilen – Gantt",
+			   "en-AU", "Production Order Routing Lines Gantt",
+			   "en-CA", "Production Order Routing Lines Gantt",
+			   "en-GB", "Production Order Routing Lines Gantt",
+			   "en-NZ", "Production Order Routing Lines Gantt",
+			   "es-ES", "Líneas Gantt ruta orden producción",
+			   "es-MX", "Líneas Gantt ruta orden producción",
+			   "fi-FI", "Tuotantotilauksen reititysrivit – Gantt",
+			   "fr-BE", "Gantt lignes gamme O.F.",
+			   "fr-CA", "Gantt des lignes d’itinéraire de l’ordre de fabrication",
+			   "fr-CH", "Gantt lignes gamme O.F.",
+			   "fr-FR", "Gantt lignes gamme O.F.",
+			   "is-IS", "Leiðarlínur framleiðslupöntunar Gantt",
+			   "it-CH", "Diagramma di Gantt righe ciclo ordini di produzione",
+			   "it-IT", "Diagramma di Gantt righe ciclo ordini di produzione",
+			   "nb-NO", "Gantt for produksjonsordrerutelinjer",
+			   "nl-BE", "Gantt van bewerkingsplanregels productieorder",
+			   "nl-NL", "Gantt van bewerkingsplanregels productieorder",
+			   "sv-SE", "Ganttschema för operationsföljdsrader i produktionsorder",
+			   "Production Order Routing Lines Gantt"
+			)
+		isHidden
+		lineageTag: 6e1ce2fd-4217-41dc-8437-f867dabe0ba9
+
+	measure 'Routing Line Operation Duration Label' =
+			SWITCH(USERCULTURE(),
+			   "cs-CZ", "Doba provozu řádku TNG postupu",
+			   "da-DK", "Varighed af rutelinjeoperation",
+			   "de-AT", "Dauer des Arbeitsgangs",
+			   "de-CH", "Dauer des Arbeitsgangs",
+			   "de-DE", "Dauer des Arbeitsgangs",
+			   "en-AU", "Routing Line Operation Duration",
+			   "en-CA", "Routing Line Operation Duration",
+			   "en-GB", "Routing Line Operation Duration",
+			   "en-NZ", "Routing Line Operation Duration",
+			   "es-ES", "Duración operación línea ruta",
+			   "es-MX", "Duración operación línea ruta",
+			   "fi-FI", "Reititysrivitoiminnon kesto",
+			   "fr-BE", "Durée opération ligne gamme",
+			   "fr-CA", "Durée de l’opération de la ligne d’itinéraire",
+			   "fr-CH", "Durée opération ligne gamme",
+			   "fr-FR", "Durée opération ligne gamme",
+			   "is-IS", "Lengd aðgerðar leiðarlínu",
+			   "it-CH", "Durata operazione righe ciclo",
+			   "it-IT", "Durata operazione righe ciclo",
+			   "nb-NO", "Varighet for rutelinjeoperasjon",
+			   "nl-BE", "Duur van bewerkingsplan bewerkingsplanregel",
+			   "nl-NL", "Duur van bewerkingsplan bewerkingsplanregel",
+			   "sv-SE", "Operationstid för operationsföljdsrad",
+			   "Routing Line Operation Duration"
+			)
+		isHidden
+		lineageTag: d02cd17c-a15c-4d65-802a-c7efba4f8f16
+
+	measure 'Routing Line Details Label' =
+			SWITCH(USERCULTURE(),
+			   "cs-CZ", "Podrobnosti řádku TNG postupu",
+			   "da-DK", "Detaljer om rutelinje",
+			   "de-AT", "Arbeitsgangsdetails",
+			   "de-CH", "Arbeitsgangsdetails",
+			   "de-DE", "Arbeitsgangsdetails",
+			   "en-AU", "Routing Line Details",
+			   "en-CA", "Routing Line Details",
+			   "en-GB", "Routing Line Details",
+			   "en-NZ", "Routing Line Details",
+			   "es-ES", "Detalles lín. ruta",
+			   "es-MX", "Detalles lín. ruta",
+			   "fi-FI", "Reititysrivi – Tiedot",
+			   "fr-BE", "Détails ligne gamme",
+			   "fr-CA", "Détails de la ligne d’itinéraire",
+			   "fr-CH", "Détails ligne gamme",
+			   "fr-FR", "Détails ligne gamme",
+			   "is-IS", "Línuupplýsingar leiðar",
+			   "it-CH", "Dettagli righe ciclo",
+			   "it-IT", "Dettagli righe ciclo",
+			   "nb-NO", "Detaljer om rutelinje",
+			   "nl-BE", "Details van bewerkingsplanregel",
+			   "nl-NL", "Details van bewerkingsplanregel",
+			   "sv-SE", "Information om operationsföljdsrad",
+			   "Routing Line Details"
+			)
+		isHidden
+		lineageTag: 884cf692-9949-4dd4-9567-36b3a91994d6
+
+	measure 'Production Order WIP Label' =
+			SWITCH(USERCULTURE(),
+			   "cs-CZ", "NV výrobní zakázky",
+			   "da-DK", "Igangværende arbejde for produktionsordre",
+			   "de-AT", "Produktionsauftrag – RIF",
+			   "de-CH", "Produktionsauftrag – RIF",
+			   "de-DE", "Produktionsauftrag – RIF",
+			   "en-AU", "Production Order WIP",
+			   "en-CA", "Production Order WIP",
+			   "en-GB", "Production Order WIP",
+			   "en-NZ", "Production Order WIP",
+			   "es-ES", "Orden de producción WIP",
+			   "es-MX", "Orden de producción WIP",
+			   "fi-FI", "Tuotantotilaus – KET",
+			   "fr-BE", "Ordre de fabrication : travaux en cours",
+			   "fr-CA", "Ordre de fabrication TEC",
+			   "fr-CH", "Ordre de fabrication : travaux en cours",
+			   "fr-FR", "Ordre de fabrication : travaux en cours",
+			   "is-IS", "Birgðapöntun – VÍV",
+			   "it-CH", "WIP ordine di produzione",
+			   "it-IT", "WIP ordine di produzione",
+			   "nb-NO", "Produksjonsordre – VIA",
+			   "nl-BE", "OHW productieorder",
+			   "nl-NL", "OHW productieorder",
+			   "sv-SE", "PIA för produktionsorder",
+			   "Production Order WIP"
+			)
+		isHidden
+		lineageTag: 3a5d21bf-d7c7-46a4-9e3e-dfaa0dfe1b2f
+
+	measure 'Inventory Valuation - WIP Label' =
+			SWITCH(USERCULTURE(),
+			   "cs-CZ", "Hodnota zásob – NV",
+			   "da-DK", "Lagerværdi - igangværende arbejde",
+			   "de-AT", "Lagerbewertung – RIF",
+			   "de-CH", "Lagerbewertung – RIF",
+			   "de-DE", "Lagerbewertung – RIF",
+			   "en-AU", "Inventory Valuation - WIP",
+			   "en-CA", "Inventory Valuation - WIP",
+			   "en-GB", "Inventory Valuation - WIP",
+			   "en-NZ", "Inventory Valuation - WIP",
+			   "es-ES", "Valoración inventario - WIP",
+			   "es-MX", "Valuación de inventarios - Trabajo en curso",
+			   "fi-FI", "Varaston arvostus – KET",
+			   "fr-BE", "Évaluation du stock : travaux en cours",
+			   "fr-CA", "Évaluation de l’inventaire - TEC",
+			   "fr-CH", "Évaluation du stock : travaux en cours",
+			   "fr-FR", "Évaluation du stock : travaux en cours",
+			   "is-IS", "Verðmæti birgða - VÍV",
+			   "it-CH", "Valutazione magazzino - WIP",
+			   "it-IT", "Valutazione magazzino - WIP",
+			   "nb-NO", "Beholdningsverdisetting – VIA",
+			   "nl-BE", "Voorraadwaardering - OHW",
+			   "nl-NL", "Voorraadwaardering - OHW",
+			   "sv-SE", "Lagervärdering – PIA",
+			   "Inventory Valuation - WIP"
+			)
+		isHidden
+		lineageTag: a16c63c3-ff2b-4754-abbf-7c8cb2aeaf9e
+
+	measure 'Task List Drill Through Label' =
+			SWITCH(USERCULTURE(),
+			   "cs-CZ", "Podrobné procházení seznamu úloh",
+			   "da-DK", "Opgaveliste med detailudledning",
+			   "de-AT", "Aufgabenübersicht-Drillthrough",
+			   "de-CH", "Aufgabenliste-Drillthrough",
+			   "de-DE", "Aufgabenübersicht-Drillthrough",
+			   "en-AU", "Task List Drill Through",
+			   "en-CA", "Task List Drill Through",
+			   "en-GB", "Task List Drill Through",
+			   "en-NZ", "Task List Drill Through",
+			   "es-ES", "Análisis detallado de lista de tareas",
+			   "es-MX", "Análisis detallado de lista de tareas",
+			   "fi-FI", "Tehtäväluetteloon porautuminen",
+			   "fr-BE", "Exploration liste des tâches",
+			   "fr-CA", "Exploration liste des tâches",
+			   "fr-CH", "Exploration liste des tâches",
+			   "fr-FR", "Exploration liste des tâches",
+			   "is-IS", "Verkefnalisti köfun",
+			   "it-CH", "Drill-through lista attività",
+			   "it-IT", "Drill-through lista attività",
+			   "nb-NO", "Gjennomgang av oppgaveliste",
+			   "nl-BE", "Detailanalyse taakoverzicht",
+			   "nl-NL", "Detailanalyse taakoverzicht",
+			   "sv-SE", "Detaljerad analys av uppgiftslista",
+			   "Task List Drill Through"
+			)
+		isHidden
+		lineageTag: 5e82a2c2-a014-4ae5-9bac-55c745d0c029
+
+	measure 'Task List Details Label' =
+			SWITCH(USERCULTURE(),
+			   "cs-CZ", "Podrobnosti seznamu úloh",
+			   "da-DK", "Detaljer om opgaveliste",
+			   "de-AT", "Aufgabenlistendetails",
+			   "de-CH", "Aufgabenlistendetails",
+			   "de-DE", "Aufgabenlistendetails",
+			   "en-AU", "Task List Details",
+			   "en-CA", "Task List Details",
+			   "en-GB", "Task List Details",
+			   "en-NZ", "Task List Details",
+			   "es-ES", "Detalles de lista de tareas",
+			   "es-MX", "Detalles de lista de tareas",
+			   "fi-FI", "Tehtäväluettelo – Tiedot",
+			   "fr-BE", "Détails liste tâches",
+			   "fr-CA", "Détails liste tâches",
+			   "fr-CH", "Détails liste tâches",
+			   "fr-FR", "Détails liste tâches",
+			   "is-IS", "Upplýsingar um verkefnalista",
+			   "it-CH", "Dettagli lista attività",
+			   "it-IT", "Dettagli lista attività",
+			   "nb-NO", "Detaljer om oppgaveliste",
+			   "nl-BE", "Details van taakoverzicht",
+			   "nl-NL", "Details van taakoverzicht",
+			   "sv-SE", "Information om uppgiftslista",
+			   "Task List Details"
+			)
+		isHidden
+		lineageTag: 0ddc7379-10fc-46ac-8e93-2944c24c7f18
+
+	measure 'Expected Capacity Need Variance Label' =
+			SWITCH(USERCULTURE(),
+			   "cs-CZ", "Očekávaná odchylka potřebné kapacity",
+			   "da-DK", "Afvigelse i forventet kapacitetsbehov",
+			   "de-AT", "Erwartete Kapazitätsbedarfsabweichung",
+			   "de-CH", "Erwartete Kapazitätsbedarfsabweichung",
+			   "de-DE", "Erwartete Kapazitätsbedarfsabweichung",
+			   "en-AU", "Expected Capacity Need Variance",
+			   "en-CA", "Expected Capacity Need Variance",
+			   "en-GB", "Expected Capacity Need Variance",
+			   "en-NZ", "Expected Capacity Need Variance",
+			   "es-ES", "Desviación nec. capacidad prevista",
+			   "es-MX", "Desviación nec. capacidad prevista",
+			   "fi-FI", "Oletetun kapasiteettitarpeen vaihtelu",
+			   "fr-BE", "Écart charge prévue",
+			   "fr-CA", "Écart charge prévue",
+			   "fr-CH", "Écart charge prévue",
+			   "fr-FR", "Écart charge prévue",
+			   "is-IS", "Áætluð breyting á framleiðsluþörf",
+			   "it-CH", "Scostamento capacità prevista necessaria",
+			   "it-IT", "Scostamento capacità prevista necessaria",
+			   "nb-NO", "Avvik i forventet kapasitetsbehov",
+			   "nl-BE", "Verschil capaciteitsbehoefte (Verw.)",
+			   "nl-NL", "Verschil capaciteitsbehoefte (Verw.)",
+			   "sv-SE", "Förväntad varians kapacitetsbehov",
+			   "Expected Capacity Need Variance"
+			)
+		isHidden
+		lineageTag: a3ed02fd-fc87-4e2d-90b2-8963b9de7b9f
+
+	measure 'Expected Capacity Cost Dev % by Source No. Label' =
+			SWITCH(USERCULTURE(),
+			   "cs-CZ", "Odchylka očekávaných nákladů na kapacitu (%) podle č. původu",
+			   "da-DK", "Forventet afvigelsesprocent i kapacitetskost efter kildenr.",
+			   "de-AT", "Erwartete Kapazitätskostenabweichung in % nach Herkunftsnr.",
+			   "de-CH", "Erwartete Kapazitätskostenabweichung in % nach Herkunftsnr.",
+			   "de-DE", "Erwartete Kapazitätskostenabweichung in % nach Herkunftsnr.",
+			   "en-AU", "Expected Capacity Cost Dev % by Source No.",
+			   "en-CA", "Expected Capacity Cost Dev % by Source No.",
+			   "en-GB", "Expected Capacity Cost Dev % by Source No.",
+			   "en-NZ", "Expected Capacity Cost Dev % by Source No.",
+			   "es-ES", "% des coste capacidad prevista por cód. procedencia mov.",
+			   "es-MX", "% desv. costo de capacidad esperado por n.º origen",
+			   "fi-FI", "Oletettujen kapasiteettikustannusten poikkeama-% lähdenumeroittain",
+			   "fr-BE", "% écart coût capacité prévu par n° source",
+			   "fr-CA", "% écart coût capacité prévu par n° source",
+			   "fr-CH", "% écart coût capacité prévu par n° source",
+			   "fr-FR", "% écart coût capacité prévu par n° source",
+			   "is-IS", "Áætlaður afkastakostnaður fráv % eftir upprunanr.",
+			   "it-CH", "% deviazione costi capacità previsti per nr. origine",
+			   "it-IT", "% deviazione costi capacità previsti per nr. origine",
+			   "nb-NO", "Utviklingsprosent for forventet kapasitetskostnad etter kildenr.",
+			   "nl-BE", "% afwijking verwachte capaciteitskosten per bronnr.",
+			   "nl-NL", "% afwijking verwachte capaciteitskosten per bronnr.",
+			   "sv-SE", "Förväntad kapacitetskostnadsavvikelse % per källnummer",
+			   "Expected Capacity Cost Dev % by Source No."
+			)
+		isHidden
+		lineageTag: dca1e952-48bf-41b1-b543-1d15f1d14adb
+
+	measure 'Average Production Time Per Unit by Work Center Label' =
+			SWITCH(USERCULTURE(),
+			   "cs-CZ", "Průměrná doba výroby na jednotku podle pracovního centra",
+			   "da-DK", "Gennemsnitlig produktionstid pr. enhed efter arbejdscenter",
+			   "de-AT", "Durchschnittliche Produktionszeit pro Einheit nach Workcenter",
+			   "de-CH", "Durchschnittliche Produktionszeit pro Einheit nach Workcenter",
+			   "de-DE", "Durchschnittliche Produktionszeit pro Einheit nach Workcenter",
+			   "en-AU", "Average Production Time Per Unit by Work Centre",
+			   "en-CA", "Average Production Time Per Unit by Work Centre",
+			   "en-GB", "Average Production Time Per Unit by Work Centre",
+			   "en-NZ", "Average Production Time Per Unit by Work Centre",
+			   "es-ES", "Tiempo medio por unidad de producción por centro de trabajo",
+			   "es-MX", "Tiempo medio por unidad de producción por centro de trabajo",
+			   "fi-FI", "Keskimääräinen tuotantoaika yksikköä kohti tuotantosoluittain",
+			   "fr-BE", "Temps de production moyen par unité par centre de charge",
+			   "fr-CA", "Temps de production moyen par unité par atelier",
+			   "fr-CH", "Temps de production moyen par unité par centre de charge",
+			   "fr-FR", "Temps de production moyen par unité par centre de charge",
+			   "is-IS", "Meðalframleiðslutími á einingu eftir vinnustöð",
+			   "it-CH", "Tempo medio di produzione per unità per area di produzione",
+			   "it-IT", "Tempo medio di produzione per unità per area di produzione",
+			   "nb-NO", "Gjennomsnittlig produksjonstid per enhet etter arbeidssenter",
+			   "nl-BE", "Gemiddelde productietijd per eenheid per afdeling",
+			   "nl-NL", "Gemiddelde productietijd per eenheid per afdeling",
+			   "sv-SE", "Genomsnittlig produktionstid per enhet per produktionsgrupp",
+			   "Average Production Time Per Unit by Work Center"
+			)
+		isHidden
+		lineageTag: a5072c44-532e-41df-9fa5-30641c5bd89c
+
+	measure 'Average Production Time Per Unit by Source No. Label' =
+			SWITCH(USERCULTURE(),
+			   "cs-CZ", "Průměrná doba výroby na jednotku podle č. původu",
+			   "da-DK", "Gennemsnitlig produktionstid pr. enhed efter kildenr.",
+			   "de-AT", "Durchschnittliche Produktionszeit pro Einheit nach Herkunftsnr.",
+			   "de-CH", "Durchschnittliche Produktionszeit pro Einheit nach Herkunftsnr.",
+			   "de-DE", "Durchschnittliche Produktionszeit pro Einheit nach Herkunftsnr.",
+			   "en-AU", "Average Production Time Per Unit by Source No.",
+			   "en-CA", "Average Production Time Per Unit by Source No.",
+			   "en-GB", "Average Production Time Per Unit by Source No.",
+			   "en-NZ", "Average Production Time Per Unit by Source No.",
+			   "es-ES", "Tiempo medio por unidad de producción por cód. procedencia mov",
+			   "es-MX", "Tiempo medio por unidad de producción por cód. procedencia mov",
+			   "fi-FI", "Keskimääräinen tuotantoaika yksikköä kohti lähdenumeroittain",
+			   "fr-BE", "Temps de production moyen par unité par n° origine",
+			   "fr-CA", "Temps de production moyen par unité par n° origine",
+			   "fr-CH", "Temps de production moyen par unité par n° origine",
+			   "fr-FR", "Temps de production moyen par unité par n° origine",
+			   "is-IS", "Meðalframleiðslutími á einingu eftir upprunanr.",
+			   "it-CH", "Tempo medio di produzione per unità per nr. origine",
+			   "it-IT", "Tempo medio di produzione per unità per nr. origine",
+			   "nb-NO", "Gjennomsnittlig produksjonstid per enhet etter kildenr.",
+			   "nl-BE", "Gemiddelde productietijd per eenheid per bronnr.",
+			   "nl-NL", "Gemiddelde productietijd per eenheid per bronnr.",
+			   "sv-SE", "Genomsnittlig produktionstid per enhet per källnr",
+			   "Average Production Time Per Unit by Source No."
+			)
+		isHidden
+		lineageTag: 0b23807e-37dc-4678-ac7b-cbb3c26ccba5
+
+	measure 'Scrap Quantity Over Time Label' =
+			SWITCH(USERCULTURE(),
+			   "cs-CZ", "Množství zmetků v průběhu času",
+			   "da-DK", "Spildantal over tid",
+			   "de-AT", "Ausschussmenge im Zeitverlauf",
+			   "de-CH", "Ausschussmenge im Zeitverlauf",
+			   "de-DE", "Ausschussmenge im Zeitverlauf",
+			   "en-AU", "Scrap Quantity Over Time",
+			   "en-CA", "Scrap Quantity Over Time",
+			   "en-GB", "Scrap Quantity Over Time",
+			   "en-NZ", "Scrap Quantity Over Time",
+			   "es-ES", "Cantidad rechazada a lo largo del tiempo",
+			   "es-MX", "Cantidad rechazada a lo largo del tiempo",
+			   "fi-FI", "Hukkatavaramäärä ajan kuluessa",
+			   "fr-BE", "Quantité de rebut dans le temps",
+			   "fr-CA", "Quantité de rebut dans le temps",
+			   "fr-CH", "Quantité de rebut dans le temps",
+			   "fr-FR", "Quantité de rebut dans le temps",
+			   "is-IS", "Úrkastsmagn yfir tíma",
+			   "it-CH", "Quantità scarto nel tempo",
+			   "it-IT", "Quantità scarto nel tempo",
+			   "nb-NO", "Vrakantall over tid",
+			   "nl-BE", "Uitvalhoeveelheid in de loop van de tijd",
+			   "nl-NL", "Uitvalhoeveelheid in de loop van de tijd",
+			   "sv-SE", "Kassationsantal över tid",
+			   "Scrap Quantity Over Time"
+			)
+		isHidden
+		lineageTag: 9ba61e3e-4221-4607-9473-7142174d0eb4
+
+	measure 'Scrap % by Production Order Label' =
+			SWITCH(USERCULTURE(),
+			   "cs-CZ", "Zmetky (%) podle výrobní zakázky",
+			   "da-DK", "Spildprocent efter produktionsordre",
+			   "de-AT", "Ausschuss in % nach Produktionsauftrag",
+			   "de-CH", "Ausschuss in % nach Produktionsauftrag",
+			   "de-DE", "Ausschuss in % nach Produktionsauftrag",
+			   "en-AU", "Scrap % by Production Order",
+			   "en-CA", "Scrap % by Production Order",
+			   "en-GB", "Scrap % by Production Order",
+			   "en-NZ", "Scrap % by Production Order",
+			   "es-ES", "% rechazo por orden de producción",
+			   "es-MX", "% rechazo por orden de producción",
+			   "fi-FI", "Hukka-% tuotantotilauksittain",
+			   "fr-BE", "% rebut par ordre de fabrication",
+			   "fr-CA", "Pourcentage de rebut par ordre de fabrication",
+			   "fr-CH", "% rebut par ordre de fabrication",
+			   "fr-FR", "% rebut par ordre de fabrication",
+			   "is-IS", "Úrkast % eftir framleiðslupöntun",
+			   "it-CH", "% scarto per ordine di produzione",
+			   "it-IT", "% scarto per ordine di produzione",
+			   "nb-NO", "Vrakprosent etter produksjonsordre",
+			   "nl-BE", "% uitval per productieorder",
+			   "nl-NL", "% uitval per productieorder",
+			   "sv-SE", "Kassation % för produktionsorder",
+			   "Scrap % by Production Order"
+			)
+		isHidden
+		lineageTag: dc320fc4-8256-451d-b57b-39c16891115d
+
+	measure 'Scrap Quantity by Scrap Code Label' =
+			SWITCH(USERCULTURE(),
+			   "cs-CZ", "Množství zmetků podle kódu zmetku",
+			   "da-DK", "Spildkvalitet efter spildkode",
+			   "de-AT", "Ausschussmenge nach Ausschusscode",
+			   "de-CH", "Ausschussmenge nach Ausschusscode",
+			   "de-DE", "Ausschussmenge nach Ausschusscode",
+			   "en-AU", "Scrap Quantity by Scrap Code",
+			   "en-CA", "Scrap Quantity by Scrap Code",
+			   "en-GB", "Scrap Quantity by Scrap Code",
+			   "en-NZ", "Scrap Quantity by Scrap Code",
+			   "es-ES", "Cantidad de rechazo por código rechazo",
+			   "es-MX", "Cantidad de rechazo por código rechazo",
+			   "fi-FI", "Hukkatavaramäärä hukkakoodeittain",
+			   "fr-BE", "Quantité rebut par code rebut",
+			   "fr-CA", "Quantité rebut par code rebut",
+			   "fr-CH", "Quantité rebut par code rebut",
+			   "fr-FR", "Quantité rebut par code rebut",
+			   "is-IS", "Úrkastsmagn eftir úrkastskóða",
+			   "it-CH", "Quantità scarto per codice scarto",
+			   "it-IT", "Quantità scarto per codice scarto",
+			   "nb-NO", "Vrakantall etter vrakkode",
+			   "nl-BE", "Uitvalhoeveelheid per uitvalcode",
+			   "nl-NL", "Uitvalhoeveelheid per uitvalcode",
+			   "sv-SE", "Kassationsantal per kassationskod",
+			   "Scrap Quantity by Scrap Code"
+			)
+		isHidden
+		lineageTag: cd6c03a5-5636-4278-bd84-4f086e3ee77e
+
+	measure 'Scrap Quantity vs. Expected Scrap Quantity Label' =
+			SWITCH(USERCULTURE(),
+			   "cs-CZ", "Množství zmetků vs. očekávané množství zmetků",
+			   "da-DK", "Spildantal vs. forventet spildantal",
+			   "de-AT", "Ausschussmenge gegenüber der erwarteten Ausschussmenge",
+			   "de-CH", "Ausschussmenge gegenüber der erwarteten Ausschussmenge",
+			   "de-DE", "Ausschussmenge gegenüber der erwarteten Ausschussmenge",
+			   "en-AU", "Scrap Quantity vs. Expected Scrap Quantity",
+			   "en-CA", "Scrap Quantity vs. Expected Scrap Quantity",
+			   "en-GB", "Scrap Quantity vs. Expected Scrap Quantity",
+			   "en-NZ", "Scrap Quantity vs. Expected Scrap Quantity",
+			   "es-ES", "Cantidad rechazada frente a cantidad de rechazo esperada",
+			   "es-MX", "Cantidad rechazada frente a cantidad de rechazo esperada",
+			   "fi-FI", "Hukkatavaramäärä vrt. oletettu hukkatavaramäärä",
+			   "fr-BE", "Quantité de rebut par rapport à quantité de rebut prévue",
+			   "fr-CA", "Quantité de rebut par rapport à quantité de rebut prévue",
+			   "fr-CH", "Quantité de rebut par rapport à quantité de rebut prévue",
+			   "fr-FR", "Quantité de rebut par rapport à quantité de rebut prévue",
+			   "is-IS", "Úrkastsmagn miðað við áætlað Úrkastsmagn",
+			   "it-CH", "Quantità scarto e quantità scarto prevista",
+			   "it-IT", "Quantità scarto e quantità scarto prevista",
+			   "nb-NO", "Vrakantall kontra forventet vrakantall",
+			   "nl-BE", "Uitvalhoeveelheid versus verwachte uitvalhoeveelheid",
+			   "nl-NL", "Uitvalhoeveelheid versus verwachte uitvalhoeveelheid",
+			   "sv-SE", "Kassationsantal jämfört med förväntat kassationsantal",
+			   "Scrap Quantity vs. Expected Scrap Quantity"
+			)
+		isHidden
+		lineageTag: ab3559e4-2394-4749-b396-12a158072631
+
+	measure 'Production Order Time Line Label' =
+			SWITCH(USERCULTURE(),
+			   "cs-CZ", "Řádek času výrobní zakázky",
+			   "da-DK", "Tidslinje for produktionsordre",
+			   "de-AT", "Produktionsauftrags-Zeitleiste",
+			   "de-CH", "Produktionsauftrags-Zeitleiste",
+			   "de-DE", "Produktionsauftrags-Zeitleiste",
+			   "en-AU", "Production Order Time Line",
+			   "en-CA", "Production Order Time Line",
+			   "en-GB", "Production Order Time Line",
+			   "en-NZ", "Production Order Time Line",
+			   "es-ES", "Línea de tiempo de orden de producción",
+			   "es-MX", "Línea de tiempo de orden de producción",
+			   "fi-FI", "Tuotantotilauksen aikarivi",
+			   "fr-BE", "Ligne temps ordre de fabrication",
+			   "fr-CA", "Chronologie de l’ordre de fabrication",
+			   "fr-CH", "Ligne temps ordre de fabrication",
+			   "fr-FR", "Ligne temps ordre de fabrication",
+			   "is-IS", "Tímalína framleiðslupantana",
+			   "it-CH", "Riga tempo ordine di produzione",
+			   "it-IT", "Riga tempo ordine di produzione",
+			   "nb-NO", "Produksjonsordretidslinje",
+			   "nl-BE", "Tijdlijn productieorder",
+			   "nl-NL", "Tijdlijn productieorder",
+			   "sv-SE", "Tidslinje för produktionsorder",
+			   "Production Order Time Line"
+			)
+		isHidden
+		lineageTag: 49fb64c2-6eab-40a1-b114-29045ea53c40
+
+	measure 'Production Time Line Label' =
+			SWITCH(USERCULTURE(),
+			   "cs-CZ", "Řádek času výroby",
+			   "da-DK", "Tidslinje for produktion",
+			   "de-AT", "Produktionszeitleiste",
+			   "de-CH", "Produktionszeitleiste",
+			   "de-DE", "Produktionszeitleiste",
+			   "en-AU", "Production Time Line",
+			   "en-CA", "Production Time Line",
+			   "en-GB", "Production Time Line",
+			   "en-NZ", "Production Time Line",
+			   "es-ES", "Línea de tiempo de producción",
+			   "es-MX", "Línea de tiempo de producción",
+			   "fi-FI", "Tuotannon aikarivi",
+			   "fr-BE", "Lignes temps de production",
+			   "fr-CA", "Lignes temps de production",
+			   "fr-CH", "Lignes temps de production",
+			   "fr-FR", "Lignes temps de production",
+			   "is-IS", "Tímalína framleiðslu",
+			   "it-CH", "Riga tempo di produzione",
+			   "it-IT", "Riga tempo di produzione",
+			   "nb-NO", "Produksjonstidslinje",
+			   "nl-BE", "Tijdlijn productie",
+			   "nl-NL", "Tijdlijn productie",
+			   "sv-SE", "Tidslinje för produktion",
+			   "Production Time Line"
+			)
+		isHidden
+		lineageTag: bcbc7c05-8351-40f1-a7f5-c1cf8c6b32a1
+
+	measure 'Work Center Efficiency Label' = "Work Center Efficiency"
+		isHidden
+		lineageTag: b556c03b-27d4-4aec-bd7e-ebd1e85619c7
+
+	measure 'Machine Center Efficiency Label' = "Machine Center Efficiency"
+		isHidden
+		lineageTag: a53aa64a-18ef-46d9-b7a3-4ba9beaa7f0c
+
+	measure 'No. of Production Orders by Source Item Label' = "No. of Production Orders by Source Item"
+		isHidden
+		lineageTag: ce59dfc6-df9a-434b-a539-6f1f697cd145
+
+	measure 'Prod. Order Routing Gantt Label' = "Prod. Order Routing Gantt"
+		isHidden
+		lineageTag: b90d9118-a965-49c7-91d1-2c3aedc7bba3
+
+	measure 'Production Timeline Label' = "Production Timeline"
+		isHidden
+		lineageTag: 2b2e2836-c089-4280-a6fb-c7bcd9b18b93
+
+	measure 'Ending Balance Value by Month and Year Label' = "Ending Balance Value by Month and Year"
+		isHidden
+		lineageTag: 489af21b-58b7-4717-9720-c614d2ce8a12
+
+	measure 'Scrap Quantity vs. Expected Scrap Quantity by Source No. Label' = "Scrap Quantity vs. Expected Scrap Quantity by Source No."
+		isHidden
+		lineageTag: f1d2bdbd-01e5-48b6-a63e-e4474683fa2f
+
+	measure 'Production Orders by Work Center Label' = "Production Orders by Work Center"
+		isHidden
+		lineageTag: e850403c-8299-46bf-9211-66309e1daae4
+
+	column unused
+		isHidden
+		displayFolder: unused
+		lineageTag: 87dd39ce-a2ce-400f-a762-45df4ee05f14
+		isNameInferred
+		sourceColumn: [unused]
+
+	partition Partition = calculated
+		source = DATATABLE("unused", STRING, {{"This is a table automatically generated by Translations Builder"}})
+

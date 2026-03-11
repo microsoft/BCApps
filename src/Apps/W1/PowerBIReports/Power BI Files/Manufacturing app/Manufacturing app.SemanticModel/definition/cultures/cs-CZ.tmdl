@@ -1,0 +1,1207 @@
+cultureInfo cs-CZ
+	translations
+		model Model
+			table Item
+				caption: Zboží
+				column 'Item No. & Description'
+					caption: Číslo a popis zboží
+				column 'Item No.'
+					caption: Číslo zboží
+				column 'Item Description'
+					caption: Popis zboží
+				column 'Item Unit Cost (LCY)'
+					caption: Pořizovací cena zboží (LM)
+				column 'Item Inventory Posting Group'
+					caption: Účto skupiny zásob zboží
+				column 'Item Category Code'
+					caption: Kód kategorie zboží
+				column 'Item Category Description'
+					caption: Popis kategorie zboží
+				column 'Item Routing No.'
+					caption: Kód TNG postupu zboží
+				column 'Item Production BOM No.'
+					caption: Číslo výrobního kusovníku zboží
+				column 'Item Replenishment System'
+					caption: Systém doplnění zboží
+				column 'Item Single-Level Cap. Ovhd Cost'
+					caption: Jed. ú. režijních nákl. kapacity zboží
+				column 'Item Single-Level Capacity Cost'
+					caption: Jedna úroveň nákl. na kapacitu zboží
+				column 'Item Single-Level Material Cost'
+					caption: Jedna úroveň nákl. na materiál zboží
+				column 'Item Single-Level Mfg. Ovhd Cost'
+					caption: J. úroveň rež. nákl. výroby zboží
+				column 'Item Single-Level Subcontrd. Cost'
+					caption: Jedna úroveň nákl. subdod. zboží
+				column 'Item Base Unit of Measure'
+					caption: Základní měrná jednotka zboží
+				column 'Item Rolled-up Cap. Overhead Cost'
+					caption: Více úrovní rež. nákl. na kap. zboží
+				column 'Item Rolled-up Capacity Cost'
+					caption: Více úrovní nákl. na kapacitu zboží
+				column 'Item Rolled-up Material Cost'
+					caption: Více úrovní nákl. na materiál zboží
+				column 'Item Rolled-up Mfg. Ovhd Cost'
+					caption: Více úrovní rež. nákl. výroby zboží
+				column 'Item Rolled-up Subcontracted Cost'
+					caption: Více úrovní nákl. subdodavatele zboží
+				column 'Item Scrap %'
+					caption: Zmetky zboží (%)
+				column 'Item Single-Lvl Mat. Non-Invt. Cost'
+					caption: Jed. ú. neskl. nákl. na mat. zboží
+				column 'Item Rolled-up Mat. Non-Invt. Cost'
+					caption: Více úrovní nákl. na mat. zboží
+			table Date
+				caption: Datum
+				column DateKey
+					caption: DateKey
+				column 'Day of Month'
+					caption: Den v měsíci
+				column WeekDayNumber
+					caption: WeekDayNumber
+				column 'Week Day'
+					caption: Den v týdnu
+				column 'Holiday Name'
+					caption: Název svátku
+				column IsWorkingDay
+					caption: IsWorkingDay
+				column 'Day Type'
+					caption: Typ dne
+				column DatesWithTransactions
+					caption: DatesWithTransactions
+				column 'Calendar YearNumber'
+					caption: Číslo kalendářního roku
+				column 'Calendar Year'
+					caption: Kalendářní rok
+				column 'Calendar QuarterNumber'
+					caption: Číslo kalendářního kvartálu
+				column 'Calendar Quarter'
+					caption: Kalendářní kvartál
+				column 'Calendar YearQuarterNumber'
+					caption: Číslo kvartálu v kalendářním roce
+				column 'Calendar Quarter Year'
+					caption: Rok kalendářního kvartálu
+				column 'Calendar MonthNumber'
+					caption: Číslo kalendářního měsíce
+				column 'Calendar Month'
+					caption: Kalendářní měsíc
+				column 'Calendar YearMonthNumber'
+					caption: Číslo kalendářního měsíce roku
+				column 'Calendar Month Year'
+					caption: Kalendářní měsíc v roce
+				column 'Calendar WeekNumber'
+					caption: Číslo kalendářního týdne
+				column 'Calendar Week'
+					caption: Kalendářní týden
+				column 'Calendar YearWeekNumber'
+					caption: Číslo kalendářního týdne roku
+				column 'Calendar Week Year'
+					caption: Kalendářní týden a rok
+				column 'Calendar WeekYearOrder'
+					caption: Pořadí kalendářního týdne a roku
+				column 'Calendar RelativeWeekPos'
+					caption: Relativní pozice kalendářního týdne
+				column 'Calendar RelativeMonthPos'
+					caption: Relativní pozice kalendářního měsíce
+				column 'Calendar RelativeQuarterPos'
+					caption: Relativní pozice kalendářního kvartálu
+				column 'Calendar RelativeYearPos'
+					caption: Relativní pozice kalendářního roku
+				column 'Calendar StartOfMonth'
+					caption: Začátek kalendářního měsíce
+				column 'Calendar EndOfMonth'
+					caption: Konec kalendářního měsíce
+				column 'Calendar StartOfQuarter'
+					caption: Začátek kalendářního kvartálu
+				column 'Calendar EndOfQuarter'
+					caption: Konec kalendářního kvartálu
+				column 'Calendar StartOfYear'
+					caption: Začátek kalendářního roku
+				column 'Calendar EndOfYear'
+					caption: Konec kalendářního roku
+				column 'Calendar MonthDays'
+					caption: Kalendářní dny v měsíci
+				column 'Calendar QuarterDays'
+					caption: Dny kalendářního kvartálu
+				column 'Calendar YearDays'
+					caption: Dny kalendářního roku
+				column 'Calendar DayOfMonthNumber'
+					caption: Číslo dne v kalendářním měsíci
+				column 'Calendar DayOfQuarterNumber'
+					caption: Číslo dne v kalendářním kvartálu
+				column 'Calendar DayOfYearNumber'
+					caption: Číslo dne v kalendářním roce
+				column 'Calendar DatePreviousWeek'
+					caption: Datum v předchozím kalendářním týdnu
+				column 'Calendar DatePreviousMonth'
+					caption: Datum v předchozím kalendářním měsíci
+				column 'Calendar DatePreviousQuarter'
+					caption: Datum v předchozím kalendářním kvartálu
+				column 'Calendar DatePreviousYear'
+					caption: Datum v předchozím kalendářním roce
+				column 'Fiscal Year'
+					caption: Fiskální rok
+				column 'Fiscal YearNumber'
+					caption: Číslo fiskálního roku
+				column 'Fiscal QuarterNumber'
+					caption: Číslo fiskálního kvartálu
+				column 'Fiscal Quarter'
+					caption: Fiskální kvartál
+				column 'Fiscal YearQuarterNumber'
+					caption: Číslo fiskálního kvartálu roku
+				column 'Fiscal Quarter Year'
+					caption: FIskální rok kvartálu
+				column 'Fiscal MonthNumber'
+					caption: Číslo fiskálního měsíce
+				column 'Fiscal MonthInQuarterNumber'
+					caption: Číslo fiskálního měsíce v kvartálu
+				column 'Fiscal Month'
+					caption: Fiskální měsíc
+				column 'Fiscal YearMonthNumber'
+					caption: Číslo fiskálního měsíce roku
+				column 'Fiscal Month Year'
+					caption: FIskální rok měsíce
+				column 'Fiscal WeekNumber'
+					caption: Číslo fiskálního týdne
+				column 'Fiscal Week'
+					caption: Fiskální týden
+				column 'Fiscal YearWeekNumber'
+					caption: Číslo fiskálního týdne a roku
+				column 'Fiscal Week Year'
+					caption: Fiskální týden a rok
+				column 'Fiscal WeekYearOrder'
+					caption: Pořadí fiskálního týdne a roku
+				column 'Fiscal RelativeWeekPos'
+					caption: Relativní pozice fiskálního týdne
+				column 'Fiscal RelativeMonthPos'
+					caption: Relativní pozice fiskálního měsíce
+				column 'Fiscal RelativeQuarterPos'
+					caption: Relativní pozice fiskálního kvartálu
+				column 'Fiscal RelativeYearPos'
+					caption: Relativní pozice fiskálního roku
+				column 'Fiscal StartOfMonth'
+					caption: Začátek fiskálního měsíce
+				column 'Fiscal EndOfMonth'
+					caption: Konec fiskálního měsíce
+				column 'Fiscal StartOfQuarter'
+					caption: Začátek fiskálního kvartálu
+				column 'Fiscal EndOfQuarter'
+					caption: Konec fiskálního kvartálu
+				column 'Fiscal StartOfYear'
+					caption: Začátek fiskálního roku
+				column 'Fiscal EndOfYear'
+					caption: Konec fiskálního roku
+				column 'Fiscal MonthDays'
+					caption: Dny fiskálního měsíce
+				column 'Fiscal QuarterDays'
+					caption: Dny fiskálního kvartálu
+				column 'Fiscal YearDays'
+					caption: Dny fiskálního roku
+				column 'Fiscal DayOfMonthNumber'
+					caption: Číslo dne ve fiskálním měsíci
+				column 'Fiscal DayOfQuarterNumber'
+					caption: Číslo dne ve fiskálním kvartálu
+				column 'Fiscal DayOfYearNumber'
+					caption: Číslo dne ve fiskálním roce
+				column 'Fiscal DatePreviousWeek'
+					caption: Datum v předchozím fiskálním týdnu
+				column 'Fiscal DatePreviousMonth'
+					caption: Datum v předchozím fiskálním měsíci
+				column 'Fiscal DatePreviousQuarter'
+					caption: Datum v předchozím fiskálním kvartálu
+				column 'Fiscal DatePreviousYear'
+					caption: Datum v předchozím fiskálním roce
+				column 'FW YearNumber'
+					caption: Číslo roku FT
+				column 'FW Year'
+					caption: Rok FT
+				column 'FW QuarterNumber'
+					caption: Číslo kvartálu FT
+				column 'FW Quarter'
+					caption: Kvartál FT
+				column 'FW YearQuarterNumber'
+					caption: Číslo kvartálu roku FT
+				column 'FW Quarter Year'
+					caption: Rok kvartálu FT
+				column 'FW MonthNumber'
+					caption: Číslo měsíce FT
+				column 'FW Month'
+					caption: Měsíc FT
+				column 'FW YearMonthNumber'
+					caption: Číslo měsíce roku FT
+				column 'FW Month Year'
+					caption: Rok měsíce FT
+				column 'FW WeekNumber'
+					caption: Číslo týdne FT
+				column 'FW Week'
+					caption: Týden FT
+				column 'FW PeriodNumber'
+					caption: Číslo období FT
+				column 'FW Period'
+					caption: Období FT
+				column 'FW YearWeekNumber'
+					caption: Číslo týdne roku FT
+				column 'FW Week Year'
+					caption: Týden a rok FT
+				column 'FW StartOfWeek'
+					caption: Začátek týdne FT
+				column 'FW EndOfWeek'
+					caption: Konec týdne FT
+				column 'FW RelativeWeekPos'
+					caption: Relativní pozice týdne FT
+				column 'FW RelativeMonthPos'
+					caption: Relativní pozice měsíce FT
+				column 'FW RelativeQuarterPos'
+					caption: Relativní pozice kvartálu FT
+				column 'FW RelativeYearPos'
+					caption: Relativní pozice roku FT
+				column 'FW StartOfMonth'
+					caption: Začátek měsíce FT
+				column 'FW EndOfMonth'
+					caption: Konec měsíce FT
+				column 'FW StartOfQuarter'
+					caption: Začátek kvartálu FT
+				column 'FW EndOfQuarter'
+					caption: Konec kvartálu FT
+				column 'FW StartOfYear'
+					caption: Začátek roku FT
+				column 'FW EndOfYear'
+					caption: Konec roku FT
+				column 'FW MonthDays'
+					caption: Dny v měsíci FT
+				column 'FW QuarterDays'
+					caption: Dny kvartálu FT
+				column 'FW YearDays'
+					caption: Dny roku FT
+				column 'FW DayOfMonthNumber'
+					caption: Číslo dne v měsíci FT
+				column 'FW DayOfQuarterNumber'
+					caption: Číslo dne v kvartálu FT
+				column 'FW DayOfYearNumber'
+					caption: Číslo dne v roce FT
+				column 'FW DatePreviousWeek'
+					caption: Datum v předchozím týdnu FT
+				column 'FW DatePreviousMonth'
+					caption: Datum v předchozím měsíci FT
+				column 'FW DatePreviousQuarter'
+					caption: Datum v předchozím kvartálu FT
+				column 'FW DatePreviousYear'
+					caption: Datum v předchozím roce FT
+				column 'Relative Day'
+					caption: Relativní den
+				column Sequential365DayNumber
+					caption: Sequential365DayNumber
+				hierarchy 'Fiscal Year-Month'
+					caption: Fiskální rok-měsíc
+					level 'Fiscal Year'
+						caption: Fiskální rok
+					level 'Fiscal Month Year'
+						caption: FIskální rok měsíce
+				hierarchy 'Fiscal Year-Month-Week'
+					caption: Fiskální rok-měsíc-týden
+					level 'Fiscal Year'
+						caption: Fiskální rok
+					level 'Fiscal Month Year'
+						caption: FIskální rok měsíce
+					level 'Fiscal Week Year'
+						caption: Fiskální týden a rok
+				hierarchy 'Fiscal Year-Quarter-Month-Week'
+					caption: Fiskální rok-kvartál-měsíc-týden
+					level 'Fiscal Year'
+						caption: Fiskální rok
+					level 'Fiscal Quarter Year'
+						caption: FIskální rok kvartálu
+					level 'Fiscal Month Year'
+						caption: FIskální rok měsíce
+					level 'Fiscal Week Year'
+						caption: Fiskální týden a rok
+				hierarchy 'Calendar Year-Month'
+					caption: Kalendářní rok-měsíc
+					level 'Calendar Year'
+						caption: Kalendářní rok
+					level 'Calendar Month Year'
+						caption: Kalendářní měsíc v roce
+				hierarchy 'Calendar Year-Month-Week'
+					caption: Kalendářní rok-měsíc-týden
+					level 'Calendar Year'
+						caption: Kalendářní rok
+					level 'Calendar Month Year'
+						caption: Kalendářní měsíc v roce
+					level 'Calendar Week Year'
+						caption: Kalendářní týden a rok
+				hierarchy 'Calendar Year-Quarter-Month-Week'
+					caption: Kalendářní rok-kvartál-měsíc-týden
+					level 'Calendar Year'
+						caption: Kalendářní rok
+					level 'Calendar Quarter Year'
+						caption: Rok kalendářního kvartálu
+					level 'Calendar Month Year'
+						caption: Kalendářní měsíc v roce
+					level 'Calendar Week Year'
+						caption: Kalendářní týden a rok
+				hierarchy 'FW Year-Month-Week'
+					caption: Rok-měsíc-týden FT
+					level 'FW Year'
+						caption: Rok FT
+					level 'FW Month Year'
+						caption: Rok měsíce FT
+					level 'FW Week Year'
+						caption: Týden a rok FT
+				hierarchy 'FW Year-Quarter-Month-Week'
+					caption: Rok-kvartál-měsíc-týden FT
+					level 'FW Year'
+						caption: Rok FT
+					level 'FW Quarter Year'
+						caption: Rok kvartálu FT
+					level 'FW Month Year'
+						caption: Rok měsíce FT
+					level 'FW Week Year'
+						caption: Týden a rok FT
+				hierarchy 'FW Year-Quarter-Week'
+					caption: Rok-kvartál-týden FT
+					level 'FW Year'
+						caption: Rok FT
+					level 'FW Quarter Year'
+						caption: Rok kvartálu FT
+					level 'FW Week Year'
+						caption: Týden a rok FT
+				hierarchy 'FW Year-Week'
+					caption: Rok-týden FT
+					level 'FW Year'
+						caption: Rok FT
+					level 'FW Week Year'
+						caption: Týden a rok FT
+			table 'Work Center'
+				caption: Pracovní centrum
+				column 'Work Center Name'
+					caption: Název pracovního centra
+				column 'Work Center Group Code'
+					caption: Kód skupiny pracovních center
+				column 'Work Center Group Name'
+					caption: Název skupiny pracovních center
+				column 'Work Center No.'
+					caption: Číslo pracovního centra
+				column 'Work Center Subcontractor No.'
+					caption: Číslo subdodavatele pracovního centra
+				column 'Work Center Unit of Measure Code'
+					caption: Kód měrné jednotky pracovního centra
+				measure 'Work Center Availability After Orders'
+					caption: Dostupnost pracovního centra po objednání
+				measure 'Work Center Capacity (Effective)'
+					caption: Kapacita pracovního centra (efektivní)
+				measure 'Work Center Load'
+					caption: Zatížení pracovního centra
+				measure 'Work Center Allocated Time'
+					caption: Přiřazený čas pracovního centra
+				measure 'Work Center Capacity (Total)'
+					caption: Kapacita pracovního centra (celkem)
+				measure 'Work Center Expected Efficiency %'
+					caption: Očekávaná efektivita pracovního centra (%)
+				measure 'Work Center Actual Total Cost'
+					caption: Skutečné celkové náklady pracovního centra
+				measure 'Work Center Actual Efficiency %'
+					caption: Skutečná efektivita pracovního centra (%)
+				measure 'Work Center Actual Need'
+					caption: Skutečná potřeba pracovního centra
+				measure 'Work Center Scrap %'
+					caption: Zmetky pracovního centra (%)
+				measure 'Work Center Scrap'
+					caption: Zmetky pracovního centra
+				measure 'Work Center Output'
+					caption: Výstup pracovního centra
+			table 'Working Days'
+				caption: Pracovní dny
+				column FSG_PBI_Day_Number
+					caption: FSG_PBI_Day_Number
+				column id
+					caption: ID
+			table COMPANY
+				caption: SPOLEČNOST
+				measure 'Company Label'
+					caption: Popisek společnosti
+			table 'Localized Labels'
+				measure 'My Report Title'
+					caption: Můj nadpis sestavy
+				measure 'My Button Caption'
+					caption: Popisek mého tlačítka
+				measure 'My Visual Title'
+					caption: Název mého vizuálu
+				measure 'Current Utilization'
+					caption: Aktuální využití
+				measure 'Utilization %, Capacity Used (Hours) and Capacity Available (Hours) by Day'
+					caption: Využití (%), využitá kapacita (hodiny) a dostupná kapacita (hodiny) podle dne
+				measure 'Utilization % and Expected Capacity Need % (Today)'
+					caption: Využití (%) a očekávaná potřebná kapacita (%) (dnes)
+				measure 'Utilization % and Expected Capacity Need % (Current Week)'
+					caption: Využití (%) a očekávaná potřebná kapacita (%) (aktuální týden)
+				measure 'Utilization % and Expected Capacity Need % (Current Year)'
+					caption: Využití (%) a očekávaná potřebná kapacita (%) (aktuální rok)
+				measure 'Historical Utilization'
+					caption: Historické využití
+				measure 'Load %, Allocated Time (Hours) and Capacity Available (Hours) by Work Center Group Name'
+					caption: Zatížení %, přiřazený čas (hodiny) a dostupná kapacita (hodiny) podle názvu skupiny pracovních center
+				measure 'Load % (Today)'
+					caption: Vytížení (%) (dnes)
+				measure 'Load % (Current Week)'
+					caption: Vytížení (%) (aktuální týden)
+				measure 'Load % (Current Year)'
+					caption: Vytížení (%) (aktuální rok)
+				measure 'Allocated Hours'
+					caption: Přidělené hodiny
+				measure 'Allocated Time (Hours) and Load % by Work Center Group Name and Name'
+					caption: Přiřazený čas (hodiny) a vytížení (%) podle názvu skupiny pracovních center a názvu
+				measure 'Allocated Time in Hours (Today)'
+					caption: Přiřazený čas v hodinách (dnes)
+				measure 'Allocated Time in Hours (Current Week)'
+					caption: Přiřazený čas v hodinách (aktuální týden)
+				measure 'Allocated Time in Hours (Current Year)'
+					caption: Přiřazený čas v hodinách (aktuální rok)
+				measure 'Expected Capacity Need'
+					caption: Očekávaná potřebná kapacita
+				measure 'Expected Capacity Need (Hours) by Work Centre Group Code and Production Order Status'
+					caption: Očekávaná potřebná kapacita (hodiny) podle kódu skupiny pracovních center a stavu výrobní zakázky
+				measure 'Finished Production Order Breakdown'
+					caption: Rozpis dokončených výr. zakázek
+				measure 'Expected Quantity (Base) and Finished Quantity (Base) by Month'
+					caption: Očekávané množství (základ) a dokončené množství (základ) podle měsíce
+				measure 'Consumption Variance'
+					caption: Odchylka spotřeby
+				measure 'Expected Consumption Cost Amount and Consumed Cost Amount (Actual) by Month'
+					caption: Očekávaná částka nákladů spotřeby a spotřebovaná částka nákladů (skutečná) podle měsíce
+				measure 'Capacity Variance'
+					caption: Odchylka kapacity
+				measure 'Expected Capacity Cost Amount and Capacity Cost Amount (Actual) by Month'
+					caption: Očekávaná částka nákladů na kapacitu a částka nákladů na kapacitu (skutečná) podle měsíce
+				measure 'Average Production Times'
+					caption: Průměrná doba výroby
+				measure 'Released Production Orders'
+					caption: Vydané výrobní zakázky
+				measure 'Production Scrap'
+					caption: Výrobní zmetky
+				measure 'Capacity Scrap Quantity by Month'
+					caption: Množství zmetků kapacity podle měsíce
+				measure 'Capacity Scrap Quantity by Scrap Code'
+					caption: Množství zmetků kapacity podle kódu zmetku
+				measure 'Capacity Scrap Quantity by Location Code'
+					caption: Množství zmetků kapacity podle kódu lokace
+				measure Manufacturing
+					caption: Výroba
+				measure 'for Business Central'
+					caption: pro Business Central
+				measure 'CONNECT YOUR DATA'
+					caption: PŘIPOJENÍ DAT
+				measure '2. Configure Dynamics 365 Business Central'
+					caption: 2. Konfigurace Dynamics 365 Business Central
+				measure 'USE, EDIT AND BUILD YOUR OWN REPORTS'
+					caption: POUŽÍVÁNÍ, ÚPRAVA A TVORBA VLASTNÍCH SESTAV
+				measure 'HELP AND SUPPORT'
+					caption: POMOC A PODPORA
+				measure 'For help and support with your new report please visit the Analytics overview documentation.'
+					caption: Nápovědu a podporu k nové sestavě naleznete v dokumentaci k přehledu Analytics.
+				measure 'OTHER POWER BI REPORTS'
+					caption: DALŠÍ SESTAVY POWER BI
+				measure PURCHASE
+					caption: NÁKUP
+				measure FINANCE
+					caption: FINANCE
+				measure INVENTORY
+					caption: ZÁSOBY
+				measure SALES
+					caption: PRODEJ
+				measure 'Last Refreshed'
+					caption: Naposledy aktualizováno
+				measure 'Company Name'
+					caption: Název společnosti
+				measure 'Capacity Scrap Quantity by Item Category Code'
+					caption: Množství zmetků kapacity podle kódu kategorie zboží
+				measure '1. Download the Manufacturing Connector for Power BI'
+					caption: 1. Stažení Výrobního konektoru pro Power BI
+				measure 'Manufacturing includes a variety of pre-built reports to help you see your data immediately.'
+					caption: Výroba obsahuje řadu předpřipravených sestav, které vám pomohou okamžitě zobrazit vaše data.
+				measure 'You are able to edit these reports or build your own report from scratch.'
+					caption: Tyto sestavy můžete upravovat nebo si vytvořit vlastní sestavu od základu.
+				measure PROJECTS
+					caption: PROJEKTY
+				measure 'Capacity Used (Hours), Capacity Available (Hours) and Utilization % by Date'
+					caption: Využitá kapacita (hodiny), dostupná kapacita (hodiny) a využití (%) podle data
+				measure 'Actual Cost by Source No.'
+					caption: Skutečné náklady podle č. původu
+				measure 'Production Order Overview'
+					caption: Přehled výrobní zakázky
+				measure 'No. of Production Orders by Status'
+					caption: Počet výrobních zakázek podle stavu
+				measure 'Completion Ratios by Source No.'
+					caption: Poměr dokončení podle č. původu
+				measure 'Total Actual Cost Breakdown'
+					caption: Rozpis celkových skutečných nákladů
+				measure 'Current Production Orders'
+					caption: Aktuální výrobní zakázky
+				measure 'Current Work Center Utilization by Year, Month, Week and Day'
+					caption: Aktuální využití pracovního centra podle roku, měsíce, týdne a dne
+				measure 'Work Center Load Over Time'
+					caption: Zatížení pracovního centra v průběhu času
+				measure 'Work Center Load Details'
+					caption: Podrobnosti zatížení pracovního centra
+				measure 'Work Center Load '
+					caption: Zatížení pracovního centra
+				measure 'Allocated Time '
+					caption: Přiřazený čas
+				measure 'Allocated Time by Work Center Name'
+					caption: Přiřazený čas podle názvu pracovního centra
+				measure 'Allocated Time by Source No.'
+					caption: Přidělený čas podle č. původu
+				measure 'Allocated Time by Type'
+					caption: Přiřazený čas podle typu
+				measure 'Allocated Time Details'
+					caption: Podrobnosti přiřazeného času
+				measure 'Allocated Time by Production Order Status'
+					caption: Přidělený čas podle stavu výrobní zakázky
+				measure 'Expected Capacity Need by Work Center'
+					caption: Předpokládaná potřebná kapacita podle pracovního centra
+				measure 'Expected Capacity Need by Machine Center'
+					caption: Předpokládaná potřebná kapacita podle strojního centra
+				measure 'Expected Capacity Need Details'
+					caption: Podrobnosti očekávané potřebné kapacity
+				measure 'Expected Capacity Need by Source No.'
+					caption: Očekávaná potřebná kapacita podle č. původu
+				measure 'Expected Material Dev % by Source No.'
+					caption: Odchylka očekávaného materiálu (%) podle č. původu
+				measure 'Expected Material Dev % by Production Order'
+					caption: Odchylka očekávaného materiálu (%) podle výrobní zakázky
+				measure 'Consumption Variance Details'
+					caption: Podrobnosti odchylky spotřeby
+				measure 'Expected Capacity Dev % by Source No.'
+					caption: Odchylka očekávané kapacity (%) podle č. původu
+				measure 'Expected Capacity Dev % by Production Order|'
+					caption: Odchylka očekávané kapacity (%) podle výrobní zakázky|
+				measure 'Capacity Variance Details'
+					caption: Podrobnosti odchylky kapacity
+				measure 'Average Time Per Finished Quantity by Work Center'
+					caption: Průměrný čas na dokončené množství podle pracovního centra
+				measure 'Average Time Per Finished Quantity by Source No.'
+					caption: Průměrný čas na dokončené množství podle č. původu
+				measure 'Average Production Time Details'
+					caption: Podrobnosti průměrné doby výroby
+				measure 'No. of Production Orders by Source No.'
+					caption: Počet výrobních zakázek podle č. původu
+				measure 'Released Production Order Details'
+					caption: Podrobnosti vydané výrobní zakázky
+				measure 'Scrap Quantity by Work Center'
+					caption: Množství zmetků podle pracovního centra
+				measure 'Work Center Statistics'
+					caption: Statistika pracovního centra
+				measure 'Statistic Details'
+					caption: Podrobnosti statistiky
+				measure 'Machine Center Statistics'
+					caption: Statistika strojního centra
+				measure 'Machine Center Load '
+					caption: Zatížení strojního centra
+				measure 'Machine Center Load Details'
+					caption: Podrobnosti zatížení strojního centra
+				measure 'Prod. Order List'
+					caption: Seznam výr. zakázek
+				measure 'Prod. Order List Details'
+					caption: Podrobnosti seznamu výr. zakázek
+				measure 'Production Order Routing Lines Gantt'
+					caption: Řádky Ganttova diagramu plánování výrobní zakázky
+				measure 'Routing Line Operation Duration'
+					caption: Doba provozu řádku TNG postupu
+				measure 'Routing Line Details'
+					caption: Podrobnosti řádku TNG postupu
+				measure 'Production Order WIP'
+					caption: NV výrobní zakázky
+				measure 'Inventory Valuation - WIP'
+					caption: Hodnota zásob – NV
+				measure 'Task List Drill Through'
+					caption: Podrobné procházení seznamu úloh
+				measure 'Task List Details'
+					caption: Podrobnosti seznamu úloh
+				measure 'Expected Capacity Need Variance'
+					caption: Očekávaná odchylka potřebné kapacity
+				measure 'Expected Capacity Cost Dev % by Source No.'
+					caption: Odchylka očekávaných nákladů na kapacitu (%) podle č. původu
+				measure 'Average Production Time Per Unit by Work Center'
+					caption: Průměrná doba výroby na jednotku podle pracovního centra
+				measure 'Average Production Time Per Unit by Source No.'
+					caption: Průměrná doba výroby na jednotku podle č. původu
+				measure 'Scrap Quantity Over Time'
+					caption: Množství zmetků v průběhu času
+				measure 'Scrap % by Production Order'
+					caption: Zmetky (%) podle výrobní zakázky
+				measure 'Scrap Quantity by Scrap Code'
+					caption: Množství zmetků podle kódu zmetku
+				measure 'Scrap Quantity vs. Expected Scrap Quantity'
+					caption: Množství zmetků vs. očekávané množství zmetků
+				measure 'Production Order Time Line'
+					caption: Řádek času výrobní zakázky
+				measure 'Production Time Line'
+					caption: Řádek času výroby
+			table 'Machine Center'
+				caption: Strojní centrum
+				column 'Machine Center No.'
+					caption: Číslo strojního centra
+				column 'Machine Center Name'
+					caption: Název strojního centra
+				column 'Work Center No.'
+					caption: Číslo pracovního centra
+				column 'Work Center Unit of Measure'
+					caption: Měrná jednotka pracovního centra
+				measure 'Machine Center Capacity (Effective)'
+					caption: Kapacita strojního centra (efektivní)
+				measure 'Machine Center Capacity (Total)'
+					caption: Kapacita strojního centra (celkem)
+				measure 'Machine Center Expected Efficiency %'
+					caption: Očekávaná efektivita strojního centra (%)
+				measure 'Machine Center Actual Total Cost'
+					caption: Skutečné celkové náklady strojního centra
+				measure 'Machine Center Actual Efficiency %'
+					caption: Skutečná efektivita strojního centra (%)
+				measure 'Machine Center Actual Need'
+					caption: Skutečná potřeba strojního centra
+				measure 'Machine Center Allocated Time'
+					caption: Přiřazený čas strojního centra
+				measure 'Machine Center Output'
+					caption: Výstup strojního centra
+				measure 'Machine Center Scrap'
+					caption: Zmetky strojního centra
+				measure 'Machine Center Scrap %'
+					caption: Zmetky strojního centra (%)
+				measure 'Machine Center Run Time'
+					caption: Doba spuštění strojního centra
+				measure 'Machine Center Stop Time'
+					caption: Doba prostoje strojního centra
+				measure 'Machine Center Stop %'
+					caption: Prostoj strojního centra (%)
+				measure 'Machine Center Availability After Orders'
+					caption: Dostupnost strojního centra po objednání
+				measure 'Machine Center Load'
+					caption: Zatížení strojního centra
+			table 'Production Order Lines'
+				caption: Řádky výrobních zakázek
+				column quantityBase
+					caption: Množství (základ)
+				column remainingQtyBase
+					caption: Zbývající množství (základ)
+				column dimensionSetID
+					caption: ID sady dimenzí
+				column 'Prod. Order Line No.'
+					caption: Číslo řádku výrobní zakázky
+				column 'Routing No.'
+					caption: Kód TNG postupu
+				column 'Routing Reference No.'
+					caption: Číslo odkazu TNG postupu
+				column finishedQtyBase
+					caption: finishedQtyBase
+				column ShareOfTotalCapCost
+					caption: ShareOfTotalCapCost
+				column 'Routing Type'
+					caption: Typ TNG postupu
+				column indirectCostPercent
+					caption: indirectCostPercent
+				column overheadRate
+					caption: overheadRate
+				column 'Scrap Percent'
+					caption: Procento zmetků
+				column 'Planning Level Code'
+					caption: Kód úrovně plánování
+			table 'Prod Order Components'
+				caption: Komponenty výr. zakázky
+				column expectedQtyBase
+					caption: Očekávané množství (základ)
+				column remainingQtyBase
+					caption: Zbývající množství (základ)
+				column 'Routing Link Code'
+					caption: Kód vazby TNG postupu
+				column costAmount
+					caption: costAmount
+				column 'Prod Order Components Line No.'
+					caption: Číslo řádku komponentů výr. zakázky
+			table 'Prod Order Capacity Need'
+				caption: Potřebná kapacita výr. zakázky
+				column 'Routing No.'
+					caption: Kód TNG postupu
+				column 'Routing Reference No.'
+					caption: Číslo odkazu TNG postupu
+				column 'Operation No.'
+					caption: Číslo operace
+				column 'Requested Only'
+					caption: Pouze požadované
+				column workCenterNo
+					caption: workCenterNo
+				column workCenterGroupCode
+					caption: workCenterGroupCode
+				column no
+					caption: č.
+				column Type
+					caption: Typ
+				column neededTimeMs
+					caption: neededTimeMs
+				column neededTime
+					caption: neededTime
+				column 'Prod Order Capacity Need Line No.'
+					caption: Číslo řádku potřebné kapacita výr. zakázky
+				measure 'Needed Time'
+					caption: Potřebný čas
+				measure 'Needed Time (MS)'
+					caption: Potřebný čas (MS)
+				measure 'Allocated Time'
+					caption: Přiřazený čas
+			table 'Prod Order Routing Lines'
+				caption: Řádky TNG výr. zakázky
+				column 'No.'
+					caption: Č.
+				column 'Expected Capacity Need'
+					caption: Očekávaná potřebná kapacita
+				column 'Expected Capacity Ovhd. Cost'
+					caption: Očekávané režijní náklady kapacity
+				column 'Routing Link Code'
+					caption: Kód vazby TNG postupu
+				column Description
+					caption: Popis
+				column 'Expected Operation Cost Amt.'
+					caption: Očekávaná částka provozních nákladů
+				column 'Routing No.'
+					caption: Kód TNG postupu
+				column 'Routing Reference No.'
+					caption: Číslo odkazu TNG postupu
+				column 'Operation No.'
+					caption: Číslo operace
+				column locationName
+					caption: locationName
+				column 'Setup Time'
+					caption: Doba seřízení
+				column 'Run Time'
+					caption: Doba zpracování
+				column 'Wait Time'
+					caption: Čekací doba
+				column 'Move Time'
+					caption: Doba přesunu
+				column 'Routing Status'
+					caption: Stav TNG postupu
+				column 'Duration Total Hours'
+					caption: Celková doba trvání v hodinách
+				column 'Duration Total Days'
+					caption: Celková doba trvání ve dnech
+				column 'Work/Machine Center Name'
+					caption: Název pracovního/strojního centra
+				column workCenterNo
+					caption: workCenterNo
+				column 'Ending Date Time'
+					caption: Koncový datum a čas
+				column 'Starting Date Time'
+					caption: Počáteční datum a čas
+				measure 'Operation Run Time'
+					caption: Doba zpracování operace
+				measure 'Operation Setup Time'
+					caption: Doba seřízení operace
+				measure 'Operation Wait Time'
+					caption: Čekací doba operace
+				measure 'Operation Move Time'
+					caption: Doba přesunu operace
+				measure 'Total Duration Hours'
+					caption: Celková doba trvání v hodinách
+			table 'Item Ledger Entries'
+				caption: Položky zboží
+				column 'Serial No.'
+					caption: Sériové č.
+				column 'Lot No.'
+					caption: Číslo šarže
+				column qty
+					caption: Množství
+				column costAmountActual
+					caption: Skutečná částka nákladů
+				column 'Entry Type'
+					caption: Typ položky
+				column 'Order Type'
+					caption: Typ objednávky
+				column 'Order Line No.'
+					caption: Číslo řádku serv. zakázky
+				column Positive
+					caption: Kladný
+				measure 'Output Quantity'
+					caption: Výstupní množství
+				measure 'Consumption Quantity'
+					caption: Množství spotřeby
+			table 'Capacity Ledger Entries'
+				caption: "Položky kapacity "
+				column 'Order Type'
+					caption: Typ objednávky
+				column 'Order Line No.'
+					caption: Číslo řádku serv. zakázky
+				column Type
+					caption: Typ
+				column 'No.'
+					caption: Č.
+				column Description
+					caption: Popis
+				column scrapQuantity
+					caption: scrapQuantity
+				column 'Routing No.'
+					caption: Kód TNG postupu
+				column 'Routing Reference No.'
+					caption: Číslo odkazu TNG postupu
+				column 'Operation No.'
+					caption: Číslo operace
+				column 'Scrap Code'
+					caption: Kód zmetků
+				column directCost
+					caption: directCost
+				column overheadCost
+					caption: overheadCost
+				column 'Entry No.'
+					caption: Číslo položky
+				column workCenterNo
+					caption: workCenterNo
+				column 'Work Shift Code'
+					caption: Kód pracovní směny
+				column Subcontracting
+					caption: Subdodávka
+				column 'Capacity Unit of Measure'
+					caption: Měrná jednotka kapacity
+				column 'Qty. Per Unit of Measure'
+					caption: Množství v jednotce
+				column 'Qty. Per Capacity Unit of Measure'
+					caption: Množství na měrnou jednotku kapacity
+				measure 'Direct Cost'
+					caption: Přímé náklady
+				measure 'Overhead Cost'
+					caption: Režijní náklady
+				measure 'Run Time'
+					caption: Doba zpracování
+				measure 'Setup Time'
+					caption: Doba seřízení
+				measure 'Stop Time'
+					caption: Doba prostoje
+				measure 'Scrap Quantity'
+					caption: Množství zmetků
+				measure 'Scrap %'
+					caption: Zmetky (%)
+				measure 'Capacity Ledger Output Quantity'
+					caption: Výstupní množství položky kapacity
+				measure 'Capacity Ledger Quantity'
+					caption: Množství položky kapacity
+			table 'Calendar Entries'
+				caption: Položky kalendáře
+				column 'Capacity Type'
+					caption: Typ kapacity
+				measure 'Capacity (Effective)'
+					caption: Kapacita (efektivní)
+				measure 'Capacity (Total)'
+					caption: Kapacita (celkem)
+			table Location
+				caption: Lokace
+				column 'Location Code'
+					caption: Kód lokace
+				column 'Location Name'
+					caption: Název lokace
+			table 'Routing Link'
+				caption: Vazba TNG postupu
+				column 'Routing Link Code'
+					caption: Kód vazby TNG postupu
+				column 'Routing Link Description'
+					caption: Popis vazby TNG postupu
+			table Routing
+				caption: TNG postup
+				column 'Routing No.'
+					caption: Kód TNG postupu
+				column 'Routing Type'
+					caption: Typ TNG postupu
+				column 'Routing Status'
+					caption: Stav TNG postupu
+				column 'Routing Description'
+					caption: Popis TNG postupu
+			table 'Work Center Group'
+				caption: Skupina pracovních center
+				column 'Work Center Group Code'
+					caption: Kód skupiny pracovních center
+				column 'Work Center Group Name'
+					caption: Název skupiny pracovních center
+			table 'Value Entries'
+				caption: Položky ocenění
+				column 'Entry No.'
+					caption: Číslo položky
+				column 'Valuation Date'
+					caption: Datum ocenění
+				column costAmountActual
+					caption: costAmountActual
+				column 'Cost Per Unit'
+					caption: costPerUnit
+				column itemLedgerEntryQuantity
+					caption: itemLedgerEntryQuantity
+				column valuedQuantity
+					caption: valuedQuantity
+				column 'Item Ledger Entry Type'
+					caption: Typ položky zboží
+				column Type
+					caption: Typ
+				column 'No.'
+					caption: Č.
+				column 'Capacity Ledger Entry No.'
+					caption: capacityLedgerEntryNo
+				column 'Entry Type'
+					caption: entryType
+				column costPostedtoGL
+					caption: costPostedtoGL
+				column costAmountExpected
+					caption: costAmountExpected
+				column 'Order Type'
+					caption: orderType
+				column 'Order No.'
+					caption: orderNo
+				column expectedCostPostedtoGL
+					caption: expectedCostPostedtoGL
+				column 'Is Expected Cost'
+					caption: expectedCost
+				measure 'Beginning Balance Value'
+					caption: Počáteční hodnota salda
+				measure 'Consumption Value'
+					caption: Hodnota spotřeby
+				measure 'Capacity Value'
+					caption: Hodnota kapacity
+				measure 'Output Value'
+					caption: Výstupní hodnota
+				measure 'Ending Balance Value'
+					caption: Hodnota koncového salda
+				measure 'Cost Posted to G/L'
+					caption: Zaúčtované náklady
+			table 'Production Orders'
+				caption: Výrobní zakázky
+				column 'Prod Order Status'
+					caption: Stav výr. zakázky
+				column 'Prod Order No.'
+					caption: Č. výr. zakázky
+				column 'Prod Order Source No.'
+					caption: Číslo původu výr. zakázky
+				column 'Prod Order Routing No.'
+					caption: Kód TNG postupu výr. zakázky
+				column 'Prod Order Starting Date'
+					caption: Počáteční datum výr. zakázky
+				column 'Prod Order Ending Date'
+					caption: Koncové datum výr. zakázky
+				column 'Prod Order Due Date'
+					caption: Datum splatnosti výr. zakázky
+				column quantity
+					caption: množství
+				column 'Prod Order Description'
+					caption: Popis výr. zakázky
+				column 'Prod Order Source Type'
+					caption: Typ původu výr. zakázky
+				column 'Production Order'
+					caption: Výrobní zakázka
+				measure 'Planned Quantity'
+					caption: Plánované množství
+				measure 'Expected Material Cost'
+					caption: Očekávané náklady na materiál
+				measure 'Expected Capacity Cost'
+					caption: Náklady na očekávanou kapacitu
+				measure 'Expected Subcontracted Cost'
+					caption: Očekávané náklady subdodavatele
+				measure 'Expected Capacity Overhead Cost'
+					caption: Režijní náklady očekávané kapacity
+				measure 'Total Standard Cost'
+					caption: Celková pevná ceny
+				measure 'Expected Manufacturing Overhead Cost'
+					caption: Očekávané výrobní režijní náklady
+				measure 'Total Expected Cost'
+					caption: Celkové očekávané náklady
+				measure 'Standard Capacity Cost'
+					caption: Náklady na standardní kapacitu
+				measure 'Standard Material Cost'
+					caption: Standardní náklady na materiál
+				measure 'Standard Subcontracted Cost'
+					caption: Standardní náklady subdodavatele
+				measure 'Standard Capacity Overhead Cost'
+					caption: Režijní náklady standardní kapacity
+				measure 'Standard Manufacturing Overhead Cost'
+					caption: Standardní výrobní režijní náklady
+				measure 'Actual Material Cost'
+					caption: Skutečné náklady na materiál
+				measure 'Actual Capacity Cost'
+					caption: Skutečné náklady na kapacitu
+				measure 'Actual Subcontracted Cost'
+					caption: Skutečné subdodavatelské náklady
+				measure 'Actual Capacity Overhead Cost'
+					caption: Skutečné režijní náklady na kapacitu
+				measure 'Actual Manufacturing Overhead Cost'
+					caption: Skutečné výrobní režijní náklady
+				measure 'Total Actual Cost'
+					caption: Celkové skutečné náklady
+				measure 'Standard Material Cost Variance'
+					caption: Standardní odchylka nákladů na materiál
+				measure 'Standard Capacity Cost Variance'
+					caption: Standardní odchylka nákladů na kapacitu
+				measure 'Standard Subcontracted Cost Variance'
+					caption: Odchylka standardních nákladů subdodavatele
+				measure 'Standard Capacity Overhead Cost Variance'
+					caption: Odchylka režijních nákladů standardní kapacity
+				measure 'Standard Manufacturing Overhead Cost Variance'
+					caption: Odchylka standardních výrobních režijních nákladů
+				measure 'Total Standard Cost Variance'
+					caption: Odchylka celkové pevné ceny
+				measure 'Standard Material Cost Dev %'
+					caption: Odchylka standardních nákladů na materiál (%)
+				measure 'Standard Capacity Cost Dev %'
+					caption: Odchylka nákladů standardní kapacity (%)
+				measure 'Standard Subcontracted Cost Dev %'
+					caption: Odchylka standardních nákladů subdodavatele (%)
+				measure 'Standard Capacity Overhead Cost Dev %'
+					caption: Odchylka režijních nákladů standardní kapacity (%)
+				measure 'Standard Manufacturing Overhead Cost Dev %'
+					caption: Odchylka standardních výrobních režijních nákladů (%)
+				measure 'Total Standard Cost Dev %'
+					caption: Odchylka celková pevné ceny (%)
+				measure 'Prod Order Expected Capacity Need (Finished)'
+					caption: Očekávaná potřebná kapacita výr. zakázky (dokončeno)
+				measure 'Prod Order Actual Capacity Need'
+					caption: Skutečná potřebná kapacita výr. zakázky
+				measure 'Prod Order Expected Capacity Need (Non Finished)'
+					caption: Očekávaná potřebná kapacita výr. zakázky (nedokončeno)
+				measure 'Prod Order Expected Capacity Need'
+					caption: Očekávaná potřebná kapacita výr. zakázky
+				measure 'Finished Quantity'
+					caption: Dokončené množství
+				measure 'Actual Time Used'
+					caption: Skutečný spotřebovaný čas
+				measure 'Finished %'
+					caption: Dokončeno (%)
+				measure 'Remaining %'
+					caption: Zbývající (%)
+				measure 'Variance Quantity'
+					caption: Množství odchylky
+				measure 'Expected Capacity Cost Dev %'
+					caption: Odchylka nákladů na očekávanou kapacitu (%)
+				measure 'Expected Capacity Overhead Cost Dev %'
+					caption: Odchylka režijních nákladů očekávané kapacity (%)
+				measure 'Expected Manufacturing Overhead Cost Dev %'
+					caption: Odchylka očekávaných výrobních režijních nákladů (%)
+				measure 'Expected Material Cost Dev %'
+					caption: Odchylka očekávaných nákladů na materiál (%)
+				measure 'Expected Subcontracted Cost Dev %'
+					caption: Odchylka očekávaných nákladů subdodavatele (%)
+				measure 'Total Expected Cost Dev %'
+					caption: Odchylka celkových očekávaných nákladů (%)
+				measure 'Expected Capacity Cost Variance'
+					caption: Očekávaná odchylka nákladů na kapacitu
+				measure 'Expected Capacity Overhead Cost Variance'
+					caption: Odchylka režijních nákladů očekávané kapacity
+				measure 'Expected Manufacturing Overhead Cost Variance'
+					caption: Odchylka očekávaných výrobních režijních nákladů
+				measure 'Expected Material Cost Variance'
+					caption: Odchylka očekávaných nákladů na materiál
+				measure 'Expected Subcontracted Cost Variance'
+					caption: Odchylka očekávaných nákladů subdodavatele
+				measure 'Total Expected Cost Variance'
+					caption: Celková očekávaná odchylka nákladů
+				measure 'No. of Production Orders'
+					caption: Počet výrobních zakázek
+				measure 'Average Production Time Per Finished Quantity'
+					caption: Průměrná doba výroby na dokončené množství
+				measure 'Prod Order Capacity Need Variance'
+					caption: Odchylky potřebné kapacita výr. zakázky
+				measure 'Prod Order Capacity Need Dev %'
+					caption: Odchylka potřebné kapacita výr. zakázky (%)
+				measure 'Production Order Scrap %'
+					caption: Zmetky výrobní zakázky (%)
+				measure 'Expected Production Order Scrap Quantity'
+					caption: Očekávané množství zmetků výrobní zakázky
+			table 'Dimension Sets'
+				caption: Sady dimenzí
+				column id
+					caption: ID
+				column dimensionSetID
+					caption: dimensionSetID
+				column valueCount
+					caption: valueCount
+				column 'Global Dimension 1'
+					caption: Globální dimenze 1
+				column dimension1ValueName
+					caption: dimension1ValueName
+				column 'Global Dimension 2'
+					caption: Globální dimenze 2
+				column dimension2ValueName
+					caption: dimension2ValueName
+				column 'Shortcut Dimension 3'
+					caption: Zkratka dimenze 3
+				column dimension3ValueName
+					caption: dimension3ValueName
+				column 'Shortcut Dimension 4'
+					caption: Zkratka dimenze 4
+				column dimension4ValueName
+					caption: dimension4ValueName
+				column 'Shortcut Dimension 5'
+					caption: Zkratka dimenze 5
+				column dimension5ValueName
+					caption: dimension5ValueName
+				column 'Shortcut Dimension 6'
+					caption: Zkratka dimenze 6
+				column dimension6ValueName
+					caption: dimension6ValueName
+				column 'Shortcut Dimension 7'
+					caption: Zkratka dimenze 7
+				column dimension7ValueName
+					caption: dimension7ValueName
+				column 'Shortcut Dimension 8'
+					caption: Zkratka dimenze 8
+				column dimension8ValueName
+					caption: dimension8ValueName
+			table 'Inventory Adjustment Entry Order Line'
+				caption: Řádek objednávky položky úpravy zásob
+				column itemNo
+					caption: itemNo
+				column orderLineNo
+					caption: orderLineNo
+				column orderNo
+					caption: orderNo
+				column singleLevelMaterialCost
+					caption: singleLevelMaterialCost
+				column iSFinished
+					caption: iSFinished
+				column auxiliaryIndex1
+					caption: auxiliaryIndex1
+				column ETag
+					caption: ETag
+				column 'Adjustment Order Key'
+					caption: Klíč objednávky úprav
+				column singleLevelCapacityCost
+					caption: singleLevelCapacityCost
+				column singleLevelSubcontrdCost
+					caption: singleLevelSubcontrdCost
+				column singleLevelCapOvhdCost
+					caption: singleLevelCapOvhdCost
+				column singleLevelMfgOvhdCost
+					caption: singleLevelMfgOvhdCost
+				column completelyInvoiced
+					caption: completelyInvoiced
+				column indirectCostPercent
+					caption: indirectCostPercent
+				column overheadRate
+					caption: overheadRate
+			table ENVIRONMENT
+				caption: PROSTŘEDÍ
+			table 'Back Links'
+				caption: Zpětné odkazy
+				measure 'Base Link'
+					caption: Základní odkaz
+				measure 'Calendar Entries Back Link'
+					caption: Položky kalendáře – zpětný odkaz
+				measure Ranged
+					caption: V rozsahu
+				measure 'Prod. Order Capacity Need Back Link'
+					caption: Potřebná kapacita výr. zakázky – zpětný odkaz
+				measure 'Work Center Need Qty Back Link'
+					caption: Potřebné množství pracovního centra – zpětný odkaz
+			table 'Item Category'
+				caption: Kategorie zboží
+				column 'Item Category Code'
+					caption: Kód kategorie zboží
+				column 'Item Category Description'
+					caption: Popis kategorie zboží
+				hierarchy 'Item Category Code Hierarchy'
+					caption: HIerarchie kódu kategorie zboží
+					level 'Item Category Code Level 1'
+						caption: Kód kategorie zboží – úroveň 1
+					level 'Item Category Code Level 2'
+						caption: Kód kategorie zboží – úroveň 2
+					level 'Item Category Code Level 3'
+						caption: Kód kategorie zboží – úroveň 3
+

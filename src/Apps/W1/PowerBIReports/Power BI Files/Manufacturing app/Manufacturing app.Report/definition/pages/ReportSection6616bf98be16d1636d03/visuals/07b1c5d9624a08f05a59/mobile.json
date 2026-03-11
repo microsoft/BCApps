@@ -1,0 +1,29 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainerMobileState/2.2.0/schema.json",
+  "position": {
+    "x": 0,
+    "y": 560,
+    "z": 5000,
+    "height": 540,
+    "width": 324,
+    "tabOrder": 5000
+  },
+  "objects": {
+    "columnWidth": [
+      {
+        "properties": {
+          "value": {
+            "expr": {
+              "Literal": {
+                "Value": "128D"
+              }
+            }
+          }
+        },
+        "selector": {
+          "metadata": "Production Data Table.Prod. Order"
+        }
+      }
+    ]
+  }
+}

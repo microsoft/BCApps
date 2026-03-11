@@ -1,0 +1,56 @@
+// ------------------------------------------------------------------------------------------------
+// Copyright (c) Microsoft Corporation. All rights reserved.
+// Licensed under the MIT License. See License.txt in the project root for license information.
+// ------------------------------------------------------------------------------------------------
+
+namespace System.TestTools.TestRunner;
+
+page 130450 "AL Test Suites"
+{
+    PageType = List;
+    SaveValues = true;
+    SourceTable = "AL Test Suite";
+    Permissions = tabledata "AL Test Suite" = rimd,
+                  tabledata "Test Method Line" = rimd;
+
+    layout
+    {
+        area(content)
+        {
+            repeater(Control1)
+            {
+                ShowCaption = false;
+                field(Name; Rec.Name)
+                {
+                    ApplicationArea = All;
+                    ToolTip = 'Specifies the name of the test suite.';
+                }
+                field(Description; Rec.Description)
+                {
+                    ApplicationArea = All;
+                    ToolTip = 'Specifies the description of the test suite.';
+                }
+                field("Tests to Execute"; Rec."Tests to Execute")
+                {
+                    ApplicationArea = All;
+                    ToolTip = 'Specifies the number of tests to execute.';
+                }
+                field(Failures; Rec.Failures)
+                {
+                    ApplicationArea = All;
+                    ToolTip = 'Specifies the number fo failures.';
+                }
+                field("Tests not Executed"; Rec."Tests not Executed")
+                {
+                    ApplicationArea = All;
+                    ToolTip = 'Specifies the number of tests not executed.';
+                }
+            }
+        }
+    }
+
+    actions
+    {
+    }
+}
+

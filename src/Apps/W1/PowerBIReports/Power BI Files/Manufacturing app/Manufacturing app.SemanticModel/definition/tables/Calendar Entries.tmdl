@@ -1,0 +1,147 @@
+table 'Calendar Entries'
+	lineageTag: 38f8641f-39fd-49ab-9524-9978d9e6064f
+
+	measure 'Capacity (Effective)' = ```
+			SUM('Calendar Entries'[Capacity Effective])
+			
+			```
+		formatString: #,0.00
+		displayFolder: _Calendar Entry Measures
+		lineageTag: b4404e68-059d-4318-8e5d-212304497287
+
+		changedProperty = IsHidden
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Capacity (Total)' = SUM('Calendar Entries'[Capacity Total])
+		formatString: #,0.00
+		displayFolder: _Calendar Entry Measures
+		lineageTag: 57eb98a9-9c91-4c87-b1f6-c4768ff4062c
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column Date
+		dataType: dateTime
+		isHidden
+		formatString: Long Date
+		lineageTag: f6147860-b9a4-4fe8-ad58-3610e6d55e1d
+		summarizeBy: none
+		sourceColumn: Date
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	column 'Capacity Effective'
+		dataType: double
+		isHidden
+		lineageTag: bd2d8d00-89ff-4ff8-8cb3-44fce4235491
+		summarizeBy: sum
+		sourceColumn: Capacity Effective
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column 'Capacity Type'
+		dataType: string
+		lineageTag: 4f0b5807-49c4-4447-b0c0-46d668c14942
+		summarizeBy: none
+		sourceColumn: Capacity Type
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'No.'
+		dataType: string
+		isHidden
+		lineageTag: 124a53da-4afd-403d-b680-25774a33e221
+		summarizeBy: none
+		sourceColumn: No.
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Work Center Group Code'
+		dataType: string
+		isHidden
+		lineageTag: 0b09610c-83ad-452c-9bd0-21ab70a94513
+		summarizeBy: none
+		sourceColumn: Work Center Group Code
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Capacity Type & No.'
+		dataType: string
+		isHidden
+		lineageTag: abd87660-127b-48a5-ae02-28883585b30b
+		summarizeBy: none
+		sourceColumn: Capacity Type & No.
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Work Shift Code'
+		dataType: string
+		isHidden
+		lineageTag: f1cb3828-c2de-4359-b3ef-4f21d6b80e1b
+		summarizeBy: none
+		sourceColumn: Work Shift Code
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Capacity Total'
+		dataType: double
+		isHidden
+		lineageTag: baee5c6c-a331-4277-b452-c9401422c7eb
+		summarizeBy: sum
+		sourceColumn: Capacity Total
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column 'Work Center No.'
+		dataType: string
+		isHidden
+		lineageTag: 326a4376-dc55-447f-952d-750ed2143805
+		summarizeBy: none
+		sourceColumn: Work Center No.
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	partition 'Calendar Entries' = m
+		mode: import
+		queryGroup: 'Fact Tables'
+		source =
+				let
+				    Source = Dynamics365BusinessCentral.ApiContentsWithOptions(
+				        ENVIRONMENT, COMPANY,API_ENDPOINT, []
+				    ),
+				    TableData = Source{[Name = "calendarEntries", Signature = "table"]}[Data],
+				    #"Changed Type" = Table.TransformColumnTypes(TableData,{{"capacityType", type text}, {"no", type text}, {"workCenterGroupCode", type text}, {"date", type date}, {"capacityEffective", type number}}),
+				    #"Renamed Columns" = Table.RenameColumns(#"Changed Type",{{"capacityType", "Capacity Type"}, {"no", "No."}, {"workCenterGroupCode", "Work Center Group Code"}, {"date", "Date"}, {"capacityEffective", "Capacity Effective"}, {"capacityTotal", "Capacity Total"}, {"workShiftCode", "Work Shift Code"}, {"workCenterNo", "Work Center No."}}),
+				    #"Added Work/Machine Center Key" = Table.AddColumn(
+				        #"Renamed Columns", "Capacity Type & No.", each [#"Capacity Type"] & " " & [#"No."], type text
+				    ),
+				    #"Removed Columns" = Table.RemoveColumns(#"Added Work/Machine Center Key",{"ETag"})
+				in
+				    #"Removed Columns"
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Table
+

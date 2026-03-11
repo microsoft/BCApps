@@ -1,0 +1,783 @@
+{
+  "version": "1.1.0",
+  "diagrams": [
+    {
+      "ordinal": 0,
+      "scrollPosition": {
+        "x": 0,
+        "y": 0
+      },
+      "nodes": [
+        {
+          "location": {
+            "x": 7844.5453343983181,
+            "y": 268.23913497016963
+          },
+          "nodeIndex": "Activity KPIs",
+          "size": {
+            "height": 187,
+            "width": 254
+          },
+          "zIndex": 22
+        },
+        {
+          "location": {
+            "x": 4545.5072287216626,
+            "y": 268.23913497016963
+          },
+          "nodeIndex": "Balance Sheet Measures",
+          "size": {
+            "height": 187,
+            "width": 254
+          },
+          "zIndex": 23
+        },
+        {
+          "location": {
+            "x": 425.06620209059281,
+            "y": 295.37323721002241
+          },
+          "nodeIndex": "Dimension Sets",
+          "nodeLineageTag": "1617752a-65ec-4d0c-b652-07eb46ba12e3",
+          "size": {
+            "height": 104,
+            "width": 254
+          },
+          "zIndex": 54,
+          "expandedHeight": 187
+        },
+        {
+          "location": {
+            "x": 430.1249165438195,
+            "y": 585.71428571428578
+          },
+          "nodeIndex": "G/L Account",
+          "nodeLineageTag": "3c497fc9-ea73-408d-9753-186653d55d12",
+          "size": {
+            "height": 128,
+            "width": 254
+          },
+          "zIndex": 35,
+          "expandedHeight": 187
+        },
+        {
+          "location": {
+            "x": 788.11931944598007,
+            "y": 580
+          },
+          "nodeIndex": "G/L Account Category",
+          "size": {
+            "height": 187,
+            "width": 254
+          },
+          "zIndex": 53
+        },
+        {
+          "location": {
+            "x": 425.71428571428578,
+            "y": 737.14285714285722
+          },
+          "nodeIndex": "G/L Budget",
+          "size": {
+            "height": 104,
+            "width": 254
+          },
+          "zIndex": 36,
+          "expandedHeight": 187
+        },
+        {
+          "location": {
+            "x": 7.5517793631759105,
+            "y": 606.99999999999989
+          },
+          "nodeIndex": "G/L Budget Entries",
+          "size": {
+            "height": 176,
+            "width": 254
+          },
+          "zIndex": 51,
+          "expandedHeight": 187
+        },
+        {
+          "location": {
+            "x": 0,
+            "y": 382.14693726392534
+          },
+          "nodeIndex": "G/L Entries",
+          "size": {
+            "height": 176,
+            "width": 254
+          },
+          "zIndex": 52,
+          "expandedHeight": 187
+        },
+        {
+          "location": {
+            "x": 4875.411039289329,
+            "y": 268.23913497016963
+          },
+          "nodeIndex": "Income Statement Measures",
+          "size": {
+            "height": 187,
+            "width": 254
+          },
+          "zIndex": 37
+        },
+        {
+          "location": {
+            "x": 8174.4491449659836,
+            "y": 268.23913497016963
+          },
+          "nodeIndex": "Liquidity KPIs",
+          "size": {
+            "height": 187,
+            "width": 254
+          },
+          "zIndex": 43
+        },
+        {
+          "location": {
+            "x": 8504.35295553365,
+            "y": 268.23913497016963
+          },
+          "nodeIndex": "Profitability KPIs",
+          "size": {
+            "height": 187,
+            "width": 254
+          },
+          "zIndex": 44
+        },
+        {
+          "location": {
+            "x": 13078.1,
+            "y": 0
+          },
+          "nodeIndex": "Working Days",
+          "size": {
+            "height": 104,
+            "width": 234
+          },
+          "zIndex": 14
+        },
+        {
+          "location": {
+            "x": 0,
+            "y": 0
+          },
+          "nodeIndex": "Customer Ledger Entries",
+          "size": {
+            "height": 152,
+            "width": 234
+          },
+          "zIndex": 15,
+          "expandedHeight": 300
+        },
+        {
+          "location": {
+            "x": 0,
+            "y": 183.57142857142861
+          },
+          "nodeIndex": "Vendor Ledger Entries",
+          "size": {
+            "height": 152,
+            "width": 234
+          },
+          "zIndex": 16,
+          "expandedHeight": 300
+        },
+        {
+          "location": {
+            "x": 428,
+            "y": 155
+          },
+          "nodeIndex": "Vendors",
+          "size": {
+            "height": 104,
+            "width": 234
+          },
+          "zIndex": 17,
+          "expandedHeight": 296
+        },
+        {
+          "location": {
+            "x": 17594.7,
+            "y": 0
+          },
+          "nodeIndex": "Aging Date Parameter",
+          "size": {
+            "height": 152,
+            "width": 234
+          },
+          "zIndex": 11
+        },
+        {
+          "location": {
+            "x": 17986.2,
+            "y": 38
+          },
+          "nodeIndex": "Aging Bucket Period",
+          "size": {
+            "height": 224,
+            "width": 234
+          },
+          "zIndex": 12
+        },
+        {
+          "location": {
+            "x": 432.28571428571445,
+            "y": 9.28571428571422
+          },
+          "nodeIndex": "Customers",
+          "size": {
+            "height": 104,
+            "width": 234
+          },
+          "zIndex": 13,
+          "expandedHeight": 300
+        },
+        {
+          "location": {
+            "x": 1360.6892857142861,
+            "y": 838.65625000000011
+          },
+          "nodeIndex": "Date Ref",
+          "size": {
+            "height": 200,
+            "width": 391.14285714285722
+          },
+          "zIndex": 6
+        },
+        {
+          "location": {
+            "x": 428.32857142857722,
+            "y": 437.14285714285711
+          },
+          "nodeIndex": "Date",
+          "size": {
+            "height": 104,
+            "width": 234
+          },
+          "zIndex": 7,
+          "expandedHeight": 200
+        },
+        {
+          "location": {
+            "x": 18769.2,
+            "y": 86
+          },
+          "nodeIndex": "Calc. Group - Time Intelligence for Calendar (Fiscal)",
+          "size": {
+            "height": 128,
+            "width": 234
+          },
+          "zIndex": 8
+        },
+        {
+          "location": {
+            "x": 16153.5,
+            "y": 86
+          },
+          "nodeIndex": "Calc. Group - Time Intelligence for Calendar (Standard)",
+          "size": {
+            "height": 128,
+            "width": 234
+          },
+          "zIndex": 9
+        },
+        {
+          "location": {
+            "x": 19160.7,
+            "y": 86
+          },
+          "nodeIndex": "Calc. Group - Time Intelligence for Calenday (Weekly)",
+          "size": {
+            "height": 128,
+            "width": 234
+          },
+          "zIndex": 10
+        },
+        {
+          "location": {
+            "x": 13780.1,
+            "y": 0
+          },
+          "nodeIndex": "Standard Calendar Time Intelligence",
+          "size": {
+            "height": 104,
+            "width": 234
+          },
+          "zIndex": 3
+        },
+        {
+          "location": {
+            "x": 13429.1,
+            "y": 0
+          },
+          "nodeIndex": "Fiscal Calendar Time Intelligence",
+          "size": {
+            "height": 104,
+            "width": 234
+          },
+          "zIndex": 4
+        },
+        {
+          "location": {
+            "x": 14131.1,
+            "y": 0
+          },
+          "nodeIndex": "Weekly Calendar Time Intelligence",
+          "size": {
+            "height": 104,
+            "width": 234
+          },
+          "zIndex": 5
+        },
+        {
+          "location": {
+            "x": 11570.9,
+            "y": 0
+          },
+          "nodeIndex": "Date Table Setup",
+          "size": {
+            "height": 300,
+            "width": 234
+          },
+          "zIndex": 1
+        },
+        {
+          "location": {
+            "x": 19854.800056087141,
+            "y": 38
+          },
+          "nodeIndex": "Localized Labels",
+          "size": {
+            "height": 224,
+            "width": 234
+          },
+          "zIndex": 2
+        },
+        {
+          "location": {
+            "x": 23000.902862116265,
+            "y": 467.328125
+          },
+          "nodeIndex": "COMPANY",
+          "nodeLineageTag": "d4a507c0-3b24-4242-a536-0cca34435194",
+          "size": {
+            "height": 104,
+            "width": 234
+          },
+          "zIndex": 0
+        },
+        {
+          "location": {
+            "x": 23284.902862116265,
+            "y": 431.328125
+          },
+          "nodeIndex": "Power BI Account Categories",
+          "nodeLineageTag": "7d031976-21a1-4704-8d41-6b3264faaf52",
+          "size": {
+            "height": 176,
+            "width": 234
+          },
+          "zIndex": 0
+        },
+        {
+          "location": {
+            "x": 23852.902862116265,
+            "y": 467.328125
+          },
+          "nodeIndex": "Closing Entry Filter Table",
+          "nodeLineageTag": "44df98ef-ec05-4a50-b2f3-54cf7a3cb9b9",
+          "size": {
+            "height": 104,
+            "width": 234
+          },
+          "zIndex": 0
+        },
+        {
+          "location": {
+            "x": 24136.902862116265,
+            "y": 467.328125
+          },
+          "nodeIndex": "ENVIRONMENT",
+          "nodeLineageTag": "e2170333-272f-4db8-b437-5d0516cb88ac",
+          "size": {
+            "height": 104,
+            "width": 234
+          },
+          "zIndex": 0
+        },
+        {
+          "location": {
+            "x": 24704.902862116265,
+            "y": 467.328125
+          },
+          "nodeIndex": "Back Links",
+          "nodeLineageTag": "c47d9fc9-8979-4805-9875-90c12fa378f4",
+          "size": {
+            "height": 104,
+            "width": 234
+          },
+          "zIndex": 0
+        },
+        {
+          "location": {
+            "x": 24988.902862116265,
+            "y": 369.328125
+          },
+          "nodeIndex": "Translated Localized Labels",
+          "size": {
+            "height": 300,
+            "width": 234
+          },
+          "zIndex": 0
+        }
+      ],
+      "name": "All tables",
+      "zoomValue": 78.481855489842161,
+      "pinKeyFieldsToTop": false,
+      "showExtraHeaderInfo": false,
+      "hideKeyFieldsWhenCollapsed": false,
+      "tablesLocked": false
+    },
+    {
+      "ordinal": 1,
+      "scrollPosition": {
+        "x": 0,
+        "y": 0
+      },
+      "nodes": [
+        {
+          "location": {
+            "x": 9,
+            "y": 0
+          },
+          "nodeIndex": "Customer Ledger Entries",
+          "size": {
+            "height": 300,
+            "width": 234
+          },
+          "zIndex": 3
+        },
+        {
+          "location": {
+            "x": 406,
+            "y": 0
+          },
+          "nodeIndex": "Customers",
+          "size": {
+            "height": 104,
+            "width": 234
+          },
+          "zIndex": 4,
+          "expandedHeight": 300
+        },
+        {
+          "location": {
+            "x": 406,
+            "y": 136
+          },
+          "nodeIndex": "Dimension Sets",
+          "size": {
+            "height": 104,
+            "width": 234
+          },
+          "zIndex": 5,
+          "expandedHeight": 300
+        },
+        {
+          "location": {
+            "x": 404,
+            "y": 268
+          },
+          "nodeIndex": "Date",
+          "size": {
+            "height": 104,
+            "width": 234
+          },
+          "zIndex": 1,
+          "expandedHeight": 300
+        }
+      ],
+      "name": "Customer Ledger Entries",
+      "zoomValue": 100,
+      "pinKeyFieldsToTop": false,
+      "showExtraHeaderInfo": false,
+      "hideKeyFieldsWhenCollapsed": false,
+      "tablesLocked": false
+    },
+    {
+      "ordinal": 2,
+      "scrollPosition": {
+        "x": 0,
+        "y": 0
+      },
+      "nodes": [
+        {
+          "location": {
+            "x": 22,
+            "y": 14
+          },
+          "nodeIndex": "Vendor Ledger Entries",
+          "size": {
+            "height": 300,
+            "width": 234
+          },
+          "zIndex": 3
+        },
+        {
+          "location": {
+            "x": 344,
+            "y": 11
+          },
+          "nodeIndex": "Vendors",
+          "size": {
+            "height": 104,
+            "width": 234
+          },
+          "zIndex": 4,
+          "expandedHeight": 296
+        },
+        {
+          "location": {
+            "x": 341,
+            "y": 142
+          },
+          "nodeIndex": "Dimension Sets",
+          "nodeLineageTag": "1617752a-65ec-4d0c-b652-07eb46ba12e3",
+          "size": {
+            "height": 104,
+            "width": 234
+          },
+          "zIndex": 1,
+          "expandedHeight": 300
+        },
+        {
+          "location": {
+            "x": 346,
+            "y": 271
+          },
+          "nodeIndex": "Date",
+          "size": {
+            "height": 104,
+            "width": 234
+          },
+          "zIndex": 2,
+          "expandedHeight": 300
+        }
+      ],
+      "name": "Vendor Ledger Entries",
+      "zoomValue": 100,
+      "pinKeyFieldsToTop": false,
+      "showExtraHeaderInfo": false,
+      "hideKeyFieldsWhenCollapsed": false,
+      "tablesLocked": false
+    },
+    {
+      "ordinal": 3,
+      "scrollPosition": {
+        "x": 74,
+        "y": 0
+      },
+      "nodes": [
+        {
+          "location": {
+            "x": 0,
+            "y": 90.860228921124644
+          },
+          "nodeIndex": "G/L Entries",
+          "nodeLineageTag": "135cf14f-b9fb-4a27-b7e9-7e652be296c4",
+          "size": {
+            "height": 300,
+            "width": 234
+          },
+          "zIndex": 5
+        },
+        {
+          "location": {
+            "x": 417.33217693988786,
+            "y": 380.06512419801061
+          },
+          "nodeIndex": "Customers",
+          "nodeLineageTag": "d55409c9-b7e4-40a4-9297-5905ff1fb1d6",
+          "size": {
+            "height": 104,
+            "width": 234
+          },
+          "zIndex": 3,
+          "expandedHeight": 300
+        },
+        {
+          "location": {
+            "x": 411.65512308570555,
+            "y": 0
+          },
+          "nodeIndex": "Vendors",
+          "nodeLineageTag": "408107af-c25d-4948-8717-8ea446127d2e",
+          "size": {
+            "height": 104,
+            "width": 234
+          },
+          "zIndex": 4,
+          "expandedHeight": 296
+        },
+        {
+          "location": {
+            "x": 412.33211525721777,
+            "y": 121.46973168395743
+          },
+          "nodeIndex": "Date",
+          "nodeLineageTag": "43a65c75-84cf-4e19-b893-90aa5fbee72b",
+          "size": {
+            "height": 104,
+            "width": 234
+          },
+          "zIndex": 1,
+          "expandedHeight": 300
+        },
+        {
+          "location": {
+            "x": 419.26118994752852,
+            "y": 516.67685048793555
+          },
+          "nodeIndex": "G/L Account",
+          "nodeLineageTag": "3c497fc9-ea73-408d-9753-186653d55d12",
+          "size": {
+            "height": 104,
+            "width": 234
+          },
+          "zIndex": 6,
+          "expandedHeight": 300
+        },
+        {
+          "location": {
+            "x": 414.797427986676,
+            "y": 252.15830668642286
+          },
+          "nodeIndex": "Dimension Sets",
+          "nodeLineageTag": "1617752a-65ec-4d0c-b652-07eb46ba12e3",
+          "size": {
+            "height": 104,
+            "width": 234
+          },
+          "zIndex": 2,
+          "expandedHeight": 300
+        },
+        {
+          "location": {
+            "x": 802,
+            "y": 380.5454625609807
+          },
+          "nodeIndex": "G/L Account Category",
+          "nodeLineageTag": "c3ba4558-e02a-404b-b4a1-a2903520532a",
+          "size": {
+            "height": 300,
+            "width": 234
+          },
+          "zIndex": 7
+        },
+        {
+          "location": {
+            "x": 1082,
+            "y": 375
+          },
+          "nodeIndex": "Power BI Account Categories",
+          "nodeLineageTag": "7d031976-21a1-4704-8d41-6b3264faaf52",
+          "size": {
+            "height": 176,
+            "width": 234
+          },
+          "zIndex": 8
+        }
+      ],
+      "name": "G/L Entries",
+      "zoomValue": 100,
+      "pinKeyFieldsToTop": false,
+      "showExtraHeaderInfo": false,
+      "hideKeyFieldsWhenCollapsed": false,
+      "tablesLocked": false
+    },
+    {
+      "ordinal": 4,
+      "scrollPosition": {
+        "x": 0,
+        "y": 0
+      },
+      "nodes": [
+        {
+          "location": {
+            "x": 0,
+            "y": 0
+          },
+          "nodeIndex": "G/L Budget Entries",
+          "size": {
+            "height": 307,
+            "width": 234
+          },
+          "zIndex": 1
+        },
+        {
+          "location": {
+            "x": 369,
+            "y": 300
+          },
+          "nodeIndex": "Date",
+          "size": {
+            "height": 104,
+            "width": 234
+          },
+          "zIndex": 2,
+          "expandedHeight": 300
+        },
+        {
+          "location": {
+            "x": 365,
+            "y": 147
+          },
+          "nodeIndex": "G/L Account",
+          "size": {
+            "height": 128,
+            "width": 234
+          },
+          "zIndex": 5,
+          "expandedHeight": 300
+        },
+        {
+          "location": {
+            "x": 363,
+            "y": 0
+          },
+          "nodeIndex": "G/L Budget",
+          "size": {
+            "height": 128,
+            "width": 234
+          },
+          "zIndex": 3
+        },
+        {
+          "location": {
+            "x": 370,
+            "y": 443
+          },
+          "nodeIndex": "Dimension Sets",
+          "nodeLineageTag": "1617752a-65ec-4d0c-b652-07eb46ba12e3",
+          "size": {
+            "height": 104,
+            "width": 234
+          },
+          "zIndex": 0,
+          "expandedHeight": 300
+        }
+      ],
+      "name": "G/L Budget Entries",
+      "zoomValue": 100,
+      "pinKeyFieldsToTop": false,
+      "showExtraHeaderInfo": false,
+      "hideKeyFieldsWhenCollapsed": false,
+      "tablesLocked": false
+    }
+  ],
+  "selectedDiagram": "Customer Ledger Entries",
+  "defaultDiagram": "All tables"
+}
