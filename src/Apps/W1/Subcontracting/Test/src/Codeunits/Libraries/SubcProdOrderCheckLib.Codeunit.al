@@ -47,7 +47,6 @@ codeunit 139987 "Subc. ProdOrderCheckLib"
     var
         SubManagementSetup: Record "Subc. Management Setup";
         TempProdOrderComponent2: Record "Prod. Order Component" temporary;
-        SubManagementSetup: Record "Subc. Management Setup";
         ManufacturingSetup: Record "Manufacturing Setup";
         LineNo: Integer;
     begin
@@ -306,8 +305,8 @@ codeunit 139987 "Subc. ProdOrderCheckLib"
         else
             LineNo := 0;
 
-        SubManagementSetup.Get();
         SubManagementSetup.SetLoadFields("Def. provision flushing method");
+        SubManagementSetup.Get();
 
         ProductionBOMLine.SetRange("Production BOM No.", BOMNo);
         ProductionBOMLine.SetRange(Type, ProductionBOMLine.Type::Item);
