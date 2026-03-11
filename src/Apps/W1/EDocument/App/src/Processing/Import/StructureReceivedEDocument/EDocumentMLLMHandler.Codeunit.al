@@ -43,7 +43,7 @@ codeunit 6231 "E-Document MLLM Handler" implements IStructureReceivedEDocument, 
         CustomDimensions: Dictionary of [Text, Text];
         ResponseText: Text;
     begin
-        Telemetry.LogMessage('', MLLMExtractionStartedMsg, Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::All, GetCustomDimensions());
+        Telemetry.LogMessage('0000SGQ', MLLMExtractionStartedMsg, Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::All, GetCustomDimensions());
 
         RegisterCopilotCapabilityIfNeeded();
 
@@ -57,7 +57,7 @@ codeunit 6231 "E-Document MLLM Handler" implements IStructureReceivedEDocument, 
 
         CustomDimensions := GetCustomDimensions();
         CustomDimensions.Add('LineCount', Format(GetInvoiceLineCount(ResponseJson)));
-        Telemetry.LogMessage('', MLLMExtractionSucceededMsg, Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::All, CustomDimensions);
+        Telemetry.LogMessage('0000SGR', MLLMExtractionSucceededMsg, Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::All, CustomDimensions);
 
         exit(this);
     end;
@@ -105,11 +105,11 @@ codeunit 6231 "E-Document MLLM Handler" implements IStructureReceivedEDocument, 
         CustomDimensions.Add('DurationMs', Format(DurationMs));
 
         if not AOAIOperationResponse.IsSuccess() then begin
-            Telemetry.LogMessage('', MLLMApiCallFailedMsg, Verbosity::Warning, DataClassification::SystemMetadata, TelemetryScope::All, CustomDimensions);
+            Telemetry.LogMessage('0000SGS', MLLMApiCallFailedMsg, Verbosity::Warning, DataClassification::SystemMetadata, TelemetryScope::All, CustomDimensions);
             exit('');
         end;
 
-        Telemetry.LogMessage('', MLLMApiCallSucceededMsg, Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::All, CustomDimensions);
+        Telemetry.LogMessage('0000SGT', MLLMApiCallSucceededMsg, Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::All, CustomDimensions);
         exit(AOAIOperationResponse.GetResult());
     end;
 
@@ -118,12 +118,12 @@ codeunit 6231 "E-Document MLLM Handler" implements IStructureReceivedEDocument, 
         ContentToken: JsonToken;
     begin
         if ResponseText = '' then begin
-            Telemetry.LogMessage('', MLLMEmptyResponseMsg, Verbosity::Warning, DataClassification::SystemMetadata, TelemetryScope::All, GetCustomDimensions());
+            Telemetry.LogMessage('0000SGU', MLLMEmptyResponseMsg, Verbosity::Warning, DataClassification::SystemMetadata, TelemetryScope::All, GetCustomDimensions());
             exit(false);
         end;
 
         if not ResponseJson.ReadFrom(ResponseText) then begin
-            Telemetry.LogMessage('', MLLMJsonParseFailedMsg, Verbosity::Warning, DataClassification::SystemMetadata, TelemetryScope::All, GetCustomDimensions());
+            Telemetry.LogMessage('0000SGV', MLLMJsonParseFailedMsg, Verbosity::Warning, DataClassification::SystemMetadata, TelemetryScope::All, GetCustomDimensions());
             exit(false);
         end;
 
@@ -131,13 +131,13 @@ codeunit 6231 "E-Document MLLM Handler" implements IStructureReceivedEDocument, 
         if ResponseJson.Get('content', ContentToken) then begin
             ResponseText := ContentToken.AsValue().AsText();
             if not ResponseJson.ReadFrom(ResponseText) then begin
-                Telemetry.LogMessage('', MLLMJsonParseFailedMsg, Verbosity::Warning, DataClassification::SystemMetadata, TelemetryScope::All, GetCustomDimensions());
+                Telemetry.LogMessage('0000SGW', MLLMJsonParseFailedMsg, Verbosity::Warning, DataClassification::SystemMetadata, TelemetryScope::All, GetCustomDimensions());
                 exit(false);
             end;
         end;
 
         if not ValidateMLLMResponse(ResponseJson) then begin
-            Telemetry.LogMessage('', MLLMSchemaValidationFailedMsg, Verbosity::Warning, DataClassification::SystemMetadata, TelemetryScope::All, GetCustomDimensions());
+            Telemetry.LogMessage('0000SGX', MLLMSchemaValidationFailedMsg, Verbosity::Warning, DataClassification::SystemMetadata, TelemetryScope::All, GetCustomDimensions());
             exit(false);
         end;
 
@@ -152,9 +152,9 @@ codeunit 6231 "E-Document MLLM Handler" implements IStructureReceivedEDocument, 
         ADIResult := ADIHandler.StructureReceivedEDocument(EDocumentDataStorage);
 
         if ADIResult.GetContent() <> '' then
-            Telemetry.LogMessage('', ADIFallbackSucceededMsg, Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::All, GetCustomDimensions())
+            Telemetry.LogMessage('0000SGY', ADIFallbackSucceededMsg, Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::All, GetCustomDimensions())
         else
-            Telemetry.LogMessage('', ADIFallbackFailedMsg, Verbosity::Warning, DataClassification::SystemMetadata, TelemetryScope::All, GetCustomDimensions());
+            Telemetry.LogMessage('0000SGZ', ADIFallbackFailedMsg, Verbosity::Warning, DataClassification::SystemMetadata, TelemetryScope::All, GetCustomDimensions());
 
         exit(ADIResult);
     end;
