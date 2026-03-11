@@ -89,8 +89,8 @@ codeunit 50151 "BC14 Migration Setup"
             AppIdSuffix := BaseAppIdTok; // Microsoft Base Application ID
 
         DestinationSqlName := CompanyName + '$' + DestinationTableName + '$' + AppIdSuffix;
-        ReplicationMapping."Destination Sql Table Name" := ConvertStr(DestinationSqlName, InvalidSqlCharactersTok, ValidSqlReplacementTok);
-        ReplicationMapping."Company Name" := CompanyName;
+        ReplicationMapping."Destination Sql Table Name" := CopyStr(ConvertStr(DestinationSqlName, InvalidSqlCharactersTok, ValidSqlReplacementTok), 1, MaxStrLen(ReplicationMapping."Destination Sql Table Name"));
+        ReplicationMapping."Company Name" := CopyStr(CompanyName, 1, MaxStrLen(ReplicationMapping."Company Name"));
         ReplicationMapping."Table Name" := DestinationTableName;
         ReplicationMapping."Preserve Cloud Data" := false;
         if ExistingReplicationMapping.Get(ReplicationMapping.RecordId) then

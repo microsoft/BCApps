@@ -89,7 +89,7 @@ table 50155 "BC14CompanyAdditionalSettings"
             exit;
 
         if not Rec.Get(CurrentCompanyName) then begin
-            Rec.Name := CurrentCompanyName;
+            Rec.Name := CopyStr(CurrentCompanyName, 1, MaxStrLen(Rec.Name));
             Rec.Insert();
         end;
     end;
