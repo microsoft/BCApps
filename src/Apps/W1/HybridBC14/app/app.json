@@ -34,7 +34,8 @@
     "includeSourceInSymbolFile": true
   },
   "features": [
-    "NoImplicitWith"
+    "NoImplicitWith",
+    "TranslationFile"
   ],
   "internalsVisibleTo": [
     {

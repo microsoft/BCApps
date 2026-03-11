@@ -42,6 +42,8 @@ table 50181 "BC14 Posted Sales Inv Line"
         {
             Caption = 'Quantity';
             DecimalPlaces = 0 : 5;
+            AutoFormatType = 0;
+            AutoFormatExpression = '<Precision,0:5><Standard Format,0>';
         }
         field(11; "Unit of Measure Code"; Code[10])
         {
@@ -51,31 +53,39 @@ table 50181 "BC14 Posted Sales Inv Line"
         {
             Caption = 'Qty. per Unit of Measure';
             DecimalPlaces = 0 : 5;
+            AutoFormatType = 0;
+            AutoFormatExpression = '<Precision,0:5><Standard Format,0>';
         }
         field(20; "Unit Price"; Decimal)
         {
             Caption = 'Unit Price';
             AutoFormatType = 2;
+            AutoFormatExpression = '<Precision,2:2><Standard Format,0>';
         }
         field(21; "Line Discount %"; Decimal)
         {
             Caption = 'Line Discount %';
             DecimalPlaces = 0 : 5;
+            AutoFormatType = 0;
+            AutoFormatExpression = '<Precision,0:5><Standard Format,0>';
         }
         field(22; "Line Discount Amount"; Decimal)
         {
             Caption = 'Line Discount Amount';
             AutoFormatType = 1;
+            AutoFormatExpression = '<Precision,2:2><Standard Format,0>';
         }
         field(23; Amount; Decimal)
         {
             Caption = 'Amount';
             AutoFormatType = 1;
+            AutoFormatExpression = '<Precision,2:2><Standard Format,0>';
         }
         field(24; "Amount Including VAT"; Decimal)
         {
             Caption = 'Amount Including VAT';
             AutoFormatType = 1;
+            AutoFormatExpression = '<Precision,2:2><Standard Format,0>';
         }
         field(30; "Shortcut Dimension 1 Code"; Code[20])
         {
@@ -89,11 +99,14 @@ table 50181 "BC14 Posted Sales Inv Line"
         {
             Caption = 'VAT %';
             DecimalPlaces = 0 : 5;
+            AutoFormatType = 0;
+            AutoFormatExpression = '<Precision,0:5><Standard Format,0>';
         }
         field(41; "VAT Base Amount"; Decimal)
         {
             Caption = 'VAT Base Amount';
             AutoFormatType = 1;
+            AutoFormatExpression = '<Precision,2:2><Standard Format,0>';
         }
         field(50; "Location Code"; Code[10])
         {

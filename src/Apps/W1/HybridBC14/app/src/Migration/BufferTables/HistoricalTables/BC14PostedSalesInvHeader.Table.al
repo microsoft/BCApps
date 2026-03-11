@@ -76,6 +76,8 @@ table 50180 "BC14 Posted Sales Inv Header"
         {
             Caption = 'Currency Factor';
             DecimalPlaces = 0 : 15;
+            AutoFormatType = 0;
+            AutoFormatExpression = '<Precision,0:15><Standard Format,0>';
         }
         field(30; "Salesperson Code"; Code[20])
         {
@@ -121,11 +123,13 @@ table 50180 "BC14 Posted Sales Inv Header"
         {
             Caption = 'Amount';
             AutoFormatType = 1;
+            AutoFormatExpression = '<Precision,2:2><Standard Format,0>';
         }
         field(61; "Amount Including VAT"; Decimal)
         {
             Caption = 'Amount Including VAT';
             AutoFormatType = 1;
+            AutoFormatExpression = '<Precision,2:2><Standard Format,0>';
         }
         field(70; "Order No."; Code[20])
         {
@@ -147,6 +151,7 @@ table 50180 "BC14 Posted Sales Inv Header"
         {
             Caption = 'Remaining Amount';
             AutoFormatType = 1;
+            AutoFormatExpression = '<Precision,2:2><Standard Format,0>';
         }
         field(91; Closed; Boolean)
         {

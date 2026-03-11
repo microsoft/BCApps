@@ -51,6 +51,7 @@ table 50161 "BC14 Item"
         field(18; "Unit Price"; Decimal)
         {
             AutoFormatType = 2;
+            AutoFormatExpression = '<Precision,2:2><Standard Format,0>';
             Caption = 'Unit Price';
             MinValue = 0;
         }
@@ -62,12 +63,14 @@ table 50161 "BC14 Item"
         field(22; "Unit Cost"; Decimal)
         {
             AutoFormatType = 2;
+            AutoFormatExpression = '<Precision,2:2><Standard Format,0>';
             Caption = 'Unit Cost';
             MinValue = 0;
         }
         field(24; "Standard Cost"; Decimal)
         {
             AutoFormatType = 2;
+            AutoFormatExpression = '<Precision,2:2><Standard Format,0>';
             Caption = 'Standard Cost';
             MinValue = 0;
         }
@@ -83,6 +86,8 @@ table 50161 "BC14 Item"
         {
             Caption = 'Reorder Quantity';
             DecimalPlaces = 0 : 5;
+            AutoFormatType = 0;
+            AutoFormatExpression = '<Precision,0:5><Standard Format,0>';
         }
         field(37; "Alternative Item No."; Code[20])
         {
@@ -91,6 +96,7 @@ table 50161 "BC14 Item"
         field(38; "Unit List Price"; Decimal)
         {
             AutoFormatType = 2;
+            AutoFormatExpression = '<Precision,2:2><Standard Format,0>';
             Caption = 'Unit List Price';
             MinValue = 0;
         }
@@ -98,12 +104,16 @@ table 50161 "BC14 Item"
         {
             Caption = 'Net Weight';
             DecimalPlaces = 0 : 5;
+            AutoFormatType = 0;
+            AutoFormatExpression = '<Precision,0:5><Standard Format,0>';
             MinValue = 0;
         }
         field(44; "Unit Volume"; Decimal)
         {
             Caption = 'Unit Volume';
             DecimalPlaces = 0 : 5;
+            AutoFormatType = 0;
+            AutoFormatExpression = '<Precision,0:5><Standard Format,0>';
             MinValue = 0;
         }
         field(47; "Tariff No."; Code[20])

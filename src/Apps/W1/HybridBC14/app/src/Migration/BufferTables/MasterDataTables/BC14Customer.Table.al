@@ -66,6 +66,7 @@ table 50160 "BC14 Customer"
         {
             Caption = 'Credit Limit (LCY)';
             AutoFormatType = 1;
+            AutoFormatExpression = '<Precision,2:2><Standard Format,0>';
         }
         field(21; "Customer Posting Group"; Code[20])
         {
