@@ -563,7 +563,7 @@ MicrosoftUserFeedback.RequestFeedback('MyFeature', 'AREA_001', 'Feature Area');
 - Use base64 encoding for file content
 
 ## License
-Licensed under the MIT License. See License.txt in the project root for license information.
+Licensed under the MIT License. See LICENSE in the project root for license information.
 MicrosoftUserFeedback.SetIsAIFeedback(true).RequestFeedback('AI Assistant');
 
 // For regular features
@@ -787,4 +787,4 @@ MicrosoftUserFeedback.RequestFeedback('MyFeature', 'AREA_001', 'Feature Area');
 - Use base64 encoding for file content
 
 ## License
-Licensed under the MIT License. See License.txt in the project root for license information.
+Licensed under the MIT License. See LICENSE in the project root for license information.
