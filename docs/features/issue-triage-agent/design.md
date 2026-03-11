@@ -2,7 +2,7 @@
 
 > **Feature**: AI-powered GitHub issue quality assessment, enrichment, and triage
 > **Trigger**: Adding the `ai-triage` label to a GitHub issue
-> **Runtime**: GitHub Action + GitHub Models API (GPT-5.4)
+> **Runtime**: GitHub Action + GitHub Models API (GPT-4o; upgrade to GPT-5.4 when available)
 > **Last Updated**: 2026-03-11 by jeschulz
 
 ---
@@ -17,7 +17,7 @@ Product managers on the BCApps repository receive GitHub issues ranging from spa
 - Determining the best implementation path (manual, Copilot-assisted, or fully agentic)
 - Deciding priority and assignment
 
-This feature introduces an **AI-powered triage agent** that automatically triggers when the `ai-triage` label is added to any GitHub issue. A GitHub Action orchestrates the process, calling **GPT-5.4** via the **GitHub Models API** to assess issue quality, enrich it with external context from Microsoft Learn, the Dynamics 365 Ideas Portal, and public forums, and then post a structured triage assessment as a comment with appropriate labels applied.
+This feature introduces an **AI-powered triage agent** that automatically triggers when the `ai-triage` label is added to any GitHub issue. A GitHub Action orchestrates the process, calling **GPT-4o** (upgradeable to GPT-5.4 when available in GitHub Models) via the **GitHub Models API** to assess issue quality, enrich it with external context from Microsoft Learn, the Dynamics 365 Ideas Portal, and public forums, and then post a structured triage assessment as a comment with appropriate labels applied.
 
 The agent operates in two internal phases:
 
