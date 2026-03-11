@@ -47,18 +47,26 @@ table 50168 "BC14 G/L Entry"
         field(13; "Amount"; Decimal)
         {
             Caption = 'Amount';
+            AutoFormatType = 1;
+            AutoFormatExpression = '<Precision,2:2><Standard Format,0>';
         }
         field(17; "Debit Amount"; Decimal)
         {
             Caption = 'Debit Amount';
+            AutoFormatType = 1;
+            AutoFormatExpression = '<Precision,2:2><Standard Format,0>';
         }
         field(18; "Credit Amount"; Decimal)
         {
             Caption = 'Credit Amount';
+            AutoFormatType = 1;
+            AutoFormatExpression = '<Precision,2:2><Standard Format,0>';
         }
         field(22; "Balance"; Decimal)
         {
             Caption = 'Balance';
+            AutoFormatType = 1;
+            AutoFormatExpression = '<Precision,2:2><Standard Format,0>';
         }
         field(15; "Global Dimension 1 Code"; Code[20])
         {

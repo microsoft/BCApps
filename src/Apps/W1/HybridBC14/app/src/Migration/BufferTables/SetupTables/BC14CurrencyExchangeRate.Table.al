@@ -26,12 +26,16 @@ table 50194 "BC14 Currency Exchange Rate"
         {
             Caption = 'Exchange Rate Amount';
             DecimalPlaces = 1 : 15;
+            AutoFormatType = 0;
+            AutoFormatExpression = '<Precision,1:15><Standard Format,0>';
             MinValue = 0;
         }
         field(4; "Adjustment Exch. Rate Amount"; Decimal)
         {
             Caption = 'Adjustment Exch. Rate Amount';
             DecimalPlaces = 1 : 15;
+            AutoFormatType = 0;
+            AutoFormatExpression = '<Precision,1:15><Standard Format,0>';
             MinValue = 0;
         }
         field(5; "Relational Currency Code"; Code[10])
@@ -42,12 +46,16 @@ table 50194 "BC14 Currency Exchange Rate"
         {
             Caption = 'Relational Exch. Rate Amount';
             DecimalPlaces = 1 : 15;
+            AutoFormatType = 0;
+            AutoFormatExpression = '<Precision,1:15><Standard Format,0>';
             MinValue = 0;
         }
         field(7; "Relational Adjmt Exch Rate Amt"; Decimal)
         {
             Caption = 'Relational Adjmt Exch Rate Amt';
             DecimalPlaces = 1 : 15;
+            AutoFormatType = 0;
+            AutoFormatExpression = '<Precision,1:15><Standard Format,0>';
             MinValue = 0;
         }
         field(8; "Fix Exchange Rate Amount"; Option)

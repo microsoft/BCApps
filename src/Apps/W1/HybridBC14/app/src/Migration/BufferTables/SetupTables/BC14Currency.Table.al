@@ -42,6 +42,8 @@ table 50193 "BC14 Currency"
         {
             Caption = 'Invoice Rounding Precision';
             DecimalPlaces = 2 : 5;
+            AutoFormatType = 0;
+            AutoFormatExpression = '<Precision,2:5><Standard Format,0>';
         }
         field(8; "Invoice Rounding Type"; Option)
         {
@@ -53,11 +55,15 @@ table 50193 "BC14 Currency"
         {
             Caption = 'Amount Rounding Precision';
             DecimalPlaces = 2 : 5;
+            AutoFormatType = 0;
+            AutoFormatExpression = '<Precision,2:5><Standard Format,0>';
         }
         field(10; "Unit-Amount Rounding Precision"; Decimal)
         {
             Caption = 'Unit-Amount Rounding Precision';
             DecimalPlaces = 2 : 5;
+            AutoFormatType = 0;
+            AutoFormatExpression = '<Precision,2:5><Standard Format,0>';
         }
         field(12; "Amount Decimal Places"; Text[5])
         {
@@ -71,6 +77,8 @@ table 50193 "BC14 Currency"
         {
             Caption = 'Appln. Rounding Precision';
             DecimalPlaces = 2 : 5;
+            AutoFormatType = 0;
+            AutoFormatExpression = '<Precision,2:5><Standard Format,0>';
         }
         field(15; "EMU Currency"; Boolean)
         {
@@ -95,6 +103,8 @@ table 50193 "BC14 Currency"
         field(21; "Max. VAT Difference Allowed"; Decimal)
         {
             Caption = 'Max. VAT Difference Allowed';
+            AutoFormatType = 1;
+            AutoFormatExpression = '<Precision,2:2><Standard Format,0>';
         }
         field(22; "VAT Rounding Type"; Option)
         {

@@ -30,6 +30,8 @@ table 50191 "BC14 Payment Terms"
         {
             Caption = 'Discount %';
             DecimalPlaces = 0 : 5;
+            AutoFormatType = 0;
+            AutoFormatExpression = '<Precision,0:5><Standard Format,0>';
             MaxValue = 100;
             MinValue = 0;
         }
