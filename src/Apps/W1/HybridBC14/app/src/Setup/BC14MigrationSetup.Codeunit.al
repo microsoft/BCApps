@@ -71,20 +71,20 @@ codeunit 50151 "BC14 Migration Setup"
         OnAfterSetupMigrationSetupTableMapping();
     end;
 
-    local procedure InsertPerCompanyMapping(CompanyName: Text[30]; SourceTableName: Text[128]; DestinationTableName: Text[128]; IsExtensionTable: Boolean)
+    local procedure InsertPerCompanyMapping(CompanyName: Text; SourceTableName: Text[128]; DestinationTableName: Text[128]; IsExtensionTable: Boolean)
     var
         ExistingReplicationMapping: Record "Replication Table Mapping";
         ReplicationMapping: Record "Replication Table Mapping";
         BC14MigrationProvider: Codeunit "BC14 Migration Provider";
-        DestinationSqlName: Text[250];
+        DestinationSqlName: Text;
         AppIdSuffix: Text[50];
     begin
-        ReplicationMapping."Source Sql Table Name" := ConvertStr(CompanyName + '$' + SourceTableName, InvalidSqlCharactersTok, ValidSqlReplacementTok);
+        ReplicationMapping."Source Sql Table Name" := CopyStr(ConvertStr(CompanyName + '$' + SourceTableName, InvalidSqlCharactersTok, ValidSqlReplacementTok), 1, MaxStrLen(ReplicationMapping."Source Sql Table Name"));
 
         // Both extension tables and base app tables need App ID suffix in BC Online
         // Extension tables use this app's ID, base app tables use Microsoft Base Application ID
         if IsExtensionTable then
-            AppIdSuffix := Format(BC14MigrationProvider.GetAppId()).TrimEnd('}').TrimStart('{').ToLower()
+            AppIdSuffix := CopyStr(Format(BC14MigrationProvider.GetAppId()).TrimEnd('}').TrimStart('{').ToLower(), 1, MaxStrLen(AppIdSuffix))
         else
             AppIdSuffix := BaseAppIdTok; // Microsoft Base Application ID
 
@@ -121,7 +121,7 @@ codeunit 50151 "BC14 Migration Setup"
     end;
 
     [IntegrationEvent(false, false)]
-    local procedure OnAfterSetupReplicationMappings(CompanyName: Text[30])
+    local procedure OnAfterSetupReplicationMappings(CompanyName: Text)
     begin
     end;
 
@@ -131,7 +131,7 @@ codeunit 50151 "BC14 Migration Setup"
     end;
 
     [IntegrationEvent(false, false)]
-    local procedure OnAfterSetupMigrationSetupMappings(CompanyName: Text[30])
+    local procedure OnAfterSetupMigrationSetupMappings(CompanyName: Text)
     begin
     end;
 

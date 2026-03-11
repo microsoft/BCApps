@@ -37,6 +37,8 @@ page 50166 "BC14 Balance Validation"
                 {
                     ApplicationArea = All;
                     Caption = 'BC14 Debit Amount';
+                    AutoFormatType = 1;
+                    AutoFormatExpression = '<Precision,2:2><Standard Format,0>';
                     ToolTip = 'Specifies the debit amount from BC14 source data.';
                     Style = Attention;
                     StyleExpr = HasDifference;
@@ -45,6 +47,8 @@ page 50166 "BC14 Balance Validation"
                 {
                     ApplicationArea = All;
                     Caption = 'BC14 Credit Amount';
+                    AutoFormatType = 1;
+                    AutoFormatExpression = '<Precision,2:2><Standard Format,0>';
                     ToolTip = 'Specifies the credit amount from BC14 source data.';
                     Style = Attention;
                     StyleExpr = HasDifference;
@@ -53,6 +57,8 @@ page 50166 "BC14 Balance Validation"
                 {
                     ApplicationArea = All;
                     Caption = 'BC14 Net Balance';
+                    AutoFormatType = 1;
+                    AutoFormatExpression = '<Precision,2:2><Standard Format,0>';
                     ToolTip = 'Specifies the net balance from BC14 source data (Debit - Credit).';
                     Style = Attention;
                     StyleExpr = HasDifference;
@@ -61,6 +67,8 @@ page 50166 "BC14 Balance Validation"
                 {
                     ApplicationArea = All;
                     Caption = 'BC Online Balance';
+                    AutoFormatType = 1;
+                    AutoFormatExpression = '<Precision,2:2><Standard Format,0>';
                     ToolTip = 'Specifies the current balance in BC Online.';
                     Style = Attention;
                     StyleExpr = HasDifference;
@@ -69,6 +77,8 @@ page 50166 "BC14 Balance Validation"
                 {
                     ApplicationArea = All;
                     Caption = 'Difference';
+                    AutoFormatType = 1;
+                    AutoFormatExpression = '<Precision,2:2><Standard Format,0>';
                     ToolTip = 'Specifies the difference between BC14 and BC Online balances.';
                     Style = Unfavorable;
                     StyleExpr = HasDifference;
