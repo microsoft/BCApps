@@ -275,12 +275,12 @@ table 8004 "Sub. Contr. Price Update Line"
                 end;
             "Service Partner"::Vendor:
                 if ServiceObject.IsItem() then
-                    Rec."New Calculation Base" := ContractsItemManagement.CalculateUnitCost(ServiceObject."Source No.");
-            else begin
-                ContractsItemManagement.CreateTempPurchaseHeader(TempPurchaseHeader, TempPurchaseHeader."Document Type"::Order, Rec."Partner No.", Rec."Perform Update On", Rec."Currency Code");
-                ContractsItemManagement.CreateTempPurchaseLine(TempPurchaseLine, TempPurchaseHeader, ServiceObject, Rec."Perform Update On");
-                Rec."New Calculation Base" := ContractsItemManagement.CalculateDirectUnitCost(TempPurchaseHeader, TempPurchaseLine);
-            end;
+                    Rec."New Calculation Base" := ContractsItemManagement.CalculateUnitCost(ServiceObject."Source No.")
+                else begin
+                    ContractsItemManagement.CreateTempPurchaseHeader(TempPurchaseHeader, TempPurchaseHeader."Document Type"::Order, Rec."Partner No.", Rec."Perform Update On", Rec."Currency Code");
+                    ContractsItemManagement.CreateTempPurchaseLine(TempPurchaseLine, TempPurchaseHeader, ServiceObject, Rec."Perform Update On");
+                    Rec."New Calculation Base" := ContractsItemManagement.CalculateDirectUnitCost(TempPurchaseHeader, TempPurchaseLine);
+                end;
         end;
     end;
 
