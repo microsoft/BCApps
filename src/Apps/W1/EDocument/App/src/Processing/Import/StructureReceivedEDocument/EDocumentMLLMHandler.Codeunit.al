@@ -9,6 +9,7 @@ using Microsoft.eServices.EDocument.Processing.Import;
 using Microsoft.eServices.EDocument.Processing.Import.Purchase;
 using Microsoft.eServices.EDocument.Processing.Interfaces;
 using System.AI;
+using System.Telemetry;
 using System.Text;
 using System.Utilities;
 
@@ -19,15 +20,16 @@ codeunit 6231 "E-Document MLLM Handler" implements IStructureReceivedEDocument, 
     InherentPermissions = X;
 
     var
+        Telemetry: Codeunit Telemetry;
         StructuredData: Text;
         FileFormat: Enum "E-Doc. File Format";
-        ReadIntoDraftImpl: Enum "E-Doc. Read into Draft";
         FeatureNameLbl: Label 'E-Document MLLM Extraction', Locked = true;
         FileDataLbl: Label 'data:application/pdf;base64,%1', Locked = true;
         SystemPromptResourceTok: Label 'Prompts/EDocMLLMExtraction-SystemPrompt.md', Locked = true;
         UserPromptLbl: Label 'Extract invoice data into this UBL JSON structure: %1. \n\nExtract ONLY visible values. Return JSON only.', Locked = true;
         MLLMExtractionStartedMsg: Label 'MLLM extraction started.', Locked = true;
         MLLMExtractionSucceededMsg: Label 'MLLM extraction succeeded.', Locked = true;
+        MLLMApiCallSucceededMsg: Label 'MLLM API call succeeded.', Locked = true;
         MLLMApiCallFailedMsg: Label 'MLLM API call failed, falling back to ADI.', Locked = true;
         MLLMEmptyResponseMsg: Label 'MLLM returned empty response, falling back to ADI.', Locked = true;
         MLLMJsonParseFailedMsg: Label 'MLLM response is not valid JSON, falling back to ADI.', Locked = true;
@@ -40,30 +42,27 @@ codeunit 6231 "E-Document MLLM Handler" implements IStructureReceivedEDocument, 
         ResponseJson: JsonObject;
         CustomDimensions: Dictionary of [Text, Text];
         ResponseText: Text;
-        DurationMs: Integer;
     begin
-        Session.LogMessage('', MLLMExtractionStartedMsg, Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::All, 'Category', FeatureNameLbl);
+        Telemetry.LogMessage('', MLLMExtractionStartedMsg, Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::All, GetCustomDimensions());
 
         RegisterCopilotCapabilityIfNeeded();
 
-        ResponseText := CallMLLM(EDocumentDataStorage, DurationMs);
+        ResponseText := CallMLLM(EDocumentDataStorage);
 
-        if not ValidateAndUnwrapResponse(ResponseText, ResponseJson, DurationMs) then
+        if not ValidateAndUnwrapResponse(ResponseText, ResponseJson) then
             exit(FallbackToADI(EDocumentDataStorage));
 
         StructuredData := ResponseText;
         FileFormat := "E-Doc. File Format"::JSON;
-        ReadIntoDraftImpl := "E-Doc. Read into Draft"::MLLM;
 
-        CustomDimensions.Add('Category', FeatureNameLbl);
-        CustomDimensions.Add('DurationMs', Format(DurationMs));
+        CustomDimensions := GetCustomDimensions();
         CustomDimensions.Add('LineCount', Format(GetInvoiceLineCount(ResponseJson)));
-        Session.LogMessage('', MLLMExtractionSucceededMsg, Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::All, CustomDimensions);
+        Telemetry.LogMessage('', MLLMExtractionSucceededMsg, Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::All, CustomDimensions);
 
         exit(this);
     end;
 
-    local procedure CallMLLM(EDocumentDataStorage: Record "E-Doc. Data Storage"; var DurationMs: Integer): Text
+    local procedure CallMLLM(EDocumentDataStorage: Record "E-Doc. Data Storage"): Text
     var
         Base64Convert: Codeunit "Base64 Convert";
         AzureOpenAI: Codeunit "Azure OpenAI";
@@ -74,9 +73,11 @@ codeunit 6231 "E-Document MLLM Handler" implements IStructureReceivedEDocument, 
         AOAIDeployments: Codeunit "AOAI Deployments";
         EDocMLLMSchemaHelper: Codeunit "E-Doc. MLLM Schema Helper";
         FromTempBlob: Codeunit "Temp Blob";
+        CustomDimensions: Dictionary of [Text, Text];
         InStream: InStream;
         Base64Data: Text;
         StartTime: DateTime;
+        DurationMs: Integer;
     begin
         // Load schema and convert PDF to base64
         FromTempBlob := EDocumentDataStorage.GetTempBlob();
@@ -100,25 +101,29 @@ codeunit 6231 "E-Document MLLM Handler" implements IStructureReceivedEDocument, 
         AzureOpenAI.GenerateChatCompletion(AOAIChatMessages, AOAIChatCompletionParams, AOAIOperationResponse);
         DurationMs := CurrentDateTime() - StartTime;
 
+        CustomDimensions := GetCustomDimensions();
+        CustomDimensions.Add('DurationMs', Format(DurationMs));
+
         if not AOAIOperationResponse.IsSuccess() then begin
-            Session.LogMessage('', MLLMApiCallFailedMsg, Verbosity::Warning, DataClassification::SystemMetadata, TelemetryScope::All, 'Category', FeatureNameLbl, 'DurationMs', Format(DurationMs));
+            Telemetry.LogMessage('', MLLMApiCallFailedMsg, Verbosity::Warning, DataClassification::SystemMetadata, TelemetryScope::All, CustomDimensions);
             exit('');
         end;
 
+        Telemetry.LogMessage('', MLLMApiCallSucceededMsg, Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::All, CustomDimensions);
         exit(AOAIOperationResponse.GetResult());
     end;
 
-    local procedure ValidateAndUnwrapResponse(var ResponseText: Text; var ResponseJson: JsonObject; DurationMs: Integer): Boolean
+    local procedure ValidateAndUnwrapResponse(var ResponseText: Text; var ResponseJson: JsonObject): Boolean
     var
         ContentToken: JsonToken;
     begin
         if ResponseText = '' then begin
-            Session.LogMessage('', MLLMEmptyResponseMsg, Verbosity::Warning, DataClassification::SystemMetadata, TelemetryScope::All, 'Category', FeatureNameLbl, 'DurationMs', Format(DurationMs));
+            Telemetry.LogMessage('', MLLMEmptyResponseMsg, Verbosity::Warning, DataClassification::SystemMetadata, TelemetryScope::All, GetCustomDimensions());
             exit(false);
         end;
 
         if not ResponseJson.ReadFrom(ResponseText) then begin
-            Session.LogMessage('', MLLMJsonParseFailedMsg, Verbosity::Warning, DataClassification::SystemMetadata, TelemetryScope::All, 'Category', FeatureNameLbl, 'DurationMs', Format(DurationMs));
+            Telemetry.LogMessage('', MLLMJsonParseFailedMsg, Verbosity::Warning, DataClassification::SystemMetadata, TelemetryScope::All, GetCustomDimensions());
             exit(false);
         end;
 
@@ -126,13 +131,13 @@ codeunit 6231 "E-Document MLLM Handler" implements IStructureReceivedEDocument, 
         if ResponseJson.Get('content', ContentToken) then begin
             ResponseText := ContentToken.AsValue().AsText();
             if not ResponseJson.ReadFrom(ResponseText) then begin
-                Session.LogMessage('', MLLMJsonParseFailedMsg, Verbosity::Warning, DataClassification::SystemMetadata, TelemetryScope::All, 'Category', FeatureNameLbl, 'DurationMs', Format(DurationMs));
+                Telemetry.LogMessage('', MLLMJsonParseFailedMsg, Verbosity::Warning, DataClassification::SystemMetadata, TelemetryScope::All, GetCustomDimensions());
                 exit(false);
             end;
         end;
 
         if not ValidateMLLMResponse(ResponseJson) then begin
-            Session.LogMessage('', MLLMSchemaValidationFailedMsg, Verbosity::Warning, DataClassification::SystemMetadata, TelemetryScope::All, 'Category', FeatureNameLbl, 'DurationMs', Format(DurationMs));
+            Telemetry.LogMessage('', MLLMSchemaValidationFailedMsg, Verbosity::Warning, DataClassification::SystemMetadata, TelemetryScope::All, GetCustomDimensions());
             exit(false);
         end;
 
@@ -147,9 +152,9 @@ codeunit 6231 "E-Document MLLM Handler" implements IStructureReceivedEDocument, 
         ADIResult := ADIHandler.StructureReceivedEDocument(EDocumentDataStorage);
 
         if ADIResult.GetContent() <> '' then
-            Session.LogMessage('', ADIFallbackSucceededMsg, Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::All, 'Category', FeatureNameLbl)
+            Telemetry.LogMessage('', ADIFallbackSucceededMsg, Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::All, GetCustomDimensions())
         else
-            Session.LogMessage('', ADIFallbackFailedMsg, Verbosity::Warning, DataClassification::SystemMetadata, TelemetryScope::All, 'Category', FeatureNameLbl);
+            Telemetry.LogMessage('', ADIFallbackFailedMsg, Verbosity::Warning, DataClassification::SystemMetadata, TelemetryScope::All, GetCustomDimensions());
 
         exit(ADIResult);
     end;
@@ -219,17 +224,17 @@ codeunit 6231 "E-Document MLLM Handler" implements IStructureReceivedEDocument, 
 
     procedure GetReadIntoDraftImpl(): Enum "E-Doc. Read into Draft"
     begin
-        exit(this.ReadIntoDraftImpl);
+        exit("E-Doc. Read into Draft"::MLLM);
     end;
 
     procedure ReadIntoDraft(EDocument: Record "E-Document"; TempBlob: Codeunit "Temp Blob"): Enum "E-Doc. Process Draft"
     var
         TempEDocPurchaseHeader: Record "E-Document Purchase Header" temporary;
         TempEDocPurchaseLine: Record "E-Document Purchase Line" temporary;
-        EDocPurchaseDraftWriter: Codeunit "E-Doc. Purchase Draft Writer";
+        EDocPurchaseDraftUtility: Codeunit "E-Doc. Purchase Draft Utility";
     begin
         ReadIntoBuffer(EDocument, TempBlob, TempEDocPurchaseHeader, TempEDocPurchaseLine);
-        EDocPurchaseDraftWriter.PersistDraft(EDocument, TempEDocPurchaseHeader, TempEDocPurchaseLine);
+        EDocPurchaseDraftUtility.PersistDraft(EDocument, TempEDocPurchaseHeader, TempEDocPurchaseLine);
         exit(Enum::"E-Doc. Process Draft"::"Purchase Document");
     end;
 
@@ -271,17 +276,19 @@ codeunit 6231 "E-Document MLLM Handler" implements IStructureReceivedEDocument, 
         EDocReadablePurchaseDoc.Run();
     end;
 
-    local procedure RegisterCopilotCapabilityIfNeeded()
+    local procedure GetCustomDimensions(): Dictionary of [Text, Text]
+    var
+        CustomDimensions: Dictionary of [Text, Text];
+    begin
+        CustomDimensions.Add('Category', FeatureNameLbl);
+        exit(CustomDimensions);
+    end;
+
+    procedure RegisterCopilotCapabilityIfNeeded()
     var
         CopilotCapability: Codeunit "Copilot Capability";
     begin
         if not CopilotCapability.IsCapabilityRegistered(Enum::"Copilot Capability"::"E-Document MLLM Analysis") then
             CopilotCapability.RegisterCapability(Enum::"Copilot Capability"::"E-Document MLLM Analysis", '');
-    end;
-
-    [EventSubscriber(ObjectType::Page, Page::"Copilot AI Capabilities", OnRegisterCopilotCapability, '', false, false)]
-    local procedure HandleOnRegisterCopilotCapability()
-    begin
-        RegisterCopilotCapabilityIfNeeded();
     end;
 }

@@ -75,10 +75,10 @@ codeunit 6174 "E-Document ADI Handler" implements IStructureReceivedEDocument, I
     var
         TempEDocPurchaseHeader: Record "E-Document Purchase Header" temporary;
         TempEDocPurchaseLine: Record "E-Document Purchase Line" temporary;
-        EDocPurchaseDraftWriter: Codeunit "E-Doc. Purchase Draft Writer";
+        EDocPurchaseDraftUtility: Codeunit "E-Doc. Purchase Draft Utility";
     begin
         ReadIntoBuffer(EDocument, TempBlob, TempEDocPurchaseHeader, TempEDocPurchaseLine);
-        EDocPurchaseDraftWriter.PersistDraft(EDocument, TempEDocPurchaseHeader, TempEDocPurchaseLine);
+        EDocPurchaseDraftUtility.PersistDraft(EDocument, TempEDocPurchaseHeader, TempEDocPurchaseLine);
         exit(Enum::"E-Doc. Process Draft"::"Purchase Document");
     end;
 

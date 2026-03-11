@@ -7,7 +7,7 @@ namespace Microsoft.eServices.EDocument.Processing.Import;
 using Microsoft.eServices.EDocument;
 using Microsoft.eServices.EDocument.Processing.Import.Purchase;
 
-codeunit 6234 "E-Doc. Purchase Draft Writer"
+codeunit 6234 "E-Doc. Purchase Draft Utility"
 {
     Access = Internal;
     InherentEntitlements = X;
