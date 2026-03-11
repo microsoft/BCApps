@@ -1,0 +1,114 @@
+// Phase 2: Issue enrichment and triage assessment
+// See: docs/features/issue-triage-agent/design.md (FR9-FR16, section 6.6)
+
+import { readFileSync } from 'fs';
+import { fileURLToPath } from 'url';
+import { dirname, join } from 'path';
+import { callGPT } from './models-client.js';
+import { detectAppArea } from './config.js';
+
+const __dirname = dirname(fileURLToPath(import.meta.url));
+
+/**
+ * Enrich the issue with external context and produce a triage assessment.
+ * Takes the original issue and Phase 1 results as input.
+ */
+export async function enrichAndTriage(issue, phase1Result) {
+  const systemPrompt = readFileSync(
+    join(__dirname, 'prompts', 'system-phase2.md'),
+    'utf-8'
+  );
+
+  const appArea = detectAppArea(issue.title, issue.body);
+
+  // Extract key terms for search context
+  const keyTerms = extractKeyTerms(issue.title, issue.body);
+
+  const userMessage = `## Issue #${issue.number}: ${issue.title}
+
+### Issue body
+
+${issue.body || '(empty)'}
+
+### Phase 1 assessment
+
+- **Quality score**: ${phase1Result.quality_score.total}/100
+- **Verdict**: ${phase1Result.verdict}
+- **Issue type**: ${phase1Result.issue_type}
+- **Summary**: ${phase1Result.summary}
+- **Detected app area**: ${phase1Result.detected_app_area}
+
+### Context for enrichment
+
+- **App area directory**: ${appArea.directory}
+- **Key search terms**: ${keyTerms.join(', ')}
+- **Repository**: microsoft/BCAppsCampAIRHack (Business Central applications)
+- **Search scope for documentation**: site:learn.microsoft.com/en-us/dynamics365/business-central/
+- **Search scope for ideas**: site:experience.dynamics.com
+- **Search scope for community**: stackoverflow.com, github.com/microsoft/BCApps
+
+Please find relevant documentation, ideas portal entries, community discussions, and code areas.
+Then provide your triage assessment.`;
+
+  console.log(`Phase 2: Enriching and triaging issue #${issue.number}...`);
+  const result = await callGPT(systemPrompt, userMessage);
+
+  // Validate required fields
+  if (!result.triage) {
+    throw new Error('Phase 2: Invalid response - missing triage object');
+  }
+  if (!result.enrichment) {
+    throw new Error('Phase 2: Invalid response - missing enrichment object');
+  }
+  if (!result.executive_summary) {
+    throw new Error('Phase 2: Invalid response - missing executive_summary');
+  }
+
+  // Validate nested triage fields that index.js depends on
+  const requiredTriageFields = ['complexity', 'value', 'risk', 'effort', 'implementation_path', 'priority_score', 'confidence', 'recommended_action'];
+  for (const field of requiredTriageFields) {
+    if (!result.triage[field]) {
+      throw new Error(`Phase 2: Invalid response - missing triage.${field}`);
+    }
+  }
+
+  console.log(`Phase 2 complete: Priority ${result.triage.priority_score?.score}/10 - ${result.triage.recommended_action?.action}`);
+  return result;
+}
+
+/**
+ * Extract meaningful search terms from issue title and body.
+ */
+function extractKeyTerms(title, body) {
+  const text = `${title} ${body}`.toLowerCase();
+  const stopWords = new Set([
+    'the', 'a', 'an', 'is', 'are', 'was', 'were', 'be', 'been', 'being',
+    'have', 'has', 'had', 'do', 'does', 'did', 'will', 'would', 'could',
+    'should', 'may', 'might', 'can', 'shall', 'to', 'of', 'in', 'for',
+    'on', 'with', 'at', 'by', 'from', 'as', 'into', 'through', 'during',
+    'before', 'after', 'above', 'below', 'between', 'out', 'off', 'over',
+    'under', 'again', 'further', 'then', 'once', 'here', 'there', 'when',
+    'where', 'why', 'how', 'all', 'each', 'every', 'both', 'few', 'more',
+    'most', 'other', 'some', 'such', 'no', 'not', 'only', 'own', 'same',
+    'so', 'than', 'too', 'very', 'and', 'but', 'or', 'nor', 'if', 'it',
+    'this', 'that', 'these', 'those', 'i', 'we', 'you', 'he', 'she',
+    'they', 'me', 'us', 'him', 'her', 'them', 'my', 'our', 'your', 'his',
+    'its', 'their', 'what', 'which', 'who', 'whom', 'about', 'up',
+  ]);
+
+  const words = text
+    .replace(/[^a-z0-9\s-]/g, ' ')
+    .split(/\s+/)
+    .filter(w => w.length > 2 && !stopWords.has(w));
+
+  // Count frequency and return top terms
+  const freq = {};
+  for (const w of words) {
+    freq[w] = (freq[w] || 0) + 1;
+  }
+
+  return Object.entries(freq)
+    .sort((a, b) => b[1] - a[1])
+    .slice(0, 10)
+    .map(([word]) => word);
+}

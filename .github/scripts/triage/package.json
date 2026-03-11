@@ -1,0 +1,14 @@
+{
+  "name": "issue-triage-agent",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "AI-powered GitHub issue quality assessment, enrichment, and triage agent",
+  "main": "index.js",
+  "engines": {
+    "node": ">=20"
+  },
+  "dependencies": {
+    "@octokit/rest": "^21.1.1"
+  }
+}
