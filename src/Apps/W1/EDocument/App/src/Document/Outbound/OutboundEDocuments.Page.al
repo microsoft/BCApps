@@ -74,6 +74,12 @@ page 6106 "Outbound E-Documents"
             }
         }
     }
+
+    trigger OnDeleteRecord(): Boolean
+    begin
+        Error(OutboundEDocCannotBeDeletedErr);
+    end;
+
     actions
     {
         area(Processing)
@@ -98,4 +104,7 @@ page 6106 "Outbound E-Documents"
             actionref(Promoted_EDocumentServices; EDocumentServices) { }
         }
     }
+
+    var
+        OutboundEDocCannotBeDeletedErr: Label 'Outbound e-documents cannot be deleted.';
 }

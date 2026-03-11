@@ -62,6 +62,12 @@ page 6122 "E-Documents"
             }
         }
     }
+
+    trigger OnDeleteRecord(): Boolean
+    begin
+        Error(EDocCannotBeDeletedErr);
+    end;
+
     actions
     {
         area(Processing)
@@ -131,6 +137,9 @@ page 6122 "E-Documents"
             actionref(Promoted_EDocumentServices; EDocumentServices) { }
         }
     }
+
+    var
+        EDocCannotBeDeletedErr: Label 'E-documents cannot be deleted from this page.';
 
     local procedure NewFromFile()
     var
