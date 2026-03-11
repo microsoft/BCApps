@@ -1,0 +1,9 @@
+{
+  "name": "ado",
+  "description": "Azure DevOps work item quality tools: Feature completeness evaluation, User Story improvement, and end-to-end Feature-to-Stories workflow with parallelizable story design and task generation",
+  "version": "1.1.0",
+  "author": {
+    "name": "AI-First Team"
+  },
+  "keywords": ["azure-devops", "ado", "work-items", "feature", "user-story", "quality", "agile", "testing", "automation", "workflow", "parallelization"]
+}

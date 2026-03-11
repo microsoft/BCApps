@@ -1,0 +1,9 @@
+{
+  "name": "workflow",
+  "description": "Complete PRD workflow: design documents, task generation, and step-by-step implementation",
+  "version": "1.6.0",
+  "author": {
+    "name": "AI-First Team"
+  },
+  "keywords": ["prd", "design", "tasks", "implementation", "planning", "workflow"]
+}

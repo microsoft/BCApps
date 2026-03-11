@@ -1,0 +1,9 @@
+{
+  "name": "architecture",
+  "description": "Architecture design skills: system architecture with Mermaid diagrams and backend architecture patterns",
+  "version": "1.1.0",
+  "author": {
+    "name": "AI-First Team"
+  },
+  "keywords": ["architecture", "system-design", "backend", "diagrams", "mermaid", "cloud", "microservices"]
+}

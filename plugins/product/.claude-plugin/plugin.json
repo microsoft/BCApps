@@ -1,0 +1,9 @@
+{
+  "name": "product",
+  "description": "Product management skills: user feedback synthesis, sprint prioritization, and parallel work distribution for teams",
+  "version": "1.1.0",
+  "author": {
+    "name": "AI-First Team"
+  },
+  "keywords": ["product", "feedback", "sprint", "agile", "prioritization", "planning", "teams"]
+}

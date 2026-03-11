@@ -1,0 +1,9 @@
+{
+  "name": "documentation",
+  "description": "Codebase documentation generator: bootstrap, update, and audit hierarchical docs for legacy codebases",
+  "version": "1.2.0",
+  "author": {
+    "name": "AI-First Team"
+  },
+  "keywords": ["docs", "documentation", "bootstrap", "audit", "codebase", "legacy"]
+}
