@@ -1031,10 +1031,14 @@ page 30113 "Shpfy Order"
                     OrderLine.SetRange("Shopify Order Id", Rec."Shopify Order Id");
                     if OrderLine.FindSet() then
                         repeat
-                            FilterTxt += Format(OrderLine."Line Id") + '|';
+                            if FilterTxt <> '' then
+                                FilterTxt += '|';
+                            FilterTxt += Format(OrderLine."Line Id");
                         until OrderLine.Next() = 0;
-                    FilterTxt := FilterTxt.TrimEnd('|');
-                    TaxLine.SetFilter("Parent Id", FilterTxt);
+                    if FilterTxt = '' then
+                        TaxLine.SetRange("Parent Id", 0)
+                    else
+                        TaxLine.SetFilter("Parent Id", FilterTxt);
                     Page.Run(Page::"Shpfy Order Tax Lines", TaxLine);
                 end;
             }
