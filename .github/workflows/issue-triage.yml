@@ -34,7 +34,9 @@ jobs:
         working-directory: .github/scripts/triage
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          COPILOT_API_KEY: ${{ secrets.COPILOT_API_KEY }}
           ISSUE_NUMBER: ${{ github.event.issue.number }}
           REPO_OWNER: ${{ github.repository_owner }}
           REPO_NAME: ${{ github.event.repository.name }}
+          ADO_PAT: ${{ secrets.ADO_PAT }}
         run: node index.js
