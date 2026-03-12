@@ -410,6 +410,7 @@ codeunit 139611 "Shpfy Order Refund Test"
         // [SCENARIO] Create a Credit Memo from a Shopify Refund where the item is totally refunded.
         Initialize();
         Shop := InitializeTest.CreateShop();
+        Shop."Process Returns As" := "Sales Document Type"::"Credit Memo";
         Shop."Shopify Order No. on Doc. Line" := true;
         Shop.Modify(false);
 
@@ -452,6 +453,7 @@ codeunit 139611 "Shpfy Order Refund Test"
         // [SCENARIO] Create a Credit Memo from a Shopify Refund where only the shipment is refunded.
         Initialize();
         Shop := InitializeTest.CreateShop();
+        Shop."Process Returns As" := "Sales Document Type"::"Credit Memo";
         RefundAccount := Shop."Refund Account";
         Shop."Refund Account" := '';
         Shop.Modify(false);
@@ -496,7 +498,7 @@ codeunit 139611 "Shpfy Order Refund Test"
 
         // [GIVEN] Shop configured to process returns as Return Order
         Shop := InitializeTest.CreateShop();
-        Shop."Process Returns As" := "Shpfy Process Returns As"::"Return Order";
+        Shop."Process Returns As" := "Sales Document Type"::"Return Order";
         Shop.Modify(false);
 
         // [GIVEN] Set the process of the document: "Auto Create Credit Memo";

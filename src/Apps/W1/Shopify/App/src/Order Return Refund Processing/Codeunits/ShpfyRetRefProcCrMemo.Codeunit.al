@@ -84,8 +84,11 @@ codeunit 30243 "Shpfy RetRefProc Cr.Memo" implements "Shpfy IReturnRefund Proces
         if not RefundLine.IsEmpty() then
             exit;
 
+        RefundHeader.Get(SourceDocumentId);
+        Shop.Get(RefundHeader."Shop Code");
+        
         CreateSalesDocRefund.SetSource(SourceDocumentId);
-            CreateSalesDocRefund.SetTargetDocumentType(Shop."Process Returns As");
+        CreateSalesDocRefund.SetTargetDocumentType(Shop."Process Returns As");
         Commit();
         if CreateSalesDocRefund.Run() then begin
             SalesHeader := CreateSalesDocRefund.GetSalesHeader();
