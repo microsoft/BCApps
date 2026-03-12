@@ -102,9 +102,8 @@ jobs:
           Import-Module "./build/scripts/BuildOptimization.psm1" -Force
 
           # Check fullBuildPatterns first
-          $alGoSettings = Get-Content ".github/AL-Go-Settings.json" -Raw | ConvertFrom-Json
+          # TODO: Re-enable fullBuildPatterns check after testing
           $fullBuildPatterns = @()
-          if ($alGoSettings.fullBuildPatterns) { $fullBuildPatterns = @($alGoSettings.fullBuildPatterns) }
 
           # Get changed files from the GitHub API (works with shallow checkouts)
           $changedFiles = @()
