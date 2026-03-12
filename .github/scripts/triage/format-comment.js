@@ -92,6 +92,22 @@ export function formatTriageComment(phase1, phase2, isRetriage) {
     md += `\n`;
   }
 
+  if (e.matched_ideas && e.matched_ideas.length > 0) {
+    md += `#### Dynamics 365 Ideas Portal matches\n\n`;
+    for (const idea of e.matched_ideas) {
+      md += `- [${idea.title}](${idea.url}) - :thumbsup: ${idea.votes} votes (${idea.status})\n`;
+    }
+    md += `\n`;
+  }
+
+  if (e.ado_work_items && e.ado_work_items.length > 0) {
+    md += `#### Azure DevOps related work items\n\n`;
+    for (const wi of e.ado_work_items) {
+      md += `- [${wi.type} #${wi.id}: ${wi.title}](${wi.url}) (${wi.state})\n`;
+    }
+    md += `\n`;
+  }
+
   if (e.community && e.community.length > 0) {
     md += `#### Community discussions\n\n`;
     for (const disc of e.community) {

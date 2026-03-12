@@ -7,6 +7,8 @@ import { dirname, join } from 'path';
 import { callGPT } from './models-client.js';
 import { detectAppArea } from './config.js';
 import { fetchCodeContext, formatCodeContext } from './code-reader.js';
+import { fetchRelatedIdeas, formatIdeasContext } from './ideas-client.js';
+import { fetchRelatedWorkItems, formatAdoContext } from './ado-client.js';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 
@@ -29,11 +31,25 @@ export async function enrichAndTriage(issue, phase1Result) {
   const codeContext = fetchCodeContext(appArea.directory, keyTerms);
   const codeContextBlock = formatCodeContext(codeContext);
 
+  // Fetch external context in parallel: Ideas Portal + ADO work items
+  const [ideasResult, adoResult] = await Promise.all([
+    fetchRelatedIdeas(keyTerms),
+    fetchRelatedWorkItems(keyTerms),
+  ]);
+  const ideasContextBlock = formatIdeasContext(ideasResult);
+  const adoContextBlock = formatAdoContext(adoResult);
+
+  // Truncate very long issue bodies to avoid excessive token usage
+  const maxBodyChars = 8000;
+  const issueBody = (issue.body || '(empty)').length > maxBodyChars
+    ? issue.body.substring(0, maxBodyChars) + '\n... (truncated)'
+    : (issue.body || '(empty)');
+
   const userMessage = `## Issue #${issue.number}: ${issue.title}
 
 ### Issue body
 
-${issue.body || '(empty)'}
+${issueBody}
 
 ### Phase 1 assessment
 
@@ -49,13 +65,16 @@ ${issue.body || '(empty)'}
 - **Key search terms**: ${keyTerms.join(', ')}
 - **Repository**: microsoft/BCAppsCampAIRHack (Business Central applications)
 - **Search scope for documentation**: site:learn.microsoft.com/en-us/dynamics365/business-central/
-- **Search scope for ideas**: site:experience.dynamics.com
 - **Search scope for community**: stackoverflow.com, github.com/microsoft/BCApps
 
 ${codeContextBlock}
 
-Please analyze the provided source code alongside documentation, ideas portal entries, and community discussions.
-Then provide your triage assessment.`;
+${ideasContextBlock}
+
+${adoContextBlock}
+
+Please analyze all provided context - source code structure, Ideas Portal matches, ADO work items, and your knowledge of documentation and community discussions.
+Then provide your triage assessment as JSON.`;
 
   console.log(`Phase 2: Enriching and triaging issue #${issue.number}...`);
   const result = await callGPT(systemPrompt, userMessage);
@@ -85,6 +104,10 @@ Then provide your triage assessment.`;
   if (!result.enrichment) result.enrichment = {};
   result.enrichment.analyzed_files = codeContext.relevantFiles.map(f => f.path);
   result.enrichment.analyzed_directory = codeContext.directory;
+  result.enrichment.matched_ideas = ideasResult.ideas.map(i => ({
+    title: i.title, votes: i.votes, status: i.status, url: i.url,
+  }));
+  result.enrichment.ado_work_items = adoResult.workItems;
 
   return result;
 }

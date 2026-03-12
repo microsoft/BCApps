@@ -4,13 +4,15 @@
 import { MODELS_API_ENDPOINT, MODEL_NAME, MODEL_TEMPERATURE } from './config.js';
 
 /**
- * Call GPT-5.4 via the GitHub Models API and return parsed JSON.
+ * Call GPT via the GitHub Models API and return parsed JSON.
+ * Uses COPILOT_API_KEY (a Copilot-entitled PAT) for higher rate limits.
+ * Falls back to GITHUB_TOKEN if COPILOT_API_KEY is not set.
  * Retries once on rate-limit (429) or server error (5xx).
  */
 export async function callGPT(systemPrompt, userMessage) {
-  const token = process.env.GITHUB_TOKEN;
+  const token = process.env.COPILOT_API_KEY || process.env.GITHUB_TOKEN;
   if (!token) {
-    throw new Error('GITHUB_TOKEN environment variable is required');
+    throw new Error('COPILOT_API_KEY or GITHUB_TOKEN environment variable is required');
   }
 
   const body = {
