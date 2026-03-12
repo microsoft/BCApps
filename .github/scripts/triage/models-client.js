@@ -10,8 +10,15 @@ import { MODELS_API_ENDPOINT, MODEL_NAME, MODEL_TEMPERATURE } from './config.js'
  * Retries once on rate-limit (429) or server error (5xx).
  */
 export async function callGPT(systemPrompt, userMessage) {
-  const token = process.env.COPILOT_API_KEY || process.env.GITHUB_TOKEN;
-  if (!token) {
+  const copilotKey = process.env.COPILOT_API_KEY;
+  const ghToken = process.env.GITHUB_TOKEN;
+  const token = copilotKey || ghToken;
+
+  if (copilotKey) {
+    console.log('Auth: using COPILOT_API_KEY (paid tier)');
+  } else if (ghToken) {
+    console.warn('Auth: COPILOT_API_KEY not set — falling back to GITHUB_TOKEN (free tier, low token limits!)');
+  } else {
     throw new Error('COPILOT_API_KEY or GITHUB_TOKEN environment variable is required');
   }
 
