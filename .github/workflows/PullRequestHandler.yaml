@@ -174,7 +174,7 @@ jobs:
                 Write-Host "    [$projectName] -> $parentName/$appName"
               }
             } else {
-              $settingsPath = Join-Path $project '.AL-Go' 'settings.json'
+              $settingsPath = Join-Path (Join-Path $project '.AL-Go') 'settings.json'
               if (Test-Path $settingsPath) {
                 $settings = Get-Content $settingsPath -Raw | ConvertFrom-Json
                 $appCount = 0
