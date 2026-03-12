@@ -112,6 +112,15 @@ export function formatTriageComment(phase1, phase2, isRetriage) {
     md += `\n`;
   }
 
+  if (e.analyzed_files && e.analyzed_files.length > 0) {
+    md += `#### Source files analyzed\n\n`;
+    md += `> ${e.analyzed_files.length} file(s) from \`${e.analyzed_directory || 'src/'}\` were provided as context for this assessment.\n\n`;
+    for (const file of e.analyzed_files) {
+      md += `- \`${file}\`\n`;
+    }
+    md += `\n`;
+  }
+
   md += `</details>\n`;
 
   return md;
