@@ -6,6 +6,7 @@ import { fileURLToPath } from 'url';
 import { dirname, join } from 'path';
 import { callGPT } from './models-client.js';
 import { detectAppArea } from './config.js';
+import { fetchCodeContext, formatCodeContext } from './code-reader.js';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 
@@ -23,6 +24,10 @@ export async function enrichAndTriage(issue, phase1Result) {
 
   // Extract key terms for search context
   const keyTerms = extractKeyTerms(issue.title, issue.body);
+
+  // Fetch actual source code from the repository
+  const codeContext = fetchCodeContext(appArea.directory, keyTerms);
+  const codeContextBlock = formatCodeContext(codeContext);
 
   const userMessage = `## Issue #${issue.number}: ${issue.title}
 
@@ -47,7 +52,9 @@ ${issue.body || '(empty)'}
 - **Search scope for ideas**: site:experience.dynamics.com
 - **Search scope for community**: stackoverflow.com, github.com/microsoft/BCApps
 
-Please find relevant documentation, ideas portal entries, community discussions, and code areas.
+${codeContextBlock}
+
+Please analyze the provided source code alongside documentation, ideas portal entries, and community discussions.
 Then provide your triage assessment.`;
 
   console.log(`Phase 2: Enriching and triaging issue #${issue.number}...`);
@@ -73,6 +80,12 @@ Then provide your triage assessment.`;
   }
 
   console.log(`Phase 2 complete: Priority ${result.triage.priority_score?.score}/10 - ${result.triage.recommended_action?.action}`);
+
+  // Attach analyzed file metadata so the comment formatter can display it
+  if (!result.enrichment) result.enrichment = {};
+  result.enrichment.analyzed_files = codeContext.relevantFiles.map(f => f.path);
+  result.enrichment.analyzed_directory = codeContext.directory;
+
   return result;
 }
 

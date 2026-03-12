@@ -22,8 +22,16 @@ Think about whether this issue relates to existing feature requests or ideas on 
 ### Community discussions
 Consider relevant Stack Overflow questions, GitHub issues in related repositories, or community forum discussions that relate to this issue.
 
+### Repository source code
+You will be provided with actual source code files from the detected app area of the repository. Use this code to:
+- Identify the specific AL objects (tables, pages, codeunits, enums, etc.) that would need to change
+- Assess technical complexity based on the actual code structure and dependencies
+- Evaluate risk based on how interconnected the affected code is
+- Estimate effort more accurately by seeing the existing patterns and code volume
+- Determine the implementation path (Manual/Copilot-Assisted/Agentic) based on code complexity
+
 ### Related code areas
-Based on the detected app area and issue content, identify which directories in the repository (`src/Apps/W1/...`) are most relevant. Be specific about subdirectories when possible.
+Based on the detected app area, issue content, and the provided source code, identify which files and directories in the repository (`src/Apps/W1/...`) are most relevant. Reference specific files when you can see them in the provided code context. Be specific about which AL objects would need modification.
 
 ## Triage assessment criteria
 
