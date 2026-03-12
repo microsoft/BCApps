@@ -31,6 +31,7 @@ codeunit 30174 "Shpfy Create Product"
         Getlocations: Boolean;
         ProductId: BigInteger;
         ItemVariantIsBlockedLbl: Label 'Item variant is blocked or sales blocked.';
+        TooManyVariantsLbl: Label 'Item has more than 2048 variants. Shopify allows a maximum of 2048 variants per product.';
 
     trigger OnRun()
     var
@@ -61,6 +62,8 @@ codeunit 30174 "Shpfy Create Product"
             exit;
 
         CreateTempProduct(Item, TempShopifyProduct, TempShopifyVariant, TempShopifyTag);
+        if TempShopifyProduct.IsEmpty() then
+            exit;
         if not VariantApi.FindShopifyProductVariant(TempShopifyProduct, TempShopifyVariant) then
             ProductId := ProductApi.CreateProduct(TempShopifyProduct, TempShopifyVariant, TempShopifyTag)
         else
@@ -164,6 +167,13 @@ codeunit 30174 "Shpfy Create Product"
             end else
                 CreateTempShopifyVariantFromItem(Item, TempShopifyVariant);
 
+        if TempShopifyVariant.Count() > GetMaxVariantCount() then begin
+            SkippedRecord.LogSkippedRecord(Item.RecordId, TooManyVariantsLbl, Shop);
+            TempShopifyVariant.DeleteAll();
+            Clear(TempShopifyProduct);
+            exit;
+        end;
+
         ProductExport.FillProductOptionsForShopifyVariants(Item, TempShopifyVariant, TempShopifyProduct);
         TempShopifyProduct.Insert(false);
         Events.OnAfterCreateTempShopifyProduct(Item, TempShopifyProduct, TempShopifyVariant, TempShopifyTag);
@@ -217,6 +227,11 @@ codeunit 30174 "Shpfy Create Product"
             Shop."SKU Mapping"::"Vendor Item No.":
                 exit(VendorItemNo);
         end;
+    end;
+
+    local procedure GetMaxVariantCount(): Integer
+    begin
+        exit(2048);
     end;
 
     /// <summary>
