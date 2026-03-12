@@ -144,6 +144,49 @@ jobs:
           }
           Add-Content -Encoding UTF8 -Path $env:GITHUB_OUTPUT -Value "filteredProjectSettingsJson=$json"
 
+      - name: Determine Apps to Build
+        env:
+          FILTERED_JSON: ${{ steps.filterProjects.outputs.filteredProjectSettingsJson }}
+          PROJECTS_JSON: ${{ steps.determineProjectsToBuild.outputs.ProjectsJson }}
+        run: |
+          $errorActionPreference = "Stop"
+          $filtered = $env:FILTERED_JSON | ConvertFrom-Json
+          $projects = $env:PROJECTS_JSON | ConvertFrom-Json
+
+          foreach ($project in $projects) {
+            $projectKey = $project.Replace('\', '/')
+            $projectName = Split-Path $projectKey -Leaf
+
+            if ($filtered.PSObject.Properties[$projectKey]) {
+              $entry = $filtered.PSObject.Properties[$projectKey].Value
+              Write-Host ""
+              Write-Host "[$projectName] FILTERED"
+              Write-Host "  Apps to compile:"
+              foreach ($f in $entry.appFolders) {
+                $appName = Split-Path $f -Leaf
+                $parentName = Split-Path (Split-Path $f -Parent) -Leaf
+                Write-Host "    [$projectName] -> $parentName/$appName"
+              }
+              Write-Host "  Apps to test:"
+              foreach ($f in $entry.testFolders) {
+                $appName = Split-Path $f -Leaf
+                $parentName = Split-Path (Split-Path $f -Parent) -Leaf
+                Write-Host "    [$projectName] -> $parentName/$appName"
+              }
+            } else {
+              $settingsPath = Join-Path $project '.AL-Go' 'settings.json'
+              if (Test-Path $settingsPath) {
+                $settings = Get-Content $settingsPath -Raw | ConvertFrom-Json
+                $appCount = 0
+                $testCount = 0
+                if ($settings.appFolders) { $appCount = @($settings.appFolders).Count }
+                if ($settings.testFolders) { $testCount = @($settings.testFolders).Count }
+                Write-Host ""
+                Write-Host "[$projectName] FULL BUILD ($appCount app folders, $testCount test folders)"
+              }
+            }
+          }
+
   Build1:
     needs: [ Initialization ]
     if: (!failure()) && (!cancelled()) && fromJson(needs.Initialization.outputs.buildOrderJson)[0].projectsCount > 0
