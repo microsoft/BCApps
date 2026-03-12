@@ -892,6 +892,45 @@ codeunit 139912 "Customer Deferrals Test"
         Assert.ExpectedError(DeferralCodeCannotBeUsedWithContractDeferralsErr);
     end;
 
+    [Test]
+    [HandlerFunctions('CreateCustomerBillingDocsContractPageHandler,MessageHandler')]
+    procedure SinglePeriodDeferralHasCorrectNumberOfDays()
+    var
+        RandomMonthOffset: Integer;
+        MonthStartFormula: Text;
+        MonthEndFormula: Text;
+        MidStartFormula: Text;
+        MidEndFormula: Text;
+        MonthStartFormulaLbl: Label '<-CY+%1M>', Locked = true;
+        MonthEndFormulaLbl: Label '<-CY+%1M+CM>', Locked = true;
+        MidStartFormulaLbl: Label '<-CY+%1M+14D>', Locked = true;
+        MidEndFormulaLbl: Label '<-CY+%1M+24D>', Locked = true;
+    begin
+        // [FEATURE] [AI test 0.3]
+        // [SCENARIO 624087] Single period deferral uses actual billing schedule days for Number of Days across all date range combinations
+        Initialize();
+
+        // [GIVEN] A random month offset to ensure the test covers different months on each run
+        RandomMonthOffset := LibraryRandom.RandIntInRange(0, 11);
+        MonthStartFormula := StrSubstNo(MonthStartFormulaLbl, RandomMonthOffset);
+        MonthEndFormula := StrSubstNo(MonthEndFormulaLbl, RandomMonthOffset);
+        MidStartFormula := StrSubstNo(MidStartFormulaLbl, RandomMonthOffset);
+        MidEndFormula := StrSubstNo(MidEndFormulaLbl, RandomMonthOffset);
+
+        // [WHEN] Billing document is posted and deferrals are created
+        // [THEN] Single deferral has Number of Days equal to full month days and Amount equals Deferral Base Amount
+        VerifySinglePeriodDeferralDays(MonthStartFormula, MonthEndFormula);
+
+        // [THEN] Single deferral has Number of Days equal to remaining days in month and Amount equals Deferral Base Amount
+        VerifySinglePeriodDeferralDays(MidStartFormula, MonthEndFormula);
+
+        // [THEN] Single deferral has Number of Days equal to partial month days and Amount equals Deferral Base Amount
+        VerifySinglePeriodDeferralDays(MonthStartFormula, MidStartFormula);
+
+        // [THEN] Single deferral has Number of Days equal to the date range and Amount equals Deferral Base Amount
+        VerifySinglePeriodDeferralDays(MidStartFormula, MidEndFormula);
+    end;
+
     #endregion Tests
 
     #region Procedures
@@ -1173,6 +1212,27 @@ codeunit 139912 "Customer Deferrals Test"
     begin
         DeferralsToTest.TestField("Release Posting Date", DocumentPostingDate);
         DeferralsToTest.TestField(Released, true);
+    end;
+
+    local procedure VerifySinglePeriodDeferralDays(BillingFromDateFormula: Text; BillingToDateFormula: Text)
+    var
+        FirstDayOfBillingPeriod: Date;
+        LastDayOfBillingPeriod: Date;
+        ExpectedNumberOfDays: Integer;
+        SingleDeferralPeriodExpectedErr: Label 'Expected a single deferral period.', Locked = true;
+        NumberOfDaysMismatchErr: Label 'Number of Days should equal actual schedule days.', Locked = true;
+        AmountMismatchErr: Label 'Amount should equal the total deferral base amount.', Locked = true;
+    begin
+        CreateCustomerContractWithDeferrals(BillingFromDateFormula, true);
+        CreateBillingProposalAndCreateBillingDocuments(BillingFromDateFormula, BillingToDateFormula);
+        PostSalesDocumentAndFetchDeferrals();
+
+        FirstDayOfBillingPeriod := CalcDate(BillingFromDateFormula, WorkDate());
+        LastDayOfBillingPeriod := CalcDate(BillingToDateFormula, WorkDate());
+        ExpectedNumberOfDays := LastDayOfBillingPeriod - FirstDayOfBillingPeriod + 1;
+        Assert.AreEqual(1, CustomerContractDeferral.Count, SingleDeferralPeriodExpectedErr);
+        Assert.AreEqual(ExpectedNumberOfDays, CustomerContractDeferral."Number of Days", NumberOfDaysMismatchErr);
+        Assert.AreEqual(CustomerContractDeferral."Deferral Base Amount", CustomerContractDeferral.Amount, AmountMismatchErr);
     end;
 
     #endregion Procedures

@@ -212,14 +212,17 @@ codeunit 8067 "Customer Deferrals Mngmt."
                     PeriodLineDiscountAmount := FullMonthLineDiscountAmount;
                 end;
 
-            // Determine number of days: partial months use actual day count, full months use calendar month days
-            if (i = NumberOfPeriods) and (NumberOfPeriods > 1) and (FirstMonthIsPartial or LastMonthIsPartial) then
-                CustomerContractDeferral."Number of Days" := LastMonthDays
+            // Determine number of days: single period uses exact schedule days, partial months use actual day count, full months use calendar month days
+            if NumberOfPeriods = 1 then
+                CustomerContractDeferral."Number of Days" := NumberOfDaysInSchedule
             else
-                if (i = 1) and FirstMonthIsPartial then
-                    CustomerContractDeferral."Number of Days" := FirstMonthDays
+                if (i = NumberOfPeriods) and (FirstMonthIsPartial or LastMonthIsPartial) then
+                    CustomerContractDeferral."Number of Days" := LastMonthDays
                 else
-                    CustomerContractDeferral."Number of Days" := Date2DMY(CalcDate('<CM>', CustomerContractDeferral."Posting Date"), 1);
+                    if (i = 1) and FirstMonthIsPartial then
+                        CustomerContractDeferral."Number of Days" := FirstMonthDays
+                    else
+                        CustomerContractDeferral."Number of Days" := Date2DMY(CalcDate('<CM>', CustomerContractDeferral."Posting Date"), 1);
 
             RunningLineAmount += PeriodLineAmount;
             RunningLineDiscountAmount += PeriodLineDiscountAmount;
