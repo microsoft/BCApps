@@ -142,19 +142,31 @@ function Get-AffectedApps {
 
     # Map changed files to apps
     $directlyChanged = [System.Collections.Generic.HashSet[string]]::new()
-    $hasUnmappedFile = $false
+    $hasUnmappedSrcFile = $false
     foreach ($file in $ChangedFiles) {
         $appId = Get-AppForFile -FilePath $file -BaseFolder $BaseFolder
         if ($appId) {
             [void]$directlyChanged.Add($appId)
         } else {
-            $hasUnmappedFile = $true
+            # Only trigger full build for unmapped files inside src/ — these could
+            # affect app compilation (e.g., shared rulesets, dotnet packages).
+            # Files outside src/ (workflows, build scripts, docs) are infrastructure
+            # and are already handled by fullBuildPatterns in the workflow.
+            $normalizedFile = $file.Replace('\', '/')
+            if ($normalizedFile -like 'src/*' -or $normalizedFile -like '*/src/*') {
+                $hasUnmappedSrcFile = $true
+            }
         }
     }
 
-    # If any file couldn't be mapped to an app, return all apps (safety)
-    if ($hasUnmappedFile) {
+    # If any source file couldn't be mapped to an app, return all apps (safety)
+    if ($hasUnmappedSrcFile) {
         return @($graph.Keys)
+    }
+
+    # If no changed files mapped to any app, nothing to filter
+    if ($directlyChanged.Count -eq 0) {
+        return @()
     }
 
     # BFS downstream (dependents) — apps that consume the changed app

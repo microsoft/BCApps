@@ -102,9 +102,19 @@ Describe "BuildOptimization" {
             $affected.Count | Should -BeGreaterThan 20
         }
 
-        It "returns all apps when a file cannot be mapped to any app" {
-            $affected = Get-AffectedApps -ChangedFiles @('build/scripts/SomeNewScript.ps1') -BaseFolder $baseFolder
+        It "returns all apps when an unmapped src/ file is present" {
+            $affected = Get-AffectedApps -ChangedFiles @('src/rulesets/ruleset.json') -BaseFolder $baseFolder
             $affected.Count | Should -Be $graph.Count
+        }
+
+        It "ignores non-src unmapped files (build scripts, workflows)" {
+            $affected = Get-AffectedApps -ChangedFiles @(
+                'build/scripts/SomeNewScript.ps1',
+                'src/Apps/W1/EDocument/App/src/SomeFile.al'
+            ) -BaseFolder $baseFolder
+            $affected.Count | Should -BeLessThan $graph.Count
+            $affectedNames = $affected | ForEach-Object { $graph[$_].Name }
+            $affectedNames | Should -Contain 'E-Document Core'
         }
 
         It "handles multiple changed files" {
@@ -166,14 +176,10 @@ Describe "BuildOptimization" {
             $filtered[$modulesKey].appFolders.Count | Should -BeGreaterThan 10
         }
 
-        It "returns empty hashtable when unmapped file triggers full build" {
+        It "non-app files only (build scripts) produce empty result" {
             $filtered = Get-FilteredProjectSettings -ChangedFiles @('build/scripts/SomeNewScript.ps1') -BaseFolder $baseFolder
-            # When all apps are affected, projects keep original settings (not in output)
-            # So either empty or all projects have all apps => excluded from output
-            foreach ($key in $filtered.Keys) {
-                # Any project in output should have fewer apps than total
-                $filtered[$key].appFolders.Count | Should -BeGreaterThan 0
-            }
+            # No app files changed, so no projects are affected
+            $filtered.Count | Should -Be 0
         }
 
         It "relative paths use forward slashes" {

@@ -112,16 +112,24 @@ jobs:
         if: inputs.filteredProjectSettingsJson != '{}'
         run: |
           $filtered = '${{ inputs.filteredProjectSettingsJson }}' | ConvertFrom-Json
-          $projectKey = '${{ inputs.project }}'
+          # AL-Go uses backslashes in project paths, our keys use forward slashes
+          $projectKey = '${{ inputs.project }}'.Replace('\', '/')
           if ($filtered.PSObject.Properties[$projectKey]) {
             $settingsPath = Join-Path '${{ inputs.project }}' '.AL-Go' 'settings.json'
             $settings = Get-Content $settingsPath -Raw | ConvertFrom-Json
-            $settings.appFolders = @($filtered.$projectKey.appFolders)
-            $settings.testFolders = @($filtered.$projectKey.testFolders)
+            $projectSettings = $filtered.PSObject.Properties[$projectKey].Value
+            $settings.appFolders = @($projectSettings.appFolders)
+            $settings.testFolders = @($projectSettings.testFolders)
             $settings | ConvertTo-Json -Depth 10 | Set-Content $settingsPath
-            Write-Host "Filtered $projectKey to $($settings.appFolders.Count) app folders, $($settings.testFolders.Count) test folders"
+            Write-Host "::group::Build Optimization - Filtered apps for $projectKey"
+            Write-Host "Apps to compile ($($settings.appFolders.Count)):"
+            $settings.appFolders | ForEach-Object { Write-Host "  $_" }
+            Write-Host ""
+            Write-Host "Apps to test ($($settings.testFolders.Count)):"
+            $settings.testFolders | ForEach-Object { Write-Host "  $_" }
+            Write-Host "::endgroup::"
           } else {
-            Write-Host "No filtering needed for $projectKey"
+            Write-Host "No filtering needed for $projectKey (full build)"
           }
 
       - name: Read settings
