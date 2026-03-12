@@ -115,7 +115,7 @@ jobs:
           # AL-Go uses backslashes in project paths, our keys use forward slashes
           $projectKey = '${{ inputs.project }}'.Replace('\', '/')
           if ($filtered.PSObject.Properties[$projectKey]) {
-            $settingsPath = Join-Path '${{ inputs.project }}' '.AL-Go' 'settings.json'
+            $settingsPath = Join-Path (Join-Path '${{ inputs.project }}' '.AL-Go') 'settings.json'
             $settings = Get-Content $settingsPath -Raw | ConvertFrom-Json
             $projectSettings = $filtered.PSObject.Properties[$projectKey].Value
             $settings.appFolders = @($projectSettings.appFolders)
