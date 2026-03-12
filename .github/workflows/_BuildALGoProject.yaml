@@ -77,6 +77,11 @@ on:
         description: JSON formatted needs context
         type: string
         default: '{}'
+      filteredProjectSettingsJson:
+        description: 'JSON mapping project paths to filtered appFolders/testFolders for build optimization'
+        required: false
+        default: '{}'
+        type: string
 
 permissions:
   actions: read
@@ -102,6 +107,22 @@ jobs:
         with:
           ref: ${{ inputs.checkoutRef }}
           lfs: true
+
+      - name: Apply Filtered App Settings
+        if: inputs.filteredProjectSettingsJson != '{}'
+        run: |
+          $filtered = '${{ inputs.filteredProjectSettingsJson }}' | ConvertFrom-Json
+          $projectKey = '${{ inputs.project }}'
+          if ($filtered.PSObject.Properties[$projectKey]) {
+            $settingsPath = Join-Path '${{ inputs.project }}' '.AL-Go' 'settings.json'
+            $settings = Get-Content $settingsPath -Raw | ConvertFrom-Json
+            $settings.appFolders = @($filtered.$projectKey.appFolders)
+            $settings.testFolders = @($filtered.$projectKey.testFolders)
+            $settings | ConvertTo-Json -Depth 10 | Set-Content $settingsPath
+            Write-Host "Filtered $projectKey to $($settings.appFolders.Count) app folders, $($settings.testFolders.Count) test folders"
+          } else {
+            Write-Host "No filtering needed for $projectKey"
+          }
 
       - name: Read settings
         uses: microsoft/AL-Go/Actions/ReadSettings@91c2f1bab7959cffc66fd9513a1d83ec9f641e30

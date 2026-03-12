@@ -6,6 +6,7 @@ namespace Microsoft.eServices.EDocument;
 
 enum 6102 "E-Document Direction"
 {
+    Extensible = false;
     value(0; "Outgoing") { Caption = 'Outgoing'; }
     value(1; "Incoming") { Caption = 'Incoming'; }
 }
