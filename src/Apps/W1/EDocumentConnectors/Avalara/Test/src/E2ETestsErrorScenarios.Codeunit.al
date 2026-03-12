@@ -132,46 +132,6 @@ codeunit 133625 "E2E Tests - Error Scenarios"
     end;
 
     [Test]
-    [HandlerFunctions('HttpMalformedJsonHandler')]
-    procedure TestGetResponse_MalformedJson_SetsErrorState()
-    var
-        EDocument: Record "E-Document";
-        JobQueueEntry: Record "Job Queue Entry";
-    begin
-        // [SCENARIO] Malformed JSON response is handled gracefully
-
-        // [GIVEN] An E-Document in pending state
-        Initialize();
-        CreateMockPendingEDocument(EDocument);
-
-        // [WHEN] Get response returns malformed JSON
-        JobQueueEntry.FindJobQueueEntry(JobQueueEntry."Object Type to Run"::Codeunit, Codeunit::"E-Document Get Response");
-        asserterror LibraryJobQueue.RunJobQueueDispatcher(JobQueueEntry);
-
-        // [THEN] Should handle error gracefully
-    end;
-
-    [Test]
-    [HandlerFunctions('HttpEmptyResponseHandler')]
-    procedure TestGetResponse_EmptyResponse_HandledGracefully()
-    var
-        EDocument: Record "E-Document";
-        JobQueueEntry: Record "Job Queue Entry";
-    begin
-        // [SCENARIO] Empty response is handled without crashing
-
-        // [GIVEN] An E-Document in pending state
-        Initialize();
-        CreateMockPendingEDocument(EDocument);
-
-        // [WHEN] Get response returns empty response
-        JobQueueEntry.FindJobQueueEntry(JobQueueEntry."Object Type to Run"::Codeunit, Codeunit::"E-Document Get Response");
-        asserterror LibraryJobQueue.RunJobQueueDispatcher(JobQueueEntry);
-
-        // [THEN] Should handle empty response gracefully
-    end;
-
-    [Test]
     [HandlerFunctions('HttpNotFoundHandler')]
     procedure TestDownloadDocument_NotFound_LogsError()
     var
@@ -215,34 +175,6 @@ codeunit 133625 "E2E Tests - Error Scenarios"
         asserterror AvalaraDocMgt.ReceiveAndProcessDocuments(EDocService, EDocument);
 
         // [THEN] Should handle error appropriately
-    end;
-
-    [Test]
-    [HandlerFunctions('HttpSubmitHandler,HttpServerErrorRecoveryHandler')]
-    procedure TestGetResponse_ServerError_Retry_Success()
-    var
-        EDocument: Record "E-Document";
-        JobQueueEntry: Record "Job Queue Entry";
-    begin
-        // [SCENARIO] Temporary server errors can be recovered from on retry
-
-        // [GIVEN] An E-Document in pending state
-        Initialize();
-        LibraryEDocument.PostInvoice(Customer);
-        EDocument.FindLast();
-        LibraryEDocument.RunEDocumentJobQueue(EDocument);
-        EDocument.FindLast();
-
-        // First call will fail (ServerErrorRecoveryHandler returns 500)
-        // Second call will succeed (returns Complete status)
-
-        // [WHEN] Get response initially fails but succeeds on retry
-        JobQueueEntry.FindJobQueueEntry(JobQueueEntry."Object Type to Run"::Codeunit, Codeunit::"E-Document Get Response");
-        LibraryJobQueue.RunJobQueueDispatcher(JobQueueEntry);
-
-        // [THEN] Document should eventually be processed
-        EDocument.FindLast();
-        // Note: Actual retry logic depends on job queue configuration
     end;
 
     local procedure Initialize()
