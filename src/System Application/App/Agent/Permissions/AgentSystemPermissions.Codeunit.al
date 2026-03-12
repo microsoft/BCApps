@@ -17,7 +17,7 @@ codeunit 4317 "Agent System Permissions"
     [Scope('OnPrem')]
     procedure CurrentUserHasCanManageAllAgentsPermission(): Boolean
     begin
-        exit("Agent System Permissions Impl.".CurrentUserHasCanManageAllAgentsPermission());
+        exit(AgentSystemPermissionsImpl.CurrentUserHasCanManageAllAgentsPermission());
     end;
 
     /// <summary>
@@ -27,7 +27,7 @@ codeunit 4317 "Agent System Permissions"
     [Scope('OnPrem')]
     procedure CurrentUserHasTroubleshootAllAgents(): Boolean
     begin
-        exit("Agent System Permissions Impl.".CurrentUserHasTroubleshootAllAgents());
+        exit(AgentSystemPermissionsImpl.CurrentUserHasTroubleshootAllAgents());
     end;
 
     /// <summary>
@@ -37,7 +37,7 @@ codeunit 4317 "Agent System Permissions"
     [Scope('OnPrem')]
     procedure CurrentUserHasCanCreateCustomAgent(): Boolean
     begin
-        exit("Agent System Permissions Impl.".CurrentUserHasCanCreateCustomAgent());
+        exit(AgentSystemPermissionsImpl.CurrentUserHasCanCreateCustomAgent());
     end;
 
     /// <summary>
@@ -48,9 +48,9 @@ codeunit 4317 "Agent System Permissions"
     [Scope('OnPrem')]
     procedure CurrentUserCanManageAgent(AgentUserSecurityId: Guid): Boolean
     begin
-        exit("Agent System Permissions Impl.".CurrentUserCanConfigureAgent(AgentUserSecurityId));
+        exit(AgentSystemPermissionsImpl.CurrentUserCanConfigureAgent(AgentUserSecurityId));
     end;
 
     var
-        "Agent System Permissions Impl.": Codeunit "Agent System Permissions Impl.";
+        AgentSystemPermissionsImpl: Codeunit "Agent System Permissions Impl.";
 }

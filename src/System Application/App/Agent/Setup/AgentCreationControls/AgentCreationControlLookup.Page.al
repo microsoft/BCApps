@@ -40,13 +40,12 @@ page 4331 "Agent Creation Control Lookup"
     var
         NextID: Integer;
     begin
-        Rec.LockTable();
         if Rec.FindLast() then
             NextID := Rec.ID + 1
         else
             NextID := 1;
 
-        Rec.Init();
+        Clear(Rec);
         Rec.ID := NextID;
         Rec."Key" := EntryKey;
         Rec.Value := EntryValue;

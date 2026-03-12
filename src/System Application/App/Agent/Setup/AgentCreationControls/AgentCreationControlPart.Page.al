@@ -29,7 +29,6 @@ page 4332 "Agent Creation Control Part"
                     Caption = 'Company';
                     ToolTip = 'Specifies the company where this permission applies. Select "(All Companies)" to apply everywhere.';
                     Editable = false;
-                    Width = 5;
 
                     trigger OnDrillDown()
                     begin
@@ -41,7 +40,6 @@ page 4332 "Agent Creation Control Part"
                     Caption = 'Agent Type';
                     ToolTip = 'Specifies the agent type allowed to be created. Select "(All Agent Types)" to apply to all types.';
                     Editable = false;
-                    Width = 5;
 
                     trigger OnDrillDown()
                     begin
@@ -53,7 +51,6 @@ page 4332 "Agent Creation Control Part"
                     Caption = 'User';
                     ToolTip = 'Specifies the user allowed to create agents. Select "(All Users)" to apply to everyone.';
                     Editable = false;
-                    Width = 5;
 
                     trigger OnDrillDown()
                     begin
@@ -62,7 +59,6 @@ page 4332 "Agent Creation Control Part"
                 }
                 field(Description; Rec.Description)
                 {
-                    Width = 30;
                 }
             }
         }
@@ -182,9 +178,9 @@ page 4332 "Agent Creation Control Part"
 
     local procedure ClearDisplayTexts()
     begin
-        CompanyDisplayText := '';
-        AgentMetadataProviderDisplayText := '';
-        UserDisplayText := '';
+        Clear(CompanyDisplayText);
+        Clear(AgentMetadataProviderDisplayText);
+        Clear(UserDisplayText);
     end;
 
     local procedure UpdateDisplayTexts()
