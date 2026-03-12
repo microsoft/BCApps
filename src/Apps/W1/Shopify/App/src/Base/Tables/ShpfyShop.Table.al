@@ -781,6 +781,7 @@ table 30102 "Shpfy Shop"
             Caption = 'Process Returns As';
             ToolTip = 'Specifies what type of document to create when processing returns. Credit Memo creates a sales credit memo. Return Order creates a sales return order.';
             DataClassification = CustomerContent;
+            ValuesAllowed = "Credit Memo", "Return Order";
         }
         field(200; "Shop Id"; Integer)
         {
