@@ -25,10 +25,13 @@ export async function fetchRelatedWorkItems(keywords) {
 
   try {
     const topKeywords = keywords.slice(0, 5);
+
+    // Use AND logic: require all single-word terms to match (title OR description),
+    // but treat multi-word phrases as a single Contains clause
     const conditions = topKeywords.map(
       kw => `([System.Title] Contains '${escapeWiql(kw)}' OR [System.Description] Contains '${escapeWiql(kw)}')`
     );
-    const whereClause = conditions.join(' OR ');
+    const whereClause = conditions.join(' AND ');
 
     const wiql = `SELECT [System.Id] FROM WorkItems WHERE [System.TeamProject] = '${ADO_PROJECT}' AND (${whereClause}) ORDER BY [System.ChangedDate] DESC`;
 

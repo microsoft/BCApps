@@ -130,6 +130,17 @@ function extractKeyTerms(title, body) {
     'this', 'that', 'these', 'those', 'i', 'we', 'you', 'he', 'she',
     'they', 'me', 'us', 'him', 'her', 'them', 'my', 'our', 'your', 'his',
     'its', 'their', 'what', 'which', 'who', 'whom', 'about', 'up',
+    // BC-domain generic terms that match too broadly
+    'item', 'items', 'page', 'pages', 'table', 'tables', 'field', 'fields',
+    'function', 'functions', 'report', 'reports', 'codeunit', 'codeunits',
+    'value', 'values', 'number', 'numbers', 'code', 'name', 'list', 'card',
+    'document', 'documents', 'entry', 'entries', 'line', 'lines', 'record',
+    'records', 'data', 'type', 'option', 'action', 'error', 'issue', 'bug',
+    'feature', 'request', 'add', 'added', 'adding', 'change', 'changed',
+    'new', 'create', 'update', 'delete', 'get', 'set', 'show', 'display',
+    'open', 'close', 'run', 'use', 'used', 'using', 'work', 'works',
+    'need', 'want', 'like', 'make', 'way', 'also', 'just', 'still',
+    'appear', 'appears', 'look', 'looks', 'seem', 'seems', 'expected',
   ]);
 
   const words = text
@@ -137,14 +148,45 @@ function extractKeyTerms(title, body) {
     .split(/\s+/)
     .filter(w => w.length > 2 && !stopWords.has(w));
 
-  // Count frequency and return top terms
+  // Extract bigrams (two-word phrases) for more specific matching
+  const allWords = text.replace(/[^a-z0-9\s-]/g, ' ').split(/\s+/).filter(w => w.length > 1);
+  const bigrams = [];
+  for (let i = 0; i < allWords.length - 1; i++) {
+    const pair = `${allWords[i]} ${allWords[i + 1]}`;
+    if (!stopWords.has(allWords[i]) || !stopWords.has(allWords[i + 1])) {
+      bigrams.push(pair);
+    }
+  }
+
+  // Count frequency of single words and return top terms
   const freq = {};
   for (const w of words) {
     freq[w] = (freq[w] || 0) + 1;
   }
 
-  return Object.entries(freq)
+  const singleTerms = Object.entries(freq)
     .sort((a, b) => b[1] - a[1])
-    .slice(0, 10)
+    .slice(0, 8)
     .map(([word]) => word);
+
+  // Count bigram frequency, pick top 3
+  const bigramFreq = {};
+  for (const bg of bigrams) {
+    bigramFreq[bg] = (bigramFreq[bg] || 0) + 1;
+  }
+  const topBigrams = Object.entries(bigramFreq)
+    .sort((a, b) => b[1] - a[1])
+    .slice(0, 3)
+    .map(([phrase]) => phrase);
+
+  // Combine: bigrams first (more specific), then single terms
+  const combined = [...topBigrams, ...singleTerms];
+
+  // Deduplicate while preserving order
+  const seen = new Set();
+  return combined.filter(term => {
+    if (seen.has(term)) return false;
+    seen.add(term);
+    return true;
+  }).slice(0, 10);
 }

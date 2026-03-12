@@ -64,7 +64,7 @@ export async function fetchRelatedIdeas(keywords) {
   }));
 
   const relevant = scored
-    .filter(idea => idea.relevance > 0)
+    .filter(idea => idea.relevance >= 2)
     .sort((a, b) => b.relevance - a.relevance || b.votes - a.votes)
     .slice(0, MAX_RESULTS);
 
