@@ -106,14 +106,18 @@ jobs:
           if ($alGoSettings.fullBuildPatterns) { $fullBuildPatterns = @($alGoSettings.fullBuildPatterns) }
 
           # Get changed files - for PRs, diff against the base branch
+          # git writes progress to stderr, so temporarily allow non-terminating errors
           $changedFiles = @()
           if ($env:GITHUB_BASE_REF) {
-            # PR context: fetch base ref and diff against it
-            git fetch origin $env:GITHUB_BASE_REF --depth=1 2>$null
-            $changedFiles = @(git diff --name-only $env:GITHUB_BASE_REF HEAD 2>$null)
+            $errorActionPreference = "Continue"
+            git fetch origin $env:GITHUB_BASE_REF --depth=1 2>&1 | Out-Null
+            $changedFiles = @(git diff --name-only $env:GITHUB_BASE_REF HEAD)
+            $errorActionPreference = "Stop"
           }
           if ($changedFiles.Count -eq 0) {
-            $changedFiles = @(git diff --name-only HEAD~1 HEAD 2>$null)
+            $errorActionPreference = "Continue"
+            $changedFiles = @(git diff --name-only HEAD~1 HEAD)
+            $errorActionPreference = "Stop"
           }
           Write-Host "Changed files: $($changedFiles.Count)"
           $changedFiles | ForEach-Object { Write-Host "  $_" }

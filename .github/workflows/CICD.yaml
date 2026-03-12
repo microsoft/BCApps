@@ -122,10 +122,13 @@ jobs:
           if ($alGoSettings.fullBuildPatterns) { $fullBuildPatterns = @($alGoSettings.fullBuildPatterns) }
 
           # Get changed files (push context: diff against previous commit)
-          $changedFiles = @(git diff --name-only HEAD~1 HEAD 2>$null)
+          # git writes progress to stderr, so temporarily allow non-terminating errors
+          $errorActionPreference = "Continue"
+          $changedFiles = @(git diff --name-only HEAD~1 HEAD)
           if ($LASTEXITCODE -ne 0 -or $changedFiles.Count -eq 0) {
-            $changedFiles = @(git diff --name-only "$($env:GITHUB_SHA)~1" $env:GITHUB_SHA 2>$null)
+            $changedFiles = @(git diff --name-only "$($env:GITHUB_SHA)~1" $env:GITHUB_SHA)
           }
+          $errorActionPreference = "Stop"
           Write-Host "Changed files: $($changedFiles.Count)"
           $changedFiles | ForEach-Object { Write-Host "  $_" }
 
