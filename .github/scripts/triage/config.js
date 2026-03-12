@@ -3,7 +3,7 @@
 
 export const MODELS_API_ENDPOINT = 'https://models.github.ai/inference/chat/completions';
 export const MODEL_NAME = 'openai/gpt-4.1';
-export const MODEL_TEMPERATURE = 1;
+export const MODEL_TEMPERATURE = 0.3;
 
 // Quality score verdicts (FR7)
 export const VERDICT = {
