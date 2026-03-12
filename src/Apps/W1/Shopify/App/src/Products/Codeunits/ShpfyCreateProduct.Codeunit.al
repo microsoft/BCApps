@@ -79,6 +79,7 @@ codeunit 30174 "Shpfy Create Product"
         ItemVariant: Record "Item Variant";
         SkippedRecord: Codeunit "Shpfy Skipped Record";
         Id: Integer;
+        ExpectedVariantCount: Integer;
         ICreateProductStatus: Interface "Shpfy ICreateProductStatusValue";
     begin
         Clear(TempShopifyProduct);
@@ -88,6 +89,19 @@ codeunit 30174 "Shpfy Create Product"
         ICreateProductStatus := Shop."Status for Created Products";
         TempShopifyProduct.Status := ICreateProductStatus.GetStatus(Item);
         ItemVariant.SetRange("Item No.", Item."No.");
+        ItemVariant.SetRange(Blocked, false);
+        ItemVariant.SetRange("Sales Blocked", false);
+        ExpectedVariantCount := ItemVariant.Count();
+        if Shop."UoM as Variant" then begin
+            ItemUnitofMeasure.SetRange("Item No.", Item."No.");
+            ExpectedVariantCount := ExpectedVariantCount * ItemUnitofMeasure.Count();
+        end;
+        if ExpectedVariantCount > GetMaxVariantCount() then begin
+            SkippedRecord.LogSkippedRecord(Item.RecordId, TooManyVariantsLbl, Shop);
+            exit;
+        end;
+        ItemVariant.SetRange(Blocked);
+        ItemVariant.SetRange("Sales Blocked");
         if ItemVariant.FindSet(false) then
             repeat
                 if ItemVariant.Blocked or ItemVariant."Sales Blocked" then
@@ -166,13 +180,6 @@ codeunit 30174 "Shpfy Create Product"
                     until ItemUnitofMeasure.Next() = 0;
             end else
                 CreateTempShopifyVariantFromItem(Item, TempShopifyVariant);
-
-        if TempShopifyVariant.Count() > GetMaxVariantCount() then begin
-            SkippedRecord.LogSkippedRecord(Item.RecordId, TooManyVariantsLbl, Shop);
-            TempShopifyVariant.DeleteAll();
-            Clear(TempShopifyProduct);
-            exit;
-        end;
 
         ProductExport.FillProductOptionsForShopifyVariants(Item, TempShopifyVariant, TempShopifyProduct);
         TempShopifyProduct.Insert(false);

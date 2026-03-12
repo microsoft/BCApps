@@ -171,14 +171,13 @@ codeunit 139581 "Shpfy Skipped Record Log Test"
         TempShopifyVariant: Record "Shpfy Variant" temporary;
         TempShopifyTag: Record "Shpfy Tag" temporary;
         CreateProduct: Codeunit "Shpfy Create Product";
-        ProductInitTest: Codeunit "Shpfy Product Init Test";
         i: Integer;
     begin
         // [SCENARIO] Log skipped record when item has more than 2048 variants
         Initialize();
 
         // [GIVEN] An item record with more than 2048 variants
-        Item := ProductInitTest.CreateItem(Shop."Item Templ. Code", Any.DecimalInRange(10, 100, 2), Any.DecimalInRange(100, 500, 2), false);
+        CreateItem(Item);
         for i := 1 to 2049 do begin
             ItemVariant.Init();
             ItemVariant."Item No." := Item."No.";
@@ -187,7 +186,6 @@ codeunit 139581 "Shpfy Skipped Record Log Test"
         end;
 
         // [WHEN] Invoke Create Product
-        CreateProduct.SetShop(Shop);
         CreateProduct.CreateTempProduct(Item, TempShopifyProduct, TempShopifyVariant, TempShopifyTag);
 
         // [THEN] Related record is created in shopify skipped record table.
