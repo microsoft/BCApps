@@ -167,7 +167,6 @@ codeunit 6102 "E-Doc. Export"
         ErrorCount := EDocumentErrorHelper.ErrorMessageCount(EDocument);
         CreateEDocument(EDocumentService, EDocument, SourceDocumentHeaderMapped, SourceDocumentLineMapped, TempBlob);
         Success := EDocumentErrorHelper.ErrorMessageCount(EDocument) = ErrorCount;
-        OnExportEDocumentAfterCreateEDocument(EDocumentService, EDocument, SourceDocumentHeaderMapped, SourceDocumentLineMapped, TempBlob, Success);
         if Success then
             EDocServiceStatus := Enum::"E-Document Service Status"::Exported
         else
@@ -184,6 +183,7 @@ codeunit 6102 "E-Doc. Export"
         else
             EDocumentProcessing.ModifyServiceStatus(EDocument, EDocumentService, EDocServiceStatus);
         EDocumentProcessing.ModifyEDocumentStatus(EDocument);
+        OnExportEDocumentAfterCreateEDocument(EDocumentService, EDocument, SourceDocumentHeaderMapped, SourceDocumentLineMapped, TempBlob, Success);
     end;
 
     internal procedure ExportEDocumentBatch(var EDocuments: Record "E-Document"; var EDocService: Record "E-Document Service"; var TempEDocMappingLogs: Record "E-Doc. Mapping Log" temporary; var TempBlob: Codeunit "Temp Blob"; var EDocumentsErrorCount: Dictionary of [Integer, Integer])
