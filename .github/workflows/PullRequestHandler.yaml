@@ -95,7 +95,8 @@ jobs:
       - name: Filter Projects by Dependency Analysis
         id: filterProjects
         env:
-          GITHUB_BASE_REF: ${{ github.event.pull_request.base.sha }}
+          GH_TOKEN: ${{ github.token }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
         run: |
           $errorActionPreference = "Stop"
           Import-Module "./build/scripts/BuildOptimization.psm1" -Force
@@ -105,18 +106,16 @@ jobs:
           $fullBuildPatterns = @()
           if ($alGoSettings.fullBuildPatterns) { $fullBuildPatterns = @($alGoSettings.fullBuildPatterns) }
 
-          # Get changed files - for PRs, diff against the base branch
-          # git writes progress to stderr, so temporarily allow non-terminating errors
+          # Get changed files from the GitHub API (works with shallow checkouts)
           $changedFiles = @()
-          if ($env:GITHUB_BASE_REF) {
-            $errorActionPreference = "Continue"
-            git fetch origin $env:GITHUB_BASE_REF --depth=1 2>&1 | Out-Null
-            $changedFiles = @(git diff --name-only $env:GITHUB_BASE_REF HEAD)
-            $errorActionPreference = "Stop"
+          if ($env:PR_NUMBER) {
+            $changedFiles = @(gh pr diff $env:PR_NUMBER --name-only)
+            Write-Host "Got $($changedFiles.Count) changed files from PR #$($env:PR_NUMBER)"
           }
           if ($changedFiles.Count -eq 0) {
+            # Fallback for merge_group events: diff merge commit against first parent
             $errorActionPreference = "Continue"
-            $changedFiles = @(git diff --name-only HEAD~1 HEAD)
+            $changedFiles = @(git diff --name-only HEAD~1 HEAD 2>&1 | Where-Object { $_ -notmatch '^fatal:' })
             $errorActionPreference = "Stop"
           }
           Write-Host "Changed files: $($changedFiles.Count)"
