@@ -48,7 +48,6 @@ codeunit 6117 "E-Doc. Create Purchase Invoice" implements IEDocumentFinishDraft,
         if not EDocPOMatching.VerifyEDocumentMatchedLinesAreValidMatches(EDocumentPurchaseHeader) then
             Error(YourMatchedLinesAreNotValidErr);
 
-        EDocPOMatching.SuggestReceiptsForMatchedOrderLines(EDocumentPurchaseHeader);
         EDocPOMatching.CalculatePOMatchWarnings(EDocumentPurchaseHeader, TempPOMatchWarnings);
         TempPOMatchWarnings.SetRange("Warning Type", "E-Doc PO Match Warning"::NotYetReceived);
         if not TempPOMatchWarnings.IsEmpty() then
@@ -106,16 +105,11 @@ codeunit 6117 "E-Doc. Create Purchase Invoice" implements IEDocumentFinishDraft,
         VendorLedgerEntry: Record "Vendor Ledger Entry";
         EDocumentPurchaseHeader: Record "E-Document Purchase Header";
         EDocumentPurchaseLine: Record "E-Document Purchase Line";
-        PurchaseLine: Record "Purchase Line";
         EDocRecordLink: Record "E-Doc. Record Link";
         PurchCalcDiscByType: Codeunit "Purch - Calc Disc. By Type";
-        EDocLineByReceipt: Query "E-Doc. Line by Receipt";
-        LastReceiptNo: Code[20];
         PurchaseLineNo: Integer;
         StopCreatingPurchaseInvoice: Boolean;
         VendorInvoiceNo: Code[35];
-        ReceiptNoLbl: Label 'Receipt No. %1:', Comment = '%1 = Receipt No.';
-        NullGuid: Guid;
     begin
         EDocumentPurchaseHeader.GetFromEDocument(EDocument);
         if not AllDraftLinesHaveTypeAndNumberSpecificed(EDocumentPurchaseHeader) then begin
@@ -155,39 +149,13 @@ codeunit 6117 "E-Doc. Create Purchase Invoice" implements IEDocumentFinishDraft,
         end;
         EDocRecordLink.InsertEDocumentHeaderLink(EDocumentPurchaseHeader, PurchaseHeader);
 
-        PurchaseLineNo := GetLastLineNumberOnPurchaseInvoice(PurchaseHeader."No."); // We get the last line number, even if this is a new document since recurrent lines get inserted on the header's creation
-        // We create first the lines without any PO matches
-        EDocLineByReceipt.SetRange(EDocumentEntryNo, EDocument."Entry No");
-        EDocLineByReceipt.SetRange(ReceiptNo, '');
-        EDocLineByReceipt.SetRange(PurchaseLineSystemId, NullGuid);
-        EDocLineByReceipt.Open();
-        while EDocLineByReceipt.Read() do begin
-            EDocumentPurchaseLine.GetBySystemId(EDocLineByReceipt.SystemId);
-            CreatePurchaseInvoiceLine(PurchaseHeader, EDocumentPurchaseLine, EDocumentPurchaseHeader."Total Discount" > 0, PurchaseLineNo);
-        end;
-        EDocLineByReceipt.Close();
+        PurchaseLineNo := GetLastLineNumberOnPurchaseInvoice(PurchaseHeader."No.");
+        EDocumentPurchaseLine.SetRange("E-Document Entry No.", EDocument."Entry No");
+        if EDocumentPurchaseLine.FindSet() then
+            repeat
+                CreatePurchaseInvoiceLine(PurchaseHeader, EDocumentPurchaseLine, EDocumentPurchaseHeader."Total Discount" > 0, PurchaseLineNo);
+            until EDocumentPurchaseLine.Next() = 0;
 
-        // Then we create the lines with receipt no., adding comment lines for each receipt no.
-        LastReceiptNo := '';
-        EDocLineByReceipt.SetFilter(ReceiptNo, '<> %1', '');
-        EDocLineByReceipt.SetRange(PurchaseLineSystemId);
-        EDocLineByReceipt.Open();
-        while EDocLineByReceipt.Read() do begin
-            if LastReceiptNo <> EDocLineByReceipt.ReceiptNo then begin // A receipt no. for which we have not created a header comment line yet
-                Clear(PurchaseLine);
-                PurchaseLine."Document Type" := PurchaseHeader."Document Type";
-                PurchaseLine."Document No." := PurchaseHeader."No.";
-                PurchaseLineNo += 10000;
-                PurchaseLine."Line No." := PurchaseLineNo;
-                PurchaseLine.Type := PurchaseLine.Type::" ";
-                PurchaseLine.Description := StrSubstNo(ReceiptNoLbl, EDocLineByReceipt.ReceiptNo);
-                PurchaseLine.Insert();
-            end;
-            EDocumentPurchaseLine.GetBySystemId(EDocLineByReceipt.SystemId);
-            CreatePurchaseInvoiceLine(PurchaseHeader, EDocumentPurchaseLine, EDocumentPurchaseHeader."Total Discount" > 0, PurchaseLineNo);
-            LastReceiptNo := EDocLineByReceipt.ReceiptNo;
-        end;
-        EDocLineByReceipt.Close();
         PurchaseHeader.Modify();
         PurchCalcDiscByType.ApplyInvDiscBasedOnAmt(EDocumentPurchaseHeader."Total Discount", PurchaseHeader);
         exit(PurchaseHeader);
