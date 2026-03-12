@@ -85,14 +85,7 @@ codeunit 30243 "Shpfy RetRefProc Cr.Memo" implements "Shpfy IReturnRefund Proces
             exit;
 
         CreateSalesDocRefund.SetSource(SourceDocumentId);
-
-        RefundHeader.Get(SourceDocumentId);
-        Shop.Get(RefundHeader."Shop Code");
-        if Shop."Process Returns As" = Shop."Process Returns As"::"Return Order" then
-            CreateSalesDocRefund.SetTargetDocumentType("Sales Document Type"::"Return Order")
-        else
-            CreateSalesDocRefund.SetTargetDocumentType("Sales Document Type"::"Credit Memo");
-
+            CreateSalesDocRefund.SetTargetDocumentType(Shop."Process Returns As");
         Commit();
         if CreateSalesDocRefund.Run() then begin
             SalesHeader := CreateSalesDocRefund.GetSalesHeader();
