@@ -25,6 +25,12 @@ table 6115 "E-Doc PO Match Warning"
             Caption = 'Warning Type';
             Editable = false;
         }
+        field(3; "Warning Message"; Text[250])
+        {
+            DataClassification = SystemMetadata;
+            Caption = 'Warning Message';
+            Editable = false;
+        }
     }
     keys
     {
