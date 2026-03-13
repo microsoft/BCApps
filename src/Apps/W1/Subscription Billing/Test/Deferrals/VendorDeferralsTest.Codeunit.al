@@ -60,6 +60,7 @@ codeunit 139913 "Vendor Deferrals Test"
         TotalNumberOfMonths: Integer;
         VendorDeferralsCount: Integer;
         IsInitialized: Boolean;
+        ReleasedContractDeferralErr: Label 'Released Contract Deferrals were not reversed properly';
 
     #region Tests
 
@@ -756,6 +757,49 @@ codeunit 139913 "Vendor Deferrals Test"
         Assert.IsTrue(PurchaseLine2.CreateContractDeferrals(), FunctionReturnedWrongResultErr);
     end;
 
+    [Test]
+    [HandlerFunctions('CreateVendorBillingDocsContractPageHandler,ContractDeferralsReleaseRequestPageHandler,MessageHandler')]
+    procedure VerifyVendSubContrDefAccountBalancedForCreditMemoWithDiscount()
+    var
+        SubscriptionLine: Record "Subscription Line";
+        ContractDeferralsRelease: Report "Contract Deferrals Release";
+        ActualAmount: Decimal;
+    begin
+        // [SCENARIO 623041] Verify that released vendor contract deferral amounts have correct sign and GL accounts balance.
+        Initialize();
+        SetPostingAllowTo(0D);
+
+        // [GIVEN] Create Vendor Contract with deferral enabled
+        CreateVendorContractWithDeferrals('<2M-CM>', true, 1);
+
+        // [GIVEN] Set Discount flag to True on subscription lines 
+        SubscriptionLine.SetRange("Subscription Header No.", ServiceObject."No.");
+        SubscriptionLine.FindSet();
+        repeat
+            SubscriptionLine.Validate(Discount, true);
+            SubscriptionLine.Modify(false);
+        until SubscriptionLine.Next() = 0;
+
+        // [GIVEN] Contract has been created and the billing proposal with non posted contract invoice
+        CreateBillingProposalAndCreateBillingDocuments('<2M-CM>', '<8M+CM>');
+
+        // [G
+        IVEN] Post credit memo document
+        PostPurchDocumentAndFetchDeferrals();
+
+        // [WHEN] Run Subscription Contract Deferral Release for credit memo
+        repeat
+            PostingDate := VendorContractDeferral."Posting Date";
+            Commit(); // close transaction before report is called
+            ContractDeferralsRelease.Run();  // ContractDeferralsReleaseRequestPageHandler
+        until VendorContractDeferral.Next() = 0;
+
+        // [THEN] Verify "Vend. Sub. Contr. Def. Account" should be balanced after credit memo reversal, which means that released deferral amount was reversed properly
+        GeneralPostingSetup.Get(Vendor."Gen. Bus. Posting Group", Item."Gen. Prod. Posting Group");
+        GetGLEntryAmountFromAccountNo(ActualAmount, GeneralPostingSetup."Vend. Sub. Contr. Def. Account");
+        Assert.AreEqual(0, ActualAmount, ReleasedContractDeferralErr);
+    end;
+    
     #endregion Tests
 
     #region Procedures
