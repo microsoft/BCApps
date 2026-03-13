@@ -38,14 +38,15 @@ pageextension 149034 "Agent Test Suite" extends "AIT Test Suite"
                 ApplicationArea = All;
                 AutoFormatType = 0;
                 Editable = false;
-                Caption = 'Copilot credits';
+                Caption = 'Copilot Credits Consumed';
                 ToolTip = 'Specifies the total Copilot Credits consumed by the Agent Tasks in the current version.';
+                Visible = ConsumedCreditsVisible;
             }
             field("Agent Task Count"; AgentTaskCount)
             {
                 ApplicationArea = All;
                 Editable = false;
-                Caption = 'Agent tasks';
+                Caption = 'Agent Tasks Executed';
                 ToolTip = 'Specifies the number of Agent Tasks related to the current version.';
 
                 trigger OnDrillDown()
@@ -56,6 +57,13 @@ pageextension 149034 "Agent Test Suite" extends "AIT Test Suite"
         }
     }
 
+    trigger OnOpenPage()
+    var
+        AgentSystemPermissions: Codeunit "Agent System Permissions";
+    begin
+        ConsumedCreditsVisible := AgentSystemPermissions.CurrentUserCanSeeConsumptionData();
+    end;
+
     trigger OnAfterGetCurrRecord()
     begin
         UpdateAgentTaskMetrics();
@@ -64,7 +72,7 @@ pageextension 149034 "Agent Test Suite" extends "AIT Test Suite"
 
     local procedure UpdateAgentTaskMetrics()
     begin
-        CopilotCredits := AgentTestContextImpl.GetCopilotCredits(Rec.Code, Rec.Version, '', 0);
+        CopilotCredits := ConsumedCreditsVisible ? AgentTestContextImpl.GetCopilotCredits(Rec.Code, Rec.Version, '', 0) : -1;
         AgentTaskIDs := AgentTestContextImpl.GetAgentTaskIDs(Rec.Code, Rec.Version, '', 0);
         AgentTaskCount := AgentTestContextImpl.GetAgentTaskCount(AgentTaskIDs);
     end;
@@ -118,5 +126,6 @@ pageextension 149034 "Agent Test Suite" extends "AIT Test Suite"
         AgentTaskIDs: Text;
         AgentTaskCount: Integer;
         AgentUserName: Code[50];
+        ConsumedCreditsVisible: Boolean;
         AgentWithNameNotFoundErr: Label 'An agent with the name %1 was not found.', Comment = '%1 - The name of the agent.';
 }
