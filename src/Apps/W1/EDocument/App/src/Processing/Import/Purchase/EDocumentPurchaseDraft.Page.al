@@ -272,7 +272,7 @@ page 6181 "E-Document Purchase Draft"
             }
             part(ErrorMessagesFactBox; "Error Messages Part")
             {
-                Visible = false;
+                Visible = HasErrorsOrWarnings;
                 ShowFilter = false;
                 UpdatePropagation = Both;
             }
@@ -300,6 +300,12 @@ page 6181 "E-Document Purchase Draft"
                         EDocImportParameters: Record "E-Doc. Import Parameters";
                     begin
                         Session.LogMessage('0000PCO', FinalizeDraftInvokedTxt, Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::All, 'Category', EDocumentPurchaseHeader.FeatureName());
+                        Rec.SetAutoCalcFields("Import Processing Status");
+                        if Rec.Get(Rec."Entry No") then
+                            if Rec."Import Processing Status" = "Import E-Doc. Proc. Status"::Processed then begin
+                                Rec.ShowRecord();
+                                exit;
+                            end;
                         FinalizeEDocument(EDocImportParameters);
                     end;
                 }
@@ -477,14 +483,11 @@ page 6181 "E-Document Purchase Draft"
 
     trigger OnOpenPage()
     var
-        EDocumentsSetup: Record "E-Documents Setup";
         EDocumentDataStorage: Record "E-Doc. Data Storage";
         EDocumentNotification: Codeunit "E-Document Notification";
         EDocPOMatching: Codeunit "E-Doc. PO Matching";
         MatchesRemovedMsg: Label 'This e-document was matched to purchase order lines, but the matches are no longer consistent with the current data. The matches have been removed';
     begin
-        if not EDocumentsSetup.IsNewEDocumentExperienceActive() then
-            Error('');
         if EDocumentPurchaseHeader.Get(Rec."Entry No") then;
         if not EDocPOMatching.IsPOMatchConsistent(EDocumentPurchaseHeader) then begin
             EDocPOMatching.RemoveAllMatchesForEDocument(EDocumentPurchaseHeader);
@@ -524,7 +527,7 @@ page 6181 "E-Document Purchase Draft"
         SetPageCaption();
 
         Rec.CalcFields("Import Processing Status");
-        ShowFinalizeDraftAction := Rec."Import Processing Status" = Enum::"Import E-Doc. Proc. Status"::"Draft Ready";
+        ShowFinalizeDraftAction := Rec."Import Processing Status" in [Enum::"Import E-Doc. Proc. Status"::"Ready for draft", Enum::"Import E-Doc. Proc. Status"::"Draft Ready"];
         ShowAnalyzeDocumentAction :=
             (Rec."Import Processing Status" = Enum::"Import E-Document Steps"::"Structure received data") and
             (Rec.Status = Enum::"E-Document Status"::Error);

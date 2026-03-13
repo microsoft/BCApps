@@ -55,7 +55,7 @@ codeunit 20408 "Qlty. Traversal"
 
         QltyInspectSrcFldConf.SetRange(Code, TempFromQltyInspectSourceConfig.Code);
         if AllowTrackingMapping then
-            QltyInspectSrcFldConf.SetFilter("To Type", '%1|%2', QltyInspectSrcFldConf."To Type"::"Chained table", QltyInspectSrcFldConf."To Type"::"Item Tracking only")
+            QltyInspectSrcFldConf.SetFilter("To Type", '%1|%2', QltyInspectSrcFldConf."To Type"::"Chained table", QltyInspectSrcFldConf."To Type"::"Item Tracking")
         else
             QltyInspectSrcFldConf.SetRange("To Type", QltyInspectSrcFldConf."To Type"::"Chained table");
         if QltyInspectSrcFldConf.FindSet() then begin
@@ -95,7 +95,7 @@ codeunit 20408 "Qlty. Traversal"
 
         QltyInspectSrcFldConf.SetRange(Code, TempQltyInspectSourceConfig.Code);
         if AllowTrackingMapping then
-            QltyInspectSrcFldConf.SetFilter("To Type", '%1|%2', QltyInspectSrcFldConf."To Type"::"Chained table", QltyInspectSrcFldConf."To Type"::"Item Tracking only")
+            QltyInspectSrcFldConf.SetFilter("To Type", '%1|%2', QltyInspectSrcFldConf."To Type"::"Chained table", QltyInspectSrcFldConf."To Type"::"Item Tracking")
         else
             QltyInspectSrcFldConf.SetRange("To Type", QltyInspectSrcFldConf."To Type"::"Chained table");
         if QltyInspectSrcFldConf.FindSet() then begin

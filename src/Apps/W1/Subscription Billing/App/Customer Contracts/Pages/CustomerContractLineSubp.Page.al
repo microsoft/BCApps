@@ -132,6 +132,11 @@ page 8068 "Customer Contract Line Subp."
                 field("Service Commitment Description"; Rec."Subscription Line Description")
                 {
                     ToolTip = 'Specifies the description of the Subscription Line.';
+                    trigger OnValidate()
+                    begin
+                        if not Rec.IsCommentLine() then
+                            CurrPage.Update(false);
+                    end;
                 }
                 field("Service Object Quantity"; ContractLineQty)
                 {

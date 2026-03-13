@@ -460,14 +460,6 @@ page 6105 "Inbound E-Documents"
             AgentTaskStatus := Format(AgentTask.Status);
     end;
 
-    trigger OnOpenPage()
-    var
-        EDocumentsSetup: Record "E-Documents Setup";
-    begin
-        if not EDocumentsSetup.IsNewEDocumentExperienceActive() then
-            Error('');
-    end;
-
     #region File Upload Actions
 
     local procedure NewFromFile(Files: List of [FileUpload])

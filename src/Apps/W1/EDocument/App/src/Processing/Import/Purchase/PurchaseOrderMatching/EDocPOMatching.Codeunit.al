@@ -213,6 +213,10 @@ codeunit 6196 "E-Doc. PO Matching"
         TempPurchaseLine: Record "Purchase Line" temporary;
         EDocLineQuantity: Decimal;
         PurchaseLinesQuantity, PurchaseLinesQuantityInvoiced, PurchaseLinesQuantityReceived : Decimal;
+        RemainingToInvoice, InvoiceableQty : Decimal;
+        ExceedsInvoiceableQtyLbl: Label 'Invoice quantity (%1) exceeds what can be invoiced according to what has been received (%2) by %3. The order line has to be received before invoicing.', Comment = '%1 = Invoice qty, %2 = Invoiceable qty, %3 = Difference';
+        ExceedsRemainingToInvoiceLbl: Label 'Invoice quantity (%1) exceeds what is missing to invoice from the order (%2) by %3.', Comment = '%1 = Invoice qty, %2 = Remaining to invoice, %3 = Difference';
+        OverReceiptLbl: Label 'Invoice will close out order but there is an over-receipt of %1 units.', Comment = '%1 = Over-receipt quantity';
     begin
         LoadPOLinesMatchedToEDocumentLine(EDocumentPurchaseLine, TempPurchaseLine);
         PurchaseLinesQuantityInvoiced := 0;
@@ -232,17 +236,37 @@ codeunit 6196 "E-Doc. PO Matching"
             POMatchWarnings.Insert();
             exit;
         end;
-        if EDocLineQuantity <> PurchaseLinesQuantity - PurchaseLinesQuantityInvoiced then begin
-            POMatchWarnings."E-Doc. Purchase Line SystemId" := EDocumentPurchaseLine.SystemId;
-            POMatchWarnings."Warning Type" := "E-Doc PO Match Warning"::QuantityMismatch;
-            POMatchWarnings.Insert();
-        end;
-        if (EDocLineQuantity + PurchaseLinesQuantityInvoiced) > PurchaseLinesQuantityReceived then
+
+        //   I = Invoice quantity (from the e-document line)
+        //   R = Remaining to invoice on the PO (Ordered - Previously Invoiced)
+        //   J = Invoiceable quantity (Received - Previously Invoiced)
+        RemainingToInvoice := PurchaseLinesQuantity - PurchaseLinesQuantityInvoiced;
+        InvoiceableQty := PurchaseLinesQuantityReceived - PurchaseLinesQuantityInvoiced;
+
+        // I > J: Invoice exceeds what has been received and not yet invoiced 
+        if EDocLineQuantity > InvoiceableQty then
             if ShouldWarnIfNotYetReceived(EDocumentPurchaseLine.GetBCVendor()."No.") then begin
                 POMatchWarnings."E-Doc. Purchase Line SystemId" := EDocumentPurchaseLine.SystemId;
-                POMatchWarnings."Warning Type" := "E-Doc PO Match Warning"::NotYetReceived;
+                POMatchWarnings."Warning Type" := "E-Doc PO Match Warning"::ExceedsInvoiceableQty;
+                POMatchWarnings."Warning Message" := CopyStr(StrSubstNo(ExceedsInvoiceableQtyLbl, EDocLineQuantity, InvoiceableQty, EDocLineQuantity - InvoiceableQty), 1, MaxStrLen(POMatchWarnings."Warning Message"));
                 POMatchWarnings.Insert();
             end;
+
+        // I > R: Invoice exceeds what remains on the order 
+        if EDocLineQuantity > RemainingToInvoice then begin
+            POMatchWarnings."E-Doc. Purchase Line SystemId" := EDocumentPurchaseLine.SystemId;
+            POMatchWarnings."Warning Type" := "E-Doc PO Match Warning"::ExceedsRemainingToInvoice;
+            POMatchWarnings."Warning Message" := CopyStr(StrSubstNo(ExceedsRemainingToInvoiceLbl, EDocLineQuantity, RemainingToInvoice, EDocLineQuantity - RemainingToInvoice), 1, MaxStrLen(POMatchWarnings."Warning Message"));
+            POMatchWarnings.Insert();
+        end;
+
+        // I = R and I < J: Order will be closed but there is an over-receipt 
+        if (EDocLineQuantity = RemainingToInvoice) and (EDocLineQuantity < InvoiceableQty) then begin
+            POMatchWarnings."E-Doc. Purchase Line SystemId" := EDocumentPurchaseLine.SystemId;
+            POMatchWarnings."Warning Type" := "E-Doc PO Match Warning"::OverReceipt;
+            POMatchWarnings."Warning Message" := CopyStr(StrSubstNo(OverReceiptLbl, InvoiceableQty - RemainingToInvoice), 1, MaxStrLen(POMatchWarnings."Warning Message"));
+            POMatchWarnings.Insert();
+        end;
     end;
 
     /// <summary>
@@ -475,7 +499,7 @@ codeunit 6196 "E-Doc. PO Matching"
         EDocumentPurchaseLine."[BC] Unit of Measure" := MatchedUnitOfMeasure;
         EDocumentPurchaseLine.Modify();
         AppendPOMatchWarnings(EDocumentPurchaseLine, TempMatchWarnings);
-        TempMatchWarnings.SetRange("Warning Type", "E-Doc PO Match Warning"::NotYetReceived);
+        TempMatchWarnings.SetRange("Warning Type", "E-Doc PO Match Warning"::ExceedsInvoiceableQty);
         if (not TempMatchWarnings.IsEmpty) and (not CanMatchInvoiceLineToPOLineWithoutReceipt(EDocumentPurchaseLine, PurchaseLine)) then
             Error(NotYetReceivedErr);
     end;
@@ -763,8 +787,8 @@ codeunit 6196 "E-Doc. PO Matching"
         TempPOMatchWarnings: Record "E-Doc PO Match Warning" temporary;
     begin
         CalculatePOMatchWarnings(EDocumentPurchaseHeader, TempPOMatchWarnings);
-        TempPOMatchWarnings.SetRange("Warning Type", "E-Doc PO Match Warning"::NotYetReceived);
-        // For each line that has a Not Yet Received warning, we check if it can be matched without receipt
+        TempPOMatchWarnings.SetRange("Warning Type", "E-Doc PO Match Warning"::ExceedsInvoiceableQty);
+        // For each line that exceeds invoiceable qty, we check if it can be matched without receipt
         if TempPOMatchWarnings.FindSet() then
             repeat
                 EDocumentPurchaseLine.GetBySystemId(TempPOMatchWarnings."E-Doc. Purchase Line SystemId");

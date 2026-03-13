@@ -2,6 +2,7 @@ namespace Microsoft.SubscriptionBilling;
 
 using Microsoft.Finance.Currency;
 using Microsoft.Finance.GeneralLedger.Setup;
+using Microsoft.Foundation.ExtendedText;
 using Microsoft.Inventory.Item;
 using Microsoft.Purchases.Document;
 using Microsoft.Purchases.History;
@@ -61,11 +62,14 @@ codeunit 139688 "Recurring Billing Test"
         LibraryTestInitialize: Codeunit "Library - Test Initialize";
         LibraryUtility: Codeunit "Library - Utility";
         LibraryVariableStorage: Codeunit "Library - Variable Storage";
+        LibraryInventory: Codeunit "Library - Inventory";
         BillingRhythm: DateFormula;
         IsInitialized: Boolean;
         PostedDocumentNo: Code[20];
         StrMenuHandlerStep: Integer;
         BillingProposalNotCreatedErr: Label 'Billing proposal not created.', Locked = true;
+        ExtendedTextValueErr: Label 'Sales line with extended text description should be created.', Locked = true;
+        ExtendedTextPurchValueErr: Label 'Purchase line with extended text description should be created.', Locked = true;
         RecurringBillingPage: TestPage "Recurring Billing";
         IsPartnerVendor: Boolean;
         PostDocuments: Boolean;
@@ -586,22 +590,6 @@ codeunit 139688 "Recurring Billing Test"
     end;
 
     [Test]
-    procedure CheckBillingLineServiceAmountCalculation()
-    var
-        ExpectedServiceAmount: Decimal;
-    begin
-        // [SCENARIO] Unit testing the function CalculateBillingLineServiceAmount from Codeunit BillingProposal
-        Initialize();
-
-        // [GIVEN] BillingLine has values
-        MockBillingLineForPartnerNoWithUnitPriceAndDiscountAndServiceObjectQuantity(LibraryRandom.RandDec(100, 2), LibraryRandom.RandDec(50, 2), LibraryRandom.RandDec(10, 2));
-        ExpectedServiceAmount := BillingLine."Unit Price" * BillingLine."Service Object Quantity" * (1 - BillingLine."Discount %" / 100);
-
-        Assert.AreEqual(ExpectedServiceAmount, BillingProposal.CalculateBillingLineServiceAmount(BillingLine), 'Service Amount has not been calculated correctly on a Billing Line.');
-    end;
-
-    [Test]
-    [HandlerFunctions('ExchangeRateSelectionModalPageHandler,MessageHandler')]
     procedure CheckBillingLineUpdateRequiredOnModifyCustomerContractLine()
     var
         DiscountAmount: Decimal;
@@ -611,7 +599,7 @@ codeunit 139688 "Recurring Billing Test"
     begin
         Initialize();
 
-        ContractTestLibrary.CreateCustomer(Customer);
+        ContractTestLibrary.CreateCustomerInLCY(Customer);
         ContractTestLibrary.CreateCustomerContractAndCreateContractLinesForItems(CustomerContract, ServiceObject, Customer."No.");
         ContractTestLibrary.CreateBillingProposal(BillingTemplate, Enum::"Service Partner"::Customer);
         BillingLine.Reset();
@@ -656,7 +644,6 @@ codeunit 139688 "Recurring Billing Test"
     end;
 
     [Test]
-    [HandlerFunctions('ExchangeRateSelectionModalPageHandler,MessageHandler')]
     procedure CheckBillingLineUpdateRequiredOnModifyVendorContractLine()
     var
         DiscountAmount: Decimal;
@@ -666,7 +653,7 @@ codeunit 139688 "Recurring Billing Test"
     begin
         Initialize();
 
-        ContractTestLibrary.CreateVendor(Vendor);
+        ContractTestLibrary.CreateVendorInLCY(Vendor);
         ContractTestLibrary.CreateVendorContractAndCreateContractLinesForItems(VendorContract, ServiceObject, Vendor."No.");
         ContractTestLibrary.CreateBillingProposal(BillingTemplate, Enum::"Service Partner"::Vendor);
         BillingLine.Reset();
@@ -1472,6 +1459,118 @@ codeunit 139688 "Recurring Billing Test"
         Assert.AreEqual("Sales Document Type"::"Credit Memo", BillingLine.GetSalesDocumentTypeForContractNo(), 'Sales Document Type is not calculated correctly for Credit Memo.');
     end;
 
+    [Test]
+    [HandlerFunctions('CreateBillingDocsCustomerPageHandler,MessageHandler')]
+    procedure ExtendedTextTransferredToSalesLine()
+    var
+        InvoicingItem: Record Item;
+        ExtendedTextLine: array[2] of Record "Extended Text Line";
+        VerifySalesLine: Record "Sales Line";
+    begin
+        // [SCENARIO 621546] Extended text configured for invoicing item should be transferred to created sales line when creating document from recurring billing.
+        Initialize();
+
+        // [GIVEN] Create billing proposal with customer contract and subscription.
+        CreateBillingProposalForCustomerContractUsingRealTemplate();
+
+        // [GIVEN] Get first billing line and retrieve the invoicing item from service commitment.
+        BillingLine.SetRange("Billing Template Code", BillingTemplate.Code);
+        BillingLine.SetRange("Subscription Header No.", ServiceObject."No.");
+        BillingLine.FindFirst();
+        ServiceCommitment.Get(BillingLine."Subscription Line Entry No.");
+        InvoicingItem.Get(ServiceObject."Source No.");
+        InvoicingItem.Validate("Automatic Ext. Texts", true);
+        InvoicingItem.Modify(true);
+
+        // [GIVEN] Configure extended text for the invoicing item and get the description.
+        CreateExtendedTextForItem(InvoicingItem, ExtendedTextLine[1]);
+
+        // [WHEN] Create billing document from the billing proposal.
+        Codeunit.Run(Codeunit::"Create Billing Documents", BillingLine);
+
+        // [THEN] Verify the transferred extended text matches the configured extended text description.
+        VerifySalesLine.Reset();
+        VerifySalesLine.SetRange("Document Type", VerifySalesLine."Document Type"::Invoice);
+        VerifySalesLine.SetRange(Type, VerifySalesLine.Type::" ");
+        VerifySalesLine.SetRange(Description, ExtendedTextLine[1].Text);
+        Assert.IsTrue(VerifySalesLine.Count() > 0, ExtendedTextValueErr);
+    end;
+
+    [Test]
+    [HandlerFunctions('CreateBillingDocsVendorPageHandler,MessageHandler')]
+    procedure ExtendedTextTransferredToPurchaseLine()
+    var
+        InvoicingItem: Record Item;
+        ExtendedTextLine: array[2] of Record "Extended Text Line";
+        VerifyPurchaseLine: Record "Purchase Line";
+    begin
+        // [SCENARIO 621546] Extended text configured for invoicing item should be transferred to created purchase line when creating document from recurring billing.
+        Initialize();
+
+        // [GIVEN] Create billing proposal with Vendor contract and subscription.
+        CreateBillingProposalForVendorContractUsingRealTemplate();
+
+        // [GIVEN] Get first billing line and retrieve the invoicing item from service commitment.
+        BillingLine.SetRange("Billing Template Code", BillingTemplate.Code);
+        BillingLine.SetRange("Subscription Header No.", ServiceObject."No.");
+        BillingLine.FindFirst();
+        ServiceCommitment.Get(BillingLine."Subscription Line Entry No.");
+        InvoicingItem.Get(ServiceObject."Source No.");
+        InvoicingItem.Validate("Automatic Ext. Texts", true);
+        InvoicingItem.Modify(true);
+
+        // [GIVEN] Configure extended text for the invoicing item and get the description.
+        CreateExtendedTextForItem(InvoicingItem, ExtendedTextLine[1]);
+
+        // [WHEN] Create billing document from the billing proposal.
+        Codeunit.Run(Codeunit::"Create Billing Documents", BillingLine);
+
+        // [THEN] Verify the transferred extended text matches the configured extended text description.
+        VerifyPurchaseLine.Reset();
+        VerifyPurchaseLine.SetRange("Document Type", VerifyPurchaseLine."Document Type"::Invoice);
+        VerifyPurchaseLine.SetRange(Type, VerifyPurchaseLine.Type::" ");
+        VerifyPurchaseLine.SetRange(Description, ExtendedTextLine[1].Text);
+        Assert.IsTrue(VerifyPurchaseLine.Count() > 0, ExtendedTextPurchValueErr);
+    end;
+
+    procedure TestBillingProposalWithZeroQuantity()
+    var
+        ExpectedNextBillingDate: Date;
+    begin
+        // [SCENARIO] Billing proposal creates billing lines with quantity 0 and amount 0 when subscription quantity is 0
+        Initialize();
+
+        // [GIVEN] Create customer contract with subscription and set quantity to 0
+        CreateCustomerContract('<1M>', '<12M>');
+        ServiceObject.SetHideValidationDialog(true);
+        ServiceObject.Validate(Quantity, 0);
+        ServiceObject.Modify(true);
+
+        // [GIVEN] Read the subscription line to be able to refresh it after billing proposal is created
+        ServiceCommitment.SetRange("Subscription Header No.", ServiceObject."No.");
+        ServiceCommitment.SetRange(Partner, "Service Partner"::Customer);
+        ServiceCommitment.FindFirst();
+
+        // [WHEN] Create billing proposal
+        CreateRecurringBillingTemplateSetupForCustomerContract('<2M-CM>', '<8M+CM>', CustomerContract.GetView());
+        ContractTestLibrary.CreateBillingProposal(BillingTemplate, Enum::"Service Partner"::Customer);
+
+        // [THEN] Billing lines are created with quantity 0 and amount 0
+        BillingLine.SetRange("Billing Template Code", BillingTemplate.Code);
+        BillingLine.SetRange("Subscription Header No.", ServiceObject."No.");
+        Assert.RecordIsNotEmpty(BillingLine);
+        BillingLine.FindSet();
+        repeat
+            Assert.AreEqual(0, BillingLine."Service Object Quantity", 'Billing Line quantity should be 0.');
+            Assert.AreEqual(0, BillingLine.Amount, 'Billing Line amount should be 0 when quantity is 0.');
+        until BillingLine.Next() = 0;
+
+        // [THEN] Next Billing Date on the subscription line is set to the day after the last billing line's Billing To date
+        ExpectedNextBillingDate := CalcDate('<1D>', BillingLine."Billing to");
+        ServiceCommitment.Get(ServiceCommitment."Entry No.");
+        Assert.AreEqual(ExpectedNextBillingDate, ServiceCommitment."Next Billing Date", 'Next Billing Date should be the day after the last Billing To date.');
+    end;
+
     #endregion Tests
 
     #region Procedures
@@ -1760,14 +1859,6 @@ codeunit 139688 "Recurring Billing Test"
         BillingLine.Insert(false);
     end;
 
-    local procedure MockBillingLineForPartnerNoWithUnitPriceAndDiscountAndServiceObjectQuantity(NewUnitPrice: Decimal; NewDiscountPercentage: Decimal; NewServiceObjQuantity: Decimal)
-    begin
-        BillingLine.InitNewBillingLine();
-        BillingLine."Unit Price" := NewUnitPrice;
-        BillingLine."Discount %" := NewDiscountPercentage;
-        BillingLine."Service Object Quantity" := NewServiceObjQuantity;
-        BillingLine.Insert(false);
-    end;
 
     local procedure RecurringBillingPageSetupForCustomer()
     begin
@@ -1816,6 +1907,17 @@ codeunit 139688 "Recurring Billing Test"
         BillingLine.FindFirst();
         BillingLine."Update Required" := false;
         BillingLine.Modify(false);
+    end;
+
+    local procedure CreateExtendedTextForItem(ItemRec: Record Item; var ExtendedTextLine: Record "Extended Text Line")
+    var
+        ExtendedTextHeader: Record "Extended Text Header";
+    begin
+        LibraryInventory.CreateExtendedTextHeaderItem(ExtendedTextHeader, ItemRec."No.");
+        LibraryInventory.CreateExtendedTextLineItem(ExtendedTextLine, ExtendedTextHeader);
+        ExtendedTextLine.Text := CopyStr(LibraryRandom.RandText(50), 1, 50);
+        ExtendedTextLine.Modify(true);
+        ExtendedTextLine.Find();
     end;
 
     #endregion Procedures

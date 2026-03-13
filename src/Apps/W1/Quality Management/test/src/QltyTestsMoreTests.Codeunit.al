@@ -11,7 +11,6 @@ using Microsoft.Inventory.Item.Attribute;
 using Microsoft.Inventory.Journal;
 using Microsoft.Inventory.Ledger;
 using Microsoft.Inventory.Location;
-using Microsoft.Inventory.Tracking;
 using Microsoft.Inventory.Transfer;
 using Microsoft.Manufacturing.Document;
 using Microsoft.Purchases.Document;
@@ -59,7 +58,6 @@ codeunit 139965 "Qlty. Tests - More Tests"
         OptionsTok: Label 'Option1,Option2,Option3', Locked = true;
         ConditionProductionFilterTok: Label 'WHERE(Order Type=FILTER(Production))', Locked = true;
         DefaultScheduleGroupTok: Label 'QM', Locked = true;
-        InterestingDetectionErr: Label 'It looks like you are trying to do something interesting, or are trying to do something with a specific expectation that needs extra discussion, or are trying to configure something that might require a customization.';
         ExpressionFormulaTok: Label '[No.]';
         TestTypeErrInfoMsg: Label '%1Consider replacing this test in the template with a new one, or deleting existing inspections (if allowed). The test was last used on inspection %2.', Comment = '%1 = Error Title, %2 = Quality Inspection No.';
         OnlyFieldExpressionErr: Label 'The Expression Formula can only be used with fields that are a type of Expression';
@@ -2017,56 +2015,6 @@ codeunit 139965 "Qlty. Tests - More Tests"
         Clear(SpecificQltyInspectSrcFldConf);
         SpecificQltyInspectSrcFldConf.SetRange(Code, SpecificQltyInspectSourceConfig.Code);
         LibraryAssert.IsTrue(SpecificQltyInspectSrcFldConf.IsEmpty(), 'Should be no source config lines for the source config.');
-    end;
-
-    [Test]
-    procedure SourceConfigTable_DetectInterestingConfig_FromTable()
-    var
-        SpecificQltyInspectSourceConfig: Record "Qlty. Inspect. Source Config.";
-        SourceConfigCode: Text;
-    begin
-        // [SCENARIO] DetectInterestingConfiguration throws error when From Table is Reservation Entry
-        Initialize();
-
-        // [GIVEN] Setup exists
-        QltyInspectionUtility.EnsureSetupExists();
-
-        // [GIVEN] A new source configuration is initialized with Reservation Entry as From Table
-        SpecificQltyInspectSourceConfig.Init();
-        QltyInspectionUtility.GenerateRandomCharacters(20, SourceConfigCode);
-        SpecificQltyInspectSourceConfig.Code := CopyStr(SourceConfigCode, 1, MaxStrLen(SpecificQltyInspectSourceConfig.Code));
-        SpecificQltyInspectSourceConfig."From Table No." := Database::"Reservation Entry";
-
-        // [WHEN] DetectInterestingConfiguration is called
-        asserterror QltyInspectionUtility.DetectInterestingConfiguration(SpecificQltyInspectSourceConfig);
-
-        // [THEN] An error is thrown indicating interesting configuration detected
-        LibraryAssert.ExpectedError(InterestingDetectionErr);
-    end;
-
-    [Test]
-    procedure SourceConfigTable_DetectInterestingConfig_ToTable()
-    var
-        SpecificQltyInspectSourceConfig: Record "Qlty. Inspect. Source Config.";
-        SourceConfigCode: Text;
-    begin
-        // [SCENARIO] DetectInterestingConfiguration throws error when To Table is Reservation Entry
-        Initialize();
-
-        // [GIVEN] Setup exists
-        QltyInspectionUtility.EnsureSetupExists();
-
-        // [GIVEN] A new source configuration is initialized with Reservation Entry as To Table
-        SpecificQltyInspectSourceConfig.Init();
-        QltyInspectionUtility.GenerateRandomCharacters(20, SourceConfigCode);
-        SpecificQltyInspectSourceConfig.Code := CopyStr(SourceConfigCode, 1, MaxStrLen(SpecificQltyInspectSourceConfig.Code));
-        SpecificQltyInspectSourceConfig."To Table No." := Database::"Reservation Entry";
-
-        // [WHEN] DetectInterestingConfiguration is called
-        asserterror QltyInspectionUtility.DetectInterestingConfiguration(SpecificQltyInspectSourceConfig);
-
-        // [THEN] An error is thrown indicating interesting configuration detected
-        LibraryAssert.ExpectedError(InterestingDetectionErr);
     end;
 
     [Test]
