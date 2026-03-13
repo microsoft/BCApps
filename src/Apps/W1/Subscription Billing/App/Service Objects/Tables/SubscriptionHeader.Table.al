@@ -1856,7 +1856,7 @@ table 8057 "Subscription Header"
             exit(true);
     end;
 
-    internal procedure InsertServiceCommitmentsFromStandardServCommPackages()
+    procedure InsertServiceCommitmentsFromStandardServCommPackages()
     begin
         if SkipInsertServiceCommitments then
             exit;
@@ -1864,7 +1864,7 @@ table 8057 "Subscription Header"
         InsertServiceCommitmentsFromStandardServCommPackages(0D)
     end;
 
-    internal procedure InsertServiceCommitmentsFromStandardServCommPackages(ServiceAndCalculationStartDate: Date)
+    procedure InsertServiceCommitmentsFromStandardServCommPackages(ServiceAndCalculationStartDate: Date)
     var
         ItemServCommitmentPackage: Record "Item Subscription Package";
         ServiceCommitmentPackage: Record "Subscription Package";
