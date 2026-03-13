@@ -722,7 +722,7 @@ table 20405 "Qlty. Inspection Header"
     end;
 
     /// <summary>
-    /// This will upresult the result on the test based on the results from the line.
+    /// This will update the result on the inspection based on the results from the line.
     /// </summary>
     procedure UpdateResultFromLines()
     var
@@ -1574,6 +1574,18 @@ table 20405 "Qlty. Inspection Header"
         exit((Rec."Re-inspection No." = 0) ? Rec."No." : StrSubstNo(InspectionLbl, Rec."No.", Rec."Re-inspection No."));
     end;
 
+    procedure GetStatusStyleExpression(): Text
+    begin
+        case Rec.Status of
+            Rec.Status::Open:
+                exit('Favorable');
+            Rec.Status::Finished:
+                exit('Strong');
+            else
+                exit('None');
+        end;
+    end;
+
     local procedure VerifyPassAndFailQuantities()
     var
         DifferenceInPassFailQuantity: Decimal;
@@ -1582,6 +1594,21 @@ table 20405 "Qlty. Inspection Header"
             DifferenceInPassFailQuantity := Rec."Pass Quantity" + Rec."Fail Quantity" - Rec."Source Quantity (Base)";
             Error(PassFailQuantityInvalidErr, Rec.FieldCaption("Pass Quantity"), Rec.FieldCaption("Fail Quantity"), Rec.FieldCaption("Source Quantity (Base)"), DifferenceInPassFailQuantity);
         end;
+    end;
+
+    /// <summary>
+    /// Gets the preferred result style to use.
+    /// </summary>
+    internal procedure GetResultStyle(): Text
+    var
+        QltyInspectionResult: Record "Qlty. Inspection Result";
+    begin
+        if Rec."Result Code" = '' then
+            exit('');
+
+        QltyInspectionResult.SetLoadFields("Override Style", "Result Category");
+        if QltyInspectionResult.Get(Rec."Result Code") then
+            exit(QltyInspectionResult.GetResultStyle());
     end;
 
     #region Most Recent Picture Management
