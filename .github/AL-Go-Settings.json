@@ -116,10 +116,10 @@
   "rulesetFile": "../../../src/rulesets/ruleset.json",
   "skipUpgrade": true,
   "incrementalBuilds": {
-    "mode": "modifiedApps"
+    "mode": "modifiedApps",
+    "ignoreSettingsChanges": true
   },
   "fullBuildPatterns": [
-    "build/*",
     "src/rulesets/*",
     ".github/workflows/PullRequestHandler.yaml",
     ".github/workflows/_BuildALGoProject.yaml"
