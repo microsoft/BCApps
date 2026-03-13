@@ -701,14 +701,14 @@ codeunit 8062 "Billing Proposal"
         ProcessContractServiceCommitments(TempBillingTemplate, ContractNo, ContractLineFilter, BillingDate, BillingToDate, BillingRhythmFilter, false);
     end;
 
-    internal procedure CreateBillingProposalForPurchaseHeader(ServicePartner: Enum "Service Partner"; var TempServiceCommitment: Record "Subscription Line" temporary; BillingDate: Date; BillingToDate: Date)
+    external procedure CreateBillingProposalForPurchaseHeader(ServicePartner: Enum "Service Partner"; var TempServiceCommitment: Record "Subscription Line" temporary; BillingDate: Date; BillingToDate: Date)
     var
         DummyPurchaseLine: Record "Purchase Line";
     begin
         CreateBillingProposalForPurchaseLine(ServicePartner, TempServiceCommitment, BillingDate, BillingToDate, DummyPurchaseLine);
     end;
 
-    internal procedure CreateBillingProposalForPurchaseLine(ServicePartner: Enum "Service Partner"; var TempServiceCommitment: Record "Subscription Line" temporary; BillingDate: Date; BillingToDate: Date; var PurchaseLine: Record "Purchase Line")
+    external procedure CreateBillingProposalForPurchaseLine(ServicePartner: Enum "Service Partner"; var TempServiceCommitment: Record "Subscription Line" temporary; BillingDate: Date; BillingToDate: Date; var PurchaseLine: Record "Purchase Line")
     var
         TempBillingTemplate: Record "Billing Template" temporary;
         ServiceCommitment: Record "Subscription Line";
@@ -728,7 +728,7 @@ codeunit 8062 "Billing Proposal"
         AddRecurringBillingFlagToExistingPurchaseHeader(PurchaseLine."Document Type", PurchaseLine."Document No.");
     end;
 
-    internal procedure CreatePurchaseLines(PurchaseHeader: Record "Purchase Header")
+    external procedure CreatePurchaseLines(PurchaseHeader: Record "Purchase Header")
     var
         BillingLine: Record "Billing Line";
         CreateBillingDocuments: Codeunit "Create Billing Documents";
@@ -760,8 +760,8 @@ codeunit 8062 "Billing Proposal"
     begin
         if DocumentNo = '' then
             exit;
-        PurchaseHeaderGlobal.Get(DocumentType, DocumentNo);
-        PurchaseHeaderGlobal.SetRecurringBilling();
+                                                                                      PurchaseHeaderGlobal.Get(DocumentType, DocumentNo);
+                                                                                      PurchaseHeaderGlobal.SetRecurringBilling();
     end;
 
     local procedure BillingProposalCanBeCreatedForContract(ContractNo: Code[20]; ServicePartner: Enum "Service Partner"): Boolean
@@ -797,7 +797,11 @@ codeunit 8062 "Billing Proposal"
         TempBillingTemplate.Insert(false);
     end;
 
-    procedure CreateBillingDocument(ServicePartner: Enum "Service Partner"; ContractNo: Code[20]; DocumentDate: Date; PostingDate: Date; PostDocument: Boolean; OpenDocument: Boolean): Boolean
+    procedure CreateBillingDocument(ServicePartner: Enum "Service Partner"; ContractNo: Code[20];
+                                                        DocumentDate: Date;
+                                                        PostingDate: Date;
+                                                        PostDocument: Boolean;
+                                                        OpenDocument: Boolean): Boolean
     var
         BillingLine: Record "Billing Line";
         CreateBillingDocuments: Codeunit "Create Billing Documents";
