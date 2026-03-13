@@ -151,6 +151,130 @@ codeunit 139687 "Recurring Billing Docs Test"
     end;
 
     [Test]
+    [HandlerFunctions('CreateCustomerBillingDocsContractPageHandler,ExchangeRateSelectionModalPageHandler,MessageHandler')]
+    procedure CheckBillingPeriodDescriptionUsesDocumentFormatRegionForSalesDocuments()
+    var
+        Customer: Record Customer;
+        ServiceContractSetup: Record "Subscription Contract Setup";
+        CreateBillingDocs: Codeunit "Create Billing Documents";
+        LanguageMgt: Codeunit Language;
+        ExpectedDescription: Text;
+        GermanFormatRegionTok: Label 'de-DE', Locked = true;
+        UsFormatRegionTok: Label 'en-US', Locked = true;
+    begin
+        // [SCENARIO] When the operator uses German format region and creates a Sales Invoice for a US customer,
+        // the billing period dates in the sales line description should use the document's format region (en-US) and NOT the operator's region.
+        Initialize();
+        LibrarySetupStorage.Save(Database::"Subscription Contract Setup");
+
+        // [GIVEN] Service contract setup with "Billing Period" as main description
+        ServiceContractSetup.Get();
+        ServiceContractSetup."Contract Invoice Description" := Enum::"Contract Invoice Text Type"::"Billing Period";
+        ServiceContractSetup.Modify(false);
+
+        // [GIVEN] Customer contract with subscription lines
+        ContractTestLibrary.CreateCustomerContractAndCreateContractLinesForItems(CustomerContract, ServiceObject, '');
+
+        // [GIVEN] Customer has US format region (en-US)
+        Customer.Get(CustomerContract."Bill-to Customer No.");
+        Customer."Format Region" := UsFormatRegionTok;
+        Customer.Modify(false);
+
+        // [GIVEN] A billing proposal
+        ContractTestLibrary.CreateBillingProposal(BillingTemplate, Enum::"Service Partner"::Customer);
+
+        // [GIVEN] Operator uses German format region (simulates a German user session)
+        LanguageMgt.SetOverrideFormatRegion(GermanFormatRegionTok, false);
+
+        // [WHEN] Create billing documents
+        CreateBillingDocuments(false);
+
+        // Ensure format region override is cleared after billing
+        LanguageMgt.SetOverrideFormatRegion('', false);
+
+        // [THEN] Sales line billing period description uses the document's format region (en-US)
+        BillingLine.Reset();
+        BillingLine.SetRange("Billing Template Code", BillingTemplate.Code);
+        BillingLine.SetRange(Partner, BillingTemplate.Partner);
+        BillingLine.FindFirst();
+        BillingLine.TestField("Document Type", BillingLine."Document Type"::Invoice);
+
+        SalesLine.Reset();
+        FilterSalesLineOnDocumentLine(BillingLine.GetSalesDocumentTypeFromBillingDocumentType(), BillingLine."Document No.", BillingLine."Document Line No.");
+        SalesLine.FindFirst();
+
+        // Build expected description using the document's format region (en-US)
+        LanguageMgt.SetOverrideFormatRegion(UsFormatRegionTok, false);
+        ExpectedDescription := StrSubstNo(CreateBillingDocs.GetBillingPeriodDescriptionTxt(), SalesLine."Recurring Billing from", SalesLine."Recurring Billing to");
+        LanguageMgt.SetOverrideFormatRegion('', false);
+
+        Assert.AreEqual(ExpectedDescription, SalesLine.Description,
+            'Billing period description should use the document format region (en-US), not the operator format region (de-DE)');
+    end;
+
+    [Test]
+    [HandlerFunctions('CreateVendorBillingDocsContractPageHandler,ExchangeRateSelectionModalPageHandler,MessageHandler')]
+    procedure CheckBillingPeriodDescriptionUsesDocumentFormatRegionForPurchaseDocuments()
+    var
+        Vendor: Record Vendor;
+        CreateBillingDocs: Codeunit "Create Billing Documents";
+        LanguageMgt: Codeunit Language;
+        ExpectedDescription: Text;
+        GermanFormatRegionTok: Label 'de-DE', Locked = true;
+        UsFormatRegionTok: Label 'en-US', Locked = true;
+    begin
+        // [SCENARIO] When the operator uses German format region and creates a Purchase Invoice for a US vendor,
+        // the billing period dates in the attached description line should use the document's format region (en-US) and NOT the operator's region.
+        // Note: unlike sales, the billing period text is always placed in a separate attached description line on purchase documents;
+        // "Contract Invoice Description" setup has no effect on purchase documents.
+        Initialize();
+
+        // [GIVEN] Vendor contract with subscription lines
+        ContractTestLibrary.CreateVendorContractAndCreateContractLinesForItems(VendorContract, ServiceObject, '');
+
+        // [GIVEN] Vendor has US format region (en-US)
+        Vendor.Get(VendorContract."Pay-to Vendor No.");
+        Vendor."Format Region" := UsFormatRegionTok;
+        Vendor.Modify(false);
+
+        // [GIVEN] A billing proposal
+        ContractTestLibrary.CreateBillingProposal(BillingTemplate, Enum::"Service Partner"::Vendor);
+
+        // [GIVEN] Operator uses German format region (simulates a German user session)
+        LanguageMgt.SetOverrideFormatRegion(GermanFormatRegionTok, false);
+
+        // [WHEN] Create billing documents
+        CreateBillingDocuments(false);
+
+        // Ensure format region override is cleared after billing
+        LanguageMgt.SetOverrideFormatRegion('', false);
+
+        // [THEN] Attached description line billing period uses the document's format region (en-US)
+        BillingLine.Reset();
+        BillingLine.SetRange("Billing Template Code", BillingTemplate.Code);
+        BillingLine.SetRange(Partner, BillingTemplate.Partner);
+        BillingLine.FindFirst();
+        BillingLine.TestField("Document Type", BillingLine."Document Type"::Invoice);
+
+        PurchaseLine.Reset();
+        FilterPurchaseLineOnDocumentLine(BillingLine.GetPurchaseDocumentTypeFromBillingDocumentType(), BillingLine."Document No.", BillingLine."Document Line No.");
+        PurchaseLine.FindFirst();
+
+        // Build expected description using the document's format region (en-US)
+        // Dates are read from the main purchase line; the actual billing period text lives in the attached description line
+        LanguageMgt.SetOverrideFormatRegion(UsFormatRegionTok, false);
+        ExpectedDescription := StrSubstNo(CreateBillingDocs.GetBillingPeriodDescriptionTxt(), PurchaseLine."Recurring Billing from", PurchaseLine."Recurring Billing to");
+        LanguageMgt.SetOverrideFormatRegion('', false);
+
+        PurchaseLine.SetRange("Line No.");
+        PurchaseLine.SetRange("Attached to Line No.", BillingLine."Document Line No.");
+        PurchaseLine.FindFirst();
+
+        Assert.AreEqual(ExpectedDescription, PurchaseLine.Description,
+            'Billing period description should use the document format region (en-US), not the operator format region (de-DE)');
+    end;
+
+    [Test]
     [HandlerFunctions('CreateCustomerBillingDocsBillToCustomerPageHandler,ExchangeRateSelectionModalPageHandler,MessageHandler')]
     procedure CheckContractNamesAreTransferredToSalesDocumentOnBillingPerBillToContractOptionsOn()
     var
