@@ -783,8 +783,7 @@ codeunit 139913 "Vendor Deferrals Test"
         // [GIVEN] Contract has been created and the billing proposal with non posted contract invoice
         CreateBillingProposalAndCreateBillingDocuments('<2M-CM>', '<8M+CM>');
 
-        // [G
-        IVEN] Post credit memo document
+        // [GIVEN] Post credit memo document
         PostPurchDocumentAndFetchDeferrals();
 
         // [WHEN] Run Subscription Contract Deferral Release for credit memo
@@ -799,7 +798,7 @@ codeunit 139913 "Vendor Deferrals Test"
         GetGLEntryAmountFromAccountNo(ActualAmount, GeneralPostingSetup."Vend. Sub. Contr. Def. Account");
         Assert.AreEqual(0, ActualAmount, ReleasedContractDeferralErr);
     end;
-    
+
     #endregion Tests
 
     #region Procedures
