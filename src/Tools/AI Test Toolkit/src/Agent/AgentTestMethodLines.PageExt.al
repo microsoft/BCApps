@@ -15,14 +15,15 @@ pageextension 149033 "Agent Test Method Lines" extends "AIT Test Method Lines"
             {
                 ApplicationArea = All;
                 AutoFormatType = 0;
-                Caption = 'Copilot credits';
+                Caption = 'Copilot Credits Consumed';
                 ToolTip = 'Specifies the total Copilot Credits consumed by the Agent Tasks for this eval line.';
                 Editable = false;
+                Visible = ConsumedCreditsVisible;
             }
             field("Agent Task Count"; AgentTaskCount)
             {
                 ApplicationArea = All;
-                Caption = 'Agent tasks';
+                Caption = 'Agent Tasks Executed';
                 ToolTip = 'Specifies the number of Agent Tasks related to this eval line.';
                 Editable = false;
 
@@ -35,6 +36,13 @@ pageextension 149033 "Agent Test Method Lines" extends "AIT Test Method Lines"
             }
         }
     }
+
+    trigger OnOpenPage()
+    var
+        AgentTask: Codeunit "Agent Task";
+    begin
+        ConsumedCreditsVisible := AgentTask.CanShowMonetizationData()
+    end;
 
     trigger OnAfterGetRecord()
     begin
@@ -55,7 +63,7 @@ pageextension 149033 "Agent Test Method Lines" extends "AIT Test Method Lines"
         Rec.FilterGroup(4);
         VersionFilter := Rec.GetFilter(Rec."Version Filter");
         Rec.FilterGroup(CurrentFilterGroup);
-        CopilotCredits := AgentTestContextImpl.GetCopilotCredits(Rec."Test Suite Code", VersionFilter, '', Rec."Line No.");
+        CopilotCredits := ConsumedCreditsVisible ? AgentTestContextImpl.GetCopilotCredits(Rec."Test Suite Code", VersionFilter, '', Rec."Line No.") : -1;
         AgentTaskIDs := AgentTestContextImpl.GetAgentTaskIDs(Rec."Test Suite Code", VersionFilter, '', Rec."Line No.");
         AgentTaskCount := AgentTestContextImpl.GetAgentTaskCount(AgentTaskIDs);
     end;
@@ -65,4 +73,5 @@ pageextension 149033 "Agent Test Method Lines" extends "AIT Test Method Lines"
         CopilotCredits: Decimal;
         AgentTaskIDs: Text;
         AgentTaskCount: Integer;
+        ConsumedCreditsVisible: Boolean;
 }

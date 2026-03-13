@@ -207,9 +207,9 @@ page 4300 "Agent Task List"
 
     trigger OnOpenPage()
     var
-        AgentImpl: Codeunit "Agent Impl.";
+        AgentSystemPermissions: Codeunit "Agent System Permissions";
     begin
-        ConsumedCreditsVisible := AgentImpl.CanShowMonetizationData();
+        ConsumedCreditsVisible := AgentSystemPermissions.CurrentUserCanSeeConsumptionData();
     end;
 
     trigger OnAfterGetRecord()

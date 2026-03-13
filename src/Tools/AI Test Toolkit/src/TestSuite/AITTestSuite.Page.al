@@ -37,8 +37,12 @@ page 149031 "AIT Test Suite"
                 {
                     Importance = Additional;
                 }
+                field("Copilot Capability"; Rec."Copilot Capability")
+                {
+                }
                 field(Dataset; Rec."Input Dataset")
                 {
+                    Caption = 'Default Input Dataset';
                     ShowMandatory = true;
                     NotBlank = true;
 
@@ -61,18 +65,12 @@ page 149031 "AIT Test Suite"
                         AITTestMethodLine.ModifyAll("Input Dataset", Rec."Input Dataset", true);
                     end;
                 }
-                field("Copilot Capability"; Rec."Copilot Capability")
-                {
-                    ApplicationArea = All;
-                }
                 field("Run Frequency"; Rec."Run Frequency")
                 {
-                    ApplicationArea = All;
                     ToolTip = 'Specifies how frequently the eval suite should be run.';
                 }
                 field("Language Tag"; Language)
                 {
-                    ApplicationArea = All;
                     Caption = 'Language';
                     ToolTip = 'Specifies the language to use when running the eval suite. Available languages are based on languages of input datasets.';
                     Editable = false;
@@ -111,7 +109,6 @@ page 149031 "AIT Test Suite"
 
                     field("Evaluation Setup"; EvaluationSetupTxt)
                     {
-                        ApplicationArea = All;
                         Caption = 'Evaluators';
                         ToolTip = 'Specifies whether the evaluation is setup.';
                         Editable = false;
@@ -132,7 +129,6 @@ page 149031 "AIT Test Suite"
                     }
                     field(Evaluators; Rec."Number of Evaluators")
                     {
-                        ApplicationArea = All;
                         Caption = 'Number of Evaluators';
                         ToolTip = 'Specifies evaluators for the evaluation.';
                         Visible = false;
@@ -140,7 +136,6 @@ page 149031 "AIT Test Suite"
 
                     field("Column Mappings"; Rec."Number of Column Mappings")
                     {
-                        ApplicationArea = All;
                         Caption = 'Column Mappings';
                         ToolTip = 'Specifies column mappings for the evaluation.';
                         Visible = false;
@@ -236,7 +231,7 @@ page 149031 "AIT Test Suite"
             action(Start)
             {
                 Enabled = Rec.Status <> Rec.Status::Running;
-                Caption = 'Start';
+                Caption = 'Run';
                 Image = Start;
                 ToolTip = 'Starts running the AI Eval Suite.';
 
@@ -250,7 +245,7 @@ page 149031 "AIT Test Suite"
             action(StartBatch)
             {
                 Enabled = Rec.Status <> Rec.Status::Running;
-                Caption = 'Start Batch';
+                Caption = 'Run batch';
                 Image = ExecuteBatch;
                 ToolTip = 'Starts running the AI Eval Suite, the specified number of times.';
 
@@ -298,7 +293,7 @@ page 149031 "AIT Test Suite"
 
             action(Compare)
             {
-                Caption = 'View Runs';
+                Caption = 'View runs';
                 Image = History;
                 ToolTip = 'View the run history of the suite.';
                 Scope = Repeater;
@@ -331,7 +326,7 @@ page 149031 "AIT Test Suite"
             }
             action("Download Test Summary")
             {
-                Caption = 'Download Eval Summary';
+                Caption = 'Download eval summary';
                 Image = Export;
                 ToolTip = 'Downloads a summary of the eval results.';
 

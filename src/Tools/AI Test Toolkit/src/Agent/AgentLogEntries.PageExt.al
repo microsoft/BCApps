@@ -15,14 +15,15 @@ pageextension 149030 "Agent Log Entries" extends "AIT Log Entries"
             {
                 ApplicationArea = All;
                 AutoFormatType = 0;
-                Caption = 'Copilot credits';
+                Caption = 'Copilot Credits Consumed';
                 ToolTip = 'Specifies the total Copilot Credits consumed by the Agent Tasks for this log entry.';
                 Editable = false;
+                Visible = ConsumedCreditsVisible;
             }
             field("Agent Task IDs"; AgentTaskIDs)
             {
                 ApplicationArea = All;
-                Caption = 'Agent tasks';
+                Caption = 'Agent Tasks Executed';
                 ToolTip = 'Specifies the comma-separated list of Agent Task IDs related to this log entry.';
                 Editable = false;
 
@@ -36,6 +37,13 @@ pageextension 149030 "Agent Log Entries" extends "AIT Log Entries"
         }
     }
 
+    trigger OnOpenPage()
+    var
+        AgentTask: Codeunit "Agent Task";
+    begin
+        ConsumedCreditsVisible := AgentTask.CanShowMonetizationData()
+    end;
+
     trigger OnAfterGetRecord()
     begin
         UpdateAgentTaskMetrics();
@@ -43,7 +51,7 @@ pageextension 149030 "Agent Log Entries" extends "AIT Log Entries"
 
     local procedure UpdateAgentTaskMetrics()
     begin
-        CopilotCredits := AgentTestContextImpl.GetCopilotCreditsForLogEntry(Rec."Entry No.");
+        CopilotCredits := ConsumedCreditsVisible ? AgentTestContextImpl.GetCopilotCreditsForLogEntry(Rec."Entry No.") : -1;
         AgentTaskIDs := AgentTestContextImpl.GetAgentTaskIDsForLogEntry(Rec."Entry No.");
     end;
 
@@ -51,4 +59,5 @@ pageextension 149030 "Agent Log Entries" extends "AIT Log Entries"
         AgentTestContextImpl: Codeunit "Agent Test Context Impl.";
         CopilotCredits: Decimal;
         AgentTaskIDs: Text;
+        ConsumedCreditsVisible: Boolean;
 }
