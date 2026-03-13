@@ -3,9 +3,6 @@ Describe "BuildOptimization" {
         Import-Module "$PSScriptRoot\..\BuildOptimization.psm1" -Force
         $baseFolder = (Resolve-Path "$PSScriptRoot\..\..\..").Path
 
-        # Used by graph, affected apps, and filtered settings tests
-        # PSScriptAnalyzer flags this as unused because it can't see Pester's scoping
-        [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSUseDeclaredVarsMoreThanAssignments', '')]
         $graph = Get-AppDependencyGraph -BaseFolder $baseFolder
     }
 
