@@ -25,7 +25,7 @@ page 456 "No. Series"
                 field("Code"; Rec.Code)
                 {
                     Caption = 'Code';
-                    ToolTip = 'Specifies a number series code.';
+                    ToolTip = 'Specifies a numbr series code.';
                 }
                 field(Description; Rec.Description)
                 {
