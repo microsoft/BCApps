@@ -20,6 +20,7 @@ $ErrorActionPreference = "Stop"
 #>
 function Get-AppDependencyGraph {
     [CmdletBinding()]
+    [OutputType([hashtable])]
     param(
         [Parameter(Mandatory = $true)]
         [string] $BaseFolder
@@ -123,6 +124,7 @@ function Get-AppForFile {
 #>
 function Get-AffectedApps {
     [CmdletBinding()]
+    [OutputType([string[]])]
     param(
         [Parameter(Mandatory = $true)]
         [string[]] $ChangedFiles,
@@ -249,6 +251,7 @@ function Get-AffectedApps {
 #>
 function Resolve-ProjectGlobs {
     [CmdletBinding()]
+    [OutputType([string[]])]
     param(
         [Parameter(Mandatory = $true)]
         [string] $ProjectDir,
@@ -399,6 +402,7 @@ function Add-CompilationClosure {
 #>
 function Get-FilteredProjectSettings {
     [CmdletBinding()]
+    [OutputType([hashtable])]
     param(
         [Parameter(Mandatory = $true)]
         [string[]] $ChangedFiles,
@@ -493,4 +497,183 @@ function Get-FilteredProjectSettings {
     return $result
 }
 
-Export-ModuleMember -Function Get-AppDependencyGraph, Get-AppForFile, Get-AffectedApps, Get-FilteredProjectSettings
+<#
+.SYNOPSIS
+    Detects changed files from the GitHub Actions CI environment.
+.DESCRIPTION
+    Uses git diff against the base branch (for PRs) or previous commit (for push)
+    to determine which files changed. Returns $null when changed files cannot be
+    determined (local runs, workflow_dispatch, git failures).
+.OUTPUTS
+    String array of changed file paths (relative to repo root), or $null.
+#>
+function Get-ChangedFilesForCI {
+    [CmdletBinding()]
+    [OutputType([string[]])]
+    param()
+
+    # Only run in GitHub Actions
+    if (-not $env:GITHUB_ACTIONS) {
+        Write-Host "BUILD OPTIMIZATION: Not in CI environment, skipping changed file detection"
+        return $null
+    }
+
+    # Never filter for manual runs
+    if ($env:GITHUB_EVENT_NAME -eq 'workflow_dispatch') {
+        Write-Host "BUILD OPTIMIZATION: workflow_dispatch event, running all tests"
+        return $null
+    }
+
+    # For PRs and merge_group, diff against the base branch
+    if ($env:GITHUB_EVENT_NAME -eq 'pull_request' -or $env:GITHUB_EVENT_NAME -eq 'pull_request_target' -or $env:GITHUB_EVENT_NAME -eq 'merge_group') {
+        $baseBranch = $env:GITHUB_BASE_REF
+        if (-not $baseBranch) { $baseBranch = 'main' }
+
+        $prevErrorAction = $ErrorActionPreference
+        $ErrorActionPreference = 'Continue'
+        git fetch origin $baseBranch --depth=1 2>$null
+        $files = @(git diff --name-only "origin/$baseBranch...HEAD" 2>$null)
+        $fetchExitCode = $LASTEXITCODE
+        $ErrorActionPreference = $prevErrorAction
+
+        if ($fetchExitCode -eq 0 -and $files.Count -gt 0) {
+            Write-Host "BUILD OPTIMIZATION: Detected $($files.Count) changed files (PR diff vs $baseBranch)"
+            return $files
+        }
+    }
+
+    # For push events, diff against previous commit
+    if ($env:GITHUB_EVENT_NAME -eq 'push') {
+        $prevErrorAction = $ErrorActionPreference
+        $ErrorActionPreference = 'Continue'
+        git fetch --deepen=1 2>$null
+        $files = @(git diff --name-only HEAD~1 HEAD 2>$null)
+        $fetchExitCode = $LASTEXITCODE
+        $ErrorActionPreference = $prevErrorAction
+
+        if ($fetchExitCode -eq 0 -and $files.Count -gt 0) {
+            Write-Host "BUILD OPTIMIZATION: Detected $($files.Count) changed files (push diff)"
+            return $files
+        }
+    }
+
+    Write-Host "BUILD OPTIMIZATION: Could not determine changed files, running all tests"
+    return $null
+}
+
+<#
+.SYNOPSIS
+    Determines whether tests for a given app should be skipped based on
+    the dependency graph and changed files.
+.DESCRIPTION
+    Called from RunTestsInBcContainer.ps1 for each test app. On first call,
+    computes the affected app set and caches it to a temp file. Subsequent
+    calls read from cache for fast lookup.
+.PARAMETER AppName
+    The display name of the test app (from $parameters["appName"]).
+.PARAMETER BaseFolder
+    Root of the repository.
+.OUTPUTS
+    $true if the test app should be skipped, $false if it should run.
+#>
+function Test-ShouldSkipTestApp {
+    [CmdletBinding()]
+    [OutputType([bool])]
+    param(
+        [Parameter(Mandatory = $true)]
+        [string] $AppName,
+        [Parameter(Mandatory = $true)]
+        [string] $BaseFolder
+    )
+
+    # Allow disabling via environment variable
+    if ($env:BUILD_OPTIMIZATION_DISABLED -eq 'true') {
+        return $false
+    }
+
+    # Only skip in CI environment
+    if (-not $env:GITHUB_ACTIONS) {
+        return $false
+    }
+
+    # Never skip for manual runs
+    if ($env:GITHUB_EVENT_NAME -eq 'workflow_dispatch') {
+        return $false
+    }
+
+    # Check for cached result
+    $tempDir = if ($env:RUNNER_TEMP) { $env:RUNNER_TEMP } else { $env:TEMP }
+    $cacheFile = Join-Path $tempDir 'build-optimization-cache.json'
+
+    if (Test-Path $cacheFile) {
+        $cached = Get-Content $cacheFile -Raw | ConvertFrom-Json
+    } else {
+        # First call — compute the affected set
+        $changedFiles = Get-ChangedFilesForCI
+        if ($null -eq $changedFiles -or $changedFiles.Count -eq 0) {
+            $cached = [PSCustomObject]@{ skipEnabled = $false; affectedAppNames = @() }
+        } else {
+            # Check fullBuildPatterns
+            $alGoSettingsPath = Join-Path $BaseFolder '.github/AL-Go-Settings.json'
+            $fullBuildPatterns = @()
+            if (Test-Path $alGoSettingsPath) {
+                $alGoSettings = Get-Content $alGoSettingsPath -Raw | ConvertFrom-Json
+                if ($alGoSettings.fullBuildPatterns) { $fullBuildPatterns = @($alGoSettings.fullBuildPatterns) }
+            }
+
+            $fullBuild = $false
+            foreach ($file in $changedFiles) {
+                foreach ($pattern in $fullBuildPatterns) {
+                    if ($file -like $pattern) {
+                        Write-Host "BUILD OPTIMIZATION: Full build triggered by '$file' matching pattern '$pattern'"
+                        $fullBuild = $true
+                        break
+                    }
+                }
+                if ($fullBuild) { break }
+            }
+
+            if ($fullBuild) {
+                $cached = [PSCustomObject]@{ skipEnabled = $false; affectedAppNames = @() }
+            } else {
+                $graph = Get-AppDependencyGraph -BaseFolder $BaseFolder
+                $affectedIds = Get-AffectedApps -ChangedFiles $changedFiles -BaseFolder $BaseFolder
+
+                # If Get-AffectedApps returned all apps, that means full build
+                if ($affectedIds.Count -ge $graph.Count) {
+                    $cached = [PSCustomObject]@{ skipEnabled = $false; affectedAppNames = @() }
+                } else {
+                    $names = @()
+                    foreach ($id in $affectedIds) {
+                        if ($graph.ContainsKey($id)) {
+                            $names += $graph[$id].Name
+                        }
+                    }
+                    Write-Host "BUILD OPTIMIZATION: $($names.Count) affected apps out of $($graph.Count) total"
+                    $cached = [PSCustomObject]@{ skipEnabled = $true; affectedAppNames = $names }
+                }
+            }
+        }
+
+        # Write cache for subsequent calls
+        $cached | ConvertTo-Json -Depth 5 | Set-Content $cacheFile -Encoding UTF8
+    }
+
+    if (-not $cached.skipEnabled) {
+        return $false
+    }
+
+    # Check if the app is in the affected set (case-insensitive)
+    $affectedSet = [System.Collections.Generic.HashSet[string]]::new([System.StringComparer]::OrdinalIgnoreCase)
+    foreach ($name in $cached.affectedAppNames) {
+        [void]$affectedSet.Add($name)
+    }
+
+    $shouldSkip = -not $affectedSet.Contains($AppName)
+    if ($shouldSkip) {
+        Write-Host "BUILD OPTIMIZATION: Skipping tests for '$AppName' - not in affected set"
+    }
+    return $shouldSkip
+}
+
+Export-ModuleMember -Function Get-AppDependencyGraph, Get-AppForFile, Get-AffectedApps, Get-FilteredProjectSettings, Get-ChangedFilesForCI, Test-ShouldSkipTestApp

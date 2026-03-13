@@ -2,6 +2,10 @@ Describe "BuildOptimization" {
     BeforeAll {
         Import-Module "$PSScriptRoot\..\BuildOptimization.psm1" -Force
         $baseFolder = (Resolve-Path "$PSScriptRoot\..\..\..").Path
+
+        # Used by graph, affected apps, and filtered settings tests
+        # PSScriptAnalyzer flags this as unused because it can't see Pester's scoping
+        [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSUseDeclaredVarsMoreThanAssignments', '')]
         $graph = Get-AppDependencyGraph -BaseFolder $baseFolder
     }
 
@@ -187,6 +191,163 @@ Describe "BuildOptimization" {
             $w1Key = 'build/projects/Apps (W1)'
             foreach ($f in $filtered[$w1Key].appFolders) {
                 $f | Should -Not -Match '\\'
+            }
+        }
+    }
+
+    Context "Get-ChangedFilesForCI" {
+        It "returns null when not in CI environment" {
+            $savedGitHubActions = $env:GITHUB_ACTIONS
+            try {
+                $env:GITHUB_ACTIONS = $null
+                $result = Get-ChangedFilesForCI
+                $result | Should -BeNullOrEmpty
+            } finally {
+                $env:GITHUB_ACTIONS = $savedGitHubActions
+            }
+        }
+
+        It "returns null for workflow_dispatch" {
+            $savedGitHubActions = $env:GITHUB_ACTIONS
+            $savedEventName = $env:GITHUB_EVENT_NAME
+            try {
+                $env:GITHUB_ACTIONS = 'true'
+                $env:GITHUB_EVENT_NAME = 'workflow_dispatch'
+                $result = Get-ChangedFilesForCI
+                $result | Should -BeNullOrEmpty
+            } finally {
+                $env:GITHUB_ACTIONS = $savedGitHubActions
+                $env:GITHUB_EVENT_NAME = $savedEventName
+            }
+        }
+    }
+
+    Context "Test-ShouldSkipTestApp" {
+        It "returns false when not in CI environment" {
+            $savedGitHubActions = $env:GITHUB_ACTIONS
+            try {
+                $env:GITHUB_ACTIONS = $null
+                $result = Test-ShouldSkipTestApp -AppName 'Shopify' -BaseFolder $baseFolder
+                $result | Should -BeFalse
+            } finally {
+                $env:GITHUB_ACTIONS = $savedGitHubActions
+            }
+        }
+
+        It "returns false for workflow_dispatch" {
+            $savedGitHubActions = $env:GITHUB_ACTIONS
+            $savedEventName = $env:GITHUB_EVENT_NAME
+            try {
+                $env:GITHUB_ACTIONS = 'true'
+                $env:GITHUB_EVENT_NAME = 'workflow_dispatch'
+                $result = Test-ShouldSkipTestApp -AppName 'Shopify' -BaseFolder $baseFolder
+                $result | Should -BeFalse
+            } finally {
+                $env:GITHUB_ACTIONS = $savedGitHubActions
+                $env:GITHUB_EVENT_NAME = $savedEventName
+            }
+        }
+
+        It "returns false when BUILD_OPTIMIZATION_DISABLED is true" {
+            $savedDisabled = $env:BUILD_OPTIMIZATION_DISABLED
+            $savedGitHubActions = $env:GITHUB_ACTIONS
+            try {
+                $env:BUILD_OPTIMIZATION_DISABLED = 'true'
+                $env:GITHUB_ACTIONS = 'true'
+                $result = Test-ShouldSkipTestApp -AppName 'Shopify' -BaseFolder $baseFolder
+                $result | Should -BeFalse
+            } finally {
+                $env:BUILD_OPTIMIZATION_DISABLED = $savedDisabled
+                $env:GITHUB_ACTIONS = $savedGitHubActions
+            }
+        }
+
+        It "reads from cache file when it exists" {
+            $savedGitHubActions = $env:GITHUB_ACTIONS
+            $savedEventName = $env:GITHUB_EVENT_NAME
+            $savedRunnerTemp = $env:RUNNER_TEMP
+            $tempDir = Join-Path $env:TEMP "build-opt-test-$(Get-Random)"
+            New-Item -Path $tempDir -ItemType Directory -Force | Out-Null
+            try {
+                $env:GITHUB_ACTIONS = 'true'
+                $env:GITHUB_EVENT_NAME = 'pull_request'
+                $env:RUNNER_TEMP = $tempDir
+
+                # Write a cache file with known affected apps
+                $cache = [PSCustomObject]@{
+                    skipEnabled = $true
+                    affectedAppNames = @('E-Document Core', 'E-Document Core Tests')
+                }
+                $cache | ConvertTo-Json -Depth 5 | Set-Content (Join-Path $tempDir 'build-optimization-cache.json') -Encoding UTF8
+
+                # Affected app should NOT be skipped
+                $result = Test-ShouldSkipTestApp -AppName 'E-Document Core Tests' -BaseFolder $baseFolder
+                $result | Should -BeFalse
+
+                # Unaffected app SHOULD be skipped
+                $result = Test-ShouldSkipTestApp -AppName 'Shopify' -BaseFolder $baseFolder
+                $result | Should -BeTrue
+            } finally {
+                $env:GITHUB_ACTIONS = $savedGitHubActions
+                $env:GITHUB_EVENT_NAME = $savedEventName
+                $env:RUNNER_TEMP = $savedRunnerTemp
+                Remove-Item -Path $tempDir -Recurse -Force -ErrorAction SilentlyContinue
+            }
+        }
+
+        It "performs case-insensitive app name matching" {
+            $savedGitHubActions = $env:GITHUB_ACTIONS
+            $savedEventName = $env:GITHUB_EVENT_NAME
+            $savedRunnerTemp = $env:RUNNER_TEMP
+            $tempDir = Join-Path $env:TEMP "build-opt-test-$(Get-Random)"
+            New-Item -Path $tempDir -ItemType Directory -Force | Out-Null
+            try {
+                $env:GITHUB_ACTIONS = 'true'
+                $env:GITHUB_EVENT_NAME = 'pull_request'
+                $env:RUNNER_TEMP = $tempDir
+
+                $cache = [PSCustomObject]@{
+                    skipEnabled = $true
+                    affectedAppNames = @('E-Document Core Tests')
+                }
+                $cache | ConvertTo-Json -Depth 5 | Set-Content (Join-Path $tempDir 'build-optimization-cache.json') -Encoding UTF8
+
+                # Case-insensitive match should work
+                $result = Test-ShouldSkipTestApp -AppName 'e-document core tests' -BaseFolder $baseFolder
+                $result | Should -BeFalse
+            } finally {
+                $env:GITHUB_ACTIONS = $savedGitHubActions
+                $env:GITHUB_EVENT_NAME = $savedEventName
+                $env:RUNNER_TEMP = $savedRunnerTemp
+                Remove-Item -Path $tempDir -Recurse -Force -ErrorAction SilentlyContinue
+            }
+        }
+
+        It "returns false when cache says skipEnabled is false" {
+            $savedGitHubActions = $env:GITHUB_ACTIONS
+            $savedEventName = $env:GITHUB_EVENT_NAME
+            $savedRunnerTemp = $env:RUNNER_TEMP
+            $tempDir = Join-Path $env:TEMP "build-opt-test-$(Get-Random)"
+            New-Item -Path $tempDir -ItemType Directory -Force | Out-Null
+            try {
+                $env:GITHUB_ACTIONS = 'true'
+                $env:GITHUB_EVENT_NAME = 'pull_request'
+                $env:RUNNER_TEMP = $tempDir
+
+                $cache = [PSCustomObject]@{
+                    skipEnabled = $false
+                    affectedAppNames = @()
+                }
+                $cache | ConvertTo-Json -Depth 5 | Set-Content (Join-Path $tempDir 'build-optimization-cache.json') -Encoding UTF8
+
+                # Even unrelated app should not be skipped when skipEnabled is false
+                $result = Test-ShouldSkipTestApp -AppName 'Shopify' -BaseFolder $baseFolder
+                $result | Should -BeFalse
+            } finally {
+                $env:GITHUB_ACTIONS = $savedGitHubActions
+                $env:GITHUB_EVENT_NAME = $savedEventName
+                $env:RUNNER_TEMP = $savedRunnerTemp
+                Remove-Item -Path $tempDir -Recurse -Force -ErrorAction SilentlyContinue
             }
         }
     }

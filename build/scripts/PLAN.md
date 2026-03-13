@@ -1,8 +1,18 @@
-# Build Optimization: Implementation Plan
+# Build Optimization V2: Implementation Plan
+
+## Change Log
+
+- **V1**: Filtered `appFolders`/`testFolders` in settings.json via YAML workflow steps. **Rejected** — YAML files are managed by AL-Go infrastructure and cannot be modified.
+- **V2**: Two-pronged approach. Compile filtering via AL-Go native `incrementalBuilds` setting. Test filtering via skip logic in `RunTestsInBcContainer.ps1`. Zero YAML changes.
 
 ## Overview
 
-Add app-level dependency graph filtering to the CI/CD pipeline so that only affected apps are compiled and tested when a subset of files change.
+Reduce CI/CD build times by skipping both compilation and test execution for unaffected apps:
+
+1. **Compile filtering** — AL-Go's native `incrementalBuilds` setting with `mode: "modifiedApps"`. AL-Go finds the latest successful CI/CD build and reuses prebuilt `.app` files for unmodified apps. No custom code needed.
+2. **Test filtering** — Custom skip logic in `build/scripts/RunTestsInBcContainer.ps1`. AL-Go calls this script once per test app; our code checks if the app is in the affected set and returns `$true` (pass) to skip unaffected tests.
+
+These are complementary: `incrementalBuilds` handles compilation but still runs all tests. Our custom code fills that gap.
 
 ## Files
 
@@ -10,8 +20,8 @@ Add app-level dependency graph filtering to the CI/CD pipeline so that only affe
 
 | File | Purpose |
 |------|---------|
-| `build/scripts/BuildOptimization.psm1` | Core module: graph construction, affected app computation, project filtering |
-| `build/scripts/tests/BuildOptimization.Test.ps1` | 23 Pester 5 tests covering all functions and scenarios |
+| `build/scripts/BuildOptimization.psm1` | Core module: graph construction, affected app computation, test skip logic |
+| `build/scripts/tests/BuildOptimization.Test.ps1` | Pester 5 tests covering all functions and scenarios |
 | `build/scripts/SPEC.md` | Technical specification |
 | `build/scripts/PLAN.md` | This file |
 
@@ -19,112 +29,214 @@ Add app-level dependency graph filtering to the CI/CD pipeline so that only affe
 
 | File | Change |
 |------|--------|
-| `.github/workflows/_BuildALGoProject.yaml` | Add `filteredProjectSettingsJson` input, add "Apply Filtered App Settings" step before ReadSettings |
-| `.github/workflows/PullRequestHandler.yaml` | Add "Filter Projects by Dependency Analysis" step, add "Determine Apps to Build" step, wire output to Build jobs |
-| `.github/workflows/CICD.yaml` | Same filter step as PullRequestHandler (skipped for `workflow_dispatch`), wire output to Build jobs |
+| `.github/AL-Go-Settings.json` | Add `incrementalBuilds` setting with `mode: "modifiedApps"` |
+| `build/scripts/RunTestsInBcContainer.ps1` | Import BuildOptimization module, add skip check before test execution |
+
+### Reverted Files (V1 → V2)
+
+| File | Change |
+|------|--------|
+| `.github/workflows/_BuildALGoProject.yaml` | Revert to main (remove `filteredProjectSettingsJson` input and "Apply Filtered App Settings" step) |
+| `.github/workflows/PullRequestHandler.yaml` | Revert to main (remove filter steps and output wiring) |
+| `.github/workflows/CICD.yaml` | Revert to main (remove filter steps and output wiring) |
 
 ## Implementation Steps
 
-### Step 1: BuildOptimization.psm1
+### Step 1: Revert YAML Changes
 
-The core module with 4 exported functions:
+Restore all three YAML files to their `main` branch versions:
+- `.github/workflows/_BuildALGoProject.yaml`
+- `.github/workflows/PullRequestHandler.yaml`
+- `.github/workflows/CICD.yaml`
 
-1. **`Get-AppDependencyGraph`** — Scan all `app.json` files, build forward/reverse edge graph
-2. **`Get-AppForFile`** — Walk directory tree upward to find nearest `app.json`
-3. **`Get-AffectedApps`** — Map files to apps, BFS downstream + upstream, System App rule
-4. **`Get-FilteredProjectSettings`** — Per-project glob resolution, affected intersection, compilation closure, relative path generation
+### Step 2: Add `incrementalBuilds` to AL-Go Settings
 
-Internal helpers:
-- `Resolve-ProjectGlobs` — Resolve `appFolders`/`testFolders` patterns from project directory
-- `Get-AppIdForFolder` — Read `app.json` in a folder to get app ID
-- `Get-RelativePathCompat` — PS 5.1-compatible relative path via `[uri]::MakeRelativeUri`
-- `Get-RelativeFolderPath` — Convert absolute path to relative path for settings.json
-- `Add-CompilationClosure` — Fixed-point iteration to add in-project dependencies
+Add to `.github/AL-Go-Settings.json`:
 
-### Step 2: Pester Tests
-
-Test against the real repository (329 app.json files):
-
-- **Graph tests**: Node count, System Application node, E-Document Core edges, Avalara connector forward edges
-- **File mapping tests**: E-Document Core, Email module, non-app files, absolute paths
-- **Affected apps tests**: E-Document cascade (9 apps), Email upstream (49 apps), unmapped src/ files trigger full build, non-src files ignored
-- **Filtered settings tests**: E-Document correct folders, Subscription Billing compilation closure, Email affects System App projects, forward-slash paths
-
-### Step 3: _BuildALGoProject.yaml
-
-Add input:
-```yaml
-filteredProjectSettingsJson:
-  description: 'JSON mapping project paths to filtered appFolders/testFolders'
-  required: false
-  default: '{}'
-  type: string
+```json
+"incrementalBuilds": {
+  "mode": "modifiedApps"
+}
 ```
 
-Add step before "Read settings":
-- Parse the JSON input
-- Normalize project key (backslash to forward slash for matching)
-- If project has a filtered entry, overwrite `appFolders` and `testFolders` in `.AL-Go/settings.json`
-- Log which apps are in scope for compile and test
+This uses AL-Go defaults:
+- `onPull_Request: true` — incremental builds on PRs (most common case)
+- `onPush: false` — full build on merge to main
+- `onSchedule: false` — full build on schedule
+- `retentionDays: 30` — reuse builds up to 30 days old
 
-### Step 4: PullRequestHandler.yaml
+How it works: AL-Go finds the latest successful CI/CD build, downloads prebuilt `.app` files for unmodified apps, and only compiles modified apps + apps that depend on them. Unmodified apps are still published to the container (for test dependencies) but skip compilation.
 
-Add to Initialization job outputs:
-```yaml
-filteredProjectSettingsJson: ${{ steps.filterProjects.outputs.filteredProjectSettingsJson }}
+**Note**: `incrementalBuilds` does NOT skip test execution — all test apps still run their tests. That's why we need Step 3.
+
+### Step 3: Update BuildOptimization.psm1
+
+Keep existing functions (with fixes from PR review):
+1. **`Get-AppDependencyGraph`** — Add `[OutputType([hashtable])]`
+2. **`Get-AppForFile`** — No changes needed (already has doc comment for output)
+3. **`Get-AffectedApps`** — Add `[OutputType([string[]])]`
+4. **`Get-FilteredProjectSettings`** — Add `[OutputType([hashtable])]`, keep for potential future use
+
+Add new exported functions:
+5. **`Get-ChangedFilesForCI`** — Detects changed files from GitHub Actions environment
+6. **`Test-ShouldSkipTestApp`** — Main entry point: checks cache, computes affected set, decides skip
+
+Add `[OutputType()]` to internal functions:
+- `Resolve-ProjectGlobs` → `[OutputType([string[]])]`
+
+### Step 4: Modify RunTestsInBcContainer.ps1
+
+Add at the top of the main execution section (after function definitions, before test execution):
+
+```powershell
+Import-Module $PSScriptRoot\BuildOptimization.psm1 -Force
+
+$baseFolder = Get-BaseFolder
+if ($parameters["appName"] -and (Test-ShouldSkipTestApp -AppName $parameters["appName"] -BaseFolder $baseFolder)) {
+    Write-Host "BUILD OPTIMIZATION: Skipping tests for '$($parameters["appName"])' - not in affected set"
+    return $true
+}
 ```
 
-Add "Filter Projects by Dependency Analysis" step after `determineProjectsToBuild`:
-- Import `BuildOptimization.psm1`
-- Get changed files via `gh pr diff --name-only` (works with shallow checkouts)
-- Check `fullBuildPatterns` — if any match, output `{}`
-- Run `Get-FilteredProjectSettings`
-- Output JSON
+This runs before both the normal and disabled-isolation test passes. When the project-level script calls the base script twice (normal + disabled isolation), both calls hit the cache and skip instantly.
 
-Add "Determine Apps to Build" step:
-- Read filtered JSON and project list
-- For each project, print `[Project] -> App` list showing filtered vs full build
+### Step 5: Update Tests
 
-Pass `filteredProjectSettingsJson` to both Build1 and Build jobs.
+- Fix unused `$graph` warning (add PSScriptAnalyzer suppression or restructure BeforeAll)
+- Add tests for `Get-ChangedFilesForCI` (mock `$env:GITHUB_*` variables)
+- Add tests for `Test-ShouldSkipTestApp` (mock environment, verify cache behavior)
+- Keep existing tests for core graph functions
 
-### Step 5: CICD.yaml
+## How It Works
 
-Same pattern as PullRequestHandler with differences:
-- Skip filter step for `workflow_dispatch` (always full build)
-- Get changed files via `git diff HEAD~1 HEAD` (push context, not PR)
-- Pass `filteredProjectSettingsJson` to both Build1 and Build jobs
+### Compile Filtering (AL-Go native)
+
+```
+AL-Go RunPipeline
+  ├─ Find latest successful CI/CD build (within retentionDays)
+  ├─ Determine modified files (git diff)
+  ├─ For unmodified apps: download prebuilt .app from previous build
+  ├─ For modified apps + dependents: compile normally
+  └─ Publish ALL apps to container (prebuilt + newly compiled)
+```
+
+### Test Filtering (our code)
+
+```
+AL-Go RunPipeline
+  └─ for each test app in testFolders:
+       └─ [Project]/.AL-Go/RunTestsInBcContainer.ps1 ($parameters["appName"] = "E-Document Core Tests")
+            └─ build/scripts/RunTestsInBcContainer.ps1
+                 └─ Test-ShouldSkipTestApp checks affected set
+                 └─ If NOT affected → return $true (skip)
+                 └─ If affected → Run-TestsInBcContainer (normal execution)
+```
+
+### Changed File Detection
+
+The script detects changed files based on GitHub Actions environment variables:
+
+| Event | Method |
+|-------|--------|
+| `pull_request` / `merge_group` | `git fetch origin $GITHUB_BASE_REF --depth=1` then `git diff --name-only origin/$base...HEAD` |
+| `push` | `git fetch --deepen=1` then `git diff --name-only HEAD~1 HEAD` |
+| `workflow_dispatch` | Skip filtering (always run all tests) |
+| Local / non-CI | Skip filtering (always run all tests) |
+
+### Caching
+
+Graph construction scans ~329 `app.json` files. Since the script is called once per test app (potentially 50+ times), the affected app set is cached to a temp file (`$RUNNER_TEMP/build-optimization-cache.json`) on first computation and read from cache on subsequent calls within the same build job.
+
+## New Function Designs
+
+### `Get-ChangedFilesForCI`
+
+```
+Inputs:  (none — reads from $env:GITHUB_EVENT_NAME, $env:GITHUB_BASE_REF)
+Outputs: string[] of changed file paths, or $null if can't determine
+```
+
+Returns `$null` when:
+- Not in GitHub Actions (`$env:GITHUB_ACTIONS` not set)
+- `workflow_dispatch` event
+- Git commands fail
+
+### `Test-ShouldSkipTestApp`
+
+```
+Inputs:  -AppName <string> -BaseFolder <string>
+Outputs: $true if tests should be skipped, $false otherwise
+```
+
+Logic:
+1. If not in CI → `$false`
+2. If `workflow_dispatch` → `$false`
+3. Check cache file → if exists, read and check
+4. If no cache: compute changed files → if `$null`, cache `skipEnabled=$false` → `$false`
+5. Check `fullBuildPatterns` from `.github/AL-Go-Settings.json` → if match, `skipEnabled=$false`
+6. Compute `Get-AffectedApps` → build name set from graph → cache
+7. Return `$true` if app name NOT in affected set
+
+Cache format (`$RUNNER_TEMP/build-optimization-cache.json`):
+```json
+{
+  "skipEnabled": true,
+  "affectedAppNames": ["E-Document Core", "E-Document Core Tests", "E-Document Connector - Avalara", ...]
+}
+```
 
 ## Data Flow
 
 ```
-PullRequestHandler.yaml / CICD.yaml
-  Initialization Job:
-    1. Checkout
-    2. DetermineProjectsToBuild (existing AL-Go step)
-    3. Filter Projects by Dependency Analysis (NEW)
-       - Input: changed files from git/GitHub API
-       - Output: filteredProjectSettingsJson
-    4. Determine Apps to Build (NEW)
-       - Input: filteredProjectSettingsJson + ProjectsJson
-       - Output: log showing [Project] -> [App] list
+RunTestsInBcContainer.ps1 (called per test app)
+  │
+  ├─ Test-ShouldSkipTestApp("E-Document Core Tests", $baseFolder)
+  │   ├─ Check $env:GITHUB_ACTIONS → if not CI, return $false
+  │   ├─ Check $env:GITHUB_EVENT_NAME → if workflow_dispatch, return $false
+  │   ├─ Check cache file → if exists, read it
+  │   ├─ (first call only) Compute:
+  │   │   ├─ Get-ChangedFilesForCI → ["src/Apps/W1/EDocument/App/src/X.al"]
+  │   │   ├─ Check fullBuildPatterns → no match
+  │   │   ├─ Get-AppDependencyGraph → 329 nodes
+  │   │   ├─ Get-AffectedApps → 9 app IDs
+  │   │   ├─ Map IDs to names → 9 app names
+  │   │   └─ Write cache file
+  │   └─ Check: "E-Document Core Tests" in affected names? → YES → return $false
+  │
+  └─ (tests run normally)
 
-  Build Job (_BuildALGoProject.yaml):
-    1. Checkout
-    2. Apply Filtered App Settings (NEW)
-       - Input: filteredProjectSettingsJson
-       - Action: overwrite .AL-Go/settings.json appFolders/testFolders
-    3. Read Settings (existing - now reads filtered settings)
-    4. Build (existing - compiles only filtered apps)
+RunTestsInBcContainer.ps1 (next test app)
+  │
+  ├─ Test-ShouldSkipTestApp("Shopify", $baseFolder)
+  │   ├─ Check cache file → exists, read it
+  │   └─ Check: "Shopify" in affected names? → NO → return $true
+  │
+  └─ Write-Host "SKIPPING..." → return $true
 ```
 
 ## Safety Mechanisms
 
-1. **fullBuildPatterns**: Changes to `build/*`, `src/rulesets/*`, workflow files trigger full build
-2. **Unmapped src/ files**: Any file under `src/` that can't be mapped to an app triggers full build
-3. **Non-src files ignored**: Workflow files, build scripts, docs are not app code and are handled by fullBuildPatterns
-4. **All apps affected**: If every app in a project is affected, original wildcard patterns are preserved
-5. **workflow_dispatch**: Always triggers full build (CICD.yaml skips filter step)
-6. **Empty result**: If filtering returns `{}`, all projects build with original settings
+1. **CI-only**: Skip logic only activates when `$env:GITHUB_ACTIONS` is set. Local runs always execute all tests.
+2. **workflow_dispatch**: Always runs all tests (manual builds = full build).
+3. **fullBuildPatterns**: Changes to `build/*`, `src/rulesets/*`, workflow files disable skipping. Already configured in `.github/AL-Go-Settings.json`.
+4. **Unmapped src/ files**: Any file under `src/` that can't be mapped to an app disables skipping (via `Get-AffectedApps` returning all apps).
+5. **Git failure fallback**: If changed file detection fails, `$null` is returned → skipping disabled.
+6. **Cache miss safety**: First test app call computes everything; subsequent calls read cache.
+7. **Return $true on skip**: AL-Go interprets this as "tests passed", so the build continues.
+8. **incrementalBuilds defaults**: `onPush: false` ensures full builds on merge to main.
+
+## Rollback
+
+- **Compile filtering**: Remove `incrementalBuilds` from `.github/AL-Go-Settings.json` → AL-Go reverts to full compilation.
+- **Test filtering**: Set environment variable `BUILD_OPTIMIZATION_DISABLED=true` → `Test-ShouldSkipTestApp` returns `$false` for all apps.
+
+## Expected Impact
+
+| Change | Compile savings (incrementalBuilds) | Test savings (RunTestsInBcContainer) |
+|--------|-------------------------------------|--------------------------------------|
+| E-Document Core | ~51 apps skip compilation | ~17 test apps skip (of ~22) |
+| Shopify Connector | ~54 apps skip compilation | ~21 test apps skip (of ~22) |
+| Email module | ~280 apps skip compilation | ~46 test apps skip (of ~50) |
 
 ## Testing Strategy
 
@@ -134,17 +246,18 @@ PullRequestHandler.yaml / CICD.yaml
 Import-Module ./build/scripts/BuildOptimization.psm1 -Force
 $base = (Get-Location).Path
 
-# Test E-Document Core change
-Get-FilteredProjectSettings -ChangedFiles @('src/Apps/W1/EDocument/App/src/SomeFile.al') -BaseFolder $base
+# Verify affected apps for E-Doc change
+$affected = Get-AffectedApps -ChangedFiles @('src/Apps/W1/EDocument/App/src/SomeFile.al') -BaseFolder $base
+$graph = Get-AppDependencyGraph -BaseFolder $base
+$affected | ForEach-Object { $graph[$_].Name }
 
-# Test Email module change
-Get-FilteredProjectSettings -ChangedFiles @('src/System Application/App/Email/src/SomeFile.al') -BaseFolder $base
+# Test skip logic (outside CI, should always return $false)
+Test-ShouldSkipTestApp -AppName "Shopify" -BaseFolder $base
 ```
 
 ### Pester Tests
 
 ```powershell
-# Requires Pester 5.x
 Import-Module Pester -RequiredVersion 5.7.1 -Force
 Invoke-Pester -Path build/scripts/tests/BuildOptimization.Test.ps1
 ```
@@ -152,11 +265,8 @@ Invoke-Pester -Path build/scripts/tests/BuildOptimization.Test.ps1
 ### CI Verification
 
 1. Create a PR that only changes an E-Document Core file
-2. Check "Filter Projects by Dependency Analysis" step output for filtered JSON
-3. Check "Determine Apps to Build" step for `[Apps (W1)] FILTERED` with 4+5 folders
-4. Check "Apply Filtered App Settings" step in Build job for correct app/test lists
-5. Verify build succeeds and only E-Document related tests run
-
-## Rollback
-
-If filtering causes issues, set `filteredProjectSettingsJson` default to `'{}'` in `_BuildALGoProject.yaml` — this disables all filtering without removing the code. The "Apply Filtered App Settings" step has an `if: inputs.filteredProjectSettingsJson != '{}'` guard that skips it entirely when the input is empty.
+2. Check AL-Go build logs for "Using prebuilt app" messages (compile skip from incrementalBuilds)
+3. Check `RunTestsInBcContainer` logs for "BUILD OPTIMIZATION: Skipping tests for..." messages
+4. Verify affected test apps (E-Document Core Tests, etc.) still execute
+5. Verify unrelated test apps (Shopify, etc.) are skipped
+6. Verify build succeeds

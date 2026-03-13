@@ -77,11 +77,6 @@ on:
         description: JSON formatted needs context
         type: string
         default: '{}'
-      filteredProjectSettingsJson:
-        description: 'JSON mapping project paths to filtered appFolders/testFolders for build optimization'
-        required: false
-        default: '{}'
-        type: string
 
 permissions:
   actions: read
@@ -107,30 +102,6 @@ jobs:
         with:
           ref: ${{ inputs.checkoutRef }}
           lfs: true
-
-      - name: Apply Filtered App Settings
-        if: inputs.filteredProjectSettingsJson != '{}'
-        run: |
-          $filtered = '${{ inputs.filteredProjectSettingsJson }}' | ConvertFrom-Json
-          # AL-Go uses backslashes in project paths, our keys use forward slashes
-          $projectKey = '${{ inputs.project }}'.Replace('\', '/')
-          if ($filtered.PSObject.Properties[$projectKey]) {
-            $settingsPath = Join-Path (Join-Path '${{ inputs.project }}' '.AL-Go') 'settings.json'
-            $settings = Get-Content $settingsPath -Raw | ConvertFrom-Json
-            $projectSettings = $filtered.PSObject.Properties[$projectKey].Value
-            $settings.appFolders = @($projectSettings.appFolders)
-            $settings.testFolders = @($projectSettings.testFolders)
-            $settings | ConvertTo-Json -Depth 10 | Set-Content $settingsPath
-            Write-Host "::group::Build Optimization - Filtered apps for $projectKey"
-            Write-Host "Apps to compile ($($settings.appFolders.Count)):"
-            $settings.appFolders | ForEach-Object { Write-Host "  $_" }
-            Write-Host ""
-            Write-Host "Apps to test ($($settings.testFolders.Count)):"
-            $settings.testFolders | ForEach-Object { Write-Host "  $_" }
-            Write-Host "::endgroup::"
-          } else {
-            Write-Host "No filtering needed for $projectKey (full build)"
-          }
 
       - name: Read settings
         uses: microsoft/AL-Go/Actions/ReadSettings@91c2f1bab7959cffc66fd9513a1d83ec9f641e30
