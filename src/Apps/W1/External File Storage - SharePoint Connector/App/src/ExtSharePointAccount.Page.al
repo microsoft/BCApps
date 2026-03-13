@@ -97,7 +97,7 @@ page 4580 "Ext. SharePoint Account"
                 }
             }
             field(Disabled; Rec.Disabled) { }
-            field("Use Graph API"; Rec."Use Graph API")
+            field("Use legacy REST API"; Rec."Use legacy REST API")
             {
                 trigger OnValidate()
                 var

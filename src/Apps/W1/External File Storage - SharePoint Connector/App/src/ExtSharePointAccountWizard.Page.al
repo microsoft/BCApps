@@ -130,7 +130,7 @@ page 4581 "Ext. SharePoint Account Wizard"
                     IsNextEnabled := SharePointConnectorImpl.IsAccountValid(Rec);
                 end;
             }
-            field("Use Graph API"; Rec."Use Graph API")
+            field("Use legacy REST API"; Rec."Use legacy REST API")
             {
             }
 

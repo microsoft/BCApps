@@ -35,10 +35,10 @@ codeunit 4580 "Ext. SharePoint Connector Impl" implements "External File Storage
         SharePointAccount: Record "Ext. SharePoint Account";
     begin
         SharePointAccount.Get(AccountId);
-        if SharePointAccount."Use Graph API" then
-            GraphHelper.ListFiles(SharePointAccount, Path, FilePaginationData, TempFileAccountContent)
+        if SharePointAccount."Use legacy REST API" then
+            RestHelper.ListFiles(SharePointAccount, Path, FilePaginationData, TempFileAccountContent)
         else
-            RestHelper.ListFiles(SharePointAccount, Path, FilePaginationData, TempFileAccountContent);
+            GraphHelper.ListFiles(SharePointAccount, Path, FilePaginationData, TempFileAccountContent);
     end;
 
     /// <summary>
@@ -52,10 +52,10 @@ codeunit 4580 "Ext. SharePoint Connector Impl" implements "External File Storage
         SharePointAccount: Record "Ext. SharePoint Account";
     begin
         SharePointAccount.Get(AccountId);
-        if SharePointAccount."Use Graph API" then
-            GraphHelper.GetFile(SharePointAccount, Path, Stream)
+        if SharePointAccount."Use legacy REST API" then
+            RestHelper.GetFile(SharePointAccount, Path, Stream)
         else
-            RestHelper.GetFile(SharePointAccount, Path, Stream);
+            GraphHelper.GetFile(SharePointAccount, Path, Stream);
     end;
 
     /// <summary>
@@ -69,10 +69,10 @@ codeunit 4580 "Ext. SharePoint Connector Impl" implements "External File Storage
         SharePointAccount: Record "Ext. SharePoint Account";
     begin
         SharePointAccount.Get(AccountId);
-        if SharePointAccount."Use Graph API" then
-            GraphHelper.CreateFile(SharePointAccount, Path, Stream)
+        if SharePointAccount."Use legacy REST API" then
+            RestHelper.CreateFile(SharePointAccount, Path, Stream)
         else
-            RestHelper.CreateFile(SharePointAccount, Path, Stream);
+            GraphHelper.CreateFile(SharePointAccount, Path, Stream);
     end;
 
     /// <summary>
@@ -86,10 +86,10 @@ codeunit 4580 "Ext. SharePoint Connector Impl" implements "External File Storage
         SharePointAccount: Record "Ext. SharePoint Account";
     begin
         SharePointAccount.Get(AccountId);
-        if SharePointAccount."Use Graph API" then
-            GraphHelper.CopyFile(SharePointAccount, SourcePath, TargetPath)
+        if SharePointAccount."Use legacy REST API" then
+            RestHelper.CopyFile(SharePointAccount, SourcePath, TargetPath)
         else
-            RestHelper.CopyFile(SharePointAccount, SourcePath, TargetPath);
+            GraphHelper.CopyFile(SharePointAccount, SourcePath, TargetPath);
     end;
 
     /// <summary>
@@ -103,10 +103,10 @@ codeunit 4580 "Ext. SharePoint Connector Impl" implements "External File Storage
         SharePointAccount: Record "Ext. SharePoint Account";
     begin
         SharePointAccount.Get(AccountId);
-        if SharePointAccount."Use Graph API" then
-            GraphHelper.MoveFile(SharePointAccount, SourcePath, TargetPath)
+        if SharePointAccount."Use legacy REST API" then
+            RestHelper.MoveFile(SharePointAccount, SourcePath, TargetPath)
         else
-            RestHelper.MoveFile(SharePointAccount, SourcePath, TargetPath);
+            GraphHelper.MoveFile(SharePointAccount, SourcePath, TargetPath);
     end;
 
     /// <summary>
@@ -120,10 +120,10 @@ codeunit 4580 "Ext. SharePoint Connector Impl" implements "External File Storage
         SharePointAccount: Record "Ext. SharePoint Account";
     begin
         SharePointAccount.Get(AccountId);
-        if SharePointAccount."Use Graph API" then
-            exit(GraphHelper.FileExists(SharePointAccount, Path))
+        if SharePointAccount."Use legacy REST API" then
+            exit(RestHelper.FileExists(SharePointAccount, Path))
         else
-            exit(RestHelper.FileExists(SharePointAccount, Path));
+            exit(GraphHelper.FileExists(SharePointAccount, Path));
     end;
 
     /// <summary>
@@ -136,10 +136,10 @@ codeunit 4580 "Ext. SharePoint Connector Impl" implements "External File Storage
         SharePointAccount: Record "Ext. SharePoint Account";
     begin
         SharePointAccount.Get(AccountId);
-        if SharePointAccount."Use Graph API" then
-            GraphHelper.DeleteFile(SharePointAccount, Path)
+        if SharePointAccount."Use legacy REST API" then
+            RestHelper.DeleteFile(SharePointAccount, Path)
         else
-            RestHelper.DeleteFile(SharePointAccount, Path);
+            GraphHelper.DeleteFile(SharePointAccount, Path);
     end;
 
     /// <summary>
@@ -154,10 +154,10 @@ codeunit 4580 "Ext. SharePoint Connector Impl" implements "External File Storage
         SharePointAccount: Record "Ext. SharePoint Account";
     begin
         SharePointAccount.Get(AccountId);
-        if SharePointAccount."Use Graph API" then
-            GraphHelper.ListDirectories(SharePointAccount, Path, FilePaginationData, TempFileAccountContent)
+        if SharePointAccount."Use legacy REST API" then
+            RestHelper.ListDirectories(SharePointAccount, Path, FilePaginationData, TempFileAccountContent)
         else
-            RestHelper.ListDirectories(SharePointAccount, Path, FilePaginationData, TempFileAccountContent);
+            GraphHelper.ListDirectories(SharePointAccount, Path, FilePaginationData, TempFileAccountContent);
     end;
 
     /// <summary>
@@ -170,10 +170,10 @@ codeunit 4580 "Ext. SharePoint Connector Impl" implements "External File Storage
         SharePointAccount: Record "Ext. SharePoint Account";
     begin
         SharePointAccount.Get(AccountId);
-        if SharePointAccount."Use Graph API" then
-            GraphHelper.CreateDirectory(SharePointAccount, Path)
+        if SharePointAccount."Use legacy REST API" then
+            RestHelper.CreateDirectory(SharePointAccount, Path)
         else
-            RestHelper.CreateDirectory(SharePointAccount, Path);
+            GraphHelper.CreateDirectory(SharePointAccount, Path);
     end;
 
     /// <summary>
@@ -187,10 +187,10 @@ codeunit 4580 "Ext. SharePoint Connector Impl" implements "External File Storage
         SharePointAccount: Record "Ext. SharePoint Account";
     begin
         SharePointAccount.Get(AccountId);
-        if SharePointAccount."Use Graph API" then
-            exit(GraphHelper.DirectoryExists(SharePointAccount, Path))
+        if SharePointAccount."Use legacy REST API" then
+            exit(RestHelper.DirectoryExists(SharePointAccount, Path))
         else
-            exit(RestHelper.DirectoryExists(SharePointAccount, Path));
+            exit(GraphHelper.DirectoryExists(SharePointAccount, Path));
     end;
 
     /// <summary>
@@ -203,10 +203,10 @@ codeunit 4580 "Ext. SharePoint Connector Impl" implements "External File Storage
         SharePointAccount: Record "Ext. SharePoint Account";
     begin
         SharePointAccount.Get(AccountId);
-        if SharePointAccount."Use Graph API" then
-            GraphHelper.DeleteDirectory(SharePointAccount, Path)
+        if SharePointAccount."Use legacy REST API" then
+            RestHelper.DeleteDirectory(SharePointAccount, Path)
         else
-            RestHelper.DeleteDirectory(SharePointAccount, Path);
+            GraphHelper.DeleteDirectory(SharePointAccount, Path);
     end;
 
     #endregion

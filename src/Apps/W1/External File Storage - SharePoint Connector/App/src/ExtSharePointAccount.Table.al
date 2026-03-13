@@ -79,9 +79,9 @@ table 4580 "Ext. SharePoint Account"
             AllowInCustomizations = Never;
             DataClassification = SystemMetadata;
         }
-        field(13; "Use Graph API"; Boolean)
+        field(13; "Use legacy REST API"; Boolean)
         {
-            Caption = 'Use Microsoft Graph API';
+            Caption = 'Use legacy REST API';
             DataClassification = SystemMetadata;
             ToolTip = 'Specifies whether to use Microsoft Graph API or SharePoint REST API. Microsoft Graph API supports downloading files larger than 150 MB through chunked transfers. Note: Requires Microsoft Graph permissions (Sites.ReadWrite.All) configured in your app registration instead of SharePoint permissions.';
         }
