@@ -67,6 +67,7 @@ page 149031 "AIT Test Suite"
                 }
                 field("Run Frequency"; Rec."Run Frequency")
                 {
+                    Importance = Additional;
                     ToolTip = 'Specifies how frequently the eval suite should be run.';
                 }
                 field("Language Tag"; Language)
