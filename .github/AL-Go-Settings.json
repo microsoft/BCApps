@@ -120,9 +120,7 @@
     "ignoreSettingsChanges": true
   },
   "fullBuildPatterns": [
-    "src/rulesets/*",
-    ".github/workflows/PullRequestHandler.yaml",
-    ".github/workflows/_BuildALGoProject.yaml"
+    "src/rulesets/*"
   ],
   "PullRequestTrigger": "pull_request",
   "ALDoc": {
