@@ -760,8 +760,8 @@ codeunit 8062 "Billing Proposal"
     begin
         if DocumentNo = '' then
             exit;
-                                                                                      PurchaseHeaderGlobal.Get(DocumentType, DocumentNo);
-                                                                                      PurchaseHeaderGlobal.SetRecurringBilling();
+        PurchaseHeaderGlobal.Get(DocumentType, DocumentNo);
+        PurchaseHeaderGlobal.SetRecurringBilling();
     end;
 
     local procedure BillingProposalCanBeCreatedForContract(ContractNo: Code[20]; ServicePartner: Enum "Service Partner"): Boolean
@@ -797,11 +797,7 @@ codeunit 8062 "Billing Proposal"
         TempBillingTemplate.Insert(false);
     end;
 
-    procedure CreateBillingDocument(ServicePartner: Enum "Service Partner"; ContractNo: Code[20];
-                                                        DocumentDate: Date;
-                                                        PostingDate: Date;
-                                                        PostDocument: Boolean;
-                                                        OpenDocument: Boolean): Boolean
+    procedure CreateBillingDocument(ServicePartner: Enum "Service Partner"; ContractNo: Code[20]; DocumentDate: Date; PostingDate: Date; PostDocument: Boolean; OpenDocument: Boolean): Boolean
     var
         BillingLine: Record "Billing Line";
         CreateBillingDocuments: Codeunit "Create Billing Documents";
