@@ -119,6 +119,7 @@
     "mode": "modifiedApps"
   },
   "fullBuildPatterns": [
+    "build/*",
     "src/rulesets/*",
     ".github/workflows/PullRequestHandler.yaml",
     ".github/workflows/_BuildALGoProject.yaml"
