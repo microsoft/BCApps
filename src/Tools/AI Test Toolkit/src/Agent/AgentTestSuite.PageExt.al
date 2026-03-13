@@ -59,9 +59,9 @@ pageextension 149034 "Agent Test Suite" extends "AIT Test Suite"
 
     trigger OnOpenPage()
     var
-        AgentTask: Codeunit "Agent Task";
+        AgentSystemPermissions: Codeunit "Agent System Permissions";
     begin
-        ConsumedCreditsVisible := AgentTask.CanShowMonetizationData()
+        ConsumedCreditsVisible := AgentSystemPermissions.CurrentUserCanSeeConsumptionData();
     end;
 
     trigger OnAfterGetCurrRecord()
@@ -72,9 +72,9 @@ pageextension 149034 "Agent Test Suite" extends "AIT Test Suite"
 
     local procedure UpdateAgentTaskMetrics()
     begin
-        CopilotCredits := AgentTestContextImpl.GetCopilotCredits(Rec.Code, Rec.Version, '', 0);
+        CopilotCredits := ConsumedCreditsVisible ? AgentTestContextImpl.GetCopilotCredits(Rec.Code, Rec.Version, '', 0) : -1;
         AgentTaskIDs := AgentTestContextImpl.GetAgentTaskIDs(Rec.Code, Rec.Version, '', 0);
-        AgentTaskCount := ConsumedCreditsVisible ? AgentTestContextImpl.GetAgentTaskCount(AgentTaskIDs) : -1;
+        AgentTaskCount := AgentTestContextImpl.GetAgentTaskCount(AgentTaskIDs);
     end;
 
     local procedure UpdateAgentUserName()

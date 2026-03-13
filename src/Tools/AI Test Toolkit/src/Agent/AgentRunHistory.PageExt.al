@@ -5,6 +5,8 @@
 
 namespace System.TestTools.AITestToolkit;
 
+using System.Agents;
+
 pageextension 149032 "Agent Run History" extends "AIT Run History"
 {
     layout
@@ -67,9 +69,9 @@ pageextension 149032 "Agent Run History" extends "AIT Run History"
 
     trigger OnOpenPage()
     var
-        AgentTask: Codeunit "Agent Task";
+        AgentSystemPermissions: Codeunit "Agent System Permissions";
     begin
-        ConsumedCreditsVisible := AgentTask.CanShowMonetizationData()
+        ConsumedCreditsVisible := AgentSystemPermissions.CurrentUserCanSeeConsumptionData();
     end;
 
     trigger OnAfterGetRecord()
@@ -84,8 +86,8 @@ pageextension 149032 "Agent Run History" extends "AIT Run History"
 
     local procedure UpdateAgentTaskCounts()
     begin
-        AgentTaskCountByVersion := ConsumedCreditsVisible ? AgentTestContextImpl.GetAgentTaskCount(Rec."Agent Task IDs") : -1;
-        AgentTaskCountByTag := ConsumedCreditsVisible ? AgentTestContextImpl.GetAgentTaskCount(Rec."Agent Task IDs - By Tag") : -1;
+        AgentTaskCountByVersion := AgentTestContextImpl.GetAgentTaskCount(Rec."Agent Task IDs");
+        AgentTaskCountByTag := AgentTestContextImpl.GetAgentTaskCount(Rec."Agent Task IDs - By Tag");
     end;
 
     var

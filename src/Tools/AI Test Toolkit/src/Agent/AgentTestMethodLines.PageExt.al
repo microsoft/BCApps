@@ -5,6 +5,8 @@
 
 namespace System.TestTools.AITestToolkit;
 
+using System.Agents;
+
 pageextension 149033 "Agent Test Method Lines" extends "AIT Test Method Lines"
 {
     layout
@@ -39,9 +41,9 @@ pageextension 149033 "Agent Test Method Lines" extends "AIT Test Method Lines"
 
     trigger OnOpenPage()
     var
-        AgentTask: Codeunit "Agent Task";
+        AgentSystemPermissions: Codeunit "Agent System Permissions";
     begin
-        ConsumedCreditsVisible := AgentTask.CanShowMonetizationData()
+        ConsumedCreditsVisible := AgentSystemPermissions.CurrentUserCanSeeConsumptionData();
     end;
 
     trigger OnAfterGetRecord()

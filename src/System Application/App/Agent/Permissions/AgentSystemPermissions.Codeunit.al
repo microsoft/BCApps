@@ -14,7 +14,6 @@ codeunit 4317 "Agent System Permissions"
     /// Gets whether the current user has permissions to see consumption data.
     /// </summary>
     /// <returns>True if the user has permissions to see consumption data, false otherwise.</returns>
-    [Scope('OnPrem')]
     procedure CurrentUserCanSeeConsumptionData(): Boolean
     begin
         exit(AgentSystemPermissionsImpl.CurrentUserCanSeeConsumptionData());
