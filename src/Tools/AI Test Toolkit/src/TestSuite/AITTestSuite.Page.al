@@ -434,6 +434,7 @@ page 149031 "AIT Test Suite"
         AITTestSuiteLanguage: Codeunit "AIT Test Suite Language";
         TestSuiteMgt: Codeunit "Test Suite Mgt.";
     begin
+        if Rec.Find() then;
         UpdateTotalDuration();
         UpdateAverages();
         Language := AITTestSuiteLanguage.GetLanguageDisplayName(Rec."Run Language ID");

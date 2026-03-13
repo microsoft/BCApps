@@ -12,7 +12,9 @@ permissionset 149030 "AI Test Toolkit"
     Access = Public;
     Assignable = true;
 
-    IncludedPermissionSets = "AI Test Toolkit - View";
+    IncludedPermissionSets =
+        "AI Test Toolkit - View",
+        TestRunner;
 
     Permissions = tabledata "Test Input" = RIMD,
                   tabledata "Test Method Line" = RIMD;
