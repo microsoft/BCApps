@@ -208,10 +208,10 @@ codeunit 9017 "Azure AD User Mgmt. Impl."
     var
         PlanIds: Codeunit "Plan Ids";
     begin
-        exit(AzureADPlan.IsPlanAssignedToUser(PlanIds.GetDelegatedAdminPlanId(), UserSecID) or
+        exit(AzureADPlan.IsPlanAssignedToUser(PlanIds.GetGlobalAdminPlanId(), UserSecID) or
             AzureADPlan.IsPlanAssignedToUser(PlanIds.GetHelpDeskPlanId(), UserSecID) or
             AzureADPlan.IsPlanAssignedToUser(PlanIds.GetD365AdminPartnerPlanId(), UserSecID) or
-            AzureADPlan.IsPlanAssignedToUser(PlanIds.GetDelegatedBCAdminPlanId(), UserSecID))
+            AzureADPlan.IsPlanAssignedToUser(PlanIds.GetD365BCAdminPlanId(), UserSecID))
     end;
 
     [NonDebuggable]
