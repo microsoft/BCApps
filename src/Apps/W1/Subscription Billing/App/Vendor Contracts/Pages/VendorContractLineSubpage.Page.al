@@ -461,6 +461,50 @@ page 8078 "Vendor Contract Line Subpage"
                         UpdateServiceCommitmentOnPage(ServiceCommitment.FieldNo("Currency Factor Date"));
                     end;
                 }
+                field("Shortcut Dimension 1 Code"; ServiceCommitment."Shortcut Dimension 1 Code")
+                {
+                    ApplicationArea = Dimensions;
+                    Caption = 'Shortcut Dimension 1 Code';
+                    CaptionClass = '1,2,1';
+                    ToolTip = 'Specifies the code for Shortcut Dimension 1, which is one of two global dimension codes that you set up in the General Ledger Setup window.';
+                    Visible = false;
+                    Editable = not IsCommentLineEditable;
+                    Enabled = not IsCommentLineEditable;
+
+                    trigger OnLookup(var Text: Text): Boolean
+                    begin
+                        DimMgt.LookupDimValueCode(1, ServiceCommitment."Shortcut Dimension 1 Code");
+                        Text := ServiceCommitment."Shortcut Dimension 1 Code";
+                        exit(true);
+                    end;
+
+                    trigger OnValidate()
+                    begin
+                        UpdateServiceCommitmentOnPage(ServiceCommitment.FieldNo("Shortcut Dimension 1 Code"));
+                    end;
+                }
+                field("Shortcut Dimension 2 Code"; ServiceCommitment."Shortcut Dimension 2 Code")
+                {
+                    ApplicationArea = Dimensions;
+                    Caption = 'Shortcut Dimension 2 Code';
+                    CaptionClass = '1,2,2';
+                    ToolTip = 'Specifies the code for Shortcut Dimension 2, which is one of two global dimension codes that you set up in the General Ledger Setup window.';
+                    Visible = false;
+                    Editable = not IsCommentLineEditable;
+                    Enabled = not IsCommentLineEditable;
+
+                    trigger OnLookup(var Text: Text): Boolean
+                    begin
+                        DimMgt.LookupDimValueCode(2, ServiceCommitment."Shortcut Dimension 2 Code");
+                        Text := ServiceCommitment."Shortcut Dimension 2 Code";
+                        exit(true);
+                    end;
+
+                    trigger OnValidate()
+                    begin
+                        UpdateServiceCommitmentOnPage(ServiceCommitment.FieldNo("Shortcut Dimension 2 Code"));
+                    end;
+                }
             }
         }
     }
@@ -582,6 +626,7 @@ page 8078 "Vendor Contract Line Subpage"
 
     var
         ContractsGeneralMgt: Codeunit "Sub. Contracts General Mgt.";
+        DimMgt: Codeunit DimensionManagement;
         NextBillingDateStyleExpr: Text;
         IsDiscountLine: Boolean;
         IsCommentLineEditable: Boolean;
