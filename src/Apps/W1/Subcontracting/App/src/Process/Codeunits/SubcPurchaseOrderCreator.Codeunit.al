@@ -14,6 +14,7 @@ using Microsoft.Inventory.Item.Catalog;
 using Microsoft.Inventory.Requisition;
 using Microsoft.Inventory.Tracking;
 using Microsoft.Manufacturing.Document;
+using Microsoft.Manufacturing.Setup;
 using Microsoft.Manufacturing.WorkCenter;
 using Microsoft.Purchases.Document;
 using Microsoft.Utilities;
@@ -23,9 +24,11 @@ codeunit 99001557 "Subc. Purchase Order Creator"
 {
     var
         SubcManagementSetup: Record "Subc. Management Setup";
+        ManufacturingSetup: Record "Manufacturing Setup";
         PageManagement: Codeunit "Page Management";
         UnitofMeasureManagement: Codeunit "Unit of Measure Management";
         HasSubManagementSetup: Boolean;
+        HasManufacturingSetup: Boolean;
         OperationNo: Code[10];
 
     procedure CreateSubcontractingPurchaseOrderFromRoutingLine(ProdOrderRoutingLine: Record "Prod. Order Routing Line") NoOfCreatedPurchOrder: Integer
@@ -34,9 +37,9 @@ codeunit 99001557 "Subc. Purchase Order Creator"
         BaseQtyToPurch: Decimal;
         QtyToPurch: Decimal;
     begin
-        GetSubmanagementSetup();
-        SubcManagementSetup.TestField("Subcontracting Template Name");
-        SubcManagementSetup.TestField("Subcontracting Batch Name");
+        GetManufacturingSetup();
+        ManufacturingSetup.TestField("Subcontracting Template Name");
+        ManufacturingSetup.TestField("Subcontracting Batch Name");
 
         CheckProdOrderRtngLine(ProdOrderRoutingLine, ProdOrderLine);
 
@@ -60,12 +63,12 @@ codeunit 99001557 "Subc. Purchase Order Creator"
         ProdOrderLine: Record "Prod. Order Line";
         PurchaseLine: Record "Purchase Line";
     begin
-        GetSubmanagementSetup();
+        GetManufacturingSetup();
 
-        if not HasSubManagementSetup then
+        if not HasManufacturingSetup then
             exit;
 
-        if not SubcManagementSetup."Create Prod. Order Info Line" then
+        if not ManufacturingSetup."Create Prod. Order Info Line" then
             exit;
 
         if (RequisitionLine."Prod. Order No." <> '') and
@@ -254,13 +257,13 @@ codeunit 99001557 "Subc. Purchase Order Creator"
     begin
         ProdOrderLine.CalcFields("Total Exp. Oper. Output (Qty.)");
 
-        RequisitionLine.SetRange("Worksheet Template Name", SubcManagementSetup."Subcontracting Template Name");
-        RequisitionLine.SetRange("Journal Batch Name", SubcManagementSetup."Subcontracting Batch Name");
+        RequisitionLine.SetRange("Worksheet Template Name", ManufacturingSetup."Subcontracting Template Name");
+        RequisitionLine.SetRange("Journal Batch Name", ManufacturingSetup."Subcontracting Batch Name");
         FilterReqLineWithProdOrderAndRtngLine(RequisitionLine, ProdOrderLine, ProdOrderRoutingLine);
         if RequisitionLine.FindFirst() then
             RequisitionLine.Delete();
 
-        InsertReqWkshLine(ProdOrderRoutingLine, ProdOrderLine, SubcManagementSetup."Subcontracting Template Name", SubcManagementSetup."Subcontracting Batch Name", QtyToPurch);
+        InsertReqWkshLine(ProdOrderRoutingLine, ProdOrderLine, ManufacturingSetup."Subcontracting Template Name", ManufacturingSetup."Subcontracting Batch Name", QtyToPurch);
 
         if RequisitionLine.FindFirst() then begin
             CarryOutActionMsgReq.UseRequestPage(false);
@@ -312,6 +315,14 @@ codeunit 99001557 "Subc. Purchase Order Creator"
             HasSubManagementSetup := true;
     end;
 
+    local procedure GetManufacturingSetup()
+    begin
+        if HasManufacturingSetup then
+            exit;
+        if ManufacturingSetup.Get() then
+            HasManufacturingSetup := true;
+    end;
+
     local procedure GetLineNoBeforeInsertedLineNo(PurchaseLine: Record "Purchase Line") BeforeLineNo: Integer
     var
         ToPurchaseLine: Record "Purchase Line";
@@ -354,7 +365,7 @@ codeunit 99001557 "Subc. Purchase Order Creator"
     var
         Item: Record Item;
     begin
-        GetSubmanagementSetup();
+        GetManufacturingSetup();
 
         Item.SetLoadFields("Item Category Code", "Description 2");
         Item.Get(ProdOrderComponent."Item No.");
@@ -381,7 +392,7 @@ codeunit 99001557 "Subc. Purchase Order Creator"
 
         PurchaseLine.Validate(Quantity, ProdOrderComponent."Remaining Quantity");
 
-        if SubcManagementSetup."Component Direct Unit Cost" <> SubcManagementSetup."Component Direct Unit Cost"::Standard then begin
+        if ManufacturingSetup."Component Direct Unit Cost" <> ManufacturingSetup."Component Direct Unit Cost"::Standard then begin
             if PurchaseHeader."Prices Including VAT" then
                 PurchaseLine.Validate("Direct Unit Cost", ProdOrderComponent."Direct Unit Cost" * (1 + PurchaseLine."VAT %" / 100))
             else
