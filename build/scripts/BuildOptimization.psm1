@@ -8,8 +8,18 @@
 
 $ErrorActionPreference = "Stop"
 
+<#
+.SYNOPSIS
+    Builds a dependency graph from all app.json files under the given base folder.
+.PARAMETER BaseFolder
+    Root of the repository.
+.OUTPUTS
+    Hashtable keyed by lowercase app ID. Each value is a PSCustomObject with
+    Id, Name, AppFolder, Dependencies (string[]), Dependents (List[string]).
+#>
 function Get-AppDependencyGraph {
     [CmdletBinding()]
+    [OutputType([hashtable])]
     param(
         [Parameter(Mandatory)]
         [string] $BaseFolder
@@ -49,8 +59,19 @@ function Get-AppDependencyGraph {
     return $graph
 }
 
+<#
+.SYNOPSIS
+    Determines which app (if any) a file belongs to by walking up to the nearest app.json.
+.PARAMETER FilePath
+    Path to the changed file (absolute or relative to BaseFolder).
+.PARAMETER BaseFolder
+    Root of the repository.
+.OUTPUTS
+    The app ID (lowercase GUID) or $null if the file is not inside any app folder.
+#>
 function Get-AppForFile {
     [CmdletBinding()]
+    [OutputType([string])]
     param(
         [Parameter(Mandatory)]
         [string] $FilePath,
@@ -80,8 +101,25 @@ function Get-AppForFile {
     return $null
 }
 
+<#
+.SYNOPSIS
+    Given changed files, computes the set of affected app IDs via downstream BFS.
+.DESCRIPTION
+    Maps each changed file to its app, then walks dependents (BFS) to find all
+    apps that transitively depend on a changed app. Files under src/ that can't
+    be mapped to an app trigger a full build (returns all app IDs).
+.PARAMETER ChangedFiles
+    Array of changed file paths (relative to BaseFolder or absolute).
+.PARAMETER BaseFolder
+    Root of the repository.
+.PARAMETER Graph
+    Pre-built dependency graph. If not provided, one is built from BaseFolder.
+.OUTPUTS
+    String array of affected app IDs (lowercase GUIDs).
+#>
 function Get-AffectedApps {
     [CmdletBinding()]
+    [OutputType([string[]])]
     param(
         [Parameter(Mandatory)]
         [string[]] $ChangedFiles,
@@ -130,8 +168,18 @@ function Get-AffectedApps {
     return @($affected)
 }
 
+<#
+.SYNOPSIS
+    Detects changed files from the GitHub Actions CI environment.
+.DESCRIPTION
+    Uses git diff against the base branch (for PRs) or previous commit (for push).
+    Returns $null when changed files cannot be determined (local, workflow_dispatch, git failure).
+.OUTPUTS
+    String array of changed file paths relative to repo root, or $null.
+#>
 function Get-ChangedFilesForCI {
     [CmdletBinding()]
+    [OutputType([string[]])]
     param()
 
     if (-not $env:GITHUB_ACTIONS -or $env:GITHUB_EVENT_NAME -eq 'workflow_dispatch') {
@@ -159,8 +207,23 @@ function Get-ChangedFilesForCI {
     return $null
 }
 
+<#
+.SYNOPSIS
+    Determines whether tests for a given app should be skipped.
+.DESCRIPTION
+    Called from RunTestsInBcContainer.ps1 for each test app. Computes the affected
+    app set from changed files and the dependency graph, then checks whether the
+    given app name is in that set. Returns $true to skip, $false to run.
+.PARAMETER AppName
+    The display name of the test app (from $parameters["appName"]).
+.PARAMETER BaseFolder
+    Root of the repository.
+.OUTPUTS
+    $true if the test app should be skipped, $false if it should run.
+#>
 function Test-ShouldSkipTestApp {
     [CmdletBinding()]
+    [OutputType([bool])]
     param(
         [Parameter(Mandatory)]
         [string] $AppName,
