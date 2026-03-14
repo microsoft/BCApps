@@ -328,14 +328,5 @@ TestResults.xml
 **/.pbi/localSettings.json
 **/.pbi/cache.abf
 
-# Misc
-nul
-
-# Presentation files
-build/scripts/BuildOptimization.pptx
-build/scripts/create_pptx.py
-build/scripts/memes/
-build/scripts/presentation/
-
 # Exceptions
 !src/System Application/Test/Extension Management/testArtifacts/*.app
