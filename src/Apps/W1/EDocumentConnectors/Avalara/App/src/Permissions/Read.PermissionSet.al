@@ -15,7 +15,14 @@ permissionset 6371 Read
     ObsoleteState = Pending;
     ObsoleteTag = '26.0';
 
-    Permissions = tabledata "Connection Setup" = r;
+    Permissions =
+                tabledata "Activation Header" = r,
+                tabledata "Activation Mandate" = r,
+                tabledata "Avalara Input Field" = r,
+                tabledata "Connection Setup" = r,
+                tabledata "Media Types" = r,
+                tabledata "Message Event" = r,
+                tabledata "Message Response Header" = r;
 }
 #pragma warning restore AS0072 // Obsolete permission set
 #endif
