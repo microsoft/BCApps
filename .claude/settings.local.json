@@ -1,0 +1,31 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(del \"C:\\\\repos\\\\BCApps\\\\src\\\\Apps\\\\W1\\\\EDocument\\\\Test\\\\src\\\\Processing\\\\EDocMLLMSchemaHelperTests.Codeunit.al\")",
+      "Bash(az boards work-item create:*)",
+      "Bash(az boards area project list:*)",
+      "Bash(az boards work-item show:*)",
+      "Bash(az boards work-item get-fields:*)",
+      "Bash(python -c:*)",
+      "Bash(git -C C:/repos/BCApps status --short src/Apps/W1/EDocument/Test/src/Processing/)",
+      "Bash(git -C C:/repos/BCApps status)",
+      "Bash(git -C C:/repos/BCApps diff)",
+      "Bash(git -C C:/repos/BCApps log --oneline -5)",
+      "Bash(git -C C:/repos/BCApps add src/Apps/W1/EDocument/Test/src/Processing/EDocMLLMSchemaHelperTests.Codeunit.al src/Apps/W1/EDocument/Test/src/Processing/EDocPDFFileFormatTests.Codeunit.al src/Apps/W1/EDocument/Test/src/Processing/EDocMLLMTests.Codeunit.al)",
+      "Bash(git -C C:/repos/BCApps commit -m \"$\\(cat <<''EOF''\nMerge MLLM test codeunits into single EDoc MLLM Tests file\n\nConsolidate codeunits 135647 and 135648 into one test codeunit. Comment\nout assert in PreferredImpl_TreatmentAllocation_ReturnsMLLM pending ECS\nenablement \\(Bug #624677\\).\n\nCo-Authored-By: Claude Opus 4.6 <noreply@anthropic.com>\nEOF\n\\)\")",
+      "Bash(git -C C:/repos/BCApps push)",
+      "Bash(git -C C:/repos/BCApps diff main...HEAD -- src/Apps/W1/EDocument/App/Permissions/EDocCoreObjects.PermissionSet.al)",
+      "Bash(git -C C:/repos/BCApps diff main...HEAD --diff-filter=A --name-only -- \"*.Codeunit.al\")",
+      "Bash(git -C C:/repos/BCApps add src/Apps/W1/EDocument/App/Permissions/EDocCoreObjects.PermissionSet.al)",
+      "Bash(git -C C:/repos/BCApps commit -m \"$\\(cat <<''EOF''\nRemove redundant MLLM codeunit entries from permission set\n\nThese codeunits already declare InherentEntitlements = X and\nInherentPermissions = X on the object itself.\n\nCo-Authored-By: Claude Opus 4.6 <noreply@anthropic.com>\nEOF\n\\)\")",
+      "Bash(git -C C:/repos/BCApps add src/Apps/W1/EDocument/Test/src/Processing/EDocMLLMTests.Codeunit.al)",
+      "Bash(git -C C:/repos/BCApps commit -m \"$\\(cat <<''EOF''\nComment out entire TreatmentAllocation test body to fix AA0137\n\nCo-Authored-By: Claude Opus 4.6 <noreply@anthropic.com>\nEOF\n\\)\")",
+      "Bash(powershell:*)",
+      "Bash(gh api:*)",
+      "Bash(git grep:*)",
+      "Bash(git show:*)",
+      "WebSearch",
+      "Bash(gh repo view:*)"
+    ]
+  }
+}
