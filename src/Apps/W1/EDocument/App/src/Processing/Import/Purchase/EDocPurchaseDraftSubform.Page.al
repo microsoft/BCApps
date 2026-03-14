@@ -94,7 +94,7 @@ page 6183 "E-Doc. Purchase Draft Subform"
 
                     trigger OnValidate()
                     begin
-                        UpdateCalculatedAmounts(true);
+                        UpdateCalculatedAmounts(true, true);
                     end;
                 }
                 field("Direct Unit Cost"; Rec."Unit Price")
@@ -103,7 +103,7 @@ page 6183 "E-Doc. Purchase Draft Subform"
                     Editable = true;
                     trigger OnValidate()
                     begin
-                        UpdateCalculatedAmounts(true);
+                        UpdateCalculatedAmounts(true, true);
                     end;
                 }
                 field("Total Discount"; Rec."Total Discount")
@@ -113,7 +113,7 @@ page 6183 "E-Doc. Purchase Draft Subform"
                     Editable = true;
                     trigger OnValidate()
                     begin
-                        UpdateCalculatedAmounts(true);
+                        UpdateCalculatedAmounts(true, true);
                     end;
                 }
                 field("Line Amount"; LineAmount)
@@ -357,7 +357,7 @@ page 6183 "E-Doc. Purchase Draft Subform"
         if EDocumentPurchaseLine.Get(Rec."E-Document Entry No.", Rec."Line No.") then;
         AdditionalColumns := Rec.AdditionalColumnsDisplayText();
         SetHasAdditionalColumns();
-        UpdateCalculatedAmounts(false);
+        UpdateCalculatedAmounts(false, false);
         IsLineMatchedToOrderLine := EDocPOMatching.IsEDocumentLineMatchedToAnyPOLine(EDocumentPurchaseLine);
         IsLineMatchedToReceiptLine := EDocPOMatching.IsEDocumentLineMatchedToAnyReceiptLine(EDocumentPurchaseLine);
         OrderMatchedCaption := IsLineMatchedToOrderLine ? GetSummaryOfMatchedOrders() : '';
@@ -381,7 +381,7 @@ page 6183 "E-Doc. Purchase Draft Subform"
           DimVisible1, DimVisible2, DimOther, DimOther, DimOther, DimOther, DimOther, DimOther);
     end;
 
-    local procedure UpdateCalculatedAmounts(UpdateParentRecord: Boolean)
+    local procedure UpdateCalculatedAmounts(UpdateParentRecord: Boolean; LaunchErrorOnInvalidDiscount: Boolean)
     var
         TotalEDocPurchaseLine: Record "E-Document Purchase Line";
         EDocumentImportHelper: Codeunit "E-Document Import Helper";
@@ -390,6 +390,7 @@ page 6183 "E-Doc. Purchase Draft Subform"
     begin
         LineSubtotal := Rec.Quantity * Rec."Unit Price";
         LineAmount := LineSubtotal - Rec."Total Discount";
+        if LaunchErrorOnInvalidDiscount then
         if LineSubtotal = 0 then begin
             if Rec."Total Discount" > 0 then
                 Error(DiscountExceedsSubtotalErr)
