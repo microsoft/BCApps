@@ -171,7 +171,6 @@ table 8072 "Vend. Sub. Contract Deferral"
                     Sign := 1;
                 end;
         end;
-
         if (PurchaseLine."Document Type" = Enum::"Purchase Document Type"::"Credit Memo") and (PurchaseLine.Quantity < 0) then
             Sign := Sign * -1
         else
