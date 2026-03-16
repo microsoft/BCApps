@@ -327,4 +327,116 @@ codeunit 148142 "BC14 Settings Tests"
         Assert.AreEqual(false, BC14CompanyAdditionalSettings."Data Migration Started", 'Data Migration Started - Should have default false');
         Assert.AreEqual(false, BC14CompanyAdditionalSettings."Skip Posting Journal Batches", 'Skip Posting Journal Batches - Should have default false');
     end;
+
+    [Test]
+    procedure TestStopOnFirstErrorDefaultValue()
+    var
+        BC14CompanyAdditionalSettings: Record "BC14CompanyAdditionalSettings";
+    begin
+        // [SCENARIO] Stop On First Error setting has correct default value.
+
+        // [GIVEN] Settings are created for the current company
+        BC14CompanyAdditionalSettings.DeleteAll();
+        BC14CompanyAdditionalSettings.GetSingleInstance();
+
+        // [THEN] Stop On First Error should be false initially (default behavior is continue on error)
+        Assert.AreEqual(false, BC14CompanyAdditionalSettings."Stop On First Error", 'Stop On First Error - Should be false by default');
+        Assert.AreEqual(false, BC14CompanyAdditionalSettings.GetStopOnFirstTransformationError(), 'GetStopOnFirstTransformationError - Should return false by default');
+    end;
+
+    [Test]
+    procedure TestStopOnFirstErrorCanBeEnabled()
+    var
+        BC14CompanyAdditionalSettings: Record "BC14CompanyAdditionalSettings";
+    begin
+        // [SCENARIO] Stop On First Error setting can be enabled.
+
+        // [GIVEN] Settings are created for the current company with default values
+        BC14CompanyAdditionalSettings.DeleteAll();
+        BC14CompanyAdditionalSettings.GetSingleInstance();
+
+        // [WHEN] Stop On First Error is enabled
+        BC14CompanyAdditionalSettings.Validate("Stop On First Error", true);
+        BC14CompanyAdditionalSettings.Modify();
+
+        // [THEN] Stop On First Error should be true
+        Clear(BC14CompanyAdditionalSettings);
+        Assert.AreEqual(true, BC14CompanyAdditionalSettings.GetStopOnFirstTransformationError(), 'GetStopOnFirstTransformationError - Should return true after enabling');
+    end;
+
+    [Test]
+    procedure TestStopOnFirstErrorCanBeDisabled()
+    var
+        BC14CompanyAdditionalSettings: Record "BC14CompanyAdditionalSettings";
+    begin
+        // [SCENARIO] Stop On First Error setting can be disabled after being enabled.
+
+        // [GIVEN] Settings are created with Stop On First Error enabled
+        BC14CompanyAdditionalSettings.DeleteAll();
+        BC14CompanyAdditionalSettings.GetSingleInstance();
+        BC14CompanyAdditionalSettings.Validate("Stop On First Error", true);
+        BC14CompanyAdditionalSettings.Modify();
+
+        // Verify it's enabled
+        Clear(BC14CompanyAdditionalSettings);
+        Assert.AreEqual(true, BC14CompanyAdditionalSettings.GetStopOnFirstTransformationError(), 'GetStopOnFirstTransformationError - Should be true');
+
+        // [WHEN] Stop On First Error is disabled
+        BC14CompanyAdditionalSettings.GetSingleInstance();
+        BC14CompanyAdditionalSettings.Validate("Stop On First Error", false);
+        BC14CompanyAdditionalSettings.Modify();
+
+        // [THEN] Stop On First Error should be false
+        Clear(BC14CompanyAdditionalSettings);
+        Assert.AreEqual(false, BC14CompanyAdditionalSettings.GetStopOnFirstTransformationError(), 'GetStopOnFirstTransformationError - Should return false after disabling');
+    end;
+
+    [Test]
+    procedure TestStopOnFirstErrorIndependentOfOtherSettings()
+    var
+        BC14CompanyAdditionalSettings: Record "BC14CompanyAdditionalSettings";
+    begin
+        // [SCENARIO] Stop On First Error setting is independent of module settings.
+
+        // [GIVEN] Settings are created with all modules enabled and Stop On First Error enabled
+        BC14CompanyAdditionalSettings.DeleteAll();
+        BC14CompanyAdditionalSettings.GetSingleInstance();
+        BC14CompanyAdditionalSettings.Validate("Stop On First Error", true);
+        BC14CompanyAdditionalSettings.Modify();
+
+        // [WHEN] All module settings are disabled
+        BC14CompanyAdditionalSettings.Validate("Migrate GL Module", false);
+        BC14CompanyAdditionalSettings.Validate("Migrate Receivables Module", false);
+        BC14CompanyAdditionalSettings.Validate("Migrate Payables Module", false);
+        BC14CompanyAdditionalSettings.Validate("Migrate Inventory Module", false);
+        BC14CompanyAdditionalSettings.Modify();
+
+        // [THEN] Stop On First Error should remain true (independent of module settings)
+        Clear(BC14CompanyAdditionalSettings);
+        Assert.AreEqual(true, BC14CompanyAdditionalSettings.GetStopOnFirstTransformationError(), 'GetStopOnFirstTransformationError - Should remain true after disabling modules');
+        Assert.AreEqual(false, BC14CompanyAdditionalSettings.GetGLModuleEnabled(), 'GetGLModuleEnabled - Should be false');
+        Assert.AreEqual(false, BC14CompanyAdditionalSettings.GetReceivablesModuleEnabled(), 'GetReceivablesModuleEnabled - Should be false');
+    end;
+
+    [Test]
+    procedure TestStopOnFirstErrorWithSkipPostingCombination()
+    var
+        BC14CompanyAdditionalSettings: Record "BC14CompanyAdditionalSettings";
+    begin
+        // [SCENARIO] Stop On First Error and Skip Posting Journal Batches can be set independently.
+
+        // [GIVEN] Settings are created for the current company
+        BC14CompanyAdditionalSettings.DeleteAll();
+        BC14CompanyAdditionalSettings.GetSingleInstance();
+
+        // [WHEN] Both settings are enabled
+        BC14CompanyAdditionalSettings.Validate("Stop On First Error", true);
+        BC14CompanyAdditionalSettings.Validate("Skip Posting Journal Batches", true);
+        BC14CompanyAdditionalSettings.Modify();
+
+        // [THEN] Both settings should be true independently
+        Clear(BC14CompanyAdditionalSettings);
+        Assert.AreEqual(true, BC14CompanyAdditionalSettings.GetStopOnFirstTransformationError(), 'GetStopOnFirstTransformationError - Should be true');
+        Assert.AreEqual(true, BC14CompanyAdditionalSettings.GetSkipPostingJournalBatches(), 'GetSkipPostingJournalBatches - Should be true');
+    end;
 }

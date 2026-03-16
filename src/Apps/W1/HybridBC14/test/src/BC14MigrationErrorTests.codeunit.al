@@ -367,4 +367,104 @@ codeunit 148143 "BC14 Migration Error Tests"
         Assert.AreEqual('', BC14MigrationErrorOverview.GetExceptionCallStack(), 'GetExceptionCallStack should return empty string for empty BLOB');
         Assert.AreEqual('', BC14MigrationErrorOverview.GetLastRecordsUnderProcessingLog(), 'GetLastRecordsUnderProcessingLog should return empty string for empty BLOB');
     end;
+
+    [Test]
+    procedure TestUnblockForRetry()
+    var
+        BC14MigrationErrors: Record "BC14 Migration Errors";
+        BC14MigrationErrorHandler: Codeunit "BC14 Migration Error Handler";
+        DummyRecordRef: RecordRef;
+        DummyRecId: RecordId;
+    begin
+        // [SCENARIO] An error can be unblocked for manual correction and retry.
+
+        // [GIVEN] An error is logged and previously marked as resolved
+        BC14MigrationErrors.DeleteAll();
+
+        DummyRecordRef.Open(Database::"BC14 Migration Errors");
+        DummyRecId := DummyRecordRef.RecordId;
+        DummyRecordRef.Close();
+
+        BC14MigrationErrorHandler.LogError('G/L Account Migrator', Database::"BC14 G/L Account", 'BC14 G/L Account', 'No.=1200', Database::"G/L Account", 'Account error', DummyRecId);
+        BC14MigrationErrors.FindFirst();
+        BC14MigrationErrors.MarkAsResolved('Initially resolved');
+
+        // [WHEN] The error is unblocked for retry with a note
+        BC14MigrationErrors.Get(BC14MigrationErrors.Id);
+        BC14MigrationErrors.UnblockForRetry('Unblocked for manual fix');
+
+        // [THEN] The error is unblocked with correct values
+        BC14MigrationErrors.Get(BC14MigrationErrors.Id);
+        Assert.AreEqual(false, BC14MigrationErrors."Resolved", 'Resolved - Should be false after unblock');
+        Assert.AreEqual(0DT, BC14MigrationErrors."Resolved On", 'Resolved On - Should be cleared');
+        Assert.AreEqual('', BC14MigrationErrors."Resolved By", 'Resolved By - Should be cleared');
+        Assert.AreEqual(true, BC14MigrationErrors."Scheduled For Retry", 'Scheduled For Retry - Should be true');
+        Assert.AreEqual('Unblocked for manual fix', BC14MigrationErrors."Resolution Notes", 'Resolution Notes - Should contain unblock note');
+    end;
+
+    [Test]
+    procedure TestUnblockForRetryWithEmptyNote()
+    var
+        BC14MigrationErrors: Record "BC14 Migration Errors";
+        BC14MigrationErrorHandler: Codeunit "BC14 Migration Error Handler";
+        DummyRecordRef: RecordRef;
+        DummyRecId: RecordId;
+    begin
+        // [SCENARIO] UnblockForRetry with empty note preserves existing resolution notes.
+
+        // [GIVEN] An error is logged and previously marked as resolved with a note
+        BC14MigrationErrors.DeleteAll();
+
+        DummyRecordRef.Open(Database::"BC14 Migration Errors");
+        DummyRecId := DummyRecordRef.RecordId;
+        DummyRecordRef.Close();
+
+        BC14MigrationErrorHandler.LogError('Customer Migrator', Database::"BC14 Customer", 'BC14 Customer', 'No.=C001', Database::Customer, 'Customer error', DummyRecId);
+        BC14MigrationErrors.FindFirst();
+        BC14MigrationErrors.MarkAsResolved('Original resolution note');
+
+        // [WHEN] The error is unblocked for retry with an empty note
+        BC14MigrationErrors.Get(BC14MigrationErrors.Id);
+        BC14MigrationErrors.UnblockForRetry('');
+
+        // [THEN] The original resolution notes are preserved
+        BC14MigrationErrors.Get(BC14MigrationErrors.Id);
+        Assert.AreEqual(false, BC14MigrationErrors."Resolved", 'Resolved - Should be false after unblock');
+        Assert.AreEqual(true, BC14MigrationErrors."Scheduled For Retry", 'Scheduled For Retry - Should be true');
+        Assert.AreEqual('Original resolution note', BC14MigrationErrors."Resolution Notes", 'Resolution Notes - Should preserve original note when empty');
+    end;
+
+    [Test]
+    procedure TestUnblockForRetryOnUnresolvedError()
+    var
+        BC14MigrationErrors: Record "BC14 Migration Errors";
+        BC14MigrationErrorHandler: Codeunit "BC14 Migration Error Handler";
+        DummyRecordRef: RecordRef;
+        DummyRecId: RecordId;
+    begin
+        // [SCENARIO] UnblockForRetry can be called on an error that was never resolved.
+
+        // [GIVEN] An error is logged but not resolved
+        BC14MigrationErrors.DeleteAll();
+
+        DummyRecordRef.Open(Database::"BC14 Migration Errors");
+        DummyRecId := DummyRecordRef.RecordId;
+        DummyRecordRef.Close();
+
+        BC14MigrationErrorHandler.LogError('Item Migrator', Database::"BC14 Item", 'BC14 Item', 'No.=ITEM-1', Database::Item, 'Item error', DummyRecId);
+        BC14MigrationErrors.FindFirst();
+
+        // Verify initial state
+        Assert.AreEqual(false, BC14MigrationErrors."Resolved", 'Resolved - Should be false initially');
+        Assert.AreEqual(false, BC14MigrationErrors."Scheduled For Retry", 'Scheduled For Retry - Should be false initially');
+
+        // [WHEN] The error is unblocked for retry
+        BC14MigrationErrors.UnblockForRetry('Ready to retry');
+
+        // [THEN] The error is scheduled for retry
+        BC14MigrationErrors.Get(BC14MigrationErrors.Id);
+        Assert.AreEqual(false, BC14MigrationErrors."Resolved", 'Resolved - Should remain false');
+        Assert.AreEqual(true, BC14MigrationErrors."Scheduled For Retry", 'Scheduled For Retry - Should be true');
+        Assert.AreEqual('Ready to retry', BC14MigrationErrors."Resolution Notes", 'Resolution Notes - Should contain unblock note');
+    end;
 }

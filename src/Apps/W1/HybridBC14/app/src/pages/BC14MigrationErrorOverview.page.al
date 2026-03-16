@@ -224,9 +224,7 @@ page 50163 "BC14 Migration Error Overview"
                         exit;
                     end;
 
-                    if not BC14BufferTableHelper.OpenBufferRecord(Rec."Source Table ID", Rec."Record Id") then
-                        Message(NoPageForTableMsg, Rec."Source Table Name");
-
+                    BC14BufferTableHelper.OpenBufferRecord(Rec."Source Table ID", Rec."Record Id");
                     CurrPage.Update(false);
                 end;
             }
@@ -248,10 +246,7 @@ page 50163 "BC14 Migration Error Overview"
                     end;
 
                     Rec.UnblockForRetry(ManuallyUnblockedForEditLbl);
-
-                    if not BC14BufferTableHelper.OpenBufferRecord(Rec."Source Table ID", Rec."Record Id") then
-                        Message(NoPageForTableMsg, Rec."Source Table Name");
-
+                    BC14BufferTableHelper.OpenBufferRecord(Rec."Source Table ID", Rec."Record Id");
                     CurrPage.Update(false);
                 end;
             }
@@ -366,5 +361,4 @@ page 50163 "BC14 Migration Error Overview"
         ManuallyUnblockedForEditLbl: Label 'Manually unblocked for source record correction';
         RecordUnblockedMsg: Label 'Record %1 has been unblocked and scheduled for retry.', Comment = '%1 = Source Record Key';
         SourceRecordNotAvailableMsg: Label 'Source record %2 in table %1 cannot be opened. The record reference is unavailable.', Comment = '%1 = Source Table Name, %2 = Source Record Key';
-        NoPageForTableMsg: Label 'No dedicated page is available for table %1. Please edit the buffer table directly.', Comment = '%1 = Source Table Name';
 }
