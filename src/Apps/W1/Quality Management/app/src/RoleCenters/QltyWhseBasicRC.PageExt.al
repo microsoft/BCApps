@@ -4,15 +4,15 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.QualityManagement.RoleCenters;
 
-using Microsoft.Finance.RoleCenters;
 using Microsoft.QualityManagement.Configuration.GenerationRule;
 using Microsoft.QualityManagement.Configuration.Template;
 using Microsoft.QualityManagement.Configuration.Template.Test;
 using Microsoft.QualityManagement.Document;
 using Microsoft.QualityManagement.Reports;
 using Microsoft.QualityManagement.Setup;
+using Microsoft.Warehouse.RoleCenters;
 
-pageextension 20404 "Qlty. Business Manager RC" extends "Business Manager Role Center"
+pageextension 20404 "Qlty. Whse. Basic RC" extends "Whse. Basic Role Center"
 {
     actions
     {
@@ -103,7 +103,7 @@ pageextension 20404 "Qlty. Business Manager RC" extends "Business Manager Role C
         {
             group(Qlty_QualityManagement_Sections_Group)
             {
-                Caption = 'Quality Management';
+                Caption = 'Quality Inspection';
 
                 action(Qlty_Sections_ShowQualityInspections)
                 {
