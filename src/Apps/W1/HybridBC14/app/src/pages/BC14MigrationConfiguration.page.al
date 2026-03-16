@@ -94,6 +94,37 @@ page 50160 "BC14 Migration Configuration"
                     ToolTip = 'Specifies when data migration was started for this company.';
                     Editable = false;
                 }
+
+                field("Migration State"; Rec."Migration State")
+                {
+                    ApplicationArea = All;
+                    ToolTip = 'Specifies the current state of the migration process.';
+                    Editable = false;
+                    StyleExpr = MigrationStateStyle;
+                }
+
+                field("Last Completed Phase"; Rec."Last Completed Phase")
+                {
+                    ApplicationArea = All;
+                    ToolTip = 'Specifies the last migration phase that was completed successfully.';
+                    Editable = false;
+                }
+
+                field("Failed Migrator Name"; Rec."Failed Migrator Name")
+                {
+                    ApplicationArea = All;
+                    ToolTip = 'Specifies the name of the migrator that failed (when paused).';
+                    Editable = false;
+                    Visible = IsMigrationPaused;
+                }
+
+                field("Migration Paused At"; Rec."Migration Paused At")
+                {
+                    ApplicationArea = All;
+                    ToolTip = 'Specifies when the migration was paused due to an error.';
+                    Editable = false;
+                    Visible = IsMigrationPaused;
+                }
             }
         }
     }
@@ -102,6 +133,26 @@ page 50160 "BC14 Migration Configuration"
     {
         area(Processing)
         {
+            action(ContinueMigration)
+            {
+                ApplicationArea = All;
+                Caption = 'Continue Migration';
+                ToolTip = 'Continue the paused migration from where it stopped. Use this after fixing errors when Stop On First Error is enabled.';
+                Image = Continue;
+                Enabled = IsMigrationPaused;
+
+                trigger OnAction()
+                var
+                    BC14MigrationRunner: Codeunit "BC14 Migration Runner";
+                begin
+                    if not Confirm(ContinueMigrationQst, false, Rec."Failed Migrator Name") then
+                        exit;
+
+                    BC14MigrationRunner.ContinueMigration();
+                    CurrPage.Update(false);
+                end;
+            }
+
             action(ResetMigrationStatus)
             {
                 ApplicationArea = All;
@@ -114,9 +165,8 @@ page 50160 "BC14 Migration Configuration"
                     if not Confirm(ResetMigrationStatusQst, false, Rec.Name) then
                         exit;
 
-                    Rec."Data Migration Started" := false;
-                    Rec."Data Migration Started At" := 0DT;
-                    Rec.Modify();
+                    Rec.ResetMigrationProgress();
+                    CurrPage.Update(false);
                     Message(MigrationStatusResetMsg, Rec.Name);
                 end;
             }
@@ -136,8 +186,11 @@ page 50160 "BC14 Migration Configuration"
                     if not Confirm(ResetAllCompaniesQst, false) then
                         exit;
 
-                    BC14CompanyAdditionalSettings.ModifyAll("Data Migration Started", false);
-                    BC14CompanyAdditionalSettings.ModifyAll("Data Migration Started At", 0DT);
+                    if BC14CompanyAdditionalSettings.FindSet() then
+                        repeat
+                            BC14CompanyAdditionalSettings.ResetMigrationProgress();
+                        until BC14CompanyAdditionalSettings.Next() = 0;
+
                     Count := BC14CompanyAdditionalSettings.Count();
                     Message(MigrationStatusResetAllMsg, Count);
                 end;
@@ -165,6 +218,7 @@ page 50160 "BC14 Migration Configuration"
         }
         area(Promoted)
         {
+            actionref(ContinueMigrationRef; ContinueMigration) { }
             actionref(ResetMigrationStatusRef; ResetMigrationStatus) { }
             actionref(ResetAllCompaniesRef; ResetAllCompanies) { }
         }
@@ -175,6 +229,9 @@ page 50160 "BC14 Migration Configuration"
         ResetAllCompaniesQst: Label 'Are you sure you want to reset the migration status for ALL companies?\This will allow replication to run again for all companies.';
         MigrationStatusResetMsg: Label 'Migration status has been reset for company %1. You can now run replication again.', Comment = '%1 = Company Name';
         MigrationStatusResetAllMsg: Label 'Migration status has been reset for %1 companies. You can now run replication again.', Comment = '%1 = Count';
+        ContinueMigrationQst: Label 'The migration was paused due to an error in %1.\Have you fixed the error? Do you want to continue migration?', Comment = '%1 = Failed Migrator Name';
+        IsMigrationPaused: Boolean;
+        MigrationStateStyle: Text;
 
     trigger OnOpenPage()
     begin
@@ -182,6 +239,22 @@ page 50160 "BC14 Migration Configuration"
             Rec.Init();
             Rec.Name := CopyStr(CompanyName(), 1, 30);
             Rec.Insert();
+        end;
+    end;
+
+    trigger OnAfterGetRecord()
+    begin
+        IsMigrationPaused := Rec."Migration State" = "BC14 Migration State"::Paused;
+
+        case Rec."Migration State" of
+            "BC14 Migration State"::Paused:
+                MigrationStateStyle := 'Unfavorable';
+            "BC14 Migration State"::Completed:
+                MigrationStateStyle := 'Favorable';
+            "BC14 Migration State"::NotStarted:
+                MigrationStateStyle := 'Standard';
+            else
+                MigrationStateStyle := 'Ambiguous';
         end;
     end;
 }

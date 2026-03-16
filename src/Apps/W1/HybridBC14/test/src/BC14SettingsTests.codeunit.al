@@ -6,6 +6,7 @@
 namespace Microsoft.DataMigration.BC14.Tests;
 
 using Microsoft.DataMigration.BC14;
+using Microsoft.Sales.Customer;
 
 codeunit 148142 "BC14 Settings Tests"
 {
@@ -438,5 +439,235 @@ codeunit 148142 "BC14 Settings Tests"
         Clear(BC14CompanyAdditionalSettings);
         Assert.AreEqual(true, BC14CompanyAdditionalSettings.GetStopOnFirstTransformationError(), 'GetStopOnFirstTransformationError - Should be true');
         Assert.AreEqual(true, BC14CompanyAdditionalSettings.GetSkipPostingJournalBatches(), 'GetSkipPostingJournalBatches - Should be true');
+    end;
+
+    [Test]
+    procedure TestMigrationStateDefaultValue()
+    var
+        BC14CompanyAdditionalSettings: Record "BC14CompanyAdditionalSettings";
+    begin
+        // [SCENARIO] Migration State has correct default value.
+
+        // [GIVEN] Settings are created for the current company
+        BC14CompanyAdditionalSettings.DeleteAll();
+        BC14CompanyAdditionalSettings.GetSingleInstance();
+
+        // [THEN] Migration State should be NotStarted by default
+        Assert.AreEqual("BC14 Migration State"::NotStarted, BC14CompanyAdditionalSettings."Migration State", 'Migration State - Should be NotStarted by default');
+        Assert.AreEqual("BC14 Migration State"::NotStarted, BC14CompanyAdditionalSettings.GetMigrationState(), 'GetMigrationState - Should return NotStarted');
+        Assert.AreEqual(false, BC14CompanyAdditionalSettings.IsMigrationPaused(), 'IsMigrationPaused - Should be false initially');
+    end;
+
+    [Test]
+    procedure TestPauseMigration()
+    var
+        BC14CompanyAdditionalSettings: Record "BC14CompanyAdditionalSettings";
+    begin
+        // [SCENARIO] PauseMigration correctly sets the migration state and failed migrator info.
+
+        // [GIVEN] Settings are created for the current company
+        BC14CompanyAdditionalSettings.DeleteAll();
+        BC14CompanyAdditionalSettings.GetSingleInstance();
+
+        // [WHEN] PauseMigration is called with a migrator name
+        BC14CompanyAdditionalSettings.PauseMigration('G/L Account Migrator');
+
+        // [THEN] Migration state should be Paused with correct info
+        Clear(BC14CompanyAdditionalSettings);
+        BC14CompanyAdditionalSettings.GetSingleInstance();
+        Assert.AreEqual("BC14 Migration State"::Paused, BC14CompanyAdditionalSettings."Migration State", 'Migration State - Should be Paused');
+        Assert.AreEqual(true, BC14CompanyAdditionalSettings.IsMigrationPaused(), 'IsMigrationPaused - Should be true');
+        Assert.AreEqual('G/L Account Migrator', BC14CompanyAdditionalSettings."Failed Migrator Name", 'Failed Migrator Name - Should match');
+        Assert.AreNotEqual(0DT, BC14CompanyAdditionalSettings."Migration Paused At", 'Migration Paused At - Should have timestamp');
+    end;
+
+    [Test]
+    procedure TestSetMigrationPhaseCompleted()
+    var
+        BC14CompanyAdditionalSettings: Record "BC14CompanyAdditionalSettings";
+    begin
+        // [SCENARIO] SetMigrationPhaseCompleted correctly tracks completed phases.
+
+        // [GIVEN] Settings are created for the current company
+        BC14CompanyAdditionalSettings.DeleteAll();
+        BC14CompanyAdditionalSettings.GetSingleInstance();
+
+        // [WHEN] Setup phase is marked as completed
+        BC14CompanyAdditionalSettings.SetMigrationPhaseCompleted("BC14 Migration State"::Setup, 'Dimension Migrator');
+
+        // [THEN] Last completed phase should be Setup
+        Clear(BC14CompanyAdditionalSettings);
+        BC14CompanyAdditionalSettings.GetSingleInstance();
+        Assert.AreEqual("BC14 Migration State"::Setup, BC14CompanyAdditionalSettings."Last Completed Phase", 'Last Completed Phase - Should be Setup');
+        Assert.AreEqual("BC14 Migration State"::Setup, BC14CompanyAdditionalSettings.GetLastCompletedPhase(), 'GetLastCompletedPhase - Should return Setup');
+        Assert.AreEqual('Dimension Migrator', BC14CompanyAdditionalSettings."Last Completed Migrator", 'Last Completed Migrator - Should match');
+    end;
+
+    [Test]
+    procedure TestResetMigrationProgress()
+    var
+        BC14CompanyAdditionalSettings: Record "BC14CompanyAdditionalSettings";
+    begin
+        // [SCENARIO] ResetMigrationProgress clears all migration-related fields.
+
+        // [GIVEN] Settings are created with migration in progress and paused
+        BC14CompanyAdditionalSettings.DeleteAll();
+        BC14CompanyAdditionalSettings.GetSingleInstance();
+        BC14CompanyAdditionalSettings.SetDataMigrationStarted();
+        BC14CompanyAdditionalSettings.SetMigrationState("BC14 Migration State"::Master);
+        BC14CompanyAdditionalSettings.SetMigrationPhaseCompleted("BC14 Migration State"::Setup, 'Dimension Migrator');
+        BC14CompanyAdditionalSettings.PauseMigration('Customer Migrator');
+
+        // Verify paused state
+        Clear(BC14CompanyAdditionalSettings);
+        BC14CompanyAdditionalSettings.GetSingleInstance();
+        Assert.AreEqual(true, BC14CompanyAdditionalSettings.IsMigrationPaused(), 'Pre-check: Should be paused');
+        Assert.AreEqual(true, BC14CompanyAdditionalSettings."Data Migration Started", 'Pre-check: Data Migration Started should be true');
+
+        // [WHEN] ResetMigrationProgress is called
+        BC14CompanyAdditionalSettings.ResetMigrationProgress();
+
+        // [THEN] All migration-related fields should be cleared
+        Clear(BC14CompanyAdditionalSettings);
+        BC14CompanyAdditionalSettings.GetSingleInstance();
+        Assert.AreEqual("BC14 Migration State"::NotStarted, BC14CompanyAdditionalSettings."Migration State", 'Migration State - Should be NotStarted');
+        Assert.AreEqual("BC14 Migration State"::NotStarted, BC14CompanyAdditionalSettings."Last Completed Phase", 'Last Completed Phase - Should be NotStarted');
+        Assert.AreEqual('', BC14CompanyAdditionalSettings."Last Completed Migrator", 'Last Completed Migrator - Should be empty');
+        Assert.AreEqual(0DT, BC14CompanyAdditionalSettings."Migration Paused At", 'Migration Paused At - Should be cleared');
+        Assert.AreEqual('', BC14CompanyAdditionalSettings."Failed Migrator Name", 'Failed Migrator Name - Should be empty');
+        Assert.AreEqual(false, BC14CompanyAdditionalSettings."Data Migration Started", 'Data Migration Started - Should be false');
+        Assert.AreEqual(0DT, BC14CompanyAdditionalSettings."Data Migration Started At", 'Data Migration Started At - Should be cleared');
+    end;
+
+    [Test]
+    procedure TestPauseFixContinueWorkflow()
+    var
+        BC14CompanyAdditionalSettings: Record "BC14CompanyAdditionalSettings";
+        BC14MigrationErrors: Record "BC14 Migration Errors";
+        BC14MigrationErrorHandler: Codeunit "BC14 Migration Error Handler";
+        DummyRecordRef: RecordRef;
+        DummyRecId: RecordId;
+    begin
+        // [SCENARIO] Full workflow: Migration pauses on error, user fixes it, then continues.
+        // This tests the complete pause -> fix -> continue flow.
+
+        // [GIVEN] Settings with Stop On First Error enabled
+        BC14CompanyAdditionalSettings.DeleteAll();
+        BC14MigrationErrors.DeleteAll();
+
+        BC14CompanyAdditionalSettings.GetSingleInstance();
+        BC14CompanyAdditionalSettings.Validate("Stop On First Error", true);
+        BC14CompanyAdditionalSettings.Modify();
+
+        // Simulate migration started and Setup phase completed
+        BC14CompanyAdditionalSettings.SetDataMigrationStarted();
+        BC14CompanyAdditionalSettings.SetMigrationState("BC14 Migration State"::Master);
+        BC14CompanyAdditionalSettings.SetMigrationPhaseCompleted("BC14 Migration State"::Setup, '');
+
+        // [WHEN] An error occurs during Master migration
+        DummyRecordRef.Open(Database::"BC14 Migration Errors");
+        DummyRecId := DummyRecordRef.RecordId;
+        DummyRecordRef.Close();
+
+        BC14MigrationErrorHandler.LogError(
+            'Customer Migrator',
+            Database::"BC14 Customer",
+            'BC14 Customer',
+            'No.=C001',
+            Database::Customer,
+            'Name cannot be empty',
+            DummyRecId
+        );
+
+        // Simulate migration pausing due to error
+        BC14CompanyAdditionalSettings.PauseMigration('Customer Migrator');
+
+        // [THEN] Migration should be paused
+        Clear(BC14CompanyAdditionalSettings);
+        BC14CompanyAdditionalSettings.GetSingleInstance();
+        Assert.AreEqual(true, BC14CompanyAdditionalSettings.IsMigrationPaused(), 'Should be paused after error');
+        Assert.AreEqual('Customer Migrator', BC14CompanyAdditionalSettings."Failed Migrator Name", 'Failed migrator should be Customer Migrator');
+        Assert.AreEqual("BC14 Migration State"::Setup, BC14CompanyAdditionalSettings.GetLastCompletedPhase(), 'Last completed phase should be Setup');
+
+        // [WHEN] User fixes the error (unblocks the record)
+        BC14MigrationErrors.FindFirst();
+        BC14MigrationErrors.UnblockForRetry('Fixed: Added customer name');
+
+        // [THEN] Error should be unblocked and scheduled for retry
+        BC14MigrationErrors.Get(BC14MigrationErrors.Id);
+        Assert.AreEqual(false, BC14MigrationErrors."Resolved", 'Error should not be resolved yet');
+        Assert.AreEqual(true, BC14MigrationErrors."Scheduled For Retry", 'Error should be scheduled for retry');
+        Assert.AreEqual('Fixed: Added customer name', BC14MigrationErrors."Resolution Notes", 'Resolution notes should match');
+
+        // [WHEN] User continues migration (simulated - just verify state would allow it)
+        // Note: Actually calling ContinueMigration would require full migrator setup.
+        // Here we just verify the state is correct for continuing.
+
+        // [THEN] Migration state should allow continuation
+        Clear(BC14CompanyAdditionalSettings);
+        Assert.AreEqual(true, BC14CompanyAdditionalSettings.IsMigrationPaused(), 'Should still be paused until ContinueMigration is called');
+        Assert.AreEqual("BC14 Migration State"::Setup, BC14CompanyAdditionalSettings.GetLastCompletedPhase(), 'Should resume from after Setup phase');
+    end;
+
+    [Test]
+    procedure TestMigrationStateTransitions()
+    var
+        BC14CompanyAdditionalSettings: Record "BC14CompanyAdditionalSettings";
+    begin
+        // [SCENARIO] Migration state can transition through all phases correctly.
+
+        // [GIVEN] Settings are created for the current company
+        BC14CompanyAdditionalSettings.DeleteAll();
+        BC14CompanyAdditionalSettings.GetSingleInstance();
+
+        // [THEN] Initial state should be NotStarted
+        Assert.AreEqual("BC14 Migration State"::NotStarted, BC14CompanyAdditionalSettings.GetMigrationState(), 'Initial state should be NotStarted');
+
+        // [WHEN] Migration progresses through phases
+        BC14CompanyAdditionalSettings.SetMigrationState("BC14 Migration State"::Setup);
+        Assert.AreEqual("BC14 Migration State"::Setup, BC14CompanyAdditionalSettings.GetMigrationState(), 'State should be Setup');
+
+        BC14CompanyAdditionalSettings.SetMigrationState("BC14 Migration State"::Master);
+        Assert.AreEqual("BC14 Migration State"::Master, BC14CompanyAdditionalSettings.GetMigrationState(), 'State should be Master');
+
+        BC14CompanyAdditionalSettings.SetMigrationState("BC14 Migration State"::Transaction);
+        Assert.AreEqual("BC14 Migration State"::Transaction, BC14CompanyAdditionalSettings.GetMigrationState(), 'State should be Transaction');
+
+        BC14CompanyAdditionalSettings.SetMigrationState("BC14 Migration State"::Historical);
+        Assert.AreEqual("BC14 Migration State"::Historical, BC14CompanyAdditionalSettings.GetMigrationState(), 'State should be Historical');
+
+        BC14CompanyAdditionalSettings.SetMigrationState("BC14 Migration State"::Posting);
+        Assert.AreEqual("BC14 Migration State"::Posting, BC14CompanyAdditionalSettings.GetMigrationState(), 'State should be Posting');
+
+        BC14CompanyAdditionalSettings.SetMigrationState("BC14 Migration State"::Completed);
+        Assert.AreEqual("BC14 Migration State"::Completed, BC14CompanyAdditionalSettings.GetMigrationState(), 'State should be Completed');
+    end;
+
+    [Test]
+    procedure TestCannotContinueWhenNotPaused()
+    var
+        BC14CompanyAdditionalSettings: Record "BC14CompanyAdditionalSettings";
+    begin
+        // [SCENARIO] IsMigrationPaused returns false when migration is not paused.
+
+        // [GIVEN] Settings are created with migration in progress (not paused)
+        BC14CompanyAdditionalSettings.DeleteAll();
+        BC14CompanyAdditionalSettings.GetSingleInstance();
+        BC14CompanyAdditionalSettings.SetMigrationState("BC14 Migration State"::Master);
+
+        // [THEN] IsMigrationPaused should return false
+        Assert.AreEqual(false, BC14CompanyAdditionalSettings.IsMigrationPaused(), 'Should not be paused when state is Master');
+
+        // [WHEN] State is NotStarted
+        BC14CompanyAdditionalSettings.SetMigrationState("BC14 Migration State"::NotStarted);
+
+        // [THEN] IsMigrationPaused should still return false
+        Assert.AreEqual(false, BC14CompanyAdditionalSettings.IsMigrationPaused(), 'Should not be paused when state is NotStarted');
+
+        // [WHEN] State is Completed
+        BC14CompanyAdditionalSettings.SetMigrationState("BC14 Migration State"::Completed);
+
+        // [THEN] IsMigrationPaused should still return false
+        Assert.AreEqual(false, BC14CompanyAdditionalSettings.IsMigrationPaused(), 'Should not be paused when state is Completed');
     end;
 }

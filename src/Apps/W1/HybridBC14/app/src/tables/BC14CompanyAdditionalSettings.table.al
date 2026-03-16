@@ -75,6 +75,31 @@ table 50155 "BC14CompanyAdditionalSettings"
             DataClassification = SystemMetadata;
             Caption = 'Stop On First Error';
         }
+        field(70; "Migration State"; Enum "BC14 Migration State")
+        {
+            DataClassification = SystemMetadata;
+            Caption = 'Migration State';
+        }
+        field(71; "Last Completed Phase"; Enum "BC14 Migration State")
+        {
+            DataClassification = SystemMetadata;
+            Caption = 'Last Completed Phase';
+        }
+        field(72; "Last Completed Migrator"; Text[100])
+        {
+            DataClassification = SystemMetadata;
+            Caption = 'Last Completed Migrator';
+        }
+        field(73; "Migration Paused At"; DateTime)
+        {
+            DataClassification = SystemMetadata;
+            Caption = 'Migration Paused At';
+        }
+        field(74; "Failed Migrator Name"; Text[100])
+        {
+            DataClassification = SystemMetadata;
+            Caption = 'Failed Migrator Name';
+        }
     }
 
     keys
@@ -150,5 +175,60 @@ table 50155 "BC14CompanyAdditionalSettings"
     begin
         GetSingleInstance();
         exit(Rec."Stop On First Error");
+    end;
+
+    procedure GetMigrationState(): Enum "BC14 Migration State"
+    begin
+        GetSingleInstance();
+        exit(Rec."Migration State");
+    end;
+
+    procedure SetMigrationState(NewState: Enum "BC14 Migration State")
+    begin
+        GetSingleInstance();
+        Rec."Migration State" := NewState;
+        Rec.Modify();
+    end;
+
+    procedure SetMigrationPhaseCompleted(Phase: Enum "BC14 Migration State"; MigratorName: Text[100])
+    begin
+        GetSingleInstance();
+        Rec."Last Completed Phase" := Phase;
+        Rec."Last Completed Migrator" := MigratorName;
+        Rec.Modify();
+    end;
+
+    procedure PauseMigration(FailedMigratorName: Text[100])
+    begin
+        GetSingleInstance();
+        Rec."Migration State" := "BC14 Migration State"::Paused;
+        Rec."Migration Paused At" := CurrentDateTime();
+        Rec."Failed Migrator Name" := FailedMigratorName;
+        Rec.Modify();
+    end;
+
+    procedure IsMigrationPaused(): Boolean
+    begin
+        GetSingleInstance();
+        exit(Rec."Migration State" = "BC14 Migration State"::Paused);
+    end;
+
+    procedure GetLastCompletedPhase(): Enum "BC14 Migration State"
+    begin
+        GetSingleInstance();
+        exit(Rec."Last Completed Phase");
+    end;
+
+    procedure ResetMigrationProgress()
+    begin
+        GetSingleInstance();
+        Rec."Migration State" := "BC14 Migration State"::NotStarted;
+        Rec."Last Completed Phase" := "BC14 Migration State"::NotStarted;
+        Rec."Last Completed Migrator" := '';
+        Rec."Migration Paused At" := 0DT;
+        Rec."Failed Migrator Name" := '';
+        Rec."Data Migration Started" := false;
+        Rec."Data Migration Started At" := 0DT;
+        Rec.Modify();
     end;
 }

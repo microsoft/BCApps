@@ -14,6 +14,8 @@ codeunit 50175 "BC14 Migration Runner"
     var
         MigrationStartedMsg: Label 'Migration started for company %1.', Comment = '%1 = Company Name';
         MigrationCompletedMsg: Label 'Migration completed for company %1. Total errors: %2.', Comment = '%1 = Company Name, %2 = Error Count';
+        MigrationPausedMsg: Label 'Migration paused for company %1 due to error in %2. Fix the error and use Continue Migration.', Comment = '%1 = Company Name, %2 = Migrator Name';
+        MigrationResumedMsg: Label 'Migration resumed for company %1 from %2 phase.', Comment = '%1 = Company Name, %2 = Phase Name';
         StopOnFirstErrorEnabledLbl: Label 'Stop On First Error is enabled. Migration will halt on first error.', Locked = true;
         ContinueOnErrorEnabledLbl: Label 'Continue On Error is enabled. Migration will collect all errors.', Locked = true;
         CleanedInvalidJournalLinesLbl: Label 'Cleaned up %1 invalid journal lines (Amount = 0)', Locked = true, Comment = '%1 = Count';
@@ -24,13 +26,15 @@ codeunit 50175 "BC14 Migration Runner"
         EnabledDirectPostingLbl: Label 'Enabled Direct Posting on %1 G/L Accounts for migration', Locked = true, Comment = '%1 = Count';
         PostMigrationJournalsSkippedLbl: Label 'PostMigrationJournals skipped - Skip Posting enabled', Locked = true;
         ValidationFailedLbl: Label 'Pre-migration validation failed: %1', Locked = true, Comment = '%1 = Error message';
+        MigrationPhaseCompletedLbl: Label 'Migration phase %1 completed.', Locked = true, Comment = '%1 = Phase Name';
+        CannotContinueNotPausedErr: Label 'Migration is not paused. Use Run Migration to start a new migration.';
+        CurrentMigratorName: Text[100];
 
     procedure RunMigration()
     var
         BC14CompanyAdditionalSettings: Record "BC14CompanyAdditionalSettings";
         BC14HelperFunctions: Codeunit "BC14 Helper Functions";
         StopOnFirstError: Boolean;
-        TotalErrors: Integer;
         CanProceed: Boolean;
         ValidationErrorMessage: Text;
     begin
@@ -47,6 +51,7 @@ codeunit 50175 "BC14 Migration Runner"
 
         // Mark migration as started to block future replications
         BC14CompanyAdditionalSettings.SetDataMigrationStarted();
+        BC14CompanyAdditionalSettings.SetMigrationState("BC14 Migration State"::Setup);
 
         StopOnFirstError := BC14CompanyAdditionalSettings.GetStopOnFirstTransformationError();
 
@@ -57,24 +62,113 @@ codeunit 50175 "BC14 Migration Runner"
 
         Session.LogMessage('0000ROD', StrSubstNo(MigrationStartedMsg, CompanyName()), Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', BC14HelperFunctions.GetTelemetryCategory());
 
-        // Run migrations in order: Setup -> Master -> Transactions
-        // Note: Most setup data (Dimensions, Payment Terms) is replicated directly.
-        // Use Setup Migrators only for setup data that requires transformation.
-        if not RunSetupMigrations(StopOnFirstError) and StopOnFirstError then
-            exit;
+        // Run migrations in order: Setup -> Master -> Transactions -> Historical -> Posting
+        RunMigrationFromPhase("BC14 Migration State"::Setup, StopOnFirstError);
+    end;
 
-        if not RunMasterMigrations(StopOnFirstError) and StopOnFirstError then
-            exit;
+    /// <summary>
+    /// Continues a paused migration from where it stopped.
+    /// Call this after fixing errors when Stop On First Error is enabled.
+    /// </summary>
+    procedure ContinueMigration()
+    var
+        BC14CompanyAdditionalSettings: Record "BC14CompanyAdditionalSettings";
+        BC14HelperFunctions: Codeunit "BC14 Helper Functions";
+        LastCompletedPhase: Enum "BC14 Migration State";
+        ResumePhase: Enum "BC14 Migration State";
+        StopOnFirstError: Boolean;
+    begin
+        BC14CompanyAdditionalSettings.GetSingleInstance();
 
-        if not RunTransactionMigrations(StopOnFirstError) and StopOnFirstError then
-            exit;
+        if not BC14CompanyAdditionalSettings.IsMigrationPaused() then
+            Error(CannotContinueNotPausedErr);
 
-        // Run historical data migrations (posted documents - no re-posting)
-        if not RunHistoricalMigrations(StopOnFirstError) and StopOnFirstError then
-            exit;
+        StopOnFirstError := BC14CompanyAdditionalSettings.GetStopOnFirstTransformationError();
+        LastCompletedPhase := BC14CompanyAdditionalSettings.GetLastCompletedPhase();
+
+        // Determine which phase to resume from (the one after the last completed)
+        case LastCompletedPhase of
+            "BC14 Migration State"::NotStarted:
+                ResumePhase := "BC14 Migration State"::Setup;
+            "BC14 Migration State"::Setup:
+                ResumePhase := "BC14 Migration State"::Master;
+            "BC14 Migration State"::Master:
+                ResumePhase := "BC14 Migration State"::Transaction;
+            "BC14 Migration State"::Transaction:
+                ResumePhase := "BC14 Migration State"::Historical;
+            "BC14 Migration State"::Historical:
+                ResumePhase := "BC14 Migration State"::Posting;
+            else
+                ResumePhase := "BC14 Migration State"::Setup;
+        end;
+
+        Session.LogMessage('0000ROK', StrSubstNo(MigrationResumedMsg, CompanyName(), Format(ResumePhase)), Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', BC14HelperFunctions.GetTelemetryCategory());
+
+        BC14CompanyAdditionalSettings.SetMigrationState(ResumePhase);
+        RunMigrationFromPhase(ResumePhase, StopOnFirstError);
+    end;
+
+    local procedure RunMigrationFromPhase(StartPhase: Enum "BC14 Migration State"; StopOnFirstError: Boolean)
+    var
+        BC14CompanyAdditionalSettings: Record "BC14CompanyAdditionalSettings";
+        BC14HelperFunctions: Codeunit "BC14 Helper Functions";
+        TotalErrors: Integer;
+    begin
+        // Run Setup migrations if starting from Setup or earlier
+        if StartPhase.AsInteger() <= "BC14 Migration State"::Setup.AsInteger() then begin
+            BC14CompanyAdditionalSettings.SetMigrationState("BC14 Migration State"::Setup);
+            if not RunSetupMigrations(StopOnFirstError) and StopOnFirstError then begin
+                BC14CompanyAdditionalSettings.PauseMigration(CurrentMigratorName);
+                Message(MigrationPausedMsg, CompanyName(), CurrentMigratorName);
+                exit;
+            end;
+            BC14CompanyAdditionalSettings.SetMigrationPhaseCompleted("BC14 Migration State"::Setup, '');
+            Session.LogMessage('0000ROL', StrSubstNo(MigrationPhaseCompletedLbl, 'Setup'), Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', BC14HelperFunctions.GetTelemetryCategory());
+        end;
+
+        // Run Master migrations
+        if StartPhase.AsInteger() <= "BC14 Migration State"::Master.AsInteger() then begin
+            BC14CompanyAdditionalSettings.SetMigrationState("BC14 Migration State"::Master);
+            if not RunMasterMigrations(StopOnFirstError) and StopOnFirstError then begin
+                BC14CompanyAdditionalSettings.PauseMigration(CurrentMigratorName);
+                Message(MigrationPausedMsg, CompanyName(), CurrentMigratorName);
+                exit;
+            end;
+            BC14CompanyAdditionalSettings.SetMigrationPhaseCompleted("BC14 Migration State"::Master, '');
+            Session.LogMessage('0000ROM', StrSubstNo(MigrationPhaseCompletedLbl, 'Master'), Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', BC14HelperFunctions.GetTelemetryCategory());
+        end;
+
+        // Run Transaction migrations
+        if StartPhase.AsInteger() <= "BC14 Migration State"::Transaction.AsInteger() then begin
+            BC14CompanyAdditionalSettings.SetMigrationState("BC14 Migration State"::Transaction);
+            if not RunTransactionMigrations(StopOnFirstError) and StopOnFirstError then begin
+                BC14CompanyAdditionalSettings.PauseMigration(CurrentMigratorName);
+                Message(MigrationPausedMsg, CompanyName(), CurrentMigratorName);
+                exit;
+            end;
+            BC14CompanyAdditionalSettings.SetMigrationPhaseCompleted("BC14 Migration State"::Transaction, '');
+            Session.LogMessage('0000RON', StrSubstNo(MigrationPhaseCompletedLbl, 'Transaction'), Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', BC14HelperFunctions.GetTelemetryCategory());
+        end;
+
+        // Run Historical migrations
+        if StartPhase.AsInteger() <= "BC14 Migration State"::Historical.AsInteger() then begin
+            BC14CompanyAdditionalSettings.SetMigrationState("BC14 Migration State"::Historical);
+            if not RunHistoricalMigrations(StopOnFirstError) and StopOnFirstError then begin
+                BC14CompanyAdditionalSettings.PauseMigration(CurrentMigratorName);
+                Message(MigrationPausedMsg, CompanyName(), CurrentMigratorName);
+                exit;
+            end;
+            BC14CompanyAdditionalSettings.SetMigrationPhaseCompleted("BC14 Migration State"::Historical, '');
+            Session.LogMessage('0000ROO', StrSubstNo(MigrationPhaseCompletedLbl, 'Historical'), Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', BC14HelperFunctions.GetTelemetryCategory());
+        end;
 
         // Post all migration journal batches (unless skipped)
+        BC14CompanyAdditionalSettings.SetMigrationState("BC14 Migration State"::Posting);
         PostMigrationJournals();
+
+        // Mark migration as completed
+        BC14CompanyAdditionalSettings.SetMigrationState("BC14 Migration State"::Completed);
+        BC14CompanyAdditionalSettings.SetMigrationPhaseCompleted("BC14 Migration State"::Completed, '');
 
         TotalErrors := GetTotalErrorCount();
         Session.LogMessage('0000ROE', StrSubstNo(MigrationCompletedMsg, CompanyName(), TotalErrors), Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', BC14HelperFunctions.GetTelemetryCategory());
@@ -98,6 +192,7 @@ codeunit 50175 "BC14 Migration Runner"
 
             if SetupMigrator.IsEnabled() then begin
                 SkipMigrator := false;
+                CurrentMigratorName := CopyStr(SetupMigrator.GetName(), 1, MaxStrLen(CurrentMigratorName));
                 OnBeforeRunMigrator(SetupMigrator.GetName(), SkipMigrator);
                 if SkipMigrator then
                     continue;
@@ -137,6 +232,7 @@ codeunit 50175 "BC14 Migration Runner"
 
             if MasterMigrator.IsEnabled() then begin
                 SkipMigrator := false;
+                CurrentMigratorName := CopyStr(MasterMigrator.GetName(), 1, MaxStrLen(CurrentMigratorName));
                 OnBeforeRunMigrator(MasterMigrator.GetName(), SkipMigrator);
                 if SkipMigrator then
                     continue;
@@ -177,6 +273,7 @@ codeunit 50175 "BC14 Migration Runner"
 
             if TransactionMigrator.IsEnabled() then begin
                 SkipMigrator := false;
+                CurrentMigratorName := CopyStr(TransactionMigrator.GetName(), 1, MaxStrLen(CurrentMigratorName));
                 OnBeforeRunMigrator(TransactionMigrator.GetName(), SkipMigrator);
                 if SkipMigrator then
                     continue;
@@ -217,6 +314,7 @@ codeunit 50175 "BC14 Migration Runner"
 
             if HistoricalMigrator.IsEnabled() then begin
                 SkipMigrator := false;
+                CurrentMigratorName := CopyStr(HistoricalMigrator.GetName(), 1, MaxStrLen(CurrentMigratorName));
                 OnBeforeRunMigrator(HistoricalMigrator.GetName(), SkipMigrator);
                 if SkipMigrator then
                     continue;
