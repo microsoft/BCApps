@@ -26,6 +26,8 @@ codeunit 50162 "BC14 Management"
         CannotUseDataMigrationOverviewMsg: Label 'It is not possible to use the Data Migration Overview page to fix the errors that occurred during BC14 Cloud Migration, it is will not be possible to start the Data Upgrade again. Investigate the issue and after fixing the issue, delete the failed companies and migrate them again.';
         DataMigrationAlreadyStartedErr: Label 'Data migration has already started for company %1 on %2. Additional replication is not allowed. You must delete this company and replicate it again to start a new migration.', Comment = '%1 = Company Name, %2 = DateTime';
         NoPendingCompaniesErr: Label 'There are no companies with Pending upgrade status. Run the replication first or check if companies have already been upgraded.';
+        NoReplicationCompletedErr: Label 'Cannot start upgrade: No replication has been completed yet. Please run replication first before starting the upgrade.';
+        ReplicationNotInValidStateErr: Label 'Cannot start upgrade: The replication status is "%1". Upgrade can only be started when replication status is "Upgrade Pending" or "Completed".', Comment = '%1 = Status';
 
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Hybrid Cloud Management", 'OnHandleRunReplication', '', false, false)]
     local procedure BlockReplicationIfMigrationStarted(var Handled: Boolean; var RunId: Text; ReplicationType: Option)
@@ -253,6 +255,9 @@ codeunit 50162 "BC14 Management"
         if not BC14Wizard.GetBC14MigrationEnabled() then
             exit;
 
+        // Validate that replication has been completed before allowing upgrade
+        ValidateReplicationBeforeUpgrade(HybridReplicationSummary);
+
         // Check if there are any pending companies
         HybridCompanyStatus.SetRange("Upgrade Status", HybridCompanyStatus."Upgrade Status"::Pending);
         if HybridCompanyStatus.IsEmpty() then begin
@@ -412,6 +417,33 @@ codeunit 50162 "BC14 Management"
     internal procedure GetDefaultJobTimeout(): Duration
     begin
         exit(48 * 60 * 60 * 1000); // 48 hours
+    end;
+
+    internal procedure ValidateReplicationBeforeUpgrade(var HybridReplicationSummary: Record "Hybrid Replication Summary")
+    var
+        CompletedReplicationSummary: Record "Hybrid Replication Summary";
+        BC14Wizard: Codeunit "BC14 Wizard";
+    begin
+        // First check: The passed replication summary must have a valid Run ID
+        if HybridReplicationSummary."Run ID" = '' then
+            Error(NoReplicationCompletedErr);
+
+        // Second check: There must be at least one completed replication run for BC14
+        CompletedReplicationSummary.SetRange(Source, BC14Wizard.GetMigrationProviderId());
+        CompletedReplicationSummary.SetFilter(Status, '%1|%2|%3',
+            CompletedReplicationSummary.Status::Completed,
+            CompletedReplicationSummary.Status::UpgradePending,
+            CompletedReplicationSummary.Status::UpgradeInProgress);
+        if CompletedReplicationSummary.IsEmpty() then
+            Error(NoReplicationCompletedErr);
+
+        // Third check: The current summary must have a valid status for upgrade
+        // Only allow upgrade when status is UpgradePending, Completed (for retry), or UpgradeFailed (for retry)
+        if not (HybridReplicationSummary.Status in [
+            HybridReplicationSummary.Status::UpgradePending,
+            HybridReplicationSummary.Status::Completed,
+            HybridReplicationSummary.Status::UpgradeFailed]) then
+            Error(ReplicationNotInValidStateErr, Format(HybridReplicationSummary.Status));
     end;
 
     local procedure GetMinimalDelayDuration(): Duration

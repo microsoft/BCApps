@@ -126,6 +126,51 @@ page 50160 "BC14 Migration Configuration"
                     Visible = IsMigrationPaused;
                 }
             }
+
+            group(UpgradeSettings)
+            {
+                Caption = 'Upgrade Settings';
+
+                field(OneStepUpgrade; BC14UpgradeSettings."One Step Upgrade")
+                {
+                    ApplicationArea = All;
+                    Caption = 'Run upgrade after replication';
+                    ToolTip = 'Specifies whether to run the upgrade automatically after replication completes. Disable this if you want to manually trigger the upgrade.';
+
+                    trigger OnValidate()
+                    begin
+                        BC14UpgradeSettings.Modify();
+                    end;
+                }
+
+                field(OneStepUpgradeDelay; BC14UpgradeSettings."One Step Upgrade Delay")
+                {
+                    ApplicationArea = All;
+                    Caption = 'Upgrade delay after replication';
+                    ToolTip = 'Specifies the delay before starting the upgrade after replication completes.';
+
+                    trigger OnValidate()
+                    begin
+                        BC14UpgradeSettings.Modify();
+                    end;
+                }
+
+                field(DataUpgradeStarted; BC14UpgradeSettings."Data Upgrade Started")
+                {
+                    ApplicationArea = All;
+                    Caption = 'Data Upgrade Started';
+                    ToolTip = 'Specifies when the data upgrade was started.';
+                    Editable = false;
+                }
+
+                field(ReplicationCompleted; BC14UpgradeSettings."Replication Completed")
+                {
+                    ApplicationArea = All;
+                    Caption = 'Replication Completed';
+                    ToolTip = 'Specifies when the replication was completed.';
+                    Editable = false;
+                }
+            }
         }
     }
 
@@ -198,15 +243,6 @@ page 50160 "BC14 Migration Configuration"
         }
         area(Navigation)
         {
-            action(UpgradeSettings)
-            {
-                ApplicationArea = All;
-                Caption = 'Upgrade Settings';
-                ToolTip = 'Open upgrade settings.';
-                Image = Setup;
-                RunObject = page "BC14 Upgrade Settings";
-            }
-
             action(MigrationErrors)
             {
                 ApplicationArea = All;
@@ -225,6 +261,7 @@ page 50160 "BC14 Migration Configuration"
     }
 
     var
+        BC14UpgradeSettings: Record "BC14 Upgrade Settings";
         ResetMigrationStatusQst: Label 'Are you sure you want to reset the migration status for company %1?\This will allow replication to run again.', Comment = '%1 = Company Name';
         ResetAllCompaniesQst: Label 'Are you sure you want to reset the migration status for ALL companies?\This will allow replication to run again for all companies.';
         MigrationStatusResetMsg: Label 'Migration status has been reset for company %1. You can now run replication again.', Comment = '%1 = Company Name';
@@ -240,6 +277,8 @@ page 50160 "BC14 Migration Configuration"
             Rec.Name := CopyStr(CompanyName(), 1, 30);
             Rec.Insert();
         end;
+
+        BC14UpgradeSettings.GetOrInsertBC14UpgradeSettings(BC14UpgradeSettings);
     end;
 
     trigger OnAfterGetRecord()

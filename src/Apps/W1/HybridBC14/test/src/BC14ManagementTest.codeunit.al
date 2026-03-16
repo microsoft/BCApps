@@ -197,4 +197,132 @@ codeunit 148140 "BC14 Management Test"
         WebhookNotification.Insert(true);
     end;
 #pragma warning restore AA0150
+
+    [Test]
+    procedure TestValidateReplicationBeforeUpgradeWithEmptyRunId()
+    var
+        HybridReplicationSummary: Record "Hybrid Replication Summary";
+        BC14Management: Codeunit "BC14 Management";
+    begin
+        // [SCENARIO] ValidateReplicationBeforeUpgrade should error when Run ID is empty
+
+        // [GIVEN] Intelligent cloud is set up for BC14 and a summary with empty Run ID
+        Initialize();
+        HybridReplicationSummary.Init();
+        HybridReplicationSummary."Run ID" := '';
+
+        // [WHEN] ValidateReplicationBeforeUpgrade is called
+        // [THEN] An error is thrown indicating no replication has been completed
+        asserterror BC14Management.ValidateReplicationBeforeUpgrade(HybridReplicationSummary);
+        Assert.ExpectedError('Cannot start upgrade: No replication has been completed yet.');
+    end;
+
+    [Test]
+    procedure TestValidateReplicationBeforeUpgradeWithNoCompletedReplication()
+    var
+        HybridReplicationSummary: Record "Hybrid Replication Summary";
+        BC14Management: Codeunit "BC14 Management";
+    begin
+        // [SCENARIO] ValidateReplicationBeforeUpgrade should error when no completed replications exist
+
+        // [GIVEN] Intelligent cloud is set up and a summary exists but no completed replications
+        Initialize();
+        HybridReplicationSummary.Init();
+        HybridReplicationSummary."Run ID" := CreateGuid();
+        HybridReplicationSummary.Status := HybridReplicationSummary.Status::InProgress;
+        HybridReplicationSummary.Insert();
+
+        // [WHEN] ValidateReplicationBeforeUpgrade is called
+        // [THEN] An error is thrown indicating no replication has been completed
+        asserterror BC14Management.ValidateReplicationBeforeUpgrade(HybridReplicationSummary);
+        Assert.ExpectedError('Cannot start upgrade: No replication has been completed yet.');
+    end;
+
+    [Test]
+    procedure TestValidateReplicationBeforeUpgradeWithInvalidStatus()
+    var
+        HybridReplicationSummary: Record "Hybrid Replication Summary";
+        CompletedReplication: Record "Hybrid Replication Summary";
+        BC14Wizard: Codeunit "BC14 Wizard";
+        BC14Management: Codeunit "BC14 Management";
+    begin
+        // [SCENARIO] ValidateReplicationBeforeUpgrade should error when status is InProgress
+
+        // [GIVEN] Intelligent cloud is set up and there is a completed replication
+        Initialize();
+
+        CompletedReplication.Init();
+        CompletedReplication."Run ID" := CreateGuid();
+        CompletedReplication.Status := CompletedReplication.Status::Completed;
+        CompletedReplication.Source := BC14Wizard.GetMigrationProviderId();
+        CompletedReplication.Insert();
+
+        // [GIVEN] The current summary has InProgress status
+        HybridReplicationSummary.Init();
+        HybridReplicationSummary."Run ID" := CreateGuid();
+        HybridReplicationSummary.Status := HybridReplicationSummary.Status::InProgress;
+        HybridReplicationSummary.Source := BC14Wizard.GetMigrationProviderId();
+        HybridReplicationSummary.Insert();
+
+        // [WHEN] ValidateReplicationBeforeUpgrade is called
+        // [THEN] An error is thrown indicating invalid status
+        asserterror BC14Management.ValidateReplicationBeforeUpgrade(HybridReplicationSummary);
+        Assert.ExpectedError('Cannot start upgrade: The replication status is');
+    end;
+
+    [Test]
+    procedure TestValidateReplicationBeforeUpgradeWithUpgradePendingStatus()
+    var
+        HybridReplicationSummary: Record "Hybrid Replication Summary";
+        BC14Wizard: Codeunit "BC14 Wizard";
+        BC14Management: Codeunit "BC14 Management";
+    begin
+        // [SCENARIO] ValidateReplicationBeforeUpgrade should succeed when status is UpgradePending
+
+        // [GIVEN] Intelligent cloud is set up and summary has UpgradePending status
+        Initialize();
+
+        HybridReplicationSummary.Init();
+        HybridReplicationSummary."Run ID" := CreateGuid();
+        HybridReplicationSummary.Status := HybridReplicationSummary.Status::UpgradePending;
+        HybridReplicationSummary.Source := BC14Wizard.GetMigrationProviderId();
+        HybridReplicationSummary.Insert();
+
+        // [WHEN] ValidateReplicationBeforeUpgrade is called
+        BC14Management.ValidateReplicationBeforeUpgrade(HybridReplicationSummary);
+
+        // [THEN] No error is thrown (validation passes)
+    end;
+
+    [Test]
+    procedure TestValidateReplicationBeforeUpgradeWithUpgradeFailedStatus()
+    var
+        HybridReplicationSummary: Record "Hybrid Replication Summary";
+        CompletedReplication: Record "Hybrid Replication Summary";
+        BC14Wizard: Codeunit "BC14 Wizard";
+        BC14Management: Codeunit "BC14 Management";
+    begin
+        // [SCENARIO] ValidateReplicationBeforeUpgrade should succeed when status is UpgradeFailed (retry scenario)
+
+        // [GIVEN] Intelligent cloud is set up and there is a completed replication
+        Initialize();
+
+        CompletedReplication.Init();
+        CompletedReplication."Run ID" := CreateGuid();
+        CompletedReplication.Status := CompletedReplication.Status::Completed;
+        CompletedReplication.Source := BC14Wizard.GetMigrationProviderId();
+        CompletedReplication.Insert();
+
+        // [GIVEN] The current summary has UpgradeFailed status (retry scenario)
+        HybridReplicationSummary.Init();
+        HybridReplicationSummary."Run ID" := CreateGuid();
+        HybridReplicationSummary.Status := HybridReplicationSummary.Status::UpgradeFailed;
+        HybridReplicationSummary.Source := BC14Wizard.GetMigrationProviderId();
+        HybridReplicationSummary.Insert();
+
+        // [WHEN] ValidateReplicationBeforeUpgrade is called
+        BC14Management.ValidateReplicationBeforeUpgrade(HybridReplicationSummary);
+
+        // [THEN] No error is thrown (validation passes for retry)
+    end;
 }
