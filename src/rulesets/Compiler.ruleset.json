@@ -4305,8 +4305,7 @@
         },
         {
             "id": "AL1076",
-            "action": "Warning",
-            "justification": "TODO(qutreson) - Temporary to unblock rename of Business Foundation Test Library"
+            "action": "Error"
         },
         {
             "id": "AL1077",
