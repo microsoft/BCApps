@@ -1,11 +1,13 @@
 namespace Microsoft.SubscriptionBilling;
 
+using Microsoft.CRM.Team;
 using Microsoft.Finance.Currency;
 using Microsoft.Finance.GeneralLedger.Ledger;
 using Microsoft.Finance.VAT.Setup;
 using Microsoft.Foundation.NoSeries;
 using Microsoft.Inventory.Item;
 using Microsoft.Inventory.Item.Catalog;
+using Microsoft.Inventory.Ledger;
 using Microsoft.Inventory.Location;
 using Microsoft.Inventory.Requisition;
 using Microsoft.Inventory.Setup;
@@ -197,20 +199,24 @@ codeunit 139915 "Sales Service Commitment Test"
         RequisitionLine: Record "Requisition Line";
         Vendor: Record Vendor;
     begin
+        // [SCENARIO] Subscriptions with serial numbers are created when posting a purchase order for a drop shipment sales order.
         Initialize();
 
+        // [GIVEN] A released sales order with serial no. tracked subscription item set up for drop shipment
         CreateAndReleaseSalesDocumentWithSerialNoForDropShipment();
 
         LibraryPurchase.CreateVendor(Vendor);
         Item."Vendor No." := Vendor."No.";
         Item.Modify(false);
 
+        // [WHEN] A purchase order is created from the sales order via requisition worksheet and received
         RunGetSalesOrders(RequisitionLine, SalesHeader);
         ReqWkshCarryOutActionMessage(RequisitionLine);
         PurchaseHeader.SetRange("Buy-from Vendor No.", Vendor."No.");
         PurchaseHeader.FindLast();
         LibraryPurchase.PostPurchaseDocument(PurchaseHeader, true, false);
 
+        // [THEN] One Subscription per serial number is created with the correct serial number and quantity of 1
         TestServiceObjectWithSerialNoExpectedCount();
         TestServiceObjectWithSerialNoExists();
     end;
@@ -1128,10 +1134,10 @@ codeunit 139915 "Sales Service Commitment Test"
         CustomerPriceGroup: Record "Customer Price Group";
         CustomerReference: Text;
     begin
-        // Create Item as Sales with Subscription
-        // Assign negative value to Quantity
-        // Ship Item -  Subscription should not be created
+        // [SCENARIO] No Subscription is created when shipping a sales order with a negative quantity for a subscription item.
         Initialize();
+
+        // [GIVEN] A sales order with a subscription item that has a negative quantity
         ContractTestLibrary.CreateItemWithServiceCommitmentOption(Item, Enum::"Item Service Commitment Type"::"Sales with Service Commitment");
         LibrarySales.CreateCustomer(Customer);
         LibrarySales.CreateCustomerPriceGroup(CustomerPriceGroup);
@@ -1143,8 +1149,11 @@ codeunit 139915 "Sales Service Commitment Test"
         SalesHeader.Modify(false);
 
         LibrarySales.CreateSalesLine(SalesLine, SalesHeader, Enum::"Sales Line Type"::Item, Item."No.", -LibraryRandom.RandInt(100));
+
+        // [WHEN] The sales order is shipped
         LibrarySales.PostSalesDocument(SalesHeader, true, false);
 
+        // [THEN] No Subscription is created for the item
         ServiceObject.FilterOnItemNo(Item."No.");
         ServiceObject.SetRange("Customer Reference", CustomerReference);
         Assert.RecordIsEmpty(ServiceObject);
@@ -1154,14 +1163,19 @@ codeunit 139915 "Sales Service Commitment Test"
     [HandlerFunctions('MessageHandler')]
     procedure DoNotCreateServiceObjectWithSerialNoOnShipSalesOrderWithNegativeQuantity()
     begin
+        // [SCENARIO] Shipping a sales order with a negative quantity for a serial no. tracked subscription item does not create duplicate Subscriptions.
         Initialize();
+
+        // [GIVEN] Subscriptions with serial numbers exist from a previously shipped sales order
         CreateAndPostSalesDocumentWithSerialNo(true, true);
         CheckThatOnlyOneServiceObjectWithSerialNoExists();
 
+        // [WHEN] A new sales order with the same item and negative quantity is shipped with serial no. tracking
         LibrarySales.CreateSalesHeader(SalesHeader, SalesHeader."Document Type"::Order, Customer."No.");
         LibrarySales.CreateSalesLine(SalesLine, SalesHeader, Enum::"Sales Line Type"::Item, Item."No.", -NoOfServiceObjects);
         CreateSalesLineItemTrackingAndPostSalesDocument(-1, true, false);
 
+        // [THEN] No additional Subscriptions are created; only the original ones still exist
         CheckThatOnlyOneServiceObjectWithSerialNoExists();
     end;
 
@@ -1737,6 +1751,128 @@ codeunit 139915 "Sales Service Commitment Test"
         SalesLine.Delete(true);
     end;
 
+    [Test]
+    procedure SubscriptionHeaderCreatedFromSalesOrderHasTraceabilityFieldsValues()
+    var
+        Vendor: Record Vendor;
+        Manufacturer: Record Manufacturer;
+        SalespersonPurchaser: Record "Salesperson/Purchaser";
+        SalesInvoiceHeader: Record "Sales Invoice Header";
+        ItemLedgerEntry: Record "Item Ledger Entry";
+        SubscriptionHeader: Record "Subscription Header";
+        TestItems: array[2] of Record Item;
+        ItemServiceCommitmentTypes: array[2] of Enum "Item Service Commitment Type";
+        SalesOrderNo: Code[20];
+        i: Integer;
+    begin
+        // [SCENARIO] Subscription Header created from Sales Order inherits Vendor, Manufacturer, Salesperson, Sales Order No., Item Ledger Entry No. and Last Sales Invoice No.
+        // [SCENARIO] Last Sales Invoice No. is only populated for "Sales with Service Commitment" items, not for "Service Commitment Item" items
+        Initialize();
+
+        // [GIVEN] Vendor and Manufacturer
+        LibraryPurchase.CreateVendor(Vendor);
+        CreateManufacturer(Manufacturer);
+
+        // [GIVEN] Sales Order with Salesperson
+        LibrarySales.CreateSalesHeader(SalesHeader, SalesHeader."Document Type"::Order, LibrarySales.CreateCustomerNo());
+        LibrarySales.CreateSalesperson(SalespersonPurchaser);
+        SalesHeader.Validate("Salesperson Code", SalespersonPurchaser.Code);
+        SalesHeader.Modify(true);
+        SalesOrderNo := SalesHeader."No.";
+
+        // [GIVEN] Items with different Service Commitment Types
+        ItemServiceCommitmentTypes[1] := Enum::"Item Service Commitment Type"::"Sales with Service Commitment";
+        ItemServiceCommitmentTypes[2] := Enum::"Item Service Commitment Type"::"Service Commitment Item";
+        for i := 1 to ArrayLen(ItemServiceCommitmentTypes) do begin
+            ContractTestLibrary.CreateItemWithServiceCommitmentOption(TestItems[i], ItemServiceCommitmentTypes[i]);
+            TestItems[i].Validate("Vendor No.", Vendor."No.");
+            TestItems[i].Validate("Vendor Item No.", LibraryUtility.GenerateRandomCode(TestItems[i].FieldNo("Vendor Item No."), Database::Item));
+            TestItems[i].Validate("Manufacturer Code", Manufacturer.Code);
+            TestItems[i].Modify(true);
+            LibrarySales.CreateSalesLine(SalesLine, SalesHeader, SalesLine.Type::Item, TestItems[i]."No.", LibraryRandom.RandIntInRange(1, 10));
+        end;
+
+        // [WHEN] Sales Order is posted (Ship and Invoice)
+        LibrarySales.PostSalesDocument(SalesHeader, true, true);
+
+        // [THEN] Subscription Headers are created with correct traceability fields
+        SalesInvoiceHeader.SetRange("Order No.", SalesOrderNo);
+        SalesInvoiceHeader.FindFirst();
+
+        for i := 1 to ArrayLen(TestItems) do begin
+            SubscriptionHeader.Reset();
+            SubscriptionHeader.SetRange("Sales Order No.", SalesOrderNo);
+            SubscriptionHeader.SetRange("Source No.", TestItems[i]."No.");
+            Assert.RecordIsNotEmpty(SubscriptionHeader);
+            SubscriptionHeader.FindFirst();
+
+            Assert.AreEqual(Vendor."No.", SubscriptionHeader."Vendor No.", 'Vendor No. should match Item Vendor No.');
+            Assert.AreEqual(Vendor.Name, SubscriptionHeader."Vendor Name", 'Vendor Name should match Vendor Name');
+            Assert.AreEqual(TestItems[i]."Vendor Item No.", SubscriptionHeader."Vendor Item No.", 'Vendor Item No. should match Item Vendor Item No.');
+            Assert.AreEqual(Manufacturer.Code, SubscriptionHeader."Manufacturer Code", 'Manufacturer Code should match Item Manufacturer Code');
+            Assert.AreEqual(Manufacturer.Name, SubscriptionHeader."Manufacturer Name", 'Manufacturer Name should match Manufacturer Name');
+            Assert.AreEqual(SalespersonPurchaser.Code, SubscriptionHeader."Salesperson Code", 'Salesperson Code should match Sales Header Salesperson Code');
+            Assert.AreEqual(SalesOrderNo, SubscriptionHeader."Sales Order No.", 'Sales Order No. should match Sales Header No.');
+
+            ItemLedgerEntry.Reset();
+            ItemLedgerEntry.SetRange("Item No.", TestItems[i]."No.");
+            ItemLedgerEntry.FindLast();
+            Assert.AreEqual(ItemLedgerEntry."Entry No.", SubscriptionHeader."Item Ledger Entry No.", 'Item Ledger Entry No. should be populated');
+
+            if ItemServiceCommitmentTypes[i] = Enum::"Item Service Commitment Type"::"Sales with Service Commitment" then
+                Assert.AreEqual(SalesInvoiceHeader."No.", SubscriptionHeader."Last Sales Invoice No.", 'Last Sales Invoice No. should be populated for Sales with Service Commitment')
+            else
+                Assert.AreEqual('', SubscriptionHeader."Last Sales Invoice No.", 'Last Sales Invoice No. should be empty for Service Commitment Item');
+        end;
+    end;
+
+    [Test]
+    procedure ManualCreationOfSubscriptionHeaderPopulatesVendorManufacturerAndSalespersonFromCustomer()
+    var
+        Vendor: Record Vendor;
+        Manufacturer: Record Manufacturer;
+        SalespersonPurchaser: Record "Salesperson/Purchaser";
+    begin
+        // [SCENARIO] Manually validating Source No. on Subscription Header populates Vendor and Manufacturer fields from Item
+        // [SCENARIO] Validating End-User Customer No. populates Salesperson Code from Customer
+        Initialize();
+
+        // [GIVEN] Vendor and Manufacturer
+        LibraryPurchase.CreateVendor(Vendor);
+        CreateManufacturer(Manufacturer);
+
+        // [GIVEN] Item with Vendor and Manufacturer
+        ContractTestLibrary.CreateItemWithServiceCommitmentOption(Item, Enum::"Item Service Commitment Type"::"Service Commitment Item");
+        Item.Validate("Vendor No.", Vendor."No.");
+        Item.Validate("Vendor Item No.", LibraryUtility.GenerateRandomCode(Item.FieldNo("Vendor Item No."), Database::Item));
+        Item.Validate("Manufacturer Code", Manufacturer.Code);
+        Item.Modify(true);
+
+        // [GIVEN] Customer with Salesperson
+        LibrarySales.CreateSalesperson(SalespersonPurchaser);
+        Customer.Get(LibrarySales.CreateCustomerNo());
+        Customer.Validate("Salesperson Code", SalespersonPurchaser.Code);
+        Customer.Modify(true);
+
+        // [WHEN] New Subscription Header is created and Source No. and Customer are validated
+        ServiceObject.Init();
+        ServiceObject.Insert(true);
+        ServiceObject.Validate(Type, ServiceObject.Type::Item);
+        ServiceObject.Validate("Source No.", Item."No.");
+        ServiceObject.Validate("End-User Customer No.", Customer."No.");
+        ServiceObject.Modify(true);
+
+        // [THEN] Vendor and Manufacturer fields are populated from Item
+        Assert.AreEqual(Vendor."No.", ServiceObject."Vendor No.", 'Vendor No. should be populated from Item');
+        Assert.AreEqual(Vendor.Name, ServiceObject."Vendor Name", 'Vendor Name should be populated from Vendor');
+        Assert.AreEqual(Item."Vendor Item No.", ServiceObject."Vendor Item No.", 'Vendor Item No. should be populated from Item');
+        Assert.AreEqual(Manufacturer.Code, ServiceObject."Manufacturer Code", 'Manufacturer Code should be populated from Item');
+        Assert.AreEqual(Manufacturer.Name, ServiceObject."Manufacturer Name", 'Manufacturer Name should be populated from Manufacturer');
+
+        // [THEN] Salesperson Code is populated from Customer
+        Assert.AreEqual(SalespersonPurchaser.Code, ServiceObject."Salesperson Code", 'Salesperson Code should be populated from Customer');
+    end;
+
     #endregion Tests
 
     #region Procedures
@@ -1854,6 +1990,14 @@ codeunit 139915 "Sales Service Commitment Test"
         LibrarySales.CreateCustomer(NewCustomer);
         NewCustomer.Validate("Customer Price Group", CustomerPriceGroup.Code);
         NewCustomer.Modify(true);
+    end;
+
+    local procedure CreateManufacturer(var Manufacturer: Record Manufacturer)
+    begin
+        Manufacturer.Init();
+        Manufacturer.Code := LibraryUtility.GenerateRandomCode(Manufacturer.FieldNo(Code), Database::Manufacturer);
+        Manufacturer.Name := CopyStr(LibraryUtility.GenerateRandomText(MaxStrLen(Manufacturer.Name)), 1, MaxStrLen(Manufacturer.Name));
+        Manufacturer.Insert(true);
     end;
 
     local procedure CreateNoSeriesWithLine(): Code[20]
