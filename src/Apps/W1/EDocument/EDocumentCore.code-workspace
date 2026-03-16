@@ -1,10 +1,10 @@
 {
 	"folders": [
 		{
-			"path": "App"
+			"path": "Test"
 		},
 		{
-			"path": "Test"
+			"path": "App"
 		},
 		{
 			"path": "Demo Data"
