@@ -1,8 +1,8 @@
 {
   "id": "bee8cf2f-494a-42f4-aabd-650e87934d39",
-  "name": "Business Foundation Test Libraries",
+  "name": "Business Foundation Test Library",
   "publisher": "Microsoft",
-  "brief": "Test libraries that provide basic test setup for the Business Foundation tests.",
+  "brief": "Test library that provides basic test setup for the Business Foundation tests.",
   "description": "Contains an expansive set of library methods to be used exclusively in tests.",
   "version": "29.0.0.0",
   "privacyStatement": "https://go.microsoft.com/fwlink/?linkid=724009",
