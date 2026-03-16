@@ -37,7 +37,7 @@ export async function callGPT(systemPrompt, userMessage) {
     for (let attempt = 0; attempt < 2; attempt++) {
       try {
         const output = execSync(
-          `cat ${JSON.stringify(promptFile)} | copilot -s --no-ask-user --model=${MODEL_NAME}`,
+          `cat ${JSON.stringify(promptFile)} | copilot -s --no-ask-user --no-custom-instructions --model=${MODEL_NAME}`,
           {
             encoding: 'utf-8',
             timeout: 180_000,
@@ -46,10 +46,16 @@ export async function callGPT(systemPrompt, userMessage) {
           }
         );
 
-        // Strip markdown code block wrapping if present
+        // Extract the JSON object from the output.
+        // The CLI may prepend conversational text before the JSON.
         let content = output.trim();
         if (content.startsWith('```')) {
           content = content.replace(/^```(?:json)?\n?/, '').replace(/\n?```$/, '');
+        }
+        const jsonStart = content.indexOf('{');
+        const jsonEnd = content.lastIndexOf('}');
+        if (jsonStart !== -1 && jsonEnd > jsonStart) {
+          content = content.slice(jsonStart, jsonEnd + 1);
         }
 
         try {
