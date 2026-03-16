@@ -1,7 +1,7 @@
 // Label definitions, scoring thresholds, and app area mappings
 // See: docs/features/issue-triage-agent/design.md (FR7, FR19, FR22)
 
-export const MODEL_NAME = 'openai/gpt-5.4';
+export const MODEL_NAME = 'gpt-5.4';
 export const MODEL_TEMPERATURE = 1;
 
 // Quality score verdicts (FR7)

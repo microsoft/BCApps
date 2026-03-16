@@ -7,7 +7,6 @@ on:
 permissions:
   contents: read
   issues: write
-  models: read
 
 concurrency:
   group: triage-${{ github.event.issue.number }}
