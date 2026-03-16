@@ -43,6 +43,7 @@ pageextension 20416 "Qlty. Shop Supervisor RC" extends "Shop Supervisor Role Cen
                 group(Qlty_Analysis_Group)
                 {
                     Caption = 'Analysis';
+                    Tooltip = 'Analyze Quality Inspection data';
 
                     action(Qlty_QualityInspectionLines)
                     {

@@ -43,6 +43,7 @@ pageextension 20417 "Qlty. Machine Operator RC" extends "Machine Operator Role C
                 group(Qlty_Analysis_Group)
                 {
                     Caption = 'Analysis';
+                    Tooltip = 'Analyze Quality Inspection data';
 
                     action(Qlty_QualityInspectionLines)
                     {
