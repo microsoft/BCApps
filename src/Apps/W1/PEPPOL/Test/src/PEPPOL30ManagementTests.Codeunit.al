@@ -1008,7 +1008,13 @@ codeunit 139235 "PEPPOL30 Management Tests"
         Assert.AreEqual('UNCL4461', PaymentMeansListID, '');
         Assert.AreEqual(Format(DummySalesHeader."Due Date", 0, 9), PaymentDueDate, '');
         Assert.AreEqual('', PaymentChannelCode, '');
-        Assert.AreEqual('', PaymentID, '');
+        case true of
+            // 37350 = PEPPOL 3.0 - Sales NO: NO format sets PaymentID to a KID number
+            GetFormat().AsInteger() = 37350:
+                Assert.AreEqual('00000000000', PaymentID, '');
+            else
+                Assert.AreEqual('', PaymentID, '');
+        end;
         Assert.AreEqual('', PrimaryAccountNumberID, '');
         Assert.AreEqual('', NetworkID, '');
     end;
@@ -1182,7 +1188,13 @@ codeunit 139235 "PEPPOL30 Management Tests"
         Assert.AreEqual('UNCL4461', PaymentMeansListID, '');
         Assert.AreEqual(Format(DummySalesHeader."Due Date", 0, 9), PaymentDueDate, '');
         Assert.AreEqual('', PaymentChannelCode, '');
-        Assert.AreEqual('', PaymentID, '');
+        case true of
+            // 37350 = PEPPOL 3.0 - Sales NO: NO format sets PaymentID to a KID number
+            GetFormat().AsInteger() = 37350:
+                Assert.AreEqual('00000000000', PaymentID, '');
+            else
+                Assert.AreEqual('', PaymentID, '');
+        end;
         Assert.AreEqual('', PrimaryAccountNumberID, '');
         Assert.AreEqual('', NetworkID, '');
     end;

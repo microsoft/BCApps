@@ -43,15 +43,14 @@ page 9235 "Text Search Language Lookup"
     begin
         Rec.DeleteAll();
         SupportedLanguages := IndexManagement.GetSupportedOptimizedTextSearchLanguages();
-        foreach LanguageId in SupportedLanguages.Keys() do
-            if WindowsLanguage.Get(LanguageId) then begin
-                Rec.Init();
-                Rec."Language ID" := LanguageId;
-                if WindowsLanguage.Get(LanguageId) then
-                    Rec.Name := WindowsLanguage.Name
-                else
-                    Rec.Name := CopyStr(SupportedLanguages.Get(LanguageId), 1, MaxStrLen(Rec.Name));
-                Rec.Insert();
-            end;
+        foreach LanguageId in SupportedLanguages.Keys() do begin 
+            Rec.Init();
+            Rec."Language ID" := LanguageId;
+            if WindowsLanguage.Get(LanguageId) then 
+                Rec.Name := WindowsLanguage.Name
+            else
+                Rec.Name := CopyStr(SupportedLanguages.Get(LanguageId), 1, MaxStrLen(Rec.Name));
+            Rec.Insert();
+        end;
     end;
 }

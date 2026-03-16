@@ -453,8 +453,14 @@ codeunit 8105 "Contoso Subscription Billing"
     end;
 
     procedure InsertServiceObject(ObjectNo: Code[20]; CustomerNo: Code[20]; ItemNo: Code[20]; ProvisionStartDate: Date; Quantity: Decimal)
+    begin
+        InsertServiceObject(ObjectNo, CustomerNo, ItemNo, ProvisionStartDate, 0D, Quantity);
+    end;
+
+    procedure InsertServiceObject(ObjectNo: Code[20]; CustomerNo: Code[20]; ItemNo: Code[20]; ProvisionStartDate: Date; ProvisionEndDate: Date; Quantity: Decimal)
     var
         ServiceObject: Record "Subscription Header";
+        ProvisionDatesErr: Label '%1 cannot be earlier than the %2.', Comment = '%1 - provision end date, %2 - provision start date';
         Exists: Boolean;
     begin
         if ServiceObject.Get(ObjectNo) then begin
@@ -472,6 +478,12 @@ codeunit 8105 "Contoso Subscription Billing"
 
         ServiceObject.Validate("End-User Customer No.", CustomerNo);
         ServiceObject.Validate("Provision Start Date", ProvisionStartDate);
+        if ProvisionEndDate <> 0D then begin
+            if ProvisionEndDate < ProvisionStartDate then
+                Error(ProvisionDatesErr, ServiceObject.FieldCaption("Provision End Date"), ServiceObject.FieldCaption("Provision Start Date"));
+
+            ServiceObject.Validate("Provision End Date", ProvisionEndDate);
+        end;
         ServiceObject.SkipInsertServiceCommitmentsFromStandardServCommPackages(true);
         ServiceObject.Validate(Type, Enum::"Service Object Type"::Item);
         ServiceObject.Validate("Source No.", ItemNo);
@@ -494,10 +506,15 @@ codeunit 8105 "Contoso Subscription Billing"
         ServiceCommitment.DeleteAll(true);
         ServiceObject.Get(ObjectNo);
         ServiceCommitmentPackage.SetRange(Code, PackageCode);
-        ServiceObject.InsertServiceCommitmentsFromServCommPackage(ServiceAndCalculationStartDate, ServiceCommitmentPackage);
+        ServiceObject.InsertServiceCommitmentsFromServCommPackage(ServiceAndCalculationStartDate, ServiceObject."Provision End Date", ServiceCommitmentPackage, false);
     end;
 
     procedure InsertCustomerContract(ContractNo: Code[20]; Description: Text; CustomerNo: Code[20]; ContractTypeCode: Code[10])
+    begin
+        InsertCustomerContract(ContractNo, Description, CustomerNo, ContractTypeCode, true);
+    end;
+
+    procedure InsertCustomerContract(ContractNo: Code[20]; Description: Text; CustomerNo: Code[20]; ContractTypeCode: Code[10]; IsActive: Boolean)
     var
         CustomerContract: Record "Customer Subscription Contract";
         Exists: Boolean;
@@ -514,6 +531,7 @@ codeunit 8105 "Contoso Subscription Billing"
         CustomerContract.Validate("Sell-to Customer No.", CustomerNo);
         CustomerContract.Validate("Contract Type", ContractTypeCode);
         CustomerContract.Validate("Detail Overview", Enum::"Contract Detail Overview"::Complete);
+        CustomerContract.Validate(Active, IsActive);
 
         if Exists then
             CustomerContract.Modify(true)
@@ -567,9 +585,7 @@ codeunit 8105 "Contoso Subscription Billing"
 
     procedure InsertVendorContractLine(ContractNo: Code[20]; ObjectNo: Code[20])
     var
-        VendorContract: Record "Vendor Subscription Contract";
         VendorContractLine: Record "Vend. Sub. Contract Line";
-        ServiceCommitment: Record "Subscription Line";
     begin
         VendorContractLine.SetRange("Subscription Contract No.", ContractNo);
         if VendorContractLine.FindFirst() then
@@ -577,6 +593,14 @@ codeunit 8105 "Contoso Subscription Billing"
                 exit;
 
         VendorContractLine.DeleteAll(true);
+        AddVendorContractLine(ContractNo, ObjectNo);
+    end;
+
+    procedure AddVendorContractLine(ContractNo: Code[20]; ObjectNo: Code[20])
+    var
+        VendorContract: Record "Vendor Subscription Contract";
+        ServiceCommitment: Record "Subscription Line";
+    begin
         ServiceCommitment.SetRange("Subscription Header No.", ObjectNo);
         ServiceCommitment.SetRange(Partner, ServiceCommitment.Partner::Vendor);
         ServiceCommitment.FindFirst();

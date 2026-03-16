@@ -20,8 +20,8 @@ page 20402 "Qlty. Inspection Template"
     PageType = Card;
     RefreshOnActivate = true;
     SourceTable = "Qlty. Inspection Template Hdr.";
-    AboutTitle = 'Quality Inspection Template';
-    AboutText = 'A Quality Inspection Template is an inspection plan containing a set of questions and data points that you want to collect.';
+    AboutTitle = 'About Quality Inspection Template details';
+    AboutText = 'A Quality Inspection Template is an inspection plan containing a tests to perform, rules defining how the template impacts processes like purchase or production.';
     PromotedActionCategories = 'New,Process,Report';
     ApplicationArea = QualityManagement;
 
@@ -72,8 +72,6 @@ page 20402 "Qlty. Inspection Template"
                     field("Sample Fixed Amount"; Rec."Sample Fixed Amount")
                     {
                         ShowCaption = true;
-                        AboutTitle = 'Sample Fixed Amount';
-                        AboutText = 'When Sample Source is set to a fixed quantity then this represents a discrete fixed sample size. Samples can only be discrete units. If the quantity here exceeds the Source Quantity then the Source Quantity will be used instead.';
                     }
                 }
                 group(SamplePercentVisibilityWrapper)
@@ -85,8 +83,6 @@ page 20402 "Qlty. Inspection Template"
                     field("Sample Percentage"; Rec."Sample Percentage")
                     {
                         ShowCaption = true;
-                        AboutTitle = 'Sample Percentage';
-                        AboutText = 'When Sample Source is set to a percentage then this represents the percent of the source quantity to use. Values will be rounded to the highest discrete amount.';
                     }
                 }
             }
@@ -176,7 +172,7 @@ page 20402 "Qlty. Inspection Template"
                 Caption = 'Inspection Generation Rules';
                 ToolTip = 'View existing Quality Inspection Generation Rules related to this template. A Quality Inspection generation rule defines when you want to ask a set of questions defined in a template. You connect a template to a source table, and set the criteria to use that template with the table filter. When these filter criteria is met, then it will choose that template.';
                 AboutTitle = 'Inspection Generation Rules';
-                AboutText = 'View existing Quality Inspection Generation Rules related to this template. A Quality Inspection generation rule defines when you want to ask a set of questions defined in a template. You connect a template to a source table, and set the criteria to use that template with the table filter. When these filter criteria is met, then it will choose that template.';
+                AboutText = 'View inspection generation rules for this template. These rules define when the questions in the template are asked.';
                 Image = FilterLines;
                 Promoted = true;
                 PromotedCategory = Process;
