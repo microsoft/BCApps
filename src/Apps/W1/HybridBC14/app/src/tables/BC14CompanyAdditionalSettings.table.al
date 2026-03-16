@@ -69,6 +69,12 @@ table 50155 "BC14CompanyAdditionalSettings"
             DataClassification = SystemMetadata;
             Caption = 'Processes Are Running';
         }
+        field(62; "Stop On First Error"; Boolean)
+        {
+            InitValue = false;
+            DataClassification = SystemMetadata;
+            Caption = 'Stop On First Error';
+        }
     }
 
     keys
@@ -138,5 +144,11 @@ table 50155 "BC14CompanyAdditionalSettings"
     begin
         GetSingleInstance();
         exit(Rec."Skip Posting Journal Batches");
+    end;
+
+    procedure GetStopOnFirstTransformationError(): Boolean
+    begin
+        GetSingleInstance();
+        exit(Rec."Stop On First Error");
     end;
 }

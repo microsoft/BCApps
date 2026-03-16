@@ -69,6 +69,12 @@ page 50160 "BC14 Migration Configuration"
                     ApplicationArea = All;
                     ToolTip = 'Specifies whether to skip automatic posting of migration journal batches. Enable this if you want to review and post journals manually.';
                 }
+
+                field("Stop On First Transformation Error"; Rec."Stop On First Error")
+                {
+                    ApplicationArea = All;
+                    ToolTip = 'Specifies whether migration should stop immediately when a transformation error is found. Disable to continue and collect all errors in the log.';
+                }
             }
 
             group(Status)

@@ -193,6 +193,69 @@ page 50163 "BC14 Migration Error Overview"
                 end;
             }
 
+            action(UnblockForManualFix)
+            {
+                ApplicationArea = All;
+                Caption = 'Unblock Record';
+                ToolTip = 'Unblock the selected failed record and schedule it for retry.';
+                Image = ReOpen;
+
+                trigger OnAction()
+                begin
+                    Rec.UnblockForRetry(ManuallyUnblockedLbl);
+                    Message(RecordUnblockedMsg, Rec."Source Record Key");
+                    CurrPage.Update(false);
+                end;
+            }
+
+            action(OpenSourceBufferRecord)
+            {
+                ApplicationArea = All;
+                Caption = 'Open Source Buffer Record';
+                ToolTip = 'Open the failed source record for manual edits.';
+                Image = EditLines;
+
+                trigger OnAction()
+                var
+                    BC14BufferTableHelper: Codeunit "BC14 Buffer Table Helper";
+                begin
+                    if Rec."Source Table ID" = 0 then begin
+                        Message(SourceRecordNotAvailableMsg, Rec."Source Table Name", Rec."Source Record Key");
+                        exit;
+                    end;
+
+                    if not BC14BufferTableHelper.OpenBufferRecord(Rec."Source Table ID", Rec."Record Id") then
+                        Message(NoPageForTableMsg, Rec."Source Table Name");
+
+                    CurrPage.Update(false);
+                end;
+            }
+
+            action(UnblockAndEditSourceRecord)
+            {
+                ApplicationArea = All;
+                Caption = 'Unblock and Edit Source Record';
+                ToolTip = 'Unblock the failed record and open the source buffer record for manual correction.';
+                Image = Edit;
+
+                trigger OnAction()
+                var
+                    BC14BufferTableHelper: Codeunit "BC14 Buffer Table Helper";
+                begin
+                    if Rec."Source Table ID" = 0 then begin
+                        Message(SourceRecordNotAvailableMsg, Rec."Source Table Name", Rec."Source Record Key");
+                        exit;
+                    end;
+
+                    Rec.UnblockForRetry(ManuallyUnblockedForEditLbl);
+
+                    if not BC14BufferTableHelper.OpenBufferRecord(Rec."Source Table ID", Rec."Record Id") then
+                        Message(NoPageForTableMsg, Rec."Source Table Name");
+
+                    CurrPage.Update(false);
+                end;
+            }
+
             action(RetrySelectedRecords)
             {
                 ApplicationArea = All;
@@ -276,12 +339,22 @@ page 50163 "BC14 Migration Error Overview"
                 actionref(ScheduleForRetry_Promoted; ScheduleForRetry)
                 {
                 }
+                actionref(UnblockForManualFix_Promoted; UnblockForManualFix)
+                {
+                }
+                actionref(OpenSourceBufferRecord_Promoted; OpenSourceBufferRecord)
+                {
+                }
+                actionref(UnblockAndEditSourceRecord_Promoted; UnblockAndEditSourceRecord)
+                {
+                }
                 actionref(RetrySelectedRecords_Promoted; RetrySelectedRecords)
                 {
                 }
             }
         }
     }
+
     var
         ResolveAllErrorsQst: Label 'Do you want to mark ALL unresolved errors as resolved?';
         DeleteAllErrorsQst: Label 'Do you want to DELETE ALL error records? This cannot be undone.';
@@ -289,4 +362,9 @@ page 50163 "BC14 Migration Error Overview"
         ErrorsResolvedMsg: Label '%1 errors have been marked as resolved.', Comment = '%1 = Count';
         ErrorsDeletedMsg: Label '%1 error records have been deleted.', Comment = '%1 = Count';
         BulkResolvedLbl: Label 'Bulk resolved';
+        ManuallyUnblockedLbl: Label 'Manually unblocked by user';
+        ManuallyUnblockedForEditLbl: Label 'Manually unblocked for source record correction';
+        RecordUnblockedMsg: Label 'Record %1 has been unblocked and scheduled for retry.', Comment = '%1 = Source Record Key';
+        SourceRecordNotAvailableMsg: Label 'Source record %2 in table %1 cannot be opened. The record reference is unavailable.', Comment = '%1 = Source Table Name, %2 = Source Record Key';
+        NoPageForTableMsg: Label 'No dedicated page is available for table %1. Please edit the buffer table directly.', Comment = '%1 = Source Table Name';
 }

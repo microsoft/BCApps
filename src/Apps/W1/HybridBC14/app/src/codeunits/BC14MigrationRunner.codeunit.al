@@ -48,7 +48,7 @@ codeunit 50175 "BC14 Migration Runner"
         // Mark migration as started to block future replications
         BC14CompanyAdditionalSettings.SetDataMigrationStarted();
 
-        StopOnFirstError := false; // First version: always continue on error
+        StopOnFirstError := BC14CompanyAdditionalSettings.GetStopOnFirstTransformationError();
 
         if StopOnFirstError then
             Session.LogMessage('0000ROB', StopOnFirstErrorEnabledLbl, Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', BC14HelperFunctions.GetTelemetryCategory())
@@ -240,9 +240,11 @@ codeunit 50175 "BC14 Migration Runner"
 
     procedure RetryFailedRecords()
     var
+        BC14CompanyAdditionalSettings: Record "BC14CompanyAdditionalSettings";
         StopOnFirstError: Boolean;
     begin
-        StopOnFirstError := false; // First version: always continue on error
+        BC14CompanyAdditionalSettings.GetSingleInstance();
+        StopOnFirstError := BC14CompanyAdditionalSettings.GetStopOnFirstTransformationError();
 
         OnRetryFailedRecords(StopOnFirstError);
     end;

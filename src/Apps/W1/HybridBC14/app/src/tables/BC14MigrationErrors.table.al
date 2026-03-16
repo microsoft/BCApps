@@ -140,6 +140,18 @@ table 50157 "BC14 Migration Errors"
         Rec.Modify(true);
     end;
 
+    procedure UnblockForRetry(UnblockNote: Text[500])
+    begin
+        // Keep the error visible but unblock it for manual correction and retry.
+        Rec."Resolved" := false;
+        Rec."Resolved On" := 0DT;
+        Rec."Resolved By" := '';
+        Rec."Scheduled For Retry" := true;
+        if UnblockNote <> '' then
+            Rec."Resolution Notes" := UnblockNote;
+        Rec.Modify(true);
+    end;
+
     procedure GetUnresolvedErrorCount(TableId: Integer; CompanyNameFilter: Text[30]): Integer
     var
         BC14MigrationErrors: Record "BC14 Migration Errors";
