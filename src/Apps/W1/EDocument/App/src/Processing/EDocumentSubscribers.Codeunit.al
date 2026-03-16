@@ -31,7 +31,7 @@ using Microsoft.Service.Document;
 using Microsoft.Service.History;
 using Microsoft.Service.Posting;
 using Microsoft.Utilities;
-using System.AI;
+using Microsoft.Warehouse.Activity;
 using System.Automation;
 using System.Reflection;
 using System.Telemetry;
@@ -235,6 +235,9 @@ codeunit 6103 "E-Document Subscribers"
         SalesShipmentHeader: Record "Sales Shipment Header";
         DocumentSendingProfile: Record "Document Sending Profile";
     begin
+        if not AllowCreateEDocument(CommitIsSuppressed, InvtPickPutaway, PreviewMode, 'Sales-Post') then
+            exit;
+
         if (SalesInvHdrNo = '') and (SalesCrMemoHdrNo = '') and (SalesShptHdrNo = '') then
             exit;
         if not EDocumentProcessing.GetDocSendingProfileForCust(SalesHeader."Bill-to Customer No.", DocumentSendingProfile) then
@@ -274,6 +277,9 @@ codeunit 6103 "E-Document Subscribers"
     var
         DocumentSendingProfile: Record "Document Sending Profile";
     begin
+        if not AllowCreateEDocument(CommitIsSuppressed, InvtPickPutaway, false, 'TransferOrder-Post Shipment') then
+            exit;
+
         if TransferShipmentHeader."No." = '' then
             exit;
 
@@ -284,6 +290,44 @@ codeunit 6103 "E-Document Subscribers"
     end;
     #endregion After posting events
 
+    #region Warehouse completion — deferred E-Document creation
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Whse.-Activity-Post", OnAfterPostWhseActivityCompleted, '', false, false)]
+    local procedure OnAfterPostWhseActivityCompleted(WhseActivHeader: Record "Warehouse Activity Header"; var PurchaseHeader: Record "Purchase Header"; var SalesHeader: Record "Sales Header"; var TransferHeader: Record "Transfer Header"; SuppressCommit: Boolean; IsPreview: Boolean)
+    var
+        SalesShipmentHeader: Record "Sales Shipment Header";
+        SalesInvoiceHeader: Record "Sales Invoice Header";
+        TransferShipmentHeader: Record "Transfer Shipment Header";
+        DocumentSendingProfile: Record "Document Sending Profile";
+    begin
+        // For Inventory Pick flows, E-Documents are created here instead of inline in the posting
+        // subscribers, because this event fires after all posting work completes (including
+        // PostRelatedInboundTransfer) — so the full transaction is already persisted.
+        // Other activity types (Put-away, Movement) are not affected.
+
+        if WhseActivHeader.Type <> WhseActivHeader.Type::"Invt. Pick" then
+            exit;
+        if not AllowCreateEDocument(SuppressCommit, false, IsPreview, 'Whse.-Activity-Post') then
+            exit;
+
+        // Sales Shipment
+        if SalesHeader."Last Shipping No." <> '' then
+            if SalesShipmentHeader.Get(SalesHeader."Last Shipping No.") then
+                if EDocumentProcessing.GetDocSendingProfileForCust(SalesHeader."Bill-to Customer No.", DocumentSendingProfile) then
+                    CreateEDocumentFromPostedDocument(SalesShipmentHeader, DocumentSendingProfile, Enum::"E-Document Type"::"Sales Shipment");
+
+        // Sales Invoice (Ship+Invoice scenario)
+        if SalesHeader."Last Posting No." <> '' then
+            if SalesInvoiceHeader.Get(SalesHeader."Last Posting No.") then
+                if EDocumentProcessing.GetDocSendingProfileForCust(SalesHeader."Bill-to Customer No.", DocumentSendingProfile) then
+                    CreateEDocumentFromPostedDocument(SalesInvoiceHeader, DocumentSendingProfile, Enum::"E-Document Type"::"Sales Invoice");
+
+        // Transfer Shipment
+        if TransferHeader."Last Shipment No." <> '' then
+            if TransferShipmentHeader.Get(TransferHeader."Last Shipment No.") then
+                if EDocumentProcessing.GetDocSendingProfileForTransferShipment(DocumentSendingProfile, TransferShipmentHeader."Transfer-to Code") then
+                    CreateEDocumentFromPostedDocument(TransferShipmentHeader, DocumentSendingProfile, Enum::"E-Document Type"::"Transfer Shipment");
+    end;
+    #endregion Warehouse completion
 
     [EventSubscriber(ObjectType::Table, Database::"Purchases & Payables Setup", OnAfterShouldDocumentTotalAmountsBeChecked, '', false, false)]
     local procedure OnShouldDocumentTotalAmountsBeChecked(PurchaseHeader: Record "Purchase Header"; var ShouldDocumentTotalAmountsBeChecked: Boolean)
@@ -316,6 +360,9 @@ codeunit 6103 "E-Document Subscribers"
         ServiceCrMemoHdr: Record "Service Cr.Memo Header";
         DocumentSendingProfile: Record "Document Sending Profile";
     begin
+        if not AllowCreateEDocument(CommitIsSuppressed, false, false, 'Service-Post') then
+            exit;
+
         if (ServInvoiceNo = '') and (ServCrMemoNo = '') then
             exit;
 
@@ -621,6 +668,28 @@ codeunit 6103 "E-Document Subscribers"
             UpdateToPostedPurchaseEDocument(EDocument, PostedRecord, PostedDocumentNo, DocumentType);
             RemoveEDocumentLinkFromPurchaseDocument(OpenRecord);
         end;
+    end;
+
+    /// <summary>
+    /// Determine whether to allow creating E-Document based on the context of posting.
+    /// For Inventory Pick, we want to allow E-Document creation only in the OnAfterPostWhseActivityCompleted event, but not in the Sales-Post event, to avoid creating E-Document before the transaction is fully committed.
+    /// For other scenarios, we can create E-Document in the posting event.
+    /// </summary>
+    local procedure AllowCreateEDocument(CommitIsSuppressed: Boolean; InvtPickPutaway: Boolean; PreviewMode: Boolean; SourceEvent: Text): Boolean
+    var
+        Telemetry: Codeunit Telemetry;
+        TelemetryDimensions: Dictionary of [Text, Text];
+        DeferredCreationLbl: Label 'E-Document creation deferred', Locked = true;
+    begin
+        if not (CommitIsSuppressed or InvtPickPutaway or PreviewMode) then
+            exit(false);
+
+        TelemetryDimensions.Add('Source', SourceEvent);
+        TelemetryDimensions.Add('PreviewMode', Format(PreviewMode));
+        TelemetryDimensions.Add('InvtPickPutaway', Format(InvtPickPutaway));
+        TelemetryDimensions.Add('CommitIsSuppressed', Format(CommitIsSuppressed));
+        Telemetry.LogMessage('', DeferredCreationLbl, Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::All, TelemetryDimensions);
+        exit(true);
     end;
 
     local procedure LogAfterValidate(EDocumentEntryNo: Integer; LineSystemId: Guid; FieldName: Text)
