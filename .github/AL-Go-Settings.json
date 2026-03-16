@@ -10,7 +10,7 @@
   "country": "base",
   "useProjectDependencies": true,
   "incrementalBuilds": {
-    "onPush": true,
+    "onPush": false,
     "onPull_Request": true,
     "onSchedule": false,
     "retentionDays": 30,
