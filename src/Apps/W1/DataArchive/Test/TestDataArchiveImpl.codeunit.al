@@ -5,6 +5,7 @@
 
 namespace System.Test.DataAdministration;
 
+using Microsoft.Foundation.Address;
 using Microsoft.Sales.Customer;
 using System.DataAdministration;
 using System.TestLibraries.Utilities;
@@ -71,6 +72,25 @@ codeunit 139504 "Test Data Archive Impl."
         DataArchiveTable.SetRange("Data Archive Entry No.", NewArchiveNo);
         DataArchiveTable.FindLast();
         Assert.AreEqual(Customer.Count(), DataArchiveTable."No. of Records", 'Wrong no. of records.');
+        Assert.IsTrue(DataArchiveTable."Table Data (json)".HasValue(), 'The table data field is empty.');
+        Assert.IsTrue(DataArchiveTable."Table Fields (json)".HasValue(), 'The table fields field is empty.');
+    end;
+
+    [Test]
+    [TransactionModel(TransactionModel::AutoRollback)]
+    procedure TestSaveRecordsWithSplit()
+    var
+        DataArchiveTable: Record "Data Archive Table"; // data archive app
+        CurrCount: Integer;
+        NewArchiveNo: Integer;
+    begin
+        CurrCount := DataArchiveTable.Count();
+        NewArchiveNo := CreateLargeArchive(); // >1100 records
+        Assert.AreNotEqual(0, NewArchiveNo, 'New archive returned 0');
+        Assert.AreEqual(CurrCount + 2, DataArchiveTable.Count(), 'Expected exactly two extra archive records.');
+        DataArchiveTable.SetRange("Data Archive Entry No.", NewArchiveNo);
+        DataArchiveTable.FindFirst();
+        Assert.AreEqual(1000, DataArchiveTable."No. of Records", 'Wrong no. of records.');
         Assert.IsTrue(DataArchiveTable."Table Data (json)".HasValue(), 'The table data field is empty.');
         Assert.IsTrue(DataArchiveTable."Table Fields (json)".HasValue(), 'The table fields field is empty.');
     end;
@@ -156,6 +176,26 @@ codeunit 139504 "Test Data Archive Impl."
         else
             DataArchiveInterface.SaveRecords(RecRef);
         DataArchiveInterface.Save();
+        exit(NewArchiveNo);
+    end;
+
+    local procedure CreateLargeArchive(): Integer
+    var
+        CountryRegion: Record "Country/Region";
+        DataArchiveInterface: Codeunit "Data Archive";  // System App
+        RecRef: RecordRef;
+        NewArchiveNo: Integer;
+        i: Integer;
+    begin
+        NewArchiveNo := DataArchiveInterface.Create('New Archive');
+        for i := 1 to 1100 do begin
+            CountryRegion.Code := Format(100000 + i);
+            CountryRegion.Name := CountryRegion.Code;
+            if CountryRegion.Insert() then;
+        end;
+        RecRef.GetTable(CountryRegion);
+        DataArchiveInterface.SaveRecords(RecRef); // should trigger a split after the first 1000 records
+        DataArchiveInterface.Save(); // save the remaining
         exit(NewArchiveNo);
     end;
 }
