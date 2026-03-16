@@ -24,14 +24,13 @@ export async function fetchRelatedWorkItems(keywords) {
   console.log(`ADO: searching work items for [${keywords.slice(0, 5).join(', ')}]...`);
 
   try {
-    const topKeywords = keywords.slice(0, 5);
+    const topKeywords = keywords.slice(0, 3);
 
-    // Use AND logic: require all single-word terms to match (title OR description),
-    // but treat multi-word phrases as a single Contains clause
+    // Use OR logic: match any keyword in title only (Description Contains is expensive on large projects)
     const conditions = topKeywords.map(
-      kw => `([System.Title] Contains '${escapeWiql(kw)}' OR [System.Description] Contains '${escapeWiql(kw)}')`
+      kw => `[System.Title] Contains '${escapeWiql(kw)}'`
     );
-    const whereClause = conditions.join(' AND ');
+    const whereClause = conditions.join(' OR ');
 
     const wiql = `SELECT [System.Id] FROM WorkItems WHERE [System.TeamProject] = '${ADO_PROJECT}' AND (${whereClause}) ORDER BY [System.ChangedDate] DESC`;
 
