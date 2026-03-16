@@ -6,9 +6,9 @@
 namespace Microsoft.DataMigration.BC14.Tests;
 
 using Microsoft.DataMigration.BC14;
-using System.Integration;
-using Microsoft.Finance.GeneralLedger.Journal;
 using Microsoft.Finance.GeneralLedger.Account;
+using Microsoft.Finance.GeneralLedger.Journal;
+using System.Integration;
 
 codeunit 148149 "BC14 Helper Functions Tests"
 {

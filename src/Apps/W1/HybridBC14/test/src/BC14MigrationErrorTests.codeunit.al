@@ -7,9 +7,9 @@ namespace Microsoft.DataMigration.BC14.Tests;
 
 using Microsoft.DataMigration.BC14;
 using Microsoft.Finance.GeneralLedger.Account;
-using Microsoft.Sales.Customer;
-using Microsoft.Purchases.Vendor;
 using Microsoft.Inventory.Item;
+using Microsoft.Purchases.Vendor;
+using Microsoft.Sales.Customer;
 
 codeunit 148143 "BC14 Migration Error Tests"
 {

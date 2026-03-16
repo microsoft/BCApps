@@ -143,7 +143,6 @@ codeunit 148150 "BC14 Item Migration Tests"
     [Test]
     procedure TestItemMigrationSkippedWhenModuleDisabled()
     var
-        BC14Item: Record "BC14 Item";
         Item: Record Item;
         BC14CompanyAdditionalSettings: Record "BC14CompanyAdditionalSettings";
         BC14ItemMigrator: Codeunit "BC14 Item Migrator";

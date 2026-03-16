@@ -5,8 +5,8 @@
 
 namespace Microsoft.DataMigration.BC14.Tests;
 
-using Microsoft.DataMigration.BC14;
 using Microsoft.DataMigration;
+using Microsoft.DataMigration.BC14;
 using System.Integration;
 using System.Security.AccessControl;
 using System.TestLibraries.Environment;

@@ -5,11 +5,11 @@
 
 namespace Microsoft.DataMigration.BC14.Tests;
 
-using Microsoft.DataMigration.BC14;
 using Microsoft.DataMigration;
+using Microsoft.DataMigration.BC14;
 using System.Security.AccessControl;
 using System.TestLibraries.Environment;
-codeunit 148147 "BC14 Wizard Tests"
+codeunit 148151 "BC14 Wizard Tests"
 {
     // [FEATURE] [BC14 Cloud Migration Wizard]
 

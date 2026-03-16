@@ -5,8 +5,8 @@
 
 namespace Microsoft.DataMigration.BC14.Tests;
 
-using Microsoft.DataMigration.BC14;
 using Microsoft.DataMigration;
+using Microsoft.DataMigration.BC14;
 
 codeunit 148148 "BC14 Migration Provider Tests"
 {
@@ -203,9 +203,9 @@ codeunit 148148 "BC14 Migration Provider Tests"
     var
         BC14MigrationProvider: Codeunit "BC14 Migration Provider";
     begin
-        // [SCENARIO] ShowConfigureMigrationTablesMappingStep returns true for BC14.
+        // [SCENARIO] ShowConfigureMigrationTablesMappingStep returns false for BC14.
 
-        // [THEN] The step should be shown
-        Assert.IsTrue(BC14MigrationProvider.ShowConfigureMigrationTablesMappingStep(), 'Should show configure migration tables mapping step');
+        // [THEN] The step should not be shown
+        Assert.IsFalse(BC14MigrationProvider.ShowConfigureMigrationTablesMappingStep(), 'Should not show configure migration tables mapping step');
     end;
 }

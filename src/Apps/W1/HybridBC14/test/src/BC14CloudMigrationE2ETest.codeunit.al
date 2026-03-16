@@ -77,7 +77,7 @@ codeunit 148141 "BC14 Cloud Migration E2E Test"
         // [SCENARIO] After replication completes, the status is set to UpgradePending.
         // Running the data upgrade then sets the status to Completed.
 
-        // [GIVEN] Cloud Migration has been succesfully setup for BC14
+        // [GIVEN] Cloud Migration has been successfully setup for BC14
         Initialize();
         BindSubscription(CloudMigE2EEventHandler);
         BindSubscription(BC14E2ETestEventHandler);
