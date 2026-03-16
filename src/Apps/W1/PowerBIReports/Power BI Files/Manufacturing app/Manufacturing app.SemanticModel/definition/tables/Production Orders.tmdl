@@ -405,6 +405,8 @@ table 'Production Orders'
 			    var InvAdjOrderLineNo = SELECTCOLUMNS(InventoryAdjustmentLines, 'Inventory Adjustment Entry Order Line'[orderLineNo])
 			    VAR CapacityLedgerEntries = 
 			            CALCULATETABLE('Capacity Ledger Entries', 
+			            REMOVEFILTERS('Capacity Ledger Entries'),            
+			            VALUES('Capacity Ledger Entries'[workCenterNo]),
 			                'Capacity Ledger Entries'[Order No.] = InvAdjOrderNo,
 			                'Capacity Ledger Entries'[Order Line No.] = InvAdjOrderLineNo,
 			                'Capacity Ledger Entries'[Item No.] = InvAdjItemNo,
