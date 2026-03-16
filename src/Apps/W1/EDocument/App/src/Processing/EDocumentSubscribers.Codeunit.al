@@ -283,8 +283,8 @@ codeunit 6103 "E-Document Subscribers"
     #endregion After posting events
 
     #region Warehouse completion — deferred E-Document creation
-    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Whse.-Activity-Post", OnAfterPostWhseActivHeader, '', false, false)]
-    local procedure OnAfterPostWhseActivHeader(WhseActivHeader: Record "Warehouse Activity Header"; var PurchaseHeader: Record "Purchase Header"; var SalesHeader: Record "Sales Header"; var TransferHeader: Record "Transfer Header"; SuppressCommit: Boolean; IsPreview: Boolean)
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Whse.-Activity-Post", OnAfterPostWhseActivityCompleted, '', false, false)]
+    local procedure OnAfterPostWhseActivityCompleted(WhseActivHeader: Record "Warehouse Activity Header"; var PurchaseHeader: Record "Purchase Header"; var SalesHeader: Record "Sales Header"; var TransferHeader: Record "Transfer Header"; SuppressCommit: Boolean; IsPreview: Boolean)
     var
         SalesShipmentHeader: Record "Sales Shipment Header";
         SalesInvoiceHeader: Record "Sales Invoice Header";
@@ -292,8 +292,8 @@ codeunit 6103 "E-Document Subscribers"
         DocumentSendingProfile: Record "Document Sending Profile";
     begin
         // For Inventory Pick flows, E-Documents are created here instead of inline in the posting
-        // subscribers, because this event fires after the Commit() at WhseActivityPost:246 — so
-        // the full transaction (Sales/Transfer posting + Warehouse Entries) is already persisted.
+        // subscribers, because this event fires after all posting work completes (including
+        // PostRelatedInboundTransfer) — so the full transaction is already persisted.
         // Other activity types (Put-away, Movement) are not affected.
 
         if WhseActivHeader.Type <> WhseActivHeader.Type::"Invt. Pick" then
@@ -663,8 +663,8 @@ codeunit 6103 "E-Document Subscribers"
     end;
 
     /// <summary>
-    /// Determine whether to allow creating E-Document based on the context of posting. 
-    /// For Inventory Pick, we want to allow E-Document creation only in the OnAfterPostWhseActivHeader event, but not in the Sales-Post event, to avoid creating E-Document before the transaction is fully committed. 
+    /// Determine whether to allow creating E-Document based on the context of posting.
+    /// For Inventory Pick, we want to allow E-Document creation only in the OnAfterPostWhseActivityCompleted event, but not in the Sales-Post event, to avoid creating E-Document before the transaction is fully committed.
     /// For other scenarios, we can create E-Document in the posting event.
     /// </summary>
     local procedure AllowCreateEDocument(CommitIsSuppressed: Boolean; InvtPickPutaway: Boolean; PreviewMode: Boolean; SourceEvent: Text): Boolean

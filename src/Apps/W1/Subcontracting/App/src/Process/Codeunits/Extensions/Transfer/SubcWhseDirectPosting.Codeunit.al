@@ -53,7 +53,7 @@ codeunit 99001546 "Subc. Whse Direct Posting"
     end;
 
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Whse.-Activity-Post", OnAfterPostWhseActivHeader, '', false, false)]
-    local procedure OnAfterPostWhseActivHeader(WhseActivHeader: Record "Warehouse Activity Header"; var PurchaseHeader: Record "Purchase Header"; var SalesHeader: Record "Sales Header"; var TransferHeader: Record "Transfer Header"; SuppressCommit: Boolean; IsPreview: Boolean)
+    local procedure OnAfterPostWhseActivHeader(WhseActivHeader: Record "Warehouse Activity Header"; var PurchaseHeader: Record "Purchase Header"; var SalesHeader: Record "Sales Header"; var TransferHeader: Record "Transfer Header")
     begin
         if not PostInboundTransferInOneStep(WhseActivHeader) then
             exit;
