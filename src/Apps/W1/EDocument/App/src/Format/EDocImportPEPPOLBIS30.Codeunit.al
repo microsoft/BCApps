@@ -572,7 +572,7 @@ codeunit 6166 "EDoc Import PEPPOL BIS 3.0"
 
     local procedure GetDocumentType(var TempXMLBuffer: Record "XML Buffer" temporary; var RootPath: Text): Text
     var
-        InvalidXMLFileErr: Label 'Invalid XML file';
+        InvalidXMLFileErr: Label 'Invalid XML file.';
     begin
         TempXMLBuffer.Reset();
         TempXMLBuffer.SetRange(Type, TempXMLBuffer.Type::Element);
