@@ -17,6 +17,7 @@ codeunit 20449 "Qlty. Disp. Move Whse.Reclass." implements "Qlty. Disposition"
     var
         WarehouseJournalLineDescriptionTemplateLbl: Label 'Inspection [%3] changed bin from [%1] to [%2]', Comment = '%1 = From Bin code; %2 = To Bin code; %3 = the inspection';
         MissingBinMoveBatchErr: Label 'There is missing setup on the Quality Management Setup Card defining the Reclass batch.';
+        OpenSetupActionLbl: Label 'Open Quality Management Setup';
         DocumentTypeLbl: Label 'Warehouse Reclassification';
 
     internal procedure PerformDisposition(var QltyInspectionHeader: Record "Qlty. Inspection Header"; var TempInstructionQltyDispositionBuffer: Record "Qlty. Disposition Buffer" temporary) DidSomething: Boolean
@@ -32,7 +33,7 @@ codeunit 20449 "Qlty. Disp. Move Whse.Reclass." implements "Qlty. Disposition"
         TempInstructionQltyDispositionBuffer."Disposition Action" := TempInstructionQltyDispositionBuffer."Disposition Action"::"Move with Warehouse Reclassification";
         QltyManagementSetup.Get();
         if QltyManagementSetup."Whse. Reclass. Batch Name" = '' then
-            Error(MissingBinMoveBatchErr);
+            ThrowMissingSetupError();
 
         QltyInventoryAvailability.PopulateQuantityBuffer(QltyInspectionHeader, TempInstructionQltyDispositionBuffer, TempQuantityToActQltyDispositionBuffer);
 
@@ -122,5 +123,24 @@ codeunit 20449 "Qlty. Disp. Move Whse.Reclass." implements "Qlty. Disposition"
     [IntegrationEvent(false, false)]
     local procedure OnAfterCreateWarehouseReclassLine(var QltyInspectionHeader: Record "Qlty. Inspection Header"; var TempQuantityToActQltyDispositionBuffer: Record "Qlty. Disposition Buffer" temporary; var WarehouseJournalLine: Record "Warehouse Journal Line"; var WhseItemTrackingLine: Record "Whse. Item Tracking Line")
     begin
+    end;
+
+    local procedure ThrowMissingSetupError()
+    var
+        ErrorInfo: ErrorInfo;
+    begin
+        ErrorInfo.Message := MissingBinMoveBatchErr;
+        ErrorInfo.PageNo := Page::"Qlty. Management Setup";
+        ErrorInfo.AddAction(OpenSetupActionLbl, Codeunit::"Qlty. Disp. Move Whse.Reclass.", 'OpenQualityManagementSetup');
+        Error(ErrorInfo);
+    end;
+
+    procedure OpenQualityManagementSetup(ErrorInfo: ErrorInfo)
+    var
+        QltyManagementSetup: Record "Qlty. Management Setup";
+    begin
+        if not QltyManagementSetup.Get() then
+            QltyManagementSetup.Insert(true);
+        Page.Run(Page::"Qlty. Management Setup", QltyManagementSetup);
     end;
 }

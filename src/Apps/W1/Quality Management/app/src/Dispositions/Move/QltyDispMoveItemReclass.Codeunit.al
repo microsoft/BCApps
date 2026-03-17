@@ -17,6 +17,7 @@ codeunit 20452 "Qlty. Disp. Move Item Reclass." implements "Qlty. Disposition"
     var
         ItemJournalLineDescriptionTemplateLbl: Label 'Inspection [%3] changed bin from [%1] to [%2]', Comment = '%1 = From Bin code; %2 = To Bin code; %3 = the inspection';
         MissingBinMoveBatchErr: Label 'There is missing setup on the Quality Management Setup Card defining the movement batches.';
+        OpenSetupActionLbl: Label 'Open Quality Management Setup';
         DocumentTypeLbl: Label 'Item Reclassification';
 
     internal procedure PerformDisposition(var QltyInspectionHeader: Record "Qlty. Inspection Header"; var TempInstructionQltyDispositionBuffer: Record "Qlty. Disposition Buffer" temporary) DidSomething: Boolean
@@ -38,7 +39,7 @@ codeunit 20452 "Qlty. Disp. Move Item Reclass." implements "Qlty. Disposition"
 
         QltyManagementSetup.Get();
         if QltyManagementSetup."Item Reclass. Batch Name" = '' then
-            Error(MissingBinMoveBatchErr);
+            ThrowMissingSetupError();
 
         QltyInventoryAvailability.PopulateQuantityBuffer(QltyInspectionHeader, TempInstructionQltyDispositionBuffer, TempQuantityToActQltyDispositionBuffer);
 
@@ -135,5 +136,24 @@ codeunit 20452 "Qlty. Disp. Move Item Reclass." implements "Qlty. Disposition"
     [IntegrationEvent(false, false)]
     local procedure OnAfterProcessDisposition(var QltyInspectionHeader: Record "Qlty. Inspection Header"; var TempInstructionQltyDispositionBuffer: Record "Qlty. Disposition Buffer" temporary; var Changed: Boolean)
     begin
+    end;
+
+    local procedure ThrowMissingSetupError()
+    var
+        ErrorInfo: ErrorInfo;
+    begin
+        ErrorInfo.Message := MissingBinMoveBatchErr;
+        ErrorInfo.PageNo := Page::"Qlty. Management Setup";
+        ErrorInfo.AddAction(OpenSetupActionLbl, Codeunit::"Qlty. Disp. Move Item Reclass.", 'OpenQualityManagementSetup');
+        Error(ErrorInfo);
+    end;
+
+    procedure OpenQualityManagementSetup(ErrorInfo: ErrorInfo)
+    var
+        QltyManagementSetup: Record "Qlty. Management Setup";
+    begin
+        if not QltyManagementSetup.Get() then
+            QltyManagementSetup.Insert(true);
+        Page.Run(Page::"Qlty. Management Setup", QltyManagementSetup);
     end;
 }
