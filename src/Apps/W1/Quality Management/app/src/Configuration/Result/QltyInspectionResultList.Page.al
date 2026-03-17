@@ -133,7 +133,7 @@ page 20416 "Qlty. Inspection Result List"
                 ApplicationArea = QualityManagement;
                 Caption = 'Update Tests, Templates, and Inspections';
                 ToolTip = 'Adds newly created results to existing quality tests and templates, adjusts evaluation sequences, and updates promoted results. Inspections based on these templates are also updated.';
-                Image = Copy;
+                Image = CopyToTask;
 
                 trigger OnAction()
                 var
