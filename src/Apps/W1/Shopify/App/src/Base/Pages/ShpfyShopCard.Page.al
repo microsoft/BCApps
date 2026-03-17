@@ -666,7 +666,7 @@ page 30101 "Shpfy Shop Card"
                     CurrPage.SaveRecord();
                     Shop := Rec;
                     Shop.SetRecFilter();
-                    ShipmentMethods.GetShippingMethods(Shop); // TODONAT: consider to move the logic to get shipping methods to the page itself, and only pass shop code as parameter here.
+                    ShipmentMethods.GetShippingMethods(Shop);
                     ShipmentMethod.SetRange("Shop Code", Rec.Code);
                     Page.Run(Page::"Shpfy Shipment Methods Mapping", ShipmentMethod);
                 end;
@@ -713,7 +713,7 @@ page 30101 "Shpfy Shop Card"
                     OrderHeader: Record "Shpfy Order Header";
                     Orders: Page "Shpfy Orders";
                 begin
-                    OrderHeader.SetRange("Shop Code", Rec.Code); // TODONAT: runpage
+                    OrderHeader.SetRange("Shop Code", Rec.Code);
                     Orders.SetTableView(OrderHeader);
                     Orders.Run();
                 end;
