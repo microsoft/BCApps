@@ -6,9 +6,16 @@
   "runs-on": "windows-latest",
   "cacheImageName": "",
   "UsePsSession": false,
-  "artifact": "bcinsider/Sandbox/29.0.47361.0//latest",
+  "artifact": "bcinsider/Sandbox/29.0.47592.0//latest",
   "country": "base",
   "useProjectDependencies": true,
+  "incrementalBuilds": {
+    "onPush": false,
+    "onPull_Request": true,
+    "onSchedule": false,
+    "retentionDays": 30,
+    "mode": "modifiedApps"
+  },
   "repoVersion": "29.0",
   "conditionalSettings": [
     {

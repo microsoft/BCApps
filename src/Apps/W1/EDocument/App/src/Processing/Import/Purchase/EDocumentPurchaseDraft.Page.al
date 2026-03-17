@@ -760,8 +760,8 @@ page 6181 "E-Document Purchase Draft"
         HasErrorsOrWarnings, HasErrors : Boolean;
         ShowFinalizeDraftAction: Boolean;
         ShowAnalyzeDocumentAction: Boolean;
-        FinalizeDraftInvokedTxt: Label 'User invoked Finalize Draft action.';
-        FinalizeDraftPerformedTxt: Label 'User completed Finalize Draft action.';
+        FinalizeDraftInvokedTxt: Label 'User invoked Finalize Draft action.', Locked = true;
+        FinalizeDraftPerformedTxt: Label 'User completed Finalize Draft action.', Locked = true;
         ProcessingDocumentMsg: Label 'Processing document...';
         ResetDraftQst: Label 'All the changes that you may have made on the document draft will be lost. Do you want to continue?';
         PageEditable, HasPDFSource : Boolean;

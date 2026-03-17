@@ -1,0 +1,155 @@
+{
+    "id": "MLLM-INV-001",
+    "issue_date": "2024-03-15",
+    "due_date": "2024-04-15",
+    "document_currency_code": "XYZ",
+    "order_reference": {
+        "id": "PO-5678"
+    },
+    "payment_terms": {
+        "note": "Net 30"
+    },
+    "accounting_supplier_party": {
+        "party": {
+            "party_name": {
+                "name": "Contoso Supplies Ltd."
+            },
+            "postal_address": {
+                "street_name": "123 Bill Ave",
+                "city_name": "Seattle",
+                "postal_zone": "98101",
+                "country": {
+                    "identification_code": "US"
+                }
+            },
+            "party_tax_scheme": {
+                "company_id": "US-VAT-12345"
+            },
+            "contact": {
+                "name": "John Doe"
+            }
+        }
+    },
+    "accounting_customer_party": {
+        "party": {
+            "party_name": {
+                "name": "Microsoft Corporation"
+            },
+            "postal_address": {
+                "street_name": "456 Main St",
+                "city_name": "Redmond",
+                "postal_zone": "98052",
+                "country": {
+                    "identification_code": "US"
+                }
+            },
+            "party_tax_scheme": {
+                "company_id": "US-VAT-67890"
+            }
+        }
+    },
+    "delivery": {
+        "delivery_location": {
+            "address": {
+                "street_name": "789 Ship Rd",
+                "city_name": "Bellevue",
+                "postal_zone": "98004",
+                "country": {
+                    "identification_code": "US"
+                }
+            }
+        },
+        "delivery_party": {
+            "party_name": {
+                "name": "Warehouse Team"
+            }
+        }
+    },
+    "payment_means": {
+        "payee_financial_account": {
+            "name": "Contoso Billing Dept"
+        }
+    },
+    "tax_total": {
+        "tax_amount": 37.50
+    },
+    "legal_monetary_total": {
+        "tax_exclusive_amount": 250.00,
+        "allowance_total_amount": 5.00,
+        "payable_amount": 287.50
+    },
+    "invoice_line": [
+        {
+            "item": {
+                "name": "Consulting Services",
+                "sellers_item_identification": {
+                    "id": "SVC-001"
+                },
+                "classified_tax_category": {
+                    "percent": 15.0
+                }
+            },
+            "invoiced_quantity": {
+                "value": 5,
+                "unit_code": "HRS"
+            },
+            "price": {
+                "price_amount": 40.00
+            },
+            "line_extension_amount": 200.00,
+            "allowance_charge": {
+                "amount": {
+                    "value": 5.00
+                }
+            }
+        },
+        {
+            "item": {
+                "name": "Office Supplies",
+                "sellers_item_identification": {
+                    "id": "MAT-002"
+                },
+                "classified_tax_category": {
+                    "percent": 10.0
+                }
+            },
+            "invoiced_quantity": {
+                "value": 10,
+                "unit_code": "PCS"
+            },
+            "price": {
+                "price_amount": 3.00
+            },
+            "line_extension_amount": 30.00,
+            "allowance_charge": {
+                "amount": {
+                    "value": 0.00
+                }
+            }
+        },
+        {
+            "item": {
+                "name": "Express Delivery",
+                "sellers_item_identification": {
+                    "id": "DLV-003"
+                },
+                "classified_tax_category": {
+                    "percent": 15.0
+                }
+            },
+            "invoiced_quantity": {
+                "value": 1,
+                "unit_code": "EA"
+            },
+            "price": {
+                "price_amount": 20.00
+            },
+            "line_extension_amount": 20.00,
+            "allowance_charge": {
+                "amount": {
+                    "value": 0.00
+                }
+            }
+        }
+    ]
+}

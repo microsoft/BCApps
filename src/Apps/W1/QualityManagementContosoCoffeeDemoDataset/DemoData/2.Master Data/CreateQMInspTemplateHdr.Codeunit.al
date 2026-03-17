@@ -83,15 +83,15 @@ codeunit 5596 "Create QM Insp. Template Hdr"
     end;
 
     var
-        BicycleChecklistTok: Label 'BICYCLECHECKLIST', MaxLength = 20;
-        CarTok: Label 'CAR', MaxLength = 20;
-        PackagingTok: Label 'PACKAGING', MaxLength = 20;
-        PathogenTok: Label 'PATHOGEN', MaxLength = 20;
-        ProductionTok: Label 'PRODUCTION', MaxLength = 20;
-        ProductionFoodTok: Label 'PRODUCTIONFOOD', MaxLength = 20;
-        ReceiveTok: Label 'RECEIVE', MaxLength = 20;
-        ScheduleChangeTok: Label 'SCHEDULECHANGE', MaxLength = 20;
-        BeansTok: Label 'BEANS', MaxLength = 20;
+        BicycleChecklistTok: Label 'BICYCLECHECKLIST', Locked = true, MaxLength = 20;
+        CarTok: Label 'CAR', Locked = true, MaxLength = 20;
+        PackagingTok: Label 'PACKAGING', Locked = true, MaxLength = 20;
+        PathogenTok: Label 'PATHOGEN', Locked = true, MaxLength = 20;
+        ProductionTok: Label 'PRODUCTION', Locked = true, MaxLength = 20;
+        ProductionFoodTok: Label 'PRODUCTIONFOOD', Locked = true, MaxLength = 20;
+        ReceiveTok: Label 'RECEIVE', Locked = true, MaxLength = 20;
+        ScheduleChangeTok: Label 'SCHEDULECHANGE', Locked = true, MaxLength = 20;
+        BeansTok: Label 'BEANS', Locked = true, MaxLength = 20;
 
         BicycleChecklistDescLbl: Label 'Bicycle Checklist', MaxLength = 100;
         CorrectiveActionDescLbl: Label 'Corrective Action', MaxLength = 100;
