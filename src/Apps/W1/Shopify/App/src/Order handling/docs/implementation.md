@@ -215,6 +215,15 @@ For each non-tip, non-gift-card order line:
 
 The `Shpfy Order Mgt.` codeunit provides `ShowShopifyOrder` which navigates from any BC record containing a `"Shpfy Order No."` field to the corresponding Shopify order page.
 
+## POS considerations
+
+Orders from Shopify POS flow through the same import pipeline but have specific behaviors:
+
+- **Immediate fulfillment** -- POS orders are typically already fulfilled by Shopify at the time of import. When `Shop."Create Invoices From Orders"` is enabled, these create Sales Invoices instead of Sales Orders. Because invoices don't reduce inventory levels, consider posting them immediately or via a scheduled job queue (Report 297 "Batch Post Sales Invoices").
+- **Cash rounding** -- Cash transactions on POS automatically round to the nearest denomination in countries that don't use small coins. The rounding adjustment is imported into `"Payment Rounding Amount"` on the order header and posted to the G/L account defined in `Shop."TIP/Cash Rounding Account No."`. Only cash payments are rounded; non-cash payments are not.
+- **Archive setting** -- The Shopify Admin setting "Automatically archive the order" must be disabled, because archived orders cannot be imported by the connector.
+- **Missing addresses** -- POS orders often lack detailed address information. When using "By EMail/Phone" or "By Bill-to Info" customer mapping, POS orders may fall back to the default customer.
+
 ## Key tables and relationships
 
 ```

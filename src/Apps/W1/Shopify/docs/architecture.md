@@ -176,4 +176,7 @@ Webhooks are managed by `Shpfy Webhooks Mgt.` and tied to specific user IDs for 
 
 ### Test isolation
 
-`Shpfy Communication Mgt.` supports a test mode (`SetTestInProgress`) that redirects all HTTP calls to `Shpfy Communication Events`, allowing tests to inject mock responses without network access.
+Tests mock all Shopify API calls using two mechanisms:
+
+- **HttpClientHandler** (correct approach for new tests) -- test codeunits set `TestHttpRequestPolicy = BlockOutboundRequests` and declare `[HttpClientHandler]` procedures that intercept HTTP at the framework level. See `Test/docs/testing.md` for the full guide.
+- **IsTestInProgress events** (legacy) -- `Shpfy Communication Mgt.` has a `SetTestInProgress` flag that redirects HTTP calls to `Shpfy Communication Events`, where test subscriber codeunits provide mock responses. This pattern exists in many older tests but should not be used for new ones.
