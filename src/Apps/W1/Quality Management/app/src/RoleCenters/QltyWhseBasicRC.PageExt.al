@@ -12,7 +12,7 @@ using Microsoft.QualityManagement.Reports;
 using Microsoft.QualityManagement.Setup;
 using Microsoft.Warehouse.RoleCenters;
 
-pageextension 20404 "Qlty. Whse. Basic RC" extends "Whse. Basic Role Center"
+pageextension 20421 "Qlty. Whse. Basic RC" extends "Whse. Basic Role Center"
 {
     actions
     {
