@@ -27,12 +27,11 @@ codeunit 139891 "E-Document Structured Tests"
         EDocumentService: Record "E-Document Service";
         Vendor: Record Vendor;
         Assert: Codeunit Assert;
-        CAPIStructuredValidations: Codeunit "CAPI Structured Validations";
         EDocImplState: Codeunit "E-Doc. Impl. State";
+        StructuredValidations: Codeunit "EDoc Structured Validations";
         LibraryEDoc: Codeunit "Library - E-Document";
         LibraryLowerPermission: Codeunit "Library - Lower Permissions";
         LibraryVariableStorage: Codeunit "Library - Variable Storage";
-        PEPPOLStructuredValidations: Codeunit "PEPPOL Structured Validations";
         IsInitialized: Boolean;
         EDocumentStatusNotUpdatedErr: Label 'The status of the EDocument was not updated to the expected status after the step was executed.';
 
@@ -203,7 +202,7 @@ codeunit 139891 "E-Document Structured Tests"
         SetupPEPPOLEDocumentService();
         CreateInboundEDocumentFromXML(EDocument, 'peppol/peppol-invoice-prefixed-ns.xml');
         if ProcessEDocumentToStep(EDocument, "Import E-Document Steps"::"Read into Draft") then
-            PEPPOLStructuredValidations.AssertFullEDocumentContentExtracted(EDocument."Entry No")
+            StructuredValidations.AssertFullPEPPOLDocumentExtracted(EDocument."Entry No")            
         else
             Assert.Fail(EDocumentStatusNotUpdatedErr);
     end;
