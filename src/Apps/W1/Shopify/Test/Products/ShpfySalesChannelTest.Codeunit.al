@@ -231,7 +231,6 @@ codeunit 139698 "Shpfy Sales Channel Test"
         ShopifyTag: Record "Shpfy Tag";
         ShopifyProductAPI: Codeunit "Shpfy Product API";
         OnlineShopId, POSId : BigInteger;
-        ProductId: BigInteger;
         ActualQuery: Text;
     begin
         // [SCENARIO] Publishing active product to Shopify Sales Channel on product creation.
@@ -254,7 +253,7 @@ codeunit 139698 "Shpfy Sales Channel Test"
 
         // [WHEN] Invoke Product API
         GraphQueryTxt := '';
-        ProductId := ShopifyProductAPI.CreateProduct(TempShopifyProduct, TempShopifyVariant, ShopifyTag);
+        ShopifyProductAPI.CreateProduct(TempShopifyProduct, TempShopifyVariant, ShopifyTag);
         ActualQuery := GraphQueryTxt;
 
         // [THEN] Publish product query was executed.

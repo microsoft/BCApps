@@ -110,7 +110,6 @@ codeunit 139556 "Shpfy Product Collection Test"
         DefaultProductCollection2Id: BigInteger;
         DefaultProductCollection3Id: BigInteger;
         NonDefaultProductCollectionId: BigInteger;
-        ProductId: BigInteger;
     begin
         // [SCENARIO] Publishing product to Shopify with default Product Collections.
         Initialize();
@@ -153,7 +152,7 @@ codeunit 139556 "Shpfy Product Collection Test"
         // [WHEN] Invoking the procedure: ProductAPI.CreateProduct.
         PublishProductGraphQueryTxt := '';
         ProductCreateGraphQueryTxt := '';
-        ProductId := ProductAPI.CreateProduct(TempProduct, TempShopifyVariant, ShopifyTag);
+        ProductAPI.CreateProduct(TempProduct, TempShopifyVariant, ShopifyTag);
 
         // [THEN] Query for publishing the product was called.
         LibraryAssert.AreNotEqual('', PublishProductGraphQueryTxt, 'Publish product query was not executed');

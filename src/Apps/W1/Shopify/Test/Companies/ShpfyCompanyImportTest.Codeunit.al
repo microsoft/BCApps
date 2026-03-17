@@ -364,6 +364,7 @@ codeunit 139647 "Shpfy Company Import Test"
         CompanyInitialize: Codeunit "Shpfy Company Initialize";
         RequestType: Text;
         ResponseBody: Text;
+        CompanyResponseLbl: Label '{ "data": { "company" :{ "mainContact" : {}, "updatedAt" : "%1" } }}', Locked = true;
     begin
         if not InitializeTest.VerifyRequestUrl(Request.Path, Shop."Shopify URL") then
             exit(true);
@@ -375,7 +376,7 @@ codeunit 139647 "Shpfy Company Import Test"
         case RequestType of
             'GetCompany':
                 begin
-                    ResponseBody := StrSubstNo('{ "data": { "company" :{ "mainContact" : {}, "updatedAt" : "%1" } }}', Format(CurrentDateTime, 0, 9));
+                    ResponseBody := StrSubstNo(CompanyResponseLbl, Format(CurrentDateTime, 0, 9));
                     Response.Content.WriteFrom(ResponseBody);
                     exit(false);
                 end;

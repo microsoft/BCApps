@@ -439,7 +439,6 @@ codeunit 139546 "Shpfy Shipping Charges Test"
     end;
 
     local procedure ImportShopifyOrder(var ShopifyShop: Record "Shpfy Shop"; var OrderHeader: Record "Shpfy Order Header"; var OrdersToImport: Record "Shpfy Orders to Import"; var ImportOrder: Codeunit "Shpfy Import Order"; var JShopifyOrder: JsonObject; var JShopifyLineItems: JsonArray)
-    var
     begin
         ImportOrder.ImportCreateAndUpdateOrderHeaderFromMock(ShopifyShop.Code, OrdersToImport.Id, JShopifyOrder);
         ImportOrder.ImportCreateAndUpdateOrderLinesFromMock(OrdersToImport.Id, JShopifyLineItems);

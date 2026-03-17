@@ -236,6 +236,7 @@ codeunit 139632 "Shpfy Create Item Variant Test"
         if OutboundHttpRequests.Length() = 0 then
             exit(false);
 
+        DefaultVariantId := Any.IntegerInRange(100000, 999999);
         RequestType := OutboundHttpRequests.DequeueText();
         case RequestType of
             'CreateVariant':
