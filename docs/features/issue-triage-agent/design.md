@@ -2,8 +2,8 @@
 
 > **Feature**: AI-powered GitHub issue quality assessment, enrichment, and triage
 > **Trigger**: Adding the `ai-triage` label to a GitHub issue
-> **Runtime**: GitHub Action + GitHub Models API (GPT-4o; upgrade to GPT-5.4 when available)
-> **Last Updated**: 2026-03-11 by jeschulz
+> **Runtime**: GitHub Action + GitHub Copilot CLI (`copilot -p`)
+> **Last Updated**: 2026-03-17 by jeschulz
 
 ---
 
@@ -17,7 +17,7 @@ Product managers on the BCApps repository receive GitHub issues ranging from spa
 - Determining the best implementation path (manual, Copilot-assisted, or fully agentic)
 - Deciding priority and assignment
 
-This feature introduces an **AI-powered triage agent** that automatically triggers when the `ai-triage` label is added to any GitHub issue. A GitHub Action orchestrates the process, calling **GPT-4o** (upgradeable to GPT-5.4 when available in GitHub Models) via the **GitHub Models API** to assess issue quality, enrich it with external context from Microsoft Learn, the Dynamics 365 Ideas Portal, and public forums, and then post a structured triage assessment as a comment with appropriate labels applied.
+This feature introduces an **AI-powered triage agent** that automatically triggers when the `ai-triage` label is added to any GitHub issue. A GitHub Action orchestrates the process, calling the model via **GitHub Copilot CLI** (`copilot -p`) in programmatic mode to assess issue quality, enrich it with external context from Microsoft Learn, the Dynamics 365 Ideas Portal, and public forums, and then post a structured triage assessment as a comment with appropriate labels applied.
 
 The agent operates in two internal phases:
 
@@ -48,7 +48,7 @@ The agent operates in two internal phases:
 
 - **FR1**: A GitHub Action workflow triggers on the `issues.labeled` event when the label `ai-triage` is added to any issue in `microsoft/BCAppsCampAIRHack`.
 - **FR2**: The workflow must validate the issue is open before proceeding. If the issue is closed, skip processing and post no comment.
-- **FR3**: The workflow uses the `models: read` permission to access GPT-5.4 via GitHub Models API at `https://models.github.ai/inference/chat/completions`.
+- **FR3**: The workflow installs GitHub Copilot CLI (`npm install -g @github/copilot`) and authenticates via `COPILOT_GITHUB_TOKEN` (a PAT with "Copilot Requests" permission).
 - **FR4**: The workflow uses `issues: write` permission to post comments and manage labels.
 
 ### 4.2 Phase 1 - Issue quality assessment
@@ -67,7 +67,7 @@ The agent operates in two internal phases:
 - **FR7**: Based on the total quality score, assign a readiness verdict:
 
   - **READY** (75-100): Issue is well-specified; proceed to Phase 2 enrichment
-  - **NEEDS WORK** (40-74): Issue has gaps; agent identifies what's missing and still performs Phase 2 enrichment
+  - **NEEDS WORK** (40-74): Issue has gaps; agent posts a comment requesting specific information and skips Phase 2
   - **INSUFFICIENT** (0-39): Issue lacks critical information; agent posts a comment requesting specific information, applies `needs-info` label, and skips Phase 2
 
 - **FR8**: For NEEDS WORK and INSUFFICIENT verdicts, the agent must specify exactly what information is missing (not generic "please add more details").
@@ -78,7 +78,7 @@ The agent operates in two internal phases:
 - **FR10**: Search Microsoft Learn BC documentation using web search queries scoped to `site:learn.microsoft.com/en-us/dynamics365/business-central/`.
 - **FR11**: Search the Dynamics 365 Ideas Portal using web search queries scoped to `site:experience.dynamics.com`.
 - **FR12**: Search public forums, Stack Overflow, and community discussions for related topics.
-- **FR13**: Identify related code areas in the repository by mapping issue keywords to known app directories under `src/Apps/W1/`.
+- **FR13**: Identify related code areas in the repository by mapping issue keywords to known app directories under `src/` (including `Apps/W1/`, `Business Foundation/`, `System Application/`, and `Tools/`).
 - **FR14**: Compile all enrichment findings into a structured context section.
 - **FR15**: Produce a triage assessment with the following data points:
 
@@ -183,13 +183,16 @@ The agent operates in two internal phases:
   | `path/manual` | `#BFDADC` | Impl. path = Manual |
   | `path/copilot-assisted` | `#C5DEF5` | Impl. path = Copilot-Assisted |
   | `path/agentic` | `#D4C5F9` | Impl. path = Agentic |
+  | `Finance` | `#FBCA04` | Assigned to Finance team |
+  | `SCM` | `#0E8A16` | Assigned to SCM team |
+  | `Integration` | `#C5DEF5` | Assigned to Integration team |
 
 - **FR20**: Before applying a label, remove any existing label from the same category (e.g., remove `priority/low` before applying `priority/high`).
 - **FR21**: Do NOT remove the `ai-triage` trigger label (it serves as a record that triage was requested).
 
 ### 4.6 App area detection
 
-- **FR22**: The agent should detect which Business Central app area the issue relates to by matching keywords in the issue title and body against known app directories:
+- **FR22**: The agent should detect which Business Central app area the issue relates to by matching keywords in the issue title and body against known app directories across the full `src/` tree:
 
   | Keywords | App directory |
   |----------|--------------|
@@ -197,14 +200,19 @@ The agent operates in two internal phases:
   | data archive, archive, retention | `src/Apps/W1/DataArchive/` |
   | e-document, edocument, einvoice | `src/Apps/W1/EDocument/` |
   | subscription, billing, recurring | `src/Apps/W1/Subscription Billing/` |
-  | copilot, ai, journal | `src/Apps/W1/` (general) |
   | quality, inspection | `src/Apps/W1/Quality Management/` |
+  | no. series, number series | `src/Business Foundation/App/NoSeries/` |
+  | system application | `src/System Application/App/` |
+  | copilot, ai, journal | `src/Apps/W1/` (general) |
+  | *(25+ additional area mappings)* | *(see config.js for full list)* |
+
+  A dynamic fallback scans directory names under `src/` (2 levels deep) when no keyword match is found.
 
 - **FR23**: The detected app area should be used to scope the codebase search and improve enrichment query relevance.
 
 ## 5. Non-goals (out of scope)
 
-- **NG1**: Auto-assignment of issues to specific developers (PM decides)
+- **NG1**: Auto-assignment of issues to specific developers (PM decides; team assignment via Finance/SCM/Integration labels is automated)
 - **NG2**: Auto-closing or auto-rejecting issues (PM decides)
 - **NG3**: Azure DevOps integration (ADO toggle is OFF in this repo)
 - **NG4**: Batch processing of multiple issues in one action run
@@ -238,18 +246,18 @@ The agent operates in two internal phases:
                     ┌─────────────────┐        ┌───────────────────┐
                     │ Phase 1:        │        │ GitHub REST API   │
                     │ Quality Assess  │        │ (read issue,      │
-                    │ (GPT-5.4 call)  │        │  post comment,    │
+                    │ (Copilot CLI)   │        │  post comment,    │
                     └────────┬────────┘        │  manage labels)   │
                              │                 └───────────────────┘
-                    Score >= 40?
+                    Score >= 75?
                     ┌────────┴────────┐
                     │ Yes             │ No
                     v                 v
           ┌─────────────────┐   Post "needs info"
           │ Phase 2:        │   comment + label
           │ Enrichment      │
-          │ (GPT-5.4 call   │
-          │  + web search)  │
+          │ (Copilot CLI    │
+          │  + code search) │
           └────────┬────────┘
                    │
                    v
@@ -257,6 +265,9 @@ The agent operates in two internal phases:
           │ Post triage     │
           │ comment +       │
           │ apply labels    │
+          │ (incl. team:    │
+          │  Finance/SCM/   │
+          │  Integration)   │
           └─────────────────┘
 ```
 
@@ -272,11 +283,15 @@ The agent operates in two internal phases:
       phase1-assess.js        # Phase 1: quality assessment
       phase2-enrich.js        # Phase 2: enrichment & triage
       github-client.js        # GitHub API helper (comments, labels)
-      models-client.js        # GitHub Models API helper (GPT-5.4)
+      models-client.js        # Copilot CLI helper (copilot -p)
+      code-reader.js          # Repository AL code reader
+      ado-client.js           # Azure DevOps work item search
+      ideas-client.js         # Dynamics 365 Ideas Portal search
+      format-comment.js       # Markdown comment formatter
       prompts/
         system-phase1.md      # System prompt for quality assessment
         system-phase2.md      # System prompt for enrichment & triage
-      config.js               # Label definitions, scoring thresholds, app area mappings
+      config.js               # Label definitions, scoring thresholds, app area + team mappings
 ```
 
 ### 6.3 GitHub Action workflow design
@@ -290,7 +305,6 @@ on:
 permissions:
   contents: read
   issues: write
-  models: read
 
 jobs:
   triage:
@@ -301,41 +315,28 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '20'
+      - run: npm install -g @github/copilot
       - run: npm ci
         working-directory: .github/scripts/triage
       - run: node index.js
         working-directory: .github/scripts/triage
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          COPILOT_GITHUB_TOKEN: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
           ISSUE_NUMBER: ${{ github.event.issue.number }}
           REPO_OWNER: ${{ github.repository_owner }}
           REPO_NAME: ${{ github.event.repository.name }}
 ```
 
-### 6.4 GPT-5.4 call pattern
+### 6.4 Copilot CLI call pattern
 
-Each phase makes a single chat completion call to GPT-5.4 via GitHub Models API:
+Each phase makes a single call to the model via GitHub Copilot CLI in programmatic mode. The system prompt and user message are combined into a temp file and piped to the CLI:
 
-```javascript
-const response = await fetch('https://models.github.ai/inference/chat/completions', {
-  method: 'POST',
-  headers: {
-    'Content-Type': 'application/json',
-    'Authorization': `Bearer ${process.env.GITHUB_TOKEN}`
-  },
-  body: JSON.stringify({
-    model: 'openai/gpt-5.4',
-    messages: [
-      { role: 'system', content: systemPrompt },
-      { role: 'user', content: issueContent }
-    ],
-    temperature: 0.3,
-    response_format: { type: 'json_object' }
-  })
-});
+```bash
+cat /tmp/triage-prompt.md | copilot -s --no-ask-user --no-custom-instructions --model=MODEL_NAME
 ```
 
-Using `response_format: { type: 'json_object' }` ensures structured output that the script can parse reliably.
+The `-s` (silent) flag ensures clean output without session metadata. `--no-ask-user` prevents interactive prompts. `--no-custom-instructions` prevents repo instruction files from being loaded. Authentication is via `COPILOT_GITHUB_TOKEN` (a PAT with "Copilot Requests" permission).
 
 ### 6.5 Phase 1 system prompt design
 
@@ -432,9 +433,9 @@ If the `ai-triage` label is removed and re-added (re-triage):
 | Dependency | Purpose | Version |
 |-----------|---------|---------|
 | `@octokit/rest` | GitHub REST API client | Latest |
-| `node-fetch` (or native fetch) | HTTP client for GitHub Models API + web search | Built-in (Node 20) |
+| `@github/copilot` | GitHub Copilot CLI for model inference | Latest |
 
-Minimal dependency footprint for fast CI install.
+Minimal dependency footprint for fast CI install. Native `fetch` (Node 20) is used for ADO and Ideas Portal API calls.
 
 ### 7.2 Error handling
 

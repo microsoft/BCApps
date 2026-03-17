@@ -15,6 +15,14 @@ The implementation lives in `.github/scripts/triage/` - see `.github/scripts/tri
 
 The GitHub Action workflow is at `.github/workflows/issue-triage.yml`.
 
+### Key changes (2026-03-17)
+
+- **Copilot CLI**: Model inference now uses GitHub Copilot CLI (`copilot -p`) instead of the GitHub Models REST API. Auth via `COPILOT_GITHUB_TOKEN` PAT with "Copilot Requests" permission.
+- **Phase 2 gating**: Phase 2 (enrichment & triage) now only runs for READY issues (score >= 75). Both NEEDS WORK and INSUFFICIENT issues get a needs-info comment and skip Phase 2.
+- **Broader code search**: App area detection covers all of `src/` (Business Foundation, System Application, Tools) not just `src/Apps/W1/`.
+- **Team assignment**: Issues are automatically assigned to **Finance**, **SCM**, or **Integration** teams via labels, based on keyword matching against the Dynamics SMB Ownership Matrix.
+- **ADO query optimization**: WIQL queries use OR logic on title-only with 3 keywords max, avoiding 408 timeouts on the large Dynamics SMB project.
+
 ## Test results (2026-03-11)
 
 | Issue | Type | Score | Verdict | Key labels |
@@ -25,4 +33,4 @@ The GitHub Action workflow is at `.github/workflows/issue-triage.yml`.
 
 ---
 
-**Last Updated**: 2026-03-11 by jeschulz
+**Last Updated**: 2026-03-17 by jeschulz
