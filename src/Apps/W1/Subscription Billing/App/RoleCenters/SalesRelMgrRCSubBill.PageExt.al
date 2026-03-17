@@ -48,140 +48,6 @@ pageextension 8018 "Sales Rel. Mgr. RC Sub. Bill." extends "Sales & Relationship
                     RunObject = page "Overdue Service Commitments";
                     ToolTip = 'View overdue subscription lines that need attention.';
                 }
-                action(RecurringBilling)
-                {
-                    ApplicationArea = All;
-                    Caption = 'Recurring Billing';
-                    RunObject = page "Recurring Billing";
-                    ToolTip = 'Opens the page for creating billing proposals for Recurring subscriptions.';
-                }
-                action(ContractDeferralsRelease)
-                {
-                    ApplicationArea = All;
-                    Caption = 'Contract Deferrals Release';
-                    RunObject = report "Contract Deferrals Release";
-                    ToolTip = 'Releases the deferrals for the all contracts.';
-                }
-                action(OverviewOfContractComponents)
-                {
-                    ApplicationArea = All;
-                    Caption = 'Overview of Sub. Contract components';
-                    Image = "Report";
-                    RunObject = Report "Overview Of Contract Comp";
-                    ToolTip = 'Analyze components of your contracts.';
-                }
-                action(CustomerContractDeferralsAnalysis)
-                {
-                    ApplicationArea = All;
-                    Caption = 'Customer Sub. Contract Deferrals Analysis';
-                    Image = "Report";
-                    RunObject = Report "Cust. Contr. Def. Analysis";
-                    ToolTip = 'Analyze Customer Subscription Contract deferrals.';
-                }
-                action(VendorContractDeferralsAnalysis)
-                {
-                    ApplicationArea = All;
-                    Caption = 'Vendor Sub. Contract Deferrals Analysis';
-                    Image = "Report";
-                    RunObject = Report "Vend Contr. Def. Analysis";
-                    ToolTip = 'Analyze Vendor Subscription Contract deferrals.';
-                }
-                action(UsageDataSuppliers)
-                {
-                    ApplicationArea = All;
-                    Caption = 'Usage Data Suppliers';
-                    RunObject = page "Usage Data Suppliers";
-                    ToolTip = 'Opens the list of Usage Data Suppliers.';
-                }
-                action(UsageDataImports)
-                {
-                    ApplicationArea = All;
-                    Caption = 'Usage Data Imports';
-                    RunObject = page "Usage Data Imports";
-                    ToolTip = 'Opens the list of Usage Data Imports.';
-                }
-                action(UsageDataSubscriptions)
-                {
-                    ApplicationArea = All;
-                    Caption = 'Usage Data Supp. Subscriptions';
-                    RunObject = page "Usage Data Subscriptions";
-                    ToolTip = 'Opens the list of Usage Data Subscriptions.';
-                }
-                action(UsageDataSupplierReferences)
-                {
-                    ApplicationArea = All;
-                    Caption = 'Usage Data Supplier References';
-                    RunObject = page "Usage Data Supp. References";
-                    ToolTip = 'Opens the list of Usage Data Supplier References.';
-                }
-                action(PostedCustomerContractInvoices)
-                {
-                    ApplicationArea = All;
-                    Caption = 'Posted Customer Sub. Contract Invoices';
-                    Image = PostedOrder;
-                    RunObject = page "Posted Sales Invoices";
-                    RunPageView = where("Recurring Billing" = const(true));
-                    ToolTip = 'Open the list of Posted Sales Invoices for Customer Subscription Contracts.';
-                }
-                action(PostedCustomerContractCreditMemos)
-                {
-                    ApplicationArea = All;
-                    Caption = 'Posted Customer Sub. Contract Credit Memos';
-                    Image = PostedOrder;
-                    RunObject = page "Posted Sales Credit Memos";
-                    RunPageView = where("Recurring Billing" = const(true));
-                    ToolTip = 'Open the list of Posted Sales Credit Memos for Customer Subscription Contracts.';
-                }
-                action(PostedVendorContractInvoices)
-                {
-                    ApplicationArea = All;
-                    Caption = 'Posted Vendor Sub. Contract Invoices';
-                    Image = PostedOrder;
-                    RunObject = page "Posted Purchase Invoices";
-                    RunPageView = where("Recurring Billing" = const(true));
-                    ToolTip = 'Open the list of Posted Purchase Invoices for Vendor Subscription Contracts.';
-                }
-                action(PostedVendorContractCreditMemos)
-                {
-                    ApplicationArea = All;
-                    Caption = 'Posted Vendor Sub. Contract Credit Memos';
-                    Image = PostedOrder;
-                    RunObject = page "Posted Purchase Credit Memos";
-                    RunPageView = where("Recurring Billing" = const(true));
-                    ToolTip = 'Open the list of Posted Purchase Credit Memos for Vendor Subscription Contracts.';
-                }
-                action(ServiceContractSetup)
-                {
-                    ApplicationArea = All;
-                    Caption = 'Subscription Contract Setup';
-                    Image = ServiceAgreement;
-                    RunObject = page "Service Contract Setup";
-                    ToolTip = 'View or edit Subscription Contract Setup.';
-                }
-                action(ContractTypes)
-                {
-                    ApplicationArea = All;
-                    Caption = 'Subscription Contract Types';
-                    Image = FileContract;
-                    RunObject = page "Contract Types";
-                    ToolTip = 'View or edit Subscription Contract Types.';
-                }
-                action(ServiceCommitmentTemplates)
-                {
-                    ApplicationArea = All;
-                    Caption = 'Sub. Package Line Templates';
-                    Image = Template;
-                    RunObject = page "Service Commitment Templates";
-                    ToolTip = 'View or edit Subscription Package Line Templates.';
-                }
-                action(ServiceCommitmentPackages)
-                {
-                    ApplicationArea = All;
-                    Caption = 'Subscription Packages';
-                    Image = Template;
-                    RunObject = page "Service Commitment Packages";
-                    ToolTip = 'View or edit Subscription Packages.';
-                }
                 action("Subscription Billing Report")
                 {
                     ApplicationArea = Basic, Suite;
@@ -495,6 +361,209 @@ pageextension 8018 "Sales Rel. Mgr. RC Sub. Bill." extends "Sales & Relationship
                         ToolTip = 'The Billing Schedule report provides a forecast of vendor and customer invoiced amounts according to the contractual billing rhythm. It helps to identify future development of incoming and outgoing cash from billed subscriptions.';
                     }
                 }
+            }
+            group(UsageData)
+            {
+                Caption = 'Usage Data';
+                action("Usage Data Suppliers")
+                {
+                    ApplicationArea = All;
+                    Caption = 'Usage Data Suppliers';
+                    RunObject = page "Usage Data Suppliers";
+                    ToolTip = 'Opens the list of Usage Data Suppliers.';
+                }
+                action("Usage Data Imports")
+                {
+                    ApplicationArea = All;
+                    Caption = 'Usage Data Imports';
+                    RunObject = page "Usage Data Imports";
+                    ToolTip = 'Opens the list of Usage Data Imports.';
+                }
+                action("Usage Data Subscriptions")
+                {
+                    ApplicationArea = All;
+                    Caption = 'Usage Data Supp. Subscriptions';
+                    RunObject = page "Usage Data Subscriptions";
+                    ToolTip = 'Opens the list of Usage Data Subscriptions.';
+                }
+                action("Usage Data Supplier References")
+                {
+                    ApplicationArea = All;
+                    Caption = 'Usage Data Supplier References';
+                    RunObject = page "Usage Data Supp. References";
+                    ToolTip = 'Opens the list of Usage Data Supplier References.';
+                }
+            }
+            group("Subscription Billing Setup")
+            {
+                Caption = 'Subscription Billing Setup';
+                Image = Setup;
+                ToolTip = 'View the setup.';
+                action("Service Contract Setup")
+                {
+                    ApplicationArea = All;
+                    Caption = 'Subscription Contract Setup';
+                    Image = ServiceAgreement;
+                    RunObject = page "Service Contract Setup";
+                    ToolTip = 'View or edit Subscription Contract Setup.';
+                }
+                action("Contract Types")
+                {
+                    ApplicationArea = All;
+                    Caption = 'Subscription Contract Types';
+                    Image = FileContract;
+                    RunObject = page "Contract Types";
+                    ToolTip = 'View or edit Subscription Contract Types.';
+                }
+                action("Service Commitment Templates")
+                {
+                    ApplicationArea = All;
+                    Caption = 'Sub. Package Line Templates';
+                    Image = Template;
+                    RunObject = page "Service Commitment Templates";
+                    ToolTip = 'View or edit Subscription Package Line Templates.';
+                }
+                action("Service Commitment Packages")
+                {
+                    ApplicationArea = All;
+                    Caption = 'Subscription Packages';
+                    Image = Template;
+                    RunObject = page "Service Commitment Packages";
+                    ToolTip = 'View or edit Subscription Packages.';
+                }
+            }
+        }
+        addlast(processing)
+        {
+            action("Recurring Billing")
+            {
+                ApplicationArea = All;
+                Caption = 'Recurring Billing';
+                RunObject = page "Recurring Billing";
+                ToolTip = 'Opens the page for creating billing proposals for Recurring subscriptions.';
+            }
+            action("Contract Deferrals Release")
+            {
+                ApplicationArea = All;
+                Caption = 'Contract Deferrals Release';
+                RunObject = report "Contract Deferrals Release";
+                ToolTip = 'Releases the deferrals for the all contracts.';
+            }
+            group(Reports)
+            {
+                Caption = 'Subscription Billing Reports';
+                action("Overview Of Contract Components")
+                {
+                    ApplicationArea = All;
+                    Caption = 'Overview of Subscription Contract components';
+                    Image = "Report";
+                    RunObject = Report "Overview Of Contract Comp";
+                    ToolTip = 'Analyze components of your contracts.';
+                }
+                action("Customer Contract Deferrals Analysis")
+                {
+                    ApplicationArea = All;
+                    Caption = 'Customer Subscription Contract Deferrals Analysis';
+                    Image = "Report";
+                    RunObject = Report "Cust. Contr. Def. Analysis";
+                    ToolTip = 'Analyze Customer Subscription Contract deferrals.';
+                }
+                action("Vendor Contract Deferrals Analysis")
+                {
+                    ApplicationArea = All;
+                    Caption = 'Vendor Subscription Contract Deferrals Analysis';
+                    Image = "Report";
+                    RunObject = Report "Vend Contr. Def. Analysis";
+                    ToolTip = 'Analyze Vendor Subscription Contract deferrals.';
+                }
+            }
+            group("Sub. Billing History")
+            {
+                Caption = 'Sub. Billing History';
+                action("Posted Customer Contract Invoices")
+                {
+                    ApplicationArea = All;
+                    Caption = 'Posted Customer Subscription Contract Invoices';
+                    Image = PostedOrder;
+                    RunObject = page "Posted Sales Invoices";
+                    RunPageView = where("Recurring Billing" = const(true));
+                    ToolTip = 'Open the list of Posted Sales Invoices for Customer Subscription Contracts.';
+                }
+                action("Posted Customer Contract Credit Memos")
+                {
+                    ApplicationArea = All;
+                    Caption = 'Posted Customer Subscription Contract Credit Memos';
+                    Image = PostedOrder;
+                    RunObject = page "Posted Sales Credit Memos";
+                    RunPageView = where("Recurring Billing" = const(true));
+                    ToolTip = 'Open the list of Posted Sales Credit Memos for Customer Subscription Contracts.';
+                }
+                action("Posted Vendor Contract Invoices")
+                {
+                    ApplicationArea = All;
+                    Caption = 'Posted Vendor Subscription Contract Invoices';
+                    Image = PostedOrder;
+                    RunObject = page "Posted Purchase Invoices";
+                    RunPageView = where("Recurring Billing" = const(true));
+                    ToolTip = 'Open the list of Posted Purchase Invoices for Vendor Subscription Contracts.';
+                }
+                action("Posted Vendor Contract Credit Memos")
+                {
+                    ApplicationArea = All;
+                    Caption = 'Posted Vendor Subscription Contract Credit Memos';
+                    Image = PostedOrder;
+                    RunObject = page "Posted Purchase Credit Memos";
+                    RunPageView = where("Recurring Billing" = const(true));
+                    ToolTip = 'Open the list of Posted Purchase Credit Memos for Vendor Subscription Contracts.';
+                }
+            }
+        }
+        addlast(New)
+        {
+            action(ServiceCommitmentTemplate)
+            {
+                ApplicationArea = All;
+                Caption = 'Subscription Package Line Template';
+                Image = ApplyTemplate;
+                RunObject = page "Service Commitment Templates";
+                RunPageMode = Create;
+                ToolTip = 'Create a new Subscription Package Line Template.';
+            }
+            action(ServiceCommitmentPackage)
+            {
+                ApplicationArea = All;
+                Caption = 'Subscription Package';
+                Image = ServiceLedger;
+                RunObject = page "Service Commitment Package";
+                RunPageMode = Create;
+                ToolTip = 'Create a new Subscription Package.';
+            }
+            action(ServiceObject)
+            {
+                ApplicationArea = All;
+                Caption = 'Subscription';
+                Image = NewOrder;
+                RunObject = Page "Service Object";
+                RunPageMode = Create;
+                ToolTip = 'Create a new Subscription.';
+            }
+            action(CustomerContract)
+            {
+                ApplicationArea = All;
+                Caption = 'Customer Subscription Contract';
+                Image = NewOrder;
+                RunObject = page "Customer Contract";
+                RunPageMode = Create;
+                ToolTip = 'Create a new Customer Subscription Contract.';
+            }
+            action(VendorContract)
+            {
+                ApplicationArea = All;
+                Caption = 'Vendor Subscription Contract';
+                Image = NewOrder;
+                RunObject = page "Vendor Contract";
+                RunPageMode = Create;
+                ToolTip = 'Create a new Vendor Subscription Contract.';
             }
         }
     }
