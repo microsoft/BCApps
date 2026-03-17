@@ -77,7 +77,6 @@ codeunit 148155 "Contracts Test"
     end;
 
     [Test]
-    [HandlerFunctions('ExchangeRateSelectionModalPageHandler,MessageHandler')]
     procedure CheckContractLineTypeForCommentOnCustomerContractLine()
     var
         Customer: Record Customer;
@@ -91,7 +90,7 @@ codeunit 148155 "Contracts Test"
         // [SCENARIO] Create Customer Subscription Contract. Add Description and check if the ContractLineType for that line is Comment
         Initialize();
 
-        SetupServiceObjectForNewItemWithServiceCommitment(Customer, ServiceObject, false);
+        SetupServiceObjectForNewItemWithServiceCommitment(Customer, ServiceObject, false, false);
         CreateCustomerContractSetup(Customer, ServiceObject, CustomerContract);
 
         DescriptionText := LibraryRandom.RandText(100);
@@ -222,7 +221,7 @@ codeunit 148155 "Contracts Test"
     begin
         Initialize();
 
-        SetupServiceObjectForNewItemWithServiceCommitment(Customer, ServiceObject, false);
+        SetupServiceObjectForNewItemWithServiceCommitment(Customer, ServiceObject, false, false);
 
         ServCommWOCustContract.OpenEdit();
         ServiceCommitment.Reset();
@@ -237,7 +236,7 @@ codeunit 148155 "Contracts Test"
     end;
 
     [Test]
-    [HandlerFunctions('ServCommWOCustContractPageHandler,ExchangeRateSelectionModalPageHandler,MessageHandler')]
+    [HandlerFunctions('ServCommWOCustContractPageHandler')]
     procedure CheckServiceCommitmentAssignmentToCustomerContractForServiceObjectWithItem()
     var
         Customer: Record Customer;
@@ -251,7 +250,7 @@ codeunit 148155 "Contracts Test"
         // [SCENARIO] Check that proper Subscription Lines are assigned to Customer Subscription Contract Lines
         Initialize();
 
-        SetupServiceObjectForNewItemWithServiceCommitment(Customer, ServiceObject, false);
+        SetupServiceObjectForNewItemWithServiceCommitment(Customer, ServiceObject, false, false);
 
         ContractTestLibrary.CreateCustomerContract(CustomerContract, Customer."No.");
 
@@ -323,7 +322,7 @@ codeunit 148155 "Contracts Test"
     end;
 
     [Test]
-    [HandlerFunctions('ServCommWOCustContractPageHandler,ExchangeRateSelectionModalPageHandler,MessageHandler')]
+    [HandlerFunctions('ServCommWOCustContractPageHandler')]
     procedure CheckServiceCommitmentAssignmentToCustomerContractWithShipToCode()
     var
         Customer: Record Customer;
@@ -337,8 +336,8 @@ codeunit 148155 "Contracts Test"
         // [SCENARIO] Check that proper Subscription Lines are assigned to Customer Subscription Contract Lines
         Initialize();
 
-        SetupServiceObjectForNewItemWithServiceCommitment(Customer, ServiceObject, false);
-        SetupServiceObjectForNewItemWithServiceCommitment(Customer, ServiceObject2, false);
+        SetupServiceObjectForNewItemWithServiceCommitment(Customer, ServiceObject, false, false);
+        SetupServiceObjectForNewItemWithServiceCommitment(Customer, ServiceObject2, false, false);
         ContractTestLibrary.CreateCustomerContract(CustomerContract, Customer."No.");
         ShipToAddress.SetRange("Customer No.", Customer."No.");
         ShipToAddress.FindFirst();
@@ -373,7 +372,7 @@ codeunit 148155 "Contracts Test"
         Initialize();
         Currency.InitRoundingPrecision();
 
-        SetupServiceObjectForNewItemWithServiceCommitment(Customer, ServiceObject, false);
+        SetupServiceObjectForNewItemWithServiceCommitment(Customer, ServiceObject, false, true);
         ContractTestLibrary.CreateCustomerContract(CustomerContract, Customer."No.");
 
         CustomerContractPage.OpenEdit();
@@ -457,7 +456,7 @@ codeunit 148155 "Contracts Test"
     end;
 
     [Test]
-    [HandlerFunctions('ExchangeRateSelectionModalPageHandler,ConfirmHandlerYes,MessageHandler')]
+    [HandlerFunctions('ConfirmHandlerYes,MessageHandler')]
     procedure CheckValueChangesOnCustomerContractLines()
     var
         ItemVariant: Record "Item Variant";
@@ -481,7 +480,7 @@ codeunit 148155 "Contracts Test"
         // [SCENARIO] Assign Subscription Lines to Customer Subscription Contract Lines. Change values on Customer Subscription Contract Lines and check that Subscription Line has changed values.
         Initialize();
 
-        SetupServiceObjectForNewItemWithServiceCommitment(Customer, ServiceObject, false);
+        SetupServiceObjectForNewItemWithServiceCommitment(Customer, ServiceObject, false, false);
         Currency.InitRoundingPrecision();
         CreateCustomerContractSetup(Customer, ServiceObject, CustomerContract);
 
@@ -594,7 +593,7 @@ codeunit 148155 "Contracts Test"
     begin
         Initialize();
 
-        SetupServiceObjectForNewItemWithServiceCommitment(Customer, ServiceObject, false);
+        SetupServiceObjectForNewItemWithServiceCommitment(Customer, ServiceObject, false, false);
         ContractTestLibrary.CreateCustomerContract(CustomerContract, Customer."No.");
         LibrarySales.CreateShipToAddress(ShipToAddress, Customer."No.");
 
@@ -787,7 +786,6 @@ codeunit 148155 "Contracts Test"
     end;
 
     [Test]
-    [HandlerFunctions('MessageHandler,ExchangeRateSelectionModalPageHandler')]
     procedure ExpectErrorForWrongServiceCommitmentToCustomerContractAssignment()
     var
         Customer: Record Customer;
@@ -800,7 +798,7 @@ codeunit 148155 "Contracts Test"
         // [SCENARIO] try to assign Subscription Line to wrong Contract No (different Customer No.)
         Initialize();
 
-        SetupServiceObjectForNewItemWithServiceCommitment(Customer, ServiceObject, false);
+        SetupServiceObjectForNewItemWithServiceCommitment(Customer, ServiceObject, false, false);
         ContractTestLibrary.CreateCustomerContract(CustomerContract, Customer."No.");
         ContractTestLibrary.CreateCustomer(Customer2);
         ContractTestLibrary.CreateCustomerContract(CustomerContract, Customer2."No.");
@@ -826,7 +824,7 @@ codeunit 148155 "Contracts Test"
     begin
         Initialize();
 
-        SetupServiceObjectForNewItemWithServiceCommitment(Customer, ServiceObject, false);
+        SetupServiceObjectForNewItemWithServiceCommitment(Customer, ServiceObject, false, true);
         ContractTestLibrary.CreateCustomerContract(CustomerContract, Customer."No.");
 
         ServiceCommitment.SetRange("Subscription Header No.", ServiceObject."No.");
@@ -1032,7 +1030,6 @@ codeunit 148155 "Contracts Test"
     end;
 
     [Test]
-    [HandlerFunctions('ExchangeRateSelectionModalPageHandler,MessageHandler')]
     procedure ExpectNoClosedCustomerContractLines()
     var
         Customer: Record Customer;
@@ -1044,7 +1041,7 @@ codeunit 148155 "Contracts Test"
     begin
         Initialize();
 
-        SetupServiceObjectForNewItemWithServiceCommitment(Customer, ServiceObject, false);
+        SetupServiceObjectForNewItemWithServiceCommitment(Customer, ServiceObject, false, false);
         ContractTestLibrary.CreateCustomerContractAndCreateContractLinesForItems(CustomerContract, ServiceObject, Customer."No.");
         ContractTestLibrary.InsertCustomerContractCommentLine(CustomerContract, CustomerContractLine2);
         ServiceCommitment.SetRange("Subscription Header No.", ServiceObject."No.");
@@ -1266,7 +1263,7 @@ codeunit 148155 "Contracts Test"
 
         // [GIVEN]
         ContractAnalysisEntry.DeleteAll(false);
-        SetupServiceObjectForNewItemWithServiceCommitment(Customer, ServiceObject, false, true);
+        SetupServiceObjectForNewItemWithServiceCommitment(Customer, ServiceObject, false, true, true);
         ContractTestLibrary.CreateCustomerContractAndCreateContractLinesForItems(CustomerContract, ServiceObject, Customer."No."); // ExchangeRateSelectionModalPageHandler, MessageHandler
 
         // [WHEN]
@@ -1427,7 +1424,6 @@ codeunit 148155 "Contracts Test"
     end;
 
     [Test]
-    [HandlerFunctions('ExchangeRateSelectionModalPageHandler,MessageHandler')]
     procedure TestDeleteServiceCommitmentLinkedToContractLineNotClosed()
     var
         Customer: Record Customer;
@@ -1439,8 +1435,8 @@ codeunit 148155 "Contracts Test"
         // Test: Subscription Line cannot be deleted if an open contract line exists
         Initialize();
 
-        SetupServiceObjectForNewItemWithServiceCommitment(Customer, ServiceObject, false);
-        ContractTestLibrary.CreateCustomerContractAndCreateContractLinesForItems(CustomerContract, ServiceObject, Customer."No."); // ExchangeRateSelectionModalPageHandler, MessageHandler
+        SetupServiceObjectForNewItemWithServiceCommitment(Customer, ServiceObject, false, false);
+        ContractTestLibrary.CreateCustomerContractAndCreateContractLinesForItems(CustomerContract, ServiceObject, Customer."No.");
 
         ServiceCommitment.Reset();
         ServiceCommitment.SetRange("Subscription Header No.", ServiceObject."No.");
@@ -1453,7 +1449,7 @@ codeunit 148155 "Contracts Test"
     end;
 
     [Test]
-    [HandlerFunctions('ExchangeRateSelectionModalPageHandler,MessageHandler,ConfirmHandlerYes')]
+    [HandlerFunctions('ConfirmHandlerYes')]
     procedure TestDeleteServiceCommitmentLinkedToContractLineIsClosed()
     var
         Customer: Record Customer;
@@ -1465,8 +1461,8 @@ codeunit 148155 "Contracts Test"
         // Test: A closed Contract Line is deleted when deleting the Subscription Line
         Initialize();
 
-        SetupServiceObjectForNewItemWithServiceCommitment(Customer, ServiceObject, false);
-        ContractTestLibrary.CreateCustomerContractAndCreateContractLinesForItems(CustomerContract, ServiceObject, Customer."No."); // ExchangeRateSelectionModalPageHandler, MessageHandler
+        SetupServiceObjectForNewItemWithServiceCommitment(Customer, ServiceObject, false, false);
+        ContractTestLibrary.CreateCustomerContractAndCreateContractLinesForItems(CustomerContract, ServiceObject, Customer."No.");
 
         ServiceCommitment.Reset();
         ServiceCommitment.SetRange("Subscription Header No.", ServiceObject."No.");
@@ -1632,7 +1628,7 @@ codeunit 148155 "Contracts Test"
         Initialize();
         Currency.InitRoundingPrecision();
 
-        SetupServiceObjectForNewItemWithServiceCommitment(Customer, ServiceObject, false);
+        SetupServiceObjectForNewItemWithServiceCommitment(Customer, ServiceObject, false, true);
         ContractTestLibrary.CreateCustomerContract(CustomerContract, Customer."No.");
 
         CustomerContractPage.OpenEdit();
@@ -1650,7 +1646,7 @@ codeunit 148155 "Contracts Test"
     end;
 
     [Test]
-    [HandlerFunctions('ServCommWOCustContractPageHandler,ExchangeRateSelectionModalPageHandler,MessageHandler')]
+    [HandlerFunctions('ServCommWOCustContractPageHandler')]
     procedure TestResetServiceCommitmentsOnCurrencyCodeDelete()
     var
         Currency: Record Currency;
@@ -1663,7 +1659,7 @@ codeunit 148155 "Contracts Test"
         Initialize();
         Currency.InitRoundingPrecision();
 
-        SetupServiceObjectForNewItemWithServiceCommitment(Customer, ServiceObject, false);
+        SetupServiceObjectForNewItemWithServiceCommitment(Customer, ServiceObject, false, false);
         ContractTestLibrary.CreateCustomerContract(CustomerContract, Customer."No.");
 
         CustomerContractPage.OpenEdit();
@@ -1705,7 +1701,7 @@ codeunit 148155 "Contracts Test"
     end;
 
     [Test]
-    [HandlerFunctions('ExchangeRateSelectionModalPageHandler,MessageHandler,CreateCustomerBillingDocsContractPageHandler')]
+    [HandlerFunctions('MessageHandler,CreateCustomerBillingDocsContractPageHandler')]
     procedure UpdatingServiceDatesWillNotCloseCustomerContractLinesWhenLineIsNotInvoicedCompletely()
     var
         Customer: Record Customer;
@@ -1718,10 +1714,10 @@ codeunit 148155 "Contracts Test"
         // [SCENARIO] Test if the Customer Subscription Contract line will be closed in case of different constellations
         Initialize();
 
-        SetupServiceObjectForNewItemWithServiceCommitment(Customer, ServiceObject, false);
+        SetupServiceObjectForNewItemWithServiceCommitment(Customer, ServiceObject, false, false);
 
         // [GIVEN] Create a Customer Subscription Contract with Subscription Lines
-        ContractTestLibrary.CreateCustomerContractAndCreateContractLinesForItems(CustomerContract, ServiceObject, Customer."No."); // ExchangeRateSelectionModalPageHandler, MessageHandler
+        ContractTestLibrary.CreateCustomerContractAndCreateContractLinesForItems(CustomerContract, ServiceObject, Customer."No.");
         ContractTestLibrary.InsertCustomerContractCommentLine(CustomerContract, CustomerContractLine2);
 
         // [GIVEN] Make sure that Subscription Line End Date is filled, to fullfil the requirement for close of the Customer Subscription Contract line
@@ -2276,7 +2272,7 @@ codeunit 148155 "Contracts Test"
         ServiceCommitment.Modify(false);
     end;
 
-    local procedure SetupServiceObjectForNewItemWithServiceCommitment(var Customer: Record Customer; var ServiceObject: Record "Subscription Header"; SNSpecificTracking: Boolean; AddVendorServiceCommitment: Boolean)
+    local procedure SetupServiceObjectForNewItemWithServiceCommitment(var Customer: Record Customer; var ServiceObject: Record "Subscription Header"; SNSpecificTracking: Boolean; AddVendorServiceCommitment: Boolean; CustomerWithCurrency: Boolean)
     var
         Item: Record Item;
         ItemServCommitmentPackage: Record "Item Subscription Package";
@@ -2285,7 +2281,10 @@ codeunit 148155 "Contracts Test"
         ServiceCommitmentTemplate: Record "Sub. Package Line Template";
         ServiceCommitmentTemplate2: Record "Sub. Package Line Template";
     begin
-        ContractTestLibrary.CreateCustomer(Customer);
+        if CustomerWithCurrency then
+            ContractTestLibrary.CreateCustomer(Customer)
+        else
+            ContractTestLibrary.CreateCustomerInLCY(Customer);
         ContractTestLibrary.CreateServiceObjectForItem(ServiceObject, Item, SNSpecificTracking);
         ServiceObject.Validate("End-User Customer Name", Customer.Name);
         ServiceObject.Modify(false);
@@ -2333,9 +2332,9 @@ codeunit 148155 "Contracts Test"
         ServiceObject.InsertServiceCommitmentsFromServCommPackage(WorkDate(), ServiceCommitmentPackage);
     end;
 
-    local procedure SetupServiceObjectForNewItemWithServiceCommitment(var Customer: Record Customer; var ServiceObject: Record "Subscription Header"; SNSpecificTracking: Boolean)
+    local procedure SetupServiceObjectForNewItemWithServiceCommitment(var Customer: Record Customer; var ServiceObject: Record "Subscription Header"; SNSpecificTracking: Boolean; CustomerWithCurrency: Boolean)
     begin
-        SetupServiceObjectForNewItemWithServiceCommitment(Customer, ServiceObject, SNSpecificTracking, false);
+        SetupServiceObjectForNewItemWithServiceCommitment(Customer, ServiceObject, SNSpecificTracking, false, CustomerWithCurrency);
     end;
 
     local procedure SetupServiceObjectForNewGLAccountWithServiceCommitment(var Customer: Record Customer; var ServiceObject: Record "Subscription Header")

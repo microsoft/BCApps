@@ -776,6 +776,11 @@ table 30102 "Shpfy Shop"
             Caption = 'Currency Handling';
             InitValue = "Shop Currency";
         }
+        field(136; "Use Shopify Order No."; Boolean)
+        {
+            Caption = 'Use Shopify Order No.';
+            ToolTip = 'Specifies whether the Shopify order number is used as the document number on the created Sales Order or Sales Invoice. The number series must have Allow Manual Nos. enabled.';
+        }
         field(200; "Shop Id"; Integer)
         {
             DataClassification = SystemMetadata;

@@ -24,12 +24,47 @@ report 30102 "Shpfy Sync Stock to Shopify"
             trigger OnAfterGetRecord()
             var
                 ShopifyShopInventory: Record "Shpfy Shop Inventory";
+                ShpfySyncInventory: Codeunit "Shpfy Sync Inventory";
             begin
                 ShopifyShopInventory.Reset();
                 ShopifyShopInventory.SetRange("Shop Code", Shop.Code);
-                CodeUnit.Run(Codeunit::"Shpfy Sync Inventory", ShopifyShopInventory);
+
+                if VariantIdFilter <> '' then
+                    ShopifyShopInventory.SetFilter("Variant ID", VariantIdFilter);
+
+                ShpfySyncInventory.SetSkipImport(SkipImport);
+                ShpfySyncInventory.Run(ShopifyShopInventory);
             end;
         }
     }
 
+    requestpage
+    {
+        layout
+        {
+            area(content)
+            {
+                group(Group)
+                {
+                    Caption = 'Options';
+                    field("Skip Import"; SkipImport)
+                    {
+                        ApplicationArea = All;
+                        Caption = 'Skip Import Stock';
+                        ToolTip = 'Specifies whether to skip importing stock from Shopify before exporting stock to Shopify.';
+                    }
+                    field("Variant ID Filter"; VariantIdFilter)
+                    {
+                        ApplicationArea = All;
+                        Caption = 'Variant ID Filter';
+                        ToolTip = 'Specifies a filter for the Variant ID to limit which inventory items are synchronized.';
+                    }
+                }
+            }
+        }
+    }
+
+    protected var
+        VariantIdFilter: Text;
+        SkipImport: Boolean;
 }

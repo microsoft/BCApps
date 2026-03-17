@@ -5,6 +5,7 @@ Note that when using the preview version of AL-Go for GitHub, we recommend you U
 ### Issues
 
 - Attempt to start docker service in case it is not running
+- NextMajor (v28) fails when downloading dependencies from NuGet-feed
 
 ## v8.3
 
