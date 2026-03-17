@@ -35,7 +35,6 @@ codeunit 139538 "Shpfy Sync Variant Images Test"
     var
         Product: Record "Shpfy Product";
         Variant: Record "Shpfy Variant";
-        CommunicationMgt: Codeunit "Shpfy Communication Mgt.";
         InitializeTest: Codeunit "Shpfy Initialize Test";
         AccessToken: SecretText;
     begin
@@ -49,8 +48,6 @@ codeunit 139538 "Shpfy Sync Variant Images Test"
         end;
         Shop := InitializeTest.CreateShop();
 
-        // Disable Event Mocking 
-        CommunicationMgt.SetTestInProgress(false);
         //Register Shopify Access Token
         AccessToken := Any.AlphanumericText(20);
         InitializeTest.RegisterAccessTokenForShop(Shop.GetStoreName(), AccessToken);

@@ -186,7 +186,6 @@ codeunit 139606 "Shpfy Shipping Test"
 
     local procedure Initialize()
     var
-        CommunicationMgt: Codeunit "Shpfy Communication Mgt.";
         LibraryTestInitialize: Codeunit "Library - Test Initialize";
         LibraryRandom: Codeunit "Library - Random";
         AccessToken: SecretText;
@@ -208,8 +207,6 @@ codeunit 139606 "Shpfy Shipping Test"
 
         // Creating Shopify Shop
         Shop := InitializeTest.CreateShop();
-
-        CommunicationMgt.SetTestInProgress(false);
 
         //Register Shopify Access Token
         AccessToken := LibraryRandom.RandText(20);

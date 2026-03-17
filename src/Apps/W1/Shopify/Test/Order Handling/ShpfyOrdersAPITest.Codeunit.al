@@ -22,12 +22,17 @@ codeunit 139608 "Shpfy Orders API Test"
     Subtype = Test;
     TestType = Uncategorized;
     TestPermissions = Disabled;
+    TestHttpRequestPolicy = BlockOutboundRequests;
 
     var
+        Shop: Record "Shpfy Shop";
         LibraryAssert: Codeunit "Library Assert";
         LibraryRandom: Codeunit "Library - Random";
-        OrdersAPISubscriber: Codeunit "Shpfy Orders API Subscriber";
+        OutboundHttpRequests: Codeunit "Library - Variable Storage";
+        InitializeTest: Codeunit "Shpfy Initialize Test";
         Any: Codeunit Any;
+        CompanyLocationId: BigInteger;
+        IsInitialized: Boolean;
         OrdersToImportChannelLiableMismatchTxt: Label 'Orders to import Channel Liable Taxes mismatch when %1.', Locked = true;
         OrderLevelTaxLineExpectedTxt: Label 'An order-level tax line should exist when %1.', Locked = true;
         ChannelLiableFlagMismatchTxt: Label 'Channel Liable flag mismatch when %1.', Locked = true;
@@ -280,9 +285,9 @@ codeunit 139608 "Shpfy Orders API Test"
     end;
 
     [Test]
+    [HandlerFunctions('OrdersAPIHttpHandler')]
     procedure UnitTestDoMappingsOnAB2BShopifyOrderImportLocation()
     var
-        Shop: Record "Shpfy Shop";
         OrderHeader: Record "Shpfy Order Header";
         CompanyLocation: Record "Shpfy Company Location";
         CommunicationMgt: Codeunit "Shpfy Communication Mgt.";
@@ -305,7 +310,12 @@ codeunit 139608 "Shpfy Orders API Test"
         OrderHandlingHelper.ImportShopifyOrder(Shop, OrderHeader, ImportOrder, true);
         OrderHeader."Company Location Id" := Any.IntegerInRange(100000, 999999);
         OrderHeader.Modify();
-        OrdersAPISubscriber.SetLocationId(OrderHeader."Company Location Id");
+        CompanyLocationId := OrderHeader."Company Location Id";
+
+        // [GIVEN] Register Expected Outbound API Requests.
+        OutboundHttpRequests.Clear();
+        OutboundHttpRequests.Enqueue('Order Handling/OrderTransactionResult.txt');
+        OutboundHttpRequests.Enqueue('CompanyLocation');
 
         // [WHEN] ShpfyOrderMapping.DoMapping(ShpfyOrderHeader)
         OrderMapping.DoMapping(OrderHeader);
@@ -1584,9 +1594,48 @@ codeunit 139608 "Shpfy Orders API Test"
     end;
 
     local procedure Initialize()
+    var
+        CommunicationMgt: Codeunit "Shpfy Communication Mgt.";
+        AccessToken: SecretText;
     begin
+        if IsInitialized then
+            exit;
+
         Codeunit.Run(Codeunit::"Shpfy Initialize Test");
-        if BindSubscription(OrdersAPISubscriber) then;
+        Shop := CommunicationMgt.GetShopRecord();
+
+        AccessToken := LibraryRandom.RandText(20);
+        InitializeTest.RegisterAccessTokenForShop(Shop.GetStoreName(), AccessToken);
+
+        IsInitialized := true;
+    end;
+
+    [HttpClientHandler]
+    internal procedure OrdersAPIHttpHandler(Request: TestHttpRequestMessage; var Response: TestHttpResponseMessage): Boolean
+    var
+        RequestType: Text;
+        Body: Text;
+    begin
+        if not InitializeTest.VerifyRequestUrl(Request.Path, Shop."Shopify URL") then
+            exit(true);
+
+        if OutboundHttpRequests.Length() = 0 then
+            exit(false);
+
+        RequestType := OutboundHttpRequests.DequeueText();
+        case RequestType of
+            'Order Handling/OrderTransactionResult.txt':
+                begin
+                    Body := NavApp.GetResourceAsText('Order Handling/OrderTransactionResult.txt', TextEncoding::UTF8);
+                    Response.Content.WriteFrom(Body);
+                end;
+            'CompanyLocation':
+                begin
+                    Body := NavApp.GetResourceAsText('Order Handling/CompanyLocationResult.txt', TextEncoding::UTF8);
+                    Response.Content.WriteFrom(Body.Replace('{{LocationId}}', Format(CompanyLocationId)));
+                end;
+        end;
+        exit(false);
     end;
 
     local procedure PrepareOrdersToImportChannelLiableScenario(ChannelLiableScenario: Option Missing,TrueValue,FalseValue,NullValue; var JOrdersToImport: JsonObject; var ExpectedChannelLiable: Boolean; var ScenarioName: Text)

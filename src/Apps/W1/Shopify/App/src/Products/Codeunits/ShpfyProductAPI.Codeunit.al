@@ -192,11 +192,8 @@ codeunit 30176 "Shpfy Product API"
         Headers: HttpHeaders;
         Response: HttpResponseMessage;
         InStream: InStream;
-        IsTestInProgress: Boolean;
     begin
-        OnBeforeUploadImage(TenantMedia, Url, IsTestInProgress);
-        if IsTestInProgress then
-            exit;
+        OnBeforeUploadImage(TenantMedia, Url);
 
         Content.GetHeaders(Headers);
         if Headers.Contains('Content-Type') then
@@ -752,7 +749,7 @@ codeunit 30176 "Shpfy Product API"
     end;
 
     [InternalEvent(false, false)]
-    procedure OnBeforeUploadImage(var TenantMedia: Record "Tenant Media"; var ResourceUrl: Text; var IsTestInProgress: Boolean)
+    procedure OnBeforeUploadImage(var TenantMedia: Record "Tenant Media"; var ResourceUrl: Text)
     begin
     end;
 }
