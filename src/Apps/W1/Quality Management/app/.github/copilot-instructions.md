@@ -42,6 +42,20 @@ Load the relevant component docs first:
 - **App setup/configuration:** `src/Setup/QltyManagementSetup.Table.al`
 - **Disposition interface:** `src/Dispositions/QltyDisposition.Interface.al`
 
+## Context loading — read these before making changes
+
+When working in a specific area, reference the component docs first:
+
+| Working in... | Read first |
+|---|---|
+| `src/Document/` | `#file:src/Document/docs/CLAUDE.md` + `#file:src/Document/docs/architecture.md` |
+| `src/Configuration/` | `#file:src/Configuration/docs/CLAUDE.md` + `#file:src/Configuration/docs/architecture.md` |
+| `src/Integration/` | `#file:src/Integration/docs/CLAUDE.md` |
+| `src/Dispositions/` | `#file:src/Dispositions/docs/CLAUDE.md` |
+| Any area | `#file:docs/architecture.md` + `#file:docs/conventions.md` |
+
+Always reference `#file:docs/data-model.md` when modifying or adding tables.
+
 ## How to reference docs in Copilot Chat
 
 ```

@@ -59,6 +59,20 @@ Generation Rule (trigger condition)
     → Disposition action (optional post-processing)
 ```
 
+## Context Loading Instructions
+
+When working in a specific area, read the corresponding component docs **before** making changes:
+
+| Working in... | Read first |
+|---|---|
+| `src/Document/` | `src/Document/docs/CLAUDE.md` + `src/Document/docs/architecture.md` |
+| `src/Configuration/` | `src/Configuration/docs/CLAUDE.md` + `src/Configuration/docs/architecture.md` |
+| `src/Integration/` | `src/Integration/docs/CLAUDE.md` |
+| `src/Dispositions/` | `src/Dispositions/docs/CLAUDE.md` |
+| Any area | `docs/architecture.md` + `docs/conventions.md` |
+
+Always read `docs/data-model.md` when modifying or adding tables.
+
 ## Development Environment
 
 - **CountryCode:** W1 (world-wide)
