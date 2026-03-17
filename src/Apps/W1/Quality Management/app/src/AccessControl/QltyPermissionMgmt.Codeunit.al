@@ -64,7 +64,7 @@ codeunit 20406 "Qlty. Permission Mgmt."
     /// <returns>True if the user can change other users' inspections; otherwise, false.</returns>
     internal procedure CanChangeOtherInspections(): Boolean
     begin
-        exit(HasSupervisorRole());
+        exit(HasAdminSupervisorRole());
     end;
 
     /// <summary>
@@ -90,8 +90,20 @@ codeunit 20406 "Qlty. Permission Mgmt."
     /// </summary>
     internal procedure VerifyCanReopenInspection()
     begin
-        if not CanModifyTableData(Database::"Qlty. Inspection Header") then
+        if not CanReopenInspection() then
             Error(UserDoesNotHavePermissionToErr, UserId(), ActionReopenInspectionLbl);
+    end;
+
+    /// <summary>
+    /// Checks if the current user can reopen an inspection.
+    /// </summary>
+    /// <returns>True if the user can reopen an inspection; otherwise, false.</returns>
+    local procedure CanReopenInspection(): Boolean
+    begin
+        if not CanModifyTableData(Database::"Qlty. Inspection Header") then
+            exit(false);
+
+        exit(HasAdminSupervisorRole());
     end;
 
     /// <summary>
@@ -121,7 +133,7 @@ codeunit 20406 "Qlty. Permission Mgmt."
         if not CanDeleteTableData(Database::"Qlty. Inspection Header") then
             exit(false);
 
-        exit(HasSupervisorRole());
+        exit(HasAdminSupervisorRole());
     end;
 
     /// <summary>
@@ -160,7 +172,7 @@ codeunit 20406 "Qlty. Permission Mgmt."
         if not CanModifyTableData(Database::"Qlty. Inspection Header") then
             exit(false);
 
-        exit(HasSupervisorRole());
+        exit(HasAdminSupervisorRole());
     end;
 
     /// <summary>
@@ -195,7 +207,7 @@ codeunit 20406 "Qlty. Permission Mgmt."
     end;
 
     #region Verify Permissions
-    local procedure HasSupervisorRole() IsAssigned: Boolean
+    local procedure HasAdminSupervisorRole() IsAssigned: Boolean
     var
         UserPermissions: Codeunit "User Permissions";
         CurrentExtensionModuleInfo: ModuleInfo;
