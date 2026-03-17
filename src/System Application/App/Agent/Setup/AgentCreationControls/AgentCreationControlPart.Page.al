@@ -17,6 +17,7 @@ page 4332 "Agent Creation Control Part"
     MultipleNewLines = false;
     PageType = ListPart;
     SourceTable = "Agent Creation Control";
+    DelayedInsert = true;
 
     layout
     {
@@ -82,9 +83,10 @@ page 4332 "Agent Creation Control Part"
         CreationControlLookup: Page "Agent Creation Control Lookup";
         SelectCompanyLbl: Label 'Select company';
         CompanyDisplayName: Text[250];
+        AllCompaniesKeyTok: Label '', Locked = true;
     begin
         // Add "(All Companies)" as first option.
-        CreationControlLookup.AddEntry('', AllCompaniesLbl);
+        CreationControlLookup.AddEntry(AllCompaniesKeyTok, AllCompaniesLbl);
 
         // Add all companies.
         if Company.FindSet() then
@@ -94,7 +96,7 @@ page 4332 "Agent Creation Control Part"
             until Company.Next() = 0;
 
         // Run the lookup.
-        CreationControlLookup.Initialize(SelectCompanyLbl, Rec."Company Name");
+        CreationControlLookup.Initialize(SelectCompanyLbl, Rec.IsAllCompanies() ? AllCompaniesKeyTok : Rec."Company Name");
         CreationControlLookup.LookupMode := true;
         if CreationControlLookup.RunModal() = Action::LookupOK then begin
             CreationControlLookup.GetRecord(TempAgentCreationControlLookup);
