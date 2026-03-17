@@ -5,6 +5,7 @@
 
 namespace Microsoft.Integration.Shopify;
 
+using System.Environment;
 using System.Integration;
 
 codeunit 30270 "Shpfy Bulk Operation Mgt."
@@ -15,10 +16,14 @@ codeunit 30270 "Shpfy Bulk Operation Mgt."
 
     internal procedure EnableBulkOperations(var Shop: Record "Shpfy Shop")
     var
+        EnvironmentInformation: Codeunit "Environment Information";
         WebhooksMgt: Codeunit "Shpfy Webhooks Mgt.";
         WebhookManagement: Codeunit "Webhook Management";
         IsHandled: Boolean;
     begin
+        if not EnvironmentInformation.IsSaaS() then
+            exit;
+
         if not WebhookManagement.IsValidNotificationRunAsUser(UserSecurityID()) then begin
             OnInvalidUser(IsHandled);
             if not IsHandled then

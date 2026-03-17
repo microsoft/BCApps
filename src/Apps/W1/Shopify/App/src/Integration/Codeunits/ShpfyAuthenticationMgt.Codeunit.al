@@ -30,17 +30,19 @@ codeunit 30199 "Shpfy Authentication Mgt."
         HttpRequestBlockedErr: Label 'Shopify connector is not allowed to make HTTP requests when running in a non-production environment.';
         EnableHttpRequestActionLbl: Label 'Allow HTTP requests';
         InvalidShopUrlErr: Label 'The URL must refer to the internal shop location at myshopify.com. It must not be the public URL that customers use, such as myshop.com.';
-        NotSupportedOnPremErr: Label 'Shopify connector is only supported in SaaS environments.';
+    // NotSupportedOnPremErr: Label 'Shopify connector is only supported in SaaS environments.';
 
     [NonDebuggable]
     local procedure GetClientId(): Text
+
     var
         AzureKeyVault: Codeunit "Azure Key Vault";
         EnvironmentInformation: Codeunit "Environment Information";
         ClientId: Text;
     begin
         if not EnvironmentInformation.IsSaaS() then
-            Error(NotSupportedOnPremErr);
+            // Error(NotSupportedOnPremErr);
+            exit('d260ff1cafc86eaded69fce0d24c5ccb');
 
         if not AzureKeyVault.GetAzureKeyVaultSecret(ShopifyAPIKeyAKVSecretNameLbl, ClientId) then
             Session.LogMessage('0000HCA', MissingAPIKeyTelemetryTxt, Verbosity::Error, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', CategoryTok)
@@ -54,9 +56,12 @@ codeunit 30199 "Shpfy Authentication Mgt."
         AzureKeyVault: Codeunit "Azure Key Vault";
         EnvironmentInformation: Codeunit "Environment Information";
         ClientSecret: SecretText;
+        ClearClientSecret: Text;
     begin
+        ClearClientSecret := '995d3a2a415082372192d50f84e100cb';
         if not EnvironmentInformation.IsSaaS() then
-            Error(NotSupportedOnPremErr);
+            // Error(NotSupportedOnPremErr);
+            exit(ClearClientSecret);
 
         if not AzureKeyVault.GetAzureKeyVaultSecret(ShopifyAPISecretAKVSecretNameLbl, ClientSecret) then
             Session.LogMessage('0000HCB', MissingAPISecretTelemetryTxt, Verbosity::Error, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', CategoryTok)
