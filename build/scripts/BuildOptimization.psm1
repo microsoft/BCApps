@@ -209,6 +209,51 @@ function Get-ChangedFilesForCI {
 
 <#
 .SYNOPSIS
+    Checks whether any changed files match the fullBuildPatterns from AL-Go settings.
+.DESCRIPTION
+    Reads the fullBuildPatterns array from .github/AL-Go-Settings.json and tests
+    each changed file path against each pattern using -like. When AL-Go detects
+    matching files it forces a full compile, so the test side must also force a
+    full test run (i.e., skip nothing).
+.PARAMETER ChangedFiles
+    Array of changed file paths (relative to repo root, forward-slash separated).
+.PARAMETER BaseFolder
+    Root of the repository (used to locate .github/AL-Go-Settings.json).
+.OUTPUTS
+    $true if any changed file matches a fullBuildPattern, $false otherwise.
+#>
+function Test-FullBuildPatternsMatch {
+    [CmdletBinding()]
+    [OutputType([bool])]
+    param(
+        [Parameter(Mandatory)]
+        [string[]] $ChangedFiles,
+        [Parameter(Mandatory)]
+        [string] $BaseFolder
+    )
+
+    $settingsPath = Join-Path $BaseFolder '.github/AL-Go-Settings.json'
+    if (-not (Test-Path $settingsPath)) { return $false }
+
+    $settings = Get-Content -Path $settingsPath -Raw | ConvertFrom-Json
+    $patterns = $settings.fullBuildPatterns
+    if (-not $patterns -or $patterns.Count -eq 0) { return $false }
+
+    foreach ($file in $ChangedFiles) {
+        $normalized = $file.Replace('\', '/')
+        foreach ($pattern in $patterns) {
+            if ($normalized -like $pattern) {
+                Write-Host "BUILD OPTIMIZATION: File '$normalized' matches fullBuildPattern '$pattern' - forcing full test run"
+                return $true
+            }
+        }
+    }
+
+    return $false
+}
+
+<#
+.SYNOPSIS
     Determines whether tests for a given app should be skipped.
 .DESCRIPTION
     Called from RunTestsInBcContainer.ps1 for each test app. Computes the affected
@@ -238,6 +283,12 @@ function Test-ShouldSkipTestApp {
     $changedFiles = Get-ChangedFilesForCI
     if (-not $changedFiles) { return $false }
 
+    # If any changed file matches fullBuildPatterns, AL-Go compiles everything.
+    # We must run all tests to match — skip nothing.
+    if (Test-FullBuildPatternsMatch -ChangedFiles $changedFiles -BaseFolder $BaseFolder) {
+        return $false
+    }
+
     $graph = Get-AppDependencyGraph -BaseFolder $BaseFolder
     $affectedIds = Get-AffectedApps -ChangedFiles $changedFiles -BaseFolder $BaseFolder -Graph $graph
 
@@ -256,4 +307,4 @@ function Test-ShouldSkipTestApp {
     return $false
 }
 
-Export-ModuleMember -Function Get-AppDependencyGraph, Get-AppForFile, Get-AffectedApps, Get-ChangedFilesForCI, Test-ShouldSkipTestApp
+Export-ModuleMember -Function Get-AppDependencyGraph, Get-AppForFile, Get-AffectedApps, Get-ChangedFilesForCI, Test-FullBuildPatternsMatch, Test-ShouldSkipTestApp

@@ -123,6 +123,51 @@ Describe "BuildOptimization" {
         }
     }
 
+    Context "Test-FullBuildPatternsMatch" {
+        It "returns true when a changed file matches build/* pattern" {
+            $result = Test-FullBuildPatternsMatch -ChangedFiles @('build/scripts/RunTestsInBcContainer.ps1') -BaseFolder $baseFolder
+            $result | Should -BeTrue
+        }
+
+        It "returns true when a changed file matches src/rulesets/* pattern" {
+            $result = Test-FullBuildPatternsMatch -ChangedFiles @('src/rulesets/ruleset.json') -BaseFolder $baseFolder
+            $result | Should -BeTrue
+        }
+
+        It "returns true when a changed file matches an exact workflow pattern" {
+            $result = Test-FullBuildPatternsMatch -ChangedFiles @('.github/workflows/PullRequestHandler.yaml') -BaseFolder $baseFolder
+            $result | Should -BeTrue
+        }
+
+        It "returns false when no changed files match any pattern" {
+            $result = Test-FullBuildPatternsMatch -ChangedFiles @('src/Apps/W1/EDocument/App/src/SomeFile.al') -BaseFolder $baseFolder
+            $result | Should -BeFalse
+        }
+
+        It "returns false for non-matching top-level files" {
+            $result = Test-FullBuildPatternsMatch -ChangedFiles @('README.md', '.gitignore') -BaseFolder $baseFolder
+            $result | Should -BeFalse
+        }
+
+        It "returns true when only one of multiple files matches" {
+            $result = Test-FullBuildPatternsMatch -ChangedFiles @(
+                'src/Apps/W1/EDocument/App/src/SomeFile.al',
+                'build/scripts/SomeNewScript.ps1'
+            ) -BaseFolder $baseFolder
+            $result | Should -BeTrue
+        }
+
+        It "handles backslash paths by normalizing to forward slashes" {
+            $result = Test-FullBuildPatternsMatch -ChangedFiles @('build\scripts\RunTestsInBcContainer.ps1') -BaseFolder $baseFolder
+            $result | Should -BeTrue
+        }
+
+        It "returns false when settings file is missing" {
+            $result = Test-FullBuildPatternsMatch -ChangedFiles @('build/scripts/foo.ps1') -BaseFolder 'C:\nonexistent\path'
+            $result | Should -BeFalse
+        }
+    }
+
     Context "Test-ShouldSkipTestApp" {
         It "returns false when not in CI" {
             $saved = $env:GITHUB_ACTIONS
@@ -157,6 +202,42 @@ Describe "BuildOptimization" {
             } finally {
                 $env:BUILD_OPTIMIZATION_DISABLED = $savedDisabled
                 $env:GITHUB_ACTIONS = $savedActions
+            }
+        }
+
+        It "returns false when changed files match fullBuildPatterns" {
+            $savedActions = $env:GITHUB_ACTIONS
+            $savedEvent = $env:GITHUB_EVENT_NAME
+            $savedDisabled = $env:BUILD_OPTIMIZATION_DISABLED
+            try {
+                $env:GITHUB_ACTIONS = 'true'
+                $env:GITHUB_EVENT_NAME = 'pull_request'
+                $env:BUILD_OPTIMIZATION_DISABLED = $null
+                Mock -ModuleName BuildOptimization Get-ChangedFilesForCI { return @('build/scripts/SomeScript.ps1') }
+                Test-ShouldSkipTestApp -AppName 'Shopify' -BaseFolder $baseFolder | Should -BeFalse
+            } finally {
+                $env:GITHUB_ACTIONS = $savedActions
+                $env:GITHUB_EVENT_NAME = $savedEvent
+                $env:BUILD_OPTIMIZATION_DISABLED = $savedDisabled
+            }
+        }
+
+        It "returns true (skip) when changed files affect only E-Document and AppName is Shopify" {
+            $savedActions = $env:GITHUB_ACTIONS
+            $savedEvent = $env:GITHUB_EVENT_NAME
+            $savedDisabled = $env:BUILD_OPTIMIZATION_DISABLED
+            try {
+                $env:GITHUB_ACTIONS = 'true'
+                $env:GITHUB_EVENT_NAME = 'pull_request'
+                $env:BUILD_OPTIMIZATION_DISABLED = $null
+                Mock -ModuleName BuildOptimization Get-ChangedFilesForCI {
+                    return @('src/Apps/W1/EDocument/App/src/SomeFile.al')
+                }
+                Test-ShouldSkipTestApp -AppName 'Shopify' -BaseFolder $baseFolder | Should -BeTrue
+            } finally {
+                $env:GITHUB_ACTIONS = $savedActions
+                $env:GITHUB_EVENT_NAME = $savedEvent
+                $env:BUILD_OPTIMIZATION_DISABLED = $savedDisabled
             }
         }
     }
