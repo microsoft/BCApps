@@ -2,7 +2,7 @@
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
-#if not CLEAN29
+#if not CLEAN28
 namespace Microsoft.QualityManagement.Integration.Manufacturing.Routing;
 
 using Microsoft.Manufacturing.Routing;
@@ -16,7 +16,7 @@ page 20463 "Qlty. Routing Line Lookup"
     ApplicationArea = Manufacturing;
     ObsoleteReason = 'Unused and replaced with "Routing Line List" page.';
     ObsoleteState = Pending;
-    ObsoleteTag = '29.0';
+    ObsoleteTag = '28.0';
 
     layout
     {
