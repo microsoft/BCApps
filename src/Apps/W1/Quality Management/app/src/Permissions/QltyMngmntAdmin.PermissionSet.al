@@ -18,9 +18,9 @@ using Microsoft.QualityManagement.Workflow;
 /// <summary>
 /// Used for administering Quality Management and supervising Quality Inspections.
 /// </summary>
-permissionset 20405 "QltyMngmnt - Edit"
+permissionset 20405 "QltyMngmnt - Admin"
 {
-    Caption = 'Quality Management - Full edit access';
+    Caption = 'Quality Management - Administrator';
     Access = Public;
     Assignable = true;
 

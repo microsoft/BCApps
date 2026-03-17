@@ -28,7 +28,7 @@ codeunit 20406 "Qlty. Permission Mgmt."
         ActionChangeItemTrackingLbl: Label 'change item tracking';
         ActionChangeSourceQuantityLbl: Label 'change source quantity';
         ActionEditLineCommentLbl: Label 'edit line note/comment';
-        SupervisorRoleIDTxt: Label 'QltyMngmnt - Edit', Locked = true;
+        AdminSupervisorRoleIDTxt: Label 'QltyMngmnt - Admin', Locked = true;
         UserDoesNotHavePermissionToErr: Label 'The user [%1] does not have permission to [%2].', Comment = '%1=User id, %2=permission being attempted';
 
     /// <summary>
@@ -200,10 +200,10 @@ codeunit 20406 "Qlty. Permission Mgmt."
         UserPermissions: Codeunit "User Permissions";
         CurrentExtensionModuleInfo: ModuleInfo;
     begin
-        IsAssigned := HasUserPermissionSetDirectlyAssigned(UserSecurityId(), SupervisorRoleIDTxt);
+        IsAssigned := HasUserPermissionSetDirectlyAssigned(UserSecurityId(), AdminSupervisorRoleIDTxt);
         if not IsAssigned then
             if NavApp.GetCurrentModuleInfo(CurrentExtensionModuleInfo) then
-                IsAssigned := UserPermissions.HasUserPermissionSetAssigned(UserSecurityId(), CompanyName(), SupervisorRoleIDTxt, 0, CurrentExtensionModuleInfo.Id());
+                IsAssigned := UserPermissions.HasUserPermissionSetAssigned(UserSecurityId(), CompanyName(), AdminSupervisorRoleIDTxt, 0, CurrentExtensionModuleInfo.Id());
         if not IsAssigned then
             IsAssigned := UserPermissions.IsSuper(UserSecurityId());
     end;
