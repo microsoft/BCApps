@@ -189,7 +189,10 @@ codeunit 8067 "Customer Deferrals Mngmt."
             RunningLineAmount += LineAmountPerPeriod;
             RunningLineDiscountAmount += LineDiscountAmountPerPeriod;
 
-            CustomerContractDeferral."Number of Days" := Date2DMY(CalcDate('<CM>', CustomerContractDeferral."Posting Date"), 1);
+            if i = NumberOfPeriods then
+                CustomerContractDeferral."Number of Days" := Date2DMY(LastDayOfBillingPeriod, 1)
+            else
+                CustomerContractDeferral."Number of Days" := Date2DMY(CalcDate('<CM>', CustomerContractDeferral."Posting Date"), 1);
             CustomerContractDeferral.Amount := LineAmountPerPeriod;
             CustomerContractDeferral."Discount Amount" := LineDiscountAmountPerPeriod;
             CustomerContractDeferral."Entry No." := 0;
@@ -233,6 +236,8 @@ codeunit 8067 "Customer Deferrals Mngmt."
         LineAmountPerDay := TotalLineAmount / NumberOfDaysInSchedule;
         LineDiscountAmountPerDay := TotalLineDiscountAmount / NumberOfDaysInSchedule;
         FirstMonthDays := CalcDate('<CM>', NextPostingDate) - NextPostingDate + 1;
+        if NumberOfPeriods = 1 then
+            FirstMonthDays := NumberOfDaysInSchedule;
         FirstMonthLineAmount := Round(FirstMonthDays * LineAmountPerDay, GLSetup."Amount Rounding Precision");
         FirstMonthLineDiscountAmount := Round(FirstMonthDays * LineDiscountAmountPerDay, GLSetup."Amount Rounding Precision");
         LastMonthDays := Date2DMY(LastDayOfBillingPeriod, 1);
