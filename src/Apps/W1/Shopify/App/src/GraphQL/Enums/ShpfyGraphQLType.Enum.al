@@ -7,6 +7,14 @@ namespace Microsoft.Integration.Shopify;
 
 /// <summary>
 /// Enum Shpfy GraphQL Type (ID 70007617).
+/// Each value maps to a .graphql resource file in .resources/graphql/{Area}/{QueryName}.graphql.
+/// The value name must follow the convention: {Area}_{QueryName} (e.g., Customers_GetCustomer).
+///
+/// To add a new query:
+///   1. Create a .graphql file at .resources/graphql/{Area}/{QueryName}.graphql
+///      Line 1: # cost: N   (expected Shopify API cost)
+///      Line 2+: the JSON query body (e.g., {"query":"{ ... }"})
+///   2. Add a new enum value below with the name {Area}_{QueryName}.
 /// </summary>
 enum 30111 "Shpfy GraphQL Type"
 {
