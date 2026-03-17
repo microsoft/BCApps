@@ -122,9 +122,6 @@
   "enableCodeAnalyzersOnTestApps": true,
   "rulesetFile": "../../../src/rulesets/ruleset.json",
   "skipUpgrade": true,
-  "incrementalBuilds": {
-    "mode": "modifiedApps"
-  },
   "fullBuildPatterns": [
     "build/*",
     "src/rulesets/*",
