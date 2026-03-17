@@ -486,7 +486,6 @@ codeunit 139611 "Shpfy Order Refund Test"
     procedure UnitTestCreateReturnOrder()
     var
         SalesHeader: Record "Sales Header";
-        RefundHeader: Record "Shpfy Refund Header";
         Shop: Record "Shpfy Shop";
         RefundId: BigInteger;
         IReturnRefundProcess: Interface "Shpfy IReturnRefund Process";
