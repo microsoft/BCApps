@@ -132,6 +132,24 @@ codeunit 50152 "BC14 Helper Functions"
         GenJournalBatch.Insert(true);
     end;
 
+    /// <summary>
+    /// Opens any buffer table record for editing using the generic BC14 Buffer Record Editor page.
+    /// </summary>
+    internal procedure OpenBufferRecord(SourceTableId: Integer; SourceRecordId: RecordId): Boolean
+    var
+        BC14BufferRecordEditor: Page "BC14 Buffer Record Editor";
+    begin
+        if SourceTableId = 0 then
+            exit(false);
+
+        if Format(SourceRecordId) = '' then
+            exit(false);
+
+        BC14BufferRecordEditor.SetSourceRecord(SourceRecordId);
+        BC14BufferRecordEditor.RunModal();
+        exit(true);
+    end;
+
     [IntegrationEvent(false, false)]
     local procedure OnBeforeCreatePreMigrationData(var IsHandled: Boolean)
     begin

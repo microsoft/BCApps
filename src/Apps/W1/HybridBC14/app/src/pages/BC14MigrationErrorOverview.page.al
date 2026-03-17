@@ -113,14 +113,14 @@ page 50163 "BC14 Migration Error Overview"
 
                 trigger OnAction()
                 var
-                    BC14BufferTableHelper: Codeunit "BC14 Buffer Table Helper";
+                    BC14HelperFunctions: Codeunit "BC14 Helper Functions";
                 begin
                     if Rec."Source Table ID" = 0 then begin
                         Message(SourceRecordNotAvailableMsg, Rec."Source Table Name", Rec."Source Record Key");
                         exit;
                     end;
 
-                    BC14BufferTableHelper.OpenBufferRecord(Rec."Source Table ID", Rec."Record Id");
+                    BC14HelperFunctions.OpenBufferRecord(Rec."Source Table ID", Rec."Record Id");
                     CurrPage.Update(false);
                 end;
             }

@@ -34,6 +34,8 @@ codeunit 50175 "BC14 Migration Runner"
     var
         BC14CompanyAdditionalSettings: Record "BC14CompanyAdditionalSettings";
         BC14HelperFunctions: Codeunit "BC14 Helper Functions";
+        GlobalExecutionPolicy: Codeunit "BC14 Global Execution Policy";
+        ExecutionPolicy: Interface "I BC14 Migrator Execution Policy";
         StopOnFirstError: Boolean;
         CanProceed: Boolean;
         ValidationErrorMessage: Text;
@@ -63,7 +65,8 @@ codeunit 50175 "BC14 Migration Runner"
         Session.LogMessage('0000ROD', StrSubstNo(MigrationStartedMsg, CompanyName()), Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', BC14HelperFunctions.GetTelemetryCategory());
 
         // Run migrations in order: Setup -> Master -> Transactions -> Historical -> Posting
-        RunMigrationFromPhase("BC14 Migration State"::Setup, StopOnFirstError, '');
+        ExecutionPolicy := GlobalExecutionPolicy;
+        RunMigrationFromPhase("BC14 Migration State"::Setup, StopOnFirstError, '', ExecutionPolicy);
     end;
 
     /// <summary>
@@ -74,6 +77,8 @@ codeunit 50175 "BC14 Migration Runner"
     var
         BC14CompanyAdditionalSettings: Record "BC14CompanyAdditionalSettings";
         BC14HelperFunctions: Codeunit "BC14 Helper Functions";
+        StepExecutionPolicy: Codeunit "BC14 Step Execution Policy";
+        ExecutionPolicy: Interface "I BC14 Migrator Execution Policy";
         LastCompletedPhase: Enum "BC14 Migration State";
         ResumePhase: Enum "BC14 Migration State";
         StopOnFirstError: Boolean;
@@ -88,100 +93,35 @@ codeunit 50175 "BC14 Migration Runner"
         LastCompletedPhase := BC14CompanyAdditionalSettings.GetLastCompletedPhase();
         FailedMigratorName := BC14CompanyAdditionalSettings.GetFailedMigratorName();
 
-        // Resume from the failed migrator's phase when possible; this avoids replaying unrelated phases.
-        ResumePhase := GetMigratorPhase(FailedMigratorName);
-        if ResumePhase = "BC14 Migration State"::NotStarted then
-            case LastCompletedPhase of
-                "BC14 Migration State"::NotStarted:
-                    ResumePhase := "BC14 Migration State"::Setup;
-                "BC14 Migration State"::Setup:
-                    ResumePhase := "BC14 Migration State"::Master;
-                "BC14 Migration State"::Master:
-                    ResumePhase := "BC14 Migration State"::Transaction;
-                "BC14 Migration State"::Transaction:
-                    ResumePhase := "BC14 Migration State"::Historical;
-                "BC14 Migration State"::Historical:
-                    ResumePhase := "BC14 Migration State"::Posting;
-                else
-                    ResumePhase := "BC14 Migration State"::Setup;
-            end;
+        ResumePhase := ResolveResumePhase(FailedMigratorName, LastCompletedPhase);
 
         Session.LogMessage('0000ROK', StrSubstNo(MigrationResumedMsg, CompanyName(), Format(ResumePhase)), Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', BC14HelperFunctions.GetTelemetryCategory());
 
         BC14CompanyAdditionalSettings.SetMigrationState(ResumePhase);
-        RunMigrationFromPhase(ResumePhase, StopOnFirstError, FailedMigratorName);
+        ExecutionPolicy := StepExecutionPolicy;
+        RunMigrationFromPhase(ResumePhase, StopOnFirstError, FailedMigratorName, ExecutionPolicy);
     end;
 
-    local procedure RunMigrationFromPhase(StartPhase: Enum "BC14 Migration State"; StopOnFirstError: Boolean; ResumeFromMigratorName: Text[100])
+    local procedure RunMigrationFromPhase(StartPhase: Enum "BC14 Migration State"; StopOnFirstError: Boolean; ResumeFromMigratorName: Text[100]; ExecutionPolicy: Interface "I BC14 Migrator Execution Policy")
     var
         BC14CompanyAdditionalSettings: Record "BC14CompanyAdditionalSettings";
         BC14HelperFunctions: Codeunit "BC14 Helper Functions";
         TotalErrors: Integer;
-        PhaseResumeMigratorName: Text[100];
     begin
-        // Run Setup migrations if starting from Setup or earlier
-        if StartPhase.AsInteger() <= "BC14 Migration State"::Setup.AsInteger() then begin
-            BC14CompanyAdditionalSettings.SetMigrationState("BC14 Migration State"::Setup);
-            PhaseResumeMigratorName := '';
-            if StartPhase = "BC14 Migration State"::Setup then
-                PhaseResumeMigratorName := ResumeFromMigratorName;
+        if StartPhase = "BC14 Migration State"::Completed then
+            exit;
 
-            if not RunSetupMigrations(StopOnFirstError, PhaseResumeMigratorName) and StopOnFirstError then begin
-                BC14CompanyAdditionalSettings.PauseMigration(CurrentMigratorName);
-                Message(MigrationPausedMsg, CompanyName(), CurrentMigratorName);
-                exit;
-            end;
-            BC14CompanyAdditionalSettings.SetMigrationPhaseCompleted("BC14 Migration State"::Setup, '');
-            Session.LogMessage('0000ROL', StrSubstNo(MigrationPhaseCompletedLbl, 'Setup'), Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', BC14HelperFunctions.GetTelemetryCategory());
-        end;
+        if not ExecuteMigrationPhase(StartPhase, "BC14 Migration State"::Setup, StopOnFirstError, ResumeFromMigratorName, ExecutionPolicy) then
+            exit;
 
-        // Run Master migrations
-        if StartPhase.AsInteger() <= "BC14 Migration State"::Master.AsInteger() then begin
-            BC14CompanyAdditionalSettings.SetMigrationState("BC14 Migration State"::Master);
-            PhaseResumeMigratorName := '';
-            if StartPhase = "BC14 Migration State"::Master then
-                PhaseResumeMigratorName := ResumeFromMigratorName;
+        if not ExecuteMigrationPhase(StartPhase, "BC14 Migration State"::Master, StopOnFirstError, ResumeFromMigratorName, ExecutionPolicy) then
+            exit;
 
-            if not RunMasterMigrations(StopOnFirstError, PhaseResumeMigratorName) and StopOnFirstError then begin
-                BC14CompanyAdditionalSettings.PauseMigration(CurrentMigratorName);
-                Message(MigrationPausedMsg, CompanyName(), CurrentMigratorName);
-                exit;
-            end;
-            BC14CompanyAdditionalSettings.SetMigrationPhaseCompleted("BC14 Migration State"::Master, '');
-            Session.LogMessage('0000ROM', StrSubstNo(MigrationPhaseCompletedLbl, 'Master'), Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', BC14HelperFunctions.GetTelemetryCategory());
-        end;
+        if not ExecuteMigrationPhase(StartPhase, "BC14 Migration State"::Transaction, StopOnFirstError, ResumeFromMigratorName, ExecutionPolicy) then
+            exit;
 
-        // Run Transaction migrations
-        if StartPhase.AsInteger() <= "BC14 Migration State"::Transaction.AsInteger() then begin
-            BC14CompanyAdditionalSettings.SetMigrationState("BC14 Migration State"::Transaction);
-            PhaseResumeMigratorName := '';
-            if StartPhase = "BC14 Migration State"::Transaction then
-                PhaseResumeMigratorName := ResumeFromMigratorName;
-
-            if not RunTransactionMigrations(StopOnFirstError, PhaseResumeMigratorName) and StopOnFirstError then begin
-                BC14CompanyAdditionalSettings.PauseMigration(CurrentMigratorName);
-                Message(MigrationPausedMsg, CompanyName(), CurrentMigratorName);
-                exit;
-            end;
-            BC14CompanyAdditionalSettings.SetMigrationPhaseCompleted("BC14 Migration State"::Transaction, '');
-            Session.LogMessage('0000RON', StrSubstNo(MigrationPhaseCompletedLbl, 'Transaction'), Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', BC14HelperFunctions.GetTelemetryCategory());
-        end;
-
-        // Run Historical migrations
-        if StartPhase.AsInteger() <= "BC14 Migration State"::Historical.AsInteger() then begin
-            BC14CompanyAdditionalSettings.SetMigrationState("BC14 Migration State"::Historical);
-            PhaseResumeMigratorName := '';
-            if StartPhase = "BC14 Migration State"::Historical then
-                PhaseResumeMigratorName := ResumeFromMigratorName;
-
-            if not RunHistoricalMigrations(StopOnFirstError, PhaseResumeMigratorName) and StopOnFirstError then begin
-                BC14CompanyAdditionalSettings.PauseMigration(CurrentMigratorName);
-                Message(MigrationPausedMsg, CompanyName(), CurrentMigratorName);
-                exit;
-            end;
-            BC14CompanyAdditionalSettings.SetMigrationPhaseCompleted("BC14 Migration State"::Historical, '');
-            Session.LogMessage('0000ROO', StrSubstNo(MigrationPhaseCompletedLbl, 'Historical'), Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', BC14HelperFunctions.GetTelemetryCategory());
-        end;
+        if not ExecuteMigrationPhase(StartPhase, "BC14 Migration State"::Historical, StopOnFirstError, ResumeFromMigratorName, ExecutionPolicy) then
+            exit;
 
         // Post all migration journal batches (unless skipped)
         BC14CompanyAdditionalSettings.SetMigrationState("BC14 Migration State"::Posting);
@@ -195,7 +135,85 @@ codeunit 50175 "BC14 Migration Runner"
         Session.LogMessage('0000ROE', StrSubstNo(MigrationCompletedMsg, CompanyName(), TotalErrors), Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', BC14HelperFunctions.GetTelemetryCategory());
     end;
 
-    local procedure RunSetupMigrations(StopOnFirstError: Boolean; ResumeFromMigratorName: Text[100]): Boolean
+    local procedure ResolveResumePhase(FailedMigratorName: Text[100]; LastCompletedPhase: Enum "BC14 Migration State"): Enum "BC14 Migration State"
+    var
+        ResumePhase: Enum "BC14 Migration State";
+    begin
+        // Resume from the failed migrator's phase when possible; this avoids replaying unrelated phases.
+        ResumePhase := GetMigratorPhase(FailedMigratorName);
+        if ResumePhase <> "BC14 Migration State"::NotStarted then
+            exit(ResumePhase);
+
+        case LastCompletedPhase of
+            "BC14 Migration State"::NotStarted:
+                exit("BC14 Migration State"::Setup);
+            "BC14 Migration State"::Setup:
+                exit("BC14 Migration State"::Setup);
+            "BC14 Migration State"::Master:
+                exit("BC14 Migration State"::Master);
+            "BC14 Migration State"::Transaction:
+                exit("BC14 Migration State"::Transaction);
+            "BC14 Migration State"::Historical:
+                exit("BC14 Migration State"::Historical);
+            "BC14 Migration State"::Posting:
+                exit("BC14 Migration State"::Posting);
+            "BC14 Migration State"::Paused:
+                exit("BC14 Migration State"::Setup);
+            "BC14 Migration State"::Completed:
+                exit("BC14 Migration State"::Completed);
+            else
+                exit("BC14 Migration State"::Setup);
+        end;
+    end;
+
+    local procedure ExecuteMigrationPhase(StartPhase: Enum "BC14 Migration State"; Phase: Enum "BC14 Migration State"; StopOnFirstError: Boolean; ResumeFromMigratorName: Text[100]; ExecutionPolicy: Interface "I BC14 Migrator Execution Policy"): Boolean
+    var
+        BC14CompanyAdditionalSettings: Record "BC14CompanyAdditionalSettings";
+        BC14HelperFunctions: Codeunit "BC14 Helper Functions";
+        PhaseResumeMigratorName: Text[100];
+        PhaseStepNo: Integer;
+        PhaseSuccess: Boolean;
+    begin
+        if StartPhase.AsInteger() > Phase.AsInteger() then
+            exit(true);
+
+        BC14CompanyAdditionalSettings.SetMigrationState(Phase);
+
+        PhaseResumeMigratorName := '';
+        if StartPhase = Phase then
+            PhaseResumeMigratorName := ResumeFromMigratorName;
+        ExecutionPolicy.Initialize(PhaseResumeMigratorName);
+
+        PhaseSuccess := RunPhaseMigrators(Phase, StopOnFirstError, ExecutionPolicy);
+        if (not PhaseSuccess) and StopOnFirstError then begin
+            BC14CompanyAdditionalSettings.PauseMigration(CurrentMigratorName);
+            Message(MigrationPausedMsg, CompanyName(), CurrentMigratorName);
+            exit(false);
+        end;
+
+        PhaseStepNo := Phase.AsInteger();
+        BC14CompanyAdditionalSettings.SetMigrationPhaseCompleted(Phase, '');
+        Session.LogMessage('0000ROL', StrSubstNo(MigrationPhaseCompletedLbl, Format(PhaseStepNo)), Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', BC14HelperFunctions.GetTelemetryCategory(), 'StepNo', Format(PhaseStepNo));
+        exit(true);
+    end;
+
+    local procedure RunPhaseMigrators(Phase: Enum "BC14 Migration State"; StopOnFirstError: Boolean; ExecutionPolicy: Interface "I BC14 Migrator Execution Policy"): Boolean
+    begin
+        case Phase of
+            "BC14 Migration State"::Setup:
+                exit(RunSetupMigrations(StopOnFirstError, ExecutionPolicy));
+            "BC14 Migration State"::Master:
+                exit(RunMasterMigrations(StopOnFirstError, ExecutionPolicy));
+            "BC14 Migration State"::Transaction:
+                exit(RunTransactionMigrations(StopOnFirstError, ExecutionPolicy));
+            "BC14 Migration State"::Historical:
+                exit(RunHistoricalMigrations(StopOnFirstError, ExecutionPolicy));
+            else
+                exit(true);
+        end;
+    end;
+
+    local procedure RunSetupMigrations(StopOnFirstError: Boolean; ExecutionPolicy: Interface "I BC14 Migrator Execution Policy"): Boolean
     var
         BC14CompanyAdditionalSettings: Record "BC14CompanyAdditionalSettings";
         SetupMigratorEnum: Enum "BC14 Setup Migrator";
@@ -204,10 +222,8 @@ codeunit 50175 "BC14 Migration Runner"
         Success: Boolean;
         MigratorSuccess: Boolean;
         SkipMigrator: Boolean;
-        ResumeFromReached: Boolean;
     begin
         Success := true;
-        ResumeFromReached := (ResumeFromMigratorName = '');
 
         // Iterate through all registered setup migrators
         foreach MigratorIndex in "BC14 Setup Migrator".Ordinals() do begin
@@ -218,10 +234,7 @@ codeunit 50175 "BC14 Migration Runner"
                 SkipMigrator := false;
                 CurrentMigratorName := CopyStr(SetupMigrator.GetName(), 1, MaxStrLen(CurrentMigratorName));
 
-                if (not ResumeFromReached) and (CurrentMigratorName = ResumeFromMigratorName) then
-                    ResumeFromReached := true;
-
-                if not ResumeFromReached then
+                if not ExecutionPolicy.ShouldRunMigrator(CurrentMigratorName) then
                     continue;
 
                 OnBeforeRunMigrator(SetupMigrator.GetName(), SkipMigrator);
@@ -247,7 +260,7 @@ codeunit 50175 "BC14 Migration Runner"
         exit(Success);
     end;
 
-    local procedure RunMasterMigrations(StopOnFirstError: Boolean; ResumeFromMigratorName: Text[100]): Boolean
+    local procedure RunMasterMigrations(StopOnFirstError: Boolean; ExecutionPolicy: Interface "I BC14 Migrator Execution Policy"): Boolean
     var
         BC14CompanyAdditionalSettings: Record "BC14CompanyAdditionalSettings";
         MasterMigratorEnum: Enum "BC14 Master Migrator";
@@ -257,10 +270,8 @@ codeunit 50175 "BC14 Migration Runner"
         MigratorSuccess: Boolean;
         SkipMigrator: Boolean;
         RecordCount: Integer;
-        ResumeFromReached: Boolean;
     begin
         Success := true;
-        ResumeFromReached := (ResumeFromMigratorName = '');
 
         // Iterate through all registered master migrators
         foreach MigratorIndex in "BC14 Master Migrator".Ordinals() do begin
@@ -271,10 +282,7 @@ codeunit 50175 "BC14 Migration Runner"
                 SkipMigrator := false;
                 CurrentMigratorName := CopyStr(MasterMigrator.GetName(), 1, MaxStrLen(CurrentMigratorName));
 
-                if (not ResumeFromReached) and (CurrentMigratorName = ResumeFromMigratorName) then
-                    ResumeFromReached := true;
-
-                if not ResumeFromReached then
+                if not ExecutionPolicy.ShouldRunMigrator(CurrentMigratorName) then
                     continue;
 
                 OnBeforeRunMigrator(MasterMigrator.GetName(), SkipMigrator);
@@ -301,7 +309,7 @@ codeunit 50175 "BC14 Migration Runner"
         exit(Success);
     end;
 
-    local procedure RunTransactionMigrations(StopOnFirstError: Boolean; ResumeFromMigratorName: Text[100]): Boolean
+    local procedure RunTransactionMigrations(StopOnFirstError: Boolean; ExecutionPolicy: Interface "I BC14 Migrator Execution Policy"): Boolean
     var
         BC14CompanyAdditionalSettings: Record "BC14CompanyAdditionalSettings";
         TransactionMigratorEnum: Enum "BC14 Transaction Migrator";
@@ -311,10 +319,8 @@ codeunit 50175 "BC14 Migration Runner"
         MigratorSuccess: Boolean;
         SkipMigrator: Boolean;
         RecordCount: Integer;
-        ResumeFromReached: Boolean;
     begin
         Success := true;
-        ResumeFromReached := (ResumeFromMigratorName = '');
 
         // Iterate through all registered transaction migrators
         foreach MigratorIndex in "BC14 Transaction Migrator".Ordinals() do begin
@@ -325,10 +331,7 @@ codeunit 50175 "BC14 Migration Runner"
                 SkipMigrator := false;
                 CurrentMigratorName := CopyStr(TransactionMigrator.GetName(), 1, MaxStrLen(CurrentMigratorName));
 
-                if (not ResumeFromReached) and (CurrentMigratorName = ResumeFromMigratorName) then
-                    ResumeFromReached := true;
-
-                if not ResumeFromReached then
+                if not ExecutionPolicy.ShouldRunMigrator(CurrentMigratorName) then
                     continue;
 
                 OnBeforeRunMigrator(TransactionMigrator.GetName(), SkipMigrator);
@@ -355,7 +358,7 @@ codeunit 50175 "BC14 Migration Runner"
         exit(Success);
     end;
 
-    local procedure RunHistoricalMigrations(StopOnFirstError: Boolean; ResumeFromMigratorName: Text[100]): Boolean
+    local procedure RunHistoricalMigrations(StopOnFirstError: Boolean; ExecutionPolicy: Interface "I BC14 Migrator Execution Policy"): Boolean
     var
         BC14CompanyAdditionalSettings: Record "BC14CompanyAdditionalSettings";
         HistoricalMigratorEnum: Enum "BC14 Historical Migrator";
@@ -365,10 +368,8 @@ codeunit 50175 "BC14 Migration Runner"
         MigratorSuccess: Boolean;
         SkipMigrator: Boolean;
         RecordCount: Integer;
-        ResumeFromReached: Boolean;
     begin
         Success := true;
-        ResumeFromReached := (ResumeFromMigratorName = '');
 
         // Iterate through all registered historical migrators
         foreach MigratorIndex in "BC14 Historical Migrator".Ordinals() do begin
@@ -379,10 +380,7 @@ codeunit 50175 "BC14 Migration Runner"
                 SkipMigrator := false;
                 CurrentMigratorName := CopyStr(HistoricalMigrator.GetName(), 1, MaxStrLen(CurrentMigratorName));
 
-                if (not ResumeFromReached) and (CurrentMigratorName = ResumeFromMigratorName) then
-                    ResumeFromReached := true;
-
-                if not ResumeFromReached then
+                if not ExecutionPolicy.ShouldRunMigrator(CurrentMigratorName) then
                     continue;
 
                 OnBeforeRunMigrator(HistoricalMigrator.GetName(), SkipMigrator);
