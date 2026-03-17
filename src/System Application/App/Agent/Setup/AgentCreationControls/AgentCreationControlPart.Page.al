@@ -94,7 +94,7 @@ page 4332 "Agent Creation Control Part"
             until Company.Next() = 0;
 
         // Run the lookup.
-        CreationControlLookup.Initialize(SelectCompanyLbl);
+        CreationControlLookup.Initialize(SelectCompanyLbl, Rec."Company Name");
         CreationControlLookup.LookupMode := true;
         if CreationControlLookup.RunModal() = Action::LookupOK then begin
             CreationControlLookup.GetRecord(TempAgentCreationControlLookup);
@@ -109,27 +109,28 @@ page 4332 "Agent Creation Control Part"
         AgentUtilities: Codeunit "Agent Utilities";
         CreationControlLookup: Page "Agent Creation Control Lookup";
         AgentMetadataProvider: Enum "Agent Metadata Provider";
-        PublisherType: Enum "Agent Publisher Type";
         EnumIndex: Integer;
         AgentValue: Text[2048];
-        PublisherName: Text[250];
-        AgentByPublisherLbl: Label '%1 by ''%2''', Comment = '%1 = the agent type; %2 = the publisher name';
+        AppPublisher, AppName : Text[250];
+        AppId: Guid;
+        AgentByPublisherLbl: Label '%1 from ''%2'' by ''%3''', Comment = '%1 = the agent type; %2 = the app name; %3 = the app publisher';
         SelectAgentTypeLbl: Label 'Select agent type';
+        AllAgentsEntryKeyTok: Label '', Locked = true;
     begin
         // Add "(All Agent Types)" as first option.
-        CreationControlLookup.AddEntry('', AllAgentMetadataProvidersLbl);
+        CreationControlLookup.AddEntry(AllAgentsEntryKeyTok, AllAgentMetadataProvidersLbl);
 
         // Add all agent types.
         foreach EnumIndex in Enum::"Agent Metadata Provider".Ordinals() do begin
             AgentMetadataProvider := Enum::"Agent Metadata Provider".FromInteger(EnumIndex);
-            if AgentUtilities.TryGetAgentPublisherInfo(AgentMetadataProvider, PublisherName, PublisherType) then begin
-                AgentValue := StrSubstNo(AgentByPublisherLbl, Format(AgentMetadataProvider), PublisherName);
+            if AgentUtilities.TryGetAgentAppInfo(AgentMetadataProvider, AppPublisher, AppName, AppId) then begin
+                AgentValue := StrSubstNo(AgentByPublisherLbl, Format(AgentMetadataProvider), AppName, AppPublisher);
                 CreationControlLookup.AddEntry(Format(EnumIndex), AgentValue);
             end;
         end;
 
         // Run the lookup.
-        CreationControlLookup.Initialize(SelectAgentTypeLbl);
+        CreationControlLookup.Initialize(SelectAgentTypeLbl, Rec.IsAllAgentTypes() ? AllAgentsEntryKeyTok : Format(Rec."Agent Metadata Provider"));
         CreationControlLookup.LookupMode := true;
         if CreationControlLookup.RunModal() = Action::LookupOK then begin
             CreationControlLookup.GetRecord(TempAgentCreationControlLookup);
@@ -150,9 +151,10 @@ page 4332 "Agent Creation Control Part"
         CreationControlLookup: Page "Agent Creation Control Lookup";
         SelectUserLbl: Label 'Select user';
         EmptyGuid, UserSecurityId : Guid;
+        AllUsersEntryKeyTok: Label '', Locked = true;
     begin
         // Add "(All Users)" as first option
-        CreationControlLookup.AddEntry('', AllUsersLbl);
+        CreationControlLookup.AddEntry(AllUsersEntryKeyTok, AllUsersLbl);
 
         // Add all users
         if User.FindSet() then
@@ -162,7 +164,7 @@ page 4332 "Agent Creation Control Part"
             until User.Next() = 0;
 
         // Run the lookup.
-        CreationControlLookup.Initialize(SelectUserLbl);
+        CreationControlLookup.Initialize(SelectUserLbl, Rec.IsAllUsers() ? AllUsersEntryKeyTok : Rec."User Security ID");
         CreationControlLookup.LookupMode := true;
         if CreationControlLookup.RunModal() = Action::LookupOK then begin
             CreationControlLookup.GetRecord(TempAgentCreationControlLookup);

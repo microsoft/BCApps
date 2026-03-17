@@ -22,7 +22,7 @@ codeunit 4326 "Agent Upgrade"
     var
         AgentCreationControl: Record "Agent Creation Control";
         UpgradeTag: Codeunit "Upgrade Tag";
-        DefaultPermissionDescriptionLbl: Label 'Default: Allow everyone to create all agents';
+        DefaultPermissionDescriptionLbl: Label 'Default: Allow all users with required permissions to create agents';
         EmptyGuid: Guid;
     begin
         if UpgradeTag.HasDatabaseUpgradeTag(GetDefaultAgentCreationControlUpgradeTag()) then
@@ -34,7 +34,7 @@ codeunit 4326 "Agent Upgrade"
             exit;
         end;
 
-        // Insert default rule: All users can create all agent types in all companies.
+        // Insert default rule.
         AgentCreationControl.Init();
         AgentCreationControl."User Security ID" := EmptyGuid;
         AgentCreationControl."Agent Metadata Provider" := -1;

@@ -31,9 +31,21 @@ page 4331 "Agent Creation Control Lookup"
         }
     }
 
-    procedure Initialize(PageCaption: Text)
+    trigger OnOpenPage()
+    begin
+        if HasSelectedKey then begin
+            Rec.SetRange("Key", SelectedKey);
+            if Rec.FindFirst() then;
+            Rec.SetRange("Key");
+        end else
+            if Rec.FindFirst() then;
+    end;
+
+    procedure Initialize(PageCaption: Text; SelectedEntryKey: Text[250])
     begin
         CurrPage.Caption := PageCaption;
+        SelectedKey := SelectedEntryKey;
+        HasSelectedKey := true;
     end;
 
     procedure AddEntry(EntryKey: Text[250]; EntryValue: Text[2048])
@@ -51,4 +63,8 @@ page 4331 "Agent Creation Control Lookup"
         Rec.Value := EntryValue;
         Rec.Insert();
     end;
+
+    var
+        SelectedKey: Text[250];
+        HasSelectedKey: Boolean;
 }

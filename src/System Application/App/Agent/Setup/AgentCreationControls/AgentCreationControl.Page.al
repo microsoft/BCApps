@@ -8,8 +8,8 @@ namespace System.Agents;
 page 4326 "Agent Creation Control"
 {
     AboutTitle = 'About agent configuration rights';
-    AboutText = 'Use this page to control which users can create agents. If no rules exist, only agent administrators can create agents. On install, a default rule allowing everyone is added. Remove all rules to restrict creation to administrators only.';
-    AdditionalSearchTerms = 'agent access,allow agent creation,block agent creation';
+    AboutText = 'Use this page to control which users can create agents. If no rules exist, only agent administrators can create agents.';
+    AdditionalSearchTerms = 'agent creation control,allow agent creation,block agent creation';
     ApplicationArea = All;
     Caption = 'Agent Configuration Rights';
     DataCaptionExpression = '';
