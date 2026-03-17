@@ -6,6 +6,9 @@ import {
   postComment,
   checkExistingTriage,
   manageCategoryLabels,
+  ensureLabel,
+  addLabels,
+  removeLabel,
 } from './github-client.js';
 import { assessIssueQuality } from './phase1-assess.js';
 import { enrichAndTriage } from './phase2-enrich.js';
@@ -19,6 +22,7 @@ import {
   getComplexityLabelName,
   getEffortLabelName,
   getPathLabelName,
+  getTeamLabel,
 } from './config.js';
 
 async function main() {
@@ -84,6 +88,8 @@ async function main() {
     // Step 7: Apply labels
     const triage = phase2Result.triage;
 
+    const teamLabel = getTeamLabel(issue.title, issue.body, phase1Result.detected_app_area || '');
+
     const labelOps = [
       { prefix: 'triage/', label: getTriageLabelName(phase1Result.verdict), category: LABELS.triage },
       { prefix: 'priority/', label: getPriorityLabelName(triage.priority_score.score), category: LABELS.priority },
@@ -96,7 +102,18 @@ async function main() {
       await manageCategoryLabels(owner, repo, issueNumber, op.prefix, op.label, op.category);
     }
 
-    const appliedLabels = labelOps.map(op => op.label).join(', ');
+    // Apply team label (remove other team labels first, then add the correct one)
+    for (const label of LABELS.team) {
+      if (label.name !== teamLabel) {
+        await removeLabel(owner, repo, issueNumber, label.name);
+      }
+    }
+    await ensureLabel(owner, repo, teamLabel,
+      LABELS.team.find(l => l.name === teamLabel)?.color || 'EDEDED',
+      LABELS.team.find(l => l.name === teamLabel)?.description || '');
+    await addLabels(owner, repo, issueNumber, [teamLabel]);
+
+    const appliedLabels = [...labelOps.map(op => op.label), teamLabel].join(', ');
     console.log(`Labels applied: ${appliedLabels}`);
 
     console.log(`\n=== Triage complete ===`);

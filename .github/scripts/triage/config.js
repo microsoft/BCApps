@@ -47,6 +47,11 @@ export const LABELS = {
     { name: 'path/copilot-assisted', color: 'C5DEF5', description: 'Best implemented with Copilot assistance' },
     { name: 'path/agentic', color: 'D4C5F9', description: 'Can be fully implemented by an AI agent' },
   ],
+  team: [
+    { name: 'Finance', color: 'FBCA04', description: 'Owned by the Finance team' },
+    { name: 'SCM', color: '0E8A16', description: 'Owned by the SCM (Supply Chain Management) team' },
+    { name: 'Integration', color: 'C5DEF5', description: 'Owned by the Integration team' },
+  ],
 };
 
 // Flatten all labels for easy iteration
@@ -92,6 +97,96 @@ export function getPathLabelName(rating) {
   if (r.includes('manual')) return 'path/manual';
   if (r.includes('agentic')) return 'path/agentic';
   return 'path/copilot-assisted';
+}
+
+// Team ownership mapping based on Dynamics SMB Ownership Matrix.
+// Finance: financial application, accounting, tax, cash, fixed assets, sustainability, billing
+// SCM: purchase, sales, inventory, warehouse, manufacturing, CRM, service mgmt, HR, projects
+// Integration: system app, business foundation, APIs, Dataverse, e-documents, Shopify, migrations, onboarding
+const FINANCE_KEYWORDS = [
+  'finance', 'general ledger', 'general journal', 'dimension', 'posting group', 'budget',
+  'account schedule', 'consolidation', 'deferral', 'analysis view', 'responsibility center',
+  'intercompany', 'account categor',
+  'fixed asset', 'insurance', 'maintenance', 'reclassification',
+  'cash management', 'bank account', 'bank reconciliation', 'check writing', 'cash receipt',
+  'payment registration', 'vendor payment', 'amc extension',
+  'tax', 'vat', 'withholding', 'excise', 'india tax',
+  'payable', 'vendor ledger', 'receivable', 'customer ledger', 'reminder', 'finance charge',
+  'payroll', 'ceridian', 'yodlee', 'paypal',
+  'cash flow', 'cost accounting',
+  'company hub', 'multi-entity', 'master data management',
+  'sustainability', 'ghg', 'emission', 'csrd', 'esg', 'cbam', 'eudr',
+  'subscription billing', 'recurring billing',
+  'late payment prediction', 'copilot bank', 'copilot regulatory', 'copilot esg',
+  'localization', 'regulatory', 'audit file', 'saf-t', 'fatturaPA', 'cfdi',
+  'making tax digital', 'digipoort', 'elster', '1099', 'qr-bill',
+  'power bi report', 'excel report',
+];
+
+const SCM_KEYWORDS = [
+  'purchase', 'purchase order', 'purchase invoice', 'drop shipment', 'incoming document',
+  'sales', 'sales order', 'sales invoice', 'shipping agent', 'sales return', 'sales price',
+  'campaign pricing', 'salesperson',
+  'inventory', 'stockkeeping', 'location transfer', 'item tracking', 'item charge',
+  'cycle counting', 'standard cost', 'item budget', 'item substitution', 'nonstock',
+  'project', 'job', 'resource',
+  'service management', 'service order', 'service price', 'service item', 'service contract',
+  'warehouse', 'pick', 'put away', 'put-away', 'bin', 'receipt', 'shipment', 'adcs',
+  'manufacturing', 'assembly', 'production order', 'bill of material', 'bom',
+  'work center', 'machine center', 'finite loading',
+  'demand forecast', 'requisition', 'order promising', 'planning worksheet', 'inventory planning',
+  'crm', 'contact management', 'opportunity', 'campaign management',
+  'intrastat', 'human resource', 'employee ledger',
+  'copilot marketing text', 'copilot sales line', 'sales order agent', 'image analysis',
+  'subcontract', 'quality management', 'quality inspection',
+];
+
+const INTEGRATION_KEYWORDS = [
+  'system application', 'business foundation', 'email module', 'word template', 'mail merge',
+  'number series', 'no. series', 'source code', 'reason code', 'audit trail',
+  'job queue', 'workflow', 'permission', 'entitlement',
+  'company creation', 'create company',
+  'data exchange', 'recommended app',
+  'user management', 'license management', 'service plan',
+  'm365', 'collaboration', 'teams integration',
+  'dataverse', 'al proxy', 'dynamics 365 sales',
+  'api', 'webhook', 'microsoft graph', 'odata',
+  'feature management', 'data privacy', 'gdpr', 'printer',
+  'retention policy', 'isolated storage',
+  'migration', 'quickbooks', 'nav cloud', 'gp cloud',
+  'ai foundation', 'ml model', 'openai',
+  'e-document', 'peppol', 'tradeshift',
+  'onboarding', 'welcome banner', 'checklist',
+  'connectivity', 'currency lookup',
+  'performance toolkit', 'demo tool',
+  'shopify', 'data archive', 'data search',
+];
+
+// Determine team label from issue text and detected app area
+export function getTeamLabel(title, body, appAreaName) {
+  const text = `${title} ${body} ${appAreaName}`.toLowerCase();
+
+  let financeScore = 0;
+  let scmScore = 0;
+  let integrationScore = 0;
+
+  for (const kw of FINANCE_KEYWORDS) {
+    if (text.includes(kw)) financeScore++;
+  }
+  for (const kw of SCM_KEYWORDS) {
+    if (text.includes(kw)) scmScore++;
+  }
+  for (const kw of INTEGRATION_KEYWORDS) {
+    if (text.includes(kw)) integrationScore++;
+  }
+
+  if (financeScore === 0 && scmScore === 0 && integrationScore === 0) {
+    return 'Integration'; // default for unknown areas
+  }
+
+  if (financeScore >= scmScore && financeScore >= integrationScore) return 'Finance';
+  if (scmScore >= integrationScore) return 'SCM';
+  return 'Integration';
 }
 
 // App area keyword mappings (FR22)
