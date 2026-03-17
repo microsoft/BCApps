@@ -674,14 +674,14 @@ codeunit 6103 "E-Document Subscribers"
         DeferredCreationLbl: Label 'E-Document creation deferred', Locked = true;
     begin
         if not (CommitIsSuppressed or InvtPickPutaway or PreviewMode) then
-            exit(false);
+            exit(true);
 
         TelemetryDimensions.Add('Source', SourceEvent);
         TelemetryDimensions.Add('PreviewMode', Format(PreviewMode));
         TelemetryDimensions.Add('InvtPickPutaway', Format(InvtPickPutaway));
         TelemetryDimensions.Add('CommitIsSuppressed', Format(CommitIsSuppressed));
-        Telemetry.LogMessage('', DeferredCreationLbl, Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::All, TelemetryDimensions);
-        exit(true);
+        Telemetry.LogMessage('0000SIG', DeferredCreationLbl, Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::All, TelemetryDimensions);
+        exit(false);
     end;
 
     local procedure LogAfterValidate(EDocumentEntryNo: Integer; LineSystemId: Guid; FieldName: Text)
