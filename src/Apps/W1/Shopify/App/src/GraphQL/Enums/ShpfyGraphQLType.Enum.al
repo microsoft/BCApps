@@ -126,13 +126,13 @@ enum 30111 "Shpfy GraphQL Type"
     {
         Caption = 'Get Variant by Id';
     }
-#if not CLEAN28
+#if not CLEAN29
     value(26; Inventory_GetLocationOfOrderLines)
     {
         Caption = 'Get Location of the Order Lines';
         ObsoleteReason = 'This request is no longer used.';
         ObsoleteState = Pending;
-        ObsoleteTag = '28.0';
+        ObsoleteTag = '29.0';
     }
 #endif
     value(27; Inventory_ModifyInventory)
