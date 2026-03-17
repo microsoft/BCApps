@@ -219,6 +219,18 @@ table 50155 "BC14CompanyAdditionalSettings"
         exit(Rec."Last Completed Phase");
     end;
 
+    procedure GetLastCompletedMigrator(): Text[100]
+    begin
+        GetSingleInstance();
+        exit(Rec."Last Completed Migrator");
+    end;
+
+    procedure GetFailedMigratorName(): Text[100]
+    begin
+        GetSingleInstance();
+        exit(Rec."Failed Migrator Name");
+    end;
+
     procedure ResetMigrationProgress()
     begin
         GetSingleInstance();

@@ -16,6 +16,7 @@ codeunit 50153 "BC14 Cloud Migration"
     var
         HybridCompanyStatus: Record "Hybrid Company Status";
         BC14UpgradeSettings: Record "BC14 Upgrade Settings";
+        BC14CompanyAdditionalSettings: Record "BC14CompanyAdditionalSettings";
         BC14Management: Codeunit "BC14 Management";
         BC14HelperFunctions: Codeunit "BC14 Helper Functions";
         BC14MigrationErrorHandler: Codeunit "BC14 Migration Error Handler";
@@ -74,6 +75,15 @@ codeunit 50153 "BC14 Cloud Migration"
             exit;
         end;
 
+        // Check if migration is paused - don't mark as completed
+        BC14CompanyAdditionalSettings.GetSingleInstance();
+        if BC14CompanyAdditionalSettings.IsMigrationPaused() then begin
+            Rec.Status := Rec.Status::UpgradeFailed;
+            Rec."End Time" := CurrentDateTime();
+            Rec.Modify();
+            exit;
+        end;
+
         Rec.Status := Rec.Status::Completed;
         Rec."End Time" := CurrentDateTime();
         Rec.Modify();
@@ -102,6 +112,7 @@ codeunit 50153 "BC14 Cloud Migration"
     var
         AssistedCompanySetupStatus: Record "Assisted Company Setup Status";
         HybridCompanyStatus: Record "Hybrid Company Status";
+        BC14CompanyAdditionalSettings: Record "BC14CompanyAdditionalSettings";
         BC14HelperFunctions: Codeunit "BC14 Helper Functions";
         SetupStatus: Enum "Company Setup Status";
     begin
@@ -114,6 +125,12 @@ codeunit 50153 "BC14 Cloud Migration"
         end;
 
         Commit();
+
+        // Only mark as Completed if migration is not paused
+        BC14CompanyAdditionalSettings.GetSingleInstance();
+        if BC14CompanyAdditionalSettings.IsMigrationPaused() then
+            exit;  // Don't mark as Completed when paused - user needs to fix errors and continue
+
         if HybridCompanyStatus.Get(CompanyName) then begin
             HybridCompanyStatus."Upgrade Status" := HybridCompanyStatus."Upgrade Status"::Completed;
             HybridCompanyStatus.Modify();

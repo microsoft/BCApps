@@ -5,6 +5,9 @@
 
 namespace Microsoft.DataMigration.BC14;
 
+using Microsoft.DataMigration;
+using Microsoft.Sales.Customer;
+
 page 50160 "BC14 Migration Configuration"
 {
     PageType = Card;
@@ -240,6 +243,211 @@ page 50160 "BC14 Migration Configuration"
                     Message(MigrationStatusResetAllMsg, Count);
                 end;
             }
+
+            // ============ TEMPORARY TEST ACTIONS - DELETE BEFORE SHIPPING ============
+
+            action(TestResetUpgradeStatus)
+            {
+                ApplicationArea = All;
+                Caption = '[TEST] Reset Upgrade Status';
+                ToolTip = 'TESTING ONLY: Reset HybridCompanyStatus to Pending to allow re-running upgrade.';
+                Image = TestFile;
+
+                trigger OnAction()
+                var
+                    HybridCompanyStatus: Record "Hybrid Company Status";
+                begin
+                    if not Confirm('Reset upgrade status to Pending for company %1?', false, CompanyName()) then
+                        exit;
+
+                    if HybridCompanyStatus.Get(CompanyName()) then begin
+                        HybridCompanyStatus."Upgrade Status" := HybridCompanyStatus."Upgrade Status"::Pending;
+                        HybridCompanyStatus.Modify();
+                    end;
+
+                    Rec.ResetMigrationProgress();
+                    Rec."Data Migration Started" := false;
+                    Rec."Data Migration Started At" := 0DT;
+                    Rec.Modify();
+
+                    CurrPage.Update(false);
+                    Message('Reset complete. Upgrade Status = Pending. You can now re-run upgrade.');
+                end;
+            }
+
+            action(TestCorruptBufferData)
+            {
+                ApplicationArea = All;
+                Caption = '[TEST] Corrupt Buffer Data';
+                ToolTip = 'TESTING ONLY: Corrupt BC14 Customer and Item buffer data to trigger migration errors.';
+                Image = TestFile;
+
+                trigger OnAction()
+                var
+                    BC14Customer: Record "BC14 Customer";
+                    BC14Item: Record "BC14 Item";
+                    CorruptedCount: Integer;
+                    ResultMsg: Text;
+                begin
+                    if not Confirm('This will corrupt BC14 Customer and Item records to trigger migration errors.\Continue?') then
+                        exit;
+
+                    CorruptedCount := 0;
+                    ResultMsg := '';
+
+                    // Corrupt Customer
+                    if BC14Customer.FindFirst() then begin
+                        BC14Customer."Customer Posting Group" := 'INVALID-TEST';
+                        BC14Customer."Gen. Bus. Posting Group" := 'INVALID-GBP';
+                        BC14Customer."Payment Terms Code" := 'INVALID-PT';
+                        BC14Customer."Currency Code" := 'XXX';
+                        BC14Customer."Country/Region Code" := 'ZZZ';
+                        BC14Customer."Language Code" := 'ZZZ';
+                        BC14Customer.Modify();
+                        CorruptedCount += 1;
+                        ResultMsg += 'Customer ' + BC14Customer."No." + ': Posting Group, Gen Bus, Payment Terms, Currency, Country, Language\';
+                    end;
+
+                    // Corrupt Item
+                    if BC14Item.FindFirst() then begin
+                        BC14Item."Inventory Posting Group" := 'INVALID-IPG';
+                        BC14Item."Gen. Prod. Posting Group" := 'INVALID-GPG';
+                        BC14Item."Base Unit of Measure" := 'INVALID';
+                        BC14Item."Item Tracking Code" := 'INVALID';
+                        BC14Item."Vendor No." := 'INVALID-VEND';
+                        BC14Item.Modify();
+                        CorruptedCount += 1;
+                        ResultMsg += 'Item ' + BC14Item."No." + ': Inventory Posting, Gen Prod, Base UoM, Item Tracking, Vendor\';
+                    end;
+
+                    if CorruptedCount > 0 then
+                        Message('Corrupted %1 record(s):\%2\Run upgrade to generate errors.', CorruptedCount, ResultMsg)
+                    else
+                        Message('No BC14 Customer or Item records found to corrupt.');
+                end;
+            }
+
+            action(TestCreateFakeError)
+            {
+                ApplicationArea = All;
+                Caption = '[TEST] Create Fake Error';
+                ToolTip = 'TESTING ONLY: Create a fake error record in BC14 Migration Errors for UI testing.';
+                Image = TestFile;
+
+                trigger OnAction()
+                var
+                    BC14MigrationErrors: Record "BC14 Migration Errors";
+                    BC14Customer: Record "BC14 Customer";
+                begin
+                    if BC14Customer.FindFirst() then begin
+                        BC14MigrationErrors.Init();
+                        BC14MigrationErrors."Migration Type" := 'Customer Migrator';
+                        BC14MigrationErrors."Source Table ID" := Database::"BC14 Customer";
+                        BC14MigrationErrors."Source Table Name" := 'BC14 Customer';
+                        BC14MigrationErrors."Source Record Key" := BC14Customer."No.";
+                        BC14MigrationErrors."Destination Table ID" := Database::Customer;
+                        BC14MigrationErrors."Company Name" := CopyStr(CompanyName(), 1, 30);
+                        BC14MigrationErrors."Error Message" := 'Test error - Customer Posting Group not found';
+                        BC14MigrationErrors."Created On" := CurrentDateTime();
+                        BC14MigrationErrors."Record Id" := BC14Customer.RecordId;
+                        BC14MigrationErrors."Scheduled For Retry" := false;
+                        BC14MigrationErrors."Resolved" := false;
+                        BC14MigrationErrors.Insert(true);
+                        Message('Created fake error for customer: %1\Go to Migration Errors to test.', BC14Customer."No.");
+                    end else
+                        Message('No BC14 Customer records found. Cannot create fake error.');
+                end;
+            }
+
+            action(TestRunCustomerMigrator)
+            {
+                ApplicationArea = All;
+                Caption = '[TEST] Run Customer Migrator';
+                ToolTip = 'TESTING ONLY: Directly run Customer Migrator to see if errors occur.';
+                Image = TestFile;
+
+                trigger OnAction()
+                var
+                    BC14Customer: Record "BC14 Customer";
+                    BC14MigrationErrors: Record "BC14 Migration Errors";
+                    BC14CustomerMigrator: Codeunit "BC14 Customer Migrator";
+                    CustomerCount: Integer;
+                    ErrorCountBefore: Integer;
+                    ErrorCountAfter: Integer;
+                    IsEnabledValue: Boolean;
+                    Success: Boolean;
+                begin
+                    CustomerCount := BC14Customer.Count();
+                    IsEnabledValue := BC14CustomerMigrator.IsEnabled();
+
+                    BC14MigrationErrors.SetRange("Company Name", CompanyName());
+                    BC14MigrationErrors.SetRange("Source Table ID", Database::"BC14 Customer");
+                    ErrorCountBefore := BC14MigrationErrors.Count();
+
+                    if CustomerCount = 0 then begin
+                        Message('BC14 Customer table is EMPTY!\No records to migrate.');
+                        exit;
+                    end;
+
+                    if not IsEnabledValue then begin
+                        Message('Customer Migrator is DISABLED!\Enable "Migrate Receivables Module" first.\BC14 Customer count: %1', CustomerCount);
+                        exit;
+                    end;
+
+                    // Show first customer data
+                    if BC14Customer.FindFirst() then
+                        Message('First BC14 Customer:\No: %1\Name: %2\Customer Posting Group: %3\Gen Bus Posting Group: %4',
+                            BC14Customer."No.", BC14Customer.Name,
+                            BC14Customer."Customer Posting Group", BC14Customer."Gen. Bus. Posting Group");
+
+                    Success := BC14CustomerMigrator.Migrate(false);
+
+                    BC14MigrationErrors.Reset();
+                    BC14MigrationErrors.SetRange("Company Name", CompanyName());
+                    BC14MigrationErrors.SetRange("Source Table ID", Database::"BC14 Customer");
+                    ErrorCountAfter := BC14MigrationErrors.Count();
+
+                    Message('Migration Result:\Success: %1\BC14 Customer count: %2\Errors before: %3\Errors after: %4\New errors: %5',
+                        Success, CustomerCount, ErrorCountBefore, ErrorCountAfter, ErrorCountAfter - ErrorCountBefore);
+                end;
+            }
+
+            action(TestShowBufferData)
+            {
+                ApplicationArea = All;
+                Caption = '[TEST] Show Buffer Data';
+                ToolTip = 'TESTING ONLY: Show first BC14 Customer and Item data.';
+                Image = TestFile;
+
+                trigger OnAction()
+                var
+                    BC14Customer: Record "BC14 Customer";
+                    BC14Item: Record "BC14 Item";
+                    Msg: Text;
+                begin
+                    Msg := 'Buffer Data Summary:\';
+                    Msg += 'BC14 Customer count: ' + Format(BC14Customer.Count()) + '\';
+                    Msg += 'BC14 Item count: ' + Format(BC14Item.Count()) + '\';
+
+                    if BC14Customer.FindFirst() then
+                        Msg += '\First Customer:\' +
+                            'No: ' + BC14Customer."No." + '\' +
+                            'Name: ' + BC14Customer.Name + '\' +
+                            'Cust Posting Grp: ' + BC14Customer."Customer Posting Group" + '\' +
+                            'Gen Bus Posting Grp: ' + BC14Customer."Gen. Bus. Posting Group" + '\';
+
+                    if BC14Item.FindFirst() then
+                        Msg += '\First Item:\' +
+                            'No: ' + BC14Item."No." + '\' +
+                            'Desc: ' + BC14Item.Description + '\' +
+                            'Inv Posting Grp: ' + BC14Item."Inventory Posting Group" + '\' +
+                            'Gen Prod Posting Grp: ' + BC14Item."Gen. Prod. Posting Group";
+
+                    Message(Msg);
+                end;
+            }
+
+            // ============ END TEMPORARY TEST ACTIONS ============
         }
         area(Navigation)
         {
@@ -257,6 +465,16 @@ page 50160 "BC14 Migration Configuration"
             actionref(ContinueMigrationRef; ContinueMigration) { }
             actionref(ResetMigrationStatusRef; ResetMigrationStatus) { }
             actionref(ResetAllCompaniesRef; ResetAllCompanies) { }
+
+            group(TestActions)
+            {
+                Caption = '[TEST]';
+                actionref(TestResetUpgradeStatusRef; TestResetUpgradeStatus) { }
+                actionref(TestCorruptBufferDataRef; TestCorruptBufferData) { }
+                actionref(TestCreateFakeErrorRef; TestCreateFakeError) { }
+                actionref(TestRunCustomerMigratorRef; TestRunCustomerMigrator) { }
+                actionref(TestShowBufferDataRef; TestShowBufferData) { }
+            }
         }
     }
 

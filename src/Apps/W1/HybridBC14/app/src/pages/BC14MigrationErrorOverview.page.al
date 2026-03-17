@@ -91,13 +91,6 @@ page 50163 "BC14 Migration Error Overview"
                     Editable = false;
                 }
 
-                field("Scheduled For Retry"; Rec."Scheduled For Retry")
-                {
-                    ApplicationArea = All;
-                    ToolTip = 'Specifies whether this record is scheduled for retry.';
-                    Editable = false;
-                }
-
                 field("Resolution Notes"; Rec."Resolution Notes")
                 {
                     ApplicationArea = All;
@@ -111,48 +104,81 @@ page 50163 "BC14 Migration Error Overview"
     {
         area(Processing)
         {
-            action(MarkAsResolved)
+            action(EditSourceRecord)
             {
                 ApplicationArea = All;
-                Caption = 'Mark as Resolved';
-                ToolTip = 'Mark the selected error as resolved.';
-                Image = Approve;
+                Caption = 'Edit Source Record';
+                ToolTip = 'Open the source buffer record to fix the data that caused the error.';
+                Image = Edit;
 
                 trigger OnAction()
                 var
-                    ResolutionNote: Text[500];
+                    BC14BufferTableHelper: Codeunit "BC14 Buffer Table Helper";
                 begin
-                    ResolutionNote := '';
-                    if Page.RunModal(Page::"BC14 Resolution Notes Dialog", Rec) = Action::OK then begin
-                        Rec.MarkAsResolved(Rec."Resolution Notes");
-                        CurrPage.Update(false);
+                    if Rec."Source Table ID" = 0 then begin
+                        Message(SourceRecordNotAvailableMsg, Rec."Source Table Name", Rec."Source Record Key");
+                        exit;
                     end;
+
+                    BC14BufferTableHelper.OpenBufferRecord(Rec."Source Table ID", Rec."Record Id");
+                    CurrPage.Update(false);
                 end;
             }
 
-            action(ResolveAllErrors)
+            action(RetrySelected)
             {
                 ApplicationArea = All;
-                Caption = 'Resolve All Errors';
-                ToolTip = 'Mark all unresolved errors as resolved.';
-                Image = ApplyEntries;
+                Caption = 'Retry';
+                ToolTip = 'Retry migration for the selected error records. Fix the source data first using Edit.';
+                Image = Refresh;
 
                 trigger OnAction()
                 var
-                    BC14MigrationErrors: Record "BC14 Migration Errors";
-                    ResolvedCount: Integer;
+                    SelectedErrors: Record "BC14 Migration Errors";
+                    BC14CompanyAdditionalSettings: Record "BC14CompanyAdditionalSettings";
+                    BC14MigrationRunner: Codeunit "BC14 Migration Runner";
+                    RetryCount: Integer;
+                    IsPaused: Boolean;
+                    StopOnFirstError: Boolean;
                 begin
-                    if not Confirm(ResolveAllErrorsQst, false) then
+                    CurrPage.SetSelectionFilter(SelectedErrors);
+                    RetryCount := SelectedErrors.Count();
+
+                    if RetryCount = 0 then begin
+                        Message('No records selected.');
+                        exit;
+                    end;
+
+                    BC14CompanyAdditionalSettings.GetSingleInstance();
+                    IsPaused := BC14CompanyAdditionalSettings.IsMigrationPaused();
+                    StopOnFirstError := BC14CompanyAdditionalSettings.GetStopOnFirstTransformationError();
+
+                    if not Confirm(RetrySelectedQst, false, RetryCount) then
                         exit;
 
-                    BC14MigrationErrors.SetRange("Resolved", false);
-                    if BC14MigrationErrors.FindSet() then
-                        repeat
-                            BC14MigrationErrors.MarkAsResolved(BulkResolvedLbl);
-                            ResolvedCount += 1;
-                        until BC14MigrationErrors.Next() = 0;
+                    // Mark selected as scheduled for retry
+                    SelectedErrors.ModifyAll("Scheduled For Retry", true);
+                    Commit();
 
-                    Message(ErrorsResolvedMsg, ResolvedCount);
+                    // Run retry for the selected records
+                    BC14MigrationRunner.RetryFailedRecords();
+
+                    // If in Stop On First Error mode and migration was paused, 
+                    // automatically continue migration after retry
+                    if StopOnFirstError and IsPaused then begin
+                        // Check if the retried records were resolved
+                        SelectedErrors.SetRange("Resolved", true);
+                        if SelectedErrors.Count() = RetryCount then begin
+                            // All selected records resolved - continue migration
+                            if Confirm(RetrySuccessContinueQst) then
+                                BC14MigrationRunner.ContinueMigration()
+                            else
+                                Message(RetrySuccessManualContinueMsg);
+                        end else
+                            Message(RetryPartialSuccessMsg);
+                    end else
+                        Message(RetryCompletedMsg);
+
                     CurrPage.Update(false);
                 end;
             }
@@ -161,7 +187,7 @@ page 50163 "BC14 Migration Error Overview"
             {
                 ApplicationArea = All;
                 Caption = 'Delete All Errors';
-                ToolTip = 'Delete all error records (resolved and unresolved).';
+                ToolTip = 'Delete all error records.';
                 Image = Delete;
 
                 trigger OnAction()
@@ -178,143 +204,6 @@ page 50163 "BC14 Migration Error Overview"
                     CurrPage.Update(false);
                 end;
             }
-
-            action(ScheduleForRetry)
-            {
-                ApplicationArea = All;
-                Caption = 'Schedule for Retry';
-                ToolTip = 'Schedule the selected record for retry during next migration run.';
-                Image = Refresh;
-
-                trigger OnAction()
-                begin
-                    Rec.ScheduleForRetry();
-                    CurrPage.Update(false);
-                end;
-            }
-
-            action(UnblockForManualFix)
-            {
-                ApplicationArea = All;
-                Caption = 'Unblock Record';
-                ToolTip = 'Unblock the selected failed record and schedule it for retry.';
-                Image = ReOpen;
-
-                trigger OnAction()
-                begin
-                    Rec.UnblockForRetry(ManuallyUnblockedLbl);
-                    Message(RecordUnblockedMsg, Rec."Source Record Key");
-                    CurrPage.Update(false);
-                end;
-            }
-
-            action(OpenSourceBufferRecord)
-            {
-                ApplicationArea = All;
-                Caption = 'Open Source Buffer Record';
-                ToolTip = 'Open the failed source record for manual edits.';
-                Image = EditLines;
-
-                trigger OnAction()
-                var
-                    BC14BufferTableHelper: Codeunit "BC14 Buffer Table Helper";
-                begin
-                    if Rec."Source Table ID" = 0 then begin
-                        Message(SourceRecordNotAvailableMsg, Rec."Source Table Name", Rec."Source Record Key");
-                        exit;
-                    end;
-
-                    BC14BufferTableHelper.OpenBufferRecord(Rec."Source Table ID", Rec."Record Id");
-                    CurrPage.Update(false);
-                end;
-            }
-
-            action(UnblockAndEditSourceRecord)
-            {
-                ApplicationArea = All;
-                Caption = 'Unblock and Edit Source Record';
-                ToolTip = 'Unblock the failed record and open the source buffer record for manual correction.';
-                Image = Edit;
-
-                trigger OnAction()
-                var
-                    BC14BufferTableHelper: Codeunit "BC14 Buffer Table Helper";
-                begin
-                    if Rec."Source Table ID" = 0 then begin
-                        Message(SourceRecordNotAvailableMsg, Rec."Source Table Name", Rec."Source Record Key");
-                        exit;
-                    end;
-
-                    Rec.UnblockForRetry(ManuallyUnblockedForEditLbl);
-                    BC14BufferTableHelper.OpenBufferRecord(Rec."Source Table ID", Rec."Record Id");
-                    CurrPage.Update(false);
-                end;
-            }
-
-            action(RetrySelectedRecords)
-            {
-                ApplicationArea = All;
-                Caption = 'Retry Selected Records';
-                ToolTip = 'Retry migration for selected records now.';
-                Image = Start;
-
-                trigger OnAction()
-                var
-                    BC14MigrationRunner: Codeunit "BC14 Migration Runner";
-                begin
-                    CurrPage.SetSelectionFilter(Rec);
-                    Rec.ModifyAll("Scheduled For Retry", true);
-                    BC14MigrationRunner.RetryFailedRecords();
-                    CurrPage.Update(false);
-                end;
-            }
-
-            action(ShowUnresolvedOnly)
-            {
-                ApplicationArea = All;
-                Caption = 'Show Unresolved Only';
-                ToolTip = 'Filter to show only unresolved errors.';
-                Image = FilterLines;
-
-                trigger OnAction()
-                begin
-                    Rec.SetRange("Resolved", false);
-                    CurrPage.Update(false);
-                end;
-            }
-
-            action(ShowAll)
-            {
-                ApplicationArea = All;
-                Caption = 'Show All';
-                ToolTip = 'Show all errors including resolved ones.';
-                Image = ShowList;
-
-                trigger OnAction()
-                begin
-                    Rec.SetRange("Resolved");
-                    CurrPage.Update(false);
-                end;
-            }
-
-            action(ClearResolvedErrors)
-            {
-                ApplicationArea = All;
-                Caption = 'Clear Resolved Errors';
-                ToolTip = 'Delete all resolved error records.';
-                Image = ClearLog;
-
-                trigger OnAction()
-                var
-                    BC14MigrationErrors: Record "BC14 Migration Errors";
-                begin
-                    if Confirm(DeleteResolvedErrorsQst, false) then begin
-                        BC14MigrationErrors.SetRange("Resolved", true);
-                        BC14MigrationErrors.DeleteAll();
-                        CurrPage.Update(false);
-                    end;
-                end;
-            }
         }
         area(Promoted)
         {
@@ -322,28 +211,13 @@ page 50163 "BC14 Migration Error Overview"
             {
                 Caption = 'Process';
 
-                actionref(MarkAsResolved_Promoted; MarkAsResolved)
+                actionref(EditSourceRecord_Promoted; EditSourceRecord)
                 {
                 }
-                actionref(ResolveAllErrors_Promoted; ResolveAllErrors)
+                actionref(RetrySelected_Promoted; RetrySelected)
                 {
                 }
                 actionref(DeleteAllErrors_Promoted; DeleteAllErrors)
-                {
-                }
-                actionref(ScheduleForRetry_Promoted; ScheduleForRetry)
-                {
-                }
-                actionref(UnblockForManualFix_Promoted; UnblockForManualFix)
-                {
-                }
-                actionref(OpenSourceBufferRecord_Promoted; OpenSourceBufferRecord)
-                {
-                }
-                actionref(UnblockAndEditSourceRecord_Promoted; UnblockAndEditSourceRecord)
-                {
-                }
-                actionref(RetrySelectedRecords_Promoted; RetrySelectedRecords)
                 {
                 }
             }
@@ -351,14 +225,12 @@ page 50163 "BC14 Migration Error Overview"
     }
 
     var
-        ResolveAllErrorsQst: Label 'Do you want to mark ALL unresolved errors as resolved?';
         DeleteAllErrorsQst: Label 'Do you want to DELETE ALL error records? This cannot be undone.';
-        DeleteResolvedErrorsQst: Label 'Do you want to delete all resolved error records?';
-        ErrorsResolvedMsg: Label '%1 errors have been marked as resolved.', Comment = '%1 = Count';
+        RetrySelectedQst: Label 'Retry migration for %1 selected record(s)?', Comment = '%1 = Count';
         ErrorsDeletedMsg: Label '%1 error records have been deleted.', Comment = '%1 = Count';
-        BulkResolvedLbl: Label 'Bulk resolved';
-        ManuallyUnblockedLbl: Label 'Manually unblocked by user';
-        ManuallyUnblockedForEditLbl: Label 'Manually unblocked for source record correction';
-        RecordUnblockedMsg: Label 'Record %1 has been unblocked and scheduled for retry.', Comment = '%1 = Source Record Key';
+        RetryCompletedMsg: Label 'Retry completed. Check the list - resolved records show Resolved = Yes.';
+        RetrySuccessContinueQst: Label 'All selected records were migrated successfully.\Do you want to continue the migration now?';
+        RetrySuccessManualContinueMsg: Label 'Retry successful. Use "Continue Migration" in BC14 Migration Configuration when ready to continue.';
+        RetryPartialSuccessMsg: Label 'Retry completed but some records still have errors. Fix them and retry again.';
         SourceRecordNotAvailableMsg: Label 'Source record %2 in table %1 cannot be opened. The record reference is unavailable.', Comment = '%1 = Source Table Name, %2 = Source Record Key';
 }

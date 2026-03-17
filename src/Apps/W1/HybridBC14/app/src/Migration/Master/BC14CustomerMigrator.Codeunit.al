@@ -70,15 +70,15 @@ codeunit 50165 "BC14 Customer Migrator" implements "IMasterMigrator"
         Customer."Address 2" := BC14Customer."Address 2";
         Customer.City := BC14Customer.City;
         Customer."Post Code" := BC14Customer."Post Code";
-        Customer."Country/Region Code" := BC14Customer."Country/Region Code";
+        Customer.Validate("Country/Region Code", BC14Customer."Country/Region Code");
         Customer."Phone No." := BC14Customer."Phone No.";
         Customer."E-Mail" := BC14Customer."E-Mail";
         Customer."Home Page" := BC14Customer."Home Page";
-        Customer."Customer Posting Group" := BC14Customer."Customer Posting Group";
-        Customer."Gen. Bus. Posting Group" := BC14Customer."Gen. Bus. Posting Group";
-        Customer."Payment Terms Code" := BC14Customer."Payment Terms Code";
-        Customer."Currency Code" := BC14Customer."Currency Code";
-        Customer."Language Code" := BC14Customer."Language Code";
+        Customer.Validate("Customer Posting Group", BC14Customer."Customer Posting Group");
+        Customer.Validate("Gen. Bus. Posting Group", BC14Customer."Gen. Bus. Posting Group");
+        Customer.Validate("Payment Terms Code", BC14Customer."Payment Terms Code");
+        Customer.Validate("Currency Code", BC14Customer."Currency Code");
+        Customer.Validate("Language Code", BC14Customer."Language Code");
         Customer."Credit Limit (LCY)" := BC14Customer."Credit Limit (LCY)";
         Customer.Blocked := BC14Customer.Blocked;
 

@@ -67,12 +67,12 @@ codeunit 50170 "BC14 Item Migrator" implements "IMasterMigrator"
 
         Item.Description := BC14Item.Description;
         Item.Type := Enum::"Item Type".FromInteger(BC14Item.Type);
-        Item."Base Unit of Measure" := BC14Item."Base Unit of Measure";
+        Item.Validate("Base Unit of Measure", BC14Item."Base Unit of Measure");
         Item."Unit Price" := BC14Item."Unit Price";
         Item."Standard Cost" := BC14Item."Standard Cost";
         Item."Unit Cost" := BC14Item."Unit Cost";
         Item.Blocked := BC14Item.Blocked;
-        Item."Inventory Posting Group" := BC14Item."Inventory Posting Group";
+        Item.Validate("Inventory Posting Group", BC14Item."Inventory Posting Group");
         Item."Costing Method" := Enum::"Costing Method".FromInteger(BC14Item."Costing Method");
         Item."Net Weight" := BC14Item."Net Weight";
         Item."Unit Volume" := BC14Item."Unit Volume";
