@@ -19,34 +19,53 @@ codeunit 50169 "BC14 GL Account Migrator" implements "IMasterMigrator"
 
     procedure IsEnabled(): Boolean
     var
-        BC14CompanyAdditionalSettings: Record "BC14CompanyAdditionalSettings";
+        BC14CompanySettings: Record "BC14CompanyMigrationSettings";
     begin
-        BC14CompanyAdditionalSettings.GetSingleInstance();
-        exit(BC14CompanyAdditionalSettings.GetGLModuleEnabled());
+        BC14CompanySettings.GetSingleInstance();
+        exit(BC14CompanySettings.GetGLModuleEnabled());
     end;
 
-    procedure Migrate(StopOnFirstError: Boolean): Boolean
+    procedure GetSourceTableId(): Integer
+    begin
+        exit(Database::"BC14 G/L Account");
+    end;
+
+    procedure InitializeSourceRecords(var SourceRecordRef: RecordRef)
+    begin
+        // No special filters needed for G/L Account migration
+    end;
+
+    procedure IsRecordMigrated(var SourceRecordRef: RecordRef): Boolean
+    var
+        GLAccount: Record "G/L Account";
+        RecordKey: Text[250];
+    begin
+        RecordKey := GetSourceRecordKey(SourceRecordRef);
+        // Only skip if target record already exists - failed records will be retried
+        exit(GLAccount.Get(RecordKey));
+    end;
+
+    procedure MigrateRecord(var SourceRecordRef: RecordRef): Boolean
     var
         BC14GLAccount: Record "BC14 G/L Account";
-        BC14MigrationErrorHandler: Codeunit "BC14 Migration Error Handler";
-        Success: Boolean;
     begin
-        Success := true;
-        if not IsEnabled() then
-            exit(true);
+        SourceRecordRef.SetTable(BC14GLAccount);
+        exit(TryMigrateGLAccount(BC14GLAccount));
+    end;
 
-        if BC14GLAccount.FindSet() then
-            repeat
-                if not TryMigrateGLAccount(BC14GLAccount) then begin
-                    BC14MigrationErrorHandler.LogError(GetName(), Database::"BC14 G/L Account", 'BC14 G/L Account', BC14GLAccount."No.", Database::"G/L Account", GetLastErrorText(), BC14GLAccount.RecordId);
-                    Success := false;
-                    if StopOnFirstError then
-                        exit(false);
-                    ClearLastError();
-                end;
-            until BC14GLAccount.Next() = 0;
+    procedure GetSourceRecordKey(var SourceRecordRef: RecordRef): Text[250]
+    var
+        NoFieldRef: FieldRef;
+    begin
+        NoFieldRef := SourceRecordRef.Field(1); // No. field
+        exit(Format(NoFieldRef.Value()));
+    end;
 
-        exit(Success);
+    procedure GetRecordCount(): Integer
+    var
+        BC14GLAccount: Record "BC14 G/L Account";
+    begin
+        exit(BC14GLAccount.Count());
     end;
 
     [TryFunction]
@@ -80,53 +99,8 @@ codeunit 50169 "BC14 GL Account Migrator" implements "IMasterMigrator"
         GLAccount.Modify(true);
     end;
 
-    /// <summary>
-    /// Integration event raised during G/L Account migration to allow mapping of custom fields.
-    /// Subscribe to this event to transfer TableExtension fields from BC14 G/L Account to G/L Account.
-    /// </summary>
-    /// <param name="BC14GLAccount">The source BC14 G/L Account record.</param>
-    /// <param name="GLAccount">The target G/L Account record (modifiable).</param>
     [IntegrationEvent(false, false)]
     local procedure OnTransferGLAccountCustomFields(BC14GLAccount: Record "BC14 G/L Account"; var GLAccount: Record "G/L Account")
     begin
-    end;
-
-    procedure RetryFailedRecords(StopOnFirstError: Boolean): Boolean
-    var
-        BC14MigrationErrors: Record "BC14 Migration Errors";
-        BC14GLAccount: Record "BC14 G/L Account";
-        Success: Boolean;
-    begin
-        Success := true;
-        BC14MigrationErrors.SetRange("Source Table ID", Database::"BC14 G/L Account");
-        BC14MigrationErrors.SetRange("Company Name", CompanyName());
-        BC14MigrationErrors.SetRange("Scheduled For Retry", true);
-        BC14MigrationErrors.SetRange("Resolved", false);
-
-        if BC14MigrationErrors.FindSet() then
-            repeat
-                if BC14GLAccount.Get(BC14MigrationErrors."Source Record Key") then
-                    if TryMigrateGLAccount(BC14GLAccount) then
-                        BC14MigrationErrors.MarkAsResolved('Migrated successfully on retry')
-                    else begin
-                        BC14MigrationErrors."Retry Count" += 1;
-                        BC14MigrationErrors."Last Retry On" := CurrentDateTime();
-                        BC14MigrationErrors."Error Message" := CopyStr(GetLastErrorText(), 1, 250);
-                        BC14MigrationErrors.Modify();
-                        Success := false;
-                        if StopOnFirstError then
-                            exit(false);
-                        ClearLastError();
-                    end;
-            until BC14MigrationErrors.Next() = 0;
-
-        exit(Success);
-    end;
-
-    procedure GetRecordCount(): Integer
-    var
-        BC14GLAccount: Record "BC14 G/L Account";
-    begin
-        exit(BC14GLAccount.Count());
     end;
 }

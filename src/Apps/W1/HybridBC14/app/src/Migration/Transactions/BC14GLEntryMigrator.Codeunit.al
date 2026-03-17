@@ -23,10 +23,62 @@ codeunit 50188 "BC14 G/L Entry Migrator" implements "ITransactionMigrator"
 
     procedure IsEnabled(): Boolean
     var
-        BC14CompanyAdditionalSettings: Record "BC14CompanyAdditionalSettings";
+        BC14CompanySettings: Record "BC14CompanyMigrationSettings";
     begin
-        BC14CompanyAdditionalSettings.GetSingleInstance();
-        exit(BC14CompanyAdditionalSettings.GetGLModuleEnabled());
+        BC14CompanySettings.GetSingleInstance();
+        exit(BC14CompanySettings.GetGLModuleEnabled());
+    end;
+
+    procedure GetSourceTableId(): Integer
+    begin
+        exit(Database::"BC14 G/L Entry");
+    end;
+
+    procedure InitializeSourceRecords(var SourceRecordRef: RecordRef)
+    var
+        BC14HelperFunctions: Codeunit "BC14 Helper Functions";
+        AmountFieldRef: FieldRef;
+    begin
+        // Ensure journal batch exists before migration starts
+        BC14HelperFunctions.EnsureGenJournalBatchExists(JournalBatchNameTxt, JournalBatchDescTxt);
+
+        // Filter to non-zero amounts only
+        AmountFieldRef := SourceRecordRef.Field(13); // Amount field
+        AmountFieldRef.SetFilter('<>0');
+    end;
+
+    procedure IsRecordMigrated(var SourceRecordRef: RecordRef): Boolean
+    var
+        BC14MigrationRecordStatus: Record "BC14 Migration Record Status";
+        RecordKey: Text[250];
+    begin
+        RecordKey := GetSourceRecordKey(SourceRecordRef);
+        // Only skip if already tracked in progress table - failed records will be retried
+        exit(BC14MigrationRecordStatus.IsMigrated(GetSourceTableId(), RecordKey));
+    end;
+
+    procedure MigrateRecord(var SourceRecordRef: RecordRef): Boolean
+    var
+        BC14GLEntry: Record "BC14 G/L Entry";
+        BC14MigrationRecordStatus: Record "BC14 Migration Record Status";
+        RecordKey: Text[250];
+    begin
+        SourceRecordRef.SetTable(BC14GLEntry);
+        if not TryCreateJournalLine(BC14GLEntry) then
+            exit(false);
+
+        // Mark as migrated to prevent duplicate journal lines on rerun
+        RecordKey := GetSourceRecordKey(SourceRecordRef);
+        BC14MigrationRecordStatus.MarkAsMigrated(GetSourceTableId(), RecordKey);
+        exit(true);
+    end;
+
+    procedure GetSourceRecordKey(var SourceRecordRef: RecordRef): Text[250]
+    var
+        EntryNoFieldRef: FieldRef;
+    begin
+        EntryNoFieldRef := SourceRecordRef.Field(1); // Entry No. field
+        exit(Format(EntryNoFieldRef.Value()));
     end;
 
     procedure GetRecordCount(): Integer
@@ -35,40 +87,6 @@ codeunit 50188 "BC14 G/L Entry Migrator" implements "ITransactionMigrator"
     begin
         BC14GLEntry.SetFilter(Amount, '<>0');
         exit(BC14GLEntry.Count());
-    end;
-
-    procedure Migrate(StopOnFirstError: Boolean): Boolean
-    var
-        BC14GLEntry: Record "BC14 G/L Entry";
-        BC14MigrationErrorHandler: Codeunit "BC14 Migration Error Handler";
-        BC14HelperFunctions: Codeunit "BC14 Helper Functions";
-        Success: Boolean;
-    begin
-        Success := true;
-        if not IsEnabled() then
-            exit(true);
-
-        if BC14GLEntry.IsEmpty() then
-            exit(true);
-
-        // Ensure journal batch exists
-        BC14HelperFunctions.EnsureGenJournalBatchExists(JournalBatchNameTxt, JournalBatchDescTxt);
-
-        if BC14GLEntry.FindSet() then
-            repeat
-                // Only process entries with non-zero amount
-                if BC14GLEntry.Amount <> 0 then
-                    if not TryCreateJournalLine(BC14GLEntry) then begin
-                        BC14MigrationErrorHandler.LogError(GetName(), Database::"BC14 G/L Entry", 'BC14 G/L Entry', Format(BC14GLEntry."Entry No."), Database::"Gen. Journal Line", GetLastErrorText(), BC14GLEntry.RecordId);
-                        Success := false;
-                        if StopOnFirstError then
-                            exit(false);
-                        ClearLastError();
-                    end;
-            until BC14GLEntry.Next() = 0;
-
-        // Note: Journal batches are posted centrally by BC14MigrationRunner.PostMigrationJournals()
-        exit(Success);
     end;
 
     [TryFunction]
@@ -148,38 +166,6 @@ codeunit 50188 "BC14 G/L Entry Migrator" implements "ITransactionMigrator"
             GLAccount."Direct Posting" := false;
             GLAccount.Modify();
         end;
-    end;
-
-    procedure RetryFailedRecords(StopOnFirstError: Boolean): Boolean
-    var
-        BC14MigrationErrors: Record "BC14 Migration Errors";
-        BC14GLEntry: Record "BC14 G/L Entry";
-        EntryNo: Integer;
-        Success: Boolean;
-    begin
-        Success := true;
-        BC14MigrationErrors.SetRange("Source Table ID", Database::"BC14 G/L Entry");
-        BC14MigrationErrors.SetRange("Company Name", CompanyName());
-        BC14MigrationErrors.SetRange("Scheduled For Retry", true);
-        BC14MigrationErrors.SetRange("Resolved", false);
-
-        if BC14MigrationErrors.FindSet() then
-            repeat
-                if Evaluate(EntryNo, BC14MigrationErrors."Source Record Key") then
-                    if BC14GLEntry.Get(EntryNo) then
-                        if TryCreateJournalLine(BC14GLEntry) then
-                            BC14MigrationErrors.MarkAsResolved('Retry successful')
-                        else begin
-                            BC14MigrationErrors."Error Message" := CopyStr(GetLastErrorText(), 1, 250);
-                            BC14MigrationErrors.Modify();
-                            Success := false;
-                            if StopOnFirstError then
-                                exit(false);
-                            ClearLastError();
-                        end;
-            until BC14MigrationErrors.Next() = 0;
-
-        exit(Success);
     end;
 
     /// <summary>

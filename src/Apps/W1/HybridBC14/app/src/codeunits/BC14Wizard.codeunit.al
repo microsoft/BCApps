@@ -85,18 +85,18 @@ codeunit 50161 "BC14 Wizard"
     [EventSubscriber(ObjectType::Page, Page::"Intelligent Cloud Management", 'OnResetAllCloudData', '', false, false)]
     local procedure OnResetAllCloudData()
     var
-        BC14CompanyAdditionalSettings: Record "BC14CompanyAdditionalSettings";
+        BC14CompanySettings: Record "BC14CompanyMigrationSettings";
         HybridCompany: Record "Hybrid Company";
         HybridCompanyStatus: Record "Hybrid Company Status";
         HybridReplicationDetail: Record "Hybrid Replication Detail";
         BC14MigrationErrorOverview: Record "BC14 Migration Error Overview";
     begin
-        BC14CompanyAdditionalSettings.Reset();
-        if BC14CompanyAdditionalSettings.FindSet() then
-            BC14CompanyAdditionalSettings.ModifyAll(ProcessesAreRunning, false);
+        BC14CompanySettings.Reset();
+        if BC14CompanySettings.FindSet() then
+            BC14CompanySettings.ModifyAll(ProcessesAreRunning, false);
 
-        if not BC14CompanyAdditionalSettings.IsEmpty() then
-            BC14CompanyAdditionalSettings.DeleteAll();
+        if not BC14CompanySettings.IsEmpty() then
+            BC14CompanySettings.DeleteAll();
 
         if not HybridCompanyStatus.IsEmpty() then
             HybridCompanyStatus.DeleteAll();
@@ -114,7 +114,7 @@ codeunit 50161 "BC14 Wizard"
     [EventSubscriber(ObjectType::Table, Database::Company, 'OnAfterDeleteEvent', '', false, false)]
     local procedure CompanyOnAfterDelete(var Rec: Record Company; RunTrigger: Boolean)
     var
-        BC14CompanyAdditionalSettings: Record "BC14CompanyAdditionalSettings";
+        BC14CompanySettings: Record "BC14CompanyMigrationSettings";
         HybridCompany: Record "Hybrid Company";
         HybridCompanyStatus: Record "Hybrid Company Status";
         HybridReplicationDetail: Record "Hybrid Replication Detail";
@@ -123,8 +123,8 @@ codeunit 50161 "BC14 Wizard"
         if Rec.IsTemporary() then
             exit;
 
-        if BC14CompanyAdditionalSettings.Get(Rec.Name) then
-            BC14CompanyAdditionalSettings.Delete();
+        if BC14CompanySettings.Get(Rec.Name) then
+            BC14CompanySettings.Delete();
 
         if HybridCompanyStatus.Get(Rec.Name) then
             HybridCompanyStatus.Delete();
@@ -143,10 +143,10 @@ codeunit 50161 "BC14 Wizard"
 
     local procedure ProcessesAreRunning(): Boolean
     var
-        BC14CompanyAdditionalSettings: Record "BC14CompanyAdditionalSettings";
+        BC14CompanySettings: Record "BC14CompanyMigrationSettings";
     begin
-        BC14CompanyAdditionalSettings.SetRange(ProcessesAreRunning, true);
-        exit(not BC14CompanyAdditionalSettings.IsEmpty());
+        BC14CompanySettings.SetRange(ProcessesAreRunning, true);
+        exit(not BC14CompanySettings.IsEmpty());
     end;
 
     internal procedure GetBC14MigrationEnabled(): Boolean

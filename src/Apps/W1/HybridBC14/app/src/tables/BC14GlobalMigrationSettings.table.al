@@ -5,10 +5,10 @@
 
 namespace Microsoft.DataMigration.BC14;
 
-table 50156 "BC14 Upgrade Settings"
+table 50156 "BC14 Global Migration Settings"
 {
     DataClassification = CustomerContent;
-    Description = 'BC14 Upgrade Settings';
+    Description = 'BC14 Global Migration Settings';
     DataPerCompany = false;
 
     fields
@@ -16,12 +16,6 @@ table 50156 "BC14 Upgrade Settings"
         field(1; PrimaryKey; Code[20])
         {
             DataClassification = SystemMetadata;
-        }
-        field(2; "Collect All Errors"; Boolean)
-        {
-            DataClassification = CustomerContent;
-            Caption = 'Collect all errors';
-            InitValue = true;
         }
         field(3; "Data Upgrade Started"; DateTime)
         {
@@ -59,13 +53,13 @@ table 50156 "BC14 Upgrade Settings"
         }
     }
 
-    internal procedure GetOrInsertBC14UpgradeSettings(var BC14UpgradeSettings: Record "BC14 Upgrade Settings")
+    internal procedure GetOrInsertGlobalSettings(var BC14GlobalSettings: Record "BC14 Global Migration Settings")
     begin
-        if not BC14UpgradeSettings.Get() then begin
-            BC14UpgradeSettings."One Step Upgrade" := true;
-            BC14UpgradeSettings."One Step Upgrade Delay" := GetUpgradeDelay();
-            BC14UpgradeSettings.Insert();
-            BC14UpgradeSettings.Get();
+        if not BC14GlobalSettings.Get() then begin
+            BC14GlobalSettings."One Step Upgrade" := true;
+            BC14GlobalSettings."One Step Upgrade Delay" := GetUpgradeDelay();
+            BC14GlobalSettings.Insert();
+            BC14GlobalSettings.Get();
         end;
     end;
 
@@ -76,7 +70,7 @@ table 50156 "BC14 Upgrade Settings"
 
     internal procedure SetMigrationInProgress(IsRunning: Boolean)
     begin
-        GetOrInsertBC14UpgradeSettings(Rec);
+        GetOrInsertGlobalSettings(Rec);
         Rec."Migration In Progress" := IsRunning;
         Rec.Modify();
     end;

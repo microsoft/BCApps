@@ -135,7 +135,7 @@ page 50163 "BC14 Migration Error Overview"
                 trigger OnAction()
                 var
                     SelectedErrors: Record "BC14 Migration Errors";
-                    BC14CompanyAdditionalSettings: Record "BC14CompanyAdditionalSettings";
+                    BC14CompanySettings: Record "BC14CompanyMigrationSettings";
                     BC14MigrationRunner: Codeunit "BC14 Migration Runner";
                     RetryCount: Integer;
                     IsPaused: Boolean;
@@ -149,9 +149,9 @@ page 50163 "BC14 Migration Error Overview"
                         exit;
                     end;
 
-                    BC14CompanyAdditionalSettings.GetSingleInstance();
-                    IsPaused := BC14CompanyAdditionalSettings.IsMigrationPaused();
-                    StopOnFirstError := BC14CompanyAdditionalSettings.GetStopOnFirstTransformationError();
+                    BC14CompanySettings.GetSingleInstance();
+                    IsPaused := BC14CompanySettings.IsMigrationPaused();
+                    StopOnFirstError := BC14CompanySettings.GetStopOnFirstTransformationError();
 
                     if not Confirm(RetrySelectedQst, false, RetryCount) then
                         exit;

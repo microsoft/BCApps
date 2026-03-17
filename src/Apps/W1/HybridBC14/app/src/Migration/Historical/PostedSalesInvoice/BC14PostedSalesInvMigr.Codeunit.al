@@ -17,43 +17,54 @@ codeunit 50180 "BC14 Posted Sales Inv Migr." implements "IHistoricalMigrator"
 
     procedure IsEnabled(): Boolean
     var
-        BC14CompanyAdditionalSettings: Record "BC14CompanyAdditionalSettings";
+        BC14CompanySettings: Record "BC14CompanyMigrationSettings";
     begin
-        if not BC14CompanyAdditionalSettings.GetReceivablesModuleEnabled() then
+        if not BC14CompanySettings.GetReceivablesModuleEnabled() then
             exit(false);
 
         exit(GetRecordCount() > 0);
     end;
 
-    procedure Migrate(StopOnFirstError: Boolean): Boolean
+    procedure GetSourceTableId(): Integer
+    begin
+        exit(Database::"BC14 Posted Sales Inv Header");
+    end;
+
+    procedure InitializeSourceRecords(var SourceRecordRef: RecordRef)
+    begin
+        // No special filters needed for Posted Sales Invoice migration
+    end;
+
+    procedure IsRecordMigrated(var SourceRecordRef: RecordRef): Boolean
+    var
+        BC14ArchSalesInvHeader: Record "BC14 Arch. Sales Inv. Header";
+        RecordKey: Text[250];
+    begin
+        RecordKey := GetSourceRecordKey(SourceRecordRef);
+        exit(BC14ArchSalesInvHeader.Get(RecordKey));
+    end;
+
+    procedure MigrateRecord(var SourceRecordRef: RecordRef): Boolean
     var
         BC14PostedSalesInvHeader: Record "BC14 Posted Sales Inv Header";
-        BC14MigrationErrorHandler: Codeunit "BC14 Migration Error Handler";
-        BC14HelperFunctions: Codeunit "BC14 Helper Functions";
-        MigrationStartedLbl: Label 'Posted Sales Invoice migration started. Record count: %1', Comment = '%1 = Number of records to migrate';
-        MigrationCompletedLbl: Label 'Posted Sales Invoice migration to Archive completed. Success: %1', Comment = '%1 = Success flag';
-        Success: Boolean;
     begin
-        Success := true;
+        SourceRecordRef.SetTable(BC14PostedSalesInvHeader);
+        exit(TryMigrateInvoice(BC14PostedSalesInvHeader));
+    end;
 
-        if not BC14PostedSalesInvHeader.FindSet() then
-            exit(true);
+    procedure GetSourceRecordKey(var SourceRecordRef: RecordRef): Text[250]
+    var
+        NoFieldRef: FieldRef;
+    begin
+        NoFieldRef := SourceRecordRef.Field(3); // No. field
+        exit(Format(NoFieldRef.Value()));
+    end;
 
-        Session.LogMessage('0000ROT', StrSubstNo(MigrationStartedLbl, GetRecordCount()), Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', BC14HelperFunctions.GetTelemetryCategory());
-
-        repeat
-            if not TryMigrateInvoice(BC14PostedSalesInvHeader) then begin
-                BC14MigrationErrorHandler.LogError(GetName(), Database::"BC14 Posted Sales Inv Header", 'BC14 Posted Sales Inv Header', BC14PostedSalesInvHeader."No.", Database::"BC14 Arch. Sales Inv. Header", GetLastErrorText(), BC14PostedSalesInvHeader.RecordId);
-                ClearLastError();
-                Success := false;
-
-                if StopOnFirstError then
-                    exit(false);
-            end;
-        until BC14PostedSalesInvHeader.Next() = 0;
-
-        Session.LogMessage('0000ROS', StrSubstNo(MigrationCompletedLbl, Success), Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', BC14HelperFunctions.GetTelemetryCategory());
-        exit(Success);
+    procedure GetRecordCount(): Integer
+    var
+        BC14PostedSalesInvHeader: Record "BC14 Posted Sales Inv Header";
+    begin
+        exit(BC14PostedSalesInvHeader.Count());
     end;
 
     [TryFunction]
@@ -158,46 +169,6 @@ codeunit 50180 "BC14 Posted Sales Inv Migr." implements "IHistoricalMigrator"
 
             BC14ArchSalesInvLine.Insert(false);
         until BC14PostedSalesInvLine.Next() = 0;
-    end;
-
-    procedure RetryFailedRecords(StopOnFirstError: Boolean): Boolean
-    var
-        BC14MigrationErrors: Record "BC14 Migration Errors";
-        BC14PostedSalesInvHeader: Record "BC14 Posted Sales Inv Header";
-        BC14HelperFunctions: Codeunit "BC14 Helper Functions";
-        RetryCompletedLbl: Label 'Posted Sales Invoice retry completed. Success: %1', Comment = '%1 = Success flag';
-        Success: Boolean;
-    begin
-        Success := true;
-        BC14MigrationErrors.SetRange("Source Table ID", Database::"BC14 Posted Sales Inv Header");
-        BC14MigrationErrors.SetRange("Company Name", CompanyName());
-        BC14MigrationErrors.SetRange("Scheduled For Retry", true);
-        BC14MigrationErrors.SetRange("Resolved", false);
-
-        if BC14MigrationErrors.FindSet() then
-            repeat
-                if BC14PostedSalesInvHeader.Get(BC14MigrationErrors."Source Record Key") then
-                    if TryMigrateInvoice(BC14PostedSalesInvHeader) then
-                        BC14MigrationErrors.MarkAsResolved('Retry successful')
-                    else begin
-                        BC14MigrationErrors."Error Message" := CopyStr(GetLastErrorText(), 1, 250);
-                        BC14MigrationErrors.Modify();
-                        Success := false;
-                        if StopOnFirstError then
-                            exit(false);
-                        ClearLastError();
-                    end;
-            until BC14MigrationErrors.Next() = 0;
-
-        Session.LogMessage('0000ROV', StrSubstNo(RetryCompletedLbl, Success), Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', BC14HelperFunctions.GetTelemetryCategory());
-        exit(Success);
-    end;
-
-    procedure GetRecordCount(): Integer
-    var
-        BC14PostedSalesInvHeader: Record "BC14 Posted Sales Inv Header";
-    begin
-        exit(BC14PostedSalesInvHeader.Count());
     end;
 
     /// <summary>

@@ -23,29 +23,46 @@ codeunit 50195 "BC14 Acct. Period Migrator" implements "ISetupMigrator"
         exit(HasDataToMigrate());
     end;
 
-    procedure Migrate(StopOnFirstError: Boolean): Boolean
+    procedure GetSourceTableId(): Integer
+    begin
+        exit(Database::"BC14 Accounting Period");
+    end;
+
+    procedure InitializeSourceRecords(var SourceRecordRef: RecordRef)
+    begin
+        // No special filters needed for Accounting Period migration
+    end;
+
+    procedure IsRecordMigrated(var SourceRecordRef: RecordRef): Boolean
+    var
+        AccountingPeriod: Record "Accounting Period";
+        BC14AccountingPeriod: Record "BC14 Accounting Period";
+    begin
+        SourceRecordRef.SetTable(BC14AccountingPeriod);
+        exit(AccountingPeriod.Get(BC14AccountingPeriod."Starting Date"));
+    end;
+
+    procedure MigrateRecord(var SourceRecordRef: RecordRef): Boolean
     var
         BC14AccountingPeriod: Record "BC14 Accounting Period";
-        BC14MigrationErrorHandler: Codeunit "BC14 Migration Error Handler";
-        Success: Boolean;
     begin
-        Success := true;
+        SourceRecordRef.SetTable(BC14AccountingPeriod);
+        exit(TryMigrateAccountingPeriod(BC14AccountingPeriod));
+    end;
 
-        if not HasDataToMigrate() then
-            exit(true);
+    procedure GetSourceRecordKey(var SourceRecordRef: RecordRef): Text[250]
+    var
+        StartDateFieldRef: FieldRef;
+    begin
+        StartDateFieldRef := SourceRecordRef.Field(1); // Starting Date field
+        exit(Format(StartDateFieldRef.Value()));
+    end;
 
-        if BC14AccountingPeriod.FindSet() then
-            repeat
-                if not TryMigrateAccountingPeriod(BC14AccountingPeriod) then begin
-                    BC14MigrationErrorHandler.LogError(GetName(), Database::"BC14 Accounting Period", 'BC14 Accounting Period', Format(BC14AccountingPeriod."Starting Date"), Database::"Accounting Period", GetLastErrorText(), BC14AccountingPeriod.RecordId);
-                    Success := false;
-                    if StopOnFirstError then
-                        exit(false);
-                    ClearLastError();
-                end;
-            until BC14AccountingPeriod.Next() = 0;
-
-        exit(Success);
+    procedure GetRecordCount(): Integer
+    var
+        BC14AccountingPeriod: Record "BC14 Accounting Period";
+    begin
+        exit(BC14AccountingPeriod.Count());
     end;
 
     local procedure HasDataToMigrate(): Boolean
@@ -69,7 +86,6 @@ codeunit 50195 "BC14 Acct. Period Migrator" implements "ISetupMigrator"
             AccountingPeriod.Validate("Starting Date", BC14AccountingPeriod."Starting Date");
             TransferFields(BC14AccountingPeriod, AccountingPeriod);
 
-            // For new fiscal year, get average cost settings from Inventory Setup
             if BC14AccountingPeriod."New Fiscal Year" then
                 if InventorySetup.Get() then begin
                     AccountingPeriod."Average Cost Calc. Type" := InventorySetup."Average Cost Calc. Type";
@@ -87,16 +103,10 @@ codeunit 50195 "BC14 Acct. Period Migrator" implements "ISetupMigrator"
         AccountingPeriod."New Fiscal Year" := BC14AccountingPeriod."New Fiscal Year";
         AccountingPeriod.Closed := BC14AccountingPeriod.Closed;
         AccountingPeriod."Date Locked" := BC14AccountingPeriod."Date Locked";
-        // Note: Average Cost Calc. Type and Average Cost Period are handled in TryMigrateAccountingPeriod
 
-        // Allow extensions to map custom fields
         OnTransferAccountingPeriodCustomFields(BC14AccountingPeriod, AccountingPeriod);
     end;
 
-    /// <summary>
-    /// Integration event raised during accounting period migration to allow mapping of custom fields.
-    /// Subscribe to this event to transfer TableExtension fields.
-    /// </summary>
     [IntegrationEvent(false, false)]
     local procedure OnTransferAccountingPeriodCustomFields(BC14AccountingPeriod: Record "BC14 Accounting Period"; var AccountingPeriod: Record "Accounting Period")
     begin

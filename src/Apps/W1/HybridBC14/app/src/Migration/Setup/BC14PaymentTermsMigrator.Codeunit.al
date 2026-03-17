@@ -22,29 +22,46 @@ codeunit 50191 "BC14 Payment Terms Migrator" implements "ISetupMigrator"
         exit(HasDataToMigrate());
     end;
 
-    procedure Migrate(StopOnFirstError: Boolean): Boolean
+    procedure GetSourceTableId(): Integer
+    begin
+        exit(Database::"BC14 Payment Terms");
+    end;
+
+    procedure InitializeSourceRecords(var SourceRecordRef: RecordRef)
+    begin
+        // No special filters needed for Payment Terms migration
+    end;
+
+    procedure IsRecordMigrated(var SourceRecordRef: RecordRef): Boolean
+    var
+        PaymentTerms: Record "Payment Terms";
+        RecordKey: Text[250];
+    begin
+        RecordKey := GetSourceRecordKey(SourceRecordRef);
+        exit(PaymentTerms.Get(RecordKey));
+    end;
+
+    procedure MigrateRecord(var SourceRecordRef: RecordRef): Boolean
     var
         BC14PaymentTerms: Record "BC14 Payment Terms";
-        BC14MigrationErrorHandler: Codeunit "BC14 Migration Error Handler";
-        Success: Boolean;
     begin
-        Success := true;
+        SourceRecordRef.SetTable(BC14PaymentTerms);
+        exit(TryMigratePaymentTerms(BC14PaymentTerms));
+    end;
 
-        if not HasDataToMigrate() then
-            exit(true);
+    procedure GetSourceRecordKey(var SourceRecordRef: RecordRef): Text[250]
+    var
+        CodeFieldRef: FieldRef;
+    begin
+        CodeFieldRef := SourceRecordRef.Field(1); // Code field
+        exit(Format(CodeFieldRef.Value()));
+    end;
 
-        if BC14PaymentTerms.FindSet() then
-            repeat
-                if not TryMigratePaymentTerms(BC14PaymentTerms) then begin
-                    BC14MigrationErrorHandler.LogError(GetName(), Database::"BC14 Payment Terms", 'BC14 Payment Terms', BC14PaymentTerms.Code, Database::"Payment Terms", GetLastErrorText(), BC14PaymentTerms.RecordId);
-                    Success := false;
-                    if StopOnFirstError then
-                        exit(false);
-                    ClearLastError();
-                end;
-            until BC14PaymentTerms.Next() = 0;
-
-        exit(Success);
+    procedure GetRecordCount(): Integer
+    var
+        BC14PaymentTerms: Record "BC14 Payment Terms";
+    begin
+        exit(BC14PaymentTerms.Count());
     end;
 
     local procedure HasDataToMigrate(): Boolean
@@ -81,10 +98,6 @@ codeunit 50191 "BC14 Payment Terms Migrator" implements "ISetupMigrator"
         OnTransferPaymentTermsCustomFields(BC14PaymentTerms, PaymentTerms);
     end;
 
-    /// <summary>
-    /// Integration event raised during payment terms migration to allow mapping of custom fields.
-    /// Subscribe to this event to transfer TableExtension fields from BC14 Payment Terms to Payment Terms.
-    /// </summary>
     [IntegrationEvent(false, false)]
     local procedure OnTransferPaymentTermsCustomFields(BC14PaymentTerms: Record "BC14 Payment Terms"; var PaymentTerms: Record "Payment Terms")
     begin

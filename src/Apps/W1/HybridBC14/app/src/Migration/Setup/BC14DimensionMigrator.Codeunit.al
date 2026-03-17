@@ -22,29 +22,46 @@ codeunit 50190 "BC14 Dimension Migrator" implements "ISetupMigrator"
         exit(HasDataToMigrate());
     end;
 
-    procedure Migrate(StopOnFirstError: Boolean): Boolean
+    procedure GetSourceTableId(): Integer
+    begin
+        exit(Database::"BC14 Dimension");
+    end;
+
+    procedure InitializeSourceRecords(var SourceRecordRef: RecordRef)
+    begin
+        // No special filters needed for Dimension migration
+    end;
+
+    procedure IsRecordMigrated(var SourceRecordRef: RecordRef): Boolean
+    var
+        Dimension: Record Dimension;
+        RecordKey: Text[250];
+    begin
+        RecordKey := GetSourceRecordKey(SourceRecordRef);
+        exit(Dimension.Get(RecordKey));
+    end;
+
+    procedure MigrateRecord(var SourceRecordRef: RecordRef): Boolean
     var
         BC14Dimension: Record "BC14 Dimension";
-        BC14MigrationErrorHandler: Codeunit "BC14 Migration Error Handler";
-        Success: Boolean;
     begin
-        Success := true;
+        SourceRecordRef.SetTable(BC14Dimension);
+        exit(TryMigrateDimension(BC14Dimension));
+    end;
 
-        if not HasDataToMigrate() then
-            exit(true);
+    procedure GetSourceRecordKey(var SourceRecordRef: RecordRef): Text[250]
+    var
+        CodeFieldRef: FieldRef;
+    begin
+        CodeFieldRef := SourceRecordRef.Field(1); // Code field
+        exit(Format(CodeFieldRef.Value()));
+    end;
 
-        if BC14Dimension.FindSet() then
-            repeat
-                if not TryMigrateDimension(BC14Dimension) then begin
-                    BC14MigrationErrorHandler.LogError(GetName(), Database::"BC14 Dimension", 'BC14 Dimension', BC14Dimension.Code, Database::Dimension, GetLastErrorText(), BC14Dimension.RecordId);
-                    Success := false;
-                    if StopOnFirstError then
-                        exit(false);
-                    ClearLastError();
-                end;
-            until BC14Dimension.Next() = 0;
-
-        exit(Success);
+    procedure GetRecordCount(): Integer
+    var
+        BC14Dimension: Record "BC14 Dimension";
+    begin
+        exit(BC14Dimension.Count());
     end;
 
     local procedure HasDataToMigrate(): Boolean
@@ -60,11 +77,9 @@ codeunit 50190 "BC14 Dimension Migrator" implements "ISetupMigrator"
         Dimension: Record Dimension;
     begin
         if Dimension.Get(BC14Dimension.Code) then begin
-            // Update existing record
             TransferFields(BC14Dimension, Dimension);
             Dimension.Modify(true);
         end else begin
-            // Insert new record
             Dimension.Init();
             TransferFields(BC14Dimension, Dimension);
             Dimension.Insert(true);
@@ -82,14 +97,9 @@ codeunit 50190 "BC14 Dimension Migrator" implements "ISetupMigrator"
         Dimension."Consolidation Code" := BC14Dimension."Consolidation Code";
         Dimension."Map-to IC Dimension Code" := BC14Dimension."Map-to IC Dimension Code";
 
-        // Allow extensions to map custom fields
         OnTransferDimensionCustomFields(BC14Dimension, Dimension);
     end;
 
-    /// <summary>
-    /// Integration event raised during dimension migration to allow mapping of custom fields.
-    /// Subscribe to this event to transfer TableExtension fields from BC14 Dimension to Dimension.
-    /// </summary>
     [IntegrationEvent(false, false)]
     local procedure OnTransferDimensionCustomFields(BC14Dimension: Record "BC14 Dimension"; var Dimension: Record Dimension)
     begin

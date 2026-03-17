@@ -22,29 +22,46 @@ codeunit 50193 "BC14 Currency Migrator" implements "ISetupMigrator"
         exit(HasDataToMigrate());
     end;
 
-    procedure Migrate(StopOnFirstError: Boolean): Boolean
+    procedure GetSourceTableId(): Integer
+    begin
+        exit(Database::"BC14 Currency");
+    end;
+
+    procedure InitializeSourceRecords(var SourceRecordRef: RecordRef)
+    begin
+        // No special filters needed for Currency migration
+    end;
+
+    procedure IsRecordMigrated(var SourceRecordRef: RecordRef): Boolean
+    var
+        Currency: Record Currency;
+        RecordKey: Text[250];
+    begin
+        RecordKey := GetSourceRecordKey(SourceRecordRef);
+        exit(Currency.Get(RecordKey));
+    end;
+
+    procedure MigrateRecord(var SourceRecordRef: RecordRef): Boolean
     var
         BC14Currency: Record "BC14 Currency";
-        BC14MigrationErrorHandler: Codeunit "BC14 Migration Error Handler";
-        Success: Boolean;
     begin
-        Success := true;
+        SourceRecordRef.SetTable(BC14Currency);
+        exit(TryMigrateCurrency(BC14Currency));
+    end;
 
-        if not HasDataToMigrate() then
-            exit(true);
+    procedure GetSourceRecordKey(var SourceRecordRef: RecordRef): Text[250]
+    var
+        CodeFieldRef: FieldRef;
+    begin
+        CodeFieldRef := SourceRecordRef.Field(1); // Code field
+        exit(Format(CodeFieldRef.Value()));
+    end;
 
-        if BC14Currency.FindSet() then
-            repeat
-                if not TryMigrateCurrency(BC14Currency) then begin
-                    BC14MigrationErrorHandler.LogError(GetName(), Database::"BC14 Currency", 'BC14 Currency', BC14Currency.Code, Database::Currency, GetLastErrorText(), BC14Currency.RecordId);
-                    Success := false;
-                    if StopOnFirstError then
-                        exit(false);
-                    ClearLastError();
-                end;
-            until BC14Currency.Next() = 0;
-
-        exit(Success);
+    procedure GetRecordCount(): Integer
+    var
+        BC14Currency: Record "BC14 Currency";
+    begin
+        exit(BC14Currency.Count());
     end;
 
     local procedure HasDataToMigrate(): Boolean
@@ -78,7 +95,6 @@ codeunit 50193 "BC14 Currency Migrator" implements "ISetupMigrator"
         Currency."Unrealized Losses Acc." := BC14Currency."Unrealized Losses Acc.";
         Currency."Realized Losses Acc." := BC14Currency."Realized Losses Acc.";
         Currency."Invoice Rounding Precision" := BC14Currency."Invoice Rounding Precision";
-        // Invoice Rounding Type: 0 = Nearest, 1 = Up, 2 = Down
         case BC14Currency."Invoice Rounding Type" of
             0:
                 Currency."Invoice Rounding Type" := Currency."Invoice Rounding Type"::Nearest;
@@ -98,7 +114,6 @@ codeunit 50193 "BC14 Currency Migrator" implements "ISetupMigrator"
         Currency."Conv. LCY Rndg. Debit Acc." := BC14Currency."Conv. LCY Rndg. Debit Acc.";
         Currency."Conv. LCY Rndg. Credit Acc." := BC14Currency."Conv. LCY Rndg. Credit Acc.";
         Currency."Max. VAT Difference Allowed" := BC14Currency."Max. VAT Difference Allowed";
-        // VAT Rounding Type: 0 = Nearest, 1 = Up, 2 = Down
         case BC14Currency."VAT Rounding Type" of
             0:
                 Currency."VAT Rounding Type" := Currency."VAT Rounding Type"::Nearest;
@@ -111,14 +126,9 @@ codeunit 50193 "BC14 Currency Migrator" implements "ISetupMigrator"
         Currency."ISO Code" := BC14Currency."ISO Code";
         Currency."ISO Numeric Code" := BC14Currency."ISO Numeric Code";
 
-        // Allow extensions to map custom fields
         OnTransferCurrencyCustomFields(BC14Currency, Currency);
     end;
 
-    /// <summary>
-    /// Integration event raised during currency migration to allow mapping of custom fields.
-    /// Subscribe to this event to transfer TableExtension fields from BC14 Currency to Currency.
-    /// </summary>
     [IntegrationEvent(false, false)]
     local procedure OnTransferCurrencyCustomFields(BC14Currency: Record "BC14 Currency"; var Currency: Record Currency)
     begin

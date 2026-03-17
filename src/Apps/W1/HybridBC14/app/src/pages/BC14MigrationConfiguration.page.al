@@ -13,7 +13,7 @@ page 50160 "BC14 Migration Configuration"
     PageType = Card;
     ApplicationArea = All;
     UsageCategory = Administration;
-    SourceTable = "BC14CompanyAdditionalSettings";
+    SourceTable = "BC14CompanyMigrationSettings";
     Caption = 'BC14 Migration Configuration';
     InsertAllowed = false;
     DeleteAllowed = false;
@@ -134,7 +134,7 @@ page 50160 "BC14 Migration Configuration"
             {
                 Caption = 'Upgrade Settings';
 
-                field(OneStepUpgrade; BC14UpgradeSettings."One Step Upgrade")
+                field(OneStepUpgrade; BC14GlobalSettings."One Step Upgrade")
                 {
                     ApplicationArea = All;
                     Caption = 'Run upgrade after replication';
@@ -142,11 +142,11 @@ page 50160 "BC14 Migration Configuration"
 
                     trigger OnValidate()
                     begin
-                        BC14UpgradeSettings.Modify();
+                        BC14GlobalSettings.Modify();
                     end;
                 }
 
-                field(OneStepUpgradeDelay; BC14UpgradeSettings."One Step Upgrade Delay")
+                field(OneStepUpgradeDelay; BC14GlobalSettings."One Step Upgrade Delay")
                 {
                     ApplicationArea = All;
                     Caption = 'Upgrade delay after replication';
@@ -154,11 +154,11 @@ page 50160 "BC14 Migration Configuration"
 
                     trigger OnValidate()
                     begin
-                        BC14UpgradeSettings.Modify();
+                        BC14GlobalSettings.Modify();
                     end;
                 }
 
-                field(DataUpgradeStarted; BC14UpgradeSettings."Data Upgrade Started")
+                field(DataUpgradeStarted; BC14GlobalSettings."Data Upgrade Started")
                 {
                     ApplicationArea = All;
                     Caption = 'Data Upgrade Started';
@@ -166,7 +166,7 @@ page 50160 "BC14 Migration Configuration"
                     Editable = false;
                 }
 
-                field(ReplicationCompleted; BC14UpgradeSettings."Replication Completed")
+                field(ReplicationCompleted; BC14GlobalSettings."Replication Completed")
                 {
                     ApplicationArea = All;
                     Caption = 'Replication Completed';
@@ -228,18 +228,18 @@ page 50160 "BC14 Migration Configuration"
 
                 trigger OnAction()
                 var
-                    BC14CompanyAdditionalSettings: Record "BC14CompanyAdditionalSettings";
+                    BC14CompanySettings: Record "BC14CompanyMigrationSettings";
                     Count: Integer;
                 begin
                     if not Confirm(ResetAllCompaniesQst, false) then
                         exit;
 
-                    if BC14CompanyAdditionalSettings.FindSet() then
+                    if BC14CompanySettings.FindSet() then
                         repeat
-                            BC14CompanyAdditionalSettings.ResetMigrationProgress();
-                        until BC14CompanyAdditionalSettings.Next() = 0;
+                            BC14CompanySettings.ResetMigrationProgress();
+                        until BC14CompanySettings.Next() = 0;
 
-                    Count := BC14CompanyAdditionalSettings.Count();
+                    Count := BC14CompanySettings.Count();
                     Message(MigrationStatusResetAllMsg, Count);
                 end;
             }
@@ -371,11 +371,16 @@ page 50160 "BC14 Migration Configuration"
                     BC14Customer: Record "BC14 Customer";
                     BC14MigrationErrors: Record "BC14 Migration Errors";
                     BC14CustomerMigrator: Codeunit "BC14 Customer Migrator";
+                    BC14MigrationErrorHandler: Codeunit "BC14 Migration Error Handler";
+                    SourceRecordRef: RecordRef;
                     CustomerCount: Integer;
                     ErrorCountBefore: Integer;
                     ErrorCountAfter: Integer;
+                    MigratedCount: Integer;
+                    SkippedCount: Integer;
                     IsEnabledValue: Boolean;
                     Success: Boolean;
+                    RecordKey: Text[250];
                 begin
                     CustomerCount := BC14Customer.Count();
                     IsEnabledValue := BC14CustomerMigrator.IsEnabled();
@@ -400,15 +405,36 @@ page 50160 "BC14 Migration Configuration"
                             BC14Customer."No.", BC14Customer.Name,
                             BC14Customer."Customer Posting Group", BC14Customer."Gen. Bus. Posting Group");
 
-                    Success := BC14CustomerMigrator.Migrate(false);
+                    // Runner-driven migration test
+                    Success := true;
+                    MigratedCount := 0;
+                    SkippedCount := 0;
+                    SourceRecordRef.Open(BC14CustomerMigrator.GetSourceTableId());
+                    BC14CustomerMigrator.InitializeSourceRecords(SourceRecordRef);
+
+                    if SourceRecordRef.FindSet() then
+                        repeat
+                            if BC14CustomerMigrator.IsRecordMigrated(SourceRecordRef) then
+                                SkippedCount += 1
+                            else
+                                if BC14CustomerMigrator.MigrateRecord(SourceRecordRef) then
+                                    MigratedCount += 1
+                                else begin
+                                    RecordKey := BC14CustomerMigrator.GetSourceRecordKey(SourceRecordRef);
+                                    BC14MigrationErrorHandler.LogError(BC14CustomerMigrator.GetName(), Database::"BC14 Customer", 'BC14 Customer', RecordKey, Database::Customer, GetLastErrorText(), SourceRecordRef.RecordId);
+                                    Success := false;
+                                    ClearLastError();
+                                end;
+                        until SourceRecordRef.Next() = 0;
+                    SourceRecordRef.Close();
 
                     BC14MigrationErrors.Reset();
                     BC14MigrationErrors.SetRange("Company Name", CompanyName());
                     BC14MigrationErrors.SetRange("Source Table ID", Database::"BC14 Customer");
                     ErrorCountAfter := BC14MigrationErrors.Count();
 
-                    Message('Migration Result:\Success: %1\BC14 Customer count: %2\Errors before: %3\Errors after: %4\New errors: %5',
-                        Success, CustomerCount, ErrorCountBefore, ErrorCountAfter, ErrorCountAfter - ErrorCountBefore);
+                    Message('Migration Result:\Success: %1\BC14 Customer count: %2\Migrated: %3\Skipped (already done): %4\Errors before: %5\Errors after: %6\New errors: %7',
+                        Success, CustomerCount, MigratedCount, SkippedCount, ErrorCountBefore, ErrorCountAfter, ErrorCountAfter - ErrorCountBefore);
                 end;
             }
 
@@ -479,7 +505,7 @@ page 50160 "BC14 Migration Configuration"
     }
 
     var
-        BC14UpgradeSettings: Record "BC14 Upgrade Settings";
+        BC14GlobalSettings: Record "BC14 Global Migration Settings";
         ResetMigrationStatusQst: Label 'Are you sure you want to reset the migration status for company %1?\This will allow replication to run again.', Comment = '%1 = Company Name';
         ResetAllCompaniesQst: Label 'Are you sure you want to reset the migration status for ALL companies?\This will allow replication to run again for all companies.';
         MigrationStatusResetMsg: Label 'Migration status has been reset for company %1. You can now run replication again.', Comment = '%1 = Company Name';
@@ -496,7 +522,7 @@ page 50160 "BC14 Migration Configuration"
             Rec.Insert();
         end;
 
-        BC14UpgradeSettings.GetOrInsertBC14UpgradeSettings(BC14UpgradeSettings);
+        BC14GlobalSettings.GetOrInsertGlobalSettings(BC14GlobalSettings);
     end;
 
     trigger OnAfterGetRecord()

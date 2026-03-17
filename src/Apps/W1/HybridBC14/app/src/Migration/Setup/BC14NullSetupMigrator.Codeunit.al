@@ -21,8 +21,33 @@ codeunit 50186 "BC14 Null Setup Migrator" implements "ISetupMigrator"
         exit(false);
     end;
 
-    procedure Migrate(StopOnFirstError: Boolean): Boolean
+    procedure GetSourceTableId(): Integer
     begin
-        exit(true);
+        exit(0);
+    end;
+
+    procedure InitializeSourceRecords(var SourceRecordRef: RecordRef)
+    begin
+        // Null implementation - nothing to initialize
+    end;
+
+    procedure IsRecordMigrated(var SourceRecordRef: RecordRef): Boolean
+    begin
+        exit(true); // Always report as migrated to skip
+    end;
+
+    procedure MigrateRecord(var SourceRecordRef: RecordRef): Boolean
+    begin
+        exit(true); // Always succeed (nothing to migrate)
+    end;
+
+    procedure GetSourceRecordKey(var SourceRecordRef: RecordRef): Text[250]
+    begin
+        exit('');
+    end;
+
+    procedure GetRecordCount(): Integer
+    begin
+        exit(0);
     end;
 }

@@ -22,29 +22,46 @@ codeunit 50192 "BC14 Payment Method Migrator" implements "ISetupMigrator"
         exit(HasDataToMigrate());
     end;
 
-    procedure Migrate(StopOnFirstError: Boolean): Boolean
+    procedure GetSourceTableId(): Integer
+    begin
+        exit(Database::"BC14 Payment Method");
+    end;
+
+    procedure InitializeSourceRecords(var SourceRecordRef: RecordRef)
+    begin
+        // No special filters needed for Payment Method migration
+    end;
+
+    procedure IsRecordMigrated(var SourceRecordRef: RecordRef): Boolean
+    var
+        PaymentMethod: Record "Payment Method";
+        RecordKey: Text[250];
+    begin
+        RecordKey := GetSourceRecordKey(SourceRecordRef);
+        exit(PaymentMethod.Get(RecordKey));
+    end;
+
+    procedure MigrateRecord(var SourceRecordRef: RecordRef): Boolean
     var
         BC14PaymentMethod: Record "BC14 Payment Method";
-        BC14MigrationErrorHandler: Codeunit "BC14 Migration Error Handler";
-        Success: Boolean;
     begin
-        Success := true;
+        SourceRecordRef.SetTable(BC14PaymentMethod);
+        exit(TryMigratePaymentMethod(BC14PaymentMethod));
+    end;
 
-        if not HasDataToMigrate() then
-            exit(true);
+    procedure GetSourceRecordKey(var SourceRecordRef: RecordRef): Text[250]
+    var
+        CodeFieldRef: FieldRef;
+    begin
+        CodeFieldRef := SourceRecordRef.Field(1); // Code field
+        exit(Format(CodeFieldRef.Value()));
+    end;
 
-        if BC14PaymentMethod.FindSet() then
-            repeat
-                if not TryMigratePaymentMethod(BC14PaymentMethod) then begin
-                    BC14MigrationErrorHandler.LogError(GetName(), Database::"BC14 Payment Method", 'BC14 Payment Method', BC14PaymentMethod.Code, Database::"Payment Method", GetLastErrorText(), BC14PaymentMethod.RecordId);
-                    Success := false;
-                    if StopOnFirstError then
-                        exit(false);
-                    ClearLastError();
-                end;
-            until BC14PaymentMethod.Next() = 0;
-
-        exit(Success);
+    procedure GetRecordCount(): Integer
+    var
+        BC14PaymentMethod: Record "BC14 Payment Method";
+    begin
+        exit(BC14PaymentMethod.Count());
     end;
 
     local procedure HasDataToMigrate(): Boolean
@@ -73,7 +90,6 @@ codeunit 50192 "BC14 Payment Method Migrator" implements "ISetupMigrator"
     begin
         PaymentMethod.Code := BC14PaymentMethod.Code;
         PaymentMethod.Description := BC14PaymentMethod.Description;
-        // Bal. Account Type: 0 = G/L Account, 1 = Bank Account
         case BC14PaymentMethod."Bal. Account Type" of
             0:
                 PaymentMethod."Bal. Account Type" := PaymentMethod."Bal. Account Type"::"G/L Account";
@@ -84,14 +100,9 @@ codeunit 50192 "BC14 Payment Method Migrator" implements "ISetupMigrator"
         PaymentMethod."Direct Debit" := BC14PaymentMethod."Direct Debit";
         PaymentMethod."Direct Debit Pmt. Terms Code" := BC14PaymentMethod."Direct Debit Pmt. Terms Code";
 
-        // Allow extensions to map custom fields
         OnTransferPaymentMethodCustomFields(BC14PaymentMethod, PaymentMethod);
     end;
 
-    /// <summary>
-    /// Integration event raised during payment method migration to allow mapping of custom fields.
-    /// Subscribe to this event to transfer TableExtension fields from BC14 Payment Method to Payment Method.
-    /// </summary>
     [IntegrationEvent(false, false)]
     local procedure OnTransferPaymentMethodCustomFields(BC14PaymentMethod: Record "BC14 Payment Method"; var PaymentMethod: Record "Payment Method")
     begin

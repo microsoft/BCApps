@@ -7,7 +7,7 @@ namespace Microsoft.DataMigration.BC14;
 
 using Microsoft.DataMigration;
 
-table 50155 "BC14CompanyAdditionalSettings"
+table 50155 "BC14CompanyMigrationSettings"
 {
     ReplicateData = false;
     DataPerCompany = false;

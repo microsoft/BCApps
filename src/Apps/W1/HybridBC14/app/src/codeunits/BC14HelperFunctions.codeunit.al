@@ -20,9 +20,9 @@ codeunit 50152 "BC14 Helper Functions"
 
     internal procedure SetProcessesRunning(IsRunning: Boolean)
     var
-        BC14UpgradeSettings: Record "BC14 Upgrade Settings";
+        BC14GlobalSettings: Record "BC14 Global Migration Settings";
     begin
-        BC14UpgradeSettings.SetMigrationInProgress(IsRunning);
+        BC14GlobalSettings.SetMigrationInProgress(IsRunning);
 
         if IsRunning then
             Session.LogMessage('0000RO8', ProcessesAreRunningLbl, Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', GetTelemetryCategory());

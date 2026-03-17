@@ -22,29 +22,48 @@ codeunit 50194 "BC14 Curr. Exch. Rate Migrator" implements "ISetupMigrator"
         exit(HasDataToMigrate());
     end;
 
-    procedure Migrate(StopOnFirstError: Boolean): Boolean
+    procedure GetSourceTableId(): Integer
+    begin
+        exit(Database::"BC14 Currency Exchange Rate");
+    end;
+
+    procedure InitializeSourceRecords(var SourceRecordRef: RecordRef)
+    begin
+        // No special filters needed for Currency Exchange Rate migration
+    end;
+
+    procedure IsRecordMigrated(var SourceRecordRef: RecordRef): Boolean
+    var
+        CurrencyExchangeRate: Record "Currency Exchange Rate";
+        BC14CurrencyExchangeRate: Record "BC14 Currency Exchange Rate";
+    begin
+        SourceRecordRef.SetTable(BC14CurrencyExchangeRate);
+        exit(CurrencyExchangeRate.Get(BC14CurrencyExchangeRate."Currency Code", BC14CurrencyExchangeRate."Starting Date"));
+    end;
+
+    procedure MigrateRecord(var SourceRecordRef: RecordRef): Boolean
     var
         BC14CurrencyExchangeRate: Record "BC14 Currency Exchange Rate";
-        BC14MigrationErrorHandler: Codeunit "BC14 Migration Error Handler";
-        Success: Boolean;
     begin
-        Success := true;
+        SourceRecordRef.SetTable(BC14CurrencyExchangeRate);
+        exit(TryMigrateCurrencyExchangeRate(BC14CurrencyExchangeRate));
+    end;
 
-        if not HasDataToMigrate() then
-            exit(true);
+    procedure GetSourceRecordKey(var SourceRecordRef: RecordRef): Text[250]
+    var
+        CurrCodeFieldRef: FieldRef;
+        StartDateFieldRef: FieldRef;
+    begin
+        CurrCodeFieldRef := SourceRecordRef.Field(1); // Currency Code field
+        StartDateFieldRef := SourceRecordRef.Field(2); // Starting Date field
+        exit(Format(CurrCodeFieldRef.Value()) + '_' + Format(StartDateFieldRef.Value()));
+    end;
 
-        if BC14CurrencyExchangeRate.FindSet() then
-            repeat
-                if not TryMigrateCurrencyExchangeRate(BC14CurrencyExchangeRate) then begin
-                    BC14MigrationErrorHandler.LogError(GetName(), Database::"BC14 Currency Exchange Rate", 'BC14 Currency Exchange Rate', BC14CurrencyExchangeRate."Currency Code" + '-' + Format(BC14CurrencyExchangeRate."Starting Date"), Database::"Currency Exchange Rate", GetLastErrorText(), BC14CurrencyExchangeRate.RecordId);
-                    Success := false;
-                    if StopOnFirstError then
-                        exit(false);
-                    ClearLastError();
-                end;
-            until BC14CurrencyExchangeRate.Next() = 0;
-
-        exit(Success);
+    procedure GetRecordCount(): Integer
+    var
+        BC14CurrencyExchangeRate: Record "BC14 Currency Exchange Rate";
+    begin
+        exit(BC14CurrencyExchangeRate.Count());
     end;
 
     local procedure HasDataToMigrate(): Boolean
@@ -78,7 +97,6 @@ codeunit 50194 "BC14 Curr. Exch. Rate Migrator" implements "ISetupMigrator"
         CurrencyExchangeRate."Relational Currency Code" := BC14CurrencyExchangeRate."Relational Currency Code";
         CurrencyExchangeRate."Relational Exch. Rate Amount" := BC14CurrencyExchangeRate."Relational Exch. Rate Amount";
         CurrencyExchangeRate."Relational Adjmt Exch Rate Amt" := BC14CurrencyExchangeRate."Relational Adjmt Exch Rate Amt";
-        // Fix Exchange Rate Amount: 0 = Currency, 1 = Relational Currency, 2 = Both
         case BC14CurrencyExchangeRate."Fix Exchange Rate Amount" of
             0:
                 CurrencyExchangeRate."Fix Exchange Rate Amount" := CurrencyExchangeRate."Fix Exchange Rate Amount"::Currency;
@@ -88,14 +106,9 @@ codeunit 50194 "BC14 Curr. Exch. Rate Migrator" implements "ISetupMigrator"
                 CurrencyExchangeRate."Fix Exchange Rate Amount" := CurrencyExchangeRate."Fix Exchange Rate Amount"::Both;
         end;
 
-        // Allow extensions to map custom fields
         OnTransferCurrExchRateCustomFields(BC14CurrencyExchangeRate, CurrencyExchangeRate);
     end;
 
-    /// <summary>
-    /// Integration event raised during currency exchange rate migration to allow mapping of custom fields.
-    /// Subscribe to this event to transfer TableExtension fields.
-    /// </summary>
     [IntegrationEvent(false, false)]
     local procedure OnTransferCurrExchRateCustomFields(BC14CurrencyExchangeRate: Record "BC14 Currency Exchange Rate"; var CurrencyExchangeRate: Record "Currency Exchange Rate")
     begin

@@ -15,8 +15,7 @@ codeunit 50153 "BC14 Cloud Migration"
     trigger OnRun();
     var
         HybridCompanyStatus: Record "Hybrid Company Status";
-        BC14UpgradeSettings: Record "BC14 Upgrade Settings";
-        BC14CompanyAdditionalSettings: Record "BC14CompanyAdditionalSettings";
+        BC14CompanySettings: Record "BC14CompanyMigrationSettings";
         BC14Management: Codeunit "BC14 Management";
         BC14HelperFunctions: Codeunit "BC14 Helper Functions";
         BC14MigrationErrorHandler: Codeunit "BC14 Migration Error Handler";
@@ -33,7 +32,6 @@ codeunit 50153 "BC14 Cloud Migration"
         Commit();
 
         BC14MigrationErrorHandler.ClearErrorOccurred();
-        BC14UpgradeSettings.GetOrInsertBC14UpgradeSettings(BC14UpgradeSettings);
 
         ClearLastError();
         OnUpgradeBC14Company(Success);
@@ -44,7 +42,9 @@ codeunit 50153 "BC14 Cloud Migration"
             BC14MigrationErrorHandler.ClearErrorOccurred();
             Commit();
 
-            if not BC14UpgradeSettings."Collect All Errors" then
+            // If Stop On First Error is enabled, show error to user
+            BC14CompanySettings.GetSingleInstance();
+            if BC14CompanySettings.GetStopOnFirstTransformationError() then
                 Error(DataTransformationErrorsPresentMsg);
         end;
 
@@ -76,8 +76,8 @@ codeunit 50153 "BC14 Cloud Migration"
         end;
 
         // Check if migration is paused - don't mark as completed
-        BC14CompanyAdditionalSettings.GetSingleInstance();
-        if BC14CompanyAdditionalSettings.IsMigrationPaused() then begin
+        BC14CompanySettings.GetSingleInstance();
+        if BC14CompanySettings.IsMigrationPaused() then begin
             Rec.Status := Rec.Status::UpgradeFailed;
             Rec."End Time" := CurrentDateTime();
             Rec.Modify();
@@ -112,7 +112,7 @@ codeunit 50153 "BC14 Cloud Migration"
     var
         AssistedCompanySetupStatus: Record "Assisted Company Setup Status";
         HybridCompanyStatus: Record "Hybrid Company Status";
-        BC14CompanyAdditionalSettings: Record "BC14CompanyAdditionalSettings";
+        BC14CompanySettings: Record "BC14CompanyMigrationSettings";
         BC14HelperFunctions: Codeunit "BC14 Helper Functions";
         SetupStatus: Enum "Company Setup Status";
     begin
@@ -127,8 +127,8 @@ codeunit 50153 "BC14 Cloud Migration"
         Commit();
 
         // Only mark as Completed if migration is not paused
-        BC14CompanyAdditionalSettings.GetSingleInstance();
-        if BC14CompanyAdditionalSettings.IsMigrationPaused() then
+        BC14CompanySettings.GetSingleInstance();
+        if BC14CompanySettings.IsMigrationPaused() then
             exit;  // Don't mark as Completed when paused - user needs to fix errors and continue
 
         if HybridCompanyStatus.Get(CompanyName) then begin
@@ -154,15 +154,15 @@ codeunit 50153 "BC14 Cloud Migration"
     /// </remarks>
     local procedure InitiateBC14Migration()
     var
-        BC14CompanyAdditionalSettings: Record "BC14CompanyAdditionalSettings";
+        BC14CompanySettings: Record "BC14CompanyMigrationSettings";
         BC14HelperFunctions: Codeunit "BC14 Helper Functions";
         BC14MigrationRunner: Codeunit "BC14 Migration Runner";
     begin
         Session.LogMessage('0000RO4', InitiateMigrationMsg, Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', BC14HelperFunctions.GetTelemetryCategory());
 
         // Check if migration has already been started for this company - prevent duplicate migration
-        BC14CompanyAdditionalSettings.GetSingleInstance();
-        if BC14CompanyAdditionalSettings.IsDataMigrationStarted() then begin
+        BC14CompanySettings.GetSingleInstance();
+        if BC14CompanySettings.IsDataMigrationStarted() then begin
             Session.LogMessage('0000RO5', MigrationAlreadyStartedSkippingMsg, Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', BC14HelperFunctions.GetTelemetryCategory());
             exit;
         end;
@@ -184,8 +184,8 @@ codeunit 50153 "BC14 Cloud Migration"
         Commit();
 
         // Mark that data migration has started for this company
-        BC14CompanyAdditionalSettings.GetSingleInstance();
-        BC14CompanyAdditionalSettings.SetDataMigrationStarted();
+        BC14CompanySettings.GetSingleInstance();
+        BC14CompanySettings.SetDataMigrationStarted();
 
         // Run the migration (Setup -> Master -> Transactions -> Historical -> Post Journals)
         Session.LogMessage('0000RO6', StartMigrationMsg, Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', BC14HelperFunctions.GetTelemetryCategory());

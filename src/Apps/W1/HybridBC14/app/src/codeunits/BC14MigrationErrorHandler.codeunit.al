@@ -75,11 +75,11 @@ codeunit 50154 "BC14 Migration Error Handler"
     internal procedure ErrorOccurredDuringLastUpgrade(): Boolean
     var
         BC14MigrationErrorOverview: Record "BC14 Migration Error Overview";
-        BC14UpgradeSettings: Record "BC14 Upgrade Settings";
+        BC14GlobalSettings: Record "BC14 Global Migration Settings";
     begin
-        BC14UpgradeSettings.GetOrInsertBC14UpgradeSettings(BC14UpgradeSettings);
+        BC14GlobalSettings.GetOrInsertGlobalSettings(BC14GlobalSettings);
         BC14MigrationErrorOverview.SetRange("Company Name", CompanyName());
-        BC14MigrationErrorOverview.SetFilter(SystemModifiedAt, '>%1', BC14UpgradeSettings."Data Upgrade Started");
+        BC14MigrationErrorOverview.SetFilter(SystemModifiedAt, '>%1', BC14GlobalSettings."Data Upgrade Started");
         exit(not BC14MigrationErrorOverview.IsEmpty());
     end;
 

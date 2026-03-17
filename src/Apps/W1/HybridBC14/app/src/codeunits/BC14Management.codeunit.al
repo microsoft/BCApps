@@ -32,7 +32,7 @@ codeunit 50162 "BC14 Management"
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Hybrid Cloud Management", 'OnHandleRunReplication', '', false, false)]
     local procedure BlockReplicationIfMigrationStarted(var Handled: Boolean; var RunId: Text; ReplicationType: Option)
     var
-        BC14CompanyAdditionalSettings: Record "BC14CompanyAdditionalSettings";
+        BC14CompanySettings: Record "BC14CompanyMigrationSettings";
         HybridCompany: Record "Hybrid Company";
         BC14Wizard: Codeunit "BC14 Wizard";
     begin
@@ -46,9 +46,9 @@ codeunit 50162 "BC14 Management"
         HybridCompany.SetRange(Replicate, true);
         if HybridCompany.FindSet() then
             repeat
-                if BC14CompanyAdditionalSettings.Get(HybridCompany.Name) then
-                    if BC14CompanyAdditionalSettings."Data Migration Started" then
-                        Error(DataMigrationAlreadyStartedErr, HybridCompany.Name, BC14CompanyAdditionalSettings."Data Migration Started At");
+                if BC14CompanySettings.Get(HybridCompany.Name) then
+                    if BC14CompanySettings."Data Migration Started" then
+                        Error(DataMigrationAlreadyStartedErr, HybridCompany.Name, BC14CompanySettings."Data Migration Started At");
             until HybridCompany.Next() = 0;
     end;
 
@@ -112,15 +112,15 @@ codeunit 50162 "BC14 Management"
         HybridCompanyStatus: Record "Hybrid Company Status";
         HybridReplicationDetail: Record "Hybrid Replication Detail";
         HybridReplicationSummary: Record "Hybrid Replication Summary";
-        BC14UpgradeSettings: Record "BC14 Upgrade Settings";
+        BC14GlobalSettings: Record "BC14 Global Migration Settings";
         BC14HelperFunctions: Codeunit "BC14 Helper Functions";
         FailedTableCount: Integer;
         PendingCompanyCount: Integer;
     begin
         Session.LogMessage('0000ROK', OneStepUpgradeStartingLbl, Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', BC14HelperFunctions.GetTelemetryCategory());
 
-        BC14UpgradeSettings.GetOrInsertBC14UpgradeSettings(BC14UpgradeSettings);
-        if not BC14UpgradeSettings."One Step Upgrade" then begin
+        BC14GlobalSettings.GetOrInsertGlobalSettings(BC14GlobalSettings);
+        if not BC14GlobalSettings."One Step Upgrade" then begin
             Session.LogMessage('0000ROL', OneStepUpgradeDisabledLbl, Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', BC14HelperFunctions.GetTelemetryCategory());
             exit;
         end;
@@ -147,7 +147,7 @@ codeunit 50162 "BC14 Management"
             HybridReplicationSummary.Modify();
             Commit(); // Ensure status is saved before scheduling task
             Session.LogMessage('0000ROO', StrSubstNo(OneStepUpgradeSchedulingLbl, HybridCompanyStatus.Name), Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', BC14HelperFunctions.GetTelemetryCategory());
-            InvokeCompanyUpgrade(HybridReplicationSummary, HybridCompanyStatus.Name, BC14UpgradeSettings."One Step Upgrade Delay");
+            InvokeCompanyUpgrade(HybridReplicationSummary, HybridCompanyStatus.Name, BC14GlobalSettings."One Step Upgrade Delay");
         end else
             Session.LogMessage('0000ROP', OneStepUpgradeNoPendingCompaniesLbl, Verbosity::Warning, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', BC14HelperFunctions.GetTelemetryCategory());
     end;
@@ -244,7 +244,7 @@ codeunit 50162 "BC14 Management"
     var
         HybridCompanyStatus: Record "Hybrid Company Status";
         HybridCompany: Record "Hybrid Company";
-        BC14UpgradeSettings: Record "BC14 Upgrade Settings";
+        BC14GlobalSettings: Record "BC14 Global Migration Settings";
         BC14Wizard: Codeunit "BC14 Wizard";
         ReplicatedCompanyCount: Integer;
         CompletedCompanyCount: Integer;
@@ -314,9 +314,9 @@ codeunit 50162 "BC14 Management"
         HybridReplicationSummary.Modify();
         Commit();
 
-        BC14UpgradeSettings.GetOrInsertBC14UpgradeSettings(BC14UpgradeSettings);
-        BC14UpgradeSettings."Data Upgrade Started" := CurrentDateTime();
-        BC14UpgradeSettings.Modify();
+        BC14GlobalSettings.GetOrInsertGlobalSettings(BC14GlobalSettings);
+        BC14GlobalSettings."Data Upgrade Started" := CurrentDateTime();
+        BC14GlobalSettings.Modify();
 
         InvokeCompanyUpgrade(HybridReplicationSummary, HybridCompanyStatus.Name);
         Handled := true;
