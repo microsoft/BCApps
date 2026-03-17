@@ -63,17 +63,17 @@ async function main() {
     const qualityScore = phase1Result.quality_score.total;
 
     // Step 4: Decide path based on quality score
-    if (qualityScore < SCORE_THRESHOLDS.NEEDS_WORK) {
-      // INSUFFICIENT - post needs-info comment, skip Phase 2
-      console.log(`Score ${qualityScore} < ${SCORE_THRESHOLDS.NEEDS_WORK}: INSUFFICIENT - skipping Phase 2`);
+    if (qualityScore < SCORE_THRESHOLDS.READY) {
+      // INSUFFICIENT or NEEDS WORK - post needs-info comment, skip Phase 2
+      console.log(`Score ${qualityScore} < ${SCORE_THRESHOLDS.READY}: ${phase1Result.verdict} - skipping Phase 2`);
 
       const comment = formatInsufficientComment(phase1Result);
       await postComment(owner, repo, issueNumber, comment);
 
       await manageCategoryLabels(owner, repo, issueNumber, 'triage/', getTriageLabelName(phase1Result.verdict), ALL_LABELS);
-      console.log('Labels applied: triage/insufficient');
+      console.log(`Labels applied: ${getTriageLabelName(phase1Result.verdict)}`);
 
-      console.log('\n=== Triage complete (INSUFFICIENT) ===');
+      console.log(`\n=== Triage complete (${phase1Result.verdict}) ===`);
       return;
     }
 
