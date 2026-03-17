@@ -6,7 +6,7 @@
 namespace Microsoft.Integration.Shopify;
 
 /// <summary>
-/// Enum Shpfy GraphQL Type (ID 70007617).
+/// Enum Shpfy GraphQL Type (ID 30111).
 /// Each value maps to a .graphql resource file in .resources/graphql/{Area}/{QueryName}.graphql.
 /// The value name must follow the convention: {Area}_{QueryName} (e.g., Customers_GetCustomer).
 ///
