@@ -130,7 +130,6 @@ enum 30111 "Shpfy GraphQL Type"
     value(26; GetLocationOfOrderLines)
     {
         Caption = 'Get Location of the Order Lines';
-        Implementation = "Shpfy IGraphQL" = "Shpfy GQL LocationOrderLines";
         ObsoleteReason = 'This request is no longer used.';
         ObsoleteState = Pending;
         ObsoleteTag = '28.0';
