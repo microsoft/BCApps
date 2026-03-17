@@ -561,8 +561,12 @@ codeunit 133508 "E-Doc. PO Matching Unit Tests"
         Assert.IsFalse(TempPOMatchWarnings.IsEmpty(), 'Expected MissingInformationForMatch warning for line with non-existent unit of measure');
     end;
 
+    // Quantity warning tests use the following notation:
+    //   I = Invoice quantity (from the e-document line)
+    //   R = Remaining to invoice on the PO (Ordered - Previously Invoiced)
+    //   J = Invoiceable quantity (Received - Previously Invoiced)
     [Test]
-    procedure CalculatePOMatchWarningsGeneratesQuantityMismatchWarning()
+    procedure CalculatePOMatchWarningsNoWarningsWhenInvoiceWithinOrderAndReceipts()
     var
         EDocument: Record "E-Document";
         EDocumentPurchaseHeader: Record "E-Document Purchase Header";
@@ -573,83 +577,223 @@ codeunit 133508 "E-Doc. PO Matching Unit Tests"
         TempPOMatchWarnings: Record "E-Doc PO Match Warning" temporary;
     begin
         Initialize();
-        // [SCENARIO] Calculating PO match warnings generates quantity mismatch warning when quantities don't match
-        // [GIVEN] An E-Document with lines where calculated quantity differs from original quantity
+        // [SCENARIO] I < R and I < J — partial invoice within order and receipts generates no warnings
+        // [GIVEN] PO=100, I=30, Rcv=50, PrevInv=0 → R=100, J=50
         LibraryEDocument.CreateInboundEDocument(EDocument, EDocumentService);
-
-        // Create a purchase order line with 10 units
-        LibraryEDocument.GetGenericItem(Item);
-        LibraryPurchase.CreatePurchHeader(PurchaseHeader, PurchaseHeader."Document Type"::Order, Vendor."No.");
-        LibraryPurchase.CreatePurchaseLine(PurchaseLine, PurchaseHeader, PurchaseLine.Type::Item, Item."No.", 10);
-
-        // Create E-Document Purchase Header
         EDocumentPurchaseHeader := LibraryEDocument.MockPurchaseDraftPrepared(EDocument);
         EDocumentPurchaseHeader."[BC] Vendor No." := Vendor."No.";
         EDocumentPurchaseHeader.Modify();
 
-        // Set up E-Document line to create quantity mismatch
-        EDocumentPurchaseLine := LibraryEDocument.InsertPurchaseDraftLine(EDocument);
-        EDocumentPurchaseLine."[BC] Purchase Line Type" := Enum::"Purchase Line Type"::Item;
-        EDocumentPurchaseLine."[BC] Purchase Type No." := Item."No.";
-        EDocumentPurchaseLine.Quantity := 100;
-        EDocumentPurchaseLine.Modify();
-
-        MatchEDocumentLineToPOLine(EDocumentPurchaseLine, PurchaseLine);
-
-        // [WHEN] CalculatePOMatchWarnings is called
-        EDocPOMatching.CalculatePOMatchWarnings(EDocumentPurchaseHeader, TempPOMatchWarnings);
-
-        // [THEN] QuantityMismatch warnings should be generated
-        TempPOMatchWarnings.SetRange("E-Doc. Purchase Line SystemId", EDocumentPurchaseLine.SystemId);
-        TempPOMatchWarnings.SetRange("Warning Type", Enum::"E-Doc PO Match Warning"::QuantityMismatch);
-        Assert.IsFalse(TempPOMatchWarnings.IsEmpty(), 'Expected QuantityMismatch warning to be generated');
-    end;
-
-    [Test]
-    procedure CalculatePOMatchWarningsGeneratesNotYetReceivedWarning()
-    var
-        EDocument: Record "E-Document";
-        EDocumentPurchaseHeader: Record "E-Document Purchase Header";
-        EDocumentPurchaseLine: Record "E-Document Purchase Line";
-        PurchaseHeader: Record "Purchase Header";
-        PurchaseLine: Record "Purchase Line";
-        Item: Record Item;
-        TempPOMatchWarnings: Record "E-Doc PO Match Warning" temporary;
-    begin
-        Initialize();
-        // [SCENARIO] Calculating PO match warnings generates not yet received warning when trying to invoice more than received
-        // [GIVEN] An E-Document with lines where E-Doc quantity plus already invoiced quantity exceeds received quantity
-        LibraryEDocument.CreateInboundEDocument(EDocument, EDocumentService);
-
-        // Create E-Document Purchase Header and Line
-        EDocumentPurchaseHeader := LibraryEDocument.MockPurchaseDraftPrepared(EDocument);
-        EDocumentPurchaseHeader."[BC] Vendor No." := Vendor."No.";
-        EDocumentPurchaseHeader.Modify();
-        EDocumentPurchaseLine := LibraryEDocument.InsertPurchaseDraftLine(EDocument);
-
-        // Set up E-Document line
         LibraryEDocument.GetGenericItem(Item);
+        EDocumentPurchaseLine := LibraryEDocument.InsertPurchaseDraftLine(EDocument);
         EDocumentPurchaseLine."[BC] Purchase Line Type" := Enum::"Purchase Line Type"::Item;
         EDocumentPurchaseLine."[BC] Purchase Type No." := Item."No.";
         EDocumentPurchaseLine."[BC] Unit of Measure" := Item."Base Unit of Measure";
-        EDocumentPurchaseLine.Quantity := 15; // More than what's received (10)
+        EDocumentPurchaseLine.Quantity := 30;
         EDocumentPurchaseLine.Modify();
 
-        // Create purchase order line with some invoiced and received quantities
         LibraryPurchase.CreatePurchHeader(PurchaseHeader, PurchaseHeader."Document Type"::Order, Vendor."No.");
-        LibraryPurchase.CreatePurchaseLine(PurchaseLine, PurchaseHeader, PurchaseLine.Type::Item, Item."No.", 20);
-        PurchaseLine."Qty. Invoiced (Base)" := 5; // Already invoiced 5
-        PurchaseLine."Qty. Received (Base)" := 10; // Only received 10, so trying to invoice 15 + 5 = 20 > 10 received
+        LibraryPurchase.CreatePurchaseLine(PurchaseLine, PurchaseHeader, PurchaseLine.Type::Item, Item."No.", 100);
+        PurchaseLine."Qty. Invoiced (Base)" := 0;
+        PurchaseLine."Qty. Received (Base)" := 50;
         PurchaseLine.Modify();
         MatchEDocumentLineToPOLine(EDocumentPurchaseLine, PurchaseLine);
 
         // [WHEN] CalculatePOMatchWarnings is called
         EDocPOMatching.CalculatePOMatchWarnings(EDocumentPurchaseHeader, TempPOMatchWarnings);
 
-        // [THEN] NotYetReceived warnings should be generated
+        // [THEN] No warnings should be generated
         TempPOMatchWarnings.SetRange("E-Doc. Purchase Line SystemId", EDocumentPurchaseLine.SystemId);
-        TempPOMatchWarnings.SetRange("Warning Type", Enum::"E-Doc PO Match Warning"::NotYetReceived);
-        Assert.IsFalse(TempPOMatchWarnings.IsEmpty(), 'Expected NotYetReceived warning to be generated');
+        Assert.IsTrue(TempPOMatchWarnings.IsEmpty(), 'Expected no warnings for (I < R, I < J)');
+    end;
+
+    [Test]
+    procedure CalculatePOMatchWarningsGeneratesExceedsInvoiceableQtyWarning()
+    var
+        EDocument: Record "E-Document";
+        EDocumentPurchaseHeader: Record "E-Document Purchase Header";
+        EDocumentPurchaseLine: Record "E-Document Purchase Line";
+        PurchaseHeader: Record "Purchase Header";
+        PurchaseLine: Record "Purchase Line";
+        Item: Record Item;
+        TempPOMatchWarnings: Record "E-Doc PO Match Warning" temporary;
+    begin
+        Initialize();
+        // [SCENARIO] I < R but I > J — invoice within order but exceeds uninvoiced receipts
+        // [GIVEN] PO=100, I=50, Rcv=60, PrevInv=20 → R=80, J=40
+        LibraryEDocument.CreateInboundEDocument(EDocument, EDocumentService);
+        EDocumentPurchaseHeader := LibraryEDocument.MockPurchaseDraftPrepared(EDocument);
+        EDocumentPurchaseHeader."[BC] Vendor No." := Vendor."No.";
+        EDocumentPurchaseHeader.Modify();
+
+        LibraryEDocument.GetGenericItem(Item);
+        EDocumentPurchaseLine := LibraryEDocument.InsertPurchaseDraftLine(EDocument);
+        EDocumentPurchaseLine."[BC] Purchase Line Type" := Enum::"Purchase Line Type"::Item;
+        EDocumentPurchaseLine."[BC] Purchase Type No." := Item."No.";
+        EDocumentPurchaseLine."[BC] Unit of Measure" := Item."Base Unit of Measure";
+        EDocumentPurchaseLine.Quantity := 50;
+        EDocumentPurchaseLine.Modify();
+
+        LibraryPurchase.CreatePurchHeader(PurchaseHeader, PurchaseHeader."Document Type"::Order, Vendor."No.");
+        LibraryPurchase.CreatePurchaseLine(PurchaseLine, PurchaseHeader, PurchaseLine.Type::Item, Item."No.", 100);
+        PurchaseLine."Qty. Invoiced (Base)" := 20;
+        PurchaseLine."Qty. Received (Base)" := 60;
+        PurchaseLine.Modify();
+        MatchEDocumentLineToPOLine(EDocumentPurchaseLine, PurchaseLine);
+
+        // [WHEN] CalculatePOMatchWarnings is called
+        EDocPOMatching.CalculatePOMatchWarnings(EDocumentPurchaseHeader, TempPOMatchWarnings);
+
+        // [THEN] ExceedsInvoiceableQty warning should be generated
+        TempPOMatchWarnings.SetRange("E-Doc. Purchase Line SystemId", EDocumentPurchaseLine.SystemId);
+        TempPOMatchWarnings.SetRange("Warning Type", Enum::"E-Doc PO Match Warning"::ExceedsInvoiceableQty);
+        Assert.IsFalse(TempPOMatchWarnings.IsEmpty(), 'Expected ExceedsInvoiceableQty warning for (I < R, I > J)');
+
+        // [THEN] ExceedsRemainingToInvoice warning should NOT be generated
+        TempPOMatchWarnings.SetRange("Warning Type", Enum::"E-Doc PO Match Warning"::ExceedsRemainingToInvoice);
+        Assert.IsTrue(TempPOMatchWarnings.IsEmpty(), 'Did not expect ExceedsRemainingToInvoice warning');
+    end;
+
+    [Test]
+    procedure CalculatePOMatchWarningsGeneratesOverReceiptWarning()
+    var
+        EDocument: Record "E-Document";
+        EDocumentPurchaseHeader: Record "E-Document Purchase Header";
+        EDocumentPurchaseLine: Record "E-Document Purchase Line";
+        PurchaseHeader: Record "Purchase Header";
+        PurchaseLine: Record "Purchase Line";
+        Item: Record Item;
+        TempPOMatchWarnings: Record "E-Doc PO Match Warning" temporary;
+    begin
+        Initialize();
+        // [SCENARIO] I = R and I < J — invoice closes out order but there is an over-receipt
+        // [GIVEN] PO=100, I=50, Rcv=120, PrevInv=50 → R=50, J=70
+        LibraryEDocument.CreateInboundEDocument(EDocument, EDocumentService);
+        EDocumentPurchaseHeader := LibraryEDocument.MockPurchaseDraftPrepared(EDocument);
+        EDocumentPurchaseHeader."[BC] Vendor No." := Vendor."No.";
+        EDocumentPurchaseHeader.Modify();
+
+        LibraryEDocument.GetGenericItem(Item);
+        EDocumentPurchaseLine := LibraryEDocument.InsertPurchaseDraftLine(EDocument);
+        EDocumentPurchaseLine."[BC] Purchase Line Type" := Enum::"Purchase Line Type"::Item;
+        EDocumentPurchaseLine."[BC] Purchase Type No." := Item."No.";
+        EDocumentPurchaseLine."[BC] Unit of Measure" := Item."Base Unit of Measure";
+        EDocumentPurchaseLine.Quantity := 50;
+        EDocumentPurchaseLine.Modify();
+
+        LibraryPurchase.CreatePurchHeader(PurchaseHeader, PurchaseHeader."Document Type"::Order, Vendor."No.");
+        LibraryPurchase.CreatePurchaseLine(PurchaseLine, PurchaseHeader, PurchaseLine.Type::Item, Item."No.", 100);
+        PurchaseLine."Qty. Invoiced (Base)" := 50;
+        PurchaseLine."Qty. Received (Base)" := 120;
+        PurchaseLine.Modify();
+        MatchEDocumentLineToPOLine(EDocumentPurchaseLine, PurchaseLine);
+
+        // [WHEN] CalculatePOMatchWarnings is called
+        EDocPOMatching.CalculatePOMatchWarnings(EDocumentPurchaseHeader, TempPOMatchWarnings);
+
+        // [THEN] OverReceipt warning should be generated
+        TempPOMatchWarnings.SetRange("E-Doc. Purchase Line SystemId", EDocumentPurchaseLine.SystemId);
+        TempPOMatchWarnings.SetRange("Warning Type", Enum::"E-Doc PO Match Warning"::OverReceipt);
+        Assert.IsFalse(TempPOMatchWarnings.IsEmpty(), 'Expected OverReceipt warning for (I = R, I < J)');
+
+        // [THEN] No other quantity warnings should be generated
+        TempPOMatchWarnings.SetRange("Warning Type", Enum::"E-Doc PO Match Warning"::ExceedsInvoiceableQty);
+        Assert.IsTrue(TempPOMatchWarnings.IsEmpty(), 'Did not expect ExceedsInvoiceableQty warning');
+        TempPOMatchWarnings.SetRange("Warning Type", Enum::"E-Doc PO Match Warning"::ExceedsRemainingToInvoice);
+        Assert.IsTrue(TempPOMatchWarnings.IsEmpty(), 'Did not expect ExceedsRemainingToInvoice warning');
+    end;
+
+    [Test]
+    procedure CalculatePOMatchWarningsGeneratesExceedsRemainingToInvoiceWarning()
+    var
+        EDocument: Record "E-Document";
+        EDocumentPurchaseHeader: Record "E-Document Purchase Header";
+        EDocumentPurchaseLine: Record "E-Document Purchase Line";
+        PurchaseHeader: Record "Purchase Header";
+        PurchaseLine: Record "Purchase Line";
+        Item: Record Item;
+        TempPOMatchWarnings: Record "E-Doc PO Match Warning" temporary;
+    begin
+        Initialize();
+        // [SCENARIO] I > R but I < J — invoice exceeds order but within receipts (over-receipt charged)
+        // [GIVEN] PO=100, I=60, Rcv=120, PrevInv=50 → R=50, J=70
+        LibraryEDocument.CreateInboundEDocument(EDocument, EDocumentService);
+        EDocumentPurchaseHeader := LibraryEDocument.MockPurchaseDraftPrepared(EDocument);
+        EDocumentPurchaseHeader."[BC] Vendor No." := Vendor."No.";
+        EDocumentPurchaseHeader.Modify();
+
+        LibraryEDocument.GetGenericItem(Item);
+        EDocumentPurchaseLine := LibraryEDocument.InsertPurchaseDraftLine(EDocument);
+        EDocumentPurchaseLine."[BC] Purchase Line Type" := Enum::"Purchase Line Type"::Item;
+        EDocumentPurchaseLine."[BC] Purchase Type No." := Item."No.";
+        EDocumentPurchaseLine."[BC] Unit of Measure" := Item."Base Unit of Measure";
+        EDocumentPurchaseLine.Quantity := 60;
+        EDocumentPurchaseLine.Modify();
+
+        LibraryPurchase.CreatePurchHeader(PurchaseHeader, PurchaseHeader."Document Type"::Order, Vendor."No.");
+        LibraryPurchase.CreatePurchaseLine(PurchaseLine, PurchaseHeader, PurchaseLine.Type::Item, Item."No.", 100);
+        PurchaseLine."Qty. Invoiced (Base)" := 50;
+        PurchaseLine."Qty. Received (Base)" := 120;
+        PurchaseLine.Modify();
+        MatchEDocumentLineToPOLine(EDocumentPurchaseLine, PurchaseLine);
+
+        // [WHEN] CalculatePOMatchWarnings is called
+        EDocPOMatching.CalculatePOMatchWarnings(EDocumentPurchaseHeader, TempPOMatchWarnings);
+
+        // [THEN] ExceedsRemainingToInvoice warning should be generated
+        TempPOMatchWarnings.SetRange("E-Doc. Purchase Line SystemId", EDocumentPurchaseLine.SystemId);
+        TempPOMatchWarnings.SetRange("Warning Type", Enum::"E-Doc PO Match Warning"::ExceedsRemainingToInvoice);
+        Assert.IsFalse(TempPOMatchWarnings.IsEmpty(), 'Expected ExceedsRemainingToInvoice warning (I > R, I < J)');
+
+        // [THEN] ExceedsInvoiceableQty warning should NOT be generated
+        TempPOMatchWarnings.SetRange("Warning Type", Enum::"E-Doc PO Match Warning"::ExceedsInvoiceableQty);
+        Assert.IsTrue(TempPOMatchWarnings.IsEmpty(), 'Did not expect ExceedsInvoiceableQty warning');
+    end;
+
+    [Test]
+    procedure CalculatePOMatchWarningsGeneratesBothWarningsWhenExceedingBothRemainingAndInvoiceable()
+    var
+        EDocument: Record "E-Document";
+        EDocumentPurchaseHeader: Record "E-Document Purchase Header";
+        EDocumentPurchaseLine: Record "E-Document Purchase Line";
+        PurchaseHeader: Record "Purchase Header";
+        PurchaseLine: Record "Purchase Line";
+        Item: Record Item;
+        TempPOMatchWarnings: Record "E-Doc PO Match Warning" temporary;
+    begin
+        Initialize();
+        // [SCENARIO] I > R and I > J — invoice exceeds both order and receipts
+        // [GIVEN] PO=100, I=80, Rcv=100, PrevInv=50 → R=50, J=50
+        LibraryEDocument.CreateInboundEDocument(EDocument, EDocumentService);
+        EDocumentPurchaseHeader := LibraryEDocument.MockPurchaseDraftPrepared(EDocument);
+        EDocumentPurchaseHeader."[BC] Vendor No." := Vendor."No.";
+        EDocumentPurchaseHeader.Modify();
+
+        LibraryEDocument.GetGenericItem(Item);
+        EDocumentPurchaseLine := LibraryEDocument.InsertPurchaseDraftLine(EDocument);
+        EDocumentPurchaseLine."[BC] Purchase Line Type" := Enum::"Purchase Line Type"::Item;
+        EDocumentPurchaseLine."[BC] Purchase Type No." := Item."No.";
+        EDocumentPurchaseLine."[BC] Unit of Measure" := Item."Base Unit of Measure";
+        EDocumentPurchaseLine.Quantity := 80;
+        EDocumentPurchaseLine.Modify();
+
+        LibraryPurchase.CreatePurchHeader(PurchaseHeader, PurchaseHeader."Document Type"::Order, Vendor."No.");
+        LibraryPurchase.CreatePurchaseLine(PurchaseLine, PurchaseHeader, PurchaseLine.Type::Item, Item."No.", 100);
+        PurchaseLine."Qty. Invoiced (Base)" := 50;
+        PurchaseLine."Qty. Received (Base)" := 100;
+        PurchaseLine.Modify();
+        MatchEDocumentLineToPOLine(EDocumentPurchaseLine, PurchaseLine);
+
+        // [WHEN] CalculatePOMatchWarnings is called
+        EDocPOMatching.CalculatePOMatchWarnings(EDocumentPurchaseHeader, TempPOMatchWarnings);
+
+        // [THEN] Both ExceedsInvoiceableQty and ExceedsRemainingToInvoice warnings should be generated
+        TempPOMatchWarnings.SetRange("E-Doc. Purchase Line SystemId", EDocumentPurchaseLine.SystemId);
+        TempPOMatchWarnings.SetRange("Warning Type", Enum::"E-Doc PO Match Warning"::ExceedsInvoiceableQty);
+        Assert.IsFalse(TempPOMatchWarnings.IsEmpty(), 'Expected ExceedsInvoiceableQty warning (I > R, I > J)');
+
+        TempPOMatchWarnings.SetRange("Warning Type", Enum::"E-Doc PO Match Warning"::ExceedsRemainingToInvoice);
+        Assert.IsFalse(TempPOMatchWarnings.IsEmpty(), 'Expected ExceedsRemainingToInvoice warning (I > R, I > J)');
     end;
 
     [Test]
@@ -1879,11 +2023,11 @@ codeunit 133508 "E-Doc. PO Matching Unit Tests"
         // [THEN] Matching should succeed
         Assert.IsTrue(EDocPOMatching.IsPOLineMatchedToEDocumentLine(PurchaseLine, EDocumentPurchaseLine), 'PO line should be matched to E-Document line');
 
-        // [THEN] NotYetReceived warning should be generated
+        // [THEN] ExceedsInvoiceableQty warning should be generated
         EDocPOMatching.CalculatePOMatchWarnings(EDocumentPurchaseHeader, TempPOMatchWarnings);
         TempPOMatchWarnings.SetRange("E-Doc. Purchase Line SystemId", EDocumentPurchaseLine.SystemId);
-        TempPOMatchWarnings.SetRange("Warning Type", Enum::"E-Doc PO Match Warning"::NotYetReceived);
-        Assert.IsFalse(TempPOMatchWarnings.IsEmpty(), 'Expected NotYetReceived warning to be generated');
+        TempPOMatchWarnings.SetRange("Warning Type", Enum::"E-Doc PO Match Warning"::ExceedsInvoiceableQty);
+        Assert.IsFalse(TempPOMatchWarnings.IsEmpty(), 'Expected ExceedsInvoiceableQty warning to be generated');
     end;
 
     [Test]
@@ -1929,11 +2073,11 @@ codeunit 133508 "E-Doc. PO Matching Unit Tests"
         // [THEN] Matching should succeed
         Assert.IsTrue(EDocPOMatching.IsPOLineMatchedToEDocumentLine(PurchaseLine, EDocumentPurchaseLine), 'PO line should be matched to E-Document line');
 
-        // [THEN] NotYetReceived warning should NOT be generated
+        // [THEN] ExceedsInvoiceableQty warning should NOT be generated
         EDocPOMatching.CalculatePOMatchWarnings(EDocumentPurchaseHeader, TempPOMatchWarnings);
         TempPOMatchWarnings.SetRange("E-Doc. Purchase Line SystemId", EDocumentPurchaseLine.SystemId);
-        TempPOMatchWarnings.SetRange("Warning Type", Enum::"E-Doc PO Match Warning"::NotYetReceived);
-        Assert.IsTrue(TempPOMatchWarnings.IsEmpty(), 'Expected no NotYetReceived warning to be generated');
+        TempPOMatchWarnings.SetRange("Warning Type", Enum::"E-Doc PO Match Warning"::ExceedsInvoiceableQty);
+        Assert.IsTrue(TempPOMatchWarnings.IsEmpty(), 'Expected no ExceedsInvoiceableQty warning to be generated');
     end;
 
     [Test]
@@ -2020,11 +2164,11 @@ codeunit 133508 "E-Doc. PO Matching Unit Tests"
         // [THEN] Matching should succeed
         Assert.IsTrue(EDocPOMatching.IsPOLineMatchedToEDocumentLine(PurchaseLine, EDocumentPurchaseLine), 'PO line should be matched to E-Document line');
 
-        // [THEN] NotYetReceived warning should NOT be generated for specified vendor
+        // [THEN] ExceedsInvoiceableQty warning should NOT be generated for specified vendor
         EDocPOMatching.CalculatePOMatchWarnings(EDocumentPurchaseHeader, TempPOMatchWarnings);
         TempPOMatchWarnings.SetRange("E-Doc. Purchase Line SystemId", EDocumentPurchaseLine.SystemId);
-        TempPOMatchWarnings.SetRange("Warning Type", Enum::"E-Doc PO Match Warning"::NotYetReceived);
-        Assert.IsTrue(TempPOMatchWarnings.IsEmpty(), 'Expected no NotYetReceived warning for specified vendor');
+        TempPOMatchWarnings.SetRange("Warning Type", Enum::"E-Doc PO Match Warning"::ExceedsInvoiceableQty);
+        Assert.IsTrue(TempPOMatchWarnings.IsEmpty(), 'Expected no ExceedsInvoiceableQty warning for specified vendor');
     end;
 
     [Test]
@@ -2072,11 +2216,11 @@ codeunit 133508 "E-Doc. PO Matching Unit Tests"
         // [THEN] Matching should succeed
         Assert.IsTrue(EDocPOMatching.IsPOLineMatchedToEDocumentLine(PurchaseLine, EDocumentPurchaseLine), 'PO line should be matched to E-Document line');
 
-        // [THEN] NotYetReceived warning should be generated for non-specified vendor (default behavior is "Always ask")
+        // [THEN] ExceedsInvoiceableQty warning should be generated for non-specified vendor (default behavior is "Always ask")
         EDocPOMatching.CalculatePOMatchWarnings(EDocumentPurchaseHeader, TempPOMatchWarnings);
         TempPOMatchWarnings.SetRange("E-Doc. Purchase Line SystemId", EDocumentPurchaseLine.SystemId);
-        TempPOMatchWarnings.SetRange("Warning Type", Enum::"E-Doc PO Match Warning"::NotYetReceived);
-        Assert.IsFalse(TempPOMatchWarnings.IsEmpty(), 'Expected NotYetReceived warning for non-specified vendor');
+        TempPOMatchWarnings.SetRange("Warning Type", Enum::"E-Doc PO Match Warning"::ExceedsInvoiceableQty);
+        Assert.IsFalse(TempPOMatchWarnings.IsEmpty(), 'Expected ExceedsInvoiceableQty warning for non-specified vendor');
     end;
 
     [Test]
@@ -2165,11 +2309,11 @@ codeunit 133508 "E-Doc. PO Matching Unit Tests"
         // [THEN] Matching should succeed
         Assert.IsTrue(EDocPOMatching.IsPOLineMatchedToEDocumentLine(PurchaseLine, EDocumentPurchaseLine), 'PO line should be matched to E-Document line');
 
-        // [THEN] NotYetReceived warning should NOT be generated for non-specified vendor (default behavior is "Always receive at posting")
+        // [THEN] ExceedsInvoiceableQty warning should NOT be generated for non-specified vendor (default behavior is "Always receive at posting")
         EDocPOMatching.CalculatePOMatchWarnings(EDocumentPurchaseHeader, TempPOMatchWarnings);
         TempPOMatchWarnings.SetRange("E-Doc. Purchase Line SystemId", EDocumentPurchaseLine.SystemId);
-        TempPOMatchWarnings.SetRange("Warning Type", Enum::"E-Doc PO Match Warning"::NotYetReceived);
-        Assert.IsTrue(TempPOMatchWarnings.IsEmpty(), 'Expected no NotYetReceived warning for non-specified vendor');
+        TempPOMatchWarnings.SetRange("Warning Type", Enum::"E-Doc PO Match Warning"::ExceedsInvoiceableQty);
+        Assert.IsTrue(TempPOMatchWarnings.IsEmpty(), 'Expected no ExceedsInvoiceableQty warning for non-specified vendor');
     end;
 
     [Test]
