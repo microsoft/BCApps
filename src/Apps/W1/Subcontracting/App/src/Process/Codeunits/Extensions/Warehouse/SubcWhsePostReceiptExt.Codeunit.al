@@ -20,7 +20,7 @@ codeunit 99001551 "Subc. WhsePostReceipt Ext"
     var
         NotLastOperationLineErr: Label 'Item tracking lines can only be viewed for subcontracting purchase lines which are linked to a routing line which is the last operation.';
         QtyMismatchTitleLbl: Label 'Quantity Mismatch';
-        QtyMessageLbl: Label 'The quantity (%1) in %2 is greater than the remaining quantity (%3) in %4. In order to open item tracking lines, first adjust the quantity on %4 to at least match the quantity on %2. You can adjust the quantity from %5 to %6 by using the action below.',
+        QtyMismatchErr: Label 'The quantity (%1) in %2 is greater than the remaining quantity (%3) in %4. In order to open item tracking lines, first adjust the quantity on %4 to at least match the quantity on %2. You can adjust the quantity from %5 to %6 by using the action below.',
         Comment = '%1 = Warehouse Receipt Line Quantity, %2 = Tablecaption WarehouseReceiptLine, %3 = ProdOrderLine Remaining Qty, %4 = Tablecaption ProdOrderLine, %5 = Current ProdOrderLine Quantity, %6 = WarehouseReceiptLine Quantity';
         ShowProductionOrderActionLbl: Label 'Show Prod. Order';
         AdjustQtyActionLbl: Label 'Adjust Quantity';
@@ -175,7 +175,7 @@ codeunit 99001551 "Subc. WhsePostReceipt Ext"
             exit;
         if ProdOrderLine.Quantity < WarehouseReceiptLine.Quantity then begin
             CannotInvoiceErrorInfo.Title := QtyMismatchTitleLbl;
-            CannotInvoiceErrorInfo.Message := StrSubstNo(QtyMessageLbl, WarehouseReceiptLine.Quantity, WarehouseReceiptLine.TableCaption(), ProdOrderLine."Remaining Quantity", ProdOrderLine.TableCaption(), ProdOrderLine.Quantity, WarehouseReceiptLine.Quantity);
+            CannotInvoiceErrorInfo.Message := StrSubstNo(QtyMismatchErr, WarehouseReceiptLine.Quantity, WarehouseReceiptLine.TableCaption(), ProdOrderLine."Remaining Quantity", ProdOrderLine.TableCaption(), ProdOrderLine.Quantity, WarehouseReceiptLine.Quantity);
 
             CannotInvoiceErrorInfo.RecordId := PurchaseLine.RecordId;
             CustomDimensions.Add(GetWarehouseReceiptLineSystemIdCustomDimensionLbl(), WarehouseReceiptLine.SystemId);
