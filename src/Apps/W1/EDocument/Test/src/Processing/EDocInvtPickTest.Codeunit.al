@@ -23,7 +23,7 @@ using System.TestLibraries.Utilities;
 codeunit 139896 "E-Doc. Invt. Pick Test"
 {
     Subtype = Test;
-    TestType = Uncategorized;
+    TestType = IntegrationTest;
 
     var
         Assert: Codeunit Assert;
