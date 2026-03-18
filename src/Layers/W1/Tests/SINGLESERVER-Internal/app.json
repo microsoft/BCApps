@@ -1,0 +1,22 @@
+{
+  "id": "ff3a51e8-948c-42f8-9ff6-65128effe9d0",
+  "name": "Tests-SINGLESERVER-Internal",
+  "publisher": "Microsoft",
+  "version": "$(app_currentVersion)",
+  "platform": "$(app_platformVersion)",
+  "dependencies": [
+    {
+      "id": "5d86850b-0d76-4eca-bd7b-951ad998e997",
+      "name": "Tests-TestLibraries",
+      "publisher": "Microsoft",
+      "version": "$(app_minimumVersion)"
+    }
+  ],
+  "target": "OnPrem",
+  "resourceExposurePolicy": {
+    "allowDebugging": true,
+    "allowDownloadingSource": true,
+    "includeSourceInSymbolFile": true
+  },
+  "application": "$(app_minimumVersion)"
+}
