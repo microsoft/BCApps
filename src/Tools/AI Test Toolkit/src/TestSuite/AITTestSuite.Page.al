@@ -15,7 +15,7 @@ page 149031 "AIT Test Suite"
     PageType = Document;
     SourceTable = "AIT Test Suite";
     Extensible = true;
-    DataCaptionExpression = PageCaptionLbl + ' - ' + Rec."Code";
+    DataCaptionExpression = PageCaptionLbl + ' - ' + Format(Rec."Test Type") + ' (' + Format(Rec."Copilot Capability") + ') - ' + Rec."Code";
     UsageCategory = None;
 
     layout
@@ -36,14 +36,27 @@ page 149031 "AIT Test Suite"
                 field(TestType; Rec."Test Type")
                 {
                     Importance = Additional;
+
+                    trigger OnValidate()
+                    begin
+                        // Refresh the page caption to reflect the change in test type
+                        CurrPage.Update(false);
+                    end;
                 }
                 field("Copilot Capability"; Rec."Copilot Capability")
                 {
+                    Importance = Additional;
+
+                    trigger OnValidate()
+                    begin
+                        // Refresh the page caption to reflect the change in capability
+                        CurrPage.Update(false);
+                    end;
                 }
                 field(Dataset; Rec."Input Dataset")
                 {
                     Caption = 'Default Input Dataset';
-                    ShowMandatory = true;
+                    Importance = Additional;
                     NotBlank = true;
 
                     trigger OnValidate()
@@ -113,6 +126,7 @@ page 149031 "AIT Test Suite"
                         Caption = 'Evaluators';
                         ToolTip = 'Specifies whether the evaluation is setup.';
                         Editable = false;
+                        Importance = Additional;
 
                         trigger OnAssistEdit()
                         var
@@ -133,6 +147,7 @@ page 149031 "AIT Test Suite"
                         Caption = 'Number of Evaluators';
                         ToolTip = 'Specifies evaluators for the evaluation.';
                         Visible = false;
+                        Importance = Additional;
                     }
 
                     field("Column Mappings"; Rec."Number of Column Mappings")
@@ -140,6 +155,7 @@ page 149031 "AIT Test Suite"
                         Caption = 'Column Mappings';
                         ToolTip = 'Specifies column mappings for the evaluation.';
                         Visible = false;
+                        Importance = Additional;
                     }
                 }
                 group(StatusGroup)
