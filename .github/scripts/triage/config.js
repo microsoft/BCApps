@@ -231,6 +231,33 @@ export const APP_AREAS = [
   { keywords: ['subcontract', 'subcontracting'], directory: 'src/Apps/W1/Subcontracting/', name: 'Subcontracting' },
   { keywords: ['transaction storage'], directory: 'src/Apps/W1/TransactionStorage/', name: 'Transaction Storage' },
   { keywords: ['remittance', 'remittance advice'], directory: 'src/Apps/W1/UKSendRemittanceAdvice/', name: 'UK Send Remittance Advice' },
+  // Layers/W1/BaseApp sub-areas
+  { keywords: ['assembly', 'assembly order', 'assembly bom'], directory: 'src/Layers/W1/BaseApp/Assembly/', name: 'BaseApp - Assembly' },
+  { keywords: ['bank', 'bank account', 'bank reconciliation', 'check writing', 'payment journal'], directory: 'src/Layers/W1/BaseApp/Bank/', name: 'BaseApp - Bank' },
+  { keywords: ['cash flow', 'cash flow forecast'], directory: 'src/Layers/W1/BaseApp/CashFlow/', name: 'BaseApp - Cash Flow' },
+  { keywords: ['cost accounting', 'cost type', 'cost center', 'cost object', 'cost budget'], directory: 'src/Layers/W1/BaseApp/CostAccounting/', name: 'BaseApp - Cost Accounting' },
+  { keywords: ['crm', 'contact', 'opportunity', 'campaign', 'segment', 'interaction'], directory: 'src/Layers/W1/BaseApp/CRM/', name: 'BaseApp - CRM' },
+  { keywords: ['eservice', 'e-service', 'online map'], directory: 'src/Layers/W1/BaseApp/eServices/', name: 'BaseApp - eServices' },
+  { keywords: ['general ledger', 'general journal', 'chart of accounts', 'dimension', 'posting group', 'vat', 'deferral', 'consolidation', 'intercompany'], directory: 'src/Layers/W1/BaseApp/Finance/', name: 'BaseApp - Finance' },
+  { keywords: ['financial management', 'financial report', 'account schedule', 'analysis view', 'budget'], directory: 'src/Layers/W1/BaseApp/FinancialMgt/', name: 'BaseApp - Financial Management' },
+  { keywords: ['fixed asset', 'depreciation', 'insurance', 'maintenance', 'fa journal'], directory: 'src/Layers/W1/BaseApp/FixedAssets/', name: 'BaseApp - Fixed Assets' },
+  { keywords: ['foundation', 'company information', 'no. series', 'source code', 'reason code', 'reporting', 'batch processing'], directory: 'src/Layers/W1/BaseApp/Foundation/', name: 'BaseApp - Foundation' },
+  { keywords: ['human resource', 'employee', 'absence', 'employment contract'], directory: 'src/Layers/W1/BaseApp/HumanResources/', name: 'BaseApp - Human Resources' },
+  { keywords: ['integration', 'dataverse', 'dynamics 365 sales', 'graph', 'api', 'data exchange'], directory: 'src/Layers/W1/BaseApp/Integration/', name: 'BaseApp - Integration' },
+  { keywords: ['inventory', 'item', 'stockkeeping', 'item tracking', 'item charge', 'location', 'transfer'], directory: 'src/Layers/W1/BaseApp/Inventory/', name: 'BaseApp - Inventory' },
+  { keywords: ['invoicing', 'invoice'], directory: 'src/Layers/W1/BaseApp/Invoicing/', name: 'BaseApp - Invoicing' },
+  { keywords: ['manufacturing', 'production order', 'production bom', 'routing', 'work center', 'machine center', 'capacity'], directory: 'src/Layers/W1/BaseApp/Manufacturing/', name: 'BaseApp - Manufacturing' },
+  { keywords: ['pricing', 'price list', 'sales price', 'purchase price', 'line discount', 'price calculation'], directory: 'src/Layers/W1/BaseApp/Pricing/', name: 'BaseApp - Pricing' },
+  { keywords: ['project', 'job', 'resource', 'time sheet', 'job journal'], directory: 'src/Layers/W1/BaseApp/Projects/', name: 'BaseApp - Projects' },
+  { keywords: ['purchase', 'purchase order', 'purchase invoice', 'vendor', 'payable'], directory: 'src/Layers/W1/BaseApp/Purchases/', name: 'BaseApp - Purchases' },
+  { keywords: ['role center', 'rolecenter', 'cue', 'activity'], directory: 'src/Layers/W1/BaseApp/RoleCenters/', name: 'BaseApp - Role Centers' },
+  { keywords: ['sales', 'sales order', 'sales invoice', 'customer', 'receivable', 'reminder', 'finance charge'], directory: 'src/Layers/W1/BaseApp/Sales/', name: 'BaseApp - Sales' },
+  { keywords: ['service management', 'service order', 'service item', 'service contract', 'service price'], directory: 'src/Layers/W1/BaseApp/Service/', name: 'BaseApp - Service' },
+  { keywords: ['warehouse', 'pick', 'put away', 'put-away', 'bin', 'warehouse receipt', 'warehouse shipment'], directory: 'src/Layers/W1/BaseApp/Warehouse/', name: 'BaseApp - Warehouse' },
+
+  // BaseApp catch-all (must be after specific sub-areas)
+  { keywords: ['base app', 'baseapp', 'base application'], directory: 'src/Layers/W1/BaseApp/', name: 'BaseApp' },
+
   { keywords: ['copilot', 'ai', 'journal entry'], directory: 'src/Apps/W1/', name: 'General / AI' },
 ];
 
@@ -244,6 +271,7 @@ export function detectAppArea(title, body) {
   }
 
   // Fallback: scan all directories under src/ (2 levels deep) and match by name
+  // Also scans src/Layers/ up to 3 levels deep (e.g. src/Layers/W1/BaseApp/Finance)
   try {
     const repoRoot = process.env.GITHUB_WORKSPACE || join(process.cwd(), '..', '..', '..');
     const srcDir = join(repoRoot, 'src');
@@ -266,6 +294,32 @@ export function detectAppArea(title, body) {
           const subWords = subLower.split(/\s+/).filter(w => w.length > 3);
           if (subWords.some(word => text.includes(word))) {
             return { keywords: [], directory: `src/${topDir.name}/${sub.name}/`, name: sub.name };
+          }
+          // For Layers: scan third-level subdirectories (e.g. Layers/W1/BaseApp/Finance)
+          if (topDir.name === 'Layers') {
+            try {
+              const thirdDirs = readdirSync(join(topPath, sub.name), { withFileTypes: true })
+                .filter(d => d.isDirectory() && !d.name.startsWith('.'));
+              for (const third of thirdDirs) {
+                const thirdLower = third.name.toLowerCase().replace(/[^a-z0-9]/g, ' ');
+                const thirdWords = thirdLower.split(/\s+/).filter(w => w.length > 3);
+                if (thirdWords.some(word => text.includes(word))) {
+                  return { keywords: [], directory: `src/Layers/${sub.name}/${third.name}/`, name: third.name };
+                }
+                // Scan fourth level for BaseApp sub-areas (e.g. Layers/W1/BaseApp/Finance)
+                try {
+                  const fourthDirs = readdirSync(join(topPath, sub.name, third.name), { withFileTypes: true })
+                    .filter(d => d.isDirectory() && !d.name.startsWith('.'));
+                  for (const fourth of fourthDirs) {
+                    const fourthLower = fourth.name.toLowerCase().replace(/[^a-z0-9]/g, ' ');
+                    const fourthWords = fourthLower.split(/\s+/).filter(w => w.length > 3);
+                    if (fourthWords.some(word => text.includes(word))) {
+                      return { keywords: [], directory: `src/Layers/${sub.name}/${third.name}/${fourth.name}/`, name: `${third.name} - ${fourth.name}` };
+                    }
+                  }
+                } catch { /* skip unreadable subdirectories */ }
+              }
+            } catch { /* skip unreadable subdirectories */ }
           }
         }
       } catch { /* skip unreadable subdirectories */ }
