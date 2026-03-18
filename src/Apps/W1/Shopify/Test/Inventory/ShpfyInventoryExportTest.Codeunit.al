@@ -355,7 +355,6 @@ codeunit 139594 "Shpfy Inventory Export Test"
     end;
 
     [Test]
-    [HandlerFunctions('InventoryExportHttpHandler')]
     procedure UnitTestExportStockNoForceExportSkipsWhenStockEqual()
     var
         ShopLocation: Record "Shpfy Shop Location";
