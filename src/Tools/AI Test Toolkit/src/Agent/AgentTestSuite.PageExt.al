@@ -110,11 +110,56 @@ pageextension 149034 "Agent Test Suite" extends "AIT Test Suite"
     begin
         UpdateAgentTaskMetrics();
         UpdateAgentUserName();
+        ShowCreditLimitNotifications();
     end;
 
     local procedure UpdateIsAgentTestType()
     begin
         IsAgentTestType := Rec."Test Type" = Rec."Test Type"::Agent;
+    end;
+
+    local procedure ShowCreditLimitNotifications()
+    var
+        AITCreditLimitMgt: Codeunit "AIT Credit Limit Mgt.";
+        GlobalLimitNotification: Notification;
+        SuiteLimitNotification: Notification;
+    begin
+        if not IsAgentTestType then
+            exit;
+
+        // Check and show global credit limit notification
+        if AITCreditLimitMgt.IsGlobalCreditLimitExceeded() then begin
+            GlobalLimitNotification.Id := GetGlobalCreditLimitNotificationId();
+            GlobalLimitNotification.Message := GlobalCreditLimitReachedMsg;
+            GlobalLimitNotification.Scope := NotificationScope::LocalScope;
+            GlobalLimitNotification.AddAction(OpenCreditLimitsLbl, Codeunit::"AIT Credit Limit Mgt.", 'OpenCreditLimitsPage');
+            GlobalLimitNotification.Send();
+        end else begin
+            GlobalLimitNotification.Id := GetGlobalCreditLimitNotificationId();
+            GlobalLimitNotification.Recall();
+        end;
+
+        // Check and show suite credit limit notification
+        if AITCreditLimitMgt.IsSuiteCreditLimitExceeded(Rec) then begin
+            SuiteLimitNotification.Id := GetSuiteCreditLimitNotificationId();
+            SuiteLimitNotification.Message := StrSubstNo(SuiteCreditLimitReachedMsg, Rec.Code);
+            SuiteLimitNotification.Scope := NotificationScope::LocalScope;
+            SuiteLimitNotification.AddAction(OpenCreditLimitsLbl, Codeunit::"AIT Credit Limit Mgt.", 'OpenCreditLimitsPage');
+            SuiteLimitNotification.Send();
+        end else begin
+            SuiteLimitNotification.Id := GetSuiteCreditLimitNotificationId();
+            SuiteLimitNotification.Recall();
+        end;
+    end;
+
+    local procedure GetGlobalCreditLimitNotificationId(): Guid
+    begin
+        exit('a1b2c3d4-e5f6-7890-abcd-ef1234567890');
+    end;
+
+    local procedure GetSuiteCreditLimitNotificationId(): Guid
+    begin
+        exit('b2c3d4e5-f6a7-8901-bcde-f12345678901');
     end;
 
     local procedure UpdateAgentTaskMetrics()
@@ -176,4 +221,7 @@ pageextension 149034 "Agent Test Suite" extends "AIT Test Suite"
         ConsumedCreditsVisible: Boolean;
         IsAgentTestType: Boolean;
         AgentWithNameNotFoundErr: Label 'An agent with the name %1 was not found.', Comment = '%1 - The name of the agent';
+        GlobalCreditLimitReachedMsg: Label 'The monthly Copilot credit limit has been reached. New agent tests cannot be started until the limit is increased or the next month begins.';
+        SuiteCreditLimitReachedMsg: Label 'The Copilot credit limit for suite %1 has been reached. Tests for this suite cannot be started until the limit is increased.', Comment = '%1 - The test suite code';
+        OpenCreditLimitsLbl: Label 'Open Credit Limits';
 }

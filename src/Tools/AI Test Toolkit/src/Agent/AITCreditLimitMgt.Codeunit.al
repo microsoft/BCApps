@@ -8,10 +8,28 @@ namespace System.TestTools.AITestToolkit;
 codeunit 149050 "AIT Credit Limit Mgt."
 {
     Access = Internal;
+    SingleInstance = true;
 
     var
+        CreditLimitReachedDuringRun: Boolean;
         GlobalCreditLimitExceededErr: Label 'Cannot start the agent test suite. The monthly credit limit of %1 has been reached. Current consumption: %2.', Comment = '%1 = Credit limit, %2 = Credits consumed';
         SuiteCreditLimitExceededErr: Label 'Cannot start the agent test suite. The suite credit limit of %1 has been reached. Current consumption: %2.', Comment = '%1 = Suite credit limit, %2 = Suite credits consumed';
+        CreditLimitReachedDuringRunErr: Label 'Copilot credit limit reached. Stopping test execution.';
+
+    procedure ResetCreditLimitFlag()
+    begin
+        CreditLimitReachedDuringRun := false;
+    end;
+
+    procedure IsCreditLimitReachedDuringRun(): Boolean
+    begin
+        exit(CreditLimitReachedDuringRun);
+    end;
+
+    procedure SetCreditLimitReachedDuringRun()
+    begin
+        CreditLimitReachedDuringRun := true;
+    end;
 
     procedure CheckCreditLimitBeforeRun(AITTestSuite: Record "AIT Test Suite"): Boolean
     var
@@ -145,5 +163,66 @@ codeunit 149050 "AIT Credit Limit Mgt."
             CreditsRemaining := 0;
 
         exit(CreditsRemaining);
+    end;
+
+    procedure IsGlobalCreditLimitExceeded(): Boolean
+    var
+        AITCreditLimitSetup: Record "AIT Credit Limit Setup";
+        AgentTestContextImpl: Codeunit "Agent Test Context Impl.";
+        TotalCreditsConsumed: Decimal;
+    begin
+        AITCreditLimitSetup.GetOrCreate();
+
+        if not AITCreditLimitSetup."Enforcement Enabled" then
+            exit(false);
+
+        if AITCreditLimitSetup."Monthly Credit Limit" <= 0 then
+            exit(false);
+
+        TotalCreditsConsumed := AgentTestContextImpl.GetTotalCreditsConsumedThisMonth(AITCreditLimitSetup.GetPeriodStartDate());
+        exit(TotalCreditsConsumed >= AITCreditLimitSetup."Monthly Credit Limit");
+    end;
+
+    procedure IsSuiteCreditLimitExceeded(AITTestSuite: Record "AIT Test Suite"): Boolean
+    var
+        AITCreditLimitSetup: Record "AIT Credit Limit Setup";
+        AgentTestContextImpl: Codeunit "Agent Test Context Impl.";
+        SuiteCreditsConsumed: Decimal;
+    begin
+        if AITTestSuite."Test Type" <> AITTestSuite."Test Type"::Agent then
+            exit(false);
+
+        if AITTestSuite."Suite Credit Limit" <= 0 then
+            exit(false);
+
+        AITCreditLimitSetup.GetOrCreate();
+
+        if not AITCreditLimitSetup."Enforcement Enabled" then
+            exit(false);
+
+        SuiteCreditsConsumed := AgentTestContextImpl.GetCopilotCreditsForMonth(AITTestSuite.Code, AITCreditLimitSetup.GetPeriodStartDate());
+        exit(SuiteCreditsConsumed >= AITTestSuite."Suite Credit Limit");
+    end;
+
+    procedure CheckAndHandleCreditLimitAfterTest(AITTestSuite: Record "AIT Test Suite")
+    begin
+        if AITTestSuite."Test Type" <> AITTestSuite."Test Type"::Agent then
+            exit;
+
+        if IsCreditLimitReachedDuringRun() then
+            exit;
+
+        if IsGlobalCreditLimitExceeded() or IsSuiteCreditLimitExceeded(AITTestSuite) then
+            SetCreditLimitReachedDuringRun();
+    end;
+
+    procedure ShouldSkipTestDueToCreditLimit(): Boolean
+    begin
+        exit(IsCreditLimitReachedDuringRun());
+    end;
+
+    procedure OpenCreditLimitsPage(Notification: Notification)
+    begin
+        Page.Run(Page::"AIT Credit Limits");
     end;
 }

@@ -176,12 +176,17 @@ codeunit 149042 "AIT Test Run Iteration"
     local procedure OnBeforeTestMethodRun(var CurrentTestMethodLine: Record "Test Method Line"; CodeunitID: Integer; CodeunitName: Text[30]; FunctionName: Text[128]; FunctionTestPermissions: TestPermissions)
     var
         AITContextCU: Codeunit "AIT Test Context Impl.";
+        AITCreditLimitMgt: Codeunit "AIT Credit Limit Mgt.";
         AOAIToken: Codeunit "AOAI Token";
     begin
         if ActiveAITTestSuite.Code = '' then
             exit;
         if FunctionName = '' then
             exit;
+
+        // Check if credit limit was reached - if so, skip this test
+        if AITCreditLimitMgt.ShouldSkipTestDueToCreditLimit() then
+            Error(CreditLimitReachedSkipTestErr);
 
         GlobalTestMethodLine := CurrentTestMethodLine;
 
@@ -205,6 +210,7 @@ codeunit 149042 "AIT Test Run Iteration"
     local procedure OnAfterTestMethodRun(var CurrentTestMethodLine: Record "Test Method Line"; CodeunitID: Integer; CodeunitName: Text[30]; FunctionName: Text[128]; FunctionTestPermissions: TestPermissions; IsSuccess: Boolean)
     var
         AITContextCU: Codeunit "AIT Test Context Impl.";
+        AITCreditLimitMgt: Codeunit "AIT Credit Limit Mgt.";
         AOAIToken: Codeunit "AOAI Token";
         Accuracy: Decimal;
     begin
@@ -234,5 +240,11 @@ codeunit 149042 "AIT Test Run Iteration"
 
         AITContextCU.EndRunProcedureScenario(CurrentTestMethodLine, IsSuccess);
         Commit();
+
+        // Check credit limit after each test and set flag if exceeded
+        AITCreditLimitMgt.CheckAndHandleCreditLimitAfterTest(ActiveAITTestSuite);
     end;
+
+    var
+        CreditLimitReachedSkipTestErr: Label 'Copilot credit limit reached. Skipping remaining tests.';
 }

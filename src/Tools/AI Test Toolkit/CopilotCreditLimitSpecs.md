@@ -224,3 +224,41 @@ Based on initial implementation feedback, the following refinements were made:
   - Empty field = no suite-specific limit (global limit still applies)
   - Numeric value = explicit suite limit
 - **Rationale:** Makes it visually clear which suites have explicit limits configured vs. those using only the global limit
+
+---
+
+## 10. Feedback and Refinements (v3)
+
+Based on further testing feedback, the following refinements were made:
+
+### 10.1 Improved Credit Limit Enforcement
+
+- **Requirement:** Stop executing new tests as soon as the credit limit is reached, not just between test lines
+- **Implementation:**
+  - Added `SingleInstance` tracking in `AIT Credit Limit Mgt.` codeunit
+  - Check credit limit after each test method completes (OnAfterTestMethodRun)
+  - If limit exceeded, set a flag and skip remaining tests in current codeunit
+  - Reset flag at the start of each suite run
+- **Behavior:**
+  - Tests within a line (codeunit) are checked after each completes
+  - Once limit is reached, remaining tests in that codeunit error with "Copilot credit limit reached"
+  - Suite transitions to `CreditLimitReached` status
+  
+### 10.2 Credit Limit Notifications
+
+- **Requirement:** Show notifications on the AI Eval Suite page when limits are reached
+- **Implementation:** Added two distinct notifications:
+  1. **Global Credit Limit Notification:** Shown when monthly environment-wide limit is exceeded
+  2. **Suite Credit Limit Notification:** Shown when suite-specific limit is exceeded
+- **Behavior:**
+  - Notifications appear on page load/refresh for Agent type suites
+  - Each notification includes an "Open Credit Limits" action button
+  - Notifications are recalled when limits are no longer exceeded
+
+### 10.3 Credits Available Styling
+
+- **Requirement:** Show unfavorable (red) styling when no credits are available
+- **Implementation:** Updated `CreditsAvailable` field styling:
+  - `Favorable` (green) when credits > 0
+  - `Unfavorable` (red) when credits <= 0
+- **Rationale:** Provides immediate visual feedback when limits are reached

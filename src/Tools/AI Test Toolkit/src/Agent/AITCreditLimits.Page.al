@@ -60,8 +60,7 @@ page 149048 "AIT Credit Limits"
                     ToolTip = 'Specifies the number of Copilot credits remaining for the current month.';
                     Editable = false;
                     DecimalPlaces = 2 : 5;
-                    Style = Favorable;
-                    StyleExpr = CreditsAvailable > 0;
+                    StyleExpr = CreditsAvailableStyle;
                 }
                 field(CurrentPeriod; CurrentPeriod)
                 {
@@ -176,6 +175,9 @@ page 149048 "AIT Credit Limits"
             actionref(ToggleShowAll_Promoted; ToggleShowAll)
             {
             }
+            actionref(ToggleShowExecuted_Promoted; ToggleShowExecuted)
+            {
+            }
         }
     }
 
@@ -190,6 +192,7 @@ page 149048 "AIT Credit Limits"
         CurrentPeriod: Text;
         StatusStyle: Text;
         SuiteCreditLimitDisplay: Text;
+        CreditsAvailableStyle: Text;
         ShowAllSuites: Boolean;
         SuitesWithCredits: List of [Code[100]];
 
@@ -234,6 +237,12 @@ page 149048 "AIT Credit Limits"
 
         if CreditsAvailable < 0 then
             CreditsAvailable := 0;
+
+        // Set style based on credits available
+        if CreditsAvailable <= 0 then
+            CreditsAvailableStyle := 'Unfavorable'
+        else
+            CreditsAvailableStyle := 'Favorable';
     end;
 
     local procedure GetTotalCreditsConsumedThisMonth(): Decimal

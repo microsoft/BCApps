@@ -80,6 +80,9 @@ codeunit 149034 "AIT Test Suite Mgt."
         AITTestSuite.Modify(true);
         Commit(); // Ensure that setup is not rolled back
 
+        // Reset credit limit flag before starting the run
+        AITCreditLimitMgt.ResetCreditLimitFlag();
+
         AITTestMethodLine.SetRange("Test Suite Code", AITTestSuite.Code);
         AITTestMethodLine.SetFilter("Codeunit ID", '<>0');
         AITTestMethodLine.SetRange("Version Filter", AITTestSuite.Version);
@@ -98,12 +101,16 @@ codeunit 149034 "AIT Test Suite Mgt."
         if AITTestMethodLine.FindSet() then
             repeat
                 // Check credit limit before running each test line (for Agent type suites)
-                if not AITCreditLimitMgt.CheckCreditLimitDuringRun(AITTestSuite) then begin
-                    AITCreditLimitMgt.SetCreditLimitReachedStatus(AITTestSuite);
+                if not AITCreditLimitMgt.CheckCreditLimitDuringRun(AITTestSuite) then
                     CreditLimitReached := true;
-                end;
 
-                if not CreditLimitReached then
+                // Also check if credit limit was reached during a previous test
+                if AITCreditLimitMgt.IsCreditLimitReachedDuringRun() then
+                    CreditLimitReached := true;
+
+                if CreditLimitReached then begin
+                    AITCreditLimitMgt.SetCreditLimitReachedStatus(AITTestSuite);
+                end else
                     RunAITestLine(AITTestMethodLine, true);
             until (AITTestMethodLine.Next() = 0) or CreditLimitReached;
 
