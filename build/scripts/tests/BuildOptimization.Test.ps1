@@ -159,6 +159,11 @@ Describe "BuildOptimization" {
         }
 
         It "returns changed files using real commits from pull_request event payload" {
+            $baseSha = (git rev-parse --verify HEAD~1 2>$null)
+            if (-not $baseSha -or $LASTEXITCODE -ne 0) {
+                Set-ItResult -Skipped -Because 'shallow clone has no parent commit'
+                return
+            }
             $savedActions = $env:GITHUB_ACTIONS
             $savedEvent = $env:GITHUB_EVENT_NAME
             $savedEventPath = $env:GITHUB_EVENT_PATH
@@ -168,7 +173,6 @@ Describe "BuildOptimization" {
                 $env:GITHUB_EVENT_NAME = 'pull_request'
 
                 $headSha = (git rev-parse HEAD)
-                $baseSha = (git rev-parse HEAD~1)
 
                 $tempFile = [System.IO.Path]::GetTempFileName()
                 @{
@@ -191,6 +195,11 @@ Describe "BuildOptimization" {
         }
 
         It "returns changed files for push event using before/after SHAs" {
+            $baseSha = (git rev-parse --verify HEAD~1 2>$null)
+            if (-not $baseSha -or $LASTEXITCODE -ne 0) {
+                Set-ItResult -Skipped -Because 'shallow clone has no parent commit'
+                return
+            }
             $savedActions = $env:GITHUB_ACTIONS
             $savedEvent = $env:GITHUB_EVENT_NAME
             $savedEventPath = $env:GITHUB_EVENT_PATH
@@ -200,7 +209,6 @@ Describe "BuildOptimization" {
                 $env:GITHUB_EVENT_NAME = 'push'
 
                 $headSha = (git rev-parse HEAD)
-                $baseSha = (git rev-parse HEAD~1)
 
                 $tempFile = [System.IO.Path]::GetTempFileName()
                 @{
