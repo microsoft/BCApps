@@ -61,6 +61,12 @@ Running → CreditLimitReached  (when credit limit hit)
 CreditLimitReached → Cancelled (manual cancellation)
 ```
 
+**Line Status Transitions:**
+```
+Running → Skipped    (when credit limit hit during execution)
+" " → Skipped        (pending lines when credit limit hit)
+```
+
 **Note:** There is no automatic transition from `CreditLimitReached` back to `Running`. Users must manually initiate a new run after limits are adjusted. This prevents accidental consumption of newly allocated credits.
 
 ---
@@ -110,9 +116,30 @@ CreditLimitReached → Cancelled (manual cancellation)
 
 Add new value:
 ```al
-value(X; CreditLimitReached)
+value(50; CreditLimitReached)
 {
     Caption = 'Credit Limit Reached';
+}
+```
+
+### Changes to "AIT Line Status" Enum
+
+Add new value:
+```al
+value(50; Skipped)
+{
+    Caption = 'Skipped';
+}
+```
+
+### New FlowField on "AIT Test Suite" Table
+
+```al
+field(82; "No. of Lines Skipped"; Integer)
+{
+    Caption = 'No. of Lines Skipped';
+    FieldClass = FlowField;
+    CalcFormula = count("AIT Test Method Line" where("Test Suite Code" = field("Code"), Status = const(Skipped)));
 }
 ```
 
@@ -132,8 +159,8 @@ value(X; CreditLimitReached)
 |-------|----------|
 | Per-suite limits relationship to global | Subdivisions (global limit always applies) |
 | Historical tracking | Not needed (covered elsewhere) |
-| Warning threshold | Not needed |
-| Notifications | Not needed |
+| Warning threshold | Show warning at 80% consumption |
+| Notifications | Show notifications when limits reached or approaching |
 | Override to run over limit | Not allowed; admin must increase quota |
 | Limit granularity | Per-suite; run data accumulates to suite total |
 
@@ -172,17 +199,17 @@ value(X; CreditLimitReached)
 ├─────────────────────────────────────────────────────────────┤
 │ Monthly Copilot Credit Limit: [1000.00]                     │
 │ Copilot Credits Consumed:     450.00                        │
-│ Copilot Credits Available:    550.00                        │
+│ Copilot Credits Available:    550.00  (45.0%)               │
 │ Current Period:               March 1, 2026 - March 31, 2026│
 ├─────────────────────────────────────────────────────────────┤
 │ Agent Test Suites (showing suites with credits consumed)    │
-├──────────┬─────────────────┬──────────┬─────────┬──────────┤
-│ Code     │ Description     │ Consumed │ Limit   │ Status   │
-├──────────┼─────────────────┼──────────┼─────────┼──────────┤
-│ AGENT-01 │ Sales Agent     │ 150.00   │ 200.00  │ Running  │
-│ AGENT-02 │ Support Agent   │ 200.00   │ 300.00  │ Completed│
-│ AGENT-03 │ Inventory Agent │ 100.00   │         │ Cancelled│
-└──────────┴─────────────────┴──────────┴─────────┴──────────┘
+├────────┬──────────────┬────────┬───────┬────────┬─────┬─────────────────┤
+│ Code   │ Description  │Consumed│ Limit │Usage % │Skip │ Status          │
+├────────┼──────────────┼────────┼───────┼────────┼─────┼─────────────────┤
+│AGENT-01│ Sales Agent  │ 150.00 │200.00 │ 75.0%  │  0  │ Running         │
+│AGENT-02│ Support Agent│ 200.00 │300.00 │ 66.7%  │  0  │ Completed       │
+│AGENT-03│ Inventory    │ 100.00 │100.00 │100.0%  │  3  │ CreditLimitReach│
+└────────┴──────────────┴────────┴───────┴────────┴─────┴─────────────────┘
 ```
 
 ---
@@ -262,3 +289,54 @@ Based on further testing feedback, the following refinements were made:
   - `Favorable` (green) when credits > 0
   - `Unfavorable` (red) when credits <= 0
 - **Rationale:** Provides immediate visual feedback when limits are reached
+
+---
+
+## 11. Feedback and Refinements (v4)
+
+Based on continued testing feedback, the following refinements were made:
+
+### 11.1 Warning Notification at 80%
+
+- **Requirement:** Alert users when approaching credit limit (before it's reached)
+- **Implementation:** Added two warning notifications:
+  1. **Global Warning:** Shown when 80%+ of monthly credits consumed
+  2. **Suite Warning:** Shown when 80%+ of suite credits consumed
+- **Behavior:**
+  - Warning notifications appear on page load/refresh before limits are reached
+  - Each warning includes an "Open Credit Limits" action button
+  - Warnings are replaced by "limit reached" notifications once 100% consumed
+- **Rationale:** Gives users advance notice to adjust limits or pause testing
+
+### 11.2 Percentage Usage Display
+
+- **Requirement:** Show usage percentage for better understanding of consumption
+- **Implementation:**
+  - Added `Usage %` display in Credit Limits page header
+  - Added `Suite Usage %` column in suite repeater
+  - Values displayed as "85.0%" format
+- **Styling:** Three-tier color coding:
+  - `Favorable` (green): < 80% usage
+  - `Attention` (yellow): 80-99% usage
+  - `Unfavorable` (red): >= 100% usage
+- **Rationale:** Provides immediate visual indication of consumption level relative to limit
+
+### 11.3 Skipped Line Status
+
+- **Requirement:** Distinguish lines skipped due to credit limit from cancelled lines
+- **Previous:** Lines were marked as `Cancelled` when credit limit reached
+- **Updated:** Lines are now marked as `Skipped` when credit limit prevents execution
+- **New Enum Value:** Added `Skipped` (value 50) to `AIT Line Status` enum
+- **Caption:** "Skipped"
+- **Rationale:** Provides clarity on why lines didn't execute (credit limit vs. user cancellation)
+
+### 11.4 Evals Skipped Tracking
+
+- **Requirement:** Track and display how many evals were skipped due to credit limits
+- **Implementation:**
+  - Added `No. of Lines Skipped` FlowField to `AIT Test Suite` table
+  - CalcFormula counts lines with Status = Skipped
+  - Displayed in AI Test Suite page under "Latest Run" section
+  - Also displayed in Credit Limits page suite repeater
+- **Styling:** Uses `Attention` (yellow) style to highlight skipped lines
+- **Rationale:** Helps users understand impact of credit limits on test coverage

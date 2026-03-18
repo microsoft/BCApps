@@ -123,6 +123,10 @@ pageextension 149034 "Agent Test Suite" extends "AIT Test Suite"
         AITCreditLimitMgt: Codeunit "AIT Credit Limit Mgt.";
         GlobalLimitNotification: Notification;
         SuiteLimitNotification: Notification;
+        GlobalWarningNotification: Notification;
+        SuiteWarningNotification: Notification;
+        UsagePercentage: Decimal;
+        SuiteUsagePercentage: Decimal;
     begin
         if not IsAgentTestType then
             exit;
@@ -134,9 +138,25 @@ pageextension 149034 "Agent Test Suite" extends "AIT Test Suite"
             GlobalLimitNotification.Scope := NotificationScope::LocalScope;
             GlobalLimitNotification.AddAction(OpenCreditLimitsLbl, Codeunit::"AIT Credit Limit Mgt.", 'OpenCreditLimitsPage');
             GlobalLimitNotification.Send();
+            // Recall warning if limit is exceeded
+            GlobalWarningNotification.Id := GetGlobalCreditWarningNotificationId();
+            GlobalWarningNotification.Recall();
         end else begin
             GlobalLimitNotification.Id := GetGlobalCreditLimitNotificationId();
             GlobalLimitNotification.Recall();
+
+            // Check for 80% warning
+            if AITCreditLimitMgt.IsApproachingCreditLimit() then begin
+                UsagePercentage := AITCreditLimitMgt.GetCreditUsagePercentage();
+                GlobalWarningNotification.Id := GetGlobalCreditWarningNotificationId();
+                GlobalWarningNotification.Message := StrSubstNo(GlobalCreditWarningMsg, UsagePercentage);
+                GlobalWarningNotification.Scope := NotificationScope::LocalScope;
+                GlobalWarningNotification.AddAction(OpenCreditLimitsLbl, Codeunit::"AIT Credit Limit Mgt.", 'OpenCreditLimitsPage');
+                GlobalWarningNotification.Send();
+            end else begin
+                GlobalWarningNotification.Id := GetGlobalCreditWarningNotificationId();
+                GlobalWarningNotification.Recall();
+            end;
         end;
 
         // Check and show suite credit limit notification
@@ -146,9 +166,25 @@ pageextension 149034 "Agent Test Suite" extends "AIT Test Suite"
             SuiteLimitNotification.Scope := NotificationScope::LocalScope;
             SuiteLimitNotification.AddAction(OpenCreditLimitsLbl, Codeunit::"AIT Credit Limit Mgt.", 'OpenCreditLimitsPage');
             SuiteLimitNotification.Send();
+            // Recall warning if limit is exceeded
+            SuiteWarningNotification.Id := GetSuiteCreditWarningNotificationId();
+            SuiteWarningNotification.Recall();
         end else begin
             SuiteLimitNotification.Id := GetSuiteCreditLimitNotificationId();
             SuiteLimitNotification.Recall();
+
+            // Check for 80% warning
+            if AITCreditLimitMgt.IsSuiteApproachingCreditLimit(Rec) then begin
+                SuiteUsagePercentage := AITCreditLimitMgt.GetSuiteCreditUsagePercentage(Rec);
+                SuiteWarningNotification.Id := GetSuiteCreditWarningNotificationId();
+                SuiteWarningNotification.Message := StrSubstNo(SuiteCreditWarningMsg, Rec.Code, SuiteUsagePercentage);
+                SuiteWarningNotification.Scope := NotificationScope::LocalScope;
+                SuiteWarningNotification.AddAction(OpenCreditLimitsLbl, Codeunit::"AIT Credit Limit Mgt.", 'OpenCreditLimitsPage');
+                SuiteWarningNotification.Send();
+            end else begin
+                SuiteWarningNotification.Id := GetSuiteCreditWarningNotificationId();
+                SuiteWarningNotification.Recall();
+            end;
         end;
     end;
 
@@ -160,6 +196,16 @@ pageextension 149034 "Agent Test Suite" extends "AIT Test Suite"
     local procedure GetSuiteCreditLimitNotificationId(): Guid
     begin
         exit('b2c3d4e5-f6a7-8901-bcde-f12345678901');
+    end;
+
+    local procedure GetGlobalCreditWarningNotificationId(): Guid
+    begin
+        exit('c3d4e5f6-a7b8-9012-cdef-123456789012');
+    end;
+
+    local procedure GetSuiteCreditWarningNotificationId(): Guid
+    begin
+        exit('d4e5f6a7-b8c9-0123-defa-234567890123');
     end;
 
     local procedure UpdateAgentTaskMetrics()
@@ -223,5 +269,7 @@ pageextension 149034 "Agent Test Suite" extends "AIT Test Suite"
         AgentWithNameNotFoundErr: Label 'An agent with the name %1 was not found.', Comment = '%1 - The name of the agent';
         GlobalCreditLimitReachedMsg: Label 'The monthly Copilot credit limit has been reached. New agent tests cannot be started until the limit is increased or the next month begins.';
         SuiteCreditLimitReachedMsg: Label 'The Copilot credit limit for suite %1 has been reached. Tests for this suite cannot be started until the limit is increased.', Comment = '%1 - The test suite code';
+        GlobalCreditWarningMsg: Label 'Warning: %1% of the monthly Copilot credits have been consumed. Consider monitoring usage to avoid reaching the limit.', Comment = '%1 - Usage percentage';
+        SuiteCreditWarningMsg: Label 'Warning: %2% of the Copilot credit limit for suite %1 has been consumed.', Comment = '%1 - Suite code, %2 - Usage percentage';
         OpenCreditLimitsLbl: Label 'Open Credit Limits';
 }

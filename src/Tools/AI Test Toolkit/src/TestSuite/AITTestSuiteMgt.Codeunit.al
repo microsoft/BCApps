@@ -142,6 +142,7 @@ codeunit 149034 "AIT Test Suite Mgt."
     internal procedure RunAITestLine(AITTestMethodLine: Record "AIT Test Method Line"; IsExecutedFromTestSuiteHeader: Boolean)
     var
         AITTestSuite: Record "AIT Test Suite";
+        AITCreditLimitMgt: Codeunit "AIT Credit Limit Mgt.";
         TestRunnerProgressDialog: Codeunit "Test Runner - Progress Dialog";
         FeatureTelemetry: Codeunit "Feature Telemetry";
         TelemetryCustomDimensions: Dictionary of [Text, Text];
@@ -165,9 +166,16 @@ codeunit 149034 "AIT Test Suite Mgt."
         Codeunit.Run(Codeunit::"AIT Test Run Iteration", AITTestMethodLine);
 
         if AITTestMethodLine.Find() then begin
-            AITTestMethodLine.Validate(Status, AITTestMethodLine.Status::Completed);
-            AITTestMethodLine.Modify(true);
-            Commit();
+            // Check if credit limit was reached during the test run
+            if AITCreditLimitMgt.IsCreditLimitReachedDuringRun() then begin
+                AITTestMethodLine.Validate(Status, AITTestMethodLine.Status::Skipped);
+                AITTestMethodLine.Modify(true);
+                Commit();
+            end else begin
+                AITTestMethodLine.Validate(Status, AITTestMethodLine.Status::Completed);
+                AITTestMethodLine.Modify(true);
+                Commit();
+            end;
 
             // Log the feature telemetry when execution from the test method line has completed
             if not IsExecutedFromTestSuiteHeader then begin

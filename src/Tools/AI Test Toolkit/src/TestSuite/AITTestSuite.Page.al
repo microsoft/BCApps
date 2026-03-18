@@ -208,6 +208,11 @@ page 149031 "AIT Test Suite"
                         AITLogEntry.DrillDownFailedAITLogEntries(Rec.Code, 0, Rec.Version);
                     end;
                 }
+                field("No. of Lines Skipped"; Rec."No. of Lines Skipped")
+                {
+                    Style = Attention;
+                    ToolTip = 'Specifies the number of eval lines that were skipped due to credit limit being reached.';
+                }
                 field(Accuracy; Rec.Accuracy)
                 {
                 }

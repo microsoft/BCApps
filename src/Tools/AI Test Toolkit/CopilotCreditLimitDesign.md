@@ -191,9 +191,11 @@ codeunit 149050 "AIT Credit Limit Mgt."
 ```
 
 When `CreditLimitReached`:
-- All running test method lines → `Cancelled`
-- All pending (blank status) lines → `Cancelled`
+- All running test method lines → `Skipped`
+- All pending (blank status) lines → `Skipped`
 - Suite status → `CreditLimitReached`
+
+**Note:** The `Skipped` status (enum value 50) distinguishes lines that didn't run due to credit limits from lines that were manually cancelled by users.
 
 ---
 
@@ -210,17 +212,18 @@ When `CreditLimitReached`:
 ├─────────────────────────────────────────────────────────────┤
 │ [Editable]    Monthly Copilot Credit Limit: 200.00         │
 │ [Editable]    Enforcement Enabled: Yes                     │
-│ [Computed]    Copilot Credits Consumed: 150.00             │
-│ [Computed]    Copilot Credits Available: 50.00             │
+│ [Computed]    Copilot Credits Consumed: 160.00             │
+│ [Computed]    Copilot Credits Available: 40.00  [YELLOW]   │
+│ [Computed]    Usage: 80.0%                                 │
 │ [Display]     Current Period: Mar 1, 2026 - Mar 31, 2026   │
 ├─────────────────────────────────────────────────────────────┤
 │ Repeater: Agent Test Suites                                 │
-│ ┌──────┬─────────────┬──────────┬─────────┬───────────────┐│
-│ │Code  │Description  │Consumed  │Limit    │Status         ││
-│ ├──────┼─────────────┼──────────┼─────────┼───────────────┤│
-│ │AGT-01│Sales Agent  │ 75.00    │100.00   │Completed      ││
-│ │AGT-02│Support Bot  │ 75.00    │         │Running        ││
-│ └──────┴─────────────┴──────────┴─────────┴───────────────┘│
+│ ┌──────┬───────────┬────────┬───────┬───────┬─────┬───────┐│
+│ │Code  │Description│Consumed│Limit  │Usage %│Skip │Status ││
+│ ├──────┼───────────┼────────┼───────┼───────┼─────┼───────┤│
+│ │AGT-01│Sales Agent│ 80.00  │100.00 │ 80.0% │  0  │Running││
+│ │AGT-02│Support Bot│ 80.00  │       │       │  3  │Skipped││
+│ └──────┴───────────┴────────┴───────┴───────┴─────┴───────┘│
 └─────────────────────────────────────────────────────────────┘
 ```
 
@@ -234,12 +237,32 @@ When `CreditLimitReached`:
 
 Displayed on the AI Eval Suite page for Agent type suites:
 
-| Notification | Trigger | Action |
-|--------------|---------|--------|
-| Global Limit Reached | `IsGlobalCreditLimitExceeded()` | Open Credit Limits |
-| Suite Limit Reached | `IsSuiteCreditLimitExceeded()` | Open Credit Limits |
+| Notification | Trigger | Action | Style |
+|--------------|---------|--------|-------|
+| Global Warning (80%) | `IsApproachingCreditLimit()` | Open Credit Limits | Warning |
+| Suite Warning (80%) | `IsSuiteApproachingCreditLimit()` | Open Credit Limits | Warning |
+| Global Limit Reached | `IsGlobalCreditLimitExceeded()` | Open Credit Limits | Error |
+| Suite Limit Reached | `IsSuiteCreditLimitExceeded()` | Open Credit Limits | Error |
 
-**Notification IDs:** Fixed GUIDs to enable proper recall when limits change.
+**Notification IDs:** Fixed GUIDs to enable proper recall when limits change:
+- Global Limit: `a1b2c3d4-e5f6-7890-abcd-ef1234567890`
+- Suite Limit: `b2c3d4e5-f6a7-8901-bcde-f12345678901`
+- Global Warning: `c3d4e5f6-a7b8-9012-cdef-123456789012`
+- Suite Warning: `d4e5f6a7-b8c9-0123-defa-234567890123`
+
+### 7.3 Percentage Display & Styling
+
+**Usage Percentage Calculation:**
+```al
+UsagePercent := Round(CreditsConsumed / CreditLimit * 100, 0.1);
+```
+
+**Three-Tier Styling:**
+| Usage % | Style | Meaning |
+|---------|-------|--------|
+| < 80% | Favorable (green) | Safe consumption level |
+| 80-99% | Attention (yellow) | Approaching limit |
+| >= 100% | Unfavorable (red) | Limit reached |
 
 ---
 
@@ -346,6 +369,8 @@ Credit Limit Setup table has inherent permissions to allow access during install
 - Integration with Azure Cost Management
 - Per-user credit tracking
 - Historical consumption analytics
+- Configurable warning threshold (currently fixed at 80%)
+- Email notifications for administrators
 
 ---
 
@@ -380,6 +405,8 @@ AITCreditLimitSetup.Modify();
 | Enforcement | Whether limits are actively enforced |
 | Period | Monthly tracking window (1st to last day of month) |
 | SingleInstance | AL codeunit pattern for session-wide state |
+| Skipped | Line status indicating execution prevented by credit limit |
+| Warning Threshold | 80% of limit - triggers warning notification |
 
 ---
 
@@ -387,4 +414,4 @@ AITCreditLimitSetup.Modify();
 
 | Version | Date | Author | Changes |
 |---------|------|--------|---------|
-| 1.0 | 2026-03-18 | AI Test Toolkit Team | Initial design |
+| 1.0 | 2026-03-18 | AI Test Toolkit Team | Initial design || 1.1 | 2026-03-18 | AI Test Toolkit Team | Added 80% warning notifications, percentage display, Skipped line status, evals skipped tracking |

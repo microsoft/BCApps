@@ -62,6 +62,13 @@ page 149048 "AIT Credit Limits"
                     DecimalPlaces = 2 : 5;
                     StyleExpr = CreditsAvailableStyle;
                 }
+                field(CreditsUsagePercentage; CreditsUsagePercentage)
+                {
+                    Caption = 'Usage %';
+                    ToolTip = 'Specifies the percentage of the monthly Copilot credit limit that has been consumed.';
+                    Editable = false;
+                    StyleExpr = CreditsAvailableStyle;
+                }
                 field(CurrentPeriod; CurrentPeriod)
                 {
                     Caption = 'Current Period';
@@ -111,6 +118,19 @@ page 149048 "AIT Credit Limits"
                         Rec.Modify(true);
                         UpdateSuiteCreditLimitDisplay();
                     end;
+                }
+                field(SuiteUsagePercentage; SuiteUsagePercentage)
+                {
+                    Caption = 'Suite Usage %';
+                    ToolTip = 'Specifies the percentage of the suite Copilot credit limit that has been consumed.';
+                    Editable = false;
+                    StyleExpr = SuiteUsageStyle;
+                }
+                field("No. of Lines Skipped"; Rec."No. of Lines Skipped")
+                {
+                    Style = Attention;
+                    ToolTip = 'Specifies the number of eval lines that were skipped due to credit limit being reached.';
+                    Editable = false;
                 }
                 field(Status; Rec.Status)
                 {
@@ -188,7 +208,10 @@ page 149048 "AIT Credit Limits"
         EnforcementEnabled: Boolean;
         CreditsConsumed: Decimal;
         CreditsAvailable: Decimal;
+        CreditsUsagePercentage: Text;
         SuiteCreditsConsumed: Decimal;
+        SuiteUsagePercentage: Text;
+        SuiteUsageStyle: Text;
         CurrentPeriod: Text;
         StatusStyle: Text;
         SuiteCreditLimitDisplay: Text;
@@ -208,6 +231,7 @@ page 149048 "AIT Credit Limits"
     begin
         UpdateSuiteCreditsConsumed();
         UpdateSuiteCreditLimitDisplay();
+        UpdateSuiteUsagePercentage();
         UpdateStatusStyle();
     end;
 
@@ -228,19 +252,30 @@ page 149048 "AIT Credit Limits"
     end;
 
     local procedure UpdateComputedFields()
+    var
+        UsagePercent: Decimal;
     begin
         CreditsConsumed := GetTotalCreditsConsumedThisMonth();
-        if MonthlyCreditLimit > 0 then
-            CreditsAvailable := MonthlyCreditLimit - CreditsConsumed
-        else
+        if MonthlyCreditLimit > 0 then begin
+            CreditsAvailable := MonthlyCreditLimit - CreditsConsumed;
+            UsagePercent := Round(CreditsConsumed / MonthlyCreditLimit * 100, 0.1);
+            CreditsUsagePercentage := Format(UsagePercent, 0, '<Precision,1:1><Standard Format,0>') + '%';
+        end else begin
             CreditsAvailable := 0;
+            CreditsUsagePercentage := '';
+        end;
 
         if CreditsAvailable < 0 then
             CreditsAvailable := 0;
 
-        // Set style based on credits available
-        if CreditsAvailable <= 0 then
+        // Set style based on percentage of credits remaining
+        // Unfavorable: >= 100% used (0% remaining)
+        // Attention: 80-99% used (1-20% remaining)
+        // Favorable: < 80% used (>20% remaining)
+        if UsagePercent >= 100 then
             CreditsAvailableStyle := 'Unfavorable'
+        else if UsagePercent >= 80 then
+            CreditsAvailableStyle := 'Attention'
         else
             CreditsAvailableStyle := 'Favorable';
     end;
@@ -277,6 +312,28 @@ page 149048 "AIT Credit Limits"
             SuiteCreditLimitDisplay := ''
         else
             SuiteCreditLimitDisplay := Format(Rec."Suite Credit Limit", 0, '<Precision,2:5><Standard Format,0>');
+    end;
+
+    local procedure UpdateSuiteUsagePercentage()
+    var
+        UsagePercent: Decimal;
+    begin
+        if Rec."Suite Credit Limit" <= 0 then begin
+            SuiteUsagePercentage := '';
+            SuiteUsageStyle := 'Standard';
+            exit;
+        end;
+
+        UsagePercent := Round(SuiteCreditsConsumed / Rec."Suite Credit Limit" * 100, 0.1);
+        SuiteUsagePercentage := Format(UsagePercent, 0, '<Precision,1:1><Standard Format,0>') + '%';
+
+        // Set style based on percentage used
+        if UsagePercent >= 100 then
+            SuiteUsageStyle := 'Unfavorable'
+        else if UsagePercent >= 80 then
+            SuiteUsageStyle := 'Attention'
+        else
+            SuiteUsageStyle := 'Favorable';
     end;
 
     local procedure UpdateStatusStyle()

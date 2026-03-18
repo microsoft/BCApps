@@ -258,6 +258,14 @@ table 149030 "AIT Test Suite"
             Caption = 'Eval Type';
             ToolTip = 'Specifies the type of AI eval (Copilot, Agent, or MCP).';
         }
+        field(82; "No. of Lines Skipped"; Integer)
+        {
+            Caption = 'No. of Lines Skipped';
+            ToolTip = 'Specifies the number of eval lines that were skipped due to credit limit being reached.';
+            Editable = false;
+            FieldClass = FlowField;
+            CalcFormula = count("AIT Test Method Line" where("Test Suite Code" = field("Code"), Status = const(Skipped)));
+        }
     }
     keys
     {
