@@ -7,6 +7,7 @@ namespace System.TestTools.AITestToolkit;
 
 permissionset 149031 "AI Test Toolkit - Obj"
 {
+    Caption = 'Business Central AI Eval Runner - Obj';
     Assignable = false;
     Access = Public;
 

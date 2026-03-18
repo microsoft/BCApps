@@ -4,17 +4,16 @@
 // ------------------------------------------------------------------------------------------------
 
 namespace System.TestTools.AITestToolkit;
+using System.TestTools.TestRunner;
 
-permissionset 149034 "AI Test Toolkit - View"
+permissionset 149030 "AI Test Toolkit"
 {
-    Access = Internal;
-    Assignable = false;
+    Caption = 'Business Central AI Eval Runner';
+    Access = Public;
+    Assignable = true;
 
-    IncludedPermissionSets = "AI Test Toolkit - Read";
+    IncludedPermissionSets = "AI Test Toolkit - View";
 
-    Permissions = tabledata "AIT Run History" = IMD,
-        tabledata "AIT Test Suite" = IMD,
-        tabledata "AIT Test Suite Language" = IMD,
-        tabledata "AIT Test Method Line" = IMD,
-        tabledata "AIT Log Entry" = IMD;
+    Permissions = tabledata "Test Input" = RIMD,
+                  tabledata "Test Method Line" = RIMD;
 }
