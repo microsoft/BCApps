@@ -1,0 +1,27 @@
+{
+  "al.enableCodeActions": true,
+  "al.assemblyProbingPaths": [
+    "C:/Program Files/dotnet/shared/Microsoft.AspNetCore.App/8.0.23",
+    "C:/Program Files/dotnet/shared/Microsoft.NetCore.App/8.0.23",
+    "C:/Program Files/dotnet/shared/Microsoft.WindowsDesktop.App/8.0.23",
+    "D:/NugetCache/System.Management.7.0.0/lib/netstandard2.0",
+    "D:/NugetCache/microsoft.nav.platform.main.universal.28.0.45097-0/lib/Tools",
+    "D:/NugetCache/microsoft.nav.platform.main.universal.28.0.45097-0/lib/ServiceTier",
+    "C:/WINDOWS/assembly/GAC/ADODB",
+    "D:/Repos/NAV2/test/App/MockService/MockService",
+    "D:/Repos/NAV2/test/App/MockTest"
+  ],
+  "[al]": {
+    "editor.semanticHighlighting.enabled": true
+  },
+  "editor.codeLens": false,
+  "al.codeAnalyzers": [
+    "${AppSourceCop}",
+    "${CodeCop}"
+  ],
+  "al.backgroundCodeAnalysis": true,
+  "al.ruleSetPath": "D:/Repos/NAV2/App/Rulesets/base.ruleset.json",
+  "al.packageCachePath": "D:/Repos/NAV2/run/W1/AllExtensions",
+  "al.enableCodeAnalysis": true,
+  "al.incrementalBuild": true
+}

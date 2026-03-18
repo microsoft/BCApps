@@ -1,0 +1,143 @@
+{
+	"folders": [
+		{
+			"path": "."
+		},
+		{
+			"path": "..\\Tests\\Azure AI"
+		},
+		{
+			"path": "..\\Tests\\Bank"
+		},
+		{
+			"path": "..\\Tests\\Cash Flow"
+		},
+		{
+			"path": "..\\Tests\\Cost Accounting"
+		},
+		{
+			"path": "..\\Tests\\CRM integration"
+		},
+		{
+			"path": "..\\Tests\\Data Exchange"
+		},
+		{
+			"path": "..\\Tests\\Dimension"
+		},
+		{
+			"path": "..\\Tests\\DotNet-Internal"
+		},
+		{
+			"path": "..\\Tests\\DotNet-Internal"
+		},
+		{
+			"path": "..\\Tests\\ERM"
+		},
+		{
+			"path": "..\\Tests\\Fixed Asset"
+		},
+		{
+			"path": "..\\Tests\\General Journal"
+		},
+		{
+			"path": "..\\Tests\\Graph"
+		},
+		{
+			"path": "..\\Tests\\Integration"
+		},
+		{
+			"path": "..\\Tests\\Integration-Internal"
+		},
+		{
+			"path": "..\\Tests\\Invoicing"
+		},
+		{
+			"path": "..\\Tests\\Job"
+		},
+		{
+			"path": "..\\Tests\\Local"
+		},
+		{
+			"path": "..\\Tests\\Marketing"
+		},
+		{
+			"path": "..\\Tests\\MBT"
+		},
+		{
+			"path": "..\\Tests\\Misc"
+		},
+		{
+			"path": "..\\Tests\\MOCKSERVICETESTS"
+		},
+		{
+			"path": "..\\Tests\\Monitor Sensitive Fields"
+		},
+		{
+			"path": "..\\Tests\\NATIVEINVOICINGTEST"
+		},
+		{
+			"path": "..\\Tests\\Performance-Internal"
+		},
+		{
+			"path": "..\\Tests\\Permissions"
+		},
+		{
+			"path": "..\\Tests\\Physical Inventory"
+		},
+		{
+			"path": "..\\Tests\\Prepayment"
+		},
+		{
+			"path": "..\\Tests\\Rapid Start"
+		},
+		{
+			"path": "..\\Tests\\Report"
+		},
+		{
+			"path": "..\\Tests\\Resource"
+		},
+		{
+			"path": "..\\Tests\\Reverse"
+		},
+		{
+			"path": "..\\Tests\\SCM"
+		},
+		{
+			"path": "..\\Tests\\Service"
+		},
+		{
+			"path": "..\\Tests\\SINGLESERVER"
+		},
+		{
+			"path": "..\\Tests\\SINGLESERVER-Internal"
+		},
+		{
+			"path": "..\\Tests\\SMB"
+		},
+		{
+			"path": "..\\Tests\\SMTP"
+		},
+		{
+			"path": "..\\Tests\\TestLibraries"
+		},
+		{
+			"path": "..\\Tests\\TestRunner-Internal"
+		},
+		{
+			"path": "..\\Tests\\Upgrade"
+		},
+		{
+			"path": "..\\Tests\\User"
+		},
+		{
+			"path": "..\\Tests\\VAT"
+		},
+		{
+			"path": "..\\Tests\\Workflow"
+		},
+		{
+			"path": "..\\Tests\\BCPT-SampleTests"
+		},
+	],
+	"settings": {}
+}

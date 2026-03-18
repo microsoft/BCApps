@@ -1,0 +1,22 @@
+{
+  "id": "f19ff748-0eb7-45e0-bac1-a79ff422c4bc",
+  "name": "Tests-DotNet-Internal",
+  "publisher": "Microsoft",
+  "version": "$(app_currentVersion)",
+  "platform": "$(app_platformVersion)",
+  "dependencies": [
+    {
+      "id": "5d86850b-0d76-4eca-bd7b-951ad998e997",
+      "name": "Tests-TestLibraries",
+      "publisher": "Microsoft",
+      "version": "$(app_minimumVersion)"
+    }
+  ],
+  "target": "OnPrem",
+  "resourceExposurePolicy": {
+    "allowDebugging": true,
+    "allowDownloadingSource": true,
+    "includeSourceInSymbolFile": true
+  },
+  "application": "$(app_minimumVersion)"
+}
