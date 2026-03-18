@@ -117,6 +117,14 @@ tableextension 99001512 "Subc. Purchase Line" extends "Purchase Line"
         exit(Round(Quantity * ItemUnitofMeasure."Qty. per Unit of Measure", 0.00001));
     end;
 
+    /// <summary>
+    /// Calculates the base quantity from a quantity
+    /// </summary>
+    /// <param name="SourceQuantity">Quantity from which the base quantity is calculated</param>
+    /// <param name="BasedOnField">Field on which the calculation is based</param>
+    /// <param name="FromFieldName">Name of the field from which the calculation starts</param>
+    /// <param name="ToFieldName">Name of the field to which the calculation is applied</param>
+    /// <returns>Calculated base quantity</returns>
     internal procedure CalcBaseQtyFromQuantity(SourceQuantity: Decimal; BasedOnField: Text; FromFieldName: Text; ToFieldName: Text) BaseQuantityToReturn: Decimal
     var
         Item: Record Item;
@@ -129,6 +137,11 @@ tableextension 99001512 "Subc. Purchase Line" extends "Purchase Line"
         BaseQuantityToReturn := UOMMgt.CalcBaseQty(Rec."No.", Rec."Variant Code", Rec."Unit of Measure Code", SourceQuantity, QtyPerUoM, Rec."Qty. Rounding Precision (Base)", BasedOnField, FromFieldName, ToFieldName);
     end;
 
+    /// <summary>
+    /// Determine if the purchase line is a subcontracting line
+    /// </summary>
+    /// <param name="ProdOrderLine">The production order line to check</param>
+    /// <returns>True if the line is a subcontracting line, false otherwise</returns>
     internal procedure IsSubcontractingLine(var ProdOrderLine: Record "Prod. Order Line"): Boolean
     var
         ProductionOrder: Record "Production Order";
@@ -137,6 +150,8 @@ tableextension 99001512 "Subc. Purchase Line" extends "Purchase Line"
     begin
         if Rec."Operation No." = '' then
             exit(false);
+        ProductionOrder.SetLoadFields("Source Type");
+        ProdOrderRoutingLine.SetLoadFields(SystemId);
         IsValidLine := ProdOrderLine.Get("Production Order Status"::Released, Rec."Prod. Order No.", Rec."Prod. Order Line No.");
         IsValidLine := IsValidLine and ProductionOrder.Get("Production Order Status"::Released, Rec."Prod. Order No.");
         IsValidLine := IsValidLine and ProdOrderRoutingLine.Get("Production Order Status"::Released, Rec."Prod. Order No.", Rec."Routing Reference No.", Rec."Routing No.", Rec."Operation No.");
@@ -144,11 +159,17 @@ tableextension 99001512 "Subc. Purchase Line" extends "Purchase Line"
         exit(IsValidLine);
     end;
 
+    /// <summary>
+    /// Determines if the purchase line is a subcontracting line with the last operation
+    /// </summary>
+    /// <param name="ProdOrderLine">The production order line to check</param>
+    /// <returns>True if the line is a subcontracting line with the last operation, false otherwise</returns>
     internal procedure IsSubcontractingLineWithLastOperation(var ProdOrderLine: Record "Prod. Order Line"): Boolean
     var
         ProdOrderRoutingLine: Record "Prod. Order Routing Line";
         IsValidLine: Boolean;
     begin
+        ProdOrderRoutingLine.SetLoadFields("Next Operation No.");
         IsValidLine := ProdOrderRoutingLine.Get("Production Order Status"::Released, Rec."Prod. Order No.", Rec."Routing Reference No.", Rec."Routing No.", Rec."Operation No.");
         IsValidLine := IsValidLine and (ProdOrderRoutingLine."Next Operation No." = '');
         exit(IsSubcontractingLine(ProdOrderLine) and IsValidLine);

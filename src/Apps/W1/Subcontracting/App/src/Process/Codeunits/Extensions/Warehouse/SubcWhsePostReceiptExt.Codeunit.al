@@ -17,10 +17,19 @@ using Microsoft.Warehouse.Journal;
 
 codeunit 99001551 "Subc. WhsePostReceipt Ext"
 {
-    [EventSubscriber(ObjectType::Table, Database::"Warehouse Receipt Line", OnBeforeOpenItemTrackingLines, '', false, false)]
-    local procedure CheckOverDeliveryOnBeforeOpenItemTrackingLines(var WarehouseReceiptLine: Record "Warehouse Receipt Line"; var IsHandled: Boolean; CallingFieldNo: Integer)
     var
         NotLastOperationLineErr: Label 'Item tracking lines can only be viewed for subcontracting purchase lines which are linked to a routing line which is the last operation.';
+        QtyMismatchTitleLbl: Label 'Quantity Mismatch';
+        QtyMessageLbl: Label 'The quantity (%1) in %2 is greater than the remaining quantity (%3) in %4. In order to open item tracking lines, first adjust the quantity on %4 to at least match the quantity on %2. You can adjust the quantity from %5 to %6 by using the action below.',
+        Comment = '%1 = Warehouse Receipt Line Quantity, %2 = Tablecaption WarehouseReceiptLine, %3 = ProdOrderLine Remaining Qty, %4 = Tablecaption ProdOrderLine, %5 = Current ProdOrderLine Quantity, %6 = WarehouseReceiptLine Quantity';
+        ShowProductionOrderActionLbl: Label 'Show Prod. Order';
+        AdjustQtyActionLbl: Label 'Adjust Quantity';
+        OpenItemTrackingAnywayActionLbl: Label 'Open anyway';
+        CannotOpenProductionOrderErr: Label 'Cannot open Production Order %1.', Comment = '%1=Production Order No.';
+        WarehouseReceiptLineSystemIdCustomDimensionTok: Label 'WarehouseReceiptLineSystemId', Locked = true;
+
+    [EventSubscriber(ObjectType::Table, Database::"Warehouse Receipt Line", OnBeforeOpenItemTrackingLines, '', false, false)]
+    local procedure CheckOverDeliveryOnBeforeOpenItemTrackingLines(var WarehouseReceiptLine: Record "Warehouse Receipt Line"; var IsHandled: Boolean; CallingFieldNo: Integer)
     begin
         if WarehouseReceiptLine."Subc. Purchase Line Type" = "Subc. Purchase Line Type"::None then
             exit;
@@ -154,12 +163,6 @@ codeunit 99001551 "Subc. WhsePostReceipt Ext"
     var
         PurchaseLine: Record "Purchase Line";
         ProdOrderLine: Record "Prod. Order Line";
-        QtyMismatchTitleLbl: Label 'Quantity Mismatch';
-        QtyMessageLbl: Label 'The quantity (%1) in %2 is greater than the remaining quantity (%3) in %4. In order to open item tracking lines, first adjust the quantity on %4 to at least match the quantity on %2. You can adjust the quantity from %5 to %6 by using the action below.',
-        Comment = '%1 = Warehouse Receipt Line Quantity, %2 = Tablecaption WarehouseReceiptLine, %3 = ProdOrderLine Remaining Qty, %4 = Tablecaption ProdOrderLine, %5 = Current ProdOrderLine Quantity, %6 = WarehouseReceiptLine Quantity';
-        ShowProductionOrderActionLbl: Label 'Show Prod. Order';
-        AdjustQtyActionLbl: Label 'Adjust Quantity';
-        OpenItemTrackingAnywayActionLbl: Label 'Open anyway';
         CannotInvoiceErrorInfo: ErrorInfo;
         CustomDimensions: Dictionary of [Text, Text];
     begin
@@ -178,17 +181,17 @@ codeunit 99001551 "Subc. WhsePostReceipt Ext"
             CustomDimensions.Add(GetWarehouseReceiptLineSystemIdCustomDimensionLbl(), WarehouseReceiptLine.SystemId);
             CannotInvoiceErrorInfo.CustomDimensions(CustomDimensions);
             CannotInvoiceErrorInfo.AddAction(
-                StrSubstNo(AdjustQtyActionLbl),
+                AdjustQtyActionLbl,
                 Codeunit::"Subc. WhsePostReceipt Ext",
                 'AdjustProdOrderLineQuantity'
             );
             CannotInvoiceErrorInfo.AddAction(
-                StrSubstNo(ShowProductionOrderActionLbl),
+                ShowProductionOrderActionLbl,
                 Codeunit::"Subc. WhsePostReceipt Ext",
                 'ShowProductionOrder'
             );
             CannotInvoiceErrorInfo.AddAction(
-                StrSubstNo(OpenItemTrackingAnywayActionLbl),
+                OpenItemTrackingAnywayActionLbl,
                 Codeunit::"Subc. Purchase Line Ext",
                 'OpenItemTrackingWithoutAdjustment'
             );
@@ -196,12 +199,15 @@ codeunit 99001551 "Subc. WhsePostReceipt Ext"
         end;
     end;
 
+    /// <summary>
+    /// Opens the Production Order linked to the subcontracting purchase line in order for the user to review the details of the Production Order, such as the remaining quantity on the Production Order Line, before deciding whether to adjust the quantity on the Production Order Line or open the item tracking lines without adjustment.
+    /// </summary>
+    /// <param name="OverDeliveryErrorInfo">ErrorInfo if quantities does not match before. This will hold the reference of the source of the error.</param>
     internal procedure ShowProductionOrder(OverDeliveryErrorInfo: ErrorInfo)
     var
         ProductionOrder: Record "Production Order";
         PurchaseLine: Record "Purchase Line";
         PageManagement: Codeunit "Page Management";
-        CannotOpenProductionOrderErr: Label 'Cannot open Production Order %1.', Comment = '%1=Production Order No.';
     begin
         PurchaseLine.SetLoadFields("Prod. Order No.");
         PurchaseLine.Get(OverDeliveryErrorInfo.RecordId);
@@ -210,6 +216,16 @@ codeunit 99001551 "Subc. WhsePostReceipt Ext"
             Error(CannotOpenProductionOrderErr, ProductionOrder."No.");
     end;
 
+    /// <summary>
+    /// Adjusts the Quantity of of the Production Order Line to at least match the quantity on the Warehouse Receipt Line,
+    /// so that the user can then open the item tracking lines for the Production Order Line from the Warehouse Receipt Line.
+    /// This action is added to an error message that is thrown when the user tries to open item tracking lines from a Warehouse Receipt Line
+    /// which is linked to a subcontracting purchase line with last operation type, and the quantity on the Warehouse Receipt Line
+    /// is greater than the remaining quantity on the linked Production Order Line.
+    /// The action will adjust the quantity on the Production Order Line to match the quantity on the Warehouse Receipt Line,
+    /// and then open the item tracking lines for the Production Order Line.
+    /// </summary>
+    /// <param name="OverDeliveryErrorInfo">ErrorInfo if quantities does not match before. This will hold the reference of the source of the error.</param>
     internal procedure AdjustProdOrderLineQuantity(OverDeliveryErrorInfo: ErrorInfo)
     var
         PurchaseLine: Record "Purchase Line";
@@ -241,6 +257,11 @@ codeunit 99001551 "Subc. WhsePostReceipt Ext"
         OpenItemTrackingOfProdOrderLine(SecondSourceQtyArray, ProdOrderLine);
     end;
 
+    /// <summary>
+    /// Opens the item tracking lines for the Production Order Line without adjusting the quantity,
+    /// even if the quantity on the Warehouse Receipt Line is greater than the remaining quantity on the linked Production Order Line.
+    /// </summary>
+    /// <param name="OverDeliveryErrorInfo">ErrorInfo if quantities does not match before. This will hold the reference of the source of the error.</param>
     internal procedure OpenItemTrackingWithoutAdjustment(OverDeliveryErrorInfo: ErrorInfo)
     var
         PurchaseLine: Record "Purchase Line";
@@ -268,10 +289,13 @@ codeunit 99001551 "Subc. WhsePostReceipt Ext"
         OpenItemTrackingOfProdOrderLine(SecondSourceQtyArray, ProdOrderLine);
     end;
 
+    /// <summary>
+    /// Retrieves the value of WarehouseReceiptLineSystemIdCustomDimensionTok,
+    /// which is the name of the custom dimension used to store the SystemId of the Warehouse Receipt Line in the error info when there is a quantity mismatch.
+    /// </summary>
+    /// <returns></returns>
     procedure GetWarehouseReceiptLineSystemIdCustomDimensionLbl(): Text
-    var
-        WarehouseReceiptLineSystemIdCustomDimensionLbl: Label 'WarehouseReceiptLineSystemId', Locked = true;
     begin
-        exit(WarehouseReceiptLineSystemIdCustomDimensionLbl);
+        exit(WarehouseReceiptLineSystemIdCustomDimensionTok);
     end;
 }

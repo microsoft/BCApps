@@ -37,12 +37,20 @@ tableextension 99001506 "Subc. ProdOrderRtngLine Ext." extends "Prod. Order Rout
         CheckForSubcontractingPurchaseLineTypeMismatchOnDeleteLine();
     end;
 
+    var
+        PurchaseLineTypeMismatchErr: Label 'There is at least one Purchase Line (%1) which is linked to Production Order Routing Line (%2). The Purchase Line cannot be of type %3 for this Production Order Routing Line. Please delete the Purchase line first before changing the Production Order Routing Line.',
+        Comment = '%1 = PurchaseLine Record Id, %2 = Production Order Routing Line Record Id, %3 = Purchase Line Type';
+        PurchaseLineTypeMismatchNotLastOperationErr: Label 'There is at least one Purchase Line (%1) which is linked to Production Order Routing Line (%2). Because the Production Order Routing Line is the last operation after delete, the Purchase Line cannot be of type Not Last Operation. Please delete the Purchase line first before changing the Production Order Routing Line.',
+        Comment = '%1 = PurchaseLine Record Id, %2 = Previous Production Order Routing Line Record Id';
+
+    /// <summary>
+    /// Checks if the prod. order routing line has a linked purchase order line. In case of mismatching last operation or not last operation on changing
+    /// the prod. order routing line order an error will be thrown if the type does not match with purchase line
+    /// </summary>
     internal procedure CheckForSubcontractingPurchaseLineTypeMismatch()
     var
         ProdOrderLine: Record "Prod. Order Line";
         PurchLine: Record "Purchase Line";
-        PurchaseLineTypeMismatchErr: Label 'There is at least one Purchase Line (%1) which is linked to Production Order Routing Line (%2). The Purchase Line cannot be of type %3 for this Production Order Routing Line. Please delete the Purchase line first before changing the Production Order Routing Line.',
-        Comment = '%1 = PurchaseLine Record Id, %2 = Production Order Routing Line Record Id, %3 = Purchase Line Type';
     begin
         if Status <> "Production Order Status"::Released then
             exit;
@@ -79,8 +87,6 @@ tableextension 99001506 "Subc. ProdOrderRtngLine Ext." extends "Prod. Order Rout
         ProdOrderLine: Record "Prod. Order Line";
         PurchLine: Record "Purchase Line";
         PrevProdOrderRoutingLine: Record "Prod. Order Routing Line";
-        PurchaseLineTypeMismatchNotLastOperationErr: Label 'There is at least one Purchase Line (%1) which is linked to Production Order Routing Line (%2). Because the Production Order Routing Line is the last operation after delete, the Purchase Line cannot be of type Not Last Operation. Please delete the Purchase line first before changing the Production Order Routing Line.',
-        Comment = '%1 = PurchaseLine Record Id, %2 = Previous Production Order Routing Line Record Id';
     begin
         if Status <> "Production Order Status"::Released then
             exit;
