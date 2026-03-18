@@ -201,48 +201,7 @@ page 50160 "BC14 Migration Configuration"
                 end;
             }
 
-            action(ResetMigrationStatus)
-            {
-                ApplicationArea = All;
-                Caption = 'Reset Migration Status';
-                ToolTip = 'Reset the migration status to allow replication again. Use this if you need to re-run replication for this company.';
-                Image = ResetStatus;
 
-                trigger OnAction()
-                begin
-                    if not Confirm(ResetMigrationStatusQst, false, Rec.Name) then
-                        exit;
-
-                    Rec.ResetMigrationProgress();
-                    CurrPage.Update(false);
-                    Message(MigrationStatusResetMsg, Rec.Name);
-                end;
-            }
-
-            action(ResetAllCompanies)
-            {
-                ApplicationArea = All;
-                Caption = 'Reset All Companies';
-                ToolTip = 'Reset the migration status for all companies to allow replication again.';
-                Image = Restore;
-
-                trigger OnAction()
-                var
-                    BC14CompanySettings: Record "BC14CompanyMigrationSettings";
-                    Count: Integer;
-                begin
-                    if not Confirm(ResetAllCompaniesQst, false) then
-                        exit;
-
-                    if BC14CompanySettings.FindSet() then
-                        repeat
-                            BC14CompanySettings.ResetMigrationProgress();
-                        until BC14CompanySettings.Next() = 0;
-
-                    Count := BC14CompanySettings.Count();
-                    Message(MigrationStatusResetAllMsg, Count);
-                end;
-            }
 
             // ============ TEMPORARY TEST ACTIONS - DELETE BEFORE SHIPPING ============
 
@@ -489,8 +448,6 @@ page 50160 "BC14 Migration Configuration"
         area(Promoted)
         {
             actionref(ContinueMigrationRef; ContinueMigration) { }
-            actionref(ResetMigrationStatusRef; ResetMigrationStatus) { }
-            actionref(ResetAllCompaniesRef; ResetAllCompanies) { }
 
             group(TestActions)
             {
@@ -506,10 +463,7 @@ page 50160 "BC14 Migration Configuration"
 
     var
         BC14GlobalSettings: Record "BC14 Global Migration Settings";
-        ResetMigrationStatusQst: Label 'Are you sure you want to reset the migration status for company %1?\This will allow replication to run again.', Comment = '%1 = Company Name';
-        ResetAllCompaniesQst: Label 'Are you sure you want to reset the migration status for ALL companies?\This will allow replication to run again for all companies.';
-        MigrationStatusResetMsg: Label 'Migration status has been reset for company %1. You can now run replication again.', Comment = '%1 = Company Name';
-        MigrationStatusResetAllMsg: Label 'Migration status has been reset for %1 companies. You can now run replication again.', Comment = '%1 = Count';
+
         ContinueMigrationQst: Label 'The migration was paused due to an error in %1.\Have you fixed the error? Do you want to continue migration?', Comment = '%1 = Failed Migrator Name';
         IsMigrationPaused: Boolean;
         MigrationStateStyle: Text;

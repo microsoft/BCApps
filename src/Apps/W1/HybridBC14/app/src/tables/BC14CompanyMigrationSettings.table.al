@@ -11,7 +11,7 @@ table 50155 "BC14CompanyMigrationSettings"
 {
     ReplicateData = false;
     DataPerCompany = false;
-    Description = 'Additional Company settings for a BC14 migration';
+    Description = 'Company-level settings for BC14 migration';
 
     fields
     {

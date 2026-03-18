@@ -92,11 +92,31 @@ codeunit 50153 "BC14 Cloud Migration"
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"BC14 Cloud Migration", 'OnUpgradeBC14Company', '', false, false)]
     local procedure HandleOnUpgradeBC14Company(var Success: Boolean)
     var
+        BC14MigrationErrors: Record "BC14 Migration Errors";
         BC14MigrationErrorHandler: Codeunit "BC14 Migration Error Handler";
+        BC14HelperFunctions: Codeunit "BC14 Helper Functions";
+        UnhandledErrorText: Text;
     begin
         ClearLastError();
-        UpgradeBC14Company();
+        // Wrap in TryFunction to catch any unhandled errors that escape the Runner's
+        // record-level TryFunction protection (e.g., errors in IsRecordMigrated, field length
+        // mismatches, or unexpected runtime errors). Without this, such errors propagate to
+        // the Hybrid framework and appear only in the Management page, but NOT in the
+        // BC14 Migration Errors page — making them invisible to the user.
+        if not TryUpgradeBC14Company() then begin
+            UnhandledErrorText := GetLastErrorText();
+            Session.LogMessage('0000ROV', StrSubstNo(UnhandledMigrationErrorLbl, UnhandledErrorText), Verbosity::Error, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', BC14HelperFunctions.GetTelemetryCategory());
+            BC14MigrationErrorHandler.LogError('BC14 Cloud Migration', 0, '', '', 0, UnhandledErrorText, BC14MigrationErrors.RecordId);
+            Success := false;
+            exit;
+        end;
         Success := not BC14MigrationErrorHandler.GetErrorOccurred();
+    end;
+
+    [TryFunction]
+    local procedure TryUpgradeBC14Company()
+    begin
+        UpgradeBC14Company();
     end;
 
     /// <summary>
@@ -155,15 +175,33 @@ codeunit 50153 "BC14 Cloud Migration"
     local procedure InitiateBC14Migration()
     var
         BC14CompanySettings: Record "BC14CompanyMigrationSettings";
+        BC14MigrationErrorHandler: Codeunit "BC14 Migration Error Handler";
         BC14HelperFunctions: Codeunit "BC14 Helper Functions";
         BC14MigrationRunner: Codeunit "BC14 Migration Runner";
     begin
         Session.LogMessage('0000RO4', InitiateMigrationMsg, Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', BC14HelperFunctions.GetTelemetryCategory());
 
-        // Check if migration has already been started for this company - prevent duplicate migration
         BC14CompanySettings.GetSingleInstance();
+
+        // If migration was already started (e.g., a previous run that partially completed or failed),
+        // skip the one-time initialization steps and go straight to the Runner.
+        // The Runner's own Pause/Resume and BC14MigrationRecordStatus logic will handle skipping
+        // already-migrated records and resuming from the correct phase.
         if BC14CompanySettings.IsDataMigrationStarted() then begin
-            Session.LogMessage('0000RO5', MigrationAlreadyStartedSkippingMsg, Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', BC14HelperFunctions.GetTelemetryCategory());
+            if BC14CompanySettings.GetMigrationState() = "BC14 Migration State"::Completed then
+                // In Continue On Error mode, state is Completed even if some records failed.
+                // Only skip if there are truly no unresolved errors left.
+                if not BC14MigrationErrorHandler.ErrorOccurredDuringLastUpgrade() then begin
+                    Session.LogMessage('0000RO5', MigrationAlreadyStartedSkippingMsg, Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', BC14HelperFunctions.GetTelemetryCategory());
+                    exit;
+                end;
+
+            // Previous run did not complete — re-run the Runner to continue/retry
+            Session.LogMessage('0000ROW', MigrationRerunMsg, Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', BC14HelperFunctions.GetTelemetryCategory());
+            BC14HelperFunctions.SetProcessesRunning(true);
+            BC14MigrationRunner.RunMigration();
+            BC14HelperFunctions.CreatePostMigrationData();
+            BC14HelperFunctions.SetProcessesRunning(false);
             exit;
         end;
 
@@ -222,10 +260,12 @@ codeunit 50153 "BC14 Cloud Migration"
         CompanyFailedToMigrateMsg: Label 'Migration did not start because the company setup is still in process.', Locked = true;
         InitiateMigrationMsg: Label 'Initiating BC14 Migration for company.', Locked = true;
         MigrationAlreadyStartedSkippingMsg: Label 'Migration has already been started for this company. Skipping to prevent duplicate data.', Locked = true;
+        MigrationRerunMsg: Label 'Previous migration did not complete. Re-running migration runner to continue/retry.', Locked = true;
         StartMigrationMsg: Label 'Starting BC14 data migration: Setup -> Master -> Transactions -> Historical -> Post Journals.', Locked = true;
         ReplicationSummaryNotFoundMsg: Label 'Hybrid Replication Summary record not found. Exiting upgrade process.', Locked = true;
         UpgradeAlreadyFailedMsg: Label 'Upgrade status is already UpgradeFailed. Skipping further processing.', Locked = true;
         ReplicationFailedMsg: Label 'Replication status is Failed. Skipping upgrade completion.', Locked = true;
         DataTransformationErrorsPresentMsg: Label 'Data transformation errors have occurred. Please review the BC14 Migration Error Overview page for details.';
+        UnhandledMigrationErrorLbl: Label 'Unhandled migration error: %1', Locked = true, Comment = '%1 = Error message';
 
 }

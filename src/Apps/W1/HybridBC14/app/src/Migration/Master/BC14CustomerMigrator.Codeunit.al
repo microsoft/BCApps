@@ -5,6 +5,7 @@
 
 namespace Microsoft.DataMigration.BC14;
 
+using Microsoft.Finance.GeneralLedger.Setup;
 using Microsoft.Sales.Customer;
 
 codeunit 50165 "BC14 Customer Migrator" implements "IMasterMigrator"
@@ -77,7 +78,9 @@ codeunit 50165 "BC14 Customer Migrator" implements "IMasterMigrator"
     internal procedure MigrateCustomer(BC14Customer: Record "BC14 Customer")
     var
         Customer: Record Customer;
+        GeneralLedgerSetup: Record "General Ledger Setup";
         IsNew: Boolean;
+        CurrencyCode: Code[10];
     begin
         IsNew := not Customer.Get(BC14Customer."No.");
         if IsNew then begin
@@ -99,7 +102,15 @@ codeunit 50165 "BC14 Customer Migrator" implements "IMasterMigrator"
         Customer.Validate("Customer Posting Group", BC14Customer."Customer Posting Group");
         Customer.Validate("Gen. Bus. Posting Group", BC14Customer."Gen. Bus. Posting Group");
         Customer.Validate("Payment Terms Code", BC14Customer."Payment Terms Code");
-        Customer.Validate("Currency Code", BC14Customer."Currency Code");
+
+        // LCY (Local Currency) is not stored in the Currency table.
+        // If source Currency Code = LCY Code, set to blank to avoid validation error.
+        CurrencyCode := BC14Customer."Currency Code";
+        if (CurrencyCode <> '') and GeneralLedgerSetup.Get() then
+            if CurrencyCode = GeneralLedgerSetup."LCY Code" then
+                CurrencyCode := '';
+        Customer.Validate("Currency Code", CurrencyCode);
+
         Customer.Validate("Language Code", BC14Customer."Language Code");
         Customer."Credit Limit (LCY)" := BC14Customer."Credit Limit (LCY)";
         Customer.Blocked := BC14Customer.Blocked;

@@ -75,9 +75,18 @@ codeunit 50154 "BC14 Migration Error Handler"
     internal procedure ErrorOccurredDuringLastUpgrade(): Boolean
     var
         BC14MigrationErrorOverview: Record "BC14 Migration Error Overview";
+        BC14MigrationErrors: Record "BC14 Migration Errors";
         BC14GlobalSettings: Record "BC14 Global Migration Settings";
     begin
         BC14GlobalSettings.GetOrInsertGlobalSettings(BC14GlobalSettings);
+
+        // Check BC14 Migration Errors table (populated by Runner's LogError)
+        BC14MigrationErrors.SetRange("Company Name", CopyStr(CompanyName(), 1, 30));
+        BC14MigrationErrors.SetRange("Resolved", false);
+        if not BC14MigrationErrors.IsEmpty() then
+            exit(true);
+
+        // Also check BC14 Migration Error Overview table (populated by Data Migration Error events)
         BC14MigrationErrorOverview.SetRange("Company Name", CompanyName());
         BC14MigrationErrorOverview.SetFilter(SystemModifiedAt, '>%1', BC14GlobalSettings."Data Upgrade Started");
         exit(not BC14MigrationErrorOverview.IsEmpty());
@@ -87,6 +96,8 @@ codeunit 50154 "BC14 Migration Error Handler"
     var
         BC14MigrationErrors: Record "BC14 Migration Errors";
     begin
+        ErrorOccurred := true;
+
         // Check for existing unresolved error for the same source record to avoid duplicates
         BC14MigrationErrors.SetRange("Company Name", CopyStr(CompanyName(), 1, 30));
         BC14MigrationErrors.SetRange("Source Table ID", SourceTableId);
@@ -112,6 +123,33 @@ codeunit 50154 "BC14 Migration Error Handler"
         BC14MigrationErrors."Created On" := CurrentDateTime();
         BC14MigrationErrors."Record Id" := RecId;
         BC14MigrationErrors.Insert(true);
+    end;
+
+    procedure HasUnresolvedError(SourceTableId: Integer; SourceRecordKey: Text[250]): Boolean
+    var
+        BC14MigrationErrors: Record "BC14 Migration Errors";
+    begin
+        BC14MigrationErrors.SetRange("Company Name", CopyStr(CompanyName(), 1, 30));
+        BC14MigrationErrors.SetRange("Source Table ID", SourceTableId);
+        BC14MigrationErrors.SetRange("Source Record Key", SourceRecordKey);
+        BC14MigrationErrors.SetRange("Resolved", false);
+        exit(not BC14MigrationErrors.IsEmpty());
+    end;
+
+    procedure ResolveErrorForRecord(SourceTableId: Integer; SourceRecordKey: Text[250])
+    var
+        BC14MigrationErrors: Record "BC14 Migration Errors";
+    begin
+        BC14MigrationErrors.SetRange("Company Name", CopyStr(CompanyName(), 1, 30));
+        BC14MigrationErrors.SetRange("Source Table ID", SourceTableId);
+        BC14MigrationErrors.SetRange("Source Record Key", SourceRecordKey);
+        BC14MigrationErrors.SetRange("Resolved", false);
+        if BC14MigrationErrors.FindFirst() then begin
+            BC14MigrationErrors."Resolved" := true;
+            BC14MigrationErrors."Resolved On" := CurrentDateTime();
+            BC14MigrationErrors."Resolution Notes" := CopyStr('Auto-resolved: record migrated successfully on retry', 1, 250);
+            BC14MigrationErrors.Modify(true);
+        end;
     end;
 
     var

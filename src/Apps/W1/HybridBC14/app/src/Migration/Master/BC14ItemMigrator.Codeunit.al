@@ -83,12 +83,17 @@ codeunit 50170 "BC14 Item Migrator" implements "IMasterMigrator"
         if IsNew then begin
             Item.Init();
             Item."No." := BC14Item."No.";
+            Item.Description := BC14Item.Description;
+            Item.Type := Enum::"Item Type".FromInteger(BC14Item.Type);
+            Item.Insert(true);
         end;
 
-        // Populate all fields before Insert/Modify to prevent zombie records
+        // Validate Base Unit of Measure after Insert because it triggers Item Unit of Measure
+        // table validation which requires the Item record to already exist.
+        if BC14Item."Base Unit of Measure" <> '' then
+            Item.Validate("Base Unit of Measure", BC14Item."Base Unit of Measure");
         Item.Description := BC14Item.Description;
         Item.Type := Enum::"Item Type".FromInteger(BC14Item.Type);
-        Item.Validate("Base Unit of Measure", BC14Item."Base Unit of Measure");
         Item."Unit Price" := BC14Item."Unit Price";
         Item."Standard Cost" := BC14Item."Standard Cost";
         Item."Unit Cost" := BC14Item."Unit Cost";
@@ -100,10 +105,7 @@ codeunit 50170 "BC14 Item Migrator" implements "IMasterMigrator"
 
         OnTransferItemCustomFields(BC14Item, Item);
 
-        if IsNew then
-            Item.Insert(true)
-        else
-            Item.Modify(true);
+        Item.Modify(true);
     end;
 
     [IntegrationEvent(false, false)]

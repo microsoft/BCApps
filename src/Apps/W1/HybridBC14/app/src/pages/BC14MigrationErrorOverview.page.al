@@ -135,11 +135,8 @@ page 50163 "BC14 Migration Error Overview"
                 trigger OnAction()
                 var
                     SelectedErrors: Record "BC14 Migration Errors";
-                    BC14CompanySettings: Record "BC14CompanyMigrationSettings";
                     BC14MigrationRunner: Codeunit "BC14 Migration Runner";
                     RetryCount: Integer;
-                    IsPaused: Boolean;
-                    StopOnFirstError: Boolean;
                 begin
                     CurrPage.SetSelectionFilter(SelectedErrors);
                     RetryCount := SelectedErrors.Count();
@@ -149,10 +146,6 @@ page 50163 "BC14 Migration Error Overview"
                         exit;
                     end;
 
-                    BC14CompanySettings.GetSingleInstance();
-                    IsPaused := BC14CompanySettings.IsMigrationPaused();
-                    StopOnFirstError := BC14CompanySettings.GetStopOnFirstTransformationError();
-
                     if not Confirm(RetrySelectedQst, false, RetryCount) then
                         exit;
 
@@ -160,24 +153,15 @@ page 50163 "BC14 Migration Error Overview"
                     SelectedErrors.ModifyAll("Scheduled For Retry", true);
                     Commit();
 
-                    // Run retry for the selected records
+                    // Run retry - this runs the full migration with confirmations suppressed
                     BC14MigrationRunner.RetryFailedRecords();
 
-                    // If in Stop On First Error mode and migration was paused, 
-                    // automatically continue migration after retry
-                    if StopOnFirstError and IsPaused then begin
-                        // Check if the retried records were resolved
-                        SelectedErrors.SetRange("Resolved", true);
-                        if SelectedErrors.Count() = RetryCount then begin
-                            // All selected records resolved - continue migration
-                            if Confirm(RetrySuccessContinueQst) then
-                                BC14MigrationRunner.ContinueMigration()
-                            else
-                                Message(RetrySuccessManualContinueMsg);
-                        end else
-                            Message(RetryPartialSuccessMsg);
-                    end else
-                        Message(RetryCompletedMsg);
+                    // Show single completion message
+                    SelectedErrors.SetRange("Resolved", true);
+                    if SelectedErrors.Count() = RetryCount then
+                        Message(RetryCompletedMsg)
+                    else
+                        Message(RetryPartialSuccessMsg);
 
                     CurrPage.Update(false);
                 end;
@@ -229,8 +213,6 @@ page 50163 "BC14 Migration Error Overview"
         RetrySelectedQst: Label 'Retry migration for %1 selected record(s)?', Comment = '%1 = Count';
         ErrorsDeletedMsg: Label '%1 error records have been deleted.', Comment = '%1 = Count';
         RetryCompletedMsg: Label 'Retry completed. Check the list - resolved records show Resolved = Yes.';
-        RetrySuccessContinueQst: Label 'All selected records were migrated successfully.\Do you want to continue the migration now?';
-        RetrySuccessManualContinueMsg: Label 'Retry successful. Use "Continue Migration" in BC14 Migration Configuration when ready to continue.';
         RetryPartialSuccessMsg: Label 'Retry completed but some records still have errors. Fix them and retry again.';
         SourceRecordNotAvailableMsg: Label 'Source record %2 in table %1 cannot be opened. The record reference is unavailable.', Comment = '%1 = Source Table Name, %2 = Source Record Key';
 }

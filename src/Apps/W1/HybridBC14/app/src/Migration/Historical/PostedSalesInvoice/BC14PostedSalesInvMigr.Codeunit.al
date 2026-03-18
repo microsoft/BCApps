@@ -56,7 +56,7 @@ codeunit 50180 "BC14 Posted Sales Inv Migr." implements "IHistoricalMigrator"
     var
         NoFieldRef: FieldRef;
     begin
-        NoFieldRef := SourceRecordRef.Field(3); // No. field
+        NoFieldRef := SourceRecordRef.Field(1); // No. field
         exit(Format(NoFieldRef.Value()));
     end;
 

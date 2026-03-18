@@ -5,6 +5,7 @@
 
 namespace Microsoft.DataMigration.BC14;
 
+using Microsoft.Finance.GeneralLedger.Setup;
 using Microsoft.Purchases.Vendor;
 
 codeunit 50167 "BC14 Vendor Migrator" implements "IMasterMigrator"
@@ -77,7 +78,9 @@ codeunit 50167 "BC14 Vendor Migrator" implements "IMasterMigrator"
     internal procedure MigrateVendor(BC14Vendor: Record "BC14 Vendor")
     var
         Vendor: Record Vendor;
+        GeneralLedgerSetup: Record "General Ledger Setup";
         IsNew: Boolean;
+        CurrencyCode: Code[10];
     begin
         IsNew := not Vendor.Get(BC14Vendor."No.");
         if IsNew then begin
@@ -98,7 +101,15 @@ codeunit 50167 "BC14 Vendor Migrator" implements "IMasterMigrator"
         Vendor."Vendor Posting Group" := BC14Vendor."Vendor Posting Group";
         Vendor."Gen. Bus. Posting Group" := BC14Vendor."Gen. Bus. Posting Group";
         Vendor."Payment Terms Code" := BC14Vendor."Payment Terms Code";
-        Vendor."Currency Code" := BC14Vendor."Currency Code";
+
+        // LCY (Local Currency) is not stored in the Currency table.
+        // If source Currency Code = LCY Code, set to blank to avoid validation error.
+        CurrencyCode := BC14Vendor."Currency Code";
+        if (CurrencyCode <> '') and GeneralLedgerSetup.Get() then
+            if CurrencyCode = GeneralLedgerSetup."LCY Code" then
+                CurrencyCode := '';
+        Vendor."Currency Code" := CurrencyCode;
+
         Vendor."Language Code" := BC14Vendor."Language Code";
         Vendor.Blocked := BC14Vendor.Blocked;
 
