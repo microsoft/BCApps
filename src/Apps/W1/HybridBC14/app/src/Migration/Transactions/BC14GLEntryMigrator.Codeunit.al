@@ -101,7 +101,6 @@ codeunit 50188 "BC14 G/L Entry Migrator" implements "ITransactionMigrator"
         GenJournalLine: Record "Gen. Journal Line";
         BC14HelperFunctions: Codeunit "BC14 Helper Functions";
         LineNo: Integer;
-        OriginalDirectPosting: Boolean;
     begin
         // Check if G/L Account exists
         if not GLAccount.Get(BC14GLEntry."G/L Account No.") then
@@ -111,12 +110,7 @@ codeunit 50188 "BC14 G/L Entry Migrator" implements "ITransactionMigrator"
         if GLAccount."Account Type" <> GLAccount."Account Type"::Posting then
             exit;
 
-        // Temporarily enable Direct Posting if disabled (for migration purposes)
-        OriginalDirectPosting := GLAccount."Direct Posting";
-        if not GLAccount."Direct Posting" then begin
-            GLAccount."Direct Posting" := true;
-            GLAccount.Modify();
-        end;
+        // Direct Posting is handled by Runner.EnableDirectPostingOnAllAccounts() before posting phase
 
         // Get next line number
         GenJournalLine.SetRange("Journal Template Name", BC14HelperFunctions.GetGeneralJournalTemplateName());
@@ -160,12 +154,6 @@ codeunit 50188 "BC14 G/L Entry Migrator" implements "ITransactionMigrator"
         OnTransferGLEntryCustomFields(BC14GLEntry, GenJournalLine);
 
         GenJournalLine.Modify(true);
-
-        // Restore original Direct Posting setting
-        if not OriginalDirectPosting then begin
-            GLAccount."Direct Posting" := false;
-            GLAccount.Modify();
-        end;
     end;
 
     /// <summary>

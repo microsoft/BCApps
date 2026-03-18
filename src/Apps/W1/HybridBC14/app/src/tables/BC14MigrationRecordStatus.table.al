@@ -78,10 +78,28 @@ table 50199 "BC14 Migration Record Status"
     procedure ClearAllMigrationStatus(): Integer
     var
         DeletedCount: Integer;
+        BatchCount: Integer;
+        BatchSize: Integer;
     begin
+        BatchSize := 10000;
         SetRange("Company Name", CompanyName());
         DeletedCount := Count();
-        DeleteAll();
+
+        // Delete in batches to avoid lock escalation and transaction log overflow on large tables
+        if DeletedCount <= BatchSize then
+            DeleteAll()
+        else
+            repeat
+                Clear(BatchCount);
+                SetRange("Company Name", CompanyName());
+                if FindSet() then
+                    repeat
+                        Delete();
+                        BatchCount += 1;
+                    until (Next() = 0) or (BatchCount >= BatchSize);
+                Commit();
+            until BatchCount < BatchSize;
+
         exit(DeletedCount);
     end;
 }

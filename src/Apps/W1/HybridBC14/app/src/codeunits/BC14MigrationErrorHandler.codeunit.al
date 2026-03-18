@@ -87,6 +87,20 @@ codeunit 50154 "BC14 Migration Error Handler"
     var
         BC14MigrationErrors: Record "BC14 Migration Errors";
     begin
+        // Check for existing unresolved error for the same source record to avoid duplicates
+        BC14MigrationErrors.SetRange("Company Name", CopyStr(CompanyName(), 1, 30));
+        BC14MigrationErrors.SetRange("Source Table ID", SourceTableId);
+        BC14MigrationErrors.SetRange("Source Record Key", SourceRecordKey);
+        BC14MigrationErrors.SetRange("Resolved", false);
+        if BC14MigrationErrors.FindFirst() then begin
+            BC14MigrationErrors."Error Message" := CopyStr(ErrorMessage, 1, 250);
+            BC14MigrationErrors."Retry Count" += 1;
+            BC14MigrationErrors."Last Retry On" := CurrentDateTime();
+            BC14MigrationErrors."Record Id" := RecId;
+            BC14MigrationErrors.Modify(true);
+            exit;
+        end;
+
         BC14MigrationErrors.Init();
         BC14MigrationErrors."Migration Type" := MigrationType;
         BC14MigrationErrors."Source Table ID" := SourceTableId;

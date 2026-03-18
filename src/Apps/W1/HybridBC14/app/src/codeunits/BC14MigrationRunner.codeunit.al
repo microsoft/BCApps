@@ -118,6 +118,7 @@ codeunit 50175 "BC14 Migration Runner"
         BC14CompanySettings: Record "BC14CompanyMigrationSettings";
         BC14HelperFunctions: Codeunit "BC14 Helper Functions";
         TotalErrors: Integer;
+        AllBatchesPosted: Boolean;
     begin
         if StartPhase = "BC14 Migration State"::Completed then
             exit;
@@ -136,14 +137,17 @@ codeunit 50175 "BC14 Migration Runner"
 
         // Post all migration journal batches (unless skipped)
         BC14CompanySettings.SetMigrationState("BC14 Migration State"::Posting);
-        PostMigrationJournals();
+        AllBatchesPosted := PostMigrationJournals();
 
         // Mark migration as completed
         BC14CompanySettings.SetMigrationState("BC14 Migration State"::Completed);
         BC14CompanySettings.SetMigrationPhaseCompleted("BC14 Migration State"::Completed, '');
 
-        // Clean up migration progress tracking table (it can grow large for GL Entry migrations)
-        CleanupMigrationRecordStatus();
+        // Only clean up migration record status if all journal batches posted successfully.
+        // If any batch failed, keep status records so rerun can correctly skip already-migrated records
+        // and avoid creating duplicate journal lines.
+        if AllBatchesPosted then
+            CleanupMigrationRecordStatus();
 
         TotalErrors := GetTotalErrorCount();
         Session.LogMessage('0000ROE', StrSubstNo(MigrationCompletedMsg, CompanyName(), TotalErrors), Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', BC14HelperFunctions.GetTelemetryCategory());
@@ -201,6 +205,7 @@ codeunit 50175 "BC14 Migration Runner"
         Success: Boolean;
         MigratorSuccess: Boolean;
         SkipMigrator: Boolean;
+        SkipRecord: Boolean;
         SourceTableId: Integer;
         RecordKey: Text[250];
     begin
@@ -229,17 +234,22 @@ codeunit 50175 "BC14 Migration Runner"
                     if SourceRecordRef.FindSet() then
                         repeat
                             // Skip already migrated records
-                            if not SetupMigrator.IsRecordMigrated(SourceRecordRef) then
-                                if not SetupMigrator.MigrateRecord(SourceRecordRef) then begin
-                                    RecordKey := SetupMigrator.GetSourceRecordKey(SourceRecordRef);
-                                    BC14MigrationErrorHandler.LogError(SetupMigrator.GetName(), SourceTableId, SourceRecordRef.Name, RecordKey, 0, GetLastErrorText(), SourceRecordRef.RecordId);
-                                    MigratorSuccess := false;
-                                    if StopOnFirstError then begin
-                                        SourceRecordRef.Close();
-                                        exit(false);
-                                    end;
-                                    ClearLastError();
-                                end;
+                            if not SetupMigrator.IsRecordMigrated(SourceRecordRef) then begin
+                                SkipRecord := false;
+                                OnBeforeMigrateRecord(SetupMigrator.GetName(), SourceRecordRef, SkipRecord);
+                                if not SkipRecord then
+                                    if not SetupMigrator.MigrateRecord(SourceRecordRef) then begin
+                                        RecordKey := SetupMigrator.GetSourceRecordKey(SourceRecordRef);
+                                        BC14MigrationErrorHandler.LogError(SetupMigrator.GetName(), SourceTableId, SourceRecordRef.Name, RecordKey, 0, GetLastErrorText(), SourceRecordRef.RecordId);
+                                        MigratorSuccess := false;
+                                        if StopOnFirstError then begin
+                                            SourceRecordRef.Close();
+                                            exit(false);
+                                        end;
+                                        ClearLastError();
+                                    end else
+                                        OnAfterMigrateRecord(SetupMigrator.GetName(), SourceRecordRef);
+                            end;
                         until SourceRecordRef.Next() = 0;
                     SourceRecordRef.Close();
                 end;
@@ -270,6 +280,7 @@ codeunit 50175 "BC14 Migration Runner"
         Success: Boolean;
         MigratorSuccess: Boolean;
         SkipMigrator: Boolean;
+        SkipRecord: Boolean;
         SourceTableId: Integer;
         RecordKey: Text[250];
     begin
@@ -297,17 +308,22 @@ codeunit 50175 "BC14 Migration Runner"
                 if SourceRecordRef.FindSet() then
                     repeat
                         // Skip already migrated records
-                        if not MasterMigrator.IsRecordMigrated(SourceRecordRef) then
-                            if not MasterMigrator.MigrateRecord(SourceRecordRef) then begin
-                                RecordKey := MasterMigrator.GetSourceRecordKey(SourceRecordRef);
-                                BC14MigrationErrorHandler.LogError(MasterMigrator.GetName(), SourceTableId, SourceRecordRef.Name, RecordKey, 0, GetLastErrorText(), SourceRecordRef.RecordId);
-                                MigratorSuccess := false;
-                                if StopOnFirstError then begin
-                                    SourceRecordRef.Close();
-                                    exit(false);
-                                end;
-                                ClearLastError();
-                            end;
+                        if not MasterMigrator.IsRecordMigrated(SourceRecordRef) then begin
+                            SkipRecord := false;
+                            OnBeforeMigrateRecord(MasterMigrator.GetName(), SourceRecordRef, SkipRecord);
+                            if not SkipRecord then
+                                if not MasterMigrator.MigrateRecord(SourceRecordRef) then begin
+                                    RecordKey := MasterMigrator.GetSourceRecordKey(SourceRecordRef);
+                                    BC14MigrationErrorHandler.LogError(MasterMigrator.GetName(), SourceTableId, SourceRecordRef.Name, RecordKey, 0, GetLastErrorText(), SourceRecordRef.RecordId);
+                                    MigratorSuccess := false;
+                                    if StopOnFirstError then begin
+                                        SourceRecordRef.Close();
+                                        exit(false);
+                                    end;
+                                    ClearLastError();
+                                end else
+                                    OnAfterMigrateRecord(MasterMigrator.GetName(), SourceRecordRef);
+                        end;
                     until SourceRecordRef.Next() = 0;
                 SourceRecordRef.Close();
 
@@ -337,6 +353,7 @@ codeunit 50175 "BC14 Migration Runner"
         Success: Boolean;
         MigratorSuccess: Boolean;
         SkipMigrator: Boolean;
+        SkipRecord: Boolean;
         SourceTableId: Integer;
         RecordKey: Text[250];
     begin
@@ -364,17 +381,22 @@ codeunit 50175 "BC14 Migration Runner"
                 if SourceRecordRef.FindSet() then
                     repeat
                         // Skip already migrated records
-                        if not TransactionMigrator.IsRecordMigrated(SourceRecordRef) then
-                            if not TransactionMigrator.MigrateRecord(SourceRecordRef) then begin
-                                RecordKey := TransactionMigrator.GetSourceRecordKey(SourceRecordRef);
-                                BC14MigrationErrorHandler.LogError(TransactionMigrator.GetName(), SourceTableId, SourceRecordRef.Name, RecordKey, 0, GetLastErrorText(), SourceRecordRef.RecordId);
-                                MigratorSuccess := false;
-                                if StopOnFirstError then begin
-                                    SourceRecordRef.Close();
-                                    exit(false);
-                                end;
-                                ClearLastError();
-                            end;
+                        if not TransactionMigrator.IsRecordMigrated(SourceRecordRef) then begin
+                            SkipRecord := false;
+                            OnBeforeMigrateRecord(TransactionMigrator.GetName(), SourceRecordRef, SkipRecord);
+                            if not SkipRecord then
+                                if not TransactionMigrator.MigrateRecord(SourceRecordRef) then begin
+                                    RecordKey := TransactionMigrator.GetSourceRecordKey(SourceRecordRef);
+                                    BC14MigrationErrorHandler.LogError(TransactionMigrator.GetName(), SourceTableId, SourceRecordRef.Name, RecordKey, 0, GetLastErrorText(), SourceRecordRef.RecordId);
+                                    MigratorSuccess := false;
+                                    if StopOnFirstError then begin
+                                        SourceRecordRef.Close();
+                                        exit(false);
+                                    end;
+                                    ClearLastError();
+                                end else
+                                    OnAfterMigrateRecord(TransactionMigrator.GetName(), SourceRecordRef);
+                        end;
                     until SourceRecordRef.Next() = 0;
                 SourceRecordRef.Close();
 
@@ -404,6 +426,7 @@ codeunit 50175 "BC14 Migration Runner"
         Success: Boolean;
         MigratorSuccess: Boolean;
         SkipMigrator: Boolean;
+        SkipRecord: Boolean;
         SourceTableId: Integer;
         RecordKey: Text[250];
     begin
@@ -431,17 +454,22 @@ codeunit 50175 "BC14 Migration Runner"
                 if SourceRecordRef.FindSet() then
                     repeat
                         // Skip already migrated records
-                        if not HistoricalMigrator.IsRecordMigrated(SourceRecordRef) then
-                            if not HistoricalMigrator.MigrateRecord(SourceRecordRef) then begin
-                                RecordKey := HistoricalMigrator.GetSourceRecordKey(SourceRecordRef);
-                                BC14MigrationErrorHandler.LogError(HistoricalMigrator.GetName(), SourceTableId, SourceRecordRef.Name, RecordKey, 0, GetLastErrorText(), SourceRecordRef.RecordId);
-                                MigratorSuccess := false;
-                                if StopOnFirstError then begin
-                                    SourceRecordRef.Close();
-                                    exit(false);
-                                end;
-                                ClearLastError();
-                            end;
+                        if not HistoricalMigrator.IsRecordMigrated(SourceRecordRef) then begin
+                            SkipRecord := false;
+                            OnBeforeMigrateRecord(HistoricalMigrator.GetName(), SourceRecordRef, SkipRecord);
+                            if not SkipRecord then
+                                if not HistoricalMigrator.MigrateRecord(SourceRecordRef) then begin
+                                    RecordKey := HistoricalMigrator.GetSourceRecordKey(SourceRecordRef);
+                                    BC14MigrationErrorHandler.LogError(HistoricalMigrator.GetName(), SourceTableId, SourceRecordRef.Name, RecordKey, 0, GetLastErrorText(), SourceRecordRef.RecordId);
+                                    MigratorSuccess := false;
+                                    if StopOnFirstError then begin
+                                        SourceRecordRef.Close();
+                                        exit(false);
+                                    end;
+                                    ClearLastError();
+                                end else
+                                    OnAfterMigrateRecord(HistoricalMigrator.GetName(), SourceRecordRef);
+                        end;
                     until SourceRecordRef.Next() = 0;
                 SourceRecordRef.Close();
 
@@ -510,7 +538,7 @@ codeunit 50175 "BC14 Migration Runner"
     /// Posts all migration journal batches.
     /// Provides events for extensions to add custom logic before/after posting.
     /// </summary>
-    procedure PostMigrationJournals()
+    procedure PostMigrationJournals(): Boolean
     var
         GenJournalLine: Record "Gen. Journal Line";
         GenJournalBatch: Record "Gen. Journal Batch";
@@ -520,6 +548,7 @@ codeunit 50175 "BC14 Migration Runner"
         TemplateName: Code[10];
         SkipPosting: Boolean;
         BatchCount: Integer;
+        FailedBatchCount: Integer;
         CleanedLinesCount: Integer;
     begin
         BC14CompanySettings.GetSingleInstance();
@@ -530,7 +559,7 @@ codeunit 50175 "BC14 Migration Runner"
 
         if SkipPosting then begin
             Session.LogMessage('0000ROF', PostMigrationJournalsSkippedLbl, Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', BC14HelperFunctions.GetTelemetryCategory());
-            exit;
+            exit(true);
         end;
 
         TemplateName := BC14HelperFunctions.GetGeneralJournalTemplateName();
@@ -559,6 +588,7 @@ codeunit 50175 "BC14 Migration Runner"
                     if not TryPostJournalBatch(GenJournalLine) then begin
                         // Log detailed error for posting failure
                         BC14MigrationErrorHandler.LogError(StrSubstNo(JournalPostingLbl, GenJournalBatch.Name), Database::"Gen. Journal Line", 'Gen. Journal Line', StrSubstNo(JournalBatchInfoLbl, TemplateName, GenJournalBatch.Name), Database::"Gen. Journal Line", GetLastErrorText(), GenJournalLine.RecordId);
+                        FailedBatchCount += 1;
                         ClearLastError();
                     end else
                         BatchCount += 1;
@@ -568,6 +598,8 @@ codeunit 50175 "BC14 Migration Runner"
 
         // Allow extensions to run custom logic after posting
         OnAfterPostMigrationJournals(BatchCount);
+
+        exit(FailedBatchCount = 0);
     end;
 
     [TryFunction]
@@ -692,6 +724,29 @@ codeunit 50175 "BC14 Migration Runner"
     /// <param name="RecordCount">The number of records processed.</param>
     [IntegrationEvent(false, false)]
     procedure OnAfterRunMigrator(MigratorName: Text[250]; Success: Boolean; RecordCount: Integer)
+    begin
+    end;
+
+    /// <summary>
+    /// Integration event raised before migrating a single record.
+    /// Subscribe to perform per-record pre-processing or to skip specific records.
+    /// </summary>
+    /// <param name="MigratorName">The name of the migrator processing this record.</param>
+    /// <param name="SourceRecordRef">The source record about to be migrated.</param>
+    /// <param name="SkipRecord">Set to true to skip this record.</param>
+    [IntegrationEvent(false, false)]
+    local procedure OnBeforeMigrateRecord(MigratorName: Text[250]; var SourceRecordRef: RecordRef; var SkipRecord: Boolean)
+    begin
+    end;
+
+    /// <summary>
+    /// Integration event raised after successfully migrating a single record.
+    /// Subscribe to perform per-record post-processing.
+    /// </summary>
+    /// <param name="MigratorName">The name of the migrator that processed this record.</param>
+    /// <param name="SourceRecordRef">The source record that was migrated.</param>
+    [IntegrationEvent(false, false)]
+    local procedure OnAfterMigrateRecord(MigratorName: Text[250]; var SourceRecordRef: RecordRef)
     begin
     end;
 }

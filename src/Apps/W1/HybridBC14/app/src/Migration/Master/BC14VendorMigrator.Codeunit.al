@@ -77,13 +77,15 @@ codeunit 50167 "BC14 Vendor Migrator" implements "IMasterMigrator"
     internal procedure MigrateVendor(BC14Vendor: Record "BC14 Vendor")
     var
         Vendor: Record Vendor;
+        IsNew: Boolean;
     begin
-        if not Vendor.Get(BC14Vendor."No.") then begin
+        IsNew := not Vendor.Get(BC14Vendor."No.");
+        if IsNew then begin
             Vendor.Init();
             Vendor."No." := BC14Vendor."No.";
-            Vendor.Insert(true);
         end;
 
+        // Populate all fields before Insert/Modify to prevent zombie records
         Vendor.Name := BC14Vendor.Name;
         Vendor.Address := BC14Vendor.Address;
         Vendor."Address 2" := BC14Vendor."Address 2";
@@ -102,7 +104,10 @@ codeunit 50167 "BC14 Vendor Migrator" implements "IMasterMigrator"
 
         OnTransferVendorCustomFields(BC14Vendor, Vendor);
 
-        Vendor.Modify(true);
+        if IsNew then
+            Vendor.Insert(true)
+        else
+            Vendor.Modify(true);
     end;
 
     [IntegrationEvent(false, false)]

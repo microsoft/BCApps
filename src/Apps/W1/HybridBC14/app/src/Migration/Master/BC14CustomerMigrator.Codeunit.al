@@ -77,13 +77,16 @@ codeunit 50165 "BC14 Customer Migrator" implements "IMasterMigrator"
     internal procedure MigrateCustomer(BC14Customer: Record "BC14 Customer")
     var
         Customer: Record Customer;
+        IsNew: Boolean;
     begin
-        if not Customer.Get(BC14Customer."No.") then begin
+        IsNew := not Customer.Get(BC14Customer."No.");
+        if IsNew then begin
             Customer.Init();
             Customer."No." := BC14Customer."No.";
-            Customer.Insert(true);
         end;
 
+        // Populate all fields before Insert/Modify to prevent zombie records
+        // (Insert succeeds but subsequent Modify fails leaving incomplete data)
         Customer.Name := BC14Customer.Name;
         Customer.Address := BC14Customer.Address;
         Customer."Address 2" := BC14Customer."Address 2";
@@ -103,7 +106,10 @@ codeunit 50165 "BC14 Customer Migrator" implements "IMasterMigrator"
 
         OnTransferCustomerCustomFields(BC14Customer, Customer);
 
-        Customer.Modify(true);
+        if IsNew then
+            Customer.Insert(true)
+        else
+            Customer.Modify(true);
     end;
 
     /// <summary>

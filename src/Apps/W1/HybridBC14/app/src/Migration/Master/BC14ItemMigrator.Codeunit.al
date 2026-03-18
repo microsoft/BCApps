@@ -77,13 +77,15 @@ codeunit 50170 "BC14 Item Migrator" implements "IMasterMigrator"
     internal procedure MigrateItem(BC14Item: Record "BC14 Item")
     var
         Item: Record Item;
+        IsNew: Boolean;
     begin
-        if not Item.Get(BC14Item."No.") then begin
+        IsNew := not Item.Get(BC14Item."No.");
+        if IsNew then begin
             Item.Init();
             Item."No." := BC14Item."No.";
-            Item.Insert(true);
         end;
 
+        // Populate all fields before Insert/Modify to prevent zombie records
         Item.Description := BC14Item.Description;
         Item.Type := Enum::"Item Type".FromInteger(BC14Item.Type);
         Item.Validate("Base Unit of Measure", BC14Item."Base Unit of Measure");
@@ -98,7 +100,10 @@ codeunit 50170 "BC14 Item Migrator" implements "IMasterMigrator"
 
         OnTransferItemCustomFields(BC14Item, Item);
 
-        Item.Modify(true);
+        if IsNew then
+            Item.Insert(true)
+        else
+            Item.Modify(true);
     end;
 
     [IntegrationEvent(false, false)]

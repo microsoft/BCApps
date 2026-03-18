@@ -77,13 +77,15 @@ codeunit 50169 "BC14 GL Account Migrator" implements "IMasterMigrator"
     internal procedure MigrateGLAccount(BC14GLAccount: Record "BC14 G/L Account")
     var
         GLAccount: Record "G/L Account";
+        IsNew: Boolean;
     begin
-        if not GLAccount.Get(BC14GLAccount."No.") then begin
+        IsNew := not GLAccount.Get(BC14GLAccount."No.");
+        if IsNew then begin
             GLAccount.Init();
             GLAccount."No." := BC14GLAccount."No.";
-            GLAccount.Insert(true);
         end;
 
+        // Populate all fields before Insert/Modify to prevent zombie records
         GLAccount.Name := BC14GLAccount.Name;
         GLAccount."Account Type" := BC14GLAccount."Account Type";
         GLAccount."Income/Balance" := BC14GLAccount."Income/Balance";
@@ -96,7 +98,10 @@ codeunit 50169 "BC14 GL Account Migrator" implements "IMasterMigrator"
 
         OnTransferGLAccountCustomFields(BC14GLAccount, GLAccount);
 
-        GLAccount.Modify(true);
+        if IsNew then
+            GLAccount.Insert(true)
+        else
+            GLAccount.Modify(true);
     end;
 
     [IntegrationEvent(false, false)]
