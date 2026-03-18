@@ -59,10 +59,16 @@ codeunit 149042 "AIT Test Run Iteration"
 
     local procedure RunAITTestMethodLine(var AITTestMethodLine: Record "AIT Test Method Line"; var AITTestSuite: Record "AIT Test Suite")
     var
+        AITCreditLimitMgt: Codeunit "AIT Credit Limit Mgt.";
         AITTestSuiteMgt: Codeunit "AIT Test Suite Mgt.";
     begin
         OnBeforeRunIteration(AITTestSuite, AITTestMethodLine, RunAllTests, UpdateTestSuite);
         RunIteration(AITTestMethodLine);
+
+        // After tests complete, check if credit limit was reached and update line status
+        if AITCreditLimitMgt.IsCreditLimitReachedDuringRun() then
+            SetLineStatusToSkipped();
+
         Commit();
 
         AITTestSuiteMgt.DecreaseNoOfTestsRunningNow(AITTestSuite);
@@ -162,6 +168,19 @@ codeunit 149042 "AIT Test Run Iteration"
         GlobalExternalAITokenUsedByLastTestMethodLine += TokensUsed;
     end;
 
+    local procedure SetLineStatusToSkipped()
+    var
+        AITTestMethodLine: Record "AIT Test Method Line";
+    begin
+        if GlobalAITTestMethodLine."Test Suite Code" = '' then
+            exit;
+
+        if AITTestMethodLine.Get(GlobalAITTestMethodLine."Test Suite Code", GlobalAITTestMethodLine."Line No.") then begin
+            AITTestMethodLine.Validate(Status, AITTestMethodLine.Status::Skipped);
+            AITTestMethodLine.Modify(true);
+        end;
+    end;
+
     [InternalEvent(false)]
     procedure OnBeforeRunIteration(var AITTestSuite: Record "AIT Test Suite"; var AITTestMethodLine: Record "AIT Test Method Line"; var RunAllTests: Boolean; var UpdateTestSuite: Boolean)
     begin
@@ -184,9 +203,11 @@ codeunit 149042 "AIT Test Run Iteration"
         if FunctionName = '' then
             exit;
 
-        // Check if credit limit was reached - if so, skip this test
-        if AITCreditLimitMgt.ShouldSkipTestDueToCreditLimit() then
+        // Check if credit limit was reached - if so, update line status and skip this test
+        if AITCreditLimitMgt.ShouldSkipTestDueToCreditLimit() then begin
+            SetLineStatusToSkipped();
             Error(CreditLimitReachedSkipTestErr);
+        end;
 
         GlobalTestMethodLine := CurrentTestMethodLine;
 

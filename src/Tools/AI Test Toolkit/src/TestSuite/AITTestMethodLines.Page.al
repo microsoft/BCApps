@@ -69,6 +69,7 @@ page 149034 "AIT Test Method Lines"
                 }
                 field(Status; Rec.Status)
                 {
+                    StyleExpr = StatusStyle;
                 }
                 field("No. of Tests Executed"; Rec."No. of Tests Executed")
                 {
@@ -266,6 +267,7 @@ page 149034 "AIT Test Method Lines"
         NoLineSelectedErr: Label 'Select a line to compare';
         TurnsText: Text;
         EvaluationSetupTxt: Text;
+        StatusStyle: Text;
 
     trigger OnInsertRecord(BelowxRec: Boolean): Boolean
     begin
@@ -289,6 +291,23 @@ page 149034 "AIT Test Method Lines"
     begin
         EvaluationSetupTxt := AITTestSuiteMgt.GetEvaluationSetupText(CopyStr(Rec."Test Suite Code", 1, 10), Rec."Line No.");
         TurnsText := AITTestSuiteMgt.GetTurnsAsText(Rec);
+        UpdateStatusStyle();
+    end;
+
+    local procedure UpdateStatusStyle()
+    begin
+        case Rec.Status of
+            Rec.Status::Running:
+                StatusStyle := 'Attention';
+            Rec.Status::Completed:
+                StatusStyle := 'Favorable';
+            Rec.Status::Cancelled:
+                StatusStyle := 'Unfavorable';
+            Rec.Status::Skipped:
+                StatusStyle := 'Attention';
+            else
+                StatusStyle := 'Standard';
+        end;
     end;
 
     local procedure GetAvg(NumIterations: Integer; TotalNo: Integer): Integer
