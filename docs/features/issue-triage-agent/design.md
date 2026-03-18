@@ -67,7 +67,7 @@ The agent operates in two internal phases:
 - **FR7**: Based on the total quality score, assign a readiness verdict:
 
   - **READY** (75-100): Issue is well-specified; proceed to Phase 2 enrichment
-  - **NEEDS WORK** (40-74): Issue has gaps; agent posts a comment requesting specific information and skips Phase 2
+  - **NEEDS WORK** (40-74): Issue has gaps; agent posts a comment requesting specific information but still proceeds to Phase 2 enrichment
   - **INSUFFICIENT** (0-39): Issue lacks critical information; agent posts a comment requesting specific information, applies `needs-info` label, and skips Phase 2
 
 - **FR8**: For NEEDS WORK and INSUFFICIENT verdicts, the agent must specify exactly what information is missing (not generic "please add more details").
