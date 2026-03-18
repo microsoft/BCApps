@@ -46,12 +46,16 @@ codeunit 149034 "AIT Test Suite Mgt."
     procedure StartAITSuite(var AITTestSuite: Record "AIT Test Suite")
     var
         AITTestSuite2: Record "AIT Test Suite";
+        AITCreditLimitMgt: Codeunit "AIT Credit Limit Mgt.";
     begin
         // If there is already a suite running, then error
         AITTestSuite2.ReadIsolation := IsolationLevel::ReadUncommitted;
         AITTestSuite2.SetRange(Status, AITTestSuite2.Status::Running);
         if not AITTestSuite2.IsEmpty() then
             Error(CannotRunMultipleSuitesInParallelErr);
+
+        // Check credit limit before starting (for Agent type suites)
+        AITCreditLimitMgt.CheckCreditLimitBeforeRun(AITTestSuite);
 
         RunAITests(AITTestSuite);
         if AITTestSuite.Find() then;
@@ -61,8 +65,10 @@ codeunit 149034 "AIT Test Suite Mgt."
     var
         AITTestMethodLine: Record "AIT Test Method Line";
         AITTestSuiteMgt: Codeunit "AIT Test Suite Mgt.";
+        AITCreditLimitMgt: Codeunit "AIT Credit Limit Mgt.";
         FeatureTelemetry: Codeunit "Feature Telemetry";
         FeatureTelemetryCD: Dictionary of [Text, Text];
+        CreditLimitReached: Boolean;
     begin
         ValidateAITestSuite(AITTestSuite);
         AITTestSuite.RunID := CreateGuid();
@@ -88,10 +94,18 @@ codeunit 149034 "AIT Test Suite Mgt."
 
         AITTestMethodLine.ModifyAll(Status, AITTestMethodLine.Status::" ", true);
 
+        CreditLimitReached := false;
         if AITTestMethodLine.FindSet() then
             repeat
-                RunAITestLine(AITTestMethodLine, true);
-            until AITTestMethodLine.Next() = 0;
+                // Check credit limit before running each test line (for Agent type suites)
+                if not AITCreditLimitMgt.CheckCreditLimitDuringRun(AITTestSuite) then begin
+                    AITCreditLimitMgt.SetCreditLimitReachedStatus(AITTestSuite);
+                    CreditLimitReached := true;
+                end;
+
+                if not CreditLimitReached then
+                    RunAITestLine(AITTestMethodLine, true);
+            until (AITTestMethodLine.Next() = 0) or CreditLimitReached;
 
         LogRunHistory(AITTestSuite.Code, AITTestSuite.Version, AITTestSuite.Tag);
     end;

@@ -76,6 +76,28 @@ pageextension 149034 "Agent Test Suite" extends "AIT Test Suite"
         }
     }
 
+    actions
+    {
+        addlast(Navigation)
+        {
+            action(CreditLimits)
+            {
+                ApplicationArea = All;
+                Caption = 'Credit Limits';
+                ToolTip = 'Configure credit limits for agent test suites.';
+                Image = Cost;
+                Visible = IsAgentTestType;
+                RunObject = page "AIT Credit Limits";
+            }
+        }
+        addlast(Category_Process)
+        {
+            actionref(CreditLimits_Promoted; CreditLimits)
+            {
+            }
+        }
+    }
+
     trigger OnOpenPage()
     var
         AgentSystemPermissions: Codeunit "Agent System Permissions";
