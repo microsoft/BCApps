@@ -5,6 +5,7 @@
 
 namespace Microsoft.Integration.Shopify;
 
+/// <summary>Controls the logging verbosity level for Shopify integration operations.</summary>
 enum 30141 "Shpfy Logging Mode"
 {
     Extensible = false;
