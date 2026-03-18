@@ -35,7 +35,6 @@ codeunit 4326 "Agent Upgrade"
         end;
 
         // Insert default rule.
-        AgentCreationControl.Init();
         AgentCreationControl."User Security ID" := EmptyGuid;
         AgentCreationControl."Agent Metadata Provider" := -1;
         AgentCreationControl."Company Name" := '';

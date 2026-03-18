@@ -31,9 +31,9 @@ page 4332 "Agent Creation Control Part"
                     ToolTip = 'Specifies the company where this permission applies. Select "(All Companies)" to apply everywhere.';
                     Editable = false;
 
-                    trigger OnDrillDown()
+                    trigger OnAssistEdit()
                     begin
-                        OnCompanyDrillDown();
+                        OnCompanyAssistEdit();
                     end;
                 }
                 field(AgentTypeField; AgentMetadataProviderDisplayText)
@@ -42,9 +42,9 @@ page 4332 "Agent Creation Control Part"
                     ToolTip = 'Specifies the agent type allowed to be created. Select "(All Agent Types)" to apply to all types.';
                     Editable = false;
 
-                    trigger OnDrillDown()
+                    trigger OnAssistEdit()
                     begin
-                        OnAgentTypeDrillDown();
+                        OnAgentTypeAssistEdit();
                     end;
                 }
                 field(UserField; UserDisplayText)
@@ -53,9 +53,9 @@ page 4332 "Agent Creation Control Part"
                     ToolTip = 'Specifies the user allowed to create agents. Select "(All Users)" to apply to everyone.';
                     Editable = false;
 
-                    trigger OnDrillDown()
+                    trigger OnAssistEdit()
                     begin
-                        OnUserDrillDown();
+                        OnUserAssistEdit();
                     end;
                 }
                 field(Description; Rec.Description)
@@ -76,7 +76,7 @@ page 4332 "Agent Creation Control Part"
         ClearDisplayTexts();
     end;
 
-    local procedure OnCompanyDrillDown()
+    local procedure OnCompanyAssistEdit()
     var
         Company: Record Company;
         TempAgentCreationControlLookup: Record "Agent Creation Control Lookup" temporary;
@@ -101,11 +101,12 @@ page 4332 "Agent Creation Control Part"
         if CreationControlLookup.RunModal() = Action::LookupOK then begin
             CreationControlLookup.GetRecord(TempAgentCreationControlLookup);
             Rec."Company Name" := CopyStr(TempAgentCreationControlLookup."Key", 1, MaxStrLen(Rec."Company Name"));
+            Rec.Modify();
             UpdateDisplayTexts();
         end;
     end;
 
-    local procedure OnAgentTypeDrillDown()
+    local procedure OnAgentTypeAssistEdit()
     var
         TempAgentCreationControlLookup: Record "Agent Creation Control Lookup" temporary;
         AgentUtilities: Codeunit "Agent Utilities";
@@ -142,11 +143,12 @@ page 4332 "Agent Creation Control Part"
                 Evaluate(EnumIndex, TempAgentCreationControlLookup."Key");
                 Rec.Validate(Rec."Agent Metadata Provider", EnumIndex);
             end;
+            Rec.Modify();
             UpdateDisplayTexts();
         end;
     end;
 
-    local procedure OnUserDrillDown()
+    local procedure OnUserAssistEdit()
     var
         User: Record User;
         TempAgentCreationControlLookup: Record "Agent Creation Control Lookup" temporary;
@@ -176,6 +178,7 @@ page 4332 "Agent Creation Control Part"
                 Evaluate(UserSecurityId, TempAgentCreationControlLookup."Key");
                 Rec.Validate(Rec."User Security ID", UserSecurityId);
             end;
+            Rec.Modify();
             UpdateDisplayTexts();
         end;
     end;
