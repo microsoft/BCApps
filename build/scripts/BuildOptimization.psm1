@@ -172,7 +172,10 @@ function Get-AffectedApps {
 .SYNOPSIS
     Detects changed files from the GitHub Actions CI environment.
 .DESCRIPTION
-    Uses git diff against the base branch (for PRs) or previous commit (for push).
+    Reads the GitHub event payload ($GITHUB_EVENT_PATH) to extract base/head commit
+    SHAs, then uses git diff with those SHAs. This approach works reliably with
+    shallow clones (unlike three-dot diffs that need the merge base).
+    Supports pull_request, merge_group, and push events.
     Returns $null when changed files cannot be determined (local, workflow_dispatch, git failure).
 .OUTPUTS
     String array of changed file paths relative to repo root, or $null.
@@ -182,29 +185,69 @@ function Get-ChangedFilesForCI {
     [OutputType([string[]])]
     param()
 
-    if (-not $env:GITHUB_ACTIONS -or $env:GITHUB_EVENT_NAME -eq 'workflow_dispatch') {
+    if (-not $env:GITHUB_ACTIONS) {
+        Write-Host "BUILD OPTIMIZATION: Change detection skipped - not running in GitHub Actions"
         return $null
     }
+
+    if ($env:GITHUB_EVENT_NAME -eq 'workflow_dispatch') {
+        Write-Host "BUILD OPTIMIZATION: Change detection skipped - workflow_dispatch event"
+        return $null
+    }
+
+    # Read GitHub event payload for base/head commit SHAs (works with shallow clones)
+    if (-not $env:GITHUB_EVENT_PATH -or -not (Test-Path $env:GITHUB_EVENT_PATH)) {
+        Write-Host "BUILD OPTIMIZATION: GitHub event payload not found at '$($env:GITHUB_EVENT_PATH)'"
+        return $null
+    }
+
+    $event = Get-Content $env:GITHUB_EVENT_PATH -Raw | ConvertFrom-Json
+
+    $baseSha = $null
+    $headSha = $null
+
+    if ($env:GITHUB_EVENT_NAME -match 'pull_request') {
+        $baseSha = $event.pull_request.base.sha
+        $headSha = $event.pull_request.head.sha
+    }
+    elseif ($env:GITHUB_EVENT_NAME -eq 'merge_group') {
+        $baseSha = $event.merge_group.base_sha
+        $headSha = $event.merge_group.head_sha
+    }
+    elseif ($env:GITHUB_EVENT_NAME -eq 'push') {
+        $baseSha = $event.before
+        $headSha = $event.after
+    }
+
+    if (-not $baseSha -or -not $headSha) {
+        Write-Host "BUILD OPTIMIZATION: Could not extract commit SHAs from event payload (event=$($env:GITHUB_EVENT_NAME))"
+        return $null
+    }
+
+    Write-Host "BUILD OPTIMIZATION: Comparing $($baseSha.Substring(0, 8))...$($headSha.Substring(0, 8))"
 
     $prevErrorAction = $ErrorActionPreference
     $ErrorActionPreference = 'Continue'
     try {
-        if ($env:GITHUB_EVENT_NAME -match 'pull_request|merge_group') {
-            $base = if ($env:GITHUB_BASE_REF) { $env:GITHUB_BASE_REF } else { 'main' }
-            git fetch origin $base --depth=1 2>$null
-            $files = @(git diff --name-only "origin/$base...HEAD" 2>$null)
-        }
-        elseif ($env:GITHUB_EVENT_NAME -eq 'push') {
-            git fetch --deepen=1 2>$null
-            $files = @(git diff --name-only HEAD~1 HEAD 2>$null)
+        # Best-effort fetch of base commit (may not be in shallow clone)
+        git fetch origin $baseSha --depth=1 2>$null
+
+        $files = @(git diff --name-only $baseSha $headSha 2>$null)
+        if ($LASTEXITCODE -ne 0) {
+            Write-Host "BUILD OPTIMIZATION: git diff failed (exitCode=$LASTEXITCODE)"
+            return $null
         }
 
-        if ($LASTEXITCODE -eq 0 -and $files.Count -gt 0) { return $files }
+        if ($files.Count -eq 0) {
+            Write-Host "BUILD OPTIMIZATION: No changed files detected"
+            return $null
+        }
+
+        return $files
     }
     finally {
         $ErrorActionPreference = $prevErrorAction
     }
-    return $null
 }
 
 <#
@@ -276,16 +319,26 @@ function Test-ShouldSkipTestApp {
         [string] $BaseFolder
     )
 
-    if ($env:BUILD_OPTIMIZATION_DISABLED -eq 'true') { return $false }
+    if ($env:BUILD_OPTIMIZATION_DISABLED -eq 'true') {
+        Write-Host "BUILD OPTIMIZATION: Disabled via BUILD_OPTIMIZATION_DISABLED=true"
+        return $false
+    }
     if (-not $env:GITHUB_ACTIONS) { return $false }
     if ($env:GITHUB_EVENT_NAME -eq 'workflow_dispatch') { return $false }
 
     $changedFiles = Get-ChangedFilesForCI
-    if (-not $changedFiles) { return $false }
+    if (-not $changedFiles) {
+        Write-Host "BUILD OPTIMIZATION: Running all tests for '$AppName' - could not determine changed files"
+        return $false
+    }
+
+    Write-Host "BUILD OPTIMIZATION: Changed files ($($changedFiles.Count)):"
+    foreach ($f in $changedFiles) { Write-Host "  - $f" }
 
     # If any changed file matches fullBuildPatterns, AL-Go compiles everything.
     # We must run all tests to match — skip nothing.
     if (Test-FullBuildPatternsMatch -ChangedFiles $changedFiles -BaseFolder $BaseFolder) {
+        Write-Host "BUILD OPTIMIZATION: Running tests for '$AppName' - fullBuildPatterns matched, full test run required"
         return $false
     }
 
@@ -293,17 +346,25 @@ function Test-ShouldSkipTestApp {
     $affectedIds = Get-AffectedApps -ChangedFiles $changedFiles -BaseFolder $BaseFolder -Graph $graph
 
     # Full build triggered (unmapped src file or all apps affected)
-    if ($affectedIds.Count -ge $graph.Count) { return $false }
+    if ($affectedIds.Count -ge $graph.Count) {
+        Write-Host "BUILD OPTIMIZATION: Running tests for '$AppName' - full build triggered ($($affectedIds.Count) apps affected)"
+        return $false
+    }
 
     $affectedNames = [System.Collections.Generic.HashSet[string]]::new([System.StringComparer]::OrdinalIgnoreCase)
     foreach ($id in $affectedIds) {
         if ($graph.ContainsKey($id)) { [void]$affectedNames.Add($graph[$id].Name) }
     }
 
+    $sortedNames = $affectedNames | Sort-Object
+    Write-Host "BUILD OPTIMIZATION: Affected apps ($($affectedNames.Count)):"
+    foreach ($name in $sortedNames) { Write-Host "  - $name" }
+
     if (-not $affectedNames.Contains($AppName)) {
-        Write-Host "BUILD OPTIMIZATION: Skipping tests for '$AppName' - not in affected set ($($affectedNames.Count) affected apps)"
+        Write-Host "BUILD OPTIMIZATION: SKIPPING tests for '$AppName' - not in affected set"
         return $true
     }
+    Write-Host "BUILD OPTIMIZATION: RUNNING tests for '$AppName'"
     return $false
 }
 

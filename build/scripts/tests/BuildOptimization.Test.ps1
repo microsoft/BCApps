@@ -121,6 +121,104 @@ Describe "BuildOptimization" {
                 $env:GITHUB_EVENT_NAME = $savedEvent
             }
         }
+
+        It "returns null when event payload file is missing" {
+            $savedActions = $env:GITHUB_ACTIONS
+            $savedEvent = $env:GITHUB_EVENT_NAME
+            $savedEventPath = $env:GITHUB_EVENT_PATH
+            try {
+                $env:GITHUB_ACTIONS = 'true'
+                $env:GITHUB_EVENT_NAME = 'pull_request'
+                $env:GITHUB_EVENT_PATH = 'C:\nonexistent\event.json'
+                Get-ChangedFilesForCI | Should -BeNullOrEmpty
+            } finally {
+                $env:GITHUB_ACTIONS = $savedActions
+                $env:GITHUB_EVENT_NAME = $savedEvent
+                $env:GITHUB_EVENT_PATH = $savedEventPath
+            }
+        }
+
+        It "returns null for unsupported event type" {
+            $savedActions = $env:GITHUB_ACTIONS
+            $savedEvent = $env:GITHUB_EVENT_NAME
+            $savedEventPath = $env:GITHUB_EVENT_PATH
+            $tempFile = $null
+            try {
+                $env:GITHUB_ACTIONS = 'true'
+                $env:GITHUB_EVENT_NAME = 'schedule'
+                $tempFile = [System.IO.Path]::GetTempFileName()
+                Set-Content $tempFile -Value '{}'
+                $env:GITHUB_EVENT_PATH = $tempFile
+                Get-ChangedFilesForCI | Should -BeNullOrEmpty
+            } finally {
+                $env:GITHUB_ACTIONS = $savedActions
+                $env:GITHUB_EVENT_NAME = $savedEvent
+                $env:GITHUB_EVENT_PATH = $savedEventPath
+                if ($tempFile) { Remove-Item $tempFile -ErrorAction SilentlyContinue }
+            }
+        }
+
+        It "returns changed files using real commits from pull_request event payload" {
+            $savedActions = $env:GITHUB_ACTIONS
+            $savedEvent = $env:GITHUB_EVENT_NAME
+            $savedEventPath = $env:GITHUB_EVENT_PATH
+            $tempFile = $null
+            try {
+                $env:GITHUB_ACTIONS = 'true'
+                $env:GITHUB_EVENT_NAME = 'pull_request'
+
+                $headSha = (git rev-parse HEAD)
+                $baseSha = (git rev-parse HEAD~1)
+
+                $tempFile = [System.IO.Path]::GetTempFileName()
+                @{
+                    pull_request = @{
+                        base = @{ sha = $baseSha }
+                        head = @{ sha = $headSha }
+                    }
+                } | ConvertTo-Json -Depth 5 | Set-Content $tempFile
+                $env:GITHUB_EVENT_PATH = $tempFile
+
+                $result = Get-ChangedFilesForCI
+                $result | Should -Not -BeNullOrEmpty
+                $result.Count | Should -BeGreaterOrEqual 1
+            } finally {
+                $env:GITHUB_ACTIONS = $savedActions
+                $env:GITHUB_EVENT_NAME = $savedEvent
+                $env:GITHUB_EVENT_PATH = $savedEventPath
+                if ($tempFile) { Remove-Item $tempFile -ErrorAction SilentlyContinue }
+            }
+        }
+
+        It "returns changed files for push event using before/after SHAs" {
+            $savedActions = $env:GITHUB_ACTIONS
+            $savedEvent = $env:GITHUB_EVENT_NAME
+            $savedEventPath = $env:GITHUB_EVENT_PATH
+            $tempFile = $null
+            try {
+                $env:GITHUB_ACTIONS = 'true'
+                $env:GITHUB_EVENT_NAME = 'push'
+
+                $headSha = (git rev-parse HEAD)
+                $baseSha = (git rev-parse HEAD~1)
+
+                $tempFile = [System.IO.Path]::GetTempFileName()
+                @{
+                    before = $baseSha
+                    after = $headSha
+                } | ConvertTo-Json -Depth 5 | Set-Content $tempFile
+                $env:GITHUB_EVENT_PATH = $tempFile
+
+                $result = Get-ChangedFilesForCI
+                $result | Should -Not -BeNullOrEmpty
+                $result.Count | Should -BeGreaterOrEqual 1
+            } finally {
+                $env:GITHUB_ACTIONS = $savedActions
+                $env:GITHUB_EVENT_NAME = $savedEvent
+                $env:GITHUB_EVENT_PATH = $savedEventPath
+                if ($tempFile) { Remove-Item $tempFile -ErrorAction SilentlyContinue }
+            }
+        }
     }
 
     Context "Test-FullBuildPatternsMatch" {
