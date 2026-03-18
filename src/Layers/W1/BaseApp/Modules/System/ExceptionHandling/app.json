@@ -1,0 +1,32 @@
+{
+  "id": "450d476e-ab5f-409e-bdcc-e4ed48ef5fbb",
+  "name": "Exception Handling",
+  "publisher": "Microsoft",
+  "description": "Exception Handling",
+  "version": "$(app_currentVersion)",
+  "privacyStatement": "https://go.microsoft.com/fwlink/?LinkId=724009",
+  "EULA": "https://go.microsoft.com/fwlink/?linkid=2009120",
+  "help": "https://go.microsoft.com/fwlink/?linkid=2104024",
+  "url": "https://go.microsoft.com/fwlink/?LinkId=724011",
+  "dependencies": [
+    {
+      "id": "63ca2fa4-4f03-4f2b-a480-172fef340d3f",
+      "name": "System Application",
+      "publisher": "Microsoft",
+      "version": "$(app_minimumVersion)"
+    }
+  ],
+  "screenshots": [],
+  "internalsVisibleTo": [],
+  "platform": "$(app_platformVersion)",
+  "idRanges": [
+    {
+      "from": 1,
+      "to": 9999
+    }
+  ],
+  "target": "OnPrem",
+  "features": [
+    "NoImplicitWith"
+  ]
+}

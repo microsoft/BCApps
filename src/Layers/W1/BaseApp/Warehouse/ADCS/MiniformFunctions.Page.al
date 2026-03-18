@@ -1,0 +1,51 @@
+﻿// ------------------------------------------------------------------------------------------------
+// Copyright (c) Microsoft Corporation. All rights reserved.
+// Licensed under the MIT License. See License.txt in the project root for license information.
+// ------------------------------------------------------------------------------------------------
+namespace Microsoft.Warehouse.ADCS;
+
+page 7705 "Miniform Functions"
+{
+    Caption = 'Miniform Functions';
+    PageType = List;
+    SourceTable = "Miniform Function";
+
+    layout
+    {
+        area(content)
+        {
+            repeater(Control1)
+            {
+                ShowCaption = false;
+                field("Miniform Code"; Rec."Miniform Code")
+                {
+                    ApplicationArea = ADCS;
+                    Editable = false;
+                    Visible = false;
+                }
+                field("Function Code"; Rec."Function Code")
+                {
+                    ApplicationArea = ADCS;
+                }
+            }
+        }
+        area(factboxes)
+        {
+            systempart(Control1900383207; Links)
+            {
+                ApplicationArea = RecordLinks;
+                Visible = false;
+            }
+            systempart(Control1905767507; Notes)
+            {
+                ApplicationArea = Notes;
+                Visible = false;
+            }
+        }
+    }
+
+    actions
+    {
+    }
+}
+

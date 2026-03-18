@@ -1,0 +1,38 @@
+{
+  "id": "8bd8ec5a-dce2-48b5-a701-406b45ce43d0",
+  "name": "Event Recorder",
+  "publisher": "Microsoft",
+  "description": "Event Recorder",
+  "version": "$(app_currentVersion)",
+  "privacyStatement": "https://go.microsoft.com/fwlink/?LinkId=724009",
+  "EULA": "https://go.microsoft.com/fwlink/?linkid=2009120",
+  "help": "https://go.microsoft.com/fwlink/?linkid=2104024",
+  "url": "https://go.microsoft.com/fwlink/?LinkId=724011",
+  "dependencies": [
+    {
+      "id": "63ca2fa4-4f03-4f2b-a480-172fef340d3f",
+      "name": "System Application",
+      "publisher": "Microsoft",
+      "version": "$(app_minimumVersion)"
+    },
+    {
+      "id": "10fcedfc-1400-4dde-b0dd-5cda709a5603",
+      "name": "Object Selection",
+      "publisher": "Microsoft",
+      "version": "$(app_minimumVersion)"
+    }
+  ],
+  "screenshots": [],
+  "internalsVisibleTo": [],
+  "platform": "$(app_platformVersion)",
+  "idRanges": [
+    {
+      "from": 1,
+      "to": 9999
+    }
+  ],
+  "target": "OnPrem",
+  "features": [
+    "NoImplicitWith"
+  ]
+}

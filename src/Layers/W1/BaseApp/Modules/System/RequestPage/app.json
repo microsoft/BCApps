@@ -1,0 +1,40 @@
+{
+    "id":  "bcfdde68-a7f7-45d1-8231-5216af6ec904",
+    "name":  "Request Page",
+    "publisher":  "Microsoft",
+    "description":  "Provides functionality for working with request pages.",
+    "version":  "$(app_currentVersion)",
+    "privacyStatement":  "https://go.microsoft.com/fwlink/?LinkId=724009",
+    "EULA":  "https://go.microsoft.com/fwlink/?linkid=2009120",
+    "help":  "https://go.microsoft.com/fwlink/?linkid=2104024",
+    "url":  "https://go.microsoft.com/fwlink/?LinkId=724011",
+    "dependencies":  [
+        {
+          "id": "63ca2fa4-4f03-4f2b-a480-172fef340d3f",
+          "name": "System Application",
+          "publisher": "Microsoft",
+          "version": "$(app_minimumVersion)"
+        },
+        {
+          "id": "f1f8072d-8663-40f2-82fc-8594a7e7a558",
+          "name": "Xml",
+          "publisher": "Microsoft",
+          "version": "$(app_minimumVersion)"
+        }
+                     ],
+    "screenshots":  [
+                    ],
+    "internalsVisibleTo":  [
+                           ],
+    "platform":  "$(app_platformVersion)",
+    "idRanges":  [
+                     {
+                         "from":  1,
+                         "to":  9999
+                     }
+                 ],
+    "target":  "OnPrem",
+    "features":  [
+                     "NoImplicitWith"
+                 ]
+}

@@ -1,0 +1,20 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "authentication": "Windows",
+      "startupObjectType": "Page",
+      "type": "al",
+      "launchBrowser": true,
+      "enableLongRunningSqlStatements": true,
+      "name": "Your own server",
+      "dependencyPublishingOption": "Ignore",
+      "server": "http://localhost",
+      "enableSqlInformationDebugger": true,
+      "request": "launch",
+      "breakOnError": true,
+      "startupObjectId": 22,
+      "serverInstance": "Navision_NAV2"
+    }
+  ]
+}
