@@ -126,17 +126,6 @@ page 149048 "AIT Credit Limits"
                     Editable = false;
                     StyleExpr = SuiteUsageStyle;
                 }
-                field("No. of Lines Skipped"; Rec."No. of Lines Skipped")
-                {
-                    Style = Attention;
-                    ToolTip = 'Specifies the number of eval lines that were skipped due to credit limit being reached.';
-                    Editable = false;
-                }
-                field(Status; Rec.Status)
-                {
-                    Editable = false;
-                    StyleExpr = StatusStyle;
-                }
             }
         }
     }
@@ -213,7 +202,6 @@ page 149048 "AIT Credit Limits"
         SuiteUsagePercentage: Text;
         SuiteUsageStyle: Text;
         CurrentPeriod: Text;
-        StatusStyle: Text;
         SuiteCreditLimitDisplay: Text;
         CreditsAvailableStyle: Text;
         ShowAllSuites: Boolean;
@@ -232,7 +220,6 @@ page 149048 "AIT Credit Limits"
         UpdateSuiteCreditsConsumed();
         UpdateSuiteCreditLimitDisplay();
         UpdateSuiteUsagePercentage();
-        UpdateStatusStyle();
     end;
 
     local procedure LoadCreditLimitSetup()
@@ -334,22 +321,6 @@ page 149048 "AIT Credit Limits"
             SuiteUsageStyle := 'Attention'
         else
             SuiteUsageStyle := 'Favorable';
-    end;
-
-    local procedure UpdateStatusStyle()
-    begin
-        case Rec.Status of
-            Rec.Status::Running:
-                StatusStyle := 'Attention';
-            Rec.Status::Completed:
-                StatusStyle := 'Favorable';
-            Rec.Status::Cancelled:
-                StatusStyle := 'Unfavorable';
-            Rec.Status::CreditLimitReached:
-                StatusStyle := 'Unfavorable';
-            else
-                StatusStyle := 'Standard';
-        end;
     end;
 
     local procedure BuildSuitesWithCreditsList()
