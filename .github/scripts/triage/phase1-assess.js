@@ -9,6 +9,64 @@ import { detectAppArea } from './config.js';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 
+const VALID_VERDICTS = new Set(['READY', 'NEEDS WORK', 'INSUFFICIENT']);
+const VALID_ISSUE_TYPES = new Set(['bug', 'feature', 'enhancement', 'question']);
+const SCORE_DIMENSIONS = ['clarity', 'reproducibility', 'context', 'specificity', 'actionability'];
+
+/**
+ * Validate Phase 1 response structure and types.
+ * Coerces fixable values; throws on unfixable issues.
+ */
+function validatePhase1Response(result) {
+  if (!result.quality_score || typeof result.quality_score !== 'object') {
+    throw new Error('Phase 1: Invalid response - missing quality_score object');
+  }
+
+  // Validate each dimension has a numeric score and string notes
+  for (const dim of SCORE_DIMENSIONS) {
+    const d = result.quality_score[dim];
+    if (!d || typeof d !== 'object') {
+      throw new Error(`Phase 1: Invalid response - missing quality_score.${dim}`);
+    }
+    if (typeof d.score !== 'number') {
+      const parsed = Number(d.score);
+      if (isNaN(parsed)) throw new Error(`Phase 1: Invalid response - quality_score.${dim}.score is not a number`);
+      d.score = parsed;
+    }
+    d.score = Math.max(0, Math.min(20, Math.round(d.score)));
+    if (typeof d.notes !== 'string') d.notes = String(d.notes || '');
+  }
+
+  // Recompute total from dimension scores to prevent model arithmetic errors
+  result.quality_score.total = SCORE_DIMENSIONS.reduce(
+    (sum, dim) => sum + result.quality_score[dim].score, 0
+  );
+
+  if (!result.verdict || !VALID_VERDICTS.has(result.verdict)) {
+    // Derive verdict from score if model returned invalid value
+    const total = result.quality_score.total;
+    if (total >= 75) result.verdict = 'READY';
+    else if (total >= 40) result.verdict = 'NEEDS WORK';
+    else result.verdict = 'INSUFFICIENT';
+  }
+
+  if (!result.issue_type || !VALID_ISSUE_TYPES.has(result.issue_type)) {
+    result.issue_type = 'bug'; // safe default
+  }
+
+  if (!Array.isArray(result.missing_info)) {
+    result.missing_info = [];
+  }
+
+  if (typeof result.summary !== 'string') {
+    result.summary = String(result.summary || '');
+  }
+
+  if (typeof result.detected_app_area !== 'string') {
+    result.detected_app_area = 'Unknown';
+  }
+}
+
 /**
  * Assess the quality of a GitHub issue using GPT-5.4.
  * Returns a structured assessment with scores, verdict, and missing info.
@@ -40,13 +98,8 @@ ${commentsText}`;
   console.log(`Phase 1: Assessing issue #${issue.number} quality...`);
   const result = await callGPT(systemPrompt, userMessage);
 
-  // Validate required fields
-  if (!result.quality_score || typeof result.quality_score.total !== 'number') {
-    throw new Error('Phase 1: Invalid response - missing quality_score.total');
-  }
-  if (!result.verdict) {
-    throw new Error('Phase 1: Invalid response - missing verdict');
-  }
+  // Validate response structure and types
+  validatePhase1Response(result);
 
   // Cross-check with our own app area detection
   const detectedArea = detectAppArea(issue.title, issue.body);

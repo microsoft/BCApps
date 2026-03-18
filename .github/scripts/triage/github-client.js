@@ -129,6 +129,8 @@ export async function manageCategoryLabels(owner, repo, issueNumber, categoryPre
 
 /**
  * Check if a triage assessment comment already exists on the issue.
+ * If it does, also extract the previous quality score and priority for diff display.
+ * Returns { isRetriage: boolean, previousScores: { qualityTotal, priority, verdict } | null }.
  */
 export async function checkExistingTriage(owner, repo, issueNumber) {
   const octokit = getOctokit();
@@ -138,5 +140,50 @@ export async function checkExistingTriage(owner, repo, issueNumber) {
     issue_number: issueNumber,
     per_page: 100,
   });
-  return comments.some(c => c.body?.includes('## :robot: AI Triage Assessment'));
+
+  // Find the most recent triage comment (in case of multiple re-triages)
+  let lastTriageComment = null;
+  for (const c of comments) {
+    if (c.body?.includes('## :robot: AI Triage Assessment')) {
+      lastTriageComment = c;
+    }
+  }
+
+  if (!lastTriageComment) {
+    return { isRetriage: false, previousScores: null };
+  }
+
+  // Extract scores from the previous triage comment
+  const previousScores = extractScoresFromComment(lastTriageComment.body);
+  return { isRetriage: true, previousScores };
+}
+
+/**
+ * Parse quality score and priority from a triage comment body.
+ */
+function extractScoresFromComment(body) {
+  const scores = {};
+
+  // Match "Issue Quality Score: 85/100 - READY"
+  const qualityMatch = body.match(/Issue Quality Score:\s*(\d+)\/100\s*-\s*(READY|NEEDS WORK|INSUFFICIENT)/);
+  if (qualityMatch) {
+    scores.qualityTotal = parseInt(qualityMatch[1], 10);
+    scores.verdict = qualityMatch[2];
+  }
+
+  // Match individual dimension scores from table rows: "| Clarity | 18/20 |"
+  for (const dim of ['Clarity', 'Reproducibility', 'Context', 'Specificity', 'Actionability']) {
+    const dimMatch = body.match(new RegExp(`\\|\\s*${dim}\\s*\\|\\s*(\\d+)/20`));
+    if (dimMatch) {
+      scores[dim.toLowerCase()] = parseInt(dimMatch[1], 10);
+    }
+  }
+
+  // Match "Priority | 7/10"
+  const priorityMatch = body.match(/Priority\s*\|\s*(\d+)\/10/);
+  if (priorityMatch) {
+    scores.priority = parseInt(priorityMatch[1], 10);
+  }
+
+  return Object.keys(scores).length > 0 ? scores : null;
 }

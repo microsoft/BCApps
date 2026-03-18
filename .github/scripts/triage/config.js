@@ -261,6 +261,63 @@ export const APP_AREAS = [
   { keywords: ['copilot', 'ai', 'journal entry'], directory: 'src/Apps/W1/', name: 'General / AI' },
 ];
 
+// Cache for the fallback directory tree (built once, reused across calls)
+let _directoryCache = null;
+
+/**
+ * Build a flat list of { directory, name, words } entries from the src/ tree.
+ * Scans up to 2 levels deep, plus up to 4 levels for src/Layers/.
+ */
+function buildDirectoryCache() {
+  if (_directoryCache) return _directoryCache;
+
+  const entries = [];
+  try {
+    const repoRoot = process.env.GITHUB_WORKSPACE || join(process.cwd(), '..', '..', '..');
+    const srcDir = join(repoRoot, 'src');
+    const topDirs = readdirSync(srcDir, { withFileTypes: true })
+      .filter(d => d.isDirectory() && !d.name.startsWith('.'));
+
+    for (const topDir of topDirs) {
+      const topPath = join(srcDir, topDir.name);
+      const topWords = topDir.name.toLowerCase().split(/\s+/).filter(w => w.length > 3);
+      entries.push({ directory: `src/${topDir.name}/`, name: topDir.name, words: topWords });
+
+      try {
+        const subDirs = readdirSync(topPath, { withFileTypes: true })
+          .filter(d => d.isDirectory() && !d.name.startsWith('.'));
+        for (const sub of subDirs) {
+          const subWords = sub.name.toLowerCase().replace(/[^a-z0-9]/g, ' ').split(/\s+/).filter(w => w.length > 3);
+          entries.push({ directory: `src/${topDir.name}/${sub.name}/`, name: sub.name, words: subWords });
+
+          // For Layers: scan deeper (3rd and 4th level)
+          if (topDir.name === 'Layers') {
+            try {
+              const thirdDirs = readdirSync(join(topPath, sub.name), { withFileTypes: true })
+                .filter(d => d.isDirectory() && !d.name.startsWith('.'));
+              for (const third of thirdDirs) {
+                const thirdWords = third.name.toLowerCase().replace(/[^a-z0-9]/g, ' ').split(/\s+/).filter(w => w.length > 3);
+                entries.push({ directory: `src/Layers/${sub.name}/${third.name}/`, name: third.name, words: thirdWords });
+                try {
+                  const fourthDirs = readdirSync(join(topPath, sub.name, third.name), { withFileTypes: true })
+                    .filter(d => d.isDirectory() && !d.name.startsWith('.'));
+                  for (const fourth of fourthDirs) {
+                    const fourthWords = fourth.name.toLowerCase().replace(/[^a-z0-9]/g, ' ').split(/\s+/).filter(w => w.length > 3);
+                    entries.push({ directory: `src/Layers/${sub.name}/${third.name}/${fourth.name}/`, name: `${third.name} - ${fourth.name}`, words: fourthWords });
+                  }
+                } catch { /* skip */ }
+              }
+            } catch { /* skip */ }
+          }
+        }
+      } catch { /* skip */ }
+    }
+  } catch { /* directory listing not available */ }
+
+  _directoryCache = entries;
+  return entries;
+}
+
 // Detect app area from issue text
 export function detectAppArea(title, body) {
   const text = `${title} ${body}`.toLowerCase();
@@ -270,61 +327,13 @@ export function detectAppArea(title, body) {
     }
   }
 
-  // Fallback: scan all directories under src/ (2 levels deep) and match by name
-  // Also scans src/Layers/ up to 3 levels deep (e.g. src/Layers/W1/BaseApp/Finance)
-  try {
-    const repoRoot = process.env.GITHUB_WORKSPACE || join(process.cwd(), '..', '..', '..');
-    const srcDir = join(repoRoot, 'src');
-    const topDirs = readdirSync(srcDir, { withFileTypes: true })
-      .filter(d => d.isDirectory() && !d.name.startsWith('.'));
-
-    for (const topDir of topDirs) {
-      const topPath = join(srcDir, topDir.name);
-      // Check top-level name (e.g. "System Application", "Business Foundation")
-      const topLower = topDir.name.toLowerCase();
-      if (topLower.split(/\s+/).some(w => w.length > 3 && text.includes(w))) {
-        return { keywords: [], directory: `src/${topDir.name}/`, name: topDir.name };
-      }
-      // Check second-level subdirectories
-      try {
-        const subDirs = readdirSync(topPath, { withFileTypes: true })
-          .filter(d => d.isDirectory() && !d.name.startsWith('.'));
-        for (const sub of subDirs) {
-          const subLower = sub.name.toLowerCase().replace(/[^a-z0-9]/g, ' ');
-          const subWords = subLower.split(/\s+/).filter(w => w.length > 3);
-          if (subWords.some(word => text.includes(word))) {
-            return { keywords: [], directory: `src/${topDir.name}/${sub.name}/`, name: sub.name };
-          }
-          // For Layers: scan third-level subdirectories (e.g. Layers/W1/BaseApp/Finance)
-          if (topDir.name === 'Layers') {
-            try {
-              const thirdDirs = readdirSync(join(topPath, sub.name), { withFileTypes: true })
-                .filter(d => d.isDirectory() && !d.name.startsWith('.'));
-              for (const third of thirdDirs) {
-                const thirdLower = third.name.toLowerCase().replace(/[^a-z0-9]/g, ' ');
-                const thirdWords = thirdLower.split(/\s+/).filter(w => w.length > 3);
-                if (thirdWords.some(word => text.includes(word))) {
-                  return { keywords: [], directory: `src/Layers/${sub.name}/${third.name}/`, name: third.name };
-                }
-                // Scan fourth level for BaseApp sub-areas (e.g. Layers/W1/BaseApp/Finance)
-                try {
-                  const fourthDirs = readdirSync(join(topPath, sub.name, third.name), { withFileTypes: true })
-                    .filter(d => d.isDirectory() && !d.name.startsWith('.'));
-                  for (const fourth of fourthDirs) {
-                    const fourthLower = fourth.name.toLowerCase().replace(/[^a-z0-9]/g, ' ');
-                    const fourthWords = fourthLower.split(/\s+/).filter(w => w.length > 3);
-                    if (fourthWords.some(word => text.includes(word))) {
-                      return { keywords: [], directory: `src/Layers/${sub.name}/${third.name}/${fourth.name}/`, name: `${third.name} - ${fourth.name}` };
-                    }
-                  }
-                } catch { /* skip unreadable subdirectories */ }
-              }
-            } catch { /* skip unreadable subdirectories */ }
-          }
-        }
-      } catch { /* skip unreadable subdirectories */ }
+  // Fallback: match against cached directory names
+  const dirEntries = buildDirectoryCache();
+  for (const entry of dirEntries) {
+    if (entry.words.some(word => text.includes(word))) {
+      return { keywords: [], directory: entry.directory, name: entry.name };
     }
-  } catch { /* directory listing not available */ }
+  }
 
   // Last resort: scan all of src/
   return { keywords: [], directory: 'src/', name: 'Unknown' };

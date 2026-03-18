@@ -5,6 +5,9 @@
   "type": "module",
   "description": "AI-powered GitHub issue quality assessment, enrichment, and triage agent",
   "main": "index.js",
+  "scripts": {
+    "test": "node --test tests/*.test.js"
+  },
   "engines": {
     "node": ">=20"
   },

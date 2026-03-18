@@ -27,15 +27,14 @@ export async function enrichAndTriage(issue, phase1Result) {
   // Extract key terms for search context
   const keyTerms = extractKeyTerms(issue.title, issue.body);
 
-  // Fetch actual source code from the repository
-  const codeContext = fetchCodeContext(appArea.directory, keyTerms);
-  const codeContextBlock = formatCodeContext(codeContext);
-
-  // Fetch external context in parallel: Ideas Portal + ADO work items
-  const [ideasResult, adoResult] = await Promise.all([
+  // Fetch all enrichment context in parallel:
+  // code reading (sync, wrapped), Ideas Portal, and ADO work items
+  const [codeContext, ideasResult, adoResult] = await Promise.all([
+    Promise.resolve(fetchCodeContext(appArea.directory, keyTerms)),
     fetchRelatedIdeas(keyTerms),
     fetchRelatedWorkItems(keyTerms),
   ]);
+  const codeContextBlock = formatCodeContext(codeContext);
   const ideasContextBlock = formatIdeasContext(ideasResult);
   const adoContextBlock = formatAdoContext(adoResult);
 
@@ -79,24 +78,8 @@ Then provide your triage assessment as JSON.`;
   console.log(`Phase 2: Enriching and triaging issue #${issue.number}...`);
   const result = await callGPT(systemPrompt, userMessage);
 
-  // Validate required fields
-  if (!result.triage) {
-    throw new Error('Phase 2: Invalid response - missing triage object');
-  }
-  if (!result.enrichment) {
-    throw new Error('Phase 2: Invalid response - missing enrichment object');
-  }
-  if (!result.executive_summary) {
-    throw new Error('Phase 2: Invalid response - missing executive_summary');
-  }
-
-  // Validate nested triage fields that index.js depends on
-  const requiredTriageFields = ['complexity', 'value', 'risk', 'effort', 'implementation_path', 'priority_score', 'confidence', 'recommended_action'];
-  for (const field of requiredTriageFields) {
-    if (!result.triage[field]) {
-      throw new Error(`Phase 2: Invalid response - missing triage.${field}`);
-    }
-  }
+  // Validate response structure and types
+  validatePhase2Response(result);
 
   console.log(`Phase 2 complete: Priority ${result.triage.priority_score?.score}/10 - ${result.triage.recommended_action?.action}`);
 
@@ -112,8 +95,47 @@ Then provide your triage assessment as JSON.`;
   return result;
 }
 
+// Known BC multi-word terms that should be kept intact during extraction.
+// These are matched first (longest first) before falling back to single words / bigrams.
+const BC_DOMAIN_PHRASES = [
+  'purchase order', 'purchase invoice', 'purchase line', 'purchase header',
+  'sales order', 'sales invoice', 'sales line', 'sales header', 'sales price',
+  'general ledger', 'general journal', 'chart of accounts',
+  'bank reconciliation', 'bank account',
+  'fixed asset', 'fixed assets',
+  'posting group', 'posting groups',
+  'number series', 'no. series',
+  'dimension value', 'dimension set',
+  'item tracking', 'item charge', 'item journal',
+  'warehouse receipt', 'warehouse shipment',
+  'production order', 'production bom', 'bill of material',
+  'work center', 'machine center',
+  'service order', 'service item', 'service contract',
+  'cash flow', 'cash flow forecast',
+  'cost accounting', 'cost center', 'cost type',
+  'assembly order', 'assembly bom',
+  'data archive', 'data search', 'data exchange',
+  'e-document', 'e-invoice',
+  'subscription billing', 'recurring billing',
+  'quality management', 'quality inspection',
+  'power bi', 'excel report',
+  'role center',
+  'ledger entry', 'customer ledger', 'vendor ledger', 'item ledger',
+  'job queue', 'job journal',
+  'payment journal', 'payment registration',
+  'intercompany', 'responsibility center',
+  'shopify connector',
+  'retention policy',
+  'price list', 'price calculation',
+  'transfer order', 'location transfer',
+  'human resource', 'employment contract',
+];
+// Sort longest first so longer phrases match before shorter substrings
+const SORTED_PHRASES = [...BC_DOMAIN_PHRASES].sort((a, b) => b.length - a.length);
+
 /**
  * Extract meaningful search terms from issue title and body.
+ * Prioritizes known BC domain phrases, then bigrams, then single high-frequency words.
  */
 function extractKeyTerms(title, body) {
   const text = `${title} ${body}`.toLowerCase();
@@ -143,12 +165,22 @@ function extractKeyTerms(title, body) {
     'appear', 'appears', 'look', 'looks', 'seem', 'seems', 'expected',
   ]);
 
+  // Step 1: Extract known BC domain phrases found in the text
+  const domainMatches = [];
+  for (const phrase of SORTED_PHRASES) {
+    if (text.includes(phrase)) {
+      domainMatches.push(phrase);
+      if (domainMatches.length >= 5) break; // cap domain phrases
+    }
+  }
+
+  // Step 2: Extract single words
   const words = text
     .replace(/[^a-z0-9\s-]/g, ' ')
     .split(/\s+/)
     .filter(w => w.length > 2 && !stopWords.has(w));
 
-  // Extract bigrams (two-word phrases) for more specific matching
+  // Step 3: Extract bigrams (two-word phrases) for more specific matching
   const allWords = text.replace(/[^a-z0-9\s-]/g, ' ').split(/\s+/).filter(w => w.length > 1);
   const bigrams = [];
   for (let i = 0; i < allWords.length - 1; i++) {
@@ -169,18 +201,18 @@ function extractKeyTerms(title, body) {
     .slice(0, 8)
     .map(([word]) => word);
 
-  // Count bigram frequency, pick top 3
+  // Count bigram frequency, pick top 5
   const bigramFreq = {};
   for (const bg of bigrams) {
     bigramFreq[bg] = (bigramFreq[bg] || 0) + 1;
   }
   const topBigrams = Object.entries(bigramFreq)
     .sort((a, b) => b[1] - a[1])
-    .slice(0, 3)
+    .slice(0, 5)
     .map(([phrase]) => phrase);
 
-  // Combine: bigrams first (more specific), then single terms
-  const combined = [...topBigrams, ...singleTerms];
+  // Combine: domain phrases first (most specific), then bigrams, then single terms
+  const combined = [...domainMatches, ...topBigrams, ...singleTerms];
 
   // Deduplicate while preserving order
   const seen = new Set();
@@ -188,5 +220,84 @@ function extractKeyTerms(title, body) {
     if (seen.has(term)) return false;
     seen.add(term);
     return true;
-  }).slice(0, 10);
+  }).slice(0, 12);
+}
+
+const VALID_COMPLEXITY = new Set(['Low', 'Medium', 'High', 'Very High']);
+const VALID_VALUE = new Set(['Low', 'Medium', 'High', 'Critical']);
+const VALID_RISK = new Set(['Low', 'Medium', 'High']);
+const VALID_EFFORT = new Set(['XS', 'S', 'M', 'L', 'XL']);
+const VALID_PATH = new Set(['Manual', 'Copilot-Assisted', 'Agentic']);
+const VALID_CONFIDENCE = new Set(['High', 'Medium', 'Low']);
+const VALID_ACTION = new Set(['Implement', 'Defer', 'Investigate', 'Reject']);
+
+/**
+ * Validate and coerce Phase 2 response structure and types.
+ */
+function validatePhase2Response(result) {
+  if (!result.triage || typeof result.triage !== 'object') {
+    throw new Error('Phase 2: Invalid response - missing triage object');
+  }
+  if (!result.enrichment || typeof result.enrichment !== 'object') {
+    result.enrichment = {};
+  }
+  if (typeof result.executive_summary !== 'string') {
+    result.executive_summary = String(result.executive_summary || 'No summary provided.');
+  }
+
+  const t = result.triage;
+
+  // Validate rating fields: ensure object with rating and rationale strings
+  function validateRatingField(field, validSet, defaultVal) {
+    if (!t[field] || typeof t[field] !== 'object') {
+      t[field] = { rating: defaultVal, rationale: 'No rationale provided' };
+    }
+    if (!validSet.has(t[field].rating)) {
+      // Try case-insensitive match
+      const match = [...validSet].find(v => v.toLowerCase() === String(t[field].rating).toLowerCase());
+      t[field].rating = match || defaultVal;
+    }
+    if (typeof t[field].rationale !== 'string') {
+      t[field].rationale = String(t[field].rationale || '');
+    }
+  }
+
+  validateRatingField('complexity', VALID_COMPLEXITY, 'Medium');
+  validateRatingField('value', VALID_VALUE, 'Medium');
+  validateRatingField('risk', VALID_RISK, 'Medium');
+  validateRatingField('effort', VALID_EFFORT, 'M');
+  validateRatingField('implementation_path', VALID_PATH, 'Copilot-Assisted');
+  validateRatingField('confidence', VALID_CONFIDENCE, 'Medium');
+
+  // Validate priority_score: must have numeric score
+  if (!t.priority_score || typeof t.priority_score !== 'object') {
+    t.priority_score = { score: 5, rationale: 'Default score' };
+  }
+  if (typeof t.priority_score.score !== 'number') {
+    const parsed = Number(t.priority_score.score);
+    t.priority_score.score = isNaN(parsed) ? 5 : parsed;
+  }
+  t.priority_score.score = Math.max(1, Math.min(10, Math.round(t.priority_score.score)));
+  if (typeof t.priority_score.rationale !== 'string') {
+    t.priority_score.rationale = String(t.priority_score.rationale || '');
+  }
+
+  // Validate recommended_action
+  if (!t.recommended_action || typeof t.recommended_action !== 'object') {
+    t.recommended_action = { action: 'Investigate', rationale: 'No rationale provided' };
+  }
+  if (!VALID_ACTION.has(t.recommended_action.action)) {
+    const match = [...VALID_ACTION].find(v => v.toLowerCase() === String(t.recommended_action.action).toLowerCase());
+    t.recommended_action.action = match || 'Investigate';
+  }
+  if (typeof t.recommended_action.rationale !== 'string') {
+    t.recommended_action.rationale = String(t.recommended_action.rationale || '');
+  }
+
+  // Validate enrichment arrays
+  for (const field of ['documentation', 'ideas_portal', 'community', 'code_areas']) {
+    if (!Array.isArray(result.enrichment[field])) {
+      result.enrichment[field] = [];
+    }
+  }
 }

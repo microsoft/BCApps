@@ -77,15 +77,69 @@ export async function fetchRelatedIdeas(keywords) {
   };
 }
 
+// Simple suffix-stripping stemmer for improved matching
+function stem(word) {
+  return word
+    .replace(/ies$/, 'y')
+    .replace(/ves$/, 'f')
+    .replace(/(ing|tion|ment|ness|able|ible|ated|ize|ise)$/, '')
+    .replace(/s$/, '')
+    .replace(/ed$/, '');
+}
+
+// BC domain synonyms: each group of terms should match each other
+const SYNONYM_GROUPS = [
+  ['price', 'pricing', 'price list'],
+  ['purchase', 'purchasing', 'procurement', 'buy'],
+  ['sales', 'selling', 'sell'],
+  ['invoice', 'invoicing', 'billing'],
+  ['inventory', 'stock', 'stockkeeping'],
+  ['warehouse', 'warehousing', 'whse'],
+  ['manufacturing', 'production', 'mfg'],
+  ['assembly', 'assemble', 'asm'],
+  ['journal', 'jnl'],
+  ['dimension', 'dim'],
+  ['reconciliation', 'reconcile', 'recon'],
+  ['ledger', 'ledger entry'],
+  ['posting', 'post'],
+  ['customer', 'cust'],
+  ['vendor', 'vend'],
+  ['general ledger', 'g/l', 'gl'],
+];
+
+// Build lookup: word -> set of synonyms
+const _synonymMap = new Map();
+for (const group of SYNONYM_GROUPS) {
+  for (const term of group) {
+    _synonymMap.set(term, group);
+  }
+}
+
+function expandKeyword(kw) {
+  const kwLower = kw.toLowerCase();
+  const synonyms = _synonymMap.get(kwLower);
+  if (synonyms) return synonyms;
+  // Also check stemmed form
+  const stemmed = stem(kwLower);
+  return [kwLower, stemmed];
+}
+
 function scoreIdeaRelevance(idea, keywords) {
   const title = (idea.adx_name || '').toLowerCase();
   const body = (idea.adx_copy || '').toLowerCase();
 
   let score = 0;
   for (const kw of keywords) {
-    const kwLower = kw.toLowerCase();
-    if (title.includes(kwLower)) score += 3;
-    else if (body.includes(kwLower)) score += 1;
+    const variants = expandKeyword(kw);
+    let matched = false;
+    for (const variant of variants) {
+      if (title.includes(variant)) { score += 3; matched = true; break; }
+    }
+    if (!matched) {
+      for (const variant of variants) {
+        if (body.includes(variant)) { score += 1; break; }
+      }
+    }
   }
   return score;
 }

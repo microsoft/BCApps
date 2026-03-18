@@ -13,6 +13,7 @@ import {
 import { assessIssueQuality } from './phase1-assess.js';
 import { enrichAndTriage } from './phase2-enrich.js';
 import { formatTriageComment, formatInsufficientComment } from './format-comment.js';
+import { findDuplicates } from './duplicate-detector.js';
 import {
   LABELS,
   ALL_LABELS,
@@ -52,10 +53,52 @@ async function main() {
 
     console.log(`Issue: "${issue.title}" by ${issue.author}`);
 
-    // Step 2: Check for existing triage (idempotency)
-    const isRetriage = await checkExistingTriage(owner, repo, issueNumber);
+    // Step 2: Check for existing triage and potential duplicates (in parallel)
+    const [triageCheck, duplicates] = await Promise.all([
+      checkExistingTriage(owner, repo, issueNumber),
+      findDuplicates(owner, repo, issueNumber, issue.title, issue.body),
+    ]);
+    const isRetriage = triageCheck.isRetriage;
+    const previousScores = triageCheck.previousScores;
     if (isRetriage) {
       console.log('Previous triage detected - this will be a re-triage.');
+      if (previousScores) {
+        console.log(`Previous scores: quality=${previousScores.qualityTotal}, priority=${previousScores.priority}`);
+      }
+    }
+    if (duplicates.length > 0) {
+      console.log(`Potential duplicates found: ${duplicates.map(d => `#${d.number}`).join(', ')}`);
+    }
+
+    // Step 2b: Short-circuit for near-empty issues (saves a model call)
+    const titleLength = (issue.title || '').trim().length;
+    const bodyLength = (issue.body || '').trim().length;
+    if (titleLength < 10 && bodyLength < 20) {
+      console.log(`Issue too short (title: ${titleLength} chars, body: ${bodyLength} chars) - marking INSUFFICIENT`);
+      const emptyPhase1 = {
+        quality_score: {
+          clarity: { score: 2, notes: 'Title and body are too short to assess' },
+          reproducibility: { score: 0, notes: 'No reproduction steps or acceptance criteria provided' },
+          context: { score: 0, notes: 'No context provided' },
+          specificity: { score: 2, notes: 'Cannot determine scope from minimal text' },
+          actionability: { score: 0, notes: 'Cannot start work without more information' },
+          total: 4,
+        },
+        verdict: 'INSUFFICIENT',
+        missing_info: [
+          'A clear description of the problem or feature request',
+          'Steps to reproduce (for bugs) or acceptance criteria (for features)',
+          'Business Central version and environment details',
+        ],
+        detected_app_area: 'Unknown',
+        issue_type: 'bug',
+        summary: 'Issue has insufficient content for assessment',
+      };
+      const comment = formatInsufficientComment(emptyPhase1, duplicates);
+      await postComment(owner, repo, issueNumber, comment);
+      await manageCategoryLabels(owner, repo, issueNumber, 'triage/', 'triage/insufficient', ALL_LABELS);
+      console.log(`\n=== Triage complete (INSUFFICIENT - minimal content) ===`);
+      return;
     }
 
     // Step 3: Phase 1 - Quality Assessment
@@ -67,7 +110,7 @@ async function main() {
       // INSUFFICIENT - post needs-info comment, skip Phase 2
       console.log(`Score ${qualityScore} < ${SCORE_THRESHOLDS.NEEDS_WORK}: ${phase1Result.verdict} - skipping Phase 2`);
 
-      const comment = formatInsufficientComment(phase1Result);
+      const comment = formatInsufficientComment(phase1Result, duplicates);
       await postComment(owner, repo, issueNumber, comment);
 
       await manageCategoryLabels(owner, repo, issueNumber, 'triage/', getTriageLabelName(phase1Result.verdict), ALL_LABELS);
@@ -81,7 +124,7 @@ async function main() {
     const phase2Result = await enrichAndTriage(issue, phase1Result);
 
     // Step 6: Format and post full triage comment
-    const comment = formatTriageComment(phase1Result, phase2Result, isRetriage);
+    const comment = formatTriageComment(phase1Result, phase2Result, isRetriage, duplicates, previousScores);
     await postComment(owner, repo, issueNumber, comment);
     console.log('Triage comment posted.');
 
