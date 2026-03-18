@@ -16,7 +16,7 @@ codeunit 99001534 "Subc. Purchase Line Ext"
     var
         SubcSynchronizeManagement: Codeunit "Subc. Synchronize Management";
         QtyMismatchTitleLbl: Label 'Quantity Mismatch';
-        QtyMessageLbl: Label 'The quantity (%1) in %2 is greater than the specified quantity (%3) in %4. In order to open item tracking lines, first adjust the quantity on %2 to at least match the quantity on %4. You can adjust the quantity from %5 to %6 by using the action below.',
+        QtyMismatchErr: Label 'The quantity (%1) in %2 is greater than the specified quantity (%3) in %4. In order to open item tracking lines, first adjust the quantity on %2 to at least match the quantity on %4. You can adjust the quantity from %5 to %6 by using the action below.',
         Comment = '%1 = PurchaseLine Outstanding Qty, %2 = Tablecaption PurchaseLine, %3 = ProdOrderLine Remaining Qty, %4 = Tablecaption ProdOrderLine, %5 = Current ProdOrderLine Qty, %6 = New PurchaseLine Qty';
         NotLastOperationLineErr: Label 'Item tracking lines can only be viewed for subcontracting purchase lines which are linked to a routing line which is the last operation.';
         CannotOpenProductionOrderErr: Label 'Cannot open Production Order %1.', Comment = '%1=Production Order No.';
@@ -121,7 +121,7 @@ codeunit 99001534 "Subc. Purchase Line Ext"
     begin
         if PurchaseLine.Quantity > ProdOrderLine.Quantity then begin
             CannotInvoiceErrorInfo.Title := QtyMismatchTitleLbl;
-            CannotInvoiceErrorInfo.Message := StrSubstNo(QtyMessageLbl, PurchaseLine."Outstanding Quantity", PurchaseLine.TableCaption(), ProdOrderLine."Remaining Quantity", ProdOrderLine.TableCaption(), ProdOrderLine.Quantity, PurchaseLine.Quantity);
+            CannotInvoiceErrorInfo.Message := StrSubstNo(QtyMismatchErr, PurchaseLine."Outstanding Quantity", PurchaseLine.TableCaption(), ProdOrderLine."Remaining Quantity", ProdOrderLine.TableCaption(), ProdOrderLine.Quantity, PurchaseLine.Quantity);
 
             CannotInvoiceErrorInfo.RecordId := PurchaseLine.RecordId;
             CannotInvoiceErrorInfo.AddAction(

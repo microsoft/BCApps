@@ -50,12 +50,12 @@ codeunit 99001551 "Subc. WhsePostReceipt Ext"
     local procedure CalculateSubcontractingLastOperationQuantity_OnAfterGetQuantityRelatedParameter(PurchaseLine: Record Microsoft.Purchases.Document."Purchase Line"; var QtyPerUoM: Decimal; var QtyBasePurchaseLine: Decimal)
     var
         Item: Record Microsoft.Inventory.Item.Item;
-        UOMMgt: Codeunit "Unit of Measure Management";
+        UnitOfMeasureManagement: Codeunit "Unit of Measure Management";
     begin
         if PurchaseLine."Subc. Purchase Line Type" = "Subc. Purchase Line Type"::LastOperation then begin
             Item.SetLoadFields("No.", "Base Unit of Measure");
             Item.Get(PurchaseLine."No.");
-            QtyPerUoM := UOMMgt.GetQtyPerUnitOfMeasure(Item, PurchaseLine."Unit of Measure Code");
+            QtyPerUoM := UnitOfMeasureManagement.GetQtyPerUnitOfMeasure(Item, PurchaseLine."Unit of Measure Code");
             QtyBasePurchaseLine := PurchaseLine.CalcBaseQtyFromQuantity(PurchaseLine.Quantity, PurchaseLine.FieldCaption("Qty. Rounding Precision"), PurchaseLine.FieldCaption("Quantity"), PurchaseLine.FieldCaption("Quantity (Base)"));
         end;
     end;
