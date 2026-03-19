@@ -5,7 +5,7 @@
 import { readdirSync, readFileSync, statSync, existsSync } from 'fs';
 import { join, relative, extname } from 'path';
 
-const MAX_CODE_BYTES = 30_000;
+const MAX_CODE_BYTES = 15_000;
 const AL_EXTENSIONS = new Set(['.al']);
 
 /**

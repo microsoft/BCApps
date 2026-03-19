@@ -34,7 +34,7 @@ export async function callGPT(systemPrompt, userMessage) {
         {
           encoding: 'utf-8',
           input: combinedPrompt,
-          timeout: 300_000,
+          timeout: 420_000,
           maxBuffer: 10 * 1024 * 1024,
           env: { ...process.env },
         }
