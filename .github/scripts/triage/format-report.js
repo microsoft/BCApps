@@ -1,5 +1,5 @@
 // Full triage report formatting for GitHub Wiki pages
-// Produces detailed markdown without character limits or collapsible sections.
+// Structured for quick PM scanning: TL;DR first, details on demand.
 
 import { formatDuplicatesSection } from './duplicate-detector.js';
 
@@ -12,14 +12,6 @@ const ACTION_EMOJI = {
 
 /**
  * Format the full triage report for a GitHub Wiki page.
- *
- * @param {object} phase1 - Phase 1 assessment result
- * @param {object} phase2 - Phase 2 enrichment/triage result
- * @param {boolean} isRetriage - Whether this is a re-triage
- * @param {Array} duplicates - Potential duplicate issues
- * @param {object|null} previousScores - Previous triage scores for diff
- * @param {object} issueMeta - { number, title, author, url }
- * @returns {string} Full markdown report
  */
 export function formatWikiReport(phase1, phase2, isRetriage, duplicates, previousScores, issueMeta) {
   const qs = phase1.quality_score;
@@ -27,22 +19,57 @@ export function formatWikiReport(phase1, phase2, isRetriage, duplicates, previou
   const e = phase2.enrichment;
   const actionEmoji = ACTION_EMOJI[t.recommended_action?.action] || ':question:';
 
-  let md = `# Triage Report: Issue #${issueMeta.number}\n\n`;
-  md += `> **Issue:** [${issueMeta.title}](${issueMeta.url})\n`;
-  md += `> **Author:** @${issueMeta.author} | **Date:** ${new Date().toISOString().split('T')[0]}\n`;
-  md += `> **Verdict:** ${phase1.verdict} | **Quality:** ${qs.total}/100 | **Priority:** ${t.priority_score.score}/10\n`;
+  let md = `# Issue #${issueMeta.number}: ${issueMeta.title}\n\n`;
+
+  // ── TL;DR ──
+  md += `${actionEmoji} **${t.recommended_action.action}** — ${phase2.executive_summary}\n\n`;
+
+  md += `| Quality | Priority | Complexity | Effort | Risk | Path | Confidence |\n`;
+  md += `|---------|----------|------------|--------|------|------|------------|\n`;
+  md += `| ${qs.total}/100 (${phase1.verdict}) | ${t.priority_score.score}/10 | ${t.complexity.rating} | ${t.effort.rating} | ${t.risk.rating} | ${t.implementation_path.rating} | ${t.confidence.rating} |\n`;
+
+  md += `\n`;
+  md += `> **Type:** ${phase1.issue_type} | **Author:** @${issueMeta.author} | **Date:** ${new Date().toISOString().split('T')[0]} | [View issue](${issueMeta.url})\n`;
 
   if (isRetriage) {
     md += `> :arrows_counterclockwise: **Re-triage** — see earlier versions in wiki history.\n`;
   }
 
-  md += `\n---\n\n`;
+  md += `\n`;
 
-  // Potential duplicates
+  // ── Duplicates (if any, shown prominently) ──
   md += formatDuplicatesSection(duplicates);
 
-  // Quality score table
-  md += `## Quality Score: ${qs.total}/100 — ${phase1.verdict}\n\n`;
+  // ── Missing info (if any, shown prominently) ──
+  if (phase1.missing_info && phase1.missing_info.length > 0) {
+    md += `### :warning: Information needed\n\n`;
+    for (const item of phase1.missing_info) {
+      md += `- [ ] ${item}\n`;
+    }
+    md += `\n`;
+  }
+
+  md += `---\n\n`;
+
+  // ── Triage rationale (collapsible) ──
+  md += `<details>\n<summary><strong>Triage rationale</strong> — why ${t.recommended_action.action}?</summary>\n\n`;
+
+  md += `| Aspect | Assessment | Rationale |\n`;
+  md += `|--------|-----------|----------|\n`;
+  md += `| Complexity | ${t.complexity.rating} | ${t.complexity.rationale} |\n`;
+  md += `| Value | ${t.value.rating} | ${t.value.rationale} |\n`;
+  md += `| Risk | ${t.risk.rating} | ${t.risk.rationale} |\n`;
+  md += `| Effort | ${t.effort.rating} | ${t.effort.rationale} |\n`;
+  md += `| Impl. Path | ${t.implementation_path.rating} | ${t.implementation_path.rationale} |\n`;
+  md += `| Priority | ${t.priority_score.score}/10 | ${t.priority_score.rationale} |\n`;
+  md += `| Confidence | ${t.confidence.rating} | ${t.confidence.rationale} |\n`;
+
+  md += `\n> ${t.recommended_action.rationale}\n\n`;
+  md += `</details>\n\n`;
+
+  // ── Quality breakdown (collapsible) ──
+  md += `<details>\n<summary><strong>Quality breakdown</strong> — ${qs.total}/100 (${phase1.verdict})</summary>\n\n`;
+
   md += `| Dimension | Score | Notes |\n`;
   md += `|-----------|-------|-------|\n`;
   md += `| Clarity | ${qs.clarity.score}/20 | ${qs.clarity.notes} |\n`;
@@ -53,7 +80,7 @@ export function formatWikiReport(phase1, phase2, isRetriage, duplicates, previou
 
   // Re-triage comparison
   if (isRetriage && previousScores) {
-    md += `\n### Changes since last triage\n\n`;
+    md += `\n#### Changes since last triage\n\n`;
     md += `| Metric | Previous | Current | Change |\n`;
     md += `|--------|----------|---------|--------|\n`;
     if (previousScores.qualityTotal != null) {
@@ -81,116 +108,97 @@ export function formatWikiReport(phase1, phase2, isRetriage, duplicates, previou
     if (previousScores.verdict && previousScores.verdict !== phase1.verdict) {
       md += `\n> Verdict changed: **${previousScores.verdict}** → **${phase1.verdict}**\n`;
     }
-    md += `\n`;
   }
 
-  // Missing info
-  if (phase1.missing_info && phase1.missing_info.length > 0) {
-    md += `\n### :warning: Information needed\n\n`;
-    for (const item of phase1.missing_info) {
-      md += `- [ ] ${item}\n`;
-    }
-    md += `\n`;
-  }
+  md += `\n</details>\n\n`;
 
-  md += `\n---\n\n`;
+  // ── Enrichment context (collapsible) ──
+  const hasEnrichment = (e.documentation?.length > 0) || (e.ideas_portal?.length > 0) ||
+    (e.matched_ideas?.length > 0) || (e.ado_work_items?.length > 0) ||
+    (e.community?.length > 0) || (e.marketplace?.searchUrl) ||
+    (e.code_areas?.length > 0);
 
-  // Triage recommendation
-  md += `## Triage Recommendation\n\n`;
-  md += `| Aspect | Assessment | Rationale |\n`;
-  md += `|--------|-----------|----------|\n`;
-  md += `| Complexity | ${t.complexity.rating} | ${t.complexity.rationale} |\n`;
-  md += `| Value | ${t.value.rating} | ${t.value.rationale} |\n`;
-  md += `| Risk | ${t.risk.rating} | ${t.risk.rationale} |\n`;
-  md += `| Effort | ${t.effort.rating} | ${t.effort.rationale} |\n`;
-  md += `| Impl. Path | ${t.implementation_path.rating} | ${t.implementation_path.rationale} |\n`;
-  md += `| Priority | ${t.priority_score.score}/10 | ${t.priority_score.rationale} |\n`;
-  md += `| Confidence | ${t.confidence.rating} | ${t.confidence.rationale} |\n`;
+  if (hasEnrichment) {
+    md += `<details>\n<summary><strong>Enrichment context</strong> — external sources and references</summary>\n\n`;
 
-  md += `\n**Recommended Action:** ${actionEmoji} **${t.recommended_action.action}**\n\n`;
-  md += `> ${t.recommended_action.rationale}\n\n`;
-  md += `**Executive Summary:** ${phase2.executive_summary}\n`;
-
-  md += `\n---\n\n`;
-
-  // Enrichment context (fully expanded, no collapsible tags)
-  md += `## Enrichment Context\n\n`;
-
-  if (e.documentation && e.documentation.length > 0) {
-    md += `### Related documentation\n\n`;
-    for (const doc of e.documentation) {
-      if (doc.url && doc.url.startsWith('http')) {
-        md += `- [${doc.title}](${doc.url}) — ${doc.relevance}\n`;
-      } else {
-        md += `- **${doc.title}** — ${doc.relevance}\n`;
+    if (e.documentation && e.documentation.length > 0) {
+      md += `#### Documentation\n`;
+      for (const doc of e.documentation) {
+        if (doc.url && doc.url.startsWith('http')) {
+          md += `- [${doc.title}](${doc.url}) — ${doc.relevance}\n`;
+        } else {
+          md += `- **${doc.title}** — ${doc.relevance}\n`;
+        }
       }
+      md += `\n`;
     }
-    md += `\n`;
-  }
 
-  if (e.ideas_portal && e.ideas_portal.length > 0) {
-    md += `### Ideas Portal & community requests\n\n`;
-    for (const idea of e.ideas_portal) {
-      if (idea.url && idea.url.startsWith('http')) {
-        md += `- [${idea.title}](${idea.url}) — ${idea.relevance}\n`;
-      } else {
-        md += `- **${idea.title}** — ${idea.relevance}\n`;
+    if (e.ideas_portal && e.ideas_portal.length > 0) {
+      md += `#### Ideas Portal\n`;
+      for (const idea of e.ideas_portal) {
+        if (idea.url && idea.url.startsWith('http')) {
+          md += `- [${idea.title}](${idea.url}) — ${idea.relevance}\n`;
+        } else {
+          md += `- **${idea.title}** — ${idea.relevance}\n`;
+        }
       }
+      md += `\n`;
     }
-    md += `\n`;
-  }
 
-  if (e.matched_ideas && e.matched_ideas.length > 0) {
-    md += `### Dynamics 365 Ideas Portal matches\n\n`;
-    for (const idea of e.matched_ideas) {
-      md += `- [${idea.title}](${idea.url}) — :thumbsup: ${idea.votes} votes (${idea.status})\n`;
-    }
-    md += `\n`;
-  }
-
-  if (e.ado_work_items && e.ado_work_items.length > 0) {
-    md += `### Azure DevOps related work items\n\n`;
-    for (const wi of e.ado_work_items) {
-      md += `- [${wi.type} #${wi.id}: ${wi.title}](${wi.url}) (${wi.state})${wi.matchReason ? ` — _${wi.matchReason}_` : ''}\n`;
-    }
-    md += `\n`;
-  }
-
-  if (e.marketplace && e.marketplace.searchUrl) {
-    md += `### AppSource Marketplace\n\n`;
-    md += `[Search AppSource for "${e.marketplace.searchTerms}" apps](${e.marketplace.searchUrl})\n\n`;
-  }
-
-  if (e.community && e.community.length > 0) {
-    md += `### Community discussions\n\n`;
-    for (const disc of e.community) {
-      if (disc.url && disc.url.startsWith('http')) {
-        md += `- [${disc.title}](${disc.url}) — ${disc.relevance}\n`;
-      } else {
-        md += `- **${disc.title}** — ${disc.relevance}\n`;
+    if (e.matched_ideas && e.matched_ideas.length > 0) {
+      md += `#### Ideas Portal matches\n`;
+      for (const idea of e.matched_ideas) {
+        md += `- [${idea.title}](${idea.url}) — :thumbsup: ${idea.votes} votes (${idea.status})\n`;
       }
+      md += `\n`;
     }
-    md += `\n`;
+
+    if (e.ado_work_items && e.ado_work_items.length > 0) {
+      md += `#### ADO work items\n`;
+      for (const wi of e.ado_work_items) {
+        md += `- [${wi.type} #${wi.id}: ${wi.title}](${wi.url}) (${wi.state})${wi.matchReason ? ` — _${wi.matchReason}_` : ''}\n`;
+      }
+      md += `\n`;
+    }
+
+    if (e.marketplace && e.marketplace.searchUrl) {
+      md += `#### AppSource\n`;
+      md += `[Search related apps](${e.marketplace.searchUrl})\n\n`;
+    }
+
+    if (e.community && e.community.length > 0) {
+      md += `#### Community\n`;
+      for (const disc of e.community) {
+        if (disc.url && disc.url.startsWith('http')) {
+          md += `- [${disc.title}](${disc.url}) — ${disc.relevance}\n`;
+        } else {
+          md += `- **${disc.title}** — ${disc.relevance}\n`;
+        }
+      }
+      md += `\n`;
+    }
+
+    if (e.code_areas && e.code_areas.length > 0) {
+      md += `#### Code areas\n`;
+      for (const area of e.code_areas) {
+        md += `- \`${area.path}\` — ${area.relevance}\n`;
+      }
+      md += `\n`;
+    }
+
+    md += `</details>\n\n`;
   }
 
-  if (e.code_areas && e.code_areas.length > 0) {
-    md += `### Related code areas\n\n`;
-    for (const area of e.code_areas) {
-      md += `- \`${area.path}\` — ${area.relevance}\n`;
-    }
-    md += `\n`;
-  }
-
+  // ── Source files (collapsible) ──
   if (e.analyzed_files && e.analyzed_files.length > 0) {
-    md += `### Source files analyzed\n\n`;
-    md += `${e.analyzed_files.length} file(s) from \`${e.analyzed_directory || 'src/'}\` were provided as context.\n\n`;
+    md += `<details>\n<summary><strong>Source files analyzed</strong> — ${e.analyzed_files.length} file(s) from <code>${e.analyzed_directory || 'src/'}</code></summary>\n\n`;
     for (const file of e.analyzed_files) {
       md += `- \`${file}\`\n`;
     }
-    md += `\n`;
+    md += `\n</details>\n\n`;
   }
 
-  md += `---\n\n`;
+  md += `---\n`;
   md += `> Generated by the Issue Triage Agent (GPT-5.4) | [Back to issue](${issueMeta.url})\n`;
 
   return md;

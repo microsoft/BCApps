@@ -55,7 +55,8 @@ const issueMeta = {
 describe('formatWikiReport', () => {
   it('should include issue title as page heading', () => {
     const report = formatWikiReport(mockPhase1, mockPhase2, false, [], null, issueMeta);
-    assert.ok(report.includes('# Triage Report: Issue #5'));
+    assert.ok(report.includes('# Issue #5:'));
+    assert.ok(report.includes('Shopify Connector'));
   });
 
   it('should include issue metadata', () => {
@@ -83,10 +84,10 @@ describe('formatWikiReport', () => {
     assert.ok(report.includes('Implement'));
   });
 
-  it('should include enrichment context without collapsible tags', () => {
+  it('should include enrichment context in collapsible sections', () => {
     const report = formatWikiReport(mockPhase1, mockPhase2, false, [], null, issueMeta);
-    assert.ok(!report.includes('<details>'));
-    assert.ok(report.includes('## Enrichment Context'));
+    assert.ok(report.includes('<details>'));
+    assert.ok(report.includes('Enrichment context'));
     assert.ok(report.includes('Shopify docs'));
     assert.ok(report.includes('Better sync'));
     assert.ok(report.includes('Bug #123'));
