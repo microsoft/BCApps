@@ -47,7 +47,7 @@ codeunit 149034 "AIT Test Suite Mgt."
     procedure StartAITSuite(var AITTestSuite: Record "AIT Test Suite")
     var
         AITTestSuite2: Record "AIT Test Suite";
-        AITCreditLimitMgt: Codeunit "AIT Credit Limit Mgt.";
+        AITEvalLimitProvider: Interface "AIT Eval Limit Provider";
     begin
         // If there is already a suite running, then error
         AITTestSuite2.ReadIsolation := IsolationLevel::ReadUncommitted;
@@ -55,8 +55,8 @@ codeunit 149034 "AIT Test Suite Mgt."
         if not AITTestSuite2.IsEmpty() then
             Error(CannotRunMultipleSuitesInParallelErr);
 
-        // Check credit limit before starting (for Agent type suites)
-        AITCreditLimitMgt.CheckCreditLimitBeforeRun(AITTestSuite);
+        AITEvalLimitProvider := AITTestSuite."Test Type";
+        AITEvalLimitProvider.CheckBeforeRun(AITTestSuite);
 
         RunAITests(AITTestSuite);
         if AITTestSuite.Find() then;
@@ -66,8 +66,8 @@ codeunit 149034 "AIT Test Suite Mgt."
     var
         AITTestMethodLine: Record "AIT Test Method Line";
         AITTestSuiteMgt: Codeunit "AIT Test Suite Mgt.";
-        AITCreditLimitMgt: Codeunit "AIT Credit Limit Mgt.";
         FeatureTelemetry: Codeunit "Feature Telemetry";
+        AITEvalLimitProvider: Interface "AIT Eval Limit Provider";
         FeatureTelemetryCD: Dictionary of [Text, Text];
         CreditLimitReached: Boolean;
     begin
@@ -80,9 +80,6 @@ codeunit 149034 "AIT Test Suite Mgt."
         AITTestSuite.Version += 1;
         AITTestSuite.Modify(true);
         Commit(); // Ensure that setup is not rolled back
-
-        // Reset credit limit flag before starting the run
-        AITCreditLimitMgt.ResetCreditLimitFlag();
 
         AITTestMethodLine.SetRange("Test Suite Code", AITTestSuite.Code);
         AITTestMethodLine.SetFilter("Codeunit ID", '<>0');
@@ -98,19 +95,16 @@ codeunit 149034 "AIT Test Suite Mgt."
 
         AITTestMethodLine.ModifyAll(Status, AITTestMethodLine.Status::" ", true);
 
+        AITEvalLimitProvider := AITTestSuite."Test Type";
         CreditLimitReached := false;
+
         if AITTestMethodLine.FindSet() then
             repeat
-                // Check credit limit before running each test line (for Agent type suites)
-                if not AITCreditLimitMgt.CheckCreditLimitDuringRun(AITTestSuite) then
-                    CreditLimitReached := true;
-
-                // Also check if credit limit was reached during a previous test
-                if AITCreditLimitMgt.IsCreditLimitReachedDuringRun() then
+                if AITEvalLimitProvider.IsLimitReached() then
                     CreditLimitReached := true;
 
                 if CreditLimitReached then begin
-                    AITCreditLimitMgt.SetCreditLimitReachedStatus(AITTestSuite);
+                    AITEvalLimitProvider.HandleLimitReached(AITTestSuite);
                 end else
                     RunAITestLine(AITTestMethodLine, true);
             until (AITTestMethodLine.Next() = 0) or CreditLimitReached;
@@ -143,9 +137,9 @@ codeunit 149034 "AIT Test Suite Mgt."
     internal procedure RunAITestLine(AITTestMethodLine: Record "AIT Test Method Line"; IsExecutedFromTestSuiteHeader: Boolean)
     var
         AITTestSuite: Record "AIT Test Suite";
-        AITCreditLimitMgt: Codeunit "AIT Credit Limit Mgt.";
         TestRunnerProgressDialog: Codeunit "Test Runner - Progress Dialog";
         FeatureTelemetry: Codeunit "Feature Telemetry";
+        AITEvalLimitProvider: Interface "AIT Eval Limit Provider";
         TelemetryCustomDimensions: Dictionary of [Text, Text];
         EmptyGuid: Guid;
     begin
@@ -159,7 +153,8 @@ codeunit 149034 "AIT Test Suite Mgt."
             FeatureTelemetry.LogUptake('0000NEX', GetFeatureName(), Enum::"Feature Uptake Status"::"Set up", TelemetryCustomDimensions);
         end;
 
-        AITCreditLimitMgt.CheckCreditLimitBeforeRun(AITTestSuite);
+        AITEvalLimitProvider := GlobalAITTestSuite."Test Type";
+        AITEvalLimitProvider.CheckBeforeRun(AITTestSuite);
 
         AITTestMethodLine.Validate(Status, AITTestMethodLine.Status::Running);
         AITTestMethodLine.Modify(true);
@@ -170,7 +165,7 @@ codeunit 149034 "AIT Test Suite Mgt."
 
         if AITTestMethodLine.Find() then begin
             // Check if credit limit was reached during the test run
-            if AITCreditLimitMgt.IsCreditLimitReachedDuringRun() then begin
+            if AITEvalLimitProvider.IsLimitReached() then begin
                 AITTestMethodLine.Validate(Status, AITTestMethodLine.Status::Skipped);
                 AITTestMethodLine.Modify(true);
                 Commit();

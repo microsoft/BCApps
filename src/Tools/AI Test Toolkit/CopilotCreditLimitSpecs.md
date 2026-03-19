@@ -347,14 +347,39 @@ Based on continued testing feedback, the following refinements were made:
 
 The following issues were identified during code review and need to be addressed in a future iteration.
 
-### 12.1 Architectural: Agent-folder codeunit referenced from base TestSuite folder
+### 12.1 ~~Architectural: Agent-folder codeunit referenced from base TestSuite folder~~ (Done)
 
-`AIT Credit Limit Mgt.` (codeunit 149050) lives under `src/Agent/` which is correct since credit limits apply to agent test suites. However, `AITTestSuiteMgt.Codeunit.al` in `src/TestSuite/` (the base/shared layer) directly references it in three places:
-- `StartAITSuite` — calls `CheckCreditLimitBeforeRun` before starting a suite run
-- `RunAITests` — calls `CheckCreditLimitDuringRun` and `IsCreditLimitReachedDuringRun` in the test-line loop, and `SetCreditLimitReachedStatus` when the limit is hit
-- `RunAITestLine` — checks `IsCreditLimitReachedDuringRun` to set line status to Skipped after a test completes
+**Problem:** `AIT Credit Limit Mgt.` (codeunit 149050) lived under `src/Agent/` but was directly referenced from `AITTestSuiteMgt.Codeunit.al` and `AITTestRunIteration.Codeunit.al` in `src/TestSuite/` — creating an upward dependency from the base layer to the specialized Agent layer.
 
-This creates an upward dependency from the base objects (`TestSuite/`) to the specialized objects (`Agent/`). To fix this, introduce an interface (e.g., `ICreditLimitCheck`) in the `TestSuite/` folder and implement it in the `Agent/` folder. The implementation could be tied to the `"Test Type"` enum value on the test suite so the correct implementation is resolved at runtime based on whether the suite is of type Agent.
+**Solution implemented:** Introduced the `AIT Eval Limit Provider` interface pattern:
+
+- **New interface:** `AIT Eval Limit Provider` in `src/Limits/AITEvalLimitProvider.Interface.al` with methods: `CheckBeforeRun`, `IsLimitReached`, `HandleLimitReached`, `ShowNotifications`, `OpenSetupPage`.
+- **Copilot credits implementation:** `AIT Eval Monthly Copilot Cred.` (codeunit 149039) in `src/Limits/CopilotCredits/` — implements all limit logic previously in `AIT Credit Limit Mgt.`, including notifications, 80% warning, enforcement-disabled handling.
+- **No-limit implementation:** `AIT Eval No Limit` (codeunit 149041) in `src/Limits/None/` — null object pattern, all methods return safe defaults.
+- **Enum-driven resolution:** `AIT Test Type` enum implements `AIT Eval Limit Provider`. Default implementation is `AIT Eval No Limit`; `Agent` maps to `AIT Eval Monthly Copilot Cred.`.
+- **Callers simplified:** `AITTestSuiteMgt`, `AITTestRunIteration`, and `AgentTestSuite.PageExt.al` now resolve the interface from `"Test Type"` and call interface methods — no direct reference to Agent-specific code.
+- **File reorganization:** Credit limit setup table and page moved from `src/Agent/` to `src/Limits/CopilotCredits/`. Old `AIT Credit Limit Mgt.` (codeunit 149050) deleted.
+- **Page renamed:** `AIT Credit Limits` → `AIT Eval Monthly Copilot Cred.` (page 149048).
+
+**Review — Strengths:**
+
+1. **Clean dependency inversion.** The `TestSuite/` layer no longer references `Agent/`-specific code. All limit logic is resolved through the interface at runtime based on `"Test Type"`.
+2. **Extensible design.** New test types (MCP, future types) can provide their own limit providers just by adding an implementation mapping in the enum. No changes needed to the shared layer.
+3. **Proper null object.** `AIT Eval No Limit` means Copilot/MCP suites don't need `if TestType = Agent` guards — the no-op implementation handles it transparently.
+4. **Good folder structure.** `src/Limits/` with `CopilotCredits/` and `None/` sub-folders is clean and mirrors the interface/implementation split.
+5. **Notifications moved into the provider.** `ShowNotifications()` on the interface means each limit type controls its own UI. The page extension just calls `AITEvalLimitProvider.ShowNotifications()` — much simpler.
+6. **Old codeunit fully removed.** No dead code left behind.
+
+**Review — Weaknesses / Issues to address:**
+
+1. **`CheckBeforeRun` error message uses uninitialized variables.** In `AIT Eval Monthly Copilot Cred.CheckBeforeRun`, the method calls `IsLimitReached()` (which internally reads the setup and credits), but then the `Error()` references local `AITCreditLimitSetup."Monthly Credit Limit"` and `TotalCreditsConsumed` that were never assigned in this scope — they'll be 0. The error message will say "limit of 0 reached, consumption: 0". The variables need to be populated before the Error, or `IsLimitReached()` should return the values.
+2. **Notification action added to wrong variable.** In `ShowNotifications()`, when enforcement is disabled: `GlobalWarningNotification.AddAction(...)` is called but `EnforcementDisabledNotification` is the one being sent. Same bug when limit is reached: the action is added to `GlobalWarningNotification` instead of `GlobalLimitNotification`. Copy-paste errors from the refactor.
+3. **`IsLimitReached()` queries the database every call with no caching.** In `OnAfterTestMethodRun`, `IsLimitReached()` hits the DB to check `AIT Credit Limit Setup` and calculate credits consumed. This is called for every test function. The old SingleInstance flag pattern (`CreditLimitReachedDuringRun`) was specifically designed to avoid repeated DB queries once the limit was detected. Now there's no flag — every `IsLimitReached()` call re-queries. Consider caching the result within the run or reintroducing a lightweight flag.
+4. **`RunAITestLine` uses `GlobalAITTestSuite` instead of local `AITTestSuite`.** Line `AITEvalLimitProvider := GlobalAITTestSuite."Test Type"` uses the module-level variable, but when called via `RerunTest` (not from header), `GlobalAITTestSuite` may not be set to the correct suite. Should use the local `AITTestSuite` that was just fetched with `Get`.
+5. **`AIT Eval No Limit` has `SingleInstance = true` but no state.** The `SingleInstance` attribute is unnecessary on the no-op implementation since it holds no state. Harmless but misleading.
+6. **`CheckBeforeRun` return value unused.** Both `StartAITSuite` and `RunAITestLine` call `AITEvalLimitProvider.CheckBeforeRun()` but ignore the return value — the method raises `Error()` to abort. If CheckBeforeRun someday returns false without erroring, the flow would continue. Consider either always using Error (and making the return type void) or honoring the return value.
+7. **Old `AIT Credit Limit Mgt.` delete — but still has codeunit ID 149050 allocated.** If the codeunit was published before, the ID is "claimed" in the tenant. Not a functional issue, but worth noting for the object range.
+8. **`OnAfterTestMethodRun` no longer sets `CreditLimitReachedDuringRun` after detecting the limit.** The old `CheckAndHandleCreditLimitAfterTest` would set the flag so that the *next* test function in the same line would be skipped immediately (without re-querying). Now each `OnBeforeTestMethodRun` calls `IsLimitReached()` which re-queries. Combined with point 3, this means N database round-trips per remaining test function instead of 1 flag check.
 
 ### 12.2 ~~Suite and line status not set to Skipped when error is raised at run start~~ (Done)
 
@@ -377,11 +402,11 @@ The current object names use inconsistent terminology:
 
 These should be renamed to include "Copilot" for consistency with the UI captions (which already say "Copilot Credit") and to distinguish from other potential credit/limit concepts. Suggested naming convention: `AIT Copilot Credit Limit Setup`, `AIT Copilot Credit Limits`, `AIT Copilot Credit Limit Mgt.`, etc.
 
-### 12.5 Review SingleInstance codeunit design for credit limit state
+### 12.5 ~~Review SingleInstance codeunit design for credit limit state~~ (Addressed in 12.1 refactor)
 
-`AIT Credit Limit Mgt.` uses `SingleInstance = true` with a module-level `CreditLimitReachedDuringRun` boolean flag to track whether the limit was hit during a run. This flag is reset in `ResetCreditLimitFlag()` at the start of `RunAITests` and set via `SetCreditLimitReachedDuringRun()`. It is also checked from `AITTestRunIteration.Codeunit.al` in the `OnBeforeTestMethodRun` subscriber via `ShouldSkipTestDueToCreditLimit()`.
+The old `AIT Credit Limit Mgt.` SingleInstance codeunit with its `CreditLimitReachedDuringRun` flag has been deleted as part of the 12.1 interface refactor. The `AIT Eval Monthly Copilot Cred.` implementation does **not** use SingleInstance or in-memory flags — it queries the database (`IsLimitReached()`) on each check. This eliminates the stale-flag and parallel-run concerns from the original design.
 
-This design is functional and simple but warrants a review to confirm it is robust in all scenarios — for example, whether the state is always correctly reset across consecutive runs within the same session, and whether there are edge cases where the flag could be stale (e.g., if a run errors out before `ResetCreditLimitFlag` is called on the next run). A focused review of this pattern should be done before shipping.
+**Trade-off:** The DB-query approach is more robust but less performant. Each `OnBeforeTestMethodRun` and `OnAfterTestMethodRun` call now queries `AIT Credit Limit Setup` and calculates total credits consumed. For a codeunit with many test functions, this is a significant increase in DB calls compared to the old single-flag approach. See 12.1 weakness #3/#8 for mitigation options (e.g., caching the result within the interface implementation after the first `true` detection).
 
 ### 12.6 ~~Remove per-suite credit limits — keep only global limit~~ (Done)
 

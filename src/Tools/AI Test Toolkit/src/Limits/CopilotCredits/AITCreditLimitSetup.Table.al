@@ -5,7 +5,7 @@
 
 namespace System.TestTools.AITestToolkit;
 
-table 149040 "AIT Credit Limit Setup"
+table 149040 "AIT Credit Limit Setup" // TODO(qutreson) Rename.
 {
     Caption = 'AI Eval Credit Limit Setup';
     DataClassification = SystemMetadata;

@@ -59,14 +59,16 @@ codeunit 149042 "AIT Test Run Iteration"
 
     local procedure RunAITTestMethodLine(var AITTestMethodLine: Record "AIT Test Method Line"; var AITTestSuite: Record "AIT Test Suite")
     var
-        AITCreditLimitMgt: Codeunit "AIT Credit Limit Mgt.";
+        AITEvalLimitProvider: Interface "AIT Eval Limit Provider";
         AITTestSuiteMgt: Codeunit "AIT Test Suite Mgt.";
     begin
+        AITEvalLimitProvider := GlobalAITTestSuite."Test Type";
+
         OnBeforeRunIteration(AITTestSuite, AITTestMethodLine, RunAllTests, UpdateTestSuite);
         RunIteration(AITTestMethodLine);
 
         // After tests complete, check if credit limit was reached and update line status
-        if AITCreditLimitMgt.IsCreditLimitReachedDuringRun() then
+        if AITEvalLimitProvider.IsLimitReached() then
             SetLineStatusToSkipped();
 
         Commit();
@@ -196,8 +198,8 @@ codeunit 149042 "AIT Test Run Iteration"
     var
         AITTestSuiteMgt: Codeunit "AIT Test Suite Mgt.";
         AITContextCU: Codeunit "AIT Test Context Impl.";
-        AITCreditLimitMgt: Codeunit "AIT Credit Limit Mgt.";
         AOAIToken: Codeunit "AOAI Token";
+        AITEvalLimitProvider: Interface "AIT Eval Limit Provider";
     begin
         if ActiveAITTestSuite.Code = '' then
             exit;
@@ -205,8 +207,10 @@ codeunit 149042 "AIT Test Run Iteration"
         if FunctionName = '' then
             exit;
 
+        AITEvalLimitProvider := GlobalAITTestSuite."Test Type";
+
         // Check if credit limit was reached - if so, skip this test and log it
-        if AITCreditLimitMgt.ShouldSkipTestDueToCreditLimit() then begin
+        if AITEvalLimitProvider.IsLimitReached() then begin
             Skip := true;
             AITTestSuiteMgt.LogSkippedEval(GlobalAITTestMethodLine, FunctionName);
             exit;
@@ -234,8 +238,8 @@ codeunit 149042 "AIT Test Run Iteration"
     local procedure OnAfterTestMethodRun(var CurrentTestMethodLine: Record "Test Method Line"; CodeunitID: Integer; CodeunitName: Text[30]; FunctionName: Text[128]; FunctionTestPermissions: TestPermissions; IsSuccess: Boolean)
     var
         AITContextCU: Codeunit "AIT Test Context Impl.";
-        AITCreditLimitMgt: Codeunit "AIT Credit Limit Mgt.";
         AOAIToken: Codeunit "AOAI Token";
+        AITEvalLimitProvider: Interface "AIT Eval Limit Provider";
         Accuracy: Decimal;
     begin
         if ActiveAITTestSuite.Code = '' then
@@ -244,8 +248,10 @@ codeunit 149042 "AIT Test Run Iteration"
         if FunctionName = '' then
             exit;
 
+        AITEvalLimitProvider := GlobalAITTestSuite."Test Type";
+
         // If credit limit was already reached, this test was skipped by the platform - don't log it
-        if AITCreditLimitMgt.IsCreditLimitReachedDuringRun() then
+        if AITEvalLimitProvider.IsLimitReached() then
             exit;
 
         GlobalTestMethodLine := CurrentTestMethodLine;
@@ -268,8 +274,5 @@ codeunit 149042 "AIT Test Run Iteration"
 
         AITContextCU.EndRunProcedureScenario(CurrentTestMethodLine, IsSuccess);
         Commit();
-
-        // Check credit limit after each test and set flag if exceeded
-        AITCreditLimitMgt.CheckAndHandleCreditLimitAfterTest(ActiveAITTestSuite);
     end;
 }

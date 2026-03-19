@@ -262,6 +262,7 @@ codeunit 149049 "Agent Test Context Impl."
         AITTestSuite: Record "AIT Test Suite";
         TotalCredits: Decimal;
     begin
+        // TODO(qutreson) what if someone changes the type after?
         AITTestSuite.SetRange("Test Type", AITTestSuite."Test Type"::Agent);
         if AITTestSuite.FindSet() then
             repeat

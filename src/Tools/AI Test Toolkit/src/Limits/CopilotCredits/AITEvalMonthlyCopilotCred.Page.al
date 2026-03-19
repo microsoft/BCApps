@@ -5,9 +5,9 @@
 
 namespace System.TestTools.AITestToolkit;
 
-page 149048 "AIT Credit Limits"
+page 149048 "AIT Eval Monthly Copilot Cred."
 {
-    Caption = 'AI Eval Copilot Credit Limits';
+    Caption = 'AI Eval Monthly Copilot Credit Limits';
     PageType = Worksheet;
     ApplicationArea = All;
     UsageCategory = Administration;
