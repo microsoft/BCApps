@@ -50,15 +50,30 @@ export async function getIssue(owner, repo, issueNumber) {
 
 /**
  * Post a markdown comment on an issue.
+ * Retries once on transient server errors (5xx).
  */
 export async function postComment(owner, repo, issueNumber, body) {
   const octokit = getOctokit();
-  await octokit.issues.createComment({
-    owner,
-    repo,
-    issue_number: issueNumber,
-    body,
-  });
+  for (let attempt = 0; attempt < 3; attempt++) {
+    try {
+      await octokit.issues.createComment({
+        owner,
+        repo,
+        issue_number: issueNumber,
+        body,
+      });
+      return;
+    } catch (err) {
+      const status = err.status || 0;
+      if (status >= 500 && attempt < 2) {
+        const delay = (attempt + 1) * 3000;
+        console.warn(`postComment: GitHub returned ${status}, retrying in ${delay / 1000}s (attempt ${attempt + 1}/3)...`);
+        await new Promise(r => setTimeout(r, delay));
+        continue;
+      }
+      throw err;
+    }
+  }
 }
 
 /**
