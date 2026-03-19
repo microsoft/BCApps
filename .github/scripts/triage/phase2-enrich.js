@@ -100,18 +100,26 @@ Return a JSON object with this exact structure:
 Return ONLY valid JSON. No markdown fences, no explanation text outside the JSON.`;
 
   const appArea = detectAppArea(issue.title, issue.body);
+  console.log(`Phase 2: Detected app area: ${appArea.name} (${appArea.directory})`);
 
   // Extract key terms for search context
   const keyTerms = extractKeyTerms(issue.title, issue.body);
+  console.log(`Phase 2: Key terms: [${keyTerms.join(', ')}]`);
 
-  // Fetch all enrichment context in parallel:
-  // code reading (sync, wrapped), Ideas Portal, and ADO work items
+  // Fetch all enrichment context in parallel
+  console.log(`Phase 2: Fetching enrichment context (code, Ideas Portal, ADO, AppSource)...`);
   const [codeContext, ideasResult, adoResult, marketplaceResult] = await Promise.all([
     Promise.resolve(fetchCodeContext(appArea.directory, keyTerms)),
     fetchRelatedIdeas(keyTerms),
     fetchRelatedWorkItems(keyTerms),
     fetchMarketplaceApps(keyTerms),
   ]);
+
+  console.log(`Phase 2: Code context: ${codeContext.relevantFiles?.length || 0} files from ${appArea.directory}`);
+  console.log(`Phase 2: Ideas Portal: ${ideasResult.ideas?.length || 0} matches`);
+  console.log(`Phase 2: ADO: ${adoResult.workItems?.length || 0} work items`);
+  console.log(`Phase 2: AppSource: ${marketplaceResult.totalCount ?? 'unavailable'} related apps`);
+
   const codeContextBlock = formatCodeContext(codeContext);
   const ideasContextBlock = formatIdeasContext(ideasResult);
   const adoContextBlock = formatAdoContext(adoResult);
