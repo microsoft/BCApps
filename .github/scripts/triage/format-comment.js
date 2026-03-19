@@ -201,9 +201,9 @@ function formatVerboseComment(phase1, phase2, isRetriage, duplicates, previousSc
     md += `\n`;
   }
 
-  if (e.marketplace && e.marketplace.totalCount != null) {
+  if (e.marketplace && e.marketplace.searchUrl) {
     md += `#### AppSource Marketplace\n\n`;
-    md += `**${e.marketplace.totalCount}** related BC apps found.\n\n`;
+    md += `[Search related apps](${e.marketplace.searchUrl})\n\n`;
   }
 
   if (e.community && e.community.length > 0) {

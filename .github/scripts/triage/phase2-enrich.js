@@ -118,7 +118,7 @@ Return ONLY valid JSON. No markdown fences, no explanation text outside the JSON
   console.log(`Phase 2: Code context: ${codeContext.relevantFiles?.length || 0} files from ${appArea.directory}`);
   console.log(`Phase 2: Ideas Portal: ${ideasResult.ideas?.length || 0} matches`);
   console.log(`Phase 2: ADO: ${adoResult.workItems?.length || 0} work items`);
-  console.log(`Phase 2: AppSource: ${marketplaceResult.totalCount ?? 'unavailable'} related apps`);
+  console.log(`Phase 2: AppSource: search terms "${marketplaceResult.searchTerms}" (LLM will estimate)`);
 
   const codeContextBlock = formatCodeContext(codeContext);
   const ideasContextBlock = formatIdeasContext(ideasResult);
@@ -180,9 +180,10 @@ Then provide your triage assessment as JSON.`;
     title: i.title, votes: i.votes, status: i.status, url: i.url,
   }));
   result.enrichment.ado_work_items = adoResult.workItems;
-  result.enrichment.marketplace = marketplaceResult.fallback
-    ? { searchUrl: marketplaceResult.searchUrl, totalCount: null }
-    : { apps: marketplaceResult.apps, totalCount: marketplaceResult.totalCount, searchTerms: marketplaceResult.searchTerms };
+  result.enrichment.marketplace = {
+    searchTerms: marketplaceResult.searchTerms,
+    searchUrl: marketplaceResult.searchUrl,
+  };
 
   return result;
 }
