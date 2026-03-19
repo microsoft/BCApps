@@ -208,8 +208,19 @@ page 149031 "AIT Test Suite"
                         AITLogEntry.DrillDownFailedAITLogEntries(Rec.Code, 0, Rec.Version);
                     end;
                 }
+                field("No. of Tests Skipped"; Rec."No. of Tests Skipped")
+                {
+                    Style = Ambiguous;
+                }
                 field(Accuracy; Rec.Accuracy)
                 {
+                }
+                field(ExecutionPercentage; ExecutionRatio)
+                {
+                    Editable = false;
+                    Caption = 'Execution';
+                    ToolTip = 'Specifies the average execution of the eval suite. The execution is calculated as the percentage of evals that were executed among the total evals (excluding skipped evals).';
+                    AutoFormatType = 0;
                 }
                 field("No. of Operations"; Rec."No. of Operations")
                 {
@@ -427,6 +438,7 @@ page 149031 "AIT Test Suite"
         AITTestSuiteMgt: Codeunit "AIT Test Suite Mgt.";
         AvgTimeDuration: Duration;
         AvgTokensConsumed: Integer;
+        ExecutionRatio: Decimal;
         TotalDuration: Duration;
         PageCaptionLbl: Label 'AI Eval';
         TestRunnerDisplayName: Text;
@@ -477,5 +489,7 @@ page 149031 "AIT Test Suite"
             AvgTokensConsumed := Rec."Tokens Consumed" div Rec."No. of Tests Executed"
         else
             AvgTokensConsumed := 0;
+
+        ExecutionRatio := AITTestSuiteMgt.GetExecution(Rec);
     end;
 }

@@ -220,6 +220,57 @@ codeunit 149049 "Agent Test Context Impl."
         exit(Result);
     end;
 
+    procedure GetCopilotCreditsForPeriod(TestSuiteCode: Code[100]; PeriodStartDate: Date): Decimal
+    begin
+        exit(GetCopilotCreditsForPeriod(TestSuiteCode, PeriodStartDate, DT2Date(CurrentDateTime())));
+    end;
+
+    procedure GetCopilotCreditsForPeriod(TestSuiteCode: Code[100]; PeriodStartDate: Date; PeriodEndDate: Date): Decimal
+    var
+        AgentTaskLog: Record "Agent Task Log";
+        AITLogEntry: Record "AIT Log Entry";
+        AgentTask: Codeunit "Agent Task";
+        TaskIDList: List of [BigInteger];
+        TotalCredits: Decimal;
+    begin
+        // Get all log entries for this suite within the period
+        AITLogEntry.SetRange("Test Suite Code", TestSuiteCode);
+        AITLogEntry.SetFilter("Start Time", '>=%1&<=%2', CreateDateTime(PeriodStartDate, 0T), CreateDateTime(PeriodEndDate, 235959.999T));
+
+        if not AITLogEntry.FindSet() then
+            exit(0);
+
+        repeat
+            AgentTaskLog.SetRange("Test Suite Code", AITLogEntry."Test Suite Code");
+            AgentTaskLog.SetRange(Version, AITLogEntry.Version);
+            AgentTaskLog.SetRange("Test Method Line No.", AITLogEntry."Test Method Line No.");
+
+            if AgentTaskLog.FindSet() then
+                repeat
+                    if not TaskIDList.Contains(AgentTaskLog."Agent Task ID") then begin
+                        TaskIDList.Add(AgentTaskLog."Agent Task ID");
+                        TotalCredits += AgentTask.GetCopilotCreditsConsumed(AgentTaskLog."Agent Task ID");
+                    end;
+                until AgentTaskLog.Next() = 0;
+        until AITLogEntry.Next() = 0;
+
+        exit(TotalCredits);
+    end;
+
+    procedure GetTotalCreditsConsumedThisMonth(PeriodStartDate: Date): Decimal
+    var
+        AITTestSuite: Record "AIT Test Suite";
+        TotalCredits: Decimal;
+    begin
+        AITTestSuite.SetRange("Test Type", AITTestSuite."Test Type"::Agent);
+        if AITTestSuite.FindSet() then
+            repeat
+                TotalCredits += GetCopilotCreditsForPeriod(AITTestSuite.Code, PeriodStartDate);
+            until AITTestSuite.Next() = 0;
+
+        exit(TotalCredits);
+    end;
+
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Test Runner - Mgt", OnRunTestSuite, '', false, false)]
     local procedure OnRunTestSuite(var TestMethodLine: Record "Test Method Line")
     var
