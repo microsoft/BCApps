@@ -110,6 +110,14 @@ Issues are routed to one of three teams based on keyword scoring. The agent coun
 
 ## Label Definitions
 
+### Issue Type Labels
+| Label | Color | When Applied |
+|-------|-------|-------------|
+| `type/bug` | #D73A4A (red) | Issue classified as a bug report |
+| `type/feature` | #0075CA (blue) | Issue classified as a new feature request |
+| `type/enhancement` | #A2EEEF (teal) | Issue classified as an enhancement to existing functionality |
+| `type/question` | #D876E3 (purple) | Issue classified as a question |
+
 ### Triage Status Labels
 | Label | Color | When Applied |
 |-------|-------|-------------|

@@ -25,6 +25,7 @@ import {
   getComplexityLabelName,
   getEffortLabelName,
   getPathLabelName,
+  getTypeLabelName,
   getTeamLabel,
 } from './config.js';
 
@@ -153,6 +154,7 @@ async function main() {
 
     const labelOps = [
       { prefix: 'triage/', label: getTriageLabelName(phase1Result.verdict), category: LABELS.triage },
+      { prefix: 'type/', label: getTypeLabelName(phase1Result.issue_type), category: LABELS.type },
       { prefix: 'priority/', label: getPriorityLabelName(triage.priority_score.score), category: LABELS.priority },
       { prefix: 'complexity/', label: getComplexityLabelName(triage.complexity.rating), category: LABELS.complexity },
       { prefix: 'effort/', label: getEffortLabelName(triage.effort.rating), category: LABELS.effort },

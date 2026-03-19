@@ -47,6 +47,12 @@ export const LABELS = {
     { name: 'path/copilot-assisted', color: 'C5DEF5', description: 'Best implemented with Copilot assistance' },
     { name: 'path/agentic', color: 'D4C5F9', description: 'Can be fully implemented by an AI agent' },
   ],
+  type: [
+    { name: 'type/bug', color: 'D73A4A', description: 'Bug report - something is broken' },
+    { name: 'type/feature', color: '0075CA', description: 'New feature request' },
+    { name: 'type/enhancement', color: 'A2EEEF', description: 'Enhancement to existing functionality' },
+    { name: 'type/question', color: 'D876E3', description: 'Question or request for information' },
+  ],
   team: [
     { name: 'Finance', color: 'FBCA04', description: 'Owned by the Finance team' },
     { name: 'SCM', color: '0E8A16', description: 'Owned by the SCM (Supply Chain Management) team' },
@@ -97,6 +103,16 @@ export function getPathLabelName(rating) {
   if (r.includes('manual')) return 'path/manual';
   if (r.includes('agentic')) return 'path/agentic';
   return 'path/copilot-assisted';
+}
+
+// Map issue type to label name
+export function getTypeLabelName(issueType) {
+  const t = (issueType || '').toLowerCase();
+  if (t === 'bug') return 'type/bug';
+  if (t === 'feature') return 'type/feature';
+  if (t === 'enhancement') return 'type/enhancement';
+  if (t === 'question') return 'type/question';
+  return 'type/bug'; // default
 }
 
 // Team ownership mapping based on Dynamics SMB Ownership Matrix.
