@@ -340,3 +340,65 @@ Based on continued testing feedback, the following refinements were made:
   - Also displayed in Credit Limits page suite repeater
 - **Styling:** Uses `Attention` (yellow) style to highlight skipped lines
 - **Rationale:** Helps users understand impact of credit limits on test coverage
+
+---
+
+## 12. Open Issues (Code Review Feedback)
+
+The following issues were identified during code review and need to be addressed in a future iteration.
+
+### 12.1 Architectural: Agent-folder codeunit referenced from base TestSuite folder
+
+`AIT Credit Limit Mgt.` (codeunit 149050) lives under `src/Agent/` which is correct since credit limits apply to agent test suites. However, `AITTestSuiteMgt.Codeunit.al` in `src/TestSuite/` (the base/shared layer) directly references it in three places:
+- `StartAITSuite` — calls `CheckCreditLimitBeforeRun` before starting a suite run
+- `RunAITests` — calls `CheckCreditLimitDuringRun` and `IsCreditLimitReachedDuringRun` in the test-line loop, and `SetCreditLimitReachedStatus` when the limit is hit
+- `RunAITestLine` — checks `IsCreditLimitReachedDuringRun` to set line status to Skipped after a test completes
+
+This creates an upward dependency from the base objects (`TestSuite/`) to the specialized objects (`Agent/`). To fix this, introduce an interface (e.g., `ICreditLimitCheck`) in the `TestSuite/` folder and implement it in the `Agent/` folder. The implementation could be tied to the `"Test Type"` enum value on the test suite so the correct implementation is resolved at runtime based on whether the suite is of type Agent.
+
+### 12.2 Suite and line status not set to Skipped when error is raised at run start
+
+When `CheckCreditLimitBeforeRun` detects the limit is already reached, it raises an `Error()` (see `GlobalCreditLimitExceededErr` / `SuiteCreditLimitExceededErr` in `AIT Credit Limit Mgt.`). This error aborts execution immediately, but the suite status and individual line statuses are **not** transitioned to `CreditLimitReached` / `Skipped` respectively, and the skipped-eval count is not reflected. Only when the limit is hit *during* a run (via `SetCreditLimitReachedStatus`) are statuses updated. The pre-run check path needs the same status handling so that the UI accurately reflects why nothing ran and how many evaluations were skipped.
+
+### 12.3 Credit Limits page does not explain enforcement behavior
+
+The `AIT Credit Limits` page (page 149048, captioned "AI Eval Copilot Credit Limits") shows the limit, consumption, and availability, but does not communicate the actual enforcement behavior to the user. Specifically, the page should clarify that:
+- New tests are **not started** when the limit is reached, but an already-running test is allowed to finish (meaning actual consumption can exceed the configured limit).
+- This is a deliberate design choice: stopping a test mid-way would waste the credits already consumed for the partial execution.
+
+Without this context, users may be surprised that consumption exceeds the limit or may not understand how enforcement works. A brief instructional text or tooltip on the page would address this.
+
+### 12.4 Object naming: AITCreditLimits should be AIT Copilot Credit Limit
+
+The current object names use inconsistent terminology:
+- Table: `AIT Credit Limit Setup` (table 149040)
+- Page: `AIT Credit Limits` (page 149048)
+- Codeunit: `AIT Credit Limit Mgt.` (codeunit 149050)
+
+These should be renamed to include "Copilot" for consistency with the UI captions (which already say "Copilot Credit") and to distinguish from other potential credit/limit concepts. Suggested naming convention: `AIT Copilot Credit Limit Setup`, `AIT Copilot Credit Limits`, `AIT Copilot Credit Limit Mgt.`, etc.
+
+### 12.5 Review SingleInstance codeunit design for credit limit state
+
+`AIT Credit Limit Mgt.` uses `SingleInstance = true` with a module-level `CreditLimitReachedDuringRun` boolean flag to track whether the limit was hit during a run. This flag is reset in `ResetCreditLimitFlag()` at the start of `RunAITests` and set via `SetCreditLimitReachedDuringRun()`. It is also checked from `AITTestRunIteration.Codeunit.al` in the `OnBeforeTestMethodRun` subscriber via `ShouldSkipTestDueToCreditLimit()`.
+
+This design is functional and simple but warrants a review to confirm it is robust in all scenarios — for example, whether the state is always correctly reset across consecutive runs within the same session, and whether there are edge cases where the flag could be stale (e.g., if a run errors out before `ResetCreditLimitFlag` is called on the next run). A focused review of this pattern should be done before shipping.
+
+### 12.6 Remove per-suite credit limits — keep only global limit
+
+The current implementation supports both a global monthly credit limit (on `AIT Credit Limit Setup`) and per-suite limits (the `"Suite Credit Limit"` field on `AIT Test Suite`). This adds significant complexity across the codebase for a feature that is not needed at this stage. We should simplify to **global limits only** and remove all per-suite limit code. Affected areas include:
+
+- **`AIT Credit Limit Mgt.` (codeunit 149050):** Suite-specific checks in `CheckCreditLimitBeforeRun` (checks `AITTestSuite."Suite Credit Limit"` and raises `SuiteCreditLimitExceededErr`), `CheckCreditLimitDuringRun` (same pattern), `IsSuiteCreditLimitExceeded`, `GetSuiteCreditsRemaining`, `GetSuiteCreditUsagePercentage`, `IsSuiteApproachingCreditLimit`, and the `SuiteCreditLimitExceededErr` label.
+- **`AIT Credit Limits` page (page 149048):** The `"Suite Credit Limit"` editable field and validation trigger, the `SuiteUsagePercentage` / `SuiteUsageStyle` display, and the `UpdateSuiteCreditLimitDisplay` / `UpdateSuiteUsagePercentage` helper procedures.
+- **`Agent Test Suite` page extension (`AgentTestSuite.PageExt.al`):** Suite-specific credit limit notifications (`SuiteLimitNotification`, `SuiteWarningNotification`) and their associated action handlers.
+- **`AIT Test Suite` table extension (`AgentTestSuite.TableExt.al`):** The `"Suite Credit Limit"` field definition.
+- **Spec sections 1, 3, 4, 6, 9.4:** References to per-suite limits in the spec should be updated or removed.
+
+### 12.7 Review and remove unused methods
+
+Several methods in the codebase appear to have no callers and should be reviewed for removal:
+
+- **`GetCreditsRemaining()`** in `AIT Credit Limit Mgt.` (codeunit 149050, line 127): No callers found in the workspace. Computes global remaining credits but is never called — the Credit Limits page computes this inline instead.
+- **`GetSuiteCreditsRemaining()`** in `AIT Credit Limit Mgt.` (codeunit 149050, line 148): No callers found. This will also be removed as part of 12.6 (per-suite limit removal), but is unused even today.
+- **`CreditLimitReachedDuringRunErr`** label in `AIT Credit Limit Mgt.` (line 17): Declared but never referenced in any `Error()` call. The actual error raised when skipping tests due to credit limits is `CreditLimitReachedSkipTestErr` in `AITTestRunIteration.Codeunit.al`.
+
+A full audit of all public methods in the credit limit codeunits should be done to identify any other dead code before shipping.

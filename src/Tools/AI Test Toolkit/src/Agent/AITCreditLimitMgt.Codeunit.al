@@ -61,7 +61,7 @@ codeunit 149050 "AIT Credit Limit Mgt."
 
         // Check suite-specific credit limit
         if AITTestSuite."Suite Credit Limit" > 0 then begin
-            SuiteCreditsConsumed := AgentTestContextImpl.GetCopilotCreditsForMonth(AITTestSuite.Code, AITCreditLimitSetup.GetPeriodStartDate());
+            SuiteCreditsConsumed := AgentTestContextImpl.GetCopilotCreditsForPeriod(AITTestSuite.Code, AITCreditLimitSetup.GetPeriodStartDate());
             if SuiteCreditsConsumed >= AITTestSuite."Suite Credit Limit" then begin
                 Error(SuiteCreditLimitExceededErr, AITTestSuite."Suite Credit Limit", SuiteCreditsConsumed);
                 exit(false);
@@ -99,7 +99,7 @@ codeunit 149050 "AIT Credit Limit Mgt."
 
         // Check suite-specific credit limit
         if AITTestSuite."Suite Credit Limit" > 0 then begin
-            SuiteCreditsConsumed := AgentTestContextImpl.GetCopilotCreditsForMonth(AITTestSuite.Code, AITCreditLimitSetup.GetPeriodStartDate());
+            SuiteCreditsConsumed := AgentTestContextImpl.GetCopilotCreditsForPeriod(AITTestSuite.Code, AITCreditLimitSetup.GetPeriodStartDate());
             if SuiteCreditsConsumed >= AITTestSuite."Suite Credit Limit" then
                 exit(false);
         end;
@@ -156,7 +156,7 @@ codeunit 149050 "AIT Credit Limit Mgt."
             exit(0);
 
         AITCreditLimitSetup.GetOrCreate();
-        SuiteCreditsConsumed := AgentTestContextImpl.GetCopilotCreditsForMonth(AITTestSuite.Code, AITCreditLimitSetup.GetPeriodStartDate());
+        SuiteCreditsConsumed := AgentTestContextImpl.GetCopilotCreditsForPeriod(AITTestSuite.Code, AITCreditLimitSetup.GetPeriodStartDate());
         CreditsRemaining := AITTestSuite."Suite Credit Limit" - SuiteCreditsConsumed;
 
         if CreditsRemaining < 0 then
@@ -200,7 +200,7 @@ codeunit 149050 "AIT Credit Limit Mgt."
         if not AITCreditLimitSetup."Enforcement Enabled" then
             exit(false);
 
-        SuiteCreditsConsumed := AgentTestContextImpl.GetCopilotCreditsForMonth(AITTestSuite.Code, AITCreditLimitSetup.GetPeriodStartDate());
+        SuiteCreditsConsumed := AgentTestContextImpl.GetCopilotCreditsForPeriod(AITTestSuite.Code, AITCreditLimitSetup.GetPeriodStartDate());
         exit(SuiteCreditsConsumed >= AITTestSuite."Suite Credit Limit");
     end;
 
@@ -251,7 +251,7 @@ codeunit 149050 "AIT Credit Limit Mgt."
             exit(0);
 
         AITCreditLimitSetup.GetOrCreate();
-        SuiteCreditsConsumed := AgentTestContextImpl.GetCopilotCreditsForMonth(AITTestSuite.Code, AITCreditLimitSetup.GetPeriodStartDate());
+        SuiteCreditsConsumed := AgentTestContextImpl.GetCopilotCreditsForPeriod(AITTestSuite.Code, AITCreditLimitSetup.GetPeriodStartDate());
         exit(Round(SuiteCreditsConsumed / AITTestSuite."Suite Credit Limit" * 100, 0.1));
     end;
 

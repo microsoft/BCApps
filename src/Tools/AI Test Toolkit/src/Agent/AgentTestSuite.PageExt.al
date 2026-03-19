@@ -83,8 +83,8 @@ pageextension 149034 "Agent Test Suite" extends "AIT Test Suite"
             action(CreditLimits)
             {
                 ApplicationArea = All;
-                Caption = 'Credit Limits';
-                ToolTip = 'Configure credit limits for agent test suites.';
+                Caption = 'View credit limits';
+                ToolTip = 'View and configure credit limits for agent test suites.';
                 Image = Cost;
                 Visible = IsAgentTestType;
                 RunObject = page "AIT Credit Limits";

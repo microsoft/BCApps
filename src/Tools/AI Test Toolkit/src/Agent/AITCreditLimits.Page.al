@@ -290,7 +290,7 @@ page 149048 "AIT Credit Limits"
     begin
         // Get credits consumed for this suite in the current month
         // We filter by all versions since the start of the month
-        exit(AgentTestContextImpl.GetCopilotCreditsForMonth(TestSuiteCode, AITCreditLimitSetup.GetPeriodStartDate()));
+        exit(AgentTestContextImpl.GetCopilotCreditsForPeriod(TestSuiteCode, AITCreditLimitSetup.GetPeriodStartDate()));
     end;
 
     local procedure UpdateSuiteCreditLimitDisplay()
@@ -307,7 +307,7 @@ page 149048 "AIT Credit Limits"
     begin
         if Rec."Suite Credit Limit" <= 0 then begin
             SuiteUsagePercentage := '';
-            SuiteUsageStyle := 'Standard';
+            SuiteUsageStyle := Format(PageStyle::Standard);
             exit;
         end;
 
@@ -316,11 +316,11 @@ page 149048 "AIT Credit Limits"
 
         // Set style based on percentage used
         if UsagePercent >= 100 then
-            SuiteUsageStyle := 'Unfavorable'
+            SuiteUsageStyle := Format(PageStyle::Unfavorable)
         else if UsagePercent >= 80 then
-            SuiteUsageStyle := 'Attention'
+            SuiteUsageStyle := Format(PageStyle::Attention)
         else
-            SuiteUsageStyle := 'Favorable';
+            SuiteUsageStyle := Format(PageStyle::Favorable);
     end;
 
     local procedure BuildSuitesWithCreditsList()

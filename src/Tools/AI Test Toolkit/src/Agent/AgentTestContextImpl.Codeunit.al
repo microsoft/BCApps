@@ -220,7 +220,12 @@ codeunit 149049 "Agent Test Context Impl."
         exit(Result);
     end;
 
-    procedure GetCopilotCreditsForMonth(TestSuiteCode: Code[100]; PeriodStartDate: Date): Decimal
+    procedure GetCopilotCreditsForPeriod(TestSuiteCode: Code[100]; PeriodStartDate: Date): Decimal
+    begin
+        exit(GetCopilotCreditsForPeriod(TestSuiteCode, PeriodStartDate, DT2Date(CurrentDateTime())));
+    end;
+
+    procedure GetCopilotCreditsForPeriod(TestSuiteCode: Code[100]; PeriodStartDate: Date; PeriodEndDate: Date): Decimal
     var
         AgentTaskLog: Record "Agent Task Log";
         AITLogEntry: Record "AIT Log Entry";
@@ -228,9 +233,9 @@ codeunit 149049 "Agent Test Context Impl."
         TaskIDList: List of [BigInteger];
         TotalCredits: Decimal;
     begin
-        // Get all log entries for this suite since the period start
+        // Get all log entries for this suite within the period
         AITLogEntry.SetRange("Test Suite Code", TestSuiteCode);
-        AITLogEntry.SetFilter("Start Time", '>=%1', CreateDateTime(PeriodStartDate, 0T));
+        AITLogEntry.SetFilter("Start Time", '>=%1&<=%2', CreateDateTime(PeriodStartDate, 0T), CreateDateTime(PeriodEndDate, 235959.999T));
 
         if not AITLogEntry.FindSet() then
             exit(0);
@@ -260,7 +265,7 @@ codeunit 149049 "Agent Test Context Impl."
         AITTestSuite.SetRange("Test Type", AITTestSuite."Test Type"::Agent);
         if AITTestSuite.FindSet() then
             repeat
-                TotalCredits += GetCopilotCreditsForMonth(AITTestSuite.Code, PeriodStartDate);
+                TotalCredits += GetCopilotCreditsForPeriod(AITTestSuite.Code, PeriodStartDate);
             until AITTestSuite.Next() = 0;
 
         exit(TotalCredits);
