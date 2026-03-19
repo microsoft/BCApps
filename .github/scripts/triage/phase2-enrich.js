@@ -9,6 +9,7 @@ import { detectAppArea } from './config.js';
 import { fetchCodeContext, formatCodeContext } from './code-reader.js';
 import { fetchRelatedIdeas, formatIdeasContext } from './ideas-client.js';
 import { fetchRelatedWorkItems, formatAdoContext } from './ado-client.js';
+import { fetchMarketplaceApps, formatMarketplaceContext } from './marketplace-client.js';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 
@@ -47,6 +48,13 @@ You may be provided with related work items from the Dynamics SMB ADO project. U
 
 ### Community discussions
 Consider relevant Stack Overflow questions, GitHub issues in related repositories, or community forum discussions.
+
+### AppSource Marketplace
+You will be provided with search results from the Microsoft AppSource marketplace for Business Central apps. Use the number of related apps as a demand signal:
+- **20+ related apps**: Strong ecosystem interest — the capability is well-established and improvements have high value
+- **5-19 related apps**: Moderate interest — established demand in this area
+- **<5 related apps**: Niche area — could be an opportunity or low-demand capability
+Factor the marketplace signal into your value and priority assessment.
 
 ### Repository source code
 You will be provided with actual source code files from the detected app area. Use this code to identify specific AL objects that would need to change, assess complexity, evaluate risk, estimate effort, and determine the implementation path.
@@ -98,14 +106,16 @@ Return ONLY valid JSON. No markdown fences, no explanation text outside the JSON
 
   // Fetch all enrichment context in parallel:
   // code reading (sync, wrapped), Ideas Portal, and ADO work items
-  const [codeContext, ideasResult, adoResult] = await Promise.all([
+  const [codeContext, ideasResult, adoResult, marketplaceResult] = await Promise.all([
     Promise.resolve(fetchCodeContext(appArea.directory, keyTerms)),
     fetchRelatedIdeas(keyTerms),
     fetchRelatedWorkItems(keyTerms),
+    fetchMarketplaceApps(keyTerms),
   ]);
   const codeContextBlock = formatCodeContext(codeContext);
   const ideasContextBlock = formatIdeasContext(ideasResult);
   const adoContextBlock = formatAdoContext(adoResult);
+  const marketplaceContextBlock = formatMarketplaceContext(marketplaceResult);
 
   // Truncate very long issue bodies to avoid excessive token usage
   const maxBodyChars = 8000;
@@ -141,7 +151,9 @@ ${ideasContextBlock}
 
 ${adoContextBlock}
 
-Please analyze all provided context - source code structure, Ideas Portal matches, ADO work items, and your knowledge of documentation and community discussions.
+${marketplaceContextBlock}
+
+Please analyze all provided context - source code structure, Ideas Portal matches, ADO work items, AppSource marketplace data, and your knowledge of documentation and community discussions.
 Then provide your triage assessment as JSON.`;
 
   console.log(`Phase 2: Enriching and triaging issue #${issue.number}...`);
@@ -160,6 +172,9 @@ Then provide your triage assessment as JSON.`;
     title: i.title, votes: i.votes, status: i.status, url: i.url,
   }));
   result.enrichment.ado_work_items = adoResult.workItems;
+  result.enrichment.marketplace = marketplaceResult.fallback
+    ? { searchUrl: marketplaceResult.searchUrl, totalCount: null }
+    : { apps: marketplaceResult.apps, totalCount: marketplaceResult.totalCount, searchTerms: marketplaceResult.searchTerms };
 
   return result;
 }

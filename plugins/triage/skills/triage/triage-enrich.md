@@ -114,7 +114,15 @@ The triage agent gathers context from these sources before making its Phase 2 as
 - Searches both titles and descriptions for top 5 keywords
 - Used for: checking if issue is already tracked internally, identifying related work
 
-### 4. Duplicate Detection
+### 4. AppSource Marketplace
+- Searches `appsource.microsoft.com` for Business Central apps matching issue keywords
+- The total count of related apps serves as a market demand signal:
+  - **20+ apps**: Strong ecosystem interest — the capability is well-established, improvements have high value
+  - **5-19 apps**: Moderate interest — established demand in this area
+  - **<5 apps**: Niche area — could be an opportunity or low-demand capability
+- Used for: gauging market demand, assessing value, supporting priority decisions
+
+### 5. Duplicate Detection
 - Compares against recent open issues using Jaccard similarity on keyword sets
 - Flags issues with ≥35% keyword overlap
 - Used for: preventing duplicate work, linking related issues

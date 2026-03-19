@@ -156,6 +156,25 @@ export function formatWikiReport(phase1, phase2, isRetriage, duplicates, previou
     md += `\n`;
   }
 
+  if (e.marketplace) {
+    md += `### AppSource Marketplace\n\n`;
+    if (e.marketplace.totalCount != null) {
+      md += `**${e.marketplace.totalCount}** related Business Central apps found`;
+      if (e.marketplace.searchTerms) md += ` for "${e.marketplace.searchTerms}"`;
+      md += `.\n\n`;
+      if (e.marketplace.apps && e.marketplace.apps.length > 0) {
+        for (const app of e.marketplace.apps) {
+          md += `- **${app.title}** by ${app.publisher}`;
+          if (app.rating) md += ` (${app.rating} stars)`;
+          md += `\n`;
+        }
+        md += `\n`;
+      }
+    } else if (e.marketplace.searchUrl) {
+      md += `[Search AppSource for related apps](${e.marketplace.searchUrl})\n\n`;
+    }
+  }
+
   if (e.community && e.community.length > 0) {
     md += `### Community discussions\n\n`;
     for (const disc of e.community) {
