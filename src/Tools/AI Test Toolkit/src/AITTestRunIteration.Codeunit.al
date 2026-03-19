@@ -200,12 +200,14 @@ codeunit 149042 "AIT Test Run Iteration"
     begin
         if ActiveAITTestSuite.Code = '' then
             exit;
+
         if FunctionName = '' then
             exit;
 
-        // Check if credit limit was reached - if so, update line status and skip this test
+        // Check if credit limit was reached - if so, skip this test
         if AITCreditLimitMgt.ShouldSkipTestDueToCreditLimit() then begin
-            SetLineStatusToSkipped();
+            CurrentTestMethodLine.Result := CurrentTestMethodLine.Result::Skipped;
+            CurrentTestMethodLine.Modify(true);
             Error(CreditLimitReachedSkipTestErr);
         end;
 
@@ -239,6 +241,10 @@ codeunit 149042 "AIT Test Run Iteration"
             exit;
 
         if FunctionName = '' then
+            exit;
+
+        // If credit limit was already reached, this test function was skipped via Error() - don't log it as a failure
+        if AITCreditLimitMgt.IsCreditLimitReachedDuringRun() then
             exit;
 
         GlobalTestMethodLine := CurrentTestMethodLine;

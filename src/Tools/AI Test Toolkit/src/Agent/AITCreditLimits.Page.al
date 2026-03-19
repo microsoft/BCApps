@@ -100,32 +100,6 @@ page 149048 "AIT Credit Limits"
                     Editable = false;
                     DecimalPlaces = 2 : 5;
                 }
-                field("Suite Credit Limit"; SuiteCreditLimitDisplay)
-                {
-                    Caption = 'Suite Copilot Credit Limit';
-                    ToolTip = 'Specifies the maximum number of Copilot credits that can be consumed by this test suite. Leave empty for no suite-specific limit (global limit still applies).';
-
-                    trigger OnValidate()
-                    var
-                        NewLimit: Decimal;
-                    begin
-                        if SuiteCreditLimitDisplay = '' then
-                            NewLimit := 0
-                        else
-                            Evaluate(NewLimit, SuiteCreditLimitDisplay);
-
-                        Rec."Suite Credit Limit" := NewLimit;
-                        Rec.Modify(true);
-                        UpdateSuiteCreditLimitDisplay();
-                    end;
-                }
-                field(SuiteUsagePercentage; SuiteUsagePercentage)
-                {
-                    Caption = 'Suite Usage %';
-                    ToolTip = 'Specifies the percentage of the suite Copilot credit limit that has been consumed.';
-                    Editable = false;
-                    StyleExpr = SuiteUsageStyle;
-                }
             }
         }
     }
@@ -199,10 +173,7 @@ page 149048 "AIT Credit Limits"
         CreditsAvailable: Decimal;
         CreditsUsagePercentage: Text;
         SuiteCreditsConsumed: Decimal;
-        SuiteUsagePercentage: Text;
-        SuiteUsageStyle: Text;
         CurrentPeriod: Text;
-        SuiteCreditLimitDisplay: Text;
         CreditsAvailableStyle: Text;
         ShowAllSuites: Boolean;
         SuitesWithCredits: List of [Code[100]];
@@ -218,8 +189,6 @@ page 149048 "AIT Credit Limits"
     trigger OnAfterGetRecord()
     begin
         UpdateSuiteCreditsConsumed();
-        UpdateSuiteCreditLimitDisplay();
-        UpdateSuiteUsagePercentage();
     end;
 
     local procedure LoadCreditLimitSetup()
@@ -291,36 +260,6 @@ page 149048 "AIT Credit Limits"
         // Get credits consumed for this suite in the current month
         // We filter by all versions since the start of the month
         exit(AgentTestContextImpl.GetCopilotCreditsForPeriod(TestSuiteCode, AITCreditLimitSetup.GetPeriodStartDate()));
-    end;
-
-    local procedure UpdateSuiteCreditLimitDisplay()
-    begin
-        if Rec."Suite Credit Limit" = 0 then
-            SuiteCreditLimitDisplay := ''
-        else
-            SuiteCreditLimitDisplay := Format(Rec."Suite Credit Limit", 0, '<Precision,2:5><Standard Format,0>');
-    end;
-
-    local procedure UpdateSuiteUsagePercentage()
-    var
-        UsagePercent: Decimal;
-    begin
-        if Rec."Suite Credit Limit" <= 0 then begin
-            SuiteUsagePercentage := '';
-            SuiteUsageStyle := Format(PageStyle::Standard);
-            exit;
-        end;
-
-        UsagePercent := Round(SuiteCreditsConsumed / Rec."Suite Credit Limit" * 100, 0.1);
-        SuiteUsagePercentage := Format(UsagePercent, 0, '<Precision,1:1><Standard Format,0>') + '%';
-
-        // Set style based on percentage used
-        if UsagePercent >= 100 then
-            SuiteUsageStyle := Format(PageStyle::Unfavorable)
-        else if UsagePercent >= 80 then
-            SuiteUsageStyle := Format(PageStyle::Attention)
-        else
-            SuiteUsageStyle := Format(PageStyle::Favorable);
     end;
 
     local procedure BuildSuitesWithCreditsList()

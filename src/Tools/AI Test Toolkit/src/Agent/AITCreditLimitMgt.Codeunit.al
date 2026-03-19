@@ -13,8 +13,6 @@ codeunit 149050 "AIT Credit Limit Mgt."
     var
         CreditLimitReachedDuringRun: Boolean;
         GlobalCreditLimitExceededErr: Label 'Cannot start the agent test suite. The monthly credit limit of %1 has been reached. Current consumption: %2.', Comment = '%1 = Credit limit, %2 = Credits consumed';
-        SuiteCreditLimitExceededErr: Label 'Cannot start the agent test suite. The suite credit limit of %1 has been reached. Current consumption: %2.', Comment = '%1 = Suite credit limit, %2 = Suite credits consumed';
-        CreditLimitReachedDuringRunErr: Label 'Copilot credit limit reached. Stopping test execution.';
 
     procedure ResetCreditLimitFlag()
     begin
@@ -36,7 +34,6 @@ codeunit 149050 "AIT Credit Limit Mgt."
         AITCreditLimitSetup: Record "AIT Credit Limit Setup";
         AgentTestContextImpl: Codeunit "Agent Test Context Impl.";
         TotalCreditsConsumed: Decimal;
-        SuiteCreditsConsumed: Decimal;
     begin
         // Only check for Agent type test suites
         if AITTestSuite."Test Type" <> AITTestSuite."Test Type"::Agent then
@@ -59,15 +56,6 @@ codeunit 149050 "AIT Credit Limit Mgt."
             exit(false);
         end;
 
-        // Check suite-specific credit limit
-        if AITTestSuite."Suite Credit Limit" > 0 then begin
-            SuiteCreditsConsumed := AgentTestContextImpl.GetCopilotCreditsForPeriod(AITTestSuite.Code, AITCreditLimitSetup.GetPeriodStartDate());
-            if SuiteCreditsConsumed >= AITTestSuite."Suite Credit Limit" then begin
-                Error(SuiteCreditLimitExceededErr, AITTestSuite."Suite Credit Limit", SuiteCreditsConsumed);
-                exit(false);
-            end;
-        end;
-
         exit(true);
     end;
 
@@ -76,7 +64,6 @@ codeunit 149050 "AIT Credit Limit Mgt."
         AITCreditLimitSetup: Record "AIT Credit Limit Setup";
         AgentTestContextImpl: Codeunit "Agent Test Context Impl.";
         TotalCreditsConsumed: Decimal;
-        SuiteCreditsConsumed: Decimal;
     begin
         // Only check for Agent type test suites
         if AITTestSuite."Test Type" <> AITTestSuite."Test Type"::Agent then
@@ -97,13 +84,6 @@ codeunit 149050 "AIT Credit Limit Mgt."
         if TotalCreditsConsumed >= AITCreditLimitSetup."Monthly Credit Limit" then
             exit(false);
 
-        // Check suite-specific credit limit
-        if AITTestSuite."Suite Credit Limit" > 0 then begin
-            SuiteCreditsConsumed := AgentTestContextImpl.GetCopilotCreditsForPeriod(AITTestSuite.Code, AITCreditLimitSetup.GetPeriodStartDate());
-            if SuiteCreditsConsumed >= AITTestSuite."Suite Credit Limit" then
-                exit(false);
-        end;
-
         exit(true);
     end;
 
@@ -114,55 +94,16 @@ codeunit 149050 "AIT Credit Limit Mgt."
     begin
         AITTestSuiteMgt.SetRunStatus(AITTestSuite, AITTestSuite.Status::CreditLimitReached);
 
-        // Update all running test method lines to skipped
         AITTestMethodLine.SetRange("Test Suite Code", AITTestSuite.Code);
         AITTestMethodLine.SetRange(Status, AITTestMethodLine.Status::Running);
         AITTestMethodLine.ModifyAll(Status, AITTestMethodLine.Status::Skipped, true);
 
-        // Also update lines that haven't started yet
+        AITTestMethodLine.SetRange("Test Suite Code", AITTestSuite.Code);
+        AITTestMethodLine.SetRange(Status, AITTestMethodLine.Status::Starting);
+        AITTestMethodLine.ModifyAll(Status, AITTestMethodLine.Status::Skipped, true);
+
         AITTestMethodLine.SetRange(Status, AITTestMethodLine.Status::" ");
         AITTestMethodLine.ModifyAll(Status, AITTestMethodLine.Status::Skipped, true);
-    end;
-
-    procedure GetCreditsRemaining(): Decimal
-    var
-        AITCreditLimitSetup: Record "AIT Credit Limit Setup";
-        AgentTestContextImpl: Codeunit "Agent Test Context Impl.";
-        TotalCreditsConsumed: Decimal;
-        CreditsRemaining: Decimal;
-    begin
-        AITCreditLimitSetup.GetOrCreate();
-
-        if AITCreditLimitSetup."Monthly Credit Limit" <= 0 then
-            exit(0);
-
-        TotalCreditsConsumed := AgentTestContextImpl.GetTotalCreditsConsumedThisMonth(AITCreditLimitSetup.GetPeriodStartDate());
-        CreditsRemaining := AITCreditLimitSetup."Monthly Credit Limit" - TotalCreditsConsumed;
-
-        if CreditsRemaining < 0 then
-            CreditsRemaining := 0;
-
-        exit(CreditsRemaining);
-    end;
-
-    procedure GetSuiteCreditsRemaining(AITTestSuite: Record "AIT Test Suite"): Decimal
-    var
-        AITCreditLimitSetup: Record "AIT Credit Limit Setup";
-        AgentTestContextImpl: Codeunit "Agent Test Context Impl.";
-        SuiteCreditsConsumed: Decimal;
-        CreditsRemaining: Decimal;
-    begin
-        if AITTestSuite."Suite Credit Limit" <= 0 then
-            exit(0);
-
-        AITCreditLimitSetup.GetOrCreate();
-        SuiteCreditsConsumed := AgentTestContextImpl.GetCopilotCreditsForPeriod(AITTestSuite.Code, AITCreditLimitSetup.GetPeriodStartDate());
-        CreditsRemaining := AITTestSuite."Suite Credit Limit" - SuiteCreditsConsumed;
-
-        if CreditsRemaining < 0 then
-            CreditsRemaining := 0;
-
-        exit(CreditsRemaining);
     end;
 
     procedure IsGlobalCreditLimitExceeded(): Boolean
@@ -183,27 +124,6 @@ codeunit 149050 "AIT Credit Limit Mgt."
         exit(TotalCreditsConsumed >= AITCreditLimitSetup."Monthly Credit Limit");
     end;
 
-    procedure IsSuiteCreditLimitExceeded(AITTestSuite: Record "AIT Test Suite"): Boolean
-    var
-        AITCreditLimitSetup: Record "AIT Credit Limit Setup";
-        AgentTestContextImpl: Codeunit "Agent Test Context Impl.";
-        SuiteCreditsConsumed: Decimal;
-    begin
-        if AITTestSuite."Test Type" <> AITTestSuite."Test Type"::Agent then
-            exit(false);
-
-        if AITTestSuite."Suite Credit Limit" <= 0 then
-            exit(false);
-
-        AITCreditLimitSetup.GetOrCreate();
-
-        if not AITCreditLimitSetup."Enforcement Enabled" then
-            exit(false);
-
-        SuiteCreditsConsumed := AgentTestContextImpl.GetCopilotCreditsForPeriod(AITTestSuite.Code, AITCreditLimitSetup.GetPeriodStartDate());
-        exit(SuiteCreditsConsumed >= AITTestSuite."Suite Credit Limit");
-    end;
-
     procedure CheckAndHandleCreditLimitAfterTest(AITTestSuite: Record "AIT Test Suite")
     begin
         if AITTestSuite."Test Type" <> AITTestSuite."Test Type"::Agent then
@@ -212,7 +132,7 @@ codeunit 149050 "AIT Credit Limit Mgt."
         if IsCreditLimitReachedDuringRun() then
             exit;
 
-        if IsGlobalCreditLimitExceeded() or IsSuiteCreditLimitExceeded(AITTestSuite) then
+        if IsGlobalCreditLimitExceeded() then
             SetCreditLimitReachedDuringRun();
     end;
 
@@ -241,27 +161,8 @@ codeunit 149050 "AIT Credit Limit Mgt."
         exit(Round(TotalCreditsConsumed / AITCreditLimitSetup."Monthly Credit Limit" * 100, 0.1));
     end;
 
-    procedure GetSuiteCreditUsagePercentage(AITTestSuite: Record "AIT Test Suite"): Decimal
-    var
-        AITCreditLimitSetup: Record "AIT Credit Limit Setup";
-        AgentTestContextImpl: Codeunit "Agent Test Context Impl.";
-        SuiteCreditsConsumed: Decimal;
-    begin
-        if AITTestSuite."Suite Credit Limit" <= 0 then
-            exit(0);
-
-        AITCreditLimitSetup.GetOrCreate();
-        SuiteCreditsConsumed := AgentTestContextImpl.GetCopilotCreditsForPeriod(AITTestSuite.Code, AITCreditLimitSetup.GetPeriodStartDate());
-        exit(Round(SuiteCreditsConsumed / AITTestSuite."Suite Credit Limit" * 100, 0.1));
-    end;
-
     procedure IsApproachingCreditLimit(): Boolean
     begin
         exit(GetCreditUsagePercentage() >= 80);
-    end;
-
-    procedure IsSuiteApproachingCreditLimit(AITTestSuite: Record "AIT Test Suite"): Boolean
-    begin
-        exit(GetSuiteCreditUsagePercentage(AITTestSuite) >= 80);
     end;
 }

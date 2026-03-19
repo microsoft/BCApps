@@ -383,7 +383,7 @@ These should be renamed to include "Copilot" for consistency with the UI caption
 
 This design is functional and simple but warrants a review to confirm it is robust in all scenarios — for example, whether the state is always correctly reset across consecutive runs within the same session, and whether there are edge cases where the flag could be stale (e.g., if a run errors out before `ResetCreditLimitFlag` is called on the next run). A focused review of this pattern should be done before shipping.
 
-### 12.6 Remove per-suite credit limits — keep only global limit
+### 12.6 ~~Remove per-suite credit limits — keep only global limit~~ (Done)
 
 The current implementation supports both a global monthly credit limit (on `AIT Credit Limit Setup`) and per-suite limits (the `"Suite Credit Limit"` field on `AIT Test Suite`). This adds significant complexity across the codebase for a feature that is not needed at this stage. We should simplify to **global limits only** and remove all per-suite limit code. Affected areas include:
 
@@ -393,7 +393,7 @@ The current implementation supports both a global monthly credit limit (on `AIT 
 - **`AIT Test Suite` table extension (`AgentTestSuite.TableExt.al`):** The `"Suite Credit Limit"` field definition.
 - **Spec sections 1, 3, 4, 6, 9.4:** References to per-suite limits in the spec should be updated or removed.
 
-### 12.7 Review and remove unused methods
+### 12.7 ~~Review and remove unused methods~~ (Done)
 
 Several methods in the codebase appear to have no callers and should be reviewed for removal:
 
@@ -402,3 +402,63 @@ Several methods in the codebase appear to have no callers and should be reviewed
 - **`CreditLimitReachedDuringRunErr`** label in `AIT Credit Limit Mgt.` (line 17): Declared but never referenced in any `Error()` call. The actual error raised when skipping tests due to credit limits is `CreditLimitReachedSkipTestErr` in `AITTestRunIteration.Codeunit.al`.
 
 A full audit of all public methods in the credit limit codeunits should be done to identify any other dead code before shipping.
+
+### 12.8 Notifications and credit limit field ignore enforcement-disabled state
+
+Two UI issues when `"Enforcement Enabled"` is toggled off on the `AIT Credit Limits` page:
+
+1. **Notifications still show when enforcement is disabled.** In `AgentTestSuite.PageExt.al`, `ShowCreditLimitNotifications` calls `IsGlobalCreditLimitExceeded()` (which correctly returns `false` when enforcement is off), but then falls through to `IsApproachingCreditLimit()`. That method delegates to `GetCreditUsagePercentage()` in `AIT Credit Limit Mgt.`, which does **not** check `"Enforcement Enabled"` — it only checks whether `"Monthly Credit Limit" > 0`. So if consumption is >= 80% of the configured limit, the 80% warning notification is sent even though enforcement is off. Both `IsApproachingCreditLimit` and `GetCreditUsagePercentage` (or the notification code itself) should respect the enforcement flag.
+
+2. **Monthly Credit Limit field remains editable when enforcement is disabled.** On the `AIT Credit Limits` page (page 149048), the `MonthlyCreditLimit` field is always editable. When enforcement is turned off, editing the limit has no effect, which is confusing. The field should become non-editable (or visually de-emphasized) when `"Enforcement Enabled"` is `false`, and re-enable when toggled back on.
+
+### 12.9 ~~Credit-limit-skipped test functions logged as failures~~ (Done)
+
+When the credit limit is reached mid-line (i.e., during execution of a codeunit with multiple test functions), subsequent test functions within that line are skipped by raising `Error(CreditLimitReachedSkipTestErr)` in `OnBeforeTestMethodRun`. Two problems were identified and fixed:
+
+1. **Skipped test functions were logged as error entries.** The `OnAfterTestMethodRun` handler was called for every test function, including those that errored due to credit limit skip. `EndRunProcedureScenario` logged them as error log entries with the credit limit message, inflating the failure count. **Fix:** Added an early exit in `OnAfterTestMethodRun` — when `IsCreditLimitReachedDuringRun()` is true, the handler returns immediately, preventing skipped tests from being logged as failures.
+
+2. **Redundant `SetLineStatusToSkipped()` in `OnBeforeTestMethodRun`.** Before raising the `Error()`, the code called `SetLineStatusToSkipped()` to write the `Skipped` status to the database. However, the `Error()` triggers a rollback of the test function's transaction scope (handled by the test runner), so this write was rolled back. The actual skip status is correctly set after `Codeunit.Run` returns in both `RunAITTestMethodLine` and `RunAITestLine`. **Fix:** Removed the redundant `SetLineStatusToSkipped()` call before the `Error()`.
+
+### 12.10 Notification when credit limit enforcement is disabled
+
+When `"Enforcement Enabled"` is `false` on the `AIT Credit Limit Setup`, agent test suites can consume unlimited Copilot credits with no guardrails. Users may not realize enforcement is off, especially if it was disabled temporarily and forgotten. We should show a notification on the Agent Test Suite page (`AgentTestSuite.PageExt.al`) when enforcement is disabled, informing users that costs are not bounded. This notification should:
+- Appear on `OnAfterGetCurrRecord` for agent-type suites when enforcement is off
+- Include a message like "Copilot credit limit enforcement is disabled. Test execution costs are not bounded."
+- Provide an action to open the Credit Limits page so users can re-enable enforcement
+- Be recalled when enforcement is enabled
+
+### 12.11 Add `Skip` parameter to `OnBeforeTestMethodRun` event in Test Runner
+
+The current approach to skip test functions when the credit limit is reached uses `Error()` inside the `OnBeforeTestMethodRun` subscriber. This is a workaround — the test runner catches the error, marks the function as `Failure`, and `OnAfterTestMethodRun` still fires (requiring a guard to avoid logging it). This leads to several issues documented in 12.9.
+
+**Proposed change:** Add a `var Skip: Boolean` parameter to the `OnBeforeTestMethodRun` integration event in `Test Runner - Mgt` (codeunit 130454). The platform method `PlatformBeforeTestRun` already returns a `Boolean` that controls whether the test runs, and `SetStartTimeOnTestLine` already sets `Result := Skipped` before the event fires. The change would be:
+
+```al
+// Updated event signature
+[IntegrationEvent(false, false)]
+local procedure OnBeforeTestMethodRun(
+    var CurrentTestMethodLine: Record "Test Method Line";
+    CodeunitID: Integer; CodeunitName: Text[30];
+    FunctionName: Text[128]; FunctionTestPermissions: TestPermissions;
+    var Skip: Boolean)
+begin
+end;
+
+// Updated caller in PlatformBeforeTestRun
+Skip := false;
+OnBeforeTestMethodRun(TestMethodLineFunction, CodeunitID, CodeunitName, FunctionName, FunctionTestPermissions, Skip);
+if Skip then
+    exit(false);   // platform skips the test, Result stays Skipped
+exit(true);
+```
+
+**What this simplifies in AI Test Toolkit:**
+
+| Current (workaround) | With `Skip` parameter |
+|---|---|
+| `Error(CreditLimitReachedSkipTestErr)` in subscriber | `Skip := true` — no error needed |
+| Early exit guard in `OnAfterTestMethodRun` to avoid logging skipped tests as failures | Not needed — `PlatformAfterTestRun` is not called when `PlatformBeforeTestRun` returns `false` |
+| Test functions marked as `Failure` with credit limit error message | Test lines stay `Skipped` (already set by `SetStartTimeOnTestLine`) |
+| `SetLineStatusToSkipped()` redundancy / rollback issues | Not needed — skip is handled at the platform level |
+
+**Note:** This requires a change to the Test Runner module (`System.TestTools.TestRunner` namespace), not just the AI Test Toolkit. The change is backward-compatible since the new `var` parameter defaults to `false`, so existing subscribers that don't set it are unaffected.
