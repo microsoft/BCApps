@@ -72,10 +72,50 @@ function validatePhase1Response(result) {
  * Returns a structured assessment with scores, verdict, and missing info.
  */
 export async function assessIssueQuality(issue) {
-  const systemPrompt = readFileSync(
-    join(__dirname, 'prompts', 'system-phase1.md'),
-    'utf-8'
-  );
+  // Build system prompt from skill knowledge files + agent-specific output instructions
+  const repoRoot = join(__dirname, '..', '..', '..');
+  const skillDir = join(repoRoot, 'plugins', 'triage', 'skills', 'triage');
+  const glossary = readFileSync(join(skillDir, 'SKILL.md'), 'utf-8')
+    .replace(/^---[\s\S]*?---\n/, '') // strip frontmatter
+    .match(/## BC\/AL Domain Glossary[\s\S]*?(?=## Triage Process Overview)/)?.[0] || '';
+  const assessKnowledge = readFileSync(join(skillDir, 'triage-assess.md'), 'utf-8');
+
+  const systemPrompt = `You are a senior QA analyst evaluating GitHub issue quality for a Microsoft Dynamics 365 Business Central application repository. Your job is to assess whether an issue has enough information for a developer to start working on it.
+
+${glossary}
+
+${assessKnowledge}
+
+## Issue type classification
+
+Classify the issue as one of: "bug", "feature", "enhancement", "question"
+
+## App area detection
+
+The repository contains Business Central apps. Based on keywords in the title and body, detect which app area this relates to. If no area matches, use "Unknown".
+
+## Output format
+
+Return a JSON object with this exact structure:
+\`\`\`json
+{
+  "quality_score": {
+    "clarity": { "score": 0, "notes": "explanation" },
+    "reproducibility": { "score": 0, "notes": "explanation" },
+    "context": { "score": 0, "notes": "explanation" },
+    "specificity": { "score": 0, "notes": "explanation" },
+    "actionability": { "score": 0, "notes": "explanation" },
+    "total": 0
+  },
+  "verdict": "READY|NEEDS WORK|INSUFFICIENT",
+  "missing_info": ["specific missing item 1", "specific missing item 2"],
+  "detected_app_area": "area name",
+  "issue_type": "bug|feature|enhancement|question",
+  "summary": "One-line summary of what this issue is about"
+}
+\`\`\`
+
+Return ONLY valid JSON. No markdown fences, no explanation text outside the JSON.`;
 
   const commentsText = issue.comments.length > 0
     ? issue.comments.map(c => `**${c.author}**: ${c.body}`).join('\n\n')

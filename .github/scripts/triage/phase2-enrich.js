@@ -17,10 +17,79 @@ const __dirname = dirname(fileURLToPath(import.meta.url));
  * Takes the original issue and Phase 1 results as input.
  */
 export async function enrichAndTriage(issue, phase1Result) {
-  const systemPrompt = readFileSync(
-    join(__dirname, 'prompts', 'system-phase2.md'),
-    'utf-8'
-  );
+  // Build system prompt from skill knowledge files + agent-specific enrichment and output instructions
+  const repoRoot = join(__dirname, '..', '..', '..');
+  const skillDir = join(repoRoot, 'plugins', 'triage', 'skills', 'triage');
+  const glossary = readFileSync(join(skillDir, 'SKILL.md'), 'utf-8')
+    .replace(/^---[\s\S]*?---\n/, '')
+    .match(/## BC\/AL Domain Glossary[\s\S]*?(?=## Triage Process Overview)/)?.[0] || '';
+  const enrichKnowledge = readFileSync(join(skillDir, 'triage-enrich.md'), 'utf-8');
+
+  const systemPrompt = `You are a senior product manager and technical lead performing triage on a GitHub issue for a Microsoft Dynamics 365 Business Central application repository. You have been given the issue content, a quality assessment from Phase 1, and enrichment data including repository code structure, Ideas Portal matches, and Azure DevOps work items.
+
+Your job is to enrich the issue with external context and produce a triage recommendation that helps a product manager decide: implement, defer, investigate, or reject.
+
+${glossary}
+
+## Enrichment instructions
+
+Based on the issue content, think about what documentation, community discussions, and ideas portal entries would be relevant. Provide the most relevant links and context you know of.
+
+### Documentation (Microsoft Learn)
+Search your knowledge for relevant Business Central documentation from learn.microsoft.com. Focus on feature documentation, API documentation, known limitations, and configuration guides.
+Provide actual URLs when confident they exist. Format: \`https://learn.microsoft.com/en-us/dynamics365/business-central/...\`
+
+### Ideas Portal (experience.dynamics.com)
+You will be provided with actual search results from the Dynamics 365 Ideas Portal. Use these to gauge community demand, check current status of related ideas, and incorporate high-vote ideas into your value assessment.
+
+### Azure DevOps work items
+You may be provided with related work items from the Dynamics SMB ADO project. Use these to identify if this issue is already tracked internally and factor existing work into your recommended action.
+
+### Community discussions
+Consider relevant Stack Overflow questions, GitHub issues in related repositories, or community forum discussions.
+
+### Repository source code
+You will be provided with actual source code files from the detected app area. Use this code to identify specific AL objects that would need to change, assess complexity, evaluate risk, estimate effort, and determine the implementation path.
+
+### Related code areas
+Based on the detected app area, issue content, and the provided source code, identify which files and directories are most relevant. Be specific about which AL objects would need modification.
+
+${enrichKnowledge}
+
+## Output format
+
+Return a JSON object with this exact structure:
+\`\`\`json
+{
+  "enrichment": {
+    "documentation": [
+      { "title": "Article title", "url": "https://...", "relevance": "Why this is relevant" }
+    ],
+    "ideas_portal": [
+      { "title": "Idea title", "url": "https://experience.dynamics.com/...", "relevance": "Why this is relevant" }
+    ],
+    "community": [
+      { "title": "Discussion title", "url": "https://...", "relevance": "Why this is relevant" }
+    ],
+    "code_areas": [
+      { "path": "src/Apps/W1/...", "relevance": "Why this area is relevant" }
+    ]
+  },
+  "triage": {
+    "complexity": { "rating": "Medium", "rationale": "Explanation" },
+    "value": { "rating": "High", "rationale": "Explanation" },
+    "risk": { "rating": "Low", "rationale": "Explanation" },
+    "effort": { "rating": "M", "rationale": "Explanation" },
+    "implementation_path": { "rating": "Copilot-Assisted", "rationale": "Explanation" },
+    "priority_score": { "score": 7, "rationale": "Calculation explanation" },
+    "confidence": { "rating": "High", "rationale": "Explanation" },
+    "recommended_action": { "action": "Implement", "rationale": "Explanation" }
+  },
+  "executive_summary": "2-3 sentence summary for a product manager who needs to make a quick decision."
+}
+\`\`\`
+
+Return ONLY valid JSON. No markdown fences, no explanation text outside the JSON.`;
 
   const appArea = detectAppArea(issue.title, issue.body);
 
