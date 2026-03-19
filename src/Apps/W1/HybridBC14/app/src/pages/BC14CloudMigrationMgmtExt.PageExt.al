@@ -55,6 +55,16 @@ pageextension 50170 "BC14 Cloud Migration Mgmt Ext" extends "Cloud Migration Man
                 end;
             }
         }
+
+        addlast(Promoted)
+        {
+            actionref(BC14MigrationErrors_Promoted; BC14MigrationErrors)
+            {
+            }
+            actionref(BC14MigrationConfiguration_Promoted; BC14MigrationConfiguration)
+            {
+            }
+        }
     }
 
     trigger OnOpenPage()

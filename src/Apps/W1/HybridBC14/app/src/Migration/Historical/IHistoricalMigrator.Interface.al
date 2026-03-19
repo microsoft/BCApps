@@ -34,13 +34,6 @@ interface "IHistoricalMigrator"
     procedure InitializeSourceRecords(var SourceRecordRef: RecordRef);
 
     /// <summary>
-    /// Checks if a record has already been migrated.
-    /// </summary>
-    /// <param name="SourceRecordRef">The source record to check.</param>
-    /// <returns>True if already migrated and should be skipped.</returns>
-    procedure IsRecordMigrated(var SourceRecordRef: RecordRef): Boolean;
-
-    /// <summary>
     /// Migrates a single source record to the target table.
     /// </summary>
     /// <param name="SourceRecordRef">The source record to migrate.</param>

@@ -104,7 +104,7 @@ codeunit 50154 "BC14 Migration Error Handler"
         BC14MigrationErrors.SetRange("Source Record Key", SourceRecordKey);
         BC14MigrationErrors.SetRange("Resolved", false);
         if BC14MigrationErrors.FindFirst() then begin
-            BC14MigrationErrors."Error Message" := CopyStr(ErrorMessage, 1, 250);
+            BC14MigrationErrors."Error Message" := CopyStr(ErrorMessage, 1, MaxStrLen(BC14MigrationErrors."Error Message"));
             BC14MigrationErrors."Retry Count" += 1;
             BC14MigrationErrors."Last Retry On" := CurrentDateTime();
             BC14MigrationErrors."Record Id" := RecId;
@@ -119,7 +119,7 @@ codeunit 50154 "BC14 Migration Error Handler"
         BC14MigrationErrors."Source Record Key" := SourceRecordKey;
         BC14MigrationErrors."Destination Table ID" := DestinationTableId;
         BC14MigrationErrors."Company Name" := CopyStr(CompanyName(), 1, 30);
-        BC14MigrationErrors."Error Message" := CopyStr(ErrorMessage, 1, 250);
+        BC14MigrationErrors."Error Message" := CopyStr(ErrorMessage, 1, MaxStrLen(BC14MigrationErrors."Error Message"));
         BC14MigrationErrors."Created On" := CurrentDateTime();
         BC14MigrationErrors."Record Id" := RecId;
         BC14MigrationErrors.Insert(true);

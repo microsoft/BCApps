@@ -35,16 +35,6 @@ codeunit 50169 "BC14 GL Account Migrator" implements "IMasterMigrator"
         // No special filters needed for G/L Account migration
     end;
 
-    procedure IsRecordMigrated(var SourceRecordRef: RecordRef): Boolean
-    var
-        GLAccount: Record "G/L Account";
-        RecordKey: Text[250];
-    begin
-        RecordKey := GetSourceRecordKey(SourceRecordRef);
-        // Only skip if target record already exists - failed records will be retried
-        exit(GLAccount.Get(RecordKey));
-    end;
-
     procedure MigrateRecord(var SourceRecordRef: RecordRef): Boolean
     var
         BC14GLAccount: Record "BC14 G/L Account";

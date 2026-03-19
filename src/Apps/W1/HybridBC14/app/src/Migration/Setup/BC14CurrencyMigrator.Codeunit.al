@@ -32,15 +32,6 @@ codeunit 50193 "BC14 Currency Migrator" implements "ISetupMigrator"
         // No special filters needed for Currency migration
     end;
 
-    procedure IsRecordMigrated(var SourceRecordRef: RecordRef): Boolean
-    var
-        Currency: Record Currency;
-        RecordKey: Text[250];
-    begin
-        RecordKey := GetSourceRecordKey(SourceRecordRef);
-        exit(Currency.Get(RecordKey));
-    end;
-
     procedure MigrateRecord(var SourceRecordRef: RecordRef): Boolean
     var
         BC14Currency: Record "BC14 Currency";

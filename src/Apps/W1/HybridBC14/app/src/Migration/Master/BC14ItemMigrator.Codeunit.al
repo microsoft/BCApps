@@ -35,16 +35,6 @@ codeunit 50170 "BC14 Item Migrator" implements "IMasterMigrator"
         // No special filters needed for Item migration
     end;
 
-    procedure IsRecordMigrated(var SourceRecordRef: RecordRef): Boolean
-    var
-        Item: Record Item;
-        RecordKey: Text[250];
-    begin
-        RecordKey := GetSourceRecordKey(SourceRecordRef);
-        // Only skip if target record already exists - failed records will be retried
-        exit(Item.Get(RecordKey));
-    end;
-
     procedure MigrateRecord(var SourceRecordRef: RecordRef): Boolean
     var
         BC14Item: Record "BC14 Item";
@@ -92,8 +82,6 @@ codeunit 50170 "BC14 Item Migrator" implements "IMasterMigrator"
         // table validation which requires the Item record to already exist.
         if BC14Item."Base Unit of Measure" <> '' then
             Item.Validate("Base Unit of Measure", BC14Item."Base Unit of Measure");
-        Item.Description := BC14Item.Description;
-        Item.Type := Enum::"Item Type".FromInteger(BC14Item.Type);
         Item."Unit Price" := BC14Item."Unit Price";
         Item."Standard Cost" := BC14Item."Standard Cost";
         Item."Unit Cost" := BC14Item."Unit Cost";

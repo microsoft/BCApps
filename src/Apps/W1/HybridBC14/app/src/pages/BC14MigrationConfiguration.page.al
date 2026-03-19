@@ -329,6 +329,7 @@ page 50160 "BC14 Migration Configuration"
                 var
                     BC14Customer: Record "BC14 Customer";
                     BC14MigrationErrors: Record "BC14 Migration Errors";
+                    BC14MigrationRecordStatus: Record "BC14 Migration Record Status";
                     BC14CustomerMigrator: Codeunit "BC14 Customer Migrator";
                     BC14MigrationErrorHandler: Codeunit "BC14 Migration Error Handler";
                     SourceRecordRef: RecordRef;
@@ -340,6 +341,7 @@ page 50160 "BC14 Migration Configuration"
                     IsEnabledValue: Boolean;
                     Success: Boolean;
                     RecordKey: Text[250];
+                    SourceTableId: Integer;
                 begin
                     CustomerCount := BC14Customer.Count();
                     IsEnabledValue := BC14CustomerMigrator.IsEnabled();
@@ -368,18 +370,20 @@ page 50160 "BC14 Migration Configuration"
                     Success := true;
                     MigratedCount := 0;
                     SkippedCount := 0;
-                    SourceRecordRef.Open(BC14CustomerMigrator.GetSourceTableId());
+                    SourceTableId := BC14CustomerMigrator.GetSourceTableId();
+                    SourceRecordRef.Open(SourceTableId);
                     BC14CustomerMigrator.InitializeSourceRecords(SourceRecordRef);
 
                     if SourceRecordRef.FindSet() then
                         repeat
-                            if BC14CustomerMigrator.IsRecordMigrated(SourceRecordRef) then
+                            RecordKey := BC14CustomerMigrator.GetSourceRecordKey(SourceRecordRef);
+                            if BC14MigrationRecordStatus.IsMigrated(SourceTableId, RecordKey) then
                                 SkippedCount += 1
                             else
-                                if BC14CustomerMigrator.MigrateRecord(SourceRecordRef) then
-                                    MigratedCount += 1
-                                else begin
-                                    RecordKey := BC14CustomerMigrator.GetSourceRecordKey(SourceRecordRef);
+                                if BC14CustomerMigrator.MigrateRecord(SourceRecordRef) then begin
+                                    BC14MigrationRecordStatus.MarkAsMigrated(SourceTableId, RecordKey);
+                                    MigratedCount += 1;
+                                end else begin
                                     BC14MigrationErrorHandler.LogError(BC14CustomerMigrator.GetName(), Database::"BC14 Customer", 'BC14 Customer', RecordKey, Database::Customer, GetLastErrorText(), SourceRecordRef.RecordId);
                                     Success := false;
                                     ClearLastError();

@@ -32,15 +32,6 @@ codeunit 50192 "BC14 Payment Method Migrator" implements "ISetupMigrator"
         // No special filters needed for Payment Method migration
     end;
 
-    procedure IsRecordMigrated(var SourceRecordRef: RecordRef): Boolean
-    var
-        PaymentMethod: Record "Payment Method";
-        RecordKey: Text[250];
-    begin
-        RecordKey := GetSourceRecordKey(SourceRecordRef);
-        exit(PaymentMethod.Get(RecordKey));
-    end;
-
     procedure MigrateRecord(var SourceRecordRef: RecordRef): Boolean
     var
         BC14PaymentMethod: Record "BC14 Payment Method";

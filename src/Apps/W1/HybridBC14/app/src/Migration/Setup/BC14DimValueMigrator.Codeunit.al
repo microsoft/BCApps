@@ -33,15 +33,6 @@ codeunit 50187 "BC14 Dim. Value Migrator" implements "ISetupMigrator"
         // No special filters needed for Dimension Value migration
     end;
 
-    procedure IsRecordMigrated(var SourceRecordRef: RecordRef): Boolean
-    var
-        DimensionValue: Record "Dimension Value";
-        BC14DimensionValue: Record "BC14 Dimension Value";
-    begin
-        SourceRecordRef.SetTable(BC14DimensionValue);
-        exit(DimensionValue.Get(BC14DimensionValue."Dimension Code", BC14DimensionValue.Code));
-    end;
-
     procedure MigrateRecord(var SourceRecordRef: RecordRef): Boolean
     var
         BC14DimensionValue: Record "BC14 Dimension Value";

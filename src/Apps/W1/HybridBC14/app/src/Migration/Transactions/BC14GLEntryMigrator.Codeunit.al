@@ -47,29 +47,14 @@ codeunit 50188 "BC14 G/L Entry Migrator" implements "ITransactionMigrator"
         AmountFieldRef.SetFilter('<>0');
     end;
 
-    procedure IsRecordMigrated(var SourceRecordRef: RecordRef): Boolean
-    var
-        BC14MigrationRecordStatus: Record "BC14 Migration Record Status";
-        RecordKey: Text[250];
-    begin
-        RecordKey := GetSourceRecordKey(SourceRecordRef);
-        // Only skip if already tracked in progress table - failed records will be retried
-        exit(BC14MigrationRecordStatus.IsMigrated(GetSourceTableId(), RecordKey));
-    end;
-
     procedure MigrateRecord(var SourceRecordRef: RecordRef): Boolean
     var
         BC14GLEntry: Record "BC14 G/L Entry";
-        BC14MigrationRecordStatus: Record "BC14 Migration Record Status";
-        RecordKey: Text[250];
     begin
         SourceRecordRef.SetTable(BC14GLEntry);
         if not TryCreateJournalLine(BC14GLEntry) then
             exit(false);
 
-        // Mark as migrated to prevent duplicate journal lines on rerun
-        RecordKey := GetSourceRecordKey(SourceRecordRef);
-        BC14MigrationRecordStatus.MarkAsMigrated(GetSourceTableId(), RecordKey);
         exit(true);
     end;
 

@@ -32,15 +32,6 @@ codeunit 50190 "BC14 Dimension Migrator" implements "ISetupMigrator"
         // No special filters needed for Dimension migration
     end;
 
-    procedure IsRecordMigrated(var SourceRecordRef: RecordRef): Boolean
-    var
-        Dimension: Record Dimension;
-        RecordKey: Text[250];
-    begin
-        RecordKey := GetSourceRecordKey(SourceRecordRef);
-        exit(Dimension.Get(RecordKey));
-    end;
-
     procedure MigrateRecord(var SourceRecordRef: RecordRef): Boolean
     var
         BC14Dimension: Record "BC14 Dimension";

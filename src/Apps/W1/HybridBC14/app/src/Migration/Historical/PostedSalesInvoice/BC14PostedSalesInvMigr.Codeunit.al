@@ -35,15 +35,6 @@ codeunit 50180 "BC14 Posted Sales Inv Migr." implements "IHistoricalMigrator"
         // No special filters needed for Posted Sales Invoice migration
     end;
 
-    procedure IsRecordMigrated(var SourceRecordRef: RecordRef): Boolean
-    var
-        BC14ArchSalesInvHeader: Record "BC14 Arch. Sales Inv. Header";
-        RecordKey: Text[250];
-    begin
-        RecordKey := GetSourceRecordKey(SourceRecordRef);
-        exit(BC14ArchSalesInvHeader.Get(RecordKey));
-    end;
-
     procedure MigrateRecord(var SourceRecordRef: RecordRef): Boolean
     var
         BC14PostedSalesInvHeader: Record "BC14 Posted Sales Inv Header";

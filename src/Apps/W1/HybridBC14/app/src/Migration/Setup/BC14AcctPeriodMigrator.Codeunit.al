@@ -33,15 +33,6 @@ codeunit 50195 "BC14 Acct. Period Migrator" implements "ISetupMigrator"
         // No special filters needed for Accounting Period migration
     end;
 
-    procedure IsRecordMigrated(var SourceRecordRef: RecordRef): Boolean
-    var
-        AccountingPeriod: Record "Accounting Period";
-        BC14AccountingPeriod: Record "BC14 Accounting Period";
-    begin
-        SourceRecordRef.SetTable(BC14AccountingPeriod);
-        exit(AccountingPeriod.Get(BC14AccountingPeriod."Starting Date"));
-    end;
-
     procedure MigrateRecord(var SourceRecordRef: RecordRef): Boolean
     var
         BC14AccountingPeriod: Record "BC14 Accounting Period";

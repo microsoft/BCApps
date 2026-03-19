@@ -60,15 +60,12 @@ table 50199 "BC14 Migration Record Status"
     /// </summary>
     procedure MarkAsMigrated(SourceTableId: Integer; SourceRecordKey: Text[250])
     begin
-        if Get(CompanyName(), SourceTableId, SourceRecordKey) then
-            exit;
-
         Init();
         "Company Name" := CopyStr(CompanyName(), 1, MaxStrLen("Company Name"));
         "Source Table ID" := SourceTableId;
         "Source Record Key" := SourceRecordKey;
         "Migrated On" := CurrentDateTime();
-        Insert();
+        if not Insert() then; // Ignore duplicate - record already marked as migrated (idempotent)
     end;
 
     /// <summary>
@@ -77,28 +74,21 @@ table 50199 "BC14 Migration Record Status"
     /// <returns>Number of records deleted.</returns>
     procedure ClearAllMigrationStatus(): Integer
     var
+        BC14MigrationRecordStatusBatch: Record "BC14 Migration Record Status";
         DeletedCount: Integer;
-        BatchCount: Integer;
-        BatchSize: Integer;
     begin
-        BatchSize := 10000;
         SetRange("Company Name", CompanyName());
         DeletedCount := Count();
 
         // Delete in batches to avoid lock escalation and transaction log overflow on large tables
-        if DeletedCount <= BatchSize then
-            DeleteAll()
-        else
-            repeat
-                Clear(BatchCount);
-                SetRange("Company Name", CompanyName());
-                if FindSet() then
-                    repeat
-                        Delete();
-                        BatchCount += 1;
-                    until (Next() = 0) or (BatchCount >= BatchSize);
-                Commit();
-            until BatchCount < BatchSize;
+        repeat
+            BC14MigrationRecordStatusBatch.SetRange("Company Name", CompanyName());
+            if not BC14MigrationRecordStatusBatch.FindFirst() then
+                break;
+            BC14MigrationRecordStatusBatch.SetRange("Source Table ID", BC14MigrationRecordStatusBatch."Source Table ID");
+            BC14MigrationRecordStatusBatch.DeleteAll();
+            Commit();
+        until false;
 
         exit(DeletedCount);
     end;

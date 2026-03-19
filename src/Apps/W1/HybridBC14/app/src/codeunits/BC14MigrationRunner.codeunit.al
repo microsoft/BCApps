@@ -33,6 +33,8 @@ codeunit 50175 "BC14 Migration Runner"
         CurrentMigratorName: Text[100];
         SuppressConfirmations: Boolean;
         SkipPostingOnRetry: Boolean;
+        RecordsSinceLastCommit: Integer;
+        CommitIntervalSize: Integer;
 
     procedure RunMigration()
     var
@@ -79,6 +81,9 @@ codeunit 50175 "BC14 Migration Runner"
             Session.LogMessage('0000ROB', StopOnFirstErrorEnabledLbl, Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', BC14HelperFunctions.GetTelemetryCategory())
         else
             Session.LogMessage('0000ROC', ContinueOnErrorEnabledLbl, Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', BC14HelperFunctions.GetTelemetryCategory());
+
+        CommitIntervalSize := 1000;
+        RecordsSinceLastCommit := 0;
 
         BC14CompanySettings.SetMigrationState(StartPhase);
         RunMigrationFromPhase(StartPhase, StopOnFirstError);
@@ -159,13 +164,17 @@ codeunit 50175 "BC14 Migration Runner"
 
         // Mark migration as completed
         BC14CompanySettings.SetMigrationState("BC14 Migration State"::Completed);
-        BC14CompanySettings.SetMigrationPhaseCompleted("BC14 Migration State"::Completed, '');
 
-        // Only clean up migration record status if all journal batches posted successfully.
-        // If any batch failed, keep status records so rerun can correctly skip already-migrated records
+        // Only set LastCompletedPhase to Completed if all journal batches posted successfully.
+        // If any batch failed, keep LastCompletedPhase at Historical so that RetryFailedRecords
+        // will re-attempt posting (SkipPostingOnRetry will be false).
+        // Also keep status records so rerun can correctly skip already-migrated records
         // and avoid creating duplicate journal lines.
-        if AllBatchesPosted then
+        if AllBatchesPosted then begin
+            BC14CompanySettings.SetMigrationPhaseCompleted("BC14 Migration State"::Completed, '');
             CleanupMigrationRecordStatus();
+        end else
+            BC14CompanySettings.SetMigrationPhaseCompleted("BC14 Migration State"::Historical, '');
 
         TotalErrors := GetTotalErrorCount();
         Session.LogMessage('0000ROE', StrSubstNo(MigrationCompletedMsg, CompanyName(), TotalErrors), Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', BC14HelperFunctions.GetTelemetryCategory());
@@ -213,11 +222,73 @@ codeunit 50175 "BC14 Migration Runner"
         end;
     end;
 
+    /// <summary>
+    /// Checks whether a record needs migration (not yet migrated or has unresolved error)
+    /// and fires the OnBeforeMigrateRecord event. Caller should only call MigrateRecord if this returns true.
+    /// </summary>
+    local procedure ShouldMigrateRecord(
+        MigratorName: Text[250];
+        SourceTableId: Integer;
+        var SourceRecordRef: RecordRef;
+        RecordKey: Text[250]): Boolean
+    var
+        BC14MigrationRecordStatus: Record "BC14 Migration Record Status";
+        BC14MigrationErrorHandler: Codeunit "BC14 Migration Error Handler";
+        HasUnresolvedError: Boolean;
+        SkipRecord: Boolean;
+    begin
+        HasUnresolvedError := BC14MigrationErrorHandler.HasUnresolvedError(SourceTableId, RecordKey);
+        if BC14MigrationRecordStatus.IsMigrated(SourceTableId, RecordKey) and (not HasUnresolvedError) then
+            exit(false);
+
+        SkipRecord := false;
+        OnBeforeMigrateRecord(MigratorName, SourceRecordRef, SkipRecord);
+        exit(not SkipRecord);
+    end;
+
+    /// <summary>
+    /// Handles the result of MigrateRecord: logs errors or marks success, resolves previous errors.
+    /// </summary>
+    /// <returns>False if StopOnFirstError is true and migration failed (caller should exit loop).</returns>
+    local procedure HandleMigrateResult(
+        MigratorName: Text[250];
+        SourceTableId: Integer;
+        var SourceRecordRef: RecordRef;
+        RecordKey: Text[250];
+        MigrateSucceeded: Boolean;
+        StopOnFirstError: Boolean;
+        var MigratorSuccess: Boolean): Boolean
+    var
+        BC14MigrationRecordStatus: Record "BC14 Migration Record Status";
+        BC14MigrationErrorHandler: Codeunit "BC14 Migration Error Handler";
+    begin
+        if not MigrateSucceeded then begin
+            BC14MigrationErrorHandler.LogError(MigratorName, SourceTableId, SourceRecordRef.Name, RecordKey, 0, GetLastErrorText(), SourceRecordRef.RecordId);
+            OnMigrateRecordFailed(MigratorName, SourceRecordRef, GetLastErrorText());
+            MigratorSuccess := false;
+            if StopOnFirstError then
+                exit(false);
+            ClearLastError();
+        end else begin
+            BC14MigrationRecordStatus.MarkAsMigrated(SourceTableId, RecordKey);
+            if BC14MigrationErrorHandler.HasUnresolvedError(SourceTableId, RecordKey) then
+                BC14MigrationErrorHandler.ResolveErrorForRecord(SourceTableId, RecordKey);
+            OnAfterMigrateRecord(MigratorName, SourceRecordRef);
+        end;
+
+        // Periodic commit to avoid transaction log overflow and lock escalation on large datasets
+        RecordsSinceLastCommit += 1;
+        if RecordsSinceLastCommit >= CommitIntervalSize then begin
+            Commit();
+            RecordsSinceLastCommit := 0;
+        end;
+
+        exit(true);
+    end;
+
     local procedure RunSetupMigrations(StopOnFirstError: Boolean): Boolean
     var
         BC14CompanySettings: Record "BC14CompanyMigrationSettings";
-        BC14MigrationRecordStatus: Record "BC14 Migration Record Status";
-        BC14MigrationErrorHandler: Codeunit "BC14 Migration Error Handler";
         SourceRecordRef: RecordRef;
         SetupMigratorEnum: Enum "BC14 Setup Migrator";
         SetupMigrator: Interface "ISetupMigrator";
@@ -225,15 +296,11 @@ codeunit 50175 "BC14 Migration Runner"
         Success: Boolean;
         MigratorSuccess: Boolean;
         SkipMigrator: Boolean;
-        SkipRecord: Boolean;
-        HasUnresolvedError: Boolean;
         SourceTableId: Integer;
         RecordKey: Text[250];
     begin
         Success := true;
 
-        // Iterate through all registered setup migrators
-        // Runner drives the loop, migrators handle single-record transformation
         foreach MigratorIndex in "BC14 Setup Migrator".Ordinals() do begin
             SetupMigratorEnum := "BC14 Setup Migrator".FromInteger(MigratorIndex);
             SetupMigrator := SetupMigratorEnum;
@@ -255,29 +322,11 @@ codeunit 50175 "BC14 Migration Runner"
                     if SourceRecordRef.FindSet() then
                         repeat
                             RecordKey := SetupMigrator.GetSourceRecordKey(SourceRecordRef);
-                            HasUnresolvedError := BC14MigrationErrorHandler.HasUnresolvedError(SourceTableId, RecordKey);
-                            // Use status table to track successfully migrated records instead of IsRecordMigrated.
-                            // IsRecordMigrated only checks if target exists, which can be true for partially-migrated records.
-                            // Status table is only populated after full successful migration of each record.
-                            if HasUnresolvedError or (not BC14MigrationRecordStatus.IsMigrated(SourceTableId, RecordKey)) then begin
-                                SkipRecord := false;
-                                OnBeforeMigrateRecord(SetupMigrator.GetName(), SourceRecordRef, SkipRecord);
-                                if not SkipRecord then
-                                    if not SetupMigrator.MigrateRecord(SourceRecordRef) then begin
-                                        BC14MigrationErrorHandler.LogError(SetupMigrator.GetName(), SourceTableId, SourceRecordRef.Name, RecordKey, 0, GetLastErrorText(), SourceRecordRef.RecordId);
-                                        MigratorSuccess := false;
-                                        if StopOnFirstError then begin
-                                            SourceRecordRef.Close();
-                                            exit(false);
-                                        end;
-                                        ClearLastError();
-                                    end else begin
-                                        BC14MigrationRecordStatus.MarkAsMigrated(SourceTableId, RecordKey);
-                                        if HasUnresolvedError then
-                                            BC14MigrationErrorHandler.ResolveErrorForRecord(SourceTableId, RecordKey);
-                                        OnAfterMigrateRecord(SetupMigrator.GetName(), SourceRecordRef);
-                                    end;
-                            end;
+                            if ShouldMigrateRecord(SetupMigrator.GetName(), SourceTableId, SourceRecordRef, RecordKey) then
+                                if not HandleMigrateResult(SetupMigrator.GetName(), SourceTableId, SourceRecordRef, RecordKey, SetupMigrator.MigrateRecord(SourceRecordRef), StopOnFirstError, MigratorSuccess) then begin
+                                    SourceRecordRef.Close();
+                                    exit(false);
+                                end;
                         until SourceRecordRef.Next() = 0;
                     SourceRecordRef.Close();
                 end;
@@ -292,7 +341,6 @@ codeunit 50175 "BC14 Migration Runner"
             end;
         end;
 
-        // Allow extensions to add their own setup migrators
         OnRunSetupMigrations(StopOnFirstError, Success);
         exit(Success);
     end;
@@ -300,8 +348,6 @@ codeunit 50175 "BC14 Migration Runner"
     local procedure RunMasterMigrations(StopOnFirstError: Boolean): Boolean
     var
         BC14CompanySettings: Record "BC14CompanyMigrationSettings";
-        BC14MigrationRecordStatus: Record "BC14 Migration Record Status";
-        BC14MigrationErrorHandler: Codeunit "BC14 Migration Error Handler";
         SourceRecordRef: RecordRef;
         MasterMigratorEnum: Enum "BC14 Master Migrator";
         MasterMigrator: Interface "IMasterMigrator";
@@ -309,15 +355,11 @@ codeunit 50175 "BC14 Migration Runner"
         Success: Boolean;
         MigratorSuccess: Boolean;
         SkipMigrator: Boolean;
-        SkipRecord: Boolean;
-        HasUnresolvedError: Boolean;
         SourceTableId: Integer;
         RecordKey: Text[250];
     begin
         Success := true;
 
-        // Iterate through all registered master migrators
-        // Runner drives the loop, migrators handle single-record transformation
         foreach MigratorIndex in "BC14 Master Migrator".Ordinals() do begin
             MasterMigratorEnum := "BC14 Master Migrator".FromInteger(MigratorIndex);
             MasterMigrator := MasterMigratorEnum;
@@ -338,29 +380,11 @@ codeunit 50175 "BC14 Migration Runner"
                 if SourceRecordRef.FindSet() then
                     repeat
                         RecordKey := MasterMigrator.GetSourceRecordKey(SourceRecordRef);
-                        HasUnresolvedError := BC14MigrationErrorHandler.HasUnresolvedError(SourceTableId, RecordKey);
-                        // Use status table to track successfully migrated records instead of IsRecordMigrated.
-                        // IsRecordMigrated only checks if target exists, which can be true for partially-migrated records.
-                        // Status table is only populated after full successful migration of each record.
-                        if HasUnresolvedError or (not BC14MigrationRecordStatus.IsMigrated(SourceTableId, RecordKey)) then begin
-                            SkipRecord := false;
-                            OnBeforeMigrateRecord(MasterMigrator.GetName(), SourceRecordRef, SkipRecord);
-                            if not SkipRecord then
-                                if not MasterMigrator.MigrateRecord(SourceRecordRef) then begin
-                                    BC14MigrationErrorHandler.LogError(MasterMigrator.GetName(), SourceTableId, SourceRecordRef.Name, RecordKey, 0, GetLastErrorText(), SourceRecordRef.RecordId);
-                                    MigratorSuccess := false;
-                                    if StopOnFirstError then begin
-                                        SourceRecordRef.Close();
-                                        exit(false);
-                                    end;
-                                    ClearLastError();
-                                end else begin
-                                    BC14MigrationRecordStatus.MarkAsMigrated(SourceTableId, RecordKey);
-                                    if HasUnresolvedError then
-                                        BC14MigrationErrorHandler.ResolveErrorForRecord(SourceTableId, RecordKey);
-                                    OnAfterMigrateRecord(MasterMigrator.GetName(), SourceRecordRef);
-                                end;
-                        end;
+                        if ShouldMigrateRecord(MasterMigrator.GetName(), SourceTableId, SourceRecordRef, RecordKey) then
+                            if not HandleMigrateResult(MasterMigrator.GetName(), SourceTableId, SourceRecordRef, RecordKey, MasterMigrator.MigrateRecord(SourceRecordRef), StopOnFirstError, MigratorSuccess) then begin
+                                SourceRecordRef.Close();
+                                exit(false);
+                            end;
                     until SourceRecordRef.Next() = 0;
                 SourceRecordRef.Close();
 
@@ -374,7 +398,6 @@ codeunit 50175 "BC14 Migration Runner"
             end;
         end;
 
-        // Allow extensions to add their own master migrators
         OnRunMasterMigrations(StopOnFirstError, Success);
         exit(Success);
     end;
@@ -382,8 +405,6 @@ codeunit 50175 "BC14 Migration Runner"
     local procedure RunTransactionMigrations(StopOnFirstError: Boolean): Boolean
     var
         BC14CompanySettings: Record "BC14CompanyMigrationSettings";
-        BC14MigrationRecordStatus: Record "BC14 Migration Record Status";
-        BC14MigrationErrorHandler: Codeunit "BC14 Migration Error Handler";
         SourceRecordRef: RecordRef;
         TransactionMigratorEnum: Enum "BC14 Transaction Migrator";
         TransactionMigrator: Interface "ITransactionMigrator";
@@ -391,15 +412,11 @@ codeunit 50175 "BC14 Migration Runner"
         Success: Boolean;
         MigratorSuccess: Boolean;
         SkipMigrator: Boolean;
-        SkipRecord: Boolean;
-        HasUnresolvedError: Boolean;
         SourceTableId: Integer;
         RecordKey: Text[250];
     begin
         Success := true;
 
-        // Iterate through all registered transaction migrators
-        // Runner drives the loop, migrators handle single-record transformation
         foreach MigratorIndex in "BC14 Transaction Migrator".Ordinals() do begin
             TransactionMigratorEnum := "BC14 Transaction Migrator".FromInteger(MigratorIndex);
             TransactionMigrator := TransactionMigratorEnum;
@@ -420,29 +437,11 @@ codeunit 50175 "BC14 Migration Runner"
                 if SourceRecordRef.FindSet() then
                     repeat
                         RecordKey := TransactionMigrator.GetSourceRecordKey(SourceRecordRef);
-                        HasUnresolvedError := BC14MigrationErrorHandler.HasUnresolvedError(SourceTableId, RecordKey);
-                        // Use status table to track successfully migrated records instead of IsRecordMigrated.
-                        // IsRecordMigrated only checks if target exists, which can be true for partially-migrated records.
-                        // Status table is only populated after full successful migration of each record.
-                        if HasUnresolvedError or (not BC14MigrationRecordStatus.IsMigrated(SourceTableId, RecordKey)) then begin
-                            SkipRecord := false;
-                            OnBeforeMigrateRecord(TransactionMigrator.GetName(), SourceRecordRef, SkipRecord);
-                            if not SkipRecord then
-                                if not TransactionMigrator.MigrateRecord(SourceRecordRef) then begin
-                                    BC14MigrationErrorHandler.LogError(TransactionMigrator.GetName(), SourceTableId, SourceRecordRef.Name, RecordKey, 0, GetLastErrorText(), SourceRecordRef.RecordId);
-                                    MigratorSuccess := false;
-                                    if StopOnFirstError then begin
-                                        SourceRecordRef.Close();
-                                        exit(false);
-                                    end;
-                                    ClearLastError();
-                                end else begin
-                                    BC14MigrationRecordStatus.MarkAsMigrated(SourceTableId, RecordKey);
-                                    if HasUnresolvedError then
-                                        BC14MigrationErrorHandler.ResolveErrorForRecord(SourceTableId, RecordKey);
-                                    OnAfterMigrateRecord(TransactionMigrator.GetName(), SourceRecordRef);
-                                end;
-                        end;
+                        if ShouldMigrateRecord(TransactionMigrator.GetName(), SourceTableId, SourceRecordRef, RecordKey) then
+                            if not HandleMigrateResult(TransactionMigrator.GetName(), SourceTableId, SourceRecordRef, RecordKey, TransactionMigrator.MigrateRecord(SourceRecordRef), StopOnFirstError, MigratorSuccess) then begin
+                                SourceRecordRef.Close();
+                                exit(false);
+                            end;
                     until SourceRecordRef.Next() = 0;
                 SourceRecordRef.Close();
 
@@ -456,7 +455,6 @@ codeunit 50175 "BC14 Migration Runner"
             end;
         end;
 
-        // Allow extensions to add their own transaction migrators
         OnRunTransactionMigrations(StopOnFirstError, Success);
         exit(Success);
     end;
@@ -464,8 +462,6 @@ codeunit 50175 "BC14 Migration Runner"
     local procedure RunHistoricalMigrations(StopOnFirstError: Boolean): Boolean
     var
         BC14CompanySettings: Record "BC14CompanyMigrationSettings";
-        BC14MigrationRecordStatus: Record "BC14 Migration Record Status";
-        BC14MigrationErrorHandler: Codeunit "BC14 Migration Error Handler";
         SourceRecordRef: RecordRef;
         HistoricalMigratorEnum: Enum "BC14 Historical Migrator";
         HistoricalMigrator: Interface "IHistoricalMigrator";
@@ -473,15 +469,11 @@ codeunit 50175 "BC14 Migration Runner"
         Success: Boolean;
         MigratorSuccess: Boolean;
         SkipMigrator: Boolean;
-        SkipRecord: Boolean;
-        HasUnresolvedError: Boolean;
         SourceTableId: Integer;
         RecordKey: Text[250];
     begin
         Success := true;
 
-        // Iterate through all registered historical migrators
-        // Runner drives the loop, migrators handle single-record transformation
         foreach MigratorIndex in "BC14 Historical Migrator".Ordinals() do begin
             HistoricalMigratorEnum := "BC14 Historical Migrator".FromInteger(MigratorIndex);
             HistoricalMigrator := HistoricalMigratorEnum;
@@ -502,29 +494,11 @@ codeunit 50175 "BC14 Migration Runner"
                 if SourceRecordRef.FindSet() then
                     repeat
                         RecordKey := HistoricalMigrator.GetSourceRecordKey(SourceRecordRef);
-                        HasUnresolvedError := BC14MigrationErrorHandler.HasUnresolvedError(SourceTableId, RecordKey);
-                        // Use status table to track successfully migrated records instead of IsRecordMigrated.
-                        // IsRecordMigrated only checks if target exists, which can be true for partially-migrated records.
-                        // Status table is only populated after full successful migration of each record.
-                        if HasUnresolvedError or (not BC14MigrationRecordStatus.IsMigrated(SourceTableId, RecordKey)) then begin
-                            SkipRecord := false;
-                            OnBeforeMigrateRecord(HistoricalMigrator.GetName(), SourceRecordRef, SkipRecord);
-                            if not SkipRecord then
-                                if not HistoricalMigrator.MigrateRecord(SourceRecordRef) then begin
-                                    BC14MigrationErrorHandler.LogError(HistoricalMigrator.GetName(), SourceTableId, SourceRecordRef.Name, RecordKey, 0, GetLastErrorText(), SourceRecordRef.RecordId);
-                                    MigratorSuccess := false;
-                                    if StopOnFirstError then begin
-                                        SourceRecordRef.Close();
-                                        exit(false);
-                                    end;
-                                    ClearLastError();
-                                end else begin
-                                    BC14MigrationRecordStatus.MarkAsMigrated(SourceTableId, RecordKey);
-                                    if HasUnresolvedError then
-                                        BC14MigrationErrorHandler.ResolveErrorForRecord(SourceTableId, RecordKey);
-                                    OnAfterMigrateRecord(HistoricalMigrator.GetName(), SourceRecordRef);
-                                end;
-                        end;
+                        if ShouldMigrateRecord(HistoricalMigrator.GetName(), SourceTableId, SourceRecordRef, RecordKey) then
+                            if not HandleMigrateResult(HistoricalMigrator.GetName(), SourceTableId, SourceRecordRef, RecordKey, HistoricalMigrator.MigrateRecord(SourceRecordRef), StopOnFirstError, MigratorSuccess) then begin
+                                SourceRecordRef.Close();
+                                exit(false);
+                            end;
                     until SourceRecordRef.Next() = 0;
                 SourceRecordRef.Close();
 
@@ -538,7 +512,6 @@ codeunit 50175 "BC14 Migration Runner"
             end;
         end;
 
-        // Allow extensions to add their own historical migrators
         OnRunHistoricalMigrations(StopOnFirstError, Success);
         exit(Success);
     end;
@@ -847,6 +820,18 @@ codeunit 50175 "BC14 Migration Runner"
     /// <param name="SourceRecordRef">The source record that was migrated.</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterMigrateRecord(MigratorName: Text[250]; var SourceRecordRef: RecordRef)
+    begin
+    end;
+
+    /// <summary>
+    /// Integration event raised when a record migration fails.
+    /// Subscribe to perform custom error handling, notifications, or logging.
+    /// </summary>
+    /// <param name="MigratorName">The name of the migrator that failed.</param>
+    /// <param name="SourceRecordRef">The source record that failed to migrate.</param>
+    /// <param name="ErrorMessage">The error message from the failed migration attempt.</param>
+    [IntegrationEvent(false, false)]
+    local procedure OnMigrateRecordFailed(MigratorName: Text[250]; var SourceRecordRef: RecordRef; ErrorMessage: Text)
     begin
     end;
 }

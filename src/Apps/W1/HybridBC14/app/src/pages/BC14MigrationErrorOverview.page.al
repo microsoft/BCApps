@@ -11,6 +11,7 @@ page 50163 "BC14 Migration Error Overview"
     ApplicationArea = All;
     UsageCategory = Lists;
     SourceTable = "BC14 Migration Errors";
+    SourceTableView = sorting(Id) order(descending);
     Caption = 'BC14 Migration Errors';
     Editable = true;
     InsertAllowed = false;
@@ -128,40 +129,43 @@ page 50163 "BC14 Migration Error Overview"
             action(RetrySelected)
             {
                 ApplicationArea = All;
-                Caption = 'Retry';
-                ToolTip = 'Retry migration for the selected error records. Fix the source data first using Edit.';
+                Caption = 'Rerun Migration';
+                ToolTip = 'Rerun migration to retry all unresolved errors. Records that already succeeded will be skipped automatically.';
                 Image = Refresh;
 
                 trigger OnAction()
                 var
-                    SelectedErrors: Record "BC14 Migration Errors";
+                    BC14MigrationErrors: Record "BC14 Migration Errors";
                     BC14MigrationRunner: Codeunit "BC14 Migration Runner";
-                    RetryCount: Integer;
+                    UnresolvedCount: Integer;
                 begin
-                    CurrPage.SetSelectionFilter(SelectedErrors);
-                    RetryCount := SelectedErrors.Count();
+                    BC14MigrationErrors.SetRange("Company Name", CompanyName());
+                    BC14MigrationErrors.SetRange("Resolved", false);
+                    UnresolvedCount := BC14MigrationErrors.Count();
 
-                    if RetryCount = 0 then begin
-                        Message('No records selected.');
+                    if UnresolvedCount = 0 then begin
+                        Message(NoUnresolvedErrorsMsg);
                         exit;
                     end;
 
-                    if not Confirm(RetrySelectedQst, false, RetryCount) then
+                    if not Confirm(RerunMigrationQst, false, UnresolvedCount) then
                         exit;
 
-                    // Mark selected as scheduled for retry
-                    SelectedErrors.ModifyAll("Scheduled For Retry", true);
+                    // Mark all unresolved as scheduled for retry
+                    BC14MigrationErrors.ModifyAll("Scheduled For Retry", true);
                     Commit();
 
-                    // Run retry - this runs the full migration with confirmations suppressed
+                    // Run retry - this reruns migration, skipping already-succeeded records
                     BC14MigrationRunner.RetryFailedRecords();
 
-                    // Show single completion message
-                    SelectedErrors.SetRange("Resolved", true);
-                    if SelectedErrors.Count() = RetryCount then
-                        Message(RetryCompletedMsg)
+                    // Report results
+                    BC14MigrationErrors.Reset();
+                    BC14MigrationErrors.SetRange("Company Name", CompanyName());
+                    BC14MigrationErrors.SetRange("Resolved", false);
+                    if BC14MigrationErrors.IsEmpty() then
+                        Message(RerunAllResolvedMsg)
                     else
-                        Message(RetryPartialSuccessMsg);
+                        Message(RerunPartialSuccessMsg, BC14MigrationErrors.Count());
 
                     CurrPage.Update(false);
                 end;
@@ -210,9 +214,10 @@ page 50163 "BC14 Migration Error Overview"
 
     var
         DeleteAllErrorsQst: Label 'Do you want to DELETE ALL error records? This cannot be undone.';
-        RetrySelectedQst: Label 'Retry migration for %1 selected record(s)?', Comment = '%1 = Count';
+        RerunMigrationQst: Label 'There are %1 unresolved error(s). Rerun migration to retry them?\Already succeeded records will be skipped.', Comment = '%1 = Count';
         ErrorsDeletedMsg: Label '%1 error records have been deleted.', Comment = '%1 = Count';
-        RetryCompletedMsg: Label 'Retry completed. Check the list - resolved records show Resolved = Yes.';
-        RetryPartialSuccessMsg: Label 'Retry completed but some records still have errors. Fix them and retry again.';
+        RerunAllResolvedMsg: Label 'Rerun completed successfully. All errors have been resolved.';
+        RerunPartialSuccessMsg: Label 'Rerun completed. %1 error(s) still unresolved - review and fix the source data, then rerun again.', Comment = '%1 = Count';
+        NoUnresolvedErrorsMsg: Label 'There are no unresolved errors to retry.';
         SourceRecordNotAvailableMsg: Label 'Source record %2 in table %1 cannot be opened. The record reference is unavailable.', Comment = '%1 = Source Table Name, %2 = Source Record Key';
 }

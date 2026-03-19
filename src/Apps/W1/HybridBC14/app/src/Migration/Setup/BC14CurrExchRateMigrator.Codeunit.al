@@ -32,15 +32,6 @@ codeunit 50194 "BC14 Curr. Exch. Rate Migrator" implements "ISetupMigrator"
         // No special filters needed for Currency Exchange Rate migration
     end;
 
-    procedure IsRecordMigrated(var SourceRecordRef: RecordRef): Boolean
-    var
-        CurrencyExchangeRate: Record "Currency Exchange Rate";
-        BC14CurrencyExchangeRate: Record "BC14 Currency Exchange Rate";
-    begin
-        SourceRecordRef.SetTable(BC14CurrencyExchangeRate);
-        exit(CurrencyExchangeRate.Get(BC14CurrencyExchangeRate."Currency Code", BC14CurrencyExchangeRate."Starting Date"));
-    end;
-
     procedure MigrateRecord(var SourceRecordRef: RecordRef): Boolean
     var
         BC14CurrencyExchangeRate: Record "BC14 Currency Exchange Rate";

@@ -6,6 +6,7 @@
 namespace Microsoft.DataMigration.BC14;
 
 using Microsoft.DataMigration;
+using Microsoft.Utilities;
 using System.Environment;
 using System.Integration;
 using System.Text;
@@ -28,6 +29,8 @@ codeunit 50162 "BC14 Management"
         NoPendingCompaniesErr: Label 'There are no companies with Pending upgrade status. Run the replication first or check if companies have already been upgraded.';
         NoReplicationCompletedErr: Label 'Cannot start upgrade: No replication has been completed yet. Please run replication first before starting the upgrade.';
         ReplicationNotInValidStateErr: Label 'Cannot start upgrade: The replication status is "%1". Upgrade can only be started when replication status is "Upgrade Pending" or "Completed".', Comment = '%1 = Status';
+        CompanySetupNotCompletedSkippingLbl: Label 'Skipping company %1: company setup is not completed yet.', Locked = true, Comment = '%1 = Company Name';
+        CompanySetupNotCompletedErr: Label 'Cannot start upgrade: All pending companies are still being created. Wait for company creation to complete and try again.';
 
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Hybrid Cloud Management", 'OnHandleRunReplication', '', false, false)]
     local procedure BlockReplicationIfMigrationStarted(var Handled: Boolean; var RunId: Text; ReplicationType: Option)
@@ -141,15 +144,21 @@ codeunit 50162 "BC14 Management"
         PendingCompanyCount := HybridCompanyStatus.Count();
         Session.LogMessage('0000RON', StrSubstNo(OneStepUpgradePendingCompaniesLbl, PendingCompanyCount), Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', BC14HelperFunctions.GetTelemetryCategory());
 
-        if HybridCompanyStatus.FindFirst() then begin
-            HybridReplicationSummary.Get(RunId);
-            HybridReplicationSummary.Status := HybridReplicationSummary.Status::UpgradeInProgress;
-            HybridReplicationSummary.Modify();
-            Commit(); // Ensure status is saved before scheduling task
-            Session.LogMessage('0000ROO', StrSubstNo(OneStepUpgradeSchedulingLbl, HybridCompanyStatus.Name), Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', BC14HelperFunctions.GetTelemetryCategory());
-            InvokeCompanyUpgrade(HybridReplicationSummary, HybridCompanyStatus.Name, BC14GlobalSettings."One Step Upgrade Delay");
-        end else
-            Session.LogMessage('0000ROP', OneStepUpgradeNoPendingCompaniesLbl, Verbosity::Warning, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', BC14HelperFunctions.GetTelemetryCategory());
+        if HybridCompanyStatus.FindSet() then
+            repeat
+                if IsCompanySetupCompleted(HybridCompanyStatus.Name) then begin
+                    HybridReplicationSummary.Get(RunId);
+                    HybridReplicationSummary.Status := HybridReplicationSummary.Status::UpgradeInProgress;
+                    HybridReplicationSummary.Modify();
+                    Commit(); // Ensure status is saved before scheduling task
+                    Session.LogMessage('0000ROO', StrSubstNo(OneStepUpgradeSchedulingLbl, HybridCompanyStatus.Name), Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', BC14HelperFunctions.GetTelemetryCategory());
+                    InvokeCompanyUpgrade(HybridReplicationSummary, HybridCompanyStatus.Name, BC14GlobalSettings."One Step Upgrade Delay");
+                    exit;
+                end else
+                    Session.LogMessage('0000ROR', StrSubstNo(CompanySetupNotCompletedSkippingLbl, HybridCompanyStatus.Name), Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', BC14HelperFunctions.GetTelemetryCategory());
+            until HybridCompanyStatus.Next() = 0;
+
+        Session.LogMessage('0000ROP', OneStepUpgradeNoPendingCompaniesLbl, Verbosity::Warning, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', BC14HelperFunctions.GetTelemetryCategory());
     end;
 
     local procedure UpdateStatusOnHybridReplicationCompleted(RunId: Text[50]; NotificationText: Text)
@@ -300,11 +309,19 @@ codeunit 50162 "BC14 Management"
             Commit();
         end;
 
-        // Find first pending company to upgrade
+        // Find first pending company to upgrade (must have setup completed)
         HybridCompanyStatus.Reset();
         HybridCompanyStatus.SetRange("Upgrade Status", HybridCompanyStatus."Upgrade Status"::Pending);
-        if not HybridCompanyStatus.FindFirst() then
+        if not HybridCompanyStatus.FindSet() then
             Error(NoPendingCompaniesErr);
+
+        repeat
+            if IsCompanySetupCompleted(HybridCompanyStatus.Name) then
+                break;
+        until HybridCompanyStatus.Next() = 0;
+
+        if not IsCompanySetupCompleted(HybridCompanyStatus.Name) then
+            Error(CompanySetupNotCompletedErr);
 
         // Reset the summary for manual upgrade - set new start time, clear end time and details
         HybridReplicationSummary.Status := HybridReplicationSummary.Status::UpgradeInProgress;
@@ -376,8 +393,10 @@ codeunit 50162 "BC14 Management"
         HybridCompanyStatus.SetRange("Upgrade Status", HybridCompanyStatus."Upgrade Status"::Completed);
         CompletedCount := HybridCompanyStatus.Count();
 
-        // Migration is NOT complete if there are replicated companies that haven't been upgraded
-        if ReplicatedCount > CompletedCount then
+        // Cloud migration is complete only when all replicated companies have been upgraded
+        if (ReplicatedCount > 0) and (CompletedCount >= ReplicatedCount) then
+            CloudMigrationCompleted := true
+        else
             CloudMigrationCompleted := false;
     end;
 
@@ -385,6 +404,28 @@ codeunit 50162 "BC14 Management"
     local procedure HandleCheckNewUISupported()
     begin
         // BC14 Cloud migration now supports the new UI
+    end;
+
+    /// <summary>
+    /// Finds the next pending company with setup completed and schedules its upgrade.
+    /// Returns true if a company was found and chained, false if no more pending companies.
+    /// </summary>
+    internal procedure TryChainToNextPendingCompany(var HybridReplicationSummary: Record "Hybrid Replication Summary"): Boolean
+    var
+        HybridCompanyStatus: Record "Hybrid Company Status";
+        BC14HelperFunctions: Codeunit "BC14 Helper Functions";
+    begin
+        HybridCompanyStatus.SetFilter(Name, '<>''''');
+        HybridCompanyStatus.SetRange("Upgrade Status", HybridCompanyStatus."Upgrade Status"::Pending);
+        if HybridCompanyStatus.FindSet() then
+            repeat
+                if IsCompanySetupCompleted(HybridCompanyStatus.Name) then begin
+                    InvokeCompanyUpgrade(HybridReplicationSummary, HybridCompanyStatus.Name);
+                    exit(true);
+                end else
+                    Session.LogMessage('0000ROS', StrSubstNo(CompanySetupNotCompletedSkippingLbl, HybridCompanyStatus.Name), Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', BC14HelperFunctions.GetTelemetryCategory());
+            until HybridCompanyStatus.Next() = 0;
+        exit(false);
     end;
 
     internal procedure InvokeCompanyUpgrade(var HybridReplicationSummary: Record "Hybrid Replication Summary"; CompanyName: Text[50])
@@ -454,5 +495,17 @@ codeunit 50162 "BC14 Management"
     [InternalEvent(false)]
     local procedure OnCreateSessionForUpgrade(var CreateSession: Boolean)
     begin
+    end;
+
+    local procedure IsCompanySetupCompleted(CompanyNameToCheck: Text[50]): Boolean
+    var
+        AssistedCompanySetupStatus: Record "Assisted Company Setup Status";
+        SetupStatus: Enum "Company Setup Status";
+    begin
+        if not AssistedCompanySetupStatus.Get(CompanyNameToCheck) then
+            exit(false);
+
+        SetupStatus := AssistedCompanySetupStatus.GetCompanySetupStatusValue(CopyStr(CompanyNameToCheck, 1, 30));
+        exit(SetupStatus = SetupStatus::Completed);
     end;
 }

@@ -32,15 +32,6 @@ codeunit 50191 "BC14 Payment Terms Migrator" implements "ISetupMigrator"
         // No special filters needed for Payment Terms migration
     end;
 
-    procedure IsRecordMigrated(var SourceRecordRef: RecordRef): Boolean
-    var
-        PaymentTerms: Record "Payment Terms";
-        RecordKey: Text[250];
-    begin
-        RecordKey := GetSourceRecordKey(SourceRecordRef);
-        exit(PaymentTerms.Get(RecordKey));
-    end;
-
     procedure MigrateRecord(var SourceRecordRef: RecordRef): Boolean
     var
         BC14PaymentTerms: Record "BC14 Payment Terms";

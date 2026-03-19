@@ -6,6 +6,7 @@
 namespace Microsoft.DataMigration.BC14;
 
 using Microsoft.Finance.GeneralLedger.Journal;
+using Microsoft.Finance.GeneralLedger.Setup;
 using System.Integration;
 
 codeunit 50152 "BC14 Helper Functions"
@@ -96,12 +97,11 @@ codeunit 50152 "BC14 Helper Functions"
     var
         GenJournalTemplate: Record "Gen. Journal Template";
     begin
-        GenJournalTemplate.SetRange(Type, GenJournalTemplate.Type::General);
-        GenJournalTemplate.SetRange(Recurring, false);
-        if GenJournalTemplate.FindFirst() then
+        // Prioritize the BC14 migration template to avoid using an unrelated General template
+        if GenJournalTemplate.Get(JournalTemplateNameTok) then
             exit(GenJournalTemplate.Name);
 
-        // Create default template if not found
+        // Create the BC14 migration template if it does not exist
         GenJournalTemplate.Init();
         GenJournalTemplate.Name := JournalTemplateNameTok;
         GenJournalTemplate.Description := JournalTemplateDescTok;
@@ -148,6 +148,21 @@ codeunit 50152 "BC14 Helper Functions"
         BC14BufferRecordEditor.SetSourceRecord(SourceRecordId);
         BC14BufferRecordEditor.RunModal();
         exit(true);
+    end;
+
+    /// <summary>
+    /// Resolves a currency code from BC14 source data.
+    /// If the currency code matches the Local Currency (LCY) code, returns blank
+    /// because LCY is not stored in the Currency table in BC Online.
+    /// </summary>
+    internal procedure ResolveCurrencyCode(SourceCurrencyCode: Code[10]): Code[10]
+    var
+        GeneralLedgerSetup: Record "General Ledger Setup";
+    begin
+        if (SourceCurrencyCode <> '') and GeneralLedgerSetup.Get() then
+            if SourceCurrencyCode = GeneralLedgerSetup."LCY Code" then
+                exit('');
+        exit(SourceCurrencyCode);
     end;
 
     [IntegrationEvent(false, false)]

@@ -14,7 +14,6 @@ codeunit 50153 "BC14 Cloud Migration"
 
     trigger OnRun();
     var
-        HybridCompanyStatus: Record "Hybrid Company Status";
         BC14CompanySettings: Record "BC14CompanyMigrationSettings";
         BC14Management: Codeunit "BC14 Management";
         BC14HelperFunctions: Codeunit "BC14 Helper Functions";
@@ -48,45 +47,52 @@ codeunit 50153 "BC14 Cloud Migration"
                 Error(DataTransformationErrorsPresentMsg);
         end;
 
-        HybridCompanyStatus.SetFilter(Name, '<>''''');
-        HybridCompanyStatus.SetRange("Upgrade Status", HybridCompanyStatus."Upgrade Status"::Pending);
-        if HybridCompanyStatus.FindFirst() then begin
-            BC14Management.InvokeCompanyUpgrade(Rec, HybridCompanyStatus.Name);
+        // Chain to next pending company — orchestration delegated to Management
+        if BC14Management.TryChainToNextPendingCompany(Rec) then
             exit;
-        end;
 
-        if not Rec.Find() then begin
+        // No more pending companies — finalize the overall run status
+        FinalizeReplicationSummary(Rec);
+    end;
+
+    local procedure FinalizeReplicationSummary(var HybridReplicationSummary: Record "Hybrid Replication Summary")
+    var
+        BC14CompanySettings: Record "BC14CompanyMigrationSettings";
+        BC14MigrationErrorHandler: Codeunit "BC14 Migration Error Handler";
+        BC14HandleUpgradeError: Codeunit "BC14 Handle Upgrade Error";
+        BC14HelperFunctions: Codeunit "BC14 Helper Functions";
+    begin
+        if not HybridReplicationSummary.Find() then begin
             Session.LogMessage('0000RO0', ReplicationSummaryNotFoundMsg, Verbosity::Warning, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', BC14HelperFunctions.GetTelemetryCategory());
             exit;
         end;
 
-        if Rec.Status = Rec.Status::UpgradeFailed then begin
+        if HybridReplicationSummary.Status = HybridReplicationSummary.Status::UpgradeFailed then begin
             Session.LogMessage('0000RO1', UpgradeAlreadyFailedMsg, Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', BC14HelperFunctions.GetTelemetryCategory());
             exit;
         end;
 
-        if Rec.Status = Rec.Status::Failed then begin
+        if HybridReplicationSummary.Status = HybridReplicationSummary.Status::Failed then begin
             Session.LogMessage('0000RO2', ReplicationFailedMsg, Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', BC14HelperFunctions.GetTelemetryCategory());
             exit;
         end;
 
         if BC14MigrationErrorHandler.ErrorOccurredDuringLastUpgrade() then begin
-            BC14HandleUpgradeError.MarkUpgradeFailed(Rec);
+            BC14HandleUpgradeError.MarkUpgradeFailed(HybridReplicationSummary);
             exit;
         end;
 
-        // Check if migration is paused - don't mark as completed
         BC14CompanySettings.GetSingleInstance();
         if BC14CompanySettings.IsMigrationPaused() then begin
-            Rec.Status := Rec.Status::UpgradeFailed;
-            Rec."End Time" := CurrentDateTime();
-            Rec.Modify();
+            HybridReplicationSummary.Status := HybridReplicationSummary.Status::UpgradeFailed;
+            HybridReplicationSummary."End Time" := CurrentDateTime();
+            HybridReplicationSummary.Modify();
             exit;
         end;
 
-        Rec.Status := Rec.Status::Completed;
-        Rec."End Time" := CurrentDateTime();
-        Rec.Modify();
+        HybridReplicationSummary.Status := HybridReplicationSummary.Status::Completed;
+        HybridReplicationSummary."End Time" := CurrentDateTime();
+        HybridReplicationSummary.Modify();
     end;
 
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"BC14 Cloud Migration", 'OnUpgradeBC14Company', '', false, false)]
@@ -135,16 +141,23 @@ codeunit 50153 "BC14 Cloud Migration"
         BC14CompanySettings: Record "BC14CompanyMigrationSettings";
         BC14HelperFunctions: Codeunit "BC14 Helper Functions";
         SetupStatus: Enum "Company Setup Status";
+        MigrationRan: Boolean;
     begin
+        MigrationRan := false;
         if AssistedCompanySetupStatus.Get(CompanyName()) then begin
             SetupStatus := AssistedCompanySetupStatus.GetCompanySetupStatusValue(CopyStr(CompanyName(), 1, 30));
-            if SetupStatus = SetupStatus::Completed then
-                InitiateBC14Migration()
-            else
+            if SetupStatus = SetupStatus::Completed then begin
+                InitiateBC14Migration();
+                MigrationRan := true;
+            end else
                 Session.LogMessage('0000RO3', CompanyFailedToMigrateMsg, Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', BC14HelperFunctions.GetTelemetryCategory());
         end;
 
         Commit();
+
+        // Don't mark as Completed if migration never ran (company setup not completed)
+        if not MigrationRan then
+            exit;
 
         // Only mark as Completed if migration is not paused
         BC14CompanySettings.GetSingleInstance();
@@ -233,17 +246,6 @@ codeunit 50153 "BC14 Cloud Migration"
         BC14HelperFunctions.CreatePostMigrationData();
 
         BC14HelperFunctions.SetProcessesRunning(false);
-    end;
-
-    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Hybrid Cloud Management", 'OnIsCloudMigrationCompleted', '', false, false)]
-    local procedure HandleIsCloudMigrationCompleted(SourceProduct: Text; var CloudMigrationCompleted: Boolean)
-    var
-        BC14Wizard: Codeunit "BC14 Wizard";
-    begin
-        if SourceProduct <> BC14Wizard.GetMigrationProviderId() then
-            exit;
-
-        CloudMigrationCompleted := true;
     end;
 
     /// <summary>

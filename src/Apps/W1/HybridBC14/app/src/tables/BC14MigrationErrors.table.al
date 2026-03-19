@@ -29,7 +29,7 @@ table 50157 "BC14 Migration Errors"
         {
             DataClassification = OrganizationIdentifiableInformation;
         }
-        field(5; "Error Message"; Text[250])
+        field(5; "Error Message"; Text[2048])
         {
             DataClassification = CustomerContent;
         }
@@ -119,6 +119,9 @@ table 50157 "BC14 Migration Errors"
         {
         }
         key(Key4; "Scheduled For Retry", "Resolved")
+        {
+        }
+        key(Key5; "Source Table ID", "Source Record Key", "Company Name", "Resolved")
         {
         }
     }
