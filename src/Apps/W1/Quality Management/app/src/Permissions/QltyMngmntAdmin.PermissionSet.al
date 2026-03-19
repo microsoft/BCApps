@@ -18,6 +18,8 @@ using Microsoft.QualityManagement.Workflow;
 /// <summary>
 /// Used for administering Quality Management and supervising Quality Inspections.
 /// </summary>
+#pragma warning disable AS0125
+#pragma warning disable AS0090
 permissionset 20405 "QltyMngmnt - Admin"
 {
     Caption = 'Quality Management - Administrator';
@@ -43,3 +45,5 @@ permissionset 20405 "QltyMngmnt - Admin"
         tabledata "Qlty. Inspection Header" = RIMD,
         tabledata "Qlty. Inspection Line" = RIMD;
 }
+#pragma warning restore AS0090
+#pragma warning restore AS0125
