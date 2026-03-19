@@ -58,8 +58,8 @@ table 50156 "BC14 Global Migration Settings"
         if not BC14GlobalSettings.Get() then begin
             BC14GlobalSettings."One Step Upgrade" := true;
             BC14GlobalSettings."One Step Upgrade Delay" := GetUpgradeDelay();
-            BC14GlobalSettings.Insert();
-            BC14GlobalSettings.Get();
+            if not BC14GlobalSettings.Insert() then
+                BC14GlobalSettings.Get();
         end;
     end;
 

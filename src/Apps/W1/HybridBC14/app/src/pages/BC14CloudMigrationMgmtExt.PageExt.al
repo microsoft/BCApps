@@ -11,7 +11,7 @@ pageextension 50170 "BC14 Cloud Migration Mgmt Ext" extends "Cloud Migration Man
 {
     actions
     {
-        addafter(RunDataUpgrade)
+        addlast(Processing)
         {
             action(BC14MigrationConfiguration)
             {
@@ -53,16 +53,6 @@ pageextension 50170 "BC14 Cloud Migration Mgmt Ext" extends "Cloud Migration Man
                 begin
                     Page.Run(Page::"BC14 Balance Validation");
                 end;
-            }
-        }
-
-        addlast(Promoted)
-        {
-            actionref(BC14MigrationErrors_Promoted; BC14MigrationErrors)
-            {
-            }
-            actionref(BC14MigrationConfiguration_Promoted; BC14MigrationConfiguration)
-            {
             }
         }
     }

@@ -120,8 +120,10 @@ table 50155 "BC14CompanyMigrationSettings"
             exit;
 
         if not Rec.Get(CurrentCompanyName) then begin
+            Rec.Init();
             Rec.Name := CopyStr(CurrentCompanyName, 1, MaxStrLen(Rec.Name));
-            Rec.Insert();
+            if not Rec.Insert() then
+                Rec.Get(CurrentCompanyName);
         end;
     end;
 

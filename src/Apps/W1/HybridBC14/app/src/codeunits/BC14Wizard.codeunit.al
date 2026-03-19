@@ -37,7 +37,6 @@ codeunit 50161 "BC14 Wizard"
         CompanyDataType := CompanyDataType::"Production - Setup Data Only";
     end;
 
-
     [EventSubscriber(ObjectType::Page, Page::"Intelligent Cloud Management", 'CanMapCustomTables', '', false, false)]
     local procedure OnCanMapCustomTables(var Enabled: Boolean)
     begin
