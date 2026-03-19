@@ -107,6 +107,7 @@ codeunit 139608 "Shpfy Orders API Test"
     end;
 
     [Test]
+    [HandlerFunctions('OrdersAPIHttpHandler')]
     procedure UnitTestImportShopifyOrder()
     var
         OrderHeader: Record "Shpfy Order Header";
@@ -144,6 +145,7 @@ codeunit 139608 "Shpfy Orders API Test"
     end;
 
     [Test]
+    [HandlerFunctions('OrdersAPIHttpHandler')]
     procedure UnitTestImportShopifyOrderStoresRetailLocation()
     var
         OrderHeader: Record "Shpfy Order Header";
@@ -176,6 +178,7 @@ codeunit 139608 "Shpfy Orders API Test"
     end;
 
     [Test]
+    [HandlerFunctions('OrdersAPIHttpHandler')]
     procedure UnitTestImportB2BShopifyOrder()
     var
         OrderHeader: Record "Shpfy Order Header";
@@ -216,6 +219,7 @@ codeunit 139608 "Shpfy Orders API Test"
     end;
 
     [Test]
+    [HandlerFunctions('OrdersAPIHttpHandler')]
     procedure UnitTestDoMappingsOnAShopifyOrder()
     var
         OrderHeader: Record "Shpfy Order Header";
@@ -247,6 +251,7 @@ codeunit 139608 "Shpfy Orders API Test"
     end;
 
     [Test]
+    [HandlerFunctions('OrdersAPIHttpHandler')]
     procedure UnitTestDoMappingsOnAB2BShopifyOrder()
     var
         OrderHeader: Record "Shpfy Order Header";
@@ -318,6 +323,7 @@ codeunit 139608 "Shpfy Orders API Test"
     end;
 
     [Test]
+    [HandlerFunctions('OrdersAPIHttpHandler')]
     procedure UnitTestImportShopifyOrderAndCreateSalesDocument()
     var
         OrderHeader: Record "Shpfy Order Header";
@@ -363,6 +369,7 @@ codeunit 139608 "Shpfy Orders API Test"
     end;
 
     [Test]
+    [HandlerFunctions('OrdersAPIHttpHandler')]
     procedure UnitTestImportB2BShopifyOrderAndCreateSalesDocument()
     var
         OrderHeader: Record "Shpfy Order Header";
@@ -408,6 +415,7 @@ codeunit 139608 "Shpfy Orders API Test"
     end;
 
     [Test]
+    [HandlerFunctions('OrdersAPIHttpHandler')]
     procedure UnitTestCreateSalesDocumentTaxPriorityCode()
     var
         OrderHeader: Record "Shpfy Order Header";
@@ -452,6 +460,7 @@ codeunit 139608 "Shpfy Orders API Test"
     end;
 
     [Test]
+    [HandlerFunctions('OrdersAPIHttpHandler')]
     procedure UnitTestCreateSalesDocumentTaxPriorityName()
     var
         OrderHeader: Record "Shpfy Order Header";
@@ -496,6 +505,7 @@ codeunit 139608 "Shpfy Orders API Test"
     end;
 
     [Test]
+    [HandlerFunctions('OrdersAPIHttpHandler')]
     procedure UnitTestCreateSalesDocumentTaxPriorityEmpty()
     var
         OrderHeader: Record "Shpfy Order Header";
@@ -543,6 +553,7 @@ codeunit 139608 "Shpfy Orders API Test"
     end;
 
     [Test]
+    [HandlerFunctions('OrdersAPIHttpHandler')]
     procedure UnitTestCreateSalesDocumentReserve()
     var
         OrderHeader: Record "Shpfy Order Header";
@@ -607,6 +618,7 @@ codeunit 139608 "Shpfy Orders API Test"
     end;
 
     [Test]
+    [HandlerFunctions('OrdersAPIHttpHandler')]
     procedure UnitTestImportShopifyOrderHighRisk()
     var
         OrderHeader: Record "Shpfy Order Header";
@@ -641,6 +653,7 @@ codeunit 139608 "Shpfy Orders API Test"
     end;
 
     [Test]
+    [HandlerFunctions('OrdersAPIHttpHandler')]
     procedure UnitTestImportShopifyOrderLowRisk()
     var
         OrderHeader: Record "Shpfy Order Header";
@@ -753,6 +766,7 @@ codeunit 139608 "Shpfy Orders API Test"
     end;
 
     [Test]
+    [HandlerFunctions('OrdersAPIHttpHandler')]
     procedure UnitTestImportShopifyOrderDueDate()
     var
         OrderHeader: Record "Shpfy Order Header";
@@ -791,6 +805,7 @@ codeunit 139608 "Shpfy Orders API Test"
     end;
 
     [Test]
+    [HandlerFunctions('OrdersAPIHttpHandler')]
     procedure UnitTestCreateSalesDocumentWithPresentmentCurrency()
     var
         OrderHeader: Record "Shpfy Order Header";
@@ -858,6 +873,7 @@ codeunit 139608 "Shpfy Orders API Test"
     end;
 
     [Test]
+    [HandlerFunctions('OrdersAPIHttpHandler')]
     procedure UnitTestImportShopifyOrderAndCreateSalesDocumentDueDate()
     var
         OrderHeader: Record "Shpfy Order Header";
@@ -904,6 +920,7 @@ codeunit 139608 "Shpfy Orders API Test"
     end;
 
     [Test]
+    [HandlerFunctions('OrdersAPIHttpHandler')]
     procedure UnitTestImportFulfilledShopifyOrderAndCreateSalesDocument()
     var
         OrderHeader: Record "Shpfy Order Header";
@@ -1069,6 +1086,7 @@ codeunit 139608 "Shpfy Orders API Test"
     end;
 
     [Test]
+    [HandlerFunctions('OrdersAPIHttpHandler')]
     procedure ChannelLiableFlagMissingDefaultsToFalse()
     var
         OrderHeader: Record "Shpfy Order Header";
@@ -1112,6 +1130,7 @@ codeunit 139608 "Shpfy Orders API Test"
     end;
 
     [Test]
+    [HandlerFunctions('OrdersAPIHttpHandler')]
     procedure ChannelLiableFlagTrueIsImported()
     var
         OrderHeader: Record "Shpfy Order Header";
@@ -1160,6 +1179,7 @@ codeunit 139608 "Shpfy Orders API Test"
     end;
 
     [Test]
+    [HandlerFunctions('OrdersAPIHttpHandler')]
     procedure ChannelLiableFlagFalseIsImported()
     var
         OrderHeader: Record "Shpfy Order Header";
@@ -1208,6 +1228,7 @@ codeunit 139608 "Shpfy Orders API Test"
     end;
 
     [Test]
+    [HandlerFunctions('OrdersAPIHttpHandler')]
     procedure ChannelLiableFlagNullDefaultsToFalse()
     var
         OrderHeader: Record "Shpfy Order Header";
@@ -1256,6 +1277,7 @@ codeunit 139608 "Shpfy Orders API Test"
     end;
 
     [Test]
+    [HandlerFunctions('OrdersAPIHttpHandler')]
     procedure UnitTestImportOrderPropagatesUseShopifyOrderNo()
     var
         OrderHeader: Record "Shpfy Order Header";
@@ -1282,6 +1304,7 @@ codeunit 139608 "Shpfy Orders API Test"
     end;
 
     [Test]
+    [HandlerFunctions('OrdersAPIHttpHandler')]
     procedure UnitTestImportOrderPropagatesUseShopifyOrderNoDisabled()
     var
         OrderHeader: Record "Shpfy Order Header";
@@ -1308,6 +1331,7 @@ codeunit 139608 "Shpfy Orders API Test"
     end;
 
     [Test]
+    [HandlerFunctions('OrdersAPIHttpHandler')]
     procedure UnitTestCreateSalesOrderWithShopifyOrderNo()
     var
         OrderHeader: Record "Shpfy Order Header";
@@ -1347,6 +1371,7 @@ codeunit 139608 "Shpfy Orders API Test"
     end;
 
     [Test]
+    [HandlerFunctions('OrdersAPIHttpHandler')]
     procedure UnitTestCreateSalesOrderWithoutShopifyOrderNo()
     var
         OrderHeader: Record "Shpfy Order Header";
@@ -1383,6 +1408,7 @@ codeunit 139608 "Shpfy Orders API Test"
     end;
 
     [Test]
+    [HandlerFunctions('OrdersAPIHttpHandler')]
     procedure UnitTestCreateSalesOrderWithShopifyOrderNoInvalidChar()
     var
         OrderHeader: Record "Shpfy Order Header";
@@ -1421,6 +1447,7 @@ codeunit 139608 "Shpfy Orders API Test"
     end;
 
     [Test]
+    [HandlerFunctions('OrdersAPIHttpHandler')]
     procedure UnitTestCreateSalesInvoiceWithShopifyOrderNo()
     var
         OrderHeader: Record "Shpfy Order Header";
@@ -1599,6 +1626,8 @@ codeunit 139608 "Shpfy Orders API Test"
                     Body := NavApp.GetResourceAsText('Order Handling/CompanyLocationResult.txt', TextEncoding::UTF8);
                     Response.Content.WriteFrom(Body.Replace('{{LocationId}}', Format(CompanyLocationId)));
                 end;
+            else
+                Response.Content.WriteFrom('{"data":{}}');
         end;
         exit(false);
     end;
