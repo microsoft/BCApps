@@ -95,6 +95,10 @@ page 149034 "AIT Test Method Lines"
                         AITLogEntry.DrillDownFailedAITLogEntries(Rec."Test Suite Code", Rec."Line No.", AITTestSuite.Version);
                     end;
                 }
+                field("No. of Tests Skipped"; Rec."No. of Tests Skipped")
+                {
+                    Style = Ambiguous;
+                }
                 field(Accuracy; Rec."Test Method Line Accuracy")
                 {
                 }

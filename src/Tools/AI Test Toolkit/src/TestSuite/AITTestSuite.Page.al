@@ -208,13 +208,19 @@ page 149031 "AIT Test Suite"
                         AITLogEntry.DrillDownFailedAITLogEntries(Rec.Code, 0, Rec.Version);
                     end;
                 }
-                field("No. of Lines Skipped"; Rec."No. of Lines Skipped")
+                field("No. of Tests Skipped"; Rec."No. of Tests Skipped")
                 {
-                    Style = Attention;
-                    ToolTip = 'Specifies the number of eval lines that were skipped due to credit limit being reached.';
+                    Style = Ambiguous;
                 }
                 field(Accuracy; Rec.Accuracy)
                 {
+                }
+                field(ExecutionPercentage; ExecutionPercentage)
+                {
+                    Editable = false;
+                    Caption = 'Execution %';
+                    ToolTip = 'Specifies the percentage of evals executed among the total evals (excluding skipped evals).';
+                    AutoFormatType = 0;
                 }
                 field("No. of Operations"; Rec."No. of Operations")
                 {
@@ -432,6 +438,7 @@ page 149031 "AIT Test Suite"
         AITTestSuiteMgt: Codeunit "AIT Test Suite Mgt.";
         AvgTimeDuration: Duration;
         AvgTokensConsumed: Integer;
+        ExecutionPercentage: Decimal;
         TotalDuration: Duration;
         PageCaptionLbl: Label 'AI Eval';
         TestRunnerDisplayName: Text;
@@ -482,5 +489,10 @@ page 149031 "AIT Test Suite"
             AvgTokensConsumed := Rec."Tokens Consumed" div Rec."No. of Tests Executed"
         else
             AvgTokensConsumed := 0;
+
+        if Rec."No. of Tests Executed" = 0 then
+            ExecutionPercentage := 0
+        else
+            ExecutionPercentage := Rec."No. of Tests Executed" / (Rec."No. of Tests Executed" + Rec."No. of Tests Skipped")
     end;
 }

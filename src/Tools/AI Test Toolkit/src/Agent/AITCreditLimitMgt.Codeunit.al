@@ -12,7 +12,7 @@ codeunit 149050 "AIT Credit Limit Mgt."
 
     var
         CreditLimitReachedDuringRun: Boolean;
-        GlobalCreditLimitExceededErr: Label 'Cannot start the agent test suite. The monthly credit limit of %1 has been reached. Current consumption: %2.', Comment = '%1 = Credit limit, %2 = Credits consumed';
+        GlobalCreditLimitExceededErr: Label 'Cannot start the agent eval suite. The monthly credit limit of %1 has been reached. Current consumption: %2.', Comment = '%1 = Credit limit, %2 = Credits consumed';
 
     procedure ResetCreditLimitFlag()
     begin

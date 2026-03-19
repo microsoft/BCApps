@@ -462,3 +462,23 @@ exit(true);
 | `SetLineStatusToSkipped()` redundancy / rollback issues | Not needed — skip is handled at the platform level |
 
 **Note:** This requires a change to the Test Runner module (`System.TestTools.TestRunner` namespace), not just the AI Test Toolkit. The change is backward-compatible since the new `var` parameter defaults to `false`, so existing subscribers that don't set it are unaffected.
+
+### 12.12 ~~Track skipped evals in log entries (not just line status)~~ (Done)
+
+The original `No. of Lines Skipped` FlowField on `AIT Test Suite` counted `AIT Test Method Line` records where `Status = Skipped`. This had two problems:
+
+1. **Wrong granularity** — it counted skipped *lines* (codeunits), not skipped *evals* (individual test functions). A single line can have many test inputs, and each skipped eval should be counted separately.
+2. **No historical tracking** — the line status is overwritten on each run, so previous run history didn't capture how many evals were skipped.
+
+**Solution:** Log skipped evals as `AIT Log Entry` records with `Status = Skipped`, then use FlowFields that count from the log table (consistent with all other metrics like Executed, Passed, Duration, Tokens, Accuracy).
+
+**Changes made:**
+
+1. **`AITTestSuiteMgt.Codeunit.al`** — Added `LogSkippedEval` procedure that inserts an `AIT Log Entry` with Status = Skipped, Operation = 'Run Procedure', and the function name. Called from `OnBeforeTestMethodRun` when `Skip := true`.
+2. **`AITTestRunIteration.Codeunit.al`** — Updated `OnBeforeTestMethodRun` to call `AITTestSuiteMgt.LogSkippedEval()` after setting `Skip := true`.
+3. **`AITTestSuite.Table.al`** — Renamed field 82 from `"No. of Lines Skipped"` to `"No. of Evals Skipped"` and changed the CalcFormula from counting `AIT Test Method Line` to counting `AIT Log Entry` where Status = const(2) (Skipped). Now consistent with `No. of Tests Executed` and `No. of Tests Passed`.
+4. **`AITRunHistory.Table.al`** — Added field 30 `"No. of Evals Skipped"` (per-version FlowField) and field 31 `"No. of Evals Skipped - By Tag"` (per-tag FlowField), both counting `AIT Log Entry` where Status = const(2).
+5. **`AITTestSuite.Page.al`** — Updated field reference to `"No. of Evals Skipped"`.
+6. **`AITRunHistory.Page.al`** — Added skipped count columns to both Version and Tag views.
+
+**Note:** The `AIT Log Entry` table already had `Status = Skipped` (OptionMembers = Success,Error,Skipped), and `AIT Test Method Line` already had a `"No. of Tests Skipped"` FlowField counting log entries with Status = const(2). The new changes align the suite-level and history-level tracking to the same pattern.

@@ -81,6 +81,14 @@ table 149036 "AIT Run History"
             CalcFormula = average("AIT Log Entry"."Test Method Line Accuracy" where("Test Suite Code" = field("Test Suite Code"), "Test Method Line No." = field("Line No. Filter"), Version = field("Version"), Operation = const('Run Procedure'), "Procedure Name" = filter(<> '')));
             AutoFormatType = 0;
         }
+        field(30; "No. of Tests Skipped"; Integer)
+        {
+            Caption = 'No. of Evals Skipped';
+            ToolTip = 'Specifies the number of evals skipped for this version.';
+            Editable = false;
+            FieldClass = FlowField;
+            CalcFormula = count("AIT Log Entry" where("Test Suite Code" = field("Test Suite Code"), "Version" = field("Version"), "Test Method Line No." = field("Line No. Filter"), Operation = const('Run Procedure'), "Procedure Name" = filter(<> ''), Status = const(2)));
+        }
         field(20; "No. of Tests Executed - By Tag"; Integer)
         {
             Caption = 'No. of Evals Executed';
@@ -121,6 +129,14 @@ table 149036 "AIT Run History"
             FieldClass = FlowField;
             CalcFormula = average("AIT Log Entry"."Test Method Line Accuracy" where("Test Suite Code" = field("Test Suite Code"), "Test Method Line No." = field("Line No. Filter"), Tag = field(Tag), Operation = const('Run Procedure'), "Procedure Name" = filter(<> '')));
             AutoFormatType = 0;
+        }
+        field(31; "No. of Tests Skipped - By Tag"; Integer)
+        {
+            Caption = 'No. of Evals Skipped';
+            ToolTip = 'Specifies the number of evals skipped for this tag.';
+            Editable = false;
+            FieldClass = FlowField;
+            CalcFormula = count("AIT Log Entry" where("Test Suite Code" = field("Test Suite Code"), Tag = field(Tag), "Test Method Line No." = field("Line No. Filter"), Operation = const('Run Procedure'), "Procedure Name" = filter(<> ''), Status = const(2)));
         }
     }
 

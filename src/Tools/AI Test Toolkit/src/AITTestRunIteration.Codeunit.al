@@ -19,7 +19,7 @@ codeunit 149042 "AIT Test Run Iteration"
         GlobalAITTestSuite: Record "AIT Test Suite";
         ActiveAITTestSuite: Record "AIT Test Suite";
         GlobalTestMethodLine: Record "Test Method Line";
-        NoOfInsertedLogEntries: Integer;
+        NoOfExecutedLogEntries: Integer;
         UpdateTestSuite: Boolean;
         RunAllTests: Boolean;
         GlobalAITokenUsedByLastTestMethodLine: Integer;
@@ -35,7 +35,7 @@ codeunit 149042 "AIT Test Run Iteration"
             exit;
         SetAITTestMethodLine(Rec);
 
-        NoOfInsertedLogEntries := 0;
+        NoOfExecutedLogEntries := 0;
         GlobalAITokenUsedByLastTestMethodLine := 0;
         GlobalExternalAITokenUsedByLastTestMethodLine := 0;
         UpdateTestSuite := true;
@@ -128,14 +128,14 @@ codeunit 149042 "AIT Test Run Iteration"
         CurrAITTestSuite := GlobalAITTestSuite;
     end;
 
-    procedure AddToNoOfLogEntriesInserted()
+    procedure AddToNoOfLogEntriesExecuted()
     begin
-        NoOfInsertedLogEntries += 1;
+        NoOfExecutedLogEntries += 1;
     end;
 
-    procedure GetNoOfLogEntriesInserted(): Integer
+    procedure GetNoOfLogEntriesExecuted(): Integer
     begin
-        exit(NoOfInsertedLogEntries);
+        exit(NoOfExecutedLogEntries);
     end;
 
     procedure GetCurrTestMethodLine(): Record "Test Method Line"
@@ -192,8 +192,9 @@ codeunit 149042 "AIT Test Run Iteration"
     end;
 
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Test Runner - Mgt", OnBeforeTestMethodRun, '', false, false)]
-    local procedure OnBeforeTestMethodRun(var CurrentTestMethodLine: Record "Test Method Line"; CodeunitID: Integer; CodeunitName: Text[30]; FunctionName: Text[128]; FunctionTestPermissions: TestPermissions)
+    local procedure OnBeforeTestMethodRun(var CurrentTestMethodLine: Record "Test Method Line"; CodeunitID: Integer; CodeunitName: Text[30]; FunctionName: Text[128]; FunctionTestPermissions: TestPermissions; var Skip: Boolean)
     var
+        AITTestSuiteMgt: Codeunit "AIT Test Suite Mgt.";
         AITContextCU: Codeunit "AIT Test Context Impl.";
         AITCreditLimitMgt: Codeunit "AIT Credit Limit Mgt.";
         AOAIToken: Codeunit "AOAI Token";
@@ -204,11 +205,11 @@ codeunit 149042 "AIT Test Run Iteration"
         if FunctionName = '' then
             exit;
 
-        // Check if credit limit was reached - if so, skip this test
+        // Check if credit limit was reached - if so, skip this test and log it
         if AITCreditLimitMgt.ShouldSkipTestDueToCreditLimit() then begin
-            CurrentTestMethodLine.Result := CurrentTestMethodLine.Result::Skipped;
-            CurrentTestMethodLine.Modify(true);
-            Error(CreditLimitReachedSkipTestErr);
+            Skip := true;
+            AITTestSuiteMgt.LogSkippedEval(GlobalAITTestMethodLine, FunctionName);
+            exit;
         end;
 
         GlobalTestMethodLine := CurrentTestMethodLine;
@@ -243,7 +244,7 @@ codeunit 149042 "AIT Test Run Iteration"
         if FunctionName = '' then
             exit;
 
-        // If credit limit was already reached, this test function was skipped via Error() - don't log it as a failure
+        // If credit limit was already reached, this test was skipped by the platform - don't log it
         if AITCreditLimitMgt.IsCreditLimitReachedDuringRun() then
             exit;
 
@@ -271,7 +272,4 @@ codeunit 149042 "AIT Test Run Iteration"
         // Check credit limit after each test and set flag if exceeded
         AITCreditLimitMgt.CheckAndHandleCreditLimitAfterTest(ActiveAITTestSuite);
     end;
-
-    var
-        CreditLimitReachedSkipTestErr: Label 'Copilot credit limit reached. Skipping remaining tests.';
 }

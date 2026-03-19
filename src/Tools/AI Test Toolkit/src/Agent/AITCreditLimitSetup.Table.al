@@ -72,18 +72,6 @@ table 149040 "AIT Credit Limit Setup"
         exit(IsNew);
     end;
 
-    procedure GetMonthlyCreditLimit(): Decimal
-    begin
-        GetOrCreate();
-        exit("Monthly Credit Limit");
-    end;
-
-    procedure IsEnforcementEnabled(): Boolean
-    begin
-        GetOrCreate();
-        exit("Enforcement Enabled");
-    end;
-
     procedure GetPeriodStartDate(): Date
     begin
         GetOrCreate();

@@ -133,7 +133,7 @@ pageextension 149034 "Agent Test Suite" extends "AIT Test Suite"
             GlobalLimitNotification.Id := GetGlobalCreditLimitNotificationId();
             GlobalLimitNotification.Message := GlobalCreditLimitReachedMsg;
             GlobalLimitNotification.Scope := NotificationScope::LocalScope;
-            GlobalLimitNotification.AddAction(OpenCreditLimitsLbl, Codeunit::"AIT Credit Limit Mgt.", 'OpenCreditLimitsPage');
+            GlobalLimitNotification.AddAction(ViewCopilotCreditLimitsLbl, Codeunit::"AIT Credit Limit Mgt.", 'OpenCreditLimitsPage');
             GlobalLimitNotification.Send();
             // Recall warning if limit is exceeded
             GlobalWarningNotification.Id := GetGlobalCreditWarningNotificationId();
@@ -148,7 +148,7 @@ pageextension 149034 "Agent Test Suite" extends "AIT Test Suite"
                 GlobalWarningNotification.Id := GetGlobalCreditWarningNotificationId();
                 GlobalWarningNotification.Message := StrSubstNo(GlobalCreditWarningMsg, UsagePercentage);
                 GlobalWarningNotification.Scope := NotificationScope::LocalScope;
-                GlobalWarningNotification.AddAction(OpenCreditLimitsLbl, Codeunit::"AIT Credit Limit Mgt.", 'OpenCreditLimitsPage');
+                GlobalWarningNotification.AddAction(ViewCopilotCreditLimitsLbl, Codeunit::"AIT Credit Limit Mgt.", 'OpenCreditLimitsPage');
                 GlobalWarningNotification.Send();
             end else begin
                 GlobalWarningNotification.Id := GetGlobalCreditWarningNotificationId();
@@ -228,5 +228,5 @@ pageextension 149034 "Agent Test Suite" extends "AIT Test Suite"
         AgentWithNameNotFoundErr: Label 'An agent with the name %1 was not found.', Comment = '%1 - The name of the agent';
         GlobalCreditLimitReachedMsg: Label 'The monthly Copilot credit limit has been reached. New agent tests cannot be started until the limit is increased or the next month begins.';
         GlobalCreditWarningMsg: Label 'Warning: %1% of the monthly Copilot credits have been consumed. Consider monitoring usage to avoid reaching the limit.', Comment = '%1 - Usage percentage';
-        OpenCreditLimitsLbl: Label 'Open Credit Limits';
+        ViewCopilotCreditLimitsLbl: Label 'View Copilot credit limits';
 }

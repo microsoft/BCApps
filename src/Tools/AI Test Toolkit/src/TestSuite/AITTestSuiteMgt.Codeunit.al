@@ -33,6 +33,7 @@ codeunit 149034 "AIT Test Suite Mgt."
         ConfirmCancelQst: Label 'This action will mark the run as Cancelled. Are you sure you want to continue?';
         TestMethodLineNotFoundErr: Label 'The eval suite %1 does not contain the eval line %2. Run the suite again.', Comment = '%1 = eval suite code, %2 = line number';
         TestSuiteChangedErr: Label 'The eval suite %1 has been changed since eval line %2 was run. Run the suite again.', Comment = '%1 = eval suite code, %2 = line number';
+        SkippedDueToCreditLimitMsg: Label 'Eval skipped due to Copilot credit limit being reached.';
         NoEvaluatorsLbl: Label 'Configure...';
 
     procedure StartAITSuite(Iterations: Integer; var AITTestSuite: Record "AIT Test Suite")
@@ -157,6 +158,8 @@ codeunit 149034 "AIT Test Suite Mgt."
             TelemetryCustomDimensions.Add('Version', Format(AITTestSuite.Version));
             FeatureTelemetry.LogUptake('0000NEX', GetFeatureName(), Enum::"Feature Uptake Status"::"Set up", TelemetryCustomDimensions);
         end;
+
+        AITCreditLimitMgt.CheckCreditLimitBeforeRun(AITTestSuite);
 
         AITTestMethodLine.Validate(Status, AITTestMethodLine.Status::Running);
         AITTestMethodLine.Modify(true);
@@ -432,7 +435,34 @@ codeunit 149034 "AIT Test Suite Mgt."
         AgentTestContextImpl.LogAgentTasks(AITLogEntry);
 
         Commit();
-        AITTestRunIteration.AddToNoOfLogEntriesInserted();
+        AITTestRunIteration.AddToNoOfLogEntriesExecuted();
+    end;
+
+    internal procedure LogSkippedEval(AITTestMethodLine: Record "AIT Test Method Line"; FunctionName: Text[128])
+    var
+        AITLogEntry: Record "AIT Log Entry";
+        AITTestRunIteration: Codeunit "AIT Test Run Iteration";
+        AITALTestSuiteMgt: Codeunit "AIT AL Test Suite Mgt";
+    begin
+        AITTestMethodLine.TestField("Test Suite Code");
+        AITTestRunIteration.GetAITTestSuite(GlobalAITTestSuite);
+
+        AITLogEntry."Run ID" := GlobalAITTestSuite.RunID;
+        AITLogEntry."Test Suite Code" := AITTestMethodLine."Test Suite Code";
+        AITLogEntry."Test Method Line No." := AITTestMethodLine."Line No.";
+        AITLogEntry.Version := GlobalAITTestSuite.Version;
+        AITLogEntry."Codeunit ID" := AITTestMethodLine."Codeunit ID";
+        AITLogEntry.Operation := CopyStr(AITALTestSuiteMgt.GetDefaultRunProcedureOperationLbl(), 1, MaxStrLen(AITLogEntry.Operation));
+        AITLogEntry.Tag := AITTestRunIteration.GetAITTestSuiteTag();
+        AITLogEntry."Entry No." := 0;
+        AITLogEntry.Status := AITLogEntry.Status::Skipped;
+        AITLogEntry."Procedure Name" := FunctionName;
+        AITLogEntry.SetMessage(SkippedDueToCreditLimitMsg);
+        AITLogEntry."Start Time" := CurrentDateTime();
+        AITLogEntry."End Time" := CurrentDateTime();
+        AITLogEntry.Insert(true);
+
+        Commit();
     end;
 
     local procedure GetFeatureUsedInsights(RunId: Guid; Version: Integer; NoOfTestsExecuted: Integer; NoOfTestsPassed: Integer; TotalDurationInMs: Integer) TelemetryCustomDimensions: Dictionary of [Text, Text];
