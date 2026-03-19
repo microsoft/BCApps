@@ -356,11 +356,11 @@ The following issues were identified during code review and need to be addressed
 
 This creates an upward dependency from the base objects (`TestSuite/`) to the specialized objects (`Agent/`). To fix this, introduce an interface (e.g., `ICreditLimitCheck`) in the `TestSuite/` folder and implement it in the `Agent/` folder. The implementation could be tied to the `"Test Type"` enum value on the test suite so the correct implementation is resolved at runtime based on whether the suite is of type Agent.
 
-### 12.2 Suite and line status not set to Skipped when error is raised at run start
+### 12.2 ~~Suite and line status not set to Skipped when error is raised at run start~~ (Done)
 
 When `CheckCreditLimitBeforeRun` detects the limit is already reached, it raises an `Error()` (see `GlobalCreditLimitExceededErr` / `SuiteCreditLimitExceededErr` in `AIT Credit Limit Mgt.`). This error aborts execution immediately, but the suite status and individual line statuses are **not** transitioned to `CreditLimitReached` / `Skipped` respectively, and the skipped-eval count is not reflected. Only when the limit is hit *during* a run (via `SetCreditLimitReachedStatus`) are statuses updated. The pre-run check path needs the same status handling so that the UI accurately reflects why nothing ran and how many evaluations were skipped.
 
-### 12.3 Credit Limits page does not explain enforcement behavior
+### 12.3 ~~Credit Limits page does not explain enforcement behavior~~ (Done)
 
 The `AIT Credit Limits` page (page 149048, captioned "AI Eval Copilot Credit Limits") shows the limit, consumption, and availability, but does not communicate the actual enforcement behavior to the user. Specifically, the page should clarify that:
 - New tests are **not started** when the limit is reached, but an already-running test is allowed to finish (meaning actual consumption can exceed the configured limit).
@@ -403,7 +403,7 @@ Several methods in the codebase appear to have no callers and should be reviewed
 
 A full audit of all public methods in the credit limit codeunits should be done to identify any other dead code before shipping.
 
-### 12.8 Notifications and credit limit field ignore enforcement-disabled state
+### 12.8 ~~Notifications and credit limit field ignore enforcement-disabled state~~ (Done)
 
 Two UI issues when `"Enforcement Enabled"` is toggled off on the `AIT Credit Limits` page:
 
@@ -419,7 +419,7 @@ When the credit limit is reached mid-line (i.e., during execution of a codeunit 
 
 2. **Redundant `SetLineStatusToSkipped()` in `OnBeforeTestMethodRun`.** Before raising the `Error()`, the code called `SetLineStatusToSkipped()` to write the `Skipped` status to the database. However, the `Error()` triggers a rollback of the test function's transaction scope (handled by the test runner), so this write was rolled back. The actual skip status is correctly set after `Codeunit.Run` returns in both `RunAITTestMethodLine` and `RunAITestLine`. **Fix:** Removed the redundant `SetLineStatusToSkipped()` call before the `Error()`.
 
-### 12.10 Notification when credit limit enforcement is disabled
+### 12.10 ~~Notification when credit limit enforcement is disabled~~ (Done)
 
 When `"Enforcement Enabled"` is `false` on the `AIT Credit Limit Setup`, agent test suites can consume unlimited Copilot credits with no guardrails. Users may not realize enforcement is off, especially if it was disabled temporarily and forgotten. We should show a notification on the Agent Test Suite page (`AgentTestSuite.PageExt.al`) when enforcement is disabled, informing users that costs are not bounded. This notification should:
 - Appear on `OnAfterGetCurrRecord` for agent-type suites when enforcement is off

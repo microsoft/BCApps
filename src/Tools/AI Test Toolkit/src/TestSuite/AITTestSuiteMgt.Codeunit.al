@@ -515,6 +515,22 @@ codeunit 149034 "AIT Test Suite Mgt."
         exit(AITTestMethodLine."Total Duration (ms)" div AITTestMethodLine."No. of Tests Executed");
     end;
 
+    internal procedure GetExecution(AITTestSuite: Record "AIT Test Suite"): Decimal
+    begin
+        AITTestSuite.CalcFields("No. of Tests Executed", "No. of Tests Skipped");
+        if AITTestSuite."No. of Tests Executed" = 0 then
+            exit(0);
+        exit(AITTestSuite."No. of Tests Executed" / (AITTestSuite."No. of Tests Executed" + AITTestSuite."No. of Tests Skipped"));
+    end;
+
+    internal procedure GetExecution(AITTestMethodLine: Record "AIT Test Method Line"): Decimal
+    begin
+        AITTestMethodLine.CalcFields("No. of Tests Executed", "No. of Tests Skipped");
+        if AITTestMethodLine."No. of Tests Executed" = 0 then
+            exit(0);
+        exit(AITTestMethodLine."No. of Tests Executed" / (AITTestMethodLine."No. of Tests Executed" + AITTestMethodLine."No. of Tests Skipped"));
+    end;
+
     internal procedure SetTestOutput(Scenario: Text; OutputValue: Text)
     begin
         if ScenarioOutput.ContainsKey(Scenario) then

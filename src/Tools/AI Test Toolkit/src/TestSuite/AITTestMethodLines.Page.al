@@ -102,6 +102,13 @@ page 149034 "AIT Test Method Lines"
                 field(Accuracy; Rec."Test Method Line Accuracy")
                 {
                 }
+                field(ExecutionRatio; ExecutionRatio)
+                {
+                    Editable = false;
+                    Caption = 'Execution';
+                    ToolTip = 'Specifies the average execution of the eval line. The execution is calculated as the percentage of evals that were executed among the total evals (excluding skipped evals).';
+                    AutoFormatType = 0;
+                }
                 field(TurnsText; TurnsText)
                 {
                     Visible = false;
@@ -269,6 +276,7 @@ page 149034 "AIT Test Method Lines"
         AITTestSuite: Record "AIT Test Suite";
         AITTestSuiteMgt: Codeunit "AIT Test Suite Mgt.";
         NoLineSelectedErr: Label 'Select a line to compare';
+        ExecutionRatio: Decimal;
         TurnsText: Text;
         EvaluationSetupTxt: Text;
         StatusStyle: Text;
@@ -295,6 +303,7 @@ page 149034 "AIT Test Method Lines"
     begin
         EvaluationSetupTxt := AITTestSuiteMgt.GetEvaluationSetupText(CopyStr(Rec."Test Suite Code", 1, 10), Rec."Line No.");
         TurnsText := AITTestSuiteMgt.GetTurnsAsText(Rec);
+        ExecutionRatio := AITTestSuiteMgt.GetExecution(Rec);
         UpdateStatusStyle();
     end;
 
@@ -302,15 +311,15 @@ page 149034 "AIT Test Method Lines"
     begin
         case Rec.Status of
             Rec.Status::Running:
-                StatusStyle := 'Attention';
+                StatusStyle := Format(PageStyle::Attention);
             Rec.Status::Completed:
-                StatusStyle := 'Favorable';
+                StatusStyle := Format(PageStyle::Favorable);
             Rec.Status::Cancelled:
-                StatusStyle := 'Unfavorable';
+                StatusStyle := Format(PageStyle::Unfavorable);
             Rec.Status::Skipped:
-                StatusStyle := 'Attention';
+                StatusStyle := Format(PageStyle::Ambiguous);
             else
-                StatusStyle := 'Standard';
+                StatusStyle := Format(PageStyle::Standard);
         end;
     end;
 

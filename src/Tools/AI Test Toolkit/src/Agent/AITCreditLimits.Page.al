@@ -21,30 +21,36 @@ page 149048 "AIT Credit Limits"
     {
         area(Content)
         {
+            label(EnforcementExplanation)
+            {
+                Caption = 'Credit limits control when new evals can be started. Once the limit is reached, no new evals can start, but any eval already in progress is allowed to finish. Actual consumption may slightly exceed the configured limit.';
+                Style = Subordinate;
+            }
             group(CreditLimitSetup)
             {
-                Caption = 'Monthly Copilot Credit Limits';
-
-                field(MonthlyCreditLimit; MonthlyCreditLimit)
-                {
-                    Caption = 'Monthly Copilot Credit Limit';
-                    ToolTip = 'Specifies the maximum number of Copilot credits that can be consumed by all agent test suites during the current month.';
-                    DecimalPlaces = 2 : 5;
-
-                    trigger OnValidate()
-                    begin
-                        SaveCreditLimitSetup();
-                        UpdateComputedFields();
-                    end;
-                }
+                ShowCaption = false;
                 field(EnforcementEnabled; EnforcementEnabled)
                 {
-                    Caption = 'Enforcement Enabled';
+                    Caption = 'Limits Enabled';
                     ToolTip = 'Specifies whether the credit limit enforcement is enabled. When disabled, suites can consume unlimited credits.';
 
                     trigger OnValidate()
                     begin
                         SaveCreditLimitSetup();
+                        CurrPage.Update(false);
+                    end;
+                }
+                field(MonthlyCreditLimit; MonthlyCreditLimit)
+                {
+                    Caption = 'Monthly Copilot Credit Limit';
+                    ToolTip = 'Specifies the maximum number of Copilot credits that can be consumed by all agent test suites during the current month.';
+                    DecimalPlaces = 2 : 5;
+                    Editable = EnforcementEnabled;
+
+                    trigger OnValidate()
+                    begin
+                        SaveCreditLimitSetup();
+                        UpdateComputedFields();
                     end;
                 }
                 field(CreditsConsumed; CreditsConsumed)

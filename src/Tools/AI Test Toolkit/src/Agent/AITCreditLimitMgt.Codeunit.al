@@ -154,6 +154,9 @@ codeunit 149050 "AIT Credit Limit Mgt."
     begin
         AITCreditLimitSetup.GetOrCreate();
 
+        if not AITCreditLimitSetup."Enforcement Enabled" then
+            exit(0);
+
         if AITCreditLimitSetup."Monthly Credit Limit" <= 0 then
             exit(0);
 
@@ -164,5 +167,13 @@ codeunit 149050 "AIT Credit Limit Mgt."
     procedure IsApproachingCreditLimit(): Boolean
     begin
         exit(GetCreditUsagePercentage() >= 80);
+    end;
+
+    procedure IsEnforcementEnabled(): Boolean
+    var
+        AITCreditLimitSetup: Record "AIT Credit Limit Setup";
+    begin
+        AITCreditLimitSetup.GetOrCreate();
+        exit(AITCreditLimitSetup."Enforcement Enabled");
     end;
 }

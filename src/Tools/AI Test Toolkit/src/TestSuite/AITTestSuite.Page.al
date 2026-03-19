@@ -215,7 +215,7 @@ page 149031 "AIT Test Suite"
                 field(Accuracy; Rec.Accuracy)
                 {
                 }
-                field(ExecutionPercentage; ExecutionPercentage)
+                field(ExecutionPercentage; ExecutionRatio)
                 {
                     Editable = false;
                     Caption = 'Execution';
@@ -438,7 +438,7 @@ page 149031 "AIT Test Suite"
         AITTestSuiteMgt: Codeunit "AIT Test Suite Mgt.";
         AvgTimeDuration: Duration;
         AvgTokensConsumed: Integer;
-        ExecutionPercentage: Decimal;
+        ExecutionRatio: Decimal;
         TotalDuration: Duration;
         PageCaptionLbl: Label 'AI Eval';
         TestRunnerDisplayName: Text;
@@ -490,9 +490,6 @@ page 149031 "AIT Test Suite"
         else
             AvgTokensConsumed := 0;
 
-        if Rec."No. of Tests Executed" = 0 then
-            ExecutionPercentage := 0
-        else
-            ExecutionPercentage := Rec."No. of Tests Executed" / (Rec."No. of Tests Executed" + Rec."No. of Tests Skipped")
+        ExecutionRatio := AITTestSuiteMgt.GetExecution(Rec);
     end;
 }
