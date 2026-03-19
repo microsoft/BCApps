@@ -132,7 +132,7 @@ const FINANCE_KEYWORDS = [
   'cash flow', 'cost accounting',
   'company hub', 'multi-entity', 'master data management',
   'sustainability', 'ghg', 'emission', 'csrd', 'esg', 'cbam', 'eudr',
-  'subscription billing', 'recurring billing',
+  'subscription billing', 'subscription', 'recurring billing', 'billing', 'recurring',
   'late payment prediction', 'copilot bank', 'copilot regulatory', 'copilot esg',
   'localization', 'regulatory', 'audit file', 'saf-t', 'fatturaPA', 'cfdi',
   'making tax digital', 'digipoort', 'elster', '1099', 'qr-bill',
