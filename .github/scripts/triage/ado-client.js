@@ -109,12 +109,21 @@ export async function fetchRelatedWorkItems(keywords) {
 }
 
 /**
+ * Remove bracketed tags like [BC Idea], [Bug], [Feature] from text.
+ * These are metadata properties, not descriptive content.
+ */
+function stripBracketedTags(text) {
+  return text.replace(/\[[^\]]*\]/g, ' ');
+}
+
+/**
  * Score a work item's relevance based on keyword matches in title and description.
  * Title matches are weighted 3x, description matches 1x.
+ * Bracketed tags (e.g. [BC Idea]) are stripped before matching.
  */
 function scoreRelevance(title, description, keywords) {
-  const titleLower = title.toLowerCase();
-  const descLower = description.toLowerCase();
+  const titleLower = stripBracketedTags(title).toLowerCase();
+  const descLower = stripBracketedTags(description).toLowerCase();
   let score = 0;
   const matchedKeywords = [];
 
