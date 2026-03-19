@@ -1,0 +1,9 @@
+{
+  "name": "triage",
+  "description": "Issue triage domain knowledge: quality scoring, BC/AL concepts, team routing, and triage decision logic",
+  "version": "1.0.0",
+  "author": {
+    "name": "AI-First Team"
+  },
+  "keywords": ["triage", "issues", "quality", "business-central", "al", "routing", "labels"]
+}
