@@ -15,6 +15,7 @@ using Microsoft.Inventory.Item;
 using Microsoft.Inventory.Item.Attribute;
 using Microsoft.Inventory.Location;
 using Microsoft.Sales.Customer;
+using Microsoft.Sales.Document;
 using Microsoft.Sales.Pricing;
 using System.DataAdministration;
 using System.Globalization;
@@ -780,6 +781,14 @@ table 30102 "Shpfy Shop"
         {
             Caption = 'Use Shopify Order No.';
             ToolTip = 'Specifies whether the Shopify order number is used as the document number on the created Sales Order or Sales Invoice. The number series must have Allow Manual Nos. enabled.';
+        }
+        field(137; "Process Returns As"; Enum "Sales Document Type")
+        {
+            Caption = 'Process Returns As';
+            ToolTip = 'Specifies what type of document to create when processing returns. Credit Memo creates a sales credit memo. Return Order creates a sales return order.';
+            DataClassification = CustomerContent;
+            ValuesAllowed = "Credit Memo", "Return Order";
+            InitValue = "Credit Memo";
         }
         field(200; "Shop Id"; Integer)
         {
