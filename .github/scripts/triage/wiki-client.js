@@ -33,7 +33,7 @@ export async function publishWikiReport(owner, repo, issueNumber, markdownConten
     // Shallow clone the wiki repo
     console.log(`Wiki: Cloning ${owner}/${repo}.wiki.git...`);
     execFileSync('git', ['clone', '--depth', '1', cloneUrl, wikiDir], {
-      timeout: 30000,
+      timeout: 60000,
       stdio: ['pipe', 'pipe', 'pipe'],
     });
 
@@ -66,7 +66,7 @@ export async function publishWikiReport(owner, repo, issueNumber, markdownConten
       console.log('Wiki: Pushing...');
       execFileSync('git', ['push'], {
         cwd: wikiDir,
-        timeout: 30000,
+        timeout: 60000,
         stdio: ['pipe', 'pipe', 'pipe'],
       });
     }
