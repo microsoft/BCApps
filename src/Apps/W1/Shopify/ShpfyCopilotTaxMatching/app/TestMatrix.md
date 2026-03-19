@@ -96,6 +96,27 @@
 
 ---
 
+## Hard Matching Scenarios (LLM Stress Tests)
+
+These scenarios test the LLM's ability to handle ambiguous, misleading, or complex matching situations with real AOAI calls. All use `autoCreateTaxJurisdictions: false` unless noted.
+
+| # | Scenario | Challenge | Jurisdictions | Tax Lines | Ship-to | Expected |
+|---|----------|-----------|---------------|-----------|---------|----------|
+| H1 | Similar codes, different states | CASTAX (California) vs CATAX (Canada) — "CA" is ambiguous | CASTAX, CATAX, COSTAX | "CA STATE TAX" @ 7.25% | US / CA / Los Angeles | CASTAX (geographic context: CA = California) |
+| H2 | Abbreviated title, multiple similar | "NYC MTA" with 3 MTA-related jurisdictions | MTATAX, MTANYC, MTANYS | "NYC MTA" @ 0.375% | US / NY / New York | Any of the 3 (soft assertion) |
+| H3 | Multi-state distractors | Texas order with 15 distractor jurisdictions from other states | 13 non-TX + TXSTAX, TXCTAX | "TEXAS STATE SALES TAX" @ 6.25%, "HOUSTON CITY TAX" @ 2.0% | US / TX / Houston | TXSTAX, TXCTAX |
+| H4 | Truncated Shopify title | "METROPOLITAN COMMUTE" (truncated) must match full description | MTATAX, MCTMTX | "METROPOLITAN COMMUTE" @ 0.375% | US / NY / New York | MCTMTX |
+| H5 | Canadian HST/GST/PST | Ontario gets HST (combined), not separate GST or PST | CAHST, CAGST, CAPST, BCPST | "HST" @ 13.0% | CA / ON / Toronto | CAHST |
+| H6 | Same rate, different scopes | County tax vs transit tax — both LA, similar names | LACOTR, LACOTX, CASTAX | "LOS ANGELES COUNTY TAX" @ 1.0%, "CALIFORNIA STATE TAX" @ 6.0% | US / CA / Los Angeles | LACOTX, CASTAX |
+| H7 | Unusual formatting/casing | "State of New York - Sales & Use Tax", "The City of New York Tax" | NYSTAX, NYCTAX | Unusual wording | US / NY / New York | NYSTAX, NYCTAX |
+| H8 | Geographic disambiguation | "NEW YORK SALES TAX" from Albany — state not city level | NYCSAL, NYSSAL, NJSSAL | "NEW YORK SALES TAX" @ 4.0% | US / NY / Albany | NYSSAL (state-level, Albany is not NYC) |
+| H9 | 5 tax lines, mixed difficulty | Large order — some trivial, others need semantic reasoning | TXSTAX, TXHTAX, TXHCTX, TXMTD, TXESD | "TEXAS STATE SALES TAX", "CITY OF HOUSTON TAX", "HARRIS CO TAX", "METRO TRANSIT AUTHORITY", "ESD #1" | US / TX / Houston | All 5 matched (soft assertion) |
+| H10 | Misleading jurisdiction code | WATAX = Washington, not Waterloo — LLM must read descriptions | WATAX, IASTAX, IACTAX | "IOWA STATE TAX" @ 6.0%, "WATERLOO LOCAL TAX" @ 1.0% | US / IA / Waterloo | IASTAX, IACTAX |
+| H11 | Auto-create with distractors | 10+ existing jurisdictions; match what fits, create new for rest | 10 mixed-state jurisdictions including NYSTAX | "NEW YORK STATE TAX" @ 4.0%, "YONKERS SURCHARGE" @ 1.5% | US / NY / Yonkers | NYSTAX matched; Yonkers auto-created (autoCreate=true) |
+| H12 | Non-English tax titles | French Canadian abbreviations: TPS = GST, TVQ = QST | QCGST, QCQST, CAHST | "TPS/GST" @ 5.0%, "TVQ/QST" @ 9.975% | CA / QC / Montreal | QCGST, QCQST |
+
+---
+
 ## LLM Error / Edge Cases
 
 | # | Scenario | Expected Result |
