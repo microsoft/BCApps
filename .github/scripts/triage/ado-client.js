@@ -6,9 +6,11 @@ const ADO_ORG = 'dynamicssmb2';
 const ADO_PROJECT = 'Dynamics SMB';
 const ADO_API_VERSION = '7.1';
 const MAX_RESULTS = 10;
+const MIN_RELEVANCE = 1; // Minimum matched keywords to include
 
 /**
  * Search for related work items in Azure DevOps using keyword-based WIQL queries.
+ * Each result is scored by how many keywords matched its title/description.
  */
 export async function fetchRelatedWorkItems(keywords) {
   const pat = process.env.ADO_PAT;
@@ -60,7 +62,8 @@ export async function fetchRelatedWorkItems(keywords) {
       return { workItems: [] };
     }
 
-    const fields = ['System.Id', 'System.Title', 'System.State', 'System.WorkItemType'].join(',');
+    // Fetch details including description for relevance scoring
+    const fields = ['System.Id', 'System.Title', 'System.State', 'System.WorkItemType', 'System.Description'].join(',');
     const idsParam = ids.slice(0, MAX_RESULTS).join(',');
     const detailsUrl = `https://dev.azure.com/${ADO_ORG}/_apis/wit/workitems?ids=${idsParam}&fields=${fields}&api-version=${ADO_API_VERSION}`;
 
@@ -74,16 +77,30 @@ export async function fetchRelatedWorkItems(keywords) {
     }
 
     const detailsData = await detailsResponse.json();
-    const workItems = (detailsData.value || []).map(wi => ({
-      id: wi.id,
-      title: wi.fields?.['System.Title'] || '(untitled)',
-      state: wi.fields?.['System.State'] || 'Unknown',
-      type: wi.fields?.['System.WorkItemType'] || 'Unknown',
-      url: `https://dev.azure.com/${ADO_ORG}/${encodeURIComponent(ADO_PROJECT)}/_workitems/edit/${wi.id}`,
-    }));
+    const workItems = (detailsData.value || []).map(wi => {
+      const title = wi.fields?.['System.Title'] || '(untitled)';
+      const description = stripHtml(wi.fields?.['System.Description'] || '');
+      const { score, matchedKeywords } = scoreRelevance(title, description, topKeywords);
 
-    console.log(`ADO: found ${workItems.length} related work items`);
-    return { workItems };
+      return {
+        id: wi.id,
+        title,
+        state: wi.fields?.['System.State'] || 'Unknown',
+        type: wi.fields?.['System.WorkItemType'] || 'Unknown',
+        url: `https://dev.azure.com/${ADO_ORG}/${encodeURIComponent(ADO_PROJECT)}/_workitems/edit/${wi.id}`,
+        relevanceScore: score,
+        matchedKeywords,
+        matchReason: buildMatchReason(matchedKeywords),
+      };
+    });
+
+    // Filter by minimum relevance and sort by score descending
+    const relevant = workItems
+      .filter(wi => wi.relevanceScore >= MIN_RELEVANCE)
+      .sort((a, b) => b.relevanceScore - a.relevanceScore);
+
+    console.log(`ADO: found ${relevant.length} relevant work items (${workItems.length} total matches)`);
+    return { workItems: relevant };
 
   } catch (err) {
     console.warn(`ADO: search failed - ${err.message}`);
@@ -91,8 +108,57 @@ export async function fetchRelatedWorkItems(keywords) {
   }
 }
 
+/**
+ * Score a work item's relevance based on keyword matches in title and description.
+ * Title matches are weighted 3x, description matches 1x.
+ */
+function scoreRelevance(title, description, keywords) {
+  const titleLower = title.toLowerCase();
+  const descLower = description.toLowerCase();
+  let score = 0;
+  const matchedKeywords = [];
+
+  for (const kw of keywords) {
+    const kwLower = kw.toLowerCase();
+    const inTitle = titleLower.includes(kwLower);
+    const inDesc = descLower.includes(kwLower);
+    if (inTitle) {
+      score += 3;
+      matchedKeywords.push({ keyword: kw, location: 'title' });
+    } else if (inDesc) {
+      score += 1;
+      matchedKeywords.push({ keyword: kw, location: 'description' });
+    }
+  }
+
+  return { score, matchedKeywords };
+}
+
+/**
+ * Build a human-readable match reason from matched keywords.
+ */
+function buildMatchReason(matchedKeywords) {
+  if (matchedKeywords.length === 0) return 'Weak match';
+
+  const titleMatches = matchedKeywords.filter(m => m.location === 'title').map(m => m.keyword);
+  const descMatches = matchedKeywords.filter(m => m.location === 'description').map(m => m.keyword);
+
+  const parts = [];
+  if (titleMatches.length > 0) {
+    parts.push(`title matches: ${titleMatches.join(', ')}`);
+  }
+  if (descMatches.length > 0) {
+    parts.push(`description matches: ${descMatches.join(', ')}`);
+  }
+  return parts.join('; ');
+}
+
 function escapeWiql(str) {
   return str.replace(/'/g, "''");
+}
+
+function stripHtml(html) {
+  return html.replace(/<[^>]*>/g, '').replace(/&[a-z]+;/gi, ' ').trim();
 }
 
 /**
@@ -113,7 +179,7 @@ export function formatAdoContext(result) {
   output += `Found ${result.workItems.length} related work items in the Dynamics SMB project:\n\n`;
 
   for (const wi of result.workItems) {
-    output += `- **[${wi.type} #${wi.id}] ${wi.title}** (${wi.state})\n`;
+    output += `- **[${wi.type} #${wi.id}] ${wi.title}** (${wi.state}) — _${wi.matchReason}_\n`;
   }
 
   return output;

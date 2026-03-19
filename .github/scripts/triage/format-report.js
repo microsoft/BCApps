@@ -151,7 +151,7 @@ export function formatWikiReport(phase1, phase2, isRetriage, duplicates, previou
   if (e.ado_work_items && e.ado_work_items.length > 0) {
     md += `### Azure DevOps related work items\n\n`;
     for (const wi of e.ado_work_items) {
-      md += `- [${wi.type} #${wi.id}: ${wi.title}](${wi.url}) (${wi.state})\n`;
+      md += `- [${wi.type} #${wi.id}: ${wi.title}](${wi.url}) (${wi.state})${wi.matchReason ? ` — _${wi.matchReason}_` : ''}\n`;
     }
     md += `\n`;
   }
