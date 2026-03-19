@@ -362,6 +362,12 @@ page 30113 "Shpfy Order"
                     ApplicationArea = All;
                     ToolTip = 'Specifies whether the order is liable for sales tax. When set, this value is carried to the sales document.';
                 }
+                field("Tax Exempt"; Rec."Tax Exempt")
+                {
+                    ApplicationArea = All;
+                    Editable = false;
+                    ToolTip = 'Specifies whether this Shopify order is exempt from tax (e.g. tax was disabled at POS).';
+                }
                 field(CurrencyCode; Rec."Currency Code")
                 {
                     ApplicationArea = All;

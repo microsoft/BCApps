@@ -911,6 +911,12 @@ table 30118 "Shpfy Order Header"
             Caption = 'Tax Liable';
             DataClassification = CustomerContent;
         }
+        field(1090; "Tax Exempt"; Boolean)
+        {
+            Caption = 'Tax Exempt';
+            DataClassification = CustomerContent;
+            Editable = false;
+        }
     }
     keys
     {

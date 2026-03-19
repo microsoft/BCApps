@@ -30,6 +30,9 @@ codeunit 30473 "Shpfy Copilot Tax Events"
         if ShopifyOrderHeader."Tax Area Code" <> '' then
             exit;
 
+        if ShopifyOrderHeader."Tax Exempt" then
+            exit;
+
         if not Shop.Get(ShopifyOrderHeader."Shop Code") then
             exit;
 
