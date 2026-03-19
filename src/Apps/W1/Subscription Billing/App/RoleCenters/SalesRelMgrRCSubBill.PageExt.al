@@ -1,9 +1,9 @@
-namespace Microsoft.PowerBIReports;
+namespace Microsoft.SubscriptionBilling;
 
 using Microsoft.CRM.RoleCenters;
+using Microsoft.PowerBIReports;
 using Microsoft.Purchases.History;
 using Microsoft.Sales.History;
-using Microsoft.SubscriptionBilling;
 
 pageextension 8018 "Sales Rel. Mgr. RC Sub. Bill." extends "Sales & Relationship Mgr. RC"
 {
