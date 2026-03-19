@@ -6,6 +6,7 @@ namespace Microsoft.eServices.EDocument.Test;
 
 using Microsoft.eServices.EDocument;
 using Microsoft.eServices.EDocument.Integration;
+using Microsoft.Finance.GeneralLedger.Setup;
 using Microsoft.Inventory.Item;
 using Microsoft.Inventory.Journal;
 using Microsoft.Inventory.Ledger;
@@ -193,6 +194,7 @@ codeunit 139896 "E-Doc. Invt. Pick Test"
     var
         EDocument: Record "E-Document";
         EDocumentServiceStatus: Record "E-Document Service Status";
+        GLSetup: Record "General Ledger Setup";
     begin
         LibraryLowerPermission.SetOutsideO365Scope();
         LibraryVariableStorage.Clear();
@@ -200,6 +202,10 @@ codeunit 139896 "E-Doc. Invt. Pick Test"
         EDocument.DeleteAll();
         EDocumentServiceStatus.DeleteAll();
         EDocumentService.DeleteAll();
+
+        GLSetup.GetRecordOnce();
+        GLSetup."VAT Reporting Date Usage" := GLSetup."VAT Reporting Date Usage"::Disabled;
+        GLSetup.Modify();
 
         LibraryEDoc.SetupStandardVAT();
         LibraryEDoc.SetupStandardSalesScenario(Customer, EDocumentService, Enum::"E-Document Format"::Mock, Enum::"Service Integration"::"Mock");
