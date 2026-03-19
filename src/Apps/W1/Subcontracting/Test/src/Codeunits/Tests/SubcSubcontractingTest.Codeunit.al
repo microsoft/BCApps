@@ -2171,14 +2171,14 @@ Comment = '|%1 = Transfer Order No.';
         ReqWkshTemplate: Record "Req. Wksh. Template";
         LibraryUtility: Codeunit "Library - Utility";
     begin
-        ReqWkshTemplate.SetRange(Type, ReqWkshTemplate.Type::"For. Labor");
+        ReqWkshTemplate.SetRange(Type, ReqWkshTemplate.Type::Subcontracting);
         ReqWkshTemplate.SetRange(Recurring, false);
         if not ReqWkshTemplate.FindFirst() then begin
             ReqWkshTemplate.Init();
             ReqWkshTemplate.Validate(
               Name, LibraryUtility.GenerateRandomCode(ReqWkshTemplate.FieldNo(Name), Database::"Req. Wksh. Template"));
             ReqWkshTemplate.Insert(true);
-            ReqWkshTemplate.Validate(Type, ReqWkshTemplate.Type::"For. Labor");
+            ReqWkshTemplate.Validate(Type, ReqWkshTemplate.Type::Subcontracting);
             ReqWkshTemplate."Page ID" := Page::"Subcontracting Worksheet";
             ReqWkshTemplate.Modify(true);
         end;
