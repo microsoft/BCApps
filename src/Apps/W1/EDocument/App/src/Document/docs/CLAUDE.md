@@ -1,0 +1,21 @@
+# Document
+
+The E-Document table (6121) is the central entity tracking every electronic document through its lifecycle -- both inbound and outbound. It holds financial header data, polymorphic links to Business Central source documents via `Document Record ID`, and references to structured/unstructured data storage entries. The `Direction` enum (Incoming/Outgoing) and extensible `Document Type` enum determine how the document is processed.
+
+## How it works
+
+Each E-Document record represents one electronic document. For outgoing documents, the framework creates an E-Document from a posted BC document (Sales Invoice, Purchase Credit Memo, etc.), exports it to a format via the `"E-Document"` interface, then hands it to the integration layer for transmission. For incoming documents, the integration layer receives a blob from an external service, creates an E-Document record, and the import pipeline structures the data and creates a corresponding BC document.
+
+The E-Document links to its BC source document through `Document Record ID`, a polymorphic `RecordId` field. This means a single E-Document table can point at any BC table -- Sales Invoice Header, Purchase Header, G/L Entry, etc. The `Table ID` field stores the table number, and a FlowField `Table Name` resolves its caption. This design avoids per-table-type child tables but requires careful handling: the `OnValidate` trigger on `Document Record ID` calls `EDocAttachmentProcessor.MoveAttachmentsAndDelete`, which moves document attachments when the linked record changes. The `OnDelete` trigger prevents deleting processed documents or those still linked to a source document, and requires user confirmation for non-duplicate deletions.
+
+Status tracking uses a two-layer approach. The top-level `Status` field on the E-Document table has three values: `In Progress`, `Processed`, and `Error`. These are derived from the more granular `E-Document Service Status` enum (20+ values like Created, Exported, Sent, Approved, Rejected, Sending Error, etc.). Each service status value implements the `IEDocumentStatus` interface, which returns the corresponding document-level status. For example, `Exported` maps to `Processed`, `Sending Error` maps to `Error`, and `Created` maps to `In Progress`. The actual per-service status is tracked in the separate `E-Document Service Status` table, keyed by E-Document Entry No and Service Code. When a service status changes, the framework calls `ModifyEDocumentStatus` to re-derive the top-level status.
+
+## Things to know
+
+- The `E-Document Type` enum is extensible and implements `IEDocumentFinishDraft`. Only `Purchase Invoice` has a non-default implementation (`E-Doc. Create Purchase Invoice`); all other types fall back to `E-Doc. Unspecified Impl.`.
+- `E-Document Format` (e.g., PEPPOL BIS 3.0, Data Exchange) implements the `"E-Document"` interface, which governs how documents are created, checked, and parsed -- it is the format layer, not the integration layer.
+- `IsDuplicate` detects duplicates by matching on `Incoming E-Document No.`, `Bill-to/Pay-to No.`, and `Document Date`. Duplicate detection is logged to telemetry regardless of whether a message is shown to the user.
+- The `E-Documents Setup` table is marked `ObsoleteState = Pending` (tag 28.0). Its primary role was gating the "new E-Document experience" based on tenant ID allowlists, environment settings, and country codes. This setup is being phased out.
+- The `Structured Data Entry No.` and `Unstructured Data Entry No.` fields point to `E-Doc. Data Storage` records. Unstructured is typically the raw received file (PDF, image); structured is the parseable format (XML). The `IsSourceDocumentStructured` method checks whether the source already arrived in a structured format.
+- The notification system currently supports a single type: `Vendor Matched By Name Not Address`. Notifications are per-user, stored in the `E-Document Notification` table, and surfaced on the Purchase Document Draft page. Users can dismiss individual notifications or disable the entire notification type via My Notifications.
+- `CleanupDocument` (called on delete) cascades deletion to logs, integration logs, service statuses, attachments, mapping logs, and imported lines, and also calls `IProcessStructuredData.CleanUpDraft` for the document's process implementation.
