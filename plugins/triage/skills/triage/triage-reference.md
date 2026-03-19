@@ -110,13 +110,16 @@ Issues are routed to one of three teams based on keyword scoring. The agent coun
 
 ## Label Definitions
 
-### Issue Type Labels
-| Label | Color | When Applied |
-|-------|-------|-------------|
-| `type/bug` | #D73A4A (red) | Issue classified as a bug report |
-| `type/feature` | #0075CA (blue) | Issue classified as a new feature request |
-| `type/enhancement` | #A2EEEF (teal) | Issue classified as an enhancement to existing functionality |
-| `type/question` | #D876E3 (purple) | Issue classified as a question |
+### Issue Types (GitHub native)
+
+Instead of labels, the agent sets the GitHub issue type via the GraphQL API:
+
+| Classification | Issue Type Set | Notes |
+|---------------|---------------|-------|
+| bug | **Bug** | An unexpected problem or behavior |
+| feature | **Feature** | A request, idea, or new functionality |
+| enhancement | **Feature** | Mapped to Feature (enhancements are feature work) |
+| question | **Task** | Mapped to Task (questions become investigation tasks) |
 
 ### Triage Status Labels
 | Label | Color | When Applied |

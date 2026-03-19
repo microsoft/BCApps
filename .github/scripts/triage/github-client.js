@@ -213,3 +213,46 @@ function extractScoresFromComment(body) {
 
   return Object.keys(scores).length > 0 ? scores : null;
 }
+
+/**
+ * Set the issue type (Bug, Feature, Task) via the GraphQL API.
+ * Queries available issue types for the repo, matches by name, and updates.
+ */
+export async function setIssueType(owner, repo, issueNumber, typeName) {
+  const token = process.env.GITHUB_TOKEN;
+  if (!token) return;
+
+  try {
+    // Query available issue types and the issue's node ID
+    const query = `query($owner: String!, $repo: String!, $number: Int!) {
+      repository(owner: $owner, name: $repo) {
+        issueTypes(first: 10) { nodes { id name } }
+        issue(number: $number) { id }
+      }
+    }`;
+
+    const octokit = getOctokit();
+    const { repository } = await octokit.graphql(query, { owner, repo, number: issueNumber });
+
+    const issueId = repository.issue?.id;
+    const issueTypes = repository.issueTypes?.nodes || [];
+    const matchedType = issueTypes.find(t => t.name.toLowerCase() === typeName.toLowerCase());
+
+    if (!issueId || !matchedType) {
+      console.warn(`Issue type: could not find type "${typeName}" or issue node ID`);
+      return;
+    }
+
+    // Update the issue type
+    const mutation = `mutation($issueId: ID!, $issueTypeId: ID!) {
+      updateIssue(input: { id: $issueId, issueTypeId: $issueTypeId }) {
+        issue { id }
+      }
+    }`;
+
+    await octokit.graphql(mutation, { issueId, issueTypeId: matchedType.id });
+    console.log(`Issue type set to: ${matchedType.name}`);
+  } catch (err) {
+    console.warn(`Issue type: failed to set — ${err.message}`);
+  }
+}

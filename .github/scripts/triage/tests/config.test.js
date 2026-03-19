@@ -11,7 +11,7 @@ import {
   getComplexityLabelName,
   getEffortLabelName,
   getPathLabelName,
-  getTypeLabelName,
+  getIssueTypeName,
   VERDICT,
 } from '../config.js';
 
@@ -122,15 +122,15 @@ describe('label mapping functions', () => {
     assert.equal(getPathLabelName('Agentic'), 'path/agentic');
   });
 
-  it('getTypeLabelName should map issue types', () => {
-    assert.equal(getTypeLabelName('bug'), 'type/bug');
-    assert.equal(getTypeLabelName('feature'), 'type/feature');
-    assert.equal(getTypeLabelName('enhancement'), 'type/enhancement');
-    assert.equal(getTypeLabelName('question'), 'type/question');
+  it('getIssueTypeName should map to GitHub issue types', () => {
+    assert.equal(getIssueTypeName('bug'), 'Bug');
+    assert.equal(getIssueTypeName('feature'), 'Feature');
+    assert.equal(getIssueTypeName('enhancement'), 'Feature');
+    assert.equal(getIssueTypeName('question'), 'Task');
   });
 
-  it('getTypeLabelName should default to bug for unknown types', () => {
-    assert.equal(getTypeLabelName(''), 'type/bug');
-    assert.equal(getTypeLabelName(null), 'type/bug');
+  it('getIssueTypeName should default to Bug for unknown types', () => {
+    assert.equal(getIssueTypeName(''), 'Bug');
+    assert.equal(getIssueTypeName(null), 'Bug');
   });
 });

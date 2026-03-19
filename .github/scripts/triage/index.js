@@ -9,6 +9,7 @@ import {
   ensureLabel,
   addLabels,
   removeLabel,
+  setIssueType,
 } from './github-client.js';
 import { assessIssueQuality } from './phase1-assess.js';
 import { enrichAndTriage } from './phase2-enrich.js';
@@ -25,7 +26,7 @@ import {
   getComplexityLabelName,
   getEffortLabelName,
   getPathLabelName,
-  getTypeLabelName,
+  getIssueTypeName,
   getTeamLabel,
 } from './config.js';
 
@@ -154,7 +155,6 @@ async function main() {
 
     const labelOps = [
       { prefix: 'triage/', label: getTriageLabelName(phase1Result.verdict), category: LABELS.triage },
-      { prefix: 'type/', label: getTypeLabelName(phase1Result.issue_type), category: LABELS.type },
       { prefix: 'priority/', label: getPriorityLabelName(triage.priority_score.score), category: LABELS.priority },
       { prefix: 'complexity/', label: getComplexityLabelName(triage.complexity.rating), category: LABELS.complexity },
       { prefix: 'effort/', label: getEffortLabelName(triage.effort.rating), category: LABELS.effort },
@@ -176,8 +176,12 @@ async function main() {
       LABELS.team.find(l => l.name === teamLabel)?.description || '');
     await addLabels(owner, repo, issueNumber, [teamLabel]);
 
+    // Set GitHub issue type (Bug/Feature/Task) via GraphQL
+    const issueTypeName = getIssueTypeName(phase1Result.issue_type);
+    await setIssueType(owner, repo, issueNumber, issueTypeName);
+
     const appliedLabels = [...labelOps.map(op => op.label), teamLabel].join(', ');
-    console.log(`Labels applied: ${appliedLabels}`);
+    console.log(`Labels applied: ${appliedLabels} | Type: ${issueTypeName}`);
 
     console.log(`\n=== Triage complete ===`);
     console.log(`Quality: ${qualityScore}/100 (${phase1Result.verdict})`);
