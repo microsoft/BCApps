@@ -148,7 +148,7 @@ table 149030 "AIT Test Suite"
             ToolTip = 'Specifies the number of evals executed for the eval suite.';
             Editable = false;
             FieldClass = FlowField;
-            CalcFormula = count("AIT Log Entry" where("Test Suite Code" = field("Code"), "Version" = field("Version"), Operation = const('Run Procedure'), "Procedure Name" = filter(<> '')));
+            CalcFormula = count("AIT Log Entry" where("Test Suite Code" = field("Code"), "Version" = field("Version"), Operation = const('Run Procedure'), "Procedure Name" = filter(<> ''), Status = filter(<> 2)));
         }
         field(22; "No. of Tests Passed"; Integer)
         {

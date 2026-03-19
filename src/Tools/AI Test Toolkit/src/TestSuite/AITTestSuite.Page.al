@@ -218,8 +218,8 @@ page 149031 "AIT Test Suite"
                 field(ExecutionPercentage; ExecutionPercentage)
                 {
                     Editable = false;
-                    Caption = 'Execution %';
-                    ToolTip = 'Specifies the percentage of evals executed among the total evals (excluding skipped evals).';
+                    Caption = 'Execution';
+                    ToolTip = 'Specifies the average execution of the eval suite. The execution is calculated as the percentage of evals that were executed among the total evals (excluding skipped evals).';
                     AutoFormatType = 0;
                 }
                 field("No. of Operations"; Rec."No. of Operations")

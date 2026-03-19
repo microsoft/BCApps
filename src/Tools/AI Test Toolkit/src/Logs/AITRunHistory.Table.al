@@ -44,7 +44,7 @@ table 149036 "AIT Run History"
             ToolTip = 'Specifies the number of evals executed for the eval suite.';
             Editable = false;
             FieldClass = FlowField;
-            CalcFormula = count("AIT Log Entry" where("Test Suite Code" = field("Test Suite Code"), "Version" = field("Version"), "Test Method Line No." = field("Line No. Filter"), Operation = const('Run Procedure'), "Procedure Name" = filter(<> '')));
+            CalcFormula = count("AIT Log Entry" where("Test Suite Code" = field("Test Suite Code"), "Version" = field("Version"), "Test Method Line No." = field("Line No. Filter"), Operation = const('Run Procedure'), "Procedure Name" = filter(<> ''), Status = filter(<> 2)));
         }
         field(11; "No. of Tests Passed"; Integer)
         {
@@ -95,7 +95,7 @@ table 149036 "AIT Run History"
             ToolTip = 'Specifies the number of evals executed for the eval suite.';
             Editable = false;
             FieldClass = FlowField;
-            CalcFormula = count("AIT Log Entry" where("Test Suite Code" = field("Test Suite Code"), Tag = field(Tag), "Test Method Line No." = field("Line No. Filter"), Operation = const('Run Procedure'), "Procedure Name" = filter(<> '')));
+            CalcFormula = count("AIT Log Entry" where("Test Suite Code" = field("Test Suite Code"), Tag = field(Tag), "Test Method Line No." = field("Line No. Filter"), Operation = const('Run Procedure'), "Procedure Name" = filter(<> ''), Status = filter(<> 2)));
         }
         field(21; "No. of Tests Passed - By Tag"; Integer)
         {
