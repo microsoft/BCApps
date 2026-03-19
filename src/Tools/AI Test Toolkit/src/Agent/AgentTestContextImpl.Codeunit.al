@@ -89,7 +89,6 @@ codeunit 149049 "Agent Test Context Impl."
     procedure GetCopilotCreditsForLogEntry(LogEntryNo: Integer): Decimal
     var
         AgentTaskLog: Record "Agent Task Log";
-
     begin
         AgentTaskLog.SetRange("Test Log Entry ID", LogEntryNo);
         exit(GetCopilotCredits(AgentTaskLog));
