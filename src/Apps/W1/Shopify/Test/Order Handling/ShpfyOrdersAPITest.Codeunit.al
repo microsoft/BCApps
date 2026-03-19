@@ -28,7 +28,6 @@ codeunit 139608 "Shpfy Orders API Test"
         Shop: Record "Shpfy Shop";
         LibraryAssert: Codeunit "Library Assert";
         LibraryRandom: Codeunit "Library - Random";
-        OutboundHttpRequests: Codeunit "Library - Variable Storage";
         InitializeTest: Codeunit "Shpfy Initialize Test";
         Any: Codeunit Any;
         CompanyLocationId: BigInteger;
@@ -311,9 +310,7 @@ codeunit 139608 "Shpfy Orders API Test"
         CompanyLocationId := OrderHeader."Company Location Id";
 
         // [GIVEN] Register Expected Outbound API Requests.
-        OutboundHttpRequests.Clear();
-        OutboundHttpRequests.Enqueue('Order Handling/OrderTransactionResult.txt');
-        OutboundHttpRequests.Enqueue('CompanyLocation');
+
 
         // [WHEN] ShpfyOrderMapping.DoMapping(ShpfyOrderHeader)
         OrderMapping.DoMapping(OrderHeader);
@@ -1605,30 +1602,17 @@ codeunit 139608 "Shpfy Orders API Test"
     [HttpClientHandler]
     internal procedure OrdersAPIHttpHandler(Request: TestHttpRequestMessage; var Response: TestHttpResponseMessage): Boolean
     var
-        RequestType: Text;
         Body: Text;
     begin
         if not InitializeTest.VerifyRequestUrl(Request.Path, Shop."Shopify URL") then
             exit(true);
 
-        if OutboundHttpRequests.Length() = 0 then
-            exit(false);
-
-        RequestType := OutboundHttpRequests.DequeueText();
-        case RequestType of
-            'Order Handling/OrderTransactionResult.txt':
-                begin
-                    Body := NavApp.GetResourceAsText('Order Handling/OrderTransactionResult.txt', TextEncoding::UTF8);
-                    Response.Content.WriteFrom(Body);
-                end;
-            'CompanyLocation':
-                begin
-                    Body := NavApp.GetResourceAsText('Order Handling/CompanyLocationResult.txt', TextEncoding::UTF8);
-                    Response.Content.WriteFrom(Body.Replace('{{LocationId}}', Format(CompanyLocationId)));
-                end;
-            else
-                Response.Content.WriteFrom('{"data":{}}');
-        end;
+        if CompanyLocationId <> 0 then begin
+            Body := NavApp.GetResourceAsText('Order Handling/CompanyLocationResult.txt', TextEncoding::UTF8);
+            Response.Content.WriteFrom(Body.Replace('{{LocationId}}', Format(CompanyLocationId)));
+            CompanyLocationId := 0;
+        end else
+            Response.Content.WriteFrom('{"data":{}}');
         exit(false);
     end;
 
