@@ -160,11 +160,22 @@ export async function checkExistingTriage(owner, repo, issueNumber) {
 
 /**
  * Parse quality score and priority from a triage comment body.
+ * Handles both compact format (| READY | 82/100 | 7/10 | Implement |)
+ * and verbose fallback format (Issue Quality Score: 82/100 - READY).
  */
 function extractScoresFromComment(body) {
   const scores = {};
 
-  // Match "Issue Quality Score: 85/100 - READY"
+  // Try compact format first: "| READY | 82/100 | 7/10 | Implement |"
+  const compactMatch = body.match(/\|\s*(READY|NEEDS WORK|INSUFFICIENT)\s*\|\s*(\d+)\/100\s*\|\s*(\d+)\/10\s*\|/);
+  if (compactMatch) {
+    scores.verdict = compactMatch[1];
+    scores.qualityTotal = parseInt(compactMatch[2], 10);
+    scores.priority = parseInt(compactMatch[3], 10);
+    return scores;
+  }
+
+  // Verbose format: "Issue Quality Score: 85/100 - READY"
   const qualityMatch = body.match(/Issue Quality Score:\s*(\d+)\/100\s*-\s*(READY|NEEDS WORK|INSUFFICIENT)/);
   if (qualityMatch) {
     scores.qualityTotal = parseInt(qualityMatch[1], 10);

@@ -1,5 +1,8 @@
 // Comment formatting for triage assessments
 // See: docs/features/issue-triage-agent/design.md (FR18)
+//
+// Produces a compact issue comment with a link to the full wiki report.
+// Falls back to the verbose format if the wiki report could not be published.
 
 import { formatDuplicatesSection } from './duplicate-detector.js';
 
@@ -13,9 +16,59 @@ const ACTION_EMOJI = {
 };
 
 /**
- * Format the full triage comment (Phase 1 + Phase 2 results).
+ * Format a compact triage comment for the issue.
+ * If wikiUrl is provided, links to the full report on the wiki.
+ * If wikiUrl is null (publish failed), falls back to verbose inline format.
  */
-export function formatTriageComment(phase1, phase2, isRetriage, duplicates = [], previousScores = null) {
+export function formatTriageComment(phase1, phase2, isRetriage, duplicates = [], previousScores = null, wikiUrl = null) {
+  if (!wikiUrl) {
+    return formatVerboseComment(phase1, phase2, isRetriage, duplicates, previousScores);
+  }
+
+  const qs = phase1.quality_score;
+  const t = phase2.triage;
+  const actionEmoji = ACTION_EMOJI[t.recommended_action?.action] || ':question:';
+
+  let md = `## :robot: AI Triage Assessment\n\n`;
+  md += `> Automated assessment by the Issue Triage Agent (GPT-5.4)\n`;
+
+  if (isRetriage) {
+    md += `> :arrows_counterclockwise: **Re-triage** — see wiki history for previous assessment.\n`;
+  }
+
+  md += `\n`;
+
+  // Compact summary table
+  md += `| Verdict | Quality | Priority | Action |\n`;
+  md += `|---------|---------|----------|--------|\n`;
+  md += `| ${phase1.verdict} | ${qs.total}/100 | ${t.priority_score.score}/10 | ${actionEmoji} ${t.recommended_action.action} |\n`;
+
+  md += `\n**Summary:** ${phase2.executive_summary}\n`;
+
+  // Duplicates warning (if any)
+  const dupsSection = formatDuplicatesSection(duplicates);
+  if (dupsSection) {
+    md += `\n${dupsSection}`;
+  }
+
+  // Missing info (if any)
+  if (phase1.missing_info && phase1.missing_info.length > 0) {
+    md += `\n### :warning: Information needed\n\n`;
+    for (const item of phase1.missing_info) {
+      md += `- [ ] ${item}\n`;
+    }
+  }
+
+  md += `\n:clipboard: [View full triage report →](${wikiUrl})\n`;
+
+  return md;
+}
+
+/**
+ * Verbose fallback comment when wiki publishing fails.
+ * Contains the full assessment inline (same as the previous format).
+ */
+function formatVerboseComment(phase1, phase2, isRetriage, duplicates, previousScores) {
   const qs = phase1.quality_score;
   const t = phase2.triage;
   const e = phase2.enrichment;
@@ -24,6 +77,7 @@ export function formatTriageComment(phase1, phase2, isRetriage, duplicates = [],
   let md = `## :robot: AI Triage Assessment\n\n`;
   md += `> Automated assessment by the Issue Triage Agent (GPT-5.4)\n`;
   md += `> Triggered by \`ai-triage\` label\n`;
+  md += `> :warning: Full report could not be published to wiki — showing inline.\n`;
 
   if (isRetriage) {
     md += `> :arrows_counterclockwise: **Re-triage** - see earlier assessment comments for history.\n`;
@@ -31,7 +85,6 @@ export function formatTriageComment(phase1, phase2, isRetriage, duplicates = [],
 
   md += `\n---\n\n`;
 
-  // Potential duplicates (if any)
   md += formatDuplicatesSection(duplicates);
 
   // Quality score table
@@ -44,7 +97,7 @@ export function formatTriageComment(phase1, phase2, isRetriage, duplicates = [],
   md += `| Specificity | ${qs.specificity.score}/20 | ${qs.specificity.notes} |\n`;
   md += `| Actionability | ${qs.actionability.score}/20 | ${qs.actionability.notes} |\n`;
 
-  // Re-triage comparison (if previous scores available)
+  // Re-triage comparison
   if (isRetriage && previousScores) {
     md += `\n#### :arrows_counterclockwise: Changes since last triage\n\n`;
     md += `| Metric | Previous | Current | Change |\n`;
@@ -64,11 +117,11 @@ export function formatTriageComment(phase1, phase2, isRetriage, duplicates = [],
         }
       }
     }
-    if (previousScores.priority != null && phase2.triage?.priority_score?.score != null) {
-      const delta = phase2.triage.priority_score.score - previousScores.priority;
+    if (previousScores.priority != null && t.priority_score?.score != null) {
+      const delta = t.priority_score.score - previousScores.priority;
       if (delta !== 0) {
         const arrow = delta > 0 ? ':arrow_up:' : ':arrow_down:';
-        md += `| Priority | ${previousScores.priority}/10 | ${phase2.triage.priority_score.score}/10 | ${arrow} ${delta > 0 ? '+' : ''}${delta} |\n`;
+        md += `| Priority | ${previousScores.priority}/10 | ${t.priority_score.score}/10 | ${arrow} ${delta > 0 ? '+' : ''}${delta} |\n`;
       }
     }
     if (previousScores.verdict && previousScores.verdict !== phase1.verdict) {
@@ -77,7 +130,7 @@ export function formatTriageComment(phase1, phase2, isRetriage, duplicates = [],
     md += `\n`;
   }
 
-  // Missing info (if any)
+  // Missing info
   if (phase1.missing_info && phase1.missing_info.length > 0) {
     md += `\n### :warning: Information needed\n\n`;
     for (const item of phase1.missing_info) {
@@ -184,7 +237,6 @@ export function formatTriageComment(phase1, phase2, isRetriage, duplicates = [],
 
 /**
  * Truncate comment to fit within GitHub's character limit.
- * Preserves the header and core content, truncates the enrichment details section if needed.
  */
 function truncateComment(md) {
   if (md.length <= GITHUB_COMMENT_MAX_CHARS) return md;
@@ -193,7 +245,6 @@ function truncateComment(md) {
   const detailsEnd = md.indexOf('</details>');
 
   if (detailsStart !== -1 && detailsEnd !== -1) {
-    // Calculate how much we need to cut from the details section
     const overhead = md.length - GITHUB_COMMENT_MAX_CHARS;
     const detailsContent = md.substring(detailsStart, detailsEnd + '</details>'.length);
     const truncatedDetails = detailsContent.substring(0, Math.max(200, detailsContent.length - overhead - 100))
@@ -203,7 +254,6 @@ function truncateComment(md) {
     return result.substring(0, GITHUB_COMMENT_MAX_CHARS);
   }
 
-  // Fallback: hard truncate with notice
   return md.substring(0, GITHUB_COMMENT_MAX_CHARS - 100) + '\n\n> ... comment truncated to fit GitHub character limit.\n';
 }
 
@@ -218,10 +268,8 @@ export function formatInsufficientComment(phase1, duplicates = []) {
   md += `> Triggered by \`ai-triage\` label\n`;
   md += `\n---\n\n`;
 
-  // Potential duplicates (if any)
   md += formatDuplicatesSection(duplicates);
 
-  // Quality score table
   md += `### Issue Quality Score: ${qs.total}/100 - INSUFFICIENT\n\n`;
   md += `| Dimension | Score | Notes |\n`;
   md += `|-----------|-------|-------|\n`;

@@ -1,4 +1,4 @@
-// Unit tests for format-comment.js - comment formatting and truncation
+// Unit tests for format-comment.js - compact and fallback comment formatting
 // Run with: node --test tests/format-comment.test.js
 
 import { describe, it } from 'node:test';
@@ -45,39 +45,77 @@ const mockPhase2 = {
   executive_summary: 'High-value fix for Shopify sync issue.',
 };
 
-describe('formatTriageComment', () => {
+describe('formatTriageComment - compact mode (with wiki URL)', () => {
+  const wikiUrl = 'https://github.com/owner/repo/wiki/Triage-Report-Issue-5';
+
   it('should include the AI Triage Assessment header', () => {
-    const comment = formatTriageComment(mockPhase1, mockPhase2, false);
+    const comment = formatTriageComment(mockPhase1, mockPhase2, false, [], null, wikiUrl);
     assert.ok(comment.includes('## :robot: AI Triage Assessment'));
   });
 
-  it('should include quality scores', () => {
-    const comment = formatTriageComment(mockPhase1, mockPhase2, false);
-    assert.ok(comment.includes('82/100'));
-    assert.ok(comment.includes('READY'));
+  it('should include compact summary table', () => {
+    const comment = formatTriageComment(mockPhase1, mockPhase2, false, [], null, wikiUrl);
+    assert.ok(comment.includes('| READY | 82/100 | 7/10 |'));
   });
 
-  it('should include triage recommendation', () => {
-    const comment = formatTriageComment(mockPhase1, mockPhase2, false);
-    assert.ok(comment.includes('7/10'));
-    assert.ok(comment.includes('Implement'));
+  it('should include wiki link', () => {
+    const comment = formatTriageComment(mockPhase1, mockPhase2, false, [], null, wikiUrl);
+    assert.ok(comment.includes('[View full triage report →]'));
+    assert.ok(comment.includes(wikiUrl));
+  });
+
+  it('should include executive summary', () => {
+    const comment = formatTriageComment(mockPhase1, mockPhase2, false, [], null, wikiUrl);
+    assert.ok(comment.includes('High-value fix'));
+  });
+
+  it('should NOT include verbose quality dimension table', () => {
+    const comment = formatTriageComment(mockPhase1, mockPhase2, false, [], null, wikiUrl);
+    assert.ok(!comment.includes('| Clarity |'));
+    assert.ok(!comment.includes('| Reproducibility |'));
+  });
+
+  it('should NOT include enrichment details section', () => {
+    const comment = formatTriageComment(mockPhase1, mockPhase2, false, [], null, wikiUrl);
+    assert.ok(!comment.includes('<details>'));
+    assert.ok(!comment.includes('Enrichment context'));
   });
 
   it('should show re-triage notice', () => {
-    const comment = formatTriageComment(mockPhase1, mockPhase2, true);
+    const comment = formatTriageComment(mockPhase1, mockPhase2, true, [], null, wikiUrl);
     assert.ok(comment.includes('Re-triage'));
   });
 
-  it('should show re-triage diff when previous scores available', () => {
-    const prevScores = { qualityTotal: 60, priority: 5, verdict: 'NEEDS WORK', clarity: 12 };
-    const comment = formatTriageComment(mockPhase1, mockPhase2, true, [], prevScores);
-    assert.ok(comment.includes('Changes since last triage'));
-    assert.ok(comment.includes('60/100'));
-    assert.ok(comment.includes('82/100'));
+  it('should include missing info when present', () => {
+    const phase1WithMissing = {
+      ...mockPhase1,
+      missing_info: ['BC version needed', 'Steps to reproduce'],
+    };
+    const comment = formatTriageComment(phase1WithMissing, mockPhase2, false, [], null, wikiUrl);
+    assert.ok(comment.includes('BC version needed'));
+  });
+});
+
+describe('formatTriageComment - verbose fallback (no wiki URL)', () => {
+  it('should include full quality dimension table when wikiUrl is null', () => {
+    const comment = formatTriageComment(mockPhase1, mockPhase2, false, [], null, null);
+    assert.ok(comment.includes('| Clarity |'));
+    assert.ok(comment.includes('| Reproducibility |'));
+    assert.ok(comment.includes('Triage Recommendation'));
+  });
+
+  it('should include enrichment details section', () => {
+    const comment = formatTriageComment(mockPhase1, mockPhase2, false, [], null, null);
+    assert.ok(comment.includes('<details>'));
+  });
+
+  it('should note wiki was unavailable', () => {
+    const comment = formatTriageComment(mockPhase1, mockPhase2, false, [], null, null);
+    assert.ok(comment.includes('could not be published to wiki'));
   });
 
   it('should not exceed GitHub comment limit', () => {
-    const comment = formatTriageComment(mockPhase1, mockPhase2, false);
+    const comment = formatTriageComment(mockPhase1, mockPhase2, false, [], null, null);
     assert.ok(comment.length <= 65536);
   });
 });
@@ -85,10 +123,7 @@ describe('formatTriageComment', () => {
 describe('formatInsufficientComment', () => {
   const insufficientPhase1 = {
     ...mockPhase1,
-    quality_score: {
-      ...mockPhase1.quality_score,
-      total: 20,
-    },
+    quality_score: { ...mockPhase1.quality_score, total: 20 },
     verdict: 'INSUFFICIENT',
     missing_info: ['Steps to reproduce', 'BC version'],
   };

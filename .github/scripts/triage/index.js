@@ -13,6 +13,8 @@ import {
 import { assessIssueQuality } from './phase1-assess.js';
 import { enrichAndTriage } from './phase2-enrich.js';
 import { formatTriageComment, formatInsufficientComment } from './format-comment.js';
+import { formatWikiReport } from './format-report.js';
+import { publishWikiReport } from './wiki-client.js';
 import { findDuplicates } from './duplicate-detector.js';
 import {
   LABELS,
@@ -123,8 +125,24 @@ async function main() {
     // Step 5: Phase 2 - Enrichment & Triage
     const phase2Result = await enrichAndTriage(issue, phase1Result);
 
-    // Step 6: Format and post full triage comment
-    const comment = formatTriageComment(phase1Result, phase2Result, isRetriage, duplicates, previousScores);
+    // Step 6a: Publish full report to wiki (best-effort)
+    const issueMeta = {
+      number: issueNumber,
+      title: issue.title,
+      author: issue.author,
+      url: `https://github.com/${owner}/${repo}/issues/${issueNumber}`,
+    };
+    const wikiMarkdown = formatWikiReport(phase1Result, phase2Result, isRetriage, duplicates, previousScores, issueMeta);
+    const wikiUrl = await publishWikiReport(owner, repo, issueNumber, wikiMarkdown);
+
+    if (wikiUrl) {
+      console.log(`Wiki report published: ${wikiUrl}`);
+    } else {
+      console.warn('Wiki report could not be published; falling back to verbose comment.');
+    }
+
+    // Step 6b: Post compact comment on the issue (with wiki link if available)
+    const comment = formatTriageComment(phase1Result, phase2Result, isRetriage, duplicates, previousScores, wikiUrl);
     await postComment(owner, repo, issueNumber, comment);
     console.log('Triage comment posted.');
 
