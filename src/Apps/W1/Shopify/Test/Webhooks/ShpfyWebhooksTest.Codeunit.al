@@ -317,7 +317,7 @@ codeunit 139612 "Shpfy Webhooks Test"
                     Response.Content.WriteFrom(ResponseBody);
                 end;
             'BulkOperationStatus':
-                Response.Content.WriteFrom('{"data":{"currentBulkOperation":{"id":"gid://shopify/BulkOperation/1","status":"COMPLETED","url":"https://storage.googleapis.com/result.jsonl","completedAt":"2026-03-17T00:00:00Z"}}}');
+                Response.Content.WriteFrom('{"data":{"node":{"id":"gid://shopify/BulkOperation/1","status":"COMPLETED","url":"https://storage.googleapis.com/result.jsonl","completedAt":"2026-03-17T00:00:00Z"}}}');
             else
                 Response.Content.WriteFrom('{"data":{}}');
         end;
