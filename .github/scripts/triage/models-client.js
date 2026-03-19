@@ -2,10 +2,7 @@
 // Uses `copilot -p` in programmatic mode instead of direct REST API calls.
 // See: https://docs.github.com/en/copilot/how-tos/copilot-cli/automate-copilot-cli/run-cli-programmatically
 
-import { execSync } from 'node:child_process';
-import { writeFileSync, unlinkSync } from 'node:fs';
-import { tmpdir } from 'node:os';
-import { join } from 'node:path';
+import { execFileSync } from 'node:child_process';
 import { MODEL_NAME } from './config.js';
 
 /**
@@ -18,74 +15,68 @@ export async function callGPT(systemPrompt, userMessage) {
     throw new Error('COPILOT_GITHUB_TOKEN, GH_TOKEN, or GITHUB_TOKEN environment variable is required');
   }
 
-  const promptFile = join(tmpdir(), `triage-prompt-${Date.now()}.md`);
+  const combinedPrompt = [
+    systemPrompt,
+    '',
+    '---',
+    '',
+    userMessage,
+  ].join('\n');
 
-  try {
-    const combinedPrompt = [
-      systemPrompt,
-      '',
-      '---',
-      '',
-      userMessage,
-    ].join('\n');
+  console.log(`Calling: copilot -s --no-ask-user --model=${MODEL_NAME} (prompt: ${Math.round(combinedPrompt.length / 1024)}KB)`);
 
-    writeFileSync(promptFile, combinedPrompt, 'utf-8');
+  let lastError;
+  for (let attempt = 0; attempt < 2; attempt++) {
+    try {
+      const output = execFileSync(
+        'copilot',
+        ['-s', '--no-ask-user', '--no-custom-instructions', `--model=${MODEL_NAME}`],
+        {
+          encoding: 'utf-8',
+          input: combinedPrompt,
+          timeout: 300_000,
+          maxBuffer: 10 * 1024 * 1024,
+          env: { ...process.env },
+        }
+      );
 
-    console.log(`Calling: copilot -s --no-ask-user --model=${MODEL_NAME}`);
+      // Extract the JSON object from the output.
+      // The CLI may prepend conversational text before the JSON.
+      let content = output.trim();
+      if (content.startsWith('```')) {
+        content = content.replace(/^```(?:json)?\n?/, '').replace(/\n?```$/, '');
+      }
+      const jsonStart = content.indexOf('{');
+      const jsonEnd = content.lastIndexOf('}');
+      if (jsonStart !== -1 && jsonEnd > jsonStart) {
+        content = content.slice(jsonStart, jsonEnd + 1);
+      }
 
-    let lastError;
-    for (let attempt = 0; attempt < 2; attempt++) {
       try {
-        const output = execSync(
-          `cat ${JSON.stringify(promptFile)} | copilot -s --no-ask-user --no-custom-instructions --model=${MODEL_NAME}`,
-          {
-            encoding: 'utf-8',
-            timeout: 180_000,
-            maxBuffer: 10 * 1024 * 1024,
-            env: { ...process.env },
-          }
+        return JSON.parse(content);
+      } catch (parseErr) {
+        lastError = new Error(
+          `Failed to parse JSON from Copilot CLI response: ${parseErr.message}\nRaw output (first 500 chars): ${content.slice(0, 500)}`
         );
-
-        // Extract the JSON object from the output.
-        // The CLI may prepend conversational text before the JSON.
-        let content = output.trim();
-        if (content.startsWith('```')) {
-          content = content.replace(/^```(?:json)?\n?/, '').replace(/\n?```$/, '');
-        }
-        const jsonStart = content.indexOf('{');
-        const jsonEnd = content.lastIndexOf('}');
-        if (jsonStart !== -1 && jsonEnd > jsonStart) {
-          content = content.slice(jsonStart, jsonEnd + 1);
-        }
-
-        try {
-          return JSON.parse(content);
-        } catch (parseErr) {
-          lastError = new Error(
-            `Failed to parse JSON from Copilot CLI response: ${parseErr.message}\nRaw output (first 500 chars): ${content.slice(0, 500)}`
-          );
-          if (attempt === 0) {
-            console.warn(`JSON parse error, retrying (attempt ${attempt + 1})...`);
-            await sleep(2000);
-            continue;
-          }
-          throw lastError;
-        }
-      } catch (err) {
-        lastError = err;
-        if (attempt === 0 && (err.message?.includes('JSON') || err.status)) {
-          console.warn(`Error, retrying (attempt ${attempt + 1})...`);
-          await sleep(5000);
+        if (attempt === 0) {
+          console.warn(`JSON parse error, retrying (attempt ${attempt + 1})...`);
+          await sleep(2000);
           continue;
         }
-        throw err;
+        throw lastError;
       }
+    } catch (err) {
+      lastError = err;
+      if (attempt === 0 && (err.message?.includes('JSON') || err.status)) {
+        console.warn(`Error, retrying (attempt ${attempt + 1})...`);
+        await sleep(5000);
+        continue;
+      }
+      throw err;
     }
-
-    throw lastError;
-  } finally {
-    try { unlinkSync(promptFile); } catch { /* temp file cleanup */ }
   }
+
+  throw lastError;
 }
 
 function sleep(ms) {
