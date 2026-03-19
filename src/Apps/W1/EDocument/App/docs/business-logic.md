@@ -87,7 +87,7 @@ flowchart TD
 
 ### Reversibility
 
-Each step can be undone via `UndoProcessingStep()`. Undoing "Finish draft" calls `IEDocumentFinishDraft.RevertDraftActions()` (which deletes the created BC document). Undoing "Prepare draft" clears the BC-resolved fields and resets the document type. Undoing "Structure received data" clears the structured data reference. This lets users go back to an earlier stage, correct data, and re-process.
+Each step can be undone via `UndoProcessingStep()`. Undoing "Finish draft" calls `IEDocumentFinishDraft.RevertDraftActions()`, which de-links the BC document from the E-Document (clears the `"E-Document Link"` field), transfers PO matches and attachments back to the E-Document, but does **not** delete the BC document itself -- it must be handled separately. Undoing "Prepare draft" clears the BC-resolved fields and resets the document type. Undoing "Structure received data" clears the structured data reference. This lets users go back to an earlier stage, correct data, and re-process.
 
 ### Automatic vs. manual processing
 
@@ -104,8 +104,43 @@ Beyond send and receive, the framework supports arbitrary actions on documents v
 ## Gotchas
 
 - **Commit before interface calls**: The framework commits before every interface call (format Create, service Send, receiver ReceiveDocuments, etc.) to support error trapping. This means if the interface fails, the E-Document record and logs are already persisted. The trade-off is that you cannot roll back the E-Document creation if the format export fails.
-- **Re-reading after interface calls**: After every interface call, the framework re-reads the E-Document and service records from the database (`EDocument.Get(EDocument."Entry No")`). This is because interface implementations may modify these records, and the framework needs the latest values.
+- **Re-reading after interface calls**: After every interface call, the framework re-reads the E-Document and service records from the database (`EDocument.Get(EDocument."Entry No")`). This is because interface implementations may modify these records, and the framework needs the latest values. Note: this defensive re-read is most important when the interface parameter is **not** passed by `var`. The original intent of non-`var` parameters was to prevent implementations from modifying records through the parameter, but since AL code can always call `.Modify()` directly on any record, the protection is incomplete. When adding new interface methods, only apply this re-read pattern to procedures where the record is not passed by `var` -- if the signature already uses `var`, the caller expects modifications and re-reading is redundant.
 - **E-Document Status is derived**: The overall `E-Document Status` is derived from the service statuses. `EDocumentProcessing.ModifyEDocumentStatus()` computes it after every service status change using the `IEDocumentStatus` interface on the enum values.
 - **Import Processing Status is a FlowField**: On the E-Document table, `"Import Processing Status"` is a FlowField that reads from `"E-Document Service Status"`. You must call `CalcFields` before reading it.
 - **V1.0 and V2.0 coexistence**: The `"Import Process"` field on the service determines which path runs. V1.0 collapses everything into a single "Finish draft" step that calls the old `V1_ProcessEDocument` logic. The pipeline state machine still runs, but only the last step does anything for V1.0 documents.
+
+## Inbound flow (V1.0 pipeline)
+
+The V1.0 import path is the original single-pass process. It is still active when a service has `"Import Process" = "Version 1.0"`. The main logic lives in `EDocImport.Codeunit.al` (codeunit 6140).
+
+### Flow
+
+```mermaid
+flowchart TD
+    A[E-Document received with raw blob] --> B["V1_ProcessEDocument()"]
+    B --> C["GetDocumentBasicInfo() -- extract vendor, invoice no., dates via format interface"]
+    C --> D["ParseDocumentLines() -- EDocGetFullInfo.Run() parses full content into RecordRef staging"]
+    D --> E["MapEDocument() -- apply field mappings"]
+    E --> F{Auto-process?}
+    F -->|No| G["Status = Imported, wait for manual action"]
+    F -->|Yes| H{Purchase Order linked?}
+    H -->|Yes| I["ReceiveEDocumentToPurchaseOrder() -- link to existing PO"]
+    H -->|No| J{Create journal line?}
+    J -->|Yes| K["CreateJournalLineFromImportedDocument()"]
+    J -->|No| L["ReceiveEDocumentToPurchaseDoc() -- create Purchase Invoice/Credit Memo"]
+    I --> M["Status = Processed"]
+    K --> M
+    L --> M
+```
+
+### Key methods
+
+- **`GetDocumentBasicInfo()`** -- calls the format interface's `GetBasicInfoFromReceivedDocument()` to extract vendor, invoice number, dates, and currency from the raw blob.
+- **`ParseDocumentLines()`** -- runs `EDocGetFullInfo` (a runner codeunit that calls the format interface's `GetCompleteInfoFromReceivedDocument()`) to parse the full document into Purchase Header/Line RecordRef staging tables, then applies field mappings.
+- **`ReceiveEDocumentToPurchaseDoc()`** -- calls `CreatePurchaseDocumentFromImportedDocument()`, which resolves items, units of measure, and G/L accounts, then creates a Purchase Invoice or Credit Memo via `EDocumentCreatePurchase`.
+- **`CreateJournalLineFromImportedDocument()`** -- alternative path that creates a Gen. Journal Line instead of a purchase document, controlled by the `CreateJournalLineV1` import parameter.
+
+### Why V1.0 is deprecated
+
+V1.0 has no staging tables, no user review step, and no reversibility. Format implementations must know how to produce complete purchase documents, violating separation of concerns. The V2.0 pipeline splits this into discrete, undoable stages with provider interfaces for entity resolution.
 - **Duplicate detection**: `E-Document.IsDuplicate()` checks for matching `"Incoming E-Document No."`, `"Bill-to/Pay-to No."`, and `"Document Date"`. Duplicates can be deleted without confirmation; unique documents require explicit user confirmation.

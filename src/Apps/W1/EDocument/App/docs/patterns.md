@@ -65,6 +65,37 @@ Send and receive operations use context codeunits (`SendContext`, `ReceiveContex
 
 The context objects provide a fluent API: `SendContext.Http().GetHttpRequestMessage()`, `SendContext.Status().SetStatus()`, `SendContext.GetTempBlob()`. After the interface call, the framework reads the HTTP objects from the context to log them in the integration log.
 
+## Manual event subscribers as stateful context carriers
+
+The AI tool codeunits in `Processing/AI/Tools/` use a non-standard pattern: `EventSubscriberInstance = Manual` combined with instance variables to carry context across an execution lifecycle. This differs from the typical BC event subscriber pattern where subscribers are stateless singletons.
+
+In this pattern, a codeunit declares `EventSubscriberInstance = Manual` and `TableNo = "E-Document Purchase Line"` (or similar). The orchestrator (`EDocAIToolProcessor`) binds the instance, then calls it with row-level context via `OnRun()`. Instance variables like `EDocumentNo: Integer` persist between method calls on the same instance, so the `Execute()` callback (invoked later by the AI function-calling loop) can access state that was set during initialization.
+
+```al
+codeunit 6177 "E-Doc. Historical Matching" implements "AOAI Function", IEDocAISystem
+{
+    EventSubscriberInstance = Manual;
+    TableNo = "E-Document Purchase Line";
+
+    var
+        EDocumentNo: Integer;  // context set in OnRun, used in Execute
+
+    trigger OnRun()
+    begin
+        EDocumentNo := Rec."E-Document Entry No.";  // capture context
+        EDocumentAIProcessor.Setup(this);            // bind instance
+        EDocumentAIProcessor.Process(...);           // AI loop calls Execute()
+    end;
+
+    procedure Execute(Arguments: JsonObject): Variant
+    begin
+        // EDocumentNo is available here from the OnRun context
+    end;
+}
+```
+
+This pattern appears in `EDocHistoricalMatching`, `EDocGLAccountMatching`, `EDocDeferralMatching`, and `EDocSimilarDescriptions`. The key advantage is that state flows through the instance rather than through event parameters, keeping the AI tool interface clean while preserving row-level context across asynchronous function calls.
+
 ## Bidirectional state machine (import pipeline)
 
 The V2.0 import pipeline in `ImportEDocumentProcess.Codeunit.al` is a bidirectional state machine. Given a current status and a desired status, `GetEDocumentToDesiredStatus()` calculates the path:

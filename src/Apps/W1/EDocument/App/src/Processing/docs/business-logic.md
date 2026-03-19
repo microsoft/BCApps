@@ -41,9 +41,29 @@ Key decision points in the flow:
 
 - **Error isolation.** `EDocumentCreate.Codeunit.al` is a runner codeunit invoked with `Codeunit.Run()`. If the format interface throws, `GetLastErrorText()` is captured and logged against the E-Document without aborting the caller.
 
-## Order matching
+## Order matching (two separate systems)
 
-Order matching applies to incoming purchase orders after the import pipeline has linked the E-Document to a purchase order (status `"Order Linked"`). The goal is to reconcile imported e-document lines with the PO's purchase lines so that `"Qty. to Invoice"` is set correctly before posting.
+There are two distinct order matching systems in the codebase. They serve different purposes and use different data models. Do not confuse them.
+
+### V2 import pipeline PO matching (automatic, during Prepare Draft)
+
+This is the **newer** system, part of the V2.0 import pipeline in `Import/Purchase/PurchaseOrderMatching/`. It runs automatically during the "Prepare draft" stage when an incoming e-document references a purchase order number.
+
+The flow:
+1. During Prepare Draft, `PreparePurchaseEDocDraft` calls `IPurchaseOrderProvider.GetPurchaseOrder()` to look up a PO by order number from the e-document header.
+2. If found, `EDocPOMatching.MatchPOLinesToEDocumentLine()` matches e-document purchase lines to PO lines.
+3. After matching, `CalculatePOMatchWarnings()` generates warnings for over-receipt, under-receipt, quantity mismatches, etc.
+4. During Finish Draft, `SuggestReceiptsForMatchedOrderLines()` proposes receipt lines, and `TransferPOMatchesFromEDocumentToInvoice()` writes matches to the created purchase invoice.
+
+**Key data:** Matches are stored in `"E-Doc. Purchase Line PO Match"` (table 6114) -- a junction table linking e-document lines to PO lines and receipt lines via SystemIds. Warnings go in `"E-Doc. PO Match Warning"` (table 6115). Receipt behavior is configurable per vendor in `"E-Doc. PO Matching Setup"` (Always Ask / Always Receive / Never Receive).
+
+**Main codeunit:** `EDocPOMatching.Codeunit.al` (codeunit 6196) in `Import/Purchase/PurchaseOrderMatching/`.
+
+**Extensibility:** Override `IPurchaseOrderProvider.GetPurchaseOrder()` to customize how POs are looked up (e.g., match by vendor + date range instead of order number).
+
+### V1 interactive order matching (user-driven, post-import)
+
+This is the **older** system in `OrderMatching/`. It applies after the import pipeline has linked an E-Document to a purchase order (status `"Order Linked"`). The goal is to interactively reconcile imported e-document lines with PO lines so that `"Qty. to Invoice"` is set correctly before posting.
 
 **Automatic matching** (`EDocLineMatching.MatchAutomatically`) filters PO lines to those with the same unit of measure, direct unit cost, and line discount as the imported line, then applies three matching strategies in order:
 
@@ -59,9 +79,13 @@ Each successful match creates an `"E-Doc. Order Match"` record linking the e-doc
 
 **Apply to purchase order.** `ApplyToPurchaseOrder()` validates that all imported lines are fully matched, then writes the matched unit costs and discounts to the actual PO lines and links the purchase header to the E-Document via `"E-Document Link"`.
 
+### Common gotcha: which matching system applies?
+
+If you are working on the V2.0 import pipeline (Prepare Draft / Finish Draft stages, `"E-Doc. Purchase Line PO Match"` table), you are in the **new** system. If you are working with `"E-Doc. Order Match"` records or the `"E-Doc. Order Line Matching"` page, you are in the **old** system. The two do not share data models, codeunits, or flow paths. Code changes to one should not be applied to the other without understanding which pipeline the document is going through.
+
 ## Copilot PO matching
 
-When automatic matching leaves unmatched lines, users can invoke Copilot from the matching page. `EDocPOCopilotMatching.MatchWithCopilot()` builds a prompt containing imported line and PO line descriptions, sends it to Azure OpenAI (GPT-4.1 via the `"E-Document Matching Assistance"` Copilot capability), and interprets the response through function-calling tools.
+When automatic matching (V1 interactive system) leaves unmatched lines, users can invoke Copilot from the matching page. `EDocPOCopilotMatching.MatchWithCopilot()` builds a prompt containing imported line and PO line descriptions, sends it to Azure OpenAI (GPT-4.1 via the `"E-Document Matching Assistance"` Copilot capability), and interprets the response through function-calling tools.
 
 The Copilot result is **grounded** before being shown: the framework verifies that proposed matches respect the cost difference threshold configured in `"Purchases & Payables Setup"."E-Document Matching Difference"`. Proposals that exceed the threshold are discarded. Accepted proposals are surfaced on a proposal page where the user reviews and confirms.
 
