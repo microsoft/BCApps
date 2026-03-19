@@ -4,6 +4,9 @@
 // ------------------------------------------------------------------------------------------------
 
 namespace System.TestTools.AITestToolkit;
+
+using System.Agents;
+
 page 149038 "AIT Log Entry API"
 {
     PageType = API;
@@ -60,12 +63,12 @@ page 149038 "AIT Log Entry API"
                 }
                 field(copilotCredits; CopilotCredits)
                 {
-                    Caption = 'Copilot credits';
+                    Caption = 'Copilot Credits Consumed';
                     Editable = false;
                 }
                 field(agentTaskIDs; AgentTaskIDs)
                 {
-                    Caption = 'Agent tasks';
+                    Caption = 'Agent Tasks Executed';
                     Editable = false;
                 }
                 field("startTime"; Rec."Start Time")
@@ -136,6 +139,13 @@ page 149038 "AIT Log Entry API"
         }
     }
 
+    trigger OnOpenPage()
+    var
+        AgentSystemPermissions: Codeunit "Agent System Permissions";
+    begin
+        ConsumedCreditsVisible := AgentSystemPermissions.CurrentUserCanSeeConsumptionData();
+    end;
+
     trigger OnAfterGetRecord()
     var
         AgentTestContextImpl: Codeunit "Agent Test Context Impl.";
@@ -146,7 +156,7 @@ page 149038 "AIT Log Entry API"
         ErrorCallStackText := Rec.GetErrorCallStack();
         SuiteDescription := Rec.GetSuiteDescription();
         TestMethodLineDescription := Rec.GetTestMethodLineDescription();
-        CopilotCredits := AgentTestContextImpl.GetCopilotCreditsForLogEntry(Rec."Entry No.");
+        CopilotCredits := ConsumedCreditsVisible ? AgentTestContextImpl.GetCopilotCreditsForLogEntry(Rec."Entry No.") : -1;
         AgentTaskIDs := AgentTestContextImpl.GetAgentTaskIDsForLogEntry(Rec."Entry No.");
     end;
 
@@ -158,5 +168,6 @@ page 149038 "AIT Log Entry API"
         SuiteDescription: Text[250];
         TestMethodLineDescription: Text[250];
         CopilotCredits: Decimal;
+        ConsumedCreditsVisible: Boolean;
         AgentTaskIDs: Text;
 }
