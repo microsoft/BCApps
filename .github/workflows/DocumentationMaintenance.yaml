@@ -101,7 +101,10 @@ jobs:
           if copilot -p "Read /tmp/full-report.md. Does the audit show documentation gaps that need to be fixed? Reply only YES or NO." \
             -s --no-ask-user --allow-tool=read | grep -qi "yes"; then
 
-            SUMMARY=$(copilot -p "Read /tmp/full-report.md. Write a short PR review body (max 5 lines) listing which apps have documentation gaps and what is missing. End with: To generate documentation, run the /al-docs init or /al-docs update skill using GitHub Copilot CLI (copilot) or Claude Code (claude)." \
+            SUMMARY=$(copilot -p "You are GitHub Copilot posting a PR review. Read /tmp/full-report.md and output ONLY the review body — no thinking, no preamble, no explanation. Format:
+
+            For each app with gaps, one line: **App Name** (path): coverage %, list missing files.
+            Final line: To generate documentation, run the \`/al-docs init\` or \`/al-docs update\` skill using [GitHub Copilot CLI](https://github.com/github/copilot-cli) or [Claude Code](https://claude.com/claude-code)." \
               -s --no-ask-user --allow-tool=read 2>&1)
 
             gh api repos/${{ github.repository }}/pulls/${{ github.event.pull_request.number }}/reviews \
