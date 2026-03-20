@@ -15,6 +15,7 @@ codeunit 4300 "Agent Task Impl."
     Access = Internal;
     InherentEntitlements = X;
     InherentPermissions = X;
+    Permissions = tabledata "User AI Consumption Data" = r;
 
     procedure SetMessageText(var AgentTaskMessage: Record "Agent Task Message"; MessageText: Text)
     var
