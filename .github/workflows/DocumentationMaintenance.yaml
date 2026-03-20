@@ -78,9 +78,7 @@ jobs:
             echo "Auditing $APP_NAME at $APP_PATH..."
 
             OUTPUT=$(timeout 300 copilot -p \
-              "Look at the AL app at $APP_PATH. Check if it has a CLAUDE.md or docs/ directory.
-              Count the AL objects (tables, codeunits, pages). Reply in 2-3 sentences:
-              what you found, whether docs exist, and if the developer should run al-docs." \
+              "Run the al-docs skill in audit mode on the app at $APP_PATH. After the audit completes, summarize the result in 2-3 sentences: coverage percentage, what is missing, and whether the developer should run al-docs init." \
               --model claude-opus-4.6 \
               -s \
               --no-ask-user \
