@@ -6,16 +6,23 @@ namespace Microsoft.EServices.EDocumentConnector.Avalara;
 
 using System.Telemetry;
 
+/// <summary>
+/// Connection setup card.
+/// allows input of credentials and testing
+/// allows Selection of company
+/// of connection
+/// </summary>
+
 page 6372 "Connection Setup Card"
 {
-    PageType = Card;
-    SourceTable = "Connection Setup";
     ApplicationArea = Basic, Suite;
-    UsageCategory = None;
     Caption = 'Avalara Connection Setup';
-    Permissions = tabledata "Connection Setup" = rm;
     DeleteAllowed = false;
     InsertAllowed = false;
+    PageType = Card;
+    Permissions = tabledata "Connection Setup" = rm;
+    SourceTable = "Connection Setup";
+    UsageCategory = None;
 
     layout
     {
@@ -25,24 +32,24 @@ page 6372 "Connection Setup Card"
             {
                 field(ClientID; ClientID)
                 {
-                    Caption = 'Client ID';
-                    ToolTip = 'Specifies the client ID.';
                     ApplicationArea = Basic, Suite;
+                    Caption = 'Client ID';
                     ExtendedDatatype = Masked;
                     ShowMandatory = true;
+                    ToolTip = 'Specifies the client ID.';
 
                     trigger OnValidate()
                     begin
-                        AvalaraAuth.SetClientId(Rec."Client ID - Key", ClientID);
+                        AvalaraAuth.SetClientId(Rec."Client Id - Key", ClientID);
                     end;
                 }
                 field(ClientSecret; ClientSecret)
                 {
-                    Caption = 'Client Secret';
-                    ToolTip = 'Specifies the client secret.';
                     ApplicationArea = Basic, Suite;
+                    Caption = 'Client Secret';
                     ExtendedDatatype = Masked;
                     ShowMandatory = true;
+                    ToolTip = 'Specifies the client secret.';
 
                     trigger OnValidate()
                     begin
@@ -67,36 +74,43 @@ page 6372 "Connection Setup Card"
                 field("Sandbox API URL"; Rec."Sandbox API URL")
                 {
                     ApplicationArea = Basic, Suite;
+                    Caption = 'Sandbox API URL';
                     ToolTip = 'Specifies the URL to connect to Avalara sandbox api.';
                 }
                 field("Company Name"; Rec."Company Name")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the company name.';
                     Editable = false;
+                    ToolTip = 'Specifies the company name.';
                 }
                 field("Company Id"; Rec."Company Id")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the company ID.';
                     Editable = false;
+                    ToolTip = 'Specifies the company ID.';
+                }
+                field("Token Expiry"; Rec."Token Expiry")
+                {
+                    ApplicationArea = Basic, Suite;
+                    Editable = false;
+                    ToolTip = 'Specifies the Token Expiry field.';
                 }
                 field("Avalara Send Mode"; Rec."Avalara Send Mode")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the send mode.';
                     ShowMandatory = true;
+                    ToolTip = 'Specifies the send mode.';
                 }
 #if not CLEAN27
                 field("Send Mode"; Rec."Send Mode")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the send mode.';
-                    ShowMandatory = true;
-                    Visible = false;
                     ObsoleteReason = 'Use "Avalara Send Mode" instead.';
                     ObsoleteState = Pending;
                     ObsoleteTag = '27.0';
+                    ShowMandatory = true;
+                    ToolTip = 'Specifies the send mode.';
+                    Visible = false;
                 }
 #endif
             }
@@ -105,13 +119,13 @@ page 6372 "Connection Setup Card"
 
     actions
     {
-        area(processing)
+        area(Processing)
         {
             action(SelectCompanyId)
             {
                 ApplicationArea = Basic, Suite;
-                Image = SelectEntries;
                 Caption = 'Select Avalara Company Id';
+                Image = SelectEntries;
                 ToolTip = 'Select Avalara company for service.';
 
                 trigger OnAction()
@@ -120,27 +134,58 @@ page 6372 "Connection Setup Card"
                     CurrPage.Update();
                 end;
             }
+
+            /// <summary>
+            /// Set country mandate and gets input fields associated with the mandate.
+            /// </summary>
+
             action(SelectMandate)
             {
                 ApplicationArea = Basic, Suite;
-                Image = SelectEntries;
                 Caption = 'Select Avalara Mandate';
+                Image = SelectEntries;
                 ToolTip = 'Select Avalara company for service.';
 
                 trigger OnAction()
+                var
+                    Mandate: Record Mandate;
+                    MandateSelected: Text;
                 begin
-                    AvalaraProcessing.UpdateMandate();
+                    MandateSelected := '';
+
+                    AvalaraProcessing.UpdateMandate(MandateSelected);
+                    if MandateSelected <> '' then
+                        AvalaraProcessing.GetSingleMandate(Mandate, MandateSelected);
+                end;
+            }
+
+            /// <summary>
+            /// Checks credentials by requesting the orl/registations.
+            /// the response is not processed it proves the credentials
+            /// </summary>
+
+            action(CheckCredentials)
+            {
+                ApplicationArea = Basic, Suite;
+                Caption = 'Check Credentials';
+                Image = SelectEntries;
+                ToolTip = 'Request a new authorisation token to confirm current settings ';
+
+                trigger OnAction()
+                var
+                    Result: Text;
+                begin
+                    Result := AvalaraProcessing.GetRegistrationList();
+                    if StrLen(Result) > 3 then
+                        Message('Credentials are valid for the selected sending mode environment.');
                 end;
             }
         }
         area(Promoted)
         {
-            actionref(SelectCompanyIdRef; SelectCompanyId)
-            {
-            }
-            actionref(SelectMandateRef; SelectMandate)
-            {
-            }
+            actionref(SelectCompanyIdRef; SelectCompanyId) { }
+            actionref(SelectMandateRef; SelectMandate) { }
+            actionref(CheckCredentialsRef; CheckCredentials) { }
         }
     }
 
@@ -160,7 +205,7 @@ page 6372 "Connection Setup Card"
 
     var
 
-        AvalaraAuth: Codeunit "Authenticator";
+        AvalaraAuth: Codeunit Authenticator;
         AvalaraProcessing: Codeunit Processing;
         [NonDebuggable]
         ClientID, ClientSecret : Text;
