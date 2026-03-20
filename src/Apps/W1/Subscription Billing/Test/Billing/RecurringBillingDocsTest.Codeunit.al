@@ -73,7 +73,7 @@ codeunit 139687 "Recurring Billing Docs Test"
 
     [Test]
     [HandlerFunctions('MessageHandler,GetVendorContractLinesPageHandler,ExchangeRateSelectionModalPageHandler')]
-    procedure AssignVendorContractLinesToExistingPurchaseInvoiceLine()
+    procedure AssignItemVendorContractLineToPurchaseInvoiceLine()
     var
         Item: Record Item;
         Vendor: Record Vendor;
@@ -108,6 +108,52 @@ codeunit 139687 "Recurring Billing Docs Test"
         Assert.RecordIsNotEmpty(BillingLine);
         BillingLine.CalcSums(Amount);
         Assert.AreEqual(PurchaseLine."Line Amount", BillingLine.Amount, 'Service amount was not taken from purchase line');
+
+        // [THEN] If Purchase Line is deleted, billing lines are deleted as well
+        PurchaseLine.Get(PurchaseLine."Document Type", PurchaseLine."Document No.", PurchaseLine."Line No.");
+        PurchaseLine.Delete(true);
+        BillingLine.Reset();
+        BillingLine.FilterBillingLineOnDocumentLine(BillingLine.GetBillingDocumentTypeFromPurchaseDocumentType(PurchaseLine."Document Type"), PurchaseLine."Document No.", PurchaseLine."Line No.");
+        Assert.RecordIsEmpty(BillingLine);
+    end;
+
+    [Test]
+    [HandlerFunctions('GetVendorContractLinesPageHandler')]
+    procedure AssignGLAccountVendorContractLineToPurchaseInvoiceLine()
+    var
+        Vendor: Record Vendor;
+    begin
+        // [SCENARIO] Test if Vendor Subscription Contract line with G/L Account can be assigned to G/L Account purchase invoice line
+        Initialize();
+
+        // [GIVEN] A Vendor Subscription Contract with a G/L Account line
+        ContractTestLibrary.DeleteAllContractRecords();
+        ContractTestLibrary.CreateVendor(Vendor);
+        ContractTestLibrary.CreateVendorContract(VendorContract, Vendor."No.");
+        ContractTestLibrary.InsertVendorContractGLAccountLine(VendorContract, VendorContractLine);
+        GetVendorContractServiceCommitment(VendorContract."No.");
+        ServiceCommitment."Billing Rhythm" := ServiceCommitment."Billing Base Period";
+        ServiceCommitment.Modify(false);
+
+        // [GIVEN] A Purchase Invoice with a G/L Account line for the same G/L Account
+        LibraryPurchase.CreatePurchaseInvoiceForVendorNo(PurchaseHeader, Vendor."No.");
+        LibraryPurchase.CreatePurchaseLine(PurchaseLine, PurchaseHeader, "Purchase Line Type"::"G/L Account", VendorContractLine."No.", 1);
+        PurchaseLine.Validate("Direct Unit Cost", LibraryRandom.RandDec(100, 2));
+        PurchaseLine.Modify(false);
+
+        // [WHEN] Assign Contract Line to the G/L Account purchase invoice line
+        PurchaseLine.AssignVendorContractLine();
+
+        // [THEN] Purchase header is marked as Recurring billing
+        PurchaseHeader.Get(PurchaseHeader."Document Type", PurchaseHeader."No.");
+        PurchaseHeader.TestField("Recurring Billing", true);
+
+        // [THEN] Billing lines exist and amount matches purchase line amount
+        BillingLine.Reset();
+        BillingLine.FilterBillingLineOnDocumentLine(BillingLine.GetBillingDocumentTypeFromPurchaseDocumentType(PurchaseLine."Document Type"), PurchaseLine."Document No.", PurchaseLine."Line No.");
+        Assert.RecordIsNotEmpty(BillingLine);
+        BillingLine.CalcSums(Amount);
+        Assert.AreEqual(PurchaseLine."Line Amount", BillingLine.Amount, 'Service amount was not taken from G/L Account purchase line');
 
         // [THEN] If Purchase Line is deleted, billing lines are deleted as well
         PurchaseLine.Get(PurchaseLine."Document Type", PurchaseLine."Document No.", PurchaseLine."Line No.");

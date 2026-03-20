@@ -90,12 +90,19 @@ tableextension 8065 "Purchase Line" extends "Purchase Line"
     var
         Item: Record Item;
     begin
-        if not (Rec.Type = Enum::"Purchase Line Type"::Item) then
-            exit;
-        if not Item.Get(Rec."No.") then
-            exit;
-        exit((Item."Subscription Option" in [Enum::"Item Service Commitment Type"::"Service Commitment Item", Enum::"Item Service Commitment Type"::"Invoicing Item"])
-                                       and (not Rec.IsLineAttachedToBillingLine()));
+        case Rec.Type of
+            Enum::"Purchase Line Type"::Item:
+                begin
+                    if not Item.Get(Rec."No.") then
+                        exit(false);
+                    exit((Item."Subscription Option" in [Enum::"Item Service Commitment Type"::"Service Commitment Item", Enum::"Item Service Commitment Type"::"Invoicing Item"])
+                                               and (not Rec.IsLineAttachedToBillingLine()));
+                end;
+            Enum::"Purchase Line Type"::"G/L Account":
+                exit(not Rec.IsLineAttachedToBillingLine());
+            else
+                exit(false);
+        end;
     end;
 
     internal procedure AssignVendorContractLine()
