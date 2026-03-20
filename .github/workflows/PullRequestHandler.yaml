@@ -3,6 +3,7 @@ name: 'Pull Request Build'
 on:
   pull_request:
     branches: [ 'main', 'releases/*', 'features/*' ]
+    paths: ['THIS_PR_IS_TESTING_DOCS_WORKFLOW_ONLY']
   merge_group:
 
 concurrency:
