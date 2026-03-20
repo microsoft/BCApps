@@ -129,7 +129,9 @@ jobs:
             For each app with gaps, write one line like: **App Name** (path): X% documentation coverage
             Only list apps that have gaps. If an app has 100% coverage, skip it.
 
-            End with exactly: To generate documentation, run the \`/al-docs init\` or \`/al-docs update\` skill using [GitHub Copilot CLI](https://github.com/github/copilot-cli) or [Claude Code](https://claude.com/claude-code)." \
+            End with exactly these two lines:
+            To generate documentation, run the \`/al-docs init\` or \`/al-docs update\` skill using [GitHub Copilot CLI](https://github.com/github/copilot-cli) or [Claude Code](https://claude.com/claude-code).
+            _This review is for awareness to help keep documentation in sync with code changes. It is okay to dismiss this request._" \
               -s --no-ask-user --allow-tool=read 2>&1)
 
             gh api repos/${{ github.repository }}/pulls/${{ github.event.pull_request.number }}/reviews \
