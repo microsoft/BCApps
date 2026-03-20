@@ -24,11 +24,12 @@ page 149031 "AIT Test Suite"
     {
         area(Content)
         {
-            group(SuiteSelection)
+            group(General)
             {
-                ShowCaption = false;
+                Caption = 'AI Eval Suite';
+                Enabled = Rec.Status <> Rec.Status::Running;
 
-                field(CurrentSuiteCode; CurrentSuiteCode)
+                field("Code"; CurrentSuiteCode)
                 {
                     Caption = 'Suite Code';
                     ToolTip = 'Specifies the currently selected AI Eval Suite.';
@@ -37,11 +38,12 @@ page 149031 "AIT Test Suite"
                     var
                         AITTestSuite: Record "AIT Test Suite";
                     begin
-                        AITTestSuite.Code := CurrentSuiteCode;
-                        if PAGE.RunModal(0, AITTestSuite) <> ACTION::LookupOK then
+                        AITTestSuite.Get(CurrentSuiteCode);
+                        if not (Page.RunModal(Page::"AIT Test Suite List", AITTestSuite) in [Action::LookupOK, Action::Yes]) then
                             exit(false);
 
-                        Text := AITTestSuite.Code;
+                        CurrentSuiteCode := AITTestSuite.Code;
+                        ChangeTestSuite();
                         exit(true);
                     end;
 
@@ -49,15 +51,7 @@ page 149031 "AIT Test Suite"
                     begin
                         ChangeTestSuite();
                     end;
-                }
-            }
-            group(General)
-            {
-                Caption = 'AI Eval Suite';
-                Enabled = Rec.Status <> Rec.Status::Running;
 
-                field("Code"; Rec."Code")
-                {
                 }
                 field(Description; Rec.Description)
                 {
@@ -515,23 +509,30 @@ page 149031 "AIT Test Suite"
     var
         AITTestSuite: Record "AIT Test Suite";
     begin
-        if not AITTestSuite.Get(CurrentSuiteCode) then
-            if AITTestSuite.FindFirst() then
-                CurrentSuiteCode := AITTestSuite.Code
-            else
-                CurrentSuiteCode := '';
+        // If the page was opened with a specific record (e.g. from the list), use that record
+        if Rec.Code <> '' then begin
+            CurrentSuiteCode := Rec.Code;
+            exit;
+        end;
 
         if CurrentSuiteCode <> '' then
-            Rec.Get(CurrentSuiteCode);
+            if AITTestSuite.Get(CurrentSuiteCode) then
+                CurrentSuiteCode := AITTestSuite.Code
+            else
+                Clear(CurrentSuiteCode);
+
+        if CurrentSuiteCode = '' then begin
+            AITTestSuite.Copy(Rec);
+            AITTestSuite.FindFirst();
+            CurrentSuiteCode := AITTestSuite.Code;
+        end;
+
+        Rec.Get(CurrentSuiteCode);
     end;
 
     local procedure ChangeTestSuite()
-    var
-        AITTestSuite: Record "AIT Test Suite";
     begin
-        if AITTestSuite.Get(CurrentSuiteCode) then
-            Rec.Get(CurrentSuiteCode);
-
+        Rec.Get(CurrentSuiteCode);
         CurrPage.Update(false);
     end;
 }
