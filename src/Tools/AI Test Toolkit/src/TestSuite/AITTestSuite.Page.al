@@ -49,6 +49,11 @@ page 149031 "AIT Test Suite"
 
                     trigger OnValidate()
                     begin
+                        if IsNullGuid(Rec.SystemId) then begin
+                            Rec.Code := CurrentSuiteCode;
+                            Rec.Insert();
+                        end;
+
                         ChangeTestSuite();
                     end;
 
