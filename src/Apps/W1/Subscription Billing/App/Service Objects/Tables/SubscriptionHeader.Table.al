@@ -1856,7 +1856,7 @@ table 8057 "Subscription Header"
             exit(true);
     end;
 
-    internal procedure InsertServiceCommitmentsFromStandardServCommPackages()
+    procedure InsertServiceCommitmentsFromStandardServCommPackages()
     begin
         if SkipInsertServiceCommitments then
             exit;
@@ -1864,7 +1864,7 @@ table 8057 "Subscription Header"
         InsertServiceCommitmentsFromStandardServCommPackages(0D)
     end;
 
-    internal procedure InsertServiceCommitmentsFromStandardServCommPackages(ServiceAndCalculationStartDate: Date)
+    procedure InsertServiceCommitmentsFromStandardServCommPackages(ServiceAndCalculationStartDate: Date)
     var
         ItemServCommitmentPackage: Record "Item Subscription Package";
         ServiceCommitmentPackage: Record "Subscription Package";
@@ -1913,10 +1913,7 @@ table 8057 "Subscription Header"
                         ServiceCommitment.Template := ServiceCommPackageLine.Template;
                         ServiceCommitment.Description := ServiceCommPackageLine.Description;
                         ServiceCommitment."Invoicing via" := ServiceCommPackageLine."Invoicing via";
-                        if Item.IsServiceCommitmentItem() then
-                            ServiceCommitment."Invoicing Item No." := Item."No."
-                        else
-                            ServiceCommitment."Invoicing Item No." := ServiceCommPackageLine."Invoicing Item No.";
+                        ServiceCommitment."Invoicing Item No." := ServiceCommPackageLine.GetInvoicingItemNo(Item);
                         ServiceCommitment."Customer Price Group" := ServiceCommitmentPackage."Price Group";
 
                         if ServiceAndCalculationStartDate <> 0D then
@@ -2038,9 +2035,10 @@ table 8057 "Subscription Header"
                     if FieldCaption(Quantity) <> ChangedFieldName then
                         ServiceCommitment.CalculateCalculationBaseAmount();
                     ServiceCommitment.Validate("Calculation Base Amount");
-                    if SkipArchiving then
-                        ServiceCommitment.SetSkipArchiving(true);
-                    ServiceCommitment.Modify(true);
+                    ServiceCommitment.SetUpdateRequiredOnBillingLines();
+                    if not SkipArchiving then
+                        ServiceCommitment.ArchiveServiceCommitment();
+                    ServiceCommitment.Modify(false);
                 until ServiceCommitment.Next() = 0;
         end else
             if (not Confirmed) and (FieldCaption("Variant Code") = ChangedFieldName) then
