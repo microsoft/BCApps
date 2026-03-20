@@ -38,7 +38,7 @@ codeunit 50175 "BC14 Migration Runner"
 
     procedure RunMigration()
     var
-        BC14CompanySettings: Record "BC14CompanyMigrationSettings";
+        BC14CompanySettings: Record BC14CompanyMigrationSettings;
         BC14HelperFunctions: Codeunit "BC14 Helper Functions";
         LastCompletedPhase: Enum "BC14 Migration State";
         StartPhase: Enum "BC14 Migration State";
@@ -70,7 +70,7 @@ codeunit 50175 "BC14 Migration Runner"
         // Migrators handle their own record-level skipping, so we just need phase-level resume
         if BC14CompanySettings.IsMigrationPaused() then begin
             StartPhase := GetNextPhase(LastCompletedPhase);
-            Session.LogMessage('0000ROK', StrSubstNo(MigrationResumedMsg, CompanyName(), Format(StartPhase)), Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', BC14HelperFunctions.GetTelemetryCategory());
+            Session.LogMessage('0000ROZ', StrSubstNo(MigrationResumedMsg, CompanyName(), Format(StartPhase)), Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', BC14HelperFunctions.GetTelemetryCategory());
         end else begin
             BC14CompanySettings.SetDataMigrationStarted();
             StartPhase := "BC14 Migration State"::Setup;
@@ -123,7 +123,7 @@ codeunit 50175 "BC14 Migration Runner"
 
     local procedure RunMigrationFromPhase(StartPhase: Enum "BC14 Migration State"; StopOnFirstError: Boolean)
     var
-        BC14CompanySettings: Record "BC14CompanyMigrationSettings";
+        BC14CompanySettings: Record BC14CompanyMigrationSettings;
         BC14HelperFunctions: Codeunit "BC14 Helper Functions";
         TotalErrors: Integer;
         AllBatchesPosted: Boolean;
@@ -177,12 +177,12 @@ codeunit 50175 "BC14 Migration Runner"
             BC14CompanySettings.SetMigrationPhaseCompleted("BC14 Migration State"::Historical, '');
 
         TotalErrors := GetTotalErrorCount();
-        Session.LogMessage('0000ROE', StrSubstNo(MigrationCompletedMsg, CompanyName(), TotalErrors), Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', BC14HelperFunctions.GetTelemetryCategory());
+        Session.LogMessage('0000ROX', StrSubstNo(MigrationCompletedMsg, CompanyName(), TotalErrors), Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', BC14HelperFunctions.GetTelemetryCategory());
     end;
 
     local procedure ExecuteMigrationPhase(StartPhase: Enum "BC14 Migration State"; Phase: Enum "BC14 Migration State"; StopOnFirstError: Boolean): Boolean
     var
-        BC14CompanySettings: Record "BC14CompanyMigrationSettings";
+        BC14CompanySettings: Record BC14CompanyMigrationSettings;
         BC14HelperFunctions: Codeunit "BC14 Helper Functions";
         PhaseStepNo: Integer;
         PhaseSuccess: Boolean;
@@ -202,7 +202,7 @@ codeunit 50175 "BC14 Migration Runner"
 
         PhaseStepNo := Phase.AsInteger();
         BC14CompanySettings.SetMigrationPhaseCompleted(Phase, '');
-        Session.LogMessage('0000ROL', StrSubstNo(MigrationPhaseCompletedLbl, Format(PhaseStepNo)), Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', BC14HelperFunctions.GetTelemetryCategory(), 'StepNo', Format(PhaseStepNo));
+        Session.LogMessage('0000RP0', StrSubstNo(MigrationPhaseCompletedLbl, Format(PhaseStepNo)), Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', BC14HelperFunctions.GetTelemetryCategory(), 'StepNo', Format(PhaseStepNo));
         exit(true);
     end;
 
@@ -288,7 +288,7 @@ codeunit 50175 "BC14 Migration Runner"
 
     local procedure RunSetupMigrations(StopOnFirstError: Boolean): Boolean
     var
-        BC14CompanySettings: Record "BC14CompanyMigrationSettings";
+        BC14CompanySettings: Record BC14CompanyMigrationSettings;
         SourceRecordRef: RecordRef;
         SetupMigratorEnum: Enum "BC14 Setup Migrator";
         SetupMigrator: Interface "ISetupMigrator";
@@ -347,7 +347,7 @@ codeunit 50175 "BC14 Migration Runner"
 
     local procedure RunMasterMigrations(StopOnFirstError: Boolean): Boolean
     var
-        BC14CompanySettings: Record "BC14CompanyMigrationSettings";
+        BC14CompanySettings: Record BC14CompanyMigrationSettings;
         SourceRecordRef: RecordRef;
         MasterMigratorEnum: Enum "BC14 Master Migrator";
         MasterMigrator: Interface "IMasterMigrator";
@@ -404,7 +404,7 @@ codeunit 50175 "BC14 Migration Runner"
 
     local procedure RunTransactionMigrations(StopOnFirstError: Boolean): Boolean
     var
-        BC14CompanySettings: Record "BC14CompanyMigrationSettings";
+        BC14CompanySettings: Record BC14CompanyMigrationSettings;
         SourceRecordRef: RecordRef;
         TransactionMigratorEnum: Enum "BC14 Transaction Migrator";
         TransactionMigrator: Interface "ITransactionMigrator";
@@ -461,7 +461,7 @@ codeunit 50175 "BC14 Migration Runner"
 
     local procedure RunHistoricalMigrations(StopOnFirstError: Boolean): Boolean
     var
-        BC14CompanySettings: Record "BC14CompanyMigrationSettings";
+        BC14CompanySettings: Record BC14CompanyMigrationSettings;
         SourceRecordRef: RecordRef;
         HistoricalMigratorEnum: Enum "BC14 Historical Migrator";
         HistoricalMigrator: Interface "IHistoricalMigrator";
@@ -523,7 +523,7 @@ codeunit 50175 "BC14 Migration Runner"
     /// </summary>
     procedure RetryFailedRecords()
     var
-        BC14CompanySettings: Record "BC14CompanyMigrationSettings";
+        BC14CompanySettings: Record BC14CompanyMigrationSettings;
         BC14MigrationErrors: Record "BC14 Migration Errors";
     begin
         // Mark all "Scheduled For Retry" errors so they will be re-attempted
@@ -606,7 +606,7 @@ codeunit 50175 "BC14 Migration Runner"
         // Clean up the migration progress tracking table after successful completion
         // This table can grow very large (e.g., millions of G/L Entries) and is only needed during migration
         DeletedCount := BC14MigrationRecordStatus.ClearAllMigrationStatus();
-        Session.LogMessage('0000ROM', StrSubstNo(MigrationRecordStatusCleanedUpLbl, DeletedCount), Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', BC14HelperFunctions.GetTelemetryCategory());
+        Session.LogMessage('0000RP1', StrSubstNo(MigrationRecordStatusCleanedUpLbl, DeletedCount), Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', BC14HelperFunctions.GetTelemetryCategory());
     end;
 
     /// <summary>
@@ -617,7 +617,7 @@ codeunit 50175 "BC14 Migration Runner"
     var
         GenJournalLine: Record "Gen. Journal Line";
         GenJournalBatch: Record "Gen. Journal Batch";
-        BC14CompanySettings: Record "BC14CompanyMigrationSettings";
+        BC14CompanySettings: Record BC14CompanyMigrationSettings;
         BC14HelperFunctions: Codeunit "BC14 Helper Functions";
         BC14MigrationErrorHandler: Codeunit "BC14 Migration Error Handler";
         TemplateName: Code[10];

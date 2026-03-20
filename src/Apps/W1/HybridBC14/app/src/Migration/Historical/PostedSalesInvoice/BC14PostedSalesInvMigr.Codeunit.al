@@ -17,7 +17,7 @@ codeunit 50180 "BC14 Posted Sales Inv Migr." implements "IHistoricalMigrator"
 
     procedure IsEnabled(): Boolean
     var
-        BC14CompanySettings: Record "BC14CompanyMigrationSettings";
+        BC14CompanySettings: Record BC14CompanyMigrationSettings;
     begin
         if not BC14CompanySettings.GetReceivablesModuleEnabled() then
             exit(false);

@@ -23,7 +23,7 @@ codeunit 50188 "BC14 G/L Entry Migrator" implements "ITransactionMigrator"
 
     procedure IsEnabled(): Boolean
     var
-        BC14CompanySettings: Record "BC14CompanyMigrationSettings";
+        BC14CompanySettings: Record BC14CompanyMigrationSettings;
     begin
         BC14CompanySettings.GetSingleInstance();
         exit(BC14CompanySettings.GetGLModuleEnabled());

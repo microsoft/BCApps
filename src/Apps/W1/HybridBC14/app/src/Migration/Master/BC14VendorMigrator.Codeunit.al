@@ -19,7 +19,7 @@ codeunit 50167 "BC14 Vendor Migrator" implements "IMasterMigrator"
 
     procedure IsEnabled(): Boolean
     var
-        BC14CompanySettings: Record "BC14CompanyMigrationSettings";
+        BC14CompanySettings: Record BC14CompanyMigrationSettings;
     begin
         BC14CompanySettings.GetSingleInstance();
         exit(BC14CompanySettings.GetPayablesModuleEnabled());

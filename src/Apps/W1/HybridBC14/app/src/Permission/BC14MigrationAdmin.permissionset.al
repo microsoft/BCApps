@@ -17,7 +17,7 @@ permissionset 50150 "BC14 Migration Admin"
 
     Permissions =
         // Configuration tables - Full access for admin
-        tabledata "BC14CompanyMigrationSettings" = RIMD,
+        tabledata BC14CompanyMigrationSettings = RIMD,
         tabledata "BC14 Migration Error Overview" = RIMD,
         tabledata "BC14 Migration Errors" = RIMD,
         tabledata "BC14 Migration Record Status" = RIMD,

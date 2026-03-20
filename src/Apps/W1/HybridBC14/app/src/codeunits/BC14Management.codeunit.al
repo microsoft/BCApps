@@ -35,7 +35,7 @@ codeunit 50162 "BC14 Management"
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Hybrid Cloud Management", 'OnHandleRunReplication', '', false, false)]
     local procedure BlockReplicationIfMigrationStarted(var Handled: Boolean; var RunId: Text; ReplicationType: Option)
     var
-        BC14CompanySettings: Record "BC14CompanyMigrationSettings";
+        BC14CompanySettings: Record BC14CompanyMigrationSettings;
         HybridCompany: Record "Hybrid Company";
         BC14Wizard: Codeunit "BC14 Wizard";
     begin
@@ -221,7 +221,7 @@ codeunit 50162 "BC14 Management"
                     ErrorMessage := HybridMessageManagement.ResolveMessageCode(CopyStr(ErrorCode, 1, 10), ErrorMessage);
                     HybridReplicationDetail."Error Message" := CopyStr(ErrorMessage, 1, 2048);
                     HybridReplicationDetail."Error Code" := CopyStr(ErrorCode, 1, 10);
-                    Session.LogMessage('0000ROR', StrSubstNo(BC14CloudMigrationReplicationErrorsMsg, ErrorMessage), Verbosity::Warning, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', BC14HelperFunctions.GetTelemetryCategory());
+                    Session.LogMessage('0000ROY', StrSubstNo(BC14CloudMigrationReplicationErrorsMsg, ErrorMessage), Verbosity::Warning, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', BC14HelperFunctions.GetTelemetryCategory());
                 end;
 
                 HybridReplicationDetail.Insert();

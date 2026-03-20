@@ -82,6 +82,7 @@ table 50199 "BC14 Migration Record Status"
 
         // Delete in batches to avoid lock escalation and transaction log overflow on large tables
         repeat
+            BC14MigrationRecordStatusBatch.Reset();
             BC14MigrationRecordStatusBatch.SetRange("Company Name", CompanyName());
             if not BC14MigrationRecordStatusBatch.FindFirst() then
                 break;

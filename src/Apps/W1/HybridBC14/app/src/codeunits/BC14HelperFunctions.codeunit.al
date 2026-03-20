@@ -111,10 +111,6 @@ codeunit 50152 "BC14 Helper Functions"
         exit(GenJournalTemplate.Name);
     end;
 
-    /// <summary>
-    /// Ensures a General Journal Batch exists for migration.
-    /// Following GP pattern for journal batch creation.
-    /// </summary>
     internal procedure EnsureGenJournalBatchExists(BatchName: Code[10]; BatchDescription: Text[100])
     var
         GenJournalBatch: Record "Gen. Journal Batch";

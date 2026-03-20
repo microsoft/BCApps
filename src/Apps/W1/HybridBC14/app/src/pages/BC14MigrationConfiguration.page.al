@@ -13,7 +13,7 @@ page 50160 "BC14 Migration Configuration"
     PageType = Card;
     ApplicationArea = All;
     UsageCategory = Administration;
-    SourceTable = "BC14CompanyMigrationSettings";
+    SourceTable = BC14CompanyMigrationSettings;
     Caption = 'BC14 Migration Configuration';
     InsertAllowed = false;
     DeleteAllowed = false;

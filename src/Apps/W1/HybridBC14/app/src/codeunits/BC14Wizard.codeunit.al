@@ -84,7 +84,7 @@ codeunit 50161 "BC14 Wizard"
     [EventSubscriber(ObjectType::Page, Page::"Intelligent Cloud Management", 'OnResetAllCloudData', '', false, false)]
     local procedure OnResetAllCloudData()
     var
-        BC14CompanySettings: Record "BC14CompanyMigrationSettings";
+        BC14CompanySettings: Record BC14CompanyMigrationSettings;
         HybridCompany: Record "Hybrid Company";
         HybridCompanyStatus: Record "Hybrid Company Status";
         HybridReplicationDetail: Record "Hybrid Replication Detail";
@@ -113,7 +113,7 @@ codeunit 50161 "BC14 Wizard"
     [EventSubscriber(ObjectType::Table, Database::Company, 'OnAfterDeleteEvent', '', false, false)]
     local procedure CompanyOnAfterDelete(var Rec: Record Company; RunTrigger: Boolean)
     var
-        BC14CompanySettings: Record "BC14CompanyMigrationSettings";
+        BC14CompanySettings: Record BC14CompanyMigrationSettings;
         HybridCompany: Record "Hybrid Company";
         HybridCompanyStatus: Record "Hybrid Company Status";
         HybridReplicationDetail: Record "Hybrid Replication Detail";
@@ -142,7 +142,7 @@ codeunit 50161 "BC14 Wizard"
 
     local procedure ProcessesAreRunning(): Boolean
     var
-        BC14CompanySettings: Record "BC14CompanyMigrationSettings";
+        BC14CompanySettings: Record BC14CompanyMigrationSettings;
     begin
         BC14CompanySettings.SetRange(ProcessesAreRunning, true);
         exit(not BC14CompanySettings.IsEmpty());

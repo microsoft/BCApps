@@ -19,7 +19,7 @@ codeunit 50170 "BC14 Item Migrator" implements "IMasterMigrator"
 
     procedure IsEnabled(): Boolean
     var
-        BC14CompanySettings: Record "BC14CompanyMigrationSettings";
+        BC14CompanySettings: Record BC14CompanyMigrationSettings;
     begin
         BC14CompanySettings.GetSingleInstance();
         exit(BC14CompanySettings.GetInventoryModuleEnabled());
@@ -90,6 +90,7 @@ codeunit 50170 "BC14 Item Migrator" implements "IMasterMigrator"
         Item."Costing Method" := Enum::"Costing Method".FromInteger(BC14Item."Costing Method");
         Item."Net Weight" := BC14Item."Net Weight";
         Item."Unit Volume" := BC14Item."Unit Volume";
+        Item.Description := BC14Item.Description;
 
         OnTransferItemCustomFields(BC14Item, Item);
 

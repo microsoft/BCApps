@@ -14,7 +14,7 @@ codeunit 50153 "BC14 Cloud Migration"
 
     trigger OnRun();
     var
-        BC14CompanySettings: Record "BC14CompanyMigrationSettings";
+        BC14CompanySettings: Record BC14CompanyMigrationSettings;
         BC14Management: Codeunit "BC14 Management";
         BC14HelperFunctions: Codeunit "BC14 Helper Functions";
         BC14MigrationErrorHandler: Codeunit "BC14 Migration Error Handler";
@@ -63,7 +63,7 @@ codeunit 50153 "BC14 Cloud Migration"
 
     local procedure FinalizeReplicationSummary(var HybridReplicationSummary: Record "Hybrid Replication Summary")
     var
-        BC14CompanySettings: Record "BC14CompanyMigrationSettings";
+        BC14CompanySettings: Record BC14CompanyMigrationSettings;
         BC14MigrationErrorHandler: Codeunit "BC14 Migration Error Handler";
         BC14HandleUpgradeError: Codeunit "BC14 Handle Upgrade Error";
         BC14HelperFunctions: Codeunit "BC14 Helper Functions";
@@ -144,7 +144,7 @@ codeunit 50153 "BC14 Cloud Migration"
     var
         AssistedCompanySetupStatus: Record "Assisted Company Setup Status";
         HybridCompanyStatus: Record "Hybrid Company Status";
-        BC14CompanySettings: Record "BC14CompanyMigrationSettings";
+        BC14CompanySettings: Record BC14CompanyMigrationSettings;
         BC14HelperFunctions: Codeunit "BC14 Helper Functions";
         SetupStatus: Enum "Company Setup Status";
         MigrationRan: Boolean;
@@ -193,7 +193,7 @@ codeunit 50153 "BC14 Cloud Migration"
     /// </remarks>
     local procedure InitiateBC14Migration()
     var
-        BC14CompanySettings: Record "BC14CompanyMigrationSettings";
+        BC14CompanySettings: Record BC14CompanyMigrationSettings;
         BC14MigrationErrorHandler: Codeunit "BC14 Migration Error Handler";
         BC14HelperFunctions: Codeunit "BC14 Helper Functions";
         BC14MigrationRunner: Codeunit "BC14 Migration Runner";

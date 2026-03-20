@@ -17,7 +17,7 @@ permissionset 50151 "BC14MigrationViewer"
 
     Permissions =
         // Configuration tables - Read-only for monitoring
-        tabledata "BC14CompanyMigrationSettings" = R,
+        tabledata BC14CompanyMigrationSettings = R,
         tabledata "BC14 Migration Error Overview" = R,
         tabledata "BC14 Migration Errors" = R,
         tabledata "BC14 Migration Record Status" = R,
