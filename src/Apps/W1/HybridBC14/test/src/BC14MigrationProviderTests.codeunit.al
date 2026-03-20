@@ -8,7 +8,7 @@ namespace Microsoft.DataMigration.BC14.Tests;
 using Microsoft.DataMigration;
 using Microsoft.DataMigration.BC14;
 
-codeunit 148148 "BC14 Migration Provider Tests"
+codeunit 148912 "BC14 Migration Provider Tests"
 {
     // [FEATURE] [BC14 Cloud Migration Provider / Table Mapping]
 

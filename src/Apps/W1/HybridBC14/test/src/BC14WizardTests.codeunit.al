@@ -9,7 +9,7 @@ using Microsoft.DataMigration;
 using Microsoft.DataMigration.BC14;
 using System.Security.AccessControl;
 using System.TestLibraries.Environment;
-codeunit 148151 "BC14 Wizard Tests"
+codeunit 148918 "BC14 Wizard Tests"
 {
     // [FEATURE] [BC14 Cloud Migration Wizard]
 
@@ -91,7 +91,7 @@ codeunit 148151 "BC14 Wizard Tests"
     [Test]
     procedure TestProcessesAreNotRunningByDefault()
     var
-        BC14CompanyAdditionalSettings: Record "BC14CompanyAdditionalSettings";
+        BC14CompanyMigrationSettings: Record "BC14CompanyMigrationSettings";
         EnvironmentInfoTestLibrary: Codeunit "Environment Info Test Library";
         PermissionManager: Codeunit "Permission Manager";
     begin
@@ -101,20 +101,20 @@ codeunit 148151 "BC14 Wizard Tests"
         EnvironmentInfoTestLibrary.SetTestabilitySoftwareAsAService(true);
         PermissionManager.SetTestabilityIntelligentCloud(true);
         BC14TestHelperFunctions.CreateStandardSetupRecords();
-        BC14CompanyAdditionalSettings.DeleteAll();
+        BC14CompanyMigrationSettings.DeleteAll();
 
         // [WHEN] A new company settings record is created
-        BC14CompanyAdditionalSettings.GetSingleInstance();
+        BC14CompanyMigrationSettings.GetSingleInstance();
 
         // [THEN] ProcessesAreRunning should be false
-        Assert.AreEqual(false, BC14CompanyAdditionalSettings.ProcessesAreRunning, 'ProcessesAreRunning should default to false');
+        Assert.AreEqual(false, BC14CompanyMigrationSettings.ProcessesAreRunning, 'ProcessesAreRunning should default to false');
     end;
 
     [Test]
     procedure TestCleanupMigrationData()
     var
-        BC14CompanyAdditionalSettings: Record "BC14CompanyAdditionalSettings";
-        BC14UpgradeSettings: Record "BC14 Upgrade Settings";
+        BC14CompanyMigrationSettings: Record "BC14CompanyMigrationSettings";
+        BC14GlobalSettings: Record "BC14 Global Migration Settings";
         BC14MigrationErrorOverview: Record "BC14 Migration Error Overview";
         EnvironmentInfoTestLibrary: Codeunit "Environment Info Test Library";
         PermissionManager: Codeunit "Permission Manager";
@@ -127,14 +127,14 @@ codeunit 148151 "BC14 Wizard Tests"
         BC14TestHelperFunctions.CreateStandardSetupRecords();
         BC14TestHelperFunctions.CreateConfigurationSettings();
 
-        Assert.IsFalse(BC14CompanyAdditionalSettings.IsEmpty(), 'BC14CompanyAdditionalSettings should have data before cleanup');
+        Assert.IsFalse(BC14CompanyMigrationSettings.IsEmpty(), 'BC14CompanyMigrationSettings should have data before cleanup');
 
         // [WHEN] CleanupMigrationData is called
         BC14TestHelperFunctions.CleanupMigrationData();
 
         // [THEN] All BC14 migration data is cleared
-        Assert.IsTrue(BC14CompanyAdditionalSettings.IsEmpty(), 'BC14CompanyAdditionalSettings should be empty after cleanup');
+        Assert.IsTrue(BC14CompanyMigrationSettings.IsEmpty(), 'BC14CompanyMigrationSettings should be empty after cleanup');
         Assert.IsTrue(BC14MigrationErrorOverview.IsEmpty(), 'BC14 Migration Error Overview should be empty after cleanup');
-        Assert.IsFalse(BC14UpgradeSettings.Get(), 'BC14 Upgrade Settings should not exist after cleanup');
+        Assert.IsFalse(BC14GlobalSettings.Get(), 'BC14 Upgrade Settings should not exist after cleanup');
     end;
 }

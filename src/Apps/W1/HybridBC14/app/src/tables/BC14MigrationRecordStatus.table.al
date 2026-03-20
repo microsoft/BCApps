@@ -76,18 +76,17 @@ table 50199 "BC14 Migration Record Status"
     var
         BC14MigrationRecordStatusBatch: Record "BC14 Migration Record Status";
         DeletedCount: Integer;
+        BatchCount: Integer;
     begin
-        SetRange("Company Name", CompanyName());
-        DeletedCount := Count();
-
-        // Delete in batches to avoid lock escalation and transaction log overflow on large tables
         repeat
             BC14MigrationRecordStatusBatch.Reset();
             BC14MigrationRecordStatusBatch.SetRange("Company Name", CompanyName());
             if not BC14MigrationRecordStatusBatch.FindFirst() then
                 break;
             BC14MigrationRecordStatusBatch.SetRange("Source Table ID", BC14MigrationRecordStatusBatch."Source Table ID");
+            BatchCount := BC14MigrationRecordStatusBatch.Count();
             BC14MigrationRecordStatusBatch.DeleteAll();
+            DeletedCount += BatchCount;
             Commit();
         until false;
 

@@ -11,7 +11,7 @@ using System.Integration;
 using System.Security.AccessControl;
 using System.TestLibraries.Environment;
 
-codeunit 148140 "BC14 Management Test"
+codeunit 148910 "BC14 Management Test"
 {
     // [FEATURE] [BC14 Cloud Migration Management]
     Subtype = Test;

@@ -7,7 +7,7 @@ namespace Microsoft.DataMigration.BC14.Tests;
 
 using Microsoft.DataMigration.BC14;
 
-codeunit 148147 "BC14 Buffer Table Helper Tests"
+codeunit 148901 "BC14 Buffer Table Helper Tests"
 {
     // [FEATURE] [BC14 Cloud Migration Buffer Table Helper]
 
@@ -20,7 +20,7 @@ codeunit 148147 "BC14 Buffer Table Helper Tests"
     [Test]
     procedure TestOpenBufferRecordWithZeroTableId()
     var
-        BC14BufferTableHelper: Codeunit "BC14 Buffer Table Helper";
+        BC14HelperFunctions: Codeunit "BC14 Helper Functions";
         DummyRecordRef: RecordRef;
         DummyRecId: RecordId;
     begin
@@ -33,13 +33,13 @@ codeunit 148147 "BC14 Buffer Table Helper Tests"
 
         // [WHEN] OpenBufferRecord is called with table ID = 0
         // [THEN] It should return false without opening the editor
-        Assert.AreEqual(false, BC14BufferTableHelper.OpenBufferRecord(0, DummyRecId), 'OpenBufferRecord should return false for table ID = 0');
+        Assert.AreEqual(false, BC14HelperFunctions.OpenBufferRecord(0, DummyRecId), 'OpenBufferRecord should return false for table ID = 0');
     end;
 
     [Test]
     procedure TestOpenBufferRecordWithEmptyRecordId()
     var
-        BC14BufferTableHelper: Codeunit "BC14 Buffer Table Helper";
+        BC14HelperFunctions: Codeunit "BC14 Helper Functions";
         EmptyRecId: RecordId;
     begin
         // [SCENARIO] OpenBufferRecord returns false when record ID is empty.
@@ -49,13 +49,13 @@ codeunit 148147 "BC14 Buffer Table Helper Tests"
 
         // [WHEN] OpenBufferRecord is called with an empty record ID
         // [THEN] It should return false without opening the editor
-        Assert.AreEqual(false, BC14BufferTableHelper.OpenBufferRecord(Database::"BC14 Migration Errors", EmptyRecId), 'OpenBufferRecord should return false for empty record ID');
+        Assert.AreEqual(false, BC14HelperFunctions.OpenBufferRecord(Database::"BC14 Migration Errors", EmptyRecId), 'OpenBufferRecord should return false for empty record ID');
     end;
 
     [Test]
     procedure TestOpenBufferRecordWithBothInvalid()
     var
-        BC14BufferTableHelper: Codeunit "BC14 Buffer Table Helper";
+        BC14HelperFunctions: Codeunit "BC14 Helper Functions";
         EmptyRecId: RecordId;
     begin
         // [SCENARIO] OpenBufferRecord returns false when both table ID and record ID are invalid.
@@ -64,7 +64,7 @@ codeunit 148147 "BC14 Buffer Table Helper Tests"
 
         // [WHEN] OpenBufferRecord is called with both invalid parameters
         // [THEN] It should return false (table ID check comes first)
-        Assert.AreEqual(false, BC14BufferTableHelper.OpenBufferRecord(0, EmptyRecId), 'OpenBufferRecord should return false for both invalid parameters');
+        Assert.AreEqual(false, BC14HelperFunctions.OpenBufferRecord(0, EmptyRecId), 'OpenBufferRecord should return false for both invalid parameters');
     end;
 
     [Test]

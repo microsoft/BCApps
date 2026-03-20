@@ -10,7 +10,7 @@ using Microsoft.Finance.GeneralLedger.Account;
 using Microsoft.Finance.GeneralLedger.Journal;
 using System.Integration;
 
-codeunit 148149 "BC14 Helper Functions Tests"
+codeunit 148907 "BC14 Helper Functions Tests"
 {
     // [FEATURE] [BC14 Cloud Migration Helper Functions]
 
@@ -23,31 +23,31 @@ codeunit 148149 "BC14 Helper Functions Tests"
     [Test]
     procedure TestSetProcessesRunning()
     var
-        BC14UpgradeSettings: Record "BC14 Upgrade Settings";
+        BC14GlobalSettings: Record "BC14 Global Migration Settings";
         BC14HelperFunctions: Codeunit "BC14 Helper Functions";
     begin
         // [SCENARIO] SetProcessesRunning correctly updates the Migration In Progress flag.
 
         // [GIVEN] Upgrade settings are initialized
-        if BC14UpgradeSettings.Get() then
-            BC14UpgradeSettings.Delete();
-        BC14UpgradeSettings.GetOrInsertBC14UpgradeSettings(BC14UpgradeSettings);
+        if BC14GlobalSettings.Get() then
+            BC14GlobalSettings.Delete();
+        BC14GlobalSettings.GetOrInsertGlobalSettings(BC14GlobalSettings);
 
         // [WHEN] SetProcessesRunning is called with true
         BC14HelperFunctions.SetProcessesRunning(true);
 
         // [THEN] Migration In Progress should be true
-        Clear(BC14UpgradeSettings);
-        BC14UpgradeSettings.Get();
-        Assert.AreEqual(true, BC14UpgradeSettings."Migration In Progress", 'Migration In Progress - Should be true');
+        Clear(BC14GlobalSettings);
+        BC14GlobalSettings.Get();
+        Assert.AreEqual(true, BC14GlobalSettings."Migration In Progress", 'Migration In Progress - Should be true');
 
         // [WHEN] SetProcessesRunning is called with false
         BC14HelperFunctions.SetProcessesRunning(false);
 
         // [THEN] Migration In Progress should be false
-        Clear(BC14UpgradeSettings);
-        BC14UpgradeSettings.Get();
-        Assert.AreEqual(false, BC14UpgradeSettings."Migration In Progress", 'Migration In Progress - Should be false');
+        Clear(BC14GlobalSettings);
+        BC14GlobalSettings.Get();
+        Assert.AreEqual(false, BC14GlobalSettings."Migration In Progress", 'Migration In Progress - Should be false');
     end;
 
     [Test]

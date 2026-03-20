@@ -9,28 +9,28 @@ using Microsoft.DataMigration;
 using Microsoft.DataMigration.BC14;
 using System.Integration;
 
-codeunit 148146 "BC14 Helper Function Tests"
+codeunit 148908 "BC14 Helper Function Tests"
 {
     /// <summary>
     /// Initializes the BC14 migration settings for the current company.
-    /// Creates the BC14CompanyAdditionalSettings and BC14 Upgrade Settings records.
+    /// Creates the BC14CompanyMigrationSettings and BC14 Global Migration Settings records.
     /// </summary>
     procedure CreateConfigurationSettings()
     var
-        BC14CompanyAdditionalSettings: Record "BC14CompanyAdditionalSettings";
-        BC14UpgradeSettings: Record "BC14 Upgrade Settings";
+        BC14CompanyMigrationSettings: Record "BC14CompanyMigrationSettings";
+        BC14GlobalSettings: Record "BC14 Global Migration Settings";
         CompanyNameText: Text[30];
     begin
 #pragma warning disable AA0139
         CompanyNameText := CompanyName();
 #pragma warning restore AA0139
 
-        if not BC14CompanyAdditionalSettings.Get(CompanyNameText) then begin
-            BC14CompanyAdditionalSettings.Name := CompanyNameText;
-            BC14CompanyAdditionalSettings.Insert(true);
+        if not BC14CompanyMigrationSettings.Get(CompanyNameText) then begin
+            BC14CompanyMigrationSettings.Name := CompanyNameText;
+            BC14CompanyMigrationSettings.Insert(true);
         end;
 
-        BC14UpgradeSettings.GetOrInsertBC14UpgradeSettings(BC14UpgradeSettings);
+        BC14GlobalSettings.GetOrInsertGlobalSettings(BC14GlobalSettings);
     end;
 
     /// <summary>
@@ -38,12 +38,12 @@ codeunit 148146 "BC14 Helper Function Tests"
     /// </summary>
     procedure DeleteAllSettings()
     var
-        BC14CompanyAdditionalSettings: Record "BC14CompanyAdditionalSettings";
-        BC14UpgradeSettings: Record "BC14 Upgrade Settings";
+        BC14CompanyMigrationSettings: Record "BC14CompanyMigrationSettings";
+        BC14GlobalSettings: Record "BC14 Global Migration Settings";
     begin
-        BC14CompanyAdditionalSettings.DeleteAll();
-        if BC14UpgradeSettings.Get() then
-            BC14UpgradeSettings.Delete();
+        BC14CompanyMigrationSettings.DeleteAll();
+        if BC14GlobalSettings.Get() then
+            BC14GlobalSettings.Delete();
     end;
 
     /// <summary>
@@ -53,14 +53,14 @@ codeunit 148146 "BC14 Helper Function Tests"
     var
         BC14MigrationErrors: Record "BC14 Migration Errors";
         BC14MigrationErrorOverview: Record "BC14 Migration Error Overview";
-        BC14CompanyAdditionalSettings: Record "BC14CompanyAdditionalSettings";
-        BC14UpgradeSettings: Record "BC14 Upgrade Settings";
+        BC14CompanyMigrationSettings: Record "BC14CompanyMigrationSettings";
+        BC14GlobalSettings: Record "BC14 Global Migration Settings";
     begin
         BC14MigrationErrors.DeleteAll();
         BC14MigrationErrorOverview.DeleteAll();
-        BC14CompanyAdditionalSettings.DeleteAll();
-        if BC14UpgradeSettings.Get() then
-            BC14UpgradeSettings.Delete();
+        BC14CompanyMigrationSettings.DeleteAll();
+        if BC14GlobalSettings.Get() then
+            BC14GlobalSettings.Delete();
     end;
 
     /// <summary>
@@ -106,41 +106,41 @@ codeunit 148146 "BC14 Helper Function Tests"
     end;
 
     /// <summary>
-    /// Creates a set of BC14CompanyAdditionalSettings entries for testing.
+    /// Creates a set of BC14CompanyMigrationSettings entries for testing.
     /// Company 1 = defaults, Company 2 = all modules enabled, Company 3 = defaults.
     /// </summary>
     procedure CreateSettingsTableEntries()
     var
-        BC14CompanyAdditionalSettings: Record "BC14CompanyAdditionalSettings";
+        BC14CompanyMigrationSettings: Record "BC14CompanyMigrationSettings";
         CompanyNameText: Text[30];
     begin
         CompanyNameText := 'Company 1';
-        BC14CompanyAdditionalSettings.Init();
-        BC14CompanyAdditionalSettings.Name := CompanyNameText;
-        BC14CompanyAdditionalSettings.Insert();
+        BC14CompanyMigrationSettings.Init();
+        BC14CompanyMigrationSettings.Name := CompanyNameText;
+        BC14CompanyMigrationSettings.Insert();
 
         CompanyNameText := 'Company 2';
-        BC14CompanyAdditionalSettings.Init();
-        BC14CompanyAdditionalSettings.Name := CompanyNameText;
-        BC14CompanyAdditionalSettings.Insert();
-        TurnOnAllSettings(BC14CompanyAdditionalSettings);
+        BC14CompanyMigrationSettings.Init();
+        BC14CompanyMigrationSettings.Name := CompanyNameText;
+        BC14CompanyMigrationSettings.Insert();
+        TurnOnAllSettings(BC14CompanyMigrationSettings);
 
         CompanyNameText := 'Company 3';
-        BC14CompanyAdditionalSettings.Init();
-        BC14CompanyAdditionalSettings.Name := CompanyNameText;
-        BC14CompanyAdditionalSettings.Insert();
+        BC14CompanyMigrationSettings.Init();
+        BC14CompanyMigrationSettings.Name := CompanyNameText;
+        BC14CompanyMigrationSettings.Insert();
     end;
 
     /// <summary>
-    /// Turns on all module settings for the given BC14CompanyAdditionalSettings record.
+    /// Turns on all module settings for the given BC14CompanyMigrationSettings record.
     /// </summary>
-    procedure TurnOnAllSettings(var BC14CompanyAdditionalSettings: Record "BC14CompanyAdditionalSettings")
+    procedure TurnOnAllSettings(var BC14CompanyMigrationSettings: Record "BC14CompanyMigrationSettings")
     begin
-        BC14CompanyAdditionalSettings.Validate("Migrate GL Module", true);
-        BC14CompanyAdditionalSettings.Validate("Migrate Receivables Module", true);
-        BC14CompanyAdditionalSettings.Validate("Migrate Payables Module", true);
-        BC14CompanyAdditionalSettings.Validate("Migrate Inventory Module", true);
-        BC14CompanyAdditionalSettings.Validate("Skip Posting Journal Batches", false);
-        BC14CompanyAdditionalSettings.Modify();
+        BC14CompanyMigrationSettings.Validate("Migrate GL Module", true);
+        BC14CompanyMigrationSettings.Validate("Migrate Receivables Module", true);
+        BC14CompanyMigrationSettings.Validate("Migrate Payables Module", true);
+        BC14CompanyMigrationSettings.Validate("Migrate Inventory Module", true);
+        BC14CompanyMigrationSettings.Validate("Skip Posting Journal Batches", false);
+        BC14CompanyMigrationSettings.Modify();
     end;
 }

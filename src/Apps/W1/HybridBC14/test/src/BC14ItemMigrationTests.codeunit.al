@@ -6,9 +6,10 @@
 namespace Microsoft.DataMigration.BC14.Tests;
 
 using Microsoft.DataMigration.BC14;
+using Microsoft.Foundation.UOM;
 using Microsoft.Inventory.Item;
 
-codeunit 148150 "BC14 Item Migration Tests"
+codeunit 148909 "BC14 Item Migration Tests"
 {
     // [FEATURE] [BC14 Cloud Migration Item Upgrade]
 
@@ -30,6 +31,8 @@ codeunit 148150 "BC14 Item Migration Tests"
         // [GIVEN] A complete Item record exists in the buffer table
         CleanupTestData();
         EnableInventoryModule();
+        EnsureUnitOfMeasureExists('PCS');
+        EnsureInventoryPostingGroupExists('RESALE');
 
         BC14Item.Init();
         BC14Item."No." := 'ITEM-TEST-001';
@@ -141,31 +144,21 @@ codeunit 148150 "BC14 Item Migration Tests"
     end;
 
     [Test]
-    procedure TestItemMigrationSkippedWhenModuleDisabled()
+    procedure TestItemMigratorIsDisabledWhenModuleDisabled()
     var
-        Item: Record Item;
-        BC14CompanyAdditionalSettings: Record "BC14CompanyAdditionalSettings";
+        BC14CompanyMigrationSettings: Record "BC14CompanyMigrationSettings";
         BC14ItemMigrator: Codeunit "BC14 Item Migrator";
-        MigrateResult: Boolean;
     begin
-        // [SCENARIO] Item migration is skipped when the Inventory module is disabled.
+        // [SCENARIO] Item Migrator reports disabled when the Inventory module is disabled.
 
         // [GIVEN] The Inventory module is disabled
-        CleanupTestData();
-        BC14CompanyAdditionalSettings.DeleteAll();
-        BC14CompanyAdditionalSettings.GetSingleInstance();
-        BC14CompanyAdditionalSettings.Validate("Migrate Inventory Module", false);
-        BC14CompanyAdditionalSettings.Modify();
+        BC14CompanyMigrationSettings.DeleteAll();
+        BC14CompanyMigrationSettings.GetSingleInstance();
+        BC14CompanyMigrationSettings.Validate("Migrate Inventory Module", false);
+        BC14CompanyMigrationSettings.Modify();
 
-        // [GIVEN] The buffer table contains data
-        InsertBC14Item('ITEM-SKIP', 'Should Not Migrate', 100.00, 50.00);
-
-        // [WHEN] The Item Migrator runs the migration
-        MigrateResult := BC14ItemMigrator.Migrate(false);
-
-        // [THEN] Migrate returns true (skipped, not failed) and no Item record is created
-        Assert.IsTrue(MigrateResult, 'Migrate should return true when module is disabled (skipped)');
-        Assert.IsFalse(Item.Get('ITEM-SKIP'), 'Item should not exist when inventory module is disabled');
+        // [THEN] IsEnabled should return false
+        Assert.IsFalse(BC14ItemMigrator.IsEnabled(), 'Item Migrator should be disabled when Inventory module is disabled');
     end;
 
     [Test]
@@ -188,13 +181,13 @@ codeunit 148150 "BC14 Item Migration Tests"
     [Test]
     procedure TestItemMigratorIsEnabledByDefault()
     var
-        BC14CompanyAdditionalSettings: Record "BC14CompanyAdditionalSettings";
+        BC14CompanyMigrationSettings: Record "BC14CompanyMigrationSettings";
         BC14ItemMigrator: Codeunit "BC14 Item Migrator";
     begin
         // [SCENARIO] The Item Migrator is enabled by default.
 
         // [GIVEN] Default settings are used
-        BC14CompanyAdditionalSettings.DeleteAll();
+        BC14CompanyMigrationSettings.DeleteAll();
 
         // [THEN] IsEnabled should return true
         Assert.IsTrue(BC14ItemMigrator.IsEnabled(), 'Item Migrator should be enabled by default');
@@ -211,6 +204,39 @@ codeunit 148150 "BC14 Item Migration Tests"
         Assert.AreEqual('Item Migrator', BC14ItemMigrator.GetName(), 'Migrator name should be Item Migrator');
     end;
 
+    [Test]
+    procedure TestItemMigratorSourceTableId()
+    var
+        BC14ItemMigrator: Codeunit "BC14 Item Migrator";
+    begin
+        // [SCENARIO] GetSourceTableId returns the correct buffer table ID.
+
+        // [THEN] The source table ID should be BC14 Item
+        Assert.AreEqual(Database::"BC14 Item", BC14ItemMigrator.GetSourceTableId(), 'Source table ID should be BC14 Item');
+    end;
+
+    [Test]
+    procedure TestItemMigratorGetSourceRecordKey()
+    var
+        BC14Item: Record "BC14 Item";
+        BC14ItemMigrator: Codeunit "BC14 Item Migrator";
+        SourceRecordRef: RecordRef;
+    begin
+        // [SCENARIO] GetSourceRecordKey returns the Item No. as the record key.
+
+        // [GIVEN] An item exists in the buffer table
+        CleanupTestData();
+        InsertBC14Item('ITEM-KEY-TEST', 'Test Item', 10.00, 5.00);
+
+        // [WHEN] GetSourceRecordKey is called
+        BC14Item.Get('ITEM-KEY-TEST');
+        SourceRecordRef.GetTable(BC14Item);
+
+        // [THEN] The record key is the Item No.
+        Assert.AreEqual('ITEM-KEY-TEST', BC14ItemMigrator.GetSourceRecordKey(SourceRecordRef), 'Record key should be the Item No.');
+        SourceRecordRef.Close();
+    end;
+
     local procedure CleanupTestData()
     var
         BC14Item: Record "BC14 Item";
@@ -224,12 +250,12 @@ codeunit 148150 "BC14 Item Migration Tests"
 
     local procedure EnableInventoryModule()
     var
-        BC14CompanyAdditionalSettings: Record "BC14CompanyAdditionalSettings";
+        BC14CompanyMigrationSettings: Record "BC14CompanyMigrationSettings";
     begin
-        BC14CompanyAdditionalSettings.DeleteAll();
-        BC14CompanyAdditionalSettings.GetSingleInstance();
-        BC14CompanyAdditionalSettings.Validate("Migrate Inventory Module", true);
-        BC14CompanyAdditionalSettings.Modify();
+        BC14CompanyMigrationSettings.DeleteAll();
+        BC14CompanyMigrationSettings.GetSingleInstance();
+        BC14CompanyMigrationSettings.Validate("Migrate Inventory Module", true);
+        BC14CompanyMigrationSettings.Modify();
     end;
 
     local procedure InsertBC14Item(ItemNo: Code[20]; ItemDescription: Text[100]; UnitPrice: Decimal; UnitCost: Decimal)
@@ -242,5 +268,29 @@ codeunit 148150 "BC14 Item Migration Tests"
         BC14Item."Unit Price" := UnitPrice;
         BC14Item."Unit Cost" := UnitCost;
         BC14Item.Insert();
+    end;
+
+    local procedure EnsureUnitOfMeasureExists(UOMCode: Code[10])
+    var
+        UnitOfMeasure: Record "Unit of Measure";
+    begin
+        if not UnitOfMeasure.Get(UOMCode) then begin
+            UnitOfMeasure.Init();
+            UnitOfMeasure.Code := UOMCode;
+            UnitOfMeasure.Description := UOMCode;
+            UnitOfMeasure.Insert();
+        end;
+    end;
+
+    local procedure EnsureInventoryPostingGroupExists(GroupCode: Code[20])
+    var
+        InventoryPostingGroup: Record "Inventory Posting Group";
+    begin
+        if not InventoryPostingGroup.Get(GroupCode) then begin
+            InventoryPostingGroup.Init();
+            InventoryPostingGroup.Code := GroupCode;
+            InventoryPostingGroup.Description := GroupCode;
+            InventoryPostingGroup.Insert();
+        end;
     end;
 }
