@@ -1,3 +1,4 @@
+#pragma warning disable AS0072
 namespace Microsoft.SubscriptionBilling;
 
 using Microsoft.CRM.RoleCenters;
