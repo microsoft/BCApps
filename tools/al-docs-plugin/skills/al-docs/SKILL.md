@@ -16,7 +16,7 @@ Generate, update, and audit hierarchical documentation for Business Central AL c
 /al-docs init                   # Bootstrap documentation for AL app or folder
 /al-docs init "path/to/app"     # Bootstrap docs for a specific path
 /al-docs update                 # Incrementally refresh docs based on changes
-/al-docs audit                  # Read-only gap analysis without writing files
+/al-docs audit                  # Read-only gap and correctness analysis
 ```
 
 ## Routing

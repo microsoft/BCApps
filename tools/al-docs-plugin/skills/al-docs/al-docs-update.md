@@ -1,13 +1,13 @@
 ---
 name: al-docs-update
-description: Incrementally refresh AL codebase documentation based on what changed since docs were last generated or updated
+description: Incrementally refresh AL codebase documentation based on what changed since docs were last generated or updated, and verify correctness of adjacent doc sections
 allowed-tools: Read, Write, Edit, Glob, Grep, Bash(*)
 argument-hint: "[baseline commit/tag/date] or [path filter]"
 ---
 
 # AL Documentation Update
 
-> **Usage**: Invoke to incrementally update existing documentation for an AL codebase. Detects what changed, maps changes to affected docs, and performs targeted updates while preserving human-written content.
+> **Usage**: Invoke to incrementally update existing documentation for an AL codebase. Detects what changed, maps changes to affected docs, performs targeted updates while preserving human-written content, and verifies that adjacent sections in touched docs are still accurate.
 
 ## Prerequisites
 
@@ -24,7 +24,7 @@ Step 1: Detect changes (git-based or full rescan)
     |
 Step 2: Map changes to documentation
     |
-Step 3: Targeted regeneration (parallel sub-agents)
+Step 3: Targeted regeneration + correctness verification (parallel sub-agents)
     |
 Step 4: Staleness report
 ```
@@ -152,7 +152,7 @@ Wait for user approval before proceeding.
 
 ---
 
-## Step 3: Targeted regeneration
+## Step 3: Targeted regeneration + correctness verification
 
 Launch sub-agents only for affected areas. Each agent handles one scope.
 
@@ -167,15 +167,20 @@ Each update agent must:
    - Existing sections to revise (for changed objects)
    - References to update (for moved/renamed objects)
    - Sections to flag as potentially stale (for deleted objects)
-4. **Apply updates conservatively**:
+4. **Verify adjacent sections** -- since you already have the doc open and the relevant `.al` files loaded, check that **other sections in the same doc** still accurately describe the current code. A change to one codeunit may invalidate the flow described for a related codeunit. Specifically:
+   - Read the AL source for objects mentioned in sections adjacent to the ones being updated
+   - Compare each factual claim (relationships, flows, decision points, events) against the code
+   - Flag any section where the doc contradicts what the code does -- even if that section's `.al` file wasn't in the git diff
+5. **Apply updates conservatively**:
    - **ADD** new sections for new tables, codeunits, patterns, etc.
    - **EDIT** existing sections where facts changed (update specific details, not rewrite)
+   - **FIX** sections found incorrect during adjacent-section verification (update the claim to match the code, add `*Corrected: [date] -- [brief reason]*`)
    - **NEVER DELETE** sections unless the corresponding AL object was deleted -- if unsure, add a `<!-- TODO: verify if still current -->` comment
    - **PRESERVE** formatting, voice, and any human-written narrative
 5. **Update mermaid diagrams** when entity relationships or process flows change:
    - **data-model.md**: Add new entities to the `erDiagram`, update relationship lines if cardinalities changed, remove entities for deleted tables. If no diagram exists yet, create one.
    - **business-logic.md**: Update `flowchart` diagrams if process steps or decision points changed. Add new diagrams for newly documented processes that have meaningful branching.
-6. **Add an "Updated" note** to modified sections: `*Updated: [date] -- [brief reason]*`
+7. **Add an "Updated" note** to modified sections: `*Updated: [date] -- [brief reason]*`
 
 ### For new documentation files
 
@@ -215,7 +220,11 @@ After all updates complete, generate a report:
 |------|---------|
 | `/docs/business-logic.md` | Codeunit "Sales-Post" was refactored -- flow description may be outdated |
 | `/docs/patterns.md` | TryFunction removed from Codeunit X but pattern section still references it |
-
+### Correctness fixes applied
+| File | Section | What was wrong | What it says now |
+|------|---------|---------------|------------------|
+| `/docs/data-model.md` | "Order processing" | Described linking via Item No. | Corrected to SystemId linking |
+| `/docs/business-logic.md` | "Product sync" | Said updates are always pushed | Corrected: only pushed when hash changes |
 ### New subfolders without documentation
 | Subfolder | AL objects | Score | Recommendation |
 |-----------|-----------|-------|----------------|
@@ -251,5 +260,6 @@ scope: [full|subfolder-path]
 2. **Show the plan first** -- user must approve the update plan before any writes
 3. **Conservative updates** -- when in doubt, flag as "potentially stale" rather than assuming
 4. **AL-aware mapping** -- map changed `.al` files to the correct doc type based on object type
-5. **Update the marker** -- always write `.docs-updated` after successful completion
-6. **Sentence case headers** -- no em dashes (use `--`), blank line before lists
+5. **Verify adjacent sections** -- when a doc file is open for update, check that unchanged sections in the same file still match the code. Fix incorrect claims; don't leave known inaccuracies.
+6. **Update the marker** -- always write `.docs-updated` after successful completion
+7. **Sentence case headers** -- no em dashes (use `--`), blank line before lists

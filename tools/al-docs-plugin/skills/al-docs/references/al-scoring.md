@@ -18,7 +18,7 @@ When scanning `.al` files, identify the object type from the first line of each 
 
 ## Subfolder scoring criteria
 
-Score each subfolder (directory containing `.al` files) on a 0-10 scale:
+Score each subfolder (directory containing `.al` files) on a 0-14 scale:
 
 | Factor | Points | How to detect |
 |--------|--------|---------------|

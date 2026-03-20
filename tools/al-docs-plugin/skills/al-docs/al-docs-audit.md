@@ -1,13 +1,13 @@
 ---
 name: al-docs-audit
-description: Read-only gap analysis of AL codebase documentation - reports coverage, missing files, and scoring without writing anything
+description: Read-only gap and correctness analysis of AL codebase documentation - reports coverage, missing files, scoring, and verifies existing docs are accurate
 allowed-tools: Read, Glob, Grep, Bash(*)
 argument-hint: "path to AL app or folder (defaults to current directory)"
 ---
 
 # AL Documentation Audit
 
-> **Usage**: Invoke to analyze documentation coverage for an AL codebase without modifying any files. Produces a gap analysis report showing what exists, what's missing, and what should be documented.
+> **Usage**: Invoke to analyze documentation coverage and correctness for an AL codebase without modifying any files. Produces a gap analysis report showing what exists, what's missing, what should be documented, and whether existing docs accurately reflect the current code.
 
 ## Prerequisites
 
@@ -20,7 +20,7 @@ argument-hint: "path to AL app or folder (defaults to current directory)"
 
 ## Process
 
-**Maximize parallelism.** Step 1's three subagents MUST be launched in parallel in a single message. Step 2 synthesizes results after all subagents complete. Step 3 compiles the final report.
+**Maximize parallelism.** Step 1's three subagents MUST be launched in parallel in a single message. Step 2 synthesizes structural results. Step 3 verifies correctness of existing docs. Step 4 compiles the final report.
 
 ### Step 1: Parallel discovery (launch ALL subagents at once)
 
@@ -74,7 +74,7 @@ Return: scored subfolder list with classifications and reasoning.
 
 ### Step 2: Determine expected documentation
 
-Using results from all three subagents, build the list of expected files.
+Using results from all three subagents, build the list of expected files. This step is structural -- it determines what files should exist.
 
 #### App level (if `app.json` exists)
 
@@ -93,11 +93,36 @@ Using results from all three subagents, build the list of expected files.
 | `/[subfolder]/docs/CLAUDE.md` | Yes | If scored MUST_DOCUMENT or SHOULD_DOCUMENT |
 | `/[subfolder]/docs/[additional].md` | Yes | If scored MUST_DOCUMENT (7+)  |
 
-### Step 3: Compare expected vs actual and compile report
+### Step 3: Correctness verification
+
+For each existing documentation file, launch a subagent to verify its content against the current code. These subagents can run in parallel (one per doc file, or grouped by scope).
+
+Each correctness subagent must:
+
+1. **Read the doc file** in full
+2. **Identify claims** -- extract factual statements the doc makes: table relationships, processing flows, decision logic, event descriptions, pattern examples, gotchas
+3. **Read the referenced `.al` files** -- for each claim, find the AL source it describes and verify:
+   - Do the described relationships still exist? (check `TableRelation` properties)
+   - Do the described flows still work that way? (check codeunit logic, procedure calls)
+   - Do the described events/interfaces still exist with the same signatures?
+   - Do the described patterns still appear in the referenced files?
+   - Are mermaid diagrams (ER diagrams, flowcharts) consistent with the current code?
+4. **Classify each doc file**:
+   - **ACCURATE** -- all claims verified against current code
+   - **DRIFT** -- doc exists and structure is fine, but one or more claims no longer match the code. List each incorrect claim with what the code actually does.
+   - **OUTDATED** -- significant portions describe behavior that no longer exists or has fundamentally changed
+
+Return: per-file correctness status with specific findings.
+
+### Step 4: Compare expected vs actual and compile report
+
+Combine structural analysis (Step 2) with correctness verification (Step 3).
 
 For each expected file, determine its status:
 
-- **EXISTS** -- file is present
+- **EXISTS -- ACCURATE** -- file is present and content matches the code
+- **EXISTS -- DRIFT** -- file is present but contains claims that don't match the code
+- **EXISTS -- OUTDATED** -- file is present but substantially wrong
 - **MISSING** -- file does not exist but should
 - **STALE** -- file exists but hasn't been modified relative to recent `.al` changes (check git timestamps)
 - **NON-STANDARD** -- file exists but doesn't follow expected pattern (e.g., README.md instead of CLAUDE.md)
@@ -134,13 +159,22 @@ Present the audit as a single markdown report:
 
 ## App level
 
-| Expected file | Status | Notes |
-|---------------|--------|-------|
-| `/CLAUDE.md` | [status] | [details] |
-| `/docs/data-model.md` | [status] | [details] |
-| `/docs/business-logic.md` | [status] | [details] |
-| `/docs/extensibility.md` | [status] | [details] |
-| `/docs/patterns.md` | [status] | [details] |
+| Expected file | Status | Correctness | Notes |
+|---------------|--------|-------------|-------|
+| `/CLAUDE.md` | [status] | [ACCURATE/DRIFT/OUTDATED/n/a] | [details] |
+| `/docs/data-model.md` | [status] | [ACCURATE/DRIFT/OUTDATED/n/a] | [details] |
+| `/docs/business-logic.md` | [status] | [ACCURATE/DRIFT/OUTDATED/n/a] | [details] |
+| `/docs/extensibility.md` | [status] | [ACCURATE/DRIFT/OUTDATED/n/a] | [details] |
+| `/docs/patterns.md` | [status] | [ACCURATE/DRIFT/OUTDATED/n/a] | [details] |
+
+## Correctness findings
+
+For each file with DRIFT or OUTDATED status, list the specific issues:
+
+| File | Claim in doc | What the code actually does |
+|------|-------------|----------------------------|
+| `/docs/data-model.md` | "Product links to Item via Item No." | Links via `Item SystemId` (Guid), not Item No. |
+| `/docs/business-logic.md` | "Orders are always created as sales orders" | Orders can also create sales invoices when `Auto Create Sales Invoice` is enabled |
 
 ## Subfolders requiring documentation
 
@@ -171,10 +205,11 @@ Present the audit as a single markdown report:
 
 ## Recommendations
 
-1. **Quick wins**: [list of easy fixes -- renames, moves]
-2. **High impact**: [most valuable docs to create first -- highest-scored undocumented subfolders]
-3. **Run `/al-docs init`**: To bootstrap all missing documentation
-4. **Run `/al-docs update`**: After init, to set up the update baseline
+1. **Fix incorrect docs**: [list of DRIFT/OUTDATED files -- these are actively misleading]
+2. **Quick wins**: [list of easy fixes -- renames, moves]
+3. **High impact**: [most valuable docs to create first -- highest-scored undocumented subfolders]
+4. **Run `/al-docs update`**: To fix drifted docs and create missing documentation
+5. **Run `/al-docs init`**: To bootstrap documentation for areas with no docs at all
 ```
 
 ---
@@ -184,5 +219,7 @@ Present the audit as a single markdown report:
 1. **READ-ONLY** -- this mode must not create, modify, or delete any files
 2. **Be specific** -- include object counts, paths, and concrete reasons
 3. **Score objectively** -- subfolder scoring based on measurable criteria from `.al` files
-4. **Actionable output** -- every finding should have a clear recommendation
-5. **Distinguish required vs optional gaps** -- MUST/SHOULD gaps require action; OPTIONAL gaps are informational
+4. **Verify against code** -- correctness checks must read actual AL source, not guess from file names or timestamps
+5. **Actionable output** -- every finding should have a clear recommendation
+6. **Incorrect docs are worse than missing docs** -- prioritize DRIFT/OUTDATED findings over MISSING findings in recommendations
+7. **Distinguish required vs optional gaps** -- MUST/SHOULD gaps require action; OPTIONAL gaps are informational
