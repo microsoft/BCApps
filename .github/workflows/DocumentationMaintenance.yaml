@@ -1,0 +1,121 @@
+name: 'Documentation Maintenance'
+
+on:
+  pull_request:
+    branches: ['main', 'releases/*', 'features/*']
+    paths: ['src/**/*.al']
+
+concurrency:
+  group: docs-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+permissions:
+  actions: read
+  contents: read
+  pull-requests: write
+
+jobs:
+  AuditDocs:
+    if: github.event.pull_request.head.repo.full_name == github.event.pull_request.base.repo.full_name
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    env:
+      COPILOT_GITHUB_TOKEN: ${{ secrets.COPILOT_GH_TOKEN }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          ref: ${{ github.event.pull_request.head.sha }}
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+
+      - name: Install Copilot CLI
+        run: npm install -g @github/copilot
+
+      - name: Install al-docs plugin
+        run: |
+          copilot plugin install ./tools/al-docs-plugin
+          copilot plugin list
+
+      - name: Find changed apps
+        id: scope
+        run: |
+          MERGE_BASE=$(git merge-base ${{ github.event.pull_request.base.sha }} ${{ github.event.pull_request.head.sha }})
+          CHANGED=$(git diff --name-only "$MERGE_BASE"..${{ github.event.pull_request.head.sha }} -- '*.al')
+
+          if [ -z "$CHANGED" ]; then
+            echo "count=0" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          APPS=$(echo "$CHANGED" | while read -r f; do
+            d=$(dirname "$f")
+            while [ "$d" != "." ]; do
+              [ -f "$d/app.json" ] && echo "$d" && break
+              d=$(dirname "$d")
+            done
+          done | sort -u)
+
+          COUNT=$(echo "$APPS" | wc -l | tr -d ' ')
+          echo "count=$COUNT" >> "$GITHUB_OUTPUT"
+          echo "apps<<EOF" >> "$GITHUB_OUTPUT"
+          echo "$APPS" >> "$GITHUB_OUTPUT"
+          echo "EOF" >> "$GITHUB_OUTPUT"
+
+      - name: Run al-docs audit
+        if: steps.scope.outputs.count != '0'
+        id: audit
+        run: |
+          REPORT=""
+          while IFS= read -r APP_PATH; do
+            [ -z "$APP_PATH" ] && continue
+            APP_NAME=$(jq -r '.name // "unknown"' "$APP_PATH/app.json" 2>/dev/null || echo "unknown")
+            echo "Auditing $APP_NAME at $APP_PATH..."
+
+            OUTPUT=$(timeout 300 copilot -p \
+              "Look at the AL app at $APP_PATH. Check if it has a CLAUDE.md or docs/ directory.
+              Count the AL objects (tables, codeunits, pages). Reply in 2-3 sentences:
+              what you found, whether docs exist, and if the developer should run al-docs." \
+              --model claude-opus-4.6 \
+              -s \
+              --no-ask-user \
+              --autopilot \
+              --allow-all-paths \
+              --allow-tool=read \
+              --allow-tool=glob \
+              --allow-tool=grep \
+              2>&1) || true
+
+            if echo "$OUTPUT" | grep -qi "missing\|no documentation\|should.*run\|does not have\|0%\|no CLAUDE"; then
+              REPORT="$REPORT
+          **$APP_NAME** (\`$APP_PATH\`): $OUTPUT
+          "
+            fi
+          done <<< '${{ steps.scope.outputs.apps }}'
+
+          if [ -n "$REPORT" ]; then
+            echo "has_gaps=true" >> "$GITHUB_OUTPUT"
+            echo "report<<EOF" >> "$GITHUB_OUTPUT"
+            echo "$REPORT" >> "$GITHUB_OUTPUT"
+            echo "EOF" >> "$GITHUB_OUTPUT"
+          else
+            echo "has_gaps=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Post audit report
+        if: steps.audit.outputs.has_gaps == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh pr comment ${{ github.event.pull_request.number }} --body "$(cat <<'COMMENT'
+          ### Documentation gaps detected
+
+          The following apps changed in this PR but have missing or incomplete documentation:
+
+          ${{ steps.audit.outputs.report }}
+
+          Consider running \`/al-docs init\` or \`/al-docs update\` on these apps to generate documentation before merging.
+          COMMENT
+          )"
