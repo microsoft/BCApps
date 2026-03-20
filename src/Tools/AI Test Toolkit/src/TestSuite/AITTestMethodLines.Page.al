@@ -215,7 +215,7 @@ page 149034 "AIT Test Method Lines"
         {
             action("Run Test")
             {
-                Caption = 'Run Eval';
+                Caption = 'Run selected';
                 Image = Start;
                 ToolTip = 'Starts running the AI Eval Line.';
 
@@ -237,7 +237,7 @@ page 149034 "AIT Test Method Lines"
             }
             action(Compare)
             {
-                Caption = 'View Runs';
+                Caption = 'View runs';
                 Image = History;
                 ToolTip = 'View the run history of the suite, for the selected line.';
                 Scope = Repeater;

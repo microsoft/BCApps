@@ -12,6 +12,7 @@ report 149030 "AIT Test Summary"
     UsageCategory = Tasks;
     DefaultLayout = Excel;
     ExcelLayout = 'AITestSummary.xlsx';
+    AccessByPermission = TableData "AIT Log Entry" = R;
 
     dataset
     {
