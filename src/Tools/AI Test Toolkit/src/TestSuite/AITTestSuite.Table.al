@@ -127,6 +127,7 @@ table 149030 "AIT Test Suite"
         field(16; "Base Version"; Integer)
         {
             Caption = 'Base Version';
+            ToolTip = 'Specifies the base version to compare the current eval run results against.';
             DataClassification = CustomerContent;
             MinValue = 0;
             trigger OnValidate()
@@ -137,7 +138,8 @@ table 149030 "AIT Test Suite"
         }
         field(19; RunID; Guid)
         {
-            Caption = 'Unique RunID';
+            Caption = 'Unique Run ID';
+            ToolTip = 'Specifies the unique identifier for the eval run.';
             Editable = false;
         }
         field(21; "No. of Tests Executed"; Integer)
@@ -207,6 +209,7 @@ table 149030 "AIT Test Suite"
         field(41; "Run Language Tag"; Text[80])
         {
             Caption = 'Language Tag';
+            ToolTip = 'Specifies the language tag for the language in which the eval suite should be run.';
             Editable = false;
             FieldClass = FlowField;
             CalcFormula = lookup("AIT Test Suite Language"."Language Tag" where("Test Suite Code" = field("Code"), "Language ID" = field("Run Language ID")));
@@ -214,6 +217,7 @@ table 149030 "AIT Test Suite"
         field(42; "Run Language Name"; Text[80])
         {
             Caption = 'Language Name';
+            ToolTip = 'Specifies the name of the language in which the eval suite should be run.';
             Editable = false;
             FieldClass = FlowField;
             CalcFormula = lookup("AIT Test Suite Language"."Language Name" where("Test Suite Code" = field("Code"), "Language ID" = field("Run Language ID")));
@@ -221,6 +225,7 @@ table 149030 "AIT Test Suite"
         field(50; "Test Runner Id"; Integer)
         {
             Caption = 'Test Runner Id';
+            ToolTip = 'Specifies the ID of the test runner to be used by the evals.';
             Editable = false;
 
             trigger OnValidate()
