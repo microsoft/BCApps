@@ -234,7 +234,7 @@ codeunit 6120 "E-Doc. Purchase Hist. Mapping"
     local procedure CheckFieldValueLength(PurchLineFieldRef: FieldRef; FieldValue: Variant)
     var
         ValueAsText: Text;
-        ValueTooLongErr: Label 'value ''%1'' exceeds the maximum length of %2 characters (actual: %3). Additional field: %4 (ID %5). Adjust the value on the draft and try again.', Comment = '%1 = Value, %2 = Max Length, %3 = Actual Length, %4 = Field Name, %5 = Field Number';
+        ValueTooLongErr: Label 'value ''%1'' exceeds the maximum length of %2 characters (actual: %3). Review the additional field %4 (ID %5) under Configure additional fields on the E-Document Service page.', Comment = '%1 = Value, %2 = Max Length, %3 = Actual Length, %4 = Field Name, %5 = Field Number';
     begin
         if not (PurchLineFieldRef.Type() in [FieldType::Text, FieldType::Code]) then
             exit;
