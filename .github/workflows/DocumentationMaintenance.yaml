@@ -92,25 +92,21 @@ jobs:
 
           # Combine all audit reports
           cat /tmp/audit-*.md > /tmp/full-report.md 2>/dev/null || true
-          if [ -s /tmp/full-report.md ]; then
-            echo "has_gaps=true" >> "$GITHUB_OUTPUT"
-            echo "report<<EOF" >> "$GITHUB_OUTPUT"
-            cat /tmp/full-report.md >> "$GITHUB_OUTPUT"
-            echo "EOF" >> "$GITHUB_OUTPUT"
-          else
-            echo "has_gaps=false" >> "$GITHUB_OUTPUT"
-          fi
 
       - name: Request docs changes
-        if: steps.audit.outputs.has_gaps == 'true'
+        if: steps.scope.outputs.count != '0'
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          BODY=$(printf '%s\n\n%s\n\n%s' \
-            "The following apps changed in this PR have missing or incomplete documentation:" \
-            "${{ steps.audit.outputs.report }}" \
-            "To generate documentation, run the \`/al-docs init\` or \`/al-docs update\` skill using [GitHub Copilot CLI](https://github.com/github/copilot-cli) (\`copilot\`) or [Claude Code](https://claude.com/claude-code) (\`claude\`).")
+          if copilot -p "Read /tmp/full-report.md. Does the audit show documentation gaps that need to be fixed? Reply only YES or NO." \
+            -s --no-ask-user --allow-tool=read | grep -qi "yes"; then
 
-          gh api repos/${{ github.repository }}/pulls/${{ github.event.pull_request.number }}/reviews \
-            -f body="$BODY" \
-            -f event="REQUEST_CHANGES"
+            SUMMARY=$(copilot -p "Read /tmp/full-report.md. Write a short PR review body (max 5 lines) listing which apps have documentation gaps and what is missing. End with: To generate documentation, run the /al-docs init or /al-docs update skill using GitHub Copilot CLI (copilot) or Claude Code (claude)." \
+              -s --no-ask-user --allow-tool=read 2>&1)
+
+            gh api repos/${{ github.repository }}/pulls/${{ github.event.pull_request.number }}/reviews \
+              -f body="$SUMMARY" \
+              -f event="REQUEST_CHANGES"
+          else
+            echo "No documentation gaps found."
+          fi
