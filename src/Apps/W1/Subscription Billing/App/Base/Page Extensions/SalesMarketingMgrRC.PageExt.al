@@ -1,4 +1,5 @@
 #if not CLEAN26
+#pragma warning restore AS0072
 namespace Microsoft.SubscriptionBilling;
 
 using Microsoft.CRM.RoleCenters;
@@ -24,4 +25,5 @@ pageextension 8084 "Sales Marketing Mgr. RC" extends "Sales & Relationship Mgr. 
         }
     }
 }
+#pragma warning restore AS0072
 #endif
