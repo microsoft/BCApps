@@ -295,6 +295,29 @@ table 8073 "Subscription Line Archive"
             Editable = false;
             TableRelation = "Dimension Set Entry";
         }
+        field(8000; "Usage Based Billing"; Boolean)
+        {
+            Caption = 'Usage Based Billing';
+            ToolTip = 'Specifies whether usage data is used as the basis for billing via contracts.';
+            DataClassification = CustomerContent;
+            Editable = false;
+        }
+        field(8001; "Usage Based Pricing"; Enum "Usage Based Pricing")
+        {
+            Caption = 'Usage Based Pricing';
+            ToolTip = 'Specifies the method for customer based pricing.';
+            DataClassification = CustomerContent;
+            Editable = false;
+        }
+        field(8002; "Pricing Unit Cost Surcharge %"; Decimal)
+        {
+            Caption = 'Pricing Unit Cost Surcharge %';
+            ToolTip = 'Specifies the surcharge in percent for the debit-side price calculation, if a EK surcharge is to be used.';
+            DataClassification = CustomerContent;
+            AutoFormatType = 0;
+            DecimalPlaces = 0 : 5;
+            Editable = false;
+        }
     }
     keys
     {
@@ -355,6 +378,9 @@ table 8073 "Subscription Line Archive"
         Rec."Unit Cost" := ServiceCommitment."Unit Cost";
         Rec."Unit Cost (LCY)" := ServiceCommitment."Unit Cost (LCY)";
         Rec.Closed := ServiceCommitment.Closed;
+        Rec."Usage Based Billing" := ServiceCommitment."Usage Based Billing";
+        Rec."Usage Based Pricing" := ServiceCommitment."Usage Based Pricing";
+        Rec."Pricing Unit Cost Surcharge %" := ServiceCommitment."Pricing Unit Cost Surcharge %";
         OnAfterCopyFromSubscriptionLine(Rec, ServiceCommitment);
     end;
 
