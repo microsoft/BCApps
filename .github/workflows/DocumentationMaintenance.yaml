@@ -34,8 +34,15 @@ jobs:
       - name: Install Copilot CLI
         run: npm install -g @github/copilot
 
-      - name: Verify al-docs plugin files
-        run: ls tools/al-docs-plugin/skills/al-docs/
+      - name: Install al-docs plugin
+        run: |
+          copilot plugin install ./tools/al-docs-plugin
+          copilot plugin list
+
+          # Trust the plugin install directory so copilot can read skill files
+          PLUGIN_DIR="$HOME/.copilot/installed-plugins"
+          mkdir -p ~/.copilot
+          echo "{\"trusted_folders\":[\"$PLUGIN_DIR\"]}" > ~/.copilot/config.json
 
       - name: Find changed apps
         id: scope
@@ -74,7 +81,7 @@ jobs:
 
             # Run with full output to CI log, capture to file
             timeout 300 copilot -p \
-              "First read the file tools/al-docs-plugin/skills/al-docs/al-docs-audit.md and tools/al-docs-plugin/skills/al-docs/references/al-scoring.md. Then follow those instructions to audit the app at $APP_PATH. After the audit, summarize in 2-3 sentences: coverage percentage, what is missing, and whether the developer should run al-docs init." \
+              "Run the al-docs skill in audit mode on the app at $APP_PATH. After the audit completes, summarize the result in 2-3 sentences: coverage percentage, what is missing, and whether the developer should run al-docs init." \
               --model claude-opus-4.6 \
               --no-ask-user \
               --autopilot \
