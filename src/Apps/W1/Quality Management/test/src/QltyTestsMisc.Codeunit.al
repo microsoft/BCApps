@@ -2833,6 +2833,29 @@ codeunit 139964 "Qlty. Tests - Misc."
         LibraryAssert.IsTrue(QltyInspectionHeader.GetPreventAutoAssignment(), 'Inspection should be ignored');
     end;
 
+    [Test]
+    procedure InspectionSelectionCriteriaDefaultValue()
+    var
+        QltyManagementSetup: Record "Qlty. Management Setup";
+    begin
+        // [FEATURE] [AI test 0.3]
+        // [SCENARIO 624745] Quality Inspection Selection Criteria defaults to "Only the newest inspection/re-inspection"
+        Initialize();
+
+        // [GIVEN] No "Qlty. Management Setup" record exists
+        if QltyManagementSetup.Get() then
+            QltyManagementSetup.Delete();
+
+        // [WHEN] A new "Qlty. Management Setup" record is initialized
+        QltyManagementSetup.Init();
+
+        // [THEN] "Inspection Selection Criteria" defaults to "Only the newest inspection/re-inspection"
+        LibraryAssert.AreEqual(
+            Enum::"Qlty. Insp. Selection Criteria"::"Only the newest inspection/re-inspection",
+            QltyManagementSetup."Inspection Selection Criteria",
+            'Inspection Selection Criteria should default to "Only the newest inspection/re-inspection"');
+    end;
+
     local procedure Initialize()
     begin
         if IsInitialized then
