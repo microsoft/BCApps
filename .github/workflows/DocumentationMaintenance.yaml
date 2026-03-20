@@ -98,6 +98,15 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
+          # Check if we already posted a docs review on this PR
+          EXISTING=$(gh api repos/${{ github.repository }}/pulls/${{ github.event.pull_request.number }}/reviews \
+            --jq '[.[] | select(.body | startswith("AL Documentation Audit"))] | length' 2>/dev/null || echo "0")
+
+          if [ "$EXISTING" != "0" ]; then
+            echo "Docs review already posted on this PR, skipping."
+            exit 0
+          fi
+
           if copilot -p "Read /tmp/full-report.md. Does the audit show documentation gaps that need to be fixed? Reply only YES or NO." \
             -s --no-ask-user --allow-tool=read | grep -qi "yes"; then
 
