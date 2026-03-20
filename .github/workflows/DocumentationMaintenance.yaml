@@ -70,17 +70,15 @@ jobs:
         if: steps.scope.outputs.count != '0'
         id: audit
         run: |
-          HAS_GAPS=false
-
           while IFS= read -r APP_PATH; do
             [ -z "$APP_PATH" ] && continue
             APP_NAME=$(jq -r '.name // "unknown"' "$APP_PATH/app.json" 2>/dev/null || echo "unknown")
             REPORT_FILE="/tmp/audit-${APP_NAME// /-}.md"
 
-            echo "::group::Auditing $APP_NAME ($APP_PATH)"
+            echo "Auditing $APP_NAME at $APP_PATH..."
 
-            timeout 300 copilot -p \
-              "Run the al-docs skill in audit mode on the app at $APP_PATH. After the audit, summarize in 2-3 sentences: coverage percentage, what is missing, and whether the developer should run al-docs init." \
+            timeout 600 copilot -p \
+              "Run the al-docs skill in audit mode on the app at $APP_PATH. After the audit, summarize in 2-3 sentences: coverage percentage, what is missing." \
               --model claude-opus-4.6 \
               --no-ask-user \
               --autopilot \
@@ -90,27 +88,17 @@ jobs:
               --allow-tool='shell(git log:read)' \
               --share="$REPORT_FILE" || true
 
-            echo "::endgroup::"
-
-            # Use silent mode to get clean summary for PR review
-            SUMMARY=$(timeout 60 copilot -p \
-              "Read $REPORT_FILE. Extract only the final audit summary — the 2-3 sentence conclusion about coverage and what action the developer should take. Output nothing else." \
-              -s --no-ask-user --allow-tool=read 2>&1) || true
-
-            if [ -n "$SUMMARY" ]; then
-              HAS_GAPS=true
-              echo "**$APP_NAME** (\`$APP_PATH\`)" >> /tmp/audit-report.md
-              echo "" >> /tmp/audit-report.md
-              echo "$SUMMARY" >> /tmp/audit-report.md
-              echo "" >> /tmp/audit-report.md
-            fi
           done <<< '${{ steps.scope.outputs.apps }}'
 
-          echo "has_gaps=$HAS_GAPS" >> "$GITHUB_OUTPUT"
-          if [ -f /tmp/audit-report.md ]; then
+          # Combine all audit reports
+          cat /tmp/audit-*.md > /tmp/full-report.md 2>/dev/null || true
+          if [ -s /tmp/full-report.md ]; then
+            echo "has_gaps=true" >> "$GITHUB_OUTPUT"
             echo "report<<EOF" >> "$GITHUB_OUTPUT"
-            cat /tmp/audit-report.md >> "$GITHUB_OUTPUT"
+            cat /tmp/full-report.md >> "$GITHUB_OUTPUT"
             echo "EOF" >> "$GITHUB_OUTPUT"
+          else
+            echo "has_gaps=false" >> "$GITHUB_OUTPUT"
           fi
 
       - name: Request docs changes
