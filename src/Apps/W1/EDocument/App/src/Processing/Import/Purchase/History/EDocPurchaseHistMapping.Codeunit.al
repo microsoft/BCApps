@@ -214,6 +214,7 @@ codeunit 6120 "E-Doc. Purchase Hist. Mapping"
         EDocPurchLineField: Record "E-Document Line - Field";
         NewPurchLineRecordRef: RecordRef;
         NewPurchLineFieldRef: FieldRef;
+        FieldValue: Variant;
     begin
         if not EDocPurchLineFieldSetup.FindSet() then
             exit;
@@ -223,9 +224,23 @@ codeunit 6120 "E-Doc. Purchase Hist. Mapping"
                 continue;
             EDocPurchLineField.Get(EDocumentPurchaseLine, EDocPurchLineFieldSetup);
             NewPurchLineFieldRef := NewPurchLineRecordRef.Field(EDocPurchLineFieldSetup."Field No.");
-            NewPurchLineFieldRef.Validate(EDocPurchLineField.GetValue());
+            FieldValue := EDocPurchLineField.GetValue();
+            CheckFieldValueLength(NewPurchLineFieldRef, FieldValue);
+            NewPurchLineFieldRef.Validate(FieldValue);
         until EDocPurchLineFieldSetup.Next() = 0;
         NewPurchLineRecordRef.SetTable(PurchaseLine);
+    end;
+
+    local procedure CheckFieldValueLength(PurchLineFieldRef: FieldRef; FieldValue: Variant)
+    var
+        ValueAsText: Text;
+        ValueTooLongErr: Label 'value ''%1'' exceeds the maximum length of %2 characters (actual: %3). Additional field: %4 (ID %5). Adjust the value on the draft and try again.', Comment = '%1 = Value, %2 = Max Length, %3 = Actual Length, %4 = Field Name, %5 = Field Number';
+    begin
+        if not (PurchLineFieldRef.Type() in [FieldType::Text, FieldType::Code]) then
+            exit;
+        ValueAsText := Format(FieldValue);
+        if StrLen(ValueAsText) > PurchLineFieldRef.Length() then
+            PurchLineFieldRef.FieldError(StrSubstNo(ValueTooLongErr, ValueAsText, PurchLineFieldRef.Length(), StrLen(ValueAsText), PurchLineFieldRef.Name(), PurchLineFieldRef.Number()));
     end;
 
     procedure OpenPageWithHistoricMatch(EDocumentPurchaseLine: Record "E-Document Purchase Line"): Boolean
