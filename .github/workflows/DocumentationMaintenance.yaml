@@ -116,6 +116,6 @@ jobs:
 
           ${{ steps.audit.outputs.report }}
 
-          Consider running \`/al-docs init\` or \`/al-docs update\` on these apps to generate documentation before merging.
+          To generate documentation, run the \`/al-docs init\` or \`/al-docs update\` skill using [GitHub Copilot CLI](https://github.com/github/copilot-cli) (\`copilot\`) or [Claude Code](https://claude.com/claude-code) (\`claude\`).
           COMMENT
           )"
