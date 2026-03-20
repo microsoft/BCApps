@@ -22,19 +22,37 @@ jobs:
     env:
       COPILOT_GITHUB_TOKEN: ${{ secrets.COPILOT_GH_TOKEN }}
     steps:
+      - name: Check for existing docs review
+        id: dedup
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          EXISTING=$(gh api repos/${{ github.repository }}/pulls/${{ github.event.pull_request.number }}/reviews \
+            --jq '[.[] | select(.body | startswith("AL Documentation Audit"))] | length' 2>/dev/null || echo "0")
+          if [ "$EXISTING" != "0" ]; then
+            echo "Docs review already posted, skipping."
+            echo "skip=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "skip=false" >> "$GITHUB_OUTPUT"
+          fi
+
       - name: Checkout
+        if: steps.dedup.outputs.skip != 'true'
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
         with:
           fetch-depth: 0
           ref: ${{ github.event.pull_request.head.sha }}
 
       - name: Setup Node.js
+        if: steps.dedup.outputs.skip != 'true'
         uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
 
       - name: Install Copilot CLI
+        if: steps.dedup.outputs.skip != 'true'
         run: npm install -g @github/copilot
 
       - name: Install al-docs plugin
+        if: steps.dedup.outputs.skip != 'true'
         run: |
           copilot plugin install ./tools/al-docs-plugin
           PLUGIN_DIR="$HOME/.copilot/installed-plugins"
@@ -42,6 +60,7 @@ jobs:
           echo "{\"trusted_folders\":[\"$PLUGIN_DIR\"]}" > ~/.copilot/config.json
 
       - name: Find changed apps
+        if: steps.dedup.outputs.skip != 'true'
         id: scope
         run: |
           MERGE_BASE=$(git merge-base ${{ github.event.pull_request.base.sha }} ${{ github.event.pull_request.head.sha }})
@@ -67,7 +86,7 @@ jobs:
           echo "EOF" >> "$GITHUB_OUTPUT"
 
       - name: Run al-docs audit
-        if: steps.scope.outputs.count != '0'
+        if: steps.dedup.outputs.skip != 'true' && steps.scope.outputs.count != '0'
         id: audit
         run: |
           while IFS= read -r APP_PATH; do
@@ -94,19 +113,10 @@ jobs:
           cat /tmp/audit-*.md > /tmp/full-report.md 2>/dev/null || true
 
       - name: Request docs changes
-        if: steps.scope.outputs.count != '0'
+        if: steps.dedup.outputs.skip != 'true' && steps.scope.outputs.count != '0'
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          # Check if we already posted a docs review on this PR
-          EXISTING=$(gh api repos/${{ github.repository }}/pulls/${{ github.event.pull_request.number }}/reviews \
-            --jq '[.[] | select(.body | startswith("AL Documentation Audit"))] | length' 2>/dev/null || echo "0")
-
-          if [ "$EXISTING" != "0" ]; then
-            echo "Docs review already posted on this PR, skipping."
-            exit 0
-          fi
-
           if copilot -p "Read /tmp/full-report.md. Does the audit show documentation gaps that need to be fixed? Reply only YES or NO." \
             -s --no-ask-user --allow-tool=read | grep -qi "yes"; then
 
