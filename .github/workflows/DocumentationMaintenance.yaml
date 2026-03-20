@@ -90,8 +90,11 @@ jobs:
               --allow-tool=grep \
               2>&1 | tee /tmp/audit-output.txt || true
 
-            # Grab last lines for PR comment (skip tool traces / stats)
-            OUTPUT=$(grep -v '^[│├└●✓✗]' /tmp/audit-output.txt | grep -v '^$' | tail -10)
+            # Extract clean summary: strip tool traces, stats, and usage lines
+            OUTPUT=$(grep -v '^[│├└●✓✗]' /tmp/audit-output.txt \
+              | grep -v '^$' \
+              | grep -vi 'total usage\|API time\|session time\|code changes\|Breakdown by\|claude-opus\|claude-haiku\|Premium requests' \
+              | tail -5)
 
             if echo "$OUTPUT" | grep -qi "missing\|no documentation\|should.*run\|does not have\|0%\|no CLAUDE"; then
               REPORT="$REPORT
@@ -109,18 +112,16 @@ jobs:
             echo "has_gaps=false" >> "$GITHUB_OUTPUT"
           fi
 
-      - name: Post audit report
+      - name: Request docs changes
         if: steps.audit.outputs.has_gaps == 'true'
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          gh pr comment ${{ github.event.pull_request.number }} --body "$(cat <<'COMMENT'
-          ### Documentation gaps detected
+          BODY=$(printf '%s\n\n%s\n\n%s' \
+            "The following apps changed in this PR but have missing or incomplete documentation:" \
+            "${{ steps.audit.outputs.report }}" \
+            "To generate documentation, run the \`/al-docs init\` or \`/al-docs update\` skill using [GitHub Copilot CLI](https://github.com/github/copilot-cli) (\`copilot\`) or [Claude Code](https://claude.com/claude-code) (\`claude\`).")
 
-          The following apps changed in this PR but have missing or incomplete documentation:
-
-          ${{ steps.audit.outputs.report }}
-
-          To generate documentation, run the \`/al-docs init\` or \`/al-docs update\` skill using [GitHub Copilot CLI](https://github.com/github/copilot-cli) (\`copilot\`) or [Claude Code](https://claude.com/claude-code) (\`claude\`).
-          COMMENT
-          )"
+          gh api repos/${{ github.repository }}/pulls/${{ github.event.pull_request.number }}/reviews \
+            -f body="$BODY" \
+            -f event="REQUEST_CHANGES"
