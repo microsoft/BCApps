@@ -12,11 +12,12 @@ using Microsoft.Warehouse.Structure;
 report 20410 "Qlty. Create Transfer Order"
 {
     Caption = 'Quality Management - Create Transfer Order';
-    ApplicationArea = QualityManagement;
-    ProcessingOnly = true;
-    UsageCategory = Tasks;
-    AllowScheduling = false;
     ToolTip = 'Use this to transfer items to another location.';
+    ProcessingOnly = true;
+    AccessByPermission = tabledata "Qlty. Inspection Header" = R;
+    UsageCategory = Tasks;
+    ApplicationArea = QualityManagement;
+    AllowScheduling = false;
 
     dataset
     {

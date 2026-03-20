@@ -5,6 +5,7 @@
 namespace Microsoft.QualityManagement.Setup.SetupGuide;
 
 using Microsoft.QualityManagement.RoleCenters;
+using Microsoft.QualityManagement.Setup;
 using Microsoft.QualityManagement.Setup.ApplicationAreas;
 using Microsoft.QualityManagement.Utilities;
 using System.Environment;
@@ -16,6 +17,7 @@ page 20438 "Qlty. Management Setup Guide"
 {
     Caption = 'Quality Management Setup Guide';
     PageType = NavigatePage;
+    AccessByPermission = tabledata "Qlty. Management Setup" = R;
     UsageCategory = Administration;
     ApplicationArea = QualityManagement;
 
