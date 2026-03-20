@@ -37,6 +37,9 @@ jobs:
       - name: Install al-docs plugin
         run: |
           copilot plugin install ./tools/al-docs-plugin
+          # Copy plugin skills into working directory so copilot can read them
+          # without --allow-all-paths (default permissions only allow cwd)
+          cp -r ~/.copilot/installed-plugins/_direct/al-docs-plugin/skills .copilot-skills
           copilot plugin list
 
       - name: Find changed apps
@@ -82,7 +85,6 @@ jobs:
               -s \
               --no-ask-user \
               --autopilot \
-              --allow-all-paths \
               --allow-tool=read \
               --allow-tool=glob \
               --allow-tool=grep \
