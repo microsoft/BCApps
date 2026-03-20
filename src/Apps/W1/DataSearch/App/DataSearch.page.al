@@ -1,4 +1,5 @@
 namespace Microsoft.Foundation.DataSearch;
+
 using System.Telemetry;
 
 page 2680 "Data Search"
