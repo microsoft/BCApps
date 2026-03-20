@@ -26,7 +26,7 @@ table 8014 "Usage Data Supplier"
         }
         field(4; "Unit Price from Import"; Boolean)
         {
-            Caption = 'Unit Price from Import';
+            Caption = 'Sales Prices from Import';
         }
         field(5; "Vendor Invoice per"; Enum "Vendor Invoice Per")
         {

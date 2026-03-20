@@ -119,11 +119,14 @@ table 8013 "Usage Data Import"
     trigger OnDelete()
     var
         UsageDataBlob: Record "Usage Data Blob";
-        UsageDataGenericImport: Record "Usage Data Generic Import";
+        UsageDataSupplier: Record "Usage Data Supplier";
+        UsageDataProcessing: Interface "Usage Data Processing";
     begin
         CheckAndDeleteUsageDataBilling();
-        UsageDataGenericImport.SetRange("Usage Data Import Entry No.", "Entry No.");
-        UsageDataGenericImport.DeleteAll(false);
+        if UsageDataSupplier.Get("Supplier No.") then begin
+            UsageDataProcessing := UsageDataSupplier.Type;
+            UsageDataProcessing.DeleteImportedData(Rec);
+        end;
         UsageDataBlob.SetRange("Usage Data Import Entry No.", "Entry No.");
         UsageDataBlob.DeleteAll(false);
     end;
@@ -152,12 +155,15 @@ table 8013 "Usage Data Import"
 
     internal procedure DeleteUsageDataBillingLines()
     var
-        UsageDataGenericImport: Record "Usage Data Generic Import";
+        UsageDataSupplier: Record "Usage Data Supplier";
+        UsageDataProcessing: Interface "Usage Data Processing";
     begin
         OnDeleteUsageDataBillingLines();
 
-        UsageDataGenericImport.SetRange("Usage Data Import Entry No.", "Entry No.");
-        UsageDataGenericImport.DeleteAll(true);
+        if UsageDataSupplier.Get("Supplier No.") then begin
+            UsageDataProcessing := UsageDataSupplier.Type;
+            UsageDataProcessing.DeleteImportedData(Rec);
+        end;
         CheckAndDeleteUsageDataBilling();
 
         Rec."Processing Status" := "Processing Status"::None;

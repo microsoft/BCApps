@@ -202,6 +202,57 @@ codeunit 148153 "Usage Based Billing Test"
         Assert.RecordIsNotEmpty(UsageDataBilling);
     end;
 
+    [Test]
+    [HandlerFunctions('ExchangeRateSelectionModalPageHandler,MessageHandler')]
+    procedure CustomerCurrencyMismatchErrorWhenNotAllowed()
+    var
+        UsageDataBilling: Record "Usage Data Billing";
+        UsageDataGenericImport: Record "Usage Data Generic Import";
+        ContractType: Record "Subscription Contract Type";
+        CustomerCurrencyMismatchErr: Label 'Customer Subscription Contract %1 uses Currency Code %2, while the usage data contains amounts in %3. Please update the currency in the contract or move the Subscription line to a contract with this currency before reprocessing the usage data import.', Locked = true;
+    begin
+        // [SCENARIO] When customer contract currency differs from usage data and "Allow Diff. Curr. in Usage Data" is false, error status is set
+
+        // [GIVEN] Setup usage data and service objects
+        Initialize();
+        SetupUsageDataForProcessingToGenericImport(WorkDate(), CalcDate('<CM>', WorkDate()), WorkDate(), CalcDate('<CM>', WorkDate()), LibraryRandom.RandDec(10, 2), true);
+        SetupDataExchangeDefinition();
+        SetupServiceObjectAndContracts(WorkDate());
+
+        // [GIVEN] Create contract type that does not allow different customer currencies
+        ContractTestLibrary.CreateContractType(ContractType);
+        ContractType."Allow Diff. Curr. in Cust. UD" := false;
+        ContractType.Modify(false);
+
+        // [GIVEN] Set customer contract to use a different currency than the import data
+        CustomerContract."Contract Type" := ContractType.Code;
+        CustomerContract.Modify(false);
+
+        // [GIVEN] Connect and process imported lines, create Usage Data Billing
+        UsageBasedBTestLibrary.ConnectDataExchDefinitionToUsageDataGenericSettings(DataExchDef.Code, GenericImportSettings);
+        ProcessUsageDataImport(Enum::"Processing Step"::"Create Imported Lines");
+        ProcessUsageDataImport(Enum::"Processing Step"::"Process Imported Lines");
+
+        UsageDataGenericImport.SetRange("Usage Data Import Entry No.", UsageDataImport."Entry No.");
+        UsageDataGenericImport.FindFirst();
+        PrepareServiceCommitmentAndUsageDataGenericImportForUsageBilling(UsageDataGenericImport, "Usage Based Pricing"::"Usage Quantity");
+        Codeunit.Run(Codeunit::"Import And Process Usage Data", UsageDataImport);
+
+        // [WHEN] Create Usage Data Billing (customer currency check happens here)
+        UsageDataImport.SetRecFilter();
+        UsageDataImport.ProcessUsageDataImport(UsageDataImport, Enum::"Processing Step"::"Create Usage Data Billing");
+
+        // [THEN] Customer billing records should have error status due to currency mismatch
+        UsageDataBilling.SetRange("Usage Data Import Entry No.", UsageDataImport."Entry No.");
+        UsageDataBilling.SetRange(Partner, "Service Partner"::Customer);
+        UsageDataBilling.FindFirst();
+        UsageDataBilling.TestField("Processing Status", Enum::"Processing Status"::Error);
+        Assert.AreEqual(
+            StrSubstNo(CustomerCurrencyMismatchErr, CustomerContract."No.", CustomerContract."Currency Code", UsageDataBilling."Currency Code"),
+            UsageDataBilling.GetReason(),
+            'Error reason should match customer currency mismatch message');
+    end;
+
     [HandlerFunctions('ExchangeRateSelectionModalPageHandler,CreateVendorBillingDocumentPageHandler,MessageHandler')]
     [Test]
     procedure DeleteUsageDataBillingLineWhenRelatedPurchCrMemoLineIsDeleted()
@@ -212,7 +263,7 @@ codeunit 148153 "Usage Based Billing Test"
     begin
         // [SCENARIO] Creating a corrective purchase credit memo for a contract with two usage-based service commitments, deleting one line, and posting the memo should only create a new usage data billing line for the credited line.
         // [GIVEN] A vendor contract with two usage-based service commitments, both invoiced
-        ResetAll();
+        Initialize();
         CreateUsageDataBilling("Usage Based Pricing"::"Fixed Quantity", LibraryRandom.RandDec(10, 2));
         UsageDataImport.ProcessUsageDataImport(UsageDataImport, Enum::"Processing Step"::"Process Usage Data Billing");
         UsageDataImport.TestField("Processing Status", "Processing Status"::Ok);
@@ -247,7 +298,7 @@ codeunit 148153 "Usage Based Billing Test"
     begin
         // [SCENARIO] Creating a corrective credit memo for a contract with two usage-based service commitments, deleting one line, and posting the memo should only create a new usage data billing line for the credited line.
         // [GIVEN] A customer contract with two usage-based service commitments, both invoiced
-        ResetAll();
+        Initialize();
         CreateUsageDataBilling("Usage Based Pricing"::"Fixed Quantity", LibraryRandom.RandDec(10, 2));
         PostDocument := true;
         UsageDataImport.ProcessUsageDataImport(UsageDataImport, Enum::"Processing Step"::"Process Usage Data Billing");
@@ -275,6 +326,66 @@ codeunit 148153 "Usage Based Billing Test"
         UsageDataBilling.SetRange("Document No.", SalesCrMemoHeader."No.");
         UsageDataBilling.SetRange("Document Line No.", SalesLine."Line No.");
         Assert.RecordIsEmpty(UsageDataBilling);
+    end;
+
+    [Test]
+    procedure DeriveAmountFromUnitPriceWhenPriceFromImport()
+    var
+        LocalUsageDataSupplier: Record "Usage Data Supplier";
+        UsageDataBilling: Record "Usage Data Billing";
+        TestQuantity: Decimal;
+        TestUnitPrice: Decimal;
+    begin
+        // [SCENARIO] When "Unit Price from Import" is enabled and import provides UnitPrice but not Amount, CalculateAmounts derives Amount
+
+        // [GIVEN] A usage data billing record for a customer partner with quantity
+        Initialize();
+        TestQuantity := LibraryRandom.RandDec(10, 2);
+        TestUnitPrice := LibraryRandom.RandDec(100, 2);
+        UsageBasedBTestLibrary.CreateUsageDataSupplier(LocalUsageDataSupplier, Enum::"Usage Data Supplier Type"::Generic, true, Enum::"Vendor Invoice Per"::Import);
+
+        UsageDataBilling.Init();
+        UsageDataBilling.Partner := "Service Partner"::Customer;
+        UsageDataBilling.Quantity := TestQuantity;
+        UsageDataBilling."Charge End Date" := WorkDate();
+        UsageDataBilling.Insert(true);
+
+        // [WHEN] CalculateAmounts is called with UnitPrice but no Amount
+        UsageDataBilling.CalculateAmounts(LocalUsageDataSupplier, '', 0, 0, TestUnitPrice, 0);
+
+        // [THEN] Amount is derived from UnitPrice * Quantity, rounded to currency precision
+        Assert.AreEqual(Round(TestUnitPrice * TestQuantity, Currency."Amount Rounding Precision"), UsageDataBilling.Amount, 'Amount should be calculated from UnitPrice * Quantity');
+        Assert.AreEqual(Round(TestUnitPrice, Currency."Unit-Amount Rounding Precision"), UsageDataBilling."Unit Price", 'Unit Price should be preserved');
+    end;
+
+    [Test]
+    procedure DeriveUnitPriceFromAmountWhenPriceFromImport()
+    var
+        LocalUsageDataSupplier: Record "Usage Data Supplier";
+        UsageDataBilling: Record "Usage Data Billing";
+        TestAmount: Decimal;
+        TestQuantity: Decimal;
+    begin
+        // [SCENARIO] When "Unit Price from Import" is enabled and import provides Amount but not UnitPrice, CalculateAmounts derives UnitPrice
+
+        // [GIVEN] A usage data billing record for a customer partner with quantity
+        Initialize();
+        TestQuantity := LibraryRandom.RandDec(10, 2);
+        TestAmount := LibraryRandom.RandDec(100, 2);
+        UsageBasedBTestLibrary.CreateUsageDataSupplier(LocalUsageDataSupplier, Enum::"Usage Data Supplier Type"::Generic, true, Enum::"Vendor Invoice Per"::Import);
+
+        UsageDataBilling.Init();
+        UsageDataBilling.Partner := "Service Partner"::Customer;
+        UsageDataBilling.Quantity := TestQuantity;
+        UsageDataBilling."Charge End Date" := WorkDate();
+        UsageDataBilling.Insert(true);
+
+        // [WHEN] CalculateAmounts is called with Amount but no UnitPrice
+        UsageDataBilling.CalculateAmounts(LocalUsageDataSupplier, '', 0, 0, 0, TestAmount);
+
+        // [THEN] UnitPrice is derived from Amount / Quantity, rounded to currency precision
+        Assert.AreEqual(Round(TestAmount / TestQuantity, Currency."Unit-Amount Rounding Precision"), UsageDataBilling."Unit Price", 'Unit Price should be calculated from Amount / Quantity');
+        Assert.AreEqual(Round(TestAmount, Currency."Amount Rounding Precision"), UsageDataBilling.Amount, 'Amount should be preserved');
     end;
 
     [Test]
@@ -598,6 +709,43 @@ codeunit 148153 "Usage Based Billing Test"
         Assert.RecordIsEmpty(UsageDataBilling);
     end;
 
+    [HandlerFunctions('ExchangeRateSelectionModalPageHandler,CreateCustomerBillingDocumentPageHandler,MessageHandler')]
+    [Test]
+    procedure PostingCreditMemoWithoutAppliesToDocNoDoesNotDuplicateUsageDataBilling()
+    var
+        UsageDataBilling: Record "Usage Data Billing";
+        InitialBillingCount: Integer;
+    begin
+        // [SCENARIO] Posting a usage-based credit memo without "Applies-to Doc. No." must not create additional usage data billing records (PDD-821)
+        // [GIVEN] A customer contract with usage-based service commitments, invoiced and with a corrective credit memo
+        Initialize();
+        CreateUsageDataBilling("Usage Based Pricing"::"Fixed Quantity", LibraryRandom.RandDec(10, 2));
+        PostDocument := true;
+        UsageDataImport.ProcessUsageDataImport(UsageDataImport, Enum::"Processing Step"::"Process Usage Data Billing");
+        UsageDataImport.TestField("Processing Status", "Processing Status"::Ok);
+        UsageDataImport.CollectCustomerContractsAndCreateInvoices(UsageDataImport);
+        FilterUsageDataBillingOnUsageDataImport(UsageDataBilling, UsageDataImport."Entry No.", "Service Partner"::Customer, UsageDataBilling."Document Type"::"Posted Invoice");
+        UsageDataBilling.FindFirst();
+
+        // [GIVEN] Create a corrective credit memo and clear "Applies-to Doc. No." to simulate a standalone credit memo
+        SalesInvoiceHeader.Get(UsageDataBilling."Document No.");
+        CorrectPostedSalesInvoice.CreateCreditMemoCopyDocument(SalesInvoiceHeader, SalesCrMemoHeader);
+        SalesCrMemoHeader.Validate("Applies-to Doc. No.", '');
+        SalesCrMemoHeader.Modify(true);
+
+        // [WHEN] Count billing records before posting and then post the credit memo
+        FilterUsageDataBillingOnUsageDataImport(UsageDataBilling, UsageDataImport."Entry No.", "Service Partner"::Customer);
+        InitialBillingCount := UsageDataBilling.Count();
+        LibrarySales.PostSalesDocument(SalesCrMemoHeader, true, true);
+
+        // [THEN] No additional usage data billing records should be created (no duplication)
+        FilterUsageDataBillingOnUsageDataImport(UsageDataBilling, UsageDataImport."Entry No.", "Service Partner"::Customer);
+        Assert.AreEqual(InitialBillingCount, UsageDataBilling.Count(), 'Posting a credit memo without Applies-to Doc. No. must not create additional usage data billing records.');
+        UsageDataBilling.FilterOnDocumentTypeAndDocumentNo("Service Partner"::Customer, Enum::"Usage Based Billing Doc. Type"::None, '');
+        UsageDataBilling.SetRange("Usage Data Import Entry No.", UsageDataImport."Entry No.");
+        Assert.RecordIsEmpty(UsageDataBilling);
+    end;
+
     [Test]
     [HandlerFunctions('ExchangeRateSelectionModalPageHandler,MessageHandler')]
     procedure ProcessUsageDataBillingWithZeroQuantitySucceeds()
@@ -625,7 +773,7 @@ codeunit 148153 "Usage Based Billing Test"
     begin
         // [SCENARIO] When sales invoice with usage data is created if a line is deleted related usage data billing should be reset
         // [GIVEN] A customer contract with usage-based service commitments and a sales invoice created from usage data
-        ResetAll();
+        Initialize();
         CreateUsageDataBilling("Usage Based Pricing"::"Fixed Quantity", LibraryRandom.RandDec(10, 2));
         PostDocument := false;
         UsageDataImport.ProcessUsageDataImport(UsageDataImport, Enum::"Processing Step"::"Process Usage Data Billing");
@@ -660,7 +808,7 @@ codeunit 148153 "Usage Based Billing Test"
     begin
         // [SCENARIO] When purchase invoice with usage data is created if a line is deleted related usage data billing should be reset
         // [GIVEN] A vendor contract with usage-based service commitments and a purchase invoice created from usage data
-        ResetAll();
+        Initialize();
         CreateUsageDataBilling("Usage Based Pricing"::"Fixed Quantity", LibraryRandom.RandDec(10, 2));
         UsageDataImport.ProcessUsageDataImport(UsageDataImport, Enum::"Processing Step"::"Process Usage Data Billing");
         UsageDataImport.TestField("Processing Status", "Processing Status"::Ok);
@@ -697,7 +845,7 @@ codeunit 148153 "Usage Based Billing Test"
     begin
         //[SCENARIO] Create recurring billing for simple customer contract; Check if Usage Data Billing Line No. has billing line no
 
-        ResetAll();
+        Initialize();
         //[GIVEN]: Setup Usage Data Import and process it
         CreateUsageDataBilling("Usage Based Pricing"::"Usage Quantity", LibraryRandom.RandDec(10, 2));
         UsageDataImport.ProcessUsageDataImport(UsageDataImport, Enum::"Processing Step"::"Process Usage Data Billing");
@@ -800,35 +948,35 @@ codeunit 148153 "Usage Based Billing Test"
         CustomerContract2: Record "Customer Subscription Contract";
         ServiceObject2: Record "Subscription Header";
         UsageDataBilling: Record "Usage Data Billing";
-        TestSubscribers: Codeunit "Usage Based B. Test Subscr.";
         QuantityOfServiceCommitments: Integer;
     begin
+        // [SCENARIO] Billing lines are created for usage-based subscription lines across multiple contracts when invoicing via Recurring Billing
         Initialize();
         ContractTestLibrary.InitContractsApp();
-        // [GIVEN] Multiple Contracts with Usage based Subscription Lines and Usage Data Billing
+
+        // [GIVEN] Two customer contracts each with a service object assigned
         ContractTestLibrary.CreateCustomer(Customer);
         ContractTestLibrary.CreateCustomerContract(CustomerContract, Customer."No.");
         ContractTestLibrary.CreateCustomerContract(CustomerContract2, Customer."No.");
         UsageBasedBTestLibrary.CreateUsageDataImport(UsageDataImport, '');
-
-        TestSubscribers.SetTestContext('TestCreateInvoicesForMoreThanOneContractPerImport');
-        BindSubscription(TestSubscribers);
         ContractTestLibrary.AssignServiceObjectForItemToCustomerContract(CustomerContract, SubscriptionHeader, false); // ExchangeRateSelectionModalPageHandler,MessageHandler
         ContractTestLibrary.AssignServiceObjectForItemToCustomerContract(CustomerContract2, ServiceObject2, false); // ExchangeRateSelectionModalPageHandler,MessageHandler
-        UnbindSubscription(TestSubscribers);
 
+        // [GIVEN] Subscription lines are marked as usage-based with usage data billing records
         SubscriptionLine.SetFilter("Subscription Header No.", '%1|%2', SubscriptionHeader."No.", ServiceObject2."No.");
+        SubscriptionLine.ModifyAll("Usage Based Billing", true);
+        SubscriptionLine.ModifyAll("Usage Based Pricing", Enum::"Usage Based Pricing"::"Fixed Quantity");
         QuantityOfServiceCommitments := SubscriptionLine.Count();
         SubscriptionLine.FindSet();
         repeat
             CreateUsageDataBillingDummyDataFromSubscriptionLine(UsageDataBilling, UsageDataImport."Entry No.", SubscriptionLine);
         until SubscriptionLine.Next() = 0;
 
-        // [WHEN] Creating a billing proposal via Contract or "Recurring Billing"
+        // [WHEN] Creating a billing proposal via Recurring Billing
         ContractTestLibrary.CreateRecurringBillingTemplate(BillingTemplate, '<CM>', '', '', Enum::"Service Partner"::Customer);
         ContractTestLibrary.CreateBillingProposal(BillingTemplate, Enum::"Service Partner"::Customer);
 
-        // [THEN] A new Billing Line should be created for each Usage Based Subscription Line and Contract with usage data when creating an invoice via "Usage Data Imports"
+        // [THEN] A billing line is created for each usage-based subscription line
         BillingLine.Reset();
         Assert.AreEqual(QuantityOfServiceCommitments, BillingLine.Count(), 'A new Billing Line should be created for each Usage Based Service Commitment and Contract with usage data when creating an invoice via "Usage Data Imports"');
     end;
@@ -840,57 +988,65 @@ codeunit 148153 "Usage Based Billing Test"
         CustomerContract2: Record "Customer Subscription Contract";
         ServiceObject2: Record "Subscription Header";
         UsageDataBilling: Record "Usage Data Billing";
-        TestSubscribers: Codeunit "Usage Based B. Test Subscr.";
         QuantityOfServiceCommitments: Integer;
     begin
+        // [SCENARIO] Billing lines are created for usage-based subscription lines across multiple contracts when invoicing via Usage Data Imports
         Initialize();
         ContractTestLibrary.InitContractsApp();
-        // [GIVEN] Multiple Contracts with Usage based Subscription Lines and Usage Data Billing
+
+        // [GIVEN] Two customer contracts each with a service object assigned
         ContractTestLibrary.CreateCustomer(Customer);
         ContractTestLibrary.CreateCustomerContract(CustomerContract, Customer."No.");
         ContractTestLibrary.CreateCustomerContract(CustomerContract2, Customer."No.");
         UsageBasedBTestLibrary.CreateUsageDataImport(UsageDataImport, '');
-
-        TestSubscribers.SetTestContext('TestCreateInvoicesForMoreThanOneContractPerImport');
-        BindSubscription(TestSubscribers);
         ContractTestLibrary.AssignServiceObjectForItemToCustomerContract(CustomerContract, SubscriptionHeader, false); // ExchangeRateSelectionModalPageHandler,MessageHandler
         ContractTestLibrary.AssignServiceObjectForItemToCustomerContract(CustomerContract2, ServiceObject2, false); // ExchangeRateSelectionModalPageHandler,MessageHandler
-        UnbindSubscription(TestSubscribers);
 
+        // [GIVEN] Subscription lines are marked as usage-based with usage data billing records
         SubscriptionLine.SetFilter("Subscription Header No.", '%1|%2', SubscriptionHeader."No.", ServiceObject2."No.");
+        SubscriptionLine.ModifyAll("Usage Based Billing", true);
+        SubscriptionLine.ModifyAll("Usage Based Pricing", Enum::"Usage Based Pricing"::"Fixed Quantity");
         QuantityOfServiceCommitments := SubscriptionLine.Count();
         SubscriptionLine.FindSet();
         repeat
             CreateUsageDataBillingDummyDataFromSubscriptionLine(UsageDataBilling, UsageDataImport."Entry No.", SubscriptionLine);
         until SubscriptionLine.Next() = 0;
 
-        // [WHEN] Creating a billing proposal via "Usage Data Imports" (CollectCustomerContractsAndCreateInvoices)
+        // [WHEN] Creating contract invoices via Usage Data Imports
         UsageDataImport.CollectCustomerContractsAndCreateInvoices(UsageDataImport); // CreateCustomerBillingDocumentPageHandler
 
-        // [THEN] A Billing Line should be created for Usage Based Subscription Lines with usage data
+        // [THEN] A billing line is created for each usage-based subscription line
         BillingLine.Reset();
         Assert.AreEqual(QuantityOfServiceCommitments, BillingLine.Count(), 'A new Billing Line should be created for each Usage Based Service Commitment and Contract with usage data when creating an invoice via "Usage Data Imports"');
     end;
 
     [Test]
     [HandlerFunctions('ExchangeRateSelectionModalPageHandler,MessageHandler')]
-    procedure TestCreateUsageDataBilling()
+    procedure UsageDataBillingRecordsMustMatchGenericImportAfterCreation()
     var
         UsageDataBilling: Record "Usage Data Billing";
         UsageDataGenericImport: Record "Usage Data Generic Import";
+        ExpectedSubscriptionLine: Record "Subscription Line";
     begin
-        // [SCENARIO] Usage data billing records are created correctly from generic import
-        // [GIVEN] Usage data for fixed quantity pricing
+        // [SCENARIO] After creating usage data billing, the resulting billing records must reflect
+        // exactly the values from the generic import (amounts, dates, currency) and be linked
+        // to the correct subscription line and customer contract.
+        // [GIVEN] Usage data has been processed for fixed quantity pricing
         Initialize();
         CreateUsageDataBilling("Usage Based Pricing"::"Fixed Quantity", LibraryRandom.RandDec(10, 2));
 
-        // [THEN] Usage data import has Ok status and billing records match the generic import
+        // [WHEN] Usage data billing creation step completes
         UsageDataImport.FindLast();
+
+        // [THEN] Import processing status is Ok
         UsageDataImport.TestField("Processing Status", "Processing Status"::Ok);
-        UsageDataBilling.FindLast();
-        UsageDataGenericImport.SetRange("Usage Data Import Entry No.", UsageDataImport."Entry No.");
-        UsageDataGenericImport.FindFirst();
-        TestUsageDataBilling(UsageDataGenericImport, UsageDataBilling);
+
+        // [THEN] The customer billing record, its source generic import line, and the linked
+        // subscription line are fetched and verified to be consistent with each other
+        FindCustomerUsageDataBilling(UsageDataBilling, UsageDataImport."Entry No.");
+        FindCustomerSubscriptionLine(ExpectedSubscriptionLine, SubscriptionHeader."No.");
+        FindUsageDataGenericImport(UsageDataGenericImport, UsageDataImport."Entry No.");
+        AssertUsageDataBillingMatchesImport(UsageDataGenericImport, UsageDataBilling, ExpectedSubscriptionLine);
     end;
 
     [Test]
@@ -1014,7 +1170,6 @@ codeunit 148153 "Usage Based Billing Test"
         LastUsedNo := NoSeriesLine."Last No. Used";
 
         // [WHEN] Processing usage data billing
-        Currency.InitRoundingPrecision();
         CreateUsageDataBilling("Usage Based Pricing"::"Usage Quantity", LibraryRandom.RandDec(10, 2));
         UsageDataSupplier."Unit Price from Import" := false;
         UsageDataSupplier.Modify(false);
@@ -1633,7 +1788,7 @@ codeunit 148153 "Usage Based Billing Test"
         UsageDataBilling: Record "Usage Data Billing";
     begin
         //[SCENARIO]: Check that usage data billing is deleted after deleting purchase credit memo
-        ResetAll();
+        Initialize();
         PurchaseInvoiceHeader.DeleteAll(false);
         //[GIVEN] Usage Data import with Usage Data Billing
         CreateUsageDataBilling("Usage Based Pricing"::"Fixed Quantity", LibraryRandom.RandDec(10, 2));
@@ -1722,7 +1877,7 @@ codeunit 148153 "Usage Based Billing Test"
         UsageDataBilling: Record "Usage Data Billing";
     begin
         //[SCENARIO]: Check that usage data billing is deleted after deleting sales credit memo
-        ResetAll();
+        Initialize();
 
         //[GIVEN] Usage Data Import with Usage Data Billing
         CreateUsageDataBilling("Usage Based Pricing"::"Fixed Quantity", LibraryRandom.RandDec(10, 2));
@@ -2090,6 +2245,57 @@ codeunit 148153 "Usage Based Billing Test"
     end;
 
     [Test]
+    [HandlerFunctions('ExchangeRateSelectionModalPageHandler,MessageHandler')]
+    procedure VendorCurrencyMismatchErrorWhenNotAllowed()
+    var
+        UsageDataBilling: Record "Usage Data Billing";
+        UsageDataGenericImport: Record "Usage Data Generic Import";
+        ContractType: Record "Subscription Contract Type";
+        VendorCurrencyMismatchErr: Label 'Vendor Subscription Contract %1 uses Currency Code %2, while the usage data contains amounts in %3. Please update the currency in the contract or move the Subscription line to a contract with this currency before reprocessing the usage data import.', Locked = true;
+    begin
+        // [SCENARIO] When vendor contract currency differs from usage data and "Allow Diff. Curr. in Usage Data" is false, error status is set
+
+        // [GIVEN] Setup usage data and service objects
+        Initialize();
+        SetupUsageDataForProcessingToGenericImport(WorkDate(), CalcDate('<CM>', WorkDate()), WorkDate(), CalcDate('<CM>', WorkDate()), LibraryRandom.RandDec(10, 2), true);
+        SetupDataExchangeDefinition();
+        SetupServiceObjectAndContracts(WorkDate());
+
+        // [GIVEN] Create contract type that does not allow different vendor currencies
+        ContractTestLibrary.CreateContractType(ContractType);
+        ContractType."Allow Diff. Curr. in Vend. UD" := false;
+        ContractType.Modify(false);
+
+        // [GIVEN] Set vendor contract to use a different currency than the import data
+        VendorContract."Contract Type" := ContractType.Code;
+        VendorContract.Modify(false);
+
+        // [GIVEN] Connect and process imported lines
+        UsageBasedBTestLibrary.ConnectDataExchDefinitionToUsageDataGenericSettings(DataExchDef.Code, GenericImportSettings);
+        ProcessUsageDataImport(Enum::"Processing Step"::"Create Imported Lines");
+        ProcessUsageDataImport(Enum::"Processing Step"::"Process Imported Lines");
+
+        UsageDataGenericImport.SetRange("Usage Data Import Entry No.", UsageDataImport."Entry No.");
+        UsageDataGenericImport.FindFirst();
+        PrepareServiceCommitmentAndUsageDataGenericImportForUsageBilling(UsageDataGenericImport, "Usage Based Pricing"::"Usage Quantity");
+        Codeunit.Run(Codeunit::"Import And Process Usage Data", UsageDataImport);
+
+        // [WHEN] Create Usage Data Billing (currency check happens here)
+        UsageDataImport.SetRecFilter();
+        UsageDataImport.ProcessUsageDataImport(UsageDataImport, Enum::"Processing Step"::"Create Usage Data Billing");
+
+        // [THEN] Vendor billing records should have error status due to currency mismatch
+        UsageDataBilling.SetRange("Usage Data Import Entry No.", UsageDataImport."Entry No.");
+        UsageDataBilling.SetRange(Partner, "Service Partner"::Vendor);
+        UsageDataBilling.FindFirst();
+        UsageDataBilling.TestField("Processing Status", Enum::"Processing Status"::Error);
+        Assert.AreEqual(
+            StrSubstNo(VendorCurrencyMismatchErr, VendorContract."No.", VendorContract."Currency Code", ''),
+            UsageDataBilling.GetReason(),
+            'Error reason should match vendor currency mismatch message');
+    end;
+
+    [Test]
     [HandlerFunctions('UsageDataBillingsModalPageHandler')]
     procedure VerifyFilteringOfUsageDataBilling()
     var
@@ -2127,6 +2333,54 @@ codeunit 148153 "Usage Based Billing Test"
 
     #region Procedures
 
+    local procedure AssertUsageDataBillingMatchesImport(UsageDataGenericImport: Record "Usage Data Generic Import"; var UsageDataBilling: Record "Usage Data Billing"; ExpectedSubscriptionLine: Record "Subscription Line")
+    var
+        CurrencyExchRate: Record "Currency Exchange Rate";
+        BillingCurrency: Record Currency;
+        ExpectedUnitCost: Decimal;
+        ExpectedCostAmount: Decimal;
+        ExpectedUnitPrice: Decimal;
+        ExpectedAmount: Decimal;
+    begin
+        // Verify structural/date fields are copied from the generic import
+        UsageDataBilling.TestField("Usage Data Import Entry No.", UsageDataGenericImport."Usage Data Import Entry No.");
+        UsageDataBilling.TestField("Subscription Header No.", UsageDataGenericImport."Subscription Header No.");
+        UsageDataBilling.TestField("Charge Start Date", UsageDataGenericImport."Billing Period Start Date");
+        UsageDataBilling.TestField("Charge End Date", UsageDataGenericImport."Billing Period End Date");
+        UsageDataBilling.TestField(Quantity, UsageDataGenericImport.Quantity);
+
+        // Verify amount fields, accounting for currency conversion and rounding
+        ExpectedUnitCost := UsageDataGenericImport.Cost;
+        ExpectedCostAmount := UsageDataGenericImport."Cost Amount";
+        ExpectedUnitPrice := UsageDataGenericImport.Price;
+        ExpectedAmount := UsageDataGenericImport.Amount;
+
+        if UsageDataBilling."Currency Code" <> '' then
+            BillingCurrency.Get(UsageDataBilling."Currency Code")
+        else
+            BillingCurrency.InitRoundingPrecision();
+
+        if UsageDataBilling."Currency Code" <> UsageDataGenericImport.Currency then begin
+            ExpectedUnitCost := CurrencyExchRate.ExchangeAmtFCYToFCY(UsageDataBilling."Charge End Date", UsageDataGenericImport.Currency, UsageDataBilling."Currency Code", ExpectedUnitCost);
+            ExpectedCostAmount := CurrencyExchRate.ExchangeAmtFCYToFCY(UsageDataBilling."Charge End Date", UsageDataGenericImport.Currency, UsageDataBilling."Currency Code", ExpectedCostAmount);
+            ExpectedUnitPrice := CurrencyExchRate.ExchangeAmtFCYToFCY(UsageDataBilling."Charge End Date", UsageDataGenericImport.Currency, UsageDataBilling."Currency Code", ExpectedUnitPrice);
+            ExpectedAmount := CurrencyExchRate.ExchangeAmtFCYToFCY(UsageDataBilling."Charge End Date", UsageDataGenericImport.Currency, UsageDataBilling."Currency Code", ExpectedAmount);
+        end;
+        UsageDataBilling.TestField("Unit Cost", Round(ExpectedUnitCost, BillingCurrency."Unit-Amount Rounding Precision"));
+        UsageDataBilling.TestField("Cost Amount", Round(ExpectedCostAmount, BillingCurrency."Amount Rounding Precision"));
+        UsageDataBilling.TestField("Unit Price", Round(ExpectedUnitPrice, BillingCurrency."Unit-Amount Rounding Precision"));
+        UsageDataBilling.TestField(Amount, Round(ExpectedAmount, BillingCurrency."Amount Rounding Precision"));
+
+        // Verify the billing record is linked to the correct subscription line and contract
+        UsageDataBilling.TestField("Subscription Header No.", ExpectedSubscriptionLine."Subscription Header No.");
+        UsageDataBilling.TestField(Partner, ExpectedSubscriptionLine.Partner);
+        UsageDataBilling.TestField("Subscription Contract No.", ExpectedSubscriptionLine."Subscription Contract No.");
+        UsageDataBilling.TestField("Subscription Contract Line No.", ExpectedSubscriptionLine."Subscription Contract Line No.");
+        UsageDataBilling.TestField("Subscription Line Entry No.", ExpectedSubscriptionLine."Entry No.");
+        UsageDataBilling.TestField("Usage Base Pricing", ExpectedSubscriptionLine."Usage Based Pricing");
+        UsageDataBilling.TestField("Pricing Unit Cost Surcharge %", ExpectedSubscriptionLine."Pricing Unit Cost Surcharge %");
+    end;
+
     local procedure Initialize()
     begin
         LibraryTestInitialize.OnTestInitialize(Codeunit::"Usage Based Billing Test");
@@ -2139,7 +2393,6 @@ codeunit 148153 "Usage Based Billing Test"
         LibraryERMCountryData.UpdatePurchasesPayablesSetup();
         LibraryERMCountryData.UpdateSalesReceivablesSetup();
         LibraryERMCountryData.UpdateGeneralLedgerSetup();
-        Currency.InitRoundingPrecision();
         LibraryERMCountryData.UpdateJournalTemplMandatory(false);
         ContractTestLibrary.InitSourceCodeSetup();
         IsInitialized := true;
@@ -2149,6 +2402,7 @@ codeunit 148153 "Usage Based Billing Test"
     local procedure ResetAll()
     begin
         ClearAll();
+        Currency.InitRoundingPrecision();
         UsageBasedBTestLibrary.DeleteAllUsageBasedRecords();
         BillingLine.Reset();
         BillingLine.DeleteAll(false);
@@ -2275,7 +2529,6 @@ codeunit 148153 "Usage Based Billing Test"
         ExpectedInvoiceAmount := UsageDataBilling.Amount;
         UsageDataImport.CollectCustomerContractsAndCreateInvoices(UsageDataImport);
 
-        Currency.InitRoundingPrecision();
         UsageDataBilling.FindFirst();
 
         CheckIfServiceCommitmentRemains(UsageDataBilling);
@@ -2298,9 +2551,13 @@ codeunit 148153 "Usage Based Billing Test"
 
     local procedure CreateCustomerContractAndAssignServiceCommitments()
     var
+        ContractType: Record "Subscription Contract Type";
         TempSubscriptionLine: Record "Subscription Line" temporary;
     begin
         ContractTestLibrary.CreateCustomerContract(CustomerContract, Customer."No.");
+        ContractTestLibrary.CreateContractTypeAllowingDiffCurrency(ContractType);
+        CustomerContract."Contract Type" := ContractType.Code;
+        CustomerContract.Modify(false);
         ContractTestLibrary.FillTempServiceCommitment(TempSubscriptionLine, SubscriptionHeader, CustomerContract);
         CustomerContract.CreateCustomerContractLinesFromServiceCommitments(TempSubscriptionLine);
         CustomerContractLine.SetRange("Subscription Contract No.", CustomerContract."No.");
@@ -2375,10 +2632,14 @@ codeunit 148153 "Usage Based Billing Test"
 
     local procedure CreateVendorContractAndAssignServiceCommitments()
     var
+        ContractType: Record "Subscription Contract Type";
         TempSubscriptionLine: Record "Subscription Line" temporary;
     begin
         ContractTestLibrary.CreateVendor(Vendor);
         ContractTestLibrary.CreateVendorContract(VendorContract, Vendor."No.");
+        ContractTestLibrary.CreateContractTypeAllowingDiffCurrency(ContractType);
+        VendorContract."Contract Type" := ContractType.Code;
+        VendorContract.Modify(false);
         ContractTestLibrary.FillTempServiceCommitmentForVendor(TempSubscriptionLine, SubscriptionHeader, VendorContract);
         VendorContract.CreateVendorContractLinesFromServiceCommitments(TempSubscriptionLine);
         VendorContractLine.SetRange("Subscription Contract No.", VendorContract."No.");
@@ -2402,6 +2663,26 @@ codeunit 148153 "Usage Based Billing Test"
     begin
         FilterUsageDataBillingOnUsageDataImport(UsageDataBilling, UsageDataImportEntryNo, ServicePartner);
         UsageDataBilling.SetRange("Document Type", UsageBasedBillingDocType);
+    end;
+
+    local procedure FindCustomerSubscriptionLine(var FoundSubscriptionLine: Record "Subscription Line"; SubscriptionHeaderNo: Code[20])
+    begin
+        FoundSubscriptionLine.SetRange("Subscription Header No.", SubscriptionHeaderNo);
+        FoundSubscriptionLine.SetRange(Partner, "Service Partner"::Customer);
+        FoundSubscriptionLine.FindFirst();
+    end;
+
+    local procedure FindCustomerUsageDataBilling(var UsageDataBilling: Record "Usage Data Billing"; UsageDataImportEntryNo: Integer)
+    begin
+        UsageDataBilling.SetRange("Usage Data Import Entry No.", UsageDataImportEntryNo);
+        UsageDataBilling.SetRange(Partner, "Service Partner"::Customer);
+        UsageDataBilling.FindFirst();
+    end;
+
+    local procedure FindUsageDataGenericImport(var UsageDataGenericImport: Record "Usage Data Generic Import"; UsageDataImportEntryNo: Integer)
+    begin
+        UsageDataGenericImport.SetRange("Usage Data Import Entry No.", UsageDataImportEntryNo);
+        UsageDataGenericImport.FindFirst();
     end;
 
     local procedure GetBillingEntryNo(BillingDocumentType: Enum "Rec. Billing Document Type"; ServicePartner: Enum "Service Partner"; DocumentNo: Code[20]; ContractNo: Code[20]; ContractLineNo: Integer): Integer
@@ -2713,28 +2994,6 @@ codeunit 148153 "Usage Based Billing Test"
         end;
 
         CreateContractInvoicesAndTestProcessedUsageData();
-    end;
-
-    local procedure TestUsageDataBilling(UsageDataGenericImport: Record "Usage Data Generic Import"; var UsageDataBilling: Record "Usage Data Billing")
-    begin
-        UsageDataBilling.TestField("Usage Data Import Entry No.", UsageDataGenericImport."Usage Data Import Entry No.");
-        UsageDataBilling.TestField("Subscription Header No.", UsageDataGenericImport."Subscription Header No.");
-        UsageDataBilling.TestField("Charge Start Date", UsageDataGenericImport."Billing Period Start Date");
-        UsageDataBilling.TestField("Charge End Date", UsageDataGenericImport."Billing Period End Date");
-        UsageDataBilling.TestField("Unit Cost", UsageDataGenericImport.Cost);
-        UsageDataBilling.TestField(Quantity, UsageDataGenericImport.Quantity);
-        UsageDataBilling.TestField("Cost Amount", UsageDataGenericImport."Cost Amount");
-        UsageDataBilling.TestField(Amount, 0);
-        UsageDataBilling.TestField("Unit Price", 0);
-        UsageDataBilling.TestField("Currency Code", UsageDataGenericImport.Currency);
-        UsageDataBilling.TestField("Subscription Header No.", SubscriptionLine."Subscription Header No.");
-        UsageDataBilling.TestField(Partner, SubscriptionLine.Partner);
-        UsageDataBilling.TestField("Subscription Contract No.", SubscriptionLine."Subscription Contract No.");
-        UsageDataBilling.TestField("Subscription Contract Line No.", SubscriptionLine."Subscription Contract Line No.");
-        UsageDataBilling.TestField("Subscription Header No.", SubscriptionLine."Subscription Header No.");
-        UsageDataBilling.TestField("Subscription Line Entry No.", SubscriptionLine."Entry No.");
-        UsageDataBilling.TestField("Usage Base Pricing", SubscriptionLine."Usage Based Pricing");
-        UsageDataBilling.TestField("Pricing Unit Cost Surcharge %", SubscriptionLine."Pricing Unit Cost Surcharge %");
     end;
 
     local procedure ValidateUsageDataGenericImportAvailability(UsageDataImportEntryNo: Integer; ExpectedServiceObjectAvailability: Enum "Service Object Availability"; ExpectedServiceObjectNo: Code[20])

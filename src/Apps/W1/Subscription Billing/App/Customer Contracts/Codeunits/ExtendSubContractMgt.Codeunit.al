@@ -53,7 +53,7 @@ codeunit 8075 "Extend Sub. Contract Mgt."
                 UsageDataSubscription2."Subscription Header No." := ServiceCommitment."Subscription Header No.";
                 UsageDataSubscription2."Subscription Line Entry No." := ServiceCommitment."Entry No.";
                 UsageDataSubscription2.Modify(false);
-                UsageDataSubscription2.UpdateServiceObjectNoForUsageDataGenericImport();
+                UsageDataSubscription2.UpdateSubscriptionHeaderNoInImportedData();
             until UsageDataSubscription.Next() = 0;
     end;
 

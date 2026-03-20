@@ -198,6 +198,34 @@ codeunit 139916 "Service Comm. Archive Test"
         FindAndTestServiceCommitmentArchive();
     end;
 
+    [Test]
+    procedure ArchivePreservesUsageBasedBillingFields()
+    var
+        ServiceCommitmentSubPage: TestPage "Service Commitments";
+    begin
+        // [SCENARIO] When a Subscription Line with UBB fields is modified, the archive preserves Usage Based Billing fields
+        SetupServiceObjectWithServiceCommitment(false, false);
+
+        // [GIVEN] Set Usage Based Billing fields on the service commitment
+        ServiceCommitment."Usage Based Billing" := true;
+        ServiceCommitment."Usage Based Pricing" := Enum::"Usage Based Pricing"::"Usage Quantity";
+        ServiceCommitment."Pricing Unit Cost Surcharge %" := LibraryRandom.RandDec(50, 2);
+        ServiceCommitment.Modify(false);
+        xServiceCommitment := ServiceCommitment;
+
+        // [WHEN] Modify a tracked field to trigger archiving
+        ServiceCommitmentSubPage.OpenEdit();
+        ServiceCommitmentSubPage.GoToRecord(ServiceCommitment);
+        ServiceCommitmentSubPage."Calculation Base %".SetValue(LibraryRandom.RandDec(10, 2));
+
+        // [THEN] Archive preserves Usage Based Billing fields
+        ServiceCommitmentArchive.FilterOnServiceCommitment(ServiceCommitment."Entry No.");
+        ServiceCommitmentArchive.FindLast();
+        ServiceCommitmentArchive.TestField("Usage Based Billing", true);
+        ServiceCommitmentArchive.TestField("Usage Based Pricing", Enum::"Usage Based Pricing"::"Usage Quantity");
+        ServiceCommitmentArchive.TestField("Pricing Unit Cost Surcharge %", xServiceCommitment."Pricing Unit Cost Surcharge %");
+    end;
+
     #endregion Tests
 
     #region Procedures
