@@ -37,9 +37,6 @@ jobs:
       - name: Install al-docs plugin
         run: |
           copilot plugin install ./tools/al-docs-plugin
-          copilot plugin list
-
-          # Trust the plugin install directory so copilot can read skill files
           PLUGIN_DIR="$HOME/.copilot/installed-plugins"
           mkdir -p ~/.copilot
           echo "{\"trusted_folders\":[\"$PLUGIN_DIR\"]}" > ~/.copilot/config.json
@@ -73,15 +70,17 @@ jobs:
         if: steps.scope.outputs.count != '0'
         id: audit
         run: |
-          REPORT=""
+          HAS_GAPS=false
+
           while IFS= read -r APP_PATH; do
             [ -z "$APP_PATH" ] && continue
             APP_NAME=$(jq -r '.name // "unknown"' "$APP_PATH/app.json" 2>/dev/null || echo "unknown")
-            echo "Auditing $APP_NAME at $APP_PATH..."
+            REPORT_FILE="/tmp/audit-${APP_NAME// /-}.md"
 
-            # Run with full output to CI log, capture to file
+            echo "::group::Auditing $APP_NAME ($APP_PATH)"
+
             timeout 300 copilot -p \
-              "Run the al-docs skill in audit mode on the app at $APP_PATH. After the audit completes, summarize the result in 2-3 sentences: coverage percentage, what is missing, and whether the developer should run al-docs init." \
+              "Run the al-docs skill in audit mode on the app at $APP_PATH. After the audit, summarize in 2-3 sentences: coverage percentage, what is missing, and whether the developer should run al-docs init." \
               --model claude-opus-4.6 \
               --no-ask-user \
               --autopilot \
@@ -89,28 +88,29 @@ jobs:
               --allow-tool=glob \
               --allow-tool=grep \
               --allow-tool='shell(git log:read)' \
-              2>&1 | tee /tmp/audit-output.txt || true
+              --share="$REPORT_FILE" || true
 
-            # Extract clean summary: strip tool traces, stats, and usage lines
-            OUTPUT=$(grep -v '^[│├└●✓✗]' /tmp/audit-output.txt \
-              | grep -v '^$' \
-              | grep -vi 'total usage\|API time\|session time\|code changes\|Breakdown by\|claude-opus\|claude-haiku\|Premium requests' \
-              | tail -5)
+            echo "::endgroup::"
 
-            if echo "$OUTPUT" | grep -qi "missing\|no documentation\|should.*run\|does not have\|0%\|no CLAUDE"; then
-              REPORT="$REPORT
-          **$APP_NAME** (\`$APP_PATH\`): $OUTPUT
-          "
+            # Use silent mode to get clean summary for PR review
+            SUMMARY=$(timeout 60 copilot -p \
+              "Read $REPORT_FILE. Extract only the final audit summary — the 2-3 sentence conclusion about coverage and what action the developer should take. Output nothing else." \
+              -s --no-ask-user --allow-tool=read 2>&1) || true
+
+            if [ -n "$SUMMARY" ]; then
+              HAS_GAPS=true
+              echo "**$APP_NAME** (\`$APP_PATH\`)" >> /tmp/audit-report.md
+              echo "" >> /tmp/audit-report.md
+              echo "$SUMMARY" >> /tmp/audit-report.md
+              echo "" >> /tmp/audit-report.md
             fi
           done <<< '${{ steps.scope.outputs.apps }}'
 
-          if [ -n "$REPORT" ]; then
-            echo "has_gaps=true" >> "$GITHUB_OUTPUT"
+          echo "has_gaps=$HAS_GAPS" >> "$GITHUB_OUTPUT"
+          if [ -f /tmp/audit-report.md ]; then
             echo "report<<EOF" >> "$GITHUB_OUTPUT"
-            echo "$REPORT" >> "$GITHUB_OUTPUT"
+            cat /tmp/audit-report.md >> "$GITHUB_OUTPUT"
             echo "EOF" >> "$GITHUB_OUTPUT"
-          else
-            echo "has_gaps=false" >> "$GITHUB_OUTPUT"
           fi
 
       - name: Request docs changes
@@ -119,7 +119,7 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: |
           BODY=$(printf '%s\n\n%s\n\n%s' \
-            "The following apps changed in this PR but have missing or incomplete documentation:" \
+            "The following apps changed in this PR have missing or incomplete documentation:" \
             "${{ steps.audit.outputs.report }}" \
             "To generate documentation, run the \`/al-docs init\` or \`/al-docs update\` skill using [GitHub Copilot CLI](https://github.com/github/copilot-cli) (\`copilot\`) or [Claude Code](https://claude.com/claude-code) (\`claude\`).")
 
